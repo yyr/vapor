@@ -41,7 +41,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"help",	0,	"",	"Print this message and exit"},
 	{"debug",	0,	"",	"Enable debugging"},
 	{"quiet",	0,	"",	"Operate quietly"},
-	{"block",	0,	"",	"Preserve internal blocking in 3D output file"},
+	{"block",	0,	"",	"Preserve internal blocking in 3D output file (deprecated!!!)"},
     {"xregion", 1, "-1:-1", "X dimension subregion bounds (min:max)"},
     {"yregion", 1, "-1:-1", "Y dimension subregion bounds (min:max)"},
     {"zregion", 1, "-1:-1", "Z dimension subregion bounds (min:max)"},
@@ -67,130 +67,20 @@ OptionParser::Option_T	get_options[] = {
 
 const char	*ProgName;
 
-void	process_volume_vdc1(
-	MetadataVDC &metadata, FILE *fp,
+
+void	process_volume(
+	VDFIOBase *vdfio, FILE *fp,  Metadata::VarType_T vtype,
 	double *read_timer, double *xform_timer, double *write_timer,
 	double *timer
 ) {
 	size_t	size;
 	float	*buf = NULL;
-	WaveletBlock3DBufReader *wbreader3D = 0;
 	size_t dim[3];
 	double t0, t1;
 
-	wbreader3D = new WaveletBlock3DBufReader(metadata);
-	if (wbreader3D->GetErrCode() != 0) {
-		exit(1);
-	}
-	if (wbreader3D->OpenVariableRead(opt.ts, opt.varname,opt.level) < 0) {
-		exit(1);
-	} 
-	wbreader3D->GetDim(dim, opt.level);
+	vdfio->GetDim(dim, opt.level);
 
-	t0 = wbreader3D->GetTime();
-	*timer = *write_timer = 0.0;
-
-	if (! opt.block) {
-		
-		size = dim[0] * dim[1];
-		buf = new float[size];
-		assert (buf != NULL);
-
-		for(int z = 0; z<dim[2]; z++) {
-
-			if (! opt.quiet && z%10 == 0) {
-				cerr << "Writing slice # " << z << endl; 
-			}
-
-			if (wbreader3D->ReadSlice(buf) < 0) {
-				exit(1);
-			} 
-
-			t1 = wbreader3D->GetTime();
-			if (fwrite(buf, sizeof(*buf), size, fp) != size) {
-				MyBase::SetErrMsg("Could not write to output file : %M");
-				exit(1);
-			}
-			*write_timer += wbreader3D->GetTime() - t1;
-		}
-
-		if (! opt.quiet) {
-			fprintf(stdout, "Wrote %dx%dx%d volume\n", (int) dim[0],(int) dim[1],(int) dim[2]);
-		}
-	}
-	else {
-		size_t bdim[3], bs[3];
-		metadata.GetBlockSize(bs, opt.level);
-		
-		wbreader3D->GetDimBlk(bdim, opt.level);
-		
-		
-		size = bdim[0]*bs[0] * bdim[1]*bs[1] * bs[2]*2;
-
-		buf = new float[size];
-		assert (buf != NULL);
-
-		for(int z=0; z<bdim[2]; z+=2) {
-
-			if (! opt.quiet) {
-				cerr << "Writing slab # " << z << endl; 
-			}
-			if (wbreader3D->ReadSlabs(buf,0) < 0) {
-				cerr << ProgName << " : " << wbreader3D->GetErrMsg() << endl;
-				exit(1);
-			}
-
-			// Handle short write on last iteration (i.e. when odd Z dimension)
-			//
-			if (z+2 > bdim[2])  size = size >> 1;
-
-			t1 = wbreader3D->GetTime();
-			if (fwrite(buf, sizeof(buf[0]), size, fp) != size) {
-				MyBase::SetErrMsg("Could not write to output file : %M");
-				exit(1);
-			}
-			*write_timer += wbreader3D->GetTime() - t1;
-
-		}
-		size = bdim[0]*bs[0] * bdim[1]*bs[1];
-		if (! opt.quiet) {
-			fprintf(
-				stdout, "Wrote %dx%dx%d volume\n", 
-				(int) (bdim[0]*bs[0]),(int) (bdim[1]*bs[0]),(int) (bdim[2]*bs[0])
-			);
-		}
-	}
-
-	*timer = wbreader3D->GetTime() - t0;
-	*xform_timer = wbreader3D->GetXFormTimer();
-	*read_timer = wbreader3D->GetReadTimer();
-	wbreader3D->CloseVariable();
-
-	if (buf) delete [] buf;
-	delete wbreader3D;
-}
-
-void	process_volume_vdc2(
-	MetadataVDC &metadata, FILE *fp,  Metadata::VarType_T vtype,
-	double *read_timer, double *xform_timer, double *write_timer,
-	double *timer
-) {
-	size_t	size;
-	float	*buf = NULL;
-	WaveCodecIO *wcreader = NULL;
-	size_t dim[3];
-	double t0, t1;
-
-	wcreader = new WaveCodecIO(metadata, opt.nthreads);
-	if (wcreader->GetErrCode() != 0) {
-		exit(1);
-	}
-	if (wcreader->OpenVariableRead(opt.ts, opt.varname,opt.level, opt.lod) < 0) {
-		exit(1);
-	} 
-	wcreader->GetDim(dim, opt.level);
-
-	t0 = wcreader->GetTime();
+	t0 = vdfio->GetTime();
 	*timer = *write_timer = 0.0;
 
 	size_t dim3d[3] = {0,0,0};
@@ -224,255 +114,116 @@ void	process_volume_vdc2(
 			cout << "Writing slice # " << z << endl; 
 		}
 
-		if (wcreader->ReadSlice(buf) < 0) {
+		if (vdfio->ReadSlice(buf) < 0) {
 			exit(1);
 		} 
 
-		t1 = wcreader->GetTime();
+		t1 = vdfio->GetTime();
 		if (fwrite(buf, sizeof(*buf), size, fp) != size) {
 			MyBase::SetErrMsg("Could not write to output file : %M");
 			exit(1);
 		}
-		*write_timer += wcreader->GetTime() - t1;
+		*write_timer += vdfio->GetTime() - t1;
 	}
 
 	if (! opt.quiet) {
 		fprintf(stdout, "Wrote %dx%dx%d volume\n", (int) dim3d[0],(int) dim3d[1],(int) dim3d[2]);
 	}
 
-	*timer = wcreader->GetTime() - t0;
-	*xform_timer = wcreader->GetXFormTimer();
-	*read_timer = wcreader->GetReadTimer();
-	wcreader->CloseVariable();
+	*timer = vdfio->GetTime() - t0;
+	*xform_timer = vdfio->GetXFormTimer();
+	*read_timer = vdfio->GetReadTimer();
 
 	if (buf) delete [] buf;
-	delete wcreader;
 }
 
-void	process_region_vdc2(
-	MetadataVDC &metadata, FILE *fp,  Metadata::VarType_T vtype,
+void	process_region(
+	VDFIOBase *vdfio, FILE *fp,  Metadata::VarType_T vtype,
 	size_t min[3], size_t max[3],
 	double *read_timer, double *xform_timer, double *write_timer,
 	double *timer
 ) {
 	size_t	size;
 	float	*buf;
-	WaveCodecIO *wcreader = NULL;
 	size_t dim[3];
 	double t0, t1;
 
-	wcreader = new WaveCodecIO(metadata,opt.nthreads);
-	if (wcreader->GetErrCode() != 0) {
-		exit(1);
-	}
-	if (wcreader->OpenVariableRead(opt.ts, opt.varname,opt.level, opt.lod) < 0) {
-		exit(1);
-	} 
-	wcreader->GetDim(dim, opt.level);
+	vdfio->GetDim(dim, opt.level);
 
-	t0 = wcreader->GetTime();
+	t0 = vdfio->GetTime();
 	*timer = *write_timer = 0.0;
 
 	size_t dim3d[3] = {0,0,0};
 
+	size_t min3d[3], max3d[3];
+
 	switch (vtype) {
 	case Metadata::VAR2D_XY:
+        min3d[0] = min[0] == (size_t) -1 ? 0 : min[0];
+        max3d[0] = max[0] == (size_t) -1 ? dim[0] - 1 : max[0];
+        min3d[1] = min[1] == (size_t) -1 ? 0 : min[1];
+        max3d[1] = max[1] == (size_t) -1 ? dim[1] - 1 : max[1];
+        min3d[2] = max3d[2] = 0;
+	break;
+
 	case Metadata::VAR2D_XZ:
+        min3d[0] = min[0] == (size_t) -1 ? 0 : min[0];
+        max3d[0] = max[0] == (size_t) -1 ? dim[0] - 1 : max[0];
+        min3d[1] = min[2] == (size_t) -1 ? 0 : min[2];
+        max3d[1] = max[2] == (size_t) -1 ? dim[2] - 1 : max[2];
+        min3d[2] = max3d[2] = 0;
+	break;
+
 	case Metadata::VAR2D_YZ:
-		dim3d[0] = max[0] - min[0] + 1;
-		dim3d[1] = max[1] - min[1] + 1;
-		dim3d[2] = 1;
+        min3d[0] = min[1] == (size_t) -1 ? 0 : min[1];
+        max3d[0] = max[1] == (size_t) -1 ? dim[1] - 1 : max[1];
+        min3d[1] = min[2] == (size_t) -1 ? 0 : min[2];
+        max3d[1] = max[2] == (size_t) -1 ? dim[2] - 1 : max[2];
+        min3d[2] = max3d[2] = 0;
 	break;
+
 	case Metadata::VAR3D:
-		dim3d[0] = max[0] - min[0] + 1;
-		dim3d[1] = max[1] - min[1] + 1;
-		dim3d[2] = max[2] - min[2] + 1;
+        min3d[0] = min[0] == (size_t) -1 ? 0 : min[0];
+        max3d[0] = max[0] == (size_t) -1 ? dim[0] - 1 : max[0];
+        min3d[1] = min[1] == (size_t) -1 ? 0 : min[1];
+        max3d[1] = max[1] == (size_t) -1 ? dim[1] - 1 : max[1];
+        min3d[2] = min[2] == (size_t) -1 ? 0 : min[2];
+        max3d[2] = max[2] == (size_t) -1 ? dim[2] - 1 : max[2];
 	break;
+
 	default:
 	break;
 
 	}
+	dim3d[0] = max3d[0] - min3d[0] + 1;
+	dim3d[1] = max3d[1] - min3d[1] + 1;
+	dim3d[2] = max3d[2] - min3d[2] + 1;
 	
 	size = dim3d[0] * dim3d[1] * dim3d[2];
 	buf = new float[size];
 	assert (buf != NULL);
 
-	if (wcreader->ReadRegion(min, max, buf) < 0) {
+	if (vdfio->ReadRegion(min3d, max3d, buf) < 0) {
 		exit(1);
 	} 
 
-	t1 = wcreader->GetTime();
+	t1 = vdfio->GetTime();
 	if (fwrite(buf, sizeof(*buf), size, fp) != size) {
 		MyBase::SetErrMsg("Could not write to output file : %M");
 		exit(1);
 	}
-	*write_timer += wcreader->GetTime() - t1;
+	*write_timer += vdfio->GetTime() - t1;
 
 	if (! opt.quiet) {
 		fprintf(stdout, "Wrote %dx%dx%d volume\n", (int) dim3d[0],(int) dim3d[1],(int) dim3d[2]);
 	}
 
-	*timer = wcreader->GetTime() - t0;
-	*xform_timer = wcreader->GetXFormTimer();
-	*read_timer = wcreader->GetReadTimer();
-	wcreader->CloseVariable();
+	*timer = vdfio->GetTime() - t0;
+	*xform_timer = vdfio->GetXFormTimer();
+	*read_timer = vdfio->GetReadTimer();
 
-	delete wcreader;
 }
 
-void	process_region(
-	MetadataVDC &metadata, FILE *fp, Metadata::VarType_T vtype,
-	double *read_timer, double *xform_timer, double *write_timer,
-	double *timer
-) {
-	size_t	size;
-	float	*buf;
-
-	WaveletBlock3DRegionReader *wbreader3D;
-	size_t dim[3];
-	double t0, t1;
-
-	wbreader3D = new WaveletBlock3DRegionReader(metadata);
-	if (wbreader3D->GetErrCode() != 0) {
-		exit(1);
-	}
-	if (wbreader3D->OpenVariableRead(opt.ts, opt.varname,opt.level) < 0) {
-		exit(1);
-	} 
-	wbreader3D->GetDim(dim, opt.level);
-	
-	size_t min[3];
-	size_t max[3];
-
-	switch (vtype) {
-	case Metadata::VAR2D_XY:
-		min[0] = opt.xregion.min == (size_t) -1 ? 0 : opt.xregion.min;
-		max[0] = opt.xregion.max == (size_t) -1 ? dim[0] - 1 : opt.xregion.max;
-		min[1] = opt.yregion.min == (size_t) -1 ? 0 : opt.yregion.min;
-		max[1] = opt.yregion.max == (size_t) -1 ? dim[1] - 1 : opt.yregion.max;
-		min[2] = max[2] = 0;
-	break;
-
-	case Metadata::VAR2D_XZ:
-		min[0] = opt.xregion.min == (size_t) -1 ? 0 : opt.xregion.min;
-		max[0] = opt.xregion.max == (size_t) -1 ? dim[0] - 1 : opt.xregion.max;
-		min[1] = opt.zregion.min == (size_t) -1 ? 0 : opt.zregion.min;
-		max[1] = opt.zregion.max == (size_t) -1 ? dim[2] - 1 : opt.zregion.max;
-		min[2] = max[2] = 0;
-	break;
-	case Metadata::VAR2D_YZ:
-		min[0] = opt.yregion.min == (size_t) -1 ? 0 : opt.yregion.min;
-		max[0] = opt.yregion.max == (size_t) -1 ? dim[1] - 1 : opt.yregion.max;
-		min[1] = opt.zregion.min == (size_t) -1 ? 0 : opt.zregion.min;
-		max[1] = opt.zregion.max == (size_t) -1 ? dim[2] - 1 : opt.zregion.max;
-		min[2] = max[2] = 0;
-	break;
-	case Metadata::VAR3D:
-		min[0] = opt.xregion.min == (size_t) -1 ? 0 : opt.xregion.min;
-		max[0] = opt.xregion.max == (size_t) -1 ? dim[0] - 1 : opt.xregion.max;
-		min[1] = opt.yregion.min == (size_t) -1 ? 0 : opt.yregion.min;
-		max[1] = opt.yregion.max == (size_t) -1 ? dim[1] - 1 : opt.yregion.max;
-		min[2] = opt.zregion.min == (size_t) -1 ? 0 : opt.zregion.min;
-		max[2] = opt.zregion.max == (size_t) -1 ? dim[2] - 1 : opt.zregion.max;
-	break;
-	default:
-	break;
-
-	}
-
-	t0 = wbreader3D->GetTime();
-	*timer = *write_timer = 0.0;
-
-	if (! opt.block) {
-
-		size_t rdim[3];
-		for(int i=0; i<3; i++) {
-			rdim[i] = max[i]-min[i]+1;
-		}
-
-		size = rdim[0] * rdim[1] * rdim[2];
-		buf = new float[size];
-		assert (buf != NULL);
-		
-		if (wbreader3D->ReadRegion(min,max,buf) < 0) {
-			exit(1);
-		} 
-
-		t1 = wbreader3D->GetTime();
-		if (fwrite(buf, sizeof(*buf), size, fp) != size) {
-			MyBase::SetErrMsg("Could not write to output file : %M");
-			exit(1);
-		}
-		*write_timer = wbreader3D->GetTime() - t1;
-
-		if (! opt.quiet) {
-			if (vtype == Metadata::VAR3D) {
-				fprintf(stdout, "Wrote %dx%dx%d volume\n", (int) rdim[0],(int) rdim[1],(int) rdim[2]);
-			}
-			else {
-				fprintf(stdout, "Wrote %dx%d plane\n", (int) rdim[0],(int) rdim[1]);
-			}
-		}
-	}
-	else {
-		size_t bmin[3];
-		size_t bmax[3];
-		size_t bs[3];
-		metadata.GetBlockSize(bs, opt.level);
-
-		wbreader3D->MapVoxToBlk(min,bmin);
-		wbreader3D->MapVoxToBlk(max,bmax);
-
-		size_t bdim[3] = {
-			bmax[0]-bmin[0]+1,
-			bmax[1]-bmin[1]+1,
-			bmax[2]-bmin[2]+1
-		};
-
-		if (vtype == Metadata::VAR3D) {
-			size = bdim[0]*bs[0] * bdim[1]*bs[1] * bdim[2]*bs[2];
-		}
-		else {
-			size = bdim[0]*bs[0] * bdim[1]*bs[1];
-		}
-
-		buf = new float[size];
-		assert (buf != NULL);
-
-		if (wbreader3D->BlockReadRegion(bmin,bmax,buf,0) < 0) {
-			exit(1);
-		} 
-
-		t1 = wbreader3D->GetTime();
-		if (fwrite(buf, sizeof(*buf), size, fp) != size) {
-			MyBase::SetErrMsg("Could not write to output file : %M");
-			exit(1);
-		}
-		*write_timer = wbreader3D->GetTime() - t1;
-
-		if (! opt.quiet) {
-			if (vtype == Metadata::VAR3D) {
-				fprintf(
-					stdout, "Wrote %dx%dx%d volume\n", 
-					(int) (bdim[0]*bs[0]), (int) (bdim[1]*bs[1]),
-					(int) (bdim[2]*bs[2])
-				);
-			}
-			else {
-				fprintf(
-					stdout, "Wrote %dx%d plane\n",
-					(int) (bdim[0]*bs[0]), (int) (bdim[1]*bs[1])
-				);
-			}
-		}
-	}
-	*timer = wbreader3D->GetTime() - t0;
-
-	*xform_timer = wbreader3D->GetXFormTimer();
-	*read_timer = wbreader3D->GetReadTimer();
-	wbreader3D->CloseVariable();
-	delete wbreader3D;
-}
 
 void ErrMsgCBHandler(const char *msg, int) {
 	cerr << ProgName << " : " << msg << endl;
@@ -545,41 +296,54 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
-    bool vdc1 = (metadata.GetVDCType() == 1);
+	WaveletBlockIOBase *wbreader = NULL;
+	WaveCodecIO *wcreader = NULL;
+	VDFIOBase *vdfio = NULL;
 
+    bool vdc1 = (metadata.GetVDCType() == 1);
 	if (vdc1) {
 		if (min[0] == min[1] && min[1] == min[2] && min[2] == max[0] && 
 			max[0] == max[1]  && max[1] == max[2] && max[2] == (size_t) -1 &&
 			vtype == Metadata::VAR3D) {
 
-			process_volume_vdc1(
-				metadata, fp, &read_timer, &xform_timer, &write_timer, &timer
-			);
+			wbreader = new WaveletBlock3DBufReader(metadata);
 		}
 		else {
-			process_region(
-				metadata, fp, vtype, &read_timer, &xform_timer, &write_timer, &timer
-			);
+			wbreader = new WaveletBlock3DRegionReader(metadata);
 		}
+		vdfio = wbreader;
 	}
 	else {
-		if (min[0] == min[1] && min[1] == min[2] && min[2] == max[0] && 
-			max[0] == max[1]  && max[1] == max[2] && max[2] == (size_t) -1) {
+		wcreader = new WaveCodecIO(metadata, opt.nthreads);
+		vdfio = wcreader;
+	}
+	if (vdfio->GetErrCode() != 0) {
+		exit(1);
+    }
 
-			process_volume_vdc2(
-				metadata, fp, vtype, 
-				&read_timer, &xform_timer, &write_timer, &timer
-			);
-		}
-		else {
-			process_region_vdc2(
-				metadata, fp, vtype, min, max,
-				&read_timer, &xform_timer, &write_timer, &timer
-			);
-		}
+	if (vdfio->OpenVariableRead(opt.ts, opt.varname,opt.level, opt.lod) < 0) {
+		exit(1);
+	} 
+
+	if (min[0] == min[1] && min[1] == min[2] && min[2] == max[0] &&
+		max[0] == max[1]  && max[1] == max[2] && max[2] == (size_t) -1 &&
+		vtype == Metadata::VAR3D) {
+
+		process_volume(
+			vdfio, fp, vtype, 
+			&read_timer, &xform_timer, &write_timer, &timer
+		);
+	}
+	else {
+		process_region(
+			vdfio, fp, vtype, min, max,
+			&read_timer, &xform_timer, &write_timer, &timer
+		);
 	}
 
 	fclose(fp);
+	vdfio->CloseVariable();
+	delete vdfio;
 
 	if (! opt.quiet) {
 

@@ -115,33 +115,17 @@ int CopyConstantVariable3D(
 				 VDFIOBase *vdfio,
 				 int level,
 				 int lod, 
-				 bool vdc1,	
 				 const char* varname,
 				 const size_t dim[3],
 				 size_t tsVDC) {
 	
 	static size_t sliceBufferSize = 0;
 	static float *sliceBuffer = NULL;
-	WaveletBlock3DBufWriter *wbwriter = NULL;
-	WaveCodecIO *wcwriter = NULL;
 	
 	int rc;
 	
-	if (vdc1) {
-		wbwriter = (WaveletBlock3DBufWriter *) vdfio;
-	}
-	else {
-		wcwriter = (WaveCodecIO *) vdfio;
-	}
 	
-	
-	
-	if (vdc1) {
-		rc = wbwriter->OpenVariableWrite(tsVDC, varname, level);
-	}
-	else {
-		rc = wcwriter->OpenVariableWrite(tsVDC, varname, level, lod);
-	}
+	rc = vdfio->OpenVariableWrite(tsVDC, varname, level);
 	
 	if (rc<0) {
 		MyBase::SetErrMsg(
@@ -164,30 +148,16 @@ int CopyConstantVariable3D(
 		for (size_t i = 0; i< slice_sz; i++){
 			sliceBuffer[i] = vertValues[z];
 		}
-		if (vdc1) {
-			if (wbwriter->WriteSlice(sliceBuffer) < 0) {
-				MyBase::SetErrMsg(
-								  "Failed to write MOM variable %s slice at time step %d (vdc1)",
-								  varname, tsVDC
-								  );
-				return (-1);
-			}
-		} // If vdc1
-		else {
-			if (wcwriter->WriteSlice(sliceBuffer) < 0) {
-				MyBase::SetErrMsg(
-								  "Failed to write MOM variable %s slice at time step %d (vdc2)",
-								  varname, tsVDC
-								  );
-				return (-1);
-			}
-		} // Else vdc1
+		if (vdfio->WriteSlice(sliceBuffer) < 0) {
+			MyBase::SetErrMsg(
+							  "Failed to write MOM variable %s slice at time step %d ",
+							  varname, tsVDC
+							  );
+			return (-1);
+		}
 	} // End of for z.
 	
-	if (vdc1)
-		wbwriter->CloseVariable();
-	else
-		wcwriter->CloseVariable();
+	vdfio->CloseVariable();
 	
 	return(0);
 }  // End of CopyConstantVariable3D.
@@ -199,29 +169,13 @@ int CopyConstantVariable2D(
 				   WaveletBlock3DRegionWriter *wb2dwriter,
 				   int level,
 				   int lod, 
-				   bool vdc1,	
 				   const char* varname,
 				   const size_t dim[3],
 				   size_t tsVDC) {
 	
-	
-	WaveCodecIO *wc2dwriter = NULL;
-	
 	int rc;
-	if (vdc1) {
-		//		wb2dwriter = (WaveletBlock3DRegionWriter *) vdfio;
-	}
-	else {
-		wc2dwriter = (WaveCodecIO *) vdfio;
-	}
 	
-	
-	if (vdc1) {
-		rc = wb2dwriter->OpenVariableWrite(tsVDC, varname, level);
-	}
-	else {
-		rc = wc2dwriter->OpenVariableWrite(tsVDC, varname, level, lod);
-	}
+	rc = vdfio->OpenVariableWrite(tsVDC, varname, level, lod);
 	if (rc<0) {
 		MyBase::SetErrMsg(
 						  "Failed to copy MOM variable %s at time step %d",
@@ -232,29 +186,15 @@ int CopyConstantVariable2D(
 	
  		
 	
-	if (vdc1) {
-		if (wb2dwriter->WriteRegion(dataValues) < 0) {
-			MyBase::SetErrMsg(
-							  "Failed to write MOM variable %s at time step %d",
-							  varname, tsVDC
-							  );
-			return (-1);
-		}
-	}
-	else {
-		if (wc2dwriter->WriteSlice(dataValues) < 0) {
-			MyBase::SetErrMsg(
-							  "Failed to write MOM variable %s at time step %d",
-							  varname, tsVDC
-							  );
-			return (-1);
-		}
+	if (vdfio->WriteSlice(dataValues) < 0) {
+		MyBase::SetErrMsg(
+						  "Failed to write MOM variable %s at time step %d",
+						  varname, tsVDC
+						  );
+		return (-1);
 	}
 	
-	if (vdc1)
-		wb2dwriter->CloseVariable();
-	else
-		wc2dwriter->CloseVariable();
+	vdfio->CloseVariable();
 	
 	return(0);
 } // End of CopyConstantVariable2D.
@@ -267,7 +207,6 @@ int CopyVariable3D(
 	VDFIOBase *vdfio,
 	int level,
 	int lod, 
-	bool vdc1,	
 	string varname,
 	float* missMap,
 	const size_t dim[3],
@@ -279,24 +218,10 @@ int CopyVariable3D(
 	static size_t sliceBufferSize = 0;
 	static float *sliceBuffer = NULL;
 	static float *sliceBuffer2 = NULL;
-	WaveletBlock3DBufWriter *wbwriter = NULL;
-	WaveCodecIO *wcwriter = NULL;
 
 	int rc;
 	
-	if (vdc1) {
-		wbwriter = (WaveletBlock3DBufWriter *) vdfio;
-	}
-	else {
-		wcwriter = (WaveCodecIO *) vdfio;
-	}
-	
-	if (vdc1) {
-		rc = wbwriter->OpenVariableWrite(tsVDC, varname.c_str(), level);
-	}
-	else {
-		rc = wcwriter->OpenVariableWrite(tsVDC, varname.c_str(), level, lod);
-	}
+	rc = vdfio->OpenVariableWrite(tsVDC, varname.c_str(), level, lod);
 
 	if (rc<0) {
 		MyBase::SetErrMsg(
@@ -359,32 +284,18 @@ int CopyVariable3D(
 		}
 		
 		
-		if (vdc1) {
-			if (wbwriter->WriteSlice(sliceBuffer2) < 0) {
-				MyBase::SetErrMsg(
-					"Failed to write MOM variable %s slice at time step %d (vdc1)",
-					varname.c_str(), tsVDC
-				);
-				return (-1);
-			}
-		} // If vdc1
-		else {
-			if (wcwriter->WriteSlice(sliceBuffer2) < 0) {
-				MyBase::SetErrMsg(
-					"Failed to write MOM variable %s slice at time step %d (vdc2)",
-					varname.c_str(), tsVDC
-				);
-				return (-1);
-			}
-		} // Else vdc1
+		if (vdfio->WriteSlice(sliceBuffer2) < 0) {
+			MyBase::SetErrMsg(
+				"Failed to write MOM variable %s slice at time step %d (vdc2)",
+				varname.c_str(), tsVDC
+			);
+			return (-1);
+		}
 	} // End of for z.
 	printf(" variable %s time %d: min, max original data: %g %g\n", varname.c_str(), (int)tsVDC, minVal, maxVal);
 	printf(" variable %s time %d: min, max interpolated data: %g %g\n", varname.c_str(), (int)tsVDC, minVal1, maxVal1);
 
-	if (vdc1)
-		wbwriter->CloseVariable();
-	else
-		wcwriter->CloseVariable();
+		vdfio->CloseVariable();
 
 	return(0);
 }  // End of CopyVariable3D.
@@ -397,7 +308,6 @@ int CopyVariable2D(
 	WaveletBlock3DRegionWriter *wb2dwriter,
 	int level,
 	int lod, 
-	bool vdc1,	
 	string varname,
 	float* missMap,
 	const size_t dim[3],
@@ -410,23 +320,9 @@ int CopyVariable2D(
 	static float *sliceBuffer = NULL;
 	static float *sliceBuffer2 = NULL;
 
-	WaveCodecIO *wc2dwriter = NULL;
-
 	int rc;
-	if (vdc1) {
-//		wb2dwriter = (WaveletBlock3DRegionWriter *) vdfio;
-	}
-	else {
-		wc2dwriter = (WaveCodecIO *) vdfio;
-	}
 
-
-	if (vdc1) {
-		rc = wb2dwriter->OpenVariableWrite(tsVDC, varname.c_str(), level);
-	}
-	else {
-		rc = wc2dwriter->OpenVariableWrite(tsVDC, varname.c_str(), level, lod);
-	}
+	rc = vdfio->OpenVariableWrite(tsVDC, varname.c_str(), level, lod);
 	if (rc<0) {
 		MyBase::SetErrMsg(
 			"Failed to copy MOM variable %s at time step %d",
@@ -472,29 +368,15 @@ int CopyVariable2D(
 	
 	wt->interp2D(sliceBuffer, sliceBuffer2, mv, missMapVal);
 				
-	if (vdc1) {
-		if (wb2dwriter->WriteRegion(sliceBuffer2) < 0) {
-			MyBase::SetErrMsg(
-				"Failed to write MOM variable %s at time step %d",
-				varname.c_str(), tsVDC
-			);
-			return (-1);
-		}
-	}
-	else {
-		if (wc2dwriter->WriteSlice(sliceBuffer2) < 0) {
-			MyBase::SetErrMsg(
-				"Failed to write MOM variable %s at MOM time step %d",
-				varname.c_str(), tsVDC
-			);
-			return (-1);
-		}
+	if (vdfio->WriteSlice(sliceBuffer2) < 0) {
+		MyBase::SetErrMsg(
+			"Failed to write MOM variable %s at MOM time step %d",
+			varname.c_str(), tsVDC
+		);
+		return (-1);
 	}
 
-	if (vdc1)
-		wb2dwriter->CloseVariable();
-	else
-		wc2dwriter->CloseVariable();
+	vdfio->CloseVariable();
 
 	return(0);
 } // End of CopyVariable2D.
@@ -671,7 +553,7 @@ int	main(int argc, char **argv) {
 		const float* elevData = mom->GetElevations();
 		
 		for( size_t t = 0; t< numTimeSteps; t++){
-			int rc = CopyConstantVariable3D(elevData,vdfio,opt.level,opt.lod, vdc1,"ELEVATION",dimsVDC,t);
+			int rc = CopyConstantVariable3D(elevData,vdfio,opt.level,opt.lod,"ELEVATION",dimsVDC,t);
 			if (rc) exit(rc);
 		}
 	}
@@ -695,7 +577,7 @@ int	main(int argc, char **argv) {
 		}
 
 		for( size_t t = 0; t< numTimeSteps; t++){
-			int rc = CopyConstantVariable2D(mappedDepth,vdfio,wb2dwriter,opt.level,opt.lod, vdc1,"DEPTH",dimsVDC,t);
+			int rc = CopyConstantVariable2D(mappedDepth,vdfio,wb2dwriter,opt.level,opt.lod, "DEPTH",dimsVDC,t);
 			if (rc) exit(rc);
 		}
 	}
@@ -810,8 +692,8 @@ int	main(int argc, char **argv) {
 			//loop thru the times in the file.
 			for (int j = 0; j < timelen; j++){
 				//for each time convert the variable
-				if (ndims == 4)CopyVariable3D(ncid,varid,wt,vdfio,opt.level,opt.lod, vdc1, varname, missValPtr, dimsVDC,VDCTimes[j],j);
-				else CopyVariable2D(ncid,varid,wt,vdfio,wb2dwriter,opt.level,opt.lod, vdc1, varname, missValPtr, dimsVDC,VDCTimes[j],j);
+				if (ndims == 4)CopyVariable3D(ncid,varid,wt,vdfio,opt.level,opt.lod,  varname, missValPtr, dimsVDC,VDCTimes[j],j);
+				else CopyVariable2D(ncid,varid,wt,vdfio,wb2dwriter,opt.level,opt.lod,  varname, missValPtr, dimsVDC,VDCTimes[j],j);
 			}
 		} //End loop over variables in file
 			

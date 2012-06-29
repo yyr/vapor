@@ -219,14 +219,11 @@ void averageSlice(nc_type dataType,void* inSlice, void* outSlice,
 }
 
 void	process_volume(
-	VDFIOBase *bufwriter,
+	VDFIOBase *vdfio,
 	const size_t *dim, //dimensions from vdf
 	const int ncid,
 	double *read_timer
 ) {
-	WaveletBlock3DBufWriter *wb3d = dynamic_cast<WaveletBlock3DBufWriter *> (bufwriter);
-	WaveCodecIO *wc3d = dynamic_cast<WaveCodecIO *> (bufwriter);
-	assert (wc3d || wb3d);
 	*read_timer = 0.0;
 
 	// Check out the netcdf file.
@@ -472,7 +469,7 @@ void	process_volume(
 				cout << "Reading slice # " << z << endl;
 			}
 
-			double t1 = bufwriter->GetTime();
+			double t1 = vdfio->GetTime();
 			start[dimIndex[2]] = z;
 			
 			if (xtype == NC_FLOAT) {
@@ -482,7 +479,7 @@ void	process_volume(
 				);
 				
 				NC_ERR_READ(nc_status);
-				*read_timer += bufwriter->GetTime() - t1;
+				*read_timer += vdfio->GetTime() - t1;
 				averageSlice(xtype,(void*)inFBuffer, (void*)outFBuffer, 
 						inSizeX, inSizeY, outSizeX, outSizeY);
 
@@ -493,7 +490,7 @@ void	process_volume(
 					ncid, varid, start, count, inDBuffer
 				);
 				NC_ERR_READ(nc_status);
-				*read_timer += bufwriter->GetTime() - t1;
+				*read_timer += vdfio->GetTime() - t1;
 				averageSlice(xtype,(void*)inDBuffer, (void*)outDBuffer, 
 						inSizeX, inSizeY, outSizeX, outSizeY);
 				//Convert to float:
@@ -503,11 +500,10 @@ void	process_volume(
 			// Write a single slice of data
 			//
 			
-			if (wb3d) wb3d->WriteSlice(outFBuffer);
-			else wc3d->WriteSlice(outFBuffer);
+			vdfio->WriteSlice(outFBuffer);
 
-			if (bufwriter->GetErrCode() != 0) {
-				cerr << ProgName << ": " << bufwriter->GetErrMsg() << endl;
+			if (vdfio->GetErrCode() != 0) {
+				cerr << ProgName << ": " << vdfio->GetErrMsg() << endl;
 				exit(1);
 			}
 		} 
@@ -529,7 +525,7 @@ void	process_volume(
 
 		
 		//First, read newbuffer, average inside slice as needed
-		double t1 = bufwriter->GetTime();
+		double t1 = vdfio->GetTime();
 		start[dimIndex[2]] = zbegin;
 		
 		if (xtype == NC_FLOAT) {
@@ -539,7 +535,7 @@ void	process_volume(
 			);
 			
 			NC_ERR_READ(nc_status);
-			*read_timer += bufwriter->GetTime() - t1;
+			*read_timer += vdfio->GetTime() - t1;
 			averageSlice(xtype,(void*)stagInFBuffer, (void*)newFBuffer, 
 					inSizeX, inSizeY, outSizeX, outSizeY);
 			
@@ -549,7 +545,7 @@ void	process_volume(
 				ncid, varid, start, count, stagInDBuffer
 			);
 			NC_ERR_READ(nc_status);
-			*read_timer += bufwriter->GetTime() - t1;
+			*read_timer += vdfio->GetTime() - t1;
 			averageSlice(xtype,(void*)stagInDBuffer, (void*)newDBuffer, 
 					inSizeX, inSizeY, outSizeX, outSizeY);
 		}
@@ -574,42 +570,40 @@ void	process_volume(
 			//  read newBuffer
 			
 			if (xtype == NC_FLOAT) {
-				double t1 = bufwriter->GetTime();
+				double t1 = vdfio->GetTime();
 				nc_status = nc_get_vara_float(
 					ncid, varid, start, count, stagInFBuffer
 				);
 				
 				NC_ERR_READ(nc_status);
-				*read_timer += bufwriter->GetTime() - t1;
+				*read_timer += vdfio->GetTime() - t1;
 				averageSlice(xtype,(void*)stagInFBuffer, (void*)newFBuffer, 
 						inSizeX, inSizeY, outSizeX, outSizeY);
 				//Average two slices putting result into oldBuffer
 				for(int i=0; i<dim[0]*dim[1]; i++) oldFBuffer[i] = 0.5*(oldFBuffer[i]+newFBuffer[i]);
 				//Write out oldFBuffer:
-				if (wb3d) wb3d->WriteSlice(oldFBuffer);
-				else wc3d->WriteSlice(oldFBuffer);
-				if (bufwriter->GetErrCode() != 0) {
-					cerr << ProgName << ": " << bufwriter->GetErrMsg() << endl;
+				vdfio->WriteSlice(oldFBuffer);
+				if (vdfio->GetErrCode() != 0) {
+					cerr << ProgName << ": " << vdfio->GetErrMsg() << endl;
 					exit(1);
 				}
 			} else if (xtype == NC_DOUBLE){
-				double t1 = bufwriter->GetTime();
+				double t1 = vdfio->GetTime();
 				nc_status = nc_get_vara_double(
 					ncid, varid, start, count, stagInDBuffer
 				);
 				NC_ERR_READ(nc_status);
-				*read_timer += bufwriter->GetTime() - t1;
+				*read_timer += vdfio->GetTime() - t1;
 				averageSlice(xtype,(void*)stagInDBuffer, (void*)newDBuffer, 
 						inSizeX, inSizeY, outSizeX, outSizeY);
 				//Average two slices putting result into outFBuffer
 				for(int i=0; i<dim[0]*dim[1]; i++) outFBuffer[i] =(float)( 0.5*(oldDBuffer[i]+newDBuffer[i]));
 				//Write out outFBuffer:
 
-				if (wb3d) wb3d->WriteSlice(outFBuffer);
-				else wc3d->WriteSlice(outFBuffer);
+				vdfio->WriteSlice(outFBuffer);
 
-				if (bufwriter->GetErrCode() != 0) {
-					cerr << ProgName << ": " << bufwriter->GetErrMsg() << endl;
+				if (vdfio->GetErrCode() != 0) {
+					cerr << ProgName << ": " << vdfio->GetErrMsg() << endl;
 					exit(1);
 				}
 			}
@@ -634,15 +628,11 @@ void	process_volume(
 }
 
 void	process_slice(
-	VDFIOBase *bufwriter,
+	VDFIOBase *vdfio,
 	const size_t *dim, //dimensions from vdf
 	const int ncid,
 	double *read_timer
 ) {
-	WaveletBlock3DRegionWriter *wb3d = dynamic_cast<WaveletBlock3DRegionWriter *> (bufwriter);
-	WaveCodecIO *wc3d = dynamic_cast<WaveCodecIO *> (bufwriter);
-	assert (wc3d || wb3d);
-
 	*read_timer = 0.0;
 
 	// Check out the netcdf file.
@@ -851,7 +841,7 @@ void	process_slice(
 	int outSizeX = outCount[dimIndex[0]], outSizeY = outCount[dimIndex[1]];
 
 
-	double t1 = bufwriter->GetTime();
+	double t1 = vdfio->GetTime();
 	
 	if (xtype == NC_FLOAT) {
 	
@@ -860,7 +850,7 @@ void	process_slice(
 		);
 		
 		NC_ERR_READ(nc_status);
-		*read_timer += bufwriter->GetTime() - t1;
+		*read_timer += vdfio->GetTime() - t1;
 		averageSlice(xtype,(void*)inFBuffer, (void*)outFBuffer, 
 				inSizeX, inSizeY, outSizeX, outSizeY);
 
@@ -871,7 +861,7 @@ void	process_slice(
 			ncid, varid, start, count, inDBuffer
 		);
 		NC_ERR_READ(nc_status);
-		*read_timer += bufwriter->GetTime() - t1;
+		*read_timer += vdfio->GetTime() - t1;
 		averageSlice(xtype,(void*)inDBuffer, (void*)outDBuffer, 
 				inSizeX, inSizeY, outSizeX, outSizeY);
 		//Convert to float:
@@ -880,17 +870,12 @@ void	process_slice(
 	//
 	// Write the slice of data
 	//
-	
+	size_t min[] = {0,0,0};
+	size_t max[] = {dim[0]-1,dim[1]-2, 1};
+	vdfio->WriteRegion(outFBuffer, min, max);
 
-	if (wb3d) {
-		wb3d->WriteRegion(outFBuffer);
-	}
-	else {
-		wc3d->WriteSlice(outFBuffer);
-	}
-
-	if (bufwriter->GetErrCode() != 0) {
-		cerr << ProgName << ": " << bufwriter->GetErrMsg() << endl;
+	if (vdfio->GetErrCode() != 0) {
+		cerr << ProgName << ": " << vdfio->GetErrMsg() << endl;
 		exit(1);
 	}
 	
@@ -1004,9 +989,6 @@ int	main(int argc, char **argv) {
 		if (wb3d->GetErrCode() != 0) {
 			exit(1);
 		}
-		if (wb3d->OpenVariableWrite(opt.ts, opt.varname, opt.level) < 0) {
-			exit(1);
-		} 
 		vdfio = wb3d;
 	}
 	else {
@@ -1014,12 +996,12 @@ int	main(int argc, char **argv) {
 		if (wc3d->GetErrCode() != 0) {
 			exit(1);
 		}
-		if (wc3d->OpenVariableWrite(opt.ts, opt.varname, opt.level, opt.lod) < 0) {
-			exit(1);
-		} 
 		vdfio = wc3d;
 	}
 
+	if (vdfio->OpenVariableWrite(opt.ts, opt.varname, opt.level, opt.lod) < 0) {
+		exit(1);
+	} 
 	
     int nc_status;
     int ncid;
@@ -1045,8 +1027,7 @@ int	main(int argc, char **argv) {
 		);
 	}
 
-	if (wb3d) wb3d->CloseVariable();
-	else wc3d->CloseVariable();
+	vdfio->CloseVariable();
 
 	if (vdfio->GetErrCode() != 0) {
 		exit(1);

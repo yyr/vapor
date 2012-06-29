@@ -125,17 +125,8 @@ int CopyVariable(
 
 	static size_t sliceBufferSize = 0;
 	static float *sliceBuffer = NULL;
-	WaveletBlock3DBufWriter *wbwriter = NULL;
-	WaveCodecIO *wcwriter = NULL;
 
 	int rc;
-	
-	if (vdc1) {
-		wbwriter = (WaveletBlock3DBufWriter *) vdfio;
-	}
-	else {
-		wcwriter = (WaveCodecIO *) vdfio;
-	}
 	
 	rc = wrfreader->OpenVariableRead(tsWRF, varname.c_str());
 	if (rc<0) {
@@ -146,12 +137,7 @@ int CopyVariable(
 		return (-1);
 	}
 
-	if (vdc1) {
-		rc = wbwriter->OpenVariableWrite(tsVDC, varname.c_str(), level);
-	}
-	else {
-		rc = wcwriter->OpenVariableWrite(tsVDC, varname.c_str(), level, lod);
-	}
+	rc = vdfio->OpenVariableWrite(tsVDC, varname.c_str(), level, lod);
 
 	if (rc<0) {
 		MyBase::SetErrMsg(
@@ -178,31 +164,17 @@ int CopyVariable(
 			return (-1);
 		}
 		
-		if (vdc1) {
-			if (wbwriter->WriteSlice(sliceBuffer) < 0) {
-				MyBase::SetErrMsg(
-					"Failed to write WRF variable %s slice at WRF time step %d (vdc1)",
-					varname.c_str(), tsWRF
-				);
-				return (-1);
-			}
-		} // If vdc1
-		else {
-			if (wcwriter->WriteSlice(sliceBuffer) < 0) {
-				MyBase::SetErrMsg(
-					"Failed to write WRF variable %s slice at WRF time step %d (vdc2)",
-					varname.c_str(), tsWRF
-				);
-				return (-1);
-			}
-		} // Else vdc1
+		if (vdfio->WriteSlice(sliceBuffer) < 0) {
+			MyBase::SetErrMsg(
+				"Failed to write WRF variable %s slice at WRF time step %d (vdc2)",
+				varname.c_str(), tsWRF
+			);
+			return (-1);
+		}
 	} // End of for z.
 
 	wrfreader->CloseVariable();
-	if (vdc1)
-		wbwriter->CloseVariable();
-	else
-		wcwriter->CloseVariable();
+	vdfio->CloseVariable();
 
 	return(0);
 }  // End of CopyVariable.
@@ -210,7 +182,6 @@ int CopyVariable(
 int CopyVariable2D(
 	WRFReader *wrfreader,
 	VDFIOBase *vdfio,
-	WaveletBlock3DRegionWriter *wb2dwriter,
 	int level,
 	int lod, 
 	bool vdc1,	
@@ -223,15 +194,7 @@ int CopyVariable2D(
 	static size_t sliceBufferSize = 0;
 	static float *sliceBuffer = NULL;
 
-	WaveCodecIO *wc2dwriter = NULL;
-
 	int rc;
-	if (vdc1) {
-//		wb2dwriter = (WaveletBlock3DRegionWriter *) vdfio;
-	}
-	else {
-		wc2dwriter = (WaveCodecIO *) vdfio;
-	}
 
 	rc = wrfreader->OpenVariableRead(tsWRF, varname.c_str());
 	if (rc<0) {
@@ -242,12 +205,7 @@ int CopyVariable2D(
 		return (-1);
 	}
 
-	if (vdc1) {
-		rc = wb2dwriter->OpenVariableWrite(tsVDC, varname.c_str(), level);
-	}
-	else {
-		rc = wc2dwriter->OpenVariableWrite(tsVDC, varname.c_str(), level, lod);
-	}
+	rc = vdfio->OpenVariableWrite(tsVDC, varname.c_str(), level, lod);
 	if (rc<0) {
 		MyBase::SetErrMsg(
 			"Failed to copy WRF variable %s at WRF time step %d",
@@ -272,30 +230,16 @@ int CopyVariable2D(
 		return (-1);
 	}
 
-	if (vdc1) {
-		if (wb2dwriter->WriteRegion(sliceBuffer) < 0) {
-			MyBase::SetErrMsg(
-				"Failed to write WRF variable %s at WRF time step %d",
-				varname.c_str(), tsWRF
-			);
-			return (-1);
-		}
-	}
-	else {
-		if (wc2dwriter->WriteSlice(sliceBuffer) < 0) {
-			MyBase::SetErrMsg(
-				"Failed to write WRF variable %s at WRF time step %d",
-				varname.c_str(), tsWRF
-			);
-			return (-1);
-		}
+	if (vdfio->WriteRegion(sliceBuffer) < 0) {
+		MyBase::SetErrMsg(
+			"Failed to write WRF variable %s at WRF time step %d",
+			varname.c_str(), tsWRF
+		);
+		return (-1);
 	}
 
 	wrfreader->CloseVariable();
-	if (vdc1)
-		wb2dwriter->CloseVariable();
-	else
-		wc2dwriter->CloseVariable();
+	vdfio->CloseVariable();
 
 	return(0);
 } // End of CopyVariable2D.
@@ -402,8 +346,6 @@ int DeriveVar1(
 
 	int rc;
 	rc = wrfreader->OpenVariableRead(tsWRF, varwrfA.c_str());
-	WaveletBlock3DBufWriter *wbwriter = NULL;
-	WaveCodecIO *wcwriter = NULL;
 
 	if (rc<0) {
 		MyBase::SetErrMsg(
@@ -413,12 +355,7 @@ int DeriveVar1(
 		return (-1);
 	}
 
-	if (vdc1) {
-		rc = wbwriter->OpenVariableWrite(tsVDC, varvdc.c_str(), level);
-	}
-	else {
-		rc = wcwriter->OpenVariableWrite(tsVDC, varvdc.c_str(), level, lod);
-	}
+	rc = vdfio->OpenVariableWrite(tsVDC, varvdc.c_str(), level, lod);
 	if (rc<0) {
 		MyBase::SetErrMsg(
 			"Failed to write VDC variable %s at VDC time step %d",
@@ -448,32 +385,18 @@ int DeriveVar1(
 
 		calculate(sliceBufferA, sliceBufferB, dim);
 
-		if (vdc1) {
-			if (wbwriter->WriteSlice(sliceBufferB) < 0) {
-				MyBase::SetErrMsg(
-					"Failed to copy WRF variable %s at WRF time step %d",
-					varvdc.c_str(), tsWRF
-				);
-				return (-1);
-			}
-		} // If vdc1
-		else {
-			if (wcwriter->WriteSlice(sliceBufferB) < 0) {
-				MyBase::SetErrMsg(
-					"Failed to copy WRF variable %s at WRF time step %d",
-					varvdc.c_str(), tsWRF
-				);
-				return (-1);
-			}
-		} // Else vdc1
+		if (vdfio->WriteSlice(sliceBufferB) < 0) {
+			MyBase::SetErrMsg(
+				"Failed to copy WRF variable %s at WRF time step %d",
+				varvdc.c_str(), tsWRF
+			);
+			return (-1);
+		}
 
 	} // End of for z
 
 	wrfreader->CloseVariable();
-	if (vdc1)
-		wbwriter->CloseVariable();
-	else
-		wcwriter->CloseVariable();
+	vdfio->CloseVariable();
 
 	return(0);
 } // End of DeriveVar1
@@ -503,16 +426,7 @@ int DeriveVar2(
 
 	wrfreaderB = new WRFReader ((const MetadataWRF &) *wrfreader);
 
-	WaveletBlock3DBufWriter *wbwriter = NULL;
-	WaveCodecIO *wcwriter = NULL;
-
 	int rc;
-	if (vdc1) {
-		wbwriter = (WaveletBlock3DBufWriter *) vdfio;
-	}
-	else {
-		wcwriter = (WaveCodecIO *) vdfio;
-	}
 	
 	rc = wrfreader->OpenVariableRead(tsWRF, varwrfA.c_str());
 	if (rc<0) {
@@ -532,12 +446,7 @@ int DeriveVar2(
 		return (-1);
 	}
 
-	if (vdc1) {
-		rc = wbwriter->OpenVariableWrite(tsVDC, varvdc.c_str(), level);
-	}
-	else {
-		rc = wcwriter->OpenVariableWrite(tsVDC, varvdc.c_str(), level, lod);
-	}
+	rc = vdfio->OpenVariableWrite(tsVDC, varvdc.c_str(), level, lod);
 	if (rc<0) {
 		MyBase::SetErrMsg(
 			"Failed to write VDC variable %s at VDC time step %d",
@@ -577,32 +486,18 @@ int DeriveVar2(
 
 		calculate(sliceBufferA, sliceBufferB, sliceBufferC, dim);
 
-		if (vdc1) {
-			if (wbwriter->WriteSlice(sliceBufferC) < 0) {
-				MyBase::SetErrMsg(
-					"Failed to copy WRF variable %s at WRF time step %d",
-					varvdc.c_str(), tsWRF
-				);
-				return (-1);
-			}
-		} // If vdc1
-		else {
-			if (wcwriter->WriteSlice(sliceBufferC) < 0) {
-				MyBase::SetErrMsg(
-					"Failed to copy WRF variable %s at WRF time step %d",
-					varvdc.c_str(), tsWRF
-				);
-				return (-1);
-			}
-		} // Else vdc1
+		if (vdfio->WriteSlice(sliceBufferC) < 0) {
+			MyBase::SetErrMsg(
+				"Failed to copy WRF variable %s at WRF time step %d",
+				varvdc.c_str(), tsWRF
+			);
+			return (-1);
+		}
 	} // End of for z. 
 
 	wrfreader->CloseVariable();
 	wrfreaderB->CloseVariable();
-	if (vdc1)
-		wbwriter->CloseVariable();
-	else
-		wcwriter->CloseVariable();
+	vdfio->CloseVariable();
 
 	delete wrfreaderB;
 
@@ -635,19 +530,10 @@ int DeriveVar3(
 	WRFReader *wrfreaderB = NULL; 
 	WRFReader *wrfreaderC = NULL; 
 
-	WaveletBlock3DBufWriter *wbwriter = NULL;
-	WaveCodecIO *wcwriter = NULL;
-
 	wrfreaderB = new WRFReader ((const MetadataWRF &) *wrfreader);
 	wrfreaderC = new WRFReader ((const MetadataWRF &) *wrfreader);
 
 	int rc;
-	if (vdc1) {
-		wbwriter = (WaveletBlock3DBufWriter *) vdfio;
-	}
-	else {
-		wcwriter = (WaveCodecIO *) vdfio;
-	}
 
 	rc = wrfreader->OpenVariableRead(tsWRF, varwrfA.c_str());
 	if (rc<0) {
@@ -675,12 +561,7 @@ int DeriveVar3(
 		return (-1);
 	}
 
-	if (vdc1) {
-		rc = wbwriter->OpenVariableWrite(tsVDC, varvdc.c_str(), level);
-	}
-	else {
-		rc = wcwriter->OpenVariableWrite(tsVDC, varvdc.c_str(), level, lod);
-	}
+	rc = vdfio->OpenVariableWrite(tsVDC, varvdc.c_str(), level, lod);
 	
 	if (rc<0) {
 		MyBase::SetErrMsg(
@@ -730,33 +611,19 @@ int DeriveVar3(
 
 		calculate(sliceBufferA, sliceBufferB, sliceBufferC, sliceBufferD, dim);
 
-		if (vdc1) {
-			if (wbwriter->WriteSlice(sliceBufferD) < 0) {
-				MyBase::SetErrMsg(
-					"Failed to write VDC variable %s at VDC time step %d",
-					varvdc.c_str(), tsVDC
-				);
-				return (-1);
-			}
-		}
-		else {
-			if (wcwriter->WriteSlice(sliceBufferD) < 0) {
-				MyBase::SetErrMsg(
-					"Failed to write VDC variable %s at VDC time step %d",
-					varvdc.c_str(), tsVDC
-				);
-				return (-1);
-			}
+		if (vdfio->WriteSlice(sliceBufferD) < 0) {
+			MyBase::SetErrMsg(
+				"Failed to write VDC variable %s at VDC time step %d",
+				varvdc.c_str(), tsVDC
+			);
+			return (-1);
 		}
 	} // End for z.
 
 	wrfreader->CloseVariable();
 	wrfreaderB->CloseVariable();
 	wrfreaderC->CloseVariable();
-	if (vdc1)
-		wbwriter->CloseVariable();
-	else
-		wcwriter->CloseVariable();
+	vdfio->CloseVariable();
 
 	delete wrfreaderB;
 	delete wrfreaderC;
@@ -771,7 +638,7 @@ int DeriveVar3(
 
 int DoGeopotStuff(
 	WRFReader * wrfreader,
-	VDFIOBase *wbwriter,
+	VDFIOBase *vdfio,
 	bool vdc1,
 	int level,
 	int lod,
@@ -792,21 +659,21 @@ int DoGeopotStuff(
 
 	if (wantPh) {
 		CopyVariable(
-			wrfreader, wbwriter, level, lod, vdc1, "PH", dim, tsWRF, tsVDC
+			wrfreader, vdfio, level, lod, vdc1, "PH", dim, tsWRF, tsVDC
 		);
 		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "PH"));
 	}
 	if (wantPhb) {
 		CopyVariable(
-			wrfreader, wbwriter, level, lod, vdc1, "PHB", dim, tsWRF, tsVDC
+			wrfreader, vdfio, level, lod, vdc1, "PHB", dim, tsWRF, tsVDC
 		);
 		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "PHB"));
 	}
 	if (wantEle) {
 		CopyVariable(
-			wrfreader, wbwriter, level, lod, vdc1, "ELEVATION", dim, tsWRF, tsVDC
+			wrfreader, vdfio, level, lod, vdc1, "ELEVATION", dim, tsWRF, tsVDC
 		);
 		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "ELEVATION"));
@@ -817,7 +684,7 @@ int DoGeopotStuff(
 	//
 	if (wantPhnorm) {
 		DeriveVar2(
-			wrfreader, wbwriter, level, lod, vdc1, "PH", "PHB",
+			wrfreader, vdfio, level, lod, vdc1, "PH", "PHB",
 			"PHNorm_", dim, tsWRF, tsVDC, CalculatePHNorm
 		);
 		MyBase::SetErrCode(0);
@@ -832,7 +699,7 @@ int DoGeopotStuff(
 // a WRF level, i.e., not vertically interpolated to a Cartesian grid)
 int DoWindStuff(
 	WRFReader * wrfreader,
-	VDFIOBase *wbwriter,
+	VDFIOBase *vdfio,
 	bool vdc1,
 	int level,
 	int lod,
@@ -857,21 +724,21 @@ int DoWindStuff(
 
 	if (wantU) {
 		CopyVariable(
-			wrfreader, wbwriter, level, lod, vdc1, "U", dim, tsWRF, tsVDC
+			wrfreader, vdfio, level, lod, vdc1, "U", dim, tsWRF, tsVDC
 		);
 		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "U"));
 	}
 	if (wantV) {
 		CopyVariable(
-			wrfreader, wbwriter, level, lod, vdc1, "V", dim, tsWRF, tsVDC
+			wrfreader, vdfio, level, lod, vdc1, "V", dim, tsWRF, tsVDC
 		);
 		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "V"));
 	}
 	if (wantW) {
 		CopyVariable(
-			wrfreader, wbwriter, level, lod, vdc1, "W", dim, tsWRF, tsVDC
+			wrfreader, vdfio, level, lod, vdc1, "W", dim, tsWRF, tsVDC
 		);
 		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "W"));
@@ -880,7 +747,7 @@ int DoWindStuff(
 
 	if (wantUV) {
 		DeriveVar2(
-			wrfreader, wbwriter, level, lod, vdc1, "U", "V",
+			wrfreader, vdfio, level, lod, vdc1, "U", "V",
 			"UV_", dim, tsWRF, tsVDC, CalculateMag2D
 		);
 		MyBase::SetErrCode(0);
@@ -889,7 +756,7 @@ int DoWindStuff(
 
 	if (wantUVW) {
 		DeriveVar3(
-			wrfreader, wbwriter, level, lod, vdc1, "U", "V", "W",
+			wrfreader, vdfio, level, lod, vdc1, "U", "V", "W",
 			"UVW_", dim, tsWRF, tsVDC, CalculateMag3D
 		);
 		MyBase::SetErrCode(0);
@@ -899,7 +766,7 @@ int DoWindStuff(
 	if (wantOmZ) {
 
 		DeriveVar2(
-			wrfreader, wbwriter, level, lod, vdc1, "U", "V",
+			wrfreader, vdfio, level, lod, vdc1, "U", "V",
 			"omZ_", dim, tsWRF, tsVDC, CalculateDeriv2D
 		);
 		MyBase::SetErrCode(0);
@@ -913,7 +780,7 @@ int DoWindStuff(
 // T, Theta_, and TK_.  Sets flags so that variables are not read twice.
 int DoPTStuff(
 	WRFReader * wrfreader,
-	VDFIOBase *wbwriter,
+	VDFIOBase *vdfio,
 	bool vdc1,
 	int level,
 	int lod,
@@ -940,7 +807,7 @@ int DoPTStuff(
 
 	if (wantP) {
 		CopyVariable(
-			wrfreader, wbwriter, level, lod, vdc1, "P", dim, tsWRF, tsVDC
+			wrfreader, vdfio, level, lod, vdc1, "P", dim, tsWRF, tsVDC
 		);
 		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "P"));
@@ -948,7 +815,7 @@ int DoPTStuff(
 
 	if (wantPb) {
 		CopyVariable(
-			wrfreader, wbwriter, level, lod, vdc1, "PB", dim, tsWRF, tsVDC
+			wrfreader, vdfio, level, lod, vdc1, "PB", dim, tsWRF, tsVDC
 		);
 		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "PB"));
@@ -956,7 +823,7 @@ int DoPTStuff(
 
 	if (wantT) {
 		CopyVariable(
-			wrfreader, wbwriter, level, lod, vdc1, "T", dim, tsWRF, tsVDC
+			wrfreader, vdfio, level, lod, vdc1, "T", dim, tsWRF, tsVDC
 		);
 		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "T"));
@@ -964,7 +831,7 @@ int DoPTStuff(
 
 	if ( wantTheta ) {
 		DeriveVar1(
-			wrfreader, wbwriter, level, lod, vdc1, "T", 
+			wrfreader, vdfio, level, lod, vdc1, "T", 
 			"Theta_", dim, tsWRF, tsVDC, CalculateTheta
 		);
 		MyBase::SetErrCode(0);
@@ -973,7 +840,7 @@ int DoPTStuff(
 
 	if ( wantPnorm ) {
 		DeriveVar2(
-			wrfreader, wbwriter, level, lod, vdc1, "P", "PB",
+			wrfreader, vdfio, level, lod, vdc1, "P", "PB",
 			"PNorm_", dim, tsWRF, tsVDC, CalculatePNorm
 		);
 		MyBase::SetErrCode(0);
@@ -982,7 +849,7 @@ int DoPTStuff(
 
 	if ( wantPfull ) {
 		DeriveVar2(
-			wrfreader, wbwriter, level, lod, vdc1, "P", "PB",
+			wrfreader, vdfio, level, lod, vdc1, "P", "PB",
 			"PFull_", dim, tsWRF, tsVDC, CalculatePFull
 		);
 		MyBase::SetErrCode(0);
@@ -991,7 +858,7 @@ int DoPTStuff(
 
 	if ( wantTk ) {	
 		DeriveVar3(
-			wrfreader, wbwriter, level, lod, vdc1, "T", "P", "PB",
+			wrfreader, vdfio, level, lod, vdc1, "T", "P", "PB",
 			"TK_", dim, tsWRF, tsVDC, CalculateTK
 		);
 		MyBase::SetErrCode(0);
@@ -1031,7 +898,6 @@ int DoIndependentVars3d(
 int DoIndependentVars2d(
 	WRFReader *wrfreader,
 	VDFIOBase *vdfio,
-	WaveletBlock3DRegionWriter *wb2dwriter,
 	bool vdc1,
 	int level,
 	int lod,
@@ -1049,7 +915,7 @@ int DoIndependentVars2d(
 	for (int i=0; i<vn_copy.size(); i++) {
 		if (wrfreader->GetVarType(vn_copy[i]) == Metadata::VAR2D_XY) {
 			CopyVariable2D(
-				wrfreader, vdfio, wb2dwriter, level, lod, vdc1, vn_copy[i], 
+				wrfreader, vdfio, level, lod, vdc1, vn_copy[i], 
 				dim2d, tsWRF, tsVDC
 			);
 			MyBase::SetErrCode(0);
@@ -1309,7 +1175,9 @@ int	main(int argc, char **argv) {
 
 	WaveletBlock3DBufWriter *wbwriter3d = NULL;
 	WaveCodecIO	*wcwriter3d = NULL;
-	VDFIOBase *vdfio = NULL;
+	WaveletBlock3DRegionWriter *wbwriter2d = NULL;
+	VDFIOBase *vdfio3d = NULL;
+	VDFIOBase *vdfio2d = NULL;
 	
 	MetadataVDC	*metadataVDC = new MetadataVDC(metafile);
 	if (MetadataVDC::GetErrCode() != 0) { 
@@ -1320,29 +1188,27 @@ int	main(int argc, char **argv) {
 	bool vdc1 = (metadataVDC->GetVDCType() == 1);
 
 	if(vdc1) {
-//	WaveletBlock3DBufWriter *wbwriter3d = new WaveletBlock3DBufWriter(*metadataVDC);
 		wbwriter3d = new WaveletBlock3DBufWriter(*metadataVDC);
-		vdfio = wbwriter3d;
+		vdfio3d = wbwriter3d;
+
+		//
+		// Ugh! WaveletBlock3DBufWriter class does not handle 2D data!!!  
+		// Also does want to work form VDFIOBase.
+		//
+		wbwriter2d = new WaveletBlock3DRegionWriter(*metadataVDC);
+		vdfio2d = wbwriter2d;
 	}
 	else {
 		wcwriter3d = new WaveCodecIO(*metadataVDC, opt.nthreads);
-		vdfio = wcwriter3d;
+		vdfio3d = wcwriter3d;
+		vdfio2d = vdfio3d;
 	}
 	
-	if (WaveletBlock3DBufWriter::GetErrCode() != 0) { 
+	if (! vdfio3d || ! vdfio2d) {
 		MyBase::SetErrMsg("Error processing VDC metafile : %s",metafile.c_str());
 		exit(1);
 	}
 
-	//
-	// Ugh! WaveletBlock3DBufWriter class does not handle 2D data!!!  
-	// Also does want to work form VDFIOBase.
-	//
-	WaveletBlock3DRegionWriter *wb2dwriter = new WaveletBlock3DRegionWriter(*metadataVDC);
-	if (WaveletBlock3DRegionWriter::GetErrCode() != 0) { 
-		MyBase::SetErrMsg("Error processing VDC metafile : %s",metafile.c_str());
-		exit(1);
-	}
 
 	vector <string> varsVDC = metadataVDC->GetVariableNames();
 	const size_t *dimsVDC = metadataVDC->GetDimension();
@@ -1486,31 +1352,31 @@ int	main(int argc, char **argv) {
 			vector <string> wrk_vars = copy_vars;
 
 			DoGeopotStuff(
-				wrfreader, vdfio, vdc1, opt.level, opt.lod, dimsVDC, 
+				wrfreader, vdfio3d, vdc1, opt.level, opt.lod, dimsVDC, 
 				tsWRF, tsVDC, wrk_vars
 			);
 
 
 			// Find wind speeds, if necessary
 			DoWindStuff( 
-				wrfreader, vdfio, vdc1, opt.level, opt.lod, dimsVDC, 
+				wrfreader, vdfio3d, vdc1, opt.level, opt.lod, dimsVDC, 
 				tsWRF, tsVDC, wrk_vars
 			);
 
 			DoPTStuff( 
-				wrfreader, vdfio, vdc1, opt.level, opt.lod, dimsVDC, 
+				wrfreader, vdfio3d, vdc1, opt.level, opt.lod, dimsVDC, 
 				tsWRF, tsVDC, wrk_vars
 			);
 
 			// Remaining 3D variables
 			DoIndependentVars3d(
-				wrfreader, vdfio, vdc1, opt.level, opt.lod, dimsVDC, 
+				wrfreader, vdfio3d, vdc1, opt.level, opt.lod, dimsVDC, 
 				tsWRF, tsVDC, wrk_vars
 			);
 
 			// Remaining 2D variables
 			DoIndependentVars2d(
-				wrfreader, vdfio, wb2dwriter, vdc1, opt.level, opt.lod,
+				wrfreader, vdfio2d, vdc1, opt.level, opt.lod,
 				dimsVDC, tsWRF, tsVDC, wrk_vars
 			);
 
