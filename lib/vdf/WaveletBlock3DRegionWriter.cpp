@@ -73,7 +73,8 @@ WaveletBlock3DRegionWriter::~WaveletBlock3DRegionWriter(
 int	WaveletBlock3DRegionWriter::OpenVariableWrite(
 	size_t	timestep,
 	const char	*varname,
-	int reflevel
+	int reflevel,
+	int 
 ) {
 	int	rc;
 
@@ -720,11 +721,6 @@ int	WaveletBlock3DRegionWriter::WriteRegion(
 ) {
 
 	SetDiagMsg( "WaveletBlock3DRegionWriter::WriteRegion()" );
-
-	if (_firstWrite) {
-		_dataRange[0] = _dataRange[1] = *region;
-	}
-	_firstWrite = false;
 
     size_t dim3d[3];
     VDFIOBase::GetDim(dim3d,_reflevel);

@@ -70,7 +70,8 @@ WaveletBlock3DWriter::~WaveletBlock3DWriter(
 int	WaveletBlock3DWriter::OpenVariableWrite(
 	size_t timestep,
 	const char *varname,
-	int reflevel
+	int reflevel,
+	int
 ) {
 	int	rc;
 	slab_cntr_c = 0;

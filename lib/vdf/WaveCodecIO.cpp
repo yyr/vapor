@@ -842,8 +842,39 @@ int WaveCodecIO::ReadRegion(
 	return(0);
 }
 
+int WaveCodecIO::ReadRegion(
+    float *region
+) {
+    SetDiagMsg( "WaveCodecIO::ReadRegion()");
+
+    size_t dim3d[3];
+    VDFIOBase::GetDim(dim3d,_reflevel);
+
+    size_t min[] = {0,0,0};
+    size_t max[3];
+    switch (_vtype) {
+    case VAR2D_XY:
+        max[0] = dim3d[0]-1; max[1] = dim3d[1]-1;
+    break;
+    case VAR2D_XZ:
+        max[0] = dim3d[0]-1; max[1] = dim3d[2]-1;
+    break;
+    case VAR2D_YZ:
+        max[0] = dim3d[1]-1; max[1] = dim3d[2]-1;
+    break;
+    case VAR3D:
+        max[0] = dim3d[0]-1; max[1] = dim3d[1]-1; max[2] = dim3d[2]-1;
+    break;
+    default:
+        SetErrMsg("Invalid variable type");
+        return(-1);
+    }
+
+    return(ReadRegion(min, max, region));
+}
+
 int WaveCodecIO::BlockWriteRegion(
-	const float *region, const size_t bmin[3], const size_t bmax[3], int block
+	const float *region, const size_t bmin[3], const size_t bmax[3], bool block
 ) {
 #ifdef PIOVDC_DEBUG
 	cout << "BlockWriteRegion(" << bmin[0] << " ";
@@ -1375,6 +1406,40 @@ int WaveCodecIO::WriteRegion(
 
 	return(0);
 }
+
+int WaveCodecIO::WriteRegion(
+    const float *region
+) {
+
+    SetDiagMsg( "WaveCodecIO::WriteRegion()" );
+
+    size_t dim3d[3];
+    VDFIOBase::GetDim(dim3d,_reflevel);
+
+    size_t min[] = {0,0,0};
+    size_t max[3];
+    switch (_vtype) {
+    case VAR2D_XY:
+        max[0] = dim3d[0]-1; max[1] = dim3d[1]-1;
+    break;
+    case VAR2D_XZ:
+        max[0] = dim3d[0]-1; max[1] = dim3d[2]-1;
+    break;
+    case VAR2D_YZ:
+        max[0] = dim3d[1]-1; max[1] = dim3d[2]-1;
+    break;
+    case VAR3D:
+        max[0] = dim3d[0]-1; max[1] = dim3d[1]-1; max[2] = dim3d[2]-1;
+    break;
+    default:
+        SetErrMsg("Invalid variable type");
+        return(-1);
+    }
+
+    return(WriteRegion(region, min, max));
+}
+
+
 
 int WaveCodecIO::ReadSlice(
 	float *slice

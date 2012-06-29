@@ -54,7 +54,8 @@ WaveletBlock3DBufWriter::~WaveletBlock3DBufWriter(
 int	WaveletBlock3DBufWriter::OpenVariableWrite(
 	size_t timestep,
 	const char *varname,
-	int reflevel
+	int reflevel,
+	int
 ) {
 	int	rc;
 	size_t size;

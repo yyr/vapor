@@ -167,7 +167,8 @@ int    WaveletBlockIOBase::VariableExists(
 int	WaveletBlockIOBase::OpenVariableWrite(
 	size_t timestep,
 	const char *varname,
-	int reflevel
+	int reflevel,
+	int
 ) {
 
 	int min;

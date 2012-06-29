@@ -217,7 +217,8 @@ int	AMRIO::TreeWrite(const AMRTree *tree) {
 int	AMRIO::OpenVariableWrite(
 	size_t timestep,
 	const char *varname,
-	int reflevel
+	int reflevel,
+	int
 ) {
 
 	SetDiagMsg("AMRIO::OpenVariableWrite(%d, %s, %d)",timestep,varname,reflevel);
