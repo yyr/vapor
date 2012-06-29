@@ -76,6 +76,8 @@ protected:
 	static bool needCheckArrays() {return (arrayAllocMap.size()>0);}
 	static void tryDeleteArrayStorage(PyObject*);
 	static void mapArrayObject(PyObject*, float*);
+	static void mapMaskObject(PyObject*, bool*);
+	bool usingMissingValues(size_t ts,const std::vector<string>& inputVars2,const std::vector<string>& inputVars3,size_t* rmin,size_t* rmax);
 	
 	
 	//Initialize the python vapor module:
@@ -109,6 +111,7 @@ protected:
 	static bool everInitialized;
 	
 	static std::map<PyObject*, float*> arrayAllocMap;
+	static std::map<PyObject*, bool*> maskAllocMap;
 	static QMutex* arrayAllocMutex;
        
 		
