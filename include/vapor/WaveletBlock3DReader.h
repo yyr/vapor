@@ -87,7 +87,8 @@ public:
  virtual int OpenVariableWrite(
 	size_t timestep,
 	const char *varname,
-	int reflevel = 0
+	int reflevel = 0,
+	int lod = 0
  ) {SetErrMsg("Operation not supported"); return(-1);};
 
 

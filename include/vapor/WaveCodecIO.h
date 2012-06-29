@@ -195,6 +195,8 @@ public:
 	const size_t min[3], const size_t max[3], float *region
  );
 
+ virtual int ReadRegion(float *region);
+
  //! Read the next volume slice from the currently opened file
  //!
  //! Read in and return a slice (2D array) of
@@ -244,7 +246,8 @@ public:
  //! \sa OpenVariableWrite() SetBoundarPadOnOff()
  //
  virtual int BlockWriteRegion(
-	const float *region, const size_t bmin[3], const size_t bmax[3], int block=1
+	const float *region, const size_t bmin[3], const size_t bmax[3], 
+	bool block=true
  );
 
  //! Write a volume subregion to the currently opened progressive
@@ -275,6 +278,10 @@ public:
  //!
  virtual int WriteRegion(
 	const float *region, const size_t min[3], const size_t max[3]
+ );
+
+ virtual int WriteRegion(
+	const float *region
  );
 
 

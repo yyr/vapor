@@ -86,10 +86,40 @@ public:
 
  double GetTime() const;
 
- virtual int    BlockReadRegion(
-    const size_t /*bmin*/[3], const size_t /*bmax*/[3],
-    float * /*region*/, int /*unblock*/ = 1
- ) { return(-1);};
+ virtual int OpenVariableRead(
+    size_t timestep, const char *varname, int reflevel=0, int lod=0
+ ) = 0;
+
+ virtual int BlockReadRegion(
+    const size_t bmin[3], const size_t bmax[3], float *region, bool unblock=true
+ ) = 0;
+
+ virtual int ReadRegion(
+    const size_t min[3], const size_t max[3], float *region
+ ) = 0;
+
+ virtual int ReadRegion(float *region) = 0;
+
+ virtual int ReadSlice(float *slice) = 0;
+
+ virtual int OpenVariableWrite(
+    size_t timestep, const char *varname, int reflevel=0, int lod=0
+ ) = 0;
+
+ virtual int BlockWriteRegion(
+    const float *region, const size_t bmin[3], const size_t bmax[3], 
+	bool block=true
+ ) = 0;
+
+ virtual int WriteRegion(
+    const float *region, const size_t min[3], const size_t max[3]
+ ) = 0;
+
+ virtual int WriteRegion(const float *region) = 0;
+
+ virtual int WriteSlice(const float *slice) = 0;
+
+ virtual int CloseVariable() = 0;
 
  virtual const float *GetDataRange() const = 0;
 

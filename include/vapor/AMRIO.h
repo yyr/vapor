@@ -186,8 +186,26 @@ public:
  int	OpenVariableWrite(
 	size_t timestep,
 	const char *varname,
-	int reflevel = -1
+	int reflevel = -1,
+	int lod = -1
  );
+
+ virtual int BlockWriteRegion(
+    const float *region, const size_t bmin[3], const size_t bmax[3],
+    bool block=true
+ ) { SetErrMsg("Not implemented"); return(-1); }
+
+ virtual int WriteRegion(
+    const float *region, const size_t min[3], const size_t max[3]
+ ) { SetErrMsg("Not implemented"); return(-1); }
+
+ virtual int WriteRegion(
+    const float *region
+ ) { SetErrMsg("Not implemented"); return(-1); }
+
+ virtual int WriteSlice(const float *slice)
+    { SetErrMsg("Not implemented"); return(-1); }
+
  
  //! Open the named AMR grid for reading
  //!
@@ -219,6 +237,22 @@ public:
 	int reflevel = 0,
 	int lod = 0
  );
+
+ virtual int BlockReadRegion(
+    const size_t bmin[3], const size_t bmax[3], float *region, bool unblock=true
+ ) { SetErrMsg("Not implemented"); return(-1); }
+
+ virtual int ReadRegion(
+    const size_t min[3], const size_t max[3], float *region
+ ) { SetErrMsg("Not implemented"); return(-1); }
+
+ virtual int ReadRegion(
+    float *region
+ ) { SetErrMsg("Not implemented"); return(-1); }
+
+ virtual int ReadSlice(float *slice) {
+    SetErrMsg("Not implemented"); return(-1);
+ }
 
  //! Close the currently opened variable.
  //!
