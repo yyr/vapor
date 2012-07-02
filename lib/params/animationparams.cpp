@@ -63,7 +63,13 @@ AnimationParams::~AnimationParams(){
 
 //Currently nothing "deep" to copy:
 Params* AnimationParams::deepCopy(ParamNode*){
-	return (Params*)new AnimationParams(*this);
+	AnimationParams* newParams = new AnimationParams(*this);
+	newParams->keyframes = keyframes;
+	for (int i = 0; i<keyframes.size(); i++){
+		newParams->keyframes[i] = new Keyframe(*keyframes[i]);
+		newParams->keyframes[i]->viewpoint = new Viewpoint(*(keyframes[i]->viewpoint));
+	}
+	return (Params*)newParams;
 }
 
 //Reset to initial state
@@ -87,6 +93,7 @@ restart(){
 	loadedTimesteps.clear();
 	keyframes.clear();
 	useKeyframing=false;
+	defaultCameraSpeed = 1.;
 	//Insert a default keyframe:
 	Viewpoint* vp = new Viewpoint();
 	Keyframe* kf = new Keyframe(vp,0., 0, 0);

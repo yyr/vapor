@@ -160,6 +160,8 @@ public:
 	bool usingTimestepList() {return useTimestepSampleList;}
 	void setTimestepSampleList(bool on) {useTimestepSampleList = on;}
 	std::vector<int>& getTimestepList() { return timestepList;}
+	float getDefaultCameraSpeed(){ return defaultCameraSpeed;}
+	void setDefaultCameraSpeed(float val){val = defaultCameraSpeed;}
 	
 	ParamNode* buildNode();
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
@@ -197,6 +199,7 @@ protected:
 	//Keyframing state:
 	bool useKeyframing;
 	std::vector<Keyframe*> keyframes;
+	float defaultCameraSpeed;
 #endif /* DOXYGEN_SKIP_THIS */
 	
 };
