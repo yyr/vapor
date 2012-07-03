@@ -166,7 +166,7 @@ AnimationEventRouter::hookUpTab()
 
 	//Animation control widgets that result in rebuilding animation
 	connect (keyTimestepEdit, SIGNAL( returnPressed()) , this, SLOT(keyframeReturnPressed()));
-	connect (framenumEdit, SIGNAL( returnPressed()) , this, SLOT(keyframeReturnPressed()));
+	connect (frameCountEdit, SIGNAL( returnPressed()) , this, SLOT(keyframeReturnPressed()));
 	connect (speedEdit, SIGNAL( returnPressed()) , this, SLOT(keyframeReturnPressed()));
 	connect (keyIndexSpin, SIGNAL(valueChanged(int)),this, SLOT(guiChangeKeyIndex(int)));
 	connect (enableKeyframeCheckBox, SIGNAL(toggled(bool)),this,SLOT(guiEnableKeyframing(bool)));
@@ -346,9 +346,19 @@ void AnimationEventRouter::updateTab(){
 	int currIndex = keyIndexSpin->value();
 	Keyframe* kf = aParams->getKeyframe(currIndex);
 	keyTimestepEdit->setText(QString::number(kf->timeStep));
-	framenumEdit->setText(QString::number(kf->frameNum));
+	frameCountEdit->setText(QString::number(kf->frameNum));
+	//Count all previous frameCounts:
+	vector<Keyframe*>& keyframes = aParams->getKeyframes();
+	int totframes = 0;
+	for (int i = 0; i<currIndex; i++) totframes += keyframes[i]->frameNum;
+	frameIndexEdit->setText(QString::number(totframes));
 	speedEdit->setText(QString::number(kf->speed));
 	enableKeyframeCheckBox->setChecked(aParams->keyframingEnabled());
+	Keyframe* kf2 = 0;
+	if (currIndex < aParams->getNumKeyframes()-1) kf2 = aParams->getKeyframe(currIndex+1);
+	if (kf->speed < 1.e-5 && ((kf2 == 0) || kf2->speed < 1.e-5))
+		frameCountEdit->setReadOnly(false);
+	else frameCountEdit->setReadOnly(true);
 
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
@@ -761,7 +771,11 @@ void AnimationEventRouter::guiChangeKeyIndex(int keyIndex){
 	
 	Keyframe* kf = aParams->getKeyframe(keyIndex);
 	keyTimestepEdit->setText(QString::number(kf->timeStep));
-	framenumEdit->setText(QString::number(kf->frameNum));
+	frameCountEdit->setText(QString::number(kf->frameNum));
+	vector<Keyframe*> keyframes = aParams->getKeyframes();
+	int totframes = 0;
+	for (int i = 0; i<keyIndex; i++) totframes += keyframes[i]->frameNum;
+	frameIndexEdit->setText(QString::number(totframes));
 	speedEdit->setText(QString::number(kf->speed));
 
 	PanelCommand::captureEnd(cmd, aParams);
@@ -859,9 +873,11 @@ void AnimationEventRouter::guiInsertMovingKeyframe(){
 	float newSpeed = oldKeyframe->speed;
 	if (newSpeed <= 0.f) newSpeed = aParams->getDefaultCameraSpeed();
 	
-	Keyframe* newKeyframe = new Keyframe(newVP,newSpeed,newTS,1+oldKeyframe->frameNum);
+	Keyframe* newKeyframe = new Keyframe(newVP,newSpeed,newTS,1);
 	
 	aParams->insertKeyframe(currKey,newKeyframe);
+	if (keyIndexSpin->maximum() < currKey+1) keyIndexSpin->setMaximum(currKey+1);
+	keyIndexSpin->setValue(currKey+1);
 	//Just for testing:
 	//fixKeyframes();
 	PanelCommand::captureEnd(cmd, aParams);
@@ -923,9 +939,10 @@ void AnimationEventRouter::guiInsertFixedKeyframe(){
 			}
 		}
 	}
-	Keyframe* newKeyframe = new Keyframe(newVP,0.f,newTS,1+oldKeyframe->frameNum);
+	Keyframe* newKeyframe = new Keyframe(newVP,0.f,newTS,1);
 	aParams->insertKeyframe(currKey,newKeyframe);
-	
+	if (keyIndexSpin->maximum() < currKey+1) keyIndexSpin->setMaximum(currKey+1);
+	keyIndexSpin->setValue(currKey+1);
 	
 	PanelCommand::captureEnd(cmd, aParams);
 	updateTab();
@@ -937,9 +954,12 @@ void AnimationEventRouter::guiGotoKeyframe(){
 	Keyframe* key = aParams->getKeyframe(currKey);
 	//If keyframing is enabled, just need to go to that keyframe
 	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
-	if (aParams->keyframingEnabled())
-		aParams->setCurrentFrameNumber(key->frameNum);
-	else {
+	if (aParams->keyframingEnabled()){
+		vector<Keyframe*> keyframes = aParams->getKeyframes();
+		int posn = 0;
+		for (int i = 0; i<currKey; i++) posn+=keyframes[i]->frameNum;
+		aParams->setCurrentFrameNumber(posn);
+	} else {
 		//otherwise, set the current timestep and viewpoint based on this keyframe:
 		aParams->setCurrentFrameNumber(key->timeStep);
 		vpParams->setCurrentViewpoint(new Viewpoint(*key->viewpoint));
@@ -958,9 +978,14 @@ void AnimationEventRouter::keyframeReturnPressed(){
 	int currKey = keyIndexSpin->value();
 	Keyframe* key = aParams->getKeyframe(currKey);
 	Keyframe* keyCopy = new Keyframe(*key);
-	key->frameNum = abs(framenumEdit->text().toInt());
 	key->speed = abs(speedEdit->text().toFloat());
 	key->timeStep = abs(keyTimestepEdit->text().toInt());
+	if (!frameCountEdit->isReadOnly()){
+		int newFrameCount = frameCountEdit->text().toInt();
+		//Need to make sure that the new frame num at least 1
+		if (newFrameCount < 1) newFrameCount = 1;
+		key->frameNum = newFrameCount;
+	}
 	if(!fixKeyframes()){
 		key->frameNum = keyCopy->frameNum;
 		key->speed = keyCopy->speed;

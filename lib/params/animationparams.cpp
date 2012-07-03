@@ -36,6 +36,7 @@
 #include "animationparams.h"
 #include <vapor/ParamNode.h>
 
+
 using namespace VAPoR;
 const string AnimationParams::_shortName = "Animation";
 const string AnimationParams::_repeatAttr = "RepeatPlay";
@@ -96,7 +97,7 @@ restart(){
 	defaultCameraSpeed = 1.;
 	//Insert a default keyframe:
 	Viewpoint* vp = new Viewpoint();
-	Keyframe* kf = new Keyframe(vp,0., 0, 0);
+	Keyframe* kf = new Keyframe(vp,0., 0, 1);
 	keyframes.push_back(kf);
 	stateChanged = true;
 	
@@ -150,6 +151,13 @@ reinit(bool doOverride){
 	
 	// set pause state
 	playDirection = 0;
+	//Set the first frame for animation control:
+	if (doOverride){
+		ViewpointParams* vpParams = (ViewpointParams*)Params::GetParamsInstance(_viewpointParamsTag);
+		Viewpoint* startingViewpoint = vpParams->getHomeViewpoint();
+		keyframes.clear();
+		keyframes.push_back(new Keyframe(startingViewpoint, 0., 0, 1));
+	}
 
 	
 	return true;

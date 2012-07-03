@@ -1177,7 +1177,8 @@ reinitializeParams(bool doOverride){
 		EventRouter* eRouter = getEventRouter(pType);
 		eRouter->reinitTab(doOverride);
 	}
-	
+	//Note that animation params must reinitialize after viewpoint params 
+	//in order to get starting viewpoint for animation control.
 	getGlobalAnimationParams()->reinit(doOverride);
 }
 //Update params and tabs to be aware of change of active variables

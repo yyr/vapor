@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>425</width>
-    <height>930</height>
+    <height>844</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -492,7 +492,7 @@ step, and will animate in unison.</string>
          </property>
          <property name="icon">
           <iconset>
-           <normaloff>../../images/playreverse.JPG</normaloff>../../images/playreverse.JPG</iconset>
+           <normaloff>../../../../../../Users/alan/images/playreverse.JPG</normaloff>../../../../../../Users/alan/images/playreverse.JPG</iconset>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -509,7 +509,7 @@ step, and will animate in unison.</string>
          </property>
          <property name="icon">
           <iconset>
-           <normaloff>../../images/pause.JPG</normaloff>../../images/pause.JPG</iconset>
+           <normaloff>../../../../../../Users/alan/images/pause.JPG</normaloff>../../../../../../Users/alan/images/pause.JPG</iconset>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -529,7 +529,7 @@ step, and will animate in unison.</string>
          </property>
          <property name="icon">
           <iconset>
-           <normaloff>../../images/playforward.xpm</normaloff>../../images/playforward.xpm</iconset>
+           <normaloff>../../../../../../Users/alan/images/playforward.xpm</normaloff>../../../../../../Users/alan/images/playforward.xpm</iconset>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -550,7 +550,7 @@ step, and will animate in unison.</string>
          </property>
          <property name="icon">
           <iconset>
-           <normaloff>../../images/tobegin.jpg</normaloff>../../images/tobegin.jpg</iconset>
+           <normaloff>../../../../../../Users/alan/images/tobegin.jpg</normaloff>../../../../../../Users/alan/images/tobegin.jpg</iconset>
          </property>
          <property name="checkable">
           <bool>false</bool>
@@ -567,9 +567,9 @@ step, and will animate in unison.</string>
          </property>
          <property name="icon">
           <iconset>
-           <normaloff>../../images/step-back.jpg</normaloff>
-           <disabledoff>../../images/step-back-off.jpg</disabledoff>
-           <disabledon>../../images/step-back-off.jpg</disabledon>../../images/step-back.jpg</iconset>
+           <normaloff>../../../../../../Users/alan/images/step-back.jpg</normaloff>
+           <disabledoff>../../../../../../Users/alan/images/step-back-off.jpg</disabledoff>
+           <disabledon>../../../../../../Users/alan/images/step-back-off.jpg</disabledon>../../../../../../Users/alan/images/step-back.jpg</iconset>
          </property>
         </widget>
        </item>
@@ -583,7 +583,7 @@ step, and will animate in unison.</string>
          </property>
          <property name="icon">
           <iconset>
-           <normaloff>../../images/replay.JPG</normaloff>../../images/replay.JPG</iconset>
+           <normaloff>../../../../../../Users/alan/images/replay.JPG</normaloff>../../../../../../Users/alan/images/replay.JPG</iconset>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -606,9 +606,9 @@ step, and will animate in unison.</string>
          </property>
          <property name="icon">
           <iconset>
-           <normaloff>../../images/step-fwd.jpg</normaloff>
-           <disabledoff>../../images/step-fwd-off.jpg</disabledoff>
-           <disabledon>../../images/step-fwd-off.jpg</disabledon>../../images/step-fwd.jpg</iconset>
+           <normaloff>../../../../../../Users/alan/images/step-fwd.jpg</normaloff>
+           <disabledoff>../../../../../../Users/alan/images/step-fwd-off.jpg</disabledoff>
+           <disabledon>../../../../../../Users/alan/images/step-fwd-off.jpg</disabledon>../../../../../../Users/alan/images/step-fwd.jpg</iconset>
          </property>
          <property name="checkable">
           <bool>false</bool>
@@ -625,7 +625,7 @@ step, and will animate in unison.</string>
          </property>
          <property name="icon">
           <iconset>
-           <disabledon>../../images/toend.JPG</disabledon>
+           <disabledon>../../../../../../Users/alan/images/toend.JPG</disabledon>
           </iconset>
          </property>
          <property name="checkable">
@@ -1129,6 +1129,9 @@ size slider and text box.</string>
               <property name="toolTip">
                <string>Specify the default nonzero camera speed to use when the camera is moving</string>
               </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
              </widget>
             </item>
             <item>
@@ -1194,6 +1197,26 @@ size slider and text box.</string>
              </widget>
             </item>
             <item row="0" column="2">
+             <widget class="QLabel" name="label_7">
+              <property name="toolTip">
+               <string>Number of frames from this keyframe to the next keyframe</string>
+              </property>
+              <property name="whatsThis">
+               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;The frame count can only be edited if the camera is not moving. If the camera is moving, the frame index is a consequence of the speed.  When the camera is moving, the number of frames is calculated so as to result in a camera speed as close as possible to the specified speed.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string> Frame count</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="3">
              <widget class="QLabel" name="label_4">
               <property name="toolTip">
                <string>The frame index associated with the current key frame</string>
@@ -1203,7 +1226,7 @@ size slider and text box.</string>
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;The frame index can only be edited if the camera is not moving.  Otherwise, the frame index is a consequence of the speed.  The number of frames is chosen so as to result in a camera speed as close as possible to the specified speed.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;The frame index index is the position of the keyframe in the full animation sequence.  It is the sum of all the frame counts for previous frames.  It cannot be edited.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Frame index</string>
@@ -1213,7 +1236,7 @@ p, li { white-space: pre-wrap; }
               </property>
              </widget>
             </item>
-            <item row="0" column="3">
+            <item row="0" column="4">
              <widget class="QLabel" name="label_5">
               <property name="toolTip">
                <string>Speed indicates the speed of the camera motion in user coordinates.  Units are distance per frame.</string>
@@ -1265,16 +1288,16 @@ p, li { white-space: pre-wrap; }
              </widget>
             </item>
             <item row="1" column="2">
-             <widget class="QLineEdit" name="framenumEdit">
+             <widget class="QLineEdit" name="frameCountEdit">
               <property name="toolTip">
-               <string>The frame index associated with the current key frame</string>
+               <string>Number of frames from this keyframe to the next keyframe</string>
               </property>
               <property name="whatsThis">
                <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;The frame index can only be edited if the camera is not moving.  Otherwise, the frame index is a consequence of the speed.  The number of frames is chosen so as to result in a camera speed as close as possible to the specified speed.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;The frame count can only be edited if the camera is not moving. If the camera is moving, the frame index is a consequence of the speed.  When the camera is moving, the number of frames is calculated so as to result in a camera speed as close as possible to the specified speed.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>40</string>
@@ -1288,6 +1311,29 @@ p, li { white-space: pre-wrap; }
              </widget>
             </item>
             <item row="1" column="3">
+             <widget class="QLineEdit" name="frameIndexEdit">
+              <property name="toolTip">
+               <string>The frame index associated with the current key frame</string>
+              </property>
+              <property name="whatsThis">
+               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;The frame index index is the position of the keyframe in the full animation sequence.  It is the sum of all the frame counts for previous frames.  It cannot be edited.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>40</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="4">
              <widget class="QLineEdit" name="speedEdit">
               <property name="toolTip">
                <string>Speed indicates the speed of the camera motion in user coordinates.  Units are distance per frame.</string>
