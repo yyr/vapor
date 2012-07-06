@@ -785,6 +785,9 @@ void AnimationEventRouter::guiEnableKeyframing(bool enabled){
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Toggle keyframing enabled");
 	aParams->enableKeyframing(enabled);
 	PanelCommand::captureEnd(cmd, aParams);
+	VizWinMgr::getInstance()->animationParamsChanged(aParams);
+	VizWinMgr::getInstance()->setAnimationDirty(aParams);
+	updateTab();
 }
 void AnimationEventRouter::guiChangeKeyframe(){
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
@@ -809,6 +812,7 @@ void AnimationEventRouter::guiChangeKeyframe(){
 		updateTab();
 		return;
 	}
+	aParams->buildViewsAndTimes();
 	PanelCommand::captureEnd(cmd, aParams);
 	updateTab();
 }
@@ -829,6 +833,7 @@ void AnimationEventRouter::guiDeleteKeyframe(){
 	if(currKey == numkeys-1){
 		keyIndexSpin->setValue(currKey-1);
 	}
+	aParams->buildViewsAndTimes();
 	PanelCommand::captureEnd(cmd, aParams);
 	updateTab();
 }
@@ -880,6 +885,7 @@ void AnimationEventRouter::guiInsertMovingKeyframe(){
 	keyIndexSpin->setValue(currKey+1);
 	//Just for testing:
 	//fixKeyframes();
+	aParams->buildViewsAndTimes();
 	PanelCommand::captureEnd(cmd, aParams);
 	updateTab();
 }
@@ -943,7 +949,7 @@ void AnimationEventRouter::guiInsertFixedKeyframe(){
 	aParams->insertKeyframe(currKey,newKeyframe);
 	if (keyIndexSpin->maximum() < currKey+1) keyIndexSpin->setMaximum(currKey+1);
 	keyIndexSpin->setValue(currKey+1);
-	
+	aParams->buildViewsAndTimes();
 	PanelCommand::captureEnd(cmd, aParams);
 	updateTab();
 }
@@ -995,6 +1001,7 @@ void AnimationEventRouter::keyframeReturnPressed(){
 		updateTab();
 		return;
 	}
+	aParams->buildViewsAndTimes();
 	PanelCommand::captureEnd(cmd, aParams);
 }
 bool AnimationEventRouter::fixKeyframes(){
