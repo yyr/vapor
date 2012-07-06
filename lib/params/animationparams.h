@@ -33,6 +33,7 @@ class ExpatParseMgr;
 class Keyframe;
 class XmlNode;
 class ParamNode;
+class animate;
 //! \class AnimationParams
 //! \brief A class that specifies parameters used in animation 
 //! \author Alan Norton
@@ -95,17 +96,16 @@ public:
 		
 	int getNumKeyframes() {return keyframes.size();}
 	bool keyframingEnabled() {return useKeyframing;}
-	void enableKeyframing( bool onoff){useKeyframing = onoff;}
+	void enableKeyframing( bool onoff);
+		
 
 
 #ifndef DOXYGEN_SKIP_THIS
 
+	//Build vectors of viewpoints and timesteps by interpolating keyframes
+	void buildViewsAndTimes();
 	const vector<Viewpoint*> getLoadedViewpoints() {return loadedViewpoints;}
-	void clearLoadedViewpoints() {
-		for (int i = 0; i<loadedViewpoints.size(); i++) delete loadedViewpoints[i];
-		loadedViewpoints.clear();
-		loadedTimesteps.clear();
-	}
+	void clearLoadedViewpoints(); 
 	int getNumLoadedViewpoints(){return loadedViewpoints.size();}
 	void addViewpoint(Viewpoint* vp){loadedViewpoints.push_back(vp);}
 	void addTimestep(size_t ts){loadedTimesteps.push_back(ts);}
@@ -161,7 +161,7 @@ public:
 	void setTimestepSampleList(bool on) {useTimestepSampleList = on;}
 	std::vector<int>& getTimestepList() { return timestepList;}
 	float getDefaultCameraSpeed(){ return defaultCameraSpeed;}
-	void setDefaultCameraSpeed(float val){val = defaultCameraSpeed;}
+	void setDefaultCameraSpeed(float val){defaultCameraSpeed=val;}
 	
 	ParamNode* buildNode();
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
@@ -200,6 +200,7 @@ protected:
 	bool useKeyframing;
 	std::vector<Keyframe*> keyframes;
 	float defaultCameraSpeed;
+	animate* myAnimate;  //used to perform keyframe interpolation
 #endif /* DOXYGEN_SKIP_THIS */
 	
 };

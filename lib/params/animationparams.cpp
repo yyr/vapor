@@ -34,6 +34,7 @@
 #include "datastatus.h" 
 #include "params.h"
 #include "animationparams.h"
+#include "animate.h"
 #include <vapor/ParamNode.h>
 
 
@@ -51,7 +52,7 @@ float AnimationParams::defaultMaxWait = 6000.f;
 
 
 AnimationParams::AnimationParams(int winnum): Params( winnum, Params::_animationParamsTag){
-	
+	myAnimate = 0;
 	restart();
 }
 AnimationParams::~AnimationParams(){
@@ -59,6 +60,7 @@ AnimationParams::~AnimationParams(){
 		delete keyframes[i];
 	}
 	keyframes.clear();
+	if( myAnimate) delete myAnimate;
 }
 
 
@@ -70,6 +72,7 @@ Params* AnimationParams::deepCopy(ParamNode*){
 		newParams->keyframes[i] = new Keyframe(*keyframes[i]);
 		newParams->keyframes[i]->viewpoint = new Viewpoint(*(keyframes[i]->viewpoint));
 	}
+	newParams->myAnimate = 0;
 	return (Params*)newParams;
 }
 
@@ -100,7 +103,8 @@ restart(){
 	Keyframe* kf = new Keyframe(vp,0., 0, 1);
 	keyframes.push_back(kf);
 	stateChanged = true;
-	
+	if (myAnimate) delete myAnimate;
+	myAnimate = new animate;
 }
 void AnimationParams::setDefaultPrefs(){
 	defaultMaxFPS = 10.f;
@@ -436,4 +440,48 @@ buildNode(){
 	//No Children!
 	
 	return animationNode;
+}
+void AnimationParams::buildViewsAndTimes(){
+	
+	clearLoadedViewpoints();
+	myAnimate->keyframeInterpolate(keyframes, loadedViewpoints);
+	int sz = loadedViewpoints.size();
+	Viewpoint* lastViewpoint = loadedViewpoints[sz-1];
+
+	//Adjust time steps:
+	for (int i = 0; i<keyframes.size()-1; i++){
+		int firstTstep = keyframes[i]->timeStep;
+		int nextTstep = keyframes[i+1]->timeStep;
+		int numFrames = keyframes[i]->frameNum;
+		for (int j = 0; j<numFrames; j++){
+			float frameFraction = (float)j/(float)(numFrames);
+			int tStep = (int)(0.5+ (float)firstTstep + frameFraction*(nextTstep-firstTstep));
+			loadedTimesteps.push_back(tStep);
+		}
+	}
+	//At the very end, use the timestep of the last keyframe:
+	loadedTimesteps.push_back(keyframes[keyframes.size()-1]->timeStep);
+	int num1 = loadedTimesteps.size();
+	int num2 = loadedViewpoints.size();
+	assert(num1 == num2);
+
+}
+void AnimationParams::enableKeyframing( bool onoff){
+	useKeyframing = onoff;
+	if (useKeyframing){
+		setStartFrameNumber(0);
+		setEndFrameNumber(loadedViewpoints.size()-1);
+	} else {
+		DataStatus* ds = DataStatus::getInstance();
+		setStartFrameNumber(ds->getMinTimestep());
+		setEndFrameNumber(ds->getMaxTimestep());
+	}
+	if (currentFrame < startFrame) currentFrame = startFrame;
+	if (currentFrame > endFrame) currentFrame = endFrame;
+}
+void AnimationParams::clearLoadedViewpoints() {
+	if (loadedViewpoints.size() < 2) return;
+	//for (int i = 0; i<loadedViewpoints.size()-1; i++) delete loadedViewpoints[i];
+	loadedViewpoints.clear();
+	loadedTimesteps.clear();
 }
