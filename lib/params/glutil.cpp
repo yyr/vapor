@@ -1178,7 +1178,13 @@ void imagQuat2View(const float firstquat[4], const float q[3], float vdir[3], fl
 	vcopy(mtrx+8,vdir);
 	vscale(vdir,-1.f);
 }
-
+void calcStartQuat(const float quata[4],const float quatb[4], float startQuat[4]){
+	float dotprod=0.f;
+	for (int i = 0; i<4; i++) dotprod += quata[i]*quatb[i];
+	float factor = 1.f;
+	if (dotprod < 0.f) factor = -1.f;
+	for (int i = 0; i<4; i++) startQuat[i] = factor*quata[i];
+}
 #define DEAD
 #ifdef	DEAD
 

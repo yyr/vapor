@@ -11,7 +11,7 @@ FILES = \
 	tfinterpolator transferfunction viewpoint twoDparams \
 	twoDimageparams twoDdataparams \
 	animationparams	viewpointparams ParamsBase Box \
-	arrowparams \
+	arrowparams animate\
 	Colormap OpacityMap ParamNode ParamsIso ColorMapBase \
 	MapperFunctionBase OpacityMapBase TransferFunctionLite \
 	pythonpipeline GetAppPath ModelParams ModelScene Transform3d

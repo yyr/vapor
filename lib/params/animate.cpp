@@ -333,8 +333,10 @@ void animate::calculate_quats (int startIndex){
     
     
     //startQuat
- 
-    VAPoR::view2Quat(vDir1, upVec1, startQuat);
+	float quata[4],quatb[4];
+    VAPoR::view2Quat(vDir1, upVec1, quata);
+	VAPoR::view2Quat(vDir2, upVec2, quatb);
+	VAPoR::calcStartQuat(quata,quatb,startQuat);
    // calc.view2Quat(vDir1, upVec1, startQuat);
     //imaginary quaternions
     

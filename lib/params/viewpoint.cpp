@@ -205,7 +205,8 @@ buildNode(){
 
 Viewpoint* Viewpoint::interpolate(Viewpoint* vp1, Viewpoint* vp2, float alpha){
 	Viewpoint* vp = new Viewpoint(*vp1);
-	float rCenter[3], vdir[3],campos[3],upvec[3], startQuat[4], imagQuat[3];
+	float rCenter[3], vdir[3],campos[3],upvec[3], startQuat[4], imagQuat[3], qa[4],qb[4];
+	float imagQuat1[3],imagQuat2[3];
 	float camdist1 = vdist(vp1->getCameraPosLocal(), vp1->getRotationCenterLocal());
 	float camdist2 = vdist(vp2->getCameraPosLocal(), vp2->getRotationCenterLocal());
 	//Multiplicative interpolation of dist:
@@ -215,12 +216,17 @@ Viewpoint* Viewpoint::interpolate(Viewpoint* vp1, Viewpoint* vp2, float alpha){
 		rCenter[i] = (1.-alpha)*vp1->getRotationCenterLocal(i) + alpha*vp2->getRotationCenterLocal(i);
 	}
 	vp->setRotationCenterLocal(rCenter);
-	//Interpolate rotation in quaternions:  First convert first VP orientation to norm-1 quaternion 
-	view2Quat(vp1->getViewDir(), vp1->getUpVec(), startQuat);
-	//Then convert second vp to pure imaginary quaternion, relative to 1st vp (which corresponds to zero quaternion)
-	view2ImagQuat(startQuat, vp2->getViewDir(),vp2->getUpVec(), imagQuat);
+	//Interpolate rotation in quaternions:  First convert two VP orientations to norm-1 quaternions
+	view2Quat(vp1->getViewDir(), vp1->getUpVec(), qa);
+	view2Quat(vp2->getViewDir(), vp2->getUpVec(), qb);
+	calcStartQuat(qa,qb,startQuat);
+	//Then convert both vps to pure imaginary quaternion, relative to startQuat 
+	view2ImagQuat(startQuat, vp2->getViewDir(),vp2->getUpVec(), imagQuat2);
+	view2ImagQuat(startQuat, vp1->getViewDir(),vp1->getUpVec(), imagQuat1);
 	//interpolate linearly in imag quaternions:
-	vscale(imagQuat, alpha);
+	vscale(imagQuat2, alpha);
+	vscale(imagQuat1, (1.-alpha));
+	vadd(imagQuat1,imagQuat2,imagQuat);
 	//convert back to a viewpoint:
 	imagQuat2View(startQuat, imagQuat, vdir, upvec);
 	vp->setUpVec(upvec);

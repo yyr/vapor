@@ -137,6 +137,7 @@ PARAMS_API float   getScale(GLfloat* rotmatrix);
 PARAMS_API void view2Quat(float vdir[3], float upvec[3], float q[4]);
 PARAMS_API void imagQuat2View(const float startquat[4], const float q[3], float vdir[3],float upvec[3]);
 PARAMS_API void view2ImagQuat(const float startquat[4], float vdir[3],float upvec[3], float q[3]);
+PARAMS_API void calcStartQuat(const float quata[4],const float quatb[4], float startQuat[4]);
 
 inline void vset(float* a, const float x, const float y, const float z){a[0] = x, a[1] = y, a[2] = z;}
 inline float vdot(const float* a, const float* b)
