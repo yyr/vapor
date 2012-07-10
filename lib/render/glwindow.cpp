@@ -352,28 +352,7 @@ void GLWindow::paintEvent(QPaintEvent*)
 	int frameNum = getActiveAnimationParams()->getCurrentFrameNumber();
 	int timeStep = getActiveAnimationParams()->getCurrentTimestep();
 
-	/* test code
-	if (frameNum != previousFrameNum){
-		Viewpoint* vp = getActiveViewpointParams()->getCurrentViewpoint();
-		static float lastVdir[3], lastUp[3];
-		static bool first = true;
-		float quat[3];
-		float startQuat[4];
-		float vdir[3],upvec[3];
-		vcopy(vp->getViewDir(), vdir);
-		vcopy(vp->getUpVec(), upvec);
-		view2Quat(vdir, upvec, startQuat);
-		float len = qlength(startQuat);
-		view2ImagQuat(startQuat,vdir,upvec,quat);
-		imagQuat2View(startQuat,quat,vdir,upvec);
-		if (!first){
-			view2ImagQuat(startQuat,lastVdir,lastUp,quat);
-			imagQuat2View(startQuat,quat,lastVdir,lastUp);
-		}
-		first = false;
-		for (int i = 0; i<3; i++) {lastVdir[i] = vdir[i]; lastUp[i] = upvec[i];}
-	}
-	*/
+	
 	const vector<Viewpoint*>& loadedViewpoints = getActiveAnimationParams()->getLoadedViewpoints();
 	if (getActiveAnimationParams()->keyframingEnabled() && loadedViewpoints.size()>0 && frameNum != previousFrameNum){
 	

@@ -1155,6 +1155,49 @@ void view2ImagQuat(const float startQuat[4], float vdir[3], float upvec[3], floa
 	else for (int i = 0; i<3; i++) q[i] = quat2[i]*re/mag;
 	return;	
 }
+//Convert two camera views to two pure imaginary quaternion, for linear interpolation of viewpoints.
+//If dot product is negative, the first quaternion is negated, to prevent interpolating the long way around.
+void views2ImagQuats(float vdir1[3], float upvec1[3],float vdir2[3], float upvec2[3], float q1[3], float q2[3]){
+	
+	float quat1[4],quat2[4];
+	view2Quat(vdir1, upvec1, quat1);
+	view2Quat(vdir2, upvec2, quat2);
+	float dotprod = 0.;
+	for (int i = 0; i<4; i++) dotprod += quat1[i]*quat2[i];
+	if (dotprod < 0.f) for (int i = 0; i<4; i++) quat1[i] = -quat1[i]; 
+	qnormal(quat2);  //force full quaternion to be norm-1 (correct round-off error)
+	qnormal(quat1);
+	float mag = vlength(quat1); //norm of imaginary part
+	float re = acos(quat1[3]);
+	if (mag == 0.f) for (int i = 0; i<3; i++) q1[i] = 0.f;
+	else for (int i = 0; i<3; i++) q1[i] = quat1[i]*re/mag;
+	mag = vlength(quat2); //norm of imaginary part
+	re = acos(quat2[3]);
+	if (mag == 0.f) for (int i = 0; i<3; i++) q2[i] = 0.f;
+	else for (int i = 0; i<3; i++) q2[i] = quat2[i]*re/mag;
+	return;	
+}
+//Convert a pure-imaginary quaternion to camera view, for linear interpolation of viewpoints.
+
+void imagQuat2View(const float q[3], float vdir[3], float upvec[3]){
+	float quat[4];
+	float mtrx[16];
+	//First, calc exponential of q:
+	float mag = vlength(q);
+	quat[3]= cos(mag);
+	if (mag > 0.f){
+		float s = sin(mag)/mag;
+		for (int i = 0; i<3; i++) quat[i] = q[i]*s;
+	} else {
+		for (int i = 0; i<3; i++) quat[i] = 0.f;
+	}
+	//then convert quat to a matrix
+	qmatrix(quat,mtrx);
+	//extract rows:
+	vcopy(mtrx+4,upvec);
+	vcopy(mtrx+8,vdir);
+	vscale(vdir,-1.f);
+}
 //Convert a pure-imaginary quaternion to camera view, for linear interpolation of viewpoints.
 //First argument is a quaternion used as left multiplier on result that are used
 //in a single interpolation.

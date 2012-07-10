@@ -445,6 +445,60 @@ void AnimationParams::buildViewsAndTimes(){
 	
 	clearLoadedViewpoints();
 	myAnimate->keyframeInterpolate(keyframes, loadedViewpoints);
+
+	//Test rotation interpolation of first pair of keyframes
+	/*
+	float vdir1[3],vdir2[3],up1[3],up2[3],vtemp1[3],vtemp2[3];
+	if (keyframes.size()>1){
+		float errmax = -1.f;
+		//determine some random viewpoints:
+		for (int i = 0; i<1000; i++){
+			for (int j = 0; j<3; j++){
+				vdir1[j] = 2.0*(float)rand()/(float)(RAND_MAX) -1.0;
+				vdir2[j] = 2.0*(float)rand()/(float)(RAND_MAX) -1.0;
+				up1[j] = 2.0*(float)rand()/(float)(RAND_MAX) -1.0;
+				up2[j] = 2.0*(float)rand()/(float)(RAND_MAX) -1.0;
+			}
+			
+			
+			vnormal(vdir1);
+			vnormal(vdir2);
+			float dot1a = vdot(vdir1,up1);
+			float dot2a = vdot(vdir2,up2);
+			vmult(vdir1,dot1a,vtemp1);
+			vmult(vdir2,dot2a,vtemp2);
+			vsub(up1,vtemp1,up1);
+			vnormal(up1);
+			vsub(up2,vtemp2,up2);
+			vnormal(up2);
+			Viewpoint vp1, vp2;
+			vp1.setViewDir(vdir1);
+			vp1.setUpVec(up1);
+			vp2.setViewDir(vdir2);
+			vp2.setUpVec(up2);
+			Viewpoint* vpmid = Viewpoint::interpolate(&vp1,&vp2,0.5f);
+			float* dirmid = vpmid->getViewDir();
+			float dot0,dot1,dot2, angl0,angl1,angl2;
+			dot1 = vdot(vdir1,dirmid);
+			dot0 = vdot(vdir1,vdir2);
+			dot2 = vdot(vdir2,dirmid);
+			angl0 = acos(dot0)*180./M_PI;
+			angl1 = acos(dot1)*180./M_PI;
+			angl2 = acos(dot2)*180./M_PI;
+			float anglsum = angl1+angl2;
+			//float diff=abs(anglsum - angl0);
+			bool bad = (anglsum > 180.0);
+			//also check that inverse works:
+			float quat1[4],quat2[4],vdir3[3],vdir4[3],up3[3],up4[3];
+			views2ImagQuats(vdir1,up1,vdir2,up2,quat1,quat2);
+			imagQuat2View(quat1,vdir3,up3);
+			imagQuat2View(quat2,vdir4,up4);
+			float err = vdist(vdir3,vdir1)+vdist(up3,up1)+vdist(vdir4,vdir2)+vdist(up4,up2);
+			if (err>errmax) 
+				errmax = err;
+		}
+	}
+	*/
 	int sz = loadedViewpoints.size();
 	Viewpoint* lastViewpoint = loadedViewpoints[sz-1];
 
