@@ -43,6 +43,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <typeinfo>
 #include "GL/glew.h"
 #include "glwindow.h"
 #include "histo.h"
