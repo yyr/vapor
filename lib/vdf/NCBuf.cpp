@@ -213,7 +213,7 @@ int NCBuf::Flush(
 bool NCBuf::contiguous(
 	const size_t count[]
 ) {
-	int dimidx;
+	int dimidx = 0;
 
 	//
 	// find the length of the fastest varying dimension that is not
