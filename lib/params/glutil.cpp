@@ -1138,23 +1138,7 @@ void view2Quat(float vdir[3],float upvec[3], float q[4]){
 	rotmatrix2q(minv, q);
 
 }
-//Convert a camera view to pure imaginary quaternion, for linear interpolation of viewpoints.
-//The start quaternion argument indicates the conversion is relative to that quaternion
-void view2ImagQuat(const float startQuat[4], float vdir[3], float upvec[3], float q[3]){
-	
-	float quat[4],quat2[4];
-	float qStartInv[4];
-	view2Quat(vdir, upvec, quat);
-	qinv(startQuat,qStartInv);
-	//Multiply on left by qStartInv:
-	qmult(qStartInv,quat,quat2);
-	qnormal(quat2);  //force full quaternion to be norm-1 (correct round-off error)
-	float mag = vlength(quat2); //norm of imaginary part
-	float re = acos(quat2[3]);
-	if (mag == 0.f) for (int i = 0; i<3; i++) q[i] = 0.f;
-	else for (int i = 0; i<3; i++) q[i] = quat2[i]*re/mag;
-	return;	
-}
+
 //Convert two camera views to two pure imaginary quaternion, for linear interpolation of viewpoints.
 //If dot product is negative, the first quaternion is negated, to prevent interpolating the long way around.
 void views2ImagQuats(float vdir1[3], float upvec1[3],float vdir2[3], float upvec2[3], float q1[3], float q2[3]){
@@ -1198,36 +1182,8 @@ void imagQuat2View(const float q[3], float vdir[3], float upvec[3]){
 	vcopy(mtrx+8,vdir);
 	vscale(vdir,-1.f);
 }
-//Convert a pure-imaginary quaternion to camera view, for linear interpolation of viewpoints.
-//First argument is a quaternion used as left multiplier on result that are used
-//in a single interpolation.
-void imagQuat2View(const float firstquat[4], const float q[3], float vdir[3], float upvec[3]){
-	float quat[4], quat2[4];
-	float mtrx[16];
-	//First, calc exponential of q:
-	float mag = vlength(q);
-	quat[3]= cos(mag);
-	if (mag > 0.f){
-		float s = sin(mag)/mag;
-		for (int i = 0; i<3; i++) quat[i] = q[i]*s;
-	} else {
-		for (int i = 0; i<3; i++) quat[i] = 0.f;
-	}
-	qmult(firstquat, quat, quat2);
-	//then convert quat2 to a matrix
-	qmatrix(quat2,mtrx);
-	//extract rows:
-	vcopy(mtrx+4,upvec);
-	vcopy(mtrx+8,vdir);
-	vscale(vdir,-1.f);
-}
-void calcStartQuat(const float quata[4],const float quatb[4], float startQuat[4]){
-	float dotprod=0.f;
-	for (int i = 0; i<4; i++) dotprod += quata[i]*quatb[i];
-	float factor = 1.f;
-	if (dotprod < 0.f) factor = -1.f;
-	for (int i = 0; i<4; i++) startQuat[i] = factor*quata[i];
-}
+
+
 #define DEAD
 #ifdef	DEAD
 
