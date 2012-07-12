@@ -985,7 +985,11 @@ void AnimationEventRouter::keyframeReturnPressed(){
 	Keyframe* key = aParams->getKeyframe(currKey);
 	Keyframe* keyCopy = new Keyframe(*key);
 	key->speed = abs(speedEdit->text().toFloat());
-	key->timeStep = abs(keyTimestepEdit->text().toInt());
+	int tstep = keyTimestepEdit->text().toInt();
+	DataStatus* ds = DataStatus::getInstance();
+	if (tstep < ds->getMinTimestep()) tstep = ds->getMinTimestep();
+	if (tstep > ds->getMaxTimestep()) tstep = ds->getMaxTimestep();
+	key->timeStep = tstep;
 	if (!frameCountEdit->isReadOnly()){
 		int newFrameCount = frameCountEdit->text().toInt();
 		//Need to make sure that the new frame num at least 1
@@ -1003,6 +1007,7 @@ void AnimationEventRouter::keyframeReturnPressed(){
 	}
 	aParams->buildViewsAndTimes();
 	PanelCommand::captureEnd(cmd, aParams);
+	updateTab();
 }
 bool AnimationEventRouter::fixKeyframes(){
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
@@ -1024,7 +1029,7 @@ bool AnimationEventRouter::fixKeyframes(){
 			}
 		}
 	}
-	//Next, if adjacent speeds are zero, and camera is not fixed then insert a new interpolated keyframe between them:
+	//Next, if adjacent speeds are zero, and camera is not fixed then give an error message
 	for (int i = 0; i<keyframes.size()-1; i++){
 		float speed1 = keyframes[i]->speed;
 		float speed2 = keyframes[i+1]->speed;
