@@ -603,6 +603,39 @@ public:
 	return(0);
  }
 
+
+ //! Set a global missing value
+ //!
+ //! This method establishes a global missing value for the VDC. Any
+ //! grid location, for any variable at any time step, with a data value
+ //! equal to \p value will be treated as having missing data
+ //!
+ int SetMissingValue(double value) {
+	vector <double> valvec; valvec.push_back(value);
+	_rootnode->SetElementDouble(_missingValueTag, valvec);
+	return(0);
+ }
+
+ //! Unset a previous set missing value
+ //!
+ //! This method will, despite its name, will unset any missing value
+ //! previously set with SetMissingValue(value)
+ //!
+ int SetMissingValue() {
+	_rootnode->SetElementDouble(_missingValueTag, _emptyDoubleVec);
+	return(0);
+ }
+
+ //! Return the current global missing value, if any
+ //!
+ //! This method returns a one-element vector containing the
+ //! current missing value. If no missing value is defined an 
+ //! empty vector will be returned.
+ //
+ vector<double> GetMissingValue() const {
+	return _rootnode->GetElementDouble(_missingValueTag);
+ }
+
  //! Return a three-element integer array indicating the coordinate
  //! ordering permutation.
  //!
@@ -841,6 +874,24 @@ public:
  //
  vector<double> GetTSExtents(size_t ts) const {return (GetExtents(ts)); }
 
+ //! Set a time-varying missing value
+ //!
+ //! This method establishes a time-varying missing value for the VDC. Any
+ //! grid location, for any variable at time step = \p ts, with a data value
+ //! equal to \p value will be treated as having missing data
+ //!
+ //! A time-varying missing value takes prededence over
+ //! a global missing value.
+ //!
+ int SetTSMissingValue(size_t ts, double v);
+
+ //! Returns the time-varying missing value, if any
+ //
+ vector<double> GetTSMissingValue(size_t ts) const {
+	CHK_TS_OPT(ts, _emptyDoubleVec)
+	return(_rootnode->GetChild(ts)->GetElementDouble(_missingValueTag));
+ }
+
  //! Set a comment for the variable, \p v at the time step indicated by \p ts
  //!
  //! \param[in] ts A valid data set time step in the range from zero to
@@ -916,6 +967,26 @@ public:
  int IsValidVDataRange(const vector<double> &value) const {
 	return(value.size() == 2);
 	}
+
+ //! Set a variable-specific missing value
+ //!
+ //! This method establishes a time-varying, variable-specific missing 
+ //! value for the VDC. Any
+ //! grid location, for variable = \p var,  at time step = \p ts, with 
+ //! a data value
+ //! equal to \p value will be treated as having missing data
+ //!
+ //! A time-varying, variable-specific missing value takes prededence over
+ //! a time-varying or global missing value.
+ //!
+ //! \sa SetMissingValue(), SetTSMissingValue()
+ //
+ int SetVMissingValue(size_t ts, const string &var, double v);
+
+ vector<double> GetVMissingValue(size_t ts, const string &var) const {
+	CHK_VAR_REQ(ts, var, _emptyDoubleVec)
+	return(_rootnode->GetChild(ts)->GetElementDouble(_missingValueTag));
+ }
 
  //------------------------------------------------------------------
  //			User-Defined Metdata Attributes
@@ -1100,6 +1171,7 @@ public:
 	return(_timeStepUserDDTags);
  }
 
+
  int SetTSUserDataString(
 	size_t ts, const string &tag, const string &value
  ) {
@@ -1280,6 +1352,7 @@ private:
  static const string _periodicBoundaryTag;
  static const string _gridPermutationTag;
  static const string _mapProjectionTag;
+ static const string _missingValueTag;
 
  // known xml attribute names
  //

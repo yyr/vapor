@@ -141,41 +141,67 @@ RegularGrid *DataMgr::make_grid(
 	}
 
 	RegularGrid *rg = NULL;
+	float mv;
+	bool has_missing = _GetMissingValue(mv);
 	if (DataMgr::GetCoordSystemType().compare("spherical")==0) { 
 		vector <long> permv = GetGridPermutation();
 		size_t perm[] = {permv[0], permv[1], permv[2]};
 
-		rg = new SphericalGrid(bs,min,max,extents,perm,periodic,blkptrs);
+		if (has_missing) {
+			rg = new SphericalGrid(bs,min,max,extents,perm,periodic,blkptrs,mv);
+		}
+		else {
+			rg = new SphericalGrid(bs,min,max,extents,perm,periodic,blkptrs);
+		}
 
 	}
 	else if (DataMgr::GetGridType().compare("regular")==0) {
-		rg = new RegularGrid(bs,min,max,extents,periodic,blkptrs);
+		if (has_missing) {
+			rg = new RegularGrid(bs,min,max,extents,periodic,blkptrs,mv);
+		}
+		else {
+			rg = new RegularGrid(bs,min,max,extents,periodic,blkptrs);
+		}
 	}
 	else if (DataMgr::GetGridType().compare("stretched")==0) {
 		vector <double> xcoords = _GetTSXCoords(ts);
 		vector <double> ycoords = _GetTSYCoords(ts);
 		vector <double> zcoords = _GetTSZCoords(ts);
 
-		rg = new StretchedGrid(
-			bs,min,max,extents,periodic,blkptrs,
-			xcoords, ycoords, zcoords
-		);
+		if (has_missing) {
+			rg = new StretchedGrid(
+				bs,min,max,extents,periodic,blkptrs,
+				xcoords, ycoords, zcoords, mv
+			);
+		}
+		else {
+			rg = new StretchedGrid(
+				bs,min,max,extents,periodic,blkptrs,
+				xcoords, ycoords, zcoords
+			);
+		}
 
 	} else if ((DataMgr::GetGridType().compare("layered")==0) && vtype !=VAR3D){
 
-//cerr << "Hard code missing value\n";
-//		rg = new RegularGrid(bs,min,max,extents,periodic,blkptrs, -9999.0);
-		rg = new RegularGrid(bs,min,max,extents,periodic,blkptrs);
+		if (has_missing) {
+			rg = new RegularGrid(bs,min,max,extents,periodic,blkptrs, mv);
+		} 
+		else {
+			rg = new RegularGrid(bs,min,max,extents,periodic,blkptrs);
+		}
 	
 	} else if ((DataMgr::GetGridType().compare("layered")==0) && vtype ==VAR3D){
 
-std::cerr << "Hard code missing value\n";
-//		rg = new LayeredGrid(
-//			bs,min, max, extents, periodic, blkptrs, zcblkptrs,2, -9999.0
-//		);
-		rg = new LayeredGrid(
-			bs,min, max, extents, periodic, blkptrs, zcblkptrs,2
-		);
+		if (has_missing) {
+			rg = new LayeredGrid(
+				bs,min, max, extents, periodic, blkptrs, zcblkptrs,2
+			);
+		}
+		else {
+			rg = new LayeredGrid(
+				bs,min, max, extents, periodic, blkptrs, zcblkptrs,2, mv
+			);
+		}
 	}
 	if (blkptrs) delete [] blkptrs;
 	if (xcblkptrs) delete [] xcblkptrs;

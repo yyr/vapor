@@ -781,6 +781,19 @@ protected:
  //!
  virtual const float *_GetDataRange() const { return(NULL);};
 
+ //! Return the value of the missing data value
+ //!
+ //! This method returns the value of the missing data value for 
+ //! the currently opened variable. If no missing data are present
+ //! the method returns false
+ //!
+ //! \param[out] value The missing data value. Undefined if no missing
+ //! value is present.
+ //!
+ //! \retval returns true if missing data are present
+ //
+ virtual bool _GetMissingValue(float &value) const {return(false); };
+
 
  //! Read in and return a subregion from the currently opened multiresolution
  //! data volume.

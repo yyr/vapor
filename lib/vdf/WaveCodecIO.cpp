@@ -4,6 +4,8 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <cstdlib>
+#include <cfloat>
+#include <unistd.h>
 #ifdef WIN32
 #include <windows.h>
 #endif
@@ -307,6 +309,11 @@ int WaveCodecIO::OpenVariableRead(
 
 	if (CloseVariable() < 0) return(-1); 
 
+	//
+	// no-op unless missing data are present
+	//
+	if (_MaskOpenRead(timestep, varname, reflevel) < 0) return(-1);
+
 	_vtype = GetVarType(varname);
 	if (_vtype == VARUNKNOWN) {
 		SetErrMsg("Invalid variable type");
@@ -391,7 +398,13 @@ int WaveCodecIO::OpenVariableWrite(
 	int lod
 ) {
 
+
 	if (CloseVariable() < 0) return(-1); 
+
+	//
+	// no-op unless missing data are present
+	//
+	if (_MaskOpenWrite(timestep, varname, reflevel) < 0) return(-1);
 
 	_vtype = GetVarType(varname);
 	if (_vtype == VARUNKNOWN) {
@@ -447,14 +460,14 @@ int WaveCodecIO::OpenVariableWrite(
 	string dir;
 	string basename;
 
-	_dataRange[0] = _dataRange[1] = 0.0;
+	_dataRange[0] = FLT_MAX;
+	_dataRange[1] = FLT_MIN;
 
 	_writeMode = true;
 
 	_timeStep = timestep;
 	_varName.assign(varname);
 	_reflevel = reflevel;
-	_firstWrite = true;
 	_sliceCount = 0;
 
 	if (ConstructFullVBase(timestep, varname, &basename) < 0) {
@@ -605,6 +618,7 @@ SetDiagMsg("@MPI validreg min: %d %d %d, max: %d %d %d",_validRegMin[0],_validRe
 	_isOpen = false;
     _vtype = VARUNKNOWN;
 
+	_MaskClose();
 	return(0);
 
 }
@@ -652,15 +666,15 @@ int WaveCodecIO::BlockReadRegion(
 
 	GetBlockSize(bs, _reflevel);
 
-	_FillPackedCoord(_vtype, bmin, bmin_p, 0);
-	_FillPackedCoord(_vtype, bmax, bmax_p, 0);
-	_PackCoord(_vtype, bs, bs_p, 1);
+	VDFIOBase::_FillPackedCoord(_vtype, bmin, bmin_p, 0);
+	VDFIOBase::_FillPackedCoord(_vtype, bmax, bmax_p, 0);
+	VDFIOBase::_PackCoord(_vtype, bs, bs_p, 1);
 
 	block_size = bs_p[0]*bs_p[1]*bs_p[2];
 
 	size_t bmin_up[3], bmax_up[3];	// unpacked copy of bmin, bmax
-	_UnpackCoord(_vtype, bmin, bmin_up, 0);
-	_UnpackCoord(_vtype, bmax, bmax_up, 0);
+	VDFIOBase::_UnpackCoord(_vtype, bmin, bmin_up, 0);
+	VDFIOBase::_UnpackCoord(_vtype, bmax, bmax_up, 0);
 	if (! IsValidRegionBlk(bmin_up, bmax_up, _reflevel)) {
 		SetErrMsg(
 			"Invalid region : (%d %d %d) (%d %d %d)", 
@@ -673,13 +687,18 @@ int WaveCodecIO::BlockReadRegion(
 	GetDimBlk(bdim,-1);
 
 	size_t bdim_p[3];	// packed version of bdim
-	_PackCoord(_vtype, bdim, bdim_p, 1);
+	VDFIOBase::_PackCoord(_vtype, bdim, bdim_p, 1);
 
 	size_t dim[3];
 	GetDim(dim, -1);
 
 	size_t dim_p[3];
-	_PackCoord(_vtype, dim, dim_p, 1);
+	VDFIOBase::_PackCoord(_vtype, dim, dim_p, 1);
+
+	//
+	// Read bitmask for missing data values, if any
+	//
+	_MaskRead(bmin_p, bmax_p);
 
 	//
 	// Created threaded read object
@@ -687,7 +706,7 @@ int WaveCodecIO::BlockReadRegion(
 	for (int t=0; t<_nthreads; t++) {
 		_rw_thread_objs[t] = new ReadWriteThreadObj(
 			this, t, region, bmin_p, bmax_p, bdim_p, dim_p, 
-			bs_p, _dataRange, (bool) unblock, _pad
+			bs_p, (bool) unblock, _pad
 		);
 	}
 
@@ -720,8 +739,8 @@ int WaveCodecIO::ReadRegion(
 	}
 
 	size_t min_up[3], max_up[3];	// unpacked copy of min, max
-	_UnpackCoord(_vtype, min, min_up, 0);
-	_UnpackCoord(_vtype, max, max_up, 0);
+	VDFIOBase::_UnpackCoord(_vtype, min, min_up, 0);
+	VDFIOBase::_UnpackCoord(_vtype, max, max_up, 0);
 	if (! IsValidRegion(min_up, max_up, _reflevel)) {
 		SetErrMsg(
 			"Invalid region : (%d %d %d) (%d %d %d)", 
@@ -745,14 +764,14 @@ int WaveCodecIO::ReadRegion(
 	MapVoxToBlk(min_up, bmin_up, _reflevel);
 	MapVoxToBlk(max_up, bmax_up, _reflevel);
 
-	_PackCoord(_vtype, bmin_up, bmin_p, 0);
-	_PackCoord(_vtype, bmax_up, bmax_p, 0);
+	VDFIOBase::_PackCoord(_vtype, bmin_up, bmin_p, 0);
+	VDFIOBase::_PackCoord(_vtype, bmax_up, bmax_p, 0);
 
 	//
 	// fill in 3rd dimension (no-op if 3D data)
 	//
-	_FillPackedCoord(_vtype, min, min_p, 0);
-	_FillPackedCoord(_vtype, max, max_p, 0);
+	VDFIOBase::_FillPackedCoord(_vtype, min, min_p, 0);
+	VDFIOBase::_FillPackedCoord(_vtype, max, max_p, 0);
 
 	//
 	// Dimension of region in voxels
@@ -770,7 +789,7 @@ int WaveCodecIO::ReadRegion(
 	}
 
 	GetBlockSize(bs, _reflevel);
-	_PackCoord(_vtype, bs, bs_p, 1);
+	VDFIOBase::_PackCoord(_vtype, bs, bs_p, 1);
 
 
 	int rc;
@@ -896,17 +915,17 @@ int WaveCodecIO::BlockWriteRegion(
 	GetDimBlk(bdim,-1);
 
 	size_t bdim_p[3];	// packed version of bdim
-	_PackCoord(_vtype, bdim, bdim_p, 1);
+	VDFIOBase::_PackCoord(_vtype, bdim, bdim_p, 1);
 
 	size_t dim[3];
 	GetDim(dim, -1);
 
 	size_t dim_p[3];
-	_PackCoord(_vtype, dim, dim_p, 1);
+	VDFIOBase::_PackCoord(_vtype, dim, dim_p, 1);
 
 	size_t bmin_p[3], bmax_p[3];	// filled copies of bmin, bmax
-	_FillPackedCoord(_vtype, bmin, bmin_p, 0);
-	_FillPackedCoord(_vtype, bmax, bmax_p, 0);
+	VDFIOBase::_FillPackedCoord(_vtype, bmin, bmin_p, 0);
+	VDFIOBase::_FillPackedCoord(_vtype, bmax, bmax_p, 0);
 
 	size_t bs[3];
 	GetBlockSize(bs, -1);
@@ -920,21 +939,16 @@ int WaveCodecIO::BlockWriteRegion(
 	}
 
 	size_t bs_p[3];	// packed copy of bs
-	_PackCoord(_vtype, bs, bs_p, 1);
+	VDFIOBase::_PackCoord(_vtype, bs, bs_p, 1);
 
 #ifdef PARALLEL
 	int rank;
 	MPI_Comm_rank(IO_Comm, &rank);
 #endif
-	if (_firstWrite) {
-		_dataRange[0] = _dataRange[1] = *region;
-
-		_firstWrite = false;
-	}
 
 	size_t bmin_up[3], bmax_up[3];	// unpacked copy of bmin, bmax
-	_UnpackCoord(_vtype, bmin, bmin_up, 0);
-	_UnpackCoord(_vtype, bmax, bmax_up, 0);
+	VDFIOBase::_UnpackCoord(_vtype, bmin, bmin_up, 0);
+	VDFIOBase::_UnpackCoord(_vtype, bmax, bmax_up, 0);
 	if (! IsValidRegionBlk(bmin_up, bmax_up, -1)) {
 		SetErrMsg(
 			"Invalid region : (%d %d %d) (%d %d %d)", 
@@ -944,12 +958,17 @@ int WaveCodecIO::BlockWriteRegion(
 	}
 
 	//
+	// Write missing value mask, if any
+	//
+	_MaskWrite(region, bmin_p, bmax_p, block);
+
+	//
 	// Created threaded write object
 	//
 	for (int t=0; t<_nthreads; t++) {
 		_rw_thread_objs[t] = new ReadWriteThreadObj(
 			this, t, (float *) region, bmin_p, bmax_p, 
-			bdim_p, dim_p, bs_p, _dataRange, block, _pad
+			bdim_p, dim_p, bs_p, block, _pad
 		);
 	}
 
@@ -1045,7 +1064,7 @@ void WaveCodecIO::ReadWriteThreadObj::BlockWriteRegionThread() {
 		int byy = by - _bmin_p[1];
 		int bzz = bz - _bmin_p[2];
 
-		const float *blockptr;
+		float *blockptr;
 
 		if (_reblock) {
 			blockptr = _wc->_blockThread[_id];
@@ -1062,8 +1081,6 @@ void WaveCodecIO::ReadWriteThreadObj::BlockWriteRegionThread() {
 				float v = _region[nx*ny*(z0+z) + nx*(y0+y) + (x0+x)];
 
 				_wc->_blockThread[_id][z*_bs_p[0]*_bs_p[1] + y*_bs_p[0] + x] = v;
-				if (v < _dataRange[0]) _dataRange[0] = v;
-				if (v > _dataRange[1]) _dataRange[1] = v;
 			}
 			}
 			}
@@ -1075,31 +1092,13 @@ void WaveCodecIO::ReadWriteThreadObj::BlockWriteRegionThread() {
 			for (int z = 0; z<zstop; z++) {
 			for (int y = 0; y<ystop; y++) {
 			for (int x = 0; x<xstop; x++) {
-				float v = blockptr[_bs_p[0]*_bs_p[1]*z + _bs_p[0]*y + z];
-
-				if (v < _dataRange[0]) _dataRange[0] = v;
-				if (v > _dataRange[1]) _dataRange[1] = v;
+				_wc->_blockThread[_id][_bs_p[0]*_bs_p[1]*z + _bs_p[0]*y + x] = 
+					blockptr[_bs_p[0]*_bs_p[1]*z + _bs_p[0]*y + x];
 
 			}
 			}
 			}
-
-			//
-			// If we need padding we need to copy the data to local space
-			//
-			if ((xbdry || ybdry || zbdry) && _pad) { 
-
-				for (int z = 0; z<zstop; z++) {
-				for (int y = 0; y<ystop; y++) {
-				for (int x = 0; x<xstop; x++) {
-					_wc->_blockThread[_id][_bs_p[0]*_bs_p[1]*z + _bs_p[0]*y + z] = 
-						blockptr[_bs_p[0]*_bs_p[1]*z + _bs_p[0]*y + z];
-
-				}
-				}
-				}
-				blockptr = _wc->_blockThread[_id];
-			}
+			blockptr = _wc->_blockThread[_id];
 		}
 
 		if (xbdry && _pad) {
@@ -1140,6 +1139,27 @@ void WaveCodecIO::ReadWriteThreadObj::BlockWriteRegionThread() {
 			}
 			}
 		}
+
+		//
+		// Handle any missing values
+		//
+		bool valid_data = true;
+		_wc->_MaskRemove(blockptr, valid_data);
+
+		if (valid_data) {
+			for (int z = 0; z<_bs_p[2]; z++) {
+			for (int y = 0; y<_bs_p[1]; y++) {
+			for (int x = 0; x<_bs_p[0]; x++) {
+				float v = blockptr[_bs_p[0]*_bs_p[1]*z + _bs_p[0]*y + z];
+
+				if (v < _dataRange[0]) _dataRange[0] = v;
+				if (v > _dataRange[1]) _dataRange[1] = v;
+
+			}
+			}
+			}
+		}
+
 
 		double starttime = MPI_Wtime();
 		if (_id==0) _wc->_XFormTimerStart();
@@ -1184,8 +1204,8 @@ int WaveCodecIO::WriteRegion(
 	}
 
 	size_t min_up[3], max_up[3];	// unpacked copy of min, max
-	_UnpackCoord(_vtype, min, min_up, 0);
-	_UnpackCoord(_vtype, max, max_up, 0);
+	VDFIOBase::_UnpackCoord(_vtype, min, min_up, 0);
+	VDFIOBase::_UnpackCoord(_vtype, max, max_up, 0);
 	if (! IsValidRegion(min_up, max_up, _reflevel)) {
 		SetErrMsg(
 			"Invalid region : (%d %d %d) (%d %d %d)", 
@@ -1208,14 +1228,14 @@ int WaveCodecIO::WriteRegion(
 	MapVoxToBlk(min_up, bmin_up, _reflevel);
 	MapVoxToBlk(max_up, bmax_up, _reflevel);
 
-	_PackCoord(_vtype, bmin_up, bmin_p, 0);
-	_PackCoord(_vtype, bmax_up, bmax_p, 0);
+	VDFIOBase::_PackCoord(_vtype, bmin_up, bmin_p, 0);
+	VDFIOBase::_PackCoord(_vtype, bmax_up, bmax_p, 0);
 
 	//
 	// fill in 3rd dimension (no-op if 3D data)
 	//
-	_FillPackedCoord(_vtype, min, min_p, 0);
-	_FillPackedCoord(_vtype, max, max_p, 0);
+	VDFIOBase::_FillPackedCoord(_vtype, min, min_p, 0);
+	VDFIOBase::_FillPackedCoord(_vtype, max, max_p, 0);
 
 	//
 	// Dimension of region in voxels
@@ -1233,7 +1253,7 @@ int WaveCodecIO::WriteRegion(
 	}
 
 	GetBlockSize(bs, _reflevel);
-	_PackCoord(_vtype, bs, bs_p, 1);
+	VDFIOBase::_PackCoord(_vtype, bs, bs_p, 1);
 
 	//
 	// local copies of valid region extents
@@ -1452,17 +1472,17 @@ int WaveCodecIO::ReadSlice(
 	size_t bdim[3];
 	GetDimBlk(bdim,_reflevel);
 	size_t bdim_p[3];
-	_PackCoord(_vtype, bdim, bdim_p, 1);
+	VDFIOBase::_PackCoord(_vtype, bdim, bdim_p, 1);
 
 	size_t dim[3];
 	GetDim(dim, _reflevel);
 	size_t dim_p[3];
-	_PackCoord(_vtype, dim, dim_p, 1);
+	VDFIOBase::_PackCoord(_vtype, dim, dim_p, 1);
 
 	size_t bs[3];
 	GetBlockSize(bs, _reflevel);
 	size_t bs_p[3];
-	_PackCoord(_vtype, bs, bs_p, 1);
+	VDFIOBase::_PackCoord(_vtype, bs, bs_p, 1);
 
 	size_t nnx, nny, nnz;	// dimensions of blocked slice (2d) or volume (3d)
 							// in voxels
@@ -1527,17 +1547,17 @@ int WaveCodecIO::WriteSlice(
 	size_t bdim[3];
 	GetDimBlk(bdim,-1);
 	size_t bdim_p[3];
-	_PackCoord(_vtype, bdim, bdim_p, 1);
+	VDFIOBase::_PackCoord(_vtype, bdim, bdim_p, 1);
 
 	size_t bs[3]; 
 	GetBlockSize(bs, -1);
 	size_t bs_p[3];
-	_PackCoord(_vtype, bs, bs_p, 1);
+	VDFIOBase::_PackCoord(_vtype, bs, bs_p, 1);
 
 	size_t dim[3];
 	GetDim(dim,-1);
 	size_t dim_p[3];	// packed version of dim
-	_PackCoord(_vtype, dim, dim_p, 1);
+	VDFIOBase::_PackCoord(_vtype, dim, dim_p, 1);
 
 	size_t nnx, nny, nnz;	// dimensions of blocked slice in voxels
 	size_t slice_count;	// num slices written from current slab 
@@ -2625,91 +2645,6 @@ void _pad_line(
 	}
 }
 
-void WaveCodecIO::_UnpackCoord(
-	VarType_T vtype, const size_t src[3], size_t dst[3], size_t fill
-) const {
-
-	switch (_vtype) { 
-	case VAR2D_XY:
-		dst[0] = src[0];
-		dst[1] = src[1];
-		dst[2] = fill;
-	break;
-	case VAR2D_XZ:
-		dst[0] = src[0];
-		dst[1] = fill;
-		dst[2] = src[1];
-	break; 
-	case VAR2D_YZ:
-		dst[0] = fill;
-		dst[1] = src[0];
-		dst[2] = src[1];
-	break;
-	case VAR3D:
-		dst[0] = src[0];
-		dst[1] = src[1];
-		dst[2] = src[2];
-	break;
-		default:
-		assert(0);
-	}
-}
-
-void WaveCodecIO::_PackCoord(
-	VarType_T vtype, const size_t src[3], size_t dst[3], size_t fill
-) const {
-
-	for (int i=0; i<3; i++) dst[i] = fill;
-
-	switch (_vtype) { 
-	case VAR2D_XY:
-		dst[0] = src[0];
-		dst[1] = src[1];
-		dst[2] = fill;
-	break;
-	case VAR2D_XZ:
-		dst[0] = src[0];
-		dst[1] = src[2];
-		dst[2] = fill;
-	break; 
-	case VAR2D_YZ:
-		dst[0] = src[1];
-		dst[1] = src[2];
-		dst[0] = fill;
-	break;
-	case VAR3D:
-		dst[0] = src[0];
-		dst[1] = src[1];
-		dst[2] = src[2];
-	break;
-		default:
-		assert(0);
-	}
-}
-
-void WaveCodecIO::_FillPackedCoord(
-	VarType_T vtype, const size_t src[3], size_t dst[3], size_t fill
-) const {
-
-	for (int i=0; i<3; i++) dst[i] = fill;
-
-	switch (_vtype) { 
-	case VAR2D_XY:
-	case VAR2D_XZ:
-	case VAR2D_YZ:
-		dst[0] = src[0];
-		dst[1] = src[1];
-		dst[2] = fill;
-	break;
-	case VAR3D:
-		dst[0] = src[0];
-		dst[1] = src[1];
-		dst[2] = src[2];
-	break;
-		default:
-		assert(0);
-	}
-}
 
 WaveCodecIO::ReadWriteThreadObj::ReadWriteThreadObj(
 	WaveCodecIO *wc,
@@ -2720,7 +2655,6 @@ WaveCodecIO::ReadWriteThreadObj::ReadWriteThreadObj(
 	const size_t *bdim_p,
 	const size_t *dim_p,
 	const size_t *bs_p, 
-	const float dataRange[2],
 	bool reblock,
 	bool pad
 ) {
@@ -2732,8 +2666,8 @@ WaveCodecIO::ReadWriteThreadObj::ReadWriteThreadObj(
 	_bdim_p = bdim_p;
 	_dim_p = dim_p;
 	_bs_p = bs_p;
-	_dataRange[0] = dataRange[0];
-	_dataRange[1] = dataRange[1];
+	_dataRange[0] = FLT_MAX;
+	_dataRange[1] = FLT_MIN;
 	_reblock = reblock;
 	_pad = pad;
 
@@ -2812,6 +2746,8 @@ void WaveCodecIO::ReadWriteThreadObj::BlockReadRegionThread(
 			}
 			if (_id==0) _wc->_XFormTimerStop();
 
+			_wc->_MaskReplace(bx, by, bz, blockptr);
+
 			// Starting coordinate of current block in voxels
 			// relative to region origin
 			//
@@ -2822,7 +2758,7 @@ void WaveCodecIO::ReadWriteThreadObj::BlockReadRegionThread(
 			for (int z = 0; z<_bs_p[2]; z++) {
 			for (int y = 0; y<_bs_p[1]; y++) {
 			for (int x = 0; x<_bs_p[0]; x++) {
-				float v = _wc->_blockThread[_id][z*_bs_p[0]*_bs_p[1] + y*_bs_p[0] + x];
+				float v = blockptr[z*_bs_p[0]*_bs_p[1] + y*_bs_p[0] + x];
 
 				_region[nx*ny*(z0+z) + nx*(y0+y) + (x0+x)]  = v;
 
@@ -2845,6 +2781,8 @@ void WaveCodecIO::ReadWriteThreadObj::BlockReadRegionThread(
 				return;
 			}
 			if (_id==0) _wc->_XFormTimerStop();
+
+			_wc->_MaskReplace(bx, by, bz, blockptr);
 
 		}
 

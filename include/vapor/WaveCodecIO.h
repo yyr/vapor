@@ -431,7 +431,6 @@ private:
 		const size_t bdim_p[3],
 		const size_t dim_p[3],
 		const size_t bs_p[3],
-		const float dataRange[2],
 		bool reblock,
 		bool pad
 	);
@@ -505,7 +504,6 @@ private:
  float *_block;	// storage for a block
  vector <float *> _blockThread;
  float *_blockReg;	// more storage
- bool _firstWrite; // false after first block written;
  float _dataRange[2];
  vector <size_t> _ncoeffs; // num wave coeff. at each compression level
  vector <size_t> _cratios3D;	// 3D compression ratios

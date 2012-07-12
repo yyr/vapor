@@ -136,6 +136,7 @@ protected:
 	int reflevel = 0,
 	int lod = 0
  ) {
+	_ts = timestep; _varname = varname;
 	return(WaveCodecIO::OpenVariableRead(timestep, varname, reflevel, lod)); 
  };
 
@@ -149,6 +150,9 @@ protected:
 	return(WaveCodecIO::GetDataRange());
  }
 
+ virtual bool _GetMissingValue(float &value) const;
+
+
  virtual int    _BlockReadRegion(
     const size_t bmin[3], const size_t bmax[3],
     float *region
@@ -161,6 +165,8 @@ protected:
  };
 
 
+ size_t _ts;
+ string _varname;
 };
 
 };

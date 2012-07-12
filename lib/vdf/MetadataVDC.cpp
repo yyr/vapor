@@ -63,7 +63,7 @@ const string MetadataVDC::_zCoordsTag = "ZCoords";
 const string MetadataVDC::_periodicBoundaryTag = "PeriodicBoundary";
 const string MetadataVDC::_gridPermutationTag = "GridPermutation";
 const string MetadataVDC::_mapProjectionTag = "MapProjection";
-
+const string MetadataVDC::_missingValueTag = "MissingValue";
 
 const string MetadataVDC::_blockSizeAttr = "BlockSize";
 const string MetadataVDC::_dimensionLengthAttr = "DimensionLength";
@@ -149,6 +149,8 @@ int MetadataVDC::SetDefaults() {
 
 	vector<double> extentsVec(extents, &extents[sizeof(extents)/sizeof(extents[0])]);
 	SetExtents(extentsVec);
+
+	SetMissingValue();
 
 	return(0);
 }
@@ -1053,6 +1055,19 @@ int MetadataVDC::SetTSComment(
 	return(0);
 }
 
+int MetadataVDC::SetTSMissingValue(
+	size_t ts, double v
+) {
+	XmlNode	*timenode;
+
+	CHK_TS_REQ(ts, -1);
+	if (! (timenode = _rootnode->GetChild(ts))) return(-1);
+
+	vector <double> value; value.push_back(v);
+	timenode->SetElementDouble(_missingValueTag, value);
+	return(0);
+}
+
 int MetadataVDC::SetVComment(
 	size_t ts, const string &var, const string &value
 ) {
@@ -1069,6 +1084,21 @@ int MetadataVDC::SetVComment(
 	varnode = timenode->GetChild(var);
 
 	varnode->SetElementString(_commentTag, value);
+	return(0);
+}
+
+int MetadataVDC::SetVMissingValue(
+	size_t ts, const string &var, double v
+) {
+	XmlNode	*timenode;
+	XmlNode	*varnode;
+
+	CHK_VAR_REQ(ts, var, -1);
+	timenode = _rootnode->GetChild(ts);
+	varnode = timenode->GetChild(var);
+
+	vector <double> value; value.push_back(v);
+	varnode->SetElementDouble(_commentTag, value);
 	return(0);
 }
 

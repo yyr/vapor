@@ -1217,10 +1217,6 @@ int	WaveletBlockIOBase::my_alloc3d(
 	int ntilde = GetLiftingCoef();
 	_wb3d = new WaveletBlock3D(bs[0], n, ntilde, 1);
 	if (_wb3d->GetErrCode() != 0) {
-		SetErrMsg(
-			"WaveletBlock3D(%d,%d,%d,%d) : %s",
-			bs[0], n, ntilde, 1, _wb3d->GetErrMsg()
-		);
 		return(-1);
 	}
 	return(0);
