@@ -97,7 +97,7 @@ public:
 		if (!dataMgr) return false;
 		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return false;
 		if (!variableExists[sesvarnum]) return false;
-		return (maxLevel3D[sesvarnum][timestep] >= 0);
+		return (getMaxLevel3D(sesvarnum,timestep) >= 0);
 	}
 
 	//! Indicates whether a 2D session variable exists at a particular timestep.
@@ -108,7 +108,7 @@ public:
 		if (!dataMgr) return false;
 		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return false;
 		if (!variableExists2D[sesvarnum]) return false;
-		return (maxLevel2D[sesvarnum][timestep] >= 0);
+		return (getMaxLevel2D(sesvarnum,timestep) >= 0);
 	}
 
 	//! Indicates whether any 3D variable exists at a particular timestep.
@@ -118,7 +118,7 @@ public:
 		if (!dataMgr) return false;
 		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return false;
 		for (int i = 0; i<variableExists.size(); i++){
-			if (variableExists[i] && maxLevel3D[i][timestep] >= 0)
+			if (variableExists[i] && getMaxLevel3D(i,timestep) >= 0)
 				return true;
 		}
 		return false;
@@ -131,7 +131,7 @@ public:
 		if (!dataMgr) return false;
 		if (timestep < 0 || timestep >= numTimesteps) return false;
 		for (int i = 0; i<variableExists2D.size(); i++){
-			if (variableExists2D[i] && maxLevel2D[i][timestep] >= 0)
+			if (variableExists2D[i] && getMaxLevel2D(i,timestep) >= 0)
 				return true;
 		}
 		return false;
@@ -144,11 +144,11 @@ public:
 		if (!dataMgr) return false;
 		if (timestep < 0 || timestep >= numTimesteps) return false;
 		for (int i = 0; i<variableExists.size(); i++){
-			if (variableExists[i] && maxLevel3D[i][timestep] >= 0)
+			if (variableExists[i] && getMaxLevel3D(i,timestep) >= 0)
 				return true;
 		}
 		for (int i = 0; i<variableExists2D.size(); i++){
-			if (variableExists2D[i] && maxLevel2D[i][timestep] >= 0)
+			if (variableExists2D[i] && getMaxLevel2D(i,timestep) >= 0)
 				return true;
 		}
 		return false;
@@ -358,11 +358,11 @@ public:
 	void setDataMissing3D(int timestep, int refLevel, int lod, int sessionVarNum){
 		MetadataVDC* md = dynamic_cast<MetadataVDC*> (dataMgr);
 		if(md && md->GetVDCType() == 2) {
-			if (maxLevel3D[sessionVarNum][timestep] >= lod)
+			if (getMaxLevel3D(sessionVarNum,timestep) >= lod)
 			maxLevel3D[sessionVarNum][timestep] = lod -1;
 			return;
 		}
-		if (maxLevel3D[sessionVarNum][timestep] >= refLevel)
+		if (getMaxLevel3D(sessionVarNum,timestep) >= refLevel)
 			maxLevel3D[sessionVarNum][timestep] = refLevel -1;
 	}
 
@@ -375,11 +375,11 @@ public:
 	void setDataMissing2D(int timestep, int refLevel, int lod, int sessionVarNum){
 		MetadataVDC* md = dynamic_cast<MetadataVDC*>(dataMgr);
 		if(md && md->GetVDCType() == 2) {
-			if (maxLevel2D[sessionVarNum][timestep] >= lod)
+			if (getMaxLevel2D(sessionVarNum,timestep) >= lod)
 			maxLevel2D[sessionVarNum][timestep] = lod -1;
 			return;
 		}
-		if (maxLevel2D[sessionVarNum][timestep] >= refLevel)
+		if (getMaxLevel2D(sessionVarNum,timestep) >= refLevel)
 			maxLevel2D[sessionVarNum][timestep] = refLevel -1;
 	}
 
@@ -721,7 +721,8 @@ public:
 	}
 	static float* getPre22Offset(){return pre22Offset;}
 	
-	
+	int getMaxLevel3D(int sesvarnum,int timestep);
+	int getMaxLevel2D(int sesvarnum,int timestep);
 private:
 	
 	static DataStatus* theDataStatus;

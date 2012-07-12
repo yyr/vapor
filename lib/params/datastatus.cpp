@@ -255,19 +255,19 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		mapMetadataVars2D[i] = variableNames2D.size()-1;
 	}
 
-	int numSesVariables = getNumSessionVariables();
+	int numSesVariables3D = getNumSessionVariables();
 	int numSesVariables2D = getNumSessionVariables2D();
 	
-	variableExists.resize(numSesVariables);
+	variableExists.resize(numSesVariables3D);
 	variableExists2D.resize(numSesVariables2D);
 	
-	maxLevel3D.resize(numSesVariables);
+	maxLevel3D.resize(numSesVariables3D);
 	maxLevel2D.resize(numSesVariables2D);
-	dataMin.resize(numSesVariables);
-	dataMax.resize(numSesVariables);
+	dataMin.resize(numSesVariables3D);
+	dataMax.resize(numSesVariables3D);
 	dataMin2D.resize(numSesVariables2D);
 	dataMax2D.resize(numSesVariables2D);
-	for (int i = 0; i<numSesVariables; i++){
+	for (int i = 0; i<numSesVariables3D; i++){
 		variableExists[i] = false;
 		maxLevel3D[i] = new int[numTimesteps];
 		dataMin[i] = new float[numTimesteps];
@@ -276,7 +276,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		//as needed.  Do this lazily because it's expensive and unnecessary to go through
 		//all the timesteps to obtain the data bounds
 		for (int k = 0; k<numTimesteps; k++){
-			maxLevel3D[i][k] = -1;
+			maxLevel3D[i][k] = -2;//indicates that it hasn't been evaluated.
 			dataMin[i][k] = 1.e30f;
 			dataMax[i][k] = -1.e30f;
 		}
@@ -290,7 +290,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		//as needed.  Do this lazily because it's expensive and unnecessary to go through
 		//all the timesteps to obtain the data bounds
 		for (int k = 0; k<numTimesteps; k++){
-			maxLevel2D[i][k] = -1;
+			maxLevel2D[i][k] = -2;//indicates that it hasn't been evaluated.
 			dataMin2D[i][k] = 1.e30f;
 			dataMax2D[i][k] = -1.e30f;
 		}
@@ -310,7 +310,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 
 	//As we go through the variables and timesteps, keep Track of min and max times
 	unsigned int mints = 1000000000;
-	unsigned int maxts = 0;
+	unsigned int maxts = -1;
 	
 	//Note:  It takes a long time for all the calls to VariableExists
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
@@ -325,8 +325,14 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	for (int lev = 0; lev <= numTransforms; lev++){
 		dataMgr->GetDim(dataAtLevel[lev],lev);
 	}
+	//The following code determines
+	//  Whether there is any data in the VDC
+	//  Whether or not a variable exists
+	//  What is the min and max timestep for which any variables exist
+	//  To do this, for each variable, start with first time step and scan forward until some data or nothing is found to exist.
+	//  Then start with the last time step and scan backwards until some variable is found to exist.
 	bool someDataOverall = false;
-	for (int var = 0; var< numSesVariables; var++){
+	for (int var = 0; var< numSesVariables3D; var++){
 		bool dataExists = false;
 		//string s = getVariableName3D(var);
 		//Check first if this variable is in the metadata:
@@ -341,34 +347,15 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 			}
 		}
 		if (! inMetadata) {
-			//variableExists[var] = false;
 			continue;
 		}
 		//OK, it's in the metadata, check the timesteps...
 		for (int ts = 0; ts< numTimesteps; ts++){
-			//Find the maximum number of transforms available on disk
-			//i.e., the highest transform level  (highest resolution) that exists
-			int maxLevel = -1;
-			int topLevel;
-			if (getVDCType() == 2) topLevel = numLODs; else topLevel = numTransforms;
-			for (int lvl = topLevel; lvl>= 0; lvl--){
-				int xf=0, lod=0;
-				if (getVDCType()==2) lod = lvl; else xf = lvl;
-				if (dataMgr->VariableExists(ts, 
-					getVariableName3D(var).c_str(),
-					xf,lod)) {
-						maxLevel = lvl;
-						break;
-					}
-			}
-			
-			maxLevel3D[var][ts] = maxLevel;
-			if (maxLevel >= 0){
-				dataExists = true;
+			if (getMaxLevel3D(var, ts) >= 0) {
 				someDataOverall = true;
-				if (ts > (int)maxts) maxts = ts;
-				if (ts < (int)mints) mints = ts;
-				
+				dataExists = true;
+				if (ts < mints) mints = ts;
+				break;
 			}
 		}
 		variableExists[var] = dataExists; 
@@ -402,39 +389,37 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 			}
 		}
 		if (! inMetadata) {
-			//variableExists[var] = false;
 			continue;
 		}
 		//OK, it's in the metadata, check the timesteps...
 		for (int ts = 0; ts< numTimesteps; ts++){
-			//Find the maximum number of transforms available on disk
-			//i.e., the highest transform level  (highest resolution) that exists
-			int maxLevel = -1;
-			int topLevel;
-			if (getVDCType() == 2) topLevel = numLODs; else topLevel = numTransforms;
-			for (int lvl = topLevel; lvl>= 0; lvl--){
-				int xf=0, lod=0;
-				if (getVDCType()==2) lod = lvl; else xf = lvl;
-				if (dataMgr->VariableExists(ts, 
-					getVariableName2D(var).c_str(),
-					xf,lod)) {
-						maxLevel = lvl;
-						break;
-					}
-			}
-			
-			maxLevel2D[var][ts] = maxLevel;
-			if (maxLevel >= 0){
-				dataExists = true;
+			if (getMaxLevel2D(var, ts) >= 0) {
 				someDataOverall = true;
-				if (ts > (int)maxts) maxts = ts;
-				if (ts < (int)mints) mints = ts;
-				
+				dataExists = true;
+				if (ts < mints) mints = ts;
+				break;
 			}
 		}
 		variableExists2D[var] = dataExists; 
 	}
+	
     if (mints == 1000000000) mints = 0;
+	//Now go back from the end checking for the last timestep for which there is data:
+	for (int ts = numTS-1; ts>=0; ts--){
+		for (int var = 0; var< numSesVariables3D; var++){
+			if (getMaxLevel3D(var,ts)>=0) {
+				maxts = ts;
+				break;
+			}
+		}
+		if (maxts < 0) for (int var = 0; var< numSesVariables2D; var++){
+			if (getMaxLevel2D(var,ts)>=0) {
+				maxts = ts;
+				break;
+			}
+		}
+		if (maxts >= 0) break;
+	}
 	QApplication::restoreOverrideCursor();
 	//Now process the python variables.
 	//They must be added to the session variables.
@@ -562,7 +547,7 @@ getFirstTimestep(int sesvarnum){
 void DataStatus::calcDataRange(int varnum, int ts){
 	vector<double>minMax;
 	
-	if (maxLevel3D[varnum][ts] >= 0){
+	if (getMaxLevel3D(varnum,ts) >= 0){
 		
 		float mnmx[2];
 		//Turn off messages from datamgr. 
@@ -594,7 +579,7 @@ void DataStatus::calcDataRange(int varnum, int ts){
 void DataStatus::calcDataRange2D(int varnum, int ts){
 	vector<double>minMax;
 	
-	if (maxLevel2D[varnum][ts] >= 0){
+	if (getMaxLevel2D(varnum,ts) >= 0){
 		
 		float mnmx[2];
 		
@@ -726,9 +711,9 @@ bool DataStatus::fieldDataOK(int refLevel, int lod, int tstep, int varx, int var
 	if (VDCType == 2) testLevel = lod;
 	if (tstep < 0 || tstep > numTimesteps - 1) return false;
 	if (doUseLowerAccuracy) testLevel = 0;
-	if (varx >= 0 && (maxLevel3D[varx][tstep] < testLevel)) return false;
-	if (vary >= 0 && (maxLevel3D[vary][tstep] < testLevel)) return false;
-	if (varz >= 0 && (maxLevel3D[varz][tstep] < testLevel)) return false;
+	if (varx >= 0 && (getMaxLevel3D(varx,tstep) < testLevel)) return false;
+	if (vary >= 0 && (getMaxLevel3D(vary,tstep) < testLevel)) return false;
+	if (varz >= 0 && (getMaxLevel3D(varz,tstep) < testLevel)) return false;
 	return true;
 }
 //Orientation is 2 for XY, 0 for YZ, 1 for XZ 
@@ -1093,12 +1078,12 @@ int DataStatus::setDerivedVariable3D(const string& derivedVarName){
 	if (sesvarnum < 0){
 		
 		sesvarnum = mergeVariableName(derivedVarName);
-		int numSesVariables = getNumSessionVariables();
-		assert(numSesVariables == sesvarnum+1);  //should have added at end
-		variableExists.resize(numSesVariables);
-		maxLevel3D.resize(numSesVariables);
-		dataMin.resize(numSesVariables);
-		dataMax.resize(numSesVariables);
+		int numSesVariables3D = getNumSessionVariables();
+		assert(numSesVariables3D == sesvarnum+1);  //should have added at end
+		variableExists.resize(numSesVariables3D);
+		maxLevel3D.resize(numSesVariables3D);
+		dataMin.resize(numSesVariables3D);
+		dataMax.resize(numSesVariables3D);
 		variableExists[sesvarnum] = false;
 		maxLevel3D[sesvarnum] = new int[numTimesteps];
 		dataMin[sesvarnum] = new float[numTimesteps];
@@ -1121,8 +1106,8 @@ int DataStatus::setDerivedVariable3D(const string& derivedVarName){
 			int sesinvar = getSessionVariableNum2D(vars[i]);
 			if(sesinvar >= 0) {
 				for (int k = 0; k<numTimesteps; k++){
-					if(maxLevel3D[sesvarnum][k]>maxLevel2D[sesinvar][k])
-						maxLevel3D[sesvarnum][k]=maxLevel2D[sesinvar][k];
+					if(getMaxLevel3D(sesvarnum,k)>getMaxLevel2D(sesinvar,k))
+						maxLevel3D[sesvarnum][k]=getMaxLevel2D(sesinvar,k);
 				}
 				if (!variableExists2D[sesinvar]) varexists = false;
 			} else {
@@ -1140,7 +1125,7 @@ int DataStatus::setDerivedVariable3D(const string& derivedVarName){
 			int sesinvar = getSessionVariableNum3D(vars[i]);
 			if(sesinvar >= 0) {
 				for (int k = 0; k<numTimesteps; k++){
-					if(maxLevel3D[sesvarnum][k]>maxLevel3D[sesinvar][k])
+					if(getMaxLevel3D(sesvarnum,k)>maxLevel3D[sesinvar][k])
 						maxLevel3D[sesvarnum][k]=maxLevel3D[sesinvar][k];
 				}
 				if (!variableExists[sesinvar]) varexists = false;
@@ -1238,8 +1223,8 @@ int DataStatus::setDerivedVariable2D(const string& varName){
 			int sesinvar = getSessionVariableNum2D(vars[i]);
 			if(sesinvar >= 0) {
 				for (int k = 0; k<numTimesteps; k++){
-					if(maxLevel2D[sesvarnum][k]>maxLevel2D[sesinvar][k])
-						maxLevel2D[sesvarnum][k]=maxLevel2D[sesinvar][k];
+					if(getMaxLevel2D(sesvarnum,k)>getMaxLevel2D(sesinvar,k))
+						maxLevel2D[sesvarnum][k]=getMaxLevel2D(sesinvar,k);
 				}
 				if (!variableExists2D[sesinvar]) varexists = false;
 			} else {
@@ -1256,8 +1241,8 @@ int DataStatus::setDerivedVariable2D(const string& varName){
 			int sesinvar = getSessionVariableNum3D(vars[i]);
 			if(sesinvar >= 0) {
 				for (int k = 0; k<numTimesteps; k++){
-					if(maxLevel2D[sesvarnum][k]>maxLevel3D[sesinvar][k])
-						maxLevel2D[sesvarnum][k]=maxLevel3D[sesinvar][k];
+					if(maxLevel2D[sesvarnum][k]>getMaxLevel3D(sesinvar,k))
+						maxLevel2D[sesvarnum][k]=getMaxLevel3D(sesinvar,k);
 				}
 				if (!variableExists[sesinvar]) varexists = false;
 			} else {
@@ -1381,19 +1366,103 @@ int DataStatus::maxLODPresent2D(int sesvarnum, int timestep){
 		if (sesvarnum<0) return -1;
 		if (!variableExists2D[sesvarnum]) return -1;
 		if (getVDCType()!=2) return 0;
-		return (maxLevel2D[sesvarnum][timestep]);
+		return (getMaxLevel2D(sesvarnum,timestep));
 }
 int DataStatus::maxXFormPresent3D(int sesvarnum, int timestep){
 		if (timestep < 0 || timestep >= numTimesteps) return -1;
 		if (sesvarnum<0) return -1;
 		if (!variableExists[sesvarnum]) return -1;
 		if (getVDCType()==2) return getNumTransforms();
-		return (maxLevel3D[sesvarnum][timestep]);
+		return (getMaxLevel3D(sesvarnum,timestep));
 }
 int DataStatus::maxXFormPresent2D(int sesvarnum, int timestep){
 		if (timestep < 0 || timestep >= numTimesteps) return -1;
 		if (sesvarnum<0) return -1;
 		if (!variableExists2D[sesvarnum]) return -1;
 		if (getVDCType()==2) return getNumTransforms();
-		return (maxLevel2D[sesvarnum][timestep]);
+		return (getMaxLevel2D(sesvarnum,timestep));
+}
+int DataStatus::getMaxLevel3D(int sesvarnum, int timestep){
+	if (maxLevel3D[sesvarnum][timestep] > -2) return maxLevel3D[sesvarnum][timestep];
+	string s = getVariableName3D(sesvarnum);
+	int maxLevel = -1;
+	int topLevel;
+	if (getVDCType() == 2) topLevel = numLODs; else topLevel = numTransforms;
+	if (!dataMgr->IsVariableDerived(s)){
+	//Need to determine the actual max level on disk
+		int maxLevel = -1;
+		for (int lvl = topLevel; lvl>= 0; lvl--){
+			int xf=0, lod=0;
+			if (getVDCType()==2) lod = lvl; else xf = lvl;
+			if (dataMgr->VariableExists(timestep, s.c_str(), xf, lod)){
+				maxLevel = lvl;
+				break;
+			}
+		}
+		maxLevel3D[sesvarnum][timestep] = maxLevel;
+		return maxLevel;
+	} else {
+		//Check all input variables if it's a Python variable
+		int scriptId = getDerivedScriptId(s);
+		assert(scriptId >=0);
+		vector<string> in2dVars = getDerived2DInputVars(scriptId);
+		vector<string> in3dVars = getDerived3DInputVars(scriptId);
+		int minMaxLevel = topLevel;
+		for (int i = 0; i<in2dVars.size(); i++) {
+			int vnum = getMetadataVarNum2D(in2dVars[i]);
+			assert(vnum >= 0);
+			int varlevel = getMaxLevel2D(vnum, timestep);
+			if (minMaxLevel > varlevel)minMaxLevel = varlevel;
+		}
+		for (int i = 0; i<in3dVars.size(); i++) {
+			int vnum = getMetadataVarNum2D(in3dVars[i]);
+			assert(vnum >= 0);
+			int varlevel = getMaxLevel2D(vnum, timestep);
+			if (minMaxLevel > varlevel)minMaxLevel = varlevel;
+		}
+		maxLevel3D[sesvarnum][timestep] = minMaxLevel;
+		return minMaxLevel;
+	}
+}
+int DataStatus::getMaxLevel2D(int sesvarnum, int timestep){
+	if (maxLevel2D[sesvarnum][timestep] > -2) return maxLevel2D[sesvarnum][timestep];
+	string s = getVariableName2D(sesvarnum);
+	int maxLevel = -1;
+	int topLevel;
+	if (getVDCType() == 2) topLevel = numLODs; else topLevel = numTransforms;
+	if (!dataMgr->IsVariableDerived(s)){
+	//Need to determine the actual max level on disk
+		int maxLevel = -1;
+		for (int lvl = topLevel; lvl>= 0; lvl--){
+			int xf=0, lod=0;
+			if (getVDCType()==2) lod = lvl; else xf = lvl;
+			if (dataMgr->VariableExists(timestep, s.c_str(), xf, lod)){
+				maxLevel = lvl;
+				break;
+			}
+		}
+		maxLevel2D[sesvarnum][timestep] = maxLevel;
+		return maxLevel;
+	} else {
+		//Check all input variables if it's a Python variable
+		int scriptId = getDerivedScriptId(s);
+		assert(scriptId >=0);
+		vector<string> in2dVars = getDerived2DInputVars(scriptId);
+		vector<string> in3dVars = getDerived3DInputVars(scriptId);
+		int minMaxLevel = topLevel;
+		for (int i = 0; i<in2dVars.size(); i++) {
+			int vnum = getMetadataVarNum2D(in2dVars[i]);
+			assert(vnum >= 0);
+			int varlevel = getMaxLevel2D(vnum, timestep);
+			if (minMaxLevel > varlevel)minMaxLevel = varlevel;
+		}
+		for (int i = 0; i<in3dVars.size(); i++) {
+			int vnum = getMetadataVarNum2D(in3dVars[i]);
+			assert(vnum >= 0);
+			int varlevel = getMaxLevel2D(vnum, timestep);
+			if (minMaxLevel > varlevel)minMaxLevel = varlevel;
+		}
+		maxLevel2D[sesvarnum][timestep] = minMaxLevel;
+		return minMaxLevel;
+	}
 }
