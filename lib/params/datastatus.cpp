@@ -310,7 +310,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 
 	//As we go through the variables and timesteps, keep Track of min and max times
 	unsigned int mints = 1000000000;
-	unsigned int maxts = -1;
+	int maxts = -1;
 	
 	//Note:  It takes a long time for all the calls to VariableExists
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
@@ -1385,7 +1385,6 @@ int DataStatus::maxXFormPresent2D(int sesvarnum, int timestep){
 int DataStatus::getMaxLevel3D(int sesvarnum, int timestep){
 	if (maxLevel3D[sesvarnum][timestep] > -2) return maxLevel3D[sesvarnum][timestep];
 	string s = getVariableName3D(sesvarnum);
-	int maxLevel = -1;
 	int topLevel;
 	if (getVDCType() == 2) topLevel = numLODs; else topLevel = numTransforms;
 	if (!dataMgr->IsVariableDerived(s)){
@@ -1427,7 +1426,6 @@ int DataStatus::getMaxLevel3D(int sesvarnum, int timestep){
 int DataStatus::getMaxLevel2D(int sesvarnum, int timestep){
 	if (maxLevel2D[sesvarnum][timestep] > -2) return maxLevel2D[sesvarnum][timestep];
 	string s = getVariableName2D(sesvarnum);
-	int maxLevel = -1;
 	int topLevel;
 	if (getVDCType() == 2) topLevel = numLODs; else topLevel = numTransforms;
 	if (!dataMgr->IsVariableDerived(s)){
