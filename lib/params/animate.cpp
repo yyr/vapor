@@ -92,7 +92,8 @@ void animate:: keyframeInterpolate(std::vector<Keyframe*>& key_vec, std::vector<
 ///////////////////////////////////////////////////////////////
 
 void animate::priorInterPolationCalcs(std::vector<Keyframe*>& key_vec, std::vector<Viewpoint*>& view_vec){
-    
+    //temp Viewpoint to be pushed into the view_vec
+    Viewpoint outVP;  
     
     //Calculating the log of the zoom distance at each viewpoint
     for (int i=0; i < noVPs; i++){
@@ -105,28 +106,51 @@ void animate::priorInterPolationCalcs(std::vector<Keyframe*>& key_vec, std::vect
      //various slopes calculations
      slopeCalculator(key_vec);
    
-   //Times to interpolate (between 2 points)
      for( int i=0; i < noVPs-1; i++){
     
+            //checking for two consecutive speeds = 0
+         if (key_vec[i]->speed ==0 && key_vec[i+1]->speed ==0){
+             
+             //push in the currrent keyframe into the vector
+             for (int j=0 ; j <key_vec[i]->frameNum ; j++)
+             {
+                 
+                    outVP.setCameraPosLocal(0, key_vec[i]->viewpoint->getCameraPosLocal(0)); outVP.setCameraPosLocal(1, key_vec[i]->viewpoint->getCameraPosLocal(1)); outVP.setCameraPosLocal(2, key_vec[i]->viewpoint->getCameraPosLocal(2));                            
+                 
+                    outVP.setViewDir(0,key_vec[i]->viewpoint->getViewDir(0));  outVP.setViewDir(1,key_vec[i]->viewpoint->getViewDir(1));  outVP.setViewDir(2,key_vec[i]->viewpoint->getViewDir(2));
+                    outVP.setUpVec(0,key_vec[i]->viewpoint->getUpVec(0));    outVP.setUpVec(1,key_vec[i]->viewpoint->getUpVec(1)); outVP.setUpVec(2,key_vec[i]->viewpoint->getUpVec(2)); 
+                    outVP.setRotationCenterLocal(0,key_vec[i]->viewpoint->getRotationCenterLocal(0)); outVP.setRotationCenterLocal(1,key_vec[i]->viewpoint->getRotationCenterLocal(1)); outVP.setRotationCenterLocal(2,key_vec[i]->viewpoint->getRotationCenterLocal(2));
+            
+             
+             
+                 outViewPoints.push_back(outVP);
+             
+             
+             }
+             
+             
+             totalSegments[i] = key_vec[i]->frameNum;
+         }
+         
+         else{
+            //evaluate the approximate camera positions
+            evaluateCameraPos(i, key_vec);
     
-        //evaluate the approximate camera positions
-        evaluateCameraPos(i, key_vec);
-    
-        //calculate the quaternions
-        calculate_quats(i, key_vec);
+            //calculate the quaternions
+            calculate_quats(i, key_vec);
         
       
       
-        //calculate the intervals
-        speedController(i,key_vec);
+            //calculate the intervals
+            speedController(i,key_vec);
          
-   
+         }
+        
      }
     
-    //Final KeyFrame 
-   
-    Viewpoint outVP;        
     
+        
+    //Final KeyFrame 
     outVP.setCameraPosLocal(0, key_vec[noVPs-1]->viewpoint->getCameraPosLocal(0)); outVP.setCameraPosLocal(1, key_vec[noVPs-1]->viewpoint->getCameraPosLocal(1)); outVP.setCameraPosLocal(2, key_vec[noVPs-1]->viewpoint->getCameraPosLocal(2));
     
     outVP.setViewDir(0,key_vec[noVPs-1]->viewpoint->getViewDir(0));  outVP.setViewDir(1,key_vec[noVPs-1]->viewpoint->getViewDir(1));  outVP.setViewDir(2,key_vec[noVPs-1]->viewpoint->getViewDir(2));
@@ -135,7 +159,7 @@ void animate::priorInterPolationCalcs(std::vector<Keyframe*>& key_vec, std::vect
     
     
     outViewPoints.push_back(outVP);
-    
+   
 }
 
 
