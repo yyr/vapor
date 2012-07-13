@@ -499,8 +499,7 @@ void AnimationParams::buildViewsAndTimes(){
 		}
 	}
 	*/
-	int sz = loadedViewpoints.size();
-	Viewpoint* lastViewpoint = loadedViewpoints[sz-1];
+
 
 	//Adjust time steps:
 	for (int i = 0; i<keyframes.size()-1; i++){
@@ -518,6 +517,7 @@ void AnimationParams::buildViewsAndTimes(){
 	int num1 = loadedTimesteps.size();
 	int num2 = loadedViewpoints.size();
 	assert(num1 == num2);
+	if (keyframingEnabled()) setEndFrameNumber(loadedViewpoints.size()-1);
 
 }
 void AnimationParams::enableKeyframing( bool onoff){

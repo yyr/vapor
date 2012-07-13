@@ -168,10 +168,10 @@ step, and will animate in unison.</string>
        <item>
         <widget class="QLabel" name="textLabel1_2">
          <property name="toolTip">
-          <string>Min and Max frames refer to the smallest and largest time steps in the current dataset</string>
+          <string>Min and Max timesteps refer to the smallest and largest time steps in the current dataset</string>
          </property>
          <property name="text">
-          <string>Min: </string>
+          <string>Min Timestep: </string>
          </property>
          <property name="wordWrap">
           <bool>false</bool>
@@ -245,7 +245,7 @@ step, and will animate in unison.</string>
           <string>Min and Max frames refer to the smallest and largest time steps in the current dataset</string>
          </property>
          <property name="text">
-          <string>Max:</string>
+          <string>Max Timestep:</string>
          </property>
          <property name="wordWrap">
           <bool>false</bool>
@@ -1128,6 +1128,9 @@ size slider and text box.</string>
               </property>
               <property name="toolTip">
                <string>Specify the default nonzero camera speed to use when the camera is moving</string>
+              </property>
+              <property name="whatsThis">
+               <string>The default camera speed is used whenever a keyframe is inserted after a fixed keyframe.  If a keyframe is inserted after a moving frame, the new speed will be the same as the previous moving frame.</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
