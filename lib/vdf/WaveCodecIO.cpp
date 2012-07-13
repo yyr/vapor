@@ -5,11 +5,11 @@
 #include <sys/stat.h>
 #include <cstdlib>
 #include <cfloat>
-#include <unistd.h>
 #ifdef WIN32
 #include <windows.h>
+#else
+#include <unistd.h>
 #endif
-
 #ifdef PARALLEL
 #include <mpi.h>
 #else
