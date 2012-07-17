@@ -88,9 +88,6 @@ bool ShaderMgr::loadShaders()
 			if(loadEffectFile(efcFiles.at(i).toStdString()) == false){	
 				SetErrMsg(VAPOR_ERROR_GL_SHADER, 
 											"EFC file \"%s\" failed to load\n", efcFiles.at(i).toStdString().c_str());	
-#ifdef DEBUG
-				std::cout << "ShaderMgr::loadShaders() - " << efcFiles.at(i).toStdString() << " failed to load" << std::endl;
-#endif
 				return false;
 			}
 		}
@@ -113,7 +110,9 @@ bool ShaderMgr::reloadShaders()
 	glGetIntegerv(GL_CURRENT_PROGRAM, &current);
 	parent->makeCurrent();
 	if (current != 0) {
-		//shader is in use, cannot delete anything!
+		SetErrMsg(
+			VAPOR_ERROR_GL_SHADER, "shader is in use, cannot delete anything!"
+		);
 		return false;
 	}
 	
@@ -148,6 +147,9 @@ bool ShaderMgr::enableEffect(std::string effect)
 		
 	}
 	else {
+		SetErrMsg(
+			VAPOR_ERROR_GL_SHADER, "Effect %s does not exist", effect.c_str()
+		);
 		return false;
 	}
 	return true;
@@ -217,13 +219,21 @@ bool ShaderMgr::defineEffect(std::string baseName, std::string defines, std::str
 	std::cout << "ShaderMgr::defineEffect()" << std::endl;
 #endif
 	if (baseEffects.count(baseName) < 0) {
-		//base effect is not loaded
+		SetErrMsg(
+			VAPOR_ERROR_GL_SHADER, "Base effect \"%s\" is not loaded", 
+			baseName.c_str()
+		);
 		return false;
 	}
 	else {
 		//check if another effect is already using the instanceName
-		if(effects.count(instanceName) > 0)
+		if(effects.count(instanceName) > 0) {
+			SetErrMsg(
+				VAPOR_ERROR_GL_SHADER, "Effect \"%s\" already in use", 
+				instanceName.c_str()
+			);
 			return false;
+		}
 		effects[instanceName] = new ShaderProgram();
 		effects[instanceName]->create();
 		//Convert defines
@@ -253,6 +263,10 @@ bool ShaderMgr::defineEffect(std::string baseName, std::string defines, std::str
 #ifdef DEBUG
 		std::cout << "effect " << baseName << " failed compilation " << "name: " << instanceName << std::endl;
 #endif
+		SetErrMsg(
+			VAPOR_ERROR_GL_SHADER, "Effect \"%s::%s\" failed to compile", 
+			baseName.c_str(), instanceName.c_str()
+		);
 		return false;
 	}
 
@@ -264,7 +278,7 @@ bool ShaderMgr::undefEffect(std::string instanceName)
 #endif
 	if (effects.count(instanceName) < 0) {
 	  //effect has not been defined
-	  return false;
+		return false;
 	}
 	else {
 	  delete effects[instanceName];
@@ -511,6 +525,10 @@ bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, int v
 		return true;
 	}
 	else {
+		SetErrMsg(
+			VAPOR_ERROR_GL_SHADER, "Effect \"%s\" has not been defined", 
+			effect.c_str()
+		);
 		return false;
 	}
 	
@@ -557,6 +575,10 @@ bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, int v
 		return true;
 	}
 	else {
+		SetErrMsg(
+			VAPOR_ERROR_GL_SHADER, "Effect \"%s\" has not been defined", 
+			effect.c_str()
+		);
 		return false;
 	}
 	
@@ -601,6 +623,10 @@ bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, int v
 	}
 	else {
 		return false;
+		SetErrMsg(
+			VAPOR_ERROR_GL_SHADER, "Effect \"%s\" has not been defined", 
+			effect.c_str()
+		);
 	}
 	
 }
@@ -646,6 +672,10 @@ bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, int v
 	}
 	else {
 		return false;
+		SetErrMsg(
+			VAPOR_ERROR_GL_SHADER, "Effect \"%s\" has not been defined", 
+			effect.c_str()
+		);
 	}
 	
 }
@@ -689,6 +719,10 @@ bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, float
 	}
 	else {
 		return false;
+		SetErrMsg(
+			VAPOR_ERROR_GL_SHADER, "Effect \"%s\" has not been defined", 
+			effect.c_str()
+		);
 	}
 	
 }
@@ -733,6 +767,10 @@ bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, float
 	}
 	else {
 		return false;
+		SetErrMsg(
+			VAPOR_ERROR_GL_SHADER, "Effect \"%s\" has not been defined", 
+			effect.c_str()
+		);
 	}
 	
 }
@@ -778,6 +816,10 @@ bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, float
 	}
 	else {
 		return false;
+		SetErrMsg(
+			VAPOR_ERROR_GL_SHADER, "Effect \"%s\" has not been defined", 
+			effect.c_str()
+		);
 	}
 	
 }
@@ -823,6 +865,10 @@ bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, float
 	}
 	else {
 		return false;
+		SetErrMsg(
+			VAPOR_ERROR_GL_SHADER, "Effect \"%s\" has not been defined", 
+			effect.c_str()
+		);
 	}
 	
 }
