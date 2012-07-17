@@ -18,7 +18,7 @@ using namespace VAPoR;
 int	cvtToExtents(const char *from, void *to);
 int	cvtTo3DBool(const char *from, void *to);
 int	cvtToOrder(const char *from, void *to);
-int	getUserTimes(const char *path, vector <double> &timevec);
+int	getDblVec(const char *path, vector <double> &vec);
 
 struct opt_t {
 	OptionParser::Dimension3D_T	dim;
@@ -29,10 +29,14 @@ struct opt_t {
 	int	nlifting;
 	double deltat;
 	double startt;
+	float missing;
 	char *comment;
 	char *coordsystem;
 	char *gridtype;
 	char *usertimes;
+	char *xcoords;
+	char *ycoords;
+	char *zcoords;
 	char *mapprojection;
 	char *wname;
 	float extents[6];
@@ -52,6 +56,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"dimension",1, "512x512x512",	"Data volume dimensions expressed in "
 		"grid points (NXxNYxNZ)"},
 	{"startt", 1, "0.0", "Time, in user coordinates, of the first time step"},
+	{"missing", 1, "0.0", "Missing data value"},
 	{"numts",	1, 	"1",			"Number of timesteps in the data set"},
 	{"deltat",  1,  "1.0",   "Increment between time steps expressed in user "
 		"time coordinates"},
@@ -68,6 +73,15 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"usertimes",	1,	"",	"Path to a file containing a whitespace "
 		"delineated list of user times. If present, -numts "
 		"option is ignored."}, 
+	{"xcoords",	1,	"",	"Path to a file containing a whitespace "
+		"delineated list of X-axis user coordinates. Ignored unless "
+		"gridtype is stretched."},
+	{"ycoords",	1,	"",	"Path to a file containing a whitespace "
+		"delineated list of Y-axis user coordinates. Ignored unless "
+		"gridtype is stretched."},
+	{"zcoords",	1,	"",	"Path to a file containing a whitespace "
+		"delineated list of Z-axis user coordinates. Ignored unless "
+		"gridtype is stretched."},
 	{"mapprojection",	1,	"",	"A whitespace delineated, quoted list "
         "of PROJ key/value pairs of the form '+paramname=paramvalue'. "
 		"vdfcreate does not validate the string for correctness."},
@@ -107,6 +121,7 @@ OptionParser::Option_T	get_options[] = {
 	{"bs", VetsUtil::CvtToDimension3D, &opt.bs, sizeof(opt.bs)},
 	{"numts", VetsUtil::CvtToInt, &opt.numts, sizeof(opt.numts)},
 	{"startt", VetsUtil::CvtToDouble, &opt.startt, sizeof(opt.startt)},
+	{"missing", VetsUtil::CvtToFloat, &opt.missing, sizeof(opt.missing)},
 	{"deltat", VetsUtil::CvtToDouble, &opt.deltat, sizeof(opt.deltat)},
 	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
 	{"nfilter", VetsUtil::CvtToInt, &opt.nfilter, sizeof(opt.nfilter)},
@@ -114,6 +129,9 @@ OptionParser::Option_T	get_options[] = {
 	{"comment", VetsUtil::CvtToString, &opt.comment, sizeof(opt.comment)},
 	{"gridtype", VetsUtil::CvtToString, &opt.gridtype, sizeof(opt.gridtype)},
 	{"usertimes", VetsUtil::CvtToString, &opt.usertimes, sizeof(opt.usertimes)},
+	{"xcoords", VetsUtil::CvtToString, &opt.xcoords, sizeof(opt.xcoords)},
+	{"ycoords", VetsUtil::CvtToString, &opt.ycoords, sizeof(opt.ycoords)},
+	{"zcoords", VetsUtil::CvtToString, &opt.zcoords, sizeof(opt.zcoords)},
 	{"mapprojection", VetsUtil::CvtToString, &opt.mapprojection, sizeof(opt.mapprojection)},
 	{"wname", VetsUtil::CvtToString, &opt.wname, sizeof(opt.wname)},
 	{"coordsystem", VetsUtil::CvtToString, &opt.coordsystem, sizeof(opt.coordsystem)},
@@ -275,7 +293,7 @@ int	main(int argc, char **argv) {
 
 	if (strlen(opt.usertimes)) {
 		vector <double> usertimes;
-		if (getUserTimes(opt.usertimes, usertimes)<0) {
+		if (getDblVec(opt.usertimes, usertimes)<0) {
 			exit(1);
 		}
 		if (file->SetNumTimeSteps(usertimes.size()) < 0) {
@@ -317,23 +335,6 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
-	int doExtents = 0;
-	for(int i=0; i<5; i++) {
-		if (opt.extents[i] != opt.extents[i+1]) doExtents = 1;
-	}
-
-	// let Metadata class calculate extents automatically if not 
-	// supplied by user explicitly.
-	//
-	if (doExtents) {
-		vector <double> extents;
-		for(int i=0; i<6; i++) {
-			extents.push_back(opt.extents[i]);
-		}
-		if (file->SetExtents(extents) < 0) {
-			exit(1);
-		}
-	}
 
 	{
 		vector <long> periodic_vec;
@@ -348,6 +349,9 @@ int	main(int argc, char **argv) {
 	// Deal with deprecated option
 	if (opt.varnames.size()) opt.vars3d = opt.varnames;
 
+	vector <double> xcoords;
+	vector <double> ycoords;
+	vector <double> zcoords;
 	if (file->GetGridType().compare("layered") == 0){
 		//Make sure there's an ELEVATION variable in the vdf
 		bool hasElevation = false;
@@ -360,6 +364,79 @@ int	main(int argc, char **argv) {
 		if (!hasElevation){
 			opt.vars3d.push_back("ELEVATION");
 		}
+	}
+	else if (file->GetGridType().compare("stretched") == 0){
+		if (strlen(opt.xcoords)) {
+			if (getDblVec(opt.xcoords, xcoords)<0) {
+				exit(1);
+			}
+			if (xcoords.size() != 0) {
+				for (size_t ts=0; ts<file->GetNumTimeSteps(); ts++) {
+					if (file->SetTSXCoords(ts, xcoords)<0) exit(1);
+				}
+			}
+		}
+		if (strlen(opt.ycoords)) {
+			if (getDblVec(opt.ycoords, ycoords)<0) {
+				exit(1);
+			}
+			if (ycoords.size() != 0) {
+				for (size_t ts=0; ts<file->GetNumTimeSteps(); ts++) {
+					if (file->SetTSYCoords(ts, ycoords)<0) exit(1);
+				}
+			}
+		}
+		if (strlen(opt.zcoords)) {
+			if (getDblVec(opt.zcoords, zcoords)<0) {
+				exit(1);
+			}
+			if (zcoords.size() != 0) {
+				for (size_t ts=0; ts<file->GetNumTimeSteps(); ts++) {
+					if (file->SetTSZCoords(ts, zcoords)<0) exit(1);
+				}
+			}
+		}
+	}
+
+	// 
+	// default user extents
+	//
+	vector <double> extents;
+    double maxdim = max(dim[0], max(dim[1],dim[2]));
+	extents.push_back(0.0);
+	extents.push_back(0.0);
+	extents.push_back(0.0);
+	extents.push_back((double) dim[0] / maxdim);
+	extents.push_back((double) dim[1] / maxdim);
+	extents.push_back((double) dim[2] / maxdim);
+
+	bool doExtents = false;
+	for(int i=0; i<5; i++) {
+		if (opt.extents[i] != opt.extents[i+1]) doExtents = true;
+	}
+	if (doExtents) {
+		for(int i=0; i<6; i++) {
+			extents[i] = opt.extents[i];
+		}
+	}
+	if (xcoords.size()) {
+		extents[0] = xcoords[0];
+		extents[0+3] = xcoords[xcoords.size()-1];
+	}
+	if (ycoords.size()) {
+		extents[1] = ycoords[0];
+		extents[1+3] = ycoords[ycoords.size()-1];
+	}
+	if (zcoords.size()) {
+		extents[2] = zcoords[0];
+		extents[2+3] = zcoords[zcoords.size()-1];
+	}
+	if (file->SetExtents(extents) < 0) {
+		exit(1);
+	}
+
+	if (opt.missing != 0.0) {
+		file->SetMissingValue(opt.missing);
 	}
 
 	if (file->SetVariables3D(opt.vars3d) < 0) {
@@ -431,7 +508,7 @@ int	cvtTo3DBool(
 }
 
 
-int	getUserTimes(const char *path, vector <double> &timevec) {
+int	getDblVec(const char *path, vector <double> &vec) {
 
 	ifstream fin(path);
 	if (! fin) { 
@@ -439,30 +516,30 @@ int	getUserTimes(const char *path, vector <double> &timevec) {
 		return(-1);
 	}
 
-	timevec.clear();
+	vec.clear();
 
 	double d;
 	while (fin >> d) {
-		timevec.push_back(d);
+		vec.push_back(d);
 	}
 	fin.close();
 
 	// Make sure times are monotonic.
 	//
 	int mono = 1;
-	if (timevec.size() > 1) {
-		if (timevec[0]>=timevec[timevec.size()-1]) {
-			for(int i=0; i<timevec.size()-1; i++) {
-				if (timevec[i]<timevec[i+1]) mono = 0;
+	if (vec.size() > 1) {
+		if (vec[0]>=vec[vec.size()-1]) {
+			for(int i=0; i<vec.size()-1; i++) {
+				if (vec[i]<vec[i+1]) mono = 0;
 			}
 		} else {
-			for(int i=0; i<timevec.size()-1; i++) {
-				if (timevec[i]>timevec[i+1]) mono = 0;
+			for(int i=0; i<vec.size()-1; i++) {
+				if (vec[i]>vec[i+1]) mono = 0;
 			}
 		}
 	}
 	if (! mono) {
-		MyBase::SetErrMsg("User times sequence must be monotonic");
+		MyBase::SetErrMsg("Sequence contained in %s must be monotonic", path);
 		return(-1);
 	}
 
