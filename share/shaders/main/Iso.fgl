@@ -90,10 +90,6 @@ void main(void)
 	int nsegs = int(min(float(nsamples), 256.0));
 	if (fast) nsegs = 16;
 
-// Ugh. Hard-wire number of samples. Bad things happen when view point 
-// is inside the view volume using above code 
-//	if (nsegs>0) nsegs = 256;
-
 	vec3 deltaVec = texDirUnit * (length(texDir) / float(nsegs));
 	float deltaZ = (zStopEye-zStartEye) / float(nsegs);
 
@@ -116,7 +112,10 @@ void main(void)
 		while (outside && (nsegs > 0)) {
 			t0 = tex2lay(texCoord0, zidx);
 			t1 = tex2lay(texCoord1, zidx);
-			if (t0.x < 0.0 || t1.x < 0.0) {
+			if (t0.x < 0.0 || t0.y < 0.0 || t0.z < 0.0 ||
+				t0.x > 1.0 || t0.y > 1.0 || t0.z > 1.0 || 
+				t1.x < 0.0 || t1.y < 0.0 || t1.z < 0.0 || 
+				t1.x > 1.0 || t1.y > 1.0 || t1.z > 1.0) {
 				// ray starting point is outside the volume
 				//
 				texCoord0 = texCoord1;
@@ -258,18 +257,24 @@ void main(void)
 			t1.z = texture1D(coordmap, t1.z).z;
 		}
 
-		if (t1.x >= 0.0) {
-
-			// if texCoord1 is inside the volume then lookup new 
-			// value for s1. Otherwise s1 == s0 and there is no
-			// ray-surface intersection
-			//
-			s1 = texture3D(volumeTexture, t1).x;
-			if (midx > 0) {
-				if (missing) s0 = s1;
-				missing = (texture3D(volumeTexture, t1)[midx] != 0.0);
-			}
+		//
+		// If outside of texture we're done
+		//
+		if (t1.x < 0.0 || t1.y < 0.0 || t1.z < 0.0 || 
+			t1.x > 1.0 || t1.y > 1.0 || t1.z > 1.0) {
 			
+			break;
+		}
+
+
+		// if texCoord1 is inside the volume then lookup new 
+		// value for s1. Otherwise s1 == s0 and there is no
+		// ray-surface intersection
+		//
+		s1 = texture3D(volumeTexture, t1).x;
+		if (midx > 0) {
+			if (missing) s0 = s1;
+			missing = (texture3D(volumeTexture, t1)[midx] != 0.0);
 		}
 	}
 
