@@ -74,7 +74,7 @@ class RENDER_API DVRSpherical : public DVRShader
   void permute(const vector<long>& permutation,
                float result[3], float x, float y, float z);
 
- protected:
+ private:
 
   static char spherical_shader_default[];
   static char spherical_shader_lighting[];
@@ -87,6 +87,7 @@ class RENDER_API DVRSpherical : public DVRShader
 
   std::vector<long> _permutation;
   std::vector<bool> _clip;
+  bool _initialized;
 };
 
 };

@@ -45,40 +45,25 @@ DVRRayCaster::DVRRayCaster(
 	_framebufferid = 0;
 	_backface_texcrd_texid = 0;
 	_backface_depth_texid = 0;
+	_initialized = false;
 
 	_nisos = 0;
 
 	if (GLEW_VERSION_2_0) {
-		if (_mapped) {
-			// if mapped, parent class (DVRShader) uses tex unit 1 for
-			// the color map texture
-			//
-			_texcrd_texunit = GL_TEXTURE2;
-			_depth_texunit = GL_TEXTURE3;
-		}
-		else {
-			_texcrd_texunit = GL_TEXTURE1;
-			_depth_texunit = GL_TEXTURE2;
-		}
+		// if mapped, parent class (DVRShader) uses tex unit 0
+		// for the volume texture, texture unit 1 for
+		// the color map texture, and unit 2 for the coordinate map
+		//
+		_texcrd_texunit = GL_TEXTURE3;
+		_depth_texunit = GL_TEXTURE4;
 	}
 	else {
-		if (_mapped) {
-			_texcrd_texunit = GL_TEXTURE2_ARB;
-			_depth_texunit = GL_TEXTURE3_ARB;
-		}
-		else {
-			_texcrd_texunit = GL_TEXTURE1_ARB;
-			_depth_texunit = GL_TEXTURE2_ARB;
-		}
+		_texcrd_texunit = GL_TEXTURE3_ARB;
+		_depth_texunit = GL_TEXTURE4_ARB;
 	}
-	if (_mapped) {
-		_texcrd_sampler = 2;
-		_depth_sampler = 3;
-	}
-	else {
-		_texcrd_sampler = 1;
-		_depth_sampler = 2;
-	}
+
+	_texcrd_sampler = 3;
+	_depth_sampler = 4;
 }
 
 //----------------------------------------------------------------------------
@@ -94,6 +79,12 @@ DVRRayCaster::~DVRRayCaster()
 	if (_backface_texcrd_texid) glDeleteTextures(1, &_backface_texcrd_texid);
 	if (_backface_depth_texid) glDeleteTextures(1, &_backface_depth_texid);
 	printOpenGLError();
+
+	_shadermgr->undefEffect(instanceName("default"));
+	_shadermgr->undefEffect(instanceName("lighting"));
+	_shadermgr->undefEffect(instanceName("mapped"));
+	_shadermgr->undefEffect(instanceName("mapped+lighting"));
+	printOpenGLError();
 }
 
 
@@ -102,6 +93,7 @@ DVRRayCaster::~DVRRayCaster()
 //----------------------------------------------------------------------------
 int DVRRayCaster::GraphicsInit() 
 {
+	if (_initialized) return(0);
 	glewInit();
 
 	if (! _shadermgr->defineEffect("Iso", "", instanceName("default")))
@@ -122,33 +114,28 @@ int DVRRayCaster::GraphicsInit()
 	if (initTextures() < 0) return(-1);
 
 	if (! _shadermgr->uploadEffectData(instanceName("default"), "volumeTexture", 0)) return(-1);	
-
+	if (! _shadermgr->uploadEffectData(instanceName("default"), "coordmap", 2)) return(-1);	
 	if (! _shadermgr->uploadEffectData(instanceName("default"), "texcrd_buffer", _texcrd_sampler)) return(-1);	
-
 	if (! _shadermgr->uploadEffectData(instanceName("default"), "depth_buffer", _depth_sampler)) return(-1);	
 
 	if (! _shadermgr->uploadEffectData(instanceName("lighting"), "volumeTexture", 0)) return(-1);	
-
+	if (! _shadermgr->uploadEffectData(instanceName("lighting"), "coordmap", 2)) return(-1);	
 	if (! _shadermgr->uploadEffectData(instanceName("lighting"), "texcrd_buffer", _texcrd_sampler)) return(-1);	
-
 	if (! _shadermgr->uploadEffectData(instanceName("lighting"), "depth_buffer", _depth_sampler)) return(-1);
 
     if (! _shadermgr->uploadEffectData(instanceName("mapped"), "volumeTexture", 0)) return(-1);
-
-    if (! _shadermgr->uploadEffectData(instanceName("mapped"), "texcrd_buffer", _texcrd_sampler)) return(-1);
-
     if (! _shadermgr->uploadEffectData(instanceName("mapped"), "colormap", 1)) return(-1);
-
+    if (! _shadermgr->uploadEffectData(instanceName("mapped"), "coordmap", 2)) return(-1);
+    if (! _shadermgr->uploadEffectData(instanceName("mapped"), "texcrd_buffer", _texcrd_sampler)) return(-1);
     if (! _shadermgr->uploadEffectData(instanceName("mapped"), "depth_buffer", _depth_sampler)) return(-1);
 
     if (! _shadermgr->uploadEffectData(instanceName("mapped+lighting"), "volumeTexture", 0)) return(-1);
-
     if (! _shadermgr->uploadEffectData(instanceName("mapped+lighting"), "colormap", 1)) return(-1);
-
+    if (! _shadermgr->uploadEffectData(instanceName("mapped+lighting"), "coordmap", 2)) return(-1);
     if (! _shadermgr->uploadEffectData(instanceName("mapped+lighting"), "texcrd_buffer", _texcrd_sampler)) return(-1);
-
     if (! _shadermgr->uploadEffectData(instanceName("mapped+lighting"), "depth_buffer", _depth_sampler)) return(-1);
 
+	_initialized = true;
 	return 0;
 }
 
@@ -354,6 +341,21 @@ void DVRRayCaster::render_backface(
 	const BBox &textureBox = brick->textureBox();
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
+
+	//
+	// Ugh. DVRShader activates texture units 0,1 and 2. We need to
+	// disable them or they will be used by the fixed-function pipeline
+	// rendering performed here
+	//
+    if (GLEW_VERSION_2_0) {
+      glActiveTexture(GL_TEXTURE2);
+    }
+    else {
+      glActiveTextureARB(GL_TEXTURE2_ARB);
+    }
+	glDisable(GL_TEXTURE_1D);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_TEXTURE_3D);
 
     if (GLEW_VERSION_2_0) {
       glActiveTexture(GL_TEXTURE1);
@@ -751,7 +753,7 @@ bool DVRRayCaster::supported()
 		DVRShader::supported() && 
 		GLEW_EXT_framebuffer_object && 
 		GLEW_ARB_vertex_buffer_object &&
-		ntexunits >= 3
+		ntexunits >= 4
 	);
 }
 //----------------------------------------------------------------------------

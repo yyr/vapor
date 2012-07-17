@@ -18,6 +18,7 @@ uniform sampler2D colormap;	// 2D color map for pre-intergrated shading
 #else
 uniform sampler1D colormap;
 #endif
+uniform sampler1D coordmap; // coordinate map for stretched grids
 
 // volumeTexture[0] : field value
 // volumeTexture[midx] : missing data "flag" (if midx > 0)
@@ -27,6 +28,7 @@ uniform sampler3D volumeTexture;
 uniform int zidx;   // texel component containing user Z coordinate
 uniform int midx;   // texel component containing missing data indicator
 uniform bool fast;  // render fast
+uniform bool stretched;  // stretched coordinates (rectilinear grid)
 
 
 //------------------------------------------------------------------
@@ -47,6 +49,11 @@ void main(void)
 			discard;	// Z texture coordinate is invalid
 			return;
 		}
+	}
+	else if (stretched) {
+		texCoord0.x = texture1D(coordmap, texCoord0.x).x;
+		texCoord0.y = texture1D(coordmap, texCoord0.y).y;
+		texCoord0.z = texture1D(coordmap, texCoord0.z).z;
 	}
 	vec4 texel = texture3D(volumeTexture, texCoord0);
 

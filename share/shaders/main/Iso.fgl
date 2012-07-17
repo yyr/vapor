@@ -6,6 +6,8 @@ vec3 tex2lay(vec3 texCoord, int comp);
 uniform sampler1D colormap;
 #endif
 
+uniform sampler1D coordmap;
+
 uniform sampler2D texcrd_buffer;	// tex coords for back facing quads
 uniform sampler2D depth_buffer;	// depth back facing quads
 uniform sampler3D volumeTexture;	// sampled data to ray cast
@@ -13,6 +15,9 @@ uniform float isovalue;
 uniform int zidx;	// texel component containing user Z coordinate
 uniform int midx;	// texel component containing missing data indicator
 uniform bool fast;	// render fast
+uniform bool stretched;  // stretched coordinates (rectilinear grid)
+
+
 
 
 #ifdef	MAPPED
@@ -99,6 +104,8 @@ void main(void)
 
 	float s0, s1;
 	bool missing = false;
+	vec3 t0 = texCoord0;
+	vec3 t1 = texCoord1;
 	if (zidx>0 && ! fast) {
 		//
 		// With layered data the starting point of the ray may not reside
@@ -107,8 +114,8 @@ void main(void)
 		//
 		bool outside = true;
 		while (outside && (nsegs > 0)) {
-			vec3 t0 = tex2lay(texCoord0, zidx);
-			vec3 t1 = tex2lay(texCoord1, zidx);
+			t0 = tex2lay(texCoord0, zidx);
+			t1 = tex2lay(texCoord1, zidx);
 			if (t0.x < 0.0 || t1.x < 0.0) {
 				// ray starting point is outside the volume
 				//
@@ -118,27 +125,25 @@ void main(void)
 			}
 			else {
 				outside = false;
-				s0 = texture3D(volumeTexture, t0).x;
-				s1 = texture3D(volumeTexture, t1).x;
-				if (midx > 0) {
-					if ((texture3D(volumeTexture, t0)[midx] != 0.0) || 
-						(texture3D(volumeTexture, t1)[midx] != 0.0)) {
-
-						missing = true;
-					}
-				}
 			}
 		}
 	}
-	else {
-		s0 = texture3D(volumeTexture, texCoord0).x;
-		s1 = texture3D(volumeTexture, texCoord1).x;
-		if (midx > 0) {
-			if ((texture3D(volumeTexture, texCoord0)[midx] != 0.0) || 
-				(texture3D(volumeTexture, texCoord1)[midx] != 0.0)) {
+	else if (stretched) {
+			t0.x = texture1D(coordmap, t0.x).x;
+			t0.y = texture1D(coordmap, t0.y).y;
+			t0.z = texture1D(coordmap, t0.z).z;
+			t1.x = texture1D(coordmap, t1.x).x;
+			t1.y = texture1D(coordmap, t1.y).y;
+			t1.z = texture1D(coordmap, t1.z).z;
+	}
 
-				missing = true;
-			}
+	s0 = texture3D(volumeTexture, t0).x;
+	s1 = texture3D(volumeTexture, t1).x;
+	if (midx > 0) {
+		if ((texture3D(volumeTexture, t0)[midx] != 0.0) || 
+			(texture3D(volumeTexture, t1)[midx] != 0.0)) {
+
+			missing = true;
 		}
 	}
 
@@ -167,7 +172,12 @@ void main(void)
 			// interpolation current segment end points 
 			vec3 isoTexCoord = texCoord0 + (weight * deltaVec);
 			if (zidx>0 && ! fast) {
-				vec3 isoTexCoord = tex2lay(isoTexCoord, zidx);
+				isoTexCoord = tex2lay(isoTexCoord, zidx);
+			}
+			else if (stretched) {
+				isoTexCoord.x = texture1D(coordmap, isoTexCoord.x).x;
+				isoTexCoord.y = texture1D(coordmap, isoTexCoord.y).y;
+				isoTexCoord.z = texture1D(coordmap, isoTexCoord.z).z;
 			}
 #endif
 
@@ -228,33 +238,38 @@ void main(void)
 				fragDepth = zStartEye + (float(i) * deltaZ) + (deltaZ*weight);
 				first = false;
 			}
+
+			//
+			// early ray termination
+			//
+			if (fragColor.a >= 0.95) break;
 		}
 
 		texCoord0 = texCoord1;
 		texCoord1 = texCoord1+deltaVec;
+		t1 = texCoord1;
 		s0 = s1;
 		if (zidx>0 && ! fast) {
-			vec3 t1 = tex2lay(texCoord1, zidx);
-			if (t1.x >= 0.0) {
-
-				// if texCoord1 is inside the volume then lookup new 
-				// value for s1. Otherwise s1 == s0 and there is no
-				// ray-surface intersection
-				//
-				s1 = texture3D(volumeTexture, t1).x;
-				if (midx > 0) {
-					if (missing) s0 = s1;
-					missing = (texture3D(volumeTexture, t1)[midx] != 0.0);
-				}
-			
-			}
+			t1 = tex2lay(t1, zidx);
+		} 
+		else if (stretched) {
+			t1.x = texture1D(coordmap, t1.x).x;
+			t1.y = texture1D(coordmap, t1.y).y;
+			t1.z = texture1D(coordmap, t1.z).z;
 		}
-		else {
-			s1 = texture3D(volumeTexture, texCoord1).x;
-			if (midx>0) {
+
+		if (t1.x >= 0.0) {
+
+			// if texCoord1 is inside the volume then lookup new 
+			// value for s1. Otherwise s1 == s0 and there is no
+			// ray-surface intersection
+			//
+			s1 = texture3D(volumeTexture, t1).x;
+			if (midx > 0) {
 				if (missing) s0 = s1;
-				missing = (texture3D(volumeTexture, texCoord1)[midx] != 0.0);
-			}  
+				missing = (texture3D(volumeTexture, t1)[midx] != 0.0);
+			}
+			
 		}
 	}
 

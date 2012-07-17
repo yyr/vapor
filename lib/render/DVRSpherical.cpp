@@ -66,6 +66,11 @@ DVRSpherical::DVRSpherical(
 	_clip[0] = false;
 	_clip[1] = false;
 	_clip[2] = false;
+	_initialized = false;
+	for (int i=0; i<3; i++) {
+		_extentsSP[i] = 0.0;
+		_extentsSP[i+3] = 1.0;
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -76,8 +81,6 @@ DVRSpherical::~DVRSpherical()
 	_shadermgr->undefEffect(instanceName("default"));
 	_shadermgr->undefEffect(instanceName("lighting"));
 
-	 delete [] _colormap;
-	 _colormap = NULL;
 }
 
 
@@ -86,6 +89,7 @@ DVRSpherical::~DVRSpherical()
 //----------------------------------------------------------------------------
 int DVRSpherical::GraphicsInit() 
 {
+	if (_initialized) return(0);
 	glewInit();
 	
 	if (initTextures() < 0) return(-1);
@@ -104,6 +108,8 @@ int DVRSpherical::GraphicsInit()
 
 	printOpenGLError();
 
+	initShaderVariables();
+	_initialized = true;
 	return 0;
 }
 
@@ -440,15 +446,6 @@ void DVRSpherical::permute(const vector<long>& permutation,
 //----------------------------------------------------------------------------
 void DVRSpherical::initShaderVariables()
 {
-	if (_lighting){  
-		_shadermgr->uploadEffectData(getCurrentEffect(), "dimensions", (float) _nx, (float)_ny, (float)_nz);
-		_shadermgr->uploadEffectData(getCurrentEffect(),"kd", _kd);
-		_shadermgr->uploadEffectData(getCurrentEffect(), "ka", _ka);
-		_shadermgr->uploadEffectData(getCurrentEffect(), "ks", _ks);
-		_shadermgr->uploadEffectData(getCurrentEffect(), "expS", _expS);
-		_shadermgr->uploadEffectData(getCurrentEffect(), "lightDirection", (float)_pos[0], (float)_pos[1],(float) _pos[2]);
-	}
-	
     
     float tmpv[3];
     
@@ -479,5 +476,7 @@ void DVRSpherical::initShaderVariables()
 	_shadermgr->uploadEffectData(getCurrentEffect(), "clip" , (int)_clip[_permutation[0]], (int)_clip[_permutation[1]]);
 	
 	printOpenGLError();
+
+	DVRShader::initShaderVariables();
 
 }

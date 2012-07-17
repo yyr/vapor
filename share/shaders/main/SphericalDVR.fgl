@@ -2,12 +2,18 @@
 #include invpermute.hgl
 uniform sampler1D colormap;
 uniform sampler3D volumeTexture;
+uniform sampler1D coordmap; // coordinate map for stretched grids
 uniform vec3 tmin;
 uniform vec3 tmax;	// min and max texture coordinates in range 
 uniform vec3 dmin;
 uniform vec3 dmax;	// min and max spherical coordinates
 uniform vec3 permutation;
 uniform bvec2 clip;
+
+uniform int zidx;   // texel component containing user Z coordinate
+uniform int midx;   // texel component containing missing data indicator
+uniform bool fast;  // render fast
+uniform bool stretched;  // stretched coordinates (rectilinear grid)
 
 vec3 permute(vec3 v);
 vec3 invPermute(vec3 v);
@@ -16,6 +22,11 @@ vec3 invPermute(vec3 v);
 //------------------------------------------------------------------ 
 void main(void)
 {
+  if (zidx>0 || midx>0 || stretched ) {
+	discard;	// not supported
+	return;
+  }
+  if (fast) {}	// not supported
 
   const float pi = 3.14159;
 

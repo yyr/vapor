@@ -66,7 +66,6 @@ protected:
   int initTextures();
   virtual void initShaderVariables();
 
-  ShaderProgram* shader();
   virtual std::string getCurrentEffect();
 
 
@@ -74,12 +73,15 @@ protected:
                                      const Matrix3d &modelview,
                                      const Matrix3d &modelviewInverse);
 
+  ShaderMgr *_shadermgr;
+
+  bool            _lighting;
+private: 
+
   float          *_colormap;
   float          *_coordmap;
   ShaderProgram  *_shader;
-  map <int, ShaderProgram *> _shaders;
 
-  bool            _lighting;
   bool            _preintegration;
 
   GLuint _cmapid[4];
@@ -94,7 +96,7 @@ protected:
   int _midx;
   int _zidx;
   int _stretched;
-  ShaderMgr *_shadermgr;
+  bool _initialized;
 
 };
 

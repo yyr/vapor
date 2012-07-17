@@ -19,6 +19,7 @@
 
 #include <qgl.h>
 
+#include "vapor/StretchedGrid.h"
 #include "DVRShader.h"
 #include "TextureBrick.h"
 #include "ShaderProgram.h"
@@ -44,6 +45,16 @@ using namespace VAPoR;
 #define M_E 2.71828182845904523536
 #endif
 
+const int volumeTextureTexUnit = 0;	// GL_TEXTURE0
+const int colormapTexUnit = 1;			// GL_TEXTURE1
+const int coordmapTexUnit = 2;			// GL_TEXTURE2
+
+const int colormapTexName = 0;
+const int colormapPITexName = 1;
+const int coordmapTexName = 2;
+
+const int coordmapTexWidth = 1024;
+
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
@@ -51,7 +62,8 @@ DVRShader::DVRShader(
 	int precision, int nvars,
 	ShaderMgr *shadermgr, int nthreads
 ) : DVRTexture3d(precision, nvars, nthreads),
- _colormap(NULL),
+  _colormap(NULL),
+  _coordmap(NULL),
   _lighting(false),
   _preintegration(false),
   _kd(0.0),
@@ -59,7 +71,9 @@ DVRShader::DVRShader(
   _ks(0.0),
   _expS(0.0),
   _midx(0),
-  _zidx(0)
+  _zidx(0),
+  _stretched(0),
+  _initialized(false)
 {
 	MyBase::SetDiagMsg(
 		"DVRShader::DVRShader( %d %d %d)", 
@@ -84,15 +98,19 @@ DVRShader::~DVRShader()
 {
 	MyBase::SetDiagMsg("DVRShader::~DVRShader()");
 
+	if (_colormap) delete [] _colormap;
+	_colormap = NULL;
+
+	if (_coordmap) delete [] _coordmap;
+	_coordmap = NULL;
+
+	glDeleteTextures(3, _cmapid);
+	printOpenGLError();
+
 	_shadermgr->undefEffect(instanceName("default"));
 	_shadermgr->undefEffect(instanceName("lighting"));
 	_shadermgr->undefEffect(instanceName("preintegrated"));
 	_shadermgr->undefEffect(instanceName("preintegrated+lighting"));
-
-	if (_colormap) delete [] _colormap;
-	_colormap = NULL;
-
-	glDeleteTextures(2, _cmapid);
 	printOpenGLError();
 
 }
@@ -104,8 +122,11 @@ DVRShader::~DVRShader()
 //----------------------------------------------------------------------------
 int DVRShader::GraphicsInit() 
 {
-  glewInit();
-  printOpenGLError();
+	if (_initialized) return(0);
+
+	glewInit();
+	printOpenGLError();
+
 
 	if (! _shadermgr->defineEffect("DVR", "", instanceName("default")))
 		return(-1);
@@ -122,23 +143,32 @@ int DVRShader::GraphicsInit()
 
   if (initTextures() < 0) return(-1);
 
-  if (! _shadermgr->uploadEffectData(instanceName("preintegrated+lighting"), "colormap", 1)) return(-1);
+  if (! _shadermgr->uploadEffectData(instanceName("preintegrated+lighting"), "volumeTexture", volumeTextureTexUnit)) return(-1);
 
-  if (! _shadermgr->uploadEffectData(instanceName("preintegrated+lighting"), "volumeTexture", 0)) return(-1);
+  if (! _shadermgr->uploadEffectData(instanceName("preintegrated+lighting"), "colormap", colormapTexUnit)) return(-1);
+
+  if (! _shadermgr->uploadEffectData(instanceName("preintegrated+lighting"), "coordmap", coordmapTexUnit)) return(-1);
 	
-  if (! _shadermgr->uploadEffectData(instanceName("preintegrated"), "colormap", 1)) return(-1);
+  if (! _shadermgr->uploadEffectData(instanceName("preintegrated"), "colormap", colormapTexUnit)) return(-1);
 
-  if (! _shadermgr->uploadEffectData(instanceName("preintegrated"), "volumeTexture", 0)) return(-1);
+  if (! _shadermgr->uploadEffectData(instanceName("preintegrated"), "volumeTexture", volumeTextureTexUnit)) return(-1);
+
+  if (! _shadermgr->uploadEffectData(instanceName("preintegrated"), "coordmap", coordmapTexUnit)) return(-1);
 	
-  if (! _shadermgr->uploadEffectData(instanceName("lighting"), "colormap", 1)) return(-1);
+  if (! _shadermgr->uploadEffectData(instanceName("lighting"), "colormap", colormapTexUnit)) return(-1);
 
-  if (! _shadermgr->uploadEffectData(instanceName("lighting"), "volumeTexture", 0)) return(-1);
+  if (! _shadermgr->uploadEffectData(instanceName("lighting"), "volumeTexture", volumeTextureTexUnit)) return(-1);
+
+  if (! _shadermgr->uploadEffectData(instanceName("lighting"), "coordmap", coordmapTexUnit)) return(-1);
 	
-  if (! _shadermgr->uploadEffectData(instanceName("default"), "colormap", 1)) return(-1);
+  if (! _shadermgr->uploadEffectData(instanceName("default"), "colormap", colormapTexUnit)) return(-1);
 
-  if (! _shadermgr->uploadEffectData(instanceName("default"), "volumeTexture", 0)) return(-1);
+  if (! _shadermgr->uploadEffectData(instanceName("default"), "volumeTexture", volumeTextureTexUnit)) return(-1);
+
+  if (! _shadermgr->uploadEffectData(instanceName("default"), "coordmap", coordmapTexUnit)) return(-1);
 
   initShaderVariables();
+  _initialized = true;
   return(0);
 
 }
@@ -152,6 +182,7 @@ int DVRShader::SetRegion(const RegularGrid *rg, const float range[2], int num)
 
 	bool layered = ((dynamic_cast<const LayeredGrid *>(rg)) != NULL);
 	bool missing = rg->HasMissingData();
+	_stretched = ((dynamic_cast<const StretchedGrid *>(rg)) != NULL);
 
 	//
 	// Figure out which texture component (R,G,B,A) contains the missing data
@@ -176,6 +207,86 @@ int DVRShader::SetRegion(const RegularGrid *rg, const float range[2], int num)
 		_midx = 0;
 		if (_nvars == 1) _zidx = 3; // Alpha channel
 		else _zidx = 1;
+	}
+
+	if (_stretched) {
+		const StretchedGrid *sg = (dynamic_cast<const StretchedGrid *>(rg));
+		vector <double> xcoords, ycoords, zcoords;
+		sg->GetUserCoordinateMaps(xcoords, ycoords, zcoords);
+
+		if (xcoords.size()>1) { 
+			double xdelta = (xcoords[xcoords.size()-1]-xcoords[0]) / ((double) coordmapTexWidth-1.0);
+			double tdelta = 1.0 / (double) (xcoords.size()-1);
+			int ii = 0;
+			double x0 = xcoords[ii];
+			double x1 = xcoords[ii+1];
+			double x = xcoords[0];
+			for (int i=0; i<coordmapTexWidth; i++) {
+				while (((x-x0)*(x-x1) > 0) && ii < xcoords.size()) {
+					x0 = x1;
+					ii++;
+					x1 = xcoords[ii+1];
+				}
+				_coordmap[i*4+0] = ((x-x0)/(x1-x0)*tdelta) + (ii*tdelta);
+				x += xdelta;
+			}
+		}
+		else {
+			for (int i=0; i<coordmapTexWidth; i++) { 
+				_coordmap[i*4+0] = (float) i / ((double) coordmapTexWidth-1.0);
+			}
+		}
+
+		if (ycoords.size()>1) {
+			double ydelta = (ycoords[ycoords.size()-1]-ycoords[0]) / ((double) coordmapTexWidth-1.0);
+			double tdelta = 1.0 / (double) (ycoords.size()-1);
+			int ii = 0;
+			double y0 = ycoords[ii];
+			double y1 = ycoords[ii+1];
+			double y = ycoords[0];
+			for (int i=0; i<coordmapTexWidth; i++) {
+				while (((y-y0)*(y-y1) > 0) && ii < ycoords.size()) {
+					y0 = y1;
+					ii++;
+					y1 = ycoords[ii+1];
+				}
+				_coordmap[i*4+1] = ((y-y0)/(y1-y0)*tdelta) + (ii*tdelta);
+				y += ydelta;
+			}
+		} 
+		else {
+			for (int i=0; i<coordmapTexWidth; i++) { 
+				_coordmap[i*4+1] = (float) i / ((double) coordmapTexWidth-1.0);
+			}
+		}
+
+		if (zcoords.size()>1) {
+			double zdelta = (zcoords[zcoords.size()-1]-zcoords[0]) / ((double) coordmapTexWidth-1.0);
+			double tdelta = 1.0 / (double) (zcoords.size()-1);
+			int ii = 0;
+			double z0 = zcoords[ii];
+			double z1 = zcoords[ii+1];
+			double z = zcoords[0];
+			for (int i=0; i<coordmapTexWidth; i++) {
+				while (((z-z0)*(z-z1) > 0) && ii < zcoords.size()) {
+					z0 = z1;
+					ii++;
+					z1 = zcoords[ii+1];
+				}
+				_coordmap[i*4+2] = ((z-z0)/(z1-z0)*tdelta) + (ii*tdelta);
+				z += zdelta;
+			}
+		} 
+		else {
+			for (int i=0; i<coordmapTexWidth; i++) { 
+				_coordmap[i*4+2] = (float) i / ((double) coordmapTexWidth-1.0);
+			}
+		}
+
+		glBindTexture(GL_TEXTURE_1D, _cmapid[coordmapTexName]);
+		glTexSubImage1D(
+			GL_TEXTURE_1D, 0, 0, coordmapTexWidth, GL_RGBA, GL_FLOAT,_coordmap
+		);
 	}
 
 	initShaderVariables();
@@ -225,7 +336,7 @@ int DVRShader::Render()
       glActiveTextureARB(GL_TEXTURE1_ARB);
     }
     glEnable(GL_TEXTURE_2D);  
-    glBindTexture(GL_TEXTURE_2D, _cmapid[1]);
+    glBindTexture(GL_TEXTURE_2D, _cmapid[colormapPITexName]);
   }
   else {
     if (GLEW_VERSION_2_0) {
@@ -235,7 +346,18 @@ int DVRShader::Render()
       glActiveTextureARB(GL_TEXTURE1_ARB);
     }
     glEnable(GL_TEXTURE_1D);
-    glBindTexture(GL_TEXTURE_1D, _cmapid[0]);
+    glBindTexture(GL_TEXTURE_1D, _cmapid[colormapTexName]);
+  }
+
+  if (_stretched) {
+    if (GLEW_VERSION_2_0) {
+      glActiveTexture(GL_TEXTURE2);
+    }
+    else {
+      glActiveTextureARB(GL_TEXTURE2_ARB);
+    }
+    glEnable(GL_TEXTURE_1D);
+    glBindTexture(GL_TEXTURE_1D, _cmapid[coordmapTexName]);
   }
 
   if (GLEW_VERSION_2_0) {
@@ -259,6 +381,9 @@ int DVRShader::Render()
 
   if (GLEW_VERSION_2_0) {
 
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_1D, 0);
+    glDisable(GL_TEXTURE_1D);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindTexture(GL_TEXTURE_1D, 0);
@@ -268,6 +393,9 @@ int DVRShader::Render()
     glActiveTexture(GL_TEXTURE0);
   } else {
 
+    glActiveTextureARB(GL_TEXTURE2_ARB);
+    glBindTexture(GL_TEXTURE_1D, 0);
+    glDisable(GL_TEXTURE_1D);
     glActiveTextureARB(GL_TEXTURE1_ARB);
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindTexture(GL_TEXTURE_1D, 0);
@@ -302,7 +430,7 @@ void DVRShader::SetCLUT(const float ctab[256][4])
     _colormap[i*4+3] = ctab[i][3];
   }
 
-  glBindTexture(GL_TEXTURE_1D, _cmapid[0]);
+  glBindTexture(GL_TEXTURE_1D, _cmapid[colormapTexName]);
   
   glTexSubImage1D(GL_TEXTURE_1D, 0, 0, 256, GL_RGBA,
                   GL_FLOAT, _colormap);
@@ -350,7 +478,7 @@ void DVRShader::SetOLUT(const float atab[256][4], const int numRefinements)
     _colormap[i*4+3] = opac;
   }
 
-  glBindTexture(GL_TEXTURE_1D, _cmapid[0]);
+  glBindTexture(GL_TEXTURE_1D, _cmapid[colormapTexName]);
   
   glTexSubImage1D(GL_TEXTURE_1D, 0, 0, 256, GL_RGBA,
                   GL_FLOAT, _colormap);
@@ -457,7 +585,7 @@ void DVRShader::SetPreIntegrationTable(const float atab[256][4],
     }
   }
 
-  glBindTexture(GL_TEXTURE_2D, _cmapid[1]);
+  glBindTexture(GL_TEXTURE_2D, _cmapid[colormapPITexName]);
   
   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA,
                   GL_FLOAT, _colormap);
@@ -537,7 +665,7 @@ int DVRShader::initTextures()
   //
   // Setup the colormap texture
   //
-  glGenTextures(2, _cmapid);
+  glGenTextures(3, _cmapid);
 
   _colormap = new float[256*256*4];
   for (int i=0; i<256; i++) { 
@@ -550,7 +678,7 @@ int DVRShader::initTextures()
   //
   // Standard colormap
   //
-  glBindTexture(GL_TEXTURE_1D, _cmapid[0]);
+  glBindTexture(GL_TEXTURE_1D, _cmapid[colormapTexName]);
 
   glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA, 256, 0, GL_RGBA,
                GL_FLOAT, _colormap);
@@ -562,7 +690,7 @@ int DVRShader::initTextures()
   //
   // Pre-Integrated colormap
   //
-  glBindTexture(GL_TEXTURE_2D, _cmapid[1]);
+  glBindTexture(GL_TEXTURE_2D, _cmapid[colormapPITexName]);
 
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA,
                GL_FLOAT, _colormap);
@@ -572,8 +700,29 @@ int DVRShader::initTextures()
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
+
+  //
+  // Coordinate lookup map for stretched grids
+  //
+  _coordmap = new float[coordmapTexWidth*4];
+  for (int i=0; i<coordmapTexWidth; i++) { 
+    _coordmap[i*4+0] = (float) i / ((double)coordmapTexWidth-1.0);	// X
+    _coordmap[i*4+1] = (float) i / ((double)coordmapTexWidth-1.0);	// Y
+    _coordmap[i*4+2] = (float) i / ((double)coordmapTexWidth-1.0);	// Z
+    _coordmap[i*4+3] = 1.0;
+  }
+  
+  glBindTexture(GL_TEXTURE_1D, _cmapid[coordmapTexName]);
+  glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA16, coordmapTexWidth, 0, GL_RGBA,
+               GL_FLOAT, _coordmap);
+
+  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
   glBindTexture(GL_TEXTURE_1D, 0);
   glBindTexture(GL_TEXTURE_2D, 0);
+
   glFlush();
   if (printOpenGLError() != 0) return(-1);
 
@@ -605,8 +754,7 @@ void DVRShader::initShaderVariables()
   _shadermgr->uploadEffectData(getCurrentEffect(), "dimensions", (float)_bx, (float)_by, (float)_bz);
   _shadermgr->uploadEffectData(getCurrentEffect(), "midx", (int) _midx);
   _shadermgr->uploadEffectData(getCurrentEffect(), "zidx", (int) _zidx);
-//cout << "midx = " << _midx << endl;
-//cout << "zidx = " << _zidx << endl;
+  _shadermgr->uploadEffectData(getCurrentEffect(), "stretched", (int) _stretched);
 }
 
 //----------------------------------------------------------------------------
