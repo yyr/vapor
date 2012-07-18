@@ -1,5 +1,5 @@
 AUTOMAKE_OPTIONS = foreign
-EXTRA_DIST = ../include 
+EXTRA_DIST = include 
 #DEFS = ""
 #if BUILDVDF
 #MAYVAPE = vapor

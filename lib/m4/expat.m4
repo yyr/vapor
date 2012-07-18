@@ -7,7 +7,7 @@ if test "$with_expat" = "no"
 then
 dnl	no custom path, try to find in the standard paths
 	AC_CHECK_HEADER(expat.h,
-	AC_SEARCH_LIBS(XML_Parse, expat , , AC_MSG_ERROR([Could not find libexpat in standard library paths]))
+	AC_MSG_RESULT([yes]),
 	AC_MSG_ERROR([Could not find expat.h in standard header paths]))
 else
 	dnl verify libexpat is in the given directory

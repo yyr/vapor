@@ -715,18 +715,9 @@ LDFLAGS
 LIBS
 CC
 CFLAGS
-LDFLAGS
-LIBS
-CPPFLAGS
-CC
-CFLAGS
-LDFLAGS
-LIBS
 CPPFLAGS
 CXX
 CXXFLAGS
-LDFLAGS
-LIBS
 CCC
 MPICC
 MPICXX
@@ -6686,73 +6677,10 @@ if test "$with_expat" = "no"
 then
 	ac_fn_c_check_header_mongrel "$LINENO" "expat.h" "ac_cv_header_expat_h" "$ac_includes_default"
 if test "x$ac_cv_header_expat_h" = xyes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing XML_Parse" >&5
-$as_echo_n "checking for library containing XML_Parse... " >&6; }
-if ${ac_cv_search_XML_Parse+:} false; then :
-  $as_echo_n "(cached) " >&6
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
 else
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char XML_Parse ();
-#ifdef FC_DUMMY_MAIN
-#ifndef FC_DUMMY_MAIN_EQ_F77
-#  ifdef __cplusplus
-     extern "C"
-#  endif
-   int FC_DUMMY_MAIN() { return 1; }
-#endif
-#endif
-int
-main ()
-{
-return XML_Parse ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' expat ; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_XML_Parse=$ac_res
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if ${ac_cv_search_XML_Parse+:} false; then :
-  break
-fi
-done
-if ${ac_cv_search_XML_Parse+:} false; then :
-
-else
-  ac_cv_search_XML_Parse=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_XML_Parse" >&5
-$as_echo "$ac_cv_search_XML_Parse" >&6; }
-ac_res=$ac_cv_search_XML_Parse
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-else
-  as_fn_error $? "Could not find libexpat in standard library paths" "$LINENO" 5
-fi
-
-	as_fn_error $? "Could not find expat.h in standard header paths" "$LINENO" 5
+  as_fn_error $? "Could not find expat.h in standard header paths" "$LINENO" 5
 fi
 
 
