@@ -562,19 +562,19 @@ protected:
  //! \sa _GetGridType(), GetTSXCoords()
  //!
  //
- vector <double> _GetTSXCoords(size_t ts) const {
+ virtual vector <double> _GetTSXCoords(size_t ts) const {
 	vector <double> empty; return(empty);
  }
 
  //! Return the Y dimension coordinate array, if it exists
  //!
- vector <double> _GetTSYCoords(size_t ts) const {
+ virtual vector <double> _GetTSYCoords(size_t ts) const {
 	vector <double> empty; return(empty);
  }
 
  //! Return the Z dimension coordinate array, if it exists
  //!
- vector <double> _GetTSZCoords(size_t ts) const {
+ virtual vector <double> _GetTSZCoords(size_t ts) const {
 	vector <double> empty; return(empty);
  }
 
@@ -988,7 +988,19 @@ private:
 	size_t timestep, const double vcoord0[3], size_t vcoord1[3], int reflevel
  ) const;
 
+ void coord_array(
+	const vector <double> &xin, vector <double> &xout, size_t ldelta
+ ) const;
+
+ void    map_user_to_vox_stretched(
+	size_t timestep, const double vcoord0[3], size_t vcoord1[3], int reflevel
+ ) const;
+
  void map_vox_to_user_regular(
+	size_t timestep, const size_t vcoord0[3], double vcoord1[3], int reflevel
+ ) const;
+
+ void map_vox_to_user_stretched(
 	size_t timestep, const size_t vcoord0[3], double vcoord1[3], int reflevel
  ) const;
 

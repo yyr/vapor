@@ -35,8 +35,8 @@ StretchedGrid::StretchedGrid(
 	_zcoords.clear();
 
 	size_t xdim = max[0]-min[0]+1;
-	if (xcoords.size() == xdim) {
-		_xcoords = xcoords;
+	if (xcoords.size() >= xdim) {
+		for (int i=0; i<xdim; i++) _xcoords.push_back(xcoords[i]);
 		myextents[0] = _xcoords[0];
 		myextents[3] = _xcoords[xdim-1];
 	}
@@ -46,8 +46,8 @@ StretchedGrid::StretchedGrid(
 
 
 	size_t ydim = max[1]-min[1]+1;
-	if (ycoords.size() == ydim) {
-		_ycoords = ycoords;
+	if (ycoords.size() >= ydim) {
+		for (int i=0; i<ydim; i++) _ycoords.push_back(ycoords[i]);
 		myextents[1] = _ycoords[0];
 		myextents[4] = _ycoords[ydim-1];
 	}
@@ -56,8 +56,8 @@ StretchedGrid::StretchedGrid(
 	}
 
 	size_t zdim = max[2]-min[2]+1;
-	if (zcoords.size() == zdim) {
-		_zcoords = zcoords;
+	if (zcoords.size() >= zdim) {
+		for (int i=0; i<zdim; i++) _zcoords.push_back(zcoords[i]);
 		myextents[2] = _zcoords[0];
 		myextents[5] = _zcoords[zdim-1];
 	}
@@ -96,8 +96,9 @@ StretchedGrid::StretchedGrid(
 	_zcoords.clear();
 
 	size_t xdim = max[0]-min[0]+1;
-	if (xcoords.size() == xdim) {
-		_xcoords = xcoords;
+	if (xcoords.size() >= xdim) {
+		for (int i=0; i<xdim; i++) _xcoords.push_back(xcoords[i]);
+
 		myextents[0] = _xcoords[0];
 		myextents[3] = _xcoords[xdim-1];
 	}
@@ -106,8 +107,8 @@ StretchedGrid::StretchedGrid(
 	}
 
 	size_t ydim = max[1]-min[1]+1;
-	if (ycoords.size() == ydim) {
-		_ycoords = ycoords;
+	if (ycoords.size() >= ydim) {
+		for (int i=0; i<ydim; i++) _ycoords.push_back(ycoords[i]);
 		myextents[1] = _ycoords[0];
 		myextents[4] = _ycoords[ydim-1];
 	}
@@ -116,8 +117,8 @@ StretchedGrid::StretchedGrid(
 	}
 
 	size_t zdim = max[2]-min[2]+1;
-	if (zcoords.size() == zdim) {
-		_zcoords = zcoords;
+	if (zcoords.size() >= zdim) {
+		for (int i=0; i<zdim; i++) _zcoords.push_back(zcoords[i]);
 		myextents[2] = _zcoords[0];
 		myextents[5] = _zcoords[zdim-1];
 	}
@@ -298,7 +299,7 @@ int StretchedGrid::GetUserCoordinates(
 
 	if (_xcoords.size()) *x = _xcoords[i];
 	if (_ycoords.size()) *y = _ycoords[j];
-	if (_xcoords.size()) *z = _zcoords[k];
+	if (_zcoords.size()) *z = _zcoords[k];
 
 	return(0);
 }

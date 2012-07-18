@@ -58,6 +58,8 @@ RegularGrid *DataMgr::make_grid(
 	float *blocks, float *xcblks, float *ycblks, float *zcblks
 ) {
 
+    int  ldelta = DataMgr::GetNumTransforms() - reflevel;
+
 	size_t bs[3];
 	_GetBlockSize(bs,reflevel);
 
@@ -164,9 +166,20 @@ RegularGrid *DataMgr::make_grid(
 		}
 	}
 	else if (DataMgr::GetGridType().compare("stretched")==0) {
-		vector <double> xcoords = _GetTSXCoords(ts);
-		vector <double> ycoords = _GetTSYCoords(ts);
-		vector <double> zcoords = _GetTSZCoords(ts);
+		vector <double> xcoords, ycoords, zcoords;
+
+		coord_array(_GetTSXCoords(ts), xcoords, ldelta);
+		coord_array(_GetTSYCoords(ts), ycoords, ldelta);
+		coord_array(_GetTSZCoords(ts), zcoords, ldelta);
+
+		if (min[0]>0 && xcoords.size()) 
+			xcoords.erase(xcoords.begin(), xcoords.begin() + min[0]);
+
+		if (min[1]>0 && ycoords.size())
+			ycoords.erase(ycoords.begin(), ycoords.begin() + min[1]);
+
+		if (min[2]>0 && zcoords.size())
+			zcoords.erase(zcoords.begin(), zcoords.begin() + min[2]);
 
 		if (has_missing) {
 			rg = new StretchedGrid(
@@ -1481,6 +1494,26 @@ void    DataMgr::get_dim_blk(
 	}
 }
 
+void DataMgr::coord_array(
+	const vector <double> &xin,
+	vector <double> &xout,
+	size_t ldelta
+) const {
+	xout.clear();
+	if (ldelta == 0) {
+		for (int i=0; i<xin.size(); i++) {
+			xout.push_back(xin[i]);
+		}
+		return;
+	}
+	for (int i=0; i<(xin.size() >> ldelta); i++) {
+		size_t xin_idx = (((double) (1<<ldelta) * 0.5) - 0.5) + (1<<ldelta)*i;
+		assert(xin_idx+1 < xin.size());
+		double x = (xin[xin_idx] + xin[xin_idx+1]) * 0.5;
+		xout.push_back(x);
+	}
+}
+
 
 void	DataMgr::map_vox_to_user_regular(
     size_t timestep, 
@@ -1512,6 +1545,35 @@ void	DataMgr::map_vox_to_user_regular(
 			deltax *= 2.0;
 		}
 		vcoord1[i] = x0 + (vcoord0[i] * deltax);
+	}
+}
+
+void	DataMgr::map_vox_to_user_stretched(
+    size_t timestep, 
+	const size_t vcoord0[3], double vcoord1[3],
+	int	reflevel
+) const {
+
+	DataMgr::map_vox_to_user_regular(timestep, vcoord0, vcoord1, reflevel);
+
+    int  ldelta = DataMgr::GetNumTransforms() - reflevel;
+
+	vector <double> coords0, coords1;
+
+	coords0 = _GetTSXCoords(timestep);
+	if (coords0.size()) {
+		coord_array(coords0, coords1, ldelta);
+		vcoord1[0] = coords1[vcoord0[0]];
+	}
+	coords0 = _GetTSYCoords(timestep);
+	if (coords0.size()) {
+		coord_array(coords0, coords1, ldelta);
+		vcoord1[1] = coords1[vcoord0[1]];
+	}
+	coords0 = _GetTSZCoords(timestep);
+	if (coords0.size()) {
+		coord_array(coords0, coords1, ldelta);
+		vcoord1[2] = coords1[vcoord0[2]];
 	}
 }
 
@@ -1557,6 +1619,63 @@ void	DataMgr::map_user_to_vox_regular(
 	}
 }
 
+void	DataMgr::map_user_to_vox_stretched(
+    size_t timestep, const double vcoord0[3], size_t vcoord1[3],
+	int	reflevel
+) const {
+
+	DataMgr::map_user_to_vox_regular(timestep, vcoord0, vcoord1, reflevel);
+
+    int  ldelta = DataMgr::GetNumTransforms() - reflevel;
+
+	vector <double> coords0, coords1;
+
+	coords0 = _GetTSXCoords(timestep);
+	if (coords0.size()) {
+		coord_array(coords0, coords1, ldelta);
+		double x = vcoord0[0];
+		for (int i=0; i<coords1.size()-1; i++) {
+			if (((coords1[i]-x)*(coords1[i+1]-x))<=0.0) {
+				float w = (x-coords1[i]) / (coords1[i+1]-coords1[i]);
+				if (w<0.5) vcoord1[0] = i;
+				else vcoord1[0] = i+1;
+
+				break;
+			}
+		}
+	}
+
+	coords0 = _GetTSYCoords(timestep);
+	if (coords0.size()) {
+		coord_array(coords0, coords1, ldelta);
+		double y = vcoord0[1];
+		for (int i=0; i<coords1.size()-1; i++) {
+			if (((coords1[i]-y)*(coords1[i+1]-y))<=0.0) {
+				float w = (y-coords1[i]) / (coords1[i+1]-coords1[i]);
+				if (w<0.5) vcoord1[1] = i;
+				else vcoord1[1] = i+1;
+
+				break;
+			}
+		}
+	}
+
+	coords0 = _GetTSZCoords(timestep);
+	if (coords0.size()) {
+		coord_array(coords0, coords1, ldelta);
+		double z = vcoord0[2];
+		for (int i=0; i<coords1.size()-1; i++) {
+			if (((coords1[i]-z)*(coords1[i+1]-z))<=0.0) {
+				float w = (z-coords1[i]) / (coords1[i+1]-coords1[i]);
+				if (w<0.5) vcoord1[2] = i;
+				else vcoord1[2] = i+1;
+
+				break;
+			}
+		}
+	}
+}
+
 void   DataMgr::MapUserToVox(
     size_t timestep,
     const double xyz[3], size_t ijk[3], int reflevel
@@ -1572,22 +1691,26 @@ void   DataMgr::MapUserToVox(
 
 	map_user_to_vox_regular(timestep, xyz, ijk, reflevel);
 
-	if (! (GetGridType().compare("layered") == 0)) return;
+	if (GetGridType().compare("stretched") == 0) {
+		map_user_to_vox_stretched(timestep, xyz, ijk, reflevel);
+	}
+	else if (GetGridType().compare("layered") == 0) {
 
-	EnableErrMsg(false);
-	LayeredGrid *lg = get_elev_grid(timestep,reflevel);
-	EnableErrMsg(true);
+		EnableErrMsg(false);
+		LayeredGrid *lg = get_elev_grid(timestep,reflevel);
+		EnableErrMsg(true);
 
-	if (! lg) return;
+		if (! lg) return;
 
-	lg->GetIJKIndex(xyz[0],xyz[1],xyz[2], &ijk[0], &ijk[1], &ijk[2]);
-	delete lg;
+		lg->GetIJKIndex(xyz[0],xyz[1],xyz[2], &ijk[0], &ijk[1], &ijk[2]);
+		delete lg;
+	}
 }
 
 void   DataMgr::MapVoxToUser(
     size_t timestep,
     const size_t ijk[3], double xyz[3], int reflevel
- ) {
+) {
 	SetDiagMsg(
 		"DataMgr::MapVoxToUser(%d, (%d, %d, %d), (,,) %d)",
 		timestep, ijk[0], ijk[1], ijk[2], reflevel
@@ -1598,16 +1721,21 @@ void   DataMgr::MapVoxToUser(
 	xyz[2] = 0.0;
 
 	map_vox_to_user_regular(timestep, ijk, xyz, reflevel);
-	if (! (GetGridType().compare("layered") == 0)) return;
 
-	EnableErrMsg(false);
-	LayeredGrid *lg = get_elev_grid(timestep,reflevel);
-	EnableErrMsg(true);
+	if (GetGridType().compare("stretched")) {
+		map_vox_to_user_stretched(timestep, ijk, xyz, reflevel);
+	}
+	else if (GetGridType().compare("layered") == 0) {
 
-	if (! lg) return;
+		EnableErrMsg(false);
+		LayeredGrid *lg = get_elev_grid(timestep,reflevel);
+		EnableErrMsg(true);
 
-	lg->GetUserCoordinates(ijk[0], ijk[1], ijk[2], &xyz[0],&xyz[1],&xyz[2]);
-	delete lg;
+		if (! lg) return;
+
+		lg->GetUserCoordinates(ijk[0], ijk[1], ijk[2], &xyz[0],&xyz[1],&xyz[2]);
+		delete lg;
+	}
 }
 
 

@@ -79,6 +79,18 @@ protected:
 	return(WaveCodecIO::GetExtents(ts));
  };
 
+ virtual vector <double> _GetTSXCoords(size_t ts) const {
+	return(WaveCodecIO::GetTSXCoords(ts));
+ }
+
+ virtual vector <double> _GetTSYCoords(size_t ts) const {
+	return(WaveCodecIO::GetTSYCoords(ts));
+ }
+    
+ virtual vector <double> _GetTSZCoords(size_t ts) const {
+	return(WaveCodecIO::GetTSZCoords(ts));
+ }
+
  virtual long _GetNumTimeSteps() const {
 	return(WaveCodecIO::GetNumTimeSteps());
  };
