@@ -66,7 +66,10 @@ class PARAMS_API animate {
      vector_3D *approx_camPos;
      float *distance;
      float incrementFactor;
-  
+
+ //warp vec
+    float warpVec[3];  
+
     public:
 
         //for out viewpoints
@@ -84,7 +87,7 @@ class PARAMS_API animate {
         void slopeCalculator(std::vector<Keyframe*>& key_vec);
         void evaluateCameraPos(int startIndex,std::vector<Keyframe*>& key_vec);
         float t_distanceFunc(float d);
-        
+        void setDistanceWarp(float dWarp[3]);
     
         //Hermite base functions
         inline float H0(float t)                                                                
