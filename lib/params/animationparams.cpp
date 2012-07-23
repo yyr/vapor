@@ -97,7 +97,7 @@ restart(){
 	loadedTimesteps.clear();
 	keyframes.clear();
 	useKeyframing=false;
-	defaultCameraSpeed = 1.;
+	movingCameraSpeed = 0.1;
 	//Insert a default keyframe:
 	Viewpoint* vp = new Viewpoint();
 	Keyframe* kf = new Keyframe(vp,0., 0, 1);
@@ -444,6 +444,25 @@ buildNode(){
 void AnimationParams::buildViewsAndTimes(){
 	
 	clearLoadedViewpoints();
+	//modify distance based on scene stretch and max size.
+	//Warp distance function by (1) dividing it by the largest stretched extent, and
+	//(2) multiplying it by the scene stretch factors.
+	const float* strExts = DataStatus::getInstance()->getStretchedExtents();
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	float stretchedSize;
+	float maxStretchedSize = -1.e30;
+	float dstWarp[3];
+	int maxStretchedDim = -1;
+	for (int i = 0; i<3; i++) {
+		stretchedSize = strExts[i+3] - strExts[i];
+		if (stretchedSize > maxStretchedSize){
+			maxStretchedSize = stretchedSize;
+		}
+	}
+	for (int i = 0; i<3; i++){
+		dstWarp[i] = stretch[i]/maxStretchedSize;
+	}
+	myAnimate->setDistanceWarp(dstWarp);
 	myAnimate->keyframeInterpolate(keyframes, loadedViewpoints);
 
 	//Test rotation interpolation of first pair of keyframes

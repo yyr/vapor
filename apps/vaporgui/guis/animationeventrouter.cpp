@@ -132,7 +132,7 @@ AnimationEventRouter::hookUpTab()
 	connect (frameStepEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
 	connect (maxFrameRateEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
 	connect (maxWaitEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
-	connect (defaultSpeedEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
+	connect (movingSpeedEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
 
 	
 	//Connect all the returnPressed signals, these will update the visualizer.
@@ -142,7 +142,7 @@ AnimationEventRouter::hookUpTab()
 	connect (frameStepEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
 	connect (maxFrameRateEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
 	connect (maxWaitEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
-	connect (defaultSpeedEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+	connect (movingSpeedEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
 	
 
 	connect (frameStepSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetFrameStep(int)));
@@ -220,9 +220,9 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 	}
 	aParams->setEndFrameNumber(endFrame);
 
-	float defaultSpeed= defaultSpeedEdit->text().toFloat();
-	if (defaultSpeed > 0.) aParams->setDefaultCameraSpeed(defaultSpeed);
-	else defaultSpeedEdit->setText(QString::number( aParams->getDefaultCameraSpeed()));
+	float movingSpeed= movingSpeedEdit->text().toFloat();
+	if (movingSpeed > 0.) aParams->setMovingCameraSpeed(movingSpeed);
+	else movingSpeedEdit->setText(QString::number( aParams->getMovingCameraSpeed()));
 
 	int currentFrame = currentFrameEdit->text().toInt();
 	if (currentFrame < startFrame) currentFrame = startFrame;
@@ -341,7 +341,7 @@ void AnimationEventRouter::updateTab(){
 	populateTimestepTable();
 
 	//setup keyframe parameters:
-	defaultSpeedEdit->setText(QString::number(aParams->getDefaultCameraSpeed()));
+	movingSpeedEdit->setText(QString::number(aParams->getMovingCameraSpeed()));
 	keyIndexSpin->setMaximum(aParams->getNumKeyframes()-1);
 	int currIndex = keyIndexSpin->value();
 	Keyframe* kf = aParams->getKeyframe(currIndex);
@@ -875,8 +875,8 @@ void AnimationEventRouter::guiInsertMovingKeyframe(){
 			return;
 		}
 	}
-	float newSpeed = oldKeyframe->speed;
-	if (newSpeed <= 0.f) newSpeed = aParams->getDefaultCameraSpeed();
+	
+	float newSpeed = aParams->getMovingCameraSpeed();
 	
 	Keyframe* newKeyframe = new Keyframe(newVP,newSpeed,newTS,1);
 	
