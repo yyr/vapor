@@ -346,12 +346,12 @@ void Trackball::MouseOnTrackball(int eventNum, Qt::MouseButton thisButton, int x
 void Trackball::
 setFromFrame(float* posvec, float* dirvec, float* upvec, float* centerRot, bool persp){
 	//First construct the rotation matrix:
-	float mtrx1[16];
-	float trnsMtrx[16];
-	float mtrx[16];
+	double mtrx1[16];
+	double trnsMtrx[16];
+	double mtrx[16];
 	setCenter(centerRot);
 	makeTransMatrix(centerRot, trnsMtrx);
-	makeModelviewMatrix(posvec, dirvec, upvec, mtrx);
+	makeModelviewMatrixD(posvec, dirvec, upvec, mtrx);
 	
 	//Translate on both sides by translation
 	//first on left,
@@ -361,14 +361,16 @@ setFromFrame(float* posvec, float* dirvec, float* upvec, float* centerRot, bool 
 	trnsMtrx[13] = -trnsMtrx[13];
 	trnsMtrx[14] = -trnsMtrx[14];
 	mmult(mtrx1,trnsMtrx, mtrx);
-	
+	double qrotd[4];
 	//convert rotation part to quaternion:
-	rotmatrix2q(mtrx, qrot);
+	rotmatrix2q(mtrx, qrotd);
+	for (int i = 0; i<4; i++) qrot[i] = (float)qrotd[i];
 	//set the translation?
 	//If parallel (ortho) transform, z used for translation
 	perspective = persp;
 	//vcopy(posvec, trans);
-	vcopy(mtrx+12, trans);
+	for (int i = 0; i<3; i++) trans[i] = (float)mtrx[i+12];
+	
 }
 
 

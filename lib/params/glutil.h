@@ -86,12 +86,15 @@ PARAMS_API void	computeGradientData(
 	int dim[3], int numChan, unsigned char *volume, unsigned char *gradient
 );
 PARAMS_API void	makeModelviewMatrix(float* vpos, float* vdir, float* upvec, float* matrix);
+PARAMS_API void	makeModelviewMatrixD(float* vpos, float* vdir, float* upvec, double* matrix);
 PARAMS_API void	makeTransMatrix(float* transVec, float* matrix);
+PARAMS_API void	makeTransMatrix(float* transVec, double* matrix);
 PARAMS_API void	vscale (float *v, float s);
 PARAMS_API void	vscale (double *v, double s);
 PARAMS_API void	vmult(const float *v, float s, float *w); 
 PARAMS_API void	vhalf (const float *v1, const float *v2, float *half);
 PARAMS_API void	vcross (const float *v1, const float *v2, float *cross);
+PARAMS_API void	vcross (const double *v1, const double *v2, double *cross);
 PARAMS_API void	vreflect (const float *in, const float *mirror, float *out);
 PARAMS_API void	vtransform (const float *v, GLfloat *mat, float *vt);
 PARAMS_API void	vtransform (const float *v, GLfloat *mat, double *vt);
@@ -101,8 +104,11 @@ PARAMS_API void	vtransform3 (const float *v, float *mat, float *vt);
 PARAMS_API void	vtransform3t (const float *v, float *mat, float *vt);
 PARAMS_API bool	pointOnRight(float* pt1, float* pt2, float* testPt);
 PARAMS_API void	mcopy (GLfloat *m1, GLfloat *m2);
+PARAMS_API void	mcopy (double *m1, double *m2);
 PARAMS_API void	mmult (GLfloat *m1, GLfloat *m2, GLfloat *prod);
+PARAMS_API void	mmult (GLdouble *m1, GLdouble *m2, GLdouble *prod);
 PARAMS_API int	minvert (GLfloat *mat, GLfloat *result);
+PARAMS_API int	minvert (GLdouble *mat, GLdouble *result);
 
 //Some routines to handle 3x3 rotation matrices, represented as 9 floats, 
 //where the column index increments faster (like in 4x4 case
@@ -133,6 +139,7 @@ PARAMS_API void	CalcRotation (float *q, float newX, float newY, float oldX, floa
 PARAMS_API float	ScalePoint (long pt, long origin, long size);
 PARAMS_API void	rvec2q(const float	rvec[3],float		radians,float		q[4]);
 PARAMS_API void	rotmatrix2q(float* m, float *q );
+PARAMS_API void	rotmatrix2q(double* m, double *q );
 PARAMS_API float   getScale(GLfloat* rotmatrix);
 PARAMS_API void view2Quat(float vdir[3], float upvec[3], float q[4]);
 

@@ -78,7 +78,7 @@ class PARAMS_API animate {
         //constructor and destructor
         animate();
         ~animate ();
-        void keyframeInterpolate(std::vector<Keyframe*>& key_vec, std::vector<Viewpoint*>& view_vec);
+        void keyframeInterpolate(std::vector<Keyframe*>& key_vec, std::vector<Viewpoint*>& view_vec,float stretchFactor);
         void priorInterPolationCalcs(std::vector<Keyframe*>& key_vec, std::vector<Viewpoint*>& view_vec);
         void interpolate (float T[], int N,int startIndex,std::vector<Keyframe*>& key_vec);
         void hermite_function(float t[],int noFrames,float inputPoints[], float out_pts[],float slope1, float slope2);

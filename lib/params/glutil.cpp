@@ -64,6 +64,12 @@ GLfloat idmatrix[16] = {
     0.0, 0.0, 1.0, 0.0,
     0.0, 0.0, 0.0, 1.0,
 };
+GLdouble idmatrixd[16] = {
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 0.0,
+    0.0, 0.0, 0.0, 1.0,
+};
 
 
 /* Most of the 'v' routines are in the form vsomething(src1, src2, dst),
@@ -115,6 +121,17 @@ void vcross(const float *v1, const float *v2, float *cross)
     /* Vector cross product.
      */
     float	temp[3];
+    
+    temp[0] = (v1[1] * v2[2]) - (v1[2] * v2[1]);
+    temp[1] = (v1[2] * v2[0]) - (v1[0] * v2[2]);
+    temp[2] = (v1[0] * v2[1]) - (v1[1] * v2[0]);
+    vcopy(temp, cross);
+}
+void vcross(const double *v1, const double *v2, double *cross)
+{
+    /* Vector cross product.
+     */
+    double	temp[3];
     
     temp[0] = (v1[1] * v2[2]) - (v1[2] * v2[1]);
     temp[1] = (v1[2] * v2[0]) - (v1[0] * v2[2]);
@@ -216,6 +233,15 @@ void mcopy(GLfloat *m1, GLfloat *m2)
     for(row = 0 ; row < 16 ; row++)
 	m2[row] = m1[row];
 }
+void mcopy(double *m1, double *m2)
+{
+    /* Copy a 4x4 matrix
+     */
+    int		row;
+
+    for(row = 0 ; row < 16 ; row++)
+	m2[row] = m1[row];
+}
 
 
 void mmult(GLfloat *m1, GLfloat *m2, GLfloat *prod)
@@ -231,6 +257,25 @@ void mmult(GLfloat *m1, GLfloat *m2, GLfloat *prod)
 				m1[row+4]  * m2[1+col*4] +
 				m1[row+8]  * m2[2+col*4] +
 				m1[row+12] * m2[3+col*4]);*/
+/*
+ * Use OpenGL style matrix mult -- Wes.
+ */
+    for(row = 0 ; row < 4 ; row++) 
+       for(col = 0 ; col < 4 ; col++)
+	    temp[row*4 + col] = (m1[row*4]  * m2[col] + 
+				m1[1+row*4] * m2[col+4] +
+				m1[2+row*4] * m2[col+8] +
+				m1[3+row*4] * m2[col+12]);
+    mcopy(temp, prod);
+}
+void mmult(GLdouble *m1, GLdouble *m2, GLdouble *prod)
+{
+    /* Multiply two 4x4 matricies
+     */
+    int		row, col;
+    GLdouble 	temp[16];
+    
+    
 /*
  * Use OpenGL style matrix mult -- Wes.
  */
@@ -272,6 +317,64 @@ int minvert(GLfloat *mat, GLfloat *result)
 		for (int rw = i; rw < 4; rw++){
 			if (fabs(m[i][rw]) > maxval){
 				maxval = fabs(m[i][rw]);
+				pivot = rw;
+			}
+		}
+		if(pivot < 0) return 0; //otherwise, can't invert!
+
+		if (pivot != i){ //Swap i and pivot row:
+			for (k = i;  k < 8;  k++) {
+                temp = m[k][i];
+                m[k][i] = m[k][pivot];
+                m[k][pivot] = temp;
+            }
+		}
+        
+
+        // Divide original row by pivot element, which is now the [i][i] element:
+        
+        for (j = 7;  j >= i;  j--)
+            m[j][i] /= m[i][i];
+
+        // Subtract other rows, to make row i be the only row with nonzero elt in col i:
+        
+        for (j = 0;  j < 4;  j++)
+            if (i != j)
+                for (k = 7;  k >= i;  k--)
+                    m[k][j] -= m[k][i] * m[i][j];
+    }
+	//copy back the last 4 columns:
+    for (i = 0;  i < 4;  i++)
+        for (j = 0;  j < 4;  j++)
+            result[i+4*j] = m[i+4][j];
+	return 1;
+}
+int minvert(GLdouble *mat, GLdouble *result)
+{
+    // Invert a 4x4 matrix
+   
+    int         i, j, k;
+    double       temp;
+    double       m[8][4];
+   
+    mcopy(idmatrixd, result);
+	// mat[i,j] is row j, col i:
+    for (i = 0;  i < 4;  i++) {
+        for (j = 0;  j < 4;  j++) {
+            m[i][j] = mat[i+4*j];
+            m[i+4][j] = result[i+4*j];
+        }
+    }
+   
+    // Work across by columns (i is col index):
+    
+    for (i = 0; i < 4; i++) {
+		//Find largest entry in the column, below the diagonal:
+		double maxval = 0.f;
+		int pivot = -1;
+		for (int rw = i; rw < 4; rw++){
+			if (abs(m[i][rw]) > maxval){
+				maxval = abs(m[i][rw]);
 				pivot = rw;
 			}
 		}
@@ -384,7 +487,7 @@ void qmatrix(const float *q, GLfloat *m)
 	Code adapted from 
 	http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion
 */
-#define M_EPSILON 0.00000001f
+#define M_EPSILON 0.00000001
 void rotmatrix2q(float* m, float *q ){
 	float trace = m[0] + m[5] + m[10] + 1.0f;
 	if( trace > M_EPSILON ) {
@@ -411,6 +514,37 @@ void rotmatrix2q(float* m, float *q ){
 			q[0] = (m[2] + m[8] ) / s;
 			q[1] = (m[6] + m[9] ) / s;
 			q[2] = 0.25f * s;
+			q[3] = (m[1] - m[4] ) / s;//?? off by minus??
+		}
+	}
+}
+
+void rotmatrix2q(double* m, double *q ){
+	double trace = m[0] + m[5] + m[10] + 1.0;
+	if( trace > M_EPSILON ) {
+		double s = 0.5 / sqrt(trace);
+		q[3] = 0.25 / s;   
+		q[0] = ( m[9] - m[6] ) * s;
+		q[1] = ( m[2] - m[8] ) * s;
+		q[2] = ( m[4] - m[1] ) * s;
+	} else {
+		if ( m[0] > m[5] && m[0] > m[10] ) {
+			double s = 2.0 * sqrt( 1.0 + m[0] - m[5] - m[10]);
+			q[0] = 0.25 * s;
+			q[1] = (m[1] + m[4] ) / s;
+			q[2] = (m[2] + m[8] ) / s;
+			q[3] = (m[6] - m[9] ) / s; //???? minus?
+		} else if (m[5] > m[10]) {
+			double s = 2.0 * sqrt( 1.0 + m[5] - m[0] - m[10]);
+			q[0] = (m[1] + m[4] ) / s;
+			q[1] = 0.25 * s;
+			q[2] = (m[6] + m[9] ) / s;
+			q[3] = (m[2] - m[8] ) / s;    
+		} else {
+			double s = 2.0 * sqrt( 1.0 + m[10] - m[0] - m[5] );
+			q[0] = (m[2] + m[8] ) / s;
+			q[1] = (m[6] + m[9] ) / s;
+			q[2] = 0.25 * s;
 			q[3] = (m[1] - m[4] ) / s;//?? off by minus??
 		}
 	}
@@ -599,7 +733,15 @@ makeTransMatrix(float *trans, float* mtrx){
 	mtrx[15] = 1.f;
 	vcopy(trans, mtrx+12);
 }
-
+void
+makeTransMatrix(float *trans, double* mtrx){
+	for (int i = 0; i<12; i++) mtrx[i] = 0.;
+	mtrx[0] = 1.;
+	mtrx[5] = 1.;
+	mtrx[10] = 1.;
+	mtrx[15] = 1.;
+	for (int i = 0; i<3; i++) mtrx[i+12] = (double)trans[i];
+}
 /*
  * make a modelview matrix from viewer position, direction, and up vector
  * Vectors must be nonzero
@@ -646,6 +788,62 @@ makeModelviewMatrix(float* vpos, float* vdir, float* upvec, float* mtrx){
 	vcopy(vdir, minv + 8);
 	vscale(minv+8, -1.f);
 	vcopy(vpos, minv+ 12);
+	int rc = minvert(minv, mtrx);
+	if(!rc) assert(rc);//Only catch this in debug mode
+}
+/*
+ * make a modelview matrix from viewer position, direction, and up vector
+ * Vectors must be nonzero
+ * side-effect:  will alter input values if not valid.
+ */
+void
+makeModelviewMatrixD(float* vpos, float* vdir, float* upvec, double* mtrx){
+	double vtemp[3];
+	double left[3] = {-1.f, 0.f, 0.f};
+	double ydir[3] = {0.f, 1.f, 0.f};
+	double right[3];
+	double dupvec[3], dvdir[3],dvpos[3];
+	for (int i = 0; i<3; i++){
+		dupvec[i] = upvec[i];
+		dvdir[i] = vdir[i];
+		dvpos[i] = vpos[i];
+	}
+
+	//Normalize the vectors:
+	vnormal(dupvec);
+	vnormal(dvdir);
+	//Force the up vector to be orthogonal to viewDir
+	vcopy(dvdir, vtemp);
+	vscale(vtemp, vdot(dvdir, dupvec));
+	//Subtract the component of up in the viewdir direction
+	vsub(dupvec, vtemp, dupvec);
+	//Make sure it's still valid
+	if (vdot(dupvec,dupvec) == 0.f) {
+		//First try up = viewdir x left
+		vcross(dvdir, left, dupvec);
+		if (vdot (dupvec, dupvec) == 0.f) {
+			//try viewdir x ydir
+			vcross(dvdir, ydir, dupvec);
+		}
+	}
+	vnormal(dupvec);
+	//calculate "right" vector:
+	vcross(dvdir, dupvec, right);
+	//Construct matrix:
+	double minv[16];
+	//Fill in bottom row:
+	minv[3] = 0.;
+	minv[7] = 0.;
+	minv[11] = 0.;
+	minv[15] = 1.;
+	//copy in first 3 elements of columns
+	vcopy(right, minv);
+	vcopy(dupvec, minv+4);
+	//third col is neg of viewdir
+	
+	vcopy(dvdir, minv + 8);
+	vscale(minv+8, -1.);
+	vcopy(dvpos, minv+ 12);
 	int rc = minvert(minv, mtrx);
 	if(!rc) assert(rc);//Only catch this in debug mode
 }

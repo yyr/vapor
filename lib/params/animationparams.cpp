@@ -449,21 +449,58 @@ void AnimationParams::buildViewsAndTimes(){
 	//(2) multiplying it by the scene stretch factors.
 	const float* strExts = DataStatus::getInstance()->getStretchedExtents();
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	
 	float stretchedSize;
 	float maxStretchedSize = -1.e30;
-	float dstWarp[3];
-	int maxStretchedDim = -1;
 	for (int i = 0; i<3; i++) {
 		stretchedSize = strExts[i+3] - strExts[i];
 		if (stretchedSize > maxStretchedSize){
 			maxStretchedSize = stretchedSize;
 		}
 	}
-	for (int i = 0; i<3; i++){
-		dstWarp[i] = stretch[i]/maxStretchedSize;
+	
+	//Modify keyframes by stretching according to scene stretch factors.
+	//Modify speeds by factor to make speed = 1 for crossing entire scene in one frame
+	vector<Keyframe*> animKeyframes;
+	
+	for (int i = 0; i<keyframes.size(); i++){
+		Viewpoint* vp = new Viewpoint();
+		Keyframe* kFrame = new Keyframe(vp,keyframes[i]->speed * maxStretchedSize,keyframes[i]->timeStep,keyframes[i]->frameNum);
+		Viewpoint* vkey = keyframes[i]->viewpoint;
+		for (int j = 0; j<3; j++){
+			//The displacement between the camera and rotation center is stretched
+			//The rotation center is not moved.
+			float camdisp = stretch[j]*(vkey->getCameraPosLocal(j)-vkey->getRotationCenterLocal(j));
+			vp->setCameraPosLocal(j,vkey->getRotationCenterLocal(j)+camdisp);
+			vp->setRotationCenterLocal(j,vkey->getRotationCenterLocal(j));
+			//force vdir to point from camera to rot center
+			vp->setViewDir(j,vp->getRotationCenterLocal(j)-vp->getCameraPosLocal(j));
+			vp->setUpVec(j,keyframes[i]->viewpoint->getUpVec(j));
+		}
+		vnormal(vp->getUpVec());
+		vnormal(vp->getViewDir());
+		kFrame->viewpoint = vp;
+		animKeyframes.push_back(kFrame);
 	}
-	myAnimate->setDistanceWarp(dstWarp);
-	myAnimate->keyframeInterpolate(keyframes, loadedViewpoints);
+
+	myAnimate->keyframeInterpolate(animKeyframes, loadedViewpoints, 1.f);
+	//copy back the frame counts
+	for (int i = 0; i<animKeyframes.size(); i++){
+		keyframes[i]->frameNum = animKeyframes[i]->frameNum;
+	}
+	
+	//Undo stretch:
+	for (int i = 0; i<loadedViewpoints.size(); i++){
+		Viewpoint* vp = loadedViewpoints[i];
+		for (int j = 0; j<3; j++){
+			float unstretch = 1./stretch[j];
+			float camdisp = unstretch*(vp->getCameraPosLocal(j)-vp->getRotationCenterLocal(j));
+			vp->setCameraPosLocal(j,vp->getRotationCenterLocal(j)+camdisp);
+		}
+		vnormal(vp->getUpVec());
+		vnormal(vp->getViewDir());
+	}
+
 
 	//Test rotation interpolation of first pair of keyframes
 	/*
@@ -521,10 +558,10 @@ void AnimationParams::buildViewsAndTimes(){
 
 
 	//Adjust time steps:
-	for (int i = 0; i<keyframes.size()-1; i++){
-		int firstTstep = keyframes[i]->timeStep;
-		int nextTstep = keyframes[i+1]->timeStep;
-		int numFrames = keyframes[i]->frameNum;
+	for (int i = 0; i<animKeyframes.size()-1; i++){
+		int firstTstep = animKeyframes[i]->timeStep;
+		int nextTstep = animKeyframes[i+1]->timeStep;
+		int numFrames = animKeyframes[i]->frameNum;
 		for (int j = 0; j<numFrames; j++){
 			float frameFraction = (float)j/(float)(numFrames);
 			int tStep = (int)(0.5+ (float)firstTstep + frameFraction*(nextTstep-firstTstep));
@@ -532,12 +569,18 @@ void AnimationParams::buildViewsAndTimes(){
 		}
 	}
 	//At the very end, use the timestep of the last keyframe:
-	loadedTimesteps.push_back(keyframes[keyframes.size()-1]->timeStep);
+	loadedTimesteps.push_back(animKeyframes[animKeyframes.size()-1]->timeStep);
 	int num1 = loadedTimesteps.size();
 	int num2 = loadedViewpoints.size();
 	assert(num1 == num2);
 	if (keyframingEnabled()) setEndFrameNumber(loadedViewpoints.size()-1);
-
+	//Now we can clear it out:
+	
+	for (int i = 0; i<animKeyframes.size(); i++){
+		delete animKeyframes[i]->viewpoint;
+		delete animKeyframes[i];
+	}
+	animKeyframes.clear();
 }
 void AnimationParams::enableKeyframing( bool onoff){
 	useKeyframing = onoff;

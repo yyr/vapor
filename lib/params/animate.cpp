@@ -9,7 +9,7 @@
 #include <iostream>
 #include "animate.h"
 #include <math.h>
-#include<vector>
+#include <vector>
 using namespace VAPoR;
 //constructor
 animate::animate(){
@@ -45,7 +45,7 @@ animate::~animate (){
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-void animate:: keyframeInterpolate(std::vector<Keyframe*>& key_vec, std::vector<Viewpoint*>& view_vec)
+void animate:: keyframeInterpolate(std::vector<Keyframe*>& key_vec, std::vector<Viewpoint*>& view_vec,float stretchFactor)
 {
     
     noVPs = int (key_vec.size());
@@ -59,12 +59,18 @@ void animate:: keyframeInterpolate(std::vector<Keyframe*>& key_vec, std::vector<
     distance = new float [testPoints];
     incrementFactor= 1.0 / float(testPoints);
    
-
-    //segment in between initialization
-    for (int i=0; i < noVPs; i++) totalSegments[i]=0;
+   
+    //Pre-steps
+    for (int i=0; i < noVPs; i++)
+	{
+	 //init of frames between two starting frames
+	 totalSegments[i]=0;
+	//copy speed to a local store with stretch factor
+	speed[i] = key_vec[i]->speed * stretchFactor;
     
-  
-  //start doing the interpolation
+  	}
+
+   //start doing the interpolation
     priorInterPolationCalcs(key_vec, view_vec); 
     
     //Interpolation done. Filling in the outgoing view point vector addresses
@@ -108,7 +114,7 @@ void animate::priorInterPolationCalcs(std::vector<Keyframe*>& key_vec, std::vect
      for( int i=0; i < noVPs-1; i++){
     
             //checking for two consecutive speeds = 0
-         if (key_vec[i]->speed ==0 && key_vec[i+1]->speed ==0){
+         if (speed[i] ==0 && speed[i+1] ==0){
              
              //push in the currrent keyframe into the vector
              for (int j=0 ; j <key_vec[i]->frameNum ; j++)
@@ -209,7 +215,7 @@ void animate::slopeCalculator(std::vector<Keyframe*>& key_vec)
     
     for (int i=1; i < noVPs-1;i++)
     {
-
+	
 	
         //camera
         val1 = key_vec[i+1]->viewpoint->getCameraPosLocal(0); val2 = key_vec[i-1]->viewpoint->getCameraPosLocal(0);
@@ -343,16 +349,16 @@ void animate::speedController(int startIndex, std::vector<Keyframe*>& key_vec)
 
 
     //No of frames
-    int N = (int) ((2*distance[testPoints-1]/ (key_vec[startIndex]->speed +key_vec[startIndex+1]->speed))   +  0.5);
+    int N = (int) ((2*distance[testPoints-1]/ (speed[startIndex] +speed[startIndex+1]))   +  0.5);
    // std::cout<<"No of frames... "<<N<<std::endl;
    
-    float n = (2*distance[testPoints-1] )/(key_vec[startIndex]->speed + key_vec[startIndex+1]->speed);
+    float n = (2*distance[testPoints-1] )/(speed[startIndex] + speed[startIndex+1]);
    // std::cout<<"n "<<n<<std::endl;
     
     //correction factor
     float F = float (n/N);
-    float s1 = F* key_vec[startIndex]->speed; 
-    float s2= F*key_vec[startIndex+1]->speed;
+    float s1 = F*speed[startIndex]; 
+    float s2 = F*speed[startIndex+1];
     
     N = (int) (2*distance[testPoints-1]/ (s1 +s2));
   
@@ -398,14 +404,14 @@ void animate::speedController(int startIndex, std::vector<Keyframe*>& key_vec)
     
     //Has to pass through the start key frame.
     T[0]=0;
-	std::cout<<" "<<"%%Frame pos " <<T[0]<<" Distance== "<<dist_prime[0]<<std::endl;
+	//std::cout<<" "<<"%%Frame pos " <<T[0]<<" Distance== "<<dist_prime[0]<<std::endl;
     for (int i=1; i<N+1; i++){
         
         T[i] = t_distanceFunc(dist_prime[i-1]);
-        std::cout<<" "<<"%%Frame pos " <<T[i]<<" Distance== "<<dist_prime[i-1]<<std::endl;
+       // std::cout<<" "<<"%%Frame pos " <<T[i]<<" Distance== "<<dist_prime[i-1]<<std::endl;
     }
   
-	std::cout<<"--------------------------------"<<std::endl;
+	
     //value of num of segments
     totalSegments[startIndex]=N+1;
     
