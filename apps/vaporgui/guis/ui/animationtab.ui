@@ -1029,6 +1029,16 @@ size slider and text box.</string>
      </item>
      <item>
       <widget class="QFrame" name="frame">
+       <property name="toolTip">
+        <string>This panel controls the settings that are used to control animation when keyframing is enabled.</string>
+       </property>
+       <property name="whatsThis">
+        <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Users can design animation sequences using the Key Frame Settings.  When key framing is enabled, the viewpoints (i.e. camera positions and orientations) and data time steps are interpolated based on user-specified key frames.  To create an animation sequence, set the viewpoint and time step to the specific values resulting in the images you want to see during the animation, and click &amp;quot;Insert Keyframe&amp;quot; at each desired position and time step that you want to use in the animation.  VAPOR will automatically fill in the viewpoints between the key frames, and interpolate the time steps as well.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
        </property>
@@ -1083,6 +1093,9 @@ size slider and text box.</string>
              <widget class="QCheckBox" name="enableKeyframeCheckBox">
               <property name="toolTip">
                <string>Check this to use the keyframing specified in this panel. Otherwise the viewpoint is constant.</string>
+              </property>
+              <property name="whatsThis">
+               <string>When keyframing is enabled, the camera position and the timestep of the data are controlled by keyframe interpolation.  When keyframing is not enabled, the viewpoint is constant and the animation increments the time step of the data that is displayed. </string>
               </property>
               <property name="text">
                <string>Enable Keyframing</string>
@@ -1229,7 +1242,7 @@ p, li { white-space: pre-wrap; }
             <item row="1" column="1">
              <widget class="QLineEdit" name="keyTimestepEdit">
               <property name="toolTip">
-               <string>The time step of the data that is used at this key frame</string>
+               <string>The time step of the data that is used at this (current) key frame</string>
               </property>
               <property name="whatsThis">
                <string>The data time steps are linearly interpolated between key frames.  For more precise control, insert more key frames.</string>
@@ -1245,7 +1258,7 @@ p, li { white-space: pre-wrap; }
             <item row="1" column="2">
              <widget class="QLineEdit" name="frameCountEdit">
               <property name="toolTip">
-               <string>Number of frames from this keyframe to the next keyframe</string>
+               <string>Number of frames from this current keyframe to the next keyframe</string>
               </property>
               <property name="whatsThis">
                <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -1291,7 +1304,11 @@ p, li { white-space: pre-wrap; }
             <item row="1" column="4">
              <widget class="QLineEdit" name="speedEdit">
               <property name="toolTip">
-               <string>Speed indicates the speed of the camera motion in user coordinates.  Units are distance per frame.</string>
+               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Speed indicates the speed of the camera motion in the scene at the current key frame.  Units are scene diameters per frame.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="whatsThis">
                <string>Camera speed should normally be a nonzero constant except when the camera is stationary.  When two adjacent keyframes use the same camera position then the speed must be zero at both keyframes.</string>
@@ -1322,31 +1339,20 @@ p, li { white-space: pre-wrap; }
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_6">
             <item>
-             <widget class="QLabel" name="label_6">
-              <property name="text">
-               <string>Insert:</string>
+             <spacer name="horizontalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
               </property>
-             </widget>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
             </item>
             <item>
-             <widget class="QPushButton" name="insertFixedButton">
-              <property name="toolTip">
-               <string>Insert a keyframe that is stationary after the current keyframe.</string>
-              </property>
-              <property name="whatsThis">
-               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;To insert a fixed keyframe, the camera position must not be the same as in the preceding or following keyframes, unless one or the other of these is already fixed (i.e. has camera  speed 0).  If the preceding or following keyframe has zero camera speed, then the new fixed keyframe must have the same camera position as the preceding or following fixed keyframe.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="text">
-               <string>Fixed Keyframe</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="insertMovingButton">
+             <widget class="QPushButton" name="insertKeyframeButton">
               <property name="minimumSize">
                <size>
                 <width>0</width>
@@ -1361,35 +1367,48 @@ p, li { white-space: pre-wrap; }
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;When a moving key frame is inserted, the camera must be at a different position than either the preceding or following keyframe.  The speed will be the value specified (measured in terms of scene diameters per frame).&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Clicking this button results in inserting a keyframe immediately after the keyframe indicated by the current key index displayed above.  The camera speed at the keyframe will use the value indicated here.  However, if the camera position does not change between keyframes, the speed at both keyframes will be set to zero.  If two keyframes with zero speed have different camera positions, then an additional keyframe will be inserted between them with nonzero speed. &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
-               <string>Moving Keyframe at speed:</string>
+               <string>Insert Keyframe at speed:</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="movingSpeedEdit">
+             <widget class="QLineEdit" name="keyframeSpeedEdit">
               <property name="maximumSize">
                <size>
-                <width>50</width>
+                <width>100</width>
                 <height>16777215</height>
                </size>
               </property>
               <property name="toolTip">
-               <string>Specify the default nonzero camera speed to use when the camera is moving</string>
+               <string>Specify the camera speed at the inserted keyframe.  Set to zero to make the camera come to a stop at this position.</string>
               </property>
               <property name="whatsThis">
                <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;The speed used here is the camera speed, measured in scene diameters per frame.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;The speed is the camera speed at the keyframe, measured in scene diameters per frame.  A value of zero will result in the camera coming to a stop.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
               </property>
              </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_4">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </item>
@@ -1437,7 +1456,14 @@ p, li { white-space: pre-wrap; }
             <item>
              <widget class="QPushButton" name="gotoButton">
               <property name="toolTip">
-               <string>Set the current viewpoint and time step to be the same as is specified in the current key frame.</string>
+               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Set the visualized viewpoint and time step to be the same as is specified in the current key frame.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="whatsThis">
+               <string>Click this button to see the visualization at the specified key frame</string>
               </property>
               <property name="text">
                <string>Go To Key</string>

@@ -62,13 +62,10 @@ class PARAMS_API animate {
     int *totalSegments;
     
     //for distance approximation and speed control 
-     float *speed;
      vector_3D *approx_camPos;
      float *distance;
      float incrementFactor;
 
- //warp vec
-    float warpVec[3];  
 
     public:
 
@@ -78,16 +75,16 @@ class PARAMS_API animate {
         //constructor and destructor
         animate();
         ~animate ();
-        void keyframeInterpolate(std::vector<Keyframe*>& key_vec, std::vector<Viewpoint*>& view_vec,float stretchFactor);
+        void keyframeInterpolate(std::vector<Keyframe*>& key_vec, std::vector<Viewpoint*>& view_vec);
         void priorInterPolationCalcs(std::vector<Keyframe*>& key_vec, std::vector<Viewpoint*>& view_vec);
-        void interpolate (float T[], int N,int startIndex,std::vector<Keyframe*>& key_vec);
+        void interpolate (float T[], int N,int startIndex,std::vector<Keyframe*>& key_vec, bool approx);
         void hermite_function(float t[],int noFrames,float inputPoints[], float out_pts[],float slope1, float slope2);
         void calculate_quats (int startIndex,std::vector<Keyframe*>& key_vec);
         void speedController(int startIndex,std::vector<Keyframe*>& key_vec);
         void slopeCalculator(std::vector<Keyframe*>& key_vec);
         void evaluateCameraPos(int startIndex,std::vector<Keyframe*>& key_vec);
         float t_distanceFunc(float d);
-        void setDistanceWarp(float dWarp[3]);
+        
     
         //Hermite base functions
         inline float H0(float t)                                                                

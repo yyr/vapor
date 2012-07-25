@@ -160,8 +160,8 @@ public:
 	bool usingTimestepList() {return useTimestepSampleList;}
 	void setTimestepSampleList(bool on) {useTimestepSampleList = on;}
 	std::vector<int>& getTimestepList() { return timestepList;}
-	float getMovingCameraSpeed(){ return movingCameraSpeed;}
-	void setMovingCameraSpeed(float val){movingCameraSpeed=val;}
+	float getCurrentCameraSpeed(){ return currentCameraSpeed;}
+	void setCurrentCameraSpeed(float val){currentCameraSpeed=val;}
 	
 	ParamNode* buildNode();
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
@@ -199,7 +199,7 @@ protected:
 	//Keyframing state:
 	bool useKeyframing;
 	std::vector<Keyframe*> keyframes;
-	float movingCameraSpeed;
+	float currentCameraSpeed;
 	animate* myAnimate;  //used to perform keyframe interpolation
 #endif /* DOXYGEN_SKIP_THIS */
 	

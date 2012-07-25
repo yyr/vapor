@@ -113,11 +113,10 @@ protected slots:
 	void guiEnableKeyframing(bool);
 	void guiChangeKeyframe();
 	void guiDeleteKeyframe();
-	void guiInsertMovingKeyframe();
-	void guiInsertFixedKeyframe();
+	void guiInsertKeyframe();
 	void guiGotoKeyframe();
 	//Check and fix keyframes, return true if OK
-	bool fixKeyframes();
+	void fixKeyframes();
 	
 
 };

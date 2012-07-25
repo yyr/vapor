@@ -97,7 +97,7 @@ restart(){
 	loadedTimesteps.clear();
 	keyframes.clear();
 	useKeyframing=false;
-	movingCameraSpeed = 0.1;
+	currentCameraSpeed = 0.1;
 	//Insert a default keyframe:
 	Viewpoint* vp = new Viewpoint();
 	Keyframe* kf = new Keyframe(vp,0., 0, 1);
@@ -483,7 +483,7 @@ void AnimationParams::buildViewsAndTimes(){
 		animKeyframes.push_back(kFrame);
 	}
 
-	myAnimate->keyframeInterpolate(animKeyframes, loadedViewpoints, 1.f);
+	myAnimate->keyframeInterpolate(animKeyframes, loadedViewpoints);
 	//copy back the frame counts
 	for (int i = 0; i<animKeyframes.size(); i++){
 		keyframes[i]->frameNum = animKeyframes[i]->frameNum;
