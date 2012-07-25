@@ -97,9 +97,32 @@ VizWin::VizWin( MainForm* parent, const QString& name, Qt::WFlags fl, VizWinMgr*
 	fmt.setDirectRendering(true);
 
     	myGLWindow = new GLWindow(fmt, this ,myWindowNum);
+		fmt = myGLWindow->format();
 	if (!(fmt.directRendering() && fmt.depth() && fmt.rgba() && fmt.alpha() && fmt.doubleBuffer())){
 		Params::BailOut("Unable to obtain required OpenGL rendering format",__FILE__,__LINE__);	
 	}
+
+#ifdef	DEBUG
+cerr << "accum : " << fmt.accum() << endl;
+cerr << "accumBufferSize : " << fmt.accumBufferSize() << endl;
+cerr << "alpha : " << fmt.alpha() << endl;
+cerr << "alphaBufferSize : " << fmt.alphaBufferSize() << endl;
+cerr << "depth : " << fmt.depth() << endl;
+cerr << "depthBufferSize : " << fmt.depthBufferSize() << endl;
+cerr << "stencil : " << fmt.stencil() << endl;
+cerr << "stencilBufferSize : " << fmt.stencilBufferSize() << endl;
+cerr << "directRendering : " << fmt.directRendering() << endl;
+cerr << "doubleBuffer : " << fmt.doubleBuffer() << endl;
+cerr << "stereo : " << fmt.stereo() << endl;
+cerr << "hasOverlay : " << fmt.hasOverlay() << endl;
+//cerr << "majorVersion : " << fmt.majorVersion() << endl;
+//cerr << "minorVersion : " << fmt.minorVersion() << endl;
+//cerr << "profile : " << fmt.profile() << endl;
+cerr << "rgba : " << fmt.rgba() << endl;
+cerr << "sampleBuffers : " << fmt.sampleBuffers() << endl;
+cerr << "openGLVersionFlags : " << fmt.openGLVersionFlags() << endl;
+#endif
+
 	for (int i = 1; i<= Params::GetNumParamsClasses(); i++)
 		myGLWindow->setActiveParams(Params::GetCurrentParamsInstance(i,myWindowNum),i);
 	
