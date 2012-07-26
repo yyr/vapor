@@ -550,6 +550,7 @@ void AnimationParams::buildViewsAndTimes(){
 		animKeyframes.push_back(kFrame);
 	}
 	if (!myAnimate) myAnimate = new animate();
+
 	myAnimate->keyframeInterpolate(animKeyframes, loadedViewpoints);
 	//copy back the frame counts
 	for (int i = 0; i<animKeyframes.size(); i++){
@@ -610,8 +611,8 @@ void AnimationParams::enableKeyframing( bool onoff){
 	if (currentFrame > endFrame) currentFrame = endFrame;
 }
 void AnimationParams::clearLoadedViewpoints() {
-	if (loadedViewpoints.size() < 2) return;
-	//for (int i = 0; i<loadedViewpoints.size()-1; i++) delete loadedViewpoints[i];
+	
+	//for (int i = 0; i<loadedViewpoints.size(); i++) delete loadedViewpoints[i];
 	loadedViewpoints.clear();
 	loadedTimesteps.clear();
 }
