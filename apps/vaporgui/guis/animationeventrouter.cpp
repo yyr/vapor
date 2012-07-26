@@ -826,8 +826,20 @@ void AnimationEventRouter::guiInsertKeyframe(){
 	int currKey = keyIndexSpin->value();
 	Viewpoint* newVP = new Viewpoint(*VizWinMgr::getInstance()->getActiveVPParams()->getCurrentViewpoint());
 	int newTS = aParams->getCurrentTimestep();
-	
 	float newSpeed = aParams->getCurrentCameraSpeed();
+	//If speed is nonzero and camera position hasn't changed, just ignore this insert.
+	if (newSpeed != 0.f){
+		float camDist = vdist(newVP->getCameraPosLocal(),aParams->getKeyframe(currKey)->viewpoint->getCameraPosLocal());
+		DataStatus* ds = DataStatus::getInstance();
+		float sceneSize = vlength(ds->getFullSizes());
+		if (camDist < 1.e-4 * sceneSize){
+			MessageReporter::warningMsg("Keyframe insertion ignored. \nViewpoint did not move and speed was nonzero");
+			delete newVP;
+			delete cmd;
+			return;
+		}
+	}
+
 	
 	Keyframe* newKeyframe = new Keyframe(newVP,newSpeed,newTS,1);
 	
@@ -843,11 +855,12 @@ void AnimationEventRouter::guiInsertKeyframe(){
 
 void AnimationEventRouter::guiGotoKeyframe(){
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Go To Keyframe");
 	int currKey = keyIndexSpin->value();
 	Keyframe* key = aParams->getKeyframe(currKey);
 	//If keyframing is enabled, just need to go to that keyframe
+	//Put the vpParams in the undo/redo queue.
 	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
+	PanelCommand* cmd = PanelCommand::captureStart(vpParams, "Go To Keyframe");
 	if (aParams->keyframingEnabled()){
 		vector<Keyframe*> keyframes = aParams->getKeyframes();
 		int posn = 0;
@@ -864,7 +877,7 @@ void AnimationEventRouter::guiGotoKeyframe(){
 	viz->setRegionNavigating(true);
 	
 	viz->updateGL();
-	PanelCommand::captureEnd(cmd, aParams);
+	PanelCommand::captureEnd(cmd, vpParams);
 }
 void AnimationEventRouter::keyframeReturnPressed(){
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();

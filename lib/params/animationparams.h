@@ -179,6 +179,13 @@ protected:
 	static const string _endFrameAttr;
 	static const string _currentFrameAttr;
 	static const string _maxWaitAttr;
+	static const string _cameraSpeedAttr;
+	static const string _keyframesEnabledAttr;
+	static const string _keyframeTag;
+	static const string _keySpeedAttr;
+	static const string _keyTimestepAttr;
+	static const string _keyNumFramesAttr;
+
 
 	int playDirection; //-1, 0, or 1
 	bool repeatPlay;

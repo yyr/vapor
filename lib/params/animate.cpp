@@ -13,7 +13,11 @@
 using namespace VAPoR;
 //constructor
 animate::animate(){
-    
+    zoom=0;
+    totalSegments=0;
+    slopes=0;
+    approx_camPos=0;
+    distance =0;
     //initialize quats
     for (int i=0; i<3; i++)
     {
@@ -27,11 +31,11 @@ animate::animate(){
 //destructor 
 animate::~animate (){
     
-    delete [] zoom;
-    delete [] totalSegments;
-    delete [] slopes;
-    delete [] approx_camPos;
-    delete [] distance ;
+    if (zoom) delete [] zoom;
+    if (totalSegments) delete [] totalSegments;
+    if (slopes) delete [] slopes;
+    if(approx_camPos) delete [] approx_camPos;
+    if(distance) delete [] distance ;
 
     
   }

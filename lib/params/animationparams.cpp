@@ -47,6 +47,12 @@ const string AnimationParams::_startFrameAttr = "StartFrame";
 const string AnimationParams::_endFrameAttr = "EndFrame";
 const string AnimationParams::_currentFrameAttr = "CurrentFrame";
 const string AnimationParams::_maxWaitAttr = "MaxWait";
+const string AnimationParams::_cameraSpeedAttr = "CurrentCameraSpeed";
+const string AnimationParams::_keyframesEnabledAttr = "KeyframesEnabled";
+const string AnimationParams::_keyframeTag = "Keyframe";
+const string AnimationParams::_keySpeedAttr = "KeySpeed";
+const string AnimationParams::_keyTimestepAttr = "KeyTimestep";
+const string AnimationParams::_keyNumFramesAttr = "KeyNumFrames";
 float AnimationParams::defaultMaxFPS = 10.f;
 float AnimationParams::defaultMaxWait = 6000.f;
 
@@ -156,14 +162,13 @@ reinit(bool doOverride){
 	// set pause state
 	playDirection = 0;
 	//Set the first frame for animation control:
-	if (doOverride){
+	if (doOverride||keyframes.size()==0){
 		ViewpointParams* vpParams = (ViewpointParams*)Params::GetParamsInstance(_viewpointParamsTag);
-		Viewpoint* startingViewpoint = vpParams->getHomeViewpoint();
+		Viewpoint* startingViewpoint = new Viewpoint(*vpParams->getHomeViewpoint());
 		keyframes.clear();
 		keyframes.push_back(new Keyframe(startingViewpoint, 0., 0, 1));
-	}
-
-	
+	} 
+	buildViewsAndTimes();
 	return true;
 }
 
@@ -295,6 +300,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		//Do this by repeatedly pulling off the attribute name and value
 		useTimestepSampleList = false;
 		timestepList.clear();
+		keyframes.clear();
 		while (*attrs) {
 			string attribName = *attrs;
 			attrs++;
@@ -343,7 +349,41 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 					timestepList.push_back(tstep);
 				}
 			}
+			else if (StrCmpNoCase(attribName, _keyframesEnabledAttr) == 0) {
+				if (value == "true") useKeyframing = true; else useKeyframing = false;
+			}
+			else if (StrCmpNoCase(attribName, _cameraSpeedAttr) == 0) {
+				ist >> currentCameraSpeed;
+			}
 		}
+		return true;
+	} else if (StrCmpNoCase(tag, _keyframeTag) == 0){
+		_parseDepth++;
+		//Peel off the attributes
+		float speed = 0.1f;
+		int frameNum = 1;
+		int timestep = 0;
+		while (*attrs) {
+			string attribName = *attrs;
+			attrs++;
+			string value = *attrs;
+			attrs++;
+			istringstream ist(value);
+			if (StrCmpNoCase(attribName, _keySpeedAttr) == 0) {
+				ist >> speed;
+			} else if (StrCmpNoCase(attribName, _keyTimestepAttr) == 0) {
+				ist >> timestep;
+			} else if (StrCmpNoCase(attribName, _keyNumFramesAttr) == 0) {
+				ist >> frameNum;
+			} 
+		}
+		
+		//parse its viewpoint node
+		Viewpoint* keyViewpoint = new Viewpoint();
+
+		Keyframe* parsingKeyframe = new Keyframe(keyViewpoint,speed,timestep,frameNum);
+		keyframes.push_back(parsingKeyframe);
+		pm->pushClassStack(keyViewpoint);
 		return true;
 	}
 	pm->skipElement(tag, depth);
@@ -351,15 +391,16 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 }
 bool AnimationParams::
 elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
-	//Check only for the animation params tag
+	//Check for the animation params tag
 	if (StrCmpNoCase(tag, _animationParamsTag) == 0) {
-		//If this is animation params, need to
+		
 		//pop the parse stack.  
 		ParsedXml* px = pm->popClassStack();
 		bool ok = px->elementEndHandler(pm, depth, tag);
 		return ok;
-	} 
-	else {
+	} else if (StrCmpNoCase(tag, _keyframeTag) == 0){
+		return true;
+	} else {
 		pm->parseError("Unrecognized end tag in AnimationParams %s",tag.c_str());
 		return false;  //Could there be other end tags that we ignore??
 	}
@@ -433,12 +474,38 @@ buildNode(){
 		}
 		attrs[_timestepSampleListAttr] = oss.str();
 	}
+	oss.str(empty);
+	if (useKeyframing){
+		oss << "true";
+	} else {
+		oss << "false";
+	}
+	attrs[_keyframesEnabledAttr] = oss.str();
 
+	oss.str(empty);
+	oss << (double)currentCameraSpeed;
+	attrs[_cameraSpeedAttr] = oss.str();
 
-	ParamNode* animationNode = new ParamNode(_animationParamsTag, attrs, 0);
+	ParamNode* animationNode = new ParamNode(_animationParamsTag, attrs, keyframes.size());
 
-	//No Children!
-	
+	for (int i = 0; i<keyframes.size(); i++){
+		attrs.clear();
+		oss.str(empty);
+		oss << (long)keyframes[i]->timeStep;
+		attrs[_keyTimestepAttr] = oss.str();
+
+		oss.str(empty);
+		oss << (long)keyframes[i]->frameNum;
+		attrs[_keyNumFramesAttr] = oss.str();
+		oss.str(empty);
+		oss << (double)keyframes[i]->speed;
+		attrs[_keySpeedAttr] = oss.str();
+		ParamNode* viewpointNode = keyframes[i]->viewpoint->buildNode();
+		ParamNode* keyframeNode = new ParamNode(_keyframeTag, attrs,1);
+		keyframeNode->AddChild(viewpointNode);
+		animationNode->AddChild(keyframeNode);
+	}
+
 	return animationNode;
 }
 void AnimationParams::buildViewsAndTimes(){
@@ -482,7 +549,7 @@ void AnimationParams::buildViewsAndTimes(){
 		kFrame->viewpoint = vp;
 		animKeyframes.push_back(kFrame);
 	}
-
+	if (!myAnimate) myAnimate = new animate();
 	myAnimate->keyframeInterpolate(animKeyframes, loadedViewpoints);
 	//copy back the frame counts
 	for (int i = 0; i<animKeyframes.size(); i++){
@@ -502,59 +569,6 @@ void AnimationParams::buildViewsAndTimes(){
 	}
 
 
-	//Test rotation interpolation of first pair of keyframes
-	/*
-	float vdir1[3],vdir2[3],up1[3],up2[3],vtemp1[3],vtemp2[3];
-	if (keyframes.size()>1){
-		float errmax = -1.f;
-		//determine some random viewpoints:
-		for (int i = 0; i<1000; i++){
-			for (int j = 0; j<3; j++){
-				vdir1[j] = 2.0*(float)rand()/(float)(RAND_MAX) -1.0;
-				vdir2[j] = 2.0*(float)rand()/(float)(RAND_MAX) -1.0;
-				up1[j] = 2.0*(float)rand()/(float)(RAND_MAX) -1.0;
-				up2[j] = 2.0*(float)rand()/(float)(RAND_MAX) -1.0;
-			}
-			
-			
-			vnormal(vdir1);
-			vnormal(vdir2);
-			float dot1a = vdot(vdir1,up1);
-			float dot2a = vdot(vdir2,up2);
-			vmult(vdir1,dot1a,vtemp1);
-			vmult(vdir2,dot2a,vtemp2);
-			vsub(up1,vtemp1,up1);
-			vnormal(up1);
-			vsub(up2,vtemp2,up2);
-			vnormal(up2);
-			Viewpoint vp1, vp2;
-			vp1.setViewDir(vdir1);
-			vp1.setUpVec(up1);
-			vp2.setViewDir(vdir2);
-			vp2.setUpVec(up2);
-			Viewpoint* vpmid = Viewpoint::interpolate(&vp1,&vp2,0.5f);
-			float* dirmid = vpmid->getViewDir();
-			float dot0,dot1,dot2, angl0,angl1,angl2;
-			dot1 = vdot(vdir1,dirmid);
-			dot0 = vdot(vdir1,vdir2);
-			dot2 = vdot(vdir2,dirmid);
-			angl0 = acos(dot0)*180./M_PI;
-			angl1 = acos(dot1)*180./M_PI;
-			angl2 = acos(dot2)*180./M_PI;
-			float anglsum = angl1+angl2;
-			//float diff=abs(anglsum - angl0);
-			bool bad = (anglsum > 180.0);
-			//also check that inverse works:
-			float quat1[4],quat2[4],vdir3[3],vdir4[3],up3[3],up4[3];
-			views2ImagQuats(vdir1,up1,vdir2,up2,quat1,quat2);
-			imagQuat2View(quat1,vdir3,up3);
-			imagQuat2View(quat2,vdir4,up4);
-			float err = vdist(vdir3,vdir1)+vdist(up3,up1)+vdist(vdir4,vdir2)+vdist(up4,up2);
-			if (err>errmax) 
-				errmax = err;
-		}
-	}
-	*/
 
 
 	//Adjust time steps:

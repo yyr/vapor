@@ -1165,7 +1165,7 @@ reinitializeParams(bool doOverride){
 			}
 		}
 		
-		if(getRealAnimationParams(i)) getRealAnimationParams(i)->reinit(doOverride);
+		if(getRealAnimationParams(i) && getRealAnimationParams(i)!= getGlobalAnimationParams()) getRealAnimationParams(i)->reinit(doOverride);
 		//setup near/far
 		if (getRealVPParams(i)) vizWin[i]->getGLWindow()->resetView(getViewpointParams(i));
 		if(!doOverride && vizWin[i]) vizWin[i]->getGLWindow()->removeAllRenderers();
