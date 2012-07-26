@@ -198,6 +198,7 @@ void animate::slopeCalculator(std::vector<Keyframe*>& key_vec)
 {
     //first slope =0
     slopes[0].cam[0]=0;slopes[0].cam[1]=0;slopes[0].cam[2]=0;
+	slopes[0].rot[0]=0;slopes[0].rot[1]=0;slopes[0].rot[2]=0;
     slopes[0].view[0]=0; slopes[0].view[1]=0; slopes[0].view[2]=0;
     slopes[0].up[0]=0;slopes[0].up[1]=0;slopes[0].up[2]=0;
     slopes[0].zoom=0;
@@ -205,6 +206,7 @@ void animate::slopeCalculator(std::vector<Keyframe*>& key_vec)
     
     //last slope =0 
     slopes[noVPs-1].cam[0]=0;slopes[noVPs-1].cam[1]=0;slopes[noVPs-1].cam[2]=0;
+	slopes[noVPs-1].rot[0]=0;slopes[noVPs-1].rot[1]=0;slopes[noVPs-1].rot[2]=0;
     slopes[noVPs-1].view[0]=0; slopes[noVPs-1].view[1]=0; slopes[noVPs-1].view[2]=0;
     slopes[noVPs-1].up[0]=0;slopes[noVPs-1].up[1]=0;slopes[noVPs-1].up[2]=0;
     slopes[noVPs-1].zoom=0;
