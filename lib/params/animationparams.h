@@ -52,16 +52,21 @@ public:
 
 	//! Identify the current frame being rendered
 	//! \retval int current frame number
-	int getCurrentFrameNumber() {return currentFrame;}
+	int getCurrentFrameNumber() {
+		if (keyframingEnabled()&&getLoadedViewpoints().size() > 0){
+			return currentInterpolatedFrame;
+		}
+		return currentTimestep;
+	}
 
 	//! Identify the current data timestep being used
 	//! \retval size_t current time step
 	int getCurrentTimestep() {
 
 		if (keyframingEnabled()&&getLoadedViewpoints().size() > 0){
-			return getLoadedTimesteps()[currentFrame%getLoadedViewpoints().size()];
+			return getLoadedTimesteps()[currentInterpolatedFrame%getLoadedViewpoints().size()];
 		}
-		return currentFrame;
+		return currentTimestep;
 	}
 
 	//! Identify the starting frame number currently set in the UI.
@@ -131,7 +136,12 @@ public:
 	int getPlayDirection() {return playDirection;}
 	int getFrameStepSize() {return frameStepSize;}
 	float getMaxFrameRate() {return maxFrameRate;}
-	void setCurrentFrameNumber(int val) {currentFrame = val;}
+	void setCurrentFrameNumber(int val) {
+		if (keyframingEnabled())
+			currentInterpolatedFrame = val;
+		else
+			currentTimestep = val;
+	}
 	void setStartFrameNumber(int val) {startFrame=val;}
 	void setEndFrameNumber(int val) {endFrame=val;}
 	float getMaxWait(){return maxWait;}
@@ -178,6 +188,7 @@ protected:
 	static const string _startFrameAttr;
 	static const string _endFrameAttr;
 	static const string _currentFrameAttr;
+	static const string _currentInterpFrameAttr;
 	static const string _maxWaitAttr;
 	static const string _cameraSpeedAttr;
 	static const string _keyframesEnabledAttr;
@@ -195,7 +206,8 @@ protected:
 	int startFrame;
 	int endFrame;
 	int maxFrame, minFrame;
-	int currentFrame;
+	int currentInterpolatedFrame;
+	int currentTimestep;
 	bool useTimestepSampleList;
 	std::vector<int> timestepList;
 	//If the animation state is changed, gui needs to update:

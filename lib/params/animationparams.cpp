@@ -46,6 +46,7 @@ const string AnimationParams::_stepSizeAttr = "FrameStepSize";
 const string AnimationParams::_startFrameAttr = "StartFrame";
 const string AnimationParams::_endFrameAttr = "EndFrame";
 const string AnimationParams::_currentFrameAttr = "CurrentFrame";
+const string AnimationParams::_currentInterpFrameAttr = "CurrentInterpolatedFrame";
 const string AnimationParams::_maxWaitAttr = "MaxWait";
 const string AnimationParams::_cameraSpeedAttr = "CurrentCameraSpeed";
 const string AnimationParams::_keyframesEnabledAttr = "KeyframesEnabled";
@@ -95,7 +96,8 @@ restart(){
 	endFrame = 100;
 	maxFrame = 100; 
 	minFrame = 1;
-	currentFrame = 0;
+	currentInterpolatedFrame = 0;
+	currentTimestep = 0;
 	maxWait = defaultMaxWait;
 	useTimestepSampleList = false;
 	timestepList.clear();
@@ -147,7 +149,8 @@ reinit(bool doOverride){
 	if (doOverride){
 		startFrame = mints;
 		endFrame = maxts;
-		currentFrame = startFrame;
+		currentTimestep = startFrame;
+		currentInterpolatedFrame = 0;
 		maxFrameRate = defaultMaxFPS;
 		maxWait = defaultMaxWait;
 	} else {
@@ -155,8 +158,10 @@ reinit(bool doOverride){
 		if (startFrame < mints) startFrame = mints;
 		if (endFrame < mints) endFrame = mints;
 		if (endFrame > maxts) endFrame = maxts;
-		if (currentFrame < startFrame) currentFrame = startFrame;
-		if (currentFrame > endFrame) currentFrame = endFrame;
+		if (currentTimestep < startFrame) currentTimestep = startFrame;
+		if (currentTimestep > endFrame) currentTimestep = endFrame;
+		if (currentInterpolatedFrame < startFrame) currentInterpolatedFrame = startFrame;
+		if (currentInterpolatedFrame > endFrame) currentInterpolatedFrame = endFrame;
 	}
 	
 	// set pause state
@@ -183,25 +188,25 @@ bool AnimationParams::
 advanceFrame(){
 	assert(playDirection);
 	int newFrame = getNextFrame(playDirection);
-	if (newFrame == currentFrame ) {
+	if (newFrame == getCurrentFrameNumber() ) {
 		if (repeatPlay) return false;
 		setPlayDirection(0);
 		return true;
 	}
 	//See if direction needs to change:
 
-	if (((newFrame-currentFrame)*playDirection) > 0) {
+	if (((newFrame-getCurrentFrameNumber())*playDirection) > 0) {
 		//No change in direction
-		currentFrame = newFrame;
+		setCurrentFrameNumber(newFrame);
 		return false;
 	} else {
-		currentFrame = newFrame;
+		setCurrentFrameNumber(newFrame);
 		return true;
 	}
 }
 bool AnimationParams::checkLastFrame(){
 	int newFrame = getNextFrame(playDirection);
-	if (newFrame == currentFrame ) {
+	if (newFrame == getCurrentFrameNumber() ) {
 		setPlayDirection(0);
 		return true;
 	}
@@ -225,22 +230,22 @@ getNextFrame(int dir){
 				if (firstValidFrame < 0) firstValidFrame = timestepList[i];
 				lastValidFrame = timestepList[i];
 			} else continue;  //Ignore any timesteps outside the valid range.
-			if (timestepList[i] < currentFrame) prevIndex = i; //before
-			else if (timestepList[i] == currentFrame) continue;//at
+			if (timestepList[i] < getCurrentFrameNumber()) prevIndex = i; //before
+			else if (timestepList[i] == getCurrentFrameNumber()) continue;//at
 			else if (nextIndex < 0) nextIndex = i;//beyond
 		}
 		if (lastValidFrame < 0) {
 			//no valid frames
-			return currentFrame;
+			return getCurrentFrameNumber();
 		}
 		//is currentFrame at or past the end/beginning?
 		if (dir > 0 && (nextIndex < 0) ){ 
 			if (repeatPlay)  return firstValidFrame;
-			else return currentFrame;
+			else return getCurrentFrameNumber();
 		} 
 		if (dir < 0 && prevIndex < 0)	{
 			if (repeatPlay) return lastValidFrame;
-			else return currentFrame;
+			else return getCurrentFrameNumber();
 		}
 		//If we got this far, must be inside the valid range.
 		if (dir > 0) return(timestepList[nextIndex]); 
@@ -250,17 +255,17 @@ getNextFrame(int dir){
 		int i;
 		//not using timestep sample list.
 		// find next valid frame for which there exists data:
-		int testFrame = currentFrame + dir*frameStepSize;
+		int testFrame = getCurrentFrameNumber() + dir*frameStepSize;
 		DataStatus* ds = DataStatus::getInstance();
 		for (i = 1; i<= (endFrame - startFrame + frameStepSize)/frameStepSize; i++){
 			
 			if (testFrame > endFrame){ 
 				if (repeatPlay) testFrame =  startFrame;
-				else testFrame = currentFrame;
+				else testFrame = getCurrentFrameNumber();
 			}
 			if (testFrame < startFrame){
 				if (repeatPlay) testFrame = endFrame;
-				else testFrame = currentFrame;
+				else testFrame = getCurrentFrameNumber();
 			}
 
 			if (keyframingEnabled()) break;
@@ -270,7 +275,7 @@ getNextFrame(int dir){
 		}
 		//It's OK, or we looped all the way around:
 		if(i > ((endFrame - startFrame + frameStepSize)/frameStepSize))
-			testFrame = currentFrame;
+			testFrame = getCurrentFrameNumber();
 		
 		return testFrame;
 		
@@ -296,11 +301,13 @@ void AnimationParams::insertKeyframe(int index, Keyframe* keyframe){
 bool AnimationParams::
 elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char ** attrs){
 	if (StrCmpNoCase(tag, _animationParamsTag) == 0) {
-		//If it's a Animation params tag, save 7 attributes (2 are from Params class)
+		//If it's a Animation params tag, save 8 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
 		useTimestepSampleList = false;
 		timestepList.clear();
 		keyframes.clear();
+		currentInterpolatedFrame = 0;
+		useKeyframing = false;
 		while (*attrs) {
 			string attribName = *attrs;
 			attrs++;
@@ -335,7 +342,10 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 				if (endFrame > maxFrame) maxFrame = endFrame;
 			}
 			else if (StrCmpNoCase(attribName, _currentFrameAttr) == 0) {
-				ist >> currentFrame;
+				ist >> currentTimestep;
+			}
+			else if (StrCmpNoCase(attribName, _currentInterpFrameAttr) == 0) {
+				ist >> currentInterpolatedFrame;
 			}
 			else if (StrCmpNoCase(attribName, _useTimestepSampleListAttr) == 0){
 				if (value == "true") useTimestepSampleList = true; else useTimestepSampleList = false;
@@ -447,8 +457,12 @@ buildNode(){
 	attrs[_endFrameAttr] = oss.str();
 
 	oss.str(empty);
-	oss << (long)currentFrame;
+	oss << (long)currentTimestep;
 	attrs[_currentFrameAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)currentInterpolatedFrame;
+	attrs[_currentInterpFrameAttr] = oss.str();
 
 	oss.str(empty);
 	if (repeatPlay)
@@ -607,8 +621,8 @@ void AnimationParams::enableKeyframing( bool onoff){
 		setStartFrameNumber(ds->getMinTimestep());
 		setEndFrameNumber(ds->getMaxTimestep());
 	}
-	if (currentFrame < startFrame) currentFrame = startFrame;
-	if (currentFrame > endFrame) currentFrame = endFrame;
+	if (getCurrentFrameNumber() < startFrame) setCurrentFrameNumber(startFrame);
+	if (getCurrentFrameNumber() > endFrame) setCurrentFrameNumber(endFrame);
 }
 void AnimationParams::clearLoadedViewpoints() {
 	
