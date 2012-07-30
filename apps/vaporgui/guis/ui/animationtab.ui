@@ -1887,7 +1887,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Clicking this button results in inserting a keyframe immediately after the keyframe indicated by the current key index displayed above.  The camera speed at the keyframe will use the value indicated here.  However, if the camera position does not change between keyframes, the speed at both keyframes will be set to zero.  If two keyframes with zero speed have different camera positions, then an additional keyframe will be inserted between them with nonzero speed. &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
-               <string>Insert Keyframe at speed:</string>
+               <string>Insert Keyframe at this speed:</string>
               </property>
              </widget>
             </item>

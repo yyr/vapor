@@ -340,7 +340,7 @@ void GLWindow::paintEvent(QPaintEvent*)
 	//if they really are new, or if we are spinning.
 	//
 	renderNew = (captureIsNewImage()|| isSpinning);
-	if (renderNew) previousTimeStep = -1; //reset saved time step
+	if (renderNew) {previousTimeStep = -1; previousFrameNum = -1;} //reset saved time step
 	setCaptureNewImage(false);
 
 	//Tell the animation we are starting.  If it returns false, we are not
@@ -389,10 +389,11 @@ void GLWindow::paintEvent(QPaintEvent*)
 	}
 
 	
-	//make sure to capture whenever the time step changes
-	if (timeStep != previousTimeStep) {
+	//make sure to capture whenever the time step or frame index changes
+	if (timeStep != previousTimeStep || frameNum != previousFrameNum) {
 		setRenderNew();
 		previousTimeStep = timeStep;
+		previousFrameNum = frameNum;
 	}
 	
     getActiveRegionParams()->calcStretchedBoxExtentsInCube(extents,timeStep);
