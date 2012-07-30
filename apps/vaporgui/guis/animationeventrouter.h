@@ -90,7 +90,7 @@ protected:
 	QAction* mainPlayForwardAction;
 	QAction* mainPlayBackwardAction;
 	QAction* mainPauseAction;
-	
+	bool keyframeTextChanged;
 	
 protected slots:
 	void guiSetPosition(int sliderposition);
@@ -102,8 +102,9 @@ protected slots:
 	void deleteSample();
 	void guiRebuildList();
 	void setAtabTextChanged(const QString& qs);
+	void setKeyframeTextChanged(const QString& qs);
 	void animationReturnPressed();
-	void keyframeReturnPressed();
+	
 	//Animation slots:
 	void animationReplayClick();
 	void animationToBeginClick();

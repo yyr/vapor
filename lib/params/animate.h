@@ -70,19 +70,19 @@ class PARAMS_API animate {
     public:
 
         //for out viewpoints
-        std::vector <Viewpoint>  outViewPoints;
+        std::vector <Viewpoint*>  outViewPoints;
     
         //constructor and destructor
         animate();
         ~animate ();
         void keyframeInterpolate(std::vector<Keyframe*>& key_vec, std::vector<Viewpoint*>& view_vec);
-        void priorInterPolationCalcs(std::vector<Keyframe*>& key_vec, std::vector<Viewpoint*>& view_vec);
-        void interpolate (float T[], int N,int startIndex,std::vector<Keyframe*>& key_vec, bool approx);
+        void priorInterPolationCalcs(const std::vector<Keyframe*>& key_vec);
+        void interpolate (float T[], int N,int startIndex,const std::vector<Keyframe*>& key_vec, bool approx);
         void hermite_function(float t[],int noFrames,float inputPoints[], float out_pts[],float slope1, float slope2);
-        void calculate_quats (int startIndex,std::vector<Keyframe*>& key_vec);
-        void speedController(int startIndex,std::vector<Keyframe*>& key_vec);
-        void slopeCalculator(std::vector<Keyframe*>& key_vec);
-        void evaluateCameraPos(int startIndex,std::vector<Keyframe*>& key_vec);
+        void calculate_quats (int startIndex,const std::vector<Keyframe*>& key_vec);
+        void speedController(int startIndex,const std::vector<Keyframe*>& key_vec);
+        void slopeCalculator(const std::vector<Keyframe*>& key_vec);
+        void evaluateCameraPos(int startIndex,const std::vector<Keyframe*>& key_vec);
         float t_distanceFunc(float d);
         
     

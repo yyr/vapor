@@ -132,7 +132,11 @@ AnimationEventRouter::hookUpTab()
 	connect (frameStepEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
 	connect (maxFrameRateEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
 	connect (maxWaitEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
-	connect (keyframeSpeedEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
+	connect (keyframeSpeedEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setKeyframeTextChanged(const QString&)));
+	connect (keyTimestepEdit, SIGNAL( textChanged(const QString&) ) , this, SLOT( setKeyframeTextChanged(const QString&)));
+	connect (endTimestepEdit,  SIGNAL( textChanged(const QString&) ) , this, SLOT( setKeyframeTextChanged(const QString&)));
+	connect (durationEdit,  SIGNAL( textChanged(const QString&) ), this, SLOT( setKeyframeTextChanged(const QString&)));
+	connect (speedEdit,  SIGNAL( textChanged(const QString&) ) , this,SLOT( setKeyframeTextChanged(const QString&)));
 
 	
 	//Connect all the returnPressed signals, these will update the visualizer.
@@ -142,7 +146,7 @@ AnimationEventRouter::hookUpTab()
 	connect (frameStepEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
 	connect (maxFrameRateEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
 	connect (maxWaitEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
-	connect (keyframeSpeedEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+	
 	
 
 	connect (frameStepSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetFrameStep(int)));
@@ -165,9 +169,12 @@ AnimationEventRouter::hookUpTab()
 	connect(stepForwardButton, SIGNAL(clicked()), this, SLOT(animationStepForwardClick()));
 
 	//Animation control widgets that result in rebuilding animation
-	connect (keyTimestepEdit, SIGNAL( returnPressed()) , this, SLOT(keyframeReturnPressed()));
-	connect (frameCountEdit, SIGNAL( returnPressed()) , this, SLOT(keyframeReturnPressed()));
-	connect (speedEdit, SIGNAL( returnPressed()) , this, SLOT(keyframeReturnPressed()));
+	connect (keyTimestepEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+	connect (endTimestepEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+	connect (durationEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+	connect (speedEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+	connect (keyframeSpeedEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+
 	connect (keyIndexSpin, SIGNAL(valueChanged(int)),this, SLOT(guiChangeKeyIndex(int)));
 	connect (enableKeyframeCheckBox, SIGNAL(toggled(bool)),this,SLOT(guiEnableKeyframing(bool)));
 	connect (adjustKeyButton, SIGNAL(clicked()), this, SLOT(guiChangeKeyframe()));
@@ -187,6 +194,11 @@ AnimationEventRouter::hookUpTab()
 void AnimationEventRouter::
 setAtabTextChanged(const QString& ){
 	guiSetTextChanged(true);
+}
+void AnimationEventRouter::
+setKeyframeTextChanged(const QString& ){
+	keyframeTextChanged = true;
+	textChangedFlag = true;
 }
 void AnimationEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
@@ -251,7 +263,37 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 	if (currentFrame != savedFrameNum){
 		VizWinMgr::getInstance()->setAnimationDirty(aParams);
 	}
-	update();
+	if (keyframeTextChanged){
+		
+		int currKey = keyIndexSpin->value();
+		Keyframe* key = aParams->getKeyframe(currKey);
+		key->speed = abs(speedEdit->text().toFloat());
+		int tstep = keyTimestepEdit->text().toInt();
+		DataStatus* ds = DataStatus::getInstance();
+		if (tstep < ds->getMinTimestep()) tstep = ds->getMinTimestep();
+		if (tstep > ds->getMaxTimestep()) tstep = ds->getMaxTimestep();
+		key->timeStep = tstep;
+		int endstep = endTimestepEdit->text().toInt();
+		if (endstep < ds->getMinTimestep()) endstep = ds->getMinTimestep();
+		if (endstep > ds->getMaxTimestep()) endstep = ds->getMaxTimestep();
+		
+		if (durationEdit->isEnabled()){
+			int newDuration = durationEdit->text().toInt();
+			//Need to make sure that the new duration at least 0
+			if (newDuration < 0) newDuration = 0;
+			key->duration = newDuration;
+			key->endTimestep = endstep;
+		} else {
+			key->duration = 0;
+			key->endTimestep = tstep;
+		}
+		fixKeyframes();
+			
+		aParams->buildViewsAndTimes();
+		keyframeTextChanged = false;
+	}
+
+	updateTab();
 	guiSetTextChanged(false);
 	PanelCommand::captureEnd(cmd, aParams);
 }
@@ -345,19 +387,24 @@ void AnimationEventRouter::updateTab(){
 	int currIndex = keyIndexSpin->value();
 	Keyframe* kf = aParams->getKeyframe(currIndex);
 	keyTimestepEdit->setText(QString::number(kf->timeStep));
-	frameCountEdit->setText(QString::number(kf->frameNum));
+	endTimestepEdit->setText(QString::number(kf->endTimestep));
+	durationEdit->setText(QString::number(kf->duration));
 	//Count all previous frameCounts:
 	vector<Keyframe*>& keyframes = aParams->getKeyframes();
 	int totframes = 0;
-	for (int i = 0; i<currIndex; i++) totframes += keyframes[i]->frameNum;
+	for (int i = 0; i<currIndex; i++) {
+		totframes += keyframes[i]->frameNum + keyframes[i]->duration;
+	}
 	frameIndexEdit->setText(QString::number(totframes));
 	speedEdit->setText(QString::number(kf->speed));
 	enableKeyframeCheckBox->setChecked(aParams->keyframingEnabled());
-	Keyframe* kf2 = 0;
-	if (currIndex < aParams->getNumKeyframes()-1) kf2 = aParams->getKeyframe(currIndex+1);
-	if (kf->speed < 1.e-5 && ((kf2 == 0) || kf2->speed < 1.e-5))
-		frameCountEdit->setReadOnly(false);
-	else frameCountEdit->setReadOnly(true);
+	if (kf->speed > 0.f){
+		durationEdit->setEnabled(false);
+		endTimestepEdit->setEnabled(false);
+	} else {
+		durationEdit->setEnabled(true);
+		endTimestepEdit->setEnabled(true);
+	}
 
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
@@ -385,8 +432,6 @@ void AnimationEventRouter::
 animationReturnPressed(void){
 	confirmText(true);
 }
-
-
 
 
 //Respond to pause button press.
@@ -655,6 +700,7 @@ void AnimationEventRouter::makeCurrent(Params* /* prev params p*/, Params* newPa
 	int vizNum = aParams->getVizNum();
 	VizWinMgr* vwm = VizWinMgr::getInstance();
 	vwm->setAnimationParams(vizNum, aParams);
+	aParams->buildViewsAndTimes();
 	updateTab();
 	VizWinMgr::getInstance()->animationParamsChanged(aParams);
 	VizWinMgr::getInstance()->setAnimationDirty(aParams);
@@ -764,22 +810,29 @@ void AnimationEventRouter::guiSetTimestep(int framenum){
 }
 
 void AnimationEventRouter::guiChangeKeyIndex(int keyIndex){
-	//Question:  should this be in the AnimationParams state?
+	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Change current keyframe index");
-	
 	Keyframe* kf = aParams->getKeyframe(keyIndex);
 	keyTimestepEdit->setText(QString::number(kf->timeStep));
-	frameCountEdit->setText(QString::number(kf->frameNum));
+	endTimestepEdit->setText(QString::number(kf->endTimestep));
+	durationEdit->setText(QString::number(kf->duration));
 	vector<Keyframe*> keyframes = aParams->getKeyframes();
 	int totframes = 0;
 	for (int i = 0; i<keyIndex; i++) totframes += keyframes[i]->frameNum;
 	frameIndexEdit->setText(QString::number(totframes));
 	speedEdit->setText(QString::number(kf->speed));
+	if (kf->speed > 0.){
+		durationEdit->setEnabled(false);
+		endTimestepEdit->setEnabled(false);
+	} else {
+		durationEdit->setEnabled(true);
+		endTimestepEdit->setEnabled(true);
+	}
 
-	PanelCommand::captureEnd(cmd, aParams);
+	keyframeTextChanged = false;
 }
 void AnimationEventRouter::guiEnableKeyframing(bool enabled){
+	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Toggle keyframing enabled");
 	aParams->enableKeyframing(enabled);
@@ -789,6 +842,7 @@ void AnimationEventRouter::guiEnableKeyframing(bool enabled){
 	updateTab();
 }
 void AnimationEventRouter::guiChangeKeyframe(){
+	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Adjust Keyframe");
 	int keyIndex = keyIndexSpin->value();
@@ -805,6 +859,7 @@ void AnimationEventRouter::guiChangeKeyframe(){
 	updateTab();
 }
 void AnimationEventRouter::guiDeleteKeyframe(){
+	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	int numkeys = aParams->getNumKeyframes();
 	if (numkeys <2) return;
@@ -820,6 +875,7 @@ void AnimationEventRouter::guiDeleteKeyframe(){
 	updateTab();
 }
 void AnimationEventRouter::guiInsertKeyframe(){
+	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Insert Keyframe");
 	//use settings from the app
@@ -827,17 +883,15 @@ void AnimationEventRouter::guiInsertKeyframe(){
 	Viewpoint* newVP = new Viewpoint(*VizWinMgr::getInstance()->getActiveVPParams()->getCurrentViewpoint());
 	int newTS = aParams->getCurrentTimestep();
 	float newSpeed = aParams->getCurrentCameraSpeed();
-	//If speed is nonzero and camera position hasn't changed, just ignore this insert.
-	if (newSpeed != 0.f){
-		float camDist = vdist(newVP->getCameraPosLocal(),aParams->getKeyframe(currKey)->viewpoint->getCameraPosLocal());
-		DataStatus* ds = DataStatus::getInstance();
-		float sceneSize = vlength(ds->getFullSizes());
-		if (camDist < 1.e-4 * sceneSize){
-			MessageReporter::warningMsg("Keyframe insertion ignored. \nViewpoint did not move and speed was nonzero");
-			delete newVP;
-			delete cmd;
-			return;
-		}
+	//If camera position hasn't changed, just ignore this insert.
+	float camDist = vdist(newVP->getCameraPosLocal(),aParams->getKeyframe(currKey)->viewpoint->getCameraPosLocal());
+	DataStatus* ds = DataStatus::getInstance();
+	float sceneSize = vlength(ds->getFullSizes());
+	if (camDist < 1.e-4 * sceneSize){
+		MessageReporter::warningMsg("Keyframe insertion ignored. \nViewpoint did not move.");
+		delete newVP;
+		delete cmd;
+		return;
 	}
 
 	
@@ -879,48 +933,21 @@ void AnimationEventRouter::guiGotoKeyframe(){
 	viz->updateGL();
 	PanelCommand::captureEnd(cmd, vpParams);
 }
-void AnimationEventRouter::keyframeReturnPressed(){
-	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Changed keyframe text");
-	int currKey = keyIndexSpin->value();
-	Keyframe* key = aParams->getKeyframe(currKey);
-	key->speed = abs(speedEdit->text().toFloat());
-	int tstep = keyTimestepEdit->text().toInt();
-	DataStatus* ds = DataStatus::getInstance();
-	if (tstep < ds->getMinTimestep()) tstep = ds->getMinTimestep();
-	if (tstep > ds->getMaxTimestep()) tstep = ds->getMaxTimestep();
-	key->timeStep = tstep;
-	if (!frameCountEdit->isReadOnly()){
-		int newFrameCount = frameCountEdit->text().toInt();
-		//Need to make sure that the new frame num at least 1
-		if (newFrameCount < 1) newFrameCount = 1;
-		key->frameNum = newFrameCount;
-	}
-	fixKeyframes();
-		
-	aParams->buildViewsAndTimes();
-	PanelCommand::captureEnd(cmd, aParams);
-	updateTab();
-}
+
 void AnimationEventRouter::fixKeyframes(){
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	vector<Keyframe*> keyframes = aParams->getKeyframes();
 	DataStatus* ds = DataStatus::getInstance();
 	float sceneSize = vlength(ds->getFullSizes());
-	//First go through and set speeds to zero if adjacent camera position coincide;
-	for (int i = 0; i<keyframes.size()-1; i++){
-		float speed1 = keyframes[i]->speed;
-		float speed2 = keyframes[i+1]->speed;
-		if (speed1 >= 1.e-5 || speed2 >=1.e-5){
-			float* campos1 = keyframes[i]->viewpoint->getCameraPosLocal();
-			float* campos2 = keyframes[i+1]->viewpoint->getCameraPosLocal();
-			float dist = vdist(campos1,campos2);
-			if (dist < 1.e-4 * sceneSize){
-				MessageReporter::warningMsg("Camera speeds at keyframes %d and %d were set to zero, \n%s",
-						i,i+1, "because the camera position did not change between these two keyframes");
-				keyframes[i]->speed = 0.f;
-				keyframes[i+1]->speed = 0.f;
-			}
+	//go through and remove if adjacent camera position coincide;
+	for (int i = keyframes.size()-2; i>= 0; i--){
+		float* campos1 = keyframes[i]->viewpoint->getCameraPosLocal();
+		float* campos2 = keyframes[i+1]->viewpoint->getCameraPosLocal();
+		float dist = vdist(campos1,campos2);
+		if (dist < 1.e-4 * sceneSize){
+			MessageReporter::warningMsg("Keyframe %d was deleted, \n%s",
+					i+1, "because the camera position did not change between this and the preceding keyframe");
+			aParams->deleteKeyframe(i+1);
 		}
 	}
 	//Next, if adjacent speeds are zero, and camera is not fixed then insert a moving frame at speed 0.1.

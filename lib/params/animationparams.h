@@ -98,6 +98,7 @@ public:
 	void deleteKeyframe(int index);
 		
 	void insertKeyframe(int index, Keyframe* keyframe);
+	void insertViewpoint(int index, Viewpoint* vp);
 		
 	int getNumKeyframes() {return keyframes.size();}
 	bool keyframingEnabled() {return useKeyframing;}
@@ -195,6 +196,8 @@ protected:
 	static const string _keyframeTag;
 	static const string _keySpeedAttr;
 	static const string _keyTimestepAttr;
+	static const string _endTimestepAttr;
+	static const string _keyDurationAttr;
 	static const string _keyNumFramesAttr;
 
 
@@ -226,12 +229,14 @@ protected:
 class Keyframe{
 public:
 	Keyframe(Viewpoint* vp, float spd, int ts, int fnum){
-		viewpoint = vp; speed = spd; timeStep = ts; frameNum = fnum;
+		viewpoint = vp; speed = spd; timeStep = ts; frameNum = fnum; duration = 0; endTimestep = ts;
 	}
 	Viewpoint* viewpoint;
 	float speed;
 	int timeStep;
 	int frameNum;
+	int duration;
+	int endTimestep;
 };
 };
 
