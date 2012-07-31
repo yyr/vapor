@@ -19,7 +19,6 @@
 //
 #ifndef VIEWPOINTPARAMS_H
 #define VIEWPOINTPARAMS_H
-#define TEST_KEYFRAMING
 
 #include <qwidget.h>
 #include "params.h"

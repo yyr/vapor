@@ -360,6 +360,8 @@ public:
 		captureNameImage = name;
 		newCaptureImage = true;
 		capturingTif = isTif;
+		previousFrameNum = -1;
+		previousTimeStep = -1;
 		update();
 	}
 	void startFlowCapture(QString& name) {

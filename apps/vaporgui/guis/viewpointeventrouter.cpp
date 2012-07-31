@@ -58,22 +58,12 @@ ViewpointEventRouter::ViewpointEventRouter(QWidget* parent ): QWidget(parent), U
 	panChanged = false;
 	for (int i = 0; i<3; i++)lastCamPos[i] = 0.f;
 
-#ifdef TEST_KEYFRAMING
-	viewpointOutputFile = 0;
-	keyframeSpeed = 1.0;
-
-	
-#endif
-
 	MessageReporter::infoMsg("ViewpointEventRouter::ViewpointEventRouter()");
 }
 
 
 ViewpointEventRouter::~ViewpointEventRouter(){
 	if (savedCommand) delete savedCommand;
-#ifdef TEST_KEYFRAMING
-	if (viewpointOutputFile)fclose(viewpointOutputFile);
-#endif
 }
 /**********************************************************
  * Whenever a new viztab is created it must be hooked up here
@@ -161,11 +151,6 @@ ViewpointEventRouter::hookUpTab()
 	connect (LocalGlobal, SIGNAL (activated (int)), VizWinMgr::getInstance(), SLOT (setVpLocalGlobal(int)));
 	connect (VizWinMgr::getInstance(), SIGNAL(enableMultiViz(bool)), LocalGlobal, SLOT(setEnabled(bool)));
 
-#ifdef TEST_KEYFRAMING
-	int rc = connect (writeViewpointButton, SIGNAL (clicked()), this, SLOT(writeKeyframe()));
-	rc = connect (speedEdit, SIGNAL (returnPressed()), this, SLOT(changeKeyframeSpeed()));
-	rc = connect (readViewpointsButton, SIGNAL (clicked()), this, SLOT(readKeyframes()));
-#endif
 
 }
 
@@ -329,9 +314,7 @@ void ViewpointEventRouter::updateTab(){
 		LocalGlobal->setCurrentIndex(0);
 	
 	Viewpoint* currentViewpoint = vpParams->getCurrentViewpoint();
-#ifdef TEST_KEYFRAMING
-	speedEdit->setText(QString::number(keyframeSpeed));
-#endif
+
 	int nLights = vpParams->getNumLights();
 	numLights->setText(strng.setNum(nLights));
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
@@ -877,111 +860,3 @@ makeCurrent(Params* prev, Params* next, bool,int,bool) {
 	updateTab();
 	updateRenderer(vParams, false, false);
 }
-#ifdef TEST_KEYFRAMING
-void ViewpointEventRouter::
-readKeyframes(){
-	//Open the file:
-	
-	QString filename = QFileDialog::getOpenFileName(this,
-        	"Specify file name for reading viewpoints", 
-			".",
-        	"Text files (*.txt)");
-	//Check that user did specify a file:
-	if (filename.isNull()) {
-		return;
-	}
-	
-	//Open the file:
-	FILE* vpFile = fopen((const char*)filename.toAscii(),"r");
-	if (!vpFile){
-		MessageReporter::errorMsg("Viewpoint Load Error;\nUnable to open file %s",(const char*)filename.toAscii());
-		return;
-	}
-	//clear out existing viewpoints:
-	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
-	aParams->clearLoadedViewpoints();
-	while(1){
-		Viewpoint* vp = new Viewpoint;
-		int timestep;
-		float campos[3],viewdir[3],upvec[3],rotcenter[3];
-		int nread = fscanf(vpFile,"%d %g %g %g %g %g %g %g %g %g %g %g %g",
-			&timestep, campos,campos+1,campos+2,
-			viewdir,viewdir+1,viewdir+2,
-			upvec,upvec+1,upvec+2,
-			rotcenter,rotcenter+1,rotcenter+2);
-		if (nread != 13) {delete vp; break;}
-		vp->setCameraPosLocal(campos);
-		vp->setViewDir(viewdir);
-		vp->setUpVec(upvec);
-		vp->setRotationCenterLocal(rotcenter);
-		aParams->addViewpoint(vp);
-		aParams->addTimestep((size_t)timestep);
-		
-
-	}
-	MessageReporter::warningMsg(" %d viewpoints read from file %s", aParams->getNumLoadedViewpoints(),(const char*)filename.toAscii());
-	//Set the current viewpoint
-	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
-	int framenum = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	Viewpoint* vp = new Viewpoint(*aParams->getLoadedViewpoint(framenum));
-	vpParams->setCurrentViewpoint(vp);
-	updateTab();
-	updateRenderer(vpParams,false, false);
-
-}
-void ViewpointEventRouter::
-writeKeyframe(){
-	static QString filename;
-	if (!viewpointOutputFile){ //Open a file
-		
-		filename = QFileDialog::getSaveFileName(this,
-        	"Specify (*.txt) file name for saving viewpoints",
-			".",
-        	"Text files (*.txt)");
-		if (filename.isNull())
-		return;
-
-		//If the file has no suffix, add .txt
-		if (filename.indexOf(".") == -1){
-			filename.append(".txt");
-		}
-
-		QFileInfo fileInfo(filename);
-		if (fileInfo.exists()){
-			int rc = QMessageBox::warning(0, "Viewpoint file exists.", QString("OK to replace viewpoint file \n%1 ?").arg(filename), QMessageBox::Ok, 
-				QMessageBox::No);
-			if (rc != QMessageBox::Ok) return;
-		}
-		
-	
-	
-		//Open the save file:
-		viewpointOutputFile = fopen((const char*)filename.toAscii(),"w");
-		if (!viewpointOutputFile){
-			MessageReporter::errorMsg("Viewpoint save error;\nUnable to open file %s",(const char*)filename.toAscii());
-			return;
-		}
-	}
-	//OK, file is open. Write current viewpoint:
-	keyframeSpeed = abs(speedEdit->text().toFloat());
-	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
-	Viewpoint* vp = vpParams->getCurrentViewpoint();
-	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentTimestep();
-	int numBytes = fprintf(viewpointOutputFile, "%d %g %g %g %g %g %g %g %g %g %g %g %g %g\n",
-		timestep, vp->getCameraPosLocal(0),vp->getCameraPosLocal(1),vp->getCameraPosLocal(2),
-		vp->getViewDir(0),vp->getViewDir(1),vp->getViewDir(2),
-		vp->getUpVec(0),vp->getUpVec(1),vp->getUpVec(2),
-		vp->getRotationCenterLocal(0),vp->getRotationCenterLocal(1),vp->getRotationCenterLocal(2),keyframeSpeed);
-	if (numBytes <= 0){
-		MessageReporter::errorMsg("Viewpoint save error;\nUnable to write to %s",(const char*)filename.toAscii());
-		fclose(viewpointOutputFile);
-		viewpointOutputFile = 0;
-		return;
-	}
-	fflush(viewpointOutputFile);
-}
-void ViewpointEventRouter::
-changeKeyframeSpeed(){
-	keyframeSpeed = abs(speedEdit->text().toFloat());
-}
-#endif

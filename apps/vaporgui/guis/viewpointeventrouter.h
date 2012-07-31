@@ -26,7 +26,6 @@
 #include <vapor/MyBase.h>
 #include "viztab.h"
 #include "viewpointparams.h"
-#define TEST_KEYFRAMING
 
 using namespace VetsUtil;
 
@@ -84,21 +83,12 @@ protected:
 	float lastCamPos[3];
 	bool panChanged;
 
-#ifdef TEST_KEYFRAMING
-	float keyframeSpeed;
-	FILE* viewpointOutputFile;
-#endif
 	
 protected slots:
 	void guiSetStereoMode(int);
 	void guiToggleLatLon(bool);
 	void viewpointReturnPressed();
 	void setVtabTextChanged(const QString& qs);
-#ifdef TEST_KEYFRAMING
-	void writeKeyframe();
-	void changeKeyframeSpeed();
-	void readKeyframes();
-#endif
 
 };
 

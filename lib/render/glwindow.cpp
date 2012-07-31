@@ -354,7 +354,7 @@ void GLWindow::paintEvent(QPaintEvent*)
 
 	
 	const vector<Viewpoint*>& loadedViewpoints = getActiveAnimationParams()->getLoadedViewpoints();
-	if (getActiveAnimationParams()->keyframingEnabled() && loadedViewpoints.size()>0 && frameNum != previousFrameNum){
+	if (getActiveAnimationParams()->keyframingEnabled() && loadedViewpoints.size()>0){
 	
 		const Viewpoint* vp = loadedViewpoints[frameNum%loadedViewpoints.size()];
 		Viewpoint* newViewpoint = new Viewpoint(*vp);

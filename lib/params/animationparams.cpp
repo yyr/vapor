@@ -638,6 +638,8 @@ void AnimationParams::buildViewsAndTimes(){
 				loadedTimesteps.push_back(tStep);
 				currFrame++;
 			}
+		} else {
+			animKeyframes[i]->endTimestep = animKeyframes[i]->timeStep;
 		}
 		//Then proceed with timesteps between keyframe i and i+1:
 		if (i == animKeyframes.size()-1) break;
