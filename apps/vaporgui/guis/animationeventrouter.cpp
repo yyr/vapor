@@ -265,8 +265,7 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 	}
 	if (keyframeTextChanged){
 		
-		int currKey = keyIndexSpin->value();
-		Keyframe* key = aParams->getKeyframe(currKey);
+		Keyframe* key = aParams->getKeyframe(currentKeyIndex);
 		key->speed = abs(speedEdit->text().toFloat());
 		int tstep = keyTimestepEdit->text().toInt();
 		DataStatus* ds = DataStatus::getInstance();
@@ -384,15 +383,15 @@ void AnimationEventRouter::updateTab(){
 	//setup keyframe parameters:
 	keyframeSpeedEdit->setText(QString::number(aParams->getCurrentCameraSpeed()));
 	keyIndexSpin->setMaximum(aParams->getNumKeyframes()-1);
-	int currIndex = keyIndexSpin->value();
-	Keyframe* kf = aParams->getKeyframe(currIndex);
+	currentKeyIndex = keyIndexSpin->value();
+	Keyframe* kf = aParams->getKeyframe(currentKeyIndex);
 	keyTimestepEdit->setText(QString::number(kf->timeStep));
 	endTimestepEdit->setText(QString::number(kf->endTimestep));
 	durationEdit->setText(QString::number(kf->duration));
 	//Count all previous frameCounts:
 	vector<Keyframe*>& keyframes = aParams->getKeyframes();
 	int totframes = 0;
-	for (int i = 0; i<currIndex; i++) {
+	for (int i = 0; i<currentKeyIndex; i++) {
 		totframes += keyframes[i]->frameNum + keyframes[i]->duration;
 	}
 	frameIndexEdit->setText(QString::number(totframes));
@@ -812,13 +811,14 @@ void AnimationEventRouter::guiSetTimestep(int framenum){
 void AnimationEventRouter::guiChangeKeyIndex(int keyIndex){
 	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
-	Keyframe* kf = aParams->getKeyframe(keyIndex);
+	currentKeyIndex = keyIndex;
+	Keyframe* kf = aParams->getKeyframe(currentKeyIndex);
 	keyTimestepEdit->setText(QString::number(kf->timeStep));
 	endTimestepEdit->setText(QString::number(kf->endTimestep));
 	durationEdit->setText(QString::number(kf->duration));
 	vector<Keyframe*> keyframes = aParams->getKeyframes();
 	int totframes = 0;
-	for (int i = 0; i<keyIndex; i++) totframes += keyframes[i]->frameNum;
+	for (int i = 0; i<currentKeyIndex; i++) totframes += keyframes[i]->frameNum;
 	frameIndexEdit->setText(QString::number(totframes));
 	speedEdit->setText(QString::number(kf->speed));
 	if (kf->speed > 0.){
@@ -845,8 +845,8 @@ void AnimationEventRouter::guiChangeKeyframe(){
 	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Adjust Keyframe");
-	int keyIndex = keyIndexSpin->value();
-	Keyframe* kf = aParams->getKeyframe(keyIndex);
+	currentKeyIndex = keyIndexSpin->value();
+	Keyframe* kf = aParams->getKeyframe(currentKeyIndex);
 	Viewpoint* vp = VizWinMgr::getInstance()->getActiveVPParams()->getCurrentViewpoint();
 	delete kf->viewpoint;
 	kf->viewpoint = new Viewpoint(*vp);
@@ -864,11 +864,12 @@ void AnimationEventRouter::guiDeleteKeyframe(){
 	int numkeys = aParams->getNumKeyframes();
 	if (numkeys <2) return;
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Delete Keyframe");
-	int currKey = keyIndexSpin->value();
-	aParams->deleteKeyframe(currKey);
+	currentKeyIndex = keyIndexSpin->value();
+	aParams->deleteKeyframe(currentKeyIndex);
 	fixKeyframes();
-	if(currKey == numkeys-1){
-		keyIndexSpin->setValue(currKey-1);
+	if(currentKeyIndex == numkeys-1){
+		keyIndexSpin->setValue(currentKeyIndex-1);
+		currentKeyIndex--;
 	}
 	aParams->buildViewsAndTimes();
 	PanelCommand::captureEnd(cmd, aParams);
@@ -879,12 +880,12 @@ void AnimationEventRouter::guiInsertKeyframe(){
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Insert Keyframe");
 	//use settings from the app
-	int currKey = keyIndexSpin->value();
+	currentKeyIndex = keyIndexSpin->value();
 	Viewpoint* newVP = new Viewpoint(*VizWinMgr::getInstance()->getActiveVPParams()->getCurrentViewpoint());
 	int newTS = aParams->getCurrentTimestep();
 	float newSpeed = aParams->getCurrentCameraSpeed();
 	//If camera position hasn't changed, just ignore this insert.
-	float camDist = vdist(newVP->getCameraPosLocal(),aParams->getKeyframe(currKey)->viewpoint->getCameraPosLocal());
+	float camDist = vdist(newVP->getCameraPosLocal(),aParams->getKeyframe(currentKeyIndex)->viewpoint->getCameraPosLocal());
 	DataStatus* ds = DataStatus::getInstance();
 	float sceneSize = vlength(ds->getFullSizes());
 	if (camDist < 1.e-4 * sceneSize){
@@ -897,10 +898,10 @@ void AnimationEventRouter::guiInsertKeyframe(){
 	
 	Keyframe* newKeyframe = new Keyframe(newVP,newSpeed,newTS,1);
 	
-	aParams->insertKeyframe(currKey,newKeyframe);
-	if (keyIndexSpin->maximum() < currKey+1) keyIndexSpin->setMaximum(currKey+1);
-	keyIndexSpin->setValue(currKey+1);
-	
+	aParams->insertKeyframe(currentKeyIndex,newKeyframe);
+	if (keyIndexSpin->maximum() < currentKeyIndex+1) keyIndexSpin->setMaximum(currentKeyIndex+1);
+	keyIndexSpin->setValue(currentKeyIndex+1);
+	currentKeyIndex++;
 	fixKeyframes();
 	aParams->buildViewsAndTimes();
 	PanelCommand::captureEnd(cmd, aParams);
@@ -909,8 +910,8 @@ void AnimationEventRouter::guiInsertKeyframe(){
 
 void AnimationEventRouter::guiGotoKeyframe(){
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
-	int currKey = keyIndexSpin->value();
-	Keyframe* key = aParams->getKeyframe(currKey);
+	currentKeyIndex = keyIndexSpin->value();
+	Keyframe* key = aParams->getKeyframe(currentKeyIndex);
 	//If keyframing is enabled, just need to go to that keyframe
 	//Put the vpParams in the undo/redo queue.
 	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
@@ -918,7 +919,7 @@ void AnimationEventRouter::guiGotoKeyframe(){
 	if (aParams->keyframingEnabled()){
 		vector<Keyframe*> keyframes = aParams->getKeyframes();
 		int posn = 0;
-		for (int i = 0; i<currKey; i++) posn+=keyframes[i]->frameNum;
+		for (int i = 0; i<currentKeyIndex; i++) posn+=(keyframes[i]->frameNum+keyframes[i]->duration);
 		aParams->setCurrentFrameNumber(posn);
 	} else {
 		//otherwise, set the current timestep and viewpoint based on this keyframe:
@@ -972,9 +973,11 @@ void AnimationEventRouter::fixKeyframes(){
 					keyIndexSpin->setMaximum(aParams->getNumKeyframes());
 					MessageReporter::warningMsg("An additional keyframe was inserted after keyframe %d, \n%s",
 						i, "to enable camera to move between two stationary positions");
-					int curpos = keyIndexSpin->value();
-					if (curpos > i && curpos < aParams->getNumKeyframes())
-						keyIndexSpin->setValue(curpos+1);
+					currentKeyIndex = keyIndexSpin->value();
+					if (currentKeyIndex > i && currentKeyIndex < aParams->getNumKeyframes()){
+						keyIndexSpin->setValue(currentKeyIndex+1);
+						currentKeyIndex++;
+					}
 					break;
 				}
 			}

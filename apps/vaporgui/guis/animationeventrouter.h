@@ -91,6 +91,7 @@ protected:
 	QAction* mainPlayBackwardAction;
 	QAction* mainPauseAction;
 	bool keyframeTextChanged;
+	int currentKeyIndex;
 	
 protected slots:
 	void guiSetPosition(int sliderposition);
