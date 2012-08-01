@@ -78,7 +78,7 @@ QT_USE_NAMESPACE
 
 AnimationEventRouter::AnimationEventRouter(QWidget* parent) : QWidget(parent,0), Ui_AnimationTab(), EventRouter() {
 	setupUi(this);	
-
+	currentKeyIndex = 0;
 	myParamsBaseType = Params::GetTypeFromTag(Params::_animationParamsTag);
 	MessageReporter::infoMsg("AnimationEventRouter::AnimationEventRouter()");
 	dontUpdate = false;
@@ -128,7 +128,7 @@ AnimationEventRouter::hookUpTab()
  	
 	connect (startFrameEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
 	connect (currentFrameEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
-	connect (endFrameEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
+	connect (endFrameEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setEndFrameTextChanged(const QString&)));
 	connect (frameStepEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
 	connect (maxFrameRateEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
 	connect (maxWaitEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
@@ -184,6 +184,8 @@ AnimationEventRouter::hookUpTab()
 
 	connect (LocalGlobal, SIGNAL (activated (int)), VizWinMgr::getInstance(), SLOT (setAnimationLocalGlobal(int)));
 	connect (VizWinMgr::getInstance(), SIGNAL(enableMultiViz(bool)), LocalGlobal, SLOT(setEnabled(bool)));
+
+	currentKeyIndex = keyIndexSpin->value();
 	dontUpdate = false;
 
 }
@@ -200,6 +202,12 @@ setKeyframeTextChanged(const QString& ){
 	keyframeTextChanged = true;
 	textChangedFlag = true;
 }
+void AnimationEventRouter::
+setEndFrameTextChanged(const QString& ){
+	keyframeTextChanged = true;
+	textChangedFlag = true;
+	endFrameTextChanged = true;
+}
 void AnimationEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
 	AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
@@ -213,23 +221,22 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 	
 
 	if (startFrame < minFrame || startFrame > maxFrame) {
-
 		startFrame = minFrame;
 		startFrameEdit->setText(strn.setNum(startFrame));
-		
 	}
+
 	aParams->setStartFrameNumber(startFrame);
-	int endFrame = endFrameEdit->text().toInt();
-
-	if (aParams->keyframingEnabled()){
-		if (endFrame > maxFrame) aParams->setMaxFrame(endFrame);
-	} else 
-
-	if (endFrame < minFrame || endFrame > maxFrame || endFrame < startFrame) {
-		endFrame = maxFrame;
-		endFrameEdit->setText(strn.setNum(endFrame));
+	int endFrame = aParams->getEndFrameNumber();
+	if (endFrameTextChanged){
+		endFrame = endFrameEdit->text().toInt();
+		//make sure endFrame is valid.  If keyframing is enabled, it needs to be no greater than the 
+		if (endFrame > maxFrame || endFrame < minFrame) {
+			endFrame = maxFrame;
+			endFrameEdit->setText(strn.setNum(endFrame));
+		}
+		aParams->setEndFrameNumber(endFrame);
+		endFrameTextChanged = false;
 	}
-	aParams->setEndFrameNumber(endFrame);
 
 	float cameraSpeed= keyframeSpeedEdit->text().toFloat();
 	if (cameraSpeed >= 0.) aParams->setCurrentCameraSpeed(cameraSpeed);
@@ -319,7 +326,7 @@ void AnimationEventRouter::updateTab(){
 	currentFrameEdit->setText(strn.setNum(currentFrame));
 	currentTimestepEdit->setText(QString::number(aParams->getCurrentTimestep()));
 	endFrameEdit->setText(strn.setNum(endFrame));
-
+	endFrameTextChanged = false;
 	minFrameLabel->setText(strn.setNum(aParams->getMinFrame()));
 	maxFrameLabel->setText(strn.setNum(aParams->getMaxFrame()));
 	maxFrameRateEdit->setText(strn.setNum(aParams->getMaxFrameRate(),'g',3));
@@ -406,6 +413,7 @@ void AnimationEventRouter::updateTab(){
 	}
 
 	guiSetTextChanged(false);
+	keyframeTextChanged = false;
 	Session::getInstance()->unblockRecording();
 	update();
 	VizWinMgr::getInstance()->getTabManager()->update();
@@ -422,6 +430,7 @@ reinitTab(bool doOverride){
 	if (VizWinMgr::getInstance()->getNumVisualizers() > 1) LocalGlobal->setEnabled(true);
 	else LocalGlobal->setEnabled(false);
 	dontUpdate=false;
+	endFrameTextChanged = false;
 }
 
 /*************************************************************************************
@@ -818,7 +827,7 @@ void AnimationEventRouter::guiChangeKeyIndex(int keyIndex){
 	durationEdit->setText(QString::number(kf->duration));
 	vector<Keyframe*> keyframes = aParams->getKeyframes();
 	int totframes = 0;
-	for (int i = 0; i<currentKeyIndex; i++) totframes += keyframes[i]->frameNum;
+	for (int i = 0; i<currentKeyIndex; i++) totframes += (keyframes[i]->frameNum+keyframes[i]->duration);
 	frameIndexEdit->setText(QString::number(totframes));
 	speedEdit->setText(QString::number(kf->speed));
 	if (kf->speed > 0.){

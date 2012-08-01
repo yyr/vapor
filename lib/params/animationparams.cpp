@@ -101,8 +101,8 @@ restart(){
 	frameStepSize = 1;
 	startFrame = 1;
 	endFrame = 100;
-	maxFrame = 100; 
-	minFrame = 1;
+	maxTimestep = 100; 
+	minTimestep = 1;
 	currentInterpolatedFrame = 0;
 	currentTimestep = 0;
 	maxWait = defaultMaxWait;
@@ -133,14 +133,14 @@ reinit(bool doOverride){
 	//Make min and max conform to new data:
 	//minFrame = (int)DataStatus::getInstance()->getMinTimestep();
 	//maxFrame = (int)DataStatus::getInstance()->getMaxTimestep();
-	maxFrame = DataStatus::getInstance()->getDataMgr()->GetNumTimeSteps()-1;
-	minFrame = 0;
+	maxTimestep = DataStatus::getInstance()->getDataMgr()->GetNumTimeSteps()-1;
+	minTimestep = 0;
 	//Narrow the range to the actual data limits:
 	//Find the first framenum with data:
-	int mints = minFrame;
-	int maxts = maxFrame;
+	int mints = minTimestep;
+	int maxts = maxTimestep;
 	int i;
-	for (i = minFrame; i<= maxFrame; i++){
+	for (i = minTimestep; i<= maxTimestep; i++){
 		
 		if(DataStatus::getInstance()->dataIsPresent(i)) break;
 
@@ -354,11 +354,11 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 			}
 			else if (StrCmpNoCase(attribName, _startFrameAttr) == 0) {
 				ist >> startFrame;
-				if (startFrame < minFrame) minFrame = startFrame;
+				if (startFrame < minTimestep) minTimestep = startFrame;
 			}
 			else if (StrCmpNoCase(attribName, _endFrameAttr) == 0) {
 				ist >> endFrame;
-				if (endFrame > maxFrame) maxFrame = endFrame;
+				if (endFrame > maxTimestep) maxTimestep = endFrame;
 			}
 			else if (StrCmpNoCase(attribName, _currentFrameAttr) == 0) {
 				ist >> currentTimestep;
@@ -556,6 +556,7 @@ buildNode(){
 }
 void AnimationParams::buildViewsAndTimes(){
 	
+	int previousNumFrames = loadedViewpoints.size();
 	clearLoadedViewpoints();
 	//modify distance based on scene stretch and max size.
 	//Warp distance function by (1) dividing it by the largest stretched extent, and
@@ -631,9 +632,8 @@ void AnimationParams::buildViewsAndTimes(){
 			int lastTime = animKeyframes[i]->endTimestep;
 			Viewpoint* firstVP = animKeyframes[i]->viewpoint;
 			for (int j = 0; j<duration; j++){
-				//The first viewpoint has already been inserted...
-				if (j>0) insertViewpoint(currFrame, new Viewpoint(*firstVP));
-				float frameFraction = (float)j/(float)(duration-1);
+				insertViewpoint(currFrame, new Viewpoint(*firstVP));
+				float frameFraction = (float)(j+1)/(float)duration;
 				int tStep = (int)(0.5+ (float)firstTime + frameFraction*(lastTime-firstTime));
 				loadedTimesteps.push_back(tStep);
 				currFrame++;
@@ -661,7 +661,11 @@ void AnimationParams::buildViewsAndTimes(){
 	int num2 = loadedViewpoints.size();
 	assert(num1 == num2);
 	assert (currFrame == num1 -1);
-	if (keyframingEnabled()) setEndFrameNumber(loadedViewpoints.size()-1);
+	if (keyframingEnabled()){
+		if (getEndFrameNumber() > loadedViewpoints.size()-1) setEndFrameNumber(loadedViewpoints.size()-1);
+		//If previously the endFrame was the last of the viewpoints, keep it that way
+		else if (previousNumFrames == (getEndFrameNumber()+1)) setEndFrameNumber(loadedViewpoints.size()-1);
+	}
 	//Now we can clear it out:
 	
 	for (int i = 0; i<animKeyframes.size(); i++){

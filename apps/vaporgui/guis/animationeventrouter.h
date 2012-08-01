@@ -74,6 +74,7 @@ public slots:
 	
 protected:
 	bool dontUpdate;
+	
 	void setSliders (AnimationParams* a);
 
 	void refreshFrontTab();
@@ -91,6 +92,7 @@ protected:
 	QAction* mainPlayBackwardAction;
 	QAction* mainPauseAction;
 	bool keyframeTextChanged;
+	bool endFrameTextChanged;
 	int currentKeyIndex;
 	
 protected slots:
@@ -104,6 +106,7 @@ protected slots:
 	void guiRebuildList();
 	void setAtabTextChanged(const QString& qs);
 	void setKeyframeTextChanged(const QString& qs);
+	void setEndFrameTextChanged(const QString& qs);
 	void animationReturnPressed();
 	
 	//Animation slots:

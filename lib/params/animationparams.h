@@ -79,19 +79,34 @@ public:
 
 	//! Identify the minimum frame number 
 	//! \retval int minimum frame number.
-	int getMinFrame() {return minFrame;}
+	int getMinTimestep() {return minTimestep;}
 
 	//! Identify the maximum frame number 
 	//! \retval int maximum frame number.
-	int getMaxFrame() {return maxFrame;}
+	int getMaxTimestep() {return maxTimestep;}
+
+	//! Identify the minimum frame number 
+	//! \retval int minimum frame number.
+	int getMinFrame() {
+		if (keyframingEnabled()) return 0;
+		return minTimestep;
+	}
+
+	//! Identify the maximum frame number 
+	//! \retval int maximum frame number.
+	int getMaxFrame() {
+		if (keyframingEnabled()) return (loadedViewpoints.size()-1);
+		return maxTimestep;
+	}
+
 
 	//! Set the minimum frame number 
 	//! \param[in] int minimum frame number.
-	void setMinFrame(int minF) {minFrame = minF;}
+	void setMinTimestep(int minF) {minTimestep = minF;}
 
 	//! Identify the maximum frame number 
 	//! \param[in] int maximum frame number.
-	void setMaxFrame(int maxF) {maxFrame = maxF;}
+	void setMaxTimestep(int maxF) {maxTimestep = maxF;}
 
 	Keyframe* getKeyframe(int index) {return keyframes[index];}
 	vector<Keyframe*>& getKeyframes() {return keyframes;}
@@ -208,7 +223,7 @@ protected:
 	int frameStepSize;// always 1 or greater
 	int startFrame;
 	int endFrame;
-	int maxFrame, minFrame;
+	int maxTimestep, minTimestep;
 	int currentInterpolatedFrame;
 	int currentTimestep;
 	bool useTimestepSampleList;
@@ -223,6 +238,7 @@ protected:
 	std::vector<Keyframe*> keyframes;
 	float currentCameraSpeed;
 	animate* myAnimate;  //used to perform keyframe interpolation
+
 #endif /* DOXYGEN_SKIP_THIS */
 	
 };

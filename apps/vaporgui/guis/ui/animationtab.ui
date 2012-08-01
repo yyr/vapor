@@ -171,7 +171,7 @@ step, and will animate in unison.</string>
           <string>Min and Max timesteps refer to the smallest and largest time steps in the current dataset</string>
          </property>
          <property name="text">
-          <string>Min Timestep: </string>
+          <string>Min Frame: </string>
          </property>
          <property name="wordWrap">
           <bool>false</bool>
@@ -245,7 +245,7 @@ step, and will animate in unison.</string>
           <string>Min and Max frames refer to the smallest and largest time steps in the current dataset</string>
          </property>
          <property name="text">
-          <string>Max Timestep:</string>
+          <string>Max Frame:</string>
          </property>
          <property name="wordWrap">
           <bool>false</bool>
