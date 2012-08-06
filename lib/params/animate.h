@@ -3,7 +3,7 @@
 //  VaporAnimation
 //
 //  Created by Ashish Dhital on 6/14/12.
-//  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
+//  Copyright (c) 2012 NCAR. All rights reserved.
 //
 
 #ifndef animate_h

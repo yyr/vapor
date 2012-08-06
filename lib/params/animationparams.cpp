@@ -45,6 +45,8 @@ const string AnimationParams::_maxRateAttr = "MaxFrameRate";
 const string AnimationParams::_stepSizeAttr = "FrameStepSize";
 const string AnimationParams::_startFrameAttr = "StartFrame";
 const string AnimationParams::_endFrameAttr = "EndFrame";
+const string AnimationParams::_startKeyframeFrameAttr = "StartKeyframeFrame";
+const string AnimationParams::_endKeyframeFrameAttr = "EndKeyframeFrame";
 const string AnimationParams::_currentFrameAttr = "CurrentFrame";
 const string AnimationParams::_currentInterpFrameAttr = "CurrentInterpolatedFrame";
 const string AnimationParams::_maxWaitAttr = "MaxWait";
@@ -101,6 +103,9 @@ restart(){
 	frameStepSize = 1;
 	startFrame = 1;
 	endFrame = 100;
+	startKeyframeFrame = 0;
+	endKeyframeFrame = 0;
+	endFrameIsDefault=true;
 	maxTimestep = 100; 
 	minTimestep = 1;
 	currentInterpolatedFrame = 0;
@@ -156,21 +161,25 @@ reinit(bool doOverride){
 	if (doOverride){
 		startFrame = mints;
 		endFrame = maxts;
+		startKeyframeFrame = 0;
+		endKeyframeFrame = 0;
+		endFrameIsDefault = true;
 		currentTimestep = startFrame;
 		currentInterpolatedFrame = 0;
 		maxFrameRate = defaultMaxFPS;
 		maxWait = defaultMaxWait;
 	} else {
-		if (!keyframingEnabled()){
-			if (startFrame > maxts) startFrame = maxts;
-			if (startFrame < mints) startFrame = mints;
-			if (endFrame < mints) endFrame = mints;
-			if (endFrame > maxts) endFrame = maxts;
-		}
+		
+		if (startFrame > maxts) startFrame = maxts;
+		if (startFrame < mints) startFrame = mints;
+		if (endFrame < mints) endFrame = mints;
+		if (endFrame > maxts) endFrame = maxts;
+		
 		if (currentTimestep < mints) currentTimestep = mints;
 		if (currentTimestep > maxts) currentTimestep = maxts;
-		if (currentInterpolatedFrame < startFrame) currentInterpolatedFrame = startFrame;
-		if (currentInterpolatedFrame > endFrame) currentInterpolatedFrame = endFrame;
+		if (currentInterpolatedFrame < startKeyframeFrame) currentInterpolatedFrame = startKeyframeFrame;
+		if (currentInterpolatedFrame > endKeyframeFrame) currentInterpolatedFrame = endKeyframeFrame;
+		if (endKeyframeFrame == loadedTimesteps.size()-1) endFrameIsDefault = true; else endFrameIsDefault = false;
 	}
 	
 	// set pause state
@@ -266,14 +275,20 @@ getNextFrame(int dir){
 		// find next valid frame for which there exists data:
 		int testFrame = getCurrentFrameNumber() + dir*frameStepSize;
 		DataStatus* ds = DataStatus::getInstance();
-		for (i = 1; i<= (endFrame - startFrame + frameStepSize)/frameStepSize; i++){
+		int firstFrame = startFrame;
+		int lastFrame = endFrame;
+		if (keyframingEnabled()){
+			firstFrame = startKeyframeFrame;
+			lastFrame = endKeyframeFrame;
+		}
+		for (i = 1; i<= (lastFrame - firstFrame + frameStepSize)/frameStepSize; i++){
 			
-			if (testFrame > endFrame){ 
-				if (repeatPlay) testFrame =  startFrame;
+			if (testFrame > lastFrame){ 
+				if (repeatPlay) testFrame =  firstFrame;
 				else testFrame = getCurrentFrameNumber();
 			}
-			if (testFrame < startFrame){
-				if (repeatPlay) testFrame = endFrame;
+			if (testFrame < firstFrame){
+				if (repeatPlay) testFrame = lastFrame;
 				else testFrame = getCurrentFrameNumber();
 			}
 
@@ -283,7 +298,7 @@ getNextFrame(int dir){
 			testFrame += dir*frameStepSize;
 		}
 		//It's OK, or we looped all the way around:
-		if(i > ((endFrame - startFrame + frameStepSize)/frameStepSize))
+		if(i > ((lastFrame - firstFrame + frameStepSize)/frameStepSize))
 			testFrame = getCurrentFrameNumber();
 		
 		return testFrame;
@@ -359,6 +374,14 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 			else if (StrCmpNoCase(attribName, _endFrameAttr) == 0) {
 				ist >> endFrame;
 				if (endFrame > maxTimestep) maxTimestep = endFrame;
+			}
+			else if (StrCmpNoCase(attribName, _startKeyframeFrameAttr) == 0) {
+				ist >> startKeyframeFrame;
+				if (startKeyframeFrame < minTimestep) minTimestep = startKeyframeFrame;
+			}
+			else if (StrCmpNoCase(attribName, _endKeyframeFrameAttr) == 0) {
+				ist >> endKeyframeFrame;
+				if (endKeyframeFrame > maxTimestep) maxTimestep = endKeyframeFrame;
 			}
 			else if (StrCmpNoCase(attribName, _currentFrameAttr) == 0) {
 				ist >> currentTimestep;
@@ -482,6 +505,14 @@ buildNode(){
 	oss.str(empty);
 	oss << (long)endFrame;
 	attrs[_endFrameAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)startKeyframeFrame;
+	attrs[_startKeyframeFrameAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)endKeyframeFrame;
+	attrs[_endKeyframeFrameAttr] = oss.str();
 
 	oss.str(empty);
 	oss << (long)currentTimestep;
@@ -661,11 +692,15 @@ void AnimationParams::buildViewsAndTimes(){
 	int num2 = loadedViewpoints.size();
 	assert(num1 == num2);
 	assert (currFrame == num1 -1);
-	if (keyframingEnabled()){
-		if (getEndFrameNumber() > loadedViewpoints.size()-1) setEndFrameNumber(loadedViewpoints.size()-1);
-		//If previously the endFrame was the last of the viewpoints, keep it that way
-		else if (previousNumFrames == (getEndFrameNumber()+1)) setEndFrameNumber(loadedViewpoints.size()-1);
+	
+	if ((endKeyframeFrame > (loadedViewpoints.size()-1)) || endFrameIsDefault) {
+			endKeyframeFrame = loadedViewpoints.size()-1;
+			endFrameIsDefault = true;
 	}
+	if (startKeyframeFrame > endKeyframeFrame) {
+		startKeyframeFrame = 0;
+	}
+	
 	//Now we can clear it out:
 	
 	for (int i = 0; i<animKeyframes.size(); i++){
@@ -677,15 +712,17 @@ void AnimationParams::buildViewsAndTimes(){
 void AnimationParams::enableKeyframing( bool onoff){
 	useKeyframing = onoff;
 	if (useKeyframing){
-		setStartFrameNumber(0);
-		setEndFrameNumber(loadedViewpoints.size()-1);
-	} else {
+		if (getCurrentFrameNumber() < startKeyframeFrame) setCurrentFrameNumber(startKeyframeFrame);
+		if (getCurrentFrameNumber() > endKeyframeFrame) setCurrentFrameNumber(endKeyframeFrame);
+	} else { // using timesteps
 		DataStatus* ds = DataStatus::getInstance();
 		setStartFrameNumber(ds->getMinTimestep());
 		setEndFrameNumber(ds->getMaxTimestep());
+		if (getCurrentFrameNumber() < startFrame) setCurrentFrameNumber(startFrame);
+		if (getCurrentFrameNumber() > endFrame) setCurrentFrameNumber(endFrame);
+		
 	}
-	if (getCurrentFrameNumber() < startFrame) setCurrentFrameNumber(startFrame);
-	if (getCurrentFrameNumber() > endFrame) setCurrentFrameNumber(endFrame);
+	
 }
 void AnimationParams::clearLoadedViewpoints() {
 	

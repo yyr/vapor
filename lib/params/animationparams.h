@@ -71,11 +71,17 @@ public:
 
 	//! Identify the starting frame number currently set in the UI.
 	//! \retval int starting frame number.
-	int getStartFrameNumber() {return startFrame;}
+	int getStartFrameNumber() {
+		if (keyframingEnabled()) return startKeyframeFrame;
+		return startFrame;
+	}
 
 	//! Identify the ending frame number as currently set in the UI.
 	//! \retval int ending frame number.
-	int getEndFrameNumber() {return endFrame;}
+	int getEndFrameNumber() {
+		if (keyframingEnabled()) return endKeyframeFrame;
+		return endFrame;
+	}
 
 	//! Identify the minimum frame number 
 	//! \retval int minimum frame number.
@@ -158,8 +164,23 @@ public:
 		else
 			currentTimestep = val;
 	}
-	void setStartFrameNumber(int val) {startFrame=val;}
-	void setEndFrameNumber(int val) {endFrame=val;}
+	void setStartFrameNumber(int val) {
+		if (keyframingEnabled()){
+			startKeyframeFrame=val;
+		} else {
+			startFrame=val;
+		}
+	}
+	void setEndFrameNumber(int val) {
+		if (keyframingEnabled()){
+			endKeyframeFrame=val;
+			if (val == getLoadedViewpoints().size()-1) endFrameIsDefault = true;
+			else endFrameIsDefault=false;
+		} else {
+			endFrame=val;
+		}
+	}
+	
 	float getMaxWait(){return maxWait;}
 	bool isRepeating() {return repeatPlay;}
 	void setRepeating(bool onOff){repeatPlay = onOff;}
@@ -203,6 +224,8 @@ protected:
 	static const string _stepSizeAttr;
 	static const string _startFrameAttr;
 	static const string _endFrameAttr;
+	static const string _startKeyframeFrameAttr;
+	static const string _endKeyframeFrameAttr;
 	static const string _currentFrameAttr;
 	static const string _currentInterpFrameAttr;
 	static const string _maxWaitAttr;
@@ -223,6 +246,9 @@ protected:
 	int frameStepSize;// always 1 or greater
 	int startFrame;
 	int endFrame;
+	int startKeyframeFrame;
+	int endKeyframeFrame;
+	bool endFrameIsDefault; //indicate if startKeyframeFrame is at default values.
 	int maxTimestep, minTimestep;
 	int currentInterpolatedFrame;
 	int currentTimestep;

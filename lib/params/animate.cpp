@@ -3,7 +3,7 @@
 //  VaporAnimation
 //
 //  Created by Ashish Dhital on 6/14/12.
-//  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
+//  Copyright (c) 2012 NCAR. All rights reserved.
 //
 
 #include <iostream>
@@ -73,7 +73,6 @@ void animate:: keyframeInterpolate(std::vector<Keyframe*>& key_vec, std::vector<
     
     }
     
-
     //fill out the no of frames in between starting keyframes
     for (int i=0; i < noVPs ; i++) key_vec[i]->frameNum=totalSegments[i];
     
@@ -91,8 +90,12 @@ void animate::priorInterPolationCalcs(const std::vector<Keyframe*>& key_vec){
     
     //Calculating the zoom distance at each viewpoint
     for (int i=0; i < noVPs; i++){
-        zoom[i] = sqrt (pow (key_vec[i]->viewpoint->getCameraPosLocal(0) - key_vec[i]->viewpoint->getRotationCenterLocal(0), 2) + pow (key_vec[i]->viewpoint->getCameraPosLocal(1) - key_vec[i]->viewpoint->getRotationCenterLocal(1), 2) +pow (key_vec[i]->viewpoint->getCameraPosLocal(2) - key_vec[i]->viewpoint->getRotationCenterLocal(2), 2));
-
+        zoom[i] = sqrt (pow (key_vec[i]->viewpoint->getCameraPosLocal(0) 
+			- key_vec[i]->viewpoint->getRotationCenterLocal(0), 2) 
+			+ pow (key_vec[i]->viewpoint->getCameraPosLocal(1) 
+			- key_vec[i]->viewpoint->getRotationCenterLocal(1), 2) 
+			+pow (key_vec[i]->viewpoint->getCameraPosLocal(2) 
+			- key_vec[i]->viewpoint->getRotationCenterLocal(2), 2));
     }
  
      //various slopes calculations
@@ -190,8 +193,6 @@ void animate::slopeCalculator(const std::vector<Keyframe*>& key_vec)
     
     for (int i=1; i < noVPs-1;i++)
     {
-	
-	
         //camera
         val1 = key_vec[i+1]->viewpoint->getCameraPosLocal(0); val2 = key_vec[i-1]->viewpoint->getCameraPosLocal(0);
         slopes[i].cam[0] = (val1-val2)/2;
