@@ -329,7 +329,7 @@ void ArrowRenderer::performRendering(
 	
 	if (!aParams->IsAlignedToData()){
 		for (int k = 0; k<rakeGrid[2]; k++){
-			point[2]= (rakeExts[2]+(0.5+(float)k)* ((rakeExts[5]-rakeExts[2])/(float)rakeGrid[2]));
+			float pntz= (rakeExts[2]+(0.5+(float)k)* ((rakeExts[5]-rakeExts[2])/(float)rakeGrid[2]));
 			
 			for (int j = 0; j<rakeGrid[1]; j++){
 				point[1]= (rakeExts[1]+(0.5+(float)j )* ((rakeExts[4]-rakeExts[1])/(float)rakeGrid[1]));
@@ -337,19 +337,21 @@ void ArrowRenderer::performRendering(
 				for (int i = 0; i<rakeGrid[0]; i++){
 					point[0] = (rakeExts[0]+ (0.5+(float)i )* ((rakeExts[3]-rakeExts[0])/(float)rakeGrid[0]));
 					bool missing = false;
+					float offset = 0.;
 					if (variableData[3]){
-						float offset = variableData[3]->GetValue(
-							point[0], point[1], point[2]
+						offset = variableData[3]->GetValue(
+							point[0], point[1], 0.
 						);
 						if (offset == variableData[3]->GetMissingValue()) {
 							missing = true;
+							offset = 0.;
 						}
-						point[2] += offset;
 					}
+					point[2]=pntz+offset;
 					for (int dim = 0; dim<3; dim++){
 						dirVec[dim]=0.f;
 						if (variableData[dim]){
-							dirVec[dim] = variableData[dim]->GetValue(point[0], point[1], point[2]);
+							dirVec[dim] = variableData[dim]->GetValue(point[0], point[1], point[2]+offset);
 							if (dirVec[dim] == variableData[dim]->GetMissingValue()) {
 								missing = true;
 							}
@@ -364,23 +366,24 @@ void ArrowRenderer::performRendering(
 		}
 	} else {
 		for (int k = 0; k<rakeGrid[2]; k++){
-			point[2]= (rakeExts[2]+(0.5+(float)k)* ((rakeExts[5]-rakeExts[2])/(float)rakeGrid[2]));
+			float pntz= (rakeExts[2]+(0.5+(float)k)* ((rakeExts[5]-rakeExts[2])/(float)rakeGrid[2]));
 			
 			for (int j = 0; j<rakeGrid[1]; j++){
 				point[1]= (rakeExts[1]+((double)j )* ((rakeExts[4]-rakeExts[1])/(double)rakeGrid[1]));
 					
 				for (int i = 0; i<rakeGrid[0]; i++){
 					bool missing = false;
+					float offset = 0.;
 					point[0] = rakeExts[0]+ ((double)i )* ((rakeExts[3]-rakeExts[0])/(double)rakeGrid[0]);
 					if (variableData[3]){
-						float offset = variableData[3]->GetValue(
-							point[0], point[1], point[2]
+						offset = variableData[3]->GetValue(
+							point[0], point[1], 0.
 						);
 						if (offset == variableData[3]->GetMissingValue()) {
 							missing = true;
 						}
-						point[2] += offset;
 					}
+					point[2]=pntz+offset;
 					for (int dim = 0; dim<3; dim++){
 						dirVec[dim]=0.f;
 						if (variableData[dim]){
