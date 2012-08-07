@@ -112,7 +112,7 @@ const char	*ProgName;
 //The input array vertValues must have one value for each vertical layer
 int CopyConstantVariable3D(
 				 const float *vertValues,
-				 VDFIOBase *vdfio,
+				 VDFIOBase *vdfio3d,
 				 int level,
 				 int lod, 
 				 const char* varname,
@@ -125,7 +125,7 @@ int CopyConstantVariable3D(
 	int rc;
 	
 	
-	rc = vdfio->OpenVariableWrite(tsVDC, varname, level);
+	rc = vdfio3d->OpenVariableWrite(tsVDC, varname, level);
 	
 	if (rc<0) {
 		MyBase::SetErrMsg(
@@ -148,7 +148,7 @@ int CopyConstantVariable3D(
 		for (size_t i = 0; i< slice_sz; i++){
 			sliceBuffer[i] = vertValues[z];
 		}
-		if (vdfio->WriteSlice(sliceBuffer) < 0) {
+		if (vdfio3d->WriteSlice(sliceBuffer) < 0) {
 			MyBase::SetErrMsg(
 							  "Failed to write MOM variable %s slice at time step %d ",
 							  varname, tsVDC
@@ -157,7 +157,7 @@ int CopyConstantVariable3D(
 		}
 	} // End of for z.
 	
-	vdfio->CloseVariable();
+	vdfio3d->CloseVariable();
 	
 	return(0);
 }  // End of CopyConstantVariable3D.
@@ -165,7 +165,7 @@ int CopyConstantVariable3D(
 // Following method is used to create depth variable.  Data is provided in a 2D float array
 int CopyConstantVariable2D(
 				   const float* dataValues,
-				   VDFIOBase *vdfio,
+				   VDFIOBase *vdfio2d,
 				   WaveletBlock3DRegionWriter *wb2dwriter,
 				   int level,
 				   int lod, 
@@ -175,7 +175,7 @@ int CopyConstantVariable2D(
 	
 	int rc;
 	
-	rc = vdfio->OpenVariableWrite(tsVDC, varname, level, lod);
+	rc = vdfio2d->OpenVariableWrite(tsVDC, varname, level, lod);
 	if (rc<0) {
 		MyBase::SetErrMsg(
 						  "Failed to copy MOM variable %s at time step %d",
@@ -186,7 +186,7 @@ int CopyConstantVariable2D(
 	
  		
 	
-	if (vdfio->WriteSlice(dataValues) < 0) {
+	if (vdfio2d->WriteRegion(dataValues) < 0) {
 		MyBase::SetErrMsg(
 						  "Failed to write MOM variable %s at time step %d",
 						  varname, tsVDC
@@ -194,7 +194,7 @@ int CopyConstantVariable2D(
 		return (-1);
 	}
 	
-	vdfio->CloseVariable();
+	vdfio2d->CloseVariable();
 	
 	return(0);
 } // End of CopyConstantVariable2D.
@@ -204,7 +204,7 @@ int CopyVariable3D(
 	int ncid,
 	int varid,
 	WeightTable *wt,
-	VDFIOBase *vdfio,
+	VDFIOBase *vdfio3d,
 	int level,
 	int lod, 
 	string varname,
@@ -221,7 +221,7 @@ int CopyVariable3D(
 
 	int rc;
 	
-	rc = vdfio->OpenVariableWrite(tsVDC, varname.c_str(), level, lod);
+	rc = vdfio3d->OpenVariableWrite(tsVDC, varname.c_str(), level, lod);
 
 	if (rc<0) {
 		MyBase::SetErrMsg(
@@ -284,7 +284,7 @@ int CopyVariable3D(
 		}
 		
 		
-		if (vdfio->WriteSlice(sliceBuffer2) < 0) {
+		if (vdfio3d->WriteSlice(sliceBuffer2) < 0) {
 			MyBase::SetErrMsg(
 				"Failed to write MOM variable %s slice at time step %d (vdc2)",
 				varname.c_str(), tsVDC
@@ -295,7 +295,7 @@ int CopyVariable3D(
 	printf(" variable %s time %d: min, max original data: %g %g\n", varname.c_str(), (int)tsVDC, minVal, maxVal);
 	printf(" variable %s time %d: min, max interpolated data: %g %g\n", varname.c_str(), (int)tsVDC, minVal1, maxVal1);
 
-		vdfio->CloseVariable();
+		vdfio3d->CloseVariable();
 
 	return(0);
 }  // End of CopyVariable3D.
@@ -304,7 +304,7 @@ int CopyVariable2D(
 	int ncid,
 	int varid,
 	WeightTable* wt,
-	VDFIOBase *vdfio,
+	VDFIOBase *vdfio2d,
 	WaveletBlock3DRegionWriter *wb2dwriter,
 	int level,
 	int lod, 
@@ -322,7 +322,7 @@ int CopyVariable2D(
 
 	int rc;
 
-	rc = vdfio->OpenVariableWrite(tsVDC, varname.c_str(), level, lod);
+	rc = vdfio2d->OpenVariableWrite(tsVDC, varname.c_str(), level, lod);
 	if (rc<0) {
 		MyBase::SetErrMsg(
 			"Failed to copy MOM variable %s at time step %d",
@@ -368,7 +368,7 @@ int CopyVariable2D(
 	
 	wt->interp2D(sliceBuffer, sliceBuffer2, mv, missMapVal);
 				
-	if (vdfio->WriteSlice(sliceBuffer2) < 0) {
+	if (vdfio2d->WriteRegion(sliceBuffer2) < 0) {
 		MyBase::SetErrMsg(
 			"Failed to write MOM variable %s at MOM time step %d",
 			varname.c_str(), tsVDC
@@ -376,7 +376,7 @@ int CopyVariable2D(
 		return (-1);
 	}
 
-	vdfio->CloseVariable();
+	vdfio2d->CloseVariable();
 
 	return(0);
 } // End of CopyVariable2D.
@@ -449,8 +449,9 @@ int	main(int argc, char **argv) {
 	}
 
 	WaveletBlock3DBufWriter *wbwriter3d = NULL;
+	WaveletBlock3DRegionWriter *wbwriter2d = NULL;
 	WaveCodecIO	*wcwriter3d = NULL;
-	VDFIOBase *vdfio = NULL;
+	VDFIOBase* vdfio3d = NULL, *vdfio2d=NULL;
 	
 	MetadataVDC	*metadataVDC = new MetadataVDC(metafile);
 	if (MetadataVDC::GetErrCode() != 0) { 
@@ -462,27 +463,27 @@ int	main(int argc, char **argv) {
 
 	if(vdc1) {
 		wbwriter3d = new WaveletBlock3DBufWriter(*metadataVDC);
-		vdfio = wbwriter3d;
+		vdfio3d = wbwriter3d;
+
+		//
+		// Ugh! WaveletBlock3DBufWriter class does not handle 2D data!!!  
+		// Also does want to work form VDFIOBase.
+		//
+		wbwriter2d = new WaveletBlock3DRegionWriter(*metadataVDC);
+		vdfio2d = wbwriter2d;
 	}
 	else {
 		wcwriter3d = new WaveCodecIO(*metadataVDC, opt.nthreads);
-		vdfio = wcwriter3d;
+		vdfio3d = wcwriter3d;
+		vdfio2d = vdfio3d;
+	}
+	if (! vdfio3d || ! vdfio2d) {
+		MyBase::SetErrMsg("Error processing VDC metafile : %s",metafile.c_str());
+		exit(1);
 	}
 	
-	if (WaveletBlock3DBufWriter::GetErrCode() != 0) { 
-		MyBase::SetErrMsg("Error processing VDC metafile : %s",metafile.c_str());
-		exit(1);
-	}
 
-	//
-	// Ugh! WaveletBlock3DBufWriter class does not handle 2D data!!!  
-	// Also does want to work form VDFIOBase.
-	//
-	WaveletBlock3DRegionWriter *wb2dwriter = new WaveletBlock3DRegionWriter(*metadataVDC);
-	if (WaveletBlock3DRegionWriter::GetErrCode() != 0) { 
-		MyBase::SetErrMsg("Error processing VDC metafile : %s",metafile.c_str());
-		exit(1);
-	}
+	
 
 	vector <string> varsVDC = metadataVDC->GetVariableNames();
 	const size_t *dimsVDC = metadataVDC->GetDimension();
@@ -553,7 +554,7 @@ int	main(int argc, char **argv) {
 		const float* elevData = mom->GetElevations();
 		
 		for( size_t t = 0; t< numTimeSteps; t++){
-			int rc = CopyConstantVariable3D(elevData,vdfio,opt.level,opt.lod,"ELEVATION",dimsVDC,t);
+			int rc = CopyConstantVariable3D(elevData,vdfio3d,opt.level,opt.lod,"ELEVATION",dimsVDC,t);
 			if (rc) exit(rc);
 		}
 	}
@@ -577,7 +578,7 @@ int	main(int argc, char **argv) {
 		}
 
 		for( size_t t = 0; t< numTimeSteps; t++){
-			int rc = CopyConstantVariable2D(mappedDepth,vdfio,wb2dwriter,opt.level,opt.lod, "DEPTH",dimsVDC,t);
+			int rc = CopyConstantVariable2D(mappedDepth,vdfio2d,wbwriter2d,opt.level,opt.lod, "DEPTH",dimsVDC,t);
 			if (rc) exit(rc);
 		}
 	}
@@ -692,8 +693,8 @@ int	main(int argc, char **argv) {
 			//loop thru the times in the file.
 			for (int j = 0; j < timelen; j++){
 				//for each time convert the variable
-				if (ndims == 4)CopyVariable3D(ncid,varid,wt,vdfio,opt.level,opt.lod,  varname, missValPtr, dimsVDC,VDCTimes[j],j);
-				else CopyVariable2D(ncid,varid,wt,vdfio,wb2dwriter,opt.level,opt.lod,  varname, missValPtr, dimsVDC,VDCTimes[j],j);
+				if (ndims == 4)CopyVariable3D(ncid,varid,wt,vdfio3d,opt.level,opt.lod,  varname, missValPtr, dimsVDC,VDCTimes[j],j);
+				else CopyVariable2D(ncid,varid,wt,vdfio2d,wbwriter2d,opt.level,opt.lod,  varname, missValPtr, dimsVDC,VDCTimes[j],j);
 			}
 		} //End loop over variables in file
 			
