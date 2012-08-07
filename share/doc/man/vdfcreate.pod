@@ -206,6 +206,21 @@ Generate a .vdf file for a VDC Type 2 data collection.
 
 =item -wname E<lt>wave_nameE<gt>
 
+=item -{x,y,z}coords E<lt>pathE<gt>
+
+Each option, B<-xcoords>, B<-ycoords>, or B<-zcoords>, specifies
+the path to a file containing a whitespace-delimited list of
+monotonically increasing (or decreasing) user coordinates for the
+X, Y, or Z axis, respectively.  Each I<coordinate> is a unitless
+floating point value indicating the user coordinate of the i'th
+grid point along the X, Y, or Z axis.  For any axis for which a
+coordinate path file is not specified, the grid coordinates are
+assumed to have uniform spacing and are computed as described the
+the B<-extents> option.  This option is ignored unless the grid
+type specified with B<-gridtype> is B<stretched>.
+
+=item -wname E<lt>wave_nameE<gt>
+
 Wavelet family name used for compression (VDC2 only). See the vdfcreate
 help message for a list of supported wavelets.
 
