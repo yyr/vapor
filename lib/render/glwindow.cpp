@@ -419,7 +419,7 @@ void GLWindow::paintEvent(QPaintEvent*)
     } 
 
     if (axisArrowsAreEnabled()) drawAxisArrows(extents);
-	if (axisAnnotationIsEnabled() && !sphericalTransform) drawAxisTics();
+	
 
 
 	//render the region geometry, if in region mode, and active visualizer, or region shared
@@ -455,9 +455,7 @@ void GLWindow::paintEvent(QPaintEvent*)
 	
 	
 	
-	if (axisAnnotationIsEnabled() && !sphericalTransform) {
-		drawAxisLabels();
-	}
+	
 
 	
 	sortRenderers(timeStep);
@@ -485,6 +483,11 @@ void GLWindow::paintEvent(QPaintEvent*)
 	//Go back to MODELVIEW for other matrix stuff
 	glMatrixMode(GL_MODELVIEW);
 
+	
+	if (axisAnnotationIsEnabled() && !sphericalTransform) {
+		drawAxisTics();
+		drawAxisLabels();
+	}
 	//Find renderer that has a colorbar
 	RenderParams* p = dynamic_cast<RenderParams*>(getActiveParams(Params::GetTagFromType(colorbarParamsTypeId)));
 	if(p && colorbarIsEnabled() && p->isEnabled() && p->GetMapperFunc()){
@@ -987,7 +990,7 @@ void GLWindow::drawAxisLabels() {
 	
 	float pointOnAxis[3];
 	float winCoords[2];
-	glPushAttrib(GL_TEXTURE_BIT);
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	for (int axis = 0; axis < 3; axis++){
 		if (numTics[axis] > 1){
 			vcopy(origin, pointOnAxis);
