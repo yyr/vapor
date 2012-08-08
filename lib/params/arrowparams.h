@@ -54,7 +54,7 @@ public:
 		for (int i = 0; i<3; i++){
 			if (GetFieldVariableName(i) == varname) return true;
 		}
-		if (IsTerrainMapped() && (varname == "HGT")) return true;
+		if (IsTerrainMapped() && (varname == GetHeightVariableName())) return true;
 		return false;
 	}
 
@@ -118,6 +118,8 @@ public:
 	int GetVisualizerNum();
 	void SetFieldVariableName(int i, const string& varName);
 	const string& GetFieldVariableName(int i);
+	void SetHeightVariableName(const string& varName);
+	const string& GetHeightVariableName();
 
 	void SetVariables3D(bool val) {
 		GetRootNode()->SetElementLong(_variableDimensionTag,(val ? 3:2));
@@ -160,6 +162,7 @@ static const string _terrainMapTag;
 static const string _variableDimensionTag;
 static const string _alignGridTag;
 static const string _alignGridStridesTag;
+static const string _heightVariableNameTag;
 float _constcolorbuf[4];
 
 

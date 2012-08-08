@@ -804,6 +804,79 @@ create new 2D planar instances.</string>
                   </spacer>
                  </item>
                  <item>
+                  <widget class="QCheckBox" name="applyTerrainCheckbox">
+                   <property name="toolTip">
+                    <string>Check to display image on terrain surface</string>
+                   </property>
+                   <property name="text">
+                    <string>Apply to terrain</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_2">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_2">
+                   <property name="text">
+                    <string>Use Height Variable:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="heightCombo">
+                   <property name="toolTip">
+                    <string>Specify variable that represents terrain height</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="spacer166">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Expanding</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>32</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <spacer name="spacer168">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeType">
+                  <enum>QSizePolicy::Expanding</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>16</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
                   <widget class="QComboBox" name="placementCombo">
                    <property name="minimumSize">
                     <size>
@@ -813,7 +886,7 @@ create new 2D planar instances.</string>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>115</width>
+                     <width>100</width>
                      <height>32767</height>
                     </size>
                    </property>
@@ -881,52 +954,6 @@ create new 2D planar instances.</string>
                    </property>
                   </spacer>
                  </item>
-                 <item>
-                  <widget class="QCheckBox" name="applyTerrainCheckbox">
-                   <property name="toolTip">
-                    <string>Check to display image on terrain surface</string>
-                   </property>
-                   <property name="text">
-                    <string>Apply image to terrain</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="spacer166">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeType">
-                    <enum>QSizePolicy::Expanding</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>32</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <spacer name="spacer168">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
-                 </property>
-                 <property name="sizeType">
-                  <enum>QSizePolicy::Expanding</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>16</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <layout class="QHBoxLayout">
                  <item>
                   <spacer name="spacer59_2">
                    <property name="orientation">
@@ -1003,7 +1030,7 @@ create new 2D planar instances.</string>
                   <widget class="QLineEdit" name="opacityEdit">
                    <property name="maximumSize">
                     <size>
-                     <width>200</width>
+                     <width>100</width>
                      <height>32767</height>
                     </size>
                    </property>

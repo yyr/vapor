@@ -285,21 +285,21 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 		
 	if (tParams->isMappedToTerrain()){
 		
-		//We shall retrieve HGT for the full extents of the data
+		//We shall retrieve height variable for the full extents of the data
 		//at the current refinement level.
 		for (int i = 0; i<3; i++){
 			min_dim[i] = 0;
 			max_dim[i] = ds->getFullSizeAtLevel(refLevel,i) - 1;
 		}
 		vector<string>varname;
-		varname.push_back("HGT");
+		varname.push_back(tParams->GetHeightVariableName());
 		
 		//Try to get requested refinement level or the nearest acceptable level:
 		int rc = tParams->getGrids(timeStep,varname, regExts, &refLevel, &lod,  &hgtGrid); 
 		
 		if(!rc){
 			setBypass(timeStep);
-			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE, "Terrain elevation data unavailable \nfor 2D rendering at timestep %d",timeStep);
+			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE, "height data unavailable \nfor 2D rendering at timestep %d",timeStep);
 			return false;
 		}
 		

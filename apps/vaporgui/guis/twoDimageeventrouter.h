@@ -118,6 +118,7 @@ protected slots:
 	void guiSetGeoreferencing(bool);
 
 	void guiApplyTerrain(bool);
+	void guiSetHeightVarNum(int);
 	void guiNudgeXSize(int);
 	void guiNudgeXCenter(int);
 	void guiNudgeYSize(int);

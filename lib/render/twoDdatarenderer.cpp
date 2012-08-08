@@ -162,20 +162,19 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return false;
 	const float* localExtents = ds->getLocalExtents();
-	//See if there is a HGT variable
+	//See if there is a height variable
 	
 	float* hgtData = 0;
 	DataMgr* dataMgr = ds->getDataMgr();
 	const vector<double>& usrExts = dataMgr->GetExtents(timeStep);
 	TwoDParams* tParams = (TwoDParams*) currentRenderParams;
 	float displacement = tParams->getLocalTwoDMin(2);
-	int varnum = DataStatus::getSessionVariableNum2D("HGT");
+	int varnum = DataStatus::getSessionVariableNum2D(tParams->GetHeightVariableName());
 	double twoDExts[6];
 	for (int i = 0; i<3; i++){
 		regMin[i] = twoDExts[i] = tParams->getLocalTwoDMin(i) + usrExts[i];
 		regMax[i] = twoDExts[i+3] = tParams->getLocalTwoDMax(i) + usrExts[i];
 	}
-	
 	
 	for (int i = 0; i< 2; i++){
 		
@@ -194,7 +193,7 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	int elevGridRefLevel = tParams->GetRefinementLevel();
 	int lod = tParams->GetCompressionLevel();
 	vector<string>varname;
-	varname.push_back("HGT");
+	varname.push_back(tParams->GetHeightVariableName());
 	RegularGrid *hgtGrid;
 	
 	//Try to get requested refinement level or the nearest acceptable level:
@@ -204,10 +203,10 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 		
 		setBypass(timeStep);
 		if (ds->warnIfDataMissing()){
-			SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"HGT data unavailable at timestep %d.", 
+			SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Height data unavailable at timestep %d.", 
 				timeStep);
 		}
-		ds->setDataMissing2D(timeStep, elevGridRefLevel, lod, ds->getSessionVariableNum2D(std::string("HGT")));
+		ds->setDataMissing2D(timeStep, elevGridRefLevel, lod, ds->getSessionVariableNum2D(tParams->GetHeightVariableName()));
 		return false;
 	}
 	
@@ -239,7 +238,7 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	minYTex = 0.f;
 	maxYTex = 1.f;
 	 
-	//Then loop over all the vertices in the Elevation or HGT data. 
+	//Then loop over all the vertices in the Elevation or height data. 
 	//For each vertex, construct the corresponding 3d point as well as the normal vector.
 	//These must be converted to
 	//stretched cube coordinates.  The x and y coordinates are determined by

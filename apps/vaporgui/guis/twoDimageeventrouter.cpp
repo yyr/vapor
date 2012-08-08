@@ -126,6 +126,7 @@ TwoDImageEventRouter::hookUpTab()
 	connect (probeCenterButton, SIGNAL(clicked()), this, SLOT(guiCenterProbe()));
 	connect (addSeedButton, SIGNAL(clicked()), this, SLOT(twoDAddSeed()));
 	connect (applyTerrainCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiApplyTerrain(bool)));
+	connect (heightCombo, SIGNAL(activated(int)),this,SLOT(guiSetHeightVarNum(int)));
 	connect (attachSeedCheckbox,SIGNAL(toggled(bool)),this, SLOT(twoDAttachSeed(bool)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
 	connect (lodCombo,SIGNAL(activated(int)), this, SLOT(guiSetCompRatio(int)));
@@ -172,6 +173,12 @@ void TwoDImageEventRouter::updateTab(){
 	instanceTable->rebuild(this);
 	
 	TwoDImageParams* twoDParams = VizWinMgr::getActiveTwoDImageParams();
+	
+	const string hname = twoDParams->GetHeightVariableName();
+	int hNum = ds->getSessionVariableNum2D(hname);
+	if (hNum <0) hNum = 0;
+	heightCombo->setCurrentIndex(hNum);
+
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int currentTimeStep = vizMgr->getActiveAnimationParams()->getCurrentTimestep();
 	int winnum = vizMgr->getActiveViz();
@@ -190,18 +197,21 @@ void TwoDImageEventRouter::updateTab(){
 	
 	//See if we can do terrain mapping
 	if(orientation == 2){
-		int varnum = DataStatus::getSessionVariableNum2D("HGT");
+		int varnum = DataStatus::getSessionVariableNum2D(twoDParams->GetHeightVariableName());
 		if (varnum < 0 || !ds->dataIsPresent2D(varnum, currentTimeStep)){
 			applyTerrainCheckbox->setEnabled(false);
 			applyTerrainCheckbox->setChecked(false);
+			heightCombo->setEnabled(false);
 			twoDParams->setMappedToTerrain(false);
 		} else {
 			applyTerrainCheckbox->setEnabled(true);
+			heightCombo->setEnabled(true);
 			applyTerrainCheckbox->setChecked(twoDParams->isMappedToTerrain());
 		}
 	} else {
 		applyTerrainCheckbox->setChecked(false);
 		applyTerrainCheckbox->setEnabled(false);
+		heightCombo->setEnabled(false);
 	}
 	if ((ds->getProjectionString().size() > 0) && orientation == 2){
 		geoRefCheckbox->setEnabled(true);
@@ -496,6 +506,21 @@ void TwoDImageEventRouter::guiSelectInstalledImage(){
 	tParams->setImagesDirty();
 	VizWinMgr::getInstance()->refreshTwoDImage(tParams);
 }
+void TwoDImageEventRouter::
+guiSetHeightVarNum(int vnum){
+	int sesvarnum=0;
+	confirmText(true);
+	TwoDImageParams* tParams = (TwoDImageParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_twoDImageParamsTag);
+	//Make sure its a valid variable..
+	sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum2D(vnum);
+	if (sesvarnum < 0) return; 
+	PanelCommand* cmd = PanelCommand::captureStart(tParams, "set terrain height variable");
+	tParams->SetHeightVariableName(DataStatus::getInstance()->getVariableName2D(sesvarnum));
+	updateTab();
+	PanelCommand::captureEnd(cmd, tParams);
+	if (!tParams->isMappedToTerrain()) return;
+	VizWinMgr::getInstance()->forceRender(tParams);	
+}
 void TwoDImageEventRouter::guiSetOrientation(int val){
 	confirmText(false);
 	TwoDImageParams* tParams = VizWinMgr::getActiveTwoDImageParams();
@@ -595,20 +620,7 @@ void TwoDImageEventRouter::guiApplyTerrain(bool mode){
 	if (mode == dParams->isMappedToTerrain()) return;
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle mapping to terrain");
 	
-	if (dParams->isEnabled()) {
-		//Check that we aren't putting this on another planar surface:
-		VizWinMgr* vizMgr = VizWinMgr::getInstance();
-		int viznum = vizMgr->getActiveViz();
-		float disp; 
-		if (mode) disp = 0.; //min z in local coordinates
-		else disp = dParams->getLocalTwoDMin(2);
-		if (vizMgr->findCoincident2DSurface(viznum, 2, 
-			disp, mode))
-		{
-			MessageReporter::warningMsg("This 2D data surface is close to another enabled 2D surface.\n%s\n",
-					"Change the 2D data position in order to avoid rendering defects");
-		}
-	}
+	
 	if(mode) {
 		dParams->setOrientation(2);
 		dParams->setImagePlacement(0);
@@ -617,11 +629,21 @@ void TwoDImageEventRouter::guiApplyTerrain(bool mode){
 		placementCombo->setEnabled(true);
 	}
 	dParams->setMappedToTerrain(mode);
-	
 	//Set box bottom and top to bottom of domain, if we are applying to terrain
 	if (mode){
 		dParams->setLocalTwoDMin(2,0.);
 		dParams->setLocalTwoDMax(2,0.);
+	}
+	if (dParams->isEnabled()) {
+		//Check that we aren't putting this on another planar surface:
+		VizWinMgr* vizMgr = VizWinMgr::getInstance();
+		int viznum = vizMgr->getActiveViz();
+		float disp = dParams->getLocalTwoDMin(2);
+		if (vizMgr->findCoincident2DSurface(viznum, disp, dParams))
+		{
+			MessageReporter::warningMsg("This 2D data surface is close to another enabled 2D surface.\n%s\n",
+					"Change the 2D data position in order to avoid rendering defects");
+		}
 	}
 	
 	//Reposition cursor:
@@ -660,8 +682,7 @@ setTwoDEnabled(bool val, int instance){
 	//If we are enabling, also make this the current instance:
 	if (val) {
 		int orientation = pParams->getOrientation();
-		if (vizMgr->findCoincident2DSurface(activeViz, orientation, pParams->getLocalTwoDMin(orientation),
-			pParams->isMappedToTerrain())){
+		if (vizMgr->findCoincident2DSurface(activeViz, pParams->getLocalTwoDMin(orientation), pParams)){
 				MessageReporter::warningMsg("This 2D data surface is close to another enabled 2D surface.\n%s\n",
 					"Change the image position in order to avoid rendering defects");
 			}
@@ -789,7 +810,7 @@ reinitTab(bool doOverride){
 	
     Session *ses = Session::getInstance();
 	setEnabled(true);
-
+	
 	seedAttached = false;
 
 	//Set up the refinement combo:
@@ -810,6 +831,15 @@ reinitTab(bool doOverride){
 			s += ":1";
 			lodCombo->addItem(s);
 		}
+	}
+	//Populate the height variable combo with all 2d Vars:
+	heightCombo->clear();
+	DataStatus* ds;
+	ds = DataStatus::getInstance();
+	heightCombo->setMaxCount(ds->getNumActiveVariables2D());
+	for (int i = 0; i< ds->getNumActiveVariables2D(); i++){
+		const std::string& s = ds->getActiveVarName2D(i);
+		heightCombo->addItem(QString::fromStdString(s));
 	}
 	
 	updateTab();
@@ -1582,49 +1612,6 @@ void TwoDImageEventRouter::resetTextureSize(TwoDImageParams* twoDParams){
 	twoDTextureFrame->setTextureSize(1.f,1.f);
 }
 
-
-
-// Map the cursor coords into world space,
-// refreshing the selected point.  CursorCoords go from -1 to 1
-//
-/*
-void TwoDImageEventRouter::mapCursor(){
-	//Get the transform 
-	TwoDImageParams* tParams = VizWinMgr::getInstance()->getActiveTwoDImageParams();
-	if(!DataStatus::getInstance()->getDataMgr()) return;
-	float twoDCoord[3];
-	float a[2],b[2],constVal[2];
-	int mapDims[3];
-	tParams->buildLocal2DTransform(a,b,constVal,mapDims);
-	const float* cursorCoords = tParams->getCursorCoords();
-	//If using flat plane, the cursor sits in the z=0 plane of the twoD box coord system.
-	//x is reversed because we are looking from the opposite direction 
-	twoDCoord[0] = -cursorCoords[0];
-	twoDCoord[1] = cursorCoords[1];
-	twoDCoord[2] = 0.f;
-	double selectPoint[3];
-	selectPoint[mapDims[0]] = twoDCoord[0]*a[0]+b[0];
-	selectPoint[mapDims[1]] = twoDCoord[1]*a[1]+b[1];
-	selectPoint[mapDims[2]] = constVal[0];
-	
-	size_t timeStep = (size_t) VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentTimestep();
-
-	if (tParams->isMappedToTerrain()) {
-		//Find terrain height at selected point:
-		//mapDims are just 0,1,2
-		assert (mapDims[0] == 0 && mapDims[1] == 1 && mapDims[2] == 2);
-		string varname("HGT");
-		
-		float val = RegionParams::calcCurrentValue(varname,selectPoint,tParams->GetRefinementLevel(), tParams->GetCompressionLevel(), timeStep);
-		if (val != OUT_OF_BOUNDS)
-				selectPoint[mapDims[2]] = val+tParams->getLocalTwoDMin(2);
-		
-	} 
-	float spt[3];
-	for (int i = 0; i<3; i++) spt[i] = selectPoint[i];
-	tParams->setSelectedPointLocal(spt);
-}
-*/
 void TwoDImageEventRouter::mapCursor(){
 	//If the scene and image are georeferenced we do this differently than
 	//if not.

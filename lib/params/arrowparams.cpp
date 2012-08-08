@@ -18,6 +18,7 @@ const string ArrowParams::_terrainMapTag = "TerrainMap";
 const string ArrowParams::_alignGridTag = "GridAlignedToData";
 const string ArrowParams::_alignGridStridesTag = "GridAlignedStrides";
 const string ArrowParams::_variableDimensionTag = "VariableDimension";
+const string ArrowParams::_heightVariableNameTag = "HeightVariable";
 
 namespace {
 	const string ArrowName = "ArrowParams";
@@ -109,8 +110,24 @@ reinit(bool doOverride){
 			}
 		}
 	}
+	//Use HGT as the height variable name, if it's there. If not just use the first 2d variable.
+	if (doOverride){
+		string varname = "HGT";
+		int indx = ds->getActiveVarNum2D(varname);
+		if (indx < 0 && ds->getNumActiveVariables2D()>0) {
+			varname = ds->getVariableName2D(0);
+		}
+		SetHeightVariableName(varname);
+	} else {
+		string varname = GetHeightVariableName();
+		int indx = ds->getActiveVarNum2D(varname);
+		if (indx < 0 && ds->getNumActiveVariables2D()>0) {
+			varname = ds->getVariableName2D(0);
+			SetHeightVariableName(varname);
+		}
+	}
+	if (ds->getNumActiveVariables2D() <= 0) SetTerrainMapped(false);
 	//Set the vector length so that the max arrow is 10% of the larger of the x or y size of scene
-	
 	//Check the rake extents.  If doOverride is true, set the extents to the bottom of the data domain. If not, 
 	//shrink the extents to fit inside the domain.
 	const float* extents = ds->getLocalExtents();
@@ -328,6 +345,13 @@ void ArrowParams::SetFieldVariableName(int i, const string& varName){
 	svec[i] = varName;
 	GetRootNode()->SetElementStringVec(_VariableNamesTag, svec);
 	setAllBypass(false);
+}
+void ArrowParams::SetHeightVariableName(const string& varName){
+	GetRootNode()->SetElementString(_heightVariableNameTag, varName);
+	setAllBypass(false);
+}
+const string& ArrowParams::GetHeightVariableName(){
+	return GetRootNode()->GetElementString(_heightVariableNameTag, "HGT");
 }
 const string& ArrowParams::GetFieldVariableName(int i){
 	vector <string> defaultName(3,"0");

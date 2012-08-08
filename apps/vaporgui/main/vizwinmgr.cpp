@@ -1987,24 +1987,32 @@ void VizWinMgr::setInteractiveNavigating(int level){
 }
 //Determine (for error checking) if there are any enabled 2d renderers in the window that match
 //coordinate, terrain mapping
-bool VizWinMgr::findCoincident2DSurface(int vizwin, int orientation, float coordinate, bool terrainMapped){
+bool VizWinMgr::findCoincident2DSurface(int vizwin,  float coordinate, TwoDParams *tParams){
 	vector<Params*>& dparams = Params::GetAllParamsInstances(Params::_twoDDataParamsTag,vizwin);
 	vector<Params*>& iparams = Params::GetAllParamsInstances(Params::_twoDImageParamsTag,vizwin);
 	const float * extents = DataStatus::getInstance()->getLocalExtents();
+	int orientation = tParams->getOrientation();
+	bool terrainMapped = tParams->isMappedToTerrain();
+	string heightVar = tParams->GetHeightVariableName();
 	float tol = (extents[orientation+3]-extents[orientation])*0.0001f;
+
 	for (int i = 0; i< dparams.size(); i++){
 		TwoDDataParams* p = (TwoDDataParams*)dparams[i];
+		if (p==tParams) continue;
 		if (!p->isEnabled()) continue;
 		if (p->getOrientation() != orientation) continue;
 		if (p->isMappedToTerrain() != terrainMapped) continue;
+		if (terrainMapped && (heightVar != p->GetHeightVariableName())) continue;
 		if (abs(p->getLocalTwoDMin(orientation) - coordinate)> tol) continue;
 		return true;
 	}
 	for (int i = 0; i< iparams.size(); i++){
 		TwoDImageParams* p = (TwoDImageParams*)iparams[i];
+		if (p == tParams) continue;
 		if (!p->isEnabled()) continue;
 		if (p->getOrientation() != orientation) continue;
 		if (p->isMappedToTerrain() != terrainMapped) continue;
+		if (terrainMapped && (heightVar != p->GetHeightVariableName())) continue;
 		if (abs(p->getLocalTwoDMin(orientation) - coordinate)> tol) continue;
 		return true;
 	}

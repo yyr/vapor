@@ -124,6 +124,7 @@ protected slots:
 	
 	void guiSetOrientation(int);
 	void guiApplyTerrain(bool);
+	void guiSetHeightVarNum(int);
 	void guiNudgeXSize(int);
 	void guiNudgeXCenter(int);
 	void guiNudgeYSize(int);

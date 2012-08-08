@@ -62,6 +62,8 @@ const string TwoDParams::_terrainMapAttr = "MapToTerrain";
 const string TwoDParams::_verticalDisplacementAttr = "VerticalDisplacement";
 const string TwoDParams::_numTransformsAttr = "NumTransforms";
 const string TwoDParams::_orientationAttr = "Orientation";
+const string TwoDParams::_heightVariableAttr = "HeightVariable";
+
 
 TwoDParams::TwoDParams(int winnum, const string& name) : RenderParams(winnum, name){
 	

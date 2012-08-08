@@ -101,6 +101,7 @@ ArrowEventRouter::hookUpTab()
 	connect (xVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetXVarNum(int)));
 	connect (yVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetYVarNum(int)));
 	connect (zVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetZVarNum(int)));
+	connect (heightCombo, SIGNAL(activated(int)),this,SLOT(guiSetHeightVarNum(int)));
 	connect (variableDimCombo, SIGNAL(activated(int)), this, SLOT(guiSetVariableDims(int)));
 	//checkboxes
 	connect(terrainAlignCheckbox,SIGNAL(toggled(bool)), this, SLOT(guiToggleTerrainAlign(bool)));
@@ -302,6 +303,13 @@ populateVariableCombos(bool is3D){
 			zVarCombo->addItem(QString::fromStdString(s));
 		}
 	}
+	//Populate the height variable combo with all 2d Vars:
+	heightCombo->clear();
+	heightCombo->setMaxCount(ds->getNumActiveVariables2D());
+	for (int i = 0; i< ds->getNumActiveVariables2D(); i++){
+		const std::string& s = ds->getActiveVarName2D(i);
+		heightCombo->addItem(QString::fromStdString(s));
+	}
 }
 
 
@@ -380,6 +388,21 @@ guiSetZVarNum(int vnum){
 	aParams->SetVectorScale(aParams->calcDefaultScale());
 	updateTab();
 	PanelCommand::captureEnd(cmd, aParams);
+	VizWinMgr::getInstance()->forceRender(aParams);	
+}
+void ArrowEventRouter::
+guiSetHeightVarNum(int vnum){
+	int sesvarnum=0;
+	confirmText(true);
+	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
+	//Make sure its a valid variable..
+	sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum2D(vnum);
+	if (sesvarnum < 0) return; 
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "set terrain height variable");
+	aParams->SetHeightVariableName(DataStatus::getInstance()->getVariableName2D(sesvarnum));
+	updateTab();
+	PanelCommand::captureEnd(cmd, aParams);
+	if (!aParams->IsTerrainMapped()) return;
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
 void ArrowEventRouter::
@@ -521,8 +544,12 @@ void ArrowEventRouter::updateTab(){
 	yVarCombo->setCurrentIndex(comboIndex[1]);
 	zVarCombo->setCurrentIndex(comboIndex[2]);
 
-	
+	const string hname = arrowParams->GetHeightVariableName();
+	int hNum = ds->getSessionVariableNum2D(hname);
+	if (hNum <0) hNum = 0;
+	heightCombo->setCurrentIndex(hNum);
 
+	
 	//Set the constant color box
 	const float* clr = arrowParams->GetConstantColor();
 	QColor newColor;
@@ -587,14 +614,16 @@ void ArrowEventRouter::updateTab(){
 	
 	thicknessEdit->setText(QString::number(arrowParams->GetLineThickness()));
 	scaleEdit->setText(QString::number(arrowParams->GetVectorScale()));
-	//Only allow terrainAlignCheckbox if there is a HGT variable
-	int varnum = ds->getSessionVariableNum2D("HGT");
+	//Only allow terrainAlignCheckbox if height variable exists
+	int varnum = ds->getSessionVariableNum2D(arrowParams->GetHeightVariableName());
 	if (ds->variableIsPresent2D(varnum)){
 		terrainAlignCheckbox->setEnabled(true);
+		heightCombo->setEnabled(true);
 		terrainAlignCheckbox->setChecked(arrowParams->IsTerrainMapped());
 	} else {
 		terrainAlignCheckbox->setEnabled(false);
 		terrainAlignCheckbox->setChecked(false);
+		heightCombo->setEnabled(false);
 		if(arrowParams->IsTerrainMapped())
 			arrowParams->SetTerrainMapped(false);
 	}

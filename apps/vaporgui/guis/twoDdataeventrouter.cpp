@@ -136,6 +136,7 @@ TwoDDataEventRouter::hookUpTab()
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
 	connect (lodCombo,SIGNAL(activated(int)), this, SLOT(guiSetCompRatio(int)));
 	connect (variableCombo,SIGNAL(activated(int)), this, SLOT(guiChangeVariable(int)));
+	connect (heightCombo, SIGNAL(activated(int)),this,SLOT(guiSetHeightVarNum(int)));
 	connect (xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDXCenter()));
 	connect (yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDYCenter()));
 	connect (zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDZCenter()));
@@ -194,7 +195,12 @@ void TwoDDataEventRouter::updateTab(){
 		instanceTable->setEnabled(false);
 	}
 	instanceTable->rebuild(this);
+
 	TwoDDataParams* twoDParams = VizWinMgr::getActiveTwoDDataParams();
+	const string hname = twoDParams->GetHeightVariableName();
+	int hNum = ds->getSessionVariableNum2D(hname);
+	if (hNum <0) hNum = 0;
+	heightCombo->setCurrentIndex(hNum);
 	
 	if (!isEnabled()) {
 		transferFunctionFrame->setMapperFunction(0); 
@@ -431,16 +437,19 @@ void TwoDDataEventRouter::updateTab(){
 	if (orientation != 2) {
 		applyTerrainCheckbox->setEnabled(false);
 		applyTerrainCheckbox->setChecked(false);
+		heightCombo->setEnabled(false);
 	} else {
-		int varnum = ds->getSessionVariableNum2D("HGT");
+		int varnum = ds->getSessionVariableNum2D(twoDParams->GetHeightVariableName());
 		if (varnum < 0 || !ds->dataIsPresent2D(varnum,currentTimeStep)){
 			applyTerrainCheckbox->setEnabled(false);
 			applyTerrainCheckbox->setChecked(false);
+			heightCombo->setEnabled(false);
 		} else {
 			bool terrainMap = twoDParams->isMappedToTerrain();
 			if (terrainMap != applyTerrainCheckbox->isChecked())
 				applyTerrainCheckbox->setChecked(terrainMap);
 			applyTerrainCheckbox->setEnabled(true);
+			heightCombo->setEnabled(true);
 		}
 	}
 	twoDTextureFrame->setParams(twoDParams, true);
@@ -553,28 +562,24 @@ void TwoDDataEventRouter::guiApplyTerrain(bool mode){
 	if (mode == dParams->isMappedToTerrain()) return;
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle mapping to terrain");
 	
-	if (dParams->isEnabled()) {
-		VizWinMgr* vizMgr = VizWinMgr::getInstance();
-		int viznum = vizMgr->getActiveViz();
-		float disp; 
-		if (mode) disp = 0.;
-		else disp = dParams->getLocalTwoDMin(2);
-		//Check that we aren't putting this on another planar surface:
-		if (vizMgr->findCoincident2DSurface(viznum, 2, 
-			disp, mode))
-		{
-			MessageReporter::warningMsg("This 2D data surface is close to another enabled 2D surface.\n%s\n",
-					"Change the 2D data position in order to avoid rendering defects");
-		}
-	}
-	dParams->setMappedToTerrain(mode);
 	
+	dParams->setMappedToTerrain(mode);
 	//If setting to terrain, set box bottom and top to bottom of domain
 	if (mode){
 		dParams->setLocalTwoDMin(2,0.);
 		dParams->setLocalTwoDMax(2,0.);
 	}
-	
+	if (dParams->isEnabled()) {
+		VizWinMgr* vizMgr = VizWinMgr::getInstance();
+		int viznum = vizMgr->getActiveViz();
+		float disp = dParams->getLocalTwoDMin(2);
+		//Check that we aren't putting this on another planar surface:
+		if (vizMgr->findCoincident2DSurface(viznum, disp, dParams))
+		{
+			MessageReporter::warningMsg("This 2D data surface is close to another enabled 2D surface.\n%s\n",
+					"Change the 2D data position in order to avoid rendering defects");
+		}
+	}
 	
 	//Reposition cursor:
 	mapCursor();
@@ -610,8 +615,8 @@ setTwoDEnabled(bool val, int instance){
 
 	//If we are enabling, also make this the current instance:
 	if (val) {
-		if (vizMgr->findCoincident2DSurface(activeViz, orientation, pParams->getLocalTwoDMin(orientation),
-			pParams->isMappedToTerrain())){
+		if (vizMgr->findCoincident2DSurface(activeViz, pParams->getLocalTwoDMin(orientation),pParams)){
+			
 				MessageReporter::warningMsg("This 2D data surface is close to another enabled 2D surface.\n%s\n",
 					"Change the 2D data position in order to avoid rendering defects");
 			}
@@ -761,7 +766,21 @@ setTwoDYSize(){
 	guiSetYSize(
 		ySizeSlider->value());
 }
-
+void TwoDDataEventRouter::
+guiSetHeightVarNum(int vnum){
+	int sesvarnum=0;
+	confirmText(true);
+	TwoDDataParams* tParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_twoDDataParamsTag);
+	//Make sure its a valid variable..
+	sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum2D(vnum);
+	if (sesvarnum < 0) return; 
+	PanelCommand* cmd = PanelCommand::captureStart(tParams, "set terrain height variable");
+	tParams->SetHeightVariableName(DataStatus::getInstance()->getVariableName2D(sesvarnum));
+	updateTab();
+	PanelCommand::captureEnd(cmd, tParams);
+	if (!tParams->isMappedToTerrain()) return;
+	VizWinMgr::getInstance()->forceRender(tParams);	
+}
 
 //Respond to user request to load/save TF
 //Assumes name is valid
@@ -822,14 +841,16 @@ reinitTab(bool doOverride){
 
 
 	numVariables = DataStatus::getInstance()->getNumSessionVariables2D();
-	//Set the names in the variable combo
+	//Set the names in the variable combo and the height combo
 	
 	ignoreComboChanges = true;
 	variableCombo->clear();
+	heightCombo->clear();
 	for (int i = 0; i< DataStatus::getInstance()->getNumActiveVariables2D(); i++){
 		const std::string& s = DataStatus::getInstance()->getActiveVarName2D(i);
 		const QString& text = QString(s.c_str());
 		variableCombo->insertItem(i,text);
+		heightCombo->insertItem(i,text);
 	}
 	ignoreComboChanges = false;
 
@@ -1139,75 +1160,7 @@ guiChangeVariable(int varnum){
 	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->forceRender(tParams);
 }
-//Respond to an update of the variable combo.  set the appropriate bits
-/*
-void TwoDDataEventRouter::
-guiChangeVariables(int ){
-	//Don't react if the listbox is being reset programmatically:
-	if (ignoreListboxChanges) return;
-	confirmText(false);
-	TwoDDataParams* pParams = VizWinMgr::getActiveTwoDDataParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams, "change TwoDData-selected variable(s)");
-	int firstVar = -1;
-	int numSelected = 0;
-	//Session* ses = Session::getInstance();
-	int orientation = 0;
-	for (int i = 0; i< DataStatus::getInstance()->getNumActiveVariables2D(); i++){
-		//Index by session variable num:
-		int varnum = DataStatus::getInstance()->mapActiveToSessionVarNum2D(i);
-		if (variableListBox->item(i)->isSelected()){
-			pParams->setVariableSelected(varnum,true);
-			
-			if(firstVar == -1) {
-				firstVar = varnum;
-				orientation = DataStatus::getInstance()->get2DOrientation(i);
-			} else if (orientation != DataStatus::getInstance()->get2DOrientation(i)){
-				//De-select any variables that don't match the first variable's orientation
-				variableListBox->item(i)->setSelected(false);
-				numSelected--;
-			}
-			numSelected++;
-		}
-		else 
-			pParams->setVariableSelected(varnum,false);
-	}
-	//If nothing is selected, select the first one:
-	if (firstVar == -1) {
-		firstVar = 0;
-		numSelected = 1;
-		orientation = DataStatus::getInstance()->get2DOrientation(0);
-	}
-	pParams->setNumVariablesSelected(numSelected);
-	pParams->setFirstVarNum(firstVar);
-	orientationCombo->setCurrentIndex(orientation);
-	
-	//Only allow terrain map with horizontal orientation
-	if (orientation != 2) {
-		pParams->setMappedToTerrain(false);
-		applyTerrainCheckbox->setEnabled(false);
-		applyTerrainCheckbox->setChecked(false);
-		
-	} else {
-		bool terrainMap = pParams->isMappedToTerrain();
-		applyTerrainCheckbox->setChecked(terrainMap);
-		applyTerrainCheckbox->setEnabled(true);
-	}
-	//reset the editing display range shown on the tab, 
-	//this also sets dirty flag
-	updateMapBounds(pParams);
-	
-	//Force a redraw of the transfer function frame
-    setEditorDirty();
-	   
-	
-	PanelCommand::captureEnd(cmd, pParams);
 
-	//Need to update the selected point for the new variables
-	updateTab();
-	twoDTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams);;
-}
-*/
 void TwoDDataEventRouter::
 guiSetXCenter(int sliderval){
 	confirmText(false);

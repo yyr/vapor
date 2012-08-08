@@ -121,7 +121,7 @@ refreshCtab() {
 	
 bool TwoDDataParams::
 usingVariable(const string& varname){
-	if (varname == "HGT" && isMappedToTerrain()) return true;
+	if ((varname == GetHeightVariableName()) && isMappedToTerrain()) return true;
 	int varnum = DataStatus::getInstance()->getSessionVariableNum2D(varname);
 	return (variableIsSelected(varnum));
 }
@@ -270,6 +270,30 @@ reinit(bool doOverride){
 	for (int i = 0; i< newNumVariables; i++){
 		if (variableSelected[i]) numVariablesSelected++;
 	}
+	//Use HGT as the height variable name, if it's there. If not just use the first 2d variable.
+	minTerrainHeight = twoDExts[2];
+	maxTerrainHeight = twoDExts[2];
+	int hgtvarindex;
+	
+	if (doOverride){
+		string varname = "HGT";
+		hgtvarindex = ds->getActiveVarNum2D(varname);
+		if (hgtvarindex < 0 && ds->getNumActiveVariables2D()>0) {
+			varname = ds->getVariableName2D(0);
+			hgtvarindex=0;
+		}
+		SetHeightVariableName(varname);
+	} else {
+		string varname = GetHeightVariableName();
+		hgtvarindex = ds->getActiveVarNum2D(varname);
+		if (hgtvarindex < 0 && ds->getNumActiveVariables2D()>0) {
+			varname = ds->getVariableName2D(0);
+			SetHeightVariableName(varname);
+			hgtvarindex = 0;
+		}
+	}
+	maxTerrainHeight = ds->getDefaultDataMax2D(hgtvarindex);
+	if (ds->getNumActiveVariables2D() <= 0) setMappedToTerrain(false);
 	//Create new arrays to hold bounds and transfer functions:
 	TransferFunction** newTransFunc = new TransferFunction*[newNumVariables];
 	float* newMinEdit = new float[newNumVariables];
@@ -331,11 +355,7 @@ reinit(bool doOverride){
 			newMaxEdit[i] = 1.f;
 		}
 	}
-	minTerrainHeight = localExtents[2];
-	maxTerrainHeight = localExtents[2];
-	int hgtvar = ds->getSessionVariableNum2D("HGT");
-	if (hgtvar >= 0)
-		maxTerrainHeight = ds->getDefaultDataMax2D(hgtvar);
+	
 	//Hook up new stuff
 	delete [] minColorEditBounds;
 	delete [] maxColorEditBounds;
@@ -437,7 +457,7 @@ restart(){
 	}
 	GetBox()->SetLocalExtents(twoDexts);
 	
-	
+	heightVariableName = "HGT";
 }
 
 
@@ -471,6 +491,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		
 		orientation = 2; //X-Y aligned
 		int newNumVariables = 0;
+		heightVariableName = "HGT";
 
 		//If it's a TwoD tag, obtain 12 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
@@ -494,6 +515,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			}
 			else if (StrCmpNoCase(attribName, _localAttr) == 0) {
 				//Ignore this
+			}
+			else if (StrCmpNoCase(attribName, _heightVariableAttr) == 0) {
+				heightVariableName = value;
 			}
 			else if (StrCmpNoCase(attribName, _histoStretchAttr) == 0){
 				float histStretch;
@@ -732,6 +756,8 @@ buildNode() {
 	else 
 		oss << "false";
 	attrs[_terrainMapAttr] = oss.str();
+
+	attrs[_heightVariableAttr] = heightVariableName;
 
 	oss.str(empty);
 	oss << (long)orientation;

@@ -440,7 +440,7 @@ public:
 	
 	
 	void setInteractiveNavigating(int level);
-	bool findCoincident2DSurface(int viznum, int orientation, float coordinate, bool terrainMapped);
+	bool findCoincident2DSurface(int vizwin,  float coordinate, TwoDParams *tParams);
 	void stopFlowIntegration();
 
 	

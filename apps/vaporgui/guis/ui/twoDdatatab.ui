@@ -596,7 +596,34 @@ create new 2D planar instances.</string>
              <string>Check to apply variable to terrain</string>
             </property>
             <property name="text">
-             <string>Apply color and opacity to terrain</string>
+             <string>Apply  to terrain</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Use Height Variable:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="heightCombo">
+            <property name="toolTip">
+             <string>Specify Variable that represents terrain height</string>
             </property>
            </widget>
           </item>

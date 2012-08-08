@@ -88,7 +88,10 @@ public:
 		GetBox()->SetLocalExtents(boxexts);
 	}
 	
-	
+	void SetHeightVariableName(string varname){
+		heightVariableName = varname;
+	}
+	const string& GetHeightVariableName() {return heightVariableName;}
 	
 	//Set all the cached twoD textures dirty, as well as elev grid
 	virtual void setTwoDDirty()=0;
@@ -160,6 +163,7 @@ protected:
 	static const string _terrainMapAttr;
 	static const string _verticalDisplacementAttr;
 	static const string _orientationAttr;
+	static const string _heightVariableAttr;
 	void refreshCtab();
 			
 	//Utility functions for building texture and histogram
@@ -193,6 +197,7 @@ protected:
 	float minTerrainHeight, maxTerrainHeight;
 	unsigned char* lastTwoDTexture;
 	int compressionLevel;
+	string heightVariableName;
 	
 };
 };

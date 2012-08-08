@@ -429,8 +429,9 @@ setupVariableData(
 		varnames.push_back(vname);
 	}
 	if (aParams->IsTerrainMapped()){
-		int sesvarnum = ds->getSessionVariableNum2D("HGT");
-		varnames.push_back("HGT");
+		string hname = aParams->GetHeightVariableName();
+		int sesvarnum = ds->getSessionVariableNum2D(hname);
+		varnames.push_back(hname);
 		maxVerticalOffset = ds->getDataMax2D(sesvarnum,(int)timestep);
 	}
 	
@@ -442,22 +443,6 @@ setupVariableData(
 	}
 	validExts[5] += maxVerticalOffset;
 
-#ifdef	DEAD
-	//
-	// this shouldn't be needed with RegularGrid class
-	//
-	size_t dim[3];
-	dataMgr->MapUserToVox(timestep, validExts, voxExts);
-	dataMgr->MapUserToVox(timestep, validExts+3, voxExts+3);
-	
-	dataMgr->GetDim(dim,0);
-	for (int i = 0; i<3; i++){
-		if (voxExts[i] > 0) voxExts[i]--;
-		if (voxExts[i+3] < dim[i]-1) voxExts[i+3]++;
-	}
-	dataMgr->MapVoxToUser(timestep,voxExts, validExts,0);
-	dataMgr->MapVoxToUser(timestep,voxExts+3, validExts+3,0);
-#endif
 
 	//Call RegionParams::PrepareCoordsForRetrieval to get the extents needed for data
 	//It may reduce the refinement level or indicate that the required data is not available.
@@ -501,15 +486,16 @@ setupVariableData(
 			return -1;
 		}
 	}
-	//Obtain the HGT data, if required. Save it in variableData[3]
+	//Obtain the height data, if required. Save it in variableData[3]
 	
 	if (aParams->IsTerrainMapped()){
 		int useLOD = aParams->GetCompressionLevel();
-		int maxLOD = ds->maxLODPresent("HGT",timestep);
+		string hname = aParams->GetHeightVariableName();
+		int maxLOD = ds->maxLODPresent(hname,timestep);
 		if (maxLOD >= useLOD){
-			variableData[3] = dataMgr->GetGrid(timestep, "HGT", actualRefLevel, useLOD,min_dim,max_dim,1);
+			variableData[3] = dataMgr->GetGrid(timestep, hname, actualRefLevel, useLOD,min_dim,max_dim,1);
 		} else if (ds->useLowerAccuracy()){
-			variableData[3] = dataMgr->GetGrid(timestep, "HGT", actualRefLevel, maxLOD,min_dim,max_dim,1);
+			variableData[3] = dataMgr->GetGrid(timestep, hname, actualRefLevel, maxLOD,min_dim,max_dim,1);
 		} else {
 			SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Height data unavailable at LOD %d\n", aParams->GetCompressionLevel());
 			aParams->setBypass(timestep);

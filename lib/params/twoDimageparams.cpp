@@ -165,13 +165,32 @@ reinit(bool doOverride){
 	
 	//If we are overriding previous values, delete the transfer functions, create new ones.
 	//Set the map bounds to the actual bounds in the data
-	
-	
+	//Use HGT as the height variable name, if it's there. If not just use the first 2d variable.
 	minTerrainHeight = extents[2];
 	maxTerrainHeight = extents[2];
-	int hgtvar = ds->getSessionVariableNum2D("HGT");
-	if (hgtvar >= 0)
-		maxTerrainHeight = ds->getDefaultDataMax2D(hgtvar);
+	int hgtvarindex;
+	
+	if (doOverride){
+		string varname = "HGT";
+		hgtvarindex = ds->getActiveVarNum2D(varname);
+		if (hgtvarindex < 0 && ds->getNumActiveVariables2D()>0) {
+			varname = ds->getVariableName2D(0);
+			hgtvarindex=0;
+		}
+		SetHeightVariableName(varname);
+	} else {
+		string varname = GetHeightVariableName();
+		hgtvarindex = ds->getActiveVarNum2D(varname);
+		if (hgtvarindex < 0 && ds->getNumActiveVariables2D()>0) {
+			varname = ds->getVariableName2D(0);
+			SetHeightVariableName(varname);
+			hgtvarindex = 0;
+		}
+	}
+	maxTerrainHeight = ds->getDefaultDataMax2D(hgtvarindex);
+	if (ds->getNumActiveVariables2D() <= 0) setMappedToTerrain(false);
+	
+	
 	
 	// set up the texture cache
 	setTwoDDirty();
@@ -242,6 +261,7 @@ restart(){
 		selectPoint[i] = 0.5f;
 	}
 	GetBox()->SetLocalExtents(twoDExtents);
+	heightVariableName = "HGT";
 }
 
 //Handlers for Expat parsing.
@@ -258,6 +278,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		imageFileName = "";
 		orientation = 2; //X-Y aligned
 		imagePlacement = 0;
+		heightVariableName = "HGT";
 
 		//If it's a TwoDImage tag, obtain 12 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
@@ -286,7 +307,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 				if (value == "true") setMappedToTerrain(true); 
 				else setMappedToTerrain(false);
 			}
-			
+			else if (StrCmpNoCase(attribName, _heightVariableAttr) == 0) {
+				heightVariableName = value;
+			}
 			else if (StrCmpNoCase(attribName, _orientationAttr) == 0) {
 				ist >> orientation;
 			}
@@ -391,6 +414,7 @@ buildNode() {
 		oss << "false";
 	attrs[_terrainMapAttr] = oss.str();
 
+	attrs[_heightVariableAttr] = heightVariableName;
 
 	oss.str(empty);
 	if (isGeoreferenced())
@@ -1036,5 +1060,5 @@ bool TwoDImageParams::mapGeorefPoint(int timestep, double pt[2]){
 }
 bool TwoDImageParams::
 usingVariable(const string& varname){
-	return (varname == "HGT" && isMappedToTerrain());
+	return ((varname == GetHeightVariableName()) && isMappedToTerrain());
 }
