@@ -544,7 +544,7 @@ void ArrowEventRouter::updateTab(){
 	yVarCombo->setCurrentIndex(comboIndex[1]);
 	zVarCombo->setCurrentIndex(comboIndex[2]);
 
-	const string hname = arrowParams->GetHeightVariableName();
+	const string& hname = arrowParams->GetHeightVariableName();
 	int hNum = ds->getSessionVariableNum2D(hname);
 	if (hNum <0) hNum = 0;
 	heightCombo->setCurrentIndex(hNum);
@@ -618,15 +618,14 @@ void ArrowEventRouter::updateTab(){
 	int varnum = ds->getSessionVariableNum2D(arrowParams->GetHeightVariableName());
 	if (ds->variableIsPresent2D(varnum)){
 		terrainAlignCheckbox->setEnabled(true);
-		heightCombo->setEnabled(true);
 		terrainAlignCheckbox->setChecked(arrowParams->IsTerrainMapped());
 	} else {
 		terrainAlignCheckbox->setEnabled(false);
 		terrainAlignCheckbox->setChecked(false);
-		heightCombo->setEnabled(false);
 		if(arrowParams->IsTerrainMapped())
 			arrowParams->SetTerrainMapped(false);
 	}
+	heightCombo->setEnabled(ds->getNumActiveVariables2D() > 0);
 	bool isAligned = arrowParams->IsAlignedToData();
 	alignDataCheckbox->setChecked(isAligned);
 	xStrideEdit->setEnabled(isAligned);

@@ -626,9 +626,9 @@ const vector<long> &ParamNode::GetElementLong(const string &tag, const vector<lo
 	return defaultVal;
 }
 const string &ParamNode::GetElementString(const string &tag, const string& defaultVal){
-	if (HasElementString(tag)) return XmlNode::GetElementString(tag);
-	SetElementString(tag,defaultVal);
-	return defaultVal;
+	if (!HasElementString(tag)) 
+		SetElementString(tag,defaultVal);
+	return XmlNode::GetElementString(tag);
 }
 
 void ParamNode::GetElementStringVec(const vector<string> &tagpath, vector <string> &vec, const vector<string>& defaultVal)  {

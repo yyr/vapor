@@ -201,13 +201,12 @@ void TwoDImageEventRouter::updateTab(){
 		if (varnum < 0 || !ds->dataIsPresent2D(varnum, currentTimeStep)){
 			applyTerrainCheckbox->setEnabled(false);
 			applyTerrainCheckbox->setChecked(false);
-			heightCombo->setEnabled(false);
 			twoDParams->setMappedToTerrain(false);
 		} else {
 			applyTerrainCheckbox->setEnabled(true);
-			heightCombo->setEnabled(true);
 			applyTerrainCheckbox->setChecked(twoDParams->isMappedToTerrain());
 		}
+		heightCombo->setEnabled(ds->getNumActiveVariables2D() > 0);
 	} else {
 		applyTerrainCheckbox->setChecked(false);
 		applyTerrainCheckbox->setEnabled(false);

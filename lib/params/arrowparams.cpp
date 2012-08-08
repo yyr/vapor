@@ -203,6 +203,7 @@ void ArrowParams::restart() {
 	SetFieldVariableName(1, "yvar");
 	SetFieldVariableName(2, "0");
 	SetVariables3D(true);
+	SetHeightVariableName("HGT");
 	
 	setEnabled(false);
 	const float default_color[3] = {1.0, 0.0, 0.0};

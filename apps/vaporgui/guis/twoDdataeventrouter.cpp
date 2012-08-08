@@ -443,14 +443,13 @@ void TwoDDataEventRouter::updateTab(){
 		if (varnum < 0 || !ds->dataIsPresent2D(varnum,currentTimeStep)){
 			applyTerrainCheckbox->setEnabled(false);
 			applyTerrainCheckbox->setChecked(false);
-			heightCombo->setEnabled(false);
 		} else {
 			bool terrainMap = twoDParams->isMappedToTerrain();
 			if (terrainMap != applyTerrainCheckbox->isChecked())
 				applyTerrainCheckbox->setChecked(terrainMap);
 			applyTerrainCheckbox->setEnabled(true);
-			heightCombo->setEnabled(true);
 		}
+		heightCombo->setEnabled(ds->getNumActiveVariables2D() > 0);
 	}
 	twoDTextureFrame->setParams(twoDParams, true);
 		
