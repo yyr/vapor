@@ -1291,7 +1291,7 @@ int rayBoxIntersect(const float rayStart[3], const float rayDir[3],const float b
 
 }
 //Convert a camera view to a quaternion, for linear interpolation of viewpoints.
-//The log of the quaternion, or log of its negative, are used for interpolation
+
 void view2Quat(float vdir[3],float upvec[3], float q[4]){
 	float vtemp[3];
 	float left[3] = {-1.f, 0.f, 0.f};
@@ -1380,7 +1380,81 @@ void imagQuat2View(const float q[3], float vdir[3], float upvec[3]){
 	vcopy(mtrx+8,vdir);
 	vscale(vdir,-1.f);
 }
+void quat2View(float quat[4], float vdir[3], float upvec[3]){
+	float mtrx[16];
+	//convert quat to a matrix
+	qmatrix(quat,mtrx);
+	//extract rows:
+	vcopy(mtrx+4,upvec);
+	vcopy(mtrx+8,vdir);
+	vscale(vdir,-1.f);
+}
+//Spherical linear interpolation between two unit quaternions.  t is between 0 and 1.
+void slerp(float quat0[4], float quat1[4], float t, float result[4]){
+	float q0inv[4], res1[4],res2[4];
+	//make sure they are unit quaternion:
+	qnormal(quat0);
+	qnormal(quat1);
+	float dotprod = vdot(quat0,quat1) + quat0[3]*quat1[3];
+	if (dotprod < 0) {  //change sign so that angle is acute.
+		for (int i = 0; i<4; i++) quat1[i] = -quat1[i];
+	}
 
+	//calculate quat0 inv
+	for (int i = 0; i<3; i++) q0inv[i] = -quat0[i];
+	q0inv[3] = quat0[3];
+	qmult(q0inv, quat1, res1);
+	//now take res1 to power t:
+	double theta = acos((double)res1[3]);
+	float vmag = vlength(res1);
+	if (vmag == 0.f){ //theta is 0 --or pi?
+		for (int i = 0; i<3; i++) res2[i] = 0.;
+		res2[3]=1;
+		assert(res1[3] > 0.);  //could res1[3] ever be -1??
+	} else {
+		res2[3] = cos(t*theta);
+		for (int i = 0; i<3; i++){
+			res2[i] = sin(t*theta)*res1[i]/vmag;
+		}
+	}
+	//Now multiply by quat0 to get q0*(q0^-1 * q1)^t
+	qmult(quat0,res2,result);
+	/*
+	//float dotprod = vdot(quat0,quat1) + quat0[3]*quat1[3];
+	//if (dotprod < 0) {  //change sign so that angle is acute.
+	//	for (int i = 0; i<4; i++) quat1[i] = -quat1[i];
+	//}
+
+	float theta = acos(quat1[3]);
+	float sintheta = sin(theta);
+	//represent
+	if (sintheta == 0.f){ //theta is 0 or pi
+		for (int i = 0; i<3; i++) result[i] = quat0[i];
+		assert(quat0[3] > 0.);  //could quat0 ever be -1??
+		return;
+	}
+	for (int i = 0; i<3; i++){
+		result[i] = (quat0[i]*sin((1-t)*theta) + quat1[i]*sin(t*theta))/sintheta;
+	}
+	*/
+}
+//Logarithm of a unit quaternion
+void qlog(float quat[4],float quatlog[4]){
+	float mag = vlength(quat); //norm of imaginary part
+	float re = acos(quat[3]);
+	if (mag == 0.f) for (int i = 0; i<3; i++) quatlog[i] = 0.f;
+	else for (int i = 0; i<3; i++) quatlog[i] = quat[i]*re/mag;
+	quatlog[3]=0.f;
+}
+void squad(float quat1[4],float quat2[4], float s1[4],float s2[4], float t, float result[4]){
+	float qa[4], qb[4];
+	slerp(quat1,quat2,t,qa);
+	slerp(s1,s2,t,qb);
+	slerp(qa,qb,2.*t*(1.-t),result);
+}
+void qconj(float quat[4], float conj[4]){
+	conj[3]=quat[3];conj[0]=-quat[0];conj[1]=-quat[1];conj[2]=-quat[2];
+}
 
 #define DEAD
 #ifdef	DEAD

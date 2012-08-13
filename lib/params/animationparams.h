@@ -62,9 +62,8 @@ public:
 	//! Identify the current data timestep being used
 	//! \retval size_t current time step
 	int getCurrentTimestep() {
-
 		if (keyframingEnabled()&&getLoadedViewpoints().size() > 0){
-			return getLoadedTimesteps()[currentInterpolatedFrame%getLoadedViewpoints().size()];
+			return loadedTimesteps[currentInterpolatedFrame];
 		}
 		return currentTimestep;
 	}
@@ -158,6 +157,13 @@ public:
 	int getPlayDirection() {return playDirection;}
 	int getFrameStepSize() {return frameStepSize;}
 	float getMaxFrameRate() {return maxFrameRate;}
+	void setCurrentInterpolatedFrame(int val){
+		currentInterpolatedFrame=val;
+	}
+	int getCurrentInterpolatedFrame(){
+		return currentInterpolatedFrame;
+	}
+	int getFrameIndex(int keyframeIndex);
 	void setCurrentFrameNumber(int val) {
 		if (keyframingEnabled())
 			currentInterpolatedFrame = val;
@@ -180,7 +186,6 @@ public:
 			endFrame=val;
 		}
 	}
-	
 	float getMaxWait(){return maxWait;}
 	bool isRepeating() {return repeatPlay;}
 	void setRepeating(bool onOff){repeatPlay = onOff;}
@@ -207,8 +212,6 @@ public:
 	bool usingTimestepList() {return useTimestepSampleList;}
 	void setTimestepSampleList(bool on) {useTimestepSampleList = on;}
 	std::vector<int>& getTimestepList() { return timestepList;}
-	float getCurrentCameraSpeed(){ return currentCameraSpeed;}
-	void setCurrentCameraSpeed(float val){currentCameraSpeed=val;}
 	
 	ParamNode* buildNode();
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
@@ -229,13 +232,10 @@ protected:
 	static const string _currentFrameAttr;
 	static const string _currentInterpFrameAttr;
 	static const string _maxWaitAttr;
-	static const string _cameraSpeedAttr;
 	static const string _keyframesEnabledAttr;
 	static const string _keyframeTag;
 	static const string _keySpeedAttr;
 	static const string _keyTimestepAttr;
-	static const string _endTimestepAttr;
-	static const string _keyDurationAttr;
 	static const string _keyNumFramesAttr;
 
 
@@ -248,7 +248,7 @@ protected:
 	int endFrame;
 	int startKeyframeFrame;
 	int endKeyframeFrame;
-	bool endFrameIsDefault; //indicate if startKeyframeFrame is at default values.
+	bool endFrameIsDefault; //indicate if endKeyframeFrame is at default values.
 	int maxTimestep, minTimestep;
 	int currentInterpolatedFrame;
 	int currentTimestep;
@@ -262,7 +262,6 @@ protected:
 	//Keyframing state:
 	bool useKeyframing;
 	std::vector<Keyframe*> keyframes;
-	float currentCameraSpeed;
 	animate* myAnimate;  //used to perform keyframe interpolation
 
 #endif /* DOXYGEN_SKIP_THIS */
@@ -271,14 +270,13 @@ protected:
 class Keyframe{
 public:
 	Keyframe(Viewpoint* vp, float spd, int ts, int fnum){
-		viewpoint = vp; speed = spd; timeStep = ts; frameNum = fnum; duration = 0; endTimestep = ts;
+		viewpoint = vp; speed = spd; timeStep = ts; numFrames = fnum; stationaryFlag = false;
 	}
 	Viewpoint* viewpoint;
 	float speed;
 	int timeStep;
-	int frameNum;
-	int duration;
-	int endTimestep;
+	int numFrames;
+	bool stationaryFlag;  
 };
 };
 

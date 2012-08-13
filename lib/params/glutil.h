@@ -142,6 +142,12 @@ PARAMS_API void	rotmatrix2q(float* m, float *q );
 PARAMS_API void	rotmatrix2q(double* m, double *q );
 PARAMS_API float   getScale(GLfloat* rotmatrix);
 PARAMS_API void view2Quat(float vdir[3], float upvec[3], float q[4]);
+PARAMS_API void quat2View(float quat[4], float vdir[3], float upvec[3]);
+PARAMS_API void qlog(float quat[4], float lquat[4]);
+PARAMS_API void qconj(float quat[4], float conj[4]);
+
+PARAMS_API void slerp(float quat1[4], float quat2[4], float t, float result[4]);
+PARAMS_API void squad(float quat1[4],float quat2[4], float s1[4],float s2[4], float t, float result[4]); 
 
 PARAMS_API void imagQuat2View(const float q[3], float vdir[3],float upvec[3]);
 

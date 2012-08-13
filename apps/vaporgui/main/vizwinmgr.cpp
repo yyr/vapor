@@ -511,8 +511,8 @@ setActiveViz(int vizNum){
 		//appropriately
 		updateActiveParams();
 		//Set the animation toolbar to the correct frame number:
-		int currentFrame = getActiveAnimationParams()->getCurrentFrameNumber();
-		MainForm::getInstance()->setCurrentFrameNum(currentFrame);
+		int currentTS = getActiveAnimationParams()->getCurrentTimestep();
+		MainForm::getInstance()->setCurrentTimestep(currentTS);
 		//Tell the glwindows who is active
 		GLWindow::setActiveWinNum(vizNum);
 		//Determine if the active viz is sharing the region
@@ -823,7 +823,7 @@ animationParamsChanged(AnimationParams* aParams){
 			}
 		}
 	}
-	MainForm::getInstance()->setCurrentFrameNum(aParams->getCurrentFrameNumber());
+	MainForm::getInstance()->setCurrentTimestep(aParams->getCurrentTimestep());
 }
 //Set the viewer coords changed flag for all vizwin's using these params:
 void VizWinMgr::

@@ -120,9 +120,8 @@ protected slots:
 	void guiDeleteKeyframe();
 	void guiInsertKeyframe();
 	void guiGotoKeyframe();
-	//Check and fix keyframes, return true if OK
-	void fixKeyframes();
-	
+	//Check and fix keyframes,
+	void fixKeyframes(bool silent = false);
 
 };
 

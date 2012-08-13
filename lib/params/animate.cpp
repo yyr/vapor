@@ -74,7 +74,10 @@ void animate:: keyframeInterpolate(std::vector<Keyframe*>& key_vec, std::vector<
     }
     
     //fill out the no of frames in between starting keyframes
-    for (int i=0; i < noVPs ; i++) key_vec[i]->frameNum=totalSegments[i];
+	for (int i=0; i < noVPs ; i++) {
+		if (!key_vec[i]->stationaryFlag)
+			key_vec[i]->numFrames=totalSegments[i];
+	}
     
     outViewPoints.clear();
 }
@@ -88,7 +91,7 @@ void animate:: keyframeInterpolate(std::vector<Keyframe*>& key_vec, std::vector<
 
 void animate::priorInterPolationCalcs(const std::vector<Keyframe*>& key_vec){
     
-    //Calculating the zoom distance at each viewpoint
+    //Calculating the zoom distance at each keyframe
     for (int i=0; i < noVPs; i++){
         zoom[i] = sqrt (pow (key_vec[i]->viewpoint->getCameraPosLocal(0) 
 			- key_vec[i]->viewpoint->getRotationCenterLocal(0), 2) 
@@ -112,8 +115,17 @@ void animate::priorInterPolationCalcs(const std::vector<Keyframe*>& key_vec){
     
     
      for( int i=0; i < noVPs-1; i++){
-    
-       //quat calculations
+		//If next keyframe has the stationaryFlag set, then this keyframe has the same viewpoint as the next one.
+		//Just copy the viewpoint for each of the inbetween frames
+		if (key_vec[i+1]->stationaryFlag){
+			assert(i>0);
+			for (int j = 0; j<key_vec[i+1]->numFrames; j++){
+				Viewpoint* outVP = new Viewpoint(*(key_vec[i]->viewpoint));
+				outViewPoints.push_back(outVP);
+			}
+			continue;
+		}
+       //quat calculations:  Convert viewpoints to quaternions
         calculate_quats(i, key_vec);
 
         //evaluate approximate camera positions using approx=true
@@ -156,7 +168,10 @@ void animate::priorInterPolationCalcs(const std::vector<Keyframe*>& key_vec){
 void animate::hermite_function (float t[],int noFrames,float inputPoints[],float out_pts[], float slope1, float slope2){
 
     for (int k=0;k < noFrames;k++){    
-        out_pts[k] =inputPoints[0] *H0(t[k]) + inputPoints[1] * H1(t[k]) +  slope1 * H2(t[k]) + slope2*H3(t[k]);              
+        out_pts[k] =inputPoints[0] *H0(t[k]) + inputPoints[1] * H1(t[k]) +  slope1 * H2(t[k]) + slope2*H3(t[k]);  
+		if (slope1 != 0. || slope2 != 0.){
+			float foo = slope1 - slope2;
+		}
     }
         
 }
@@ -168,13 +183,16 @@ void animate::hermite_function (float t[],int noFrames,float inputPoints[],float
 /////////////////////////////////////////////////////////////////////////////
 void animate::slopeCalculator(const std::vector<Keyframe*>& key_vec)
 {
+	float vDir1[3]; float vDir2[3]; float vDir0[3];
+	float q1[4],q2[4],q3[4],q4[4], q0[4], q5[4],q6[4],q1inv[4];
+	float upVec1[3], upVec2[3], upVec0[3];
     //first slope =0
     slopes[0].cam[0]=0;slopes[0].cam[1]=0;slopes[0].cam[2]=0;
 	slopes[0].rot[0]=0;slopes[0].rot[1]=0;slopes[0].rot[2]=0;
     slopes[0].view[0]=0; slopes[0].view[1]=0; slopes[0].view[2]=0;
     slopes[0].up[0]=0;slopes[0].up[1]=0;slopes[0].up[2]=0;
     slopes[0].zoom=0;
-    slopes[0].quat[0]=0; slopes[0].quat[1]=0; slopes[0].quat[2]=0;
+    
     
     //last slope =0 
     slopes[noVPs-1].cam[0]=0;slopes[noVPs-1].cam[1]=0;slopes[noVPs-1].cam[2]=0;
@@ -182,14 +200,23 @@ void animate::slopeCalculator(const std::vector<Keyframe*>& key_vec)
     slopes[noVPs-1].view[0]=0; slopes[noVPs-1].view[1]=0; slopes[noVPs-1].view[2]=0;
     slopes[noVPs-1].up[0]=0;slopes[noVPs-1].up[1]=0;slopes[noVPs-1].up[2]=0;
     slopes[noVPs-1].zoom=0;
-    slopes[noVPs-1].quat[0]=0; slopes[noVPs-1].quat[1]=0; slopes[noVPs-1].quat[2]=0;
+    
+	//Quaternion endpoints use values in "slopes" as control points.  For first point:
+	vDir1[0] = key_vec[0]->viewpoint->getViewDir(0);  vDir1[1] = key_vec[0]->viewpoint->getViewDir(1);  vDir1[2] = key_vec[0]->viewpoint->getViewDir(2);   
+    upVec1[0]= key_vec[0]->viewpoint->getUpVec(0);    upVec1[1]= key_vec[0]->viewpoint->getUpVec(1);    upVec1[2]=  key_vec[0]->viewpoint->getUpVec(2); 
+        
+    //the last point
+    vDir2[0] = key_vec[noVPs-1]->viewpoint->getViewDir(0); vDir2[1] = key_vec[noVPs-1]->viewpoint->getViewDir(1);  vDir2[2] = key_vec[noVPs-1]->viewpoint->getViewDir(2);   
+    upVec2[0]= key_vec[noVPs-1]->viewpoint->getUpVec(0);   upVec2[1]= key_vec[noVPs-1]->viewpoint->getUpVec(1);    upVec2[2]= key_vec[noVPs-1]->viewpoint->getUpVec(2); 
+    view2Quat(vDir1,upVec1, slopes[0].quat);
+	view2Quat(vDir2,upVec2, slopes[noVPs-1].quat);
    
     
     //rest of the slopes
     float val1, val2;
-    float vDir1[3]; float vDir2[3]; float vDir0[3]; 
-    float upVec1[3];float upVec2[3];float upVec0[3];
-    float q1[3]; float q2[3]; float q3[3]; float q4[3];
+     
+    
+   
     
     for (int i=1; i < noVPs-1;i++)
     {
@@ -214,7 +241,7 @@ void animate::slopeCalculator(const std::vector<Keyframe*>& key_vec)
         slopes[i].rot[2] = (val1-val2)/2;
         
         
-        //quat slopes
+        //quat slopes (are actually control points)
         
         //the current point
         vDir1[0] = key_vec[i]->viewpoint->getViewDir(0);  vDir1[1] = key_vec[i]->viewpoint->getViewDir(1);          vDir1[2] = key_vec[i]->viewpoint->getViewDir(2);   
@@ -228,15 +255,23 @@ void animate::slopeCalculator(const std::vector<Keyframe*>& key_vec)
         vDir0[0] = key_vec[i-1]->viewpoint->getViewDir(0);  vDir0[1] = key_vec[i-1]->viewpoint->getViewDir(1);   vDir0[2] = key_vec[i-1]->viewpoint->getViewDir(2);
         upVec0[0]= key_vec[i-1]->viewpoint->getUpVec(0);    upVec0[1]= key_vec[i-1]->viewpoint->getUpVec(1);     upVec0[2]= key_vec[i-1]->viewpoint->getUpVec(2); 
             
-        //quats before and current
-        views2ImagQuats(vDir0,upVec0, vDir1, upVec1, q1, q2);
-        //quats current and after
-        views2ImagQuats(vDir1, upVec1, vDir2, upVec2, q3, q4);
-        
-        slopes[i].quat[0] = ((q2[0]-q1[0]) + (q4[0]-q3[0]) ) *0.5;
-        slopes[i].quat[1] = ((q2[1]-q1[1]) + (q4[1]-q3[1]) ) *0.5;
-        slopes[i].quat[2] = ((q2[2]-q1[2]) + (q4[2]-q3[2]) ) *0.5;
-        
+        //quats for determining quaternion interpolation via Squad. (not actually slopes)
+        view2Quat(vDir0,upVec0, q0);
+		view2Quat(vDir1,upVec1, q1);
+		view2Quat(vDir2,upVec2, q2);
+        qconj(q1,q1inv);
+		qmult(q1inv,q0,q3);
+		qmult(q1inv,q2,q4);
+		qlog(q3,q5);
+		qlog(q4,q6);
+		qadd(q5,q6,q3);
+		//Multiply by -1/4 and exponentiate.  ignore (zero) real part..
+		vscale(q3, -0.25);
+		float mag = vlength(q3);
+		//exponentiate in place:
+		q3[3]= cos(mag);
+		if (mag > 0.) vscale(q3,sin(mag)/mag);
+		qmult(q1,q3,slopes[i].quat); 
     }
 }
 
@@ -246,33 +281,9 @@ void animate::slopeCalculator(const std::vector<Keyframe*>& key_vec)
 ////////////////////////////////////////////////////////////////////////////////
 void animate::calculate_quats (int startIndex,const std::vector<Keyframe*>& key_vec){
     
-    float vDir1[3]; float vDir2[3]; 
-    float upVec1[3];float upVec2[3];
-    
-    float q1[3]; float q2[3]; 
- 
-    //the current point
-    vDir1[0] = key_vec[startIndex]->viewpoint->getViewDir(0);  vDir1[1] = key_vec[startIndex]->viewpoint->getViewDir(1);          vDir1[2] = key_vec[startIndex]->viewpoint->getViewDir(2);   
-    upVec1[0]= key_vec[startIndex]->viewpoint->getUpVec(0);    upVec1[1]= key_vec[startIndex]->viewpoint->getUpVec(1);            upVec1[2] = key_vec[startIndex]->viewpoint->getUpVec(2); 
-    
-    //the next point
-    vDir2[0] = key_vec[startIndex+1]->viewpoint->getViewDir(0);  vDir2[1] = key_vec[startIndex+1]->viewpoint->getViewDir(1);   vDir2[2] = key_vec[startIndex+1]->viewpoint->getViewDir(2);   
-    upVec2[0]= key_vec[startIndex+1]->viewpoint->getUpVec(0);    upVec2[1]= key_vec[startIndex+1]->viewpoint->getUpVec(1);     upVec2[2]= key_vec[startIndex+1]->viewpoint->getUpVec(2); 
-    
-    //initalize quats
-    for (int i=0; i <3; i++){
-		q1[i]=0; q2[i]=0; 	
-	}
-
     //calculate the quats for the two points
-    views2ImagQuats(vDir1, upVec1, vDir2, upVec2, q1, q2);
-    
-    //quat1 and quat2 for interpolation
-    for (int i=0; i < 3; i++){
-        quat1[i]=q1[i];
-        quat2[i]=q2[i];
-        
-    }
+    view2Quat(key_vec[startIndex]->viewpoint->getViewDir(), key_vec[startIndex]->viewpoint->getUpVec(), quat1);
+	view2Quat(key_vec[startIndex+1]->viewpoint->getViewDir(), key_vec[startIndex+1]->viewpoint->getUpVec(), quat2);
 
 }
 
@@ -304,7 +315,7 @@ bool animate::speedController(int startIndex,const  std::vector<Keyframe*>& key_
     //No of frames
     int N = (int) ((2*distance[testPoints-1]/ (key_vec[startIndex]->speed +key_vec[startIndex+1]->speed))   +  0.5);
 	if (N == 0){
-		totalSegments[startIndex] = 1;
+		totalSegments[startIndex+1] = 1;
 		return false;
 	}
    
@@ -358,7 +369,7 @@ bool animate::speedController(int startIndex,const  std::vector<Keyframe*>& key_
     }
 
     //value of num of segments
-    totalSegments[startIndex]=N+1;
+    totalSegments[startIndex+1]=N+1;
     
     //call the interpolate function with the appropriate 't' and N parameters
     interpolate (T,N+1,startIndex, key_vec, false);
@@ -431,9 +442,22 @@ void animate::interpolate (float T[], int N,int startIndex,const std::vector<Key
     }
    
 
-    //C.quaternion interpolation between points A and B
+    //C.quaternion interpolation between points A and B.  uses squad instead of Hermite poly.
+	float quatInterp[4], viewdir[3], upvec[3];
+	for (int i = 0; i<N; i++){
+		squad(quat1,quat2,slopes[startIndex].quat,slopes[startIndex+1].quat,T[i],quatInterp);
+		quat2View(quatInterp, viewdir,upvec);
+		viewD[i].x = viewdir[0];
+		viewD[i].y = viewdir[1];
+		viewD[i].z = viewdir[2];
+		upD[i].x = upvec[0];
+		upD[i].y = upvec[1];
+		upD[i].z = upvec[2];
+	}
+	/*
     inputPoints[0]= quat1[0];
-    inputPoints[1] =quat2[0];
+    inputPoints[1]= quat2[0];
+
     hermite_function (T, N, inputPoints, out_Points,  slopes[startIndex].quat[0], slopes[startIndex+1].quat[0]);
   
     for (int i=0;i < N ; i++){
@@ -467,7 +491,7 @@ void animate::interpolate (float T[], int N,int startIndex,const std::vector<Key
         viewD[i].x= vDir[0]; viewD[i].y=vDir[1]; viewD[i].z=vDir[2];
         upD[i].x=uVec[0]; upD[i].y=uVec[1]; upD[i].z=uVec[2];
     }
-    
+    */
     //camera positions 
     for (int i=0; i < N ; i++){
         

@@ -295,12 +295,12 @@ void MainForm::createToolBars(){
 // Animation Toolbar:
 	animationToolBar = addToolBar("animation control");
 	QIntValidator *v = new QIntValidator(0,99999,animationToolBar);
-	frameNumEdit = new QLineEdit(animationToolBar);
-	frameNumEdit->setAlignment(Qt::AlignHCenter);
-	frameNumEdit->setMaximumWidth(40);
-	frameNumEdit->setToolTip( "Edit/Display current time step");
-	frameNumEdit->setValidator(v);
-	animationToolBar->addWidget(frameNumEdit);
+	timeStepEdit = new QLineEdit(animationToolBar);
+	timeStepEdit->setAlignment(Qt::AlignHCenter);
+	timeStepEdit->setMaximumWidth(40);
+	timeStepEdit->setToolTip( "Edit/Display current time step");
+	timeStepEdit->setValidator(v);
+	animationToolBar->addWidget(timeStepEdit);
 	
 	animationToolBar->addAction(playBackwardAction);
 	animationToolBar->addAction(stepBackAction);
@@ -412,7 +412,7 @@ void MainForm::hookupSignals() {
 	connect (pauseAction, SIGNAL(triggered()), this, SLOT(pauseClick()));
 	connect (stepForwardAction, SIGNAL(triggered()), this, SLOT(stepForward()));
 	connect (stepBackAction, SIGNAL(triggered()), this, SLOT(stepBack()));
-	connect (frameNumEdit, SIGNAL(editingFinished()),this, SLOT(setTimestep()));
+	connect (timeStepEdit, SIGNAL(editingFinished()),this, SLOT(setTimestep()));
 }
 
 void MainForm::createMenus(){
@@ -1505,7 +1505,7 @@ void MainForm::stepForward(){
 //Respond to a change in the text in the animation toolbar
 void MainForm::setTimestep(){
 	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::_animationParamsTag);
-	int tstep = frameNumEdit->text().toInt();
+	int tstep = timeStepEdit->text().toInt();
 	AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
 
 	if (tstep < aParams->getStartFrameNumber()) tstep = aParams->getStartFrameNumber();
@@ -1513,9 +1513,13 @@ void MainForm::setTimestep(){
 	aRouter->guiSetTimestep(tstep);
 }
 //Set the timestep in the animation toolbar:
-void MainForm::setCurrentFrameNum(int tstep){
-	frameNumEdit->setText(QString::number(tstep));
+void MainForm::setCurrentTimestep(int tstep){
+	timeStepEdit->setText(QString::number(tstep));
 	update();
+}
+void MainForm::enableKeyframing(bool ison){
+	QPalette pal(timeStepEdit->palette());
+	timeStepEdit->setEnabled(!ison);
 }
 void MainForm::paintEvent(QPaintEvent* e){
 	MessageReporter::infoMsg("MainForm::paintEvent");

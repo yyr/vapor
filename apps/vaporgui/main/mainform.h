@@ -82,14 +82,15 @@ public:
 	QApplication* getApp() {return theApp;}
 	
 	void setInteractiveRefinementSpin(int);
-	void setCurrentFrameNum(int tstep);
+	void setCurrentTimestep(int tstep);
+	void enableKeyframing(bool onoff);
 	VizSelectCombo* getWindowSelector(){return windowSelector;}
 	//following are accessed during undo/redo
 	QAction* navigationAction;
 	
 	QAction* editUndoAction;
 	QAction* editRedoAction;
-	QLineEdit* frameNumEdit;
+	QLineEdit* timeStepEdit;
 	QComboBox* alignViewCombo;
 	QComboBox* modeCombo;
 	//Following are public so accessible from animation tab:

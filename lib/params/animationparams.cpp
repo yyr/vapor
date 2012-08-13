@@ -50,14 +50,11 @@ const string AnimationParams::_endKeyframeFrameAttr = "EndKeyframeFrame";
 const string AnimationParams::_currentFrameAttr = "CurrentFrame";
 const string AnimationParams::_currentInterpFrameAttr = "CurrentInterpolatedFrame";
 const string AnimationParams::_maxWaitAttr = "MaxWait";
-const string AnimationParams::_cameraSpeedAttr = "CurrentCameraSpeed";
 const string AnimationParams::_keyframesEnabledAttr = "KeyframesEnabled";
 const string AnimationParams::_keyframeTag = "Keyframe";
 const string AnimationParams::_keySpeedAttr = "KeySpeed";
 const string AnimationParams::_keyTimestepAttr = "KeyTimestep";
-const string AnimationParams::_endTimestepAttr = "KeyEndTimestep";
 const string AnimationParams::_keyNumFramesAttr = "KeyNumFrames";
-const string AnimationParams::_keyDurationAttr = "KeyDuration";
 float AnimationParams::defaultMaxFPS = 10.f;
 float AnimationParams::defaultMaxWait = 6000.f;
 
@@ -117,7 +114,6 @@ restart(){
 	loadedTimesteps.clear();
 	keyframes.clear();
 	useKeyframing=false;
-	currentCameraSpeed = 0.1;
 	//Insert a default keyframe:
 	Viewpoint* vp = new Viewpoint();
 	Keyframe* kf = new Keyframe(vp,0., 0, 1);
@@ -404,9 +400,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 			else if (StrCmpNoCase(attribName, _keyframesEnabledAttr) == 0) {
 				if (value == "true") useKeyframing = true; else useKeyframing = false;
 			}
-			else if (StrCmpNoCase(attribName, _cameraSpeedAttr) == 0) {
-				ist >> currentCameraSpeed;
-			}
+			
 		}
 		return true;
 	} else if (StrCmpNoCase(tag, _keyframeTag) == 0){
@@ -415,8 +409,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		float speed = 0.1f;
 		int frameNum = 1;
 		int timestep = 0;
-		int endTimestep = 0;
-		int duration = 0;
+		
 		while (*attrs) {
 			string attribName = *attrs;
 			attrs++;
@@ -427,12 +420,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 				ist >> speed;
 			} else if (StrCmpNoCase(attribName, _keyTimestepAttr) == 0) {
 				ist >> timestep;
-			} else if (StrCmpNoCase(attribName, _endTimestepAttr) == 0) {
-				ist >> endTimestep;
 			} else if (StrCmpNoCase(attribName, _keyNumFramesAttr) == 0) {
 				ist >> frameNum;
-			} else if (StrCmpNoCase(attribName, _keyDurationAttr) == 0) {
-				ist >> duration;
 			} 
 		}
 		
@@ -440,8 +429,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		Viewpoint* keyViewpoint = new Viewpoint();
 
 		Keyframe* parsingKeyframe = new Keyframe(keyViewpoint,speed,timestep,frameNum);
-		parsingKeyframe->duration = duration;
-		parsingKeyframe->endTimestep = endTimestep;
+		
 		keyframes.push_back(parsingKeyframe);
 		pm->pushClassStack(keyViewpoint);
 		return true;
@@ -554,10 +542,6 @@ buildNode(){
 	}
 	attrs[_keyframesEnabledAttr] = oss.str();
 
-	oss.str(empty);
-	oss << (double)currentCameraSpeed;
-	attrs[_cameraSpeedAttr] = oss.str();
-
 	ParamNode* animationNode = new ParamNode(_animationParamsTag, attrs, keyframes.size());
 
 	for (int i = 0; i<keyframes.size(); i++){
@@ -566,14 +550,8 @@ buildNode(){
 		oss << (long)keyframes[i]->timeStep;
 		attrs[_keyTimestepAttr] = oss.str();
 		oss.str(empty);
-		oss << (long)keyframes[i]->endTimestep;
-		attrs[_endTimestepAttr] = oss.str();
-		oss.str(empty);
-		oss << (long)keyframes[i]->frameNum;
+		oss << (long)keyframes[i]->numFrames;
 		attrs[_keyNumFramesAttr] = oss.str();
-		oss.str(empty);
-		oss << (long)keyframes[i]->duration;
-		attrs[_keyDurationAttr] = oss.str();
 		oss.str(empty);
 		oss << (double)keyframes[i]->speed;
 		attrs[_keySpeedAttr] = oss.str();
@@ -610,9 +588,9 @@ void AnimationParams::buildViewsAndTimes(){
 	
 	for (int i = 0; i<keyframes.size(); i++){
 		Viewpoint* vp = new Viewpoint();
-		Keyframe* kFrame = new Keyframe(vp,keyframes[i]->speed * maxStretchedSize,keyframes[i]->timeStep,keyframes[i]->frameNum);
-		kFrame->endTimestep = keyframes[i]->endTimestep;
-		kFrame->duration = keyframes[i]->duration;
+		Keyframe* kFrame = new Keyframe(vp,keyframes[i]->speed * maxStretchedSize,keyframes[i]->timeStep,keyframes[i]->numFrames);
+		kFrame->stationaryFlag = keyframes[i]->stationaryFlag;
+		
 		Viewpoint* vkey = keyframes[i]->viewpoint;
 		for (int j = 0; j<3; j++){
 			//The displacement between the camera and rotation center is stretched
@@ -629,12 +607,28 @@ void AnimationParams::buildViewsAndTimes(){
 		kFrame->viewpoint = vp;
 		animKeyframes.push_back(kFrame);
 	}
+
+	//Set stationaryFlags
+	DataStatus* ds = DataStatus::getInstance();
+	float sceneSize = vlength(ds->getFullSizes());
+	for (int i = animKeyframes.size()-2; i>= 0; i--){
+		float* campos1 = keyframes[i]->viewpoint->getCameraPosLocal();
+		float* campos2 = keyframes[i+1]->viewpoint->getCameraPosLocal();
+		float dist = vdist(campos1,campos2);
+		if (dist < 1.e-4 * sceneSize){
+			animKeyframes[i+1]->stationaryFlag = true;
+		} else {
+			animKeyframes[i+1]->stationaryFlag = false;
+		}
+	}
+	
+
 	if (!myAnimate) myAnimate = new animate();
 
 	myAnimate->keyframeInterpolate(animKeyframes, loadedViewpoints);
 	//copy back the frame counts
 	for (int i = 0; i<animKeyframes.size(); i++){
-		keyframes[i]->frameNum = animKeyframes[i]->frameNum;
+		keyframes[i]->numFrames = animKeyframes[i]->numFrames;
 	}
 	
 	//Undo stretch:
@@ -649,49 +643,33 @@ void AnimationParams::buildViewsAndTimes(){
 		vnormal(vp->getViewDir());
 	}
 
-
+	//At this point, loadedViewpoints has all the correct viewpoints
 	//Adjust time steps.  
-		//Whenever there is a keyframe of nonzero duration, replicate the viewpoint that many times,
-		//and interpolate the timesteps based on start and end timesteps.
-		//Then use the last timestep as the starting point for subsequent interpolation.
+	//Whenever there is a keyframe of nonzero numFrames,
+	//interpolate the timesteps between current and previous keyframe
 	int currFrame = 0;
-	
 	for (int i = 0; i<animKeyframes.size(); i++){
-		int duration = animKeyframes[i]->duration;
-		if (duration > 0){
-			int firstTime = animKeyframes[i]->timeStep;
-			int lastTime = animKeyframes[i]->endTimestep;
-			Viewpoint* firstVP = animKeyframes[i]->viewpoint;
-			for (int j = 0; j<duration; j++){
-				insertViewpoint(currFrame, new Viewpoint(*firstVP));
-				float frameFraction = (float)(j+1)/(float)duration;
-				int tStep = (int)(0.5+ (float)firstTime + frameFraction*(lastTime-firstTime));
-				loadedTimesteps.push_back(tStep);
-				currFrame++;
-			}
-		} else {
-			animKeyframes[i]->endTimestep = animKeyframes[i]->timeStep;
-		}
-		//Then proceed with timesteps between keyframe i and i+1:
+		loadedTimesteps.push_back(animKeyframes[i]->timeStep);
+		
+		//interpolate timesteps between keyframe i and i+1:
 		if (i == animKeyframes.size()-1) break;
-		int firstTstep = animKeyframes[i]->endTimestep;
+		int firstTstep = animKeyframes[i]->timeStep;
 		int nextTstep = animKeyframes[i+1]->timeStep;
-		int numFrames = animKeyframes[i]->frameNum;
-		//Note:  If duration > 0, we have already inserted a timestep for keyframe[i]
-		for (int j = 0; j<numFrames; j++){
-			if (j == 0 && (duration > 0)) continue;
+		int numFrames = animKeyframes[i+1]->numFrames;
+		for (int j = 1; j<numFrames; j++){
 			float frameFraction = (float)j/(float)(numFrames);
-			int tStep = (int)(0.5+ (float)firstTstep + frameFraction*(nextTstep-firstTstep));
+			int tStep = (int)(0.4999+ (float)firstTstep + frameFraction*(nextTstep-firstTstep));
 			loadedTimesteps.push_back(tStep);
 			currFrame++;
 		}
 	}
-	//At the very end, use the last timestep of the last keyframe:
-	loadedTimesteps.push_back(animKeyframes[animKeyframes.size()-1]->endTimestep);
+	
 	int num1 = loadedTimesteps.size();
 	int num2 = loadedViewpoints.size();
-	assert(num1 == num2);
-	assert (currFrame == num1 -1);
+	if (num1 != num2 || currFrame != num1-1){
+		assert(num1 == num2);
+		assert (currFrame == num1 -1);
+	}
 	
 	if ((endKeyframeFrame > (loadedViewpoints.size()-1)) || endFrameIsDefault) {
 			endKeyframeFrame = loadedViewpoints.size()-1;
@@ -701,6 +679,9 @@ void AnimationParams::buildViewsAndTimes(){
 		startKeyframeFrame = 0;
 	}
 	
+	if (getCurrentInterpolatedFrame() >= getNumLoadedViewpoints()){
+		setCurrentInterpolatedFrame(getNumLoadedViewpoints()-1);
+	}
 	//Now we can clear it out:
 	
 	for (int i = 0; i<animKeyframes.size(); i++){
@@ -732,4 +713,12 @@ void AnimationParams::clearLoadedViewpoints() {
 	loadedViewpoints.clear();
 	loadedTimesteps.clear();
 	
+}
+int AnimationParams::getFrameIndex(int keyframeIndex){
+	int totframes = 0;
+	if (keyframeIndex >= keyframes.size()) keyframeIndex = keyframes.size()-1;
+	for (int i = 0; i<=keyframeIndex; i++){
+		totframes += (keyframes[i]->numFrames);
+	}
+	return totframes;
 }

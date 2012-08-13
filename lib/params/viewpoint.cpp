@@ -240,12 +240,11 @@ Viewpoint* Viewpoint::interpolate(Viewpoint* vp1, Viewpoint* vp2, float alpha){
 	vnormal(VP2->getViewDir());
 	
 	
-	
-	
-
 	Viewpoint* vp = new Viewpoint(*VP1);
-	float rCenter[3], vdir[3],campos[3],upvec[3], imagQuat[3];
-	float imagQuat1[3],imagQuat2[3];
+	float rCenter[3], vdir[3],campos[3],upvec[3];
+	//, imagQuat[3];
+	//float imagQuat1[3],imagQuat2[3];
+	float quat1[4],quat2[4],quatres[4];
 	float camdist1 = vdist(VP1->getCameraPosLocal(), VP1->getRotationCenterLocal());
 	float camdist2 = vdist(VP2->getCameraPosLocal(), VP2->getRotationCenterLocal());
 	//Multiplicative interpolation of dist:
@@ -256,7 +255,13 @@ Viewpoint* Viewpoint::interpolate(Viewpoint* vp1, Viewpoint* vp2, float alpha){
 	}
 	vp->setRotationCenterLocal(rCenter);
 	//Interpolate rotation in quaternions:  First convert two VP orientations to norm-1 quaternions
-	
+	view2Quat(VP1->getViewDir(),VP1->getUpVec(),quat1);
+	view2Quat(VP2->getViewDir(),VP2->getUpVec(),quat2);
+	slerp(quat1,quat2, 0.5, quatres);
+	quat2View(quatres,vdir,upvec);
+	vp->setUpVec(upvec);
+	vp->setViewDir(vdir);
+	/*
 	//convert both vps to pure imaginary quaternion, relative to startQuat 
 	views2ImagQuats(VP1->getViewDir(),VP1->getUpVec(),VP2->getViewDir(),VP2->getUpVec(),imagQuat1,imagQuat2);
 	
@@ -269,6 +274,7 @@ Viewpoint* Viewpoint::interpolate(Viewpoint* vp1, Viewpoint* vp2, float alpha){
 
 	vp->setUpVec(upvec);
 	vp->setViewDir(vdir);
+	*/
 	//Use the interpolated viewDist to find new campos, based on vdir:
 	for(int i = 0; i<3; i++){
 		campos[i] = rCenter[i] - camInterp*vdir[i];

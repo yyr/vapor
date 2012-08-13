@@ -26,7 +26,7 @@ class PARAMS_API animate {
         float up[3];
         float zoom;
         float rot[3];
-        float quat[3];
+        float quat[4];
                 
     };
     
@@ -42,7 +42,7 @@ class PARAMS_API animate {
 	slope * slopes;
 
 	//quaternions
-	float  quat1[3]; float quat2[3]; 
+	float  quat1[4]; float quat2[4]; 
 	int noVPs ; //no of input view points
 	int testPoints;//the no of test points in between
 
