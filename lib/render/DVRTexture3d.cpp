@@ -334,7 +334,7 @@ void DVRTexture3d::calculateSampling()
 
   _delta = distance / (_samples-1);
 
-cout << "_samples = " << _samples << endl;
+//cout << "_samples = " << _samples << endl;
 //cout << "_delta = " << _delta << endl;
 }
 
