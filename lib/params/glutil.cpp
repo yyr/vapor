@@ -1391,60 +1391,55 @@ void quat2View(float quat[4], float vdir[3], float upvec[3]){
 }
 //Spherical linear interpolation between two unit quaternions.  t is between 0 and 1.
 void slerp(float quat0[4], float quat1[4], float t, float result[4]){
-	float q0inv[4], res1[4],res2[4];
+	//Wikipedia:  slerp = q0*(q0^-1 * q1)**t
+	float q0inv[4], res1[4],res2[4], V[3];
 	//make sure they are unit quaternion:
 	qnormal(quat0);
 	qnormal(quat1);
-	float dotprod = vdot(quat0,quat1) + quat0[3]*quat1[3];
-	if (dotprod < 0) {  //change sign so that angle is acute.
-		for (int i = 0; i<4; i++) quat1[i] = -quat1[i];
-	}
-
+		
 	//calculate quat0 inv
 	for (int i = 0; i<3; i++) q0inv[i] = -quat0[i];
 	q0inv[3] = quat0[3];
 	qmult(q0inv, quat1, res1);
 	//now take res1 to power t:
+	//First express res1 as cos theta + V sin theta, = exp(theta*V)
+	if (res1[3]> 1.0) res1[3]=1.0;
+	if (res1[3]< -1.0) res1[3]= -1.0;
 	double theta = acos((double)res1[3]);
-	float vmag = vlength(res1);
-	if (vmag == 0.f){ //theta is 0 --or pi?
-		for (int i = 0; i<3; i++) res2[i] = 0.;
-		res2[3]=1;
-		assert(res1[3] > 0.);  //could res1[3] ever be -1??
+	float sinTheta = sin(theta);
+	
+	if (sinTheta == 0.f){
+		vzero(V);
 	} else {
-		res2[3] = cos(t*theta);
-		for (int i = 0; i<3; i++){
-			res2[i] = sin(t*theta)*res1[i]/vmag;
-		}
+		vcopy(res1,V);
+		vscale(V,1./sinTheta);
 	}
-	//Now multiply by quat0 to get q0*(q0^-1 * q1)^t
-	qmult(quat0,res2,result);
-	/*
-	//float dotprod = vdot(quat0,quat1) + quat0[3]*quat1[3];
-	//if (dotprod < 0) {  //change sign so that angle is acute.
-	//	for (int i = 0; i<4; i++) quat1[i] = -quat1[i];
-	//}
+	// Now take to power t, i.e. cos(t*theta)+sin(t*theta)*V
+	res2[3] = cos(t*theta);
+	for (int i = 0; i< 3; i++) res2[i] = V[i]*sin(t*theta);
 
-	float theta = acos(quat1[3]);
-	float sintheta = sin(theta);
-	//represent
-	if (sintheta == 0.f){ //theta is 0 or pi
-		for (int i = 0; i<3; i++) result[i] = quat0[i];
-		assert(quat0[3] > 0.);  //could quat0 ever be -1??
-		return;
-	}
-	for (int i = 0; i<3; i++){
-		result[i] = (quat0[i]*sin((1-t)*theta) + quat1[i]*sin(t*theta))/sintheta;
-	}
-	*/
+	//then multiply on the left by quat0:
+	qmult(quat0,res2,result);
+	
 }
 //Logarithm of a unit quaternion
 void qlog(float quat[4],float quatlog[4]){
-	float mag = vlength(quat); //norm of imaginary part
-	float re = acos(quat[3]);
-	if (mag == 0.f) for (int i = 0; i<3; i++) quatlog[i] = 0.f;
-	else for (int i = 0; i<3; i++) quatlog[i] = quat[i]*re/mag;
+	
+	//express quat as cos theta + V sin theta, = exp(theta*V)
+	float V[3];
+	if (quat[3]> 1.0) quat[3]=1.0;
+	if (quat[3]< -1.0) quat[3]= -1.0;
+	double theta = acos((double)quat[3]);
+	float sinTheta = sin(theta);
+	if (sinTheta == 0.f){
+		vzero(V);
+	} else {
+		vcopy(quat,V);
+		vscale(V,theta/sinTheta);
+	}
+	vcopy(V,quatlog);
 	quatlog[3]=0.f;
+	
 }
 void squad(float quat1[4],float quat2[4], float s1[4],float s2[4], float t, float result[4]){
 	float qa[4], qb[4];

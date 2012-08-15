@@ -42,7 +42,7 @@ class PARAMS_API animate {
 	slope * slopes;
 
 	//quaternions
-	float  quat1[4]; float quat2[4]; 
+	vector<float*> viewQuats;
 	int noVPs ; //no of input view points
 	int testPoints;//the no of test points in between
 
@@ -70,7 +70,6 @@ class PARAMS_API animate {
     void priorInterPolationCalcs(const std::vector<Keyframe*>& key_vec);
     void interpolate (float T[], int N,int startIndex,const std::vector<Keyframe*>& key_vec, bool approx);
     void hermite_function(float t[],int noFrames,float inputPoints[], float out_pts[],float slope1, float slope2);
-    void calculate_quats (int startIndex,const std::vector<Keyframe*>& key_vec);
     bool speedController(int startIndex,const std::vector<Keyframe*>& key_vec);
     void slopeCalculator(const std::vector<Keyframe*>& key_vec);
     void evaluateCameraPos(int startIndex,const std::vector<Keyframe*>& key_vec);

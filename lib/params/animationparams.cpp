@@ -647,7 +647,7 @@ void AnimationParams::buildViewsAndTimes(){
 	//Adjust time steps.  
 	//Whenever there is a keyframe of nonzero numFrames,
 	//interpolate the timesteps between current and previous keyframe
-	int currFrame = 0;
+	
 	for (int i = 0; i<animKeyframes.size(); i++){
 		loadedTimesteps.push_back(animKeyframes[i]->timeStep);
 		
@@ -660,16 +660,14 @@ void AnimationParams::buildViewsAndTimes(){
 			float frameFraction = (float)j/(float)(numFrames);
 			int tStep = (int)(0.4999+ (float)firstTstep + frameFraction*(nextTstep-firstTstep));
 			loadedTimesteps.push_back(tStep);
-			currFrame++;
 		}
 	}
 	
 	int num1 = loadedTimesteps.size();
 	int num2 = loadedViewpoints.size();
-	if (num1 != num2 || currFrame != num1-1){
-		assert(num1 == num2);
-		assert (currFrame == num1 -1);
-	}
+	
+	assert(num1 == num2);
+	
 	
 	if ((endKeyframeFrame > (loadedViewpoints.size()-1)) || endFrameIsDefault) {
 			endKeyframeFrame = loadedViewpoints.size()-1;
