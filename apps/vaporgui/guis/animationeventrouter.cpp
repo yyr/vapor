@@ -836,22 +836,14 @@ void AnimationEventRouter::guiEnableKeyframing(bool enabled){
 	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Toggle keyframing enabled");
+	int ts = aParams->getCurrentTimestep();
 	aParams->enableKeyframing(enabled);
+	if (enabled) aParams->setCurrentFrameNumber(aParams->getFrameIndex(currentKeyIndex));
+	else aParams->setCurrentFrameNumber(ts);
 	PanelCommand::captureEnd(cmd, aParams);
 	MainForm::getInstance()->enableKeyframing(enabled);
 	currentTimestepEdit->setEnabled(!enabled);
-	/*
-	QPalette pal(currentTimestepEdit->palette());
-	if (enabled){
-		currentTimestepEdit->setEnabled(false)
-		currentTimestepEdit->setReadOnly(true);
-		pal.setColor(QPalette::Base,Qt::lightGray);
-	} else {
-		currentTimestepEdit->setReadOnly(false);
-		pal.setColor(QPalette::Base,Qt::white);
-	}
-	currentTimestepEdit->setPalette(pal);
-	*/
+	
 	VizWinMgr::getInstance()->animationParamsChanged(aParams);
 	VizWinMgr::getInstance()->setAnimationDirty(aParams);
 	updateTab();

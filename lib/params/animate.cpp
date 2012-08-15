@@ -121,7 +121,7 @@ void animate::priorInterPolationCalcs(const std::vector<Keyframe*>& key_vec){
     float *T = new float[testPoints];
     int val=0;
     for(float k=0;k < (1.0-incrementFactor);k+=incrementFactor){
-        
+        assert(val < testPoints);
         T[val] = k;
         val++;
     }
@@ -288,7 +288,7 @@ bool animate::speedController(int startIndex,const  std::vector<Keyframe*>& key_
         distance[i] = sum ;
         sum=0;
     }
-
+	assert((key_vec[startIndex]->speed +key_vec[startIndex+1]->speed) > 0.f);
     //No of frames
     int N = (int) ((2*distance[testPoints-1]/ (key_vec[startIndex]->speed +key_vec[startIndex+1]->speed))   +  0.5);
 	if (N == 0){
@@ -302,11 +302,6 @@ bool animate::speedController(int startIndex,const  std::vector<Keyframe*>& key_
     float F = float (n/N);
     float s1 = F*key_vec[startIndex]->speed; 
     float s2 = F*key_vec[startIndex+1]->speed;
-    
-    N = (int) (2*distance[testPoints-1]/ (s1 +s2));
-	if (N == 0){
-		N = 1;
-	}
   
     //delta
     float delta=0;
@@ -344,12 +339,11 @@ bool animate::speedController(int startIndex,const  std::vector<Keyframe*>& key_
     for (int i=1; i<N+1; i++){
         T[i] = t_distanceFunc(dist_prime[i-1]);
     }
-
     //value of num of segments
-    totalSegments[startIndex+1]=N+1;
+    totalSegments[startIndex+1]=N;
     
     //call the interpolate function with the appropriate 't' and N parameters
-    interpolate (T,N+1,startIndex, key_vec, false);
+    interpolate (T,N,startIndex, key_vec, false);
  
     delete dist;
 	delete dist_prime;
@@ -488,7 +482,7 @@ float animate::t_distanceFunc(float d){
     
     int max=testPoints-1; int min =0; int mid;
     int K; //default
-    float E=0;
+    double E=0;
     if (d == 0){ K=0;}
     else if (d>=distance[testPoints-1]) {K=testPoints-1;}
     
@@ -503,7 +497,7 @@ float animate::t_distanceFunc(float d){
         // determine which subarray to search
         if (distance[mid] <  d)
         {   
-			min = mid + 1;
+			min = mid;
             if (d <distance[mid+1])
             {K = mid; break;}
             
@@ -511,10 +505,10 @@ float animate::t_distanceFunc(float d){
         else
         {
             if (distance[mid] > d )
-            {max = mid - 1;
+            {max = mid;
                
                 if (d >distance[mid-1]){
-					K=mid; break;
+					K=mid-1; break;
 				}     
             }
             
@@ -528,9 +522,12 @@ float animate::t_distanceFunc(float d){
         
     }
         //E
-        E = (d-distance[K])/ (distance[K+1]-distance[K]);
+		assert(distance[K+1] != distance[K]);
+		assert(distance[K] <= d);
+		assert(distance[K+1] >= d);
+        E = double(d-distance[K])/ double(distance[K+1]-distance[K]);
     }
   
-    return (incrementFactor * (float(K)+E));
+    return (incrementFactor * (double(K)+E));
     
 }
