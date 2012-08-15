@@ -61,7 +61,7 @@ DVRTexture3d::DVRTexture3d(
   _delta(0.0),
   _samples(0),
   _samplingRate(2.0),
-  _minimumSamples(384),
+  _minimumSamples(128),
   _maxTexture(0),
   _maxBrickDim(128), // NOTE: This should always be <= _maxTexture
   _lastRegion(),
@@ -120,13 +120,6 @@ int DVRTexture3d::SetRegion(
 
     double extents[6];
     rg->GetUserExtents(extents);
-//cout << "EXTENTS " << 
-//extents[0] << " " <<
-//extents[1] << " " <<
-//extents[2] << " " <<
-//extents[3] << " " <<
-//extents[4] << " " <<
-//extents[5] << " " << endl;
 
     _vmin.x = extents[0];
     _vmin.y = extents[1];
@@ -244,66 +237,87 @@ void DVRTexture3d::calculateSampling()
   Matrix3d modelviewInverse;
 
   glGetFloatv(GL_MODELVIEW_MATRIX, modelview.data());  
-
-  //
-  //  Normalize the colums (rows?) to remove any scaling component
-  //
-  Vect3d xv(modelview(0,0), modelview(0,1), modelview(0,2));
-  Vect3d yv(modelview(1,0), modelview(1,1), modelview(1,2));
-  Vect3d zv(modelview(2,0), modelview(2,1), modelview(2,2));
-  xv *= 1.0/xv.mag(); 
-  yv *= 1.0/yv.mag(); 
-  zv *= 1.0/zv.mag(); 
-
-  modelview(0,0) = xv(0); modelview(0,1) = xv(1); modelview(0,2) = xv(2);
-  modelview(1,0) = yv(0); modelview(1,1) = yv(1); modelview(1,2) = yv(2);
-  modelview(2,0) = zv(0); modelview(2,1) = zv(1); modelview(2,2) = zv(2);
-
   modelview.inverse(modelviewInverse);
-  
 
-  BBox volumeBox(_vmin, _vmax);
-  BBox voxelBox(_dmin, _dmax);
+  //
+  // Normal transformation matrix and inverse
+  //
+  Matrix3d modviewNorm(modelviewInverse);
+  modviewNorm.transpose();
+
+  Matrix3d modviewNormInverse;
+  modviewNorm.inverse(modviewNormInverse);
+
+  //
+  // Calculate the slice plane normal (i.e., the view plane normal 
+  // inverse transformed from Eye into Object space). 
+  //
+  Vect3d viewPlaneNormal(0,0,1,0);
+  _slicePlaneNormal = modviewNormInverse * viewPlaneNormal;
+  _slicePlaneNormal.w(0.0);
+  _slicePlaneNormal.unitize();
+
+  //
+  // The volume in Object coordinates, and transformed into Eye
+  // coordinates. 
+  //
+  BBox volumeBox(_vmin, _vmax); // user extent units
+  BBox volumeBoxObjectCoord(_vmin, _vmax);
+  BBox voxelBox(_dmin, _dmax);  // voxel units
+  BBox voxelBoxObjectCoord(_dmin, _dmax);
 
   volumeBox.transform(modelview);
   voxelBox.transform(modelview);
 
-  // 
-  // Calculate the the minimum and maximum z-position of the rotated bounding
-  // boxes. Equivalent to but quicker than:
   //
-  // Vect3d maxv(0, 0, rotatedBox.maxZ().z); 
-  // Vect3d minv(0, 0, rotatedBox.minZ().z); 
-  // maxv = modelviewInverse * maxd;
-  // minv = modelviewInverse * mind;
+  // Define the view aligned slice plane. The plane will be positioned
+  // at the volume corner (_slicePoint) furthest from the eye. 
+  // (object coordinates)
   //
-  Vect3d maxv(modelviewInverse(2,0)*volumeBox.maxZ().z,
-              modelviewInverse(2,1)*volumeBox.maxZ().z,
-              modelviewInverse(2,2)*volumeBox.maxZ().z);
-  Vect3d minv(modelviewInverse(2,0)*volumeBox.minZ().z,
-              modelviewInverse(2,1)*volumeBox.minZ().z,
-              modelviewInverse(2,2)*volumeBox.minZ().z);
+  // Compute the distance between the first and last sampling plane
+  // First compute plane equation for plane passing through _slicePoint
+  // (first sampling plane), and perpendicular to _slicePlaneNormal.
+  //
+  // Use plane equation: Ax + Bx + Cx + D = 0
+  //
+  // Then compute distance between farPoint and the plane 
+  //
+  // Use distance to plane equation: d = (Ax+Bx+Cz+D)/sqrt(A*A+B*B+C*C)
+  //
+  _slicePoint = volumeBoxObjectCoord[volumeBox.minIndex()]; 
+  Vect3d farPoint = volumeBoxObjectCoord[volumeBox.maxIndex()]; 
 
-  Vect3d maxd(modelviewInverse(2,0)*voxelBox.maxZ().z,
-              modelviewInverse(2,1)*voxelBox.maxZ().z,
-              modelviewInverse(2,2)*voxelBox.maxZ().z);
-  Vect3d mind(modelviewInverse(2,0)*voxelBox.minZ().z,
-              modelviewInverse(2,1)*voxelBox.minZ().z,
-              modelviewInverse(2,2)*voxelBox.minZ().z);
+  double A = _slicePlaneNormal.x();
+  double B = _slicePlaneNormal.y();
+  double C = _slicePlaneNormal.z();
+  double D = -1.0*(A*_slicePoint.x() + B*_slicePoint.y() + C*_slicePoint.z());
+
+  double distance = (A*farPoint.x() + B*farPoint.y() + C*farPoint.z() + D) /
+    sqrt(A*A + B*B + C*C);
+
+  distance = fabs(distance);
 
   //
-  // Distance in world coordinates
+  // Next compute the distance between far and near sampling planes
+  // in voxel units
   //
-  float distance = (maxv - minv).mag();
+  Vect3d slicePointVoxel = voxelBoxObjectCoord[voxelBox.minIndex()]; 
+  Vect3d farPointVoxel = voxelBoxObjectCoord[voxelBox.maxIndex()]; 
+
+  D = -1.0*(A*slicePointVoxel.x() + B*slicePointVoxel.y() + C*slicePointVoxel.z());
+
+  double distanceVoxel = (A*farPointVoxel.x() + B*farPointVoxel.y() + C*farPointVoxel.z() + D) /
+    sqrt(A*A + B*B + C*C);
+
 
   //
   // Sampling theory tells us that we need two samples per voxel for
   // reconstruction of the signal. 
   //
   _samplingRate = 2.0;
-  _samples = _samplingRate * (maxd - mind).mag();
+  _samples = _samplingRate * distanceVoxel;
+  if (_samples < 2) _samples = 2;
 
-#ifdef	DEAD
   //
   // But we'll oversample to _minimumSamples (if we're not in fast render mode)
   // for a smooth appearance at low refinement levels.
@@ -315,13 +329,12 @@ void DVRTexture3d::calculateSampling()
     //
     // Recalculate the sampling rate -- used later for the opacity correction
     //
-    _samplingRate = _samples / (maxd - mind).mag();
+    _samplingRate = _samples / distanceVoxel;
   }
-#endif
 
-  _delta = distance / _samples;
+  _delta = distance / (_samples-1);
 
-//cout << "_samples = " << _samples << endl;
+cout << "_samples = " << _samples << endl;
 //cout << "_delta = " << _delta << endl;
 }
 
@@ -351,32 +364,16 @@ void DVRTexture3d::drawViewAlignedSlices(const TextureBrick *brick,
   BBox rotatedBox(volumeBox);
 
   //
-  // transform the volume into world coordinates
+  // transform the volume into eye coordinates
   //
   rotatedBox.transform(modelview);
 
-  //
-  // Define the slice view aligned slice plane. The plane will be positioned
-  // at the volume corner furthest from the eye. (model coordinates)
-  //
-  Vect3d slicePoint = volumeBox[rotatedBox.minIndex()]; 
-
-  //
-  // Calculate the slice plane normal (i.e., the view plane normal transformed
-  // into model space). 
-  //
-  // slicePlaneNormal = modelviewInverse * viewPlaneNormal; 
-  //                                       (0,0,1);
-  //
-  Vect3d slicePlaneNormal(modelviewInverse(2,0), 
-                          modelviewInverse(2,1),
-                          modelviewInverse(2,2)); 
-  slicePlaneNormal.unitize();
+  Vect3d slicePoint = _slicePoint;
 
   //
   // Calculate the distance between slices
   //
-  Vect3d sliceDelta = slicePlaneNormal * _delta;
+  Vect3d sliceDelta = _slicePlaneNormal * _delta;
 
   //
   // Calculate edge intersections between the plane and the boxes
@@ -385,7 +382,7 @@ void DVRTexture3d::drawViewAlignedSlices(const TextureBrick *brick,
   Vect3d tverts[6];  // for texture intersections
   Vect3d rverts[6];  // for transformed edge intersections
 
-  for(int i = 0 ; i <= _samples; i++)
+  for(int i = 0 ; i < _samples; i++)
   { 
     int order[6] ={0,1,2,3,4,5};
     int size = 0;
@@ -393,12 +390,12 @@ void DVRTexture3d::drawViewAlignedSlices(const TextureBrick *brick,
     //
     // Intersect the slice plane with the bounding boxes
     //
-    size = intersect(slicePoint, slicePlaneNormal, 
+    size = intersect(slicePoint, _slicePlaneNormal, 
                      volumeBox, verts, 
                      textureBox, tverts, 
                      rotatedBox, rverts);
     //
-    // Calculate the convex hull of the vertices (world coordinates)
+    // Calculate the convex hull of the vertices (eye coordinates)
     //
     findVertexOrder(rverts, order, size);
 
@@ -406,6 +403,8 @@ void DVRTexture3d::drawViewAlignedSlices(const TextureBrick *brick,
     // Draw slice and texture map it
     //
 	glBegin(GL_POLYGON); 
+
+
 	{
       for(int j=0; j< size; ++j)
       {
@@ -414,13 +413,11 @@ void DVRTexture3d::drawViewAlignedSlices(const TextureBrick *brick,
                      tverts[order[j]].y(), 
                      tverts[order[j]].z());
 
-//cout << "vertex j " << verts[order[j]].x() << " " <<verts[order[j]].y() << " " <<verts[order[j]].z() << endl;
         glVertex3f(verts[order[j]].x(), 
                    verts[order[j]].y(), 
                    verts[order[j]].z());
       }
 	}
-//cout << "end polygon\n";
 	glEnd();
 
     //
@@ -711,6 +708,7 @@ void DVRTexture3d::buildBricks(
           brick->textureMax((broi[3]-bbox[0])/(float)(_bx-1),
                           (broi[4]-bbox[1])/(float)(_by-1),
                           (broi[5]-bbox[2])/(float)(_bz-1));
+
 
         }
 

@@ -70,6 +70,10 @@ class RENDER_API DVRTexture3d : public DVRBase
 
   protected:
 
+  //
+  // Computes _slicePlaneNormal, _slicePoint, _samplingRate, _samples
+  // and _delta
+  //
   virtual void calculateSampling();
 
   virtual void drawViewAlignedSlices(const TextureBrick *brick,
@@ -117,6 +121,8 @@ protected:
   int    _minimumSamples;
   int    _maxTexture;
   int    _maxBrickDim;
+  Vect3d _slicePlaneNormal;
+  Vect3d _slicePoint;
  
   // Texture bricks
   vector<TextureBrick*> _bricks;

@@ -62,9 +62,9 @@ DVRShader::DVRShader(
 	int precision, int nvars,
 	ShaderMgr *shadermgr, int nthreads
 ) : DVRTexture3d(precision, nvars, nthreads),
+  _lighting(false),
   _colormap(NULL),
   _coordmap(NULL),
-  _lighting(false),
   _preintegration(false),
   _kd(0.0),
   _ka(0.0),
@@ -319,10 +319,11 @@ void DVRShader::loadTexture(TextureBrick *brick)
 //----------------------------------------------------------------------------
 int DVRShader::Render()
 {
-	bool ok = _shadermgr->enableEffect(getCurrentEffect());		 
-	if (! ok) return (-1);
-
   calculateSampling();
+
+  bool ok = _shadermgr->enableEffect(getCurrentEffect());		 
+  if (! ok) return (-1);
+
 
   glPolygonMode(GL_FRONT, GL_FILL);
   glCullFace(GL_BACK);

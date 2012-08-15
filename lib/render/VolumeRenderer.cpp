@@ -443,9 +443,10 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 
 	//cerr << "transforming everything to unit box coords :-(\n";
 	myGLWindow->TransformToUnitBox();
-	
+
 	const float* scales = ds->getStretchFactors();
 	glScalef(scales[0], scales[1], scales[2]);
+	
 
 	if (myGLWindow->vizIsDirty(ViewportBit)) {
 		const GLint* viewport = myGLWindow->getViewport();
@@ -490,7 +491,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 
 	// Modelview matrix
 	//
-	glMatrixMode(GL_MODELVIEW);
+	//glMatrixMode(GL_MODELVIEW);
 
 	//cerr << "timeStepDirty : " << timeStepDirty << endl;
 	//cerr << "extentsDirty : " << extentsDirty << endl;

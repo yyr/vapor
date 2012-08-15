@@ -606,7 +606,7 @@ Matrix3d& Matrix3d::adjoint(Matrix3d &out)
 //-- public -------------------------------------------------------------------
 // operator<<
 //-----------------------------------------------------------------------------
-std::ostream &operator<<(std::ostream &o, const Matrix3d &m)
+std::ostream &VAPoR::operator<<(std::ostream &o, const Matrix3d &m)
 {
   o << m.at(0,0) << " " << m.at(0,1) << " " << m.at(0,2) 
     << " " << m.at(0,3) << std::endl
