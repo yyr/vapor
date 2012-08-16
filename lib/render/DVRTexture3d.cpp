@@ -502,6 +502,14 @@ int DVRTexture3d::intersect(const Vect3d &sp,
 
       intersections++;
     }
+	//
+	// Geometrically, a plane intersecting a box should only result in 
+	// up to 6 intersection points. However, with floating point calculations
+	// more intersections can occur. The right way to addres this would be
+	// to determine which intersection point is bogus, but here we simply
+	// punt if more than 6 intersections result.
+	//
+	if (intersections == 6) return (intersections);
   } 
 
   return intersections;
