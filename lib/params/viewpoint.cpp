@@ -257,24 +257,14 @@ Viewpoint* Viewpoint::interpolate(Viewpoint* vp1, Viewpoint* vp2, float alpha){
 	//Interpolate rotation in quaternions:  First convert two VP orientations to norm-1 quaternions
 	view2Quat(VP1->getViewDir(),VP1->getUpVec(),quat1);
 	view2Quat(VP2->getViewDir(),VP2->getUpVec(),quat2);
+	float dotprod = vdot(quat1,quat2)+quat1[3]*quat2[3];
+	if (dotprod <0.) 
+		for (int i = 0; i<4; i++) quat2[i]= -quat2[i];
 	slerp(quat1,quat2, 0.5, quatres);
 	quat2View(quatres,vdir,upvec);
 	vp->setUpVec(upvec);
 	vp->setViewDir(vdir);
-	/*
-	//convert both vps to pure imaginary quaternion, relative to startQuat 
-	views2ImagQuats(VP1->getViewDir(),VP1->getUpVec(),VP2->getViewDir(),VP2->getUpVec(),imagQuat1,imagQuat2);
 	
-	//interpolate linearly in imag quaternions:
-	vscale(imagQuat2, alpha);
-	vscale(imagQuat1, (1.-alpha));
-	vadd(imagQuat1,imagQuat2,imagQuat);
-	//convert back to a viewpoint:
-	imagQuat2View(imagQuat, vdir, upvec);
-
-	vp->setUpVec(upvec);
-	vp->setViewDir(vdir);
-	*/
 	//Use the interpolated viewDist to find new campos, based on vdir:
 	for(int i = 0; i<3; i++){
 		campos[i] = rCenter[i] - camInterp*vdir[i];

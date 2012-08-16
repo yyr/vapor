@@ -180,9 +180,6 @@ void animate::hermite_function (float t[],int noFrames,float inputPoints[],float
 
     for (int k=0;k < noFrames;k++){    
         out_pts[k] =inputPoints[0] *H0(t[k]) + inputPoints[1] * H1(t[k]) +  slope1 * H2(t[k]) + slope2*H3(t[k]);  
-		if (slope1 != 0. || slope2 != 0.){
-			float foo = slope1 - slope2;
-		}
     }
         
 }

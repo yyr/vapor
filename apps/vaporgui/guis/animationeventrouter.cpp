@@ -234,51 +234,51 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 		
 		keyframeTextChanged = false;
 		if (aParams->keyframingEnabled()) frameChanged = true;
-	} else { //change did not involve keyframing parameters
-		QString strn;
-		int startFrame = startFrameEdit->text().toInt();
-		int minFrame = aParams->getMinFrame();
-		int maxFrame = aParams->getMaxFrame();
-		
-		if (startFrame < minFrame || startFrame > maxFrame) {
-			startFrame = minFrame;
-			startFrameEdit->setText(strn.setNum(startFrame));
-		}
-
-		aParams->setStartFrameNumber(startFrame);
-		int endFrame = aParams->getEndFrameNumber();
-		if (endFrameTextChanged){
-			endFrame = endFrameEdit->text().toInt();
-			//make sure endFrame is valid.  If keyframing is enabled, it needs to be no greater than the 
-			if (endFrame > maxFrame || endFrame < minFrame) {
-				endFrame = maxFrame;
-				endFrameEdit->setText(strn.setNum(endFrame));
-			}
-			aParams->setEndFrameNumber(endFrame);
-			endFrameTextChanged = false;
-		}
-		int savedFrameNum = aParams->getCurrentFrameNumber();
-		int currentFrame = currentFrameEdit->text().toInt();
-		int currentFrame2 = currentTimestepEdit->text().toInt();
-		if (currentFrame2 != aParams->getCurrentTimestep()) currentFrame = currentFrame2;
-		if (currentFrame < startFrame) currentFrame = startFrame;
-		if (currentFrame > endFrame) currentFrame = endFrame;
-		currentFrameEdit->setText(strn.setNum(currentFrame));
-		currentTimestepEdit->setText(strn.setNum(currentFrame));
+	} 
+	QString strn;
+	int startFrame = startFrameEdit->text().toInt();
+	int minFrame = aParams->getMinFrame();
+	int maxFrame = aParams->getMaxFrame();
 	
-
-		aParams->setCurrentFrameNumber(currentFrame);
-		MainForm::getInstance()->setCurrentTimestep(aParams->getCurrentTimestep());
-		currentTimestepEdit->setText(QString::number(aParams->getCurrentTimestep()));
-
-		int frameStepSize = frameStepEdit->text().toInt();
-		if (frameStepSize > (endFrame - startFrame)) frameStepSize = endFrame - startFrame;
-		if (frameStepSize < 1) frameStepSize = 1;
-		frameStepEdit->setText(strn.setNum(frameStepSize));
-		aParams->setFrameStepSize(frameStepSize);
-		setSliders(aParams);
-		if (savedFrameNum != currentFrame) frameChanged=true;
+	if (startFrame < minFrame || startFrame > maxFrame) {
+		startFrame = minFrame;
+		startFrameEdit->setText(strn.setNum(startFrame));
 	}
+
+	aParams->setStartFrameNumber(startFrame);
+	int endFrame = aParams->getEndFrameNumber();
+	if (endFrameTextChanged){
+		endFrame = endFrameEdit->text().toInt();
+		//make sure endFrame is valid.  If keyframing is enabled, it needs to be no greater than the 
+		if (endFrame > maxFrame || endFrame < minFrame) {
+			endFrame = maxFrame;
+			endFrameEdit->setText(strn.setNum(endFrame));
+		}
+		aParams->setEndFrameNumber(endFrame);
+		endFrameTextChanged = false;
+	}
+	int savedFrameNum = aParams->getCurrentFrameNumber();
+	int currentFrame = currentFrameEdit->text().toInt();
+	int currentFrame2 = currentTimestepEdit->text().toInt();
+	if (currentFrame2 != aParams->getCurrentTimestep()) currentFrame = currentFrame2;
+	if (currentFrame < startFrame) currentFrame = startFrame;
+	if (currentFrame > endFrame) currentFrame = endFrame;
+	currentFrameEdit->setText(strn.setNum(currentFrame));
+	currentTimestepEdit->setText(strn.setNum(currentFrame));
+
+
+	aParams->setCurrentFrameNumber(currentFrame);
+	MainForm::getInstance()->setCurrentTimestep(aParams->getCurrentTimestep());
+	currentTimestepEdit->setText(QString::number(aParams->getCurrentTimestep()));
+
+	int frameStepSize = frameStepEdit->text().toInt();
+	if (frameStepSize > (endFrame - startFrame)) frameStepSize = endFrame - startFrame;
+	if (frameStepSize < 1) frameStepSize = 1;
+	frameStepEdit->setText(strn.setNum(frameStepSize));
+	aParams->setFrameStepSize(frameStepSize);
+	setSliders(aParams);
+	if (savedFrameNum != currentFrame) frameChanged=true;
+
 
 	float maxFrameRate = maxFrameRateEdit->text().toFloat();
 	float maxWait = maxWaitEdit->text().toFloat();
@@ -1018,8 +1018,8 @@ void AnimationEventRouter::fixKeyframes(bool silent){
 					aParams->insertKeyframe(i,newKey);
 					keyframes = aParams->getKeyframes(); 
 					keyIndexSpin->setMaximum(aParams->getNumKeyframes());
-					if(!silent) MessageReporter::warningMsg("An additional keyframe was inserted after keyframe %d, \n%s",
-						i, "to enable camera to move between two stationary positions");
+					/*if(!silent) MessageReporter::warningMsg("An additional keyframe was inserted after keyframe %d, \n%s",
+						i, "to enable camera to move between two stationary positions");*/
 					currentKeyIndex = keyIndexSpin->value();
 					if (currentKeyIndex > i && currentKeyIndex < aParams->getNumKeyframes()){
 						keyIndexSpin->setValue(currentKeyIndex+1);

@@ -130,10 +130,8 @@ void AnimationParams::setDefaultPrefs(){
 //
 bool AnimationParams::
 reinit(bool doOverride){
-	//Session* session = Session::getInstance();
-	//Make min and max conform to new data:
-	//minFrame = (int)DataStatus::getInstance()->getMinTimestep();
-	//maxFrame = (int)DataStatus::getInstance()->getMaxTimestep();
+	
+	
 	maxTimestep = DataStatus::getInstance()->getDataMgr()->GetNumTimeSteps()-1;
 	minTimestep = 0;
 	//Narrow the range to the actual data limits:
