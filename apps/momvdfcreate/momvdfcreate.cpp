@@ -15,9 +15,14 @@
 #include <vapor/MetadataVDC.h>
 #include <vapor/MetadataMOM.h>
 #include <vapor/WaveCodecIO.h>
-#ifdef WIN32
+#ifdef _WINDOWS 
+#include "windows.h"
+#include <limits>//Define INFINITY
+	float INFINITY = numeric_limits<float>::infinity( );
 #pragma warning(disable : 4996)
 #endif
+
+#define MISSVAL 99999.0f
 using namespace VetsUtil;
 using namespace VAPoR;
 
@@ -30,7 +35,7 @@ struct opt_t {
 	vector <string> vars3d;
 	vector <string> vars2d;
 	vector<string> atypvars;
-	OptionParser::Boolean_T	vdc2;	
+	OptionParser::Boolean_T	vdc1;	
 	vector <int> cratios;
 	char *wname;
 	OptionParser::Boolean_T	help;
@@ -53,7 +58,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 		"64x64x64 (VDC type 2"},
 	{"nfilter",	1, 	"1", "Number of wavelet filter coefficients (default is 1)"},
 	{"nlifting",1, 	"1", "Number of wavelet lifting coefficients (default is 1)"},
-	{"vdc2",	0,	"",	"Generate a VDC Type 2 .vdf file (default is VDC Type 1)"},
+	{"vdc1",	0,	"",	"Generate a VDC Type 1 .vdf file (default is VDC Type 2)"},
 	{"cratios",1,	"",	"Colon delimited list compression ratios. "
 		"The default is 1:10:100:500. " 
 		"The maximum compression ratio is wavelet and block size dependent."},
@@ -75,7 +80,7 @@ OptionParser::Option_T	get_options[] = {
 	{"bs", VetsUtil::CvtToDimension3D, &opt.bs, sizeof(opt.bs)},
 	{"nfilter", VetsUtil::CvtToInt, &opt.nfilter, sizeof(opt.nfilter)},
 	{"nlifting", VetsUtil::CvtToInt, &opt.nlifting, sizeof(opt.nlifting)},
-	{"vdc2", VetsUtil::CvtToBoolean, &opt.vdc2, sizeof(opt.vdc2)},
+	{"vdc1", VetsUtil::CvtToBoolean, &opt.vdc1, sizeof(opt.vdc1)},
 	{"cratios", VetsUtil::CvtToIntVec, &opt.cratios, sizeof(opt.cratios)},
 	{"wname", VetsUtil::CvtToString, &opt.wname, sizeof(opt.wname)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
@@ -150,7 +155,7 @@ int	main(int argc, char **argv) {
 	argc--;
 
 	if (argc < 3) {
-		Usage(op, "Not enough file names to process.  Must specify >0 MOM data files,  one topo file, one vdf file");
+		Usage(op, "Not enough file names to process.  Must specify >0 MOM data files, one topo file, one vdf file");
 		exit(1);
 	}
 
@@ -169,7 +174,7 @@ int	main(int argc, char **argv) {
 	// Handle options for VDC2 output.
 	//
 	
-	if (opt.vdc2) {
+	if (!opt.vdc1) {
 		wname = opt.wname;
 
 		if ((wname.compare("bior1.1") == 0) ||
@@ -220,7 +225,7 @@ int	main(int argc, char **argv) {
 			}
 		}
 
-	} // End if vdc2
+	} // End if !vdc1
 
 	//
 	// At this point there is at least one MOM file to work with.
@@ -242,7 +247,7 @@ int	main(int argc, char **argv) {
 	}
 
 	MetadataVDC *file;
-	if (opt.vdc2) {
+	if (!opt.vdc1) {
 	 	file = new MetadataVDC(MOMData->GetDimension(), bs, cratios, wname, wmode);
 	}
 	else {
@@ -266,8 +271,6 @@ int	main(int argc, char **argv) {
 	vector <string> allvars3d = 
 		MOMData->GetVariables3D();
 	vector <string>::iterator itr;
-	itr = find(allvars3d.begin(), allvars3d.end(), "ELEVATION");
-	if (itr == allvars3d.end()) allvars3d.push_back("ELEVATION");
 
 	if(file->SetVariables3D(allvars3d)) {
 		cerr << "Error populating Variables3D." << endl;
@@ -316,9 +319,15 @@ int	main(int argc, char **argv) {
 			cerr << "Error populating TSUserTime." << endl;
 			exit(1);
 		}
-		
+	}
+	//Insert stretch factors for each time step.
+	vector<double>& zstretch = MOMData->GetStretches();
+	for (size_t i = 0; i<MOMData->GetNumTimeSteps(); i++){
+		file->SetTSZCoords(i,zstretch);
 	}
 
+	//Use INFINITY as the (only) missing value:
+	file->SetMissingValue(double(MISSVAL));
 	// Handle command line over rides here.
 
 	s.assign(opt.comment);

@@ -14,12 +14,15 @@
 #include <vapor/OptionParser.h>
 #include <vapor/MOM.h>
 #include <vapor/WRF.h>
-
-#ifdef WIN32
+#ifdef _WINDOWS //Define INFINITY
+#include <limits>
+	float INFINITY = numeric_limits<float>::infinity( );
 #define _USE_MATH_DEFINES
 #include <math.h>
 #pragma warning(disable : 4996)
 #endif
+
+#define MISSVAL 99999.0f
 using namespace VetsUtil;
 using namespace VAPoR;
 
@@ -236,7 +239,7 @@ float* MOM::GetDepths(){
 	if (rc != NC_NOERR) {//Not there.  
 		return 0;
 	}
-	float mv = -1.e30f;
+	float mv;
 	rc = nc_get_att_float(topoNcId, varid, "missing_value", &mv);	
 	
 	//If this is POP, convert to meters:
@@ -250,7 +253,7 @@ float* MOM::GetDepths(){
 	for (size_t i = 0; i<_dimLens[0]*_dimLens[1]; i++){
 		if (depthsArray[i] != mv )
 			depthsArray[i] = -depthsArray[i];
-		else depthsArray[i] = 50.f;
+		else depthsArray[i] = MISSVAL;
 	}
 	return depthsArray;
 }
@@ -738,7 +741,7 @@ WeightTable::WeightTable(MOM* mom, int latvar, int lonvar){
 //Interpolation functions, can be called after the alphas and betas arrays have been calculated.
 //Following can also be used on slices of 3D data
 //If the corner latitude is at the top then
-void WeightTable::interp2D(const float* sourceData, float* resultData, float missingValue, float missMap){
+void WeightTable::interp2D(const float* sourceData, float* resultData, float missingValue){
 	int corlon, corlat, corlatp, corlona, corlonb, corlonp;
 	for (int j = 0; j<nlat; j++){
 		for (int i = 0; i<nlon; i++){
@@ -779,7 +782,7 @@ void WeightTable::interp2D(const float* sourceData, float* resultData, float mis
 				else goodSum += cf2*data2;
 			if (data3 == missingValue) mvCoef += cf3;
 				else goodSum += cf3*data3;
-			if (mvCoef >= 0.5f) resultData[i+j*nlon] = missMap;
+			if (mvCoef >= 0.5f) resultData[i+j*nlon] = MISSVAL;
 			else resultData[i+j*nlon] = goodSum/(1.-mvCoef); 
 		}
 	}

@@ -164,6 +164,12 @@ void MetadataMOM::_MetadataMOM(
 	}
   } // End for files to open (i).
 
+  //Get the stretch factors (elevations) from the MOM
+  const float* elevs = mom.GetElevations();
+  stretches.clear();
+  for (int i = 0; i<Dimens[2]; i++){
+	  stretches.push_back(double(elevs[i]));
+  }
 
 
 // Finished all the input files, now can process over 
@@ -183,12 +189,9 @@ void MetadataMOM::_MetadataMOM(
   }
   
 
-// Need to make sure that both DEPTH and ELEVATION variables are
+// Need to make sure that DEPTH variable is
 // there for Vapor, add if needed.
 
-  if(find(Vars3D.begin(),Vars3D.end(),"ELEVATION") == Vars3D.end()) {
-    Vars3D.push_back("ELEVATION");
-  }
   if(find(Vars2Dxy.begin(),Vars2Dxy.end(),"DEPTH") == Vars2Dxy.end()) {
     Vars2Dxy.push_back("DEPTH");
   }

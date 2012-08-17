@@ -43,10 +43,14 @@
 #include <vapor/WaveletBlock3DBufWriter.h>
 #include <vapor/WaveletBlock3DRegionWriter.h>
 #include <vapor/WaveCodecIO.h>
-#ifdef WIN32
+
+#ifdef _WINDOWS //Define INFINITY
 #include "windows.h"
+#include <limits>
+	float INFINITY = numeric_limits<float>::infinity( );
 #endif
 
+#define MISSVAL 99999.0f
 using namespace VetsUtil;
 using namespace VAPoR;
 
@@ -77,14 +81,12 @@ struct opt_t {
 
 OptionParser::OptDescRec_T	set_opts[] = {
 	{"varnames",1, 	"",	"Colon delimited list of variable names in MOM files to convert. The default is to convert variables in the set intersection of those variables found in the VDF file and those in the MOM files."},
-	{"missval", 1,  "", "Colon delimited list of variable names and associated values to remap the missing values.  Each variable name is followed by the associated value"},
 	{"numts",	1,	"-1","Maximum number of time steps that may be converted. A -1 implies the conversion of all time steps found"},
 	{"level",	1, 	"-1","Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
 	{"lod",	1, 	"-1",	"Compression levels saved. 0 => coarsest, 1 => "
 		"next refinement, etc. -1 => all levels defined by the .vdf file"},
 	{"nthreads",1, 	"0",	"Number of execution threads (0 => # processors)"},
 	{"tolerance",	1, 	"0.0000001","Tolerance for comparing relative user times"},
-	{"noelev",	0,	"",	"Do not generate the ELEVATION variable required by vaporgui."},
 	{"help",	0,	"",	"Print this message and exit."},
 	{"debug",	0,	"",	"Enable debugging."},
 	{"quiet",	0,	"",	"Operate quietly (outputs only vertical extents that are lower than those in the VDF)."},
@@ -93,13 +95,11 @@ OptionParser::OptDescRec_T	set_opts[] = {
 
 OptionParser::Option_T	get_options[] = {
 	{"varnames", VetsUtil::CvtToStrVec, &opt.varnames, sizeof(opt.varnames)},
-	{"missval", VetsUtil::CvtToStrVec, &opt.missval, sizeof(opt.missval)},
 	{"numts", VetsUtil::CvtToInt, &opt.numts, sizeof(opt.numts)},
 	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
 	{"lod", VetsUtil::CvtToInt, &opt.lod, sizeof(opt.lod)},
 	{"nthreads", VetsUtil::CvtToInt, &opt.nthreads, sizeof(opt.nthreads)},
 	{"tolerance", VetsUtil::CvtToFloat, &opt.tolerance, sizeof(opt.tolerance)},
-	{"noelev", VetsUtil::CvtToBoolean, &opt.noelev, sizeof(opt.noelev)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
@@ -108,8 +108,8 @@ OptionParser::Option_T	get_options[] = {
 
 const char	*ProgName;
 
-//Method to be used when a constant float value is used for a 3D array (i.e. ELEVATION)
-//The input array vertValues must have one value for each vertical layer
+//Method to be used when a constant float value is used for a 3D array.
+//The input array vertValues must have one value for each vertical level
 int CopyConstantVariable3D(
 				 const float *vertValues,
 				 VDFIOBase *vdfio3d,
@@ -208,7 +208,6 @@ int CopyVariable3D(
 	int level,
 	int lod, 
 	string varname,
-	float* missMap,
 	const size_t dim[3],
 	size_t tsVDC,
 	int tsNetCDF
@@ -231,11 +230,9 @@ int CopyVariable3D(
 		return (-1);
 	}
 	
-	float mv = -1.e30f;
-	rc = nc_get_att_float(ncid, varid, "missing_value", &mv);
-	
-	float missMapVal = mv;
-	if (missMap) missMapVal = *missMap;
+	float missVal = -1.e30f;
+	rc = nc_get_att_float(ncid, varid, "missing_value", &missVal);
+
 	
 	size_t slice_sz = dim[0] * dim[1];
 	size_t starts[4] = {0,0,0,0};
@@ -265,19 +262,16 @@ int CopyVariable3D(
 		starts[1]= dim[2]-z-1;
 		NC_ERR_READ(nc_get_vara_float(ncid, varid, starts, counts, sliceBuffer))
 		
-		//
-		// Remap it 
-		//
 		for (int k = 0; k<slice_sz; k++){
-			if (sliceBuffer[k] != mv){
+			if (sliceBuffer[k] != missVal){
 				if (minVal > sliceBuffer[k]) minVal = sliceBuffer[k];
 				if (maxVal < sliceBuffer[k]) maxVal = sliceBuffer[k];
 			}
 		}
  	
-		wt->interp2D(sliceBuffer, sliceBuffer2, mv, missMapVal);
+		wt->interp2D(sliceBuffer, sliceBuffer2, missVal);
 		for (int k = 0; k<slice_sz; k++){
-			if (sliceBuffer2[k] != mv){
+			if (sliceBuffer2[k] != MISSVAL){
 				if (minVal1 > sliceBuffer2[k]) minVal1 = sliceBuffer2[k];
 				if (maxVal1 < sliceBuffer2[k]) maxVal1 = sliceBuffer2[k];
 			}
@@ -309,7 +303,6 @@ int CopyVariable2D(
 	int level,
 	int lod, 
 	string varname,
-	float* missMap,
 	const size_t dim[3],
 	size_t tsVDC,
 	int tsNetCDF
@@ -331,8 +324,8 @@ int CopyVariable2D(
 		return (-1);
 	}
 	
-	float mv = -1.e30f;
-	rc = nc_get_att_float(ncid, varid, "missing_value", &mv);
+	float missingVal = -1.e30f;
+	rc = nc_get_att_float(ncid, varid, "missing_value", &missingVal);
  
  	size_t slice_sz = dim[0] * dim[1];
 	size_t starts[3] = {0,0,0};
@@ -358,15 +351,13 @@ int CopyVariable2D(
 	//
 	NC_ERR_READ(nc_get_vara_float(ncid, varid, starts, counts, sliceBuffer))
 	
-	// Determine if this missing value is to be remapped
-	float missMapVal = mv;
-	if(missMap) missMapVal = *missMap; 
+	
 	
 	//
 	// Remap it 
 	//
 	
-	wt->interp2D(sliceBuffer, sliceBuffer2, mv, missMapVal);
+	wt->interp2D(sliceBuffer, sliceBuffer2, missingVal);
 				
 	if (vdfio2d->WriteRegion(sliceBuffer2) < 0) {
 		MyBase::SetErrMsg(
@@ -434,19 +425,6 @@ int	main(int argc, char **argv) {
 	string metafile = string(argv[argc-1]);
 	
 	vector<string> varnames = opt.varnames;
-	
-	vector<string> missMapNames;
-	vector<float> missMapValues;
-	if (2*(opt.missval.size()/2) != opt.missval.size()){
-		cerr << "Error: missval option requires an even number of colon-separated entries";
-		op.PrintOptionHelp(stderr);
-		exit(1);
-	}
-		
-	for (int i = 0; i<opt.missval.size(); i+=2){
-		missMapNames.push_back(opt.missval[i]);
-		missMapValues.push_back(strtod(opt.missval[i+1].c_str(),0));
-	}
 
 	WaveletBlock3DBufWriter *wbwriter3d = NULL;
 	WaveletBlock3DRegionWriter *wbwriter2d = NULL;
@@ -545,19 +523,10 @@ int	main(int argc, char **argv) {
 	if (rc) exit (rc);
 		
 	//
-	//Create ELEVATION and DEPTH variables
+	//Create DEPTH variable
 	//
 	size_t numTimeSteps = metadataVDC->GetNumTimeSteps();
-	if (!opt.noelev){
-		//Create an ELEVATION array, 
-		//Add it to all the time-steps in the VDC
-		const float* elevData = mom->GetElevations();
-		
-		for( size_t t = 0; t< numTimeSteps; t++){
-			int rc = CopyConstantVariable3D(elevData,vdfio3d,opt.level,opt.lod,"ELEVATION",dimsVDC,t);
-			if (rc) exit(rc);
-		}
-	}
+	
 	//Add depth variable
 	float* depth = mom->GetDepths();
 	
@@ -565,7 +534,7 @@ int	main(int argc, char **argv) {
 		// use t-grid for remapping depth
 		WeightTable *wt = mom->GetWeightTable(0,0);
 		float* mappedDepth = new float[dimsVDC[0]*dimsVDC[1]];
-		wt->interp2D(depth,mappedDepth, -1.e30, -1.e30);
+		wt->interp2D(depth,mappedDepth, MISSVAL);
 		float minval = 1.e30;
 		float maxval = -1.e30;
 		float minval1 = 1.e30;
@@ -574,7 +543,7 @@ int	main(int argc, char **argv) {
 			if(depth[i]<minval) minval = depth[i];
 			if(depth[i]>maxval) maxval = depth[i];
 			if(mappedDepth[i]<minval1) minval1 = mappedDepth[i];
-			if(mappedDepth[i]>maxval1) maxval1 = mappedDepth[i];
+			if(mappedDepth[i]>maxval1 && mappedDepth[i] != MISSVAL) maxval1 = mappedDepth[i];
 		}
 
 		for( size_t t = 0; t< numTimeSteps; t++){
@@ -676,16 +645,7 @@ int	main(int argc, char **argv) {
 				}
 				if (!found) continue;
 			}
-			//Determine if missing value is remapped:
-			float * missValPtr = 0;
-			float missVal;
-			for (int j=0; j<missMapNames.size(); j++){
-				if (missMapNames[j] == varname){
-					missVal = missMapValues[j];
-					missValPtr = &missVal;
-					break;
-				}
-			}
+			
 			// Determine geolon/geolat vars
 			int geolon, geolat;
 			if (mom->GetGeoLonLatVar(ncid, varid,&geolon, &geolat)) continue;
@@ -693,8 +653,8 @@ int	main(int argc, char **argv) {
 			//loop thru the times in the file.
 			for (int j = 0; j < timelen; j++){
 				//for each time convert the variable
-				if (ndims == 4)CopyVariable3D(ncid,varid,wt,vdfio3d,opt.level,opt.lod,  varname, missValPtr, dimsVDC,VDCTimes[j],j);
-				else CopyVariable2D(ncid,varid,wt,vdfio2d,wbwriter2d,opt.level,opt.lod,  varname, missValPtr, dimsVDC,VDCTimes[j],j);
+				if (ndims == 4)CopyVariable3D(ncid,varid,wt,vdfio3d,opt.level,opt.lod,  varname, dimsVDC,VDCTimes[j],j);
+				else CopyVariable2D(ncid,varid,wt,vdfio2d,wbwriter2d,opt.level,opt.lod,  varname, dimsVDC,VDCTimes[j],j);
 			}
 		} //End loop over variables in file
 			
