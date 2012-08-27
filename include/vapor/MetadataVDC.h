@@ -1093,6 +1093,17 @@ public:
 	return(_rootnode->GetElementString(tag));
  }
 
+ int SetUserDataStringVec(const string &tag, const vector <string> &value) {
+	_RecordUserDataTags(_userDSTags, tag);
+	_rootnode->SetElementStringVec(tag, value);
+	return(0);
+ }
+ vector <string> GetUserDataStringVec(const string &tag) const {
+	vector <string> vec;
+	_rootnode->GetElementStringVec(tag, vec);
+	return(vec);
+ }
+
 
  //------------------------------------------------------------------
  //			Time Step User-Defined Metdata Attributes
