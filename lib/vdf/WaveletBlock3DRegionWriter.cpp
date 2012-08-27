@@ -1077,17 +1077,21 @@ int WaveletBlock3DRegionWriter::process_octant(
 ) {
 	int	rc;
 
-	// Make sure octant is inside region. Hmm, this may not be right.
-	// The octant may not be in the region, but it's ancestor (at 
-	// a coarser level, covering more of the domain) probably is. This
-	// octant should probably be padded as done elsewhere.
-	//
-	if (dstx > _volBMax[0] || dstx+sz <= _volBMin[0] ||
-		dsty > _volBMax[1] || dsty+sz <= _volBMin[1] ||
-		dstz > _volBMax[2] || dstz+sz <= _volBMin[2]) { 
+	// Figure out what refinement level we're processing based on sz.
+	// (j is the destination's level, not the source)
+	int l = 0;
+	for (unsigned int ui = sz; ui > 2; ui = ui>>1, l++);
 
-		return(0);
-	}
+	int j =  (GetNumTransforms()) - l;
+	int ldelta = GetNumTransforms() - j + 1;
+
+	size_t bdim[3]; GetDimBlk(bdim, j-1);
+	const size_t bcoord[] = {dstx>>ldelta, dsty>>ldelta, dstz>>ldelta};
+
+	// Make sure quadrant is inside region.
+	//
+	if (bcoord[0]>=bdim[0] || bcoord[1]>=bdim[1] || bcoord[2]>=bdim[2])return(0);
+
 
 	// Recursively divide the input octant into another set of 8 
 	// octants
@@ -1140,13 +1144,6 @@ int WaveletBlock3DRegionWriter::process_octant(
 		}
 	}
 
-	// Figure out what refinement level we're processing based on sz.
-	// (j is the destination's level, not the source)
-	int l = 0;
-	for (unsigned int ui = sz; ui > 2; ui = ui>>1, l++);
-
-	int j =  (GetNumTransforms()) - l;
-
 	const float *blkptr = _lambda_blks[j];
 	const float *src_super_blk[8];
 	float *dst_super_blk[8];
@@ -1173,9 +1170,6 @@ int WaveletBlock3DRegionWriter::process_octant(
 	// only save gamma coefficients for requested levels
 	//
 	if (j <= _reflevel) {
-		int ldelta = GetNumTransforms() - j + 1;
-
-		const size_t bcoord[3] = {dstx>>ldelta, dsty>>ldelta, dstz>>ldelta};
 		rc = seekGammaBlocks(bcoord, j);
 		if (rc<0) return(-1);
 		rc = writeGammaBlocks(_super_block, 1, j);
@@ -1183,8 +1177,6 @@ int WaveletBlock3DRegionWriter::process_octant(
 	}
 
 	if (j-1==0) {
-		int ldelta = GetNumTransforms();
-		const size_t bcoord[3] = {dstx>>ldelta, dsty>>ldelta, dstz>>ldelta};
 
 		rc = seekLambdaBlocks(bcoord);
 		if (rc<0) return(-1);
@@ -1394,16 +1386,20 @@ int WaveletBlock3DRegionWriter::process_quadrant(
 ) {
 	int	rc;
 
-	// Make sure quadrant is inside region. Hmm, this may not be right.
-	// The quadrant may not be in the region, but it's ancestor (at 
-	// a coarser level, covering more of the domain) probably is. This
-	// quadrant should probably be padded as done elsewhere.
-	//
-	if (dstx > _volBMax[0] || dstx+sz <= _volBMin[0] ||
-		dsty > _volBMax[1] || dsty+sz <= _volBMin[1]) {
+	// Figure out what refinement level we're processing based on sz.
+	// (j is the destination's level, not the source)
+	int l = 0;
+	for (unsigned int ui = sz; ui > 2; ui = ui>>1, l++);
 
-		return(0);
-	}
+	int j =  (GetNumTransforms()) - l;
+	int ldelta = GetNumTransforms() - j + 1;
+
+	size_t bdim[3]; GetDimBlk(bdim, j-1);
+	const size_t bcoord[] = {dstx>>ldelta, dsty>>ldelta};
+
+	// Make sure quadrant is inside region.
+	//
+	if (bcoord[0]>=bdim[0] || bcoord[1]>=bdim[1]) return(0);
 
 	WaveletBlock2D *wb2d;
 
@@ -1468,12 +1464,6 @@ int WaveletBlock3DRegionWriter::process_quadrant(
 		}
 	}
 
-	// Figure out what refinement level we're processing based on sz.
-	// (j is the destination's level, not the source)
-	int l = 0;
-	for (unsigned int ui = sz; ui > 2; ui = ui>>1, l++);
-
-	int j =  (GetNumTransforms()) - l;
 
 	const float *blkptr = _lambda_tiles[j];
 	const float *src_super_blk[4];
@@ -1496,9 +1486,6 @@ int WaveletBlock3DRegionWriter::process_quadrant(
 	// only save gamma coefficients for requested levels
 	//
 	if (j <= _reflevel) {
-		int ldelta = GetNumTransforms() - j + 1;
-
-		const size_t bcoord[] = {dstx>>ldelta, dsty>>ldelta};
 		rc = seekGammaBlocks(bcoord, j);
 		if (rc<0) return(-1);
 		rc = writeGammaBlocks(_super_tile, 1, j);
@@ -1506,9 +1493,6 @@ int WaveletBlock3DRegionWriter::process_quadrant(
 	}
 
 	if (j-1==0) {
-		int ldelta = GetNumTransforms();
-		const size_t bcoord[2] = {dstx>>ldelta, dsty>>ldelta};
-
 		rc = seekLambdaBlocks(bcoord);
 		if (rc<0) return(-1);
 		rc = writeLambdaBlocks(_lambda_tiles[j-1], 1);
