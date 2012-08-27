@@ -17,7 +17,8 @@ FILES = \
 	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \
 	SignificanceMap Compressor WaveCodecIO \
 	DataMgrFactory  NCBuf \
-	LayeredGrid RegularGrid SphericalGrid StretchedGrid
+	LayeredGrid RegularGrid SphericalGrid StretchedGrid NetCDF \
+	NetCDFCollection
 
 HEADER_FILES = \
 	BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata MetadataVDC \
@@ -33,7 +34,8 @@ HEADER_FILES = \
 	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \
 	SignificanceMap Compressor WaveCodecIO \
 	DataMgrFactory Lifting1D Transpose NCBuf \
-	LayeredGrid RegularGrid SphericalGrid StretchedGrid
+	LayeredGrid RegularGrid SphericalGrid StretchedGrid NetCDF \
+	NetCDFCollection
 
 
 #LIB_DEFS = vdf.def
