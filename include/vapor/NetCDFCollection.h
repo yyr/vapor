@@ -13,7 +13,7 @@
 
 #include <sstream>
 #include <vapor/MyBase.h>
-#include <vapor/NetCDF.h>
+#include <vapor/NetCDFSimple.h>
 
 namespace VAPoR {
 
@@ -220,9 +220,9 @@ public:
  //
  int GetFile(size_t ts, string varname, string &file) const;
 
- //! Return the NetCDF::Variable for the named variable
+ //! Return the NetCDFSimple::Variable for the named variable
  //!
- //! This method copies the contents of the NetCDF::Variable
+ //! This method copies the contents of the NetCDFSimple::Variable
  //! class for the named variable into \p varinfo
  //!
  //! \param[in] ts A valid data set time step in the range from zero to
@@ -232,7 +232,7 @@ public:
  //! \retval retval A negative int is returned on failure.
  //!
  int GetVariableInfo(
-	size_t ts, string varname, NetCDF::Variable &varinfo
+	size_t ts, string varname, NetCDFSimple::Variable &varinfo
  ) const;
 
  //! Open the named variable for reading
@@ -275,7 +275,7 @@ public:
  //! \param[in] count Count vector with one element for each dimension 
  //! \retval retval A negative int is returned on failure.
  //!
- //! \sa SetStaggeredDims(), ReadNative(), NetCDF::Read(),
+ //! \sa SetStaggeredDims(), ReadNative(), NetCDFSimple::Read(),
  //! SetMissingValueAttName(), SetMissingValueAttName()
  //!
  int Read(size_t start[], size_t count[], float *data);
@@ -293,7 +293,7 @@ public:
  //! \param[in] count Count vector with one element for each dimension 
  //! \retval retval A negative int is returned on failure.
  //!
- //! \sa SetStaggeredDims(), NetCDF::Read()
+ //! \sa SetStaggeredDims(), NetCDFSimple::Read()
  //!
  int ReadNative(size_t start[], size_t count[], float *data);
  int ReadNative(size_t start[], size_t count[], int *data);
@@ -373,7 +373,7 @@ public:
  public:
   TimeVaryingVar();
   int Insert(
-	const NetCDF::Variable &variable, string file, 
+	const NetCDFSimple::Variable &variable, string file, 
 	vector <string> time_dimnames, vector <double> times
   );
   vector <size_t> GetSpatialDims() const {return(_dims); };
@@ -386,7 +386,7 @@ public:
   int GetTimeStep(double time, size_t &ts) const;
   size_t GetLocalTimeStep(size_t ts) const; 
   int GetFile(size_t ts, string &file) const;
-  int GetVariableInfo(size_t ts, NetCDF::Variable &variable) const;
+  int GetVariableInfo(size_t ts, NetCDFSimple::Variable &variable) const;
   bool GetTimeVarying() const {return (_time_varying); };
 
 
@@ -397,7 +397,7 @@ public:
 	size_t _local_ts;	// time step offset within file
   } tvmap_t;
  private:
-  vector <NetCDF::Variable> _variables;
+  vector <NetCDFSimple::Variable> _variables;
   vector <string> _files;
   vector <tvmap_t> _tvmaps;
   vector <size_t> _dims;	// **spatial** dimensions
@@ -413,7 +413,7 @@ public:
 private:
 
  map <string, TimeVaryingVar > _variableList;
- NetCDF _ncdf;
+ NetCDFSimple _ncdf;
  vector <string> _staggeredDims;
  string _missingValAttName;
  vector <double> _times;
