@@ -99,7 +99,7 @@ OptionParser::Option_T	get_options[] = {
 	{"lod", VetsUtil::CvtToInt, &opt.lod, sizeof(opt.lod)},
 	{"nthreads", VetsUtil::CvtToInt, &opt.nthreads, sizeof(opt.nthreads)},
 	{"tolerance", VetsUtil::CvtToFloat, &opt.tolerance, sizeof(opt.tolerance)},
-	{"grid", VetsUtil::CvtToStr, &opt.grid, sizeof(opt.grid)},
+	{"grid", VetsUtil::CvtToString, &opt.grid, sizeof(opt.grid)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
