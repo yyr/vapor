@@ -34,10 +34,10 @@ int NetCDFCollection::Initialize(
 	_ovr_missing_value = 0.0;
 
 	for (int i=0; i<files.size(); i++) {
-		NetCDF netcdf;
+		NetCDFSimple netcdf;
 		int rc = netcdf.Initialize(files[i]);
 		if (rc<0) {
-			SetErrMsg("NetCDF::Initialize(%s)", files[i].c_str());
+			SetErrMsg("NetCDFSimple::Initialize(%s)", files[i].c_str());
 			return(-1);
 		}
 
@@ -45,7 +45,7 @@ int NetCDFCollection::Initialize(
 		//
 		// Get variable info for all variables in current file
 		//
-		vector <NetCDF::Variable> variables;
+		vector <NetCDFSimple::Variable> variables;
 		netcdf.GetVariables(variables);
 
 		//
@@ -69,7 +69,7 @@ int NetCDFCollection::Initialize(
 				);
 				return(-1);
 			}
-			NetCDF::Variable &tvar = variables[timeidx];
+			NetCDFSimple::Variable &tvar = variables[timeidx];
 			if (tvar.GetDims().size() != 1) {
 				SetErrMsg(
 					"Time coordinate variable \"%s\" is invalid",
@@ -261,7 +261,7 @@ int NetCDFCollection::GetFile(size_t ts, string varname, string &file) const {
 }
 
 int NetCDFCollection::GetVariableInfo(
-	size_t ts, string varname, NetCDF::Variable &variable
+	size_t ts, string varname, NetCDFSimple::Variable &variable
 ) const {
 
 	map <string,TimeVaryingVar>::const_iterator p = _variableList.find(varname);
@@ -304,7 +304,7 @@ int NetCDFCollection::OpenRead(size_t ts, string varname) {
 	_ovr_slice = 0;
 
 	string path;
-	NetCDF::Variable varinfo;
+	NetCDFSimple::Variable varinfo;
 	_ovr_tvvars.GetFile(var_ts, path);
 	_ovr_tvvars.GetVariableInfo(var_ts, varinfo);
 
@@ -581,7 +581,7 @@ namespace VAPoR {
 }
 
 int NetCDFCollection::TimeVaryingVar::Insert(
-	const NetCDF::Variable &variable, string file, 
+	const NetCDFSimple::Variable &variable, string file, 
     vector <string> time_dimnames, vector <double> times
 ) {
 	bool first = (_variables.size() == 0);	// first insertion?
@@ -719,7 +719,7 @@ int NetCDFCollection::TimeVaryingVar::GetFile(
 }
 
 int NetCDFCollection::TimeVaryingVar::GetVariableInfo(
-	size_t ts, NetCDF::Variable &variable
+	size_t ts, NetCDFSimple::Variable &variable
 ) const {
 
 	if (ts>=_tvmaps.size()) return(-1);
