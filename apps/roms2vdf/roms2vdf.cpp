@@ -402,7 +402,7 @@ int	main(int argc, char **argv) {
 	// The grid file contains info about the grid (e.g. lat and long 
 	// coorindate variables, etc.
 	//
-	NetCDF gridfile;
+	NetCDFSimple gridfile;
 	if (opt.grid) gridfile.Initialize(opt.grid);
 
 
