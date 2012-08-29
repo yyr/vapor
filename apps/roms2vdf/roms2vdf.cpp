@@ -118,7 +118,10 @@ int CopyVariable(
 	string varname,
 	const size_t dim[3],
 	size_t tsROMS,
-	size_t tsVDC
+	size_t tsVDC,
+	float roms_mv,
+	float vdc_mv,
+	bool has_missing
 ) {
 
 
@@ -159,6 +162,12 @@ int CopyVariable(
 			);
 			return (-1);
 		}
+
+		if (has_missing) {
+			for (size_t i=0; i<dim[0]*dim[1]; i++) {
+				if (sliceBuffer[i] == roms_mv) sliceBuffer[i] = vdc_mv;
+			}
+		}
 		
 		if (vdfio->WriteSlice(sliceBuffer) < 0) {
 			MyBase::SetErrMsg(
@@ -183,7 +192,10 @@ int CopyVariable2D(
 	string varname,
 	const size_t dim[3],
 	size_t tsROMS,
-	size_t tsVDC
+	size_t tsVDC,
+	float roms_mv,
+	float vdc_mv,
+	bool has_missing
 ) {
 
 	int rc;
@@ -220,6 +232,12 @@ int CopyVariable2D(
 			varname.c_str(), tsROMS
 		);
 		return (-1);
+	}
+
+	if (has_missing) {
+		for (size_t i=0; i<dim[0]*dim[1]; i++) {
+			if (sliceBuffer[i] == roms_mv) sliceBuffer[i] = vdc_mv;
+		}
 	}
 
 	if (vdfio->WriteRegion(sliceBuffer) < 0) {
@@ -403,7 +421,7 @@ int	main(int argc, char **argv) {
 	// coorindate variables, etc.
 	//
 	NetCDFSimple gridfile;
-	if (opt.grid) gridfile.Initialize(opt.grid);
+	if (strlen(opt.grid)) gridfile.Initialize(opt.grid);
 
 
 
@@ -473,6 +491,7 @@ int	main(int argc, char **argv) {
 		}
 
 
+
 		vector <size_t> dimsvec = nc.GetDims(copy_vars[i]);
 		size_t dims[3];
 		bool var3d = dimsvec.size() == 3;
@@ -509,6 +528,27 @@ int	main(int argc, char **argv) {
 				cout << "Processing time step : " << ts << endl;
 			}
 
+			//
+			// See if variable has missing data
+			//
+			NetCDFSimple::Variable varinfo;
+			nc.GetVariableInfo(ts, copy_vars[i], varinfo);
+			vector <double> roms_mvvec;
+			varinfo.GetAtt(missing, roms_mvvec);
+			bool has_missing = false;
+			float roms_mv, vdc_mv; 
+			if (roms_mvvec.size()) {
+				has_missing = true;
+				vector <double> vdc_mvvec = metadataVDC->GetMissingValue();
+				if (! vdc_mvvec.size()) {
+					MyBase::SetErrMsg(".vdf file missing missing value");
+					exit(1);
+				}
+				roms_mv = roms_mvvec[0];
+				vdc_mv = vdc_mvvec[0];
+			}
+				 
+
 			double romstime = romstimes[ts];
 			size_t tsVDC;
             if (!map_VDF2ROMS_time(romstime, metadataVDC, &tsVDC, opt.tolerance)) {
@@ -525,13 +565,13 @@ int	main(int argc, char **argv) {
 			if (var3d) {
 				CopyVariable(
 					nc, vdfio3d, opt.level, opt.lod, copy_vars[i], 
-					dims, ts, tsVDC 
+					dims, ts, tsVDC, roms_mv, vdc_mv, has_missing
 				);
 			}
 			else {
 				CopyVariable2D(
 					nc, vdfio2d, opt.level, opt.lod, copy_vars[i], 
-					dims, ts, tsVDC
+					dims, ts, tsVDC, roms_mv, vdc_mv, has_missing
 				);
 			}
 		}

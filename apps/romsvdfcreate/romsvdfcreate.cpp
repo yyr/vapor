@@ -23,6 +23,8 @@ string TimeDimsTag = "ROMS_TimeDimNames";
 string TimeCoordTag = "ROMS_TimeCoordVariable";
 string MissingValTag = "ROMS_MissingValTag";
 
+const float VDCMissingValue(1.e38);
+
 struct opt_t {
 	vector <string> stagdims;
 	vector <string> timedims;
@@ -347,6 +349,8 @@ int	main(int argc, char **argv) {
 		vec.push_back(opt.missing);
 		file->SetUserDataStringVec(MissingValTag, vec);
 	}
+
+	file->SetMissingValue(VDCMissingValue);
 
 	if(file->SetNumTimeSteps(times.size())) {
 		cerr << "Error populating NumTimeSteps." << endl;
