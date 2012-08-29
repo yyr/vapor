@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include <vapor/NetCDFCollection.h>
 
 using namespace VAPoR;
