@@ -466,7 +466,7 @@ void SignificanceMap::GetMap(const unsigned char **map, size_t *maplen) {
 		for (int j=0; j<sizeof(entry); j++) {
 			ucptr[j] = cptr[j];
 		}
-		for (int j = sizeof(entry); j<8; i++) {
+		for (int j = sizeof(entry); j<8; j++) {
 			ucptr[j] = 0;
 		}
 		ucptr += 8;
