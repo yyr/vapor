@@ -15,6 +15,7 @@
 #include <vapor/MetadataVDC.h>
 #include <vapor/MetadataMOM.h>
 #include <vapor/WaveCodecIO.h>
+#include <vapor/MOM.h>
 #ifdef _WINDOWS 
 #include "windows.h"
 #include <limits>//Define INFINITY
@@ -22,7 +23,6 @@
 #pragma warning(disable : 4996)
 #endif
 
-#define MISSVAL 99999.0f
 using namespace VetsUtil;
 using namespace VAPoR;
 
@@ -327,7 +327,7 @@ int	main(int argc, char **argv) {
 	}
 
 	//Use INFINITY as the (only) missing value:
-	file->SetMissingValue(double(MISSVAL));
+	file->SetMissingValue(double(MOM::vaporMissingValue()));
 	// Handle command line over rides here.
 
 	s.assign(opt.comment);

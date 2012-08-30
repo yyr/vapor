@@ -22,7 +22,6 @@
 #pragma warning(disable : 4996)
 #endif
 
-#define MISSVAL 99999.0f
 using namespace VetsUtil;
 using namespace VAPoR;
 
@@ -253,7 +252,7 @@ float* MOM::GetDepths(){
 	for (size_t i = 0; i<_dimLens[0]*_dimLens[1]; i++){
 		if (depthsArray[i] != mv )
 			depthsArray[i] = -depthsArray[i];
-		else depthsArray[i] = MISSVAL;
+		else depthsArray[i] = MOM::vaporMissingValue();
 	}
 	return depthsArray;
 }
@@ -782,7 +781,7 @@ void WeightTable::interp2D(const float* sourceData, float* resultData, float mis
 				else goodSum += cf2*data2;
 			if (data3 == missingValue) mvCoef += cf3;
 				else goodSum += cf3*data3;
-			if (mvCoef >= 0.5f) resultData[i+j*nlon] = MISSVAL;
+				if (mvCoef >= 0.5f) resultData[i+j*nlon] = MOM::vaporMissingValue();
 			else resultData[i+j*nlon] = goodSum/(1.-mvCoef); 
 		}
 	}
