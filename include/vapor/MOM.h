@@ -61,7 +61,7 @@ public:
 	int extractStartTime(int ncid, int timevarid);  //Determine the start time from the current data file.  Set startTimeStamp and startTimeDouble.
 	//Retrieve geolon data, make it monotonic:
 	static float* getMonotonicLonData(int ncid, const char* varname, int londimsize, int latdimsize);
-	static float vaporMissingValue(){ return 999999.0;}
+	static double vaporMissingValue(){ return 1.e38;}
 private:
 
 	// A mapping between required MOM variable names and how  these
