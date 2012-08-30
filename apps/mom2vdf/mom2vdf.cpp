@@ -229,7 +229,7 @@ int CopyVariable3D(
 		return (-1);
 	}
 	
-	float missVal = MOM::vaporMissingValue();
+	float missVal = (float)MOM::vaporMissingValue();
 	rc = nc_get_att_float(ncid, varid, "missing_value", &missVal);
 
 	
@@ -270,7 +270,7 @@ int CopyVariable3D(
  	
 		wt->interp2D(sliceBuffer, sliceBuffer2, missVal);
 		for (int k = 0; k<slice_sz; k++){
-			if (sliceBuffer2[k] != MOM::vaporMissingValue()){
+			if (sliceBuffer2[k] != (float)MOM::vaporMissingValue()){
 				if (minVal1 > sliceBuffer2[k]) minVal1 = sliceBuffer2[k];
 				if (maxVal1 < sliceBuffer2[k]) maxVal1 = sliceBuffer2[k];
 			}
@@ -533,7 +533,7 @@ int	main(int argc, char **argv) {
 		// use t-grid for remapping depth
 		WeightTable *wt = mom->GetWeightTable(0,0);
 		float* mappedDepth = new float[dimsVDC[0]*dimsVDC[1]];
-		wt->interp2D(depth,mappedDepth, MOM::vaporMissingValue());
+		wt->interp2D(depth,mappedDepth, (float)MOM::vaporMissingValue());
 		float minval = 1.e30;
 		float maxval = -1.e30;
 		float minval1 = 1.e30;
@@ -542,7 +542,7 @@ int	main(int argc, char **argv) {
 			if(depth[i]<minval) minval = depth[i];
 			if(depth[i]>maxval) maxval = depth[i];
 			if(mappedDepth[i]<minval1) minval1 = mappedDepth[i];
-			if(mappedDepth[i]>maxval1 && mappedDepth[i] != MOM::vaporMissingValue()) maxval1 = mappedDepth[i];
+			if(mappedDepth[i]>maxval1 && mappedDepth[i] != (float)MOM::vaporMissingValue()) maxval1 = mappedDepth[i];
 		}
 
 		for( size_t t = 0; t< numTimeSteps; t++){

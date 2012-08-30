@@ -327,7 +327,7 @@ int	main(int argc, char **argv) {
 	}
 
 	//Use INFINITY as the (only) missing value:
-	file->SetMissingValue(double(MOM::vaporMissingValue()));
+	file->SetMissingValue(MOM::vaporMissingValue());
 	// Handle command line over rides here.
 
 	s.assign(opt.comment);
