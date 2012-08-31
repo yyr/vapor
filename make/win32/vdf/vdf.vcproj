@@ -457,6 +457,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\lib\vdf\MetadataROMS.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\lib\vdf\MetadataSpherical.cpp"
 				>
 			</File>
@@ -477,7 +481,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\lib\vdf\NetCDFCollection.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\NetCDFSimple.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\lib\vdf\RegularGrid.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\ROMS.cpp"
 				>
 			</File>
 			<File
@@ -569,6 +585,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\lib\vdf\WeightTable.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\lib\vdf\WRF.cpp"
 				>
 			</File>
@@ -647,6 +667,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\include\vapor\MetadataROMS.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\include\vapor\MetadataVDC.h"
 				>
 			</File>
@@ -664,6 +688,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\RegularGrid.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\vapor\ROMS.h"
 				>
 			</File>
 			<File
@@ -720,6 +748,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\WaveletBlockIOBase.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\vapor\WeightTable.h"
 				>
 			</File>
 			<File

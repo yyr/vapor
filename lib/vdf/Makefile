@@ -18,7 +18,7 @@ FILES = \
 	SignificanceMap Compressor WaveCodecIO \
 	DataMgrFactory  NCBuf \
 	LayeredGrid RegularGrid SphericalGrid StretchedGrid NetCDFSimple \
-	NetCDFCollection
+	NetCDFCollection ROMS MetadataROMS WeightTable
 
 HEADER_FILES = \
 	BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata MetadataVDC \
@@ -35,7 +35,7 @@ HEADER_FILES = \
 	SignificanceMap Compressor WaveCodecIO \
 	DataMgrFactory Lifting1D Transpose NCBuf \
 	LayeredGrid RegularGrid SphericalGrid StretchedGrid NetCDFSimple \
-	NetCDFCollection
+	NetCDFCollection ROMS MetadataROMS WeightTable
 
 
 #LIB_DEFS = vdf.def

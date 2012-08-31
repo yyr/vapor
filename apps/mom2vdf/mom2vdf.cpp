@@ -40,14 +40,14 @@
 #include <vapor/MetadataVDC.h>
 #include <vapor/MetadataMOM.h>
 #include <vapor/MOM.h>
+#include <vapor/WeightTable.h>
 #include <vapor/WaveletBlock3DBufWriter.h>
 #include <vapor/WaveletBlock3DRegionWriter.h>
 #include <vapor/WaveCodecIO.h>
 
-#ifdef _WINDOWS //Define INFINITY
+#ifdef _WINDOWS 
 #include "windows.h"
-#include <limits>
-	float INFINITY = numeric_limits<float>::infinity( );
+
 #endif
 
 using namespace VetsUtil;

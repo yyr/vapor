@@ -3,8 +3,8 @@
 //
 
 
-#ifndef _MOM_h_
-#define _MOM_h_
+#ifndef _ROMS_h_
+#define _ROMS_h_
 
 
 #include <iostream>
@@ -17,15 +17,15 @@
 namespace VAPoR {
 
 class WeightTable;
-class VDF_API MOM : public VetsUtil::MyBase {
+class VDF_API ROMS : public VetsUtil::MyBase {
 public:
 
-	MOM(const string &toponame, const vector<string>& vars2d, const vector<string>& vars3d);
+	ROMS(const string &toponame, const vector<string>& vars2d, const vector<string>& vars3d);
 
-	MOM(const string &toponame,  const map <string, string> &atypnames, const vector<string>& vars2d, const vector<string>& vars3d);
-	virtual ~MOM();
+	ROMS(const string &toponame,  const map <string, string> &atypnames, const vector<string>& vars2d, const vector<string>& vars3d);
+	virtual ~ROMS();
 
-	int addFile(const string& momname, float extents[6], vector<string>& vars2d, vector<string>& vars3d);
+	int addFile(const string& romsname, float extents[6], vector<string>& vars2d, vector<string>& vars3d);
 
 	//Determine geolon and geolat variables associated with a variable
 	int GetGeoLonLatVar(int ncid, int varid, int* geolon, int* geolat);
@@ -35,7 +35,7 @@ public:
 	float* GetDepths();
 
 
-	const vector<double>& GetTimes(){return _momTimes;}
+	const vector<double>& GetTimes(){return _romsTimes;}
 	const vector<string>& getGeoLatVars() {return geolatvars;}
 	const vector<string>& getGeoLonVars() {return geolonvars;}
 	int getTopoNcid(){return topoNcId;}
@@ -52,11 +52,11 @@ public:
 	// Uses an array of user times that should be obtained from the Metadata.
 	// Return (size_t)-1 if nothing within specified tolerance, or if the time is not inside the VDC min/max time interval,
 	// or if the simulation start time (epochStartTimeSeconds) has not been established.
-	// \param[in] double momtime  Time (in months) in MOM data, relative to start time
+	// \param[in] double romstime  Time (in months) in ROMS data, relative to start time
 	// \param[in] double tol  Optional error tolerance in months
 	// \retval size_t closest index in userTimes
 	//
-	size_t GetVDCTimeStep(double momtime, const vector<double>& userTimes, double tol = 1.0);
+	size_t GetVDCTimeStep(double romstime, const vector<double>& userTimes, double tol = 1.0);
 	
 	int extractStartTime(int ncid, int timevarid);  //Determine the start time from the current data file.  Set startTimeStamp and startTimeDouble.
 	//Retrieve geolon data, make it monotonic:
@@ -64,7 +64,7 @@ public:
 	static double vaporMissingValue(){ return 1.e38;}
 private:
 
-	// A mapping between required MOM variable names and how  these
+	// A mapping between required ROMS variable names and how  these
 	// names may appear in the file. The first string is the alias,
 	// the second is the name of the var as it appears in the file
 	//
@@ -76,7 +76,7 @@ private:
 	size_t _dimLens[4]; // Lengths of x, y, z, and time dimensions (unstaggered)
 
 	bool add2dVars, add3dVars;  //Should we add to the existing variable names?
-	vector<double> _momTimes;  //Times for which valid data has been found
+	vector<double> _romsTimes;  //Times for which valid data has been found
 
 	vector <string> geolatvars; //up to two geolat var names.  First is T-grid
 	vector <string> geolonvars; //up to two geolon var names.  First is T-grid
@@ -90,8 +90,8 @@ private:
 	float* vertLayers;  //values for elevation
 	float* depthsArray;
 
-	int _MOM(const string &momname, const map <string, string> &atypnames, const vector<string>& vars2d, const vector<string>& vars3d);
-	int _GetMOMTopo(int ncid); // Get netCDF file ID (input)
+	int _ROMS(const string &romsname, const map <string, string> &atypnames, const vector<string>& vars2d, const vector<string>& vars3d);
+	int _GetROMSTopo(int ncid); // Get netCDF file ID (input)
 	
 	void addTimes(int numtimes, double times[]);
 	void addVarName(int dim, string& vname, vector<string>&vars2d, vector<string>&vars3d);
@@ -103,5 +103,7 @@ private:
 
 
 };
-};
+	
+}; //End namespace VAPoR
+
 #endif

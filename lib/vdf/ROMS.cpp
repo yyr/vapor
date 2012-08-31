@@ -12,10 +12,9 @@
 #include "proj_api.h"
 #include <vapor/CFuncs.h>
 #include <vapor/OptionParser.h>
-#include <vapor/MOM.h>
+#include <vapor/ROMS.h>
 #include <vapor/WRF.h>
 #include <vapor/WeightTable.h>
-
 #ifdef _WINDOWS 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -35,7 +34,7 @@ using namespace VAPoR;
     } \
     }
 
-int MOM::_MOM(
+int ROMS::_ROMS(
 	const string &toponame, const map <string, string> &names, const vector<string>& vars2d, const vector<string>& vars3d
 ) {
 
@@ -57,7 +56,7 @@ int MOM::_MOM(
 
 	add2dVars = add3dVars = true;
 	
-	_momTimes.clear();
+	_romsTimes.clear();
 	if (vars2d.size()>0){//Don't add new vars if vars are already specified
 		add2dVars = false;
 	}
@@ -74,12 +73,12 @@ int MOM::_MOM(
 	//Check for the existence of a vertical dimension and its corresponding variable.  Save extents in _vertExts.
 	//returns 0 on success.
 
-	int rc = _GetMOMTopo(_ncid );
+	int rc = _GetROMSTopo(_ncid );
 
 	return(rc);
 }
 
-MOM::MOM(const string &toponame, const vector<string>& vars2d, const vector<string>& vars3d) {
+ROMS::ROMS(const string &toponame, const vector<string>& vars2d, const vector<string>& vars3d) {
 	map <string, string> atypnames;
 
 	atypnames["time"] = "time";
@@ -89,22 +88,22 @@ MOM::MOM(const string &toponame, const vector<string>& vars2d, const vector<stri
 	atypnames["sw_ocean"] = "sw_ocean";
 	atypnames["sw_edges_ocean"] = "sw_edges_ocean";
 
-	(void) _MOM(toponame, atypnames, vars2d, vars3d);
+	(void) _ROMS(toponame, atypnames, vars2d, vars3d);
 }
 
-MOM::MOM(const string &momname, const map <string, string> &atypnames, const vector<string>& vars2d, const vector<string>& vars3d) {
+ROMS::ROMS(const string &romsname, const map <string, string> &atypnames, const vector<string>& vars2d, const vector<string>& vars3d) {
 
-	(void) _MOM(momname, atypnames, vars2d, vars3d);
+	(void) _ROMS(romsname, atypnames, vars2d, vars3d);
 }
 
-MOM::~MOM() {
-	// Close the MOM file
+ROMS::~ROMS() {
+	// Close the ROMS file
 	(void) nc_close( _ncid );
 }
 
 // Read a data file.  Add any new variables found to current list of discovered variables.
 // Add any timesteps found to timestep list, if any variables are found.  Return nonzero if no variables found.
-int MOM::addFile(const string& datafile, float extents[6], vector<string>&vars2d, vector<string>&vars3d){
+int ROMS::addFile(const string& datafile, float extents[6], vector<string>&vars2d, vector<string>&vars3d){
 	// Open netCDF file and check for failure
 	int ncid;
 	NC_ERR_READ( nc_open( datafile.c_str(), NC_NOWRITE, &ncid ));
@@ -187,7 +186,7 @@ int MOM::addFile(const string& datafile, float extents[6], vector<string>&vars2d
 	for (int i = 0; i<6; i++) extents[i] = _Exts[i];
 	return 0;
 }
-int MOM::extractStartTime(int ncid, int timevarid){
+int ROMS::extractStartTime(int ncid, int timevarid){
 	//Check the units attribute of the time variable.  If it exists and it starts with "days since" then construct a WRF-style time stamp
 	//from the next two tokens in that attribute.
 	nc_type atttype;
@@ -222,7 +221,7 @@ int MOM::extractStartTime(int ncid, int timevarid){
 }
 
 
-float* MOM::GetDepths(){
+float* ROMS::GetDepths(){
 	depthsArray = 0;
 	//See if we can open the ht variable in the topo file
 	const string& depthVar = _atypnames["ht"];
@@ -252,14 +251,14 @@ float* MOM::GetDepths(){
 	for (size_t i = 0; i<_dimLens[0]*_dimLens[1]; i++){
 		if (depthsArray[i] != mv )
 			depthsArray[i] = -depthsArray[i];
-		else depthsArray[i] = (float)MOM::vaporMissingValue();
+		else depthsArray[i] = (float)ROMS::vaporMissingValue();
 	}
 	return depthsArray;
 }
 
 
 
-int MOM::_GetMOMTopo(
+int ROMS::_GetROMSTopo(
 	int ncid // Holds netCDF file ID (in)
 	
 ) {
@@ -451,7 +450,7 @@ int MOM::_GetMOMTopo(
 	//negate, turn upside down:
 	for (int i = 0; i<vdimsize; i++) vertLayers[i] = -tempVertLayers[vdimsize-i-1];
 	delete tempVertLayers;
-	_Exts[5] = 100.0;  //Positive, to include room for ocean surface, even though MOM data does not go higher than -5.0.
+	_Exts[5] = 100.0;  //Positive, to include room for ocean surface, even though ROMS data does not go higher than -5.0.
 	_Exts[2] = vertLayers[0];  
 	
 
@@ -511,12 +510,12 @@ int MOM::_GetMOMTopo(
 		}
 	}
 	return(0);
-} // End of _GetMOMTopo.
+} // End of _GetROMSTopo.
 
 
 //Test if variable has right attributes to be a geolat or geolon variable.
 // returns 1 for geolat, 2 for geolon
-int MOM::testVarAttribs(int ncid, int varid){
+int ROMS::testVarAttribs(int ncid, int varid){
 	char* latUnits[] = {(char*)"degree_north",(char*)"degrees_north",(char*)"degree_N",(char*)"degrees_N",(char*)"degreeN",(char*)"degreesN"};
 	char* lonUnits[] = {(char*)"degree_east",(char*)"degrees_east",(char*)"degree_E",(char*)"degrees_E",(char*)"degreeE",(char*)"degreesE"};
 	int latlon = 0;
@@ -577,17 +576,17 @@ int MOM::testVarAttribs(int ncid, int varid){
 	}
 	return 0;
 }
-void MOM::addTimes(int numtimes, double times[]){
+void ROMS::addTimes(int numtimes, double times[]){
 	for (int i = 0; i< numtimes; i++){
 		int k;
-		for (k = 0; k < _momTimes.size(); k++){
-			if (_momTimes[k] == times[i]) continue;
+		for (k = 0; k < _romsTimes.size(); k++){
+			if (_romsTimes[k] == times[i]) continue;
 		}
-		if (k >= _momTimes.size()) _momTimes.push_back(times[i]);
+		if (k >= _romsTimes.size()) _romsTimes.push_back(times[i]);
 	}
 
 }
-void MOM::addVarName(int dim, string& vname, vector<string>&vars2d, vector<string>&vars3d){
+void ROMS::addVarName(int dim, string& vname, vector<string>&vars2d, vector<string>&vars3d){
 	if (dim == 2){
 		for (int i = 0; i< vars2d.size(); i++){
 			if (vars2d[i] == vname) return;
@@ -607,7 +606,7 @@ void MOM::addVarName(int dim, string& vname, vector<string>&vars2d, vector<strin
 //  See if the coordinates attribute contains the geolat and geolon coordinate names (either T or U grid)
 //  for validity check that the variable dimension lengths are either the same, or one more, than the
 //  saved dimensions.
-int MOM::varIsValid(int ncid, int ndims, int varid){
+int ROMS::varIsValid(int ncid, int ndims, int varid){
 	char varname[NC_MAX_NAME+1];
 	NC_ERR_READ(nc_inq_varname(ncid, varid, varname));
 	int dimids[4];
@@ -641,7 +640,7 @@ int MOM::varIsValid(int ncid, int ndims, int varid){
 }
 //Determine what are the geolat and geolon variables associated with a variable in a netcdf file.
 //Return nonzero if invalid geolon/geolat coordinates
-int MOM::GetGeoLonLatVar(int ncid, int varid, int* geolon, int* geolat){
+int ROMS::GetGeoLonLatVar(int ncid, int varid, int* geolon, int* geolat){
 	//Check that the geolat and geolon variables are in the "coordinates" attribute
 	nc_type atttype;
 	size_t attlen;
@@ -679,7 +678,7 @@ int MOM::GetGeoLonLatVar(int ncid, int varid, int* geolon, int* geolat){
 	
 }
 //Make a weight table for each combination of geolon/geolat variables
-int MOM::MakeWeightTables(){
+int ROMS::MakeWeightTables(){
 	WeightTables = new WeightTable*[geolatvars.size()*geolonvars.size()];
 	for (int lattab = 0; lattab < geolatvars.size(); lattab++){
 		for (int lontab = 0; lontab < geolonvars.size(); lontab++){
@@ -692,44 +691,48 @@ int MOM::MakeWeightTables(){
 	}
 	return 0;
 }
-//Determine the index in time array that corresponding to a MOM date.
+
+			
+
+
+//Determine the index in time array that corresponding to a ROMS date.
 //Requires a vector of times in seconds since simulation start time, such as those in Metadata
-//MOM dates are in months relative to the simulation start time.
-//momTime is the number of days since simulation start time.
-size_t MOM::GetVDCTimeStep(double momTime, const vector<double>& times,  double tol){
+//ROMS dates are in months relative to the simulation start time.
+//romsTime is the number of days since simulation start time.
+size_t ROMS::GetVDCTimeStep(double romsTime, const vector<double>& times,  double tol){
 	//convert everything to seconds since 01/01/70:
 	if (startTimeDouble <= -1.e30) return (size_t)(-1);
 	//Convert to seconds (since simulation start time)
-	momTime *= (24.*60.*60.);
+	romsTime *= (24.*60.*60.);
 	
 	tol *= (24.*60.*60.);
 	
 		
 	size_t mints = 0, maxts = times.size()-1;
 	//make sure we are in right interval:
-	if (momTime <= times[0]-tol) return -1;
-	if (momTime >= times[maxts]+tol) return -1;
+	if (romsTime <= times[0]-tol) return -1;
+	if (romsTime >= times[maxts]+tol) return -1;
 	//Do binary search
 	
 	size_t mid = (maxts+mints)/2;
 	int ntries = 0;
 	while (mints < maxts-1){
-		if (times[mid]< momTime)
+		if (times[mid]< romsTime)
 			mints = mid;
-		else if (times[mid] != momTime)
+		else if (times[mid] != romsTime)
 			maxts = mid;
 		else return(mid);
 		mid = (maxts+mints)/2;
 		if(ntries++ > 100) assert(0);
 	}
-	if(abs(times[mid]-momTime) < tol) return mid;
-	else if (abs(times[mints]-momTime) < tol) return mints;
-	else if (abs(times[maxts]-momTime) < tol) return maxts;
+	if(abs(times[mid]-romsTime) < tol) return mid;
+	else if (abs(times[mints]-romsTime) < tol) return mints;
+	else if (abs(times[maxts]-romsTime) < tol) return maxts;
 	else return (size_t)-1;
 	
 }
 //Method that obtains a geolon variable and modifies it to be monotonic
-float* MOM::getMonotonicLonData(int ncid, const char* varname, int londimsize, int latdimsize){
+float* ROMS::getMonotonicLonData(int ncid, const char* varname, int londimsize, int latdimsize){
 	int geolonvarid;
 	int rc = nc_inq_varid (ncid, varname, &geolonvarid);
 	if (rc != NC_NOERR) return 0;

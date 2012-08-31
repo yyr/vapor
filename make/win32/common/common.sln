@@ -127,6 +127,18 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "momvdfcreate", "..\momvdfcr
 		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "romsvdfcreate", "..\romsvdfcreate\romsvdfcreate.vcproj", "{706C40A3-3376-47BA-BDEC-3A4E1AB7588D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
+		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "roms2vdf", "..\roms2vdf\roms2vdf.vcproj", "{E4DC0116-3F13-4229-AC73-133CCC93BCAC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
+		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -282,6 +294,18 @@ Global
 		{E74BD45F-232D-41D7-BCA5-F99EC28BF86F}.Release|Win32.Build.0 = Release|Win32
 		{E74BD45F-232D-41D7-BCA5-F99EC28BF86F}.Release|x64.ActiveCfg = Release|x64
 		{E74BD45F-232D-41D7-BCA5-F99EC28BF86F}.Release|x64.Build.0 = Release|x64
+		{706C40A3-3376-47BA-BDEC-3A4E1AB7588D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{706C40A3-3376-47BA-BDEC-3A4E1AB7588D}.Debug|Win32.Build.0 = Debug|Win32
+		{706C40A3-3376-47BA-BDEC-3A4E1AB7588D}.Debug|x64.ActiveCfg = Debug|Win32
+		{706C40A3-3376-47BA-BDEC-3A4E1AB7588D}.Release|Win32.ActiveCfg = Release|Win32
+		{706C40A3-3376-47BA-BDEC-3A4E1AB7588D}.Release|Win32.Build.0 = Release|Win32
+		{706C40A3-3376-47BA-BDEC-3A4E1AB7588D}.Release|x64.ActiveCfg = Release|Win32
+		{E4DC0116-3F13-4229-AC73-133CCC93BCAC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E4DC0116-3F13-4229-AC73-133CCC93BCAC}.Debug|Win32.Build.0 = Debug|Win32
+		{E4DC0116-3F13-4229-AC73-133CCC93BCAC}.Debug|x64.ActiveCfg = Debug|Win32
+		{E4DC0116-3F13-4229-AC73-133CCC93BCAC}.Release|Win32.ActiveCfg = Release|Win32
+		{E4DC0116-3F13-4229-AC73-133CCC93BCAC}.Release|Win32.Build.0 = Release|Win32
+		{E4DC0116-3F13-4229-AC73-133CCC93BCAC}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

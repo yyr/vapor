@@ -18,8 +18,7 @@
 #include <vapor/MOM.h>
 #ifdef _WINDOWS 
 #include "windows.h"
-#include <limits>//Define INFINITY
-	float INFINITY = numeric_limits<float>::infinity( );
+
 #pragma warning(disable : 4996)
 #endif
 
@@ -326,7 +325,7 @@ int	main(int argc, char **argv) {
 		file->SetTSZCoords(i,zstretch);
 	}
 
-	//Use INFINITY as the (only) missing value:
+	
 	file->SetMissingValue(MOM::vaporMissingValue());
 	// Handle command line over rides here.
 
