@@ -166,6 +166,12 @@ int WaveCodecIO::_WaveCodecIO(int nthreads) {
 
 	_cratios3D = GetCRatios();
 	_cratios = _cratios3D;
+	_collectiveIO = false;
+	_xformMPI = 0.0;
+	_methodTimer = 0.0;
+	_methodThreadTimer = 0.0;
+	_ioMPI = 0.0;
+
 
 	//
 	// Try to compute "reasonable" 2D compression ratios from 3D 
@@ -519,7 +525,7 @@ int WaveCodecIO::CloseVariable() {
 	_WriteTimerStart();
 #ifdef PARALLEL
 	int rank;
-	MPI_Comm_rank(IO_Comm, &rank);
+	MPI_Comm_rank(_IO_Comm, &rank);
 int x[] = {0,0,0};
  float *y = (float*) malloc(sizeof(float));
  int *reduce = (int*) malloc(sizeof(int) *3);
@@ -528,21 +534,21 @@ int *value = (int*) malloc(sizeof(int) *3);
  value[0] = _validRegMin[0];
  value[1] = _validRegMin[1];
  value[2] = _validRegMin[2];
-MPI_Allreduce(value, reduce, 3, MPI_INT, MPI_MIN, IO_Comm);
+MPI_Allreduce(value, reduce, 3, MPI_INT, MPI_MIN, _IO_Comm);
 _validRegMin[0] = reduce[0]; _validRegMin[1] = reduce[1]; _validRegMin[2] = reduce[2];
 
  value[0] = _validRegMax[0];
  value[1] = _validRegMax[1];
  value[2] = _validRegMax[2];
-MPI_Allreduce(value, reduce, 3, MPI_INT, MPI_MAX, IO_Comm);
+MPI_Allreduce(value, reduce, 3, MPI_INT, MPI_MAX, _IO_Comm);
 _validRegMax[0] = reduce[0]; _validRegMax[1] = reduce[1]; _validRegMax[2] = reduce[2];
 
  free(reduce);
  free(value);
 
-MPI_Allreduce(&_dataRange[1], y, 1, MPI_FLOAT, MPI_MAX, IO_Comm);
+MPI_Allreduce(&_dataRange[1], y, 1, MPI_FLOAT, MPI_MAX, _IO_Comm);
  _dataRange[1] = *y;
-  MPI_Allreduce(&_dataRange[0], y, 1, MPI_FLOAT, MPI_MIN, IO_Comm);
+  MPI_Allreduce(&_dataRange[0], y, 1, MPI_FLOAT, MPI_MIN, _IO_Comm);
 _dataRange[0] = *y;
 
 SetDiagMsg("@MPI validreg min: %d %d %d, max: %d %d %d",_validRegMin[0],_validRegMin[1],_validRegMin[2],_validRegMax[0],_validRegMax[1],_validRegMax[2]);
@@ -943,7 +949,7 @@ int WaveCodecIO::BlockWriteRegion(
 
 #ifdef PARALLEL
 	int rank;
-	MPI_Comm_rank(IO_Comm, &rank);
+	MPI_Comm_rank(_IO_Comm, &rank);
 #endif
 
 	size_t bmin_up[3], bmax_up[3];	// unpacked copy of bmin, bmax
@@ -980,7 +986,7 @@ int WaveCodecIO::BlockWriteRegion(
 	else {
 	  double threadTime = MPI_Wtime();
 	  int rc = ParRun(RunBlockWriteRegionThread, (void **) _rw_thread_objs);
-	  methodThreadTimer += (MPI_Wtime() - threadTime);
+	  _methodThreadTimer += (MPI_Wtime() - threadTime);
 		if (rc < 0) {
 			SetErrMsg("Error spawning threads");
 			return(-1);
@@ -1012,7 +1018,7 @@ int WaveCodecIO::BlockWriteRegion(
 		if (v > _dataRange[1]) _dataRange[1] = v;
 		delete _rw_thread_objs[t];
 		}
-	methodTimer += (MPI_Wtime() - starttime);
+	_methodTimer += (MPI_Wtime() - starttime);
 
 	return(_threadStatus);
 }
@@ -1168,7 +1174,7 @@ void WaveCodecIO::ReadWriteThreadObj::BlockWriteRegionThread() {
 			blockptr, _wc->_cvectorThread[_id], _wc->_ncoeffs, 
 			_wc->_sigmapsThread[_id], _wc->_ncoeffs.size()
 		); 
-		_wc->xformMPI += (MPI_Wtime() - starttime);
+		_wc->_xformMPI += (MPI_Wtime() - starttime);
 		if (_id==0) _wc->_XFormTimerStop();
 		if (rc<0) {
 			_wc->_threadStatus = -1;
@@ -1181,7 +1187,7 @@ void WaveCodecIO::ReadWriteThreadObj::BlockWriteRegionThread() {
 				if (index == _wc->_next_block) {
 				  starttime = MPI_Wtime();
 					rc = _WriteBlock(bx, by, bz);
-					_wc->ioMPI += (MPI_Wtime() - starttime);
+					_wc->_ioMPI += (MPI_Wtime() - starttime);
 					if (rc<0) _wc->_threadStatus = -1;
 					_wc->_next_block++;
 					myturn = true;
@@ -1192,7 +1198,7 @@ void WaveCodecIO::ReadWriteThreadObj::BlockWriteRegionThread() {
 		if (_wc->_threadStatus != 0) return;
 		
 	}
-	_wc->methodThreadTimer += (MPI_Wtime() - begin);
+	_wc->_methodThreadTimer += (MPI_Wtime() - begin);
 }
 
 int WaveCodecIO::WriteRegion(
@@ -1942,7 +1948,7 @@ int WaveCodecIO::_OpenVarRead(
 #endif
 
 #ifdef PNETCDF
-		  rc = ncmpi_open(IO_Comm, path.c_str(), NC_NOWRITE, info, &ncid);
+		  rc = ncmpi_open(_IO_Comm, path.c_str(), NC_NOWRITE, info, &ncid);
 #else
 			rc = nc__open(path.c_str(), NC_NOWRITE, &chsz, &ncid);
 #endif
@@ -2081,7 +2087,7 @@ int WaveCodecIO::_OpenVarRead(
 		NC_ERR_READ(rc,path)
 		_nc_wave_vars.push_back(ncvar);
 #ifdef PNETCDF
-			  if(!collectiveIO){
+			  if(!_collectiveIO){
 			    ncmpi_begin_indep_data(_ncids[j]);
 			  }
 	
@@ -2150,9 +2156,9 @@ int WaveCodecIO::_OpenVarWrite(
 #ifndef NOIO
 #ifdef PARALLEL
 #ifdef PNETCDF
-	rc = ncmpi_create(IO_Comm, path.c_str(), NC_WRITE | NC_64BIT_OFFSET,
+	rc = ncmpi_create(_IO_Comm, path.c_str(), NC_WRITE | NC_64BIT_OFFSET,
 #else //PNETCDF
-		rc = nc_create_par(path.c_str(), NC_MPIIO | NC_NETCDF4, IO_Comm, 
+		rc = nc_create_par(path.c_str(), NC_MPIIO | NC_NETCDF4, _IO_Comm, 
 #endif //PNETCDF
 		info, &ncid);
 #else //PARALLEL
@@ -2307,7 +2313,7 @@ int WaveCodecIO::_OpenVarWrite(
 
 			  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
-		NCBuf *ncbuf = new NCBuf(_ncids[j], ncid, NC_FLOAT, ncdims, collectiveIO, rank, _NC_BUF_SIZE);
+		NCBuf *ncbuf = new NCBuf(_ncids[j], ncid, NC_FLOAT, ncdims, _collectiveIO, rank, _NC_BUF_SIZE);
 		_ncbufs.push_back(ncbuf);
 
 #ifndef NOIO
@@ -2426,7 +2432,7 @@ int WaveCodecIO::_OpenVarWrite(
 				   rc = nc_enddef(_ncids[j]);
 #endif
 #ifdef PNETCDF
-			  if(!collectiveIO){
+			  if(!_collectiveIO){
 			    ncmpi_begin_indep_data(_ncids[j]);
 			  }
 #endif

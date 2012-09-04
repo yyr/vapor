@@ -67,10 +67,6 @@ public:
 #endif
 
  virtual ~WaveCodecIO();
- double xformMPI;
- double methodTimer;
- double methodThreadTimer;
- double ioMPI;
 
  //! Open the named variable for reading
  //!
@@ -403,19 +399,23 @@ public:
  //
  virtual void GetBlockSize(size_t bs[3], int reflevel) const;
 #ifdef PARALLEL
- void SetIOComm(MPI_Comm NewIOComm) {IO_Comm = NewIOComm;};
+ void SetIOComm(MPI_Comm NewIOComm) {_IO_Comm = NewIOComm;};
 #endif
  void SetCollectiveIO(bool newCollectiveIO) {
-   collectiveIO = newCollectiveIO;
+   _collectiveIO = newCollectiveIO;
  };
  friend void     *RunBlockReadRegionThread(void *object);
  friend void     *RunBlockWriteRegionThread(void *object);
 
 private:
 #ifdef PARALLEL
- MPI_Comm IO_Comm;
+ MPI_Comm _IO_Comm;
 #endif
- bool collectiveIO;
+ bool _collectiveIO;
+ double _xformMPI;
+ double _methodTimer;
+ double _methodThreadTimer;
+ double _ioMPI;
  //
  // Threaded read object for parallel inverse transforms 
  // (data reconstruction)

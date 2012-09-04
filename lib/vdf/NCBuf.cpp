@@ -54,6 +54,11 @@ NCBuf::NCBuf(
 	}
 }
 
+NCBuf::~NCBuf() {
+	Flush();
+	if (_buf) delete [] _buf;
+}
+
 void print_put_var(
 		   string msg, int ncid, int varid, const size_t start[], const size_t count[], int n, int _rank
 ) {

@@ -23,7 +23,7 @@ public:
        int ncid, int varid, nc_type xtype, vector <size_t> dims,  bool useCollective, int rank,	size_t bufsize = 4*1024*1024
  );
 
- ~NCBuf() { Flush(); };
+ ~NCBuf();
 
  int PutVara(
 	const size_t start[], const size_t count[], 
