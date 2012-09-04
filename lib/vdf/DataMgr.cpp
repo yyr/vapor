@@ -1615,7 +1615,7 @@ void	DataMgr::map_user_to_vox_regular(
 		a = (vcoord0[i] - lextents[i]) / (lextents[i+3]-lextents[i]);
 
 		if (a < 0.0) vcoord1[i] = 0;
-		else if (a > 1.0) vcoord1[i] = 1.0;
+		else if (a > 1.0) vcoord1[i] = dim[i]-1;
 		else vcoord1[i] = (size_t) rint(a * (double) (dim[i]-1));
 	}
 }
