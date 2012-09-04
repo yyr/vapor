@@ -167,9 +167,11 @@ void	Metadata::MapUserToVox(
 		lextents[i+3] = lextents[i] + (deltax * (dim[i]-1));
 
 		a = (vcoord0[i] - lextents[i]) / (lextents[i+3]-lextents[i]);
-		vcoord1[i] = (size_t) rint(a * (double) (dim[i]-1));
 
-		if (vcoord1[i] > (dim[i]-1)) vcoord1[i] = dim[i]-1;
+        if (a < 0.0) vcoord1[i] = 0;
+        else if (a > 1.0) vcoord1[i] = 1.0;
+        else vcoord1[i] = (size_t) rint(a * (double) (dim[i]-1));
+
 	}
 }
 
