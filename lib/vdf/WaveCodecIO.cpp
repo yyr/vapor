@@ -295,7 +295,10 @@ WaveCodecIO::~WaveCodecIO() {
 	for (int t = 0; t<_nthreads-1; t++) {
 		if (_cvectorThread[t]) delete [] _cvectorThread[t];
 		if (_svectorThread[t]) delete [] _svectorThread[t];
-		if (_compressorThread[t]) delete _compressorThread[t];
+		if (_compressorThread3D[t]) delete _compressorThread3D[t];
+		if (_compressorThread2DXY[t]) delete _compressorThread2DXY[t];
+		if (_compressorThread2DXZ[t]) delete _compressorThread2DXZ[t];
+		if (_compressorThread2DYZ[t]) delete _compressorThread2DYZ[t];
 		if (_blockThread[t]) delete [] _blockThread[t];
 		if (_sigmapsThread[t]) {
 			for (int i =0; i<_cratios.size(); i++) {
