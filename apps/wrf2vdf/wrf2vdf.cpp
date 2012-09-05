@@ -1387,7 +1387,13 @@ int	main(int argc, char **argv) {
 			}
 			
 		} // End of for WRF timestep.
+		delete metadataWRF;
+		delete wrfreader;
 	} // End for WRF files. 
+
+	if (wbwriter3d) delete wbwriter3d;
+	if (wcwriter3d) delete wcwriter3d;
+	if (wbwriter2d) delete wbwriter2d;
 
 	if (! opt.quiet) {
 		cout << endl;
