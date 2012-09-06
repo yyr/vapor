@@ -126,8 +126,10 @@ signals:
 
 protected:
 	void enableFullClippingPlanes();
+	void enableRegionClippingPlanes();
 	void enable2DClippingPlanes();
 	void disableFullClippingPlanes();
+	void disableRegionClippingPlanes();
 	RenderParams* currentRenderParams;
 	void buildColorscaleImage();
 	
