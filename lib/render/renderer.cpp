@@ -197,6 +197,8 @@ renderColorscale(bool dorebuild){
 	//Reset to default:
 	glDepthFunc(GL_LESS);
 }
+
+#ifdef	DEAD
 void Renderer::enableFullClippingPlanes(){
 	GLdouble topPlane[] = {0., -1., 0., 1.}; //y = 1
 	GLdouble rightPlane[] = {-1., 0., 0., 1.0};// x = 1
@@ -223,6 +225,69 @@ void Renderer::enableFullClippingPlanes(){
 	glEnable(GL_CLIP_PLANE5);
 
 }
+#endif
+
+void Renderer::enableClippingPlanes(const double extents[6]){
+
+	AnimationParams *myAnimationParams = myGLWindow->getActiveAnimationParams();
+	size_t timeStep = myAnimationParams->getCurrentTimestep();
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+	myGLWindow->getTBall()->TrackballSetMatrix();
+
+    //cerr << "transforming everything to unit box coords :-(\n";
+    myGLWindow->TransformToUnitBox();
+
+    const float* scales = DataStatus::getInstance()->getStretchFactors();
+    glScalef(scales[0], scales[1], scales[2]);
+
+	GLdouble x0Plane[] = {1., 0., 0., 0.};
+	GLdouble x1Plane[] = {-1., 0., 0., 1.0};
+	GLdouble y0Plane[] = {0., 1., 0., 0.};
+	GLdouble y1Plane[] = {0., -1., 0., 1.};
+	GLdouble z0Plane[] = {0., 0., 1., 0.};
+	GLdouble z1Plane[] = {0., 0., -1., 1.};//z largest
+
+
+	x0Plane[3] = -extents[0];
+	x1Plane[3] = extents[3];
+	y0Plane[3] = -extents[1];
+	y1Plane[3] = extents[4];
+	z0Plane[3] = -extents[2];
+	z1Plane[3] = extents[5];
+
+	glClipPlane(GL_CLIP_PLANE0, x0Plane);
+	glEnable(GL_CLIP_PLANE0);
+	glClipPlane(GL_CLIP_PLANE1, x1Plane);
+	glEnable(GL_CLIP_PLANE1);
+	glClipPlane(GL_CLIP_PLANE2, y0Plane);
+	glEnable(GL_CLIP_PLANE2);
+	glClipPlane(GL_CLIP_PLANE3, y1Plane);
+	glEnable(GL_CLIP_PLANE3);
+	glClipPlane(GL_CLIP_PLANE4, z0Plane);
+	glEnable(GL_CLIP_PLANE4);
+	glClipPlane(GL_CLIP_PLANE5, z1Plane);
+	glEnable(GL_CLIP_PLANE5);
+
+	glPopMatrix();
+}
+
+void Renderer::enableFullClippingPlanes() {
+
+	AnimationParams *myAnimationParams = myGLWindow->getActiveAnimationParams();
+    size_t timeStep = myAnimationParams->getCurrentTimestep();
+	DataMgr *dataMgr = DataStatus::getInstance()->getDataMgr();
+
+	const vector<double>& extvec = dataMgr->GetExtents(timeStep);
+	double extents[6];
+	for (int i=0; i<6; i++) extents[i] = extvec[i];
+
+	enableClippingPlanes(extents);
+}
+	
 void Renderer::disableFullClippingPlanes(){
 	glDisable(GL_CLIP_PLANE0);
 	glDisable(GL_CLIP_PLANE1);
@@ -254,53 +319,14 @@ void Renderer::disableFullClippingPlanes(){
 
 void Renderer::enableRegionClippingPlanes() {
 
-	RegionParams* myRegionParams = myGLWindow->getActiveRegionParams();
 	AnimationParams *myAnimationParams = myGLWindow->getActiveAnimationParams();
-	size_t timeStep = myAnimationParams->getCurrentTimestep();
-
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-
-	myGLWindow->getTBall()->TrackballSetMatrix();
-
-    //cerr << "transforming everything to unit box coords :-(\n";
-    myGLWindow->TransformToUnitBox();
-
-    const float* scales = DataStatus::getInstance()->getStretchFactors();
-    glScalef(scales[0], scales[1], scales[2]);
-
-	GLdouble x0Plane[] = {1., 0., 0., 0.};
-	GLdouble x1Plane[] = {-1., 0., 0., 1.0};
-	GLdouble y0Plane[] = {0., 1., 0., 0.};
-	GLdouble y1Plane[] = {0., -1., 0., 1.};
-	GLdouble z0Plane[] = {0., 0., 1., 0.};
-	GLdouble z1Plane[] = {0., 0., -1., 1.};//z largest
+    size_t timeStep = myAnimationParams->getCurrentTimestep();
+	RegionParams* myRegionParams = myGLWindow->getActiveRegionParams();
 
 	double regExts[6];
 	myRegionParams->GetBox()->GetUserExtents(regExts,timeStep);
 
-	x0Plane[3] = -regExts[0];
-	x1Plane[3] = regExts[3];
-	y0Plane[3] = -regExts[1];
-	y1Plane[3] = regExts[4];
-	z0Plane[3] = -regExts[2];
-	z1Plane[3] = regExts[5];
-
-	glClipPlane(GL_CLIP_PLANE0, x0Plane);
-	glEnable(GL_CLIP_PLANE0);
-	glClipPlane(GL_CLIP_PLANE1, x1Plane);
-	glEnable(GL_CLIP_PLANE1);
-	glClipPlane(GL_CLIP_PLANE2, y0Plane);
-	glEnable(GL_CLIP_PLANE2);
-	glClipPlane(GL_CLIP_PLANE3, y1Plane);
-	glEnable(GL_CLIP_PLANE3);
-	glClipPlane(GL_CLIP_PLANE4, z0Plane);
-	glEnable(GL_CLIP_PLANE4);
-	glClipPlane(GL_CLIP_PLANE5, z1Plane);
-	glEnable(GL_CLIP_PLANE5);
-
-	glPopMatrix();
+	enableClippingPlanes(regExts);
 }
 
 void Renderer::disableRegionClippingPlanes(){

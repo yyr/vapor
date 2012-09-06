@@ -125,6 +125,7 @@ signals:
     void statusMessage(const QString&);
 
 protected:
+	void enableClippingPlanes(const double extents[6]);
 	void enableFullClippingPlanes();
 	void enableRegionClippingPlanes();
 	void enable2DClippingPlanes();

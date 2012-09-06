@@ -84,6 +84,7 @@ void ProbeRenderer::paintGL()
 	int imgHeight = imgSize[1];
 	if (probeTex){
 		enableFullClippingPlanes();
+		
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
 		glMatrixMode(GL_MODELVIEW);
