@@ -98,6 +98,13 @@ See vdfcreate.
 
 Generate a .vdf file for a VDC Type 2 data collection.
 
+=item -append 
+
+Append I<wrf_ncdf_file...> to I<vdffile>. In the case that I<vdffile> already
+exists, this option can be used to append new time steps to I<vdffile>. The
+input files, I<wrf_ncdf_file...>, must have idenitcal dimensions and variables
+to those used to create the original .vdf file. 
+
 =item -wname E<lt>wave_nameE<gt>
 
 This option (VDC2 only), see vdfcreate.

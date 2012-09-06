@@ -31,6 +31,7 @@ struct opt_t {
 	vector<string> dervars;
 	vector<string> atypvars;
 	OptionParser::Boolean_T	vdc2;	
+	OptionParser::Boolean_T	append;	
 	vector <int> cratios;
 	char *wname;
 	OptionParser::Boolean_T	help;
@@ -51,6 +52,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"nfilter",	1, 	"1", "Number of wavelet filter coefficients (default is 1)"},
 	{"nlifting",1, 	"1", "Number of wavelet lifting coefficients (default is 1)"},
 	{"vdc2",	0,	"",	"Generate a VDC Type 2 .vdf file (default is VDC Type 1)"},
+	{"append",	0,	"",	"Append WRF files to an existing .vdfd"},
 	{"cratios",1,	"",	"Colon delimited list compression ratios. "
 		"The default is 1:10:100:500. " 
 		"The maximum compression ratio is wavelet and block size dependent."},
@@ -74,6 +76,7 @@ OptionParser::Option_T	get_options[] = {
 	{"nfilter", VetsUtil::CvtToInt, &opt.nfilter, sizeof(opt.nfilter)},
 	{"nlifting", VetsUtil::CvtToInt, &opt.nlifting, sizeof(opt.nlifting)},
 	{"vdc2", VetsUtil::CvtToBoolean, &opt.vdc2, sizeof(opt.vdc2)},
+	{"append", VetsUtil::CvtToBoolean, &opt.append, sizeof(opt.append)},
 	{"cratios", VetsUtil::CvtToIntVec, &opt.cratios, sizeof(opt.cratios)},
 	{"wname", VetsUtil::CvtToString, &opt.wname, sizeof(opt.wname)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
@@ -97,69 +100,14 @@ void ErrMsgCBHandler(const char *msg, int) {
 	cerr << ProgName << " : " << msg << endl;
 }
 
-int	main(int argc, char **argv) {
-
-	OptionParser op;
-	string s;
-	MetadataWRF *WRFData;
-
-	ProgName = Basename(argv[0]);
-
-	if (op.AppendOptions(set_opts) < 0) {
-		cerr << ProgName << " : " << op.GetErrMsg();
-		exit(1);
-	}
-
-	if (op.ParseOptions(&argc, argv, get_options) < 0) {
-		cerr << ProgName << " : " << OptionParser::GetErrMsg();
-		exit(1);
-	}
-
-	MyBase::SetErrMsgCB(ErrMsgCBHandler);
-	size_t bs[] = {opt.bs.nx, opt.bs.ny, opt.bs.nz};
-
-	if (opt.help) {
-		Usage(op, NULL);
-		exit(0);
-	}
-	// Handle atypical variable naming
-	if ( opt.atypvars.size() != 8 ) {
-		cerr << "If -atypvars option is given, colon delimited list must have exactly eight elements specifying names of variables which are typically named U:V:W:PH:PHB:P:PB:T" << endl;
-		exit( 1 );
-	}
-
-	map <string, string> atypvars;
-	atypvars["U"] = opt.atypvars[0];
-	atypvars["V"] = opt.atypvars[1];
-	atypvars["W"] = opt.atypvars[2];
-	atypvars["PH"] = opt.atypvars[3];
-	atypvars["PHB"] = opt.atypvars[4];
-	atypvars["P"] = opt.atypvars[5];
-	atypvars["PB"] = opt.atypvars[6];
-	atypvars["T"] = opt.atypvars[7];
-
-	string atypvarstring;
-	atypvarstring += opt.atypvars[0]; atypvarstring += ":";
-	atypvarstring += opt.atypvars[1]; atypvarstring += ":";
-	atypvarstring += opt.atypvars[2]; atypvarstring += ":";
-	atypvarstring += opt.atypvars[3]; atypvarstring += ":";
-	atypvarstring += opt.atypvars[4]; atypvarstring += ":";
-	atypvarstring += opt.atypvars[5]; atypvarstring += ":";
-	atypvarstring += opt.atypvars[6]; atypvarstring += ":";
-	atypvarstring += opt.atypvars[7];
-
-	argv++;
-	argc--;
-
-	if (argc < 2) {
-		Usage(op, "No files to process");
-		exit(1);
-	}
-
+MetadataVDC *CreateMetadataVDC(
+	const MetadataWRF *WRFData
+) {
 	vector <size_t> cratios;
 	string wname;
 	string wmode;
 	
+	size_t bs[] = {opt.bs.nx, opt.bs.ny, opt.bs.nz};
 	if (opt.bs.nx < 0) {
 		for (int i=0; i<3; i++) bs[i] = 32;
 	}
@@ -230,16 +178,6 @@ int	main(int argc, char **argv) {
 	// The format is wrf-file+ vdf-file.
 	//
 
-	vector<string> wrffiles;
-	for (int i=0; i<argc-1; i++) {
-		 wrffiles.push_back(argv[i]);
-	}
-	WRFData = new MetadataWRF(wrffiles, atypvars);
-	
-	if(WRFData->GetNumTimeSteps() < 0) {
-		cerr << "No output file generated due to no input files processed." << endl;
-		exit(0);
-	}
 
 	MetadataVDC *file;
 	if (opt.vdc2) {
@@ -268,6 +206,48 @@ int	main(int argc, char **argv) {
 	vector <string>::iterator itr;
 	itr = find(vars3d.begin(), vars3d.end(), "ELEVATION");
 	if (itr == vars3d.end()) vars3d.push_back("ELEVATION");
+
+	if(opt.dervars.size() > 0) {
+		for(int i = 0; i < opt.dervars.size(); i++) {
+			if (opt.dervars[i] == "PFull_") {
+				vars3d.push_back("PFull_");
+			}
+			else if (opt.dervars[i] == "PNorm_") {
+				vars3d.push_back("PNorm_");
+                        }
+			else if (opt.dervars[i] == "PHNorm_") {
+				vars3d.push_back("PHNorm_");
+                        }
+			else if (opt.dervars[i] == "Theta_") {
+				vars3d.push_back("Theta_");
+                        }
+			else if (opt.dervars[i] == "TK_") {
+				vars3d.push_back("TK_");
+                        }
+			else if (opt.dervars[i] == "UV_") {
+				vars3d.push_back("UV_");
+                        }
+			else if (opt.dervars[i] == "UVW_") {
+				vars3d.push_back("UVW_");
+                        }
+			else if (opt.dervars[i] == "omZ_") {
+				vars3d.push_back("omZ_");
+                        }
+			else {
+				cerr << ProgName << " : Invalid derived variable : " << opt.dervars[i] << endl;
+			}
+		} // End of for.
+	} // End of if opt.dervars.
+
+	string atypvarstring;
+	atypvarstring += opt.atypvars[0]; atypvarstring += ":";
+	atypvarstring += opt.atypvars[1]; atypvarstring += ":";
+	atypvarstring += opt.atypvars[2]; atypvarstring += ":";
+	atypvarstring += opt.atypvars[3]; atypvarstring += ":";
+	atypvarstring += opt.atypvars[4]; atypvarstring += ":";
+	atypvarstring += opt.atypvars[5]; atypvarstring += ":";
+	atypvarstring += opt.atypvars[6]; atypvarstring += ":";
+	atypvarstring += opt.atypvars[7];
 
 	if(file->SetVariables3D(vars3d)) {
 		cerr << "Error populating Variables3D." << endl;
@@ -303,6 +283,13 @@ int	main(int argc, char **argv) {
 		cerr << "Error populating Dependent Vars." << endl;
 		exit(1);
 	}
+	// Handle command line over rides here.
+
+	if(file->SetComment(opt.comment) < 0) {
+		cerr << "Error populating Comment." << endl;
+		exit(1);
+	}
+
 	string usertimestamp;
 	vector <double> usertime;
 	for(int i = 0; i < WRFData->GetNumTimeSteps(); i++) {
@@ -323,51 +310,112 @@ int	main(int argc, char **argv) {
 		}
 	}
 
-	// Handle command line over rides here.
+	return(file);
+}
 
-	s.assign(opt.comment);
-	if(file->SetComment(s) < 0) {
-		cerr << "Error populating Comment." << endl;
+MetadataVDC *AppendMetadataVDC(
+	const MetadataWRF *WRFData,
+	string metafile
+) {
+	MetadataVDC *file = new MetadataVDC(metafile);
+	if (MetadataVDC::GetErrCode() != 0) exit(1);
+
+	size_t tsVDC = file->GetNumTimeSteps();
+
+	file->SetNumTimeSteps(file->GetNumTimeSteps() + WRFData->GetNumTimeSteps());
+
+	string usertimestamp;
+	vector <double> usertime;
+	for(size_t tsWRF = 0; tsWRF < WRFData->GetNumTimeSteps(); tsWRF++, tsVDC++) {
+		WRFData->GetTSUserTimeStamp(tsWRF, usertimestamp);
+		if(file->SetTSUserTimeStamp(tsVDC, usertimestamp)) {
+			cerr << "Error populating TSUserTimeStamp." << endl;
+			exit(1);
+		}
+		usertime.clear();
+		usertime.push_back(WRFData->GetTSUserTime(tsWRF));
+		if(file->SetTSUserTime(tsVDC, usertime)) {
+			cerr << "Error populating TSUserTime." << endl;
+			exit(1);
+		}
+		if(file->SetTSExtents(tsVDC, WRFData->GetExtents(tsWRF))) {
+			cerr << "Error populating TSExtents." << endl;
+			exit(1);
+		}
+	}
+
+	return(file);
+}
+
+int	main(int argc, char **argv) {
+
+	OptionParser op;
+	string s;
+	MetadataWRF *WRFData;
+
+	ProgName = Basename(argv[0]);
+
+	if (op.AppendOptions(set_opts) < 0) {
+		cerr << ProgName << " : " << op.GetErrMsg();
 		exit(1);
 	}
 
-	if(opt.dervars.size() > 0) {
-		vector <string> new3dvars;
-		new3dvars = file->GetVariables3D();
-		for(int i = 0; i < opt.dervars.size(); i++) {
-			if (opt.dervars[i] == "PFull_") {
-				new3dvars.push_back("PFull_");
-			}
-			else if (opt.dervars[i] == "PNorm_") {
-				new3dvars.push_back("PNorm_");
-                        }
-			else if (opt.dervars[i] == "PHNorm_") {
-				new3dvars.push_back("PHNorm_");
-                        }
-			else if (opt.dervars[i] == "Theta_") {
-				new3dvars.push_back("Theta_");
-                        }
-			else if (opt.dervars[i] == "TK_") {
-				new3dvars.push_back("TK_");
-                        }
-			else if (opt.dervars[i] == "UV_") {
-				new3dvars.push_back("UV_");
-                        }
-			else if (opt.dervars[i] == "UVW_") {
-				new3dvars.push_back("UVW_");
-                        }
-			else if (opt.dervars[i] == "omZ_") {
-				new3dvars.push_back("omZ_");
-                        }
-			else {
-				cerr << ProgName << " : Invalid derived variable : " << opt.dervars[i] << endl;
-			}
-		} // End of for.
-		if(file->SetVariables3D(new3dvars)) {
-                	cerr << "Error populating Variables3D." << endl;
-                	exit(1);
-        	}
-	} // End of if opt.dervars.
+	if (op.ParseOptions(&argc, argv, get_options) < 0) {
+		cerr << ProgName << " : " << OptionParser::GetErrMsg();
+		exit(1);
+	}
+
+	MyBase::SetErrMsgCB(ErrMsgCBHandler);
+
+	if (opt.help) {
+		Usage(op, NULL);
+		exit(0);
+	}
+	// Handle atypical variable naming
+	if ( opt.atypvars.size() != 8 ) {
+		cerr << "If -atypvars option is given, colon delimited list must have exactly eight elements specifying names of variables which are typically named U:V:W:PH:PHB:P:PB:T" << endl;
+		exit( 1 );
+	}
+
+	map <string, string> atypvars;
+	atypvars["U"] = opt.atypvars[0];
+	atypvars["V"] = opt.atypvars[1];
+	atypvars["W"] = opt.atypvars[2];
+	atypvars["PH"] = opt.atypvars[3];
+	atypvars["PHB"] = opt.atypvars[4];
+	atypvars["P"] = opt.atypvars[5];
+	atypvars["PB"] = opt.atypvars[6];
+	atypvars["T"] = opt.atypvars[7];
+
+
+	argv++;
+	argc--;
+
+	if (argc < 2) {
+		Usage(op, "No files to process");
+		exit(1);
+	}
+
+	vector<string> wrffiles;
+	for (int i=0; i<argc-1; i++) {
+		 wrffiles.push_back(argv[i]);
+	}
+	WRFData = new MetadataWRF(wrffiles, atypvars);
+	
+	if(WRFData->GetNumTimeSteps() < 0) {
+		cerr << "No output file generated due to no input files processed." << endl;
+		exit(0);
+	}
+
+
+	MetadataVDC *file;
+	if (! opt.append) {
+		file = CreateMetadataVDC(WRFData);
+	}
+	else {
+		file = AppendMetadataVDC(WRFData, argv[argc-1]);
+	}
+
 
 	// Write file.
 
