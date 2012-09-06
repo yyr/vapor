@@ -14,6 +14,7 @@ uniform vec4  vpos;
 void main() {
     gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
 	gl_TexCoord[0] = gl_MultiTexCoord0;
+	gl_ClipVertex = gl_ModelViewMatrix * gl_Vertex;
 
 #ifdef	LIGHTING
 	ecPosition     = vec3(gl_ModelViewMatrix * gl_Vertex);
