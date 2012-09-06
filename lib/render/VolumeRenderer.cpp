@@ -440,7 +440,6 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 		}
 	}
 
-
 	//cerr << "transforming everything to unit box coords :-(\n";
 	myGLWindow->TransformToUnitBox();
 
@@ -504,14 +503,21 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 
 	//Make the z-buffer read-only for the volume data
 	glDepthMask(GL_FALSE);
+
+	//
+	// clip rendering to region
+	//
+	enableRegionClippingPlanes();
+
 	//qWarning("Starting render");
 	if (_driver->Render() < 0){
 		setBypass(timeStep);
 		SetErrMsg(VAPOR_ERROR_DVR, "Unable to volume render");
+		disableRegionClippingPlanes();
 		return;
 	}
+	disableRegionClippingPlanes();
 	//qWarning("Render done");
-	  
 	
 	clearClutDirty();
 }
