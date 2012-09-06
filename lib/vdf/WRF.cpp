@@ -48,14 +48,13 @@ int WRF::_WRF(
 	_atypnames["PB"] = ((itr=names.find("PB"))!=names.end()) ? itr->second : "PB";
 	_atypnames["T"] = ((itr=names.find("T"))!=names.end()) ? itr->second : "T";
 
-	_vertExts[0] = _vertExts[1] = 0.0;
 	_dimLens[0] = _dimLens[1] = _dimLens[2] = _dimLens[3] = 1;
 
 	// Open netCDF file and check for failure
 	NC_ERR_READ( nc_open( wrfname.c_str(), NC_NOWRITE, &_ncid ));
 
 	int rc = _GetWRFMeta(
-		_ncid, _vertExts, _dimLens, _startDate, _mapProjection,
+		_ncid, _dimLens, _startDate, _mapProjection,
 		_wrfVars3d, _wrfVars2d, _wrfVarInfo, _gl_attrib, _tsExtents
 	);
 
@@ -652,7 +651,6 @@ int WRF::EpochToWRFTimeStr(
 
 int WRF::_GetWRFMeta(
 	int ncid, // Holds netCDF file ID (in)
-	float *vertExts, // Vertical extents (out)
 	size_t dimLens[4], // Lengths of x, y, z, and time dimensions (out)
 	string &startDate, // Place to put START_DATE attribute (out)
 	string &mapProjection, //PROJ4 projection string
@@ -858,108 +856,103 @@ int WRF::_GetWRFMeta(
 	}
 
 
-	// Get vertical extents if requested
+	// Get vertical extents 
 	//
-	if (vertExts) {
 
-		// Get ready to read PH and PHB
-		varInfo_t phInfo; // structs for variable information
-		varInfo_t phbInfo;
+	// Get ready to read PH and PHB
+	varInfo_t phInfo; // structs for variable information
+	varInfo_t phbInfo;
 
-		// GetVarInfo takes actual file names
-		//
-		map <string, string>::const_iterator itr = _atypnames.find("PH");
-		string varname = (itr != _atypnames.end()) ? itr->second : "PH";
+	// GetVarInfo takes actual file names
+	//
+	map <string, string>::const_iterator itr = _atypnames.find("PH");
+	string varname = (itr != _atypnames.end()) ? itr->second : "PH";
 
-		if (_GetVarInfo( ncid, varname, ncdims, phInfo) < 0) return(-1);
-		if (phInfo.dimids.size() != 4) {
-			MyBase::SetErrMsg("Variable %s has wrong # dims", "PH");
-			return(-1);
-		}
-		size_t ph_slice_sz = phInfo.dimlens[phInfo.dimids.size()-1] * 
-			phInfo.dimlens[phInfo.dimids.size()-2];
+	if (_GetVarInfo( ncid, varname, ncdims, phInfo) < 0) return(-1);
+	if (phInfo.dimids.size() != 4) {
+		MyBase::SetErrMsg("Variable %s has wrong # dims", "PH");
+		return(-1);
+	}
+	size_t ph_slice_sz = phInfo.dimlens[phInfo.dimids.size()-1] * 
+		phInfo.dimlens[phInfo.dimids.size()-2];
 
-		itr = _atypnames.find("PHB");
-		varname = (itr != _atypnames.end()) ? itr->second : "PHB";
+	itr = _atypnames.find("PHB");
+	varname = (itr != _atypnames.end()) ? itr->second : "PHB";
 
-		if (_GetVarInfo( ncid, varname, ncdims, phbInfo) < 0) return(-1);
-		if (phbInfo.dimids.size() != 4) {
-			MyBase::SetErrMsg("Variable %s has wrong # dims", "PHB");
-			return(-1);
-		}
+	if (_GetVarInfo( ncid, varname, ncdims, phbInfo) < 0) return(-1);
+	if (phbInfo.dimids.size() != 4) {
+		MyBase::SetErrMsg("Variable %s has wrong # dims", "PHB");
+		return(-1);
+	}
 
-		size_t phb_slice_sz = phbInfo.dimlens[phbInfo.dimids.size()-1] * 
-			phbInfo.dimlens[phbInfo.dimids.size()-2];
-			
-
-		// Allocate memory
-		float * phBuf = new float[ph_slice_sz];
-		float * phbBuf = new float[phb_slice_sz];
+	size_t phb_slice_sz = phbInfo.dimlens[phbInfo.dimids.size()-1] * 
+		phbInfo.dimlens[phbInfo.dimids.size()-2];
 		
 
-		bool first = true;
+	// Allocate memory
+	float * phBuf = new float[ph_slice_sz];
+	float * phbBuf = new float[phb_slice_sz];
+	
 
-		varFileHandle_t *fh_ph, *fh_phb;
+	bool first = true;
 
-		fh_ph = Open("PH");
-		if (! fh_ph) return(-1);
+	varFileHandle_t *fh_ph, *fh_phb;
 
-		fh_phb = Open("PHB");
-		if (! fh_phb) return(-1);
+	fh_ph = Open("PH");
+	if (! fh_ph) return(-1);
 
-		for (size_t t = 0; t<dimLens[3]; t++) {
-			float height;
-			int rc;
+	fh_phb = Open("PHB");
+	if (! fh_phb) return(-1);
 
-			rc = GetZSlice(fh_ph, t, 0, phBuf);
-			if (rc<0) return (rc);
+	
+	vector <float> minZ;
+	vector <float> maxZ;
+	for (size_t t = 0; t<dimLens[3]; t++) {
+		float height;
+		int rc;
 
-			rc = GetZSlice(fh_phb, t, 0, phbBuf);
-			if (rc<0) return (rc);
+		rc = GetZSlice(fh_ph, t, 0, phBuf);
+		if (rc<0) return (rc);
 
-			if (first) {
-				vertExts[0] = (phBuf[0] + phbBuf[0])/grav;
-			}
-			
-			for ( size_t i = 0 ; i < dimLens[0]*dimLens[1] ; i++ ) {
+		rc = GetZSlice(fh_phb, t, 0, phbBuf);
+		if (rc<0) return (rc);
 
-				height = (phBuf[i] + phbBuf[i])/grav;
-				// Want to find the bottom of the bottom layer and the bottom 
-				// of the
-				// top layer so that we can output them
-				if (height < vertExts[0] ) vertExts[0] = height;
-			}
+		minZ.push_back((phBuf[0] + phbBuf[0])/grav);
+		for ( size_t i = 0 ; i < dimLens[0]*dimLens[1] ; i++ ) {
 
-			//  Read the top slices
-			rc = GetZSlice(fh_ph, t, dimLens[2]-1, phBuf);
-			if (rc<0) return (rc);
-
-			rc = GetZSlice(fh_phb, t, dimLens[2]-1, phbBuf);
-			if (rc<0) return (rc);
-
-			if (first) {
-				vertExts[1] = (phBuf[0] + phbBuf[0])/grav;
-			}
-			
-			for ( size_t i = 0 ; i < dimLens[0]*dimLens[1] ; i++ ) {
-
-				height = (phBuf[i] + phbBuf[i])/grav;
-				// Want to find the bottom of the bottom layer and the bottom 
-				// of the
-				// top layer so that we can output them
-				if (height < vertExts[1] ) vertExts[1] = height;
-			}
-			first = false;
-
+			height = (phBuf[i] + phbBuf[i])/grav;
+			// Want to find the bottom of the bottom layer and the bottom 
+			// of the
+			// top layer so that we can output them
+			if (height < minZ[t] ) minZ[t] = height;
 		}
 
-		Close(fh_ph);
-		Close(fh_phb);
+		//  Read the top slices
+		rc = GetZSlice(fh_ph, t, dimLens[2]-1, phBuf);
+		if (rc<0) return (rc);
 
-		delete [] phBuf;
-		delete [] phbBuf;
+		rc = GetZSlice(fh_phb, t, dimLens[2]-1, phbBuf);
+		if (rc<0) return (rc);
+
+		maxZ.push_back((phBuf[0] + phbBuf[0])/grav);
+		for ( size_t i = 0 ; i < dimLens[0]*dimLens[1] ; i++ ) {
+
+			height = (phBuf[i] + phbBuf[i])/grav;
+			// Want to find the bottom of the bottom layer and the bottom 
+			// of the
+			// top layer so that we can output them
+			if (height < maxZ[t] ) maxZ[t] = height;
+		}
+		first = false;
 
 	}
+
+	Close(fh_ph);
+	Close(fh_phb);
+
+	delete [] phBuf;
+	delete [] phbBuf;
+
 
 	// Get time stamps and lat/lon extents
 	//
@@ -973,11 +966,10 @@ int WRF::_GetWRFMeta(
 
 	if (haveLatLon) haveLatLon = ( NC_NOERR ==  nc_inq_varid(ncid, "XLONG", &vid));
 
-	map <string,string>::const_iterator itr;
 	if (haveLatLon){
 
 		itr = _atypnames.find("XLAT");
-		string varname = (itr != _atypnames.end()) ? itr->second : "XLAT";
+		varname = (itr != _atypnames.end()) ? itr->second : "XLAT";
 
 		if(_GetVarInfo(ncid, varname, ncdims, latInfo) < 0) haveLatLon = false;
 
@@ -988,7 +980,7 @@ int WRF::_GetWRFMeta(
 
 
 	itr = _atypnames.find("Times");
-	string varname = (itr != _atypnames.end()) ? itr->second : "Times";
+	varname = (itr != _atypnames.end()) ? itr->second : "Times";
 	if (_GetVarInfo( ncid, varname, ncdims, timeInfo) < 0) return(-1);
 	if (timeInfo.dimids.size() != 2) {
 		MyBase::SetErrMsg("Variable %s has wrong # dims", "Times");
@@ -1010,6 +1002,15 @@ int WRF::_GetWRFMeta(
 			(void) _GetCornerCoords(ncid, i, latInfo, lonInfo, latlonexts);
 			for (int j=0; j<8; j++) llevec.push_back(latlonexts[j]);
 		}
+		else {
+			for (int j=0; j<8; j++) llevec.push_back(0.0);
+		}
+
+		//
+		// Add vertical extents
+		//
+		llevec.push_back(minZ[i]);
+		llevec.push_back(maxZ[i]);
 			 
 		string time_fmt(buf+(i*timeInfo.dimlens[1]), timeInfo.dimlens[1]);
 		TIME64_T seconds;
@@ -1026,7 +1027,6 @@ int WRF::_GetWRFMeta(
 } // End of GetWRFMeta.
 
 void WRF::GetWRFMeta(
-	float *vertExts, // Vertical extents (out)
 	size_t dimLens[4], // Lengths of x, y, z, and time dimensions (out)
 	string &startDate, // Place to put START_DATE attribute (out)
 	string &mapProjection, //PROJ4 projection string
@@ -1035,8 +1035,6 @@ void WRF::GetWRFMeta(
 	vector<pair<string, double> > &gl_attrib,
 	vector <pair< TIME64_T, vector <float> > > &tsExtents //Times in seconds, lat/lon corners (out)
 ) {
-	vertExts[0] = _vertExts[0];
-	vertExts[1] = _vertExts[1];
 
 	dimLens[0] = _dimLens[0];
 	dimLens[1] = _dimLens[1];

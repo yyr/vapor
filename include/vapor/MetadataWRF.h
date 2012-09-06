@@ -64,10 +64,9 @@ public:
 //!
 //! \remarks Required element
 //
-	vector<double> GetExtents(size_t ts = 0) const {
-		if (ts >= Time_extents.size() ) return(Extents);
-		return( Time_extents[ts].second);
-	}
+      vector<double> GetExtents() const {
+        return(GetExtents(0));
+      };
 
 //! Return the Global Attributes from the WRF file used by Vapor.
 //! This is very useful in determining if working with a PlanetWRF
@@ -79,10 +78,21 @@ public:
       vector<pair<string, double> > GetGlobalAttributes() const {
         return(Global_attrib); };
 
- //! \deprecated Use GetExtents();
+ //! Return the domain extents specified in user coordinates
+ //! for the indicated time step
+ //!
+ //! \param[in] ts A valid data set time step in the range from zero to
+ //! GetNumTimeSteps() - 1.
+ //! \retval extents A six-element array containing the min and max
+ //! bounds of the data domain in user-defined coordinates.
+ //! An empty vector is returned if the extents for the specified time
+ //! step is not defined.
+ //!
+ //! \remarks Optional element
  //
- vector<double> GetTSExtents(size_t ts) const {
-	return( GetExtents(ts)); 
+ vector<double> GetExtents(size_t ts) const {
+	if (ts >= Time_extents.size() ) return(Extents);
+	return( Time_extents[ts].second);
  }; 
 
 //! Return the number of time steps in the collection

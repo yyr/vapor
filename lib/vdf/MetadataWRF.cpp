@@ -79,8 +79,6 @@ void MetadataWRF::_MetadataWRF(
   string mapprocetion, tmapprojection;
   string ErrMsgStr;
   size_t tdimlens[4];
-  float vertexts[2] = {0.0, 0.0};
-  float *vertexts_ptr = vertexts;
   float dx = 0.0, tdx = 0.0, dy = 0.0, tdy = 0.0;
   float cen_lat= 1.e30f, cen_lon=1.e30f;
   int i = 0;
@@ -134,20 +132,11 @@ void MetadataWRF::_MetadataWRF(
     }
    
     wrf.GetWRFMeta(
-      vertexts_ptr,tdimlens,tstartdate,tmapprojection,twrfvars3d,
+      tdimlens,tstartdate,tmapprojection,twrfvars3d,
       twrfvars2d,tgl_attr,tt_latlon_exts
     );
 
 	  usingRotLatLon = (tmapprojection.find("ob_tran") != string::npos);
-
-    if (vertexts_ptr[0] >= vertexts_ptr[1]) {
-      WRF::SetErrMsg(
-        "Error processing file %s (invalid vertical extents), skipping.",
-        infiles[i].c_str()
-      );
-      WRF::SetErrCode(0);
-      continue;
-    }
 
 // Grab the dx and dy and cen_lat, cen_lon values from attrib list;
 
@@ -188,8 +177,6 @@ void MetadataWRF::_MetadataWRF(
         Dimens[0] = tdimlens[0];
         Dimens[1] = tdimlens[1];
         Dimens[2] = tdimlens[2];
-        Extents[2] = vertexts[0];
-        Extents[5] = vertexts[1];
         StartDate = tstartdate;
         MapProjection = tmapprojection;
         Global_attrib = tgl_attr;
@@ -252,14 +239,6 @@ void MetadataWRF::_MetadataWRF(
           continue;
         }
       } // end else first_file_flag.
-
-// Want the minimum vertical extents for entire data
-// set for bottom and top layer.
-
-      if (vertexts[0] < Extents[2])
-        Extents[2] = vertexts[0];
-      if (vertexts[1] < Extents[5])
-        Extents[5] = vertexts[1];
 
 
 // Copy over all the timesteps and lat-lon extents from this file.
@@ -366,7 +345,7 @@ void MetadataWRF::_MetadataWRF(
     }
     UserTimeStamps.push_back(ttime_str);
     llexts = Time_latlon_extents[i].second;
-    if (llexts.size() == 8 ){ //Check all 4 corners for max and min longitude/latitude
+    if (llexts.size() == 10 ){ //Check all 4 corners for max and min longitude/latitude
       for (int cor = 0; cor < 4; cor++){
         if (llexts[cor*2] < minLon) minLon = llexts[cor*2];
         if (llexts[cor*2] > maxLon) maxLon = llexts[cor*2];
@@ -606,19 +585,19 @@ int MetadataWRF::ReprojectTsLatLon(string mapprojstr) {
           currExtents.clear();
           currExtents.push_back(dbextents[0]);
           currExtents.push_back(dbextents[1]);
-          currExtents.push_back(Extents[2]);
+          currExtents.push_back(exts[8]);
           currExtents.push_back(dbextents[2]);
           currExtents.push_back(dbextents[3]);
-          currExtents.push_back(Extents[5]);
+          currExtents.push_back(exts[9]);
         }
 		else {
           currExtents.clear();
           currExtents.push_back(Extents[0]);
           currExtents.push_back(Extents[1]);
-          currExtents.push_back(Extents[2]);
+          currExtents.push_back(exts[8]);
           currExtents.push_back(Extents[3]);
           currExtents.push_back(Extents[4]);
-          currExtents.push_back(Extents[5]);
+          currExtents.push_back(exts[9]);
 		}
         Time_extents.push_back(make_pair(Time_latlon_extents[t].first, currExtents));
       } // End of for t.

@@ -85,7 +85,6 @@ public:
  );
 
  void GetWRFMeta(
-	float * vertExts, // Vertical extents (out)
 	size_t dimLens[4], // Lengths of x, y, z, and time unstaggered dimensions (out)
 	string &startDate, // Place to put START_DATE attribute (out)
 	string &mapProj, // Map projection string (out)
@@ -105,14 +104,13 @@ private:
  map <string, string> _atypnames;
 
  int _ncid;
- float _vertExts[2]; // Vertical extents
  size_t _dimLens[4]; // Lengths of x, y, z, and time dimensions (unstaggered)
  string _startDate; // Place to put START_DATE attribute 
  string _mapProjection; //PROJ4 projection string
  vector <string> _wrfVars3d;
  vector <string> _wrfVars2d;
  vector <pair<string, double> > _gl_attrib;
- vector <pair< TIME64_T, vector <float> > > _tsExtents; //Times in seconds, lat/lon corners
+ vector <pair< TIME64_T, vector <float> > > _tsExtents; //Times in seconds, lat/lon corners, vertial extents
 
 
  int _WRF(const string &wrfname, const map <string, string> &atypnames);
@@ -152,7 +150,6 @@ private:
 
  int _GetWRFMeta(
     int ncid, // Holds netCDF file ID (in)
-    float *vertExts, 
     size_t dimLens[4], 
     string &startDate, 
     string &mapProjection, 
