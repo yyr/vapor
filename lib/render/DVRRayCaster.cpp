@@ -507,6 +507,16 @@ void DVRRayCaster::renderBrick(
 	// No depth comparisons
 	glDepthFunc(GL_ALWAYS);
 
+	//
+	// Need to disable user clipping planes :-(
+	//
+	glDisable(GL_CLIP_PLANE0);
+	glDisable(GL_CLIP_PLANE1);
+	glDisable(GL_CLIP_PLANE2);
+	glDisable(GL_CLIP_PLANE3);
+	glDisable(GL_CLIP_PLANE4);
+	glDisable(GL_CLIP_PLANE5);
+
     render_backface(brick);
 	 
 	// disable rendering to FBO
@@ -516,6 +526,7 @@ void DVRRayCaster::renderBrick(
 	glDepthFunc(GL_LESS);
 
 	raycasting_pass(brick, modelview, modelviewInverse);
+
 
 	printOpenGLError();
 }
