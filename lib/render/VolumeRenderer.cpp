@@ -428,7 +428,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 
 		int rc = _updateRegion(
 			dataMgr, currentRenderParams, myRegionParams,
-			timeStep, varname, reflevel, lod, min_dim, max_dim
+			timeStep, varname, availRefLevel, lod, min_dim, max_dim
 		);
 			
 		//Turn it back on:
