@@ -321,6 +321,8 @@ int DVRShader::Render()
 {
   calculateSampling();
 
+//#define NOSHADER
+#ifndef	NOSHADER
   bool ok = _shadermgr->enableEffect(getCurrentEffect());		 
   if (! ok) return (-1);
 
@@ -378,8 +380,11 @@ int DVRShader::Render()
 
   glDisable(GL_DITHER);
 
+#endif
+
   renderBricks();
 
+#ifndef	NOSHADER
   if (GLEW_VERSION_2_0) {
 
     glActiveTexture(GL_TEXTURE2);
@@ -413,6 +418,7 @@ int DVRShader::Render()
   glDisable(GL_CULL_FACE);
 
   _shadermgr->disableEffect();
+#endif
   glFlush();
   return 0;
 }
