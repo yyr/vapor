@@ -744,7 +744,7 @@ float * CalcElevation(int Vtransform, float* s_rho, float* Cs_r, float Tcline, f
 				for (int i = 0; i<dimsVDC[1]; i++){
 					float cff_r = hc[j+dimsVDC[0]*i]*(s_rho[k] - Cs_r[k]);
 					float cff1_r = Cs_r[k];
-					float cff2_r = s_rho[k]+1.;
+					//float cff2_r = s_rho[k]+1.;
 					//Depth of sigma coordinate at rho points
 					float z_r0 = -cff_r+cff1_r*mappedDepth[j+dimsVDC[0]*i];
 					z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k] = z_r0;  //Note, if zeta is zero, hinv not needed here
@@ -755,7 +755,7 @@ float * CalcElevation(int Vtransform, float* s_rho, float* Cs_r, float Tcline, f
 		for (int j = 0; j< dimsVDC[0]; j++){
 			for (int k = 0; k<dimsVDC[2]; k++){
 				for (int i = 0; i<dimsVDC[1]; i++){
-					float hinv = 1./(Tcline -mappedDepth[j+dimsVDC[0]*i]);
+					//float hinv = 1./(Tcline -mappedDepth[j+dimsVDC[0]*i]);
 					float cff_r = Tcline*s_rho[k];
 					float cff1_r = Cs_r[k];
 					float cff2_r = (cff_r-cff1_r*mappedDepth[j+dimsVDC[0]*i])*Tcline;
@@ -820,7 +820,6 @@ int CopyVariable3D(
 	
 	) {
 
-	static size_t sliceBufferSize = 0;
 	static float *fsliceBuffer = NULL;
 	static float *sliceBuffer2 = NULL;
 	static double *dsliceBuffer = NULL;
@@ -951,7 +950,6 @@ int CopyVariable2D(
 	
 ) {
 
-	static size_t sliceBufferSize = 0;
 	static float *fsliceBuffer = NULL;
 	static double *dsliceBuffer = NULL;
 	static float *sliceBuffer2 = NULL;
@@ -1177,7 +1175,7 @@ int	main(int argc, char **argv) {
 	
 	// The ROMS constructor will check the topofile,
 	// initialize the variable names
-j	ROMS* roms = new ROMS(topofile, atypnames, varnames, varnames);
+	ROMS* roms = new ROMS(topofile, atypnames, varnames, varnames);
 	if (ROMS::GetErrCode() != 0) {
 		ROMS::SetErrMsg(
 			"Error processing topo file %s, exiting.",topofile.c_str()
