@@ -31,7 +31,6 @@ public:
 	int GetGeoLonLatVar(int ncid, int varid, int* geolon, int* geolat);
 	double getStartSeconds(){return startTimeDouble;} //seconds since 1/1/1970, + or -
 
-	const float* GetElevations() {return vertLayers;}
 	float* GetDepths();
 
 
@@ -45,8 +44,8 @@ public:
 	void GetDims(size_t dims[3]) {for (int i = 0; i<3; i++) dims[i]=_dimLens[i];}
 	size_t getNumTimesteps(){return _dimLens[3];}
 	int MakeWeightTables();
-	WeightTable* GetWeightTable(int geolonvarnum, int geolatvarnum){
-		return WeightTables[geolonvarnum+geolonvars.size()*geolonvarnum];
+	WeightTable* GetWeightTable(int lonlatnum){
+		return WeightTables[lonlatnum];
 	}
 	// Find the closest time step associated with a specified day.
 	// Uses an array of user times that should be obtained from the Metadata.
@@ -87,7 +86,7 @@ private:
 	
 	//hold the weight tables that are constructed:
 	WeightTable** WeightTables;
-	float* vertLayers;  //values for elevation
+	
 	float* depthsArray;
 
 	int _ROMS(const string &romsname, const map <string, string> &atypnames, const vector<string>& vars2d, const vector<string>& vars3d);

@@ -268,7 +268,7 @@ int CopyVariable3D(
 			}
 		}
  	
-		wt->interp2D(sliceBuffer, sliceBuffer2, missVal);
+		wt->interp2D(sliceBuffer, sliceBuffer2, missVal, dim);
 		for (int k = 0; k<slice_sz; k++){
 			if (sliceBuffer2[k] != (float)MOM::vaporMissingValue()){
 				if (minVal1 > sliceBuffer2[k]) minVal1 = sliceBuffer2[k];
@@ -356,7 +356,7 @@ int CopyVariable2D(
 	// Remap it 
 	//
 	
-	wt->interp2D(sliceBuffer, sliceBuffer2, missingVal);
+	wt->interp2D(sliceBuffer, sliceBuffer2, missingVal,dim);
 				
 	if (vdfio2d->WriteRegion(sliceBuffer2) < 0) {
 		MyBase::SetErrMsg(
@@ -533,7 +533,7 @@ int	main(int argc, char **argv) {
 		// use t-grid for remapping depth
 		WeightTable *wt = mom->GetWeightTable(0,0);
 		float* mappedDepth = new float[dimsVDC[0]*dimsVDC[1]];
-		wt->interp2D(depth,mappedDepth, (float)MOM::vaporMissingValue());
+		wt->interp2D(depth,mappedDepth, (float)MOM::vaporMissingValue(),dimsVDC);
 		float minval = 1.e30;
 		float maxval = -1.e30;
 		float minval1 = 1.e30;

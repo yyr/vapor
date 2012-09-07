@@ -480,7 +480,7 @@ int	main(int argc, char **argv) {
 
 using namespace VetsUtil;
 using namespace VAPoR;
-const float VDCMissingValue(1.e38);
+const double VDCMissingValue(1.e38);
 struct opt_t {
 	OptionParser::Dimension3D_T	bs;
 	int	level;
@@ -503,7 +503,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"vars2d",1,    "",	"Colon delimited list of 2D variables to be extracted from ROMS data."
 		"The default is to extract all 2D variables present."},
 	{"level",	1, 	"2", "Maximum refinement level. 0 => no refinement (default is 2)"},
-	{"atypvars",1,	"ocean_time:h:xi_rho:xi_psi:xi_u:xi_v:eta_rho:eta_psi:eta_u:eta_v:s_rho:s_w that appear in ROMS files.", 
+	{"atypvars",1,	"ocean_time:h:xi_rho:xi_psi:xi_u:xi_v:eta_rho:eta_psi:eta_u:eta_v:s_rho:s_w", 
 		"Colon delimited list of atypical names for 12 standard variables"
 	},
 	{"comment",	1,	"",	"Top-level comment (optional)"},
@@ -606,7 +606,8 @@ int	main(int argc, char **argv) {
 
 	string atypvarstring;
 	for (int i = 0; i<12; i++){
-		atypvarstring += opt.atypvars[i]; atypvarstring += ":";
+		atypvarstring += opt.atypvars[i]; 
+		if (i<11) atypvarstring += ":";
 	}
 	
 	argv++;
@@ -739,8 +740,8 @@ int	main(int argc, char **argv) {
 	
 
 	vector <string> allvars2d = ROMSData->GetVariables2DXY();
-	itr = find(allvars2d.begin(), allvars2d.end(), atypvars["h"].c_str());
-	if (itr == allvars2d.end()) allvars2d.push_back(atypvars["h"]);
+	itr = find(allvars2d.begin(), allvars2d.end(), "DEPTH");
+	if (itr == allvars2d.end()) allvars2d.push_back("DEPTH");
 
 	if(file->SetVariables2DXY(allvars2d)) {
 		cerr << "Error populating Variables2DXY." << endl;
@@ -781,12 +782,6 @@ int	main(int argc, char **argv) {
 			exit(1);
 		}
 	}
-	//Insert ELEVATION for each time step
-	//vector<double>& zstretch = ROMSData->GetStretches();
-	//for (size_t i = 0; i<ROMSData->GetNumTimeSteps(); i++){
-	//	file->SetTSZCoords(i,zstretch);
-	//}
-
 	
 	file->SetMissingValue(VDCMissingValue);
 	// Handle command line over rides here.

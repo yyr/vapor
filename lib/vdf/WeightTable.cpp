@@ -16,6 +16,7 @@
 #include <vapor/ROMS.h>
 #include <vapor/WRF.h>
 #include <vapor/weightTable.h>	
+
 #ifdef _WINDOWS 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -34,13 +35,14 @@ using namespace VetsUtil;
     }
 
 WeightTable::WeightTable(MOM* mom, int latvar, int lonvar){
+	MOMBased = true;
 	geoLatVarName = mom->getGeoLatVars()[latvar];
 	geoLonVarName = mom->getGeoLonVars()[lonvar];
 	size_t dims[3];
 	mom->GetDims(dims);
 	nlon = dims[0];
 	nlat = dims[1];
-	nv = dims[2];
+	
 	const float *llexts = mom->GetLonLatExtents();
 	for (int i = 0; i<4; i++) lonLatExtents[i] = llexts[i];
 		
@@ -75,14 +77,19 @@ WeightTable::WeightTable(MOM* mom, int latvar, int lonvar){
 	// Calc epsilon for checking outside rectangle
 	epsRect = Max(deltaLat,deltaLon)*0.1;
 }
-WeightTable::WeightTable(ROMS* roms, int latvar, int lonvar){
-	geoLatVarName = roms->getGeoLatVars()[latvar];
-	geoLonVarName = roms->getGeoLonVars()[lonvar];
+WeightTable::WeightTable(ROMS* roms, int latlonvar){
+	MOMBased = false;
+	geoLatVarName = roms->getGeoLatVars()[latlonvar];
+	geoLonVarName = roms->getGeoLonVars()[latlonvar];
 	size_t dims[3];
 	roms->GetDims(dims);
 	nlon = dims[0];
 	nlat = dims[1];
-	nv = dims[2];
+	if (latlonvar == 1 || latlonvar == 3) // u-grid or rho-grid
+		nlat++;
+	if (latlonvar == 2 || latlonvar == 3) // v-grid or rho-grid
+		nlon++;
+	
 	const float *llexts = roms->GetLonLatExtents();
 	for (int i = 0; i<4; i++) lonLatExtents[i] = llexts[i];
 		
@@ -100,17 +107,10 @@ WeightTable::WeightTable(ROMS* roms, int latvar, int lonvar){
 	geo_lon = 0;
 	deltaLat = (lonLatExtents[3]-lonLatExtents[1])/(nlat-1);
 	deltaLon = (lonLatExtents[2]-lonLatExtents[0])/(nlon-1);
+
+	//With ROMS, do not support wrap in lat or lon
 	wrapLon=false;
-	//Check for global wrap in longitude:
-	
-	
-	if (abs(lonLatExtents[2] - 360.0 - lonLatExtents[0])< 2.*deltaLon) {
-		deltaLon = (lonLatExtents[2]-lonLatExtents[0])/nlon;
-		wrapLon=true;
-	}
-	//Does the grid go to the north pole?
-	if (lonLatExtents[3] >= 90.-2.*deltaLat) wrapLat = true;
-	else wrapLat = false;
+	wrapLat = false;
 	
 	// Calc epsilon for converging alpha,beta 
 	epsilon = Max(deltaLat, deltaLon)*1.e-7;
@@ -120,20 +120,34 @@ WeightTable::WeightTable(ROMS* roms, int latvar, int lonvar){
 //Interpolation functions, can be called after the alphas and betas arrays have been calculated.
 //Following can also be used on slices of 3D data
 //If the corner latitude is at the top then
-void WeightTable::interp2D(const float* sourceData, float* resultData, float missingValue){
+void WeightTable::interp2D(const float* sourceData, float* resultData, float missingValue, const size_t* dims){
 	int corlon, corlat, corlatp, corlona, corlonb, corlonp;
-	for (int j = 0; j<nlat; j++){
-		for (int i = 0; i<nlon; i++){
-			corlon = cornerLons[i+nlon*j];
-			corlat = cornerLats[i+nlon*j];
+	
+	int latsize = dims[1];
+	int lonsize = dims[0];
+	float minin = 1.e38f;
+	float maxin = -1.e38f;
+	assert (latsize <= nlat && lonsize <= nlon);
+	for (int i = 0; i< nlat*nlon; i++){
+		if (sourceData[i] == missingValue) continue;
+		if (sourceData[i] < -1.e10 || sourceData[i] > 1.e10){
+			float foo = sourceData[i];
+		}
+		if (sourceData[i]<minin) minin = sourceData[i];
+		if (sourceData[i]>maxin) maxin = sourceData[i];
+	}
+	for (int j = 0; j<latsize; j++){
+		for (int i = 0; i<lonsize; i++){
+			corlon = cornerLons[i+nlon*j];//Lookup the user grid vertex lowerleft corner that contains (i,j) lon-lat vertex
+			corlat = cornerLats[i+nlon*j];//corlon and corlat are not lon and lat, just x and y 
 			corlatp = corlat+1;
 			corlona = corlon;
 			corlonb = corlon+1;
 			corlonp = corlon+1;
-			if (corlon == nlon-1){ //Wrap-around longitude.  Note that longitude will not wrap at zipper.
+			if (MOMBased && corlon == nlon-1){ //Wrap-around longitude.  Note that longitude will not wrap at zipper.
 				corlonp = 0;
 				corlonb = 0;
-			} else if (corlat == nlat-1){ //Get corners on opposite side of zipper:
+			} else if (MOMBased && corlat == nlat-1){ //Get corners on opposite side of zipper:
 				corlatp = corlat;
 				corlona = nlon - corlon -1;
 				corlonb = nlon - corlon -2;
@@ -144,6 +158,7 @@ void WeightTable::interp2D(const float* sourceData, float* resultData, float mis
 			float data1 = sourceData[corlonp+nlon*corlat];
 			float data2 = sourceData[corlonb+nlon*corlatp];
 			float data3 = sourceData[corlona+nlon*corlatp];
+			
 			float cf0 = (1.-alpha)*(1.-beta);
 			float cf1 = alpha*(1.-beta);
 			float cf2 = alpha*beta;
@@ -154,17 +169,114 @@ void WeightTable::interp2D(const float* sourceData, float* resultData, float mis
 			//If less than half the weight comes from missing value, then apply weights to non-missing values,
 			//otherwise just set result to missing value.
 			if (data0 == missingValue) mvCoef += cf0;
-				else goodSum += cf0*data0;
+			else {
+				assert (data0 > -1.e10 && data0 < 1.e10);
+				goodSum += cf0*data0;
+			}
 			if (data1 == missingValue) mvCoef += cf1;
-				else goodSum += cf1*data1;
+			else {
+				assert (data1 > -1.e10 && data1 < 1.e10);
+				goodSum += cf1*data1;
+			}
 			if (data2 == missingValue) mvCoef += cf2;
-				else goodSum += cf2*data2;
+			else {
+				assert (data2 > -1.e10 && data2 < 1.e10);
+				goodSum += cf2*data2;
+			}
 			if (data3 == missingValue) mvCoef += cf3;
-				else goodSum += cf3*data3;
-				if (mvCoef >= 0.5f) resultData[i+j*nlon] = (float)MOM::vaporMissingValue();
-			else resultData[i+j*nlon] = goodSum/(1.-mvCoef); 
+			else {
+				assert (data3 > -1.e10 && data3 < 1.e10);
+				goodSum += cf3*data3;
+			}
+			if (mvCoef >= 0.5f) resultData[i+j*lonsize] = (float)MOM::vaporMissingValue();
+			else {
+				resultData[i+j*lonsize] = goodSum/(1.-mvCoef);
+				assert(resultData[i+j*lonsize] < 1.e10 && resultData[i+j*lonsize] > -1.e10);
+			}
+			
 		}
+		
 	}
+	
+}
+void WeightTable::interp2D(const double* sourceData, float* resultData, double missingValue, const size_t* dims){
+	int corlon, corlat, corlatp, corlona, corlonb, corlonp;
+	
+	int latsize = dims[1];
+	int lonsize = dims[0];
+	float minin = 1.e38f;
+	float maxin = -1.e38f;
+	assert (latsize <= nlat && lonsize <= nlon);
+	for (int i = 0; i< nlat*nlon; i++){
+		if (sourceData[i] == missingValue) continue;
+		if (sourceData[i] < -1.e10 || sourceData[i] > 1.e10){
+			float foo = sourceData[i];
+		}
+		if (sourceData[i]<minin) minin = sourceData[i];
+		if (sourceData[i]>maxin) maxin = sourceData[i];
+	}
+	for (int j = 0; j<latsize; j++){
+		for (int i = 0; i<lonsize; i++){
+			corlon = cornerLons[i+nlon*j];//Lookup the user grid vertex lowerleft corner that contains (i,j) lon-lat vertex
+			corlat = cornerLats[i+nlon*j];//corlon and corlat are not lon and lat, just x and y 
+			corlatp = corlat+1;
+			corlona = corlon;
+			corlonb = corlon+1;
+			corlonp = corlon+1;
+			if (MOMBased && corlon == nlon-1){ //Wrap-around longitude.  Note that longitude will not wrap at zipper.
+				corlonp = 0;
+				corlonb = 0;
+			} else if (MOMBased && corlat == nlat-1){ //Get corners on opposite side of zipper:
+				corlatp = corlat;
+				corlona = nlon - corlon -1;
+				corlonb = nlon - corlon -2;
+			}
+			float alpha = alphas[i+nlon*j];
+			float beta = betas[i+nlon*j];
+			float data0 = sourceData[corlon+nlon*corlat];
+			float data1 = sourceData[corlonp+nlon*corlat];
+			float data2 = sourceData[corlonb+nlon*corlatp];
+			float data3 = sourceData[corlona+nlon*corlatp];
+			
+			float cf0 = (1.-alpha)*(1.-beta);
+			float cf1 = alpha*(1.-beta);
+			float cf2 = alpha*beta;
+			float cf3 = (1.-alpha)*beta;
+			float goodSum = 0.f;
+			float mvCoef = 0.f;
+			//Accumulate values and coefficients for missing and non-missing values
+			//If less than half the weight comes from missing value, then apply weights to non-missing values,
+			//otherwise just set result to missing value.
+			if (data0 == missingValue) mvCoef += cf0;
+			else {
+				assert (data0 > -1.e10 && data0 < 1.e10);
+				goodSum += cf0*data0;
+			}
+			if (data1 == missingValue) mvCoef += cf1;
+			else {
+				assert (data1 > -1.e10 && data1 < 1.e10);
+				goodSum += cf1*data1;
+			}
+			if (data2 == missingValue) mvCoef += cf2;
+			else {
+				assert (data2 > -1.e10 && data2 < 1.e10);
+				goodSum += cf2*data2;
+			}
+			if (data3 == missingValue) mvCoef += cf3;
+			else {
+				assert (data3 > -1.e10 && data3 < 1.e10);
+				goodSum += cf3*data3;
+			}
+			if (mvCoef >= 0.5f) resultData[i+j*lonsize] = (float)MOM::vaporMissingValue();
+			else {
+				resultData[i+j*lonsize] = goodSum/(1.-mvCoef);
+				assert(resultData[i+j*lonsize] < 1.e10 && resultData[i+j*lonsize] > -1.e10);
+			}
+			
+		}
+		
+	}
+	
 }
 //For given latitude longitude grid vertex, used for testing.
 //check all geolon/geolat quads.  See what ulat/ulon cell contains it.
@@ -250,22 +362,32 @@ int WeightTable::calcWeights(int ncid){
 	//	Read the geolat and geolon variables into arrays.
 	// Note that lon increases fastest
 	NC_ERR_READ(nc_get_var_float(ncid, geolatvarid, geo_lat));
-	geo_lon = MOM::getMonotonicLonData(ncid, geoLonVarName.c_str(), nlon, nlat);
+	if (MOMBased)
+		geo_lon = MOM::getMonotonicLonData(ncid, geoLonVarName.c_str(), nlon, nlat);
+	else 
+		geo_lon = ROMS::getMonotonicLonData(ncid, geoLonVarName.c_str(), nlon, nlat);
 	if (!geo_lon) return -1;
 	float eps = Max(deltaLat,deltaLon)*1.e-3;
+
+	//Check out the geolat, geolon variables
+	for (int i = 0; i<nlon*nlat; i++){
+		assert (geo_lat[i] >= -90. && geo_lat[i] <= 90.);
+		assert (geo_lon[i] >= -360. && geo_lon[i] <= 360.);
+	}
+	if (!MOMBased){
+		assert  (!wrapLat && !wrapLon);
+	}
 	
-	float tst = bestLatLon(0,0);
+	//float tst = bestLatLon(0,0);
 	
-	//	Loop over (nlon/nlat) user grid vertices.  These are similar but not the same as lat and lon.
-	//  Call them ulat and ulon to indicate "lat and lon" in user coordinates
+	//	Loop over (nlon/nlat) user grid vertices.  These are x and y grid vertex indices
+	//  Call them ulat and ulon to suggest "lat and lon" in user coordinates
 	float lat[4],lon[4];
 	for (int ulat = 0; ulat<nlat; ulat++){
 		if (ulat == nlat-1 && !wrapLat) continue;
 		float beglat = geo_lat[nlon*ulat];
 		if(beglat < 0. ){ //below equator
 						
-			
-		
 			for (int ulon = 0; ulon<nlon; ulon++){
 				
 				if (ulon == nlon-1 && !wrapLon) continue;

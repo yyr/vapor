@@ -19,16 +19,18 @@ namespace VAPoR {
 // 
 class ROMS;
 class MOM;
+class VDFIOBase;
 class VDF_API WeightTable {
 public:
 	//Construct a weight table (initially empty) for a given geo_lat and geo_lon variable.
 	WeightTable(MOM* mom, int lonvarnum, int latvarnum);
 	
-	WeightTable(ROMS* roms, int lonvarnum, int latvarnum);
+	WeightTable(ROMS* roms, int latlonvarnum);
 	// Interpolate a 2D or 3D variable to the lon/lat grid, using this weights table
 	// Sourcedata is where the variable data has already been loaded.
 	// Values in the data that are equal to missingValue are mapped to missMap
-	void interp2D(const float* sourceData, float* resultData, float missingValue);
+	void interp2D(const float* sourceData, float* resultData, float missingValue, const size_t* dims);
+	void interp2D(const double* sourceData, float* resultData, double missingValue, const size_t* dims);
 	
 	//Calculate the weights using a specified opened topo file.  Return 0 if OK.
 	int calcWeights(int ncid);
@@ -38,6 +40,7 @@ private:
 	float bestLatLonPolar(int ulon, int ulat);
 	float bestLatLon(int ulon, int ulat);
 	
+	bool MOMBased;
 	
 	//Calculate the weights alpha, beta associated with a point P=(plon,plat), based on rectangle cornered at 
 	//user grid vertex nlon, nlat
@@ -106,7 +109,7 @@ private:
 	//the user grid cell vertex [ilon,ilat], you need to evaluate geo_lon[ilon+ilat*
 	float* geo_lon;
 	float* geo_lat;
-	int nlon, nlat, nv;  //Grid dimensions
+	int nlon, nlat;  //Grid dimensions
 	float lonLatExtents[4];
 	string geoLatVarName;
 	string geoLonVarName;

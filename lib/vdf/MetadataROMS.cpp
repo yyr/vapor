@@ -111,7 +111,7 @@ void MetadataROMS::_MetadataROMS(
 		);
         return;
     }
-	roms.GetDims(Dimens);
+	
 //Then process all the data files.   Find all the valid variables that appear in these files.
 //Keep track of all the time steps that occur.
   for(i=0; i < infiles.size(); i++) {
@@ -132,7 +132,7 @@ void MetadataROMS::_MetadataROMS(
         continue;
 	}
 
-	  
+	roms.GetDims(Dimens);
 //Should check consistency; for now just copy over extents:
 	Extents[0] = exts[0];
 	Extents[1] = exts[1];
@@ -151,7 +151,7 @@ void MetadataROMS::_MetadataROMS(
 	
 	const vector<double> newtimes = roms.GetTimes();
 	for (int j = 0; j<newtimes.size(); j++){
-		UserTimes.push_back(24.*60.*60.*newtimes[j]);
+		UserTimes.push_back(newtimes[j]);
 	
 	}
 	//Save the startTime, if it is in the file.
@@ -164,12 +164,6 @@ void MetadataROMS::_MetadataROMS(
 	}
   } // End for files to open (i).
 
-  //Get the stretch factors (elevations) from the ROMS
-  const float* elevs = roms.GetElevations();
-  stretches.clear();
-  for (int i = 0; i<Dimens[2]; i++){
-	  stretches.push_back(double(elevs[i]));
-  }
 
 
 // Finished all the input files, now can process over 
@@ -188,13 +182,6 @@ void MetadataROMS::_MetadataROMS(
 		  UserTimes.erase(iter);
   }
   
-
-// Need to make sure that DEPTH variable is
-// there for Vapor, add if needed.
-
-  if(find(Vars2Dxy.begin(),Vars2Dxy.end(),"DEPTH") == Vars2Dxy.end()) {
-    Vars2Dxy.push_back("DEPTH");
-  }
   //Either add the variable names that were passed in, or those that were found.
   if (vars2d.size() > 0){
 	  for (int j = 0; j<vars2d.size(); j++){

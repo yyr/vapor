@@ -144,7 +144,7 @@ public:
  //!
  //! \remarks Required element
  //
-      string GetGridType() const { return("stretched"); };
+      string GetGridType() const { return("layered"); };
 
 //! Return a three-element integer array indicating the coordinate
 //! ordering permutation.
@@ -169,7 +169,6 @@ public:
 
 	vector<string>&GetGeoLonVars(){return geoLonVars;}
 	vector<string>&GetGeoLatVars(){return geoLatVars;}
-	vector<double>& GetStretches(){return stretches;}
 
 protected:
  map <string, string> GetAtypNames() const {return(_atypnames); };
@@ -185,7 +184,6 @@ private:
       double Reflevel;
 	vector<string> geoLatVars;
 	vector<string> geoLonVars;
-	vector<double> stretches;
 
  map <string, string> _atypnames;
 
