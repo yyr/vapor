@@ -15,7 +15,7 @@
 #include <vapor/MOM.h>
 #include <vapor/ROMS.h>
 #include <vapor/WRF.h>
-#include <vapor/weightTable.h>	
+#include <vapor/WeightTable.h>	
 
 #ifdef _WINDOWS 
 #define _USE_MATH_DEFINES
@@ -130,9 +130,6 @@ void WeightTable::interp2D(const float* sourceData, float* resultData, float mis
 	assert (latsize <= nlat && lonsize <= nlon);
 	for (int i = 0; i< nlat*nlon; i++){
 		if (sourceData[i] == missingValue) continue;
-		if (sourceData[i] < -1.e10 || sourceData[i] > 1.e10){
-			float foo = sourceData[i];
-		}
 		if (sourceData[i]<minin) minin = sourceData[i];
 		if (sourceData[i]>maxin) maxin = sourceData[i];
 	}
@@ -209,9 +206,6 @@ void WeightTable::interp2D(const double* sourceData, float* resultData, double m
 	assert (latsize <= nlat && lonsize <= nlon);
 	for (int i = 0; i< nlat*nlon; i++){
 		if (sourceData[i] == missingValue) continue;
-		if (sourceData[i] < -1.e10 || sourceData[i] > 1.e10){
-			float foo = sourceData[i];
-		}
 		if (sourceData[i]<minin) minin = sourceData[i];
 		if (sourceData[i]>maxin) maxin = sourceData[i];
 	}
