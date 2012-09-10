@@ -727,9 +727,9 @@ float * CalcElevation(int Vtransform, float* s_rho, float* Cs_r, float Tcline, f
 	//Following code to calculate ELEVATION variable was provided by Justin Small (NCAR)
 	if (s_rho[0] < -1. || Cs_r[0] < -1. || Tcline < -1. || Vtransform < -1 || mappedDepth == 0) return 0;
 	float * z_r = new float[dimsVDC[0]*dimsVDC[1]*dimsVDC[2]];
-	
+
 	int levelSize = dimsVDC[0]*dimsVDC[1];
-	//Define lowest z level (seabed):
+	//Define lowest z level (seabed):  Note:  this is overwritten.
 	for (int i = 0; i<levelSize; i++){
 		z_r[i] = mappedDepth[i];
 	}
@@ -739,27 +739,28 @@ float * CalcElevation(int Vtransform, float* s_rho, float* Cs_r, float Tcline, f
 			if( -mappedDepth[i] < Tcline) hc[i] = -mappedDepth[i];
 			else hc[i] = Tcline;
 		}
-		for (int j = 0; j< dimsVDC[0]; j++){
-			for (int k = 0; k<dimsVDC[2]; k++){
-				for (int i = 0; i<dimsVDC[1]; i++){
+		for (int k = 0; k<dimsVDC[2]; k++){
+			for (int i = 0; i<dimsVDC[1]; i++){
+				for (int j = 0; j< dimsVDC[0]; j++){
 					float cff_r = hc[j+dimsVDC[0]*i]*(s_rho[k] - Cs_r[k]);
 					float cff1_r = Cs_r[k];
-					//float cff2_r = s_rho[k]+1.;
+					//float cff2_r = s_rho[k]+1.;??? not used
 					//Depth of sigma coordinate at rho points
-					float z_r0 = -cff_r+cff1_r*mappedDepth[j+dimsVDC[0]*i];
+					float z_r0 = cff_r - cff1_r*mappedDepth[j+dimsVDC[0]*i];
 					z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k] = z_r0;  //Note, if zeta is zero, hinv not needed here
 				}
 			}
 		}
 	} else {
-		for (int j = 0; j< dimsVDC[0]; j++){
-			for (int k = 0; k<dimsVDC[2]; k++){
-				for (int i = 0; i<dimsVDC[1]; i++){
-					//float hinv = 1./(Tcline -mappedDepth[j+dimsVDC[0]*i]);
+		
+		for (int k = 0; k< dimsVDC[2]; k++){
+			for (int i = 0; i<dimsVDC[1]; i++){
+				for (int j = 0; i<dimsVDC[0]; j++){
+					float hinv = 1./(Tcline -mappedDepth[j+dimsVDC[0]*i]);
 					float cff_r = Tcline*s_rho[k];
 					float cff1_r = Cs_r[k];
-					float cff2_r = (cff_r-cff1_r*mappedDepth[j+dimsVDC[0]*i])*Tcline;
-					z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k] = -mappedDepth[j+dimsVDC[0]*i]*cff2_r;
+					float cff2_r = (cff_r-cff1_r*mappedDepth[j+dimsVDC[0]*i])*hinv;
+					z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k] = -mappedDepth[j+dimsVDC[0]*i]*cff2_r;	
 				}
 			}
 		}
@@ -1125,9 +1126,6 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 	
-
-	
-
 	vector <string> varsVDC = metadataVDC->GetVariableNames();
 	const size_t *dimsVDC = metadataVDC->GetDimension();
 	
@@ -1220,6 +1218,7 @@ int	main(int argc, char **argv) {
 			if(mappedDepth[i]<minval1) minval1 = mappedDepth[i];
 			if(mappedDepth[i]>maxval1 && mappedDepth[i] != (float)ROMS::vaporMissingValue()) maxval1 = mappedDepth[i];
 		}
+		
 		for( size_t t = 0; t< numTimeSteps; t++){
 			int rc = CopyConstantVariable2D(mappedDepth,vdfio2d,wbwriter2d,opt.level,opt.lod, "DEPTH",dimsVDC,t);
 			if (rc) exit(rc);
@@ -1391,10 +1390,11 @@ int	main(int argc, char **argv) {
 			if (geolat == 1 || geolat == 3) ndim[1]++; //u grid or rho grid
 			if (geolat == 2 || geolat == 3) ndim[0]++; //v grid or rho grid
 			//loop thru the times in the file.
-			for (int j = 0; j < timelen; j++){
+
+			for (int ts = 0; ts < timelen; ts++){
 				//for each time convert the variable
-				if (ndims == 4) CopyVariable3D(ncid,varid,wt,vdfio3d,opt.level,opt.lod, varname, dimsVDC, ndim,VDCTimes[j],j);
-				else CopyVariable2D(ncid,varid,wt,vdfio2d,wbwriter2d,opt.level,opt.lod,varname, dimsVDC, ndim, VDCTimes[j],j);
+				if (ndims == 4) CopyVariable3D(ncid,varid,wt,vdfio3d,opt.level,opt.lod, varname, dimsVDC, ndim,VDCTimes[ts],ts);
+				else CopyVariable2D(ncid,varid,wt,vdfio2d,wbwriter2d,opt.level,opt.lod,varname, dimsVDC, ndim, VDCTimes[ts],ts);
 			}
 		} //End loop over variables in file	
 		//Insert elevation at every timestep in the file:
