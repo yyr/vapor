@@ -260,10 +260,15 @@ float* ROMS::GetDepths(){
 	double mv = vaporMissingValue();
 	rc = nc_get_att_double(topoNcId, varid, "_FillValue", &mv);	
 	depthsArray = new float[xdim*ydim];
+	float maxdepth = -100000.;
+	float mindepth = 1000000.;
 	//Negate, convert to float (this is height above sea level:
 	for (size_t i = 0; i<xdim*ydim; i++){
-		if (depthsDbl[i] != mv )
+		if (depthsDbl[i] != mv ){
 			depthsArray[i] = (float) (-depthsDbl[i]);
+			if (depthsArray[i]<mindepth) mindepth = depthsArray[i];
+			if (depthsArray[i]>maxdepth) maxdepth = depthsArray[i];
+		}
 		else depthsArray[i] = (float)vaporMissingValue();
 	}
 	delete depthsDbl;

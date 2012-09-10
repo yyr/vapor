@@ -669,8 +669,7 @@ OptionParser::Option_T	get_options[] = {
 
 const char	*ProgName;
 
-//Method to be used when a constant float value is used for a 3D array.
-//The input array vertValues must have one value for each vertical level
+//Method to be used when a float array is used for all time steps
 int CopyConstantVariable3D(
 				 const float *dataValues,
 				 VDFIOBase *vdfio3d,
@@ -685,21 +684,20 @@ int CopyConstantVariable3D(
 	
 	int rc;
 	
-	
-	rc = vdfio3d->OpenVariableWrite(tsVDC, varname, level);
-	
+	rc = vdfio3d->OpenVariableWrite(tsVDC, varname, level, lod);
+
 	if (rc<0) {
 		MyBase::SetErrMsg(
-						  "Failed to open for write variable %s at time step %d",
-						  varname, tsVDC
-						  );
+			"Failed to open for write ROMS variable %s at time step %d",
+			varname, tsVDC
+		);
 		return (-1);
 	}
 	
 	size_t slice_sz = dim[0] * dim[1];
 	
 	if (sliceBufferSize < slice_sz) {
-		if (sliceBuffer ) delete [] sliceBuffer;
+		if (sliceBuffer) delete [] sliceBuffer;
 		sliceBuffer = new float[slice_sz];
 		sliceBufferSize = slice_sz;
 	}
@@ -755,7 +753,7 @@ float * CalcElevation(int Vtransform, float* s_rho, float* Cs_r, float Tcline, f
 		
 		for (int k = 0; k< dimsVDC[2]; k++){
 			for (int i = 0; i<dimsVDC[1]; i++){
-				for (int j = 0; i<dimsVDC[0]; j++){
+				for (int j = 0; j<dimsVDC[0]; j++){
 					float hinv = 1./(Tcline -mappedDepth[j+dimsVDC[0]*i]);
 					float cff_r = Tcline*s_rho[k];
 					float cff1_r = Cs_r[k];
@@ -909,15 +907,12 @@ int CopyVariable3D(
 			wt->interp2D(fsliceBuffer, sliceBuffer2, fmissVal,dim);
 		}
 		
- 	
-		
 		for (int k = 0; k<slice_sz; k++){
 			if (sliceBuffer2[k] != (float)ROMS::vaporMissingValue()){
 				if (minVal1 > sliceBuffer2[k]) minVal1 = sliceBuffer2[k];
 				if (maxVal1 < sliceBuffer2[k]) maxVal1 = sliceBuffer2[k];
 			}
 		}
-		
 		
 		if (vdfio3d->WriteSlice(sliceBuffer2) < 0) {
 			MyBase::SetErrMsg(
@@ -927,8 +922,8 @@ int CopyVariable3D(
 			return (-1);
 		}
 	} // End of for z.
-	printf(" variable %s time %d: min, max original data: %g %g\n", varname.c_str(), (int)tsVDC, minVal, maxVal);
-	printf(" variable %s time %d: min, max interpolated data: %g %g\n", varname.c_str(), (int)tsVDC, minVal1, maxVal1);
+	//printf(" variable %s time %d: min, max original data: %g %g\n", varname.c_str(), (int)tsVDC, minVal, maxVal);
+	//printf(" variable %s time %d: min, max interpolated data: %g %g\n", varname.c_str(), (int)tsVDC, minVal1, maxVal1);
 
 	vdfio3d->CloseVariable();
 
@@ -1198,8 +1193,10 @@ int	main(int argc, char **argv) {
 	size_t numTimeSteps = metadataVDC->GetNumTimeSteps();
 	
 	//Add depth variable
+	
 	float* depth = roms->GetDepths();
 	float* mappedDepth=0;
+	
 	if (depth){
 		mappedDepth = new float[dimsVDC[0]*dimsVDC[1]];
 		// use rho-grid for remapping depth
@@ -1220,13 +1217,14 @@ int	main(int argc, char **argv) {
 		}
 		
 		for( size_t t = 0; t< numTimeSteps; t++){
+		
 			int rc = CopyConstantVariable2D(mappedDepth,vdfio2d,wbwriter2d,opt.level,opt.lod, "DEPTH",dimsVDC,t);
 			if (rc) exit(rc);
 		}
+		
 	}
 	
 	delete depth;
-	
 	
 	vector<string> vdcvars2d = metadataVDC->GetVariables2DXY();
 	vector<string> vdcvars3d = metadataVDC->GetVariables3D();
@@ -1390,12 +1388,12 @@ int	main(int argc, char **argv) {
 			if (geolat == 1 || geolat == 3) ndim[1]++; //u grid or rho grid
 			if (geolat == 2 || geolat == 3) ndim[0]++; //v grid or rho grid
 			//loop thru the times in the file.
-
 			for (int ts = 0; ts < timelen; ts++){
 				//for each time convert the variable
 				if (ndims == 4) CopyVariable3D(ncid,varid,wt,vdfio3d,opt.level,opt.lod, varname, dimsVDC, ndim,VDCTimes[ts],ts);
 				else CopyVariable2D(ncid,varid,wt,vdfio2d,wbwriter2d,opt.level,opt.lod,varname, dimsVDC, ndim, VDCTimes[ts],ts);
 			}
+			printf(" converted variable %s\n", varname);
 		} //End loop over variables in file	
 		//Insert elevation at every timestep in the file:
 		if (!elevation) elevation = CalcElevation(Vtransform, s_rho, Cs_r, Tcline, mappedDepth, dimsVDC);
