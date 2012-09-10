@@ -685,9 +685,9 @@ int VDFIOBase::_MaskRead(
 	size_t blocksize = bs_p_file[0]*bs_p_file[1]*bs_p_file[2];
 
 	for (size_t bz=bmin_p[2]; bz<=bmax_p[2]; bz++) {
-	for (size_t by=bmin_p[2]; by<=bmax_p[1]; by++) {
-	for (size_t bx=bmin_p[2]; bx<=bmax_p[0]; bx++) {
-		size_t idx = bdim_p_file[0]*bdim_p_file[1]*bz + bdim_p_file[0]*by + bx;
+	for (size_t by=bmin_p[1]; by<=bmax_p[1]; by++) {
+	for (size_t bx=bmin_p[0]; bx<=bmax_p[0]; bx++) {
+		size_t idx = _bdim_p_mask[0]*_bdim_p_mask[1]*bz + _bdim_p_mask[0]*by + bx;
 
 		size_t start[] = {0,0,0,0};
 		size_t count[] = {1,1,1,1};
@@ -708,6 +708,7 @@ int VDFIOBase::_MaskRead(
 		int rc = nc_get_vara(_ncid_mask, _varid_mask, start, count, bm.getStorage());
 		NC_ERR(rc,_ncpath_mask)
 
+		assert(idx < _bitmasks.size());
 		if (_reflevel_mask < _reflevel_file_mask) {
 			_downsample(bm, _bitmasks[idx],_reflevel_file_mask, _reflevel_mask);
 		}
@@ -733,6 +734,11 @@ void VDFIOBase::BitMask::_BitMask(size_t nbits)
 		for (int i=0; i<_bitmask_sz; i++) _bitmask[i] = 0;
 	}
 	_nbits = nbits;
+}
+
+VDFIOBase::BitMask::BitMask() 
+{
+	_BitMask(0);
 }
 
 VDFIOBase::BitMask::BitMask(size_t nbits) 

@@ -134,8 +134,9 @@ protected:
 	//
 	// nbits is the number of elements to be stored in the mask
 	//
+	BitMask();
 	BitMask(size_t nbits);
-	BitMask(const BitMask &bm);
+	BitMask(const BitMask &bm);	// copy constructor
 	~BitMask();
 
 	//
