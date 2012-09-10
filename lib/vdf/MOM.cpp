@@ -221,7 +221,44 @@ int MOM::extractStartTime(int ncid, int timevarid){
 	} else return -1;
 }
 
+float* MOM::GetAngles(){
+	//First see if there is an "ANGLE" variable in the topo file.  If so, return that.
+	//If not, calculate the angles that the MOM data grid (x-axis) makes with latitude. Produce an 
+	//array of angles (in degrees, one at each MOM grid vertex.  Use the Weight table to 
+	//get the angles (since it already has the geolat and geolon variables)
+	
+	bool haveAngles = true;
+	anglesArray = new float[_dimLens[0]*_dimLens[1]];
+	int varid;
+	int rc = nc_inq_varid(topoNcId, "ANGLE", &varid);
+	if (rc != NC_NOERR) {//Not there.  
+		haveAngles = false;
+	}
+	
+	rc = nc_get_var_float(topoNcId, varid, anglesArray);
+	if (rc != NC_NOERR) {//Not there.  
+		haveAngles = false;
+	}
+	if (haveAngles) return anglesArray;
 
+	//use t-grid for calculating angles
+	WeightTable *wt =GetWeightTable(0,0);
+	
+	for (int i = 0; i<_dimLens[1]; i++){
+		for (int j = 0; j<_dimLens[0]; j++){
+			anglesArray[j+_dimLens[0]*i] = wt->getAngle(i,j);
+		}
+	}
+	return anglesArray;
+}
+
+float* MOM::GetLats(){
+	//This can be obtained from the Weight Table.  
+	
+	//use t-grid for getting latitude
+	WeightTable *wt =GetWeightTable(0,0);
+	return wt->getGeoLats();
+}
 float* MOM::GetDepths(){
 	depthsArray = 0;
 	//See if we can open the ht variable in the topo file

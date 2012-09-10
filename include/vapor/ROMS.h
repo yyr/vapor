@@ -32,6 +32,8 @@ public:
 	double getStartSeconds(){return startTimeDouble;} //seconds since 1/1/1970, + or -
 
 	float* GetDepths();
+	float* GetAngles();
+	float* GetLats();
 
 
 	const vector<double>& GetTimes(){return _romsTimes;}
@@ -88,6 +90,7 @@ private:
 	WeightTable** WeightTables;
 	
 	float* depthsArray;
+	float* anglesArray;
 
 	int _ROMS(const string &romsname, const map <string, string> &atypnames, const vector<string>& vars2d, const vector<string>& vars3d);
 	int _GetROMSTopo(int ncid); // Get netCDF file ID (input)

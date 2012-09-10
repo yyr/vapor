@@ -893,3 +893,33 @@ void WeightTable::findWeight2(float x, float y, int ilon, int ilat, float* alpha
 }
 		
 
+//Calculate the angle (in degrees) that the grid makes with the latitude, at a particular vertex.
+//Use the geolat, geolon variables at the vertex, determine the longitude and latitude difference 
+//(londiff and latdiff) in going
+//to the next vertex over (or previous, if this is on the right edge).  
+//the angle is atan(latdiff/londiff). Of course the atan is between -90 and +90.
+//If londiff is negative, then the angle is between 90 and 180 (if latdiff is +) or between -90 and -180 (if latdiff is - ).
+//If londiff is zero, then the angle is 90 (if latdiff is +) or -90 (if latdiff is - )
+float WeightTable::getAngle(int ilon, int ilat){
+	float londiff, latdiff, angle;
+	if (ilon < nlon -1) {
+		londiff = geo_lon[ilon+1+nlon*ilat] - geo_lon[ilon+nlon*ilat];
+		latdiff = geo_lat[ilon+1+nlon*ilat] - geo_lat[ilon+nlon*ilat];
+	} else {
+		londiff = geo_lon[ilon+nlon*ilat] - geo_lon[ilon-1 +nlon*ilat];
+		latdiff = geo_lat[ilon+nlon*ilat] - geo_lat[ilon-1 +nlon*ilat];
+	}
+	if (londiff == 0.f){
+		if (latdiff > 0.f) angle = 90.;
+		else angle = -90.;
+	} else {
+		angle = atan(latdiff/londiff);
+		if (londiff < 0.){ //add PI or subtract PI to get angle between -PI and PI
+			if (latdiff > 0.) angle = M_PI + angle;
+			else angle = angle - M_PI;
+		}
+		//Convert to degrees:
+		angle *= 180./M_PI;
+	}
+	return angle;
+}

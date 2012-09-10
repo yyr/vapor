@@ -33,6 +33,8 @@ public:
 
 	const float* GetElevations() {return vertLayers;}
 	float* GetDepths();
+	float* GetAngles();
+	float* GetLats();
 
 
 	const vector<double>& GetTimes(){return _momTimes;}
@@ -89,6 +91,7 @@ private:
 	WeightTable** WeightTables;
 	float* vertLayers;  //values for elevation
 	float* depthsArray;
+	float* anglesArray;
 
 	int _MOM(const string &momname, const map <string, string> &atypnames, const vector<string>& vars2d, const vector<string>& vars3d);
 	int _GetMOMTopo(int ncid); // Get netCDF file ID (input)

@@ -279,6 +279,10 @@ int	main(int argc, char **argv) {
 	vector <string> allvars2d = MOMData->GetVariables2DXY();
 	itr = find(allvars2d.begin(), allvars2d.end(), "DEPTH");
 	if (itr == allvars2d.end()) allvars2d.push_back("DEPTH");
+	itr = find(allvars2d.begin(), allvars2d.end(), "ANGLE");
+	if (itr == allvars2d.end()) allvars2d.push_back("ANGLE");
+	itr = find(allvars2d.begin(), allvars2d.end(), "LATDEG");
+	if (itr == allvars2d.end()) allvars2d.push_back("LATDEG");
 
 	if(file->SetVariables2DXY(allvars2d)) {
 		cerr << "Error populating Variables2DXY." << endl;

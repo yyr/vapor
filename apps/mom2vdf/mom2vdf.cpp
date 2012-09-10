@@ -541,7 +541,7 @@ int	main(int argc, char **argv) {
 		for (int i = 0; i<dimsVDC[0]*dimsVDC[1]; i++){
 			if(depth[i]<minval) minval = depth[i];
 			if(depth[i]>maxval) maxval = depth[i];
-			if(mappedDepth[i]<minval1) minval1 = mappedDepth[i];
+			if(mappedDepth[i]<minval1 && mappedDepth[i] != (float)MOM::vaporMissingValue()) minval1 = mappedDepth[i];
 			if(mappedDepth[i]>maxval1 && mappedDepth[i] != (float)MOM::vaporMissingValue()) maxval1 = mappedDepth[i];
 		}
 
@@ -549,8 +549,64 @@ int	main(int argc, char **argv) {
 			int rc = CopyConstantVariable2D(mappedDepth,vdfio2d,wbwriter2d,opt.level,opt.lod, "DEPTH",dimsVDC,t);
 			if (rc) exit(rc);
 		}
+		delete mappedDepth;
 	}
 	delete depth;
+	
+	//Add angle variable
+	float* angles = mom->GetAngles();
+	
+	if (angles){
+		// use t-grid for remapping angles
+		WeightTable *wt = mom->GetWeightTable(0,0);
+		float* mappedAngles = new float[dimsVDC[0]*dimsVDC[1]];
+		wt->interp2D(angles, mappedAngles, (float)MOM::vaporMissingValue(),dimsVDC);
+		float minval = 1.e30;
+		float maxval = -1.e30;
+		float minval1 = 1.e30;
+		float maxval1 = -1.e30;
+		for (int i = 0; i<dimsVDC[0]*dimsVDC[1]; i++){
+			if(angles[i]<minval) minval = angles[i];
+			if(angles[i]>maxval) maxval = angles[i];
+			if(mappedAngles[i]<minval1 && mappedAngles[i] != (float)MOM::vaporMissingValue()) minval1 = mappedAngles[i];
+			if(mappedAngles[i]>maxval1 && mappedAngles[i] != (float)MOM::vaporMissingValue()) maxval1 = mappedAngles[i];
+		}
+
+		for( size_t t = 0; t< numTimeSteps; t++){
+			int rc = CopyConstantVariable2D(mappedAngles,vdfio2d,wbwriter2d,opt.level,opt.lod, "ANGLE",dimsVDC,t);
+			if (rc) exit(rc);
+		}
+		delete mappedAngles;
+	}
+	delete angles;
+
+	//Add latitude variable (degrees)
+	float* lats = mom->GetLats();
+	
+	if (lats){
+		// use t-grid for remapping angles
+		WeightTable *wt = mom->GetWeightTable(0,0);
+		float* mappedLats = new float[dimsVDC[0]*dimsVDC[1]];
+		wt->interp2D(lats, mappedLats, (float)MOM::vaporMissingValue(),dimsVDC);
+		float minval = 1.e30;
+		float maxval = -1.e30;
+		float minval1 = 1.e30;
+		float maxval1 = -1.e30;
+		for (int i = 0; i<dimsVDC[0]*dimsVDC[1]; i++){
+			if(lats[i]<minval) minval = lats[i];
+			if(lats[i]>maxval) maxval = lats[i];
+			if(mappedLats[i]<minval1 && mappedLats[i] != (float)MOM::vaporMissingValue()) minval1 = mappedLats[i];
+			if(mappedLats[i]>maxval1 && mappedLats[i] != (float)MOM::vaporMissingValue()) maxval1 = mappedLats[i];
+		}
+
+		for( size_t t = 0; t< numTimeSteps; t++){
+			int rc = CopyConstantVariable2D(mappedLats,vdfio2d,wbwriter2d,opt.level,opt.lod, "LATDEG",dimsVDC,t);
+			if (rc) exit(rc);
+		}
+		delete mappedLats;
+	}
+	
+	
 	vector<string> vdcvars2d = metadataVDC->GetVariables2DXY();
 	vector<string> vdcvars3d = metadataVDC->GetVariables3D();
 	vector<size_t>VDCTimes;	
@@ -560,7 +616,7 @@ int	main(int argc, char **argv) {
 	for (size_t ts = 0; ts < metadataVDC->GetNumTimeSteps(); ts++){
 		usertimes.push_back(metadataVDC->GetTSUserTime(ts));
 	}
-	//Loop thru momfiles
+	
 	for (int i = 0; i<momfiles.size(); i++){
 		printf("processing file %s\n",momfiles[i].c_str());	
 		

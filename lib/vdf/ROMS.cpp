@@ -274,8 +274,61 @@ float* ROMS::GetDepths(){
 	delete depthsDbl;
 	return depthsArray;
 }
+float* ROMS::GetAngles(){
+	//First see if there is an "angle" variable in the grid file.  If so, return that.
+	//If not, calculate the angles that the ROMS data grid (x-axis) makes with latitude. Produce an 
+	//array of angles (in degrees, one at each ROMS grid vertex.  Use the Weight table to 
+	//get the angles (since it already has the geolat and geolon variables)
+	
+	bool haveAngles = true;
+	// Create array to hold double data.  Note that this is on the rho-grid
+	int xdim = _dimLens[0]+1;
+	int ydim = _dimLens[1]+1;
+	anglesArray = new float[xdim*ydim];
+	int varid;
+	int rc = nc_inq_varid(topoNcId, "angle", &varid);
+	if (rc != NC_NOERR) {//Not there.  
+		haveAngles = false;
+	}
+	//Is it double?
+	nc_type vartype;
+	rc = nc_inq_vartype(topoNcId, varid,  &vartype);
+	bool isDouble = (vartype == NC_DOUBLE); //either float or double
+	if (!isDouble){
+		rc = nc_get_var_float(topoNcId, varid, anglesArray);
+		if (rc != NC_NOERR) {//Not there.  
+			haveAngles = false;
+		}
+	} else {
+		double* dAnglesArray = new double[xdim*ydim];
+		rc = nc_get_var_double(topoNcId, varid, dAnglesArray);
+		if (rc != NC_NOERR) {//Not there.  
+			haveAngles = false;
+		} else {
+			for (int i = 0; i< xdim*ydim; i++){
+				anglesArray[i] = (float)dAnglesArray[i];
+			}
+		}
+		delete dAnglesArray;
+	}
+	if (haveAngles) return anglesArray;
 
-
+	//use rho-grid for calculating angles
+	WeightTable *wt =GetWeightTable(3);
+	for (int i = 0; i<ydim; i++){
+		for (int j = 0; j<xdim; j++){
+			anglesArray[j+xdim*i] = wt->getAngle(i,j);
+		}
+	}
+	return anglesArray;
+}
+float* ROMS::GetLats(){
+	//This can be obtained from the Weight Table.  
+	
+	//use rho-grid for getting latitude
+	WeightTable *wt =GetWeightTable(3);
+	return wt->getGeoLats();
+}
 
 int ROMS::_GetROMSTopo(
 	int ncid // Holds netCDF file ID (in)

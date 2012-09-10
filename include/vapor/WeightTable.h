@@ -34,6 +34,11 @@ public:
 	
 	//Calculate the weights using a specified opened topo file.  Return 0 if OK.
 	int calcWeights(int ncid);
+
+	//Calculate angle that grid makes with latitude line at a particular vertex.
+	float getAngle(int ilon, int ilat);
+
+	float* getGeoLats(){ return geo_lat;}
 	
 private:
 	//Following 2 methods are for debugging:
