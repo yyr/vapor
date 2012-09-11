@@ -1669,8 +1669,14 @@ void    WaveCodecIO::GetValidRegion(
 	int  ldelta = GetNumTransforms() - reflevel;
 
 	for (int i=0; i<3; i++) {
+		size_t dim = (_validRegMax[i] + 1) >> ldelta;
 		min[i] = _validRegMin[i] >> ldelta;
 		max[i] = _validRegMax[i] >> ldelta;
+
+		//
+		// hack to deal with boundary conditions when dimensions are odd
+		//
+		if (max[i] >= dim) max[i] = dim-1;
 	}
 }
 

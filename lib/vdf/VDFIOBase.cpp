@@ -645,7 +645,7 @@ void VDFIOBase::_downsample(
 	int stride = 1 << (l0-l1);
 
 	for (int z0=0, z1=0; z0<bs0_p[2] &&  z1<bs1_p[2]; z0 += stride, z1++) {
-	for (int y0=0, y1=0; y0<bs0_p[1] &&  y1<bs1_p[2]; y0 += stride, y1++) {
+	for (int y0=0, y1=0; y0<bs0_p[1] &&  y1<bs1_p[1]; y0 += stride, y1++) {
 	for (int x0=0, x1=0; x0<bs0_p[0] &&  x1<bs1_p[0]; x0 += stride, x1++) {
 		size_t idx1 = bs1_p[0]*bs1_p[1]*z1 + bs1_p[0]*y1 + x1;
 

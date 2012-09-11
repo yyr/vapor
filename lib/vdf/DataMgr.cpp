@@ -207,12 +207,12 @@ RegularGrid *DataMgr::make_grid(
 
 		if (has_missing) {
 			rg = new LayeredGrid(
-				bs,min, max, extents, periodic, blkptrs, zcblkptrs,2
+				bs,min, max, extents, periodic, blkptrs, zcblkptrs,2, mv
 			);
 		}
 		else {
 			rg = new LayeredGrid(
-				bs,min, max, extents, periodic, blkptrs, zcblkptrs,2, mv
+				bs,min, max, extents, periodic, blkptrs, zcblkptrs,2
 			);
 		}
 	}
