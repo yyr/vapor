@@ -283,7 +283,10 @@ void Renderer::enableFullClippingPlanes() {
 
 	const vector<double>& extvec = dataMgr->GetExtents(timeStep);
 	double extents[6];
-	for (int i=0; i<6; i++) extents[i] = extvec[i];
+	for (int i=0; i<3; i++) {
+		extents[i] = extvec[i] - ((extvec[3+i]-extvec[i])*0.001);
+		extents[i+3] = extvec[i+3] + ((extvec[3+i]-extvec[i])*0.001);
+	}
 
 	enableClippingPlanes(extents);
 }
@@ -325,6 +328,14 @@ void Renderer::enableRegionClippingPlanes() {
 
 	double regExts[6];
 	myRegionParams->GetBox()->GetUserExtents(regExts,timeStep);
+
+	//
+	// add padding for floating point roundoff
+	//
+	for (int i=0; i<3; i++) {
+		regExts[i] = regExts[i] - ((regExts[3+i]-regExts[i])*0.001);
+		regExts[i+3] = regExts[i+3] + ((regExts[3+i]-regExts[i])*0.001);
+	}
 
 	enableClippingPlanes(regExts);
 }

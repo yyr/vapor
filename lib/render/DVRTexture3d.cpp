@@ -61,7 +61,7 @@ DVRTexture3d::DVRTexture3d(
   _delta(0.0),
   _samples(0),
   _samplingRate(2.0),
-  _minimumSamples(128),
+  _minimumSamples(256),
   _maxTexture(0),
   _maxBrickDim(128), // NOTE: This should always be <= _maxTexture
   _lastRegion(),
@@ -381,6 +381,7 @@ void DVRTexture3d::drawViewAlignedSlices(const TextureBrick *brick,
   Vect3d verts[6];   // for edge intersections
   Vect3d tverts[6];  // for texture intersections
   Vect3d rverts[6];  // for transformed edge intersections
+
 
   for(int i = 0 ; i < _samples; i++)
   { 
