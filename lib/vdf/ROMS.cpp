@@ -280,7 +280,7 @@ float* ROMS::GetAngles(){
 	//array of angles (in degrees, one at each ROMS grid vertex.  Use the Weight table to 
 	//get the angles (since it already has the geolat and geolon variables)
 	
-	bool haveAngles = true;
+ 	bool haveAngles = true;
 	// Create array to hold double data.  Note that this is on the rho-grid
 	int xdim = _dimLens[0]+1;
 	int ydim = _dimLens[1]+1;

@@ -347,20 +347,38 @@ float WeightTable::bestLatLonPolar(int ilon, int ilat){
 	
 int WeightTable::calcWeights(int ncid){
 	
-	//	Allocate arrays for geolat and geolon.
+	//	Allocate array for geolat 
 	geo_lat = new float[nlat*nlon];
+	double* geo_latd;
+	if (!MOMBased)
+		geo_latd = new double[nlat*nlon];
 	
 	//Find the geo_lat and geo_lon variable id's in the file
 	int geolatvarid;
 	NC_ERR_READ(nc_inq_varid (ncid, geoLatVarName.c_str(), &geolatvarid));
 	//	Read the geolat and geolon variables into arrays.
 	// Note that lon increases fastest
-	NC_ERR_READ(nc_get_var_float(ncid, geolatvarid, geo_lat));
-	if (MOMBased)
+	if (MOMBased){
+		NC_ERR_READ(nc_get_var_float(ncid, geolatvarid, geo_lat));
+	}
+	else {
+		NC_ERR_READ(nc_get_var_double(ncid, geolatvarid, geo_latd));
+	}
+
+	if (!MOMBased){
+		for (int i = 0; i<nlat*nlon; i++){
+			geo_lat[i] = (float)geo_latd[i];
+		}
+		delete geo_latd;
+	}
+	if (MOMBased){
 		geo_lon = MOM::getMonotonicLonData(ncid, geoLonVarName.c_str(), nlon, nlat);
-	else 
+	}
+	else {
 		geo_lon = ROMS::getMonotonicLonData(ncid, geoLonVarName.c_str(), nlon, nlat);
+	}
 	if (!geo_lon) return -1;
+
 	float eps = Max(deltaLat,deltaLon)*1.e-3;
 
 	//Check out the geolat, geolon variables

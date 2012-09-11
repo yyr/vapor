@@ -1212,8 +1212,10 @@ int	main(int argc, char **argv) {
 			assert(depth[i]> -1.e10 && depth[i] < 1.e10);
 			if(depth[i]<minval) minval = depth[i];
 			if(depth[i]>maxval) maxval = depth[i];
+			if (mappedDepth[i] == (float)ROMS::vaporMissingValue())
+				continue;
 			if(mappedDepth[i]<minval1) minval1 = mappedDepth[i];
-			if(mappedDepth[i]>maxval1 && mappedDepth[i] != (float)ROMS::vaporMissingValue()) maxval1 = mappedDepth[i];
+			if(mappedDepth[i]>maxval1) maxval1 = mappedDepth[i];
 		}
 		
 		for( size_t t = 0; t< numTimeSteps; t++){
@@ -1241,8 +1243,10 @@ int	main(int argc, char **argv) {
 		for (int i = 0; i<dimsVDC[0]*dimsVDC[1]; i++){
 			if(angles[i]<minval) minval = depth[i];
 			if(angles[i]>maxval) maxval = depth[i];
-			if(mappedAngles[i]<minval1 && mappedAngles[i] != (float)ROMS::vaporMissingValue()) minval1 = mappedAngles[i];
-			if(mappedAngles[i]>maxval1 && mappedAngles[i] != (float)ROMS::vaporMissingValue()) maxval1 = mappedAngles[i];
+			if(mappedAngles[i] == (float)ROMS::vaporMissingValue())
+				continue;
+			if(mappedAngles[i]<minval1 ) minval1 = mappedAngles[i];
+			if(mappedAngles[i]>maxval1) maxval1 = mappedAngles[i];
 		}
 
 		for( size_t t = 0; t< numTimeSteps; t++){
@@ -1252,7 +1256,33 @@ int	main(int argc, char **argv) {
 		delete mappedAngles;
 	}
 	delete angles;
+	//Add latitude variable (degrees)
+	float* lats = roms->GetLats();
 	
+	if (lats){
+		// use rho-grid for latitudes
+		WeightTable *wt = roms->GetWeightTable(0);
+		float* mappedLats = new float[dimsVDC[0]*dimsVDC[1]];
+		wt->interp2D(lats, mappedLats, (float)ROMS::vaporMissingValue(),dimsVDC);
+		float minval = 1.e30;
+		float maxval = -1.e30;
+		float minval1 = 1.e30;
+		float maxval1 = -1.e30;
+		for (int i = 0; i<dimsVDC[0]*dimsVDC[1]; i++){
+			if(lats[i]<minval) minval = lats[i];
+			if(lats[i]>maxval) maxval = lats[i];
+			if (mappedLats[i] == (float)ROMS::vaporMissingValue()) 
+				continue;
+			if(mappedLats[i]<minval1) minval1 = mappedLats[i];
+			if(mappedLats[i]>maxval1 ) maxval1 = mappedLats[i];
+		}
+
+		for( size_t t = 0; t< numTimeSteps; t++){
+			int rc = CopyConstantVariable2D(mappedLats,vdfio2d,wbwriter2d,opt.level,opt.lod, "LATDEG",dimsVDC,t);
+			if (rc) exit(rc);
+		}
+		delete mappedLats;
+	}
 	vector<string> vdcvars2d = metadataVDC->GetVariables2DXY();
 	vector<string> vdcvars3d = metadataVDC->GetVariables3D();
 	vector<size_t>VDCTimes;	
