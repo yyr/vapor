@@ -723,6 +723,7 @@ int CopyConstantVariable3D(
 
 float * CalcElevation(int Vtransform, float* s_rho, float* Cs_r, float Tcline, float* mappedDepth, const size_t* dimsVDC){
 	//Following code to calculate ELEVATION variable was provided by Justin Small (NCAR)
+	// The elevation is calculated on the VDC grid. The mappedDepth must already be available
 	if (s_rho[0] < -1. || Cs_r[0] < -1. || Tcline < -1. || Vtransform < -1 || mappedDepth == 0) return 0;
 	float * z_r = new float[dimsVDC[0]*dimsVDC[1]*dimsVDC[2]];
 
