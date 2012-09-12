@@ -259,8 +259,8 @@ int main(int argc, char **argv) {
 			int rc = datamgr->GetValidRegion(ts,vname.c_str(),opt.level,min,max);
 			assert(rc >= 0);
 			cout << "Valid Region : [" 
-				<< min[0] << ", " << min[2] << ", " << min[2] << "] ["
-				<< max[0] << ", " << max[2] << ", " << max[2] << "]" << endl;
+				<< min[0] << ", " << min[1] << ", " << min[2] << "] ["
+				<< max[0] << ", " << max[1] << ", " << max[2] << "]" << endl;
 
 
 			float r[2];
@@ -270,6 +270,11 @@ int main(int argc, char **argv) {
 			string stamp;
 			datamgr->GetTSUserTimeStamp(ts, stamp);
 			cout << "Time stamp: " << stamp << endl;
+
+			cout << "Has missing data : " << rg->HasMissingData() << endl;
+			if (rg->HasMissingData()) {
+				cout << "Missing data value : " << rg->GetMissingValue() << endl;
+			}
 
 			cout << setprecision (16) << "User time: " << datamgr->GetTSUserTime(ts) << endl;
 			cout << endl;
