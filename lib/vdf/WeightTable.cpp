@@ -133,8 +133,14 @@ void WeightTable::interp2D(const float* sourceData, float* resultData, float mis
 		if (sourceData[i]<minin) minin = sourceData[i];
 		if (sourceData[i]>maxin) maxin = sourceData[i];
 	}
+	
 	for (int j = 0; j<latsize; j++){
 		for (int i = 0; i<lonsize; i++){
+			if(testValues[i+nlon*j] >= 1.)  {
+				//Outside of range of mapping.  Provide missing value:
+				resultData[i+j*lonsize] = (float)ROMS::vaporMissingValue();
+				continue;
+			}
 			corlon = cornerLons[i+nlon*j];//Lookup the user grid vertex lowerleft corner that contains (i,j) lon-lat vertex
 			corlat = cornerLats[i+nlon*j];//corlon and corlat are not lon and lat, just x and y 
 			corlatp = corlat+1;
@@ -211,7 +217,7 @@ void WeightTable::interp2D(const double* sourceData, float* resultData, double m
 	}
 	for (int j = 0; j<latsize; j++){
 		for (int i = 0; i<lonsize; i++){
-			if(testValues[j+nlon*i] >= 1.)  {
+			if(testValues[i+nlon*j] >= 1.)  {
 				//Outside of range of mapping.  Provide missing value:
 				resultData[i+j*lonsize] = (float)ROMS::vaporMissingValue();
 				continue;
@@ -698,7 +704,7 @@ int WeightTable::calcWeights(int ncid){
 					fprintf(stderr," bad alpha %g beta %g at lon,lat %d , %d, ulon %d ulat %d, testval: %g\n",alphas[j+nlon*i],betas[j+nlon*i], j, i, cornerLons[j+nlon*i], cornerLats[j+nlon*i],testValues[j+i*nlon]);
 				continue;
 			}
-			else if (!MOMBased) {
+			else if (MOMBased) {
 				if (testValues[j+nlon*i] < 10000.) printf( "poor estimate: %f at lon, lat %d %d, ulon, ulat %d %d\n", testValues[j+nlon*i],j,i, cornerLons[j+nlon*i], cornerLats[j+nlon*i]);
 				else {
 					MyBase::SetErrMsg(" Error remapping coordinates.  Unmapped lon, lat: %d, %d\n",j,i);
