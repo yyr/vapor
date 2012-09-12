@@ -721,12 +721,14 @@ int CopyConstantVariable3D(
 	return(0);
 }  // End of CopyConstantVariable3D.
 
-float * CalcElevation(int Vtransform, float* s_rho, float* Cs_r, float Tcline, float* mappedDepth, const size_t* dimsVDC){
+float * CalcElevation(int Vtransform, float* s_rho, float* Cs_r, float Tcline, float* mappedDepth, const size_t* dimsVDC, float* sample3DVar){
 	//Following code to calculate ELEVATION variable was provided by Justin Small (NCAR)
 	// The elevation is calculated on the VDC grid. The mappedDepth must already be available
+	//The sample3DVar is used to establish a mask for missing values
 	if (s_rho[0] < -1. || Cs_r[0] < -1. || Tcline < -1. || Vtransform < -1 || mappedDepth == 0) return 0;
 	float * z_r = new float[dimsVDC[0]*dimsVDC[1]*dimsVDC[2]];
-
+	float maxElev = -1.e30f;
+	float minElev = 1.e30f;
 	int levelSize = dimsVDC[0]*dimsVDC[1];
 	//Define lowest z level (seabed):  Note:  this is overwritten.
 	for (int i = 0; i<levelSize; i++){
@@ -741,12 +743,22 @@ float * CalcElevation(int Vtransform, float* s_rho, float* Cs_r, float Tcline, f
 		for (int k = 0; k<dimsVDC[2]; k++){
 			for (int i = 0; i<dimsVDC[1]; i++){
 				for (int j = 0; j< dimsVDC[0]; j++){
+					if (mappedDepth[j+dimsVDC[0]*i] == (float)ROMS::vaporMissingValue()){
+						z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k] = (float)ROMS::vaporMissingValue();
+						continue;
+					}
 					float cff_r = hc[j+dimsVDC[0]*i]*(s_rho[k] - Cs_r[k]);
 					float cff1_r = Cs_r[k];
 					//float cff2_r = s_rho[k]+1.;??? not used
 					//Depth of sigma coordinate at rho points
 					float z_r0 = cff_r - cff1_r*mappedDepth[j+dimsVDC[0]*i];
 					z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k] = z_r0;  //Note, if zeta is zero, hinv not needed here
+					float val = z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k];
+					if (val < minElev) minElev = val;
+					if (val > maxElev) maxElev = val;
+					if (val > 1000.){
+						float foo = mappedDepth[j+dimsVDC[0]*i];
+					}
 				}
 			}
 		}
@@ -755,16 +767,47 @@ float * CalcElevation(int Vtransform, float* s_rho, float* Cs_r, float Tcline, f
 		for (int k = 0; k< dimsVDC[2]; k++){
 			for (int i = 0; i<dimsVDC[1]; i++){
 				for (int j = 0; j<dimsVDC[0]; j++){
+					if (mappedDepth[j+dimsVDC[0]*i] == (float)ROMS::vaporMissingValue()){
+						z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k] = (float)ROMS::vaporMissingValue();
+						continue;
+					}
 					float hinv = 1./(Tcline -mappedDepth[j+dimsVDC[0]*i]);
 					float cff_r = Tcline*s_rho[k];
 					float cff1_r = Cs_r[k];
 					float cff2_r = (cff_r-cff1_r*mappedDepth[j+dimsVDC[0]*i])*hinv;
 					z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k] = -mappedDepth[j+dimsVDC[0]*i]*cff2_r;	
+					float val = z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k];
+					if (val < minElev) minElev = val;
+					if (val > maxElev) maxElev = val;
+					if (val > 1000.){
+						float foo = mappedDepth[j+dimsVDC[0]*i];
+					}
 				}
 			}
 		}
 	}
-	return z_r;
+	//Set missing values, get max and min
+	maxElev = -1.e30f;
+	minElev = 1.e30f;
+	if (sample3DVar){
+		for (int k = 0; k<dimsVDC[2]; k++){
+			for (int i = 0; i<dimsVDC[1]; i++){
+				for (int j = 0; j< dimsVDC[0]; j++){
+					if (sample3DVar[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k] == (float)ROMS::vaporMissingValue()){
+						z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k] = (float)ROMS::vaporMissingValue();
+					}
+					else {
+						float val = z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k];
+						if (val == (float)ROMS::vaporMissingValue()) 
+							continue;
+						if (val < minElev) minElev = val;
+						if (val > maxElev) maxElev = val;
+					}
+				}
+			}
+		}
+	}
+ 	return z_r;
 
 }
 //
@@ -816,8 +859,9 @@ int CopyVariable3D(
 	const size_t dim[3],
 	int ndim[2],
 	size_t tsVDC,
-	int tsNetCDF
-	
+	int tsNetCDF,
+	float** resultVar,
+	float* mappedDepth
 	) {
 
 	static float *fsliceBuffer = NULL;
@@ -875,18 +919,17 @@ int CopyVariable3D(
 		sliceBuffer2 = new float[slice_sz];
 	}
 		
-	
-	
-	
 	float minVal = 1.e30f;
 	float maxVal = -1.e30f;
 	float minVal1 = 1.e30f;
 	float maxVal1 = -1.e30f;
+	bool makeMask = (*resultVar == 0);
+	if (makeMask) *resultVar = new float[dim[0]*dim[1]*dim[2]];
 	for (size_t z = 0; z<dim[2]; z++) {
 		//
 		//Read slice of NetCDF file into slice buffer
 		//
-		starts[1]= dim[2]-z-1;
+		starts[1]= z;
 		if (isDouble){
 			NC_ERR_READ(nc_get_vara_double(ncid, varid, starts, counts, dsliceBuffer))
 			for (int k = 0; k<slice_sz; k++){
@@ -910,6 +953,10 @@ int CopyVariable3D(
 		
 		for (int k = 0; k<slice_sz; k++){
 			if (sliceBuffer2[k] != (float)ROMS::vaporMissingValue()){
+				if (mappedDepth[k] == (float)ROMS::vaporMissingValue()){
+					sliceBuffer2[k] = (float)ROMS::vaporMissingValue();
+					continue;
+				}
 				if (minVal1 > sliceBuffer2[k]) minVal1 = sliceBuffer2[k];
 				if (maxVal1 < sliceBuffer2[k]) maxVal1 = sliceBuffer2[k];
 			}
@@ -921,6 +968,11 @@ int CopyVariable3D(
 				varname.c_str(), tsVDC
 			);
 			return (-1);
+		}
+		if (makeMask){  //copy result slice to resultVar:
+			for (int p = 0; p<slice_sz; p++){
+				(*resultVar)[p+z*slice_sz] = sliceBuffer2[p];
+			}
 		}
 	} // End of for z.
 	//printf(" variable %s time %d: min, max original data: %g %g\n", varname.c_str(), (int)tsVDC, minVal, maxVal);
@@ -943,7 +995,8 @@ int CopyVariable2D(
 	const size_t dim[3],
 	int ndim[2],
 	size_t tsVDC,
-	int tsNetCDF
+	int tsNetCDF,
+	float* mappedDepth
 	
 ) {
 
@@ -1016,6 +1069,10 @@ int CopyVariable2D(
 	float slicemin = 1.e38;
 	for (int j = 0; j<dim[0]*dim[1]; j++){
 		if (sliceBuffer2[j] == (float)ROMS::vaporMissingValue()) continue;
+		if (mappedDepth[j] == (float)ROMS::vaporMissingValue()){
+			sliceBuffer2[j] = (float)ROMS::vaporMissingValue();
+			continue;
+		}
 		if (sliceBuffer2[j]>slicemax) slicemax = sliceBuffer2[j];
 		if (sliceBuffer2[j]<slicemin) slicemin = sliceBuffer2[j];
 	}
@@ -1221,8 +1278,8 @@ int	main(int argc, char **argv) {
 		
 		for( size_t t = 0; t< numTimeSteps; t++){
 		
-			int rc = CopyConstantVariable2D(mappedDepth,vdfio2d,wbwriter2d,opt.level,opt.lod, "DEPTH",dimsVDC,t);
-			if (rc) exit(rc);
+			//int rc = CopyConstantVariable2D(mappedDepth,vdfio2d,wbwriter2d,opt.level,opt.lod, "DEPTH",dimsVDC,t);
+			//if (rc) exit(rc);
 		}
 		
 	}
@@ -1251,8 +1308,8 @@ int	main(int argc, char **argv) {
 		}
 
 		for( size_t t = 0; t< numTimeSteps; t++){
-			int rc = CopyConstantVariable2D(mappedAngles,vdfio2d,wbwriter2d,opt.level,opt.lod, "angle",dimsVDC,t);
-			if (rc) exit(rc);
+			//int rc = CopyConstantVariable2D(mappedAngles,vdfio2d,wbwriter2d,opt.level,opt.lod, "angle",dimsVDC,t);
+			//if (rc) exit(rc);
 		}
 		delete mappedAngles;
 	}
@@ -1279,8 +1336,8 @@ int	main(int argc, char **argv) {
 		}
 
 		for( size_t t = 0; t< numTimeSteps; t++){
-			int rc = CopyConstantVariable2D(mappedLats,vdfio2d,wbwriter2d,opt.level,opt.lod, "LATDEG",dimsVDC,t);
-			if (rc) exit(rc);
+			//int rc = CopyConstantVariable2D(mappedLats,vdfio2d,wbwriter2d,opt.level,opt.lod, "LATDEG",dimsVDC,t);
+			//if (rc) exit(rc);
 		}
 		delete mappedLats;
 	}
@@ -1304,6 +1361,7 @@ int	main(int argc, char **argv) {
 	}
 	float Tcline = -2.;
 	float * elevation = 0;
+	float * sample3DVar = 0;
 	//Loop thru romsfiles
 	for (int i = 0; i<romsfiles.size(); i++){
 		printf("processing file %s\n",romsfiles[i].c_str());	
@@ -1448,13 +1506,15 @@ int	main(int argc, char **argv) {
 			//loop thru the times in the file.
 			for (int ts = 0; ts < timelen; ts++){
 				//for each time convert the variable
-				if (ndims == 4) CopyVariable3D(ncid,varid,wt,vdfio3d,opt.level,opt.lod, varname, dimsVDC, ndim,VDCTimes[ts],ts);
-				else CopyVariable2D(ncid,varid,wt,vdfio2d,wbwriter2d,opt.level,opt.lod,varname, dimsVDC, ndim, VDCTimes[ts],ts);
+				if (ndims == 4) {
+					CopyVariable3D(ncid,varid,wt,vdfio3d,opt.level,opt.lod, varname, dimsVDC, ndim,VDCTimes[ts],ts,&sample3DVar,mappedDepth );
+				}
+				else CopyVariable2D(ncid,varid,wt,vdfio2d,wbwriter2d,opt.level,opt.lod,varname, dimsVDC, ndim, VDCTimes[ts],ts,mappedDepth);
 			}
 			printf(" converted variable %s\n", varname);
 		} //End loop over variables in file	
 		//Insert elevation at every timestep in the file:
-		if (!elevation) elevation = CalcElevation(Vtransform, s_rho, Cs_r, Tcline, mappedDepth, dimsVDC);
+		if (!elevation && sample3DVar) elevation = CalcElevation(Vtransform, s_rho, Cs_r, Tcline, mappedDepth, dimsVDC, sample3DVar);
 		if (elevation){
 			for (int j = 0; j< VDCTimes.size(); j++){
 				int rc = CopyConstantVariable3D(elevation, vdfio3d, opt.level, opt.lod, "ELEVATION", dimsVDC, VDCTimes[j]);
