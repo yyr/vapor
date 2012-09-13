@@ -376,7 +376,8 @@ void TextureBrick::copytex(
 				if (_layered) {
 					(void) rg->GetUserCoordinates(x,y,z,&x_f, &y_f, &z_f);
 					qv = (unsigned int) rint(
-						(z_f-extents[2])/(extents[5]-extents[2]) * 255
+						(z_f-extents[2])/(extents[5]-extents[2]) *
+						_tmax.z * 255
 					);
 					ucptr[c++] = qv;
 				}
@@ -417,7 +418,8 @@ void TextureBrick::copytex(
 				if (_layered) {
 					(void) rg->GetUserCoordinates(x,y,z,&x_f, &y_f, &z_f);
 					qv = (unsigned int) rint(
-						(z_f-extents[2])/(extents[5]-extents[2]) * 65535
+						(z_f-extents[2])/(extents[5]-extents[2]) * 
+						_tmax.z * 65535
 					);
 					ucptr[c++] = (unsigned char) (qv & 0xff);
 					ucptr[c++] = (unsigned char) ((qv >> 8) & 0xff);
@@ -461,7 +463,8 @@ void TextureBrick::copytex(
 						x+xoffset,y+yoffset,z+zoffset,&x_f, &y_f, &z_f
 					);
 					qv = (unsigned int) rint(
-						(z_f-extents[2])/(extents[5]-extents[2]) * 255
+						(z_f-extents[2])/(extents[5]-extents[2]) *
+						_tmax.z * 255
 					);
 					ucptr[c++] = qv;
 				}
@@ -498,7 +501,8 @@ void TextureBrick::copytex(
 					(void) rg->GetUserCoordinates(
 						x+xoffset,y+yoffset,z+zoffset,&x_f, &y_f, &z_f);
 					qv = (unsigned int) rint(
-						(z_f-extents[2])/(extents[5]-extents[2]) * 65535
+						(z_f-extents[2])/(extents[5]-extents[2]) * 
+						_tmax.z * 65535
 					);
 					ucptr[c++] = (unsigned char) (qv & 0xff);
 					ucptr[c++] = (unsigned char) ((qv >> 8) & 0xff);
@@ -543,6 +547,7 @@ void TextureBrick::fill(const RegularGrid *rg,
 	  if (_data) delete [] _data;
 	  _data = new GLubyte[_bx*_by*_bz*size];
       _texSzBytes = _bx*_by*_bz*size;
+      for (int i=0; i<_texSzBytes; i++) _data[i] = 0xff;
   }
   assert(_data != NULL);
 
@@ -600,6 +605,7 @@ void TextureBrick::fill(
 	  if (_data) delete [] _data;
 	  _data = new GLubyte[_bx*_by*_bz*size];
       _texSzBytes = _bx*_by*_bz*size;
+      for (int i=0; i<_texSzBytes; i++) _data[i] = 0xff;
   }
 
   //

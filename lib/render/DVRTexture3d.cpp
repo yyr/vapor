@@ -404,7 +404,6 @@ void DVRTexture3d::drawViewAlignedSlices(const TextureBrick *brick,
     //
 	glBegin(GL_POLYGON); 
 
-
 	{
       for(int j=0; j< size; ++j)
       {
@@ -638,6 +637,9 @@ void DVRTexture3d::buildBricks(
   // data offset
   int offset[3] = {0, 0, 0};
 
+  double extents[6];
+  rg->GetUserExtents(extents);
+
   int bricknum = 0;
   for(int z=0; z<nbricks[2]; ++z)
   {
@@ -694,15 +696,19 @@ void DVRTexture3d::buildBricks(
           //
           // Set the extents of the brick's data box
           //
+          double roiextents[6];
+          roiextents[0] = (float) broi[0]/(float) (dims[0]-1) * (extents[3]-extents[0]) + extents[0];
+          roiextents[1] = (float) broi[1]/(float) (dims[1]-1) * (extents[4]-extents[1]) + extents[1];
+          roiextents[2] = (float) broi[2]/(float) (dims[2]-1) * (extents[5]-extents[2]) + extents[2];
 
+          roiextents[3] = (float) broi[3]/(float) (dims[0]-1) * (extents[3]-extents[0]) + extents[0];
+          roiextents[4] = (float) broi[4]/(float) (dims[1]-1) * (extents[4]-extents[1]) + extents[1];
+          roiextents[5] = (float) broi[5]/(float) (dims[2]-1) * (extents[5]-extents[2]) + extents[2];
 
-
-          double extents[6];
-          rg->GetBoundingBox(broi, broi+3, extents);
-          brick->dataMin(extents[0], extents[1], extents[2]);
-          brick->dataMax(extents[3], extents[4], extents[5]);
-          brick->volumeMin(extents[0], extents[1], extents[2]);
-          brick->volumeMax(extents[3], extents[4], extents[5]);
+          brick->dataMin(roiextents[0], roiextents[1], roiextents[2]);
+          brick->dataMax(roiextents[3], roiextents[4], roiextents[5]);
+          brick->volumeMin(roiextents[0], roiextents[1], roiextents[2]);
+          brick->volumeMax(roiextents[3], roiextents[4], roiextents[5]);
           //
           // Set the texture coordinates of the brick.
           //
