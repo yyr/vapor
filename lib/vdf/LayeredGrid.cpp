@@ -91,33 +91,33 @@ void LayeredGrid::GetBoundingBox(
 		done = true;
 		_GetBoundingBox(mymin, mymax, extents);
 		if (_varying_dim == 0) {
-			if (extents[0] == FLT_MAX) {
+			if (extents[0] == FLT_MAX && mymin[0]<mymax[0]) {
 				mymin[0] = mymin[0]+1;
-				if (mymin[0] <= mymax[0]) done = false;
+				done = false;
 			}
-			if (extents[3] == -FLT_MAX) {
+			if (extents[5] == -FLT_MAX && mymax[0]>mymin[0]) {
 				mymax[0] = mymax[0]-1;
-				if (mymax[0] >= mymin[0]) done = false;
+				done = false;
 			}
 		}
 		else if (_varying_dim == 1) {
-			if (extents[1] == FLT_MAX) {
+			if (extents[1] == FLT_MAX && mymin[1]<mymax[1]) {
 				mymin[1] = mymin[1]+1;
-				if (mymin[1] <= mymax[1]) done = false;
+				done = false;
 			}
-			if (extents[4] == -FLT_MAX) {
+			if (extents[5] == -FLT_MAX && mymax[1]>mymin[1]) {
 				mymax[1] = mymax[1]-1;
-				if (mymax[1] >= mymin[1]) done = false;
+				done = false;
 			}
 		}
 		else if (_varying_dim == 2) {
-			if (extents[2] == FLT_MAX) {
+			if (extents[2] == FLT_MAX && mymin[2]<mymax[2]) {
 				mymin[2] = mymin[2]+1;
-				if (mymin[2] <= mymax[2]) done = false;
+				done = false;
 			}
-			if (extents[5] == -FLT_MAX) {
+			if (extents[5] == -FLT_MAX && mymax[2]>mymin[2]) {
 				mymax[2] = mymax[2]-1;
-				if (mymax[2] >= mymin[2]) done = false;
+				done = false;
 			}
 		}
 	}
