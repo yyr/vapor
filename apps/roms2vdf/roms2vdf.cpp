@@ -1145,7 +1145,7 @@ int CopyVariable2D(
 	}
 	if (!(*sample2DVar)){
 		*sample2DVar = new float[dim[0]*dim[1]];
-		for (int j = 0; j< dim[0]*dim[1]; j++) (*sample2DVar[j]) = sliceBuffer2[j]; 
+		for (int j = 0; j< dim[0]*dim[1]; j++) (*sample2DVar)[j] = sliceBuffer2[j]; 
 	}
 	if (vdfio2d->WriteRegion(sliceBuffer2) < 0) {
 		MyBase::SetErrMsg(
@@ -1314,11 +1314,6 @@ int	main(int argc, char **argv) {
 	// There needs to be a weightTable for each combination of geolat/geolon variables
 	int rc = roms->MakeWeightTables();
 	if (rc) exit (rc);
-	
-	
-	size_t numTimeSteps = metadataVDC->GetNumTimeSteps();
-	
-	
 	
 	vector<string> vdcvars2d = metadataVDC->GetVariables2DXY();
 	vector<string> vdcvars3d = metadataVDC->GetVariables3D();
