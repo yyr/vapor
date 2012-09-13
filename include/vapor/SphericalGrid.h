@@ -97,6 +97,14 @@ public:
  //!
  float GetValue(double x, double y, double z) const;
 
+ //! \copydoc RegularGrid::GetVBoundingBox()
+ //!
+ virtual void GetBoundingBox(
+    const size_t min[3],
+    const size_t max[3],
+    double extents[6]
+ ) const;
+
  //! \copydoc RegularGrid::GetUserCoordinates()
  //!
  int GetUserCoordinates(

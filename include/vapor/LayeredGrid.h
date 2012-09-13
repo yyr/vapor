@@ -101,6 +101,14 @@ public:
  //!
  float GetValue(double x, double y, double z) const;
 
+ //! \copydoc RegularGrid::GetVBoundingBox()
+ //!
+ virtual void GetBoundingBox(
+    const size_t min[3],
+    const size_t max[3],
+    double extents[6]
+ ) const;
+
  //! \copydoc RegularGrid::GetUserCoordinates()
  //!
  int GetUserCoordinates(
@@ -159,6 +167,13 @@ private:
  bool _zcellmin_cache;	// _zcellmin value is valid
 
  void _GetUserExtents(double extents[6]) const;
+ void _GetBoundingBox(
+    const size_t min[3],
+    const size_t max[3],
+    double extents[6]
+ ) const;
+ double _GetVaryingCoord(size_t i, size_t j, size_t k) const;
+
  double _interpolateVaryingCoord(
 	size_t i0, size_t j0, size_t k0,
 	double x, double y, double z 

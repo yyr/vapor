@@ -304,6 +304,19 @@ int StretchedGrid::GetUserCoordinates(
 	return(0);
 }
 
+void StretchedGrid::GetBoundingBox(
+    const size_t min[3],
+    const size_t max[3],
+    double extents[6]
+) const { 
+    StretchedGrid::GetUserCoordinates(
+        min[0], min[1], min[2], &(extents[0]), &(extents[1]), &(extents[2])
+    ); 
+    StretchedGrid::GetUserCoordinates(
+        max[0], max[1], max[2], &(extents[3]), &(extents[4]), &(extents[5])
+    );
+}
+
 void StretchedGrid::GetIJKIndex(
 	double x, double y, double z,
 	size_t *i, size_t *j, size_t *k

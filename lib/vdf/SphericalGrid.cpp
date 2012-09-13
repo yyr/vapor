@@ -116,6 +116,14 @@ void SphericalGrid::_GetUserExtents(double extentsC[6]) const {
 	}
 }
 
+void SphericalGrid::GetBoundingBox(
+    const size_t min[3],
+    const size_t max[3],
+    double extents[6]
+) const { 
+	cerr << "SphericalGrid::GetBoundingBox() NOT SUPPORTED!!!\n";
+}
+
 int SphericalGrid::GetUserCoordinates(
 	size_t i, size_t j, size_t k, 
 	double *x, double *y, double *z

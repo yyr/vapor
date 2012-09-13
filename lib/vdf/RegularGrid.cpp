@@ -361,6 +361,20 @@ void RegularGrid::GetUserExtents(double extents[6]) const {
 	}
 }
 
+void RegularGrid::GetBoundingBox(
+    const size_t min[3],
+    const size_t max[3],
+    double extents[6]
+) const {
+	RegularGrid::GetUserCoordinates(
+		min[0], min[1], min[2], &(extents[0]), &(extents[1]), &(extents[2])
+	);
+	RegularGrid::GetUserCoordinates(
+		max[0], max[1], max[2], &(extents[3]), &(extents[4]), &(extents[5])
+	);
+}
+
+
 void RegularGrid::GetDimensions(size_t dims[3]) const {
 	for (int i=0; i<3; i++) dims[i] = _max[i]-_min[i]+1;
 }

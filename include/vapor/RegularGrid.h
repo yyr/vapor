@@ -158,6 +158,27 @@ public:
  //!
  virtual void GetUserExtents(double extents[6]) const;
 
+ //! Return the extents of the axis-aligned bounding box enclosign a region
+ //!
+ //! This method returns min and max extents, in user coordinates,
+ //! of the smallest axis-aligned box enclosing the region defined
+ //! by the corner grid points, \p min and \p max.
+ //!
+ //! \note The results are undefined if any coordinate of \p min is 
+ //! greater than the coresponding coordinate of \p max.
+ //!
+ //! \param[out] extents A six-element array, the first three values will
+ //! contain the minimum coordinate, and the last three values the 
+ //! maximum coordinate
+ //!
+ //! \sa GetDimensions(), RegularGrid()
+ //!
+ virtual void GetBoundingBox(
+	const size_t min[3],
+	const size_t max[3],
+	double extents[6]
+ ) const;
+
  //! Return the min and max valid IJK index
  //!
  //! This method returns the minimum and maximum valid IJK index

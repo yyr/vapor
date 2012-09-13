@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cassert>
 #include <cmath>
+#include <cfloat>
 #include "vapor/LayeredGrid.h"
 
 using namespace std;
@@ -34,10 +35,8 @@ LayeredGrid::LayeredGrid(
 	//
 	if (periodic[_varying_dim]) SetPeriodic(periodic);
 
-	double myextents[6];
-
-	_GetUserExtents(myextents);
-	RegularGrid::_SetExtents(myextents);
+	_GetUserExtents(_extents);
+	RegularGrid::_SetExtents(_extents);
 
 }
 
@@ -67,14 +66,177 @@ LayeredGrid::LayeredGrid(
 
 	assert(periodic[_varying_dim] == false);
 
-	double myextents[6];
-
-	_GetUserExtents(myextents);
-	RegularGrid::_SetExtents(myextents);
+	_GetUserExtents(_extents);
+	RegularGrid::_SetExtents(_extents);
 }
 
 LayeredGrid::~LayeredGrid() {
     if (_coords) delete [] _coords;
+}
+void LayeredGrid::GetBoundingBox(
+    const size_t min[3],
+    const size_t max[3],
+    double extents[6]
+) const {
+	size_t mymin[] = {min[0],min[1],min[2]};
+	size_t mymax[] = {max[0],max[1],max[2]};
+
+	//
+	// Don't stop until we find valid extents. When missing values
+	// are present it's possible that the missing value dimension has 
+	// an entire plane of missing values
+	//
+	bool done = false;
+	while (! done) {
+		done = true;
+		_GetBoundingBox(mymin, mymax, extents);
+		if (_varying_dim == 0) {
+			if (extents[0] == FLT_MAX) {
+				mymin[0] = mymin[0]+1;
+				if (mymin[0] <= mymax[0]) done = false;
+			}
+			if (extents[3] == -FLT_MAX) {
+				mymax[0] = mymax[0]-1;
+				if (mymax[0] >= mymin[0]) done = false;
+			}
+		}
+		else if (_varying_dim == 1) {
+			if (extents[1] == FLT_MAX) {
+				mymin[1] = mymin[1]+1;
+				if (mymin[1] <= mymax[1]) done = false;
+			}
+			if (extents[4] == -FLT_MAX) {
+				mymax[1] = mymax[1]-1;
+				if (mymax[1] >= mymin[1]) done = false;
+			}
+		}
+		else if (_varying_dim == 2) {
+			if (extents[2] == FLT_MAX) {
+				mymin[2] = mymin[2]+1;
+				if (mymin[2] <= mymax[2]) done = false;
+			}
+			if (extents[5] == -FLT_MAX) {
+				mymax[2] = mymax[2]-1;
+				if (mymax[2] >= mymin[2]) done = false;
+			}
+		}
+	}
+
+}
+
+void LayeredGrid::_GetBoundingBox(
+    const size_t min[3],
+    const size_t max[3],
+    double extents[6]
+) const {
+
+	// Get extents of non-varying dimension. Values returned for
+	// varying dimension are coordinates for first and last grid
+	// point, respectively, which in general are not the extents 
+	// of the bounding box.
+	//
+    RegularGrid::GetUserCoordinates(
+        min[0], min[1], min[2], &(extents[0]), &(extents[1]), &(extents[2])
+    );
+    RegularGrid::GetUserCoordinates(
+        max[0], max[1], max[2], &(extents[3]), &(extents[4]), &(extents[5])
+    );
+
+	// Initialize min and max coordinates of varying dimension with 
+	// coordinates of "first" and "last" grid point. Coordinates of 
+	// varying dimension are stored as values of a scalar function
+	// sampling the coordinate space.
+	//
+	float mincoord = FLT_MAX;
+	float maxcoord = -FLT_MAX;
+
+	float mv = GetMissingValue();
+
+	// Now find the extreme values of the varying dimension's coordinates
+	//
+	if (_varying_dim == 0) {	// I plane
+
+		// Find min coordinate in first plane
+		//
+		for (int k = min[2]; k<=max[2]; k++) {
+		for (int j = min[1]; j<=max[1]; j++) {
+			float v = _AccessIJK(_coords, min[0],j,k);
+			if (v == mv) continue;
+			if (extents[0] < extents[3]) {
+				if (v<mincoord) mincoord = v;
+			} else {
+				if (v>mincoord) mincoord = v;
+			}
+		}
+		}
+
+		// Find max coordinate in last plane
+		//
+		for (int k = min[2]; k<=max[2]; k++) {
+		for (int j = min[1]; j<=max[1]; j++) {
+			float v = _AccessIJK(_coords, max[0],j,k);
+			if (v == mv) continue;
+			if (extents[0] <extents[3]) {
+				if (v>maxcoord) maxcoord = v;
+			} else {
+				if (v<maxcoord) maxcoord = v;
+			}
+		}
+		}
+	}
+	else if (_varying_dim == 1) {	// J plane
+		for (int k = min[2]; k<=max[2]; k++) {
+		for (int i = min[0]; i<=max[0]; i++) {
+			float v = _AccessIJK(_coords, i,min[1],k);
+			if (v == mv) continue;
+			if (extents[1] < extents[4]) {
+				if (v<mincoord) mincoord = v;
+			} else {
+				if (v>mincoord) mincoord = v;
+			}
+		}
+		}
+
+		for (int k = min[2]; k<=max[2]; k++) {
+		for (int i = min[0]; i<=max[0]; i++) {
+			float v = _AccessIJK(_coords, i,max[1],k);
+			if (v == mv) continue;
+			if (extents[1] < extents[4]) {
+				if (v>maxcoord) maxcoord = v;
+			} else {
+				if (v<maxcoord) maxcoord = v;
+			}
+		}
+		}
+	}
+	else {	// _varying_dim == 2 (K plane)
+		for (int j = min[1]; j<=max[1]; j++) {
+		for (int i = min[0]; i<=max[0]; i++) {
+			float v = _AccessIJK(_coords, i,j,min[2]);
+			if (v == mv) continue;
+			if (extents[2] < extents[5]) {
+				if (v<mincoord) mincoord = v;
+			} else {
+				if (v>mincoord) mincoord = v;
+			}
+		}
+		}
+
+		for (int j = min[1]; j<=max[1]; j++) {
+		for (int i = min[0]; i<=max[0]; i++) {
+			float v = _AccessIJK(_coords, i,j,max[2]);
+			if (v == mv) continue;
+			if (extents[2] < extents[5]) {
+				if (v>maxcoord) maxcoord = v;
+			} else {
+				if (v<maxcoord) maxcoord = v;
+			}
+		}
+		}
+	}
+
+	extents[_varying_dim] = mincoord;
+	extents[_varying_dim+3] = maxcoord;
 }
 
 
@@ -216,103 +378,15 @@ float LayeredGrid::GetValue(double x, double y, double z) const {
 
 void LayeredGrid::_GetUserExtents(double extents[6]) const {
 
-	// Get extents of non-varying dimension. Values returned for
-	// varying dimension are coordinates for first and last grid
-	// point, respectively, which in general are not the extents 
-	// of the bounding box.
-	//
-	RegularGrid::GetUserExtents(extents);
 
 	size_t dims[3];
 	GetDimensions(dims);
 
-	// Initialize min and max coordinates of varying dimension with 
-	// coordinates of "first" and "last" grid point. Coordinates of 
-	// varying dimension are stored as values of a scalar function
-	// sampling the coordinate space.
-	//
-	float mincoord = _AccessIJK(_coords, 0,0,0);
-	float maxcoord = _AccessIJK(_coords, dims[0]-1,dims[1]-1,dims[2]-1);
+	size_t min[3] = {0,0,0};
+	size_t max[3] = {dims[0]-1, dims[1]-1, dims[2]-1};
 
-	// Now find the extreme values of the varying dimension's coordinates
-	//
-	if (_varying_dim == 0) {	// I plane
+	LayeredGrid::GetBoundingBox(min, max, extents);
 
-		// Find min coordinate in zero plane
-		//
-		for (int k = 0; k<dims[2]; k++) {
-		for (int j = 0; j<dims[1]; j++) {
-			float v = _AccessIJK(_coords, 0,j,k);
-			if (extents[0] < extents[3]) {
-				if (v<mincoord) mincoord = v;
-			} else {
-				if (v>mincoord) mincoord = v;
-			}
-		}
-		}
-
-		// Find max coordinate in dim-1 plane
-		//
-		for (int k = 0; k<dims[2]; k++) {
-		for (int j = 0; j<dims[1]; j++) {
-			float v = _AccessIJK(_coords, dims[0]-1,j,k);
-			if (extents[0] <extents[3]) {
-				if (v>maxcoord) maxcoord = v;
-			} else {
-				if (v<maxcoord) maxcoord = v;
-			}
-		}
-		}
-	}
-	else if (_varying_dim == 1) {	// J plane
-		for (int k = 0; k<dims[2]; k++) {
-		for (int i = 0; i<dims[0]; i++) {
-			float v = _AccessIJK(_coords, i,0,k);
-			if (extents[1] < extents[4]) {
-				if (v<mincoord) mincoord = v;
-			} else {
-				if (v>mincoord) mincoord = v;
-			}
-		}
-		}
-
-		for (int k = 0; k<dims[2]; k++) {
-		for (int i = 0; i<dims[0]; i++) {
-			float v = _AccessIJK(_coords, i,dims[1]-1,k);
-			if (extents[1] < extents[4]) {
-				if (v>maxcoord) maxcoord = v;
-			} else {
-				if (v<maxcoord) maxcoord = v;
-			}
-		}
-		}
-	}
-	else {	// _varying_dim == 2 (K plane)
-		for (int j = 0; j<dims[1]; j++) {
-		for (int i = 0; i<dims[0]; i++) {
-			float v = _AccessIJK(_coords, i,j,0);
-			if (extents[2] < extents[5]) {
-				if (v<mincoord) mincoord = v;
-			} else {
-				if (v>mincoord) mincoord = v;
-			}
-		}
-		}
-
-		for (int j = 0; j<dims[1]; j++) {
-		for (int i = 0; i<dims[0]; i++) {
-			float v = _AccessIJK(_coords, i,j,dims[2]-1);
-			if (extents[2] < extents[5]) {
-				if (v>maxcoord) maxcoord = v;
-			} else {
-				if (v<maxcoord) maxcoord = v;
-			}
-		}
-		}
-	}
-
-	extents[_varying_dim] = mincoord;
-	extents[_varying_dim+3] = maxcoord;
 }
 
 int LayeredGrid::GetUserCoordinates(
@@ -330,13 +404,13 @@ int LayeredGrid::GetUserCoordinates(
 	//
 
 	if (_varying_dim == 0) {	
-		*x = _AccessIJK(_coords, i,j,k);
+		*x = _GetVaryingCoord(i,j,k);
 	}
 	else if (_varying_dim == 1) {
-		*y = _AccessIJK(_coords, i,j,k);
+		*y = _GetVaryingCoord(i,j,k);
 	}
 	else {
-		*z = _AccessIJK(_coords, i,j,k);
+		*z = _GetVaryingCoord(i,j,k);
 	}
 	return(0);
 
@@ -671,43 +745,43 @@ bool LayeredGrid::InsideGrid(double x, double y, double z) const {
 	double vc; // varying coordinate value
 	if (_varying_dim == 0) {
 
-		t00 = _AccessIJK(_coords, dims[0]-1, j0, k0);
-		t01 = _AccessIJK(_coords, dims[0]-1, j1, k0);
-		t10 = _AccessIJK(_coords, dims[0]-1, j0, k1);
-		t11 = _AccessIJK(_coords, dims[0]-1, j1, k1);
+		t00 = _GetVaryingCoord( dims[0]-1, j0, k0);
+		t01 = _GetVaryingCoord( dims[0]-1, j1, k0);
+		t10 = _GetVaryingCoord( dims[0]-1, j0, k1);
+		t11 = _GetVaryingCoord( dims[0]-1, j1, k1);
 
-		b00 = _AccessIJK(_coords, 0, j0, k0);
-		b01 = _AccessIJK(_coords, 0, j1, k0);
-		b10 = _AccessIJK(_coords, 0, j0, k1);
-		b11 = _AccessIJK(_coords, 0, j1, k1);
+		b00 = _GetVaryingCoord( 0, j0, k0);
+		b01 = _GetVaryingCoord( 0, j1, k0);
+		b10 = _GetVaryingCoord( 0, j0, k1);
+		b11 = _GetVaryingCoord( 0, j1, k1);
 		vc = x;
 
 	}
 	else if (_varying_dim == 1) {
 
-		t00 = _AccessIJK(_coords, i0, dims[1]-1, k0);
-		t01 = _AccessIJK(_coords, i1, dims[1]-1, k0);
-		t10 = _AccessIJK(_coords, i0, dims[1]-1, k1);
-		t11 = _AccessIJK(_coords, i1, dims[1]-1, k1);
+		t00 = _GetVaryingCoord( i0, dims[1]-1, k0);
+		t01 = _GetVaryingCoord( i1, dims[1]-1, k0);
+		t10 = _GetVaryingCoord( i0, dims[1]-1, k1);
+		t11 = _GetVaryingCoord( i1, dims[1]-1, k1);
 
-		b00 = _AccessIJK(_coords, i0, 0, k0);
-		b01 = _AccessIJK(_coords, i1, 0, k0);
-		b10 = _AccessIJK(_coords, i0, 0, k1);
-		b11 = _AccessIJK(_coords, i1, 0, k1);
+		b00 = _GetVaryingCoord( i0, 0, k0);
+		b01 = _GetVaryingCoord( i1, 0, k0);
+		b10 = _GetVaryingCoord( i0, 0, k1);
+		b11 = _GetVaryingCoord( i1, 0, k1);
 		vc = y;
 
 	}
 	else { // _varying_dim == 2
 
-		t00 = _AccessIJK(_coords, i0, j0, dims[2]-1);
-		t01 = _AccessIJK(_coords, i1, j0, dims[2]-1);
-		t10 = _AccessIJK(_coords, i0, j1, dims[2]-1);
-		t11 = _AccessIJK(_coords, i1, j1, dims[2]-1);
+		t00 = _GetVaryingCoord( i0, j0, dims[2]-1);
+		t01 = _GetVaryingCoord( i1, j0, dims[2]-1);
+		t10 = _GetVaryingCoord( i0, j1, dims[2]-1);
+		t11 = _GetVaryingCoord( i1, j1, dims[2]-1);
 
-		b00 = _AccessIJK(_coords, i0, j0, 0);
-		b01 = _AccessIJK(_coords, i1, j0, 0);
-		b10 = _AccessIJK(_coords, i0, j1, 0);
-		b11 = _AccessIJK(_coords, i1, j1, 0);
+		b00 = _GetVaryingCoord( i0, j0, 0);
+		b01 = _GetVaryingCoord( i1, j0, 0);
+		b10 = _GetVaryingCoord( i0, j1, 0);
+		b11 = _GetVaryingCoord( i1, j1, 0);
 		vc = z;
 	}
 
@@ -793,16 +867,70 @@ void LayeredGrid::GetMinCellExtents(double *x, double *y, double *z) const {
 	if (dims[2] < 2) return;
 
 	double tmp;
-	*z = fabs(_AccessIJK(_coords, 0,0,0) - _AccessIJK(_coords, 0,0,1));
+	*z = fabs(_extents[5] - _extents[3]);
 
 	for (int k=0; k<dims[2]-1; k++) {
 	for (int j=0; j<dims[1]; j++) {
 	for (int i=0; i<dims[0]; i++) {
-		tmp = fabs(_AccessIJK(_coords, i,j,k) - _AccessIJK(_coords, i,j,k+1));
+		float z0 = _GetVaryingCoord(i,j,k);
+		float z1 = _GetVaryingCoord(i,j,k+1);
+		
+		tmp = fabs(z1-z0);
 		if (tmp<*z) *z = tmp;
 	}
 	}
 	}
+}
+
+double LayeredGrid::_GetVaryingCoord(size_t i, size_t j, size_t k) const {
+	double mv = GetMissingValue();
+	double c = _AccessIJK(_coords, i, j, k);
+	if (c != mv) return (c);
+
+	size_t dims[3];
+	GetDimensions(dims);
+	
+	//
+	// Varying coordinate for i,j,k is missing. Look along varying dimension
+	// axis for first grid point with non-missing value. First search
+	// below, then above. If no valid coordinate is found, use the 
+	// grid minimum extent
+	//
+	
+	if (_varying_dim == 0) {
+		size_t ii = i;
+		while (ii>0 && (c=_AccessIJK(_coords,ii-1,j,k)) == mv) ii--; 
+		if (c!=mv) return (c);
+
+		ii = i;
+		while (ii<dims[0]-1 && (c=_AccessIJK(_coords,ii+1,j,k)) == mv) ii++; 
+		if (c!=mv) return (c);
+
+		return(_extents[0]);
+		
+	} else if (_varying_dim == 1) {
+		size_t jj = j;
+		while (jj>0 && (c=_AccessIJK(_coords,i,jj-1,k)) == mv) jj--; 
+		if (c!=mv) return (c);
+
+		jj = j;
+		while (jj<dims[1]-1 && (c=_AccessIJK(_coords,i, jj+1,k)) == mv) jj++; 
+		if (c!=mv) return (c);
+
+		return(_extents[1]);
+
+	} else if (_varying_dim == 2) {
+		size_t kk = k;
+		while (kk>0 && (c=_AccessIJK(_coords,i,j,kk-1)) == mv) kk--; 
+		if (c!=mv) return (c);
+
+		kk = k;
+		while (kk<dims[2]-1 && (c=_AccessIJK(_coords,i,j,kk+1)) == mv) kk++; 
+		if (c!=mv) return (c);
+
+		return(_extents[2]);
+	}
+	return(0.0);
 }
 
 double LayeredGrid::_interpolateVaryingCoord(
