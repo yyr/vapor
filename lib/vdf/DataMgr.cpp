@@ -468,7 +468,7 @@ void	DataMgr::RemovePipeline(string name) {
 int DataMgr::VariableExists(
     size_t ts, const char *varname, int reflevel, int lod
 ) {
-	if (reflevel < 0) reflevel = DataMgr::GetNumTransforms()-1;
+	if (reflevel < 0) reflevel = DataMgr::GetNumTransforms();
 	if (lod < 0) lod = DataMgr::GetCRatios().size()-1;
 
 	//
@@ -626,7 +626,7 @@ int DataMgr::GetDataRange(
 	int reflevel,
 	int lod
 ) {
-	if (reflevel < 0) reflevel = DataMgr::GetNumTransforms()-1;
+	if (reflevel < 0) reflevel = DataMgr::GetNumTransforms();
 	if (lod < 0) lod = DataMgr::GetCRatios().size()-1;
 
 	int	rc;
@@ -723,7 +723,7 @@ int DataMgr::GetValidRegion(
 	size_t min[3],
 	size_t max[3]
 ) {
-	if (reflevel < 0) reflevel = DataMgr::GetNumTransforms()-1;
+	if (reflevel < 0) reflevel = DataMgr::GetNumTransforms();
 
 	int	rc;
 
@@ -1159,7 +1159,7 @@ RegularGrid *DataMgr::execute_pipeline(
 	float *zcblks
 ) {
 
-	if (reflevel < 0) reflevel = GetNumTransforms()-1;
+	if (reflevel < 0) reflevel = GetNumTransforms();
 	if (lod < 0) lod = GetCRatios().size()-1;
 
 	_VarInfoCache.PurgeRange(ts, varname, reflevel, lod);
