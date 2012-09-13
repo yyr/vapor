@@ -240,7 +240,6 @@ void TextureBrick::copytex_fast(
 	int xoffset, int yoffset, int zoffset
 ) {
 
-
   size_t dims[3];
   rg->GetDimensions(dims);
 
@@ -458,7 +457,9 @@ void TextureBrick::copytex(
 					else ucptr[c++] = 0;
 				}
 				if (_layered) {
-					(void) rg->GetUserCoordinates(x,y,z,&x_f, &y_f, &z_f);
+					(void) rg->GetUserCoordinates(
+						x+xoffset,y+yoffset,z+zoffset,&x_f, &y_f, &z_f
+					);
 					qv = (unsigned int) rint(
 						(z_f-extents[2])/(extents[5]-extents[2]) * 255
 					);
@@ -494,7 +495,8 @@ void TextureBrick::copytex(
 					}
 				}
 				if (_layered) {
-					(void) rg->GetUserCoordinates(x,y,z,&x_f, &y_f, &z_f);
+					(void) rg->GetUserCoordinates(
+						x+xoffset,y+yoffset,z+zoffset,&x_f, &y_f, &z_f);
 					qv = (unsigned int) rint(
 						(z_f-extents[2])/(extents[5]-extents[2]) * 65535
 					);

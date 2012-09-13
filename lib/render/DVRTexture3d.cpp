@@ -334,7 +334,6 @@ void DVRTexture3d::calculateSampling()
 
   _delta = distance / (_samples-1);
 
-//cout << "_samples = " << _samples << endl;
 //cout << "_delta = " << _delta << endl;
 }
 
@@ -634,7 +633,7 @@ void DVRTexture3d::buildBricks(
   int bbox[6] = {0,0,0, _bx-1, _by-1, _bz-1};
 
   // brick region of interest
-  int broi[6] = {0,0,0,dims[0]-1, dims[1]-1, dims[2]-1};
+  size_t broi[6] = {0,0,0,dims[0]-1, dims[1]-1, dims[2]-1};
 
   // data offset
   int offset[3] = {0, 0, 0};
@@ -698,18 +697,12 @@ void DVRTexture3d::buildBricks(
 
 
 
-          double vmin[3], vmax[3];
-          rg->GetUserCoordinates(
-            broi[0], broi[1], broi[2], &vmin[0], &vmin[1], &vmin[2]
-          );
-          rg->GetUserCoordinates(
-            broi[3], broi[4], broi[5], &vmax[0], &vmax[1], &vmax[2]
-          );
-
-          brick->dataMin(vmin[0], vmin[1], vmin[2]);
-          brick->dataMax(vmax[0], vmax[1], vmax[2]);
-          brick->volumeMin(vmin[0], vmin[1], vmin[2]);
-          brick->volumeMax(vmax[0], vmax[1], vmax[2]);
+          double extents[6];
+          rg->GetBoundingBox(broi, broi+3, extents);
+          brick->dataMin(extents[0], extents[1], extents[2]);
+          brick->dataMax(extents[3], extents[4], extents[5]);
+          brick->volumeMin(extents[0], extents[1], extents[2]);
+          brick->volumeMax(extents[3], extents[4], extents[5]);
           //
           // Set the texture coordinates of the brick.
           //
