@@ -277,7 +277,7 @@ float* ROMS::GetDepths(){
 float* ROMS::GetAngles(){
 	//First see if there is an "angle" variable in the grid file.  If so, return that.
 	//If not, calculate the angles that the ROMS data grid (x-axis) makes with latitude. Produce an 
-	//array of angles (in degrees, one at each ROMS grid vertex.  Use the Weight table to 
+	//array of angles (in radians, one at each ROMS grid vertex.  Use the Weight table to 
 	//get the angles (since it already has the geolat and geolon variables)
 	
  	bool haveAngles = true;

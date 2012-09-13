@@ -1498,7 +1498,7 @@ int	main(int argc, char **argv) {
 				}
 				else CopyVariable2D(ncid,varid,wt,vdfio2d,wbwriter2d,opt.level,opt.lod,varname, dimsVDC, ndim, VDCTimes[ts],ts, &sample2DVar);
 			}
-			printf(" converted variable %s\n", varname);
+			printf("Converted variable: %s\n", varname);
 		} //End loop over variables in file	
 
 		//Create 2D variables, using mask from first 2D variable:
@@ -1513,23 +1513,28 @@ int	main(int argc, char **argv) {
 				int rc = CopyConstantVariable2D(mappedDepth,vdfio2d,wbwriter2d,opt.level,opt.lod, "DEPTH",dimsVDC,VDCTimes[t]);
 				if (rc) exit(rc);
 			}
+			printf("Converted variable: DEPTH\n");
 		}
 
-		//Add angle variable
+		//Add angle variable (radians)
 		if (!mappedAngles) mappedAngles = calcConst2DVar(roms->GetAngles(),dimsVDC, roms, sample2DVar);
-
-		for( int t = 0; t< VDCTimes.size(); t++){
-			int rc = CopyConstantVariable2D(mappedAngles,vdfio2d,wbwriter2d,opt.level,opt.lod, "angle",dimsVDC,VDCTimes[t]);
-			if (rc) exit(rc);
+		if (mappedAngles){
+			for( int t = 0; t< VDCTimes.size(); t++){
+				int rc = CopyConstantVariable2D(mappedAngles,vdfio2d,wbwriter2d,opt.level,opt.lod, "angleRAD",dimsVDC,VDCTimes[t]);
+				if (rc) exit(rc);
+			}
+			printf("Converted variable: angleRAD\n");
 		}
 
 		//Add latitude variable (degrees)
 		
 		if (!mappedLats) mappedLats = calcConst2DVar(roms->GetLats(),dimsVDC, roms, sample2DVar);
-
-		for( int t = 0; t< VDCTimes.size(); t++){
-			int rc = CopyConstantVariable2D(mappedLats,vdfio2d,wbwriter2d,opt.level,opt.lod, "angle",dimsVDC,VDCTimes[t]);
-			if (rc) exit(rc);
+		if (mappedLats){
+			for( int t = 0; t< VDCTimes.size(); t++){
+				int rc = CopyConstantVariable2D(mappedLats,vdfio2d,wbwriter2d,opt.level,opt.lod, "latDEG",dimsVDC,VDCTimes[t]);
+				if (rc) exit(rc);
+			}
+			printf("Converted variable: latDEG\n");
 		}
 	
 		//Insert elevation at every timestep 
@@ -1539,6 +1544,7 @@ int	main(int argc, char **argv) {
 				int rc = CopyConstantVariable3D(elevation, vdfio3d, opt.level, opt.lod, "ELEVATION", dimsVDC, VDCTimes[j]);
 				if (rc) exit(rc);
 			}
+			printf("Converted variable: ELEVATION\n");
 		}
 		
 	
