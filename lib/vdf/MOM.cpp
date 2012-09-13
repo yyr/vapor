@@ -223,8 +223,8 @@ int MOM::extractStartTime(int ncid, int timevarid){
 
 float* MOM::GetAngles(){
 	//First see if there is an "ANGLE" variable in the topo file.  If so, return that.
-	//If not, calculate the angles that the MOM data grid (x-axis) makes with latitude. Produce an 
-	//array of angles (in degrees, one at each MOM grid vertex.  Use the Weight table to 
+	//If not, calculate the angles (radians) that the MOM data grid (x-axis) makes with latitude. Produce an 
+	//array of angles in radians, one at each MOM grid vertex.  Use the Weight table to 
 	//get the angles (since it already has the geolat and geolon variables)
 	
 	bool haveAngles = true;

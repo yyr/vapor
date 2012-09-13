@@ -284,11 +284,13 @@ int CopyVariable3D(
 			);
 			return (-1);
 		}
+		
 	} // End of for z.
-	printf(" variable %s time %d: min, max original data: %g %g\n", varname.c_str(), (int)tsVDC, minVal, maxVal);
-	printf(" variable %s time %d: min, max interpolated data: %g %g\n", varname.c_str(), (int)tsVDC, minVal1, maxVal1);
+	
+	//printf(" variable %s time %d: min, max original data: %g %g\n", varname.c_str(), (int)tsVDC, minVal, maxVal);
+	//printf(" variable %s time %d: min, max interpolated data: %g %g\n", varname.c_str(), (int)tsVDC, minVal1, maxVal1);
 
-		vdfio3d->CloseVariable();
+	vdfio3d->CloseVariable();
 
 	return(0);
 }  // End of CopyVariable3D.
@@ -304,7 +306,8 @@ int CopyVariable2D(
 	string varname,
 	const size_t dim[3],
 	size_t tsVDC,
-	int tsNetCDF
+	int tsNetCDF,
+	float** sample2DVar
 	
 ) {
 
@@ -350,8 +353,6 @@ int CopyVariable2D(
 	//
 	NC_ERR_READ(nc_get_vara_float(ncid, varid, starts, counts, sliceBuffer))
 	
-	
-	
 	//
 	// Remap it 
 	//
@@ -365,11 +366,43 @@ int CopyVariable2D(
 		);
 		return (-1);
 	}
+	if (!(*sample2DVar)){
+		*sample2DVar = new float[dim[0]*dim[1]];
+		for (int j = 0; j< dim[0]*dim[1]; j++) (*sample2DVar)[j] = sliceBuffer2[j]; 
+	}
 
 	vdfio2d->CloseVariable();
 
 	return(0);
 } // End of CopyVariable2D.
+float* calcConst2DVar(float* rawData, const size_t dimsVDC[3], MOM* mom, float* sample2DVar){
+	if (!rawData) return 0;
+	float* mappedData = new float[dimsVDC[0]*dimsVDC[1]];
+	// use t-grid for remapping 
+	WeightTable *wt = mom->GetWeightTable(0,0);
+		
+	wt->interp2D(rawData, mappedData, (float)MOM::vaporMissingValue(), dimsVDC);
+		
+	float minval = 1.e30;
+	float maxval = -1.e30;
+	float minval1 = 1.e30;
+	float maxval1 = -1.e30;
+	for (int i = 0; i<dimsVDC[0]*dimsVDC[1]; i++){
+		assert(rawData[i]> -1.e10 && rawData[i] < 1.e10);
+		if(rawData[i]<minval) minval = rawData[i];
+		if(rawData[i]>maxval) maxval = rawData[i];
+		if (mappedData[i] == (float)MOM::vaporMissingValue())
+			continue;
+		if (sample2DVar && sample2DVar[i] == (float)MOM::vaporMissingValue()){
+			mappedData[i] = (float)MOM::vaporMissingValue();
+			continue;
+		}
+		if(mappedData[i]<minval1) minval1 = mappedData[i];
+		if(mappedData[i]>maxval1) maxval1 = mappedData[i];
+	}
+	delete rawData;
+	return mappedData;
+}
 
 void ErrMsgCBHandler(const char *msg, int) {
 	cerr << ProgName << " : " << msg << endl;
@@ -459,9 +492,6 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 	
-
-	
-
 	vector <string> varsVDC = metadataVDC->GetVariableNames();
 	const size_t *dimsVDC = metadataVDC->GetDimension();
 
@@ -521,92 +551,6 @@ int	main(int argc, char **argv) {
 	int rc = mom->MakeWeightTables();
 	if (rc) exit (rc);
 		
-	//
-	//Create DEPTH variable
-	//
-	size_t numTimeSteps = metadataVDC->GetNumTimeSteps();
-	
-	//Add depth variable
-	float* depth = mom->GetDepths();
-	
-	if (depth){
-		// use t-grid for remapping depth
-		WeightTable *wt = mom->GetWeightTable(0,0);
-		float* mappedDepth = new float[dimsVDC[0]*dimsVDC[1]];
-		wt->interp2D(depth,mappedDepth, (float)MOM::vaporMissingValue(),dimsVDC);
-		float minval = 1.e30;
-		float maxval = -1.e30;
-		float minval1 = 1.e30;
-		float maxval1 = -1.e30;
-		for (int i = 0; i<dimsVDC[0]*dimsVDC[1]; i++){
-			if(depth[i]<minval) minval = depth[i];
-			if(depth[i]>maxval) maxval = depth[i];
-			if(mappedDepth[i]<minval1 && mappedDepth[i] != (float)MOM::vaporMissingValue()) minval1 = mappedDepth[i];
-			if(mappedDepth[i]>maxval1 && mappedDepth[i] != (float)MOM::vaporMissingValue()) maxval1 = mappedDepth[i];
-		}
-
-		for( size_t t = 0; t< numTimeSteps; t++){
-			int rc = CopyConstantVariable2D(mappedDepth,vdfio2d,wbwriter2d,opt.level,opt.lod, "DEPTH",dimsVDC,t);
-			if (rc) exit(rc);
-		}
-		delete mappedDepth;
-	}
-	delete depth;
-	
-	//Add angle variable
-	float* angles = mom->GetAngles();
-	
-	if (angles){
-		// use t-grid for remapping angles
-		WeightTable *wt = mom->GetWeightTable(0,0);
-		float* mappedAngles = new float[dimsVDC[0]*dimsVDC[1]];
-		wt->interp2D(angles, mappedAngles, (float)MOM::vaporMissingValue(),dimsVDC);
-		float minval = 1.e30;
-		float maxval = -1.e30;
-		float minval1 = 1.e30;
-		float maxval1 = -1.e30;
-		for (int i = 0; i<dimsVDC[0]*dimsVDC[1]; i++){
-			if(angles[i]<minval) minval = angles[i];
-			if(angles[i]>maxval) maxval = angles[i];
-			if(mappedAngles[i]<minval1 && mappedAngles[i] != (float)MOM::vaporMissingValue()) minval1 = mappedAngles[i];
-			if(mappedAngles[i]>maxval1 && mappedAngles[i] != (float)MOM::vaporMissingValue()) maxval1 = mappedAngles[i];
-		}
-
-		for( size_t t = 0; t< numTimeSteps; t++){
-			int rc = CopyConstantVariable2D(mappedAngles,vdfio2d,wbwriter2d,opt.level,opt.lod, "ANGLE",dimsVDC,t);
-			if (rc) exit(rc);
-		}
-		delete mappedAngles;
-	}
-	delete angles;
-
-	//Add latitude variable (degrees)
-	float* lats = mom->GetLats();
-	
-	if (lats){
-		// use t-grid for remapping angles
-		WeightTable *wt = mom->GetWeightTable(0,0);
-		float* mappedLats = new float[dimsVDC[0]*dimsVDC[1]];
-		wt->interp2D(lats, mappedLats, (float)MOM::vaporMissingValue(),dimsVDC);
-		float minval = 1.e30;
-		float maxval = -1.e30;
-		float minval1 = 1.e30;
-		float maxval1 = -1.e30;
-		for (int i = 0; i<dimsVDC[0]*dimsVDC[1]; i++){
-			if(lats[i]<minval) minval = lats[i];
-			if(lats[i]>maxval) maxval = lats[i];
-			if(mappedLats[i]<minval1 && mappedLats[i] != (float)MOM::vaporMissingValue()) minval1 = mappedLats[i];
-			if(mappedLats[i]>maxval1 && mappedLats[i] != (float)MOM::vaporMissingValue()) maxval1 = mappedLats[i];
-		}
-
-		for( size_t t = 0; t< numTimeSteps; t++){
-			int rc = CopyConstantVariable2D(mappedLats,vdfio2d,wbwriter2d,opt.level,opt.lod, "LATDEG",dimsVDC,t);
-			if (rc) exit(rc);
-		}
-		delete mappedLats;
-	}
-	
-	
 	vector<string> vdcvars2d = metadataVDC->GetVariables2DXY();
 	vector<string> vdcvars3d = metadataVDC->GetVariables3D();
 	vector<size_t>VDCTimes;	
@@ -616,7 +560,11 @@ int	main(int argc, char **argv) {
 	for (size_t ts = 0; ts < metadataVDC->GetNumTimeSteps(); ts++){
 		usertimes.push_back(metadataVDC->GetTSUserTime(ts));
 	}
-	
+	float * elevation = 0;
+	float * sample2DVar = 0;
+	float* mappedDepth=0;
+	float* mappedLats = 0;
+	float* mappedAngles = 0;
 	for (int i = 0; i<momfiles.size(); i++){
 		printf("processing file %s\n",momfiles[i].c_str());	
 		
@@ -709,14 +657,48 @@ int	main(int argc, char **argv) {
 			for (int j = 0; j < timelen; j++){
 				//for each time convert the variable
 				if (ndims == 4)CopyVariable3D(ncid,varid,wt,vdfio3d,opt.level,opt.lod,  varname, dimsVDC,VDCTimes[j],j);
-				else CopyVariable2D(ncid,varid,wt,vdfio2d,wbwriter2d,opt.level,opt.lod,  varname, dimsVDC,VDCTimes[j],j);
+				else CopyVariable2D(ncid,varid,wt,vdfio2d,wbwriter2d,opt.level,opt.lod,  varname, dimsVDC,VDCTimes[j],j,&sample2DVar);
 			}
+			printf("Converted variable: %s\n",varname);
 		} //End loop over variables in file
-			
-					
+		//Create 2D variables, using mask from first 2D variable:
+		// Insert Depth, latDeg, and 
+		//Create DEPTH variable
+		//
+		if (!mappedDepth)
+			mappedDepth = calcConst2DVar(mom->GetDepths(),dimsVDC, mom, sample2DVar);
+		
+		if (mappedDepth){
+			for( int t = 0; t< VDCTimes.size(); t++){
+				int rc = CopyConstantVariable2D(mappedDepth,vdfio2d,wbwriter2d,opt.level,opt.lod, "DEPTH",dimsVDC,VDCTimes[t]);
+				if (rc) exit(rc);
+			}
+			printf("Converted variable: DEPTH\n");
+		}
+
+		//Add angle variable (radians)
+		if (!mappedAngles) mappedAngles = calcConst2DVar(mom->GetAngles(),dimsVDC, mom, sample2DVar);
+		if (mappedAngles){
+			for( int t = 0; t< VDCTimes.size(); t++){
+				int rc = CopyConstantVariable2D(mappedAngles,vdfio2d,wbwriter2d,opt.level,opt.lod, "angleRAD",dimsVDC,VDCTimes[t]);
+				if (rc) exit(rc);
+			}
+			printf("Converted variable: angleRAD\n");
+		}
+
+		//Add latitude variable (degrees)
+		
+		if (!mappedLats) mappedLats = calcConst2DVar(mom->GetLats(),dimsVDC, mom, sample2DVar);
+		if (mappedLats){
+			for( int t = 0; t< VDCTimes.size(); t++){
+				int rc = CopyConstantVariable2D(mappedLats,vdfio2d,wbwriter2d,opt.level,opt.lod, "latDEG",dimsVDC,VDCTimes[t]);
+				if (rc) exit(rc);
+			}
+			printf("Converted variable: latDEG\n");
+		}			
 				
 	}
 		
 			
-		exit(estatus);
+	exit(estatus);
 }
