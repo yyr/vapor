@@ -470,7 +470,7 @@ int WaveCodecIO::OpenVariableWrite(
 	string basename;
 
 	_dataRange[0] = FLT_MAX;
-	_dataRange[1] = FLT_MIN;
+	_dataRange[1] = -FLT_MAX;
 
 	_writeMode = true;
 
@@ -2682,7 +2682,7 @@ WaveCodecIO::ReadWriteThreadObj::ReadWriteThreadObj(
 	_dim_p = dim_p;
 	_bs_p = bs_p;
 	_dataRange[0] = FLT_MAX;
-	_dataRange[1] = FLT_MIN;
+	_dataRange[1] = -FLT_MAX;
 	_reblock = reblock;
 	_pad = pad;
 
