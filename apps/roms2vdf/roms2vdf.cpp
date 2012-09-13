@@ -720,7 +720,34 @@ int CopyConstantVariable3D(
 	
 	return(0);
 }  // End of CopyConstantVariable3D.
-
+float* calcConst2DVar(float* rawData, const size_t dimsVDC[3], ROMS* roms, float* sample2DVar){
+	if (!rawData) return 0;
+	float* mappedData = new float[dimsVDC[0]*dimsVDC[1]];
+	// use rho-grid for remapping 
+	WeightTable *wt = roms->GetWeightTable(3);
+		
+	wt->interp2D(rawData, mappedData, (float)ROMS::vaporMissingValue(), dimsVDC);
+		
+	float minval = 1.e30;
+	float maxval = -1.e30;
+	float minval1 = 1.e30;
+	float maxval1 = -1.e30;
+	for (int i = 0; i<dimsVDC[0]*dimsVDC[1]; i++){
+		assert(rawData[i]> -1.e10 && rawData[i] < 1.e10);
+		if(rawData[i]<minval) minval = rawData[i];
+		if(rawData[i]>maxval) maxval = rawData[i];
+		if (mappedData[i] == (float)ROMS::vaporMissingValue())
+			continue;
+		if (sample2DVar && sample2DVar[i] == (float)ROMS::vaporMissingValue()){
+			mappedData[i] = (float)ROMS::vaporMissingValue();
+			continue;
+		}
+		if(mappedData[i]<minval1) minval1 = mappedData[i];
+		if(mappedData[i]>maxval1) maxval1 = mappedData[i];
+	}
+	delete rawData;
+	return mappedData;
+}
 float * CalcElevation(int Vtransform, float* s_rho, float* Cs_r, float Tcline, float* mappedDepth, const size_t* dimsVDC, float* sample3DVar){
 	//Following code to calculate ELEVATION variable was provided by Justin Small (NCAR)
 	// The elevation is calculated on the VDC grid. The mappedDepth must already be available
@@ -808,7 +835,6 @@ float * CalcElevation(int Vtransform, float* s_rho, float* Cs_r, float Tcline, f
 		}
 	}
  	return z_r;
-
 }
 //
 // Following method is used to create depth variable.  Data is provided in a 2D float array
@@ -861,12 +887,13 @@ int CopyVariable3D(
 	size_t tsVDC,
 	int tsNetCDF,
 	float** resultVar,
-	float* mappedDepth
+	bool staggered
 	) {
 
 	static float *fsliceBuffer = NULL;
 	static float *sliceBuffer2 = NULL;
 	static double *dsliceBuffer = NULL;
+	static float *prevSliceBuffer = NULL;
 
 	nc_type vartype;
 	NC_ERR_READ( nc_inq_vartype(ncid, varid,  &vartype) );
@@ -911,6 +938,10 @@ int CopyVariable3D(
 		delete [] sliceBuffer2;
 		dsliceBuffer = 0;
 	}
+	if (prevSliceBuffer){
+		delete prevSliceBuffer;
+		prevSliceBuffer = 0;
+	}
 	if(isDouble){
 		dsliceBuffer = new double[inputSize];
 		sliceBuffer2 = new float[slice_sz];
@@ -925,9 +956,39 @@ int CopyVariable3D(
 	float maxVal1 = -1.e30f;
 	bool makeMask = (*resultVar == 0);
 	if (makeMask) *resultVar = new float[dim[0]*dim[1]*dim[2]];
-	for (size_t z = 0; z<dim[2]; z++) {
+	int zfirst = 0;
+	int zlast = dim[2];
+	float* outBuffer = sliceBuffer2;
+	if (staggered){//start by reading the first slice
+		//Always put the current slice as it is read into the "lastslice" buffer
+		zfirst = 1;
+		zlast = dim[2]+1;
+		starts[1]=0;
+		prevSliceBuffer = new float[slice_sz];
+		if (isDouble){
+			NC_ERR_READ(nc_get_vara_double(ncid, varid, starts, counts, dsliceBuffer))
+			for (int k = 0; k<slice_sz; k++){
+				if (dsliceBuffer[k] != dmissVal){
+					if (minVal > dsliceBuffer[k]) minVal = dsliceBuffer[k];
+					if (maxVal < dsliceBuffer[k]) maxVal = dsliceBuffer[k];
+				}
+			}
+			wt->interp2D(dsliceBuffer, prevSliceBuffer, dmissVal,dim);
+		}
+		else {
+			NC_ERR_READ(nc_get_vara_float(ncid, varid, starts, counts, fsliceBuffer))
+			for (int k = 0; k<slice_sz; k++){
+				if (fsliceBuffer[k] != fmissVal){
+					if (minVal > fsliceBuffer[k]) minVal = fsliceBuffer[k];
+					if (maxVal < fsliceBuffer[k]) maxVal = fsliceBuffer[k];
+				}
+			}
+			wt->interp2D(fsliceBuffer, prevSliceBuffer, fmissVal,dim);
+		}
+	}
+	for (size_t z = zfirst; z<zlast; z++) {
 		//
-		//Read slice of NetCDF file into slice buffer
+		//Read slice of NetCDF file into slice buffer 2
 		//
 		starts[1]= z;
 		if (isDouble){
@@ -953,16 +1014,23 @@ int CopyVariable3D(
 		
 		for (int k = 0; k<slice_sz; k++){
 			if (sliceBuffer2[k] != (float)ROMS::vaporMissingValue()){
-				if (mappedDepth[k] == (float)ROMS::vaporMissingValue()){
-					sliceBuffer2[k] = (float)ROMS::vaporMissingValue();
-					continue;
-				}
 				if (minVal1 > sliceBuffer2[k]) minVal1 = sliceBuffer2[k];
 				if (maxVal1 < sliceBuffer2[k]) maxVal1 = sliceBuffer2[k];
 			}
 		}
-		
-		if (vdfio3d->WriteSlice(sliceBuffer2) < 0) {
+		//If staggered, average the two slices into prevSliceBuffer;
+		if (staggered){
+			for (int k = 0; k<slice_sz; k++){
+				if (sliceBuffer2[k] == (float)ROMS::vaporMissingValue() ||
+					prevSliceBuffer[k] == (float)ROMS::vaporMissingValue())
+						prevSliceBuffer[k] = (float)ROMS::vaporMissingValue();
+				else 
+					prevSliceBuffer[k] = 0.5*(prevSliceBuffer[k]+sliceBuffer2[k]);
+			}
+			outBuffer = prevSliceBuffer;	
+		} 
+
+		if (vdfio3d->WriteSlice(outBuffer) < 0) {
 			MyBase::SetErrMsg(
 				"Failed to write ROMS variable %s slice at time step %d (vdc2)",
 				varname.c_str(), tsVDC
@@ -970,13 +1038,16 @@ int CopyVariable3D(
 			return (-1);
 		}
 		if (makeMask){  //copy result slice to resultVar:
+			int zlev = z;
+			if (staggered) zlev--;
 			for (int p = 0; p<slice_sz; p++){
-				(*resultVar)[p+z*slice_sz] = sliceBuffer2[p];
+				(*resultVar)[p+zlev*slice_sz] = outBuffer[p];
 			}
 		}
+		if (staggered) //copy to prevSliceBuffer;
+			for (int k = 0; k<slice_sz; k++) prevSliceBuffer[k] = sliceBuffer2[k];
+		
 	} // End of for z.
-	//printf(" variable %s time %d: min, max original data: %g %g\n", varname.c_str(), (int)tsVDC, minVal, maxVal);
-	//printf(" variable %s time %d: min, max interpolated data: %g %g\n", varname.c_str(), (int)tsVDC, minVal1, maxVal1);
 
 	vdfio3d->CloseVariable();
 
@@ -996,7 +1067,7 @@ int CopyVariable2D(
 	int ndim[2],
 	size_t tsVDC,
 	int tsNetCDF,
-	float* mappedDepth
+	float** sample2DVar
 	
 ) {
 
@@ -1069,14 +1140,13 @@ int CopyVariable2D(
 	float slicemin = 1.e38;
 	for (int j = 0; j<dim[0]*dim[1]; j++){
 		if (sliceBuffer2[j] == (float)ROMS::vaporMissingValue()) continue;
-		if (mappedDepth[j] == (float)ROMS::vaporMissingValue()){
-			sliceBuffer2[j] = (float)ROMS::vaporMissingValue();
-			continue;
-		}
 		if (sliceBuffer2[j]>slicemax) slicemax = sliceBuffer2[j];
 		if (sliceBuffer2[j]<slicemin) slicemin = sliceBuffer2[j];
 	}
-	//for (int i = 0; i< dim[0]*dim[1]; i++){sliceBuffer2[i] = 0.;}
+	if (!(*sample2DVar)){
+		*sample2DVar = new float[dim[0]*dim[1]];
+		for (int j = 0; j< dim[0]*dim[1]; j++) (*sample2DVar[j]) = sliceBuffer2[j]; 
+	}
 	if (vdfio2d->WriteRegion(sliceBuffer2) < 0) {
 		MyBase::SetErrMsg(
 			"Failed to write ROMS variable %s at ROMS time step %d",
@@ -1245,102 +1315,11 @@ int	main(int argc, char **argv) {
 	int rc = roms->MakeWeightTables();
 	if (rc) exit (rc);
 	
-	//
-	//Create DEPTH variable
-	//
+	
 	size_t numTimeSteps = metadataVDC->GetNumTimeSteps();
 	
-	//Add depth variable
 	
-	float* depth = roms->GetDepths();
-	float* mappedDepth=0;
 	
-	if (depth){
-		mappedDepth = new float[dimsVDC[0]*dimsVDC[1]];
-		// use rho-grid for remapping depth
-		WeightTable *wt = roms->GetWeightTable(3);
-		
-		wt->interp2D(depth,mappedDepth, (float)ROMS::vaporMissingValue(),dimsVDC);
-		
-		float minval = 1.e30;
-		float maxval = -1.e30;
-		float minval1 = 1.e30;
-		float maxval1 = -1.e30;
-		for (int i = 0; i<dimsVDC[0]*dimsVDC[1]; i++){
-			assert(depth[i]> -1.e10 && depth[i] < 1.e10);
-			if(depth[i]<minval) minval = depth[i];
-			if(depth[i]>maxval) maxval = depth[i];
-			if (mappedDepth[i] == (float)ROMS::vaporMissingValue())
-				continue;
-			if(mappedDepth[i]<minval1) minval1 = mappedDepth[i];
-			if(mappedDepth[i]>maxval1) maxval1 = mappedDepth[i];
-		}
-		
-		for( size_t t = 0; t< numTimeSteps; t++){
-		
-			//int rc = CopyConstantVariable2D(mappedDepth,vdfio2d,wbwriter2d,opt.level,opt.lod, "DEPTH",dimsVDC,t);
-			//if (rc) exit(rc);
-		}
-		
-	}
-	
-	delete depth;
-
-	//Add angle variable
-	float* angles = roms->GetAngles();
-	
-	if (angles){
-		// use rho-grid for remapping angles
-		WeightTable *wt = roms->GetWeightTable(3);
-		float* mappedAngles = new float[dimsVDC[0]*dimsVDC[1]];
-		wt->interp2D(angles, mappedAngles, (float)ROMS::vaporMissingValue(),dimsVDC);
-		float minval = 1.e30;
-		float maxval = -1.e30;
-		float minval1 = 1.e30;
-		float maxval1 = -1.e30;
-		for (int i = 0; i<dimsVDC[0]*dimsVDC[1]; i++){
-			if(angles[i]<minval) minval = depth[i];
-			if(angles[i]>maxval) maxval = depth[i];
-			if(mappedAngles[i] == (float)ROMS::vaporMissingValue())
-				continue;
-			if(mappedAngles[i]<minval1 ) minval1 = mappedAngles[i];
-			if(mappedAngles[i]>maxval1) maxval1 = mappedAngles[i];
-		}
-
-		for( size_t t = 0; t< numTimeSteps; t++){
-			//int rc = CopyConstantVariable2D(mappedAngles,vdfio2d,wbwriter2d,opt.level,opt.lod, "angle",dimsVDC,t);
-			//if (rc) exit(rc);
-		}
-		delete mappedAngles;
-	}
-	delete angles;
-	//Add latitude variable (degrees)
-	float* lats = roms->GetLats();
-	
-	if (lats){
-		// use rho-grid for latitudes
-		WeightTable *wt = roms->GetWeightTable(0);
-		float* mappedLats = new float[dimsVDC[0]*dimsVDC[1]];
-		wt->interp2D(lats, mappedLats, (float)ROMS::vaporMissingValue(),dimsVDC);
-		float minval = 1.e30;
-		float maxval = -1.e30;
-		float minval1 = 1.e30;
-		float maxval1 = -1.e30;
-		for (int i = 0; i<dimsVDC[0]*dimsVDC[1]; i++){
-			if(lats[i]<minval) minval = lats[i];
-			if(lats[i]>maxval) maxval = lats[i];
-			if (mappedLats[i] == (float)ROMS::vaporMissingValue()) 
-				continue;
-			if(mappedLats[i]<minval1) minval1 = mappedLats[i];
-			if(mappedLats[i]>maxval1 ) maxval1 = mappedLats[i];
-		}
-
-		for( size_t t = 0; t< numTimeSteps; t++){
-			//int rc = CopyConstantVariable2D(mappedLats,vdfio2d,wbwriter2d,opt.level,opt.lod, "LATDEG",dimsVDC,t);
-			//if (rc) exit(rc);
-		}
-		delete mappedLats;
-	}
 	vector<string> vdcvars2d = metadataVDC->GetVariables2DXY();
 	vector<string> vdcvars3d = metadataVDC->GetVariables3D();
 	vector<size_t>VDCTimes;	
@@ -1362,6 +1341,10 @@ int	main(int argc, char **argv) {
 	float Tcline = -2.;
 	float * elevation = 0;
 	float * sample3DVar = 0;
+	float * sample2DVar = 0;
+	float* mappedDepth=0;
+	float* mappedLats = 0;
+	float* mappedAngles = 0;
 	//Loop thru romsfiles
 	for (int i = 0; i<romsfiles.size(); i++){
 		printf("processing file %s\n",romsfiles[i].c_str());	
@@ -1503,24 +1486,66 @@ int	main(int argc, char **argv) {
 			ndim[1] = dimsVDC[1];
 			if (geolat == 1 || geolat == 3) ndim[1]++; //u grid or rho grid
 			if (geolat == 2 || geolat == 3) ndim[0]++; //v grid or rho grid
+			bool stag = false;
+			if (ndims == 4){ //see if it's staggered in z:
+				int dimid[4]; 
+				size_t dimsize;
+				NC_ERR_READ(nc_inq_vardimid(ncid, varid, dimid));
+				NC_ERR_READ(nc_inq_dimlen(ncid, dimid[1], &dimsize));
+				if (dimsize == dimsVDC[2]+1) stag = true;
+				else if (dimsize != dimsVDC[2]) assert(0);
+			}
 			//loop thru the times in the file.
 			for (int ts = 0; ts < timelen; ts++){
 				//for each time convert the variable
 				if (ndims == 4) {
-					CopyVariable3D(ncid,varid,wt,vdfio3d,opt.level,opt.lod, varname, dimsVDC, ndim,VDCTimes[ts],ts,&sample3DVar,mappedDepth );
+					CopyVariable3D(ncid,varid,wt,vdfio3d,opt.level,opt.lod, varname, dimsVDC, ndim,VDCTimes[ts],ts,&sample3DVar,stag );
 				}
-				else CopyVariable2D(ncid,varid,wt,vdfio2d,wbwriter2d,opt.level,opt.lod,varname, dimsVDC, ndim, VDCTimes[ts],ts,mappedDepth);
+				else CopyVariable2D(ncid,varid,wt,vdfio2d,wbwriter2d,opt.level,opt.lod,varname, dimsVDC, ndim, VDCTimes[ts],ts, &sample2DVar);
 			}
 			printf(" converted variable %s\n", varname);
 		} //End loop over variables in file	
-		//Insert elevation at every timestep in the file:
-		if (!elevation && sample3DVar) elevation = CalcElevation(Vtransform, s_rho, Cs_r, Tcline, mappedDepth, dimsVDC, sample3DVar);
+
+		//Create 2D variables, using mask from first 2D variable:
+		// Insert Depth, latDeg, and 
+		//Create DEPTH variable
+		//
+		if (!mappedDepth)
+			mappedDepth = calcConst2DVar(roms->GetDepths(),dimsVDC, roms, sample2DVar);
+		
+		if (mappedDepth){
+			for( int t = 0; t< VDCTimes.size(); t++){
+				int rc = CopyConstantVariable2D(mappedDepth,vdfio2d,wbwriter2d,opt.level,opt.lod, "DEPTH",dimsVDC,VDCTimes[t]);
+				if (rc) exit(rc);
+			}
+		}
+
+		//Add angle variable
+		if (!mappedAngles) mappedAngles = calcConst2DVar(roms->GetAngles(),dimsVDC, roms, sample2DVar);
+
+		for( int t = 0; t< VDCTimes.size(); t++){
+			int rc = CopyConstantVariable2D(mappedAngles,vdfio2d,wbwriter2d,opt.level,opt.lod, "angle",dimsVDC,VDCTimes[t]);
+			if (rc) exit(rc);
+		}
+
+		//Add latitude variable (degrees)
+		
+		if (!mappedLats) mappedLats = calcConst2DVar(roms->GetLats(),dimsVDC, roms, sample2DVar);
+
+		for( int t = 0; t< VDCTimes.size(); t++){
+			int rc = CopyConstantVariable2D(mappedLats,vdfio2d,wbwriter2d,opt.level,opt.lod, "angle",dimsVDC,VDCTimes[t]);
+			if (rc) exit(rc);
+		}
+	
+		//Insert elevation at every timestep 
+		if (!elevation) elevation = CalcElevation(Vtransform, s_rho, Cs_r, Tcline, mappedDepth, dimsVDC, sample3DVar);
 		if (elevation){
 			for (int j = 0; j< VDCTimes.size(); j++){
 				int rc = CopyConstantVariable3D(elevation, vdfio3d, opt.level, opt.lod, "ELEVATION", dimsVDC, VDCTimes[j]);
 				if (rc) exit(rc);
 			}
 		}
+		
 	
 	} //End input files
 	
