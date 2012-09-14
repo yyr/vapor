@@ -165,18 +165,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
     setCentralWidget(myMDIArea);
 
     
-	int min_width = MIN_WINDOW_WIDTH;
-	int min_height = MIN_WINDOW_HEIGHT;
-	if (char *s = getenv("VAPOR_WIDTH_HEIGHT")) {
-		int h,w;
-		int rc = sscanf(s, "%dx%d", &w, &h);
-		if (rc==2) {
-			min_width = w;
-			min_height = h;
-		}
-		cerr << "VAPOR_WIDTH_HEIGHT = " << s << endl;
-	} 
-    setMinimumSize( QSize( min_width, min_height ) );
+	
    
    
     createActions();
@@ -203,8 +192,16 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	tabDockWindow->setWidget(tabWidget);
 	
 	//Setup  the session (hence the viz window manager)
-	Session::getInstance();
+	Session* ses = Session::getInstance();
 	MessageReporter::infoMsg("MainForm::MainForm(): setup session");
+	bool lockSize = ses->getWindowSizeLock();
+	if (lockSize){
+		int win_width = ses->getLockWinWidth();
+		int win_height = ses->getLockWinHeight();
+	
+		setMinimumSize( QSize( win_width, win_height ) );
+		setMaximumSize( QSize( win_width, win_height ) );
+	}
 	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
 	
 	myVizMgr->createAllDefaultParams();

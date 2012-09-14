@@ -46,7 +46,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;$(PROJ_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(NETCDF_INC_PATH)&quot;;../../../lib/vdf;../../../include/"
-				PreprocessorDefinitions="BUILD_GUI;WIN32;_WINDOWS;VDF_EXPORTS;DLL_NETCDF;_USRDLL;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="DEBUG;BUILD_GUI;WIN32;_WINDOWS;VDF_EXPORTS;DLL_NETCDF;_USRDLL;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"

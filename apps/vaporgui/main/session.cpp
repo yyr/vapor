@@ -222,6 +222,9 @@ void Session::init() {
 	setPythonDirectory(preferencePythonDirectory.c_str());
 	setSessionDirectory(preferenceSessionDirectory.c_str());
 	MainForm::getInstance()->setInteractiveRefinementSpin(0);
+	lockWinWidth = 1280;
+	lockWinHeight = 1024;
+	lockWin = false;
 	
 }
 void Session::setDefaultPrefs(){
@@ -232,6 +235,9 @@ void Session::setDefaultPrefs(){
 	string str;
 	string str1;
 	string formerLogfileName = currentLogfileName;
+	lockWinWidth = 1280;
+	lockWinHeight = 1024;
+	lockWin = false;
 #ifdef WIN32
 	//Use the user name in the log file name
 	char* tempDir = getenv("TEMP");

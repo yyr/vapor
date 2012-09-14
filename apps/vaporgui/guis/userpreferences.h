@@ -103,6 +103,7 @@ protected slots:
 	void preIntegrationChanged(bool);
 	void axisArrowsChanged(bool);
 	void spinChanged(bool);
+	void winLockChanged(bool val); 
 	void setAutoSave(bool);
 	void copyLatestSession();
 	void copyLatestMetadata();
@@ -167,6 +168,9 @@ protected:
 	static const string _ambientCoeffAttr;
 	static const string _specularExpAttr;
 	static const string _citationRemindAttr;
+	static const string _winWidthAttr;
+	static const string _winHeightAttr;
+	static const string _lockWinAttr;
 
 
 
@@ -202,6 +206,8 @@ protected:
 	bool trackMouse;
 	int jpegQuality;
 	int texSize;
+	int winWidth, winHeight;
+	bool lockWin;
 	size_t cacheMB;
 	float scale, alpha, phi, psi, theta;
 	float viewDir[3], upVec[3];

@@ -81,6 +81,9 @@ const string UserPreferences::_phiAttr = "DefaultPhi";
 const string UserPreferences::_psiAttr = "DefaultPsi";
 const string UserPreferences::_alphaAttr = "DefaultAlpha";
 const string UserPreferences::_scaleAttr = "DefaultScale";
+const string UserPreferences::_winWidthAttr = "WindowWidth";
+const string UserPreferences::_winHeightAttr = "WindowHeight";
+const string UserPreferences::_lockWinAttr = "LockWindowSize";
 
 const string UserPreferences::_viewpointDefaultsTag = "ViewpointDefaults";
 const string UserPreferences::_viewDirAttr = "DefaultViewDir";
@@ -136,6 +139,9 @@ UserPreferences::UserPreferences() : QDialog(0), Ui_Preferences(){
 	flowPathButton->setIcon(QIcon(*fileopenIcon));
 	pythonPathButton->setIcon(QIcon(*fileopenIcon));
 	autoSaveButton->setIcon(QIcon(*fileopenIcon));
+	winWidth = 1280;
+	winHeight = 1024;
+	lockWin = false;
 	
 }
 //Just clone the exposed part, not the QT part
@@ -190,6 +196,9 @@ UserPreferences* UserPreferences::clone(){
 	newPrefs->maxFPS = maxFPS;
 	newPrefs->showAxisArrows = showAxisArrows;
 	newPrefs->spinAnimate = spinAnimate;
+	newPrefs->winWidth = winWidth;
+	newPrefs->winHeight = winHeight;
+	newPrefs->lockWin = lockWin;
 	
 
 	for (int i = 0; i<3; i++){ 
@@ -264,6 +273,7 @@ void UserPreferences::launch(){
 	connect (subregionFrameColorButton, SIGNAL(clicked()), this, SLOT(selectSubregionFrameColor()));
 	connect (resetCountButton, SIGNAL(clicked()), this, SLOT(resetCounts()));
 	connect (enableSpinCheckbox, SIGNAL(toggled(bool)),this, SLOT(spinChanged(bool)));
+	connect (lockSizeCheckBox, SIGNAL(toggled(bool)),this, SLOT(winLockChanged(bool)));
 
 	connect (noShowCitationCheckbox, SIGNAL(toggled(bool)), this, SLOT(setNoCitation(bool)));
 	connect (autoSaveCheckbox, SIGNAL(toggled(bool)), this, SLOT(setAutoSave(bool)));
@@ -283,6 +293,8 @@ void UserPreferences::launch(){
 	connect (cacheSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (textureSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (jpegQualityEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (winWidthEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (winHeightEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (sessionPathEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (autoSaveFilenameEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (autoSaveIntervalEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
@@ -624,6 +636,10 @@ void UserPreferences::regionChanged(bool enabled){
 	regionFrameEnabled = enabled;
 	dialogChanged = true;
 }
+void UserPreferences::winLockChanged(bool enabled){
+	lockWin = enabled;
+	dialogChanged = true;
+}
 void UserPreferences::subregionChanged(bool enabled){
 	subregionFrameEnabled = enabled;
 	dialogChanged = true;
@@ -697,6 +713,9 @@ setDialog(){
 	Session* ses = Session::getInstance();
 	cacheMB = ses->getCacheMB();
 	cacheSizeEdit->setText(QString::number(ses->getCacheMB()));
+	winWidthEdit->setText(QString::number(ses->getLockWinWidth()));
+	winHeightEdit->setText(QString::number(ses->getLockWinHeight()));
+	lockSizeCheckBox->setChecked(ses->getWindowSizeLock());
 	texSize = ses->getTextureSize();
 	textureSizeEdit->setText(
 			QString::number(texSize));
@@ -864,6 +883,9 @@ applyToState(){
 	//Copy from this (not QDialog) to session
 	Session* ses = Session::getInstance();
 	ses->setCacheMB(cacheMB);
+	ses->setLockWinWidth(winWidth);
+	ses->setLockWinHeight(winHeight);
+	ses->setWindowSizeLock(lockWin);
 	ses->setTextureSize(texSize);
 	ses->specifyTextureSize(texSizeSpecified);
 	ses->setAutoSaveInterval(autoSaveInterval);
@@ -1049,6 +1071,19 @@ ParamNode* UserPreferences::buildNode(){
 	oss.str(empty);
 	oss << (long)GLWindow::getJpegQuality();
 	attrs[Session::_jpegQualityAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)ses->getLockWinWidth();
+	attrs[_winWidthAttr] = oss.str();
+	oss.str(empty);
+	oss << (long)ses->getLockWinHeight();
+	attrs[_winHeightAttr] = oss.str();
+	oss.str(empty);
+	if (ses->getWindowSizeLock())
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_lockWinAttr] = oss.str();
 
 	oss.str(empty);
 	if (DataStatus::textureSizeIsSpecified())
@@ -1351,6 +1386,23 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 				}
 				else if (StrCmpNoCase(attr, Session::_VAPORVersionAttr) == 0){
 					ist >> preferencesVersionString;
+				}
+				else if (StrCmpNoCase(attr, _winWidthAttr) == 0){
+					ist >> winWidth;
+					ses->setLockWinWidth(winWidth);
+				}
+				else if (StrCmpNoCase(attr, _winHeightAttr) == 0){
+					ist >> winHeight;
+					ses->setLockWinHeight(winHeight);
+				}
+				if (StrCmpNoCase(attr, _lockWinAttr) == 0) {
+					string boolVal;
+					bool val;
+					ist >> boolVal;
+					if (boolVal == "true") val = true;
+					else val = false;
+					ses->setWindowSizeLock(val);
+					lockWin=val;
 				}
 				else if (StrCmpNoCase(attr, Session::_textureSizeAttr) == 0){
 					int val;
@@ -1844,6 +1896,9 @@ void UserPreferences::getTextChanges(){
 	cacheMB = (size_t) cacheSizeEdit->text().toInt();
 	texSize = textureSizeEdit->text().toInt();
 	jpegQuality = jpegQualityEdit->text().toInt();
+	winWidth = winWidthEdit->text().toInt();
+	winHeight = winHeightEdit->text().toInt();
+	
 	sessionDir = sessionPathEdit->text().toStdString();
 	if (sessionDir == "" || sessionDir == "./" || sessionDir == ".\\")
 		sessionDir = ".";

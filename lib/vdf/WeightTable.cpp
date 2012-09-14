@@ -696,7 +696,7 @@ int WeightTable::calcWeights(int ncid){
 		} //end else
 	} //end ulat loop
 	//Check it out:
-	
+#ifdef DEBUG
 	for (int i = 0; i<nlat; i++){
 		for (int j = 0; j<nlon; j++){
 			if (testValues[j+nlon*i] <1.){
@@ -713,7 +713,7 @@ int WeightTable::calcWeights(int ncid){
 			}
 		}
 	}
-	 
+#endif
 	return 0;				
 }
 float WeightTable::testInQuad(float plon, float plat, int ilon, int ilat){

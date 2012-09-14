@@ -464,6 +464,42 @@
                     </property>
                    </widget>
                   </item>
+                  <item row="4" column="1">
+                   <widget class="QLineEdit" name="winWidthEdit">
+                    <property name="toolTip">
+                     <string>When checked, the VAPOR window is required (at the next time it starts) to have the specified width and height.</string>
+                    </property>
+                    <property name="text">
+                     <string>1280</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="2">
+                   <widget class="QLineEdit" name="winHeightEdit">
+                    <property name="toolTip">
+                     <string>When checked, the VAPOR window is required (at the next time it starts) to have the specified width and height.</string>
+                    </property>
+                    <property name="text">
+                     <string>1024</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="0">
+                   <widget class="QCheckBox" name="lockSizeCheckBox">
+                    <property name="toolTip">
+                     <string>When checked, the VAPOR window is required (at the next time it starts) to have the specified width and height.</string>
+                    </property>
+                    <property name="text">
+                     <string>Lock Window Width, Height:</string>
+                    </property>
+                   </widget>
+                  </item>
                  </layout>
                 </item>
                 <item>

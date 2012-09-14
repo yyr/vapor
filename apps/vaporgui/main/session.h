@@ -186,6 +186,12 @@ public:
 	void exportData();
 	void setCacheMB(size_t size){cacheMB = size;}
 	size_t getCacheMB() {return cacheMB;}
+	int getLockWinWidth() {return lockWinWidth;}
+	int getLockWinHeight() {return lockWinHeight;}
+	void setLockWinWidth(int val){lockWinWidth = val;}
+	void setLockWinHeight(int val){lockWinHeight = val;}
+	bool getWindowSizeLock(){return lockWin;}
+	void setWindowSizeLock(bool val){lockWin = val;}
 	
 	
 	int getNumTFs() { return numTFs;}
@@ -369,6 +375,8 @@ protected:
 	//Following parameters are in session state, modified by session panel:
 	//Cache size in megabytes
 	size_t cacheMB;
+	int lockWinWidth, lockWinHeight;
+	bool lockWin;
 	string currentLogfileName;
 	string currentExportFile;
 	float stretchFactors[3];
