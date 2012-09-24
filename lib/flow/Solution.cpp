@@ -75,15 +75,15 @@ void Solution::SetGrid(int t, RegularGrid* pUGrid, RegularGrid* pVGrid, RegularG
 		//Test before assigning; null pointer indicates zero data:
 		if(m_pUGrid) {
 			m_pUGrid[t] = pUGrid;
-			m_pUGrid[t]->SetPeriodic(periodicDims);
+			if (m_pUGrid[t]) m_pUGrid[t]->SetPeriodic(periodicDims);
 		}
 		if(m_pVGrid){
 			m_pVGrid[t] = pVGrid;
-			m_pVGrid[t]->SetPeriodic(periodicDims);
+			if (m_pVGrid[t]) m_pVGrid[t]->SetPeriodic(periodicDims);
 		}
 		if(m_pWGrid){
 			m_pWGrid[t] = pWGrid;
-			m_pWGrid[t]->SetPeriodic(periodicDims);
+			if (m_pWGrid[t]) m_pWGrid[t]->SetPeriodic(periodicDims);
 		}
 	}
 }
