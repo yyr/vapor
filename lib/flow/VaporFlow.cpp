@@ -250,7 +250,7 @@ bool VaporFlow::Get3GridData(size_t ts,
 	bool zeroX = (strcmp(xVarName, "0") == 0); 
 	bool zeroY = (strcmp(yVarName, "0") == 0); 
 	bool zeroZ = (strcmp(zVarName, "0") == 0); 
-	*pxGrid = 0; *pyGrid = 0; *pyGrid = 0;
+	*pxGrid = 0; *pyGrid = 0; *pzGrid = 0;
 	if(!zeroX) *pxGrid = dataMgr->GetGrid(ts, xVarName, (int)numXForms, compressLevel, minExt, maxExt,1);
 	if((zeroX || *pxGrid) && !zeroY) *pyGrid = dataMgr->GetGrid(ts, yVarName, (int)numXForms, compressLevel, minExt, maxExt,1);
 	if((zeroX || *pxGrid) && (zeroY || *pyGrid) && !zeroZ) *pzGrid = dataMgr->GetGrid(ts, zVarName, (int)numXForms, compressLevel, minExt, maxExt,1);
