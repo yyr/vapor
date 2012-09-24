@@ -48,6 +48,7 @@ public:
 	VAR3D, VAR2D_XY, VAR2D_XZ, VAR2D_YZ
  };
 
+ Metadata() {_deprecated_get_dim = false;}
  virtual ~Metadata() {};
 
  //! Get the native dimension of a volume
@@ -359,6 +360,8 @@ public:
  ) const;
 
 
+protected:
+ bool _deprecated_get_dim;
 };
 };
 

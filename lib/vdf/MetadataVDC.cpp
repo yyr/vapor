@@ -1328,6 +1328,9 @@ void	MetadataVDC::_startElementHandler0(ExpatParseMgr* pm,
 	if (vdfVersion < 2) {
 		bs[1] = bs[2] = bs[0];
 	}
+	if (vdfVersion < 5) {
+		_deprecated_get_dim = true;
+	}
 
 	if (vdcType == 1) {
 		_init1(

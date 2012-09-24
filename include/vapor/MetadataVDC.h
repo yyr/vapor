@@ -54,7 +54,7 @@ namespace VAPoR {
 		return(RETVAL); \
 	}
 
-const int VDF_VERSION = 4;
+const int VDF_VERSION = 5;
 
 //
 //! \class MetadataVDC

@@ -68,7 +68,9 @@ void Metadata::GetDim(
         dim[i] = maxdim[i] >> ldelta;
 
         // Deal with odd dimensions
-		//if ((dim[i] << ldelta) < maxdim[i]) dim[i]++;
+		if (_deprecated_get_dim) {
+			if ((dim[i] << ldelta) < maxdim[i]) dim[i]++;
+		}
     }
 }
 
