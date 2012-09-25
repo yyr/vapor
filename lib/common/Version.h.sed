@@ -59,6 +59,10 @@ public:
  //
  static int GetMinorMinor() { return(_minorMinorVersion); }
 
+ //! Return the sub minor version number
+ //
+ static string GetRC() { return(VERSION_RC); }
+
  //! Return the canonical version number as a formatted string
  //!
  //! Return the canonical version number as a formatted string of
@@ -74,7 +78,7 @@ public:
  //! advanced.
  //
  static const string &GetDateString() {
-	_dateString.assign("$Date$"); return(_dateString);
+	_dateString.assign(DATE); return(_dateString);
  }
  static int Compare(int major, int minor, int minorminor) ;
  static int Compare(std::string ver1, std::string ver2);
@@ -82,7 +86,7 @@ public:
 private:
  static const int _majorVersion = MAJOR;
  static const int _minorVersion = MINOR;
- static const int _minorMinorVersion = RELEASE;
+ static const int _minorMinorVersion = MICRO;
  static string _formatString;
  static string _dateString;
 

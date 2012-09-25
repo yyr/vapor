@@ -26,12 +26,13 @@ BUILDDIR := dummy_builddir
 endif
 endif
 
-VERSION :=  $(shell tr -d '[:space:]' < $(TOP)/Version | sed 's/\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\)/\1/')
-VERSION_MAJOR :=  $(shell tr -d '[:space:]' < $(TOP)/Version | sed 's/\([0-9][0-9]*\)\.[0-9][0-9]*\.[0-9][0-9]*/\1/')
-VERSION_MINOR :=  $(shell tr -d '[:space:]' < $(TOP)/Version | sed 's/[0-9][0-9]*\.\([0-9][0-9]*\)\.[0-9][0-9]*/\1/')
-VERSION_RELEASE :=  $(shell tr -d '[:space:]' < $(TOP)/Version | sed 's/[0-9][0-9]*\.[0-9][0-9]*\.\([0-9][0-9]*\)/\1/')
+VERSION = $(strip $(shell cat $(TOP)/Version))
+VERSION_MAJOR :=  $(word 1, $(subst ., ,$(VERSION)))
+VERSION_MINOR :=  $(word 2, $(subst ., ,$(VERSION)))
+VERSION_MICRO :=  $(word 3, $(subst ., ,$(VERSION)))
+VERSION_RC :=  $(word 4, $(subst ., ,$(VERSION)))
 
-VERSION_APP := $(PROJECT)-$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_RELEASE)
+VERSION_APP := $(PROJECT)-$(VERSION)
 
 
 CR_CC = $(CC)
@@ -195,10 +196,10 @@ ifdef LIBRARY
 ifdef SHARED
 ifeq ($(ARCH), Darwin)
 	LIB_LINKERNAME = $(LIBPREFIX)$(LIBRARY)$(DLLSUFFIX)
-	LIB_SONAME = $(LIBPREFIX)$(LIBRARY).$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_RELEASE)$(DLLSUFFIX)
+	LIB_SONAME = $(LIBPREFIX)$(LIBRARY).$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_MICRO)$(DLLSUFFIX)
 else
 	LIB_LINKERNAME = $(LIBPREFIX)$(LIBRARY)$(DLLSUFFIX)
-	LIB_SONAME = $(LIB_LINKERNAME).$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_RELEASE)
+	LIB_SONAME = $(LIB_LINKERNAME).$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_MICRO)
 endif
 	LIB_REALNAME = $(LIB_SONAME)
 	LIB_TARGET := $(addprefix $(DSO_DIR)/, $(LIB_REALNAME))

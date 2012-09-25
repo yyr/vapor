@@ -18,6 +18,7 @@ const string &Version::GetVersionString() {
 
 	ostringstream oss;
 	oss << _majorVersion << "." << _minorVersion << "." << _minorMinorVersion;
+	if (GetRC().length()) oss << "." << GetRC(); 
 	_formatString = oss.str();
 	return(_formatString);
 
