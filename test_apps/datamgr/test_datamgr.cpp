@@ -273,7 +273,15 @@ int main(int argc, char **argv) {
 
 			cout << "Has missing data : " << rg->HasMissingData() << endl;
 			if (rg->HasMissingData()) {
+
 				cout << "Missing data value : " << rg->GetMissingValue() << endl;
+				RegularGrid::Iterator itr;
+				float mv = rg->GetMissingValue();
+				int count = 0;
+				for (itr = rg->begin(); itr!=rg->end(); ++itr) {
+					if (*itr == mv) count++;
+				}
+				cout << "Num missing values : " << count << endl;
 			}
 
 			cout << setprecision (16) << "User time: " << datamgr->GetTSUserTime(ts) << endl;
