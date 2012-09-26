@@ -101,6 +101,13 @@ public:
  //!
  float GetValue(double x, double y, double z) const;
 
+ //! \copydoc RegularGrid::GetUserExtents()
+ //!
+ virtual void GetUserExtents(double extents[6]) const {
+	for (int i=0; i<6; i++) extents[i] = _extents[i];
+ }
+
+
  //! \copydoc RegularGrid::GetVBoundingBox()
  //!
  virtual void GetBoundingBox(

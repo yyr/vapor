@@ -21,13 +21,12 @@ StretchedGrid::StretchedGrid(
     const vector <double> &zcoords
  ) : RegularGrid(bs,min,max,extents,periodic,blks) {
 
-	double myextents[6];
 	for (int i=0; i<3; i++) {
 		_min[i] = min[i];
 		_max[i] = max[i];
 		_delta[i] = 0.0;
-		myextents[i] = extents[i];
-		myextents[i+3] = extents[i+3];
+		_extents[i] = extents[i];
+		_extents[i+3] = extents[i+3];
 	}
 
 	_xcoords.clear();
@@ -37,8 +36,8 @@ StretchedGrid::StretchedGrid(
 	size_t xdim = max[0]-min[0]+1;
 	if (xcoords.size() >= xdim) {
 		for (int i=0; i<xdim; i++) _xcoords.push_back(xcoords[i]);
-		myextents[0] = _xcoords[0];
-		myextents[3] = _xcoords[xdim-1];
+		_extents[0] = _xcoords[0];
+		_extents[3] = _xcoords[xdim-1];
 	}
 	else {
 		_delta[0] = (extents[3] - extents[0])/(double) (_max[0]-_min[0]);
@@ -48,8 +47,8 @@ StretchedGrid::StretchedGrid(
 	size_t ydim = max[1]-min[1]+1;
 	if (ycoords.size() >= ydim) {
 		for (int i=0; i<ydim; i++) _ycoords.push_back(ycoords[i]);
-		myextents[1] = _ycoords[0];
-		myextents[4] = _ycoords[ydim-1];
+		_extents[1] = _ycoords[0];
+		_extents[4] = _ycoords[ydim-1];
 	}
 	else {
 		_delta[1] = (extents[4] - extents[1])/(double) (_max[1]-_min[1]);
@@ -58,14 +57,12 @@ StretchedGrid::StretchedGrid(
 	size_t zdim = max[2]-min[2]+1;
 	if (zcoords.size() >= zdim) {
 		for (int i=0; i<zdim; i++) _zcoords.push_back(zcoords[i]);
-		myextents[2] = _zcoords[0];
-		myextents[5] = _zcoords[zdim-1];
+		_extents[2] = _zcoords[0];
+		_extents[5] = _zcoords[zdim-1];
 	}
 	else {
 		_delta[2] = (extents[5] - extents[2])/(double) (_max[2]-_min[2]);
 	}
-
-	RegularGrid::_SetExtents(myextents);
 
 }
 
@@ -82,13 +79,12 @@ StretchedGrid::StretchedGrid(
 	float missing_value
 ) : RegularGrid(bs,min,max,extents,periodic,blks, missing_value) {
 
-	double myextents[6];
 	for (int i=0; i<3; i++) {
 		_min[i] = min[i];
 		_max[i] = max[i];
 		_delta[i] = 0.0;
-		myextents[i] = extents[i];
-		myextents[i+3] = extents[i+3];
+		_extents[i] = extents[i];
+		_extents[i+3] = extents[i+3];
 	}
 
 	_xcoords.clear();
@@ -99,8 +95,8 @@ StretchedGrid::StretchedGrid(
 	if (xcoords.size() >= xdim) {
 		for (int i=0; i<xdim; i++) _xcoords.push_back(xcoords[i]);
 
-		myextents[0] = _xcoords[0];
-		myextents[3] = _xcoords[xdim-1];
+		_extents[0] = _xcoords[0];
+		_extents[3] = _xcoords[xdim-1];
 	}
 	else {
 		_delta[0] = (extents[3] - extents[0])/(double) (_max[0]-_min[0]);
@@ -109,8 +105,8 @@ StretchedGrid::StretchedGrid(
 	size_t ydim = max[1]-min[1]+1;
 	if (ycoords.size() >= ydim) {
 		for (int i=0; i<ydim; i++) _ycoords.push_back(ycoords[i]);
-		myextents[1] = _ycoords[0];
-		myextents[4] = _ycoords[ydim-1];
+		_extents[1] = _ycoords[0];
+		_extents[4] = _ycoords[ydim-1];
 	}
 	else {
 		_delta[1] = (extents[4] - extents[1])/(double) (_max[1]-_min[1]);
@@ -119,14 +115,13 @@ StretchedGrid::StretchedGrid(
 	size_t zdim = max[2]-min[2]+1;
 	if (zcoords.size() >= zdim) {
 		for (int i=0; i<zdim; i++) _zcoords.push_back(zcoords[i]);
-		myextents[2] = _zcoords[0];
-		myextents[5] = _zcoords[zdim-1];
+		_extents[2] = _zcoords[0];
+		_extents[5] = _zcoords[zdim-1];
 	}
 	else {
 		_delta[2] = (extents[5] - extents[2])/(double) (_max[2]-_min[2]);
 	}
 
-	RegularGrid::_SetExtents(myextents);
 }
 
 
@@ -155,16 +150,13 @@ float StretchedGrid::_GetValueNearestNeighbor(
     size_t i, j, k;
     GetIJKIndexFloor(x,y,z, &i,&j,&k);
 
-	double extents[6];
-	RegularGrid::GetUserExtents(extents);
-
 	double iwgt = 0.0;
 	if (i<(_max[0]-_min[0])) {
 		if (_xcoords.size()) {
 			iwgt = (x - _xcoords[i]) / (_xcoords[i+1] - _xcoords[i]);
 		}
 		else if (_delta[0] != 0.0) {
-			iwgt = ((x - extents[0]) - (i * _delta[0])) / _delta[0]; 
+			iwgt = ((x - _extents[0]) - (i * _delta[0])) / _delta[0]; 
 		}
 	}
 	double jwgt = 0.0;
@@ -173,7 +165,7 @@ float StretchedGrid::_GetValueNearestNeighbor(
 			jwgt = (y - _ycoords[j]) / (_ycoords[j+1] - _ycoords[j]);
 		}
 		else if (_delta[1] != 0.0) {
-			jwgt = ((y - extents[1]) - (j * _delta[1])) / _delta[1]; 
+			jwgt = ((y - _extents[1]) - (j * _delta[1])) / _delta[1]; 
 		}
 	}
 	double kwgt = 0.0;
@@ -182,7 +174,7 @@ float StretchedGrid::_GetValueNearestNeighbor(
 			kwgt = (z - _zcoords[k]) / (_zcoords[k+1] - _zcoords[k]);
 		}
 		else if (_delta[2] != 0.0) {
-			kwgt = ((z - extents[2]) - (k * _delta[2])) / _delta[2]; 
+			kwgt = ((z - _extents[2]) - (k * _delta[2])) / _delta[2]; 
 		}
 	}
 
@@ -200,8 +192,6 @@ float StretchedGrid::_GetValueLinear(double x, double y, double z) const {
     size_t i, j, k;
     GetIJKIndexFloor(x,y,z, &i,&j,&k);
 
-	double extents[6];
-	RegularGrid::GetUserExtents(extents);
 
 	double iwgt = 0.0;
 	if (i<(_max[0]-_min[0])) {
@@ -209,7 +199,7 @@ float StretchedGrid::_GetValueLinear(double x, double y, double z) const {
 			iwgt = (x - _xcoords[i]) / (_xcoords[i+1] - _xcoords[i]);
 		}
 		else if (_delta[0] != 0.0) {
-			iwgt = ((x - extents[0]) - (i * _delta[0])) / _delta[0]; 
+			iwgt = ((x - _extents[0]) - (i * _delta[0])) / _delta[0]; 
 		}
 	}
 	double jwgt = 0.0;
@@ -218,7 +208,7 @@ float StretchedGrid::_GetValueLinear(double x, double y, double z) const {
 			jwgt = (y - _ycoords[j]) / (_ycoords[j+1] - _ycoords[j]);
 		}
 		else if (_delta[1] != 0.0) {
-			jwgt = ((y - extents[1]) - (j * _delta[1])) / _delta[1]; 
+			jwgt = ((y - _extents[1]) - (j * _delta[1])) / _delta[1]; 
 		}
 	}
 	double kwgt = 0.0;
@@ -227,7 +217,7 @@ float StretchedGrid::_GetValueLinear(double x, double y, double z) const {
 			kwgt = (z - _zcoords[k]) / (_zcoords[k+1] - _zcoords[k]);
 		}
 		else if (_delta[2] != 0.0) {
-			kwgt = ((z - extents[2]) - (k * _delta[2])) / _delta[2]; 
+			kwgt = ((z - _extents[2]) - (k * _delta[2])) / _delta[2]; 
 		}
 	}
 
@@ -323,8 +313,6 @@ void StretchedGrid::GetIJKIndex(
 ) const {
 
     RegularGrid::_ClampCoord(x,y,z);
-	double extents[6];
-	RegularGrid::GetUserExtents(extents);
 
     size_t dims[3];
     RegularGrid::GetDimensions(dims);
@@ -347,7 +335,7 @@ void StretchedGrid::GetIJKIndex(
 		}
 		else 
 			if ((_delta[0] != 0.0) && 
-				(((x - extents[0]) - (i0 * _delta[0])) / _delta[0]) > 0.5) {
+				(((x - _extents[0]) - (i0 * _delta[0])) / _delta[0]) > 0.5) {
 
 				i0++;
 		}
@@ -363,7 +351,7 @@ void StretchedGrid::GetIJKIndex(
 		}
 		else 
 			if ((_delta[1] != 0.0) && 
-				(((y - extents[1]) - (j0 * _delta[1])) / _delta[1]) > 0.5) {
+				(((y - _extents[1]) - (j0 * _delta[1])) / _delta[1]) > 0.5) {
 
 				j0++;
 		}
@@ -379,7 +367,7 @@ void StretchedGrid::GetIJKIndex(
 		}
 		else 
 			if ((_delta[2] != 0.0) && 
-				(((z - extents[0]) - (k0 * _delta[2])) / _delta[2]) > 0.5) {
+				(((z - _extents[0]) - (k0 * _delta[2])) / _delta[2]) > 0.5) {
 
 				k0++;
 		}
@@ -398,8 +386,6 @@ void StretchedGrid::GetIJKIndexFloor(
 ) const {
 
     RegularGrid::_ClampCoord(x,y,z);
-	double extents[6];
-	RegularGrid::GetUserExtents(extents);
 
     size_t dims[3];
     RegularGrid::GetDimensions(dims);
@@ -414,7 +400,7 @@ void StretchedGrid::GetIJKIndexFloor(
 	//
 	// Now get indecies for stretched coords not on or outside boundary
 	//
-	if (_xcoords.size() != 0 && ((x-extents[0]) * (x-extents[3]) < 0)) {
+	if (_xcoords.size() != 0 && ((x-_extents[0]) * (x-_extents[3]) < 0)) {
 		size_t i0 = 0;
 		size_t i1 = dims[0]-1;
 		double x0 = _xcoords[i0];
@@ -442,7 +428,7 @@ void StretchedGrid::GetIJKIndexFloor(
 		*i = i0;
 	}
 
-	if (_ycoords.size() != 0 && ((y-extents[1]) * (y-extents[4]) < 0)) {
+	if (_ycoords.size() != 0 && ((y-_extents[1]) * (y-_extents[4]) < 0)) {
 		size_t j0 = 0;
 		size_t j1 = dims[1]-1;
 		double y0 = _ycoords[j0];
@@ -470,7 +456,7 @@ void StretchedGrid::GetIJKIndexFloor(
 		*j = j0;
 	}
 
-	if (_zcoords.size() != 0 && ((z-extents[2]) * (z-extents[5]) < 0)) {
+	if (_zcoords.size() != 0 && ((z-_extents[2]) * (z-_extents[5]) < 0)) {
 		size_t k0 = 0;
 		size_t k1 = dims[2]-1;
 		double z0 = _zcoords[k0];
@@ -508,16 +494,13 @@ int StretchedGrid::Reshape(
 	int rc = RegularGrid::Reshape(min, max, periodic);
 	if (rc<0) return(rc);
 
-	double extents[6];
-	RegularGrid::GetUserExtents(extents);
-
 	if (_xcoords.size()) {
 		vector <double> xcoords;
 		for (int i=min[0]; i<=max[0]; i++)
 			xcoords.push_back(_xcoords[i-_min[0]]);
 		_xcoords = xcoords;
-		extents[0] = _xcoords[0];
-		extents[3] = _xcoords[_xcoords.size()-1];
+		_extents[0] = _xcoords[0];
+		_extents[3] = _xcoords[_xcoords.size()-1];
 	}
 
 	if (_ycoords.size()) {
@@ -525,8 +508,8 @@ int StretchedGrid::Reshape(
 		for (int i=min[1]; i<=max[1]; i++)
 			ycoords.push_back(_ycoords[i-_min[1]]);
 		_ycoords = ycoords;
-		extents[1] = _ycoords[0];
-		extents[4] = _ycoords[_ycoords.size()-1];
+		_extents[1] = _ycoords[0];
+		_extents[4] = _ycoords[_ycoords.size()-1];
 	}
 
 	if (_zcoords.size()) {
@@ -534,8 +517,8 @@ int StretchedGrid::Reshape(
 			for (int i=min[2]; i<=max[2]; i++)
 				zcoords.push_back(_zcoords[i-_min[2]]);
 		_zcoords = zcoords;
-		extents[2] = _zcoords[0];
-		extents[5] = _zcoords[_zcoords.size()-1];
+		_extents[2] = _zcoords[0];
+		_extents[5] = _zcoords[_zcoords.size()-1];
 	}
 
 	return(0);

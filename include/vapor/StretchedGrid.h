@@ -105,6 +105,13 @@ public:
  //!
  float GetValue(double x, double y, double z) const;
 
+ //! \copydoc RegularGrid::GetUserExtents()
+ //!
+ virtual void GetUserExtents(double extents[6]) const {
+	for (int i=0; i<6; i++) extents[i] = _extents[i];
+ }
+
+
  //! \copydoc RegularGrid::GetVBoundingBox()
  //!
  virtual void GetBoundingBox(
@@ -169,6 +176,7 @@ private:
  size_t _min[3];
  size_t _max[3];
  double _delta[3];
+ double _extents[6];
  std::vector <double> _xcoords;
  std::vector <double> _ycoords;
  std::vector <double> _zcoords;

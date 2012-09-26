@@ -36,7 +36,6 @@ LayeredGrid::LayeredGrid(
 	if (periodic[_varying_dim]) SetPeriodic(periodic);
 
 	_GetUserExtents(_extents);
-	RegularGrid::_SetExtents(_extents);
 
 }
 
@@ -67,7 +66,6 @@ LayeredGrid::LayeredGrid(
 	assert(periodic[_varying_dim] == false);
 
 	_GetUserExtents(_extents);
-	RegularGrid::_SetExtents(_extents);
 }
 
 LayeredGrid::~LayeredGrid() {
@@ -667,10 +665,7 @@ int LayeredGrid::Reshape(
 	int rc = RegularGrid::Reshape(min,max,periodic);
 	if (rc<0) return(-1);
 
-	double myextents[6];
-
-	_GetUserExtents(myextents);
-	RegularGrid::_SetExtents(myextents);
+	_GetUserExtents(_extents);
 
 	return(0);
 }

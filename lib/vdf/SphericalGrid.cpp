@@ -24,9 +24,7 @@ SphericalGrid::SphericalGrid(
 		_permutation.push_back(permutation[i]);
 	}
 
-	double extentsC[6];
-	_GetUserExtents(extentsC);
-	RegularGrid::_SetExtents(extentsC);
+	_GetUserExtents(_extentsC);
 }
 
 SphericalGrid::SphericalGrid(
@@ -44,9 +42,7 @@ SphericalGrid::SphericalGrid(
 		_permutation.push_back(permutation[i]);
 	}
 
-	double extentsC[6];
-	_GetUserExtents(extentsC);
-	RegularGrid::_SetExtents(extentsC);
+	_GetUserExtents(_extentsC);
 }
 
 
@@ -197,39 +193,33 @@ int SphericalGrid::Reshape(
 	int rc = RegularGrid::Reshape(min,max,periodic);
 	if (rc<0) return(-1);
 
-	double extentsC[6];
-	_GetUserExtents(extentsC);
-	RegularGrid::_SetExtents(extentsC);
+	_GetUserExtents(_extentsC);
 
 	return(0);
 }
 
 bool SphericalGrid::InsideGrid(double x, double y, double z) const {
 
-	double extentsC[6];
-	RegularGrid::GetUserExtents(extentsC);
-
-
 	// Do a quick check to see if the point is completely outside of 
 	// the grid bounds.
 	//
-	if (extentsC[0] < extentsC[3]) {
-		if (x<extentsC[0] || x>extentsC[3]) return (false);
+	if (_extentsC[0] < _extentsC[3]) {
+		if (x<_extentsC[0] || x>_extentsC[3]) return (false);
 	}
 	else {
-		if (x>extentsC[0] || x<extentsC[3]) return (false);
+		if (x>_extentsC[0] || x<_extentsC[3]) return (false);
 	}
-	if (extentsC[1] < extentsC[4]) {
-		if (y<extentsC[1] || y>extentsC[4]) return (false);
-	}
-	else {
-		if (y>extentsC[1] || y<extentsC[4]) return (false);
-	}
-	if (extentsC[2] < extentsC[5]) {
-		if (z<extentsC[2] || z>extentsC[5]) return (false);
+	if (_extentsC[1] < _extentsC[4]) {
+		if (y<_extentsC[1] || y>_extentsC[4]) return (false);
 	}
 	else {
-		if (z>extentsC[2] || z<extentsC[5]) return (false);
+		if (y>_extentsC[1] || y<_extentsC[4]) return (false);
+	}
+	if (_extentsC[2] < _extentsC[5]) {
+		if (z<_extentsC[2] || z>_extentsC[5]) return (false);
+	}
+	else {
+		if (z>_extentsC[2] || z<_extentsC[5]) return (false);
 	}
 
 	// Extents in spherical coords
