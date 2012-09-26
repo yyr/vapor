@@ -880,13 +880,6 @@ bool GLWindow::faceIsVisible(float* extents, float* viewerCoords, int faceNum){
 	}
 }
 void GLWindow::drawSubregionBounds(float* extents) {
-cerr << "Extents : " << 
-	extents[0] << " " <<
-	extents[1] << " " <<
-	extents[2] << " " <<
-	extents[3] << " " <<
-	extents[4] << " " <<
-	extents[5] << endl;
 	setSubregionFrameColorFlt(DataStatus::getSubregionFrameColor());
 	glLineWidth( 2.0 );
 	glColor3fv(subregionFrameColorFlt);
