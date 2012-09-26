@@ -29,6 +29,11 @@
  ******************************************************************************
  *
  * $Log$
+ * Revision 1.7  2010/02/11 18:10:38  alannorton
+ *
+ * Cleaned up code to avoid extraneous compiler warnings on windows.
+ * Fixed metadata merge and vdf write to work with new DataMgr
+ *
  * Revision 1.6  2009/07/14 20:34:07  alannorton
  * Changes to compile on Windows
  *
@@ -1487,7 +1492,7 @@ int GTIFProj4FromLatLong( GTIFDefn * psDefn, int nPoints,
 }
 #else
 
-#include "projects.h"
+#include "proj_api.h"
 
 #ifdef USE_PROJUV
 #  define UV projUV
@@ -1505,7 +1510,7 @@ int GTIFProj4FromLatLong( GTIFDefn * psDefn, int nPoints,
 
 {
     char	*pszProjection, **papszArgs;
-    PJ		*psPJ;
+    projPJ		psPJ;
     int		i;
     
 /* -------------------------------------------------------------------- */
@@ -1537,7 +1542,7 @@ int GTIFProj4FromLatLong( GTIFDefn * psDefn, int nPoints,
 /* -------------------------------------------------------------------- */
     for( i = 0; i < nPoints; i++ )
     {
-        UV	sUV;
+        projUV	sUV;
 
         sUV.u = padfX[i] * DEG_TO_RAD;
         sUV.v = padfY[i] * DEG_TO_RAD;
@@ -1565,7 +1570,7 @@ int GTIFProj4ToLatLong( GTIFDefn * psDefn, int nPoints,
 
 {
     char	*pszProjection, **papszArgs;
-    PJ		*psPJ;
+    projPJ		psPJ;
     int		i;
     
 /* -------------------------------------------------------------------- */
@@ -1597,7 +1602,7 @@ int GTIFProj4ToLatLong( GTIFDefn * psDefn, int nPoints,
 /* -------------------------------------------------------------------- */
     for( i = 0; i < nPoints; i++ )
     {
-        UV	sUV;
+        projUV	sUV;
 
         sUV.u = padfX[i];
         sUV.v = padfY[i];
