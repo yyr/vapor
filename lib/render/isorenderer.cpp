@@ -155,7 +155,6 @@ int	IsoRenderer::_updateRegion(
 
 	if (_type == DvrParams::DVR_RAY_CASTER_2_VAR) {
 		string map_varname = myParamsIso->GetMapVariableName();
-cout << "map_varname " << map_varname << endl;
 		rg = dataMgr->GetGrid(
 			ts, map_varname, reflevel, lod, min, max
 		);
