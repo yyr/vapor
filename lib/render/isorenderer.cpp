@@ -155,6 +155,7 @@ int	IsoRenderer::_updateRegion(
 
 	if (_type == DvrParams::DVR_RAY_CASTER_2_VAR) {
 		string map_varname = myParamsIso->GetMapVariableName();
+cout << "map_varname " << map_varname << endl;
 		rg = dataMgr->GetGrid(
 			ts, map_varname, reflevel, lod, min, max
 		);
@@ -187,7 +188,6 @@ void IsoRenderer::_updateDriverRenderParamsSpec(RenderParams *rp) {
 
 	}
 
-//	if (_type == DvrParams::DVR_RAY_CASTER_2_VAR && (clutIsDirty() || datarangeIsDirty())) {
 	if (_type == DvrParams::DVR_RAY_CASTER_2_VAR && clutIsDirty()) {
 		// What the hell does this do?
 		myGLWindow->setRenderNew();
@@ -218,5 +218,5 @@ void IsoRenderer::_updateDriverRenderParamsSpec(RenderParams *rp) {
 	_isovalueDF.Clear();
 	_lightOnOffDF.Clear();
 	//_colorMapDF.Clear(); // cleared by parent class
-	//_dataDF.Clear(); // cleared by parent class
+	_dataDF.Clear(); // cleared by parent class
 }

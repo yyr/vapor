@@ -74,6 +74,11 @@ namespace VAPoR {
 
 	virtual void _updateDriverRenderParamsSpec(RenderParams *rp);
 
+	//
+	// Ugly hack to let derived class force a region update. 
+	//
+	virtual bool _forceUpdateRegion() {return(false);};
+
     int    _frames;
     double _seconds;
 

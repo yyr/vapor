@@ -402,7 +402,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 	// 
 	// Re-load data if needed
 	//
-	if (reflevelDirty || lodDirty || timeStepDirty || varDirty || extentsDirty || userTextureDirty || rangeDirty) {
+	if (reflevelDirty || lodDirty || timeStepDirty || varDirty || extentsDirty || userTextureDirty || rangeDirty || _forceUpdateRegion()) {
 		size_t max_dim[3];
 		size_t min_dim[3];
 

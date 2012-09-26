@@ -67,6 +67,9 @@ namespace VAPoR {
  );
 
  void _updateDriverRenderParamsSpec(RenderParams *rp);
+
+ virtual bool _forceUpdateRegion() {return(_dataDF.Test());};
+
     
 
   private:
