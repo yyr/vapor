@@ -218,16 +218,16 @@ int PythonPipeLine::python_wrapper(
 	size_t dims[3];
 	rg->GetDimensions(dims);
 	size_t mins[3],maxs[3];
-	double umins[3],umaxs[3];
+	//double umins[3],umaxs[3];
 	for (int i = 0; i<3; i++){
 		mins[i] = 0;
 		maxs[i] = dims[i]-1;
 	}
-	//convert to relative integer coordinates:
-	rg->GetUserCoordinates(0,0,0,umins, umins+1, umins+2);
-	rg->GetUserCoordinates(maxs[0],maxs[1],maxs[2],umaxs, umaxs+1, umaxs+2);
-	currentDataMgr->MapUserToVox(ts,umins,mins,reflevel);
-	currentDataMgr->MapUserToVox(ts,umaxs,maxs,reflevel);
+	//convert to relative integer coordinates:  Note This would cause a problem with Layered grids and missing values of ELEVATION
+	//rg->GetUserCoordinates(0,0,0,umins, umins+1, umins+2);
+	//rg->GetUserCoordinates(maxs[0],maxs[1],maxs[2],umaxs, umaxs+1, umaxs+2);
+	//currentDataMgr->MapUserToVox(ts,umins,mins,reflevel);
+	//currentDataMgr->MapUserToVox(ts,umaxs,maxs,reflevel);
 	int regmin[3], regmax[3];
 	Py_ssize_t pydims[3];
 	PyObject* pyRegion, *pyRegionMask;
