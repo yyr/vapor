@@ -388,7 +388,7 @@ float* calcConst2DVar(float* rawData, const size_t dimsVDC[3], MOM* mom, float* 
 	float minval1 = 1.e30;
 	float maxval1 = -1.e30;
 	for (int i = 0; i<dimsVDC[0]*dimsVDC[1]; i++){
-		assert(rawData[i]> -1.e10 && rawData[i] < 1.e10);
+//		assert(rawData[i]> -1.e10 && rawData[i] < 1.e10);
 		if(rawData[i]<minval) minval = rawData[i];
 		if(rawData[i]>maxval) maxval = rawData[i];
 		if (mappedData[i] == (float)MOM::vaporMissingValue())
