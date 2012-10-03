@@ -235,7 +235,7 @@ float* MOM::GetAngles(){
 		haveAngles = false;
 	}
 	
-	rc = nc_get_var_float(topoNcId, varid, anglesArray);
+	if (haveAngles) rc = nc_get_var_float(topoNcId, varid, anglesArray);
 	if (rc != NC_NOERR) {//Not there.  
 		haveAngles = false;
 	}
