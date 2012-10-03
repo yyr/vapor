@@ -46,7 +46,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../../lib/common;../../../include"
-				PreprocessorDefinitions="WIN32;_WINDOWS;_USRDLL;COMMON_EXPORTS;DEBUG"
+				PreprocessorDefinitions="WIN32;_WINDOWS;_USRDLL;COMMON_EXPORTS;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
