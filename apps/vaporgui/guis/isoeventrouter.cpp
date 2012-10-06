@@ -83,7 +83,8 @@ IsoEventRouter::IsoEventRouter(QWidget* parent): QWidget(parent), Ui_IsoTab(),  
 	isoSelectionFrame->setColorMapping(false);
 	isoSelectionFrame->setIsoSlider(true);
 	MessageReporter::infoMsg("IsoEventRouter::IsoEventRouter()");
-#ifdef Darwin
+
+#if defined(Darwin) && (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 	opacityMapShown = false;
 	isoShown = false;
 	transferFunctionFrame->hide();
@@ -1347,17 +1348,21 @@ void IsoEventRouter::guiFitTFToData(){
 void IsoEventRouter::paintEvent(QPaintEvent* ev){
 		QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
 		if(!isoShown ){
+#if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 			sArea->ensureWidgetVisible(isoSelectFrame);
-			isoSelectionFrame->show();
 			isoShown = true;
+#endif
+			isoSelectionFrame->show();
 			update();
 			QWidget::paintEvent(ev);
 			return;
 		}
 		if(!opacityMapShown ){
+#if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 			sArea->ensureWidgetVisible(transferFunctionFrame);
-			transferFunctionFrame->show();
 			opacityMapShown = true;
+#endif
+			transferFunctionFrame->show();
 			update();
 		}
 	QWidget::paintEvent(ev);

@@ -85,7 +85,8 @@ TwoDDataEventRouter::TwoDDataEventRouter(QWidget* parent ): QWidget(parent), Ui_
 	seedAttached = false;
 	
 	MessageReporter::infoMsg("TwoDDataEventRouter::TwoDDataEventRouter()");
-#ifdef Darwin
+
+#if defined(Darwin) && (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 	texShown = false;
 	opacityMapShown = false;
 	transferFunctionFrame->hide();
@@ -2118,18 +2119,22 @@ void TwoDDataEventRouter::paintEvent(QPaintEvent* ev){
 	//First show the texture frame, next time through, show the tf frame
 	//Other order doesn't work.
 	if(!texShown ){
+#if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 		sArea->ensureWidgetVisible(twoDFrameHolder);
+		texShown = true;
+#endif
 		twoDTextureFrame->updateGeometry();
 		twoDTextureFrame->show();
-		texShown = true;
 		update();
 		QWidget::paintEvent(ev);
 		return;
 	} 
 	if (!opacityMapShown){
+#if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 	 sArea->ensureWidgetVisible(tfFrame);
-	 transferFunctionFrame->show();
 	 opacityMapShown = true;
+#endif
+	 transferFunctionFrame->show();
 	 update();
 	
 	 } 

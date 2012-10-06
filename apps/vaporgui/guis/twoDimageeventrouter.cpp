@@ -80,7 +80,8 @@ TwoDImageEventRouter::TwoDImageEventRouter(QWidget* parent): QWidget(parent), Ui
 	setupUi(this);
 	myParamsBaseType = Params::GetTypeFromTag(Params::_twoDImageParamsTag);
 	MessageReporter::infoMsg("TwoDImageEventRouter::TwoDImageEventRouter()");
-#ifdef Darwin
+
+#if defined(Darwin) && (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 	texShown = false;
 	twoDTextureFrame->hide();
 #endif
@@ -1715,10 +1716,12 @@ void TwoDImageEventRouter::paintEvent(QPaintEvent* ev){
 //Workaround for Qt/Cocoa bug: postpone showing of OpenGL widget 
 
  	if(!texShown){
+#if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 		QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
 		sArea->ensureWidgetVisible(twoDFrameHolder);
-		twoDTextureFrame->show();
 		texShown = true;
+#endif
+		twoDTextureFrame->show();
 		update();
 	}
 	QWidget::paintEvent(ev);

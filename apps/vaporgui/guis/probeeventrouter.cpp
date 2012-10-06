@@ -103,7 +103,8 @@ ProbeEventRouter::ProbeEventRouter(QWidget* parent): QWidget(parent), Ui_ProbeTa
 	capturingIBFV = false;
 	for (int i = 0; i<3; i++)maxBoxSize[i] = 1.f;
 	MessageReporter::infoMsg("ProbeEventRouter::ProbeEventRouter()");
-#ifdef Darwin
+
+#if defined(Darwin) && (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 	opacityMapShown = false;
 	texShown = false;
 	probeTextureFrame->hide();
@@ -3193,18 +3194,22 @@ void ProbeEventRouter::paintEvent(QPaintEvent* ev){
 		//First show the texture frame, next time through, show the tf frame
 		//Other order doesn't work.
 		if(!texShown ){
+#if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 			sArea->ensureWidgetVisible(probeFrameHolder);
-			probeTextureFrame->updateGeometry();
-			probeTextureFrame->show();
 			texShown = true;
+#endif
+			probeTextureFrame->show();
+			probeTextureFrame->updateGeometry();
 			update();
 			QWidget::paintEvent(ev);
 			return;
 		} 
 		if (!opacityMapShown){
+#if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 			sArea->ensureWidgetVisible(tfFrame);
-			transferFunctionFrame->show();
 			opacityMapShown = true;
+#endif
+			transferFunctionFrame->show();
 			update();
 		} 
 		QWidget::paintEvent(ev);

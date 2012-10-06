@@ -792,6 +792,11 @@ void MappingFrame::paintGL()
   if (GLWindow::isRendering()) return;
   printOpenGLErrorMsg("MappingFrame");
 
+  glViewport( _minX, _minY, (GLint)width(), (GLint)height());
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glOrtho(_minX, _maxX, _minY, _maxY, -1.0, 1.0);
+
   qglClearColor(palette().color(QPalette::Background));
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -945,8 +950,9 @@ void MappingFrame::initializeGL()
 
   glShadeModel( GL_SMOOTH );
 
+  glMatrixMode(GL_PROJECTION);
   resize();
-
+  glViewport( _minX, _minY, (GLint)width(), (GLint)height());
   glOrtho(_minX, _maxX, _minY, _maxY, -1.0, 1.0);
 
   //
@@ -1331,6 +1337,7 @@ void MappingFrame::select(int x, int y, Qt::KeyboardModifiers state)
   //
   glLoadIdentity();
   gluPickMatrix(x, viewport[3] - y, 4,4, viewport);
+  glOrtho(_minX, _maxX, _minY, _maxY, -1.0, 1.0);
   glMatrixMode(GL_MODELVIEW);
 
   //

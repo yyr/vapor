@@ -93,7 +93,8 @@ FlowEventRouter::FlowEventRouter(QWidget* parent): QWidget(parent), Ui_FlowTab()
 	showUnsteadyTime=false;
 	MessageReporter::infoMsg("FlowEventRouter::FlowEventRouter()");
 	dontUpdate=false;
-#ifdef Darwin
+
+#if defined(Darwin) && (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 	colorMapShown=false;
 	opacityMapShown = false;
 	colorMappingFrame->hide();
@@ -3204,17 +3205,21 @@ void FlowEventRouter::paintEvent(QPaintEvent* ev){
 	if (showAppearance){
 		QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
  		if(!colorMapShown ){
+#if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 			sArea->ensureWidgetVisible(colorMappingFrame);
-			colorMappingFrame->show();
 			colorMapShown = true;
+#endif
+			colorMappingFrame->show();
 			update();
 			QWidget::paintEvent(ev);
 			return;
 		}
 		if(!opacityMapShown ){
+#if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 			sArea->ensureWidgetVisible(opacityMappingFrame);
-			opacityMappingFrame->show();
 			opacityMapShown = true;
+#endif
+			opacityMappingFrame->show();
 			update();
 		}
 	}

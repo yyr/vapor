@@ -87,7 +87,7 @@ DvrEventRouter::DvrEventRouter(QWidget* parent): QWidget(parent), Ui_DVR(), Even
 #ifndef BENCHMARKING
 	benchmarkGroup->setMaximumSize(0,0);
 #endif
-#ifdef Darwin
+#if defined(Darwin) && (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 	transferFunctionFrame->hide();
 	opacityMapShown = false;
 #endif
@@ -1334,14 +1334,18 @@ void DvrEventRouter::guiFitTFToData(){
 
 #ifdef Darwin
 void DvrEventRouter::paintEvent(QPaintEvent* ev){
+
+#if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 	if(!opacityMapShown){
 		QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
 		sArea->ensureWidgetVisible(tfFrame);
-		transferFunctionFrame->show();
 		opacityMapShown = true;
-		updateGeometry();
-		update();
 	}
+#endif
+
+	updateGeometry();
+	update();
 	QWidget::paintEvent(ev);
+	transferFunctionFrame->show();
 }
 #endif
