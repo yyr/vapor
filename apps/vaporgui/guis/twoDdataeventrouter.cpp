@@ -2114,28 +2114,27 @@ void TwoDDataEventRouter::guiFitTFToData(){
 
 #ifdef Darwin
 void TwoDDataEventRouter::paintEvent(QPaintEvent* ev){
-	QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
 
 	//First show the texture frame, next time through, show the tf frame
 	//Other order doesn't work.
 	if(!texShown ){
 #if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
+		QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
 		sArea->ensureWidgetVisible(twoDFrameHolder);
 		texShown = true;
 #endif
 		twoDTextureFrame->updateGeometry();
 		twoDTextureFrame->show();
-		update();
 		QWidget::paintEvent(ev);
 		return;
 	} 
 	if (!opacityMapShown){
 #if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
-	 sArea->ensureWidgetVisible(tfFrame);
-	 opacityMapShown = true;
+		QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
+		 sArea->ensureWidgetVisible(tfFrame);
+		 opacityMapShown = true;
 #endif
-	 transferFunctionFrame->show();
-	 update();
+		 transferFunctionFrame->show();
 	
 	 } 
 	QWidget::paintEvent(ev);

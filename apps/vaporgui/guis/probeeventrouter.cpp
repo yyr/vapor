@@ -3189,28 +3189,27 @@ showHideImage(){
 #ifdef Darwin
 void ProbeEventRouter::paintEvent(QPaintEvent* ev){
 	
-		QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
 		
 		//First show the texture frame, next time through, show the tf frame
 		//Other order doesn't work.
 		if(!texShown ){
 #if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
+			QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
 			sArea->ensureWidgetVisible(probeFrameHolder);
 			texShown = true;
 #endif
 			probeTextureFrame->show();
 			probeTextureFrame->updateGeometry();
-			update();
 			QWidget::paintEvent(ev);
 			return;
 		} 
 		if (!opacityMapShown){
 #if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
+			QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
 			sArea->ensureWidgetVisible(tfFrame);
 			opacityMapShown = true;
 #endif
 			transferFunctionFrame->show();
-			update();
 		} 
 		QWidget::paintEvent(ev);
 		return;

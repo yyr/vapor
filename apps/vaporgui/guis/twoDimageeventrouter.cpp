@@ -1722,7 +1722,6 @@ void TwoDImageEventRouter::paintEvent(QPaintEvent* ev){
 		texShown = true;
 #endif
 		twoDTextureFrame->show();
-		update();
 	}
 	QWidget::paintEvent(ev);
 }

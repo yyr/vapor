@@ -1346,24 +1346,23 @@ void IsoEventRouter::guiFitTFToData(){
 
 #ifdef Darwin
 void IsoEventRouter::paintEvent(QPaintEvent* ev){
-		QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
 		if(!isoShown ){
 #if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
+			QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
 			sArea->ensureWidgetVisible(isoSelectFrame);
 			isoShown = true;
 #endif
 			isoSelectionFrame->show();
-			update();
 			QWidget::paintEvent(ev);
 			return;
 		}
 		if(!opacityMapShown ){
 #if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
+			QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
 			sArea->ensureWidgetVisible(transferFunctionFrame);
 			opacityMapShown = true;
 #endif
 			transferFunctionFrame->show();
-			update();
 		}
 	QWidget::paintEvent(ev);
 	return;

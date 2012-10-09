@@ -1343,8 +1343,6 @@ void DvrEventRouter::paintEvent(QPaintEvent* ev){
 	}
 #endif
 
-	updateGeometry();
-	update();
 	QWidget::paintEvent(ev);
 	transferFunctionFrame->show();
 }

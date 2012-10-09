@@ -3203,24 +3203,23 @@ void FlowEventRouter::refreshTab(){
 #ifdef Darwin
 void FlowEventRouter::paintEvent(QPaintEvent* ev){
 	if (showAppearance){
-		QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
  		if(!colorMapShown ){
 #if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
+			QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
 			sArea->ensureWidgetVisible(colorMappingFrame);
 			colorMapShown = true;
 #endif
 			colorMappingFrame->show();
-			update();
 			QWidget::paintEvent(ev);
 			return;
 		}
 		if(!opacityMapShown ){
 #if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
+			QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
 			sArea->ensureWidgetVisible(opacityMappingFrame);
 			opacityMapShown = true;
 #endif
 			opacityMappingFrame->show();
-			update();
 		}
 	}
 	QWidget::paintEvent(ev);
