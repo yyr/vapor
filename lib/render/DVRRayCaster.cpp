@@ -394,9 +394,15 @@ void DVRRayCaster::raycasting_pass(
 								   const Matrix3d &modelview,
 								   const Matrix3d &modelviewInverse
 								   ) {
+
 	const BBox &volumeBox  = brick->volumeBox();
 	const BBox &textureBox = brick->textureBox();
-	
+
+//#define NOSHADER
+#ifndef	NOSHADER
+	bool ok = _shadermgr->enableEffect(getCurrentEffect());
+	if (! ok) return;
+
 	if (GLEW_VERSION_2_0) {
 		
 		if (_mapped) {
@@ -434,30 +440,33 @@ void DVRRayCaster::raycasting_pass(
 		glEnable(GL_TEXTURE_3D);
 		glBindTexture(GL_TEXTURE_3D, brick->handle());
 	}
+#endif
 	
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	
 	printOpenGLError();
-	if (_shadermgr->enableEffect(getCurrentEffect())){
-		BBox rotatedBox(volumeBox);
-		rotatedBox.transform(modelview);
-		Point3d camera(0,0,0);
-		
-		// Call different proxy drawing method depending on whether
-		// camera is inside or outside the volume's bounding box
-		//
-		if (rotatedBox.insideBox(camera)) {
-			drawFrontPlane(volumeBox, textureBox, modelview, modelviewInverse);
-		}
-		else {
-			drawVolumeFaces(volumeBox, textureBox);
-		}
-		_shadermgr->disableEffect();
+
+	BBox rotatedBox(volumeBox);
+	rotatedBox.transform(modelview);
+	Point3d camera(0,0,0);
+	
+	// Call different proxy drawing method depending on whether
+	// camera is inside or outside the volume's bounding box
+	//
+	if (rotatedBox.insideBox(camera)) {
+		drawFrontPlane(volumeBox, textureBox, modelview, modelviewInverse);
 	}
+	else {
+		drawVolumeFaces(volumeBox, textureBox);
+	}
+
+	_shadermgr->disableEffect();
 	
 	glDisable(GL_CULL_FACE);
 	
+#ifndef	NOSHADER
+
 	if (GLEW_VERSION_2_0) {
 		glActiveTexture(_depth_texunit);
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -482,6 +491,7 @@ void DVRRayCaster::raycasting_pass(
 		glBindTexture(GL_TEXTURE_3D, 0);
 	}
 	glDisable(GL_TEXTURE_3D);
+#endif
 	printOpenGLError();
 }
 
