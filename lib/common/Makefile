@@ -31,9 +31,6 @@ VERSION: $(INCDIR)/$(PROJECT)/Version.h
 
 DATE = $(shell date)
 
-$(INCDIR)/$(PROJECT)/Version.h:: Version.h.sed  $(TOP)/Version FRC
+$(INCDIR)/$(PROJECT)/Version.h:: Version.h.sed  $(TOP)/Version 
 	$(ECHO) "Rebuilding $(INCDIR)/$(PROJECT)/Version.h"
 	sed -e 's/MAJOR/$(VERSION_MAJOR)/' -e 's/MINOR/$(VERSION_MINOR)/' -e 's/MICRO/$(VERSION_MICRO)/' -e 's/VERSION_RC/\"$(VERSION_RC)\"/' -e 's/DATE/\"$(DATE)\"/' < Version.h.sed > $(INCDIR)/$(PROJECT)/Version.h
-
-FRC:
-
