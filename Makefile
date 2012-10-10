@@ -22,6 +22,7 @@ install-dep:: install
 	chmod +x $(INSTALL_PREFIX_DIR)/vapor-install.csh
 
 
+
 ifeq ($(BUILD_GUI), 1)
 
 CLD_EXCLUDE_FLAGS = $(addprefix -exclude , $(CLD_EXCLUDE_LIBS))
@@ -38,6 +39,7 @@ install-dep::
 	@$(ECHO) "Copying Python modules $(INSTALL_LIBDIR)"
 	$(CP) -R $(PYTHONDIR)/lib/python$(PYTHONVERSION) $(INSTALL_LIBDIR)
 	$(CP) $(PYTHONDIR)/bin/python $(INSTALL_BINDIR)
+	$(CP) -R $(PYTHONDIR)/include/python$(PYTHONVERSION) $(INSTALL_PREFIX_DIR)/include
 
 endif
 
