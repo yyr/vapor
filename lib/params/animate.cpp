@@ -79,7 +79,7 @@ void animate:: keyframeInterpolate(std::vector<Keyframe*>& key_vec, std::vector<
     
     outViewPoints.clear();
 	for (int i = 0; i<noVPs; i++){
-		delete viewQuats[i];
+		delete [] viewQuats[i];
 	}
 	viewQuats.clear();
 }
@@ -167,7 +167,7 @@ void animate::priorInterPolationCalcs(const std::vector<Keyframe*>& key_vec){
     outVP->setRotationCenterLocal(0,key_vec[noVPs-1]->viewpoint->getRotationCenterLocal(0)); outVP->setRotationCenterLocal(1,key_vec[noVPs-1]->viewpoint->getRotationCenterLocal(1)); outVP->setRotationCenterLocal(2,key_vec[noVPs-1]->viewpoint->getRotationCenterLocal(2));
     
     outViewPoints.push_back(outVP);
-	delete T;
+	delete [] T;
 }
 
 
