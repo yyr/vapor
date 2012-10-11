@@ -467,7 +467,7 @@ setupVariableData(
 			if (!ds->useLowerAccuracy()){
 				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Arrow data unavailable at LOD %d\n", aParams->GetCompressionLevel());
 				aParams->setBypass(timestep);
-				for (int k = 0; k<i; i++){
+				for (int k = 0; k<i; k++){
 					if (variableData[k])
 						dataMgr->UnlockGrid(variableData[k]);
 				}
