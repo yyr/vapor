@@ -449,7 +449,7 @@ int PythonPipeLine::python_wrapper(
 		
 			PyObject* maskArray = PyDict_GetItem(mainDict, ky);
 			if (! maskArray){
-				MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING, "Mask %s not produced by script",mname);
+				MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING, "Mask %s not produced by script",mname.c_str());
 				return -1;
 			}
 			dataMask = (bool*)PyArray_DATA(maskArray);
@@ -735,7 +735,6 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 //Note this is static
 PyObject* PythonPipeLine::get_3Dvariable(PyObject *self, PyObject* args){
 	const char *varname;
-    static float *regData = 0;
     PyObject *pyRegion;
     Py_ssize_t pydims[3];
     int tstep, reflevel, lod;
@@ -775,7 +774,6 @@ PyObject* PythonPipeLine::get_3Dvariable(PyObject *self, PyObject* args){
 //the z coord of extents is ignored
 PyObject* PythonPipeLine::get_2Dvariable(PyObject *self, PyObject* args){
 	const char *varname;
-    static float *regData = 0;
     PyObject *pyRegion;
     Py_ssize_t pydims[2];
     int tstep, reflevel,lod;
@@ -814,7 +812,6 @@ PyObject* PythonPipeLine::get_2Dvariable(PyObject *self, PyObject* args){
 //Note this is static
 PyObject* PythonPipeLine::get_3Dmask(PyObject *self, PyObject* args){
 	const char *varname;
-    static float *regData = 0;
     PyObject *pyRegion;
     Py_ssize_t pydims[3];
     int tstep, reflevel, lod;
@@ -858,7 +855,6 @@ PyObject* PythonPipeLine::get_3Dmask(PyObject *self, PyObject* args){
 //the z coord of extents is ignored
 PyObject* PythonPipeLine::get_2Dmask(PyObject *self, PyObject* args){
 	const char *varname;
-    static float *regData = 0;
     PyObject *pyRegion;
     Py_ssize_t pydims[2];
     int tstep, reflevel,lod;
