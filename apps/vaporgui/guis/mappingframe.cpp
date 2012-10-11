@@ -792,6 +792,9 @@ void MappingFrame::paintGL()
   if (GLWindow::isRendering()) return;
   printOpenGLErrorMsg("MappingFrame");
 
+  glDisable(GL_LIGHT0);
+  glDisable(GL_LIGHTING);
+
   glViewport( _minX, _minY, (GLint)width(), (GLint)height());
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -848,8 +851,8 @@ void MappingFrame::paintGL()
     glDisable(GL_TEXTURE_2D);
   }
 
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
+//  glEnable(GL_LIGHTING);
+//  glEnable(GL_LIGHT0);
 
   //
   // Draw Opacity Widgets
@@ -1033,8 +1036,8 @@ void MappingFrame::drawOpacityCurve()
 
     glDisable(GL_LINE_SMOOTH);
     glDisable(GL_BLEND);
-    glEnable(GL_LIGHT0);
-    glEnable(GL_LIGHTING);
+//    glEnable(GL_LIGHT0);
+ //   glEnable(GL_LIGHTING);
   }
 }
 
@@ -1064,11 +1067,10 @@ void MappingFrame::drawOpacityWidgets()
 void MappingFrame::drawDomainSlider()
 {
   glPushName(DOMAIN_WIDGET);
-  
+
   _domainSlider->paintGL();
   
   glPopName();
-  
   
 }
 //----------------------------------------------------------------------------
@@ -2430,6 +2432,7 @@ void MappingFrame::updateGL(){
 	} else if (_colorMappingEnabled && eRouter->colorMapShown){
 		QGLWidget::updateGL();
 	} 
+	update();
 	return;
 }
 
