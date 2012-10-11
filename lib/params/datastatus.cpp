@@ -1359,7 +1359,7 @@ int DataStatus::maxLODPresent3D(int sesvarnum, int timestep){
 		if (sesvarnum<0) return -1;
 		if (!variableExists[sesvarnum]) return -1;
 		if (getVDCType()!=2) return 0;
-		return (maxLevel3D[sesvarnum][timestep]);
+		return (getMaxLevel3D(sesvarnum,timestep));
 }
 int DataStatus::maxLODPresent2D(int sesvarnum, int timestep){
 		if (timestep < 0 || timestep >= numTimesteps) return -1;
