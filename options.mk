@@ -99,7 +99,7 @@ PYTHONDIR =
 # under $PYTHONDIR/lib/python${PYTHONVERSION} and 
 # $PYTHONDIR/include/python${PYTHONVERSION}, respectively.
 #
-PYTHONVERSION = 2.6
+PYTHONVERSION = 2.7
 
 
 # Set to 1 if you want to add support for Adaptive Mesh Refinement grids

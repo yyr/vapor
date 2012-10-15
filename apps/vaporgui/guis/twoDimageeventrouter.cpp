@@ -1665,11 +1665,9 @@ void TwoDImageEventRouter::mapCursor(){
 	if (tParams->isMappedToTerrain()&&tParams->isEnabled()) {
 		//Find terrain height at selected point:
 		
-		string varname("HGT");
-		
 		double sPoint[3];
 		for (int i = 0; i<3; i++) sPoint[i] = selectPoint[i]+userExtents[i];
-		float val = RegionParams::calcCurrentValue(varname,sPoint,tParams->GetRefinementLevel(), tParams->GetCompressionLevel(), (size_t)currentTimeStep);
+		float val = RegionParams::calcCurrentValue(tParams->GetHeightVariableName(),sPoint,tParams->GetRefinementLevel(), tParams->GetCompressionLevel(), (size_t)currentTimeStep);
 		if (val != OUT_OF_BOUNDS){
 			selectPoint[2] = val+(tParams->getLocalTwoDMin(2));
 		}

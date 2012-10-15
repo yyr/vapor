@@ -1983,10 +1983,10 @@ void TwoDDataEventRouter::mapCursor(){
 		//Find terrain height at selected point:
 		//mapDims are just 0,1,2
 		assert (mapDims[0] == 0 && mapDims[1] == 1 && mapDims[2] == 2);
-		string varname("HGT");
+		
 		double sPoint[3];
 		for (int i = 0; i<3; i++) sPoint[i] = selectPoint[i]+userExtents[i];
-		float val = RegionParams::calcCurrentValue(varname,selectPoint,tParams->GetRefinementLevel(), tParams->GetCompressionLevel(), timeStep);
+		float val = RegionParams::calcCurrentValue(tParams->GetHeightVariableName(),selectPoint,tParams->GetRefinementLevel(), tParams->GetCompressionLevel(), timeStep);
 		if (val != OUT_OF_BOUNDS)
 				selectPoint[mapDims[2]] = val+tParams->getLocalTwoDMin(2);
 		

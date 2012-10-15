@@ -244,9 +244,9 @@ float* MOM::GetAngles(){
 	//use t-grid for calculating angles
 	WeightTable *wt =GetWeightTable(0,0);
 	
-	for (int i = 0; i<_dimLens[1]; i++){
-		for (int j = 0; j<_dimLens[0]; j++){
-			anglesArray[j+_dimLens[0]*i] = wt->getAngle(i,j);
+	for (int lat = 0; lat<_dimLens[1]; lat++){
+		for (int lon = 0; lon<_dimLens[0]; lon++){
+			anglesArray[lon+_dimLens[0]*lat] = wt->getAngle(lon,lat);
 		}
 	}
 	return anglesArray;
@@ -432,7 +432,7 @@ int MOM::_GetMOMTopo(
 	_Exts[1] = _LonLatExts[1]*111177.;
 	_Exts[3] = _LonLatExts[2]*111177.;
 	_Exts[4] = _LonLatExts[3]*111177.;
-	//Note that the first dimension length is the lat
+	//Note that the first dimension length is the lon
 	_dimLens[0] = londimlen[2*lonTgrid+1];
 	_dimLens[1] = londimlen[2*lonTgrid];
 	if ((londimlen[2*lonTgrid] != latdimlen[2*latTgrid]) || (londimlen[2*lonTgrid+1] != latdimlen[2*latTgrid+1])) {

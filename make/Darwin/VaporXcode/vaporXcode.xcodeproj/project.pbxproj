@@ -509,6 +509,16 @@
 		E704160B123042CB0083F569 /* wrf2vdf.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wrf2vdf.cpp; path = ../../../apps/wrf2vdf/wrf2vdf.cpp; sourceTree = SOURCE_ROOT; };
 		E704160D123042CB0083F569 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../../../apps/wrfvdfcreate/Makefile; sourceTree = SOURCE_ROOT; };
 		E704160E123042CB0083F569 /* wrfvdfcreate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wrfvdfcreate.cpp; path = ../../../apps/wrfvdfcreate/wrfvdfcreate.cpp; sourceTree = SOURCE_ROOT; };
+		E70895151624F39600E63B60 /* MetadataROMS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MetadataROMS.cpp; sourceTree = "<group>"; };
+		E70895161624F39600E63B60 /* MetadataROMS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MetadataROMS.h; sourceTree = "<group>"; };
+		E70895171624F39600E63B60 /* NetCDFCollection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NetCDFCollection.cpp; sourceTree = "<group>"; };
+		E70895181624F39600E63B60 /* NetCDFCollection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetCDFCollection.h; sourceTree = "<group>"; };
+		E70895191624F39600E63B60 /* NetCDFSimple.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NetCDFSimple.cpp; sourceTree = "<group>"; };
+		E708951A1624F39600E63B60 /* NetCDFSimple.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetCDFSimple.h; sourceTree = "<group>"; };
+		E708951B1624F39600E63B60 /* ROMS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ROMS.cpp; sourceTree = "<group>"; };
+		E708951C1624F39600E63B60 /* ROMS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ROMS.h; sourceTree = "<group>"; };
+		E708951D1624F39600E63B60 /* WeightTable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WeightTable.cpp; sourceTree = "<group>"; };
+		E708951E1624F39600E63B60 /* WeightTable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WeightTable.h; sourceTree = "<group>"; };
 		E715141715090FAD004B7685 /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = common.h; sourceTree = "<group>"; };
 		E715141815090FAD004B7685 /* ExtensionClasses.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ExtensionClasses.h; sourceTree = "<group>"; };
 		E715141915090FAD004B7685 /* jpegapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jpegapi.h; sourceTree = "<group>"; };
@@ -779,6 +789,16 @@
 		E704146E123042460083F569 /* vdf */ = {
 			isa = PBXGroup;
 			children = (
+				E70895151624F39600E63B60 /* MetadataROMS.cpp */,
+				E70895161624F39600E63B60 /* MetadataROMS.h */,
+				E70895171624F39600E63B60 /* NetCDFCollection.cpp */,
+				E70895181624F39600E63B60 /* NetCDFCollection.h */,
+				E70895191624F39600E63B60 /* NetCDFSimple.cpp */,
+				E708951A1624F39600E63B60 /* NetCDFSimple.h */,
+				E708951B1624F39600E63B60 /* ROMS.cpp */,
+				E708951C1624F39600E63B60 /* ROMS.h */,
+				E708951D1624F39600E63B60 /* WeightTable.cpp */,
+				E708951E1624F39600E63B60 /* WeightTable.h */,
 				E700023114EF19CB002070D3 /* LayeredGrid.cpp */,
 				E700023214EF19CB002070D3 /* LayeredGrid.h */,
 				E700023314EF19CB002070D3 /* NCBuf.cpp */,
