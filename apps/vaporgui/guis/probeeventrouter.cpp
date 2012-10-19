@@ -1988,7 +1988,13 @@ guiEndCursorMove(){
 	//If we are connected to a seed, move it:
 	if (seedIsAttached() && attachedFlow){
 		mapCursor();
-		VizWinMgr::getInstance()->getFlowRouter()->guiMoveLastSeed(pParams->getSelectedPointLocal());
+		float pt[3];
+		for (int i = 0; i<3; i++) pt[i] = pParams->getSelectedPointLocal()[i];
+		AnimationParams* ap = (AnimationParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_animationParamsTag);
+		int ts = ap->getCurrentTimestep();
+		const vector<double>& usrExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)ts);
+		for (int i = 0; i<3; i++) pt[i]+=usrExts[i];
+		VizWinMgr::getInstance()->getFlowRouter()->guiMoveLastSeed(pt);
 	}
 	bool b = isAnimating();
 	if (b) ibfvPause();

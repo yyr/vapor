@@ -431,6 +431,18 @@ reinit(bool doOverride){
 		}
 	}
 	myBox->SetLocalExtents(seedBoxExtents);
+	//Likewise, in pre-22 sessions, need to offset the seeds in the seed list
+	if (DataStatus::pre22Session()){
+		for (int i = 0; i<seedPointList.size(); i++){
+			Point4 psn = seedPointList[i];
+			int ts = psn.getVal(3);
+			if (ts < 0) ts = 0; //Use zero for extents (which won't move) if seed applies to all timesteps
+			float pt[3];
+			const vector<double>& usrExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)ts);
+			for (int j = 0; j<3; j++) pt[j] = psn.getVal(j) + usrExts[j];
+			seedPointList[i].set3Val(pt);
+		}
+	}
 	//Set up variables:
 	//Get the variable names:
 	
@@ -2042,6 +2054,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 				ist >> psn[3];
 			}
 		}
+		
 		pt.setVal(psn);
 		seedPointList.push_back(pt);
 	}
