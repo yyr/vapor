@@ -45,7 +45,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../../include;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;"
-				PreprocessorDefinitions="WIN32;DEBUG;_WINDOWS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
