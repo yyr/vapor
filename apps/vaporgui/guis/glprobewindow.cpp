@@ -127,7 +127,7 @@ void GLProbeWindow::resizeGL( int width, int height )
 void GLProbeWindow::_resizeGL() {
 
 	//update the size of the drawing rectangle
-	glViewport( 0, 0, (GLint)_winWidth-1, (GLint)_winHeight-1);
+	glViewport( 0, 0, (GLint)_winWidth, (GLint)_winHeight);
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
