@@ -53,6 +53,8 @@ GLTwoDWindow::GLTwoDWindow( const QGLFormat& fmt, QWidget* parent, const char* ,
 	rectLeft = -1.f;
 	rectTop = 1.f;
 	twoDFrame = pf;
+	_winWidth = 1.0;
+	_winHeight = 1.0;
 	
 	setAutoBufferSwap(true);
 	
@@ -76,18 +78,27 @@ GLTwoDWindow::~GLTwoDWindow()
 
 void GLTwoDWindow::resizeGL( int width, int height )
 {
+	_winWidth = width;
+	_winHeight = height;
 	if (GLWindow::isRendering()) return;
+	_resizeGL();
+}
+
+void GLTwoDWindow::_resizeGL() {
+
 	//update the size of the drawing rectangle
-	glViewport( 0, 0, (GLint)width, (GLint)height );
+	glViewport( 0, 0, (GLint) _winWidth-1, (GLint) _winHeight-1 );
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
+	glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+
 	glMatrixMode(GL_MODELVIEW);
 	qglClearColor(palette().color(QPalette::Window));		// same as frame
 
 	//Calculate the lower-left and upper right positions for the 
 	//texture to be mapped
-	float winAspect = (float)height/(float)width;
+	float winAspect = (float) _winHeight/(float) _winWidth;
 	float texAspect = vertTexSize/horizTexSize;
 	if (winAspect > texAspect){
 		//Window is taller than texture, so fill from left to right:
@@ -97,24 +108,13 @@ void GLTwoDWindow::resizeGL( int width, int height )
 		rectLeft = winAspect/texAspect;
 		rectTop = 1.f;
 	}
-
 }
 	
-void GLTwoDWindow::setTextureSize(float horiz, float vert){
+void GLTwoDWindow::setTextureSize(float horiz, float vert) {
 	vertTexSize = vert;
 	horizTexSize = horiz;
-	float winAspect = (float)height()/(float)width();
-	float texAspect = vertTexSize/horizTexSize;
-	if (winAspect > texAspect){
-		//Window is taller than texture, so fill from left to right:
-		rectLeft = -1.f;
-		
-		rectTop = texAspect/winAspect;
-		
-	} else {
-		rectLeft = -winAspect/texAspect;
-		rectTop = 1.f;
-	}
+
+	_resizeGL();
 }
 
 
@@ -122,7 +122,9 @@ void GLTwoDWindow::paintGL()
 {
 	if (GLWindow::isRendering()) return;
 	if (rendering) return;
-	
+
+	_resizeGL();
+
 	rendering = true;
 	printOpenGLErrorMsg("GLTwoDWindow");
 	

@@ -86,6 +86,8 @@ GLProbeWindow::GLProbeWindow( QGLFormat& fmt, QWidget* parent, const char* , Pro
 	vertTexSize = 1.f;
 	rectLeft = -1.f;
 	rectTop = 1.f;
+	_winHeight = 1.0;
+	_winWidth = 1.0;
 	probeFrame = pf;
 	animatingTexture = false;
 	animatingFrameNum = 0;
@@ -116,19 +118,28 @@ GLProbeWindow::~GLProbeWindow()
 
 void GLProbeWindow::resizeGL( int width, int height )
 {
+	_winWidth = width;
+	_winHeight = height;
 	if (GLWindow::isRendering()) return;
+	_resizeGL();
+}
+
+void GLProbeWindow::_resizeGL() {
+
 	//update the size of the drawing rectangle
-	glViewport( 0, 0, (GLint)width, (GLint)height );
+	glViewport( 0, 0, (GLint)_winWidth-1, (GLint)_winHeight-1);
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
+	glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+
 	glMatrixMode(GL_MODELVIEW);
 	qglClearColor(palette().color(QPalette::Window));
 	
 
 	//Calculate the lower-left and upper right positions for the 
 	//texture to be mapped
-	float winAspect = (float)height/(float)width;
+	float winAspect = (float)_winHeight/(float)_winWidth;
 	float texAspect = vertTexSize/horizTexSize;
 	if (winAspect > texAspect){
 		//Window is taller than texture, so fill from left to right:
@@ -144,27 +155,19 @@ void GLProbeWindow::resizeGL( int width, int height )
 void GLProbeWindow::setTextureSize(float horiz, float vert){
 	vertTexSize = vert;
 	horizTexSize = horiz;
-	float winAspect = (float)height()/(float)width();
-	float texAspect = vertTexSize/horizTexSize;
-	if (winAspect > texAspect){
-		//Window is taller than texture, so fill from left to right:
-		rectLeft = -1.f;
-		
-		rectTop = texAspect/winAspect;
-		
-	} else {
-		rectLeft = -winAspect/texAspect;
-		rectTop = 1.f;
-	}
+	_resizeGL();
 }
-
 
 void GLProbeWindow::paintGL()
 {
 	if (GLWindow::isRendering()) return;
 	if(rendering) return;
 	rendering = true;
+
 	printOpenGLErrorMsg("GLProbeWindow");
+
+	_resizeGL();
+
 
 	ProbeParams* myParams = VizWinMgr::getActiveProbeParams();
 	

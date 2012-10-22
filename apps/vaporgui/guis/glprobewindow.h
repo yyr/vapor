@@ -95,6 +95,10 @@ protected:
 	GLuint _probeTexid, _fbid, _fbTexid;
 	bool rendering;
 	
+private: 
+	int _winWidth;
+	int _winHeight;
+	void _resizeGL();
 
 };
 };

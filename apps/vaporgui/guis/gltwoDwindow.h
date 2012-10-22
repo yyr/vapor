@@ -82,6 +82,11 @@ protected:
 	bool isDataWindow;  //true if it's a data window
 	bool rendering;
 
+private:
+	int _winWidth;
+	int _winHeight;
+	void _resizeGL();
+
 };
 };
 

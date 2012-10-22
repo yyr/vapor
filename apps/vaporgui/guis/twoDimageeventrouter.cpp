@@ -1719,6 +1719,7 @@ void TwoDImageEventRouter::paintEvent(QPaintEvent* ev){
 		sArea->ensureWidgetVisible(twoDFrameHolder);
 		texShown = true;
 #endif
+		twoDTextureFrame->updateGeometry();
 		twoDTextureFrame->show();
 	}
 	QWidget::paintEvent(ev);
