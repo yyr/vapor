@@ -712,15 +712,15 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	pCartesianGrid->setPeriod(flowPeriod);
 	
 	// set the boundary of physical grid
-	
-	VECTOR3 minR, maxR;
-	double regMin[3],regMax[3];
-	
-	dataMgr->MapVoxToUser(0, minRegion, regMin, (int)numXForms);
-	dataMgr->MapVoxToUser(0, maxRegion, regMax, (int)numXForms);
-	
-	minR.Set((float)regMin[0], (float)regMin[1], (float)regMin[2]);
-	maxR.Set((float)regMax[0], (float)regMax[1], (float)regMax[2]);
+	//The region extents must be converted based on time-varying extents
+	const vector<double>& usrExts = dataMgr->GetExtents(startTimeStep);
+	double rMin[3],rMax[3];
+	for (int i = 0; i<3; i++){
+		rMin[i] = usrExts[i]+regionLocalExtents[i];
+		rMax[i] = usrExts[i]+regionLocalExtents[i+3];
+	}
+	VECTOR3 minR(rMin);
+	VECTOR3 maxR(rMax);
 	pCartesianGrid->SetRegionExtents(minR,maxR);
 	
 	//Now set the region bound:
@@ -870,11 +870,11 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	// release resources.  we always have valid start and end pointers
 	// at this point.
 	if(!zeroX) dataMgr->UnlockGrid(xGridPtr);
-	if(!zeroX) dataMgr->UnlockGrid(yGridPtr);
-	if(!zeroX) dataMgr->UnlockGrid(zGridPtr);
+	if(!zeroY) dataMgr->UnlockGrid(yGridPtr);
+	if(!zeroZ) dataMgr->UnlockGrid(zGridPtr);
 	if(!zeroX) dataMgr->UnlockGrid(xGridPtr2);
-	if(!zeroX) dataMgr->UnlockGrid(yGridPtr2);
-	if(!zeroX) dataMgr->UnlockGrid(zGridPtr2);
+	if(!zeroY) dataMgr->UnlockGrid(yGridPtr2);
+	if(!zeroZ) dataMgr->UnlockGrid(zGridPtr2);
 	
 	pField->ClearSolutionGrid(tsIndex);
 	pField->ClearSolutionGrid(tsIndex+1);
@@ -966,16 +966,17 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 		regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2),maxRegion);
 	pCartesianGrid->setPeriod(flowPeriod);
 	
+	
 	// set the boundary of physical grid
-	
-	VECTOR3 minR, maxR;
-	double regMin[3],regMax[3];
-	
-	dataMgr->MapVoxToUser(0, minRegion, regMin, numXForms);
-	dataMgr->MapVoxToUser(0, maxRegion, regMax, numXForms);
-	
-	minR.Set(regMin[0], regMin[1], regMin[2]);
-	maxR.Set(regMax[0], regMax[1], regMax[2]);
+	//The region extents must be converted based on time-varying extents
+	const vector<double>& usrExts = dataMgr->GetExtents(startTimeStep);
+	double rMin[3],rMax[3];
+	for (int i = 0; i<3; i++){
+		rMin[i] = usrExts[i]+regionLocalExtents[i];
+		rMax[i] = usrExts[i]+regionLocalExtents[i+3];
+	}
+	VECTOR3 minR(rMin);
+	VECTOR3 maxR(rMax);
 	pCartesianGrid->SetRegionExtents(minR,maxR);
 	
 	//Now set the region bound:

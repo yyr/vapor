@@ -1324,6 +1324,8 @@ int FlowParams::insertUnsteadySeeds(RegionParams* rParams, VaporFlow* fLib, Path
 			"Also be sure that seed injection\ntimes are timestep sample times");
 		return 0;
 	}
+	float userExts[6];
+	rParams->GetBox()->GetUserExtents(userExts,timeStep);
 	
 	int seedsInRegion = 0;
 	if(doRake){
@@ -1337,7 +1339,7 @@ int FlowParams::insertUnsteadySeeds(RegionParams* rParams, VaporFlow* fLib, Path
 		for (int i = 0; i<seedCount; i++){
 			bool inside = true;
 			for (int j = 0; j< 3; j++){
-				if (seeds[3*i+j] < minExt[j] || seeds[3*i+j] > maxExt[j]) inside = false;
+				if (seeds[3*i+j] < userExts[j] || seeds[3*i+j] > userExts[j+3]) inside = false;
 			}
 			if (inside) seedsInRegion++;
 			pathLines->insertSeedAtTime(i, timeStep, seeds[3*i], seeds[3*i+1], seeds[3*i+2]);
@@ -1353,7 +1355,7 @@ int FlowParams::insertUnsteadySeeds(RegionParams* rParams, VaporFlow* fLib, Path
 			if (tstep >= 0.f && ((int)(tstep +0.5f) != timeStep)) continue;
 			bool inside = true;
 			for (int j = 0; j< 3; j++){
-				if (point.getVal(j) < minExt[j] || point.getVal(j) > maxExt[j]) inside = false;
+				if (point.getVal(j) < userExts[j] || point.getVal(j) > userExts[j+3]) inside = false;
 			}
 			if (inside) seedsInRegion++;
 			pathLines->insertSeedAtTime(i, timeStep, point.getVal(0), point.getVal(1), point.getVal(2));

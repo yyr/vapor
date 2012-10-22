@@ -226,9 +226,7 @@ float * CalcElevation(int Vtransform, float* s_rho, float* Cs_r, float Tcline, f
 					float val = z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k];
 					if (val < minElev) minElev = val;
 					if (val > maxElev) maxElev = val;
-					if (val > 1000.){
-						float foo = mappedDepth[j+dimsVDC[0]*i];
-					}
+					
 				}
 			}
 		}
@@ -249,9 +247,6 @@ float * CalcElevation(int Vtransform, float* s_rho, float* Cs_r, float Tcline, f
 					float val = z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k];
 					if (val < minElev) minElev = val;
 					if (val > maxElev) maxElev = val;
-					if (val > 1000.){
-						float foo = mappedDepth[j+dimsVDC[0]*i];
-					}
 				}
 			}
 		}

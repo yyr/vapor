@@ -41,9 +41,9 @@ Solution::Solution(RegularGrid** xGrid, RegularGrid** yGrid, RegularGrid** zGrid
 	m_fUserTimePerVaporTS = 1.f;
 	m_pUserTimeSteps = NULL;
 	m_TimeDir = FORWARD;
-	if (m_pUGrid[0]) m_pUGrid[0]->SetPeriodic(periodicity);
-	if (m_pVGrid[0]) m_pVGrid[0]->SetPeriodic(periodicity);
-	if (m_pWGrid[0]) m_pWGrid[0]->SetPeriodic(periodicity);
+	if (m_pUGrid&&m_pUGrid[0]) m_pUGrid[0]->SetPeriodic(periodicity);
+	if (m_pVGrid&&m_pVGrid[0]) m_pVGrid[0]->SetPeriodic(periodicity);
+	if (m_pWGrid&&m_pWGrid[0]) m_pWGrid[0]->SetPeriodic(periodicity);
 }
 Solution::~Solution()
 {
@@ -134,23 +134,23 @@ int Solution::getFieldValue(VECTOR3& point,const float t,  VECTOR3& fieldVal){
 		
 		ratio = offset;
 		
-		float lowU = m_pUGrid[lowT] ? m_pUGrid[lowT]->GetValue(xval, yval,zval) : 0.f;
-		if (lowU == m_pUGrid[lowT]->GetMissingValue()) lowU = 0.f;
-		float lowV = m_pVGrid[lowT] ? m_pVGrid[lowT]->GetValue(xval, yval,zval) : 0.f;
-		if (lowV == m_pVGrid[lowT]->GetMissingValue()) lowV = 0.f;
-		float lowW = m_pWGrid[lowT] ? m_pWGrid[lowT]->GetValue(xval, yval,zval) : 0.f;
-		if (lowW == m_pWGrid[lowT]->GetMissingValue()) lowW = 0.f;
+		float lowU = (m_pUGrid&&m_pUGrid[lowT]) ? m_pUGrid[lowT]->GetValue(xval, yval,zval) : 0.f;
+		if (lowU != 0.f && lowU == m_pUGrid[lowT]->GetMissingValue()) lowU = 0.f;
+		float lowV = (m_pVGrid&&m_pVGrid[lowT]) ? m_pVGrid[lowT]->GetValue(xval, yval,zval) : 0.f;
+		if (lowV != 0.f && lowV == m_pVGrid[lowT]->GetMissingValue()) lowV = 0.f;
+		float lowW = (m_pWGrid&&m_pWGrid[lowT]) ? m_pWGrid[lowT]->GetValue(xval, yval,zval) : 0.f;
+		if (lowW != 0.f && lowW == m_pWGrid[lowT]->GetMissingValue()) lowW = 0.f;
 		if(ratio == 0.0)
 			fieldVal.Set(lowU*m_fTimeScaleFactor*m_fUserTimePerVaporTS, 
 						 lowV*m_fTimeScaleFactor*m_fUserTimePerVaporTS, 
 						 lowW*m_fTimeScaleFactor*m_fUserTimePerVaporTS);
 		else{
-			float hiU = m_pUGrid[hiT] ? m_pUGrid[hiT]->GetValue(xval, yval,zval) : 0.f;
-			if (hiU == m_pUGrid[hiT]->GetMissingValue()) hiU = 0.f;
-			float hiV = m_pVGrid[hiT] ? m_pVGrid[hiT]->GetValue(xval, yval,zval) : 0.f;
-			if (hiV == m_pVGrid[hiT]->GetMissingValue()) hiV = 0.f;
-			float hiW = m_pWGrid[hiT] ? m_pWGrid[hiT]->GetValue(xval, yval,zval) : 0.f;
-			if (hiW == m_pWGrid[hiT]->GetMissingValue()) hiW = 0.f;
+			float hiU = (m_pUGrid&&m_pUGrid[hiT]) ? m_pUGrid[hiT]->GetValue(xval, yval,zval) : 0.f;
+			if (hiU != 0.f && hiU == m_pUGrid[hiT]->GetMissingValue()) hiU = 0.f;
+			float hiV = (m_pVGrid&&m_pVGrid[hiT]) ? m_pVGrid[hiT]->GetValue(xval, yval,zval) : 0.f;
+			if (hiV != 0.f && hiV == m_pVGrid[hiT]->GetMissingValue()) hiV = 0.f;
+			float hiW = (m_pWGrid&&m_pWGrid[hiT]) ? m_pWGrid[hiT]->GetValue(xval, yval,zval) : 0.f;
+			if (hiW!= 0.f && hiW == m_pWGrid[hiT]->GetMissingValue()) hiW = 0.f;
             fieldVal.Set(m_fTimeScaleFactor*Lerp(lowU,hiU, ratio)*m_fUserTimePerVaporTS, 
 						 m_fTimeScaleFactor*Lerp(lowV,hiV, ratio)*m_fUserTimePerVaporTS,
 						 m_fTimeScaleFactor*Lerp(lowW,hiW, ratio)*m_fUserTimePerVaporTS);
