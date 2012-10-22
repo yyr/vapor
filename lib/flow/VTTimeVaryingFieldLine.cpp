@@ -77,7 +77,7 @@ int vtCTimeVaryingFieldLine::advectParticle(vtParticleInfo& initialPoint,
 	PointInfo seedInfo;
 	PointInfo thisParticle;
 	VECTOR3 thisInterpolant, prevInterpolant, second_prevInterpolant;
-	double dt, cell_side, mag; 
+	double dt, cell_vol, mag; 
 	double curTime;
 	VECTOR3 vel;
 	int nSetAdaptiveCount = 0;
@@ -94,7 +94,7 @@ int vtCTimeVaryingFieldLine::advectParticle(vtParticleInfo& initialPoint,
 	
 	// get the initial stepsize
 	mag = vel.GetDMag();
-	dt = m_pField->GetMaxMinGridSpacing()/mag;
+	dt = m_pField->GetMinCellVolume()/mag;
 	
 	//Allow dt*mag to be 10 times the initial setting:
 	float maxDtMag = dt*mag*10.f;
@@ -173,11 +173,11 @@ int vtCTimeVaryingFieldLine::advectParticle(vtParticleInfo& initialPoint,
 				prevPhy = **pIter;
 				pIter--;
 				second_prevPhy = **pIter;
-			    cell_side = m_pField->GetMaxMinGridSpacing();
+			    cell_vol = m_pField->GetMinCellVolume();
 				
 				mag = vel.GetDMag();
-				minStepsize = m_fInitStepSize * cell_side / mag;
-				maxStepsize = m_fMaxStepSize * cell_side / mag;
+				minStepsize = m_fInitStepSize * cell_vol / mag;
+				maxStepsize = m_fMaxStepSize * cell_vol / mag;
 				retrace = adapt_step(second_prevPhy, prevPhy, thisPhy, minStepsize, maxStepsize, &dt, bAdaptive);
 				
 				if(bAdaptive == false)

@@ -103,8 +103,8 @@ bool CartesianGrid::at_phys(VECTOR3& pos)
 void CartesianGrid::GetMinGridSpacing(float minspace[3]){
 	for (int i = 0; i<3; i++) minspace[i] = (m_vMaxRegBound[i]-m_vMinRegBound[i])/m_nDimension[i];
 }
-float CartesianGrid::GetMaxMinGridSpacing(){
+float CartesianGrid::GetMinCellVolume(){
 	float minspace[3];
 	GetMinGridSpacing(minspace);
-	return (Max(minspace[0],Max(minspace[1],minspace[2])));
+	return (pow(minspace[0]*minspace[1]*minspace[2],0.333333f));
 }

@@ -65,7 +65,7 @@ public:
 	virtual bool isInRegion(VECTOR3& pos) = 0;
 	// get the minimal cell spacing in x,y,z dimensions for cell cellId
 	
-	virtual float GetMaxMinGridSpacing() = 0;
+	virtual float GetMinCellVolume() = 0;
 	virtual void GetMinGridSpacing(float minspace[3]) = 0;
 };
 
@@ -127,7 +127,7 @@ public:
 	// check in region 
 	bool isInRegion(VECTOR3& pos);
 	void GetMinGridSpacing(float spacing[3]);
-	float GetMaxMinGridSpacing();
+	float GetMinCellVolume();
 };
 
 

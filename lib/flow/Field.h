@@ -60,7 +60,7 @@ public:
 	float getTimeScaleFactor(){return m_pSolution->GetTimeScaleFactor();}
 	
 	float GetUserTimePerVaporTS() { return m_pSolution->GetUserTimePerVaporTS();}
-	float GetMaxMinGridSpacing() { return m_pGrid->GetMaxMinGridSpacing();}
+	float GetMinCellVolume() { return m_pGrid->GetMinCellVolume();}
 
 };
 //Helper class to get data out of a vector field

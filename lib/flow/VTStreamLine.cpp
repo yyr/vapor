@@ -187,7 +187,7 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 {
 	int istat;
 	PointInfo thisParticle;
-	double dt, cell_side, mag; 
+	double dt, cell_vol, mag; 
 	double curTime;
 	VECTOR3 vel;
 	float totalStepsize = 0.0;
@@ -207,10 +207,10 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 		
 	// get the initial step size
 	
-	cell_side = m_pField->GetMaxMinGridSpacing();
+	cell_vol = m_pField->GetMinCellVolume();
 	mag = vel.GetDMag();
 	
-	dt = m_fInitStepSize * cell_side / mag;
+	dt = m_fInitStepSize * cell_vol / mag;
 	
 	//Determine the value of mag*dt to project 10 times init size.  
 	double maxMagDt = 10.*dt*mag;
@@ -272,8 +272,8 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 
 				
 				mag = vel.GetDMag();
-				minStepsize = m_fInitStepSize * cell_side / mag;
-				maxStepsize = m_fMaxStepSize * cell_side / mag;
+				minStepsize = m_fInitStepSize * cell_vol / mag;
+				maxStepsize = m_fMaxStepSize * cell_vol / mag;
 				retrace = adapt_step(second_prevPhy, prevPhy, thisPhy, minStepsize, maxStepsize, &dt, onAdaptive);
 				if(onAdaptive == false)
 					nSetAdaptiveCount = 0;
