@@ -62,6 +62,7 @@ DVRTexture3d::DVRTexture3d(
   _samples(0),
   _samplingRate(2.0),
   _minimumSamples(256),
+  _minimumSamplesFast(64),
   _maxTexture(0),
   _maxBrickDim(128), // NOTE: This should always be <= _maxTexture
   _lastRegion(),
@@ -322,9 +323,11 @@ void DVRTexture3d::calculateSampling()
   // But we'll oversample to _minimumSamples (if we're not in fast render mode)
   // for a smooth appearance at low refinement levels.
   //
-  if (!_renderFast && _samples < _minimumSamples)
+  if ((_renderFast && _samples < _minimumSamplesFast) ||
+	(!_renderFast && _samples < _minimumSamples)) 
   {
-    _samples = _minimumSamples;
+    if (_renderFast) _samples = _minimumSamplesFast;
+    else _samples = _minimumSamples;
 
     //
     // Recalculate the sampling rate -- used later for the opacity correction

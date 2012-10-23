@@ -119,6 +119,7 @@ protected:
   float  _samples;
   float  _samplingRate;
   int    _minimumSamples;
+  int    _minimumSamplesFast;
   int    _maxTexture;
   int    _maxBrickDim;
   Vect3d _slicePlaneNormal;
