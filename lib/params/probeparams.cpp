@@ -1542,7 +1542,7 @@ bool ProbeParams::buildIBFVFields(int timestep){
 	int actualRefLevel = GetRefinementLevel();
 	int lod = GetCompressionLevel();
 	RegularGrid* grids[3];
-	//int rc = getProbeGrids(timestep, 3, sesVarNums, coordMin, coordMax, &actualRefLevel, grids);
+	
 	int rc = getGrids( timestep, varnames, extents, &actualRefLevel, &lod,  grids);
 	if (!rc) return false;
 	
@@ -1649,8 +1649,11 @@ bool ProbeParams::buildIBFVFields(int timestep){
 				for (int k = 0; k<3; k++){
 					if(grids[k]) {
 						float fieldval = grids[k]->GetValue(dataCoord[0],dataCoord[1],dataCoord[2]);
-						if (fieldval == grids[k]->GetMissingValue()) fieldval = 0;
-						vecField[k] = fieldval;
+						if (fieldval == grids[k]->GetMissingValue()) {
+							dataOK = false;
+							vecField[k]=0.;
+						}
+						else vecField[k] = fieldval;
 					}
 					else vecField[k] = 0.f;
 				}
