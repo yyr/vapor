@@ -306,7 +306,10 @@ void GLWindow::paintEvent(QPaintEvent*)
 	float minFull[3] = {0.f,0.f,0.f};
 	float maxFull[3] = {1.f,1.f,1.f};
 
-    if (nowPainting) return;
+    if (nowPainting) {
+		renderMutex.unlock();
+		return;
+	}
 	nowPainting = true;
 	
 	qglClearColor(getBackgroundColor()); 
@@ -982,7 +985,7 @@ void GLWindow::drawAxisLabels() {
 	ViewpointParams::localToStretchedCube(maxTic, ticMax);
 	
 	float pointOnAxis[3];
-	float winCoords[2];
+	float winCoords[2] = {0.f,0.f};
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	for (int axis = 0; axis < 3; axis++){
 		if (numTics[axis] > 1){
@@ -1229,7 +1232,10 @@ bool GLWindow::removeRenderer(RenderParams* rp){
 	assert(!nowPainting);
 	renderMutex.lock();
 	map<RenderParams*,Renderer*>::iterator find_iter = rendererMapping.find(rp);
-	if (find_iter == rendererMapping.end()) return false;
+	if (find_iter == rendererMapping.end()) {
+		renderMutex.unlock();
+		return false;
+	}
 	Renderer* ren = find_iter->second;
 	
 	makeCurrent();
@@ -1518,7 +1524,7 @@ bool GLWindow::startHandleSlide(float mouseCoords[2], int handleNum, Params* man
 	//Get the cube coords of the rotation center:
 	
 	float boxCtr[3]; 
-	float winCoords[2];
+	float winCoords[2] = {0.f,0.f};
 	float dispCoords[2];
 	
 	if (handleNum > 2) handleNum = handleNum-3;

@@ -132,7 +132,9 @@ void AnimationController::
 startVisualizer(int viznum, int currentTime){
 	startTime[viznum] = currentTime;
 	VizWinMgr::getInstance()->getVizWin(viznum)->setAnimationDirty(true);
-	VizWinMgr::getInstance()->getVizWin(viznum)->updateGL();
+	QEvent* renderEvent = new QEvent(QEvent::UpdateRequest);
+	QApplication::postEvent(VizWinMgr::getInstance()->getVizWin(viznum)->getGLWindow(), renderEvent, INT_MAX);
+	QApplication::processEvents();
 }
 //Activate renderer prior to starting play, in response to user clicking "play" button.
 void AnimationController::
