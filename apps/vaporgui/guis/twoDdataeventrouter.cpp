@@ -1542,25 +1542,21 @@ void TwoDDataEventRouter::captureImage() {
 	MainForm::getInstance()->showCitationReminder();
 	TwoDDataParams* pParams = VizWinMgr::getActiveTwoDDataParams();
 	if (!pParams->isEnabled()) return;
-	QFileDialog fileDialog(this,
-		"Specify Jpeg image capture file name",
-		Session::getInstance()->getJpegDirectory().c_str(),
-		"Jpeg Images (*.jpg)");
-	fileDialog.setWindowTitle("Specify image capture file name");
-	fileDialog.resize(450,450);
-	if (fileDialog.exec() != QDialog::Accepted) return;
+	QString filename = QFileDialog::getSaveFileName(this,
+													"Specify image capture Jpeg file name",
+													Session::getInstance()->getJpegDirectory().c_str(),
+													"Jpeg Images (*.jpg)");
+	if(filename == QString("")) return;
 	
-	//Extract the path, and the root name, from the returned string.
-	QString filename = fileDialog.selectedFiles()[0];
-    
 	//Extract the path, and the root name, from the returned string.
 	QFileInfo* fileInfo = new QFileInfo(filename);
 	
 	if (fileInfo->exists()){
 		int rc = QMessageBox::warning(0, "File Exists", QString("OK to replace existing jpeg file?\n %1 ").arg(filename), QMessageBox::Ok, 
-			QMessageBox::No);
+									  QMessageBox::No);
 		if (rc != QMessageBox::Ok) return;
 	}
+	
 	//Save the path for future captures
 	Session::getInstance()->setJpegDirectory((const char*)fileInfo->absolutePath().toAscii());
 	if (!filename.endsWith(".jpg")) filename += ".jpg";

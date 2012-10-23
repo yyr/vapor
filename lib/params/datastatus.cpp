@@ -1414,9 +1414,9 @@ int DataStatus::getMaxLevel3D(int sesvarnum, int timestep){
 			if (minMaxLevel > varlevel)minMaxLevel = varlevel;
 		}
 		for (int i = 0; i<in3dVars.size(); i++) {
-			int vnum = getMetadataVarNum2D(in3dVars[i]);
+			int vnum = getMetadataVarNum(in3dVars[i]);
 			assert(vnum >= 0);
-			int varlevel = getMaxLevel2D(vnum, timestep);
+			int varlevel = getMaxLevel3D(vnum, timestep);
 			if (minMaxLevel > varlevel)minMaxLevel = varlevel;
 		}
 		maxLevel3D[sesvarnum][timestep] = minMaxLevel;
