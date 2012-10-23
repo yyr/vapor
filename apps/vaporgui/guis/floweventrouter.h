@@ -144,7 +144,8 @@ protected slots:
 	void guiCheckPeriodicZ(bool periodic);
 	void guiSetAutoRefresh(bool isOn);
 	
-	void setBiasFromSlider1(int);
+	void setBiasFromSlider();
+	void setBiasText(int);
 	void setFlowConstantColor();
 	void guiSetFlowGeometry(int geomNum);
 	void guiSetColorMapEntity( int entityNum);

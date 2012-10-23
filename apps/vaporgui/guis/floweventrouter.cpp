@@ -159,7 +159,8 @@ FlowEventRouter::hookUpTab()
 	connect (ySizeSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetYSize(int)));
 	connect (zSizeSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetZSize(int)));
 
-	connect (biasSlider1, SIGNAL(valueChanged(int)), this, SLOT(setBiasFromSlider1(int)));
+	connect (biasSlider1, SIGNAL(valueChanged(int)), this, SLOT(setBiasText(int)));
+	connect (biasSlider1, SIGNAL(sliderReleased()), this, SLOT(setBiasFromSlider()));
 	
 	connect (steadyLengthSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetSteadyLength(int)));
 	connect (smoothnessSlider, SIGNAL(valueChanged(int)), this, SLOT(guiSetSmoothness(int)));
@@ -1340,14 +1341,19 @@ setFlowEnabled(bool val, int instance){
 }
 
 void FlowEventRouter::
-setBiasFromSlider1(int val){
+setBiasFromSlider(){
 	
-	float biasVal = 15.f*val/128.f;
+	float biasVal = biasEdit1->text().toFloat();
 	biasEdit1->setText(QString::number(biasVal));
 	guiSetSeedDistBias(biasVal);
 }
 
-
+void FlowEventRouter::
+setBiasText(int val){
+	
+	float biasVal = 15.f*val/128.f;
+	biasEdit1->setText(QString::number(biasVal));
+}
 
 
 /*
