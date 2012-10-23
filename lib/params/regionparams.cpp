@@ -94,25 +94,37 @@ RegionParams::~RegionParams(){
 int RegionParams::
 validateNumTrans(int n, int timestep){
 	//if we have a dataMgr, see if we can really handle this new numtrans:
-	if (!DataStatus::getInstance()) return n;
-	
-	
+	DataStatus* ds = DataStatus::getInstance();
+	bool canUseLower = ds->useLowerAccuracy();
+	DataMgr* dataMgr = ds->getDataMgr();
+	if (!dataMgr) return n;
+	int testRefLevel = n;
+	if (dataMgr->GetGridType()== "layered"){
+		int elevVarNum = ds->getSessionVariableNum3D("ELEVATION");
+		if (elevVarNum < 0) return n;
+		int availRefLevel = ds->maxXFormPresent3D(elevVarNum, timestep);
+		if (availRefLevel < 0) return n;
+		if (availRefLevel < testRefLevel && canUseLower) testRefLevel = availRefLevel;
+	}
+
 	size_t min_dim[3], max_dim[3];
-	getRegionVoxelCoords(n,min_dim,max_dim, timestep);
-	
+	getRegionVoxelCoords(testRefLevel,min_dim,max_dim, timestep);
 	//calc num voxels
 	size_t newFullMB = (max_dim[0]-min_dim[0]+1)*(max_dim[1]-min_dim[1]+1)*(max_dim[2]-min_dim[2]+1);
 	//right shift by 20 for megavoxels
 	newFullMB >>= 20;
 	//Multiply by 6 for 6 bytes per voxel
 	newFullMB *= 6;
+	bool reduced = false;
 	while (newFullMB >= DataStatus::getInstance()->getCacheMB()){
 		//find  and return a legitimate value.  Each time we increase n by 1,
 		//we decrease the size needed by 8
-		n--;
+		testRefLevel--;
 		newFullMB >>= 3;
+		reduced = true;
 	}	
-	return n;
+	if(reduced) return testRefLevel; 
+	else return n;
 }
 	//If we passed that test, then go ahead and change the numTrans.
 
