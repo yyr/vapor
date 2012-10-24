@@ -167,12 +167,6 @@ protected:
 	static const string _heightVariableAttr;
 	void refreshCtab();
 			
-	//Utility functions for building texture and histogram
-	
-	//Find smallest containing cube in integer coords, 
-	//that will contain image of twoD
-	void getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3], int numRefs);
-	
 
 	bool elevGridDirty;
 

@@ -80,20 +80,7 @@ TwoDParams::~TwoDParams(){
 
 
 
-//Find the smallest box containing the twoD slice, in block coords, at current refinement level.
-//We also need the actual box coords (min and max) to check for valid coords in the block.
-//Note that the box region may be strictly smaller than the block region
-//
-void TwoDParams::getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3], int numRefs){
-	//Determine the box that contains the twoD slice.
-	DataStatus* ds = DataStatus::getInstance();
-	double exts[6];
-	GetBox()->GetLocalExtents(exts);
-	
-	ds->getDataMgr()->MapUserToVox(timestep,exts, boxMin, numRefs);
-	ds->getDataMgr()->MapUserToVox(timestep,exts+3, boxMax, numRefs);
 
-}
 
 //Find the smallest stretched extents containing the twoD, 
 //Similar to above, but using stretched extents

@@ -323,7 +323,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 	}
 
 	const float *rangeptr = currentRenderParams->getCurrentDatarange();
-	myRegionParams->getLocalRegionExtents(extents, timeStep);
+	
 	bool rangeDirty = false;
 	for (int i=0; i<2; i++) {
 		if (_range[i] != rangeptr[i]) {

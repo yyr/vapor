@@ -1199,11 +1199,14 @@ setupFieldData(const vector<string>& varnames,
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, 
 		regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2),maxInt);
 	pCartesianGrid->setPeriod(flowPeriod);
-	//The region extents must be set to be consistent with the current refinement level, by
-	//converting from the integer extents
+
+	//The region extents must be converted based on time-varying extents
+	const vector<double>& usrExts = dataMgr->GetExtents(steadyStartTimeStep);
 	double rMin[3],rMax[3];
-	dataMgr->MapVoxToUser(steadyStartTimeStep, minRegion, rMin, numXForms);
-	dataMgr->MapVoxToUser(steadyStartTimeStep,maxRegion, rMax, numXForms);
+	for (int i = 0; i<3; i++){
+		rMin[i] = usrExts[i]+regionLocalExtents[i];
+		rMax[i] = usrExts[i]+regionLocalExtents[i+3];
+	}
 	VECTOR3 minR(rMin);
 	VECTOR3 maxR(rMax);
 	pCartesianGrid->SetRegionExtents(minR,maxR);

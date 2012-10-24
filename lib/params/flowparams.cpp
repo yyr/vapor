@@ -2269,12 +2269,8 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		
 		size_t min_dim[3], max_dim[3];
 		double validExts[6];
-		rParams->getLocalRegionExtents(validExts, timeStep);
-		//Convert to user extents at current timeStep
-		const vector<double>& userExts = dataMgr->GetExtents((size_t)timeStep);
-		for (int i = 0; i<6; i++) validExts[i] += userExts[i%3];
+		rParams->GetBox()->GetUserExtents(validExts, (size_t)timeStep);
 
-		
 		vector<string> opacVarname;
 		opacVarname.push_back(opacMapEntity[getOpacMapEntityIndex()]);
 		int opacRefLevel = RegionParams::PrepareCoordsForRetrieval(numRefinements, timeStep, opacVarname, 
@@ -2326,11 +2322,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		
 		size_t min_dim[3], max_dim[3];
 		double validExts[6];
-		rParams->getLocalRegionExtents(validExts, timeStep);
-
-		//Convert to user extents at current timeStep
-		const vector<double>& userExts = dataMgr->GetExtents((size_t)timeStep);
-		for (int i = 0; i<6; i++) validExts[i] += userExts[i%3];
+		rParams->GetBox()->GetUserExtents(validExts, (size_t)timeStep);
 
 		vector<string> colorVarname;
 		colorVarname.push_back(colorMapEntity[getColorMapEntityIndex()]);
