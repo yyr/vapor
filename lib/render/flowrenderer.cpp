@@ -1895,8 +1895,8 @@ renderArrows(FlowLineData* flowLineData, float radius, bool isLit, int firstAge,
 					//vcopy(point-3, startPoint);
 					//vcopy(point, endPoint);
 				}
-				
-				drawArrow(isLit, flowLineData->getFlowRGBAs(tubeNum,tubeIndex-1), startPoint, endPoint, currentN, currentB, currentU, radius, constMap);
+				if (vdist(startPoint,endPoint) > 1.e-10)
+					drawArrow(isLit, flowLineData->getFlowRGBAs(tubeNum,tubeIndex-1), startPoint, endPoint, currentN, currentB, currentU, radius, constMap);
 
 				//If the arrow exited the region (in cyclic case) need to restart the points.  Note that
 				//the direction vectors don't need to be changed:
