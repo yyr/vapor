@@ -67,7 +67,8 @@ public:
 	}
 	void setOrientation(int val);
 	int getOrientation() {return orientation;}
-	
+	bool linearInterpTex() {return linearInterp;}
+	void setLinearInterp(bool interp){linearInterp = interp;}
 	virtual void getTextureSize(int sze[2], int timestep) = 0;
 	
 	void getTwoDVoxelExtents(float voxdims[2]);
@@ -186,7 +187,7 @@ protected:
 
 	int orientation; //Only settable in image mode
 	
-
+	bool linearInterp;
 	Box* myBox;
 	int numRefinements, maxNumRefinements;
 	int * textureSizes; //2 ints for each time step

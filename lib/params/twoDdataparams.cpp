@@ -52,6 +52,7 @@ const string TwoDDataParams::_shortName = "2D";
 const string TwoDDataParams::_editModeAttr = "TFEditMode";
 const string TwoDDataParams::_histoStretchAttr = "HistoStretchFactor";
 const string TwoDDataParams::_variableSelectedAttr = "VariableSelected";
+const string TwoDDataParams::_linearInterpAttr = "LinearInterp";
 
 TwoDDataParams::TwoDDataParams(int winnum) : TwoDParams(winnum, Params::_twoDDataParamsTag){
 	
@@ -458,6 +459,7 @@ restart(){
 	GetBox()->SetLocalExtents(twoDexts);
 	
 	heightVariableName = "HGT";
+	linearInterp = true;
 }
 
 
@@ -488,7 +490,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 	if (StrCmpNoCase(tagString, _twoDDataParamsTag) == 0 ||
 		StrCmpNoCase(tagString, _twoDParamsTag) == 0) {
 		//Set defaults in case reading an old session:
-		
+		setLinearInterp(false);
 		orientation = 2; //X-Y aligned
 		int newNumVariables = 0;
 		heightVariableName = "HGT";
@@ -535,6 +537,10 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _terrainMapAttr) == 0){
 				if (value == "true") setMappedToTerrain(true); 
 				else setMappedToTerrain(false);
+			}
+			else if (StrCmpNoCase(attribName, _linearInterpAttr) == 0){
+				if (value == "true") setLinearInterp(true); 
+				else setLinearInterp(false);
 			}
 			else if (StrCmpNoCase(attribName, _verticalDisplacementAttr) == 0){
 				//obsolete
@@ -746,6 +752,13 @@ buildNode() {
 	attrs[_editModeAttr] = oss.str();
 
 	oss.str(empty);
+	if (linearInterp)
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_linearInterpAttr] = oss.str();
+
+	oss.str(empty);
 	oss << (double)GetHistoStretch();
 	attrs[_histoStretchAttr] = oss.str();
 
@@ -895,7 +908,8 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 		setBypass(ts);
 		return 0;
 	}
-	twoDGrid->SetInterpolationOrder(0);
+	if (linearInterpTex())twoDGrid->SetInterpolationOrder(1);
+	else twoDGrid->SetInterpolationOrder(0);
 	
 	float a[2],b[2];  //transform of (x,y) is to (a[0]x+b[0],a[1]y+b[1])
 	//Set up to transform from twoD into volume:
@@ -1041,8 +1055,8 @@ void TwoDDataParams::adjustTextureSize(int sz[2]){
 	int ydist = (int)(relHt*dataSize[ycrd]);
 	texSize[0] = 1<<(VetsUtil::ILog2(xdist));
 	texSize[1] = 1<<(VetsUtil::ILog2(ydist));
-	if (texSize[0] < 2) texSize[0] = 2;
-	if (texSize[1] < 2) texSize[1] = 2;
+	if (texSize[0] < 256) texSize[0] = 256;
+	if (texSize[1] < 256) texSize[1] = 256;
 	
 	sz[0] = texSize[0];
 	sz[1] = texSize[1];

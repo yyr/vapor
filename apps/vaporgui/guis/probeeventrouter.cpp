@@ -152,6 +152,7 @@ ProbeEventRouter::hookUpTab()
 	connect(alphaEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect(fieldScaleEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect(colorMergeCheckbox,SIGNAL(toggled(bool)), this, SLOT(guiToggleColorMerge(bool)));
+	connect(smoothCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiToggleSmooth(bool)));
 	connect (alphaEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
 	
 	connect (fieldScaleEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
@@ -280,6 +281,7 @@ void ProbeEventRouter::updateTab(){
 		ibfvFrame->hide();
 		colorMergeCheckbox->setEnabled(false);
 	}
+	smoothCheckbox->setChecked(probeParams->linearInterpTex());
 	captureFlowButton->setEnabled(pType==1);
 	//set ibfv parameters:
 	alphaEdit->setText(QString::number(probeParams->getAlpha()));
@@ -2801,6 +2803,17 @@ guiToggleColorMerge(bool val){
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "toggle color merge");
 	pParams->setIBFVColorMerged(val);
+	PanelCommand::captureEnd(cmd,pParams);
+	setProbeDirty(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams);
+	updateTab();
+}
+void ProbeEventRouter::
+guiToggleSmooth(bool val){
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "toggle smoothing");
+	pParams->setLinearInterp(val);
 	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
 	VizWinMgr::getInstance()->forceRender(pParams);

@@ -117,7 +117,7 @@ protected slots:
 	void guiChangeInstance(int);
 	void guiNewInstance();
 	void guiDeleteInstance();
-	
+	void guiToggleSmooth(bool);
 	void twoDAttachSeed(bool attach);
 	void setTwoDTabTextChanged(const QString& qs);
 	void twoDReturnPressed();

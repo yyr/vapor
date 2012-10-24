@@ -69,6 +69,7 @@ TwoDImageParams::TwoDImageParams(int winnum) : TwoDParams(winnum, Params::_twoDI
 	twoDDataTextures = 0;
 	maxTimestep = 1;
 	cachedTimestep = -1;
+	linearInterp = false;
 	restart();
 	
 }

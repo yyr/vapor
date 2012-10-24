@@ -173,7 +173,7 @@ void GLProbeWindow::paintGL()
 	
 	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentTimestep();
 	
-   qglClearColor(palette().color(QPalette::Window));	// same as frame
+	qglClearColor(palette().color(QPalette::Window));	// same as frame
 	
 	glClearDepth(1);
 	glPolygonMode(GL_FRONT,GL_FILL);
@@ -278,8 +278,11 @@ void GLProbeWindow::initializeGL()
     glShadeModel( GL_FLAT );
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glDisable(GL_LIGHTING);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	
+
 	capturing = false;
 	ProbeRenderer::pushState(256,256,_fbid, _fbTexid, true);
 	ProbeRenderer::popState();

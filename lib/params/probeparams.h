@@ -277,6 +277,8 @@ public:
 		return (ibfvValid[timestep][uv] != 0);
 	}
 	bool ibfvColorMerged() {return mergeColor;}
+	bool linearInterpTex() {return linearInterp;}
+	void setLinearInterp(bool interp){linearInterp = interp;}
 	void setIBFVColorMerged(bool val) {mergeColor = val;}
 	static void setDefaultScale(float val){defaultScale = val;}
 	static float getDefaultScale(){return defaultScale;}
@@ -308,6 +310,7 @@ protected:
 	static const string _fieldScaleAttr;
 	static const string _alphaAttr;
 	static const string _probeTypeAttr;
+	static const string _linearInterpAttr;
 	
 	void refreshCtab();
 			
@@ -329,7 +332,7 @@ protected:
 	TransferFunction** transFunc;
 	
 	float histoStretchFactor;
-	
+	bool linearInterp;
 	
 	std::vector<bool> variableSelected;
 	bool planar; //whether the probe is required to be planar

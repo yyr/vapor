@@ -203,6 +203,7 @@ protected:
 	static const string _editModeAttr;
 	static const string _histoStretchAttr;
 	static const string _variableSelectedAttr;
+	static const string _linearInterpAttr;
 	void refreshCtab();
 			
 	//Utility functions for building texture and histogram

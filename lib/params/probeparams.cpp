@@ -66,6 +66,7 @@ const string ProbeParams::_mergeColorAttr = "MergeColors";
 const string ProbeParams::_fieldScaleAttr = "FieldScale";
 const string ProbeParams::_alphaAttr= "Alpha";
 const string ProbeParams::_probeTypeAttr = "ProbeType";
+const string ProbeParams::_linearInterpAttr = "LinearInterp";
 float ProbeParams::defaultAlpha = 0.12f;
 float ProbeParams::defaultScale = 1.0f;
 float ProbeParams::defaultTheta = 0.0f;
@@ -527,6 +528,7 @@ restart(){
 	GetBox()->SetLocalExtents(exts);
 	NPN = 0;
 	NMESH = 0;
+	linearInterp = true;
 	
 }
 void ProbeParams::setDefaultPrefs(){
@@ -563,7 +565,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 	static int parsedVarNum = -1;
 	
 	if (StrCmpNoCase(tagString, _probeParamsTag) == 0) {
-		
+		//default to linear interpolation off, for old session files
+		setLinearInterp(false);
 		int newNumVariables = 0;
 		//If it's a Probe tag, obtain 10 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
@@ -600,6 +603,10 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _editModeAttr) == 0){
 				if (value == "true") setEditMode(true); 
 				else setEditMode(false);
+			}
+			else if (StrCmpNoCase(attribName, _linearInterpAttr) == 0){
+				if (value == "true") setLinearInterp(true); 
+				else setLinearInterp(false);
 			}
 			else if (StrCmpNoCase(attribName, _planarAttr) == 0){
 				if (value == "true") setPlanar(true); 
@@ -857,6 +864,13 @@ buildNode() {
 	else 
 		oss << "false";
 	attrs[_planarAttr] = oss.str();
+
+	oss.str(empty);
+	if (linearInterp)
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_linearInterpAttr] = oss.str();
 
 	oss.str(empty);
 	oss << (double)GetHistoStretch();
@@ -1210,8 +1224,9 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 	if(!rc){
 		return 0;
 	}
-	//Nearest neighbor interpolation by default...
-	probeGrid->SetInterpolationOrder(0);
+	
+	if (linearInterpTex())probeGrid->SetInterpolationOrder(1);
+	else probeGrid->SetInterpolationOrder(0);
 
 	float transformMatrix[12];
 	//Set up to transform from probe into volume:

@@ -148,6 +148,7 @@ protected slots:
 	void ibfvPlay();
 	void ibfvPause();
 	void guiToggleColorMerge(bool);
+	void guiToggleSmooth(bool);
 	
 	//Handle thumbwheel events:
 	void pressXWheel();

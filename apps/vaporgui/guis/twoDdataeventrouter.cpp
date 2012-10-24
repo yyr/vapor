@@ -155,6 +155,7 @@ TwoDDataEventRouter::hookUpTab()
 	connect (navigateButton, SIGNAL(toggled(bool)), this, SLOT(setTwoDNavigateMode(bool)));
 	connect (editButton, SIGNAL(toggled(bool)), this, SLOT(setTwoDEditMode(bool)));
 	connect(newHistoButton, SIGNAL(clicked()), this, SLOT(refreshTwoDHisto()));
+	connect(smoothCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiToggleSmooth(bool)));
 	
 	// Transfer function controls:
 	connect(editButton, SIGNAL(toggled(bool)), 
@@ -248,7 +249,7 @@ void TwoDDataEventRouter::updateTab(){
 	}
 	guiSetTextChanged(false);
 	attachSeedCheckbox->setChecked(seedAttached);
-	
+	smoothCheckbox->setChecked(twoDParams->linearInterpTex());
 	captureButton->setEnabled(twoDParams->isEnabled());
 
 	//orientation = ds->get2DOrientation(twoDParams->getFirstVarNum());
@@ -2065,6 +2066,17 @@ void TwoDDataEventRouter::refreshGLWindow()
 {
 	if (twoDTextureFrame->getGLWindow()->isRendering()) return;
 	twoDTextureFrame->getGLWindow()->updateGL();
+}
+void TwoDDataEventRouter::
+guiToggleSmooth(bool val){
+	confirmText(false);
+	TwoDDataParams* pParams = VizWinMgr::getActiveTwoDDataParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "toggle smoothing");
+	pParams->setLinearInterp(val);
+	PanelCommand::captureEnd(cmd,pParams);
+	setTwoDDirty(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams);
+	updateTab();
 }
 void TwoDDataEventRouter::guiFitTFToData(){
 	

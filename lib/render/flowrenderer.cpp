@@ -697,7 +697,8 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 	
 	int numRefs = myFlowParams->GetRefinementLevel();
 	double exts[6];
-	rParams->GetBox()->GetLocalExtents(exts, timeStep);
+	rParams->GetBox()->GetUserExtents(exts, (size_t)timeStep);
+	
 	int numMBs = RegionParams::getMBStorageNeeded(exts, numRefs);
 	
 	//3 variables are needed for
