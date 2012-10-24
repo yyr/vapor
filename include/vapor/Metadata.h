@@ -174,7 +174,7 @@ public:
 
  //! Return the names of the 3D variables in the collection 
  //!
- //! \retval value is a space-separated list of 3D variable names.
+ //! \retval value is a vector of 3D variable names.
  //! An emptry string is returned if no variables of this type are present
  //!
  //
@@ -182,7 +182,7 @@ public:
 
  //! Return the names of the 2D, XY variables in the collection 
  //!
- //! \retval value is a space-separated list of 2D XY variable names
+ //! \retval value is a vector of 2D XY variable names
  //! An emptry string is returned if no variables of this type are present
  //!
  //
@@ -190,7 +190,7 @@ public:
 
  //! Return the names of the 2D, XZ variables in the collection 
  //!
- //! \retval value is a space-separated list of 2D ZY variable names
+ //! \retval value is a vectort of 2D ZY variable names
  //! An emptry string is returned if no variables of this type are present
  //!
  //
@@ -198,11 +198,30 @@ public:
 
  //! Return the names of the 2D, YZ variables in the collection 
  //!
- //! \retval value is a space-separated list of 2D YZ variable names
+ //! \retval value is a vector of 2D YZ variable names
  //! An emptry string is returned if no variables of this type are present
  //!
  //
  virtual vector <string> GetVariables2DYZ() const = 0;
+
+ //! Return the names of the coordinate variables.
+ //!
+ //! This method returns a three-element vector naming the 
+ //! X, Y, and Z coordinate variables, respectively. The special
+ //! name "NONE" indicates that a coordinate variable name does not exist
+ //! for a particular dimension.
+ //!
+ //! \note The existence of a coordinate variable name does not imply
+ //! the existence of the coordinate variable itself. 
+ //! 
+ //! \retval vector is three-element vector of coordinate variable names.
+ //!
+ //
+ virtual vector <string> GetCoordinateVariables() const {;
+	vector <string> v;
+	v.push_back("NONE"); v.push_back("NONE"); v.push_back("ELEVATION");
+	return(v);
+ }
 
 
  //! Return a three-element boolean array indicating if the X,Y,Z
@@ -358,6 +377,18 @@ public:
  virtual int IsValidRegionBlk(
 	const size_t min[3], const size_t max[3], int reflevel = 0
  ) const;
+
+ //!
+ //! Returns true if the named variable is a coordinate variable
+ //!
+ //! This method is a convenience function that returns true if
+ //! if the variable named by \p varname is a coordinate variable. A
+ //! variable is a coordinate variable if it is returned by
+ //! GetCoordinateVariables();
+ //!
+ //! \sa GetCoordinateVariables()
+ //
+ virtual bool IsCoordinateVariable(string varname) const;
 
 
 protected:

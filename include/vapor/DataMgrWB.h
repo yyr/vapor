@@ -109,6 +109,10 @@ protected:
 	return(WaveletBlock3DRegionReader::GetVariables2DYZ());
  };
 
+ virtual vector <string> _GetCoordinateVariables() const {
+	return(WaveletBlock3DRegionReader::GetCoordinateVariables());
+ };
+
  virtual vector<long> _GetPeriodicBoundary() const {
 	return(WaveletBlock3DRegionReader::GetPeriodicBoundary());
  };

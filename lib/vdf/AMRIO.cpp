@@ -222,6 +222,7 @@ int	AMRIO::OpenVariableWrite(
 ) {
 
 	SetDiagMsg("AMRIO::OpenVariableWrite(%d, %s, %d)",timestep,varname,reflevel);
+	(void) VDFIOBase::OpenVariableWrite(timestep, varname, reflevel);
 
 	string dir;
 	string basename;
@@ -268,6 +269,9 @@ int	AMRIO::OpenVariableRead(
 ) {
 
 	SetDiagMsg("AMRIO::OpenVariableRead(%d, %s, %d)",timestep,varname,reflevel);
+
+    (void) VDFIOBase::OpenVariableRead(timestep, varname, reflevel);
+
 
 	string dir;
 	string basename;

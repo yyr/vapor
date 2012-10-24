@@ -57,6 +57,7 @@ const string MetadataVDC::_vars3DTag = "Variables3D";
 const string MetadataVDC::_vars2DXYTag = "Variables2DXY";
 const string MetadataVDC::_vars2DXZTag = "Variables2DXZ";
 const string MetadataVDC::_vars2DYZTag = "Variables2DYZ";
+const string MetadataVDC::_coordVarsTag = "CoordinateVariables";
 const string MetadataVDC::_xCoordsTag = "XCoords";
 const string MetadataVDC::_yCoordsTag = "YCoords";
 const string MetadataVDC::_zCoordsTag = "ZCoords";
@@ -167,6 +168,12 @@ int MetadataVDC::_init() {
 
 	vector<string> varNamesVec(1,"var1");
 	if (SetVariables3D(varNamesVec) < 0) return(-1);
+
+	vector <string> vec;
+	vec.push_back("NONE");
+	vec.push_back("NONE");
+	vec.push_back("ELEVATION");
+	if (SetCoordinateVariables(vec) < 0) return(-1);
 
 	string comment = "";
 	_rootnode->SetElementString(_commentTag, comment);
@@ -961,6 +968,17 @@ int MetadataVDC::SetVariables2DYZ(const vector <string> &value) {
 	return(_SetVariableNames(_vars2DYZTag, delete_tags, value));
 }
 
+int MetadataVDC::SetCoordinateVariables(const vector <string> &value) {
+
+	SetDiagMsg("MetadataVDC::SetCoordinateVariables()");
+
+	if (value.size() != 3) {
+		SetErrMsg("Invalid coordindate variable specification\n");
+		return(-1);
+	}
+	return(_rootnode->SetElementStringVec(_coordVarsTag, value));
+}
+
 int MetadataVDC::SetTSExtents(size_t ts, const vector<double> &value) {
 	if (!IsValidExtents(value)) {
 		SetErrMsg("Invalid Extents specification");
@@ -1464,6 +1482,12 @@ void	MetadataVDC::_startElementHandler1(ExpatParseMgr* pm,
 			return;
 		}
 	}
+	else if (StrCmpNoCase(tag, _coordVarsTag) == 0) {
+		if (StrCmpNoCase(type, _stringType) != 0) {
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
+			return;
+		}
+	}
 	else if (StrCmpNoCase(tag, _periodicBoundaryTag) == 0) {
 		if (StrCmpNoCase(type, _longType) != 0) {
 			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
@@ -1749,6 +1773,19 @@ void	MetadataVDC::_endElementHandler1(ExpatParseMgr* pm,
 			vec.push_back(v);
 		}
 		if (SetVariables2DYZ(vec) < 0) {
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
+			return;
+		}
+	}
+	else if (StrCmpNoCase(tag, _coordVarsTag) == 0) {
+		istringstream ist(pm->getStringData());
+		string v;
+		vector <string> vec;
+
+		while (ist >> v) {
+			vec.push_back(v);
+		}
+		if (SetCoordinateVariables(vec) < 0) {
 			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}

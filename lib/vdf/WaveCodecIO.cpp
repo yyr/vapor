@@ -318,6 +318,9 @@ int WaveCodecIO::OpenVariableRead(
 
 	if (CloseVariable() < 0) return(-1); 
 
+	(void) VDFIOBase::OpenVariableRead(timestep, varname, reflevel, lod);
+
+
 	//
 	// no-op unless missing data are present
 	//
@@ -409,6 +412,8 @@ int WaveCodecIO::OpenVariableWrite(
 
 
 	if (CloseVariable() < 0) return(-1); 
+
+	(void) VDFIOBase::OpenVariableWrite(timestep, varname, reflevel, lod);
 
 	//
 	// no-op unless missing data are present

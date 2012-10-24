@@ -505,6 +505,26 @@ public:
 	return(svec);
  };
 
+ //! \copydoc Metadata::GetCoordinateVariables()
+ //
+ vector <string> GetCoordinateVariables() const {
+	vector <string> svec;
+	_rootnode->GetElementStringVec(_coordVarsTag, svec);
+	return(svec);
+ }
+
+ //! Indicate which variables in a VDC are coordinate variables
+ //!
+ //! This method specifies the names of three coordinate variables
+ //! corresponding to the X, Y, and Z axis.
+ //!
+ //! \param[in] value A three-element vector containing the names of 
+ //! the grid coordinate variables for the X, Y, and Z axis, respectively.
+ //!
+ //! \retval status Returns a non-negative integer on success
+ //
+ int SetCoordinateVariables(const vector <string> &value);
+
  //! Indicate which variables in a VDC are of type 2DXY
  //!
  //! Specifies which variables in a VDC represent 
@@ -1357,6 +1377,7 @@ private:
  static const string _vars2DXYTag;
  static const string _vars2DXZTag;
  static const string _vars2DYZTag;
+ static const string _coordVarsTag;
  static const string _xCoordsTag;
  static const string _yCoordsTag;
  static const string _zCoordsTag;

@@ -241,3 +241,12 @@ int	Metadata::IsValidRegionBlk(
 	}
 	return(1);
 }
+
+bool Metadata::IsCoordinateVariable(string varname) const {
+	vector <string> coordvars = GetCoordinateVariables();
+	for (int i=0; i<coordvars.size(); i++) {
+		if (coordvars[i].compare(varname) == 0) return (true);
+	}
+	return(false);
+}
+

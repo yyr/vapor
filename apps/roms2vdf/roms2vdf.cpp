@@ -214,7 +214,8 @@ float * CalcElevation(int Vtransform, float* s_rho, float* Cs_r, float Tcline, f
 			for (int i = 0; i<dimsVDC[1]; i++){
 				for (int j = 0; j< dimsVDC[0]; j++){
 					if (mappedDepth[j+dimsVDC[0]*i] == (float)ROMS::vaporMissingValue()){
-						z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k] = (float)ROMS::vaporMissingValue();
+//						z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k] = (float)ROMS::vaporMissingValue();
+						z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k] = 0.0;
 						continue;
 					}
 					float cff_r = hc[j+dimsVDC[0]*i]*(s_rho[k] - Cs_r[k]);
@@ -236,7 +237,8 @@ float * CalcElevation(int Vtransform, float* s_rho, float* Cs_r, float Tcline, f
 			for (int i = 0; i<dimsVDC[1]; i++){
 				for (int j = 0; j<dimsVDC[0]; j++){
 					if (mappedDepth[j+dimsVDC[0]*i] == (float)ROMS::vaporMissingValue()){
-						z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k] = (float)ROMS::vaporMissingValue();
+//						z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k] = (float)ROMS::vaporMissingValue();
+						z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k] = 0.0;
 						continue;
 					}
 					float hinv = 1./(Tcline -mappedDepth[j+dimsVDC[0]*i]);
@@ -259,7 +261,8 @@ float * CalcElevation(int Vtransform, float* s_rho, float* Cs_r, float Tcline, f
 			for (int i = 0; i<dimsVDC[1]; i++){
 				for (int j = 0; j< dimsVDC[0]; j++){
 					if (sample3DVar[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k] == (float)ROMS::vaporMissingValue()){
-						z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k] = (float)ROMS::vaporMissingValue();
+//						z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k] = (float)ROMS::vaporMissingValue();
+						z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k] = 0.0;
 					}
 					else {
 						float val = z_r[j + dimsVDC[0]*i + dimsVDC[0]*dimsVDC[1]*k];

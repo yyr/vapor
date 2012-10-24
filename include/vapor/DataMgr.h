@@ -126,6 +126,12 @@ public:
  //
  virtual vector <string> GetVariables2DYZ() const;
 
+ //! \copydoc _GetCoordinateVariables()
+ //
+ virtual vector <string> GetCoordinateVariables() const {
+	return(_GetCoordinateVariables());
+ };
+
  //! \copydoc _GetPeriodicBoundary()
  //
  virtual vector<long> GetPeriodicBoundary() const {
@@ -441,6 +447,18 @@ public:
     int reflevel
  );
 
+ //!
+ //! Returns true if the named variable is a coordinate variable
+ //!
+ //! This method is a convenience function that returns true if  
+ //! if the variable named by \p varname is a coordinate variable. A
+ //! variable is a coordinate variable if it is returned by 
+ //! GetCoordinateVariables();
+ //!
+ //! \sa GetCoordinateVariables()
+ //
+ virtual bool IsCoordinateVariable(string varname) const;
+
 protected:
 
 
@@ -625,6 +643,25 @@ protected:
  //!
  //
  virtual vector <string> _GetVariables2DYZ() const = 0;
+
+ //! Return the names of the coordinate variables.
+ //!
+ //! This method returns a three-element vector naming the
+ //! X, Y, and Z coordinate variables, respectively. The special
+ //! name "NONE" indicates that a coordinate variable name does not exist
+ //! for a particular dimension.
+ //!
+ //! \note The existence of a coordinate variable name does not imply
+ //! the existence of the coordinate variable itself.
+ //!
+ //! \retval vector is three-element vector of coordinate variable names.
+ //!
+ //
+ virtual vector <string> _GetCoordinateVariables() const { 
+	vector <string> v;
+	v.push_back("NONE"); v.push_back("NONE"); v.push_back("ELEVATION");
+	return(v);
+ }
 
 
  //! Return a three-element boolean array indicating if the X,Y,Z
@@ -887,6 +924,7 @@ private:
 
 	void Clear() {_cache.clear(); }
 
+
  private:
 
 	class var_info {
@@ -1079,6 +1117,8 @@ class VDF_API PipeLine {
 	const vector <pair <string, DataMgr::VarType_T> > &GetOutputs() const { 
 		return (_outputs); 
 	};
+
+
 private:
 	string _name;
 	vector <string> _inputs;

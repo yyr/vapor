@@ -115,6 +115,10 @@ protected:
 	return(WaveCodecIO::GetVariables2DYZ());
  };
 
+ virtual vector <string> _GetCoordinateVariables() const {
+	return(WaveCodecIO::GetCoordinateVariables());
+ };
+
  virtual vector<long> _GetPeriodicBoundary() const {
 	return(WaveCodecIO::GetPeriodicBoundary());
  };

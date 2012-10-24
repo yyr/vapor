@@ -61,6 +61,7 @@ int	VDFIOBase::_VDFIOBase(
 	_xform_timer = 0.0;
 
 	_ncid_mask = 0;
+	_varname.clear();
 
 	return(0);
 }
@@ -454,7 +455,7 @@ int VDFIOBase::_MaskOpenRead(
 
 int VDFIOBase::_MaskClose() 
 {
-	if (_ncid_mask == 0) return(0);
+	if (_ncid_mask == 0 || IsCoordinateVariable(_varname)) return(0);
 	int rc = nc_close(_ncid_mask);
 	NC_ERR(rc,_ncpath_mask)
 
@@ -469,7 +470,7 @@ void VDFIOBase::_MaskRemove(
 	bool &valid_data
 ) const {
 	valid_data = true;
-	if (_ncid_mask == 0) return;
+	if (_ncid_mask == 0 || IsCoordinateVariable(_varname)) return;
 
 	//
 	// First, compute the global average for the block
@@ -515,7 +516,7 @@ void VDFIOBase::_MaskRemove(
 void VDFIOBase::_MaskReplace(
 	size_t bx, size_t by, size_t bz, float *blk
 ) const {
-	if (_ncid_mask == 0) return;
+	if (_ncid_mask == 0 || IsCoordinateVariable(_varname)) return;
 
 	size_t bidx = _bdim_p_mask[0]*_bdim_p_mask[1]*bz + _bdim_p_mask[0]*by + bx;
 
@@ -538,7 +539,7 @@ int VDFIOBase::_MaskWrite(
 	const float *region,
 	const size_t bmin_p[3], const size_t bmax_p[3], bool block
 ) {
-	if (_ncid_mask == 0) return(0);
+	if (_ncid_mask == 0 || IsCoordinateVariable(_varname)) return(0);
 
 	size_t blocksize = _bs_p_mask[0]*_bs_p_mask[1]*_bs_p_mask[2];
 
@@ -671,7 +672,7 @@ void VDFIOBase::_downsample(
 int VDFIOBase::_MaskRead(
 	const size_t bmin_p[3], const size_t bmax_p[3]
 ) {
-	if (_ncid_mask == 0) return(0);
+	if (_ncid_mask == 0 || IsCoordinateVariable(_varname)) return(0);
 
 	size_t bdim_file[3];
 	VDFIOBase::GetDimBlk(bdim_file, _reflevel_file_mask);

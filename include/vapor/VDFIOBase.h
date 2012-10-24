@@ -89,7 +89,7 @@ public:
 
  virtual int OpenVariableRead(
     size_t timestep, const char *varname, int reflevel=0, int lod=0
- ) = 0;
+ ) {_varname = varname; return(0); };
 
  virtual int BlockReadRegion(
     const size_t bmin[3], const size_t bmax[3], float *region, bool unblock=true
@@ -105,7 +105,7 @@ public:
 
  virtual int OpenVariableWrite(
     size_t timestep, const char *varname, int reflevel=0, int lod=0
- ) = 0;
+ ) {_varname = varname; return(0); };
 
  virtual int BlockWriteRegion(
     const float *region, const size_t bmin[3], const size_t bmax[3], 
@@ -120,7 +120,7 @@ public:
 
  virtual int WriteSlice(const float *slice) = 0;
 
- virtual int CloseVariable() = 0;
+ virtual int CloseVariable() {_varname.clear(); return(0);};
 
  virtual const float *GetDataRange() const = 0;
 
@@ -266,6 +266,7 @@ private:
  int _reflevel_file_mask;
  string _ncpath_mask;
  vector <BitMask> _bitmasks;
+ string _varname; // currently opened variable;
 
  int _VDFIOBase();
 

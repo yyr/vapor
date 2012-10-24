@@ -170,6 +170,8 @@ int	WaveletBlockIOBase::OpenVariableWrite(
 	int reflevel,
 	int
 ) {
+    (void) VDFIOBase::OpenVariableWrite(timestep, varname, reflevel);
+
 
 	int min;
 	_vtype = GetVarType(varname);
@@ -420,6 +422,8 @@ int	WaveletBlockIOBase::OpenVariableRead(
 	int reflevel,
 	int
 ) {
+    (void) VDFIOBase::OpenVariableRead(timestep, varname, reflevel);
+
 	string basename;
 
 	write_mode_c = 0;
