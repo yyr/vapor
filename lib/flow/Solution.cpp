@@ -173,9 +173,9 @@ bool Solution::isTimeVarying(void)
 
 void Solution::getMinGridSpacing(int timestep, double mincell[3]){
 	mincell[0] = mincell[1] = mincell[2] = 1.;
-	if (m_pUGrid[timestep]) m_pUGrid[timestep]->GetMinCellExtents(mincell, mincell+1, mincell+2);
-	else if (m_pVGrid[timestep]) m_pVGrid[timestep]->GetMinCellExtents(mincell, mincell+1, mincell+2);
-	else if (m_pWGrid[timestep]) m_pWGrid[timestep]->GetMinCellExtents(mincell, mincell+1, mincell+2);
+	if (m_pUGrid && m_pUGrid[timestep]) m_pUGrid[timestep]->GetMinCellExtents(mincell, mincell+1, mincell+2);
+	else if (m_pVGrid && m_pVGrid[timestep]) m_pVGrid[timestep]->GetMinCellExtents(mincell, mincell+1, mincell+2);
+	else if (m_pWGrid && m_pWGrid[timestep]) m_pWGrid[timestep]->GetMinCellExtents(mincell, mincell+1, mincell+2);
 	else assert(0);
 	return;
 }

@@ -1020,12 +1020,7 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 	//AnimationTimeStepSize is the samples per timeStep
 	pStreakLine->SetSamplingRate(1.f/animationTimeStepSize);
 	double minspacing[3];
-	pSolution->getMinGridSpacing(startTimeStep,minspacing);
-	pStreakLine->SetInitStepSize(getInitStepSize(minspacing));
-	pStreakLine->SetMaxStepSize(getMaxStepSize(minspacing));
 	
-	
-
 	//Insert all the seeds at the first time step:
 	int nseeds = pStreakLine->addFLASeeds(startTimeStep, flArray[startTimeStep], maxNumSamples);
 
@@ -1095,6 +1090,9 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 					return false;
 				}
 				pField->SetSolutionGrid(tsIndex,&xGridPtr,&yGridPtr,&zGridPtr, periodicDim);
+				pSolution->getMinGridSpacing(tsIndex, minspacing);
+				pStreakLine->SetInitStepSize(getInitStepSize(minspacing));
+				pStreakLine->SetMaxStepSize(getMaxStepSize(minspacing));
 			} else { //Changing time sample..
 				//If it's not the very first time, need to release data for previous 
 				//time step, and move end ptrs to start:
@@ -1123,6 +1121,9 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 				return false;
 			}
 			pField->SetSolutionGrid(tsIndex+1,&xGridPtr2,&yGridPtr2,&zGridPtr2,periodicDim); 
+			pSolution->getMinGridSpacing(tsIndex+1, minspacing);
+			pStreakLine->SetInitStepSize(getInitStepSize(minspacing));
+			pStreakLine->SetMaxStepSize(getMaxStepSize(minspacing));
 		}
 		// advect for one timestep.  Inject seeds only at the first timestep
 		pStreakLine->advectFLAPoints(iFor, timeDir, flArray, (iFor == startTimeStep));
