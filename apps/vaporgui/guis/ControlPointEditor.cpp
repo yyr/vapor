@@ -83,14 +83,14 @@ void ControlPointEditor::initWidgets()
   if (_cmap)
   {
     VColormap::Color color = _cmap->controlPointColor(_controlPoint);
-    QColor qcolor;
+   
 
-    qcolor.setHsv((int)(359*color.hue()), 
+    tempColor.setHsv((int)(359*color.hue()), 
                   (int)(255*color.sat()), 
                   (int)(255*color.val()));
-
+	
 	QPalette pal;
-	pal.setColor(QPalette::Base,qcolor);
+	pal.setColor(QPalette::Base,tempColor);
 	
 	_colorEdit->setPalette(pal);
 
