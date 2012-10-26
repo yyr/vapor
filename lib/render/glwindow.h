@@ -42,8 +42,10 @@
 class QLabel;
 class QThread;
 
+
 namespace VAPoR {
 typedef bool (*renderCBFcn)(int winnum, bool newCoords);
+class SpinTimer;
 class ViewpointParams;
 class RegionParams;
 class DvrParams;
@@ -57,7 +59,7 @@ class TranslateStretchManip;
 class TranslateRotateManip;
 class FlowRenderer;
 class VolumeRenderer;
-class SpinThread;
+
 //! \class GLWindow
 //! \brief A class for performing OpenGL rendering in a VAPOR Visualizer
 //! \author Alan Norton
@@ -453,6 +455,7 @@ public:
 	ShaderMgr* getShaderMgr() {return manager;}
 	
 protected:
+	SpinTimer *mySpinTimer;
 	ShaderMgr *manager;
 	//Mouse Mode tables.  Static since independent of window:
 	static vector<ParamsBase::ParamsBaseType> paramsFromMode;
@@ -536,8 +539,8 @@ protected:
 	
 	void drawSubregionBounds(float* extents);
 	void drawAxisArrows(float* extents);
-	void drawAxisTics();
-	void drawAxisLabels();
+	void drawAxisTics(int tstep);
+	void drawAxisLabels(int tstep);
 	void drawTimeAnnotation();
 	
 	void placeLights();
@@ -634,28 +637,12 @@ protected:
 	float mouseDownPoint[2];
 	// unit vector in direction of handle
 	float handleProjVec[2];
-
-	SpinThread* spinThread;
 	bool isSpinning;
-	QTime* spinTimer;
+	
 #endif //DOXYGEN_SKIP_THIS
 	
 };
-#ifndef DOXYGEN_SKIP_THIS
-class SpinThread : public QThread{
-public:
-	SpinThread(GLWindow* w, int renderMS) : QThread() {
-		spinningWindow = w;
-		renderTime = renderMS;
-	}
-	void run();
-	void setWindow(GLWindow* w) { spinningWindow = w;}
-	void finish() { wait(4*renderTime);}
-private:
-	GLWindow* spinningWindow;
-	int renderTime;
-};
-#endif //DOXYGEN_SKIP_THIS
+
 };
 
 #endif // GLWINDOW_H

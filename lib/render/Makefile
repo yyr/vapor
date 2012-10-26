@@ -23,7 +23,8 @@ FILES = \
 	ShaderMgr jfilewrite
 
 QT_HEADERS = \
-	renderer 
+	renderer \
+	spintimer
   
 
 ifeq ($(ARCH),WIN32)

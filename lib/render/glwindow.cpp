@@ -54,6 +54,7 @@
 #include <qapplication.h>
 #include "flowrenderer.h"
 #include "VolumeRenderer.h"
+#include "spintimer.h"
 
 using namespace VAPoR;
 int GLWindow::activeWindowNum = 0;
@@ -79,7 +80,8 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 		currentParams.push_back(0);
 
 	MyBase::SetDiagMsg("GLWindow::GLWindow() begin");
-	spinThread = 0;
+	
+	mySpinTimer = 0;
 	isSpinning = false;
 
 	winNum = windowNum;
@@ -450,7 +452,7 @@ void GLWindow::paintEvent(QPaintEvent*)
 			const float *localPoint = p->getSelectedPointLocal();
 			//Need to convert local coordinates to stretched box coordinates.
 		
-			float strBoxPt[3];
+			
 		//	p->localToStretchedCoordinatesInCube(localPoint, strBoxPt);
 			draw3DCursor(localPoint);
 		}
@@ -488,8 +490,8 @@ void GLWindow::paintEvent(QPaintEvent*)
 
 	
 	if (axisAnnotationIsEnabled() && !sphericalTransform) {
-		drawAxisTics();
-		drawAxisLabels();
+		drawAxisTics(timeStep);
+		drawAxisLabels(timeStep);
 	}
 	//Find renderer that has a colorbar
 	RenderParams* p = dynamic_cast<RenderParams*>(getActiveParams(Params::GetTagFromType(colorbarParamsTypeId)));
@@ -966,9 +968,9 @@ void GLWindow::drawTimeAnnotation(){
 	}
 	
 }
-void GLWindow::drawAxisLabels() {
+void GLWindow::drawAxisLabels(int timestep) {
 	float origin[3], ticMin[3], ticMax[3];
-	
+	float lorigin[3], lticMin[3], lticMax[3];
 	if (labelHeight <= 0) return;
 	//Set up the painter and font metrics
 	QFont f;
@@ -978,11 +980,18 @@ void GLWindow::drawAxisLabels() {
 	painter.setRenderHint(QPainter::TextAntialiasing);
 	QFontMetrics metrics = QFontMetrics(f);
 
-	ViewpointParams::localToStretchedCube(axisOriginCoord, origin);
+	//Convert user to local by subtracting extent min.
+	const vector<double>& exts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
+	for (int i = 0; i<3; i++){
+		lorigin[i] = axisOriginCoord[i] - exts[i];
+		lticMin[i] = minTic[i] - exts[i];
+		lticMax[i] = maxTic[i] - exts[i];
+	}
+	ViewpointParams::localToStretchedCube(lorigin, origin);
 	//minTic and maxTic can be regarded as points in world space, defining
 	//corners of a box that's projected to axes.
-	ViewpointParams::localToStretchedCube(minTic, ticMin);
-	ViewpointParams::localToStretchedCube(maxTic, ticMax);
+	ViewpointParams::localToStretchedCube(lticMin, ticMin);
+	ViewpointParams::localToStretchedCube(lticMax, ticMax);
 	
 	float pointOnAxis[3];
 	float winCoords[2] = {0.f,0.f};
@@ -1013,13 +1022,22 @@ void GLWindow::drawAxisLabels() {
 }
 
 
-void GLWindow::drawAxisTics(){
+void GLWindow::drawAxisTics(int timestep){
 	float origin[3], ticMin[3], ticMax[3], ticLen[3];
-	ViewpointParams::localToStretchedCube(axisOriginCoord, origin);
+	float lorigin[3], lticMin[3], lticMax[3];
+	//Convert user to local by subtracting extent min.
+	
+	const vector<double>& exts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
+	for (int i = 0; i<3; i++){
+		lorigin[i] = axisOriginCoord[i] - exts[i];
+		lticMin[i] = minTic[i] - exts[i];
+		lticMax[i] = maxTic[i] - exts[i];
+	}
+	ViewpointParams::localToStretchedCube(lorigin, origin);
 	//minTic and maxTic can be regarded as points in world space, defining
 	//corners of a box that's projected to axes.
-	ViewpointParams::localToStretchedCube(minTic, ticMin);
-	ViewpointParams::localToStretchedCube(maxTic, ticMax);
+	ViewpointParams::localToStretchedCube(lticMin, ticMin);
+	ViewpointParams::localToStretchedCube(lticMax, ticMax);
 	//TicLength needs to be stretched based on which axes are used for tic direction
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
 	float maxStretchedCubeSide = ViewpointParams::getMaxStretchedCubeSide();
@@ -1591,8 +1609,10 @@ GLWindow::OGLVendorType GLWindow::GetVendor()
 }
 
 void GLWindow::startSpin(int renderMS){
-	spinThread = new SpinThread(this, renderMS);
-	spinThread->start();
+	
+	mySpinTimer = new SpinTimer();
+	mySpinTimer->setWindow(this);
+	mySpinTimer->start(renderMS);
 	isSpinning = true;
 	//Increment the rotation and request another render..
 	getTBall()->TrackballSpin();
@@ -1601,26 +1621,16 @@ void GLWindow::startSpin(int renderMS){
 	update();
 }
 bool GLWindow::stopSpin(){
-	if (isSpinning && spinThread){
-		spinThread->setWindow(0);
-		spinThread->finish();
-		delete spinThread;
-		spinThread = 0;
+	if (isSpinning){
+		mySpinTimer->stop();
+		delete mySpinTimer;
+		mySpinTimer = 0;
 		isSpinning = false;
 		return true;
 	}
 	return false;
 }
-//control the repeated display of spinning scene, by repeatedly doing updateGL() on the GLWindow
-void SpinThread::run(){
 
-	while(1){
-		if (!spinningWindow) return;
-		spinningWindow->update();
-		msleep(renderTime);
-		
-	}
-}
 void GLWindow::
 setValuesFromGui(ViewpointParams* vpparams){
 	
