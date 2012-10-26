@@ -535,6 +535,17 @@
 			<File
 				RelativePath="..\..\..\lib\render\glwindow.h"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description=""
+						CommandLine=""
+						AdditionalDependencies=""
+						Outputs=""
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\lib\render\isorenderer.h"
@@ -629,6 +640,21 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\lib\render\spintimer.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing spintimer.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\lib\render\spintimer.h -o ..\..\..\lib\moc\moc_spintimer.cpp"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\lib\moc\moc_spintimer.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\..\lib\render\Stopwatch.h"
 				>
 			</File>
@@ -672,6 +698,10 @@
 			>
 			<File
 				RelativePath="..\..\..\lib\moc\moc_renderer.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\moc\moc_spintimer.cpp"
 				>
 			</File>
 		</Filter>
