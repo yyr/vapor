@@ -117,6 +117,7 @@ VolumeRenderer::~VolumeRenderer()
 //----------------------------------------------------------------------------
 void VolumeRenderer::initializeGL()
 {
+  if (! _driver) return; 
   myGLWindow->makeCurrent();
     
   if (_driver->GraphicsInit() < 0) 
@@ -293,6 +294,8 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
 //----------------------------------------------------------------------------
 void VolumeRenderer::DrawVoxelScene(unsigned fast)
 {
+	if (! _driver) return; 
+
 	DataStatus* ds = DataStatus::getInstance();
 	RegionParams* myRegionParams = myGLWindow->getActiveRegionParams();
 	DataMgr* dataMgr = ds->getDataMgr();
@@ -633,6 +636,7 @@ int	VolumeRenderer::_updateRegion(
 void VolumeRenderer::_updateDriverRenderParamsSpec(
 	RenderParams *rp
 ) {
+	if (! _driver) return; 
 	DvrParams *myDVRParams = (DvrParams *) rp;
 
 	if (clutIsDirty()) {
