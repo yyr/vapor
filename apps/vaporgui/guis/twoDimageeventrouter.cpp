@@ -415,6 +415,8 @@ void TwoDImageEventRouter::confirmText(bool /*render*/){
 	float boxSize[3], boxmin[3], boxmax[3], boxCenter[3];
 	boxSize[xcrd] = widthEdit->text().toFloat();
 	boxSize[ycrd] = lengthEdit->text().toFloat();
+	//the box z-size is not adjustable:
+
 	boxSize[zcrd] = 0;
 	for (int i = 0; i<3; i++){
 		if (boxSize[i] < 0.f) boxSize[i] = 0.f;
@@ -422,11 +424,10 @@ void TwoDImageEventRouter::confirmText(bool /*render*/){
 	boxCenter[0] = xCenterEdit->text().toFloat();
 	boxCenter[1] = yCenterEdit->text().toFloat();
 	boxCenter[2] = zCenterEdit->text().toFloat();
-	//the box z-size is not adjustable:
-	boxSize[zcrd] = boxmax[zcrd]-boxmin[zcrd];
+	
 	for (int i = 0; i<3;i++){
-		boxmin[i] = boxCenter[i] - 0.5f*boxSize[i] - usrExts[0];
-		boxmax[i] = boxCenter[i] + 0.5f*boxSize[i] - usrExts[1];
+		boxmin[i] = boxCenter[i] - 0.5f*boxSize[i] - usrExts[i];
+		boxmax[i] = boxCenter[i] + 0.5f*boxSize[i] - usrExts[i];
 	}
 	twoDParams->setLocalBox(boxmin,boxmax);
 	adjustBoxSize(twoDParams);
@@ -437,7 +438,7 @@ void TwoDImageEventRouter::confirmText(bool /*render*/){
 	zCenterSlider->setValue((int)(256.f*(boxCenter[2]-usrExts[2])/(usrExts[5]-usrExts[2])));
 	setIgnoreBoxSliderEvents(false);
 	resetTextureSize(twoDParams);
-	//twoDTextureFrame->setTextureSize(voxDims[0],voxDims[1]);
+	
 	setTwoDDirty(twoDParams);
 	
 	twoDTextureFrame->update();
@@ -1339,7 +1340,7 @@ void TwoDImageEventRouter::guiNudgeXSize(int val) {
 	VizWinMgr::getInstance()->forceRender(pParams);;
 }
 void TwoDImageEventRouter::guiNudgeXCenter(int val) {
-	if (notNudgingSliders) return;
+	if (notNudgingSliders|| ignoreBoxSliderEvents) return;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
 	//ignore if change is not 1 
@@ -1386,7 +1387,7 @@ void TwoDImageEventRouter::guiNudgeXCenter(int val) {
 	VizWinMgr::getInstance()->forceRender(pParams);;
 }
 void TwoDImageEventRouter::guiNudgeYCenter(int val) {
-	if (notNudgingSliders) return;
+	if (notNudgingSliders|| ignoreBoxSliderEvents) return;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
 	//ignore if change is not 1 
@@ -1433,7 +1434,7 @@ void TwoDImageEventRouter::guiNudgeYCenter(int val) {
 	VizWinMgr::getInstance()->forceRender(pParams);;
 }
 void TwoDImageEventRouter::guiNudgeZCenter(int val) {
-	if (notNudgingSliders) return;
+	if (notNudgingSliders || ignoreBoxSliderEvents) return;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
 	//ignore if change is not 1 
