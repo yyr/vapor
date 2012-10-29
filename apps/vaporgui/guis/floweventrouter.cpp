@@ -1521,8 +1521,8 @@ guiCenterRake(const float* coords){
 		if (coord < regMin) coord = regMin;
 		if (coord > regMax) coord = regMax;
 		float boxSize = seedBoxMax[i] - seedBoxMin[i];
-		if (coord + 0.5f*boxSize > seedBoxMax[i]) boxSize = 2.f*(seedBoxMax[i] - coord);
-		if (coord - 0.5f*boxSize < seedBoxMin[i]) boxSize = 2.f*(coord - seedBoxMin[i]);
+		if (coord + 0.5f*boxSize > regMax) boxSize = 2.f*(regMax - coord);
+		if (coord - 0.5f*boxSize < regMin) boxSize = 2.f*(coord - regMin);
 		seedBoxMax[i] = coord + 0.5f*boxSize;
 		seedBoxMin[i] = coord - 0.5f*boxSize;
 	}
