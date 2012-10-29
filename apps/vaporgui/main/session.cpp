@@ -993,7 +993,7 @@ resetMetadata(vector<string>& files, bool restoredSession, bool importing, bool 
 		//set the annotation to use current extents in all active visualizers
 		const float* locExts = DataStatus::getInstance()->getLocalExtents();
 		size_t firstTimeStep = DataStatus::getInstance()->getMinTimestep();
-		vector<double>& tsexts = dataMgr->GetExtents(firstTimeStep);
+		const vector<double>& tsexts = dataMgr->GetExtents(firstTimeStep);
 		if (newSession || !restoredSession) {
 			float usrExts[6];
 			for (int k = 0; k<6; k++)usrExts[k] = tsexts[k%3]+locExts[k];
