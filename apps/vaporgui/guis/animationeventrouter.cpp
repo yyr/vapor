@@ -425,6 +425,7 @@ reinitTab(bool doOverride){
 	else LocalGlobal->setEnabled(false);
 	dontUpdate=false;
 	endFrameTextChanged = false;
+	currentKeyIndex=0;
 }
 
 /*************************************************************************************

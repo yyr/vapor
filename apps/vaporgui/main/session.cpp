@@ -914,6 +914,7 @@ resetMetadata(vector<string>& files, bool restoredSession, bool importing, bool 
 	} 
 
 	//Get the extents from the metadata, if it exists:
+	
 	if (dataMgr){
 		std::vector<double> mdExtents = dataMgr->GetExtents();
 		
@@ -990,10 +991,17 @@ resetMetadata(vector<string>& files, bool restoredSession, bool importing, bool 
 		myVizWinMgr->reinitializeParams(newSession);
 		
 		//set the annotation to use current extents in all active visualizers
+		const float* locExts = DataStatus::getInstance()->getLocalExtents();
+		size_t firstTimeStep = DataStatus::getInstance()->getMinTimestep();
+		vector<double>& tsexts = dataMgr->GetExtents(firstTimeStep);
 		if (newSession || !restoredSession) {
+			float usrExts[6];
+			for (int k = 0; k<6; k++)usrExts[k] = tsexts[k%3]+locExts[k];
 			for (int i = 0; i< MAXVIZWINS; i++){
-				if (myVizWinMgr->getVizWin(i))
-					myVizWinMgr->getVizWin(i)->setAxisExtents(extents);
+				if (myVizWinMgr->getVizWin(i)){
+					myVizWinMgr->getVizWin(i)->setAxisExtents(usrExts);
+					for (int k = 0; k<3; k++) myVizWinMgr->getVizWin(i)->setAxisOriginCoord(k,usrExts[k]);
+				}
 			}
 		} else if (DataStatus::pre22Session()){
 			//Translate the axis extents and origin from old WRF sessions...
@@ -1001,12 +1009,12 @@ resetMetadata(vector<string>& files, bool restoredSession, bool importing, bool 
 			for (int i = 0; i< MAXVIZWINS; i++){
 				if (myVizWinMgr->getVizWin(i)){
 					myVizWinMgr->getVizWin(i)->getAxisExtents(axExts);
-					//Displace so that it is relative to (0,0,0)
+					//Displace so that it is relative to origin at first time step
 					for (int j = 0; j<3; j++) {
-						float orig = myVizWinMgr->getVizWin(i)->getAxisOriginCoord(j) - extents[j];
+						float orig = myVizWinMgr->getVizWin(i)->getAxisOriginCoord(j) + tsexts[j];
 						myVizWinMgr->getVizWin(i)->setAxisOriginCoord(j,orig);
-						axExts[j] -= extents[j];
-						axExts[j+3] -= extents[j];
+						axExts[j] += tsexts[j];
+						axExts[j+3] += tsexts[j];
 					}
 					myVizWinMgr->getVizWin(i)->setAxisExtents(axExts);
 				}	

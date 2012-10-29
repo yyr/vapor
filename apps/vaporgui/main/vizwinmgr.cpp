@@ -387,9 +387,19 @@ launchVisualizer(int useWindowNum, const char* newName, int newNum)
 		emit enableMultiViz(true);
 	}
 
-	//Initialize axis annotation to use full extents:
+	//Initialize axis annotation to use full user extents:
 	const float *extents = DataStatus::getInstance()->getLocalExtents();
-	vizWin[useWindowNum]->setAxisExtents(extents);
+	vector<double>tvExts;
+
+	if (DataStatus::getInstance()->getDataMgr())
+		tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents();
+	else {
+		for (int i = 0; i<3; i++) tvExts.push_back(0.0);
+		for (int i = 0; i<3; i++) tvExts.push_back(1.0);
+	}
+	float axExts[6];
+	for (int i = 0; i<6; i++) axExts[i] = extents[i]+tvExts[i%3];
+	vizWin[useWindowNum]->setAxisExtents(axExts);
 	
 
 	//Prepare the visualizer for animation control.  It won't animate until user clicks

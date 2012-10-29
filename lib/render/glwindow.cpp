@@ -360,7 +360,7 @@ void GLWindow::paintEvent(QPaintEvent*)
 	
 	const vector<Viewpoint*>& loadedViewpoints = getActiveAnimationParams()->getLoadedViewpoints();
 	if (getActiveAnimationParams()->keyframingEnabled() && loadedViewpoints.size()>0){
-	
+		setViewerCoordsChanged(true);
 		const Viewpoint* vp = loadedViewpoints[frameNum%loadedViewpoints.size()];
 		Viewpoint* newViewpoint = new Viewpoint(*vp);
 		getActiveViewpointParams()->setCurrentViewpoint(newViewpoint);
@@ -370,6 +370,7 @@ void GLWindow::paintEvent(QPaintEvent*)
 	}
 
 	if (getActiveViewpointParams()->isLatLon()&& timeStep != previousTimeStep){
+		setViewerCoordsChanged(true);
 		getActiveViewpointParams()->convertLocalFromLonLat(timeStep);
 		setValuesFromGui(getActiveViewpointParams());
 	}
