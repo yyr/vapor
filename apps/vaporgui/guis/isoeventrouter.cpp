@@ -884,7 +884,11 @@ guiCopyProbePoint(){
 	}
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "copy point from probe");
 	const float* selectedpoint = pParams->getSelectedPointLocal();
-	iParams->SetSelectedPoint(selectedpoint);
+	int ts = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentTimestep();
+	const vector<double>& usrExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)ts);
+	float userCoords[3];
+	for (int i = 0; i<3; i++) userCoords[i] = selectedpoint[i]+usrExts[i];
+	iParams->SetSelectedPoint(userCoords);
 	PanelCommand::captureEnd(cmd, iParams);
 	updateTab();
 }
