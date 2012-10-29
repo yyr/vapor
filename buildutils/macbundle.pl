@@ -123,6 +123,11 @@ sub copy_install_targets {
 	$dstdir = File::Spec->catdir($bundle_path, "Contents", "Plugins");
 	copy_dir_contents($srcdir, $dstdir);
 
+	$srcdir = File::Spec->catdir("..", "Frameworks", "Headers");
+	$dstdir = File::Spec->catdir($bundle_path, "Contents", "MacOS","include");
+	@cmd = ("/bin/ln", "-s", $srcdir, $dstdir);
+	mysystem(@cmd);
+
 }
 
 sub edit_template {
