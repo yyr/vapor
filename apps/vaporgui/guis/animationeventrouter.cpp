@@ -303,10 +303,12 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 //
 void AnimationEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	AnimationParams* aParams = (AnimationParams*) VizWinMgr::getInstance()->getActiveAnimationParams();
 	float sliderVal;
 	QString strn;
 	Session::getInstance()->blockRecording();
+	
 	sliderVal = 0.f;
 	int startFrame = aParams->getStartFrameNumber();
 	int endFrame = aParams->getEndFrameNumber();
