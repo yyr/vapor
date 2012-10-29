@@ -39,12 +39,12 @@ BoxSliderFrame::BoxSliderFrame( QWidget * parent) : QFrame(parent), Ui_boxframe(
 		connect(xSizeEdit,SIGNAL(returnPressed()), this, SLOT(boxReturnPressed()));
 		connect(ySizeEdit,SIGNAL(returnPressed()), this, SLOT(boxReturnPressed()));
 		connect(zSizeEdit,SIGNAL(returnPressed()), this, SLOT(boxReturnPressed()));
-		connect(xCenterSlider, SIGNAL(valueChanged(int)),this, SLOT(xSliderCtrChange(int)));
-		connect(yCenterSlider, SIGNAL(valueChanged(int)),this, SLOT(ySliderCtrChange(int)));
-		connect(zCenterSlider, SIGNAL(valueChanged(int)),this, SLOT(zSliderCtrChange(int)));
-		connect(xSizeSlider, SIGNAL(valueChanged(int)),this, SLOT(xSliderSizeChange(int)));
-		connect(ySizeSlider, SIGNAL(valueChanged(int)),this, SLOT(ySliderSizeChange(int)));
-		connect(zSizeSlider, SIGNAL(valueChanged(int)),this, SLOT(zSliderSizeChange(int)));
+		connect(xCenterSlider, SIGNAL(sliderReleased()),this, SLOT(xSliderCtrChange()));
+		connect(yCenterSlider, SIGNAL(sliderReleased()),this, SLOT(ySliderCtrChange()));
+		connect(zCenterSlider, SIGNAL(sliderReleased()),this, SLOT(zSliderCtrChange()));
+		connect(xSizeSlider, SIGNAL(sliderReleased()),this, SLOT(xSliderSizeChange()));
+		connect(ySizeSlider, SIGNAL(sliderReleased()),this, SLOT(ySliderSizeChange()));
+		connect(zSizeSlider, SIGNAL(sliderReleased()),this, SLOT(zSliderSizeChange()));
 }
 BoxSliderFrame::~BoxSliderFrame() {
 }
@@ -109,10 +109,11 @@ void BoxSliderFrame::boxTextChanged(const QString&){
 void BoxSliderFrame::boxReturnPressed(){
 	confirmText();
 }
-void BoxSliderFrame::xSliderCtrChange(int pos){
+void BoxSliderFrame::xSliderCtrChange(){
 	if (silenceSignals) return;
 	silenceSignals = true;
 	//Force new center to conform to current size
+	int pos = xCenterSlider->value();
 	double center = domainExtents[0]+pos*(domainExtents[3]-domainExtents[0])/256.;
 	if ((center + 0.5*(boxExtents[3]-boxExtents[0])) > domainExtents[3])
 		center = domainExtents[3]-0.5*(boxExtents[3]-boxExtents[0]);
@@ -126,9 +127,10 @@ void BoxSliderFrame::xSliderCtrChange(int pos){
 	emit extentsChanged();
 	silenceSignals = false;
 }
-void BoxSliderFrame::xSliderSizeChange(int pos){
+void BoxSliderFrame::xSliderSizeChange(){
 	if (silenceSignals) return;
 	silenceSignals = true;
+	int pos = xSizeSlider->value();
 	double newSize = pos*(domainExtents[3]-domainExtents[0])/256.;
 	//force center to conform to new size.
 	double center = 0.5*(boxExtents[3]+boxExtents[0]);
@@ -144,9 +146,10 @@ void BoxSliderFrame::xSliderSizeChange(int pos){
 	emit extentsChanged();
 	silenceSignals = false;
 }
-void BoxSliderFrame::ySliderCtrChange(int pos){
+void BoxSliderFrame::ySliderCtrChange(){
 	if (silenceSignals) return;
 	silenceSignals = true;
+	int pos = yCenterSlider->value();
 	//Force new center to conform to current size
 	double center = domainExtents[1]+pos*(domainExtents[4]-domainExtents[1])/256.;
 	if ((center + 0.5*(boxExtents[4]-boxExtents[1])) > domainExtents[4])
@@ -161,9 +164,10 @@ void BoxSliderFrame::ySliderCtrChange(int pos){
 	emit extentsChanged();
 	silenceSignals = false;
 }
-void BoxSliderFrame::ySliderSizeChange(int pos){
+void BoxSliderFrame::ySliderSizeChange(){
 	if (silenceSignals) return;
 	silenceSignals = true;
+	int pos = zSizeSlider->value();
 	double newSize = pos*(domainExtents[4]-domainExtents[1])/256.;
 	//force center to conform to new size.
 	double center = 0.5*(boxExtents[4]+boxExtents[1]);
@@ -179,9 +183,10 @@ void BoxSliderFrame::ySliderSizeChange(int pos){
 	emit extentsChanged();
 	silenceSignals = false;
 }
-void BoxSliderFrame::zSliderCtrChange(int pos){
+void BoxSliderFrame::zSliderCtrChange(){
 	if (silenceSignals) return;
 	silenceSignals = true;
+	int pos = zCenterSlider->value();
 	//Force new center to conform to current size
 	double center = domainExtents[2]+pos*(domainExtents[5]-domainExtents[2])/256.;
 	if ((center + 0.5*(boxExtents[5]-boxExtents[2])) > domainExtents[5])
@@ -196,9 +201,10 @@ void BoxSliderFrame::zSliderCtrChange(int pos){
 	emit extentsChanged();
 	silenceSignals = false;
 }
-void BoxSliderFrame::zSliderSizeChange(int pos){
+void BoxSliderFrame::zSliderSizeChange(){
 	if (silenceSignals) return;
 	silenceSignals = true;
+	int pos = zSizeSlider->value();
 	double newSize = pos*(domainExtents[5]-domainExtents[2])/256.;
 	//force center to conform to new size.
 	double center = 0.5*(boxExtents[5]+boxExtents[2]);

@@ -43,12 +43,12 @@ public:
 public slots:
 	void boxTextChanged(const QString&);
 	void boxReturnPressed();
-	void xSliderCtrChange(int);
-	void ySliderCtrChange(int);
-	void zSliderCtrChange(int);
-	void xSliderSizeChange(int);
-	void ySliderSizeChange(int);
-	void zSliderSizeChange(int);
+	void xSliderCtrChange();
+	void ySliderCtrChange();
+	void zSliderCtrChange();
+	void xSliderSizeChange();
+	void ySliderSizeChange();
+	void zSliderSizeChange();
 	
 signals:
 	void extentsChanged();
