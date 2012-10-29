@@ -63,7 +63,7 @@ or insert them using the probe tool.&nbsp; Each
 seed in the list has (x,y,z)-coordinates, as well as a time.&nbsp; If
 the time is negative, that seed point is valid for all seed time steps.</font></li>
     </ul>
-    <li><font size="+2">Specify the time
+    <li><font size="+2">Under the "Unsteady Flow Time Settings", specify the time
 steps when the seed points are to be
 injected into the flow, using the three values labeled
 "Seed time start, end, increment".&nbsp; These determine an increasing
@@ -73,11 +73,10 @@ Start", b is the "increment" and the largest injection time, a+kb, is
 no greater than the "Seed Time End".&nbsp; If the seeds are from a seed
 list, and the seed time is nonnegative, then that seed is only injected
 at its specified time step.</font></li>
-    <li><font size="+2">In the Shape
-parameters:</font></li>
+    <li><font size="+2">In the Unsteady Flow Time Settings:</font></li>
     <ol>
-      <li><font size="+2">Set the &#8220;Unsteady
-samples per time step&#8221; to be the number of separate positions along a
+      <li><font size="+2">Set the "Unsteady
+samples per time step" to be the number of separate positions along a
 path line that will be displayed in the interval from one time step to
 the next.<span style="">&nbsp; </span>Increase this to get a smoother
 path line.</font></li>
@@ -106,10 +105,10 @@ later be used to animate the path line evolution.</font></font></li>
     <font size="+2"><font size="+2"> <li><font size="+2">If the
 unsteady field data is not available at every
 time step, you must specify the time steps that will be sampled, using
-the &#8220;Advanced Unsteady Flow Parameters&#8221;.&nbsp; By default, every
-time step is sampled from beginning to end, using values in &#8220;Time step
-sample start, end, increment&#8221;.&nbsp; Check the optional &#8220;Use time step
-list&#8221; to specify an arbitrary set of time steps that will be sampled.</font></li>
+the "Unsteady Flow Time Settings".&nbsp; By default, every
+time step is sampled from beginning to end, using values in "Time step
+sample start, end, increment".&nbsp; Check the optional "Use time step
+list" to specify an arbitrary set of time steps that will be sampled.</font></li>
     </font><br>
 </font>
   </ol>
@@ -121,12 +120,12 @@ list&#8221; to specify an arbitrary set of time steps that will be sampled.</fon
 placement:</span><br>
 &nbsp;&nbsp;&nbsp; If you are using the &#8220;Random Rake&#8221; for seed
 placement, the distribution of random seeds can be biased by a field
-magnitude using the &#8220;Advanced Unsteady Flow
-Parameters&#8221;.&nbsp;&nbsp;&nbsp; As you increase the bias (above 0), the
+magnitude using bias settings in the "Flow Seeding Settings".
+&nbsp;&nbsp; As you increase the bias (above 0), the
 seeds are chosen at larger field magnitude values, approaching the
 maximum field magnitude within the rake bounds.&nbsp; Bias values below
 zero result in seeds to be distributed with field magnitudes nearer
-zero.&nbsp; The three variables labeled &#8220;Seed Distrib. Field&#8221; identify
+zero.&nbsp; The three variables labeled "Seed Distrib. Field" identify
 the vector field whose magnitude is used to determine the seed
 distribution.<br>
 &nbsp;<br>
