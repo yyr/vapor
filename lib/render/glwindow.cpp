@@ -184,7 +184,7 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
     vector <string> paths;
     paths.push_back("shaders");
     string shaderPaths = GetAppPath("VAPOR", "share", paths);
-cout << "shaderPaths " << shaderPaths << endl;
+	//cout << "shaderPaths " << shaderPaths << endl;
 
 	manager = new ShaderMgr(shaderPaths, this);
 	MyBase::SetDiagMsg("GLWindow::GLWindow() end");
