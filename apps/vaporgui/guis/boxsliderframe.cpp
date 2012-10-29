@@ -86,11 +86,11 @@ void BoxSliderFrame::confirmText(){
 		if (sizes[i] > domainExtents[i+3]-domainExtents[i])
 			sizes[i] = domainExtents[i+3]-domainExtents[i];
 		if (sizes[i] < 0.0)sizes[i] = 0.0;
-		if (centers[i] < domainExtents[i]) centers[i] = domainExtents[i];
+		if (i < 2 && centers[i] < domainExtents[i]) centers[i] = domainExtents[i];
 		if (centers[i] > domainExtents[i+3]) centers[i] = domainExtents[i+3];
 		if ((centers[i]+ 0.5*sizes[i])> domainExtents[i+3])
 			centers[i] = domainExtents[i+3]-0.5*sizes[i];
-		if ((centers[i]- 0.5*sizes[i])< domainExtents[i])
+		if (i < 2 && (centers[i]- 0.5*sizes[i])< domainExtents[i])
 			centers[i] = domainExtents[i]+0.5*sizes[i];
 		boxExtents[i] = centers[i]-0.5*sizes[i];
 		boxExtents[i+3] = centers[i]+0.5*sizes[i];
