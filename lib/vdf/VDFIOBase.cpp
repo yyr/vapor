@@ -126,6 +126,7 @@ double VDFIOBase::GetTime() const {
 //	_vtype_mask
 //	_reflevel_mask
 //	_ncpath_mask
+//	_ncpath_mask_tmp
 //	_ncid_mask = 0
 //	_mv_mask
 //	_bs_p_mask : packed version of block size
@@ -138,6 +139,7 @@ int VDFIOBase::_mask_open(
 	size_t &bitmasksz
 ) {
 	_ncpath_mask.clear();
+	_ncpath_mask_tmp.clear();
 	bitmasksz = 0;
 
     if (VDFIOBase::_MaskClose() < 0) return(-1);
@@ -231,6 +233,7 @@ int VDFIOBase::_mask_open(
 	_mv_mask = (float) mv_vec[0];
 
 	_ncpath_mask = basename + ".nc";
+	_ncpath_mask_tmp = basename + "_tmp" + ".nc";
 	_ncid_mask = 0;
 
 	return(0);
@@ -242,24 +245,26 @@ int VDFIOBase::_MaskOpenWrite(
     string varname,
     int reflevel
 ) {
+	if (IsCoordinateVariable(_varname)) return(0);
+
 	size_t bitmasksz;
 	if (_mask_open(timestep, varname, reflevel, bitmasksz) < 0) return(-1);
 
 	//
 	// if _ncpath_mask is empty there is not missing data mask file
 	//
-	if (_ncpath_mask.length() == 0) return(0);
+	if (_ncpath_mask_tmp.length() == 0) return(0);
 
 	string dir;
-    DirName(_ncpath_mask, dir);
+    DirName(_ncpath_mask_tmp, dir);
     if (MkDirHier(dir) < 0) {
         return(-1);
     }
 	int rc;
 
 	size_t chsz = NC_CHUNKSIZEHINT;
-	rc = nc__create(_ncpath_mask.c_str(), NC_64BIT_OFFSET, 0, &chsz, &_ncid_mask);
-	NC_ERR(rc,_ncpath_mask)
+	rc = nc__create(_ncpath_mask_tmp.c_str(), NC_64BIT_OFFSET, 0, &chsz, &_ncid_mask);
+	NC_ERR(rc,_ncpath_mask_tmp)
 
 	// Disable data filling - may not be necessary
 	//
@@ -276,23 +281,23 @@ int VDFIOBase::_MaskOpenWrite(
 	rc = nc_def_dim(
 		_ncid_mask,_volumeDimNbxName.c_str(),bdim[0],&all_dim_ids[0]
 	);
-	NC_ERR(rc,_ncpath_mask)
+	NC_ERR(rc,_ncpath_mask_tmp)
 
 	rc = nc_def_dim(
 		_ncid_mask,_volumeDimNbyName.c_str(),bdim[1],&all_dim_ids[1]
 	);
-	NC_ERR(rc,_ncpath_mask)
+	NC_ERR(rc,_ncpath_mask_tmp)
 
 	rc = nc_def_dim(
 		_ncid_mask,_volumeDimNbzName.c_str(),bdim[2],&all_dim_ids[2]
 	);
-	NC_ERR(rc,_ncpath_mask);
+	NC_ERR(rc,_ncpath_mask_tmp);
 
 	rc = nc_def_dim(
 		_ncid_mask,_maskDimName.c_str(),BitMask::getSize(bitmasksz),
 		&all_dim_ids[3]
 	);
-   NC_ERR(rc,_ncpath_mask)
+   NC_ERR(rc,_ncpath_mask_tmp)
 
 	int ndims = 0;
 	int mask_dim_ids[4];
@@ -332,7 +337,7 @@ int VDFIOBase::_MaskOpenWrite(
 		_ncid_mask, _maskName.c_str(), NC_CHAR,
 		ndims, mask_dim_ids, &_varid_mask
 	);
-	NC_ERR(rc,_ncpath_mask)
+	NC_ERR(rc,_ncpath_mask_tmp)
 
 	//
 	// Define netCDF global attributes
@@ -341,15 +346,16 @@ int VDFIOBase::_MaskOpenWrite(
 	rc = nc_put_att_int(
 		_ncid_mask,NC_GLOBAL,_fileVersionName.c_str(),NC_INT, 1, &version
 	);
-	NC_ERR(rc,_ncpath_mask)
+	NC_ERR(rc,_ncpath_mask_tmp)
 
 	rc = nc_put_att_int(
 		_ncid_mask,NC_GLOBAL,_refinementLevelName.c_str(),NC_INT, 1,
 		&_reflevel_mask
 	);
-	NC_ERR(rc,_ncpath_mask)
+	NC_ERR(rc,_ncpath_mask_tmp)
 
 	rc = nc_enddef(_ncid_mask);
+	_open_write_mask = true;
 	return(0);
 		
 }
@@ -359,6 +365,8 @@ int VDFIOBase::_MaskOpenRead(
     string varname,
     int reflevel
 ) {
+	if (IsCoordinateVariable(_varname)) return(0);
+
 	size_t dummy;
 	if (_mask_open(timestep, varname, reflevel, dummy) < 0) return(-1);
 
@@ -450,6 +458,7 @@ int VDFIOBase::_MaskOpenRead(
 	}
 	}
 
+	_open_write_mask = false;
 	return(0);
 }
 
@@ -459,9 +468,23 @@ int VDFIOBase::_MaskClose()
 	int rc = nc_close(_ncid_mask);
 	NC_ERR(rc,_ncpath_mask)
 
+
+	if (_open_write_mask) {
+		rc = unlink(_ncpath_mask.c_str());
+		rc = rename(_ncpath_mask_tmp.c_str(), _ncpath_mask.c_str());
+		if (rc<0) {
+			MyBase::SetErrMsg(
+				"rename(%s, %s) : %M", _ncpath_mask_tmp.c_str(), 
+				_ncpath_mask.c_str()
+			);
+			return(-1);
+		}
+	}
 	_bitmasks.clear();
 	_ncid_mask = 0;
 	_ncpath_mask.clear();
+	_ncpath_mask_tmp.clear();
+
 	return(0);
 }
 
@@ -617,7 +640,7 @@ int VDFIOBase::_MaskWrite(
 		}
 
 		int rc = nc_put_vara(_ncid_mask, _varid_mask, start, count, bm.getStorage());
-		NC_ERR(rc,_ncpath_mask)
+		NC_ERR(rc,_ncpath_mask_tmp)
 	}
 	}
 	}

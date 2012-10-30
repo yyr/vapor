@@ -265,6 +265,8 @@ private:
  int _reflevel_mask;
  int _reflevel_file_mask;
  string _ncpath_mask;
+ string _ncpath_mask_tmp;
+ bool _open_write_mask;
  vector <BitMask> _bitmasks;
  string _varname; // currently opened variable;
 
