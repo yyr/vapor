@@ -175,7 +175,7 @@ share the same region settings.</string>
           <widget class="QLabel" name="fullMinXLabel">
            <property name="minimumSize">
             <size>
-             <width>50</width>
+             <width>70</width>
              <height>0</height>
             </size>
            </property>
@@ -197,7 +197,7 @@ share the same region settings.</string>
           <widget class="QLabel" name="fullMinYLabel">
            <property name="minimumSize">
             <size>
-             <width>50</width>
+             <width>70</width>
              <height>0</height>
             </size>
            </property>
@@ -217,6 +217,12 @@ share the same region settings.</string>
          </item>
          <item>
           <widget class="QLabel" name="fullMinZLabel">
+           <property name="minimumSize">
+            <size>
+             <width>70</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Minimum Z coordinate of full domain</string>
            </property>
@@ -537,6 +543,12 @@ share the same region settings.</string>
          </item>
          <item>
           <widget class="QLabel" name="fullMaxXLabel">
+           <property name="minimumSize">
+            <size>
+             <width>70</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Maximum X coordinate of full domain</string>
            </property>
@@ -553,6 +565,12 @@ share the same region settings.</string>
          </item>
          <item>
           <widget class="QLabel" name="fullMaxYLabel">
+           <property name="minimumSize">
+            <size>
+             <width>70</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Maximum Y coordinate of full domain</string>
            </property>
@@ -571,7 +589,7 @@ share the same region settings.</string>
           <widget class="QLabel" name="fullMaxZLabel">
            <property name="minimumSize">
             <size>
-             <width>50</width>
+             <width>70</width>
              <height>0</height>
             </size>
            </property>
@@ -952,6 +970,12 @@ share the same region settings.</string>
          </item>
          <item>
           <widget class="QLabel" name="fullSizeXLabel">
+           <property name="minimumSize">
+            <size>
+             <width>70</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Size of full domain in user coordinates</string>
            </property>
@@ -968,6 +992,12 @@ share the same region settings.</string>
          </item>
          <item>
           <widget class="QLabel" name="fullSizeYLabel">
+           <property name="minimumSize">
+            <size>
+             <width>70</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Size of full domain in user coordinates</string>
            </property>
@@ -984,6 +1014,12 @@ share the same region settings.</string>
          </item>
          <item>
           <widget class="QLabel" name="fullSizeZLabel">
+           <property name="minimumSize">
+            <size>
+             <width>70</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Size of full domain in user coordinates</string>
            </property>
@@ -1630,12 +1666,12 @@ share the same region settings.</string>
              <widget class="QLabel" name="textLabel8">
               <property name="maximumSize">
                <size>
-                <width>55</width>
+                <width>30</width>
                 <height>32767</height>
                </size>
               </property>
               <property name="text">
-               <string>Coord</string>
+               <string>Dim</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
@@ -1690,7 +1726,7 @@ share the same region settings.</string>
                <widget class="QLabel" name="textLabel6_2_2">
                 <property name="maximumSize">
                  <size>
-                  <width>50</width>
+                  <width>30</width>
                   <height>32767</height>
                  </size>
                 </property>
@@ -1710,8 +1746,14 @@ share the same region settings.</string>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>30</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
                 <property name="text">
-                 <string>User X</string>
+                 <string> X</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
@@ -1729,8 +1771,14 @@ share the same region settings.</string>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>30</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
                 <property name="text">
-                 <string>User Y</string>
+                 <string> Y</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
@@ -1748,8 +1796,14 @@ share the same region settings.</string>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>30</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
                 <property name="text">
-                 <string>User Z</string>
+                 <string>Z</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
@@ -1778,6 +1832,12 @@ share the same region settings.</string>
               </item>
               <item>
                <widget class="QLabel" name="minXFullLabel">
+                <property name="minimumSize">
+                 <size>
+                  <width>51</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
@@ -1861,6 +1921,12 @@ share the same region settings.</string>
               </item>
               <item>
                <widget class="QLabel" name="maxXFullLabel">
+                <property name="minimumSize">
+                 <size>
+                  <width>51</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
@@ -1947,6 +2013,12 @@ share the same region settings.</string>
               </item>
               <item>
                <widget class="QLabel" name="minVarXLabel">
+                <property name="minimumSize">
+                 <size>
+                  <width>51</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
@@ -2030,6 +2102,12 @@ share the same region settings.</string>
               </item>
               <item>
                <widget class="QLabel" name="maxVarXLabel">
+                <property name="minimumSize">
+                 <size>
+                  <width>51</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
@@ -2116,6 +2194,12 @@ share the same region settings.</string>
               </item>
               <item>
                <widget class="QLabel" name="minXSelectedLabel">
+                <property name="minimumSize">
+                 <size>
+                  <width>51</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
@@ -2202,6 +2286,12 @@ share the same region settings.</string>
               </item>
               <item>
                <widget class="QLabel" name="maxXSelectedLabel">
+                <property name="minimumSize">
+                 <size>
+                  <width>51</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
@@ -2278,8 +2368,14 @@ share the same region settings.</string>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>30</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
                 <property name="text">
-                 <string>Voxel X</string>
+                 <string>VoxX</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
@@ -2297,8 +2393,14 @@ share the same region settings.</string>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>30</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
                 <property name="text">
-                 <string>Voxel Y</string>
+                 <string>VoxY</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
@@ -2316,8 +2418,14 @@ share the same region settings.</string>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>30</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
                 <property name="text">
-                 <string>Voxel Z</string>
+                 <string>VoxZ</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
@@ -2542,7 +2650,11 @@ share the same region settings.</string>
               <item>
                <widget class="QLabel" name="minXVoxSelectedLabel">
                 <property name="toolTip">
-                 <string>Voxel extents of selected variable in current region at specified refinement</string>
+                 <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Voxel extents of current region at specified refinement&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>50</string>
@@ -2558,7 +2670,11 @@ share the same region settings.</string>
               <item>
                <widget class="QLabel" name="minYVoxSelectedLabel">
                 <property name="toolTip">
-                 <string>Voxel extents of selected variable in current region at specified refinement</string>
+                 <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Voxel extents of current region at specified refinement&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>0</string>
@@ -2574,7 +2690,11 @@ share the same region settings.</string>
               <item>
                <widget class="QLabel" name="minZVoxSelectedLabel">
                 <property name="toolTip">
-                 <string>Voxel extents of selected variable in current region at specified refinement</string>
+                 <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Voxel extents of current region at specified refinement&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>0</string>
@@ -2594,7 +2714,11 @@ share the same region settings.</string>
               <item>
                <widget class="QLabel" name="maxXVoxSelectedLabel">
                 <property name="toolTip">
-                 <string>Voxel extents of selected variable in current region at specified refinement</string>
+                 <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Voxel extents of current region at specified refinement&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>250</string>
@@ -2610,7 +2734,11 @@ share the same region settings.</string>
               <item>
                <widget class="QLabel" name="maxYVoxSelectedLabel">
                 <property name="toolTip">
-                 <string>Voxel extents of selected variable in current region at specified refinement</string>
+                 <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Voxel extents of current region at specified refinement&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>250</string>
@@ -2626,7 +2754,11 @@ share the same region settings.</string>
               <item>
                <widget class="QLabel" name="maxZVoxSelectedLabel">
                 <property name="toolTip">
-                 <string>Voxel extents of selected variable in current region at specified refinement</string>
+                 <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Voxel extents of current region at specified refinement&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>120</string>
