@@ -153,9 +153,6 @@ DvrEventRouter::hookUpTab()
             transferFunctionFrame, SLOT(newHsv(int,int,int)));
     connect(transferFunctionFrame, SIGNAL(canBindControlPoints(bool)),
             this, SLOT(setBindButtons(bool)));
-    connect(transferFunctionFrame, SIGNAL(mappingChanged()),
-            this, SLOT(setClutDirty()));
-
 	connect (instanceTable, SIGNAL(changeCurrentInstance(int)), this, SLOT(guiChangeInstance(int)));
 	connect (copyCombo, SIGNAL(activated(int)), this, SLOT(guiCopyInstanceTo(int)));
 	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
