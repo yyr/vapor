@@ -1063,14 +1063,7 @@ void MainForm::importWRFData()
 	//This launches a panel that enables the
     //user to choose input WRF output files, then to
 	//use them to create a new data
-	//Don't allow : in windows filenames
-#ifdef WIN32
-	if (Session::getInstance()->getMetadataFile().find(":") != string::npos){
-		QString mdfile = Session::getInstance()->getMetadataFile().c_str();
-		mdfile.replace(':','_');
-		Session::getInstance()->setMetadataFile(mdfile.toAscii());
-	}
-#endif	
+	
 	QStringList filenames = QFileDialog::getOpenFileNames(this,
 		"Select WRF-ARW Output Files to import into current session",
 		Session::getInstance()->getMetadataFile().c_str(),"");

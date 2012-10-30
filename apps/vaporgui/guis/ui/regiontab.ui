@@ -1397,6 +1397,12 @@ share the same region settings.</string>
      </item>
      <item>
       <widget class="QFrame" name="frame">
+       <property name="font">
+        <font>
+         <family>MS Shell Dlg 2</family>
+         <pointsize>8</pointsize>
+        </font>
+       </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
        </property>
@@ -1844,6 +1850,14 @@ share the same region settings.</string>
                   <height>32767</height>
                  </size>
                 </property>
+                <property name="font">
+                 <font>
+                  <family>Arial</family>
+                  <pointsize>9</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
                 <property name="toolTip">
                  <string>Full extents of this Vapor Data Collection</string>
                 </property>
@@ -1866,6 +1880,14 @@ share the same region settings.</string>
                   <height>32767</height>
                  </size>
                 </property>
+                <property name="font">
+                 <font>
+                  <family>Arial</family>
+                  <pointsize>9</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
                 <property name="toolTip">
                  <string>Full extents of this Vapor Data Collection</string>
                 </property>
@@ -1887,6 +1909,14 @@ share the same region settings.</string>
                   <width>60</width>
                   <height>32767</height>
                  </size>
+                </property>
+                <property name="font">
+                 <font>
+                  <family>Arial</family>
+                  <pointsize>9</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
                 </property>
                 <property name="toolTip">
                  <string>Full extents of this Vapor Data Collection</string>
@@ -1933,6 +1963,14 @@ share the same region settings.</string>
                   <height>32767</height>
                  </size>
                 </property>
+                <property name="font">
+                 <font>
+                  <family>Arial</family>
+                  <pointsize>9</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
                 <property name="toolTip">
                  <string>Full extents of this Vapor Data Collection</string>
                 </property>
@@ -1955,6 +1993,14 @@ share the same region settings.</string>
                   <height>32767</height>
                  </size>
                 </property>
+                <property name="font">
+                 <font>
+                  <family>Arial</family>
+                  <pointsize>9</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
                 <property name="toolTip">
                  <string>Full extents of this Vapor Data Collection</string>
                 </property>
@@ -1976,6 +2022,14 @@ share the same region settings.</string>
                   <width>60</width>
                   <height>32767</height>
                  </size>
+                </property>
+                <property name="font">
+                 <font>
+                  <family>Arial</family>
+                  <pointsize>9</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
                 </property>
                 <property name="toolTip">
                  <string>Full extents of this Vapor Data Collection</string>
@@ -2025,6 +2079,14 @@ share the same region settings.</string>
                   <height>32767</height>
                  </size>
                 </property>
+                <property name="font">
+                 <font>
+                  <family>Arial</family>
+                  <pointsize>9</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
                 <property name="toolTip">
                  <string>User coordinate extents of specified variable in this VDC</string>
                 </property>
@@ -2047,6 +2109,14 @@ share the same region settings.</string>
                   <height>32767</height>
                  </size>
                 </property>
+                <property name="font">
+                 <font>
+                  <family>Arial</family>
+                  <pointsize>9</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
                 <property name="toolTip">
                  <string>User coordinate extents of specified variable in this VDC</string>
                 </property>
@@ -2068,6 +2138,14 @@ share the same region settings.</string>
                   <width>60</width>
                   <height>32767</height>
                  </size>
+                </property>
+                <property name="font">
+                 <font>
+                  <family>Arial</family>
+                  <pointsize>9</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
                 </property>
                 <property name="toolTip">
                  <string>User coordinate extents of specified variable in this VDC</string>
@@ -2114,6 +2192,14 @@ share the same region settings.</string>
                   <height>32767</height>
                  </size>
                 </property>
+                <property name="font">
+                 <font>
+                  <family>Arial</family>
+                  <pointsize>9</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
                 <property name="toolTip">
                  <string>User coordinate extents of specified variable in this VDC</string>
                 </property>
@@ -2136,6 +2222,14 @@ share the same region settings.</string>
                   <height>32767</height>
                  </size>
                 </property>
+                <property name="font">
+                 <font>
+                  <family>Arial</family>
+                  <pointsize>9</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
                 <property name="toolTip">
                  <string>User coordinate extents of specified variable in this VDC</string>
                 </property>
@@ -2157,6 +2251,14 @@ share the same region settings.</string>
                   <width>60</width>
                   <height>32767</height>
                  </size>
+                </property>
+                <property name="font">
+                 <font>
+                  <family>Arial</family>
+                  <pointsize>9</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
                 </property>
                 <property name="toolTip">
                  <string>User coordinate extents of specified variable in this VDC</string>
@@ -2206,6 +2308,14 @@ share the same region settings.</string>
                   <height>32767</height>
                  </size>
                 </property>
+                <property name="font">
+                 <font>
+                  <family>Arial</family>
+                  <pointsize>9</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
                 <property name="toolTip">
                  <string>User coordinate extents of current region (or blank if data not available)</string>
                 </property>
@@ -2228,6 +2338,14 @@ share the same region settings.</string>
                   <height>32767</height>
                  </size>
                 </property>
+                <property name="font">
+                 <font>
+                  <family>Arial</family>
+                  <pointsize>9</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
                 <property name="toolTip">
                  <string>User coordinate extents of current region (or blank if data not available)</string>
                 </property>
@@ -2249,6 +2367,14 @@ share the same region settings.</string>
                   <width>60</width>
                   <height>32767</height>
                  </size>
+                </property>
+                <property name="font">
+                 <font>
+                  <family>Arial</family>
+                  <pointsize>9</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
                 </property>
                 <property name="toolTip">
                  <string>User coordinate extents of current region (or blank if data not available)</string>
@@ -2298,6 +2424,14 @@ share the same region settings.</string>
                   <height>32767</height>
                  </size>
                 </property>
+                <property name="font">
+                 <font>
+                  <family>Arial</family>
+                  <pointsize>9</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
                 <property name="toolTip">
                  <string>User coordinate extents of current region (or blank if data not available)</string>
                 </property>
@@ -2320,6 +2454,14 @@ share the same region settings.</string>
                   <height>32767</height>
                  </size>
                 </property>
+                <property name="font">
+                 <font>
+                  <family>Arial</family>
+                  <pointsize>9</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
                 <property name="toolTip">
                  <string>User coordinate extents of current region (or blank if data not available)</string>
                 </property>
@@ -2341,6 +2483,14 @@ share the same region settings.</string>
                   <width>60</width>
                   <height>32767</height>
                  </size>
+                </property>
+                <property name="font">
+                 <font>
+                  <family>Arial</family>
+                  <pointsize>9</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
                 </property>
                 <property name="toolTip">
                  <string>User coordinate extents of current region (or blank if data not available)</string>
