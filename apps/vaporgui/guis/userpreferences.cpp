@@ -1893,7 +1893,11 @@ bool UserPreferences::savePreferences(const char* filename){
 }
 void UserPreferences::getTextChanges(){
 	//copy values from text boxes to values in class:
-	cacheMB = (size_t) cacheSizeEdit->text().toInt();
+	size_t newCacheMB = (size_t) cacheSizeEdit->text().toInt();
+	if (newCacheMB != cacheMB){
+		MessageReporter::warningMsg("Note that cache size change will not take effect until the next time data is loaded");
+	}
+	cacheMB = newCacheMB;
 	texSize = textureSizeEdit->text().toInt();
 	jpegQuality = jpegQualityEdit->text().toInt();
 	winWidth = winWidthEdit->text().toInt();
