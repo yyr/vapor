@@ -922,6 +922,7 @@ private:
 	void SetExist(size_t ts, string varname, int ref, int lod, bool exist);
 	void PurgeExist(size_t ts, string varname, int ref, int lod);
 
+	void PurgeVariable(string varname);
 	void Clear() {_cache.clear(); }
 
 

@@ -1432,6 +1432,7 @@ DataMgr::VarType_T DataMgr::GetVarType(const string &varname) const {
  
 void DataMgr::PurgeVariable(string varname){
 	free_var(varname,1);
+	_VarInfoCache.PurgeVariable(varname);
 }
 
 LayeredGrid *DataMgr::get_elev_grid(size_t ts, int reflevel) 
@@ -2045,6 +2046,20 @@ void DataMgr::VarInfoCache::PurgeExist(
 	if (itr == viptr->exist.end()) return;
 
 	viptr->exist.erase(itr);
+}
+
+void DataMgr::VarInfoCache::PurgeVariable(string varname) {
+
+	map <size_t, map <string, var_info> >::iterator itr1;
+
+	for (itr1 = _cache.begin(); itr1 != _cache.end(); ++itr1) {
+
+		map <string, var_info >::iterator itr2;
+		itr2 = itr1->second.find(varname);
+		if (itr2 != itr1->second.end()) {
+			itr1->second.erase(itr2);
+		}
+	}
 }
 
 bool DataMgr::IsCoordinateVariable(string varname) const {
