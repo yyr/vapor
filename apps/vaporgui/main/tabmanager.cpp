@@ -58,6 +58,7 @@ TabManager::TabManager(QWidget* parent, const char* ,  Qt::WFlags )
 	int ok = connect(this, SIGNAL(currentChanged(int)), this, SLOT(newFrontTab(int)));
 	if(!ok) assert (ok);
 	currentFrontPage = -1;
+	setElideMode(Qt::ElideNone);
 }
 //Insert a new tabbed widget at the end of the tabs
 //
