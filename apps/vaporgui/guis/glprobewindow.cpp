@@ -141,6 +141,8 @@ void GLProbeWindow::_resizeGL() {
 	//texture to be mapped
 	float winAspect = (float)_winHeight/(float)_winWidth;
 	float texAspect = vertTexSize/horizTexSize;
+	if (texAspect > 1.f) texAspect = 1.f;//Never taller than square
+	if (texAspect < winAspect) texAspect = winAspect;  //Never wider than window.
 	if (winAspect > texAspect){
 		//Window is taller than texture, so fill from left to right:
 		rectLeft = -1.f;
