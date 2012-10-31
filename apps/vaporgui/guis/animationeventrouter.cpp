@@ -838,6 +838,11 @@ void AnimationEventRouter::guiChangeKeyIndex(int keyIndex){
 void AnimationEventRouter::guiEnableKeyframing(bool enabled){
 	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
+	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
+	if (enabled && vpParams->isLatLon()){
+		MessageReporter::errorMsg("Lat/lon viewpoint coordinates must be disabled to use keyframing");
+		return;
+	}
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Toggle keyframing enabled");
 	int ts = aParams->getCurrentTimestep();
 	aParams->enableKeyframing(enabled);
@@ -853,6 +858,11 @@ void AnimationEventRouter::guiEnableKeyframing(bool enabled){
 }
 void AnimationEventRouter::guiChangeKeyframe(){
 	confirmText(false);
+	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
+	if (vpParams->isLatLon()){
+		MessageReporter::errorMsg("Lat/lon viewpoint coordinates must be disabled to use keyframing");
+		return;
+	}
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Adjust Keyframe");
 	currentKeyIndex = keyIndexSpin->value();
@@ -875,6 +885,11 @@ void AnimationEventRouter::guiDeleteKeyframe(){
 	int numkeys = aParams->getNumKeyframes();
 	if (numkeys <2)//Don't delete the only keyframe
 		return;
+	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
+	if (vpParams->isLatLon()){
+		MessageReporter::errorMsg("Lat/lon viewpoint coordinates must be disabled to use keyframing");
+		return;
+	}
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Delete Keyframe");
 	currentKeyIndex = keyIndexSpin->value();
 	aParams->deleteKeyframe(currentKeyIndex);
@@ -890,6 +905,11 @@ void AnimationEventRouter::guiDeleteKeyframe(){
 void AnimationEventRouter::guiInsertKeyframe(){
 	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
+	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
+	if (vpParams->isLatLon()){
+		MessageReporter::errorMsg("Lat/lon viewpoint coordinates must be disabled to use keyframing");
+		return;
+	}
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Insert Key Frame");
 	//use settings from the app
 	currentKeyIndex = keyIndexSpin->value();
@@ -947,11 +967,14 @@ void AnimationEventRouter::guiInsertKeyframe(){
 
 void AnimationEventRouter::guiGotoKeyframe(){
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
+	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
+	if (vpParams->isLatLon()){
+		MessageReporter::errorMsg("Lat/lon viewpoint coordinates must be disabled to use keyframing");
+		return;
+	}
 	currentKeyIndex = keyIndexSpin->value();
 	Keyframe* key = aParams->getKeyframe(currentKeyIndex);
 	//If keyframing is enabled, just need to go to that keyframe
-	//Put the vpParams in the undo/redo queue.
-	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
 	PanelCommand* cmd = PanelCommand::captureStart(vpParams, "Go To Keyframe");
 	if (aParams->keyframingEnabled()){
 		aParams->setCurrentFrameNumber(aParams->getFrameIndex(currentKeyIndex));

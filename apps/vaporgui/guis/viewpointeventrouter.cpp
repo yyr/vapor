@@ -779,6 +779,12 @@ navigate (ViewpointParams* vpParams, float* posn, float* viewDir, float* upVec){
 void ViewpointEventRouter::
 guiToggleLatLon(bool on){
 	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
+	//Check to make sure we aren't doing keyframe animation:
+	AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
+	if (on && aParams->keyframingEnabled()){
+		MessageReporter::errorMsg(" Lat/lon viewpoint coordinates cannot be used with keyframe animation");
+		return;
+	}
 	PanelCommand* cmd = PanelCommand::captureStart(vpParams, "toggle lat/lon and local coordinates");
 	//Nothing needs to be reset, since the current panel text should not change.
 	vpParams->setLatLon(on);
