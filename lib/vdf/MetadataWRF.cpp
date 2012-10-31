@@ -192,8 +192,10 @@ void MetadataWRF::_MetadataWRF(
         if (Dimens[0] != tdimlens[0] || Dimens[1] != tdimlens[1] || Dimens[2] != tdimlens[2] )
           mismatch_flag = true;
 
+		/*  Ignore mismatched dates
         if(StartDate != tstartdate)
           mismatch_flag = true;
+		  */ 
 
         if(MapProjection != tmapprojection)
           mismatch_flag = true;
