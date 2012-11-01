@@ -27,7 +27,6 @@ uniform vec4 isocolor;	// base color for isosurface
 #endif
   
 uniform int nsamples;	// sampling distance along ray (eye coordinates)
-uniform vec3 dimensions;	// ijk dimensions of 3D texture
 
 varying vec4 position;	// interpolated gl_Position
 
@@ -36,6 +35,7 @@ uniform vec2 winsize;	// Window width and height
   
 // Lighting parameters
   
+uniform vec3 dimensions;	// ijk dimensions of 3D texture
 uniform vec3 lightDirection;
 uniform float kd;
 uniform float ka;

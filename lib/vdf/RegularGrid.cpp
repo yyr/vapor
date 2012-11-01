@@ -100,9 +100,12 @@ int RegularGrid::_RegularGrid(
 	//
 	// Shallow  copy blocks
 	//
-	_blks = new float*[_nblocks];
-	for (int i=0; i<_nblocks; i++) {
-		_blks[i] = blks[i];
+	_blks = NULL;
+	if (blks) {
+		_blks = new float*[_nblocks];
+		for (int i=0; i<_nblocks; i++) {
+			_blks[i] = blks[i];
+		}
 	}
 
 	_hasMissing = false;
@@ -149,6 +152,8 @@ float &RegularGrid::AccessIJK( size_t x, size_t y, size_t z) const {
 float &RegularGrid::_AccessIJK(
 	float **blks, size_t x, size_t y, size_t z) const {
 
+	if (! blks) return((float &) _missingValue);
+
 	if (x>(_max[0]-_min[0])) return((float &) _missingValue);
 	if (y>(_max[1]-_min[1])) return((float &) _missingValue);
 	if (z>(_max[2]-_min[2])) return((float &) _missingValue);
@@ -177,7 +182,7 @@ float RegularGrid::GetValue(double x, double y, double z) const {
 
 	// At this point xyz should be within the bounds _minu, _maxu
 	//
-	if (! InsideGrid(x,y,z)) return(_missingValue);
+	if (! RegularGrid::InsideGrid(x,y,z)) return(_missingValue);
 
 	if (_interpolationOrder == 0) {
 		return (_GetValueNearestNeighbor(x,y,z));
@@ -372,6 +377,62 @@ void RegularGrid::GetBoundingBox(
 	RegularGrid::GetUserCoordinates(
 		max[0], max[1], max[2], &(extents[3]), &(extents[4]), &(extents[5])
 	);
+}
+
+void    RegularGrid::GetEnclosingRegion(
+    const double minu[3], const double maxu[3],
+    size_t min[3], size_t max[3]
+) const {
+
+	size_t dims[3];
+	RegularGrid::GetDimensions(dims);
+	for (int i=0; i<3; i++) {
+		min[i] = 0;
+		max[i] = dims[i]-1;
+	}
+	
+	size_t temp_min[3], temp_max[3];
+	RegularGrid::GetIJKIndex(
+		minu[0], minu[1], minu[2], &temp_min[0], &temp_min[1], &temp_min[2]
+	);
+	RegularGrid::GetIJKIndex(
+		maxu[0], maxu[1], maxu[2], &temp_max[0], &temp_max[1], &temp_max[2]
+	);
+
+    double temp_minu[3], temp_maxu[3];
+
+	RegularGrid::GetUserCoordinates(
+		temp_min[0], temp_min[1], temp_min[2], 
+		&temp_minu[0], &temp_minu[1], &temp_minu[2]
+	);
+	RegularGrid::GetUserCoordinates(
+		temp_max[0], temp_max[1], temp_max[2],
+		&temp_maxu[0], &temp_maxu[1], &temp_maxu[2]
+	);
+
+    double extents[6];
+	RegularGrid::GetUserExtents(extents);
+
+	for (int i=0; i<3; i++) {
+		if (extents[i] < extents[i+3]) {
+			if (temp_minu[i] > minu[i] && (temp_min[i] > 0)) {
+				temp_min[i]--;
+			}
+			if (temp_maxu[i] < maxu[i] && (temp_max[i] < (dims[i]-1))) {
+				temp_max[i]++;
+			}
+		}
+		else {
+			if (temp_minu[i] < minu[i] && (temp_min[i] > 0) ) {
+				temp_min[i]--;
+			}
+			if (temp_maxu[i] > maxu[i] && (temp_max[i] < (dims[i]-1))) {
+				temp_max[i]++;
+			}
+		}
+		min[i] = temp_min[i];
+		max[i] = temp_max[i];
+	}
 }
 
 
@@ -594,6 +655,7 @@ bool RegularGrid::InsideGrid(double x, double y, double z) const
 
 float RegularGrid::Next() {
 
+	if (! _blks) return(0);
 	if (_end) return(0);
 
 	if (_xb<_bs[0] && _x<_max[0]) {
@@ -630,6 +692,10 @@ float RegularGrid::Next() {
 }
 
 void RegularGrid::ResetItr() {
+	if (! _blks) {
+		_end = true;
+		return;
+	}
 	_xb = _min[0];
 	_x = _min[0];
 	_y = _min[1];
@@ -638,6 +704,10 @@ void RegularGrid::ResetItr() {
 	_end = false;
 }
 RegularGrid::Iterator::Iterator(RegularGrid *rg) {
+	if (! rg->_blks) {
+		_end = true;
+		return;
+	}
 	_rg = rg;
 	_xb = rg->_min[0];
 	_x = rg->_min[0];
@@ -658,6 +728,7 @@ RegularGrid::Iterator::Iterator() {
 }
 
 RegularGrid::Iterator &RegularGrid::Iterator::operator++() {
+	if (! _rg->_blks) _end = true; 
 	if (_end) return(*this);
 
 	_xb++;
@@ -717,6 +788,10 @@ bool RegularGrid::Iterator::operator!=(const Iterator &other) {
 
 
 RegularGrid::ConstIterator::ConstIterator(const RegularGrid *rg) {
+	if (! rg->_blks) {
+		_end = true;
+		return;
+	}
 	_rg = rg;
 	_xb = rg->_min[0];
 	_x = rg->_min[0];
@@ -737,6 +812,7 @@ RegularGrid::ConstIterator::ConstIterator() {
 }
 
 RegularGrid::ConstIterator &RegularGrid::ConstIterator::operator++() {
+	if (! _rg->_blks) _end = true;
 	if (_end) return(*this);
 
 	_xb++;

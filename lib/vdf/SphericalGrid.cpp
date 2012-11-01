@@ -50,8 +50,14 @@ float SphericalGrid::GetValue(double x, double y, double z) const {
 
 	if (! InsideGrid(x,y,z)) return(GetMissingValue());
 
-	cerr << "SphericalGrid::GetValue - NOT IMPLEMENTED" << endl;
-	return(GetMissingValue());
+	double phi, theta, r;
+
+	CartToSph(x,y,z,&phi,&theta, &r);
+
+	double coordsP[3];
+	_permute(_permutation, coordsP, phi, theta, r);
+
+	return(RegularGrid::GetValue(coordsP[0], coordsP[1], coordsP[2]));
 }
 
 void SphericalGrid::_GetUserExtents(double extentsC[6]) const {
@@ -151,18 +157,18 @@ int SphericalGrid::GetUserCoordinates(
 
 	double delta_phi = (lon1-lon0) / dimsP[0];
 	double delta_theta = (lat1-lat0) / dimsP[1];
-	double delta_r = (r1-r0) / dimsP[2];
+	double delta_r = (r1-r0) / (dimsP[2]-1.0);
 
-	double ijkP[6];
+	double ijkP[3];
 	_permute(_permutation, ijkP, i, j, k);
 
 	double phi = lon0 + (ijkP[0] * delta_phi);
 	double theta = lat0 + (ijkP[1] * delta_theta);
 	double r = r0 + (ijkP[2] * delta_r);
 
-	*x = r1 * cos(phi) * sin(theta);	
-	*y = r1 * sin(phi) * sin(theta);	
-	*z = r1 * sin(theta);
+	*x = r * cos(phi) * sin(theta);	
+	*y = r * sin(phi) * sin(theta);	
+	*z = r * sin(theta);
 
 	return(0);
 
@@ -172,17 +178,30 @@ void SphericalGrid::GetIJKIndex(
 	double x, double y, double z,
 	size_t *i, size_t *j, size_t *k
 ) const {
-	cerr << "SphericalGrid::GetValue - NOT IMPLEMENTED" << endl;
-	return;
+
+	double phi, theta, r;
+
+	CartToSph(x,y,z,&phi,&theta, &r);
+
+	double coordsP[3];
+	_permute(_permutation, coordsP, phi, theta, r);
+
+	RegularGrid::GetIJKIndex(coordsP[0], coordsP[1], coordsP[2], i,j,k);
 }
 
 void SphericalGrid::GetIJKIndexFloor(
 	double x, double y, double z,
 	size_t *i, size_t *j, size_t *k
 ) const {
-	cerr << "SphericalGrid::GetValue - NOT IMPLEMENTED" << endl;
-	return;
 
+	double phi, theta, r;
+
+	CartToSph(x,y,z,&phi,&theta, &r);
+
+	double coordsP[3];
+	_permute(_permutation, coordsP, phi, theta, r);
+
+	RegularGrid::GetIJKIndexFloor(coordsP[0], coordsP[1], coordsP[2], i,j,k);
 }
 
 int SphericalGrid::Reshape(
@@ -261,6 +280,99 @@ bool SphericalGrid::InsideGrid(double x, double y, double z) const {
 	return(true);
 
 }
+
+inline void SphericalGrid::CartToSph(
+    double x, double y, double z, 
+	double *phi, double *theta, double *r
+) {
+	*r = sqrt(x*x + y*y + z*z);
+	*theta = acos(z / *r) - M_PI_2;	// acos is in range [0, pi];
+	*phi = atan2(y,x); // atan2 is in range [-pi, pi];
+
+	*theta = *theta * 180.0 / M_PI;	// convert to degrees
+	*phi = *phi * 180.0 / M_PI;
+}
+
+inline void SphericalGrid::SphToCart(
+	double phi, double theta, double r,
+	double *x, double *y, double *z
+) {
+	phi = phi * M_PI / 180.0;	// convert to radians
+	theta = phi * M_PI / 180.0;
+	*x = r * cos(phi) * sin(theta);	
+	*y = r * sin(phi) * sin(theta);	
+	*z = r * sin(theta);
+}
+
+void    SphericalGrid::GetEnclosingRegion(
+    const double minu[3], const double maxu[3],
+    size_t min[3], size_t max[3]
+) const {
+	//
+	// Find the maximum radius of the
+	// box defined by the two corner points minu and maxu
+	//
+	double rmax;
+	double r;
+	r = sqrt(minu[0]*minu[0] + minu[1]*minu[1] + minu[2]*minu[2]);
+	rmax = r;
+
+	r = sqrt(maxu[0]*maxu[0] + minu[1]*minu[1] + minu[2]*minu[2]);
+	if (r>rmax) rmax = r;
+
+	r = sqrt(maxu[0]*maxu[0] + maxu[1]*maxu[1] + minu[2]*minu[2]);
+	if (r>rmax) rmax = r;
+
+	r = sqrt(minu[0]*minu[0] + maxu[1]*maxu[1] + minu[2]*minu[2]);
+	if (r>rmax) rmax = r;
+
+	r = sqrt(minu[0]*minu[0] + minu[1]*minu[1] + maxu[2]*maxu[2]);
+	if (r>rmax) rmax = r;
+
+	r = sqrt(maxu[0]*maxu[0] + minu[1]*minu[1] + maxu[2]*maxu[2]);
+	if (r>rmax) rmax = r;
+
+	r = sqrt(maxu[0]*maxu[0] + maxu[1]*maxu[1] + maxu[2]*maxu[2]);
+	if (r>rmax) rmax = r;
+
+	r = sqrt(minu[0]*minu[0] + maxu[1]*maxu[1] + maxu[2]*maxu[2]);
+	if (r>rmax) rmax = r;
+
+
+	double extentsS[6];
+	RegularGrid::GetUserExtents(extentsS);
+
+	//
+	// Extents in spherical coords, permuted to order: lon, lat, radius
+	//
+	double extentsSP[6];
+	_permute(_permutation, extentsSP, extentsS[0], extentsS[1], extentsS[2]);
+	_permute(_permutation, extentsSP+3, extentsS[3], extentsS[4], extentsS[5]);
+
+	double r0 = extentsSP[2];
+	double r1 = extentsSP[5];
+
+	size_t dims[3];
+	GetDimensions(dims);
+
+	double delta_r = (r1-r0) / ((double) dims[_permutation[2]] - 1.0);
+
+	min[0] = min[1] = min[2] = 0;
+	max[0] = dims[0]-1;
+	max[1] = dims[1]-1;
+	max[2] = dims[2]-1;
+
+	// radius of outer most layer of grid
+	r = r0 + ((double) max[_permutation[2]] * delta_r);	
+	if (r<=rmax);
+
+	while(rmax < r) {
+		r -= delta_r;
+		max[_permutation[2]] -= 1;
+	}
+	 max[_permutation[2]] += 1;
+}
+
 
 
 //----------------------------------------------------------------------------

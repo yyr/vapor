@@ -93,9 +93,7 @@ public:
 
  //! \copydoc _GetExtents()
  //
- virtual vector<double> GetExtents(size_t ts = 0) const {
-	return(_GetExtents(ts)); 
- };
+ virtual vector<double> GetExtents(size_t ts = 0) const ;
 
  //! \copydoc _GetNumTimeSteps()
  //
@@ -196,8 +194,11 @@ public:
  //! with the requested region of memory. The counter is decremented
  //! when UnlockGrid() is invoked.
  //!
+ //! If \p varname is the empty string, a pointer to dataless RegularGrid
+ //! is returned. 
+ //!
  //! \param[in] ts A valid time step between 0 and GetNumTimesteps()-1
- //! \param[in] varname A valid variable name 
+ //! \param[in] varname A valid variable name  or the empty string
  //! \param[in] reflevel Refinement level requested
  //! \param[in] lod Level of detail requested
  //! \param[in] min Minimum region bounds in voxels
@@ -208,7 +209,6 @@ public:
  //! if the region can not be extracted.
  //! \sa NewPipeline(), GetErrMsg()
  //
-
  RegularGrid   *GetGrid(
     size_t ts,
     string varname,
@@ -1021,25 +1021,11 @@ private:
 
  PipeLine *get_pipeline_for_var(string varname) const;
 
- LayeredGrid *get_elev_grid(size_t ts, int reflevel);
-
- void    map_user_to_vox_regular(
-	size_t timestep, const double vcoord0[3], size_t vcoord1[3], int reflevel
- ) const;
-
  void coord_array(
 	const vector <double> &xin, vector <double> &xout, size_t ldelta
  ) const;
 
- void    map_user_to_vox_stretched(
-	size_t timestep, const double vcoord0[3], size_t vcoord1[3], int reflevel
- ) const;
-
  void map_vox_to_user_regular(
-	size_t timestep, const size_t vcoord0[3], double vcoord1[3], int reflevel
- ) const;
-
- void map_vox_to_user_stretched(
 	size_t timestep, const size_t vcoord0[3], double vcoord1[3], int reflevel
  ) const;
 

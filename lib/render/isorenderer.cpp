@@ -53,7 +53,6 @@
 
 //#include "DVRLookup.h"
 #include "DVRShader.h"
-#include "DVRSpherical.h"
 #include "DVRRayCaster.h"
 
 #include "DVRDebug.h"

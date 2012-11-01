@@ -730,18 +730,18 @@ void DataStatus::getLocalExtentsCartesian(float myExtents[6]) {
 	
 	extptr = getLocalExtents();
 	
-	if (sphericalTransform() && dataMgr) {
+//	if (sphericalTransform() && dataMgr) {
 		//
 		// Convert spherical extents to Cartesian coordinates, which is
 		// given by the outer radius of the sphere
 		//
-		vector <long> perm = dataMgr->GetGridPermutation();
-		myExtents[0] = myExtents[1] = myExtents[2] = -1.0 * extptr[perm[2]+3];
-		myExtents[3] = myExtents[4] = myExtents[5] = extptr[perm[2]+3];
-	}
-	else {
+//		vector <long> perm = dataMgr->GetGridPermutation();
+//		myExtents[0] = myExtents[1] = myExtents[2] = -1.0 * extptr[perm[2]+3];
+//		myExtents[3] = myExtents[4] = myExtents[5] = extptr[perm[2]+3];
+//	}
+//	else {
 		for (int i=0; i<6; i++) myExtents[i] = extptr[i];
-	}
+//	}
 }
 
 

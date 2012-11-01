@@ -307,6 +307,61 @@ void StretchedGrid::GetBoundingBox(
     );
 }
 
+void    StretchedGrid::GetEnclosingRegion(
+    const double minu[3], const double maxu[3],
+    size_t min[3], size_t max[3]
+) const {
+
+	size_t dims[3];
+	StretchedGrid::GetDimensions(dims);
+	for (int i=0; i<3; i++) {
+		min[i] = 0;
+		max[i] = dims[i]-1;
+	}
+	
+	size_t temp_min[3], temp_max[3];
+	StretchedGrid::GetIJKIndex(
+		minu[0], minu[1], minu[2], &temp_min[0], &temp_min[1], &temp_min[2]
+	);
+	StretchedGrid::GetIJKIndex(
+		maxu[0], maxu[1], maxu[2], &temp_max[0], &temp_max[1], &temp_max[2]
+	);
+
+    double temp_minu[3], temp_maxu[3];
+
+	StretchedGrid::GetUserCoordinates(
+		temp_min[0], temp_min[1], temp_min[2], 
+		&temp_minu[0], &temp_minu[1], &temp_minu[2]
+	);
+	StretchedGrid::GetUserCoordinates(
+		temp_max[0], temp_max[1], temp_max[2],
+		&temp_maxu[0], &temp_maxu[1], &temp_maxu[2]
+	);
+
+    double extents[6];
+	StretchedGrid::GetUserExtents(extents);
+
+	for (int i=0; i<3; i++) {
+		if (extents[i] < extents[i+3]) {
+			if (temp_minu[i] > minu[i] && (temp_min[i] > 0)) {
+				temp_min[i]--;
+			}
+			if (temp_maxu[i] < maxu[i] && (temp_max[i] < (dims[i]-1))) {
+				temp_max[i]++;
+			}
+		}
+		else {
+			if (temp_minu[i] < minu[i] && (temp_min[i] > 0) ) {
+				temp_min[i]--;
+			}
+			if (temp_maxu[i] > maxu[i] && (temp_max[i] < (dims[i]-1))) {
+				temp_max[i]++;
+			}
+		}
+		min[i] = temp_min[i];
+		max[i] = temp_max[i];
+	}
+}
 void StretchedGrid::GetIJKIndex(
 	double x, double y, double z,
 	size_t *i, size_t *j, size_t *k

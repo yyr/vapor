@@ -42,9 +42,15 @@ public:
  //! \param[in] extents A six-element vector specifying the user coordinates
  //! of the first (first three elements) and last (last three elements) of
  //! the grid points indicated by \p min and \p max, respectively.
+ //! The units are degrees, not radians. 
+ //! \param[in] permutation A three-element array indicating the ordering
+ //! of the Longitude, Latitude, and radial dimensions. The array must 
+ //! contain some permutation of the set (0,1,2). The permuation (0,1,2)
+ //! indicates that longitude is the fastest varying dimesion, then latitude
+ //! then radius. The permutation (2,1,0) indicates that radius is fastest,
+ //! then latitude, and so on.
  //! \param[in] periodic A three-element boolean vector indicating
- //! which i,j,k indecies, respectively, are periodic. The varying 
- //! dimension may not be periodic.
+ //! which i,j,k indecies, respectively, are periodic. 
  //! \param[in] blks An array of blocks containing the sampled function.
  //! The dimensions of each block
  //! is given by \p bs. The number of blocks is given by the product
@@ -114,6 +120,13 @@ public:
     double extents[6]
  ) const;
 
+ //! \copydoc RegularGrid::GetEnclosingRegion()
+ //!
+ virtual void    GetEnclosingRegion(
+    const double minu[3], const double maxu[3],
+    size_t min[3], size_t max[3]
+ ) const;
+
  //! \copydoc RegularGrid::GetUserCoordinates()
  //!
  int GetUserCoordinates(
@@ -153,6 +166,19 @@ public:
  //! \retval bool True if point is inside the grid
  //!
  bool InsideGrid(double x, double y, double z) const;
+
+
+
+ // phi is in range -180 to 180, theta is in range -180/2 to 180/2
+ //
+ static inline void CartToSph(
+	double x, double y, double z, double *phi, double *theta, double *r
+ );
+
+ static inline void SphToCart(
+	double phi, double theta, double r,
+	double *x, double *y, double *z 
+ );
 
 private:
  double _extentsC[6];	// extents in Cartesian coordinates, ordered x,y,z

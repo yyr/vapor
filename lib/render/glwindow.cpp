@@ -337,8 +337,6 @@ void GLWindow::paintEvent(QPaintEvent*)
 	//automatically renormalize normals
 	glEnable(GL_NORMALIZE);
 
-    bool sphericalTransform = (dataStatus && dataStatus->sphericalTransform());
-	
 	//If we are doing the first capture of an image sequence then set the
 	//newRender flag to true, whether or not it's a real new render.
 	//Then turn off the flag, subsequent renderings will only be captured
@@ -418,8 +416,7 @@ void GLWindow::paintEvent(QPaintEvent*)
     } 
 
     if(subregionFrameIsEnabled() && 
-       !(GLWindow::getCurrentMouseMode() == GLWindow::regionMode) &&
-       !sphericalTransform)
+       !(GLWindow::getCurrentMouseMode() == GLWindow::regionMode) )
     {
       drawSubregionBounds(extents);
     } 
@@ -432,15 +429,14 @@ void GLWindow::paintEvent(QPaintEvent*)
 	//with active visualizer
 	if(getCurrentMouseMode() == GLWindow::regionMode) { 
 		if( (windowIsActive() || 
-			(!getActiveRegionParams()->isLocal() && activeWinSharesRegion())) &&
-			!sphericalTransform){
+			(!getActiveRegionParams()->isLocal() && activeWinSharesRegion()))){
 				TranslateStretchManip* regionManip = getManip(Params::_regionParamsTag);
 				regionManip->setParams(getActiveRegionParams());
 				regionManip->render();
 		} 
 	}
 	//Other manips don't have shared and local to deal with:
-	else if ((getCurrentMouseMode() != navigateMode) && windowIsActive() && !sphericalTransform){
+	else if ((getCurrentMouseMode() != navigateMode) && windowIsActive()){
 		int mode = getCurrentMouseMode();
 		ParamsBase::ParamsBaseType t = getModeParamType(mode);
 		TranslateStretchManip* manip = manipHolder[mode];
@@ -490,7 +486,7 @@ void GLWindow::paintEvent(QPaintEvent*)
 	glMatrixMode(GL_MODELVIEW);
 
 	
-	if (axisAnnotationIsEnabled() && !sphericalTransform) {
+	if (axisAnnotationIsEnabled()) {
 		drawAxisTics(timeStep);
 		drawAxisLabels(timeStep);
 	}

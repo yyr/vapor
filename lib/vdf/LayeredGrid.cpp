@@ -237,6 +237,111 @@ void LayeredGrid::_GetBoundingBox(
 	extents[_varying_dim+3] = maxcoord;
 }
 
+void    LayeredGrid::GetEnclosingRegion(
+	const double minu[3], const double maxu[3],
+	size_t min[3], size_t max[3]
+) const {
+	assert (_varying_dim == 2); // Only z varying dim currently supported
+
+	//
+	// Get coords for non-varying dimension
+	//
+	RegularGrid::GetEnclosingRegion(minu, maxu, min, max);
+
+	// we have the correct results
+	// for X and Y dimensions, but the Z levels may not be completely
+	// contained in the box. We need to verify and possibly expand
+	// the min and max Z values.
+	//
+
+	size_t dims[3];
+	GetDimensions(dims);
+
+	bool done;
+	double z;
+	size_t istart;
+	size_t jstart;
+	if (maxu[2] >= minu[2]) {
+		//
+		// first do max, then min
+		//
+		done = false;
+		istart = min[0];
+		jstart = min[1];
+		for (int k=0; k<dims[2] && ! done; k++) {
+			done = true;
+			max[2] = k;
+			for (int j = jstart; j<=max[1] && done; j++) {
+			for (int i = istart; i<=max[0] && done; i++) {
+				z = _AccessIJK(_coords, i, j, k); // get Z coordinate
+				if (z < maxu[2]) {
+					done = false;
+					istart = i;	// don't need to start from beginning
+					jstart = j;
+				}
+			}
+			}
+		}
+		done = false;
+		istart = min[0];
+		jstart = min[1];
+		for (int k = dims[2]-1; k>=0 && ! done; k--) {
+			done = true;
+			min[2] = k;
+			for (int j = jstart; j<=max[1] && done; j++) {
+			for (int i = istart; i<=max[0] && done; i++) {
+				z = _AccessIJK(_coords, i, j, k); // get Z coordinate
+				if (z > minu[2]) {
+					done = false;
+					istart = i;
+					jstart = j;
+				}
+			}
+			}
+		}
+	}
+	else {
+		//
+		// first do max, then min
+		//
+		done = false;
+		istart = min[0];
+		jstart = min[1];
+		for (int k=0; k<dims[2] && ! done; k++) {
+			done = true;
+			max[2] = k;
+			for (int j = jstart; j<=max[1] && done; j++) {
+			for (int i = istart; i<=max[0] && done; i++) {
+				z = _AccessIJK(_coords, i, j, k); // get Z coordinate
+				if (z > maxu[2]) {
+					done = false;
+					istart = i;	// don't need to start from beginning
+					jstart = j;
+				}
+			}
+			}
+		}
+		done = false;
+		istart = min[0];
+		jstart = min[1];
+		for (int k = dims[2]-1; k>=0 && ! done; k--) {
+			done = true;
+			min[2] = k;
+			for (int j = jstart; j<=max[1] && done; j++) {
+			for (int i = istart; i<=max[0] && done; i++) {
+				z = _AccessIJK(_coords, i, j, k); // get Z coordinate
+				if (z < maxu[2]) {
+					done = false;
+					istart = i;
+					jstart = j;
+				}
+			}
+			}
+		}
+	}
+}
+
+
 
 float LayeredGrid::GetValue(double x, double y, double z) const {
 
@@ -881,6 +986,8 @@ double LayeredGrid::_GetVaryingCoord(size_t i, size_t j, size_t k) const {
 	double mv = GetMissingValue();
 	double c = _AccessIJK(_coords, i, j, k);
 	if (c != mv) return (c);
+
+	assert (c != mv);
 
 	size_t dims[3];
 	GetDimensions(dims);

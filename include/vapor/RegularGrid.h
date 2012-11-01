@@ -42,6 +42,10 @@ public:
  //! into smaller blocks. The dimensions of the array are not
  //! constrained to coincide with block boundaries. 
  //!
+ //! If \p blks is NULL a dataless RegularGrid object is returned. 
+ //! Data can not be retrieved from a dataless RegularGrid. However,
+ //! coordinate access methods may still be invoked.
+ //!
  //! \param[in] bs A three-element vector specifying the dimensions of
  //! each block storing the sampled scalar function.
  //! \param[in] min A three-element vector specifying the ijk index
@@ -174,9 +178,28 @@ public:
  //! \sa GetDimensions(), RegularGrid()
  //!
  virtual void GetBoundingBox(
-	const size_t min[3],
-	const size_t max[3],
-	double extents[6]
+	const size_t min[3], const size_t max[3], double extents[6]
+ ) const;
+
+ //!
+ //! Get voxel coordinates of grid containing a region
+ //!
+ //! Calculates the starting and ending IJK voxel coordinates of the 
+ //! smallest grid
+ //! completely containing the rectangular region defined by the user
+ //! coordinates \p minu and \p maxu
+ //! If rectangluar region defined by \p minu and \p maxu can 
+ //! not be contained the
+ //! minimum and maximum IJK coordinates are returned in 
+ //! \p min and \p max, respectively
+ //!
+ //! \param[in] minu User coordinates of minimum coorner
+ //! \param[in] maxu User coordinates of maximum coorner
+ //! \param[out] min Integer coordinates of minimum coorner
+ //! \param[out] max Integer coordinates of maximum coorner
+ //!
+ virtual void    GetEnclosingRegion(
+	const double minu[3], const double maxu[3], size_t min[3], size_t max[3]
  ) const;
 
  //! Return the min and max valid IJK index

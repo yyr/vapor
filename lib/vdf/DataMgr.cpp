@@ -77,6 +77,7 @@ RegularGrid *DataMgr::make_grid(
     // Make sure 2D variables have valid 3rd dimensions
     //
     VarType_T vtype = DataMgr::GetVarType(varname);
+	if (vtype == VARUNKNOWN && varname.size() == 0) vtype = VAR3D;
     switch (vtype) {
     case VAR2D_XY:
         dim[2] = bdim[2] = 1;
@@ -109,18 +110,24 @@ RegularGrid *DataMgr::make_grid(
 		block_size *= bs[i];
 	}
 
-	blkptrs = new float*[nblocks];
+	blkptrs = blocks ? new float*[nblocks] : NULL;
 	if (DataMgr::GetGridType().compare("layered")==0) {
 		zcblkptrs = new float*[nblocks];
 	}
 	for (int i=0; i<nblocks; i++) {
-		blkptrs[i] = blocks + i*block_size;
+		if (blkptrs) blkptrs[i] = blocks + i*block_size;
 
 		if (DataMgr::GetGridType().compare("layered")==0) {
 			zcblkptrs[i] = zcblks + i*block_size;
 		}
 	}
 
+	//
+	// Get extents of grid. Only valid for coordinates with
+	// uniform sampling. That's ok. The non-uniform coordinate dimensions
+	// specified by `extents' are ignored by RegularGrid class and 
+	// its derivatives
+	//
 	double extents[6];
 	map_vox_to_user_regular(ts,min, extents, reflevel);
 	map_vox_to_user_regular(ts,max, extents+3, reflevel);
@@ -248,6 +255,7 @@ RegularGrid *DataMgr::GetGrid(
 	size_t mymin[3] = {min[0], min[1], min[2]};
 	size_t mymax[3] = {max[0], max[1], max[2]};
 	VarType_T vtype = DataMgr::GetVarType(varname);
+	if (vtype == VARUNKNOWN && varname.size() == 0) vtype = VAR3D; 
 	switch (vtype) {
 	case VAR2D_XY:
 	case VAR2D_XZ:
@@ -297,7 +305,7 @@ RegularGrid *DataMgr::GetGrid(
 		blks = get_region(
 			ts, varname, reflevel, lod, min_aligned, max_aligned, true, &ondisk
 		);
-		if (! blks) return (NULL);
+		if (! blks && varname.size() != 0) return (NULL);
 	}
 
 	//
@@ -527,6 +535,8 @@ bool DataMgr::IsVariableNative(string name) const {
 }
 
 bool DataMgr::IsVariableDerived(string name) const {
+	if (name.size() == 0) return(false);
+
 	vector <string> svec = get_derived_variables();
 
 	for (int i=0; i<svec.size(); i++) {
@@ -834,8 +844,8 @@ void	DataMgr::UnlockGrid(
 	const RegularGrid *rg
 ) {
 	SetDiagMsg("DataMgr::UnlockGrid()");
-	const float *blks = rg->GetBlks()[0];
-	unlock_blocks(blks);
+	float **blks = rg->GetBlks();
+	if (blks) unlock_blocks(blks[0]);
 }
 	
 
@@ -925,6 +935,7 @@ float *DataMgr::get_region(
 	const size_t min[3], const size_t max[3], bool lock, 
 	bool *ondisk
 ) {
+	if (varname.size() == 0) return(NULL);
 	// See if region is already in cache. If not, read from the 
 	// file system.
 	//
@@ -1435,37 +1446,6 @@ void DataMgr::PurgeVariable(string varname){
 	_VarInfoCache.PurgeVariable(varname);
 }
 
-LayeredGrid *DataMgr::get_elev_grid(size_t ts, int reflevel) 
-{
-	if (ts >= GetNumTimeSteps()) ts = 0;
-
-	string elevation = "ELEVATION";
-
-	size_t min[3], max[3];
-	int rc = GetValidRegion(
-		ts, elevation.c_str(), reflevel, min, max
-	);
-	if (rc<0) return (NULL);
-
-	RegularGrid *rg = DataMgr::GetGrid(
-		ts, elevation, reflevel,-1, min, max, 0
-	);
-	if (! rg) return (NULL);
-
-	size_t bs[3];
-	rg->GetBlockSize(bs);
-
-	double extents[6];
-	rg->GetUserExtents(extents);
-
-	bool periodic[3] = {false, false, false}; 
-	LayeredGrid *lg = new LayeredGrid(
-		bs,min, max, extents, periodic, rg->GetBlks(), rg->GetBlks(),2
-	);
-	delete rg;
-
-	return(lg);
-}
 
 void    DataMgr::map_vox_to_blk(
 	const size_t vcoord[3], size_t bcoord[3], int reflevel
@@ -1529,7 +1509,7 @@ void	DataMgr::map_vox_to_user_regular(
 
 	size_t	dim[3];
 
-	vector <double> extents = DataMgr::GetExtents(timestep);
+	vector <double> extents = _GetExtents(timestep);
 
 	DataMgr::GetDim(dim, -1);	// finest dimension
 	for(int i = 0; i<3; i++) {
@@ -1549,139 +1529,11 @@ void	DataMgr::map_vox_to_user_regular(
 	}
 }
 
-void	DataMgr::map_vox_to_user_stretched(
-    size_t timestep, 
-	const size_t vcoord0[3], double vcoord1[3],
-	int	reflevel
-) const {
-
-	DataMgr::map_vox_to_user_regular(timestep, vcoord0, vcoord1, reflevel);
-
-    int  ldelta = DataMgr::GetNumTransforms() - reflevel;
-
-	vector <double> coords0, coords1;
-
-	coords0 = _GetTSXCoords(timestep);
-	if (coords0.size()) {
-		coord_array(coords0, coords1, ldelta);
-		vcoord1[0] = coords1[vcoord0[0]];
-	}
-	coords0 = _GetTSYCoords(timestep);
-	if (coords0.size()) {
-		coord_array(coords0, coords1, ldelta);
-		vcoord1[1] = coords1[vcoord0[1]];
-	}
-	coords0 = _GetTSZCoords(timestep);
-	if (coords0.size()) {
-		coord_array(coords0, coords1, ldelta);
-		vcoord1[2] = coords1[vcoord0[2]];
-	}
-}
-
-void	DataMgr::map_user_to_vox_regular(
-    size_t timestep, const double vcoord0[3], size_t vcoord1[3],
-	int	reflevel
-) const {
-
-    if (reflevel < 0 || reflevel > DataMgr::GetNumTransforms()) {
-		reflevel = DataMgr::GetNumTransforms();
-	}
-    int  ldelta = DataMgr::GetNumTransforms() - reflevel;
-
-	size_t	dim[3];
-	vector <double> extents = DataMgr::GetExtents(timestep);
-
-	vector <double> lextents = extents;
-    size_t maxdim[3];
-	DataMgr::GetDim(maxdim, -1);
-
-	DataMgr::GetDim(dim, reflevel);	
-	for(int i = 0; i<3; i++) {
-		double a;
-
-		// distance between voxels along dimension 'i' in user coords
-		double deltax = (lextents[i+3] - lextents[i]) / (maxdim[i] - 1);
-
-		// coordinate of first voxel in user space
-		double x0 = lextents[i];
-
-		// Boundary shrinks and step size increases with each transform
-		for(int j=0; j<(int)ldelta; j++) {
-			x0 += 0.5 * deltax;
-			deltax *= 2.0;
-		}
-		lextents[i] = x0;
-		lextents[i+3] = lextents[i] + (deltax * (dim[i]-1));
-
-		a = (vcoord0[i] - lextents[i]) / (lextents[i+3]-lextents[i]);
-
-		if (a < 0.0) vcoord1[i] = 0;
-		else if (a > 1.0) vcoord1[i] = dim[i]-1;
-		else vcoord1[i] = (size_t) rint(a * (double) (dim[i]-1));
-	}
-}
-
-void	DataMgr::map_user_to_vox_stretched(
-    size_t timestep, const double vcoord0[3], size_t vcoord1[3],
-	int	reflevel
-) const {
-
-	DataMgr::map_user_to_vox_regular(timestep, vcoord0, vcoord1, reflevel);
-
-    int  ldelta = DataMgr::GetNumTransforms() - reflevel;
-
-	vector <double> coords0, coords1;
-
-	coords0 = _GetTSXCoords(timestep);
-	if (coords0.size()) {
-		coord_array(coords0, coords1, ldelta);
-		double x = vcoord0[0];
-		for (int i=0; i<coords1.size()-1; i++) {
-			if (((coords1[i]-x)*(coords1[i+1]-x))<=0.0) {
-				float w = (x-coords1[i]) / (coords1[i+1]-coords1[i]);
-				if (w<0.5) vcoord1[0] = i;
-				else vcoord1[0] = i+1;
-
-				break;
-			}
-		}
-	}
-
-	coords0 = _GetTSYCoords(timestep);
-	if (coords0.size()) {
-		coord_array(coords0, coords1, ldelta);
-		double y = vcoord0[1];
-		for (int i=0; i<coords1.size()-1; i++) {
-			if (((coords1[i]-y)*(coords1[i+1]-y))<=0.0) {
-				float w = (y-coords1[i]) / (coords1[i+1]-coords1[i]);
-				if (w<0.5) vcoord1[1] = i;
-				else vcoord1[1] = i+1;
-
-				break;
-			}
-		}
-	}
-
-	coords0 = _GetTSZCoords(timestep);
-	if (coords0.size()) {
-		coord_array(coords0, coords1, ldelta);
-		double z = vcoord0[2];
-		for (int i=0; i<coords1.size()-1; i++) {
-			if (((coords1[i]-z)*(coords1[i+1]-z))<=0.0) {
-				float w = (z-coords1[i]) / (coords1[i+1]-coords1[i]);
-				if (w<0.5) vcoord1[2] = i;
-				else vcoord1[2] = i+1;
-
-				break;
-			}
-		}
-	}
-}
 
 void   DataMgr::MapUserToVox(
     size_t timestep,
     const double xyz[3], size_t ijk[3], int reflevel
- ) {
+) {
 
 	SetDiagMsg(
 		"DataMgr::MapUserToVox(%d, (%f, %f, %f), (,,) %d)",
@@ -1691,22 +1543,21 @@ void   DataMgr::MapUserToVox(
 	ijk[1] = 0;
 	ijk[2] = 0;
 
-	map_user_to_vox_regular(timestep, xyz, ijk, reflevel);
+	size_t dims[3];
+	DataMgr::GetDim(dims, reflevel);
+	size_t min[] = {0,0,0};
+	size_t max[] = {dims[0]-1, dims[1]-1, dims[2]-1};
 
-	if (GetGridType().compare("stretched") == 0) {
-		map_user_to_vox_stretched(timestep, xyz, ijk, reflevel);
-	}
-	else if (GetGridType().compare("layered") == 0) {
+	EnableErrMsg(false);
+	RegularGrid *rg = GetGrid(
+		timestep,"", reflevel, 0, min, max, false
+	);
+	EnableErrMsg(true);
+	
+	if (! rg) return;
 
-		EnableErrMsg(false);
-		LayeredGrid *lg = get_elev_grid(timestep,reflevel);
-		EnableErrMsg(true);
-
-		if (! lg) return;
-
-		lg->GetIJKIndex(xyz[0],xyz[1],xyz[2], &ijk[0], &ijk[1], &ijk[2]);
-		delete lg;
-	}
+	rg->GetIJKIndex(xyz[0],xyz[1],xyz[2], &ijk[0], &ijk[1], &ijk[2]);
+	delete rg;
 }
 
 void   DataMgr::MapVoxToUser(
@@ -1722,22 +1573,21 @@ void   DataMgr::MapVoxToUser(
 	xyz[1] = 0.0;
 	xyz[2] = 0.0;
 
-	map_vox_to_user_regular(timestep, ijk, xyz, reflevel);
+	size_t dims[3];
+	DataMgr::GetDim(dims, reflevel);
+	size_t min[] = {0,0,0};
+	size_t max[] = {dims[0]-1, dims[1]-1, dims[2]-1};
 
-	if (GetGridType().compare("stretched")) {
-		map_vox_to_user_stretched(timestep, ijk, xyz, reflevel);
-	}
-	else if (GetGridType().compare("layered") == 0) {
+	EnableErrMsg(false);
+	RegularGrid *rg = (RegularGrid *) GetGrid(
+		timestep,"", reflevel, 0, min, max, false
+	);
+	EnableErrMsg(true);
 
-		EnableErrMsg(false);
-		LayeredGrid *lg = get_elev_grid(timestep,reflevel);
-		EnableErrMsg(true);
+	if (! rg) return;
 
-		if (! lg) return;
-
-		lg->GetUserCoordinates(ijk[0], ijk[1], ijk[2], &xyz[0],&xyz[1],&xyz[2]);
-		delete lg;
-	}
+	rg->GetUserCoordinates(ijk[0], ijk[1], ijk[2], &xyz[0],&xyz[1],&xyz[2]);
+	delete rg;
 }
 
 
@@ -1746,145 +1596,20 @@ void    DataMgr::GetEnclosingRegion(
     size_t min[3], size_t max[3],
     int reflevel
 ) {
-
-	min[0] = min[1] = min[2] = 0;
-	max[0] = max[1] = max[2] = 0;
-
-	size_t temp_min[3], temp_max[3];
-	DataMgr::MapUserToVox(ts, minu, temp_min, reflevel);
-	DataMgr::MapUserToVox(ts, maxu, temp_max, reflevel);
-
-	double temp_minu[3], temp_maxu[3];
-
-    DataMgr::MapVoxToUser(ts, temp_min, temp_minu, reflevel);
-    DataMgr::MapVoxToUser(ts, temp_max, temp_maxu, reflevel);
-
     size_t dims[3];
     DataMgr::GetDim(dims, reflevel);
-	vector <double> extents = GetExtents(ts);
 
 	for (int i=0; i<3; i++) {
-		if (extents[i] < extents[i+3]) {
-			if (temp_minu[i] > minu[i] && (temp_min[i] > 0)) {
-				temp_min[i]--;
-			}
-			if (temp_maxu[i] < maxu[i] && (temp_max[i] < (dims[i]-1))) {
-				temp_max[i]++;
-			}
-		}
-		else {
-			if (temp_minu[i] < minu[i] && (temp_min[i] > 0) ) {
-				temp_min[i]--;
-			}
-			if (temp_maxu[i] > maxu[i] && (temp_max[i] < (dims[i]-1))) {
-				temp_max[i]++;
-			}
-		}
-		min[i] = temp_min[i];
-		max[i] = temp_max[i];
+		min[i] = 0;
+		max[i] = dims[i]-1;
 	}
+	EnableErrMsg(false);
+	RegularGrid *rg = GetGrid(ts,"", reflevel, 0, min, max, false);
+	EnableErrMsg(true);
 
-
-	//
-	// If this is not a layred grid we're done. If it is, 
-	// we have the correct results 
-	// for X and Y dimensions, but the Z levels may not be completely
-	// contained in the box. We need to verify and possibly expand
-	// the min and max Z values.
-	//
-	if (! (GetGridType().compare("layered") == 0)) return;
-	
-
-	size_t gmin[] = {0,0,0};
-	size_t gmax[] = {dims[0]-1, dims[1]-1, dims[2]-1};
-	string elevation  = "ELEVATION";
-	RegularGrid *rg = DataMgr::GetGrid(
-		ts, elevation, reflevel,-1, gmin, gmax, 0
-	);
 	if (! rg) return;
 
-	bool done;
-	double z;
-	size_t istart;
-	size_t jstart;
-	if (maxu[2] >= minu[2]) {
-		//
-		// first do max, then min
-		//
-		done = false;
-		istart = min[0];
-		jstart = min[1];
-		for (int k=0; k<dims[2] && ! done; k++) {
-			done = true;
-			max[2] = k;
-			for (int j = jstart; j<=max[1] && done; j++) {
-			for (int i = istart; i<=max[0] && done; i++) {
-				z = rg->AccessIJK(i,j,k); // get Z coordinate
-				if (z < maxu[2]) {
-					done = false;
-					istart = i;	// don't need to start from beginning
-					jstart = j;
-				}
-			}
-			}
-		}
-		done = false;
-		istart = min[0];
-		jstart = min[1];
-		for (int k = dims[2]-1; k>=0 && ! done; k--) {
-			done = true;
-			min[2] = k;
-			for (int j = jstart; j<=max[1] && done; j++) {
-			for (int i = istart; i<=max[0] && done; i++) {
-				z = rg->AccessIJK(i,j,k); // get Z coordinate
-				if (z > minu[2]) {
-					done = false;
-					istart = i;
-					jstart = j;
-				}
-			}
-			}
-		}
-	}
-	else {
-		//
-		// first do max, then min
-		//
-		done = false;
-		istart = min[0];
-		jstart = min[1];
-		for (int k=0; k<dims[2] && ! done; k++) {
-			done = true;
-			max[2] = k;
-			for (int j = jstart; j<=max[1] && done; j++) {
-			for (int i = istart; i<=max[0] && done; i++) {
-				z = rg->AccessIJK(i,j,k); // get Z coordinate
-				if (z > maxu[2]) {
-					done = false;
-					istart = i;	// don't need to start from beginning
-					jstart = j;
-				}
-			}
-			}
-		}
-		done = false;
-		istart = min[0];
-		jstart = min[1];
-		for (int k = dims[2]-1; k>=0 && ! done; k--) {
-			done = true;
-			min[2] = k;
-			for (int j = jstart; j<=max[1] && done; j++) {
-			for (int i = istart; i<=max[0] && done; i++) {
-				z = rg->AccessIJK(i,j,k); // get Z coordinate
-				if (z < maxu[2]) {
-					done = false;
-					istart = i;
-					jstart = j;
-				}
-			}
-			}
-		}
-	}
+	rg->GetEnclosingRegion(minu, maxu, min, max);
 }
 
 DataMgr::VarInfoCache::var_info *DataMgr::VarInfoCache::get_var_info(
@@ -2070,3 +1795,14 @@ bool DataMgr::IsCoordinateVariable(string varname) const {
 	return(false);
 }
 
+vector<double> DataMgr::GetExtents(size_t ts) const {
+	vector <double> extents = _GetExtents(ts); 
+	if (DataMgr::GetCoordSystemType().compare("spherical")==0) {
+		vector <long> permv = GetGridPermutation();
+		double r = extents[3+permv[2]];
+		extents[0] = extents[1] = extents[2] = -r;
+		extents[3] = extents[4] = extents[5] = r;
+	}
+
+	return(extents);
+};
