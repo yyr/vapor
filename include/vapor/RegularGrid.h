@@ -533,6 +533,7 @@ protected:
 
  float &_AccessIJK(float **blks, size_t i, size_t j, size_t k) const;
  void _ClampCoord(double &x, double &y, double &z) const;
+ void _SetExtents(const double extents[6]);
 
 private:
 	size_t _bs[3];	// dimensions of each block
@@ -560,7 +561,6 @@ private:
 	);
 	float _GetValueNearestNeighbor(double x, double y, double z) const;
 	float _GetValueLinear(double x, double y, double z) const;
-	void _SetExtents(const double extents[6]);
 
 };
 };

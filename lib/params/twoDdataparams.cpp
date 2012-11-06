@@ -44,7 +44,6 @@
 
 #include <vapor/DataMgr.h>
 #include <vapor/errorcodes.h>
-#include <vapor/WRF.h>
 
 
 using namespace VAPoR;

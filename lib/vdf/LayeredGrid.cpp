@@ -36,6 +36,7 @@ LayeredGrid::LayeredGrid(
 	if (periodic[_varying_dim]) SetPeriodic(periodic);
 
 	_GetUserExtents(_extents);
+	RegularGrid::_SetExtents(_extents);
 
 }
 

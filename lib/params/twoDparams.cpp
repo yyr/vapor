@@ -43,7 +43,6 @@
 
 #include <vapor/DataMgr.h>
 #include <vapor/errorcodes.h>
-#include <vapor/WRF.h>
 //tiff stuff:
 
 #include "geo_normalize.h"

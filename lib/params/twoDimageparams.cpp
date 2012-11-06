@@ -29,6 +29,7 @@
 #include <fstream>
 #include <sstream>
 #include <math.h>
+#include <netcdf.h>
 #include "glutil.h"
 #include "twoDparams.h"
 #include "twoDimageparams.h"
