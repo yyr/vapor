@@ -2,6 +2,11 @@
 
 #include <iostream>
 #include <cassert>
+#ifdef PNETCDF
+#include <pnetcdf.h>
+#else
+#include <netcdf.h>
+#endif
 #include <vapor/NCBuf.h>
 
 using namespace VetsUtil;
@@ -20,6 +25,8 @@ NCBuf::NCBuf(
 	_bufcount = 0;
 	_xtype = xtype;
 	_collective = useCollective;
+	_start = new size_t[NC_MAX_DIMS];
+	_count = new size_t[NC_MAX_DIMS];
 	for (int i=0; i<NC_MAX_DIMS; i++) {
 		_start[i] = 0;
 		_count[i] = 0;
@@ -56,6 +63,8 @@ NCBuf::NCBuf(
 
 NCBuf::~NCBuf() {
 	Flush();
+	if (_start) delete [] _start;
+	if (_count) delete [] _count;
 	if (_buf) delete [] _buf;
 }
 

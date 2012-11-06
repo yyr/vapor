@@ -7,8 +7,6 @@
 
 #include <vector>
 
-#include <netcdf.h>
-
 #include <sstream>
 #include <vapor/MyBase.h>
 

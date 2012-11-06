@@ -14,6 +14,7 @@
 #include <utility>
 #include <algorithm>
 #include <vector>
+#include <netcdf.h>
 #include <vapor/MetadataWRF.h>
 #include <vapor/XmlNode.h>
 #include <vapor/CFuncs.h>

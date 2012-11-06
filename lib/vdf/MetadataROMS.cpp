@@ -13,7 +13,7 @@
 #include <cassert>
 #include <utility>
 #include <algorithm>
-#include <vector>
+#include <netcdf.h>
 #include <vapor/MetadataROMS.h>
 #include <vapor/XmlNode.h>
 #include <vapor/CFuncs.h>

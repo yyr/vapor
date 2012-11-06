@@ -24,7 +24,6 @@
 #define	_AMRIO_h_
 
 #include <cstdio>
-#include <netcdf.h>
 #include <vapor/MyBase.h>
 #include <vapor/AMRTree.h>
 #include <vapor/AMRData.h>

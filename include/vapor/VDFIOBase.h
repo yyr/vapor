@@ -7,7 +7,6 @@
 #define	_VDFIOBase_h_
 
 #include <cstdio>
-#include <netcdf.h>
 #include <vapor/MyBase.h>
 #include <vapor/MetadataVDC.h>
 

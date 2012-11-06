@@ -4,13 +4,6 @@
 #define	_NCBuf_h_
 
 #include <vector>
-
-#ifdef PNETCDF
-#include <pnetcdf.h>
-#else
-#include <netcdf.h>
-#endif
-
 #include <sstream>
 #include <vapor/MyBase.h>
 
@@ -20,7 +13,7 @@ class VDF_API NCBuf : public VetsUtil::MyBase {
 public:
 
  NCBuf(
-       int ncid, int varid, nc_type xtype, vector <size_t> dims,  bool useCollective, int rank,	size_t bufsize = 4*1024*1024
+       int ncid, int varid, int xtype, vector <size_t> dims,  bool useCollective, int rank,	size_t bufsize = 4*1024*1024
  );
 
  ~NCBuf();
@@ -38,10 +31,10 @@ private:
  unsigned char *_buf;
  size_t _bufsize;	// size of _buf in bytes
  size_t _bufcount; // num bytes in _buf
- size_t _start[NC_MAX_DIMS];
- size_t _count[NC_MAX_DIMS];
+ size_t *_start;
+ size_t *_count;
  std::vector <size_t> _dims;
- nc_type _xtype;
+ int _xtype;
  size_t _elem_size;
  bool _collective;
  int _rank;

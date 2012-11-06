@@ -7,7 +7,6 @@
 #define	_WavletBlockIOBase_h_
 
 #include <cstdio>
-#include <netcdf.h>
 #include <vapor/MyBase.h>
 #include <vapor/WaveletBlock3D.h>
 #include <vapor/WaveletBlock2D.h>

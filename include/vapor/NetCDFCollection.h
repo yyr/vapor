@@ -9,8 +9,6 @@
 #include <vector>
 #include <map>
 
-#include <netcdf.h>
-
 #include <sstream>
 #include <vapor/MyBase.h>
 #include <vapor/NetCDFSimple.h>

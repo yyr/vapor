@@ -16,6 +16,7 @@
 #endif
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <netcdf.h>
 #include <vapor/WaveletBlockIOBase.h>
 #include <vapor/MyBase.h>
 #include <vapor/errorcodes.h>

@@ -11,7 +11,6 @@
 #include <vector>
 #include <map>
 #include <sstream>
-#include <netcdf.h>
 #include <vapor/PVTime.h>
 
 namespace VAPoR {
@@ -26,7 +25,7 @@ public:
 	int varid; // Variable ID in netCDF file
 	vector <int> dimids; // Array of dimension IDs that this variable uses
 	vector <size_t> dimlens; // Array of dimensions from netCDF file
-	nc_type xtype; // The type of the variable (float, double, etc.)
+	int xtype; // The type of the variable (float, double, etc.)
 	vector <bool> stag; // Indicates which of the fastest varying three dimensions 
 				// are staggered. N.B. order of array is reversed from
 				// netCDF convection. I.e. stag[0] == X, stag[2] == Z.
@@ -54,7 +53,7 @@ public:
 
  // structure for storing dimension info
  typedef struct {
-    char name[NC_MAX_NAME+1];	// dim name
+    char name[256];	// dim name
     size_t size;				// dim len
  } ncdim_t;
 

@@ -11,7 +11,6 @@
 #include <vector>
 #include <map>
 #include <sstream>
-#include <netcdf.h>
 #include <vapor/PVTime.h>
 
 namespace VAPoR {

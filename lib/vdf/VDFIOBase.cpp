@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <netcdf.h>
 
 #ifdef	Darwin
 #include <mach/mach_time.h>
