@@ -1610,6 +1610,7 @@ void    DataMgr::GetEnclosingRegion(
 	if (! rg) return;
 
 	rg->GetEnclosingRegion(minu, maxu, min, max);
+	delete rg;
 }
 
 DataMgr::VarInfoCache::var_info *DataMgr::VarInfoCache::get_var_info(
