@@ -17,7 +17,7 @@
 //	Description:	Implements the TabManager class.  This is the QTabWidget
 //		that contains a tab for each of the Params classes
 //
-#include "GL/glew.h"
+#include "glutil.h"	// Must be included first
 #include <qtabwidget.h>
 #include <qwidget.h>
 #include <QScrollArea>

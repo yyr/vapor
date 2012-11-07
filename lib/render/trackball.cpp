@@ -76,8 +76,8 @@
  */
 
 
+#include "glutil.h"	// Must be included first!!!
 #include <qgl.h>
-#include "glutil.h"
 #include "trackball.h" 
 #include <math.h>
 using namespace VAPoR;

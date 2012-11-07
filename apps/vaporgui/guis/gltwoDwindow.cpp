@@ -18,10 +18,10 @@
 //		This performs the opengl drawing of a texture in the twoD (data or image) frame.
 //
 
+#include "glutil.h"	// Must be included first!!!
 #include "gltwoDwindow.h"
 #include "twoDrenderer.h"
 
-#include "glutil.h"
 #include "twodframe.h"
 #include "twoDparams.h"
 #include "twoDdataeventrouter.h"

@@ -32,7 +32,6 @@
 #include "TextureBrick.h"
 #include "ShaderProgram.h"
 #include "BBox.h"
-#include "glutil.h"
 #include "params.h"
 
 #include "datastatus.h"

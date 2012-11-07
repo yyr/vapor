@@ -9,7 +9,6 @@
 #ifndef animate_h
 #define animate_h
 
-#include "glutil.h"
 #include "animationparams.h"
 #include "viewpoint.h"
 

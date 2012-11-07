@@ -20,7 +20,6 @@
 #include <qapplication.h>
 #include "mainform.h"
 #include <qfont.h>
-#include "glutil.h"
 #include <QMessageBox>
 #include "messagereporter.h"
 #include "vapor/GetAppPath.h"

@@ -65,7 +65,6 @@
 #include <vapor/XmlNode.h>
 #include "vapor/GetAppPath.h"
 #include "tabmanager.h"
-#include "glutil.h"
 #include "twoDdataparams.h"
 #include "twoDdataeventrouter.h"
 #include "regioneventrouter.h"

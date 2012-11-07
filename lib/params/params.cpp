@@ -18,6 +18,7 @@
 //		These are  abstract classes for all the tabbed panel params classes.
 //		Supports functionality common to all the tabbed panel params.
 //
+#include "glutil.h"	// Must be included first!!!
 #include <vapor/XmlNode.h>
 #include <cstring>
 #include <qwidget.h>
@@ -28,7 +29,6 @@
 #include "assert.h"
 #include "params.h"
 #include "mapperfunction.h"
-#include "glutil.h"
 #include <vapor/ParamNode.h>
 #include <vapor/DataMgr.h>
 #include <vapor/RegularGrid.h>

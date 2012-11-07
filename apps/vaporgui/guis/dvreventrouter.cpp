@@ -64,7 +64,6 @@
 #include "transferfunction.h"
 #include <vapor/XmlNode.h>
 #include "tabmanager.h"
-#include "glutil.h"
 #include "dvrparams.h"
 #include "dvreventrouter.h"
 #include "animationeventrouter.h"

@@ -21,6 +21,7 @@
 #ifndef DVRSpherical_h
 #define DVRSpherical_h
 
+#include "glutil.h"	// Must be included first!!!
 #include "DVRShader.h"
 #include "vapor/SphericalGrid.h"
 
@@ -29,7 +30,6 @@
 #include "ShaderMgr.h"
 #include <vector>
 #include "assert.h"
-#include "glutil.h"
 namespace VAPoR {
 
   class BBox;

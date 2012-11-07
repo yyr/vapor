@@ -973,7 +973,7 @@ sub doProcTable {
 print <<"EOF";
 		$del
 		{ (IDL_SYSRTN_GENERIC) vdf$name,
-		\"$idlname\", $args, $args, 0, 0
+		(char *) \"$idlname\", $args, $args, 0, 0
 		}
 EOF
 		}
@@ -1000,7 +1000,7 @@ sub doFuncTable {
 print <<"EOF";
 		$del
 		{ (IDL_SYSRTN_GENERIC) vdf$name,
-		\"$idlname\", $args, $args, 0, 0
+		(char *) \"$idlname\", $args, $args, 0, 0
 		}
 EOF
 		}

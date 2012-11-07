@@ -43,15 +43,15 @@ IDL_VPTR Lifting1DCreate(int argc, IDL_VPTR *argv, char *argk)
 
 	static IDL_KW_PAR kw_pars[] = {
 		{
-			"DOUBLE", IDL_TYP_LONG, 1, IDL_KW_ZERO, 0,
+			(char *) "DOUBLE", IDL_TYP_LONG, 1, IDL_KW_ZERO, 0,
 			(char *) IDL_KW_OFFSETOF(dbl)
 		},
 		{
-			"NFILTERCOEF", IDL_TYP_LONG, 1, 0, 0, 
+			(char *) "NFILTERCOEF", IDL_TYP_LONG, 1, 0, 0, 
 			(char *) IDL_KW_OFFSETOF(nFilterCoef)
 		},
 		{
-			"NLIFTINGCOEF",IDL_TYP_LONG, 1, 0, 0, 
+			(char *) "NLIFTINGCOEF",IDL_TYP_LONG, 1, 0, 0, 
 			(char *) IDL_KW_OFFSETOF(nLiftingCoef)
 		},
 		{NULL}
@@ -360,19 +360,19 @@ int IDL_LoadLifting(void)
 	//
 	static IDL_SYSFUN_DEF2 func_addr[] = {
 		{ (IDL_SYSRTN_GENERIC) Lifting1DCreate,
-			"LIFTING1D_CREATE", 1, 2, IDL_SYSFUN_DEF_F_KEYWORDS, 0
+			(char *) "LIFTING1D_CREATE", 1, 2, IDL_SYSFUN_DEF_F_KEYWORDS, 0
 		}
 	};
 
 	static IDL_SYSFUN_DEF2 proc_addr[] = {
 		{ (IDL_SYSRTN_GENERIC) Lifting1DDestroy, 
-			"LIFTING1D_DESTROY", 1, 1, 0, 0
+			(char *) "LIFTING1D_DESTROY", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) Lifting1DForwardTransform, 
-			"LIFTING1D_FORWARDTRANSFORM", 2, 2, 0, 0
+			(char *) "LIFTING1D_FORWARDTRANSFORM", 2, 2, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) Lifting1DInverseTransform, 
-			"LIFTING1D_INVERSETRANSFORM", 2, 2, 0, 0
+			(char *) "LIFTING1D_INVERSETRANSFORM", 2, 2, 0, 0
 		}
 	};
 

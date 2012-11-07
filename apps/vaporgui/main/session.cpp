@@ -16,12 +16,12 @@
 //
 //	Description:	Implements the Session class 
 //
+#include "glutil.h"	// Must be included first
 #include <cstdlib>
 #include <cstdio>
 #ifdef WIN32
 #pragma warning(disable : 4251 4100)
 #endif
-#include "GL/glew.h"
 #include "session.h"
 #include "dvrparams.h"
 #include <vapor/DataMgr.h>

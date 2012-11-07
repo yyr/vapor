@@ -25,6 +25,7 @@
 #pragma warning( disable : 4100 )
 #endif
 
+#include "glutil.h"	// Must be included first!!!
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -563,7 +564,6 @@ buildNode(){
 }
 void AnimationParams::buildViewsAndTimes(){
 	
-	int previousNumFrames = loadedViewpoints.size();
 	clearLoadedViewpoints();
 	//modify distance based on scene stretch and max size.
 	//Warp distance function by (1) dividing it by the largest stretched extent, and

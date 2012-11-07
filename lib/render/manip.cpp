@@ -19,13 +19,13 @@
 //#include "vizwinmgr.h"
 //#include "probeeventrouter.h"
 
+#include "glutil.h"	// Must be included first!!!
 #include "manip.h"
 #include "params.h"
 #include "probeparams.h"
 #include "viewpointparams.h"
 #include "animationparams.h"
 #include "glwindow.h"
-#include "glutil.h"
 #include "datastatus.h"
 using namespace VAPoR;
 const float Manip::faceSelectionColor[4] = {0.8f,0.8f,0.0f,0.8f};

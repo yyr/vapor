@@ -32,8 +32,8 @@ class QTimer;
 #include "viewpointparams.h"
 #include "regionparams.h"
 #include "probeparams.h"
-
 #include "flowparams.h"
+
 #include "dvrparams.h"
 #include "animationparams.h"
 #include <vapor/common.h>

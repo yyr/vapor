@@ -10,8 +10,8 @@
 //
 //----------------------------------------------------------------------------
 
+#include "glutil.h"	// Must be included first!!!
 #include "ShaderProgram.h"
-#include "glutil.h"
 #include <vapor/errorcodes.h>
 #include <vapor/MyBase.h>
 #include <sstream>

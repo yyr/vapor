@@ -60,7 +60,6 @@
 #include "Stopwatch.h"
 
 
-#include "glutil.h"
 #include "dvrparams.h"
 #include "ParamsIso.h"
 #include <vapor/MyBase.h>

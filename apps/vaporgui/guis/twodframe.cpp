@@ -29,7 +29,6 @@
 #include <QMouseEvent>
 #include <QPaintEvent>
 #include "gltwoDwindow.h"
-#include "glutil.h"
 #include "vizwinmgr.h"
 #include "twoDdataeventrouter.h"
 #include "twoDimageeventrouter.h"

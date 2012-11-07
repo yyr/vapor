@@ -30,7 +30,6 @@
 #include <QMouseEvent>
 #include <QHBoxLayout>
 #include "glprobewindow.h"
-#include "glutil.h"
 #include "vizwinmgr.h"
 #include "probeeventrouter.h"
 

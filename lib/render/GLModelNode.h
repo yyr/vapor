@@ -16,8 +16,6 @@
 
 #ifdef MODELS
 
-#include <GL/glew.h>
-#include <QtOpenGL>
 #include <vector>
 #include "Matrix3d.h"
 #include <assimp/assimp.hpp>

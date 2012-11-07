@@ -23,6 +23,7 @@
 #ifdef WIN32
 #pragma warning(disable : 4251 4100)
 #endif
+#include "glutil.h"	// Must be included first!!!
 #include <qapplication.h>
 #include <QIcon>
 #include <qcursor.h>

@@ -40,7 +40,6 @@
 #include "params.h"
 #include <vapor/XmlNode.h>
 #include "tabmanager.h"
-#include "glutil.h"
 #include "arrowparams.h"
 #include "arrowrenderer.h"
 #include "arroweventrouter.h"

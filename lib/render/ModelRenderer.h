@@ -15,7 +15,6 @@
 
 #ifdef MODELS
 
-#include <GL/glew.h>
 #include "assert.h"
 #include "renderer.h"
 #include "ModelParams.h"

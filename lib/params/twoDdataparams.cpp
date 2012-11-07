@@ -32,7 +32,6 @@
 #include <fstream>
 #include <sstream>
 #include <math.h>
-#include "glutil.h"
 #include "twoDdataparams.h"
 #include "regionparams.h"
 #include "params.h"
@@ -162,7 +161,6 @@ bool TwoDDataParams::
 reinit(bool doOverride){
 	
 	DataStatus* ds = DataStatus::getInstance();
-	DataMgr* dataMgr = ds->getDataMgr();
 	
 	const float* localExtents = ds->getLocalExtents();
 	setMaxNumRefinements(ds->getNumTransforms());

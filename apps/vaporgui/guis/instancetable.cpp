@@ -19,6 +19,7 @@
 //		copy, delete, and enable instances  
 //
 
+#include "instancetable.h"
 #include <qpixmap.h>
 #include <qstringlist.h>
 #include <qlineedit.h>

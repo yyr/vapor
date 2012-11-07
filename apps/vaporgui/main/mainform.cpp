@@ -26,8 +26,8 @@
 #ifdef WIN32
 #pragma warning(disable : 4251 4100)
 #endif
+#include "glutil.h"	// Must be included first!!!
 #include <QMenuItem>
-#include "GL/glew.h"
 #include "mainform.h"
 #include "pythonedit.h"
 #include <QDockWidget>

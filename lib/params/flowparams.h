@@ -25,7 +25,6 @@
 #include <qcolor.h>
 #include "params.h"
 #include "mapperfunction.h"
-#include "glutil.h"
 #include <vapor/common.h>
 class FlowTab;
 #define IGNORE_FLAG 2.e30f

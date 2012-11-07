@@ -57,7 +57,6 @@
 #include "params.h"
 #include <vapor/XmlNode.h>
 #include "tabmanager.h"
-#include "glutil.h"
 
 #include "regioneventrouter.h"
 #include "probeeventrouter.h"
@@ -273,7 +272,7 @@ void RegionEventRouter::updateTab(){
 //
 void RegionEventRouter::relabel()
 {
-  if (Session::getInstance()->sphericalTransform())
+  if (0 && Session::getInstance()->sphericalTransform())
   {
     QString labels[3] = {"Lon", "Lat", "Rad"};
     const DataMgr *dataMgr = Session::getInstance()->getDataMgr();

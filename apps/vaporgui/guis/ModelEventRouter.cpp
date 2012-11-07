@@ -37,7 +37,6 @@
 #include "params.h"
 #include <vapor/XmlNode.h>
 #include "tabmanager.h"
-#include "glutil.h"
 #include "ModelParams.h"
 #include "ModelEventRouter.h"
 #include "eventrouter.h"

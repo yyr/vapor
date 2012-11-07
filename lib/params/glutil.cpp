@@ -40,6 +40,7 @@
 //	Univeristy of Minnesota
 //
 
+#include "glutil.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -53,7 +54,6 @@
 #include <qgl.h>
 
 //#include "util.h"
-#include "glutil.h"
 
 using namespace VAPoR;
 /* The Identity matrix is useful for intializing transformations.
@@ -434,7 +434,7 @@ void qmult(const float *q1, const float *q2, float *dest)
 {
     /* Multiply two quaternions.  Note quaternion real part is 4th coefficient!
      */
-    static int	count = 0;
+    //static int	count = 0;
     float 	t1[3], t2[3], t3[3];
     float 	tf[4];
     
@@ -450,12 +450,11 @@ void qmult(const float *q1, const float *q2, float *dest)
     tf[3] = q1[3] * q2[3] - vdot(q1, q2);
     
     qcopy(tf, dest);
-    /* why is this code here?
-    if (++count >= 97) {
-		count = 0;
-		qnormal(dest);
-    }
-	*/
+    // why is this code here?
+    //if (++count >= 97) {
+	//	count = 0;
+	//	qnormal(dest);
+    //}
 }
 
 
@@ -1098,7 +1097,7 @@ int printOglError(const char *file, int line, const char *msg)
 /*
  * Return true, if n is a power of 2.
  */
-bool powerOf2(uint n)
+bool powerOf2(size_t n)
 {
   return (n & (n-1)) == 0;
 }
@@ -1106,11 +1105,11 @@ bool powerOf2(uint n)
 /*
  * Return the next power of 2 that is equal or larger than n
  */
-uint nextPowerOf2(uint n)
+size_t nextPowerOf2(size_t n)
 {
   if (powerOf2(n)) return n;
 
-  uint p;
+  size_t p;
 
   for(int i=31; i>=0; i--) 
   {

@@ -22,7 +22,7 @@
 //Annoying unreferenced formal parameter warning
 #pragma warning( disable : 4100 4996 )
 #endif
-#include <QScrollArea>
+#include "glutil.h"	// Must be included first!!!
 #include <QScrollBar>
 #include <qdesktopwidget.h>
 #include <qrect.h>
@@ -66,7 +66,6 @@
 #include <vapor/XmlNode.h>
 #include "vapor/GetAppPath.h"
 #include "tabmanager.h"
-#include "glutil.h"
 #include "probeparams.h"
 #include "probeeventrouter.h"
 #include "regioneventrouter.h"
@@ -1354,8 +1353,7 @@ guiCopyRegionToProbe(){
 void ProbeEventRouter::
 reinitTab(bool doOverride){
 	Session* ses = Session::getInstance();
-	if (!ses->sphericalTransform()) setEnabled(true);
-	else setEnabled(false);
+	setEnabled(true);
 	setIgnoreBoxSliderEvents(false);
 	xThumbWheel->setRange(-100000,100000);
 	yThumbWheel->setRange(-100000,100000);

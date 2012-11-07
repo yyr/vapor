@@ -22,6 +22,7 @@
 #pragma warning( disable : 4100 )
 #endif
 
+#include "glutil.h"	// Must be included first
 #include <vector>
 #include <string>
 #include <iostream>
@@ -32,7 +33,6 @@
 #include <vapor/MyBase.h>
 #include <vapor/XmlNode.h>
 #include <vapor/ParamNode.h>
-#include "glutil.h"
 
 
 

@@ -19,6 +19,7 @@
 // Specify how long the arrow tube is, in front of where the arrowhead is attached:
 #define ARROW_LENGTH_FACTOR 0.9
 
+#include "glutil.h"	// Must be included first!!!
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -35,7 +36,6 @@
 #include "glwindow.h"
 #include "params.h"
 #include "renderer.h"
-#include "glutil.h"
 #include "arrowparams.h"
 #include <vapor/MyBase.h>
 #include <vapor/errorcodes.h>

@@ -16,7 +16,6 @@
 //
 //	Description:	Implements the AnimationController class
 //		
-#include <GL/glew.h>
 #include "mainform.h"
 #include "tabmanager.h"
 #include <qapplication.h>

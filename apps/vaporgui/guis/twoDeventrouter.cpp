@@ -61,7 +61,6 @@
 #include <vapor/jpegapi.h>
 #include <vapor/XmlNode.h>
 #include "tabmanager.h"
-#include "glutil.h"
 #include "twoDparams.h"
 #include "twoDeventrouter.h"
 #include "regioneventrouter.h"

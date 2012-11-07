@@ -14,15 +14,7 @@
 //
 //----------------------------------------------------------------------------
 
-#include <GL/glew.h>
-#ifdef Darwin
-#include <gl.h>
-#include <glu.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
-
+#include "glutil.h"	// Must be included first!!!
 #include <iostream>
 #include <math.h>
 #include <qcursor.h>
@@ -49,7 +41,6 @@
 
 
 #include "assert.h"
-#include "glutil.h"
 
 #include "mappingframe.h"
 

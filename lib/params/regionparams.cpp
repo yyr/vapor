@@ -44,7 +44,6 @@
 #include <vapor/DataMgr.h>
 #include <vapor/XmlNode.h>
 #include <vapor/ParamNode.h>
-//#include "glutil.h"
 
 
 using namespace VAPoR;

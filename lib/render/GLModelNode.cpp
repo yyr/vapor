@@ -13,13 +13,14 @@
 
 #ifdef MODELS
 
-#include "GLModelNode.h"
-#include "glutil.h"
+#include "glutil.h"	// Must be included first!!!
+#include <QApplication>
 
 #include <assimp/assimp.h>
 #include <assimp/aiScene.h>
 #include <assimp/aiPostProcess.h>
 #include <assert.h>
+#include "GLModelNode.h"
 
 
 using namespace VAPoR;

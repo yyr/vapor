@@ -6,9 +6,9 @@
 //
 //----------------------------------------------------------------------------
 
+#include "glutil.h"	// Must be included first!!!
 #include "TextureBrick.h"
 #include "regionparams.h"
-#include "glutil.h"
 
 #ifndef MAX
 #define MAX(a,b)        ((a) > (b) ? (a) : (b))

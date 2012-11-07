@@ -25,13 +25,13 @@
 
 
 
+#include "glutil.h"	// Must be included first!!!
 #include <vector>
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <math.h>
-#include "glutil.h"
 #include "twoDparams.h"
 #include "regionparams.h"
 #include "viewpointparams.h"

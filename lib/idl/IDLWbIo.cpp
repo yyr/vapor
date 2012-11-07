@@ -635,76 +635,76 @@ int IDL_LoadIO(void)
 	//
 	static IDL_SYSFUN_DEF2 func_addr[] = {
 		{ (IDL_SYSRTN_GENERIC) vdcBufReaderCreate, 
-			"VDC_BUFREADCREATE", 1, 1, 0, 0
+			(char *) "VDC_BUFREADCREATE", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcRegionReaderCreate, 
-			"VDC_REGREADCREATE", 1, 1, 0, 0
+			(char *) "VDC_REGREADCREATE", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcRegionWriterCreate, 
-			"VDC_REGWRITECREATE", 1, 1, 0, 0
+			(char *) "VDC_REGWRITECREATE", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcBufWriterCreate, 
-			"VDC_BUFWRITECREATE", 1, 1, 0, 0
+			(char *) "VDC_BUFWRITECREATE", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcRegionReaderCreate2D, 
-			"VDC_REGREADCREATE2D", 1, 1, 0, 0
+			(char *) "VDC_REGREADCREATE2D", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcRegionWriterCreate2D, 
-			"VDC_REGWRITECREATE2D", 1, 1, 0, 0
+			(char *) "VDC_REGWRITECREATE2D", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcVarExists, 
-			"VDC_VAREXISTS", 4, 4, 0, 0
+			(char *) "VDC_VAREXISTS", 4, 4, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcGetDim, 
-			"VDC_GETDIM", 2, 2, 0, 0
+			(char *) "VDC_GETDIM", 2, 2, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcMapVoxToUser, 
-			"VDC_MAPVOX2USER", 4, 4, 0, 0
+			(char *) "VDC_MAPVOX2USER", 4, 4, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcMapUserToVox, 
-			"VDC_MAPUSER2VOX", 4, 4, 0, 0
+			(char *) "VDC_MAPUSER2VOX", 4, 4, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcIsValidRegion, 
-			"VDC_ISVALIDREG", 4, 4, 0, 0
+			(char *) "VDC_ISVALIDREG", 4, 4, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcGetMetadata, 
-			"VDC_GETMETADATA", 1, 1, 0, 0
+			(char *) "VDC_GETMETADATA", 1, 1, 0, 0
 		}
 	};
 
 	static IDL_SYSFUN_DEF2 proc_addr[] = {
 		{ (IDL_SYSRTN_GENERIC) vdcBufReaderDestroy, 
-			"VDC_BUFREADDESTROY", 1, 1, 0, 0
+			(char *) "VDC_BUFREADDESTROY", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcReadSlice, 
-			"VDC_BUFREADSLICE", 2, 2, 0, 0
+			(char *) "VDC_BUFREADSLICE", 2, 2, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcRegionReaderDestroy, 
-			"VDC_REGREADDESTROY", 1, 1, 0, 0
+			(char *) "VDC_REGREADDESTROY", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcReadRegion, 
-			"VDC_REGREAD", 4, 4, 0, 0
+			(char *) "VDC_REGREAD", 4, 4, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcRegionWriterDestroy, 
-			"VDC_REGWRITEDESTROY", 1, 1, 0, 0
+			(char *) "VDC_REGWRITEDESTROY", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcWriteRegion, 
-			"VDC_REGWRITE", 3, 3, 0, 0
+			(char *) "VDC_REGWRITE", 3, 3, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcBufWriterDestroy, 
-			"VDC_BUFWRITEDESTROY", 1, 1, 0, 0
+			(char *) "VDC_BUFWRITEDESTROY", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcWriteSlice, 
-			"VDC_BUFWRITESLICE", 2, 2, 0, 0
+			(char *) "VDC_BUFWRITESLICE", 2, 2, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcOpenVarWrite, 
-			"VDC_OPENVARWRITE", 3, 4, 0, 0
+			(char *) "VDC_OPENVARWRITE", 3, 4, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcOpenVarRead, 
-			"VDC_OPENVARREAD", 4, 4, 0, 0
+			(char *) "VDC_OPENVARREAD", 4, 4, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcCloseVar, 
-			"VDC_CLOSEVAR", 1, 1, 0, 0
+			(char *) "VDC_CLOSEVAR", 1, 1, 0, 0
 		}
 	};
 

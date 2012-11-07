@@ -23,6 +23,7 @@
 //
 //----------------------------------------------------------------------------
 
+#include <GL/glew.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -62,7 +63,6 @@
 #include "Stopwatch.h"
 
 
-#include "glutil.h"
 #include "dvrparams.h"
 #include "ParamsIso.h"
 #include <vapor/MyBase.h>

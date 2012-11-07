@@ -31,7 +31,6 @@
 #include "vizwinmgr.h"
 #include "vizwin.h"
 #include "messagereporter.h"
-#include "glutil.h"
 #include "dvrparams.h"
 #include "animationeventrouter.h"
 #include "mainform.h"

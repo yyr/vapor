@@ -62,7 +62,6 @@
 
 #include <vapor/XmlNode.h>
 #include "tabmanager.h"
-#include "glutil.h"
 #include "ParamsIso.h"
 #include "isoeventrouter.h"
 #include "animationeventrouter.h"

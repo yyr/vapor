@@ -22,6 +22,7 @@
 //Annoying unreferenced formal parameter warning
 #pragma warning( disable : 4100 )
 #endif
+#include "glutil.h"	// Must be included first!!!
 #include <algorithm>
 #include <qdesktopwidget.h>
 #include <qrect.h>
@@ -54,7 +55,6 @@
 #include "params.h"
 #include <vapor/XmlNode.h>
 #include "tabmanager.h"
-#include "glutil.h"
 
 #include "animationeventrouter.h"
 #include "animationcontroller.h"

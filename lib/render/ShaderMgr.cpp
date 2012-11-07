@@ -7,12 +7,12 @@
  *
  */
 
+#include "glutil.h"	// Must be included first!!!
 #include "ShaderProgram.h"
 
 #include "ShaderMgr.h"
 
 #include <vapor/errorcodes.h>
-#include "glutil.h"
 #include <sstream>
 using namespace VAPoR;
 using namespace VetsUtil;

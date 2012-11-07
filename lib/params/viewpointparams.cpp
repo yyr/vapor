@@ -22,6 +22,7 @@
 #pragma warning( disable : 4100 )
 #endif
 
+#include "glutil.h"	// Must be included first!!!
 #include <vector>
 #include <string>
 #include <iostream>
@@ -29,7 +30,6 @@
 #include <sstream>
 #include "viewpointparams.h"
 #include "params.h"
-#include "glutil.h"
 #include "viewpoint.h"
 #include <vapor/XmlNode.h>
 #include <vapor/ParamNode.h>

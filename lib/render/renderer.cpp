@@ -18,6 +18,7 @@
 //		A pure virtual class that is implemented for each renderer.
 //		Methods are called by the glwindow class as needed.
 //
+#include "glutil.h"	// Must be included first!!!
 #include <qpixmap.h>
 #include <qpainter.h>
 #include "renderer.h"
@@ -26,7 +27,6 @@
 #include "viewpointparams.h"
 #include "animationparams.h"
 #include "dvrparams.h"
-#include "glutil.h"
 #include "transferfunction.h"
 #include "Colormap.h"
 

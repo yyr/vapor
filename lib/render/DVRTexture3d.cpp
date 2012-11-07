@@ -9,15 +9,7 @@
 //
 //----------------------------------------------------------------------------
 
-#include <GL/glew.h>
-#ifdef Darwin
-#include <gl.h>
-#include <glu.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
-
+#include "glutil.h"	// Must be included first!!!
 #include <qgl.h>
 #include <qgl.h>
 #include <cctype>
@@ -25,7 +17,6 @@
 #include "DVRTexture3d.h"
 #include "TextureBrick.h"
 #include "BBox.h"
-#include "glutil.h"
 
 #include "Matrix3d.h"
 #include "Point3d.h"

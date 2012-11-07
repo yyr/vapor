@@ -12,6 +12,8 @@
 
 #ifdef MODELS
 
+#include "glutil.h"	// Must be included first!!!
+#include <qgl.h>
 #include "params.h"
 #include "ModelRenderer.h"
 #include "ModelScene.h"
@@ -21,7 +23,6 @@
 #include "viewpointparams.h"
 #include "datastatus.h"
 #include "glwindow.h"
-#include "glutil.h"
 
 #include <vapor/errorcodes.h>
 #include <vapor/CFuncs.h>

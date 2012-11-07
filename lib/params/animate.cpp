@@ -6,6 +6,7 @@
 //  Copyright (c) 2012 NCAR. All rights reserved.
 //
 
+#include "glutil.h"	// Must be included first
 #include <iostream>
 #include "animate.h"
 #include <math.h>

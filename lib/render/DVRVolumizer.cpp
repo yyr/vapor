@@ -24,7 +24,6 @@
 #include <string.h>
 #include <errno.h>
 
-#include "glutil.h"
 #include "qgl.h"
 #include <Volumizer2/Error.h>
 #include <Volumizer2/TMFragmentProgram.h>

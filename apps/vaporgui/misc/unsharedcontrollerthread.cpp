@@ -30,7 +30,6 @@
 #include "vizwin.h"
 #include "messagereporter.h"
 #include "dvrparams.h"
-#include "glutil.h"
 #include "tabmanager.h"
 #include "eventrouter.h"
 #include "mainform.h"

@@ -18,12 +18,12 @@
 //		This performs the opengl drawing of a texture in the probe frame.
 //
 
+#include "glutil.h"	// Must be included first!!!
 #include "glprobewindow.h"
 #include "proberenderer.h"
 #include <vapor/MyBase.h>
 #include <vapor/errorcodes.h>
 #include <vapor/jpegapi.h>
-#include "glutil.h"
 #include "probeframe.h"
 #include "probeparams.h"
 #include "probeeventrouter.h"

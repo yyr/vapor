@@ -19,7 +19,6 @@
 
 #include "DVRLookup.h"
 #include "TextureBrick.h"
-#include "glutil.h"
 
 using namespace VAPoR;
 

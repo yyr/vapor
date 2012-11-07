@@ -17,15 +17,14 @@
 //	Description:  Implementation of GLWindow class: 
 //		It performs the opengl rendering for visualizers
 //
+#include "glutil.h"	// Must be included first!!!
 #ifdef WIN32
 #pragma warning(disable : 4996)
 #endif
-#include <GL/glew.h>
 #include <vapor/GetAppPath.h>
 
 #include "glwindow.h"
 #include "trackball.h"
-#include "glutil.h"
 #include "renderer.h"
 #include "viewpointparams.h"
 #include "dvrparams.h"

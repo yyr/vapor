@@ -47,19 +47,19 @@ IDL_VPTR vdfMetadataCreate(int argc, IDL_VPTR *argv, char *argk)
 
 	static IDL_KW_PAR kw_pars[] = {
 		{
-			"BS", IDL_TYP_LONG, 1, IDL_KW_ARRAY,
+			(char *) "BS", IDL_TYP_LONG, 1, IDL_KW_ARRAY,
 			(int *) IDL_KW_OFFSETOF(bs_there), IDL_CHARA(bs_d)
 		},
 		{
-			"NFILTERCOEF", IDL_TYP_LONG, 1, 0, 0, 
+			(char *) "NFILTERCOEF", IDL_TYP_LONG, 1, 0, 0, 
 			(char *) IDL_KW_OFFSETOF(nFilterCoef)
 		},
 		{
-			"NLIFTINGCOEF",IDL_TYP_LONG, 1, 0, 0, 
+			(char *) "NLIFTINGCOEF",IDL_TYP_LONG, 1, 0, 0, 
 			(char *) IDL_KW_OFFSETOF(nLiftingCoef)
 		},
 		{
-			"MSBFIRST",IDL_TYP_LONG, 1, IDL_KW_ZERO, 0, 
+			(char *) "MSBFIRST",IDL_TYP_LONG, 1, IDL_KW_ZERO, 0, 
 			(char *) IDL_KW_OFFSETOF(msbFirst)
 		},
 		{NULL}
@@ -251,34 +251,34 @@ int IDL_Load(void)
 	//
 	static IDL_SYSFUN_DEF2 func_addr[] = {
 		{ (IDL_SYSRTN_GENERIC) vdfMetadataCreate, 
-			"VDF_CREATE", 1, 2, IDL_SYSFUN_DEF_F_KEYWORDS, 0
+			(char *) "VDF_CREATE", 1, 2, IDL_SYSFUN_DEF_F_KEYWORDS, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdfMetadataGetBlockSize, 
-			"VDF_GETBLOCKSIZE", 1, 1, 0, 0
+			(char *) "VDF_GETBLOCKSIZE", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdfMetadataGetDimension, 
-			"VDF_GETDIMENSION", 1, 1, 0, 0
+			(char *) "VDF_GETDIMENSION", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdfMetadataGetFilterCoef, 
-			"VDF_GETFILTERCOEF", 1, 1, 0, 0
+			(char *) "VDF_GETFILTERCOEF", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdfMetadataGetLiftingCoef, 
-			"VDF_GETLIFTINGCOEF", 1, 1, 0, 0
+			(char *) "VDF_GETLIFTINGCOEF", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdfMetadataGetNumTransforms, 
-			"VDF_GETNUMTRANSFORMS", 1, 1, 0, 0
+			(char *) "VDF_GETNUMTRANSFORMS", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdfMetadataGetMSBFirst, 
-			"VDF_GETMSBFIRST", 1, 1, 0, 0
+			(char *) "VDF_GETMSBFIRST", 1, 1, 0, 0
 		},
 	};
 
 	static IDL_SYSFUN_DEF2 proc_addr[] = {
 		{ (IDL_SYSRTN_GENERIC) vdfMetadataDestroy, 
-			"VDF_DESTROY", 1, 1, 0, 0
+			(char *) "VDF_DESTROY", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdfMetadataWrite, 
-			"VDF_WRITE", 2, 2, 0, 0
+			(char *) "VDF_WRITE", 2, 2, 0, 0
 		},
 	};
 

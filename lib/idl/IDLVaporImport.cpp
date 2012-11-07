@@ -48,12 +48,12 @@ IDL_VPTR vaporImport(int argc, IDL_VPTR *argv)
 	IDL_MEMINT timeseg_dims[] = {1,2};
 
 	IDL_STRUCT_TAG_DEF s_tags[] = {
-		{"VDFPATH", 0, (void *) IDL_TYP_STRING, 0},
-		{"TIMESTEP", 0, (void *) IDL_TYP_LONG, 0},
-		{"VARNAME", 0, (void *) IDL_TYP_STRING, 0},
-		{"MINRANGE", range_dims, (void *) IDL_TYP_LONG, 0},
-		{"MAXRANGE", range_dims, (void *) IDL_TYP_LONG, 0},
-		{"TIMESEG", timeseg_dims, (void *) IDL_TYP_LONG, 0},
+		{(char *) "VDFPATH", 0, (void *) IDL_TYP_STRING, 0},
+		{(char *) "TIMESTEP", 0, (void *) IDL_TYP_LONG, 0},
+		{(char *) "VARNAME", 0, (void *) IDL_TYP_STRING, 0},
+		{(char *) "MINRANGE", range_dims, (void *) IDL_TYP_LONG, 0},
+		{(char *) "MAXRANGE", range_dims, (void *) IDL_TYP_LONG, 0},
+		{(char *) "TIMESEG", timeseg_dims, (void *) IDL_TYP_LONG, 0},
 		{NULL}
 	};
 	IDL_StructDefPtr s;
@@ -73,26 +73,26 @@ IDL_VPTR vaporImport(int argc, IDL_VPTR *argv)
 	IDL_MakeTempStructVector(s,1,&result,1);
 
 	ucptr = result->value.s.arr->data + IDL_StructTagInfoByName(
-		s, "VDFPATH",IDL_MSG_LONGJMP, NULL
+		s, (char *) "VDFPATH",IDL_MSG_LONGJMP, NULL
 	);
 	stringptr = (IDL_STRING *) ucptr;
 	IDL_StrStore(stringptr, (char *) vdfpath.c_str());
 
 	ucptr = result->value.s.arr->data + IDL_StructTagInfoByName(
-		s, "TIMESTEP",IDL_MSG_LONGJMP, NULL
+		s, (char *) "TIMESTEP",IDL_MSG_LONGJMP, NULL
 	);
 	longptr = (IDL_LONG *) ucptr;
 	*longptr = (IDL_LONG) timestep;
 
 	ucptr = result->value.s.arr->data + IDL_StructTagInfoByName(
-		s, "VARNAME",IDL_MSG_LONGJMP, NULL
+		s, (char *) "VARNAME",IDL_MSG_LONGJMP, NULL
 	);
 	stringptr = (IDL_STRING *) ucptr;
 	IDL_StrStore(stringptr, (char *) varname.c_str());
 
 
 	ucptr = result->value.s.arr->data + IDL_StructTagInfoByName(
-		s, "MINRANGE",IDL_MSG_LONGJMP, NULL
+		s, (char *) "MINRANGE",IDL_MSG_LONGJMP, NULL
 	);
 	longptr = (IDL_LONG *) ucptr;
 	longptr[0] = (IDL_LONG) minrange[0];
@@ -100,7 +100,7 @@ IDL_VPTR vaporImport(int argc, IDL_VPTR *argv)
 	longptr[2] = (IDL_LONG) minrange[2];
 
 	ucptr = result->value.s.arr->data + IDL_StructTagInfoByName(
-		s, "MAXRANGE",IDL_MSG_LONGJMP, NULL
+		s, (char *) "MAXRANGE",IDL_MSG_LONGJMP, NULL
 	);
 	longptr = (IDL_LONG *) ucptr;
 	longptr[0] = (IDL_LONG) maxrange[0];
@@ -108,7 +108,7 @@ IDL_VPTR vaporImport(int argc, IDL_VPTR *argv)
 	longptr[2] = (IDL_LONG) maxrange[2];
 
 	ucptr = result->value.s.arr->data + IDL_StructTagInfoByName(
-		s, "TIMESEG",IDL_MSG_LONGJMP, NULL
+		s, (char *) "TIMESEG",IDL_MSG_LONGJMP, NULL
 	);
 	longptr = (IDL_LONG *) ucptr;
 	longptr[0] = (IDL_LONG) timeseg[0];
@@ -132,7 +132,7 @@ int IDL_LoadVaporImport(void)
 
 	static IDL_SYSFUN_DEF2 func_addr[] = {
 		{ (IDL_SYSRTN_GENERIC) vaporImport, 
-			"VAPORIMPORT", 0, 0, 0, 0
+			(char *) "VAPORIMPORT", 0, 0, 0, 0
 		},
 	};
 

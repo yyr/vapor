@@ -17,7 +17,7 @@
 //		This is the widget that contains the visualizers
 //		Supports mouse event reporting
 //
-#include "GL/glew.h"
+#include "glutil.h"	// Must be included first!!!
 #include "vizwin.h"
 #include <qdatetime.h>
 #include <qvariant.h>
@@ -46,7 +46,6 @@
 #include "viewpointparams.h"
 #include "regionparams.h"
 #include "messagereporter.h"
-#include "glutil.h"
 #include "viewpoint.h"
 #include "manip.h"
 #include "regioneventrouter.h"

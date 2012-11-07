@@ -7,16 +7,8 @@
 //
 //----------------------------------------------------------------------------
 
+#include "glutil.h"	// Must be included first!!!
 #include <sstream>
-#include <GL/glew.h>
-#ifdef Darwin
-#include <gl.h>
-#include <glu.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
-
 #include <qgl.h>
 
 #include "vapor/StretchedGrid.h"
@@ -24,7 +16,6 @@
 #include "TextureBrick.h"
 #include "ShaderProgram.h"
 #include "BBox.h"
-#include "glutil.h"
 #include "params.h"
 
 #include "Matrix3d.h"

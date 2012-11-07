@@ -17,6 +17,7 @@
 //	Description:	Implementation of the twoDImageRenderer class
 //
 
+#include "glutil.h"	// Must be included first!!!
 #include "params.h"
 #include "twoDimagerenderer.h"
 #include "animationparams.h"
@@ -24,7 +25,6 @@
 #include "viewpointparams.h"
 #include "datastatus.h"
 #include "glwindow.h"
-#include "glutil.h"
 
 #include <vapor/errorcodes.h>
 #include <qgl.h>

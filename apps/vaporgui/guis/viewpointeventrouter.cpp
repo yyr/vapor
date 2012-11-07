@@ -22,6 +22,7 @@
 //Annoying unreferenced formal parameter warning
 #pragma warning( disable : 4100 )
 #endif
+#include "glutil.h"	// Must be included first!!!
 #include <qdesktopwidget.h>
 #include <qrect.h>
 #include <qlineedit.h>

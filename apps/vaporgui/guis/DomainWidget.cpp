@@ -6,21 +6,10 @@
 //
 //----------------------------------------------------------------------------
 
+#include "glutil.h"	// Must be included first!!!
 #include "DomainWidget.h"
 #include "params.h"
-
-#include <GL/glew.h>
-#ifdef Darwin
-#include <gl.h>
-#include <glu.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
-
-
 #include "mappingframe.h"
-#include "glutil.h"
 
 #include <iostream>
 

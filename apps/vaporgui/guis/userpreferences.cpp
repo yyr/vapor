@@ -19,6 +19,7 @@
 #ifdef WIN32
 #pragma warning(disable : 4100)
 #endif
+#include "glutil.h"	// Must be included first!!!
 #include "vizfeatureparams.h"
 #include "userpreferences.h"
 #include "preferences.h"

@@ -70,7 +70,6 @@
 #include <vapor/VaporFlow.h>
 
 #include "tabmanager.h"
-#include "glutil.h"
 #include "flowparams.h"
 #include "floweventrouter.h"
 #include "eventrouter.h"
@@ -1391,7 +1390,7 @@ void FlowEventRouter::
 reinitTab(bool doOverride){
 	setIgnoreBoxSliderEvents(false);
 	DataStatus* ds = DataStatus::getInstance();
-	if (ds->dataIsPresent3D()&&!ds->sphericalTransform()) setEnabled(true);
+	if (ds->dataIsPresent3D()) setEnabled(true);
 	else setEnabled(false);
 
 	flowDataChanged = false;

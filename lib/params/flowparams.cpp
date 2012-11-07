@@ -21,6 +21,7 @@
 #pragma warning( disable : 4100 )
 #endif
 
+#include "glutil.h"
 #include <vector>
 #include <string>
 #include <iostream>
@@ -31,7 +32,6 @@
 #include "datastatus.h"
 #include <vapor/VaporFlow.h>
 #include <vapor/flowlinedata.h>
-#include "glutil.h"
 #include <vapor/errorcodes.h>
 #include "vapor/RegularGrid.h"
 
