@@ -289,8 +289,6 @@ void ArrowRenderer::performRendering(
 			rakeExts[i+3] = rExtents[i+3]+fullUsrExts[i];
 		}
 	}
-	bool is3D = aParams->VariablesAre3D();
-
 	
 	//Perform setup of OpenGL transform matrix.  This transforms the full stretched domain into the unit box
 	//by scaling and translating.

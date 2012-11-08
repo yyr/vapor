@@ -229,9 +229,6 @@ void Renderer::enableFullClippingPlanes(){
 
 void Renderer::enableClippingPlanes(const double extents[6]){
 
-	AnimationParams *myAnimationParams = myGLWindow->getActiveAnimationParams();
-	size_t timeStep = myAnimationParams->getCurrentTimestep();
-
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();

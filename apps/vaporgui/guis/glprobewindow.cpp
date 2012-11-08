@@ -86,8 +86,6 @@ GLProbeWindow::GLProbeWindow( QGLFormat& fmt, QWidget* parent, const char* , Pro
 	vertTexSize = 1.f;
 	rectLeft = -1.f;
 	rectTop = 1.f;
-	_winHeight = 1.0;
-	_winWidth = 1.0;
 	probeFrame = pf;
 	animatingTexture = false;
 	animatingFrameNum = 0;

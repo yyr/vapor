@@ -53,8 +53,8 @@ GLTwoDWindow::GLTwoDWindow( const QGLFormat& fmt, QWidget* parent, const char* ,
 	rectLeft = -1.f;
 	rectTop = 1.f;
 	twoDFrame = pf;
-	_winWidth = 1.0;
-	_winHeight = 1.0;
+	_winWidth = 1;
+	_winHeight = 1;
 	
 	setAutoBufferSwap(true);
 	

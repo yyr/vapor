@@ -164,12 +164,9 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	const float* localExtents = ds->getLocalExtents();
 	//See if there is a height variable
 	
-	float* hgtData = 0;
 	DataMgr* dataMgr = ds->getDataMgr();
 	const vector<double>& usrExts = dataMgr->GetExtents(timeStep);
 	TwoDParams* tParams = (TwoDParams*) currentRenderParams;
-	float displacement = tParams->getLocalTwoDMin(2);
-	int varnum = DataStatus::getSessionVariableNum2D(tParams->GetHeightVariableName());
 	double twoDExts[6];
 	for (int i = 0; i<3; i++){
 		regMin[i] = twoDExts[i] = tParams->getLocalTwoDMin(i) + usrExts[i];

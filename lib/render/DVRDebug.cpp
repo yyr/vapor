@@ -64,8 +64,6 @@ int DVRDebug::SetRegion(
 
 
 int	DVRDebug::Render() {
-	int	i;
-
 	fprintf(stdout, "\nDVRDebug::Render() called\n");
 
 	return(0);

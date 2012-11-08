@@ -435,7 +435,7 @@ reinit(bool doOverride){
 	if (DataStatus::pre22Session()){
 		for (int i = 0; i<seedPointList.size(); i++){
 			Point4 psn = seedPointList[i];
-			int ts = psn.getVal(3);
+			int ts = (int) psn.getVal(3);
 			if (ts < 0) ts = 0; //Use zero for extents (which won't move) if seed applies to all timesteps
 			float pt[3];
 			const vector<double>& usrExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)ts);

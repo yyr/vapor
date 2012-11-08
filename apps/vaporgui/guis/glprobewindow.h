@@ -96,8 +96,6 @@ protected:
 	bool rendering;
 	
 private: 
-	int _winWidth;
-	int _winHeight;
 	void _resizeGL();
 
 };

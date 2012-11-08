@@ -274,7 +274,6 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
   }
   else if (dvrType == DvrParams::DVR_DEBUG)
   {
-	DvrParams *rp = (DvrParams *) currentRenderParams;
     driver = new DVRDebug(&argc, argv, 1);
   }
   else 

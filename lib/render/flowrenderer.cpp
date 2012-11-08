@@ -287,7 +287,6 @@ renderFlowData(bool constColors, int currentFrameNum){
 	glPushMatrix();
 	
 	//Set up clipping planes on subvolume in unit box:
-	const float* scales = DataStatus::getInstance()->getStretchFactors();
 	double regExts[6]; 
 	myRegionParams->GetBox()->GetLocalExtents(regExts,currentFrameNum);
 	const float* fullsizes = DataStatus::getInstance()->getFullSizes();

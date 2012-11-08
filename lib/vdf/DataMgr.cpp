@@ -1488,7 +1488,7 @@ void DataMgr::coord_array(
 		return;
 	}
 	for (int i=0; i<(xin.size() >> ldelta); i++) {
-		size_t xin_idx = (((double) (1<<ldelta) * 0.5) - 0.5) + (1<<ldelta)*i;
+		size_t xin_idx = (size_t) ((((double) (1<<ldelta) * 0.5) - 0.5) + (1<<ldelta)*i);
 		assert(xin_idx+1 < xin.size());
 		double x = (xin[xin_idx] + xin[xin_idx+1]) * 0.5;
 		xout.push_back(x);
