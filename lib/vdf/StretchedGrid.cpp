@@ -122,6 +122,7 @@ StretchedGrid::StretchedGrid(
 	else {
 		_delta[2] = (extents[5] - extents[2])/(double) (_max[2]-_min[2]);
 	}
+	RegularGrid::_SetExtents(_extents);
 
 }
 

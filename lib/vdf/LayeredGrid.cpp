@@ -67,6 +67,7 @@ LayeredGrid::LayeredGrid(
 	assert(periodic[_varying_dim] == false);
 
 	_GetUserExtents(_extents);
+	RegularGrid::_SetExtents(_extents);
 }
 
 LayeredGrid::~LayeredGrid() {
