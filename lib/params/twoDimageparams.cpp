@@ -28,7 +28,11 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <math.h>
+#ifdef _WINDOWS
+#define _USE_MATH_DEFINES
+#pragma warning(disable : 4251 4100)
+#endif
+#include <cmath>
 #include <netcdf.h>
 #include "twoDparams.h"
 #include "twoDimageparams.h"

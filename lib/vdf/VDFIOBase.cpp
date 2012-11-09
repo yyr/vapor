@@ -471,7 +471,7 @@ int VDFIOBase::_MaskClose()
 
 
 	if (_open_write_mask) {
-		rc = unlink(_ncpath_mask.c_str());
+		rc = _unlink(_ncpath_mask.c_str());
 		rc = rename(_ncpath_mask_tmp.c_str(), _ncpath_mask.c_str());
 		if (rc<0) {
 			MyBase::SetErrMsg(
