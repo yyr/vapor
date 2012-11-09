@@ -99,6 +99,9 @@ const string Session::_python2DInputsTag = "Python2DInputs";
 const string Session::_python3DInputsTag = "Python3DInputs";
 const string Session::_python2DOutputsTag = "Python2DOutputs";
 const string Session::_python3DOutputsTag = "Python3DOutputs";
+bool Session::lockWin = false;
+int Session::lockWinHeight = 1024;
+int Session::lockWinWidth = 1280;
 
 string Session::prefFile = "";
 Session::Session() {
@@ -222,9 +225,7 @@ void Session::init() {
 	setPythonDirectory(preferencePythonDirectory.c_str());
 	setSessionDirectory(preferenceSessionDirectory.c_str());
 	MainForm::getInstance()->setInteractiveRefinementSpin(0);
-	lockWinWidth = 1280;
-	lockWinHeight = 1024;
-	lockWin = false;
+	
 	
 }
 void Session::setDefaultPrefs(){

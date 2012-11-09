@@ -400,6 +400,8 @@ public:
 	void setPostRenderCB(renderCBFcn f){postRenderCB = f;}
 	static int getJpegQuality();
 	static void setJpegQuality(int qual);
+	static bool depthPeelEnabled() {return depthPeeling;}
+	static void enableDepthPeeling(bool val) {depthPeeling = val;}
 	static bool getDefaultAxisArrowsEnabled(){return defaultAxisArrowsEnabled;}
 	static void setDefaultAxisArrows(bool val){defaultAxisArrowsEnabled = val;}
 	static bool getDefaultTerrainEnabled(){return defaultTerrainEnabled;}
@@ -478,7 +480,7 @@ protected:
 	static bool renderPriority(RenderListElt* ren1, RenderListElt* ren2){
 		return (ren1->camDist > ren2->camDist);
 	}
-	
+	static bool depthPeeling;
 	int winNum;
 	int previousTimeStep;
 	int previousFrameNum;

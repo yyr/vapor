@@ -375,8 +375,8 @@ protected:
 	//Following parameters are in session state, modified by session panel:
 	//Cache size in megabytes
 	size_t cacheMB;
-	int lockWinWidth, lockWinHeight;
-	bool lockWin;
+	static int lockWinWidth, lockWinHeight;
+	static bool lockWin;
 	string currentLogfileName;
 	string currentExportFile;
 	float stretchFactors[3];

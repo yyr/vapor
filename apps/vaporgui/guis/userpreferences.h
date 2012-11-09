@@ -104,6 +104,7 @@ protected slots:
 	void axisArrowsChanged(bool);
 	void spinChanged(bool);
 	void winLockChanged(bool val); 
+	void depthPeelChanged(bool val); 
 	void setAutoSave(bool);
 	void copyLatestSession();
 	void copyLatestMetadata();
@@ -171,6 +172,7 @@ protected:
 	static const string _winWidthAttr;
 	static const string _winHeightAttr;
 	static const string _lockWinAttr;
+	static const string _depthPeelAttr;
 
 
 
@@ -208,6 +210,7 @@ protected:
 	int texSize;
 	int winWidth, winHeight;
 	bool lockWin;
+	bool depthPeel;
 	size_t cacheMB;
 	float scale, alpha, phi, psi, theta;
 	float viewDir[3], upVec[3];

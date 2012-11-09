@@ -85,6 +85,7 @@ const string UserPreferences::_scaleAttr = "DefaultScale";
 const string UserPreferences::_winWidthAttr = "WindowWidth";
 const string UserPreferences::_winHeightAttr = "WindowHeight";
 const string UserPreferences::_lockWinAttr = "LockWindowSize";
+const string UserPreferences::_depthPeelAttr = "DepthPeeling";
 
 const string UserPreferences::_viewpointDefaultsTag = "ViewpointDefaults";
 const string UserPreferences::_viewDirAttr = "DefaultViewDir";
@@ -140,9 +141,6 @@ UserPreferences::UserPreferences() : QDialog(0), Ui_Preferences(){
 	flowPathButton->setIcon(QIcon(*fileopenIcon));
 	pythonPathButton->setIcon(QIcon(*fileopenIcon));
 	autoSaveButton->setIcon(QIcon(*fileopenIcon));
-	winWidth = 1280;
-	winHeight = 1024;
-	lockWin = false;
 	
 }
 //Just clone the exposed part, not the QT part
@@ -199,7 +197,9 @@ UserPreferences* UserPreferences::clone(){
 	newPrefs->spinAnimate = spinAnimate;
 	newPrefs->winWidth = winWidth;
 	newPrefs->winHeight = winHeight;
+	
 	newPrefs->lockWin = lockWin;
+	newPrefs->depthPeel = depthPeel;
 	
 
 	for (int i = 0; i<3; i++){ 
@@ -275,6 +275,7 @@ void UserPreferences::launch(){
 	connect (resetCountButton, SIGNAL(clicked()), this, SLOT(resetCounts()));
 	connect (enableSpinCheckbox, SIGNAL(toggled(bool)),this, SLOT(spinChanged(bool)));
 	connect (lockSizeCheckBox, SIGNAL(toggled(bool)),this, SLOT(winLockChanged(bool)));
+	connect (depthPeelingCheckbox, SIGNAL(toggled(bool)),this, SLOT(depthPeelChanged(bool)));
 
 	connect (noShowCitationCheckbox, SIGNAL(toggled(bool)), this, SLOT(setNoCitation(bool)));
 	connect (autoSaveCheckbox, SIGNAL(toggled(bool)), this, SLOT(setAutoSave(bool)));
@@ -641,6 +642,10 @@ void UserPreferences::winLockChanged(bool enabled){
 	lockWin = enabled;
 	dialogChanged = true;
 }
+void UserPreferences::depthPeelChanged(bool enabled){
+	depthPeel = enabled;
+	dialogChanged = true;
+}
 void UserPreferences::subregionChanged(bool enabled){
 	subregionFrameEnabled = enabled;
 	dialogChanged = true;
@@ -713,10 +718,15 @@ setDialog(){
 
 	Session* ses = Session::getInstance();
 	cacheMB = ses->getCacheMB();
+	winWidth = ses->getLockWinWidth();
+	winHeight = ses->getLockWinHeight();
+	lockWin = ses->getWindowSizeLock();
+	depthPeel = GLWindow::depthPeelEnabled();
+	depthPeelingCheckbox->setChecked(depthPeel);
 	cacheSizeEdit->setText(QString::number(ses->getCacheMB()));
-	winWidthEdit->setText(QString::number(ses->getLockWinWidth()));
-	winHeightEdit->setText(QString::number(ses->getLockWinHeight()));
-	lockSizeCheckBox->setChecked(ses->getWindowSizeLock());
+	winWidthEdit->setText(QString::number(winWidth));
+	winHeightEdit->setText(QString::number(winHeight));
+	lockSizeCheckBox->setChecked(lockWin);
 	texSize = ses->getTextureSize();
 	textureSizeEdit->setText(
 			QString::number(texSize));
@@ -896,6 +906,7 @@ applyToState(){
 		ses->setCitationRemind(citationRemind);
 	}
 	GLWindow::setJpegQuality(jpegQuality);
+	GLWindow::enableDepthPeeling(depthPeel);
 	DataStatus::setWarnMissingData(warnDataMissing);
 	DataStatus::setTrackMouse(trackMouse);
 	DataStatus::setUseLowerAccuracy(useLowerRefinement);
@@ -1085,6 +1096,12 @@ ParamNode* UserPreferences::buildNode(){
 	else 
 		oss << "false";
 	attrs[_lockWinAttr] = oss.str();
+	oss.str(empty);
+	if (GLWindow::depthPeelEnabled())
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_depthPeelAttr] = oss.str();
 
 	oss.str(empty);
 	if (DataStatus::textureSizeIsSpecified())
@@ -1396,7 +1413,7 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 					ist >> winHeight;
 					ses->setLockWinHeight(winHeight);
 				}
-				if (StrCmpNoCase(attr, _lockWinAttr) == 0) {
+				else if (StrCmpNoCase(attr, _lockWinAttr) == 0) {
 					string boolVal;
 					bool val;
 					ist >> boolVal;
@@ -1404,6 +1421,15 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 					else val = false;
 					ses->setWindowSizeLock(val);
 					lockWin=val;
+				}
+				else if (StrCmpNoCase(attr, _depthPeelAttr) == 0) {
+					string boolVal;
+					bool val;
+					ist >> boolVal;
+					if (boolVal == "true") val = true;
+					else val = false;
+					GLWindow::enableDepthPeeling(val);
+					depthPeel=val;
 				}
 				else if (StrCmpNoCase(attr, Session::_textureSizeAttr) == 0){
 					int val;

@@ -63,6 +63,7 @@ bool GLWindow::defaultSpinAnimateEnabled = false;
 bool GLWindow::spinAnimate = false;
 bool GLWindow::defaultAxisArrowsEnabled = false;
 bool GLWindow::nowPainting = false;
+bool GLWindow::depthPeeling = false;
 
 int GLWindow::currentMouseMode = GLWindow::navigateMode;
 vector<int> GLWindow::manipFromMode;
