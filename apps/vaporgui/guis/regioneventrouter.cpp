@@ -361,8 +361,8 @@ textToSlider(RegionParams* rp, int coord, float newCenter, float newSize){
 	}
 	//Now convert back to local extents, put them into the params:
 	float localCenter = newCenter-userExtents[coord];
-	rp->setLocalRegionMin(coord, localCenter - newSize*0.5f,timestep); 
-	rp->setLocalRegionMax(coord,localCenter + newSize*0.5f,timestep); 
+	rp->setLocalRegionMin(coord, localCenter - newSize*0.5f,timestep,false); 
+	rp->setLocalRegionMax(coord,localCenter + newSize*0.5f,timestep,false); 
 	//Put the user coords into the sliders:
 	int sliderSize = (int)(0.5f+ 256.f*newSize/(regMax - regMin));
 	int sliderCenter = (int)(0.5f+ 256.f*(newCenter - regMin)/(regMax - regMin));
@@ -449,8 +449,8 @@ sliderToText(RegionParams* rp, int coord, int slideCenter, int slideSize){
 	}
 	//Convert back to local to put into region params
 	float localCenter = newCenter - userExtents[coord];
-	rp->setLocalRegionMin(coord,localCenter - newSize*0.5f,timestep); 
-	rp->setLocalRegionMax(coord,localCenter + newSize*0.5f,timestep); 
+	rp->setLocalRegionMin(coord,localCenter - newSize*0.5f,timestep,false); 
+	rp->setLocalRegionMax(coord,localCenter + newSize*0.5f,timestep,false); 
 	
 	int newSliderCenter = (int)(0.5f+ 256.f*(newCenter - regMin)/(regMax - regMin));
 	//Always need to change text.  Possibly also change slider if it was moved
