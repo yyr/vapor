@@ -173,28 +173,23 @@ void WeightTable::interp2D(const float* sourceData, float* resultData, float mis
 			//otherwise just set result to missing value.
 			if (data0 == missingValue) mvCoef += cf0;
 			else {
-				assert (data0 > -1.e10 && data0 < 1.e10);
 				goodSum += cf0*data0;
 			}
 			if (data1 == missingValue) mvCoef += cf1;
 			else {
-				assert (data1 > -1.e10 && data1 < 1.e10);
 				goodSum += cf1*data1;
 			}
 			if (data2 == missingValue) mvCoef += cf2;
 			else {
-				assert (data2 > -1.e10 && data2 < 1.e10);
 				goodSum += cf2*data2;
 			}
 			if (data3 == missingValue) mvCoef += cf3;
 			else {
-				assert (data3 > -1.e10 && data3 < 1.e10);
 				goodSum += cf3*data3;
 			}
 			if (mvCoef >= 0.5f) resultData[i+j*lonsize] = (float)MOM::vaporMissingValue();
 			else {
 				resultData[i+j*lonsize] = goodSum/(1.-mvCoef);
-				assert(resultData[i+j*lonsize] < 1.e10 && resultData[i+j*lonsize] > -1.e10);
 			}
 			
 		}
@@ -254,28 +249,23 @@ void WeightTable::interp2D(const double* sourceData, float* resultData, double m
 			//otherwise just set result to missing value.
 			if (data0 == missingValue) mvCoef += cf0;
 			else {
-				assert (data0 > -1.e10 && data0 < 1.e10);
 				goodSum += cf0*data0;
 			}
 			if (data1 == missingValue) mvCoef += cf1;
 			else {
-				assert (data1 > -1.e10 && data1 < 1.e10);
 				goodSum += cf1*data1;
 			}
 			if (data2 == missingValue) mvCoef += cf2;
 			else {
-				assert (data2 > -1.e10 && data2 < 1.e10);
 				goodSum += cf2*data2;
 			}
 			if (data3 == missingValue) mvCoef += cf3;
 			else {
-				assert (data3 > -1.e10 && data3 < 1.e10);
 				goodSum += cf3*data3;
 			}
 			if (mvCoef >= 0.5f) resultData[i+j*lonsize] = (float)MOM::vaporMissingValue();
 			else {
 				resultData[i+j*lonsize] = goodSum/(1.-mvCoef);
-				assert(resultData[i+j*lonsize] < 1.e10 && resultData[i+j*lonsize] > -1.e10);
 			}
 			
 		}
