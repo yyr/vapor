@@ -308,32 +308,23 @@ getFarNearDist(float* boxFar, float* boxNear){
 	//First check full box
 	float extents[6];
 	double wrk[3], cor[3], boxcor[3], cmpos[3];
-	double camDirPt[3], camDirPtBox[3];
-	double camPosBox[3], camDirBox[3];
-	double viewDir[3];
+	double camPosBox[3],dvdir[3];
 	double maxProj = -1.e30;
-	double minProj = 1.e30;
+	double minProj = 1.e30; 
 
 	DataStatus::getInstance()->getLocalExtentsCartesian(extents);
 	//convert to local extents
 	for (int i = 0; i<6; i++) extents[i] -= extents[i%3];
 
-	//Convert camera position, camera direction, and corners to stretched box coordinates
+	//Convert camera position and corners to stretched box coordinates
 	for (int i = 0; i<3; i++) cmpos[i] = (double)getCameraPosLocal()[i];
 	localToStretchedCube(cmpos, camPosBox);
-	//specify a point in the center of camera view.  
-	//Multiply by the size of the box, so that it won't be dwarfed by the
-	//box dimensions
 	
-	double magPos = vlength(getCameraPosLocal());
-	if (magPos == 0.0) magPos = 1.0;
 	float* vdir = getViewDir();
-	for (int i = 0; i<3; i++) viewDir[i]=vdir[i]*magPos; 
-	vadd(cmpos,viewDir, camDirPt);
-	localToStretchedCube(camDirPt, camDirPtBox);
 	
-	vsub(camDirPtBox,camPosBox,camDirBox);
-	vnormal(camDirBox);
+	for (int i = 0;i<3; i++) dvdir[i] = vdir[i];
+	vnormal(dvdir);
+	
 	//For each box corner, 
 	//   convert to box coords, then project to line of view
 	for (int i = 0; i<8; i++){
@@ -343,7 +334,7 @@ getFarNearDist(float* boxFar, float* boxNear){
 		localToStretchedCube(cor, boxcor);
 		vsub(boxcor, camPosBox, wrk);
 		
-		float mdist = vdot(wrk, camDirBox);
+		float mdist = vdot(wrk, dvdir);
 		if (minProj > mdist) {
 			minProj = mdist;
 		}
@@ -357,7 +348,7 @@ getFarNearDist(float* boxFar, float* boxNear){
 	//minProj will be < 0 if either the camera is in the box, or
 	//if some of the region is behind the camera plane.  In that case, just
 	//set the nearDist a reasonable multiple of the fardist
-	if (minProj <= 0.0) minProj = 0.005*maxProj;
+	if (minProj <= 0.0) minProj = 0.002*maxProj;
 	*boxFar = (float)maxProj;
 	*boxNear = (float)minProj;
 	

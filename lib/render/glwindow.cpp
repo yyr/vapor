@@ -290,7 +290,6 @@ void GLWindow::resetView(ViewpointParams* vParams){
 	
 	farDist = frbx * 4.f;
 	nearDist = nrbx * 0.25f;
-	
 	needsResize = true;
 }
 
@@ -333,7 +332,7 @@ void GLWindow::paintEvent(QPaintEvent*)
 	}
 	
 	glEnable(GL_MULTISAMPLE);
-	setUpViewport(width(),height());
+	
 	//automatically renormalize normals
 	glEnable(GL_NORMALIZE);
 
@@ -357,6 +356,7 @@ void GLWindow::paintEvent(QPaintEvent*)
 
 	
 	const vector<Viewpoint*>& loadedViewpoints = getActiveAnimationParams()->getLoadedViewpoints();
+	
 	if (getActiveAnimationParams()->keyframingEnabled() && loadedViewpoints.size()>0){
 		setViewerCoordsChanged(true);
 		const Viewpoint* vp = loadedViewpoints[frameNum%loadedViewpoints.size()];
@@ -372,7 +372,8 @@ void GLWindow::paintEvent(QPaintEvent*)
 		getActiveViewpointParams()->convertLocalFromLonLat(timeStep);
 		setValuesFromGui(getActiveViewpointParams());
 	}
-	
+	resetView(getActiveViewpointParams());
+	setUpViewport(width(),height());
 	// Move to trackball view of scene  
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
