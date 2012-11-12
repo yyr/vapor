@@ -234,7 +234,7 @@ void FlowRenderer::paintGL()
 //New version of rendering, uses FlowLineData, used on both steady and unsteady flow.
 void FlowRenderer::
 renderFlowData(bool constColors, int currentFrameNum){
-	RegionParams* myRegionParams = myGLWindow->getActiveRegionParams();
+
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 
 	int myFlowType = myFlowParams->getFlowType();
@@ -248,13 +248,6 @@ renderFlowData(bool constColors, int currentFrameNum){
 	calcPeriodicExtents(currentFrameNum);
 	int mxPoints = flowLineData->getMaxPoints();
 	
-	GLdouble topPlane[] = {0., -1., 0., 1.};
-	GLdouble rightPlane[] = {-1., 0., 0., 1.0};
-	GLdouble leftPlane[] = {1., 0., 0., 0.};
-	GLdouble botPlane[] = {0., 1., 0., 0.};
-	GLdouble frontPlane[] = {0., 0., -1., 1.};//z largest
-	GLdouble backPlane[] = {0., 0., 1., 0.};
-
 	//Make the depth buffer writable
 	glDepthMask(GL_TRUE);
 	//and readable
@@ -287,28 +280,7 @@ renderFlowData(bool constColors, int currentFrameNum){
 	glPushMatrix();
 	
 	//Set up clipping planes on subvolume in unit box:
-	double regExts[6]; 
-	myRegionParams->GetBox()->GetLocalExtents(regExts,currentFrameNum);
-	const float* fullsizes = DataStatus::getInstance()->getFullSizes();
-	topPlane[3] = regExts[4]/fullsizes[1];
-	botPlane[3] = -regExts[1]/fullsizes[1];
-	leftPlane[3] = -regExts[0]/fullsizes[0];
-	rightPlane[3] = regExts[3]/fullsizes[0];
-	frontPlane[3] = regExts[5]/fullsizes[2];
-	backPlane[3] = -regExts[2]/fullsizes[2];
-	
-	glClipPlane(GL_CLIP_PLANE0, topPlane);
-	glEnable(GL_CLIP_PLANE0);
-	glClipPlane(GL_CLIP_PLANE1, rightPlane);
-	glEnable(GL_CLIP_PLANE1);
-	glClipPlane(GL_CLIP_PLANE2, botPlane);
-	glEnable(GL_CLIP_PLANE2);
-	glClipPlane(GL_CLIP_PLANE3, leftPlane);
-	glEnable(GL_CLIP_PLANE3);
-	glClipPlane(GL_CLIP_PLANE4, frontPlane);
-	glEnable(GL_CLIP_PLANE4);
-	glClipPlane(GL_CLIP_PLANE5, backPlane);
-	glEnable(GL_CLIP_PLANE5);
+	enableRegionClippingPlanes();
 
 	//Apply a coord transform that moves the full user-coord region to the unit cube, 
 	//since flow geometry will be rendered in user coordinates.
@@ -407,12 +379,8 @@ renderFlowData(bool constColors, int currentFrameNum){
 	} //End unsteady flow 
 	glDisable(GL_LIGHTING);
 	glDisable(GL_BLEND);
-	glDisable(GL_CLIP_PLANE0);
-	glDisable(GL_CLIP_PLANE1);
-	glDisable(GL_CLIP_PLANE2);
-	glDisable(GL_CLIP_PLANE3);
-	glDisable(GL_CLIP_PLANE4);
-	glDisable(GL_CLIP_PLANE5);
+	disableRegionClippingPlanes();
+
 	glDisable(GL_COLOR_MATERIAL);
 	glPopMatrix();
 	printOpenGLError();
