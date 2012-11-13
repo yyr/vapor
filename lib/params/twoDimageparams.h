@@ -135,7 +135,7 @@ public:
 	//Go over domain, find min,max lonlatexts at a timestep
 	bool getLonLatExts(size_t timestep, float lonlatexts[4]);
 	
-	unsigned char* extractSubtexture(unsigned char* texture, float lonlatexts[4], int* wid2, int* ht2, float imgExts[4]);
+	unsigned char* extractSubtexture(unsigned char* texture, float lonlatexts[4], int* wid2, int* ht2, int lev);
 
 	virtual unsigned char* getCurrentTwoDTexture(int ) {
 		if (!twoDDataTextures) return 0;

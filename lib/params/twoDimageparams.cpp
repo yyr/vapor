@@ -778,7 +778,7 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	}
 	//Check if we should extract a smaller tile;
 	if(p && isGeoreferenced()&& pj_is_latlong(p) && 
-		(imgExts[0] < -179. && imgExts[1]<-89. && imgExts[2]>179. && imgExts[3]>89.)){
+		(imgExts[0] < -179. && imgExts[1]<-88. && imgExts[2]>179. && imgExts[3]>88.)){
 	
 		float lonlatexts[4];
 		if (getLonLatExts((size_t)timestep, lonlatexts)){
@@ -788,12 +788,20 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 			//or if the resolution of the image is not significantly higher than the resolution of the data
 			(dataSize[0]*2 > w && dataSize[1]*2 > h)) 
 				return (unsigned char*) texture;
-			//OK, we need to extract a sub-image, that maps to the current extents
+			//OK, we need to extract a sub-image, that maps to the current lon-lat extents
 			int wid2 = *wid, ht2 = *ht;
-			unsigned char* subTexture = extractSubtexture((unsigned char*)texture, lonlatexts, &wid2, &ht2, imgExts);
+			//Choose a level of detail so the image is not too large. 
+			//If we do no reduction of level of detail the image size will be proportional to the fraction of latlonexts:
+			int xdim = (lonlatexts[2]-lonlatexts[0])*(float)w/360.;
+			int ydim = (lonlatexts[3]-lonlatexts[1])*(float)h/180.;
+			int minMag = (int)Min((float)xdim/(float)dataSize[0],(float)ydim/(float)dataSize[1]);
+			int lev = 0;
+			//if (minMag > 1) lev = VetsUtil::ILog2(minMag);
+			unsigned char* subTexture = extractSubtexture((unsigned char*)texture, lonlatexts, &wid2, &ht2, lev);
 			if (subTexture){
 				*wid = wid2;
 				*ht = ht2;
+				for (int i = 0; i<4; i++) imgExts[i] = lonlatexts[i];
 				delete texture;
 				return subTexture;
 			}
@@ -803,10 +811,23 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	}
 	return (unsigned char*) texture;
 }
-unsigned char* TwoDImageParams::extractSubtexture(unsigned char* texture, float lonlatexts[4], int* wid2, int* ht2, float imgExts[4]){
+unsigned char* TwoDImageParams::extractSubtexture(unsigned char* texture, float lonlatexts[4], int* wid2, int* ht2, int lev){
 	GeoTileEquirectangular geotile(*wid2, *ht2,4);
 	geotile.Insert("",texture);
-	return 0;
+	size_t pixelSW[2];
+	size_t pixelNE[2];
+	size_t nx,ny;
+
+	geotile.LatLongToPixelXY((double)lonlatexts[0],(double)lonlatexts[1],lev, pixelSW[0], pixelSW[1]);
+	geotile.LatLongToPixelXY((double)lonlatexts[2],(double)lonlatexts[3],lev, pixelNE[0], pixelNE[1]);
+	int rc = geotile.MapSize(pixelSW[0],pixelSW[1],pixelNE[0],pixelNE[1],lev,nx, ny);
+	if (rc != 0) return 0;
+	unsigned char* dstImage = new unsigned char[nx*ny*4];
+	rc = geotile.GetMap(pixelSW[0],pixelSW[1],pixelNE[0],pixelNE[1],lev,dstImage);
+	if (rc != 0) return 0;
+	*wid2 = (int)nx;
+	*ht2 = (int)ny;
+	return dstImage;
 }
 bool TwoDImageParams::getLonLatExts(size_t timestep, float lonlatexts[4]){
 	for (int j = 0; j<4; j++) lonlatexts[j] = 0.;
@@ -837,16 +858,16 @@ bool TwoDImageParams::getLonLatExts(size_t timestep, float lonlatexts[4]){
 	//interpolate 8 points on each row of image
 	for (int row = 0; row <8; row++){
 		for (int col = 0; col<8; col++){
-			double u = ((double)col)/8.;
-			double v = ((double)row)/8.;
+			double u = ((double)col)/7.;
+			double v = ((double)row)/7.;
 			interpPoints[16*row + 2*col] = (1.-v)*extents[0]+v*extents[3];
 			interpPoints[16*row + 2*col+1] = (1.-u)*extents[1]+u*extents[4];
 
 		}
 	}
 	
-	if (radSrc){ //need to convert degrees to radians, image exts are in degrees
-		for (int i = 0; i<128; i++) interpPoints[i] *= DEG2RAD;
+	if (radSrc){ //need to convert meters to degrees, then degrees to radians, 
+		for (int i = 0; i<128; i++) interpPoints[i] *= (DEG2RAD/111177.);
 	}
 	//apply proj4 to transform the points(in place):
 	int rc = pj_transform(src_proj,dst_proj,64,2, interpPoints,interpPoints+1, 0);
@@ -863,7 +884,7 @@ bool TwoDImageParams::getLonLatExts(size_t timestep, float lonlatexts[4]){
 	//Now find the extents, by looking at min, max x and y in projected space:
 	double minx = 1.e30, miny = 1.e30;
 	double maxx = -1.e30, maxy = -1.e30;
-	for (int i = 0; i<32; i++){
+	for (int i = 0; i<64; i++){
 		if (minx > interpPoints[2*i]) minx = interpPoints[2*i];
 		if (miny > interpPoints[2*i+1]) miny = interpPoints[2*i+1];
 		if (maxx < interpPoints[2*i]) maxx = interpPoints[2*i];

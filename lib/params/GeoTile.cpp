@@ -245,8 +245,8 @@ int GeoTile::QuadKeyToTileXY(
 
 void GeoTile::MapSize(int lod, size_t &nx, size_t &ny) const
 {
-	nx = _tile_width << lod;
-	ny = _tile_height << lod;
+	nx = _tile_width >> lod;
+	ny = _tile_height >> lod;
 }
 
 int GeoTile::MapSize(
