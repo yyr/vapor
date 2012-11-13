@@ -405,6 +405,18 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\lib\params\GeoTile.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\GeoTileEquirectangular.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\GeoTileMercator.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\lib\params\GetAppPath.cpp"
 				>
 			</File>
@@ -548,6 +560,18 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\flowparams.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\GeoTile.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\GeoTileEquirectangular.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\GeoTileMercator.h"
 				>
 			</File>
 			<File

@@ -132,7 +132,10 @@ public:
 	//we need to reread the file and reset the image extents.
 	void setImagesDirty();
 	
+	//Go over domain, find min,max lonlatexts at a timestep
+	bool getLonLatExts(size_t timestep, float lonlatexts[4]);
 	
+	unsigned char* extractSubtexture(unsigned char* texture, float lonlatexts[4], int* wid2, int* ht2, float imgExts[4]);
 
 	virtual unsigned char* getCurrentTwoDTexture(int ) {
 		if (!twoDDataTextures) return 0;

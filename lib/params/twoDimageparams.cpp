@@ -48,6 +48,7 @@
 #include <vapor/errorcodes.h>
 #include <vapor/WRF.h>
 #include "sys/stat.h"
+#include "GeoTileEquirectangular.h"
 //tiff stuff:
 
 #include "geo_normalize.h"
@@ -701,6 +702,7 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	
 	
 	//Check for georeferencing:
+	projPJ p;
 	if (DataStatus::getProjectionString().size() > 0){  //get a proj4 definition string if it exists, using geoTiff lib
 		GTIF* gtifHandle = GTIFNew(tif);
 		GTIFDefn* gtifDef = new GTIFDefn();
@@ -723,7 +725,7 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 		setImageProjectionString(newString);
 
 		//Check it out..
-		projPJ p = pj_init_plus(newString);
+		p = pj_init_plus(newString);
 		int gotFields = false;
 		double* padfTiePoints, *modelPixelScale;
 		if (p) pj_free(p);
@@ -774,7 +776,112 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 			texture[i] = ((rgba&0xffffff) | alpha);
 		}
 	}
+	//Check if we should extract a smaller tile;
+	if(p && isGeoreferenced()&& pj_is_latlong(p) && 
+		(imgExts[0] < -179. && imgExts[1]<-89. && imgExts[2]>179. && imgExts[3]>89.)){
+	
+		float lonlatexts[4];
+		if (getLonLatExts((size_t)timestep, lonlatexts)){
+			const size_t* dataSize = DataStatus::getInstance()->getFullDataSize();
+			//check if the lonlatexts are not significantly smaller than the full world
+			if ((lonlatexts[3]-lonlatexts[1] > 90. && lonlatexts[2]-lonlatexts[0]> 180.) &&
+			//or if the resolution of the image is not significantly higher than the resolution of the data
+			(dataSize[0]*2 > w && dataSize[1]*2 > h)) 
+				return (unsigned char*) texture;
+			//OK, we need to extract a sub-image, that maps to the current extents
+			int wid2 = *wid, ht2 = *ht;
+			unsigned char* subTexture = extractSubtexture((unsigned char*)texture, lonlatexts, &wid2, &ht2, imgExts);
+			if (subTexture){
+				*wid = wid2;
+				*ht = ht2;
+				delete texture;
+				return subTexture;
+			}
+		}
+
+		
+	}
 	return (unsigned char*) texture;
+}
+unsigned char* TwoDImageParams::extractSubtexture(unsigned char* texture, float lonlatexts[4], int* wid2, int* ht2, float imgExts[4]){
+	GeoTileEquirectangular geotile(*wid2, *ht2,4);
+	geotile.Insert("",texture);
+	return 0;
+}
+bool TwoDImageParams::getLonLatExts(size_t timestep, float lonlatexts[4]){
+	for (int j = 0; j<4; j++) lonlatexts[j] = 0.;
+	Box* box = GetBox();
+	double extents[6];
+	box->GetUserExtents(extents, timestep);
+	//Set up proj.4 to convert from VDC coords to latlon (image space)
+	projPJ dst_proj;
+	projPJ src_proj; 
+	
+	dst_proj = pj_init_plus(getImageProjectionString().c_str());
+	src_proj = pj_init_plus(DataStatus::getProjectionString().c_str());
+	bool doProj = (src_proj != 0 && dst_proj != 0);
+	if (!doProj) {
+		MyBase::SetErrMsg(VAPOR_ERROR_GEOREFERENCE, "Invalid Proj string in VDC or image");
+		return false;
+	}
+	if (!pj_is_latlong(dst_proj)) return false;
+
+	//If a projection string is latlon, or the coordinates are in Radians!
+	bool radDst = true;
+	bool radSrc = pj_is_latlong(src_proj)||(string::npos != DataStatus::getProjectionString().find("ob_tran"));
+
+	static const double RAD2DEG = 180./M_PI;
+	static const double DEG2RAD = M_PI/180.0;
+
+	double interpPoints[128];
+	//interpolate 8 points on each row of image
+	for (int row = 0; row <8; row++){
+		for (int col = 0; col<8; col++){
+			double u = ((double)col)/8.;
+			double v = ((double)row)/8.;
+			interpPoints[16*row + 2*col] = (1.-v)*extents[0]+v*extents[3];
+			interpPoints[16*row + 2*col+1] = (1.-u)*extents[1]+u*extents[4];
+
+		}
+	}
+	
+	if (radSrc){ //need to convert degrees to radians, image exts are in degrees
+		for (int i = 0; i<128; i++) interpPoints[i] *= DEG2RAD;
+	}
+	//apply proj4 to transform the points(in place):
+	int rc = pj_transform(src_proj,dst_proj,64,2, interpPoints,interpPoints+1, 0);
+
+	if (rc){
+		MyBase::SetErrMsg(VAPOR_ERROR_TWO_D, "Error in coordinate projection: \n%s",
+			pj_strerrno(rc));
+		return false;
+	}
+	if (radDst) { //results are in radians, convert to degrees
+		for (int i = 0; i<128; i++) interpPoints[i] *= RAD2DEG;
+	}
+
+	//Now find the extents, by looking at min, max x and y in projected space:
+	double minx = 1.e30, miny = 1.e30;
+	double maxx = -1.e30, maxy = -1.e30;
+	for (int i = 0; i<32; i++){
+		if (minx > interpPoints[2*i]) minx = interpPoints[2*i];
+		if (miny > interpPoints[2*i+1]) miny = interpPoints[2*i+1];
+		if (maxx < interpPoints[2*i]) maxx = interpPoints[2*i];
+		if (maxy < interpPoints[2*i+1]) maxy = interpPoints[2*i+1];
+	}
+	if (minx < -1.e30 || miny < -1.e30 || maxx > 1.e30 || maxy > 1.e30){
+		MyBase::SetErrMsg(VAPOR_ERROR_GEOREFERENCE,
+			"Map projection error:  current projection space won't map to degrees \n%s",
+			"Image extents may be too great.");  
+		return false;
+	}
+
+	lonlatexts[0] = minx;
+	lonlatexts[1] = miny;
+	lonlatexts[2] = maxx;
+	lonlatexts[3] = maxy;
+	return true;
+
 }
 void TwoDImageParams::setupImageNums(TIFF* tif){
 	//Initialize to zeroes

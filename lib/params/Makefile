@@ -14,6 +14,7 @@ FILES = \
 	arrowparams animate\
 	Colormap OpacityMap ParamNode ParamsIso ColorMapBase \
 	MapperFunctionBase OpacityMapBase TransferFunctionLite \
+	GeoTile GeoTileEquirectangular GeoTileMercator \
 	pythonpipeline GetAppPath ModelParams ModelScene Transform3d
 
 HEADER_FILES = ColorMapBase MapperFunctionBase OpacityMapBase \
