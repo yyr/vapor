@@ -9,7 +9,7 @@
 #define DVRRayCaster_h
 
 #include "DVRShader.h"
-
+#include "glwindow.h"
 #include "Vect3d.h"
 
 #include <vector>
@@ -17,7 +17,7 @@ namespace VAPoR {
 
   class BBox;
   class ShaderProgram;
-
+  class GLWindow;
 
 class RENDER_API DVRRayCaster : public DVRShader
 {
@@ -27,7 +27,7 @@ class RENDER_API DVRRayCaster : public DVRShader
  public:
 
 
-  DVRRayCaster(int precision, int nvars, ShaderMgr *shadermgr, int nthreads);
+  DVRRayCaster(int precision, int nvars,GLWindow* glw,  ShaderMgr *shadermgr, int nthreads);
   virtual ~DVRRayCaster();
 
   virtual int GraphicsInit();
@@ -110,7 +110,7 @@ private:
   GLenum _depth_texunit;
   GLint _texcrd_sampler;	// Texture unit sampler numbers
   GLint _depth_sampler;
-
+  GLWindow *myGLWindow;
   virtual std::string getCurrentEffect();
 
 private:

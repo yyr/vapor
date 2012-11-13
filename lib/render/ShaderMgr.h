@@ -28,6 +28,13 @@ namespace VAPoR {
 		ShaderMgr(const char* directory);
 		ShaderMgr(std::string directory, QGLWidget *owner);
 		void setShaderSourceDir(const char* directory);
+		std::string GLVendor();
+		std::string GLRenderer();
+		std::string GLVersion();
+		std::string GLShaderVersion();
+		std::string GLExtensions();
+		bool supportsExtension(std::string extension);
+		bool supportsFeatures(std::string features);
 		void setGLSLVersion(int version);
 		bool loadShaders();
 		bool reloadShaders();
@@ -42,9 +49,13 @@ namespace VAPoR {
 		bool uploadEffectData(std::string effect, std::string variable, float value1, float value2, float value3);
 		bool uploadEffectData(std::string effect, std::string variable, float value1, float value2, float value3, float value4);
 		bool defineEffect(std::string baseName, std::string defines, std::string instanceName);
+		GLint* getUniformValuei(std::string effect, std::string variable, int count);
+		GLfloat* getUniformValuef(std::string effect, std::string variable, int count);
 		bool undefEffect(std::string instanceName);
 		bool effectExists(std::string effect);
 		void printEffects();
+		bool checkFramebufferStatus();
+		int maxTexUnits(bool fixed);	    
 	private:
 		bool loadEffectFile(std::string file);
 		std::string convertDefines(std::string defines);

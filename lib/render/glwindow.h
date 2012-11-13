@@ -452,9 +452,20 @@ public:
 	static void setSpinAnimation(bool on){spinAnimate = on;}
 	static bool spinAnimationEnabled(){return spinAnimate;}
 	QMutex renderMutex;  //prevent recursive rendering
-	
-	
+	bool isControlled;
+	//Depth peeling data
+	GLint maxbuffers;
+	GLuint fboA;
+	GLuint fboB;
+	GLuint currentBuffer;
+	GLuint currentDepth;
+	GLint currentLayer;
+	GLuint depthA, depthB;
+	GLuint *layers;
+	int depthWidth, depthHeight, depthTexUnit;
 	ShaderMgr* getShaderMgr() {return manager;}
+	void renderScene();
+	bool isDepthPeeling(){return depthPeeling;}
 	
 protected:
 	SpinTimer *mySpinTimer;

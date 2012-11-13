@@ -45,7 +45,12 @@ uniform float expS;
   
 varying vec3 view;	// normalized, negative position (view vector)
 #endif
-  
+#ifdef DEPTHPEEL
+uniform int currentLayer;
+uniform sampler2D previousPass;
+uniform float width;
+uniform float height;
+#endif  
 vec3 Gradient(in vec3, in vec3);
 //------------------------------------------------------------------
 // Fragment shader main
@@ -99,6 +104,10 @@ void main(void)
 	vec3 texCoord1 = texCoord0+deltaVec;
 
 	float s0, s1;
+#ifdef DEPTHPEEL
+       bool hit = false;
+       int layerCount = 0;
+#endif
 	bool missing = false;
 	vec3 t0 = texCoord0;
 	vec3 t1 = texCoord1;
@@ -150,8 +159,10 @@ void main(void)
 	float fragDepth = zStartEye;
 	vec4 fragColor =  vec4(0.0, 0.0, 0.0, 0.0);
 
+#ifndef DEPTHPEEL
 	// Make sure gl_FragDepth is set for all execution paths
 	gl_FragDepth = zStopWin;
+#endif
 
 	// Composite from front to back
 
@@ -227,21 +238,52 @@ void main(void)
 			color.xyz = color.xyz * (ka+diffuse) + vec3(specular*lightColor);
 #endif
 
+#ifndef DEPTHPEEL
 			// blend fragment color with front to back compositing operator 
 			fragColor = (vec4(1.0)- vec4(fragColor.a))*color + fragColor;
+#else
+			fragColor = color;
+#endif
 
 			// The depth buffer value will be the first ray-isosurface 
 			// intersection. N.B. may not be best choice 
-
+#ifndef DEPTHPEEL
 			if (first) {
 				fragDepth = zStartEye + (float(i) * deltaZ) + (deltaZ*weight);
 				first = false;
 			}
-
+#else
+			fragDepth = zStartEye + (float(i) * deltaZ) + (deltaZ*weight);			
+			fragDepth = (fragDepth * gl_ProjectionMatrix[2].z + gl_ProjectionMatrix[3].z) / -fragDepth; 
+			fragDepth = fragDepth * ((f-n)/2) + (n+f)/2;
+			//isosurface found, check layer and depth test if not initial rendering
+			if(currentLayer == 0){ //kick out colors normally
+			  	gl_FragDepth = fragDepth;
+			  	gl_FragColor = vec4(fragColor.r, fragColor.g, fragColor.b, fragColor.a);
+			  	hit = true;
+			  	break;
+			}
+			else { //now we iterate the entire segment until depth test passed
+			     //find texture coord of fragment
+			     vec2 texCoord = vec2(gl_FragCoord.x / width, gl_FragCoord.y / height);
+			     //retrieve the depth of the frag that passed the initial gl_less test, could be currentlayer ==0
+			     //or another fragment from a different renderer
+			     float depthWin = texture2D(previousPass, texCoord).x; 
+			     if (depthWin < fragDepth && abs(depthWin - fragDepth) > .00000000000000001){			
+			     	gl_FragDepth = fragDepth;
+			     	gl_FragColor = vec4(fragColor.r, fragColor.g, fragColor.b, fragColor.a);
+			     	hit = true;
+			     	break;
+			     }
+			}
+			layerCount++;
+#endif
+#ifndef DEPTHPEEL
 			//
 			// early ray termination
 			//
 			if (fragColor.a >= 0.95) break;
+#endif
 		}
 
 		texCoord0 = texCoord1;
@@ -265,7 +307,9 @@ void main(void)
 			
 			break;
 		}
-
+#ifdef DEPTHPEEL
+		if (hit) break;
+#endif
 
 		// if texCoord1 is inside the volume then lookup new 
 		// value for s1. Otherwise s1 == s0 and there is no
@@ -277,13 +321,16 @@ void main(void)
 			missing = (texture3D(volumeTexture, t1)[midx] != 0.0);
 		}
 	}
-
+#ifdef DEPTHPEEL
+	if(!hit) discard;
+#endif
 	if (fragColor.a == 0.0) discard;
 
 	// Convert depth from eye coordinates back to window coords 
-
+#ifndef DEPTHPEEL
 	fragDepth = (fragDepth * gl_ProjectionMatrix[2].z + gl_ProjectionMatrix[3].z) / -fragDepth; 
 	//DepthPeel(fragDepth * ((f-n)/2) + (n+f)/2, fragColor);
 	gl_FragDepth = fragDepth * ((f-n)/2) + (n+f)/2;
 	gl_FragColor = fragColor;
+#endif
 }

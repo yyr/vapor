@@ -253,8 +253,11 @@ renderFlowData(bool constColors, int currentFrameNum){
 	//and readable
 	glEnable(GL_DEPTH_TEST);
 	//Prepare for alpha values:
-	glEnable (GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	if(!myGLWindow->depthPeelEnabled()){
+	  glEnable (GL_BLEND);
+	  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
+
 
 	//Set up lighting, if we are rendering tubes or lines:
 	ViewpointParams* vpParams =  myGLWindow->getActiveViewpointParams();

@@ -907,3 +907,124 @@ bool ShaderMgr::effectExists(std::string effect){
 		return false;
 	}
 }
+
+std::string ShaderMgr::GLVendor(){
+  const GLubyte* vendor =  glGetString(GL_VENDOR);
+  std::string vendorString = vendor ? (const char*) vendor : "";
+  return vendorString;
+}
+
+std::string ShaderMgr::GLRenderer(){
+  const GLubyte* renderer = glGetString(GL_RENDERER);
+  std::string rendererString = renderer ? (const char*)renderer : ""; 
+  return rendererString;
+}
+
+std::string ShaderMgr::GLVersion(){
+  const GLubyte* version =  glGetString(GL_VERSION);
+  std::string versionString = version ? (const char*) version : "";
+  return versionString;
+}
+
+std::string ShaderMgr::GLShaderVersion(){
+  const GLubyte* glsl =  glGetString(GL_SHADING_LANGUAGE_VERSION);
+  std::string glslString = glsl ? (const char*) glsl : "";
+  return glslString;
+}
+
+std::string ShaderMgr::GLExtensions(){
+  const GLubyte* extensions =  glGetString(GL_EXTENSIONS);
+  std::string extensionString = extensions ? (const char*) extensions : "";
+  return extensionString;
+}
+
+bool ShaderMgr::supportsExtension(std::string extension){
+  std::string extensions = GLExtensions();
+  if (extensions.find(extension)!=std::string::npos)
+    return true;
+  else 
+    return false;
+}
+
+bool ShaderMgr::supportsFeatures(std::string features){
+  if (glewIsSupported(features.c_str())) return true;
+  else return false;
+}
+
+GLint* ShaderMgr::getUniformValuei(std::string effect, std::string variable, int count){
+#ifdef DEBUG
+  std::cout << "ShaderMgr::getUniformValuei() - " << "effect: " << effect << std::endl;
+#endif
+	
+  if (effectExists(effect)){
+    GLint location = effects[effect]->uniformLocation(variable.c_str());
+    GLint * result = (GLint*)malloc(sizeof(GLint)*count);
+    glGetUniformiv(effects[effect]->getProgram(), location, result);
+    return result;
+  }
+  else
+    return NULL;
+}
+
+GLfloat* ShaderMgr::getUniformValuef(std::string effect, std::string variable, int count){
+#ifdef DEBUG
+  std::cout << "ShaderMgr::getUniformValuef() - " << "effect: " << effect << std::endl;
+#endif
+	
+  if (effectExists(effect)){
+    GLint location = effects[effect]->uniformLocation(variable.c_str());
+    GLfloat * result = (GLfloat*)malloc(sizeof(GLfloat)*count);
+    glGetUniformfv(effects[effect]->getProgram(), location, result);
+    return result;
+  }
+  else 
+    return NULL;
+}
+
+int ShaderMgr::maxTexUnits(bool fixed){
+  if(fixed){
+    GLint result;
+    glGetIntegerv(GL_MAX_TEXTURE_UNITS, &result);
+    return (int)(result);
+  }
+  else{
+    GLint result;
+    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &result);
+    return (int)(result);
+  }
+}
+
+bool ShaderMgr::checkFramebufferStatus()
+{
+  // check FBO status
+  GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+  switch(status)
+    {
+    case GL_FRAMEBUFFER_COMPLETE:
+      std::cout << "Framebuffer complete." << std::endl;
+      return true;
+
+    case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+      std::cout << "[ERROR] Framebuffer incomplete: Attachment is NOT complete." << std::endl;
+      return false;
+
+    case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+      std::cout << "[ERROR] Framebuffer incomplete: No image is attached to FBO." << std::endl;
+      return false;
+    case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+      std::cout << "[ERROR] Framebuffer incomplete: Draw buffer." << std::endl;
+      return false;
+
+    case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+      std::cout << "[ERROR] Framebuffer incomplete: Read buffer." << std::endl;
+      return false;
+
+    case GL_FRAMEBUFFER_UNSUPPORTED:
+      std::cout << "[ERROR] Framebuffer incomplete: Unsupported by FBO implementation." << std::endl;
+      return false;
+
+    default:
+      std::cout << "[ERROR] Framebuffer incomplete: Unknown error." << std::endl;
+      return false;
+    }
+}

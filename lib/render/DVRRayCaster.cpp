@@ -23,7 +23,7 @@ using namespace VAPoR;
 // Constructor
 //----------------------------------------------------------------------------
 DVRRayCaster::DVRRayCaster(
-	int precision, int nvars, ShaderMgr *shadermgr,
+			   int precision, int nvars, GLWindow* glw, ShaderMgr *shadermgr,
 	int nthreads
 ) : DVRShader(precision, nvars, shadermgr, nthreads)
 {
@@ -38,7 +38,7 @@ DVRRayCaster::DVRRayCaster(
 	_backface_texcrd_texid = 0;
 	_backface_depth_texid = 0;
 	_initialized = false;
-
+	myGLWindow = glw;
 	_nisos = 0;
 
 	if (GLEW_VERSION_2_0) {
@@ -87,21 +87,50 @@ int DVRRayCaster::GraphicsInit()
 {
 	if (_initialized) return(0);
 	glewInit();
+	if(myGLWindow->isDepthPeeling()){
+	  if (! _shadermgr->defineEffect("Iso", "DEPTHPEEL;", instanceName("default")))
+	    return(-1);
 
-	if (! _shadermgr->defineEffect("Iso", "", instanceName("default")))
-		return(-1);
+	  if (! _shadermgr->defineEffect("Iso", "LIGHTING; DEPTHPEEL;", instanceName("lighting")))
+	    return(-1);
 
-	if (! _shadermgr->defineEffect(
-		"Iso", "LIGHTING;", instanceName("lighting")
-	)) return(-1);
+	  if (! _shadermgr->defineEffect("Iso", "MAPPED; DEPTHPEEL;", instanceName("mapped")))
+	    return(-1);
 
-	if (! _shadermgr->defineEffect("Iso", "MAPPED;", instanceName("mapped")))
-		return(-1);
+	  if (! _shadermgr->defineEffect("Iso", "MAPPED; LIGHTING; DEPTHPEEL;", instanceName("mapped+lighting")))
+	    return(-1);
+	  _shadermgr->uploadEffectData(instanceName("default"), std::string("previousPass"), myGLWindow->depthTexUnit);
+	  _shadermgr->uploadEffectData(instanceName("default"), std::string("height"), (float)myGLWindow->depthHeight);
+	  _shadermgr->uploadEffectData(instanceName("default"), std::string("width"), (float)myGLWindow->depthWidth);	
+	  _shadermgr->uploadEffectData(instanceName("lighting"), std::string("previousPass"), 7);
+	  _shadermgr->uploadEffectData(instanceName("lighting"), std::string("height"), (float)myGLWindow->depthHeight);
+	  _shadermgr->uploadEffectData(instanceName("lighting"), std::string("width"), (float)myGLWindow->depthWidth);	
+	  _shadermgr->uploadEffectData(instanceName("mapped"), std::string("previousPass"), myGLWindow->depthTexUnit);
+	  _shadermgr->uploadEffectData(instanceName("mapped"), std::string("height"), (float)myGLWindow->depthHeight);
+	  _shadermgr->uploadEffectData(instanceName("mapped"), std::string("width"), (float)myGLWindow->depthWidth);	
+	  _shadermgr->uploadEffectData(instanceName("mapped+lighting"), std::string("previousPass"), myGLWindow->depthTexUnit);
+	  _shadermgr->uploadEffectData(instanceName("mapped+lighting"), std::string("height"), (float)myGLWindow->depthHeight);
+	  _shadermgr->uploadEffectData(instanceName("mapped+lighting"), std::string("width"), (float)myGLWindow->depthWidth);
+#ifdef DEBUG
+	  std::cout << "DVRRaycaster DEPTH PEELING\n" << std::endl;
+#endif
+	}
+	else{
+	  if (! _shadermgr->defineEffect("Iso", "", instanceName("default")))
+	    return(-1);
 
-	if (! _shadermgr->defineEffect(
-		"Iso", "MAPPED; LIGHTING;", instanceName("mapped+lighting")
-	)) return(-1);
+	  if (! _shadermgr->defineEffect("Iso", "LIGHTING;", instanceName("lighting")))
+	    return(-1);
 
+	  if (! _shadermgr->defineEffect("Iso", "MAPPED;", instanceName("mapped")))
+	    return(-1);
+
+	  if (! _shadermgr->defineEffect("Iso", "MAPPED; LIGHTING;", instanceName("mapped+lighting")))
+	    return(-1);
+#ifdef DEBUG
+	  std::cout << "DVRRaycaster NO PEEL\n" << std::endl;
+#endif
+	} 
 
 	if (initTextures() < 0) return(-1);
 
@@ -334,7 +363,6 @@ void DVRRayCaster::render_backface(
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
 
-	//
 	// Ugh. DVRShader activates texture units 0,1 and 2. We need to
 	// disable them or they will be used by the fixed-function pipeline
 	// rendering performed here
@@ -375,7 +403,9 @@ void DVRRayCaster::render_backface(
 	drawVolumeFaces(volumeBox, textureBox);
 
     glDisable(GL_CULL_FACE);
+    if(!myGLWindow->isDepthPeeling()){
 	glEnable(GL_BLEND);
+    }
 	printOpenGLError();
 
 }
@@ -520,17 +550,29 @@ void DVRRayCaster::renderBrick(
 	glDisable(GL_CLIP_PLANE5);
 
     render_backface(brick);
-	 
-	// disable rendering to FBO
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+    if(myGLWindow->isDepthPeeling()){
+      glDisable(GL_BLEND);
+      glEnable(GL_DEPTH_TEST);
+      //render to previously used fbo
+      glBindFramebuffer(GL_FRAMEBUFFER, myGLWindow->currentBuffer);
+      
+      _shadermgr->uploadEffectData(instanceName("default"), std::string("currentLayer"), myGLWindow->currentLayer);
+      _shadermgr->uploadEffectData(instanceName("lighting"), std::string("currentLayer"), myGLWindow->currentLayer);
+      _shadermgr->uploadEffectData(instanceName("mapped"), std::string("currentLayer"), myGLWindow->currentLayer);
+      _shadermgr->uploadEffectData(instanceName("mapped+lighting"), std::string("currentLayer"), myGLWindow->currentLayer);
+#ifdef DEBUG
+      std::cout << "DVR current layer: " << myGLWindow->currentLayer << std::endl;
+#endif
+    }
+    else{
+      // disable rendering to FBO
+      glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }	 
+    // Restore normal depth comparison for ray casting pass.
+    glDepthFunc(GL_LESS);
+    raycasting_pass(brick, modelview, modelviewInverse);
 
-	// Restore normal depth comparison for ray casting pass.
-	glDepthFunc(GL_LESS);
-
-	raycasting_pass(brick, modelview, modelviewInverse);
-
-
-	printOpenGLError();
+    printOpenGLError();
 }
 
 

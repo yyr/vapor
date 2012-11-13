@@ -265,12 +265,12 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
   else if (dvrType == DvrParams::DVR_RAY_CASTER)
   {
 	ParamsIso *rp = (ParamsIso *) currentRenderParams;
-    driver = new DVRRayCaster(rp->GetNumBits(), 1, myGLWindow->getShaderMgr(), 1);
+	driver = new DVRRayCaster(rp->GetNumBits(), 1, myGLWindow, myGLWindow->getShaderMgr(), 1);
   }
   else if (dvrType == DvrParams::DVR_RAY_CASTER_2_VAR)
   {
 	ParamsIso *rp = (ParamsIso *) currentRenderParams;
-    driver = new DVRRayCaster(rp->GetNumBits(), 2, myGLWindow->getShaderMgr(), 1);
+	driver = new DVRRayCaster(rp->GetNumBits(), 2, myGLWindow, myGLWindow->getShaderMgr(), 1);
   }
   else if (dvrType == DvrParams::DVR_DEBUG)
   {
