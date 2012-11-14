@@ -389,6 +389,7 @@ int VDFIOBase::_MaskOpenRead(
 #else
 		if (rc == EAGAIN) sleep(1);//seconds
 #endif
+		ii++;
 
 	} while (rc != NC_NOERR && ii < 10);
 	NC_ERR(rc,_ncpath_mask)
