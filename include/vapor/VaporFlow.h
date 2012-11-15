@@ -55,7 +55,7 @@ namespace VAPoR
 			integrationAccuracy = acc;
 		}
 		void SetDistributedSeedPoints(const double min[3], const double max[3], int numSeeds, 
-			const char* xvar, const char* yvar, const char* zvar, float bias);
+			const char* xvar, const char* yvar, const char* zvar, float bias, int flowType);
 		
 		//New version for API.  Uses rake, then puts integration results in container
 		bool GenStreamLines(int timestep, FlowLineData* container, unsigned int randomSeed);

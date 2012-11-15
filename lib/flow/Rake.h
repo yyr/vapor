@@ -68,7 +68,7 @@ namespace VAPoR
 	{
 	public:
 		virtual ~Rake(){}
-		virtual void GenSeedRandom(const vector<double>& usrExts, const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, unsigned int randomSeed, int stride = 3) = 0;
+		
 		virtual void GenSeedRegular(const vector<double>& usrExts,const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, int stride = 3) = 0;
 		virtual bool GenSeedBiased(const vector<double>& usrExts,float bias, float fieldMin, float fieldMax, FieldData*, 
 			const size_t numSeeds[3], const double localminrake[3], const double localmaxrake[3], float* pSeed, unsigned int randSeed, int stride = 3) = 0;
@@ -100,7 +100,6 @@ namespace VAPoR
 	public:
 		PointRake();
 		virtual ~PointRake(){}
-		void GenSeedRandom(const vector<double>& usrExts,const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, unsigned int randomSeed, int stride = 3);
 		void GenSeedRegular(const vector<double>& usrExts,const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, int stride = 3);
 		bool GenSeedBiased(const vector<double>& usrExts,float bias, float fieldMin, float fieldMax, FieldData*, const size_t numSeeds[3], 
 			const double localmin[3], const double localmax[3], float* pSeed, unsigned int randomSeed, int stride = 3);
@@ -111,7 +110,6 @@ namespace VAPoR
 	public:
 		LineRake();
 		virtual ~LineRake(){}
-		void GenSeedRandom(const vector<double>& usrExts,const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, unsigned int randomSeed, int stride = 3);
 		void GenSeedRegular(const vector<double>& usrExts,const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, int stride = 3);
 		bool GenSeedBiased(const vector<double>& usrExts,float bias, float fieldMin, float fieldMax, FieldData*, const size_t numSeeds[3],
 			const double localmin[3], const double localmax[3], float* pSeed, unsigned int randomSeed, int stride = 3);
@@ -122,7 +120,6 @@ namespace VAPoR
 	public:
 		PlaneRake();
 		virtual ~PlaneRake(){}
-		void GenSeedRandom(const vector<double>& usrExts,const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, unsigned int randomSeed, int stride = 3);
 		void GenSeedRegular(const vector<double>& usrExts,const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, int stride = 3);
 		bool GenSeedBiased(const vector<double>& usrExts,float bias, float fieldMin, float fieldMax, FieldData*, const size_t numSeeds[3],
 			const double localmin[3], const double localmax[3], float* pSeed, unsigned int randomSeed, int stride = 3);
@@ -133,7 +130,6 @@ namespace VAPoR
 	public:
 		SolidRake();
 		virtual ~SolidRake(){}
-		void GenSeedRandom(const vector<double>& usrExts,const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, unsigned int randomSeed, int stride = 3);
 		void GenSeedRegular(const vector<double>& usrExts,const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, int stride = 3);
 		bool GenSeedBiased(const vector<double>& usrExts,float bias, float fieldMin, float fieldMax, FieldData*, const size_t numSeeds[3],
 			const double localmin[3], const double localmax[3], float* pSeed, unsigned int randomSeed, int stride = 3);

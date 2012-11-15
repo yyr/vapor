@@ -268,7 +268,7 @@ int VaporFlow::GenRakeSeeds(float* seeds, int timeStep, unsigned int randomSeed,
 	int seedNum;
 	seedNum = (int)(numSeeds[0]*numSeeds[1]*numSeeds[2]);
 	SeedGenerator* pSeedGenerator = new SeedGenerator(minLocalRakeExt, maxLocalRakeExt, numSeeds);
-	if (bUseRandomSeeds && seedDistBias != 0.f){
+	if (bUseRandomSeeds){
 		pSeedGenerator->SetSeedDistrib(seedDistBias, timeStep, numXForms,xSeedDistVarName, ySeedDistVarName, zSeedDistVarName);
 	}
 	pSeedGenerator->GetSeeds(timeStep, this, seeds, bUseRandomSeeds, randomSeed, stride);
@@ -432,7 +432,7 @@ void VaporFlow::SetPriorityField(const char* varx, const char* vary, const char*
 	maxPriorityVal = maxField;
 }					
 void VaporFlow::SetDistributedSeedPoints(const double min[3], const double max[3], int numSeeds, 
-	const char* varx, const char* vary, const char* varz, float bias)
+	const char* varx, const char* vary, const char* varz, float bias, int flowType)
 {
 	assert( bias >= -15.f && bias <= 15.f);
 	for(int iFor = 0; iFor < 3; iFor++)
@@ -451,9 +451,25 @@ void VaporFlow::SetDistributedSeedPoints(const double min[3], const double max[3
 		ySeedDistVarName = new char[260];
 	if(!zSeedDistVarName)
 		zSeedDistVarName = new char[260];
-	strcpy(xSeedDistVarName, varx);
-	strcpy(ySeedDistVarName, vary);
-	strcpy(zSeedDistVarName, varz); 
+	//If no bias, use a nonzero steady or unsteady field as the seed Dist field, just to tell where missing values are.
+	//Only the x component is used in all 3 places
+	if (bias == 0.f){
+		if (flowType == 0){
+			if (strcmp(xSteadyVarName,"0") != 0) strcpy(xSeedDistVarName,xSteadyVarName);
+			else if (strcmp(ySteadyVarName,"0") != 0)strcpy(xSeedDistVarName,ySteadyVarName);
+			else strcpy(xSeedDistVarName,zSteadyVarName);
+		} else {
+			if (strcmp(xUnsteadyVarName,"0") != 0) strcpy(xSeedDistVarName,xUnsteadyVarName);
+			else if (strcmp(yUnsteadyVarName,"0") != 0)strcpy(xSeedDistVarName,yUnsteadyVarName);
+			else strcpy(xSeedDistVarName,zUnsteadyVarName);
+		}
+		strcpy(ySeedDistVarName,xSeedDistVarName);
+		strcpy(zSeedDistVarName,xSeedDistVarName);
+	} else {
+		strcpy(xSeedDistVarName, varx);
+		strcpy(ySeedDistVarName, vary);
+		strcpy(zSeedDistVarName, varz); 
+	}
 	
 	seedDistBias = bias;
 }			
@@ -466,7 +482,7 @@ bool VaporFlow::GenStreamLines(int timestep, FlowLineData* container, unsigned i
 	assert(seedNum == container->getNumLines());
 	seedPtr = new float[seedNum*3];
 	SeedGenerator* pSeedGenerator = new SeedGenerator(minLocalRakeExt, maxLocalRakeExt, numSeeds);
-	if (bUseRandomSeeds && seedDistBias != 0.f)
+	if (bUseRandomSeeds)
 		pSeedGenerator->SetSeedDistrib(seedDistBias, steadyStartTimeStep, (int)numXForms,
 			xSeedDistVarName,ySeedDistVarName,zSeedDistVarName);
 	bool rc = pSeedGenerator->GetSeeds(timestep, this, seedPtr, bUseRandomSeeds, randomSeed);

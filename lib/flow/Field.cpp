@@ -71,9 +71,9 @@ int CVectorField::getFieldValue(
 	if (!m_pGrid->isInRegion(pos)) return -1;
 	//Obtain the values of the field variables from the RegularGrids in the Solution,
 	//Put the result in fieldValue.
-	m_pSolution->getFieldValue(pos, t, fieldValue);
+	//Return 2 if a component is missing_value
+	return m_pSolution->getFieldValue(pos, t, fieldValue);
 
-	return 1;
 }
 //////////////////////////////////////////////////////////////////////////
 // to obtain node data at the computational position (i, j, k) in time t
@@ -116,6 +116,19 @@ float FieldData::getFieldMag(float point[3])
 	int rc = pField->getFieldValue( pos, (float)timeStep, vel);
 	if (rc < 0) 
 		return -1.f;
+
+	return vel.GetMag();
+}
+
+float FieldData::getValidFieldMag(float point[3])
+{
+	VECTOR3 pos(point[0],point[1],point[2]);
+	VECTOR3 vel;
+
+	int rc = pField->getFieldValue( pos, (float)timeStep, vel);
+	if (rc < 0) 
+		return (float)rc;
+	if (rc == 2) return -2.;
 
 	return vel.GetMag();
 }

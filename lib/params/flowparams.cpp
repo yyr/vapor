@@ -721,7 +721,7 @@ float* FlowParams::getRakeSeeds(RegionParams* rParams, int* numseeds, int timeSt
 		const char* zVar = ds->getVariableName3D(seedDistVarNum[2]).c_str();
 		assert(seedDistBias >= -15.f && seedDistBias <= 15.f);
 		flowLib->SetDistributedSeedPoints(seedBox, seedBox+3, (int)allGeneratorCount, 
-			xVar, yVar, zVar, seedDistBias);
+			xVar, yVar, zVar, seedDistBias, flowType);
 	} else {//Set up the uniform rake bounds
 		flowLib->SetRegularSeedPoints(seedBox, seedBox+3, generatorCount);
 	}
@@ -737,7 +737,7 @@ float* FlowParams::getRakeSeeds(RegionParams* rParams, int* numseeds, int timeSt
 	
 	int nSeeds= 0;
 	int actualNumSeeds;
-	if (isRandom() && seedDistBias != 0.f){
+	if (isRandom()){
 		//Make sure the timesteps are valid for biased sampling:
 		int minFrame = ds->getMinTimestep();
 		validateSampling(minFrame, numRefinements, seedDistVarNum);
@@ -1024,7 +1024,7 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 				yVar = ds->getVariableName3D(seedDistVarNum[1]).c_str();
 				zVar = ds->getVariableName3D(seedDistVarNum[2]).c_str();
 				myFlowLib->SetDistributedSeedPoints(seedBox, seedBox+3, (int)allGeneratorCount, 
-					xVar, yVar, zVar, seedDistBias);
+					xVar, yVar, zVar, seedDistBias, flowType);
 			} else {
 				double boxmin[3], boxmax[3];
 				for (int i = 0; i<3; i++){
@@ -1219,7 +1219,7 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 			yVar = ds->getVariableName3D(seedDistVarNum[1]).c_str();
 			zVar = ds->getVariableName3D(seedDistVarNum[2]).c_str();
 			flowLib->SetDistributedSeedPoints(seedBox, seedBox+3, (int)allGeneratorCount, 
-				xVar, yVar, zVar, seedDistBias);
+				xVar, yVar, zVar, seedDistBias, flowType);
 		} else {
 			double boxmin[3], boxmax[3];
 			for (int i = 0; i<3; i++){

@@ -74,6 +74,7 @@ public:
 	void setup(CVectorField* fld, CartesianGrid* grd, 
 		RegularGrid **xgrid, RegularGrid** ygrid, RegularGrid** zgrid, int tstep, bool periodicDims[3]);
 	float getFieldMag(float point[3]);
+	float getValidFieldMag(float point[3]); //Returns -2 if there is missing value, -1 if out of region
 	void releaseData(DataMgr*);
 private:
 	//information kept in the FieldData: 

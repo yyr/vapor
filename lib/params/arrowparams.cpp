@@ -149,8 +149,10 @@ reinit(bool doOverride){
 			}
 		}
 		for (int i = 0; i<3; i++){
-			newExts[i] = Max(newExts[i], 0.);
-			newExts[i+3] = Min(newExts[i+3], (double)(extents[i+3]-extents[i]));
+			if (i != 2){
+				newExts[i] = Max(newExts[i], 0.);
+				newExts[i+3] = Min(newExts[i+3], (double)(extents[i+3]-extents[i]));
+			}
 			if (newExts[i] > newExts[i+3]) newExts[i+3] = newExts[i];
 		}
 		newExtents.clear();
