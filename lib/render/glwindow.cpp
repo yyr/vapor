@@ -808,16 +808,16 @@ void GLWindow::paintEvent(QPaintEvent*)
       glPushMatrix();
       glLoadIdentity();
       glBegin(GL_QUADS);
-      glMultiTexCoord2d(GL_TEXTURE0 + (maxbuffers -1), 0.0, 0.0);
+      glMultiTexCoord2d(GL_TEXTURE0 + depthTexUnit, 0.0, 0.0);
       //glColor3f(0.0, 0.0, 0.0); debug purposes
       glVertex3i (-1, -1, -1);
-      glMultiTexCoord2d(GL_TEXTURE0 + (maxbuffers -1), 0.0, 1.0);
+      glMultiTexCoord2d(GL_TEXTURE0 + depthTexUnit, 0.0, 1.0);
       //glColor3f(1.0, 0.0, 1.0);
       glVertex3i (-1, 1, -1);
-      glMultiTexCoord2d(GL_TEXTURE0 + (maxbuffers -1), 1.0, 1.0);
+      glMultiTexCoord2d(GL_TEXTURE0 + depthTexUnit, 1.0, 1.0);
       //glColor3f(1.0, 1.0, 1.0);
       glVertex3i (1, 1, -1); 
-      glMultiTexCoord2d(GL_TEXTURE0 + (maxbuffers -1), 1.0, 0.0);
+      glMultiTexCoord2d(GL_TEXTURE0 + depthTexUnit, 1.0, 0.0);
       //glColor3f(0.0, 1.0, 0.0);
       glVertex3i (1, -1, -1); 
       glEnd ();
