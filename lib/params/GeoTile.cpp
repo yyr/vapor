@@ -72,7 +72,6 @@ const unsigned char *GeoTile::GetTile(
 ) const {
 
 	map <string,unsigned char *>::const_iterator p = _tiles.find(quadkey);
-    unsigned char *imgptr;
     if (p != _tiles.end()) {
         return(p->second);   // tile already exists;
     }
@@ -86,11 +85,16 @@ int GeoTile::GetMap(
 	int lod, unsigned char *map_image
 ) const {
 
+
 	//
 	// resolution of global map at requested lod
 	//
 	size_t nx_global, ny_global;
 	MapSize(lod, nx_global, ny_global);
+
+	if (pixelX0 == pixelX1) {
+		pixelX1 = pixelX0 == 0 ? nx_global-1 : pixelX1-1;
+	}
 
 	//
 	// resolution of requested sub region (map). Need to handle periodicity.
@@ -126,7 +130,7 @@ int GeoTile::GetMap(
 	size_t map_py = 0;
 	size_t map_px = 0;
 	size_t nx_tile, ny_tile;
-	if (pixelX0 <= pixelX1) {
+	if (pixelX0 < pixelX1) {
 		nx_tile = tileX1 - tileX0 + 1;
 	}
 	else {
@@ -145,7 +149,16 @@ int GeoTile::GetMap(
 	for (int j=0; j<ny_tile; j++) {
 		map_px = 0;
 		size_t tx = tileX0;
-		size_t myPixelX1 = pixelX0 <= pixelX1 ? pixelX1 : nx_global-1;
+		size_t myPixelX1;
+		if (pixelX0 < pixelX1) {
+			myPixelX1 = pixelX1;
+		}
+		else if (pixelX0 == pixelX1) {
+			myPixelX1 = nx_global-1;
+		}
+		else {
+			myPixelX1 = nx_global-1;
+		}
 		px0 = pixelX0;
 		for (int i=0; i<nx_tile; i++){
 
@@ -254,13 +267,17 @@ int GeoTile::MapSize(
 	int lod, size_t &nx, size_t &ny
 ) const {
 
-	size_t global_nx, global_ny;
-	MapSize(lod, global_nx, global_ny);
+	size_t nx_global, ny_global;
+	MapSize(lod, nx_global, ny_global);
 
-	if (pixelX0>global_nx-1) return(-1);
-	if (pixelY0>global_ny-1) return(-1);
-	if (pixelX1>global_nx-1) return(-1);
-	if (pixelY1>global_ny-1) return(-1);
+	if (pixelX0 == pixelX1) {
+		pixelX1 = pixelX0 == 0 ? nx_global-1 : pixelX1-1;
+	}
+
+	if (pixelX0>nx_global-1) return(-1);
+	if (pixelY0>ny_global-1) return(-1);
+	if (pixelX1>nx_global-1) return(-1);
+	if (pixelY1>ny_global-1) return(-1);
 
 	if (pixelY0 > pixelY1) return(-1);
 
@@ -271,7 +288,7 @@ int GeoTile::MapSize(
 		nx = pixelX1-pixelX0+1;
 	}
 	else {
-		nx = global_nx - (pixelX0-pixelX1-1);   // map wraps around lon
+		nx = nx_global - (pixelX0-pixelX1-1);   // map wraps around lon
 	}
 	ny = pixelY1-pixelY0+1;
 	return(0);
