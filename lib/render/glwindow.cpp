@@ -181,7 +181,7 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 	
 	QString path = qApp->applicationDirPath();
 	//Assume shaders in exec dir
-
+	makeCurrent();
     vector <string> paths;
     paths.push_back("shaders");
     string shaderPaths = GetAppPath("VAPOR", "share", paths);
@@ -316,19 +316,19 @@ void GLWindow::resizeGL( int width, int height )
 #endif
 
     //Create framebuffers used in depth peeling
-    glGenFramebuffersEXT(1, &fboA);
-    glGenFramebuffersEXT(1, &fboB);
+    glGenFramebuffers(1, &fboA);
+    glGenFramebuffers(1, &fboB);
 	  
     //Attach the first depth buffer to the first FBO
-    glBindFramebufferEXT(GL_FRAMEBUFFER, fboA);
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthA, 0);	
+    glBindFramebuffer(GL_FRAMEBUFFER, fboA);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthA, 0);	
 
     //Attach the second depth buffer to the second FBO
-    glBindFramebufferEXT(GL_FRAMEBUFFER, fboB);
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthB, 0);	
+    glBindFramebuffer(GL_FRAMEBUFFER, fboB);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthB, 0);	
 	
     //Depth buffers are setup, now we need to setup the color textures
-    glBindFramebufferEXT(GL_FRAMEBUFFER, 0); //prevent framebuffers from being messed with
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); //prevent framebuffers from being messed with
 
 #ifdef DEBUG
     printOpenGLError();
@@ -357,33 +357,33 @@ void GLWindow::resizeGL( int width, int height )
     printOpenGLError();
 
     //Attach all of the available buffers to the FBO
-    glBindFramebufferEXT(GL_FRAMEBUFFER, fboA);
+    glBindFramebuffer(GL_FRAMEBUFFER, fboA);
     for (int i=0; i<maxbuffers; i++) {
-      glFramebufferTexture2DEXT(GL_FRAMEBUFFER, attach_points[i], GL_TEXTURE_2D, layers[i], 0);			
+      glFramebufferTexture2D(GL_FRAMEBUFFER, attach_points[i], GL_TEXTURE_2D, layers[i], 0);			
     }
 #ifdef DEBUG
     cout << "resizeGL color textures complete" << endl;
 #endif
     //Check that the framebuffer is ready to render to
-    glBindFramebufferEXT(GL_FRAMEBUFFER, fboA);
+    glBindFramebuffer(GL_FRAMEBUFFER, fboA);
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE)
       SetErrMsg("framebuffer A not ready");
 
     //Attach all of the available buffers to the FBO
-    glBindFramebufferEXT(GL_FRAMEBUFFER, fboB);
+    glBindFramebuffer(GL_FRAMEBUFFER, fboB);
     for (int i=0; i<maxbuffers; i++) {
-      glFramebufferTexture2DEXT(GL_FRAMEBUFFER, attach_points[i], GL_TEXTURE_2D, layers[i], 0);			
+      glFramebufferTexture2D(GL_FRAMEBUFFER, attach_points[i], GL_TEXTURE_2D, layers[i], 0);			
     }
     //Check that the framebuffer is ready to render to
-    status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER);
+    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE)
       SetErrMsg("framebuffer B not ready");
 	
 #ifdef DEBUG
     cout << "resizeGL complete" << endl;
 #endif
-    glBindFramebufferEXT(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     manager->uploadEffectData(std::string("depthpeeling"), std::string("previousPass"), depthTexUnit);
     manager->uploadEffectData(std::string("depthpeeling"), std::string("height"), (float)height);
     manager->uploadEffectData(std::string("depthpeeling"), std::string("width"), (float)width);	
@@ -686,7 +686,6 @@ void GLWindow::paintEvent(QPaintEvent*)
     currentBuffer = fboA;
     // clear buffers
     glActiveTexture(GL_TEXTURE0 + depthTexUnit);
-    glEnable(GL_TEXTURE_2D);
     glDisable(GL_TEXTURE_1D);
     glDisable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -766,7 +765,6 @@ void GLWindow::paintEvent(QPaintEvent*)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	printOpenGLError();
 	glActiveTexture(GL_TEXTURE0 + depthTexUnit);
-	glEnable(GL_TEXTURE_2D);
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_TEXTURE_3D);
 	glBindTexture(GL_TEXTURE_2D, depthB);
