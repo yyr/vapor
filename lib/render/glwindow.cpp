@@ -191,7 +191,15 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 
     manager = new ShaderMgr(shaderPaths, this);
     currentLayer = 0;
+
+#ifdef DARWIN
+    //Apple OpenGL driver lies about tex unit support, throws error if try to use higher than MAX_TEX_UNITS=MAX_TEXTURE_COORDINATES
     depthTexUnit = manager->maxTexUnits(true) - 1;
+#else
+    //we really want the last available programmable tex unit for the depth unit, otherwise chance of texture collision with raycaster on modern cards
+    //as they usually have only 4 fixed function units
+    depthTexUnit = manager->maxTexUnits(false) - 1; 
+#endif    
     layers = NULL;
     if (depthPeeling){
       //depth peeling enabled, check to see if possible to use
@@ -272,13 +280,17 @@ void GLWindow::resizeGL( int width, int height )
     if(manager->effectExists("depthpeeling")){
 	manager->undefEffect("depthpeeling");
     }
-
+    if(manager->effectExists("texSampler")){
+      manager->undefEffect("texSampler");
+    }
 #ifdef DEBUG
     printOpenGLError();
     cout << "resizeGL beginning" << endl;
 #endif
 
     manager->defineEffect("depthpeeling", "", "depthpeeling");
+
+    manager->defineEffect("texSampler", "", "texSampler");
     glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxbuffers);
     glActiveTexture(GL_TEXTURE0 + depthTexUnit);
     GLsizei myheight =  (GLsizei)height;
@@ -387,6 +399,10 @@ void GLWindow::resizeGL( int width, int height )
     manager->uploadEffectData(std::string("depthpeeling"), std::string("previousPass"), depthTexUnit);
     manager->uploadEffectData(std::string("depthpeeling"), std::string("height"), (float)height);
     manager->uploadEffectData(std::string("depthpeeling"), std::string("width"), (float)width);	
+
+    manager->uploadEffectData(std::string("texSampler"), std::string("texUnit"), depthTexUnit);
+    manager->uploadEffectData(std::string("texSampler"), std::string("height"), (float)height);
+    manager->uploadEffectData(std::string("texSampler"), std::string("width"), (float)width);
     glActiveTexture(GL_TEXTURE0);
     printOpenGLError();
   }		
@@ -796,6 +812,7 @@ void GLWindow::paintEvent(QPaintEvent*)
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    manager->enableEffect("texSampler");
     printOpenGLError();
     for (int i = maxbuffers; i > -1 ; i--){
       glBindTexture(GL_TEXTURE_2D, layers[i]);
@@ -826,6 +843,7 @@ void GLWindow::paintEvent(QPaintEvent*)
       glPopMatrix ();
       }
   }
+  manager->disableEffect();
   printOpenGLError();
   swapBuffers();
   glFlush();
