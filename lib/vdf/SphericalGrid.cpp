@@ -6,7 +6,7 @@
 #endif
 #include <cmath>
 #include "vapor/SphericalGrid.h"
-
+#include "math.h"
 using namespace std;
 using namespace VAPoR;
 

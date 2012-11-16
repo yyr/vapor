@@ -1,0 +1,326 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{9FD418C0-1BFF-4BA3-B901-3AC872588F06}</ProjectGuid>
+    <RootNamespace>render</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\targets\win32\bin</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\targets\win32\built\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win32\bin</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win32\built\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);$(VAPORDEPS_INC_DIR)/geotiff;../../../include/;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/QtOpenGL;$(QTDIR32)/include;$(QTDIR32)/include/QtGui;$(PYTHON32ROOT)/Lib/site-packages/numpy/core/include;$(PYTHON32ROOT)/include;../../../lib/vdf;../../../lib/params;../../../include/vaporinternal;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SPHERICAL_GRID;WIN32;DEBUG;_WINDOWS;_USRDLL;QT_GUI_LIB;MODELS;_CRT_SECURE_NO_WARNINGS;QT_CORE_LIB;QT_OPENGL_LIB;QT_LARGEFILE_SUPPORT;QT_THREAD_SUPPORT;RENDER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <ObjectFileName>../../../targets/win32/built/render/</ObjectFileName>
+      <ProgramDataBaseFileName>../../../targets/win32/built/render/vc70.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>..\..\..\targets\win32\bin\vdf.lib;..\..\..\targets\win32\bin\common.lib;..\..\..\targets\win32\bin\params.lib;mpr.lib;QtCored4.lib;QtOpenGLd4.lib;QtGuid4.lib;opengl32.lib;glu32.lib;proj.lib;libtiff.lib;glew32.lib;libjpeg.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>$(QTDIR32)/lib;$(VAPOR_WIN32_DEBUG_LIB_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>MSVCRT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>../../../targets/win32/bin/render.pdb</ProgramDatabaseFile>
+      <SubSystem>Windows</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <ImportLibrary>../../../targets/win32/bin/render.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);$(VAPORDEPS_INC_DIR)/geotiff;../../../include/;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/QtOpenGL;$(QTDIR32)/include;$(QTDIR32)/include/QtGui;$(PYTHON32ROOT)/Lib/site-packages/numpy/core/include;$(PYTHON32ROOT)/include;../../../lib/vdf;../../../lib/params;../../../include/vaporinternal;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SPHERICAL_GRID;WIN32;DEBUG;_WINDOWS;_USRDLL;QT_GUI_LIB;MODELS;_CRT_SECURE_NO_WARNINGS;QT_CORE_LIB;QT_OPENGL_LIB;QT_LARGEFILE_SUPPORT;QT_THREAD_SUPPORT;RENDER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <ObjectFileName>../../../targets/win64/built/render/</ObjectFileName>
+      <ProgramDataBaseFileName>../../../targets/win64/built/render/vc70.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>..\..\..\targets\win64\bin\vdf.lib;..\..\..\targets\win64\bin\common.lib;..\..\..\targets\win64\bin\params.lib;mpr.lib;QtCored4.lib;QtOpenGLd4.lib;QtGuid4.lib;opengl32.lib;glu32.lib;proj.lib;libtiff.lib;glew32.lib;libjpeg.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>$(ASSIMP_LIB64_PATH)/assimp_debug-dll_x64;$(JPEG_LIB64_PATH);$(GLEW_LIB64_PATH);$(PYTHON_LIB64_PATH);$(TIFF_LIB64_PATH);$(PROJ_LIB64_PATH);$(EXPAT_LIB64_PATH)/libs;$(QTDIR64)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>MSVCRT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>../../../targets/win32/bin/render.pdb</ProgramDatabaseFile>
+      <SubSystem>Windows</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <ImportLibrary>../../../targets/win64/bin/render.lib</ImportLibrary>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/geotiff;../../../include/;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/QtOpenGL;$(QTDIR32)/include;$(QTDIR32)/include/QtGui;$(PYTHON32ROOT)/Lib/site-packages/numpy/core/include;$(PYTHON32ROOT)/include;../../../lib/vdf;../../../lib/params;../../../include/vaporinternal;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SPHERICAL_GRID;WIN32;NDEBUG;_WINDOWS;_USRDLL;RENDER_EXPORTS;MODELS;QT_THREAD_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <ObjectFileName>../../../targets/win32/built/render/</ObjectFileName>
+      <ProgramDataBaseFileName>../../../targets/win32/built/render/vc70.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>..\..\..\targets\win32\bin\vdf.lib;..\..\..\targets\win32\bin\common.lib;..\..\..\targets\win32\bin\params.lib;mpr.lib;QtCore4.lib;QtGui4.lib;QtOpenGL4.lib;opengl32.lib;glu32.lib;proj.lib;libtiff.lib;glew32.lib;libjpeg.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>$(QTDIR32)/lib;$(VAPOR_WIN32_REL_LIB_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>msvcrtd;msvcr71d;libcmtd;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <ImportLibrary>../../../targets/win32/bin/render.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);$(VAPORDEPS_INC_DIR)/geotiff;../../../include/;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/QtOpenGL;$(QTDIR32)/include;$(QTDIR32)/include/QtGui;$(PYTHON32ROOT)/Lib/site-packages/numpy/core/include;$(PYTHON32ROOT)/include;../../../lib/vdf;../../../lib/params;../../../include/vaporinternal;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SPHERICAL_GRID;WIN32;NDEBUG;_WINDOWS;_USRDLL;RENDER_EXPORTS;MODELS;QT_THREAD_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <ObjectFileName>../../../targets/win64/built/render/</ObjectFileName>
+      <ProgramDataBaseFileName>../../../targets/win64/built/render/vc70.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>..\..\..\targets\win64\bin\vdf.lib;..\..\..\targets\win64\bin\common.lib;..\..\..\targets\win64\bin\params.lib;mpr.lib;QtCore4.lib;QtGui4.lib;QtOpenGL4.lib;opengl32.lib;glu32.lib;proj.lib;libtiff.lib;glew32.lib;libjpeg.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>$(ASSIMP_LIB64_PATH)/assimp_release-dll_x64;$(JPEG_LIB64_PATH);$(GLEW_LIB64_PATH);$(TIFF_LIB64_PATH);$(PROJ_LIB64_PATH);$(EXPAT_LIB64_PATH)/Libs;$(QTDIR64)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>msvcrtd;msvcr71d;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <ImportLibrary>../../../targets/win64/bin/render.lib</ImportLibrary>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\lib\render\arrowrenderer.cpp" />
+    <ClCompile Include="..\..\..\lib\render\BBox.cpp" />
+    <ClCompile Include="..\..\..\lib\render\DVRBase.cpp" />
+    <ClCompile Include="..\..\..\lib\render\DVRDebug.cpp" />
+    <ClCompile Include="..\..\..\lib\render\DVRRayCaster.cpp" />
+    <ClCompile Include="..\..\..\lib\render\DVRShader.cpp" />
+    <ClCompile Include="..\..\..\lib\render\DVRSpherical.cpp" />
+    <ClCompile Include="..\..\..\lib\render\DVRTexture3d.cpp" />
+    <ClCompile Include="..\..\..\lib\render\DVRVolumizer.cpp" />
+    <ClCompile Include="..\..\..\lib\render\flowrenderer.cpp" />
+    <ClCompile Include="..\..\..\lib\render\GLModelNode.cpp" />
+    <ClCompile Include="..\..\..\lib\render\glwindow.cpp" />
+    <ClCompile Include="..\..\..\lib\render\isorenderer.cpp" />
+    <ClCompile Include="..\..\..\lib\render\jfilewrite.cpp" />
+    <ClCompile Include="..\..\..\lib\render\manip.cpp" />
+    <ClCompile Include="..\..\..\lib\render\Matrix3d.cpp" />
+    <ClCompile Include="..\..\..\lib\render\ModelRenderer.cpp" />
+    <ClCompile Include="..\..\..\lib\render\proberenderer.cpp" />
+    <ClCompile Include="..\..\..\lib\render\renderer.cpp" />
+    <ClCompile Include="..\..\..\lib\render\ShaderMgr.cpp" />
+    <ClCompile Include="..\..\..\lib\render\ShaderProgram.cpp" />
+    <ClCompile Include="..\..\..\lib\render\Stopwatch.cpp" />
+    <ClCompile Include="..\..\..\lib\render\TextureBrick.cpp" />
+    <ClCompile Include="..\..\..\lib\render\trackball.cpp" />
+    <ClCompile Include="..\..\..\lib\render\twoDdatarenderer.cpp" />
+    <ClCompile Include="..\..\..\lib\render\twoDimagerenderer.cpp" />
+    <ClCompile Include="..\..\..\lib\render\twoDrenderer.cpp" />
+    <ClCompile Include="..\..\..\lib\render\Vect3d.cpp" />
+    <ClCompile Include="..\..\..\lib\render\VolumeRenderer.cpp" />
+    <ClCompile Include="..\..\..\lib\moc\moc_renderer.cpp" />
+    <ClCompile Include="..\..\..\lib\moc\moc_spintimer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\lib\render\arrowrenderer.h" />
+    <ClInclude Include="..\..\..\lib\render\BBox.h" />
+    <ClInclude Include="..\..\..\lib\render\DVRBase.h" />
+    <ClInclude Include="..\..\..\lib\render\DVRDebug.h" />
+    <ClInclude Include="..\..\..\lib\render\DVRRayCaster.h" />
+    <ClInclude Include="..\..\..\lib\render\DVRShader.h" />
+    <ClInclude Include="..\..\..\lib\render\DVRSpherical.h" />
+    <ClInclude Include="..\..\..\lib\render\DVRTexture3d.h" />
+    <ClInclude Include="..\..\..\lib\render\DVRVolumizer.h" />
+    <ClInclude Include="..\..\..\lib\render\flowrenderer.h" />
+    <ClInclude Include="..\..\..\lib\render\GLModelNode.h" />
+    <CustomBuild Include="..\..\..\lib\render\glwindow.h">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Outputs)</Outputs>
+    </CustomBuild>
+    <ClInclude Include="..\..\..\lib\render\isorenderer.h" />
+    <ClInclude Include="..\..\..\include\vapor\jpegapi.h" />
+    <ClInclude Include="..\..\..\lib\render\manip.h" />
+    <ClInclude Include="..\..\..\lib\render\Matrix3d.h" />
+    <ClInclude Include="..\..\..\lib\render\ModelRenderer.h" />
+    <ClInclude Include="..\..\..\lib\render\Point3d.h" />
+    <ClInclude Include="..\..\..\lib\render\proberenderer.h" />
+    <ClInclude Include="..\..\..\lib\render\raycast_shaders.h" />
+    <CustomBuild Include="..\..\..\lib\render\renderer.h">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing renderer.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\lib\render\renderer.h -o ..\..\..\lib\moc\moc_renderer.cpp
+</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\lib\moc\moc_renderer.cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing renderer.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\lib\render\renderer.h -o ..\..\..\lib\moc\moc_renderer.cpp
+</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\lib\moc\moc_renderer.cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing renderer.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\lib\render\renderer.h -o ..\..\..\lib\moc\moc_renderer.cpp
+</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\lib\moc\moc_renderer.cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing renderer.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\lib\render\renderer.h -o ..\..\..\lib\moc\moc_renderer.cpp
+</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\lib\moc\moc_renderer.cpp;%(Outputs)</Outputs>
+    </CustomBuild>
+    <ClInclude Include="..\..\..\lib\render\ShaderMgr.h" />
+    <ClInclude Include="..\..\..\lib\render\ShaderProgram.h" />
+    <ClInclude Include="..\..\..\lib\render\shaders.h" />
+    <CustomBuild Include="..\..\..\lib\render\spintimer.h">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing spintimer.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\lib\render\spintimer.h -o ..\..\..\lib\moc\moc_spintimer.cpp</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\lib\moc\moc_spintimer.cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing spintimer.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\lib\render\spintimer.h -o ..\..\..\lib\moc\moc_spintimer.cpp</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\lib\moc\moc_spintimer.cpp;%(Outputs)</Outputs>
+    </CustomBuild>
+    <ClInclude Include="..\..\..\lib\render\Stopwatch.h" />
+    <ClInclude Include="..\..\..\lib\render\TextureBrick.h" />
+    <ClInclude Include="..\..\..\lib\render\trackball.h" />
+    <ClInclude Include="..\..\..\lib\render\twoDdatarenderer.h" />
+    <ClInclude Include="..\..\..\lib\render\twoDimagerenderer.h" />
+    <ClInclude Include="..\..\..\lib\render\twoDrenderer.h" />
+    <ClInclude Include="..\..\..\lib\render\Vect3d.h" />
+    <ClInclude Include="..\..\..\lib\render\VolumeRenderer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\common\common.vcxproj">
+      <Project>{29c8ac86-3d4b-4081-9d20-0770b10c4d30}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\flow\flow.vcxproj">
+      <Project>{9410e1ba-cc62-46bf-b19d-69473eddce03}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\vdf\vdf.vcxproj">
+      <Project>{91c4e098-bc79-4784-94b7-c96b3548682d}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

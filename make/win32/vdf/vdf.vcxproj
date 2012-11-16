@@ -1,0 +1,324 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{91C4E098-BC79-4784-94B7-C96B3548682D}</ProjectGuid>
+    <RootNamespace>vdf</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\targets\win32\bin\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\targets\win32\built\vdf\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win32\bin\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win32\built\vdf\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR);../../../lib/vdf;../../../include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;BUILD_GUI;WIN32;_WINDOWS;VDF_EXPORTS;DLL_NETCDF;_USRDLL;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <TreatWChar_tAsBuiltInType>false</TreatWChar_tAsBuiltInType>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <ObjectFileName>../../../targets/win32/built/vdf/</ObjectFileName>
+      <ProgramDataBaseFileName>../../../targets/win32/built/vdf/vc70.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>libexpat.lib;mpr.lib;netcdf.lib;proj.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>$(VAPOR_WIN32_DEBUG_LIB_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>MSVCRT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>../../../targets/win32/bin/vdf.pdb</ProgramDatabaseFile>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapExports>true</MapExports>
+      <SubSystem>NotSet</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <ImportLibrary>../../../targets/win32/bin/vdf.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(PROJ_INC_PATH);$(EXPAT_INC_PATH);$(NETCDF_INC_PATH);../../../lib/vdf;../../../include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BUILD_GUI;WIN32;_WINDOWS;VDF_EXPORTS;DLL_NETCDF;_USRDLL;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <TreatWChar_tAsBuiltInType>false</TreatWChar_tAsBuiltInType>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <ObjectFileName>../../../targets/win64/built/vdf/</ObjectFileName>
+      <ProgramDataBaseFileName>../../../targets/win64/built/vdf/vc70.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>libexpat.lib;mpr.lib;netcdf.lib;proj.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>../../../targets/win64/bin/vdf.dll</OutputFile>
+      <AdditionalLibraryDirectories>$(PROJ_LIB64_PATH);$(EXPAT_LIB64_PATH);$(NETCDF_LIB64_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>MSVCRT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>../../../targets/win32/bin/vdf.pdb</ProgramDatabaseFile>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapExports>true</MapExports>
+      <SubSystem>NotSet</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <ImportLibrary>../../../targets/win64/bin/vdf.lib</ImportLibrary>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>Full</Optimization>
+      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR);../../../lib/vdf;../../../include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BUILD_GUI;WIN32;_WINDOWS;_USRDLL;VDF_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <ObjectFileName>../../../targets/win32/built/vdf/</ObjectFileName>
+      <ProgramDataBaseFileName>../../../targets/win32/built/vdf/vc70.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>libexpat.lib;mpr.lib;netcdf.lib;proj.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>$(VAPOR_WIN32_REL_LIB_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>msvcrtd;msvcr71d;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <ImportLibrary>../../../targets/win32/bin/vdf.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>Full</Optimization>
+      <AdditionalIncludeDirectories>$(PROJ_INC_PATH);$(EXPAT_INC_PATH);$(NETCDF_INC_PATH);../../../lib/vdf;../../../include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BUILD_GUI;WIN32;_WINDOWS;_USRDLL;VDF_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <ObjectFileName>../../../targets/win64/built/vdf/</ObjectFileName>
+      <ProgramDataBaseFileName>../../../targets/win64/built/vdf/vc70.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>libexpat.lib;mpr.lib;netcdf.lib;proj_i.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>../../../targets/win64/bin/vdf.dll</OutputFile>
+      <AdditionalLibraryDirectories>$(PROJ_LIB64_PATH);$(EXPAT_LIB64_PATH);$(NETCDF_LIB64_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>msvcrtd;msvcr71d;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <ImportLibrary>../../../targets/win64/bin/vdf.lib</ImportLibrary>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\lib\vdf\AMRData.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\AMRIO.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\AMRTree.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\AMRTreeBranch.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\BlkMemMgr.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\Compressor.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\DataMgr.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\DataMgrAMR.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\DataMgrFactory.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\DataMgrWB.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\DataMgrWC.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\DataMgrWRF.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\ExpatParseMgr.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\ImpExp.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\LayeredGrid.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\MatWaveBase.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\MatWaveDwt.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\MatWaveWavedec.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\Metadata.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\MetadataMOM.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\MetadataROMS.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\MetadataSpherical.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\MetadataVDC.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\MetadataWRF.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\MOM.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\NCBuf.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\NetCDFCollection.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\NetCDFSimple.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\RegularGrid.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\ROMS.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\SignificanceMap.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\SphericalGrid.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\StretchedGrid.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\Transpose.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\vdf.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\VDFIOBase.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\WaveCodecIO.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\WaveFiltBase.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\WaveFiltBior.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\WaveFiltCoif.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\WaveFiltDaub.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\WaveFiltHaar.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\WaveletBlock1D.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\WaveletBlock2D.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\WaveletBlock3D.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\WaveletBlock3DBufReader.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\WaveletBlock3DBufWriter.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\WaveletBlock3DReader.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\WaveletBlock3DRegionReader.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\WaveletBlock3DRegionWriter.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\WaveletBlock3DWriter.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\WaveletBlockIOBase.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\WeightTable.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\WRF.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\WRFReader.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\XmlNode.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\include\vapor\AMRData.h" />
+    <ClInclude Include="..\..\..\include\vapor\AMRIO.h" />
+    <ClInclude Include="..\..\..\include\vapor\AMRTree.h" />
+    <ClInclude Include="..\..\..\include\vapor\AMRTreeBranch.h" />
+    <ClInclude Include="..\..\..\include\vapor\BlkMemMgr.h" />
+    <ClInclude Include="..\..\..\include\vapor\DataMgr.h" />
+    <ClInclude Include="..\..\..\include\vapor\DataMgrFactory.h" />
+    <ClInclude Include="..\..\..\include\vapor\DataMgrWB.h" />
+    <ClInclude Include="..\..\..\include\vapor\ExpatParseMgr.h" />
+    <ClInclude Include="..\..\..\include\vapor\ImpExp.h" />
+    <ClInclude Include="..\..\..\include\vapor\LayeredGrid.h" />
+    <ClInclude Include="..\..\..\include\vapor\Lifting1D.h" />
+    <ClInclude Include="..\..\..\include\vapor\Metadata.h" />
+    <ClInclude Include="..\..\..\include\vapor\MetadataMOM.h" />
+    <ClInclude Include="..\..\..\include\vapor\MetadataROMS.h" />
+    <ClInclude Include="..\..\..\include\vapor\MetadataVDC.h" />
+    <ClInclude Include="..\..\..\include\vapor\MetadataWRF.h" />
+    <ClInclude Include="..\..\..\include\vapor\MOM.h" />
+    <ClInclude Include="..\..\..\include\vapor\NCBuf.h" />
+    <ClInclude Include="..\..\..\include\vapor\RegularGrid.h" />
+    <ClInclude Include="..\..\..\include\vapor\ROMS.h" />
+    <ClInclude Include="..\..\..\include\vapor\SphericalGrid.h" />
+    <ClInclude Include="..\..\..\include\vapor\StretchedGrid.h" />
+    <ClInclude Include="..\..\..\include\vapor\Transpose.h" />
+    <ClInclude Include="..\..\..\include\vapor\VDFIOBase.h" />
+    <ClInclude Include="..\..\..\include\vapor\WaveletBlock1D.h" />
+    <ClInclude Include="..\..\..\include\vapor\WaveletBlock2D.h" />
+    <ClInclude Include="..\..\..\include\vapor\WaveletBlock3D.h" />
+    <ClInclude Include="..\..\..\include\vapor\WaveletBlock3DBufReader.h" />
+    <ClInclude Include="..\..\..\include\vapor\WaveletBlock3DBufWriter.h" />
+    <ClInclude Include="..\..\..\include\vapor\WaveletBlock3DReader.h" />
+    <ClInclude Include="..\..\..\include\vapor\WaveletBlock3DRegionReader.h" />
+    <ClInclude Include="..\..\..\include\vapor\WaveletBlock3DRegionWriter.h" />
+    <ClInclude Include="..\..\..\include\vapor\WaveletBlock3DWriter.h" />
+    <ClInclude Include="..\..\..\include\vapor\WaveletBlockIOBase.h" />
+    <ClInclude Include="..\..\..\include\vapor\WeightTable.h" />
+    <ClInclude Include="..\..\..\include\vapor\WRF.h" />
+    <ClInclude Include="..\..\..\include\vapor\XmlNode.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\common\common.vcxproj">
+      <Project>{29c8ac86-3d4b-4081-9d20-0770b10c4d30}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

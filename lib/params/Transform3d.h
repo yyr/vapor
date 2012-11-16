@@ -13,9 +13,8 @@
 #ifndef _Transform3d_h_
 #define _Transform3d_h_
 
-#include <QMetaType>
 #include <QStringList>
-#include <QString>
+
 #include <vapor/ExpatParseMgr.h>
 #include <vector>
 #include "vapor/ParamsBase.h"
@@ -249,6 +248,6 @@ class PARAMS_API Transform3d : public ParamsBase
 
 };
 
-Q_DECLARE_METATYPE( VAPoR::Transform3d::TransformBase* )
+//Q_DECLARE_METATYPE( VAPoR::Transform3d::TransformBase* )
 
 #endif
