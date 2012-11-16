@@ -191,7 +191,7 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 
     manager = new ShaderMgr(shaderPaths, this);
     currentLayer = 0;
-
+    peelInitialized = false;
 #ifdef DARWIN
     //Apple OpenGL driver lies about tex unit support, throws error if try to use higher than MAX_TEX_UNITS=MAX_TEXTURE_COORDINATES
     depthTexUnit = manager->maxTexUnits(true) - 1;
@@ -376,11 +376,16 @@ void GLWindow::resizeGL( int width, int height )
 #ifdef DEBUG
     cout << "resizeGL color textures complete" << endl;
 #endif
+
+
+    peelInitialized = true;
     //Check that the framebuffer is ready to render to
     glBindFramebuffer(GL_FRAMEBUFFER, fboA);
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE)
+    if (status != GL_FRAMEBUFFER_COMPLETE){
+      peelInitialized = false;
       SetErrMsg("framebuffer A not ready");
+    }
 
     //Attach all of the available buffers to the FBO
     glBindFramebuffer(GL_FRAMEBUFFER, fboB);
@@ -389,8 +394,10 @@ void GLWindow::resizeGL( int width, int height )
     }
     //Check that the framebuffer is ready to render to
     status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE)
+    if (status != GL_FRAMEBUFFER_COMPLETE){
+      peelInitialized = false;
       SetErrMsg("framebuffer B not ready");
+    }
 	
 #ifdef DEBUG
     cout << "resizeGL complete" << endl;
@@ -696,6 +703,10 @@ void GLWindow::paintEvent(QPaintEvent*)
     renderScene();
   else{ //force depth peeling loop
     //initial depth test, no peeling
+    if(!peelInitialized){
+      SetErrMsg("Advanced Transparency has not been properly initialized! Restart VAPOR to enable");
+      return;
+    }
     printOpenGLError();
     glBindFramebuffer(GL_FRAMEBUFFER, fboA);
     printOpenGLError();

@@ -465,6 +465,7 @@ public:
 	int depthWidth, depthHeight, depthTexUnit;
 	ShaderMgr* getShaderMgr() {return manager;}
 	void renderScene();
+	bool peelInitialized;
 	bool isDepthPeeling(){return depthPeeling;}
 	
 protected:
