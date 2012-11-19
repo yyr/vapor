@@ -837,6 +837,9 @@ void	DataMgr::unlock_blocks(
 			return;
 		}
 	}
+SetDiagMsg(
+	"DataMgr::unlock_blocks(%xll) - Failed to free blocks\n", blks
+);
 	return;
 }
 
@@ -1046,7 +1049,7 @@ float	*DataMgr::alloc_region(
 	region.max[0] = max[0];
 	region.max[1] = max[1];
 	region.max[2] = max[2];
-	region.lock_counter = lock;
+	region.lock_counter = lock ? 1 : 0;
 	region.blks = blks;
 
 	_regionsList.push_back(region);

@@ -72,6 +72,16 @@ public:
  static size_t GetBlkSize() {return(_blk_size);}
 
 private:
+ typedef struct {
+	size_t _nfree;	// number of contiguous free blocks
+	size_t _nused;	// number of contiguous used blocks
+	void *_blk;		// pointer to first free/used block
+ } _mem_allocation_t; 
+ 
+ static vector < vector <_mem_allocation_t > > _mem_regions;
+ static vector <size_t>	_mem_region_sizes;	// size of mem in blocks
+ static vector <unsigned char *> _blks;	// memory pool
+
  static size_t	_mem_size_max_req;	// max requested size of mem in blocks
  static bool	_page_aligned_req;	// requested page align memory 
  static size_t	_blk_size_req;	// requested size of block in bytes
@@ -80,16 +90,9 @@ private:
  static bool	_page_aligned;	// page align memory 
  static size_t	_blk_size;	// size of block in bytes
 
- static size_t	_max_regions;	// max # dynamic memory regions
-
-
- static vector <size_t>	_mem_size;	// size of mem in blocks
- static vector <size_t *> _free_table;	// free block table
- static vector <unsigned char *> _blks;	// memory pool
- static vector <unsigned char *> _blkptr;	// page-aligned memory pool
  static int _ref_count;	// # instances of object.
 
- static int	_Reinit(bool restart, size_t n);
+ static int	_Reinit(size_t n);
 
 };
 };
