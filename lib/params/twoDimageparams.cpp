@@ -783,11 +783,7 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 		float lonlatexts[4];
 		if (getLonLatExts((size_t)timestep, lonlatexts)){
 			const size_t* dataSize = DataStatus::getInstance()->getFullDataSize();
-			//check if the lonlatexts are not significantly smaller than the full world
-			if ((lonlatexts[3]-lonlatexts[1] > 90. && lonlatexts[2]-lonlatexts[0]> 180.) &&
-			//or if the resolution of the image is not significantly higher than the resolution of the data
-			(dataSize[0]*2 > w && dataSize[1]*2 > h)) 
-				return (unsigned char*) texture;
+			
 			//OK, we need to extract a sub-image, that maps to the current lon-lat extents
 			int wid2 = *wid, ht2 = *ht;
 			//Choose a level of detail so the image is not too large. 
