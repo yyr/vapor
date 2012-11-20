@@ -167,7 +167,7 @@ void BoxSliderFrame::ySliderCtrChange(){
 void BoxSliderFrame::ySliderSizeChange(){
 	if (silenceSignals) return;
 	silenceSignals = true;
-	int pos = zSizeSlider->value();
+	int pos = ySizeSlider->value();
 	double newSize = pos*(domainExtents[4]-domainExtents[1])/256.;
 	//force center to conform to new size.
 	double center = 0.5*(boxExtents[4]+boxExtents[1]);
