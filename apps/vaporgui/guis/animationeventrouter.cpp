@@ -996,7 +996,7 @@ void AnimationEventRouter::guiGotoKeyframe(){
 
 void AnimationEventRouter::fixKeyframes(bool silent){
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
-	vector<Keyframe*> keyframes = aParams->getKeyframes();
+	vector<Keyframe*>& keyframes = aParams->getKeyframes();
 	DataStatus* ds = DataStatus::getInstance();
 	float sceneSize = vlength(ds->getFullSizes());
 	//go through and look for adjacent frames to have same camera position
