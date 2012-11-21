@@ -109,8 +109,8 @@ int     WaveletBlock3DWriter::CloseVariable(
 		int blkidx;
 		int blkidxlp1;
 
-		VDFIOBase::GetDimBlk(bdim, l);
-		VDFIOBase::GetDimBlk(bdimlp1, l+1);
+		WaveletBlockIOBase::GetDimBlk(bdim, l);
+		WaveletBlockIOBase::GetDimBlk(bdimlp1, l+1);
 
 		for(int z=0; z<bdim[2]; z++) {
 		for(int y=0; y<bdim[1]; y++) {
@@ -170,10 +170,10 @@ int	WaveletBlock3DWriter::WriteSlabs(
 
 	const size_t *bs = GetBlockSize();
 	size_t bdim[3];
-	GetDimBlk(bdim, GetNumTransforms());
+	WaveletBlockIOBase::GetDimBlk(bdim, GetNumTransforms());
 
 	size_t dim[3];
-	GetDim(dim,-1);
+	WaveletBlockIOBase::GetDim(dim,-1);
 
 	// calculate the data value's range (min and max)
 	//
@@ -328,7 +328,7 @@ int	WaveletBlock3DWriter::write_slabs(
 
 
 	size_t bdim[3];
-	GetDimBlk(bdim, GetNumTransforms());
+	WaveletBlockIOBase::GetDimBlk(bdim, GetNumTransforms());
 
 	// handle case where there is no transform
 	//
@@ -354,8 +354,8 @@ int	WaveletBlock3DWriter::write_slabs(
 		int	offset;
 
 
-		VDFIOBase::GetDimBlk(src_nb, j);
-		VDFIOBase::GetDimBlk(lambda_nb, j-1);
+		WaveletBlockIOBase::GetDimBlk(src_nb, j);
+		WaveletBlockIOBase::GetDimBlk(lambda_nb, j-1);
 
 		if (((slab_cntr_c / (1<<(GetNumTransforms()+1-j))) % 2) == 1) {
 			offset = (int)(lambda_nb[0] * lambda_nb[1] * _block_size);
@@ -469,7 +469,7 @@ int	WaveletBlock3DWriter::my_realloc(
 			size_t	size;
 			size_t nb_j[3];
 
-			VDFIOBase::GetDimBlk(nb_j, j);
+			WaveletBlockIOBase::GetDimBlk(nb_j, j);
 
 			size = _block_size * nb_j[0] * nb_j[1] * 2;
 

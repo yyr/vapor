@@ -74,7 +74,7 @@ int	WaveletBlock3DBufWriter::OpenVariableWrite(
 	if (rc<0) return(rc);
 
 	size_t bdim[3];
-	GetDimBlk(bdim, GetNumTransforms());
+	WaveletBlockIOBase::GetDimBlk(bdim, GetNumTransforms());
 	const size_t *bs = GetBlockSize();
 
 	size = bdim[0] * bdim[1] * bs[0] * bs[1] * bs[2] * 2;
@@ -97,7 +97,7 @@ int     WaveletBlock3DBufWriter::CloseVariable(
 	if (! is_open_c) return(0);
 
 	size_t dim[3];
-	GetDim(dim, -1);
+	WaveletBlockIOBase::GetDim(dim, -1);
 	const size_t *bs = GetBlockSize();
 	if (slice_cntr_c != dim[2]) {
 		SetErrMsg("File closed before exactly %d slices written", dim[2]);
@@ -170,14 +170,14 @@ int	WaveletBlock3DBufWriter::WriteSlice(
 	}
 
 	size_t dim[3];
-	GetDim(dim, -1);
+	WaveletBlockIOBase::GetDim(dim, -1);
 	if (slice_cntr_c >= (int)dim[2]) {
 		SetErrMsg("WriteSlice() must be invoked exactly %d times", dim[2]);
 		return(-1);
 	}
 
 	size_t bdim[3];
-	GetDimBlk(bdim, GetNumTransforms());
+	WaveletBlockIOBase::GetDimBlk(bdim, GetNumTransforms());
 	const size_t *bs = GetBlockSize();
 
 	if (slice_cntr_c % (bs[2]*2) == 0) {	

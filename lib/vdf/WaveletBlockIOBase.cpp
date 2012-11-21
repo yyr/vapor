@@ -178,14 +178,14 @@ int	WaveletBlockIOBase::OpenVariableWrite(
 	_vtype = GetVarType(varname);
 
 	size_t dim[3];
-	GetDim(dim, -1);
+	WaveletBlockIOBase::GetDim(dim, -1);
 	for(int i=0; i<3; i++) {
 		_validRegMin[i] = 0;
 		_validRegMax[i] = dim[i]-1;
 	}
 
 	size_t bdim[3];
-	VDFIOBase::GetDimBlk(bdim, GetNumTransforms());
+	WaveletBlockIOBase::GetDimBlk(bdim, GetNumTransforms());
 
 	switch (_vtype) {
 	case VAR2D_XY:
@@ -277,7 +277,7 @@ int WaveletBlockIOBase::open_var_write(
 	//
 	const size_t *bs = GetBlockSize();
 	size_t dim[3];
-	GetDim(dim, -1);
+	WaveletBlockIOBase::GetDim(dim, -1);
 	for(int j=0; j<=_reflevel; j++) {
 		string path;
 		int rc;
@@ -313,7 +313,7 @@ int WaveletBlockIOBase::open_var_write(
 		int dim_ids[3];
 		size_t bdim[3];
 
-		VDFIOBase::GetDimBlk(bdim,j);
+		WaveletBlockIOBase::GetDimBlk(bdim,j);
 		rc = nc_def_dim(_ncids[j],_blockDimXName.c_str(),bdim[0],&dim_ids[0]);
 		NC_ERR_WRITE(rc,path)
 
@@ -353,7 +353,7 @@ int WaveletBlockIOBase::open_var_write(
 		NC_ERR_WRITE(rc,path)
 
 		size_t dimj[3];
-		VDFIOBase::GetDim(dimj,j);
+		WaveletBlockIOBase::GetDim(dimj,j);
 		int dimj_int[] = {dimj[0], dimj[1], dimj[2]};
 		rc = nc_put_att_int(
 			_ncids[j],NC_GLOBAL,_refLevelResName.c_str(),NC_INT, 3, dimj_int
@@ -435,7 +435,7 @@ int	WaveletBlockIOBase::OpenVariableRead(
 	_reflevel = reflevel;
 
 	size_t dim[3];
-	GetDim(dim, -1);
+	WaveletBlockIOBase::GetDim(dim, -1);
 	for(int i=0; i<3; i++) {
 		_validRegMin[i] = 0;
 		_validRegMax[i] = dim[i]-1;
@@ -1007,7 +1007,7 @@ int	WaveletBlockIOBase::seekLambdaBlocks(
 	unsigned int	offset;
 	size_t bdim[3];
 
-	VDFIOBase::GetDimBlk(bdim, 0);
+	WaveletBlockIOBase::GetDimBlk(bdim, 0);
 
 	bool err = false;
 	switch (_vtype) {
@@ -1055,7 +1055,7 @@ int	WaveletBlockIOBase::seekGammaBlocks(
 		return(-1);
 	}
 
-	VDFIOBase::GetDimBlk(bdim, reflevel-1);
+	WaveletBlockIOBase::GetDimBlk(bdim, reflevel-1);
 
 	bool err = false;
 	switch (_vtype) {
@@ -1112,7 +1112,7 @@ int	WaveletBlockIOBase::my_alloc2d(
 	for(j=0; j<=GetNumTransforms(); j++) {
 		size_t nb_j[3];
 
-		VDFIOBase::GetDimBlk(nb_j, j);
+		WaveletBlockIOBase::GetDimBlk(nb_j, j);
 
 		// conservatively estimate size since it varies with 
 		// 2D plane.
@@ -1197,7 +1197,7 @@ int	WaveletBlockIOBase::my_alloc3d(
 	for(j=0; j<=GetNumTransforms(); j++) {
 		size_t nb_j[3];
 
-		VDFIOBase::GetDimBlk(nb_j, j);
+		WaveletBlockIOBase::GetDimBlk(nb_j, j);
 
 		size = (int)(nb_j[0] * nb_j[1] * nb_j[2]);
 
@@ -1257,11 +1257,11 @@ int WaveletBlockIOBase::ncDefineDimsVars2D(
 	size_t bdim[3];
 	int nb;
 	if (j==0) {
-		VDFIOBase::GetDimBlk(bdim,j);
+		WaveletBlockIOBase::GetDimBlk(bdim,j);
 		nb = 1;
 	}
 	else {
-		VDFIOBase::GetDimBlk(bdim,j-1);
+		WaveletBlockIOBase::GetDimBlk(bdim,j-1);
 		nb = 3;
 	}
 
@@ -1364,11 +1364,11 @@ int WaveletBlockIOBase::ncDefineDimsVars3D(
 
 	int nb;
 	if (j==0) {
-		VDFIOBase::GetDimBlk(bdim,j);
+		WaveletBlockIOBase::GetDimBlk(bdim,j);
 		nb = bdim[0]*bdim[1]*bdim[2];
 	}
 	else {
-		VDFIOBase::GetDimBlk(bdim,j-1);
+		WaveletBlockIOBase::GetDimBlk(bdim,j-1);
 		nb = bdim[0]*bdim[1]*bdim[2] * 7;
 	}
 
@@ -1427,11 +1427,11 @@ int WaveletBlockIOBase::ncVerifyDimsVars2D(
 	size_t bdim[3];
 	int nb;
 	if (j==0) {
-		VDFIOBase::GetDimBlk(bdim,j);
+		WaveletBlockIOBase::GetDimBlk(bdim,j);
 		nb = 1;
 	}
 	else {
-		VDFIOBase::GetDimBlk(bdim,j-1);
+		WaveletBlockIOBase::GetDimBlk(bdim,j-1);
 		nb = 3;
 	}
 
@@ -1478,11 +1478,11 @@ int WaveletBlockIOBase::ncVerifyDimsVars3D(
 	int nb;
 
 	if (j==0) {
-		VDFIOBase::GetDimBlk(bdim,j);
+		WaveletBlockIOBase::GetDimBlk(bdim,j);
 		nb = bdim[0]*bdim[1]*bdim[2];
 	}
 	else {
-		VDFIOBase::GetDimBlk(bdim,j-1);
+		WaveletBlockIOBase::GetDimBlk(bdim,j-1);
 		nb = bdim[0]*bdim[1]*bdim[2] * 7;
 	}
 
@@ -1675,10 +1675,46 @@ void WaveletBlockIOBase::_GetValidRegion(
 ) const {
 	
 	size_t dim[3];
-	GetDim(dim, -1);
+	WaveletBlockIOBase::GetDim(dim, -1);
 
 	for (int i=0; i<3; i++) {
 		minreg[i] = 0;
 		maxreg[i] = dim[i]-1;
 	}
+}
+
+
+void WaveletBlockIOBase::GetDim(
+    size_t dim[3], int reflevel
+) const {
+
+    if (reflevel < 0 || reflevel > GetNumTransforms()) {
+        reflevel = GetNumTransforms();
+    }
+
+    int  ldelta = GetNumTransforms() - reflevel;
+
+    size_t maxdim[3];
+    GetGridDim(maxdim);
+
+    for (int i=0; i<3; i++) {
+        dim[i] = maxdim[i] >> ldelta;
+
+        // Deal with odd dimensions
+		if ((dim[i] << ldelta) < maxdim[i]) dim[i]++;
+    }
+}
+
+void    WaveletBlockIOBase::GetDimBlk(
+    size_t bdim[3], int reflevel
+) const {
+    size_t dim[3];
+
+    WaveletBlockIOBase::GetDim(dim, reflevel);
+
+    size_t bs[3];
+    GetBlockSize(bs, reflevel);
+    for (int i=0; i<3; i++) {
+        bdim[i] = (size_t) ceil ((double) dim[i] / (double) bs[i]);
+    }
 }

@@ -77,7 +77,7 @@ int	WaveletBlock3DBufReader::OpenVariableRead(
 	// volume at the desired resolution.
 	//
 	size_t bdim[3];
-	GetDimBlk(bdim, reflevel);
+	WaveletBlockIOBase::GetDimBlk(bdim, reflevel);
 	const size_t *bs = GetBlockSize();
 
 	size = bdim[0] * bdim[1] * bs[0] * bs[1] * bs[2] * 2;
@@ -114,8 +114,8 @@ int	WaveletBlock3DBufReader::ReadSlice(
 
 	size_t bdim[3];
 	size_t dim[3];
-	GetDimBlk(bdim, _reflevel);
-	GetDim(dim, _reflevel);
+	WaveletBlockIOBase::GetDimBlk(bdim, _reflevel);
+	WaveletBlockIOBase::GetDim(dim, _reflevel);
 
 	const size_t *bs = GetBlockSize();
 

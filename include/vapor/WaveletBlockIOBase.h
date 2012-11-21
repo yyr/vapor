@@ -248,6 +248,9 @@ public:
 	size_t min[3], size_t max[3], int reflevel
  ) const;
 
+ virtual void   GetDim(size_t dim[3], int reflevel = 0) const;
+
+ virtual void   GetDimBlk(size_t bdim[3], int reflevel = 0) const;
 
 protected:
  static const int MAX_LEVELS = 16;	// Max # of forward transforms permitted
@@ -357,6 +360,7 @@ protected:
 
 
 
+
  virtual void _GetDataRange(float range[2]) const = 0;
  virtual void _GetValidRegion(size_t minreg[3], size_t maxreg[3]) const;
 
@@ -440,7 +444,6 @@ private:
 	int j,
 	const string &path
  );
-
 
 };
 

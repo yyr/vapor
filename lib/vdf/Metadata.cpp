@@ -148,7 +148,7 @@ void	Metadata::MapUserToVox(
 
 	vector <double> lextents = extents;
     size_t maxdim[3];
-	GetDim(maxdim, -1);
+	Metadata::GetDim(maxdim, -1);
 
 	Metadata::GetDim(dim, reflevel);	
 	for(int i = 0; i<3; i++) {

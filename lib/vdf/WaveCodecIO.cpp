@@ -445,7 +445,7 @@ int WaveCodecIO::OpenVariableWrite(
 	_lod = lod;
 
 	size_t dim[3];
-	GetDim(dim, -1);
+	Metadata::GetDim(dim, -1);
 	for(int i=0; i<3; i++) {
 		_validRegMin[i] = dim[i]-1;
 		_validRegMax[i] = 0;	// impossible values
@@ -698,13 +698,13 @@ int WaveCodecIO::BlockReadRegion(
 	}
 
 	size_t bdim[3];
-	GetDimBlk(bdim,-1);
+	Metadata::GetDimBlk(bdim,-1);
 
 	size_t bdim_p[3];	// packed version of bdim
 	VDFIOBase::_PackCoord(_vtype, bdim, bdim_p, 1);
 
 	size_t dim[3];
-	GetDim(dim, -1);
+	Metadata::GetDim(dim, -1);
 
 	size_t dim_p[3];
 	VDFIOBase::_PackCoord(_vtype, dim, dim_p, 1);
@@ -881,7 +881,7 @@ int WaveCodecIO::ReadRegion(
     SetDiagMsg( "WaveCodecIO::ReadRegion()");
 
     size_t dim3d[3];
-    VDFIOBase::GetDim(dim3d,_reflevel);
+    Metadata::GetDim(dim3d,_reflevel);
 
     size_t min[] = {0,0,0};
     size_t max[3];
@@ -926,13 +926,13 @@ int WaveCodecIO::BlockWriteRegion(
 
 	double starttime = MPI_Wtime();
 	size_t bdim[3];
-	GetDimBlk(bdim,-1);
+	Metadata::GetDimBlk(bdim,-1);
 
 	size_t bdim_p[3];	// packed version of bdim
 	VDFIOBase::_PackCoord(_vtype, bdim, bdim_p, 1);
 
 	size_t dim[3];
-	GetDim(dim, -1);
+	Metadata::GetDim(dim, -1);
 
 	size_t dim_p[3];
 	VDFIOBase::_PackCoord(_vtype, dim, dim_p, 1);
@@ -1448,7 +1448,7 @@ int WaveCodecIO::WriteRegion(
     SetDiagMsg( "WaveCodecIO::WriteRegion()" );
 
     size_t dim3d[3];
-    VDFIOBase::GetDim(dim3d,_reflevel);
+    Metadata::GetDim(dim3d,_reflevel);
 
     size_t min[] = {0,0,0};
     size_t max[3];
@@ -1484,12 +1484,12 @@ int WaveCodecIO::ReadSlice(
 	}
 
 	size_t bdim[3];
-	GetDimBlk(bdim,_reflevel);
+	Metadata::GetDimBlk(bdim,_reflevel);
 	size_t bdim_p[3];
 	VDFIOBase::_PackCoord(_vtype, bdim, bdim_p, 1);
 
 	size_t dim[3];
-	GetDim(dim, _reflevel);
+	Metadata::GetDim(dim, _reflevel);
 	size_t dim_p[3];
 	VDFIOBase::_PackCoord(_vtype, dim, dim_p, 1);
 
@@ -1559,7 +1559,7 @@ int WaveCodecIO::WriteSlice(
 	}
 
 	size_t bdim[3];
-	GetDimBlk(bdim,-1);
+	Metadata::GetDimBlk(bdim,-1);
 	size_t bdim_p[3];
 	VDFIOBase::_PackCoord(_vtype, bdim, bdim_p, 1);
 
@@ -1569,7 +1569,7 @@ int WaveCodecIO::WriteSlice(
 	VDFIOBase::_PackCoord(_vtype, bs, bs_p, 1);
 
 	size_t dim[3];
-	GetDim(dim,-1);
+	Metadata::GetDim(dim,-1);
 	size_t dim_p[3];	// packed version of dim
 	VDFIOBase::_PackCoord(_vtype, dim, dim_p, 1);
 
@@ -1983,7 +1983,7 @@ int WaveCodecIO::_OpenVarRead(
 		// Verify coefficient file metadata matches VDF metadata
 		//
 		size_t bdim[3];
-		VDFIOBase::GetDimBlk(bdim,-1);
+		Metadata::GetDimBlk(bdim,-1);
 #ifdef PNETCDF
 		rc = ncmpi_inq_dimid(_ncids[j], _volumeDimNbxName.c_str(), &ncdimid);
 #else
@@ -2134,7 +2134,7 @@ int WaveCodecIO::_OpenVarWrite(
 	// Create a netCDF file for each refinement level
 	//
 	size_t dim[3];
-	GetDim(dim, -1);
+	Metadata::GetDim(dim, -1);
 	size_t bs[3]; 
 	GetBlockSize(bs, -1);
 
@@ -2198,7 +2198,7 @@ int WaveCodecIO::_OpenVarWrite(
 		//
 		int vol_dim_ids[3];
 		size_t bdim[3];
-		VDFIOBase::GetDimBlk(bdim,-1);
+		Metadata::GetDimBlk(bdim,-1);
 #ifndef NOIO
 #ifdef PNETCDF
 	       rc = ncmpi_def_dim(_ncids[j],_volumeDimNbxName.c_str(),bdim[0],&vol_dim_ids[0]

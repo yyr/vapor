@@ -416,7 +416,7 @@ int WaveletBlock3DRegionReader::ReadRegion(
 	SetDiagMsg( "WaveletBlock3DRegionReader::ReadRegion()");
 
 	size_t dim3d[3]; 
-	VDFIOBase::GetDim(dim3d,_reflevel);
+	WaveletBlockIOBase::GetDim(dim3d,_reflevel);
 
 	size_t min[] = {0,0,0};
 	size_t max[3];
@@ -929,7 +929,7 @@ int	WaveletBlock3DRegionReader::my_realloc3d(
 			size_t nb_j[3];
 			size_t     size;
 
-			VDFIOBase::GetDimBlk(nb_j, j);
+			WaveletBlockIOBase::GetDimBlk(nb_j, j);
 			nb_j[0] += 1;	// fudge (deal with odd size dimensions)
 
 			size = nb_j[0] * _block_size * 2 * 2;
@@ -967,7 +967,7 @@ int	WaveletBlock3DRegionReader::my_realloc2d(
 			size_t nb_j[3];
 			size_t     size;
 
-			VDFIOBase::GetDimBlk(nb_j, j);
+			WaveletBlockIOBase::GetDimBlk(nb_j, j);
 			nb_j[0] += 1;	// fudge (deal with odd size dimensions)
 			nb_j[1] += 1;	// fudge (deal with odd size dimensions)
 

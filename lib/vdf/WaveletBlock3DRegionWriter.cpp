@@ -119,8 +119,8 @@ void	WaveletBlock3DRegionWriter::_CloseVariable3D()
 		int blkidx;
 		int blkidxlp1;
 
-		VDFIOBase::GetDimBlk(bdim, l);
-		VDFIOBase::GetDimBlk(bdimlp1, l+1);
+		WaveletBlockIOBase::GetDimBlk(bdim, l);
+		WaveletBlockIOBase::GetDimBlk(bdimlp1, l+1);
 
 		for(int z=0; z<bdim[2]; z++) {
 		for(int y=0; y<bdim[1]; y++) {
@@ -172,8 +172,8 @@ void	WaveletBlock3DRegionWriter::_CloseVariable2D()
 		int blkidx;
 		int blkidxlp1;
 
-		VDFIOBase::GetDimBlk(bdim3d, l);
-		VDFIOBase::GetDimBlk(bdimlp13d, l+1);
+		WaveletBlockIOBase::GetDimBlk(bdim3d, l);
+		WaveletBlockIOBase::GetDimBlk(bdimlp13d, l+1);
 
 		switch (_vtype) {
 		case VAR2D_XY:
@@ -540,7 +540,7 @@ int	WaveletBlock3DRegionWriter::_WriteRegion2D(
 	const size_t *bs = GetBlockSize();
 
 	size_t dim[3];
-	GetDim(dim, -1);
+	WaveletBlockIOBase::GetDim(dim, -1);
 
 	switch (_vtype) {
 	case VAR2D_XY:
@@ -723,7 +723,7 @@ int	WaveletBlock3DRegionWriter::WriteRegion(
 	SetDiagMsg( "WaveletBlock3DRegionWriter::WriteRegion()" );
 
     size_t dim3d[3];
-    VDFIOBase::GetDim(dim3d,_reflevel);
+    WaveletBlockIOBase::GetDim(dim3d,_reflevel);
 
     size_t min[] = {0,0,0};
     size_t max[3];
@@ -1085,7 +1085,7 @@ int WaveletBlock3DRegionWriter::process_octant(
 	int j =  (GetNumTransforms()) - l;
 	int ldelta = GetNumTransforms() - j + 1;
 
-	size_t bdim[3]; GetDimBlk(bdim, j-1);
+	size_t bdim[3]; WaveletBlockIOBase::GetDimBlk(bdim, j-1);
 	const size_t bcoord[] = {dstx>>ldelta, dsty>>ldelta, dstz>>ldelta};
 
 	// Make sure quadrant is inside region.
@@ -1394,7 +1394,7 @@ int WaveletBlock3DRegionWriter::process_quadrant(
 	int j =  (GetNumTransforms()) - l;
 	int ldelta = GetNumTransforms() - j + 1;
 
-	size_t bdim[3]; GetDimBlk(bdim, j-1);
+	size_t bdim[3]; WaveletBlockIOBase::GetDimBlk(bdim, j-1);
 	const size_t bcoord[] = {dstx>>ldelta, dsty>>ldelta};
 
 	// Make sure quadrant is inside region.
@@ -1517,7 +1517,7 @@ void WaveletBlock3DRegionWriter::compute_minmax3d(
 	}
 
 	size_t bdim[3];
-	GetDimBlk(bdim, GetNumTransforms());
+	WaveletBlockIOBase::GetDimBlk(bdim, GetNumTransforms());
 
 	const float *fptr = blockptr;
 	size_t blkidx = bz*bdim[0]*bdim[1] + by*bdim[0] + bx;
@@ -1573,7 +1573,7 @@ void WaveletBlock3DRegionWriter::compute_minmax2d(
 	}
 
 	size_t bdim[3];
-	GetDimBlk(bdim, GetNumTransforms());
+	WaveletBlockIOBase::GetDimBlk(bdim, GetNumTransforms());
 
 	const float *fptr = blockptr;
 	size_t blkidx = by*bdim[0] + bx;
