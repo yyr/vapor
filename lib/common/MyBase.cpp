@@ -217,9 +217,9 @@ void	VetsUtil::StrRmWhiteSpace(string &s) {
 	string::size_type	i;
 	
 	if (s.length() < 1) return;
-
+	
 	i = 0;
-	while (isspace(s[i])) i++;
+	while (i<s.length() && isspace(s[i])) i++;
 	
 	if (i>0) {
 		s.replace(0, i, "", 0);

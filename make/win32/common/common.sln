@@ -26,6 +26,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "params", "..\params\params.vcxproj", "{E8FB619B-48D3-4B7E-B3F0-88939299995A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "render", "..\render\render.vcxproj", "{9FD418C0-1BFF-4BA3-B901-3AC872588F06}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E8FB619B-48D3-4B7E-B3F0-88939299995A} = {E8FB619B-48D3-4B7E-B3F0-88939299995A}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wrfvdfcreate", "..\wrfvdfcreate\wrfvdfcreate.vcxproj", "{31C701B3-60F3-48DC-9445-83BC83A9821B}"
 EndProject

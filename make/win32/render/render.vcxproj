@@ -78,7 +78,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);$(VAPORDEPS_INC_DIR)/geotiff;../../../include/;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/QtOpenGL;$(QTDIR32)/include;$(QTDIR32)/include/QtGui;$(PYTHON32ROOT)/Lib/site-packages/numpy/core/include;$(PYTHON32ROOT)/include;../../../lib/vdf;../../../lib/params;../../../include/vaporinternal;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/geotiff;../../../include/;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/QtOpenGL;$(QTDIR32)/include;$(QTDIR32)/include/QtGui;$(PYTHON32ROOT)/Lib/site-packages/numpy/core/include;$(PYTHON32ROOT)/include;../../../lib/vdf;../../../lib/params;../../../include/vaporinternal;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SPHERICAL_GRID;WIN32;DEBUG;_WINDOWS;_USRDLL;QT_GUI_LIB;MODELS;_CRT_SECURE_NO_WARNINGS;QT_CORE_LIB;QT_OPENGL_LIB;QT_LARGEFILE_SUPPORT;QT_THREAD_SUPPORT;RENDER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>

@@ -85,7 +85,7 @@
     </CustomBuildStep>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../../include/;$(EXPAT_INC_PATH);$(IDL_INC_PATH);$(NETCDF_INC_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../include/;$(IDL_INC_PATH);$(VAPORDEPS_INC_DIR);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;IDL_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -99,8 +99,8 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>..\..\..\targets\win32\bin\vdf.lib;..\..\..\targets\win32\bin\common.lib;C:\RSI\IDL61\bin\bin.x86\idl32.lib;mpr.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalDependencies>..\..\..\targets\win32\bin\vdf.lib;..\..\..\targets\win32\bin\common.lib;idl.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)libidl_vdfmodule$(TargetExt)</OutputFile>
       <ModuleDefinitionFile>idl.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>../../../targets/win32/bin/libidl_vdfmodule.pdb</ProgramDatabaseFile>
@@ -112,6 +112,7 @@
       </DataExecutionPrevention>
       <ImportLibrary>../../../targets/win32/bin/libidl_vdfmodule.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalLibraryDirectories>$(VAPOR_WIN32_DEBUG_LIB_PATH);</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
