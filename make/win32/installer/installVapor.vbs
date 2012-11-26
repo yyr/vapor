@@ -20,7 +20,7 @@ vaporhome = vaporhome & "VAPOR"
 vaporshare = vaporhome & "\share"
 vaporbin = vaporhome & "\bin"
 
-pythonhome = vaporhome & "\lib\python2.6"
+pythonhome = vaporhome & "\lib\python2.7"
 
 set shell = CreateObject("wscript.shell")
 
