@@ -291,10 +291,21 @@ foreach $target (@Libraries) {
 		print STDERR "$ProgName: No path from $target to $ExecPath\n";
 		exit(1);
 	}
+
+	#
+	# Mon Nov 26 19:31:36 MST 2012 - clyne
+	# Hard code name to full application installation path. This makes
+	# it easier for 3rd party applications to link to VAPOR libraries. 
+	#
+	my($vol, $dir, $libname) = File::Spec->splitpath($target);
 	my (@cmd) = (
 		"/usr/bin/install_name_tool", "-id", 
-		"\@executable_path/$rel_path", $target
+		"/Applications/VAPOR.app/Contents/MacOS/$libname", $target
 	);
+#	my (@cmd) = (
+#		"/usr/bin/install_name_tool", "-id", 
+#		"\@executable_path/$rel_path", $target
+#	);
 	mysystem(@cmd);
 
 	my(@Deps) = get_deps($target, @ExecutablePaths);
