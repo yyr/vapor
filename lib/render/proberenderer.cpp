@@ -34,7 +34,7 @@
 #include "renderer.h"
 
 using namespace VAPoR;
-
+GLint ProbeRenderer::_storedBuffer = 0;
 
 ProbeRenderer::ProbeRenderer(GLWindow* glw, ProbeParams* pParams )
 :Renderer(glw, pParams, "ProbeRenderer")
@@ -284,11 +284,11 @@ void ProbeRenderer::pushState(int wid, int ht, GLuint fbid, GLuint fbtexid, bool
 	glTranslatef(-1.0, -1.0, 0.0); 
 	glScalef(2.0, 2.0, 1.0);
 	
-	glMatrixMode(GL_TEXTURE);
-	glPushMatrix();
-	glLoadIdentity();
+	//	glMatrixMode(GL_TEXTURE);
+	//	glPushMatrix();
+	//	glLoadIdentity();
 	
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glPushAttrib(GL_VIEWPORT_BIT| GL_TEXTURE_BIT | GL_LIGHTING_BIT);//GL_ALL_ATTRIB_BITS);
 	
 	
 	glViewport(0, 0, (GLsizei) wid, (GLsizei) ht);
@@ -325,7 +325,10 @@ void ProbeRenderer::pushState(int wid, int ht, GLuint fbid, GLuint fbtexid, bool
 	GLenum _colorInternalType;
 	
 	if(first) glBindTexture(GL_TEXTURE_2D, fbtexid);
-	if(GLEW_EXT_framebuffer_object) glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,fbid);
+	if(GLEW_EXT_framebuffer_object) {
+	  glGetIntegerv(GL_FRAMEBUFFER_BINDING, &_storedBuffer);
+	  glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,fbid);
+	}
 
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -364,10 +367,10 @@ void ProbeRenderer::pushState(int wid, int ht, GLuint fbid, GLuint fbtexid, bool
 }
 void ProbeRenderer::popState(){
 	glBindTexture(GL_TEXTURE_2D, 0);
-	if(GLEW_EXT_framebuffer_object) glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,0);
+	if(GLEW_ARB_framebuffer_object) {
+	  glBindFramebuffer(GL_FRAMEBUFFER, _storedBuffer);
+	}
 	glPopAttrib();
-	glMatrixMode(GL_TEXTURE);
-	glPopMatrix();
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
