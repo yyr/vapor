@@ -560,7 +560,6 @@ int	main(int argc, char **argv) {
 	for (size_t ts = 0; ts < metadataVDC->GetNumTimeSteps(); ts++){
 		usertimes.push_back(metadataVDC->GetTSUserTime(ts));
 	}
-	float * elevation = 0;
 	float * sample2DVar = 0;
 	float* mappedDepth=0;
 	float* mappedLats = 0;
