@@ -1,3 +1,4 @@
+#include <cstring>
 #include <algorithm>
 #include <sstream>
 #include "GeoTile.h"
