@@ -1,0 +1,103 @@
+=begin comment
+
+$Id$
+
+=end comment
+
+=head1 NAME
+
+romsvdfcreate - Generate a VDF metadata file for a ROMS data set
+
+=head1 SYNOPSIS
+
+B<romsvdfcreate> [options] I<roms_ncdf_files...> I<roms_grid_file> I<vdffile>
+
+=head1 DESCRIPTION
+
+B<romsvdfcreate> generates a .vdf metafile that defines a VAPOR Data
+Collection (VDC) suitable for containing ocean simulation output from 
+a ROMS model output.  
+All of the model output NetCDF filenames must be provided on the command line,
+followed by one NetCDF grid filename, and the desired VAPOR 
+(.vdf) file name.  The grid file must include variables that do not
+change in time, including the depth of the ocean, and the variables defining mappings from the 
+model grid to latitude, latitude, and depth.  The grid file may also be included in the collection 
+I<roms_netcdf_files>, if it contains data variables that change in time. 
+
+=head1 OPTIONS
+
+=over 4
+
+=item -vars3d E<lt>varsE<gt>
+
+A colon-delimited list of names of 3D (spatial) variables to include in the .vdf
+file.  In general, the list of variables should be a subset of the 4D (3D space + time)
+variables found in the ROMS input files.  If this option is not present
+the default behavior is to generate the list of 3D variables from all of the 4D
+variables found in any of the ROMS netCDF input files. 
+
+=item -vars2d E<lt>varsE<gt>
+
+A colon-delimited list of names of 2D variables. See B<-vars3d>.  If this is not present, the VDC will
+contain all of the 3D variable names (2D horizontal spatial + time) found in the ROMS NetCDF input files.
+
+=item -level E<lt>levelE<gt>
+
+See vdfcreate.
+
+=item -comment E<lt>stringE<gt>
+
+See vdfcreate.
+
+=item -bs E<lt>NXxNYxNZE<gt>
+
+See vdfcreate.
+
+=item -nfilter E<lt>nE<gt>
+
+See vdfcreate.
+
+=item -nlifting E<lt>nE<gt>
+ 
+See vdfcreate.
+
+=item -vdc1 
+
+Generate a .vdf file for a VDC Type 1 data collection. By default a VDC Type 2 collection is created.
+
+=item -wname E<lt>wave_nameE<gt>
+
+This option is for VDC2 only, see vdfcreate.
+
+=item -cratios E<lt>vectorE<gt>
+
+This option is for VDC2 only, see vdfcreate.
+
+=item -help 
+
+Print a usage statement and then exit.
+
+=back
+
+=head1 EXAMPLES
+
+
+The command 
+
+    romsvdfcreate -vars3d u:v:temp -level 2 roms1.nc roms2.nc roms3.nc romsgrid.nc mydata.vdf
+
+will construct a VDF file, B<mydata.vdf> that will contain the B<u>, B<v>,
+and B<temp> variable names for all time steps found in the ROMS netCDF files
+B<roms1.nc>, B<roms2.nc>, and B<roms3.nc>.  The netCDF file B<romsgrid.nc> will contain time-invariant variables defining the grid.
+This VDC will include all of the 2D variables that are found in the ROMS NetCDF files.
+
+
+=head1 SEE ALSO
+
+vdfcreate, roms2vdf,
+
+I<Conversion of ROMS datafiles to a VAPOR VDC>
+
+=head1 HISTORY
+
+Last updated on $Date$

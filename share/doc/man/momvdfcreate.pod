@@ -6,7 +6,7 @@ $Id$
 
 =head1 NAME
 
-momvdfcreate - Generate a VDF metadata file for a MOM data set
+momvdfcreate - Generate a VDF metadata file for a MOM or POP data set
 
 =head1 SYNOPSIS
 
@@ -30,16 +30,16 @@ I<mom_netcdf_files>, if it contains data variables that change in time.
 
 =item -vars3d E<lt>varsE<gt>
 
-A colon-delimited list of names of 3D (spatial) variables to include in the .vdf
+A colon-delimited list of names of (3D spatial + time) variables to include in the .vdf
 file.  In general, the list of variables should be a subset of the 4D (3D space + time)
-variables found in the MOM input files.  If this option is not present
-the default behavior is to generate the list of 3D variables from all of the 4D
-variables found in any of the MOM netCDF input files. 
+variables found in the MOM/POP input files.  If this option is not present
+the default behavior is to generate the list of variables from all of the 4D
+variables found in any of the MOM/POP netCDF input files. 
 
 =item -vars2d E<lt>varsE<gt>
 
-A colon-delimited list of names of 2D variables. See B<-vars3d>.  If this is not present, the VDC will
-contain all of the 3D variable names (2D horizontal spatial + time) found in the MOM NetCDF input files.
+A colon-delimited list of names of (2D spatial + time) variables. See B<-vars3d>.  If this is not present, the VDC will
+contain all of the 3D variable names (2D horizontal spatial + time) found in the MOM/POP NetCDF input files.
 
 =item -atypvars E<lt>varsE<gt>
 
@@ -50,12 +50,12 @@ B<st_ocean> for the depth of model layers in meters, on the T-grid, i.e. at cell
 B<st_edges_ocean> for the depth of model layers in meters, at cell lower-left corners; 
 B<sw_ocean> for the depth of model layers in meters at the cell bottom centers;
 B<sw_edges_ocean> for model layer depth in meters on the P-grid, i.e. cell bottom lower-left corners.
-VAPOR also accepts the following variants for POP data:
+VAPOR also uses the following variants, e.g. for POP data:
 B<HU> instead of B<ht>, for ocean depth in centimeters;
 B<z_t> replaces B<st_ocean> but measured in centimeters;
 B<z_w> replaces B<st_edges_ocean> measured in centimeters;
 This option B<-atypvars> is used to specify any other names that are used for these 6 standard variables.
-If specified, there must be a colon-delimited list of exactly 6 variable names that replace the standard variable names in the following order: B<time:ht:st_ocean:st_edges_ocean:sw_ocean:sw_edges_ocean> .
+If the -atypvars option is specified, there must be a colon-delimited list of exactly 6 variable names that replace the standard variable names in the following order: B<time:ht:st_ocean:st_edges_ocean:sw_ocean:sw_edges_ocean> .
 
 =item -level E<lt>levelE<gt>
 
@@ -77,9 +77,9 @@ See vdfcreate.
  
 See vdfcreate.
 
-=item -vdc2 
+=item -vdc1 
 
-Generate a .vdf file for a VDC Type 2 data collection.
+Generate a .vdf file for a VDC Type 1 data collection.  By default, mom2vdf generates a type 2 VDC.
 
 =item -wname E<lt>wave_nameE<gt>
 
@@ -112,7 +112,7 @@ including B<ht>, B<st_ocean>, and B<st_edges_ocean>.  This VDC will include all 
 
 vdfcreate, mom2vdf,
 
-I<Conversion of MOM datafiles to a VAPOR VDC>
+I<Conversion of MOM or POP datafiles to a VAPOR VDC>
 
 =head1 HISTORY
 

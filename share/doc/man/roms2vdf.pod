@@ -6,16 +6,16 @@ $Id$
 
 =head1 NAME
 
-mom2vdf - Transform MOM or POP netCDF data into a VDC
+roms2vdf - Transform ROMS netCDF data into a VDC
 
 =head1 SYNOPSIS
 
-B<mom2vdf> [options] I<mom_ncdf_file...> I<mom_ncdf_topo_file> I<vdffile> 
+B<roms2vdf> [options] I<roms_ncdf_files...> I<roms_ncdf_grid_file> I<vdffile> 
 
 =head1 DESCRIPTION
 
-B<mom2vdf> reads 3D and 2D variables from one or more MOM (or POP) netCDF files,
-as well as topography data from one MOM/POP NetCDF file,
+B<roms2vdf> reads 3D and 2D variables from one or more ROMS output netCDF files,
+as well as grid data from one ROMS NetCDF file,
 wavelet transforms the data, and stores it in the VDC associated with
 the .vdf file I<vdffile>.
 
@@ -26,8 +26,10 @@ the .vdf file I<vdffile>.
 =item -varnames E<lt>varsE<gt>
 
 Variables to convert.  A colon delimited list of the 3D and 2D variables
-you wish to transform. Their names must appear in the .vdf file, I<vdffile>.  The default is to convert all 3D and 2D variables defined in
-both the .vdf file and the MOM/POP netCDF files.
+you wish to transform. Their names must appear in the .vdf file, I<vdffile>.
+The variable B<ELEVATION> will always be created. 
+The default is to convert all time-varying 3D and 2D variables defined in
+both the .vdf file and the ROMS netCDF files.
 
 =item -numts E<lt>numberE<gt>
 
@@ -56,25 +58,25 @@ Operate quietly, only reporting fatal errors.
 
 The command 
 
-    mom2vdf momout1.nc momout2.nc momout3.nc momtopo.nc mydata.vdf 
+    roms2vdf romsout1.nc romsout2.nc romsout3.nc romsgrid.nc mydata.vdf 
 
 transforms all of the variables at all of the time steps found in the
-MOM(or POP) netCDF files B<momout1.nc>, B<momout2.nc>, and B<momout3.nc> that
-match the variable names and time stamps found in B<mydata.vdf>.  The file B<momtopo.nc> 
-contains the topography variables, such as B<ht> and B<geo_lat>.
+ROMS netCDF files B<romsout1.nc>, B<romsout2.nc>, and B<romsout3.nc> that
+match the variable names and time stamps found in B<mydata.vdf>.  The file B<romsgrid.nc> 
+contains the time-invariant variables, such as B<h> and B<s_rho>.
 
 The command 
 
-    mom2vdf -varnames u:v:w momout1.nc momout2.nc momtopo.nc mydata.vdf 
+    roms2vdf -varnames u:v:w romsout1.nc romsout2.nc romsgrid.nc mydata.vdf 
 
 is similar to the above example except that the converted variables are limited
 to the three 3D velocity components, B<u>, B<v>, and B<w>.
 
 =head1 SEE ALSO
 
-momvdfcreate, ncdf2vdf, raw2vdf 
+romsvdfcreate, ncdf2vdf, raw2vdf 
 
-I<Conversion of MOM or POP datafiles to a VAPOR VDC>
+I<Conversion of ROMS datafiles to a VAPOR VDC>
 
 =head1 HISTORY
 
