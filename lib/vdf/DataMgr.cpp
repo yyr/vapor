@@ -1612,6 +1612,13 @@ void    DataMgr::GetEnclosingRegion(
 
 	if (! rg) return;
 
+	//
+	// Need to turn off peridic boundary handling or we get undesired 
+	// results.
+	//
+	bool p[] = {false,false,false};
+	rg->SetPeriodic(p);
+
 	rg->GetEnclosingRegion(minu, maxu, min, max);
 	delete rg;
 }
