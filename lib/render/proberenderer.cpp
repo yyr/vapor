@@ -370,6 +370,9 @@ void ProbeRenderer::popState(){
 	if(GLEW_ARB_framebuffer_object) {
 	  glBindFramebuffer(GL_FRAMEBUFFER, _storedBuffer);
 	}
+	else if(GLEW_EXT_framebuffer_object){
+	  glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+	}
 	glPopAttrib();
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
