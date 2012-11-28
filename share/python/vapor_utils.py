@@ -7,7 +7,8 @@
 	grad_findiff - calculate gradient using 6th order finite differences.
 	deriv_var_findiff - calculate a derivative of one 3D 
 variable with respect to another variable.
-	interp3d - interpolate a 3D variable to a vertical level surface of another variable.	
+	interp3d - interpolate a 3D variable to a vertical level surface of another variable.
+	vector_rotate - rotate and scale vector field for lat-lon grid.	
 '''
 
 def mag3d(a1,a2,a3): 
@@ -249,4 +250,23 @@ def interp3d(A,PR,val):
 	LEVNEED = numpy.less(LEVEL,0)
 	interpVal[LEVNEED] = A[s[0]-1,LEVNEED]
 	return interpVal
+
+def vector_rotate(angleRad, latDeg, u, v):
+	'''Rotate and scale vectors u,v for lon-lat grid.
+	Calling sequence: 
+	rotfield=vector_rotate(angleRad, latDeg, u,v)
+	Where:  
+	angleRad: 2D var, rotation from East in radians
+	latDeg: 2D var, latitude in degrees
+	u,v: 3D vars, x,y components of a vector field
+	rotfield is a 2-tuple of 3-dimensional float32 arrays,
+	representing rotation of u,v, returned by this operator.
+	''' 	
+	from numpy import *
+	import math
+	umod = cos(angleRad)*u + sin(angleRad)*v
+	vmod = -sin(angleRad)*u + cos(angleRad)*v
+	umod = umod/cos(latDeg*math.pi/180.)
+	return umod,vmod
+
 
