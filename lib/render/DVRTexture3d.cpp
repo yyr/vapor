@@ -155,8 +155,8 @@ int DVRTexture3d::SetRegion(
       _bricks[0]->textureMin(deltatx/2.0, deltaty/2.0, deltatz/2.0);
       _bricks[0]->textureMax(
         (deltatx * 0.5) + ((float) (dims[0]-1.0) * deltatx),
-        (deltaty * 0.5) + ((float) (dims[0]-1.0) * deltaty),
-        (deltatz * 0.5) + ((float) (dims[0]-1.0) * deltatz)
+        (deltaty * 0.5) + ((float) (dims[1]-1.0) * deltaty),
+        (deltatz * 0.5) + ((float) (dims[2]-1.0) * deltatz)
       );
 
       _bricks[0]->fill(rg, range, num);
