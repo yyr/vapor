@@ -745,9 +745,9 @@ void DVRShader::initShaderVariables()
 	  _shadermgr->uploadEffectData(getCurrentEffect(), "ks", _ks);
 	  _shadermgr->uploadEffectData(getCurrentEffect(), "expS", _expS);
 	  _shadermgr->uploadEffectData(getCurrentEffect(), "lightDirection", _pos[0], _pos[1], _pos[2]);
-	  _shadermgr->uploadEffectData(getCurrentEffect(), "dimensions", (float)_bx, (float)_by, (float)_bz);
   } 
 
+  _shadermgr->uploadEffectData(getCurrentEffect(), "dimensions", (float)_bx, (float)_by, (float)_bz);
   _shadermgr->uploadEffectData(getCurrentEffect(), "fast", (int) _renderFast);
   _shadermgr->uploadEffectData(getCurrentEffect(), "midx", (int) _midx);
   _shadermgr->uploadEffectData(getCurrentEffect(), "zidx", (int) _zidx);
