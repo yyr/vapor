@@ -102,7 +102,7 @@ int DVRRayCaster::GraphicsInit()
 	  _shadermgr->uploadEffectData(instanceName("default"), std::string("previousPass"), myGLWindow->depthTexUnit);
 	  _shadermgr->uploadEffectData(instanceName("default"), std::string("height"), (float)myGLWindow->depthHeight);
 	  _shadermgr->uploadEffectData(instanceName("default"), std::string("width"), (float)myGLWindow->depthWidth);	
-	  _shadermgr->uploadEffectData(instanceName("lighting"), std::string("previousPass"), 7);
+	  _shadermgr->uploadEffectData(instanceName("lighting"), std::string("previousPass"), myGLWindow->depthTexUnit);
 	  _shadermgr->uploadEffectData(instanceName("lighting"), std::string("height"), (float)myGLWindow->depthHeight);
 	  _shadermgr->uploadEffectData(instanceName("lighting"), std::string("width"), (float)myGLWindow->depthWidth);	
 	  _shadermgr->uploadEffectData(instanceName("mapped"), std::string("previousPass"), myGLWindow->depthTexUnit);
