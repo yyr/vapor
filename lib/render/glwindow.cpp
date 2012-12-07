@@ -269,9 +269,9 @@ void GLWindow::resizeGL( int width, int height )
       glDeleteTextures(1, &depthA);
     if(glIsTexture(depthB))
       glDeleteTextures(1, &depthB);
-    if(fboA != 0 )
+    if(glIsFramebuffer(fboA))
       glDeleteFramebuffers(1, &fboA);
-    if(fboB != 0)
+    if(glIsFramebuffer(fboB))
       glDeleteFramebuffers(1, &fboB);
     if(layers !=NULL){
       glDeleteTextures(maxbuffers, layers);
