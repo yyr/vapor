@@ -790,6 +790,7 @@ void MappingFrame::paintGL()
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glOrtho(_minX, _maxX, _minY, _maxY, -1.0, 1.0);
+  glMatrixMode(GL_MODELVIEW);
 
   qglClearColor(palette().color(QPalette::Background));
 
@@ -948,6 +949,7 @@ void MappingFrame::initializeGL()
   resize();
   glViewport( _minX, _minY, (GLint)width(), (GLint)height());
   glOrtho(_minX, _maxX, _minY, _maxY, -1.0, 1.0);
+  glMatrixMode(GL_MODELVIEW);
 
   //
   // Initialize the histogram texture
