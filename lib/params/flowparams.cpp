@@ -2316,8 +2316,10 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		int timeStep = currentTimeStep;
 		if(flowType == 1){//unsteady flow
 			timeStep = ds->getFirstTimestep(getColorMapEntityIndex()-4);
-			if (timeStep < 0) MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"No data for flow mapped variable");
-			return;
+			if (timeStep < 0) {
+				MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"No data for flow mapped variable");
+				return;
+			}
 		}
 		
 		size_t min_dim[3], max_dim[3];
