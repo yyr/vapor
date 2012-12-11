@@ -1106,13 +1106,14 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 		delete steadyFlowData;
 		return 0;
 	}
-	//Rescale now (prior to color mapping)
-	steadyFlowData->scaleLines(DataStatus::getInstance()->getStretchFactors());
+	
 	//Now map colors (if needed)
 		
 	if (doRGBAs){
 		mapColors(steadyFlowData, timeStep, minFrame, rParams);
 	}
+	//Rescale now (after color mapping, before rendering)!!!
+	steadyFlowData->scaleLines(DataStatus::getInstance()->getStretchFactors());
 
 	return steadyFlowData;
 }
@@ -2429,7 +2430,20 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 					float* dataPoint = container->getFlowPoint(lineNum,pointNum);
 					assert(dataPoint[0] != IGNORE_FLAG);
 					colorVar = colorGrid->GetValue(dataPoint[0],dataPoint[1],dataPoint[2]);
-					if (colorVar == colorGrid->GetMissingValue()) colorVar = colorMin;
+					if (colorVar == colorGrid->GetMissingValue()) {
+						//Edge points should get colored by the previous or next point
+						int nextPointNum = -1;
+						colorVar = colorMin;
+						if(pointNum == container->getStartIndex(lineNum) && pointNum < container->getEndIndex(lineNum))
+							nextPointNum = pointNum+1;
+						else if (pointNum == container->getEndIndex(lineNum) && pointNum > container->getStartIndex(lineNum))
+							nextPointNum = pointNum-1;
+						if (nextPointNum >=0){
+							dataPoint = container->getFlowPoint(lineNum,nextPointNum);
+							colorVar = colorGrid->GetValue(dataPoint[0],dataPoint[1],dataPoint[2]);
+							if(colorVar == colorGrid->GetMissingValue()) colorVar = colorMin;
+						}	
+					}
 					break;
 			}
 			int colorIndex = (int)((colorVar - colorMin)*255.99/(colorMax-colorMin));

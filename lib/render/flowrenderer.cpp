@@ -822,11 +822,10 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				} else {
 					MyBase::SetDiagMsg("Integrated %d timesteps", numTimestepsToRender);
 				}
-				//Note: the flow lines need to be rescaled here, before colors are mapped,
-				//because color mapping can use the values in the flow lines if a variable is
-				//being mapped to colors.
-				unsteadyFlowCache->scaleLines(DataStatus::getInstance()->getStretchFactors());
+				
 				if(!constColors) myFlowParams->mapColors(unsteadyFlowCache, timeStep, minFrame, rParams);
+				//Scale lines for rendering after color map!!!
+				unsteadyFlowCache->scaleLines(DataStatus::getInstance()->getStretchFactors());
 				break;
 			case (2):
 				{
