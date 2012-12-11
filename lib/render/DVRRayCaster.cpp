@@ -469,6 +469,22 @@ void DVRRayCaster::raycasting_pass(
 	
 	printOpenGLError();
 
+	if (_stretched) {
+		//
+		// If stretched we need to load the inverse lookup table for
+		// mapping user coordinates to texture coordinates. Should be
+		// smarter about this and only do it when the brick has changed
+		//
+		size_t x0 = brick->xoffset();
+		size_t x1 = x0 + brick->nx() - 1;
+		size_t y0 = brick->yoffset();
+		size_t y1 = y0 + brick->ny() - 1;
+		size_t z0 = brick->zoffset();
+		size_t z1 = z0 + brick->nz() - 1;
+
+		loadCoordMap(brick, x0, x1, y0, y1, z0, z1);
+	}
+
 	BBox rotatedBox(volumeBox);
 	rotatedBox.transform(modelview);
 	Point3d camera(0,0,0);
@@ -526,6 +542,11 @@ void DVRRayCaster::renderBrick(
 	const Matrix3d &modelviewInverse
 ) {
 
+    _shadermgr->uploadEffectData(
+        getCurrentEffect(), "dimensions",
+        (float) brick->nx(), (float) brick->ny(), (float) brick->nz()
+    );
+
 	// Write depth info.
 	glDepthMask(GL_TRUE);
 
@@ -570,6 +591,8 @@ void DVRRayCaster::renderBrick(
     }	 
     // Restore normal depth comparison for ray casting pass.
     glDepthFunc(GL_LESS);
+
+
     raycasting_pass(brick, modelview, modelviewInverse);
 
     printOpenGLError();

@@ -53,6 +53,7 @@ DVRShader::DVRShader(
 	ShaderMgr *shadermgr, int nthreads
 ) : DVRTexture3d(precision, nvars, nthreads),
   _lighting(false),
+  _stretched(false),
   _colormap(NULL),
   _coordmap(NULL),
   _preintegration(false),
@@ -62,7 +63,6 @@ DVRShader::DVRShader(
   _expS(0.0),
   _midx(0),
   _zidx(0),
-  _stretched(0),
   _initialized(false)
 {
 	MyBase::SetDiagMsg(
@@ -79,6 +79,10 @@ DVRShader::DVRShader(
     _vdir[i] = 0.0;
     _vpos[i] = 0.0;
   }
+
+  _xcoords.clear();
+  _ycoords.clear();
+  _zcoords.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -201,82 +205,7 @@ int DVRShader::SetRegion(const RegularGrid *rg, const float range[2], int num)
 
 	if (_stretched) {
 		const StretchedGrid *sg = (dynamic_cast<const StretchedGrid *>(rg));
-		vector <double> xcoords, ycoords, zcoords;
-		sg->GetUserCoordinateMaps(xcoords, ycoords, zcoords);
-
-		if (xcoords.size()>1) { 
-			double xdelta = (xcoords[xcoords.size()-1]-xcoords[0]) / ((double) coordmapTexWidth-1.0);
-			double tdelta = 1.0 / (double) (xcoords.size()-1);
-			int ii = 0;
-			double x0 = xcoords[ii];
-			double x1 = xcoords[ii+1];
-			double x = xcoords[0];
-			for (int i=0; i<coordmapTexWidth; i++) {
-				while (((x-x0)*(x-x1) > 0) && ii < xcoords.size()) {
-					x0 = x1;
-					ii++;
-					x1 = xcoords[ii+1];
-				}
-				_coordmap[i*4+0] = ((x-x0)/(x1-x0)*tdelta) + (ii*tdelta);
-				x += xdelta;
-			}
-		}
-		else {
-			for (int i=0; i<coordmapTexWidth; i++) { 
-				_coordmap[i*4+0] = (float) i / ((double) coordmapTexWidth-1.0);
-			}
-		}
-
-		if (ycoords.size()>1) {
-			double ydelta = (ycoords[ycoords.size()-1]-ycoords[0]) / ((double) coordmapTexWidth-1.0);
-			double tdelta = 1.0 / (double) (ycoords.size()-1);
-			int ii = 0;
-			double y0 = ycoords[ii];
-			double y1 = ycoords[ii+1];
-			double y = ycoords[0];
-			for (int i=0; i<coordmapTexWidth; i++) {
-				while (((y-y0)*(y-y1) > 0) && ii < ycoords.size()) {
-					y0 = y1;
-					ii++;
-					y1 = ycoords[ii+1];
-				}
-				_coordmap[i*4+1] = ((y-y0)/(y1-y0)*tdelta) + (ii*tdelta);
-				y += ydelta;
-			}
-		} 
-		else {
-			for (int i=0; i<coordmapTexWidth; i++) { 
-				_coordmap[i*4+1] = (float) i / ((double) coordmapTexWidth-1.0);
-			}
-		}
-
-		if (zcoords.size()>1) {
-			double zdelta = (zcoords[zcoords.size()-1]-zcoords[0]) / ((double) coordmapTexWidth-1.0);
-			double tdelta = 1.0 / (double) (zcoords.size()-1);
-			int ii = 0;
-			double z0 = zcoords[ii];
-			double z1 = zcoords[ii+1];
-			double z = zcoords[0];
-			for (int i=0; i<coordmapTexWidth; i++) {
-				while (((z-z0)*(z-z1) > 0) && ii < zcoords.size()) {
-					z0 = z1;
-					ii++;
-					z1 = zcoords[ii+1];
-				}
-				_coordmap[i*4+2] = ((z-z0)/(z1-z0)*tdelta) + (ii*tdelta);
-				z += zdelta;
-			}
-		} 
-		else {
-			for (int i=0; i<coordmapTexWidth; i++) { 
-				_coordmap[i*4+2] = (float) i / ((double) coordmapTexWidth-1.0);
-			}
-		}
-
-		glBindTexture(GL_TEXTURE_1D, _cmapid[coordmapTexName]);
-		glTexSubImage1D(
-			GL_TEXTURE_1D, 0, 0, coordmapTexWidth, GL_RGBA, GL_FLOAT,_coordmap
-		);
+		sg->GetUserCoordinateMaps(_xcoords, _ycoords, _zcoords);
 	}
 
 	initShaderVariables();
@@ -292,6 +221,134 @@ int DVRShader::SetRegion(const RegularGrid *rg, const float range[2], int num)
 	return DVRTexture3d::SetRegion(rg, range, num);
 }
 
+//
+// Generate a lookup table to peform an inverse mapping from user coordinates
+// to texture coordinates
+//
+void DVRShader::_loadCoordMap(
+	const vector <double> ucoords, 	// User coordinates
+	int c0, int c1, 	// subset of user coordinates 
+	float *coordmap, size_t coordmapsz, 	// lookup 
+	int stride, int offset	// stride and offset between elements in coordmap
+) {
+	assert(c1-c0>=1);
+	assert(c1<ucoords.size());
+
+	// N.B. Texture coordinates in OpenGL run from 1/2N to 1-1/2N with
+	// a sample spacing of 1/N, where N is the number of texels. There
+	// are two different textures in play here: the texture containing
+	// the users's data (containing c1-c0+1 texels), herein referred to as
+	// the "data texure, and the texture
+	// that will contain the lookup table (containing coordmapsz texels),
+	// herein referred to as the lookup texture.
+	//
+	// The user coordinates define a sequence of connected line segments
+	// with end points given by (t, ucoords[i])
+	//
+
+	// sample spacing between data texels, first and last texel coordinate
+	// for both Y and X axis
+	//
+	double deltay_t = 1.0 / ((double) (c1-c0+1.0));
+	double y_tmin = 0.5 * deltay_t;	
+	double y_tmax = 1.0 - y_tmin;
+	double tmin = y_tmin;
+	double deltat = deltay_t;
+
+	// Transform user coordinates of first line segment (first and second 
+	// point) to texture coordinates in range 1/2N to 1-12N
+	//
+	int ii = c0;
+	double y0 = (ucoords[ii]-ucoords[c0])/(ucoords[c1]-ucoords[c0]) *
+		(y_tmax-y_tmin) + y_tmin;
+
+	ii++;
+	double y1 = (ucoords[ii]-ucoords[c0])/(ucoords[c1]-ucoords[c0]) *
+		(y_tmax-y_tmin) + y_tmin;
+
+	// Determine line equation for first line segment for *inverse* map
+	// line slope and intercept: x = my + b
+	//
+	double m = deltay_t / (y1-y0);	
+	double b = -m * y0 + tmin;
+
+	// sample space and coordinate of first texel in lookup texture
+	//
+	double deltay_tprime = 1.0 / ((double) coordmapTexWidth);
+	double y = 0.5 * deltay_tprime;
+
+	// For each entry in lookup texel (coordmap) map normalized user
+	// coordinate to texture coordinates
+	//
+	double t = tmin;
+	for (int i=0; i<coordmapTexWidth; i++) {
+
+		// Make sure y is in current line segment. If not, keep stepping to 
+		// next line segment until we find one containing y
+		//
+		while (y>y1 && ii<=c1) {
+			ii++;
+			t += deltat;
+			y0 = y1;
+			y1 = (ucoords[ii]-ucoords[c0])/(ucoords[c1]-ucoords[c0]) *
+				(y_tmax-y_tmin) + y_tmin;
+
+			// Line equation for current line segment
+			//
+			m = deltay_t / (y1-y0);	
+			b = -m * y0 + t;
+		}
+	
+		coordmap[i*stride+offset] = y*m+b;
+		y += deltay_tprime;
+	}
+}
+
+void DVRShader::loadCoordMap(
+	const TextureBrick *brick, size_t i0, size_t i1, size_t j0, size_t j1,
+	size_t k0, size_t k1
+) {
+	if (! _stretched) return;
+
+	if (_xcoords.size()>1) { 
+
+		_loadCoordMap(_ycoords, i0, i1, _coordmap, coordmapTexWidth, 4, 0);
+
+	}
+	else {
+		for (int i=0; i<coordmapTexWidth; i++) { 
+			_coordmap[i*4+0] = (float) i / ((double) coordmapTexWidth-1.0);
+		}
+	}
+
+	if (_ycoords.size()>1) {
+
+		_loadCoordMap(_ycoords, j0, j1, _coordmap, coordmapTexWidth, 4, 1);
+
+	} 
+	else {
+		for (int i=0; i<coordmapTexWidth; i++) { 
+			_coordmap[i*4+1] = (float) i / ((double) coordmapTexWidth-1.0);
+		}
+	}
+
+	if (_zcoords.size()>1) {
+
+		_loadCoordMap(_zcoords, k0, k1, _coordmap, coordmapTexWidth, 4, 2);
+
+	}
+	else {
+		for (int i=0; i<coordmapTexWidth; i++) { 
+			_coordmap[i*4+2] = (float) i / ((double) coordmapTexWidth-1.0);
+		}
+	}
+
+	glBindTexture(GL_TEXTURE_1D, _cmapid[coordmapTexName]);
+	glTexSubImage1D(
+		GL_TEXTURE_1D, 0, 0, coordmapTexWidth, GL_RGBA, GL_FLOAT,_coordmap
+	);
+}
+
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
@@ -303,6 +360,33 @@ void DVRShader::loadTexture(TextureBrick *brick)
   printOpenGLError();
 }
 
+
+//----------------------------------------------------------------------------
+// Render a single brick
+//----------------------------------------------------------------------------
+void DVRShader::renderBrick(const TextureBrick *brick,
+                                         const Matrix3d &modelview,
+                                         const Matrix3d &modelviewInverse)
+
+{
+
+    _shadermgr->uploadEffectData(
+		getCurrentEffect(), "dimensions", 
+		(float) brick->nx(), (float) brick->ny(), (float) brick->nz()
+	);
+
+	if (_stretched) {
+		size_t x0 = brick->xoffset();
+		size_t x1 = x0 + brick->nx() - 1;
+		size_t y0 = brick->yoffset();
+		size_t y1 = y0 + brick->ny() - 1;
+		size_t z0 = brick->zoffset();
+		size_t z1 = z0 + brick->nz() - 1;
+
+		loadCoordMap(brick, x0, x1, y0, y1, z0, z1);
+	}
+    DVRTexture3d::drawViewAlignedSlices(brick, modelview, modelviewInverse);
+}
 
 //----------------------------------------------------------------------------
 //
@@ -713,8 +797,8 @@ int DVRShader::initTextures()
   glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA16, coordmapTexWidth, 0, GL_RGBA,
                GL_FLOAT, _coordmap);
 
-  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 
   glBindTexture(GL_TEXTURE_1D, 0);
@@ -747,7 +831,6 @@ void DVRShader::initShaderVariables()
 	  _shadermgr->uploadEffectData(getCurrentEffect(), "lightDirection", _pos[0], _pos[1], _pos[2]);
   } 
 
-  _shadermgr->uploadEffectData(getCurrentEffect(), "dimensions", (float)_bx, (float)_by, (float)_bz);
   _shadermgr->uploadEffectData(getCurrentEffect(), "fast", (int) _renderFast);
   _shadermgr->uploadEffectData(getCurrentEffect(), "midx", (int) _midx);
   _shadermgr->uploadEffectData(getCurrentEffect(), "zidx", (int) _zidx);

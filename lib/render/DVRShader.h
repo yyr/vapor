@@ -73,14 +73,30 @@ protected:
                                      const Matrix3d &modelview,
                                      const Matrix3d &modelviewInverse);
 
+  virtual void renderBrick(const TextureBrick *brick,
+                                     const Matrix3d &modelview,
+                                     const Matrix3d &modelviewInverse);
+
   ShaderMgr *_shadermgr;
 
   bool            _lighting;
+
+  void loadCoordMap(
+	const TextureBrick *brick, size_t i0, size_t i1, size_t j0, size_t j1,
+	size_t k0, size_t k1
+  );
+
+  bool _stretched;
+
 private: 
 
   float          *_colormap;
   float          *_coordmap;
   ShaderProgram  *_shader;
+
+  // voxel coordinates for stretched grids
+  //
+  vector <double> _xcoords, _ycoords, _zcoords;
 
   bool            _preintegration;
 
@@ -95,8 +111,13 @@ private:
   float _vpos[4];
   int _midx;
   int _zidx;
-  int _stretched;
   bool _initialized;
+
+  void _loadCoordMap(
+    const vector <double> ucoords, int c0, int c1,
+    float *coordmap, size_t coordmapsz, int stride, int offset
+  );
+
 
 };
 

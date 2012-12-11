@@ -49,6 +49,10 @@ class RENDER_API TextureBrick
   int ny() const { return _by; }
   int nz() const { return _bz; }
 
+  int xoffset() const { return _xoffset; }
+  int yoffset() const { return _yoffset; }
+  int zoffset() const { return _zoffset; }
+
   size_t ncomp() const { return _ncomp; }
   size_t szcomp() const { return _szcomp; }
   int nvars() const { return _nvars; }

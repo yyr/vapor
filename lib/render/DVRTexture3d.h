@@ -109,9 +109,6 @@ protected:
   void   *_data;
 
   // brick dimensions
-  int    _bx;  
-  int    _by;
-  int    _bz;
 
   bool   _renderFast;
 

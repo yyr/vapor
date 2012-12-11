@@ -45,9 +45,6 @@ DVRTexture3d::DVRTexture3d(
   _nx(0),
   _ny(0),
   _nz(0),
-  _bx(0),
-  _by(0),
-  _bz(0),  
   _renderFast(false),
   _delta(0.0),
   _samples(0),
@@ -130,7 +127,7 @@ int DVRTexture3d::SetRegion(
     
     if (_nx <= _maxTexture && _ny <= _maxTexture && _nz <= _maxTexture)
     {
-      _bx = _nx; _by = _ny; _bz = _nz;
+      size_t bx = _nx; size_t by = _ny; size_t bz = _nz;
       MyBase::SetDiagMsg("DVRTexture3d::SetRegion() - Not bricking textures");
       //
       // The data will fit completely within texture memory, so no bricking is 
@@ -149,16 +146,11 @@ int DVRTexture3d::SetRegion(
       // Sample width is 1.0 / #texels. First sample located
       // at 1/2 sampling width.
       //
-      float deltatx = 1.0 / (float) _bx;
-      float deltaty = 1.0 / (float) _by;
-      float deltatz = 1.0 / (float) _bz;
+      float deltatx = 1.0 / (float) bx;
+      float deltaty = 1.0 / (float) by;
+      float deltatz = 1.0 / (float) bz;
       _bricks[0]->textureMin(deltatx/2.0, deltaty/2.0, deltatz/2.0);
-      _bricks[0]->textureMax(
-        (deltatx * 0.5) + ((float) (dims[0]-1.0) * deltatx),
-        (deltaty * 0.5) + ((float) (dims[1]-1.0) * deltaty),
-        (deltatz * 0.5) + ((float) (dims[2]-1.0) * deltatz)
-      );
-
+      _bricks[0]->textureMax(1.0-(deltatx*0.5), 1.0-(deltaty*0.5), 1.0-(deltatz*0.5));
       _bricks[0]->fill(rg, range, num);
       
       if (num == _nvars - 1) loadTexture(_bricks[0]);
@@ -409,7 +401,6 @@ void DVRTexture3d::drawViewAlignedSlices(const TextureBrick *brick,
 	{
       for(int j=0; j< size; ++j)
       {
-        
         glTexCoord3f(tverts[order[j]].x(), 
                      tverts[order[j]].y(), 
                      tverts[order[j]].z());
@@ -600,89 +591,80 @@ void DVRTexture3d::buildBricks(
   // bricks on the borders may contain very small subset of data.
   //
   int brick_dim = min(_maxTexture, _maxBrickDim);
-  _bx = nextPowerOf2(_nx);
-  _by = nextPowerOf2(_ny);
-  _bz = nextPowerOf2(_nz);
-  while (_bx > brick_dim)
+  size_t bxp2 = nextPowerOf2(_nx);
+  size_t byp2 = nextPowerOf2(_ny);
+  size_t bzp2 = nextPowerOf2(_nz);
+  while (bxp2 > brick_dim)
   {
-    _bx /= 2;
+    bxp2 /= 2;
   }
 
-  while (_by > brick_dim)
+  while (byp2 > brick_dim)
   {
-    _by /= 2;
+    byp2 /= 2;
   }
 
-  while (_bz > brick_dim)
+  while (bzp2 > brick_dim)
   {
-    _bz /= 2;
+    bzp2 /= 2;
   }
 
   //
   // Compute the number of bricks in the cardinal directions
   //
-  int nbricks[3] = {(int)ceil((double)(_nx-1)/(_bx-1)),
-                    (int)ceil((double)(_ny-1)/(_by-1)),
-                    (int)ceil((double)(_nz-1)/(_bz-1))};
+  int nbricks[3] = {(int)ceil((double)(_nx-1)/(bxp2-1)),
+                    (int)ceil((double)(_ny-1)/(byp2-1)),
+                    (int)ceil((double)(_nz-1)/(bzp2-1))};
 
   //
-  // Populate bricks 
+  // Populate bricks. Interior bricks have a ghost zone on the far-most
+  // face.  Thus interior brick dimensions are one greater than 
+  // one what actually gets rendered
   //
   TextureBrick *brick = NULL;
-
-  // brick data/block box
-  int bbox[6] = {0,0,0, _bx-1, _by-1, _bz-1};
 
   // brick region of interest
   size_t broi[6] = {0,0,0,dims[0]-1, dims[1]-1, dims[2]-1};
 
   // data offset
-  int offset[3] = {0, 0, 0};
+  int offset[3];
 
   int bricknum = 0;
+  offset[2] = 0;
+  broi[2] = 0;
+  broi[5] = bzp2-2;
+
+  size_t bz = bzp2;
   for(int z=0; z<nbricks[2]; ++z)
   {
-    //
-    // Determine the y boundaries of the brick's data box. 
-    //
-    bbox[1]   = 0;
-    bbox[4]   = _by-1;
-    offset[1] = 0;
-    
-    //
-    // Determine the z region of interest for the brick, leaving an extra
-    // voxel on either end for fragment interpolation (except fo bricks
-    // on the extreme ends).
-    // 
-      broi[2] = bbox[2];
-      broi[5] = bbox[5] < dims[2]-1 ? bbox[5] : dims[2]-1;
+    if (broi[5] > dims[2]-1) {	// boundary Z brick
+      broi[5] = dims[2]-1;
+      bz = broi[5]-broi[2]+1;
+    }
 
+    offset[1] = 0;
+    broi[1] = 0;
+    broi[4] = byp2-2;
+
+    size_t by = byp2;
     for (int y=0; y<nbricks[1]; y++)
     {
-      //
-      // Determine the x boundaries of the brick's data box
-      //
-      bbox[0]   = 0;
-      bbox[3]   = _bx-1;
+      if (broi[4] > dims[1]-1) {	// boundary Y brick
+        broi[4] = dims[1]-1;
+        by = broi[4]-broi[1]+1;
+      }
+
       offset[0] = 0;
+      broi[0] = 0;
+      broi[3] = bxp2-2;
 
-      //
-      // Determine the y region of interest for the brick, leaving an extra
-      // voxel on either end for fragment interpolation (except fo bricks
-      // on the extreme ends).
-      // 
-        broi[1] = bbox[1];
-        broi[4] = bbox[4] < dims[1]-1 ? bbox[4] : dims[1]-1;
-
+      size_t bx = bxp2;
       for (int x=0; x<nbricks[0]; x++)
       {
-        //
-        // Determine the x region of interest for the brick, leaving an extra
-        // voxel on either end for fragment interpolation (except fo bricks
-        // on the extreme ends).
-        // 
-        broi[0] = bbox[0];
-        broi[3] = bbox[3] < dims[0]-1 ? bbox[3] : dims[0]-1;
+        if (broi[3] > dims[0]-1) {	// boundary X brick
+          broi[3] = dims[0]-1;
+          bx = broi[3]-broi[0]+1;
+        }
 
         if (num != 0) {
           assert(_bricks.size() > bricknum);
@@ -709,27 +691,20 @@ void DVRTexture3d::buildBricks(
           // Sample width is 1.0 / #texels. First sample located
           // at 1/2 sampling width.
           //
-          // Need to shrink right bound somewhat to avoid roundoff errors
           //
-          float deltatx = 1.0 / (float) _bx;
-          float deltaty = 1.0 / (float) _by;
-          float deltatz = 1.0 / (float) _bz;
-          brick->textureMin(deltatx/2.0, deltaty/2.0, deltatz/2.0);
-          brick->textureMax(
-            (deltatx * 0.5) + ((float) (broi[3]-bbox[0]) * deltatx)-0.00001,
-            (deltaty * 0.5) + ((float) (broi[4]-bbox[1]) * deltaty)-0.00001,
-            (deltatz * 0.5) + ((float) (broi[5]-bbox[2]) * deltatz)-0.00001
-          );
-
-
+          float deltatx = 1.0 / (float) bx;
+          float deltaty = 1.0 / (float) by;
+          float deltatz = 1.0 / (float) bz;
+          brick->textureMin(deltatx*0.5, deltaty*0.5, deltatz*0.5);
+          brick->textureMax(1.0-(deltatx*0.5), 1.0-(deltaty*0.5), 1.0-(deltatz*0.5));
         }
 
         //
         // Fill the brick
         //
         brick->fill(
-            rg,range,num, _bx,_by,_bz,
-            broi[3]-broi[0]+1, broi[4]-broi[1]+1, broi[5]-broi[2]+1,
+            rg,range,num,
+			bx,by,bz, bx,by,bz,
             offset[0], offset[1], offset[2]
         );
 
@@ -739,9 +714,9 @@ void DVRTexture3d::buildBricks(
         // increment the brick block box (for the next brick in the x-axis) by 
         // the size of a brick (minus 1 for texture overlap).
         // 
-        bbox[0]    = bbox[3];
-        offset[0] += _bx-1;
-        bbox[3]   += _bx-1;
+        offset[0] += bx-2;
+        broi[0] = broi[3];
+        broi[3] += bx-2;
         bricknum++;
       }
 
@@ -749,18 +724,18 @@ void DVRTexture3d::buildBricks(
       // increment the brick block box (for the next brick in the y-axis)
       // by the size of a brick (minus 1 for texture overlap).
       // 
-      bbox[1]    = bbox[4];
-      offset[1] += _by-1;
-      bbox[4]   += _by-1;
+      offset[1] += by-2;
+      broi[1] = broi[4];
+      broi[4] += by-2;
     }
 
     //
     // increment the brick block box (for the next brick in the z-axis) 
     // by the size of a brick (minus 1 for texture overlap).
     // 
-    bbox[2]    = bbox[5];
-    offset[2] += _bz-1;
-    bbox[5]   += _bz-1;
+    offset[2] += bz-2;
+    broi[2] = broi[5];
+    broi[5] += bz-2;
   }
 }
 
