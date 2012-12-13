@@ -170,13 +170,25 @@ void FlowRenderer::paintGL()
 		if (!constColors && flowMapIsDirty(timeStep)){
 			if (flowType != 1){
 				if (steadyFlowCache[timeStep]) {
+					//Undo scale factors
+					float unScales[3];
+					const float* scales = DataStatus::getInstance()->getStretchFactors();
+					for (int i = 0; i<3; i++) unScales[i] = 1./scales[i];
+					steadyFlowCache[timeStep]->scaleLines(unScales);
 					myFlowParams->mapColors(steadyFlowCache[timeStep],timeStep, minFrame, myGLWindow->getActiveRegionParams());
+					steadyFlowCache[timeStep]->scaleLines(scales);
 					didRemap = true;
 				}
 			}
 			else {//flowtype = 1
 				if(unsteadyFlowCache) {
+					//Undo scale factors
+					float unScales[3];
+					const float* scales = DataStatus::getInstance()->getStretchFactors();
+					for (int i = 0; i<3; i++) unScales[i] = 1./scales[i];
+					unsteadyFlowCache->scaleLines(unScales);
 					myFlowParams->mapColors(unsteadyFlowCache,timeStep, minFrame, myGLWindow->getActiveRegionParams());
+					unsteadyFlowCache->scaleLines(scales);
 					//First and last age can change with flow graphics.
 					firstDisplayAge = myFlowParams->getFirstDisplayFrame();
 					lastDisplayAge = myFlowParams->getLastDisplayFrame();
@@ -961,10 +973,20 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 	//Now we only rebuild the rgba's if we didn't build the flow lines
 	else if (!constColors) {
 		OK = true;
-		if (flowType != 1)
+		//Undo scale factors
+		float unScales[3];
+		const float* scales = DataStatus::getInstance()->getStretchFactors();
+		for (int i = 0; i<3; i++) unScales[i] = 1./scales[i];
+		if (flowType != 1){
+			steadyFlowCache[timeStep]->scaleLines(unScales);
 			myFlowParams->mapColors(steadyFlowCache[timeStep],timeStep, minFrame, rParams);
-		else 
+			steadyFlowCache[timeStep]->scaleLines(scales);
+		}
+		else {
+			unsteadyFlowCache->scaleLines(unScales);
 			myFlowParams->mapColors(unsteadyFlowCache,timeStep, minFrame, rParams);
+			unsteadyFlowCache->scaleLines(scales);
+		}
 	}
 	return OK;
 }
