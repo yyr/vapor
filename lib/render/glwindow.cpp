@@ -478,13 +478,6 @@ void GLWindow::renderScene(){
   float minFull[3] = {0.f,0.f,0.f};
   float maxFull[3] = {1.f,1.f,1.f};
   int timeStep = getActiveAnimationParams()->getCurrentTimestep();
-  // Move to trackball view of scene  
-  glMatrixMode(GL_MODELVIEW);
-  glPushMatrix();
-  glLoadIdentity();
-  placeLights();
-  printOpenGLError();
-  getTBall()->TrackballSetMatrix();
 
   //The prerender callback is set in the vizwin. 
   //It registers with the animation controller, 
@@ -606,7 +599,6 @@ void GLWindow::renderScene(){
     drawTimeAnnotation();
   } 
 
-  glPopMatrix();
 }
 void GLWindow::paintEvent(QPaintEvent*)
 {
@@ -619,7 +611,7 @@ void GLWindow::paintEvent(QPaintEvent*)
     renderMutex.unlock();
     return;
   }
-
+  nowPainting = true;
   qglClearColor(getBackgroundColor()); 
 	
   //Clear out in preparation for rendering
@@ -656,21 +648,32 @@ void GLWindow::paintEvent(QPaintEvent*)
   //Tell the animation we are starting.  If it returns false, we are not
   //being monitored by the animation controller
   //bool isControlled = AnimationController::getInstance()->beginRendering(winNum);
- int frameNum = getActiveAnimationParams()->getCurrentFrameNumber();
+  int frameNum = getActiveAnimationParams()->getCurrentFrameNumber();
   int timeStep = getActiveAnimationParams()->getCurrentTimestep();	
+  if (getActiveViewpointParams()->isLatLon()&& timeStep != previousTimeStep){
+    setViewerCoordsChanged(true);
+    getActiveViewpointParams()->convertLocalFromLonLat(timeStep);
+    setValuesFromGui(getActiveViewpointParams());
+  }
+  // Move to trackball view of scene  
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+  placeLights();
+  printOpenGLError();
+  getTBall()->TrackballSetMatrix();
+  isControlled = preRenderCB(winNum, viewerCoordsChanged()); 
+
+  if (viewerCoordsChanged()){ 
+    setRenderNew();
+    setViewerCoordsChanged(false);
+  }
   //make sure to capture whenever the time step or frame index changes
   if (timeStep != previousTimeStep || frameNum != previousFrameNum) {
     setRenderNew();
     previousTimeStep = timeStep;
     previousFrameNum = frameNum;
   }
-  nowPainting = true;
-
-  if (viewerCoordsChanged()){ 
-    setRenderNew();
-    setViewerCoordsChanged(false);
-  }
-  isControlled = preRenderCB(winNum, viewerCoordsChanged());	
   //If we are visualizing in latLon space, must update the local coordinates
   //and put them in the trackball, prior to setting up the trackball.
 
@@ -683,12 +686,6 @@ void GLWindow::paintEvent(QPaintEvent*)
     getActiveViewpointParams()->setCurrentViewpoint(newViewpoint);
     setValuesFromGui(getActiveViewpointParams());
   } else if (vizIsDirty(NavigatingBit)){  //If the viewpoint is set by animation keyframing
-    setValuesFromGui(getActiveViewpointParams());
-  }
-
-  if (getActiveViewpointParams()->isLatLon()&& timeStep != previousTimeStep){
-    setViewerCoordsChanged(true);
-    getActiveViewpointParams()->convertLocalFromLonLat(timeStep);
     setValuesFromGui(getActiveViewpointParams());
   }
   printOpenGLError();
@@ -845,6 +842,7 @@ void GLWindow::paintEvent(QPaintEvent*)
   }
   manager->disableEffect();
   printOpenGLError();
+  glPopMatrix();
   swapBuffers();
   glFlush();
   //clear dirty bits
@@ -865,6 +863,7 @@ void GLWindow::paintEvent(QPaintEvent*)
   renderMutex.unlock();
   //qWarning("calling postRenderCB at timestep %d in winnum %d",timeStep,winNum);
   postRenderCB(winNum, isControlled);
+
   //Capture the back-buffer image, if not navigating:
   if (renderNew && !mouseDownHere) 
     doFrameCapture();	
