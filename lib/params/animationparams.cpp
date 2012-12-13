@@ -56,6 +56,8 @@ const string AnimationParams::_keyframeTag = "Keyframe";
 const string AnimationParams::_keySpeedAttr = "KeySpeed";
 const string AnimationParams::_keyTimestepAttr = "KeyTimestep";
 const string AnimationParams::_keyNumFramesAttr = "KeyNumFrames";
+const string AnimationParams::_keySynchToTimestepsAttr = "SynchToTimesteps";
+const string AnimationParams::_keyTimestepsPerFrameAttr = "TimestepsPerFrame";
 float AnimationParams::defaultMaxFPS = 10.f;
 float AnimationParams::defaultMaxWait = 6000.f;
 
@@ -408,6 +410,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		float speed = 0.1f;
 		int frameNum = 1;
 		int timestep = 0;
+		bool synched = false;
+		int timestepRate = 1;
 		
 		while (*attrs) {
 			string attribName = *attrs;
@@ -422,13 +426,20 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 			} else if (StrCmpNoCase(attribName, _keyNumFramesAttr) == 0) {
 				ist >> frameNum;
 			} 
+			else if (StrCmpNoCase(attribName, _keySynchToTimestepsAttr) == 0) {
+				if (value == "true") synched = true; else synched = false;
+			} 
+			else if (StrCmpNoCase(attribName, _keyTimestepsPerFrameAttr) == 0) {
+				ist >> timestepRate;
+			} 
 		}
 		
 		//parse its viewpoint node
 		Viewpoint* keyViewpoint = new Viewpoint();
 
 		Keyframe* parsingKeyframe = new Keyframe(keyViewpoint,speed,timestep,frameNum);
-		
+		parsingKeyframe->synch = synched;
+		parsingKeyframe->timestepsPerFrame = timestepRate;
 		keyframes.push_back(parsingKeyframe);
 		pm->pushClassStack(keyViewpoint);
 		return true;
@@ -554,6 +565,16 @@ buildNode(){
 		oss.str(empty);
 		oss << (double)keyframes[i]->speed;
 		attrs[_keySpeedAttr] = oss.str();
+		oss.str(empty);
+		oss << (long)keyframes[i]->timestepsPerFrame;
+		attrs[_keyTimestepsPerFrameAttr] = oss.str();
+		oss.str(empty);
+		if (keyframes[i]->synch)
+			oss << "true";
+		else 
+			oss << "false";
+		attrs[_keySynchToTimestepsAttr] = oss.str();
+		
 		ParamNode* viewpointNode = keyframes[i]->viewpoint->buildNode();
 		ParamNode* keyframeNode = new ParamNode(_keyframeTag, attrs,1);
 		keyframeNode->AddChild(viewpointNode);

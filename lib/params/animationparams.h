@@ -186,6 +186,7 @@ public:
 			endFrame=val;
 		}
 	}
+	
 	float getMaxWait(){return maxWait;}
 	bool isRepeating() {return repeatPlay;}
 	void setRepeating(bool onOff){repeatPlay = onOff;}
@@ -237,6 +238,8 @@ protected:
 	static const string _keySpeedAttr;
 	static const string _keyTimestepAttr;
 	static const string _keyNumFramesAttr;
+	static const string _keySynchToTimestepsAttr;
+	static const string _keyTimestepsPerFrameAttr;
 
 
 	int playDirection; //-1, 0, or 1
@@ -271,12 +274,15 @@ class Keyframe{
 public:
 	Keyframe(Viewpoint* vp, float spd, int ts, int fnum){
 		viewpoint = vp; speed = spd; timeStep = ts; numFrames = fnum; stationaryFlag = false;
+		synch = false; timestepsPerFrame = 1;
 	}
 	Viewpoint* viewpoint;
 	float speed;
 	int timeStep;
 	int numFrames;
-	bool stationaryFlag;  
+	bool stationaryFlag; 
+	bool synch;
+	int timestepsPerFrame;
 };
 };
 

@@ -174,6 +174,8 @@ AnimationEventRouter::hookUpTab()
 	connect (speedEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
 
 	connect (keyIndexSpin, SIGNAL(valueChanged(int)),this, SLOT(guiChangeKeyIndex(int)));
+	connect (timestepRateSpin, SIGNAL(valueChanged(int)),this, SLOT(guiChangeTimestepsPerFrame(int)));
+	connect (synchCheckBox, SIGNAL(toggled(bool)),this,SLOT(guiSynchToFrame(bool)));
 	connect (enableKeyframeCheckBox, SIGNAL(toggled(bool)),this,SLOT(guiEnableKeyframing(bool)));
 	connect (adjustKeyButton, SIGNAL(clicked()), this, SLOT(guiChangeKeyframe()));
 	connect (deleteButton, SIGNAL(clicked()), this, SLOT(guiDeleteKeyframe()));
@@ -857,6 +859,10 @@ void AnimationEventRouter::guiEnableKeyframing(bool enabled){
 	VizWinMgr::getInstance()->animationParamsChanged(aParams);
 	VizWinMgr::getInstance()->setAnimationDirty(aParams);
 	updateTab();
+}
+void AnimationEventRouter::guiSynchToFrame(bool val){
+}
+void AnimationEventRouter::guiChangeTimestepsPerFrame(int val){
 }
 void AnimationEventRouter::guiChangeKeyframe(){
 	confirmText(false);

@@ -116,6 +116,8 @@ protected slots:
 	//keyframing slots:
 	void guiChangeKeyIndex(int);
 	void guiEnableKeyframing(bool);
+	void guiSynchToFrame(bool);
+	void guiChangeTimestepsPerFrame(int);
 	void guiChangeKeyframe();
 	void guiDeleteKeyframe();
 	void guiInsertKeyframe();
