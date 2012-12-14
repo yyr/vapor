@@ -181,10 +181,10 @@ float* calcConst2DVar(float* rawData, const size_t dimsVDC[3], ROMS* roms, float
 		if(rawData[i]>maxval) maxval = rawData[i];
 		if (mappedData[i] == (float)ROMS::vaporMissingValue())
 			continue;
-		if (sample2DVar && sample2DVar[i] == (float)ROMS::vaporMissingValue()){
-			mappedData[i] = (float)ROMS::vaporMissingValue();
-			continue;
-		}
+//		if (sample2DVar && sample2DVar[i] == (float)ROMS::vaporMissingValue()){
+//			mappedData[i] = (float)ROMS::vaporMissingValue();
+//			continue;
+//		}
 		if(mappedData[i]<minval1) minval1 = mappedData[i];
 		if(mappedData[i]>maxval1) maxval1 = mappedData[i];
 	}
@@ -253,6 +253,7 @@ float * CalcElevation(int Vtransform, float* s_rho, float* Cs_r, float Tcline, f
 			}
 		}
 	}
+#ifdef	DEAD
 	//Set missing values, get max and min
 	maxElev = -1.e30f;
 	minElev = 1.e30f;
@@ -275,6 +276,7 @@ float * CalcElevation(int Vtransform, float* s_rho, float* Cs_r, float Tcline, f
 			}
 		}
 	}
+#endif
  	return z_r;
 }
 //
