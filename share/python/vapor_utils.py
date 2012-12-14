@@ -29,15 +29,10 @@ def mag2d(a1,a2):
 	from numpy import sqrt
 	return sqrt(a1*a1 + a2*a2)
 
-def deriv_findiff(a,dir,dx):
+def deriv_findiff2(a,dir,dx):
 	''' Function that calculates first-order derivatives 
-	using sixth order finite differences in regular Cartesian grids.
-	Calling sequence: deriv = deriv_findiff(ary,dir,delta)
-	ary is a 3-dimensional float32 numpy array
-	dir is 1, 2, or 3 (for X, Y, or Z directions in user coordinates)
-	delta is the grid spacing in the direction dir.
-	Returned array 'deriv' is the derivative of ary in the 
-	specified direction dir. '''
+	using 2nd order finite differences in regular Cartesian grids.'''
+
 	import numpy 
 	s = numpy.shape(a)	#size of the input array
 	aprime = numpy.array(a)	#output has the same size than input
@@ -46,6 +41,144 @@ def deriv_findiff(a,dir,dx):
 	# derivative for user dir=1, in python this is third coordinate
 	#
 	if dir == 1: 
+
+		#forward differences near the first boundary
+		for i in range(1):
+			aprime[:,:,i] = (-a[:,:,i]+a[:,:,i+1]) / (dx)     
+
+		#centered differences
+		for i in range(1,s[2]-1):
+			aprime[:,:,i] = (-a[:,:,i-1]+a[:,:,i+1])/(2*dx) 
+
+		#backward differences near the second boundary
+		for i in range(s[2]-1,s[2]):
+			aprime[:,:,i] = (a[:,:,i-1]-a[:,:,i]) /(dx)     
+
+	#
+	# derivative for dir=2
+	#
+	if dir == 2: 
+		#forward differences near the first boundary
+		for i in range(1):
+			aprime[:,i,:] = (-a[:,i,:]+a[:,i+1,:]) / (dx)     
+
+		#centered differences
+		for i in range(1,s[1]-1):
+			aprime[:,i,:] = (-a[:,i-1,:]+a[:,i+1,:])/(2*dx) 
+
+		#backward differences near the second boundary
+		for i in range(s[1]-1,s[1]):
+			aprime[:,i,:] = (a[:,i-1,:]-a[:,i,:]) /(dx)     
+
+	#
+	# derivative for user dir=3
+	#
+	if dir == 3:
+		#forward differences near the first boundary
+		for i in range(1):
+			aprime[i,:,:] = (-a[i,:,:]+a[i+1,:,:]) / (dx)     
+
+		#centered differences
+		for i in range(1,s[0]-1):
+			aprime[i,:,:] = (-a[i-1,:,:]+a[i+1,:,:])/(2*dx) 
+
+		#backward differences near the second boundary
+		for i in range(s[0]-1,s[0]):
+			aprime[i,:,:] = (a[i-1,:,:]-a[i,:,:]) /(dx)     
+
+	return aprime
+
+def deriv_findiff4(a,dir,dx):
+	''' Function that calculates first-order derivatives 
+	using 4th order finite differences in regular Cartesian grids.'''
+
+	import numpy 
+	s = numpy.shape(a)	#size of the input array
+	aprime = numpy.array(a)	#output has the same size than input
+
+	#
+	# derivative for user dir=1, in python this is third coordinate
+	#
+	if dir == 1: 
+
+		#forward differences near the first boundary
+		for i in range(2):
+			aprime[:,:,i] = (-3*a[:,:,i]+4*a[:,:,i+1]-a[:,:,i+2]) / (2*dx)     
+
+		#centered differences
+		for i in range(2,s[2]-2):
+			aprime[:,:,i] = (a[:,:,i-2]-8*a[:,:,i-1]+8*a[:,:,i+1]-a[:,:,i+2])/(12*dx) 
+
+		#backward differences near the second boundary
+		for i in range(s[2]-2,s[2]):
+			aprime[:,:,i] = (a[:,:,i-2]-4*a[:,:,i-1]+3*a[:,:,i]) /(2*dx)     
+
+	#
+	# derivative for dir=2
+	#
+	if dir == 2: 
+		#forward differences near the first boundary
+		for i in range(2):
+			aprime[:,i,:] = (-3*a[:,i,:]+4*a[:,i+1,:]-a[:,i+2,:]) / (2*dx)     
+
+		#centered differences
+		for i in range(2,s[1]-2):
+			aprime[:,i,:] = (a[:,i-2,:]-8*a[:,i-1,:]+8*a[:,i+1,:]-a[:,i+2,:])/(12*dx) 
+
+		#backward differences near the second boundary
+		for i in range(s[1]-2,s[1]):
+			aprime[:,i,:] = (a[:,i-2,:]-4*a[:,i-1,:]+3*a[:,i,:]) /(2*dx)     
+
+	#
+	# derivative for user dir=3
+	#
+	if dir == 3:
+		#forward differences near the first boundary
+		for i in range(2):
+			aprime[i,:,:] = (-3*a[i,:,:]+4*a[i+1,:,:]-a[i+2,:,:]) / (2*dx)     
+
+		#centered differences
+		for i in range(2,s[0]-2):
+			aprime[i,:,:] = (a[i-2,:,:]-8*a[i-1,:,:]+8*a[i+1,:,:]-a[i+2,:,:])/(12*dx) 
+
+		#backward differences near the second boundary
+		for i in range(s[0]-2,s[0]):
+			aprime[i,:,:] = (a[i-2,:,:]-4*a[i-1,:,:]+3*a[i,:,:]) /(2*dx)     
+
+
+	return aprime
+
+def deriv_findiff(a,dir,dx,order=6):
+	''' Function that calculates first-order derivatives 
+	using sixth order finite differences in regular Cartesian grids.
+	Calling sequence: deriv = deriv_findiff(ary,dir,delta, order=6)
+	ary is a 3-dimensional float32 numpy array
+	dir is 1, 2, or 3 (for X, Y, or Z directions in user coordinates)
+	delta is the grid spacing in the direction dir.
+	order is the accuracy order (one of 6,4,2)
+	Returned array 'deriv' is the derivative of ary in the 
+	specified direction dir. '''
+	import numpy 
+
+	if order == 4:
+		return deriv_findiff4(a,dir,dx)
+
+	if order == 2:
+		return deriv_findiff2(a,dir,dx)
+
+	s = numpy.shape(a)	#size of the input array
+	aprime = numpy.array(a)	#output has the same size than input
+
+	#
+	# derivative for user dir=1, in python this is third coordinate
+	#
+	if dir == 1: 
+		if (s[2] < 2):
+			return numpy.zeros_like(a)
+		if (s[2] < 4):
+			return deriv_findiff2(a,dir,dx)
+		if (s[2] < 6):
+			return deriv_findiff4(a,dir,dx)
 
 		#forward differences near the first boundary
 		for i in range(3):
@@ -63,6 +196,13 @@ def deriv_findiff(a,dir,dx):
 	# derivative for dir=2
 	#
 	if dir == 2: 
+		if (s[1] < 2):
+			return numpy.zeros_like(a)
+		if (s[1] < 4):
+			return deriv_findiff2(a,dir,dx)
+		if (s[1] < 6):
+			return deriv_findiff4(a,dir,dx)
+
 		for i in range(3):
 			aprime[:,i,:] = (-11*a[:,i,:]+18*a[:,i+1,:]-9*a[:,i+2,:]+2*a[:,i+3,:]) /(6*dx)     #forward differences near the first boundary
 
@@ -76,6 +216,13 @@ def deriv_findiff(a,dir,dx):
 	# derivative for user dir=3
 	#
 	if dir == 3:
+		if (s[0] < 2):
+			return numpy.zeros_like(a)
+		if (s[0] < 4):
+			return deriv_findiff2(a,dir,dx)
+		if (s[0] < 6):
+			return deriv_findiff4(a,dir,dx)
+
 		for i in range(3):
 			aprime[i,:,:] = (-11*a[i,:,:]+18*a[i+1,:,:]-9*a[i+2,:,:]+2*a[i+3,:,:]) /(6*dx)     #forward differences near the first boundary
 
@@ -87,20 +234,150 @@ def deriv_findiff(a,dir,dx):
 
 	return aprime
 
-def deriv_var_findiff(a,var,dir):
+def deriv_var_findiff2(a,var,dir):
+	''' Function that calculates first-order derivatives 
+	using 2nd order finite differences in regular Cartesian grids.'''
+
+	import numpy 
+	s = numpy.shape(a)	#size of the input array
+	aprime = numpy.array(a)	#output has the same size than input
+
+	#
+	# derivative for user dir=1, in python this is third coordinate
+	#
+	if dir == 1: 
+
+		#forward differences near the first boundary
+		for i in range(1):
+			aprime[:,:,i] = (-a[:,:,i]+a[:,:,i+1]) / (-var[:,:,i]+var[:,:,i+1]) 
+
+		#centered differences
+		for i in range(1,s[2]-1):
+			aprime[:,:,i] = (-a[:,:,i-1]+a[:,:,i+1])/(-var[:,:,i-1]+var[:,:,i+1])
+
+		#backward differences near the second boundary
+		for i in range(s[2]-1,s[2]):
+			aprime[:,:,i] = (a[:,:,i-1]-a[:,:,i]) / (var[:,:,i-1]-var[:,:,i])
+
+	#
+	# derivative for dir=2
+	#
+	if dir == 2: 
+		#forward differences near the first boundary
+		for i in range(1):
+			aprime[:,i,:] = (-a[:,i,:]+a[:,i+1,:]) / (-var[:,i,:]+var[:,i+1,:]) 
+
+		#centered differences
+		for i in range(1,s[1]-1):
+			aprime[:,i,:] = (-a[:,i-1,:]+a[:,i+1,:])/(-var[:,i-1,:]+var[:,i+1,:])
+
+		#backward differences near the second boundary
+		for i in range(s[1]-1,s[1]):
+			aprime[:,i,:] = (a[:,i-1,:]-a[:,i,:]) / (var[:,i-1,:]-var[:,i,:])
+
+	#
+	# derivative for user dir=3
+	#
+	if dir == 3:
+		#forward differences near the first boundary
+		for i in range(1):
+			aprime[i,:,:] = (-a[i,:,:]+a[i+1,:,:]) / (-var[i,:,:]+var[i+1,:,:])
+
+		#centered differences
+		for i in range(1,s[0]-1):
+			aprime[i,:,:] = (-a[i-1,:,:]+a[i+1,:,:])/ (-var[i-1,:,:]+var[i+1,:,:])
+
+		#backward differences near the second boundary
+		for i in range(s[0]-1,s[0]):
+			aprime[i,:,:] = (a[i-1,:,:]-a[i,:,:]) / (var[i-1,:,:]-var[i,:,:])
+
+	return aprime
+
+
+
+def deriv_var_findiff4(a,var,dir):
+	''' Function that calculates first-order derivatives of a 	variable 
+	with respect to another variable 'var' 
+	using 4th order finite differences in regular Cartesian grids.'''
+
+	import numpy 
+	s = numpy.shape(a)	#size of the input array
+	aprime = numpy.array(a)	#output has the same size than input
+
+	#
+	# derivative for user dir=1, in python this is third coordinate
+	#
+	if dir == 1: 
+
+		#forward differences near the first boundary
+		for i in range(2):
+			aprime[:,:,i] = (-3*a[:,:,i]+4*a[:,:,i+1]-a[:,:,i+2]) / (-3*var[:,:,i]+4*var[:,:,i+1]-var[:,:,i+2]) 
+
+		#centered differences
+		for i in range(2,s[2]-2):
+			aprime[:,:,i] = (a[:,:,i-2]-8*a[:,:,i-1]+8*a[:,:,i+1]-a[:,:,i+2])/(var[:,:,i-2]-8*var[:,:,i-1]+8*var[:,:,i+1]-var[:,:,i+2])
+
+		#backward differences near the second boundary
+		for i in range(s[2]-2,s[2]):
+			aprime[:,:,i] = (a[:,:,i-2]-4*a[:,:,i-1]+3*a[:,:,i]) / (var[:,:,i-2]-4*var[:,:,i-1]+3*var[:,:,i])
+
+	#
+	# derivative for dir=2
+	#
+	if dir == 2: 
+		#forward differences near the first boundary
+		for i in range(2):
+			aprime[:,i,:] = (-3*a[:,i,:]+4*a[:,i+1,:]-a[:,i+2,:]) / (-3*var[:,i,:]+4*var[:,i+1,:]-var[:,i+2,:])
+
+		#centered differences
+		for i in range(2,s[1]-2):
+			aprime[:,i,:] = (a[:,i-2,:]-8*a[:,i-1,:]+8*a[:,i+1,:]-a[:,i+2,:])/ (var[:,i-2,:]-8*var[:,i-1,:]+8*var[:,i+1,:]-var[:,i+2,:])
+
+		#backward differences near the second boundary
+		for i in range(s[1]-2,s[1]):
+			aprime[:,i,:] = (a[:,i-2,:]-4*a[:,i-1,:]+3*a[:,i,:]) / (var[:,i-2,:]-4*var[:,i-1,:]+3*var[:,i,:])
+
+	#
+	# derivative for user dir=3
+	#
+	if dir == 3:
+		#forward differences near the first boundary
+		for i in range(2):
+			aprime[i,:,:] = (-3*a[i,:,:]+4*a[i+1,:,:]-a[i+2,:,:]) / (-3*var[i,:,:]+4*var[i+1,:,:]-var[i+2,:,:])
+
+		#centered differences
+		for i in range(2,s[0]-2):
+			aprime[i,:,:] = (a[i-2,:,:]-8*a[i-1,:,:]+8*a[i+1,:,:]-a[i+2,:,:])/ (var[i-2,:,:]-8*var[i-1,:,:]+8*var[i+1,:,:]-var[i+2,:,:])
+
+		#backward differences near the second boundary
+		for i in range(s[0]-2,s[0]):
+			aprime[i,:,:] = (a[i-2,:,:]-4*a[i-1,:,:]+3*a[i,:,:]) / (var[i-2,:,:]-4*var[i-1,:,:]+3*var[i,:,:])
+
+
+	return aprime
+
+def deriv_var_findiff(a,var,dir,order=6):
 	''' Function that calculates first-order derivatives of a 	variable 
 	with respect to another variable 'var' 
 	using sixth order finite differences in regular Cartesian grids.
 	The variable var should be increasing or decreasing in the
 	specified coordinate. 
-	Calling sequence: aprime = deriv_var_findiff(a,var,dir)
+	Calling sequence: aprime = deriv_var_findiff(a,var,dir,order)
 	a and var are 3-dimensional float32 numpy arrays
 	dir is 1, 2, or 3 (for X, Y, or Z directions in user coords.
+	order is the accuracy order, one of (2,4 or 6)
 	Note that these correspond to Z,Y,X directions in python coords.
 
 	Returned array 'aprime' is the derivative of a wrt var. '''
 
 	import numpy 
+
+	if order == 4:
+		return deriv_var_findiff4(a,var,dir)
+
+	if order == 2:
+		return deriv_var_findiff2(a,var,dir)
+
 	s = numpy.shape(a)	#size of the input array
 	aprime = numpy.array(a)	#output has the same size than input
 
@@ -108,6 +385,12 @@ def deriv_var_findiff(a,var,dir):
 	# derivative for dir=1
 	#
 	if dir == 1: 
+		if (s[2] < 2):
+			return numpy.zeros_like(a)
+		if (s[2] < 4):
+			return deriv_var_findiff2(a,var,dir)
+		if (s[2] < 6):
+			return deriv_var_findiff4(a,var,dir)
 
 		#forward differences near the first boundary
 		for i in range(3):
@@ -125,6 +408,13 @@ def deriv_var_findiff(a,var,dir):
 	# derivative for dir=2
 	#
 	if dir == 2: 
+		if (s[1] < 2):
+			return numpy.zeros_like(a)
+		if (s[1] < 4):
+			return deriv_var_findiff2(a,var,dir)
+		if (s[1] < 6):
+			return deriv_var_findiff4(a,var,dir)
+
 		for i in range(3):
 			aprime[:,i,:] = (-11*a[:,i,:]+18*a[:,i+1,:]-9*a[:,i+2,:]+2*a[:,i+3,:]) /(-11*var[:,i,:]+18*var[:,i+1,:]-9*var[:,i+2,:]+2*var[:,i+3,:])      #forward differences near the first boundary
 
@@ -138,6 +428,13 @@ def deriv_var_findiff(a,var,dir):
 	# derivative for dir=3
 	#
 	if dir == 3:
+		if (s[0] < 2):
+			return numpy.zeros_like(a)
+		if (s[0] < 4):
+			return deriv_var_findiff2(a,var,dir)
+		if (s[0] < 6):
+			return deriv_var_findiff4(a,var,dir)
+
 		for i in range(3):
 			aprime[i,:,:] = (-11*a[i,:,:]+18*a[i+1,:,:]-9*a[i+2,:,:]+2*a[i+3,:,:]) /(-11*var[i,:,:]+18*var[i+1,:,:]-9*var[i+2,:,:]+2*var[i+3,:,:])     #forward differences near the first boundary
 
@@ -149,13 +446,14 @@ def deriv_var_findiff(a,var,dir):
 
 	return aprime
 
-def curl_findiff(A,B,C):
+def curl_findiff(A,B,C,order=6):
 	''' Operator that calculates the curl of a vector field 
 	using 6th order finite differences, on a regular Cartesian grid.
-	Calling sequence:  curlfield = curl_findiff(A,B,C)
+	Calling sequence:  curlfield = curl_findiff(A,B,C,order)
 	Where:
 	A,B,C are three 3-dimensional float32 arrays that define a
 	vector field.  
+	order is the accuracy order (6,4, or 2)
 	curlfield is a 3-tuple of 3-dimensional float32 arrays that is 
 	returned by this operator.'''
 	import vapor
@@ -166,28 +464,29 @@ def curl_findiff(A,B,C):
 	dy =  (usrmax[1]-usrmin[1])/ext[1]
 	dz =  (usrmax[0]-usrmin[0])/ext[0]
 	
-	aux1 = deriv_findiff(C,2,dy)       #x component of the curl
-	aux2 = deriv_findiff(B,3,dz)     
+	aux1 = deriv_findiff(C,2,dy,order)       #x component of the curl
+	aux2 = deriv_findiff(B,3,dz,order)     
 	outx = aux1-aux2						
 
-	aux1 = deriv_findiff(A,3,dz)       #y component of the curl
-	aux2 = deriv_findiff(C,1,dx)
+	aux1 = deriv_findiff(A,3,dz,order)       #y component of the curl
+	aux2 = deriv_findiff(C,1,dx,order)
 	outy = aux1-aux2
 
-	aux1 = deriv_findiff(B,1,dx)       #z component of the curl
-	aux2 = deriv_findiff(A,2,dy)
+	aux1 = deriv_findiff(B,1,dx,order)       #z component of the curl
+	aux2 = deriv_findiff(A,2,dy,order)
 	outz = aux1-aux2
 
 	return outx, outy, outz     	#return results in user coordinate order
 
 
 # Calculate divergence
-def div_findiff(A,B,C):
+def div_findiff(A,B,C,order=6):
 	''' Operator that calculates the divergence of a vector field
 	using 6th order finite differences.
 	Calling sequence:  DIV = div_findiff(A,B,C)
 	Where:
 	A, B, and C are 3-dimensional float32 arrays defining a vector field.
+	order is the accuracy order, one of (6,4, or 2)
 	Resulting DIV is a 3-dimensional float3d array consisting of
 	the divergence of the triple (A,B,C).'''
 	import vapor
@@ -198,15 +497,16 @@ def div_findiff(A,B,C):
         dy = (usrmax[1]-usrmin[1])/ext[1]
         dz = (usrmax[0]-usrmin[0])/ext[0]
 # in User coords, A,B,C are x,y,z components
-        return deriv_findiff(C,3,dz)+deriv_findiff(B,2,dy)+deriv_findiff(A,1,dx)
+        return deriv_findiff(C,3,dz,order)+deriv_findiff(B,2,dy,order)+deriv_findiff(A,1,dx,order)
 
 
-def grad_findiff(A):
+def grad_findiff(A,order=6):
 	''' Operator that calculates the gradient of a scalar field 
 	using 6th order finite differences.
 	Calling sequence:  GRD = grad_findiff(A)
 	Where:
 	A is a float32 array defining a scalar field.
+	order is the accuracy order, one of (6,4,or 2)
 	Result GRD is a triple of 3 3-dimensional float3d arrays consisting of
 	the gradient of A.'''
 	import vapor
@@ -217,9 +517,9 @@ def grad_findiff(A):
 	dy =  (usrmax[1]-usrmin[1])/ext[1]
 	dz =  (usrmax[0]-usrmin[0])/ext[0]# user z
 
-	aux1 = deriv_findiff(A,1,dx)       #x component of the gradient (in python system)
-	aux2 = deriv_findiff(A,2,dy)
-	aux3 = deriv_findiff(A,3,dz)
+	aux1 = deriv_findiff(A,1,dx,order)       #x component of the gradient (in python system)
+	aux2 = deriv_findiff(A,2,dy,order)
+	aux3 = deriv_findiff(A,3,dz,order)
 	
 	return aux1,aux2,aux3 # return in user coordinate (x,y,z) order
 
@@ -228,9 +528,9 @@ def grad_findiff(A):
 # The second variable must decrease
 # as a function of z (elevation).  The returned value is a 2D variable having
 # values interpolated to the surface defined by PR = val
+# Sweep array from bottom to top
 def interp3d(A,PR,val):
-#Sweep array from bottom to top
-	import numpy
+	import numpy 
 	s = numpy.shape(PR)	#size of the input arrays
 	ss = [s[1],s[2]] # shape of 2d arrays
 	interpVal = numpy.empty(ss,numpy.float32)
@@ -262,7 +562,7 @@ def vector_rotate(angleRad, latDeg, u, v):
 	rotfield is a 2-tuple of 3-dimensional float32 arrays,
 	representing rotation of u,v, returned by this operator.
 	''' 	
-	from numpy import *
+	import numpy 
 	import math
 	umod = cos(angleRad)*u + sin(angleRad)*v
 	vmod = -sin(angleRad)*u + cos(angleRad)*v
