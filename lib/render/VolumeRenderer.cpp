@@ -186,6 +186,7 @@ bool VolumeRenderer::supported(DvrParams::DvrType type)
   {
      case DvrParams::DVR_TEXTURE3D_LOOKUP:
      {
+return(false);
  //      return DVRLookup::supported();
      }
 
