@@ -66,6 +66,7 @@ public:
 	static bool savePreferences(const char* filename);
 	static bool loadDefault();
 	static void setDefault();
+	static bool depthPeelIsInState(){return depthPeelInState;}
 	
 signals: 
 	void doneWithIt();
@@ -174,7 +175,7 @@ protected:
 	static const string _lockWinAttr;
 	static const string _depthPeelAttr;
 
-
+	static bool depthPeelInState;
 
 	//Copy data from session to dialog
 	void setDialog();

@@ -150,7 +150,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 {
 	setAttribute(Qt::WA_DeleteOnClose);
 	theMainForm = this;
-	
+	firstSession=true;
 	theApp = app;
 
 	interactiveRefinementSpin = 0;
@@ -1137,6 +1137,8 @@ void MainForm::newSession()
 	Session::getInstance()->resetMetadata(files, false, false);
 	//Reload preferences:
 	UserPreferences::loadDefault();
+	if (firstSession) GLWindow::enableDepthPeeling(UserPreferences::depthPeelIsInState());
+	firstSession = false;
 	PythonEdit::loadUserStartupScript();
 	MessageReporter::getInstance()->resetCounts();
 	

@@ -125,6 +125,7 @@ const string UserPreferences::_defaultShowTerrainAttr = "DefaultShowTerrain";
 const string UserPreferences::_defaultSpinAnimateAttr = "DefaultEnableSpin";
 
 string UserPreferences::preferencesVersionString = "";
+bool UserPreferences::depthPeelInState = false;
 
 //Create a new UserPreferences
 UserPreferences::UserPreferences() : QDialog(0), Ui_Preferences(){
@@ -721,7 +722,7 @@ setDialog(){
 	winWidth = ses->getLockWinWidth();
 	winHeight = ses->getLockWinHeight();
 	lockWin = ses->getWindowSizeLock();
-	depthPeel = GLWindow::depthPeelEnabled();
+	depthPeel = depthPeelInState;
 	depthPeelingCheckbox->setChecked(depthPeel);
 	cacheSizeEdit->setText(QString::number(ses->getCacheMB()));
 	winWidthEdit->setText(QString::number(winWidth));
@@ -906,7 +907,7 @@ applyToState(){
 		ses->setCitationRemind(citationRemind);
 	}
 	GLWindow::setJpegQuality(jpegQuality);
-	GLWindow::enableDepthPeeling(depthPeel);
+	depthPeelInState = depthPeel;
 	DataStatus::setWarnMissingData(warnDataMissing);
 	DataStatus::setTrackMouse(trackMouse);
 	DataStatus::setUseLowerAccuracy(useLowerRefinement);
@@ -1097,7 +1098,7 @@ ParamNode* UserPreferences::buildNode(){
 		oss << "false";
 	attrs[_lockWinAttr] = oss.str();
 	oss.str(empty);
-	if (GLWindow::depthPeelEnabled())
+	if (depthPeelInState)
 		oss << "true";
 	else 
 		oss << "false";
@@ -1428,7 +1429,7 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 					ist >> boolVal;
 					if (boolVal == "true") val = true;
 					else val = false;
-					GLWindow::enableDepthPeeling(val);
+					depthPeelInState = val;
 					depthPeel=val;
 				}
 				else if (StrCmpNoCase(attr, Session::_textureSizeAttr) == 0){
