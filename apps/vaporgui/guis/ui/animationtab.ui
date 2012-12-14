@@ -1319,6 +1319,9 @@ Time steps</string>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
                 </property>
+                <property name="minimum">
+                 <number>1</number>
+                </property>
                 <property name="value">
                  <number>1</number>
                 </property>

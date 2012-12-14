@@ -396,6 +396,9 @@ void AnimationEventRouter::updateTab(){
 	
 	frameIndexEdit->setText(QString::number(aParams->getFrameIndex(currentKeyIndex)));
 	speedEdit->setText(QString::number(kf->speed));
+	speedEdit->setEnabled(currentKeyIndex > 0 && !kf->synch);
+	timestepRateSpin->setValue(kf->timestepsPerFrame);
+	timestepRateSpin->setEnabled(kf->synch && currentKeyIndex > 0);
 	enableKeyframeCheckBox->setChecked(aParams->keyframingEnabled());
 	if (aParams->keyframingEnabled()){
 		minframeLabel->setText("Min Frame:");
@@ -861,8 +864,51 @@ void AnimationEventRouter::guiEnableKeyframing(bool enabled){
 	updateTab();
 }
 void AnimationEventRouter::guiSynchToFrame(bool val){
+	confirmText(false);
+	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
+	
+	currentKeyIndex = keyIndexSpin->value();
+	if (currentKeyIndex == 0) return;
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "toggle match frame to time step");
+	Keyframe* kf = aParams->getKeyframe(currentKeyIndex);
+	if (val){
+		Keyframe* prevkf = aParams->getKeyframe(currentKeyIndex-1);
+		int timeDiff = kf->timeStep - prevkf->timeStep;
+		//Make speed read-only
+		speedEdit->setEnabled(false);
+		timestepRateSpin->setEnabled(true);
+		int timestepsPerFrame = kf->timestepsPerFrame;
+		//Make frame count equal to timeDiff/timestepsPerFrame
+		int frameDiff = abs(timeDiff)/timestepsPerFrame;
+		if (frameDiff < 1) frameDiff = 1;
+		numFramesEdit->setText(QString::number(frameDiff));
+		kf->synch = true;
+	} else {
+		//Make speed r/w
+		speedEdit->setEnabled(true);
+		timestepRateSpin->setEnabled(false);
+		kf->synch = false;
+	}
+	PanelCommand::captureEnd(cmd, aParams);
+	updateTab();
 }
 void AnimationEventRouter::guiChangeTimestepsPerFrame(int val){
+	confirmText(false);
+	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "change time steps per frame");
+	currentKeyIndex = keyIndexSpin->value();
+	if (currentKeyIndex == 0) return;
+	Keyframe* kf = aParams->getKeyframe(currentKeyIndex);
+	int timestepsPerFrame = val;
+	Keyframe* prevkf = aParams->getKeyframe(currentKeyIndex-1);
+	int timeDiff = kf->timeStep - prevkf->timeStep;
+	//Make frame count equal to timeDiff/timestepsPerFrame
+	int frameDiff = abs(timeDiff)/timestepsPerFrame;
+	if (frameDiff < 1) frameDiff = 1;
+	numFramesEdit->setText(QString::number(frameDiff));
+	kf->timestepsPerFrame = val;
+	PanelCommand::captureEnd(cmd, aParams);
+	updateTab();
 }
 void AnimationEventRouter::guiChangeKeyframe(){
 	confirmText(false);
@@ -879,7 +925,8 @@ void AnimationEventRouter::guiChangeKeyframe(){
 	delete kf->viewpoint;
 	kf->viewpoint = new Viewpoint(*vp);
 	kf->timeStep = aParams->getCurrentTimestep();
-	
+	speedEdit->setEnabled(true);
+	timestepRateSpin->setEnabled(true);
 	//speed and framenum are unchanged;
 	fixKeyframes();
 	aParams->buildViewsAndTimes();
@@ -906,6 +953,7 @@ void AnimationEventRouter::guiDeleteKeyframe(){
 		keyIndexSpin->setValue(currentKeyIndex-1);
 		currentKeyIndex--;
 	}
+
 	aParams->buildViewsAndTimes();
 	PanelCommand::captureEnd(cmd, aParams);
 	updateTab();
