@@ -345,10 +345,6 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 	int lod = currentRenderParams->GetCompressionLevel();
 	if (ds->useLowerAccuracy()) lod = Min(lod,ds->maxLODPresent3D(varNum, timeStep));
 	bool lodDirty = false;
-	if (_lod != lod) {
-		_lod = lod;
-		lodDirty = true;
-	}
 
 	int reflevel;
 	bool reflevelDirty = false;
@@ -360,12 +356,17 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 		// "interactiveRefinementLevel if we're navigating
 		//
 		reflevel = Min(currentRenderParams->GetRefinementLevel(), DataStatus::getInteractiveRefinementLevel());
+		lod = 0;
 	} else {
 		reflevel = currentRenderParams->GetRefinementLevel();
 	}
 	if (_reflevel != reflevel) {
 		_reflevel = reflevel;
 		reflevelDirty = true;
+	}
+	if (_lod != lod) {
+		_lod = lod;
+		lodDirty = true;
 	}
 
 
