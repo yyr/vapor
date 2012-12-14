@@ -581,6 +581,7 @@ void DVRTexture3d::findVertexOrder(const Vect3d verts[6], int order[6],
 void DVRTexture3d::buildBricks(
 	const RegularGrid *rg, const float range[2], int num
 ) {
+  bool layered = ((dynamic_cast<const LayeredGrid *>(rg)) != NULL);
   size_t dims[3];
   rg->GetDimensions(dims);
   // 
@@ -678,13 +679,28 @@ void DVRTexture3d::buildBricks(
           // Set the extents of the brick's data box
           //
 
-          double x0,x1,y0,y1,z0,z1;
-          rg->GetUserCoordinates(broi[0], broi[1], broi[2], &x0,&y0,&z0);
-          rg->GetUserCoordinates(broi[3], broi[4], broi[5], &x1,&y1,&z1);
-          brick->dataMin(x0,y0,z0);
-          brick->dataMax(x1,y1,z1);
-          brick->volumeMin(x0,y0,z0);
-          brick->volumeMax(x1,y1,z1);
+          double extents[6];
+          rg->GetBoundingBox(broi, broi+3, extents);
+          if (layered) {
+
+            // For layered data the Z extents of neighboring bricks in X 
+            // and Y can vary substantially. Also, with ROMS data, for
+            // example, some bricks can be extremly thin in Z direction.
+            // This possibly results in precision errors that are corrected
+            // by the code below, which ensures all bricks in the same X-Y
+            // plane have the same Z extents.
+            //
+            size_t bottom[] = {0,0,broi[2]};
+            size_t top[] = {dims[0]-1, dims[1]-1,broi[5]};
+            double zexts[6];
+            rg->GetBoundingBox(bottom, top, zexts);
+            extents[2] = zexts[2];
+            extents[5] = zexts[5];
+          }
+          brick->dataMin(extents[0], extents[1], extents[2]);
+          brick->dataMax(extents[3], extents[4], extents[5]);
+          brick->volumeMin(extents[0], extents[1], extents[2]);
+          brick->volumeMax(extents[3], extents[4], extents[5]);
 
           //
           // Set the texture coordinates of the brick.
