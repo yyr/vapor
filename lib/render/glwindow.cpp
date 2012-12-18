@@ -815,7 +815,7 @@ void GLWindow::paintEvent(QPaintEvent*)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     manager->enableEffect("texSampler");
     printOpenGLError();
-    for (int i = maxbuffers; i > -1 ; i--){
+    for (int i = maxbuffers - 1; i > -1 ; i--){
       glBindTexture(GL_TEXTURE_2D, layers[i]);
       printOpenGLError();
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);

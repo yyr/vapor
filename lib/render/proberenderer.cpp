@@ -32,10 +32,10 @@
 #include <qapplication.h>
 #include <qcursor.h>
 #include "renderer.h"
-
+#include <sstream>
 using namespace VAPoR;
 GLint ProbeRenderer::_storedBuffer = 0;
-
+bool first = true;
 ProbeRenderer::ProbeRenderer(GLWindow* glw, ProbeParams* pParams )
 :Renderer(glw, pParams, "ProbeRenderer")
 {
@@ -84,24 +84,40 @@ void ProbeRenderer::paintGL()
 	int imgHeight = imgSize[1];
 	if (probeTex){
 		enableFullClippingPlanes();
-		
-		glMatrixMode(GL_TEXTURE);
-		glLoadIdentity();
-		glMatrixMode(GL_MODELVIEW);
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-		glBindTexture(GL_TEXTURE_2D, _probeTexid);
-		glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_BLEND);
-		glEnable(GL_TEXTURE_2D);
-		glEnable(GL_DEPTH_TEST);// will not correct blending, but will be OK wrt other opaque geometry.
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth,imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, probeTex);
-
-		//Do write to the z buffer
-		glDepthMask(GL_TRUE);
+		if(!myGLWindow->isDepthPeeling()){
+		  glMatrixMode(GL_TEXTURE);
+		  glLoadIdentity();
+		  glMatrixMode(GL_MODELVIEW);
+		  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		  glBindTexture(GL_TEXTURE_2D, _probeTexid);
+		  glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+		  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		  glEnable(GL_BLEND);
+		  glEnable(GL_TEXTURE_2D);
+		  glEnable(GL_DEPTH_TEST);// will not correct blending, but will be OK wrt other opaque geometry.
+		  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth,imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, probeTex);
+		  //Do write to the z buffer
+		  glDepthMask(GL_TRUE);
+		}
+		else { //depth peeling, fix order of operations, adjust GL state,  and remove unnecessary ones
+		  glDisable(GL_BLEND);
+		  glActiveTexture(GL_TEXTURE3);
+		  glEnable(GL_TEXTURE_2D);
+		  glBindTexture(GL_TEXTURE_2D, _probeTexid);
+		  glPolygonMode(GL_FRONT,GL_FILL);
+		  glEnable(GL_DEPTH_TEST);// will not correct blending, but will be OK wrt other opaque geometry.
+		  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth,imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, probeTex);
+		  //Do write to the z buffer
+		  glDepthMask(GL_TRUE);
+		  if(myGLWindow->currentLayer == 0)  first = true;
+		  else   first = false;
+		  myGLWindow->getShaderMgr()->uploadEffectData(instanceName(), "first",  (int)first);
+		}
 		
 	} else {
 		return;
@@ -123,13 +139,24 @@ void ProbeRenderer::paintGL()
 		}
 	}
 	//Draw the textured rectangle:
-	glBegin(GL_QUADS);
-	glTexCoord2f(0.f,0.f); glVertex3fv(midCorners[0]);
-	glTexCoord2f(0.f, 1.f); glVertex3fv(midCorners[2]);
-	glTexCoord2f(1.f,1.f); glVertex3fv(midCorners[3]);
-	glTexCoord2f(1.f, 0.f); glVertex3fv(midCorners[1]);
-	glEnd();
-	
+	if(!myGLWindow->isDepthPeeling()){
+	  glBegin(GL_QUADS);
+	  glTexCoord2f(0.f,0.f); glVertex3fv(midCorners[0]);
+	  glTexCoord2f(0.f, 1.f); glVertex3fv(midCorners[2]);
+	  glTexCoord2f(1.f,1.f); glVertex3fv(midCorners[3]);
+	  glTexCoord2f(1.f, 0.f); glVertex3fv(midCorners[1]);
+	  glEnd();
+	}
+	else{ //depth peeling, use texture shader to get around fixed function issues
+	  myGLWindow->getShaderMgr()->enableEffect(instanceName());
+	  glBegin(GL_QUADS);
+	  glMultiTexCoord2f(GL_TEXTURE3, 0.f,0.f); glVertex3fv(midCorners[0]);
+	  glMultiTexCoord2f(GL_TEXTURE3, 0.f, 1.f); glVertex3fv(midCorners[2]);
+	  glMultiTexCoord2f(GL_TEXTURE3, 1.f,1.f); glVertex3fv(midCorners[3]);
+	  glMultiTexCoord2f(GL_TEXTURE3, 1.f, 0.f); glVertex3fv(midCorners[1]);
+	  glEnd();
+	  myGLWindow->getShaderMgr()->disableEffect();
+	}
 	glFlush();
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
@@ -138,6 +165,11 @@ void ProbeRenderer::paintGL()
 }
 
 
+std::string ProbeRenderer::instanceName(){
+        ostringstream oss;
+        oss << "ProbeRenderer_" << this;
+        return(oss.str());
+}
 /*
   Set up the OpenGL rendering state, 
 */
@@ -149,6 +181,13 @@ void ProbeRenderer::initializeGL()
 	glGenTextures(1, &_probeTexid);
 	glGenTextures(1, &_fbTexid);
 	//glBindTexture(GL_TEXTURE_2D, _probeTexid);
+	if(myGLWindow->isDepthPeeling()){
+	  myGLWindow->getShaderMgr()->defineEffect("ProgTexture", "", instanceName());
+	  myGLWindow->getShaderMgr()->uploadEffectData(instanceName(), "image", 3);
+	  myGLWindow->getShaderMgr()->uploadEffectData(instanceName(), std::string("previousPass"), myGLWindow->depthTexUnit);
+	  myGLWindow->getShaderMgr()->uploadEffectData(instanceName(), std::string("height"), (float)myGLWindow->depthHeight);
+	  myGLWindow->getShaderMgr()->uploadEffectData(instanceName(), std::string("width"), (float)myGLWindow->depthWidth);	
+	}
 	if(GLEW_EXT_framebuffer_object) glGenFramebuffersEXT(1, &_framebufferid);
 		
 	

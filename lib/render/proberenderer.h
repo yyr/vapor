@@ -61,7 +61,7 @@ protected:
 	static GLint _storedBuffer;
 	static int makeIBFVPatterns(ProbeParams*, int prevListNum);
 	static void stepIBFVTexture(ProbeParams*, int timeStep, int frameNum, int listNum);
-	
+	std::string instanceName();		
 	
 
 };
