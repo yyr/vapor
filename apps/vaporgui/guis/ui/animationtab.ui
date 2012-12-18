@@ -1291,7 +1291,7 @@ p, li { white-space: pre-wrap; }
             <item>
              <widget class="QCheckBox" name="synchCheckBox">
               <property name="toolTip">
-               <string>Check to sychronize frame advance with time step advance</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check to sychronize frame advance with time step advance, between the previous keyframe and the current keyframe.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Advance with 
@@ -1314,13 +1314,10 @@ Time steps</string>
               <item>
                <widget class="QSpinBox" name="timestepRateSpin">
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Specify time step change per frame when frame numbers are advancing with time step.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Specify time step change per frame when frame numbers are advancing with time step, between the previous keyframe and the current keyframe.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
-                </property>
-                <property name="minimum">
-                 <number>1</number>
                 </property>
                 <property name="value">
                  <number>1</number>

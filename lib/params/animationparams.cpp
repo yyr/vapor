@@ -634,7 +634,7 @@ void AnimationParams::buildViewsAndTimes(){
 		float* campos1 = keyframes[i]->viewpoint->getCameraPosLocal();
 		float* campos2 = keyframes[i+1]->viewpoint->getCameraPosLocal();
 		float dist = vdist(campos1,campos2);
-		if (dist < 1.e-4 * sceneSize){
+		if (dist < 1.e-6 * sceneSize){
 			animKeyframes[i+1]->stationaryFlag = true;
 		} else {
 			animKeyframes[i+1]->stationaryFlag = false;

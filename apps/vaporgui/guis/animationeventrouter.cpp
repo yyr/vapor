@@ -824,6 +824,7 @@ void AnimationEventRouter::guiSetTimestep(int framenum){
 }
 
 void AnimationEventRouter::guiChangeKeyIndex(int keyIndex){
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	currentKeyIndex = keyIndex;
@@ -843,6 +844,7 @@ void AnimationEventRouter::guiChangeKeyIndex(int keyIndex){
 	keyframeTextChanged = false;
 }
 void AnimationEventRouter::guiEnableKeyframing(bool enabled){
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
@@ -864,6 +866,7 @@ void AnimationEventRouter::guiEnableKeyframing(bool enabled){
 	updateTab();
 }
 void AnimationEventRouter::guiSynchToFrame(bool val){
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	
@@ -889,10 +892,12 @@ void AnimationEventRouter::guiSynchToFrame(bool val){
 		timestepRateSpin->setEnabled(false);
 		kf->synch = false;
 	}
+	aParams->buildViewsAndTimes();
 	PanelCommand::captureEnd(cmd, aParams);
 	updateTab();
 }
 void AnimationEventRouter::guiChangeTimestepsPerFrame(int val){
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "change time steps per frame");
@@ -907,10 +912,12 @@ void AnimationEventRouter::guiChangeTimestepsPerFrame(int val){
 	if (frameDiff < 1) frameDiff = 1;
 	numFramesEdit->setText(QString::number(frameDiff));
 	kf->timestepsPerFrame = val;
+	aParams->buildViewsAndTimes();
 	PanelCommand::captureEnd(cmd, aParams);
 	updateTab();
 }
 void AnimationEventRouter::guiChangeKeyframe(){
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	confirmText(false);
 	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
 	if (vpParams->isLatLon()){
@@ -935,6 +942,7 @@ void AnimationEventRouter::guiChangeKeyframe(){
 	updateTab();
 }
 void AnimationEventRouter::guiDeleteKeyframe(){
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	int numkeys = aParams->getNumKeyframes();
@@ -959,6 +967,7 @@ void AnimationEventRouter::guiDeleteKeyframe(){
 	updateTab();
 }
 void AnimationEventRouter::guiInsertKeyframe(){
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
@@ -1022,6 +1031,7 @@ void AnimationEventRouter::guiInsertKeyframe(){
 }
 
 void AnimationEventRouter::guiGotoKeyframe(){
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
 	if (vpParams->isLatLon()){

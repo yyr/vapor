@@ -142,19 +142,47 @@ void animate::priorInterPolationCalcs(const std::vector<Keyframe*>& key_vec){
  
         //evaluate approximate camera positions using approx=true
   	    interpolate(T,  testPoints ,i, key_vec,true);
-  
+
+		//If synch is true, calculate the speed required to obtain the desired number of frames
+		bool speedOK = true;
+		if(key_vec[i+1]->synch){
+			//calculate the distance
+			float totDist = 0.;
+			for (int k=0; k<testPoints-1;k++){
+				totDist += sqrt (pow (approx_camPos[k+1].x - approx_camPos[i].x, 2) 
+					+ pow (approx_camPos[k+1].y - approx_camPos[k].y, 2) 
+					+ pow (approx_camPos[k+1].z - approx_camPos[k].z, 2));
+			}
+			int skipRate = (key_vec[i+1]->timestepsPerFrame);
+			int frameCount = (key_vec[i+1]->timeStep - key_vec[i]->timeStep)/skipRate;
+			assert(frameCount != 0);
+			float needSpeed = totDist/(float)(abs(frameCount));
+			//end speed plus start speed should average to needSpeed
+			float endSpeed = 2.*needSpeed - key_vec[i]->speed;
+			//If endSpeed is <0, we cannot smoothly vary speed.  Will just need to interpolate, with end speed = 0.
+			if (endSpeed >= 0) key_vec[i+1]->speed = endSpeed;
+			else {
+				key_vec[i+1]->speed = 0.f;
+				speedOK = false;
+			}
+		}
+		
         //calculate the intervals
-		if (!speedController(i,key_vec)){
-			//Nothing to interpolate.  Just push the starting keyframe into the output
-			Viewpoint* outVP = new Viewpoint(); 
-			//Start KeyFrame 
-			outVP->setCameraPosLocal(0, key_vec[i]->viewpoint->getCameraPosLocal(0)); outVP->setCameraPosLocal(1, key_vec[i]->viewpoint->getCameraPosLocal(1)); outVP->setCameraPosLocal(2, key_vec[i]->viewpoint->getCameraPosLocal(2));
+		if (speedOK){
+			if (!speedController(i,key_vec)){
+				//Nothing to interpolate.  Just push the starting keyframe into the output
+				Viewpoint* outVP = new Viewpoint(); 
+				//Start KeyFrame 
+				outVP->setCameraPosLocal(0, key_vec[i]->viewpoint->getCameraPosLocal(0)); outVP->setCameraPosLocal(1, key_vec[i]->viewpoint->getCameraPosLocal(1)); outVP->setCameraPosLocal(2, key_vec[i]->viewpoint->getCameraPosLocal(2));
     
-			outVP->setViewDir(0,key_vec[i]->viewpoint->getViewDir(0));  outVP->setViewDir(1,key_vec[i]->viewpoint->getViewDir(1));  outVP->setViewDir(2,key_vec[i]->viewpoint->getViewDir(2));
-			outVP->setUpVec(0,key_vec[i]->viewpoint->getUpVec(0));    outVP->setUpVec(1,key_vec[i]->viewpoint->getUpVec(1)); outVP->setUpVec(2,key_vec[i]->viewpoint->getUpVec(2)); 
-			outVP->setRotationCenterLocal(0,key_vec[i]->viewpoint->getRotationCenterLocal(0)); outVP->setRotationCenterLocal(1,key_vec[i]->viewpoint->getRotationCenterLocal(1)); outVP->setRotationCenterLocal(2,key_vec[i]->viewpoint->getRotationCenterLocal(2));
+				outVP->setViewDir(0,key_vec[i]->viewpoint->getViewDir(0));  outVP->setViewDir(1,key_vec[i]->viewpoint->getViewDir(1));  outVP->setViewDir(2,key_vec[i]->viewpoint->getViewDir(2));
+				outVP->setUpVec(0,key_vec[i]->viewpoint->getUpVec(0));    outVP->setUpVec(1,key_vec[i]->viewpoint->getUpVec(1)); outVP->setUpVec(2,key_vec[i]->viewpoint->getUpVec(2)); 
+				outVP->setRotationCenterLocal(0,key_vec[i]->viewpoint->getRotationCenterLocal(0)); outVP->setRotationCenterLocal(1,key_vec[i]->viewpoint->getRotationCenterLocal(1)); outVP->setRotationCenterLocal(2,key_vec[i]->viewpoint->getRotationCenterLocal(2));
     
-			outViewPoints.push_back(outVP);
+				outViewPoints.push_back(outVP);
+			}
+		} else {
+			//Do a quick and dirty interp to match frame numbers
 		}
      
      }
