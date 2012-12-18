@@ -126,6 +126,7 @@ const string UserPreferences::_defaultSpinAnimateAttr = "DefaultEnableSpin";
 
 string UserPreferences::preferencesVersionString = "";
 bool UserPreferences::depthPeelInState = false;
+bool UserPreferences::firstPreferences = true;
 
 //Create a new UserPreferences
 UserPreferences::UserPreferences() : QDialog(0), Ui_Preferences(){
@@ -646,6 +647,7 @@ void UserPreferences::winLockChanged(bool enabled){
 void UserPreferences::depthPeelChanged(bool enabled){
 	depthPeel = enabled;
 	dialogChanged = true;
+	MessageReporter::warningMsg("Note that this transparency change will not take effect until the preferences are saved and VAPOR GUI is restarted.");
 }
 void UserPreferences::subregionChanged(bool enabled){
 	subregionFrameEnabled = enabled;
@@ -2014,8 +2016,11 @@ bool UserPreferences::loadDefault(){
 		if (ok) {
 			MessageReporter::infoMsg("Loaded default preferences from %s",
 				prefFile.c_str());
+			if (firstPreferences) GLWindow::enableDepthPeeling(UserPreferences::depthPeelIsInState());
+			firstPreferences = false;
 			return true;
 		}
+		
 	}
 	
 	//Set preferences to defaults:

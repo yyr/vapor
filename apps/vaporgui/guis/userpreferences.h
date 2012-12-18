@@ -176,7 +176,7 @@ protected:
 	static const string _depthPeelAttr;
 
 	static bool depthPeelInState;
-
+	static bool firstPreferences;
 	//Copy data from session to dialog
 	void setDialog();
 	//Copy from dialog to session

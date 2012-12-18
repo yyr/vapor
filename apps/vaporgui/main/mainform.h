@@ -188,7 +188,7 @@ private:
 	QSpinBox* interactiveRefinementSpin;
 
     QDockWidget* tabDockWindow;
-	bool firstSession;
+	
 	
 	
 
