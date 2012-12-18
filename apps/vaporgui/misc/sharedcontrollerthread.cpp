@@ -256,12 +256,14 @@ run(){
 		}
 		
 		//Now wait for the completion of all overdue renderings.
-		//Give it up to 60 1-second waits
+		//Give it up one frame-wait-time waits
+		int ntries = 1+frameWaitTime/1000;
 		if (numOverdue > 0){
 			
-			for (tries = 0; tries< 61; tries++){
+			for (tries = 0; tries<ntries; tries++){
 				//myAnimationController->animationMutex.unlock();
-				myWaitCondition->wait(&myAnimationController->animationMutex,MAX_THREAD_WAIT);
+				//Wait one second each time; after ntries will have waited frameWaitTime ms
+				myWaitCondition->wait(&myAnimationController->animationMutex,1000);
 #ifdef ANIM_DEBUG
 				qWarning("Waiting for completion of overdue renderings");
 #endif
@@ -276,7 +278,7 @@ run(){
 				}
 				if (numOverdue == 0) break;
 
-				if (tries > 59) {
+				if (tries > ntries-1) {
 					//Stop the animation, don't give a warning message,
 					//That would interfere with other message boxes
 					//QMessageBox::warning(0, "Animation Blocked", 
@@ -308,7 +310,7 @@ run(){
 		bool frameAdvanced = false;
 		for (viznum = 0; viznum<MAXVIZWINS; viznum++){
 			if (myAnimationController->isActive(viznum)&&myAnimationController->isShared(viznum)){
-				assert(myAnimationController->renderFinished(viznum));
+				//assert(myAnimationController->renderFinished(viznum));
 				//has the animation stopped, or was the renderer disabled?
 				if ((!myVizWinMgr->getVizWin(viznum)) ||
 						(!myVizWinMgr->getAnimationParams(viznum)->isPlaying()) ||

@@ -187,7 +187,7 @@ endRendering(int vizNum){
 		}
 		return;
 	}
-	assert(renderStarted(vizNum));
+	//assert(renderStarted(vizNum));
 	//Set the flag indicating this rendering is done.
 	setFinishRender(vizNum);
 	
