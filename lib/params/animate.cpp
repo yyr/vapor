@@ -149,7 +149,7 @@ void animate::priorInterPolationCalcs(const std::vector<Keyframe*>& key_vec){
 			//calculate the distance
 			float totDist = 0.;
 			for (int k=0; k<testPoints-1;k++){
-				totDist += sqrt (pow (approx_camPos[k+1].x - approx_camPos[i].x, 2) 
+				totDist += sqrt (pow (approx_camPos[k+1].x - approx_camPos[k].x, 2) 
 					+ pow (approx_camPos[k+1].y - approx_camPos[k].y, 2) 
 					+ pow (approx_camPos[k+1].z - approx_camPos[k].z, 2));
 			}
@@ -164,6 +164,18 @@ void animate::priorInterPolationCalcs(const std::vector<Keyframe*>& key_vec){
 			else {
 				key_vec[i+1]->speed = 0.f;
 				speedOK = false;
+				//Solution (to be implemented):
+				//Find a cubic polynomial P(k) (k = 0...frameCount-1) to interpolate approx cam pos, such that:
+				// P(0) = 0
+				// P(frameCount-1) = testPoints -1
+				// P(frameCount-2) = P(frameCount-1) - so speed at end is 0
+				// Speed at start is S=key_vec[i]->speed; i.e. dist(approx_camPos[P(1)], approx_camPos[0]) = key_vec[i]->speed
+				// initially, just divide evenly:
+				float* T = new float[frameCount+1];
+				for (int k = 0; k<=frameCount; k++)
+					T[k] = (float)k * (1./(float)frameCount);
+				interpolate (T,frameCount,i, key_vec, false);
+				key_vec[i+1]->numFrames = frameCount;
 			}
 		}
 		
@@ -181,9 +193,7 @@ void animate::priorInterPolationCalcs(const std::vector<Keyframe*>& key_vec){
     
 				outViewPoints.push_back(outVP);
 			}
-		} else {
-			//Do a quick and dirty interp to match frame numbers
-		}
+		} 
      
      }
     

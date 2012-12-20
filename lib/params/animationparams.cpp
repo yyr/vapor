@@ -609,6 +609,8 @@ void AnimationParams::buildViewsAndTimes(){
 		Viewpoint* vp = new Viewpoint();
 		Keyframe* kFrame = new Keyframe(vp,keyframes[i]->speed * maxStretchedSize,keyframes[i]->timeStep,keyframes[i]->numFrames);
 		kFrame->stationaryFlag = keyframes[i]->stationaryFlag;
+		kFrame->synch = keyframes[i]->synch;
+		kFrame->timestepsPerFrame = keyframes[i]->timestepsPerFrame;
 		
 		Viewpoint* vkey = keyframes[i]->viewpoint;
 		for (int j = 0; j<3; j++){
@@ -627,7 +629,7 @@ void AnimationParams::buildViewsAndTimes(){
 		animKeyframes.push_back(kFrame);
 	}
 
-	//Set stationaryFlags
+	//Set stationary flags
 	DataStatus* ds = DataStatus::getInstance();
 	float sceneSize = vlength(ds->getFullSizes());
 	for (int i = animKeyframes.size()-2; i>= 0; i--){
@@ -645,9 +647,10 @@ void AnimationParams::buildViewsAndTimes(){
 	if (!myAnimate) myAnimate = new animate();
 
 	myAnimate->keyframeInterpolate(animKeyframes, loadedViewpoints);
-	//copy back the frame counts
+	//copy back the frame counts, speeds (if synchronized)
 	for (int i = 0; i<animKeyframes.size(); i++){
 		keyframes[i]->numFrames = animKeyframes[i]->numFrames;
+		if (keyframes[i]->synch) keyframes[i]->speed = animKeyframes[i]->speed/maxStretchedSize;
 	}
 	
 	//Undo stretch:
@@ -675,6 +678,7 @@ void AnimationParams::buildViewsAndTimes(){
 		int firstTstep = animKeyframes[i]->timeStep;
 		int nextTstep = animKeyframes[i+1]->timeStep;
 		int numFrames = animKeyframes[i+1]->numFrames;
+		if(animKeyframes[i+1]->synch) numFrames = (animKeyframes[i+1]->timeStep - animKeyframes[i]->timeStep);
 		for (int j = 1; j<numFrames; j++){
 			float frameFraction = (float)j/(float)(numFrames);
 			int tStep = (int)(0.4999+ (float)firstTstep + frameFraction*(nextTstep-firstTstep));

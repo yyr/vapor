@@ -391,8 +391,15 @@ void AnimationEventRouter::updateTab(){
 	currentKeyIndex = keyIndexSpin->value();
 	Keyframe* kf = aParams->getKeyframe(currentKeyIndex);
 	keyTimestepEdit->setText(QString::number(kf->timeStep));
-	
-	numFramesEdit->setText(QString::number(kf->numFrames));
+	synchCheckBox->setEnabled(currentKeyIndex > 0);
+	synchCheckBox->setChecked(kf->synch);
+	if (kf->synch){
+		assert(currentKeyIndex>0);
+		Keyframe* prevkf = aParams->getKeyframe(currentKeyIndex-1);
+		int tsDiff = abs(kf->timeStep - prevkf->timeStep)/kf->timestepsPerFrame;
+		numFramesEdit->setText(QString::number(tsDiff));
+	} else
+		numFramesEdit->setText(QString::number(kf->numFrames));
 	
 	frameIndexEdit->setText(QString::number(aParams->getFrameIndex(currentKeyIndex)));
 	speedEdit->setText(QString::number(kf->speed));
@@ -840,7 +847,9 @@ void AnimationEventRouter::guiChangeKeyIndex(int keyIndex){
 	} else {
 		numFramesEdit->setEnabled(false);
 	}
-
+	synchCheckBox->setEnabled(keyIndex > 0);
+	synchCheckBox->setChecked(kf->synch);
+	timestepRateSpin->setValue(kf->timestepsPerFrame);
 	keyframeTextChanged = false;
 }
 void AnimationEventRouter::guiEnableKeyframing(bool enabled){
@@ -872,11 +881,19 @@ void AnimationEventRouter::guiSynchToFrame(bool val){
 	
 	currentKeyIndex = keyIndexSpin->value();
 	if (currentKeyIndex == 0) return;
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "toggle match frame to time step");
 	Keyframe* kf = aParams->getKeyframe(currentKeyIndex);
+	if (kf->synch == val) return;
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "toggle synch frame to time step");
+	
 	if (val){
 		Keyframe* prevkf = aParams->getKeyframe(currentKeyIndex-1);
 		int timeDiff = kf->timeStep - prevkf->timeStep;
+		if (timeDiff == 0){
+			MessageReporter::errorMsg("The current and previous keyframes must have different time steps if time steps are matched to the frame counter");
+			synchCheckBox->setChecked(false);
+			delete cmd;
+			return;
+		}
 		//Make speed read-only
 		speedEdit->setEnabled(false);
 		timestepRateSpin->setEnabled(true);
