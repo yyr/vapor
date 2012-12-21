@@ -171,11 +171,12 @@ void animate::priorInterPolationCalcs(const std::vector<Keyframe*>& key_vec){
 				// P(frameCount-2) = P(frameCount-1) - so speed at end is 0
 				// Speed at start is S=key_vec[i]->speed; i.e. dist(approx_camPos[P(1)], approx_camPos[0]) = key_vec[i]->speed
 				// initially, just divide evenly:
-				float* T = new float[frameCount+1];
-				for (int k = 0; k<=frameCount; k++)
-					T[k] = (float)k * (1./(float)frameCount);
-				interpolate (T,frameCount,i, key_vec, false);
-				key_vec[i+1]->numFrames = frameCount;
+				int absFrame = abs(frameCount);
+				float* T = new float[absFrame+1];
+				for (int k = 0; k<=absFrame; k++)
+					T[k] = (float)k * (1./(float)absFrame);
+				interpolate (T,absFrame,i, key_vec, false);
+				key_vec[i+1]->numFrames = absFrame;
 			}
 		}
 		

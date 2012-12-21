@@ -678,7 +678,7 @@ void AnimationParams::buildViewsAndTimes(){
 		int firstTstep = animKeyframes[i]->timeStep;
 		int nextTstep = animKeyframes[i+1]->timeStep;
 		int numFrames = animKeyframes[i+1]->numFrames;
-		if(animKeyframes[i+1]->synch) numFrames = (animKeyframes[i+1]->timeStep - animKeyframes[i]->timeStep);
+		if(animKeyframes[i+1]->synch) numFrames = abs(animKeyframes[i+1]->timeStep - animKeyframes[i]->timeStep);
 		for (int j = 1; j<numFrames; j++){
 			float frameFraction = (float)j/(float)(numFrames);
 			int tStep = (int)(0.4999+ (float)firstTstep + frameFraction*(nextTstep-firstTstep));
