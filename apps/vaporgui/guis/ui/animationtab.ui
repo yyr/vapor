@@ -811,35 +811,6 @@ size slider and text box.</string>
      <item>
       <layout class="QHBoxLayout">
        <item>
-        <widget class="QLabel" name="textLabel1_3">
-         <property name="toolTip">
-          <string>Specify maximum time to wait for a slow renderer</string>
-         </property>
-         <property name="text">
-          <string>Max Wait Seconds</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-         <property name="wordWrap">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="maxWaitEdit">
-         <property name="toolTip">
-          <string>Specify maximum time to wait for a slow renderer</string>
-         </property>
-         <property name="text">
-          <string>1.0</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignHCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item>
         <spacer name="spacer15">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -891,6 +862,19 @@ size slider and text box.</string>
           <set>Qt::AlignHCenter</set>
          </property>
         </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_11">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </item>
@@ -1312,15 +1296,15 @@ Time steps</string>
                </widget>
               </item>
               <item>
-               <widget class="QSpinBox" name="timestepRateSpin">
+               <widget class="QLineEdit" name="timestepRateEdit">
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Specify time step change per frame when frame numbers are advancing with time step, between the previous keyframe and the current keyframe.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>Specify time step change per frame when frame numbers are advancing with time step, between the previous keyframe and the current keyframe.</string>
+                </property>
+                <property name="text">
+                 <string>1</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
-                </property>
-                <property name="value">
-                 <number>1</number>
                 </property>
                </widget>
               </item>

@@ -117,13 +117,14 @@ protected slots:
 	void guiChangeKeyIndex(int);
 	void guiEnableKeyframing(bool);
 	void guiSynchToFrame(bool);
-	void guiChangeTimestepsPerFrame(int);
 	void guiChangeKeyframe();
 	void guiDeleteKeyframe();
 	void guiInsertKeyframe();
 	void guiGotoKeyframe();
 	//Check and fix keyframes,
 	void fixKeyframes(bool silent = false);
+	//set the timestep rate etc. whenever key index changes
+	bool calcTimestepRate(int keyindex, AnimationParams* aParams);
 
 };
 

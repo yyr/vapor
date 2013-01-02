@@ -132,10 +132,10 @@ AnimationEventRouter::hookUpTab()
 	connect (endFrameEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setEndFrameTextChanged(const QString&)));
 	connect (frameStepEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
 	connect (maxFrameRateEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
-	connect (maxWaitEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
 	connect (keyTimestepEdit, SIGNAL( textChanged(const QString&) ) , this, SLOT( setKeyframeTextChanged(const QString&)));
 	connect (numFramesEdit,  SIGNAL( textChanged(const QString&) ), this, SLOT( setKeyframeTextChanged(const QString&)));
 	connect (speedEdit,  SIGNAL( textChanged(const QString&) ) , this,SLOT( setKeyframeTextChanged(const QString&)));
+	connect (timestepRateEdit,  SIGNAL( textChanged(const QString&) ) , this,SLOT( setKeyframeTextChanged(const QString&)));
 
 	
 	//Connect all the returnPressed signals, these will update the visualizer.
@@ -145,8 +145,12 @@ AnimationEventRouter::hookUpTab()
 	connect (endFrameEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
 	connect (frameStepEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
 	connect (maxFrameRateEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
-	connect (maxWaitEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
 	
+	//Animation control widgets that result in rebuilding animation
+	connect (keyTimestepEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+	connect (numFramesEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+	connect (speedEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+	connect (timestepRateEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
 	
 
 	connect (frameStepSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetFrameStep(int)));
@@ -168,13 +172,10 @@ AnimationEventRouter::hookUpTab()
 	connect(stepReverseButton, SIGNAL(clicked()), this, SLOT(animationStepReverseClick()));
 	connect(stepForwardButton, SIGNAL(clicked()), this, SLOT(animationStepForwardClick()));
 
-	//Animation control widgets that result in rebuilding animation
-	connect (keyTimestepEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
-	connect (numFramesEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
-	connect (speedEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+	
 
 	connect (keyIndexSpin, SIGNAL(valueChanged(int)),this, SLOT(guiChangeKeyIndex(int)));
-	connect (timestepRateSpin, SIGNAL(valueChanged(int)),this, SLOT(guiChangeTimestepsPerFrame(int)));
+	
 	connect (synchCheckBox, SIGNAL(toggled(bool)),this,SLOT(guiSynchToFrame(bool)));
 	connect (enableKeyframeCheckBox, SIGNAL(toggled(bool)),this,SLOT(guiEnableKeyframing(bool)));
 	connect (adjustKeyButton, SIGNAL(clicked()), this, SLOT(guiChangeKeyframe()));
@@ -223,7 +224,11 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 		if (tstep < ds->getMinTimestep()) tstep = ds->getMinTimestep();
 		if (tstep > ds->getMaxTimestep()) tstep = ds->getMaxTimestep();
 		key->timeStep = tstep;
-		
+		//Handle change in timestepsPerFrame.  
+		int currentKeyIndex = keyIndexSpin->value();
+		if (currentKeyIndex == 0) timestepRateEdit->setText(QString::number(0));
+		else if (!calcTimestepRate(currentKeyIndex, aParams)) key->synch = false;
+
 		if (numFramesEdit->isEnabled()){
 			int newNumFrames = numFramesEdit->text().toInt();
 			//Need to make sure that the new numFrames at least 1
@@ -283,11 +288,11 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 
 
 	float maxFrameRate = maxFrameRateEdit->text().toFloat();
-	float maxWait = maxWaitEdit->text().toFloat();
+	float maxWait = 1.e20;
 	//Constrain to a "reasonable" range:
 	if (maxFrameRate> 1000.f) maxFrameRate = 1000.f;
 	if (maxFrameRate< 0.001f) maxFrameRate = 0.001f;
-	if (maxWait < 0.001f) maxWait = 0.001f;
+	
 	aParams->setMaxFrameRate(maxFrameRate);
 	aParams->setMaxWait(maxWait);
 	VizWinMgr::getInstance()->animationParamsChanged(aParams);
@@ -330,7 +335,7 @@ void AnimationEventRouter::updateTab(){
 	maxFrameLabel->setText(strn.setNum(aParams->getMaxFrame()));
 	maxFrameRateEdit->setText(strn.setNum(aParams->getMaxFrameRate(),'g',3));
 	frameStepEdit->setText(strn.setNum(aParams->getFrameStepSize()));
-	maxWaitEdit->setText(strn.setNum(aParams->getMaxWait(),'g',3));
+	
 	int playDirection = aParams->getPlayDirection();
 
 	if (playDirection==0) {//pause
@@ -393,19 +398,18 @@ void AnimationEventRouter::updateTab(){
 	keyTimestepEdit->setText(QString::number(kf->timeStep));
 	synchCheckBox->setEnabled(currentKeyIndex > 0);
 	synchCheckBox->setChecked(kf->synch);
-	if (kf->synch){
-		assert(currentKeyIndex>0);
-		Keyframe* prevkf = aParams->getKeyframe(currentKeyIndex-1);
-		int tsDiff = abs(kf->timeStep - prevkf->timeStep)/kf->timestepsPerFrame;
-		numFramesEdit->setText(QString::number(tsDiff));
-	} else
-		numFramesEdit->setText(QString::number(kf->numFrames));
+	if (currentKeyIndex == 0) {
+		numFramesEdit->setText("0");
+		timestepRateEdit->setText("0");
+		timestepRateEdit->setEnabled(false);
+	} else {
+		if (!calcTimestepRate(currentKeyIndex, aParams)) kf->synch = false;
+	} 
 	
 	frameIndexEdit->setText(QString::number(aParams->getFrameIndex(currentKeyIndex)));
 	speedEdit->setText(QString::number(kf->speed));
-	speedEdit->setEnabled(currentKeyIndex > 0 && !kf->synch);
-	timestepRateSpin->setValue(kf->timestepsPerFrame);
-	timestepRateSpin->setEnabled(kf->synch && currentKeyIndex > 0);
+	speedEdit->setEnabled(!kf->synch);
+	
 	enableKeyframeCheckBox->setChecked(aParams->keyframingEnabled());
 	if (aParams->keyframingEnabled()){
 		minframeLabel->setText("Min Frame:");
@@ -849,7 +853,9 @@ void AnimationEventRouter::guiChangeKeyIndex(int keyIndex){
 	}
 	synchCheckBox->setEnabled(keyIndex > 0);
 	synchCheckBox->setChecked(kf->synch);
-	timestepRateSpin->setValue(kf->timestepsPerFrame);
+	if (keyIndex == 0)timestepRateEdit->setText("0");
+	else calcTimestepRate(keyIndex, aParams);
+	
 	keyframeTextChanged = false;
 }
 void AnimationEventRouter::guiEnableKeyframing(bool enabled){
@@ -884,55 +890,19 @@ void AnimationEventRouter::guiSynchToFrame(bool val){
 	Keyframe* kf = aParams->getKeyframe(currentKeyIndex);
 	if (kf->synch == val) return;
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "toggle synch frame to time step");
-	
-	if (val){
-		Keyframe* prevkf = aParams->getKeyframe(currentKeyIndex-1);
-		int timeDiff = kf->timeStep - prevkf->timeStep;
-		if (timeDiff == 0){
-			MessageReporter::errorMsg("The current and previous keyframes must have different time steps if time steps are matched to the frame counter");
-			synchCheckBox->setChecked(false);
-			delete cmd;
-			return;
-		}
-		//Make speed read-only
-		speedEdit->setEnabled(false);
-		timestepRateSpin->setEnabled(true);
-		int timestepsPerFrame = kf->timestepsPerFrame;
-		//Make frame count equal to timeDiff/timestepsPerFrame
-		int frameDiff = abs(timeDiff)/timestepsPerFrame;
-		if (frameDiff < 1) frameDiff = 1;
-		numFramesEdit->setText(QString::number(frameDiff));
-		kf->synch = true;
-	} else {
-		//Make speed r/w
-		speedEdit->setEnabled(true);
-		timestepRateSpin->setEnabled(false);
+	kf->synch = val;
+	if (!calcTimestepRate(currentKeyIndex, aParams)) {
+		delete cmd;
+		MessageReporter::errorMsg("The current and previous keyframes must have different time steps if time steps are matched to the frame counter");
 		kf->synch = false;
+		return;
 	}
+	
 	aParams->buildViewsAndTimes();
 	PanelCommand::captureEnd(cmd, aParams);
 	updateTab();
 }
-void AnimationEventRouter::guiChangeTimestepsPerFrame(int val){
-	if (!DataStatus::getInstance()->getDataMgr()) return;
-	confirmText(false);
-	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "change time steps per frame");
-	currentKeyIndex = keyIndexSpin->value();
-	if (currentKeyIndex == 0) return;
-	Keyframe* kf = aParams->getKeyframe(currentKeyIndex);
-	int timestepsPerFrame = val;
-	Keyframe* prevkf = aParams->getKeyframe(currentKeyIndex-1);
-	int timeDiff = kf->timeStep - prevkf->timeStep;
-	//Make frame count equal to timeDiff/timestepsPerFrame
-	int frameDiff = abs(timeDiff)/timestepsPerFrame;
-	if (frameDiff < 1) frameDiff = 1;
-	numFramesEdit->setText(QString::number(frameDiff));
-	kf->timestepsPerFrame = val;
-	aParams->buildViewsAndTimes();
-	PanelCommand::captureEnd(cmd, aParams);
-	updateTab();
-}
+
 void AnimationEventRouter::guiChangeKeyframe(){
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	confirmText(false);
@@ -950,7 +920,7 @@ void AnimationEventRouter::guiChangeKeyframe(){
 	kf->viewpoint = new Viewpoint(*vp);
 	kf->timeStep = aParams->getCurrentTimestep();
 	speedEdit->setEnabled(true);
-	timestepRateSpin->setEnabled(true);
+	timestepRateEdit->setEnabled(kf->synch && currentKeyIndex > 0);
 	//speed and framenum are unchanged;
 	fixKeyframes();
 	aParams->buildViewsAndTimes();
@@ -1149,3 +1119,32 @@ void AnimationEventRouter::refreshFrontTab(){
 	eRouter->updateTab();
 }
 
+bool AnimationEventRouter::calcTimestepRate(int keyIndex, AnimationParams* aParams){
+	assert (keyIndex > 0);
+	Keyframe* kf = aParams->getKeyframe(keyIndex);
+	Keyframe* prevkf = aParams->getKeyframe(keyIndex-1);
+	int timeDiff = kf->timeStep - prevkf->timeStep;
+	if (kf->synch){
+		if (timeDiff == 0){
+			
+			kf->synch = false;
+			return false ;
+		}
+		//Make speed read-only
+		speedEdit->setEnabled(false);
+		timestepRateEdit->setEnabled(true);
+		int timestepsPerFrame = kf->timestepsPerFrame;
+		timestepRateEdit->setText(QString::number(timestepsPerFrame));
+		//Make frame count equal to timeDiff/timestepsPerFrame
+		int frameDiff = abs(timeDiff)/timestepsPerFrame;
+		if (frameDiff < 1) frameDiff = 1;
+		numFramesEdit->setText(QString::number(frameDiff));
+	} else {
+		//Make speed r/w
+		speedEdit->setEnabled(true);
+		timestepRateEdit->setEnabled(false);
+		float tsPerFrame = abs((float)timeDiff/(float)kf->numFrames);
+		timestepRateEdit->setText(QString::number(tsPerFrame));
+	}
+	return true;
+}

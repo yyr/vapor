@@ -132,7 +132,7 @@ void animate::priorInterPolationCalcs(const std::vector<Keyframe*>& key_vec){
 		//If next keyframe has the stationaryFlag set, then this keyframe has the same viewpoint as the next one.
 		//Just copy the viewpoint for each of the inbetween frames
 		if (key_vec[i+1]->stationaryFlag){
-			assert(i>0);
+			
 			for (int j = 0; j<key_vec[i+1]->numFrames; j++){
 				Viewpoint* outVP = new Viewpoint(*(key_vec[i]->viewpoint));
 				outViewPoints.push_back(outVP);
@@ -159,22 +159,38 @@ void animate::priorInterPolationCalcs(const std::vector<Keyframe*>& key_vec){
 			float needSpeed = totDist/(float)(abs(frameCount));
 			//end speed plus start speed should average to needSpeed
 			float endSpeed = 2.*needSpeed - key_vec[i]->speed;
-			//If endSpeed is <0, we cannot smoothly vary speed.  Will just need to interpolate, with end speed = 0.
+			//If endSpeed is <0, we need to stop with nonlinear deceleration.
+			//Will just need to interpolate, with end speed = 0.
 			if (endSpeed >= 0) key_vec[i+1]->speed = endSpeed;
 			else {
 				key_vec[i+1]->speed = 0.f;
 				speedOK = false;
-				//Solution (to be implemented):
-				//Find a cubic polynomial P(k) (k = 0...frameCount-1) to interpolate approx cam pos, such that:
-				// P(0) = 0
-				// P(frameCount-1) = testPoints -1
-				// P(frameCount-2) = P(frameCount-1) - so speed at end is 0
-				// Speed at start is S=key_vec[i]->speed; i.e. dist(approx_camPos[P(1)], approx_camPos[0]) = key_vec[i]->speed
-				// initially, just divide evenly:
+				//Solution 
+				//position along curve is a geometric series
+				//D(k) = sr(1+r+r^2 +...+r^(k-1)) = sr*(1-r^k)/(1-r) k=0,1,...,N
+				//Where s is speed of prev endpoint, N is frameCount, D(N) is totDist
+				// D(N)=sr(1-r^N)/(1-r)
+				//Solve this for r using binary search (D and s are known).
+				//Then calc T[k] = D[k]/D[N]
+				float minr = 0., maxr = 1., r = 0.5f;
+				float s = key_vec[i]->speed;
+				float DoverS = totDist/s;
 				int absFrame = abs(frameCount);
+				while (maxr - minr > 0.0001){
+					float val = r*(1.-pow(r,absFrame))/(1.-r);
+					if (val < DoverS) {
+						maxr = r;
+					} else {
+						minr = r;
+					}
+					r = 0.5*(minr+maxr);
+				}
+		
 				float* T = new float[absFrame+1];
-				for (int k = 0; k<=absFrame; k++)
-					T[k] = (float)k * (1./(float)absFrame);
+				float DTot = (1.-pow(r,absFrame));
+				for (int k = 0; k<=absFrame; k++){
+					T[k] = (1.-pow(r,k))/DTot;
+				}
 				interpolate (T,absFrame,i, key_vec, false);
 				key_vec[i+1]->numFrames = absFrame;
 			}
