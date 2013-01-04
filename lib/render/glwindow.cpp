@@ -287,7 +287,7 @@ void GLWindow::resizeGL( int width, int height )
     printOpenGLError();
     cout << "resizeGL beginning" << endl;
 #endif
-
+    //create shaders used for depth peeling
     manager->defineEffect("depthpeeling", "", "depthpeeling");
 
     manager->defineEffect("texSampler", "", "texSampler");
@@ -299,6 +299,7 @@ void GLWindow::resizeGL( int width, int height )
     //This depth peeling implementation makes use of OpenGL Frame Buffer Obects
     //Two depth and maximum amount of color textures will be used for rendering and depth peeling
 	
+    //Generate and configure depth textures
     glGenTextures(1, &depthA);
     glGenTextures(1, &depthB); 
 
@@ -368,7 +369,7 @@ void GLWindow::resizeGL( int width, int height )
     glBindTexture(GL_TEXTURE_2D, 0); 
     printOpenGLError();
 
-    //Attach all of the available buffers to the FBO
+    //Attach all of the available color buffers to the FBO
     glBindFramebuffer(GL_FRAMEBUFFER, fboA);
     for (int i=0; i<maxbuffers; i++) {
       glFramebufferTexture2D(GL_FRAMEBUFFER, attach_points[i], GL_TEXTURE_2D, layers[i], 0);			
@@ -402,6 +403,7 @@ void GLWindow::resizeGL( int width, int height )
 #ifdef DEBUG
     cout << "resizeGL complete" << endl;
 #endif
+    //clear framebuffer binding, initialize depth peeling shaders with uniforms
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     manager->uploadEffectData(std::string("depthpeeling"), std::string("previousPass"), depthTexUnit);
     manager->uploadEffectData(std::string("depthpeeling"), std::string("height"), (float)height);
@@ -471,405 +473,783 @@ void GLWindow::resetView(ViewpointParams* vParams){
 	nearDist = nrbx * 0.25f;
 	needsResize = true;
 }
-
-void GLWindow::renderScene(){
-  printOpenGLError();
-  float extents[6] = {0.f,0.f,0.f,1.f,1.f,1.f};
-  float minFull[3] = {0.f,0.f,0.f};
-  float maxFull[3] = {1.f,1.f,1.f};
-  int timeStep = getActiveAnimationParams()->getCurrentTimestep();
-
-  //The prerender callback is set in the vizwin. 
-  //It registers with the animation controller, 
-  //and tells the window the current viewer frame.
-  //qWarning("calling preRenderCB at timestep %d in winnum %d",timeStep,winNum);
-  //If there are new coords, get them from GL, send them to the gui
-	
-  getActiveRegionParams()->calcStretchedBoxExtentsInCube(extents,timeStep);
-  DataStatus::getInstance()->getMaxStretchedExtentsInCube(maxFull);
-	
-  //Make the depth buffer writable
-  glDepthMask(GL_TRUE);
-  //and readable
-  glEnable(GL_DEPTH_TEST);
-  //Prepare for alpha values:
-  glEnable (GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  printOpenGLError();
-  if(regionFrameIsEnabled()|| GLWindow::getCurrentMouseMode() == GLWindow::regionMode){
-    renderDomainFrame(extents, minFull, maxFull);
-  } 
-
-  if(subregionFrameIsEnabled() && 
-     !(GLWindow::getCurrentMouseMode() == GLWindow::regionMode) )
+//GL render calls separated for use in depth peeling.
+void GLWindow::renderScene(float extents[6], float minFull[3], float maxFull[3], int timeStep){
+	//If we are in regionMode, or if the preferences specify the full box will be rendered,
+	//draw it now, before the renderers do their thing.
+    if(regionFrameIsEnabled()|| GLWindow::getCurrentMouseMode() == GLWindow::regionMode){
+      renderDomainFrame(extents, minFull, maxFull);
+    } 
+	//In regionMode or if preferences specify it, draw the subregion frame.
+    if(subregionFrameIsEnabled() && 
+       !(GLWindow::getCurrentMouseMode() == GLWindow::regionMode) )
     {
       drawSubregionBounds(extents);
     } 
 
+	//Draw axis arrows if enabled.
     if (axisArrowsAreEnabled()) drawAxisArrows(extents);
 	
 
 
-  //render the region geometry, if in region mode, and active visualizer, or region shared
-  //with active visualizer
-  if(getCurrentMouseMode() == GLWindow::regionMode) { 
-    if( (windowIsActive() || 
-	 (!getActiveRegionParams()->isLocal() && activeWinSharesRegion()))){
-      TranslateStretchManip* regionManip = getManip(Params::_regionParamsTag);
-      regionManip->setParams(getActiveRegionParams());
-      regionManip->render();
-    } 
-  }
-  //Other manips don't have shared and local to deal with:
-  else if ((getCurrentMouseMode() != navigateMode) && windowIsActive()){
-    int mode = getCurrentMouseMode();
-    ParamsBase::ParamsBaseType t = getModeParamType(mode);
-    TranslateStretchManip* manip = manipHolder[mode];
-    RenderParams* p = (RenderParams*)getActiveParams(t);
-    manip->setParams(p);
-    manip->render();
-    int manipType = getModeManipType(mode);
-    //For probe and 2D manips, display cursor
-    if (manipType > 1) {
-      const float *localPoint = p->getSelectedPointLocal();
-      //Need to convert local coordinates to stretched box coordinates.
-		
+	//render the region manipulator, if in region mode, and active visualizer, or region shared
+	//with active visualizer.  Possibly redundant???
+	if(getCurrentMouseMode() == GLWindow::regionMode) { 
+		if( (windowIsActive() || 
+			(!getActiveRegionParams()->isLocal() && activeWinSharesRegion()))){
+				TranslateStretchManip* regionManip = getManip(Params::_regionParamsTag);
+				regionManip->setParams(getActiveRegionParams());
+				regionManip->render();
+		} 
+	}
+	//Render other manips, if we are in appropriate mode:
+	//Note: Other manips don't have shared and local to deal with:
+	else if ((getCurrentMouseMode() != navigateMode) && windowIsActive()){
+		int mode = getCurrentMouseMode();
+		ParamsBase::ParamsBaseType t = getModeParamType(mode);
+		TranslateStretchManip* manip = manipHolder[mode];
+		RenderParams* p = (RenderParams*)getActiveParams(t);
+		manip->setParams(p);
+		manip->render();
+		int manipType = getModeManipType(mode);
+		//For probe and 2D manips, render 3D cursor too
+		if (manipType > 1) {
+			const float *localPoint = p->getSelectedPointLocal();
 			
-      //	p->localToStretchedCoordinatesInCube(localPoint, strBoxPt);
-      draw3DCursor(localPoint);
-    }
-  }
-  if(!depthPeeling)
-    sortRenderers(timeStep);
-  else{
-    glDisable(GL_BLEND);
-    glDepthMask(GL_TRUE);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-  }
-  printOpenGLError();
-  for (int i = 0; i< getNumRenderers(); i++){
-    if(renderer[i]->isInitialized() && !(renderer[i]->doAlwaysBypass(timeStep))) {
-      // Push or reset state
-      glMatrixMode(GL_TEXTURE);
-      glPushMatrix();
-      glMatrixMode(GL_MODELVIEW);
-      glPushMatrix();
-      glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-      renderer[i]->paintGL();
-
-      glPopAttrib();
-      glMatrixMode(GL_MODELVIEW);
-      glPopMatrix();
-      glMatrixMode(GL_TEXTURE);
-      glPopMatrix();
-      printOpenGLErrorMsg(renderer[i]->getMyName().c_str());
-    }
-  }
-  //Go back to MODELVIEW for other matrix stuff
-  glMatrixMode(GL_MODELVIEW);
-
+			draw3DCursor(localPoint);
+		}
+	}
+       
 	
-  if (axisAnnotationIsEnabled()) {
-    drawAxisTics(timeStep);
-    drawAxisLabels(timeStep);
-  }
-  //Find renderer that has a colorbar
-  RenderParams* p = dynamic_cast<RenderParams*>(getActiveParams(Params::GetTagFromType(colorbarParamsTypeId)));
-  if(p && colorbarIsEnabled() && p->isEnabled() && p->GetMapperFunc()){
-    //Now go to default 2D window
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-		
-    getRenderer(p)->renderColorscale(colorbarIsDirty());
-		
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-  }
+	//Now we are ready for all the different renderers to proceed.
+	//Sort them;  If they are opaque, they go first.  If not opaque, they
+	//are sorted back to front.  This only works if all the geometry of a renderer is ordered by
+	//a simple depth test.
 	
-  //Create time annotation from current time step
-  if (getTimeAnnotType()){
-    drawTimeAnnotation();
-  } 
+	printOpenGLError();
+	//Now go through all the active renderers
+	for (int i = 0; i< getNumRenderers(); i++){
+		//If a renderer is not initialized, or if its bypass flag is set, then don't render.
+		//Otherwise push and pop the GL matrix stack and all attribs
+		if(renderer[i]->isInitialized() && !(renderer[i]->doAlwaysBypass(timeStep))) {
+			// Push or reset state
+			glMatrixMode(GL_TEXTURE);
+			glPushMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			glPushAttrib(GL_ALL_ATTRIB_BITS);
 
+			renderer[i]->paintGL();
+
+			glPopAttrib();
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
+			glMatrixMode(GL_TEXTURE);
+			glPopMatrix();
+			printOpenGLErrorMsg(renderer[i]->getMyName().c_str());
+		}
+	}
 }
-void GLWindow::paintEvent(QPaintEvent*)
-{
-  MyBase::SetDiagMsg("GLWindow::paintGL()");
-  removeDisabledRenderers();
-  if(!renderMutex.tryLock()) return;
-  makeCurrent();
-  printOpenGLError();
-  if (nowPainting) {
-    renderMutex.unlock();
-    return;
-  }
-  nowPainting = true;
-  qglClearColor(getBackgroundColor()); 
+void GLWindow::depthPeelPaintEvent(){
+	MyBase::SetDiagMsg("GLWindow::paintGL()");
+	//Following is needed in case undo/redo leaves a disabled renderer in the renderer list, so it can be deleted.
+	removeDisabledRenderers();
+	//The renderMutex ensures that only one thread can be in this method at a time.  But the latest version
+	//ov vapor performs all the rendering in the main gui thread, so the mutex can probably be deleted.
+	if(!renderMutex.tryLock()) return;
+	//Following is probably not needed, too, although haven't checked it out.  Qt is supposed to always call paintGL in
+	//the GL context, but maybe not paintEvent?
+	makeCurrent();
+	printOpenGLError();
 	
-  //Clear out in preparation for rendering
-  glClearDepth(1);
-  //Make the depth buffer writable
-  glDepthMask(GL_TRUE);
-  glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
 	
-  DataStatus *dataStatus = DataStatus::getInstance();
-
-  if (!dataStatus->getDataMgr() ||!(dataStatus->renderReady())) {
-    swapBuffers();
-    renderMutex.unlock();
-    nowPainting = false;
-    printOpenGLError();
-    return;
-  }
+	float extents[6] = {0.f,0.f,0.f,1.f,1.f,1.f};
+	float minFull[3] = {0.f,0.f,0.f};
+	float maxFull[3] = {1.f,1.f,1.f};
+	//Again, mutex probably not needed.  At some point the "nowPainting" flag was used to indicate
+	//that some thread was in this routine.
+    if (nowPainting) {
+		renderMutex.unlock();
+		return;
+	}
+	nowPainting = true;
 	
-  glEnable(GL_MULTISAMPLE);
+	//Paint background
+	qglClearColor(getBackgroundColor()); 
+	
+	//Clear out the depth buffer in preparation for rendering
+	glClearDepth(1);
+	//Make the depth buffer writable
+	glDepthMask(GL_TRUE);
+	glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
+	
+	DataStatus *dataStatus = DataStatus::getInstance();
 
-  setUpViewport(width(),height());
-  //automatically renormalize normals
-  glEnable(GL_NORMALIZE);
+	//If there is no data, or the session is not yet set up, stop here.
+	if (!dataStatus->getDataMgr() ||!(dataStatus->renderReady())) {
+		swapBuffers();
+		renderMutex.unlock();
+		nowPainting = false;
+		printOpenGLError();
+		return;
+	}
+	
+	//Improve polygon antialiasing
+	glEnable(GL_MULTISAMPLE);
+	
+	//automatically renormalize normals (especially needed for flow rendering)
+	glEnable(GL_NORMALIZE);
 
-  //If we are doing the first capture of an image sequence then set the
-  //newRender flag to true, whether or not it's a real new render.
-  //Then turn off the flag, subsequent renderings will only be captured
-  //if they really are new, or if we are spinning.
-  //
-  renderNew = (captureIsNewImage()|| isSpinning);
-  if (renderNew) {previousTimeStep = -1; previousFrameNum = -1;} //reset saved time step
-  setCaptureNewImage(false);
+	//If we are doing the first capture of an image sequence then set the
+	//newRender flag to true, whether or not it's a real new render.
+	//Then turn off the flag, subsequent renderings will only be captured
+	//if they really are new, or if we are spinning.
+	
+	//We need to prevent multiple frame capture, which could result from extraneous rendering.
+	//The renderNew flag is set to allow performing a jpeg capture.
+	//The newCaptureImage flag is set when we start a new image capture sequence.  When renderNew is
+	//set, the previousTimeStep and previousFrameNum indices are set to -1, to guarantee that the image
+	//will be captured.  Subsequent rendering will only be captured if the frame/timestep counters are changed, or 
+	//if the image is spinning.
+	renderNew = (captureIsNewImage()|| isSpinning);
+	if (renderNew) {previousTimeStep = -1; previousFrameNum = -1;} //reset saved time step
+	setCaptureNewImage(false); //Next time don't capture if frameNum or timestep are unchanged.
 
-  //Tell the animation we are starting.  If it returns false, we are not
-  //being monitored by the animation controller
-  //bool isControlled = AnimationController::getInstance()->beginRendering(winNum);
-  int frameNum = getActiveAnimationParams()->getCurrentFrameNumber();
-  int timeStep = getActiveAnimationParams()->getCurrentTimestep();	
-  if (getActiveViewpointParams()->isLatLon()&& timeStep != previousTimeStep){
-    setViewerCoordsChanged(true);
-    getActiveViewpointParams()->convertLocalFromLonLat(timeStep);
-    setValuesFromGui(getActiveViewpointParams());
-  }
-  // Move to trackball view of scene  
-  glMatrixMode(GL_MODELVIEW);
-  glPushMatrix();
-  glLoadIdentity();
-  placeLights();
-  printOpenGLError();
-  getTBall()->TrackballSetMatrix();
-  isControlled = preRenderCB(winNum, viewerCoordsChanged()); 
+	//Following line has been modified and moved to a later point in the code.  It is necessary to register with the 
+	//AnimationController, but not yet, because we don't yet know the frame number.
+	//(Tell the animation we are starting.  If it returns false, we are not
+	//being monitored by the animation controller
+	//bool isControlled = AnimationController::getInstance()->beginRendering(winNum);
+	
+	//If we are visualizing in latLon space, must update the local coordinates
+	//and put them in the trackball, prior to setting up the trackball.
+	//The frameNum is used with keyframe animation, it coincides with timeStep when keyframing is disabled.
+	int frameNum = getActiveAnimationParams()->getCurrentFrameNumber();
+	int timeStep = getActiveAnimationParams()->getCurrentTimestep();
 
-  if (viewerCoordsChanged()){ 
-    setRenderNew();
-    setViewerCoordsChanged(false);
-  }
-  //make sure to capture whenever the time step or frame index changes
-  if (timeStep != previousTimeStep || frameNum != previousFrameNum) {
-    setRenderNew();
-    previousTimeStep = timeStep;
-    previousFrameNum = frameNum;
-  }
-  //If we are visualizing in latLon space, must update the local coordinates
-  //and put them in the trackball, prior to setting up the trackball.
+	//When performing keyframe animation, all the viewpoints are in the loadedViewpoints vector.
+	const vector<Viewpoint*>& loadedViewpoints = getActiveAnimationParams()->getLoadedViewpoints();
+	
+	//Prepare for keyframe animation
+	if (getActiveAnimationParams()->keyframingEnabled() && loadedViewpoints.size()>0){
+		//If we are performing keyframe animation, set the viewpoint (in the viewpoint params) to the appropriate one, based on
+		//the frameNum. 
+		//The viewerCoordsChanged flag is passed to the prerender callback and used to set the renderNew flag
+		setViewerCoordsChanged(true);
+		const Viewpoint* vp = loadedViewpoints[frameNum%loadedViewpoints.size()];
+		Viewpoint* newViewpoint = new Viewpoint(*vp);
+		getActiveViewpointParams()->setCurrentViewpoint(newViewpoint);
+		//setValuesFromGui causes the trackball to reflect the current viewpoint in the params
+		setValuesFromGui(getActiveViewpointParams());
+	} else if (vizIsDirty(NavigatingBit)){  
+		//If the viewpoint is not set by animation keyframing, but we are navigating, must still
+		//set the trackball
+		setValuesFromGui(getActiveViewpointParams());
+	}
+	//If using latlon coordinates the viewpoint changes every timeStep
+	if (getActiveViewpointParams()->isLatLon()&& timeStep != previousTimeStep){
+		setViewerCoordsChanged(true);
+		getActiveViewpointParams()->convertLocalFromLonLat(timeStep);
+		setValuesFromGui(getActiveViewpointParams());
+	}
+	//resetView sets the near/far clipping planes based on the viewpoint in the viewpointParams
+	resetView(getActiveViewpointParams());
+	//Set the projection matrix
+	setUpViewport(width(),height());
+	// Move to trackball view of scene  
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
 
-  printOpenGLError();	
-  const vector<Viewpoint*>& loadedViewpoints = getActiveAnimationParams()->getLoadedViewpoints();
-  if (getActiveAnimationParams()->keyframingEnabled() && loadedViewpoints.size()>0){
-    setViewerCoordsChanged(true);
-    const Viewpoint* vp = loadedViewpoints[frameNum%loadedViewpoints.size()];
-    Viewpoint* newViewpoint = new Viewpoint(*vp);
-    getActiveViewpointParams()->setCurrentViewpoint(newViewpoint);
-    setValuesFromGui(getActiveViewpointParams());
-  } else if (vizIsDirty(NavigatingBit)){  //If the viewpoint is set by animation keyframing
-    setValuesFromGui(getActiveViewpointParams());
-  }
-  printOpenGLError();
-  if(!depthPeeling) //renderScene once
-    renderScene();
-  else{ //force depth peeling loop
-    //initial depth test, no peeling
-    if(!peelInitialized){
-      SetErrMsg("Advanced Transparency has not been properly initialized! Restart VAPOR to enable");
-      return;
-    }
-    printOpenGLError();
-    glBindFramebuffer(GL_FRAMEBUFFER, fboA);
-    printOpenGLError();
-    currentBuffer = fboA;
-    // clear buffers
-    glActiveTexture(GL_TEXTURE0 + depthTexUnit);
-    glDisable(GL_TEXTURE_1D);
-    glDisable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glDisable(GL_BLEND);
-    glActiveTexture(GL_TEXTURE0);
-    printOpenGLError();
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LESS);
-    printOpenGLError();
-    glEnable(GL_DEPTH_TEST);
-    glPushAttrib(GL_VIEWPORT_BIT | GL_COLOR_BUFFER_BIT);
-    printOpenGLError();
-    glDrawBuffer(attach_points[0]);
-    printOpenGLError();
-    glReadBuffer(attach_points[0]);		
-    currentLayer = 0;
-    printOpenGLError();
-    glClearColor(0.0, 0.0, 0.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    printOpenGLError();
-    renderScene();
+	//Lights are positioned relative to the view direction, do this before the modelView matrix is changed
+	placeLights();
 
-    //depth peeling passes
-    printOpenGLError();
-#ifdef DEBUG
-    std::cout << "num renderers: " << getNumRenderers() << "maxbuffers: " << maxbuffers << std::endl;
-#endif
-    currentLayer = 1;
-    for (int j=1; j< maxbuffers ; j++) {
-      if (j%2 != 0) {			
-    	//Bind next framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, fboB);
-	//Bind depth buffer A to last texture unit
-	currentBuffer = fboB;
-	currentDepth = depthA;
+	//Set the GL modelview matrix, based on the Trackball state.
+	getTBall()->TrackballSetMatrix();
+
+	//The prerender callback is set in the vizwin. 
+	//It registers with the animation controller, 
+	//and tells the window the current viewer frame.
+	//This must be called prior to rendering.  The boolean "isControlled" indicates 
+	//whether or not the rendering is under the control of the animationController.
+	//If it is true, then the postRenderCallback must be called after the full rendering is complete.
+	bool isControlled = preRenderCB(winNum, viewerCoordsChanged());
+	//If there are new coords, get them from GL, send them to the gui
+	if (viewerCoordsChanged()){ 
+		setRenderNew();
+		setViewerCoordsChanged(false);
+	}
+
+	
+	//make sure to capture whenever the time step or frame index changes
+	if (timeStep != previousTimeStep || frameNum != previousFrameNum) {
+		setRenderNew();
+		previousTimeStep = timeStep;
+		previousFrameNum = frameNum;
+	}
+	
+	getActiveRegionParams()->calcStretchedBoxExtentsInCube(extents,timeStep);
+	DataStatus::getInstance()->getMaxStretchedExtentsInCube(maxFull);
+	
+	//INITIAL RENDER
+	if(!peelInitialized){
+	  SetErrMsg("Advanced Transparency has not been properly initialized! Restart VAPOR to enable");
+	  return;
+	}
+	printOpenGLError();
+	//bind first framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, fboA);
+	printOpenGLError();
+	currentBuffer = fboA;
+	// clear buffers
+	glActiveTexture(GL_TEXTURE0 + depthTexUnit);
+	glDisable(GL_TEXTURE_1D);
+	glDisable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glDisable(GL_BLEND);
+	glActiveTexture(GL_TEXTURE0);
+	printOpenGLError();
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LESS);
 	printOpenGLError();
-	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST); //regular depth test for initial render pass
+	glPushAttrib(GL_VIEWPORT_BIT | GL_COLOR_BUFFER_BIT);
 	printOpenGLError();
-	glDrawBuffer(attach_points[j]);
+	//prepare framebuffer colorbuffers to draw/read from first attach_point
+	glDrawBuffer(attach_points[0]); 
 	printOpenGLError();
-	glReadBuffer(attach_points[j]);		
+	glReadBuffer(attach_points[0]);		
+	currentLayer = 0;
 	printOpenGLError();
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	printOpenGLError();
-	glActiveTexture(GL_TEXTURE0 + depthTexUnit);
-	glDisable(GL_TEXTURE_1D);
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_BLEND);
-	glBindTexture(GL_TEXTURE_2D, depthA);
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE); //ensure texture comparison was not turned on elsewhere
-	glActiveTexture(GL_TEXTURE0);		       
+	renderScene(extents, minFull, maxFull, timeStep);
+	//scene rendered, enable depth peeling for transparency blending
+	currentLayer = 1;
+	for (int j=1; j< maxbuffers ; j++) {
+	  if (j%2 != 0) {			
+	    //Bind next framebuffer
+	    glBindFramebuffer(GL_FRAMEBUFFER, fboB);
+	    //Bind depth buffer A to last texture unit
+	    currentBuffer = fboB;
+	    currentDepth = depthA;
+	    glDepthMask(GL_TRUE);
+	    glDepthFunc(GL_LESS);
+	    printOpenGLError();
+	    glEnable(GL_DEPTH_TEST);
+	    printOpenGLError();
+	    glDrawBuffer(attach_points[j]);
+	    printOpenGLError();
+	    glReadBuffer(attach_points[j]);		
+	    printOpenGLError();
+	    glClearColor(0.0, 0.0, 0.0, 1.0);
+	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	    printOpenGLError();
+	    glActiveTexture(GL_TEXTURE0 + depthTexUnit);
+	    glDisable(GL_TEXTURE_1D);
+	    glDisable(GL_TEXTURE_2D);
+	    glDisable(GL_BLEND);
+	    glBindTexture(GL_TEXTURE_2D, depthA);
+	    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE); //ensure texture comparison was not turned on elsewhere
+	    glActiveTexture(GL_TEXTURE0);		       
+	    printOpenGLError();
+	    if(!manager->enableEffect(std::string("depthpeeling")))
+	      SetErrMsg(VAPOR_ERROR_GL_VENDOR,"depth peeling not enabled");	
+	    //reset GL matrix stack
+	    //resetView sets the near/far clipping planes based on the viewpoint in the viewpointParams
+	    resetView(getActiveViewpointParams());
+	    //Set the projection matrix
+	    setUpViewport(width(),height());
+	    // Move to trackball view of scene  
+	    glMatrixMode(GL_MODELVIEW);
+
+	    glLoadIdentity();
+
+	    //Lights are positioned relative to the view direction, do this before the modelView matrix is changed
+	    placeLights();
+
+	    //Set the GL modelview matrix, based on the Trackball state.
+	    getTBall()->TrackballSetMatrix();
+	    renderScene(extents, minFull, maxFull, timeStep);
+
+	    printOpenGLError();
+	    manager->disableEffect();
+	    glActiveTexture(GL_TEXTURE0 + depthTexUnit);
+	    glBindTexture(GL_TEXTURE_2D, 0);
+	    glActiveTexture(GL_TEXTURE0);
+	    glFlush();
+	  }
+	  else{
+	    //Bind next framebuffer
+	    glBindFramebuffer(GL_FRAMEBUFFER, fboA);
+	    glDepthFunc(GL_LESS);
+	    glDepthMask(GL_TRUE);
+	    glEnable(GL_DEPTH_TEST);
+	    glDisable(GL_BLEND);
+	    currentBuffer = fboA;
+	    currentDepth = depthB;
+	    //Bind depth buffer B to last texture unit
+	    glDrawBuffer(attach_points[j]);
+	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	    printOpenGLError();
+	    glActiveTexture(GL_TEXTURE0 + depthTexUnit);
+	    glDisable(GL_TEXTURE_2D);
+	    glDisable(GL_TEXTURE_3D);
+	    glBindTexture(GL_TEXTURE_2D, depthB);
+	    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE); //ensure texture comparison was not turned on elsewhere
+	    glActiveTexture(GL_TEXTURE0);			
+	    printOpenGLError();
+	    if(!manager->enableEffect(std::string("depthpeeling")))
+	      SetErrMsg(VAPOR_ERROR_GL_VENDOR,"depth peeling not enabled");	
+	    //reset GL matrix stack
+	    //resetView sets the near/far clipping planes based on the viewpoint in the viewpointParams
+	    resetView(getActiveViewpointParams());
+	    //Set the projection matrix
+	    setUpViewport(width(),height());
+	    // Move to trackball view of scene  
+	    glMatrixMode(GL_MODELVIEW);
+
+	    glLoadIdentity();
+
+	    //Lights are positioned relative to the view direction, do this before the modelView matrix is changed
+	    placeLights();
+
+	    //Set the GL modelview matrix, based on the Trackball state.
+	    getTBall()->TrackballSetMatrix();
+	    renderScene(extents, minFull, maxFull, timeStep);
+
+	    printOpenGLError();
+	    manager->disableEffect();
+	    glActiveTexture(GL_TEXTURE0 + depthTexUnit);
+	    glBindTexture(GL_TEXTURE_2D, 0);
+	    glActiveTexture(GL_TEXTURE0);
+	    glFlush();
+	  }
+	  currentLayer++;
+	}
+	//SHOW PEELED COLORS
 	printOpenGLError();
-	if(!manager->enableEffect(std::string("depthpeeling")))
-	  SetErrMsg(VAPOR_ERROR_GL_VENDOR,"depth peeling not enabled");	
-	renderScene();
-	printOpenGLError();
-	manager->disableEffect();
-	glActiveTexture(GL_TEXTURE0 + depthTexUnit);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glActiveTexture(GL_TEXTURE0);
-	glFlush();
-      }
-      else{
-	//Bind next framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, fboA);
-	glDepthFunc(GL_LESS);
-	glDepthMask(GL_TRUE);
-	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_BLEND);
-	currentBuffer = fboA;
-	currentDepth = depthB;
-	//Bind depth buffer B to last texture unit
-	glDrawBuffer(attach_points[j]);
+	glPopAttrib();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	printOpenGLError();
 	glActiveTexture(GL_TEXTURE0 + depthTexUnit);
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_TEXTURE_3D);
-	glBindTexture(GL_TEXTURE_2D, depthB);
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE); //ensure texture comparison was not turned on elsewhere
-	glActiveTexture(GL_TEXTURE0);			
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	glDepthFunc(GL_LEQUAL);
+	glDepthMask(GL_TRUE);
+	glEnable(GL_DEPTH_TEST);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	manager->enableEffect("texSampler");
 	printOpenGLError();
-	if(!manager->enableEffect(std::string("depthpeeling")))
-	  SetErrMsg(VAPOR_ERROR_GL_VENDOR,"depth peeling not enabled");	
-	renderScene();
-	printOpenGLError();
+	for (int i = maxbuffers - 1; i > -1 ; i--){
+	  glBindTexture(GL_TEXTURE_2D, layers[i]);
+	  printOpenGLError();
+	  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	  glMatrixMode(GL_MODELVIEW); 
+	  glPushMatrix();
+	  glLoadIdentity(); 
+	  glMatrixMode(GL_PROJECTION);
+	  glPushMatrix();
+	  glLoadIdentity();
+	  glBegin(GL_QUADS);
+	  //glColor3f(0.0, 0.0, 0.0); debug purposes
+	  glVertex3i (-1, -1, -1);
+	  //glColor3f(1.0, 0.0, 1.0);
+	  glVertex3i (-1, 1, -1);
+	  //glColor3f(1.0, 1.0, 1.0);
+	  glVertex3i (1, 1, -1); 
+	  //glColor3f(0.0, 1.0, 0.0);
+	  glVertex3i (1, -1, -1); 
+	  glEnd ();
+	  glPopMatrix (); 
+	  glMatrixMode (GL_MODELVIEW); 
+	  glPopMatrix ();
+	}
 	manager->disableEffect();
-	glActiveTexture(GL_TEXTURE0 + depthTexUnit);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glActiveTexture(GL_TEXTURE0);
-	glFlush();
-      }
-      currentLayer++;
-    }
-    //SHOW PEELED COLORS
-    printOpenGLError();
-    glPopAttrib();
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    printOpenGLError();
-    glActiveTexture(GL_TEXTURE0 + depthTexUnit);
-    glEnable(GL_TEXTURE_2D);
-    glEnable(GL_BLEND);
-    glDepthFunc(GL_LEQUAL);
-    glDepthMask(GL_TRUE);
-    glEnable(GL_DEPTH_TEST);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    manager->enableEffect("texSampler");
-    printOpenGLError();
-    for (int i = maxbuffers - 1; i > -1 ; i--){
-      glBindTexture(GL_TEXTURE_2D, layers[i]);
-      printOpenGLError();
-      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-      glMatrixMode(GL_MODELVIEW); 
-      glPushMatrix();
-      glLoadIdentity(); 
-      glMatrixMode(GL_PROJECTION);
-      glPushMatrix();
-      glLoadIdentity();
-      glBegin(GL_QUADS);
-      //glColor3f(0.0, 0.0, 0.0); debug purposes
-      glVertex3i (-1, -1, -1);
-      //glColor3f(1.0, 0.0, 1.0);
-      glVertex3i (-1, 1, -1);
-      //glColor3f(1.0, 1.0, 1.0);
-      glVertex3i (1, 1, -1); 
-      //glColor3f(0.0, 1.0, 0.0);
-      glVertex3i (1, -1, -1); 
-      glEnd ();
-      glPopMatrix (); 
-      glMatrixMode (GL_MODELVIEW); 
-      glPopMatrix ();
-      }
-  }
-  manager->disableEffect();
-  printOpenGLError();
-  glPopMatrix();
-  swapBuffers();
-  glFlush();
-  //clear dirty bits
-	
-  setDirtyBit(RegionBit,false);
-  setDirtyBit(AnimationBit,false);
-  setDirtyBit(NavigatingBit,false);
-  setDirtyBit(ProjMatrixBit, false);
-  setDirtyBit(ViewportBit, false);
-  setDirtyBit(LightingBit, false);
-  nowPainting = false;
-	
-  if (isSpinning){
-    getTBall()->TrackballSpin();
-    setViewerCoordsChanged(true);
-    setDirtyBit(ProjMatrixBit, true);
-  }
-  renderMutex.unlock();
-  //qWarning("calling postRenderCB at timestep %d in winnum %d",timeStep,winNum);
-  postRenderCB(winNum, isControlled);
+	//Go back to MODELVIEW for other matrix stuff
+	//By default the matrix is expected to be MODELVIEW
+	glMatrixMode(GL_MODELVIEW);
 
-  //Capture the back-buffer image, if not navigating:
-  if (renderNew && !mouseDownHere) 
-    doFrameCapture();	
-  glDisable(GL_NORMALIZE);
-  printOpenGLError();
+	//Perform final touch-up on the final images, before capturing or displaying them.
+
+	//Axis annotation must be drawn after all the renderers are complete so that the axes are not hidden.
+	if (axisAnnotationIsEnabled()) {
+		drawAxisTics(timeStep);
+		drawAxisLabels(timeStep);
+	}
+
+	//One colorbar may be drawn.  It is drawn at a fixed position on the final image.
+	//See if there is a renderer that has an enabled colorbar and a valid transfer function
+	RenderParams* p = dynamic_cast<RenderParams*>(getActiveParams(Params::GetTagFromType(colorbarParamsTypeId)));
+	if(p && colorbarIsEnabled() && p->isEnabled() && p->GetMapperFunc()){
+		//Now go to default 2D window
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		
+		getRenderer(p)->renderColorscale(colorbarIsDirty());
+		
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
+	}
+	
+	//Create time annotation from current time step.  Draw it over the image.
+	if (getTimeAnnotType()){
+		drawTimeAnnotation();
+	} 
+	
+	//Capture the back-buffer image, if not navigating.  
+	//This must be performed before swapBuffers after everything has been drawn.
+	if (renderNew && !mouseDownHere) 
+		doFrameCapture();
+
+	glPopMatrix();
+	swapBuffers();
+	glFlush();
+
+	//clear dirty bits for the next rendering.
+	
+	setDirtyBit(RegionBit,false);
+	setDirtyBit(AnimationBit,false);
+	setDirtyBit(NavigatingBit,false);
+	setDirtyBit(ProjMatrixBit, false);
+	setDirtyBit(ViewportBit, false);
+	setDirtyBit(LightingBit, false);
+	//Turn off the nowPainting flag (probably could be deleted)
+	nowPainting = false;
+	
+	//When spinning update the viewpoint appropriately.
+	if (isSpinning){
+		getTBall()->TrackballSpin();
+		setViewerCoordsChanged(true);
+		setDirtyBit(ProjMatrixBit, true);
+	}
+	//Now release the rendering mutex.
+	//Must be performed here or deadlock occurs!
+	renderMutex.unlock();
+	
+	//Tell the animation controller that this frame is complete.  
+	//This must be called exactly once after rendering is done.l
+	postRenderCB(winNum, isControlled);
+	
+	glDisable(GL_NORMALIZE);
+	printOpenGLError();
 }
+void GLWindow::paintEvent(QPaintEvent*){
+  if(depthPeeling)
+    depthPeelPaintEvent();
+  else
+    regPaintEvent();
+}
+void GLWindow::regPaintEvent()
+{
+	MyBase::SetDiagMsg("GLWindow::paintGL()");
+	//Following is needed in case undo/redo leaves a disabled renderer in the renderer list, so it can be deleted.
+	removeDisabledRenderers();
+	//The renderMutex ensures that only one thread can be in this method at a time.  But the latest version
+	//ov vapor performs all the rendering in the main gui thread, so the mutex can probably be deleted.
+	if(!renderMutex.tryLock()) return;
+	//Following is probably not needed, too, although haven't checked it out.  Qt is supposed to always call paintGL in
+	//the GL context, but maybe not paintEvent?
+	makeCurrent();
+	printOpenGLError();
+	
+	
+	float extents[6] = {0.f,0.f,0.f,1.f,1.f,1.f};
+	float minFull[3] = {0.f,0.f,0.f};
+	float maxFull[3] = {1.f,1.f,1.f};
+	//Again, mutex probably not needed.  At some point the "nowPainting" flag was used to indicate
+	//that some thread was in this routine.
+    if (nowPainting) {
+		renderMutex.unlock();
+		return;
+	}
+	nowPainting = true;
+	
+	//Paint background
+	qglClearColor(getBackgroundColor()); 
+	
+	//Clear out the depth buffer in preparation for rendering
+	glClearDepth(1);
+	//Make the depth buffer writable
+	glDepthMask(GL_TRUE);
+	glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
+	
+	DataStatus *dataStatus = DataStatus::getInstance();
+
+	//If there is no data, or the session is not yet set up, stop here.
+	if (!dataStatus->getDataMgr() ||!(dataStatus->renderReady())) {
+		swapBuffers();
+		renderMutex.unlock();
+		nowPainting = false;
+		printOpenGLError();
+		return;
+	}
+	
+	//Improve polygon antialiasing
+	glEnable(GL_MULTISAMPLE);
+	
+	//automatically renormalize normals (especially needed for flow rendering)
+	glEnable(GL_NORMALIZE);
+
+	//If we are doing the first capture of an image sequence then set the
+	//newRender flag to true, whether or not it's a real new render.
+	//Then turn off the flag, subsequent renderings will only be captured
+	//if they really are new, or if we are spinning.
+	
+	//We need to prevent multiple frame capture, which could result from extraneous rendering.
+	//The renderNew flag is set to allow performing a jpeg capture.
+	//The newCaptureImage flag is set when we start a new image capture sequence.  When renderNew is
+	//set, the previousTimeStep and previousFrameNum indices are set to -1, to guarantee that the image
+	//will be captured.  Subsequent rendering will only be captured if the frame/timestep counters are changed, or 
+	//if the image is spinning.
+	renderNew = (captureIsNewImage()|| isSpinning);
+	if (renderNew) {previousTimeStep = -1; previousFrameNum = -1;} //reset saved time step
+	setCaptureNewImage(false); //Next time don't capture if frameNum or timestep are unchanged.
+
+	//Following line has been modified and moved to a later point in the code.  It is necessary to register with the 
+	//AnimationController, but not yet, because we don't yet know the frame number.
+	//(Tell the animation we are starting.  If it returns false, we are not
+	//being monitored by the animation controller
+	//bool isControlled = AnimationController::getInstance()->beginRendering(winNum);
+	
+	//If we are visualizing in latLon space, must update the local coordinates
+	//and put them in the trackball, prior to setting up the trackball.
+	//The frameNum is used with keyframe animation, it coincides with timeStep when keyframing is disabled.
+	int frameNum = getActiveAnimationParams()->getCurrentFrameNumber();
+	int timeStep = getActiveAnimationParams()->getCurrentTimestep();
+
+	//When performing keyframe animation, all the viewpoints are in the loadedViewpoints vector.
+	const vector<Viewpoint*>& loadedViewpoints = getActiveAnimationParams()->getLoadedViewpoints();
+	
+	//Prepare for keyframe animation
+	if (getActiveAnimationParams()->keyframingEnabled() && loadedViewpoints.size()>0){
+		//If we are performing keyframe animation, set the viewpoint (in the viewpoint params) to the appropriate one, based on
+		//the frameNum. 
+		//The viewerCoordsChanged flag is passed to the prerender callback and used to set the renderNew flag
+		setViewerCoordsChanged(true);
+		const Viewpoint* vp = loadedViewpoints[frameNum%loadedViewpoints.size()];
+		Viewpoint* newViewpoint = new Viewpoint(*vp);
+		getActiveViewpointParams()->setCurrentViewpoint(newViewpoint);
+		//setValuesFromGui causes the trackball to reflect the current viewpoint in the params
+		setValuesFromGui(getActiveViewpointParams());
+	} else if (vizIsDirty(NavigatingBit)){  
+		//If the viewpoint is not set by animation keyframing, but we are navigating, must still
+		//set the trackball
+		setValuesFromGui(getActiveViewpointParams());
+	}
+	//If using latlon coordinates the viewpoint changes every timeStep
+	if (getActiveViewpointParams()->isLatLon()&& timeStep != previousTimeStep){
+		setViewerCoordsChanged(true);
+		getActiveViewpointParams()->convertLocalFromLonLat(timeStep);
+		setValuesFromGui(getActiveViewpointParams());
+	}
+	//resetView sets the near/far clipping planes based on the viewpoint in the viewpointParams
+	resetView(getActiveViewpointParams());
+	//Set the projection matrix
+	setUpViewport(width(),height());
+	// Move to trackball view of scene  
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+
+	//Lights are positioned relative to the view direction, do this before the modelView matrix is changed
+	placeLights();
+
+	//Set the GL modelview matrix, based on the Trackball state.
+	getTBall()->TrackballSetMatrix();
+
+	//The prerender callback is set in the vizwin. 
+	//It registers with the animation controller, 
+	//and tells the window the current viewer frame.
+	//This must be called prior to rendering.  The boolean "isControlled" indicates 
+	//whether or not the rendering is under the control of the animationController.
+	//If it is true, then the postRenderCallback must be called after the full rendering is complete.
+	bool isControlled = preRenderCB(winNum, viewerCoordsChanged());
+	//If there are new coords, get them from GL, send them to the gui
+	if (viewerCoordsChanged()){ 
+		setRenderNew();
+		setViewerCoordsChanged(false);
+	}
+
+	
+	//make sure to capture whenever the time step or frame index changes
+	if (timeStep != previousTimeStep || frameNum != previousFrameNum) {
+		setRenderNew();
+		previousTimeStep = timeStep;
+		previousFrameNum = frameNum;
+	}
+	
+    getActiveRegionParams()->calcStretchedBoxExtentsInCube(extents,timeStep);
+    DataStatus::getInstance()->getMaxStretchedExtentsInCube(maxFull);
+	
+	//Make the depth buffer writable
+	glDepthMask(GL_TRUE);
+	//and readable
+	glEnable(GL_DEPTH_TEST);
+	//Prepare for alpha values:
+	glEnable (GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	//If we are in regionMode, or if the preferences specify the full box will be rendered,
+	//draw it now, before the renderers do their thing.
+    if(regionFrameIsEnabled()|| GLWindow::getCurrentMouseMode() == GLWindow::regionMode){
+      renderDomainFrame(extents, minFull, maxFull);
+    } 
+	//In regionMode or if preferences specify it, draw the subregion frame.
+    if(subregionFrameIsEnabled() && 
+       !(GLWindow::getCurrentMouseMode() == GLWindow::regionMode) )
+    {
+      drawSubregionBounds(extents);
+    } 
+
+	//Draw axis arrows if enabled.
+    if (axisArrowsAreEnabled()) drawAxisArrows(extents);
+	
+
+
+	//render the region manipulator, if in region mode, and active visualizer, or region shared
+	//with active visualizer.  Possibly redundant???
+	if(getCurrentMouseMode() == GLWindow::regionMode) { 
+		if( (windowIsActive() || 
+			(!getActiveRegionParams()->isLocal() && activeWinSharesRegion()))){
+				TranslateStretchManip* regionManip = getManip(Params::_regionParamsTag);
+				regionManip->setParams(getActiveRegionParams());
+				regionManip->render();
+		} 
+	}
+	//Render other manips, if we are in appropriate mode:
+	//Note: Other manips don't have shared and local to deal with:
+	else if ((getCurrentMouseMode() != navigateMode) && windowIsActive()){
+		int mode = getCurrentMouseMode();
+		ParamsBase::ParamsBaseType t = getModeParamType(mode);
+		TranslateStretchManip* manip = manipHolder[mode];
+		RenderParams* p = (RenderParams*)getActiveParams(t);
+		manip->setParams(p);
+		manip->render();
+		int manipType = getModeManipType(mode);
+		//For probe and 2D manips, render 3D cursor too
+		if (manipType > 1) {
+			const float *localPoint = p->getSelectedPointLocal();
+			
+			draw3DCursor(localPoint);
+		}
+	}
+	
+	
+	
+	//Now we are ready for all the different renderers to proceed.
+	//Sort them;  If they are opaque, they go first.  If not opaque, they
+	//are sorted back to front.  This only works if all the geometry of a renderer is ordered by
+	//a simple depth test.
+
+	sortRenderers(timeStep);
+	
+	printOpenGLError();
+	//Now go through all the active renderers
+	for (int i = 0; i< getNumRenderers(); i++){
+		//If a renderer is not initialized, or if its bypass flag is set, then don't render.
+		//Otherwise push and pop the GL matrix stack and all attribs
+		if(renderer[i]->isInitialized() && !(renderer[i]->doAlwaysBypass(timeStep))) {
+			// Push or reset state
+			glMatrixMode(GL_TEXTURE);
+			glPushMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+			renderer[i]->paintGL();
+
+			glPopAttrib();
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
+			glMatrixMode(GL_TEXTURE);
+			glPopMatrix();
+			printOpenGLErrorMsg(renderer[i]->getMyName().c_str());
+		}
+	}
+	//Go back to MODELVIEW for other matrix stuff
+	//By default the matrix is expected to be MODELVIEW
+	glMatrixMode(GL_MODELVIEW);
+
+	//Perform final touch-up on the final images, before capturing or displaying them.
+
+	//Axis annotation must be drawn after all the renderers are complete so that the axes are not hidden.
+	if (axisAnnotationIsEnabled()) {
+		drawAxisTics(timeStep);
+		drawAxisLabels(timeStep);
+	}
+
+	//One colorbar may be drawn.  It is drawn at a fixed position on the final image.
+	//See if there is a renderer that has an enabled colorbar and a valid transfer function
+	RenderParams* p = dynamic_cast<RenderParams*>(getActiveParams(Params::GetTagFromType(colorbarParamsTypeId)));
+	if(p && colorbarIsEnabled() && p->isEnabled() && p->GetMapperFunc()){
+		//Now go to default 2D window
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		
+		getRenderer(p)->renderColorscale(colorbarIsDirty());
+		
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
+	}
+	
+	//Create time annotation from current time step.  Draw it over the image.
+	if (getTimeAnnotType()){
+		drawTimeAnnotation();
+	} 
+	
+	//Capture the back-buffer image, if not navigating.  
+	//This must be performed before swapBuffers after everything has been drawn.
+	if (renderNew && !mouseDownHere) 
+		doFrameCapture();
+
+	glPopMatrix();
+	swapBuffers();
+	glFlush();
+
+	//clear dirty bits for the next rendering.
+	
+	setDirtyBit(RegionBit,false);
+	setDirtyBit(AnimationBit,false);
+	setDirtyBit(NavigatingBit,false);
+	setDirtyBit(ProjMatrixBit, false);
+	setDirtyBit(ViewportBit, false);
+	setDirtyBit(LightingBit, false);
+	//Turn off the nowPainting flag (probably could be deleted)
+	nowPainting = false;
+	
+	//When spinning update the viewpoint appropriately.
+	if (isSpinning){
+		getTBall()->TrackballSpin();
+		setViewerCoordsChanged(true);
+		setDirtyBit(ProjMatrixBit, true);
+	}
+	//Now release the rendering mutex.
+	//Must be performed here or deadlock occurs!
+	renderMutex.unlock();
+	
+	//Tell the animation controller that this frame is complete.  
+	//This must be called exactly once after rendering is done.l
+	postRenderCB(winNum, isControlled);
+	
+	glDisable(GL_NORMALIZE);
+	printOpenGLError();
+}
+
 //Draw a 3D cursor at specified world coords
 void GLWindow::draw3DCursor(const float position[3]){
 	float cubePosition[3];

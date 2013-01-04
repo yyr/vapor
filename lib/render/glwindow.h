@@ -464,7 +464,9 @@ public:
 	GLuint *layers;
 	int depthWidth, depthHeight, depthTexUnit;
 	ShaderMgr* getShaderMgr() {return manager;}
-	void renderScene();
+	void depthPeelPaintEvent();
+	void renderScene(float extents[6], float minFull[3], float maxFull[3], int timeStep);
+	void regPaintEvent();
 	bool peelInitialized;
 	bool isDepthPeeling(){return depthPeeling;}
 	
