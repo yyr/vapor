@@ -309,7 +309,6 @@ void UserPreferences::launch(){
 	connect (pythonPathEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (jpegPathEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (maxInfoLog, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
-	connect (maxInfoPopup, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (maxWarnLog, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (maxWarnPopup, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (maxErrorLog, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
@@ -778,7 +777,7 @@ setDialog(){
 		popupNum[i] = mReporter->getMaxPopup((MessageReporter::messagePriority)i);
 		logNum[i] = mReporter->getMaxLog((MessageReporter::messagePriority)i);
 	}
-	maxInfoPopup->setText(QString::number(mReporter->getMaxPopup((MessageReporter::messagePriority)0)));
+	maxInfoPopup->setText("0");
 	maxWarnPopup->setText(QString::number(mReporter->getMaxPopup((MessageReporter::messagePriority)1)));
 	maxErrorPopup->setText(QString::number(mReporter->getMaxPopup((MessageReporter::messagePriority)2)));
 	maxInfoLog->setText(QString::number(mReporter->getMaxLog((MessageReporter::messagePriority)0)));
@@ -1955,7 +1954,7 @@ void UserPreferences::getTextChanges(){
 	if (jpegPath == "" || jpegPath == "./" || jpegPath == ".\\")
 		jpegPath = ".";
 	logNum[0] = maxInfoLog->text().toInt();
-	popupNum[0] = maxInfoPopup->text().toInt();
+	popupNum[0] = 0;
 	logNum[1] = maxWarnLog->text().toInt();
 	popupNum[1] = maxWarnPopup->text().toInt();
 	logNum[2] = maxErrorLog->text().toInt();

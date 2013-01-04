@@ -975,6 +975,9 @@ p, li { white-space: pre-wrap; }
                      <property name="toolTip">
                       <string>Specify the largest number of times each warning message will be displayed in the log file</string>
                      </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
                     </widget>
                    </item>
                    <item row="2" column="1">
@@ -1024,6 +1027,9 @@ p, li { white-space: pre-wrap; }
                    </item>
                    <item row="1" column="3">
                     <widget class="QLineEdit" name="maxInfoPopup">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
                      <property name="minimumSize">
                       <size>
                        <width>0</width>
@@ -1031,7 +1037,13 @@ p, li { white-space: pre-wrap; }
                       </size>
                      </property>
                      <property name="toolTip">
-                      <string>Specify the maximum number of times each diagnostic message can be displayed as a pop-up</string>
+                      <string>Maximum number of popups for diagnostic messages is always 0</string>
+                     </property>
+                     <property name="text">
+                      <string>0</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
                      </property>
                     </widget>
                    </item>
@@ -1045,6 +1057,9 @@ p, li { white-space: pre-wrap; }
                      </property>
                      <property name="toolTip">
                       <string>Specify the largest number of times each error message will be displayed in the log file</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
                      </property>
                     </widget>
                    </item>
@@ -1074,6 +1089,9 @@ p, li { white-space: pre-wrap; }
                      </property>
                      <property name="toolTip">
                       <string>Specify the largest number of times each diagnostic message will be displayed in the log file</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
                      </property>
                     </widget>
                    </item>
@@ -1130,6 +1148,9 @@ p, li { white-space: pre-wrap; }
                      <property name="toolTip">
                       <string>Specify the maximum number of times each warning message can be displayed as a pop-up</string>
                      </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
                     </widget>
                    </item>
                    <item row="3" column="0">
@@ -1155,6 +1176,9 @@ p, li { white-space: pre-wrap; }
                      </property>
                      <property name="toolTip">
                       <string>Specify the maximum number of times each error message can be displayed as a pop-up</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
                      </property>
                     </widget>
                    </item>
