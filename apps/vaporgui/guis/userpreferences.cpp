@@ -1517,7 +1517,7 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 			
 					if (StrCmpNoCase(attr, Session::_maxPopupAttr) == 0) {
 						ist >> int1; ist>>int2; ist>>int3;
-						msgRpt->setMaxPopup(MessageReporter::Info, int1);
+						msgRpt->setMaxPopup(MessageReporter::Info, 0); //Always maxpopup is zero for info
 						msgRpt->setMaxPopup(MessageReporter::Warning, int2);
 						msgRpt->setMaxPopup(MessageReporter::Error, int3);
 					}
