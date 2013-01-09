@@ -59,7 +59,6 @@ const string AnimationParams::_keyNumFramesAttr = "KeyNumFrames";
 const string AnimationParams::_keySynchToTimestepsAttr = "SynchToTimesteps";
 const string AnimationParams::_keyTimestepsPerFrameAttr = "TimestepsPerFrame";
 float AnimationParams::defaultMaxFPS = 10.f;
-float AnimationParams::defaultMaxWait = 6000.f;
 
 
 AnimationParams::AnimationParams(int winnum): Params( winnum, Params::_animationParamsTag){
@@ -110,7 +109,6 @@ restart(){
 	minTimestep = 1;
 	currentInterpolatedFrame = 0;
 	currentTimestep = 0;
-	maxWait = defaultMaxWait;
 	useTimestepSampleList = false;
 	timestepList.clear();
 	loadedViewpoints.clear();
@@ -127,7 +125,6 @@ restart(){
 }
 void AnimationParams::setDefaultPrefs(){
 	defaultMaxFPS = 10.f;
-	defaultMaxWait = 6000.f;
 }
 //Respond to change in Metadata
 //
@@ -164,7 +161,7 @@ reinit(bool doOverride){
 		currentTimestep = startFrame;
 		currentInterpolatedFrame = 0;
 		maxFrameRate = defaultMaxFPS;
-		maxWait = defaultMaxWait;
+		
 	} else {
 		
 		if (startFrame > maxts) startFrame = maxts;
@@ -362,7 +359,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 				if (maxFrameRate <= 0.f) maxFrameRate = 0.001f;
 			}
 			else if (StrCmpNoCase(attribName, _maxWaitAttr) == 0) {
-				ist >> maxWait;
+				// obsolete
 			}
 			else if (StrCmpNoCase(attribName, _startFrameAttr) == 0) {
 				ist >> startFrame;
@@ -487,10 +484,6 @@ buildNode(){
 	oss.str(empty);
 	oss << (double)maxFrameRate;
 	attrs[_maxRateAttr] = oss.str();
-
-	oss.str(empty);
-	oss << (long)maxWait;
-	attrs[_maxWaitAttr] = oss.str();
 
 	oss.str(empty);
 	oss << (long)frameStepSize;

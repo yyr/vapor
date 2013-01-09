@@ -112,7 +112,7 @@ run(){
 	while (1){
 		if (animationCancelled) break;
 		int currentTime = myAnimationController->myClock->elapsed();
-		int frameWaitTime = (int)(1000.f*myAnimationController->getMaxSharedWait() + 0.5f);
+		int frameWaitTime = 1000000;
 		//Loop over active, global visualizers:
 		int minSharedTimeToFinish = 1000000;
 		int numActive= 0;

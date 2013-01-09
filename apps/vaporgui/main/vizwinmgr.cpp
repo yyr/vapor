@@ -894,7 +894,6 @@ void VizWinMgr::startPlay(AnimationParams* aParams){
 		}
 	}
 	
-	ac->setMaxSharedWait(aParams->getMaxWait());
 }
 
 

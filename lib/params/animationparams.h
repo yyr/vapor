@@ -187,20 +187,18 @@ public:
 		}
 	}
 	
-	float getMaxWait(){return maxWait;}
+
 	bool isRepeating() {return repeatPlay;}
 	void setRepeating(bool onOff){repeatPlay = onOff;}
 	void setFrameStepSize(int sz){ frameStepSize = sz;}
 	void setMaxFrameRate(float val) {maxFrameRate = val;}
-	void setMaxWait(float wait) {maxWait = wait;}
 	void setPlayDirection(int val){stateChanged = true; playDirection = val;}
 	bool isStateChanged() {return stateChanged;}
 	//Used when the state changes during a render:
 	void setStateChanged(bool state) {stateChanged = state;}
 
-	static float getDefaultMaxWait() {return defaultMaxWait;}
 	static float getDefaultMaxFPS() {return defaultMaxFPS;}
-	static void setDefaultMaxWait(float val) {defaultMaxWait = val;}
+	
 	static void setDefaultMaxFPS(float val) {defaultMaxFPS = val;}
 
 	//When rendering is finished, renderer calls this.  Returns true no change (if the change bit
@@ -245,7 +243,7 @@ protected:
 	int playDirection; //-1, 0, or 1
 	bool repeatPlay;
 	float maxFrameRate;
-	float maxWait;
+	
 	int frameStepSize;// always 1 or greater
 	int startFrame;
 	int endFrame;
@@ -259,7 +257,7 @@ protected:
 	std::vector<int> timestepList;
 	//If the animation state is changed, gui needs to update:
 	bool stateChanged;
-	static float defaultMaxWait;
+	
 	static float defaultMaxFPS;
 
 	//Keyframing state:

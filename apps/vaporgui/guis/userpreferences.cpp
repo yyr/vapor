@@ -193,7 +193,7 @@ UserPreferences* UserPreferences::clone(){
 	newPrefs->dvrBitsPerVoxel= dvrBitsPerVoxel;
 	newPrefs->dvrLighting= dvrLighting;
 	newPrefs->dvrPreIntegration = dvrPreIntegration;
-	newPrefs->maxWait = maxWait;
+	
 	newPrefs->maxFPS = maxFPS;
 	newPrefs->showAxisArrows = showAxisArrows;
 	newPrefs->spinAnimate = spinAnimate;
@@ -349,7 +349,7 @@ void UserPreferences::launch(){
 	connect (diamondEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (smoothnessEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (arrowEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
-	connect (maxWaitEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	
 	connect (maxFPSEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	
 	
@@ -861,7 +861,7 @@ setDialog(){
 	dvrBitsPerVoxel = DvrParams::getDefaultBitsPerVoxel();
 	dvrLighting = DvrParams::getDefaultLightingEnabled();
 	dvrPreIntegration = DvrParams::getDefaultPreIntegrationEnabled();
-	maxWait = AnimationParams::getDefaultMaxWait();
+	
 	maxFPS = AnimationParams::getDefaultMaxFPS();
 	showAxisArrows = GLWindow::getDefaultAxisArrowsEnabled();
 	
@@ -870,7 +870,7 @@ setDialog(){
 	dvrBitsCombo->setCurrentIndex((dvrBitsPerVoxel == 16) ? 1 : 0);
 	dvrLightingCheckbox->setChecked(dvrLighting);
 	preIntegrationCheckbox->setChecked(dvrPreIntegration);
-	maxWaitEdit->setText(QString::number(maxWait));
+	
 	maxFPSEdit->setText(QString::number(maxFPS));
 	axisArrowsCheckbox->setChecked(showAxisArrows);
 	enableSpinCheckbox->setChecked(spinAnimate);
@@ -965,7 +965,7 @@ applyToState(){
 	DvrParams::setDefaultBitsPerVoxel(dvrBitsPerVoxel);
 	DvrParams::setDefaultLighting(dvrLighting);
 	DvrParams::setDefaultPreIntegration(dvrPreIntegration);
-	AnimationParams::setDefaultMaxWait(maxWait);
+	
 	AnimationParams::setDefaultMaxFPS(maxFPS);
 	GLWindow::setDefaultAxisArrows(showAxisArrows);
 	GLWindow::setDefaultSpinAnimate(spinAnimate);
@@ -1338,9 +1338,7 @@ ParamNode* UserPreferences::buildNode(){
 
 	//Create a node for Animation Defaults
 	attrs.clear();
-	oss.str(empty);
-	oss << (float)AnimationParams::getDefaultMaxWait();
-	attrs[_animationDefaultMaxWaitAttr] = oss.str();
+	
 	oss.str(empty);
 	oss << (float)AnimationParams::getDefaultMaxFPS();
 	attrs[_animationDefaultMaxFPSAttr] = oss.str();
@@ -1739,13 +1737,11 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 					istringstream ist(value);	
 					float fltVal;
 					if (StrCmpNoCase(attr, _animationDefaultMaxWaitAttr) == 0) {
-						ist >> fltVal;
-						AnimationParams::setDefaultMaxWait(fltVal);
+						//Obsolete, do nothing
 					} else if (StrCmpNoCase(attr, _animationDefaultMaxFPSAttr) == 0) {
 						ist >> fltVal;
 						AnimationParams::setDefaultMaxFPS(fltVal);
-					} else {
-					}
+					} 
 				}
 				return true;
 			} else if (StrCmpNoCase(tag, _vizFeatureDefaultsTag) == 0){
@@ -1996,7 +1992,7 @@ void UserPreferences::getTextChanges(){
 	flowDiameter = diameterEdit->text().toFloat();
 	arrowSize = arrowEdit->text().toFloat(); 
 	diamondSize =diamondEdit->text().toFloat();
-	maxWait = maxWaitEdit->text().toFloat();
+	
 	maxFPS = maxFPSEdit->text().toFloat();;
 	
 }

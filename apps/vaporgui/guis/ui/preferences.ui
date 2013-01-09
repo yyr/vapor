@@ -3725,41 +3725,6 @@ selected axis.</string>
             <item>
              <layout class="QHBoxLayout">
               <item>
-               <widget class="QLabel" name="textLabel1_3_2">
-                <property name="toolTip">
-                 <string>Specify maximum time to wait for a slow renderer</string>
-                </property>
-                <property name="text">
-                 <string>Max Wait Seconds</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-                <property name="wordWrap">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="maxWaitEdit">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>25</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>Specify maximum time to wait for a slow renderer</string>
-                </property>
-                <property name="text">
-                 <string>1.0</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignHCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item>
                <spacer name="spacer15">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -3815,6 +3780,19 @@ selected axis.</string>
                  <set>Qt::AlignHCenter</set>
                 </property>
                </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_7">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
               </item>
              </layout>
             </item>

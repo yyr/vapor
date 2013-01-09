@@ -288,19 +288,18 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 
 
 	float maxFrameRate = maxFrameRateEdit->text().toFloat();
-	float maxWait = 1.e20;
+	
 	//Constrain to a "reasonable" range:
 	if (maxFrameRate> 1000.f) maxFrameRate = 1000.f;
 	if (maxFrameRate< 0.001f) maxFrameRate = 0.001f;
 	
 	aParams->setMaxFrameRate(maxFrameRate);
-	aParams->setMaxWait(maxWait);
+	
 	VizWinMgr::getInstance()->animationParamsChanged(aParams);
 	if (frameChanged){
 		VizWinMgr::getInstance()->setAnimationDirty(aParams);
 	}
 	
-
 	updateTab();
 	guiSetTextChanged(false);
 	PanelCommand::captureEnd(cmd, aParams);

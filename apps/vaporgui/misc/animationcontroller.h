@@ -153,9 +153,6 @@ public:
 		animationMutex.unlock();
 	}
 	
-	void setMaxSharedWait(float val) {maxSharedWait = val;}
-	float getMaxSharedWait() {return maxSharedWait;}
-
 		
 	
 protected:
@@ -210,7 +207,6 @@ protected:
 	SharedControllerThread* mySharedController;
 	UnsharedControllerThread* myUnsharedController;
 	
-	float maxSharedWait; //Max time to wait for shared viz 
 
 };
 

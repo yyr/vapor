@@ -227,7 +227,7 @@ protected:
 	int dvrBitsPerVoxel;
 	bool dvrLighting;
 	bool dvrPreIntegration;
-	float maxWait;
+	
 	float maxFPS;
 	bool showAxisArrows;
 	bool spinAnimate;
