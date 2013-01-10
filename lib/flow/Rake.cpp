@@ -454,7 +454,7 @@ bool SolidRake::GenSeedBiased(const vector<double>&usrExts, float bias, float fi
 	for(int iFor = 0; iFor < 3; iFor++)
 	{
 		//shrink slightly, to ensure seeds lie entirely inside edge cells
-		float edgeWidth = (localmax[iFor]-localmin[iFor])*0.03;
+		float edgeWidth = (localmax[iFor]-localmin[iFor])*0.001;
 		lll[iFor] = localmin[iFor]+edgeWidth;
 		hhh[iFor] = localmax[iFor]-edgeWidth;
 	}
@@ -469,14 +469,15 @@ bool SolidRake::GenSeedBiased(const vector<double>&usrExts, float bias, float fi
 	//Note:  The following code is more or less replicated in plane rake and line rake.
 	// initialize random number generator with a negative value
 	long rseed = randomSeed;
-	if(rseed > 0) rseed = -rseed;
+	if(rseed < 0) rseed = -rseed;
 
 	totalNum = numSeeds[0] * numSeeds[1] * numSeeds[2];
 	
 	// Generate biased seeds by selecting largest or smallest seeds from
 	// a number of trials determined by the seed bias
 	// Number of trials is 2**abs(bias) per seed point output
-	int numTrials = (int)(totalNum*pow(2.f,abs(bias)));
+	int numTrials = totalNum;
+	if (bias != 0.f) numTrials = (int)(totalNum*pow(2.f,abs(bias)));
 	//We shall allocate a PointSorter that holds at most totalNum+MAX_SORT_MBYTES/16 seeds
 	//since each seed occupies 16 bytes
 	int seedSorterSize = totalNum + numTrials;
@@ -500,6 +501,7 @@ bool SolidRake::GenSeedBiased(const vector<double>&usrExts, float bias, float fi
 	int insertionPosn = 0;
 	int startInsertPosn = 0;
 	int numPointsToInsert = totalNum + numTrials;
+	if (bias == 0.f) numPointsToInsert = totalNum;
 	int totalPointsInserted = 0;
 	while(1){ //outer loop fills seedSorter and sorts seeds
 		insertionPosn = startInsertPosn;
@@ -529,7 +531,7 @@ bool SolidRake::GenSeedBiased(const vector<double>&usrExts, float bias, float fi
 		//OK, now sort the seeds in the sorter:
 		int endPosn = Min(seedSorterSize-1, insertionPosn-1);
 		
-		seedSorter->sortPoints(0, endPosn, (bias < 0.f));
+		if(bias != 0.f) seedSorter->sortPoints(0, endPosn, (bias < 0.f));
 		//After the first sort, we insert following the totalNum points
 		startInsertPosn = totalNum;
 		//test for completion:
