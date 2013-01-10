@@ -83,7 +83,7 @@ TwoDImageParams::~TwoDImageParams(){
 	
 	if (twoDDataTextures) {
 		
-		if (twoDDataTextures[0]) delete twoDDataTextures[0];
+		if (twoDDataTextures[0]) delete [] twoDDataTextures[0];
 		
 		delete [] twoDDataTextures;
 		delete [] textureSizes;
@@ -202,7 +202,7 @@ reinit(bool doOverride){
 	setTwoDDirty();
 	if (twoDDataTextures) {
 		if (twoDDataTextures[0])
-			delete twoDDataTextures[0];
+			delete [] twoDDataTextures[0];
 		delete [] twoDDataTextures;
 		delete [] imageExtents;
 		delete [] textureSizes;
@@ -234,7 +234,7 @@ restart(){
 	compressionLevel = 0;
 	setTwoDDirty();
 	if (twoDDataTextures) {
-		if (twoDDataTextures[0]) delete twoDDataTextures[0];
+		if (twoDDataTextures[0]) delete [] twoDDataTextures[0];
 		delete [] twoDDataTextures;
 		delete [] imageExtents;
 		delete [] textureSizes;
@@ -484,7 +484,7 @@ void TwoDImageParams::setTwoDDirty(){
 void TwoDImageParams::setImagesDirty(){
 	if (twoDDataTextures){
 		if (twoDDataTextures[0]) {
-			delete twoDDataTextures[0];
+			delete [] twoDDataTextures[0];
 			twoDDataTextures[0] = 0;
 		}
 		
@@ -708,6 +708,7 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 		GTIFDefn* gtifDef = new GTIFDefn();
 		//int rc1 = 
 		GTIFGetDefn(gtifHandle,gtifDef);
+		GTIFFree(gtifHandle);
 		const char* proj4String = GTIFGetProj4Defn(gtifDef);
 		const char* newString;
 		// If there's no "ellps=" in the string, force it to be spherical,
@@ -728,7 +729,6 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 		p = pj_init_plus(newString);
 		int gotFields = false;
 		double* padfTiePoints, *modelPixelScale;
-		if (p) pj_free(p);
 		if (!p && isGeoreferenced()){
 			//Invalid string. Get the error code:
 			int *pjerrnum = pj_get_errno_ref();
@@ -764,7 +764,7 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	}
 	
 
-	TIFFClose(tif);
+	XTIFFClose(tif);
 	//apply opacity multiplier
 	if (texture && opacityMultiplier < 1){
 		for (int i = 0; i < w*h; i++){
@@ -782,15 +782,15 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	
 		float lonlatexts[4];
 		if (getLonLatExts((size_t)timestep, lonlatexts)){
-			const size_t* dataSize = DataStatus::getInstance()->getFullDataSize();
+			//const size_t* dataSize = DataStatus::getInstance()->getFullDataSize();
 			
 			//OK, we need to extract a sub-image, that maps to the current lon-lat extents
 			int wid2 = *wid, ht2 = *ht;
 			//Choose a level of detail so the image is not too large. 
 			//If we do no reduction of level of detail the image size will be proportional to the fraction of latlonexts:
-			int xdim = (lonlatexts[2]-lonlatexts[0])*(float)w/360.;
-			int ydim = (lonlatexts[3]-lonlatexts[1])*(float)h/180.;
-			int minMag = (int)Min((float)xdim/(float)dataSize[0],(float)ydim/(float)dataSize[1]);
+			//int xdim = (int) ((lonlatexts[2]-lonlatexts[0])*(float)w/360.);
+			//int ydim = (int) ((lonlatexts[3]-lonlatexts[1])*(float)h/180.);
+			//int minMag = (int)Min((float)xdim/(float)dataSize[0],(float)ydim/(float)dataSize[1]);
 			int lev = 0;
 			//if (minMag > 1) lev = VetsUtil::ILog2(minMag);
 			unsigned char* subTexture = extractSubtexture((unsigned char*)texture, lonlatexts, &wid2, &ht2, lev);
@@ -798,13 +798,15 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 				*wid = wid2;
 				*ht = ht2;
 				for (int i = 0; i<4; i++) imgExts[i] = lonlatexts[i];
-				delete texture;
+				delete [] texture;
+				if (p) pj_free(p);
 				return subTexture;
 			}
 		}
 
 		
 	}
+	if (p) pj_free(p);
 	return (unsigned char*) texture;
 }
 unsigned char* TwoDImageParams::extractSubtexture(unsigned char* texture, float lonlatexts[4], int* wid2, int* ht2, int lev){

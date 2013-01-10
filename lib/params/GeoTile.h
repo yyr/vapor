@@ -62,7 +62,7 @@ public:
 	size_t tile_width, size_t tile_height, size_t pixelsize,
 	double min_lon, double min_lat, double max_lon, double max_lat
  );
- ~GeoTile();
+ virtual ~GeoTile();
 
  //! Insert an image tile into the class object
  //!

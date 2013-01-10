@@ -488,10 +488,10 @@ int PythonPipeLine::python_wrapper(
 	}
 	//We need to release the copies of the input arrays:
 	for (int i = 0; i< allocatedArrays.size(); i++){
-		delete allocatedArrays[i];
+		delete [] allocatedArrays[i];
 	}
 	for (int i = 0; i< allocatedMasks.size(); i++){
-		delete allocatedMasks[i];
+		delete [] allocatedMasks[i];
 	}
 		
 	return 0;
@@ -844,7 +844,7 @@ PyObject* PythonPipeLine::get_3Dmask(PyObject *self, PyObject* args){
 	//Now copy in the data:
 	copyFrom3DGrid(rg, pyData,pyMask);
     currentDataMgr->UnlockGrid(rg);
-	delete pyData;
+	delete [] pyData;
 	pyRegion = PyArray_New(&PyArray_Type,3,pydims,PyArray_BOOL,NULL,pyMask,0,
 						   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
 	mapMaskObject(pyRegion, pyMask);
@@ -885,7 +885,7 @@ PyObject* PythonPipeLine::get_2Dmask(PyObject *self, PyObject* args){
 	//Now copy in the data:
 	copyFrom2DGrid(rg, pyData, pyMask);
     currentDataMgr->UnlockGrid(rg);
-	delete pyData;
+	delete [] pyData;
     pyRegion = PyArray_New(&PyArray_Type,2,pydims,PyArray_BOOL,NULL,pyMask,0,
 						   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
     mapMaskObject(pyRegion, pyMask);
@@ -1091,13 +1091,13 @@ void PythonPipeLine::tryDeleteArrayStorage(PyObject* pyobj){
 	map< PyObject*,float*> :: iterator mapiter = arrayAllocMap.find(pyobj);
 	if (mapiter != arrayAllocMap.end()){
 		float* ary = mapiter->second;
-		delete ary;
+		delete [] ary;
 		arrayAllocMap.erase(mapiter);
 	}
 	map< PyObject*,bool*> :: iterator mapiter2 = maskAllocMap.find(pyobj);
 	if (mapiter2 != maskAllocMap.end()){
 		bool* ary = mapiter2->second;
-		delete ary;
+		delete [] ary;
 		maskAllocMap.erase(mapiter2);
 	}
 	arrayAllocMutex->unlock();
