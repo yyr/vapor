@@ -2793,7 +2793,7 @@ coordinate.</string>
                     <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
                    </property>
                    <property name="whatsThis">
-                    <string>Bias and seed distribution field: The bias value is used to produce randomly placed seeds that are biased either toward larger or smaller magnitude of the seed distribution field.  Positive bias results in seeds with larger magnitude of the field, negative bias results in seeds with smaller field magnitudes.  If B is the bias and  N is the number of seed points, then N*2^|B| random points are generated, and then, from the generated points, N of the points with largest (or smallest) seed distribution field magnitude are used as seed points.</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Bias and seed distribution field: The bias value is used to produce randomly placed seeds that are biased either toward larger or smaller magnitude of the seed distribution field, when B is nonzero. Positive bias results in seeds with larger magnitude of the field, negative bias results in seeds with smaller field magnitudes. If B is the bias and N is the number of seed points, then N*2^(|B|+1) random points are generated, and then, from the generated points, N of the points with largest (or smallest) seed distribution field magnitude are used as seed points. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="minimum">
                     <number>-128</number>
@@ -2833,7 +2833,7 @@ coordinate.</string>
                     <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
                    </property>
                    <property name="whatsThis">
-                    <string>Bias and seed distribution field: The bias value is used to produce randomly placed seeds that are biased either toward larger or smaller magnitude of the seed distribution field.  Positive bias results in seeds with larger magnitude of the field, negative bias results in seeds with smaller field magnitudes.  If B is the bias and  N is the number of seed points, then N*2^|B| random points are generated, and then, from the generated points, N of the points with largest (or smallest) seed distribution field magnitude are used as seed points.</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Bias and seed distribution field: The bias value is used to produce randomly placed seeds that are biased either toward larger or smaller magnitude of the seed distribution field, when B is nonzero. Positive bias results in seeds with larger magnitude of the field, negative bias results in seeds with smaller field magnitudes. If B is the bias and N is the number of seed points, then N*2^(|B|+1) random points are generated, and then, from the generated points, N of the points with largest (or smallest) seed distribution field magnitude are used as seed points. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>0.0</string>
