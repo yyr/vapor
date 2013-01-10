@@ -589,8 +589,8 @@ void ArrowEventRouter::updateTab(){
 		double cornerLatLon[4];
 		cornerLatLon[0] = usrRakeExts[0];
 		cornerLatLon[1] = usrRakeExts[1];
-		cornerLatLon[0] = usrRakeExts[3];
-		cornerLatLon[1] = usrRakeExts[4];
+		cornerLatLon[2] = usrRakeExts[3];
+		cornerLatLon[3] = usrRakeExts[4];
 		if (DataStatus::convertToLonLat(cornerLatLon,2)){
 			LLLonEdit->setText(QString::number(cornerLatLon[0]));
 			LLLatEdit->setText(QString::number(cornerLatLon[1]));
