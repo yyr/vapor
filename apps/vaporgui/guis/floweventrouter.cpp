@@ -2672,7 +2672,7 @@ void FlowEventRouter::saveFlowLines(){
 			}
 			for (int j = pathData->getStartIndex(i); j<= pathData->getEndIndex(i); j++){
 				float* point = pathData->getFlowPoint(i,j);
-				float time = pathData->getTimeInPath(i,j);
+				float time = pathData->getTimeInPath(j);
 				int rc = fprintf(saveFile,"%8g %8g %8g %8g\n",
 					point[0],point[1],point[2],time);
 				if (rc <= 0){

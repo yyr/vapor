@@ -2469,6 +2469,285 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		
 	}
 }
+//Same as above, but for unsteady flow.  Assumes color is mapped to a variable.
+// color variable is retrieved for
+// each time step along the flow.
+//
+void FlowParams::
+mapUnsteadyColors(PathLineData* container, int startTimeStep, int minFrame, RegionParams* rParams){
+	//Only do this if there is a color variable to be mapped:
+	if(getColorMapEntityIndex() <= 3 ){
+		mapColors(container,startTimeStep,minFrame, rParams);
+		return;
+	}
+	//Create lut based on current mapperFunction (assumes it doesn't change over time!)
+	float* lut = new float[256*4];
+	mapperFunction->makeLut(lut);
+	//Setup color and opacity mappings
+	
+	float opacMin = mapperFunction->getMinOpacMapValue();
+	float colorMin = mapperFunction->getMinColorMapValue();
+	float opacMax = mapperFunction->getMaxOpacMapValue();
+	float colorMax = mapperFunction->getMaxColorMapValue();
+
+	float opacVar, colorVar;
+	RegularGrid* opacGrid=0;
+	//min and max of valid mappings into data volume:
+	int opacMinMap[3], opacMaxMap[3];
+	
+	DataStatus* ds = DataStatus::getInstance();
+	DataMgr* dataMgr = ds->getDataMgr();
+	if(!dataMgr) return;
+	//Make sure RGBAs are available:
+
+	container->enableRGBAs();
+	double validExts[6];
+	//Get the variable (grid over entire region) needed for mapping opac
+	//Will only use the first time step for opacity (BUG!) since we expect to
+	//eventually combine opac and color in one transfer function.
+	if (getOpacMapEntityIndex() > 3){
+		//set up args for GetGrid
+		//just get the first available timestep  (BUG!!!)
+		int timeStep = startTimeStep;
+		
+		timeStep = ds->getFirstTimestep(getOpacMapEntityIndex()-4);
+		if (timeStep < 0) {
+			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"No data for flow mapped opacity variable");
+			setBypass(timeStep);
+			return;
+		}
+		
+		size_t min_dim[3], max_dim[3];
+	
+		rParams->GetBox()->GetUserExtents(validExts, (size_t)timeStep);
+
+		vector<string> opacVarname;
+		opacVarname.push_back(opacMapEntity[getOpacMapEntityIndex()]);
+		int opacRefLevel = RegionParams::PrepareCoordsForRetrieval(numRefinements, timeStep, opacVarname, 
+			validExts, validExts+3,min_dim, max_dim);
+		if (opacRefLevel < 0) {
+			SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"flow opacity mapping data unavailable at timestep %d\n", timeStep);
+			setBypass(timeStep);
+			return;
+		}
+
+		//Obtain the required grid from the DataMgr.  The LOD of the data may need to be reduced.
+	
+		int useLOD = GetCompressionLevel();
+		int maxLOD = ds->maxLODPresent(opacVarname[0],timeStep);
+		if (maxLOD < useLOD){
+			if (!ds->useLowerAccuracy()){
+				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Opacity data unavailable at LOD %d\n", GetCompressionLevel());
+				setBypass(timeStep);
+				return;
+			}
+			useLOD = maxLOD;
+		}
+
+		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+		opacGrid = dataMgr->GetGrid(timeStep, opacVarname[0],opacRefLevel, useLOD,min_dim,max_dim,0);
+		QApplication::restoreOverrideCursor();
+
+		if (!opacGrid){
+			DataStatus::getInstance()->getDataMgr()->SetErrCode(0);
+			if (DataStatus::getInstance()->warnIfDataMissing())
+				MyBase::SetErrMsg(VAPOR_ERROR_FLOW_DATA,"Opacity mapped variable data unavailable\nfor refinement %d at timestep %d", opacRefLevel, timeStep);
+			return;
+		}
+		for (int i = 0; i<3; i++){
+			opacMinMap[i] = min_dim[i];
+			opacMaxMap[i] = max_dim[i];
+		}
+	}
+		
+	
+	vector<string> colorVarname;
+	colorVarname.push_back(colorMapEntity[getColorMapEntityIndex()]);
+
+	//Determine the first and last time steps in the pathlinedata:
+	int firstTS = 10000000, lastTS = -1;
+	for (int line = 0; line < container->getNumLines(); line++){
+	//Obtain the required grid from the DataMgr.  The LOD of the data may need to be reduced.
+		if (container->getFirstTimestep(line) < firstTS) firstTS = container->getFirstTimestep(line);
+		if (container->getLastTimestep(line) > lastTS) lastTS = container->getLastTimestep(line);
+	}
+	if (firstTS > lastTS) return; //nothing to do.
+	int firstIndex = container->getIndexFromTimestep(firstTS);
+	int lastIndex = container->getIndexFromTimestep(lastTS);
+
+	//Loop over indices,  maintain pointers and timeSteps for current and next data
+	int nextDataTime = -1;
+	int currDataTime = -1;
+	RegularGrid* currData = 0;
+	RegularGrid* nextData = 0;
+	int numGrids = 0;
+		
+	for (int indx = firstIndex; indx<=lastIndex; indx++){
+		int actualRefLevel = GetRefinementLevel();
+		int actualLOD = GetCompressionLevel();
+			
+		//Determine the current and next sample timesteps for this index:
+		float fltTime = container->getTimeInPath(indx);
+		//Note:  If fltTime is a valid timestep, these will be equal:
+		int currentTimestep = getCurrentTimestepSample(fltTime);
+		int nextTimestep = getNextTimestepSample(fltTime);
+		// As we move forward in time, either:
+		//(1) currData and nextData remain valid, or
+		//(2) the nextData becomes currData, and nextData remains nextData, or
+		//(3) the nextData becomes currData, and new nextData must be obtained, or
+		//(4a) nextData was equal to currData and both advance to equal new values
+		//(4b) nextData was equal to currData and both advance to different values
+		//(5a) first time thru, currentData == nextData (handled by case 4a)
+		//(5b) first time thru, currentData != nextData (handled by case 4b)
+		int rc = 0;
+		if (nextDataTime == currentTimestep && nextDataTime == nextTimestep) { //case (2)
+			//delete currData, set currData = nextData, no allocation needed
+			delete currData;
+			numGrids--;
+			currData = nextData;
+			currDataTime = currentTimestep;
+
+		} else if (nextDataTime == currentTimestep && nextDataTime != nextTimestep){//case (3)
+			//Delete currData, set currData = nextData
+			if (nextData != currData) {
+				delete currData;
+				numGrids--;
+			}
+			currData = nextData;
+			currDataTime = currentTimestep;
+			rParams->GetBox()->GetUserExtents(validExts, (size_t) currentTimestep);
+			rc = getGrids((size_t) nextTimestep, colorVarname, validExts, &actualRefLevel, &actualLOD, &nextData);
+			if (!rc) {
+				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"flow color mapping data unavailable at timestep %d\n", currentTimestep);
+				setBypass(currentTimestep);
+				return;
+			}
+			numGrids++;
+			nextDataTime = nextTimestep;
+		} else if (currDataTime == nextDataTime && currentTimestep == nextTimestep && currentTimestep != currDataTime){//case 4a
+			//delete currData, allocate one new grid for both currData and nextData
+			if (currData) {
+				delete currData;
+				numGrids--;
+			}
+			rParams->GetBox()->GetUserExtents(validExts, (size_t) currentTimestep);
+			rc = getGrids((size_t) currentTimestep, colorVarname, validExts, &actualRefLevel, &actualLOD, &currData);
+			if (!rc) {
+				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"flow color mapping data unavailable at timestep %d\n", currentTimestep);
+				setBypass(currentTimestep);
+				return;
+			}
+			numGrids++;
+			currDataTime = currentTimestep;
+			nextDataTime = currentTimestep;
+			nextData = currData;
+		} else if (currDataTime == nextDataTime && currentTimestep != nextTimestep && currentTimestep != currDataTime ) {//case 4b
+			//allocate a new currData and a new nextData
+			if(currData) {
+				delete currData;
+				numGrids--;
+			}
+			rParams->GetBox()->GetUserExtents(validExts, (size_t) currentTimestep);
+			rc = getGrids((size_t) currentTimestep, colorVarname, validExts, &actualRefLevel, &actualLOD, &currData);
+			if (!rc) {
+				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"flow color mapping data unavailable at timestep %d\n", currentTimestep);
+				setBypass(currentTimestep);
+				return;
+			}
+			numGrids++;
+			rParams->GetBox()->GetUserExtents(validExts, (size_t) nextTimestep);
+			rc = getGrids((size_t) nextTimestep, colorVarname, validExts, &actualRefLevel, &actualLOD, &nextData);
+			if (!rc) {
+				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"flow color mapping data unavailable at timestep %d\n", nextTimestep);
+				setBypass(currentTimestep);
+				return;
+			}
+			numGrids++;
+			currDataTime = currentTimestep;
+			nextDataTime = nextTimestep;
+		} else {  //must be case 1
+			assert(currentTimestep == currDataTime && nextTimestep == nextDataTime);
+			//do nothing.
+		}
+		
+		//Now use these grids to color the flow lines.
+		//Loop through the lines, interpolate color in HSV between current point and next point.
+		float colorRatio = 1.f;
+		if (currentTimestep != nextTimestep) 
+			colorRatio = (fltTime - (float)currentTimestep)/((float)nextTimestep - (float)currentTimestep);
+
+		for (int lineNum = 0; lineNum<container->getNumLines(); lineNum++){
+			float* dataPoint = container->getFlowPoint(lineNum,indx);
+			assert(dataPoint[0] != IGNORE_FLAG);
+			float colorVar1 = currData->GetValue(dataPoint[0],dataPoint[1],dataPoint[2]);
+			float colorVar2 = nextData->GetValue(dataPoint[0],dataPoint[1],dataPoint[2]);
+			//If both of these are missing values, we will try to fix it later
+			if (colorVar1 == currData->GetMissingValue() && colorVar2 == nextData->GetMissingValue() ) {
+				colorVar = colorVar1;
+			} else if (colorVar1 == currData->GetMissingValue()) colorVar = colorVar2;
+			else if (colorVar2 == nextData->GetMissingValue()) colorVar = colorVar1;
+			else //interpolate
+				colorVar = colorRatio*colorVar2 + (1.-colorRatio)*colorVar1;
+
+			//Now map the color of the point
+			int colorIndex = -1;
+			if (colorVar != currData->GetMissingValue()){
+				colorIndex = (int)((colorVar - colorMin)*255.99/(colorMax-colorMin));
+				if (colorIndex<0) colorIndex = 0;
+				if (colorIndex> 255) colorIndex =255;
+			}
+			// Perform opacity mapping of the point, before color mapping:
+			switch (getOpacMapEntityIndex()){
+				case (0): //constant
+					opacVar = 0.f;
+					break;
+				case (1): //age
+					opacVar = (float)(minFrame + (float)indx/(float)objectsPerTimestep);
+					break;
+				case (2): //speed
+					if (container->doSpeeds())
+						opacVar = container->getSpeed(lineNum,indx);
+					else opacVar = 0.f;
+					break;
+				case (3): //opacity mapped from seed index
+					opacVar = container->getSeedIndex(lineNum);
+					break;
+				default : //variable
+					float* dataPoint = container->getFlowPoint(lineNum,indx);
+					assert(dataPoint[0] != IGNORE_FLAG);
+					opacVar = opacGrid->GetValue(dataPoint[0],dataPoint[1],dataPoint[2]);
+					if (opacVar == opacGrid->GetMissingValue()) colorIndex = -1;
+					break;
+			}
+			int opacIndex = (int)((opacVar - opacMin)*255.99/(opacMax-opacMin));
+			if (opacIndex<0) opacIndex = 0;
+			if (opacIndex> 255) opacIndex =255;
+
+			//Map to color
+			if (colorIndex >= 0){
+				container->setRGB(lineNum,indx,lut[4*colorIndex],lut[4*colorIndex+1],lut[4*colorIndex+2]);
+				if (getOpacMapEntityIndex() == 0){
+					container->setAlpha(lineNum,indx,constantOpacity);
+				} else {
+					container->setAlpha(lineNum,indx,lut[4*opacIndex+3]);
+				}
+			}
+			else { //use the bottom value, but it will be transparent
+				container->setRGB(lineNum,indx,lut[0],lut[1],lut[2]);
+				container->setAlpha(lineNum,indx,0.);
+			}
+		} //End loop over lines 
+	} //end loop over indx
+	if (currData) {delete currData;numGrids--;}
+	if (nextData && nextData != currData) {
+		delete nextData;
+		numGrids--;
+	}
+	if(opacGrid) delete opacGrid;
+	assert(numGrids == 0);
+
+}
+
 //Map periodic coords into data extents.
 //Note this is different than the mapping used by flowlib (at least when numrefinements < max numrefinements)
 //If unscale is true then the resulting values are divided by scale factor
@@ -3363,4 +3642,31 @@ bool FlowParams::validateSettings(int tstep){
 			break;
 		}   //End of switch
 	return true;
+}
+int FlowParams::getCurrentTimestepSample(float ts){
+	if (usingTimestepSampleList()){
+		int prev = unsteadyTimestepList[0];
+		for (int i = 1; i< unsteadyTimestepList.size(); i++){
+			if (unsteadyTimestepList[i] <= ts){ prev = i; continue;}
+		}
+		return prev;
+	}
+	//find largest integer n such that (timeSamplingStart+n*timeSamplingInterval <= ts)
+	int n = (int)(0.5+ (ts - timeSamplingStart)/(float)timeSamplingInterval);
+	if (timeSamplingStart+n*timeSamplingInterval > ts + .001f) n--; //n is too big
+	return n;
+		
+}
+int FlowParams::getNextTimestepSample(float ts){
+	if (usingTimestepSampleList()){
+		int next = unsteadyTimestepList[unsteadyTimestepList.size()-1];
+		for (int i = unsteadyTimestepList.size()-1; i>= 0; i--){
+			if (unsteadyTimestepList[i] >= ts){ next = i; continue;}
+		}
+		return next;
+	}
+	//find smallest integer n such that (timeSamplingStart+n*timeSamplingInterval >= ts)
+	int n = (int)(0.5+ (ts - timeSamplingStart)/(float)timeSamplingInterval);
+	if (timeSamplingStart+n*timeSamplingInterval < ts - .001f) n++; //n is too small
+	return n;
 }

@@ -187,7 +187,7 @@ void FlowRenderer::paintGL()
 					const float* scales = DataStatus::getInstance()->getStretchFactors();
 					for (int i = 0; i<3; i++) unScales[i] = 1./scales[i];
 					unsteadyFlowCache->scaleLines(unScales);
-					myFlowParams->mapColors(unsteadyFlowCache,timeStep, minFrame, myGLWindow->getActiveRegionParams());
+					myFlowParams->mapUnsteadyColors(unsteadyFlowCache,timeStep, minFrame, myGLWindow->getActiveRegionParams());
 					unsteadyFlowCache->scaleLines(scales);
 					//First and last age can change with flow graphics.
 					firstDisplayAge = myFlowParams->getFirstDisplayFrame();
@@ -835,7 +835,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 					MyBase::SetDiagMsg("Integrated %d timesteps", numTimestepsToRender);
 				}
 				
-				if(!constColors) myFlowParams->mapColors(unsteadyFlowCache, timeStep, minFrame, rParams);
+				if(!constColors) myFlowParams->mapUnsteadyColors(unsteadyFlowCache, timeStep, minFrame, rParams);
 				//Scale lines for rendering after color map!!!
 				unsteadyFlowCache->scaleLines(DataStatus::getInstance()->getStretchFactors());
 				break;

@@ -170,6 +170,8 @@ public:
 		if (usingTimestepSampleList() && unsteadyTimestepList.size()>0) return unsteadyTimestepList[unsteadyTimestepList.size()-1];
 		else return timeSamplingEnd;
 	}
+	int getCurrentTimestepSample(float usrTime);
+	int getNextTimestepSample(float usrTime);
 	bool isAutoScale(){return autoScale;}
 	void setAutoScale(bool val){autoScale = val;}
 	
@@ -238,6 +240,7 @@ public:
 	}
 	virtual int GetRefinementLevel() {return numRefinements;}
 	void mapColors(FlowLineData*, int timeStep, int minFrame, RegionParams* rParams);
+	void mapUnsteadyColors(PathLineData*, int timeStep, int minFrame, RegionParams* rParams);
 	
 	//Check the variables in the flow data for missing timesteps 
 	//Independent of animation params
