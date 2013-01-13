@@ -216,7 +216,7 @@ bool ShaderMgr::defineEffect(std::string baseName, std::string defines, std::str
 	);
 
 #ifdef DEBUG		
-	std::cout << "ShaderMgr::defineEffect()" << std::endl;
+	std::cout << "ShaderMgr::defineEffect(baseName, defines, intanceName) : " << baseName << " " << defines << " " << instanceName << std::endl;
 #endif
 	if (baseEffects.count(baseName) < 0) {
 		SetErrMsg(
@@ -274,7 +274,7 @@ bool ShaderMgr::defineEffect(std::string baseName, std::string defines, std::str
 bool ShaderMgr::undefEffect(std::string instanceName)
 {
 #ifdef DEBUG		
-	std::cout << "ShaderMgr::undefEffect(" << instanceName << ")" << std::endl;
+	std::cout << "ShaderMgr::undefEffect(instanceName) : " << instanceName << std::endl;
 #endif
 	if (effects.count(instanceName) < 0) {
 	  //effect has not been defined
@@ -494,7 +494,7 @@ bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, int v
 	GLint current;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &current);
 #ifdef DEBUG
-	std::cout << "ShaderMgr::uploadEffectData1i() - " << "effect: " << effect << std::endl;
+	std::cout << "ShaderMgr::uploadEffectDatai(effect,variable,value) : " << effect << " " << variable << " " << value << endl;
 #endif
 	
 	if (effectExists(effect)){
@@ -541,7 +541,7 @@ bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, int v
 	GLint current;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &current);	
 #ifdef DEBUG
-	std::cout << "ShaderMgr::uploadEffectData2i() - " << "effect: " << effect << std::endl;
+	std::cout << "ShaderMgr::uploadEffectDatai(effect,variable,value) : " << effect << " " << variable << " " << value1 << " " << value2 << endl;
 #endif
 	
 	printOpenGLError();
@@ -591,7 +591,7 @@ bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, int v
 	GLint current;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &current);
 #ifdef DEBUG
-	std::cout << "ShaderMgr::uploadEffectData3i() - " << "effect: " << effect << std::endl;
+	std::cout << "ShaderMgr::uploadEffectDatai(effect,variable,value) : " << effect << " " << variable << " " << value1 << " " << value2 << " " << value3 << endl;
 #endif
 	
 	if (effectExists(effect)){
@@ -638,7 +638,7 @@ bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, int v
 	GLint current;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &current);	
 #ifdef DEBUG
-	std::cout << "ShaderMgr::uploadEffectData4i() - " << "effect: " << effect << std::endl;
+	std::cout << "ShaderMgr::uploadEffectDatai(effect,variable,value) : " << effect << " " << variable << " " << value1 << " " << value2 << " " << value3 << " " << value4 << endl;
 #endif
 	
 	if (effectExists(effect)){
@@ -687,7 +687,7 @@ bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, float
 	GLint current;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &current);	
 #ifdef DEBUG
-	std::cout << "ShaderMgr::uploadEffectData1f() - " << "effect: " << effect << std::endl;
+	std::cout << "ShaderMgr::uploadEffectDataf(effect,variable,value) : " << effect << " " << variable << " " << value <<endl;
 #endif
 	
 	if (effectExists(effect)){
@@ -734,7 +734,7 @@ bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, float
 	GLint current;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &current);	
 #ifdef DEBUG
-	std::cout << "ShaderMgr::uploadEffectData2f() - " << "effect: " << effect << std::endl;
+	std::cout << "ShaderMgr::uploadEffectDataf(effect,variable,value) : " << effect << " " << variable << " " << value1 << " " << value2 << endl;
 #endif
 	
 	if (effectExists(effect)){
@@ -782,7 +782,7 @@ bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, float
 	GLint current;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &current);	
 #ifdef DEBUG
-	std::cout << "ShaderMgr::uploadEffectData3f() - " << "effect: " << effect << std::endl;
+	std::cout << "ShaderMgr::uploadEffectDataf(effect,variable,value) : " << effect << " " << variable << " " << value1 << " " << value2 << " " << value3 << endl;
 #endif
 	
 	if (effectExists(effect)){
@@ -831,7 +831,7 @@ bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, float
 	GLint current;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &current);	
 #ifdef DEBUG
-	std::cout << "ShaderMgr::uploadEffectData4f() - " << "effect: " << effect << std::endl;
+	std::cout << "ShaderMgr::uploadEffectDataf(effect,variable,value) : " << effect << " " << variable << " " << value1 << " " << value2 << " " << value3 << " " << value4 <<endl;
 #endif
 	
 	if (effectExists(effect)){
