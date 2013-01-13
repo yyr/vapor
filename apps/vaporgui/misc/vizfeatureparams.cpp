@@ -16,6 +16,7 @@
 //
 //	Description:	Implements the VizFeatureParams class.
 //
+
 #include "vizfeatureparams.h"
 #include "command.h"
 #include "vizwin.h"
@@ -37,6 +38,7 @@
 #include <qlayout.h>
 #include <vector>
 #include "glwindow.h"
+
 
 using namespace VAPoR;
 
@@ -603,19 +605,30 @@ applyToViz(int vizNum){
 		vizMgr->setAllTwoDElevDirty();
 		int timestep = vizMgr->getActiveAnimationParams()->getCurrentTimestep();
 		//Set the region dirty bit in every window:
-		bool firstShared = false;
+		bool firstSharedVp = false;
+		bool firstSharedAp = true;
 		for (int j = 0; j< MAXVIZWINS; j++) {
 			VizWin* win = vizMgr->getVizWin(j);
 			if (!win) continue;
 			
 			//Only do each viewpoint params once
 			ViewpointParams* vpp = vizMgr->getViewpointParams(j);
-			
+			AnimationParams* aParams = vizMgr->getAnimationParams(j);
+			//Rescale the keyframes of animation params,
+			//Just rescale keyframes of the first shared animation params
+			if (!aParams->isLocal()){
+				if (firstSharedAp){
+					aParams->rescaleKeyframes(ratio);
+					firstSharedAp = false;
+				}
+			} else aParams->rescaleKeyframes(ratio);
+
 			if (!vpp->isLocal()) {
-				if(firstShared) continue;
-				else firstShared = true;
+				if(firstSharedVp) continue;
+				else firstSharedVp = true;
 			}
 			vpp->rescale(ratio, timestep);
+			
 			vpp->setCoordTrans();
 			win->setValuesFromGui(vpp);
 			vizMgr->resetViews(vpp);

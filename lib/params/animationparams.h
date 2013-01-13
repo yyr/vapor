@@ -116,6 +116,7 @@ public:
 	Keyframe* getKeyframe(int index) {return keyframes[index];}
 	vector<Keyframe*>& getKeyframes() {return keyframes;}
 	void deleteKeyframe(int index);
+	void rescaleKeyframes(const float ratio[3]);
 		
 	void insertKeyframe(int index, Keyframe* keyframe);
 	void insertViewpoint(int index, Viewpoint* vp);

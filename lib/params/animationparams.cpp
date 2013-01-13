@@ -736,3 +736,20 @@ int AnimationParams::getFrameIndex(int keyframeIndex){
 	}
 	return totframes;
 }
+void AnimationParams::
+rescaleKeyframes(const float ratio[3]){
+	for (int j = 0; j< getNumKeyframes(); j++){
+		Keyframe* kf = getKeyframe(j);
+		Viewpoint* vp = kf->viewpoint;
+		float* vps = vp->getCameraPosLocal();
+		float* vctr = vp->getRotationCenterLocal();
+		float vtemp[3],vtemp2[3];
+		vsub(vps, vctr, vtemp);
+		//move the camera in or out, based on scaling in directions orthogonal to view dir.
+		for (int i = 0; i<3; i++){
+			vtemp[i] /= ratio[i];
+		}
+		vadd(vtemp, vctr, vtemp2);
+		vp->setCameraPosLocal(vtemp2);
+	}
+}
