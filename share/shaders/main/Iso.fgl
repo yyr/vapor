@@ -59,6 +59,7 @@ void main(void)
 {
 		
 	// Normalized window coordinates of this frament
+	if (position.w == 0.0) discard;
 	vec2 texCoord2D = ((position.xy / position.w) + 1.0) / 2.0;
 
 	// Starting and finishing texture coordinate of ray
@@ -67,11 +68,12 @@ void main(void)
 
 	// Ray direction, texture coordinates
 	vec3 texDir = texStop - texStart;
+	if (length(texDir) == 0.0) discard;
 	vec3 texDirUnit = normalize(texDir);
-	//float len = length(texDir);
 
 	float n = gl_DepthRange.near;
 	float f = gl_DepthRange.far;
+	if ((f-n) == 0.0) discard;
 
 	// Starting and stopping Z (window, NDC and eye coordinates)
 	// We need eye coordinates to interpolate depth (Z) because
@@ -135,6 +137,7 @@ void main(void)
 				outside = false;
 			}
 		}
+		if (outside) discard;
 	}
 	else if (stretched) {
 			t0.x = texture1D(coordmap, t0.x).x;
@@ -183,6 +186,7 @@ void main(void)
 			vec3 isoTexCoord = texCoord0 + (weight * deltaVec);
 			if (zidx>0 && ! fast) {
 				isoTexCoord = tex2lay(isoTexCoord, zidx);
+				if (isoTexCoord.x < 0.0) discard;
 			}
 			else if (stretched) {
 				isoTexCoord.x = texture1D(coordmap, isoTexCoord.x).x;
@@ -203,13 +207,12 @@ void main(void)
 #ifdef	LIGHTING
 
 			// compute surface gradient at ray's intersection with isosurface
-//			vec3 grad_dd = 0.5 / dimensions;
 			vec3 gradient = gl_NormalMatrix * Gradient(dimensions, isoTexCoord);
 
 			float diffuse = 0.0;
 			float specular = 0.0;
 
-			if (length(gradient) > 0.0) {
+			if (length(gradient) > 0.0 && fragDepth != 0.0) {
 
 				gradient = normalize(gradient);
 				// Ugh. Need to convert ray intersection point to eye coords 
@@ -228,7 +231,7 @@ void main(void)
 
 				diffuse  = abs(dot(lightVec, gradient));
 				if (diffuse > 0.0) {
-					specular = pow(abs(dot(halfv, normalize(viewVec))), expS);
+					specular = pow(abs(dot(halfv, viewVec)), expS);
 				}
 
 			}
