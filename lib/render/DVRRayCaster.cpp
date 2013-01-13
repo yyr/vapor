@@ -37,7 +37,6 @@ DVRRayCaster::DVRRayCaster(
 	_framebufferid = 0;
 	_backface_texcrd_texid = 0;
 	_backface_depth_texid = 0;
-	_initialized = false;
 	myGLWindow = glw;
 	_nisos = 0;
 
@@ -85,7 +84,6 @@ DVRRayCaster::~DVRRayCaster()
 //----------------------------------------------------------------------------
 int DVRRayCaster::GraphicsInit() 
 {
-	if (_initialized) return(0);
 	glewInit();
 	if(myGLWindow->isDepthPeeling()){
 	  if (! _shadermgr->defineEffect("Iso", "DEPTHPEEL;", instanceName("default")))
@@ -156,7 +154,8 @@ int DVRRayCaster::GraphicsInit()
     if (! _shadermgr->uploadEffectData(instanceName("mapped+lighting"), "texcrd_buffer", _texcrd_sampler)) return(-1);
     if (! _shadermgr->uploadEffectData(instanceName("mapped+lighting"), "depth_buffer", _depth_sampler)) return(-1);
 
-	_initialized = true;
+	initShaderVariables();
+
 	return 0;
 }
 

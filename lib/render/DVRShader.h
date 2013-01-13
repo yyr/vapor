@@ -111,7 +111,6 @@ private:
   float _vpos[4];
   int _midx;
   int _zidx;
-  bool _initialized;
 
   void _loadCoordMap(
     const vector <double> ucoords, int c0, int c1,

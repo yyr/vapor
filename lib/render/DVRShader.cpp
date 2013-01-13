@@ -62,8 +62,7 @@ DVRShader::DVRShader(
   _ks(0.0),
   _expS(0.0),
   _midx(0),
-  _zidx(0),
-  _initialized(false)
+  _zidx(0)
 {
 	MyBase::SetDiagMsg(
 		"DVRShader::DVRShader( %d %d %d)", 
@@ -116,8 +115,6 @@ DVRShader::~DVRShader()
 //----------------------------------------------------------------------------
 int DVRShader::GraphicsInit() 
 {
-	if (_initialized) return(0);
-
 	glewInit();
 	printOpenGLError();
 
@@ -161,8 +158,6 @@ int DVRShader::GraphicsInit()
 
   if (! _shadermgr->uploadEffectData(instanceName("default"), "coordmap", coordmapTexUnit)) return(-1);
 
-  initShaderVariables();
-  _initialized = true;
   return(0);
 
 }
