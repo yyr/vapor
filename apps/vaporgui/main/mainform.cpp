@@ -1497,9 +1497,10 @@ void MainForm::setTimestep(){
 	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::_animationParamsTag);
 	int tstep = timeStepEdit->text().toInt();
 	AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
-
+	
 	if (tstep < aParams->getStartFrameNumber()) tstep = aParams->getStartFrameNumber();
 	if (tstep > aParams->getEndFrameNumber()) tstep = aParams->getEndFrameNumber();
+	if (tstep == aParams->getCurrentTimestep()) return;
 	aRouter->guiSetTimestep(tstep);
 }
 //Set the timestep in the animation toolbar:
