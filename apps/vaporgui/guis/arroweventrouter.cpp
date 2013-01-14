@@ -113,6 +113,7 @@ ArrowEventRouter::hookUpTab()
 	connect (fitDataButton, SIGNAL(pressed()), this, SLOT(guiFitToData()));
 	//slider:
 	connect (barbLengthSlider, SIGNAL(sliderMoved(int)),this,SLOT(guiMoveScaleSlider(int)));
+	connect (barbLengthSlider, SIGNAL(sliderReleased()),this,SLOT(guiReleaseScaleSlider()));
 
 }
 
@@ -712,8 +713,22 @@ guiSetCompRatio(int num){
 }
 void ArrowEventRouter::
 guiMoveScaleSlider(int sliderval){
+	//just update the 
 	confirmText(false);
+	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
+	double defaultScale = aParams->calcDefaultScale();
+	// find the new length as 10**(sliderVal)*defaultLength
+	// note that the slider goes from -100 to +100
+	double newVal = defaultScale*pow(10.,(double)sliderval/100.);
+	scaleEdit->setText(QString::number(newVal));
+	guiSetTextChanged(false); //Don't respond to text-change event
 	
+	
+}
+void ArrowEventRouter::
+guiReleaseScaleSlider(){
+	confirmText(false);
+	int sliderval = barbLengthSlider->value();
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
 	
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "move barb scale slider");

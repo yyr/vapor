@@ -71,6 +71,7 @@ protected slots:
 	void guiSetZVarNum(int);
 	void guiSetHeightVarNum(int);
 	void guiMoveScaleSlider(int);
+	void guiReleaseScaleSlider();
 	void guiToggleTerrainAlign(bool);
 	void guiSelectColor();
 	void guiChangeExtents();

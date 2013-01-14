@@ -729,7 +729,11 @@ void ProbeEventRouter::pressZWheel(){
 }
 void ProbeEventRouter::
 rotateXWheel(int val){
-	
+	//Check if we are in Probe mode, if not do nothing:
+
+	ParamsBase::ParamsBaseType t = Params::GetTypeFromTag(Params::_probeParamsTag);
+	if(GLWindow::getModeFromParams(t) != GLWindow::getCurrentMouseMode()) return;
+
 	//Find the current manip in the active visualizer
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
 	TranslateRotateManip* manip = (TranslateRotateManip*)viz->getGLWindow()->getManip(Params::_probeParamsTag);
@@ -748,6 +752,9 @@ rotateXWheel(int val){
 }
 void ProbeEventRouter::
 rotateYWheel(int val){
+	ParamsBase::ParamsBaseType t = Params::GetTypeFromTag(Params::_probeParamsTag);
+	if(GLWindow::getModeFromParams(t) != GLWindow::getCurrentMouseMode()) return;
+
 	//Find the current manip in the active visualizer
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
 	TranslateRotateManip* manip = (TranslateRotateManip*)viz->getGLWindow()->getManip(Params::_probeParamsTag);
@@ -764,6 +771,9 @@ rotateYWheel(int val){
 }
 void ProbeEventRouter::
 rotateZWheel(int val){
+	ParamsBase::ParamsBaseType t = Params::GetTypeFromTag(Params::_probeParamsTag);
+	if(GLWindow::getModeFromParams(t) != GLWindow::getCurrentMouseMode()) return;
+
 	//Find the current manip in the active visualizer
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
 	TranslateRotateManip* manip = (TranslateRotateManip*)viz->getGLWindow()->getManip(Params::_probeParamsTag);

@@ -702,7 +702,7 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	
 	
 	//Check for georeferencing:
-	projPJ p;
+	projPJ p = 0;
 	if (DataStatus::getProjectionString().size() > 0){  //get a proj4 definition string if it exists, using geoTiff lib
 		GTIF* gtifHandle = GTIFNew(tif);
 		GTIFDefn* gtifDef = new GTIFDefn();
