@@ -52,14 +52,26 @@ uniform float width;
 uniform float height;
 #endif  
 vec3 Gradient(in vec3, in vec3);
+
+// The GLSL discard keyword is broken under MacOS 10.6 with nVidia drivers
+//
+void mydiscard() {
+	gl_FragColor = vec4(0.0,0.0,0.0,0.0);
+	gl_FragDepth = gl_DepthRange.far;
+	// discard;
+}
+
 //------------------------------------------------------------------
 // Fragment shader main
 //------------------------------------------------------------------
+
 void main(void)
 {
 		
 	// Normalized window coordinates of this frament
-	if (position.w == 0.0) discard;
+	if (position.w == 0.0) {
+		mydiscard(); return;
+	}
 	vec2 texCoord2D = ((position.xy / position.w) + 1.0) / 2.0;
 
 	// Starting and finishing texture coordinate of ray
@@ -68,12 +80,16 @@ void main(void)
 
 	// Ray direction, texture coordinates
 	vec3 texDir = texStop - texStart;
-	if (length(texDir) == 0.0) discard;
+	if (length(texDir) == 0.0) {
+		mydiscard(); return;
+	}
 	vec3 texDirUnit = normalize(texDir);
 
 	float n = gl_DepthRange.near;
 	float f = gl_DepthRange.far;
-	if ((f-n) == 0.0) discard;
+	if ((f-n) == 0.0) {
+		mydiscard(); return;
+	}
 
 	// Starting and stopping Z (window, NDC and eye coordinates)
 	// We need eye coordinates to interpolate depth (Z) because
@@ -137,7 +153,9 @@ void main(void)
 				outside = false;
 			}
 		}
-		if (outside) discard;
+		if (outside) {
+			mydiscard(); return;
+		}
 	}
 	else if (stretched) {
 			t0.x = texture1D(coordmap, t0.x).x;
@@ -186,7 +204,9 @@ void main(void)
 			vec3 isoTexCoord = texCoord0 + (weight * deltaVec);
 			if (zidx>0 && ! fast) {
 				isoTexCoord = tex2lay(isoTexCoord, zidx);
-				if (isoTexCoord.x < 0.0) discard;
+				if (isoTexCoord.x < 0.0) {
+					mydiscard(); return;
+				}
 			}
 			else if (stretched) {
 				isoTexCoord.x = texture1D(coordmap, isoTexCoord.x).x;
@@ -327,7 +347,9 @@ void main(void)
 #ifdef DEPTHPEEL
 	if(!hit) discard;
 #endif
-	if (fragColor.a == 0.0) discard;
+	if (fragColor.a == 0.0) {
+		mydiscard(); return;
+	}
 
 	// Convert depth from eye coordinates back to window coords 
 #ifndef DEPTHPEEL
