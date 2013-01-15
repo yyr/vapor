@@ -185,6 +185,7 @@ int MOM::addFile(const string& datafile, float extents[6], vector<string>&vars2d
 	}
 	delete fileTimes;
 	for (int i = 0; i<6; i++) extents[i] = _Exts[i];
+	nc_close(ncid);
 	return 0;
 }
 int MOM::extractStartTime(int ncid, int timevarid){
