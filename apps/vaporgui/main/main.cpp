@@ -17,6 +17,8 @@
 //	Description:  Main program for vapor gui
 
 #include <cstdio>
+#include <cstdlib>
+#include <cerrno>
 #include <qapplication.h>
 #include "mainform.h"
 #include <qfont.h>
@@ -44,10 +46,34 @@ void myMessageOutput( QtMsgType type, const char *msg )
 			break;
     }
 }
+
+
+//
+// Open a file named by the environment variable, path_var. Exit on failure
+//
+FILE *OpenLog(string path_var) {
+	FILE *fp = NULL;
+	const char *cstr = getenv(path_var.c_str());
+	if (! cstr) return(NULL);
+	string s = cstr;
+	if (! s.empty()) {
+		fp = fopen(s.c_str(), "w");
+		if (! fp) {
+			cerr << "Failed to open " << s << " : " << strerror(errno) << endl;
+			exit(1);
+		}
+		MyBase::SetDiagMsgFilePtr(fp);
+	}
+	return(fp);
+}
+
 QApplication* app;
 int main( int argc, char ** argv ) {
 	//Install our own message handler.
 	//Needed for SGI to avoid dithering:
+
+	FILE *diagfp = OpenLog("VAPOR_DIAG_LOG");
+	FILE *errfp = OpenLog("VAPOR_ERR_LOG");
 
 #ifdef	Darwin
 	if (! getenv("DISPLAY")) setenv("DISPLAY", ":0.0",0);
@@ -142,5 +168,9 @@ int main( int argc, char ** argv ) {
     mw->setWindowTitle( "VAPOR User Interface" );
     mw->show();
     a.connect( &a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()) );
-    return a.exec();
+	int estatus = a.exec();
+
+	if (diagfp) fclose(diagfp);
+	if (errfp) fclose(errfp);
+	exit(estatus);
 }
