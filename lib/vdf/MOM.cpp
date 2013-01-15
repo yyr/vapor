@@ -784,6 +784,11 @@ float* MOM::getMonotonicLonData(int ncid, const char* varname, int londimsize, i
 	//Now fix all the larger longitude values to be negative
 	for (int j = 0; j<londimsize*latdimsize; j++){
 		if (buf[j] > mxlon) buf[j] -= 360.f;
+		if (j<(londimsize*latdimsize-1) && buf[j] == buf[j+1] && buf[j] == -1){
+			MyBase::SetErrMsg("Invalid longitude coordinates - adjacent grid points are coincident."); 
+			delete buf;
+			return 0;
+		}
 	}
 	return buf;
 	 
