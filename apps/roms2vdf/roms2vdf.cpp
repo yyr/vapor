@@ -181,10 +181,10 @@ float* calcConst2DVar(float* rawData, const size_t dimsVDC[3], ROMS* roms, float
 		if(rawData[i]>maxval) maxval = rawData[i];
 		if (mappedData[i] == (float)ROMS::vaporMissingValue())
 			continue;
-//		if (sample2DVar && sample2DVar[i] == (float)ROMS::vaporMissingValue()){
-//			mappedData[i] = (float)ROMS::vaporMissingValue();
-//			continue;
-//		}
+		if (sample2DVar && sample2DVar[i] == (float)ROMS::vaporMissingValue()){
+			mappedData[i] = (float)ROMS::vaporMissingValue();
+			continue;
+		}
 		if(mappedData[i]<minval1) minval1 = mappedData[i];
 		if(mappedData[i]>maxval1) maxval1 = mappedData[i];
 	}
