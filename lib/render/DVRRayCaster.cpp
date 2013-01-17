@@ -85,7 +85,7 @@ DVRRayCaster::~DVRRayCaster()
 int DVRRayCaster::GraphicsInit() 
 {
 	glewInit();
-	if(myGLWindow->isDepthPeeling()){
+	if(myGLWindow->isDepthPeeling()){ //build iso shaders with depth peeling define
 	  if (! _shadermgr->defineEffect("Iso", "DEPTHPEEL;", instanceName("default")))
 	    return(-1);
 
@@ -97,6 +97,7 @@ int DVRRayCaster::GraphicsInit()
 
 	  if (! _shadermgr->defineEffect("Iso", "MAPPED; LIGHTING; DEPTHPEEL;", instanceName("mapped+lighting")))
 	    return(-1);
+	  //upload all of the relevant uniform data
 	  _shadermgr->uploadEffectData(instanceName("default"), std::string("previousPass"), myGLWindow->depthTexUnit);
 	  _shadermgr->uploadEffectData(instanceName("default"), std::string("height"), (float)myGLWindow->depthHeight);
 	  _shadermgr->uploadEffectData(instanceName("default"), std::string("width"), (float)myGLWindow->depthWidth);	
@@ -546,36 +547,37 @@ void DVRRayCaster::renderBrick(
         (float) brick->nx(), (float) brick->ny(), (float) brick->nz()
     );
 
-	// Write depth info.
-	glDepthMask(GL_TRUE);
+    // Write depth info.
+    glDepthMask(GL_TRUE);
 
-	// Parent class enables default shader
-	//_shader->disable();
-	_shadermgr->disableEffect();
+    // Parent class enables default shader
+    //_shader->disable();
+    _shadermgr->disableEffect();
 
-	// enable rendering to FBO
-	glBindFramebufferEXT (GL_FRAMEBUFFER_EXT, _framebufferid);
+    // enable rendering to FBO
+    glBindFramebufferEXT (GL_FRAMEBUFFER_EXT, _framebufferid);
 
-	// No depth comparisons
-	glDepthFunc(GL_ALWAYS);
+    // No depth comparisons
+    glDepthFunc(GL_ALWAYS);
 
-	//
-	// Need to disable user clipping planes :-(
-	//
-	glDisable(GL_CLIP_PLANE0);
-	glDisable(GL_CLIP_PLANE1);
-	glDisable(GL_CLIP_PLANE2);
-	glDisable(GL_CLIP_PLANE3);
-	glDisable(GL_CLIP_PLANE4);
-	glDisable(GL_CLIP_PLANE5);
+    //
+    // Need to disable user clipping planes :-(
+    //
+    glDisable(GL_CLIP_PLANE0);
+    glDisable(GL_CLIP_PLANE1);
+    glDisable(GL_CLIP_PLANE2);
+    glDisable(GL_CLIP_PLANE3);
+    glDisable(GL_CLIP_PLANE4);
+    glDisable(GL_CLIP_PLANE5);
 
     render_backface(brick);
     if(myGLWindow->isDepthPeeling()){
+      //force use of depth peeling fbo because the render_backface disabled it
       glDisable(GL_BLEND);
       glEnable(GL_DEPTH_TEST);
       //render to previously used fbo
       glBindFramebuffer(GL_FRAMEBUFFER, myGLWindow->currentBuffer);
-      
+      //update layer information for iso shader
       _shadermgr->uploadEffectData(instanceName("default"), std::string("currentLayer"), myGLWindow->currentLayer);
       _shadermgr->uploadEffectData(instanceName("lighting"), std::string("currentLayer"), myGLWindow->currentLayer);
       _shadermgr->uploadEffectData(instanceName("mapped"), std::string("currentLayer"), myGLWindow->currentLayer);

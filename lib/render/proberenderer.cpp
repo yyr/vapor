@@ -101,7 +101,7 @@ void ProbeRenderer::paintGL()
 		  //Do write to the z buffer
 		  glDepthMask(GL_TRUE);
 		}
-		else { //depth peeling, fix order of operations, adjust GL state,  and remove unnecessary ones
+		else { //depth peeling, fix order of operations, adjust GL state,  and remove unnecessary gl calls
 		  glDisable(GL_BLEND);
 		  glActiveTexture(GL_TEXTURE3);
 		  glEnable(GL_TEXTURE_2D);
@@ -116,6 +116,7 @@ void ProbeRenderer::paintGL()
 		  glDepthMask(GL_TRUE);
 		  if(myGLWindow->currentLayer == 0)  first = true;
 		  else   first = false;
+		  //note: pass uniform data to the progtexture shader
 		  myGLWindow->getShaderMgr()->uploadEffectData(instanceName(), "first",  (int)first);
 		}
 		

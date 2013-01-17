@@ -64,6 +64,9 @@ bool GLWindow::spinAnimate = false;
 bool GLWindow::defaultAxisArrowsEnabled = false;
 bool GLWindow::nowPainting = false;
 bool GLWindow::depthPeeling = false;
+/* note: 
+ * GL_ENUMS used by depth peeling for attaching the color buffers, currently 16 named points exist
+ */
 GLenum attach_points[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6, GL_COLOR_ATTACHMENT7, GL_COLOR_ATTACHMENT8, GL_COLOR_ATTACHMENT9, GL_COLOR_ATTACHMENT10, GL_COLOR_ATTACHMENT11, GL_COLOR_ATTACHMENT12, GL_COLOR_ATTACHMENT13, GL_COLOR_ATTACHMENT14, GL_COLOR_ATTACHMENT15};
 
 int GLWindow::currentMouseMode = GLWindow::navigateMode;
@@ -156,7 +159,7 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 	
 	setDirtyBit(RegionBit, true);
 	
-    setDirtyBit(LightingBit, true);
+	setDirtyBit(LightingBit, true);
 	setDirtyBit(NavigatingBit, true);
 	setDirtyBit(ViewportBit, true);
 	setDirtyBit(ProjMatrixBit, true);
@@ -178,44 +181,51 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 		} else assert(0);
 	}
 
-	
-	QString path = qApp->applicationDirPath();
 	//Assume shaders in exec dir
+	QString path = qApp->applicationDirPath();
+	//GL_CONTEXT must be current if shaderMgr is to be instantiated
 	makeCurrent();
-    vector <string> paths;
-    paths.push_back("shaders");
-    string shaderPaths = GetAppPath("VAPOR", "share", paths);
+	vector <string> paths;
+	paths.push_back("shaders");
+	string shaderPaths = GetAppPath("VAPOR", "share", paths);
 #ifdef DEBUG
-    cout << "shaderPaths " << shaderPaths << endl;
+	cout << "shaderPaths " << shaderPaths << endl;
 #endif
-
-    manager = new ShaderMgr(shaderPaths, this);
-    currentLayer = 0;
-    peelInitialized = false;
+	/* note: 1
+	 * instantiate the shaderMgr
+	 * query the maxmium supported # of tex units, in order to set
+	 *  the texture unit used by depth peeling to the last one possible
+	 * reset the currentLayer, used by depth peeling to keep track of 
+	 *  which layer it is on
+	 */
+	manager = new ShaderMgr(shaderPaths, this);
+	currentLayer = 0;
+	peelInitialized = false;
 #ifdef DARWIN
-    //Apple OpenGL driver lies about tex unit support, throws error if try to use higher than MAX_TEX_UNITS=MAX_TEXTURE_COORDINATES
-    depthTexUnit = manager->maxTexUnits(true) - 1;
+	//Apple OpenGL driver reports an incorrect # of units for support, throws error if try to use higher than MAX_TEX_UNITS=MAX_TEXTURE_COORDINATES
+	depthTexUnit = manager->maxTexUnits(true) - 1;
 #else
-    //we really want the last available programmable tex unit for the depth unit, otherwise chance of texture collision with raycaster on modern cards
-    //as they usually have only 4 fixed function units
-    depthTexUnit = manager->maxTexUnits(false) - 1; 
+	//we really want the last available programmable tex unit for the depth unit, otherwise chance of texture collision with raycaster on modern cards
+	//as they usually have only 4 fixed function units
+	depthTexUnit = manager->maxTexUnits(false) - 1; 
 #endif    
-    layers = NULL;
-    if (depthPeeling){
-      //depth peeling enabled, check to see if possible to use
-      if(!manager->supportsExtension("GL_ARB_framebuffer_object")){
-	SetErrMsg("OpenGL Context DOES NOT support depth peeling extensions");
-	depthPeeling = false;
-      }      
-    }
-#ifdef DEBUG
-    cout << manager->GLVendor() << endl;
-    cout << manager->GLRenderer() << endl;
-    cout << manager->GLVersion() << endl;
-    cout << manager->GLExtensions() << endl;
-    cout << manager->GLShaderVersion() << endl;
-    cout << "Max OpenGL programmable texture units: " << manager->maxTexUnits(false) << endl;
-    cout << "Max OpenGL fixed texture units: " << manager->maxTexUnits(true) << endl;
+	//note: force depth peeling data to null and check extension support
+	layers = NULL;
+	if (depthPeeling){
+	  //depth peeling enabled, check to see if possible to use
+	  if(!manager->supportsExtension("GL_ARB_framebuffer_object")){
+	    SetErrMsg("OpenGL Context DOES NOT support depth peeling extensions");
+	    depthPeeling = false;
+	  }      
+	}
+#ifdef DEBUG // note: print out all available GL driver information
+	cout << manager->GLVendor() << endl;
+	cout << manager->GLRenderer() << endl;
+	cout << manager->GLVersion() << endl;
+	cout << manager->GLExtensions() << endl;
+	cout << manager->GLShaderVersion() << endl;
+	cout << "Max OpenGL programmable texture units: " << manager->maxTexUnits(false) << endl;
+	cout << "Max OpenGL fixed texture units: " << manager->maxTexUnits(true) << endl;
 #endif
     MyBase::SetDiagMsg("GLWindow::GLWindow() end");
 }
@@ -230,7 +240,7 @@ GLWindow::~GLWindow()
 	if (isSpinning){
 		stopSpin();
 	}
-    makeCurrent();
+	makeCurrent();
 	for (int i = 0; i< getNumRenderers(); i++){
 		delete renderer[i];
 	}
@@ -256,15 +266,22 @@ void GLWindow::resizeGL( int width, int height )
   setUpViewport(width, height);
   nowPainting = false;
   needsResize = false;
+
+  /* note: 2
+   * currently all depth peeling setup occurs in resizeGL, code that should be moved to
+   *  initializeGL will be marked with an refactor note
+   */
   depthWidth = width;
   depthHeight = height;
   manager->loadShaders();
 #ifdef DEBUG
+  //print out the loaded effects
   manager->printEffects();
   cout << "resizeGL called, depthpeeling?: " << (int)depthPeeling << endl;
 #endif
+
+  //clean up gl resources used if they were used before
   if(depthPeeling){
-    //cleanup previous depth peeling variables
     if(glIsTexture(depthA))
       glDeleteTextures(1, &depthA);
     if(glIsTexture(depthB))
@@ -288,10 +305,13 @@ void GLWindow::resizeGL( int width, int height )
     cout << "resizeGL beginning" << endl;
 #endif
     //create shaders used for depth peeling
+    //note: refactor to initializeGL
     manager->defineEffect("depthpeeling", "", "depthpeeling");
 
     manager->defineEffect("texSampler", "", "texSampler");
     glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxbuffers);
+    //note: hard code maxbuffers to an acceptable low value
+    maxbuffers = maxbuffers > 4 ? 4:maxbuffers;
     glActiveTexture(GL_TEXTURE0 + depthTexUnit);
     GLsizei myheight =  (GLsizei)height;
     GLsizei mywidth = (GLsizei) width;
@@ -299,7 +319,8 @@ void GLWindow::resizeGL( int width, int height )
     //This depth peeling implementation makes use of OpenGL Frame Buffer Obects
     //Two depth and maximum amount of color textures will be used for rendering and depth peeling
 	
-    //Generate and configure depth textures
+    //Generate and configure depth textures 
+    //note: refactor to initializeGL
     glGenTextures(1, &depthA);
     glGenTextures(1, &depthB); 
 
@@ -329,14 +350,17 @@ void GLWindow::resizeGL( int width, int height )
 #endif
 
     //Create framebuffers used in depth peeling
+    //note: refactor to initializeGL
     glGenFramebuffers(1, &fboA);
     glGenFramebuffers(1, &fboB);
 	  
     //Attach the first depth buffer to the first FBO
+    //note: refactor to intializeGL
     glBindFramebuffer(GL_FRAMEBUFFER, fboA);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthA, 0);	
 
     //Attach the second depth buffer to the second FBO
+    //note: refactor to initializeGL
     glBindFramebuffer(GL_FRAMEBUFFER, fboB);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthB, 0);	
 	
@@ -349,10 +373,12 @@ void GLWindow::resizeGL( int width, int height )
 #endif
 
     //We create as many color buffers as allowed on hardware
+    //note: refactor to initializeGL
     layers = (GLuint*)malloc(maxbuffers * sizeof(GLuint));
     glGenTextures(maxbuffers, layers);
 
     //initialize the color texture information
+    //note: keep here since this deals with texture size
     for (int i=0; i<maxbuffers; i++) {
       glBindTexture(GL_TEXTURE_2D, layers[i]);
       glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -370,17 +396,14 @@ void GLWindow::resizeGL( int width, int height )
     printOpenGLError();
 
     //Attach all of the available color buffers to the FBO
+    //note: refactor to initializeGL
     glBindFramebuffer(GL_FRAMEBUFFER, fboA);
     for (int i=0; i<maxbuffers; i++) {
       glFramebufferTexture2D(GL_FRAMEBUFFER, attach_points[i], GL_TEXTURE_2D, layers[i], 0);			
     }
-#ifdef DEBUG
-    cout << "resizeGL color textures complete" << endl;
-#endif
-
-
     peelInitialized = true;
     //Check that the framebuffer is ready to render to
+    //note: refactor to initializeGL
     glBindFramebuffer(GL_FRAMEBUFFER, fboA);
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE){
@@ -389,11 +412,13 @@ void GLWindow::resizeGL( int width, int height )
     }
 
     //Attach all of the available buffers to the FBO
+    //note: refactor to initializeGL
     glBindFramebuffer(GL_FRAMEBUFFER, fboB);
     for (int i=0; i<maxbuffers; i++) {
       glFramebufferTexture2D(GL_FRAMEBUFFER, attach_points[i], GL_TEXTURE_2D, layers[i], 0);			
     }
     //Check that the framebuffer is ready to render to
+    //note: refactor to initializeGL
     status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE){
       peelInitialized = false;
@@ -404,6 +429,7 @@ void GLWindow::resizeGL( int width, int height )
     cout << "resizeGL complete" << endl;
 #endif
     //clear framebuffer binding, initialize depth peeling shaders with uniforms
+    //note: leave here since this deals with texture size information
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     manager->uploadEffectData(std::string("depthpeeling"), std::string("previousPass"), depthTexUnit);
     manager->uploadEffectData(std::string("depthpeeling"), std::string("height"), (float)height);
@@ -475,81 +501,83 @@ void GLWindow::resetView(ViewpointParams* vParams){
 }
 //GL render calls separated for use in depth peeling.
 void GLWindow::renderScene(float extents[6], float minFull[3], float maxFull[3], int timeStep){
-	//If we are in regionMode, or if the preferences specify the full box will be rendered,
-	//draw it now, before the renderers do their thing.
-    if(regionFrameIsEnabled()|| GLWindow::getCurrentMouseMode() == GLWindow::regionMode){
-      renderDomainFrame(extents, minFull, maxFull);
-    } 
-	//In regionMode or if preferences specify it, draw the subregion frame.
-    if(subregionFrameIsEnabled() && 
-       !(GLWindow::getCurrentMouseMode() == GLWindow::regionMode) )
+  //If we are in regionMode, or if the preferences specify the full box will be rendered,
+  //draw it now, before the renderers do their thing.
+  if(regionFrameIsEnabled()|| GLWindow::getCurrentMouseMode() == GLWindow::regionMode){
+    renderDomainFrame(extents, minFull, maxFull);
+  } 
+  //In regionMode or if preferences specify it, draw the subregion frame.
+  if(subregionFrameIsEnabled() && 
+     !(GLWindow::getCurrentMouseMode() == GLWindow::regionMode) )
     {
       drawSubregionBounds(extents);
     } 
 
-	//Draw axis arrows if enabled.
-    if (axisArrowsAreEnabled()) drawAxisArrows(extents);
-	
+  //Draw axis arrows if enabled.
+  if (axisArrowsAreEnabled()) drawAxisArrows(extents);
 
-
-	//render the region manipulator, if in region mode, and active visualizer, or region shared
-	//with active visualizer.  Possibly redundant???
-	if(getCurrentMouseMode() == GLWindow::regionMode) { 
-		if( (windowIsActive() || 
-			(!getActiveRegionParams()->isLocal() && activeWinSharesRegion()))){
-				TranslateStretchManip* regionManip = getManip(Params::_regionParamsTag);
-				regionManip->setParams(getActiveRegionParams());
-				regionManip->render();
-		} 
-	}
-	//Render other manips, if we are in appropriate mode:
-	//Note: Other manips don't have shared and local to deal with:
-	else if ((getCurrentMouseMode() != navigateMode) && windowIsActive()){
-		int mode = getCurrentMouseMode();
-		ParamsBase::ParamsBaseType t = getModeParamType(mode);
-		TranslateStretchManip* manip = manipHolder[mode];
-		RenderParams* p = (RenderParams*)getActiveParams(t);
-		manip->setParams(p);
-		manip->render();
-		int manipType = getModeManipType(mode);
-		//For probe and 2D manips, render 3D cursor too
-		if (manipType > 1) {
-			const float *localPoint = p->getSelectedPointLocal();
+  //render the region manipulator, if in region mode, and active visualizer, or region shared
+  //with active visualizer.  Possibly redundant???
+  if(getCurrentMouseMode() == GLWindow::regionMode) { 
+    if( (windowIsActive() || 
+	 (!getActiveRegionParams()->isLocal() && activeWinSharesRegion()))){
+      TranslateStretchManip* regionManip = getManip(Params::_regionParamsTag);
+      regionManip->setParams(getActiveRegionParams());
+      regionManip->render();
+    } 
+  }
+  //Render other manips, if we are in appropriate mode:
+  //Note: Other manips don't have shared and local to deal with:
+  else if ((getCurrentMouseMode() != navigateMode) && windowIsActive()){
+    int mode = getCurrentMouseMode();
+    ParamsBase::ParamsBaseType t = getModeParamType(mode);
+    TranslateStretchManip* manip = manipHolder[mode];
+    RenderParams* p = (RenderParams*)getActiveParams(t);
+    manip->setParams(p);
+    manip->render();
+    int manipType = getModeManipType(mode);
+    //For probe and 2D manips, render 3D cursor too
+    if (manipType > 1) {
+      const float *localPoint = p->getSelectedPointLocal();
 			
-			draw3DCursor(localPoint);
-		}
-	}
+      draw3DCursor(localPoint);
+    }
+  }
        
+  //Now we are ready for all the different renderers to proceed.
+  //Sort them;  If they are opaque, they go first.  If not opaque, they
+  //are sorted back to front.  This only works if all the geometry of a renderer is ordered by
+  //a simple depth test.
 	
-	//Now we are ready for all the different renderers to proceed.
-	//Sort them;  If they are opaque, they go first.  If not opaque, they
-	//are sorted back to front.  This only works if all the geometry of a renderer is ordered by
-	//a simple depth test.
-	
-	printOpenGLError();
-	//Now go through all the active renderers
-	for (int i = 0; i< getNumRenderers(); i++){
-		//If a renderer is not initialized, or if its bypass flag is set, then don't render.
-		//Otherwise push and pop the GL matrix stack and all attribs
-		if(renderer[i]->isInitialized() && !(renderer[i]->doAlwaysBypass(timeStep))) {
-			// Push or reset state
-			glMatrixMode(GL_TEXTURE);
-			glPushMatrix();
-			glMatrixMode(GL_MODELVIEW);
-			glPushMatrix();
-			glPushAttrib(GL_ALL_ATTRIB_BITS);
+  printOpenGLError();
+  //Now go through all the active renderers
+  for (int i = 0; i< getNumRenderers(); i++){
+    //If a renderer is not initialized, or if its bypass flag is set, then don't render.
+    //Otherwise push and pop the GL matrix stack and all attribs
+    if(renderer[i]->isInitialized() && !(renderer[i]->doAlwaysBypass(timeStep))) {
+      // Push or reset state
+      glMatrixMode(GL_TEXTURE);
+      glPushMatrix();
+      glMatrixMode(GL_MODELVIEW);
+      glPushMatrix();
+      glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-			renderer[i]->paintGL();
+      renderer[i]->paintGL();
 
-			glPopAttrib();
-			glMatrixMode(GL_MODELVIEW);
-			glPopMatrix();
-			glMatrixMode(GL_TEXTURE);
-			glPopMatrix();
-			printOpenGLErrorMsg(renderer[i]->getMyName().c_str());
-		}
-	}
+      glPopAttrib();
+      glMatrixMode(GL_MODELVIEW);
+      glPopMatrix();
+      glMatrixMode(GL_TEXTURE);
+      glPopMatrix();
+      printOpenGLErrorMsg(renderer[i]->getMyName().c_str());
+    }
+  }
 }
+/* note: special paintEvent for depth peeling, there are a few differences vs the regular one:
+ *  no sortRenderers command
+ *  aux geometry (domain frame, manipulators, etc) moved to renderScene
+ *  addition of depth peeling loop and gl code
+ */
 void GLWindow::depthPeelPaintEvent(){
 	MyBase::SetDiagMsg("GLWindow::paintGL()");
 	//Following is needed in case undo/redo leaves a disabled renderer in the renderer list, so it can be deleted.
@@ -568,7 +596,7 @@ void GLWindow::depthPeelPaintEvent(){
 	float maxFull[3] = {1.f,1.f,1.f};
 	//Again, mutex probably not needed.  At some point the "nowPainting" flag was used to indicate
 	//that some thread was in this routine.
-    if (nowPainting) {
+	if (nowPainting) {
 		renderMutex.unlock();
 		return;
 	}
@@ -691,7 +719,7 @@ void GLWindow::depthPeelPaintEvent(){
 	getActiveRegionParams()->calcStretchedBoxExtentsInCube(extents,timeStep);
 	DataStatus::getInstance()->getMaxStretchedExtentsInCube(maxFull);
 	
-	//INITIAL RENDER
+	//INITIAL RENDER, NO DEPTH PEELING YET
 	if(!peelInitialized){
 	  SetErrMsg("Advanced Transparency has not been properly initialized! Restart VAPOR to enable");
 	  return;
@@ -841,6 +869,7 @@ void GLWindow::depthPeelPaintEvent(){
 	glDepthMask(GL_TRUE);
 	glEnable(GL_DEPTH_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//makes use of programmable pipeline texture mapping to avoid state problems
 	manager->enableEffect("texSampler");
 	printOpenGLError();
 	for (int i = maxbuffers - 1; i > -1 ; i--){
