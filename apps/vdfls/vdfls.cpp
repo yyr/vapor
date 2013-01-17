@@ -137,8 +137,14 @@ int getStats(
 
 	const vector <string> varNames = metadata->GetVariableNames();
 	long numTimeSteps = metadata->GetNumTimeSteps();
-	int numTransforms = metadata->GetNumTransforms();
 	int vdfVersion = metadata->GetVDFVersion();
+	int numApproximations = 0;
+	if (metadata->GetVDCType() == 1) {
+		numApproximations = metadata->GetNumTransforms() + 1;
+	}
+	else {
+		numApproximations = metadata->GetCRatios().size();
+	}
 
 	for (long ts = 0; ts<numTimeSteps; ts++) {
 
@@ -157,7 +163,7 @@ int getStats(
 
 			VarFileInfo vfi;
 			vfi.vartype = metadata->GetVarType(varname);
-			for (int j=0; j<numTransforms+1; j++) {
+			for (int j=0; j<numApproximations; j++) {
 				string path;
 				string relpath;
 				struct STAT64 statbuf;
@@ -239,6 +245,27 @@ void print_dim(
 	cout.setf(ios::left);
 }
 
+void print_cratios(
+	const MetadataVDC *metadata, int j, VDFIOBase::VarType_T vartype
+) {
+
+	ostringstream oss;
+
+	vector <size_t> cratios = metadata->GetCRatios();
+	if (vartype != VDFIOBase::VAR3D) {
+		for (int i=0; i<cratios.size(); i++) {
+			cratios[i] = (size_t) pow((double) cratios[i], (double) (2.0 / 3.0));
+		}
+	}
+	oss << cratios[j] << ":" << 1;
+
+	int w = 8;
+	cout.setf(ios::right);
+	cout.width(w);
+	cout << oss.str();
+	cout.setf(ios::left);
+}
+
 void print_time(time_t t) {
 
 	struct tm *tsptr = localtime(&t);
@@ -267,7 +294,11 @@ void PrintVariable(
 			cout << statref.st_size;
 			cout.setf(ios::left);
 			cout << " ";
-			print_dim(metadata, j, vfi.vartype);
+			if (metadata->GetVDCType() == 2) {
+				print_cratios(metadata, j, vfi.vartype);
+			} else {
+				print_dim(metadata, j, vfi.vartype);
+			}
 			cout << " ";
 			print_time(statref.st_mtime);
 			cout << " ";
@@ -325,9 +356,14 @@ int	main(int argc, char **argv) {
 
 	string sort = opt.sort;
 
-	int level;
-	if (opt.level < 0) level = metadata->GetNumTransforms()+1;
-	else level = opt.level+1;
+	int numApproximations;
+	if (metadata->GetVDCType() == 2) {
+		if (opt.level < 0) numApproximations = metadata->GetCRatios().size();
+		else numApproximations = opt.level+1;
+	} else {
+		if (opt.level < 0) numApproximations = metadata->GetNumTransforms()+1;
+		else numApproximations = opt.level+1;
+	}
 
 	if (sort.compare("time") == 0) {
 		map <long, map <string, VarFileInfo > >::iterator iter1;
@@ -337,14 +373,14 @@ int	main(int argc, char **argv) {
 			for (iter2 = iter1->second.begin(); iter2 != iter1->second.end(); iter2++) {
 				const VarFileInfo &vfiref = iter2->second;
 
-				for(int j=0; j<level; j++) {
+				for(int j=0; j<numApproximations; j++) {
 					PrintVariable(metadata,vfiref, j);
 				}
 			}
 		}
 	}
 	else if (sort.compare("level") == 0) {
-		for (int j=0; j<level; j++) {
+		for (int j=0; j<numApproximations; j++) {
 			map <long, map <string, VarFileInfo > >::iterator iter1;
 			for (iter1 = statsvec.begin(); iter1 != statsvec.end(); iter1++) {
 				map <string, VarFileInfo>::iterator iter2;
@@ -362,7 +398,7 @@ int	main(int argc, char **argv) {
 		vector <string>::const_iterator iter1;
 		for (iter1=varNames.begin(); iter1 != varNames.end(); iter1++) {
 		
-			for (int j=0; j<level; j++) {
+			for (int j=0; j<numApproximations; j++) {
 				map <long, map <string, VarFileInfo > >::iterator iter2;
 				for (iter2 = statsvec.begin(); iter2 != statsvec.end(); iter2++) {
 
