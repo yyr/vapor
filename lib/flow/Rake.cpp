@@ -213,6 +213,7 @@ bool LineRake::GenSeedBiased(const vector<double>&usrExts, float bias, float fie
 		 
 			float mag = fData->getValidFieldMag(point);
 			if (mag < 0.f) continue;  //Point is out of range or missing value
+			numTries = 0; //restart count
 			//Insert the point:
 			seedSorter->setPoint(insertionPosn++,mag,point);
 			totalPointsInserted++;
