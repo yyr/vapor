@@ -122,10 +122,15 @@ void main(void)
 	vec3 texCoord1 = texCoord0+deltaVec;
 
 	float s0, s1;
+
 #ifdef DEPTHPEEL
-       bool hit = false;
-       int layerCount = 0;
+	if (width <= 0.0 || height <= 0.0) {
+		mydiscard(); return;
+	} 
+	bool hit = false;
+	int layerCount = 0;
 #endif
+
 	bool missing = false;
 	vec3 t0 = texCoord0;
 	vec3 t1 = texCoord1;
@@ -180,11 +185,8 @@ void main(void)
 	float fragDepth = zStartEye;
 	vec4 fragColor =  vec4(0.0, 0.0, 0.0, 0.0);
 
-#ifndef DEPTHPEEL
 	// Make sure gl_FragDepth is set for all execution paths
-	// not needed for depth peeling since most fragments will be discarded
 	gl_FragDepth = zStopWin;
-#endif
 
 	// Composite from front to back
 
@@ -278,12 +280,17 @@ void main(void)
 				first = false;
 			}
 #else
-			//the depth peeling algorithm has two parts with regards to output:
-			// initial pass: get the first depth layer, and run it through a depth test
-			fragDepth = zStartEye + (float(i) * deltaZ) + (deltaZ*weight);			
-			fragDepth = (fragDepth * gl_ProjectionMatrix[2].z + gl_ProjectionMatrix[3].z) / -fragDepth; 
+			// the depth peeling algorithm has two parts with regards to output:
+			// initial pass: get the first depth layer, and run 
+			// it through a depth test
+			//
+			fragDepth = zStartEye + (float(i) * deltaZ) + (deltaZ*weight);
+			fragDepth = fragDepth == 0.0 ? -1.0 : (fragDepth * gl_ProjectionMatrix[2].z + gl_ProjectionMatrix[3].z) / -fragDepth; 
 			fragDepth = fragDepth * ((f-n)/2) + (n+f)/2;
-			//isosurface found, check layer and depth test if not initial rendering
+
+			// isosurface found, check layer and depth test if not 
+			// initial rendering
+			//
 			if(currentLayer == 0){ //kick out colors normally for depth testing
 			  	gl_FragDepth = fragDepth;
 			  	gl_FragColor = vec4(fragColor.r, fragColor.g, fragColor.b, fragColor.a);
@@ -358,7 +365,7 @@ void main(void)
 
 	// Convert depth from eye coordinates back to window coords 
 #ifndef DEPTHPEEL
-	fragDepth = (fragDepth * gl_ProjectionMatrix[2].z + gl_ProjectionMatrix[3].z) / -fragDepth; 
+	fragDepth = fragDepth == 0.0 ? -1.0 : (fragDepth * gl_ProjectionMatrix[2].z + gl_ProjectionMatrix[3].z) / -fragDepth; 
 	//note: update to use DepthPeel include function
 	//DepthPeel(fragDepth * ((f-n)/2) + (n+f)/2, fragColor);
 	gl_FragDepth = fragDepth * ((f-n)/2) + (n+f)/2;
