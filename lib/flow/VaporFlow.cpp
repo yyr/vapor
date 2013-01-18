@@ -1218,11 +1218,10 @@ setupFieldData(const vector<string>& varnames,
 	pCartesianGrid->setPeriod(flowPeriod);
 
 	//The region extents must be converted based on time-varying extents
-	const vector<double>& usrExts = dataMgr->GetExtents(steadyStartTimeStep);
 	double rMin[3],rMax[3];
 	for (int i = 0; i<3; i++){
-		rMin[i] = usrExts[i]+regionLocalExtents[i];
-		rMax[i] = usrExts[i]+regionLocalExtents[i+3];
+		rMin[i] = userExts[i]+regionLocalExtents[i];
+		rMax[i] = userExts[i]+regionLocalExtents[i+3];
 	}
 	VECTOR3 minR(rMin);
 	VECTOR3 maxR(rMax);

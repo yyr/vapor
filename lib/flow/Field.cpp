@@ -120,6 +120,7 @@ float FieldData::getFieldMag(float point[3])
 	return vel.GetMag();
 }
 
+//Get field magnitude, based on point in USER coordinates.
 float FieldData::getValidFieldMag(float point[3])
 {
 	VECTOR3 pos(point[0],point[1],point[2]);
