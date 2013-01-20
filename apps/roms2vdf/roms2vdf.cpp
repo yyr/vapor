@@ -317,7 +317,20 @@ int CopyConstantVariable2D(
 } // End of CopyConstantVariable2D.
 
 
+void SetMissingFromMask(
+	const float *mask,
+	const int dims[2],
+	float mv,
+	float *varslice
+) {
+	for (int i=0; i<dims[0]*dims[1]; i++) {
+		if (mask[i] == 0.0) varslice[i] = mv;
+	}
+}
+	
+
 int CopyVariable3D(
+	ROMS *roms,
 	int ncid,
 	int varid,
 	WeightTable *wt,
@@ -338,10 +351,6 @@ int CopyVariable3D(
 	static double *dsliceBuffer = NULL;
 	static float *prevSliceBuffer = NULL;
 
-	nc_type vartype;
-	NC_ERR_READ( nc_inq_vartype(ncid, varid,  &vartype) );
-	bool isDouble = (vartype == NC_DOUBLE); //either float or double
-			
 	int rc;
 	
 	rc = vdfio3d->OpenVariableWrite(tsVDC, varname.c_str(), level, lod);
@@ -354,12 +363,8 @@ int CopyVariable3D(
 		return (-1);
 	}
 	
-	float fmissVal = (float)ROMS::vaporMissingValue();
-	double dmissVal = ROMS::vaporMissingValue();
-	if (isDouble)
-		rc = nc_get_att_double(ncid, varid, "_FillValue", &dmissVal);
-	else 
-		rc = nc_get_att_float(ncid, varid, "_FillValue", &fmissVal);
+	float fmissVal;
+	rc = nc_get_att_float(ncid, varid, "_FillValue", &fmissVal);
 
 	
 	size_t slice_sz = dim[0] * dim[1];
@@ -385,13 +390,8 @@ int CopyVariable3D(
 		delete prevSliceBuffer;
 		prevSliceBuffer = 0;
 	}
-	if(isDouble){
-		dsliceBuffer = new double[inputSize];
-		sliceBuffer2 = new float[slice_sz];
-	} else {
-		fsliceBuffer = new float[inputSize];
-		sliceBuffer2 = new float[slice_sz];
-	}
+	fsliceBuffer = new float[inputSize];
+	sliceBuffer2 = new float[slice_sz];
 		
 	float minVal = 1.e30f;
 	float maxVal = -1.e30f;
@@ -408,52 +408,49 @@ int CopyVariable3D(
 		zlast = dim[2]+1;
 		starts[1]=0;
 		prevSliceBuffer = new float[slice_sz];
-		if (isDouble){
-			NC_ERR_READ(nc_get_vara_double(ncid, varid, starts, counts, dsliceBuffer))
-			for (int k = 0; k<slice_sz; k++){
-				if (dsliceBuffer[k] != dmissVal){
-					if (minVal > dsliceBuffer[k]) minVal = dsliceBuffer[k];
-					if (maxVal < dsliceBuffer[k]) maxVal = dsliceBuffer[k];
-				}
-			}
-			wt->interp2D(dsliceBuffer, prevSliceBuffer, dmissVal,dim);
+
+		NC_ERR_READ(nc_get_vara_float(ncid, varid, starts, counts, fsliceBuffer))
+		//
+		// Not all ROMS variables have missing variables set. Use
+		// the mask variable, if present, to set ensure missing values
+		// are set consistently
+		//
+		if (roms->GetMask(ndim)) {
+			SetMissingFromMask(
+				roms->GetMask(ndim), ndim, fmissVal, fsliceBuffer
+			);
 		}
-		else {
-			NC_ERR_READ(nc_get_vara_float(ncid, varid, starts, counts, fsliceBuffer))
-			for (int k = 0; k<slice_sz; k++){
-				if (fsliceBuffer[k] != fmissVal){
-					if (minVal > fsliceBuffer[k]) minVal = fsliceBuffer[k];
-					if (maxVal < fsliceBuffer[k]) maxVal = fsliceBuffer[k];
-				}
+		for (int k = 0; k<slice_sz; k++){
+			if (fsliceBuffer[k] != fmissVal){
+				if (minVal > fsliceBuffer[k]) minVal = fsliceBuffer[k];
+				if (maxVal < fsliceBuffer[k]) maxVal = fsliceBuffer[k];
 			}
-			wt->interp2D(fsliceBuffer, prevSliceBuffer, fmissVal,dim);
 		}
+		wt->interp2D(fsliceBuffer, prevSliceBuffer, fmissVal,dim);
 	}
 	for (size_t z = zfirst; z<zlast; z++) {
 		//
 		//Read slice of NetCDF file into slice buffer 2
 		//
 		starts[1]= z;
-		if (isDouble){
-			NC_ERR_READ(nc_get_vara_double(ncid, varid, starts, counts, dsliceBuffer))
-			for (int k = 0; k<slice_sz; k++){
-				if (dsliceBuffer[k] != dmissVal){
-					if (minVal > dsliceBuffer[k]) minVal = dsliceBuffer[k];
-					if (maxVal < dsliceBuffer[k]) maxVal = dsliceBuffer[k];
-				}
-			}
-			wt->interp2D(dsliceBuffer, sliceBuffer2, dmissVal,dim);
+		NC_ERR_READ(nc_get_vara_float(ncid, varid, starts, counts, fsliceBuffer))
+		//
+		// Not all ROMS variables have missing variables set. Use
+		// the mask variable, if present, to set ensure missing values
+		// are set consistently
+		//
+		if (roms->GetMask(ndim)) {
+			SetMissingFromMask(
+				roms->GetMask(ndim), ndim, fmissVal, fsliceBuffer
+			);
 		}
-		else {
-			NC_ERR_READ(nc_get_vara_float(ncid, varid, starts, counts, fsliceBuffer))
-			for (int k = 0; k<slice_sz; k++){
-				if (fsliceBuffer[k] != fmissVal){
-					if (minVal > fsliceBuffer[k]) minVal = fsliceBuffer[k];
-					if (maxVal < fsliceBuffer[k]) maxVal = fsliceBuffer[k];
-				}
+		for (int k = 0; k<slice_sz; k++){
+			if (fsliceBuffer[k] != fmissVal){
+				if (minVal > fsliceBuffer[k]) minVal = fsliceBuffer[k];
+				if (maxVal < fsliceBuffer[k]) maxVal = fsliceBuffer[k];
 			}
-			wt->interp2D(fsliceBuffer, sliceBuffer2, fmissVal,dim);
 		}
+		wt->interp2D(fsliceBuffer, sliceBuffer2, fmissVal,dim);
 		
 		for (int k = 0; k<slice_sz; k++){
 			if (sliceBuffer2[k] != (float)ROMS::vaporMissingValue()){
@@ -498,6 +495,7 @@ int CopyVariable3D(
 }  // End of CopyVariable3D.
 
 int CopyVariable2D(
+	ROMS *roms,
 	int ncid,
 	int varid,
 	WeightTable* wt,
@@ -518,11 +516,6 @@ int CopyVariable2D(
 	static double *dsliceBuffer = NULL;
 	static float *sliceBuffer2 = NULL;
 
-	nc_type vartype;
-	NC_ERR_READ( nc_inq_vartype(ncid, varid,  &vartype) );
-	bool isDouble = (vartype == NC_DOUBLE); //either float or double
-
-	
 	int rc;
 
 	rc = vdfio2d->OpenVariableWrite(tsVDC, varname.c_str(), level, lod);
@@ -535,12 +528,8 @@ int CopyVariable2D(
 	}
 	
 	
-	double dmissingVal = ROMS::vaporMissingValue();
-	float fmissingVal = (float)dmissingVal;
-	if (isDouble)
-		rc = nc_get_att_double(ncid, varid, "_FillValue", &dmissingVal);
-	else 
-		rc = nc_get_att_float(ncid, varid, "_FillValue", &fmissingVal);
+	float fmissingVal;
+	rc = nc_get_att_float(ncid, varid, "_FillValue", &fmissingVal);
 
  	size_t slice_sz = dim[0] * dim[1];
 	size_t starts[3] = {0,0,0};
@@ -561,24 +550,25 @@ int CopyVariable2D(
 		delete [] sliceBuffer2;
 		dsliceBuffer = 0;
 	}
-	if(isDouble){
-		dsliceBuffer = new double[ndim[0]*ndim[1]];
-		sliceBuffer2 = new float[slice_sz];
-	} else {
-		fsliceBuffer = new float[ndim[0]*ndim[1]];
-		sliceBuffer2 = new float[slice_sz];
-	}
+	fsliceBuffer = new float[ndim[0]*ndim[1]];
+	sliceBuffer2 = new float[slice_sz];
 
 	//
 	// Read the variable into the temp buffer and interpolate
 	//
-	if (isDouble){
-		NC_ERR_READ(nc_get_vara_double(ncid, varid, starts, counts, dsliceBuffer))
-		wt->interp2D(dsliceBuffer, sliceBuffer2, dmissingVal,dim);
-	} else {
-		NC_ERR_READ(nc_get_vara_float(ncid, varid, starts, counts, fsliceBuffer))
-		wt->interp2D(fsliceBuffer, sliceBuffer2, fmissingVal,dim);
+	NC_ERR_READ(nc_get_vara_float(ncid, varid, starts, counts, fsliceBuffer))
+	//
+	// Not all ROMS variables have missing variables set. Use
+	// the mask variable, if present, to set ensure missing values
+	// are set consistently
+	//
+	if (roms->GetMask(ndim)) {
+		SetMissingFromMask(
+			roms->GetMask(ndim), ndim, fmissingVal, fsliceBuffer
+		);
 	}
+	wt->interp2D(fsliceBuffer, sliceBuffer2, fmissingVal,dim);
+
 	float slicemax = -1.e38;
 	float slicemin = 1.e38;
 	for (int j = 0; j<dim[0]*dim[1]; j++){
@@ -937,9 +927,9 @@ int	main(int argc, char **argv) {
 			for (int ts = 0; ts < timelen; ts++){
 				//for each time convert the variable
 				if (ndims == 4) {
-					CopyVariable3D(ncid,varid,wt,vdfio3d,opt.level,opt.lod, varname, dimsVDC, ndim,VDCTimes[ts],ts,&sample3DVar,stag );
+					CopyVariable3D(roms, ncid,varid,wt,vdfio3d,opt.level,opt.lod, varname, dimsVDC, ndim,VDCTimes[ts],ts,&sample3DVar,stag );
 				}
-				else CopyVariable2D(ncid,varid,wt,vdfio2d,wbwriter2d,opt.level,opt.lod,varname, dimsVDC, ndim, VDCTimes[ts],ts, &sample2DVar);
+				else CopyVariable2D(roms, ncid,varid,wt,vdfio2d,wbwriter2d,opt.level,opt.lod,varname, dimsVDC, ndim, VDCTimes[ts],ts, &sample2DVar);
 			}
 			printf("Converted variable: %s\n", varname);
 		} //End loop over variables in file	

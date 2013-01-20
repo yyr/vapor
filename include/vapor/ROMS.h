@@ -33,6 +33,8 @@ public:
 	float* GetDepths();
 	float* GetAngles();
 	float* GetLats();
+	const float *GetMask(const int dims[2]);
+
 
 
 	const vector<double>& GetTimes(){return _romsTimes;}
@@ -90,6 +92,14 @@ private:
 	
 	float* depthsArray;
 	float* anglesArray;
+
+	// Land masks
+	//
+	float *_maskPsi;
+	float *_maskU;
+	float *_maskV;
+	float *_maskRho;
+
 
 	int _ROMS(const string &romsname, const map <string, string> &atypnames, const vector<string>& vars2d, const vector<string>& vars3d);
 	int _GetROMSTopo(int ncid); // Get netCDF file ID (input)

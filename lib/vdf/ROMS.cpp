@@ -38,7 +38,14 @@ int ROMS::_ROMS(
 	const string &toponame, const map <string, string> &names, const vector<string>& vars2d, const vector<string>& vars3d
 ) {
 	depthsArray=0;
+	anglesArray=0;
 	_ncid = 0;
+    _maskPsi = NULL;
+    _maskU = NULL;
+    _maskV = NULL;
+    _maskRho = NULL;
+        
+
 
 	//
 	// Deal with non-standard names for required variables
@@ -96,6 +103,13 @@ ROMS::ROMS(const string &romsname, const map <string, string> &atypnames, const 
 }
 
 ROMS::~ROMS() {
+	if (_maskPsi) delete [] _maskPsi;
+	if (_maskU) delete [] _maskU;
+	if (_maskV) delete [] _maskV;
+	if (_maskRho) delete [] _maskRho;
+	if (anglesArray) delete [] anglesArray;
+        
+
 	// Close the ROMS file
 	(void) nc_close( _ncid );
 }
@@ -196,7 +210,7 @@ int ROMS::addFile(const string& datafile, float extents[6], vector<string>&vars2
 			}
 		}
 	}
-	delete fileTimes;
+	delete [] fileTimes;
 	for (int i = 0; i<6; i++) extents[i] = _Exts[i];
 	nc_close(ncid);
 	return 0;
@@ -214,6 +228,7 @@ int ROMS::extractStartTime(int ncid, int timevarid){
 		NC_ERR_READ(nc_get_att_text(ncid, timevarid, "units", attrVal));
 		attrVal[attlen] = '\0';
 		string strAtt(attrVal);
+		delete [] attrVal;
 		size_t strPos = strAtt.find("seconds since");
 		int y,m,d,h,mn,s;
 		if (strPos != string::npos){
@@ -255,7 +270,7 @@ float* ROMS::GetDepths(){
 	
 	rc = nc_get_var_double(topoNcId, varid, depthsDbl);
 	if (rc != NC_NOERR) {//Not there. 
-		delete depthsDbl;
+		delete [] depthsDbl;
 		return 0;
 	}
 	double mv = vaporMissingValue();
@@ -272,7 +287,7 @@ float* ROMS::GetDepths(){
 		}
 		else depthsArray[i] = (float)vaporMissingValue();
 	}
-	delete depthsDbl;
+	delete [] depthsDbl;
 	return depthsArray;
 }
 float* ROMS::GetAngles(){
@@ -323,6 +338,57 @@ float* ROMS::GetAngles(){
 	}
 	return anglesArray;
 }
+
+const float *ROMS::GetMask(const int dims[2]) {
+	string varname;
+	float *maskBuf = NULL;
+
+	//
+	// Figure out which mask based on the grid dimensions
+	//
+	if (dims[0] == _dimLens[0] && dims[1] == _dimLens[1]) {
+		varname = "mask_psi";
+		if (!_maskPsi) _maskPsi = new float[dims[0]*dims[1]];
+		maskBuf = _maskPsi;
+	}
+	else if (dims[0] == _dimLens[0]+1 && dims[1] == _dimLens[1]) {
+		varname = "mask_v";
+		if (!_maskV) _maskV = new float[dims[0]*dims[1]];
+		maskBuf = _maskV;
+	}
+	else if (dims[0] == _dimLens[0] && dims[1] == _dimLens[1]+1) {
+		varname = "mask_u";
+		if (!_maskU) _maskU = new float[dims[0]*dims[1]];
+		maskBuf = _maskU;
+	}
+	else if (dims[0] == _dimLens[0]+1 && dims[1] == _dimLens[1]+1) {
+		varname = "mask_rho";
+		if (!_maskRho) _maskRho = new float[dims[0]*dims[1]];
+		maskBuf = _maskRho;
+	}
+	else {
+		return(NULL);
+	}
+
+	int varid;
+	int rc = nc_inq_varid(topoNcId, varname.c_str(), &varid);
+	if (rc != NC_NOERR) return(NULL);	// No mask if grid not over land
+
+	// Why are we reading this as a float?
+	//
+	rc = nc_get_var_float(topoNcId, varid, maskBuf);
+	if (rc != NC_NOERR) {
+		MyBase::SetErrMsg(
+			"Error reading netCDF file at line %d : %s", 
+			__LINE__,  nc_strerror(rc)
+		); 
+		return(NULL);
+	}
+
+	return(maskBuf);
+
+}
+
 float* ROMS::GetLats(){
 	//This can be obtained from the Weight Table.  
 	
@@ -427,7 +493,7 @@ int ROMS::_GetROMSTopo(
 		if (buf[j]>maxlat) maxlat = buf[j];
 	}
 	
-	delete buf;
+	delete [] buf;
 	
 	//Longitude is more tricky because it may "wrap".  When that happens the difference between the largest and smallest latitudes
 	//will be nearly 360.  In that case we can find a longitude L that is missed by the lon variable (by at least one degree) and then subtract 360 from all 
@@ -496,7 +562,7 @@ int ROMS::_GetROMSTopo(
 		if (depths[i]<mindepth) mindepth = depths[i];
 	}
 
-	delete depths;
+	delete [] depths;
 	
 	//negate, turn upside down:
 	
@@ -583,7 +649,7 @@ int ROMS::GetGeoLonLatVar(int ncid, int varid, int* geolon, int* geolat){
 		NC_ERR_READ(nc_get_att_text(ncid, varid, "coordinates", attrVal));
 		attrVal[attlen] = '\0';
 		string strAtt(attrVal);
-		delete attrVal;
+		delete [] attrVal;
 		for (int i = 0; i<4; i++){
 			size_t strPos = strAtt.find(geolatvars[i]);
 			if (strPos != string::npos){
