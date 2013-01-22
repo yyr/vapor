@@ -739,8 +739,9 @@ float* ROMS::getMonotonicLonData(int ncid, const char* varname, int londimsize, 
 		delete dbuf;
 		return 0;
 	}
-	// scan the longitudes, while converting to float 
+	// scan the longitudes, while converting to positive float
 	for (int j = 0; j<latdimsize*londimsize; j++){
+		if (dbuf[j] < 0.) dbuf[j]+=360.f;
 		int intlon = (int)(dbuf[j]+0.5);
 		assert(intlon >= 0 && intlon <= 360);
 		longitudes[intlon]=0;
@@ -750,6 +751,7 @@ float* ROMS::getMonotonicLonData(int ncid, const char* varname, int londimsize, 
 	//Find empty interval lengths
 	int maxLonInterval = -1;
 	int maxLonStart = -1;
+	// modify longitudes array so that each value indicates the number of unoccupied longitudes to the right, modulo 360
 	for (int i = 0; i<= 360; i++){
 		if (longitudes[i] == 0 ) continue;   //occupied 
 		
@@ -757,7 +759,7 @@ float* ROMS::getMonotonicLonData(int ncid, const char* varname, int londimsize, 
 		for (int j = i+1; j< 360+i; j++){//add one for every empty degree to the right, circle around 360
 			int ja = j;
 			if (ja > 360) ja -= 360;
-			if (longitudes[ja] == 0) break;
+			if (longitudes[ja] == 0) break;//found an occupied place
 			longitudes[i]++;
 		}
 		if (longitudes[i]>maxLonInterval) {
@@ -768,10 +770,11 @@ float* ROMS::getMonotonicLonData(int ncid, const char* varname, int londimsize, 
 	//Make sure there's a gap:
 	if (maxLonInterval<1) return 0;
 	
-	//See if the maxLonInterval includes 360, if so we are done
+	//See if the maxLonInterval includes 360, if so we are done, since the occupied places don't overlap 360.
 	if (maxLonStart + maxLonInterval >= 360) return fbuf;
 	float mxlon = maxLonStart+0.5f;
-	//fix all the larger longitude values (above the gap) to be negative
+	//Otherwise there are occupied longitudes about 360.
+	//fix all the longitude values above the gap to be negative, so they will be contiguous around 0.
 	for (int j = 0; j<londimsize*latdimsize; j++){
 		if (fbuf[j] > mxlon) fbuf[j] -= 360.f;
 	}
