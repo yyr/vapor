@@ -831,6 +831,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				if (numTimestepsToRender < 1){
 					if(myFlowParams->refreshIsAuto())setAllBypass(true);
 					MyBase::SetErrMsg(VAPOR_ERROR_FLOW, "Insufficient valid timesteps for unsteady integration");
+					break;
 				} else {
 					MyBase::SetDiagMsg("Integrated %d timesteps", numTimestepsToRender);
 				}

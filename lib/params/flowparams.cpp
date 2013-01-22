@@ -2666,7 +2666,7 @@ mapUnsteadyColors(PathLineData* container, int startTimeStep, int minFrame, Regi
 			currDataTime = currentTimestep;
 			nextDataTime = nextTimestep;
 		} else {  //must be case 1
-			assert(currentTimestep == currDataTime && nextTimestep == nextDataTime);
+			assert(currentTimestep >= currDataTime && nextTimestep <= nextDataTime);
 			//do nothing.
 		}
 		
@@ -3654,7 +3654,7 @@ int FlowParams::getCurrentTimestepSample(float ts){
 	//find largest integer n such that (timeSamplingStart+n*timeSamplingInterval <= ts)
 	int n = (int)(0.5+ (ts - timeSamplingStart)/(float)timeSamplingInterval);
 	if (timeSamplingStart+n*timeSamplingInterval > ts + .001f) n--; //n is too big
-	return n;
+	return (timeSamplingStart+n*timeSamplingInterval);
 		
 }
 int FlowParams::getNextTimestepSample(float ts){
@@ -3668,5 +3668,5 @@ int FlowParams::getNextTimestepSample(float ts){
 	//find smallest integer n such that (timeSamplingStart+n*timeSamplingInterval >= ts)
 	int n = (int)(0.5+ (ts - timeSamplingStart)/(float)timeSamplingInterval);
 	if (timeSamplingStart+n*timeSamplingInterval < ts - .001f) n++; //n is too small
-	return n;
+	return (timeSamplingStart+n*timeSamplingInterval);
 }

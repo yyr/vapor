@@ -95,30 +95,34 @@ bool SeedGenerator::GetSeeds(int timestep, VaporFlow* vFlow,
 		
 		//Setup for biased distribution:
 		//First calc min/max of field in rake.
-		float fieldMin, fieldMax;
+		float fieldMin = 0., fieldMax=0.;
 		vector<string>varnames;
 		
 		varnames.push_back(varx);
 		varnames.push_back(vary);
 		varnames.push_back(varz);
-		bool rc = vFlow->getFieldMagBounds(&fieldMin, &fieldMax, varnames, 
-			true, numRefinements, timeStep);
-		if (!rc) {
-			return false;
+		if( distribBias != 0.){
+			bool rc = vFlow->getFieldMagBounds(&fieldMin, &fieldMax, varnames, 
+				true, numRefinements, timeStep);
+			if (!rc) {
+				return false;
+			}
 		}
 		//Then set up the FieldData
-		FieldData* fData = vFlow->setupFieldData(varnames, true, numRefinements, timeStep, false);
-		if (!fData) {delete pRake; return false;}
-		
-		rc = pRake->GenSeedBiased(usrExts,distribBias,fieldMin,fieldMax, fData,numSeeds,  rakeLocalMin,rakeLocalMax, pSeeds, randomSeed, stride);
+		FieldData* fData = 0;
+		if( distribBias != 0.){
+			fData = vFlow->setupFieldData(varnames, true, numRefinements, timeStep, false);
+			if (!fData) {delete pRake; return false;}
+		}
+		bool rc = pRake->GenSeedBiased(usrExts,distribBias,fieldMin,fieldMax, fData,numSeeds,  rakeLocalMin,rakeLocalMax, pSeeds, randomSeed, stride);
 		if (!rc) {
 			MyBase::SetErrMsg(VAPOR_ERROR_SEEDS,
 				"Unable to generate requested number of random seed points.\nEnsure the rake overlaps valid field data\nor choose a smaller bias.");
 			delete fData; delete pRake; return false;
 		}
-		fData->releaseData(vFlow->getDataMgr());
-		delete fData;
-		
+		if (fData) {fData->releaseData(vFlow->getDataMgr());
+			delete fData;
+		}
 	}
 	else
 		pRake->GenSeedRegular(usrExts,numSeeds, rakeLocalMin, rakeLocalMax, pSeeds, stride);
@@ -210,9 +214,10 @@ bool LineRake::GenSeedBiased(const vector<double>&usrExts, float bias, float fie
 			point[1] = usrExts[1]+Lerp(localmin[1], localmax[1], alpha);
 			point[2] = usrExts[2]+Lerp(localmin[2], localmax[2], alpha);
 		
-		 
-			float mag = fData->getValidFieldMag(point);
-			if (mag < 0.f) continue;  //Point is out of range or missing value
+			float mag = 0.;
+			if (fData) fData->getValidFieldMag(point);
+			if (mag < 0.f) continue;  //Point is out of range
+			
 			numTries = 0; //restart count
 			//Insert the point:
 			seedSorter->setPoint(insertionPosn++,mag,point);
@@ -344,8 +349,10 @@ bool PlaneRake::GenSeedBiased(const vector<double>&usrExts, float bias, float fi
 			point[1] = usrExts[1]+BiLerp(ll[1], hl[1], lh[1], hh[1], coeff);
 			point[2] = usrExts[2]+BiLerp(ll[2], hl[2], lh[2], hh[2], coeff);
 		
-			float mag = fData->getValidFieldMag(point);
+			float mag = 0.;
+			if (fData) fData->getValidFieldMag(point);
 			if (mag < 0.f) continue;  //Point is out of range
+			numTries = 0;
 			//Insert the point:
 			seedSorter->setPoint(insertionPosn++,mag,point);
 			totalPointsInserted++;
@@ -522,9 +529,11 @@ bool SolidRake::GenSeedBiased(const vector<double>&usrExts, float bias, float fi
 			point[1] = usrExts[1]+TriLerp(lll[1], hll[1], lhl[1], hhl[1], llh[1], hlh[1], lhh[1], hhh[1], coeff);
 			point[2] = usrExts[2]+TriLerp(lll[2], hll[2], lhl[2], hhl[2], llh[2], hlh[2], lhh[2], hhh[2], coeff);
 
-			float mag = fData->getValidFieldMag(point);
+			float mag = 0.;
+			if (fData) fData->getValidFieldMag(point);
 			if (mag < 0.f) continue;  //Point is out of range or missing value
 			//Insert the point:
+			numTries = 0;
 			seedSorter->setPoint(insertionPosn++,mag,point);
 			totalPointsInserted++;
 			if(insertionPosn >= seedSorterSize || totalPointsInserted >= numPointsToInsert) break;
