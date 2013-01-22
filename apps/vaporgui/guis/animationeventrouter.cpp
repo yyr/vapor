@@ -866,6 +866,7 @@ void AnimationEventRouter::guiEnableKeyframing(bool enabled){
 		MessageReporter::errorMsg("Lat/lon viewpoint coordinates must be disabled to use keyframing");
 		return;
 	}
+	if (aParams->keyframingEnabled() == enabled) return;
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Toggle keyframing enabled");
 	int ts = aParams->getCurrentTimestep();
 	aParams->enableKeyframing(enabled);
