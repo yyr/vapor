@@ -275,11 +275,11 @@ int PythonPipeLine::python_wrapper(
 			//Create a new array to pass into python:
 			//If the output variable is 2D then make the vertical extents full in the domain
 
-			float* pyData = new float[pydims[0]*pydims[1]*pydims[2]];
+			float* pyData = new(nothrow) float[pydims[0]*pydims[1]*pydims[2]];
 			if(!pyData) return 0;
 			bool* pyMask = 0;
 			if (useMask){
-				pyMask = new bool[pydims[0]*pydims[1]*pydims[2]];
+				pyMask = new(nothrow) bool[pydims[0]*pydims[1]*pydims[2]];
 				if (!pyMask) return 0;
 				allocatedMasks.push_back(pyMask);
 			}
@@ -295,11 +295,11 @@ int PythonPipeLine::python_wrapper(
 			
 		} else { // 2D variable
 			//The last two python dimension are the first two user dimensions:
-			float* pyData = new float[pydims[1]*pydims[2]];
+			float* pyData = new(nothrow) float[pydims[1]*pydims[2]];
 			if(!pyData) return 0;
 			bool* pyMask = 0;
 			if (useMask){
-				pyMask = new bool[pydims[1]*pydims[2]];
+				pyMask = new(nothrow) bool[pydims[1]*pydims[2]];
 				if (!pyMask) return 0;
 				allocatedMasks.push_back(pyMask);
 			}
@@ -758,7 +758,7 @@ PyObject* PythonPipeLine::get_3Dvariable(PyObject *self, PyObject* args){
 		return NULL;
 	}
 	//Create a new array to pass to python:
-    float* pyData = new float[pydims[0]*pydims[1]*pydims[2]];
+    float* pyData = new(nothrow) float[pydims[0]*pydims[1]*pydims[2]];
     if(!pyData) return NULL;
 
 	//Now copy in the data:
@@ -796,7 +796,7 @@ PyObject* PythonPipeLine::get_2Dvariable(PyObject *self, PyObject* args){
 	}
 
     //Create a new array to pass to python:
-    float* pyData = new float[pydims[0]*pydims[1]];
+    float* pyData = new(nothrow) float[pydims[0]*pydims[1]];
     if(!pyData) return NULL;
 
 	//Now copy in the data:
@@ -835,10 +835,10 @@ PyObject* PythonPipeLine::get_3Dmask(PyObject *self, PyObject* args){
 		return NULL;
 	}
 	//Create a new array to pass to python:
-    float* pyData = new float[pydims[0]*pydims[1]*pydims[2]];
+    float* pyData = new(nothrow) float[pydims[0]*pydims[1]*pydims[2]];
     if(!pyData) return NULL;
 	//Create a new array to pass to python:
-    bool* pyMask = new bool[pydims[0]*pydims[1]*pydims[2]];
+    bool* pyMask = new(nothrow) bool[pydims[0]*pydims[1]*pydims[2]];
     if(!pyMask) return NULL;
 
 	//Now copy in the data:
@@ -877,9 +877,9 @@ PyObject* PythonPipeLine::get_2Dmask(PyObject *self, PyObject* args){
 	}
 
     //Create a new array to pass to python:
-    float* pyData = new float[pydims[0]*pydims[1]];
+    float* pyData = new(nothrow) float[pydims[0]*pydims[1]];
     if(!pyData) return NULL;
-	bool* pyMask = new bool[pydims[0]*pydims[1]];
+	bool* pyMask = new(nothrow) bool[pydims[0]*pydims[1]];
     if(!pyMask) return NULL;
 
 	//Now copy in the data:
