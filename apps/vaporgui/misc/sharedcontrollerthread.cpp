@@ -112,9 +112,9 @@ run(){
 	while (1){
 		if (animationCancelled) break;
 		int currentTime = myAnimationController->myClock->elapsed();
-		int frameWaitTime = 1000000;
+		int frameWaitTime = 100000000;
 		//Loop over active, global visualizers:
-		int minSharedTimeToFinish = 1000000;
+		int minSharedTimeToFinish = 100000000;
 		int numActive= 0;
 		int numNotHidden = 0;
 		
@@ -204,10 +204,10 @@ run(){
 						myAnimationController->startVisualizer(viznum, currentTime);
 						missingViz = viznum;
 #ifdef ANIM_DEBUG
-						qWarning("Waiting 100 after rerequesting render in vis %d ", viznum);
+						qWarning("Waiting 1000 after rerequesting render in vis %d ", viznum);
 #endif
 						myWaitCondition->wait(&myAnimationController->animationMutex,100);
-						restartwaits += 100;
+						restartwaits += 1000;
 						//Don't wait here forever!
 						if (restartwaits > frameWaitTime) break;
 						continue;
