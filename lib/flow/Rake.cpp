@@ -110,10 +110,10 @@ bool SeedGenerator::GetSeeds(int timestep, VaporFlow* vFlow,
 		}
 		//Then set up the FieldData
 		FieldData* fData = 0;
-		if( distribBias != 0.){
-			fData = vFlow->setupFieldData(varnames, true, numRefinements, timeStep, false);
-			if (!fData) {delete pRake; return false;}
-		}
+		
+		fData = vFlow->setupFieldData(varnames, true, numRefinements, timeStep, false);
+		if (!fData) {delete pRake; return false;}
+		
 		bool rc = pRake->GenSeedBiased(usrExts,distribBias,fieldMin,fieldMax, fData,numSeeds,  rakeLocalMin,rakeLocalMax, pSeeds, randomSeed, stride);
 		if (!rc) {
 			MyBase::SetErrMsg(VAPOR_ERROR_SEEDS,
@@ -530,7 +530,7 @@ bool SolidRake::GenSeedBiased(const vector<double>&usrExts, float bias, float fi
 			point[2] = usrExts[2]+TriLerp(lll[2], hll[2], lhl[2], hhl[2], llh[2], hlh[2], lhh[2], hhh[2], coeff);
 
 			float mag = 0.;
-			if (fData) fData->getValidFieldMag(point);
+			if (fData) mag = fData->getValidFieldMag(point);
 			if (mag < 0.f) continue;  //Point is out of range or missing value
 			//Insert the point:
 			numTries = 0;

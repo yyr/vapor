@@ -202,7 +202,7 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 	istat = m_pField->getFieldValue(seedInfo.phyCoord, m_fCurrentTime, vel);
 	if(istat == OUT_OF_BOUND)
 		return OUT_OF_BOUND;			// the advection is out of boundary
-	if((abs(vel[0]) < m_fStationaryCutoff) && (abs(vel[1]) < m_fStationaryCutoff) && (abs(vel[2]) < m_fStationaryCutoff))
+	if(istat == MISSING_VALUE ||((abs(vel[0]) < m_fStationaryCutoff) && (abs(vel[1]) < m_fStationaryCutoff) && (abs(vel[2]) < m_fStationaryCutoff)))
 		return CRITICAL_POINT;			// this is critical point
 		
 	// get the initial step size

@@ -528,6 +528,7 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, 
 		regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2),maxRegion);
 	pCartesianGrid->setPeriod(flowPeriod);
+
 	
 	//The region extents must be converted based on time-varying extents
 	const vector<double>& usrExts = dataMgr->GetExtents(steadyStartTimeStep);
