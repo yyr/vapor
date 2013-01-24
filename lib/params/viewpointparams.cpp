@@ -35,6 +35,7 @@
 #include <vapor/ParamNode.h>
 #include "datastatus.h"
 #include "regionparams.h"
+#include "vapor/Version.h"
 
 float VAPoR::ViewpointParams::maxStretchedCubeSide = 1.f;
 
@@ -360,6 +361,8 @@ bool ViewpointParams::
 elementStartHandler(ExpatParseMgr* pm, int  depth , std::string& tagString, const char ** attrs){
 	//Get the attributes, make the viewpoints parse the children
 	//Lights get parsed at the end of lightDirection tag
+
+	
 	if (StrCmpNoCase(tagString, _viewpointParamsTag) == 0) {
 		//If it's a viewpoint tag, save 2 from Params class
 		//Do this by repeatedly pulling off the attribute name and value
@@ -457,6 +460,10 @@ cerr <<"SKIPPING " << tagString << endl;
 }
 bool ViewpointParams::
 elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
+	DataStatus* ds = DataStatus::getInstance();
+	const std::string& parsingVersion = ds->getSessionVersion();
+	int versionGt210 = Version::Compare(parsingVersion, "2.1.0");
+	
 	if (StrCmpNoCase(tag, _viewpointParamsTag) == 0) {
 		//If this is a viewpointparams, need to
 		//pop the parse stack.  
@@ -464,10 +471,10 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 		bool ok = px->elementEndHandler(pm, depth, tag);
 		return ok;
 	} else if (StrCmpNoCase(tag, _homeViewTag) == 0){
-		homeViewpoint->alignCenter();
+		if (versionGt210 <= 0) homeViewpoint->alignCenter();
 		return true;
 	} else if (StrCmpNoCase(tag, _currentViewTag) == 0){
-		currentViewpoint->alignCenter();
+		if (versionGt210 <= 0) currentViewpoint->alignCenter();
 		return true;
 	} else if (StrCmpNoCase(tag, _lightTag) == 0){
 		return true;
