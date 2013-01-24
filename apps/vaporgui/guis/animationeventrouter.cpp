@@ -884,7 +884,10 @@ void AnimationEventRouter::guiEnableKeyframing(bool enabled){
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Toggle keyframing enabled");
 	int ts = aParams->getCurrentTimestep();
 	aParams->enableKeyframing(enabled);
-	if (enabled) aParams->setCurrentFrameNumber(aParams->getFrameIndex(currentKeyIndex));
+	if (enabled) {
+		aParams->setCurrentFrameNumber(aParams->getFrameIndex(currentKeyIndex));
+		aParams->setEndFrameNumber(aParams->getMaxFrame());
+	}
 	else aParams->setCurrentFrameNumber(ts);
 	PanelCommand::captureEnd(cmd, aParams);
 	MainForm::getInstance()->enableKeyframing(enabled);

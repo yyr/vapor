@@ -163,7 +163,7 @@ void animate::priorInterPolationCalcs(const std::vector<Keyframe*>& key_vec){
 			//Will just need to interpolate, with end speed = 0.
 			if (endSpeed >= 0) key_vec[i+1]->speed = endSpeed;
 			else {
-				printf("Nonlinear interpolation for keyframe %d\n",i);
+				//printf("Nonlinear interpolation for keyframe %d\n",i);
 				key_vec[i+1]->speed = 0.f;
 				speedOK = false;
 				//Let N = no. of frames + 1, s=  key_vec[i]->speed
@@ -178,7 +178,7 @@ void animate::priorInterPolationCalcs(const std::vector<Keyframe*>& key_vec){
 				for (int k = 0; k<=absFrame; k++){
 					float K = (float)k;
 					T[k] = A*K+C*K*K+D*K*K*K;
-					//Force to be monotonic, between 0 and 1.  Bound by a monotonic function (circular arc) increasing to 1,
+					//Force T to be monotonic, between 0 and 1.  Bound by a monotonic function (circular arc) increasing to 1,
 					//In case the cubic approximation fails to be monotonic.
 					float upperBound = sqrt(K/N);
 					if (T[k] < 0.) T[k] = 0.;
@@ -336,7 +336,7 @@ bool animate::speedController(int startIndex,const  std::vector<Keyframe*>& key_
         distance[i] = sum ;
         sum=0;
     }
-	assert((key_vec[startIndex]->speed +key_vec[startIndex+1]->speed) > 0.f);
+	if((key_vec[startIndex]->speed +key_vec[startIndex+1]->speed) == 0.f) return false;
     //No of frames
     int N = (int) ((2*distance[testPoints-1]/ (key_vec[startIndex]->speed +key_vec[startIndex+1]->speed))   +  0.5);
 	if (N == 0){
