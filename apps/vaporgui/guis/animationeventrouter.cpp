@@ -334,6 +334,7 @@ void AnimationEventRouter::updateTab(){
 	startFrameEdit->setText(strn.setNum(startFrame));
 	currentFrameEdit->setText(strn.setNum(currentFrame));
 	currentTimestepEdit->setText(QString::number(aParams->getCurrentTimestep()));
+	MainForm::getInstance()->setCurrentTimestep(aParams->getCurrentTimestep());
 	endFrameEdit->setText(strn.setNum(endFrame));
 	endFrameTextChanged = false;
 	minFrameLabel->setText(strn.setNum(aParams->getMinFrame()));
@@ -1043,6 +1044,7 @@ void AnimationEventRouter::guiGotoKeyframe(){
 	Keyframe* key = aParams->getKeyframe(currentKeyIndex);
 	//If keyframing is enabled, just need to go to that keyframe
 	PanelCommand* cmd = PanelCommand::captureStart(vpParams, "Go To Keyframe");
+	
 	if (aParams->keyframingEnabled()){
 		aParams->setCurrentFrameNumber(aParams->getFrameIndex(currentKeyIndex));
 	} else {
@@ -1110,6 +1112,7 @@ void AnimationEventRouter::fixKeyframes(bool silent){
 					Viewpoint* newVP = Viewpoint::interpolate(keyframes[i]->viewpoint,keyframes[i+1]->viewpoint, 0.5f);
 					int midTS = (int)(0.5f +0.5f*(keyframes[i]->timeStep + keyframes[i+1]->timeStep));
 					Keyframe* newKey = new Keyframe(newVP, 0.1f,midTS, (int)(0.5f + 0.5f*keyframes[i]->numFrames));
+					newKey->synch = keyframes[i+1]->synch;
 					aParams->insertKeyframe(i,newKey);
 					keyframes = aParams->getKeyframes(); 
 					keyIndexSpin->setMaximum(aParams->getNumKeyframes());
@@ -1155,6 +1158,7 @@ bool AnimationEventRouter::calcTimestepRate(int keyIndex, AnimationParams* aPara
 		//Make frame count equal to timeDiff/timestepsPerFrame
 		int frameDiff = abs(timeDiff)/timestepsPerFrame;
 		if (frameDiff < 1) frameDiff = 1;
+		kf->numFrames = frameDiff;
 		numFramesEdit->setText(QString::number(frameDiff));
 	} else {
 		//Make speed r/w
