@@ -226,8 +226,14 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 		key->timeStep = tstep;
 		//Handle change in timestepsPerFrame.  
 		int currentKeyIndex = keyIndexSpin->value();
-		if (currentKeyIndex == 0) timestepRateEdit->setText(QString::number(0));
-		else if (!calcTimestepRate(currentKeyIndex, aParams)) key->synch = false;
+		if (currentKeyIndex == 0) timestepRateEdit->setText("0");
+		if (key->synch && currentKeyIndex>0) {
+			key->timestepsPerFrame = timestepRateEdit->text().toInt();
+			Keyframe* prevKey = aParams->getKeyframe(currentKeyIndex-1);
+			key->numFrames = abs(key->timeStep - prevKey->timeStep)/key->timestepsPerFrame;
+			if (key->numFrames < 1) key->numFrames = 1;
+		}
+		else if (currentKeyIndex> 0 && !calcTimestepRate(currentKeyIndex, aParams)) key->synch = false;
 
 		if (numFramesEdit->isEnabled()){
 			int newNumFrames = numFramesEdit->text().toInt();
@@ -395,8 +401,10 @@ void AnimationEventRouter::updateTab(){
 	currentKeyIndex = keyIndexSpin->value();
 	Keyframe* kf = aParams->getKeyframe(currentKeyIndex);
 	keyTimestepEdit->setText(QString::number(kf->timeStep));
-	synchCheckBox->setEnabled(currentKeyIndex > 0);
+	//Turn off the checkbox, so it won't emit a signal:
+	synchCheckBox->setEnabled(false);
 	synchCheckBox->setChecked(kf->synch);
+	synchCheckBox->setEnabled(currentKeyIndex > 0);
 	if (currentKeyIndex == 0) {
 		numFramesEdit->setText("0");
 		timestepRateEdit->setText("0");
@@ -850,9 +858,14 @@ void AnimationEventRouter::guiChangeKeyIndex(int keyIndex){
 	} else {
 		numFramesEdit->setEnabled(false);
 	}
-	synchCheckBox->setEnabled(keyIndex > 0);
+	//Don't emit a signal:
+	synchCheckBox->setEnabled(false);
 	synchCheckBox->setChecked(kf->synch);
-	if (keyIndex == 0)timestepRateEdit->setText("0");
+	synchCheckBox->setEnabled(keyIndex > 0);
+	guiSetTextChanged(false);
+	if (keyIndex == 0){timestepRateEdit->setText("0");
+		timestepRateEdit->setEnabled(false);
+	}
 	else calcTimestepRate(keyIndex, aParams);
 	
 	keyframeTextChanged = false;
@@ -882,6 +895,7 @@ void AnimationEventRouter::guiEnableKeyframing(bool enabled){
 }
 void AnimationEventRouter::guiSynchToFrame(bool val){
 	if (!DataStatus::getInstance()->getDataMgr()) return;
+	if (!synchCheckBox->isEnabled()) return;
 	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	
@@ -1050,6 +1064,8 @@ void AnimationEventRouter::fixKeyframes(bool silent){
 	vector<Keyframe*>& keyframes = aParams->getKeyframes();
 	DataStatus* ds = DataStatus::getInstance();
 	float sceneSize = vlength(ds->getFullSizes());
+	
+	keyframes[0]->synch = false;
 	//go through and look for adjacent frames to have same camera position
 	//Delete a keyframe if timestep is unchanging and if previous interval is the same. 
 	for (int i = keyframes.size()-2; i> 0; i--){
@@ -1134,6 +1150,7 @@ bool AnimationEventRouter::calcTimestepRate(int keyIndex, AnimationParams* aPara
 		speedEdit->setEnabled(false);
 		timestepRateEdit->setEnabled(true);
 		int timestepsPerFrame = kf->timestepsPerFrame;
+		if (timestepsPerFrame < 1) timestepsPerFrame = 1;
 		timestepRateEdit->setText(QString::number(timestepsPerFrame));
 		//Make frame count equal to timeDiff/timestepsPerFrame
 		int frameDiff = abs(timeDiff)/timestepsPerFrame;

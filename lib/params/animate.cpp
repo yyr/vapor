@@ -163,34 +163,29 @@ void animate::priorInterPolationCalcs(const std::vector<Keyframe*>& key_vec){
 			//Will just need to interpolate, with end speed = 0.
 			if (endSpeed >= 0) key_vec[i+1]->speed = endSpeed;
 			else {
+				printf("Nonlinear interpolation for keyframe %d\n",i);
 				key_vec[i+1]->speed = 0.f;
 				speedOK = false;
-				//Solution 
-				//position along curve is a geometric series
-				//D(k) = sr(1+r+r^2 +...+r^(k-1)) = sr*(1-r^k)/(1-r) k=0,1,...,N
-				//Where s is speed of prev endpoint, N is frameCount, D(N) is totDist
-				// D(N)=sr(1-r^N)/(1-r)
-				//Solve this for r using binary search (D and s are known).
-				//Then calc T[k] = D[k]/D[N]
-				float minr = 0., maxr = 1., r = 0.5f;
-				float s = key_vec[i]->speed;
-				float DoverS = totDist/s;
+				//Let N = no. of frames + 1, s=  key_vec[i]->speed
+				//find cubic T with T(0) = 0, T'(0) = s/totDist = A, T(N) = 1, T'(N) = 0
+				//T is then Ax+ Cx**2+ Dx**3, where
+				// A= s/totDist, C = (3-2*A*N)/N**2 , D = (A*N-2)/N**3
+				float A = key_vec[i]->speed / totDist;
+				float N = (float)abs(frameCount);
 				int absFrame = abs(frameCount);
-				while (maxr - minr > 0.0001){
-					float val = r*(1.-pow(r,absFrame))/(1.-r);
-					if (val < DoverS) {
-						maxr = r;
-					} else {
-						minr = r;
-					}
-					r = 0.5*(minr+maxr);
-				}
-		
-				float* T = new float[absFrame+1];
-				float DTot = (1.-pow(r,absFrame));
+				float C = (3.-2.*A*N)/(N*N);
+				float D = (A*N-2.)/(N*N*N);
 				for (int k = 0; k<=absFrame; k++){
-					T[k] = (1.-pow(r,k))/DTot;
+					float K = (float)k;
+					T[k] = A*K+C*K*K+D*K*K*K;
+					//Force to be monotonic, between 0 and 1.  Bound by a monotonic function (circular arc) increasing to 1,
+					//In case the cubic approximation fails to be monotonic.
+					float upperBound = sqrt(K/N);
+					if (T[k] < 0.) T[k] = 0.;
+					if (T[k] > upperBound) T[k] = upperBound;
+					if (k>0 && T[k] < T[k-1]) T[k] = T[k-1];
 				}
+				
 				interpolate (T,absFrame,i, key_vec, false);
 				key_vec[i+1]->numFrames = absFrame;
 			}
