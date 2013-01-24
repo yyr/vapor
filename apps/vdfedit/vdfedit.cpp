@@ -230,6 +230,9 @@ int	main(int argc, char **argv) {
 	// Time step changes
 	//
 	if (opt.addts) {
+		if (! opt.quiet) {
+			cerr << ProgName << " : Warning: the \"-addts\" option may produce unexpected or even incorrect results if time-varying attributes are present\n";
+		}
 		long numts = metadata->GetNumTimeSteps();
 		if (numts < 0) exit(1);
 
