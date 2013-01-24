@@ -47,6 +47,7 @@ public:
 	float getRotationCenterLocal(int i) {return rotationCenter[i];}
 	void setRotationCenterLocal(int i, float val) { rotationCenter[i] = val;}
 	void setRotationCenterLocal(float* val) {rotationCenter[0] = val[0]; rotationCenter[1]=val[1]; rotationCenter[2] = val[2];}
+	void alignCenter();
 	//Routines that deal with stretched coordinates:
 	void getStretchedUpVec(float* vec){
 		const float* stretch = DataStatus::getInstance()->getStretchFactors();

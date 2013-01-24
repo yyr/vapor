@@ -464,8 +464,10 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 		bool ok = px->elementEndHandler(pm, depth, tag);
 		return ok;
 	} else if (StrCmpNoCase(tag, _homeViewTag) == 0){
+		homeViewpoint->alignCenter();
 		return true;
 	} else if (StrCmpNoCase(tag, _currentViewTag) == 0){
+		currentViewpoint->alignCenter();
 		return true;
 	} else if (StrCmpNoCase(tag, _lightTag) == 0){
 		return true;

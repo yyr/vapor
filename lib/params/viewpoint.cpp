@@ -281,3 +281,13 @@ Viewpoint* Viewpoint::interpolate(Viewpoint* vp1, Viewpoint* vp2, float alpha){
 		
 	return vp;
 }
+//Force the rotation center to lie in the center of the view.
+void Viewpoint::alignCenter(){
+	vnormal(viewDirection);
+	float temp[3];
+	//project rotCenter-camPos in direction of view:
+	vsub(rotationCenter, cameraPosition, temp);
+	float dt = vdot(viewDirection, temp);
+	vmult(viewDirection, dt, temp);
+	vadd(cameraPosition, temp, rotationCenter);
+}
