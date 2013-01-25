@@ -53,10 +53,6 @@ class EventRouter
 	
 public:
 	
-	//! Virtual method that refreshes any OpenGL windows in the tab.  Does not affect the VAPOR OpenGL visualizers.
-	//! Must be overridden to do anything.
-	virtual void refreshGLWindow(){}
-
 	//! Pure virtual method where all the Qt signals and slots associated with the tab are connected.
 	//! Must include connections that send signals when any QTextEdit box is changed and when enter is pressed.
 	virtual void hookUpTab() = 0;

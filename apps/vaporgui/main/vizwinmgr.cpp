@@ -764,6 +764,7 @@ void VizWinMgr::refreshViewpoint(ViewpointParams* vParams){
 //(possibly with new data)
 void VizWinMgr::
 refreshFlow(FlowParams* fParams){
+	if (!fParams->isEnabled()) return;
 	int vizNum = fParams->getVizNum();
 	//There should only be one!
 	
@@ -776,6 +777,7 @@ refreshFlow(FlowParams* fParams){
 //(possibly with new data)
 void VizWinMgr::
 refreshProbe(ProbeParams* pParams){
+	if (!pParams->isEnabled()) return;
 	int vizNum = pParams->getVizNum();
 	if (vizNum >= 0){
 		vizWin[activeViz]->updateGL();
@@ -785,6 +787,7 @@ refreshProbe(ProbeParams* pParams){
 //(possibly with new data)
 void VizWinMgr::
 refreshTwoDImage(TwoDImageParams* pParams){
+	if (!pParams->isEnabled()) return;
 	int vizNum = pParams->getVizNum();
 	if (vizNum >= 0){
 		vizWin[activeViz]->updateGL();
@@ -794,6 +797,7 @@ refreshTwoDImage(TwoDImageParams* pParams){
 //(possibly with new data)
 void VizWinMgr::
 refreshTwoDData(TwoDDataParams* pParams){
+	if (!pParams->isEnabled()) return;
 	int vizNum = pParams->getVizNum();
 	if (vizNum >= 0){
 		vizWin[activeViz]->updateGL();
@@ -1867,7 +1871,7 @@ void VizWinMgr::setClutDirty(RenderParams* p){
 	vw->setColorbarDirty(true);
 	ren->setClutDirty();
 	p->setAllBypass(false);
-	vw->updateGL();
+	if(p->isEnabled()) vw->updateGL();
 }
 void VizWinMgr::setDatarangeDirty(RenderParams* p){
 	if (!(DataStatus::getInstance()->getDataMgr())) return;
@@ -1879,7 +1883,7 @@ void VizWinMgr::setDatarangeDirty(RenderParams* p){
 	if (!volRend)return;
 	volRend->setDatarangeDirty();
 	p->setAllBypass(false);
-	vw->updateGL();
+	if (p->isEnabled())vw->updateGL();
 }
 void VizWinMgr::setFlowGraphicsDirty(FlowParams* p){
 	if (!(DataStatus::getInstance()->getDataMgr())) return;
@@ -1892,7 +1896,7 @@ void VizWinMgr::setFlowGraphicsDirty(FlowParams* p){
 	vw->setColorbarDirty(true);
 	flowRend->setGraphicsDirty();
 	p->setAllBypass(false);
-	vw->updateGL();
+	if (p->isEnabled())vw->updateGL();
 }
 //Set all the twoD (data and image) renderers dirty,
 //So they will all reconstruct their terrain mappings
@@ -1921,7 +1925,7 @@ void VizWinMgr::setFlowDataDirty(FlowParams* p, bool doInterrupt){
 		flowRend->setDataDirty(doInterrupt);
 	vw->setColorbarDirty(true);
 	p->setAllBypass(false);
-	vw->updateGL();
+	if (p->isEnabled())vw->updateGL();
 }
 
 void VizWinMgr::setFlowDisplayListDirty(FlowParams* p){
@@ -1933,7 +1937,7 @@ void VizWinMgr::setFlowDisplayListDirty(FlowParams* p){
 	FlowRenderer* flowRend = (FlowRenderer*)glwin->getRenderer(p);
 	if(flowRend) {
 		flowRend->setDisplayListDirty();
-		flowRend->paintGL();
+		if (p->isEnabled())flowRend->paintGL();
 	}
 }
 

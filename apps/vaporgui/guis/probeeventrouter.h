@@ -47,7 +47,7 @@ public:
 		TabManager* tMgr = VizWinMgr::getInstance()->getTabManager();
 		return (EventRouter*)(new ProbeEventRouter((QWidget*)tMgr));
 	}
-	virtual void refreshGLWindow();
+	
 	virtual void updateMapBounds(RenderParams* p);
 	virtual void updateClut(RenderParams* p){
 		setProbeDirty((ProbeParams*)p);

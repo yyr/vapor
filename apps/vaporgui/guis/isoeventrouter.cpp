@@ -306,8 +306,7 @@ void IsoEventRouter::updateTab(){
     lightingCheckbox->setChecked(isoParams->GetNormalOnOff());
 	update();
 	guiSetTextChanged(false);
-	//if (renderTextChanged)
-	//	VizWinMgr::getInstance()->getVizWin(isoParams->getVizNum())->updateGL();
+	
 	renderTextChanged = false;
 	Session::getInstance()->unblockRecording();
 	vizMgr->getTabManager()->update();
@@ -374,7 +373,7 @@ void IsoEventRouter::confirmText(bool /*render*/){
 	PanelCommand::captureEnd(cmd, iParams);
 	update();
 	if (renderTextChanged && iParams->getVizNum()>=0)
-		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
+		VizWinMgr::getInstance()->forceRender(iParams);
 		
 	renderTextChanged = false;
 }
@@ -1168,7 +1167,7 @@ guiSetConstantColor(QColor& newColor){
 	fColor[3] = prevColor[3]; //opacity
 	iParams->SetConstantColor(fColor);
 	PanelCommand::captureEnd(cmd, iParams);
-	if (iParams->getVizNum()>=0)
+	if (iParams->getVizNum()>=0 && iParams->isEnabled())
 		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 }
 /*

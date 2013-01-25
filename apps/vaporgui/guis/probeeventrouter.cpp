@@ -630,11 +630,8 @@ void ProbeEventRouter::confirmText(bool /*render*/){
 		probeTextureFrame->update();
 	}
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(probeParams,true);
-	//If we are in probe mode, force a rerender of all windows using the probe:
-	if (GLWindow::getCurrentMouseMode() == GLWindow::probeMode){
-		VizWinMgr::getInstance()->refreshProbe(probeParams);
-	}
+	VizWinMgr::getInstance()->forceRender(probeParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
+	
 	//Cancel any response to events generated in this method:
 	//
 	guiSetTextChanged(false);
@@ -821,7 +818,7 @@ guiReleaseXWheel(int val){
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams, true);
+	VizWinMgr::getInstance()->forceRender(pParams, GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 }
 void ProbeEventRouter::
 guiReleaseYWheel(int val){
@@ -849,7 +846,7 @@ guiReleaseYWheel(int val){
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams,true);
+	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 	
 }
 void ProbeEventRouter::
@@ -878,7 +875,7 @@ guiReleaseZWheel(int val){
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams,true);
+	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 }
 void ProbeEventRouter::guiSetProbeType(int t){
 	//Don't set to texture if not GL_2_0
@@ -978,7 +975,7 @@ void ProbeEventRouter::guiRotate90(int selection){
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams,true);
+	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 
 }
 void ProbeEventRouter::guiChangeInstance(int inst){
@@ -1176,7 +1173,7 @@ guiTogglePlanar(bool isOn){
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd,pParams);
 	
-	VizWinMgr::getInstance()->forceRender(pParams,true);
+	if (!isOn)VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 }
 void ProbeEventRouter::
 guiAxisAlign(int choice){
@@ -1241,7 +1238,7 @@ guiAxisAlign(int choice){
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams,true);
+	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 
 }	
 void ProbeEventRouter::
@@ -1330,7 +1327,7 @@ guiFitDomain(){
 	
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams,true);
+	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 	
 }
 
@@ -1357,7 +1354,7 @@ guiCopyRegionToProbe(){
 	
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams,true);
+	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 	
 }
 
@@ -1652,7 +1649,7 @@ void ProbeEventRouter::guiCenterProbe(){
 	updateTab();
 	setProbeDirty(pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 
 }
 //Following method sets up (or releases) a connection to the Flow 
@@ -1722,7 +1719,7 @@ guiSetXCenter(int sliderval){
 	PanelCommand::captureEnd(cmd, pParams);
 	
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams,true);
+	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 	
 }
 void ProbeEventRouter::
@@ -1734,7 +1731,7 @@ guiSetYCenter(int sliderval){
 	PanelCommand::captureEnd(cmd, pParams);
 	
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams,true);
+	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 	
 }
 void ProbeEventRouter::
@@ -1746,7 +1743,7 @@ guiSetZCenter(int sliderval){
 	PanelCommand::captureEnd(cmd, pParams);
 	
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams,true);
+	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 
 }
 void ProbeEventRouter::
@@ -1761,7 +1758,7 @@ guiSetXSize(int sliderval){
 	resetTextureSize(pParams);
 	
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams,true);
+	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 
 }
 void ProbeEventRouter::
@@ -1775,7 +1772,7 @@ guiSetYSize(int sliderval){
 	resetTextureSize(pParams);
 	
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams,true);
+	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 
 }
 void ProbeEventRouter::
@@ -1788,7 +1785,7 @@ guiSetZSize(int sliderval){
 	PanelCommand::captureEnd(cmd, pParams);
 	
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams,true);
+	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 
 }
 void ProbeEventRouter::
@@ -1886,7 +1883,7 @@ sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize){
 	//force a new render with new Probe data
 	setProbeDirty(pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 	return;
 	
 }	
@@ -2459,7 +2456,7 @@ void ProbeEventRouter::guiNudgeXSize(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->forceRender(pParams,true);
+	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 }
 void ProbeEventRouter::guiNudgeXCenter(int val) {
 
@@ -2507,7 +2504,7 @@ void ProbeEventRouter::guiNudgeXCenter(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->forceRender(pParams,true);
+	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 }
 void ProbeEventRouter::guiNudgeYCenter(int val) {
 	
@@ -2603,7 +2600,7 @@ void ProbeEventRouter::guiNudgeZCenter(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->forceRender(pParams,true);
+	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 }
 
 void ProbeEventRouter::guiNudgeYSize(int val) {
@@ -2652,7 +2649,7 @@ void ProbeEventRouter::guiNudgeYSize(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->forceRender(pParams,true);
+	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 }
 void ProbeEventRouter::guiNudgeZSize(int val) {
 	
@@ -2700,7 +2697,7 @@ void ProbeEventRouter::guiNudgeZSize(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->forceRender(pParams,true);
+	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 }
 //The following adjusts the sliders associated with box size.
 //Each slider range is the maximum of 
@@ -2941,7 +2938,7 @@ guiCropToRegion(){
 		setProbeDirty(pParams);
 		PanelCommand::captureEnd(cmd,pParams);
 		probeTextureFrame->update();
-		VizWinMgr::getInstance()->forceRender(pParams,true);
+		VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 	} else {
 		MessageReporter::warningMsg(" Probe cannot be cropped to region, insufficient overlap");
 		delete cmd;
@@ -2964,7 +2961,7 @@ guiCropToDomain(){
 		setProbeDirty(pParams);
 		PanelCommand::captureEnd(cmd,pParams);
 		probeTextureFrame->update();
-		VizWinMgr::getInstance()->forceRender(pParams,true);
+		VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 	} else {
 		MessageReporter::warningMsg(" Probe cannot be cropped to domain, insufficient overlap");
 		delete cmd;
@@ -2985,7 +2982,7 @@ guiFitRegion(){
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams,true);
+	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 	
 }
 void ProbeEventRouter::
@@ -3131,11 +3128,7 @@ double ProbeEventRouter::convertRotStretchedToActual(int axis, double angle){
 	if (abs(angle) > 90.) retval += 180.;
 	return retval;
 }
-void ProbeEventRouter::refreshGLWindow()
-{
-	if (probeTextureFrame->getGLWindow()->isRendering()) return;
-	probeTextureFrame->getGLWindow()->updateGL();
-}
+
 void ProbeEventRouter::guiFitTFToData(){
 	
 	DataStatus* ds = DataStatus::getInstance();

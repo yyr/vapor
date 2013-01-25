@@ -3181,7 +3181,7 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance,boo
 	
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
-	VizWinMgr::getInstance()->getVizWin(vizNum)->updateGL();
+	VizWinMgr::getInstance()->forceRender(fParams,wasEnabled);
 }
 
 

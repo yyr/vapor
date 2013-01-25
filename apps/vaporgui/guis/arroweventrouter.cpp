@@ -447,7 +447,7 @@ guiChangeExtents(){
 	bx->SetLocalExtents(newExts);
 	PanelCommand::captureEnd(cmd,aParams);
 	updateTab();
-	VizWinMgr::getInstance()->forceRender(aParams);	
+	VizWinMgr::getInstance()->forceRender(aParams,GLWindow::getCurrentMouseMode() == GLWindow::barbMode);
 }
 void ArrowEventRouter::
 guiAlignToData(bool doAlign){
@@ -803,7 +803,7 @@ guiFitToData(){
 	const vector<double>& currExts =DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
 	boxSliderFrame->setBoxExtents(currExts);
 	PanelCommand::captureEnd(cmd, aParams);
-	VizWinMgr::getInstance()->forceRender(aParams);
+	VizWinMgr::getInstance()->forceRender(aParams,GLWindow::getCurrentMouseMode() == GLWindow::barbMode);
 }
 
 void ArrowEventRouter::
@@ -875,7 +875,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 	
 	if (prevEnabled == nowEnabled) {
 		if (!prevEnabled) return;
-		VizWinMgr::getInstance()->forceRender(dParams);
+		VizWinMgr::getInstance()->forceRender(dParams,true);
 		return;
 	}
 	
@@ -897,7 +897,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 
 		//force the renderer to refresh 
 		
-		VizWinMgr::getInstance()->forceRender(dParams);
+		VizWinMgr::getInstance()->forceRender(dParams,true);
 	
 		//Quit 
 		return;

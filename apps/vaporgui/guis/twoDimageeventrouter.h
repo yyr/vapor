@@ -49,7 +49,6 @@ public:
 		return (EventRouter*)(new TwoDImageEventRouter((QWidget*)tMgr));
 	}
 
-	virtual void refreshGLWindow();
 	
 	//Connect signals and slots from tab
 	
