@@ -531,8 +531,8 @@ float vtCFieldLine::SampleFieldline(PathLineData* container,
 			container->setFlowEndAtTime(lineNum, firstT);
 		else 
 			container->setFlowStartAtTime(lineNum, firstT);
-
-		MyBase::SetErrMsg(VAPOR_WARNING_FLOW, "Seed for flow line %d\n is outside of region",lineNum);
+		//No warning message here because all points from previous time step are regarded as seeds.
+		//MyBase::SetErrMsg(VAPOR_WARNING_FLOW, "Seed for flow line %d\n is outside of region",lineNum);
 		return 0.f;
 	}
 

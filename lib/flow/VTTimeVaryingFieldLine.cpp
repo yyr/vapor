@@ -89,7 +89,7 @@ int vtCTimeVaryingFieldLine::advectParticle(vtParticleInfo& initialPoint,
 	curTime = initialTime;
 	istat = m_pField->getFieldValue(seedInfo.phyCoord, initialTime, vel);
 	
-	if(istat == OUT_OF_BOUND)
+	if(istat == OUT_OF_BOUND || istat == MISSING_VALUE)
 		return OUT_OF_BOUND;
 	
 	// get the initial stepsize
