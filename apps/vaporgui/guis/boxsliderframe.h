@@ -38,6 +38,9 @@ public:
 	void setFullDomain(const double[6]);
 	void setVoxelDims(const int[3]);
 	void updateGuiValues(const double mid[3],const double size[3]);
+	void setNumRefinements(int numrefs){
+		numRefinements = numrefs;
+	}
 	
 
 public slots:
@@ -49,18 +52,28 @@ public slots:
 	void xSliderSizeChange();
 	void ySliderSizeChange();
 	void zSliderSizeChange();
-	
+	void nudgeXCenter(int);
+	void nudgeYCenter(int);
+	void nudgeZCenter(int);
+	void nudgeXSize(int);
+	void nudgeYSize(int);
+	void nudgeZSize(int);
 signals:
 	void extentsChanged();
 	
 	
 protected:
 	void confirmText();
+	void nudgeCenter(int val, int dir);
+	void nudgeSize(int val, int dir);
 	bool textChangedFlag;
 	bool silenceSignals;
 	double boxExtents[6];
 	double domainExtents[6];
 	int voxelDims[3];
+	int numRefinements;
+	int lastCenterSlider[3];
+	int lastSizeSlider[3];
 };
 };
 

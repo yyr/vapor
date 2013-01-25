@@ -223,7 +223,7 @@ captureMouseUp(){
 	PanelCommand::captureEnd(savedCommand, aParams);
 	
 	//force render:
-	VizWinMgr::getInstance()->forceRender(aParams);
+	VizWinMgr::getInstance()->forceRender(aParams,true);
 	savedCommand = 0;
 }
 void ArrowEventRouter::
@@ -446,6 +446,7 @@ guiChangeExtents(){
 	for (int i = 0; i<6; i++) newExts[i] -= tvExts[i%3];
 	bx->SetLocalExtents(newExts);
 	PanelCommand::captureEnd(cmd,aParams);
+	updateTab();
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
 void ArrowEventRouter::
@@ -582,6 +583,7 @@ void ArrowEventRouter::updateTab(){
 	}
 	boxSliderFrame->setFullDomain(fullUsrExts);
 	boxSliderFrame->setBoxExtents(usrRakeExts);
+	boxSliderFrame->setNumRefinements(numRefs);
 
 	//Provide latlon corner coords if available, based on usrRakeExts
 	if (DataStatus::getProjectionString().size() == 0){
@@ -754,6 +756,7 @@ guiSetNumRefinements(int num){
 		
 	dParams->SetRefinementLevel(num);
 	refinementCombo->setCurrentIndex(num);
+	boxSliderFrame->setNumRefinements(num);
 	PanelCommand::captureEnd(cmd, dParams);
 	VizWinMgr::getInstance()->forceRender(dParams);
 }

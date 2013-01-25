@@ -19,10 +19,12 @@
 //		Intended to be used with boxframe.ui for event routers that embed a box slider control
 //
 #include "boxsliderframe.h"
+#include "vizwinmgr.h"
 #include <QFrame>
 #include <qwidget.h>
 #include <vector>
 #include <QString>
+#include "datastatus.h"
 using namespace VAPoR;
 
 BoxSliderFrame::BoxSliderFrame( QWidget * parent) : QFrame(parent), Ui_boxframe(){
@@ -45,6 +47,17 @@ BoxSliderFrame::BoxSliderFrame( QWidget * parent) : QFrame(parent), Ui_boxframe(
 		connect(xSizeSlider, SIGNAL(sliderReleased()),this, SLOT(xSliderSizeChange()));
 		connect(ySizeSlider, SIGNAL(sliderReleased()),this, SLOT(ySliderSizeChange()));
 		connect(zSizeSlider, SIGNAL(sliderReleased()),this, SLOT(zSliderSizeChange()));
+		//nudge events:
+		connect (xSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(nudgeXSize(int)));
+		connect (xCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(nudgeXCenter(int)));
+		connect (ySizeSlider, SIGNAL(valueChanged(int)), this, SLOT(nudgeYSize(int)));
+		connect (yCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(nudgeYCenter(int)));
+		connect (zSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(nudgeZSize(int)));
+		connect (zCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(nudgeZCenter(int)));
+		for (int i = 0; i<3; i++){
+			lastCenterSlider[i] = 128;
+			lastSizeSlider[i] = 256;
+		}
 }
 BoxSliderFrame::~BoxSliderFrame() {
 }
@@ -227,10 +240,170 @@ void BoxSliderFrame::updateGuiValues(const double centers[3], const double sizes
 	xSizeEdit->setText(QString::number(sizes[0]));
 	ySizeEdit->setText(QString::number(sizes[1]));
 	zSizeEdit->setText(QString::number(sizes[2]));
-	xCenterSlider->setValue((int)(0.5+256*(centers[0]-domainExtents[0])/(domainExtents[3]-domainExtents[0])));
-	yCenterSlider->setValue((int)(0.5+256*(centers[1]-domainExtents[1])/(domainExtents[4]-domainExtents[1])));
-	zCenterSlider->setValue((int)(0.5+256*(centers[2]-domainExtents[2])/(domainExtents[5]-domainExtents[2])));
+	for (int i = 0; i<3; i++)
+		lastCenterSlider[i] = (int)(0.5+256*(centers[i]-domainExtents[i])/(domainExtents[3+i]-domainExtents[i]));
+	xCenterSlider->setValue(lastCenterSlider[0]);
+	yCenterSlider->setValue(lastCenterSlider[1]);
+	zCenterSlider->setValue(lastCenterSlider[2]);
 	xSizeSlider->setValue((int)(0.5+256*sizes[0]/(domainExtents[3]-domainExtents[0])));
 	ySizeSlider->setValue((int)(0.5+256*sizes[1]/(domainExtents[4]-domainExtents[1])));
 	zSizeSlider->setValue((int)(0.5+256*sizes[2]/(domainExtents[5]-domainExtents[2])));
+	
+}
+//Nudge events:
+void BoxSliderFrame::nudgeXCenter(int val) {
+
+	if (silenceSignals) return;
+	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return;
+	//ignore if change is not 1 
+	if(abs(val - lastCenterSlider[0]) != 1) {
+		lastCenterSlider[0] = val;
+		return;
+	}
+	nudgeCenter(val, 0);
+	emit extentsChanged();
+}
+
+//Nudge events:
+void BoxSliderFrame::nudgeYCenter(int val) {
+
+	if (silenceSignals) return;
+	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return;
+	//ignore if change is not 1 
+	if(abs(val - lastCenterSlider[1]) != 1) {
+		lastCenterSlider[1] = val;
+		return;
+	}
+	nudgeCenter(val, 1);
+	emit extentsChanged();
+}//Nudge events:
+void BoxSliderFrame::nudgeZCenter(int val) {
+
+	if (silenceSignals) return;
+	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return;
+	//ignore if change is not 1 
+	if(abs(val - lastCenterSlider[2]) != 1) {
+		lastCenterSlider[2] = val;
+		return;
+	}
+	nudgeCenter(val, 2);
+	emit extentsChanged();
+}
+void BoxSliderFrame::nudgeCenter(int val, int dir){
+	//See if the change was an increase or decrease:
+	DataStatus *ds = DataStatus::getInstance();
+	DataMgr* datamgr = ds->getDataMgr();
+	size_t timeStep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentTimestep();
+	const vector<double>& tsexts = datamgr->GetExtents(timeStep);
+	float voxelSize = ds->getVoxelSize(numRefinements, dir);
+	double pmin = boxExtents[dir];
+	double pmax = boxExtents[dir+3];
+	float maxExtent = tsexts[dir+3];
+	float minExtent = tsexts[dir];
+	double newCenter = (pmin+pmax)*0.5f;
+	if (val > lastCenterSlider[dir]){//move by 1 voxel, but don't move past end
+		lastCenterSlider[dir]++;
+		if (pmax+voxelSize <= maxExtent){ 
+			boxExtents[dir]= pmin+voxelSize;
+			boxExtents[dir+3]= pmax+voxelSize;
+			newCenter += voxelSize;
+		}
+	} else {
+		lastCenterSlider[dir]--;
+		if (pmin-voxelSize >= minExtent) {//slide 1 voxel down:
+			boxExtents[dir]= pmin-voxelSize;
+			boxExtents[dir+3]= pmax-voxelSize;
+			newCenter -= voxelSize;
+		}
+	}
+	//Determine where the slider really should be:
+	
+	int newSliderPos = (int)(256.*(newCenter - minExtent)/(maxExtent-minExtent) +0.5f);
+	if(lastCenterSlider[dir] != newSliderPos){
+		lastCenterSlider[dir] = newSliderPos;
+	}
+	return;
+}
+// nudge size
+void BoxSliderFrame::nudgeXSize(int val) {
+
+	if (silenceSignals) return;
+	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return;
+	//ignore if change is not 1 
+	if(abs(val - lastSizeSlider[0]) != 1) {
+		lastSizeSlider[0] = val;
+		return;
+	}
+	nudgeSize(val, 0);
+	emit extentsChanged();
+}
+
+//Nudge events:
+void BoxSliderFrame::nudgeYSize(int val) {
+
+	if (silenceSignals) return;
+	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return;
+	//ignore if change is not 1 
+	if(abs(val - lastSizeSlider[1]) != 1) {
+		lastSizeSlider[1] = val;
+		return;
+	}
+	nudgeSize(val, 1);
+	emit extentsChanged();
+}//Nudge events:
+void BoxSliderFrame::nudgeZSize(int val) {
+
+	if (silenceSignals) return;
+	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return;
+	//ignore if change is not 1 
+	if(abs(val - lastSizeSlider[2]) != 1) {
+		lastSizeSlider[2] = val;
+		return;
+	}
+	nudgeSize(val, 2);
+	emit extentsChanged();
+}
+void BoxSliderFrame::nudgeSize(int val, int dir){
+	//See if the change was an increase or decrease:
+	DataStatus *ds = DataStatus::getInstance();
+	float voxelSize = ds->getVoxelSize(numRefinements, dir);
+	double pmin = boxExtents[dir];
+	double pmax = boxExtents[dir+3];
+	float maxExtent = ds->getLocalExtents()[dir+3];
+	float minExtent = ds->getLocalExtents()[dir];
+	double newSize = (pmax-pmin);
+	if (val > lastSizeSlider[dir]){//increase by 1 voxel, but don't move past end
+		lastSizeSlider[dir]++;
+		if (pmax+voxelSize < maxExtent){ 
+			boxExtents[dir+3]= pmax+voxelSize;
+			newSize += voxelSize;
+		}
+		if (pmin-voxelSize > minExtent){ 
+			boxExtents[dir]= pmin-voxelSize;
+			newSize += voxelSize;
+		}
+	} else {
+		lastSizeSlider[dir]--;
+		if (pmin+voxelSize <= pmax) {
+			boxExtents[dir]= pmin+voxelSize;
+			newSize -= voxelSize;
+		}
+		if (pmin+voxelSize <= pmax-voxelSize) {
+			boxExtents[dir+3]= pmax-voxelSize;
+			newSize -= voxelSize;
+		}
+	}
+	//Determine where the slider really should be:
+	
+	int newSliderPos = (int)(256.*newSize/(maxExtent-minExtent) +0.5f);
+	if(lastSizeSlider[dir] != newSliderPos){
+		lastSizeSlider[dir] = newSliderPos;
+	}
+	return;
 }

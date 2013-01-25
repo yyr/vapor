@@ -88,6 +88,12 @@ ProbeEventRouter::ProbeEventRouter(QWidget* parent): QWidget(parent), Ui_ProbeTa
 	showAppearance = true;
 	showLayout = false;
 	showImage = true;
+	lastXSizeSlider = 256;
+	lastYSizeSlider = 256;
+	lastZSizeSlider = 256;
+	lastXCenterSlider = 128;
+	lastYCenterSlider = 128;
+	lastZCenterSlider = 128;
 
 	QPixmap* playForwardIcon = new QPixmap(playforward);
 	playButton->setIcon(QIcon(*playForwardIcon));
