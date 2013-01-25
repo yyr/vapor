@@ -284,10 +284,20 @@ Viewpoint* Viewpoint::interpolate(Viewpoint* vp1, Viewpoint* vp2, float alpha){
 //Force the rotation center to lie in the center of the view.
 void Viewpoint::alignCenter(){
 	vnormal(viewDirection);
-	float temp[3];
-	//project rotCenter-camPos in direction of view:
-	vsub(rotationCenter, cameraPosition, temp);
+	float rctr[3], cmps[3], temp[3];
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	//stretch rotCenter and campos
+	for (int i = 0; i<3; i++){
+		rctr[i] = rotationCenter[i]* stretch[i];
+		cmps[i] = cameraPosition[i]* stretch[i];
+	}
+	//then project rotCenter-camPos in direction of view:
+	vsub(rctr, cmps, temp);
+	
 	float dt = vdot(viewDirection, temp);
 	vmult(viewDirection, dt, temp);
-	vadd(cameraPosition, temp, rotationCenter);
+
+	//apply unstretch to difference:
+	for (int i = 0; i<3; i++) temp[i] /= stretch[i];
+	vadd(temp, cameraPosition, rotationCenter);
 }

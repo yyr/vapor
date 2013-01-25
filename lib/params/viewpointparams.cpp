@@ -217,6 +217,9 @@ reinit(bool doOverride){
 			getHomeViewpoint()->setCameraPosLocal(lpos);
 			getCurrentViewpoint()->setRotationCenterLocal(rpos);
 			getHomeViewpoint()->setRotationCenterLocal(rhpos);
+			//Modify so that rotation centers are in view center (required for viewpoint animation)
+			getHomeViewpoint()->alignCenter();
+			getCurrentViewpoint()->alignCenter();
 		}
 	}
 	return true;
@@ -460,9 +463,7 @@ cerr <<"SKIPPING " << tagString << endl;
 }
 bool ViewpointParams::
 elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
-	DataStatus* ds = DataStatus::getInstance();
-	const std::string& parsingVersion = ds->getSessionVersion();
-	int versionGt210 = Version::Compare(parsingVersion, "2.1.0");
+
 	
 	if (StrCmpNoCase(tag, _viewpointParamsTag) == 0) {
 		//If this is a viewpointparams, need to
@@ -471,10 +472,8 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 		bool ok = px->elementEndHandler(pm, depth, tag);
 		return ok;
 	} else if (StrCmpNoCase(tag, _homeViewTag) == 0){
-		if (versionGt210 <= 0) homeViewpoint->alignCenter();
 		return true;
 	} else if (StrCmpNoCase(tag, _currentViewTag) == 0){
-		if (versionGt210 <= 0) currentViewpoint->alignCenter();
 		return true;
 	} else if (StrCmpNoCase(tag, _lightTag) == 0){
 		return true;
