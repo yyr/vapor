@@ -483,7 +483,7 @@ int NetCDFCollection::ReadSlice(float *data) {
 
 	float *buffer = (float *) _ovr_slicebuf;	// cast to float*
 	float *slice1 = buffer;
-	float *slice2;
+	float *slice2 = NULL;
 	if (zstag) {
 
 		//

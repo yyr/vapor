@@ -174,6 +174,12 @@ public:
  //!
  virtual void GetMinCellExtents(double *x, double *y, double *z) const;
 
+ //! Return the internal data structure containing a copy of the coordinate
+ //! blocks passed in by the constructor
+ //!
+ float **GetCoordBlks() const { return(_coords); };
+
+
 private:
  float **_coords;
  int _varying_dim;

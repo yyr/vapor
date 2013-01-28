@@ -849,6 +849,12 @@ void	DataMgr::UnlockGrid(
 	SetDiagMsg("DataMgr::UnlockGrid()");
 	float **blks = rg->GetBlks();
 	if (blks) unlock_blocks(blks[0]);
+
+	const LayeredGrid *lg = dynamic_cast<const LayeredGrid *>(rg);
+	if (lg) {
+		float **coords = lg->GetCoordBlks();
+		if (coords) unlock_blocks(coords[0]);
+	}
 }
 	
 
