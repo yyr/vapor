@@ -55,6 +55,11 @@ DVRRayCaster::DVRRayCaster(
 
 	_texcrd_sampler = 3;
 	_depth_sampler = 4;
+
+	//
+	// Number of samples along ray will be based on grid resolution
+	//
+	SetMinimumSamples(2,2);
 }
 
 //----------------------------------------------------------------------------

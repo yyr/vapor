@@ -146,6 +146,12 @@ protected:
   // num vars stored in a texture
   int _nvars;
 
+  void SetMinimumSamples(int normal, int fast) {
+	_minimumSamples = normal;
+	_minimumSamplesFast = fast;
+  };
+
+
 };
 
 };
