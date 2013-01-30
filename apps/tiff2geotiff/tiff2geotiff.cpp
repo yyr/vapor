@@ -29,6 +29,7 @@
 #include "cpl_serv.h"
 #include "proj_api.h"
 #ifdef WIN32
+#include <float.h>
 #pragma warning( disable : 4996 )
 #endif
 
@@ -700,7 +701,7 @@ static void
 cpOtherTags(TIFF* in, TIFF* out)
 {
 	struct cpTag *p = tags;
-
+	int ntags = NTAGS;
 	for (int i = 0; i < NTAGS; i++, p++) {
 		switch (p->type) {
 		case TIFF_SHORT:
@@ -724,7 +725,10 @@ cpOtherTags(TIFF* in, TIFF* out)
 		case TIFF_RATIONAL:
 			if (p->count == 1) {
 				float floatv;
-				CopyField(p->tag, floatv);
+				//CopyField(tag, v) replaced by following
+				//Workaround a tiff lib bug:  TIFFGetField gets a very small float
+				if (TIFFGetField(in, p->tag, &floatv) && floatv >= .00001) 
+						TIFFSetField(out, p->tag, floatv);
 			} else if (p->count == (uint16) -1) {
 				float* floatav;
 				CopyField(p->tag, floatav);
