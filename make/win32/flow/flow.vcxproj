@@ -170,6 +170,7 @@
       </DataExecutionPrevention>
       <ImportLibrary>../../../targets/win32/bin/flow.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
+      <GenerateMapFile>false</GenerateMapFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

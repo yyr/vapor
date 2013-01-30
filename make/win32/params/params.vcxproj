@@ -169,6 +169,7 @@
       </DataExecutionPrevention>
       <ImportLibrary>../../../targets/win32/bin/params.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
+      <GenerateMapFile>true</GenerateMapFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
