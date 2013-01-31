@@ -477,7 +477,7 @@ bool SolidRake::GenSeedBiased(const vector<double>&usrExts, float bias, float fi
 	//Note:  The following code is more or less replicated in plane rake and line rake.
 	// initialize random number generator with a negative value
 	long rseed = randomSeed;
-	if(rseed < 0) rseed = -rseed;
+	if(rseed > 0) rseed = -rseed;
 
 	totalNum = numSeeds[0] * numSeeds[1] * numSeeds[2];
 	
