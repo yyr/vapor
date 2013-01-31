@@ -102,22 +102,8 @@ int DVRRayCaster::GraphicsInit()
 
 	  if (! _shadermgr->defineEffect("Iso", "MAPPED; LIGHTING; DEPTHPEEL;", instanceName("mapped+lighting")))
 	    return(-1);
-	  //upload all of the relevant uniform data
-	  _shadermgr->uploadEffectData(instanceName("default"), std::string("previousPass"), myGLWindow->depthTexUnit);
-	  _shadermgr->uploadEffectData(instanceName("default"), std::string("height"), (float)myGLWindow->depthHeight);
-	  _shadermgr->uploadEffectData(instanceName("default"), std::string("width"), (float)myGLWindow->depthWidth);	
-	  _shadermgr->uploadEffectData(instanceName("lighting"), std::string("previousPass"), myGLWindow->depthTexUnit);
-	  _shadermgr->uploadEffectData(instanceName("lighting"), std::string("height"), (float)myGLWindow->depthHeight);
-	  _shadermgr->uploadEffectData(instanceName("lighting"), std::string("width"), (float)myGLWindow->depthWidth);	
-	  _shadermgr->uploadEffectData(instanceName("mapped"), std::string("previousPass"), myGLWindow->depthTexUnit);
-	  _shadermgr->uploadEffectData(instanceName("mapped"), std::string("height"), (float)myGLWindow->depthHeight);
-	  _shadermgr->uploadEffectData(instanceName("mapped"), std::string("width"), (float)myGLWindow->depthWidth);	
-	  _shadermgr->uploadEffectData(instanceName("mapped+lighting"), std::string("previousPass"), myGLWindow->depthTexUnit);
-	  _shadermgr->uploadEffectData(instanceName("mapped+lighting"), std::string("height"), (float)myGLWindow->depthHeight);
-	  _shadermgr->uploadEffectData(instanceName("mapped+lighting"), std::string("width"), (float)myGLWindow->depthWidth);
-#ifdef DEBUG
-	  std::cout << "DVRRaycaster DEPTH PEELING\n" << std::endl;
-#endif
+
+
 	}
 	else{
 	  if (! _shadermgr->defineEffect("Iso", "", instanceName("default")))
@@ -131,36 +117,9 @@ int DVRRayCaster::GraphicsInit()
 
 	  if (! _shadermgr->defineEffect("Iso", "MAPPED; LIGHTING;", instanceName("mapped+lighting")))
 	    return(-1);
-#ifdef DEBUG
-	  std::cout << "DVRRaycaster NO PEEL\n" << std::endl;
-#endif
 	} 
 
 	if (initTextures() < 0) return(-1);
-
-	if (! _shadermgr->uploadEffectData(instanceName("default"), "volumeTexture", 0)) return(-1);	
-	if (! _shadermgr->uploadEffectData(instanceName("default"), "coordmap", 2)) return(-1);	
-	if (! _shadermgr->uploadEffectData(instanceName("default"), "texcrd_buffer", _texcrd_sampler)) return(-1);	
-	if (! _shadermgr->uploadEffectData(instanceName("default"), "depth_buffer", _depth_sampler)) return(-1);	
-
-	if (! _shadermgr->uploadEffectData(instanceName("lighting"), "volumeTexture", 0)) return(-1);	
-	if (! _shadermgr->uploadEffectData(instanceName("lighting"), "coordmap", 2)) return(-1);	
-	if (! _shadermgr->uploadEffectData(instanceName("lighting"), "texcrd_buffer", _texcrd_sampler)) return(-1);	
-	if (! _shadermgr->uploadEffectData(instanceName("lighting"), "depth_buffer", _depth_sampler)) return(-1);
-
-    if (! _shadermgr->uploadEffectData(instanceName("mapped"), "volumeTexture", 0)) return(-1);
-    if (! _shadermgr->uploadEffectData(instanceName("mapped"), "colormap", 1)) return(-1);
-    if (! _shadermgr->uploadEffectData(instanceName("mapped"), "coordmap", 2)) return(-1);
-    if (! _shadermgr->uploadEffectData(instanceName("mapped"), "texcrd_buffer", _texcrd_sampler)) return(-1);
-    if (! _shadermgr->uploadEffectData(instanceName("mapped"), "depth_buffer", _depth_sampler)) return(-1);
-
-    if (! _shadermgr->uploadEffectData(instanceName("mapped+lighting"), "volumeTexture", 0)) return(-1);
-    if (! _shadermgr->uploadEffectData(instanceName("mapped+lighting"), "colormap", 1)) return(-1);
-    if (! _shadermgr->uploadEffectData(instanceName("mapped+lighting"), "coordmap", 2)) return(-1);
-    if (! _shadermgr->uploadEffectData(instanceName("mapped+lighting"), "texcrd_buffer", _texcrd_sampler)) return(-1);
-    if (! _shadermgr->uploadEffectData(instanceName("mapped+lighting"), "depth_buffer", _depth_sampler)) return(-1);
-
-	initShaderVariables();
 
 	return 0;
 }
@@ -173,15 +132,7 @@ int DVRRayCaster::Render()
 	MyBase::SetDiagMsg("DVRRayCaster::Render()");
 
 	DVRTexture3d::calculateSampling();
-	GLint viewport[4];
-	glGetIntegerv(GL_VIEWPORT, viewport);
-	if (_lighting) {		
-		_shadermgr->uploadEffectData(
-			getCurrentEffect(), "winsize", (float)viewport[2], 
-			(float)viewport[3]
-		);	
-	}
-	_shadermgr->uploadEffectData(getCurrentEffect(), "nsamples", (int) _samples);	
+	glGetIntegerv(GL_VIEWPORT, _viewport);
 
 	return(DVRShader::Render());
 
@@ -425,11 +376,6 @@ void DVRRayCaster::raycasting_pass(
 	const BBox &volumeBox  = brick->volumeBox();
 	const BBox &textureBox = brick->textureBox();
 
-//#define NOSHADER
-#ifndef	NOSHADER
-	bool ok = _shadermgr->enableEffect(getCurrentEffect());
-	if (! ok) return;
-
 	if (GLEW_VERSION_2_0) {
 		
 		if (_mapped) {
@@ -467,7 +413,6 @@ void DVRRayCaster::raycasting_pass(
 		glEnable(GL_TEXTURE_3D);
 		glBindTexture(GL_TEXTURE_3D, brick->handle());
 	}
-#endif
 	
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -493,6 +438,18 @@ void DVRRayCaster::raycasting_pass(
 	BBox rotatedBox(volumeBox);
 	rotatedBox.transform(modelview);
 	Point3d camera(0,0,0);
+
+//#define NOSHADER
+#ifndef	NOSHADER
+	DVRRayCaster::initShaderVariables();
+    _shadermgr->uploadEffectData(
+        getCurrentEffect(), "dimensions",
+        (float) brick->nx(), (float) brick->ny(), (float) brick->nz()
+    );
+#endif
+
+	bool ok = _shadermgr->enableEffect(getCurrentEffect());
+	if (! ok) return;
 	
 	// Call different proxy drawing method depending on whether
 	// camera is inside or outside the volume's bounding box
@@ -504,11 +461,13 @@ void DVRRayCaster::raycasting_pass(
 		drawVolumeFaces(volumeBox, textureBox);
 	}
 
+#ifndef	NOSHADER
 	_shadermgr->disableEffect();
+#endif
 	
+
 	glDisable(GL_CULL_FACE);
 	
-#ifndef	NOSHADER
 
 	if (GLEW_VERSION_2_0) {
 		glActiveTexture(_depth_texunit);
@@ -534,7 +493,6 @@ void DVRRayCaster::raycasting_pass(
 		glBindTexture(GL_TEXTURE_3D, 0);
 	}
 	glDisable(GL_TEXTURE_3D);
-#endif
 	printOpenGLError();
 }
 
@@ -547,10 +505,7 @@ void DVRRayCaster::renderBrick(
 	const Matrix3d &modelviewInverse
 ) {
 
-    _shadermgr->uploadEffectData(
-        getCurrentEffect(), "dimensions",
-        (float) brick->nx(), (float) brick->ny(), (float) brick->nz()
-    );
+
 
     // Write depth info.
     glDepthMask(GL_TRUE);
@@ -582,11 +537,6 @@ void DVRRayCaster::renderBrick(
       glEnable(GL_DEPTH_TEST);
       //render to previously used fbo
       glBindFramebuffer(GL_FRAMEBUFFER, myGLWindow->currentBuffer);
-      //update layer information for iso shader
-      _shadermgr->uploadEffectData(instanceName("default"), std::string("currentLayer"), myGLWindow->currentLayer);
-      _shadermgr->uploadEffectData(instanceName("lighting"), std::string("currentLayer"), myGLWindow->currentLayer);
-      _shadermgr->uploadEffectData(instanceName("mapped"), std::string("currentLayer"), myGLWindow->currentLayer);
-      _shadermgr->uploadEffectData(instanceName("mapped+lighting"), std::string("currentLayer"), myGLWindow->currentLayer);
 #ifdef DEBUG
       std::cout << "DVR current layer: " << myGLWindow->currentLayer << std::endl;
 #endif
@@ -623,8 +573,6 @@ void DVRRayCaster::SetIsoValues(
 		_colors[i*4+2] = colors[i*4+2];
 		_colors[i*4+3] = colors[i*4+3];
 	}
-
-	initShaderVariables();
 
 }
 
@@ -747,19 +695,62 @@ int DVRRayCaster::initTextures()
 
 void DVRRayCaster::initShaderVariables() {	
 
+	string effect = getCurrentEffect();
+	_shadermgr->enableEffect(effect);
+
+	if(myGLWindow->isDepthPeeling()){ 
+
+		_shadermgr->uploadEffectData(
+			effect, std::string("previousPass"), myGLWindow->depthTexUnit
+		);
+		_shadermgr->uploadEffectData(
+			effect, std::string("height"), (float)myGLWindow->depthHeight
+		);
+		_shadermgr->uploadEffectData(
+			effect, std::string("width"), (float)myGLWindow->depthWidth
+		);
+		_shadermgr->uploadEffectData(
+			effect, "currentLayer", myGLWindow->currentLayer
+		);
+	}
+
 	if (! _mapped) {
 		_shadermgr->uploadEffectData(
-			getCurrentEffect(), "isocolor", (float)_colors[0], 
+			effect, "isocolor", (float)_colors[0], 
 			(float)_colors[1], (float)_colors[2], (float)_colors[3]
 		);
 	}
 	else {
-		_shadermgr->uploadEffectData(getCurrentEffect(), "vidx", _vidx);
+		_shadermgr->uploadEffectData(effect, "vidx", _vidx);
+    	_shadermgr->uploadEffectData(effect, "colormap", 1);
 	}
 
-	_shadermgr->uploadEffectData(getCurrentEffect(), "isovalue", _values[0]);
+	if (_lighting) {
+		_shadermgr->uploadEffectData(effect, "kd", _kd);
+		_shadermgr->uploadEffectData(effect, "ka", _ka);
+		_shadermgr->uploadEffectData(effect, "ks", _ks);
+		_shadermgr->uploadEffectData(effect, "expS", _expS);
+		_shadermgr->uploadEffectData(
+			effect, "lightDirection", _pos[0], _pos[1], _pos[2]
+		);
+		_shadermgr->uploadEffectData(
+			effect, "winsize", (float)_viewport[2], (float)_viewport[3]
+		);	
+	}
 
-	DVRShader::initShaderVariables();
+	_shadermgr->uploadEffectData(effect, "coordmap", 2);
+	_shadermgr->uploadEffectData(effect, "texcrd_buffer", _texcrd_sampler);
+	_shadermgr->uploadEffectData(effect, "depth_buffer", _depth_sampler);
+	_shadermgr->uploadEffectData(effect, "volumeTexture", 0);
+	_shadermgr->uploadEffectData(effect, "isovalue", _values[0]);
+	_shadermgr->uploadEffectData(effect, "zidx", (int) _zidx);
+	_shadermgr->uploadEffectData(effect, "midx", (int) _midx);
+	_shadermgr->uploadEffectData(effect, "fast", (int) _renderFast);
+	_shadermgr->uploadEffectData(effect, "stretched", (int) _stretched);
+	_shadermgr->uploadEffectData(effect, "nsamples", (int) _samples);	
+
+
+	_shadermgr->disableEffect();
 
 }
 

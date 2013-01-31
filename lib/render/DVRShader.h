@@ -87,6 +87,13 @@ protected:
   );
 
   bool _stretched;
+  float _kd;
+  float _ka;
+  float _ks;
+  float _expS;
+  float _pos[3];
+  int _midx;
+  int _zidx;
 
 private: 
 
@@ -102,15 +109,8 @@ private:
 
   GLuint _cmapid[4];
 
-  float _kd;
-  float _ka;
-  float _ks;
-  float _expS;
-  float _pos[3];
   float _vdir[4];
   float _vpos[4];
-  int _midx;
-  int _zidx;
 
   void _loadCoordMap(
     const vector <double> ucoords, int c0, int c1,

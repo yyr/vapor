@@ -62,6 +62,7 @@ class RENDER_API DVRRayCaster : public DVRShader
 private:
   bool _mapped;
   int _vidx;
+  GLint _viewport[4];
 
   virtual int initTextures();
   virtual void initShaderVariables();

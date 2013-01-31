@@ -54,15 +54,15 @@ DVRShader::DVRShader(
 ) : DVRTexture3d(precision, nvars, nthreads),
   _lighting(false),
   _stretched(false),
-  _colormap(NULL),
-  _coordmap(NULL),
-  _preintegration(false),
   _kd(0.0),
   _ka(0.0),
   _ks(0.0),
   _expS(0.0),
   _midx(0),
-  _zidx(0)
+  _zidx(0),
+  _colormap(NULL),
+  _coordmap(NULL),
+  _preintegration(false)
 {
 	MyBase::SetDiagMsg(
 		"DVRShader::DVRShader( %d %d %d)", 
@@ -121,7 +121,6 @@ int DVRShader::GraphicsInit()
 
 	if (! _shadermgr->defineEffect("DVR", "", instanceName("default")))
 		return(-1);
-
 	if (! _shadermgr->defineEffect(
 		"DVR", "LIGHTING;", instanceName("lighting")
 	)) return(-1);
@@ -132,31 +131,7 @@ int DVRShader::GraphicsInit()
 		"DVR", "LIGHTING;PREINTEGRATED;", instanceName("preintegrated+lighting")
 	)) return(-1);
 
-  if (initTextures() < 0) return(-1);
-
-  if (! _shadermgr->uploadEffectData(instanceName("preintegrated+lighting"), "volumeTexture", volumeTextureTexUnit)) return(-1);
-
-  if (! _shadermgr->uploadEffectData(instanceName("preintegrated+lighting"), "colormap", colormapTexUnit)) return(-1);
-
-  if (! _shadermgr->uploadEffectData(instanceName("preintegrated+lighting"), "coordmap", coordmapTexUnit)) return(-1);
-	
-  if (! _shadermgr->uploadEffectData(instanceName("preintegrated"), "colormap", colormapTexUnit)) return(-1);
-
-  if (! _shadermgr->uploadEffectData(instanceName("preintegrated"), "volumeTexture", volumeTextureTexUnit)) return(-1);
-
-  if (! _shadermgr->uploadEffectData(instanceName("preintegrated"), "coordmap", coordmapTexUnit)) return(-1);
-	
-  if (! _shadermgr->uploadEffectData(instanceName("lighting"), "colormap", colormapTexUnit)) return(-1);
-
-  if (! _shadermgr->uploadEffectData(instanceName("lighting"), "volumeTexture", volumeTextureTexUnit)) return(-1);
-
-  if (! _shadermgr->uploadEffectData(instanceName("lighting"), "coordmap", coordmapTexUnit)) return(-1);
-	
-  if (! _shadermgr->uploadEffectData(instanceName("default"), "colormap", colormapTexUnit)) return(-1);
-
-  if (! _shadermgr->uploadEffectData(instanceName("default"), "volumeTexture", volumeTextureTexUnit)) return(-1);
-
-  if (! _shadermgr->uploadEffectData(instanceName("default"), "coordmap", coordmapTexUnit)) return(-1);
+	if (initTextures() < 0) return(-1);
 
   return(0);
 
@@ -203,7 +178,6 @@ int DVRShader::SetRegion(const RegularGrid *rg, const float range[2], int num)
 		sg->GetUserCoordinateMaps(_xcoords, _ycoords, _zcoords);
 	}
 
-	initShaderVariables();
 
 	size_t dims[3];
 	rg->GetDimensions(dims);
@@ -365,11 +339,6 @@ void DVRShader::renderBrick(const TextureBrick *brick,
 
 {
 
-    _shadermgr->uploadEffectData(
-		getCurrentEffect(), "dimensions", 
-		(float) brick->nx(), (float) brick->ny(), (float) brick->nz()
-	);
-
 	if (_stretched) {
 		size_t x0 = brick->xoffset();
 		size_t x1 = x0 + brick->nx() - 1;
@@ -380,7 +349,26 @@ void DVRShader::renderBrick(const TextureBrick *brick,
 
 		loadCoordMap(brick, x0, x1, y0, y1, z0, z1);
 	}
+
+//#define NOSHADER
+#ifndef	NOSHADER
+	initShaderVariables();
+
+    _shadermgr->uploadEffectData(
+		getCurrentEffect(), "dimensions", 
+		(float) brick->nx(), (float) brick->ny(), (float) brick->nz()
+	);
+
+	bool ok = _shadermgr->enableEffect(getCurrentEffect());		 
+	if (! ok) return;
+#endif
+
     DVRTexture3d::drawViewAlignedSlices(brick, modelview, modelviewInverse);
+
+#ifndef	NOSHADER
+  _shadermgr->disableEffect();
+#endif
+
 }
 
 //----------------------------------------------------------------------------
@@ -389,12 +377,6 @@ void DVRShader::renderBrick(const TextureBrick *brick,
 int DVRShader::Render()
 {
   calculateSampling();
-
-//#define NOSHADER
-#ifndef	NOSHADER
-  bool ok = _shadermgr->enableEffect(getCurrentEffect());		 
-  if (! ok) return (-1);
-
 
   glPolygonMode(GL_FRONT, GL_FILL);
   glCullFace(GL_BACK);
@@ -440,6 +422,8 @@ int DVRShader::Render()
   }
 
   glEnable(GL_TEXTURE_3D);
+  glDisable(GL_TEXTURE_1D);
+  glDisable(GL_TEXTURE_2D);
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -449,11 +433,9 @@ int DVRShader::Render()
 
   glDisable(GL_DITHER);
 
-#endif
 
   renderBricks();
 
-#ifndef	NOSHADER
   if (GLEW_VERSION_2_0) {
 
     glActiveTexture(GL_TEXTURE2);
@@ -486,8 +468,6 @@ int DVRShader::Render()
   glDisable(GL_BLEND);
   glDisable(GL_CULL_FACE);
 
-  _shadermgr->disableEffect();
-#endif
   glFlush();
   return 0;
 }
@@ -681,7 +661,6 @@ void DVRShader::SetView(const float *pos, const float *dir)
     _vdir[i] = dir[i];
     _vpos[i] = pos[i];
   }
-  initShaderVariables();
 
 }
 
@@ -693,7 +672,6 @@ void DVRShader::SetPreintegrationOnOff(int on)
 {
   _preintegration = on;
 
-  initShaderVariables();
 }
 
 //----------------------------------------------------------------------------
@@ -703,7 +681,6 @@ void DVRShader::SetLightingOnOff(int on)
 {
   _lighting = on;
 
-  initShaderVariables();
 }
 
 //----------------------------------------------------------------------------
@@ -716,7 +693,6 @@ void DVRShader::SetLightingCoeff(float kd, float ka, float ks, float expS)
 	_ks = ks;
 	_expS = expS;
 
-	initShaderVariables();
 }
 
 //----------------------------------------------------------------------------
@@ -728,7 +704,6 @@ void DVRShader::SetLightingLocation(const float *pos)
 	_pos[1] = pos[1];
 	_pos[2] = pos[2];
 
-	initShaderVariables();
 }
 
 
@@ -810,26 +785,33 @@ int DVRShader::initTextures()
 //----------------------------------------------------------------------------
 void DVRShader::initShaderVariables()
 {
+  string effect = getCurrentEffect();
+  _shadermgr->enableEffect(effect);
   if (_preintegration)
   {
-	  _shadermgr->uploadEffectData(getCurrentEffect(), "delta", _delta);
-	  _shadermgr->uploadEffectData(getCurrentEffect(), "vdir", _vdir[0], _vdir[1], _vdir[2], _vdir[3]);
-	  _shadermgr->uploadEffectData(getCurrentEffect(), "vpos", _vpos[0], _vpos[1], _vpos[2], _vpos[3]);
+	  _shadermgr->uploadEffectData(effect, "delta", _delta);
+	  _shadermgr->uploadEffectData(effect, "vdir", _vdir[0], _vdir[1], _vdir[2], _vdir[3]);
+	  _shadermgr->uploadEffectData(effect, "vpos", _vpos[0], _vpos[1], _vpos[2], _vpos[3]);
   }
 
   if (_lighting)
   {	  
-	  _shadermgr->uploadEffectData(getCurrentEffect(), "kd", _kd);
-	  _shadermgr->uploadEffectData(getCurrentEffect(), "ka", _ka);
-	  _shadermgr->uploadEffectData(getCurrentEffect(), "ks", _ks);
-	  _shadermgr->uploadEffectData(getCurrentEffect(), "expS", _expS);
-	  _shadermgr->uploadEffectData(getCurrentEffect(), "lightDirection", _pos[0], _pos[1], _pos[2]);
+	  _shadermgr->uploadEffectData(effect, "kd", _kd);
+	  _shadermgr->uploadEffectData(effect, "ka", _ka);
+	  _shadermgr->uploadEffectData(effect, "ks", _ks);
+	  _shadermgr->uploadEffectData(effect, "expS", _expS);
+	  _shadermgr->uploadEffectData(effect, "lightDirection", _pos[0], _pos[1], _pos[2]);
   } 
 
-  _shadermgr->uploadEffectData(getCurrentEffect(), "fast", (int) _renderFast);
-  _shadermgr->uploadEffectData(getCurrentEffect(), "midx", (int) _midx);
-  _shadermgr->uploadEffectData(getCurrentEffect(), "zidx", (int) _zidx);
-  _shadermgr->uploadEffectData(getCurrentEffect(), "stretched", (int) _stretched);
+  _shadermgr->uploadEffectData(effect, "colormap",colormapTexUnit);
+  _shadermgr->uploadEffectData(effect, "volumeTexture", volumeTextureTexUnit);
+  _shadermgr->uploadEffectData(effect, "coordmap",coordmapTexUnit);
+  _shadermgr->uploadEffectData(effect, "fast", (int) _renderFast);
+  _shadermgr->uploadEffectData(effect, "midx", (int) _midx);
+  _shadermgr->uploadEffectData(effect, "zidx", (int) _zidx);
+  _shadermgr->uploadEffectData(effect, "stretched", (int) _stretched);
+
+  _shadermgr->disableEffect();
 }
 
 //----------------------------------------------------------------------------
@@ -871,10 +853,6 @@ std::string DVRShader::getCurrentEffect()
 void DVRShader::calculateSampling()
 {
   DVRTexture3d::calculateSampling();
-  if (_preintegration)
-  {
-	_shadermgr->uploadEffectData(getCurrentEffect(), "delta", _delta);
-  }
 }
 
 //----------------------------------------------------------------------------

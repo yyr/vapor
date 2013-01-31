@@ -159,6 +159,10 @@ bool ShaderMgr::enableEffect(std::string effect)
 //----------------------------------------------------------------------------			
 bool ShaderMgr::disableEffect()
 {
+	SetDiagMsg("ShaderMgr::disableEffect()");
+#ifdef DEBUG
+	std::cout << "ShaderMgr::disableEffect()" << std::endl;
+#endif	
 	if (GLEW_VERSION_2_0)
 	{
 		glUseProgram(0);
