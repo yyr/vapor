@@ -237,7 +237,7 @@ int main(int argc, char **argv) {
 
 			RegularGrid *rg;
 			rg = datamgr->GetGrid(
-				ts, vname, opt.level, opt.level, min, max, 0
+				ts, vname, opt.level, opt.lod, min, max, 0
 			);
 
 			if (! rg) {
