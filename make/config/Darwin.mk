@@ -1,35 +1,33 @@
 G++-INCLUDE-DIR = /usr/include/g++
-CXX = c++ -fno-common
-CC = cc -fno-common
+CXX = g++ -fno-common
+CC = gcc -fno-common
 
 ifeq    ($(HAVE_QT_FRAMEWORK),1)
 QT_FRAMEWORK = 1
 endif
 
 CXXFLAGS          += -DDARWIN -Wall -Wno-format -Wno-sign-compare  -fPIC  
-CXXFLAGS          += -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk
-CXXFLAGS          += -pthread
+CXXFLAGS          += -Wno-overloaded-virtual
 CXX_RELEASE_FLAGS += -O3 -DNDEBUG
 CXX_DEBUG_FLAGS   += -g
 
 CFLAGS            += -DDARWIN -Wall -Wno-format -fPIC
-CFLAGS            += -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk
 C_RELEASE_FLAGS   += -O3 -DNDEBUG
 C_DEBUG_FLAGS     += -g
 
-LDFLAGS           += -mmacosx-version-min=10.5 -pthread
+LDFLAGS           += 
 LD_RELEASE_FLAGS  += 
 LD_DEBUG_FLAGS    += 
 
 PROFILEFLAGS = -pg -a
 
 ifeq ($(MACHTYPE),x86_64)
-SHARED_LDFLAGS += -m64 -mmacosx-version-min=10.5 -pthread
+SHARED_LDFLAGS += -m64 
 LDFLAGS += -m64
 CXXFLAGS += -m64
 CFLAGS += -m64
 else 
-SHARED_LDFLAGS += -m32 -mmacosx-version-min=10.5 -pthread
+SHARED_LDFLAGS += -m32 
 LDFLAGS += -m32
 CXXFLAGS += -m32
 CFLAGS += -m32
