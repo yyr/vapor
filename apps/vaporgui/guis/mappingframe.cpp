@@ -780,6 +780,20 @@ void MappingFrame::resizeGL(int width, int height)
 //----------------------------------------------------------------------------
 void MappingFrame::paintGL()
 {
+#ifdef  Darwin 
+  //
+  // Under Mac OS 10.8.2 paintGL() is called before the frame buffer
+  // is ready for drawing
+  //
+  GLenum status;
+  if ((status = glCheckFramebufferStatus(GL_FRAMEBUFFER)) != GL_FRAMEBUFFER_COMPLETE) {
+    MyBase::SetDiagMsg(
+      "GLProbeWindow::paintGL() - glCheckFramebufferStatus() = %d", status
+    );
+    return;
+  }
+#endif
+
   if (GLWindow::isRendering()) return;
   printOpenGLErrorMsg("MappingFrame");
 
