@@ -1164,7 +1164,7 @@ void WaveCodecIO::ReadWriteThreadObj::BlockWriteRegionThread() {
 			for (int z = 0; z<_bs_p[2]; z++) {
 			for (int y = 0; y<_bs_p[1]; y++) {
 			for (int x = 0; x<_bs_p[0]; x++) {
-				float v = blockptr[_bs_p[0]*_bs_p[1]*z + _bs_p[0]*y + z];
+				float v = blockptr[_bs_p[0]*_bs_p[1]*z + _bs_p[0]*y + x];
 
 				if (v < _dataRange[0]) _dataRange[0] = v;
 				if (v > _dataRange[1]) _dataRange[1] = v;
