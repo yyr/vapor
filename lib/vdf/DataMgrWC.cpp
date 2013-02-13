@@ -20,11 +20,11 @@ using namespace VAPoR;
 bool VAPoR::DataMgrWC::_GetMissingValue(float &value) const {
 
 	if (WaveCodecIO::GetVMissingValue(_ts, _varname).size() == 1) {
-		 value = GetMissingValue()[0];
+		 value = GetVMissingValue(_ts,_varname)[0];
 		return(true);
 	}
 	if (GetTSMissingValue(_ts).size() == 1) {
-		 value = GetMissingValue()[0];
+		 value = GetTSMissingValue(_ts)[0];
 		return(true);
 	}
 	if (GetMissingValue().size() == 1) {
