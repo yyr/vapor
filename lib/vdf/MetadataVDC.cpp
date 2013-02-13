@@ -1116,7 +1116,7 @@ int MetadataVDC::SetVMissingValue(
 	varnode = timenode->GetChild(var);
 
 	vector <double> value; value.push_back(v);
-	varnode->SetElementDouble(_commentTag, value);
+	varnode->SetElementDouble(_missingValueTag, value);
 	return(0);
 }
 

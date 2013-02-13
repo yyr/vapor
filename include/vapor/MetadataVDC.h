@@ -1005,7 +1005,7 @@ public:
 
  vector<double> GetVMissingValue(size_t ts, const string &var) const {
 	CHK_VAR_REQ(ts, var, _emptyDoubleVec)
-	return(_rootnode->GetChild(ts)->GetElementDouble(_missingValueTag));
+	return(_rootnode->GetChild(ts)->GetChild(var)->GetElementDouble(_missingValueTag));
  }
 
  //------------------------------------------------------------------
