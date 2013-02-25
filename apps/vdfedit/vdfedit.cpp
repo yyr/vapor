@@ -26,7 +26,6 @@
 #include <vector>
 #include <sstream>
 #include <algorithm>
-#include <netcdf.h>
 
 #include <vapor/CFuncs.h>
 #include <vapor/OptionParser.h>
@@ -36,6 +35,7 @@
 #ifdef WIN32
 #include "windows.h"
 #endif
+#include <netcdf.h>
 
 using namespace VetsUtil;
 using namespace VAPoR;

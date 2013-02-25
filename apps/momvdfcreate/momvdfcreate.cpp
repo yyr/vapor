@@ -8,7 +8,7 @@
 #include <map>
 #include <sstream>
 #include <algorithm>
-#include <netcdf.h>
+
 #include "proj_api.h"
 #include <vapor/CFuncs.h>
 #include <vapor/OptionParser.h>
@@ -21,7 +21,7 @@
 
 #pragma warning(disable : 4996)
 #endif
-
+#include <netcdf.h>
 using namespace VetsUtil;
 using namespace VAPoR;
 

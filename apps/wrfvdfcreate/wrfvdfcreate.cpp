@@ -5,7 +5,7 @@
 #include <map>
 #include <sstream>
 #include <algorithm>
-#include <netcdf.h>
+
 #include "proj_api.h"
 #include <vapor/CFuncs.h>
 #include <vapor/OptionParser.h>
@@ -14,6 +14,7 @@
 #include <vapor/MetadataSpherical.h>
 #include <vapor/WRF.h>
 #include <vapor/WaveCodecIO.h>
+#include <netcdf.h>
 #ifdef WIN32
 #pragma warning(disable : 4996)
 #endif

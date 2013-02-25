@@ -9,7 +9,7 @@
 #include <cstdio>
 #include <cerrno>
 #include <cassert>
-#include <ctime>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 
