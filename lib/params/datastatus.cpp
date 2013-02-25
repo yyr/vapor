@@ -313,7 +313,9 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	int maxts = -1;
 	
 	//Note:  It takes a long time for all the calls to VariableExists
-	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+	//Sometimes (on Windows x64) the QApplication does not exist yet here.  Make sure it's OK.
+	QApplication* Qapp = dynamic_cast<QApplication*>( QCoreApplication::instance());
+	if (Qapp)Qapp->setOverrideCursor(QCursor(Qt::WaitCursor));
 
 	
 	//Now check each variable and each timestep in the metadata.
@@ -420,7 +422,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		}
 		if (maxts >= 0) break;
 	}
-	QApplication::restoreOverrideCursor();
+	if (Qapp) Qapp->restoreOverrideCursor();
 	//Now process the python variables.
 	//They must be added to the session variables.
 	//Set up the active variable mapping initially to coincide with the metadata variable mapping,
