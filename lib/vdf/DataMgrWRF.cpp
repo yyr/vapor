@@ -1,5 +1,5 @@
+#include <limits>
 #include <cassert>
-#include <netcdf.h>
 #include <vapor/DataMgrWRF.h>
 
 using namespace VetsUtil;

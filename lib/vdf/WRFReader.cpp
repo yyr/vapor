@@ -5,7 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <sys/stat.h>
-#include <netcdf.h>
+//#include <netcdf.h>
 #include <vapor/WRFReader.h>
 #ifdef WIN32
 #include <windows.h>
