@@ -64,15 +64,15 @@
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win32\bin</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win32\built\vaporgui\</IntDir>
     <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</IgnoreImportLibrary>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\bin\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\</IntDir>
     <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</IgnoreImportLibrary>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\targets\win32\bin</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\targets\win32\built\vaporgui\</IntDir>
     <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</IgnoreImportLibrary>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\targets\win64\bin\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\targets\win64\built\</IntDir>
     <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</IgnoreImportLibrary>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
   </PropertyGroup>
@@ -108,7 +108,7 @@
       <AdditionalDependencies>glew32.lib;QtCore4.lib;QtOpenGL4.lib;QtGui4.lib;qtmain.lib;..\..\..\targets\win32\bin\params.lib;opengl32.lib;assimp.lib;glu32.lib;mpr.lib;..\..\..\targets\win32\bin\vdf.lib;..\..\..\targets\win32\bin\common.lib;kernel32.lib;user32.lib;gdi32.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;imm32.lib;winmm.lib;wsock32.lib;winspool.lib;delayimp.lib;python27.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>$(QTDIR32)/lib;$(PYTHON32ROOT)/libs;$(VAPOR_WIN32_REL_LIB_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(QTDIR32)/lib;$(PYTHON32ROOT)/libs;$(VAPOR_WIN32_RELEASE_LIB_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>msvcrtd;msvcr71d;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <DelayLoadDLLs>opengl32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
@@ -132,7 +132,7 @@
     <ClCompile>
       <AdditionalOptions>-Zm200 /EHsc -w34100 -w34189 /EHsc %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(ASSIMP_INC_PATH);$(GLEW_INC_PATH);$(PYTHON_INC_PATH);$(NUMPY_INC_PATH);$(GTIFF_INC_PATH);$(TIFF_INC_PATH);$(EXPAT_INC_PATH);$(NETCDF_INC_PATH);$(VOLUMIZER_ROOT)\include;..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;$(JPEG_INC_PATH);$(QTDIR)/include/QtOpenGL;$(QTDIR)/include/QtCore;$(QTDIR)/include/QtGui;$(QTDIR)\include;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;.;..\..\..\apps\vaporgui\moc\;$(QTDIR)\mkspecs\win32-msvc.net;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\vaporgui\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
@@ -152,10 +152,10 @@
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>glew32.lib;QtCore4.lib;QtOpenGL4.lib;QtGui4.lib;qtmain.lib;opengl32.lib;assimp.lib;glu32.lib;mpr.lib;..\..\..\targets\win64\bin\vdf.lib;..\..\..\targets\win64\bin\common.lib;kernel32.lib;user32.lib;gdi32.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;imm32.lib;winmm.lib;wsock32.lib;winspool.lib;delayimp.lib;python26.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>.\..\..\..\targets\win64\bin\vaporgui.exe</OutputFile>
+      <AdditionalDependencies>glew32.lib;QtCore4.lib;QtOpenGL4.lib;QtGui4.lib;qtmain.lib;opengl32.lib;assimp.lib;glu32.lib;mpr.lib;..\..\..\targets\win64\bin\params.lib;..\..\..\targets\win64\bin\vdf.lib;..\..\..\targets\win64\bin\common.lib;kernel32.lib;user32.lib;gdi32.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;imm32.lib;winmm.lib;wsock32.lib;winspool.lib;delayimp.lib;python27.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>$(ASSIMP_LIB64_PATH)/assimp_release-dll_x64;$(GLEW_LIB64_PATH);$(PYTHON_LIB64_PATH);$(QTDIR64)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(QTDIR64)/lib;$(PYTHON64ROOT)/libs;$(VAPOR_WIN64_RELEASE_LIB_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>msvcrtd;msvcr71d;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <DelayLoadDLLs>opengl32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
@@ -227,7 +227,7 @@
     <ClCompile>
       <AdditionalOptions>-Zm200 /EHsc -w34100 -w34189 %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(ASSIMP_INC_PATH);$(GLEW_INC_PATH);$(PYTHON_INC_PATH);$(NUMPY_INC_PATH);$(GTIFF_INC_PATH);$(TIFF_INC_PATH);$(EXPAT_INC_PATH);$(NETCDF_INC_PATH);$(VOLUMIZER_ROOT)\include;..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;$(JPEG_INC_PATH);$(QTDIR)/include/QtOpenGL;$(QTDIR)/include/QtCore;$(QTDIR)/include/QtGui;$(QTDIR)\include;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;.;..\..\..\apps\vaporgui\moc\;$(QTDIR)\mkspecs\win32-msvc.net;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;$(PYTHON32ROOT)/include;.;..\..\..\apps\vaporgui\moc\;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/QtOpenGL;$(QTDIR32)/include/;$(QTDIR32)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;QT_CORE_LIB;QT_GUI_LIB;QT_THREAD_SUPPORT;QT_OPENGL_LIB;_CRT_SECURE_NO_WARNINGS;MODELS;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
@@ -249,10 +249,10 @@
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>glew32.lib;QtCored4.lib;QtOpenGLd4.lib;QtGuid4.lib;qtmaind.lib;assimp.lib;opengl32.lib;glu32.lib;mpr.lib;..\..\..\targets\win64\bin\params.lib;..\..\..\targets\win64\bin\vdf.lib;..\..\..\targets\win64\bin\common.lib;..\..\..\targets\win64\bin\render.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;imm32.lib;winmm.lib;wsock32.lib;winspool.lib;delayimp.lib;python26_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>.\..\..\..\targets\win64\bin\vaporgui.exe</OutputFile>
+      <AdditionalDependencies>glew32.lib;QtCored4.lib;QtOpenGLd4.lib;QtGuid4.lib;qtmaind.lib;assimp.lib;opengl32.lib;glu32.lib;mpr.lib;..\..\..\targets\win64\bin\params.lib;..\..\..\targets\win64\bin\vdf.lib;..\..\..\targets\win64\bin\common.lib;..\..\..\targets\win64\bin\render.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;imm32.lib;winmm.lib;wsock32.lib;winspool.lib;delayimp.lib;python27_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>$(ASSIMP_LIB64_PATH)/assimp_debug-dll_x64;$(GLEW_LIB64_PATH);$(QTDIR64)\lib;$(PYTHON_DEBUG_LIB64_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(QTDIR64)/lib;$(PYTHON64ROOT)/libs;$(VAPOR_WIN64_DEBUG_LIB_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <DelayLoadDLLs>opengl32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <GenerateDebugInformation>true</GenerateDebugInformation>
