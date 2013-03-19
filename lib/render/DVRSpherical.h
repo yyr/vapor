@@ -67,6 +67,13 @@ class RENDER_API DVRSpherical : public DVRShader
                                      const Matrix3d &modelview,
                                      const Matrix3d &modelviewInverse);
 
+  virtual void renderBrick(
+	const TextureBrick *brick, 
+	const Matrix3d &modelview,
+	const Matrix3d &modelviewInverse
+  );
+ 
+
   virtual void initShaderVariables();
 
   virtual void calculateSampling();

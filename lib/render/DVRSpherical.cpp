@@ -45,6 +45,10 @@
 
 using namespace VAPoR;
 
+const int volumeTextureTexUnit = 0; // GL_TEXTURE0
+const int colormapTexUnit = 1;          // GL_TEXTURE1
+
+
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
@@ -65,7 +69,6 @@ DVRSpherical::DVRSpherical(
 	_clip[0] = false;
 	_clip[1] = false;
 	_clip[2] = false;
-	_initialized = false;
 	for (int i=0; i<3; i++) {
 		_extentsSP[i] = 0.0;
 		_extentsSP[i+3] = 1.0;
@@ -88,7 +91,6 @@ DVRSpherical::~DVRSpherical()
 //----------------------------------------------------------------------------
 int DVRSpherical::GraphicsInit() 
 {
-	if (_initialized) return(0);
 	glewInit();
 	
 	if (initTextures() < 0) return(-1);
@@ -96,19 +98,8 @@ int DVRSpherical::GraphicsInit()
     if (! _shadermgr->defineEffect("SphericalDVR", "", instanceName("default")))
         return(-1);
 
-    if (! _shadermgr->defineEffect(
-        "SphericalDVR", "LIGHTING;", instanceName("lighting")
-    )) return(-1);
-
-	_shadermgr->uploadEffectData(instanceName("default"), "colormap", 1);
-	_shadermgr->uploadEffectData(instanceName("default"), "volumeTexture", 0);
-	_shadermgr->uploadEffectData(instanceName("lighting"), "colormap", 1);
-	_shadermgr->uploadEffectData(instanceName("lighting"), "volumeTexture", 0);
-
 	printOpenGLError();
 
-	initShaderVariables();
-	_initialized = true;
 	return 0;
 }
 
@@ -231,7 +222,6 @@ int DVRSpherical::Render()
 {
 	MyBase::SetDiagMsg("DVRSpherical::Render()");
 
-	initShaderVariables();
     calculateSampling();
 
 	int rc = DVRShader::Render();
@@ -362,6 +352,28 @@ void DVRSpherical::drawViewAlignedSlices(const TextureBrick *brick,
   glFlush();
 }
 
+void DVRSpherical::renderBrick(
+	const TextureBrick *brick, const Matrix3d &modelview, 
+	const Matrix3d &modelviewInverse
+) {
+
+//#define NOSHADER
+#ifndef NOSHADER
+	initShaderVariables();
+
+	bool ok = _shadermgr->enableEffect(getCurrentEffect());
+	if (! ok) return;
+#endif
+
+	DVRSpherical::drawViewAlignedSlices(brick, modelview, modelviewInverse);
+
+#ifndef NOSHADER
+	_shadermgr->disableEffect();
+#endif
+
+}
+
+
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
@@ -445,6 +457,7 @@ void DVRSpherical::permute(const vector<long>& permutation,
 //----------------------------------------------------------------------------
 void DVRSpherical::initShaderVariables()
 {
+	string effect = getCurrentEffect();
     
     float tmpv[3];
     
@@ -453,29 +466,39 @@ void DVRSpherical::initShaderVariables()
     _nr = (int)tmpv[2];
     
     permute(_permutation, tmpv, 0.0, 0.0, 0.0);
-	_shadermgr->uploadEffectData(getCurrentEffect(), "tmin" ,(float)tmpv[0], (float)tmpv[1], (float)tmpv[2]);
+	_shadermgr->uploadEffectData(
+		effect, "tmin" ,(float)tmpv[0], (float)tmpv[1], (float)tmpv[2]
+	);
 
     permute(_permutation, tmpv, 1.0, 1.0, 1.0);
-	_shadermgr->uploadEffectData(getCurrentEffect(), "tmax" ,(float)tmpv[0], (float)tmpv[1], (float)tmpv[2]);
+	_shadermgr->uploadEffectData(
+		effect, "tmax" ,(float)tmpv[0], (float)tmpv[1], (float)tmpv[2]
+	);
     
 	_shadermgr->uploadEffectData(
-		getCurrentEffect(), "dmin", (_extentsSP[0] + 180.0) / 360.0,
+		effect, "dmin", (_extentsSP[0] + 180.0) / 360.0,
 		(_extentsSP[1] + 90.0) / 180.0, (float)_extentsSP[2]
 	);
     _shellWidth = _extentsSP[2];
     
   	_shadermgr->uploadEffectData(
-		getCurrentEffect(), "dmax", (_extentsSP[3] + 180.0) / 360.0,
+		effect, "dmax", (_extentsSP[3] + 180.0) / 360.0,
 		(_extentsSP[4] + 90.0) / 180.0, (float)_extentsSP[5]
 	);
     assert(_extentsSP[5]);
     _shellWidth = (_extentsSP[5] - _shellWidth)/(2.0*_extentsSP[5]);
 	
-	_shadermgr->uploadEffectData(getCurrentEffect(), "permutation" , (float)_permutation[0], (float)_permutation[1], (float)_permutation[2]);
-	_shadermgr->uploadEffectData(getCurrentEffect(), "clip" , (int)_clip[_permutation[0]], (int)_clip[_permutation[1]]);
+	_shadermgr->uploadEffectData(
+		effect, "permutation" ,
+		(float)_permutation[0], (float)_permutation[1], (float)_permutation[2]
+	);
+	_shadermgr->uploadEffectData(
+		effect, "clip" , 
+		(int)_clip[_permutation[0]], (int)_clip[_permutation[1]]
+	);
+
+	_shadermgr->uploadEffectData(effect, "colormap",colormapTexUnit);
+	_shadermgr->uploadEffectData(effect, "volumeTexture", volumeTextureTexUnit);
 	
 	printOpenGLError();
-
-	DVRShader::initShaderVariables();
-
 }
