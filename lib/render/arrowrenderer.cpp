@@ -15,7 +15,7 @@
 //----------------------------------------------------------------------------
 
 // Specify the arrowhead width compared with arrow diameter:
-#define ARROW_HEAD_FACTOR 2.0
+#define ARROW_HEAD_FACTOR 3.0
 // Specify how long the arrow tube is, in front of where the arrowhead is attached:
 #define ARROW_LENGTH_FACTOR 0.9
 
