@@ -231,7 +231,9 @@
     <ClCompile Include="..\..\..\lib\params\ParamsBase.cpp" />
     <ClCompile Include="..\..\..\lib\params\ParamsIso.cpp" />
     <ClCompile Include="..\..\..\lib\params\probeparams.cpp" />
-    <ClCompile Include="..\..\..\lib\params\pythonpipeline.cpp" />
+    <ClCompile Include="..\..\..\lib\params\pythonpipeline.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
+    </ClCompile>
     <ClCompile Include="..\..\..\lib\params\regionparams.cpp" />
     <ClCompile Include="..\..\..\lib\params\tfinterpolator.cpp" />
     <ClCompile Include="..\..\..\lib\params\transferfunction.cpp" />

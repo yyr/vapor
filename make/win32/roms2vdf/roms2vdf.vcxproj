@@ -107,8 +107,8 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <ObjectFileName>../../../targets/win32/built/roms2vdf/</ObjectFileName>
-      <ProgramDataBaseFileName>../../../targets/win32/built/roms2vdf/vc90.pdb</ProgramDataBaseFileName>
+      <ObjectFileName>../../../targets/win64/built/roms2vdf/</ObjectFileName>
+      <ProgramDataBaseFileName>../../../targets/win64/built/roms2vdf/vc90.pdb</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
@@ -157,8 +157,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <ObjectFileName>../../../targets/win32/built/roms2vdf/</ObjectFileName>
-      <ProgramDataBaseFileName>../../../targets/win32/built/roms2vdf/vc90.pdb</ProgramDataBaseFileName>
+      <ObjectFileName>../../../targets/win64/built/roms2vdf/</ObjectFileName>
+      <ProgramDataBaseFileName>../../../targets/win64/built/roms2vdf/vc90.pdb</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>

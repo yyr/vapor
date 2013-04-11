@@ -159,8 +159,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <ObjectFileName>../../../targets/win32/built/romsvdfcreate/</ObjectFileName>
-      <ProgramDataBaseFileName>../../../targets/win32/built/romsvdfcreate/vc90.pdb</ProgramDataBaseFileName>
+      <ObjectFileName>../../../targets/win64/built/romsvdfcreate/</ObjectFileName>
+      <ProgramDataBaseFileName>../../../targets/win64/built/romsvdfcreate/vc90.pdb</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
