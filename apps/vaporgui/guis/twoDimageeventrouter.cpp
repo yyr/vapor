@@ -337,16 +337,18 @@ void TwoDImageEventRouter::updateTab(){
 	int fullRefLevel = ds->getNumTransforms();
 
 	
-	size_t gridMin[3],gridMax[3];
-	
-	dataMgr->MapUserToVox(currentTimeStep, dBoxMin, gridMin, fullRefLevel);
-	dataMgr->MapUserToVox(currentTimeStep, dBoxMax, gridMax, fullRefLevel);
-	minGridXLabel->setText(QString::number(gridMin[0]));
-	minGridYLabel->setText(QString::number(gridMin[1]));
-	minGridZLabel->setText(QString::number(gridMin[2]));
-	maxGridXLabel->setText(QString::number(gridMax[0]));
-	maxGridYLabel->setText(QString::number(gridMax[1]));
-	maxGridZLabel->setText(QString::number(gridMax[2]));
+	size_t gridExts[6];
+	if (dataMgr ){
+		
+		twoDParams->mapBoxToVox(dataMgr,fullRefLevel,currentTimeStep,gridExts);
+		
+		minGridXLabel->setText(QString::number(gridExts[0]));
+		minGridYLabel->setText(QString::number(gridExts[1]));
+		minGridZLabel->setText(QString::number(gridExts[2]));
+		maxGridXLabel->setText(QString::number(gridExts[3]));
+		maxGridYLabel->setText(QString::number(gridExts[4]));
+		maxGridZLabel->setText(QString::number(gridExts[5]));
+	}
 
 	//Provide latlon box extents if available:
 	if (DataStatus::getProjectionString().size() == 0){

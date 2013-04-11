@@ -302,9 +302,12 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE, "height data unavailable \nfor 2D rendering at timestep %d",timeStep);
 			return false;
 		}
-		
-		dataMgr->MapUserToVox(timeStep, regExts, min_dim,refLevel);
-		dataMgr->MapUserToVox(timeStep, regExts+3, max_dim,refLevel);
+		size_t voxExts[6];
+		tParams->mapBoxToVox(dataMgr, refLevel, timeStep, voxExts);
+		for (int i = 0; i<3; i++){
+			min_dim[i] = voxExts[i];
+			max_dim[i] = voxExts[i+3];
+		}
 		
 		//Ignore vertical extents
 		min_dim[2] = max_dim[2] = 0;

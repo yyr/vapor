@@ -90,6 +90,11 @@ Params::Params(
 	): ParamsBase(parent,name) {
 	vizNum = winNum;
 	if(winNum < 0) local = false; else local = true;
+	for (int i = 0; i<6; i++) {
+		savedBoxVoxExts[i] =0;
+		savedBoxLocalExts[i] =0;
+	}
+	savedRefLevel = -1;
 	
 }
 
@@ -392,6 +397,38 @@ void Params::BailOut(const char *errstr, const char *fname, int lineno)
 	SetErrMsg(VAPOR_FATAL,"Fatal error: %s",(const char*)errorMessage.toAscii());
 	//MessageReporter::fatalMsg(errorMessage);
     exit(-1);
+}
+//Map corners of box to voxels.  Save results to avoid expensive dataMgr call
+//Save latest values of voxel extents, refinement level, and local user extents
+//If refLevel and local user extents have not changed, then return saved voxel extents
+void Params::mapBoxToVox(DataMgr* dataMgr, int refLevel, int timestep, size_t voxExts[6]){
+	double userExts[6];
+	double locUserExts[6];
+	if (!dataMgr) return;
+	Box* box = GetBox();
+	if (refLevel == savedRefLevel){
+		//Compare local extents to see if they have changed
+		box->GetLocalExtents(locUserExts, timestep);
+		bool match = true;
+		for (int i = 0; i<6; i++) if (locUserExts[i] != savedBoxLocalExts[i]) match = false;
+		if (match) {
+			box->GetUserExtents(locUserExts, timestep);
+			for (int i = 0; i<6; i++) voxExts[i] = savedBoxVoxExts[i];
+			return;
+		}
+	}
+	
+	box->GetUserExtents(userExts,(size_t)timestep);
+	
+	//calculate new values for voxExts (this can be expensive with layered data)
+	dataMgr->MapUserToVox((size_t)timestep,userExts,voxExts, refLevel);
+	dataMgr->MapUserToVox((size_t)timestep,userExts+3,voxExts+3, refLevel);
+	//save stuff to compare next time:
+	savedRefLevel = refLevel;
+	box->GetLocalExtents(savedBoxLocalExts, (size_t)timestep);
+	for (int i = 0; i<6; i++) savedBoxVoxExts[i] = voxExts[i];
+	return;
+
 }
 //Determine a new value of theta phi and psi when the probe is rotated around either the
 //x-, y-, or z- axis.  axis is 0,1,or 2 1. rotation is in degrees.

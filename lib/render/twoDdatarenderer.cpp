@@ -208,8 +208,12 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	}
 	
 	//get grid extents, based on user coordinate extents.
-	dataMgr->MapUserToVox(timeStep, twoDExts, min_dim, elevGridRefLevel);
-	dataMgr->MapUserToVox(timeStep, twoDExts+3, max_dim, elevGridRefLevel);
+	size_t voxexts[6];
+	tParams->mapBoxToVox(dataMgr,elevGridRefLevel,timeStep, voxexts);
+	for ( int i=0; i<3; i++){
+		min_dim[i] = voxexts[i];
+		max_dim[i] = voxexts[i+3];
+	}
 	//Then create arrays to hold the vertices and their normals:
 	//Make each size be grid size + 2. 
 	int maxx = maxXElev = max_dim[0] - min_dim[0] +1;

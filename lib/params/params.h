@@ -32,6 +32,7 @@
 #include "Box.h"
 
 class QWidget;
+
 using namespace VetsUtil;
 //Error tolerance for gui parameters:
 #define ROUND_OFF 1.e-6f
@@ -63,6 +64,7 @@ class MapperFunction;
 class TransferFunction;
 class ViewpointParams;
 class RegionParams;
+class DataMgr;
 
 //! \class Params
 //! \brief A pure virtual class for managing parameters used in visualization
@@ -371,7 +373,8 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 		}
 		GetBox()->SetLocalExtents(extents,timestep);
 	}
-	
+	//Map corners of box to voxels
+	void mapBoxToVox(DataMgr* dataMgr, int refLevel, int timestep, size_t voxExts[6]);
 	void setTheta(float th) {
 		double angles[3];
 		GetBox()->GetAngles(angles);
@@ -503,7 +506,9 @@ protected:
 	//Keep track of which window number corresp to this.  -1 for global or default parameters.
 	//
 	int vizNum;
-	
+	double savedBoxLocalExts[6];
+	int savedBoxVoxExts[6];
+	int savedRefLevel;
 	
 	//Params instances are vectors of Params*, one per instance, indexed by paramsBaseType, winNum
 	static map<pair<int,int>,vector<Params*> > paramsInstances;

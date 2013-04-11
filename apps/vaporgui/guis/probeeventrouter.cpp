@@ -402,7 +402,7 @@ void ProbeEventRouter::updateTab(){
 	float corners[8][3];
 	probeParams->calcLocalBoxCorners(corners, 0.f, -1);
 	double dboxmin[3], dboxmax[3];
-	size_t gridMin[3],gridMax[3];
+	size_t gridExts[6];
 	for (int i = 0; i< 3; i++){
 		float mincrd = corners[0][i];
 		float maxcrd = mincrd;
@@ -427,16 +427,16 @@ void ProbeEventRouter::updateTab(){
 	//And convert these to grid coordinates:
 	
 	DataMgr* dataMgr = ds->getDataMgr();
-	if (dataMgr){
+	if (dataMgr && showLayout){
 		int fullRefLevel = ds->getNumTransforms();
-		dataMgr->MapUserToVox(timestep, dboxmin, gridMin, fullRefLevel);
-		dataMgr->MapUserToVox(timestep, dboxmax, gridMax, fullRefLevel);
-		minGridXLabel->setText(QString::number(gridMin[0]));
-		minGridYLabel->setText(QString::number(gridMin[1]));
-		minGridZLabel->setText(QString::number(gridMin[2]));
-		maxGridXLabel->setText(QString::number(gridMax[0]));
-		maxGridYLabel->setText(QString::number(gridMax[1]));
-		maxGridZLabel->setText(QString::number(gridMax[2]));
+		probeParams->mapBoxToVox(dataMgr,fullRefLevel,timestep,gridExts);
+		
+		minGridXLabel->setText(QString::number(gridExts[0]));
+		minGridYLabel->setText(QString::number(gridExts[1]));
+		minGridZLabel->setText(QString::number(gridExts[2]));
+		maxGridXLabel->setText(QString::number(gridExts[3]));
+		maxGridYLabel->setText(QString::number(gridExts[4]));
+		maxGridZLabel->setText(QString::number(gridExts[5]));
 	}
 	//Provide latlon box extents if available:
 	if (DataStatus::getProjectionString().size() == 0){

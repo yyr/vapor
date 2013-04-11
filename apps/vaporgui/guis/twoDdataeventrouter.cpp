@@ -394,25 +394,20 @@ void TwoDDataEventRouter::updateTab(){
 	maxUserXLabel->setText(QString::number(boxmax[0]));
 	maxUserYLabel->setText(QString::number(boxmax[1]));
 	maxUserZLabel->setText(QString::number(boxmax[2]));
-
-	if (dataMgr){
+	
+	size_t gridExts[6];
+	if (dataMgr ){
 		int fullRefLevel = ds->getNumTransforms();
-
-		double dBoxMin[3], dBoxMax[3];
-		size_t gridMin[3],gridMax[3];
-		for (int i = 0; i<3; i++) {
-			dBoxMin[i] = boxmin[i];
-			dBoxMax[i] = boxmax[i];
-		}
-		dataMgr->MapUserToVox(currentTimeStep, dBoxMin, gridMin, fullRefLevel);
-		dataMgr->MapUserToVox(currentTimeStep, dBoxMax, gridMax, fullRefLevel);
-		minGridXLabel->setText(QString::number(gridMin[0]));
-		minGridYLabel->setText(QString::number(gridMin[1]));
-		minGridZLabel->setText(QString::number(gridMin[2]));
-		maxGridXLabel->setText(QString::number(gridMax[0]));
-		maxGridYLabel->setText(QString::number(gridMax[1]));
-		maxGridZLabel->setText(QString::number(gridMax[2]));
+		twoDParams->mapBoxToVox(dataMgr,fullRefLevel,currentTimeStep,gridExts);
+		
+		minGridXLabel->setText(QString::number(gridExts[0]));
+		minGridYLabel->setText(QString::number(gridExts[1]));
+		minGridZLabel->setText(QString::number(gridExts[2]));
+		maxGridXLabel->setText(QString::number(gridExts[3]));
+		maxGridYLabel->setText(QString::number(gridExts[4]));
+		maxGridZLabel->setText(QString::number(gridExts[5]));
 	}
+	
     //Provide latlon box extents if available:
 	if (DataStatus::getProjectionString().size() == 0){
 		minMaxLonLatFrame->hide();
