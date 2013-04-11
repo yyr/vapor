@@ -193,7 +193,7 @@ def ETH(P,PB,T,QVAPOR):
 
 def PV(T,P,PB,U,V,ELEV,F):
 	''' Routine that calculates potential vorticity using WRF variables.
-	Calling sequence: WRF_PV = PV(T,P,PB,U,V,F)
+	Calling sequence: WRF_PV = PV(T,P,PB,U,V,ELEV,F)
 	Where T,P,PB,U,V are WRF 3D variables, F is WRF 2D variable.
 	ELEV is the VAPOR ELEVATION variable (PH+PHB)/g
 	Result is 3D variable WRF_PV.'''

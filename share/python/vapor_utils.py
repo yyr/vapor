@@ -552,7 +552,8 @@ def interp3d(A,PR,val):
 	return interpVal
 
 def vector_rotate(angleRad, latDeg, u, v):
-	'''Rotate and scale vectors u,v for lon-lat grid.
+	'''Rotate and scale vectors u,v for integration on
+	lon-lat grid.
 	Calling sequence: 
 	rotfield=vector_rotate(angleRad, latDeg, u,v)
 	Where:  
@@ -564,9 +565,9 @@ def vector_rotate(angleRad, latDeg, u, v):
 	''' 	
 	import numpy 
 	import math
-	umod = cos(angleRad)*u + sin(angleRad)*v
-	vmod = -sin(angleRad)*u + cos(angleRad)*v
-	umod = umod/cos(latDeg*math.pi/180.)
+	umod = numpy.cos(angleRad)*u + numpy.sin(angleRad)*v
+	vmod = -numpy.sin(angleRad)*u + numpy.cos(angleRad)*v
+	umod = umod/numpy.cos(latDeg*math.pi/180.)
 	return umod,vmod
 
 
