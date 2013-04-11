@@ -91,7 +91,7 @@ void GLTwoDWindow::_resizeGL() {
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+	glOrtho(1.0, -1.0, -1.0, 1.0, -1.0, 1.0);
 
 	glMatrixMode(GL_MODELVIEW);
 	qglClearColor(palette().color(QPalette::Window));		// same as frame
@@ -243,7 +243,7 @@ void GLTwoDWindow::initializeGL()
 // float (-1,1).  Then stretch according to rectLeft, rectRight
 //
 void GLTwoDWindow::mapPixelToTwoDCoords( int ix, int iy, float* x, float*y){
-	float xcoord = 2.f*((float)ix)/((float)(width()-1))-1.f;
+	float xcoord = 1.f - 2.f*((float)ix)/((float)(width()-1));
 	float ycoord = 1.f - 2.f*((float)iy)/((float)(height()-1));
 	*x = xcoord/rectLeft;
 	*y = ycoord/rectTop;
