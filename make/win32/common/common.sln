@@ -61,6 +61,8 @@ Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "installer", "..\installer\i
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "installx64", "..\installx64\installx64.vdproj", "{B40ABD0D-E6C7-4EBD-90D5-D5C751DAA268}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "udunits2", "..\udunits2\udunits2.vcxproj", "{4E6A655A-0B4A-4FE7-A056-BE4A1AA52638}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -104,7 +106,6 @@ Global
 		{D6470EA9-EF19-437A-AAB2-794FA21BC76D}.Debug|Win32.ActiveCfg = Debug|Win32
 		{D6470EA9-EF19-437A-AAB2-794FA21BC76D}.Debug|x64.ActiveCfg = Debug|x64
 		{D6470EA9-EF19-437A-AAB2-794FA21BC76D}.Release|Win32.ActiveCfg = Release|Win32
-		{D6470EA9-EF19-437A-AAB2-794FA21BC76D}.Release|Win32.Build.0 = Release|Win32
 		{D6470EA9-EF19-437A-AAB2-794FA21BC76D}.Release|x64.ActiveCfg = Release|x64
 		{58AD122F-0E8E-4F94-A503-E030309B280D}.Debug|Win32.ActiveCfg = Debug|Win32
 		{58AD122F-0E8E-4F94-A503-E030309B280D}.Debug|x64.ActiveCfg = Debug|x64
@@ -255,6 +256,13 @@ Global
 		{B40ABD0D-E6C7-4EBD-90D5-D5C751DAA268}.Debug|x64.ActiveCfg = Debug
 		{B40ABD0D-E6C7-4EBD-90D5-D5C751DAA268}.Release|Win32.ActiveCfg = Release
 		{B40ABD0D-E6C7-4EBD-90D5-D5C751DAA268}.Release|x64.ActiveCfg = Release
+		{4E6A655A-0B4A-4FE7-A056-BE4A1AA52638}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4E6A655A-0B4A-4FE7-A056-BE4A1AA52638}.Debug|Win32.Build.0 = Debug|Win32
+		{4E6A655A-0B4A-4FE7-A056-BE4A1AA52638}.Debug|x64.ActiveCfg = Debug|Win32
+		{4E6A655A-0B4A-4FE7-A056-BE4A1AA52638}.Release|Win32.ActiveCfg = Release|Win32
+		{4E6A655A-0B4A-4FE7-A056-BE4A1AA52638}.Release|Win32.Build.0 = Release|Win32
+		{4E6A655A-0B4A-4FE7-A056-BE4A1AA52638}.Release|x64.ActiveCfg = Release|x64
+		{4E6A655A-0B4A-4FE7-A056-BE4A1AA52638}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
