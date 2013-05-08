@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "vapor/udunits2.h"
-#include "converter.h"		/* this module's API */
+#include "vapor/converter.h"		/* this module's API */
 
 typedef struct {
     cv_converter*	(*clone)(cv_converter*);

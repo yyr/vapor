@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <vector>
 #include <cstring>
+#include <algorithm>
 #include <vapor/OptionParser.h>
 #include <cassert>
 #include <cctype>

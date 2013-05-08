@@ -7,6 +7,7 @@
 #define	_Metadata_h_
 
 #include <vector>
+#include "vapor/common.h"
 
 #ifdef WIN32
 #pragma warning(disable : 4251)
@@ -30,7 +31,7 @@ namespace VAPoR {
 //! \date    $Date$
 //!
 //!
-class Metadata {
+class VDF_API Metadata {
 public:
 
  //! An enum of variable types. Variables defined in a data collection

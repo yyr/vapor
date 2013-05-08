@@ -27,7 +27,7 @@ class VDF_API VDCFactory : public VetsUtil::MyBase {
 public:
  
  VDCFactory();
- int Parse(int *argv, char **argv);
+ int Parse(int *argc, char **argv);
  MetadataVDC *New(const size_t dims[3]) const;
  void Usage (FILE *fp) ;
 

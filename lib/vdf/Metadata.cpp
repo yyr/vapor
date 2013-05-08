@@ -32,6 +32,7 @@
 #include <vector>
 #include <vapor/Metadata.h>
 #include <vapor/CFuncs.h>
+#include "vapor/MyBase.h"
 
 using namespace VAPoR;
 using namespace VetsUtil;

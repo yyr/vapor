@@ -72,12 +72,6 @@
     <ClCompile Include="..\..\..\lib\vdf\Metadata.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\lib\vdf\MetadataMOM.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\lib\vdf\MetadataROMS.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\lib\vdf\MetadataSpherical.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -85,9 +79,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\lib\vdf\MetadataWRF.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\lib\vdf\MOM.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\lib\vdf\NCBuf.cpp">
@@ -100,9 +91,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\lib\vdf\RegularGrid.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\lib\vdf\ROMS.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\lib\vdf\SignificanceMap.cpp">
@@ -183,6 +171,21 @@
     <ClCompile Include="..\..\..\lib\vdf\XmlNode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\lib\vdf\DCReaderMOM.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lib\vdf\DCReaderNCDF.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lib\vdf\DCReaderROMS.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lib\vdf\NetCDFCFCollection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lib\vdf\VDCFactory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\vapor\AMRData.h">
@@ -224,28 +227,16 @@
     <ClInclude Include="..\..\..\include\vapor\Metadata.h">
       <Filter>Source Files\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\vapor\MetadataMOM.h">
-      <Filter>Source Files\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\vapor\MetadataROMS.h">
-      <Filter>Source Files\Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\vapor\MetadataVDC.h">
       <Filter>Source Files\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\vapor\MetadataWRF.h">
       <Filter>Source Files\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\vapor\MOM.h">
-      <Filter>Source Files\Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\vapor\NCBuf.h">
       <Filter>Source Files\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\vapor\RegularGrid.h">
-      <Filter>Source Files\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\vapor\ROMS.h">
       <Filter>Source Files\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\vapor\SphericalGrid.h">
@@ -297,6 +288,27 @@
       <Filter>Source Files\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\vapor\XmlNode.h">
+      <Filter>Source Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\vapor\DCReader.h">
+      <Filter>Source Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\vapor\DCReaderMOM.h">
+      <Filter>Source Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\vapor\DCReaderNCDF.h">
+      <Filter>Source Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\vapor\DCReaderROMS.h">
+      <Filter>Source Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\vapor\NetCDFCFCollection.h">
+      <Filter>Source Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\vapor\VDCFactory.h">
+      <Filter>Source Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\vapor\NetCDFCollection.h">
       <Filter>Source Files\Header Files</Filter>
     </ClInclude>
   </ItemGroup>

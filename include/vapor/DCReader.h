@@ -24,7 +24,7 @@ namespace VAPoR {
 //! \date    $Date$
 //!
 //!
-class DCReader : public Metadata, public VetsUtil::MyBase {
+class VDF_API DCReader : public Metadata, public VetsUtil::MyBase {
 public:
 
  virtual ~DCReader() {};

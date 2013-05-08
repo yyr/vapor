@@ -3,7 +3,11 @@
 #include <iterator>
 #include <algorithm>
 #include <cassert>
+#ifdef _WINDOWS
+#include "vapor/udunits2.h"
+#else
 #include <udunits2.h>
+#endif
 #include <vapor/NetCDFCFCollection.h>
 
 using namespace VAPoR;

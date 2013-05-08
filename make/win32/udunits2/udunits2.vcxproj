@@ -123,6 +123,8 @@
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <ImportLibrary>../../../targets/win64/bin/udunits2.lib</ImportLibrary>
+      <OutputFile>../../../targets/win64/bin/udunits2.dll</OutputFile>
+      <ProgramDatabaseFile>../../../targets/win64/bin/vdf.pdb</ProgramDatabaseFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -173,6 +175,8 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <ImportLibrary>../../../targets/win64/bin/udunits2.lib</ImportLibrary>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <OutputFile>../../../targets/win64/bin/udunits2.dll</OutputFile>
+      <ProgramDatabaseFile>../../../targets/win64/bin/vdf.pdb</ProgramDatabaseFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -192,12 +196,12 @@
     <ClCompile Include="..\..\..\lib\udunits2\xml.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\lib\udunits2\converter.h" />
+    <ClInclude Include="..\..\..\include\vapor\converter.h" />
+    <ClInclude Include="..\..\..\include\vapor\udunits2.h" />
     <ClInclude Include="..\..\..\lib\udunits2\idToUnitMap.h" />
     <ClInclude Include="..\..\..\lib\udunits2\systemMap.h" />
     <ClInclude Include="..\..\..\lib\udunits2\tsearch.h" />
     <ClInclude Include="..\..\..\lib\udunits2\udunits.h" />
-    <ClInclude Include="..\..\..\lib\udunits2\udunits2.h" />
     <ClInclude Include="..\..\..\lib\udunits2\unitAndId.h" />
     <ClInclude Include="..\..\..\lib\udunits2\unitToIdMap.h" />
   </ItemGroup>
