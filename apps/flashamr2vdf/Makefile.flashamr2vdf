@@ -8,6 +8,6 @@ FILES = flashamr2vdf flashhdf5
 
 MAKEFILE_CXXFLAGS += -DH5_USE_16_API
 
-LIBRARIES = vdf proj common netcdf hdf5 expat
+LIBRARIES = vdf proj common udunits2 netcdf hdf5 expat
 
 include ${TOP}/make/config/base.mk
