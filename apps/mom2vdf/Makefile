@@ -8,6 +8,6 @@ FILES = mom2vdf
 
 #LIB_DEFS = vdf.def
 
-LIBRARIES = proj vdf common $(NETCDF_LIBS) expat
+LIBRARIES = proj vdf common $(NETCDF_LIBS) udunits2 expat
 
 include ${TOP}/make/config/base.mk

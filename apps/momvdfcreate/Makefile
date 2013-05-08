@@ -7,7 +7,7 @@ FILES = momvdfcreate
 
 #LIB_DEFS = vdf.def
 
-LIBRARIES = vdf proj common $(NETCDF_LIBS) expat
+LIBRARIES = vdf proj common udunits2 $(NETCDF_LIBS) expat
 
 include ${TOP}/make/config/base.mk
 
