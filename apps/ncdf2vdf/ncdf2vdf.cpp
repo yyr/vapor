@@ -1,1060 +1,519 @@
-//
-//
-//***********************************************************************
-//                                                                       *
-//                            Copyright (C)  2005                        *
-//            University Corporation for Atmospheric Research            *
-//                            All Rights Reserved                        *
-//                                                                       *
-//***********************************************************************/
-//
-//      File:		ncdf2vdf.cpp
-//
-//      Author:         Alan Norton
-//                      National Center for Atmospheric Research
-//                      PO 3000, Boulder, Colorado
-//
-//      Date:           May 7, 2007
-//
-//      Description:	Read a NetCDF file containing a 2-3D array of floats or doubles
-//			and insert the volume into an existing
-//			Vapor Data Collection
-//
 #include <iostream>
-#include <string>
+#include <cstdio>
+#include <cstring>
 #include <vector>
 #include <sstream>
-#include <cerrno>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <cassert>
-#include <cmath>
-#include <netcdf.h>
-
-#include <vapor/CFuncs.h>
+#include <algorithm>
 #include <vapor/OptionParser.h>
 #include <vapor/MetadataVDC.h>
-#include <vapor/WaveletBlock3DBufWriter.h>
-#include <vapor/WaveletBlock3DRegionWriter.h>
+#include <vapor/DCReaderNCDF.h>
 #include <vapor/WaveCodecIO.h>
-#ifdef WIN32
-#include "windows.h"
-#endif
+#include <vapor/WaveletBlock3DBufWriter.h>
+#include <vapor/CFuncs.h>
 
+#ifdef WIN32
+#pragma warning(disable : 4996)
+#endif
 using namespace VetsUtil;
 using namespace VAPoR;
 
-#define NC_ERR_READ(nc_status) \
-    if (nc_status != NC_NOERR) { \
-        fprintf(stderr, \
-            "%s: Error reading netCDF file at line %d : %s \n",  ProgName, __LINE__, nc_strerror(nc_status) \
-        ); \
-    exit(1);\
-    }
-
-//
-//	Command line argument stuff
-//
 struct opt_t {
-	int	ts;
-	char *varname;
-	char *ncdfvarname;
-	int level;
-	int lod;
-	int nthreads;
-	vector <string> dimnames;
-	vector <string> constDimNames;
-	vector <int> constDimValues;
-	OptionParser::Boolean_T	swapz;
+	vector <string> vars;
+	vector <string> timedims;
+	vector <string> timevars;
+	vector <string> stagdims;
+	vector <string>	dimnames;
+	vector <string>	cnstnames;
+	vector <int>	cnstvals;
+	int numts;
+	int startts;
+    int level;
+    int lod;
+    int nthreads;
+	string missattr;
 	OptionParser::Boolean_T	help;
-	OptionParser::Boolean_T	debug;
 	OptionParser::Boolean_T	quiet;
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
-	{"ts",		1, 	"0","Timestep of data file starting from 0"},
-	{"varname",	1, 	"???????",	"Required: Name of variable in metadata"},
-	{"ncdfvar",	1, 	"???????",	"Name of variable in NetCDF, if different"},
-	{"level",	1, 	"-1",	"Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
-    {"lod", 1,  "-1",   "Compression levels saved. 0 => coarsest, 1 => "
-        "next refinement, etc. -1 => all levels defined by the .vdf file"},
-    {"nthreads",1,  "0",    "Number of execution threads (0 => # processors)"},
-	{"swapz",	0,	"",	"Swap the order of processing for the Z coordinate (largest to smallest)"},
+	{"vars",1,    "",	"Colon delimited list of variables to be copied "
+		"from ncdf data. The default is to copy all 2D and 3D variables"},
+	{"timedims",	1,	"",	"Colon delimited list of time dimension variable "
+		"names"},
+	{"timevars",    1,  "", "Colon delimited list of time coordinate "
+		"variables. If this 1D variable "
+		"is present, it specfies the time in user-defined units for each "
+		"time step. This option takes precedence over -usertime or -startt."},
+	{"stagdims",	1,	"",	"Colon delimited list of staggered dimension names"},
+	{"dimnames",	1,	"",	"Deprecated"},
+	{"cnstnames",	1,	"",	"Deprecated"},
+	{"cnstvals",	1,	"",	"Deprecated"},
+	{
+		"numts",	1,	"-1",	"Maximum number of time steps that may be "
+		"converted. A -1 implies the conversion of all time steps found"
+	},
+	{
+		"startts",	1,	"0",	"Offset of first time step in netCDF files "
+		" to be converted"
+	},
+	{"level",   1,  "-1","Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
+	{"lod", 1,  "-1",   "Compression levels saved. 0 => coarsest, 1 => "
+		"next refinement, etc. -1 => all levels defined by the .vdf file"},
+	{"nthreads",1,  "0",    "Number of execution threads (0 => # processors)"},
+	{"missattr",	1,	"",	"Name of netCDF attribute specifying missing value "
+		" This option takes precdence over -missing"},
 	{"help",	0,	"",	"Print this message and exit"},
-	{"debug",	0,	"",	"Enable debugging"},
 	{"quiet",	0,	"",	"Operate quietly"},
-	{"dimnames", 1, "???:???:???", "Required: Colon-separated list of x-, y-, and z-dimension names in NetCDF file\n (z ignored if variable is 2D)"},
-	{"cnstnames",1, "-", "Colon-separated list of constant dimension names"},
-	{"cnstvals",1,"0", "Colon-separated list of constant dimension values, for corresponding constant dimension names"},
 	{NULL}
 };
-
 
 OptionParser::Option_T	get_options[] = {
-	{"ts", VetsUtil::CvtToInt, &opt.ts, sizeof(opt.ts)},
-	{"varname", VetsUtil::CvtToString, &opt.varname, sizeof(opt.varname)},
-	{"ncdfvar", VetsUtil::CvtToString, &opt.ncdfvarname, sizeof(opt.ncdfvarname)},
-	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
-    {"lod", VetsUtil::CvtToInt, &opt.lod, sizeof(opt.lod)},
-    {"nthreads", VetsUtil::CvtToInt, &opt.nthreads, sizeof(opt.nthreads)},
-	{"swapz", VetsUtil::CvtToBoolean, &opt.swapz, sizeof(opt.swapz)},
-	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
-	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
-	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
+	{"vars", VetsUtil::CvtToStrVec, &opt.vars, sizeof(opt.vars)},
+	{"timedims", VetsUtil::CvtToStrVec, &opt.timedims, sizeof(opt.timedims)},
+	{"timevars", VetsUtil::CvtToStrVec, &opt.timevars, sizeof(opt.timevars)},
+	{"stagdims", VetsUtil::CvtToStrVec, &opt.stagdims, sizeof(opt.stagdims)},
 	{"dimnames", VetsUtil::CvtToStrVec, &opt.dimnames, sizeof(opt.dimnames)},
-	{"cnstnames", VetsUtil::CvtToStrVec, &opt.constDimNames, sizeof(opt.constDimNames)},
-	{"cnstvals", VetsUtil::CvtToIntVec, &opt.constDimValues, sizeof(opt.constDimValues)},
+	{"cnstnames", VetsUtil::CvtToStrVec, &opt.cnstnames, sizeof(opt.cnstnames)},
+	{"cnstvals", VetsUtil::CvtToIntVec, &opt.cnstvals, sizeof(opt.cnstvals)},
+	{"numts", VetsUtil::CvtToInt, &opt.numts, sizeof(opt.numts)},
+	{"startts", VetsUtil::CvtToInt, &opt.startts, sizeof(opt.startts)},
+	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
+	{"lod", VetsUtil::CvtToInt, &opt.lod, sizeof(opt.lod)},
+	{"nthreads", VetsUtil::CvtToInt, &opt.nthreads, sizeof(opt.nthreads)},
+	{"missattr", VetsUtil::CvtToCPPStr, &opt.missattr, sizeof(opt.missattr)},
+	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
+	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
 	{NULL}
 };
 
-const char	*ProgName;
+const char *ProgName;
 
-//
-// Backup a .vdf file
-//
-void save_file(const char *file) {
-	FILE	*ifp, *ofp;
-	int	c;
+void Usage(OptionParser &op, const char * msg) {
 
-	string oldfile(file);
-	oldfile.append(".old");
-
-	ifp = fopen(file, "rb");
-	if (! ifp) {
-		cerr << ProgName << ": Could not open file \"" << 
-			file << "\" : " <<strerror(errno) << endl;
-
-		exit(1);
+	if (msg) {
+		cerr << ProgName << " : " << msg << endl;
 	}
+	cerr << "Usage: " << ProgName << " [options] ncdf_file... vdf_file" << endl;
+	op.PrintOptionHelp(stderr, 80, false);
 
-	ofp = fopen(oldfile.c_str(), "wb");
-	if (! ifp) {
-		cerr << ProgName << ": Could not open file \"" << 
-			oldfile << "\" : " <<strerror(errno) << endl;
-
-		exit(1);
-	}
-
-	do {
-		c = fgetc(ifp);
-		if (c != EOF) c = fputc(c,ofp); 
-
-	} while (c != EOF);
-
-	if (ferror(ifp)) {
-		cerr << ProgName << ": Error reading file \"" << 
-			file << "\" : " <<strerror(errno) << endl;
-
-		exit(1);
-	}
-
-	if (ferror(ofp)) {
-		cerr << ProgName << ": Error writing file \"" << 
-			oldfile << "\" : " <<strerror(errno) << endl;
-
-		exit(1);
-	}
-}
-//Perform averaging as needed for staggered dimensions.  If x or y is staggered, the output array
-//is different from the input; otherwise it's the same.
-//
-void averageSlice(nc_type dataType,void* inSlice, void* outSlice, 
-					  size_t inX, size_t inY, size_t outX, size_t outY) {
-	float *inFloat = (float*)inSlice; 
-	float *outFloat = (float*)outSlice;
-	double *inDouble = (double*)inSlice;
-	double* outDouble = (double*)outSlice;
-
-	if (dataType == NC_FLOAT) {
-		if (inX > outX){ //average in x, over all y; array is inSizeX by inSizeY
-			//In this case the outSlice is one shorter (in X) than the inSlice
-			for (int iy = 0; iy < inY; iy++){
-				for (int ix = 0; ix < outX; ix++) {
-					outFloat[ix+iy*outX] = 0.5*(inFloat[ix+1+iy*inX]+inFloat[ix+iy*inX]);
-				}
-			}
-		}
-		if (inY > outY){ //average in y, over all x.  Input data is always in outSlice:
-			for (int ix = 0; ix < outX; ix++){
-				for (int iy = 0; iy < outY; iy++) {
-					outFloat[ix+iy*outX] = 0.5*(outFloat[ix+iy*outX]+outFloat[ix+(iy+1)*outX]);
-				}
-			}
-		}
-	} else { //Same, but with doubles:
-		if (inX > outX){ //average in x, over all y; array is inSizeX by inSizeY
-			//In this case the outSlice is one shorter (in X) than the inSlice
-			for (int iy = 0; iy < inY; iy++){
-				for (int ix = 0; ix < outX; ix++) {
-					outDouble[ix+iy*outX] = 0.5*(inDouble[ix+1+iy*inX]+inDouble[ix+iy*inX]);
-				}
-			}
-		}
-		if (inY > outY){ //average in y, over all x.  Input data is always in outSlice:
-			for (int ix = 0; ix < outX; ix++){
-				for (int iy = 0; iy < outY; iy++) {
-					outDouble[ix+iy*outX] = 0.5*(outDouble[ix+iy*outX]+outDouble[ix+(iy+1)*outX]);
-				}
-			}
-		}
-	}
-	// if no averaging, but output is not input, then copy to output:
-	if (inX == outX && inY == outY){
-		if (dataType == NC_FLOAT && inFloat != outFloat) {
-			for (int iy = 0; iy < inY; iy++){
-				for (int ix = 0; ix < inX; ix++) {
-					outFloat[ix+iy*inX] = inFloat[ix+iy*inX];
-				}
-			}
-		} else if ((dataType != NC_FLOAT) && (inDouble != outDouble)) {
-			for (int ix = 0; ix < inX; ix++){
-				for (int iy = 0; iy < inY; iy++) {
-					outDouble[ix+iy*inX] = inDouble[ix+iy*inX];
-				}
-			}
-		}
-	}
-	return;
 }
 
-void	process_volume(
-	VDFIOBase *vdfio,
-	const size_t *dim, //dimensions from vdf
-	const int ncid,
-	double *read_timer
+
+//
+// Generate a map between VDC time steps and time steps in the DCReaderNCDF
+// i.e. ncdfTimeStep = timemap[vdcTimeStep]
+//
+void GetTimeMap(
+	const VDFIOBase *vdfio,
+	const DCReaderNCDF *ncdfData,
+	int startts,
+	int numts,
+	map <size_t, size_t> &timemap
 ) {
-	*read_timer = 0.0;
+	timemap.clear();
 
-	// Check out the netcdf file.
-	// It needs to have the specified variable name, and the specified dimension names
-	// The dimensions must agree with the dimensions in the metadata, and they 
-	// must be in the same order.
-	size_t* ncdfdims;
-	size_t* start;
-	size_t* count;
-	size_t* outCount, *inCount;
-	
 
-    int nc_status;
-
-    int ndims;          // # dims in source file
-    int nvars;          // number of variables (not used)
-    int ngatts;         // number of global attributes (not used)
-    int xdimid;         // id of unlimited dimension (not used)
-	int varid;			// id of variable we are reading
-
-	nc_status = nc_inq(ncid, &ndims, &nvars, &ngatts, &xdimid);
-	
-	NC_ERR_READ(nc_status);
-
-	//Check on the variable we are going to read:
-	nc_status = nc_inq_varid(ncid, opt.ncdfvarname, &varid);
-	if (nc_status != NC_NOERR){
-		fprintf(stderr, "variable %s not found in netcdf file\n", opt.ncdfvarname);
-		exit(1);
-	}
-	
-	//allocate array for dimensions in the netcdf file:
-	ncdfdims = new size_t[ndims];
-	
-	//Get all the dimensions in the file:
-	for (int d=0; d<ndims; d++) {
-		nc_status = nc_inq_dimlen(ncid, d, &ncdfdims[d]);
-		NC_ERR_READ(nc_status);
-	}
-
-	
-	char name[NC_MAX_NAME+1];
-	nc_type xtype;
-	int ndimids;
-	//Array of dimension id's used in netcdf file
-	int dimids[NC_MAX_VAR_DIMS];
-	int natts;
-
-	//Find the type and the dimensions associated with the variable:
-	nc_status = nc_inq_var(
-		ncid, varid, name, &xtype, &ndimids,
-		dimids, &natts
-	);
-	NC_ERR_READ(nc_status);
-
-	//Need at least 3 dimensions
-	if (ndimids < 3) {
-		cerr << ProgName << ": Insufficient netcdf variable dimensions" << endl;
-		exit(1);
-	}
-	
-	bool foundXDim = false, foundYDim = false, foundZDim = false;
-	int dimIDs[3] = {0,0,0};// dimension ID's (in netcdf file) for each of the 3 dimensions we are using
-	int dimIndex[3] = {0,0,0}; //specify which dimension (for this variable) is associated with x,y,z
-	// Initialize the count and start arrays for extracting slices from the data:
-	count = new size_t[ndimids];
-	start = new size_t[ndimids];
-	outCount = new size_t[ndimids];
-	inCount = new size_t[ndimids];
-	for (int i = 0; i<ndimids; i++){
-		outCount[i] = 1;
-		inCount[i] = 1;
-		start[i] = 0;
-		count[i] = 1;
-	}
-
-	//Make sure any constant dimension names are valid:
-	for (int i = 0; i<opt.constDimNames.size(); i++){
-		int constDimID;
-		if (nc_inq_dimid(ncid, opt.constDimNames[i].c_str(), &constDimID) != NC_NOERR){
-			fprintf(stderr, "Constant dimension name %s not in NetCDF file\n",
-				opt.constDimNames[i].c_str());
-			exit(1);
-		}
-		//OK, found it.  Verify that the constant value is OK:
-		size_t constDimLen=0;
-		if((nc_inq_dimlen(ncid, constDimID, &constDimLen) != NC_NOERR) ||
-			constDimLen <= opt.constDimValues[i] ||
-			opt.constDimValues[i] < 0)
-		{
-			fprintf(stderr, "Invalid value %d of constant dimension %s of length %d\n",
-				opt.constDimValues[i],
-				opt.constDimNames[i].c_str(),
-				(int) constDimLen);
-			exit(1);
-		}
-	}
-
-	
-	//Go through the dimensions looking for the 3 dimensions that we are using,
-	//as well as the constant dimension names/values
-	for (int i = 0; i<ndimids; i++){
-		//For each dimension id, get the name associated with it
-		nc_status = nc_inq_dimname(ncid, dimids[i], name);
-		NC_ERR_READ(nc_status);
-		//See if that dimension name is a coordinate of the desired array.
-		if (!foundXDim){
-			if (strcmp(name, opt.dimnames[0].c_str()) == 0){
-				foundXDim = true;
-				dimIDs[0] = dimids[i];
-				dimIndex[0] = i;
-				//Allow dimension to be off by 1, in case of 
-				//staggered dimensions.
-				if (ncdfdims[dimIDs[0]] != dim[0] &&
-					ncdfdims[dimIDs[0]] != (dim[0]+1)){
-					fprintf(stderr, "NetCDF and VDF array do not match in dimension 0\n");
-					exit(1);
-				}
-				outCount[i] = dim[0];
-				inCount[i] = ncdfdims[dimIDs[0]];
-				continue;
-			} 
-		} 
-		if (!foundYDim) {
-			if (strcmp(name, opt.dimnames[1].c_str()) == 0){
-				foundYDim = true;
-				dimIDs[1] = dimids[i];
-				dimIndex[1] = i;
-				if (ncdfdims[dimIDs[1]] != dim[1] &&
-					ncdfdims[dimIDs[1]] != (dim[1]+1)){
-					fprintf(stderr, "NetCDF and VDF array do not match in dimension 1\n");
-					exit(1);
-				}
-				outCount[i] = dim[1];
-				inCount[i] = ncdfdims[dimIDs[1]];
-				
-				continue;
-			}
-		} 
-		if (!foundZDim) {
-			if (strcmp(name, opt.dimnames[2].c_str()) == 0){
-				foundZDim = true;
-				dimIndex[2] = i;
-				dimIDs[2] = dimids[i];
-				if (ncdfdims[dimIDs[2]] != dim[2] &&
-					ncdfdims[dimIDs[2]] != (dim[2]+1)){
-					fprintf(stderr, "NetCDF and VDF array do not match in dimension 2\n");
-					exit(1);
-				}
-				
-				outCount[i] = dim[2];
-				inCount[i] = ncdfdims[dimIDs[2]];
-				
-				continue;
-			}
-		}
-		//See if the dimension name is an identified constant dimension:
-		for (int k = 0; k<opt.constDimNames.size(); k++){
-			if (strcmp(name, opt.constDimNames[k].c_str()) == 0){
-				start[i] = (size_t) opt.constDimValues[k];
-				break;
-			}
-		}
-	}
-	if (!foundZDim || !foundYDim || !foundXDim){
-		fprintf(stderr, "A specified NetCDF dimension name was not used with specified variable.\n");
-		exit(1);
-	}
-
-	int elem_size = 0;
-	switch (xtype) {
-		case NC_FLOAT:
-			elem_size = sizeof(float);
-			break;
-		case NC_DOUBLE:
-			elem_size = sizeof(double);
-			break;
-		default:
-			cerr << ProgName << ": Invalid variable data type" << endl;
-			exit(1);
-			break;
-	}
-
-	size_t outSize = outCount[dimIndex[0]]*inCount[dimIndex[1]];
-	size_t inSize = inCount[dimIndex[0]]*inCount[dimIndex[1]];
-	//allocate a buffer big enough for input 2D slice (constant z):
-	
-	float* inFBuffer = 0, *outFBuffer = 0, *outFBuffer2 = 0;
-	double *inDBuffer = 0, *outDBuffer = 0, *outDBuffer2 = 0;
-
-	//When z is staggered we need a separate input buffer from output:
-	float* stagInFBuffer = 0;
-	double* stagInDBuffer = 0;
-	
-	if (xtype == NC_DOUBLE) inDBuffer = new double[inSize];
-	else inFBuffer = new float[inSize];
-
-	// If data is staggered in x, need additional buffer for output
-
-	if (inCount[dimIndex[0]]>outCount[dimIndex[0]]){
-		if (!opt.quiet) fprintf(stderr, "variable is staggered in x\n");
-		if (xtype == NC_DOUBLE) outDBuffer = new double[outSize];
-		else outFBuffer = new float[outSize];
-	} else {
-		outFBuffer = inFBuffer;
-		outDBuffer = inDBuffer;
-	}
-	//Always need an outFBuffer, (for conversion if data is double)
-	if (!outFBuffer) outFBuffer = new float[outSize];
-
-	if (inCount[dimIndex[1]]>outCount[dimIndex[1]] && !opt.quiet)
-		fprintf(stderr, "variable is staggered in y\n");
-	if (inCount[dimIndex[2]]>outCount[dimIndex[2]] && !opt.quiet)
-		fprintf(stderr, "variable is staggered in z\n");
-
-	if(!opt.quiet) fprintf(stderr, "dimensions of output array are: %d %d %d\n",
-		(int) outCount[dimIndex[0]],(int) outCount[dimIndex[1]],(int) outCount[dimIndex[2]]);
-	
 	//
-	// Translate the volume one slice at a time
+	// Get user times from .vdf
 	//
-	// Set up counts to grab a z-slice of input
-	for (int i = 0; i< ndimids; i++) count[i] = inCount[i];
-	count[dimIndex[2]] = 1;
-	//set up z traversal interval based on input data size:
-	int zbegin = 0;
-	int zend = ncdfdims[dimIDs[2]];
-	int zinc = 1;
-	//Prepare for reversing in z:
-	if (opt.swapz) {
-		zbegin = ncdfdims[dimIDs[2]]-1;
-		zend = -1;
-		zinc = -1;
+	vector <double> ncdftimes;
+	for (int i=0; i<ncdfData->GetNumTimeSteps(); i++) { 
+		ncdftimes.push_back(ncdfData->GetTSUserTime(i));
 	}
-	int inSizeX = inCount[dimIndex[0]], inSizeY = inCount[dimIndex[1]];
-	int outSizeX = outCount[dimIndex[0]], outSizeY = outCount[dimIndex[1]];
 
-	//Handle z-staggered separate from un-staggered
-	if(ncdfdims[dimIDs[2]] == dim[2]) {
-		for(int z=zbegin; z!=zend; z+=zinc) {
-
-			if (z%50 == 0 && ! opt.quiet) {
-				cout << "Reading slice # " << z << endl;
-			}
-
-			double t1 = vdfio->GetTime();
-			start[dimIndex[2]] = z;
-			
-			if (xtype == NC_FLOAT) {
-			
-				nc_status = nc_get_vara_float(
-					ncid, varid, start, count, inFBuffer
-				);
-				
-				NC_ERR_READ(nc_status);
-				*read_timer += vdfio->GetTime() - t1;
-				averageSlice(xtype,(void*)inFBuffer, (void*)outFBuffer, 
-						inSizeX, inSizeY, outSizeX, outSizeY);
-
-				
-			} else if (xtype == NC_DOUBLE){
-				
-				nc_status = nc_get_vara_double(
-					ncid, varid, start, count, inDBuffer
-				);
-				NC_ERR_READ(nc_status);
-				*read_timer += vdfio->GetTime() - t1;
-				averageSlice(xtype,(void*)inDBuffer, (void*)outDBuffer, 
-						inSizeX, inSizeY, outSizeX, outSizeY);
-				//Convert to float:
-				for(int i=0; i<dim[0]*dim[1]; i++) outFBuffer[i] = (float)outDBuffer[i];
-			}
-			//
-			// Write a single slice of data
-			//
-			
-			vdfio->WriteSlice(outFBuffer);
-
-			if (vdfio->GetErrCode() != 0) {
-				cerr << ProgName << ": " << vdfio->GetErrMsg() << endl;
-				exit(1);
-			}
-		} 
-		
-		
-
-	} else { //handle staggered z-dimension
-		if (xtype == NC_DOUBLE) outDBuffer2 = new double[outSize];
-		else outFBuffer2 = new float[outSize];
-		//Identify pointers to buffers.  These are swapped each time we
-		//average two slices
-		double* newDBuffer = outDBuffer2;
-		double* oldDBuffer = outDBuffer;
-		float* newFBuffer = outFBuffer2;
-		float* oldFBuffer = outFBuffer;
-		
-		if (xtype == NC_DOUBLE) stagInDBuffer = new double[inSize];
-		else stagInFBuffer = new float[inSize];
-
-		
-		//First, read newbuffer, average inside slice as needed
-		double t1 = vdfio->GetTime();
-		start[dimIndex[2]] = zbegin;
-		
-		if (xtype == NC_FLOAT) {
-		
-			nc_status = nc_get_vara_float(
-				ncid, varid, start, count, stagInFBuffer
-			);
-			
-			NC_ERR_READ(nc_status);
-			*read_timer += vdfio->GetTime() - t1;
-			averageSlice(xtype,(void*)stagInFBuffer, (void*)newFBuffer, 
-					inSizeX, inSizeY, outSizeX, outSizeY);
-			
-		} else if (xtype == NC_DOUBLE){
-			
-			nc_status = nc_get_vara_double(
-				ncid, varid, start, count, stagInDBuffer
-			);
-			NC_ERR_READ(nc_status);
-			*read_timer += vdfio->GetTime() - t1;
-			averageSlice(xtype,(void*)stagInDBuffer, (void*)newDBuffer, 
-					inSizeX, inSizeY, outSizeX, outSizeY);
-		}
-	
-		
-		//Repeatedly, loop over output lines, averaging each pair::
-		for(int z=zbegin+zinc; z!=zend; z+=zinc) {
-
-			if (z%50 == 1 && ! opt.quiet) {
-				cout << "Reading slice # " << z << endl;
-			}
-
-			
-			start[dimIndex[2]] = z;
-			//  swap pointers
-			float *tempFBuffer = newFBuffer;
-			double* tempDBuffer = newDBuffer;
-			newFBuffer = oldFBuffer;
-			newDBuffer = oldDBuffer;
-			oldFBuffer = tempFBuffer;
-			oldDBuffer = tempDBuffer;
-			//  read newBuffer
-			
-			if (xtype == NC_FLOAT) {
-				double t1 = vdfio->GetTime();
-				nc_status = nc_get_vara_float(
-					ncid, varid, start, count, stagInFBuffer
-				);
-				
-				NC_ERR_READ(nc_status);
-				*read_timer += vdfio->GetTime() - t1;
-				averageSlice(xtype,(void*)stagInFBuffer, (void*)newFBuffer, 
-						inSizeX, inSizeY, outSizeX, outSizeY);
-				//Average two slices putting result into oldBuffer
-				for(int i=0; i<dim[0]*dim[1]; i++) oldFBuffer[i] = 0.5*(oldFBuffer[i]+newFBuffer[i]);
-				//Write out oldFBuffer:
-				vdfio->WriteSlice(oldFBuffer);
-				if (vdfio->GetErrCode() != 0) {
-					cerr << ProgName << ": " << vdfio->GetErrMsg() << endl;
-					exit(1);
-				}
-			} else if (xtype == NC_DOUBLE){
-				double t1 = vdfio->GetTime();
-				nc_status = nc_get_vara_double(
-					ncid, varid, start, count, stagInDBuffer
-				);
-				NC_ERR_READ(nc_status);
-				*read_timer += vdfio->GetTime() - t1;
-				averageSlice(xtype,(void*)stagInDBuffer, (void*)newDBuffer, 
-						inSizeX, inSizeY, outSizeX, outSizeY);
-				//Average two slices putting result into outFBuffer
-				for(int i=0; i<dim[0]*dim[1]; i++) outFBuffer[i] =(float)( 0.5*(oldDBuffer[i]+newDBuffer[i]));
-				//Write out outFBuffer:
-
-				vdfio->WriteSlice(outFBuffer);
-
-				if (vdfio->GetErrCode() != 0) {
-					cerr << ProgName << ": " << vdfio->GetErrMsg() << endl;
-					exit(1);
-				}
-			}
-			
-			
-		}
-		//Delete extra buffers:
-		if (outFBuffer2) delete outFBuffer2;
-		if (outDBuffer2) delete outDBuffer2;
+	//
+	// Get user times from netCDF files
+	//
+	vector <double> vdctimes;
+	for (int i=0; i<vdfio->GetNumTimeSteps(); i++) { 
+		vdctimes.push_back(vdfio->GetTSUserTime(i));
 	}
-	
-	if (inFBuffer && inFBuffer != outFBuffer) delete inFBuffer;
-	if (inDBuffer && inDBuffer != outDBuffer)
-		delete inDBuffer;
 
-	delete outFBuffer;
-	if (outDBuffer) delete outDBuffer;
+	// If numts<0 then use all ncdf times
+	//
+	numts = numts < 0 ? ncdfData->GetNumTimeSteps() : numts;
 
-	if(stagInDBuffer) delete stagInDBuffer;
-	if(stagInFBuffer) delete stagInFBuffer;
-	
+	//
+	// Cross-reference ncdf and vdc times
+	//
+	double ncdftime; 
+	for (int i=startts; i<numts && i<ncdfData->GetNumTimeSteps(); i++) {
+		ncdftime = ncdftimes[i];
+
+		vector <double>::iterator itr = find(
+			vdctimes.begin(), vdctimes.end(), ncdftime
+		);
+
+		if (itr != vdctimes.end()) {
+			timemap[itr-vdctimes.begin()] = i;
+		}
+	}
 }
-
-void	process_slice(
-	VDFIOBase *vdfio,
-	const size_t *dim, //dimensions from vdf
-	const int ncid,
-	double *read_timer
+	
+void GetVariables(
+	const VDFIOBase *vdfio,
+	const DCReaderNCDF *ncdfData,
+	const vector <string> &in_varnames,
+	vector <string> &out_varnames
 ) {
-	*read_timer = 0.0;
 
-	// Check out the netcdf file.
-	// It needs to have the specified variable name, and the specified dimension names
-	// The dimensions must agree with the dimensions in the metadata, and they 
-	// must be in the same order.
-	size_t* ncdfdims;
-	size_t* start;
-	size_t* count;
-	size_t* outCount, *inCount;
-	
+	out_varnames.clear();
 
-    int nc_status;
-
-    int ndims;          // # dims in source file
-    int nvars;          // number of variables (not used)
-    int ngatts;         // number of global attributes (not used)
-    int xdimid;         // id of unlimited dimension (not used)
-	int varid;			// id of variable we are reading
-
-	nc_status = nc_inq(ncid, &ndims, &nvars, &ngatts, &xdimid);
-	
-	NC_ERR_READ(nc_status);
-
-	//Check on the variable we are going to read:
-	nc_status = nc_inq_varid(ncid, opt.ncdfvarname, &varid);
-	if (nc_status != NC_NOERR){
-		fprintf(stderr, "variable %s not found in netcdf file\n", opt.ncdfvarname);
-		exit(1);
-	}
-	
-	//allocate array for dimensions in the netcdf file:
-	ncdfdims = new size_t[ndims];
-	
-	//Get all the dimensions in the file:
-	for (int d=0; d<ndims; d++) {
-		nc_status = nc_inq_dimlen(ncid, d, &ncdfdims[d]);
-		NC_ERR_READ(nc_status);
-	}
-
-	
-	char name[NC_MAX_NAME+1];
-	nc_type xtype;
-	int ndimids;
-	//Array of dimension id's used in netcdf file
-	int dimids[NC_MAX_VAR_DIMS];
-	int natts;
-
-	//Find the type and the dimensions associated with the variable:
-	nc_status = nc_inq_var(
-		ncid, varid, name, &xtype, &ndimids,
-		dimids, &natts
-	);
-	NC_ERR_READ(nc_status);
-
-	//Need at least 2 dimensions
-	if (ndimids < 2) {
-		cerr << ProgName << ": Insufficient netcdf variable dimensions" << endl;
-		exit(1);
-	}
-	
-	bool foundXDim = false, foundYDim = false;
-	int dimIDs[2];// dimension ID's (in netcdf file) for each of the 3 dimensions we are using
-	int dimIndex[2] = {0,0}; //specify which dimension (for this variable) is associated with x,y,z
-	// Initialize the count and start arrays for extracting slices from the data:
-	count = new size_t[ndimids];
-	start = new size_t[ndimids];
-	outCount = new size_t[ndimids];
-	inCount = new size_t[ndimids];
-	for (int i = 0; i<ndimids; i++){
-		outCount[i] = 1;
-		inCount[i] = 1;
-		start[i] = 0;
-		count[i] = 1;
-	}
-
-	//Make sure any constant dimension names are valid:
-	for (int i = 0; i<opt.constDimNames.size(); i++){
-		int constDimID;
-		if (nc_inq_dimid(ncid, opt.constDimNames[i].c_str(), &constDimID) != NC_NOERR){
-			fprintf(stderr, "Constant dimension name %s not in NetCDF file\n",
-				opt.constDimNames[i].c_str());
-			exit(1);
-		}
-		//OK, found it.  Verify that the constant value is OK:
-		size_t constDimLen=0;
-		if((nc_inq_dimlen(ncid, constDimID, &constDimLen) != NC_NOERR) ||
-			constDimLen <= opt.constDimValues[i] ||
-			opt.constDimValues[i] < 0)
-		{
-			fprintf(stderr, "Invalid value %d of constant dimension %s of length %d\n",
-				opt.constDimValues[i],
-				opt.constDimNames[i].c_str(),
-				(int) constDimLen);
-			exit(1);
-		}
-	}
-
-	
-	//Go through the dimensions looking for the 2 dimensions that we are using,
-	//as well as the constant dimension names/values
-	for (int i = 0; i<ndimids; i++){
-		//For each dimension id, get the name associated with it
-		nc_status = nc_inq_dimname(ncid, dimids[i], name);
-		NC_ERR_READ(nc_status);
-		//See if that dimension name is a coordinate of the desired array.
-		if (!foundXDim){
-			if (strcmp(name, opt.dimnames[0].c_str()) == 0){
-				foundXDim = true;
-				dimIDs[0] = dimids[i];
-				dimIndex[0] = i;
-				//Allow dimension to be off by 1, in case of 
-				//staggered dimensions.
-				if (ncdfdims[dimIDs[0]] != dim[0] &&
-					ncdfdims[dimIDs[0]] != (dim[0]+1)){
-					fprintf(stderr, "NetCDF and VDF array do not match in dimension 0\n");
-					exit(1);
-				}
-				outCount[i] = dim[0];
-				inCount[i] = ncdfdims[dimIDs[0]];
-				continue;
-			} 
-		} 
-		if (!foundYDim) {
-			if (strcmp(name, opt.dimnames[1].c_str()) == 0){
-				foundYDim = true;
-				dimIDs[1] = dimids[i];
-				dimIndex[1] = i;
-				if (ncdfdims[dimIDs[1]] != dim[1] &&
-					ncdfdims[dimIDs[1]] != (dim[1]+1)){
-					fprintf(stderr, "NetCDF and VDF array do not match in dimension 1\n");
-					exit(1);
-				}
-				outCount[i] = dim[1];
-				inCount[i] = ncdfdims[dimIDs[1]];
-				
-				continue;
-			}
-		} 
-		
-		//See if the dimension name is an identified constant dimension:
-		for (int k = 0; k<opt.constDimNames.size(); k++){
-			if (strcmp(name, opt.constDimNames[k].c_str()) == 0){
-				start[i] = (size_t) opt.constDimValues[k];
-				break;
-			}
-		}
-	}
-	if (!foundYDim || !foundXDim){
-		fprintf(stderr, "A specified NetCDF dimension name was not used with specified variable.\n");
-		exit(1);
-	}
-
-	int elem_size = 0;
-	switch (xtype) {
-		case NC_FLOAT:
-			elem_size = sizeof(float);
-			break;
-		case NC_DOUBLE:
-			elem_size = sizeof(double);
-			break;
-		default:
-			cerr << ProgName << ": Invalid variable data type" << endl;
-			exit(1);
-			break;
-	}
-
-	size_t outSize = outCount[dimIndex[0]]*inCount[dimIndex[1]];
-	size_t inSize = inCount[dimIndex[0]]*inCount[dimIndex[1]];
-	//allocate a buffer big enough for input 2D slice :
-	
-	float* inFBuffer = 0, *outFBuffer = 0;
-	double *inDBuffer = 0, *outDBuffer = 0;
-
-	
-	if (xtype == NC_DOUBLE) inDBuffer = new double[inSize];
-	else inFBuffer = new float[inSize];
-
-	// If data is staggered in x, need additional buffer for output
-
-	if (inCount[dimIndex[0]]>outCount[dimIndex[0]]){
-		if (!opt.quiet) fprintf(stderr, "variable is staggered in x\n");
-		if (xtype == NC_DOUBLE) outDBuffer = new double[outSize];
-		else outFBuffer = new float[outSize];
-	} else {
-		outFBuffer = inFBuffer;
-		outDBuffer = inDBuffer;
-	}
-	//Always need an outFBuffer, (for conversion if data is double)
-	if (!outFBuffer) outFBuffer = new float[outSize];
-
-	if (inCount[dimIndex[1]]>outCount[dimIndex[1]] && !opt.quiet)
-		fprintf(stderr, "variable is staggered in y\n");
-	
-
-	if(!opt.quiet) fprintf(stderr, "dimensions of output array are: %d %d\n",
-		(int) outCount[dimIndex[0]],(int) outCount[dimIndex[1]]);
-	
 	//
-	// Translate the volume one slice at a time
+	// If variable names provided on the command line we use them
 	//
-	// Set up counts to grab a slice of input
-	for (int i = 0; i< ndimids; i++) count[i] = inCount[i];
-	
-	int inSizeX = inCount[dimIndex[0]], inSizeY = inCount[dimIndex[1]];
-	int outSizeX = outCount[dimIndex[0]], outSizeY = outCount[dimIndex[1]];
+	if (in_varnames.size()) {
+		out_varnames = in_varnames;
+		return;
+	} 
 
+	//
+	// Find intersection between variables found in the VDC and the
+	// netCDF collection
+	//
+	vector <string> vdcvars;	// all the VDC vars
+	for (int i=0; i<vdfio->GetVariables3D().size(); i++) {
+		vdcvars.push_back(vdfio->GetVariables3D()[i]);
+	}
+	for (int i=0; i<vdfio->GetVariables2DXY().size(); i++) {
+		vdcvars.push_back(vdfio->GetVariables2DXY()[i]);
+	}
+	for (int i=0; i<vdfio->GetVariables2DXZ().size(); i++) {
+		vdcvars.push_back(vdfio->GetVariables2DXZ()[i]);
+	}
+	for (int i=0; i<vdfio->GetVariables2DYZ().size(); i++) {
+		vdcvars.push_back(vdfio->GetVariables2DYZ()[i]);
+	}
 
-	double t1 = vdfio->GetTime();
-	
-	if (xtype == NC_FLOAT) {
-	
-		nc_status = nc_get_vara_float(
-			ncid, varid, start, count, inFBuffer
+	vector <string> ncdfvars;	// all the netCDF vars
+	for (int i=0; i<ncdfData->GetVariables3D().size(); i++) {
+		ncdfvars.push_back(ncdfData->GetVariables3D()[i]);
+	}
+	for (int i=0; i<ncdfData->GetVariables2DXY().size(); i++) {
+		ncdfvars.push_back(ncdfData->GetVariables2DXY()[i]);
+	}
+	for (int i=0; i<ncdfData->GetVariables2DXZ().size(); i++) {
+		ncdfvars.push_back(ncdfData->GetVariables2DXZ()[i]);
+	}
+	for (int i=0; i<ncdfData->GetVariables2DYZ().size(); i++) {
+		ncdfvars.push_back(ncdfData->GetVariables2DYZ()[i]);
+	}
+
+	//
+	// Now find intersection
+	//
+	for (int i=0; i<ncdfvars.size(); i++) {
+		vector <string>::iterator itr = find(
+			vdcvars.begin(), vdcvars.end(), ncdfvars[i]
 		);
-		
-		NC_ERR_READ(nc_status);
-		*read_timer += vdfio->GetTime() - t1;
-		averageSlice(xtype,(void*)inFBuffer, (void*)outFBuffer, 
-				inSizeX, inSizeY, outSizeX, outSizeY);
-
-		
-	} else if (xtype == NC_DOUBLE){
-		
-		nc_status = nc_get_vara_double(
-			ncid, varid, start, count, inDBuffer
-		);
-		NC_ERR_READ(nc_status);
-		*read_timer += vdfio->GetTime() - t1;
-		averageSlice(xtype,(void*)inDBuffer, (void*)outDBuffer, 
-				inSizeX, inSizeY, outSizeX, outSizeY);
-		//Convert to float:
-		for(int i=0; i<dim[0]*dim[1]; i++) outFBuffer[i] = (float)outDBuffer[i];
+		if (itr != vdcvars.end()) {
+			out_varnames.push_back(ncdfvars[i]);
+		}
 	}
-	//
-	// Write the slice of data
-	//
-	size_t min[] = {0,0,0};
-	size_t max[] = {dim[0]-1,dim[1]-2, 1};
-	vdfio->WriteRegion(outFBuffer, min, max);
-
-	if (vdfio->GetErrCode() != 0) {
-		cerr << ProgName << ": " << vdfio->GetErrMsg() << endl;
-		exit(1);
-	}
-	
-	if (inFBuffer && inFBuffer != outFBuffer) delete inFBuffer;
-	if (inDBuffer && inDBuffer != outDBuffer)
-		delete inDBuffer;
-
-	delete outFBuffer;
-	if (outDBuffer) delete outDBuffer;
-	
 }
 
+//
+// Missing data masks
+//
+unsigned char *mvMask3D = NULL;
+unsigned char *mvMask2DXY = NULL;
+unsigned char *mvMask2DXZ = NULL;
+unsigned char *mvMask2DYZ = NULL;
+
+//
+// The VDC requires a single missing value for all variables. netCDF variables
+// may use different missing values for different values. This function
+// maps all netCDF missing values to the same VDC missing value
+//
+void MissingValue(
+	VDFIOBase *vdfio,
+	DCReaderNCDF *ncdfData,
+	string vdcVar,
+	string ncdfVar,
+	VDFIOBase::VarType_T vtype,
+	int slice,
+	float *buf
+) {
+
+	// 
+	// Get missing values from VDC and netCDF. In general, the values
+	// are different
+	//
+	float ncdfMV;
+	bool hasmiss = ncdfData->GetMissingValue(ncdfVar, ncdfMV);
+	if (! hasmiss) return;
+
+	vector <double> vec = vdfio->GetMissingValue();
+	if (vec.size() == 0) return;
+	float vdcMV = (float) vec[0];
+
+	size_t dim[3];
+	vdfio->GetDim(dim, -1);
+
+	size_t size = 0;
+	size_t slice_sz = 0;
+
+	bool first = false;
+	unsigned char *mask = NULL;
+	if (vtype == Metadata::VAR3D) {
+		size = dim[0]*dim[1]*dim[2];
+		slice_sz = dim[0]*dim[1];
+		if ( ! mvMask3D) {
+			mvMask3D = new unsigned char[size];
+			first = true;
+		}
+		mask = mvMask3D;
+	}
+	else if (vtype == Metadata::VAR2D_XY) {
+		size = dim[0]*dim[1];
+		slice_sz = size;
+		if ( ! mvMask2DXY) {
+			mvMask2DXY = new unsigned char[size];
+			first = true;
+		}
+		mask = mvMask2DXY;
+	}
+	else if (vtype == Metadata::VAR2D_XZ) {
+		size = dim[0]*dim[2];
+		slice_sz = size;
+		if ( ! mvMask2DXZ) {
+			mvMask2DXZ = new unsigned char[size];
+			first = true;
+		}
+		mask = mvMask2DXZ;
+	}
+	else if (vtype == Metadata::VAR2D_YZ) {
+		size = dim[1]*dim[2];
+		slice_sz = size;
+		if ( ! mvMask2DYZ) {
+			mvMask2DYZ = new unsigned char[size];
+			first = true;
+		}
+		mask = mvMask2DYZ;
+	}
+
+	bool mismatch = false;	// true if missing value locations change
+
+	// If first mask for this variable type
+	//
+	if (first) {
+		memset(mask, 0, size);
+		for (size_t i=0; i<slice_sz; i++) {
+			if (buf[i] == ncdfMV) {
+				buf[i] = vdcMV;
+				mask[slice*slice_sz+i] = 1;
+			}
+		}
+	}
+	else {
+		for (size_t i=0; i<slice_sz; i++) {
+			if (mask[slice*slice_sz+i]) {
+				if (buf[i] != ncdfMV) mismatch = true;
+				buf[i] = vdcMV;
+			}
+			else {
+				if (buf[i] == ncdfMV) {
+					buf[i] = vdcMV;
+					mismatch = true;
+				}
+			}
+		}
+	}
+
+//	if (mismatch) {
+//		cerr << ProgName << " : Warning: missing value locations changed\n";
+//	}
+}
+
+int CopyVar(
+	VDFIOBase *vdfio,
+	DCReaderNCDF *ncdfData,
+	int vdcTS,
+	int ncdfTS,
+	string vdcVar,
+	string ncdfVar,
+	int level,
+	int lod
+) {
+	if (ncdfData->OpenVariableRead(ncdfTS, ncdfVar) < 0) {
+		MyBase::SetErrMsg(
+			"Failed to open netCDF variable \"%s\" at time step %d",
+			ncdfVar.c_str(), ncdfTS
+		);
+		return(-1);
+	}
+
+	if (vdfio->OpenVariableWrite(vdcTS, vdcVar.c_str(), level, lod) < 0) {
+		MyBase::SetErrMsg(
+			"Failed to open VDC variable \"%s\" at time step %d",
+			vdcVar.c_str(), vdcTS
+		);
+		ncdfData->CloseVariable();
+		return(-1);
+	}
+
+	size_t dim[3];
+	vdfio->GetDim(dim, -1);
+	float *buf = new float [dim[0]*dim[1]];
+
+	int rc = 0;
+	VDFIOBase::VarType_T vtype = vdfio->GetVarType(vdcVar);
+	int n = vtype == Metadata::VAR3D ? dim[2] : 1;
+	for (int i=0; i<n; i++) {
+
+		rc = ncdfData->ReadSlice(buf);
+		if (rc==0) {
+			MyBase::SetErrMsg(
+				"Short read of variable \"%s\" at time step %d",
+				ncdfVar.c_str(), ncdfTS
+			);
+			rc = -1;	// Short read is an error
+			break;
+		}
+		if (rc<0) {
+			MyBase::SetErrMsg(
+				"Error reading netCDF variable \"%s\" at time step %d",
+				ncdfVar.c_str(), ncdfTS
+			);
+			break;
+		}
+		if (opt.missattr.length()) {
+			MissingValue(vdfio, ncdfData, vdcVar, ncdfVar, vtype, i, buf);
+		}
+
+		rc = vdfio->WriteSlice(buf);
+		if (rc<0) {
+			MyBase::SetErrMsg(
+				"Error writing VDC variable \"%s\" at time step %d",
+				ncdfVar.c_str(), ncdfTS
+			);
+			break;
+		}
+	}
+	
+	if (buf) delete [] buf;
+	ncdfData->CloseVariable();
+	vdfio->CloseVariable();
+
+	return(rc);
+
+}
 
 int	main(int argc, char **argv) {
 
-	OptionParser op;
-	
-	const char	*metafile;
-	const char	*netCDFfile;
-
-	double	timer = 0.0;
-	double	read_timer = 0.0;
-	string	s;
-
-	//
-	// Parse command line arguments
-	//
+    MyBase::SetErrMsgFilePtr(stderr);
 	ProgName = Basename(argv[0]);
 
+	OptionParser op;
 	if (op.AppendOptions(set_opts) < 0) {
-		cerr << ProgName << " : " << op.GetErrMsg();
 		exit(1);
 	}
 
 	if (op.ParseOptions(&argc, argv, get_options) < 0) {
-		cerr << ProgName << " : " << op.GetErrMsg();
 		exit(1);
 	}
 
-	if (opt.help || argc != 3) {
-		cerr << "Usage: " << ProgName << " [options] -varname variable_name -dimnames xdim:ydim:zdim metafile.vdf NetCDFfile" << endl;
-		cerr << "  Converts (2D or 3D) variable in NetCDF file to variable in VAPOR VDC." << endl;
-		cerr << "  X dimension of variable must be after Y dimension in NetCDF file." << endl;
-		cerr << "  2D variables use X and Y dimension names." << endl;
-		cerr << "  If a NetCDF dimension is one greater than the corresponding VDC dimension," << endl;
-		cerr << "  data is averaged to the VDC dimension, to support staggered grids" << endl;
-		cerr << "  Options are:" << endl;
-		op.PrintOptionHelp(stderr);
-		exit(argc != 3);
+	if (opt.help) {
+		Usage(op, NULL);
+		exit(0);
+	}
+	if (opt.dimnames.size()) {
+		MyBase::SetErrMsg("Option \"-dimnames\" is deprecated");
+	}
+	if (opt.cnstnames.size()) {
+		MyBase::SetErrMsg("Option \"-cnstnames\" is deprecated");
+	}
+	if (opt.cnstvals.size()) {
+		MyBase::SetErrMsg("Option \"-cnstvals\" is deprecated");
 	}
 
-	//Make sure that the names and values of constant dimensions agree:
-	if (opt.constDimNames[0] == "-"){
-		//make sure we aren't dealing with nothing:
-		opt.constDimNames.clear();
-		opt.constDimValues.clear();
-	}
-	if (opt.constDimNames.size() != opt.constDimValues.size()){
-		cerr << "The number of constant dimension names "<< opt.constDimNames.size() << " and constant dimension values "<< opt.constDimValues.size() <<" must be the same" << endl;
-		exit(1);
-	}
-	if (strcmp(opt.dimnames[0].c_str(),"???") == 0){
-		cerr << "Dimension names of the variable must be specified" << endl;
-		exit(1);
-	}
-	if (strcmp(opt.varname,"???????") == 0){
-		cerr << "The name of the variable in the NetCDF file must be specified." << endl;
+
+	argv++;
+	argc--;
+
+	if (argc < 2) {
+		Usage(op, "No files to process");
 		exit(1);
 	}
 
-	metafile = argv[1];	// Path to a vdf file
-	netCDFfile = argv[2];	// Path to raw data file 
-
-	MyBase::SetErrMsgFilePtr(stderr);
-    if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
-
-	// If the netcdf variable name was not specified, use the same name as
-	//  in the vdf
-	if (strcmp(opt.ncdfvarname,"???????") == 0){
-		opt.ncdfvarname = opt.varname;
-	}
-
-	
-	// Determine if variable is 3D
 	//
+	// list of netCDF files
+	//
+	vector<string> ncdffiles;
+	for (int i=0; i<argc-1; i++) {
+		 ncdffiles.push_back(argv[i]);
+	}
+	string metafile = argv[argc-1];
+	
+	DCReaderNCDF *ncdfData = new DCReaderNCDF(
+		ncdffiles, opt.timedims, opt.timevars, opt.stagdims, opt.missattr,
+		NULL
+	);
+	if (MyBase::GetErrCode() != 0) exit(1);
+
+	WaveletBlockIOBase	*wbwriter3D = NULL;	// VDC type 1 writer
+	WaveCodecIO	*wcwriter = NULL;	// VDC type 2 writer
+	VDFIOBase *vdfio = NULL;
+
 	MetadataVDC metadata (metafile);
 	if (MetadataVDC::GetErrCode() != 0) {
-		MyBase::SetErrMsg("Error processing metafile \"%s\"", metafile);
+		MyBase::SetErrMsg("Error processing metafile \"%s\"", metafile.c_str());
 		exit(1);
 	}
-	Metadata::VarType_T vtype = metadata.GetVarType(opt.varname);
-	if (vtype == Metadata::VARUNKNOWN) {
-		MyBase::SetErrMsg("Unknown variable \"%s\"", opt.varname);
-		exit(1);
-	}
-
-	//
-	// Create an appropriate WaveletBlock writer. 
-	//
-	bool vdc1 = (metadata.GetVDCType() == 1);
-
-	VDFIOBase *vdfio = NULL;
-	WaveletBlockIOBase *wb3d = NULL;
-	WaveCodecIO *wc3d = NULL;
-	if (vdc1) {
-		if (vtype == Metadata::VAR3D) {
-			wb3d = new WaveletBlock3DBufWriter(metadata);
-		} else {
-			wb3d = new WaveletBlock3DRegionWriter(metafile);
-		}
-		if (wb3d->GetErrCode() != 0) {
-			exit(1);
-		}
-		vdfio = wb3d;
-	}
-	else {
-		wc3d = new WaveCodecIO(metadata, opt.nthreads);
-		if (wc3d->GetErrCode() != 0) {
-			exit(1);
-		}
-		vdfio = wc3d;
-	}
-
-	if (vdfio->OpenVariableWrite(opt.ts, opt.varname, opt.level, opt.lod) < 0) {
-		exit(1);
-	} 
 	
-    int nc_status;
-    int ncid;
-
-    nc_status = nc_open(netCDFfile, NC_NOWRITE, &ncid);
-	NC_ERR_READ(nc_status);
-
-   
-	// Get the dimensions of the volume
-	//
-	const size_t *dim = metadata.GetDimension();
-
-
-	double t0 = vdfio->GetTime();
-	if (vtype == Metadata::VAR3D){
-		process_volume(
-			vdfio, dim, ncid, &read_timer
-		);
-	}
+	bool vdc1 = (metadata.GetVDCType() == 1);
+	if (vdc1) {
+		wbwriter3D = new WaveletBlock3DBufWriter(metadata);
+		vdfio = wbwriter3D;
+	} 
 	else {
-		process_slice(
-			vdfio, dim, ncid, &read_timer
-		);
+		wcwriter = new WaveCodecIO(metadata, opt.nthreads);
+		vdfio = wcwriter;
 	}
-
-	vdfio->CloseVariable();
-
 	if (vdfio->GetErrCode() != 0) {
 		exit(1);
 	}
-	timer = vdfio->GetTime() - t0;
-	
-	if (! opt.quiet) {
-		float write_timer, xform_timer, *range;
-		write_timer = vdfio->GetWriteTimer();
-		xform_timer = vdfio->GetXFormTimer();
-		range = (float*) vdfio->GetDataRange();
-		fprintf(stdout, "read time : %f\n", read_timer);
-		fprintf(stdout, "write time : %f\n", write_timer);
-		fprintf(stdout, "transform time : %f\n", xform_timer);
-		fprintf(stdout, "total transform time : %f\n", timer);
-		fprintf(stdout, "min and max values of data output: %g, %g\n",range[0], range[1]);
-	}
 
-	// For pre-version 2 vdf files we need to write out the updated metafile. 
-	// If we don't call this then
-	// the .vdf file will not be updated with stats gathered from
-	// the volume we just translated.
 	//
-	if (metadata.GetVDFVersion() < 2) {
-		metadata.Write(metafile);
-	}
-	nc_close(ncid);
-	exit(0);
-}
+	// Get Mapping between VDC time steps and ncdf time steps
+	//
+	map <size_t, size_t> timemap;
+	GetTimeMap(vdfio, ncdfData, opt.startts, opt.numts, timemap);
 
+	//
+	// Figure out which variables to transform
+	//
+	vector <string> variables;
+	GetVariables(vdfio, ncdfData, opt.vars, variables);
+
+	//
+	// Copy (transform) variables
+	//
+	int fails = 0;
+	map <size_t, size_t>::iterator itr;
+	for (itr = timemap.begin(); itr != timemap.end(); ++itr) {
+		if (! opt.quiet) {
+			cout << "Processing VDC time step " << itr->first << endl;
+		}
+		for (int v = 0; v < variables.size(); v++) {
+			if (! opt.quiet) {
+				cout << " Processing variable " << variables[v] << endl;
+			}
+
+			int rc = CopyVar(
+				vdfio, ncdfData, itr->first, itr->second, 
+				variables[v], variables[v],
+				opt.level, opt.lod
+			);
+			if (rc<0) fails++;
+		}
+	}
+
+	int estatus = 0;
+	if (fails) {
+		cerr << "Failed to copy " << fails << " variables" << endl;
+		estatus = 1;
+	}
+	exit(estatus);
+
+} // End of main.
