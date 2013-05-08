@@ -128,13 +128,14 @@ void	MyBase::SetErrMsg(
 ) {
 	va_list args;
 
-	if (! Enabled) return;
 
 	ErrCode = 1;
 
 	va_start(args, format);
 	_SetErrMsg(&ErrMsg, &ErrMsgSize, format, args);
 	va_end(args);
+
+	if (! Enabled) return;
 
 	if (ErrMsgCB) (*ErrMsgCB) (ErrMsg, ErrCode);
 
@@ -150,13 +151,14 @@ void	MyBase::SetErrMsg(
 ) {
 	va_list args;
 
-	if (! Enabled) return;
 
 	ErrCode = errcode;
 
 	va_start(args, format);
 	_SetErrMsg(&ErrMsg, &ErrMsgSize, format, args);
 	va_end(args);
+
+	if (! Enabled) return;
 
 	if (ErrMsgCB) (*ErrMsgCB) (ErrMsg, ErrCode);
 

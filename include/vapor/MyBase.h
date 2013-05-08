@@ -233,12 +233,17 @@ public:
  //!
  //! Enable or disable error message reporting.
  //!
- //! When disabled calls to SetErrMsg() are no-ops. By default error
+ //! When disabled calls to SetErrMsg() report no error messages
+ //! either through the error message callback or the error message
+ //! FILE pointer. Error messages are recorded and can be retrieved
+ //! by GetErrMsg(). By default error
  //! reporting is enabled.
  //! 
  //! \param[in] enable Boolean flag to enable or disable error reporting
  //!
- void EnableErrMsg(bool enable) {Enabled = enable;};
+ bool EnableErrMsg(bool enable) {
+	bool prev = Enabled; Enabled = enable; return (prev);
+ };
 
  // N.B. the error codes/messages are stored in static class members!!!
  static char 	*ErrMsg;
