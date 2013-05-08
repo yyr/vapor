@@ -6,8 +6,6 @@ void GeoTileEquirectangular::LatLongToPixelXY(
 ) const {
     while (lon < _MinLongitude) lon += 360.0;
     while (lon > _MaxLongitude) lon -= 360.0;
-    while (lat < _MinLatitude) lat += 180.0;
-    while (lat > _MaxLatitude) lat -= 180.0;
 
     double x = (lon + 180) / 360.0;
     double y = (lat + 90) / 180.0;

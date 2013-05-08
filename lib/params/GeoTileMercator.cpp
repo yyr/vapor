@@ -11,8 +11,6 @@ void GeoTileMercator::LatLongToPixelXY(
 ) const {
     while (lon < _MinLongitude) lon += 360.0;
     while (lon > _MaxLongitude) lon -= 360.0;
-    while (lat < _MinLatitude) lat += 180.0;
-    while (lat > _MaxLatitude) lat -= 180.0;
 
 	lat = _Clip(lat, _MinLatitude, _MaxLatitude);
 	lon = _Clip(lon, _MinLongitude, _MaxLongitude);
