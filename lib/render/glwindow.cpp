@@ -972,6 +972,8 @@ void GLWindow::depthPeelPaintEvent(){
 	printOpenGLError();
 }
 void GLWindow::paintEvent(QPaintEvent*){
+static int num=0;
+printf("starting paint event %d\n",num++);
   if(depthPeeling)
     depthPeelPaintEvent();
   else

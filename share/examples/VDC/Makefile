@@ -5,6 +5,6 @@ include ${TOP}/make/config/prebase.mk
 PROGRAM = amr_ex
 FILES = amr_ex
 
-LIBRARIES = vdf proj common netcdf expat
+LIBRARIES = vdf udunits2 proj common netcdf expat
 
 include ${TOP}/make/config/base.mk
