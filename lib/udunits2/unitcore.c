@@ -58,7 +58,7 @@
 //#include <strings.h>
 
 #include "vapor/udunits2.h"		/* this module's API */
-#include "converter.h"
+#include "vapor/converter.h"
 
 typedef enum {
     PRODUCT_EQUAL = 0,		/* The units are equal -- ignoring dimensionless
