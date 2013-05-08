@@ -135,7 +135,7 @@
       <AdditionalLibraryDirectories>$(VAPOR_WIN32_RELEASE_LIB_PATH);../../../targets/win32/bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>netcdf.lib;vdf.lib;common.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
-      <OutputFile>../../../targets/win64/bin/ncdfvdfcreate.exe</OutputFile>
+      <OutputFile>../../../targets/win32/bin/ncdfvdfcreate.exe</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
