@@ -14,6 +14,12 @@
 
 using namespace VetsUtil;
 
+namespace VetsUtil {       
+bool opt_cmp(OptionParser::_OptRec_T *a, OptionParser::_OptRec_T *b)
+	{return(string(a->option) < string(b->option)); };
+}
+
+
 /*
  * convert an array of strings into a singe contiguous array of strings
  */
@@ -196,6 +202,22 @@ int	VetsUtil::CvtToString(
 }
 
 /*
+ *	CvtToCPPStr()
+ *
+ */
+int	VetsUtil::CvtToCPPStr(
+	const char	*from,	/* the string	*/
+	void		*to
+) {
+	string *sptr	= (string *) to;
+
+	*sptr = from;
+
+	return(1);
+}
+
+
+/*
  *	CvtToDimension2D()
  *
  *	convert a ascii string to a dimension.
@@ -292,6 +314,40 @@ int	VetsUtil::CvtToIntVec(
     if (! s.empty()) {
         int val;
 		int nints = sscanf(s.c_str(),"%d",&val);
+		if (nints == 1)
+			vptr->push_back(val);
+		else vptr->push_back(0);
+    }
+
+	return(1);
+}
+
+//
+//	CvtToFloatVec()
+//
+//	convert a colon delimited ascii string to vector of C++ STL float
+//
+int	VetsUtil::CvtToFloatVec(
+	const char	*from,	/* the string	*/
+	void		*to
+) {
+	vector <float> *vptr	= (vector <float> *) to;
+	vptr->clear();
+
+	string::size_type idx;
+
+    string s(from);
+    while (! s.empty() && (idx = s.find(":", 0)) != string::npos) {
+		int val;
+		int nints = sscanf(s.substr(0,idx).c_str(),"%d",&val);
+		if (nints == 1)
+			vptr->push_back(val);
+		else vptr->push_back(0);
+        s.erase(0,idx+1);
+    }
+    if (! s.empty()) {
+        float val;
+		float nints = sscanf(s.c_str(),"%f",&val);
 		if (nints == 1)
 			vptr->push_back(val);
 		else vptr->push_back(0);
@@ -665,8 +721,11 @@ int	OptionParser::ParseOptions(
 //
 void	OptionParser::PrintOptionHelp(
 	FILE	*fp,
-	int linelimit
+	int linelimit,
+	bool docopyright
 ) {
+
+	std::sort(_optTbl.begin(), _optTbl.end(), opt_cmp);
 
 	string h1("OPTION");
 	string d1("------");
@@ -776,6 +835,8 @@ void	OptionParser::PrintOptionHelp(
 		}
 	}
 #endif
+
+	if (! docopyright) return;
 
 	fprintf(
 		fp, 
