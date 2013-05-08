@@ -463,7 +463,7 @@ int DCReaderMOM::ReadSlice(float *slice) {
 	if (! has_missing) mv = 1e37;
 
 	size_t dims[] = {_dims[0], _dims[1]};
-	_ovr_weight_tbl->interp2D(_sliceBuffer, slice, mv, dims);
+	_ovr_weight_tbl->interp2D(_sliceBuffer, slice, mv, mv, dims);
 
 	return(1);
 	

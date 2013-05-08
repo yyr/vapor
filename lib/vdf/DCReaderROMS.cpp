@@ -355,7 +355,7 @@ bool DCReaderROMS::GetMissingValue(string varname, float &value) const {
 }
 
 bool DCReaderROMS::IsCoordinateVariable(string varname) const {
-	return(false);
+	return(varname.compare("ELEVATION") == 0);
 }
 
 int DCReaderROMS::OpenVariableRead(
@@ -402,18 +402,26 @@ int DCReaderROMS::ReadSlice(float *slice) {
 	int rc = _ncdfc->ReadSlice(_sliceBuffer);
 	if (rc<1) return(rc);
 
-	float mv;
-	bool has_missing = DCReaderROMS::GetMissingValue(_ovr_varname, mv);
+	float srcMV, dstMV;
+	bool has_missing = DCReaderROMS::GetMissingValue(_ovr_varname, srcMV);
 
 	//
 	// If there are no missing values then resampling should not
 	// introduce any, but we don't have a non-missing-value version
 	// of the resampler :-(
 	//
-	if (! has_missing) mv = 1e37;
+	if (! has_missing) srcMV = 1e37;
+
+	if (_ovr_varname.compare("ELEVATION") == 0) {
+		vector <double> extents = DCReaderROMS::GetExtents(0);
+		dstMV = (float) extents[5];
+	}
+	else {
+		dstMV = srcMV;
+	}
 
 	size_t dims[] = {_dims[0], _dims[1]};
-	_weightTable->interp2D(_sliceBuffer, slice, mv, dims);
+	_weightTable->interp2D(_sliceBuffer, slice, srcMV, dstMV, dims);
 
 	return(1);
 	

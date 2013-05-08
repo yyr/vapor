@@ -31,7 +31,7 @@ public:
 	// Interpolate a 2D or 3D variable to the lon/lat grid, using this weights table
 	// Sourcedata is where the variable data has already been loaded.
 	// Values in the data that are equal to missingValue are mapped to missMap
-	void interp2D(const float* sourceData, float* resultData, float missingValue, const size_t* dims);
+	void interp2D(const float* sourceData, float* resultData, float srcMV, float dstMV, const size_t* dims);
 	
 	//Calculate the weights 
 	int calcWeights();

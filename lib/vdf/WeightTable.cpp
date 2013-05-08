@@ -88,7 +88,7 @@ WeightTable::~WeightTable() {
 //Interpolation functions, can be called after the alphas and betas arrays have been calculated.
 //Following can also be used on slices of 3D data
 //If the corner latitude is at the top then
-void WeightTable::interp2D(const float* sourceData, float* resultData, float missingValue, const size_t* dims){
+void WeightTable::interp2D(const float* sourceData, float* resultData, float srcMV, float dstMV, const size_t* dims){
 	int corlon, corlat, corlatp, corlona, corlonb, corlonp;
 	
 	int latsize = dims[1];
@@ -97,7 +97,7 @@ void WeightTable::interp2D(const float* sourceData, float* resultData, float mis
 	float maxin = sourceData[0];
 	assert (latsize <= _ny && lonsize <= _nx);
 	for (int i = 0; i< _ny*_nx; i++){
-		if (sourceData[i] == missingValue) continue;
+		if (sourceData[i] == srcMV) continue;
 		if (sourceData[i]<minin) minin = sourceData[i];
 		if (sourceData[i]>maxin) maxin = sourceData[i];
 	}
@@ -106,7 +106,7 @@ void WeightTable::interp2D(const float* sourceData, float* resultData, float mis
 		for (int i = 0; i<lonsize; i++){
 			if(_testValues[i+_nx*j] >= 1.)  {
 				//Outside of range of mapping.  Provide missing value:
-				resultData[i+j*lonsize] = missingValue;
+				resultData[i+j*lonsize] = dstMV;
 				continue;
 			}
 			corlon = _cornerLons[i+_nx*j];//Lookup the user grid vertex lowerleft corner that contains (i,j) lon-lat vertex
@@ -139,23 +139,23 @@ void WeightTable::interp2D(const float* sourceData, float* resultData, float mis
 			//Accumulate values and coefficients for missing and non-missing values
 			//If less than half the weight comes from missing value, then apply weights to non-missing values,
 			//otherwise just set result to missing value.
-			if (data0 == missingValue) mvCoef += cf0;
+			if (data0 == srcMV) mvCoef += cf0;
 			else {
 				goodSum += cf0*data0;
 			}
-			if (data1 == missingValue) mvCoef += cf1;
+			if (data1 == srcMV) mvCoef += cf1;
 			else {
 				goodSum += cf1*data1;
 			}
-			if (data2 == missingValue) mvCoef += cf2;
+			if (data2 == srcMV) mvCoef += cf2;
 			else {
 				goodSum += cf2*data2;
 			}
-			if (data3 == missingValue) mvCoef += cf3;
+			if (data3 == srcMV) mvCoef += cf3;
 			else {
 				goodSum += cf3*data3;
 			}
-			if (mvCoef >= 0.5f) resultData[i+j*lonsize] = missingValue;
+			if (mvCoef >= 0.5f) resultData[i+j*lonsize] = dstMV;
 			else {
 				resultData[i+j*lonsize] = goodSum/(1.-mvCoef);
 			}
