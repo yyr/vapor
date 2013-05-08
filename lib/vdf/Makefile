@@ -5,37 +5,39 @@ include ${TOP}/make/config/prebase.mk
 LIBRARY = vdf
 FILES = \
 	BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata MetadataVDC \
-	MetadataSpherical MetadataWRF MetadataMOM \
+	MetadataSpherical MetadataWRF \
 	WaveletBlock1D  WaveletBlock2D WaveletBlock3D \
 	AMRTreeBranch AMRTree AMRData \
 	VDFIOBase WaveletBlockIOBase WaveletBlock3DReader \
 	WaveletBlock3DRegionReader WaveletBlock3DRegionWriter \
 	WaveletBlock3DWriter WaveletBlock3DBufReader WaveletBlock3DBufWriter \
-	AMRIO  WRF MOM WRFReader Transpose DataMgr DataMgrWB \
+	AMRIO  WRF WRFReader Transpose DataMgr DataMgrWB \
 	DataMgrWC DataMgrWRF DataMgrAMR \
 	vdf WaveFiltBase  WaveFiltBior  WaveFiltDaub  WaveFiltCoif \
 	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \
 	SignificanceMap Compressor WaveCodecIO \
 	DataMgrFactory  NCBuf \
 	LayeredGrid RegularGrid SphericalGrid StretchedGrid NetCDFSimple \
-	NetCDFCollection ROMS MetadataROMS WeightTable
+	NetCDFCollection NetCDFCFCollection WeightTable \
+	DCReaderNCDF  DCReaderMOM DCReaderROMS VDCFactory
 
 HEADER_FILES = \
 	BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata MetadataVDC \
-	MetadataSpherical MetadataWRF MetadataMOM \
+	MetadataSpherical MetadataWRF \
 	WaveletBlock1D  WaveletBlock2D WaveletBlock3D \
 	AMRTreeBranch AMRTree AMRData \
 	VDFIOBase WaveletBlockIOBase WaveletBlock3DReader \
 	WaveletBlock3DRegionReader WaveletBlock3DRegionWriter \
 	WaveletBlock3DWriter WaveletBlock3DBufReader WaveletBlock3DBufWriter \
-	AMRIO  WRF MOM WRFReader DataMgr DataMgrWB \
+	AMRIO  WRF WRFReader DataMgr DataMgrWB \
 	DataMgrWC DataMgrWRF DataMgrAMR \
 	WaveFiltBase  WaveFiltBior  WaveFiltDaub  WaveFiltCoif \
 	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \
 	SignificanceMap Compressor WaveCodecIO \
 	DataMgrFactory Lifting1D Transpose NCBuf \
 	LayeredGrid RegularGrid SphericalGrid StretchedGrid NetCDFSimple \
-	NetCDFCollection ROMS MetadataROMS WeightTable
+	NetCDFCollection NetCDFCFCollection WeightTable \
+	DCReader DCReaderNCDF DCReaderMOM DCReaderROMS VDCFactory
 
 
 #LIB_DEFS = vdf.def

@@ -17,14 +17,16 @@ using namespace VAPoR;
  ) : DataMgr(mem_size), WaveCodecIO(metadata) 
 { }
 
-bool VAPoR::DataMgrWC::_GetMissingValue(float &value) const {
+bool VAPoR::DataMgrWC::_GetMissingValue(
+	size_t ts, string varname, float &value
+) const {
 
-	if (WaveCodecIO::GetVMissingValue(_ts, _varname).size() == 1) {
-		 value = GetVMissingValue(_ts,_varname)[0];
+	if (WaveCodecIO::GetVMissingValue(ts, varname).size() == 1) {
+		 value = GetVMissingValue(ts,varname)[0];
 		return(true);
 	}
-	if (GetTSMissingValue(_ts).size() == 1) {
-		 value = GetTSMissingValue(_ts)[0];
+	if (GetTSMissingValue(ts).size() == 1) {
+		 value = GetTSMissingValue(ts)[0];
 		return(true);
 	}
 	if (GetMissingValue().size() == 1) {

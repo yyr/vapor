@@ -7,7 +7,9 @@ using namespace VetsUtil;
 using namespace std;
 
 NetCDFSimple::NetCDFSimple() {
-	_path = "";
+	_ovr_ncid = -1;
+	_ovr_varid = -1;
+	_path = "";	// so _path.c_str() returns an empty string
 	_chsz = 4*1024*1024;
 	_dimnames.clear();
 	_dims.clear();
@@ -15,6 +17,7 @@ NetCDFSimple::NetCDFSimple() {
 	_flt_atts.clear();
 	_int_atts.clear();
 	_str_atts.clear();
+	_variables.clear();
 }
 
 int NetCDFSimple::Initialize(string path)
@@ -68,7 +71,7 @@ int NetCDFSimple::Initialize(string path)
 		SetErrMsg("nc_inq_unlimdim(%d) : %s", ncid, nc_strerror(rc));
 		return(-1);
 	}
-	_unlimited_dimnames.push_back(_dimnames[dimid]);
+	if (dimid >= 0) _unlimited_dimnames.push_back(_dimnames[dimid]);
 	
 
 	//
@@ -138,13 +141,13 @@ int NetCDFSimple::Initialize(string path)
 }
 
 int NetCDFSimple::OpenRead(
-	string path, const NetCDFSimple::Variable &variable
+	const NetCDFSimple::Variable &variable
 ) {
 	size_t chsz = _chsz;
 	int ncid;
-	int rc = nc__open(path.c_str(), NC_NOWRITE, &chsz, &ncid);
+	int rc = nc__open(_path.c_str(), NC_NOWRITE, &chsz, &ncid);
 	if (rc != 0) {
-		SetErrMsg("nc__open(%s,) : %s", path.c_str(), nc_strerror(rc));
+		SetErrMsg("nc__open(%s,) : %s", _path.c_str(), nc_strerror(rc));
 		return(-1);
 	}
 	_ovr_ncid = ncid;
@@ -472,6 +475,17 @@ void NetCDFSimple::Variable::GetAtt(string name, vector <double> &values) const 
 			return;
 		}
 	}
+	//
+	// Look for atts of type int and then cast to float if found
+	//
+	for (int i=0; i<_int_atts.size(); i++) {
+		if (_int_atts[i].first.compare(name) == 0) {
+			for (int j=0; j<_int_atts[i].second.size(); j++) {
+				values.push_back(_int_atts[i].second[j]);
+			}
+			return;
+		}
+	}
 	return;
 }
 void NetCDFSimple::Variable::GetAtt(string name, vector <long long> &values) const {
@@ -480,6 +494,18 @@ void NetCDFSimple::Variable::GetAtt(string name, vector <long long> &values) con
 	for (int i=0; i<_int_atts.size(); i++) {
 		if (_int_atts[i].first.compare(name) == 0) {
 			values = _int_atts[i].second;
+			return;
+		}
+	}
+
+	//
+	// Look for atts of type float and then cast to int if found
+	//
+	for (int i=0; i<_flt_atts.size(); i++) {
+		if (_flt_atts[i].first.compare(name) == 0) {
+			for (int j=0; j<_flt_atts[i].second.size(); j++) {
+				values.push_back((long long) _flt_atts[i].second[j]);
+			}
 			return;
 		}
 	}

@@ -14,6 +14,8 @@ void	WaveletBlock3DBufWriter::_WaveletBlock3DBufWriter()
 	slice_cntr_c = 0;
 	is_open_c = 0;
 	buf_c = NULL;
+	_writer2D = NULL;
+	_vartype = VAR3D;
 }
 
 WaveletBlock3DBufWriter::WaveletBlock3DBufWriter(
@@ -48,7 +50,20 @@ WaveletBlock3DBufWriter::~WaveletBlock3DBufWriter(
 
 
 	WaveletBlock3DWriter::CloseVariable();
+	if (_writer2D) delete _writer2D;
 
+}
+
+int	WaveletBlock3DBufWriter::_OpenVariableWrite2D(
+	size_t timestep,
+	const char *varname,
+	int reflevel
+) {
+	if (! _writer2D) {
+		_writer2D = new WaveletBlock3DRegionWriter(*this);
+	}
+
+	return (_writer2D->OpenVariableWrite(timestep, varname, reflevel));
 }
 
 int	WaveletBlock3DBufWriter::OpenVariableWrite(
@@ -57,6 +72,11 @@ int	WaveletBlock3DBufWriter::OpenVariableWrite(
 	int reflevel,
 	int
 ) {
+	_vartype = GetVarType(varname);
+	if (_vartype != VAR3D) {
+		return(_OpenVariableWrite2D(timestep, varname, reflevel));
+	} 
+
 	int	rc;
 	size_t size;
 
@@ -87,8 +107,17 @@ int	WaveletBlock3DBufWriter::OpenVariableWrite(
 	return(0);
 }
 
+int     WaveletBlock3DBufWriter::_CloseVariable2D() {
+
+	return (_writer2D->CloseVariable());
+}
+
+
 int     WaveletBlock3DBufWriter::CloseVariable(
 ) {
+	if (_vartype != VAR3D) {
+		return(_CloseVariable2D());
+	} 
 
 	SetDiagMsg(
 		"WaveletBlock3DBufWriter::CloseVariable()"
@@ -155,9 +184,43 @@ static void	blockit(
 	}
 }
 
+int	WaveletBlock3DBufWriter::_WriteSlice2D(
+	const float *slice
+) {
+	size_t dim[3];
+	WaveletBlockIOBase::GetDim(dim, -1);
+
+	size_t min[] = {0,0,0};
+	size_t max[] = {0,0,0};
+
+	switch (_vartype) {
+	case Metadata::VAR2D_XY:
+		max[0] = dim[0] - 1;
+		max[1] = dim[1] - 1;
+	break;
+
+	case Metadata::VAR2D_XZ:
+		max[0] = dim[0] - 1;
+		max[2] = dim[2] - 1;
+	break;
+	case Metadata::VAR2D_YZ:
+		max[1] = dim[1] - 1;
+		max[2] = dim[2] - 1;
+	break;
+	default:
+	break;
+
+	}
+	
+	return(_writer2D->WriteRegion(slice, min, max));
+}
+
 int	WaveletBlock3DBufWriter::WriteSlice(
 	const float *slice
 ) {
+	if (_vartype != VAR3D) {
+		return(_WriteSlice2D(slice));
+	} 
 	size_t	size;
 
 	SetDiagMsg(

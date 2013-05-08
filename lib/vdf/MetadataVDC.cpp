@@ -742,9 +742,6 @@ int MetadataVDC::SetExtents(const vector<double> &value) {
 
 int MetadataVDC::IsValidExtents(const vector<double> &value) const {
 	if (value.size() != 6) return (0);
-	if (value[0]>=value[3]) return(0);
-	if (value[1]>=value[4]) return(0);
-	if (value[2]>=value[5]) return(0);
 	return(1);
 }
 
@@ -1021,7 +1018,7 @@ int MetadataVDC::SetTSUserTimeStamp(size_t ts, const string &value) {
 }
 
 int MetadataVDC::SetTSXCoords(size_t ts, const vector<double> &value) {
-	if (! IsValidXCoords(value)) {
+	if (value.size() < _dim[0]) {
 		SetErrMsg("Invalid coordinate array specification");
 		return(-1);
 	}
@@ -1034,7 +1031,7 @@ int MetadataVDC::SetTSXCoords(size_t ts, const vector<double> &value) {
 }
 
 int MetadataVDC::SetTSYCoords(size_t ts, const vector<double> &value) {
-	if (! IsValidYCoords(value)) {
+	if (value.size() < _dim[1]) {
 		SetErrMsg("Invalid coordinate array specification");
 		return(-1);
 	}
@@ -1047,7 +1044,7 @@ int MetadataVDC::SetTSYCoords(size_t ts, const vector<double> &value) {
 }
 
 int MetadataVDC::SetTSZCoords(size_t ts, const vector<double> &value) {
-	if (! IsValidZCoords(value)) {
+	if (value.size() < _dim[2]) {
 		SetErrMsg("Invalid coordinate array specification");
 		return(-1);
 	}

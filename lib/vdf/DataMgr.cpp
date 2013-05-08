@@ -151,7 +151,7 @@ RegularGrid *DataMgr::make_grid(
 
 	RegularGrid *rg = NULL;
 	float mv;
-	bool has_missing = _GetMissingValue(mv);
+	bool has_missing = varname.empty() ? false : _GetMissingValue(ts, varname, mv);
 	if (DataMgr::GetCoordSystemType().compare("spherical")==0) { 
 		vector <long> permv = GetGridPermutation();
 		size_t perm[] = {permv[0], permv[1], permv[2]};
@@ -1557,11 +1557,11 @@ void   DataMgr::MapUserToVox(
 	size_t min[] = {0,0,0};
 	size_t max[] = {dims[0]-1, dims[1]-1, dims[2]-1};
 
-	EnableErrMsg(false);
+	bool enable = EnableErrMsg(false);
 	RegularGrid *rg = GetGrid(
 		timestep,"", reflevel, 0, min, max, false
 	);
-	EnableErrMsg(true);
+	EnableErrMsg(enable);
 	
 	if (! rg) return;
 
@@ -1587,11 +1587,11 @@ void   DataMgr::MapVoxToUser(
 	size_t min[] = {0,0,0};
 	size_t max[] = {dims[0]-1, dims[1]-1, dims[2]-1};
 
-	EnableErrMsg(false);
+	bool enable = EnableErrMsg(false);
 	RegularGrid *rg = (RegularGrid *) GetGrid(
 		timestep,"", reflevel, 0, min, max, false
 	);
-	EnableErrMsg(true);
+	EnableErrMsg(enable);
 
 	if (! rg) return;
 
@@ -1612,9 +1612,9 @@ void    DataMgr::GetEnclosingRegion(
 		min[i] = 0;
 		max[i] = dims[i]-1;
 	}
-	EnableErrMsg(false);
+	bool enable = EnableErrMsg(false);
 	RegularGrid *rg = GetGrid(ts,"", reflevel, 0, min, max, false);
-	EnableErrMsg(true);
+	EnableErrMsg(enable);
 
 	if (! rg) return;
 

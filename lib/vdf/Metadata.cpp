@@ -29,6 +29,7 @@
 #include <expat.h>
 #include <cassert>
 #include <algorithm>
+#include <vector>
 #include <vapor/Metadata.h>
 #include <vapor/CFuncs.h>
 
@@ -67,6 +68,7 @@ void Metadata::GetDim(
     for (int i=0; i<3; i++) {
         dim[i] = maxdim[i] >> ldelta;
 
+		if (dim[i] == 0) dim[i] = 1;
         // Deal with odd dimensions
 		if (_deprecated_get_dim) {
 			if ((dim[i] << ldelta) < maxdim[i]) dim[i]++;

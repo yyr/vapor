@@ -1018,20 +1018,21 @@ int WaveCodecIO::BlockWriteRegion(
 	// Clean up threads and reduce data range
 	//
 
-      	for (int t=0; t<_nthreads; t++) {
+	for (int t=0; t<_nthreads; t++) {
 		float v = _rw_thread_objs[t]->GetDataRange()[0];
 		if (v < _dataRange[0]) _dataRange[0] = v;
 
 		v = _rw_thread_objs[t]->GetDataRange()[1];
 		if (v > _dataRange[1]) _dataRange[1] = v;
 		delete _rw_thread_objs[t];
-		}
+	}
 	_methodTimer += (MPI_Wtime() - starttime);
 
 	return(_threadStatus);
 }
 
 void WaveCodecIO::ReadWriteThreadObj::BlockWriteRegionThread() {
+
 
 	// dimensions of region in voxels
 	//
@@ -2690,7 +2691,6 @@ WaveCodecIO::ReadWriteThreadObj::ReadWriteThreadObj(
 	_dataRange[1] = -FLT_MAX;
 	_reblock = reblock;
 	_pad = pad;
-
 }
 
 void WaveCodecIO::ReadWriteThreadObj::BlockReadRegionThread(
