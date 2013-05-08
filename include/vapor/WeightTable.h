@@ -17,29 +17,30 @@ namespace VAPoR {
 // No special provision is made for points near the north pole.  In that case, the latitude is always less than 90, so a valid rectangle will contain the point in 
 //	user ulon/ulat coordinates.
 // 
-class ROMS;
-class MOM;
 class VDFIOBase;
 class VDF_API WeightTable {
 public:
 	//Construct a weight table (initially empty) for a given geo_lat and geo_lon variable.
-	WeightTable(MOM* mom, int lonvarnum, int latvarnum);
+ WeightTable(
+    const float *geo_lat, const float *geo_lon,
+    int ny, int nx,
+    const float latexts[2], const float lonexts[2]
+ );
+ virtual ~WeightTable();
 	
-	WeightTable(ROMS* roms, int latlonvarnum);
 	// Interpolate a 2D or 3D variable to the lon/lat grid, using this weights table
 	// Sourcedata is where the variable data has already been loaded.
 	// Values in the data that are equal to missingValue are mapped to missMap
 	void interp2D(const float* sourceData, float* resultData, float missingValue, const size_t* dims);
-	void interp2D(const double* sourceData, float* resultData, double missingValue, const size_t* dims);
 	
-	//Calculate the weights using a specified opened topo file.  Return 0 if OK.
-	int calcWeights(int ncid);
+	//Calculate the weights 
+	int calcWeights();
 
 	//Calculate angle that grid makes with latitude line at a particular vertex.
-	float getAngle(int ilon, int ilat);
+	float getAngle(int ilon, int ilat) const;
 
-	float* getGeoLats(){ return geo_lat;}
-	
+	const float* getGeoLats() const { return _geo_lat;}
+
 private:
 	//Following 2 methods are for debugging:
 	float bestLatLonPolar(int ulon, int ulat);
@@ -102,25 +103,23 @@ private:
 	
 	
 	//Storage for weights:
-	float* alphas;
-	float* betas;
+	float* _alphas;
+	float* _betas;
 	//cornerLats[j] and cornerLons[j] indicate indices of lower-left corner of user coordinate rectangle that contains
 	// the lon/lat point indexed by "j".
-	int* cornerLons;
-	int* cornerLats;
+	int* _cornerLons;
+	int* _cornerLats;
 	//As the table is constructed, keep track of how good is the test.  Points near boundary get replaced if a better fit is found.
-	float* testValues;
+	float* _testValues;
 	//Arrays that hold the geo_lat and geo_lon values in the user topo data.  To determine the longitude and latitude of
 	//the user grid cell vertex [ilon,ilat], you need to evaluate geo_lon[ilon+ilat*
-	float* geo_lon;
-	float* geo_lat;
-	int nlon, nlat;  //Grid dimensions
-	float lonLatExtents[4];
-	string geoLatVarName;
-	string geoLonVarName;
-	float epsilon, epsRect;
-	float deltaLat, deltaLon;
-	bool wrapLon, wrapLat;
+	float* _geo_lon;
+	float* _geo_lat;
+	int _nx, _ny;  //Grid dimensions
+	float _lonLatExtents[4];
+	float _epsilon, _epsRect;
+	float _deltaLat, _deltaLon;
+	bool _wrapLon, _wrapLat;
 		
 }; //End WeightTable class
 	

@@ -829,7 +829,9 @@ protected:
  //!
  //! \retval returns true if missing data are present
  //
- virtual bool _GetMissingValue(float &value) const {return(false); };
+ virtual bool _GetMissingValue(size_t ts, string varname, float &value) const {
+	return(false); 
+ };
 
 
  //! Read in and return a subregion from the currently opened multiresolution

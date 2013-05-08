@@ -166,7 +166,7 @@ protected:
 	return(WaveCodecIO::GetDataRange());
  }
 
- virtual bool _GetMissingValue(float &value) const;
+ virtual bool _GetMissingValue(size_t ts, string varname, float &value) const;
 
 
  virtual int    _BlockReadRegion(

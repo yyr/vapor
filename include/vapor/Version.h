@@ -61,7 +61,7 @@ public:
 
  //! Return the sub minor version number
  //
- static string GetRC() { return(""); }
+ static string GetRC() { return("dev"); }
 
  //! Return the canonical version number as a formatted string
  //!
@@ -78,7 +78,7 @@ public:
  //! advanced.
  //
  static const string &GetDateString() {
-	_dateString.assign("Tue Oct  9 00:01:54 MDT 2012"); return(_dateString);
+	_dateString.assign("Mon Feb 11 15:37:56 MST 2013"); return(_dateString);
  }
  static int Compare(int major, int minor, int minorminor) ;
  static int Compare(std::string ver1, std::string ver2);

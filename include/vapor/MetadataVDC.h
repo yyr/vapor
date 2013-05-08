@@ -814,17 +814,6 @@ public:
 	return(_rootnode->GetChild(ts)->GetElementDouble(_xCoordsTag));
  };
 
- //! Return true if \p value is a valid X dimension coordinate array
- //!
- //! \param[i] value An array of monotonically increasing values specifying 
- //! the X // coordinates, in a user-defined coordinate system, of each 
- //! YZ sample plane. 
- //! \retval boolean True if \p value is a valid argument
- //
- int IsValidXCoords(const vector<double> &value) const {
-	return(value.size() == _dim[0]);
-	}
-
  int SetTSYCoords(size_t ts, const vector<double> &value);
 
  vector<double> GetTSYCoords(size_t ts) const {
@@ -832,18 +821,12 @@ public:
 	return(_rootnode->GetChild(ts)->GetElementDouble(_yCoordsTag));
  }
 
- int IsValidYCoords(const vector<double> &value) const {
-	return(value.size() == _dim[1]);
-	}
-
  int SetTSZCoords(size_t ts, const vector<double> &value);
- const vector<double> &GetTSZCoords(size_t ts) const {
+
+ vector<double> GetTSZCoords(size_t ts) const {
 	CHK_TS_OPT(ts, _emptyDoubleVec)
 	return(_rootnode->GetChild(ts)->GetElementDouble(_zCoordsTag));
  }
- int IsValidZCoords(const vector<double> &value) const {
-	return(value.size() == _dim[2]);
-	}
 
  //! Set a comment for the time step indicated by \p ts
  //

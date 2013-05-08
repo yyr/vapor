@@ -6,12 +6,8 @@
 #ifndef	_Metadata_h_
 #define	_Metadata_h_
 
-#include <stack>
-#include <expat.h>
-#include <vapor/MyBase.h>
-#include <vapor/common.h>
-#include <vapor/XmlNode.h>
-#include <vapor/ExpatParseMgr.h>
+#include <vector>
+
 #ifdef WIN32
 #pragma warning(disable : 4251)
 #endif
@@ -34,7 +30,7 @@ namespace VAPoR {
 //! \date    $Date$
 //!
 //!
-class VDF_API Metadata {
+class Metadata {
 public:
 
  //! An enum of variable types. Variables defined in a data collection
@@ -103,15 +99,15 @@ public:
  //!
  //! \retval cr A vector of one or more compression factors
  //
- virtual vector <size_t> GetCRatios() const {
-	vector <size_t> cr; cr.push_back(1); return(cr);
+ virtual std::vector <size_t> GetCRatios() const {
+	std::vector <size_t> cr; cr.push_back(1); return(cr);
  }
 
  //! Return the coordinate system type. One of \b cartesian or \b spherical 
  //! \retval type 
  //! 
  //
- virtual string GetCoordSystemType() const { return("cartesian"); };
+ virtual std::string GetCoordSystemType() const { return("cartesian"); };
 
  //! Return the grid type. One of \b regular, \b stretched, \b block_amr,
  //! or \b spherical
@@ -119,7 +115,26 @@ public:
  //! \retval type 
  //! 
  //
- virtual string GetGridType() const { return("regular"); };
+ virtual std::string GetGridType() const { return("regular"); };
+
+ //! Return the X dimension coordinate array, if it exists
+ //!
+ //! \retval value An array of monotonically changing values specifying
+ //! the X coordinates, in a user-defined coordinate system, of each
+ //! YZ sample plane. An empty vector is returned if the coordinate
+ //! dimension array is not defined for the specified time step.
+ //! \sa GetGridType() 
+ //!
+ //
+ virtual std::vector<double> GetTSXCoords(size_t ts) const {
+	std::vector <double> empty; return(empty);
+ };
+ virtual std::vector<double> GetTSYCoords(size_t ts) const {
+	std::vector <double> empty; return(empty);
+ };
+ virtual std::vector<double> GetTSZCoords(size_t ts) const {
+	std::vector <double> empty; return(empty);
+ };
 
 
 
@@ -142,7 +157,7 @@ public:
  //! the second three elements specify the maximum bounds.
  //!
  //
- virtual vector<double> GetExtents(size_t ts = 0) const = 0;
+ virtual std::vector<double> GetExtents(size_t ts = 0) const = 0;
 
 
  //! Return the number of time steps in the data collection
@@ -161,7 +176,7 @@ public:
  //! \retval value is a space-separated list of variable names
  //!
  //
- virtual vector <string> GetVariableNames() const;
+ virtual std::vector <std::string> GetVariableNames() const;
 
  //! Return the Proj4 map projection string.
  //!
@@ -170,7 +185,7 @@ public:
  //! string is returned.
  //!
  //
- virtual string GetMapProjection() const {string empty; return (empty); };
+ virtual std::string GetMapProjection() const {std::string empty; return (empty); };
 
  //! Return the names of the 3D variables in the collection 
  //!
@@ -178,7 +193,7 @@ public:
  //! An emptry string is returned if no variables of this type are present
  //!
  //
- virtual vector <string> GetVariables3D() const = 0;
+ virtual std::vector <std::string> GetVariables3D() const = 0;
 
  //! Return the names of the 2D, XY variables in the collection 
  //!
@@ -186,7 +201,7 @@ public:
  //! An emptry string is returned if no variables of this type are present
  //!
  //
- virtual vector <string> GetVariables2DXY() const = 0;
+ virtual std::vector <std::string> GetVariables2DXY() const = 0;
 
  //! Return the names of the 2D, XZ variables in the collection 
  //!
@@ -194,7 +209,7 @@ public:
  //! An emptry string is returned if no variables of this type are present
  //!
  //
- virtual vector <string> GetVariables2DXZ() const = 0;
+ virtual std::vector <std::string> GetVariables2DXZ() const = 0;
 
  //! Return the names of the 2D, YZ variables in the collection 
  //!
@@ -202,7 +217,7 @@ public:
  //! An emptry string is returned if no variables of this type are present
  //!
  //
- virtual vector <string> GetVariables2DYZ() const = 0;
+ virtual std::vector <std::string> GetVariables2DYZ() const = 0;
 
  //! Return the names of the coordinate variables.
  //!
@@ -217,8 +232,8 @@ public:
  //! \retval vector is three-element vector of coordinate variable names.
  //!
  //
- virtual vector <string> GetCoordinateVariables() const {;
-	vector <string> v;
+ virtual std::vector <std::string> GetCoordinateVariables() const {;
+	std::vector <std::string> v;
 	v.push_back("NONE"); v.push_back("NONE"); v.push_back("ELEVATION");
 	return(v);
  }
@@ -230,14 +245,14 @@ public:
  //! \retval boolean-vector  
  //!
  //
- virtual vector<long> GetPeriodicBoundary() const = 0;
+ virtual std::vector<long> GetPeriodicBoundary() const = 0;
 
  //! Return a three-element integer array indicating the coordinate
  //! ordering permutation.
  //!
  //! \retval integer-vector  
  //!
- virtual vector<long> GetGridPermutation() const = 0;
+ virtual std::vector<long> GetGridPermutation() const = 0;
 
  //! Return the time for a time step
  //!
@@ -270,7 +285,7 @@ public:
  //! the valid range zero the empty string is returned.
  //!
  //
- virtual void GetTSUserTimeStamp(size_t ts, string &s) const = 0;
+ virtual void GetTSUserTimeStamp(size_t ts, std::string &s) const = 0;
 
 
  //! Get the dimension of a volume
@@ -305,6 +320,23 @@ public:
  //
  virtual void   GetDimBlk(size_t bdim[3], int reflevel = 0) const; 
 
+ //! Return the value of the missing data value
+ //! 
+ //! This method returns the value of the missing data value 
+ //! the specified variable. If no missing data are present
+ //! the method returns false
+ //!
+ //! \param[in] varname A 3D or 2D variable name
+ //! \param[out] value The missing data value. Undefined if no missing
+ //! value is present.
+ //! 
+ //! \retval returns true if missing data are present
+ //
+ virtual bool GetMissingValue(std::string varname, float &value) const {
+	return(false); 
+ };
+
+
 
  //! Map integer voxel coordinates into integer block coordinates. 
  //! 
@@ -338,7 +370,7 @@ public:
  //! \param[in] varname A 3D or 2D variable name
  //! \retval type The variable type. The constant VAR
  //
- virtual VarType_T GetVarType(const string &varname) const; 
+ virtual VarType_T GetVarType(const std::string &varname) const; 
 
  //! Return true if indicated region coordinates are valid
  //!
@@ -388,7 +420,7 @@ public:
  //!
  //! \sa GetCoordinateVariables()
  //
- virtual bool IsCoordinateVariable(string varname) const;
+ virtual bool IsCoordinateVariable(std::string varname) const;
 
 
 protected:

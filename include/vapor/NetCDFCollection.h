@@ -24,7 +24,7 @@ namespace VAPoR {
 //!
 //! This class treats a collection of netCDF files as a single,
 //! time-varying data set, providing a unified interface for accessing
-//! named 1D, 2D, and 3D spatial variables at a specified timestep, 
+//! named 0D, 1D, 2D, and 3D spatial variables at a specified timestep, 
 //! independent of which netCDF file contains the data.
 //!
 //! The netCDF variables may be "explicitly" time-varying: the slowest
@@ -46,12 +46,58 @@ namespace VAPoR {
 //! 'dims' is a vector of dimensions, then dims[0] is the slowest varying
 //! dimension, dim[1] is the next slowest, and so on. This ordering is the
 //! opposite of the ordering used by most of the VAPoR API.
-//
+//!
+//! Several file organizations are supported and discussed below. To
+//! ease discussion we introduce the terminology:
+//!
+//! define TD : Time Dimension <br>
+//! define TCV : Time Coordinate Variable <br>
+//! define TVV : an explicitly Time Varying Variable (it has a time 
+//! dimension) <br>
+//! define ITVV : an Implicit Time Varying Variable (has no
+//!	time dimension, but has multiple occurences => order determines
+//!	time) <br>
+//! define CV: Constant Variable (has no TD, occurs only once). CV variables 
+//! are define for all time steps
+//!
+//! Four file organizations are supported as described below:
+//!
+//! <b>case 1:</b> No TD specified (therefore no TCV):
+//!	+ All variables are ITVV 
+//!	+ synthesize TCV by order of appearance of variables (file order only)
+//!	+ ITVV time derived by order of appearance (file order only).
+//!	+ only one time step per variable per file
+//!
+//! <b>case 2:</b> TD specified, but no TCV:
+//!	+ All variables are TVV or CV 
+//!	+ synthesize TCV by order of appearance (file order, then TD).
+//!	+ multiple time steps per variable per file
+//!	+ variables with TD are TVV 
+//!	+ variables with no TD are CV (available for all time)
+//!	+ A CV that occurs multiple times overwrites prior occurence
+//!	(there can be no ITVV variables).
+//!
+//! <b>case 3a</b>: TD & TCV specified, TCV appears in only file:
+//!	+ All variables are TVV or CV 
+//!	+ TVVs indexed to time in TCV by order of appearance (file order, TD
+//!	within file)
+//!	+ A CV that occurs multiple times overwrites prior occurence
+//!	+ Require TCV to appear in first file
+//!
+//! <b>case 3b</b>: TD & TCV specified, TCV appears in every file with TVV:
+//!	+ Only have TVV and CV variables
+//!	+ TVVs indexed to time by TD offset within a file
+//!	+ A CV that occurs multiple times overwrites prior occurence
+//!	+ Order of file specification is irrelevant (except for multiple
+//!	occurences of CVs of same name)
+//!
+
 
 class VDF_API NetCDFCollection : public VetsUtil::MyBase {
 public:
  
  NetCDFCollection();
+ virtual ~NetCDFCollection();
 
  //! Initialze a new collection 
  //!
@@ -79,10 +125,23 @@ public:
  //! this variable will be used to determine the time associated with each
  //! time step of a variable.
  //!
- int Initialize(
-	const vector <string> &files, const vector <string> &time_dimnames, 
-	string time_coordvar
+ virtual int Initialize(
+	const std::vector <string> &files, 
+	const std::vector <string> &time_dimnames, 
+	const std::vector <string> &time_coordvar
  );
+
+ //! Return a boolean indicating whether a variable exists in the 
+ //! data collection.
+ //!
+ //! This method returns true iff the variable named by \p varname 
+ //! is exists in the data set
+ //!
+ //! \param[in] varname A netCDF variable name
+ //!
+ //! \sa GetTimes(), GetVariables()
+ //
+ virtual bool VariableExists(string varname) const;
 
  //! Return a boolean indicating whether a variable is defined for a
  //! particular time step.
@@ -96,7 +155,7 @@ public:
  //!
  //! \sa GetTimes(), GetNumTimeSteps(), GetVariables()
  //
- bool VariableExists(size_t ts, string varname) const;
+ virtual bool VariableExists(size_t ts, string varname) const;
 
 	
  //! Returns true if the specified variable has any staggered dimensions
@@ -110,7 +169,7 @@ public:
  //!
  //! \sa SetStaggeredDims()
  //!
- bool IsStaggeredVar(string varname) const;
+ virtual bool IsStaggeredVar(string varname) const;
 
  //! Returns true if the specified dimension is staggered
  //!
@@ -121,7 +180,7 @@ public:
  //!
  //! \sa SetStaggeredDims()
  //!
- bool IsStaggeredDim(string dimname) const;
+ virtual bool IsStaggeredDim(string dimname) const;
 
  //! Return a list of variables with a given rank
  //!
@@ -136,17 +195,41 @@ public:
  //!
  //! \param[in] ndim Rank of spatial dimensions
  //
- vector <string> GetVariableNames(int ndim) const;
+ virtual std::vector <string> GetVariableNames(int ndim) const;
 
  //! Return a variables spatial dimensions
  //! 
  //! Returns the ordered list of spatial dimensions of the named variable. 
+ //! \note The order follows the netCDF convention (slowest varying
+ //! dimension is the first vector element returned), not the VDC 
+ //! convention
  //!
  //! \param[in] varname Name of variable
  //! \retval dims An ordered vector containing the variables spatial 
  //! dimensions.
  //!
- vector <size_t>  GetDims(string varname) const;
+ virtual std::vector <size_t>  GetDims(string varname) const;
+
+ virtual std::vector <string>  GetDimNames(string varname) const;
+
+ //! Return true if variable is time varying
+ //!
+ //! Returns true if the variable named by \p varname has a 
+ //! time varying coordinate
+ //!
+ //! \param[in] varname Name of variable
+ //
+ virtual bool IsTimeVarying(string varname) const;
+
+ //! Return the names of all the dimensions.
+ //! 
+ //! Returns a list of all dimension names defined by all netCDF 
+ //! files in the entire collection.
+ //!
+ //! \retval dimnames An ordered (by name) vector containing all 
+ //! dimension names.
+ //!
+ virtual std::vector <string>  GetDimNames() const {return (_dimNames); };
 
  //! Return the number of time steps in the data collection all variables
  //!
@@ -161,7 +244,9 @@ public:
  //! \retval value The number of time steps
  //!
  //
- size_t GetNumTimeSteps() const {return (_times.size());}
+ virtual size_t GetNumTimeSteps() const {return (_times.size());}
+
+
 
  //! Return the user time associated with a time step 
  //!
@@ -178,7 +263,7 @@ public:
  //! \retval retval A negative int is returned on failure.
  //!
  //
- int GetTime(size_t ts, double &time) const; 
+ virtual int GetTime(size_t ts, double &time) const; 
 
  //! Return all the user times associated with a variable
  //!
@@ -191,7 +276,7 @@ public:
  //! \retval retval A negative int is returned on failure.
  //!
  //
- int GetTimes(string varname, vector <double> &times) const;
+ virtual int GetTimes(string varname, std::vector <double> &times) const;
 
  //! Return all the user times for this collection
  //!
@@ -203,7 +288,7 @@ public:
  //!
  //! \sa Initialize()
  //
- vector <double> GetTimes() const {return (_times); };
+ virtual std::vector <double> GetTimes() const {return (_times); };
 
  //! Return the path to the netCDF file containing a variable
  //!
@@ -216,7 +301,7 @@ public:
  //! \retval retval A negative int is returned on failure.
  //!
  //
- int GetFile(size_t ts, string varname, string &file) const;
+ virtual int GetFile(size_t ts, string varname, string &file) const;
 
  //! Return the NetCDFSimple::Variable for the named variable
  //!
@@ -229,9 +314,17 @@ public:
  //! 
  //! \retval retval A negative int is returned on failure.
  //!
- int GetVariableInfo(
+ virtual int GetVariableInfo(
 	size_t ts, string varname, NetCDFSimple::Variable &varinfo
  ) const;
+
+ //! Get info for first variable at first time step
+ //!
+ virtual int GetVariableInfo(
+	string varname, NetCDFSimple::Variable &varinfo
+ ) const;
+
+ virtual bool GetMissingValue(string varname, double &mv) const;
 
  //! Open the named variable for reading
  //!
@@ -246,7 +339,7 @@ public:
  //!
  //! \sa Read(), ReadNative(), ReadSliceNative() ReadSlice()
  //!
- int OpenRead(size_t ts, string varname);
+ virtual int OpenRead(size_t ts, string varname);
 
  //! Read data from the currently opened variable on an unstaggered grid
  //!
@@ -276,8 +369,10 @@ public:
  //! \sa SetStaggeredDims(), ReadNative(), NetCDFSimple::Read(),
  //! SetMissingValueAttName(), SetMissingValueAttName()
  //!
- int Read(size_t start[], size_t count[], float *data);
- int Read(size_t start[], size_t count[], int *data);
+ virtual int Read(size_t start[], size_t count[], float *data);
+ virtual int Read(size_t start[], size_t count[], int *data);
+
+ virtual int Read(float *data);
 
  //! Read data from the currently opened variable on the native grid
  //!
@@ -293,8 +388,11 @@ public:
  //!
  //! \sa SetStaggeredDims(), NetCDFSimple::Read()
  //!
- int ReadNative(size_t start[], size_t count[], float *data);
- int ReadNative(size_t start[], size_t count[], int *data);
+ virtual int ReadNative(size_t start[], size_t count[], float *data);
+ virtual int ReadNative(size_t start[], size_t count[], int *data);
+
+ virtual int ReadNative(float *data);
+ virtual int ReadNative(int *data);
 
  //! Read a 2D slice from a 2D or 3D variable
  //!
@@ -312,10 +410,10 @@ public:
  //! \retval status Returns 1 if successful, 0 if there are no more
  //! slices to read, and a negative integer on error.
  //!
- //! \sa Open(), Read(), SetStaggeredDims(),
+ //! \sa OpenRead(), Read(), SetStaggeredDims(),
  //! SetMissingValueAttName(), SetMissingValueAttName()
  //
- int ReadSlice(float *data);
+ virtual int ReadSlice(float *data);
 
  //! Read a 2D slice from a 2D or 3D variable on the native grid
  //!
@@ -330,15 +428,31 @@ public:
  //! \retval status Returns 1 if successful, 0 if there are no more
  //! slices to read, and a negative integer on error.
  //!
- //! \sa Open(), Read(), SetStaggeredDims()
+ //! \sa OpenRead(), Read(), SetStaggeredDims()
  //
- int ReadSliceNative(float *data);
+ virtual int ReadSliceNative(float *data);
+
+ //! Enable reading in reverse order
+ //!
+ //! This method enables ReadSlice() and ReadNativeSlice to read in
+ //! reverse order (last slice first). 
+ //! 
+ //! \note Results are undefined if this method is called between
+ //! OpenRead and Close();
+ //!
+ //! \param[in] on A boolean indicating wether reverse reading should
+ //! be enabled. The default is false.
+ //!
+ //! \sa ReadSlice(), ReadSliceNative()
+ //!
+ void EnableLastFirstRead(bool on) {_reverseRead = on;};
+
 
  //! Close the currently opened variable
  //!
- //! \sa Open()
+ //! \sa OpenRead()
  //
- int Close();
+ virtual int Close();
 
  //! Identify staggered dimensions
  //!
@@ -349,7 +463,7 @@ public:
  //!
  //! \param dimnames A list of staggered netCDF dimension names 
  //
- void SetStaggeredDims(const vector <string> dimnames) {
+ virtual void SetStaggeredDims(const std::vector <string> dimnames) {
 	_staggeredDims = dimnames;
  }
 
@@ -363,29 +477,40 @@ public:
  //! \param attname Name of netCDF variable attribute specifying the
  //! missing value
  //
- void SetMissingValueAttName(string attname) {
+ virtual void SetMissingValueAttName(string attname) {
 	_missingValAttName = attname;
  }
+
+ virtual std::vector <string> GetFailedVars() const {return(_failedVars); };
+
+ friend std::ostream &operator<<(
+	std::ostream &o, const NetCDFCollection &ncdfc
+ );
 
  class TimeVaryingVar {
  public:
   TimeVaryingVar();
   int Insert(
 	const NetCDFSimple::Variable &variable, string file, 
-	vector <string> time_dimnames, vector <double> times
+	const std::vector <string> &time_dimnames, 
+	const std::map <string, std::vector <double> > &timesmap,
+	int file_org
   );
-  vector <size_t> GetSpatialDims() const {return(_dims); };
-  vector <string> GetSpatialDimNames() const {return(_dim_names); };
+  std::vector <size_t> GetSpatialDims() const {return(_dims); };
+  std::vector <string> GetSpatialDimNames() const {return(_dim_names); };
   string GetName() const {return(_name); };
 
   size_t GetNumTimeSteps() const {return(_tvmaps.size()); };
   int GetTime(size_t ts, double &time) const; 
-  vector <double> GetTimes() const; 
+  std::vector <double> GetTimes() const; 
   int GetTimeStep(double time, size_t &ts) const;
   size_t GetLocalTimeStep(size_t ts) const; 
   int GetFile(size_t ts, string &file) const;
   int GetVariableInfo(size_t ts, NetCDFSimple::Variable &variable) const;
   bool GetTimeVarying() const {return (_time_varying); };
+  bool GetMissingValue(string attname, double &mv) const;
+
+  friend std::ostream &operator<<(std::ostream &o, const TimeVaryingVar &var);
 
 
   typedef struct {
@@ -395,11 +520,11 @@ public:
 	size_t _local_ts;	// time step offset within file
   } tvmap_t;
  private:
-  vector <NetCDFSimple::Variable> _variables;
-  vector <string> _files;
-  vector <tvmap_t> _tvmaps;
-  vector <size_t> _dims;	// **spatial** dimensions
-  vector <string> _dim_names;
+  std::vector <NetCDFSimple::Variable> _variables;
+  std::vector <string> _files;
+  std::vector <tvmap_t> _tvmaps;
+  std::vector <size_t> _dims;	// **spatial** dimensions
+  std::vector <string> _dim_names;
   string _name;			// variable name
   bool _time_varying;	// true if variable's slowest varying dimension
 						// is a time dimension.
@@ -410,22 +535,57 @@ public:
  };
 private:
 
- map <string, TimeVaryingVar > _variableList;
- NetCDFSimple _ncdf;
- vector <string> _staggeredDims;
+ std::map <string, TimeVaryingVar > _variableList;
+ NetCDFSimple *_ncdfptr;
+ std::map <string, NetCDFSimple *> _ncdfmap;
+ std::vector <string> _staggeredDims;
+ std::vector <string> _dimNames; // Names of all dimensions
  string _missingValAttName;
- vector <double> _times;
+ std::map <string, vector <double> > _timesMap; // map variable to time
+ std::vector <double> _times;	// all valid time coordinates
+ std::vector <string> _failedVars;	// Varibles that could not be added
+ bool _reverseRead;
 
  //
  // Open file data
  //
  size_t _ovr_local_ts;
- size_t _ovr_slice;
+ int _ovr_slice;
  unsigned char *_ovr_slicebuf;
  size_t _ovr_slicebufsz;
+ unsigned char *_ovr_linebuf;
+ size_t _ovr_linebufsz;
  TimeVaryingVar _ovr_tvvars;
  bool _ovr_has_missing;
- float _ovr_missing_value;
+ double _ovr_missing_value;
+ bool _ovr_open;	// open for reading?
+
+ int _InitializeTimesMap(
+    const std::vector <string> &files, 
+	const std::vector <string> &time_dimnames,
+    const std::vector <string> &time_coordvars,
+    std::map <string, std::vector <double> > &timesMap,
+	std::vector <double> &times,
+	int &file_org
+ ) const;
+
+ int _InitializeTimesMapCase1(
+	const std::vector <string> &files,
+    std::map <string, std::vector <double> > &timesMap
+ ) const;
+
+ int _InitializeTimesMapCase2(
+	const std::vector <string> &files,
+	const std::vector <string> &time_dimnames,
+    std::map <string, std::vector <double> > &timesMap
+ ) const;
+
+ int _InitializeTimesMapCase3(
+	const std::vector <string> &files,
+	const std::vector <string> &time_dimnames,
+	const std::vector <string> &time_coordvars,
+    std::map <string, std::vector <double> > &timesMap
+ ) const;
 
  void _InterpolateLine(
 	const float *src, size_t n, size_t stride, 
@@ -435,6 +595,22 @@ private:
  void _InterpolateSlice(
     size_t nx, size_t ny, bool xstag, bool ystag, 
 	bool has_missing, float mv, float *slice
+ ) const;
+
+int _GetTimesMap(
+	NetCDFSimple *netcdf,
+	const std::vector <string> &time_coordvars,
+	const std::vector <string> &time_dimnames,
+	std::map <string, std::vector <double> > &timesmap
+ ) const;
+
+ float *_Get1DVar(
+    NetCDFSimple *netcdf,
+    const NetCDFSimple::Variable &variable
+ ) const ;
+
+ int _get_var_index(
+    const vector <NetCDFSimple::Variable> variables, string varname
  ) const;
 
 

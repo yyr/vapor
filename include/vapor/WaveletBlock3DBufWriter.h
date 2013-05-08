@@ -7,6 +7,7 @@
 #define	_WavletBlock3DBufWriter_h_
 
 #include <vapor/WaveletBlock3DWriter.h>
+#include <vapor/WaveletBlock3DRegionWriter.h>
 
 namespace VAPoR {
 
@@ -116,6 +117,17 @@ private:
  int	is_open_c;
 
  void	_WaveletBlock3DBufWriter();
+
+ //
+ // Need this stuff to support writing 2D data. It's a hideous hack
+ //
+ int _OpenVariableWrite2D(size_t timestep, const char *varname, int reflevel);
+ int _CloseVariable2D();
+ int _WriteSlice2D(const float *slice);
+ WaveletBlock3DRegionWriter *_writer2D;
+ VarType_T _vartype;
+
+
 
 };
 
