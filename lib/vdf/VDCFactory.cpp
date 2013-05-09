@@ -11,7 +11,46 @@ using namespace VetsUtil;
 using namespace std;
 
 VDCFactory::VDCFactory() {
-	_numts = 0;
+	_bs.nx = _bs.ny = _bs.nz = -1;
+	_vdc2 = false;
+	_level = 0;
+	_nfilter = 1;
+	_nlifting = 1;
+	_cratios.push_back(1);
+	_cratios.push_back(10);
+	_cratios.push_back(100);
+	_cratios.push_back(500);
+	_wname = "bior3.3";
+    _vars3d.clear();
+    _vars2dxy.clear();
+    _vars2dxz.clear();
+    _vars2dyz.clear();
+	_missing = 0.0;
+	_comment = "";
+	_order.push_back(0);
+	_order.push_back(1);
+	_order.push_back(2);
+	_periodic.push_back(0);
+	_periodic.push_back(0);
+	_periodic.push_back(0);
+	_numts = 1;
+	_startt = 0.0;
+	_deltat = 0.0;
+	_gridtype = "regular";
+	_usertimes.clear();
+	_xcoords.clear();
+	_ycoords.clear();
+	_zcoords.clear();
+	_mapprojection.clear();
+	_coordsystem = "cartesian";
+	_extents.push_back(0.0);
+	_extents.push_back(0.0);
+	_extents.push_back(0.0);
+	_extents.push_back(0.0);
+	_extents.push_back(0.0);
+	_extents.push_back(0.0);
+
+	_removeOptions.clear();
 }
 
 int VDCFactory::Parse(int *argc, char **argv) {
@@ -168,6 +207,7 @@ int VDCFactory::Parse(int *argc, char **argv) {
 	};
 
 	if (_op.AppendOptions(set_opts) < 0) return(-1);
+	if (_removeOptions.size()) _op.RemoveOptions(_removeOptions);
     if (_op.ParseOptions(argc, argv, get_options) < 0) return(-1);
 
 	if (_order.size() != 3) {

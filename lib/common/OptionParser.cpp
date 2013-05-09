@@ -518,25 +518,23 @@ int	OptionParser::AppendOptions(
  *
  */
 void	OptionParser::RemoveOptions(
-	const OptDescRec_T	*odr
+	vector <string> options
 ) {
 	int	j;
-	vector<_OptRec_T *>::iterator itr; 
+	vector <_OptRec_T *>::iterator itr; 
 
 	/*
 	 * look for the option in the option table.
 	 */
-	for (j=0; odr[j].option; j++) {
-		for (itr = _optTbl.begin(); itr != _optTbl.end(); itr++) {
+	for (j=0; j<options.size(); j++) {
+		for (itr = _optTbl.begin(); itr != _optTbl.end(); ++itr) {
 			_OptRec_T *o = *itr;
-			if (strcmp(o->option, odr[j].option) == 0){
-				_OptRec_T *opt_rec = o;
+			if (options[j].compare(o->option) == 0) { 
 				if (o->option) free ((void *) o->option);
 				if (o->value) free ((void *) o->value);
 				if (o->default_value) free ((void *) o->default_value);
 				if (o->help) free ((void *) o->help);
 				_optTbl.erase(itr);
-				delete opt_rec;
 				break;
 			}
 		}
@@ -938,8 +936,9 @@ int	OptionParser::_parse_options(
 		}
 
 		if (! o ) {
-			SetErrMsg("Option %s unknown", options[i].option_name);
-			return(-1);
+//			SetErrMsg("Option %s unknown", options[i].option_name);
+//			return(-1);
+continue;
 		}
 
 		/*
