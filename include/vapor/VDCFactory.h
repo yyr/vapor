@@ -28,6 +28,9 @@ public:
  
  VDCFactory();
  int Parse(int *argc, char **argv);
+ void RemoveOptions(std::vector <string> options) {
+	_removeOptions = options;
+ }
  MetadataVDC *New(const size_t dims[3]) const;
  void Usage (FILE *fp) ;
 
@@ -60,6 +63,7 @@ private:
 	std::string _mapprojection;
 	std::string _coordsystem;
 	std::vector <float> _extents;
+	std::vector <string> _removeOptions;
 
 	int _ReadDblVec(string path, vector <double> &vec) const;
 
