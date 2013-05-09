@@ -205,6 +205,17 @@ MetadataVDC *CreateMetadataVDC(
 	return(file);
 }
 
+char ** argv_merge(
+	int argc1, char **argv1, int argc2, char **argv2,
+	int &newargc
+) {
+	char **newargv = new char * [argc1+argc2+1];
+	newargc = 0;
+	for (int i=0; i<argc1; i++) newargv[newargc++] = argv1[i];
+	for (int i=0; i<argc2; i++) newargv[newargc++] = argv2[i];
+	newargv[newargc] = NULL;
+	return(newargv);
+}
 
 int	main(int argc, char **argv) {
 
@@ -217,6 +228,14 @@ int	main(int argc, char **argv) {
 
 	ProgName = Basename(argv[0]);
 
+	// Ugh. All this just to add a default option to argv
+	//
+	char **myargv;
+	int myargc;
+	char *argv2[] = {"-vdc2", NULL};
+	myargv = argv_merge(argc, argv, 1, argv2, myargc);
+
+
 	if (op.AppendOptions(set_opts) < 0) {
 		exit(1);
 	}
@@ -226,6 +245,30 @@ int	main(int argc, char **argv) {
 	}
 
 	VDCFactory vdcf;
+	vector <string> rmopts;
+	rmopts.push_back("nfilter");
+	rmopts.push_back("nlifting");
+	rmopts.push_back("varnames");
+	rmopts.push_back("vars3d");
+	rmopts.push_back("vars2dxy");
+	rmopts.push_back("vars2dxz");
+	rmopts.push_back("vars2dyz");
+	rmopts.push_back("missing");
+	rmopts.push_back("level");
+	rmopts.push_back("order");
+	rmopts.push_back("start");
+	rmopts.push_back("deltat");
+	rmopts.push_back("gridtype");
+	rmopts.push_back("usertimes");
+	rmopts.push_back("xcoords");
+	rmopts.push_back("ycoords");
+	rmopts.push_back("zcoords");
+	rmopts.push_back("mapprojection");
+	rmopts.push_back("coordsystem");
+	rmopts.push_back("extents");
+
+    vdcf.RemoveOptions(rmopts);
+
 	if (vdcf.Parse(&argc, argv) < 0) {
 		exit(1);
 	}
