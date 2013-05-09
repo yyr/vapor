@@ -123,7 +123,7 @@ public:
  //! \sa ParseOptions(), RemoveOptions()
  int ParseOptions(int *argc, char **argv, Option_T *opts);
  int ParseOptions(const EnvOpt_T *envv, Option_T *opts);
- void	RemoveOptions(const OptDescRec_T  *odr);
+ void	RemoveOptions(std::vector <string> options);
  void	PrintOptionHelp(FILE *fp, int linelimit = 80, bool docopyright = true);
 
  typedef struct _OptRec {
