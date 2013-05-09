@@ -354,6 +354,9 @@ public:
 
  virtual VarType_T GetVarType(const string &varname) const; 
 
+ bool GetMissingValue(string varname, float &value) const;
+
+
 	
  //! Purge the cache of a variable
  //!
@@ -829,7 +832,7 @@ protected:
  //!
  //! \retval returns true if missing data are present
  //
- virtual bool _GetMissingValue(size_t ts, string varname, float &value) const {
+ virtual bool _GetMissingValue(string varname, float &value) const {
 	return(false); 
  };
 

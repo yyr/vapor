@@ -151,7 +151,7 @@ RegularGrid *DataMgr::make_grid(
 
 	RegularGrid *rg = NULL;
 	float mv;
-	bool has_missing = varname.empty() ? false : _GetMissingValue(ts, varname, mv);
+	bool has_missing = varname.empty() ? false : DataMgr::GetMissingValue(varname, mv);
 	if (DataMgr::GetCoordSystemType().compare("spherical")==0) { 
 		vector <long> permv = GetGridPermutation();
 		size_t perm[] = {permv[0], permv[1], permv[2]};
@@ -1446,6 +1446,33 @@ DataMgr::VarType_T DataMgr::GetVarType(const string &varname) const {
 		}
 	}
 	return VARUNKNOWN;
+}
+
+bool DataMgr::GetMissingValue(string varname, float &mv) const {
+
+	//
+	// IF variable is derived see if any dependent variables have 
+	// missing values
+	//
+	if (DataMgr::IsVariableDerived(varname)) {
+
+		//
+		// Get the pipline stage for computing this variable
+		//
+		PipeLine *pipeline = get_pipeline_for_var(varname);
+		assert(pipeline != NULL);
+
+		const vector  <string> ivars = pipeline->GetInputs();
+		for (int i=0; i<ivars.size(); i++) {
+			if (ivars[i].compare(varname) == 0) continue;	// shouldn't happen
+
+			if (DataMgr::GetMissingValue(ivars[i], mv)) return (true);
+		}
+		return(false);
+	}
+	else {
+		return( _GetMissingValue(varname, mv));
+	}
 }
 	
 

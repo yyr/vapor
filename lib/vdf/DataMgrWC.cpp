@@ -18,19 +18,22 @@ using namespace VAPoR;
 { }
 
 bool VAPoR::DataMgrWC::_GetMissingValue(
-	size_t ts, string varname, float &value
+	string varname, float &value
 ) const {
 
-	if (WaveCodecIO::GetVMissingValue(ts, varname).size() == 1) {
-		 value = GetVMissingValue(ts,varname)[0];
+	//
+	// DataMgr doesn't support missing values that vary over time
+	//
+	if (WaveCodecIO::GetVMissingValue(0, varname).size() == 1) {
+		 value = GetVMissingValue(0,varname)[0];
 		return(true);
 	}
-	if (GetTSMissingValue(ts).size() == 1) {
-		 value = GetTSMissingValue(ts)[0];
+	if (WaveCodecIO::GetTSMissingValue(0).size() == 1) {
+		 value = GetTSMissingValue(0)[0];
 		return(true);
 	}
-	if (GetMissingValue().size() == 1) {
-		 value = GetMissingValue()[0];
+	if (WaveCodecIO::GetMissingValue().size() == 1) {
+		 value = WaveCodecIO::GetMissingValue()[0];
 		return(true);
 	}
 	return(false);
