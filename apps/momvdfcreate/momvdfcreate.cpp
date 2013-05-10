@@ -240,7 +240,7 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
-	if (op.ParseOptions(&argc, argv, get_options) < 0) {
+	if (op.ParseOptions(&myargc, myargv, get_options) < 0) {
 		exit(1);
 	}
 
@@ -269,7 +269,7 @@ int	main(int argc, char **argv) {
 
     vdcf.RemoveOptions(rmopts);
 
-	if (vdcf.Parse(&argc, argv) < 0) {
+	if (vdcf.Parse(&myargc, myargv) < 0) {
 		exit(1);
 	}
 
@@ -280,18 +280,18 @@ int	main(int argc, char **argv) {
 	}
 
 
-	argv++;
-	argc--;
+	myargv++;
+	myargc--;
 
-	if (argc < 2) {
+	if (myargc < 2) {
 		Usage(op, "No files to process");
 		vdcf.Usage(stderr);
 		exit(1);
 	}
 
 	vector<string> ncdffiles;
-	for (int i=0; i<argc-1; i++) {
-		 ncdffiles.push_back(argv[i]);
+	for (int i=0; i<myargc-1; i++) {
+		 ncdffiles.push_back(myargv[i]);
 	}
 	
 	momData = new DCReaderMOM(ncdffiles);
@@ -309,7 +309,7 @@ int	main(int argc, char **argv) {
 	file = CreateMetadataVDC(vdcf, momData);
 
 	// Write file.
-	if (file->Write(argv[argc-1]) < 0) {
+	if (file->Write(myargv[myargc-1]) < 0) {
 		exit(1);
 	}
 
