@@ -723,8 +723,8 @@ int DCReaderMOM::_initLatLonBuf(
 		llb._ny = latdims[0];
 	}
 	else {	// Must be rank 2 if not rank 1 
-		llb._nx = latdims[1];
-		llb._ny = latdims[0];
+		llb._nx = latdims[0];
+		llb._ny = latdims[1];
 	}
 
 	//
@@ -740,13 +740,13 @@ int DCReaderMOM::_initLatLonBuf(
 		}
 	}
 	else {
-		if ((llb._nx && llb._nx != londims[1]) || (llb._ny && llb._ny != londims[0])) {
+		if ((llb._nx && llb._nx != londims[0]) || (llb._ny && llb._ny != londims[1])) {
 			SetErrMsg("Lat and Lon dimension mismatch");
 			return(-1);
 		}
 		else {
-			llb._nx = londims[1];
-			llb._ny = londims[0];
+			llb._nx = londims[0];
+			llb._ny = londims[1];
 		}
 	}
 	
