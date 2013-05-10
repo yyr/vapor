@@ -293,18 +293,63 @@ int NetCDFCFCollection::GetVarCoordVarNames(
 		// been picked up above
 		//
 		if (IsTimeCoordVar(auxcvars[i]) && !hasTimeCoord) { 
+			hasTimeCoord = true;
 			cvars.push_back(auxcvars[i]);
 		}
 		if (IsLatCoordVar(auxcvars[i]) && !hasLatCoord) { 
+			hasLatCoord = true;
 			cvars.push_back(auxcvars[i]);
 		}
 		if (IsLonCoordVar(auxcvars[i]) && !hasLonCoord) { 
+			hasLonCoord = true;
 			cvars.push_back(auxcvars[i]);
 		}
 		if (IsVertCoordVar(auxcvars[i]) && !hasVertCoord) { 
+			hasVertCoord = true;
 			cvars.push_back(auxcvars[i]);
 		}
 	}
+
+	//
+	// If we still don't have lat and lon coordinate (or auxiliary)
+	// variables for 'var' then we look for coordinate variables whose
+	// dim names match the dim names of 'var'. Don't think this is
+	// part of the CF 1.6 spec, but it seems necessary for ROMS data sets
+	//
+	if (! hasLatCoord) {
+		vector <string> latcvs = NetCDFCFCollection::GetLatCoordVars();
+		for (int i=0; i<latcvs.size(); i++) {
+			NetCDFSimple::Variable varinfo;
+			NetCDFCollection::GetVariableInfo(latcvs[i], varinfo);
+			vector <string> dns = varinfo.GetDimNames();
+
+			if (dimnames.size() >= dns.size()) {
+				vector <string> tmp(dimnames.end()-dns.size(), dimnames.end());
+				if (tmp == dns) {
+					cvars.push_back(latcvs[i]);
+					break;
+				}
+			}
+		}
+	}
+
+	if (! hasLonCoord) {
+		vector <string> loncvs = NetCDFCFCollection::GetLonCoordVars();
+		for (int i=0; i<loncvs.size(); i++) {
+			NetCDFSimple::Variable varinfo;
+			NetCDFCollection::GetVariableInfo(loncvs[i], varinfo);
+			vector <string> dns = varinfo.GetDimNames();
+
+			if (dimnames.size() >= dns.size()) {
+				vector <string> tmp(dimnames.end()-dns.size(), dimnames.end());
+				if (tmp == dns) {
+					cvars.push_back(loncvs[i]);
+					break;
+				}
+			}
+		}
+	}
+		
 
 	assert(cvars.size() <= dimnames.size());
 
