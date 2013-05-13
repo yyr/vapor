@@ -324,6 +324,19 @@ public:
 	string varname, NetCDFSimple::Variable &varinfo
  ) const;
 
+
+ //! Return the missing value, if any, for a variable
+ //!
+ //! This method returns the value of the missing data value marker,
+ //! if defined, for the variable named by \p varname.
+ //!
+ //! \param[in] varname The variable name
+ //! \param[out] mv The missing value for the variabled name by \p varname
+ //!
+ //! \retval bool The boolean true is returned if a missing value is defined.
+ //! If no missing variable is defined the return value is false and the 
+ //! value of \p mv is not defined.
+ //!
  virtual bool GetMissingValue(string varname, double &mv) const;
 
  //! Open the named variable for reading

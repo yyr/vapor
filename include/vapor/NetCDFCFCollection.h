@@ -61,7 +61,7 @@ public:
 	return(std::find( _coordinateVars.begin(), _coordinateVars.end(), var) != _coordinateVars.end());
  }
 
- //! Return boolean indicating whether variable is a CF auxiliary
+ //! Return boolean indicating whether the named variable is a CF auxiliary
  //! coordinate variable
  //!
  //! This method returns true if the variable named by \p var is a 
@@ -76,23 +76,61 @@ public:
  //! coordinate variable and the name(s) of its dimension(s). 
  //!
  //! \retval true if \p var is an auxliary coordinate variable, false otherwise
- 
+ //
  virtual bool IsAuxCoordVarCF(string var) const {
 	return(std::find( _auxCoordinateVars.begin(),
 	_auxCoordinateVars.end(), var) != _auxCoordinateVars.end());
  }
+
+
+ //! Return boolean indicating whether the named variable represents
+ //! latitude.
+ //!
+ //! This method returns true if the variable named by \p var is a 
+ //! latitude coordinate variable. See section 4.1 of the CF spec.
+ //!
+ //! \retval true if \p var is latitude coordinate variable, false otherwise
+ //
  virtual bool IsLatCoordVar(string var) const {
 	return(std::find( _latCoordVars.begin(),
     _latCoordVars.end(), var) != _latCoordVars.end());
  }
+
+ //! Return boolean indicating whether the named variable represents
+ //! longitude.
+ //!
+ //! This method returns true if the variable named by \p var is a 
+ //! longitude coordinate variable. See section 4.2 of the CF spec.
+ //!
+ //! \retval true if \p var is longitude coordinate variable, false otherwise
+ //
  virtual bool IsLonCoordVar(string var) const {
 	return(std::find( _lonCoordVars.begin(),
     _lonCoordVars.end(), var) != _lonCoordVars.end());
  }
+
+ //! Return boolean indicating whether the named variable represents
+ //! time.
+ //!
+ //! This method returns true if the variable named by \p var is a 
+ //! time coordinate variable. See section 4.4 of the CF spec.
+ //!
+ //! \retval true if \p var is a time coordinate variable, false otherwise
+ //
  virtual bool IsTimeCoordVar(string var) const {
 	return(std::find( _timeCoordVars.begin(),
     _timeCoordVars.end(), var) != _timeCoordVars.end());
  }
+
+ //! Return boolean indicating whether the named variable represents
+ //! a vertical coordinate.
+ //!
+ //! This method returns true if the variable named by \p var is a 
+ //! dimesional or dimensionless vertical coordinate variable. 
+ //! See section 4.3 of the CF spec.
+ //!
+ //! \retval true if \p var is a time coordinate variable, false otherwise
+ //
  virtual bool IsVertCoordVar(string var) const {
 	return(std::find( _vertCoordVars.begin(),
     _vertCoordVars.end(), var) != _vertCoordVars.end());
@@ -117,9 +155,20 @@ public:
  
  
 
+ //! Return a vector of all latitude coordinate variables
+ //!
  virtual std::vector <string> GetLatCoordVars() const {return(_latCoordVars); };
+
+ //! Return a vector of all longitude coordinate variables
+ //!
  virtual std::vector <string> GetLonCoordVars() const {return(_lonCoordVars); };
+
+ //! Return a vector of all time coordinate variables
+ //!
  virtual std::vector <string> GetTimeCoordVars() const {return(_timeCoordVars); };
+
+ //! Return a vector of all vertical coordinate variables
+ //!
  virtual std::vector <string> GetVertCoordVars() const {return(_vertCoordVars); };
 
  
@@ -143,6 +192,20 @@ public:
  //
  virtual std::vector <string> GetDataVariableNames(int ndim) const;
 
+ //! Returns true if the named variable is present in the data collection
+ //! 
+ //! This method returns true if the variable named by \p varname is 
+ //! contained in the data collection. The variable may be present
+ //! inside of a netCDF file, or may be a variable derived the the
+ //! NetCDFCFCollection class. In the latter case all native variables
+ //! used to construct \p varname must also be present.
+ //!
+ //! \param[in] varname A variable name
+ //!
+ //! \retval bool Returns true if \p varname is contained any one of the
+ //! netCDF files used to instantiate the class, or if \p varname is a
+ //! derived variable.
+ //!
  virtual bool VariableExists(string varname) const {
 	//
 	// Should be checking dependencies for derived variable!
@@ -150,6 +213,24 @@ public:
 	if (NetCDFCFCollection::IsDerivedVar(varname)) return (true);
 	return (NetCDFCollection::VariableExists(varname));
  }
+
+ //! Returns true if the named variable is present in the data collection
+ //! at the given time step.
+ //! 
+ //! This method returns true if the variable named by \p varname is 
+ //! contained in the data collection and defined for time step \p ts.
+ //! The variable may be present
+ //! inside of a netCDF file, or may be a variable derived the the
+ //! NetCDFCFCollection class. In the latter case all native variables
+ //! used to construct \p varname must also be present.
+ //!
+ //! \param[in] ts an integer offset indicating the time step
+ //! \param[in] varname A variable name
+ //!
+ //! \retval bool Returns true if \p varname is contained any one of the
+ //! netCDF files used to instantiate the class, or if \p varname is a
+ //! derived variable.
+ //!
  virtual bool VariableExists(size_t ts, string varname) const {
 	//
 	// Should be checking dependencies for derived variable!
@@ -158,6 +239,16 @@ public:
 	return (NetCDFCollection::VariableExists(ts, varname));
  }
 
+
+ //! Returns true if the named variable is a derived variable.
+ //! 
+ //! This method returns true if the variable named by \p varname is 
+ //! derived from other variables in the data collection.
+ //!
+ //! \param[in] varname A variable name
+ //!
+ //! \retval bool Returns true if \p varname is a derived variable.
+ //!
  virtual bool IsDerivedVar(string varname) const {
    return(_derivedVarsMap.find(varname) != _derivedVarsMap.end());
  }
@@ -188,17 +279,54 @@ public:
  //! optional, to list coordinate variables as well as auxiliary
  //! coordinate variables in the coordinates attribute."
  //!
+ //! \param[in] varname A variable name
+ //! \param[out] cvars A unodered vector of coordinate variable names
+ //!
  //! \retval status a negative int is returned if the number of 
  //! elements in \p cvars does not match the number of spatio-temporal
  //! dimensions of the variable named by \p var
  //
  virtual int GetVarCoordVarNames(string var, std::vector <string> &cvars) const;
 
+ //! Return the value of the 'units' attribute for the named variable
+ //!
+ //! This method fetches the value of the 'units' attribute, if present,
+ //! for the variable named by \p var. If a units attribute is not 
+ //! present then \p units will contain an empty string.
+ //!
+ //! \param[in] varname A variable name
+ //! \param[out] units The value of the variable's 'units' attribute. If the
+ //! 'units' attribute is not present the parameter will contain the 
+ //! empty string.
+ //!
+ //! \retval status a non-negative int is returned on success
+ //! 
  virtual int GetVarUnits(string var, string &units) const;
 
+ //! Return a pointer to the internal UDUnits object used to perform
+ //! unit conversion.
+ //!
  const UDUnits *GetUDUnits() const {return(_udunit); };
 
 
+ //! Convert an array of floating point values from one unit to another
+ //! 
+ //! This method uses the UDUnits class to convert an array of floating
+ //! point values from one unit measure to another as supported by 
+ //! Unidata's udunits2 library. 
+ //! See <A HREF="http://www.unidata.ucar.edu/software/udunits/udunits-2/udunits2.html">
+ //!
+ //! \param[in] from A string containing the unit to convert 
+ //! from (e.g. "meters")
+ //! \param[in] to A string containing the unit to convert 
+ //! to (e.g. "feet")
+ //! \param[in] src An array of input values to be converted
+ //! \param[out] dst An output buffer large enough to contained 
+ //! the converted data
+ //! \param[in] n The number of elements in \p src
+ //!
+ //! \retval status a non-negative int is returned on success
+ //! 
  virtual int Convert(
 	const string from,
 	const string to,
@@ -208,21 +336,91 @@ public:
  ) const;
 
 
+ //! Return the missing value, if any, for a variable
+ //!
+ //! This method returns the value of the missing data value marker,
+ //! if defined, for the variable named by \p varname.
+ //!
+ //! Missing data values are indicated using the \c _FillValue, or 
+ //! \c missing_value attributes as defined in section 2.5.1 of the CF 1.6
+ //! spec.
+ //!
+ //! \param[in] varname The variable name
+ //! \param[out] mv The missing value for the variabled name by \p varname
+ //!
+ //! \retval bool The boolean true is returned if a missing value is defined.
+ //! If no missing variable is defined the return value is false and the 
+ //! value of \p mv is not defined.
+ //!
  virtual bool GetMissingValue(string varname, double &mv) const;
+
+ //! \copydoc NetCDFCollection::OpenRead()
+ //!
  virtual int OpenRead(size_t ts, string varname);
+
+ //! \copydoc NetCDFCollection::ReadSlice()
+ //!
  virtual int ReadSlice(float *data);
+
+ //! \copydoc NetCDFCollection::Close()
+ //!
  virtual int Close();
 
+ //! \copydoc NetCDFCollection::GetVariableNames()
+ //!
  virtual std::vector <string> GetVariableNames(int ndim) const;
 
+ //! \copydoc NetCDFCollection::GetDims()
+ //!
  virtual std::vector <size_t>  GetDims(string varname) const;
 
+ //! Return true if the named variable is a dimensionless vertical
+ //! coordinate variable.
+ //!
+ //! This method returns true if the variable named by \p cvar is both
+ //! a vertical coordinate variable and it is dimensionless. See 
+ //! section 4.3.2 of the CF 1.6 spec.
+ //!
  virtual bool IsVertDimensionless(string cvar) const;
 
+ //! This method defines a converter from dimensionless vertical coordinates
+ //! to dimensioned vertical coordinates
+ //!
+ //! This method can be used to create a derived variable containing
+ //! dimensioned vertical coordinates from a native variable containing
+ //! dimensionless vertical coordinates. Once defined, the derived variable
+ //! can be operated on like any other native variable contained in the 
+ //! data collection using methods such as OpenRead(), and ReadSlice().
+ //! The dimensionless vertical coordinate variable must contain a 
+ //! \c standard_name attribute containing a supported dimensionless
+ //! coordinate. Currently supported standard names are:
+ //!
+ //! \li ocean_s_coordinate_g1
+ //! \li ocean_s_coordinate_g2
+ //!
+ //! \sa Appendix D of the CF 1.6 spec.
+ //!
+ //! \param[in] cvar A dimensionless variable  with a \c standard_name
+ //! attribute
+ //! \param[in] newvar The name of the new derived variable
+ //! \param[in] units The length units of the new variable
+ //!
+ //! \retval status a non-negative int is returned on success
+ //!
+ //! \sa UninstallStandardVerticalConverter()
+ //!
  virtual int InstallStandardVerticalConverter(
 	string cvar, string newvar, string units = "meters"
  );
 
+ //! Remove the converter for a previously defined dimensionless
+ //! vertical coordinate converter
+ //!
+ //! \param[in] cvar The name of a derived variable previousl defined with
+ //! InstallStandardVerticalConverter()
+ //!
+ //! \sa InstallStandardVerticalConverter()
+ //
  virtual void UninstallStandardVerticalConverter(string cvar) ;
 
  void FormatTimeStr(double time, string &str) const;
