@@ -216,6 +216,17 @@ public:
 	max[0] = _max[0]-_min[0]; max[1] = _max[1]-_min[1]; max[2] = _max[2]-_min[2];
  }
 
+ //! Return the origin of the grid in global IJK coordinates
+ //!
+ //! This method returns the value of the \p min parameter passed
+ //! to the constructor
+ //!
+ //! \param[out] min[3] Minimum IJK coordinates in global grid coordinates
+ //
+ virtual void GetIJKOrigin(size_t min[3]) const {
+	min[0] = _minabs[0]; min[1] = _minabs[1]; min[2] = _minabs[2];
+ }
+
  //! Return the ijk dimensions of grid
  //!
  //! Returns the number of grid points defined along each axis of the grid
