@@ -252,7 +252,6 @@ int DCReaderMOM::_InitVerticalCoordinates(
 		}
 	}
 	assert(scaleFactor != 0.0);
-	scaleFactor = 1.0 / scaleFactor;
 	return(0);
 }
 
@@ -809,6 +808,7 @@ int DCReaderMOM::_initLatLonBuf(
 	}
 	}
 
+#ifdef	DEAD
 	//
 	// Longitude must be monotonically increasing with 'i' index. If not,
 	// make it so.
@@ -834,6 +834,7 @@ int DCReaderMOM::_initLatLonBuf(
 		}
 		}
 	}
+#endif
 
 	//
 	// Get min and max lons
@@ -863,7 +864,7 @@ void DCReaderMOM::_getRotationVariables(
 	for (int lat = 0; lat<_dims[1]; lat++){
 	for (int lon = 0; lon<_dims[0]; lon++){
 		_angleRADBuf[_dims[0]*lat + lon] = wt->getAngle(lon,lat);
-		_angleRADBuf[_dims[0]*lat + lon] = wt->getGeoLats()[_dims[0]*lat + lon];
+		_latDEGBuf[_dims[0]*lat + lon] = wt->getGeoLats()[_dims[0]*lat + lon];
 	}
 	}
 }

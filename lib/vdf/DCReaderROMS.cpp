@@ -861,7 +861,7 @@ void DCReaderROMS::_getRotationVariables(
 	for (int lat = 0; lat<_dims[1]; lat++){
 	for (int lon = 0; lon<_dims[0]; lon++){
 		_angleRADBuf[_dims[0]*lat + lon] = wt->getAngle(lon,lat);
-		_angleRADBuf[_dims[0]*lat + lon] = wt->getGeoLats()[_dims[0]*lat + lon];
+		_latDEGBuf[_dims[0]*lat + lon] = wt->getGeoLats()[_dims[0]*lat + lon];
 	}
 	}
 }
