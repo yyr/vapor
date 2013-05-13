@@ -242,9 +242,11 @@ void Session::setDefaultPrefs(){
 #ifdef WIN32
 	//Use the user name in the log file name
 	char* tempDir = getenv("TEMP");
+	if (!tempDir) tempDir = getenv("USERPROFILE");
 	if (!tempDir) tempDir = getenv("HOMEDRIVE");
 	if (!tempDir) tempDir = "C:";
 	char* defDir = getenv("HOME");
+	if (!defDir) defDir = getenv("USERPROFILE");
 	if (!defDir) defDir = getenv("HOMEDRIVE");
 	if (!defDir) defDir = "C:";
 	const char* defaultDir = defDir;
