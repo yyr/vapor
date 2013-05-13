@@ -215,13 +215,14 @@ int PythonPipeLine::python_wrapper(
 	}
 	//Determine sizes of arrays to allocate for python:
 	RegularGrid *rg = outputData[outputIndex];
-	size_t dims[3];
+	size_t dims[3], orig[3];
 	rg->GetDimensions(dims);
+	rg->GetIJKOrigin(orig);
 	size_t mins[3],maxs[3];
 	//double umins[3],umaxs[3];
 	for (int i = 0; i<3; i++){
-		mins[i] = 0;
-		maxs[i] = dims[i]-1;
+		mins[i] = orig[i];
+		maxs[i] = dims[i]+orig[i]-1;
 	}
 	//convert to relative integer coordinates:  Note This would cause a problem with Layered grids and missing values of ELEVATION
 	//rg->GetUserCoordinates(0,0,0,umins, umins+1, umins+2);
