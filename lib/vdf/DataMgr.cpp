@@ -510,12 +510,12 @@ int DataMgr::VariableExists(
 		return 0;
 	}
 
-	const vector <pair <string, VarType_T> > &ovars = pipeline->GetOutputs();
+	vector  <string> ivars = pipeline->GetInputs();
 	//
 	// Recursively test existence of all dependencies
 	//
-	for (int i=0; i<ovars.size(); i++) {
-		if (! VariableExists(ts, ovars[i].first.c_str(), reflevel, lod)) {
+	for (int i=0; i<ivars.size(); i++) {
+		if (! VariableExists(ts, ivars[i].c_str(), reflevel, lod)) {
 			_VarInfoCache.SetExist(ts, varname, reflevel, lod, false);
 			return(0);
 		}
