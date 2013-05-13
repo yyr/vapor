@@ -731,6 +731,7 @@ int RegionParams::getValidRegion(size_t timestep, const char* varname, int minRe
 	DataMgr* dm = ds->getDataMgr();
 	if (!dm) return -1;
 	int rc;
+	if (!dm->VariableExists(timestep,varname)) return -1;
 	rc = dm->GetValidRegion(timestep, varname, minRefLevel, min_coord, max_coord);
 	if(rc<0) {
 		SetErrCode(0);
