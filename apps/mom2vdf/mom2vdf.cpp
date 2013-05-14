@@ -468,7 +468,7 @@ int	main(int argc, char **argv) {
 		}
 		for (int v = 0; v < variables.size(); v++) {
 			if (! opt.quiet) {
-				cout << " Processing variable " << variables[v] << endl;
+				cout << " Processing variable " << variables[v] << ", ";
 			}
 			if (! momData->VariableExists(itr->second, variables[v])) {
 				continue;
@@ -483,6 +483,8 @@ int	main(int argc, char **argv) {
 				MyBase::SetErrCode(0); 	// must clear error code
 				fails++;
 			}
+			const float * drange = vdfio->GetDataRange();
+			cout << "data range (" << drange[0] << ", " << drange[1]<< ")\n";
 		}
 	}
 

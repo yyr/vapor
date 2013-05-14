@@ -493,11 +493,10 @@ int	main(int argc, char **argv) {
 	map <size_t, size_t>::iterator itr;
 	for (itr = timemap.begin(); itr != timemap.end(); ++itr) {
 		if (! opt.quiet) {
-			cout << "Processing VDC time step " << itr->first << endl;
 		}
 		for (int v = 0; v < variables.size(); v++) {
 			if (! opt.quiet) {
-				cout << " Processing variable " << variables[v] << endl;
+				cout << " Processing variable " << variables[v] << ", ";
 			}
 
 			int rc = CopyVar(
@@ -506,6 +505,9 @@ int	main(int argc, char **argv) {
 				opt.level, opt.lod
 			);
 			if (rc<0) fails++;
+			const float * drange = vdfio->GetDataRange();
+			cout << "data range (" << drange[0] << ", " << drange[1]<< ")\n";
+
 		}
 	}
 
