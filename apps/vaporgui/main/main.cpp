@@ -120,6 +120,9 @@ int main( int argc, char ** argv ) {
 		msg += "The VAPOR ";
 		msg += pythonversion;
 		msg += " environment will operate in this path\n";
+		msg += " This path must be the location of a Python ";
+		msg += pythonversion;
+		msg += " installation\n";
 		msg += "Unset the PYTHONHOME environment to revert to the installed ";
 		msg += "VAPOR " + pythonversion + " environment.";
 		QMessageBox::warning(0,"PYTHONHOME warning", msg.c_str());
