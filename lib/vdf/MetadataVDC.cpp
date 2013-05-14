@@ -603,7 +603,7 @@ int MetadataVDC::ConstructFullVBase(
         return (-1);
     }
 #ifdef WIN32
-	if (bp[1] == ':' && bp[2] == '/') {
+	if (bp[1] == ':' && ((bp[2] == '/') || (bp[2] == '\\'))) {
 #else
 	if (bp[0] == '/') {
 #endif
