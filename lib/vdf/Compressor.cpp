@@ -482,19 +482,36 @@ int decompose_template(
 
 	for (size_t idx = numkeep; idx<clen; idx++) { 
 		T *dst_arr_ptr = dst_arr;
+		bool found = false;
 		for (int i=0; i<n; i++) {
 			if (dst_counts[i] < my_dst_arr_lens[i] && fabs(C[idx]) >= thresholds[i]) {
 				rc = sigmaps[i]->Set(idx);
 				if (rc<0) return(-1);
 				dst_arr_ptr[dst_counts[i]] = C[idx];
 				dst_counts[i] += 1;
+				found = true;
 				break;	// Only assign to one bin
 			}
 			dst_arr_ptr += my_dst_arr_lens[i];
 		}
+		if (! found) {
+			Compressor::SetErrMsg(
+				"Unexpected compression result : out of bounds value: %f",
+				C[idx]
+			);
+			return(-1);
+		}
 	}
 
-	for (int i=0; i<n; i++) assert(dst_counts[i] == my_dst_arr_lens[i]);
+	for (int i=0; i<n; i++) {
+		if (dst_counts[i] != my_dst_arr_lens[i]) {
+			Compressor::SetErrMsg(
+				"Unexpected compression result : dst_counts[%d]==%d != my_dst_arr_lens[%d]==%d", 
+				i, dst_counts[i], i, my_dst_arr_lens[i]
+			);
+			return(-1);
+		}
+	}
 
 #ifdef	DEAD
 
