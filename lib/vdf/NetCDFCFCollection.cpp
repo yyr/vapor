@@ -249,40 +249,12 @@ int NetCDFCFCollection::GetVarCoordVarNames(
 	vector <string> dimnames = varinfo.GetDimNames();
 
 	//
-	// First see if any of the dimension names match coordinate
-	// variable names
-	//
-	for (int i=0; i<dimnames.size(); i++) {
-		if (IsCoordVarCF(dimnames[i])) {
-			cvars.push_back(dimnames[i]);
-		}
-	}
-
-	//
-	// If "coordinate variables" are specified for each dimension we're don
-	//
-	if (cvars.size() == dimnames.size()) return(0);
-
-	//
-	// Figure out which "coordinate variables" are used
+	// First look for auxiliary coordinate variables 
 	//
 	bool hasTimeCoord = false;
 	bool hasLatCoord = false;
 	bool hasLonCoord = false;
 	bool hasVertCoord = false;
-	for (int i=0; i<cvars.size(); i++) {
-
-		if (NetCDFCFCollection::IsTimeCoordVar(cvars[i])) hasTimeCoord = true;
-		if (NetCDFCFCollection::IsLatCoordVar(cvars[i])) hasLatCoord = true;
-		if (NetCDFCFCollection::IsLonCoordVar(cvars[i])) hasLonCoord = true;
-		if (NetCDFCFCollection::IsVertCoordVar(cvars[i])) hasVertCoord = true;
-	}
-
-	//
-	// Now look for auxiliary coordinate variables for dimensions for
-	// which no "coordinate variable" was specified
-	//
-
 	vector <string> auxcvars = _GetCoordAttrs(varinfo);
 	for (int i=0; i<auxcvars.size(); i++) {
 
@@ -292,23 +264,55 @@ int NetCDFCFCollection::GetVarCoordVarNames(
 		// specified by the "coordinate" attribute should have already
 		// been picked up above
 		//
-		if (IsTimeCoordVar(auxcvars[i]) && !hasTimeCoord) { 
+		if (NetCDFCFCollection::IsTimeCoordVar(auxcvars[i]) && !hasTimeCoord) { 
 			hasTimeCoord = true;
 			cvars.push_back(auxcvars[i]);
 		}
-		if (IsLatCoordVar(auxcvars[i]) && !hasLatCoord) { 
+		if (NetCDFCFCollection::IsLatCoordVar(auxcvars[i]) && !hasLatCoord) { 
 			hasLatCoord = true;
 			cvars.push_back(auxcvars[i]);
 		}
-		if (IsLonCoordVar(auxcvars[i]) && !hasLonCoord) { 
+		if (NetCDFCFCollection::IsLonCoordVar(auxcvars[i]) && !hasLonCoord) { 
 			hasLonCoord = true;
 			cvars.push_back(auxcvars[i]);
 		}
-		if (IsVertCoordVar(auxcvars[i]) && !hasVertCoord) { 
+		if (NetCDFCFCollection::IsVertCoordVar(auxcvars[i]) && !hasVertCoord) { 
 			hasVertCoord = true;
 			cvars.push_back(auxcvars[i]);
 		}
 	}
+	if (cvars.size() == dimnames.size()) return(0);
+
+
+	//
+	// Now see if any "coordinate variables" for which we haven't
+	// already identified a coord var exist.
+	//
+	for (int i=0; i<dimnames.size(); i++) {
+		if (NetCDFCFCollection::IsCoordVarCF(dimnames[i])) {	// is a CF "coordinate variable"?
+			if (NetCDFCFCollection::IsTimeCoordVar(dimnames[i]) && !hasTimeCoord) { 
+				hasTimeCoord = true;
+				cvars.push_back(dimnames[i]);
+			}
+			if (NetCDFCFCollection::IsLatCoordVar(dimnames[i]) && !hasLatCoord) { 
+				hasLatCoord = true;
+				cvars.push_back(dimnames[i]);
+			}
+			if (NetCDFCFCollection::IsLonCoordVar(dimnames[i]) && !hasLonCoord) { 
+				hasLonCoord = true;
+				cvars.push_back(dimnames[i]);
+			}
+			if (NetCDFCFCollection::IsVertCoordVar(dimnames[i]) && !hasVertCoord) { 
+				hasVertCoord = true;
+				cvars.push_back(dimnames[i]);
+			}
+		}
+	}
+
+	//
+	// If "coordinate variables" are specified for each dimension we're don
+	//
+	if (cvars.size() == dimnames.size()) return(0);
 
 	//
 	// If we still don't have lat and lon coordinate (or auxiliary)
