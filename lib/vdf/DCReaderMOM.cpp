@@ -798,54 +798,37 @@ int DCReaderMOM::_initLatLonBuf(
 	}
 
 	//
-	// Get lat extents
+	// Get lat extents. Check boundary only
 	//
 	llb._latexts[0] = llb._latexts[1] = llb._latbuf[0];
-	for (int j=0; j<llb._ny; j++) {
+	int j = 0;
 	for (int i=0; i<llb._nx; i++) {
 		llb._latexts[1] = llb._latbuf[j*llb._nx+i]>llb._latexts[1] ? llb._latbuf[j*llb._nx+i] : llb._latexts[1];
 		llb._latexts[0] = llb._latbuf[j*llb._nx+i]<llb._latexts[0] ? llb._latbuf[j*llb._nx+i] : llb._latexts[0];
 	}
-	}
 
-#ifdef	DEAD
-	//
-	// Longitude must be monotonically increasing with 'i' index. If not,
-	// make it so.
-	//
-	float max = llb._lonbuf[0];
-	for (int j=0; j<llb._ny; j++) {
-	for (int i=0; i<llb._nx-1; i++) {
-		if (llb._lonbuf[j*llb._nx+i] > llb._lonbuf[j*llb._nx +i + 1]) {
-			llb._lonbuf[j*llb._nx +i + 1] +=360.0 ;
-		}
-		assert(llb._lonbuf[j*llb._nx+i + 1] >= llb._lonbuf[j*llb._nx +i]);
-		max = llb._lonbuf[j*llb._nx+i]>max ? llb._lonbuf[j*llb._nx+i] : max;
-	}
+	j = llb._ny-1;
+	for (int i=0; i<llb._nx; i++) {
+		llb._latexts[1] = llb._latbuf[j*llb._nx+i]>llb._latexts[1] ? llb._latbuf[j*llb._nx+i] : llb._latexts[1];
+		llb._latexts[0] = llb._latbuf[j*llb._nx+i]<llb._latexts[0] ? llb._latbuf[j*llb._nx+i] : llb._latexts[0];
 	}
 
 	//
-	// Now map lon back into range -360 to 360
-	//
-	if (max>360.0) {
-		for (int j=0; j<llb._ny; j++) {
-		for (int i=0; i<llb._nx; i++) {
-			llb._lonbuf[j*llb._nx + i] -=360.0 ;
-		}
-		}
-	}
-#endif
-
-	//
-	// Get min and max lons
+	// Get lon extents. Check boundary only
 	//
 	llb._lonexts[0] = llb._lonexts[1] = llb._lonbuf[0];
+	int i = 0;
 	for (int j=0; j<llb._ny; j++) {
-	for (int i=0; i<llb._nx; i++) {
 		llb._lonexts[1] = llb._lonbuf[j*llb._nx+i]>llb._lonexts[1] ? llb._lonbuf[j*llb._nx+i] : llb._lonexts[1];
 		llb._lonexts[0] = llb._lonbuf[j*llb._nx+i]<llb._lonexts[0] ? llb._lonbuf[j*llb._nx+i] : llb._lonexts[0];
 	}
+
+	i = llb._nx-1;
+	for (int j=0; j<llb._ny; j++) {
+		llb._lonexts[1] = llb._lonbuf[j*llb._nx+i]>llb._lonexts[1] ? llb._lonbuf[j*llb._nx+i] : llb._lonexts[1];
+		llb._lonexts[0] = llb._lonbuf[j*llb._nx+i]<llb._lonexts[0] ? llb._lonbuf[j*llb._nx+i] : llb._lonexts[0];
 	}
+
 	return(0);
 }
 
