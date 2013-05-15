@@ -20,7 +20,7 @@ const char	*VetsUtil::Basename(const char *path) {
     else return last + 1;
 }
 
-string VetsUtil::Basename(string &path) {
+string VetsUtil::Basename(const string &path) {
 #ifdef WIN32
 	string separator = "\\";
 #else
@@ -33,7 +33,7 @@ string VetsUtil::Basename(string &path) {
 	return(path.substr(pos+1));
 }
 
-string VetsUtil::Dirname(string &path) {
+string VetsUtil::Dirname(const string &path) {
 #ifdef WIN32
 	string separator2 = "\\";
 #endif

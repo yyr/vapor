@@ -388,11 +388,8 @@ MetadataVDC::MetadataVDC(const string &metafile) {
 	}
 
 	// Get directory path of metafile
-	char *s = new char[metafile.length() +1];
-	(void) Dirname(metafile.c_str(), s);
-	_metafileDirName.assign(s);
-	delete [] s;
-	_metafileName.assign(Basename(metafile.c_str()));
+	_metafileDirName = Dirname(metafile);
+	_metafileName = Basename(metafile);
 
 	// Create data directory base name
 	//
