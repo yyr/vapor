@@ -21,31 +21,38 @@ const char	*VetsUtil::Basename(const char *path) {
 }
 
 string VetsUtil::Basename(const string &path) {
-#ifdef WIN32
-	string separator = "\\";
-#else
 	string separator = "/";
+	string separator2 = "";
+
+#ifdef WIN32
+	separator2 = "\\";
 #endif
 
 	string::size_type pos = path.rfind(separator);
-	if (pos == string::npos) return(path);
+	if (pos == string::npos) {
+        if (separator2.empty()) return(path);
+
+		pos = path.rfind(separator2);
+		if (pos == string::npos) return(path);
+	}
 
 	return(path.substr(pos+1));
 }
 
 string VetsUtil::Dirname(const string &path) {
-#ifdef WIN32
-	string separator2 = "\\";
-#endif
 	string separator = "/";
+	string separator2 = "";
+
+#ifdef WIN32
+	separator2 = "\\";
+#endif
 
 	string::size_type pos = path.rfind(separator);
-	if (pos == string::npos){ 
-#ifdef WIN32
+	if (pos == string::npos) {
+        if (separator2.empty()) return(path);
+
 		pos = path.rfind(separator2);
-		if (pos == string::npos)
-#endif
-			return(".");
+		if (pos == string::npos) return(path);
 	}
 
 	return(path.substr(0, pos));
