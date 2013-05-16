@@ -494,6 +494,12 @@ public:
 	_missingValAttName = attname;
  }
 
+ //! Return a list of variables that are not available for access
+ //!
+ //! This method returns a list of variables that were detected in the
+ //! collection of netCDF files but are not accessible from the
+ //! NetCDFCollection class. 
+ //!
  virtual std::vector <string> GetFailedVars() const {return(_failedVars); };
 
  friend std::ostream &operator<<(
