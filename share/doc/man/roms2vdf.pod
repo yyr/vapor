@@ -23,7 +23,7 @@ the .vdf file I<vdffile>.
 
 =over 4
 
-=item -varnames E<lt>varsE<gt>
+=item -vars E<lt>varsE<gt>
 
 Variables to convert.  A colon delimited list of the 3D and 2D variables
 you wish to transform. Their names must appear in the .vdf file, I<vdffile>.
@@ -44,6 +44,10 @@ See raw2vdf
 
 See raw2vdf (VDC2 only). 
 
+=item -nthreads E<lt>nE<gt> 
+
+See raw2vdf (VDC2 only). 
+
 =item -help 
 
 Print a usage statement and then exit.
@@ -60,10 +64,12 @@ The command
 
     roms2vdf romsout1.nc romsout2.nc romsout3.nc romsgrid.nc mydata.vdf 
 
-transforms all of the variables at all of the time steps found in the
-ROMS netCDF files B<romsout1.nc>, B<romsout2.nc>, and B<romsout3.nc> that
-match the variable names and time stamps found in B<mydata.vdf>.  The file B<romsgrid.nc> 
-contains the time-invariant variables, such as B<h> and B<s_rho>.
+transforms all of the variables at all of the time steps found in
+the ROMS netCDF files B<romsout1.nc>, B<romsout2.nc>, and B<romsout3.nc>
+that match the variable names and time stamps found in B<mydata.vdf>.
+The file B<romsgrid.nc> contains the time-invariant variables that describe
+the computational grid, such
+as B<h> and B<s_rho>.
 
 The command 
 

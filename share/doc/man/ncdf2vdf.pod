@@ -1,159 +1,109 @@
+=begin comment
+
+$Id$
+
+=end comment
+
 =head1 NAME
 
-ncdf2vdf - Convert NetCDF data to VAPOR data 
+ncdf2vdf - Transform netCDF data into a VDC
 
 =head1 SYNOPSIS
 
-B<ncdf2vdf> [options] I<metafile> I<ncdffile>
+B<ncdf2vdf> [options] I<ncdf_ncdf_files...> I<vdffile> 
 
 =head1 DESCRIPTION
 
-B<ncdf2vdf>
-converts a variable in the named NetCDF data file, I<ncdffile>,
-into a variable in the VAPOR Data
-Collection (VDC) associated with the named .vdf file, I<metafile>.
-The variable name in the VDC must already be specified as either a 2D or 3D variable 
-in the associated .vdf file associated with the variable in the NetCDF file. The variable name in the VDC can be established using e.g. B<vdfedit>, B<vdfcreate>, or B<wrfvdfcreate>.  
-If a NetCDF dimension is one greater than the corresponding VDC dimension, 
-data is averaged to the VDC dimension, to enable conversion of variables on staggered grids.  
-Variables can be staggered in any or all of the three spatial dimensions.
-B<ncdf2vdf> also allows for variable data to be a subarray of a higher-dimensional array; for example the spatial data may be a 3-dimensional subarray of a 4-dimensional array where the fourth dimension is Time.
-In this situation the user must specify that Time is a "constant dimension", i.e. a coordinate that does not vary over the variable data being extracted.  
-For each constant dimension name, the user must specify a "constant value" that is the value of the constant dimension for the data being extracted.
+B<ncdf2vdf> reads 3D and 2D variables from one or more netCDF files,
+wavelet transforms the data, and stores it in the VDC associated
+with the .vdf file I<vdffile>. The file I<vdffile> should be created with 
+the command B<ncdfvdfcreate>
 
 =head1 OPTIONS
 
 =over 4
 
-=item -debug
+=item -vars E<lt>varsE<gt>
 
-Turn on debugging mode. 
+Variables to convert.  A colon delimited list of the 3D and 2D variables
+you wish to transform. Their names must appear in the .vdf file, I<vdffile>.
+The default is to convert all time-varying 3D and 2D variables defined in
+both the .vdf file and the NetCDF files.
 
-=item -quiet
+=item -numts E<lt>numberE<gt>
 
-Operate quietly. 
+Specify the maximum number of time steps to convert. After converting
+B<number> time steps, no further processing will take place.
+
+=item -stagdims E<lt>dimnamesE<gt>
+
+A colon-delimited list specifying the names of any staggered
+dimensions.  A "staggered" dimension has dimension one greater than
+an unstaggered dimension. Variables defined on staggered grids are
+interpolated to unstaggered grids.
+
+=item -startts E<lt>tsE<gt>
+
+Integer offset of first time step in NetCDF files to be converted
+
+=item -timedims E<lt>dimnamesE<gt>
+
+Colon delimited list of time dimension variable names. Any dimension
+names listed with this option are considered time dimensions. Data
+variables whose slowest varying dimension is named by this option
+are considered time varying.
+
+=item -timevars E<lt>varnamesE<gt>
+
+Colon delimited list of time coordinate variables. If this 1D variable
+is present, it specfies the time in user-defined units for each time
+step.
+
+=item -level E<lt>levelE<gt> 
+
+See raw2vdf
+
+=item -lod E<lt>nE<gt> 
+
+See raw2vdf (VDC2 only). 
+
+=item -nthreads E<lt>nE<gt> 
+
+See raw2vdf (VDC2 only). 
 
 =item -help 
 
 Print a usage statement and then exit.
 
-=item -ts E<lt>timestepE<gt>
+=item -quiet 
 
-Specify the timestep in the VDC that will be written to. The default is 0.
-
-=item -varname E<lt>VariableNameE<gt>
-
-This option is required.  Specify the name of the variable in the VDC to
-write to.
-
-=item -ncdfvar E<lt>ncdfVariableNameE<gt>
-
-Specify the name of the variable in the NetCDF file to read. If this option
-is not present the value of the B<-varname> option is used.
-
-=item -dimnames E<lt>xdim:ydim:zdimE<gt>
-
-This option is required.  Specify a colon-separated list of the
-dimension names in the NetCDF file that will be converted to X, Y,
-and Z dimensions in the VDC.  If the variable is 2D, the Z dimension
-name is ignored.  The X dimension varies fastest, followed by Y, than Z.
-Note: The ordering of dimensions from fastest varying to slowest is reversed 
-in the NetCDF API where the convention is to order dimensions from 
-slowest to fastest.
-
-=item -cnstnames E<lt>dim1:dim2:...E<gt>
-
-This option is required if there are more dimensions associated
-with the NetCDF variable than the 2 or 3 dimensions of the variable
-in the VDC. In a colon-separated list, specify one or more dimension
-names in the NetCDF file that are held constant for this time step
-of the variable.  Typically time is a constant dimension name.
-
-=item -cnstvals E<lt>val1:val2:...E<gt>
-
-In a colon-separated list, specify the constant values that will
-be associated with each associated constant dimension name.  This
-list must be the same length as the list of constant dimension
-names.
-
-=item -level E<lt>levE<gt>
-
-Specify the maximum refinement level of the variable that will be
-written to the VDC.  By default this is the maximum refinement level
-of the VDC.
-
-=item -swapz
-
-If specified, the Z coordinate will be reversed (largest to smallest).
+Operate quietly, only reporting fatal errors.
 
 =back
 
-
 =head1 EXAMPLES
 
-The examples below assume a NetCDF input file containing the contents below
-as reported by B<ncdump>:
+    ncdfvdfcreate -vars u:v:temp file1.nc file2.nc file3.nc mydata.vdf
 
-	netcdf wrfout.nc {
-	dimensions:
-		Time = UNLIMITED ; // (20 currently)
-		west_east = 201 ;
-		south_north = 201 ;
-		bottom_top = 35 ;
-		bottom_top_stag = 36 ;
-		soil_layers_stag = 5 ;
-		west_east_stag = 202 ;
-		south_north_stag = 202 ;
-
-	variables:
-		float T(Time, bottom_top, south_north, west_east) ;
-		float U(Time, bottom_top, south_north, west_east_stag) ;
-		float HGT(Time, south_north, west_east_stag) ;
-
-Moreover, it is assumed that the dimensions of the VAPOR .vdf file,
-F<vapordata.vdf> are 201x201x35, and that the file defines 3D
-variables named B<U> and B<T>, and a 2D variable named B<HGT>
+will construct a VDF file, B<mydata.vdf> that will contain the B<u>,
+B<v>, and B<temp> variable names for all time steps found in the
+NetCDF files B<file1.nc>, B<file2.nc>, and B<file3.nc>.  Because no
+time dimension is specified the variables are assumed to be implicitly
+time varying (have no time dimension).
 
 The command
 
-    ncdf2vdf -ts 3 -varname T -dimnames west_east:south_north:bottom_top -cnstnames Time -cnstvals 2 vapordata.vdf wrfout.nc
+    ncdfvdfcreate -timedims times -vars u:v:temp file1.nc file2.nc file3.nc mydata.vdf
 
-will extract data values of the variable B<T> at Time=2 (the 3rd
-time step out of 20 total present in the file) from the NetCDF file
-F<wrfout.nc>, inserting it into timestep 3 of the VAPOR VDC associated
-with the file F<vapordata.vdf>.  The X-dimension of the VDC should
-be equal to the B<west_east> dimension of the NetCDF F<wrfout.nc>. The
-Y-dimension of the VDC should equal the B<south_north> NetCDF
-dimension, and so on.
+is identical to the previous example, except that here the variables
+are expected to be explicitly time varying, having their slowest varying
+dimension named "times".
 
-The command
+=head1 SEE ALSO
 
-    ncdf2vdf -ts 3 -varname U -dimnames west_east_stag:south_north:bottom_top -cnstnames Time -cnstvals 2 vapordata.vdf wrfout.nc
+ncdfvdfcreate, raw2vdf 
 
-is identical to the preceding example, however the named variable,
-B<U>, is staggered along the X-dimension (i.e. the value of the
-dimension B<west_east_stag> is one greater than the X-dimesion of
-the .vdf file. In this case the variable will be resampled to a
-grid with dimensions 201x201x35.
-
-Finally, the command
-
-    ncdf2vdf -varname HGT -dimnames west_east:south_north:dummy -cnstnames Time vapordata.vdf wrfout.nc
-
-copies the 2D variable B<HGT> at time step 0 to the VDC data
-collection, also at time step 0. Note that even though the variable has only 
-2 dimensions the B<-dimnames> must still specify a dummy 3rd dimension.
-
-=head1 NOTES
-
-The dimensions of variables in NetCDF files are ordered so as to
-specify whether the data is stored in X-major, Y-major, or Z-major
-order.  The fastest increasing dimension is last, consistent with
-the dimension ordering of FORTRAN arrays.  B<ncdf2vdf> requires
-that the Y dimension precedes the X dimension in the ordering of
-the dimensions in the NetCDF file.  This is consistent with the
-dimension ordering of WRF output files.  There is no Z dimension
-ordering requirement.
+I<Conversion of NetCDF datafiles to a VAPOR VDC>
 
 =head1 HISTORY
 

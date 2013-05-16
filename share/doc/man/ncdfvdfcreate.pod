@@ -1,0 +1,153 @@
+=begin comment
+
+$Id$
+
+=end comment
+
+=head1 NAME
+
+ncdfvdfcreate - Generate a VDF metadata file for a NetCDF data set
+
+=head1 SYNOPSIS
+
+B<ncdfvdfcreate> [options] I<ncdf_files...> I<vdffile>
+
+=head1 DESCRIPTION
+
+B<ncdfvdfcreate> generates a .vdf metafile that defines a VAPOR
+Data Collection (VDC) suitable for containing a collection of data
+contained in one or more NetCDF files. The command expects that data 
+contained in the list of NetCDF input files to be the result of 
+a single simulation. I.e. the same coordinates and dimensions are
+used by all files. 
+
+Thus, the command treats a collection of NetCDF files as a single,
+time-varying data set containing 2D and 3D spatial variables defined
+at a specified timestep, independent of which netCDF file contains the data.
+
+The netCDF variables may be "explicitly" time-varying: the slowest
+varying dimension may correspond to time, while the remaining dimensions
+correspond to space. Or the variables may be implicitly time-varying,
+possessing no explicit time dimension, in which case the time index
+of a variable is determined by file ordering. For example, if the
+variable "v" is found in the files "a.nc" and "b.nc" and nowhere else,
+and "a.nc" preceeds "b.nc" in the list of files provided to the class
+constructor, then a.nc is assumed to contain "v" at time step 0,
+and "b.nc" contains "v" at time step 1.
+
+The command understands the Arakawa C-Grid ("staggered" variables), and
+can interpolate them onto a common (unstaggered) grid.
+
+=head1 OPTIONS
+
+=over 4
+
+=item -dims E<lt>dimensionsE<gt>
+
+Specifies the spatial dimensions of all 3D variables to be considered.
+The default is to use the dimensions of the first 3D variable
+encountered in the NetCDF files. The format of I<dimensions> is
+B<NXxNYxNZ>, where NX is the fastest varying dimension, NY the next
+fastest, and NZ the slowest.
+
+
+=item -vars E<lt>varnamesE<gt>
+
+A colon-delimited list of names of 2D and 3D (spatial) data variables
+to include in the .vdf file.  In general, the list of variables
+should be a subset of the data variables found in the MOM/POP input
+files.  If this option is not present the default behavior is to
+generate the list of variables from all of the 2D and 3D (spatial)
+variables found in any of the MOM/POP netCDF input files.
+
+=item -missattr E<lt>nameE<gt>
+
+Name of netCDF attribute specifying missing value, if any. 
+
+=item -misstv
+
+Use this option if missing data locations may vary between time
+steps and/or variables. If this is unknown it is safest to use this 
+option at the expense of increased storage requirements.
+
+=item -stagdims E<lt>dimnamesE<gt>
+
+A colon-delimited list specifying the names of any staggered
+dimensions.  A "staggered" dimension has dimension one greater than
+an unstaggered dimension. Variables defined on staggered grids are 
+interpolated to unstaggered grids.
+
+=item -startts E<lt>tsE<gt>
+
+Integer offset of first time step in NetCDF files to be converted
+
+=item -timedims E<lt>dimnamesE<gt>
+
+Colon delimited list of time dimension variable names. Any dimension
+names listed with this option are considered time dimensions. Data
+variables whose slowest varying dimension is named by this option
+are considered time varying.
+
+=item -timevars E<lt>varnamesE<gt>
+
+Colon delimited list of time coordinate variables. If this 1D variable 
+is present, it specfies the time in user-defined units for each time 
+step. 
+
+=item -level E<lt>levelE<gt>
+
+See vdfcreate.
+
+=item -comment E<lt>stringE<gt>
+
+See vdfcreate.
+
+=item -bs E<lt>NXxNYxNZE<gt>
+
+See vdfcreate.
+
+=item -wname E<lt>wave_nameE<gt>
+
+This option is for VDC2 only, see vdfcreate.
+
+=item -cratios E<lt>vectorE<gt>
+
+This option is for VDC2 only, see vdfcreate.
+
+=item -help 
+
+Print a usage statement and then exit.
+
+=back
+
+=head1 EXAMPLES
+
+
+The command 
+
+    ncdfvdfcreate -vars u:v:temp file1.nc file2.nc file3.nc mydata.vdf
+
+will construct a VDF file, B<mydata.vdf> that will contain the B<u>,
+B<v>, and B<temp> variable names for all time steps found in the
+NetCDF files B<file1.nc>, B<file2.nc>, and B<file3.nc>.  Because no
+time dimension is specified the variables are assumed to be implicitly
+time varying (have no time dimension).
+
+The command 
+
+    ncdfvdfcreate -timedims times -vars u:v:temp file1.nc file2.nc file3.nc mydata.vdf
+
+is identical to the previous example, except that here the variables 
+are expected to be explicitly time varying, having their slowest varying
+dimension named "times".
+
+
+=head1 SEE ALSO
+
+vdfcreate, ncdf2vdf.
+
+I<Conversion of NetCDF datafiles to a VAPOR VDC>
+
+=head1 HISTORY
+
+Last updated on $Date$
