@@ -16,7 +16,7 @@ B<vdfls> [options] I<vdffile>
 
 B<vdfls> will list information about the files that make up a VAPOR Data
 Collection (VDC) associated with the named .vdf file, I<vdffile>.
-B<vdfls> provides infomration similar to that of the UNIX B<ls> command.
+B<vdfls> provides information similar to that of the UNIX B<ls> command.
 
 
 =head1 OPTIONS
