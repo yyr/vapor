@@ -74,11 +74,15 @@ private:
 	}
 	float DELA(float delth,float delph,float th[4],float ph[4],float A,float B){
 		float num = delth*COMDIF4(ph,A) - delph*COMDIF4(th,A);
-		return num/DET(A,B,th,ph);
+		float det = DET(A,B,th,ph);
+		if (det == 0.f) return 1.e30f; //Flag degenerate rectangles
+		return num/det;
 	}
 	float DELB(float delth,float delph,float th[4],float ph[4],float A,float B){
 		float num = delph*COMDIF2(th,B) - delth*COMDIF2(ph,B);
-		return num/DET(A,B,th,ph);
+		float det = DET(A,B,th,ph);
+		if (det == 0.f) return 1.e30f; //Flag degenerate rectangles
+		return num/det;
 	}
 	
 	float errP(float theta,float phi,float A,float B,float th[4],float ph[4]){
@@ -93,12 +97,16 @@ private:
 	float NEWA(float A,float B,float theta,float phi,float th[4],float ph[4]){
 		float delth = DELT(theta,A,B,th);
 		float delph = DELT(phi,A,B,ph);
-		return (A+DELA(delth,delph,th,ph,A,B));
+		float dela = DELA(delth,delph,th,ph,A,B);
+		if (dela == 1.e30f) return 1.e30f;
+		return (A+dela);
 	}
 	float NEWB(float A,float B,float theta,float phi,float th[4],float ph[4]){
 		float delth = DELT(theta,A,B,th);
 		float delph = DELT(phi,A,B,ph);
-		return (B+DELB(delth,delph,th,ph,A,B));
+		float delb = DELB(delth,delph,th,ph,A,B);
+		if (delb == 1.e30f) return 1.e30f;
+		return (B+delb);
 	}
 	
 	

@@ -271,7 +271,7 @@ int WeightTable::calcWeights(){
 					lat[2] = _geo_lat[ulon+_nx*(ulat+1)];
 					lat[3] = _geo_lat[ulon+1+_nx*(ulat+1)];
 				}
-				float mi_ny = Min(Min(lat[0],lat[1]),Min(lat[0],lat[3])) - eps;
+				float minlat = Min(Min(lat[0],lat[1]),Min(lat[0],lat[3])) - eps;
 				float maxlat = Max(Max(lat[0],lat[1]),Min(lat[2],lat[3])) + eps;
 
 				
@@ -291,15 +291,15 @@ int WeightTable::calcWeights(){
 					lon3 = _geo_lon[ulon+1+_nx*(ulat+1)];
 				}
 							
-				float mi_nx = Min(Min(lon0,lon1),Min(lon2,lon3))-eps;
+				float minlon = Min(Min(lon0,lon1),Min(lon2,lon3))-eps;
 				float maxlon = Max(Max(lon0,lon1),Max(lon2,lon3))+eps;
 
 								
 				// find all the latlon grid vertices that fit near this rectangle: 
 				// Add 1 to the LL corner latitude because it is definitely below and left of the rectangle
-				int latInd0 = (int)(1.+((mi_ny-_lonLatExtents[1])/_deltaLat));
+				int latInd0 = (int)(1.+((minlat-_lonLatExtents[1])/_deltaLat));
 				// Don't add 1 to the longitude corner because in some cases (with wrap) it would eliminate a valid longitude index.
-				int lonInd0 = (int)(((mi_nx-_lonLatExtents[0])/_deltaLon));
+				int lonInd0 = (int)(((minlon-_lonLatExtents[0])/_deltaLon));
 				//cover the edges too!
 				// edgeflag is used to enable extrapolation when points are slightly outside of the grid extents
 				bool edgeFlag = false;
@@ -409,24 +409,24 @@ int WeightTable::calcWeights(){
 				}
 				
 							
-				float mi_ny = 1000., maxlat = -1000.;
+				float minlat = 1000., maxlat = -1000.;
 				
 				//Get min/max latitude
 				for (int k=0;k<4;k++) {
 					
-					if (lat[k]<mi_ny) mi_ny = lat[k];
+					if (lat[k]<minlat) minlat = lat[k];
 					if (lat[k]>maxlat) maxlat = lat[k];
 				}
 				
 				//Determine a minimal sector (longitude interval)  that contains the 4 corners:
-				float maxlon, mi_nx;
+				float maxlon, minlon;
 				
 				bool fullCircle = false;
-				mi_nx = Min(Min(lon[0],lon[1]),Min(lon[2],lon[3]));
+				minlon = Min(Min(lon[0],lon[1]),Min(lon[2],lon[3]));
 				maxlon = Max(Max(lon[0],lon[1]),Max(lon[2],lon[3]));
 				//If the sector width is too great, try other orderings mod 360, or set fullCircle = true.
 				//the lon[] array is only used to find max and min.
-				if (maxlon - mi_nx >= 180.) {
+				if (maxlon - minlon >= 180.) {
 					//see if we can rearrange the points modulo 360 degrees to get them to lie in a 180 degree sector
 					int firstpoint = -1;
 					for (int k = 0; k< 4; k++){
@@ -442,8 +442,8 @@ int WeightTable::calcWeights(){
 						if (ok){ firstpoint = k; break;}
 					}
 					if (firstpoint >= 0) { // we need to consider thet[firstpoint] as the starting angle in the sector
-						mi_nx = lon[firstpoint];
-						maxlon = mi_nx -1000.;
+						minlon = lon[firstpoint];
+						maxlon = minlon -1000.;
 						for (int k = 0; k<4; k++){
 							if (k==firstpoint) continue;
 							if (lon[k] < lon[firstpoint]) lon[k]+=360.;
@@ -459,32 +459,32 @@ int WeightTable::calcWeights(){
 				
 				//Expand slightly to include points on boundary
 				maxlon += eps;
-				mi_nx -= eps;
+				minlon -= eps;
 				
-				//If fullCircle is false the sector goes from mi_ny, mi_nx to maxlat, maxlon
+				//If fullCircle is false the sector goes from minlat, minlon to maxlat, maxlon
 				//If fullCircle is true, the sector is a full circle, from minrad= 0 to maxrad
 				
 				//Shrink the inner radius (largest latitude) to be sure to include secant lines between two vertices on max latitude:
 				if (!fullCircle){
-					float sectorAngle = (maxlon - mi_nx)*M_PI/180.;
+					float sectorAngle = (maxlon - minlon)*M_PI/180.;
 					float shrinkFactor = cos(sectorAngle*0.5);
 					maxlat = 90.- (90.-maxlat)*shrinkFactor;
 				}
-				mi_ny -= eps;
+				minlat -= eps;
 				maxlat += eps;
 
 				
 				// Test all lat/lon pairs that are in the sector, to see if they are inside the rectangle of (x,y) corners.
 				// first, discretize the sector extents to match lat/lon grid
 				int lonMin, lonMax;
-				int latMin = (int)(1.+(mi_ny-_lonLatExtents[1])/_deltaLat);
+				int latMin = (int)(1.+(minlat-_lonLatExtents[1])/_deltaLat);
 				int latMax = (int)((maxlat-_lonLatExtents[1])/_deltaLat);
 				if (fullCircle) {
 					lonMin = 0; lonMax = _nx;
 					latMax = _ny -1;
 				}
 				else {
-					lonMin = (int)(1.+(mi_nx  -_lonLatExtents[0])/_deltaLon);
+					lonMin = (int)(1.+(minlon  -_lonLatExtents[0])/_deltaLon);
 					lonMax = (int)((maxlon -_lonLatExtents[0])/_deltaLon);
 				}
 				
@@ -502,10 +502,11 @@ int WeightTable::calcWeights(){
 				if (latMax < _ny-1) latMax++;
 				if (lonMax < _nx -1) lonMax++;
 				if (latMax > _ny-1) latMax = _ny-1;
-				if (lonMax > _nx-1) lonMax = _nx-1;
+				
 				//Test each point in lon/lat interval:
 				for (int qlat = latMin; qlat<= latMax; qlat++){
 					for (int plon = lonMin; plon<= lonMax; plon++){
+						
 						float testLon = _lonLatExtents[0]+plon*_deltaLon;
 						int plon1 = plon;
 						if(plon >= _nx) {
@@ -544,19 +545,20 @@ int WeightTable::calcWeights(){
 		} //end else
 	} //end ulat loop
 	//Check it out:
-#ifdef DEBUG
+#ifdef _DEBUG
 	for (int i = 0; i<_ny; i++){
 		for (int j = 0; j<_nx; j++){
 			if (_testValues[j+_nx*i] <1.){
-				if (alphas[j+_nx*i] > 2.0 || alphas[j+_nx*i] < -1.0 || betas[j+_nx*i]>2.0 || betas[j+_nx*i]< -1.0)
-					fprintf(stderr," bad alpha %g beta %g at lon,lat %d , %d, ulon %d ulat %d, testval: %g\n",alphas[j+_nx*i],betas[j+_nx*i], j, i, cornerLons[j+_nx*i], cornerLats[j+_nx*i],_testValues[j+i*_nx]);
+				if (_alphas[j+_nx*i] > 2.0 || _alphas[j+_nx*i] < -1.0 || _betas[j+_nx*i]>2.0 || _betas[j+_nx*i]< -1.0)
+					fprintf(stderr," bad alpha %g beta %g at lon,lat %d , %d, ulon %d ulat %d, testval: %g\n",_alphas[j+_nx*i],_betas[j+_nx*i], j, i, _cornerLons[j+_nx*i], _cornerLats[j+_nx*i],_testValues[j+i*_nx]);
 				continue;
 			}
 			else if (MOMBased) {
-				if (_testValues[j+_nx*i] < 10000.) printf( "poor estimate: %f at lon, lat %d %d, ulon, ulat %d %d\n", _testValues[j+_nx*i],j,i, cornerLons[j+_nx*i], cornerLats[j+_nx*i]);
+				if (_testValues[j+_nx*i] < 10000.) printf( "poor estimate: %f at lon, lat %d %d, ulon, ulat %d %d\n", _testValues[j+_nx*i],j,i, _cornerLons[j+_nx*i], _cornerLats[j+_nx*i]);
 				else {
-					MyBase::SetErrMsg(" Error remapping coordinates.  Unmapped lon, lat: %d, %d\n",j,i);
-					//exit (-1);
+					printf(" Error remapping coordinates.  Unmapped lon, lat: %d, %d\n",j,i);
+					float est = bestLatLonPolar(j,i);
+					
 				}
 			}
 		}
@@ -694,17 +696,34 @@ void WeightTable::findWeight(float plon, float plat, int ilon, int ilat, float* 
 	float alph = 0.f, bet = 0.f;  //first guess
 	float newalpha, newbeta;
 	int iter;
-	for (iter = 0; iter < 10; iter++){
+	float errp = 100.;
+	for (iter = 0; iter < 20; iter++){
 		newalpha = NEWA(alph, bet, plon, plat, th, ph);
 		newbeta = NEWB(alph, bet, plon, plat, th, ph);
-		
-		if (errP(plon, plat, newalpha, newbeta,th,ph) < 1.e-9) break;
+		if (newalpha == 1.e30f || newbeta == 1.e30f){  //Degenerate rectangle; expand slightly
+			for (int j = 0; j<4; j++){
+				bool lowerth = true;
+				bool lowerph = true;
+				if (j == 1 || j == 2) lowerth = false;
+				if (j > 1 ) lowerph = false;
+				if (th[j] < 0.f) lowerth = !lowerth;
+				if (ph[j] < 0.f) lowerph = !lowerph;
+				if (lowerth) th[j]=0.99999f*th[j]; 
+				else th[j] = 1.000001f*th[j];
+				if (lowerph) ph[j]=0.99999f*ph[j]; 
+				else ph[j] = 1.00001f*ph[j];
+			}
+			//Try again with expanded coordinates
+			continue;
+		}
+		errp = errP(plon, plat, newalpha, newbeta,th,ph);
+		if (errp < 1.e-6) break;
 		alph = newalpha;
 		bet = newbeta;
 	}
-	if(iter > 10){
-		printf(" Weight nonconvergence, errp: %f , alpha, beta: %f %f\n",errP(plon, plat, newalpha, newbeta,th,ph), newalpha, newbeta);
-	}
+	//if(iter >= 20 && errp > 1.f){
+	//	fprintf(stderr," Weight nonconvergence, error value: %f , alpha, beta: %f %f\n",errp, newalpha, newbeta);
+	//}
 	
 	*alpha = newalpha;
 	*beta = newbeta;
@@ -753,17 +772,33 @@ void WeightTable::findWeight2(float x, float y, int ilon, int ilat, float* alpha
 	float alph = 0.f, bet = 0.f;  //first guess
 	float newalpha, newbeta;
 	int iter;
-	for (iter = 0; iter < 10; iter++){
+	float errp=100.;
+	for (iter = 0; iter < 20; iter++){
 		newalpha = NEWA(alph, bet, x, y, xc, yc);
 		newbeta = NEWB(alph, bet, x, y, xc, yc);
-		
-		if (errP(x, y, newalpha, newbeta,xc,yc) < 1.e-9) break;
+		if (newalpha == 1.e30f || newbeta == 1.e30f) {  //Degenerate rectangle
+			for (int j = 0; j<4; j++){
+				bool lowerx = true;
+				bool lowery = true;
+				if (j == 1 || j == 2) lowerx = false;
+				if (j > 1 ) lowery = false;
+				if (xc[j] < 0.f) lowerx = !lowerx;
+				if (yc[j] < 0.f) lowery = !lowery;
+				if (lowerx) xc[j]=0.99999f*xc[j]; 
+				else xc[j] = 1.000001f*xc[j];
+				if (lowery) yc[j]=0.99999f*yc[j]; 
+				else yc[j] = 1.00001f*yc[j];
+			}
+			continue;
+		}
+		errp = errP(x, y, newalpha, newbeta,xc,yc);
+		if (errp < 1.e-6) break;
 		alph = newalpha;
 		bet = newbeta;
 	}
-	if(iter > 10){
-		fprintf(stderr," Weight nonconvergence, errp: %f , alpha, beta: %f %f\n",errP(x, y, newalpha, newbeta, xc,yc), newalpha, newbeta);
-	}
+	//if(iter >= 20 && errp > 1.){
+	//	fprintf(stderr," Weight nonconvergence, error value: %f , alpha, beta: %f %f\n",errp, newalpha, newbeta);
+	//}
 	*alpha = newalpha;
 	*beta = newbeta;
 	
