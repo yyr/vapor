@@ -3,31 +3,31 @@
 #      $Id$
 #
 #########################################################################
-#									#
-#			   Copyright (C)  2007                          #
-#	     University Corporation for Atmospheric Research		#
-#			   All Rights Reserved				#
-#									#
+#                                                                        #
+#               Copyright (C)  2013                                      #
+#         University Corporation for Atmospheric Research                #
+#               All Rights Reserved                                        #
+#                                                                        #
 #########################################################################
 #
-#	File:		vdfbkup.pl
+#    File:        vdfbkup.pl
 #
-#	Author:		Miles Rufat-Latre
-#			National Center for Atmospheric Research
-#			PO 3000, Boulder, Colorado
+#    Author:        Miles Rufat-Latre
+#            National Center for Atmospheric Research
+#            PO 3000, Boulder, Colorado
 #
-#	Date:		Fri Jan 13 18:00:32 MST 1995
+#    Date:        Fri Jan 13 18:00:32 MST 1995
 #
-#	Description:	A command-line utility for copying .vdf datasets
+#    Description:    A command-line utility for copying .vdf datasets
 #
-#	Usage:
+#    Usage:
 #
-#	Environment:
+#    Environment:
 #
-#	Files:
+#    Files:
 #
 #
-#	Options:
+#    Options:
 
 use strict;
 #some warnings are expected in normal execution
@@ -42,8 +42,6 @@ no warnings "uninitialized";
 #BEGIN GLOBAL VARIABLE DECLARATIONS
 my $usage = 
 "Usage: vdfcp [options] source.vdf <dest>\n" .
-"foo.vdf is the metafile for the data you'd like to copy.\n" .
-"<dest> is the root directory for the copied tree.\n" . 
 "OPTIONS...\n" . 
 "-ts0 #\n" .
 "    Set '#' as first timestep to copy.\n" .
@@ -61,6 +59,8 @@ my $usage =
 "    Show available levels, frames and variables in a human-readable format.\n    Can also be used to show selected ranges. No target needed." .
 "-list\n" .
 "    Output a list of all files (each with its full path)\n    that would be copied given the selected ranges.\n" .
+"-help\n" .
+"    Print this usage statement and exit.\n" .
 "-v\n" .
 "    verbose: output detailed information when copying.\n" .
 "-f\n" .
@@ -175,7 +175,7 @@ foreach(@vars)
               &&
                 ($maxts == -1 || $tok[1] <= $maxts)
               &&
-	        ($mints == -1 || $tok[1] >= $mints)
+            ($mints == -1 || $tok[1] >= $mints)
             ) 
           || 
             $var eq "mask"
@@ -262,6 +262,11 @@ sub parseOptions
                 $list = 1;
                 $verbose = 0;
             }
+            case "help"
+            {
+                print $usage;
+                exit(0);
+            }
             case "v"
             {
                 $verbose = 1 unless($info || $list);
@@ -324,12 +329,12 @@ sub parseArgs
     }
 
     #Disable any extra messages if -list is on
-    if($list == 1)
+    if($info == 1)
     {
         $verbose = 0;
-        $info = 0;
+        $list = 0;
     }
-    elsif ($info == 1)
+    elsif ($list == 1)
     {
         $verbose = 0;
     }
@@ -360,8 +365,8 @@ sub scanvars
     {
         die "no variables selected, or no selected variables available!\n"
             if(@vars < 2);
-	$vars[0] = $vars[1];
-	$vars[1] = "mask";
+    $vars[0] = $vars[1];
+    $vars[1] = "mask";
     }
     @varfiles = grep{-f "$srcdir/$vars[0]/$_"} dirContents("$srcdir/$vars[0]");
     $amints = -1;

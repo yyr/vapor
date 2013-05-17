@@ -1,0 +1,131 @@
+=begin comment
+
+$Id$
+
+=end comment
+
+=head1 NAME
+
+vdfcp - Copy a vdf dataset, either partially or entirely
+
+=head1 SYNOPSIS
+
+B<vdfcp> [options] I<srcvdf> I<destination>
+B<vdfcp> -list I<srcvdf>
+B<vdfcp> -info I<srcvdf>
+
+=head1 DESCRIPTION
+
+B<vdfcp> copies I<srcvdf>, or part of I<srcvdf>, to I<destination>. The first
+form does this. The second form is used to obtain a list of the files that
+would be copied if the first form were used on I<srcvdf>. The third form prints
+a human-readable message detailing the available ranges of timesteps, variables
+and refinement available in I<srcvdf>.
+
+=head1 OPTIONS
+
+=over 4
+
+=item -list
+
+Tells vdfcp to list the items it would copy, instead of actually copying them.
+This list includes the .vdf metafile itself, and is delimited by newlines.
+No destination is needed when -info is given, as nothing will be copied.
+
+=item -info
+
+Tells vdfcp to display available variables, timesteps and levels in a 
+human-readable format. If given with arguments like ts0, ts1, numts, level, 
+vars and nvars, the report will be limited to the selected ranges. This will 
+also tell you if parts of your selection are not available in the dataset. 
+No destination is needed when -info is given, as nothing will be copied.
+Overrides -list.
+
+=item -vars E<lt>v1:v2:v3:...E<gt>
+
+A colon-delimited list of names of variables. These variables will be included
+in any listing or copying done by vdfcp at runtime.
+
+=item -nvars E<lt>v1:v2:v3:...E<gt>
+
+A colon-delimited list of names of variables. These variables will NOT be 
+included in any listing or copying done by vdfcp at runtime. Overrides -vars.
+
+=item -ts0 E<lt>#E<gt>
+
+The number of the first timestep to copy or scan from the source dataset.
+This option has the highest priority of any timestep-related options. 
+
+=item -ts1 E<lt>#E<gt>
+
+The number of the last timestep to copy or scan from the source dataset.
+
+=item -numts E<lt>#E<gt>
+
+The number of timesteps to copy or scan from the source dataset. This option
+has the lowest priority of any timestep-related options.
+
+=item -level E<lt>#E<gt>
+
+The highest level of refinement to scan or copy from the source dataset. All
+levels below this will be copied as well.
+
+=item -f
+
+Tells vdfcp to overwrite any existing dataset at the specified destination. If
+vdfcp is overwriting an existing dataset, it will print warnings.
+
+=item -v
+
+Prints information while copying, including a confirmation of the source and
+destination .vdf metafiles, and the variables being copied.
+
+=item -help 
+
+Print a usage statement and then exit.
+
+=back
+
+=head1 EXAMPLES
+
+
+The command...
+
+    vdfcp -vars P:T -level 2 -ts0 10 -numts 20 path/to/source.vdf path/to/data
+
+...will copy source.vdf and its associated dataset to the path/to/data directory,
+which must exist prior to the execution of the command. If instead of typing 
+"path/to/data", the user had typed "path/to/data.vdf", data.vdf would become the
+metafile for the new dataset, and data_data would be placed in the same directory.
+Only the variables P and T will be copied, only levels 0, 1 and 2, and timesteps
+10 through 29 will be copied to the new dataset.
+
+
+This command...
+
+    tar -cf foo.tar 'vdfcp -list -ts1 50 -numts 20 path/to/source.vdf'
+
+...will cause tar to archive all files required to represent timesteps 31 to 50 of
+source.vdf's associated dataset in foo.tar. Note that when ts1 is used with numts,
+the range of copied timesteps ends at ts1. However, if ts0 were also specified,
+it would take priority and the range would begin at ts0. If only numts is given,
+then the range will begin at the first timestep of the dataset.
+
+
+This command...
+
+    vdfcp -info -nvars bx:bz ts1 30 path/to/source.vdf
+
+...will show the range of levels in source.vdf's dataset, as well as all timesteps
+below 30. It will also list all variables except for bx and bz. If the dataset has
+no timesteps at or above 30, vdfcp will print an error message and exit.
+
+=head1 SEE ALSO
+
+vdfcreate, wrf2vdf, 
+
+I<Conversion of WRF-ARW datafiles to a VAPOR VDC>
+
+=head1 HISTORY
+
+Last updated on $Date$
