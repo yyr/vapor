@@ -1,4 +1,33 @@
 #!/usr/bin/perl
+#
+#      $Id$
+#
+#########################################################################
+#									#
+#			   Copyright (C)  2007                          #
+#	     University Corporation for Atmospheric Research		#
+#			   All Rights Reserved				#
+#									#
+#########################################################################
+#
+#	File:		vdfbkup.pl
+#
+#	Author:		Miles Rufat-Latre
+#			National Center for Atmospheric Research
+#			PO 3000, Boulder, Colorado
+#
+#	Date:		Fri Jan 13 18:00:32 MST 1995
+#
+#	Description:	A command-line utility for copying .vdf datasets
+#
+#	Usage:
+#
+#	Environment:
+#
+#	Files:
+#
+#
+#	Options:
 
 use strict;
 #some warnings are expected in normal execution
