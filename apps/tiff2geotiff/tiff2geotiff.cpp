@@ -701,7 +701,6 @@ static void
 cpOtherTags(TIFF* in, TIFF* out)
 {
 	struct cpTag *p = tags;
-	int ntags = NTAGS;
 	for (int i = 0; i < NTAGS; i++, p++) {
 		switch (p->type) {
 		case TIFF_SHORT:
