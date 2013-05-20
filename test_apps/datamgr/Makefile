@@ -8,9 +8,9 @@ FILES = test_datamgr
 
 ifeq ($(BUILD_GUI),1)
 LIBRARIES = pthread dl util m vdf python$(PYTHONVERSION) \
-	proj common netcdf expat
+	proj common udunits2 netcdf expat
 else
-LIBRARIES = vdf common netcdf expat
+LIBRARIES = vdf common udunits2 netcdf expat
 endif
 
 

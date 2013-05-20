@@ -8,7 +8,7 @@ FILES = testimpexp
 
 LDFLAGS += $(EXPATLIB)
 
-LIBRARIES = common vdf
+LIBRARIES = common vdf proj udunits2 netcdf 
 
 CXXFLAGS += -I$(EXPAT_INC_PATH)
 
