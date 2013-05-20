@@ -109,3 +109,4 @@ CLD_EXCLUDE_LIBS = ^/usr ^/lib
 # libcurl seems to be absent on some linux distros
 #
 CLD_INCLUDE_LIBS += libcurl
+CLD_INCLUDE_LIBS += libexpat
