@@ -156,6 +156,7 @@ private:
  std::vector <string> _lonCVs;	// all valid longitude coordinate variables
  std::vector <string> _vertCVs;	// all valid vertical coordinate variables
  string _ovr_varname;
+ float _defaultMV;
 
  class latLonBuf {
  public:

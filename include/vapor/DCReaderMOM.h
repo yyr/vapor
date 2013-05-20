@@ -155,6 +155,7 @@ private:
  std::vector <string> _lonCVs;	// all valid longitude coordinate variables
  WeightTable *_ovr_weight_tbl;
  string _ovr_varname;
+ float _defaultMV;
 
  class latLonBuf {
  public:

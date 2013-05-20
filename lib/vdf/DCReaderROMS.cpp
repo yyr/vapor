@@ -35,6 +35,7 @@ DCReaderROMS::DCReaderROMS(const vector <string> &files) {
 	_latCVs.clear();
 	_lonCVs.clear();
 	_ovr_varname.clear();
+	_defaultMV = 1e37;
 
 	NetCDFCFCollection *ncdfc = new NetCDFCFCollection();
 	ncdfc->Initialize(files);
@@ -308,12 +309,10 @@ void DCReaderROMS::GetTSUserTimeStamp(size_t ts, string &s) const {
 bool DCReaderROMS::GetMissingValue(string varname, float &value) const {
 	value = 0.0;
 
-	//
-	// Technically a derived variable could have missing data, but
-	// the only derived variables are angleRAD and latDEG, both of which
-	// have no missing values
-	//
-	if (IsVariableDerived(varname)) return(false);
+	if (IsVariableDerived(varname)) {
+		value = _defaultMV;
+		return(true);
+	}
 
 	// 
 	// coordinate variables can't have missing values
@@ -347,7 +346,7 @@ bool DCReaderROMS::GetMissingValue(string varname, float &value) const {
 			//
 			// We always have a missing value because the native grid is 
 			// resampled to 
-			value = (float) 1e37;
+			value = (float) _defaultMV;
 			has_missing = true;
 		}
 	}
@@ -406,11 +405,9 @@ int DCReaderROMS::ReadSlice(float *slice) {
 	bool has_missing = DCReaderROMS::GetMissingValue(_ovr_varname, srcMV);
 
 	//
-	// If there are no missing values then resampling should not
-	// introduce any, but we don't have a non-missing-value version
-	// of the resampler :-(
+	// If there are no missing values  resampling may introduce them.
 	//
-	if (! has_missing) srcMV = 1e37;
+	if (! has_missing) srcMV = _defaultMV;
 
 	if (_ovr_varname.compare("ELEVATION") == 0) {
 		vector <double> extents = DCReaderROMS::GetExtents(0);
@@ -831,10 +828,20 @@ void DCReaderROMS::_getRotationVariables(
 	float *_angleRADBuf, float *_latDEGBuf
 ) const {
 
-	for (int lat = 0; lat<_dims[1]; lat++){
-	for (int lon = 0; lon<_dims[0]; lon++){
-		_angleRADBuf[_dims[0]*lat + lon] = wt->getAngle(lon,lat);
-		_latDEGBuf[_dims[0]*lat + lon] = wt->getGeoLats()[_dims[0]*lat + lon];
-	}
-	}
+    float mv = _defaultMV;
+    for (int lat = 0; lat<_dims[1]; lat++){
+    for (int lon = 0; lon<_dims[0]; lon++){
+        _sliceBuffer[_dims[0]*lat + lon] = wt->getAngle(lon,lat);
+    }
+    }
+    size_t dims[] = {_dims[0], _dims[1]};
+    wt->interp2D(_sliceBuffer, _angleRADBuf, mv, mv, dims);
+
+    for (int lat = 0; lat<_dims[1]; lat++){
+    for (int lon = 0; lon<_dims[0]; lon++){
+        _sliceBuffer[_dims[0]*lat + lon] = wt->getGeoLats()[_dims[0]*lat + lon];
+    }
+    }
+    wt->interp2D(_sliceBuffer, _latDEGBuf, mv, mv, dims);
+
 }

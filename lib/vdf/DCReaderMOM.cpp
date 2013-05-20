@@ -38,6 +38,7 @@ DCReaderMOM::DCReaderMOM(const vector <string> &files) {
 	_lonCVs.clear();
 	_ovr_weight_tbl = NULL;
 	_ovr_varname.clear();
+	_defaultMV = 1e37;
 
 	NetCDFCFCollection *ncdfc = new NetCDFCFCollection();
 	ncdfc->Initialize(files);
@@ -346,12 +347,10 @@ void DCReaderMOM::GetTSUserTimeStamp(size_t ts, string &s) const {
 bool DCReaderMOM::GetMissingValue(string varname, float &value) const {
 	value = 0.0;
 
-	//
-	// Technically a derived variable could have missing data, but
-	// the only derived variables are angleRAD and latDEG, both of which
-	// have no missing values
-	//
-	if (IsVariableDerived(varname)) return(false);
+	if (IsVariableDerived(varname)) {
+		value = _defaultMV;
+		return(true);
+	}
 
 	double value_d;
 	bool has_missing = _ncdfc->GetMissingValue(varname, value_d);
@@ -455,11 +454,10 @@ int DCReaderMOM::ReadSlice(float *slice) {
 	bool has_missing = DCReaderMOM::GetMissingValue(_ovr_varname, mv);
 
 	//
-	// If there are no missing values then resampling should not
-	// introduce any, but we don't have a non-missing-value version
-	// of the resampler :-(
+	// If there are no missing values resampling may still 
+	// introduce them.
 	//
-	if (! has_missing) mv = 1e37;
+	if (! has_missing) mv = _defaultMV;
 
 	size_t dims[] = {_dims[0], _dims[1]};
 	_ovr_weight_tbl->interp2D(_sliceBuffer, slice, mv, mv, dims);
@@ -844,10 +842,20 @@ void DCReaderMOM::_getRotationVariables(
 	map <string, WeightTable *>::const_iterator itr = _weightTableMap.begin();
 	WeightTable *wt = itr->second;
 
+	float mv = _defaultMV;
 	for (int lat = 0; lat<_dims[1]; lat++){
 	for (int lon = 0; lon<_dims[0]; lon++){
-		_angleRADBuf[_dims[0]*lat + lon] = wt->getAngle(lon,lat);
-		_latDEGBuf[_dims[0]*lat + lon] = wt->getGeoLats()[_dims[0]*lat + lon];
+		_sliceBuffer[_dims[0]*lat + lon] = wt->getAngle(lon,lat);
 	}
 	}
+	size_t dims[] = {_dims[0], _dims[1]};
+	wt->interp2D(_sliceBuffer, _angleRADBuf, mv, mv, dims);
+
+	for (int lat = 0; lat<_dims[1]; lat++){
+	for (int lon = 0; lon<_dims[0]; lon++){
+		_sliceBuffer[_dims[0]*lat + lon] = wt->getGeoLats()[_dims[0]*lat + lon];
+	}
+	}
+	wt->interp2D(_sliceBuffer, _latDEGBuf, mv, mv, dims);
+
 }
