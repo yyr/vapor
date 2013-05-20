@@ -5,7 +5,8 @@ include ${TOP}/make/config/prebase.mk
 
 include ${TOP}/make/config/base.mk
 
-all:: $(BINDIR)/vapor-setup.sh $(BINDIR)/vapor-setup.csh vdfbkup.pl getWMSImage.sh
+all:: $(BINDIR)/vapor-setup.sh $(BINDIR)/vapor-setup.csh vdfbkup.pl \
+getWMSImage.sh 
 
 libs =  $(shell echo $(strip $(INSTALL_LIBDIR) $(LIB_SEARCH_DIRS) $(QTDIR)/lib) | sed -e  's/ /\:/g')
 $(BINDIR)/vapor-setup.sh: FRC
@@ -23,6 +24,7 @@ install:: $(BINDIR)/vapor-setup.sh vdfbkup.pl getWMSImage.sh
 	@$(INSTALL_EXEC) $(BINDIR)/vapor-setup.sh $(INSTALL_BINDIR)
 	@$(INSTALL_EXEC) vdfbkup.pl $(INSTALL_BINDIR)
 	@$(INSTALL_EXEC) getWMSImage.sh $(INSTALL_BINDIR)
+	@$(INSTALL_EXEC) vdfcp $(INSTALL_BINDIR)
 
 $(BINDIR)/vapor-setup.csh: FRC
 	sed -e s#SYSTEM_ARCH#$(ARCH)# \

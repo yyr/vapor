@@ -91,7 +91,7 @@ Print a usage statement and then exit.
 
 The command...
 
-    vdfcp -vars P:T -level 2 -ts0 10 -numts 20 path/to/source.vdf path/to/data
+C<vdfcp -vars P:T -level 2 -ts0 10 -numts 20 path/to/source.vdf path/to/data>
 
 ...will copy source.vdf and its associated dataset to the path/to/data directory,
 which must exist prior to the execution of the command. If instead of typing 
@@ -103,7 +103,7 @@ Only the variables P and T will be copied, only levels 0, 1 and 2, and timesteps
 
 This command...
 
-    tar -cf foo.tar 'vdfcp -list -ts1 50 -numts 20 path/to/source.vdf'
+C<tar -cf foo.tar `vdfcp -list -ts1 50 -numts 20 path/to/source.vdf`>
 
 ...will cause tar to archive all files required to represent timesteps 31 to 50 of
 source.vdf's associated dataset in foo.tar. Note that when ts1 is used with numts,
@@ -114,7 +114,7 @@ then the range will begin at the first timestep of the dataset.
 
 This command...
 
-    vdfcp -info -nvars bx:bz ts1 30 path/to/source.vdf
+C<vdfcp -info -nvars bx:bz ts1 30 path/to/source.vdf>
 
 ...will show the range of levels in source.vdf's dataset, as well as all timesteps
 below 30. It will also list all variables except for bx and bz. If the dataset has
@@ -124,7 +124,7 @@ no timesteps at or above 30, vdfcp will print an error message and exit.
 
 vdfcreate, wrf2vdf, 
 
-I<Conversion of WRF-ARW datafiles to a VAPOR VDC>
+I<Copy a VDC to a new location>
 
 =head1 HISTORY
 
