@@ -771,6 +771,7 @@ guiSetHeightVarNum(int vnum){
 	updateTab();
 	PanelCommand::captureEnd(cmd, tParams);
 	if (!tParams->isMappedToTerrain()) return;
+	setTwoDDirty(tParams);
 	VizWinMgr::getInstance()->forceRender(tParams);	
 }
 
