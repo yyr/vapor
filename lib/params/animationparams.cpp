@@ -679,11 +679,7 @@ void AnimationParams::buildViewsAndTimes(){
 		}
 	}
 	
-	int num1 = loadedTimesteps.size();
-	int num2 = loadedViewpoints.size();
-	
-	assert(num1 == num2);
-	
+	assert(loadedTimesteps.size() == loadedViewpoints.size());
 	
 	if ((endKeyframeFrame > (loadedViewpoints.size()-1)) || endFrameIsDefault) {
 			endKeyframeFrame = loadedViewpoints.size()-1;

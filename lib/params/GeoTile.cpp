@@ -121,8 +121,8 @@ int GeoTile::GetMap(
 	PixelXYToTileXY(pixelX1, pixelY1, tileX1, tileY1, tilePixelX1, tilePixelY1);
 
 
-	size_t tpx0, tpy0;	// pixel coord bounds in tile coordinate system
-	size_t tpx1, tpy1;
+	size_t tpx0 = 0, tpy0 = 0;	// pixel coord bounds in tile coordinate system
+	size_t tpx1 = 0, tpy1 = 0;
 
 	// Process tiles from north-west to south-east.
 	//

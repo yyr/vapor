@@ -529,7 +529,7 @@ void animate::interpolate (float T[], int N,int startIndex,const std::vector<Key
 float animate::t_distanceFunc(float d){
     
     int max=testPoints-1; int min =0; int mid;
-    int K; //default
+    int K = 0; //default
     double E=0;
     if (d == 0){ K=0;}
     else if (d>=distance[testPoints-1]) {K=testPoints-1;}

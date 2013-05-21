@@ -226,7 +226,7 @@ int	main(int argc, char **argv) {
 	//
 	char **myargv;
 	int myargc;
-	char *argv2[] = {"-vdc2", NULL};
+	char *argv2[] = {(char *) "-vdc2", NULL};
 	myargv = argv_merge(argc, argv, 1, argv2, myargc);
 
 	if (op.AppendOptions(set_opts) < 0) {
