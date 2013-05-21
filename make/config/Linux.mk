@@ -105,8 +105,13 @@ INSTALL_EXEC = /usr/bin/install -m 0755
 INSTALL_NONEXEC = /usr/bin/install -m 0644
 
 CLD_EXCLUDE_LIBS = ^/usr ^/lib 
+
 #
-# libcurl seems to be absent on some linux distros
+# various system libraries that aren't necessarily installed on all 
+# flavors of linux
 #
 CLD_INCLUDE_LIBS += libcurl
 CLD_INCLUDE_LIBS += libexpat
+CLD_INCLUDE_LIBS += liblapack
+CLD_INCLUDE_LIBS += libblas
+CLD_INCLUDE_LIBS += libgfortran
