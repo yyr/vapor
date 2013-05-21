@@ -3,7 +3,7 @@
 #include <vector>
 #include <sstream>
 
-#include <vapor/Metadata.h>
+#include <vapor/MetadataVDC.h>
 #include <vapor/CFuncs.h>
 
 using namespace VetsUtil;
@@ -22,9 +22,9 @@ int	main(int argc, char **argv) {
 	argv++;
 	argc--;
 
-	Metadata *m = new Metadata(*argv);
-    if (Metadata::GetErrCode() != 0) {
-        cerr << "Metadata::Metadata() : " << Metadata::GetErrMsg() << endl;
+	MetadataVDC *m = new MetadataVDC(*argv);
+    if (MetadataVDC::GetErrCode() != 0) {
+        cerr << "MetadataVDC::MetadataVDC() : " << MetadataVDC::GetErrMsg() << endl;
         exit (1);
     }
 	argv++;
@@ -33,8 +33,8 @@ int	main(int argc, char **argv) {
 	while (argv[1]) {
 
 	m->Merge(*argv);
-		if (Metadata::GetErrCode() != 0) {
-			cerr << "Metadata::Merge() : " << Metadata::GetErrMsg() << endl;
+		if (MetadataVDC::GetErrCode() != 0) {
+			cerr << "MetadataVDC::Merge() : " << MetadataVDC::GetErrMsg() << endl;
 			exit (1);
 		}
 		argv++;
@@ -42,8 +42,8 @@ int	main(int argc, char **argv) {
 	}
 
 	m->Write(*argv, 0);
-    if (Metadata::GetErrCode() != 0) {
-        cerr << "Metadata::Write() : " << Metadata::GetErrMsg() << endl;
+    if (MetadataVDC::GetErrCode() != 0) {
+        cerr << "MetadataVDC::Write() : " << MetadataVDC::GetErrMsg() << endl;
         exit (1);
     }
 
