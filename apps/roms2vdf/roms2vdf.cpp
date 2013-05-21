@@ -471,6 +471,7 @@ int	main(int argc, char **argv) {
 				cout << " Processing variable " << variables[v] << ", ";
 			}
 			if (! momData->VariableExists(itr->second, variables[v])) {
+				cout << "does not exist!" << endl;
 				continue;
 			}
 
@@ -481,6 +482,7 @@ int	main(int argc, char **argv) {
 			);
 			if (rc<0) {
 				MyBase::SetErrCode(0); 	// must clear error code
+				cout << endl;
 				fails++;
 			}
 			const float * drange = vdfio->GetDataRange();
