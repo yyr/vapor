@@ -545,7 +545,8 @@ int WeightTable::calcWeights(){
 		} //end else
 	} //end ulat loop
 	//Check it out:
-#ifdef _DEBUG
+#if 0
+//#ifdef _DEBUG
 	for (int i = 0; i<_ny; i++){
 		for (int j = 0; j<_nx; j++){
 			if (_testValues[j+_nx*i] <1.){
