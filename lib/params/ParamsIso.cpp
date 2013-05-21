@@ -333,7 +333,7 @@ hookupTF(TransferFunction* tf, int index){
 	path.push_back(TransferFunction::_transferFunctionTag);
 	
 	tf->hookup(this,index,index);
-	assert (GetRootNode()->ReplaceNode(path, tf->GetRootNode()) >= 0);
+	GetRootNode()->ReplaceNode(path, tf->GetRootNode());
 	
 }
 MapperFunction* ParamsIso::GetMapperFunc() {

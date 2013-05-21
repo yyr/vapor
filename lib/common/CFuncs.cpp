@@ -49,10 +49,10 @@ string VetsUtil::Dirname(const string &path) {
 
 	string::size_type pos = path.rfind(separator);
 	if (pos == string::npos) {
-        if (separator2.empty()) return(path);
+        if (separator2.empty()) return(".");
 
 		pos = path.rfind(separator2);
-		if (pos == string::npos) return(path);
+		if (pos == string::npos) return(".");
 	}
 
 	return(path.substr(0, pos));
