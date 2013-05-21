@@ -2073,7 +2073,7 @@ int VizWinMgr::RegisterMouseMode(const std::string paramsTag, int manipType,  co
 	int newMode; 
 	QString qname(name);
 	newMode =  MainForm::getInstance()->addMode(qname,icon);
-	assert (GLWindow::AddMouseMode(paramsTag, manipType, name) = newMode);
+	assert (GLWindow::AddMouseMode(paramsTag, manipType, name) == newMode);
 	return newMode;
 }
 void VizWinMgr::InstallTab(const std::string tag, EventRouterCreateFcn fcn){
