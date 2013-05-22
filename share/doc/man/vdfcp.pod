@@ -6,17 +6,17 @@ $Id$
 
 =head1 NAME
 
-vdfcp - Copy a vdf dataset, either partially or entirely
+vdfcp.pl - Copy a vdf dataset, either partially or entirely
 
 =head1 SYNOPSIS
 
-B<vdfcp> [options] I<srcvdf> I<destination>
-B<vdfcp> -list I<srcvdf>
-B<vdfcp> -info I<srcvdf>
+B<vdfcp.pl> [options] I<srcvdf> I<destination>
+B<vdfcp.pl> -list I<srcvdf>
+B<vdfcp.pl> -info I<srcvdf>
 
 =head1 DESCRIPTION
 
-B<vdfcp> copies I<srcvdf>, or part of I<srcvdf>, to I<destination>. The first
+B<vdfcp.pl> copies I<srcvdf>, or part of I<srcvdf>, to I<destination>. The first
 form does this. The second form is used to obtain a list of the files that
 would be copied if the first form were used on I<srcvdf>. The third form prints
 a human-readable message detailing the available ranges of timesteps, variables
@@ -28,13 +28,13 @@ and refinement available in I<srcvdf>.
 
 =item -list
 
-Tells vdfcp to list the items it would copy, instead of actually copying them.
+Tells vdfcp.pl to list the items it would copy, instead of actually copying them.
 This list includes the .vdf metafile itself, and is delimited by newlines.
 No destination is needed when -info is given, as nothing will be copied.
 
 =item -info
 
-Tells vdfcp to display available variables, timesteps and levels in a 
+Tells vdfcp.pl to display available variables, timesteps and levels in a 
 human-readable format. If given with arguments like ts0, ts1, numts, level, 
 vars and nvars, the report will be limited to the selected ranges. This will 
 also tell you if parts of your selection are not available in the dataset. 
@@ -44,12 +44,12 @@ Overrides -list.
 =item -vars E<lt>v1:v2:v3:...E<gt>
 
 A colon-delimited list of names of variables. These variables will be included
-in any listing or copying done by vdfcp at runtime.
+in any listing or copying done by vdfcp.pl at runtime.
 
 =item -nvars E<lt>v1:v2:v3:...E<gt>
 
 A colon-delimited list of names of variables. These variables will NOT be 
-included in any listing or copying done by vdfcp at runtime. Overrides -vars.
+included in any listing or copying done by vdfcp.pl at runtime. Overrides -vars.
 
 =item -ts0 E<lt>#E<gt>
 
@@ -72,8 +72,8 @@ levels below this will be copied as well.
 
 =item -f
 
-Tells vdfcp to overwrite any existing dataset at the specified destination. If
-vdfcp is overwriting an existing dataset, it will print warnings.
+Tells vdfcp.pl to overwrite any existing dataset at the specified destination. If
+vdfcp.pl is overwriting an existing dataset, it will print warnings.
 
 =item -v
 
@@ -91,7 +91,7 @@ Print a usage statement and then exit.
 
 The command...
 
-C<vdfcp -vars P:T -level 2 -ts0 10 -numts 20 path/to/source.vdf path/to/data>
+C<vdfcp.pl -vars P:T -level 2 -ts0 10 -numts 20 path/to/source.vdf path/to/data>
 
 ...will copy source.vdf and its associated dataset to the path/to/data directory,
 which must exist prior to the execution of the command. If instead of typing 
@@ -103,7 +103,7 @@ Only the variables P and T will be copied, only levels 0, 1 and 2, and timesteps
 
 This command...
 
-C<tar -cf foo.tar `vdfcp -list -ts1 50 -numts 20 path/to/source.vdf`>
+C<tar -cf foo.tar `vdfcp.pl -list -ts1 50 -numts 20 path/to/source.vdf`>
 
 ...will cause tar to archive all files required to represent timesteps 31 to 50 of
 source.vdf's associated dataset in foo.tar. Note that when ts1 is used with numts,
@@ -114,11 +114,11 @@ then the range will begin at the first timestep of the dataset.
 
 This command...
 
-C<vdfcp -info -nvars bx:bz ts1 30 path/to/source.vdf>
+C<vdfcp.pl -info -nvars bx:bz ts1 30 path/to/source.vdf>
 
 ...will show the range of levels in source.vdf's dataset, as well as all timesteps
 below 30. It will also list all variables except for bx and bz. If the dataset has
-no timesteps at or above 30, vdfcp will print an error message and exit.
+no timesteps at or above 30, vdfcp.pl will print an error message and exit.
 
 =head1 SEE ALSO
 
