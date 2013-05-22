@@ -147,7 +147,8 @@
       <AdditionalDependencies>libexpat.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <ImportLibrary>../../../targets/win32/bin/render.lib</ImportLibrary>
+      <ImportLibrary>../../../targets/win32/bin/udunits2.lib</ImportLibrary>
+      <OutputFile>../../../targets/win32/bin/udunits2.dll</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
