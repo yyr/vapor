@@ -24,7 +24,7 @@ install:: $(BINDIR)/vapor-setup.sh vdfbkup.pl getWMSImage.sh
 	@$(INSTALL_EXEC) $(BINDIR)/vapor-setup.sh $(INSTALL_BINDIR)
 	@$(INSTALL_EXEC) vdfbkup.pl $(INSTALL_BINDIR)
 	@$(INSTALL_EXEC) getWMSImage.sh $(INSTALL_BINDIR)
-	@$(INSTALL_EXEC) vdfcp $(INSTALL_BINDIR)
+	@$(INSTALL_EXEC) vdfcp.pl $(INSTALL_BINDIR)
 
 $(BINDIR)/vapor-setup.csh: FRC
 	sed -e s#SYSTEM_ARCH#$(ARCH)# \
