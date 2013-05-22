@@ -26,7 +26,8 @@ install-dep:: install
 ifeq ($(BUILD_GUI), 1)
 
 CLD_EXCLUDE_FLAGS = $(addprefix -exclude , $(CLD_EXCLUDE_LIBS))
-CLD_INCLUDE_FLAGS = -include ^$(QTDIR)/lib
+CLD_INCLUDE_FLAGS = $(addprefix -include , $(CLD_INCLUDE_LIBS))
+CLD_INCLUDE_FLAGS += -include ^$(QTDIR)/lib
 LDLIBPATHS = -ldlibpath $(QTDIR)/lib
 
 install-dep:: 
@@ -40,6 +41,8 @@ install-dep::
 	$(CP) -R $(PYTHONDIR)/lib/python$(PYTHONVERSION) $(INSTALL_LIBDIR)
 	$(CP) $(PYTHONDIR)/bin/python $(INSTALL_BINDIR)
 	$(CP) -R $(PYTHONDIR)/include/python$(PYTHONVERSION) $(INSTALL_PREFIX_DIR)/include
+	@$(ECHO) "Copying Python plugin library dependencies to $(INSTALL_LIBDIR)"
+	$(PERL) $(TOP)/buildutils/copylibdeps.pl -arch $(ARCH) $(LDLIBPATHS) $(CLD_EXCLUDE_FLAGS) $(CLD_INCLUDE_FLAGS) $(INSTALL_LIBDIR)/python$(PYTHONVERSION)/site-packages/numpy/linalg/*.so $(INSTALL_LIBDIR)
 
 endif
 
