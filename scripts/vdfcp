@@ -16,7 +16,7 @@
 #            National Center for Atmospheric Research
 #            PO 3000, Boulder, Colorado
 #
-#    Date:        Fri Jan 13 18:00:32 MST 1995
+#    Date:        Fri Mar 13 18:00:32 MST 2013
 #
 #    Description:    A command-line utility for copying .vdf datasets
 #
@@ -32,7 +32,6 @@
 use strict;
 #some warnings are expected in normal execution
 #use warnings;
-use Switch;
 use File::Copy;
 use File::Path;
 use Scalar::Util;
@@ -216,69 +215,66 @@ sub parseOptions
         $arg = substr($ARGV[0], 1);
         #remove that argument for handler
         shift @ARGV;
-        #call the handler through a switch
-        switch($arg)
+        #call the handler through an if-elsif-etc
+        if($arg eq "ts0")
         {
-            case "ts0"
-            {
-                die "Invalid ts0.\n"
-                    if($ARGV[0] < 0 || $ARGV[0] + 0 != $ARGV[0]);
-                $mints = shift @ARGV;
-            }
-            case "ts1"
-            {
-                die "Invalid ts1.\n"
-                    if($ARGV[0] < 0 || $ARGV[0] < $mints 
-                    || $ARGV[0] + 0 != $ARGV[0]);
-                $maxts = shift @ARGV;
-            }
-            case "numts"
-            {
-                die "Invalid numts.\n"
-                    if($ARGV[0] <= 0 || $ARGV[0] + 0 != $ARGV[0]);
-                $numts = shift @ARGV;
-            }
-            case "vars"
-            {
-                @include = split(/:/, shift @ARGV);
-            }
-            case "nvars"
-            {
-                @exclude = split(/:/, shift @ARGV);
-            }
-            case "level"
-            {
-                die "Invalid level.\n"
-                    if($ARGV[0] < 0 || $ARGV[0] + 0 != $ARGV[0]);
-                $level = shift @ARGV;
-            }
-            case "info"
-            {
-                $info = 1;
-                $verbose = 0;
-            }
-            case "list"
-            {
-                $list = 1;
-                $verbose = 0;
-            }
-            case "help"
-            {
-                print $usage;
-                exit(0);
-            }
-            case "v"
-            {
-                $verbose = 1 unless($info || $list);
-            }
-            case "f"
-            {
-                $force = 1;
-            }
-            else
-            {
-                die "unrecognized option \"-$arg\", exiting...\n$usage";
-            }
+            die "Invalid ts0.\n"
+                if($ARGV[0] < 0 || $ARGV[0] + 0 != $ARGV[0]);
+            $mints = shift @ARGV;
+        }
+        elsif($arg eq "ts1")
+        {
+            die "Invalid ts1.\n"
+                if($ARGV[0] < 0 || $ARGV[0] < $mints 
+                || $ARGV[0] + 0 != $ARGV[0]);
+            $maxts = shift @ARGV;
+        }
+        elsif($arg eq "numts")
+        {
+            die "Invalid numts.\n"
+                if($ARGV[0] <= 0 || $ARGV[0] + 0 != $ARGV[0]);
+            $numts = shift @ARGV;
+        }
+        elsif($arg eq "vars")
+        {
+            @include = split(/:/, shift @ARGV);
+        }
+        elsif($arg eq "nvars")
+        {
+            @exclude = split(/:/, shift @ARGV);
+        }
+        elsif($arg eq "level")
+        {
+            die "Invalid level.\n"
+                if($ARGV[0] < 0 || $ARGV[0] + 0 != $ARGV[0]);
+            $level = shift @ARGV;
+        }
+        elsif($arg eq "info")
+        {
+            $info = 1;
+            $verbose = 0;
+        }
+        elsif($arg eq "list")
+        {
+            $list = 1;
+            $verbose = 0;
+        }
+        elsif($arg eq "help")
+        {
+            print $usage;
+            exit(0);
+        }
+        elsif($arg eq "v")
+        {
+            $verbose = 1 unless($info || $list);
+        }
+        elsif($arg eq "f")
+        {
+            $force = 1;
+        }
+        else
+        {
+            die "unrecognized option \"-$arg\", exiting...\n$usage";
         }
     }
     
