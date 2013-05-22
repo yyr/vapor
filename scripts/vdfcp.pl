@@ -10,7 +10,7 @@
 #                                                                        #
 #########################################################################
 #
-#    File:        vdfbkup.pl
+#    File:        vdfcp.pl
 #
 #    Author:        Miles Rufat-Latre
 #            National Center for Atmospheric Research
@@ -40,7 +40,7 @@ no warnings "uninitialized";
 ##########################################
 #BEGIN GLOBAL VARIABLE DECLARATIONS
 my $usage = 
-"Usage: vdfcp [options] source.vdf <dest>\n" .
+"Usage: vdfcp.pl [options] source.vdf <dest>\n" .
 "OPTIONS...\n" . 
 "-ts0 #\n" .
 "    Set '#' as first timestep to copy.\n" .
