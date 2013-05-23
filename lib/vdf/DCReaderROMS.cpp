@@ -790,35 +790,59 @@ int DCReaderROMS::_initLatLonBuf(
 
 
 	//
-	// Get lat extents. Check boundary only
+	// Get lat extents.  Really only need to check data on boundary, 
+	// but we're lazy. N.B. doesn't handle case where data cross either pole.
+	// 
 	//
 	llb._latexts[0] = llb._latexts[1] = llb._latbuf[0];
-	int j = 0;
+	for (int j=0; j<llb._ny; j++) {
 	for (int i=0; i<llb._nx; i++) {
-		llb._latexts[1] = llb._latbuf[j*llb._nx+i]>llb._latexts[1] ? llb._latbuf[j*llb._nx+i] : llb._latexts[1];
-		llb._latexts[0] = llb._latbuf[j*llb._nx+i]<llb._latexts[0] ? llb._latbuf[j*llb._nx+i] : llb._latexts[0];
+		float tmp = llb._latbuf[j*llb._nx+i];
+		llb._latexts[0] = tmp < llb._latexts[0] ? tmp : llb._latexts[0];
+		llb._latexts[1] = tmp > llb._latexts[1] ? tmp : llb._latexts[1];
+	}
 	}
 
-	j = llb._ny-1;
-	for (int i=0; i<llb._nx; i++) {
-		llb._latexts[1] = llb._latbuf[j*llb._nx+i]>llb._latexts[1] ? llb._latbuf[j*llb._nx+i] : llb._latexts[1];
-		llb._latexts[0] = llb._latbuf[j*llb._nx+i]<llb._latexts[0] ? llb._latbuf[j*llb._nx+i] : llb._latexts[0];
+
+	//
+	// Now deal with longitude, which may wrap (i.e. the values may
+	// not be monotonicly increasing along a scan line. First we 
+	// handle wraparound. We simply look for a big jump between adjacent
+	// points. N.B. testing for changes from increasing to decreasing (or
+	// vise versa don't work for data sets that are extremely distored).
+	//
+	for (int j=0; j<llb._ny; j++) {
+	for (int i=0; i<llb._nx-1; i++) {
+		float delta = 180.0;	
+		if (fabs(llb._lonbuf[j*llb._nx+i] - llb._lonbuf[j*llb._nx+i+1])>delta) {
+			llb._lonbuf[j*llb._nx+i+1] += 360.0;
+		}
+	}
 	}
 
 	//
-	// Get lon extents. Check boundary only
+	// Now get lon extents. 
 	//
 	llb._lonexts[0] = llb._lonexts[1] = llb._lonbuf[0];
-	int i = 0;
 	for (int j=0; j<llb._ny; j++) {
-		llb._lonexts[1] = llb._lonbuf[j*llb._nx+i]>llb._lonexts[1] ? llb._lonbuf[j*llb._nx+i] : llb._lonexts[1];
-		llb._lonexts[0] = llb._lonbuf[j*llb._nx+i]<llb._lonexts[0] ? llb._lonbuf[j*llb._nx+i] : llb._lonexts[0];
+	for (int i=0; i<llb._nx; i++) {
+		float tmp = llb._lonbuf[j*llb._nx+i];
+		llb._lonexts[0] = tmp < llb._lonexts[0] ? tmp : llb._lonexts[0];
+		llb._lonexts[1] = tmp > llb._lonexts[1] ? tmp : llb._lonexts[1];
+	}
 	}
 
-	i = llb._nx-1;
-	for (int j=0; j<llb._ny; j++) {
-		llb._lonexts[1] = llb._lonbuf[j*llb._nx+i]>llb._lonexts[1] ? llb._lonbuf[j*llb._nx+i] : llb._lonexts[1];
-		llb._lonexts[0] = llb._lonbuf[j*llb._nx+i]<llb._lonexts[0] ? llb._lonbuf[j*llb._nx+i] : llb._lonexts[0];
+	//
+	// Finally, try to bring everything back to -360 to 360
+	//
+	if (llb._lonexts[0] > 180 || llb._lonexts[1] > 360.0) {
+		for (int j=0; j<llb._ny; j++) {
+		for (int i=0; i<llb._nx; i++) {
+				llb._lonbuf[j*llb._nx+i] -= 360.0;
+		}
+		}
+		llb._lonexts[0] -= 360.0;
+		llb._lonexts[1] -= 360.0;
 	}
 	return(0);
 }

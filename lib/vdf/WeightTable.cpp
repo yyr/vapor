@@ -487,6 +487,9 @@ int WeightTable::calcWeights(){
 					lonMin = (int)(1.+(minlon  -_lonLatExtents[0])/_deltaLon);
 					lonMax = (int)((maxlon -_lonLatExtents[0])/_deltaLon);
 				}
+				if (lonMin < 0) {
+					lonMin = 0;
+				}
 				
 				//cover the edges too!
 				// edgeflag is used to enable extrapolation when points are slightly outside of the grid extents
