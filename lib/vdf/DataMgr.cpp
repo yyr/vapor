@@ -1588,7 +1588,7 @@ void   DataMgr::MapUserToVox(
 	RegularGrid *rg = GetGrid(
 		timestep,"", reflevel, 0, min, max, false
 	);
-	EnableErrMsg(enable);
+	EnableErrMsg(enable); SetErrCode(0);
 	
 	if (! rg) return;
 
@@ -1618,7 +1618,7 @@ void   DataMgr::MapVoxToUser(
 	RegularGrid *rg = (RegularGrid *) GetGrid(
 		timestep,"", reflevel, 0, min, max, false
 	);
-	EnableErrMsg(enable);
+	EnableErrMsg(enable); SetErrCode(0);
 
 	if (! rg) return;
 
@@ -1641,7 +1641,7 @@ void    DataMgr::GetEnclosingRegion(
 	}
 	bool enable = EnableErrMsg(false);
 	RegularGrid *rg = GetGrid(ts,"", reflevel, 0, min, max, false);
-	EnableErrMsg(enable);
+	EnableErrMsg(enable); SetErrCode(0);
 
 	if (! rg) return;
 
