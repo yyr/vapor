@@ -16,10 +16,10 @@ End if
 
 vaporhome = Right(inputstring, len(inputstring) - posn -1)
 
-vaporshare = vaporhome & "\share"
-vaporbin = vaporhome & "\bin"
+vaporshare = vaporhome & "share"
+vaporbin = vaporhome & "bin"
 
-pythonhome = vaporhome & "\lib\python2.7"
+pythonhome = vaporhome & "lib\python2.7"
 
 set shell = CreateObject("wscript.shell")
 

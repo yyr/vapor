@@ -13,10 +13,10 @@ Else
 End if
 vaporhome = Right(inputstring, len(inputstring) - posn -1)
 
-vaporbin = vaporhome & "\bin;"
-vaporshare = vaporhome & "\share"
-vaporidl = vaporhome & "\bin"
-vaporidl2 = vaporhome & "\bin;"
+vaporbin = vaporhome & "bin;"
+vaporshare = vaporhome & "share"
+vaporidl = vaporhome & "bin"
+vaporidl2 = vaporhome & "bin;"
 
 vaporpythonhome = vaporhome & "\lib\python2.6"
 
@@ -38,7 +38,7 @@ if (Len(envVar) > 0) then
     sysEnv.Remove("VAPOR_SHARE")
 end if
 
-'  Find VAPOR_HOME\bin; in the path
+'  Find VAPOR_HOME\bin in the path
 pathvar = sysEnv("path")
 posn = inStr(pathvar,vaporbin)
 if  posn <> 0 Then
@@ -63,9 +63,7 @@ if  posn <> 0 Then
 	SysEnv("IDL_DLM_PATH") = idlpath
 Else 
 	posn = inStr(idlpath, vaporidl)
-	if posn = 0 Then
-		MsgBox("Unable to remove VAPOR from IDL_DLM_PATH")
-	Else
+	if posn <> 0 Then
 		idlpath = Replace(idlpath, vaporidl, "")
 		if idlpath = "" Then
 			SysEnv.Remove("IDL_DLM_PATH")
