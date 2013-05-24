@@ -661,7 +661,7 @@ void ArrowEventRouter::
 reinitTab(bool doOverride){
 	
 	DataStatus* ds = DataStatus::getInstance();
-	if (ds->dataIsPresent3D()) {
+	if (ds->dataIsPresent3D()||ds->dataIsPresent2D()) {
 		setEnabled(true);
 		instanceTable->setEnabled(true);
 		instanceTable->rebuild(this);

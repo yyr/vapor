@@ -117,7 +117,9 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 void VizFeatureParams::launch(){
 	//Determine current combo entry
 	int vizNum = VizWinMgr::getInstance()->getActiveViz();
-	if (vizNum < 0 || DataStatus::getInstance()->getNumSessionVariables() <=0){
+	if (vizNum < 0 || 
+		(!DataStatus::getInstance()->dataIsPresent3D() &&
+		!DataStatus::getInstance()->dataIsPresent2D())){
 		QMessageBox::warning(vizFeatureDlg,"No visualizers or variables",
 			QString("No visualizers or variables exist to be modified"),
 			QMessageBox::Ok, Qt::NoButton);
