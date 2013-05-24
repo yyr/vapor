@@ -116,7 +116,7 @@ void GetTimeMap(
 	//
 	// Get user times from .vdf
 	//
-	vector <double> ncdftimes;
+	vector <float> ncdftimes;
 	for (int i=0; i<ncdfData->GetNumTimeSteps(); i++) { 
 		ncdftimes.push_back(ncdfData->GetTSUserTime(i));
 	}
@@ -124,7 +124,7 @@ void GetTimeMap(
 	//
 	// Get user times from netCDF files
 	//
-	vector <double> vdctimes;
+	vector <float> vdctimes;
 	for (int i=0; i<vdfio->GetNumTimeSteps(); i++) { 
 		vdctimes.push_back(vdfio->GetTSUserTime(i));
 	}
@@ -136,11 +136,11 @@ void GetTimeMap(
 	//
 	// Cross-reference ncdf and vdc times
 	//
-	double ncdftime; 
+	float ncdftime; 
 	for (int i=startts; i<numts && i<ncdfData->GetNumTimeSteps(); i++) {
 		ncdftime = ncdftimes[i];
 
-		vector <double>::iterator itr = find(
+		vector <float>::iterator itr = find(
 			vdctimes.begin(), vdctimes.end(), ncdftime
 		);
 
