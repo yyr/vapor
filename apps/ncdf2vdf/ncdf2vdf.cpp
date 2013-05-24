@@ -493,6 +493,7 @@ int	main(int argc, char **argv) {
 	map <size_t, size_t>::iterator itr;
 	for (itr = timemap.begin(); itr != timemap.end(); ++itr) {
 		if (! opt.quiet) {
+			cout << "Processing VDC time step " << itr->first << endl;
 		}
 		for (int v = 0; v < variables.size(); v++) {
 			if (! opt.quiet) {
