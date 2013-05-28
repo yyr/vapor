@@ -294,8 +294,7 @@ renderFlowData(bool constColors, int currentFrameNum){
 	
 	glPushMatrix();
 	
-	//Set up clipping planes on subvolume in unit box:
-	enableRegionClippingPlanes();
+
 
 	//Apply a coord transform that moves the full user-coord region to the unit cube, 
 	//since flow geometry will be rendered in user coordinates.
@@ -317,6 +316,21 @@ renderFlowData(bool constColors, int currentFrameNum){
 	stationaryRadius = 0.5f*voxelSize*myFlowParams->getDiamondDiameter();
 	float userRadius = 0.5f*diam*voxelSize;
 	arrowHeadRadius = (myFlowParams->getArrowDiameter())*userRadius;
+
+	// Set up clipping planes. Clip to region bounds, adding padding
+	// to handle any geometry from the rendering primitives that escape
+	// the box. Fixes 3613859 
+	//
+//	enableRegionClippingPlanes();
+    double regExts[6];
+	RegionParams* rParams = myGLWindow->getActiveRegionParams();
+    rParams->GetBox()->GetUserExtents(regExts,currentFrameNum);
+	float r = max(stationaryRadius, max(userRadius, arrowHeadRadius));
+	for (int i=0; i<3; i++) {
+		regExts[i] -= r;
+		regExts[i+3] += r;
+	}
+	enableClippingPlanes(regExts);
 
 	
 	//If we are doing unsteady flow, handle setup differently:
