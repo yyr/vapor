@@ -614,7 +614,7 @@ void FlowEventRouter::updateTab(){
 	} 
 	if (autoScale){
 		float sampleRate = fParams->getSteadySmoothness();
-		int sval = (int)(0.5f+256.0*(log10((float)sampleRate)+1.f)*0.25f);
+		int sval = (int)(0.5f+256.0*(log10((float)sampleRate))*0.25f);
 		if (smoothnessSlider->value() != sval)
 			smoothnessSlider->setValue(sval);
 		float flowlen = fParams->getSteadyFlowLength();
@@ -678,7 +678,7 @@ void FlowEventRouter::updateTab(){
 
 	if (autoScale){
 		float sampleRate = fParams->getSteadySmoothness();
-		int sval = (int)(0.5f+256.0*(log10((float)sampleRate)+1.f)*0.25f);
+		int sval = (int)(0.5f+256.0*(log10((float)sampleRate))*0.25f);
 		if (smoothnessSlider->value()!= sval)
 			smoothnessSlider->setValue(sval);
 		float flowlen = fParams->getSteadyFlowLength();
@@ -927,20 +927,20 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			float steadySmoothness = smoothnessSamplesEdit->text().toFloat();
 			float len = steadyLengthEdit->text().toFloat();
 			//First make sure they fit within bounds of sliders:
-			if (steadySmoothness < .1f){
-				steadySmoothness = .1f;
+			if (steadySmoothness < .001f){
+				steadySmoothness = .001f;
 				changed = true;
 			}
-			if (steadySmoothness > 1000.f){
-				steadySmoothness = 1000.f;
+			if (steadySmoothness > 100000.f){
+				steadySmoothness = 100000.f;
 				changed = true;
 			}
-			if (len < 0.01f) {
-				len = 0.01f;
+			if (len < 0.0001f) {
+				len = 0.0001f;
 				changed = true;
 			}
-			if (len > 100.f){
-				len = 100.f;
+			if (len > 10000.f){
+				len = 10000.f;
 				changed = true;
 			}
 			//then adjust the product, changing length if necessary:
@@ -957,7 +957,7 @@ void FlowEventRouter::confirmText(bool /*render*/){
 				steadyLengthEdit->setText(QString::number(len));
 				guiSetTextChanged(false);
 			}
-			int sval = (int)(0.5f+256.0*(log10((float)steadySmoothness)+1.f)*0.25f);
+			int sval = (int)(0.5f+256.0*(log10((float)steadySmoothness))*0.25f);
 			if (sval != smoothnessSlider->value())
 				smoothnessSlider->setValue(sval);
 			sval = (int)(0.5f+256.0*(log10((float)len)+2.f)*0.25f);
@@ -1951,7 +1951,7 @@ guiSetUnsteadySamples(int sliderPos){
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
-//Slider sets the smoothness, between 1 and 1000.0
+//Slider sets the smoothness, between 1 and 10000.0
 //This determines the number of samples per domain diameter,
 //Can be between 1 and 10000
 // value is 10**(4s)  where s is between 0 and 1
@@ -1963,7 +1963,7 @@ guiSetSmoothness(int sliderPos){
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set steady flow smoothness");
 	float s = ((float)(sliderPos))/256.f; // between 0 and 1
 	bool changed = false;
-	float sfactor = pow(10.f,s*4.f -1.f); //between .1 and 1000
+	float sfactor = pow(10.f,s*4.f ); //between 1 and 10000
 	//Make sure flowLen*smoothness is between 2 and 10000
 	float steadyLen = fParams->getSteadyFlowLength();
 	if (sfactor*steadyLen > 10000.f){
@@ -1975,7 +1975,7 @@ guiSetSmoothness(int sliderPos){
 		changed = true;
 	}
 	if (changed) 
-		smoothnessSlider->setValue((int)(0.5f+256.0*(log10(sfactor)+1.f)*0.25f));
+		smoothnessSlider->setValue((int)(0.5f+256.0*(log10(sfactor))*0.25f));
 	fParams->setSteadySmoothness(sfactor);
 	smoothnessSamplesEdit->setText(QString::number(sfactor));
 	
