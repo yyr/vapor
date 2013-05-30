@@ -69,7 +69,7 @@ Print a usage statement and then exit.
 
 The command 
 
-    romsvdfcreate -vars u:v:temp -level 2 roms1.nc roms2.nc roms3.nc romsgrid.nc mydata.vdf
+    romsvdfcreate -vars u:v:temp roms1.nc roms2.nc roms3.nc romsgrid.nc mydata.vdf
 
 will construct a VDF file, B<mydata.vdf> that will contain the B<u>,
 B<v>, and B<temp> variable names for all time steps found in the

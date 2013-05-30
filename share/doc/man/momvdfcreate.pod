@@ -66,7 +66,7 @@ Print a usage statement and then exit.
 
 The command 
 
-    momvdfcreate -vars u:v:time -level 2 mom1.nc mom2.nc mom3.nc mydata.vdf
+    momvdfcreate -vars u:v:time mom1.nc mom2.nc mom3.nc mydata.vdf
 
 will construct a VDF file, B<mydata.vdf> that will contain the B<u>,
 B<v>, and B<temp> variable names for all time steps found in the
