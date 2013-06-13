@@ -1,5 +1,5 @@
 //
-//      $Id$
+//      $Id: IDLMetadata.cpp,v 1.11 2012/11/07 22:48:11 clynejp Exp $
 //
 //************************************************************************
 //								*
@@ -33,8 +33,8 @@ IDL_VPTR vdfMetadataCreate(int argc, IDL_VPTR *argv, char *argk)
 	typedef struct {
 		IDL_KW_RESULT_FIRST_FIELD;  //
 		IDL_LONG bs_array[3];
-		IDL_MEMINT bs_n;
 		int bs_there;
+		IDL_MEMINT bs_n;
 		IDL_LONG nFilterCoef;
 		IDL_LONG nLiftingCoef;
 		IDL_LONG msbFirst;
@@ -46,16 +46,17 @@ IDL_VPTR vdfMetadataCreate(int argc, IDL_VPTR *argv, char *argk)
 	};
 
 	static IDL_KW_PAR kw_pars[] = {
+		IDL_KW_FAST_SCAN,
 		{
 			(char *) "BS", IDL_TYP_LONG, 1, IDL_KW_ARRAY,
 			(int *) IDL_KW_OFFSETOF(bs_there), IDL_CHARA(bs_d)
 		},
 		{
-			(char *) "NFILTERCOEF", IDL_TYP_LONG, 1, 0, 0, 
+			(char *) "NFILTERCOEF", IDL_TYP_LONG, 1, IDL_KW_ZERO, 0, 
 			(char *) IDL_KW_OFFSETOF(nFilterCoef)
 		},
 		{
-			(char *) "NLIFTINGCOEF",IDL_TYP_LONG, 1, 0, 0, 
+			(char *) "NLIFTINGCOEF",IDL_TYP_LONG, 1, IDL_KW_ZERO, 0, 
 			(char *) IDL_KW_OFFSETOF(nLiftingCoef)
 		},
 		{

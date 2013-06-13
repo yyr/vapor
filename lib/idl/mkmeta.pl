@@ -870,7 +870,7 @@ sub GetFunc {
 		$idlTypeSpec = "IDL_TYP_DOUBLE";
 		$idlType = "double";
 		$cType = "double";
-		$resAssign = "result = IDL_Gettmp(); IDL_ALLTYPES v; v.d = *valueptr; IDL_StoreScalar(result, IDL_TYP_DOUBLE, &v);";
+		$resAssign = "result = IDL_Gettmp(); result->type = IDL_TYP_DOUBLE; result->value.d = *valueptr;";
         $resPtrAssign = "result_ptr[i] = (double) (*valueptr)[i];";
 	}
 	else {
@@ -913,7 +913,7 @@ IDL_VPTR vdf$name(int argc, IDL_VPTR *argv)
 
 	int n;
 
-    $valueType &value = metadata->$name($params);
+    $valueType value = metadata->$name($params);
     $valueType *valueptr = &value;
     if (int rc = MetadataVDC::GetErrCode()) {
 		if (rc != XmlNode::ERR_TNP) {
