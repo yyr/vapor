@@ -1,5 +1,5 @@
 //
-// $Id$
+// $Id: SignificanceMap.h,v 1.5 2012/02/28 18:15:58 ypolius Exp $
 //
 
 #ifndef	_SignificanceMap_h_
@@ -24,8 +24,8 @@ namespace VAPoR {
 //! \class SignificanceMap
 //! \brief Implements a significance map
 //! \author John Clyne
-//! \version $Revision$
-//! \date    $Date$
+//! \version $Revision: 1.5 $
+//! \date    $Date: 2012/02/28 18:15:58 $
 //!
 //! This class implements a quick and dirty significance map - a mapping 
 //! indicating which entries in an array are valid and which are not. 
@@ -283,6 +283,10 @@ public:
  //! \sa GetNextEntry()
  //
  void Sort();
+
+ friend std::ostream &operator<<(
+    std::ostream &o, const SignificanceMap &sigmap
+ );
 
 private:
 

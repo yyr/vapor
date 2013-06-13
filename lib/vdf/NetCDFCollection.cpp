@@ -290,7 +290,9 @@ int NetCDFCollection::GetTimes(
 	return(0);
 }
 
-int NetCDFCollection::GetFile(size_t ts, string varname, string &file) const {
+int NetCDFCollection::GetFile(
+	size_t ts, string varname, string &file, size_t &local_ts
+) const {
 
 	map <string,TimeVaryingVar>::const_iterator p = _variableList.find(varname);
 	if (p ==  _variableList.end()) {
@@ -306,6 +308,8 @@ int NetCDFCollection::GetFile(size_t ts, string varname, string &file) const {
 	size_t var_ts;
 	rc = tvvars.GetTimeStep(time, var_ts);
 	if (rc<0) return(-1);
+
+	local_ts = tvvars.GetLocalTimeStep(var_ts);
 
 	return(tvvars.GetFile(var_ts, file));
 }

@@ -1,5 +1,5 @@
 //
-// $Id$
+// $Id: Compressor.cpp,v 1.6 2013/05/15 23:05:48 clynejp Exp $
 //
 #include <cstring>
 #include <algorithm>
@@ -217,23 +217,18 @@ int compress_template(
 	for (size_t i=numkeep; i<clen; i++) indexvec.push_back(&C[i]);
     sort(indexvec.begin(), indexvec.end(), my_compare);
 
-    // find the threshold value
-	const T *cptr =  (T *) indexvec[dst_arr_len-1];
-    double threshold = fabs((double) *cptr);
 
 	// Copy coefficients that are larger than the threshold to
 	// the destination array. Record their location in the significance
 	// map.
 	//
 
+	sort(indexvec.begin(), indexvec.begin()+dst_arr_len);
 	for (size_t idx = numkeep, i = 0; idx<clen && i<dst_arr_len; idx++) {
-		if (fabs(C[idx]) >= threshold) {
-			rc = sigmap->Set(idx);
-			if (rc<0) return(-1);
-			dst_arr[i++] = C[idx];
-		}
+		const T *cptr =  (T *) indexvec[i];
+		dst_arr[i++] = *cptr;
+		sigmap->Set(cptr - C);
 	}
-			
 	return(0);
 }
 };
@@ -303,7 +298,6 @@ int decompress_template(
 		C[idx] = src_arr[i];
 	}
 	
-
 	int rc = 0;
 	size_t dst_dim[] = {1,1,1};
 	if (dims.size() == 3) {
@@ -457,79 +451,27 @@ int decompose_template(
 		my_dst_arr_lens[0] -= numkeep;
 	}
 
+	//
+	// sort the **indecies** of the coefficients based on the 
+	// coefficient's magnitude
+	//
 	indexvec.clear();
 	for (size_t i=numkeep; i<clen; i++)  indexvec.push_back(&C[i]); 
     sort(indexvec.begin(), indexvec.end(), my_compare);
 
 	
-	vector <double> thresholds;	// thresholds ordered from large to smallest
-	vector <size_t> dst_counts;
-	size_t j = 0;
-	for (int i=0; i<n; i++) {
-
-		const T *cptr;
-		j += my_dst_arr_lens[i];
-		if (j==0) {;	// Hack to keep index in array bounds. 
-			cptr =  (T *) indexvec[j];
+	vector <void *>::iterator itr = indexvec.begin();
+	for (int j = 0, idx=0; j<my_dst_arr_lens.size(); j++) {
+		sort(itr, itr+my_dst_arr_lens[j]);	// sort coefficient's indecies
+		itr += my_dst_arr_lens[j];
+		for (int i = 0; i<my_dst_arr_lens[j]; i++, idx++) {
+			const T *cptr =  (T *) indexvec[idx];
+			dst_arr[i] = *cptr;
+			sigmaps[j]->Set(cptr - C);
 		}
-		else {
-			cptr =  (T *) indexvec[j-1];
-		}
-
-		thresholds.push_back(fabs((double) *cptr));
-		dst_counts.push_back(0);
+		dst_arr += my_dst_arr_lens[j];
 	}
 
-	for (size_t idx = numkeep; idx<clen; idx++) { 
-		T *dst_arr_ptr = dst_arr;
-		bool found = false;
-		for (int i=0; i<n; i++) {
-			if (dst_counts[i] < my_dst_arr_lens[i] && fabs(C[idx]) >= thresholds[i]) {
-				rc = sigmaps[i]->Set(idx);
-				if (rc<0) return(-1);
-				dst_arr_ptr[dst_counts[i]] = C[idx];
-				dst_counts[i] += 1;
-				found = true;
-				break;	// Only assign to one bin
-			}
-			dst_arr_ptr += my_dst_arr_lens[i];
-		}
-		if (! found) {
-			Compressor::SetErrMsg(
-				"Unexpected compression result : out of bounds value: %f",
-				C[idx]
-			);
-			return(-1);
-		}
-	}
-
-	for (int i=0; i<n; i++) {
-		if (dst_counts[i] != my_dst_arr_lens[i]) {
-			Compressor::SetErrMsg(
-				"Unexpected compression result : dst_counts[%d]==%d != my_dst_arr_lens[%d]==%d", 
-				i, dst_counts[i], i, my_dst_arr_lens[i]
-			);
-			return(-1);
-		}
-	}
-
-#ifdef	DEAD
-
-	// This way orders the coefficients from largest to smallest
-	//
-	size_t count = 0;
-	size_t idx = 0;
-	for (int j=0; j<n; j++) {
-		SignificanceMap *sigmap = sigmaps[j];
-		for (size_t i=0; i<my_dst_arr_lens[j]; i++) {
-			idx = indexvec[count];
-			sigmap->Set(idx);
-			dst_arr[count] = C[idx];
-			count++;
-		}
-	}
-#endif
-			
 	return(0);
 }
 

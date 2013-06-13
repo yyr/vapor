@@ -316,7 +316,7 @@ forward_xform (
 	const double *low_filter, const double *high_filter, 
 	int filterLen, double *cA, double *cD, bool oddlow, bool oddhigh
 ) {
-	assert(sigInLen > filterLen);
+//	assert(sigInLen > filterLen);
 
 	size_t xlstart = oddlow ? 1 : 0;
 	size_t xl;

@@ -1,5 +1,5 @@
 //
-// $Id$
+// $Id: NetCDFCollection.h,v 1.7 2013/05/16 21:39:38 clynejp Exp $
 //
 
 
@@ -19,8 +19,8 @@ namespace VAPoR {
 //! \class NetCDFCollection
 //! \brief Wrapper for a collection of netCDF files
 //! \author John Clyne
-//! \version $Revision$
-//! \date    $Date$
+//! \version $Revision: 1.7 $
+//! \date    $Date: 2013/05/16 21:39:38 $
 //!
 //! This class treats a collection of netCDF files as a single,
 //! time-varying data set, providing a unified interface for accessing
@@ -295,13 +295,17 @@ public:
  //! This method returns the path to the netCDF file containing the 
  //! variable \p varname, at the time step \p ts.
  //!
+ //! \param[in] ts time step of variable
  //! \param[in] varname Name of variable
  //! \param[out] file The netCDF file path
+ //! \param[out] local_ts local time index of variable within \p file
  //!
  //! \retval retval A negative int is returned on failure.
  //!
  //
- virtual int GetFile(size_t ts, string varname, string &file) const;
+ virtual int GetFile(
+	size_t ts, string varname, string &file, size_t &local_ts
+ ) const;
 
  //! Return the NetCDFSimple::Variable for the named variable
  //!

@@ -1,5 +1,5 @@
 //
-// $Id$
+// $Id: SignificanceMap.cpp,v 1.12 2012/08/29 19:36:37 alannorton Exp $
 //
 #include <iostream>
 #include <cstring>
@@ -342,6 +342,7 @@ int SignificanceMap::GetCoordinatesXYZT(
 }
 
 void SignificanceMap::GetNextEntryRestart() {
+	if (! _sorted) SignificanceMap::Sort();
 	_idxentry = 0;
 }
 
@@ -476,6 +477,8 @@ void SignificanceMap::GetMap(const unsigned char **map, size_t *maplen) {
 	int bib = BITSPERBYTE; // bits available in current byte
 	int p = BITSPERBYTE-1;
 
+	if (! _sorted) SignificanceMap::Sort();
+
 	for (size_t i = 0; i<_sigMapVec.size(); i++) {
 		size_t idx = _sigMapVec[i];
 		int tbits = _bits_per_idx;
@@ -593,7 +596,9 @@ int SignificanceMap::SetMap(const unsigned char *map) {
 		// that we check for duplicate values. But this is quicker.
 		//
 		_sigMapVec.push_back(idx);
-		if (idx < idxprev) _sorted = false;
+		if (idx < idxprev) {
+			_sorted = false;
+		}
 		idxprev = idx;
 	}
 	return(0);
@@ -627,7 +632,7 @@ int SignificanceMap::Append(const SignificanceMap &smap)
 void SignificanceMap::Invert()
 {
 	vector <size_t> tmpvec = _sigMapVec;
-	if (! _sorted) return;
+	if (! _sorted) SignificanceMap::Sort();
 
 	_sigMapVec.clear();
 
@@ -651,3 +656,31 @@ void SignificanceMap::Sort()
 	sort(_sigMapVec.begin(), _sigMapVec.end());
 	_sorted = true;
 }
+
+namespace VAPoR {
+std::ostream &operator<<(
+    std::ostream &o, const SignificanceMap &sigmap
+) {
+    o << "SignificanceMap" << endl;
+    o << " _nx : " << sigmap._nx << endl;
+    o << " _ny : " << sigmap._ny << endl;
+    o << " _nz : " << sigmap._nz << endl;
+    o << " _nt : " << sigmap._nt << endl;
+    o << " _sorted : " << sigmap._sorted << endl;
+    o << " _dimsVec : ";
+	for (int i=0; i<sigmap._dimsVec.size(); i++) {
+		o << sigmap._dimsVec[i] << " ";
+	}
+	o << endl;
+    o << " _sigMapSize : " << sigmap._sigMapSize << endl;
+    o << " _bits_per_idx : " << sigmap._bits_per_idx << endl;
+    o << " _sigMapEncodeSize : " << sigmap._sigMapEncodeSize << endl;
+    o << " _idxentry : " << sigmap._idxentry << endl;
+    o << " _sigMapVec : " << endl;
+	for (int i=0; i<sigmap._sigMapVec.size(); i++) {
+		o << "  " << i << " " << sigmap._sigMapVec[i] << endl;
+	}
+
+	return(o);
+}
+};
