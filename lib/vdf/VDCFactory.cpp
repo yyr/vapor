@@ -274,7 +274,7 @@ MetadataVDC *VDCFactory::New(const size_t dims[3]) const {
 		}
 
 		vector <size_t> cratios;
-		for (int i=0; i<_cratios.size(); i++) cratios[i] = _cratios[i];
+		for (int i=0; i<_cratios.size(); i++) cratios.push_back(_cratios[i]);
 		if (cratios.size() == 0) {
 			cratios.push_back(1);
 			cratios.push_back(10);
