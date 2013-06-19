@@ -1,5 +1,1 @@
-targets/win32/bin/*
-targets/win32/built/vaporgui/*
-targets/win32/built/vdf/*
-targets/win32/installer/*
-targets/WIN64/installer/*
+targets/*
