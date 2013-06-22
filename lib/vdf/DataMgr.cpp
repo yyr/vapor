@@ -1640,7 +1640,7 @@ void    DataMgr::GetEnclosingRegion(
 		max[i] = dims[i]-1;
 	}
 	bool enable = EnableErrMsg(false);
-	RegularGrid *rg = GetGrid(ts,"", reflevel, 0, min, max, false);
+	RegularGrid *rg = GetGrid(ts,"", reflevel, -1, min, max, false);
 	EnableErrMsg(enable); SetErrCode(0);
 
 	if (! rg) return;
