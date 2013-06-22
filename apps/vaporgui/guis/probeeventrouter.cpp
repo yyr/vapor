@@ -2064,7 +2064,7 @@ calcCurrentValue(ProbeParams* pParams, const float point[3], int* , int ){
 		
 	if (!valGrid) return OUT_OF_BOUNDS;
 	
-	valGrid->SetInterpolationOrder(0);
+	valGrid->SetInterpolationOrder(1);
 		
 	float varVal = valGrid->GetValue(point[0],point[1],point[2]);
 	delete valGrid;
@@ -2135,7 +2135,10 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 		pParams->setBypass(timeStep);
 		return;
 	}
-	histoGrid->SetInterpolationOrder(0);	
+	// Setting the interpolation order is a no-op because no 
+	// interpolation is being done
+	//
+	//histoGrid->SetInterpolationOrder(0);	
 	
 	//Get the data dimensions (at current resolution):
 	size_t dataSize[3];
