@@ -1687,7 +1687,7 @@ guiChangeVariable(int varnum){
 		
 		if (i == varnum){
 			pParams->setVariableSelected(svnum,true);
-			firstVar = varnum;
+			firstVar = svnum;
 		}
 		else 
 			pParams->setVariableSelected(svnum,false);
