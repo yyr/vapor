@@ -3,6 +3,7 @@
 //
 #include <string>
 #include <iostream>
+#include <sstream>
 #include <cctype>
 #include <cassert>
 #include <sys/stat.h>
@@ -11,6 +12,7 @@
 #include <CoreFoundation/CFString.h>
 #include <CoreServices/CoreServices.h>
 #endif
+#include <vapor/MyBase.h>
 #include "vapor/GetAppPath.h"
 #ifdef WIN32
 #pragma warning(disable : 4996)
@@ -68,8 +70,14 @@ std::string VetsUtil::GetAppPath(
 	const string &resource,
 	const vector <string> &paths
 ) {
+	ostringstream oss;
 
-//cerr << "Begin GetAppPath\n";
+	oss << "GetAppPath(" << app << ", " << resource;
+	for (int i=0; i<paths.size(); i++) {
+		oss << ", " << paths[i];
+	}
+	oss << ")" << endl;
+	MyBase::SetDiagMsg("%s", oss.str().c_str());
 
 #ifdef	WIN32
 	const string separator = "\\";
@@ -96,6 +104,7 @@ std::string VetsUtil::GetAppPath(
 		(resource.compare("plugins") == 0) ||
 		(resource.compare("") == 0)
 	)) {
+		MyBase::SetDiagMsg("GetAppPath() return : empty (unknown resources)");
 		return("");	// empty path, invalid resource
 	}
 
@@ -160,7 +169,10 @@ std::string VetsUtil::GetAppPath(
 		}
 	}
 #endif
-	if (path.empty()) return(path);
+	if (path.empty()) {
+		MyBase::SetDiagMsg("GetAppPath() return : empty (path empty)");
+		return(path);
+	}
 
 	for (int i=0; i<paths.size(); i++) {
 		path.append(separator);
@@ -169,9 +181,10 @@ std::string VetsUtil::GetAppPath(
 
 	struct STAT64 statbuf;
 	if (STAT64(path.c_str(), &statbuf) < 0) {
+		MyBase::SetDiagMsg("GetAppPath() return : empty (path does not exist)");
 		return("");
 	}
 
-//cerr << "End GetAppPath " << path << endl;
+	MyBase::SetDiagMsg("GetAppPath() return : %s", path.c_str());
 	return(path);	
 }

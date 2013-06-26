@@ -18,9 +18,7 @@
 #ifndef	_XOPEN_SOURCE
 #   define _XOPEN_SOURCE 500
 #endif
-#define _POSIX_PATH_MAX 256
-//The default path for windows is $VAPOR_HOME/share/udunits2/udunits2.xml
-//const char* DEFAULT_UDUNITS2_XML_PATH= "C:/Program Files/NCAR/VAPOR/share/udunits2/udunits2.xml";
+#define _POSIX_PATH_MAX 512
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -2146,8 +2144,7 @@ ut_read_xml(
                 openError = UT_OPEN_ENV;
             }
             else {
-				path = getenv("VAPOR_HOME");
-				strcat(path,"\\share\\udunits2\\udunits2.xml");
+				path = DEFAULT_UDUNITS2_XML_PATH;
                 openError = UT_OPEN_DEFAULT;
             }
         }

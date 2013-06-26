@@ -15,20 +15,11 @@ FILES = \
 	Colormap OpacityMap ParamNode ParamsIso ColorMapBase \
 	MapperFunctionBase OpacityMapBase TransferFunctionLite \
 	GeoTile GeoTileEquirectangular GeoTileMercator \
-	pythonpipeline GetAppPath ModelParams ModelScene Transform3d
+	pythonpipeline ModelParams ModelScene Transform3d
 
 HEADER_FILES = ColorMapBase MapperFunctionBase OpacityMapBase \
-	TransferFunctionLite tfinterpolator ParamsBase ParamNode \
-	GetAppPath
-
-
-ifneq ($(ARCH),WIN32)
-MAKEFILE_CXXFLAGS += -DBINDIR=\"$(BINDIR)\"
-MAKEFILE_CXXFLAGS += -DDSO_DIR=\"$(DSO_DIR)\"
-MAKEFILE_CXXFLAGS += -DABS_TOP=\"$(ABS_TOP)\"
-MAKEFILE_CXXFLAGS += -DQTDIR=\"$(QTDIR)\"
-endif
-
+	TransferFunctionLite tfinterpolator ParamsBase ParamNode
+	
 ifeq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += /D"PARAMS_EXPORTS"
 endif

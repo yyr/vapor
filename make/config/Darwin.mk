@@ -15,7 +15,7 @@ CFLAGS            += -DDARWIN -Wall -Wno-format -fPIC
 C_RELEASE_FLAGS   += -O3 -DNDEBUG
 C_DEBUG_FLAGS     += -g
 
-LDFLAGS           += 
+LDFLAGS           += -framework CoreFoundation
 LD_RELEASE_FLAGS  += 
 LD_DEBUG_FLAGS    += 
 

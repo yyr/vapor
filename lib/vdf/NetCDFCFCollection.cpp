@@ -9,6 +9,7 @@
 #include <udunits2.h>
 #endif
 #include <vapor/NetCDFCFCollection.h>
+#include <vapor/GetAppPath.h>
 
 using namespace VAPoR;
 using namespace VetsUtil;
@@ -870,7 +871,16 @@ int NetCDFCFCollection::UDUnits::Initialize() {
 	//
 	ut_set_error_message_handler(ut_ignore);
 
-	_unitSystem = ut_read_xml(NULL);
+	vector <string> paths;
+	paths.push_back("udunits");
+	paths.push_back("udunits2.xml");
+	string path =  GetAppPath("VAPOR", "share", paths).c_str();
+	if (! path.empty()) {
+		_unitSystem = ut_read_xml(path.c_str());
+	}
+	else {
+		_unitSystem = ut_read_xml(NULL);
+	}
 	if (! _unitSystem) {
 		_status = (int) ut_get_status();
 		return(-1);

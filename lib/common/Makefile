@@ -3,10 +3,17 @@ TOP = ../..
 include ${TOP}/make/config/prebase.mk
 
 LIBRARY = common
-FILES = MyBase OptionParser EasyThreads CFuncs Base64 Version PVTime 
+FILES = MyBase OptionParser EasyThreads CFuncs Base64 Version PVTime GetAppPath
 HEADER_FILES = MyBase OptionParser EasyThreads CFuncs Base64 Version PVTime \
-	errorcodes common
+	GetAppPath errorcodes common
 
+
+ifneq ($(ARCH),WIN32)
+MAKEFILE_CXXFLAGS += -DBINDIR=\"$(BINDIR)\"
+MAKEFILE_CXXFLAGS += -DDSO_DIR=\"$(DSO_DIR)\"
+MAKEFILE_CXXFLAGS += -DABS_TOP=\"$(ABS_TOP)\"
+MAKEFILE_CXXFLAGS += -DQTDIR=\"$(QTDIR)\"
+endif
 
 ifeq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += /D"COMMON_EXPORTS"
