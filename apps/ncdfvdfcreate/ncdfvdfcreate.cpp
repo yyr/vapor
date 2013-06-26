@@ -29,6 +29,7 @@ struct opt_t {
 	OptionParser::Boolean_T	misstv;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	quiet;
+	OptionParser::Boolean_T	debug;
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
@@ -61,6 +62,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 		"between time steps and/or variables"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"quiet",	0,	"",	"Operate quietly"},
+	{"debug",	0,	"",	"Turn on debugging"},
 	{NULL}
 };
 
@@ -77,6 +79,7 @@ OptionParser::Option_T	get_options[] = {
 	{"misstv", VetsUtil::CvtToBoolean, &opt.misstv, sizeof(opt.misstv)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
+	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{NULL}
 };
 
@@ -310,6 +313,7 @@ int	main(int argc, char **argv) {
 	if (op.ParseOptions(&argc, argv, get_options) < 0) {
 		exit(1);
 	}
+	if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
 
 	VDCFactory vdcf;
 	if (vdcf.Parse(&argc, argv) < 0) {

@@ -26,6 +26,7 @@ struct opt_t {
     int nthreads;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	quiet;
+	OptionParser::Boolean_T	debug;
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
@@ -45,6 +46,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"nthreads",1,  "0",    "Number of execution threads (0 => # processors)"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"quiet",	0,	"",	"Operate quietly"},
+	{"debug",	0,	"",	"Turn on debugging"},
 	{NULL}
 };
 
@@ -57,6 +59,7 @@ OptionParser::Option_T	get_options[] = {
 	{"nthreads", VetsUtil::CvtToInt, &opt.nthreads, sizeof(opt.nthreads)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
+	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{NULL}
 };
 
@@ -385,6 +388,7 @@ int CopyVar(
 int	main(int argc, char **argv) {
 
     MyBase::SetErrMsgFilePtr(stderr);
+
 	ProgName = Basename(argv[0]);
 
 	OptionParser op;
@@ -395,6 +399,7 @@ int	main(int argc, char **argv) {
 	if (op.ParseOptions(&argc, argv, get_options) < 0) {
 		exit(1);
 	}
+	if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
 
 	if (opt.help) {
 		Usage(op, NULL);

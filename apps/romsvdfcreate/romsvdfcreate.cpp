@@ -20,6 +20,7 @@ struct opt_t {
 	vector <string> vars;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	quiet;
+	OptionParser::Boolean_T	debug;
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
@@ -27,6 +28,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 		"from ncdf data. The default is to copy all 2D and 3D variables"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"quiet",	0,	"",	"Operate quietly"},
+	{"debug",	0,	"",	"Turn on debugging"},
 	{NULL}
 };
 
@@ -34,6 +36,7 @@ OptionParser::Option_T	get_options[] = {
 	{"vars", VetsUtil::CvtToStrVec, &opt.vars, sizeof(opt.vars)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
+	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{NULL}
 };
 
@@ -236,6 +239,7 @@ int	main(int argc, char **argv) {
 	if (op.ParseOptions(&myargc, myargv, get_options) < 0) {
 		exit(1);
 	}
+	if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
 
 	VDCFactory vdcf;
 	vector <string> rmopts;

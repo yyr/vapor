@@ -33,6 +33,7 @@ struct opt_t {
 	string missattr;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	quiet;
+	OptionParser::Boolean_T	debug;
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
@@ -64,6 +65,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 		" This option takes precdence over -missing"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"quiet",	0,	"",	"Operate quietly"},
+	{"debug",	0,	"",	"Turn on debugging"},
 	{NULL}
 };
 
@@ -83,6 +85,7 @@ OptionParser::Option_T	get_options[] = {
 	{"missattr", VetsUtil::CvtToCPPStr, &opt.missattr, sizeof(opt.missattr)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
+	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{NULL}
 };
 
@@ -413,6 +416,7 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
+	if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
 	if (opt.help) {
 		Usage(op, NULL);
 		exit(0);
