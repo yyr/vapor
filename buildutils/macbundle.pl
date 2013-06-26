@@ -77,6 +77,11 @@ sub copy_dir_contents{
 	@cmd = ("/usr/bin/tar", "-cf", $tmpfile, ".");
 	mysystem(@cmd);
 
+	if (! -d $destdir) {
+		@cmd = ("/bin/mkdir", "-p", $destdir);
+		mysystem(@cmd);
+	}
+
 	chdir $cwd or die "$ProgName: Can't cd to $cwd: $!\n";
 	chdir $destdir or die "$ProgName: Can't cd to $destdir: $!\n";
 
