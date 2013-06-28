@@ -39,6 +39,9 @@
     <ClCompile Include="..\..\..\lib\common\Version.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\lib\common\GetAppPath.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\vapor\Base64.h">
@@ -70,6 +73,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\vapor\Version.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\vapor\GetAppPath.h">
+      <Filter>Resource Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

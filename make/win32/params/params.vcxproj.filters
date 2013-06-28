@@ -42,9 +42,6 @@
     <ClCompile Include="..\..\..\lib\params\flowparams.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\lib\params\GetAppPath.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\lib\params\glutil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -217,7 +217,6 @@
     <ClCompile Include="..\..\..\lib\params\GeoTile.cpp" />
     <ClCompile Include="..\..\..\lib\params\GeoTileEquirectangular.cpp" />
     <ClCompile Include="..\..\..\lib\params\GeoTileMercator.cpp" />
-    <ClCompile Include="..\..\..\lib\params\GetAppPath.cpp" />
     <ClCompile Include="..\..\..\lib\params\glutil.cpp" />
     <ClCompile Include="..\..\..\lib\params\histo.cpp" />
     <ClCompile Include="..\..\..\lib\params\mapperfunction.cpp" />

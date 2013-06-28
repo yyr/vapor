@@ -2143,10 +2143,7 @@ ut_read_xml(
             if (path != NULL) {
                 openError = UT_OPEN_ENV;
             }
-            else {
-				path = DEFAULT_UDUNITS2_XML_PATH;
-                openError = UT_OPEN_DEFAULT;
-            }
+      
         }
 
         status = readXml(path);

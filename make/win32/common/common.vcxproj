@@ -198,6 +198,7 @@
     <ClCompile Include="..\..\..\lib\common\CFuncs.cpp" />
     <ClCompile Include="..\..\..\lib\common\common.cpp" />
     <ClCompile Include="..\..\..\lib\common\EasyThreads.cpp" />
+    <ClCompile Include="..\..\..\lib\common\GetAppPath.cpp" />
     <ClCompile Include="..\..\..\lib\common\MyBase.cpp" />
     <ClCompile Include="..\..\..\lib\common\OptionParser.cpp" />
     <ClCompile Include="..\..\..\lib\common\PVTime.cpp" />
@@ -210,6 +211,7 @@
     <ClInclude Include="..\..\..\include\vapor\EasyThreads.h" />
     <ClInclude Include="..\..\..\include\vapor\errorcodes.h" />
     <ClInclude Include="..\..\..\include\vapor\ExtensionClasses.h" />
+    <ClInclude Include="..\..\..\include\vapor\GetAppPath.h" />
     <ClInclude Include="..\..\..\include\vapor\MyBase.h" />
     <ClInclude Include="..\..\..\include\vapor\OptionParser.h" />
     <ClInclude Include="..\..\..\include\vapor\PVTime.h" />
