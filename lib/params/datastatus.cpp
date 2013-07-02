@@ -1108,8 +1108,8 @@ int DataStatus::setDerivedVariable3D(const string& derivedVarName){
 			int sesinvar = getSessionVariableNum2D(vars[i]);
 			if(sesinvar >= 0) {
 				for (int k = 0; k<numTimesteps; k++){
-					if(getMaxLevel3D(sesinvar,k)>getMaxLevel2D(sesinvar,k))
-						maxLevel3D[sesinvar][k]=getMaxLevel2D(sesinvar,k);
+					if(getMaxLevel2D(sesinvar,k)>getMaxLevel2D(sesinvar,k))
+						maxLevel2D[sesinvar][k]=getMaxLevel2D(sesinvar,k);
 				}
 				if (!variableExists2D[sesinvar]) varexists = false;
 			} else {
