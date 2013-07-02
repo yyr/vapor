@@ -8,7 +8,7 @@
 
 namespace VetsUtil {
 
-PARAMS_API std::string GetAppPath(
+COMMON_API std::string GetAppPath(
 	const string &app, const string &name, const vector <string> &paths);
 
 };

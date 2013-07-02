@@ -127,7 +127,7 @@
       <Optimization>Full</Optimization>
       <AdditionalIncludeDirectories>../../../include/;$(IDL_INC_PATH);$(VAPORDEPS_INC_DIR);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;IDL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <ObjectFileName>../../../targets/win32/built/idl/</ObjectFileName>
@@ -209,7 +209,7 @@
       <Optimization>Full</Optimization>
       <AdditionalIncludeDirectories>../../../include/;$(IDL_INC_PATH);$(VAPORDEPS_INC_DIR);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;IDL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <ObjectFileName>../../../targets/win64/built/idl/</ObjectFileName>
