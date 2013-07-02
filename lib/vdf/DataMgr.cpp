@@ -1568,7 +1568,7 @@ void	DataMgr::map_vox_to_user_regular(
 
 void   DataMgr::MapUserToVox(
     size_t timestep,
-    const double xyz[3], size_t ijk[3], int reflevel
+    const double xyz[3], size_t ijk[3], int reflevel, int lod
 ) {
 
 	SetDiagMsg(
@@ -1586,7 +1586,7 @@ void   DataMgr::MapUserToVox(
 
 	bool enable = EnableErrMsg(false);
 	RegularGrid *rg = GetGrid(
-		timestep,"", reflevel, 0, min, max, false
+		timestep,"", reflevel, lod, min, max, false
 	);
 	EnableErrMsg(enable); SetErrCode(0);
 	
@@ -1598,7 +1598,7 @@ void   DataMgr::MapUserToVox(
 
 void   DataMgr::MapVoxToUser(
     size_t timestep,
-    const size_t ijk[3], double xyz[3], int reflevel
+    const size_t ijk[3], double xyz[3], int reflevel, int lod
 ) {
 	SetDiagMsg(
 		"DataMgr::MapVoxToUser(%d, (%d, %d, %d), (,,) %d)",
@@ -1616,7 +1616,7 @@ void   DataMgr::MapVoxToUser(
 
 	bool enable = EnableErrMsg(false);
 	RegularGrid *rg = (RegularGrid *) GetGrid(
-		timestep,"", reflevel, 0, min, max, false
+		timestep,"", reflevel, lod, min, max, false
 	);
 	EnableErrMsg(enable); SetErrCode(0);
 
@@ -1630,7 +1630,7 @@ void   DataMgr::MapVoxToUser(
 void    DataMgr::GetEnclosingRegion(
     size_t ts, const double minu[3], const double maxu[3],
     size_t min[3], size_t max[3],
-    int reflevel
+    int reflevel, int lod
 ) {
     size_t dims[3];
     DataMgr::GetDim(dims, reflevel);
@@ -1640,7 +1640,7 @@ void    DataMgr::GetEnclosingRegion(
 		max[i] = dims[i]-1;
 	}
 	bool enable = EnableErrMsg(false);
-	RegularGrid *rg = GetGrid(ts,"", reflevel, -1, min, max, false);
+	RegularGrid *rg = GetGrid(ts,"", reflevel, lod, min, max, false);
 	EnableErrMsg(enable); SetErrCode(0);
 
 	if (! rg) return;
