@@ -268,8 +268,13 @@ int MetadataVDC::_init2(
 	ostringstream oss;
 	string empty;
 
-	for (int i=0; i<cratios.size()-1; i++) {
-		if (cratios[i] == cratios[i+1]) {
+	vector <size_t> mycratios = cratios;
+	if (find(mycratios.begin(), mycratios.end(), 1) == mycratios.end()) {
+		mycratios.insert(mycratios.begin(), 1);	// lossless compression required
+	}
+
+	for (int i=0; i<mycratios.size()-1; i++) {
+		if (mycratios[i] == mycratios[i+1]) {
 			SetErrMsg("Invalid compression ratio - non unique entries");
 			return(-1);
 		}
@@ -283,7 +288,8 @@ int MetadataVDC::_init2(
 	_wname = wname;
 	_wmode = wmode;
 	_vdcType = 2;
-	_cratios = cratios;
+	_cratios = mycratios;
+
 
 	//
 	// Sort compression ratios so that index 0 maps to coarsest approximation
@@ -315,9 +321,9 @@ int MetadataVDC::_init2(
 	attrs[_vdcTypeAttr] = oss.str();
 
 	oss.str(empty);
-	for (int i=0; i<cratios.size(); i++) {
-		oss << cratios[i];
-		if (i != cratios.size()-1) oss << " ";
+	for (int i=0; i<mycratios.size(); i++) {
+		oss << mycratios[i];
+		if (i != mycratios.size()-1) oss << " ";
 	}
 	attrs[_cRatiosAttr] = oss.str();
 		

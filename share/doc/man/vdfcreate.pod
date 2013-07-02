@@ -39,7 +39,8 @@ This option (VDC2 only) specifies a colon delimited list of
 compression ratios. The minimum compression ratio is 1 (indicating no
 compression). The maximum is determined by the wavelet familiy (See
 B<-wname>) and the block dimension (See B<-bs>). The default compression 
-ratio vector is 500:100:10:1.
+ratio vector is 500:100:10:1. If a compression ratio of 1-to-1 is
+not included it will be silently added.
 
 
 =item -dimension E<lt>NXxNYxNZE<gt>
