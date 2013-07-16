@@ -446,8 +446,8 @@ setupVariableData(
 	//It may reduce the refinement level or indicate that the required data is not available.
 
 	int numxforms = aParams->GetRefinementLevel();
-	
-	int actualRefLevel = RegionParams::PrepareCoordsForRetrieval(numxforms, timestep, varnames, 
+	int lod = aParams->GetCompressionLevel();
+	int actualRefLevel = RegionParams::PrepareCoordsForRetrieval(numxforms, lod, timestep, varnames, 
 		validExts, validExts+3, min_dim, max_dim);
 	if (actualRefLevel < 0) {
 		SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Arrow data unavailable at timestep %d\n", timestep);

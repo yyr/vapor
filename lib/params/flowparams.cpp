@@ -1316,8 +1316,9 @@ int FlowParams::insertUnsteadySeeds(RegionParams* rParams, VaporFlow* fLib, Path
 
 	int sesvarnums[3];
 	int varcount = 0;
+	int lod = GetCompressionLevel();
 	for (int i = 0; i< 3; i++){if (unsteadyVarNum[i]) sesvarnums[varcount++] = unsteadyVarNum[i] -1;}
-	int dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, 
+	int dataValid = rParams->getAvailableVoxelCoords(numRefinements,lod,  min_dim, max_dim, 
 			timeStep, sesvarnums, varcount, minExt, maxExt);
 	if (dataValid < 0) {
 		MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, "Unable to inject seeds at current time step. %s\n %s\n",
@@ -1385,8 +1386,9 @@ int FlowParams::insertSteadySeeds(RegionParams* rParams, VaporFlow* fLib, FlowLi
 	
 	int sesvarnums[3];
 	int varcount = 0;
+	int lod = GetCompressionLevel();
 	for (int i = 0; i< 3; i++){if (steadyVarNum[i]) sesvarnums[varcount++] = steadyVarNum[i] -1;}
-	int dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, 
+	int dataValid = rParams->getAvailableVoxelCoords(numRefinements, lod, min_dim, max_dim, 
 			timeStep, sesvarnums,varcount, minExt, maxExt);
 	if (dataValid < 0) {
 		MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, "Unable to inject seeds at current time step. %s\n %s\n",
@@ -2267,14 +2269,14 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 			timeStep = ds->getFirstTimestep(getOpacMapEntityIndex()-4);
 			if (timeStep < 0) MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"No data for flow mapped variable");
 		}
-		
+		int lod = GetCompressionLevel();
 		size_t min_dim[3], max_dim[3];
 		double validExts[6];
 		rParams->GetBox()->GetUserExtents(validExts, (size_t)timeStep);
 
 		vector<string> opacVarname;
 		opacVarname.push_back(opacMapEntity[getOpacMapEntityIndex()]);
-		int opacRefLevel = RegionParams::PrepareCoordsForRetrieval(numRefinements, timeStep, opacVarname, 
+		int opacRefLevel = RegionParams::PrepareCoordsForRetrieval(numRefinements, lod, timeStep, opacVarname, 
 			validExts, validExts+3,min_dim, max_dim);
 		if (opacRefLevel < 0) {
 			SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"flow opacity mapping data unavailable at timestep %d\n", timeStep);
@@ -2326,10 +2328,10 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		size_t min_dim[3], max_dim[3];
 		double validExts[6];
 		rParams->GetBox()->GetUserExtents(validExts, (size_t)timeStep);
-
+		int lod = GetCompressionLevel();
 		vector<string> colorVarname;
 		colorVarname.push_back(colorMapEntity[getColorMapEntityIndex()]);
-		int colorRefLevel = RegionParams::PrepareCoordsForRetrieval(numRefinements, timeStep, colorVarname, 
+		int colorRefLevel = RegionParams::PrepareCoordsForRetrieval(numRefinements, lod, timeStep, colorVarname, 
 			validExts, validExts+3,min_dim, max_dim);
 		if (colorRefLevel < 0) {
 			SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"flow color mapping data unavailable at timestep %d\n", timeStep);
@@ -2520,10 +2522,10 @@ mapUnsteadyColors(PathLineData* container, int startTimeStep, int minFrame, Regi
 		size_t min_dim[3], max_dim[3];
 	
 		rParams->GetBox()->GetUserExtents(validExts, (size_t)timeStep);
-
+		int lod = GetCompressionLevel();
 		vector<string> opacVarname;
 		opacVarname.push_back(opacMapEntity[getOpacMapEntityIndex()]);
-		int opacRefLevel = RegionParams::PrepareCoordsForRetrieval(numRefinements, timeStep, opacVarname, 
+		int opacRefLevel = RegionParams::PrepareCoordsForRetrieval(numRefinements, lod, timeStep, opacVarname, 
 			validExts, validExts+3,min_dim, max_dim);
 		if (opacRefLevel < 0) {
 			SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"flow opacity mapping data unavailable at timestep %d\n", timeStep);
@@ -3028,8 +3030,9 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 	size_t min_dim[3],max_dim[3];
 	int varnums[3];
 	int varcount = 0;
+	int lod = GetCompressionLevel();
 	for (int i = 0; i< 3; i++){if (steadyVarNum[i]) varnums[varcount++] = steadyVarNum[i] -1;}
-	int availRefLevel =  rParams->getAvailableVoxelCoords(numrefts, min_dim, max_dim, (size_t)timeStep, varnums, varcount);
+	int availRefLevel =  rParams->getAvailableVoxelCoords(numrefts, lod, min_dim, max_dim, (size_t)timeStep, varnums, varcount);
 	if (availRefLevel < 0) {
 		return -1.f;
 	}
@@ -3124,8 +3127,9 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 	if (flowType == 0 ){
 		int varnums[3];
 		int varcount = 0;
+		
 		for (int i = 0; i< 3; i++){if (steadyVarNum[i]) varnums[varcount++] = steadyVarNum[i] -1;}
-		availRefLevel = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim,  
+		availRefLevel = rParams->getAvailableVoxelCoords(numRefinements, lod, min_dim, max_dim,  
 			timeStep, varnums,varcount);
 		
 		if (ds->useLowerAccuracy()){
@@ -3160,7 +3164,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 		}
 		//Start with the extents at the start timestep:
 		int ts = getTimestepSample(0);
-		rParams->getRegionVoxelCoords(availRefLevel, gmin_dim, gmax_dim, ts);
+		rParams->getRegionVoxelCoords(availRefLevel, GetCompressionLevel(),gmin_dim, gmax_dim, ts);
 		
 		//Intersect the regions for the timesteps with field data:
 		for (int indx = 0; indx < getNumTimestepSamples(); indx++){
@@ -3182,7 +3186,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 			int varnums[3];
 			int varcount = 0;
 			for (int i = 0; i< 3; i++){varnums[varcount++] = unsteadyVarNum[i] -1;}
-			int refLevel = rParams->getAvailableVoxelCoords(availRefLevel, min_dim, max_dim, 
+			int refLevel = rParams->getAvailableVoxelCoords(availRefLevel, lod, min_dim, max_dim, 
 				ts, varnums, varcount);
 			if(refLevel < 0)
 				return false;
@@ -3340,7 +3344,7 @@ bool FlowParams::validateSettings(int tstep){
 		double rakeBox[6];
 		GetBox()->GetLocalExtents(rakeBox);
 		float shrExts[6];
-		//ds->getExtentsAtLevel(tstep, numRefinements, levExts);
+	
 		//Shrink exts slightly, then subtract to put into local extents
 		for (int i = 0; i< 3; i++){
 			float mid = (usrExts[i]+usrExts[i+3])*0.5;

@@ -262,18 +262,18 @@ void ArrowParams::calcDataAlignment(double rakeExts[6], int rakeGrid[3],size_t t
 		rakeGrid[i] = rGrid[i];
 	}
 	size_t voxExts[6];
-	mapBoxToVox(dataMgr, -1,timestep, voxExts);
+	mapBoxToVox(dataMgr, -1,GetCompressionLevel(),timestep, voxExts);
 	for (int i = 0; i<3; i++) {
 		corner[i] = voxExts[i];
 		farCorner[i] = voxExts[i+3];
 	}
 	
 	//Is the corner actually inside the rake?
-	dataMgr->MapVoxToUser(timestep,corner, tempExtents, -1);
+	dataMgr->MapVoxToUser(timestep,corner, tempExtents, -1, GetCompressionLevel());
 	if (tempExtents[0]<rakeExts[0]) corner[0]++;
 	if (tempExtents[1]<rakeExts[1]) corner[1]++;
 	//Now get the local (0-based) coords of the corner
-	dataMgr->MapVoxToUser(timestep, corner, tempExtents,-1);
+	dataMgr->MapVoxToUser(timestep, corner, tempExtents,-1,GetCompressionLevel());
 	rakeExts[0] = tempExtents[0];
 	rakeExts[1] = tempExtents[1];
 	
@@ -291,7 +291,7 @@ void ArrowParams::calcDataAlignment(double rakeExts[6], int rakeGrid[3],size_t t
 	if(strides[1]>0)farCorner[1] = corner[1]+(rakeGrid[1]-1)*strides[1];
 	else farCorner[1] = corner[1];
 
-	dataMgr->MapVoxToUser(timestep,farCorner, tempExtents, -1);
+	dataMgr->MapVoxToUser(timestep,farCorner, tempExtents, -1,GetCompressionLevel());
 	rakeExts[3]=tempExtents[0];
 	rakeExts[4]=tempExtents[1];
 }

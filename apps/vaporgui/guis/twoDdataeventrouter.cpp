@@ -398,7 +398,7 @@ void TwoDDataEventRouter::updateTab(){
 	size_t gridExts[6];
 	if (dataMgr ){
 		int fullRefLevel = ds->getNumTransforms();
-		twoDParams->mapBoxToVox(dataMgr,fullRefLevel,currentTimeStep,gridExts);
+		twoDParams->mapBoxToVox(dataMgr,fullRefLevel,twoDParams->GetCompressionLevel(),currentTimeStep,gridExts);
 		
 		minGridXLabel->setText(QString::number(gridExts[0]));
 		minGridYLabel->setText(QString::number(gridExts[1]));
