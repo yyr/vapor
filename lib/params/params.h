@@ -374,7 +374,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 		GetBox()->SetLocalExtents(extents,timestep);
 	}
 	//Map corners of box to voxels
-	void mapBoxToVox(DataMgr* dataMgr, int refLevel, int timestep, size_t voxExts[6]);
+	void mapBoxToVox(DataMgr* dataMgr, int refLevel, int lod, int timestep, size_t voxExts[6]);
 	void setTheta(float th) {
 		double angles[3];
 		GetBox()->GetAngles(angles);

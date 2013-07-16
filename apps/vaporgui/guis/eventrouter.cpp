@@ -182,11 +182,12 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 		histogramList[varNum] = 0;
 	}
 	int numTrans = renParams->GetRefinementLevel();
+	int lod = renParams->GetCompressionLevel();
 	const char* varname;
 	
 	varname = ds->getVariableName3D(varNum).c_str();
 	
-	int availRefLevel = rParams->getAvailableVoxelCoords(numTrans, min_dim, max_dim, timeStep, &varNum, 1);
+	int availRefLevel = rParams->getAvailableVoxelCoords(numTrans, lod, min_dim, max_dim, timeStep, &varNum, 1);
 	if(availRefLevel < 0) {
 		renParams->setBypass(timeStep);
 		if (ds->warnIfDataMissing()){
@@ -195,7 +196,6 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 		}
 		return;
 	}
-	int lod = renParams->GetCompressionLevel();
 	if (ds->useLowerAccuracy()){
 		
 		lod = Min(lod, ds->maxLODPresent3D(varNum, timeStep));

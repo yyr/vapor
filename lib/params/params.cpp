@@ -401,7 +401,7 @@ void Params::BailOut(const char *errstr, const char *fname, int lineno)
 //Map corners of box to voxels.  Save results to avoid expensive dataMgr call
 //Save latest values of voxel extents, refinement level, and local user extents
 //If refLevel and local user extents have not changed, then return saved voxel extents
-void Params::mapBoxToVox(DataMgr* dataMgr, int refLevel, int timestep, size_t voxExts[6]){
+void Params::mapBoxToVox(DataMgr* dataMgr, int refLevel, int lod, int timestep, size_t voxExts[6]){
 	double userExts[6];
 	double locUserExts[6];
 	if (!dataMgr) return;
@@ -421,8 +421,8 @@ void Params::mapBoxToVox(DataMgr* dataMgr, int refLevel, int timestep, size_t vo
 	box->GetUserExtents(userExts,(size_t)timestep);
 	
 	//calculate new values for voxExts (this can be expensive with layered data)
-	dataMgr->MapUserToVox((size_t)timestep,userExts,voxExts, refLevel);
-	dataMgr->MapUserToVox((size_t)timestep,userExts+3,voxExts+3, refLevel);
+	dataMgr->MapUserToVox((size_t)timestep,userExts,voxExts, refLevel,lod);
+	dataMgr->MapUserToVox((size_t)timestep,userExts+3,voxExts+3, refLevel,lod);
 	//save stuff to compare next time:
 	savedRefLevel = refLevel;
 	box->GetLocalExtents(savedBoxLocalExts, (size_t)timestep);
@@ -706,7 +706,7 @@ int Params::getGrids(size_t ts, const vector<string>& varnames, double extents[6
 	//valid integer coords:
 	//Find a containing voxel box:
 	size_t boxMin[3], boxMax[3];
-	dataMgr->GetEnclosingRegion(ts, extents, extents+3, boxMin, boxMax, *refLevel);
+	dataMgr->GetEnclosingRegion(ts, extents, extents+3, boxMin, boxMax, *refLevel, *lod);
 	
 	//Determine what region is available for all variables
 	size_t temp_min[3], temp_max[3];

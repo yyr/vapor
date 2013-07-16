@@ -609,8 +609,8 @@ refreshRegionInfo(RegionParams* rParams){
 		maxYVoxVarLabel->setText(QString::number(max_vdim[1]));
 		maxZVoxVarLabel->setText(QString::number(max_vdim[2]));
 		
-		dataMgr->MapVoxToUser((size_t)timeStep, min_vdim, var_ext,refLevel);
-		dataMgr->MapVoxToUser((size_t)timeStep, max_vdim, var_ext+3,refLevel);
+		dataMgr->MapVoxToUser((size_t)timeStep, min_vdim, var_ext,refLevel,0);
+		dataMgr->MapVoxToUser((size_t)timeStep, max_vdim, var_ext+3,refLevel,0);
 		
 		//Use full extents if variable is at extremes, to avoid confusion...
 		for (int k = 0; k<3; k++){
@@ -674,7 +674,7 @@ refreshRegionInfo(RegionParams* rParams){
 			break;
 	}
 	if (rc >= 0){
-		rParams->getRegionVoxelCoords(refLevel,min_dim,max_dim,
+		rParams->getRegionVoxelCoords(refLevel,0,min_dim,max_dim,
 									  timeStep);
 		
 		//Size needed for data assumes blocksize = 2**5, 6 bytes per voxel, times 2.

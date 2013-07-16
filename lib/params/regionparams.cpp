@@ -107,7 +107,7 @@ validateNumTrans(int n, int timestep){
 	}
 
 	size_t min_dim[3], max_dim[3];
-	getRegionVoxelCoords(testRefLevel,min_dim,max_dim, timestep);
+	getRegionVoxelCoords(testRefLevel,0,min_dim,max_dim, timestep);
 	//calc num voxels
 	size_t newFullMB = (max_dim[0]-min_dim[0]+1)*(max_dim[1]-min_dim[1]+1)*(max_dim[2]-min_dim[2]+1);
 	//right shift by 20 for megavoxels
@@ -245,45 +245,8 @@ void RegionParams::setLocalRegionMax(int coord, float maxval, int timestep, bool
 }
 
 
-//static method to do conversion to box coords (probably based on available
-//coords, that may be smaller than region coords)
-//Then puts into unit cube, for use by volume rendering
-//
-void RegionParams::
-convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], double extents[6]){
-	double fullExtents[6];
-	double subExtents[6];
-	DataStatus* ds = DataStatus::getInstance();
-	const size_t fullMin[3] = {0,0,0};
-	size_t fullMax[3];
-	
-	for (int i = 0; i<3; i++) fullMax[i] = (int)DataStatus::getInstance()->getFullSizeAtLevel(refLevel,i) - 1;
-
-	DataMgr* dataMgr = ds->getDataMgr();
-	//The conversion is independent of timestep, since it is translated into unit box.
-	dataMgr->MapVoxToUser(-1,fullMin,fullExtents,refLevel);
-	dataMgr->MapVoxToUser(-1,fullMax,fullExtents+3,refLevel);
-	dataMgr->MapVoxToUser(-1,min_dim,subExtents,refLevel);
-	dataMgr->MapVoxToUser(-1,max_dim,subExtents+3,refLevel);
-
-	// Now apply stretch factors
-	const float* stretchFactor = ds->getStretchFactors();
-	for (int i = 0; i<6; i++){
-		fullExtents[i] *= stretchFactor[i%3];
-		subExtents[i] *= stretchFactor[i%3];
-	}
-
-	
-	double maxSize = Max(Max(fullExtents[3]-fullExtents[0],fullExtents[4]-fullExtents[1]),fullExtents[5]-fullExtents[2]);
-	for (int i = 0; i<3; i++){
-		extents[i] = ((subExtents[i] - fullExtents[i])/maxSize);
-		extents[i+3] = ((subExtents[i+3] - fullExtents[i])/maxSize);
-	}
-	
-}
-
 int RegionParams::
-getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], 
+getAvailableVoxelCoords(int numxforms, int lod, size_t min_dim[3], size_t max_dim[3], 
 		size_t timestep, const int* varNums, int numVars,
 		double regMin[3], double regMax[3]){
 	//First determine the bounds specified in this RegionParams
@@ -301,15 +264,18 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	}
 	
 	int minRefLevel = numxforms;
+	int minLOD = lod;
 	//check that the data exists for this timestep and refinement:
 	
 	for (i = 0; i<numVars; i++){
 		if (varNums[i] < 0) continue; //in case of zero field component
 		minRefLevel = Min(ds->maxXFormPresent3D(varNums[i],(int)timestep), minRefLevel);
+		minLOD = Min(ds->maxLODPresent3D(varNums[i],(int)timestep), minLOD);
 		//Test if it's acceptable, exit if not:
 		if (minRefLevel < 0 || (minRefLevel < numxforms && !ds->useLowerAccuracy())){
 			return -1;
 		}
+		if (minLOD < 0 || (minLOD < lod && !ds->useLowerAccuracy())) return -1;
 	}
 	
 	double userMinCoords[3];
@@ -326,7 +292,7 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 
 	
 	//Determine containing voxel coord box:
-	dataMgr->GetEnclosingRegion(timestep, userMinCoords, userMaxCoords, min_dim, max_dim,minRefLevel);
+	dataMgr->GetEnclosingRegion(timestep, userMinCoords, userMaxCoords, min_dim, max_dim,minRefLevel,minLOD);
 
 	for(i = 0; i< 3; i++){
 		//Make sure slab has nonzero thickness (this can only
@@ -373,13 +339,13 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	//may not be the actual region bounds with layered data.
 	if (regMax && regMin){
 		//Do mapping to voxel coords
-		dataMgr->MapVoxToUser(timestep, min_dim, regMin, minRefLevel);
-		dataMgr->MapVoxToUser(timestep, max_dim, regMax, minRefLevel);
+		dataMgr->MapVoxToUser(timestep, min_dim, regMin, minRefLevel,lod);
+		dataMgr->MapVoxToUser(timestep, max_dim, regMax, minRefLevel,lod);
 	}
 	
 	return minRefLevel;
 }
-int RegionParams::PrepareCoordsForRetrieval(int numxforms, size_t timestep, const vector<string>& varnames,
+int RegionParams::PrepareCoordsForRetrieval(int numxforms, int lod, size_t timestep, const vector<string>& varnames,
 		double* regMin, double* regMax, 
 		size_t min_dim[3], size_t max_dim[3]) 
 {
@@ -390,11 +356,20 @@ int RegionParams::PrepareCoordsForRetrieval(int numxforms, size_t timestep, cons
 		
 	//First determine the refinement level we will be using (for all the variables).
 	int minRefLevel = numxforms;
+	int minLOD = lod;
 	for (int i = 0; i<varnames.size(); i++){
 		if (varnames[i] == "" || varnames[i] == "0") continue;
 		minRefLevel = Min(ds->maxXFormPresent(varnames[i],(int)timestep), minRefLevel);
+		minLOD = Min(ds->maxLODPresent(varnames[i],(int)timestep), minLOD);
 		//Test if it's acceptable, exit if not:
 		if (minRefLevel < 0 || (minRefLevel < numxforms && !ds->useLowerAccuracy())){
+			if (ds->warnIfDataMissing()){
+				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Data inaccessible\nfor variable %s at timestep %d.",
+					varnames[i].c_str(), timestep);
+			}
+			return -1;
+		}
+		if (minLOD < 0 || (minLOD < lod && !ds->useLowerAccuracy())){
 			if (ds->warnIfDataMissing()){
 				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Data inaccessible\nfor variable %s at timestep %d.",
 					varnames[i].c_str(), timestep);
@@ -404,7 +379,7 @@ int RegionParams::PrepareCoordsForRetrieval(int numxforms, size_t timestep, cons
 	}
 
 	dataMgr->GetEnclosingRegion(
-		timestep, regMin, regMax, min_dim, max_dim, minRefLevel
+		timestep, regMin, regMax, min_dim, max_dim, minRefLevel, minLOD
 	);
 	
 	//intersect with available bounds based on variables:
@@ -442,14 +417,14 @@ int RegionParams::PrepareCoordsForRetrieval(int numxforms, size_t timestep, cons
 	
 	//Calculate new bounds:
 	
-	dataMgr->MapVoxToUser(timestep, min_dim, regMin, minRefLevel);
-	dataMgr->MapVoxToUser(timestep, max_dim, regMax, minRefLevel);
+	dataMgr->MapVoxToUser(timestep, min_dim, regMin, minRefLevel,lod);
+	dataMgr->MapVoxToUser(timestep, max_dim, regMax, minRefLevel,lod);
 	
 	return minRefLevel;
 }
 
 void RegionParams::
-getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], int timestep)
+getRegionVoxelCoords(int numxforms, int lod, size_t min_dim[3], size_t max_dim[3], int timestep)
 {
 	int i;
 	
@@ -471,7 +446,7 @@ getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], int ti
 	}
 	DataMgr* dataMgr = ds->getDataMgr();
 
-	dataMgr->GetEnclosingRegion((size_t)timestep, userMinCoords, userMaxCoords, min_dim, max_dim, numxforms);
+	dataMgr->GetEnclosingRegion((size_t)timestep, userMinCoords, userMaxCoords, min_dim, max_dim, numxforms,lod);
 
 	return;
 }
@@ -691,7 +666,7 @@ int RegionParams::getMBStorageNeeded(const double* extents, int refLevel){
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return 0;
 	size_t timestep = DataStatus::getInstance()->getMinTimestep();
-	dataMgr->GetEnclosingRegion(timestep, extents, extents+3, min_dim, max_dim, refLevel);
+	dataMgr->GetEnclosingRegion(timestep, extents, extents+3, min_dim, max_dim, refLevel, 0);
 	
 	
 	float numVoxels = (float)(max_dim[0]-min_dim[0]+1)*(max_dim[1]-min_dim[1]+1)*(max_dim[2]-min_dim[2]+1);

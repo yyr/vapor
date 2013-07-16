@@ -1180,7 +1180,7 @@ setupFieldData(const vector<string>& varnames,
 		rakeExts[i+3] = maxLocalRakeExt[i]+userExts[i];
 	}
 	if (useRakeBounds){
-		dataMgr->GetEnclosingRegion(ts, rakeExts, rakeExts+3, minInt, maxInt, numRefinements);
+		dataMgr->GetEnclosingRegion(ts, rakeExts, rakeExts+3, minInt, maxInt, numRefinements,compressLevel);
 	} else {
 		for (int i = 0; i< 3; i++) {
 			minInt[i] = minRegion[i];
@@ -1252,7 +1252,7 @@ getFieldMagBounds(float* minVal, float* maxVal,const vector<string>& varnames,
 			tvExts[i] = minLocalRakeExt[i]+userExts[i];
 			tvExts[i+3] = maxLocalRakeExt[i]+userExts[i];
 		}
-		dataMgr->GetEnclosingRegion(ts, tvExts, tvExts+3, minInt, maxInt, numRefinements);
+		dataMgr->GetEnclosingRegion(ts, tvExts, tvExts+3, minInt, maxInt, numRefinements,compressLevel);
 	} else {
 		for (int i = 0; i< 3; i++) {
 			minInt[i] = minRegion[i];
