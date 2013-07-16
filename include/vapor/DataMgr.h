@@ -301,6 +301,12 @@ public:
 	int lod = 0
  ) ;
 
+ bool BestMatch(
+    size_t ts, const char *varname, int req_reflevel, int req_lod,
+    int &reflevel, int &lod
+ );
+
+
  //!
  //! Add a pipeline stage to produce derived variables
  //!
