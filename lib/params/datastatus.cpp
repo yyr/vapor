@@ -651,24 +651,7 @@ void DataStatus::getMaxStretchedExtentsInCube(float maxExtents[3]){
 	maxExtents[1] = (stretchedExtents[4]-stretchedExtents[1])/maxSize;
 	maxExtents[2] = (stretchedExtents[5]-stretchedExtents[2])/maxSize;
 }
-//Determine the min and max extents at a given level:
-void DataStatus::getExtentsAtLevel(size_t ts, int level, float exts[6]){
-	size_t dim[3], maxm[3];
-	size_t minm[3] = {0,0,0};
-	double usermin[3], usermax[3];
 
-	dataMgr->GetDim(dim, level);
-	for (int i=0; i<3; i++) {
-		maxm[i] = dim[i]-1;
-	}
-
-	dataMgr->MapVoxToUser(ts, minm, usermin, level);
-	dataMgr->MapVoxToUser(ts, maxm, usermax, level);
-	for (int i = 0; i<3; i++){
-		exts[i] = (float)usermin[i];
-		exts[i+3] = (float)usermax[i];
-	}
-}
 
 bool DataStatus::sphericalTransform()
 {

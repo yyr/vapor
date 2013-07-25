@@ -224,11 +224,7 @@ int PythonPipeLine::python_wrapper(
 		mins[i] = orig[i];
 		maxs[i] = dims[i]+orig[i]-1;
 	}
-	//convert to relative integer coordinates:  Note This would cause a problem with Layered grids and missing values of ELEVATION
-	//rg->GetUserCoordinates(0,0,0,umins, umins+1, umins+2);
-	//rg->GetUserCoordinates(maxs[0],maxs[1],maxs[2],umaxs, umaxs+1, umaxs+2);
-	//currentDataMgr->MapUserToVox(ts,umins,mins,reflevel);
-	//currentDataMgr->MapUserToVox(ts,umaxs,maxs,reflevel);
+	
 	int regmin[3], regmax[3];
 	Py_ssize_t pydims[3];
 	PyObject* pyRegion, *pyRegionMask;
@@ -901,13 +897,14 @@ PyObject* PythonPipeLine::mapVoxToUser(PyObject *self, PyObject* args){
     int ivox[3];
 	size_t voxCrds[3];
 	double userCrds[3];
-    
-    if (!PyArg_ParseTuple(args,"(iii)i",
-						  ivox,ivox+1,ivox+2,&reflevel)) return NULL; 
+    //The final optional argument is LOD
+	int lod = 0;
+    if (!PyArg_ParseTuple(args,"(iii)i|i",
+						  ivox,ivox+1,ivox+2,&reflevel,&lod)) return NULL; 
     
 	for (int i = 0; i< 3; i++) voxCrds[i] = (size_t)ivox[2-i];
 
-	currentDataMgr->MapVoxToUser(0,voxCrds,userCrds, reflevel);
+	currentDataMgr->MapVoxToUser(0,voxCrds,userCrds, reflevel,lod);
 	
     return Py_BuildValue("[ddd]", userCrds[2],userCrds[1],userCrds[0]);
 }
@@ -920,11 +917,13 @@ PyObject* PythonPipeLine::mapUserToVox(PyObject *self, PyObject* args){
 	double userCrds[3];
 	size_t vox[3];
 	int ivox[3];
+	//Optional arg is lod
+	int lod = 0;
     
-    if (!PyArg_ParseTuple(args,"(ddd)i",
-						  userCrds+2,userCrds+1,userCrds,&reflevel)) return NULL; 
+    if (!PyArg_ParseTuple(args,"(ddd)i|i",
+						  userCrds+2,userCrds+1,userCrds,&reflevel,&lod)) return NULL; 
 	
-	currentDataMgr->MapUserToVox(0, userCrds, vox, reflevel);
+	currentDataMgr->MapUserToVox(0, userCrds, vox, reflevel,lod);
 	for(int i = 0; i< 3; i++) ivox[i] = (int)vox[2-i];
 	
     return Py_BuildValue("[iii]", ivox[0],ivox[1],ivox[2]);

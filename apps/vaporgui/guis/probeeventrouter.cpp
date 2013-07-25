@@ -429,7 +429,7 @@ void ProbeEventRouter::updateTab(){
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (dataMgr && showLayout){
 		int fullRefLevel = ds->getNumTransforms();
-		probeParams->mapBoxToVox(dataMgr,fullRefLevel,timestep,gridExts);
+		probeParams->mapBoxToVox(dataMgr,fullRefLevel,probeParams->GetCompressionLevel(),timestep,gridExts);
 		
 		minGridXLabel->setText(QString::number(gridExts[0]));
 		minGridYLabel->setText(QString::number(gridExts[1]));
@@ -2045,20 +2045,21 @@ calcCurrentValue(ProbeParams* pParams, const float point[3], int* , int ){
 	//Get the data dimensions (at current resolution):
 	
 	int numRefinements = pParams->GetRefinementLevel();
-	
-	//Find the region that contains the point
-	size_t coordMin[3], coordMax[3];
-	int firstVarNum = pParams->getFirstVarNum();
-	vector<string> varNames;
-	varNames.push_back(ds->getVariableName3D(firstVarNum));
-	int actualRefLevel = RegionParams::PrepareCoordsForRetrieval(numRefinements, timeStep, varNames, regMin, regMax, coordMin, coordMax);
-	if (actualRefLevel < 0) return OUT_OF_BOUNDS;
-	
 	int lod = pParams->GetCompressionLevel();
+	int firstVarNum = pParams->getFirstVarNum();
 	if (ds->useLowerAccuracy()){
 		lod = Min(ds->maxLODPresent3D(firstVarNum, timeStep), lod);
 	}
 	if (lod < 0) return OUT_OF_BOUNDS;
+	//Find the region that contains the point
+	size_t coordMin[3], coordMax[3];
+	
+	vector<string> varNames;
+	varNames.push_back(ds->getVariableName3D(firstVarNum));
+	int actualRefLevel = RegionParams::PrepareCoordsForRetrieval(numRefinements, lod, timeStep, varNames, regMin, regMax, coordMin, coordMax);
+	if (actualRefLevel < 0) return OUT_OF_BOUNDS;
+	
+	
 	
 	RegularGrid* valGrid = dataMgr->GetGrid(timeStep, varNames[0].c_str(), actualRefLevel, lod, coordMin,coordMax,0);
 		
@@ -2102,12 +2103,17 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	if (!ds->useLowerAccuracy() && refLevel < pParams->GetRefinementLevel()){
 		return;
 	} 
-
+	int lod = pParams->GetCompressionLevel();
+	if (lod < 0 ) return;
+	lod = Min(ds->maxLODPresent3D(firstVarNum, timeStep),lod);
+	if (!ds->useLowerAccuracy() && lod < pParams->GetCompressionLevel()){
+		return;
+	} 
 
 	//create the smallest containing box
 	size_t boxMin[3],boxMax[3];
 	
-	pParams->getAvailableBoundingBox(timeStep,  boxMin, boxMax, refLevel);
+	pParams->getAvailableBoundingBox(timeStep,  boxMin, boxMax, refLevel,lod);
 	
 	//Check if the region/resolution is too big:
 	int numMBs = (boxMax[0]-boxMin[0]+1)*(boxMax[1]-boxMin[1]+1)*(boxMax[2]-boxMin[2]+1)/250000;
@@ -2125,10 +2131,6 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 		return;
 	}
 	const string& varname = ds->getVariableName3D(firstVarNum);
-	int lod = pParams->GetCompressionLevel();
-	lod = Min(ds->maxLODPresent3D(firstVarNum, timeStep), lod);
-	if (!ds->useLowerAccuracy() && lod < pParams->GetCompressionLevel()) return;
-	if (lod < 0) return;
 	
 	RegularGrid* histoGrid = dataMgr->GetGrid((size_t)timeStep, varname, refLevel, lod, boxMin, boxMax,1);	
 	if (!histoGrid){

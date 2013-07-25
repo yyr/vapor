@@ -343,8 +343,8 @@ def wrf_deriv_findiff(A,ELEV,dir):
 		return vapor_utils.deriv_var_findiff(A,ELEV,3)
 
 	ext = (vapor.BOUNDS[3]-vapor.BOUNDS[0], vapor.BOUNDS[4]-vapor.BOUNDS[1],vapor.BOUNDS[5]-vapor.BOUNDS[2])
-	usrmax = vapor.MapVoxToUser([vapor.BOUNDS[3],vapor.BOUNDS[4],vapor.BOUNDS[5]],vapor.REFINEMENT)
-	usrmin = vapor.MapVoxToUser([vapor.BOUNDS[0],vapor.BOUNDS[1],vapor.BOUNDS[2]],vapor.REFINEMENT)
+	usrmax = vapor.MapVoxToUser([vapor.BOUNDS[3],vapor.BOUNDS[4],vapor.BOUNDS[5]],vapor.REFINEMENT,vapor.LOD)
+	usrmin = vapor.MapVoxToUser([vapor.BOUNDS[0],vapor.BOUNDS[1],vapor.BOUNDS[2]],vapor.REFINEMENT,vapor.LOD)
 	dx = (usrmax[2]-usrmin[2])/ext[2]
 	dy =  (usrmax[1]-usrmin[1])/ext[1]
 	
@@ -407,8 +407,8 @@ def wrf_curl_findiff(A,B,C,ELEV):
 	import vapor
 	import vapor_utils	
 	ext = (vapor.BOUNDS[3]-vapor.BOUNDS[0], vapor.BOUNDS[4]-vapor.BOUNDS[1],vapor.BOUNDS[5]-vapor.BOUNDS[2])
-	usrmax = vapor.MapVoxToUser([vapor.BOUNDS[3],vapor.BOUNDS[4],vapor.BOUNDS[5]],vapor.REFINEMENT)
-	usrmin = vapor.MapVoxToUser([vapor.BOUNDS[0],vapor.BOUNDS[1],vapor.BOUNDS[2]],vapor.REFINEMENT)
+	usrmax = vapor.MapVoxToUser([vapor.BOUNDS[3],vapor.BOUNDS[4],vapor.BOUNDS[5]],vapor.REFINEMENT,vapor.LOD)
+	usrmin = vapor.MapVoxToUser([vapor.BOUNDS[0],vapor.BOUNDS[1],vapor.BOUNDS[2]],vapor.REFINEMENT,vapor.LOD)
 	dx =  (usrmax[2]-usrmin[2])/ext[2]	#user x coordinate, python z coordinate
 	dy =  (usrmax[1]-usrmin[1])/ext[1]
 	dz =  (usrmax[0]-usrmin[0])/ext[0]

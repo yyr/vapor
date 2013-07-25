@@ -303,7 +303,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 			return false;
 		}
 		size_t voxExts[6];
-		tParams->mapBoxToVox(dataMgr, refLevel, timeStep, voxExts);
+		tParams->mapBoxToVox(dataMgr, refLevel, lod, timeStep, voxExts);
 		for (int i = 0; i<3; i++){
 			min_dim[i] = voxExts[i];
 			max_dim[i] = voxExts[i+3];
