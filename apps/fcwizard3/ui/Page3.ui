@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Page3</class>
+ <widget class="QWizardPage" name="Page3">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>475</width>
+    <height>360</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>WizardPage</string>
+  </property>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>22</x>
+     <y>14</y>
+     <width>101</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>17</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Create VDF</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_40">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>71</y>
+     <width>151</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <underline>false</underline>
+    </font>
+   </property>
+   <property name="text">
+    <string>Variables to be Copied:</string>
+   </property>
+  </widget>
+  <widget class="QListWidget" name="outputVdfFileList">
+   <property name="geometry">
+    <rect>
+     <x>260</x>
+     <y>36</y>
+     <width>200</width>
+     <height>21</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_11">
+   <property name="geometry">
+    <rect>
+     <x>281</x>
+     <y>63</y>
+     <width>71</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Start Time</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_3">
+   <property name="geometry">
+    <rect>
+     <x>261</x>
+     <y>90</y>
+     <width>101</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string># of Timesteps</string>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="numtsSpinner">
+   <property name="geometry">
+    <rect>
+     <x>368</x>
+     <y>90</y>
+     <width>91</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="minimum">
+    <number>1</number>
+   </property>
+   <property name="value">
+    <number>1</number>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="startTimeSpinner">
+   <property name="geometry">
+    <rect>
+     <x>368</x>
+     <y>63</y>
+     <width>91</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="minimum">
+    <number>1</number>
+   </property>
+   <property name="value">
+    <number>1</number>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_14">
+   <property name="geometry">
+    <rect>
+     <x>260</x>
+     <y>13</y>
+     <width>101</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Output VDF File:</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="browseOutputVdfFile">
+   <property name="geometry">
+    <rect>
+     <x>383</x>
+     <y>8</y>
+     <width>82</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Browse</string>
+   </property>
+  </widget>
+  <widget class="QProgressBar" name="progressBar">
+   <property name="geometry">
+    <rect>
+     <x>320</x>
+     <y>335</y>
+     <width>131</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="value">
+    <number>24</number>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="goButton">
+   <property name="geometry">
+    <rect>
+     <x>245</x>
+     <y>329</y>
+     <width>71</width>
+     <height>32</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Go!</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="advanceOptionButton">
+   <property name="geometry">
+    <rect>
+     <x>38</x>
+     <y>329</y>
+     <width>161</width>
+     <height>32</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string> Advanced Options</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>93</y>
+     <width>71</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Select All</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_2">
+   <property name="geometry">
+    <rect>
+     <x>176</x>
+     <y>93</y>
+     <width>71</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Add New</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_3">
+   <property name="geometry">
+    <rect>
+     <x>98</x>
+     <y>93</y>
+     <width>71</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Clear All</string>
+   </property>
+  </widget>
+  <widget class="QListWidget" name="variableList">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>121</y>
+     <width>439</width>
+     <height>200</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_4">
+   <property name="geometry">
+    <rect>
+     <x>15</x>
+     <y>37</y>
+     <width>183</width>
+     <height>32</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Add VDF Comment</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
