@@ -408,9 +408,9 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 	if (reflevelDirty || lodDirty || timeStepDirty || varDirty || extentsDirty || userTextureDirty || rangeDirty || _forceUpdateRegion()) {
 		size_t max_dim[3];
 		size_t min_dim[3];
-
+		int lod = currentRenderParams->GetCompressionLevel();
 		int availRefLevel = myRegionParams->getAvailableVoxelCoords(
-			reflevel, min_dim, max_dim, timeStep,&varNum, 1
+			reflevel, lod, min_dim, max_dim, timeStep,&varNum, 1
 		);
 
 		if(availRefLevel < 0) {

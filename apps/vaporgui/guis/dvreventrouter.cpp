@@ -1188,8 +1188,9 @@ void DvrEventRouter::benchmarkPreamble()
   int timeStep     = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
   int varNum       = dvrParams->getSessionVarNum();
   int numxforms    = dvrParams->GetRefinementLevel();
+  int lod			= dvrParams->GetCompressionLevel();
   
-  if(regionParams->getAvailableVoxelCoords(numxforms, min_dim, max_dim, 
+  if(regionParams->getAvailableVoxelCoords(numxforms, lod,min_dim, max_dim, 
           timeStep, &varNum, 1) < 0 ) return;
   
   int nx = (max_dim[0] - min_dim[0] + 1);

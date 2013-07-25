@@ -301,6 +301,12 @@ public:
 	int lod = 0
  ) ;
 
+ bool BestMatch(
+    size_t ts, const char *varname, int req_reflevel, int req_lod,
+    int &reflevel, int &lod
+ );
+
+
  //!
  //! Add a pipeline stage to produce derived variables
  //!
@@ -395,7 +401,7 @@ public:
  //
  virtual void   MapUserToVox(
     size_t timestep,
-    const double vcoord0[3], size_t vcoord1[3], int reflevel = 0
+    const double vcoord0[3], size_t vcoord1[3], int reflevel = 0, int lod = 0
  );
 
  //! Map integer voxel coordinates to user-defined floating point coords.
@@ -424,7 +430,7 @@ public:
  //
  virtual void   MapVoxToUser(
     size_t timestep,
-    const size_t vcoord0[3], double vcoord1[3], int ref_level = 0
+    const size_t vcoord0[3], double vcoord1[3], int ref_level = 0, int lod=0
  );
 
  //!
@@ -447,7 +453,7 @@ public:
  virtual void    GetEnclosingRegion(
     size_t ts, const double minu[3], const double maxu[3],
     size_t min[3], size_t max[3],
-    int reflevel
+    int reflevel = 0, int lod = 0
  );
 
  //!

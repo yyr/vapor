@@ -67,11 +67,6 @@ public:
 	const float* getFullSizes() {return fullSizes;}
 	const float* getFullStretchedSizes() {return fullStretchedSizes;}
 
-	//! Determines extents of the data at a particular refinement level.
-	//! \param[in] int level  refinement level
-	//! \param[in] int ts Time step
-	//! \param[out] float exts[6]  extents at specified level
-	void getExtentsAtLevel(size_t ts, int level, float exts[6]);
 
 	//! Return the extents of the data in user coordinates multiplied by current stretch factors.
 	//! \retval float[6] stretched extents array

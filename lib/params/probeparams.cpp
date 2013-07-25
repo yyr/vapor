@@ -1078,7 +1078,7 @@ void ProbeParams::getBoundingBox(size_t timestep, double boxMin[3], double boxMa
 //
 bool ProbeParams::
 getAvailableBoundingBox(size_t timestep, 
-		size_t boxMin[3], size_t boxMax[3], int numRefs){
+		size_t boxMin[3], size_t boxMax[3], int numRefs,int lod){
 	
 	
 	DataStatus* ds = DataStatus::getInstance();
@@ -1095,7 +1095,7 @@ getAvailableBoundingBox(size_t timestep,
 	}
 	
 	//Find a containing voxel box:
-	dataMgr->GetEnclosingRegion(timestep, umin, umax, boxMin, boxMax, numRefs);
+	dataMgr->GetEnclosingRegion(timestep, umin, umax, boxMin, boxMax, numRefs,lod);
 	
 	//Determine what region is available:
 	size_t temp_min[3], temp_max[3];

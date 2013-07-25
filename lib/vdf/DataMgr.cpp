@@ -313,8 +313,17 @@ RegularGrid *DataMgr::GetGrid(
 	//
 	if ((DataMgr::GetGridType().compare("layered")==0) && vtype == VAR3D) {
 		bool dummy;
+
+		//
+		// Ugh. ELEVATION variable may not exist at desired resolution/lod.
+		//
+		int best_reflevel, best_lod;
+		DataMgr::BestMatch(
+			ts, "ELEVATION", reflevel, lod, best_reflevel, best_lod
+		); 
+
 		zcblks = get_region(
-			ts, "ELEVATION", reflevel, lod, min_aligned, max_aligned,
+			ts, "ELEVATION", best_reflevel, best_lod, min_aligned, max_aligned,
 			true, &dummy
 		);
 		if (! zcblks) {
@@ -522,6 +531,25 @@ int DataMgr::VariableExists(
 	}
 	_VarInfoCache.SetExist(ts, varname, reflevel, lod, true);
 	return(1);
+}
+
+bool DataMgr::BestMatch(
+    size_t ts, const char *varname, int req_reflevel, int req_lod,
+	int &reflevel, int &lod
+) {
+	if (req_reflevel < 0) reflevel = DataMgr::GetNumTransforms();
+	if (req_lod < 0) lod = DataMgr::GetCRatios().size()-1;
+
+	for (reflevel = req_reflevel; reflevel>=0; ) {
+		if (DataMgr::VariableExists(ts, varname, reflevel, 0)) break;
+		reflevel--;
+	}
+	for (lod = req_lod; lod>=0; ) {
+		if (DataMgr::VariableExists(ts, varname, 0, lod)) break;
+		lod--;
+	}
+
+	return(reflevel >= 0 && lod >=0 );
 }
 
 
@@ -1568,7 +1596,7 @@ void	DataMgr::map_vox_to_user_regular(
 
 void   DataMgr::MapUserToVox(
     size_t timestep,
-    const double xyz[3], size_t ijk[3], int reflevel
+    const double xyz[3], size_t ijk[3], int reflevel, int lod
 ) {
 
 	SetDiagMsg(
@@ -1586,7 +1614,7 @@ void   DataMgr::MapUserToVox(
 
 	bool enable = EnableErrMsg(false);
 	RegularGrid *rg = GetGrid(
-		timestep,"", reflevel, 0, min, max, false
+		timestep,"", reflevel, lod, min, max, false
 	);
 	EnableErrMsg(enable); SetErrCode(0);
 	
@@ -1598,7 +1626,7 @@ void   DataMgr::MapUserToVox(
 
 void   DataMgr::MapVoxToUser(
     size_t timestep,
-    const size_t ijk[3], double xyz[3], int reflevel
+    const size_t ijk[3], double xyz[3], int reflevel, int lod
 ) {
 	SetDiagMsg(
 		"DataMgr::MapVoxToUser(%d, (%d, %d, %d), (,,) %d)",
@@ -1616,7 +1644,7 @@ void   DataMgr::MapVoxToUser(
 
 	bool enable = EnableErrMsg(false);
 	RegularGrid *rg = (RegularGrid *) GetGrid(
-		timestep,"", reflevel, 0, min, max, false
+		timestep,"", reflevel, lod, min, max, false
 	);
 	EnableErrMsg(enable); SetErrCode(0);
 
@@ -1630,7 +1658,7 @@ void   DataMgr::MapVoxToUser(
 void    DataMgr::GetEnclosingRegion(
     size_t ts, const double minu[3], const double maxu[3],
     size_t min[3], size_t max[3],
-    int reflevel
+    int reflevel, int lod
 ) {
     size_t dims[3];
     DataMgr::GetDim(dims, reflevel);
@@ -1639,8 +1667,9 @@ void    DataMgr::GetEnclosingRegion(
 		min[i] = 0;
 		max[i] = dims[i]-1;
 	}
+
 	bool enable = EnableErrMsg(false);
-	RegularGrid *rg = GetGrid(ts,"", reflevel, -1, min, max, false);
+	RegularGrid *rg = GetGrid(ts,"", reflevel, lod, min, max, false);
 	EnableErrMsg(enable); SetErrCode(0);
 
 	if (! rg) return;

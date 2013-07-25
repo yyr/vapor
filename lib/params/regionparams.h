@@ -62,10 +62,11 @@ public:
 	//! Method to obtain voxel coords of a region, but doesn't verify the existence
 	//! of data in the region.
 	//! \param[in] int reflevel			Refinement level of requested coordinates
+	//! \param[in] int lod				LOD of data for requested coordinates, needed for ELEVATION
 	//! \param[out] size_t min_dim[3]	Minimum voxel coordinates of region
 	//! \param[out] size_t max_dim[3]	Maximum voxel coordinates of region
 	//! \param[in] int timestep			Time step at which the coordinates are being requested.
-	void getRegionVoxelCoords(int reflevel, size_t min_dim[3], size_t max_dim[3], int timestep);
+	void getRegionVoxelCoords(int reflevel, int lod, size_t min_dim[3], size_t max_dim[3], int timestep);
 	
 	//! Method to obtain voxel and user coordinates of the available data
 	//! in the region.  The region extents may be shrunk so as to include
@@ -76,6 +77,7 @@ public:
 	//! Optionally provides user data extents.
 	//! \retval int Available refinenement level, or -1 if no data available
 	//! \param[in] int reflevel			Refinement level of requested coordinates
+	//! \param[in] int lod				LOD of data
 	//! \param[out] size_t min_dim[3]	Minimum voxel coordinates of available region
 	//! \param[out] size_t max_dim[3]	Maximum voxel coordinates of available region
 	//! \param[in] size_t timestep		Time step at which the data is being requested.
@@ -83,13 +85,14 @@ public:
 	//! \param[in] int numVars			Number of variables, i.e. size of sesVarnums
 	//! \param[out] double* regMin		Minimum user coordinates, if this pointer is non-null
 	//! \param[out] double* regMax		Maximum user coordinates, if this pointer is non-null
-	int getAvailableVoxelCoords(int reflevel, size_t min_dim[3], size_t max_dim[3], 
+	int getAvailableVoxelCoords(int reflevel, int lod, size_t min_dim[3], size_t max_dim[3], 
 		size_t timestep, 
 		const int* sesVarNums, int numVars, double* regMin = 0, double* regMax = 0);
 	
 
 	//! Static method to prepare for retrieval of data arrays from DataMgr. 
 	//! \param[in] int numxforms Requested refinement level of data
+	//! \param[in] int lod Requested LOD of data
 	//! \param[in] size_t timestep				Time for which data is requested.
 	//! \param[in] vector<string>& varnames		Vector of 2D or 3D variable names being requested
 	//! \param[inout] double* regMin			Minimum user coordinate extents requested (in) and actual available (out)
@@ -97,16 +100,10 @@ public:
 	//! \param[out] size_t min_dim[3]			Minimum voxel coordinates of available region
 	//! \param[out] size_t max_dim[3]			Maximum voxel coordinates of available region
 	//! \retval int Actual refinement level available or -1 if not all variables available.
-	static int PrepareCoordsForRetrieval(int numxforms, size_t timestep, const vector<string>& varnames,
+	static int PrepareCoordsForRetrieval(int numxforms, int lod, size_t timestep, const vector<string>& varnames,
 		double* regMin, double* regMax, 
 		size_t min_dim[3], size_t max_dim[3]);
 
-	//! Static method that converts a box to its stretched extents in unit cube (as used in rendering).
-	//! \param[in] int refLevel			Refinement level of data
-	//! \param[in] size_t min_dim[3]	Minimum voxel coordinates 
-	//! \param[in] size_t max_dim[3]	Maximum voxel coordinates 
-	//! \param[out] float extents[6]	Stretched extents of box mapped into unit cube.
-	static void convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], double extents[6]);
 
 	//! Evaluate a variable at a point, as requested by a RenderParams
 	//! \param[in] string varname		requested variable name (2d or 3d)
