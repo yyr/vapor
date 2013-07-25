@@ -199,7 +199,7 @@ void TwoDDataEventRouter::updateTab(){
 
 	TwoDDataParams* twoDParams = VizWinMgr::getActiveTwoDDataParams();
 	const string hname = twoDParams->GetHeightVariableName();
-	int hNum = ds->getSessionVariableNum2D(hname);
+	int hNum = ds->getActiveVarNum2D(hname);
 	if (hNum <0) hNum = 0;
 	heightCombo->setCurrentIndex(hNum);
 	

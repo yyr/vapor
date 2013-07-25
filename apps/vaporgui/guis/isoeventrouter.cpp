@@ -853,7 +853,7 @@ updateHistoBounds(RenderParams* params){
 	int viznum = iParams->getVizNum();
 	if (viznum < 0) return;
 	DataStatus* ds = DataStatus::getInstance();
-	int varnum = ds->getSessionVariableNum3D(iParams->GetIsoVariableName());
+	int varnum = ds->getActiveVarNum3D(iParams->GetIsoVariableName());
 	int currentTimeStep = VizWinMgr::getInstance()->getAnimationParams(viznum)->getCurrentTimestep();
 	float minval, maxval;
 	if (iParams->isEnabled()){
@@ -1180,7 +1180,7 @@ void IsoEventRouter::
 updateMapBounds(RenderParams* params){
 	ParamsIso* isoParams = (ParamsIso*)params;
 	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	int varNum = DataStatus::getInstance()->getSessionVariableNum3D(isoParams->GetMapVariableName());
+	int varNum = DataStatus::getInstance()->getActiveVarNum3D(isoParams->GetMapVariableName());
 	QString strn;
 	
 	if (varNum >= 0){

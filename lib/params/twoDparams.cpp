@@ -265,7 +265,7 @@ float TwoDParams::getCameraDistance(ViewpointParams* vpParams, RegionParams*, in
 	float ht = 0.f;
 	if (orientation == 2 && isMappedToTerrain()){
 		DataStatus* ds = DataStatus::getInstance();
-		int hgtvar = ds->getSessionVariableNum2D("HGT");
+		int hgtvar = ds->getSessionVariableNum2D(GetHeightVariableName());
 		if (hgtvar >= 0)
 			ht =  0.1f*ds->getDefaultDataMax2D(hgtvar);
 	}
@@ -308,58 +308,5 @@ float TwoDParams::getCameraDistance(ViewpointParams* vpParams, RegionParams*, in
 	hitPoint[orientation] += ht*stretch[orientation];
 	return (vdist(cPos, hitPoint));
 
-	/*  Following code gets closest point.  Doesn't always help order geometry for transparency
-	const float* camPos = vpParams->getCameraPos();
-	float ht = 0.f;
-	if (orientation == 2 && isMappedToTerrain()){
-		DataStatus* ds = DataStatus::getInstance();
-		int hgtvar = ds->getSessionVariableNum2D("HGT");
-		if (hgtvar >= 0)
-			ht =  0.5f*ds->getDefaultDataMax2D(hgtvar);
-	}
-	//test if camera is in box extents
-	if (orientation == 2) {  //horizontal
-		if (camPos[0] >= twoDMin[0] && camPos[0] <= twoDMax[0] &&
-			camPos[1] >= twoDMin[1] && camPos[1] <= twoDMax[1]) 
-				return (abs(camPos[2]-twoDMin[2]-ht));
-	} else if (orientation == 1) { //XZ orientation
-		if (camPos[0] >= twoDMin[0] && camPos[0] <= twoDMax[0] &&
-			camPos[2] >= twoDMin[2] && camPos[2] <= twoDMax[2]) 
-				return (abs(camPos[1]-twoDMin[1]));
-	} else { //orientation = 0:
-		if (camPos[1] >= twoDMin[1] && camPos[1] <= twoDMax[1] &&
-			camPos[2] >= twoDMin[2] && camPos[2] <= twoDMax[2]) 
-				return (abs(camPos[0]-twoDMin[0]));
-	}
-	//Otherwise must find closest corner:
-	float minDist = 1.e30f;
-	float boxmin[3], boxmax[3];
-	getLocalBox(boxmin, boxmax);
-	boxmin[2]+=ht;
-	boxmax[2]+=ht;
-	//Start by testing boxmin and boxmax.. they are always corners
-	float dist = vdist(camPos, boxmin);
-	if (minDist > dist) minDist = dist;
-	dist = vdist(camPos,boxmax);
-	if (minDist > dist) minDist = dist;
-	float corPoint[3];
-	//two combo's of boxmin and boxmax:
-	int firstcoord = 0;
-	int secondcoord = 1;
-	if (orientation == 0) {firstcoord++;secondcoord++;}
-	if (orientation == 1) {secondcoord++;}
-
-	corPoint[firstcoord] = boxmin[firstcoord];
-	corPoint[secondcoord] = boxmax[secondcoord];
-	corPoint[orientation] = boxmin[orientation];
-	dist = vdist(camPos,corPoint);
-	if (minDist > dist) minDist = dist;
-	corPoint[firstcoord] = boxmax[firstcoord];
-	corPoint[secondcoord] = boxmin[secondcoord];
-	corPoint[orientation] = boxmin[orientation];
-	dist = vdist(camPos,corPoint);
-	if (minDist > dist) minDist = dist;
-
-	return minDist;
-		*/
+	
 }

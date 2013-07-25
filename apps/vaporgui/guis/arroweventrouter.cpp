@@ -531,13 +531,13 @@ void ArrowEventRouter::updateTab(){
 	if (is3D){
 		for (int i = 0; i<3; i++) {
 			string vname = arrowParams->GetFieldVariableName(i);
-			if(vname != "0") comboIndex[i] = 1+ds->getSessionVariableNum3D(vname);
+			if(vname != "0") comboIndex[i] = 1+ds->getActiveVarNum3D(vname);
 			else comboIndex[i]=0;
 		}
 	} else {
 		for (int i = 0; i<3; i++) {
 			string vname = arrowParams->GetFieldVariableName(i);
-			if(vname != "0") comboIndex[i] = 1+ds->getSessionVariableNum2D(vname);
+			if(vname != "0") comboIndex[i] = 1+ds->getActiveVarNum2D(vname);
 			else comboIndex[i]=0;
 		}
 	}
@@ -546,7 +546,7 @@ void ArrowEventRouter::updateTab(){
 	zVarCombo->setCurrentIndex(comboIndex[2]);
 
 	const string& hname = arrowParams->GetHeightVariableName();
-	int hNum = ds->getSessionVariableNum2D(hname);
+	int hNum = ds->getActiveVarNum2D(hname);
 	if (hNum <0) hNum = 0;
 	heightCombo->setCurrentIndex(hNum);
 
