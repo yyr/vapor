@@ -1,2 +1,2 @@
-Installation documentation is available from the VAPOR web 
+The installation documentation is available from the VAPOR web 
 site: www.vapor.ucar.edu
