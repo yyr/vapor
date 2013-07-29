@@ -220,6 +220,11 @@ char ** argv_merge(
 	return(newargv);
 }
 
+void test() 
+{ 
+    cout << "Test" << endl; 
+}
+
 int	launch(int argc, char **argv) {
     MyBase::SetErrMsgFilePtr(stderr);
 
@@ -238,7 +243,7 @@ int	launch(int argc, char **argv) {
 	myargv = argv_merge(argc, argv, 1, argv2, myargc);
 
         for (int i=0; i<myargc-1; i++) {
-                cout << myargv[i] << endl;
+                cout << "!" << myargv[i] << endl;
 	}
 
 	if (op.AppendOptions(set_opts) < 0) {
@@ -368,10 +373,10 @@ int	launch(int argc, char **argv) {
 		
 	} // End if quiet.
 
-	exit(0);
+	//exit(0);
 } // End of main.
 
-int main(){
+/*int mainx(){
 	int argcx = 5;
 	char **argvx = new char * [argcx];
 
@@ -383,4 +388,4 @@ int main(){
 
 	launch(argcx,argvx);
 	return 0;
-}
+}*/

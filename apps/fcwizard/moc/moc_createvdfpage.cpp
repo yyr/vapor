@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'createvdfpage.h'
 **
-** Created: Wed Jul 24 15:11:02 2013
+** Created: Mon Jul 29 10:18:44 2013
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.3)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -41,7 +41,7 @@ static const uint qt_meta_data_CreateVdfPage[] = {
 static const char qt_meta_stringdata_CreateVdfPage[] = {
     "CreateVdfPage\0\0on_goButton_clicked()\0"
     "on_advanceOptionButton_clicked()\0"
-    "on_pushButton_4_clicked()\0"
+    "on_vdfCommentButton_clicked()\0"
 };
 
 void CreateVdfPage::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -52,7 +52,7 @@ void CreateVdfPage::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _i
         switch (_id) {
         case 0: _t->on_goButton_clicked(); break;
         case 1: _t->on_advanceOptionButton_clicked(); break;
-        case 2: _t->on_pushButton_4_clicked(); break;
+        case 2: _t->on_vdfCommentButton_clicked(); break;
         default: ;
         }
     }

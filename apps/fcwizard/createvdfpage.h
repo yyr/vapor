@@ -3,6 +3,7 @@
 
 #include <QWizardPage>
 #include <QtGui/QtGui>
+//#include <vapor/DCReaderMOM.h>
 #include "populatedatapage.h"
 #include "selectfilepage.h"
 #include "createvdfadvanced.h"
@@ -22,11 +23,12 @@ public:
     CreateVdfAdvanced *vdfAdvancedOpts;
     CreateVdfComment *vdfTLComment;
     SelectFilePage *selectFilePage;
+    //DCReaderMOM *dcReaderMOM;
 
 private slots:
     void on_goButton_clicked();
     void on_advanceOptionButton_clicked();
-    void on_pushButton_4_clicked();
+    void on_vdfCommentButton_clicked();
 
 private:
     void checkArguments();

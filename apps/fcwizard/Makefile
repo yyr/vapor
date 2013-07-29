@@ -1,12 +1,12 @@
 # Important Definitions:
-# MOC_DIR	ok
-# LIBRARIES	?
+# MOC_DIR      ok
+# LIBRARIES    ?
 # MAKEFILE_LDFLAGS ?
-# HEADERS	?
-# QT_HEADERS	ok
-# FILES		ok
-# UI_DIR	ok
-# UI_FILES	ok
+# HEADERS      ?
+# QT_HEADERS   ok
+# FILES                ok
+# UI_DIR       ok
+# UI_FILES     ok
 # MAKEFILE_INCLUDE_DIRS (maybe)
 
 #/Users/pearse/Documents/Vapor2.2/git/apps/vaporgui/Makefile has following vars:
@@ -42,11 +42,11 @@ PROGRAM = fileconverterwizard
 
 MOC_DIR = ./moc
 
-LIBRARIES = $(QT_LIB) common 
+LIBRARIES += $(QT_LIB) common 
 #QDialog QtGui QtCore
 #add all library #includes to this definintion?
 
-#MAKEFILE_LDFLAGS += -framework QDialog -framework QtCore -framework QtGui
+#MAKEFILE_LDFLAGS = -framework QDialog -framework QtCore -framework QtGui
 MAKEFILE_LDFLAGS += -framework CoreFoundation -framework CoreServices
 MAKEFILE_LDFLAGS += -framework Cocoa -framework AppKit -framework
 MAKEFILE_LDFLAGS += ApplicationServices -framework OpenGL -framework AGL
@@ -104,5 +104,3 @@ Page4adv \
 Page4conf 
 
 include ${TOP}/make/config/base.mk
-
-#@echo $(QT_INCLUDE_DIRS)

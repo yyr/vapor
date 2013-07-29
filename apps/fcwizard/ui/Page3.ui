@@ -231,7 +231,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_4">
+  <widget class="QPushButton" name="vdfCommentButton">
    <property name="geometry">
     <rect>
      <x>15</x>

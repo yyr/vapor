@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'Page3.ui'
 **
-** Created: Wed Jul 24 15:11:13 2013
+** Created: Mon Jul 29 10:18:48 2013
 **      by: Qt User Interface Compiler version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -43,7 +43,7 @@ public:
     QPushButton *pushButton_2;
     QPushButton *pushButton_3;
     QListWidget *variableList;
-    QPushButton *pushButton_4;
+    QPushButton *vdfCommentButton;
 
     void setupUi(QWizardPage *Page3)
     {
@@ -109,9 +109,9 @@ public:
         variableList = new QListWidget(Page3);
         variableList->setObjectName(QString::fromUtf8("variableList"));
         variableList->setGeometry(QRect(20, 121, 439, 200));
-        pushButton_4 = new QPushButton(Page3);
-        pushButton_4->setObjectName(QString::fromUtf8("pushButton_4"));
-        pushButton_4->setGeometry(QRect(15, 37, 183, 32));
+        vdfCommentButton = new QPushButton(Page3);
+        vdfCommentButton->setObjectName(QString::fromUtf8("vdfCommentButton"));
+        vdfCommentButton->setGeometry(QRect(15, 37, 183, 32));
 
         retranslateUi(Page3);
 
@@ -132,7 +132,7 @@ public:
         pushButton->setText(QApplication::translate("Page3", "Select All", 0, QApplication::UnicodeUTF8));
         pushButton_2->setText(QApplication::translate("Page3", "Add New", 0, QApplication::UnicodeUTF8));
         pushButton_3->setText(QApplication::translate("Page3", "Clear All", 0, QApplication::UnicodeUTF8));
-        pushButton_4->setText(QApplication::translate("Page3", "Add VDF Comment", 0, QApplication::UnicodeUTF8));
+        vdfCommentButton->setText(QApplication::translate("Page3", "Add VDF Comment", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };
