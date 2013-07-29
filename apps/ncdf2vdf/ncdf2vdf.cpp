@@ -246,8 +246,22 @@ void MissingValue(
 	bool hasmiss = ncdfData->GetMissingValue(ncdfVar, ncdfMV);
 	if (! hasmiss) return;
 
-	vector <double> vec = vdfio->GetMissingValue();
-	if (vec.size() == 0) return;
+	vector <double> vec;
+    if (vdfio->GetVMissingValue(0, vdcVar).size() == 1) {
+         vec = vdfio->GetVMissingValue(0,vdcVar);
+    }
+	else if (vdfio->GetTSMissingValue(0).size() == 1) {
+         vec = vdfio->GetTSMissingValue(0);
+    }
+	else if (vdfio->GetMissingValue().size() == 1) {
+         vec =  vdfio->GetMissingValue();
+    }
+	else {
+		return;
+	}
+
+
+
 	float vdcMV = (float) vec[0];
 
 	size_t dim[3];
