@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'Page3.ui'
 **
-** Created: Mon Jul 29 10:18:48 2013
+** Created: Tue Jul 30 14:36:51 2013
 **      by: Qt User Interface Compiler version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -20,6 +20,7 @@
 #include <QtGui/QProgressBar>
 #include <QtGui/QPushButton>
 #include <QtGui/QSpinBox>
+#include <QtGui/QTableWidget>
 #include <QtGui/QWizardPage>
 
 QT_BEGIN_NAMESPACE
@@ -42,7 +43,7 @@ public:
     QPushButton *pushButton;
     QPushButton *pushButton_2;
     QPushButton *pushButton_3;
-    QListWidget *variableList;
+    QTableWidget *variableList;
     QPushButton *vdfCommentButton;
 
     void setupUi(QWizardPage *Page3)
@@ -106,7 +107,7 @@ public:
         pushButton_3 = new QPushButton(Page3);
         pushButton_3->setObjectName(QString::fromUtf8("pushButton_3"));
         pushButton_3->setGeometry(QRect(98, 93, 71, 21));
-        variableList = new QListWidget(Page3);
+        variableList = new QTableWidget(Page3);
         variableList->setObjectName(QString::fromUtf8("variableList"));
         variableList->setGeometry(QRect(20, 121, 439, 200));
         vdfCommentButton = new QPushButton(Page3);

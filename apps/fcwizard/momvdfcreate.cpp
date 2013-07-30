@@ -47,7 +47,7 @@ void Usage(OptionParser &op, const char * msg) {
 	if (msg) {
 		cerr << ProgName << " : " << msg << endl;
 	}
-	cerr << "Usage: " << ProgName << " [options] ncdf_file... vdf_file" << endl;
+    cerr << "Usage: " << ProgName << " [options] ncdf_file... vdf_file" << endl;
 	op.PrintOptionHelp(stderr, 80, false);
 
 }
@@ -242,7 +242,7 @@ int	launch(int argc, char **argv) {
 	char *argv2[] = { (char *) "-vdc2", NULL };
 	myargv = argv_merge(argc, argv, 1, argv2, myargc);
 
-        for (int i=0; i<myargc-1; i++) {
+    for (int i=0; i<myargc-1; i++) {
                 cout << "!" << myargv[i] << endl;
 	}
 

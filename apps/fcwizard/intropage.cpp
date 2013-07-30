@@ -27,7 +27,6 @@ IntroPage::IntroPage(QWidget *parent) :
 
 void IntroPage::on_createVDFButton_clicked()
 {
-    qDebug() << field("vdfcreate").toBool();
     if (populateDataButton->isChecked()==1) populateDataButton->setChecked(false);
     operation = "vdfcreate";
     completeChanged();          //call isComplete() to enable or disable 'next' button
@@ -35,7 +34,6 @@ void IntroPage::on_createVDFButton_clicked()
 
 void IntroPage::on_populateDataButton_clicked()
 {
-    qDebug() << field("2vdf").toBool();
     if (createVDFButton->isChecked()==1) createVDFButton->setChecked(false);
     operation = "2vdf";
     completeChanged();          //call isComplete() to enable or disable 'next' button

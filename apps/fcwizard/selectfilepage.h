@@ -3,8 +3,17 @@
 
 #include <QtGui/QtGui>
 #include <QWizardPage>
-#include <intropage.h>
+#include "intropage.h"
+//#include "createvdfpage.h"
+//#include "populatedatapage.h"
 #include <ui/Page2.h>
+//#include "momvdfcreate.cpp"
+#include <vapor/OptionParser.h>
+#include <vapor/MetadataVDC.h>
+#include <vapor/DCReaderMOM.h>
+#include <vapor/DCReaderROMS.h>
+//#include <vapor/DCReader.h>
+//#include <vapor/CFuncs.h>
 
 namespace Ui {
 class SelectFilePage;
@@ -17,10 +26,15 @@ class SelectFilePage : public QWizardPage, public Ui_Page2
 public:
     explicit SelectFilePage(IntroPage *Page, QWidget *parent = 0);
     
+    VAPoR::DCReader *fileData;
     QString momPopOrRoms;
     IntroPage *introPage;
+    //CreateVdfPage *createVdfPage;
+    //PopulateDataPage *populateDataPage;
     //QList<QString> getSelectedFiles();
     std::vector<std::string> getSelectedFiles();
+    std::vector<std::string> stdFileList;
+    //void getOtherPages(CreateVdfPage *cVdfPage, PopulateDataPage *pDataPage);
 
 private slots:
     void on_addFileButton_clicked();
@@ -31,6 +45,7 @@ private slots:
 
 private:
     int nextId() const;
+    bool validatePage();
 };
 
 #endif // SELECTFILEPAGE_H

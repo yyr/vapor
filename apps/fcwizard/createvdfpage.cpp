@@ -13,8 +13,6 @@ CreateVdfPage::CreateVdfPage(SelectFilePage *Page, QWidget *parent) :
     selectFilePage = Page;
     vdfAdvancedOpts = new CreateVdfAdvanced;
     vdfTLComment = new CreateVdfComment;
-
-    //DCReaderMOM *momData;
 }
 
 void CreateVdfPage::checkArguments() {
@@ -76,15 +74,26 @@ void CreateVdfPage::on_goButton_clicked() {
 
 //void CreateVdfPage::runMomVdfCreate(QList<QString> list, QString execution) {
 void CreateVdfPage::runMomVdfCreate(vector<string> list, QString execution) {
-    DCReaderMOM *momData;
+    //DCReaderMOM *momData;
 
     Comment = vdfTLComment->Comment;
     CRList = vdfAdvancedOpts->CRList;
     SBFactor = vdfAdvancedOpts->SBFactor;
     Periodicity = vdfAdvancedOpts->Periodicity;
 
-    momData = new DCReaderMOM(list);
+    //int count = selectFilePage->fileData->GetVariableNames().size();
+    //for (int i=0;i<count;i++){
+    //    qDebug() << selectFilePage->fileData->GetVariableNames().at(i);
+    //}
+    //momData = new DCReaderMOM(list);
 
+   // momData->GetNumTimeSteps();
+    //momData->GetVariableNames();
 
     qDebug() << Comment + CRList + SBFactor + Periodicity;
+}
+
+bool CreateVdfPage::validatePage(){
+    cout << "validate page passed";
+    return true;
 }

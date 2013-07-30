@@ -221,7 +221,7 @@
     <string>Clear All</string>
    </property>
   </widget>
-  <widget class="QListWidget" name="variableList">
+  <widget class="QTableWidget" name="variableList">
    <property name="geometry">
     <rect>
      <x>20</x>
