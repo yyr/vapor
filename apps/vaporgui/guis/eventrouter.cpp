@@ -348,7 +348,7 @@ loadTF(RenderParams* rParams, int varnum){
 
 void EventRouter::
 fileLoadTF(RenderParams* rParams, int varnum, const char* startPath, bool savePath){
-	if (DataStatus::getInstance()->getNumSessionVariables()<=0) return;
+	if ((DataStatus::getInstance()->getNumSessionVariables() + DataStatus::getInstance()->getNumSessionVariables2D())<=0) return;
 	
 	//Open a file load dialog
 	

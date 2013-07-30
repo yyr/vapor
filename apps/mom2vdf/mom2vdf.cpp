@@ -190,14 +190,6 @@ void GetVariables(
 }
 
 //
-// Missing data masks
-//
-unsigned char *mvMask3D = NULL;
-unsigned char *mvMask2DXY = NULL;
-unsigned char *mvMask2DXZ = NULL;
-unsigned char *mvMask2DYZ = NULL;
-
-//
 // The VDC requires a single missing value for all variables. netCDF variables
 // may use different missing values for different values. This function
 // maps all netCDF missing values to the same VDC missing value
@@ -209,7 +201,6 @@ void MissingValue(
 	string vdcVar,
 	string ncdfVar,
 	VDFIOBase::VarType_T vtype,
-	int slice,
 	float *buf
 ) {
 
@@ -238,79 +229,26 @@ void MissingValue(
 	size_t dim[3];
 	vdfio->GetDim(dim, -1);
 
-	size_t size = 0;
 	size_t slice_sz = 0;
 
-	bool first = false;
-	unsigned char *mask = NULL;
 	if (vtype == Metadata::VAR3D) {
-		size = dim[0]*dim[1]*dim[2];
 		slice_sz = dim[0]*dim[1];
-		if ( ! mvMask3D) {
-			mvMask3D = new unsigned char[size];
-			first = true;
-		}
-		mask = mvMask3D;
 	}
 	else if (vtype == Metadata::VAR2D_XY) {
-		size = dim[0]*dim[1];
-		slice_sz = size;
-		if ( ! mvMask2DXY) {
-			mvMask2DXY = new unsigned char[size];
-			first = true;
-		}
-		mask = mvMask2DXY;
+		slice_sz = dim[0]*dim[1];
 	}
 	else if (vtype == Metadata::VAR2D_XZ) {
-		size = dim[0]*dim[2];
-		slice_sz = size;
-		if ( ! mvMask2DXZ) {
-			mvMask2DXZ = new unsigned char[size];
-			first = true;
-		}
-		mask = mvMask2DXZ;
+		slice_sz = dim[0]*dim[2];
 	}
 	else if (vtype == Metadata::VAR2D_YZ) {
-		size = dim[1]*dim[2];
-		slice_sz = size;
-		if ( ! mvMask2DYZ) {
-			mvMask2DYZ = new unsigned char[size];
-			first = true;
-		}
-		mask = mvMask2DYZ;
+		slice_sz = dim[1]*dim[2];
 	}
 
-	bool mismatch = false;	// true if missing value locations change
-
-	// If first mask for this variable type
-	//
-	if (first) {
-		memset(mask, 0, size);
-		for (size_t i=0; i<slice_sz; i++) {
-			if (buf[i] == ncdfMV) {
-				buf[i] = vdcMV;
-				mask[slice*slice_sz+i] = 1;
-			}
+	for (size_t i=0; i<slice_sz; i++) {
+		if (buf[i] == ncdfMV) {
+			buf[i] = vdcMV;
 		}
 	}
-	else {
-		for (size_t i=0; i<slice_sz; i++) {
-			if (mask[slice*slice_sz+i]) {
-				if (buf[i] != ncdfMV) mismatch = true;
-				buf[i] = vdcMV;
-			}
-			else {
-				if (buf[i] == ncdfMV) {
-					buf[i] = vdcMV;
-					mismatch = true;
-				}
-			}
-		}
-	}
-
-//	if (mismatch) {
-//		cerr << ProgName << " : Warning: missing value locations changed\n";
-//	}
 }
 
 int CopyVar(
@@ -365,7 +303,7 @@ int CopyVar(
 			);
 			break;
 		}
-		MissingValue(vdfio, momData, vdcTS, vdcVar, ncdfVar, vtype, i, buf);
+		MissingValue(vdfio, momData, vdcTS, vdcVar, ncdfVar, vtype, buf);
 
 		rc = vdfio->WriteSlice(buf);
 		if (rc<0) {

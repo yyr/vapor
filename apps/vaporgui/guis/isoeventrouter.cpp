@@ -234,6 +234,9 @@ void IsoEventRouter::updateTab(){
 		mapComboVarNum = 1+DataStatus::getInstance()->getActiveVarNum3D(varname);
 	}
 		
+	float sliderVal = isoParams->getOpacityScale();
+	opacityScaleSlider->setToolTip("Opacity Scale Value = "+QString::number(sliderVal));
+	opacityScaleSlider->setValue((int)(256*(1.-sliderVal)));
 	mapVariableCombo->setCurrentIndex(mapComboVarNum);
 	lodCombo->setCurrentIndex(isoParams->GetCompressionLevel());
 	//setup the transfer function editor:

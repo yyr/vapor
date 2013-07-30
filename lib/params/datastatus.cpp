@@ -695,6 +695,7 @@ bool DataStatus::fieldDataOK(int refLevel, int lod, int tstep, int varx, int var
 	int testLevel = refLevel;
 	if (VDCType == 2) testLevel = lod;
 	if (tstep < 0 || tstep > numTimesteps - 1) return false;
+	if (varx < 0 && vary < 0 && varz < 0) return false;
 	if (doUseLowerAccuracy) testLevel = 0;
 	if (varx >= 0 && (getMaxLevel3D(varx,tstep) < testLevel)) return false;
 	if (vary >= 0 && (getMaxLevel3D(vary,tstep) < testLevel)) return false;

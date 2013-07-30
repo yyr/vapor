@@ -777,7 +777,7 @@ bool ParamsIso::elementEndHandler(ExpatParseMgr* pm, int depth, string& tag) {
 }
 float ParamsIso::getOpacityScale() 
 {
-  if (GetNumVariables()>0)
+  if (GetMapVariableNum()>=0)
   {
     return GetTransFunc(GetMapVariableNum())->getOpacityScaleFactor();
   }

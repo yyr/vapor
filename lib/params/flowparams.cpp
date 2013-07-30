@@ -3371,6 +3371,7 @@ bool FlowParams::validateSettings(int tstep){
 	
 	switch (flowType) {
 		case (0) : 
+			if (steadyVarNum[0] == 0 && steadyVarNum[1] == 0 && steadyVarNum[2] == 0) return false;
 			if (!ds->fieldDataOK(numRefinements, GetCompressionLevel(),tstep, 
 						steadyVarNum[0]-1,steadyVarNum[1]-1, steadyVarNum[2]-1)){
 				
@@ -3386,6 +3387,7 @@ bool FlowParams::validateSettings(int tstep){
 		case (1) :
 			break;
 		case (2) :
+			if (steadyVarNum[0] == 0 && steadyVarNum[1] == 0 && steadyVarNum[2] == 0) return false;
 			for (int i = 0; i<getNumTimestepSamples(); i++){
 				int ts = getTimestepSample(i);
 				if (!ds->fieldDataOK(numRefinements, GetCompressionLevel(),ts, 
@@ -3406,6 +3408,7 @@ bool FlowParams::validateSettings(int tstep){
 	//See if the unsteady field is OK  (type 1 and 2)
 	// Need at least two legitimate time steps
 	if (flowType != 0) {
+		if (unsteadyVarNum[0] == 0 && unsteadyVarNum[1] == 0 && unsteadyVarNum[2] == 0) return false;
 		int numLegitimate = 0;
 		for (int i = 0; i<getNumTimestepSamples(); i++){
 			int ts = getTimestepSample(i);

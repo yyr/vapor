@@ -86,6 +86,8 @@ public:
 
 	virtual bool usingVariable(const string& varname);
 	virtual bool UsesMapperFunction() {return true;}
+	//Override default, allow manip to go outside of data:
+	virtual bool isDomainConstrained() {return false;}
 	
 	void setMinEditBound(float val) {
 		setMinColorEditBound(val, firstVarNum);
