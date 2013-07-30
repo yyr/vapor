@@ -334,13 +334,10 @@ void TwoDImageEventRouter::updateTab(){
 	maxUserZLabel->setText(QString::number((float)dBoxMax[2]));
 
 
-	int fullRefLevel = ds->getNumTransforms();
-
-	
 	size_t gridExts[6];
 	if (dataMgr ){
 		
-		twoDParams->mapBoxToVox(dataMgr,fullRefLevel,twoDParams->GetCompressionLevel(),currentTimeStep,gridExts);
+		twoDParams->mapBoxToVox(dataMgr,twoDParams->GetRefinementLevel(),twoDParams->GetCompressionLevel(),currentTimeStep,gridExts);
 		
 		minGridXLabel->setText(QString::number(gridExts[0]));
 		minGridYLabel->setText(QString::number(gridExts[1]));
