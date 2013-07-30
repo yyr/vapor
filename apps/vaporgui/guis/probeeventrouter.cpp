@@ -428,8 +428,7 @@ void ProbeEventRouter::updateTab(){
 	
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (dataMgr && showLayout){
-		int fullRefLevel = ds->getNumTransforms();
-		probeParams->mapBoxToVox(dataMgr,fullRefLevel,probeParams->GetCompressionLevel(),timestep,gridExts);
+		probeParams->mapBoxToVox(dataMgr,probeParams->GetRefinementLevel(),probeParams->GetCompressionLevel(),timestep,gridExts);
 		
 		minGridXLabel->setText(QString::number(gridExts[0]));
 		minGridYLabel->setText(QString::number(gridExts[1]));
