@@ -19,7 +19,8 @@ public:
     
     QString momPopOrRoms;
     IntroPage *introPage;
-    QList<QString> getSelectedFiles();
+    //QList<QString> getSelectedFiles();
+    std::vector<std::string> getSelectedFiles();
 
 private slots:
     void on_addFileButton_clicked();

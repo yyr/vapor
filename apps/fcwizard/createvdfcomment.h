@@ -15,6 +15,10 @@ class CreateVdfComment : public QDialog, public Ui_Page3cmt
     
 public:
     explicit CreateVdfComment(QWidget *parent = 0);
+    QString Comment;
+
+private slots:
+    void on_buttonBox_accepted();
 };
 
 #endif // CREATEVDFCOMMENT_H

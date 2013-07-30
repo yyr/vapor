@@ -6,3 +6,7 @@ CreateVdfComment::CreateVdfComment(QWidget *parent) :
 {
     setupUi(this);
 }
+
+void CreateVdfComment::on_buttonBox_accepted() {
+    Comment = vdfComment->toPlainText();
+}

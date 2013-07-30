@@ -37,13 +37,28 @@ void CreateVdfPage::on_vdfCommentButton_clicked()
 }
 
 void CreateVdfPage::on_goButton_clicked() {
-    QList<QString> list;
+    //QList<QString> list;
+    vector<string> list;
     QString momPopOrRoms = selectFilePage->momPopOrRoms;
+    //list = selectFilePage->getSelectedFiles();
     list = selectFilePage->getSelectedFiles();
-    qDebug() << list;
+    //qDebug() << list;
+
+    for (int i=0;i<5;i++) {
+        cout << list.at(i) << endl;
+    }
 
     if (momPopOrRoms == "mom"){
-	cout << "hi";	
+        cout << "mom" << endl;
+        runMomVdfCreate(list,"mom");
+    }
+
+    if (momPopOrRoms == "pop"){
+        cout << "pop" << endl;;
+    }
+
+    if (momPopOrRoms == "roms"){
+        cout << "roms" << endl;
     }
 
     int argcx = 5;
@@ -57,4 +72,19 @@ void CreateVdfPage::on_goButton_clicked() {
 
     //test();
     launch(argcx,argvx);
+}
+
+//void CreateVdfPage::runMomVdfCreate(QList<QString> list, QString execution) {
+void CreateVdfPage::runMomVdfCreate(vector<string> list, QString execution) {
+    DCReaderMOM *momData;
+
+    Comment = vdfTLComment->Comment;
+    CRList = vdfAdvancedOpts->CRList;
+    SBFactor = vdfAdvancedOpts->SBFactor;
+    Periodicity = vdfAdvancedOpts->Periodicity;
+
+    momData = new DCReaderMOM(list);
+
+
+    qDebug() << Comment + CRList + SBFactor + Periodicity;
 }

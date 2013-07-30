@@ -43,6 +43,7 @@ PROGRAM = fileconverterwizard
 MOC_DIR = ./moc
 
 LIBRARIES += $(QT_LIB) common 
+LIBRARIES += vdf proj common udunits2 $(NETCDF_LIBS) expat
 #QDialog QtGui QtCore
 #add all library #includes to this definintion?
 

@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'createvdfadvanced.h'
 **
-** Created: Thu Jul 25 14:52:22 2013
+** Created: Mon Jul 29 14:54:56 2013
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.3)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_CreateVdfAdvanced[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-       1,   14, // methods
+       2,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -32,12 +32,14 @@ static const uint qt_meta_data_CreateVdfAdvanced[] = {
 
  // slots: signature, parameters, type, tag, flags
       19,   18,   18,   18, 0x08,
+      45,   18,   18,   18, 0x08,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_CreateVdfAdvanced[] = {
     "CreateVdfAdvanced\0\0on_acceptButton_clicked()\0"
+    "on_cancelButton_clicked()\0"
 };
 
 void CreateVdfAdvanced::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -47,6 +49,7 @@ void CreateVdfAdvanced::qt_static_metacall(QObject *_o, QMetaObject::Call _c, in
         CreateVdfAdvanced *_t = static_cast<CreateVdfAdvanced *>(_o);
         switch (_id) {
         case 0: _t->on_acceptButton_clicked(); break;
+        case 1: _t->on_cancelButton_clicked(); break;
         default: ;
         }
     }
@@ -87,9 +90,9 @@ int CreateVdfAdvanced::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 1)
+        if (_id < 2)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 1;
+        _id -= 2;
     }
     return _id;
 }

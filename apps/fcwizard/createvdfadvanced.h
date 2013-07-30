@@ -14,9 +14,20 @@ class CreateVdfAdvanced : public QDialog, public Ui_Page3adv
     
 public:
     explicit CreateVdfAdvanced(QWidget *parent = 0);
+
+    QString CRList;
+
+    QString SBFactor;
+    QString Periodicity;
     
 private slots:
     void on_acceptButton_clicked();
+    void on_cancelButton_clicked();
+
+private:
+    QString px;
+    QString py;
+    QString pz;
 };
 
 #endif // CREATEVDFADVANCED_H
