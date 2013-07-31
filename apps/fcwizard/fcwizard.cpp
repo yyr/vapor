@@ -1,3 +1,4 @@
+#include "dataholder.h"
 #include "intropage.h"
 #include "selectfilepage.h"
 #include "createvdfpage.h"
@@ -22,6 +23,7 @@ FCWizard::FCWizard(QWidget *parent) :
     //setWizardStyle(QWizard::MacStyle);
     resize(QSize(500,450).expandedTo(minimumSizeHint()));
 
+    dataHolder = new DataHolder;
     introPage = new IntroPage;
     selectFilePage = new SelectFilePage(introPage);
     createVdfPage = new CreateVdfPage(selectFilePage);
