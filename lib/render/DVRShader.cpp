@@ -363,7 +363,7 @@ void DVRShader::renderBrick(const TextureBrick *brick,
 	if (! ok) return;
 #endif
 
-    DVRTexture3d::drawViewAlignedSlices(brick, modelview, modelviewInverse);
+    DVRShader::drawViewAlignedSlices(brick, modelview, modelviewInverse);
 
 #ifndef	NOSHADER
   _shadermgr->disableEffect();
