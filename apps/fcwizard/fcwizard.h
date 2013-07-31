@@ -5,6 +5,7 @@
 #include <QDialog>
 #include <QtCore>
 #include <QtGui>
+#include "dataholder.h"
 #include "intropage.h"
 #include "selectfilepage.h"
 #include "createvdfpage.h"
@@ -20,6 +21,7 @@ public:
     enum { Intro_Page, SelectFile_Page, Create_VdfPage, Populate_DataPage };
 
     QString operation;
+    DataHolder *dataHolder;
     IntroPage *introPage;
     SelectFilePage *selectFilePage;
     CreateVdfPage *createVdfPage;

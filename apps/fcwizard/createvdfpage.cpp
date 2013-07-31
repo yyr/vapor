@@ -3,13 +3,14 @@
 #include "createvdfcomment.h"
 #include "populatedatapage.h"
 #include "ui/Page3.h"
-#include "momvdfcreate.cpp"
+#include "dataholder.h"
 
-CreateVdfPage::CreateVdfPage(SelectFilePage *Page, QWidget *parent) :
+CreateVdfPage::CreateVdfPage(SelectFilePage *Page, DataHolder *DH, QWidget *parent) :
     QWizardPage(parent), Ui_Page3()
 {
     setupUi(this);
 
+    dataHolder = DH;
     selectFilePage = Page;
     vdfAdvancedOpts = new CreateVdfAdvanced;
     vdfTLComment = new CreateVdfComment;
@@ -69,7 +70,7 @@ void CreateVdfPage::on_goButton_clicked() {
     argvx[4] = "-quiet";
 
     //test();
-    launch(argcx,argvx);
+    //launch(argcx,argvx);
 }
 
 //void CreateVdfPage::runMomVdfCreate(QList<QString> list, QString execution) {

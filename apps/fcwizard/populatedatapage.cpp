@@ -3,12 +3,16 @@
 #include "populatedatapage.h"
 #include "showtimeconflicts.h"
 #include "ui/Page4.h"
+#include "dataholder.h"
 
-PopulateDataPage::PopulateDataPage(SelectFilePage *Page, QWidget *parent) :
+//using namespace VAPoR;
+
+PopulateDataPage::PopulateDataPage(SelectFilePage *Page, DataHolder *DH, QWidget *parent) :
     QWizardPage(parent), Ui_Page4()
 {
     setupUi(this);
 
+    dataHolder = DH;
     selectFilePage = Page;
     popAdvancedOpts = new PopDataAdvanced;
     timeConflicts = new ShowTimeConflicts;

@@ -1,17 +1,12 @@
-#include "dataholder.h"
+#include <QDebug>
+#include <QtGui/QMessageBox>
+
+#include "fcwizard.h"
+/*#include "dataholder.h"
 #include "intropage.h"
 #include "selectfilepage.h"
 #include "createvdfpage.h"
-#include "populatedatapage.h"
-
-#include "fcwizard.h"
-//#include "ui_fcwizard.h"
-//#include "ui_intropage.h"
-//#include "ui_createvdfpage.h"
-//#include "ui_populatedatapage.h"
-
-#include <QDebug>
-#include <QtGui/QMessageBox>
+#include "populatedatapage.h"*/
 
 
 FCWizard::FCWizard(QWidget *parent) :
@@ -25,9 +20,9 @@ FCWizard::FCWizard(QWidget *parent) :
 
     dataHolder = new DataHolder;
     introPage = new IntroPage;
-    selectFilePage = new SelectFilePage(introPage);
-    createVdfPage = new CreateVdfPage(selectFilePage);
-    populateDataPage = new PopulateDataPage(selectFilePage);
+    selectFilePage = new SelectFilePage(introPage, dataHolder);
+    createVdfPage = new CreateVdfPage(selectFilePage, dataHolder);
+    populateDataPage = new PopulateDataPage(selectFilePage, dataHolder);
 
     //selectFilePage->getOtherPages(createVdfPage,populateDataPage);
 

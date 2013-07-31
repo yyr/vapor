@@ -1,4 +1,4 @@
-#include "intropage.h"
+//#include "intropage.h"
 #include "fcwizard.h"
 #include <QApplication>
 

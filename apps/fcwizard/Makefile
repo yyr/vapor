@@ -67,7 +67,8 @@ createvdfpage \
 selectfilepage \
 intropage \
 fcwizard \
-showtimeconflicts
+showtimeconflicts \
+dataholder
 
 QT_HEADERS = \
 fcwizard \
@@ -91,7 +92,8 @@ main \
 popdataadvanced \
 populatedatapage \
 selectfilepage \
-showtimeconflicts
+showtimeconflicts \
+dataholder
 
 UI_DIR = ./ui
 UI_FILES = \

@@ -4,7 +4,10 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include "momvdfcreate.cpp"
+#include <vapor/DCReaderMOM.h>
+#include <vapor/DCReaderROMS.h>
+
+using namespace std;
 
 class DataHolder
 {
@@ -13,7 +16,7 @@ public:
 
     //File selector set functions
     void setType(string type);
-    void setFiles(vector<string> files);
+    void setFiles(vector<string> files, string type);
 
     //Create vdf setter functions
     void setVDFcomment(string comment);
@@ -24,8 +27,6 @@ public:
     void setVDFsbFactor(int x, int y, int z);
     void setVDFAxis(bool x, bool y, bool z);
     void setVDFSelectionVars(vector<string> selectionVars);
-
-    int getDefaultTs();
 
     //Populate data setter fucntions
     void setPDVDFfile(string vdfFile);
@@ -38,12 +39,15 @@ public:
 
     //Get functions (used by createVDF and Populate Data)
     vector<string> getFileVars();
-    vector<string> getSelectionVars();
+    vector<string> getVDFSelectionVars();
+    vector<string> getPDSelectionVars();
 
 private:
     // Shared variables
+    VAPoR::DCReader *reader;
     string fileType;
-    vector<string> files;
+    vector<string> dataFiles;
+    vector<string> fileVars;
 
     // Create VDF variables
     // (prefixed with VDF where necessary)
@@ -54,7 +58,7 @@ private:
     string VDFcomment;
     string VDFfileName;
     string VDFcrList;
-    vector<string> VDFselectionVars;
+    vector<string> VDFSelectionVars;
 
     // Populate Data variables
     // (prefixed with PD where necessary)
@@ -64,7 +68,7 @@ private:
     int PDcompression;
     int PDnumThreads;
     string PDinputVDFfile;
-    vector<string> PDselectionVars;
+    vector<string> PDSelectionVars;
 };
 
 #endif // DATAHOLDER_H

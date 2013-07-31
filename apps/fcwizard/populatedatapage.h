@@ -7,6 +7,7 @@
 #include "popdataadvanced.h"
 #include "showtimeconflicts.h"
 #include "ui/Page4.h"
+#include "dataholder.h"
 
 namespace Ui {
 class PopulateDataPage;
@@ -17,10 +18,11 @@ class PopulateDataPage : public QWizardPage, public Ui_Page4
     Q_OBJECT
     
 public:
-    PopulateDataPage(SelectFilePage *Page, QWidget *parent = 0);
+    PopulateDataPage(SelectFilePage *Page, DataHolder *DH, QWidget *parent = 0);
     PopDataAdvanced *popAdvancedOpts;
     ShowTimeConflicts *timeConflicts;
     SelectFilePage *selectFilePage;
+    DataHolder *dataHolder;
 
     void printSomething();
 

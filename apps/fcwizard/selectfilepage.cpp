@@ -2,18 +2,19 @@
 #include "selectfilepage.h"
 #include "ui/Page2.h"
 #include "intropage.h"
+#include "dataholder.h"
 //#include "createvdfpage.h"
 //#include "populatedatapage.h"
-#include <vapor/OptionParser.h>
-#include <vapor/MetadataVDC.h>
-#include <vapor/DCReaderMOM.h>
-#include <vapor/DCReaderROMS.h>
-#include <vapor/CFuncs.h>
+//#include <vapor/OptionParser.h>
+//#include <vapor/MetadataVDC.h>
+//#include <vapor/DCReaderMOM.h>
+//#include <vapor/DCReaderROMS.h>
+//#include <vapor/CFuncs.h>
 //#include "momvdfcreate.cpp"
 
-using namespace VAPoR;
+//using namespace VAPoR;
 
-SelectFilePage::SelectFilePage(IntroPage *Page, QWidget *parent) :
+SelectFilePage::SelectFilePage(IntroPage *Page, DataHolder *dataHolder, QWidget *parent) :
     QWizardPage(parent), Ui_Page2()
 {
     setupUi(this);
@@ -89,8 +90,8 @@ bool SelectFilePage::validatePage(){
     qDebug() << "validate page passed";
     //delete fileData;
 
-    if (momPopOrRoms == "roms") fileData = new DCReaderROMS(stdFileList);
-    else fileData = new DCReaderMOM(stdFileList);
+    //if (momPopOrRoms == "roms") fileData = new DCReaderROMS(stdFileList);
+    //else fileData = new DCReaderMOM(stdFileList);
 
     return true;
 }

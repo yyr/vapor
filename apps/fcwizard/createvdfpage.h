@@ -3,10 +3,7 @@
 
 #include <QWizardPage>
 #include <QtGui/QtGui>
-//#include <vapor/OptionParser.h>
-//#include <vapor/MetadataVDC.h>
-//#include <vapor/DCReaderMOM.h>
-//#include <vapor/DCReaderROMS.h>
+#include "dataholder.h"
 #include "populatedatapage.h"
 #include "selectfilepage.h"
 #include "createvdfadvanced.h"
@@ -22,10 +19,11 @@ class CreateVdfPage : public QWizardPage, public Ui_Page3
     Q_OBJECT
     
 public:
-    CreateVdfPage(SelectFilePage *Page, QWidget *parent = 0);
+    CreateVdfPage(SelectFilePage *Page, DataHolder *DH, QWidget *parent = 0);
     CreateVdfAdvanced *vdfAdvancedOpts;
     CreateVdfComment *vdfTLComment;
     SelectFilePage *selectFilePage;
+    DataHolder *dataHolder;
 
 private slots:
     void on_goButton_clicked();
