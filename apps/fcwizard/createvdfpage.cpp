@@ -96,10 +96,12 @@ void CreateVdfPage::runMomVdfCreate(vector<string> list, QString execution) {
 
 //populate qWidgets with default values
 void CreateVdfPage::initializePage(){
+    qDebug() << "1";
     dataHolder->createReader();
-    //startTimeSpinner->setValue(dataHolder->getVDFStartTime());
-    //numtsSpinner->setValue(dataHolder->getVDFnumTS());
-
+    qDebug() << "2";
+    startTimeSpinner->setValue(dataHolder->getVDFStartTime());
+    numtsSpinner->setValue(dataHolder->getVDFnumTS());
+    cout << dataHolder->getVDFnumTS() <<endl;
     /*varList = dataHolder->getFileVars();
     //qDebug() << QString::fromStdString(varList.at(0));
     int count = varList.size();
@@ -114,6 +116,5 @@ void CreateVdfPage::initializePage(){
 }
 
 bool CreateVdfPage::validatePage(){
-    cout << "validate page passed";
     return true;
 }

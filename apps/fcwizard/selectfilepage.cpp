@@ -36,15 +36,16 @@ void SelectFilePage::on_addFileButton_clicked() {
     fileList->clear();
     fileList->addItems(fileNames);
 
-    // convert fileList into a vector of std::string
-    // (not QStrings) to feed into DCReaderMOM
-    stdFileList = getSelectedFiles();
-
     if (fileList->count() > 0) {
         momRadioButton->setEnabled(true);
         popRadioButton->setEnabled(true);
         romsRadioButton->setEnabled(true);
     }
+
+    // convert fileList into a vector of std::string
+    // (not QStrings) to feed into DCReaderMOM
+    stdFileList = getSelectedFiles();
+    dataHolder->setFiles(stdFileList);
 
     //delete fileData;
     //if (momPopOrRoms == "roms") fileData = new DCReaderMOM(stdFileList);
@@ -59,11 +60,13 @@ void SelectFilePage::on_removeFileButton_clicked() {
     for (int i=0;i<count;i++) {
         fileNames.append(fileList->item(i)->text());
     }
+    stdFileList = getSelectedFiles();
+    dataHolder->setFiles(stdFileList);
 }
 
 void SelectFilePage::on_momRadioButton_clicked() {
     dataHolder->setType("mom");
-    qDebug() << "bagoo";
+    //qDebug() << "bagoo";
     //momPopOrRoms = "mom";
     //delete fileData;
     //fileData = new DCReaderMOM(stdFileList);
@@ -82,7 +85,7 @@ void SelectFilePage::on_popRadioButton_clicked() {
 
 void SelectFilePage::on_romsRadioButton_clicked() {
     dataHolder->setType("roms");
-    dataHolder->setFiles(stdFileList);
+    //dataHolder->setFiles(stdFileList);
     //momPopOrRoms = "roms";
 }
 

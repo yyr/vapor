@@ -8,6 +8,7 @@
 #include <vapor/DCReaderROMS.h>
 
 using namespace std;
+using namespace VAPoR;
 
 class DataHolder
 {
@@ -50,7 +51,7 @@ public:
     vector<string> getVDFSelectionVars();
     vector<string> getPDSelectionVars();
 
-protected:
+private:
     // Shared variables
     VAPoR::DCReader *reader;
     string fileType;
@@ -60,6 +61,7 @@ protected:
     // Create VDF variables
     // (prefixed with VDF where necessary)
     int VDFstartTime;
+    //int VDFnumTS;
     int VDFnumTS;
     int sbx, sby, sbz;
     bool apx, apy, apz;

@@ -1,8 +1,18 @@
-#include "dataholder.h"
-#include "momvdfcreate.cpp"
-#include <iostream>
+#include <stdlib.h>
+#include <stdio.h>
 #include <cstdio>
 #include <QDebug>
+#include <QString>
+
+#include "dataholder.h"
+
+//#include <vapor/OptionParser.h>
+//#include <vapor/MetadataVDC.h>
+//#include <vapor/DCReaderMOM.h>
+//#include <vapor/VDCFactory.h>
+//#include <vapor/CFuncs.h>
+#include "momvdfcreate.cpp"
+
 //using namespace VAPoR;
 
 DataHolder::DataHolder(){
@@ -10,10 +20,12 @@ DataHolder::DataHolder(){
 }
 
 void DataHolder::createReader() {
+    cout << dataFiles.at(0) << endl << endl;
     if (fileType == "roms") reader = new DCReaderROMS(dataFiles);
     else reader = new DCReaderMOM(dataFiles);
-    //reader = new DCReaderMOM(dataFiles);
-    //int test = reader->GetNumTimeSteps();
+
+    //VDFnumTS = reader->GetNumTimeSteps();
+    cout << reader->GetNumTimeSteps() << endl;
 }
 
 void DataHolder::setType(string type) {
@@ -28,7 +40,7 @@ void DataHolder::setType(string type) {
 
 void DataHolder::setFiles(vector<string> files) {
     dataFiles = files;
-    cout << files.at(0);
+    qDebug() << QString::fromStdString(files.at(0));
     qDebug() << "got to setfiles";
 
 
