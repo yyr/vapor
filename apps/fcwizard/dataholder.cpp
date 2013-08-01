@@ -1,21 +1,48 @@
 #include "dataholder.h"
 #include "momvdfcreate.cpp"
-
+#include <iostream>
+#include <cstdio>
+#include <QDebug>
 //using namespace VAPoR;
 
 DataHolder::DataHolder(){
-    setVDFstartTime(1);
+    setVDFstartTime(10);
 }
 
-void DataHolder::setFiles(vector<string> files, string type) {
-    dataFiles = files;
-    fileType = type;
-
+void DataHolder::createReader() {
     if (fileType == "roms") reader = new DCReaderROMS(dataFiles);
     else reader = new DCReaderMOM(dataFiles);
+    //reader = new DCReaderMOM(dataFiles);
+    //int test = reader->GetNumTimeSteps();
+}
 
-    setVDFnumTS(reader->GetNumTimeSteps());
-    setVDFSelectionVars(reader->GetVariableNames());
+void DataHolder::setType(string type) {
+    qDebug() << "got to dataholder";
+    //cout << "test for cout";
+    fileType = type;
+
+    //fileVars = reader->GetVariableNames();
+    //setVDFnumTS(reader->GetNumTimeSteps());
+    //cout << fileVars.size();
+}
+
+void DataHolder::setFiles(vector<string> files) {
+    dataFiles = files;
+    cout << files.at(0);
+    qDebug() << "got to setfiles";
+
+
+    //setType(fileType);
+    //delete reader;
+    //if (fileType == "roms") reader = new DCReaderROMS(dataFiles);
+    //else reader = new DCReaderMOM(dataFiles);
+
+
+    /*int count = fileVars.size();
+    for (int i=0;i<count;i++) cout << fileVars.at(i);
+
+    setVDFSelectionVars(fileVars);
+    setVDFnumTS(reader->GetNumTimeSteps());*/
 }
 
 //Create vdf setter functions
@@ -74,6 +101,21 @@ void DataHolder::setPDselectionVars(vector<string> selectionVars) {
     PDSelectionVars = selectionVars;
 }
 
+// Get functions used by create VDF
+
+int DataHolder::getVDFnumTS() {
+    return VDFnumTS;
+}
+
+// Get functions used by Populate Data
+
+int DataHolder::getPDnumTS() {
+    return PDnumTS;
+}
+
+int DataHolder::getVDFStartTime() {
+    return VDFstartTime;
+}
 
 //Get functions (used by createVDF and Populate Data)
 vector<string> DataHolder::getFileVars() { return fileVars; }

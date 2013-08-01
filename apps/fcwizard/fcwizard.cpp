@@ -21,8 +21,8 @@ FCWizard::FCWizard(QWidget *parent) :
     dataHolder = new DataHolder;
     introPage = new IntroPage;
     selectFilePage = new SelectFilePage(introPage, dataHolder);
-    createVdfPage = new CreateVdfPage(selectFilePage, dataHolder);
-    populateDataPage = new PopulateDataPage(selectFilePage, dataHolder);
+    createVdfPage = new CreateVdfPage(dataHolder);
+    populateDataPage = new PopulateDataPage(dataHolder);
 
     //selectFilePage->getOtherPages(createVdfPage,populateDataPage);
 

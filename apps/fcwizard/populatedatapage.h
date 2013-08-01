@@ -3,7 +3,6 @@
 
 #include <QWizardPage>
 #include <QtGui/QtGui>
-#include "selectfilepage.h"
 #include "popdataadvanced.h"
 #include "showtimeconflicts.h"
 #include "ui/Page4.h"
@@ -18,10 +17,9 @@ class PopulateDataPage : public QWizardPage, public Ui_Page4
     Q_OBJECT
     
 public:
-    PopulateDataPage(SelectFilePage *Page, DataHolder *DH, QWidget *parent = 0);
+    PopulateDataPage(DataHolder *DH, QWidget *parent = 0);
     PopDataAdvanced *popAdvancedOpts;
     ShowTimeConflicts *timeConflicts;
-    SelectFilePage *selectFilePage;
     DataHolder *dataHolder;
 
     void printSomething();
@@ -34,6 +32,7 @@ private slots:
     void warnButton_clicked();
 
 private:
+    void initializePage();
     void checkArguments();
     void run2vdf();
 };

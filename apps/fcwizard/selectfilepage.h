@@ -25,11 +25,12 @@ class SelectFilePage : public QWizardPage, public Ui_Page2
     Q_OBJECT
     
 public:
-    explicit SelectFilePage(IntroPage *Page, DataHolder *dataHolder, QWidget *parent = 0);
+    explicit SelectFilePage(IntroPage *Page, DataHolder *DH, QWidget *parent = 0);
     
     //VAPoR::DCReader *fileData;
-    QString momPopOrRoms;
+    string momPopOrRoms;
     IntroPage *introPage;
+    DataHolder *dataHolder;
     //CreateVdfPage *createVdfPage;
     //PopulateDataPage *populateDataPage;
     //QList<QString> getSelectedFiles();

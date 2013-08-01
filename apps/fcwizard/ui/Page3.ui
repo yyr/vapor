@@ -97,6 +97,9 @@
    <property name="minimum">
     <number>1</number>
    </property>
+   <property name="maximum">
+    <number>999999999</number>
+   </property>
    <property name="value">
     <number>1</number>
    </property>
@@ -112,6 +115,9 @@
    </property>
    <property name="minimum">
     <number>1</number>
+   </property>
+   <property name="maximum">
+    <number>999999</number>
    </property>
    <property name="value">
     <number>1</number>
@@ -221,7 +227,7 @@
     <string>Clear All</string>
    </property>
   </widget>
-  <widget class="QTableWidget" name="variableList">
+  <widget class="QListWidget" name="variableList">
    <property name="geometry">
     <rect>
      <x>20</x>

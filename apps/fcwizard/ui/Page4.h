@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'Page4.ui'
 **
-** Created: Wed Jul 31 13:32:10 2013
+** Created: Wed Jul 31 16:08:31 2013
 **      by: Qt User Interface Compiler version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -81,7 +81,7 @@ public:
         numtsSpinner->setObjectName(QString::fromUtf8("numtsSpinner"));
         numtsSpinner->setGeometry(QRect(360, 90, 91, 25));
         numtsSpinner->setMinimum(-1);
-        numtsSpinner->setMaximum(9999999);
+        numtsSpinner->setMaximum(10000);
         numtsSpinner->setValue(-1);
         label_28 = new QLabel(Page4);
         label_28->setObjectName(QString::fromUtf8("label_28"));

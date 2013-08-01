@@ -1,4 +1,3 @@
-#include "selectfilepage.h"
 #include "createvdfpage.h"
 #include "populatedatapage.h"
 #include "showtimeconflicts.h"
@@ -7,13 +6,12 @@
 
 //using namespace VAPoR;
 
-PopulateDataPage::PopulateDataPage(SelectFilePage *Page, DataHolder *DH, QWidget *parent) :
+PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
     QWizardPage(parent), Ui_Page4()
 {
     setupUi(this);
 
     dataHolder = DH;
-    selectFilePage = Page;
     popAdvancedOpts = new PopDataAdvanced;
     timeConflicts = new ShowTimeConflicts;
 }
@@ -147,4 +145,8 @@ void PopulateDataPage::checkArguments() {
 
 void PopulateDataPage::run2vdf() {
     qDebug() << "Running 2 VDF.";
+}
+
+void PopulateDataPage::initializePage(){
+    numtsSpinner->setValue(dataHolder->getPDnumTS());
 }

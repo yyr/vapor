@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'Page2.ui'
 **
-** Created: Wed Jul 31 13:32:07 2013
+** Created: Thu Aug 1 08:57:22 2013
 **      by: Qt User Interface Compiler version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -42,7 +42,7 @@ public:
         Page2->resize(475, 360);
         romsRadioButton = new QRadioButton(Page2);
         romsRadioButton->setObjectName(QString::fromUtf8("romsRadioButton"));
-        romsRadioButton->setEnabled(true);
+        romsRadioButton->setEnabled(false);
         romsRadioButton->setGeometry(QRect(320, 323, 61, 21));
         romsRadioButton->setLayoutDirection(Qt::LeftToRight);
         romsRadioButton->setChecked(false);
@@ -62,10 +62,10 @@ public:
         addFileButton->setGeometry(QRect(210, 20, 114, 32));
         momRadioButton = new QRadioButton(Page2);
         momRadioButton->setObjectName(QString::fromUtf8("momRadioButton"));
-        momRadioButton->setEnabled(true);
+        momRadioButton->setEnabled(false);
         momRadioButton->setGeometry(QRect(170, 323, 61, 20));
         momRadioButton->setLayoutDirection(Qt::LeftToRight);
-        momRadioButton->setChecked(true);
+        momRadioButton->setChecked(false);
         label_2 = new QLabel(Page2);
         label_2->setObjectName(QString::fromUtf8("label_2"));
         label_2->setGeometry(QRect(30, 27, 101, 16));
@@ -74,7 +74,7 @@ public:
         removeFileButton->setGeometry(QRect(320, 20, 121, 32));
         popRadioButton = new QRadioButton(Page2);
         popRadioButton->setObjectName(QString::fromUtf8("popRadioButton"));
-        popRadioButton->setEnabled(true);
+        popRadioButton->setEnabled(false);
         popRadioButton->setGeometry(QRect(250, 323, 61, 20));
         popRadioButton->setLayoutDirection(Qt::LeftToRight);
 

@@ -14,15 +14,16 @@
 
 //using namespace VAPoR;
 
-SelectFilePage::SelectFilePage(IntroPage *Page, DataHolder *dataHolder, QWidget *parent) :
+SelectFilePage::SelectFilePage(IntroPage *Page, DataHolder *DH, QWidget *parent) :
     QWizardPage(parent), Ui_Page2()
 {
     setupUi(this);
 
     momPopOrRoms = "mom";
     introPage = Page;
+    dataHolder = DH;
     //DCReaderMOM *fileData;
-    vector <string> stdFileList;
+    //vector <string> stdFileList;
 }
 
 void SelectFilePage::on_addFileButton_clicked() {
@@ -38,6 +39,12 @@ void SelectFilePage::on_addFileButton_clicked() {
     // convert fileList into a vector of std::string
     // (not QStrings) to feed into DCReaderMOM
     stdFileList = getSelectedFiles();
+
+    if (fileList->count() > 0) {
+        momRadioButton->setEnabled(true);
+        popRadioButton->setEnabled(true);
+        romsRadioButton->setEnabled(true);
+    }
 
     //delete fileData;
     //if (momPopOrRoms == "roms") fileData = new DCReaderMOM(stdFileList);
@@ -55,13 +62,16 @@ void SelectFilePage::on_removeFileButton_clicked() {
 }
 
 void SelectFilePage::on_momRadioButton_clicked() {
-    momPopOrRoms = "mom";
+    dataHolder->setType("mom");
+    qDebug() << "bagoo";
+    //momPopOrRoms = "mom";
     //delete fileData;
     //fileData = new DCReaderMOM(stdFileList);
 }
 
 void SelectFilePage::on_popRadioButton_clicked() {
-    momPopOrRoms = "pop";
+    dataHolder->setType("pop");
+    //momPopOrRoms = "pop";
     //delete fileData;
     //fileData = new DCReaderMOM(stdFileList);
     //size_t count = fileData->GetVariableNames().size();
@@ -71,7 +81,9 @@ void SelectFilePage::on_popRadioButton_clicked() {
 }
 
 void SelectFilePage::on_romsRadioButton_clicked() {
-    momPopOrRoms = "roms";
+    dataHolder->setType("roms");
+    dataHolder->setFiles(stdFileList);
+    //momPopOrRoms = "roms";
 }
 
 vector<string> SelectFilePage::getSelectedFiles() {
@@ -87,17 +99,13 @@ vector<string> SelectFilePage::getSelectedFiles() {
 //}
 
 bool SelectFilePage::validatePage(){
-    qDebug() << "validate page passed";
-    //delete fileData;
-
-    //if (momPopOrRoms == "roms") fileData = new DCReaderROMS(stdFileList);
-    //else fileData = new DCReaderMOM(stdFileList);
-
     return true;
 }
 
 int SelectFilePage::nextId() const
 {
+    //std::string fileType = momPopOrRoms.toStdString();
+
     if (introPage->operation == "vdfcreate") return FCWizard::Create_VdfPage;
     else return FCWizard::Populate_DataPage;
 }

@@ -1,17 +1,17 @@
-#include "selectfilepage.h"
+//#include "selectfilepage.h"
 #include "createvdfpage.h"
 #include "createvdfcomment.h"
-#include "populatedatapage.h"
+//#include "populatedatapage.h"
 #include "ui/Page3.h"
 #include "dataholder.h"
+#include <QString>
 
-CreateVdfPage::CreateVdfPage(SelectFilePage *Page, DataHolder *DH, QWidget *parent) :
+CreateVdfPage::CreateVdfPage(DataHolder *DH, QWidget *parent) :
     QWizardPage(parent), Ui_Page3()
 {
     setupUi(this);
 
     dataHolder = DH;
-    selectFilePage = Page;
     vdfAdvancedOpts = new CreateVdfAdvanced;
     vdfTLComment = new CreateVdfComment;
 }
@@ -37,7 +37,7 @@ void CreateVdfPage::on_vdfCommentButton_clicked()
 
 void CreateVdfPage::on_goButton_clicked() {
     //QList<QString> list;
-    vector<string> list;
+    /*vector<string> list;
     QString momPopOrRoms = selectFilePage->momPopOrRoms;
     //list = selectFilePage->getSelectedFiles();
     list = selectFilePage->getSelectedFiles();
@@ -70,7 +70,7 @@ void CreateVdfPage::on_goButton_clicked() {
     argvx[4] = "-quiet";
 
     //test();
-    //launch(argcx,argvx);
+    //launch(argcx,argvx);*/
 }
 
 //void CreateVdfPage::runMomVdfCreate(QList<QString> list, QString execution) {
@@ -92,6 +92,25 @@ void CreateVdfPage::runMomVdfCreate(vector<string> list, QString execution) {
     //momData->GetVariableNames();
 
     qDebug() << Comment + CRList + SBFactor + Periodicity;
+}
+
+//populate qWidgets with default values
+void CreateVdfPage::initializePage(){
+    dataHolder->createReader();
+    //startTimeSpinner->setValue(dataHolder->getVDFStartTime());
+    //numtsSpinner->setValue(dataHolder->getVDFnumTS());
+
+    /*varList = dataHolder->getFileVars();
+    //qDebug() << QString::fromStdString(varList.at(0));
+    int count = varList.size();
+    qDebug() << count;
+    for (int i=0;i<count;i++){
+        QString stringName = QString::fromStdString(varList.at(i));
+        //qDebug() << stringName;
+        QListWidgetItem* item = new QListWidgetItem(stringName,variableList);
+        //varWidgetItems.push_back(new QTableWidgetItem(QString::fromStdString(varList.at(i))));
+        //varWidgetItems.end().se
+    }*/
 }
 
 bool CreateVdfPage::validatePage(){

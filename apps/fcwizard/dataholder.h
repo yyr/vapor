@@ -14,9 +14,11 @@ class DataHolder
 public:
     DataHolder();
 
+    void createReader();
+
     //File selector set functions
     void setType(string type);
-    void setFiles(vector<string> files, string type);
+    void setFiles(vector<string> files);
 
     //Create vdf setter functions
     void setVDFcomment(string comment);
@@ -28,6 +30,9 @@ public:
     void setVDFAxis(bool x, bool y, bool z);
     void setVDFSelectionVars(vector<string> selectionVars);
 
+    int getVDFStartTime();
+    int getVDFnumTS();
+
     //Populate data setter fucntions
     void setPDVDFfile(string vdfFile);
     void setPDstartTime(int startTime);
@@ -37,12 +42,15 @@ public:
     void setPDnumThreads(int numThreads);
     void setPDselectionVars(vector<string> selectionVars);
 
+
+    int getPDnumTS();
+
     //Get functions (used by createVDF and Populate Data)
     vector<string> getFileVars();
     vector<string> getVDFSelectionVars();
     vector<string> getPDSelectionVars();
 
-private:
+protected:
     // Shared variables
     VAPoR::DCReader *reader;
     string fileType;

@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'Page3.ui'
 **
-** Created: Wed Jul 31 13:32:07 2013
+** Created: Wed Jul 31 16:08:29 2013
 **      by: Qt User Interface Compiler version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -20,7 +20,6 @@
 #include <QtGui/QProgressBar>
 #include <QtGui/QPushButton>
 #include <QtGui/QSpinBox>
-#include <QtGui/QTableWidget>
 #include <QtGui/QWizardPage>
 
 QT_BEGIN_NAMESPACE
@@ -43,7 +42,7 @@ public:
     QPushButton *pushButton;
     QPushButton *pushButton_2;
     QPushButton *pushButton_3;
-    QTableWidget *variableList;
+    QListWidget *variableList;
     QPushButton *vdfCommentButton;
 
     void setupUi(QWizardPage *Page3)
@@ -76,11 +75,13 @@ public:
         numtsSpinner->setObjectName(QString::fromUtf8("numtsSpinner"));
         numtsSpinner->setGeometry(QRect(368, 90, 91, 25));
         numtsSpinner->setMinimum(1);
+        numtsSpinner->setMaximum(999999999);
         numtsSpinner->setValue(1);
         startTimeSpinner = new QSpinBox(Page3);
         startTimeSpinner->setObjectName(QString::fromUtf8("startTimeSpinner"));
         startTimeSpinner->setGeometry(QRect(368, 63, 91, 25));
         startTimeSpinner->setMinimum(1);
+        startTimeSpinner->setMaximum(999999);
         startTimeSpinner->setValue(1);
         label_14 = new QLabel(Page3);
         label_14->setObjectName(QString::fromUtf8("label_14"));
@@ -107,7 +108,7 @@ public:
         pushButton_3 = new QPushButton(Page3);
         pushButton_3->setObjectName(QString::fromUtf8("pushButton_3"));
         pushButton_3->setGeometry(QRect(98, 93, 71, 21));
-        variableList = new QTableWidget(Page3);
+        variableList = new QListWidget(Page3);
         variableList->setObjectName(QString::fromUtf8("variableList"));
         variableList->setGeometry(QRect(20, 121, 439, 200));
         vdfCommentButton = new QPushButton(Page3);

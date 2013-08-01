@@ -15,7 +15,7 @@
   </property>
   <widget class="QRadioButton" name="romsRadioButton">
    <property name="enabled">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="geometry">
     <rect>
@@ -88,7 +88,7 @@
   </widget>
   <widget class="QRadioButton" name="momRadioButton">
    <property name="enabled">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="geometry">
     <rect>
@@ -105,7 +105,7 @@
     <string>MOM</string>
    </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </widget>
   <widget class="QLabel" name="label_2">
@@ -136,7 +136,7 @@
   </widget>
   <widget class="QRadioButton" name="popRadioButton">
    <property name="enabled">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="geometry">
     <rect>

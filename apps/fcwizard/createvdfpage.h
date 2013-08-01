@@ -3,12 +3,13 @@
 
 #include <QWizardPage>
 #include <QtGui/QtGui>
+#include <QTableWidgetItem>
 #include "dataholder.h"
-#include "populatedatapage.h"
-#include "selectfilepage.h"
+//#include "populatedatapage.h"
 #include "createvdfadvanced.h"
 #include "createvdfcomment.h"
 #include "ui/Page3.h"
+#include <vector>
 
 namespace Ui {
 class CreateVdfPage;
@@ -19,11 +20,15 @@ class CreateVdfPage : public QWizardPage, public Ui_Page3
     Q_OBJECT
     
 public:
-    CreateVdfPage(SelectFilePage *Page, DataHolder *DH, QWidget *parent = 0);
+    CreateVdfPage(DataHolder *DH, QWidget *parent = 0);
     CreateVdfAdvanced *vdfAdvancedOpts;
     CreateVdfComment *vdfTLComment;
-    SelectFilePage *selectFilePage;
+    //SelectFilePage *selectFilePage;
     DataHolder *dataHolder;
+
+    vector<string> varList;
+    vector<string> varSelectionList;
+    vector<QTableWidgetItem> varWidgetItems;
 
 private slots:
     void on_goButton_clicked();
@@ -31,6 +36,7 @@ private slots:
     void on_vdfCommentButton_clicked();
 
 private:
+    void initializePage();
     bool validatePage();
     void checkArguments();
     void runVdfCreate();
