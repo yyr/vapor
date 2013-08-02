@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include "ui/Page3cmt.h"
+#include "dataholder.h"
 
 
 namespace Ui {
@@ -14,8 +15,8 @@ class CreateVdfComment : public QDialog, public Ui_Page3cmt
     Q_OBJECT
     
 public:
-    explicit CreateVdfComment(QWidget *parent = 0);
-    QString Comment;
+    explicit CreateVdfComment(DataHolder *DH, QWidget *parent = 0);
+    DataHolder *dataHolder;
 
 private slots:
     void on_buttonBox_accepted();

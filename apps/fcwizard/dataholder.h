@@ -15,6 +15,8 @@ class DataHolder
 public:
     DataHolder();
 
+    void runTest();
+
     void createReader();
 
     //File selector set functions
@@ -27,8 +29,8 @@ public:
     void setVDFstartTime(int startTime);
     void setVDFnumTS(int numTS);
     void setVDFcrList(string crList);
-    void setVDFsbFactor(int x, int y, int z);
-    void setVDFAxis(bool x, bool y, bool z);
+    void setVDFSBFactor(string sbFactor);
+    void setVDFPeriodicity(string periodicity);
     void setVDFSelectionVars(vector<string> selectionVars);
 
     int getVDFStartTime();
@@ -52,8 +54,10 @@ public:
     vector<string> getPDSelectionVars();
 
 private:
+    //VAPoR::DCReader *testReader;
+
     // Shared variables
-    VAPoR::DCReader *reader;
+    DCReader *reader;
     string fileType;
     vector<string> dataFiles;
     vector<string> fileVars;
@@ -61,13 +65,14 @@ private:
     // Create VDF variables
     // (prefixed with VDF where necessary)
     int VDFstartTime;
-    //int VDFnumTS;
     int VDFnumTS;
-    int sbx, sby, sbz;
-    bool apx, apy, apz;
+    //int sbx, sby, sbz;
+    //bool apx, apy, apz;
+    string VDFSBFactor;
     string VDFcomment;
     string VDFfileName;
     string VDFcrList;
+    string VDFPeriodicity;
     vector<string> VDFSelectionVars;
 
     // Populate Data variables

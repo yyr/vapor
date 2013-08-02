@@ -23,7 +23,6 @@ public:
     CreateVdfPage(DataHolder *DH, QWidget *parent = 0);
     CreateVdfAdvanced *vdfAdvancedOpts;
     CreateVdfComment *vdfTLComment;
-    //SelectFilePage *selectFilePage;
     DataHolder *dataHolder;
 
     vector<string> varList;

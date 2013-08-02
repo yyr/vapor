@@ -12,8 +12,8 @@ CreateVdfPage::CreateVdfPage(DataHolder *DH, QWidget *parent) :
     setupUi(this);
 
     dataHolder = DH;
-    vdfAdvancedOpts = new CreateVdfAdvanced;
-    vdfTLComment = new CreateVdfComment;
+    vdfAdvancedOpts = new CreateVdfAdvanced(dataHolder);
+    vdfTLComment = new CreateVdfComment(dataHolder);
 }
 
 void CreateVdfPage::checkArguments() {
@@ -24,14 +24,11 @@ void CreateVdfPage::runVdfCreate() {
     qDebug() << "Running VDF Create.";
 }
 
-void CreateVdfPage::on_advanceOptionButton_clicked()
-{
+void CreateVdfPage::on_advanceOptionButton_clicked() {
     vdfAdvancedOpts->show();
 }
 
-//void CreateVdfPage::on_pushButton_4_clicked()
-void CreateVdfPage::on_vdfCommentButton_clicked()
-{
+void CreateVdfPage::on_vdfCommentButton_clicked() {
     vdfTLComment->show();
 }
 
@@ -73,35 +70,30 @@ void CreateVdfPage::on_goButton_clicked() {
     //launch(argcx,argvx);*/
 }
 
-//void CreateVdfPage::runMomVdfCreate(QList<QString> list, QString execution) {
 void CreateVdfPage::runMomVdfCreate(vector<string> list, QString execution) {
-    //DCReaderMOM *momData;
+    //Comment = vdfTLComment->Comment;
+    //CRList = vdfAdvancedOpts->CRList;
+    //SBFactor = vdfAdvancedOpts->SBFactor;
+    //Periodicity = vdfAdvancedOpts->Periodicity;
 
-    Comment = vdfTLComment->Comment;
-    CRList = vdfAdvancedOpts->CRList;
-    SBFactor = vdfAdvancedOpts->SBFactor;
-    Periodicity = vdfAdvancedOpts->Periodicity;
-
-    //int count = selectFilePage->fileData->GetVariableNames().size();
+    /*int count = selectFilePage->fileData->GetVariableNames().size();
     //for (int i=0;i<count;i++){
     //    qDebug() << selectFilePage->fileData->GetVariableNames().at(i);
     //}
     //momData = new DCReaderMOM(list);
 
    // momData->GetNumTimeSteps();
-    //momData->GetVariableNames();
+    //momData->GetVariableNames();*/
 
     qDebug() << Comment + CRList + SBFactor + Periodicity;
 }
 
-//populate qWidgets with default values
 void CreateVdfPage::initializePage(){
-    qDebug() << "1";
     dataHolder->createReader();
-    qDebug() << "2";
+
     startTimeSpinner->setValue(dataHolder->getVDFStartTime());
     numtsSpinner->setValue(dataHolder->getVDFnumTS());
-    cout << dataHolder->getVDFnumTS() <<endl;
+
     /*varList = dataHolder->getFileVars();
     //qDebug() << QString::fromStdString(varList.at(0));
     int count = varList.size();

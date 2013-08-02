@@ -20,7 +20,6 @@ struct opt_t {
 	vector <string> vars;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	quiet;
-	OptionParser::Boolean_T	debug;
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
@@ -28,7 +27,6 @@ OptionParser::OptDescRec_T	set_opts[] = {
 		"from ncdf data. The default is to copy all 2D and 3D variables"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"quiet",	0,	"",	"Operate quietly"},
-	{"debug",	0,	"",	"Turn on debugging"},
 	{NULL}
 };
 
@@ -36,7 +34,6 @@ OptionParser::Option_T	get_options[] = {
 	{"vars", VetsUtil::CvtToStrVec, &opt.vars, sizeof(opt.vars)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
-	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{NULL}
 };
 
@@ -47,7 +44,7 @@ void Usage(OptionParser &op, const char * msg) {
 	if (msg) {
 		cerr << ProgName << " : " << msg << endl;
 	}
-    cerr << "Usage: " << ProgName << " [options] ncdf_file... vdf_file" << endl;
+	cerr << "Usage: " << ProgName << " [options] ncdf_file... vdf_file" << endl;
 	op.PrintOptionHelp(stderr, 80, false);
 
 }
@@ -220,12 +217,8 @@ char ** argv_merge(
 	return(newargv);
 }
 
-void test() 
-{ 
-    cout << "Test" << endl; 
-}
+int	main(int argc, char **argv) {
 
-int	launch(int argc, char **argv) {
     MyBase::SetErrMsgFilePtr(stderr);
 
 	OptionParser op;
@@ -242,9 +235,6 @@ int	launch(int argc, char **argv) {
 	char *argv2[] = { (char *) "-vdc2", NULL };
 	myargv = argv_merge(argc, argv, 1, argv2, myargc);
 
-    for (int i=0; i<myargc-1; i++) {
-                cout << "!" << myargv[i] << endl;
-	}
 
 	if (op.AppendOptions(set_opts) < 0) {
 		exit(1);
@@ -253,7 +243,6 @@ int	launch(int argc, char **argv) {
 	if (op.ParseOptions(&myargc, myargv, get_options) < 0) {
 		exit(1);
 	}
-	if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
 
 	VDCFactory vdcf;
 	vector <string> rmopts;
@@ -302,7 +291,6 @@ int	launch(int argc, char **argv) {
 
 	vector<string> ncdffiles;
 	for (int i=0; i<myargc-1; i++) {
-		cout << myargv[i] << endl;
 		 ncdffiles.push_back(myargv[i]);
 	}
 	
@@ -328,6 +316,7 @@ int	launch(int argc, char **argv) {
 	if (! opt.quiet && momData->GetNumTimeSteps() > 0) {
 		cout << "Created VDF file:" << endl;
 		cout << "\tNum time steps : " << file->GetNumTimeSteps() << endl;
+
 		cout << "\t3D Variable names : ";
 		for (int i = 0; i < file->GetVariables3D().size(); i++) {
 			cout << file->GetVariables3D()[i] << " ";
@@ -373,19 +362,5 @@ int	launch(int argc, char **argv) {
 		
 	} // End if quiet.
 
-	//exit(0);
+	exit(0);
 } // End of main.
-
-/*int mainx(){
-	int argcx = 5;
-	char **argvx = new char * [argcx];
-
-	argvx[0] = "./momvdfcreate";
-	argvx[1] = "/Users/pearse/Documents/vaporTestData/00010101.ocean_month.NWPp2.Clim.nc";
-	argvx[2] = "test.vdf";
-	argvx[3] = "-vdc2";
-	argvx[4] = "-quiet";
-
-	launch(argcx,argvx);
-	return 0;
-}*/

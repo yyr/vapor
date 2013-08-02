@@ -1,24 +1,31 @@
 #include "createvdfadvanced.h"
 #include "ui/Page3adv.h"
+#include "dataholder.h"
+#include <QString>
 
-CreateVdfAdvanced::CreateVdfAdvanced(QWidget *parent) :
+CreateVdfAdvanced::CreateVdfAdvanced(DataHolder *DH, QWidget *parent) :
     QDialog(parent), Ui_Page3adv()
 {
     setupUi(this);
+
+    dataHolder = DH;
 }
 
 void CreateVdfAdvanced::on_acceptButton_clicked()
 {
-    CRList = compressionRatioBox->toPlainText();
+    dataHolder->setVDFcrList(compressionRatioBox->toPlainText().toStdString());
+    //CRList = compressionRatioBox->toPlainText();
     QString SBFx = bsxSpinner->text();
     QString SBFy = bsySpinner->text();
     QString SBFz = bszSpinner->text();
-    SBFactor = SBFx + "x" + SBFy + "x" + SBFz;
+    QString SBFactor = SBFx + "x" + SBFy + "x" + SBFz;
+    dataHolder->setVDFSBFactor(SBFactor.toStdString());
 
-    px = periodicxButton->isChecked() ? "1:" : "0:";
-    py = periodicyButton->isChecked() ? "1:" : "0:";
-    pz = periodiczButton->isChecked() ? "1" : "0";
-    Periodicity = px + py + pz;
+    QString px = periodicxButton->isChecked() ? "1:" : "0:";
+    QString py = periodicyButton->isChecked() ? "1:" : "0:";
+    QString pz = periodiczButton->isChecked() ? "1" : "0";
+    QString Periodicity = px + py + pz;
+    dataHolder->setVDFPeriodicity(Periodicity.toStdString());
 
     hide();
 }

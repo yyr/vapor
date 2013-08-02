@@ -5,56 +5,33 @@
 #include <QString>
 
 #include "dataholder.h"
-
-//#include <vapor/OptionParser.h>
-//#include <vapor/MetadataVDC.h>
-//#include <vapor/DCReaderMOM.h>
-//#include <vapor/VDCFactory.h>
-//#include <vapor/CFuncs.h>
 #include "momvdfcreate.cpp"
 
 //using namespace VAPoR;
 
 DataHolder::DataHolder(){
-    setVDFstartTime(10);
+    setVDFstartTime(1);
+
+    //dataFiles.push_back("/Users/pearse/Documents/vaporTestData/00010101.ocean_month.NWPp2.Clim.nc");
+    //testReader = new DCReaderMOM(dataFiles);
+    //testReader->GetVariableNames();//testReader->GetNumTimeSteps() << endl;
 }
 
 void DataHolder::createReader() {
-    cout << dataFiles.at(0) << endl << endl;
     if (fileType == "roms") reader = new DCReaderROMS(dataFiles);
     else reader = new DCReaderMOM(dataFiles);
 
-    //VDFnumTS = reader->GetNumTimeSteps();
-    cout << reader->GetNumTimeSteps() << endl;
+    if (MyBase::GetErrCode() != 0) qDebug() << MyBase::GetErrMsg();
+    VDFnumTS = reader->GetNumTimeSteps();
 }
 
 void DataHolder::setType(string type) {
-    qDebug() << "got to dataholder";
-    //cout << "test for cout";
     fileType = type;
-
-    //fileVars = reader->GetVariableNames();
-    //setVDFnumTS(reader->GetNumTimeSteps());
-    //cout << fileVars.size();
 }
 
 void DataHolder::setFiles(vector<string> files) {
     dataFiles = files;
-    qDebug() << QString::fromStdString(files.at(0));
-    qDebug() << "got to setfiles";
-
-
-    //setType(fileType);
-    //delete reader;
-    //if (fileType == "roms") reader = new DCReaderROMS(dataFiles);
-    //else reader = new DCReaderMOM(dataFiles);
-
-
-    /*int count = fileVars.size();
-    for (int i=0;i<count;i++) cout << fileVars.at(i);
-
-    setVDFSelectionVars(fileVars);
-    setVDFnumTS(reader->GetNumTimeSteps());*/
+    //qDebug() << QString::fromStdString(files.at(0));
 }
 
 //Create vdf setter functions
@@ -68,17 +45,9 @@ void DataHolder::setVDFnumTS(int numTS) { VDFnumTS = numTS; }
 
 void DataHolder::setVDFcrList(string crList) { VDFcrList = crList; }
 
-void DataHolder::setVDFsbFactor(int x, int y, int z) {
-    sbx = x;
-    sby = y;
-    sbz = z;
-}
+void DataHolder::setVDFSBFactor(string sbFactor) { VDFSBFactor = sbFactor; }
 
-void DataHolder::setVDFAxis(bool x, bool y, bool z) {
-    apx = x;
-    apy = y;
-    apz = z;
-}
+void DataHolder::setVDFPeriodicity(string periodicity) { VDFPeriodicity = periodicity; }
 
 void DataHolder::setVDFSelectionVars(vector<string> selectionVars) {
     VDFSelectionVars = selectionVars;

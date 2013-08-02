@@ -1,12 +1,15 @@
 #include "createvdfcomment.h"
 #include "ui/Page3cmt.h"
+#include "dataholder.h"
 
-CreateVdfComment::CreateVdfComment(QWidget *parent) :
+CreateVdfComment::CreateVdfComment(DataHolder *DH, QWidget *parent) :
     QDialog(parent), Ui_Page3cmt()
 {
     setupUi(this);
+    dataHolder = DH;
 }
 
 void CreateVdfComment::on_buttonBox_accepted() {
-    Comment = vdfComment->toPlainText();
+    string comment = vdfComment->toPlainText().toStdString();
+    dataHolder->setVDFcomment(comment);
 }

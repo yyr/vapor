@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'createvdfcomment.h'
 **
-** Created: Wed Jul 31 16:08:23 2013
+** Created: Fri Aug 2 10:00:57 2013
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.3)
 **
 ** WARNING! All changes made in this file will be lost!

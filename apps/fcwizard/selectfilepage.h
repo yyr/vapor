@@ -31,11 +31,13 @@ public:
     string momPopOrRoms;
     IntroPage *introPage;
     DataHolder *dataHolder;
+    vector<string> stdFileList;
+    vector<string> getSelectedFiles();
+
     //CreateVdfPage *createVdfPage;
     //PopulateDataPage *populateDataPage;
     //QList<QString> getSelectedFiles();
-    std::vector<std::string> getSelectedFiles();
-    std::vector<std::string> stdFileList;
+
     //void getOtherPages(CreateVdfPage *cVdfPage, PopulateDataPage *pDataPage);
 
 private slots:
