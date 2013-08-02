@@ -78,7 +78,7 @@ public:
  //! advanced.
  //
  static const string &GetDateString() {
-	_dateString.assign("Wed Jun 19 14:25:43 MDT 2013"); return(_dateString);
+	_dateString.assign("Fri Aug  2 14:10:49 MDT 2013"); return(_dateString);
  }
  static int Compare(int major, int minor, int minorminor) ;
  static int Compare(std::string ver1, std::string ver2);
@@ -86,7 +86,7 @@ public:
 private:
  static const int _majorVersion = 2;
  static const int _minorVersion = 2;
- static const int _minorMinorVersion = 2;
+ static const int _minorMinorVersion = 4;
  static string _formatString;
  static string _dateString;
 

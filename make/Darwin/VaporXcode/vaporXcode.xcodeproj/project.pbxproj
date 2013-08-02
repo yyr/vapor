@@ -1383,7 +1383,7 @@
 			buildPhases = (
 			);
 			buildToolPath = /usr/bin/make;
-			buildWorkingDirectory = "/Users/alan/Vapor/vapor2-2Working";
+			buildWorkingDirectory = ../;
 			dependencies = (
 			);
 			name = vaporgui;
