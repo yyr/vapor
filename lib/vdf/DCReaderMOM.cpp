@@ -21,7 +21,6 @@ DCReaderMOM::DCReaderMOM(const vector <string> &files) {
 	_dims.clear();
 	_latExts[0] = _latExts[1] = 0.0;
 	_lonExts[0] = _lonExts[1] = 0.0;
-	_vertScaleFactor = 1.0;
 	_vertCoordinates.clear();
 	_vars3d.clear();
 	_vars2dXY.clear();
@@ -59,7 +58,7 @@ DCReaderMOM::DCReaderMOM(const vector <string> &files) {
 	}
 
 	rc = _InitVerticalCoordinates(
-		ncdfc, _vertCV, _vertCoordinates, _vertScaleFactor
+		ncdfc, _vertCV, _vertCoordinates 
 	);
 	if (rc<0) {
 		SetErrMsg("Unrecognized units for vertical coordinate");
@@ -157,16 +156,15 @@ vector <double> DCReaderMOM::GetExtents(size_t ) const {
 	// Convert horizontal extents expressed in lat-lon to Cartesian
 	// coordinates in whatever units the vertical coordinate is 
 	// expressed in. Multiply lat-lon by 111177.0 gives  meters
-	// at the equator. The "_vertScaleFactor" scales from whatever units
-	// the vertical coordinate uses (e.g. cm) to meters
+	// at the equator. 
 	//
 	cartesianExtents[0] = _lonExts[0] * 111177.0;
 	cartesianExtents[1] = _latExts[0] * 111177.0;
-	cartesianExtents[2] = _vertCoordinates[0] * _vertScaleFactor;
+	cartesianExtents[2] = _vertCoordinates[0];
 
 	cartesianExtents[3] = _lonExts[1] * 111177.0;
 	cartesianExtents[4] = _latExts[1] * 111177.0;
-	cartesianExtents[5] = _vertCoordinates[_vertCoordinates.size()-1] * _vertScaleFactor;
+	cartesianExtents[5] = _vertCoordinates[_vertCoordinates.size()-1];
 	return(cartesianExtents);
 }
 
@@ -183,11 +181,10 @@ vector <size_t> DCReaderMOM::_GetDims(
 int DCReaderMOM::_InitVerticalCoordinates(
 	NetCDFCFCollection *ncdfc, 
 	string cvar,
-	vector <double> &vertCoords,
-	float &scaleFactor
+	vector <double> &vertCoords
 ) {
 	vertCoords.clear();
-	scaleFactor = 1.0;
+	float scaleFactor = 1.0;
 
 	//
 	// Handle case if there is no vertical coordinate variable
@@ -252,7 +249,15 @@ int DCReaderMOM::_InitVerticalCoordinates(
 			return(-1);
 		}
 	}
-	assert(scaleFactor != 0.0);
+
+	// 
+	// Finally, convert to meters
+	// Doh! Probably should just let UDUnits do this
+	//
+	for (int i=0; i<vertCoords.size(); i++) {
+		vertCoords[i] *= scaleFactor;
+	}
+
 	return(0);
 }
 
