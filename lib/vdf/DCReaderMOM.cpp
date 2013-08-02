@@ -650,7 +650,12 @@ int DCReaderMOM::_InitCoordVars(NetCDFCFCollection *ncdfc)
 		if (_timeCV.empty() && !timecv.empty()) _timeCV = timecv;
 		if (! _timeCV.empty() && ! timecv.empty() && _timeCV.compare(timecv) != 0) excluded = true;
 		if (_vertCV.empty()) _vertCV = vertcv;
-		if (! _vertCV.empty() && _vertCV.compare(vertcv) != 0) excluded = true;
+
+		// Thu Aug  1 14:56:37 MDT 2013 : relax requirement that all
+		// 3d vars use same vertical coordinate so POP WVEL variables are
+		// not excluded
+		//
+		// if (! _vertCV.empty() && _vertCV.compare(vertcv) != 0) excluded = true;
 		if (! excluded && _GetDims(ncdfc, vertcv).size() > 1) excluded = true;
 
 		//
