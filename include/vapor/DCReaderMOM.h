@@ -136,7 +136,6 @@ private:
  std::vector <size_t> _dims;
  double _latExts[2];
  double _lonExts[2];
- float _vertScaleFactor;
  std::vector <double> _vertCoordinates;
  std::vector <string> _vars3d;
  std::vector <string> _vars2dXY;
@@ -196,8 +195,7 @@ private:
  int _InitVerticalCoordinates(
     NetCDFCFCollection *ncdfc,
     string cvar,
-    vector <double> &vertCoords,
-    float &scaleFactor
+    vector <double> &vertCoords
  );
 
  void _InitDimensions(
