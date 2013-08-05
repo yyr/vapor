@@ -38,7 +38,7 @@ include ${TOP}/make/config/prebase.mk
 
 QT = 1
 
-PROGRAM = fileconverterwizard
+PROGRAM = fcwizard
 
 MOC_DIR = ./moc
 

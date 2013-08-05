@@ -36,10 +36,9 @@ private slots:
 
 private:
     void initializePage();
-    bool validatePage();
     void checkArguments();
-    void runVdfCreate();
-    void runMomVdfCreate(vector<string> list, QString execution);
+    void runMomVdfCreate();
+    //void runMomVdfCreate(vector<string> list, QString execution);
     QString Comment;
     QString CRList;
     QString SBFactor;

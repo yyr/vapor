@@ -19,11 +19,11 @@ public:
 
     void createReader();
 
-    //File selector set functions
+    // File selector set functions
     void setType(string type);
     void setFiles(vector<string> files);
 
-    //Create vdf setter functions
+    // Create vdf setter functions
     void setVDFcomment(string comment);
     void setVDFfileName(string fileName);
     void setVDFstartTime(int startTime);
@@ -36,7 +36,7 @@ public:
     int getVDFStartTime();
     int getVDFnumTS();
 
-    //Populate data setter fucntions
+    // Populate data setter fucntions
     void setPDVDFfile(string vdfFile);
     void setPDstartTime(int startTime);
     void setPDnumTS(int numTS);
@@ -48,13 +48,19 @@ public:
 
     int getPDnumTS();
 
-    //Get functions (used by createVDF and Populate Data)
+    // Get functions (used by createVDF and Populate Data)
     vector<string> getFileVars();
     vector<string> getVDFSelectionVars();
     vector<string> getPDSelectionVars();
 
+    // File generation commands
+    void runMomVDFCreate();
+    void runRomsVDFCreate();
+    void runMom2VDF();
+    void runRoms2VDF();
+
 private:
-    //VAPoR::DCReader *testReader;
+    // VAPoR::DCReader *testReader;
 
     // Shared variables
     DCReader *reader;

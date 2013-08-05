@@ -211,7 +211,7 @@ char ** argv_merge(
 	return(newargv);
 }
 
-int	main(int argc, char **argv) {
+void	launchRomsVdfCreate(int argc, char **argv) {
 
     MyBase::SetErrMsgFilePtr(stderr);
 
@@ -354,5 +354,5 @@ int	main(int argc, char **argv) {
 		
 	} // End if quiet.
 
-	exit(0);
+	//exit(0);
 } // End of main.

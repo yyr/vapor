@@ -20,10 +20,6 @@ void CreateVdfPage::checkArguments() {
     qDebug() << "VDF creation args look good so far...";
 }
 
-void CreateVdfPage::runVdfCreate() {
-    qDebug() << "Running VDF Create.";
-}
-
 void CreateVdfPage::on_advanceOptionButton_clicked() {
     vdfAdvancedOpts->show();
 }
@@ -70,7 +66,8 @@ void CreateVdfPage::on_goButton_clicked() {
     //launch(argcx,argvx);*/
 }
 
-void CreateVdfPage::runMomVdfCreate(vector<string> list, QString execution) {
+//void CreateVdfPage::runMomVdfCreate(vector<string> list, QString execution) {
+void CreateVdfPage::runMomVdfCreate() {
     //Comment = vdfTLComment->Comment;
     //CRList = vdfAdvancedOpts->CRList;
     //SBFactor = vdfAdvancedOpts->SBFactor;
@@ -94,19 +91,16 @@ void CreateVdfPage::initializePage(){
     startTimeSpinner->setValue(dataHolder->getVDFStartTime());
     numtsSpinner->setValue(dataHolder->getVDFnumTS());
 
-    /*varList = dataHolder->getFileVars();
-    //qDebug() << QString::fromStdString(varList.at(0));
-    int count = varList.size();
-    qDebug() << count;
-    for (int i=0;i<count;i++){
-        QString stringName = QString::fromStdString(varList.at(i));
-        //qDebug() << stringName;
-        QListWidgetItem* item = new QListWidgetItem(stringName,variableList);
-        //varWidgetItems.push_back(new QTableWidgetItem(QString::fromStdString(varList.at(i))));
-        //varWidgetItems.end().se
-    }*/
-}
+    varList = dataHolder->getFileVars();
+    listWidget->setRowCount(varList.size()/3+1);
+    listWidget->setColumnCount(3);
+    listWidget->horizontalHeader()->setVisible(false);
 
-bool CreateVdfPage::validatePage(){
-    return true;
+    for (int i=0;i<varList.size();i++){
+        QTableWidgetItem *item = new QTableWidgetItem(QString::fromStdString(varList.at(i)));
+        item->setCheckState(Qt::Checked);
+        listWidget->setItem(i/3,i%3,item);
+        cout << varList.at(i) << endl;
+    }
+    listWidget->resizeColumnsToContents();
 }

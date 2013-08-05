@@ -382,7 +382,7 @@ int CopyVar(
 
 }
 
-int	main(int argc, char **argv) {
+void	launchMom2Vdf(int argc, char **argv) {
 
     MyBase::SetErrMsgFilePtr(stderr);
 	ProgName = Basename(argv[0]);
@@ -495,6 +495,6 @@ int	main(int argc, char **argv) {
 		cerr << "Failed to copy " << fails << " variables" << endl;
 		estatus = 1;
 	}
-	exit(estatus);
+	//exit(estatus);
 
 } // End of main.
