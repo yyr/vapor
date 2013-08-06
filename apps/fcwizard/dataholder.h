@@ -31,10 +31,12 @@ public:
     void setVDFcrList(string crList);
     void setVDFSBFactor(string sbFactor);
     void setVDFPeriodicity(string periodicity);
-    void setVDFSelectionVars(vector<string> selectionVars);
+    void setVDFSelectionVars(string selectionVars);
 
-    int getVDFStartTime();
-    int getVDFnumTS();
+    //int getVDFStartTime();
+    //int getVDFnumTS();
+    string getVDFStartTime();
+    string getVDFnumTS();
 
     // Populate data setter fucntions
     void setPDVDFfile(string vdfFile);
@@ -43,15 +45,16 @@ public:
     void setPDrefLevel(int refinement);
     void setPDcompLevel(int compression);
     void setPDnumThreads(int numThreads);
-    void setPDselectionVars(vector<string> selectionVars);
+    void setPDselectionVars(string selectionVars);
 
 
-    int getPDnumTS();
+    //int getPDnumTS();
+    string getPDnumTS();
 
     // Get functions (used by createVDF and Populate Data)
     vector<string> getFileVars();
-    vector<string> getVDFSelectionVars();
-    vector<string> getPDSelectionVars();
+    string getVDFSelectionVars();
+    string getPDSelectionVars();
 
     // File generation commands
     void runMomVDFCreate();
@@ -70,8 +73,8 @@ private:
 
     // Create VDF variables
     // (prefixed with VDF where necessary)
-    int VDFstartTime;
-    int VDFnumTS;
+    string VDFstartTime;
+    string VDFnumTS;
     //int sbx, sby, sbz;
     //bool apx, apy, apz;
     string VDFSBFactor;
@@ -79,17 +82,22 @@ private:
     string VDFfileName;
     string VDFcrList;
     string VDFPeriodicity;
-    vector<string> VDFSelectionVars;
+    string VDFSelectionVars;
 
     // Populate Data variables
     // (prefixed with PD where necessary)
-    int PDstartTime;
+    /*int PDstartTime;
     int PDnumTS;
     int PDrefinement;
     int PDcompression;
-    int PDnumThreads;
+    int PDnumThreads;*/
+    string PDstartTime;
+    string PDnumTS;
+    string PDrefinement;
+    string PDcompression;
+    string PDnumThreads;
     string PDinputVDFfile;
-    vector<string> PDSelectionVars;
+    string PDSelectionVars;
 };
 
 #endif // DATAHOLDER_H

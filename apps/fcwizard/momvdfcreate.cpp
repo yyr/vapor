@@ -219,6 +219,8 @@ char ** argv_merge(
 
 void	launchMomVdfCreate(int argc, char **argv) {
 
+
+
     MyBase::SetErrMsgFilePtr(stderr);
 
 	OptionParser op;

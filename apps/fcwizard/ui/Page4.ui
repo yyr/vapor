@@ -52,8 +52,8 @@
   <widget class="QSpinBox" name="startTimeSpinner">
    <property name="geometry">
     <rect>
-     <x>360</x>
-     <y>60</y>
+     <x>368</x>
+     <y>63</y>
      <width>91</width>
      <height>25</height>
     </rect>
@@ -62,7 +62,7 @@
   <widget class="QLabel" name="label_26">
    <property name="geometry">
     <rect>
-     <x>250</x>
+     <x>261</x>
      <y>90</y>
      <width>101</width>
      <height>20</height>
@@ -81,10 +81,10 @@
   <widget class="QLabel" name="label_12">
    <property name="geometry">
     <rect>
-     <x>250</x>
-     <y>7</y>
+     <x>260</x>
+     <y>13</y>
      <width>101</width>
-     <height>16</height>
+     <height>19</height>
     </rect>
    </property>
    <property name="text">
@@ -94,17 +94,17 @@
   <widget class="QTextEdit" name="inputVdfFileEdit">
    <property name="geometry">
     <rect>
-     <x>250</x>
-     <y>30</y>
-     <width>200</width>
-     <height>21</height>
+     <x>260</x>
+     <y>35</y>
+     <width>199</width>
+     <height>22</height>
     </rect>
    </property>
   </widget>
   <widget class="QSpinBox" name="numtsSpinner">
    <property name="geometry">
     <rect>
-     <x>360</x>
+     <x>368</x>
      <y>90</y>
      <width>91</width>
      <height>25</height>
@@ -123,8 +123,8 @@
   <widget class="QLabel" name="label_28">
    <property name="geometry">
     <rect>
-     <x>270</x>
-     <y>60</y>
+     <x>281</x>
+     <y>63</y>
      <width>70</width>
      <height>20</height>
     </rect>
@@ -142,8 +142,8 @@
   <widget class="QPushButton" name="browseOutputVdfFile">
    <property name="geometry">
     <rect>
-     <x>373</x>
-     <y>2</y>
+     <x>383</x>
+     <y>8</y>
      <width>82</width>
      <height>23</height>
     </rect>

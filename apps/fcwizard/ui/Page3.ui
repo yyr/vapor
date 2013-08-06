@@ -35,7 +35,7 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>71</y>
+     <y>67</y>
      <width>151</width>
      <height>21</height>
     </rect>
@@ -47,16 +47,6 @@
    </property>
    <property name="text">
     <string>Variables to be Copied:</string>
-   </property>
-  </widget>
-  <widget class="QListWidget" name="outputVdfFileList">
-   <property name="geometry">
-    <rect>
-     <x>260</x>
-     <y>36</y>
-     <width>200</width>
-     <height>21</height>
-    </rect>
    </property>
   </widget>
   <widget class="QLabel" name="label_11">
@@ -107,7 +97,7 @@
   <widget class="QSpinBox" name="startTimeSpinner">
    <property name="geometry">
     <rect>
-     <x>368</x>
+     <x>367</x>
      <y>63</y>
      <width>91</width>
      <height>25</height>
@@ -188,11 +178,11 @@
     <string> Advanced Options</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton">
+  <widget class="QPushButton" name="selectAllButton">
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>93</y>
+     <y>89</y>
      <width>71</width>
      <height>21</height>
     </rect>
@@ -201,11 +191,11 @@
     <string>Select All</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_2">
+  <widget class="QPushButton" name="addNewButton">
    <property name="geometry">
     <rect>
      <x>176</x>
-     <y>93</y>
+     <y>89</y>
      <width>71</width>
      <height>21</height>
     </rect>
@@ -214,11 +204,11 @@
     <string>Add New</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_3">
+  <widget class="QPushButton" name="clearAllButton">
    <property name="geometry">
     <rect>
      <x>98</x>
-     <y>93</y>
+     <y>89</y>
      <width>71</width>
      <height>21</height>
     </rect>
@@ -227,7 +217,7 @@
     <string>Clear All</string>
    </property>
   </widget>
-  <widget class="QTableWidget" name="listWidget">
+  <widget class="QTableWidget" name="tableWidget">
    <property name="geometry">
     <rect>
      <x>20</x>
@@ -248,6 +238,16 @@
    </property>
    <property name="text">
     <string>Add VDF Comment</string>
+   </property>
+  </widget>
+  <widget class="QTextEdit" name="outputVDFtext">
+   <property name="geometry">
+    <rect>
+     <x>260</x>
+     <y>35</y>
+     <width>199</width>
+     <height>22</height>
+    </rect>
    </property>
   </widget>
  </widget>

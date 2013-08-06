@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'Page3.ui'
 **
-** Created: Fri Aug 2 14:54:52 2013
+** Created: Mon Aug 5 10:25:27 2013
 **      by: Qt User Interface Compiler version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -16,11 +16,11 @@
 #include <QtGui/QButtonGroup>
 #include <QtGui/QHeaderView>
 #include <QtGui/QLabel>
-#include <QtGui/QListWidget>
 #include <QtGui/QProgressBar>
 #include <QtGui/QPushButton>
 #include <QtGui/QSpinBox>
 #include <QtGui/QTableWidget>
+#include <QtGui/QTextEdit>
 #include <QtGui/QWizardPage>
 
 QT_BEGIN_NAMESPACE
@@ -30,7 +30,6 @@ class Ui_Page3
 public:
     QLabel *label;
     QLabel *label_40;
-    QListWidget *outputVdfFileList;
     QLabel *label_11;
     QLabel *label_3;
     QSpinBox *numtsSpinner;
@@ -40,11 +39,12 @@ public:
     QProgressBar *progressBar;
     QPushButton *goButton;
     QPushButton *advanceOptionButton;
-    QPushButton *pushButton;
-    QPushButton *pushButton_2;
-    QPushButton *pushButton_3;
-    QTableWidget *listWidget;
+    QPushButton *selectAllButton;
+    QPushButton *addNewButton;
+    QPushButton *clearAllButton;
+    QTableWidget *tableWidget;
     QPushButton *vdfCommentButton;
+    QTextEdit *outputVDFtext;
 
     void setupUi(QWizardPage *Page3)
     {
@@ -59,13 +59,10 @@ public:
         label->setFont(font);
         label_40 = new QLabel(Page3);
         label_40->setObjectName(QString::fromUtf8("label_40"));
-        label_40->setGeometry(QRect(20, 71, 151, 21));
+        label_40->setGeometry(QRect(20, 67, 151, 21));
         QFont font1;
         font1.setUnderline(false);
         label_40->setFont(font1);
-        outputVdfFileList = new QListWidget(Page3);
-        outputVdfFileList->setObjectName(QString::fromUtf8("outputVdfFileList"));
-        outputVdfFileList->setGeometry(QRect(260, 36, 200, 21));
         label_11 = new QLabel(Page3);
         label_11->setObjectName(QString::fromUtf8("label_11"));
         label_11->setGeometry(QRect(281, 63, 71, 20));
@@ -80,7 +77,7 @@ public:
         numtsSpinner->setValue(1);
         startTimeSpinner = new QSpinBox(Page3);
         startTimeSpinner->setObjectName(QString::fromUtf8("startTimeSpinner"));
-        startTimeSpinner->setGeometry(QRect(368, 63, 91, 25));
+        startTimeSpinner->setGeometry(QRect(367, 63, 91, 25));
         startTimeSpinner->setMinimum(1);
         startTimeSpinner->setMaximum(999999);
         startTimeSpinner->setValue(1);
@@ -100,21 +97,24 @@ public:
         advanceOptionButton = new QPushButton(Page3);
         advanceOptionButton->setObjectName(QString::fromUtf8("advanceOptionButton"));
         advanceOptionButton->setGeometry(QRect(38, 329, 161, 32));
-        pushButton = new QPushButton(Page3);
-        pushButton->setObjectName(QString::fromUtf8("pushButton"));
-        pushButton->setGeometry(QRect(20, 93, 71, 21));
-        pushButton_2 = new QPushButton(Page3);
-        pushButton_2->setObjectName(QString::fromUtf8("pushButton_2"));
-        pushButton_2->setGeometry(QRect(176, 93, 71, 21));
-        pushButton_3 = new QPushButton(Page3);
-        pushButton_3->setObjectName(QString::fromUtf8("pushButton_3"));
-        pushButton_3->setGeometry(QRect(98, 93, 71, 21));
-        listWidget = new QTableWidget(Page3);
-        listWidget->setObjectName(QString::fromUtf8("listWidget"));
-        listWidget->setGeometry(QRect(20, 121, 439, 200));
+        selectAllButton = new QPushButton(Page3);
+        selectAllButton->setObjectName(QString::fromUtf8("selectAllButton"));
+        selectAllButton->setGeometry(QRect(20, 89, 71, 21));
+        addNewButton = new QPushButton(Page3);
+        addNewButton->setObjectName(QString::fromUtf8("addNewButton"));
+        addNewButton->setGeometry(QRect(176, 89, 71, 21));
+        clearAllButton = new QPushButton(Page3);
+        clearAllButton->setObjectName(QString::fromUtf8("clearAllButton"));
+        clearAllButton->setGeometry(QRect(98, 89, 71, 21));
+        tableWidget = new QTableWidget(Page3);
+        tableWidget->setObjectName(QString::fromUtf8("tableWidget"));
+        tableWidget->setGeometry(QRect(20, 121, 439, 200));
         vdfCommentButton = new QPushButton(Page3);
         vdfCommentButton->setObjectName(QString::fromUtf8("vdfCommentButton"));
         vdfCommentButton->setGeometry(QRect(15, 37, 183, 32));
+        outputVDFtext = new QTextEdit(Page3);
+        outputVDFtext->setObjectName(QString::fromUtf8("outputVDFtext"));
+        outputVDFtext->setGeometry(QRect(260, 35, 199, 22));
 
         retranslateUi(Page3);
 
@@ -132,9 +132,9 @@ public:
         browseOutputVdfFile->setText(QApplication::translate("Page3", "Browse", 0, QApplication::UnicodeUTF8));
         goButton->setText(QApplication::translate("Page3", "Go!", 0, QApplication::UnicodeUTF8));
         advanceOptionButton->setText(QApplication::translate("Page3", " Advanced Options", 0, QApplication::UnicodeUTF8));
-        pushButton->setText(QApplication::translate("Page3", "Select All", 0, QApplication::UnicodeUTF8));
-        pushButton_2->setText(QApplication::translate("Page3", "Add New", 0, QApplication::UnicodeUTF8));
-        pushButton_3->setText(QApplication::translate("Page3", "Clear All", 0, QApplication::UnicodeUTF8));
+        selectAllButton->setText(QApplication::translate("Page3", "Select All", 0, QApplication::UnicodeUTF8));
+        addNewButton->setText(QApplication::translate("Page3", "Add New", 0, QApplication::UnicodeUTF8));
+        clearAllButton->setText(QApplication::translate("Page3", "Clear All", 0, QApplication::UnicodeUTF8));
         vdfCommentButton->setText(QApplication::translate("Page3", "Add VDF Comment", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 

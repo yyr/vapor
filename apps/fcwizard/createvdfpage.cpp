@@ -1,4 +1,5 @@
-//#include "selectfilepage.h"
+#include <stdio.h>
+#include <stdlib.h>
 #include "createvdfpage.h"
 #include "createvdfcomment.h"
 //#include "populatedatapage.h"
@@ -28,79 +29,68 @@ void CreateVdfPage::on_vdfCommentButton_clicked() {
     vdfTLComment->show();
 }
 
-void CreateVdfPage::on_goButton_clicked() {
-    //QList<QString> list;
-    /*vector<string> list;
-    QString momPopOrRoms = selectFilePage->momPopOrRoms;
-    //list = selectFilePage->getSelectedFiles();
-    list = selectFilePage->getSelectedFiles();
-    //qDebug() << list;
-
-    for (int i=0;i<5;i++) {
-        cout << list.at(i) << endl;
+void CreateVdfPage::on_selectAllButton_clicked() {
+    for (int i=0; i<varList.size(); i++) {
+        int row = i/3;
+        int col = i%3;
+        tableWidget->item(row,col)->setCheckState(Qt::Checked);
     }
-
-    if (momPopOrRoms == "mom"){
-        cout << "mom" << endl;
-        runMomVdfCreate(list,"mom");
-    }
-
-    if (momPopOrRoms == "pop"){
-        cout << "pop" << endl;;
-    }
-
-    if (momPopOrRoms == "roms"){
-        cout << "roms" << endl;
-    }
-
-    int argcx = 5;
-    char **argvx = new char * [argcx];
-
-    argvx[0] = "./momvdfcreate";
-    argvx[1] = "/Users/pearse/Documents/vaporTestData/00010101.ocean_month.NWPp2.Clim.nc";
-    argvx[2] = "test.vdf";
-    argvx[3] = "-vdc2";
-    argvx[4] = "-quiet";
-
-    //test();
-    //launch(argcx,argvx);*/
 }
 
-//void CreateVdfPage::runMomVdfCreate(vector<string> list, QString execution) {
+void CreateVdfPage::on_clearAllButton_clicked() {
+    for (int i=0; i<varList.size(); i++) {
+        int row = i/3;
+        int col = i%3;
+        tableWidget->item(row,col)->setCheckState(Qt::Unchecked);
+    }
+}
+
+void CreateVdfPage::on_browseOutputVdfFile_clicked(){
+    QString file = QFileDialog::getOpenFileName(this,"Select output metada (.vdf) file.");
+    QFileInfo fi(file);
+    outputVDFtext->setText(fi.fileName());
+}
+
+void CreateVdfPage::on_goButton_clicked() {
+    const char* delim = " ";
+    std::stringstream selectionVars;
+    vector<string> varsVector;
+
+    for (int i=0; i<varList.size(); i++) {
+        int row = i/3;
+        int col = i%3;
+        if (tableWidget->item(row,col)->checkState() > 0){
+            varsVector.push_back(tableWidget->item(row,col)->text().toStdString());
+        }
+    }
+
+    std::copy(varsVector.begin(), varsVector.end(),
+              std::ostream_iterator<std::string> (selectionVars,delim));
+    dataHolder->setVDFSelectionVars(selectionVars.str());
+    dataHolder->runMomVDFCreate();
+}
+
 void CreateVdfPage::runMomVdfCreate() {
-    //Comment = vdfTLComment->Comment;
-    //CRList = vdfAdvancedOpts->CRList;
-    //SBFactor = vdfAdvancedOpts->SBFactor;
-    //Periodicity = vdfAdvancedOpts->Periodicity;
-
-    /*int count = selectFilePage->fileData->GetVariableNames().size();
-    //for (int i=0;i<count;i++){
-    //    qDebug() << selectFilePage->fileData->GetVariableNames().at(i);
-    //}
-    //momData = new DCReaderMOM(list);
-
-   // momData->GetNumTimeSteps();
-    //momData->GetVariableNames();*/
-
-    qDebug() << Comment + CRList + SBFactor + Periodicity;
+    //qDebug() << Comment + CRList + SBFactor + Periodicity;
 }
 
 void CreateVdfPage::initializePage(){
     dataHolder->createReader();
 
-    startTimeSpinner->setValue(dataHolder->getVDFStartTime());
-    numtsSpinner->setValue(dataHolder->getVDFnumTS());
+    startTimeSpinner->setValue(atoi(dataHolder->getVDFStartTime().c_str()));
+    numtsSpinner->setValue(atoi(dataHolder->getVDFnumTS().c_str()));
 
     varList = dataHolder->getFileVars();
-    listWidget->setRowCount(varList.size()/3+1);
-    listWidget->setColumnCount(3);
-    listWidget->horizontalHeader()->setVisible(false);
+    tableWidget->setRowCount(varList.size()/3+1);
+    tableWidget->setColumnCount(3);
+    tableWidget->horizontalHeader()->setVisible(false);
 
     for (int i=0;i<varList.size();i++){
         QTableWidgetItem *item = new QTableWidgetItem(QString::fromStdString(varList.at(i)));
         item->setCheckState(Qt::Checked);
-        listWidget->setItem(i/3,i%3,item);
-        cout << varList.at(i) << endl;
+        int row = i/3;
+        int col = i%3;
+        tableWidget->setItem(row,col,item);
     }
-    listWidget->resizeColumnsToContents();
+    tableWidget->resizeColumnsToContents();
 }

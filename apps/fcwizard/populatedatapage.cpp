@@ -148,5 +148,5 @@ void PopulateDataPage::run2vdf() {
 }
 
 void PopulateDataPage::initializePage(){
-    numtsSpinner->setValue(dataHolder->getPDnumTS());
+    numtsSpinner->setValue(atoi(dataHolder->getPDnumTS().c_str()));
 }

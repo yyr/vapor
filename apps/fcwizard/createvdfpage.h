@@ -33,6 +33,9 @@ private slots:
     void on_goButton_clicked();
     void on_advanceOptionButton_clicked();
     void on_vdfCommentButton_clicked();
+    void on_clearAllButton_clicked();
+    void on_selectAllButton_clicked();
+    void on_browseOutputVdfFile_clicked();
 
 private:
     void initializePage();
