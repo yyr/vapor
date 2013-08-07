@@ -55,9 +55,9 @@ def CTT(P,PB,T,QCLOUD,QICE):
 			logArray1 = tmk[k,:,:]<celkel
 			opdepthd= numpy.where(logArray1,opdepthu+abscoefi*QCLOUD[k,:,:]*dp/grav,opdepthu+abscoef*QCLOUD[k,:,:]*dp/grav)
 			logArray= numpy.logical_and(opdepthd > 1.0,opdepthu <= 1.0)
-		#identify level when opac=1 is reached
-			CTT = numpy.where(logArray,tmk[k,:,:]-celkel,WRF_CTT[:,:])
-			opdepthu = opdepthd#Python program to calculate radar reflectivity using WRF variables
+			#identify level when opac=1 is reached
+			WRF_CTT = numpy.where(logArray,tmk[k,:,:]-celkel,WRF_CTT[:,:])
+			opdepthu = opdepthd
 	return WRF_CTT
 
 def DBZ(P,PB,QRAIN,QGRAUP,QSNOW,T,QVAPOR,iliqskin=0,ivarint=0):
