@@ -5,16 +5,7 @@
 #include <QWizardPage>
 #include "intropage.h"
 #include "dataholder.h"
-//#include "createvdfpage.h"
-//#include "populatedatapage.h"
 #include <ui/Page2.h>
-//#include "momvdfcreate.cpp"
-//#include <vapor/OptionParser.h>
-//#include <vapor/MetadataVDC.h>
-//#include <vapor/DCReaderMOM.h>
-//#include <vapor/DCReaderROMS.h>
-//#include <vapor/DCReader.h>
-//#include <vapor/CFuncs.h>
 
 namespace Ui {
 class SelectFilePage;
@@ -25,7 +16,7 @@ class SelectFilePage : public QWizardPage, public Ui_Page2
     Q_OBJECT
     
 public:
-    explicit SelectFilePage(IntroPage *Page, DataHolder *DH, QWidget *parent = 0);
+    explicit SelectFilePage(DataHolder *DH, QWidget *parent = 0);
     
     //VAPoR::DCReader *fileData;
     string momPopOrRoms;

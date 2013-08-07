@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'Page4.ui'
 **
-** Created: Mon Aug 5 10:25:28 2013
+** Created: Wed Aug 7 09:44:22 2013
 **      by: Qt User Interface Compiler version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -85,7 +85,7 @@ public:
         numtsSpinner->setValue(-1);
         label_28 = new QLabel(Page4);
         label_28->setObjectName(QString::fromUtf8("label_28"));
-        label_28->setGeometry(QRect(281, 63, 70, 20));
+        label_28->setGeometry(QRect(258, 63, 101, 20));
         label_28->setAlignment(Qt::AlignCenter);
         label_28->setWordWrap(true);
         browseOutputVdfFile = new QPushButton(Page4);
@@ -128,10 +128,10 @@ public:
     {
         Page4->setWindowTitle(QApplication::translate("Page4", "WizardPage", 0, QApplication::UnicodeUTF8));
         label->setText(QApplication::translate("Page4", "Populate Data", 0, QApplication::UnicodeUTF8));
-        label_29->setText(QApplication::translate("Page4", "Variables to be Copied", 0, QApplication::UnicodeUTF8));
+        label_29->setText(QApplication::translate("Page4", "Variables to be written:", 0, QApplication::UnicodeUTF8));
         label_26->setText(QApplication::translate("Page4", "# of Timesteps", 0, QApplication::UnicodeUTF8));
         label_12->setText(QApplication::translate("Page4", "Input VDF File:", 0, QApplication::UnicodeUTF8));
-        label_28->setText(QApplication::translate("Page4", "Start Time", 0, QApplication::UnicodeUTF8));
+        label_28->setText(QApplication::translate("Page4", "Start Time Step", 0, QApplication::UnicodeUTF8));
         browseOutputVdfFile->setText(QApplication::translate("Page4", "Browse", 0, QApplication::UnicodeUTF8));
         goButton->setText(QApplication::translate("Page4", "Go!", 0, QApplication::UnicodeUTF8));
         advancedOptionsButton->setText(QApplication::translate("Page4", "Advanced Options", 0, QApplication::UnicodeUTF8));

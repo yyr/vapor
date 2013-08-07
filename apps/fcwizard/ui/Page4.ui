@@ -46,7 +46,7 @@
     </font>
    </property>
    <property name="text">
-    <string>Variables to be Copied</string>
+    <string>Variables to be written:</string>
    </property>
   </widget>
   <widget class="QSpinBox" name="startTimeSpinner">
@@ -123,14 +123,14 @@
   <widget class="QLabel" name="label_28">
    <property name="geometry">
     <rect>
-     <x>281</x>
+     <x>258</x>
      <y>63</y>
-     <width>70</width>
+     <width>101</width>
      <height>20</height>
     </rect>
    </property>
    <property name="text">
-    <string>Start Time</string>
+    <string>Start Time Step</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>

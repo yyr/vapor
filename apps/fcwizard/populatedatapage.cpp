@@ -12,8 +12,8 @@ PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
     setupUi(this);
 
     dataHolder = DH;
-    popAdvancedOpts = new PopDataAdvanced;
-    timeConflicts = new ShowTimeConflicts;
+    popAdvancedOpts = new PopDataAdvanced(dataHolder);
+    timeConflicts = new ShowTimeConflicts(dataHolder);
 }
 
 void PopulateDataPage::printSomething() {

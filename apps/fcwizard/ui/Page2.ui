@@ -19,8 +19,8 @@
    </property>
    <property name="geometry">
     <rect>
-     <x>320</x>
-     <y>323</y>
+     <x>322</x>
+     <y>316</y>
      <width>61</width>
      <height>21</height>
     </rect>
@@ -41,7 +41,7 @@
      <x>20</x>
      <y>56</y>
      <width>436</width>
-     <height>250</height>
+     <height>164</height>
     </rect>
    </property>
    <property name="verticalScrollBarPolicy">
@@ -54,8 +54,8 @@
   <widget class="QLabel" name="label_8">
    <property name="geometry">
     <rect>
-     <x>63</x>
-     <y>317</y>
+     <x>65</x>
+     <y>310</y>
      <width>91</width>
      <height>31</height>
     </rect>
@@ -83,7 +83,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Add File(s)</string>
+    <string>Browse File(s)</string>
    </property>
   </widget>
   <widget class="QRadioButton" name="momRadioButton">
@@ -92,8 +92,8 @@
    </property>
    <property name="geometry">
     <rect>
-     <x>170</x>
-     <y>323</y>
+     <x>172</x>
+     <y>316</y>
      <width>61</width>
      <height>20</height>
     </rect>
@@ -140,8 +140,8 @@
    </property>
    <property name="geometry">
     <rect>
-     <x>250</x>
-     <y>323</y>
+     <x>252</x>
+     <y>316</y>
      <width>61</width>
      <height>20</height>
     </rect>
@@ -151,6 +151,42 @@
    </property>
    <property name="text">
     <string>POP</string>
+   </property>
+  </widget>
+  <widget class="QTextEdit" name="outputVDFtext">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>263</y>
+     <width>436</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="vdfLabel">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>237</y>
+     <width>101</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Output VDF File:</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="browseOutputVdfFile">
+   <property name="geometry">
+    <rect>
+     <x>320</x>
+     <y>232</y>
+     <width>121</width>
+     <height>32</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Browse</string>
    </property>
   </widget>
  </widget>

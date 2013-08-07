@@ -16,18 +16,21 @@ public:
     DataHolder();
 
     void runTest();
-
     void createReader();
 
-    // File selector set functions
+    // IntroPage sets operation, which defines whether we *vdfcreate or *2vdf
+    void setOperation(string op);
+    string getOperation();
+
+    // SelectFilePage's selector set functions
     void setType(string type);
     void setFiles(vector<string> files);
 
     // Create vdf setter functions
     void setVDFcomment(string comment);
     void setVDFfileName(string fileName);
-    void setVDFstartTime(int startTime);
-    void setVDFnumTS(int numTS);
+    void setVDFstartTime(string startTime);
+    void setVDFnumTS(string numTS);
     void setVDFcrList(string crList);
     void setVDFSBFactor(string sbFactor);
     void setVDFPeriodicity(string periodicity);
@@ -40,11 +43,11 @@ public:
 
     // Populate data setter fucntions
     void setPDVDFfile(string vdfFile);
-    void setPDstartTime(int startTime);
-    void setPDnumTS(int numTS);
-    void setPDrefLevel(int refinement);
-    void setPDcompLevel(int compression);
-    void setPDnumThreads(int numThreads);
+    void setPDstartTime(string startTime);
+    void setPDnumTS(string numTS);
+    void setPDrefLevel(string refinement);
+    void setPDcompLevel(string compression);
+    void setPDnumThreads(string numThreads);
     void setPDselectionVars(string selectionVars);
 
 
@@ -63,7 +66,7 @@ public:
     void runRoms2VDF();
 
 private:
-    // VAPoR::DCReader *testReader;
+    string operation;
 
     // Shared variables
     DCReader *reader;

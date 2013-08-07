@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>361</width>
-    <height>178</height>
+    <height>217</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -41,11 +41,14 @@
      <height>25</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string>Internal storage blocking factor expressed in grid points (NXxNYxNZ).  Default: 64x64x64.</string>
+   </property>
    <property name="minimum">
-    <number>-1</number>
+    <number>1</number>
    </property>
    <property name="value">
-    <number>-1</number>
+    <number>64</number>
    </property>
   </widget>
   <widget class="QSpinBox" name="bszSpinner">
@@ -57,11 +60,14 @@
      <height>25</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string>Internal storage blocking factor expressed in grid points (NXxNYxNZ).  Default: 64x64x64.</string>
+   </property>
    <property name="minimum">
-    <number>-1</number>
+    <number>1</number>
    </property>
    <property name="value">
-    <number>-1</number>
+    <number>64</number>
    </property>
   </widget>
   <widget class="QCheckBox" name="periodicxButton">
@@ -72,6 +78,9 @@
      <width>31</width>
      <height>20</height>
     </rect>
+   </property>
+   <property name="toolTip">
+    <string>Axis periodicity specifies whether data will &quot;loop back&quot; to its start or end point, after exceeding the bounds of an axis.</string>
    </property>
    <property name="text">
     <string>X</string>
@@ -118,6 +127,9 @@
      <height>21</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string>Colon delimited list compression ratios. The default is 1:10:100:500.  The maximum compression ratio is wavelet and block size dependent. </string>
+   </property>
    <property name="html">
     <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -148,11 +160,14 @@ p, li { white-space: pre-wrap; }
      <height>25</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string>Internal storage blocking factor expressed in grid points (NXxNYxNZ).  Default: 64x64x64.</string>
+   </property>
    <property name="minimum">
-    <number>-1</number>
+    <number>1</number>
    </property>
    <property name="value">
-    <number>-1</number>
+    <number>64</number>
    </property>
   </widget>
   <widget class="QCheckBox" name="periodiczButton">
@@ -172,7 +187,7 @@ p, li { white-space: pre-wrap; }
    <property name="geometry">
     <rect>
      <x>180</x>
-     <y>140</y>
+     <y>172</y>
      <width>114</width>
      <height>32</height>
     </rect>
@@ -185,13 +200,26 @@ p, li { white-space: pre-wrap; }
    <property name="geometry">
     <rect>
      <x>50</x>
-     <y>140</y>
+     <y>172</y>
      <width>114</width>
      <height>32</height>
     </rect>
    </property>
    <property name="text">
     <string>Cancel</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="restoreDefaultButton">
+   <property name="geometry">
+    <rect>
+     <x>89</x>
+     <y>138</y>
+     <width>171</width>
+     <height>32</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Restore Default Values</string>
    </property>
   </widget>
  </widget>

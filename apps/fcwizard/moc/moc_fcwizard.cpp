@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'fcwizard.h'
 **
-** Created: Wed Jul 31 16:08:09 2013
+** Created: Wed Aug 7 12:03:20 2013
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.3)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,33 +23,25 @@ static const uint qt_meta_data_FCWizard[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-       1,   14, // methods
+       0,    0, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
        0,       // flags
        0,       // signalCount
 
- // slots: signature, parameters, type, tag, flags
-      10,    9,    9,    9, 0x08,
-
        0        // eod
 };
 
 static const char qt_meta_stringdata_FCWizard[] = {
-    "FCWizard\0\0enableNextButton()\0"
+    "FCWizard\0"
 };
 
 void FCWizard::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
-    if (_c == QMetaObject::InvokeMetaMethod) {
-        Q_ASSERT(staticMetaObject.cast(_o));
-        FCWizard *_t = static_cast<FCWizard *>(_o);
-        switch (_id) {
-        case 0: _t->enableNextButton(); break;
-        default: ;
-        }
-    }
+    Q_UNUSED(_o);
+    Q_UNUSED(_id);
+    Q_UNUSED(_c);
     Q_UNUSED(_a);
 }
 
@@ -84,11 +76,6 @@ int FCWizard::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     _id = QWizard::qt_metacall(_c, _id, _a);
     if (_id < 0)
         return _id;
-    if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 1)
-            qt_static_metacall(this, _c, _id, _a);
-        _id -= 1;
-    }
     return _id;
 }
 QT_END_MOC_NAMESPACE

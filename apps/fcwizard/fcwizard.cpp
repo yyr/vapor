@@ -19,8 +19,9 @@ FCWizard::FCWizard(QWidget *parent) :
     resize(QSize(500,450).expandedTo(minimumSizeHint()));
 
     dataHolder = new DataHolder;
-    introPage = new IntroPage;
-    selectFilePage = new SelectFilePage(introPage, dataHolder);
+    introPage = new IntroPage(dataHolder);
+    //selectFilePage = new SelectFilePage(introPage, dataHolder);
+    selectFilePage = new SelectFilePage(dataHolder);
     createVdfPage = new CreateVdfPage(dataHolder);
     populateDataPage = new PopulateDataPage(dataHolder);
 
@@ -32,10 +33,15 @@ FCWizard::FCWizard(QWidget *parent) :
     setPage(Populate_DataPage, populateDataPage);
 
     setOption(QWizard::NoBackButtonOnStartPage,true);
-    button(QWizard::NextButton)->setEnabled(false);
+
+    //QAbstractButton *nextButton = button(QWizard::NextButton);
+    //nextButton->hide();
+    //button(QWizard::NextButton)->hide();//->setVisible(false);
 }
 
-void FCWizard::enableNextButton()
+/*void FCWizard::enableNextButton()
 {
-    FCWizard::button(QWizard::NextButton)->setEnabled(true);
-}
+    qDebug() << "enable next";
+    FCWizard::button(QWizard::NextButton)->setVisible(true);
+    //FCWizard::button(QWizard::NextButton)->setEnabled(true);
+}*/

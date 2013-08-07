@@ -6,13 +6,12 @@
 
 using namespace std;
 
-SelectFilePage::SelectFilePage(IntroPage *Page, DataHolder *DH, QWidget *parent) :
+SelectFilePage::SelectFilePage(DataHolder *DH, QWidget *parent) :
     QWizardPage(parent), Ui_Page2()
 {
     setupUi(this);
 
     momPopOrRoms = "mom";
-    introPage = Page;
     dataHolder = DH;
 }
 
@@ -75,6 +74,7 @@ bool SelectFilePage::validatePage(){
 
 int SelectFilePage::nextId() const
 {
-    if (introPage->operation == "vdfcreate") return FCWizard::Create_VdfPage;
+    //if (introPage->operation == "vdfcreate") return FCWizard::Create_VdfPage;
+    if (dataHolder->getOperation() == "vdfcreate") return FCWizard::Create_VdfPage;
     else return FCWizard::Populate_DataPage;
 }

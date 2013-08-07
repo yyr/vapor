@@ -28,10 +28,10 @@ public:
     PopulateDataPage *populateDataPage;
     
 private slots:
-    void enableNextButton();
+    //void enableNextButton();
 
 private:
-    QAbstractButton *nextButton;
+
 };
 
 #endif // FCWIZARDDIALOG_H

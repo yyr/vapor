@@ -16,15 +16,15 @@
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>22</x>
-     <y>14</y>
-     <width>101</width>
-     <height>21</height>
+     <x>80</x>
+     <y>10</y>
+     <width>121</width>
+     <height>41</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>17</pointsize>
+     <pointsize>19</pointsize>
     </font>
    </property>
    <property name="text">
@@ -46,20 +46,20 @@
     </font>
    </property>
    <property name="text">
-    <string>Variables to be Copied:</string>
+    <string>Variables to include:</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_11">
    <property name="geometry">
     <rect>
-     <x>281</x>
+     <x>261</x>
      <y>63</y>
-     <width>71</width>
+     <width>96</width>
      <height>20</height>
     </rect>
    </property>
    <property name="text">
-    <string>Start Time</string>
+    <string>Start Time Step</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_3">
@@ -139,24 +139,11 @@
     <string>Browse</string>
    </property>
   </widget>
-  <widget class="QProgressBar" name="progressBar">
-   <property name="geometry">
-    <rect>
-     <x>320</x>
-     <y>335</y>
-     <width>131</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="value">
-    <number>24</number>
-   </property>
-  </widget>
   <widget class="QPushButton" name="goButton">
    <property name="geometry">
     <rect>
-     <x>245</x>
-     <y>329</y>
+     <x>390</x>
+     <y>330</y>
      <width>71</width>
      <height>32</height>
     </rect>
@@ -168,8 +155,8 @@
   <widget class="QPushButton" name="advanceOptionButton">
    <property name="geometry">
     <rect>
-     <x>38</x>
-     <y>329</y>
+     <x>30</x>
+     <y>330</y>
      <width>161</width>
      <height>32</height>
     </rect>
@@ -230,8 +217,8 @@
   <widget class="QPushButton" name="vdfCommentButton">
    <property name="geometry">
     <rect>
-     <x>15</x>
-     <y>37</y>
+     <x>200</x>
+     <y>330</y>
      <width>183</width>
      <height>32</height>
     </rect>
@@ -248,6 +235,19 @@
      <width>199</width>
      <height>22</height>
     </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="createVdfLabel">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>10</y>
+     <width>55</width>
+     <height>50</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
    </property>
   </widget>
  </widget>

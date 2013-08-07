@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'Page4adv.ui'
 **
-** Created: Wed Jul 31 16:08:32 2013
+** Created: Wed Aug 7 09:44:23 2013
 **      by: Qt User Interface Compiler version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -33,12 +33,13 @@ public:
     QLabel *label_23;
     QPushButton *acceptButton;
     QPushButton *cancelButton;
+    QPushButton *restoreDefaultButton;
 
     void setupUi(QDialog *Page4adv)
     {
         if (Page4adv->objectName().isEmpty())
             Page4adv->setObjectName(QString::fromUtf8("Page4adv"));
-        Page4adv->resize(301, 185);
+        Page4adv->resize(301, 219);
         label_24 = new QLabel(Page4adv);
         label_24->setObjectName(QString::fromUtf8("label_24"));
         label_24->setGeometry(QRect(36, 58, 131, 16));
@@ -55,22 +56,25 @@ public:
         refinementLevelSpinner->setObjectName(QString::fromUtf8("refinementLevelSpinner"));
         refinementLevelSpinner->setGeometry(QRect(170, 10, 82, 25));
         refinementLevelSpinner->setMinimum(-1);
-        refinementLevelSpinner->setValue(-1);
+        refinementLevelSpinner->setValue(0);
         compressionLevelSpinner = new QSpinBox(Page4adv);
         compressionLevelSpinner->setObjectName(QString::fromUtf8("compressionLevelSpinner"));
         compressionLevelSpinner->setGeometry(QRect(170, 56, 82, 25));
         compressionLevelSpinner->setMinimum(-1);
-        compressionLevelSpinner->setValue(-1);
+        compressionLevelSpinner->setValue(0);
         label_23 = new QLabel(Page4adv);
         label_23->setObjectName(QString::fromUtf8("label_23"));
         label_23->setGeometry(QRect(44, 14, 111, 16));
         label_23->setWordWrap(true);
         acceptButton = new QPushButton(Page4adv);
         acceptButton->setObjectName(QString::fromUtf8("acceptButton"));
-        acceptButton->setGeometry(QRect(150, 150, 114, 32));
+        acceptButton->setGeometry(QRect(150, 180, 114, 32));
         cancelButton = new QPushButton(Page4adv);
         cancelButton->setObjectName(QString::fromUtf8("cancelButton"));
-        cancelButton->setGeometry(QRect(30, 150, 114, 32));
+        cancelButton->setGeometry(QRect(30, 180, 114, 32));
+        restoreDefaultButton = new QPushButton(Page4adv);
+        restoreDefaultButton->setObjectName(QString::fromUtf8("restoreDefaultButton"));
+        restoreDefaultButton->setGeometry(QRect(70, 146, 171, 32));
 
         retranslateUi(Page4adv);
 
@@ -82,9 +86,19 @@ public:
         Page4adv->setWindowTitle(QApplication::translate("Page4adv", "Populate VDF Data: Advanced Options", 0, QApplication::UnicodeUTF8));
         label_24->setText(QApplication::translate("Page4adv", "Compression Level", 0, QApplication::UnicodeUTF8));
         label_25->setText(QApplication::translate("Page4adv", "Number of     Threads", 0, QApplication::UnicodeUTF8));
+#ifndef QT_NO_TOOLTIP
+        numThreadsSpinner->setToolTip(QApplication::translate("Page4adv", "Number of execution threads (0 => # processors).", 0, QApplication::UnicodeUTF8));
+#endif // QT_NO_TOOLTIP
+#ifndef QT_NO_TOOLTIP
+        refinementLevelSpinner->setToolTip(QApplication::translate("Page4adv", "Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest.", 0, QApplication::UnicodeUTF8));
+#endif // QT_NO_TOOLTIP
+#ifndef QT_NO_TOOLTIP
+        compressionLevelSpinner->setToolTip(QApplication::translate("Page4adv", "Compression levels saved. 0 => coarsest, 1 => next refinement, etc. -1  => all levels defined by the .vdf file. ", 0, QApplication::UnicodeUTF8));
+#endif // QT_NO_TOOLTIP
         label_23->setText(QApplication::translate("Page4adv", "Refinement Level", 0, QApplication::UnicodeUTF8));
         acceptButton->setText(QApplication::translate("Page4adv", "Accept", 0, QApplication::UnicodeUTF8));
         cancelButton->setText(QApplication::translate("Page4adv", "Cancel", 0, QApplication::UnicodeUTF8));
+        restoreDefaultButton->setText(QApplication::translate("Page4adv", "Restore Default Values", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };

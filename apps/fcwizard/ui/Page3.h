@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'Page3.ui'
 **
-** Created: Mon Aug 5 10:25:27 2013
+** Created: Wed Aug 7 09:44:20 2013
 **      by: Qt User Interface Compiler version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -16,7 +16,6 @@
 #include <QtGui/QButtonGroup>
 #include <QtGui/QHeaderView>
 #include <QtGui/QLabel>
-#include <QtGui/QProgressBar>
 #include <QtGui/QPushButton>
 #include <QtGui/QSpinBox>
 #include <QtGui/QTableWidget>
@@ -36,7 +35,6 @@ public:
     QSpinBox *startTimeSpinner;
     QLabel *label_14;
     QPushButton *browseOutputVdfFile;
-    QProgressBar *progressBar;
     QPushButton *goButton;
     QPushButton *advanceOptionButton;
     QPushButton *selectAllButton;
@@ -45,6 +43,7 @@ public:
     QTableWidget *tableWidget;
     QPushButton *vdfCommentButton;
     QTextEdit *outputVDFtext;
+    QLabel *createVdfLabel;
 
     void setupUi(QWizardPage *Page3)
     {
@@ -53,9 +52,9 @@ public:
         Page3->resize(475, 360);
         label = new QLabel(Page3);
         label->setObjectName(QString::fromUtf8("label"));
-        label->setGeometry(QRect(22, 14, 101, 21));
+        label->setGeometry(QRect(80, 10, 121, 41));
         QFont font;
-        font.setPointSize(17);
+        font.setPointSize(19);
         label->setFont(font);
         label_40 = new QLabel(Page3);
         label_40->setObjectName(QString::fromUtf8("label_40"));
@@ -65,7 +64,7 @@ public:
         label_40->setFont(font1);
         label_11 = new QLabel(Page3);
         label_11->setObjectName(QString::fromUtf8("label_11"));
-        label_11->setGeometry(QRect(281, 63, 71, 20));
+        label_11->setGeometry(QRect(261, 63, 96, 20));
         label_3 = new QLabel(Page3);
         label_3->setObjectName(QString::fromUtf8("label_3"));
         label_3->setGeometry(QRect(261, 90, 101, 20));
@@ -87,16 +86,12 @@ public:
         browseOutputVdfFile = new QPushButton(Page3);
         browseOutputVdfFile->setObjectName(QString::fromUtf8("browseOutputVdfFile"));
         browseOutputVdfFile->setGeometry(QRect(383, 8, 82, 23));
-        progressBar = new QProgressBar(Page3);
-        progressBar->setObjectName(QString::fromUtf8("progressBar"));
-        progressBar->setGeometry(QRect(320, 335, 131, 23));
-        progressBar->setValue(24);
         goButton = new QPushButton(Page3);
         goButton->setObjectName(QString::fromUtf8("goButton"));
-        goButton->setGeometry(QRect(245, 329, 71, 32));
+        goButton->setGeometry(QRect(390, 330, 71, 32));
         advanceOptionButton = new QPushButton(Page3);
         advanceOptionButton->setObjectName(QString::fromUtf8("advanceOptionButton"));
-        advanceOptionButton->setGeometry(QRect(38, 329, 161, 32));
+        advanceOptionButton->setGeometry(QRect(30, 330, 161, 32));
         selectAllButton = new QPushButton(Page3);
         selectAllButton->setObjectName(QString::fromUtf8("selectAllButton"));
         selectAllButton->setGeometry(QRect(20, 89, 71, 21));
@@ -111,10 +106,13 @@ public:
         tableWidget->setGeometry(QRect(20, 121, 439, 200));
         vdfCommentButton = new QPushButton(Page3);
         vdfCommentButton->setObjectName(QString::fromUtf8("vdfCommentButton"));
-        vdfCommentButton->setGeometry(QRect(15, 37, 183, 32));
+        vdfCommentButton->setGeometry(QRect(200, 330, 183, 32));
         outputVDFtext = new QTextEdit(Page3);
         outputVDFtext->setObjectName(QString::fromUtf8("outputVDFtext"));
         outputVDFtext->setGeometry(QRect(260, 35, 199, 22));
+        createVdfLabel = new QLabel(Page3);
+        createVdfLabel->setObjectName(QString::fromUtf8("createVdfLabel"));
+        createVdfLabel->setGeometry(QRect(20, 10, 55, 50));
 
         retranslateUi(Page3);
 
@@ -125,8 +123,8 @@ public:
     {
         Page3->setWindowTitle(QApplication::translate("Page3", "WizardPage", 0, QApplication::UnicodeUTF8));
         label->setText(QApplication::translate("Page3", "Create VDF", 0, QApplication::UnicodeUTF8));
-        label_40->setText(QApplication::translate("Page3", "Variables to be Copied:", 0, QApplication::UnicodeUTF8));
-        label_11->setText(QApplication::translate("Page3", "Start Time", 0, QApplication::UnicodeUTF8));
+        label_40->setText(QApplication::translate("Page3", "Variables to include:", 0, QApplication::UnicodeUTF8));
+        label_11->setText(QApplication::translate("Page3", "Start Time Step", 0, QApplication::UnicodeUTF8));
         label_3->setText(QApplication::translate("Page3", "# of Timesteps", 0, QApplication::UnicodeUTF8));
         label_14->setText(QApplication::translate("Page3", "Output VDF File:", 0, QApplication::UnicodeUTF8));
         browseOutputVdfFile->setText(QApplication::translate("Page3", "Browse", 0, QApplication::UnicodeUTF8));
@@ -136,6 +134,7 @@ public:
         addNewButton->setText(QApplication::translate("Page3", "Add New", 0, QApplication::UnicodeUTF8));
         clearAllButton->setText(QApplication::translate("Page3", "Clear All", 0, QApplication::UnicodeUTF8));
         vdfCommentButton->setText(QApplication::translate("Page3", "Add VDF Comment", 0, QApplication::UnicodeUTF8));
+        createVdfLabel->setText(QString());
     } // retranslateUi
 
 };

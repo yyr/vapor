@@ -12,6 +12,10 @@ CreateVdfPage::CreateVdfPage(DataHolder *DH, QWidget *parent) :
 {
     setupUi(this);
 
+    QPixmap createVDFPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/makeVDFsmall.png");
+    //createVDFPixmap.scaled(55,50);
+    createVdfLabel->setPixmap(createVDFPixmap.scaled(55,50,Qt::KeepAspectRatio));
+
     dataHolder = DH;
     vdfAdvancedOpts = new CreateVdfAdvanced(dataHolder);
     vdfTLComment = new CreateVdfComment(dataHolder);
@@ -28,6 +32,8 @@ void CreateVdfPage::on_advanceOptionButton_clicked() {
 void CreateVdfPage::on_vdfCommentButton_clicked() {
     vdfTLComment->show();
 }
+
+//void CreateVdfPage::on_addNewButton_clicked() {}
 
 void CreateVdfPage::on_selectAllButton_clicked() {
     for (int i=0; i<varList.size(); i++) {
@@ -49,10 +55,15 @@ void CreateVdfPage::on_browseOutputVdfFile_clicked(){
     QString file = QFileDialog::getOpenFileName(this,"Select output metada (.vdf) file.");
     QFileInfo fi(file);
     outputVDFtext->setText(fi.fileName());
+    dataHolder->setVDFfileName(fi.absoluteFilePath().toStdString());
+}
+
+void CreateVdfPage::on_outputVDFtext_textChanged() {
+    dataHolder->setVDFfileName(outputVDFtext->toPlainText().toStdString());
 }
 
 void CreateVdfPage::on_goButton_clicked() {
-    const char* delim = " ";
+    const char* delim = ":";
     std::stringstream selectionVars;
     vector<string> varsVector;
 
@@ -76,6 +87,9 @@ void CreateVdfPage::runMomVdfCreate() {
 
 void CreateVdfPage::initializePage(){
     dataHolder->createReader();
+
+    //startTimeSpinner->setValue(atoi(dataHolder->getVDFStartTime().c_str()));
+    //numtsSpinner->setValue(atoi(dataHolder->getVDFnumTS().c_str()));
 
     startTimeSpinner->setValue(atoi(dataHolder->getVDFStartTime().c_str()));
     numtsSpinner->setValue(atoi(dataHolder->getVDFnumTS().c_str()));

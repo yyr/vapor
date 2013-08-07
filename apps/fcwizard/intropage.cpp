@@ -1,13 +1,15 @@
-#include "fcwizard.h"
+//#include "fcwizard.h"
 #include "intropage.h"
 #include "ui/Page1.h"
+#include "dataholder.h"
 #include <QDebug>
 
-IntroPage::IntroPage(QWidget *parent) :
+IntroPage::IntroPage(DataHolder *DH, QWidget *parent) :
     QWizardPage(parent),Ui_Page1()
 {
     setupUi(this);
 
+    dataHolder = DH;
     QPixmap createVDFPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/makeVDFsmall.png");
     QIcon createVDFButtonIcon(createVDFPixmap);
     createVDFButton->setIcon(createVDFButtonIcon);
@@ -22,21 +24,22 @@ IntroPage::IntroPage(QWidget *parent) :
 
     registerField("vdfcreate",createVDFButton);
     registerField("2vdf",populateDataButton);
-
 }
 
 void IntroPage::on_createVDFButton_clicked()
 {
     if (populateDataButton->isChecked()==1) populateDataButton->setChecked(false);
-    operation = "vdfcreate";
-    completeChanged();          //call isComplete() to enable or disable 'next' button
+    dataHolder->setOperation("vdfcreate");
+    wizard()->next();
+    //completeChanged();          //call isComplete() to enable or disable 'next' button
 }
 
 void IntroPage::on_populateDataButton_clicked()
 {
     if (createVDFButton->isChecked()==1) createVDFButton->setChecked(false);
-    operation = "2vdf";
-    completeChanged();          //call isComplete() to enable or disable 'next' button
+    dataHolder->setOperation("2vdf");
+    wizard()->next();
+    //completeChanged();          //call isComplete() to enable or disable 'next' button
 }
 
 bool IntroPage::isComplete() const

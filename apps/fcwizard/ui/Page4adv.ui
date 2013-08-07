@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>301</width>
-    <height>185</height>
+    <height>219</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -57,6 +57,9 @@
      <height>25</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string>Number of execution threads (0 =&gt; # processors).</string>
+   </property>
   </widget>
   <widget class="QSpinBox" name="refinementLevelSpinner">
    <property name="geometry">
@@ -67,11 +70,14 @@
      <height>25</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string>Refinement levels saved. 0=&gt;coarsest, 1=&gt;next refinement, etc. -1=&gt;finest.</string>
+   </property>
    <property name="minimum">
     <number>-1</number>
    </property>
    <property name="value">
-    <number>-1</number>
+    <number>0</number>
    </property>
   </widget>
   <widget class="QSpinBox" name="compressionLevelSpinner">
@@ -83,11 +89,14 @@
      <height>25</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string>Compression levels saved. 0 =&gt; coarsest, 1 =&gt; next refinement, etc. -1  =&gt; all levels defined by the .vdf file. </string>
+   </property>
    <property name="minimum">
     <number>-1</number>
    </property>
    <property name="value">
-    <number>-1</number>
+    <number>0</number>
    </property>
   </widget>
   <widget class="QLabel" name="label_23">
@@ -110,7 +119,7 @@
    <property name="geometry">
     <rect>
      <x>150</x>
-     <y>150</y>
+     <y>180</y>
      <width>114</width>
      <height>32</height>
     </rect>
@@ -123,13 +132,26 @@
    <property name="geometry">
     <rect>
      <x>30</x>
-     <y>150</y>
+     <y>180</y>
      <width>114</width>
      <height>32</height>
     </rect>
    </property>
    <property name="text">
     <string>Cancel</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="restoreDefaultButton">
+   <property name="geometry">
+    <rect>
+     <x>70</x>
+     <y>146</y>
+     <width>171</width>
+     <height>32</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Restore Default Values</string>
    </property>
   </widget>
  </widget>
