@@ -500,7 +500,8 @@ void Transform3d::clear()
 {
    for (int i=0; i<_transformations.size(); i++)
    {
-      delete _transformations[i]; _transformations[i] = NULL;
+      if (_transformations[i]) delete _transformations[i];
+	  _transformations[i] = NULL;
    }
 
    _transformations.clear();
