@@ -219,6 +219,8 @@ void VizWin::resizeEvent(QResizeEvent*){
 			myWinMgr->normalize(myWindowNum);
 			
 		}
+		QSize sz = size();
+		MessageReporter::infoMsg("Window size %d x %d",sz.width(), sz.height());
 }
 
 void VizWin::hideEvent(QHideEvent* ){
