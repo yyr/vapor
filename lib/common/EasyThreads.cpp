@@ -44,6 +44,24 @@ DWORD WINAPI runner(void* arg)
 EasyThreads::EasyThreads(
 	int	nthreads
 ) {
+
+#ifndef WIN32
+	nthreads_c = 0;
+	threads_c = NULL;
+	block_c = 0;
+	count_c = 0;
+#else   
+	nthreads_c = 0;
+	threads_c = NULL;
+	initialized_c = false;
+	nblocked_c = 0;
+	mutices_c = NULL;
+	bMutices_c = NULL;
+	mutex_c = NULL;
+	bMutex_c = NULL;
+#endif
+
+
 #ifdef ENABLE_THREADS
 	if (nthreads < 1) nthreads = NProc();
 #ifndef WIN32
