@@ -113,32 +113,6 @@
     <number>1</number>
    </property>
   </widget>
-  <widget class="QLabel" name="label_14">
-   <property name="geometry">
-    <rect>
-     <x>260</x>
-     <y>13</y>
-     <width>101</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Output VDF File:</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="browseOutputVdfFile">
-   <property name="geometry">
-    <rect>
-     <x>383</x>
-     <y>8</y>
-     <width>82</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Browse</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="goButton">
    <property name="geometry">
     <rect>
@@ -227,23 +201,13 @@
     <string>Add VDF Comment</string>
    </property>
   </widget>
-  <widget class="QTextEdit" name="outputVDFtext">
-   <property name="geometry">
-    <rect>
-     <x>260</x>
-     <y>35</y>
-     <width>199</width>
-     <height>22</height>
-    </rect>
-   </property>
-  </widget>
   <widget class="QLabel" name="createVdfLabel">
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>10</y>
+     <y>8</y>
      <width>55</width>
-     <height>50</height>
+     <height>58</height>
     </rect>
    </property>
    <property name="text">

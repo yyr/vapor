@@ -51,16 +51,16 @@ void CreateVdfPage::on_clearAllButton_clicked() {
     }
 }
 
-void CreateVdfPage::on_browseOutputVdfFile_clicked(){
+/*void CreateVdfPage::on_browseOutputVdfFile_clicked(){
     QString file = QFileDialog::getOpenFileName(this,"Select output metada (.vdf) file.");
     QFileInfo fi(file);
     outputVDFtext->setText(fi.fileName());
     dataHolder->setVDFfileName(fi.absoluteFilePath().toStdString());
-}
+}*/
 
-void CreateVdfPage::on_outputVDFtext_textChanged() {
+/*void CreateVdfPage::on_outputVDFtext_textChanged() {
     dataHolder->setVDFfileName(outputVDFtext->toPlainText().toStdString());
-}
+}*/
 
 void CreateVdfPage::on_goButton_clicked() {
     const char* delim = ":";

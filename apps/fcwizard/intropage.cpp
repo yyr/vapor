@@ -10,7 +10,7 @@ IntroPage::IntroPage(DataHolder *DH, QWidget *parent) :
     setupUi(this);
 
     dataHolder = DH;
-    QPixmap createVDFPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/makeVDFsmall.png");
+    QPixmap createVDFPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/makeVDF.png");
     QIcon createVDFButtonIcon(createVDFPixmap);
     createVDFButton->setIcon(createVDFButtonIcon);
     createVDFButton->setIconSize(createVDFPixmap.rect().size());

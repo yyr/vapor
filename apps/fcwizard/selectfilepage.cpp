@@ -13,6 +13,15 @@ SelectFilePage::SelectFilePage(DataHolder *DH, QWidget *parent) :
 
     momPopOrRoms = "mom";
     dataHolder = DH;
+    vdfCreatePixmap = QPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/makeVDFsmall.png");
+    toVdfPixmap = QPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/2vdfsmall.png");
+}
+
+void SelectFilePage::on_browseOutputVdfFile_clicked() {
+    QString file = QFileDialog::getOpenFileName(this,"Select output metada (.vdf) file.");
+    QFileInfo fi(file);
+    outputVDFtext->setText(fi.absoluteFilePath());
+    dataHolder->setVDFfileName(fi.absoluteFilePath().toStdString());
 }
 
 void SelectFilePage::on_addFileButton_clicked() {
@@ -66,6 +75,17 @@ vector<string> SelectFilePage::getSelectedFiles() {
     for (int i=0;i<fileList->count();i++)
         stdStrings.push_back(fileList->item(i)->text().toStdString());
     return stdStrings;
+}
+
+void SelectFilePage::initializePage() {
+    if (dataHolder->getOperation() == "vdfcreate"){
+        selectFilePixmap->setPixmap(vdfCreatePixmap);//.scaled(55,50,Qt::KeepAspectRatio));
+        vdfLabel->setText("Output VDF File:");
+    }
+    else {
+        selectFilePixmap->setPixmap(toVdfPixmap);//,50,Qt::KeepAspectRatio));
+        vdfLabel->setText("Reference VDF File:");
+    }
 }
 
 bool SelectFilePage::validatePage(){

@@ -24,7 +24,8 @@ public:
     DataHolder *dataHolder;
     vector<string> stdFileList;
     vector<string> getSelectedFiles();
-
+    QPixmap vdfCreatePixmap;
+    QPixmap toVdfPixmap;
     //CreateVdfPage *createVdfPage;
     //PopulateDataPage *populateDataPage;
     //QList<QString> getSelectedFiles();
@@ -32,6 +33,7 @@ public:
     //void getOtherPages(CreateVdfPage *cVdfPage, PopulateDataPage *pDataPage);
 
 private slots:
+    void on_browseOutputVdfFile_clicked();
     void on_addFileButton_clicked();
     void on_removeFileButton_clicked();
     void on_momRadioButton_clicked();
@@ -41,6 +43,7 @@ private slots:
 private:
     int nextId() const;
     bool validatePage();
+    void initializePage();
 };
 
 #endif // SELECTFILEPAGE_H

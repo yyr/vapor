@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'selectfilepage.h'
 **
-** Created: Wed Aug 7 13:54:12 2013
+** Created: Wed Aug 7 16:24:49 2013
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.3)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_SelectFilePage[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-       5,   14, // methods
+       6,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -32,16 +32,18 @@ static const uint qt_meta_data_SelectFilePage[] = {
 
  // slots: signature, parameters, type, tag, flags
       16,   15,   15,   15, 0x08,
-      43,   15,   15,   15, 0x08,
-      73,   15,   15,   15, 0x08,
-     101,   15,   15,   15, 0x08,
-     129,   15,   15,   15, 0x08,
+      49,   15,   15,   15, 0x08,
+      76,   15,   15,   15, 0x08,
+     106,   15,   15,   15, 0x08,
+     134,   15,   15,   15, 0x08,
+     162,   15,   15,   15, 0x08,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_SelectFilePage[] = {
-    "SelectFilePage\0\0on_addFileButton_clicked()\0"
+    "SelectFilePage\0\0on_browseOutputVdfFile_clicked()\0"
+    "on_addFileButton_clicked()\0"
     "on_removeFileButton_clicked()\0"
     "on_momRadioButton_clicked()\0"
     "on_popRadioButton_clicked()\0"
@@ -54,11 +56,12 @@ void SelectFilePage::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _
         Q_ASSERT(staticMetaObject.cast(_o));
         SelectFilePage *_t = static_cast<SelectFilePage *>(_o);
         switch (_id) {
-        case 0: _t->on_addFileButton_clicked(); break;
-        case 1: _t->on_removeFileButton_clicked(); break;
-        case 2: _t->on_momRadioButton_clicked(); break;
-        case 3: _t->on_popRadioButton_clicked(); break;
-        case 4: _t->on_romsRadioButton_clicked(); break;
+        case 0: _t->on_browseOutputVdfFile_clicked(); break;
+        case 1: _t->on_addFileButton_clicked(); break;
+        case 2: _t->on_removeFileButton_clicked(); break;
+        case 3: _t->on_momRadioButton_clicked(); break;
+        case 4: _t->on_popRadioButton_clicked(); break;
+        case 5: _t->on_romsRadioButton_clicked(); break;
         default: ;
         }
     }
@@ -99,9 +102,9 @@ int SelectFilePage::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 5)
+        if (_id < 6)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 5;
+        _id -= 6;
     }
     return _id;
 }

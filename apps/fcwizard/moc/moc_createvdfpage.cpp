@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'createvdfpage.h'
 **
-** Created: Tue Aug 6 09:49:55 2013
+** Created: Wed Aug 7 15:06:21 2013
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.3)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_CreateVdfPage[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-       7,   14, // methods
+       5,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -36,8 +36,6 @@ static const uint qt_meta_data_CreateVdfPage[] = {
       70,   14,   14,   14, 0x08,
      100,   14,   14,   14, 0x08,
      128,   14,   14,   14, 0x08,
-     157,   14,   14,   14, 0x08,
-     190,   14,   14,   14, 0x08,
 
        0        // eod
 };
@@ -48,8 +46,6 @@ static const char qt_meta_stringdata_CreateVdfPage[] = {
     "on_vdfCommentButton_clicked()\0"
     "on_clearAllButton_clicked()\0"
     "on_selectAllButton_clicked()\0"
-    "on_browseOutputVdfFile_clicked()\0"
-    "on_outputVDFtext_textChanged()\0"
 };
 
 void CreateVdfPage::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -63,8 +59,6 @@ void CreateVdfPage::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _i
         case 2: _t->on_vdfCommentButton_clicked(); break;
         case 3: _t->on_clearAllButton_clicked(); break;
         case 4: _t->on_selectAllButton_clicked(); break;
-        case 5: _t->on_browseOutputVdfFile_clicked(); break;
-        case 6: _t->on_outputVDFtext_textChanged(); break;
         default: ;
         }
     }
@@ -105,9 +99,9 @@ int CreateVdfPage::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 7)
+        if (_id < 5)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 7;
+        _id -= 5;
     }
     return _id;
 }
