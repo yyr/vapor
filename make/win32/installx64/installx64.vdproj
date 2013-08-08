@@ -67642,7 +67642,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:VAPOR"
         "ProductCode" = "8:{39315C4D-F4AA-441E-AE2B-2CC06FEB7F27}"
-        "PackageCode" = "8:{581B80A3-23C3-46ED-9B30-41F1AA745FDE}"
+        "PackageCode" = "8:{D1BD1912-996B-45C8-B4C5-698B73CAE0CE}"
         "UpgradeCode" = "8:{90D1C324-DDA2-4EC4-8710-412094C25649}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
