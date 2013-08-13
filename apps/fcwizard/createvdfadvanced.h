@@ -1,3 +1,24 @@
+//************************************************************************
+//                                                                                                                                              *
+//                   Copyright (C)  2013                                                                                *
+//     University Corporation for Atmospheric Research                                  *
+//                   All Rights Reserved                                                                                *
+//                                                                                                                                              *
+//************************************************************************/
+//
+//      File:           createvdfadvanced.h
+//
+//      Author:         Scott Pearse
+//                      National Center for Atmospheric Research
+//                      PO 3000, Boulder, Colorado
+//
+//      Date:           August 2013
+//
+//      Description:    Implements the advanced options user interface
+//                      for creating VDF metadata files
+//
+//
+
 #ifndef CREATEVDFADVANCED_H
 #define CREATEVDFADVANCED_H
 

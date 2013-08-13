@@ -1,3 +1,24 @@
+//************************************************************************
+//                                                                                                                                              *
+//                   Copyright (C)  2013                                                                                *
+//     University Corporation for Atmospheric Research                                  *
+//                   All Rights Reserved                                                                                *
+//                                                                                                                                              *
+//************************************************************************/
+//
+//      File:           popdataadvanced.cpp
+//
+//      Author:         Scott Pearse
+//                      National Center for Atmospheric Research
+//                      PO 3000, Boulder, Colorado
+//
+//      Date:           August 2013
+//
+//      Description:    Advanced options for VDC data population,
+//                      including refinement level, compression level,
+//                      and number of threads
+//
+
 #include "popdataadvanced.h"
 #include "ui/Page4adv.h"
 #include "dataholder.h"

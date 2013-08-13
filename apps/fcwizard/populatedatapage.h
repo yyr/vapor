@@ -1,3 +1,24 @@
+//************************************************************************
+//                                                                                                                                              *
+//                   Copyright (C)  2013                                                                                *
+//     University Corporation for Atmospheric Research                                  *
+//                   All Rights Reserved                                                                                *
+//                                                                                                                                              *
+//************************************************************************/
+//
+//      File:           populatedatapage.h
+//
+//      Author:         Scott Pearse
+//                      National Center for Atmospheric Research
+//                      PO 3000, Boulder, Colorado
+//
+//      Date:           August 2013
+//
+//      Description:    QWizardPage reimplementation that steps the user
+//                      through selecting parameters for populating VDC
+//                      data content.
+//
+
 #ifndef POPULATEDATAPAGE_H
 #define POPULATEDATAPAGE_H
 
@@ -32,6 +53,7 @@ private slots:
     void warnButton_clicked();
 
 private:
+    void cleanupPage();
     void initializePage();
     void checkArguments();
     void run2vdf();

@@ -1,3 +1,24 @@
+//************************************************************************
+//                                                                                                                                              *
+//                   Copyright (C)  2013                                                                                *
+//     University Corporation for Atmospheric Research                                  *
+//                   All Rights Reserved                                                                                *
+//                                                                                                                                              *
+//************************************************************************/
+//
+//      File:           dataholder.h
+//
+//      Author:         Scott Pearse
+//                      National Center for Atmospheric Research
+//                      PO 3000, Boulder, Colorado
+//
+//      Date:           August 2013
+//
+//      Description:    Implements an entity class that holds and shares
+//                      data values that are selected by the user in
+//                      FCWizard's contained pages.
+//
+
 #ifndef DATAHOLDER_H
 #define DATAHOLDER_H
 
@@ -15,15 +36,11 @@ class DataHolder
 public:
     DataHolder();
 
-    void runTest();
     void createReader();
 
-    // IntroPage sets operation, which defines whether we *vdfcreate or *2vdf
+    // File selection set functions
     void setOperation(string op);
-    string getOperation();
-
-    // SelectFilePage's selector set functions
-    void setType(string type);
+    void setFileType(string type);
     void setFiles(vector<string> files);
 
     // Create vdf setter functions
@@ -36,11 +53,6 @@ public:
     void setVDFPeriodicity(string periodicity);
     void setVDFSelectionVars(string selectionVars);
 
-    //int getVDFStartTime();
-    //int getVDFnumTS();
-    string getVDFStartTime();
-    string getVDFnumTS();
-
     // Populate data setter fucntions
     void setPDVDFfile(string vdfFile);
     void setPDstartTime(string startTime);
@@ -50,14 +62,20 @@ public:
     void setPDnumThreads(string numThreads);
     void setPDselectionVars(string selectionVars);
 
+    // Get functions used by create VDF
+    string getVDFfileName();
+    string getVDFnumTS();
 
-    //int getPDnumTS();
+    // Get functions used by Populate Data
     string getPDnumTS();
+    string getVDFStartTime();
 
     // Get functions (used by createVDF and Populate Data)
     vector<string> getFileVars();
+    string getOperation();
     string getVDFSelectionVars();
     string getPDSelectionVars();
+    string getFileType();
 
     // File generation commands
     void runMomVDFCreate();
@@ -78,8 +96,6 @@ private:
     // (prefixed with VDF where necessary)
     string VDFstartTime;
     string VDFnumTS;
-    //int sbx, sby, sbz;
-    //bool apx, apy, apz;
     string VDFSBFactor;
     string VDFcomment;
     string VDFfileName;
@@ -89,11 +105,6 @@ private:
 
     // Populate Data variables
     // (prefixed with PD where necessary)
-    /*int PDstartTime;
-    int PDnumTS;
-    int PDrefinement;
-    int PDcompression;
-    int PDnumThreads;*/
     string PDstartTime;
     string PDnumTS;
     string PDrefinement;

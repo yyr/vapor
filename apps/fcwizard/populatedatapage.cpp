@@ -1,10 +1,28 @@
+//************************************************************************
+//                                                                                                                                              *
+//                   Copyright (C)  2013                                                                                *
+//     University Corporation for Atmospheric Research                                  *
+//                   All Rights Reserved                                                                                *
+//                                                                                                                                              *
+//************************************************************************/
+//
+//      File:           populatedatapage.cpp
+//
+//      Author:         Scott Pearse
+//                      National Center for Atmospheric Research
+//                      PO 3000, Boulder, Colorado
+//
+//      Date:           August 2013
+//
+//      Description:    QWizardPage reimplementation that steps the user
+//                      through selecting parameters for populating VDC
+//                      data content.
+//
+
 #include "createvdfpage.h"
 #include "populatedatapage.h"
-#include "showtimeconflicts.h"
 #include "ui/Page4.h"
 #include "dataholder.h"
-
-//using namespace VAPoR;
 
 PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
     QWizardPage(parent), Ui_Page4()
@@ -13,7 +31,7 @@ PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
 
     dataHolder = DH;
     popAdvancedOpts = new PopDataAdvanced(dataHolder);
-    timeConflicts = new ShowTimeConflicts(dataHolder);
+    //timeConflicts = new ShowTimeConflicts(dataHolder);
 }
 
 void PopulateDataPage::printSomething() {
@@ -30,6 +48,9 @@ void PopulateDataPage::on_advancedOptionsButton_clicked()
     popAdvancedOpts->show();
 }
 
+// This is temporary code that was used as a 'smoke and mirrors'
+// example of what the data population might look like.  This will
+// be eliminated in the next phase of development.
 void PopulateDataPage::on_scanVDF_clicked()
 {
     qDebug() << "scan vdf";
@@ -112,22 +133,9 @@ void PopulateDataPage::on_scanVDF_clicked()
     QPushButton *warnButton1 = new QPushButton;
     warnButton1->setText("more...");
     variableList->setIndexWidget(variableList->model()->index(2,3),warnButton1);
-    //qDebug() << warnButton1
     connect(warnButton1,SIGNAL(clicked()),this,SLOT(warnButton_clicked()));
 
     numtsSpinner->setValue(1566);
-    /*ui->variableList->addItem(new QListWidgetItem("U"));
-    ui->variableList->addItem(new QListWidgetItem("V"));
-    ui->variableList->addItem(new QListWidgetItem("W"));
-    ui->variableList->addItem(new QListWidgetItem("Precip"));
-    ui->variableList->addItem(new QListWidgetItem("Wind Velocity"));
-    ui->variableList->addItem(new QListWidgetItem("dBZ"));
-
-
-    for(int i=0;i<ui->variableList->count();i++){
-        ui->variableList->item(i)->setFlags(ui->variableList->item(i)->flags() |Qt::ItemIsUserCheckable);
-        ui->variableList->item(i)->setCheckState(Qt::Unchecked);
-    }*/
 }
 
 void PopulateDataPage::on_variableList_activated(const QModelIndex &index)
@@ -147,6 +155,20 @@ void PopulateDataPage::run2vdf() {
     qDebug() << "Running 2 VDF.";
 }
 
+// in the case that the user hits the 'Back' button, we need to add the
+// 'save and quit' button to the wizard.
+void PopulateDataPage::cleanupPage() {
+    QList<QWizard::WizardButton> layout;
+    layout << QWizard::Stretch << QWizard::BackButton << QWizard::CustomButton1 << QWizard::NextButton;
+    wizard()->setButtonLayout(layout);
+}
+
+// set some initial values in the page widgets, and set the appropriate
+// buttons on the wizard (in this case, we only need back and next)
 void PopulateDataPage::initializePage(){
     numtsSpinner->setValue(atoi(dataHolder->getPDnumTS().c_str()));
+
+    QList<QWizard::WizardButton> layout;
+    layout << QWizard::Stretch << QWizard::BackButton << QWizard::FinishButton;
+    wizard()->setButtonLayout(layout);
 }

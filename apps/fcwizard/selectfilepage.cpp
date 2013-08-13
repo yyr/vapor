@@ -1,3 +1,24 @@
+//************************************************************************
+//                                                                                                                                              *
+//                   Copyright (C)  2013                                                                                *
+//     University Corporation for Atmospheric Research                                  *
+//                   All Rights Reserved                                                                                *
+//                                                                                                                                              *
+//************************************************************************/
+//
+//      File:           selectfilepage.cpp
+//
+//      Author:         Scott Pearse
+//                      National Center for Atmospheric Research
+//                      PO 3000, Boulder, Colorado
+//
+//      Date:           August 2013
+//
+//      Description:    A QWizardPage that steps the user through selecting
+//                      which vdf file to write/include for their processing,
+//                      which NetCDF files to reference, and what their
+//                      NetCDF data type is (mom, pop, or roms)
+
 #include "fcwizard.h"
 #include "selectfilepage.h"
 #include "ui/Page2.h"
@@ -19,9 +40,12 @@ SelectFilePage::SelectFilePage(DataHolder *DH, QWidget *parent) :
 
 void SelectFilePage::on_browseOutputVdfFile_clicked() {
     QString file = QFileDialog::getOpenFileName(this,"Select output metada (.vdf) file.");
-    QFileInfo fi(file);
-    outputVDFtext->setText(fi.absoluteFilePath());
-    dataHolder->setVDFfileName(fi.absoluteFilePath().toStdString());
+    qDebug() << file;
+    //QFileInfo fi(file);
+    //outputVDFtext->setText(fi.absoluteFilePath());
+    //dataHolder->setVDFfileName(fi.absoluteFilePath().toStdString());
+    outputVDFtext->setText(file);
+    dataHolder->setVDFfileName(file.toStdString());
 }
 
 void SelectFilePage::on_addFileButton_clicked() {
@@ -59,15 +83,18 @@ void SelectFilePage::on_removeFileButton_clicked() {
 }
 
 void SelectFilePage::on_momRadioButton_clicked() {
-    dataHolder->setType("mom");
+    dataHolder->setFileType("mom");
+    completeChanged();
 }
 
 void SelectFilePage::on_popRadioButton_clicked() {
-    dataHolder->setType("pop");
+    dataHolder->setFileType("pop");
+    completeChanged();
 }
 
 void SelectFilePage::on_romsRadioButton_clicked() {
-    dataHolder->setType("roms");
+    dataHolder->setFileType("roms");
+    completeChanged();
 }
 
 vector<string> SelectFilePage::getSelectedFiles() {
@@ -77,20 +104,42 @@ vector<string> SelectFilePage::getSelectedFiles() {
     return stdStrings;
 }
 
+void SelectFilePage::cleanupPage() {
+    QList<QWizard::WizardButton> layout;
+    layout << QWizard::Stretch;
+    wizard()->setButtonLayout(layout);
+}
+
 void SelectFilePage::initializePage() {
     if (dataHolder->getOperation() == "vdfcreate"){
         selectFilePixmap->setPixmap(vdfCreatePixmap);//.scaled(55,50,Qt::KeepAspectRatio));
         vdfLabel->setText("Output VDF File:");
+        Title->setText("Files for Create VDF");
     }
     else {
         selectFilePixmap->setPixmap(toVdfPixmap);//,50,Qt::KeepAspectRatio));
         vdfLabel->setText("Reference VDF File:");
+        Title->setText("Files for Populate VDC");
     }
+
+    wizard()->setButtonText(QWizard::CustomButton1, tr("Save and Quit"));
+    wizard()->setOption(QWizard::HaveCustomButton1, true);
+
+    QList<QWizard::WizardButton> layout;
+    layout << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton;
+    wizard()->setButtonLayout(layout);
 }
 
-bool SelectFilePage::validatePage(){
-    return true;
+bool SelectFilePage::isComplete() const {
+    if ((dataHolder->getFileType() != "") &&
+        (dataHolder->getVDFfileName() != ""))
+        return true;
+    else return false;
 }
+
+/*bool SelectFilePage::validatePage(){
+    return true;
+}*/
 
 int SelectFilePage::nextId() const
 {

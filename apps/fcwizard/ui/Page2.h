@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'Page2.ui'
 **
-** Created: Wed Aug 7 16:53:41 2013
+** Created: Thu Aug 8 11:59:47 2013
 **      by: Qt User Interface Compiler version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -49,58 +49,58 @@ public:
         romsRadioButton = new QRadioButton(Page2);
         romsRadioButton->setObjectName(QString::fromUtf8("romsRadioButton"));
         romsRadioButton->setEnabled(false);
-        romsRadioButton->setGeometry(QRect(322, 316, 61, 21));
+        romsRadioButton->setGeometry(QRect(322, 330, 61, 21));
         romsRadioButton->setLayoutDirection(Qt::LeftToRight);
         romsRadioButton->setChecked(false);
         fileList = new QListWidget(Page2);
         fileList->setObjectName(QString::fromUtf8("fileList"));
-        fileList->setGeometry(QRect(20, 161, 436, 131));
+        fileList->setGeometry(QRect(20, 182, 436, 131));
         fileList->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
         fileList->setSelectionMode(QAbstractItemView::MultiSelection);
         label_8 = new QLabel(Page2);
         label_8->setObjectName(QString::fromUtf8("label_8"));
-        label_8->setGeometry(QRect(65, 310, 91, 31));
+        label_8->setGeometry(QRect(65, 324, 91, 31));
         label_8->setLayoutDirection(Qt::LeftToRight);
         label_8->setAlignment(Qt::AlignCenter);
         label_8->setWordWrap(true);
         addFileButton = new QPushButton(Page2);
         addFileButton->setObjectName(QString::fromUtf8("addFileButton"));
-        addFileButton->setGeometry(QRect(220, 130, 114, 32));
+        addFileButton->setGeometry(QRect(220, 151, 114, 32));
         momRadioButton = new QRadioButton(Page2);
         momRadioButton->setObjectName(QString::fromUtf8("momRadioButton"));
         momRadioButton->setEnabled(false);
-        momRadioButton->setGeometry(QRect(172, 316, 61, 20));
+        momRadioButton->setGeometry(QRect(172, 330, 61, 20));
         momRadioButton->setLayoutDirection(Qt::LeftToRight);
         momRadioButton->setChecked(false);
         label_2 = new QLabel(Page2);
         label_2->setObjectName(QString::fromUtf8("label_2"));
-        label_2->setGeometry(QRect(30, 137, 101, 16));
+        label_2->setGeometry(QRect(30, 158, 101, 16));
         removeFileButton = new QPushButton(Page2);
         removeFileButton->setObjectName(QString::fromUtf8("removeFileButton"));
-        removeFileButton->setGeometry(QRect(330, 130, 121, 32));
+        removeFileButton->setGeometry(QRect(330, 151, 121, 32));
         popRadioButton = new QRadioButton(Page2);
         popRadioButton->setObjectName(QString::fromUtf8("popRadioButton"));
         popRadioButton->setEnabled(false);
-        popRadioButton->setGeometry(QRect(252, 316, 61, 20));
+        popRadioButton->setGeometry(QRect(252, 330, 61, 20));
         popRadioButton->setLayoutDirection(Qt::LeftToRight);
         outputVDFtext = new QTextEdit(Page2);
         outputVDFtext->setObjectName(QString::fromUtf8("outputVDFtext"));
-        outputVDFtext->setGeometry(QRect(20, 96, 436, 22));
+        outputVDFtext->setGeometry(QRect(20, 114, 436, 22));
         vdfLabel = new QLabel(Page2);
         vdfLabel->setObjectName(QString::fromUtf8("vdfLabel"));
-        vdfLabel->setGeometry(QRect(30, 70, 221, 16));
+        vdfLabel->setGeometry(QRect(30, 88, 221, 16));
         browseOutputVdfFile = new QPushButton(Page2);
         browseOutputVdfFile->setObjectName(QString::fromUtf8("browseOutputVdfFile"));
-        browseOutputVdfFile->setGeometry(QRect(357, 60, 95, 32));
+        browseOutputVdfFile->setGeometry(QRect(343, 82, 95, 32));
         Title = new QLabel(Page2);
         Title->setObjectName(QString::fromUtf8("Title"));
-        Title->setGeometry(QRect(100, 10, 271, 41));
+        Title->setGeometry(QRect(100, 13, 271, 41));
         QFont font;
         font.setPointSize(19);
         Title->setFont(font);
         selectFilePixmap = new QLabel(Page2);
         selectFilePixmap->setObjectName(QString::fromUtf8("selectFilePixmap"));
-        selectFilePixmap->setGeometry(QRect(20, 7, 59, 56));
+        selectFilePixmap->setGeometry(QRect(22, 11, 59, 56));
 
         retranslateUi(Page2);
 

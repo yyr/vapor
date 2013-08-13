@@ -1,3 +1,24 @@
+//************************************************************************
+//                                                                                                                                              *
+//                   Copyright (C)  2013                                                                                *
+//     University Corporation for Atmospheric Research                                  *
+//                   All Rights Reserved                                                                                *
+//                                                                                                                                              *
+//************************************************************************/
+//
+//      File:           selectfilepage.h
+//
+//      Author:         Scott Pearse
+//                      National Center for Atmospheric Research
+//                      PO 3000, Boulder, Colorado
+//
+//      Date:           August 2013
+//
+//      Description:    A QWizardPage that steps the user through selecting
+//                      which vdf file to write/include for their processing,
+//                      which NetCDF files to reference, and what their
+//
+
 #ifndef SELECTFILEPAGE_H
 #define SELECTFILEPAGE_H
 
@@ -26,11 +47,13 @@ public:
     vector<string> getSelectedFiles();
     QPixmap vdfCreatePixmap;
     QPixmap toVdfPixmap;
+
     //CreateVdfPage *createVdfPage;
     //PopulateDataPage *populateDataPage;
     //QList<QString> getSelectedFiles();
 
     //void getOtherPages(CreateVdfPage *cVdfPage, PopulateDataPage *pDataPage);
+    bool isComplete() const;
 
 private slots:
     void on_browseOutputVdfFile_clicked();
@@ -42,7 +65,7 @@ private slots:
 
 private:
     int nextId() const;
-    bool validatePage();
+    void cleanupPage();
     void initializePage();
 };
 

@@ -1,8 +1,28 @@
+//************************************************************************
+//                                                                                                                                              *
+//                   Copyright (C)  2013                                                                                *
+//     University Corporation for Atmospheric Research                                  *
+//                   All Rights Reserved                                                                                *
+//                                                                                                                                              *
+//************************************************************************/
+//
+//      File:           createvdfpage.cpp
+//
+//      Author:         Scott Pearse
+//                      National Center for Atmospheric Research
+//                      PO 3000, Boulder, Colorado
+//
+//      Date:           August 2013
+//
+//      Description:    Implements the vdf creation page for the
+//                      File Converter Wizard (FCWizard)
+//
+//
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "createvdfpage.h"
 #include "createvdfcomment.h"
-//#include "populatedatapage.h"
 #include "ui/Page3.h"
 #include "dataholder.h"
 #include <QString>
@@ -13,8 +33,7 @@ CreateVdfPage::CreateVdfPage(DataHolder *DH, QWidget *parent) :
     setupUi(this);
 
     QPixmap createVDFPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/makeVDFsmall.png");
-    //createVDFPixmap.scaled(55,50);
-    createVdfLabel->setPixmap(createVDFPixmap.scaled(55,50,Qt::KeepAspectRatio));
+    createVdfLabel->setPixmap(createVDFPixmap);
 
     dataHolder = DH;
     vdfAdvancedOpts = new CreateVdfAdvanced(dataHolder);
@@ -25,16 +44,7 @@ void CreateVdfPage::checkArguments() {
     qDebug() << "VDF creation args look good so far...";
 }
 
-void CreateVdfPage::on_advanceOptionButton_clicked() {
-    vdfAdvancedOpts->show();
-}
-
-void CreateVdfPage::on_vdfCommentButton_clicked() {
-    vdfTLComment->show();
-}
-
-//void CreateVdfPage::on_addNewButton_clicked() {}
-
+// Check all loaded variables
 void CreateVdfPage::on_selectAllButton_clicked() {
     for (int i=0; i<varList.size(); i++) {
         int row = i/3;
@@ -43,6 +53,7 @@ void CreateVdfPage::on_selectAllButton_clicked() {
     }
 }
 
+// Uncheck all loaded variables
 void CreateVdfPage::on_clearAllButton_clicked() {
     for (int i=0; i<varList.size(); i++) {
         int row = i/3;
@@ -51,18 +62,8 @@ void CreateVdfPage::on_clearAllButton_clicked() {
     }
 }
 
-/*void CreateVdfPage::on_browseOutputVdfFile_clicked(){
-    QString file = QFileDialog::getOpenFileName(this,"Select output metada (.vdf) file.");
-    QFileInfo fi(file);
-    outputVDFtext->setText(fi.fileName());
-    dataHolder->setVDFfileName(fi.absoluteFilePath().toStdString());
-}*/
-
-/*void CreateVdfPage::on_outputVDFtext_textChanged() {
-    dataHolder->setVDFfileName(outputVDFtext->toPlainText().toStdString());
-}*/
-
-void CreateVdfPage::on_goButton_clicked() {
+// Call vdfcreate and exit without continuing to the populate data page
+void CreateVdfPage::saveAndExit() {
     const char* delim = ":";
     std::stringstream selectionVars;
     vector<string> varsVector;
@@ -81,18 +82,22 @@ void CreateVdfPage::on_goButton_clicked() {
     dataHolder->runMomVDFCreate();
 }
 
-void CreateVdfPage::runMomVdfCreate() {
-    //qDebug() << Comment + CRList + SBFactor + Periodicity;
+// When the "Back" button is hit, this will get called to remove the "save
+// and quit" button, which is not needed for the 'select file page'
+void CreateVdfPage::cleanupPage() {
+    QList<QWizard::WizardButton> layout;
+    layout << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton;
+    wizard()->setButtonLayout(layout);
 }
 
+// Create DC reader (via dataHolder and set appropriate widgets with its values.
+// Also set the QWizard's buttons to include the custom "save and
+// quit" button, in addition to "next" and "back".
 void CreateVdfPage::initializePage(){
     dataHolder->createReader();
-
-    //startTimeSpinner->setValue(atoi(dataHolder->getVDFStartTime().c_str()));
-    //numtsSpinner->setValue(atoi(dataHolder->getVDFnumTS().c_str()));
-
     startTimeSpinner->setValue(atoi(dataHolder->getVDFStartTime().c_str()));
     numtsSpinner->setValue(atoi(dataHolder->getVDFnumTS().c_str()));
+    numtsSpinner->setMaximum(atoi(dataHolder->getVDFnumTS().c_str()));
 
     varList = dataHolder->getFileVars();
     tableWidget->setRowCount(varList.size()/3+1);
@@ -107,4 +112,9 @@ void CreateVdfPage::initializePage(){
         tableWidget->setItem(row,col,item);
     }
     tableWidget->resizeColumnsToContents();
+
+    QList<QWizard::WizardButton> layout;
+    layout << QWizard::Stretch << QWizard::BackButton << QWizard::CustomButton1 << QWizard::NextButton;
+    wizard()->setButtonLayout(layout);
+    connect(wizard(), SIGNAL(customButtonClicked(int)), this, SLOT(saveAndExit()));
 }

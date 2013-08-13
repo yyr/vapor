@@ -1,3 +1,24 @@
+//************************************************************************
+//                                                                                                                                              *
+//                   Copyright (C)  2013                                                                                *
+//     University Corporation for Atmospheric Research                                  *
+//                   All Rights Reserved                                                                                *
+//                                                                                                                                              *
+//************************************************************************/
+//
+//      File:           createvdfadvanced.cpp
+//
+//      Author:         Scott Pearse
+//                      National Center for Atmospheric Research
+//                      PO 3000, Boulder, Colorado
+//
+//      Date:           August 2013
+//
+//      Description:    Implements the advanced options user interface
+//                      for creating VDF metadata files
+//
+//
+
 #include "createvdfadvanced.h"
 #include "ui/Page3adv.h"
 #include "dataholder.h"
@@ -11,10 +32,11 @@ CreateVdfAdvanced::CreateVdfAdvanced(DataHolder *DH, QWidget *parent) :
     dataHolder = DH;
 }
 
+// Write data values to dataHolder and hide window
 void CreateVdfAdvanced::on_acceptButton_clicked()
 {
     dataHolder->setVDFcrList(compressionRatioBox->toPlainText().toStdString());
-    //CRList = compressionRatioBox->toPlainText();
+
     QString SBFx = bsxSpinner->text();
     QString SBFy = bsySpinner->text();
     QString SBFz = bszSpinner->text();

@@ -1,3 +1,24 @@
+//************************************************************************
+//                                                                                                                                              *
+//                   Copyright (C)  2013                                                                                *
+//     University Corporation for Atmospheric Research                                  *
+//                   All Rights Reserved                                                                                *
+//                                                                                                                                              *
+//************************************************************************/
+//
+//      File:           createvdfpage.h
+//
+//      Author:         Scott Pearse
+//                      National Center for Atmospheric Research
+//                      PO 3000, Boulder, Colorado
+//
+//      Date:           August 2013
+//
+//      Description:    Implements the vdf creation page for the
+//                      File Converter Wizard (FCWizard)
+//
+//
+
 #ifndef CREATEVDFPAGE_H
 #define CREATEVDFPAGE_H
 
@@ -5,7 +26,6 @@
 #include <QtGui/QtGui>
 #include <QTableWidgetItem>
 #include "dataholder.h"
-//#include "populatedatapage.h"
 #include "createvdfadvanced.h"
 #include "createvdfcomment.h"
 #include "ui/Page3.h"
@@ -27,21 +47,22 @@ public:
 
     vector<string> varList;
     vector<string> varSelectionList;
-    vector<QTableWidgetItem> varWidgetItems;
+    //vector<QTableWidgetItem> varWidgetItems;
+
+public slots:
+    void saveAndExit();
 
 private slots:
-    void on_goButton_clicked();
-    void on_advanceOptionButton_clicked();
-    void on_vdfCommentButton_clicked();
+    void on_advanceOptionButton_clicked() { vdfAdvancedOpts->show(); }
+    void on_vdfCommentButton_clicked() { vdfTLComment->show(); }
     void on_clearAllButton_clicked();
     void on_selectAllButton_clicked();
-    //void on_browseOutputVdfFile_clicked();
 
 private:
+    void cleanupPage();
     void initializePage();
     void checkArguments();
     void runMomVdfCreate();
-    //void runMomVdfCreate(vector<string> list, QString execution);
     QString Comment;
     QString CRList;
     QString SBFactor;

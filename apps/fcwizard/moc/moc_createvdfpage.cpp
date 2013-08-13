@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'createvdfpage.h'
 **
-** Created: Wed Aug 7 15:06:21 2013
+** Created: Mon Aug 12 16:38:30 2013
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.3)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -31,17 +31,17 @@ static const uint qt_meta_data_CreateVdfPage[] = {
        0,       // signalCount
 
  // slots: signature, parameters, type, tag, flags
-      15,   14,   14,   14, 0x08,
-      37,   14,   14,   14, 0x08,
-      70,   14,   14,   14, 0x08,
-     100,   14,   14,   14, 0x08,
-     128,   14,   14,   14, 0x08,
+      15,   14,   14,   14, 0x0a,
+      29,   14,   14,   14, 0x08,
+      62,   14,   14,   14, 0x08,
+      92,   14,   14,   14, 0x08,
+     120,   14,   14,   14, 0x08,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_CreateVdfPage[] = {
-    "CreateVdfPage\0\0on_goButton_clicked()\0"
+    "CreateVdfPage\0\0saveAndExit()\0"
     "on_advanceOptionButton_clicked()\0"
     "on_vdfCommentButton_clicked()\0"
     "on_clearAllButton_clicked()\0"
@@ -54,7 +54,7 @@ void CreateVdfPage::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _i
         Q_ASSERT(staticMetaObject.cast(_o));
         CreateVdfPage *_t = static_cast<CreateVdfPage *>(_o);
         switch (_id) {
-        case 0: _t->on_goButton_clicked(); break;
+        case 0: _t->saveAndExit(); break;
         case 1: _t->on_advanceOptionButton_clicked(); break;
         case 2: _t->on_vdfCommentButton_clicked(); break;
         case 3: _t->on_clearAllButton_clicked(); break;
