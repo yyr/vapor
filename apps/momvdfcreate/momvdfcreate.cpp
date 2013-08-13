@@ -220,7 +220,7 @@ char ** argv_merge(
 	return(newargv);
 }
 
-int	launch(int argc, char **argv) {
+int	main(int argc, char **argv) {
     
 	cout << argc << endl;
 	cout << argv << endl;
@@ -375,19 +375,3 @@ int	launch(int argc, char **argv) {
 	exit(0);
 } // End of main.
 
-int main(){
-	int argcx = 1;
-	char **argvx = new char * [argcx];
-
-        argvx[0] = "./momvdfcreate /Users/pearse/Documents/vaporTestData/00010101.ocean_month.NWPp2.Clim.nc test.vdf -vdc2 -quiet -bs";
-
-	/*argvx[0] = "./momvdfcreate";
-	argvx[1] = "/Users/pearse/Documents/vaporTestData/00010101.ocean_month.NWPp2.Clim.nc";
-	argvx[2] = "test.vdf";
-	argvx[3] = "-vdc2";
-	argvx[4] = "-quiet";
-	argvx[5] = "-bs";*/
-
-	launch(argcx,argvx);
-	return 0;
-}

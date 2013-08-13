@@ -122,6 +122,8 @@ public:
 	return((find(v.begin(), v.end(), varname)!=v.end())&&ts<GetNumTimeSteps());
  }
 
+ virtual std::vector <string> GetVariables2DExcluded() const = 0;
+ virtual std::vector <string> GetVariables3DExcluded() const = 0;
 
 };
 };

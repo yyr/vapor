@@ -39,43 +39,43 @@ public:
     void createReader();
 
     // File selection set functions
-    void setOperation(string op);
-    void setFileType(string type);
-    void setFiles(vector<string> files);
+    void setOperation(string op) { operation = op; }
+    void setFileType(string type) { fileType = type; }
+    void setFiles(vector<string> files) { dataFiles = files; }
 
     // Create vdf setter functions
-    void setVDFcomment(string comment);
-    void setVDFfileName(string fileName);
-    void setVDFstartTime(string startTime);
-    void setVDFnumTS(string numTS);
-    void setVDFcrList(string crList);
-    void setVDFSBFactor(string sbFactor);
-    void setVDFPeriodicity(string periodicity);
-    void setVDFSelectionVars(string selectionVars);
+    void setVDFcomment(string comment) { VDFcomment = comment; }
+    void setVDFfileName(string fileName) { VDFfileName = fileName; }
+    void setVDFstartTime(string startTime) { VDFstartTime = startTime; }
+    void setVDFnumTS(string numTS) { VDFnumTS = numTS; }
+    void setVDFcrList(string crList) { VDFcrList = crList; }
+    void setVDFSBFactor(string sbFactor) { VDFSBFactor = sbFactor; }
+    void setVDFPeriodicity(string periodicity) { VDFPeriodicity = periodicity; }
+    void setVDFSelectionVars(string selectionVars) { VDFSelectionVars = selectionVars; }
 
     // Populate data setter fucntions
-    void setPDVDFfile(string vdfFile);
-    void setPDstartTime(string startTime);
-    void setPDnumTS(string numTS);
-    void setPDrefLevel(string refinement);
-    void setPDcompLevel(string compression);
-    void setPDnumThreads(string numThreads);
-    void setPDselectionVars(string selectionVars);
+    void setPDVDFfile(string vdfFile) { PDinputVDFfile = vdfFile; }
+    void setPDstartTime(string startTime) { PDstartTime = startTime; }
+    void setPDnumTS(string numTS) { PDnumTS = numTS; }
+    void setPDrefLevel(string refinement) { PDrefinement = refinement; }
+    void setPDcompLevel(string compression) { PDcompression = compression; }
+    void setPDnumThreads(string numThreads) { PDnumThreads = numThreads; }
+    void setPDselectionVars(string selectionVars) { PDSelectionVars = selectionVars; }
 
     // Get functions used by create VDF
-    string getVDFfileName();
-    string getVDFnumTS();
+    string getVDFfileName() const { return VDFfileName; }
+    string getVDFnumTS() const { return VDFnumTS; }
 
     // Get functions used by Populate Data
-    string getPDnumTS();
-    string getVDFStartTime();
+    string getPDnumTS() const { return PDnumTS; }
+    string getVDFStartTime() const { return VDFstartTime; }
 
     // Get functions (used by createVDF and Populate Data)
-    vector<string> getFileVars();
-    string getOperation();
-    string getVDFSelectionVars();
-    string getPDSelectionVars();
-    string getFileType();
+    vector<string> getFileVars() const { return fileVars; }
+    string getOperation() const {return operation; }
+    string getVDFSelectionVars() const { return VDFSelectionVars; }
+    string getPDSelectionVars() const { return PDSelectionVars; }
+    string getFileType() const { return fileType; }
 
     // File generation commands
     void runMomVDFCreate();

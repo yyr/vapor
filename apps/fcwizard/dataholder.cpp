@@ -50,45 +50,6 @@ void DataHolder::createReader() {
     fileVars = reader->GetVariableNames();
 }
 
-// File selection set functions
-void DataHolder::setOperation(string op) { operation = op; }
-void DataHolder::setFileType(string type) { fileType = type; }
-void DataHolder::setFiles(vector<string> files) { dataFiles = files; }
-
-// Create vdf setter functions
-void DataHolder::setVDFcomment(string comment) { VDFcomment = comment; }
-void DataHolder::setVDFfileName(string fileName) { VDFfileName = fileName; }
-void DataHolder::setVDFstartTime(string startTime) { VDFstartTime = startTime; }
-void DataHolder::setVDFnumTS(string numTS) { VDFnumTS = numTS; }
-void DataHolder::setVDFcrList(string crList) { VDFcrList = crList; }
-void DataHolder::setVDFSBFactor(string sbFactor) { VDFSBFactor = sbFactor; }
-void DataHolder::setVDFPeriodicity(string periodicity) { VDFPeriodicity = periodicity; }
-void DataHolder::setVDFSelectionVars(string vars) { VDFSelectionVars = vars; }
-
-// Populate data setter fucntions
-void DataHolder::setPDVDFfile(string vdfFile) { PDinputVDFfile = vdfFile; }
-void DataHolder::setPDstartTime(string startTime) { PDstartTime = startTime; }
-void DataHolder::setPDnumTS(string numTS) { PDnumTS = numTS; }
-void DataHolder::setPDrefLevel(string refinement) { PDrefinement = refinement; }
-void DataHolder::setPDcompLevel(string compression) { PDcompression = compression; }
-void DataHolder::setPDnumThreads(string numThreads) { PDnumThreads = numThreads; }
-void DataHolder::setPDselectionVars(string selectionVars) { PDSelectionVars = selectionVars; }
-
-// Get functions used by create VDF
-string DataHolder::getVDFfileName() { return VDFfileName; }
-string DataHolder::getVDFnumTS() { return VDFnumTS; }
-
-// Get functions used by Populate Data
-string DataHolder::getPDnumTS() { return PDnumTS; }
-string DataHolder::getVDFStartTime() { return VDFstartTime; }
-
-// Get functions (used by createVDF and Populate Data)
-vector<string> DataHolder::getFileVars() { return fileVars; }
-string DataHolder::getOperation() {return operation; }
-string DataHolder::getVDFSelectionVars() { return VDFSelectionVars; }
-string DataHolder::getPDSelectionVars() { return PDSelectionVars; }
-string DataHolder::getFileType() { return fileType; }
-
 // Generate an array of chars from our vector<string>, which holds
 // the user's selected arguments.  momvdfcreate receives this array,
 // as well as a count (argc) which is the size of the array.
