@@ -23,9 +23,10 @@
 #include <stdlib.h>
 #include "createvdfpage.h"
 #include "createvdfcomment.h"
+//#include "createvdfaddnewvar.h"
 #include "ui/Page3.h"
 #include "dataholder.h"
-#include <QString>
+//#include <QString>
 
 CreateVdfPage::CreateVdfPage(DataHolder *DH, QWidget *parent) :
     QWizardPage(parent), Ui_Page3()
@@ -38,6 +39,7 @@ CreateVdfPage::CreateVdfPage(DataHolder *DH, QWidget *parent) :
     dataHolder = DH;
     vdfAdvancedOpts = new CreateVdfAdvanced(dataHolder);
     vdfTLComment = new CreateVdfComment(dataHolder);
+    vdfNewVar = new CreateVdfAddNewVar(dataHolder, this);
 }
 
 void CreateVdfPage::checkArguments() {
@@ -79,7 +81,9 @@ void CreateVdfPage::saveAndExit() {
     std::copy(varsVector.begin(), varsVector.end(),
               std::ostream_iterator<std::string> (selectionVars,delim));
     dataHolder->setVDFSelectionVars(selectionVars.str());
-    dataHolder->runMomVDFCreate();
+
+    dataHolder->VDFCreate();
+    exit(0);
 }
 
 // When the "Back" button is hit, this will get called to remove the "save
@@ -99,6 +103,15 @@ void CreateVdfPage::initializePage(){
     numtsSpinner->setValue(atoi(dataHolder->getVDFnumTS().c_str()));
     numtsSpinner->setMaximum(atoi(dataHolder->getVDFnumTS().c_str()));
 
+    setupVars();
+
+    QList<QWizard::WizardButton> layout;
+    layout << QWizard::Stretch << QWizard::BackButton << QWizard::CustomButton1 << QWizard::NextButton;
+    wizard()->setButtonLayout(layout);
+    connect(wizard(), SIGNAL(customButtonClicked(int)), this, SLOT(saveAndExit()));
+}
+
+void CreateVdfPage::setupVars() {
     varList = dataHolder->getFileVars();
     tableWidget->setRowCount(varList.size()/3+1);
     tableWidget->setColumnCount(3);
@@ -112,9 +125,9 @@ void CreateVdfPage::initializePage(){
         tableWidget->setItem(row,col,item);
     }
     tableWidget->resizeColumnsToContents();
+}
 
-    QList<QWizard::WizardButton> layout;
-    layout << QWizard::Stretch << QWizard::BackButton << QWizard::CustomButton1 << QWizard::NextButton;
-    wizard()->setButtonLayout(layout);
-    connect(wizard(), SIGNAL(customButtonClicked(int)), this, SLOT(saveAndExit()));
+bool CreateVdfPage::validatePage() {
+    dataHolder->VDFCreate();
+    return true;
 }

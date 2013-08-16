@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'Page3.ui'
 **
-** Created: Thu Aug 8 11:21:24 2013
+** Created: Fri Aug 16 10:54:29 2013
 **      by: Qt User Interface Compiler version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -34,7 +34,7 @@ public:
     QSpinBox *startTimeSpinner;
     QPushButton *advanceOptionButton;
     QPushButton *selectAllButton;
-    QPushButton *addNewButton;
+    QPushButton *newVarButton;
     QPushButton *clearAllButton;
     QTableWidget *tableWidget;
     QPushButton *vdfCommentButton;
@@ -81,9 +81,9 @@ public:
         selectAllButton = new QPushButton(Page3);
         selectAllButton->setObjectName(QString::fromUtf8("selectAllButton"));
         selectAllButton->setGeometry(QRect(20, 94, 71, 21));
-        addNewButton = new QPushButton(Page3);
-        addNewButton->setObjectName(QString::fromUtf8("addNewButton"));
-        addNewButton->setGeometry(QRect(176, 94, 71, 21));
+        newVarButton = new QPushButton(Page3);
+        newVarButton->setObjectName(QString::fromUtf8("newVarButton"));
+        newVarButton->setGeometry(QRect(176, 94, 71, 21));
         clearAllButton = new QPushButton(Page3);
         clearAllButton->setObjectName(QString::fromUtf8("clearAllButton"));
         clearAllButton->setGeometry(QRect(98, 94, 71, 21));
@@ -111,7 +111,7 @@ public:
         label_3->setText(QApplication::translate("Page3", "# of Timesteps", 0, QApplication::UnicodeUTF8));
         advanceOptionButton->setText(QApplication::translate("Page3", " Advanced Options", 0, QApplication::UnicodeUTF8));
         selectAllButton->setText(QApplication::translate("Page3", "Select All", 0, QApplication::UnicodeUTF8));
-        addNewButton->setText(QApplication::translate("Page3", "Add New", 0, QApplication::UnicodeUTF8));
+        newVarButton->setText(QApplication::translate("Page3", "Add New", 0, QApplication::UnicodeUTF8));
         clearAllButton->setText(QApplication::translate("Page3", "Clear All", 0, QApplication::UnicodeUTF8));
         vdfCommentButton->setText(QApplication::translate("Page3", "Add VDF Comment", 0, QApplication::UnicodeUTF8));
         createVdfLabel->setText(QString());

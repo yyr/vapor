@@ -139,7 +139,7 @@
     <string>Select All</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="addNewButton">
+  <widget class="QPushButton" name="newVarButton">
    <property name="geometry">
     <rect>
      <x>176</x>

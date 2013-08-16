@@ -28,8 +28,8 @@
 #include "dataholder.h"
 #include "createvdfadvanced.h"
 #include "createvdfcomment.h"
+#include "createvdfaddnewvar.h"
 #include "ui/Page3.h"
-#include <vector>
 
 namespace Ui {
 class CreateVdfPage;
@@ -44,6 +44,7 @@ public:
     CreateVdfAdvanced *vdfAdvancedOpts;
     CreateVdfComment *vdfTLComment;
     DataHolder *dataHolder;
+    CreateVdfAddNewVar *vdfNewVar;
 
     vector<string> varList;
     vector<string> varSelectionList;
@@ -55,11 +56,14 @@ public slots:
 private slots:
     void on_advanceOptionButton_clicked() { vdfAdvancedOpts->show(); }
     void on_vdfCommentButton_clicked() { vdfTLComment->show(); }
+    void on_newVarButton_clicked() { vdfNewVar->show(); }
     void on_clearAllButton_clicked();
     void on_selectAllButton_clicked();
 
 private:
+    bool validatePage();
     void cleanupPage();
+    void setupVars();
     void initializePage();
     void checkArguments();
     void runMomVdfCreate();

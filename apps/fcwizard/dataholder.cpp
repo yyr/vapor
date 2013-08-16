@@ -26,9 +26,10 @@
 #include <cstdio>
 #include <QDebug>
 #include <QString>
+#include <vapor/vdfcreate.h>
 
 #include "dataholder.h"
-#include "momvdfcreate.cpp"
+//#include "momvdfcreate.cpp"
 
 using namespace VAPoR;
 using namespace VetsUtil;
@@ -53,7 +54,7 @@ void DataHolder::createReader() {
 // Generate an array of chars from our vector<string>, which holds
 // the user's selected arguments.  momvdfcreate receives this array,
 // as well as a count (argc) which is the size of the array.
-void DataHolder::runMomVDFCreate() {
+void DataHolder::VDFCreate() {
     const char* delim = "";
     int argc = 2;
     vector<std::string> argv;
@@ -113,10 +114,10 @@ void DataHolder::runMomVDFCreate() {
         args[a] = strdup(argv[a].c_str());
     }
 
-    launchMomVdfCreate(argc,args);
+    launchVdfCreate(argc,args,getFileType());
 }
 
 // To be completed in the future
-void DataHolder::runRomsVDFCreate() {}
+//void DataHolder::runRomsVDFCreate() {}
 void DataHolder::runMom2VDF() {}
 void DataHolder::runRoms2VDF() {}

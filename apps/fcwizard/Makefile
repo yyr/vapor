@@ -62,6 +62,7 @@ HEADERS = \
 popdataadvanced \
 populatedatapage \
 createvdfcomment \
+createvdfaddnewvar \
 createvdfadvanced \
 createvdfpage \
 selectfilepage \
@@ -75,6 +76,7 @@ fcwizard \
 intropage \
 selectfilepage \
 createvdfpage \
+createvdfaddnewvar \
 createvdfadvanced \
 createvdfcomment\
 populatedatapage \
@@ -85,6 +87,7 @@ showtimeconflicts
 FILES = \
 fcwizard \
 createvdfadvanced \
+createvdfaddnewvar \
 createvdfcomment \
 createvdfpage \
 intropage \
@@ -100,6 +103,7 @@ UI_FILES = \
 Page1 \
 Page2 \
 Page3 \
+Page3addnewvar \
 Page3adv \
 Page3cmt \
 Page4 \

@@ -27,6 +27,7 @@
 #include <string>
 #include <vapor/DCReaderMOM.h>
 #include <vapor/DCReaderROMS.h>
+//#include <vapor/vdfcreate.h>
 
 using namespace std;
 using namespace VAPoR;
@@ -78,12 +79,15 @@ public:
     string getFileType() const { return fileType; }
 
     // File generation commands
-    void runMomVDFCreate();
-    void runRomsVDFCreate();
+    void buildAndCallVdfCreate();
+    //void runMomVDFCreate();
+    void VDFCreate();
     void runMom2VDF();
     void runRoms2VDF();
 
 private:
+    //void launchVdfCreate(int argc, char **argv, string NetCDFtype);
+
     string operation;
 
     // Shared variables

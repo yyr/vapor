@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'createvdfpage.h'
 **
-** Created: Tue Aug 13 09:04:25 2013
+** Created: Fri Aug 16 10:56:40 2013
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.3)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_CreateVdfPage[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-       5,   14, // methods
+       6,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -35,7 +35,8 @@ static const uint qt_meta_data_CreateVdfPage[] = {
       29,   14,   14,   14, 0x08,
       62,   14,   14,   14, 0x08,
       92,   14,   14,   14, 0x08,
-     120,   14,   14,   14, 0x08,
+     118,   14,   14,   14, 0x08,
+     146,   14,   14,   14, 0x08,
 
        0        // eod
 };
@@ -44,6 +45,7 @@ static const char qt_meta_stringdata_CreateVdfPage[] = {
     "CreateVdfPage\0\0saveAndExit()\0"
     "on_advanceOptionButton_clicked()\0"
     "on_vdfCommentButton_clicked()\0"
+    "on_newVarButton_clicked()\0"
     "on_clearAllButton_clicked()\0"
     "on_selectAllButton_clicked()\0"
 };
@@ -57,8 +59,9 @@ void CreateVdfPage::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _i
         case 0: _t->saveAndExit(); break;
         case 1: _t->on_advanceOptionButton_clicked(); break;
         case 2: _t->on_vdfCommentButton_clicked(); break;
-        case 3: _t->on_clearAllButton_clicked(); break;
-        case 4: _t->on_selectAllButton_clicked(); break;
+        case 3: _t->on_newVarButton_clicked(); break;
+        case 4: _t->on_clearAllButton_clicked(); break;
+        case 5: _t->on_selectAllButton_clicked(); break;
         default: ;
         }
     }
@@ -99,9 +102,9 @@ int CreateVdfPage::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 5)
+        if (_id < 6)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 5;
+        _id -= 6;
     }
     return _id;
 }
