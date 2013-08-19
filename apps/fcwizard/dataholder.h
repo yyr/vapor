@@ -52,7 +52,13 @@ public:
     void setVDFcrList(string crList) { VDFcrList = crList; }
     void setVDFSBFactor(string sbFactor) { VDFSBFactor = sbFactor; }
     void setVDFPeriodicity(string periodicity) { VDFPeriodicity = periodicity; }
-    void setVDFSelectionVars(string selectionVars) { VDFSelectionVars = selectionVars; }
+
+    void setVDFDisplayedVars(vector<string> selectedVars) { VDFDisplayedVars = selectedVars; }
+    void addVDFDisplayedVar(string var) { VDFDisplayedVars.push_back(var); }
+    void setVDFSelectedVars(vector<string> selectedVars) { VDFSelectedVars = selectedVars; }
+    void addVDFSelectedVar(string var) { VDFSelectedVars.push_back(var); }
+    void deleteVDFSelectedVar(string var);
+    void clearVDFSelectedVars() { VDFSelectedVars.clear(); }
 
     // Populate data setter fucntions
     void setPDVDFfile(string vdfFile) { PDinputVDFfile = vdfFile; }
@@ -61,22 +67,24 @@ public:
     void setPDrefLevel(string refinement) { PDrefinement = refinement; }
     void setPDcompLevel(string compression) { PDcompression = compression; }
     void setPDnumThreads(string numThreads) { PDnumThreads = numThreads; }
-    void setPDselectionVars(string selectionVars) { PDSelectionVars = selectionVars; }
+    void setPDSelectedVars(vector<string> selectedVars) { PDSelectedVars = selectedVars; }
 
     // Get functions used by create VDF
     string getVDFfileName() const { return VDFfileName; }
     string getVDFnumTS() const { return VDFnumTS; }
+    string getVDFVarBuffer() const { return VDFVarBuffer; }
+    vector<string> getVDFSelectedVars() const { return VDFSelectedVars; }
 
     // Get functions used by Populate Data
     string getPDnumTS() const { return PDnumTS; }
     string getVDFStartTime() const { return VDFstartTime; }
 
     // Get functions (used by createVDF and Populate Data)
-    vector<string> getFileVars() const { return fileVars; }
+    vector<string> getNcdfVars() const { return ncdfVars; }
     string getOperation() const {return operation; }
-    string getVDFSelectionVars() const { return VDFSelectionVars; }
-    string getPDSelectionVars() const { return PDSelectionVars; }
+    vector<string> getVDFDisplayedVars() const { return VDFDisplayedVars; }
     string getFileType() const { return fileType; }
+    vector<string> getPDSelectedVars() const { return PDSelectedVars; }
 
     // File generation commands
     void buildAndCallVdfCreate();
@@ -94,7 +102,7 @@ private:
     DCReader *reader;
     string fileType;
     vector<string> dataFiles;
-    vector<string> fileVars;
+    vector<string> ncdfVars;
 
     // Create VDF variables
     // (prefixed with VDF where necessary)
@@ -105,7 +113,9 @@ private:
     string VDFfileName;
     string VDFcrList;
     string VDFPeriodicity;
-    string VDFSelectionVars;
+    string VDFVarBuffer;
+    vector<string> VDFSelectedVars;
+    vector<string> VDFDisplayedVars;
 
     // Populate Data variables
     // (prefixed with PD where necessary)
@@ -115,7 +125,9 @@ private:
     string PDcompression;
     string PDnumThreads;
     string PDinputVDFfile;
-    string PDSelectionVars;
+    string PDVarBuffer;
+    vector<string> PDSelectedVars;
+    vector<string> PDDisplayedVars;
 };
 
 #endif // DATAHOLDER_H

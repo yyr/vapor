@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'Page3addnewvar.ui'
 **
-** Created: Fri Aug 16 10:26:02 2013
+** Created: Fri Aug 16 16:19:02 2013
 **      by: Qt User Interface Compiler version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -18,7 +18,7 @@
 #include <QtGui/QDialogButtonBox>
 #include <QtGui/QHeaderView>
 #include <QtGui/QLabel>
-#include <QtGui/QTextEdit>
+#include <QtGui/QPlainTextEdit>
 
 QT_BEGIN_NAMESPACE
 
@@ -26,7 +26,7 @@ class Ui_Page3addnewvar
 {
 public:
     QDialogButtonBox *buttonBox;
-    QTextEdit *addVar;
+    QPlainTextEdit *addVar;
     QLabel *label;
 
     void setupUi(QDialog *Page3addnewvar)
@@ -39,7 +39,7 @@ public:
         buttonBox->setGeometry(QRect(50, 80, 171, 32));
         buttonBox->setOrientation(Qt::Horizontal);
         buttonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
-        addVar = new QTextEdit(Page3addnewvar);
+        addVar = new QPlainTextEdit(Page3addnewvar);
         addVar->setObjectName(QString::fromUtf8("addVar"));
         addVar->setGeometry(QRect(20, 40, 241, 31));
         label = new QLabel(Page3addnewvar);

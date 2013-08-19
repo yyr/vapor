@@ -38,6 +38,17 @@ DataHolder::DataHolder(){
     setVDFstartTime("1");
 }
 
+/*void DataHolder::addVDFSelectionVar(string var) {
+    //ncdfVars.push_back(var);
+    VDFVarBuffer = var;
+}*/
+
+void DataHolder::deleteVDFSelectedVar(string var) {
+    for (int i=0;i<VDFSelectedVars.size();i++) {
+        if (VDFSelectedVars[i] == var) VDFSelectedVars.erase(VDFSelectedVars.begin()+i);
+    }
+}
+
 // Create a DCReader object and pull important data from it
 void DataHolder::createReader() {
     if (fileType == "roms") reader = new DCReaderROMS(dataFiles);
@@ -48,7 +59,7 @@ void DataHolder::createReader() {
     std::stringstream strstream;
     strstream << reader->GetNumTimeSteps();
     strstream >> VDFnumTS;
-    fileVars = reader->GetVariableNames();
+    ncdfVars = reader->GetVariableNames();
 }
 
 // Generate an array of chars from our vector<string>, which holds
@@ -91,11 +102,25 @@ void DataHolder::VDFCreate() {
         argv.push_back(VDFPeriodicity);
         argc+=2;
     }
-    if (VDFSelectionVars != "") {
+    if (VDFSelectedVars.size() != 0) { // != "") {
         argv.push_back("-vars");
-        argv.push_back(VDFSelectionVars);
-        argc+=2;
+        argc++;
+
+        string stringVars;
+        for(vector<string>::iterator it = VDFSelectedVars.begin();
+            it != VDFSelectedVars.end(); ++it) {
+            if(it != VDFSelectedVars.begin()) stringVars += ":";
+            stringVars += *it;
+        }
+        argv.push_back(stringVars);
+        argc++;
+        /*for(int i=0;i<VDFSelectedVars.size();i++) {
+            argv.push_back(VDFSelectedVars[i]);
+            //cout << VDFSelectedVars[i] << endl;
+            argc++;
+        }*/
     }
+
     for (int i=0;i<dataFiles.size();i++){
         argv.push_back(dataFiles.at(i));
         argc++;
@@ -111,6 +136,7 @@ void DataHolder::VDFCreate() {
 
     char** args = new char*[ argv.size() + 1 ];
     for(size_t a=0; a<argv.size(); a++) {
+        cout << argv[a].c_str() << endl;
         args[a] = strdup(argv[a].c_str());
     }
 

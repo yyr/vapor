@@ -2,7 +2,6 @@
 #define CREATEVDFADDNEWVAR_H
 
 #include <QDialog>
-#include "createvdfpage.h"
 #include "ui/Page3addnewvar.h"
 #include "dataholder.h"
 
@@ -15,9 +14,8 @@ class CreateVdfAddNewVar : public QDialog, public Ui_Page3addnewvar
     Q_OBJECT
 
 public:
-    explicit CreateVdfAddNewVar(DataHolder *DH, CreateVdfPage *parent);//QWidget *parent = 0);
+    explicit CreateVdfAddNewVar(DataHolder *DH, QWidget *parent = 0);
     DataHolder *dataHolder;
-    CreateVdfPage *parentPage;
 
 private slots:
     void on_buttonBox_accepted();

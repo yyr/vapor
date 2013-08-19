@@ -2,8 +2,12 @@ TOP = ../..
 
 include ${TOP}/make/config/prebase.mk
 
-PROGRAM = vdfcreate
-FILES = vdfcreate
+PROGRAM = momvdfcreate
+
+FILES = vdfcreate\
+	momvdfcreate
+
+HEADERS := vdfcreate
 
 #LIB_DEFS = vdf.def
 

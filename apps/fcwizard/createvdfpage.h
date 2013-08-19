@@ -59,9 +59,11 @@ private slots:
     void on_newVarButton_clicked() { vdfNewVar->show(); }
     void on_clearAllButton_clicked();
     void on_selectAllButton_clicked();
+    void addVar();
 
 private:
     bool validatePage();
+    void populateCheckedVars();
     void cleanupPage();
     void setupVars();
     void initializePage();

@@ -29,7 +29,7 @@
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
    </property>
   </widget>
-  <widget class="QTextEdit" name="addVar">
+  <widget class="QPlainTextEdit" name="addVar">
    <property name="geometry">
     <rect>
      <x>20</x>

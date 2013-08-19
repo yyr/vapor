@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'Page3adv.ui'
 **
-** Created: Wed Aug 7 09:44:21 2013
+** Created: Fri Aug 16 11:50:12 2013
 **      by: Qt User Interface Compiler version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!

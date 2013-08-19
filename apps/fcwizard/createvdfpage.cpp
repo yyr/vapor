@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <QtGui>
 #include "createvdfpage.h"
 #include "createvdfcomment.h"
 //#include "createvdfaddnewvar.h"
@@ -39,7 +40,10 @@ CreateVdfPage::CreateVdfPage(DataHolder *DH, QWidget *parent) :
     dataHolder = DH;
     vdfAdvancedOpts = new CreateVdfAdvanced(dataHolder);
     vdfTLComment = new CreateVdfComment(dataHolder);
-    vdfNewVar = new CreateVdfAddNewVar(dataHolder, this);
+    vdfNewVar = new CreateVdfAddNewVar(dataHolder);
+
+    connect(vdfNewVar->buttonBox, SIGNAL(accepted()), this,
+            SLOT(addVar()));
 }
 
 void CreateVdfPage::checkArguments() {
@@ -53,6 +57,7 @@ void CreateVdfPage::on_selectAllButton_clicked() {
         int col = i%3;
         tableWidget->item(row,col)->setCheckState(Qt::Checked);
     }
+    dataHolder->setVDFSelectedVars(dataHolder->getVDFDisplayedVars());
 }
 
 // Uncheck all loaded variables
@@ -62,26 +67,16 @@ void CreateVdfPage::on_clearAllButton_clicked() {
         int col = i%3;
         tableWidget->item(row,col)->setCheckState(Qt::Unchecked);
     }
+
+    dataHolder->clearVDFSelectedVars();
+    cout << "test" << dataHolder->getVDFSelectedVars().size();
+    dataHolder->deleteVDFSelectedVar("dzt");
+    cout << dataHolder->getVDFSelectedVars().size();
 }
 
 // Call vdfcreate and exit without continuing to the populate data page
 void CreateVdfPage::saveAndExit() {
-    const char* delim = ":";
-    std::stringstream selectionVars;
-    vector<string> varsVector;
-
-    for (int i=0; i<varList.size(); i++) {
-        int row = i/3;
-        int col = i%3;
-        if (tableWidget->item(row,col)->checkState() > 0){
-            varsVector.push_back(tableWidget->item(row,col)->text().toStdString());
-        }
-    }
-
-    std::copy(varsVector.begin(), varsVector.end(),
-              std::ostream_iterator<std::string> (selectionVars,delim));
-    dataHolder->setVDFSelectionVars(selectionVars.str());
-
+    populateCheckedVars();
     dataHolder->VDFCreate();
     exit(0);
 }
@@ -112,7 +107,9 @@ void CreateVdfPage::initializePage(){
 }
 
 void CreateVdfPage::setupVars() {
-    varList = dataHolder->getFileVars();
+    varList = dataHolder->getNcdfVars();
+    dataHolder->setVDFSelectedVars(varList);
+    dataHolder->setVDFDisplayedVars(varList);
     tableWidget->setRowCount(varList.size()/3+1);
     tableWidget->setColumnCount(3);
     tableWidget->horizontalHeader()->setVisible(false);
@@ -127,7 +124,50 @@ void CreateVdfPage::setupVars() {
     tableWidget->resizeColumnsToContents();
 }
 
+void CreateVdfPage::addVar() {
+    int size = dataHolder->getVDFDisplayedVars().size();
+    QString selection = vdfNewVar->addVar->toPlainText();
+    dataHolder->addVDFDisplayedVar(selection.toStdString());
+    dataHolder->addVDFSelectedVar(selection.toStdString());
+
+    QTableWidgetItem *newVar = new QTableWidgetItem(selection);
+    newVar->setCheckState(Qt::Checked);
+    qDebug() << size << tableWidget->rowCount();
+
+    if (tableWidget->rowCount() <= size/3) {
+        qDebug() << "oi";
+        tableWidget->insertRow(tableWidget->rowCount());
+    }
+
+    int row = size/3;
+    int col = size%3;
+    tableWidget->setItem(row,col,newVar);
+    //tableWidget->setItem(size/3,size%3,newVar);
+}
+
+void CreateVdfPage::populateCheckedVars() {
+    //const char* delim = ":";
+    std::stringstream selectedVars;
+    vector<string> varsVector;
+
+    for (int i=0; i<varList.size(); i++) {
+        int row = i/3;
+        int col = i%3;
+        if (tableWidget->item(row,col)->checkState() > 0){
+            varsVector.push_back(tableWidget->item(row,col)->text().toStdString());
+        }
+    }
+
+    //std::copy(varsVector.begin(), varsVector.end(),
+    //          std::ostream_iterator<std::string> (selectedVars,delim));
+    //dataHolder->setVDFSelectedVars(selectedVars.str());
+
+
+    dataHolder->setVDFSelectedVars(varsVector);
+}
+
 bool CreateVdfPage::validatePage() {
+    populateCheckedVars();
     dataHolder->VDFCreate();
     return true;
 }
