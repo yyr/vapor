@@ -563,8 +563,6 @@ copyFromDialog(){
 	
 	applyToViz(vizNum);
 	
-	
-	
 	//Save the new visualizer state in the history
 	VizFeatureCommand::captureEnd(cmd, this);
 	
@@ -679,6 +677,8 @@ applyToViz(int vizNum){
 	vizWin->setTimeAnnotColor(timeAnnotColor);
 	vizWin->setTimeAnnotTextSize(timeAnnotTextSize);
 	vizWin->setTimeAnnotType(timeAnnotType);
+	vizWin->setTimeAnnotDirty();
+	vizWin->setAxisLabelsDirty();
 	
 	vizWin->setColorbarDirty(true);
 	vizWin->updateGL();

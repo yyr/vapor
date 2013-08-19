@@ -190,6 +190,8 @@ public:
 	int getTimeAnnotType(){ return myGLWindow->getTimeAnnotType();}
 	void setTimeAnnotTextSize(int size){myGLWindow->setTimeAnnotTextSize(size);}
 	int getTimeAnnotTextSize(){return myGLWindow->getTimeAnnotTextSize();}
+	void setTimeAnnotDirty(){myGLWindow->setTimeAnnotDirty(true);}
+	void setAxisLabelsDirty(){myGLWindow->setAxisLabelsDirty(true);}
 	
 	bool colorbarIsDirty() {return myGLWindow->colorbarIsDirty();}
 	void setColorbarDirty(bool val){myGLWindow->setColorbarDirty(val);}

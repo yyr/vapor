@@ -117,6 +117,7 @@ public:
 	virtual void setClutDirty(){clutDirtyBit = true;}
 	virtual void clearClutDirty(){clutDirtyBit = false;}
 	void renderColorscale(bool rebuild);
+	
 	GLWindow* myGLWindow;
 	
 	
@@ -133,6 +134,7 @@ protected:
 	void disableRegionClippingPlanes();
 	RenderParams* currentRenderParams;
 	void buildColorscaleImage();
+	
 	
 	
 

@@ -46,6 +46,7 @@
 #include <qpixmap.h>
 #include <qimage.h>
 #include <qmutex.h>
+#include <qrect.h>
 #include "tiffio.h"
 #include "assert.h"
 #include <vapor/jpegapi.h>
@@ -107,6 +108,9 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 	farDist = 100.f;
 	nearDist = 0.1f;
 	colorbarDirty = true;
+	timeAnnotDirty = true;
+	axisLabelsDirty = true;
+	for (int axis=0; axis < 3; axis++) axisLabels[axis].clear();
 	colorbarParamsTypeId = Params::GetTypeFromTag(Params::_dvrParamsTag);
 	mouseDownHere = false;
 
@@ -680,6 +684,7 @@ void GLWindow::depthPeelPaintEvent(){
 		getActiveViewpointParams()->convertLocalFromLonLat(timeStep);
 		setValuesFromGui(getActiveViewpointParams());
 	}
+	if (timeStep != previousTimeStep) setTimeAnnotDirty(true);
 	//resetView sets the near/far clipping planes based on the viewpoint in the viewpointParams
 	resetView(getActiveViewpointParams());
 	//Set the projection matrix
@@ -906,7 +911,18 @@ void GLWindow::depthPeelPaintEvent(){
 	//Axis annotation must be drawn after all the renderers are complete so that the axes are not hidden.
 	if (axisAnnotationIsEnabled()) {
 		drawAxisTics(timeStep);
+		//Now go to default 2D window
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
 		drawAxisLabels(timeStep);
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
 	}
 
 	//One colorbar may be drawn.  It is drawn at a fixed position on the final image.
@@ -930,9 +946,22 @@ void GLWindow::depthPeelPaintEvent(){
 	}
 	
 	//Create time annotation from current time step.  Draw it over the image.
-	if (getTimeAnnotType()){
-		drawTimeAnnotation();
-	} 
+	if(getTimeAnnotType()){
+		//Now go to default 2D window
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		
+		renderTimeStamp(timeAnnotIsDirty());
+		
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
+	}
 	
 	//Capture the back-buffer image, if not navigating.  
 	//This must be performed before swapBuffers after everything has been drawn.
@@ -1080,6 +1109,7 @@ void GLWindow::regPaintEvent()
 		getActiveViewpointParams()->convertLocalFromLonLat(timeStep);
 		setValuesFromGui(getActiveViewpointParams());
 	}
+	if (timeStep != previousTimeStep) setTimeAnnotDirty(true);
 	//resetView sets the near/far clipping planes based on the viewpoint in the viewpointParams
 	resetView(getActiveViewpointParams());
 	//Set the projection matrix
@@ -1213,7 +1243,18 @@ void GLWindow::regPaintEvent()
 	//Axis annotation must be drawn after all the renderers are complete so that the axes are not hidden.
 	if (axisAnnotationIsEnabled()) {
 		drawAxisTics(timeStep);
+		//Now go to default 2D window
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
 		drawAxisLabels(timeStep);
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
 	}
 
 	//One colorbar may be drawn.  It is drawn at a fixed position on the final image.
@@ -1237,9 +1278,23 @@ void GLWindow::regPaintEvent()
 	}
 	
 	//Create time annotation from current time step.  Draw it over the image.
-	if (getTimeAnnotType()){
-		drawTimeAnnotation();
-	} 
+	
+	if(getTimeAnnotType()){
+		//Now go to default 2D window
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		
+		renderTimeStamp(timeAnnotIsDirty());
+		
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
+	}
 	
 	//Capture the back-buffer image, if not navigating.  
 	//This must be performed before swapBuffers after everything has been drawn.
@@ -1344,7 +1399,7 @@ void GLWindow::initializeGL()
 		renderer[i]->initializeGL();
 		printOpenGLErrorMsg(renderer[i]->getMyName().c_str());
 	}
-   
+    glGenTextures(1,&_timeStampTexid);
 	nowPainting = false;
 	printOpenGLError();
 	
@@ -1660,12 +1715,13 @@ void GLWindow::setRegionFrameColorFlt(const QColor& c){
 	regionFrameColorFlt[1]= (float)c.green()/255.;
 	regionFrameColorFlt[2]= (float)c.blue()/255.;
 }
-void GLWindow::drawTimeAnnotation(){
-
-	//Always need to check the time:
-	size_t timeStep = (size_t)getActiveAnimationParams()->getCurrentTimestep(); 
+void GLWindow::
+buildTimeStampImage(){
+	
+	//Construct a string representing the text to be displayed:
+	size_t timeStep = (size_t)(getActiveAnimationParams()->getCurrentTimestep()); 
 	QString labelContents;
-	if (timeAnnotType == 1){
+	if (getTimeAnnotType() == 1){
 		labelContents = QString("TimeStep: ")+QString::number((int)timeStep) + " ";
 	}
 	else {//get string from metadata
@@ -1674,45 +1730,166 @@ void GLWindow::drawTimeAnnotation(){
 		else {
 			string timeStamp;
 			dataMgr->GetTSUserTimeStamp(timeStep, timeStamp);
-
 			labelContents = QString("Date/Time: ")+QString(timeStamp.c_str());
 		}
+	}
+
+	//Determine the size of the rectangle holding the text:
+	QFont f;
+	f.setPointSize(getTimeAnnotTextSize());
+	QFontMetrics metrics = QFontMetrics(f);
+	QRect rect = metrics.boundingRect(0,1000, width(), int(height()*0.25),Qt::AlignCenter, labelContents);
+
+	//create a QPixmap (specified background color) and draw the text on it.
+	QPixmap timeStampPixmap(rect.width(), rect.height());
+
+	QColor bgColor = getBackgroundColor();
+
+	//Draw the text into the pixmap
+	QPainter painter(&timeStampPixmap);
+	painter.setFont(f);
+	painter.setRenderHint(QPainter::TextAntialiasing);
+	painter.fillRect(QRect(0, 0, rect.width(), rect.height()), bgColor);
+	timeStampPixmap.fill(bgColor);
+	QColor fgColor = getTimeAnnotColor();
+	QPen myPen(fgColor, 6);
+	painter.setPen(myPen);
+	
+	//Setup font:
+	int textHeight = rect.height();
+	
+	textHeight = (int) (textHeight*getTimeAnnotTextSize()*0.1);
+	f.setPixelSize(textHeight);
+	
+	painter.drawText(QRect(0, 0, rect.width(), rect.height()),Qt::AlignCenter, labelContents);
+	
+	//Then, convert the pxmap to a QImage
+	QImage timeStampImage = timeStampPixmap.toImage();
+
+	//Finally create the gl-formatted texture 
+	//assert(colorbarImage.depth()==32);
+	glTimeStampImage = QGLWidget::convertToGLFormat(timeStampImage);
+	painter.end();
+	
+}
+void GLWindow::
+renderTimeStamp(bool dorebuild){
+	float whitecolor[4] = {1.,1.,1.,1.f};
+	if (dorebuild) buildTimeStampImage();
+
+	setTimeAnnotDirty(false);
+	glColor4fv(whitecolor);
+	glBindTexture(GL_TEXTURE_2D,_timeStampTexid);
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	//Disable z-buffer compare, always overwrite:
+	glDepthFunc(GL_ALWAYS);
+    glEnable( GL_TEXTURE_2D );
+	int txtWidth = glTimeStampImage.width();
+	int txtHeight = glTimeStampImage.height();
+	float fltTxtWidth = (float)txtWidth/(float)width();
+	float fltTxtHeight = (float)txtHeight/(float)height();
+	//create a polygon appropriately positioned in the scene.  It's inside the unit cube--
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, txtWidth, txtHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+		glTimeStampImage.bits());
+	
+	float llx = 2.f*getTimeAnnotCoord(0) - 1.f; 
+	float lly = 2.f*getTimeAnnotCoord(1)-2.*fltTxtHeight - 1.f; //Move down so it won't overlap default color scale location.
+	float urx = llx+2.*fltTxtWidth;
+	float ury = lly+2.*fltTxtHeight;
+	glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(llx, lly, 0.0f);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(llx, ury, 0.0f);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(urx, ury, 0.0f);
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(urx, lly, 0.0f);
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
+	//Reset to default:
+	glDepthFunc(GL_LESS);
+}
+void GLWindow::buildAxisLabels(int timestep){
+	//Set up the painter and font metrics
+	
+	
+
+	float lorigin[3], lticMin[3], lticMax[3];
+	float origin[3], ticMin[3], ticMax[3];
+	//Convert user to local by subtracting extent min.
+	const vector<double>& exts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
+	for (int i = 0; i<3; i++){
+		lorigin[i] = axisOriginCoord[i] - exts[i];
+		lticMin[i] = minTic[i] - exts[i];
+		lticMax[i] = maxTic[i] - exts[i];
+	}
+	ViewpointParams::localToStretchedCube(lorigin, origin);
+	//minTic and maxTic can be regarded as points in world space, defining
+	//corners of a box that's projected to axes.
+	ViewpointParams::localToStretchedCube(lticMin, ticMin);
+	ViewpointParams::localToStretchedCube(lticMax, ticMax);
+	float pointOnAxis[3];
+	float winCoords[2];
+	
+	for (int axis = 0; axis < 3; axis++){
 		
+		if (numTics[axis] > 1){
+			vcopy(origin, pointOnAxis);
+			for (int i = 0; i< numTics[axis]; i++){
+				if (axisLabels[axis].size() <= i) axisLabels[axis].push_back(*(new QImage()));
+				pointOnAxis[axis] = ticMin[axis] + (float)i* (ticMax[axis] - ticMin[axis])/(float)(numTics[axis]-1);
+				float labelValue = minTic[axis] + (float)i* (maxTic[axis] - minTic[axis])/(float)(numTics[axis]-1);
+				projectPointToWin(pointOnAxis, winCoords);
+				int x = (int)(winCoords[0]+2*ticWidth);
+				int y = (int)(height()-winCoords[1]+2*ticWidth);
+				if (x < 0 || x > width()) continue;
+				if (y < 0 || y > height()) continue;
+				//Note: Qt won't work right if we take the following out of the loop:  
+				QFont f;
+				f.setPointSize(labelHeight);
+				QString textLabel = QString::number(labelValue,'g',labelDigits);
+				QFontMetrics metrics = QFontMetrics(f);
+				QRect rect = metrics.boundingRect(0,1000, width(), height(), Qt::AlignCenter, textLabel);
+
+				//create a QPixmap (specified background color) and draw the text on it.
+				QPixmap labelPixmap(rect.width(), rect.height());
+				QColor bgColor = getBackgroundColor();
+				//Draw the text into the pixmap
+				QPainter painter(&labelPixmap);
+				painter.setFont(f);
+				painter.setRenderHint(QPainter::TextAntialiasing);
+				painter.fillRect(QRect(0, 0, rect.width(), rect.height()), bgColor);
+				labelPixmap.fill(bgColor);
+				QPen myPen(axisColor,6);
+				painter.setPen(myPen);
+	
+				//Setup font:
+				int textHeight = rect.height();
+	
+				textHeight = (int) (textHeight*labelHeight*0.1);
+				f.setPixelSize(textHeight);
+	
+				painter.drawText(QRect(0, 0, rect.width(), rect.height()),Qt::AlignCenter, textLabel);
+	
+				//Then, convert the pxmap to a QImage
+				QImage labelImage = labelPixmap.toImage();
+
+				//Finally create the gl-formatted texture
+				//
+				axisLabels[axis][i] = QGLWidget::convertToGLFormat(labelImage);
+				painter.end();
+		
+			}
+		}
 	}
-	int xposn = (int)(width()*timeAnnotCoords[0]);
-	int yposn = (int)(height()*(1.f-timeAnnotCoords[1]));
-	
-	
-	if(timeAnnotTextSize>0) {
-		glPushAttrib(GL_TEXTURE_BIT);
-		QFont f;
-		f.setPointSize(timeAnnotTextSize);
-		QPainter painter(this);
-		painter.setFont(f);
-		painter.setRenderHint(QPainter::TextAntialiasing);
-		QFontMetrics metrics = QFontMetrics(f);
-		QRect rect = metrics.boundingRect(0,1000, width(), int(height()*0.25),
-			Qt::AlignCenter, labelContents);
-		painter.fillRect(QRect(xposn, yposn, rect.width(), rect.height()), getBackgroundColor());
-		painter.setPen(timeAnnotColor);
-		painter.drawText(QRect(xposn, yposn, rect.width(), rect.height()),Qt::AlignCenter, labelContents);
-		painter.end();
-		glPopAttrib();
-	}
-	
+	axisLabelsDirty = false;
 }
 void GLWindow::drawAxisLabels(int timestep) {
 	float origin[3], ticMin[3], ticMax[3];
 	float lorigin[3], lticMin[3], lticMax[3];
 	if (labelHeight <= 0) return;
-	//Set up the painter and font metrics
-	QFont f;
-	f.setPointSize(labelHeight);
-	QPainter painter(this);
-	painter.setFont(f);
-	painter.setRenderHint(QPainter::TextAntialiasing);
-	QFontMetrics metrics = QFontMetrics(f);
-
+	if (axisLabelsDirty) buildAxisLabels(timestep);
+	
+	
 	//Convert user to local by subtracting extent min.
 	const vector<double>& exts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
 	for (int i = 0; i<3; i++){
@@ -1729,6 +1906,8 @@ void GLWindow::drawAxisLabels(int timestep) {
 	float pointOnAxis[3];
 	float winCoords[2] = {0.f,0.f};
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glDepthFunc(GL_ALWAYS);
+    glEnable( GL_TEXTURE_2D );
 	for (int axis = 0; axis < 3; axis++){
 		if (numTics[axis] > 1){
 			vcopy(origin, pointOnAxis);
@@ -1740,17 +1919,36 @@ void GLWindow::drawAxisLabels(int timestep) {
 				int y = (int)(height()-winCoords[1]+2*ticWidth);
 				if (x < 0 || x > width()) continue;
 				if (y < 0 || y > height()) continue;
-				QString textLabel = QString::number(labelValue,'g',labelDigits);
-				QRect rect = metrics.boundingRect(0,100, width(), height(),
-					Qt::AlignCenter, textLabel);
-				painter.fillRect(QRect(x, y, rect.width(), rect.height()), getBackgroundColor());
-				painter.setPen(axisColor);
-				painter.drawText(QRect(x, y, rect.width(), rect.height()),Qt::AlignCenter, textLabel);
-		
+				glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+				glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+				//Disable z-buffer compare, always overwrite:
+	
+				int txtWidth = axisLabels[axis][i].width();
+				int txtHeight = axisLabels[axis][i].height();
+				float fltTxtWidth = (float)txtWidth/(float)width();
+				float fltTxtHeight = (float)txtHeight/(float)height();
+				//create a textured polygon appropriately positioned in the scene. 
+				glTexImage2D(GL_TEXTURE_2D, 0, 3, txtWidth, txtHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+					axisLabels[axis][i].bits());
+	
+				float llx = 2.*(float)x/(float)width() -1.;
+				float lly = 1. - 2.*(float)y/(float)height();
+				float urx = llx+2.*fltTxtWidth;
+				float ury = lly+2.*fltTxtHeight;
+				glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+				glBegin(GL_QUADS);
+				glTexCoord2f(0.0f, 0.0f); glVertex3f(llx, lly, 0.0f);
+				glTexCoord2f(0.0f, 1.0f); glVertex3f(llx, ury, 0.0f);
+				glTexCoord2f(1.0f, 1.0f); glVertex3f(urx, ury, 0.0f);
+				glTexCoord2f(1.0f, 0.0f); glVertex3f(urx, lly, 0.0f);
+				glEnd();
+	
 			}
 		}
 	}
-	painter.end();
+	glDisable(GL_TEXTURE_2D);
+	//Reset to default:
+	glDepthFunc(GL_LESS);
 	glPopAttrib();
 }
 

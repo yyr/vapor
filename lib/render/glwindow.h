@@ -206,7 +206,8 @@ public:
 	void setRenderNew() {renderNew = true;}
 	void draw3DCursor(const float position[3]);
 
-	
+	void renderTimeStamp(bool rebuild);
+	void buildTimeStampImage();
 	
 	//Get/set methods for vizfeatures
 	QColor getBackgroundColor() {return DataStatus::getInstance()->getBackgroundColor();}
@@ -250,8 +251,6 @@ public:
 		timeAnnotCoords[1] = crds[1];
 	}
 
-	
-	
 	void setBackgroundColor(QColor& c) {DataStatus::getInstance()->setBackgroundColor(c);}
 	void setColorbarBackgroundColor(QColor& c) {colorbarBackgroundColor = c;}
 	void setRegionFrameColor(QColor& c) {DataStatus::getInstance()->setRegionFrameColor(c);}
@@ -279,9 +278,13 @@ public:
 	void setColorbarURCoord(int i, float crd) {colorbarURCoord[i] = crd;}
 	void setColorbarNumTics(int i) {numColorbarTics = i;}
 	bool colorbarIsDirty() {return colorbarDirty;}
+	bool timeAnnotIsDirty() {return timeAnnotDirty;}
 	void setColorbarDirty(bool val){colorbarDirty = val;}
+	void setTimeAnnotDirty(bool val){timeAnnotDirty = val;}
 	void setColorbarDigits(int ndigs) {colorbarDigits = ndigs;}
 	void setColorbarFontsize(int fsize) {colorbarFontsize = fsize;}
+	void setAxisLabelsDirty(bool val){axisLabelsDirty = val;}
+	bool axisLabelsAreDirty(){return axisLabelsDirty;}
 
 
 	bool mouseIsDown() {return mouseDownHere;}
@@ -471,6 +474,7 @@ public:
 	bool isDepthPeeling(){return depthPeeling;}
 	
 protected:
+	QImage glTimeStampImage;
 	SpinTimer *mySpinTimer;
 	ShaderMgr *manager;
 	//Mouse Mode tables.  Static since independent of window:
@@ -494,6 +498,10 @@ protected:
 	static bool renderPriority(RenderListElt* ren1, RenderListElt* ren2){
 		return (ren1->camDist > ren2->camDist);
 	}
+	std::vector<QImage> axisLabels[3];
+	
+	bool axisLabelsDirty;
+
 	static bool depthPeeling;
 	int winNum;
 	int previousTimeStep;
@@ -557,7 +565,7 @@ protected:
 	void drawAxisArrows(float* extents);
 	void drawAxisTics(int tstep);
 	void drawAxisLabels(int tstep);
-	void drawTimeAnnotation();
+	void buildAxisLabels(int tstep);
 	
 	void placeLights();
 	
@@ -628,6 +636,7 @@ protected:
 	float colorbarURCoord[2];
 	int numColorbarTics;
 	bool colorbarDirty;
+	bool timeAnnotDirty;
 	bool mouseDownHere;
 
 
@@ -654,6 +663,7 @@ protected:
 	// unit vector in direction of handle
 	float handleProjVec[2];
 	bool isSpinning;
+	GLuint _timeStampTexid;
 	
 #endif //DOXYGEN_SKIP_THIS
 	
