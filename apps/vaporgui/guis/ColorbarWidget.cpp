@@ -11,7 +11,6 @@
 #include "Colormap.h"
 #include "params.h"
 #include "mappingframe.h"
-#include "vapor/errorcodes.h"
 
 #include <iostream>
 
@@ -173,13 +172,7 @@ void ColorbarWidget::paintGL()
 //----------------------------------------------------------------------------
 void ColorbarWidget::initializeGL()
 {
-	 GLenum glErr;
-	glErr = glGetError();
-	if (glErr != GL_NO_ERROR){
-		MyBase::SetErrMsg(VAPOR_ERROR_DRIVER_FAILURE,"Error: No Usable Graphics Driver.\n%s",
-			"Check that drivers are properly installed.");
-		return;
-	}
+  printOpenGLErrorMsg("ColorbarWidget");
   glShadeModel( GL_SMOOTH );
   glPolygonMode(GL_FRONT, GL_FILL);
 
