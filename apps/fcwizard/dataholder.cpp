@@ -27,6 +27,7 @@
 #include <QDebug>
 #include <QString>
 #include <vapor/vdfcreate.h>
+#include <vapor/2vdf.h>
 
 #include "dataholder.h"
 //#include "momvdfcreate.cpp"
@@ -37,11 +38,6 @@ using namespace VetsUtil;
 DataHolder::DataHolder(){
     setVDFstartTime("1");
 }
-
-/*void DataHolder::addVDFSelectionVar(string var) {
-    //ncdfVars.push_back(var);
-    VDFVarBuffer = var;
-}*/
 
 void DataHolder::deleteVDFSelectedVar(string var) {
     for (int i=0;i<VDFSelectedVars.size();i++) {
@@ -66,7 +62,7 @@ void DataHolder::createReader() {
 // the user's selected arguments.  momvdfcreate receives this array,
 // as well as a count (argc) which is the size of the array.
 void DataHolder::VDFCreate() {
-    const char* delim = "";
+    //const char* delim = "";
     int argc = 2;
     vector<std::string> argv;
     argv.push_back("momvdfcreate");
@@ -130,9 +126,9 @@ void DataHolder::VDFCreate() {
         argc++;
     }
 
-    std::stringstream strArgv;
+    /*std::stringstream strArgv;
     std::copy(argv.begin(), argv.end(),
-              std::ostream_iterator<std::string> (strArgv,delim));
+              std::ostream_iterator<std::string> (strArgv,delim));*/
 
     char** args = new char*[ argv.size() + 1 ];
     for(size_t a=0; a<argv.size(); a++) {
@@ -145,5 +141,55 @@ void DataHolder::VDFCreate() {
 
 // To be completed in the future
 //void DataHolder::runRomsVDFCreate() {}
-void DataHolder::runMom2VDF() {}
-void DataHolder::runRoms2VDF() {}
+void DataHolder::run2VDF() {
+    int argc = 2;
+    vector<std::string> argv;
+    argv.push_back("momvdfcreate");
+    argv.push_back("-quiet");
+
+    if (VDFSelectedVars.size() != 0) {
+        argv.push_back("-vars");
+        argc++;
+
+        string stringVars;
+        for(vector<string>::iterator it = VDFSelectedVars.begin();
+            it != VDFSelectedVars.end(); ++it) {
+            if(it != VDFSelectedVars.begin()) stringVars += ":";
+            stringVars += *it;
+        }
+        argv.push_back(stringVars);
+        argc++;
+    }
+    if (PDnumTS != "") {
+        argv.push_back("-numts");
+        argv.push_back(PDnumTS);
+        argc+=2;
+    }
+    if (PDrefinement != "") {
+        argv.push_back("-numts");
+        argv.push_back(PDrefinement);
+        argc+=2;
+    }
+    if (PDcompression != "") {
+        argv.push_back("-numts");
+        argv.push_back(PDcompression);
+        argc+=2;
+    }
+    if (PDnumThreads != "") {
+        argv.push_back("-numts");
+        argv.push_back(PDnumThreads);
+        argc+=2;
+    }
+    if (PDinputVDFfile != "") {
+        argv.push_back("-numts");
+        argv.push_back(PDinputVDFfile);
+        argc+=2;
+    }
+    if (VDFnumTS != "") {
+        argv.push_back("-numts");
+        argv.push_back(VDFnumTS);
+        argc+=2;
+    }
+
+    launch2vdf(argc, argv, getFileType());
+}

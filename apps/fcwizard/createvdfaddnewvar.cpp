@@ -2,6 +2,8 @@
 #include "ui/Page3addnewvar.h"
 #include "dataholder.h"
 
+using namespace VAPoR;
+
 CreateVdfAddNewVar::CreateVdfAddNewVar(DataHolder *DH, QWidget *parent) :
     QDialog(parent), Ui_Page3addnewvar()
 {

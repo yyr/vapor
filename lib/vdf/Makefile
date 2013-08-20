@@ -4,8 +4,8 @@ include ${TOP}/make/config/prebase.mk
 
 LIBRARY = vdf
 FILES = \
-	vdfcreate BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata MetadataVDC \
-	MetadataSpherical MetadataWRF \
+	vdfcreate 2vdf BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata \
+	MetadataVDC MetadataSpherical MetadataWRF \
 	WaveletBlock1D  WaveletBlock2D WaveletBlock3D \
 	AMRTreeBranch AMRTree AMRData \
 	VDFIOBase WaveletBlockIOBase WaveletBlock3DReader \
@@ -22,8 +22,8 @@ FILES = \
 	DCReaderNCDF  DCReaderMOM DCReaderROMS VDCFactory
 
 HEADER_FILES = \
-	vdfcreate BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata MetadataVDC \
-	MetadataSpherical MetadataWRF \
+	vdfcreate 2vdf BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata \
+	MetadataVDC MetadataSpherical MetadataWRF \
 	WaveletBlock1D  WaveletBlock2D WaveletBlock3D \
 	AMRTreeBranch AMRTree AMRData \
 	VDFIOBase WaveletBlockIOBase WaveletBlock3DReader \

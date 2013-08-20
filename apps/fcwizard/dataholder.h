@@ -30,8 +30,8 @@
 //#include <vapor/vdfcreate.h>
 
 using namespace std;
-using namespace VAPoR;
 
+namespace VAPoR{
 class DataHolder
 {
 public:
@@ -72,7 +72,6 @@ public:
     // Get functions used by create VDF
     string getVDFfileName() const { return VDFfileName; }
     string getVDFnumTS() const { return VDFnumTS; }
-    string getVDFVarBuffer() const { return VDFVarBuffer; }
     vector<string> getVDFSelectedVars() const { return VDFSelectedVars; }
 
     // Get functions used by Populate Data
@@ -87,11 +86,10 @@ public:
     vector<string> getPDSelectedVars() const { return PDSelectedVars; }
 
     // File generation commands
-    void buildAndCallVdfCreate();
+    //void buildAndCallVdfCreate();
     //void runMomVDFCreate();
     void VDFCreate();
-    void runMom2VDF();
-    void runRoms2VDF();
+    void run2VDF();
 
 private:
     //void launchVdfCreate(int argc, char **argv, string NetCDFtype);
@@ -113,7 +111,6 @@ private:
     string VDFfileName;
     string VDFcrList;
     string VDFPeriodicity;
-    string VDFVarBuffer;
     vector<string> VDFSelectedVars;
     vector<string> VDFDisplayedVars;
 
@@ -125,9 +122,9 @@ private:
     string PDcompression;
     string PDnumThreads;
     string PDinputVDFfile;
-    string PDVarBuffer;
     vector<string> PDSelectedVars;
     vector<string> PDDisplayedVars;
+};
 };
 
 #endif // DATAHOLDER_H
