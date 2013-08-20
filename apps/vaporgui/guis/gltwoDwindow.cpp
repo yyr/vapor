@@ -28,6 +28,7 @@
 #include "twoDimageeventrouter.h"
 #include "messagereporter.h"
 #include "session.h"
+#include "vapor/errorcodes.h"
 #include <math.h>
 #include <qgl.h>
 #include <qapplication.h>
@@ -218,7 +219,13 @@ void GLTwoDWindow::paintGL()
 
 void GLTwoDWindow::initializeGL()
 {
-	printOpenGLErrorMsg("GLTwoDWindow");
+	GLenum glErr;
+	glErr = glGetError();
+	if (glErr != GL_NO_ERROR){
+		MyBase::SetErrMsg(VAPOR_ERROR_DRIVER_FAILURE,"Error: No Usable Graphics Driver.\n%s",
+			"Check that drivers are properly installed.");
+		return;
+	}
 	if (GLWindow::isRendering()) return;
    	makeCurrent();
 	

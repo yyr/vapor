@@ -281,7 +281,13 @@ void GLProbeWindow::paintGL()
 
 void GLProbeWindow::initializeGL()
 {
-	printOpenGLErrorMsg("GLProbeWindow");
+	GLenum glErr;
+	glErr = glGetError();
+	if (glErr != GL_NO_ERROR){
+		MyBase::SetErrMsg(VAPOR_ERROR_DRIVER_FAILURE,"Error: No Usable Graphics Driver.\n%s",
+			"Check that drivers are properly installed.");
+		return;
+	}
 	if (GLWindow::isRendering()) return;
    	makeCurrent();
 	glGenTextures(1, &_fbTexid);

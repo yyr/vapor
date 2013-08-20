@@ -25,7 +25,7 @@
 #include <QContextMenuEvent>
 #include <QMouseEvent>
 #include <QToolTip>
-
+#include "vapor/errorcodes.h"
 #include "params.h"
 #include "ParamsIso.h"
 #include "vizwinmgr.h"
@@ -952,8 +952,15 @@ void MappingFrame::paintGL()
 //----------------------------------------------------------------------------
 void MappingFrame::initializeGL()
 {
+	GLenum glErr;
+	glErr = glGetError();
+	if (glErr != GL_NO_ERROR){
+		MyBase::SetErrMsg(VAPOR_ERROR_DRIVER_FAILURE,"Error: No Usable Graphics Driver.\n%s",
+			"Check that drivers are properly installed.");
+		return;
+	}
   if (GLWindow::isRendering()) return;
-  printOpenGLErrorMsg("MappingFrame");
+  
   setAutoBufferSwap(false);
   qglClearColor(QColor(0,0,0)); 
 

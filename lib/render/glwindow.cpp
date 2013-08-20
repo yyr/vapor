@@ -1356,11 +1356,19 @@ void GLWindow::draw3DCursor(const float position[3]){
 
 void GLWindow::initializeGL()
 {
-	printOpenGLError();
+	
+	GLenum glErr;
+	glErr = glGetError();
+	if (glErr != GL_NO_ERROR){
+		MyBase::SetErrMsg(VAPOR_ERROR_DRIVER_FAILURE,"Error: No Usable Graphics Driver.\n%s",
+			"Check that drivers are properly installed.");
+		return;
+	}
     previousTimeStep = -1;
 	previousFrameNum = -1;
 	glewInit();
 	glEnable(GL_MULTISAMPLE);
+	if (printOpenGLError()) return;
 	//Check to see if we are using MESA:
 	if (GetVendor() == MESA){
 		SetErrMsg(VAPOR_ERROR_GL_VENDOR,"GL Vendor String is MESA.\nGraphics drivers may need to be reinstalled");
@@ -1394,7 +1402,7 @@ void GLWindow::initializeGL()
     qglClearColor(getBackgroundColor()); 		// Let OpenGL clear to black
 	//Initialize existing renderers:
 	//
-	printOpenGLError();
+	if (printOpenGLError()) return;
 	for (int i = 0; i< getNumRenderers(); i++){
 		renderer[i]->initializeGL();
 		printOpenGLErrorMsg(renderer[i]->getMyName().c_str());
