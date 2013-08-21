@@ -111,7 +111,7 @@ parseArgs(); #get the source and destination
 print "SOURCE=$srcvdf\nTARGET=$dstvdf\n" if($verbose);
 
 #get all the variables we'll be handling
-@vars = grep{-d "$srcdir/$_" && ($_ eq "mask" || 
+@vars = grep{-d "$srcdir/$_" && ($_ eq "mask" || $_ eq "ELEVATION" || 
     (keys(%inc) == 0 || $inc{$_})) && !$exc{$_}} dirContents($srcdir);
 
 #scanvars prints scanned information and exits if in info mode
