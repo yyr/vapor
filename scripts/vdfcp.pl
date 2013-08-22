@@ -55,9 +55,9 @@ my $usage =
 "-level #\n" .
 "    Copy all levels of detail up to and including '#'.\n" .
 "-info\n" .
-"    Show available levels, frames and variables in a human-readable format.\n    Can also be used to show selected ranges. No target needed.\n" .
+"    Show available levels, frames and variables in a human-readable format.\n    Can also be used to show selected ranges. No target needed.\n    No copying will be done.\n" .
 "-list\n" .
-"    Output a list of all files (each with its full path)\n    that would be copied given the selected ranges.\n" .
+"    Output a list of all files (each with its full path)\n    that would be copied given the selected ranges.\n    No copying will be done.\n" .
 "-help\n" .
 "    Print this usage statement and exit.\n" .
 "-v\n" .
