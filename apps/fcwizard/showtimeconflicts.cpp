@@ -4,6 +4,8 @@
 #include "ui/Page4conf.h"
 #include "dataholder.h"
 
+using namespace VAPoR;
+
 ShowTimeConflicts::ShowTimeConflicts(DataHolder *DH, QWidget *parent) :
     QDialog(parent), Ui_Page4conf()
 {

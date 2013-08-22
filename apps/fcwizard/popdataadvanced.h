@@ -37,6 +37,7 @@ class PopDataAdvanced : public QDialog, public Ui_Page4adv
 public:
     explicit PopDataAdvanced(DataHolder *DH, QWidget *parent = 0);
     DataHolder *dataHolder;
+    vector<string> varList;
     
 private slots:
     void on_acceptButton_clicked();

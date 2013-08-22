@@ -24,6 +24,8 @@
 #include "dataholder.h"
 #include <QString>
 
+using namespace VAPoR;
+
 CreateVdfAdvanced::CreateVdfAdvanced(DataHolder *DH, QWidget *parent) :
     QDialog(parent), Ui_Page3adv()
 {

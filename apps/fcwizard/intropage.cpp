@@ -24,6 +24,8 @@
 #include "dataholder.h"
 #include <QDebug>
 
+using namespace VAPoR;
+
 IntroPage::IntroPage(DataHolder *DH, QWidget *parent) :
     QWizardPage(parent),Ui_Page1()
 {

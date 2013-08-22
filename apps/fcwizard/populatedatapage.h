@@ -24,6 +24,7 @@
 
 #include <QWizardPage>
 #include <QtGui/QtGui>
+#include <vapor/WaveCodecIO.h>
 #include "popdataadvanced.h"
 #include "showtimeconflicts.h"
 #include "ui/Page4.h"
@@ -40,23 +41,23 @@ class PopulateDataPage : public QWizardPage, public Ui_Page4
 public:
     PopulateDataPage(DataHolder *DH, QWidget *parent = 0);
     PopDataAdvanced *popAdvancedOpts;
-    ShowTimeConflicts *timeConflicts;
     DataHolder *dataHolder;
+    //MetadataVDC metadata;
+    //WaveCodecIO wcwriter;
 
-    void printSomething();
+    void findVars();
+    vector<string> varList;
+
 
 private slots:
-    void on_goButton_clicked();
-    void on_advancedOptionsButton_clicked();
-    void on_scanVDF_clicked();
-    void on_variableList_activated(const QModelIndex &index);
-    void warnButton_clicked();
+    void on_advancedOptionsButton_clicked() { popAdvancedOpts->show(); }
+    void on_startTimeSpinner_valueChanged(QString value){ dataHolder->setVDFstartTime(value.toStdString()); }
+    void on_numtsSpinner_valueChanged(QString value){ dataHolder->setVDFnumTS(value.toStdString()); }
 
 private:
     void cleanupPage();
     void initializePage();
-    void checkArguments();
-    void run2vdf();
+    void setupVars();
 };
 
 #endif // POPULATEDATAPAGE_H

@@ -29,6 +29,8 @@
 #include "dataholder.h"
 //#include <QString>
 
+using namespace VAPoR;
+
 CreateVdfPage::CreateVdfPage(DataHolder *DH, QWidget *parent) :
     QWizardPage(parent), Ui_Page3()
 {
@@ -44,10 +46,6 @@ CreateVdfPage::CreateVdfPage(DataHolder *DH, QWidget *parent) :
 
     connect(vdfNewVar->buttonBox, SIGNAL(accepted()), this,
             SLOT(addVar()));
-}
-
-void CreateVdfPage::checkArguments() {
-    qDebug() << "VDF creation args look good so far...";
 }
 
 // Check all loaded variables

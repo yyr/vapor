@@ -23,6 +23,8 @@
 #include "ui/Page3cmt.h"
 #include "dataholder.h"
 
+using namespace VAPoR;
+
 CreateVdfComment::CreateVdfComment(DataHolder *DH, QWidget *parent) :
     QDialog(parent), Ui_Page3cmt()
 {

@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'Page3addnewvar.ui'
 **
-** Created: Fri Aug 16 16:19:02 2013
+** Created: Tue Aug 20 12:09:57 2013
 **      by: Qt User Interface Compiler version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!

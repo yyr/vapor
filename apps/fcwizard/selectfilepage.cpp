@@ -26,6 +26,7 @@
 #include "dataholder.h"
 
 using namespace std;
+using namespace VAPoR;
 
 SelectFilePage::SelectFilePage(DataHolder *DH, QWidget *parent) :
     QWizardPage(parent), Ui_Page2()
@@ -46,6 +47,7 @@ void SelectFilePage::on_browseOutputVdfFile_clicked() {
     //dataHolder->setVDFfileName(fi.absoluteFilePath().toStdString());
     outputVDFtext->setText(file);
     dataHolder->setVDFfileName(file.toStdString());
+    dataHolder->setPDVDFfile(file.toStdString());
 }
 
 void SelectFilePage::on_addFileButton_clicked() {

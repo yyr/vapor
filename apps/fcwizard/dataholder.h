@@ -28,10 +28,12 @@
 #include <vapor/DCReaderMOM.h>
 #include <vapor/DCReaderROMS.h>
 //#include <vapor/vdfcreate.h>
+//#include <vapor/2vdf.h>
 
 using namespace std;
+using namespace VAPoR;
 
-namespace VAPoR{
+//namespace VAPoR{
 class DataHolder
 {
 public:
@@ -54,8 +56,8 @@ public:
     void setVDFPeriodicity(string periodicity) { VDFPeriodicity = periodicity; }
 
     void setVDFDisplayedVars(vector<string> selectedVars) { VDFDisplayedVars = selectedVars; }
-    void addVDFDisplayedVar(string var) { VDFDisplayedVars.push_back(var); }
     void setVDFSelectedVars(vector<string> selectedVars) { VDFSelectedVars = selectedVars; }
+    void addVDFDisplayedVar(string var) { VDFDisplayedVars.push_back(var); }
     void addVDFSelectedVar(string var) { VDFSelectedVars.push_back(var); }
     void deleteVDFSelectedVar(string var);
     void clearVDFSelectedVars() { VDFSelectedVars.clear(); }
@@ -68,6 +70,7 @@ public:
     void setPDcompLevel(string compression) { PDcompression = compression; }
     void setPDnumThreads(string numThreads) { PDnumThreads = numThreads; }
     void setPDSelectedVars(vector<string> selectedVars) { PDSelectedVars = selectedVars; }
+    void setPDDisplayedVars(vector<string> vars) { PDDisplayedVars = vars; }
 
     // Get functions used by create VDF
     string getVDFfileName() const { return VDFfileName; }
@@ -75,6 +78,8 @@ public:
     vector<string> getVDFSelectedVars() const { return VDFSelectedVars; }
 
     // Get functions used by Populate Data
+    vector<string> getPDDisplayedVars() { return PDDisplayedVars; }
+    string getPDinputVDFfile() const { return PDinputVDFfile; }
     string getPDnumTS() const { return PDnumTS; }
     string getVDFStartTime() const { return VDFstartTime; }
 
@@ -88,6 +93,7 @@ public:
     // File generation commands
     //void buildAndCallVdfCreate();
     //void runMomVDFCreate();
+    void findPopDataVars();
     void VDFCreate();
     void run2VDF();
 
@@ -125,6 +131,6 @@ private:
     vector<string> PDSelectedVars;
     vector<string> PDDisplayedVars;
 };
-};
+//};
 
 #endif // DATAHOLDER_H

@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'createvdfpage.h'
 **
-** Created: Mon Aug 19 08:56:10 2013
+** Created: Tue Aug 20 13:59:53 2013
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.3)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_CreateVdfPage[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-       7,   14, // methods
+       9,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -37,7 +37,9 @@ static const uint qt_meta_data_CreateVdfPage[] = {
       92,   14,   14,   14, 0x08,
      118,   14,   14,   14, 0x08,
      146,   14,   14,   14, 0x08,
-     175,   14,   14,   14, 0x08,
+     181,  175,   14,   14, 0x08,
+     223,  175,   14,   14, 0x08,
+     261,   14,   14,   14, 0x08,
 
        0        // eod
 };
@@ -48,7 +50,10 @@ static const char qt_meta_stringdata_CreateVdfPage[] = {
     "on_vdfCommentButton_clicked()\0"
     "on_newVarButton_clicked()\0"
     "on_clearAllButton_clicked()\0"
-    "on_selectAllButton_clicked()\0addVar()\0"
+    "on_selectAllButton_clicked()\0value\0"
+    "on_startTimeSpinner_valueChanged(QString)\0"
+    "on_numtsSpinner_valueChanged(QString)\0"
+    "addVar()\0"
 };
 
 void CreateVdfPage::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -63,11 +68,12 @@ void CreateVdfPage::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _i
         case 3: _t->on_newVarButton_clicked(); break;
         case 4: _t->on_clearAllButton_clicked(); break;
         case 5: _t->on_selectAllButton_clicked(); break;
-        case 6: _t->addVar(); break;
+        case 6: _t->on_startTimeSpinner_valueChanged((*reinterpret_cast< QString(*)>(_a[1]))); break;
+        case 7: _t->on_numtsSpinner_valueChanged((*reinterpret_cast< QString(*)>(_a[1]))); break;
+        case 8: _t->addVar(); break;
         default: ;
         }
     }
-    Q_UNUSED(_a);
 }
 
 const QMetaObjectExtraData CreateVdfPage::staticMetaObjectExtraData = {
@@ -104,9 +110,9 @@ int CreateVdfPage::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 7)
+        if (_id < 9)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 7;
+        _id -= 9;
     }
     return _id;
 }

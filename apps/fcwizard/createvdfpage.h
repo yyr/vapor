@@ -59,6 +59,9 @@ private slots:
     void on_newVarButton_clicked() { vdfNewVar->show(); }
     void on_clearAllButton_clicked();
     void on_selectAllButton_clicked();
+    void on_startTimeSpinner_valueChanged(QString value){ dataHolder->setVDFstartTime(value.toStdString()); }
+    void on_numtsSpinner_valueChanged(QString value){ dataHolder->setVDFnumTS(value.toStdString()); }
+
     void addVar();
 
 private:

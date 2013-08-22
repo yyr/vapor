@@ -24,6 +24,8 @@
 
 #include "fcwizard.h"
 
+using namespace VAPoR;
+
 FCWizard::FCWizard(QWidget *parent) :
     QWizard(parent)
 {

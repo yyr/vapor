@@ -28,15 +28,19 @@
 #include <QString>
 #include <vapor/vdfcreate.h>
 #include <vapor/2vdf.h>
-
+#include <vapor/MetadataVDC.h>
+#include <vapor/WaveCodecIO.h>
+#include <vapor/DCreader.h>
+#include <vapor/DCReaderMOM.h>
+#include <vapor/DCReaderROMS.h>
 #include "dataholder.h"
-//#include "momvdfcreate.cpp"
 
 using namespace VAPoR;
-using namespace VetsUtil;
+//using namespace VetsUtil;
 
 DataHolder::DataHolder(){
     setVDFstartTime("1");
+    setPDstartTime("1");
 }
 
 void DataHolder::deleteVDFSelectedVar(string var) {
@@ -56,6 +60,21 @@ void DataHolder::createReader() {
     strstream << reader->GetNumTimeSteps();
     strstream >> VDFnumTS;
     ncdfVars = reader->GetVariableNames();
+}
+
+void DataHolder::findPopDataVars() {
+    cout << "findpopdatavars()" << endl;
+    VDFIOBase *vdfio = NULL;
+    WaveCodecIO *wcwriter = NULL;
+    MetadataVDC metadata(getPDinputVDFfile());
+    wcwriter = new WaveCodecIO(metadata,1);
+    vdfio = wcwriter;
+    vector<string> emptyVars;
+    vector<string> outVars;
+    createReader();
+    GetVariables(vdfio, reader, emptyVars, outVars);
+    setPDDisplayedVars(outVars);
+    for(int i=0;i<outVars.size();i++) cout << outVars[i] << " ";
 }
 
 // Generate an array of chars from our vector<string>, which holds
@@ -191,5 +210,11 @@ void DataHolder::run2VDF() {
         argc+=2;
     }
 
-    launch2vdf(argc, argv, getFileType());
+    char** args = new char*[ argv.size() + 1 ];
+    for(size_t a=0; a<argv.size(); a++) {
+        cout << argv[a].c_str() << endl;
+        args[a] = strdup(argv[a].c_str());
+    }
+
+    launch2vdf(argc, args, getFileType());
 }
