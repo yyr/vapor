@@ -40,6 +40,7 @@ public:
     vector<string> varList;
     
 private slots:
+    void on_cancelButton_clicked() { hide(); }
     void on_acceptButton_clicked();
     void on_restoreDefaultButton_clicked();
 };

@@ -44,7 +44,7 @@ public:
     
 private slots:
     void on_acceptButton_clicked();
-    void on_cancelButton_clicked();
+    void on_cancelButton_clicked() { hide(); }
 };
 
 #endif // CREATEVDFADVANCED_H

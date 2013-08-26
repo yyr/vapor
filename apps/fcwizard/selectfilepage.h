@@ -43,6 +43,7 @@ public:
     string momPopOrRoms;
     IntroPage *introPage;
     DataHolder *dataHolder;
+    VdfBadFile *vdfBadFile;
     vector<string> stdFileList;
     vector<string> getSelectedFiles();
     QPixmap vdfCreatePixmap;
@@ -67,6 +68,11 @@ private:
     int nextId() const;
     void cleanupPage();
     void initializePage();
+};
+
+class VdfBadFile : public QDialog, public Ui_Page2badfile
+{
+    Q_OBJECT
 };
 
 #endif // SELECTFILEPAGE_H

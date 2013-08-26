@@ -48,16 +48,19 @@ public:
     void findVars();
     vector<string> varList;
 
-
 private slots:
+    void on_clearAllButton_clicked();
+    void on_selectAllButton_clicked();
     void on_advancedOptionsButton_clicked() { popAdvancedOpts->show(); }
-    void on_startTimeSpinner_valueChanged(QString value){ dataHolder->setVDFstartTime(value.toStdString()); }
-    void on_numtsSpinner_valueChanged(QString value){ dataHolder->setVDFnumTS(value.toStdString()); }
+    void on_startTimeSpinner_valueChanged(QString value){ dataHolder->setPDstartTime(value.toStdString()); }
+    void on_numtsSpinner_valueChanged(QString value){ dataHolder->setPDnumTS(value.toStdString()); }
 
 private:
     void cleanupPage();
     void initializePage();
     void setupVars();
+    void populateCheckedVars();
+    bool validatePage();
 };
 
 #endif // POPULATEDATAPAGE_H

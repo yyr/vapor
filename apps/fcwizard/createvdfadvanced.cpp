@@ -34,6 +34,17 @@ CreateVdfAdvanced::CreateVdfAdvanced(DataHolder *DH, QWidget *parent) :
     dataHolder = DH;
 }
 
+
+void CreateVdfPage::on_restoreDefaultButton_clicked(){
+    bsxSpinner->setValue(64);
+    bsySpinner->setValue(64);
+    bszSpinner->setValue(64);
+
+    periodicxButton->setCheckState(Qt::Unchecked);
+    periodicyButton->setCheckState(Qt::Unchecked);
+    periodiczButton->setCheckState(Qt::Unchecked);
+}
+
 // Write data values to dataHolder and hide window
 void CreateVdfAdvanced::on_acceptButton_clicked()
 {
@@ -51,9 +62,5 @@ void CreateVdfAdvanced::on_acceptButton_clicked()
     QString Periodicity = px + py + pz;
     dataHolder->setVDFPeriodicity(Periodicity.toStdString());
 
-    hide();
-}
-
-void CreateVdfAdvanced::on_cancelButton_clicked() {
     hide();
 }

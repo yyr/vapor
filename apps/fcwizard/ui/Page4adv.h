@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'Page4adv.ui'
 **
-** Created: Tue Aug 20 12:10:00 2013
+** Created: Fri Aug 23 13:54:21 2013
 **      by: Qt User Interface Compiler version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -56,12 +56,12 @@ public:
         refinementLevelSpinner->setObjectName(QString::fromUtf8("refinementLevelSpinner"));
         refinementLevelSpinner->setGeometry(QRect(170, 10, 82, 25));
         refinementLevelSpinner->setMinimum(-1);
-        refinementLevelSpinner->setValue(0);
+        refinementLevelSpinner->setValue(-1);
         compressionLevelSpinner = new QSpinBox(Page4adv);
         compressionLevelSpinner->setObjectName(QString::fromUtf8("compressionLevelSpinner"));
         compressionLevelSpinner->setGeometry(QRect(170, 56, 82, 25));
         compressionLevelSpinner->setMinimum(-1);
-        compressionLevelSpinner->setValue(0);
+        compressionLevelSpinner->setValue(-1);
         label_23 = new QLabel(Page4adv);
         label_23->setObjectName(QString::fromUtf8("label_23"));
         label_23->setGeometry(QRect(44, 14, 111, 16));

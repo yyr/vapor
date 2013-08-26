@@ -41,6 +41,7 @@ public:
 
 private slots:
     void on_buttonBox_accepted();
+    void on_cancelButton_clicked() { hide(); }
 };
 
 #endif // CREATEVDFCOMMENT_H

@@ -58,6 +58,9 @@
      <height>25</height>
     </rect>
    </property>
+   <property name="maximum">
+    <number>1000</number>
+   </property>
   </widget>
   <widget class="QLabel" name="label_26">
    <property name="geometry">
@@ -88,13 +91,13 @@
     </rect>
    </property>
    <property name="minimum">
-    <number>-1</number>
+    <number>0</number>
    </property>
    <property name="maximum">
-    <number>10000</number>
+    <number>1000</number>
    </property>
    <property name="value">
-    <number>-1</number>
+    <number>0</number>
    </property>
   </widget>
   <widget class="QLabel" name="label_28">
@@ -129,7 +132,7 @@
     <string>Advanced Options</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_3">
+  <widget class="QPushButton" name="clearAllButton">
    <property name="geometry">
     <rect>
      <x>127</x>
@@ -142,7 +145,7 @@
     <string>Clear All</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_2">
+  <widget class="QPushButton" name="selectAllButton">
    <property name="geometry">
     <rect>
      <x>20</x>

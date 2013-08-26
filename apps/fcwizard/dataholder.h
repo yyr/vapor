@@ -75,13 +75,15 @@ public:
     // Get functions used by create VDF
     string getVDFfileName() const { return VDFfileName; }
     string getVDFnumTS() const { return VDFnumTS; }
+    string getVDFStartTime() const { return VDFstartTime; }
     vector<string> getVDFSelectedVars() const { return VDFSelectedVars; }
 
     // Get functions used by Populate Data
     vector<string> getPDDisplayedVars() { return PDDisplayedVars; }
     string getPDinputVDFfile() const { return PDinputVDFfile; }
     string getPDnumTS() const { return PDnumTS; }
-    string getVDFStartTime() const { return VDFstartTime; }
+    string getPDStartTime() const { return PDstartTime; }
+
 
     // Get functions (used by createVDF and Populate Data)
     vector<string> getNcdfVars() const { return ncdfVars; }
@@ -91,8 +93,6 @@ public:
     vector<string> getPDSelectedVars() const { return PDSelectedVars; }
 
     // File generation commands
-    //void buildAndCallVdfCreate();
-    //void runMomVDFCreate();
     void findPopDataVars();
     void VDFCreate();
     void run2VDF();

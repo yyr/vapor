@@ -41,10 +41,7 @@ SelectFilePage::SelectFilePage(DataHolder *DH, QWidget *parent) :
 
 void SelectFilePage::on_browseOutputVdfFile_clicked() {
     QString file = QFileDialog::getOpenFileName(this,"Select output metada (.vdf) file.");
-    qDebug() << file;
-    //QFileInfo fi(file);
-    //outputVDFtext->setText(fi.absoluteFilePath());
-    //dataHolder->setVDFfileName(fi.absoluteFilePath().toStdString());
+    if (file.split(".",QString::SkipEmptyParts).at(-1) != "vdf") vdfBadFile->show();
     outputVDFtext->setText(file);
     dataHolder->setVDFfileName(file.toStdString());
     dataHolder->setPDVDFfile(file.toStdString());
@@ -90,7 +87,7 @@ void SelectFilePage::on_momRadioButton_clicked() {
 }
 
 void SelectFilePage::on_popRadioButton_clicked() {
-    dataHolder->setFileType("pop");
+    dataHolder->setFileType("mom");
     completeChanged();
 }
 
@@ -139,13 +136,8 @@ bool SelectFilePage::isComplete() const {
     else return false;
 }
 
-/*bool SelectFilePage::validatePage(){
-    return true;
-}*/
-
 int SelectFilePage::nextId() const
 {
-    //if (introPage->operation == "vdfcreate") return FCWizard::Create_VdfPage;
     if (dataHolder->getOperation() == "vdfcreate") return FCWizard::Create_VdfPage;
     else return FCWizard::Populate_DataPage;
 }

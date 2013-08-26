@@ -140,12 +140,11 @@ void CreateVdfPage::addVar() {
     int row = size/3;
     int col = size%3;
     tableWidget->setItem(row,col,newVar);
+    varList = dataHolder->getVDFDisplayedVars();
     //tableWidget->setItem(size/3,size%3,newVar);
 }
 
 void CreateVdfPage::populateCheckedVars() {
-    //const char* delim = ":";
-    std::stringstream selectedVars;
     vector<string> varsVector;
 
     for (int i=0; i<varList.size(); i++) {
@@ -155,11 +154,6 @@ void CreateVdfPage::populateCheckedVars() {
             varsVector.push_back(tableWidget->item(row,col)->text().toStdString());
         }
     }
-
-    //std::copy(varsVector.begin(), varsVector.end(),
-    //          std::ostream_iterator<std::string> (selectedVars,delim));
-    //dataHolder->setVDFSelectedVars(selectedVars.str());
-
 
     dataHolder->setVDFSelectedVars(varsVector);
 }
