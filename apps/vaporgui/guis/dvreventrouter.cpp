@@ -158,6 +158,7 @@ DvrEventRouter::hookUpTab()
 	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
 	connect (instanceTable, SIGNAL(enableInstance(bool,int)), this, SLOT(setDvrEnabled(bool,int)));
 	connect (fitDataButton, SIGNAL(clicked()), this, SLOT(guiFitTFToData()));
+	connect(colorInterpCheckbox,SIGNAL(toggled(bool)), this, SLOT(guiToggleColorInterpType(bool)));
 
 #ifdef BENCHMARKING
     connect(benchmarkButton, SIGNAL(clicked()),
@@ -374,9 +375,6 @@ void DvrEventRouter::updateTab(){
 	initTypes();
 	DvrParams* dvrParams = (DvrParams*) VizWinMgr::getActiveDvrParams();
 	
-	
-	
-	
 	deleteInstanceButton->setEnabled(vizMgr->getNumDvrInstances(winnum) > 1);
 	
 	QString strn;
@@ -384,6 +382,11 @@ void DvrEventRouter::updateTab(){
 	if (dvrParams->GetMapperFunc()){
 		dvrParams->GetMapperFunc()->setParams(dvrParams);
 		transferFunctionFrame->setMapperFunction(dvrParams->GetMapperFunc());
+		TFInterpolator::type t = dvrParams->GetMapperFunc()->colorInterpType();
+		if (colorInterpCheckbox->isChecked() && t != TFInterpolator::discrete) 
+			colorInterpCheckbox->setChecked(false);
+		if (!colorInterpCheckbox->isChecked() && t == TFInterpolator::discrete) 
+			colorInterpCheckbox->setChecked(true);
 	}
 	transferFunctionFrame->updateParams();
 
@@ -507,6 +510,23 @@ reinitTab(bool doOverride){
 	}
 	setBindButtons(false);
 	updateTab();
+}
+void DvrEventRouter::
+guiToggleColorInterpType(bool isDiscrete){
+	confirmText(false);
+	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
+	PanelCommand* cmd = PanelCommand::captureStart(dParams,  "toggle discrete color interpolation");
+	if (isDiscrete)
+		dParams->GetMapperFunc()->setColorInterpType(TFInterpolator::discrete);
+	else 
+		dParams->GetMapperFunc()->setColorInterpType(TFInterpolator::linear);
+	updateTab();
+	
+	//Force a redraw
+	
+	setEditorDirty();
+	PanelCommand::captureEnd(cmd,dParams);
+	if (dParams->isEnabled())VizWinMgr::getInstance()->forceRender(dParams,true);
 }
 //Change mouse mode to specified value
 //0,1,2 correspond to edit, zoom, pan
@@ -985,6 +1005,11 @@ setEditorDirty(RenderParams *p){
 		if (mf) {
 			leftMappingBound->setText(QString::number(mf->getMinOpacMapValue()));
 			rightMappingBound->setText(QString::number(mf->getMaxOpacMapValue()));
+			TFInterpolator::type t = mf->colorInterpType();
+			if (colorInterpCheckbox->isChecked() && t != TFInterpolator::discrete) 
+				colorInterpCheckbox->setChecked(false);
+			if (!colorInterpCheckbox->isChecked() && t == TFInterpolator::discrete) 
+				colorInterpCheckbox->setChecked(true);
 		}
 	}
 }

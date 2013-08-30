@@ -26,7 +26,11 @@ using namespace VAPoR;
 	// where the value at left and right endpoint is known
 	// This method is just a stand-in until we get more sophistication
 	//
-float TFInterpolator::interpolate(type, float leftVal, float rightVal, float r){
+float TFInterpolator::interpolate(TFInterpolator::type t, float leftVal, float rightVal, float r){
+	if (t == TFInterpolator::discrete){
+		if (r < 0.5) return leftVal;
+		else return rightVal;
+	}
 	float val = (float)(leftVal*(1.-r) + r*rightVal);
 	//if (val < 0.f || val > 1.f){
 		//assert(val <= 1.f && val >= 0.f);
@@ -37,6 +41,10 @@ float TFInterpolator::interpolate(type, float leftVal, float rightVal, float r){
 	//If it's closer to go around 1, then do so
 	//
 float TFInterpolator::interpCirc(type t, float leftVal, float rightVal, float r){
+	if (t == TFInterpolator::discrete){
+		if (r < 0.5) return leftVal;
+		else return rightVal;
+	}
 	if (fabs(rightVal - leftVal) <= 0.5f)
 		return interpolate(t, leftVal, rightVal, r);
 	//replace smaller by 1+smaller, interpolate, then fit back into interval

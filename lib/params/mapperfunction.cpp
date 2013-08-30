@@ -62,6 +62,7 @@ MapperFunctionBase(MapperFunctionBase::_mapperFunctionTag),
 	if (_colormap) delete _colormap;	
  
 	_colormap = new VColormap(NULL);
+	_colormap->interpType(TFInterpolator::linear);
 }
 
 //----------------------------------------------------------------------------
@@ -75,6 +76,7 @@ MapperFunctionBase(tag),
 	if (_colormap) delete _colormap;	
  
 	_colormap = new VColormap(NULL);
+	_colormap->interpType(TFInterpolator::linear);
 }
 //----------------------------------------------------------------------------
 // Constructor
@@ -96,6 +98,7 @@ MapperFunction::MapperFunction(RenderParams* p, int nBits) :
 	// Now recreate them with the appropriate type
 	//
     _colormap = new VColormap(this);
+	_colormap->interpType(TFInterpolator::linear);
 
     _opacityMaps.push_back(new OpacityMap(this));
 }
