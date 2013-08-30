@@ -124,6 +124,7 @@ protected slots:
 	void guiSetCompRatio(int num);
 	void guiBindColorToOpac();
 	void guiBindOpacToColor();
+	void guiToggleColorInterpType(bool);
 
 	void setDvrTabTextChanged(const QString& qs);
 	void dvrReturnPressed();

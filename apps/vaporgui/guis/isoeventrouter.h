@@ -132,6 +132,7 @@ protected slots:
     void guiEndChangeMapFcn();
 	void guiSetTFEditMode(bool);
     void setBindButtons(bool);
+	void guiToggleColorInterpType(bool);
 	
 
 

@@ -157,6 +157,7 @@ ProbeEventRouter::hookUpTab()
 	connect(alphaEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect(fieldScaleEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect(colorMergeCheckbox,SIGNAL(toggled(bool)), this, SLOT(guiToggleColorMerge(bool)));
+	connect(colorInterpCheckbox,SIGNAL(toggled(bool)), this, SLOT(guiToggleColorInterpType(bool)));
 	connect(smoothCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiToggleSmooth(bool)));
 	connect (alphaEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
 	
@@ -338,6 +339,11 @@ void ProbeEventRouter::updateTab(){
 		probeParams->GetMapperFunc()->setParams(probeParams);
 		transferFunctionFrame->setMapperFunction(probeParams->GetMapperFunc());
 		transferFunctionFrame->updateParams();
+		TFInterpolator::type t = probeParams->GetMapperFunc()->colorInterpType();
+		if (colorInterpCheckbox->isChecked() && t != TFInterpolator::discrete) 
+			colorInterpCheckbox->setChecked(false);
+		if (!colorInterpCheckbox->isChecked() && t == TFInterpolator::discrete) 
+			colorInterpCheckbox->setChecked(true);
 	}
     
 	int numvars = 0;
@@ -1175,6 +1181,23 @@ guiTogglePlanar(bool isOn){
 	if (!isOn)VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
 }
 void ProbeEventRouter::
+guiToggleColorInterpType(bool isDiscrete){
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "toggle discrete color interpolation");
+	if (isDiscrete)
+		pParams->GetMapperFunc()->setColorInterpType(TFInterpolator::discrete);
+	else 
+		pParams->GetMapperFunc()->setColorInterpType(TFInterpolator::linear);
+	updateTab();
+	
+	//Force a redraw
+	
+	setProbeDirty(pParams);
+	PanelCommand::captureEnd(cmd,pParams);
+	if (pParams->isEnabled())VizWinMgr::getInstance()->forceRender(pParams,true);
+}
+void ProbeEventRouter::
 guiAxisAlign(int choice){
 	if (choice == 0) return;
 	confirmText(false);
@@ -1537,6 +1560,11 @@ setEditorDirty(RenderParams* p){
 		if (mf) {
 			leftMappingBound->setText(QString::number(mf->getMinOpacMapValue()));
 			rightMappingBound->setText(QString::number(mf->getMaxOpacMapValue()));
+			TFInterpolator::type t = mf->colorInterpType();
+			if (colorInterpCheckbox->isChecked() && t != TFInterpolator::discrete) 
+				colorInterpCheckbox->setChecked(false);
+			if (!colorInterpCheckbox->isChecked() && t == TFInterpolator::discrete) 
+				colorInterpCheckbox->setChecked(true);
 		}
 	}
 }

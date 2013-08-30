@@ -131,6 +131,7 @@ protected slots:
 	void guiNudgeZCenter(int);
 	
 	void guiCopyInstanceTo(int toViz);
+	void guiToggleColorInterpType(bool);
 	
 	void twoDCenterRegion();
 	void twoDCenterView();

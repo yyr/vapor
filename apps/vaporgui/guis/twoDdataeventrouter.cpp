@@ -180,6 +180,7 @@ TwoDDataEventRouter::hookUpTab()
 	connect (orientationCombo, SIGNAL(activated(int)), this, SLOT(guiSetOrientation(int)));
 	connect (fitToRegionButton, SIGNAL(clicked()), this, SLOT(guiFitToRegion()));
 	connect (fitDataButton, SIGNAL(clicked()), this, SLOT(guiFitTFToData()));
+	connect(colorInterpCheckbox,SIGNAL(toggled(bool)), this, SLOT(guiToggleColorInterpType(bool)));
 }
 //Insert values from params into tab panel
 //
@@ -257,6 +258,11 @@ void TwoDDataEventRouter::updateTab(){
 	if (twoDParams->GetMapperFunc()){
 		twoDParams->GetMapperFunc()->setParams(twoDParams);
 		transferFunctionFrame->setMapperFunction(twoDParams->GetMapperFunc());
+		TFInterpolator::type t = twoDParams->GetMapperFunc()->colorInterpType();
+		if (colorInterpCheckbox->isChecked() && t != TFInterpolator::discrete) 
+			colorInterpCheckbox->setChecked(false);
+		if (!colorInterpCheckbox->isChecked() && t == TFInterpolator::discrete) 
+			colorInterpCheckbox->setChecked(true);
 	}
 	transferFunctionFrame->updateParams();
 	int numvars = 0;
@@ -587,7 +593,23 @@ void TwoDDataEventRouter::guiCopyInstanceTo(int toViz){
 	copyCombo->setCurrentIndex(0);
 	performGuiCopyInstanceToViz(viznum);
 }
-
+void TwoDDataEventRouter::
+guiToggleColorInterpType(bool isDiscrete){
+	confirmText(false);
+	TwoDDataParams* tParams = VizWinMgr::getActiveTwoDDataParams();
+	PanelCommand* cmd = PanelCommand::captureStart(tParams,  "toggle discrete color interpolation");
+	if (isDiscrete)
+		tParams->GetMapperFunc()->setColorInterpType(TFInterpolator::discrete);
+	else 
+		tParams->GetMapperFunc()->setColorInterpType(TFInterpolator::linear);
+	updateTab();
+	
+	//Force a redraw
+	
+	PanelCommand::captureEnd(cmd,tParams);
+	setTwoDDirty(tParams);
+	if (tParams->isEnabled())VizWinMgr::getInstance()->forceRender(tParams,true);
+}
 void TwoDDataEventRouter::
 setTwoDEnabled(bool val, int instance){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
@@ -974,6 +996,11 @@ setEditorDirty(RenderParams* p){
 		if (mf) {
 			leftMappingBound->setText(QString::number(mf->getMinOpacMapValue()));
 			rightMappingBound->setText(QString::number(mf->getMaxOpacMapValue()));
+			TFInterpolator::type t = mf->colorInterpType();
+			if (colorInterpCheckbox->isChecked() && t != TFInterpolator::discrete) 
+				colorInterpCheckbox->setChecked(false);
+			if (!colorInterpCheckbox->isChecked() && t == TFInterpolator::discrete) 
+				colorInterpCheckbox->setChecked(true);
 		}
 	}
 }

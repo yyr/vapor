@@ -39,6 +39,7 @@ const string ColorMapBase::_controlPointTag = "ColorMapControlPoint";
 const string ColorMapBase::_cpHSVTag = "HSV";
 const string ColorMapBase::_cpRGBTag = "RGB";
 const string ColorMapBase::_cpValueTag = "Value";
+const string ColorMapBase::_discreteColorAttr = "DiscreteColor";
 
 
 //============================================================================
@@ -150,7 +151,6 @@ void ColorMapBase::Color::toRGB(float *rgb)
 // Default constructor
 //----------------------------------------------------------------------------
 ColorMapBase::ControlPoint::ControlPoint() :
-  _type(TFInterpolator::linear),
   _value(0.0),
   _color(),
   _selected(false)
@@ -161,7 +161,6 @@ ColorMapBase::ControlPoint::ControlPoint() :
 // Constructor
 //----------------------------------------------------------------------------
 ColorMapBase::ControlPoint::ControlPoint(Color c, float v) :
-  _type(TFInterpolator::linear),
   _value(v),
   _color(c),
   _selected(false)
@@ -172,7 +171,6 @@ ColorMapBase::ControlPoint::ControlPoint(Color c, float v) :
 // Copy constructor
 //----------------------------------------------------------------------------
 ColorMapBase::ControlPoint::ControlPoint(const ControlPoint &cp) :
-  _type(cp._type),
   _value(cp._value),
   _color(cp._color),
   _selected(cp._selected)
@@ -187,7 +185,8 @@ ColorMapBase::ControlPoint::ControlPoint(const ControlPoint &cp) :
 //----------------------------------------------------------------------------
 ColorMapBase::ColorMapBase() :
   _minValue(0.0),
-  _maxValue(1.0)
+  _maxValue(1.0),
+  _interpType(TFInterpolator::linear)
 {
   _controlPoints.push_back(new ControlPoint(Color(0, 1.0, 1.0), 0.0));
   _controlPoints.push_back(new ControlPoint(Color(0.333, 1.0, 1.0), 0.333));
@@ -200,7 +199,8 @@ ColorMapBase::ColorMapBase() :
 //----------------------------------------------------------------------------
 ColorMapBase::ColorMapBase(const ColorMapBase &cmap) :
   _minValue(cmap._minValue),
-  _maxValue(cmap._maxValue)
+  _maxValue(cmap._maxValue),
+  _interpType(cmap._interpType)
 {
   for(int i=0; i<cmap._controlPoints.size(); i++)
   {
@@ -252,6 +252,13 @@ ParamNode* ColorMapBase::buildNode()
   oss.str(empty);
   oss << (double)_maxValue;
   attrs[_maxTag] = oss.str();
+
+  oss.str(empty);
+  if (interpType() == TFInterpolator::discrete)
+	oss << "true";
+  else oss << "false";
+  attrs[_discreteColorAttr] = oss.str();
+
 
   ParamNode* mainNode = new ParamNode(_tag, attrs, _controlPoints.size());
 
@@ -517,17 +524,17 @@ ColorMapBase::Color ColorMapBase::color(float value)
   if (ratio > 0.f && ratio < 1.f)
   {
 
-    float h = TFInterpolator::interpCirc(cp0->type(), 
+    float h = TFInterpolator::interpCirc(interpType(), 
                                          cp0->color().hue(),
                                          cp1->color().hue(), 
                                          ratio);
 
-    float s = TFInterpolator::interpolate(cp0->type(), 
+    float s = TFInterpolator::interpolate(interpType(), 
                                           cp0->color().sat(),
                                           cp1->color().sat(), 
                                           ratio);
 
-    float v = TFInterpolator::interpolate(cp0->type(), 
+    float v = TFInterpolator::interpolate(interpType(), 
                                           cp0->color().val(),
                                           cp1->color().val(), 
                                           ratio);
@@ -587,7 +594,8 @@ bool ColorMapBase::elementStartHandler(ExpatParseMgr* pm, int depth, string& tag
     // Clear the current control points
     //
     clear();
-
+	//Default interpolation is linear:
+	interpType(TFInterpolator::linear); 
     //
     // Read in the attributes
     //
@@ -609,6 +617,11 @@ bool ColorMapBase::elementStartHandler(ExpatParseMgr* pm, int depth, string& tag
       else if (StrCmpNoCase(attribName, _maxTag) == 0) 
       {
         ist >> _maxValue;
+      }
+	  else if (StrCmpNoCase(attribName, _discreteColorAttr) == 0) 
+      {
+        if (value == "true") interpType(TFInterpolator::discrete); 
+		else interpType(TFInterpolator::linear); 
       }
 
     }

@@ -188,6 +188,7 @@ IsoEventRouter::hookUpTab()
     connect(isoSelectionFrame, SIGNAL(endChange()),
             this, SLOT(guiEndChangeIsoSelection()));
 	connect (fitDataButton, SIGNAL(clicked()), this, SLOT(guiFitTFToData()));
+	connect(colorInterpCheckbox,SIGNAL(toggled(bool)), this, SLOT(guiToggleColorInterpType(bool)));
 }
 //Insert values from params into tab panel
 //
@@ -243,6 +244,11 @@ void IsoEventRouter::updateTab(){
 	if(mapComboVarNum > 0 && isoParams->GetMapperFunc()) {
 		transferFunctionFrame->setMapperFunction(isoParams->GetMapperFunc());
 		updateMapBounds(isoParams);
+		TFInterpolator::type t = isoParams->GetMapperFunc()->colorInterpType();
+		if (colorInterpCheckbox->isChecked() && t != TFInterpolator::discrete) 
+			colorInterpCheckbox->setChecked(false);
+		if (!colorInterpCheckbox->isChecked() && t == TFInterpolator::discrete) 
+			colorInterpCheckbox->setChecked(true);
 	}
 	else transferFunctionFrame->setMapperFunction(0);
 
@@ -485,6 +491,24 @@ void IsoEventRouter::setTFNavigateMode(bool mode){
 void IsoEventRouter::setTFEditMode(bool mode){
 	TFnavigateButton->setChecked(!mode);
 	guiSetTFEditMode(mode);
+}
+void IsoEventRouter::
+guiToggleColorInterpType(bool isDiscrete){
+	confirmText(false);
+	ParamsIso* iParams = getActiveIsoParams();
+	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "toggle discrete color interpolation");
+	if (isDiscrete)
+		iParams->GetMapperFunc()->setColorInterpType(TFInterpolator::discrete);
+	else 
+		iParams->GetMapperFunc()->setColorInterpType(TFInterpolator::linear);
+	updateTab();
+	
+	//Force a redraw
+	
+	setEditorDirty();
+	PanelCommand::captureEnd(cmd,iParams);
+	iParams->SetFlagDirty(ParamsIso::_ColorMapTag);
+	if (iParams->isEnabled())VizWinMgr::getInstance()->forceRender(iParams,true);
 }
 void IsoEventRouter::guiSetTFAligned(){
 	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getInstance()->getApplicableParams(Params::_isoParamsTag);
@@ -1224,6 +1248,11 @@ setEditorDirty(RenderParams* p){
 		ip->GetMapperFunc()->setParams(ip);
 		transferFunctionFrame->setMapperFunction(ip->GetMapperFunc());
 		transferFunctionFrame->updateParams();
+		TFInterpolator::type t = ip->GetMapperFunc()->colorInterpType();
+		if (colorInterpCheckbox->isChecked() && t != TFInterpolator::discrete) 
+			colorInterpCheckbox->setChecked(false);
+		if (!colorInterpCheckbox->isChecked() && t == TFInterpolator::discrete) 
+			colorInterpCheckbox->setChecked(true);
 	}
 
     Session *session = Session::getInstance();

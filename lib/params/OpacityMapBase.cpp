@@ -63,7 +63,6 @@ const string OpacityMapBase::_cpValueTag = "Value";
 // Default constructor
 //----------------------------------------------------------------------------
 OpacityMapBase::ControlPoint::ControlPoint() :
-  _type(TFInterpolator::linear),
   _value(0.0),
   _opacity(1.0),
   _selected(false)
@@ -74,7 +73,6 @@ OpacityMapBase::ControlPoint::ControlPoint() :
 // Constructor
 //----------------------------------------------------------------------------
 OpacityMapBase::ControlPoint::ControlPoint(float v, float o) :
-  _type(TFInterpolator::linear),
   _value(v),
   _opacity(o),
   _selected(false)
@@ -85,7 +83,6 @@ OpacityMapBase::ControlPoint::ControlPoint(float v, float o) :
 // Copy constructor
 //----------------------------------------------------------------------------
 OpacityMapBase::ControlPoint::ControlPoint(const ControlPoint &cp) :
-  _type(cp._type),
   _value(cp._value),
   _opacity(cp._opacity),
   _selected(cp._selected)
@@ -109,7 +106,8 @@ OpacityMapBase::OpacityMapBase(OpacityMapBase::Type type) :
   _minFreq(1.0),
   _maxFreq(30.0),
   _minPhase(0.0),
-  _maxPhase(2*M_PI)
+  _maxPhase(2*M_PI),
+  _interpType(TFInterpolator::linear)
 {
   _controlPoints.push_back(new ControlPoint(0.0, 0.0));
   _controlPoints.push_back(new ControlPoint(0.333, 0.333));
@@ -124,6 +122,7 @@ OpacityMapBase::OpacityMapBase(const OpacityMapBase &omap) :
   _minValue(omap._minValue),
   _maxValue(omap._maxValue),
   _type(omap._type),
+  _interpType(omap._interpType),
   _enabled(omap._enabled),
   _mean(omap._mean),
   _ssq(omap._ssq),
@@ -540,7 +539,7 @@ float OpacityMapBase::opacity(float value)
       if (ratio > 0.f && ratio < 1.f)
       {
         
-        float o = TFInterpolator::interpolate(cp0->type(), 
+        float o = TFInterpolator::interpolate(interpType(), 
                                               cp0->opacity(),
                                               cp1->opacity(),
                                               ratio);

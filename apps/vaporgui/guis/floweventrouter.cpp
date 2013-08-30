@@ -300,6 +300,7 @@ FlowEventRouter::hookUpTab()
 	connect (showHideSeedingButton, SIGNAL(pressed()), this, SLOT(showHideSeeding()));
 	connect (showHideTimeButton, SIGNAL(pressed()), this, SLOT(showHideUnsteadyTime()));
 	connect (showHideAppearanceButton, SIGNAL(pressed()), this, SLOT(showHideAppearance()));
+	connect(colorInterpCheckbox,SIGNAL(toggled(bool)), this, SLOT(guiToggleColorInterpType(bool)));
 	dontUpdate=false;
 }
 
@@ -516,6 +517,11 @@ void FlowEventRouter::updateTab(){
 		fParams->GetMapperFunc()->setParams(fParams);
 		opacityMappingFrame->setMapperFunction(fParams->GetMapperFunc());
 		colorMappingFrame->setMapperFunction(fParams->GetMapperFunc());
+		TFInterpolator::type t = fParams->GetMapperFunc()->colorInterpType();
+		if (colorInterpCheckbox->isChecked() && t != TFInterpolator::discrete) 
+			colorInterpCheckbox->setChecked(false);
+		if (!colorInterpCheckbox->isChecked() && t == TFInterpolator::discrete) 
+			colorInterpCheckbox->setChecked(true);
 	}
 
     opacityMappingFrame->setVariableName(opacmapEntityCombo->currentText().toStdString());
@@ -1204,6 +1210,24 @@ void FlowEventRouter::deleteSample(){
 	guiUpdateUnsteadyTimes(timestepSampleTable1, "remove unsteady timestep");
 	if(thisRow>0)timestepSampleTable1->setCurrentCell(thisRow-1,0);
 	else timestepSampleTable1->setCurrentCell(0,0);
+}
+void FlowEventRouter::
+guiToggleColorInterpType(bool isDiscrete){
+	confirmText(false);
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle discrete color interpolation");
+	if (isDiscrete)
+		fParams->GetMapperFunc()->setColorInterpType(TFInterpolator::discrete);
+	else 
+		fParams->GetMapperFunc()->setColorInterpType(TFInterpolator::linear);
+	updateTab();
+	
+	//Force a redraw
+	
+	setEditorDirty();
+	PanelCommand::captureEnd(cmd,fParams);
+	VizWinMgr::getInstance()->setFlowGraphicsDirty(fParams);
+	if (fParams->isEnabled())VizWinMgr::getInstance()->forceRender(fParams,true);
 }
 //Rebuild the list of timestep samples.
 void FlowEventRouter::guiRebuildList(){
@@ -3145,7 +3169,14 @@ void FlowEventRouter::
 setEditorDirty(RenderParams* p ){
 	FlowParams* fp = (FlowParams*)p;
 	if (!fp) fp = VizWinMgr::getInstance()->getActiveFlowParams();
-	if(fp->GetMapperFunc())fp->GetMapperFunc()->setParams(fp);
+	if(fp->GetMapperFunc()){
+		fp->GetMapperFunc()->setParams(fp);
+		TFInterpolator::type t = fp->GetMapperFunc()->colorInterpType();
+		if (colorInterpCheckbox->isChecked() && t != TFInterpolator::discrete) 
+			colorInterpCheckbox->setChecked(false);
+		if (!colorInterpCheckbox->isChecked() && t == TFInterpolator::discrete) 
+			colorInterpCheckbox->setChecked(true);
+	}
     opacityMappingFrame->setMapperFunction(fp->GetMapperFunc());
     opacityMappingFrame->setVariableName(opacmapEntityCombo->currentText().toStdString());
     opacityMappingFrame->updateParams();

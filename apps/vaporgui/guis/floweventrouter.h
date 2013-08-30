@@ -138,6 +138,7 @@ protected slots:
 	void guiSetXComboPriorityVarNum(int varnum);
 	void guiSetYComboPriorityVarNum(int varnum);
 	void guiSetZComboPriorityVarNum(int varnum);
+	void guiToggleColorInterpType(bool);
 	
 	void guiCheckPeriodicX(bool periodic);
 	void guiCheckPeriodicY(bool periodic);
