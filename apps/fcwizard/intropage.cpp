@@ -32,13 +32,15 @@ IntroPage::IntroPage(DataHolder *DH, QWidget *parent) :
     setupUi(this);
 
     dataHolder = DH;
-    QPixmap createVDFPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/makeVDF.png");
+    //QPixmap createVDFPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/makeVDF.png");
+	QPixmap createVDFPixmap("../../../Images/makeVDF.png");
     QIcon createVDFButtonIcon(createVDFPixmap);
     createVDFButton->setIcon(createVDFButtonIcon);
     createVDFButton->setIconSize(createVDFPixmap.rect().size());
     createVDFButton->setCheckable(1);
 
-    QPixmap convertDataPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/2VDF.png");
+    //QPixmap convertDataPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/2VDF.png");
+	QPixmap convertDataPixmap("../../../Images/2VDF.png");
     QIcon convertDataButtonIcon(convertDataPixmap);
     populateDataButton->setIcon(convertDataButtonIcon);
     populateDataButton->setIconSize(convertDataPixmap.rect().size());

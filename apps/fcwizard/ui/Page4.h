@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'Page4.ui'
 **
-** Created: Fri Aug 23 13:40:38 2013
+** Created: Tue Sep 3 14:48:30 2013
 **      by: Qt User Interface Compiler version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -59,6 +59,7 @@ public:
         startTimeSpinner->setObjectName(QString::fromUtf8("startTimeSpinner"));
         startTimeSpinner->setGeometry(QRect(368, 63, 91, 25));
         startTimeSpinner->setMaximum(1000);
+        startTimeSpinner->setValue(0);
         label_26 = new QLabel(Page4);
         label_26->setObjectName(QString::fromUtf8("label_26"));
         label_26->setGeometry(QRect(261, 90, 101, 20));

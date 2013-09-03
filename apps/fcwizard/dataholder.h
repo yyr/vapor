@@ -27,8 +27,8 @@
 #include <string>
 #include <vapor/DCReaderMOM.h>
 #include <vapor/DCReaderROMS.h>
-//#include <vapor/vdfcreate.h>
-//#include <vapor/2vdf.h>
+#include <vapor/vdfcreate.h>
+#include <vapor/2vdf.h>
 
 using namespace std;
 using namespace VAPoR;

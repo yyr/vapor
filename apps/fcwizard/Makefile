@@ -66,22 +66,22 @@ createvdfaddnewvar \
 createvdfadvanced \
 createvdfpage \
 selectfilepage \
+vdfbadfile \
 intropage \
 fcwizard \
-showtimeconflicts \
 dataholder
 
 QT_HEADERS = \
 fcwizard \
 intropage \
 selectfilepage \
+vdfbadfile \
 createvdfpage \
 createvdfaddnewvar \
 createvdfadvanced \
 createvdfcomment\
 populatedatapage \
 popdataadvanced \
-showtimeconflicts
 
 
 FILES = \
@@ -95,19 +95,19 @@ main \
 popdataadvanced \
 populatedatapage \
 selectfilepage \
-showtimeconflicts \
+vdfbadfile \
 dataholder
 
 UI_DIR = ./ui
 UI_FILES = \
 Page1 \
 Page2 \
+Page2badfile \
 Page3 \
 Page3addnewvar \
 Page3adv \
 Page3cmt \
 Page4 \
 Page4adv \
-Page4conf 
 
 include ${TOP}/make/config/base.mk

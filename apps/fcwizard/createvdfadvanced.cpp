@@ -34,8 +34,12 @@ CreateVdfAdvanced::CreateVdfAdvanced(DataHolder *DH, QWidget *parent) :
     dataHolder = DH;
 }
 
+void CreateVdfAdvanced::on_cancelButton_clicked() {
+    on_restoreDefaultButton_clicked();
+    hide();
+}
 
-void CreateVdfPage::on_restoreDefaultButton_clicked(){
+void CreateVdfAdvanced::on_restoreDefaultButton_clicked(){
     bsxSpinner->setValue(64);
     bsySpinner->setValue(64);
     bszSpinner->setValue(64);
@@ -43,6 +47,7 @@ void CreateVdfPage::on_restoreDefaultButton_clicked(){
     periodicxButton->setCheckState(Qt::Unchecked);
     periodicyButton->setCheckState(Qt::Unchecked);
     periodiczButton->setCheckState(Qt::Unchecked);
+    compressionRatioBox->setText("1:10:100:500");
 }
 
 // Write data values to dataHolder and hide window

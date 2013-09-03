@@ -24,6 +24,7 @@
 #include "ui/Page2.h"
 #include "intropage.h"
 #include "dataholder.h"
+#include "vdfbadfile.h"
 
 using namespace std;
 using namespace VAPoR;
@@ -35,16 +36,27 @@ SelectFilePage::SelectFilePage(DataHolder *DH, QWidget *parent) :
 
     momPopOrRoms = "mom";
     dataHolder = DH;
-    vdfCreatePixmap = QPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/makeVDFsmall.png");
-    toVdfPixmap = QPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/2vdfsmall.png");
+    vdfBadFile = new VdfBadFile;
+    //vdfCreatePixmap = QPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/makeVDFsmall.png");
+	vdfCreatePixmap = QPixmap("../../../Images/makeVDFsmall.png");
+	//selectFilePixmap->setPixmap(vdfCreatePixmap);
+    //toVdfPixmap = QPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/2vdfsmall.png");
+	toVdfPixmap = QPixmap("../../../Images/2vdfsmall.png");
 }
 
 void SelectFilePage::on_browseOutputVdfFile_clicked() {
     QString file = QFileDialog::getOpenFileName(this,"Select output metada (.vdf) file.");
-    if (file.split(".",QString::SkipEmptyParts).at(-1) != "vdf") vdfBadFile->show();
-    outputVDFtext->setText(file);
-    dataHolder->setVDFfileName(file.toStdString());
-    dataHolder->setPDVDFfile(file.toStdString());
+    int size = file.split(".",QString::SkipEmptyParts).size();
+    if (file != ""){
+        if (file.split(".",QString::SkipEmptyParts).at(size-1) != "vdf") vdfBadFile->show();
+        outputVDFtext->setText(file);
+        dataHolder->setVDFfileName(file.toStdString());
+        dataHolder->setPDVDFfile(file.toStdString());
+    }
+}
+
+void SelectFilePage::on_outputVDFtext_textChanged() {
+    dataHolder->setVDFfileName(outputVDFtext->toPlainText().toStdString());
 }
 
 void SelectFilePage::on_addFileButton_clicked() {
@@ -127,6 +139,8 @@ void SelectFilePage::initializePage() {
     QList<QWizard::WizardButton> layout;
     layout << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton;
     wizard()->setButtonLayout(layout);
+
+	resize(sizeHint());
 }
 
 bool SelectFilePage::isComplete() const {

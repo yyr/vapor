@@ -24,9 +24,10 @@
 
 #include <QtGui/QtGui>
 #include <QWizardPage>
+#include "ui/Page2.h"
 #include "intropage.h"
 #include "dataholder.h"
-#include <ui/Page2.h>
+#include "vdfbadfile.h"
 
 namespace Ui {
 class SelectFilePage;
@@ -58,6 +59,7 @@ public:
 
 private slots:
     void on_browseOutputVdfFile_clicked();
+    void on_outputVDFtext_textChanged();
     void on_addFileButton_clicked();
     void on_removeFileButton_clicked();
     void on_momRadioButton_clicked();
@@ -68,11 +70,6 @@ private:
     int nextId() const;
     void cleanupPage();
     void initializePage();
-};
-
-class VdfBadFile : public QDialog, public Ui_Page2badfile
-{
-    Q_OBJECT
 };
 
 #endif // SELECTFILEPAGE_H

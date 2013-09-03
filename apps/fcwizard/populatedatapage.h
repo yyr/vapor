@@ -26,7 +26,6 @@
 #include <QtGui/QtGui>
 #include <vapor/WaveCodecIO.h>
 #include "popdataadvanced.h"
-#include "showtimeconflicts.h"
 #include "ui/Page4.h"
 #include "dataholder.h"
 

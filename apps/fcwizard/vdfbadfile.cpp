@@ -6,7 +6,7 @@
 //                                                                                                                                              *
 //************************************************************************/
 //
-//      File:           createvdfcomment.cpp
+//      File:           vdfbadfile.cpp
 //
 //      Author:         Scott Pearse
 //                      National Center for Atmospheric Research
@@ -14,34 +14,20 @@
 //
 //      Date:           August 2013
 //
-//      Description:    Implements a dialog for the user to
-//                      add a top-level comment to their vdf file
-//                      being created.
+//      Description:    Warning dialog when user selects file without .vdf extension
+//
+//
 //
 
-#ifndef CREATEVDFCOMMENT_H
-#define CREATEVDFCOMMENT_H
+#include "vdfbadfile.h"
+#include "ui/Page2badfile.h"
 
-#include <QDialog>
-#include "ui/Page3cmt.h"
-#include "dataholder.h"
+using namespace std;
 
-
-namespace Ui {
-class CreateVdfComment;
+VdfBadFile::VdfBadFile(QWidget *parent) :
+    QDialog(parent), Ui_Page2badfile()
+{
+    setupUi(this);
 }
 
-class CreateVdfComment : public QDialog, public Ui_Page3cmt
-{
-    Q_OBJECT
-    
-public:
-    explicit CreateVdfComment(DataHolder *DH, QWidget *parent = 0);
-    DataHolder *dataHolder;
-
-private slots:
-    void on_buttonBox_accepted();
-    void on_buttonBox_rejected() { hide(); }
-};
-
-#endif // CREATEVDFCOMMENT_H
+void VdfBadFile::on_buttonBox_accepted() { hide(); }

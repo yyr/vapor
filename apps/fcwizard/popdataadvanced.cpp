@@ -23,6 +23,7 @@
 #include "ui/Page4adv.h"
 #include "dataholder.h"
 
+using namespace std;
 using namespace VAPoR;
 
 PopDataAdvanced::PopDataAdvanced(DataHolder *DH, QWidget *parent) :

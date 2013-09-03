@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'createvdfcomment.h'
 **
-** Created: Fri Aug 23 13:54:20 2013
+** Created: Thu Aug 29 12:22:10 2013
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.3)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -39,7 +39,7 @@ static const uint qt_meta_data_CreateVdfComment[] = {
 
 static const char qt_meta_stringdata_CreateVdfComment[] = {
     "CreateVdfComment\0\0on_buttonBox_accepted()\0"
-    "on_cancelButton_clicked()\0"
+    "on_buttonBox_rejected()\0"
 };
 
 void CreateVdfComment::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -49,7 +49,7 @@ void CreateVdfComment::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int
         CreateVdfComment *_t = static_cast<CreateVdfComment *>(_o);
         switch (_id) {
         case 0: _t->on_buttonBox_accepted(); break;
-        case 1: _t->on_cancelButton_clicked(); break;
+        case 1: _t->on_buttonBox_rejected(); break;
         default: ;
         }
     }

@@ -36,7 +36,8 @@ CreateVdfPage::CreateVdfPage(DataHolder *DH, QWidget *parent) :
 {
     setupUi(this);
 
-    QPixmap createVDFPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/makeVDFsmall.png");
+    //QPixmap createVDFPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/makeVDFsmall.png");
+	QPixmap createVDFPixmap("../../../Images/makeVDFsmall.png");
     createVdfLabel->setPixmap(createVDFPixmap);
 
     dataHolder = DH;
@@ -133,7 +134,6 @@ void CreateVdfPage::addVar() {
     qDebug() << size << tableWidget->rowCount();
 
     if (tableWidget->rowCount() <= size/3) {
-        qDebug() << "oi";
         tableWidget->insertRow(tableWidget->rowCount());
     }
 

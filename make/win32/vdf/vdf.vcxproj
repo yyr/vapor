@@ -216,6 +216,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\lib\vdf\2vdf.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\AMRData.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\AMRIO.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\AMRTree.cpp" />
@@ -252,6 +253,7 @@
     <ClCompile Include="..\..\..\lib\vdf\Transpose.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\VDCFactory.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\vdf.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\vdfcreate.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\VDFIOBase.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\WaveCodecIO.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\WaveFiltBase.cpp" />
@@ -316,6 +318,8 @@
     <ClInclude Include="..\..\..\include\vapor\WeightTable.h" />
     <ClInclude Include="..\..\..\include\vapor\WRF.h" />
     <ClInclude Include="..\..\..\include\vapor\XmlNode.h" />
+    <ClInclude Include="..\..\..\lib\vdf\2vdf.h" />
+    <ClInclude Include="..\..\..\lib\vdf\vdfcreate.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

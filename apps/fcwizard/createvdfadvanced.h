@@ -43,8 +43,9 @@ public:
     QString Periodicity;
     
 private slots:
+    void on_restoreDefaultButton_clicked();
     void on_acceptButton_clicked();
-    void on_cancelButton_clicked() { hide(); }
+    void on_cancelButton_clicked();// { hide(); }
 };
 
 #endif // CREATEVDFADVANCED_H

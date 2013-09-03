@@ -51,10 +51,8 @@ void DataHolder::deleteVDFSelectedVar(string var) {
 
 // Create a DCReader object and pull important data from it
 void DataHolder::createReader() {
-    cout << "createReader()" << endl;
     if (fileType == "roms") reader = new DCReaderROMS(dataFiles);
     else reader = new DCReaderMOM(dataFiles);
-    cout << "readerCreated()" << endl;
 
     if (MyBase::GetErrCode() != 0) qDebug() << MyBase::GetErrMsg();
 
@@ -62,9 +60,8 @@ void DataHolder::createReader() {
     strstream << reader->GetNumTimeSteps();
     strstream >> VDFnumTS;
     setPDnumTS(VDFnumTS);
-    cout << "getting variables" << endl;
     ncdfVars = reader->GetVariableNames();
-    cout << "readerLeaving" << endl;
+    std::sort(ncdfVars.begin(),ncdfVars.end());
 }
 
 void DataHolder::findPopDataVars() {
@@ -77,8 +74,8 @@ void DataHolder::findPopDataVars() {
     vector<string> outVars;
     createReader();
     GetVariables(vdfio, reader, emptyVars, outVars);
+    std::sort(outVars.begin(),outVars.end());
     setPDDisplayedVars(outVars);
-    for(int i=0;i<outVars.size();i++) cout << outVars[i] << " ";
 }
 
 // Generate an array of chars from our vector<string>, which holds

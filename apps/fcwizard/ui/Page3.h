@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'Page3.ui'
 **
-** Created: Tue Aug 20 12:09:57 2013
+** Created: Tue Sep 3 14:48:30 2013
 **      by: Qt User Interface Compiler version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -72,9 +72,9 @@ public:
         startTimeSpinner = new QSpinBox(Page3);
         startTimeSpinner->setObjectName(QString::fromUtf8("startTimeSpinner"));
         startTimeSpinner->setGeometry(QRect(367, 68, 91, 25));
-        startTimeSpinner->setMinimum(1);
+        startTimeSpinner->setMinimum(0);
         startTimeSpinner->setMaximum(999999);
-        startTimeSpinner->setValue(1);
+        startTimeSpinner->setValue(0);
         advanceOptionButton = new QPushButton(Page3);
         advanceOptionButton->setObjectName(QString::fromUtf8("advanceOptionButton"));
         advanceOptionButton->setGeometry(QRect(63, 334, 161, 32));

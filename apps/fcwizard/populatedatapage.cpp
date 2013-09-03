@@ -31,7 +31,8 @@ PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
 {
     setupUi(this);
 
-    QPixmap populateDataPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/2VDFsmall.png");
+    //QPixmap populateDataPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/2VDFsmall.png");
+	QPixmap populateDataPixmap("../../../Images/2VDFsmall.png");
     populateDataLabel->setPixmap(populateDataPixmap);
 
     dataHolder = DH;
