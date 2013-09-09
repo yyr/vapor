@@ -37,6 +37,7 @@ DCReaderMOM::DCReaderMOM(const vector <string> &files) {
 	_lonCVs.clear();
 	_ovr_weight_tbl = NULL;
 	_ovr_varname.clear();
+	_ovr_slice = 0;
 	_defaultMV = 1e37;
 
 	NetCDFCFCollection *ncdfc = new NetCDFCFCollection();
@@ -401,6 +402,7 @@ int DCReaderMOM::OpenVariableRead(
 
 	_ovr_weight_tbl = NULL;
 	_ovr_varname.clear();
+	_ovr_slice = 0;
 
 	if (IsVariableDerived(varname)) { 
 		_ovr_varname = varname;
@@ -435,14 +437,17 @@ int DCReaderMOM::ReadSlice(float *slice) {
 	if (IsVariableDerived(_ovr_varname)) {
 		const float *ptr;
 		if (_ovr_varname.compare("angleRAD") == 0) {
+			if (_ovr_slice > 0) return(0);	// EOF
 			ptr = _angleRADBuf;
 		}
 		else {
+			if (_ovr_slice > 0) return(0);	// EOF
 			ptr = _latDEGBuf;
 		}
 		for (int i=0; i<_dims[0]*_dims[1]; i++) {
 			slice[i] = ptr[i];
 		}
+		_ovr_slice++;
 		return(1);
 	}
 
@@ -467,14 +472,26 @@ int DCReaderMOM::ReadSlice(float *slice) {
 	size_t dims[] = {_dims[0], _dims[1]};
 	_ovr_weight_tbl->interp2D(_sliceBuffer, slice, mv, mv, dims);
 
+	_ovr_slice++;
 	return(1);
 	
+}
+
+int DCReaderMOM::Read(float *data) {
+	float *ptr = data;
+
+	int rc;
+	while ((rc = DCReaderMOM::ReadSlice(ptr)) > 0) {
+		ptr += _dims[0] * _dims[1];
+	}
+	return(rc);
 }
 
 int DCReaderMOM::CloseVariable() {
 	bool derived = IsVariableDerived(_ovr_varname);
 	_ovr_weight_tbl = NULL;
 	_ovr_varname.clear();
+	_ovr_slice = 0;
 
 	if (derived) return(0);
 

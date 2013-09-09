@@ -53,6 +53,10 @@ public:
 	return(_ncdfc->GetNumTimeSteps());
  }
 
+ virtual string GetMapProjection() const {
+	return("+proj=latlon +ellps=sphere");
+ };
+
  virtual std::vector <string> GetVariables3D() const {
     return(_vars3d);
  }; 
@@ -123,6 +127,8 @@ public:
 
  virtual int ReadSlice(float *slice);
 
+ virtual int Read(float *data);
+
  virtual bool VariableExists(size_t ts, string varname) const {
 	if (IsVariableDerived(varname)) return (true);
     return(_ncdfc->VariableExists(ts, varname));
@@ -154,6 +160,7 @@ private:
  std::vector <string> _lonCVs;	// all valid longitude coordinate variables
  WeightTable *_ovr_weight_tbl;
  string _ovr_varname;
+ size_t _ovr_slice;
  float _defaultMV;
 
  class latLonBuf {

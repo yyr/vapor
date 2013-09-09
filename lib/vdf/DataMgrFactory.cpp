@@ -7,6 +7,8 @@
 #include <vapor/DataMgrWC.h>
 #include <vapor/DataMgrAMR.h>
 #include <vapor/DataMgrWRF.h>
+#include <vapor/DataMgrROMS.h>
+#include <vapor/DataMgrMOM.h>
 
 using namespace VAPoR;
 
@@ -38,6 +40,12 @@ DataMgr *DataMgrFactory::New(
 
 		return new DataMgrWRF(*md, mem_size);
 
+	}
+	else if (ftype.compare("roms") == 0) {
+		return new DataMgrROMS(files, mem_size);
+	}
+	else if (ftype.compare("mom4") == 0) {
+		return new DataMgrMOM(files, mem_size);
 	}
 	else {
 		SetErrMsg("Unknown data set type : %s", ftype.c_str());

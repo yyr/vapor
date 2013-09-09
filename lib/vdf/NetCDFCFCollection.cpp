@@ -451,6 +451,14 @@ int NetCDFCFCollection::ReadSlice(float *data) {
 	return(NetCDFCollection::ReadSlice(data));
 }
 
+int NetCDFCFCollection::Read(float *data) {
+
+	if (_derivedVar) {
+		return(_derivedVar->Read(data));
+	}
+	return(NetCDFCollection::Read(data));
+}
+
 int NetCDFCFCollection::Close() {
 
     if (_derivedVar) {

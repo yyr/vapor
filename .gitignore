@@ -52,6 +52,8 @@ lib/vdf/DataMgrAMR.h
 lib/vdf/DataMgrFactory.h
 lib/vdf/DataMgrWB.h
 lib/vdf/DataMgrWC.h
+lib/vdf/DataMgrMOM.h
+lib/vdf/DataMgrROMS.h
 lib/vdf/DataMgrWRF.h
 lib/vdf/ExpatParseMgr.h
 lib/vdf/ImpExp.h
