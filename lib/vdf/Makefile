@@ -19,7 +19,8 @@ FILES = \
 	DataMgrFactory  NCBuf \
 	LayeredGrid RegularGrid SphericalGrid StretchedGrid NetCDFSimple \
 	NetCDFCollection NetCDFCFCollection WeightTable \
-	DCReaderNCDF  DCReaderMOM DCReaderROMS VDCFactory
+	DCReaderNCDF  DCReaderMOM DCReaderROMS VDCFactory \
+	DataMgrROMS DataMgrMOM
 
 HEADER_FILES = \
 	BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata MetadataVDC \
@@ -37,7 +38,8 @@ HEADER_FILES = \
 	DataMgrFactory Lifting1D Transpose NCBuf \
 	LayeredGrid RegularGrid SphericalGrid StretchedGrid NetCDFSimple \
 	NetCDFCollection NetCDFCFCollection WeightTable \
-	DCReader DCReaderNCDF DCReaderMOM DCReaderROMS VDCFactory
+	DCReader DCReaderNCDF DCReaderMOM DCReaderROMS VDCFactory \
+	DataMgrROMS DataMgrMOM
 
 
 #LIB_DEFS = vdf.def

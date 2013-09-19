@@ -362,6 +362,10 @@ public:
  //!
  virtual int ReadSlice(float *data);
 
+ //! \copydoc NetCDFCollection::Read()
+ //!
+ virtual int Read(float *data);
+
  //! \copydoc NetCDFCollection::Close()
  //!
  virtual int Close();
