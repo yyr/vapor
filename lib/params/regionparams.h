@@ -22,7 +22,6 @@
 #define REGIONPARAMS_H
 
 
-#include <qwidget.h>
 #include <vector>
 #include <map>
 #include <vapor/common.h>
@@ -59,60 +58,6 @@ public:
 	//! Destructor
 	~RegionParams();
 	
-	//! Method to obtain voxel coords of a region, but doesn't verify the existence
-	//! of data in the region.
-	//! \param[in] int reflevel			Refinement level of requested coordinates
-	//! \param[in] int lod				LOD of data for requested coordinates, needed for ELEVATION
-	//! \param[out] size_t min_dim[3]	Minimum voxel coordinates of region
-	//! \param[out] size_t max_dim[3]	Maximum voxel coordinates of region
-	//! \param[in] int timestep			Time step at which the coordinates are being requested.
-	void getRegionVoxelCoords(int reflevel, int lod, size_t min_dim[3], size_t max_dim[3], int timestep);
-	
-	//! Method to obtain voxel and user coordinates of the available data
-	//! in the region.  The region extents may be shrunk so as to include
-	//! only the portion of the region for which the specified variables are available.
-	//! If the requested refinement level is not available, and the user allows use of
-	//! lowered accuracy, then returns the highest refinement level that is available.
-	//! Returns -1 if required data is unavailable.
-	//! Optionally provides user data extents.
-	//! \retval int Available refinenement level, or -1 if no data available
-	//! \param[in] int reflevel			Refinement level of requested coordinates
-	//! \param[in] int lod				LOD of data
-	//! \param[out] size_t min_dim[3]	Minimum voxel coordinates of available region
-	//! \param[out] size_t max_dim[3]	Maximum voxel coordinates of available region
-	//! \param[in] size_t timestep		Time step at which the data is being requested.
-	//! \param[in] int* sesVarNums		An array of integer session 3D variable nums for requested variables
-	//! \param[in] int numVars			Number of variables, i.e. size of sesVarnums
-	//! \param[out] double* regMin		Minimum user coordinates, if this pointer is non-null
-	//! \param[out] double* regMax		Maximum user coordinates, if this pointer is non-null
-	int getAvailableVoxelCoords(int reflevel, int lod, size_t min_dim[3], size_t max_dim[3], 
-		size_t timestep, 
-		const int* sesVarNums, int numVars, double* regMin = 0, double* regMax = 0);
-	
-
-	//! Static method to prepare for retrieval of data arrays from DataMgr. 
-	//! \param[in] int numxforms Requested refinement level of data
-	//! \param[in] int lod Requested LOD of data
-	//! \param[in] size_t timestep				Time for which data is requested.
-	//! \param[in] vector<string>& varnames		Vector of 2D or 3D variable names being requested
-	//! \param[inout] double* regMin			Minimum user coordinate extents requested (in) and actual available (out)
-	//! \param[inout] double* regMax			Maximum user coordinate extents requested (in) and actual available (out)
-	//! \param[out] size_t min_dim[3]			Minimum voxel coordinates of available region
-	//! \param[out] size_t max_dim[3]			Maximum voxel coordinates of available region
-	//! \retval int Actual refinement level available or -1 if not all variables available.
-	static int PrepareCoordsForRetrieval(int numxforms, int lod, size_t timestep, const vector<string>& varnames,
-		double* regMin, double* regMax, 
-		size_t min_dim[3], size_t max_dim[3]);
-
-
-	//! Evaluate a variable at a point, as requested by a RenderParams
-	//! \param[in] string varname		requested variable name (2d or 3d)
-	//! \param[in] double point[3]		User coordinates of requested value
-	//! \param[in] int numRefinements	Refinement level of requested data
-	//! \param[in] int lod				Compression level of requested data
-	//! \param[in] int timeStep			Time step of data
-	static float calcCurrentValue( const string& varname, const double point[3], int numRefinements, int lod, size_t timeStep);
-
 #ifndef DOXYGEN_SKIP_THIS
 
 	virtual Params* deepCopy(ParamNode* n = 0);
@@ -136,27 +81,12 @@ public:
 		return (0.5f*(getLocalRegionMin(indx,timestep)+getLocalRegionMax(indx,timestep)));
 	}
 	
-	
-	//Version of DataMgr::GetValidRegion that knows about layered data
-	//Callers must supply the full voxel extents, these get reduced depending on what data is available for
-	//the specified variable, or (for derived variables) the input variables to the script.
-	static int getValidRegion(size_t timestep, const char* varname, int minRefLevel, size_t min_coord[3], size_t max_coord[3]);
-	
-	//Determine how many megabytes will be needed for one variable at specified
-	//refinement level, specified box extents.
-
-	static int getMBStorageNeeded(const double exts[6], int refLevel);
 	// Reinitialize due to new Session:
 	bool reinit(bool doOverride);
 	virtual void restart();
-	static void setDefaultPrefs() {}  //No default preferences
 	
-	ParamNode* buildNode();
-	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
-	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
-	//See if the proposed number of transformations is OK.  Return a valid value
-	int validateNumTrans(int n, int timestep);
-
+	
+	
 	
 	virtual Box* GetBox() {return myBox;}
 	//Methods to set the region max and min from a float value.
@@ -164,9 +94,7 @@ public:
 	//
 	void setLocalRegionMin(int coord, float minval, int timestep, bool checkMax=true);
 	void setLocalRegionMax(int coord, float maxval, int timestep, bool checkMin=true);
-	void setInfoNumRefinements(int n){infoNumRefinements = n;}
-	void setInfoTimeStep(int n) {infoTimeStep = n;}
-	void setInfoVarNum(int n) {infoVarNum = n;}
+	
 	const vector<double>& GetAllExtents(){ return myBox->GetRootNode()->GetElementDouble(Box::_extentsTag);}
 	const vector<long>& GetTimes(){ return myBox->GetRootNode()->GetElementLong(Box::_timesTag);}
 	void clearRegionsMap();
@@ -190,13 +118,6 @@ protected:
 	static const string _timestepAttr;
 	static const string _extentsAttr;
 	
-	//Methods to make sliders and text valid and consistent for region:
-
-	int infoNumRefinements, infoVarNum, infoTimeStep;
-
-	
-	//Full grid height for layered data.  0 otherwise.
-	static size_t fullHeight;
 	
 	Box* myBox;
 #endif //DOXYGEN_SKIP_THIS

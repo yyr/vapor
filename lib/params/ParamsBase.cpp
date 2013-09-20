@@ -27,17 +27,6 @@
 #include <vapor/ParamNode.h>
 #include <vapor/ParamsBase.h>
 #include "params.h"
-#include "ParamsIso.h"
-#include "dvrparams.h"
-#include "flowparams.h"
-#include "twoDdataparams.h"
-#include "twoDimageparams.h"
-#include "regionparams.h"
-#include "animationparams.h"
-#include "viewpointparams.h"
-#include "probeparams.h"
-#include "transferfunction.h"
-#include "Transform3d.h"
 
 using namespace VAPoR;
 std::map<string,int> ParamsBase::classIdFromTagMap;
@@ -150,29 +139,10 @@ bool ParamsBase::elementStartHandler(
 		} else if( type == ParamNode::_paramsBaseAttr){
 			//If it has "ParamsBase" attribute, then do similarly, but create an instance of the class associated with the tag.
 			ParamsBase* baseNode = CreateDefaultParamsBase(tag);
-			//Special case for transfer functions etc:
-			if (tag == TransferFunction::_transferFunctionTag ||
-				tag == ParamsIso::_IsoControlTag ||
-				tag == MapperFunction::_mapperFunctionTag 
-#ifdef MODELS
-				|| tag == Transform3d::xmlTag()
-#endif //MODELS
-				) {
-				//Create a new child node
-				map <string, string> childattrs;
-				ParamNode *child = new ParamNode(tag, childattrs);
-				child->SetParamsBase(baseNode);
-				(void) _currentParamNode->AddChild(child);
-				_currentParamNode = child;
-		
-				pm->pushClassStack(baseNode);
-				//defer to the base node to do its own parsing:
-				baseNode->elementStartHandler(pm, depth, tag, attrs);
-				return (true);
-			} else {
-				ParamNode* childNode = Push(tag,baseNode);
-				return (childNode != 0);
-			}
+			
+			ParamNode* childNode = Push(tag,baseNode);
+			return (childNode != 0);
+			
 		} else {
 			attrs++;
 			state->data_type = *attrs;

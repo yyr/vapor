@@ -203,6 +203,9 @@
     <ClInclude Include="..\..\..\lib\render\VolumeRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\vaporGitDebug\include\vapor\ControlExecutive.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\..\lib\render\glwindow.h">

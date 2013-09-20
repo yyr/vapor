@@ -235,6 +235,7 @@
     <ClCompile Include="..\..\..\lib\moc\moc_spintimer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\vaporGitDebug\include\vapor\ControlExecutive.h" />
     <ClInclude Include="..\..\..\lib\render\arrowrenderer.h" />
     <ClInclude Include="..\..\..\lib\render\BBox.h" />
     <ClInclude Include="..\..\..\lib\render\DVRBase.h" />

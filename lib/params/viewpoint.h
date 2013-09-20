@@ -9,11 +9,11 @@ namespace VAPoR {
 class XmlNode;
 class ParamNode;
 
-class PARAMS_API Viewpoint : public ParsedXml {
+class PARAMS_API Viewpoint : public ParamsBase {
 	
 public: 
-	Viewpoint() {//set to default
-		previousClass = 0; perspective = true;
+	Viewpoint() : ParamsBase(0, Viewpoint::_viewpointTag) {//set to default
+		previousClass = 0; 
 		for (int i = 0; i< 3; i++){
 			setCameraPosLocal(i,0.5f);
 			setViewDir(i,0.f);
@@ -82,14 +82,6 @@ public:
 		for (int i = 0; i<3; i++) vec[i] = stretch[i]*cameraPosition[i];
 	}
 
-	void setPerspective(bool on) {perspective = on;}
-	bool hasPerspective() {return perspective;}
-	ParamNode* buildNode();
-	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
-	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
-
-	//Linearly interpolate between two viewpoints
-	static Viewpoint* interpolate(Viewpoint* VP1, Viewpoint* VP2, float alpha);
 	
 protected:
 	static const string _camPosTag;
@@ -98,7 +90,6 @@ protected:
 	static const string _rotCenterLatLonTag;
 	static const string _camLatLonTag;
 	static const string _rotCenterTag;
-	static const string _perspectiveAttr;
 	static const string _viewpointTag;
 	float cameraPosition[3];
 	float viewDirection[3];
@@ -106,9 +97,6 @@ protected:
 	float rotationCenter[3];
 	float rotCenterLatLon[2];
 	float camLatLon[2];
-	
-	bool perspective;
-	
 
 };
 };

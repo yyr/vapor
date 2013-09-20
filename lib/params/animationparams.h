@@ -30,10 +30,10 @@
 
 namespace VAPoR {
 class ExpatParseMgr;
-class Keyframe;
+
 class XmlNode;
 class ParamNode;
-class animate;
+
 //! \class AnimationParams
 //! \brief A class that specifies parameters used in animation 
 //! \author Alan Norton
@@ -53,32 +53,27 @@ public:
 	//! Identify the current frame being rendered
 	//! \retval int current frame number
 	int getCurrentFrameNumber() {
-		if (keyframingEnabled()&&getLoadedViewpoints().size() > 0){
-			return currentInterpolatedFrame;
-		}
+		
 		return currentTimestep;
 	}
 
 	//! Identify the current data timestep being used
 	//! \retval size_t current time step
 	int getCurrentTimestep() {
-		if (keyframingEnabled()&&getLoadedViewpoints().size() > 0){
-			return loadedTimesteps[currentInterpolatedFrame];
-		}
+		
 		return currentTimestep;
 	}
 
 	//! Identify the starting frame number currently set in the UI.
 	//! \retval int starting frame number.
 	int getStartFrameNumber() {
-		if (keyframingEnabled()) return startKeyframeFrame;
 		return startFrame;
 	}
 
 	//! Identify the ending frame number as currently set in the UI.
 	//! \retval int ending frame number.
 	int getEndFrameNumber() {
-		if (keyframingEnabled()) return endKeyframeFrame;
+		
 		return endFrame;
 	}
 
@@ -93,14 +88,14 @@ public:
 	//! Identify the minimum frame number 
 	//! \retval int minimum frame number.
 	int getMinFrame() {
-		if (keyframingEnabled()) return 0;
+		
 		return minTimestep;
 	}
 
 	//! Identify the maximum frame number 
 	//! \retval int maximum frame number.
 	int getMaxFrame() {
-		if (keyframingEnabled()) return (loadedViewpoints.size()-1);
+		
 		return maxTimestep;
 	}
 
@@ -113,33 +108,12 @@ public:
 	//! \param[in] int maximum frame number.
 	void setMaxTimestep(int maxF) {maxTimestep = maxF;}
 
-	Keyframe* getKeyframe(int index) {return keyframes[index];}
-	vector<Keyframe*>& getKeyframes() {return keyframes;}
-	void deleteKeyframe(int index);
-	void rescaleKeyframes(const float ratio[3]);
 		
-	void insertKeyframe(int index, Keyframe* keyframe);
-	void insertViewpoint(int index, Viewpoint* vp);
-		
-	int getNumKeyframes() {return keyframes.size();}
-	bool keyframingEnabled() {return useKeyframing;}
-	void enableKeyframing( bool onoff);
-		
-
 
 #ifndef DOXYGEN_SKIP_THIS
 
-	//Build vectors of viewpoints and timesteps by interpolating keyframes
-	void buildViewsAndTimes();
-	const vector<Viewpoint*> getLoadedViewpoints() {return loadedViewpoints;}
-	void clearLoadedViewpoints(); 
-	int getNumLoadedViewpoints(){return loadedViewpoints.size();}
-	void addViewpoint(Viewpoint* vp){loadedViewpoints.push_back(vp);}
-	void addTimestep(size_t ts){loadedTimesteps.push_back(ts);}
-	const Viewpoint* getLoadedViewpoint(int framenum){
-		return (loadedViewpoints[framenum%loadedViewpoints.size()]);
-	}
-	vector<size_t> getLoadedTimesteps() {return loadedTimesteps;}
+	
+	
 	//The rest is not part of the public API
 	static ParamsBase* CreateDefaultInstance() {return new AnimationParams(-1);}
 	const std::string& getShortName() {return _shortName;}
@@ -166,26 +140,18 @@ public:
 	}
 	int getFrameIndex(int keyframeIndex);
 	void setCurrentFrameNumber(int val) {
-		if (keyframingEnabled())
-			currentInterpolatedFrame = val;
-		else
-			currentTimestep = val;
+		
+		currentTimestep = val;
 	}
 	void setStartFrameNumber(int val) {
-		if (keyframingEnabled()){
-			startKeyframeFrame=val;
-		} else {
-			startFrame=val;
-		}
+		
+		startFrame=val;
+		
 	}
 	void setEndFrameNumber(int val) {
-		if (keyframingEnabled()){
-			endKeyframeFrame=val;
-			if (val == getLoadedViewpoints().size()-1) endFrameIsDefault = true;
-			else endFrameIsDefault=false;
-		} else {
+		
 			endFrame=val;
-		}
+		
 	}
 	
 
@@ -209,37 +175,19 @@ public:
 	//set to pause if last frame is done, return true if done.
 	bool checkLastFrame();
 	int getNextFrame(int dir); //Determine the next frame in the specified direction
-	bool usingTimestepList() {return useTimestepSampleList;}
-	void setTimestepSampleList(bool on) {useTimestepSampleList = on;}
-	std::vector<int>& getTimestepList() { return timestepList;}
 	
-	ParamNode* buildNode();
-	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
-	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	
 protected:
-	vector<Viewpoint*>loadedViewpoints;
-	vector<size_t>loadedTimesteps;
-
+	
 	static const string _shortName;
-	static const string _repeatAttr;
-	static const string _maxRateAttr;
-	static const string _stepSizeAttr;
-	static const string _startFrameAttr;
-	static const string _endFrameAttr;
-	static const string _startKeyframeFrameAttr;
-	static const string _endKeyframeFrameAttr;
-	static const string _currentFrameAttr;
-	static const string _currentInterpFrameAttr;
-	static const string _maxWaitAttr;
-	static const string _keyframesEnabledAttr;
-	static const string _keyframeTag;
-	static const string _keySpeedAttr;
-	static const string _keyTimestepAttr;
-	static const string _keyNumFramesAttr;
-	static const string _keySynchToTimestepsAttr;
-	static const string _keyTimestepsPerFrameAttr;
-
+	static const string _repeatTag;
+	static const string _maxRateTag;
+	static const string _stepSizeTag;
+	static const string _startFrameTag;
+	static const string _endFrameTag;
+	
+	static const string _currentFrameTag;
+	
 
 	int playDirection; //-1, 0, or 1
 	bool repeatPlay;
@@ -248,41 +196,22 @@ protected:
 	int frameStepSize;// always 1 or greater
 	int startFrame;
 	int endFrame;
-	int startKeyframeFrame;
-	int endKeyframeFrame;
-	bool endFrameIsDefault; //indicate if endKeyframeFrame is at default values.
+	
 	int maxTimestep, minTimestep;
 	int currentInterpolatedFrame;
 	int currentTimestep;
-	bool useTimestepSampleList;
-	std::vector<int> timestepList;
+	
 	//If the animation state is changed, gui needs to update:
 	bool stateChanged;
 	
 	static float defaultMaxFPS;
 
-	//Keyframing state:
-	bool useKeyframing;
-	std::vector<Keyframe*> keyframes;
-	animate* myAnimate;  //used to perform keyframe interpolation
+	
 
 #endif /* DOXYGEN_SKIP_THIS */
 	
 };
-class Keyframe{
-public:
-	Keyframe(Viewpoint* vp, float spd, int ts, int fnum){
-		viewpoint = vp; speed = spd; timeStep = ts; numFrames = fnum; stationaryFlag = false;
-		synch = false; timestepsPerFrame = 1;
-	}
-	Viewpoint* viewpoint;
-	float speed;
-	int timeStep;
-	int numFrames;
-	bool stationaryFlag; 
-	bool synch;
-	int timestepsPerFrame;
-};
+
 };
 
 #endif //ANIMATIONPARAMS_H 

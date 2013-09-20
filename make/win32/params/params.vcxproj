@@ -205,81 +205,28 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\lib\params\animate.cpp" />
     <ClCompile Include="..\..\..\lib\params\animationparams.cpp" />
-    <ClCompile Include="..\..\..\lib\params\arrowparams.cpp" />
     <ClCompile Include="..\..\..\lib\params\Box.cpp" />
-    <ClCompile Include="..\..\..\lib\params\Colormap.cpp" />
-    <ClCompile Include="..\..\..\lib\params\ColorMapBase.cpp" />
     <ClCompile Include="..\..\..\lib\params\datastatus.cpp" />
-    <ClCompile Include="..\..\..\lib\params\dvrparams.cpp" />
-    <ClCompile Include="..\..\..\lib\params\flowparams.cpp" />
-    <ClCompile Include="..\..\..\lib\params\GeoTile.cpp" />
-    <ClCompile Include="..\..\..\lib\params\GeoTileEquirectangular.cpp" />
-    <ClCompile Include="..\..\..\lib\params\GeoTileMercator.cpp" />
     <ClCompile Include="..\..\..\lib\params\glutil.cpp" />
-    <ClCompile Include="..\..\..\lib\params\histo.cpp" />
-    <ClCompile Include="..\..\..\lib\params\mapperfunction.cpp" />
-    <ClCompile Include="..\..\..\lib\params\MapperFunctionBase.cpp" />
-    <ClCompile Include="..\..\..\lib\params\ModelParams.cpp" />
-    <ClCompile Include="..\..\..\lib\params\ModelScene.cpp" />
-    <ClCompile Include="..\..\..\lib\params\OpacityMap.cpp" />
-    <ClCompile Include="..\..\..\lib\params\OpacityMapBase.cpp" />
     <ClCompile Include="..\..\..\lib\params\ParamNode.cpp" />
     <ClCompile Include="..\..\..\lib\params\params.cpp" />
     <ClCompile Include="..\..\..\lib\params\ParamsBase.cpp" />
-    <ClCompile Include="..\..\..\lib\params\ParamsIso.cpp" />
-    <ClCompile Include="..\..\..\lib\params\probeparams.cpp" />
-    <ClCompile Include="..\..\..\lib\params\pythonpipeline.cpp">
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
-    </ClCompile>
     <ClCompile Include="..\..\..\lib\params\regionparams.cpp" />
-    <ClCompile Include="..\..\..\lib\params\tfinterpolator.cpp" />
-    <ClCompile Include="..\..\..\lib\params\transferfunction.cpp" />
-    <ClCompile Include="..\..\..\lib\params\TransferFunctionLite.cpp" />
-    <ClCompile Include="..\..\..\lib\params\Transform3d.cpp" />
-    <ClCompile Include="..\..\..\lib\params\twoDdataparams.cpp" />
-    <ClCompile Include="..\..\..\lib\params\twoDimageparams.cpp" />
-    <ClCompile Include="..\..\..\lib\params\twoDparams.cpp" />
     <ClCompile Include="..\..\..\lib\params\viewpoint.cpp" />
     <ClCompile Include="..\..\..\lib\params\viewpointparams.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\lib\params\animate.h" />
     <ClInclude Include="..\..\..\lib\params\animationparams.h" />
     <ClInclude Include="..\..\..\lib\params\arrowparams.h" />
     <ClInclude Include="..\..\..\lib\params\Box.h" />
-    <ClInclude Include="..\..\..\lib\params\Colormap.h" />
-    <ClInclude Include="..\..\..\include\vapor\ColorMapBase.h" />
-    <ClInclude Include="..\..\..\lib\params\datastatus.h" />
-    <ClInclude Include="..\..\..\lib\params\dvrparams.h" />
     <ClInclude Include="..\..\..\include\vapor\errorcodes.h" />
-    <ClInclude Include="..\..\..\lib\params\flowparams.h" />
-    <ClInclude Include="..\..\..\lib\params\GeoTile.h" />
-    <ClInclude Include="..\..\..\lib\params\GeoTileEquirectangular.h" />
-    <ClInclude Include="..\..\..\lib\params\GeoTileMercator.h" />
-    <ClInclude Include="..\..\..\lib\params\GetAppPath.h" />
+    <ClInclude Include="..\..\..\lib\params\datastatus.h" />
     <ClInclude Include="..\..\..\lib\params\glutil.h" />
-    <ClInclude Include="..\..\..\lib\params\histo.h" />
-    <ClInclude Include="..\..\..\lib\params\mapperfunction.h" />
-    <ClInclude Include="..\..\..\include\vapor\MapperFunctionBase.h" />
-    <ClInclude Include="..\..\..\lib\params\ModelParams.h" />
-    <ClInclude Include="..\..\..\lib\params\ModelScene.h" />
-    <ClInclude Include="..\..\..\lib\params\OpacityMap.h" />
-    <ClInclude Include="..\..\..\include\vapor\OpacityMapBase.h" />
     <ClInclude Include="..\..\..\include\vapor\ParamNode.h" />
     <ClInclude Include="..\..\..\lib\params\params.h" />
     <ClInclude Include="..\..\..\include\vapor\ParamsBase.h" />
-    <ClInclude Include="..\..\..\lib\params\ParamsIso.h" />
-    <ClInclude Include="..\..\..\lib\params\probeparams.h" />
-    <ClInclude Include="..\..\..\lib\params\pythonpipeline.h" />
     <ClInclude Include="..\..\..\lib\params\regionparams.h" />
-    <ClInclude Include="..\..\..\include\vapor\tfinterpolator.h" />
-    <ClInclude Include="..\..\..\lib\params\transferfunction.h" />
-    <ClInclude Include="..\..\..\lib\params\Transform3d.h" />
-    <ClInclude Include="..\..\..\lib\params\twoDdataparams.h" />
-    <ClInclude Include="..\..\..\lib\params\twoDimageparams.h" />
-    <ClInclude Include="..\..\..\lib\params\twoDparams.h" />
     <ClInclude Include="..\..\..\lib\params\viewpoint.h" />
     <ClInclude Include="..\..\..\lib\params\viewpointparams.h" />
   </ItemGroup>

@@ -20,18 +20,14 @@
 #ifndef VIEWPOINTPARAMS_H
 #define VIEWPOINTPARAMS_H
 
-#include <qwidget.h>
 #include "params.h"
-
 #include "viewpoint.h"
 
 class VizTab;
 
 namespace VAPoR {
 class ExpatParseMgr;
-class MainForm;
 class RegionParams;
-class PanelCommand;
 class XmlNode;
 class ParamNode;
 //! \class ViewpointParams
@@ -52,18 +48,6 @@ public:
 	//! Destructor
 	virtual ~ViewpointParams();
 	
-
-	//! Static method specifies the scale factor that will be used in coordinate transformation, as is
-	//! used to map the full stretched data domain into the unit box.
-	//! The reciprocal of this value is the scale factor that is applied.
-	//! \retval float Maximum side of stretched cube
-	static float getMaxStretchedCubeSide() {return maxStretchedCubeSide;}
-
-	//! This static method returns the minimum coordinates in the stretched
-	//! world.  This is used as the translation needed to put the user coordinates
-	//! at the origin.
-	//! \retval float* Minimum world coordinates stretched domain
-	static float* getMinStretchedCubeCoords() {return minStretchedCubeCoord;}
 
 	//! This method tells how many lights are specified and whether
 	//! lighting is on or not (i.e. if there are more than 0 lights).
@@ -114,7 +98,6 @@ public:
 	
 	void setCameraPosLocal(float* val,int timestep ) {
 		currentViewpoint->setCameraPosLocal(val);
-		if (useLatLon) convertLocalToLonLat(timestep);
 	}
 	
 	void setViewDir(int i, float val) { currentViewpoint->setViewDir(i,val);}
@@ -122,12 +105,6 @@ public:
 	
 	void setUpVec(int i, float val) { currentViewpoint->setUpVec(i,val);}
 	void setUpVec(float* val) {currentViewpoint->setUpVec(val);}
-	bool hasPerspective(){return currentViewpoint->hasPerspective();}
-	void setPerspective(bool on) {currentViewpoint->setPerspective(on);}
-	int getStereoMode(){ return stereoMode;}
-	void setStereoMode(int mode) {stereoMode = mode;}
-	float getStereoSeparation() {return stereoSeparation;}
-	void setStereoSeparation(float angle){stereoSeparation = angle;}
 	
 	void setNumLights(int nlights) {numLights = nlights;}
 	const float* getLightDirection(int lightNum){return lightDirection[lightNum];}
@@ -153,26 +130,14 @@ public:
 		homeViewpoint = newVP;
 	}
 	
-	//Set to default viewpoint for specified region
-	void centerFullRegion(int timestep);
-	
-	float* getRotCenterLatLon(){return currentViewpoint->getRotCenterLatLon();}
 	float getRotationCenterLocal(int i){ return currentViewpoint->getRotationCenterLocal(i);}
-	float* getCamPosLatLon() {return currentViewpoint->getCamPosLatLon();}
 	
 	void setRotationCenterLocal(float* vec, int timestep){
 		currentViewpoint->setRotationCenterLocal(vec);
-		if (useLatLon) convertLocalToLonLat(timestep);
 	}
-	void setCamPosLatLon(float x, float y) {currentViewpoint->setCamPosLatLon(x,y);}
-	void setRotCenterLatLon(float x, float y) {currentViewpoint->setRotCenterLatLon(x,y);}
-	bool isLatLon() {return useLatLon;}
-	void setLatLon(bool val){useLatLon = val;}
 	
 	void rescale(float scaleFac[3], int timestep);
 
-	bool convertLocalToLonLat(int timestep);
-	bool convertLocalFromLonLat(int timestep);
 	//determine far and near distance to region based on current viewpoint
 	void getFarNearDist(float* boxFar, float* boxNear);
 	
@@ -181,15 +146,7 @@ public:
 	virtual void restart();
 	
 	static void setDefaultPrefs();
-	//Transformations to convert world coords to (unit)render cube and back
-	//
 	
-	static void localToStretchedCube(const float fromCoords[3], float toCoords[3]);
-	
-	static void localToStretchedCube(const double fromCoords[3], double toCoords[3]);
-
-	
-	static void localFromStretchedCube(float fromCoords[3], float toCoords[3]);
 	static void setCoordTrans();
 	
 	//Maintain the OpenGL Model Matrices, since they can be shared between visualizers
@@ -202,9 +159,7 @@ public:
 	void setModelViewMatrix(double* mtx){
 		for (int i = 0; i<16; i++) modelViewMatrix[i] = mtx[i];
 	}
-	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
-	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
-	ParamNode* buildNode();
+	
 	static const float* getDefaultViewDir(){return defaultViewDir;}
 	static const float* getDefaultUpVec(){return defaultUpVec;}
 	static const float* getDefaultLightDirection(int lightNum){return defaultLightDirection[lightNum];}
@@ -242,35 +197,19 @@ protected:
 	static const string _currentViewTag;
 	static const string _homeViewTag;
 	static const string _lightTag;
-	static const string _lightDirectionAttr;
-	static const string _lightNumAttr;
-	static const string _diffuseLightAttr;
-	static const string _ambientLightAttr;
-	static const string _specularLightAttr;
-	static const string _specularExponentAttr;
-	static const string _stereoModeAttr;
-	static const string _stereoSeparationAttr;
 	
 	
 	Viewpoint* currentViewpoint;
 	Viewpoint* homeViewpoint;
-	float stereoSeparation;
-	int stereoMode; //0 for center, 1 for left, 2 for right
-	bool useLatLon;
+	
 	int numLights;
-	int parsingLightNum;
 	float lightDirection[3][4];
 	float diffuseCoeff[3];
 	float specularCoeff[3];
 	float specularExp;
 	float ambientCoeff;
 
-	//Static coeffs for affine coord conversion:
-	//
-	static float minStretchedCubeCoord[3];
-	static float maxStretchedCubeCoord[3];
 	
-	static float maxStretchedCubeSide;
 	//defaults:
 	static float defaultViewDir[3];
 	static float defaultUpVec[3];

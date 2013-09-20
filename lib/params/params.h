@@ -24,7 +24,7 @@
 #include <vapor/XmlNode.h>
 #include <vapor/ExpatParseMgr.h>
 #include <vapor/ParamNode.h>
-#include <qwidget.h>
+
 #include "assert.h"
 #include <vapor/common.h>
 #include <vapor/ParamsBase.h>
@@ -34,34 +34,12 @@
 class QWidget;
 
 using namespace VetsUtil;
-//Error tolerance for gui parameters:
-#define ROUND_OFF 1.e-6f
-#define MAXVIZWINS 16
-#define OUT_OF_BOUNDS -1.e30f
 
 namespace VAPoR{
-//! These dirty bits are associated with render windows and are kept in each GLWindow. 
-//! These are dirty flags that need to be communicated between different params;
-//! i.e. a change in one params forces a renderer to rebuild.
-enum DirtyBitType {
-//! Region bit indicates the region bounds have changed
-	RegionBit,
-//! NavigatingBit indicates the viewpoint is currently moving
-	NavigatingBit,
-//! LightingBit indicates there has been a change in lighting
-    LightingBit,
-//! ProjMatrixBit indicates there has been a change in the projection matrix (e.g. viewpoint change)
-	ProjMatrixBit,
-//! ViewportBit indicates a change in viewport, e.g. resize of window
-	ViewportBit,
-//! AnimationBit indicates a change in current frame
-	AnimationBit 
-};
+
 class XmlNode;
 class ParamNode;
 class DummyParams;
-class MapperFunction;
-class TransferFunction;
 class ViewpointParams;
 class RegionParams;
 class DataMgr;
@@ -99,7 +77,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //!
  	virtual ~Params();
 
-//! Pure virtual method specifying name to display on the associated tab.
+//! Pure virtual method specifying short name e.g. to display on the associated tab.
 //! \retval string name to identify associated tab
 	 virtual const std::string& getShortName()=0;
 
@@ -306,7 +284,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! With global pr default Params this is -1 
 	virtual int getVizNum() {return vizNum;}
 
-//! Specify whether a params is local or global. 
+//! Specify whether a [non-render]params is local or global. 
 //! \param[in] lg boolean is true if is local 
 	virtual void setLocal(bool lg){ if (lg) {
 		local = true;
@@ -335,93 +313,13 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! Needed so support manipulators.
 //! \retval Box* returns pointer to the Box associated with this Params.
 	virtual Box* GetBox() {return 0;}
-//! The orientation is used only with 2D Box Manipulators, and must be implemented for Params supporting such manipulators.  
-//! Valid values are 0,1,2 for being orthog to X,Y,Z-axes.
-//! Default is -1 (invalid)
-//! \retval int orientation direction (0,1,2)
-	virtual int getOrientation() { assert(0); return -1;}
 
 
-//! Virtual method that must be re-implemented for rotated boxes, such as with ProbeParams.
-//! Specifies an axis-aligned box containing the rotated box.
-//! By default it just finds the box extents.
-//! Caller must supply extents array, which gets its values filled in.
-//! \param[out] float[6] Extents of rotated box
-	virtual void calcContainingStretchedBoxExtentsInCube(float extents[6]) 
-		{calcStretchedBoxExtentsInCube(extents, -1);}
-
-//! This virtual method specifies that the box associated with this Params is constrained to stay within data extents.
-//! Override this method to allow the manipulator to move the box outside of the data extents.
-//! Default returns true.
-//! \retval bool true if box not allowed to go completely outside of data.
-	virtual bool isDomainConstrained() {return true;}
 
 	//Following methods, while public, are not part of extensibility API
 	
 #ifndef DOXYGEN_SKIP_THIS
-	//! For params that have a box (Necessary if using a Manipulator).
-	//! This must be overridden to use a Manipulator.
-	//! The Params class must implement this by setting its box extents.
-	//! \param[in] float[3] boxMin  The minimum coordinates of the box.
-	//! \param[in] float[3] boxMax  The maximum coordinates of the box.
-	//! \param[in] int time step Current time step (only for moving boxes).
-	void setLocalBox(const float boxMin[3], const float boxMax[3], int timestep = -1 ) {
-		double extents[6];
-		for (int i = 0; i<3; i++){
-			extents[i] = boxMin[i];
-			extents[i+3] = boxMax[i];
-		}
-		GetBox()->SetLocalExtents(extents,timestep);
-	}
-	//Map corners of box to voxels
-	void mapBoxToVox(DataMgr* dataMgr, int refLevel, int lod, int timestep, size_t voxExts[6]);
-	void setTheta(float th) {
-		double angles[3];
-		GetBox()->GetAngles(angles);
-		angles[0]=th;
-		GetBox()->SetAngles(angles);
-	}
-	void setPhi(float ph) {
-		double angles[3];
-		GetBox()->GetAngles(angles);
-		angles[1]=ph;
-		GetBox()->SetAngles(angles);
-	}
-	void setPsi(float ps) {
-		double angles[3];
-		GetBox()->GetAngles(angles);
-		angles[2]=ps;
-		GetBox()->SetAngles(angles);
-	}
 	
-	//! For params that have a box (Necessary if using a Manip).
-	//! The params must implement this by supplying the current box extents.
-	//! This must be overridden to use a manipulator.
-	//! \param[out] float[3] boxMin  The minimum coordinates of the box.
-	//! \param[out] float[3] boxMax  The maximum coordinates of the box.
-	//! \param[in] int time step Current time step (only for moving boxes).
-	void getLocalBox(float boxMin[3], float boxMax[3], int timestep = -1) {
-		double extents[6];
-		GetBox()->GetLocalExtents(extents, timestep);
-		for (int i = 0; i<3; i++){
-			boxMin[i] = extents[i];
-			boxMax[i] = extents[i+3];
-		}
-	}
-	
-	float getPhi() {
-		if (GetBox()->GetAngles().size() == 0) return 0.f;
-		return((float)GetBox()->GetAngles()[1]);
-	}
-	float getTheta() {
-		if (GetBox()->GetAngles().size() == 0) return 0.f;
-		return((float)GetBox()->GetAngles()[0]);
-	}
-	float getPsi() {
-		if (GetBox()->GetAngles().size() == 0) return 0.f;
-		return((float)GetBox()->GetAngles()[2]);
-	}
-
 	static Params* CreateDummyParams(std::string tag);
 	static void	BailOut (const char *errstr, const char *fname, int lineno);
 
@@ -431,74 +329,13 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 
 	static void clearDummyParamsInstances();
 	static const std::string& paramName(ParamsBaseType t);
-	static const string _dvrParamsTag;
-	static const string _isoParamsTag;
 	
-	static const string _probeParamsTag;
-	static const string _twoDParamsTag;
-	static const string _twoDDataParamsTag;
-	static const string _twoDImageParamsTag;
 	static const string _regionParamsTag;
 	static const string _viewpointParamsTag;
 	static const string _animationParamsTag;
-	static const string _flowParamsTag;
 	static const string _RefinementLevelTag;
-	static const string _CompressionLevelTag;
-	static const string _VariableNameTag;
-	static const string _VariableNamesTag;
 	static const string _VisualizerNumTag;
 	static const string _VariablesTag;
-
-	static const string _vizNumAttr;
-	static const string _localAttr;
-	static const string _numVariablesAttr;
-	static const string _variableTag;
-	static const string _leftEditBoundAttr;
-	static const string _rightEditBoundAttr;
-	static const string _variableNumAttr;
-	static const string _variableNameAttr;
-	static const string _opacityScaleAttr;
-	static const string _numTransformsAttr;
-	static const string _useTimestepSampleListAttr;
-	static const string _timestepSampleListAttr;
-
-
-	void setStretchedBox(const float[3], const float[3], int);
-	void getStretchedBox(float boxmin[3], float boxmax[3], int timestep);
-	//Determine the box extents in the unit cube.
-	void calcStretchedBoxExtentsInCube(float extents[6], int timestep);
-	void localToStretchedCoordinatesInCube(const float localCoords[3], float cubeCoords[3]);
-	void calcStretchedBoxExtents(float* extents, int timestep);
-	void calcBoxExtents(float* extents, int timestep);
-	//Calculate the box in local coords, using any theta or phi
-	virtual void calcLocalBoxCorners(float corners[8][3], float extraThickness, int timestep, float rotation = 0.f, int axis = -1);
-	
-	// Construct transformation as a mapping of [-1,1]^3 into volume array
-	// coordinates at current resolution
-	void buildLocalCoordTransform(float transformMatrix[12], float extraThickness, int timestep, float rotation = 0.f, int axis = -1);
-
-
-	//Helper function for testing distances,
-	//testing whether a point is inside or outside of cube 
-	//Return is positive if point is outside.  Arguments are outward pointing
-	//unit normal vectors and associated points (corners) of probe faces.
-	static float distanceToCube(const float point[3],const float faceNormals[6][3], const float faceCorners[6][3]);
-	//Modifiction of above that provides x,y,z components of distances outside, when point is outside.
-	//This is useful if the box is highly nonuniform in x,y,z
-	static float distancesToCube(const float point[3],const float faceNormals[6][3], const float faceCorners[6][3], float maxDist[3]);
-
-	
-    //
-    // Parse command line arguements 
-    //
-    static bool searchCmdLine(const char *flag);
-    static const char* parseCmdLine(const char *flag);
-
-	//Determine a new value of theta and phi when the probe is rotated around either the
-	//x-, y-, or z- axis.  axis is 0,1,or 1. rotation is in degrees.
-	void convertThetaPhiPsi(float *newTheta, float* newPhi, float* newPsi, int axis, float rotation);
-	static int getGrids(size_t ts, const vector<string>& varnames, double extents[6], int* refLevel, int* lod, RegularGrid** grids);
-	
 	
 protected:
 	bool local;
@@ -506,9 +343,6 @@ protected:
 	//Keep track of which window number corresp to this.  -1 for global or default parameters.
 	//
 	int vizNum;
-	double savedBoxLocalExts[6];
-	int savedBoxVoxExts[6];
-	int savedRefLevel;
 	
 	//Params instances are vectors of Params*, one per instance, indexed by paramsBaseType, winNum
 	static map<pair<int,int>,vector<Params*> > paramsInstances;
@@ -567,25 +401,6 @@ public:
 	//!
 	virtual void SetCompressionLevel(int val)=0;
 
-	//! virtual method used only by params that support selecting points in 3D space, 
-	//! and displaying those points with a 3D cursor.
-	//! Default implementation returns null.
-	//! Selected point is in local coordinates
-	//! \retval const float* pointer to 3D point.
-	virtual const float* getSelectedPointLocal() {
-		return 0;
-	}
-
-	//! Static method specifies the distance from camera to an axis-aligned box.
-	// \param[in] ViewpointParams* vpp Current applicable ViewpointParams instance
-	// \param[in] const float extents[6] Box extents in world coordinates.
-	// \retval float distance from camera to box
-	static float getCameraDistance(ViewpointParams* vpp, const double exts[6]);
-
-	// Pure virtual method indicates whether or not the geometry is opaque.
-	// \retval true if it is opaque.
-	virtual bool IsOpaque()=0;
-
 	//! Bypass flag is used to indicate a renderer should
 	//! not render until its state is changed.
 	//! Should be called when a rendering fails in a way that might repeat.
@@ -615,43 +430,13 @@ public:
 	//! \retval bool value of flag
 	bool doAlwaysBypass(int ts) {return ((ts < bypassFlags.size()) && bypassFlags[ts]>1);}
 
-	
-	//! Indicate that this class supports use of the VAPOR MapperFunction
-	//! Default is false.  Currently needed to use colorbars.
-	//! \retval bool true if this RenderParams can have a MapperFunction
-	virtual bool UsesMapperFunction() {return false;}
 
 #ifndef DOXYGEN_SKIP_THIS
 	//Following methods are deprecated, used by some built-in renderparams classes
 	
-	//! virtual method specifies distance from camera to object.
-	//! Default implementation finds distance to the applicable region box.
-	//! Override this if the box associated with the Params is not the
-	//! RegionParams box.
-	// \param[in] vpp Current applicable ViewpointParams instance
-	// \param[in] rp  Current applicable RegionParams instance
-	// \param[in] timestep Current applicable time step
-	// \retval float distance from camera
-	virtual float getCameraDistance(ViewpointParams* vpp, RegionParams* rp, int timestep);
 	
-	//Deprecated constructor used by some built-in classes
-	RenderParams(int winNum, const string& name) : Params(winNum, name) {
-		
-		local = true;
-		
-		previousClass = 0;
-		minColorEditBounds = 0;
-		maxColorEditBounds = 0;
-		minOpacEditBounds = 0;
-		maxOpacEditBounds = 0;
-		
-	}
+	
 	virtual ~RenderParams(){
-		if (minColorEditBounds) delete [] minColorEditBounds;
-		if (maxColorEditBounds) delete [] maxColorEditBounds;
-		if (minOpacEditBounds) delete [] minOpacEditBounds;
-		if (maxOpacEditBounds) delete [] maxOpacEditBounds;
-
 	}
 	
 	virtual Params* deepCopy(ParamNode* nd = 0);
@@ -660,75 +445,16 @@ public:
 	//following does nothing for renderParams
 	virtual void setLocal(bool ){ assert(0);}
 
-	virtual int getSessionVarNum(){assert(0); return -1;}
-	virtual float GetHistoStretch() { assert(0); return 1.f;}
-	virtual bool getEditMode() {assert(0); return true;}
-	virtual const float* getCurrentDatarange(){assert(0); return(0);}
-	virtual void hookupTF(TransferFunction* , int ) {assert(0);}
-
-	
-	//The following may be redefined by some renderer params.  Parent version should never be invoked
-	virtual void setMinColorMapBound(float) {assert(0);}
-	virtual void setMaxColorMapBound(float){assert(0);}
-	virtual void setMinOpacMapBound(float){assert(0);}
-	virtual void setMaxOpacMapBound(float){assert(0);}
-
-
-	float getMinColorMapBound();	
-	float getMaxColorMapBound(); 
-	
-	virtual void setMinColorEditBound(float val, int var) {
-		minColorEditBounds[var] = val;
-	}
-	virtual void setMaxColorEditBound(float val, int var) {
-		maxColorEditBounds[var] = val;
-	}
-	virtual float getMinColorEditBound(int var) {
-		return minColorEditBounds[var];
-	}
-	virtual float getMaxColorEditBound(int var) {
-		return maxColorEditBounds[var];
-	}
-	//And opacity:
-	
-	virtual float getMinOpacMapBound();	
-	virtual float getMaxOpacMapBound(); 
-	
-
-	virtual void setMinOpacEditBound(float val, int var) {
-		minOpacEditBounds[var] = val;
-	}
-	virtual void setMaxOpacEditBound(float val, int var) {
-		maxOpacEditBounds[var] = val;
-	}
-	virtual float getMinOpacEditBound(int var) {
-		return minOpacEditBounds[var];
-	}
-	virtual float getMaxOpacEditBound(int var) {
-		return maxOpacEditBounds[var];
-	}
-
-	virtual MapperFunction* GetMapperFunc() {return 0;}
-	
-	void setStopFlag(bool val = true) {stopFlag = val;}
-	bool getStopFlag() {return stopFlag;}
-	int getBypassValue(int i) {return bypassFlags[i];} //only used for debugging
 	
 	void initializeBypassFlags();
 	
-	
-
 protected:
 	
 	// The enabled flag is only used by renderer params
 	//
 	bool enabled;
 	bool stopFlag;  //Indicates if user asked to stop (only with flow calc now)
-	//Needed for renderer params:
-	float* minColorEditBounds;
-	float* maxColorEditBounds;
-	float* minOpacEditBounds;
-	float* maxOpacEditBounds;
+	
 
 	vector<int> bypassFlags;
 #endif //DOXYGEN_SKIP_THIS
@@ -749,8 +475,6 @@ class DummyParams : public Params {
 	
 	virtual bool reinit(bool){return false;}
 	
-	virtual bool IsOpaque() {return true;}
-	
 	virtual bool usingVariable(const std::string& ){
 		return false;
 	}
@@ -760,24 +484,7 @@ class DummyParams : public Params {
 
 };
 
-class PARAMS_API Point4{
-public:
-    Point4() {point[0]=point[1]=point[2]=point[3]=0.f;}
-    Point4(const float data[4]){setVal(data);}
-    void setVal(const float sourceData[4]){
-        for (int i = 0; i< 4; i++) point[i] = sourceData[i];
-    }
-    void set3Val(const float sourceData[3]){
-        for (int i = 0; i< 3; i++) point[i] = sourceData[i];
-    }
-    void set1Val(int index, float sourceData){
-        point[index] = sourceData;
-    }
-    float getVal(int i){return point[i];}
-    void copy3Vals(float* dest) {dest[0]=point[0];dest[1]=point[1];dest[2]=point[2];}
-protected:
-    float point[4];
-};
+
 #endif //DOXYGEN_SKIP_THIS
 }; //End namespace VAPoR
 #endif //PARAMS_H 

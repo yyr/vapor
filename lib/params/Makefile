@@ -2,23 +2,15 @@ TOP = ../..
 
 include ${TOP}/make/config/prebase.mk
 
-QT = 1
-UI_DIR = ui
 LIBRARY = params
 FILES = \
-	datastatus dvrparams flowparams glutil \
-	histo mapperfunction params probeparams regionparams \
-	tfinterpolator transferfunction viewpoint twoDparams \
-	twoDimageparams twoDdataparams \
+	datastatus glutil \
+	params regionparams \
+	viewpoint  \
 	animationparams	viewpointparams ParamsBase Box \
-	arrowparams animate\
-	Colormap OpacityMap ParamNode ParamsIso ColorMapBase \
-	MapperFunctionBase OpacityMapBase TransferFunctionLite \
-	GeoTile GeoTileEquirectangular GeoTileMercator \
-	pythonpipeline ModelParams ModelScene Transform3d
-
-HEADER_FILES = ColorMapBase MapperFunctionBase OpacityMapBase \
-	TransferFunctionLite tfinterpolator ParamsBase ParamNode
+	ParamNode
+	
+HEADER_FILES = ParamsBase ParamNode
 	
 ifeq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += /D"PARAMS_EXPORTS"
