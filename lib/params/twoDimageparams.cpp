@@ -46,7 +46,7 @@
 
 #include <vapor/DataMgr.h>
 #include <vapor/errorcodes.h>
-#include <vapor/WRF.h>
+#include <vapor/UDUnits.h>
 #include "sys/stat.h"
 #include "GeoTileEquirectangular.h"
 //tiff stuff:
@@ -926,32 +926,29 @@ void TwoDImageParams::setupImageNums(TIFF* tif){
 	
 	vector <TIME64_T> tiffTimes;
 	if (timesOK) { //build a list of the times in the tiff
+		UDUnits udunits;
+		udunits.Initialize();
 		do {
 			dircount++;
 			rc = TIFFGetField(tif,TIFFTAG_DATETIME,&timePtr);
 			if (!rc) {
 				timesOK = false;
 				break;
-			} else {
-				//determine seconds from the time stamp in the tiff
-				string tifftime(timePtr);
-				//convert tifftags to use WRF style date/time strings
-				//For some reason, windows std::string.replace() doesn't let you modify 
-				//the string in-place.
-				string mod1 = tifftime.replace(4,1,"-");
-				string mod2 = mod1.replace(7,1,"-");
-				tifftime = mod2.replace(10,1,"_");
-				
-				TIME64_T seconds = 0;
-				rc = WRF::WRFTimeStrToEpoch(tifftime, &seconds);
-				if (rc) {
-					timesOK = false;
-					break;
-				}
-				else {
-					tiffTimes.push_back(seconds);
-				}
-			}
+			} 
+
+			// determine seconds from the time stamp in the tiff
+			// convert tifftags to use WRF style date/time strings
+			//
+			const char *format = "%4d-%2d-%2d_%2d:%2d:%2d";
+			int year, mon, mday, hour, min, sec;
+			rc = sscanf(timePtr, format, &year, &mon, &mday, &hour, &min, &sec);
+            if (rc != 6) {
+				timesOK = false;
+				break;
+            }
+            double seconds = udunits.EncodeTime(year, mon, mday, hour, min,sec);
+			tiffTimes.push_back(seconds);
+
 		} while (TIFFReadDirectory(tif));
 	}
 	if (timesOK) {
