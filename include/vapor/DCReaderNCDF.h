@@ -113,6 +113,7 @@ private:
  std::vector <string> _vars2dXZ;
  std::vector <string> _vars2dYZ;
  std::vector <string> _vars2dExcluded;
+ int _ovr_fd;
 
  NetCDFCollection *_ncdfC;
 
@@ -120,7 +121,7 @@ private:
  // Get dimensions for variable, varname, flipping the order to be consistent
  // with the VDC library
  //
- vector <size_t> _GetDims(string varname) const;
+ vector <size_t> _GetSpatialDims(string varname) const;
 
   
 

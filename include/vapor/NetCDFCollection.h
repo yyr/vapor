@@ -134,10 +134,17 @@ public:
  //! Return a boolean indicating whether a variable exists in the 
  //! data collection.
  //!
- //! This method returns true iff the variable named by \p varname 
- //! is exists in the data set
+ //! This method returns true if the variable named by \p varname is
+ //! contained in the data collection. The variable may be present
+ //! inside of a netCDF file, or may be a variable derived the the
+ //! NetCDFCFCollection class. In the latter case all native variables
+ //! used to construct \p varname must also be present.
  //!
  //! \param[in] varname A netCDF variable name
+ //!
+ //! \retval bool Returns true if \p varname is contained any one of the
+ //! netCDF files used to instantiate the class, or if \p varname is a
+ //! derived variable.
  //!
  //! \sa GetTimes(), GetVariables()
  //
@@ -146,16 +153,38 @@ public:
  //! Return a boolean indicating whether a variable is defined for a
  //! particular time step.
  //!
- //! This method returns true iff the variable named by \p varname 
- //! is available at the time step \p ts
+ //! This method returns true if the variable named by \p varname is
+ //! contained in the data collection and defined for time step \p ts.
+ //! The variable may be present
+ //! inside of a netCDF file, or may be a variable derived the the
+ //! NetCDFCFCollection class. In the latter case all native variables
+ //! used to construct \p varname must also be present.
  //!
  //! \param[in] ts A valid data set time step in the range from zero to
  //! GetNumTimeSteps() - 1.
  //! \param[in] varname A netCDF variable name
  //!
+ //! \retval bool Returns true if \p varname is contained any one of the
+ //! netCDF files used to instantiate the class, or if \p varname is a
+ //! derived variable.
+ //!
  //! \sa GetTimes(), GetNumTimeSteps(), GetVariables()
  //
  virtual bool VariableExists(size_t ts, string varname) const;
+
+ //! Returns true if the named variable is a derived variable.
+ //!
+ //! This method returns true if the variable named by \p varname is
+ //! derived from other variables in the data collection.
+ //!
+ //! \param[in] varname A variable name
+ //!
+ //! \retval bool Returns true if \p varname is a derived variable.
+ //!
+ virtual bool IsDerivedVar(string varname) const {
+	return(_derivedVarsMap.find(varname) != _derivedVarsMap.end());
+ }
+
 
 	
  //! Returns true if the specified variable has any staggered dimensions
@@ -184,32 +213,101 @@ public:
 
  //! Return a list of variables with a given rank
  //!
- //! Returns a list of variables having a spatial dimension rank 
- //! of \p ndim. If the named variable is explicitly time varying, the
+ //! Returns a list of variables having a dimension rank 
+ //! of \p ndim. If \p spatial is true only the variable's spatial
+ //! dimension rank is examined.
+ //! Thus if \p spatial is true, and the named variable is explicitly 
+ //! time varying, the
  //! time-varying dimension is not counted. For example, if a variable
  //! named 'v' is defined with 4 dimensions in the netCDF file, and the
  //! slowest varying dimension name matches a named dimension 
  //! specified in Initialize()
  //! by \p time_dimnames, then the variable 'v' would be returned by a 
- //! query with ndim==3.
+ //! query with ndim==3 and spatial==true.
  //!
- //! \param[in] ndim Rank of spatial dimensions
+ //! \param[in] ndim Rank of dimensions
+ //! \param[in] spatial Only compare spatial dimensions against \p ndim
  //
- virtual std::vector <string> GetVariableNames(int ndim) const;
+ virtual std::vector <string> GetVariableNames(int ndim, bool spatial) const;
 
- //! Return a variables spatial dimensions
+ //! Return a variable's spatial dimensions
  //! 
  //! Returns the ordered list of spatial dimensions of the named variable. 
  //! \note The order follows the netCDF convention (slowest varying
  //! dimension is the first vector element returned), not the VDC 
- //! convention
+ //! convention.
  //!
  //! \param[in] varname Name of variable
  //! \retval dims An ordered vector containing the variables spatial 
- //! dimensions.
+ //! dimensions. If \p varname is not defined a zero length vector is 
+ //! returned
  //!
- virtual std::vector <size_t>  GetDims(string varname) const;
+ virtual std::vector <size_t>  GetSpatialDims(string varname) const;
 
+ //! Return a variable's spatial dimension names
+ //! 
+ //! Returns the ordered list of spatial dimension names of the named variable. 
+ //! \note The order follows the netCDF convention (slowest varying
+ //! dimension is the first vector element returned), not the VDC 
+ //! convention.
+ //!
+ //! \param[in] varname Name of variable
+ //! \retval dimnames An ordered vector containing the variable's spatial 
+ //! dimension names. If \p varname is not defined an empty list is returned.
+ //!
+ virtual std::vector <string>  GetSpatialDimNames(string varname) const;
+
+ //! Return a variable's time dimension
+ //! 
+ //! Returns time  dimension of the named variable. 
+ //!
+ //! \param[in] varname Name of variable
+ //! \retval dim Number of time steps (time dimension)
+ //! If \p varname is invalid or \p varname is not
+ //! time varying 0 is returned.
+ //!
+ virtual size_t  GetTimeDim(string varname) const;
+
+ //! Return a variable's time dimension name
+ //! 
+ //! Returns the time dimension name of the named variable. 
+ //!
+ //! \param[in] varname Name of variable
+ //! \retval name A string containing the variable's time 
+ //! dimension name. If \p varname is invalid or \p varname is not
+ //! time varying the empty string is returned.
+ //!
+ virtual string  GetTimeDimName(string varname) const;
+
+ //! Return a variable's temporal and spatial dimensions
+ //! 
+ //! Returns the ordered list of temporal and spatial dimensions of the 
+ //! named variable. 
+ //! \note The order follows the netCDF convention (slowest varying
+ //! dimension is the first vector element returned), not the VDC 
+ //! convention.
+ //!
+ //! \param[in] varname Name of variable
+ //! \retval dims An ordered vector containing the variables temporal and 
+ //! spatial 
+ //! dimensions. If \p varname is not defined a zero length vector is 
+ //! returned
+ //!
+ virtual std::vector <size_t>  GetDims(string varname) const ;
+
+ //! Return a variable's temporal and spatial dimension names
+ //! 
+ //! Returns the ordered list of temporal and spatial dimension names of 
+ //! the named variable. 
+ //! \note The order follows the netCDF convention (slowest varying
+ //! dimension is the first vector element returned), not the VDC 
+ //! convention.
+ //!
+ //! \param[in] varname Name of variable
+ //! \retval dimnames An ordered vector containing the variable's temporal and
+ //! spatial 
+ //! dimension names. If \p varname is not defined an empty list is returned.
+ //!
  virtual std::vector <string>  GetDimNames(string varname) const;
 
  //! Return true if variable is time varying
@@ -221,15 +319,83 @@ public:
  //
  virtual bool IsTimeVarying(string varname) const;
 
+ //! Return a list of available attribute's names
+ //!
+ //! Returns a vector of all attribute names for the
+ //! variable, \p varname. If \p varname is the empty string the names
+ //! of all of the global attributes are returned. If \p varname is 
+ //! not defined an empty vector is returned.
+ //!
+ //! \param[in] varname The name of the variable to query,
+ //! or the empty string if the names of global attributes are desired.
+ //! \retval attnames A vector of returned attribute names
+ //!
+ //
+ std::vector <string> GetAttNames(string varname) const;
+
+ //! Return the netCDF external data type for an attribute
+ //!
+ //! Returns the nc_type of the named variable attribute.
+ //!
+ //! \param[in] varname The name of the variable to query,
+ //! or the empty string if the names of global attributes are desired.
+ //! \param[in] name Name of the attribute.
+ //!
+ //! \retval If an attribute named by \p name does not exist, a
+ //! negative value is returned.
+ //!
+ int GetAttType(string varname, string attname) const;
+
+ //! Return attribute values for attribute of type float
+ //!
+ //! Return the values of the named attribute converted to type float.
+ //!
+ //! \note Attributes of type int are cast to float
+ //!
+ //! \note All attributes with floating point representation of
+ //! any precision are returned by this method. Attributes that
+ //! do not have floating point internal representations can not
+ //! be returned.
+ //!
+ //! \param[in] attname Name of the attribute
+ //! \param[out] values A vector of attribute values
+ //
+ void GetAtt(string varname, string attname, std::vector <double> &values) const;
+ void GetAtt(string varname, string attname, std::vector <long> &values) const;
+ void GetAtt(string varname, string attname, string &values) const;
+
+
+
+
  //! Return the names of all the dimensions.
  //! 
  //! Returns a list of all dimension names defined by all netCDF 
- //! files in the entire collection.
+ //! files in the entire collection. The ordering of the returned list
+ //! coresponds to the ordering of the list of dimenension lengths 
+ //! returned by GetDims(). I.e. the length of the dimension with
+ //! name GetDimNames()[i] is GetDims[i].
  //!
- //! \retval dimnames An ordered (by name) vector containing all 
+ //! \retval dimnames A vector containing all 
  //! dimension names.
  //!
+ //! \sa GetDims()
+ //
  virtual std::vector <string>  GetDimNames() const {return (_dimNames); };
+
+ //! Return the lengths of all the dimensions.
+ //! 
+ //! Returns a list of all dimension lengths defined by all netCDF 
+ //! files in the entire collection. The ordering of the returned list
+ //! coresponds to the ordering of the list of dimenension names 
+ //! returned by GetDimNames(). I.e. the length of the dimension with
+ //! name GetDimNames()[i] is GetDims[i].
+ //!
+ //! \retval dimlens A vector containing all 
+ //! dimension lengths.
+ //!
+ //! \sa GetDimNames()
+ //
+ virtual std::vector <size_t>  GetDims() const {return (_dimLens); };
 
  //! Return the number of time steps in the data collection all variables
  //!
@@ -245,6 +411,23 @@ public:
  //!
  //
  virtual size_t GetNumTimeSteps() const {return (_times.size());}
+
+ //! Return the number of time available for the named variable
+ //!
+ //! Return the number of time steps present for the variable
+ //! named by \p varname.
+ //! \note Not all variables in a collection need have the same number 
+ //! of time steps
+ //!
+ //! \param[in] varname Name of variable
+ //!
+ //! \retval value The number of time steps. If \p varname is either
+ //! not defined, or is defined but not time varying, 0 is returned.
+ //!
+ //
+ virtual size_t GetNumTimeSteps(string varname) const {
+	return(NetCDFCollection::GetTimeDim(varname));
+ }
 
 
 
@@ -312,17 +495,9 @@ public:
  //! This method copies the contents of the NetCDFSimple::Variable
  //! class for the named variable into \p varinfo
  //!
- //! \param[in] ts A valid data set time step in the range from zero to
- //! GetNumTimeSteps() - 1.
  //! \param[in] varname Name of variable
  //! 
  //! \retval retval A negative int is returned on failure.
- //!
- virtual int GetVariableInfo(
-	size_t ts, string varname, NetCDFSimple::Variable &varinfo
- ) const;
-
- //! Get info for first variable at first time step
  //!
  virtual int GetVariableInfo(
 	string varname, NetCDFSimple::Variable &varinfo
@@ -347,12 +522,16 @@ public:
  //!
  //! This method prepares a netCDF variable, indicated by a
  //! variable name and time step pair, for subsequent read operations by
- //! methods of this class.  
+ //! methods of this class.  A small, non-negative integer for  use  in
+ //! subsequent  read operations is returned.
+ //! The file descriptor returned by a
+ //! successful call will be the lowest-numbered file  descriptor  not
+ //! currently open for the process, starting with zero.
  //!
  //! \param[in] ts Time step of the variable to read
  //! \param[in] varname Name of the variable to read
  //!
- //! \retval status Returns a non-negative value on success
+ //! \retval status Returns a non-negative file descriptor on success
  //!
  //! \sa Read(), ReadNative(), ReadSliceNative() ReadSlice()
  //!
@@ -381,15 +560,17 @@ public:
  //!
  //! \param[in] start Start vector with one element for each dimension 
  //! \param[in] count Count vector with one element for each dimension 
+ //! \param[in] fd A currently opened file descriptor returned by OpenRead().
  //! \retval retval A negative int is returned on failure.
  //!
  //! \sa SetStaggeredDims(), ReadNative(), NetCDFSimple::Read(),
  //! SetMissingValueAttName(), SetMissingValueAttName()
  //!
- virtual int Read(size_t start[], size_t count[], float *data);
- virtual int Read(size_t start[], size_t count[], int *data);
+ virtual int Read(size_t start[], size_t count[], float *data, int fd=0);
+ virtual int Read(size_t start[], size_t count[], int *data, int fd=0);
 
- virtual int Read(float *data);
+ virtual int Read(float *data, int fd=0);
+ virtual int Read(char *data, int fd=0);
 
  //! Read data from the currently opened variable on the native grid
  //!
@@ -401,15 +582,17 @@ public:
  //!
  //! \param[in] start Start vector with one element for each dimension 
  //! \param[in] count Count vector with one element for each dimension 
+ //! \param[in] fd A currently opened file descriptor returned by OpenRead().
  //! \retval retval A negative int is returned on failure.
  //!
  //! \sa SetStaggeredDims(), NetCDFSimple::Read()
  //!
- virtual int ReadNative(size_t start[], size_t count[], float *data);
- virtual int ReadNative(size_t start[], size_t count[], int *data);
+ virtual int ReadNative(size_t start[], size_t count[], float *data, int fd=0);
+ virtual int ReadNative(size_t start[], size_t count[], int *data, int fd=0);
+ virtual int ReadNative(size_t start[], size_t count[], char *data, int fd=0);
 
- virtual int ReadNative(float *data);
- virtual int ReadNative(int *data);
+ virtual int ReadNative(float *data, int fd=0);
+ virtual int ReadNative(int *data, int fd=0);
 
  //! Read a 2D slice from a 2D or 3D variable
  //!
@@ -420,6 +603,7 @@ public:
  //! a subsequent slice until all slices have been processed. The total
  //! number of slices is the value of the slowest varying dimension.
  //!
+ //! \param[in] fd A currently opened file descriptor returned by OpenRead().
  //! \param[out] data The possibly resampled 2D data slice. It is the 
  //! caller's responsibility to ensure that \p data points to sufficient
  //! space.
@@ -430,7 +614,7 @@ public:
  //! \sa OpenRead(), Read(), SetStaggeredDims(),
  //! SetMissingValueAttName(), SetMissingValueAttName()
  //
- virtual int ReadSlice(float *data);
+ virtual int ReadSlice(float *data, int fd=0);
 
  //! Read a 2D slice from a 2D or 3D variable on the native grid
  //!
@@ -438,6 +622,7 @@ public:
  //! if the currently opened variable is staggered, the variable will
  //! not be resampled to a non-staggered grid.
  //!
+ //! \param[in] fd A currently opened file descriptor returned by OpenRead().
  //! \param[out] data The possibly resampled 2D data slice. It is the 
  //! caller's responsibility to ensure that \p data points to sufficient
  //! space.
@@ -447,29 +632,35 @@ public:
  //!
  //! \sa OpenRead(), Read(), SetStaggeredDims()
  //
- virtual int ReadSliceNative(float *data);
+ virtual int ReadSliceNative(float *data, int fd=0);
 
- //! Enable reading in reverse order
+ //! Set the variable slice position indicator
  //!
- //! This method enables ReadSlice() and ReadNativeSlice to read in
- //! reverse order (last slice first). 
- //! 
- //! \note Results are undefined if this method is called between
- //! OpenRead and Close();
+ //! This method changes the position of the slice indicator
+ //! for an open variable. Subsequent reads with ReadSlice() or 
+ //! ReadSliceNative() will position the slice offset based on
+ //! \p offset. If \p whence is 0 then \p offset is added to 
+ //! the first variable slice. If \p whence is one then \p offset 
+ //! is added to the current slice position. If \p whence is 2
+ //! then \p offset is added to the last slice. If the resulting slice 
+ //! position, after adding \p offset, lies outside of the variable the
+ //! offset will be mapped to the closest valid value (i.e. the first or 
+ //! last slice).
  //!
- //! \param[in] on A boolean indicating wether reverse reading should
- //! be enabled. The default is false.
- //!
- //! \sa ReadSlice(), ReadSliceNative()
- //!
- void EnableLastFirstRead(bool on) {_reverseRead = on;};
-
+ //! \param[in] offset integer slice offset
+ //! \param[in] whence one of 0, 1, 2
+ //! \param[in] fd A currently opened file descriptor returned by OpenRead().
+ //! \retval A negative int is returned if \p fd is not valid (an open
+ //! file descriptor) or if \p whence is not one of 0, 1, or 2.
+ //
+ virtual int SeekSlice(int offset, int whence, int fd=0);
 
  //! Close the currently opened variable
  //!
+ //! \param[in] fd A currently opened file descriptor returned by OpenRead().
  //! \sa OpenRead()
  //
- virtual int Close();
+ virtual int Close(int fd=0);
 
  //! Identify staggered dimensions
  //!
@@ -514,22 +705,26 @@ public:
  public:
   TimeVaryingVar();
   int Insert(
+	const NetCDFSimple *netcdf,
 	const NetCDFSimple::Variable &variable, string file, 
 	const std::vector <string> &time_dimnames, 
 	const std::map <string, std::vector <double> > &timesmap,
 	int file_org
   );
-  std::vector <size_t> GetSpatialDims() const {return(_dims); };
-  std::vector <string> GetSpatialDimNames() const {return(_dim_names); };
+  std::vector <size_t> GetSpatialDims() const {return(_spatial_dims); };
+  std::vector <string> GetSpatialDimNames() const {return(_spatial_dim_names); };
   string GetName() const {return(_name); };
 
-  size_t GetNumTimeSteps() const {return(_tvmaps.size()); };
+  size_t GetNumTimeSteps() const {return(_time_varying ? _tvmaps.size() : 0); };
+  string GetTimeDimName() const {return (_time_name); };
   int GetTime(size_t ts, double &time) const; 
   std::vector <double> GetTimes() const; 
   int GetTimeStep(double time, size_t &ts) const;
   size_t GetLocalTimeStep(size_t ts) const; 
   int GetFile(size_t ts, string &file) const;
-  int GetVariableInfo(size_t ts, NetCDFSimple::Variable &variable) const;
+  void GetVariableInfo(NetCDFSimple::Variable &variable) const {
+	variable = _variable;
+  }
   bool GetTimeVarying() const {return (_time_varying); };
   bool GetMissingValue(string attname, double &mv) const;
 
@@ -538,16 +733,16 @@ public:
 
   typedef struct {
 	int _fileidx;		// Index into _files
-	int _varidx;		// Index into _variables
     double _time;		// user time for this time step
 	size_t _local_ts;	// time step offset within file
   } tvmap_t;
  private:
-  std::vector <NetCDFSimple::Variable> _variables;
+  NetCDFSimple::Variable _variable;
   std::vector <string> _files;
   std::vector <tvmap_t> _tvmaps;
-  std::vector <size_t> _dims;	// **spatial** dimensions
-  std::vector <string> _dim_names;
+  std::vector <size_t> _spatial_dims;	// **spatial** dimensions
+  std::vector <string> _spatial_dim_names;
+  string _time_name;	// name of time dimension
   string _name;			// variable name
   bool _time_varying;	// true if variable's slowest varying dimension
 						// is a time dimension.
@@ -556,32 +751,86 @@ public:
     NetCDFCollection::TimeVaryingVar::tvmap_t b);
 
  };
+
+ class DerivedVar {
+ public:
+  DerivedVar(
+	NetCDFCollection *ncdfc
+  ) {
+	_ncdfc = ncdfc;
+  };
+  virtual ~DerivedVar() {};
+  virtual int Open(size_t ts) = 0;
+  virtual int ReadSlice(float *slice, int fd) = 0;
+  virtual int Read(float *buf, int fd) = 0;
+  virtual int SeekSlice(int offset, int whence, int fd) = 0;
+  virtual int Close(int fd) { return(0); };
+  virtual bool TimeVarying() const = 0;
+  virtual std::vector <size_t>  GetSpatialDims() const = 0;
+  virtual std::vector <string>  GetSpatialDimNames() const = 0;
+  virtual size_t  GetTimeDim() const = 0;
+  virtual string  GetTimeDimName() const = 0;
+  virtual bool GetMissingValue(double &mv) const = 0;
+  virtual size_t  GetNumTimeSteps() const {return(GetTimeDim());}
+ protected:
+  NetCDFCollection *_ncdfc;
+ };
+
+ void InstallDerivedVar(string varname, DerivedVar *derivedVar) {
+	_derivedVarsMap[varname] = derivedVar;
+ };
+
+ void RemoveDerivedVar(string varname) {
+	std::map <string,DerivedVar*>::iterator itr = _derivedVarsMap.find(varname);
+	if (itr != _derivedVarsMap.end()) {
+		_derivedVarsMap.erase(varname);
+	}
+ };
+
+protected:
+
+ bool _GetVariableInfo(
+    string varname, NetCDFSimple::Variable &variable
+ ) const;
+
 private:
 
  std::map <string, TimeVaryingVar > _variableList;
- NetCDFSimple *_ncdfptr;
  std::map <string, NetCDFSimple *> _ncdfmap;
  std::vector <string> _staggeredDims;
  std::vector <string> _dimNames; // Names of all dimensions
+ std::vector <size_t> _dimLens; // Names of all dimensions
  string _missingValAttName;
  std::map <string, vector <double> > _timesMap; // map variable to time
  std::vector <double> _times;	// all valid time coordinates
  std::vector <string> _failedVars;	// Varibles that could not be added
- bool _reverseRead;
+ std::map <string, DerivedVar *> _derivedVarsMap;
+ DerivedVar * _derivedVar; // if current opened variable is derived this is it
 
+ // 
+ // file handle for an open variable
+ //
+ class fileHandle {
+ public:
+  fileHandle();
+  DerivedVar *_derived_var;
+  NetCDFSimple *_ncdfptr;
+  int _fd;				// NetCDFSimple open file descriptor
+  size_t _local_ts;
+  int _slice;
+  bool _first_slice;
+  unsigned char *_slicebuf;
+  size_t _slicebufsz;
+  unsigned char *_linebuf;
+   size_t _linebufsz;
+  TimeVaryingVar _tvvars;
+  bool _has_missing;
+  double _missing_value;
+ };
  //
  // Open file data
  //
- size_t _ovr_local_ts;
- int _ovr_slice;
- unsigned char *_ovr_slicebuf;
- size_t _ovr_slicebufsz;
- unsigned char *_ovr_linebuf;
- size_t _ovr_linebufsz;
- TimeVaryingVar _ovr_tvvars;
- bool _ovr_has_missing;
- double _ovr_missing_value;
- bool _ovr_open;	// open for reading?
+ std::map<int, NetCDFCollection::fileHandle> _ovr_table;
 
  int _InitializeTimesMap(
     const std::vector <string> &files, 

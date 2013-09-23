@@ -53,7 +53,7 @@ public:
  virtual std::vector <double> GetExtents(size_t ts = 0) const;
 
  long GetNumTimeSteps() const {
-	return(_ncdfc->GetNumTimeSteps());
+	return((long) _ncdfc->GetNumTimeSteps());
  }
 
  virtual string GetMapProjection() const {
@@ -163,6 +163,7 @@ private:
  std::vector <string> _vertCVs;	// all valid vertical coordinate variables
  string _ovr_varname;
  size_t _ovr_slice;
+ int _ovr_fd;
  float _defaultMV;
 
  class latLonBuf {
@@ -185,10 +186,10 @@ private:
 	WeightTable * wt, float *_angleRADBuf, float *_latDEGBuf
  ) const;
 
- std::vector <size_t> _GetDims(
+ std::vector <size_t> _GetSpatialDims(
     NetCDFCFCollection *ncdfc, string varname
  ) const;
- std::vector <string> _GetDimNames(
+ std::vector <string> _GetSpatialDimNames(
     NetCDFCFCollection *ncdfc, string varname
  ) const;
 

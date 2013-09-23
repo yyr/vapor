@@ -9,6 +9,8 @@
 #include <vector>
 #include <algorithm>
 #include <vapor/Metadata.h>
+#include <vapor/MyBase.h>
+#include <vapor/common.h>
 
 namespace VAPoR {
 

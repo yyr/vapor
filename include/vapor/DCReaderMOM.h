@@ -161,7 +161,10 @@ private:
  WeightTable *_ovr_weight_tbl;
  string _ovr_varname;
  size_t _ovr_slice;
+ size_t _ovr_nz;
+ int _ovr_fd;
  float _defaultMV;
+ bool _reverseRead;
 
  class latLonBuf {
  public:
@@ -187,7 +190,7 @@ private:
 	float *_angleRADBuf, float *_latDEGBuf
  ) const;
 
- std::vector <size_t> _GetDims(
+ std::vector <size_t> _GetSpatialDims(
     NetCDFCFCollection *ncdfc, string varname
  ) const;
 
