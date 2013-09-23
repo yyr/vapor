@@ -36,6 +36,7 @@ DCReaderROMS::DCReaderROMS(const vector <string> &files) {
 	_lonCVs.clear();
 	_ovr_varname.clear();
 	_ovr_slice = 0;
+	_ovr_fd = -1;
 	_defaultMV = 1e37;
 
 	NetCDFCFCollection *ncdfc = new NetCDFCFCollection();
@@ -136,18 +137,18 @@ vector <double> DCReaderROMS::GetExtents(size_t ) const {
 
 
 
-vector <size_t> DCReaderROMS::_GetDims(
+vector <size_t> DCReaderROMS::_GetSpatialDims(
 	NetCDFCFCollection *ncdfc, string varname
 ) const {
-	vector <size_t> dims = ncdfc->GetDims(varname);
+	vector <size_t> dims = ncdfc->GetSpatialDims(varname);
 	reverse(dims.begin(), dims.end());
 	return(dims);
 }
 
-vector <string> DCReaderROMS::_GetDimNames(
+vector <string> DCReaderROMS::_GetSpatialDimNames(
 	NetCDFCFCollection *ncdfc, string varname
 ) const {
-	vector <string> v = ncdfc->GetDimNames(varname);
+	vector <string> v = ncdfc->GetSpatialDimNames(varname);
 	reverse(v.begin(), v.end());
 	return(v);
 }
@@ -179,11 +180,11 @@ int DCReaderROMS::_InitVerticalCoordinates(
 		return(-1);
 	}
 
-	vector <size_t> dims = _GetDims(ncdfc, "ELEVATION");
+	vector <size_t> dims = _GetSpatialDims(ncdfc, "ELEVATION");
 	float *slice = new float[dims[0]*dims[1]];
 
-	rc = ncdfc->OpenRead(0,"ELEVATION");
-	if (rc<0) {
+	int fd = ncdfc->OpenRead(0,"ELEVATION");
+	if (fd<0) {
 		SetErrMsg("Can't compute ELEVATION variable");
 		return(-1);
 	}
@@ -209,6 +210,8 @@ int DCReaderROMS::_InitVerticalCoordinates(
 			return(-1);
 		}
 	}
+	ncdfc->Close(fd);
+
 	float max = slice[0];
 	for (size_t i = 0; i < dims[0]*dims[1]; i++) {
 		if (slice[i]>max) max = slice[i];
@@ -237,7 +240,7 @@ void DCReaderROMS::_InitDimensions(
 	//
 	vector <string> newvars;
 	for (int i=0; i<vars3d.size(); i++) {
-        vector <size_t> dims1 = _GetDims(ncdfc, vars3d[i]);
+        vector <size_t> dims1 = _GetSpatialDims(ncdfc, vars3d[i]);
 		if (! dims.size()) {
 			dims = dims1;
 		}
@@ -254,7 +257,7 @@ void DCReaderROMS::_InitDimensions(
 	//
 	newvars.clear();
 	for (int i=0; i<vars2dxy.size(); i++) {
-        vector <size_t> dims1 = _GetDims(ncdfc, vars2dxy[i]);
+        vector <size_t> dims1 = _GetSpatialDims(ncdfc, vars2dxy[i]);
 		if (! dims.size()) {
 			dims = dims1;
 			dims.push_back(1);
@@ -335,10 +338,10 @@ bool DCReaderROMS::GetMissingValue(string varname, float &value) const {
 		//
 		bool lat_lon_grid = true;
 		for (int i=0; i<_latCVs.size(); i++) {
-			if (_GetDims(_ncdfc, _latCVs[i]).size() != 1) lat_lon_grid = false;
+			if (_GetSpatialDims(_ncdfc, _latCVs[i]).size() != 1) lat_lon_grid = false;
 		}
 		for (int i=0; i<_lonCVs.size(); i++) {
-			if (_GetDims(_ncdfc, _lonCVs[i]).size() != 1) lat_lon_grid = false;
+			if (_GetSpatialDims(_ncdfc, _lonCVs[i]).size() != 1) lat_lon_grid = false;
 		}
 		if (lat_lon_grid) {
 			has_missing = false;
@@ -362,6 +365,8 @@ int DCReaderROMS::OpenVariableRead(
     size_t timestep, string varname, int, int 
 ) {
 
+	DCReaderROMS::CloseVariable();
+
 	_ovr_varname.clear();
 	_ovr_slice = 0;
 
@@ -372,7 +377,8 @@ int DCReaderROMS::OpenVariableRead(
 
 	_ovr_varname = varname;
 
-	return(_ncdfc->OpenRead(timestep, varname));
+	_ovr_fd = _ncdfc->OpenRead(timestep, varname);
+	return(_ovr_fd);
 }
 
 int DCReaderROMS::ReadSlice(float *slice) {
@@ -397,13 +403,13 @@ int DCReaderROMS::ReadSlice(float *slice) {
 		return(1);
 	}
 
-	if (_GetDims(_ncdfc, _ovr_varname).size() < 2) {
+	if (_GetSpatialDims(_ncdfc, _ovr_varname).size() < 2) {
 		SetErrMsg("Invalid operation");
 		return(-1);
 	}
 
 
-	int rc = _ncdfc->ReadSlice(_sliceBuffer);
+	int rc = _ncdfc->ReadSlice(_sliceBuffer, _ovr_fd);
 	if (rc<1) return(rc);
 
 	float srcMV, dstMV;
@@ -441,13 +447,17 @@ int DCReaderROMS::Read(float *data) {
 }
 
 int DCReaderROMS::CloseVariable() {
+	if (_ovr_fd < 0) return(0);
+
 	bool derived = IsVariableDerived(_ovr_varname);
 	_ovr_varname.clear();
 	_ovr_slice = 0;
 
 	if (derived) return(0);
 
-	return(_ncdfc->Close());
+	int rc = _ncdfc->Close(_ovr_fd);
+	_ovr_fd = -1;
+	return(rc);
 }
 
 
@@ -455,25 +465,26 @@ float *DCReaderROMS::_get_2d_var(
 	NetCDFCFCollection *ncdfc, size_t ts, string name
 ) const {
 
-	vector <size_t> dims = _GetDims(ncdfc, name);
+	vector <size_t> dims = _GetSpatialDims(ncdfc, name);
 	if (dims.size() != 2) return (NULL);
 
 	float *buf = new float[dims[0]*dims[1]];
 
-	if (ncdfc->OpenRead(0, name) < 0) { 
+	int fd;
+	if ((fd = ncdfc->OpenRead(0, name)) < 0) { 
 		SetErrMsg(
 			"Missing required grid variable \"%s\n", name.c_str()
 		);
 		delete [] buf;
 		return(NULL);
 	}
-	if (ncdfc->Read(buf) < 0) {
+	if (ncdfc->Read(buf, fd) < 0) {
 		SetErrMsg(
 			"Missing required grid variable \"%s\n", name.c_str()
 		);
 		delete [] buf;
 	}
-	ncdfc->Close();
+	ncdfc->Close(fd);
 	return(buf);
 }
 
@@ -481,25 +492,26 @@ float *DCReaderROMS::_get_1d_var(
 	NetCDFCFCollection *ncdfc, size_t ts, string name
 ) const {
 
-	vector <size_t> dims = _GetDims(ncdfc, name);
+	vector <size_t> dims = _GetSpatialDims(ncdfc, name);
 	if (dims.size() != 1) return (NULL);
 
 	float *buf = new float[dims[0]];
 
-	if (ncdfc->OpenRead(0, name) < 0) { 
+	int fd;
+	if ((fd = ncdfc->OpenRead(0, name)) < 0) { 
 		SetErrMsg(
 			"Missing required grid variable \"%s\n", name.c_str()
 		);
 		delete [] buf;
 		return(NULL);
 	}
-	if (ncdfc->Read(buf) < 0) {
+	if (ncdfc->Read(buf, fd) < 0) {
 		SetErrMsg(
 			"Missing required grid variable \"%s\n", name.c_str()
 		);
 		delete [] buf;
 	}
-	ncdfc->Close();
+	ncdfc->Close(fd);
 	return(buf);
 }
 
@@ -551,10 +563,10 @@ int DCReaderROMS::_InitCoordVars(NetCDFCFCollection *ncdfc)
 	// Find the dimensions of the "unstaggered" base grid
 	//
 	vector <size_t> udims;	// unstaggered dims 
-	vector <string> vars = ncdfc->GetDataVariableNames(3);
+	vector <string> vars = ncdfc->GetDataVariableNames(3, true);
 	for (int i=0; i<vars.size(); i++) {
 
-		vector <size_t> dims = _GetDims(ncdfc, vars[i]);
+		vector <size_t> dims = _GetSpatialDims(ncdfc, vars[i]);
 		assert(dims.size() == 3);
 		if (udims.size() == 0) udims = dims;
 
@@ -570,19 +582,19 @@ int DCReaderROMS::_InitCoordVars(NetCDFCFCollection *ncdfc)
 	}
 
 	vector <string> sdimnames;	// staggered dim names
-	vars = ncdfc->GetDataVariableNames(3);
+	vars = ncdfc->GetDataVariableNames(3, true);
 	for (int i=0; i<vars.size(); i++) {
-		vector <size_t> dims = _GetDims(ncdfc, vars[i]);
-		vector <string> dimnames = _GetDimNames(ncdfc, vars[i]);
+		vector <size_t> dims = _GetSpatialDims(ncdfc, vars[i]);
+		vector <string> dimnames = _GetSpatialDimNames(ncdfc, vars[i]);
 		if (dims[0] == udims[0]+1) sdimnames.push_back(dimnames[0]);
 		if (dims[1] == udims[1]+1) sdimnames.push_back(dimnames[1]);
 		if (dims[2] == udims[2]+1) sdimnames.push_back(dimnames[2]);
 	}
 
-	vars = ncdfc->GetDataVariableNames(2);
+	vars = ncdfc->GetDataVariableNames(2, true);
 	for (int i=0; i<vars.size(); i++) {
-		vector <size_t> dims = _GetDims(ncdfc, vars[i]);
-		vector <string> dimnames = _GetDimNames(ncdfc, vars[i]);
+		vector <size_t> dims = _GetSpatialDims(ncdfc, vars[i]);
+		vector <string> dimnames = _GetSpatialDimNames(ncdfc, vars[i]);
 		if (dims[0] == udims[0]+1) sdimnames.push_back(dimnames[0]);
 		if (dims[1] == udims[1]+1) sdimnames.push_back(dimnames[1]);
 	}
@@ -609,7 +621,7 @@ int DCReaderROMS::_InitCoordVars(NetCDFCFCollection *ncdfc)
 	// for each data variable or we consider the data variable invalid
 	// and ignore it
 	//
-	vars = ncdfc->GetDataVariableNames(2);
+	vars = ncdfc->GetDataVariableNames(2, true);
 	for (int i=0; i<vars.size(); i++) {
 
 		bool excluded = false;
@@ -633,8 +645,8 @@ int DCReaderROMS::_InitCoordVars(NetCDFCFCollection *ncdfc)
 		//
 		if (! excluded && ncdfc->IsTimeVarying(latcv)) excluded = true;
 		if (! excluded && ncdfc->IsTimeVarying(loncv)) excluded = true;
-		if (! excluded && _GetDims(ncdfc, latcv).size() > 2) excluded = true;
-		if (! excluded && _GetDims(ncdfc, loncv).size() > 2) excluded = true;
+		if (! excluded && _GetSpatialDims(ncdfc, latcv).size() > 2) excluded = true;
+		if (! excluded && _GetSpatialDims(ncdfc, loncv).size() > 2) excluded = true;
 
 		if (excluded) {
 			_vars2dExcluded.push_back(vars[i]);
@@ -652,7 +664,7 @@ int DCReaderROMS::_InitCoordVars(NetCDFCFCollection *ncdfc)
 
 	}
 
-	vars = ncdfc->GetDataVariableNames(3);
+	vars = ncdfc->GetDataVariableNames(3, true);
 	for (int i=0; i<vars.size(); i++) {
 
 		bool excluded = false;
@@ -670,7 +682,7 @@ int DCReaderROMS::_InitCoordVars(NetCDFCFCollection *ncdfc)
 		//
 		if (_timeCV.empty() && !timecv.empty()) _timeCV = timecv;
 		if (! _timeCV.empty() && ! timecv.empty() && _timeCV.compare(timecv) != 0) excluded = true;
-		if (! excluded && _GetDims(ncdfc, vertcv).size() > 1) excluded = true;
+		if (! excluded && _GetSpatialDims(ncdfc, vertcv).size() > 1) excluded = true;
 
 		//
 		// Lat and lon coordinate variables must be 1D or 2D and
@@ -678,8 +690,8 @@ int DCReaderROMS::_InitCoordVars(NetCDFCFCollection *ncdfc)
 		//
 		if (! excluded && ncdfc->IsTimeVarying(latcv)) excluded = true;
 		if (! excluded && ncdfc->IsTimeVarying(loncv)) excluded = true;
-		if (! excluded && _GetDims(ncdfc, latcv).size() > 2) excluded = true;
-		if (! excluded && _GetDims(ncdfc, loncv).size() > 2) excluded = true;
+		if (! excluded && _GetSpatialDims(ncdfc, latcv).size() > 2) excluded = true;
+		if (! excluded && _GetSpatialDims(ncdfc, loncv).size() > 2) excluded = true;
 
 		if (excluded) {
 			_vars3dExcluded.push_back(vars[i]);
@@ -724,8 +736,8 @@ int DCReaderROMS::_initLatLonBuf(
 	llb._lonexts[0] = llb._lonexts[1] = 0.0;
 
 
-	vector <size_t> latdims = _GetDims(ncdfc, latvar);
-	vector <size_t> londims = _GetDims(ncdfc, lonvar);
+	vector <size_t> latdims = _GetSpatialDims(ncdfc, latvar);
+	vector <size_t> londims = _GetSpatialDims(ncdfc, lonvar);
 	if (latdims.size() == 1) {
 		llb._ny = latdims[0];
 	}

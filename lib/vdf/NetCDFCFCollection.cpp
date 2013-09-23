@@ -8,8 +8,8 @@
 #else
 #include <udunits2.h>
 #endif
-#include <vapor/NetCDFCFCollection.h>
 #include <vapor/GetAppPath.h>
+#include <vapor/NetCDFCFCollection.h>
 
 using namespace VAPoR;
 using namespace VetsUtil;
@@ -25,7 +25,6 @@ NetCDFCFCollection::NetCDFCFCollection() : NetCDFCollection() {
 	_timeCoordVars.clear();
 	_missingValueMap.clear();
 	_derivedVarsMap.clear();
-	_derivedVar = NULL;
 
 	_udunit = NULL;
 
@@ -33,10 +32,11 @@ NetCDFCFCollection::NetCDFCFCollection() : NetCDFCollection() {
 NetCDFCFCollection::~NetCDFCFCollection() {
 	if (_udunit) delete _udunit;
 
-	map <string, NetCDFCFCollection::DerivedVar *>::iterator itr;
+	std::map <string,DerivedVar *>::iterator itr;
 	for (itr = _derivedVarsMap.begin(); itr != _derivedVarsMap.end(); ++itr) {
-		if (itr->second) delete itr->second;
+		delete itr->second;
 	}
+	 _derivedVarsMap.clear();
 }
 
 int NetCDFCFCollection::Initialize(
@@ -77,7 +77,7 @@ int NetCDFCFCollection::Initialize(
 	// First look for "coordinate variables", which are 1D and have
 	// the same name as their one dimension
 	//
-	vector <string> vars = NetCDFCollection::GetVariableNames(1);
+	vector <string> vars = NetCDFCollection::GetVariableNames(1, false);
 	for (int i=0; i<vars.size(); i++) {
 
 		NetCDFSimple::Variable varinfo;
@@ -91,16 +91,16 @@ int NetCDFCFCollection::Initialize(
 	//
 	// Get all the 1D, 2D 3D, and 4D variables
 	vars.clear();
-	vector <string> v = NetCDFCollection::GetVariableNames(1);
+	vector <string> v = NetCDFCollection::GetVariableNames(1, false);
 	vars.insert(vars.end(), v.begin(), v.end());
 
-	v = NetCDFCollection::GetVariableNames(2);
+	v = NetCDFCollection::GetVariableNames(2, false);
 	vars.insert(vars.end(), v.begin(), v.end());
 
-	v = NetCDFCollection::GetVariableNames(3);
+	v = NetCDFCollection::GetVariableNames(3, false);
 	vars.insert(vars.end(), v.begin(), v.end());
 
-	v = NetCDFCollection::GetVariableNames(4);
+	v = NetCDFCollection::GetVariableNames(4, false);
 	vars.insert(vars.end(), v.begin(), v.end());
 
 	for (int i=0; i<vars.size(); i++) {
@@ -185,9 +185,11 @@ int NetCDFCFCollection::Initialize(
 	return(0);
 }
 
-vector <string> NetCDFCFCollection::GetDataVariableNames(int ndim) const 
-{
-	vector <string> tmp = NetCDFCollection::GetVariableNames(ndim);
+vector <string> NetCDFCFCollection::GetDataVariableNames(
+	int ndim, bool spatial
+) const {
+
+	vector <string> tmp = NetCDFCollection::GetVariableNames(ndim, spatial);
 
 	vector <string> varnames;
 	for (int i=0; i<tmp.size(); i++) {
@@ -199,41 +201,15 @@ vector <string> NetCDFCFCollection::GetDataVariableNames(int ndim) const
 		vector <string> cvars;
 		NetCDFCFCollection::GetVarCoordVarNames(tmp[i], cvars);
 
-		if (NetCDFCFCollection::IsTimeVarying(tmp[i])) {
-			if (cvars.size() != ndim+1) continue;
+		int myndim = cvars.size();
+		if (spatial && IsTimeVarying(tmp[i])) {
+			myndim--;	// don't count time dimension
 		}
-		else {
-			if (cvars.size() != ndim) continue;
-		}
+		if (myndim != ndim) continue;
+
 		varnames.push_back(tmp[i]);
 	}
 
-	return(varnames);
-}
-
-vector <size_t>  NetCDFCFCollection::GetDims(string varname) const {
-	if (NetCDFCFCollection::IsDerivedVar(varname)) {
-		NetCDFCFCollection::DerivedVar *derivedVar = _derivedVarsMap.find(varname)->second;
-		return(derivedVar->GetDims());
-	}
-	return(NetCDFCollection::GetDims(varname));
-}
-
-
-vector <string> NetCDFCFCollection::GetVariableNames(int ndim) const {
-
-	vector <string> varnames = NetCDFCollection::GetVariableNames(ndim);
-
-	//
-	// Add any derived variables
-	//
-	map <string, DerivedVar *>::const_iterator itr;
-	for (itr = _derivedVarsMap.begin(); itr != _derivedVarsMap.end(); ++itr) {
-		DerivedVar *derivedVar = itr->second;
-		if (derivedVar->GetDims().size() == ndim) {
-			varnames.push_back(itr->first);
-		}
-	}
 	return(varnames);
 }
 
@@ -256,6 +232,7 @@ int NetCDFCFCollection::GetVarCoordVarNames(
 	bool hasLatCoord = false;
 	bool hasLonCoord = false;
 	bool hasVertCoord = false;
+	vector <string> tmpcvars;
 	vector <string> auxcvars = _GetCoordAttrs(varinfo);
 	for (int i=0; i<auxcvars.size(); i++) {
 
@@ -267,53 +244,50 @@ int NetCDFCFCollection::GetVarCoordVarNames(
 		//
 		if (NetCDFCFCollection::IsTimeCoordVar(auxcvars[i]) && !hasTimeCoord) { 
 			hasTimeCoord = true;
-			cvars.push_back(auxcvars[i]);
+			tmpcvars.push_back(auxcvars[i]);
 		}
 		if (NetCDFCFCollection::IsLatCoordVar(auxcvars[i]) && !hasLatCoord) { 
 			hasLatCoord = true;
-			cvars.push_back(auxcvars[i]);
+			tmpcvars.push_back(auxcvars[i]);
 		}
 		if (NetCDFCFCollection::IsLonCoordVar(auxcvars[i]) && !hasLonCoord) { 
 			hasLonCoord = true;
-			cvars.push_back(auxcvars[i]);
+			tmpcvars.push_back(auxcvars[i]);
 		}
 		if (NetCDFCFCollection::IsVertCoordVar(auxcvars[i]) && !hasVertCoord) { 
 			hasVertCoord = true;
-			cvars.push_back(auxcvars[i]);
+			tmpcvars.push_back(auxcvars[i]);
 		}
 	}
-	if (cvars.size() == dimnames.size()) return(0);
 
 
 	//
 	// Now see if any "coordinate variables" for which we haven't
 	// already identified a coord var exist.
 	//
-	for (int i=0; i<dimnames.size(); i++) {
-		if (NetCDFCFCollection::IsCoordVarCF(dimnames[i])) {	// is a CF "coordinate variable"?
-			if (NetCDFCFCollection::IsTimeCoordVar(dimnames[i]) && !hasTimeCoord) { 
-				hasTimeCoord = true;
-				cvars.push_back(dimnames[i]);
-			}
-			if (NetCDFCFCollection::IsLatCoordVar(dimnames[i]) && !hasLatCoord) { 
-				hasLatCoord = true;
-				cvars.push_back(dimnames[i]);
-			}
-			if (NetCDFCFCollection::IsLonCoordVar(dimnames[i]) && !hasLonCoord) { 
-				hasLonCoord = true;
-				cvars.push_back(dimnames[i]);
-			}
-			if (NetCDFCFCollection::IsVertCoordVar(dimnames[i]) && !hasVertCoord) { 
-				hasVertCoord = true;
-				cvars.push_back(dimnames[i]);
+	if (tmpcvars.size() != dimnames.size())  {
+		for (int i=0; i<dimnames.size(); i++) {
+			if (NetCDFCFCollection::IsCoordVarCF(dimnames[i])) {	// is a CF "coordinate variable"?
+				if (NetCDFCFCollection::IsTimeCoordVar(dimnames[i]) && !hasTimeCoord) { 
+					hasTimeCoord = true;
+					tmpcvars.push_back(dimnames[i]);
+				}
+				if (NetCDFCFCollection::IsLatCoordVar(dimnames[i]) && !hasLatCoord) { 
+					hasLatCoord = true;
+					tmpcvars.push_back(dimnames[i]);
+				}
+				if (NetCDFCFCollection::IsLonCoordVar(dimnames[i]) && !hasLonCoord) { 
+					hasLonCoord = true;
+					tmpcvars.push_back(dimnames[i]);
+				}
+				if (NetCDFCFCollection::IsVertCoordVar(dimnames[i]) && !hasVertCoord) { 
+					hasVertCoord = true;
+					tmpcvars.push_back(dimnames[i]);
+				}
 			}
 		}
 	}
 
-	//
-	// If "coordinate variables" are specified for each dimension we're don
-	//
-	if (cvars.size() == dimnames.size()) return(0);
 
 	//
 	// If we still don't have lat and lon coordinate (or auxiliary)
@@ -321,42 +295,72 @@ int NetCDFCFCollection::GetVarCoordVarNames(
 	// dim names match the dim names of 'var'. Don't think this is
 	// part of the CF 1.6 spec, but it seems necessary for ROMS data sets
 	//
-	if (! hasLatCoord) {
-		vector <string> latcvs = NetCDFCFCollection::GetLatCoordVars();
-		for (int i=0; i<latcvs.size(); i++) {
-			NetCDFSimple::Variable varinfo;
-			NetCDFCollection::GetVariableInfo(latcvs[i], varinfo);
-			vector <string> dns = varinfo.GetDimNames();
+	//
+	// If "coordinate variables" are specified for each dimension we're don
+	//
+	if (tmpcvars.size() != dimnames.size()) {
+		if (! hasLatCoord) {
+			vector <string> latcvs = NetCDFCFCollection::GetLatCoordVars();
+			for (int i=0; i<latcvs.size(); i++) {
+				NetCDFSimple::Variable varinfo;
+				NetCDFCollection::GetVariableInfo(latcvs[i], varinfo);
+				vector <string> dns = varinfo.GetDimNames();
 
-			if (dimnames.size() >= dns.size()) {
-				vector <string> tmp(dimnames.end()-dns.size(), dimnames.end());
-				if (tmp == dns) {
-					cvars.push_back(latcvs[i]);
-					break;
+				if (dimnames.size() >= dns.size()) {
+					vector <string> tmp(dimnames.end()-dns.size(), dimnames.end());
+					if (tmp == dns) {
+						tmpcvars.push_back(latcvs[i]);
+						break;
+					}
+				}
+			}
+		}
+
+		if (! hasLonCoord) {
+			vector <string> loncvs = NetCDFCFCollection::GetLonCoordVars();
+			for (int i=0; i<loncvs.size(); i++) {
+				NetCDFSimple::Variable varinfo;
+				NetCDFCollection::GetVariableInfo(loncvs[i], varinfo);
+				vector <string> dns = varinfo.GetDimNames();
+
+				if (dimnames.size() >= dns.size()) {
+					vector <string> tmp(dimnames.end()-dns.size(), dimnames.end());
+					if (tmp == dns) {
+						tmpcvars.push_back(loncvs[i]);
+						break;
+					}
 				}
 			}
 		}
 	}
+	assert(tmpcvars.size() <= dimnames.size());
 
-	if (! hasLonCoord) {
-		vector <string> loncvs = NetCDFCFCollection::GetLonCoordVars();
-		for (int i=0; i<loncvs.size(); i++) {
-			NetCDFSimple::Variable varinfo;
-			NetCDFCollection::GetVariableInfo(loncvs[i], varinfo);
-			vector <string> dns = varinfo.GetDimNames();
-
-			if (dimnames.size() >= dns.size()) {
-				vector <string> tmp(dimnames.end()-dns.size(), dimnames.end());
-				if (tmp == dns) {
-					cvars.push_back(loncvs[i]);
-					break;
-				}
-			}
-		}
+	//
+	// Finally, order the coordinate variables from slowest to fastest
+	// varying dimension
+	//
+	for (int i=0; i<tmpcvars.size(); i++) {
+        if (NetCDFCFCollection::IsTimeCoordVar(tmpcvars[i])) {
+			cvars.push_back(tmpcvars[i]); break;
+        }
 	}
-		
-
-	assert(cvars.size() <= dimnames.size());
+	for (int i=0; i<tmpcvars.size(); i++) {
+        if (NetCDFCFCollection::IsVertCoordVar(tmpcvars[i])) {
+			cvars.push_back(tmpcvars[i]); break;
+        }
+	}
+	for (int i=0; i<tmpcvars.size(); i++) {
+        if (NetCDFCFCollection::IsLatCoordVar(tmpcvars[i])) {
+			cvars.push_back(tmpcvars[i]); break;
+        }
+	}
+	for (int i=0; i<tmpcvars.size(); i++) {
+        if (NetCDFCFCollection::IsLonCoordVar(tmpcvars[i])) {
+			cvars.push_back(tmpcvars[i]); break;
+        }
+	}
+	assert(cvars.size() == tmpcvars.size());
+	
 
 	return(0);
 }
@@ -405,71 +409,31 @@ int NetCDFCFCollection::Convert(
 }
 
 bool NetCDFCFCollection::GetMissingValue(string varname, double &mv) const {
-	map <string, double>::const_iterator itr;
+    map <string, double>::const_iterator itr;
 
-	if (NetCDFCFCollection::IsDerivedVar(varname)) return(false);
+    if (NetCDFCollection::IsDerivedVar(varname)) return(false);
 
-	itr = _missingValueMap.find(varname);
-	if (itr != _missingValueMap.end()) {
-		mv = itr->second;
-		return(true);
-	}
-	return(false);
+    itr = _missingValueMap.find(varname);
+    if (itr != _missingValueMap.end()) {
+        mv = itr->second;
+        return(true);
+    }
+    return(false);
 }
+
 
 int NetCDFCFCollection::OpenRead(size_t ts, string varname) {
 	double mv;
 	string mvattname;
 
-	if (_derivedVar) {
-		_derivedVar->Close();
-		_derivedVar = NULL;
-	}
-
-	if (NetCDFCFCollection::IsDerivedVar(varname)) {
-		DerivedVar *derivedVar = _derivedVarsMap[varname];
-		int rc = derivedVar->Open(ts);
-		if (rc<0) return(rc);
-		_derivedVar = derivedVar;	// Can't set _derivedVar until after Open()
-		return(0);
-	}
-
 	if (_GetMissingValue(varname, mvattname, mv)) { 
 		NetCDFCFCollection::SetMissingValueAttName(mvattname);
 	}
-	int rc = NetCDFCollection::OpenRead(ts, varname);
+	int fd = NetCDFCollection::OpenRead(ts, varname);
 
 	NetCDFCFCollection::SetMissingValueAttName("");
-	return(rc);
+	return(fd);
 }
-
-int NetCDFCFCollection::ReadSlice(float *data) {
-
-	if (_derivedVar) {
-		return(_derivedVar->ReadSlice(data));
-	}
-	return(NetCDFCollection::ReadSlice(data));
-}
-
-int NetCDFCFCollection::Read(float *data) {
-
-	if (_derivedVar) {
-		return(_derivedVar->Read(data));
-	}
-	return(NetCDFCollection::Read(data));
-}
-
-int NetCDFCFCollection::Close() {
-
-    if (_derivedVar) {
-        _derivedVar->Close();
-		_derivedVar = NULL;
-		return(0);
-    }
-
-    return(NetCDFCollection::Close());
-}
-
 
 bool NetCDFCFCollection::IsVertDimensionless(string cvar) const {
 
@@ -545,15 +509,15 @@ int NetCDFCFCollection::InstallStandardVerticalConverter(
 	if (rc<0) return(-1);
 	
 	
-	NetCDFCFCollection::DerivedVar *derived_var;
+	NetCDFCollection::DerivedVar *derived_var;
 	if (standard_name.compare("ocean_s_coordinate_g1") == 0) {
 		derived_var = new DerivedVar_ocean_s_coordinate_g1(
-			this, terms_map, units
+			this, terms_map
 		);
 	}
 	else if (standard_name.compare("ocean_s_coordinate_g2") == 0) {
 		derived_var = new DerivedVar_ocean_s_coordinate_g2(
-			this, terms_map, units
+			this, terms_map
 		);
 	}
 	else {
@@ -561,21 +525,27 @@ int NetCDFCFCollection::InstallStandardVerticalConverter(
 		return(-1);
 	}
 
-	_derivedVarsMap[newvar] = derived_var;
+	// Uninstall any previous instance
+	//
+	NetCDFCFCollection::UninstallStandardVerticalConverter(newvar);
+
+	NetCDFCollection::InstallDerivedVar(newvar, derived_var);
+	
+
 	return(0);
 }
 
 void NetCDFCFCollection::UninstallStandardVerticalConverter(string cvar)  {
 
-	if (! NetCDFCFCollection::IsDerivedVar(cvar)) return;
+	if (! NetCDFCollection::IsDerivedVar(cvar)) return;
 
-	NetCDFCFCollection::DerivedVar *derivedVar = _derivedVarsMap.find(cvar)->second;
+	std::map <string,DerivedVar *>::iterator itr = _derivedVarsMap.find(cvar);
+	if (itr != _derivedVarsMap.end()) {
+		NetCDFCollection::RemoveDerivedVar(cvar);
+		delete itr->second;
+	}
 
-	if (_derivedVar == derivedVar) _derivedVar = NULL;
-
-	delete derivedVar;
-
-	_derivedVarsMap.erase(cvar);
+	NetCDFCollection::RemoveDerivedVar(cvar);
 }
 
 
@@ -649,7 +619,7 @@ std::ostream &operator<<(
 
 	o << " Data Variables and coordinates :" << endl;
 	for (int dim = 1; dim<4; dim++) {
-		vector <string> vars = ncdfcfc.GetDataVariableNames(dim);
+		vector <string> vars = ncdfcfc.GetDataVariableNames(dim, true);
 		for (int i=0; i<vars.size(); i++) {
 			o << "  " << vars[i]  << " : ";
 			vector <string> cvars;
@@ -796,6 +766,10 @@ bool NetCDFCFCollection::_GetMissingValue(
 	attname.clear();
 	mv = 0.0;
 
+	if (NetCDFCollection::IsDerivedVar(varname)) {
+		return(NetCDFCollection::GetMissingValue(varname, mv));
+	}
+
 	NetCDFSimple::Variable varinfo;
 	(void) NetCDFCollection::GetVariableInfo(varname, varinfo);
 
@@ -831,8 +805,8 @@ void NetCDFCFCollection::_GetMissingValueMap(
 	// Generate a map from all data variables with missing value
 	// attributes to missing value values. 
 	//
-	for (int d=1; d<4; d++) {
-		vector <string> vars = NetCDFCFCollection::GetDataVariableNames(d);
+	for (int d=1; d<5; d++) {
+		vector <string> vars = NetCDFCFCollection::GetDataVariableNames(d,false);
 
 		for (int i=0; i<vars.size(); i++) {
 			string attname;
@@ -844,255 +818,13 @@ void NetCDFCFCollection::_GetMissingValueMap(
 	}
 }
 
-NetCDFCFCollection::UDUnits::UDUnits() {
-
-    _statmsg[UT_SUCCESS] = "Success";
-    _statmsg[UT_BAD_ARG] = "An argument violates the function's contract";
-    _statmsg[UT_EXISTS] = "Unit, prefix, or identifier already exists";
-    _statmsg[UT_NO_UNIT] = "No such unit exists";
-    _statmsg[UT_OS] = "Operating-system error.";
-    _statmsg[UT_NOT_SAME_SYSTEM] = "The units belong to different unit-systems";
-    _statmsg[UT_MEANINGLESS] = "The operation on the unit(s) is meaningless";
-    _statmsg[UT_NO_SECOND] = "The unit-system doesn't have a unit named \"second\"";
-    _statmsg[UT_VISIT_ERROR] = "An error occurred while visiting a unit";
-    _statmsg[UT_CANT_FORMAT] = "A unit can't be formatted in the desired manner";
-    _statmsg[UT_SYNTAX] = "string unit representation contains syntax error";
-    _statmsg[UT_UNKNOWN] = "string unit representation contains unknown word";
-    _statmsg[UT_OPEN_ARG] = "Can't open argument-specified unit database";
-    _statmsg[UT_OPEN_ENV] = "Can't open environment-specified unit database";
-    _statmsg[UT_OPEN_DEFAULT] = "Can't open installed, default, unit database";
-    _statmsg[UT_PARSE] = "Error parsing unit specification";
-
-	_pressureUnit = NULL;
-	_timeUnit = NULL;
-	_latUnit = NULL;
-	_lonUnit = NULL;
-	_lengthUnit = NULL;
-	_status = (int) UT_SUCCESS;
-	_unitSystem = NULL;
-}
-
-int NetCDFCFCollection::UDUnits::Initialize() {
-
-	//
-	// Need to turn off error messages, which go to stderr by default
-	//
-	ut_set_error_message_handler(ut_ignore);
-
-	vector <string> paths;
-	paths.push_back("udunits");
-	paths.push_back("udunits2.xml");
-	string path =  GetAppPath("VAPOR", "share", paths).c_str();
-	if (! path.empty()) {
-		_unitSystem = ut_read_xml(path.c_str());
-	}
-	else {
-		_unitSystem = ut_read_xml(NULL);
-	}
-	if (! _unitSystem) {
-		_status = (int) ut_get_status();
-		return(-1);
-	};
-
-	string unitstr;
-
-	//
-	// We need to be able to determine if a given unit is of a
-	// particular type (e.g. time, pressure, mass, etc). The udunit2
-	// API doesn't support this directly. So we create a 'unit' 
-	// of a particular known type, and then later we can query udunit2
-	// to see if it is possible to convert between the known unit type
-	// and a unit of unknown type
-	//
-
-	unitstr = "Pa";	// Pascal units of Pressure
-	_pressureUnit = ut_parse(_unitSystem, unitstr.c_str(), UT_ASCII);
-	if (! _pressureUnit) {
-		_status = (int) ut_get_status();
-		return(-1);
-	}
-
-	unitstr = "seconds";
-	_timeUnit = ut_parse(_unitSystem, unitstr.c_str(), UT_ASCII);
-	if (! _timeUnit) {
-		_status = (int) ut_get_status();
-		return(-1);
-	}
-
-	unitstr = "degrees_north";
-	_latUnit = ut_parse(_unitSystem, unitstr.c_str(), UT_ASCII);
-	if (! _latUnit) {
-		_status = (int) ut_get_status();
-		return(-1);
-	}
-
-	unitstr = "degrees_east";
-	_lonUnit = ut_parse(_unitSystem, unitstr.c_str(), UT_ASCII);
-	if (! _lonUnit) {
-		_status = (int) ut_get_status();
-		return(-1);
-	}
-
-	unitstr = "meter";
-	_lengthUnit = ut_parse(_unitSystem, unitstr.c_str(), UT_ASCII);
-	if (! _lengthUnit) {
-		_status = (int) ut_get_status();
-		return(-1);
-	}
-
-	return(0);
-}
-
-bool NetCDFCFCollection::UDUnits::AreUnitsConvertible(const ut_unit *unit, string unitstr) const {
-
-
-	ut_unit *myunit = ut_parse(_unitSystem, unitstr.c_str(), UT_ASCII);
-	if (! myunit) {
-		ut_set_status(UT_SUCCESS);	// clear error message
-		return(false);
-	}
-
-	bool status = true;
-	cv_converter *cv = NULL;
-	if (! (cv = ut_get_converter((ut_unit *) unit, myunit))) {
-		status = false;
-		ut_set_status(UT_SUCCESS);
-	}
-
-	if (myunit) ut_free(myunit);
-	if (cv) cv_free(cv);
-	return(status);
-
-}
-
-bool NetCDFCFCollection::UDUnits::IsPressureUnit(string unitstr) const {
-	return(AreUnitsConvertible(_pressureUnit, unitstr));
-}
-
-bool NetCDFCFCollection::UDUnits::IsTimeUnit(string unitstr) const {
-	return(AreUnitsConvertible(_timeUnit, unitstr));
-}
-
-bool NetCDFCFCollection::UDUnits::IsLatUnit(string unitstr) const {
-	bool status = AreUnitsConvertible(_latUnit, unitstr);
-	if (! status) return(false);
-
-	// udunits2 does not distinguish between longitude and latitude, only
-	// whether a unit is a plane angle measure. N.B. the conditional
-	// below is probably all that is needed for this method.
-	//
-	if ( !(
-		(unitstr.compare("degrees_north") == 0)  ||
-		(unitstr.compare("degree_north") == 0)  ||
-		(unitstr.compare("degree_N") == 0)  ||
-		(unitstr.compare("degrees_N") == 0)  ||
-		(unitstr.compare("degreeN") == 0)  ||
-		(unitstr.compare("degreesN") == 0))) { 
-
-		status = false;
-	}
-	return(status);
-}
-
-bool NetCDFCFCollection::UDUnits::IsLonUnit(string unitstr) const {
-	bool status = AreUnitsConvertible(_lonUnit, unitstr);
-	if (! status) return(false);
-
-	// udunits2 does not distinguish between longitude and latitude, only
-	// whether a unit is a plane angle measure. N.B. the conditional
-	// below is probably all that is needed for this method.
-	//
-	if ( !(
-		(unitstr.compare("degrees_east") == 0)  ||
-		(unitstr.compare("degree_east") == 0)  ||
-		(unitstr.compare("degree_E") == 0)  ||
-		(unitstr.compare("degrees_E") == 0)  ||
-		(unitstr.compare("degreeE") == 0)  ||
-		(unitstr.compare("degreesE") == 0))) { 
-
-		status = false;
-	}
-	return(status);
-}
-
-bool NetCDFCFCollection::UDUnits::IsLengthUnit(string unitstr) const {
-	return(AreUnitsConvertible(_lengthUnit, unitstr));
-}
-
-bool NetCDFCFCollection::UDUnits::Convert(
-	const string from,
-	const string to,
-	const float *src,
-	float *dst,
-	size_t n
-) const {
-
-	ut_unit *fromunit = ut_parse(_unitSystem, from.c_str(), UT_ASCII);
-	if (! fromunit) {
-		ut_set_status(UT_SUCCESS);	// clear error message
-		return(false);
-	}
-
-	ut_unit *tounit = ut_parse(_unitSystem, to.c_str(), UT_ASCII);
-	if (! tounit) {
-		ut_free(fromunit);
-		ut_set_status(UT_SUCCESS);	// clear error message
-		return(false);
-	}
-
-	cv_converter *cv = NULL;
-	cv = ut_get_converter((ut_unit *) fromunit, tounit);
-	if (! cv) {
-		ut_free(tounit);
-		ut_free(fromunit);
-		ut_set_status(UT_SUCCESS);
-		return(false);
-	}
-
-	cv_convert_floats(cv, src, n, dst);
-
-	if (fromunit) ut_free(fromunit);
-	if (tounit) ut_free(tounit);
-	if (cv) cv_free(cv);
-	return(true);
-}
-
-void NetCDFCFCollection::UDUnits::DecodeTime(
-    double seconds, int* year, int* month, int* day, 
-	int* hour, int* minute, int* second
-) const {
-
-	double dummy;
-	double second_d;
-	ut_decode_time(seconds, year, month, day, hour, minute, &second_d, &dummy);
-	*second = (int) second_d;
-}
-
-
-
-string NetCDFCFCollection::UDUnits::GetErrMsg() const {
-	map <int, string>::const_iterator itr;
-	itr = _statmsg.find(_status);
-	if (itr == _statmsg.end()) return(string("UNKNOWN"));
-
-	return(itr->second);
-}
-
-NetCDFCFCollection::UDUnits::~UDUnits() {
-	if (_unitSystem) ut_free_system(_unitSystem);
-	if (_pressureUnit) ut_free(_pressureUnit);
-	if (_timeUnit) ut_free(_timeUnit);
-	if (_latUnit) ut_free(_latUnit);
-	if (_lonUnit) ut_free(_lonUnit);
-	if (_lengthUnit) ut_free(_lengthUnit);
-}
-
 NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g1::DerivedVar_ocean_s_coordinate_g1(
 	NetCDFCFCollection *ncdfcf, 
-	const std::map <string, string> &formula_map, string units
-) : DerivedVar(ncdfcf, formula_map, units) {
+	const std::map <string, string> &formula_map
+) : DerivedVar(ncdfcf) {
 
 	_dims.resize(3);
+	_dimnames.resize(3);
 	_s = NULL;
 	_C = NULL;
 	_eta = NULL;
@@ -1107,39 +839,45 @@ NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g1::DerivedVar_ocean_s_coordin
 	_ok = true;
 
     map <string, string>::const_iterator itr;
-    itr = _formula_map.find("s");
-    if (itr != _formula_map.end()) _svar = itr->second;
+    itr = formula_map.find("s");
+    if (itr != formula_map.end()) _svar = itr->second;
 
-    itr = _formula_map.find("C");
-    if (itr != _formula_map.end()) _Cvar = itr->second;
+    itr = formula_map.find("C");
+    if (itr != formula_map.end()) _Cvar = itr->second;
 
-    itr = _formula_map.find("eta");
-    if (itr != _formula_map.end()) _etavar = itr->second;
+    itr = formula_map.find("eta");
+    if (itr != formula_map.end()) _etavar = itr->second;
 
-    itr = _formula_map.find("depth");
-    if (itr != _formula_map.end()) _depthvar = itr->second;
+    itr = formula_map.find("depth");
+    if (itr != formula_map.end()) _depthvar = itr->second;
 
-    itr = _formula_map.find("depth_c");
-    if (itr != _formula_map.end()) _depth_cvar = itr->second;
+    itr = formula_map.find("depth_c");
+    if (itr != formula_map.end()) _depth_cvar = itr->second;
 
 	vector <size_t> dims_tmp;
-	if (_ncdfcf->VariableExists(_svar)) {
-		dims_tmp = _ncdfcf->GetDims(_svar);
+	vector <string> dimnames_tmp;
+	if (_ncdfc->VariableExists(_svar)) {
+		dims_tmp = _ncdfc->GetSpatialDims(_svar);
+		dimnames_tmp = _ncdfc->GetSpatialDimNames(_svar);
 	}
-	else if (_ncdfcf->VariableExists(_Cvar)) {
-		dims_tmp = _ncdfcf->GetDims(_Cvar);
+	else if (_ncdfc->VariableExists(_Cvar)) {
+		dims_tmp = _ncdfc->GetSpatialDims(_Cvar);
+		dimnames_tmp = _ncdfc->GetSpatialDimNames(_Cvar);
 	}
 	else {
 		_ok = false;
 		return;
 	}
 	_dims[0] = dims_tmp[0];
+	_dimnames[0] = dimnames_tmp[0];
 
-	if (_ncdfcf->VariableExists(_etavar)) {
-		dims_tmp = _ncdfcf->GetDims(_etavar);
+	if (_ncdfc->VariableExists(_etavar)) {
+		dims_tmp = _ncdfc->GetSpatialDims(_etavar);
+		dimnames_tmp = _ncdfc->GetSpatialDimNames(_etavar);
 	}
-	else if (_ncdfcf->VariableExists(_depthvar)) {
-		dims_tmp = _ncdfcf->GetDims(_depthvar);
+	else if (_ncdfc->VariableExists(_depthvar)) {
+		dims_tmp = _ncdfc->GetSpatialDims(_depthvar);
+		dimnames_tmp = _ncdfc->GetSpatialDimNames(_depthvar);
 	}
 	else {
 		_ok = false;
@@ -1147,6 +885,8 @@ NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g1::DerivedVar_ocean_s_coordin
 	}
 	_dims[1] = dims_tmp[0];
 	_dims[2] = dims_tmp[1];
+	_dimnames[1] = dimnames_tmp[0];
+	_dimnames[2] = dimnames_tmp[1];
 
 	_s = new float[_dims[0]];
 	_C = new float[_dims[0]];
@@ -1180,51 +920,53 @@ int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g1::Open(size_t) {
 	int rc;
 	double mv;
 
-	rc = _ncdfcf->OpenRead(0, _svar); if (rc<0) return(-1);
-	rc = _ncdfcf->Read(_s); if (rc<0) return(-1);
-	rc = _ncdfcf->Close(); if (rc<0) return(-1);
-	if (_ncdfcf->GetMissingValue(_svar, mv)) {	// zero out any mv
+	int fd = _ncdfc->OpenRead(0, _svar); if (rc<0) return(-1);
+	rc = _ncdfc->Read(_s, fd); if (rc<0) return(-1);
+	rc = _ncdfc->Close(fd); if (rc<0) return(-1);
+	if (_ncdfc->GetMissingValue(_svar, mv)) {	// zero out any mv
 		for (int i=0; i<nz; i++) {
 			if (_s[i] == mv) _s[i] = 0.0;
 		}
 	} 
 
-	rc = _ncdfcf->OpenRead(0, _Cvar); if (rc<0) return(-1);
-	rc = _ncdfcf->Read(_C); if (rc<0) return(-1);
-	rc = _ncdfcf->Close(); if (rc<0) return(-1);
-	if (_ncdfcf->GetMissingValue(_Cvar, mv)) {
+	fd = _ncdfc->OpenRead(0, _Cvar); if (rc<0) return(-1);
+	rc = _ncdfc->Read(_C, fd); if (rc<0) return(-1);
+	rc = _ncdfc->Close(fd); if (rc<0) return(-1);
+	if (_ncdfc->GetMissingValue(_Cvar, mv)) {
 		for (int i=0; i<nz; i++) {
 			if (_C[i] == mv) _C[i] = 0.0;
 		}
 	} 
 
-	rc = _ncdfcf->OpenRead(0, _etavar); if (rc<0) return(-1);
-	rc = _ncdfcf->Read(_eta); if (rc<0) return(-1);
-	rc = _ncdfcf->Close(); if (rc<0) return(-1);
-	if (_ncdfcf->GetMissingValue(_etavar, mv)) {
+	fd = _ncdfc->OpenRead(0, _etavar); if (rc<0) return(-1);
+	rc = _ncdfc->Read(_eta, fd); if (rc<0) return(-1);
+	rc = _ncdfc->Close(fd); if (rc<0) return(-1);
+	if (_ncdfc->GetMissingValue(_etavar, mv)) {
 		for (int i=0; i<nx*ny; i++) {
 			if (_eta[i] == mv) _eta[i] = 0.0;
 		}
 	} 
 
-	rc = _ncdfcf->OpenRead(0, _depthvar); if (rc<0) return(-1);
-	rc = _ncdfcf->Read(_depth); if (rc<0) return(-1);
-	rc = _ncdfcf->Close(); if (rc<0) return(-1);
-	if (_ncdfcf->GetMissingValue(_depthvar, mv)) {
+	fd = _ncdfc->OpenRead(0, _depthvar); if (rc<0) return(-1);
+	rc = _ncdfc->Read(_depth,fd); if (rc<0) return(-1);
+	rc = _ncdfc->Close(fd); if (rc<0) return(-1);
+	if (_ncdfc->GetMissingValue(_depthvar, mv)) {
 		for (int i=0; i<nx*ny; i++) {
 			if (_depth[i] == mv) _depth[i] = 0.0;
 		}
 	} 
 
-	rc = _ncdfcf->OpenRead(0, _depth_cvar); if (rc<0) return(-1);
-	rc = _ncdfcf->Read(&_depth_c); if (rc<0) return(-1);
-	rc = _ncdfcf->Close(); if (rc<0) return(-1);
+	fd = _ncdfc->OpenRead(0, _depth_cvar); if (rc<0) return(-1);
+	rc = _ncdfc->Read(&_depth_c, fd); if (rc<0) return(-1);
+	rc = _ncdfc->Close(fd); if (rc<0) return(-1);
 
 	_is_open = true;
 	return(0);
 }
 
-int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g1::Read(float *buf) {
+int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g1::Read(
+	float *buf, int
+) {
 	size_t nx = _dims[2];
 	size_t ny = _dims[1];
 	size_t nz = _dims[0];
@@ -1242,7 +984,7 @@ int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g1::Read(float *buf) {
 }
 
 int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g1::ReadSlice(
-	float *slice
+	float *slice, int 
 ) {
 	size_t nx = _dims[2];
 	size_t ny = _dims[1];
@@ -1265,12 +1007,37 @@ int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g1::ReadSlice(
 	return(1);
 }
 
+int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g1::SeekSlice(
+	int offset, int whence, int 
+) {
+	size_t nz = _dims[0];
+
+    int slice;
+    if (whence == 0) {
+        slice = offset;
+    }
+    else if (whence == 1) {
+        slice = _slice_num + offset;
+    }
+    else if (whence == 2) {
+        slice = offset + nz - 1;
+    }
+    if (slice<0) slice = 0;
+    if (slice>nz-1) slice = nz-1;
+
+	_slice_num = slice;
+
+    return(0);
+}
+
+
 NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g2::DerivedVar_ocean_s_coordinate_g2(
 	NetCDFCFCollection *ncdfcf, 
-	const std::map <string, string> &formula_map, string units
-) : DerivedVar(ncdfcf, formula_map, units) {
+	const std::map <string, string> &formula_map
+) : DerivedVar(ncdfcf) {
 
 	_dims.resize(3);
+	_dimnames.resize(3);
 	_s = NULL;
 	_C = NULL;
 	_eta = NULL;
@@ -1285,39 +1052,45 @@ NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g2::DerivedVar_ocean_s_coordin
 	_ok = true;
 
     map <string, string>::const_iterator itr;
-    itr = _formula_map.find("s");
-    if (itr != _formula_map.end()) _svar = itr->second;
+    itr = formula_map.find("s");
+    if (itr != formula_map.end()) _svar = itr->second;
 
-    itr = _formula_map.find("C");
-    if (itr != _formula_map.end()) _Cvar = itr->second;
+    itr = formula_map.find("C");
+    if (itr != formula_map.end()) _Cvar = itr->second;
 
-    itr = _formula_map.find("eta");
-    if (itr != _formula_map.end()) _etavar = itr->second;
+    itr = formula_map.find("eta");
+    if (itr != formula_map.end()) _etavar = itr->second;
 
-    itr = _formula_map.find("depth");
-    if (itr != _formula_map.end()) _depthvar = itr->second;
+    itr = formula_map.find("depth");
+    if (itr != formula_map.end()) _depthvar = itr->second;
 
-    itr = _formula_map.find("depth_c");
-    if (itr != _formula_map.end()) _depth_cvar = itr->second;
+    itr = formula_map.find("depth_c");
+    if (itr != formula_map.end()) _depth_cvar = itr->second;
 
 	vector <size_t> dims_tmp;
-	if (_ncdfcf->VariableExists(_svar)) {
-		dims_tmp = _ncdfcf->GetDims(_svar);
+	vector <string> dimnames_tmp;
+	if (_ncdfc->VariableExists(_svar)) {
+		dims_tmp = _ncdfc->GetSpatialDims(_svar);
+		dimnames_tmp = _ncdfc->GetSpatialDimNames(_svar);
 	}
-	else if (_ncdfcf->VariableExists(_Cvar)) {
-		dims_tmp = _ncdfcf->GetDims(_Cvar);
+	else if (_ncdfc->VariableExists(_Cvar)) {
+		dims_tmp = _ncdfc->GetSpatialDims(_Cvar);
+		dimnames_tmp = _ncdfc->GetSpatialDimNames(_Cvar);
 	}
 	else {
 		_ok = false;
 		return;
 	}
 	_dims[0] = dims_tmp[0];
+	_dimnames[0] = dimnames_tmp[0];
 
-	if (_ncdfcf->VariableExists(_etavar)) {
-		dims_tmp = _ncdfcf->GetDims(_etavar);
+	if (_ncdfc->VariableExists(_etavar)) {
+		dims_tmp = _ncdfc->GetSpatialDims(_etavar);
+		dimnames_tmp = _ncdfc->GetSpatialDimNames(_etavar);
 	}
-	else if (_ncdfcf->VariableExists(_depthvar)) {
-		dims_tmp = _ncdfcf->GetDims(_depthvar);
+	else if (_ncdfc->VariableExists(_depthvar)) {
+		dims_tmp = _ncdfc->GetSpatialDims(_depthvar);
+		dimnames_tmp = _ncdfc->GetSpatialDimNames(_depthvar);
 	}
 	else {
 		_ok = false;
@@ -1325,6 +1098,8 @@ NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g2::DerivedVar_ocean_s_coordin
 	}
 	_dims[1] = dims_tmp[0];
 	_dims[2] = dims_tmp[1];
+	_dimnames[1] = dimnames_tmp[0];
+	_dimnames[2] = dimnames_tmp[1];
 
 	_s = new float[_dims[0]];
 	_C = new float[_dims[0]];
@@ -1358,51 +1133,53 @@ int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g2::Open(size_t) {
 	int rc;
 	double mv;
 
-	rc = _ncdfcf->OpenRead(0, _svar); if (rc<0) return(-1);
-	rc = _ncdfcf->Read(_s); if (rc<0) return(-1);
-	rc = _ncdfcf->Close(); if (rc<0) return(-1);
-	if (_ncdfcf->GetMissingValue(_svar, mv)) {	// zero out any mv
+	int fd = _ncdfc->OpenRead(0, _svar); if (rc<0) return(-1);
+	rc = _ncdfc->Read(_s, fd); if (rc<0) return(-1);
+	rc = _ncdfc->Close(fd); if (rc<0) return(-1);
+	if (_ncdfc->GetMissingValue(_svar, mv)) {	// zero out any mv
 		for (int i=0; i<nz; i++) {
 			if (_s[i] == mv) _s[i] = 0.0;
 		}
 	} 
 
-	rc = _ncdfcf->OpenRead(0, _Cvar); if (rc<0) return(-1);
-	rc = _ncdfcf->Read(_C); if (rc<0) return(-1);
-	rc = _ncdfcf->Close(); if (rc<0) return(-1);
-	if (_ncdfcf->GetMissingValue(_Cvar, mv)) {
+	fd = _ncdfc->OpenRead(0, _Cvar); if (rc<0) return(-1);
+	rc = _ncdfc->Read(_C, fd); if (rc<0) return(-1);
+	rc = _ncdfc->Close(fd); if (rc<0) return(-1);
+	if (_ncdfc->GetMissingValue(_Cvar, mv)) {
 		for (int i=0; i<nz; i++) {
 			if (_C[i] == mv) _C[i] = 0.0;
 		}
 	} 
 
-	rc = _ncdfcf->OpenRead(0, _etavar); if (rc<0) return(-1);
-	rc = _ncdfcf->Read(_eta); if (rc<0) return(-1);
-	rc = _ncdfcf->Close(); if (rc<0) return(-1);
-	if (_ncdfcf->GetMissingValue(_etavar, mv)) {
+	fd = _ncdfc->OpenRead(0, _etavar); if (rc<0) return(-1);
+	rc = _ncdfc->Read(_eta, fd); if (rc<0) return(-1);
+	rc = _ncdfc->Close(fd); if (rc<0) return(-1);
+	if (_ncdfc->GetMissingValue(_etavar, mv)) {
 		for (int i=0; i<nx*ny; i++) {
 			if (_eta[i] == mv) _eta[i] = 0.0;
 		}
 	} 
 
-	rc = _ncdfcf->OpenRead(0, _depthvar); if (rc<0) return(-1);
-	rc = _ncdfcf->Read(_depth); if (rc<0) return(-1);
-	rc = _ncdfcf->Close(); if (rc<0) return(-1);
-	if (_ncdfcf->GetMissingValue(_depthvar, mv)) {
+	fd = _ncdfc->OpenRead(0, _depthvar); if (rc<0) return(-1);
+	rc = _ncdfc->Read(_depth, fd); if (rc<0) return(-1);
+	rc = _ncdfc->Close(fd); if (rc<0) return(-1);
+	if (_ncdfc->GetMissingValue(_depthvar, mv)) {
 		for (int i=0; i<nx*ny; i++) {
 			if (_depth[i] == mv) _depth[i] = 0.0;
 		}
 	} 
 
-	rc = _ncdfcf->OpenRead(0, _depth_cvar); if (rc<0) return(-1);
-	rc = _ncdfcf->Read(&_depth_c); if (rc<0) return(-1);
-	rc = _ncdfcf->Close(); if (rc<0) return(-1);
+	fd = _ncdfc->OpenRead(0, _depth_cvar); if (rc<0) return(-1);
+	rc = _ncdfc->Read(&_depth_c, fd); if (rc<0) return(-1);
+	rc = _ncdfc->Close(fd); if (rc<0) return(-1);
 
 	_is_open = true;
 	return(0);
 }
 
-int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g2::Read(float *buf) {
+int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g2::Read(
+	float *buf, int
+) {
 	size_t nx = _dims[2];
 	size_t ny = _dims[1];
 	size_t nz = _dims[0];
@@ -1420,7 +1197,7 @@ int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g2::Read(float *buf) {
 }
 
 int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g2::ReadSlice(
-	float *slice
+	float *slice, int fd
 ) {
 	size_t nx = _dims[2];
 	size_t ny = _dims[1];
@@ -1441,4 +1218,26 @@ int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g2::ReadSlice(
 
 	_slice_num++;
 	return(1);
+}
+
+int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g2::SeekSlice(    int offset, int whence, int 
+) {
+    size_t nz = _dims[0];
+
+    int slice;
+    if (whence == 0) {
+        slice = offset;
+    }
+    else if (whence == 1) {
+        slice = _slice_num + offset;
+    }
+    else if (whence == 2) {
+        slice = offset + nz - 1;
+    }
+    if (slice<0) slice = 0;
+    if (slice>nz-1) slice = nz-1;
+
+    _slice_num = slice;
+    
+    return(0);
 }

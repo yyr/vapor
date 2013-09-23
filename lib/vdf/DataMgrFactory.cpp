@@ -35,11 +35,7 @@ DataMgr *DataMgrFactory::New(
 		}
 	}
 	else if (ftype.compare("wrf") == 0) {
-		MetadataWRF *md = new MetadataWRF(files);
-		if (MetadataWRF::GetErrCode() != 0) return (NULL);
-
-		return new DataMgrWRF(*md, mem_size);
-
+		return new DataMgrWRF(files, mem_size);
 	}
 	else if (ftype.compare("roms") == 0) {
 		return new DataMgrROMS(files, mem_size);

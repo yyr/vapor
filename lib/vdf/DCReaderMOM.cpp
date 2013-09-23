@@ -38,7 +38,10 @@ DCReaderMOM::DCReaderMOM(const vector <string> &files) {
 	_ovr_weight_tbl = NULL;
 	_ovr_varname.clear();
 	_ovr_slice = 0;
+	_ovr_nz = 0;
+	_ovr_fd = -1;
 	_defaultMV = 1e37;
+	_reverseRead = false;
 
 	NetCDFCFCollection *ncdfc = new NetCDFCFCollection();
 	ncdfc->Initialize(files);
@@ -171,10 +174,10 @@ vector <double> DCReaderMOM::GetExtents(size_t ) const {
 
 
 
-vector <size_t> DCReaderMOM::_GetDims(
+vector <size_t> DCReaderMOM::_GetSpatialDims(
 	NetCDFCFCollection *ncdfc, string varname
 ) const {
-	vector <size_t> dims = ncdfc->GetDims(varname);
+	vector <size_t> dims = ncdfc->GetSpatialDims(varname);
 	reverse(dims.begin(), dims.end());
 	return(dims);
 }
@@ -199,7 +202,7 @@ int DCReaderMOM::_InitVerticalCoordinates(
 	//
 	// Read the vertical coordinates from cvar
 	//
-	vector <size_t> dims = _GetDims(ncdfc, cvar);
+	vector <size_t> dims = _GetSpatialDims(ncdfc, cvar);
 
 	float *buf = _get_1d_var(ncdfc, 0, cvar);
 	if (! buf) return(-1);
@@ -208,13 +211,13 @@ int DCReaderMOM::_InitVerticalCoordinates(
 		for (int i=dims[0]-1; i>= 0; i--) {
 			vertCoords.push_back(-1.0*buf[i]);
 		}
-		ncdfc->EnableLastFirstRead(true);
+		_reverseRead = true;
 	}
 	else {
 		for (int i=0; i<dims[0]; i++) {
 			vertCoords.push_back(buf[i]);
 		}
-		ncdfc->EnableLastFirstRead(false);
+		_reverseRead = false;
 	}
 	delete [] buf;
 
@@ -230,7 +233,7 @@ int DCReaderMOM::_InitVerticalCoordinates(
 
 	float unkown_unit = 1.0;
 
-	const NetCDFCFCollection::UDUnits *udunit = ncdfc->GetUDUnits();
+	const UDUnits *udunit = ncdfc->GetUDUnits();
 	if (udunit->IsPressureUnit(from)) {
 		string to = "dbars";
 		float p;
@@ -277,7 +280,7 @@ void DCReaderMOM::_InitDimensions(
 	//
 	vector <string> newvars;
 	for (int i=0; i<vars3d.size(); i++) {
-        vector <size_t> dims1 = _GetDims(ncdfc, vars3d[i]);
+        vector <size_t> dims1 = _GetSpatialDims(ncdfc, vars3d[i]);
 		if (! dims.size()) {
 			dims = dims1;
 		}
@@ -294,7 +297,7 @@ void DCReaderMOM::_InitDimensions(
 	//
 	newvars.clear();
 	for (int i=0; i<vars2dxy.size(); i++) {
-        vector <size_t> dims1 = _GetDims(ncdfc, vars2dxy[i]);
+        vector <size_t> dims1 = _GetSpatialDims(ncdfc, vars2dxy[i]);
 		if (! dims.size()) {
 			dims = dims1;
 			dims.push_back(1);
@@ -373,10 +376,10 @@ bool DCReaderMOM::GetMissingValue(string varname, float &value) const {
 		//
 		bool lat_lon_grid = true;
 		for (int i=0; i<_latCVs.size(); i++) {
-			if (_GetDims(_ncdfc, _latCVs[i]).size() != 1) lat_lon_grid = false;
+			if (_GetSpatialDims(_ncdfc, _latCVs[i]).size() != 1) lat_lon_grid = false;
 		}
 		for (int i=0; i<_lonCVs.size(); i++) {
-			if (_GetDims(_ncdfc, _lonCVs[i]).size() != 1) lat_lon_grid = false;
+			if (_GetSpatialDims(_ncdfc, _lonCVs[i]).size() != 1) lat_lon_grid = false;
 		}
 		if (lat_lon_grid) {
 			has_missing = false;
@@ -399,13 +402,16 @@ bool DCReaderMOM::IsCoordinateVariable(string varname) const {
 int DCReaderMOM::OpenVariableRead(
     size_t timestep, string varname, int, int 
 ) {
+	DCReaderMOM::CloseVariable();
 
 	_ovr_weight_tbl = NULL;
 	_ovr_varname.clear();
 	_ovr_slice = 0;
+	_ovr_fd = -1;
 
 	if (IsVariableDerived(varname)) { 
 		_ovr_varname = varname;
+		_ovr_nz = 1;	// derived variables are 2D
 		return(0);
 	}
 
@@ -425,11 +431,20 @@ int DCReaderMOM::OpenVariableRead(
 
 	_ovr_weight_tbl = itr1->second;
 	_ovr_varname = varname;
+	_ovr_nz = (_GetSpatialDims(_ncdfc, varname).size() == 3) ? _dims[2] : 1;
 
-	return(_ncdfc->OpenRead(timestep, varname));
+	_ovr_fd = _ncdfc->OpenRead(timestep, varname);
+	if (_reverseRead) {
+		_ncdfc->SeekSlice(0,2,_ovr_fd);
+	}
+	return(_ovr_fd);
 }
 
 int DCReaderMOM::ReadSlice(float *slice) {
+
+	if (_ovr_slice >= _ovr_nz) {
+		return(0); // EOF
+	}
 
 	//
 	// Deal with derived variables
@@ -437,11 +452,9 @@ int DCReaderMOM::ReadSlice(float *slice) {
 	if (IsVariableDerived(_ovr_varname)) {
 		const float *ptr;
 		if (_ovr_varname.compare("angleRAD") == 0) {
-			if (_ovr_slice > 0) return(0);	// EOF
 			ptr = _angleRADBuf;
 		}
 		else {
-			if (_ovr_slice > 0) return(0);	// EOF
 			ptr = _latDEGBuf;
 		}
 		for (int i=0; i<_dims[0]*_dims[1]; i++) {
@@ -451,14 +464,17 @@ int DCReaderMOM::ReadSlice(float *slice) {
 		return(1);
 	}
 
-	if (_GetDims(_ncdfc, _ovr_varname).size() < 2) {
+	if (_GetSpatialDims(_ncdfc, _ovr_varname).size() < 2) {
 		SetErrMsg("Invalid operation");
 		return(-1);
 	}
 
-
-	int rc = _ncdfc->ReadSlice(_sliceBuffer);
+	int rc = _ncdfc->ReadSlice(_sliceBuffer, _ovr_fd);
 	if (rc<1) return(rc);
+
+    if (_reverseRead) {
+        _ncdfc->SeekSlice(-2,1,_ovr_fd);
+    }
 
 	float mv;
 	bool has_missing = DCReaderMOM::GetMissingValue(_ovr_varname, mv);
@@ -488,6 +504,8 @@ int DCReaderMOM::Read(float *data) {
 }
 
 int DCReaderMOM::CloseVariable() {
+	if (_ovr_fd < 0) return(0);
+
 	bool derived = IsVariableDerived(_ovr_varname);
 	_ovr_weight_tbl = NULL;
 	_ovr_varname.clear();
@@ -495,7 +513,9 @@ int DCReaderMOM::CloseVariable() {
 
 	if (derived) return(0);
 
-	return(_ncdfc->Close());
+	int rc = _ncdfc->Close(_ovr_fd);
+	_ovr_fd = -1;
+	return(rc);
 }
 
 
@@ -503,25 +523,26 @@ float *DCReaderMOM::_get_2d_var(
 	NetCDFCFCollection *ncdfc, size_t ts, string name
 ) const {
 
-	vector <size_t> dims = _GetDims(ncdfc, name);
+	vector <size_t> dims = _GetSpatialDims(ncdfc, name);
 	if (dims.size() != 2) return (NULL);
 
 	float *buf = new float[dims[0]*dims[1]];
 
-	if (ncdfc->OpenRead(0, name) < 0) { 
+	int fd;
+	if ((fd = ncdfc->OpenRead(0, name)) < 0) { 
 		SetErrMsg(
 			"Missing required grid variable \"%s\n", name.c_str()
 		);
 		delete [] buf;
 		return(NULL);
 	}
-	if (ncdfc->Read(buf) < 0) {
+	if (ncdfc->Read(buf, fd) < 0) {
 		SetErrMsg(
 			"Missing required grid variable \"%s\n", name.c_str()
 		);
 		delete [] buf;
 	}
-	ncdfc->Close();
+	ncdfc->Close(fd);
 	return(buf);
 }
 
@@ -529,25 +550,26 @@ float *DCReaderMOM::_get_1d_var(
 	NetCDFCFCollection *ncdfc, size_t ts, string name
 ) const {
 
-	vector <size_t> dims = _GetDims(ncdfc, name);
+	vector <size_t> dims = _GetSpatialDims(ncdfc, name);
 	if (dims.size() != 1) return (NULL);
 
 	float *buf = new float[dims[0]];
 
-	if (ncdfc->OpenRead(0, name) < 0) { 
+	int fd;
+	if ((fd = ncdfc->OpenRead(0, name)) < 0) { 
 		SetErrMsg(
 			"Missing required grid variable \"%s\n", name.c_str()
 		);
 		delete [] buf;
 		return(NULL);
 	}
-	if (ncdfc->Read(buf) < 0) {
+	if (ncdfc->Read(buf, fd) < 0) {
 		SetErrMsg(
 			"Missing required grid variable \"%s\n", name.c_str()
 		);
 		delete [] buf;
 	}
-	ncdfc->Close();
+	ncdfc->Close(fd);
 	return(buf);
 }
 
@@ -601,7 +623,7 @@ int DCReaderMOM::_InitCoordVars(NetCDFCFCollection *ncdfc)
 	// for each data variable or we consider the data variable invalid
 	// and ignore it
 	//
-	vector <string> vars = ncdfc->GetDataVariableNames(2);
+	vector <string> vars = ncdfc->GetDataVariableNames(2, true);
 	for (int i=0; i<vars.size(); i++) {
 
 		bool excluded = false;
@@ -625,8 +647,8 @@ int DCReaderMOM::_InitCoordVars(NetCDFCFCollection *ncdfc)
 		//
 		if (! excluded && ncdfc->IsTimeVarying(latcv)) excluded = true;
 		if (! excluded && ncdfc->IsTimeVarying(loncv)) excluded = true;
-		if (! excluded && _GetDims(ncdfc, latcv).size() > 2) excluded = true;
-		if (! excluded && _GetDims(ncdfc, loncv).size() > 2) excluded = true;
+		if (! excluded && _GetSpatialDims(ncdfc, latcv).size() > 2) excluded = true;
+		if (! excluded && _GetSpatialDims(ncdfc, loncv).size() > 2) excluded = true;
 
 		if (excluded) {
 			_vars2dExcluded.push_back(vars[i]);
@@ -653,7 +675,7 @@ int DCReaderMOM::_InitCoordVars(NetCDFCFCollection *ncdfc)
 		_weightTableMap[key] = NULL;
 	}
 
-	vars = ncdfc->GetDataVariableNames(3);
+	vars = ncdfc->GetDataVariableNames(3, true);
 	for (int i=0; i<vars.size(); i++) {
 
 		bool excluded = false;
@@ -678,7 +700,7 @@ int DCReaderMOM::_InitCoordVars(NetCDFCFCollection *ncdfc)
 		// not excluded
 		//
 		// if (! _vertCV.empty() && _vertCV.compare(vertcv) != 0) excluded = true;
-		if (! excluded && _GetDims(ncdfc, vertcv).size() > 1) excluded = true;
+		if (! excluded && _GetSpatialDims(ncdfc, vertcv).size() > 1) excluded = true;
 
 		//
 		// Lat and lon coordinate variables must be 1D or 2D and
@@ -686,8 +708,8 @@ int DCReaderMOM::_InitCoordVars(NetCDFCFCollection *ncdfc)
 		//
 		if (! excluded && ncdfc->IsTimeVarying(latcv)) excluded = true;
 		if (! excluded && ncdfc->IsTimeVarying(loncv)) excluded = true;
-		if (! excluded && _GetDims(ncdfc, latcv).size() > 2) excluded = true;
-		if (! excluded && _GetDims(ncdfc, loncv).size() > 2) excluded = true;
+		if (! excluded && _GetSpatialDims(ncdfc, latcv).size() > 2) excluded = true;
+		if (! excluded && _GetSpatialDims(ncdfc, loncv).size() > 2) excluded = true;
 
 		if (excluded) {
 			_vars3dExcluded.push_back(vars[i]);
@@ -741,8 +763,8 @@ int DCReaderMOM::_initLatLonBuf(
 	llb._latexts[0] = llb._latexts[1] = 0.0;
 	llb._lonexts[0] = llb._lonexts[1] = 0.0;
 
-	vector <size_t> latdims = _GetDims(ncdfc, latvar);
-	vector <size_t> londims = _GetDims(ncdfc, lonvar);
+	vector <size_t> latdims = _GetSpatialDims(ncdfc, latvar);
+	vector <size_t> londims = _GetSpatialDims(ncdfc, lonvar);
 	if (latdims.size() == 1) {
 		llb._ny = latdims[0];
 	}

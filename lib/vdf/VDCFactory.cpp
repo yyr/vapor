@@ -13,7 +13,7 @@ using namespace std;
 VDCFactory::VDCFactory() {
 	_bs.nx = _bs.ny = _bs.nz = -1;
 	_vdc2 = false;
-	_level = 0;
+	_level = 2;
 	_nfilter = 1;
 	_nlifting = 1;
 	_cratios.push_back(1);
@@ -65,7 +65,7 @@ int VDCFactory::Parse(int *argc, char **argv) {
 			"Generate a VDC Type 2 .vdf file (default is VDC Type 1)"
 		},
 		{
-			"level", 1, "0", "Number of approximation levels in hierarchy. "
+			"level", 1, "2", "Number of approximation levels in hierarchy. "
 			"0 => no approximations, 1 => one approximation, and so on "
 			"(VDC 1 only)"
 		},
@@ -237,10 +237,6 @@ MetadataVDC *VDCFactory::New(const size_t dims[3]) const {
 	MetadataVDC *file;
 
 	if (_vdc2) {
-
-		if (_level) {
-			SetErrMsg("The -level option is not supported with VDC2 data");
-		}
 
 		string wmode;
 		if ((_wname.compare("bior1.1") == 0) ||

@@ -27,6 +27,7 @@ DCReaderNCDF::DCReaderNCDF(
 	_vars2dXZ.clear();
 	_vars2dYZ.clear();
 	_vars2dExcluded.clear();
+	_ovr_fd = -1;
 
 	_ncdfC = new NetCDFCollection();
 
@@ -43,8 +44,8 @@ DCReaderNCDF::DCReaderNCDF(
 	//
 	// Get all of the 3D and 2d variables in the collection
 	//
-	vector <string> candidate_vars3d = _ncdfC->GetVariableNames(3);
-	vector <string> candidate_vars2d = _ncdfC->GetVariableNames(2);
+	vector <string> candidate_vars3d = _ncdfC->GetVariableNames(3, true);
+	vector <string> candidate_vars2d = _ncdfC->GetVariableNames(2, true);
 
 	//
 	// Figure out what the grid dimensions are if none were provided.
@@ -55,11 +56,11 @@ DCReaderNCDF::DCReaderNCDF(
 		for (int i=0; i<3; i++) _dims.push_back(dims[i]);
 	}
 	else if (candidate_vars3d.size()) {
-		vector <size_t> dimsv = _GetDims(candidate_vars3d[0]);
+		vector <size_t> dimsv = _GetSpatialDims(candidate_vars3d[0]);
 		for (int i=0; i<3; i++) _dims.push_back(dimsv[i]);
 	}
 	else if (candidate_vars2d.size()) {
-		vector <size_t> dimsv = _GetDims(candidate_vars2d[0]);
+		vector <size_t> dimsv = _GetSpatialDims(candidate_vars2d[0]);
 		for (int i=0; i<2; i++) _dims.push_back(dimsv[i]);
 		_dims.push_back(1);
 	}
@@ -73,7 +74,7 @@ DCReaderNCDF::DCReaderNCDF(
 	// and those that don't
 	//
 	for (int i=0; i<candidate_vars3d.size(); i++) {
-		vector <size_t> dims = _GetDims(candidate_vars3d[i]);
+		vector <size_t> dims = _GetSpatialDims(candidate_vars3d[i]);
 
 		if (dims == _dims) _vars3d.push_back(candidate_vars3d[i]);
 		else _vars3dExcluded.push_back(candidate_vars3d[i]);
@@ -92,7 +93,7 @@ DCReaderNCDF::DCReaderNCDF(
 	dims2dYZ.push_back(_dims[2]);
 
 	for (int i=0; i<candidate_vars2d.size(); i++) {
-		vector <size_t> dims = _GetDims(candidate_vars2d[i]);
+		vector <size_t> dims = _GetSpatialDims(candidate_vars2d[i]);
 
 		if (dims == dims2dXY) {
 			_vars2dXY.push_back(candidate_vars2d[i]);
@@ -109,8 +110,8 @@ DCReaderNCDF::DCReaderNCDF(
 	}
 }
 
-vector <size_t> DCReaderNCDF::_GetDims(string varname) const {
-	vector <size_t> ncdfdims = _ncdfC->GetDims(varname);
+vector <size_t> DCReaderNCDF::_GetSpatialDims(string varname) const {
+	vector <size_t> ncdfdims = _ncdfC->GetSpatialDims(varname);
 	vector <size_t> dims;
 
 	// reverse the order
@@ -191,13 +192,20 @@ bool DCReaderNCDF::IsCoordinateVariable(string varname) const {
 int DCReaderNCDF::OpenVariableRead(
     size_t timestep, string varname, int, int 
 ) {
-	return(_ncdfC->OpenRead(timestep, varname));
+	DCReaderNCDF::CloseVariable();
+
+	_ovr_fd = _ncdfC->OpenRead(timestep, varname);
+	return(_ovr_fd);
 }
 
 int DCReaderNCDF::CloseVariable() {
-	return(_ncdfC->Close());
+	if (_ovr_fd < 0) return(0);
+
+	int rc = _ncdfC->Close(_ovr_fd);
+	_ovr_fd = -1;
+	return(rc);
 }
 
 int DCReaderNCDF::ReadSlice(float *slice) {
-	return(_ncdfC->ReadSlice(slice));
+	return(_ncdfC->ReadSlice(slice, _ovr_fd));
 }
