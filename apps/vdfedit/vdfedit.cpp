@@ -31,7 +31,7 @@
 #include <vapor/OptionParser.h>
 #include <vapor/MetadataVDC.h>
 #include <vapor/MetadataSpherical.h>
-#include <vapor/WRF.h>
+#include <vapor/UDUnits.h>
 #ifdef WIN32
 #include "windows.h"
 #endif
@@ -233,6 +233,10 @@ int	main(int argc, char **argv) {
 		if (! opt.quiet) {
 			cerr << ProgName << " : Warning: the \"-addts\" option may produce unexpected or even incorrect results if time-varying attributes are present\n";
 		}
+		UDUnits udunits;
+		int rc = udunits.Initialize();
+		if (rc<0) exit(1);
+
 		long numts = metadata->GetNumTimeSteps();
 		if (numts < 0) exit(1);
 
@@ -240,25 +244,17 @@ int	main(int argc, char **argv) {
 		vector <string> timestampstrings;
 		const string &gridtype = metadata->GetGridType();
 
-		if (gridtype.compare("layered") == 0) {
 
-			for (size_t t = 0; t<numts; t++) {
+		for (size_t t = 0; t<numts; t++) {
 
-				string tag("UserTimeStampString");
-				string s = metadata->GetTSUserDataString(t, tag);
-				StrRmWhiteSpace(s);
-				
-				TIME64_T t0;
-				if (WRF::WRFTimeStrToEpoch(s, &t0) < 0) return(-1);
-				timestamps.push_back((double) t0); 
-				timestampstrings.push_back(s);
-			}
-		}
-		else {
-			for (size_t t = 0; t<numts; t++) {
-				double v = metadata->GetTSUserTime(t);
-				timestamps.push_back((TIME64_T) v); 
-			}
+			string s;
+			metadata->GetTSUserTimeStamp(t, s);
+			StrRmWhiteSpace(s);
+
+			double t0 = metadata->GetTSUserTime(t);
+			
+			timestamps.push_back((double) t0); 
+			timestampstrings.push_back(s);
 		}
 
 		if (opt.addts > 0) {
@@ -267,11 +263,18 @@ int	main(int argc, char **argv) {
 				ts += opt.timeincr;
 				timestamps.push_back(ts);
 
-				if (gridtype.compare("layered") == 0) {
-					string s;
-					WRF::EpochToWRFTimeStr((TIME64_T)ts, s);
-					timestampstrings.push_back(s);
-				}
+				int year, month, day, hour, min, sec;
+				udunits.DecodeTime(ts, &year, &month, &day, &hour, &min, &sec);
+				ostringstream oss;
+				oss.fill('0');
+				oss.width(4); oss << year; oss << "-";
+				oss.width(2); oss << month; oss << "-";
+				oss.width(2); oss << day; oss << " ";
+				oss.width(2); oss << hour; oss << ":";
+				oss.width(2); oss << min; oss << ":";
+				oss.width(2); oss << sec; oss << " ";
+
+				timestampstrings.push_back(oss.str());
 			}
 		}
 
