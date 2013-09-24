@@ -1,0 +1,214 @@
+//************************************************************************
+//                                                                                                                                              *
+//                   Copyright (C)  2013                                                                                *
+//     University Corporation for Atmospheric Research                                  *
+//                   All Rights Reserved                                                                                *
+//                                                                                                                                              *
+//************************************************************************/
+//
+//      File:           selectfilepage.cpp
+//
+//      Author:         Scott Pearse
+//                      National Center for Atmospheric Research
+//                      PO 3000, Boulder, Colorado
+//
+//      Date:           August 2013
+//
+//      Description:    A QWizardPage that steps the user through selecting
+//                      which vdf file to write/include for their processing,
+//                      which NetCDF files to reference, and what their
+//                      NetCDF data type is (mom, pop, or roms)
+
+#include "fcwizard.h"
+#include "selectfilepage.h"
+#include "ui/Page2.h"
+#include "intropage.h"
+#include "dataholder.h"
+#include "vdfbadfile.h"
+
+using namespace std;
+using namespace VAPoR;
+
+SelectFilePage::SelectFilePage(DataHolder *DH, QWidget *parent) :
+    QWizardPage(parent), Ui_Page2()
+{
+    setupUi(this);
+
+    momPopOrRoms = "mom";
+    dataHolder = DH;
+    vdfBadFile = new VdfBadFile;
+    
+	errorMessage = new ErrorMessage;
+
+	QString selectedDirectory;
+
+	//vdfCreatePixmap = QPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/makeVDFsmall.png");
+	vdfCreatePixmap = QPixmap("../../../Images/makeVDFsmall.png");
+	//selectFilePixmap->setPixmap(vdfCreatePixmap);
+    //toVdfPixmap = QPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/2vdfsmall.png");
+	toVdfPixmap = QPixmap("../../../Images/2VDFsmall.png");
+
+	/*vector<string> tempVec;
+	tempVec.push_back("/glade/proj3/DASG/pearse/Vapor2.2updated/targets/Darwin_x86_64/bin");	
+	dataHolder->setVDFfileName("/glade/p/DASG/pearse/Data/test.vdf");
+	dataHolder->setFiles(tempVec);*/
+}
+
+void SelectFilePage::on_browseOutputVdfFile_clicked() {
+    QString file = QFileDialog::getOpenFileName(this,"Select output metada (.vdf) file.","/glade/proj3/DASG/pearse/data");
+    selectedDirectory = QDir(file).absolutePath();
+	int size = file.split(".",QString::SkipEmptyParts).size();
+    if (file != ""){
+        if (file.split(".",QString::SkipEmptyParts).at(size-1) != "vdf") vdfBadFile->show();
+        outputVDFtext->setText(file);
+        dataHolder->setVDFfileName(file.toStdString());
+        dataHolder->setPDVDFfile(file.toStdString());
+    }
+}
+
+void SelectFilePage::on_outputVDFtext_textChanged() {
+    dataHolder->setVDFfileName(outputVDFtext->toPlainText().toStdString());
+	dataHolder->ncdfFilesChanged = true;
+	completeChanged();
+}
+
+void SelectFilePage::on_addFileButton_clicked() {
+    QStringList fileNames = QFileDialog::getOpenFileNames(this,"Select basis files for metadata creation.",selectedDirectory);//"/glade/proj4/DASG/pearse/data");
+    int count = fileList->count();
+    for (int i=0;i<count;i++){
+        fileNames.append(fileList->item(i)->text());
+    }
+    fileNames.removeDuplicates();
+    fileList->clear();
+    fileList->addItems(fileNames);
+
+    if (fileList->count() > 0) {
+        momRadioButton->setEnabled(true);
+        popRadioButton->setEnabled(true);
+        romsRadioButton->setEnabled(true);
+    }
+
+    // convert fileList into a vector of std::string
+    // (not QStrings) to feed into DCReaderMOM
+    stdFileList = getSelectedFiles();
+    dataHolder->setFiles(stdFileList);
+	dataHolder->ncdfFilesChanged = true;
+	completeChanged();
+}
+
+void SelectFilePage::on_removeFileButton_clicked() {
+    dataHolder->ncdfFilesChanged = true;
+	qDeleteAll(fileList->selectedItems());
+
+    QStringList fileNames;
+    int count = fileList->count();
+    for (int i=0;i<count;i++) {
+        fileNames.append(fileList->item(i)->text());
+    }
+    stdFileList = getSelectedFiles();
+    dataHolder->setFiles(stdFileList);
+	completeChanged();
+}
+
+void SelectFilePage::on_momRadioButton_clicked() {
+    if (momRadioButton->isChecked()) dataHolder->setFileType("mom");
+	else dataHolder->setFileType("");
+    completeChanged();
+}
+
+void SelectFilePage::on_popRadioButton_clicked() {
+    if (popRadioButton->isChecked()) dataHolder->setFileType("mom");
+    else dataHolder->setFileType("");
+	completeChanged();
+}
+
+void SelectFilePage::on_romsRadioButton_clicked() {
+    if (romsRadioButton->isChecked()) dataHolder->setFileType("roms");
+    else dataHolder->setFileType("");
+	completeChanged();
+}
+
+vector<string> SelectFilePage::getSelectedFiles() {
+    vector <string> stdStrings;
+    for (int i=0;i<fileList->count();i++)
+        stdStrings.push_back(fileList->item(i)->text().toStdString());
+    return stdStrings;
+}
+
+void SelectFilePage::cleanupPage() {
+    cout << "selectfilepage cleaned up" << endl;
+	QList<QWizard::WizardButton> layout;
+    layout << QWizard::Stretch;
+    wizard()->setButtonLayout(layout);
+}
+
+void SelectFilePage::initializePage() {
+    cout << "selectfilepage initialized" << endl;
+
+	if (dataHolder->getOperation() == "vdfcreate"){
+        selectFilePixmap->setPixmap(vdfCreatePixmap);//.scaled(55,50,Qt::KeepAspectRatio));
+        vdfLabel->setText("Output VDF File:");
+        Title->setText("Files for Create VDF");
+    }
+    else {
+        selectFilePixmap->setPixmap(toVdfPixmap);//,50,Qt::KeepAspectRatio));
+        vdfLabel->setText("Reference VDF File:");
+        Title->setText("Files for Populate VDC");
+    }
+
+    wizard()->setButtonText(QWizard::CustomButton1, tr("Save and Quit"));
+    wizard()->setOption(QWizard::HaveCustomButton1, true);
+
+    QList<QWizard::WizardButton> layout;
+    layout << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton;
+    wizard()->setButtonLayout(layout);
+
+	resize(sizeHint());
+	completeChanged();
+}
+
+bool SelectFilePage::isComplete() const {
+	if (dataHolder->ncdfFilesChanged==false) return false;
+
+	//check for correct inputs and try creating DCReader
+	if ((dataHolder->getFileType() == "") &&
+    	(dataHolder->getVDFfileName() == "")) return false;
+	if ((dataHolder->getFileType() != "") &&
+       	(dataHolder->getVDFfileName() != "")){
+		return true;
+	}
+	return false;
+}
+
+int SelectFilePage::nextId() const {
+	if (isComplete() == true){
+		//if there has been a change to the ncdf files, we will need to generate a new
+		//DCReader, and go through our error checking process
+		if (dataHolder->ncdfFilesChanged==true) {
+			if (dataHolder->createReader()==0) {
+				dataHolder->ncdfFilesChanged=false;
+				if (dataHolder->getOperation() == "vdfcreate") return FCWizard::Create_VdfPage;
+	    	    else return FCWizard::Populate_DataPage;
+			}	
+        	else {
+				dataHolder->ncdfFilesChanged=false;
+        	    for(int i=0;i<dataHolder->getErrors().size();i++){
+					errorMessage->errorList->append(dataHolder->getErrors()[i]);
+					errorMessage->errorList->append("\n");
+				}
+				wizard()->button(QWizard::NextButton)->setDisabled(true);
+    	        errorMessage->show();
+            	dataHolder->clearErrors();
+				MyBase::SetErrCode(0);
+    	        return FCWizard::SelectFile_Page;
+	        }
+		}
+		//else, we have already created the DCReader and there are no current modifications
+		//to it, so procede with the DCReader that was generated previously
+		else {
+        	if (dataHolder->getOperation() == "vdfcreate") return FCWizard::Create_VdfPage;
+        	else return FCWizard::Populate_DataPage;
+		}
+	}
+	return FCWizard::SelectFile_Page;
+}
