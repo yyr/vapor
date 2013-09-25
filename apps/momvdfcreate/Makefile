@@ -4,8 +4,7 @@ include ${TOP}/make/config/prebase.mk
 
 PROGRAM = momvdfcreate
 
-FILES = vdfcreate\
-	momvdfcreate
+FILES =	momvdfcreate
 
 HEADERS := vdfcreate
 

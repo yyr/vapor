@@ -3,11 +3,9 @@ TOP = ../..
 include ${TOP}/make/config/prebase.mk
 
 PROGRAM = roms2vdf
-FILES = roms2vdf \
-	2vdf
+FILES = roms2vdf
 HEADERS = 2vdf
 
-#LIB_DEFS = vdf.def
 
 LIBRARIES = vdf proj common $(NETCDF_LIBS) udunits2 expat
 

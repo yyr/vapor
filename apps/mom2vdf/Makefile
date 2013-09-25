@@ -3,8 +3,7 @@ TOP = ../..
 include ${TOP}/make/config/prebase.mk
 
 PROGRAM = mom2vdf
-FILES = mom2vdf \
-	2vdf
+FILES = mom2vdf
 HEADERS = 2vdf
 
 
