@@ -11,13 +11,14 @@
 #include <map>
 #include <algorithm>
 
+
 union ut_unit;
 struct ut_system;
 
 namespace VAPoR {
 
 
-class UDUnits {
+class VDF_API UDUnits {
  public:
   UDUnits();
   ~UDUnits();
@@ -47,7 +48,7 @@ class UDUnits {
   ) const;
 
   std::string GetErrMsg() const;
-
+  
  private:
   std::map <int, std::string> _statmsg;
   int _status;

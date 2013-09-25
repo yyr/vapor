@@ -6,12 +6,15 @@
 #include <sstream>
 #include <iterator>
 #include <cassert>
-#include <vapor/UDUnits.h>
-#include <vapor/DCReaderWRF.h>
 
-#ifdef WIN32
-#pragma warning(disable : 4251)
+#include <vapor/DCReaderWRF.h>
+#include <vapor/UDUnits.h>
+
+#ifdef _WINDOWS
+#define _USE_MATH_DEFINES
+#pragma warning(disable : 4251 4100)
 #endif
+#include <math.h>
 
 using namespace VAPoR;
 using namespace std;

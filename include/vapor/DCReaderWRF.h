@@ -11,6 +11,7 @@
 #include "proj_api.h"
 #include <vapor/DCReader.h>
 #include <vapor/NetCDFCollection.h>
+#include <vapor/common.h>
 
 #ifdef WIN32
 #pragma warning(disable : 4251)

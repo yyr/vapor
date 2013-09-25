@@ -1,6 +1,7 @@
 #include <limits>
 #include <cassert>
 #include <vapor/DataMgrWRF.h>
+#include <vapor/common.h>
 
 using namespace VetsUtil;
 using namespace VAPoR;
