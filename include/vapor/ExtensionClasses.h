@@ -5,6 +5,8 @@
 //The InstallExtension method installs the extension classes and  (ivoked by VizWinMgr).
 #include "../apps/vaporgui/guis/arroweventrouter.h"
 #include "../lib/params/arrowparams.h"
+#include "../lib/params/viewpoint.h"
+#include "../lib/params/box.h"
 #include "../apps/vaporgui/images/arrowrake.xpm"
 #ifdef MODELS
 #include "../apps/vaporgui/guis/ModelEventRouter.h"
@@ -18,6 +20,8 @@ namespace VAPoR {
 	static void InstallExtensions(){
            ParamsBase::RegisterParamsBaseClass(ArrowParams::_arrowParamsTag, ArrowParams::CreateDefaultInstance, true);
            VizWinMgr::InstallTab(ArrowParams::_arrowParamsTag, ArrowEventRouter::CreateTab);
+		   ParamsBase::RegisterParamsBaseClass(Box::_boxTag, Box::CreateDefaultInstance, false);
+		   ParamsBase::RegisterParamsBaseClass(Viewpoint::_viewpointTag, Viewpoint::CreateDefaultInstance, false);
 
            // Models
 #ifdef MODELS

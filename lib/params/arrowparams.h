@@ -41,10 +41,6 @@ public:
 	//!
 	virtual bool reinit(bool override);
 
-	//! Virtual method used in in sorting geometry
-	//! Only needed if geometry is not opaque.
-	//! Override default, just find distance to rake extents.
-	virtual float getCameraDistance(ViewpointParams* vpp, RegionParams* rp , int timestep);
 	
 	virtual bool IsOpaque() {return true;}
 	//!
@@ -154,7 +150,6 @@ public:
 protected:
 static const string _shortName;
 static const string _constantColorTag;
-static const string _rakeExtentsTag;
 static const string _rakeGridTag;
 static const string _lineThicknessTag;
 static const string _vectorScaleTag;

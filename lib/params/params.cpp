@@ -43,6 +43,8 @@ const string Params::_viewpointParamsTag = "ViewpointPanelParameters";
 const string Params::_VisualizerNumTag = "VisualizerNum";
 const string Params::_VariablesTag = "Variables";
 const string Params::_RefinementLevelTag = "RefinementLevel";
+const string Params::_CompressionLevelTag = "CompressionLevel";
+const string Params::_VariableNamesTag = "VariableNames";
 
 std::map<pair<int,int>,vector<Params*> > Params::paramsInstances;
 std::map<pair<int,int>, int> Params::currentParamsInstance;
@@ -209,3 +211,4 @@ void Params::clearDummyParamsInstances(){
 	}
 	dummyParamsInstances.clear();
 }
+

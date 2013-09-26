@@ -43,11 +43,14 @@ const string AnimationParams::_shortName = "Animation";
 const string AnimationParams::_repeatTag = "RepeatPlay";
 const string AnimationParams::_maxRateTag = "MaxFrameRate";
 const string AnimationParams::_stepSizeTag = "FrameStepSize";
-const string AnimationParams::_startFrameTag = "StartFrame";
-const string AnimationParams::_endFrameTag = "EndFrame";
+const string AnimationParams::_startTimestepTag = "StartTimestep";
+const string AnimationParams::_endTimestepTag = "EndTimestep";
+const string AnimationParams::_currentTimestepTag = "CurrentTimestep";
+const string AnimationParams::_minTimestepTag = "MinTimestep";
+const string AnimationParams::_maxTimestepTag = "MaxTimestep";
+const string AnimationParams::_playDirectionTag = "PlayDirection";
 
-const string AnimationParams::_currentFrameTag = "CurrentFrame";
-float AnimationParams::defaultMaxFPS = 10.f;
+double AnimationParams::defaultMaxFPS = 10.f;
 
 AnimationParams::AnimationParams(int winnum): Params( winnum, Params::_animationParamsTag){
 	restart();
@@ -69,20 +72,17 @@ Params* AnimationParams::deepCopy(ParamNode*){
 void AnimationParams::
 restart(){
 	// set everything to default state:
-	playDirection = 0;
-	repeatPlay = false;
-	maxFrameRate = defaultMaxFPS;
-	frameStepSize = 1;
-	startFrame = 1;
-	endFrame = 100;
+	setPlayDirection (0);
+	setRepeating (false);
+	setMaxFrameRate(defaultMaxFPS);
+	setFrameStepSize(1);
+	setStartTimestep(0);
+	setEndTimestep (100);
 	
-	maxTimestep = 100; 
-	minTimestep = 1;
+	setMaxTimestep(100); 
+	setMinTimestep(0);
 	
-	currentTimestep = 0;
-	
-	
-	stateChanged = true;
+	setCurrentTimestep (0);
 	
 }
 void AnimationParams::setDefaultPrefs(){
@@ -94,14 +94,14 @@ bool AnimationParams::
 reinit(bool doOverride){
 	
 	
-	maxTimestep = DataStatus::getInstance()->getDataMgr()->GetNumTimeSteps()-1;
-	minTimestep = 0;
+	setMaxTimestep(DataStatus::getInstance()->getDataMgr()->GetNumTimeSteps()-1);
+	setMinTimestep(0);
 	//Narrow the range to the actual data limits:
 	//Find the first framenum with data:
-	int mints = minTimestep;
-	int maxts = maxTimestep;
+	int mints = 0;
+	int maxts = DataStatus::getInstance()->getDataMgr()->GetNumTimeSteps()-1;
 	int i;
-	for (i = minTimestep; i<= maxTimestep; i++){
+	for (i = mints; i<= maxts; i++){
 		
 		if(DataStatus::getInstance()->dataIsPresent(i)) break;
 
@@ -115,27 +115,25 @@ reinit(bool doOverride){
 	if(i >= mints) maxts = i;
 	//force start & end to be consistent:
 	if (doOverride){
-		startFrame = mints;
-		endFrame = maxts;
+		setStartTimestep(mints);
+		setEndTimestep(maxts);
 		
-		currentTimestep = startFrame;
-		currentInterpolatedFrame = 0;
-		maxFrameRate = defaultMaxFPS;
+		setCurrentTimestep(mints);
+		setMaxFrameRate(defaultMaxFPS);
 		
 	} else {
 		
-		if (startFrame > maxts) startFrame = maxts;
-		if (startFrame < mints) startFrame = mints;
-		if (endFrame < mints) endFrame = mints;
-		if (endFrame > maxts) endFrame = maxts;
-		
-		if (currentTimestep < mints) currentTimestep = mints;
-		if (currentTimestep > maxts) currentTimestep = maxts;
+		if (getStartTimestep() > maxts) setStartTimestep(maxts);
+		if (getStartTimestep() < mints) setStartTimestep(mints);
+		if (getEndTimestep() > maxts) setEndTimestep(maxts);
+		if (getEndTimestep() < mints) setEndTimestep(mints);
+		if (getCurrentTimestep() < mints) setCurrentTimestep(mints);
+		if (getCurrentTimestep() > maxts) setCurrentTimestep(maxts);
 		
 	}
 	
 	// set pause state
-	playDirection = 0;
+	setPlayDirection(0);
 	
 	
 	return true;
@@ -150,27 +148,27 @@ reinit(bool doOverride){
 //we have changed to "pause" status
 bool AnimationParams::
 advanceFrame(){
-	assert(playDirection);
-	int newFrame = getNextFrame(playDirection);
-	if (newFrame == getCurrentFrameNumber() ) {
-		if (repeatPlay) return false;
+	assert(getPlayDirection() != 0);
+	int newFrame = getNextFrame(getPlayDirection());
+	if (newFrame == getCurrentTimestep() ) {
+		if (isRepeating()) return false;
 		setPlayDirection(0);
 		return true;
 	}
 	//See if direction needs to change:
 
-	if (((newFrame-getCurrentFrameNumber())*playDirection) > 0) {
+	if (((newFrame-getCurrentTimestep())*getPlayDirection()) > 0) {
 		//No change in direction
-		setCurrentFrameNumber(newFrame);
+		setCurrentTimestep(newFrame);
 		return false;
 	} else {
-		setCurrentFrameNumber(newFrame);
+		setCurrentTimestep(newFrame);
 		return true;
 	}
 }
 bool AnimationParams::checkLastFrame(){
-	int newFrame = getNextFrame(playDirection);
-	if (newFrame == getCurrentFrameNumber() ) {
+	int newFrame = getNextFrame(getPlayDirection());
+	if (newFrame == getCurrentTimestep() ) {
 		setPlayDirection(0);
 		return true;
 	}
@@ -186,30 +184,30 @@ getNextFrame(int dir){
 		int i;
 		//not using timestep sample list.
 		// find next valid frame for which there exists data:
-		int testFrame = getCurrentFrameNumber() + dir*frameStepSize;
+		int testFrame = getCurrentTimestep() + dir*getFrameStepSize();
 		DataStatus* ds = DataStatus::getInstance();
-		int firstFrame = startFrame;
-		int lastFrame = endFrame;
+		int firstFrame = getStartTimestep();
+		int lastFrame = getEndTimestep();
 		
-		for (i = 1; i<= (lastFrame - firstFrame + frameStepSize)/frameStepSize; i++){
+		for (i = 1; i<= (lastFrame - firstFrame + getFrameStepSize())/getFrameStepSize(); i++){
 			
 			if (testFrame > lastFrame){ 
-				if (repeatPlay) testFrame =  firstFrame;
-				else testFrame = getCurrentFrameNumber();
+				if (isRepeating()) testFrame =  firstFrame;
+				else testFrame = getCurrentTimestep();
 			}
 			if (testFrame < firstFrame){
-				if (repeatPlay) testFrame = lastFrame;
-				else testFrame = getCurrentFrameNumber();
+				if (isRepeating()) testFrame = lastFrame;
+				else testFrame = getCurrentTimestep();
 			}
 
 
 			if (ds->dataIsPresent(testFrame))
 				break;
-			testFrame += dir*frameStepSize;
+			testFrame += dir*getFrameStepSize();
 		}
 		//It's OK, or we looped all the way around:
-		if(i > ((lastFrame - firstFrame + frameStepSize)/frameStepSize))
-			testFrame = getCurrentFrameNumber();
+		if(i > ((lastFrame - firstFrame + getFrameStepSize())/getFrameStepSize()))
+			testFrame = getCurrentTimestep();
 		
 		return testFrame;
 		

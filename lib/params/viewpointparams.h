@@ -53,31 +53,37 @@ public:
 	//! lighting is on or not (i.e. if there are more than 0 lights).
 	//! Note that only the first (light 0) is used in DVR and Isosurface rendering.
 	//! \retval int number of lights (0,1,2, or 3)
-	int getNumLights() { return numLights;}
+	int getNumLights() { 
+		vector<long> defNumLights(defaultNumLights,1);
+		return (GetRootNode()->GetElementLong(_numLightsTag,defNumLights)[0]);
+	}
 	
 	//! Obtain the current specular exponent.
 	//! This value should be used in setting the material properties
 	//! of all geometry being rendered.
 	//! \retval float Specular exponent
-	float getExponent() {return specularExp;}
+	double getExponent() {
+		vector<double> defSpecExp(defaultSpecularExp,1);
+		return (GetRootNode()->GetElementDouble(_specularExpTag,defSpecExp)[0]);
+	}
 
 	//! This method gives the current camera position in world coordinates.
 	//! \retval float[3] camera position
-	float* getCameraPosLocal() {return currentViewpoint->getCameraPosLocal();}
+	const vector<double>& getCameraPosLocal() {return getCurrentViewpoint()->getCameraPosLocal();}
 
 	//! This method gives the direction vector of the viewer, pointing from the camera into the scene.
 	//! \retval float[3] view direction
-	float* getViewDir() {return currentViewpoint->getViewDir();}
+	const vector<double>& getViewDir() {return getCurrentViewpoint()->getViewDir();}
 
 	//! Method that specifies the upward-pointing vector of the current viewpoint.
 	//! \retval float[3] up vector
-	float* getUpVec() {return currentViewpoint->getUpVec();}
+	const vector<double>& getUpVec() {return getCurrentViewpoint()->getUpVec();}
 
 	//! Method returns the position used as the center for rotation.
 	//! Usually this is in the center of the view, but it can be changed
 	//! by user translation.
 	//! \retval float[3] Rotation center coordinates
-	float* getRotationCenterLocal(){return currentViewpoint->getRotationCenterLocal();}
+	const vector<double>& getRotationCenterLocal(){return getCurrentViewpoint()->getRotationCenterLocal();}
 
 #ifndef DOXYGEN_SKIP_THIS
 	static ParamsBase* CreateDefaultInstance() {return new ViewpointParams(-1);}
@@ -94,49 +100,80 @@ public:
 	//When setCameraPos or setRotCenter is called in latlon mode, the new local values
 	//must be converted to latlon values.
 	
-	float getCameraPosLocal(int coord) {return currentViewpoint->getCameraPosLocal()[coord];}
+	double getCameraPosLocal(int coord) {return getCurrentViewpoint()->getCameraPosLocal()[coord];}
 	
-	void setCameraPosLocal(float* val,int timestep ) {
-		currentViewpoint->setCameraPosLocal(val);
+	void setCameraPosLocal(const vector<double>& val,int timestep ) {
+		getCurrentViewpoint()->setCameraPosLocal(val);
 	}
 	
-	void setViewDir(int i, float val) { currentViewpoint->setViewDir(i,val);}
-	void setViewDir(float* val) {currentViewpoint->setViewDir(val);}
+	void setViewDir(int i, double val) { getCurrentViewpoint()->setViewDir(i,val);}
+	void setViewDir(const vector<double>& val) {getCurrentViewpoint()->setViewDir(val);}
 	
-	void setUpVec(int i, float val) { currentViewpoint->setUpVec(i,val);}
-	void setUpVec(float* val) {currentViewpoint->setUpVec(val);}
+	void setUpVec(int i, double val) { getCurrentViewpoint()->setUpVec(i,val);}
+	void setUpVec(const vector<double>& val) {getCurrentViewpoint()->setUpVec(val);}
 	
-	void setNumLights(int nlights) {numLights = nlights;}
-	const float* getLightDirection(int lightNum){return lightDirection[lightNum];}
-	void setLightDirection(int lightNum,int dir, float val){
-		lightDirection[lightNum][dir] = val;
+	void setNumLights(int nlights) {
+		GetRootNode()->SetElementLong(_numLightsTag,nlights);
 	}
-	float getDiffuseCoeff(int lightNum) {return diffuseCoeff[lightNum];}
-	float getSpecularCoeff(int lightNum) {return specularCoeff[lightNum];}
+	double getLightDirection(int lightNum, int dir){
+		return GetRootNode()->GetElementDouble(_lightDirectionsTag)[dir+3*lightNum];
+	}
+	void setLightDirection(int lightNum, int dir, double val){
+		vector<double> ldirs = vector<double>(GetRootNode()->GetElementDouble(_lightDirectionsTag));
+		ldirs[dir+3*lightNum] = val;
+		GetRootNode()->SetElementDouble(_lightDirectionsTag,ldirs);
+	}
+	double getDiffuseCoeff(int lightNum) {
+		vector<double> defaultDiffCoeff;
+		for (int i = 0; i<3; i++) defaultDiffCoeff.push_back(defaultDiffuseCoeff[i]);
+		return GetRootNode()->GetElementDouble(_diffuseCoeffTag,defaultDiffCoeff)[lightNum];
+	}
+	double getSpecularCoeff(int lightNum) {
+		vector<double> defaultSpecCoeff;
+		for (int i = 0; i<3; i++) defaultSpecCoeff.push_back(defaultSpecularCoeff[i]);
+		return GetRootNode()->GetElementDouble(_specularCoeffTag,defaultSpecCoeff)[lightNum];
+	}
 	
-	float getAmbientCoeff() {return ambientCoeff;}
-	void setDiffuseCoeff(int lightNum, float val) {diffuseCoeff[lightNum]=val;}
-	void setSpecularCoeff(int lightNum, float val) {specularCoeff[lightNum]=val;}
-	void setExponent(float val) {specularExp=val;}
-	void setAmbientCoeff(float val) {ambientCoeff=val;}
-	Viewpoint* getCurrentViewpoint() { return currentViewpoint;}
+	double getAmbientCoeff() {
+		vector<double> defaultAmbient(defaultAmbientCoeff,1);
+		return GetRootNode()->GetElementDouble(_ambientCoeffTag,defaultAmbient)[0];
+	}
+	void setDiffuseCoeff(int lightNum, double val) {
+		vector<double>diffCoeff(GetRootNode()->GetElementDouble(_diffuseCoeffTag));
+		diffCoeff[lightNum]=val;
+		GetRootNode()->SetElementDouble(_diffuseCoeffTag,diffCoeff);
+	}
+	void setSpecularCoeff(int lightNum, double val) {
+		vector<double>specCoeff(GetRootNode()->GetElementDouble(_specularCoeffTag));
+		specCoeff[lightNum]=val;
+		GetRootNode()->SetElementDouble(_specularCoeffTag,specCoeff);
+	}
+	void setExponent(double val) {
+		GetRootNode()->SetElementDouble(_specularExpTag,val);
+	}
+	void setAmbientCoeff(double val) {
+		GetRootNode()->SetElementDouble(_ambientCoeffTag,val);
+	}
+	
 	void setCurrentViewpoint(Viewpoint* newVP){
-		if (currentViewpoint) delete currentViewpoint;
-		currentViewpoint = newVP;
+		ParamNode* pNode = GetRootNode()->GetNode(_currentViewTag);
+		if (pNode) GetRootNode()->DeleteNode(_currentViewTag);
+		GetRootNode()->AddRegisteredNode(_currentViewTag, newVP->GetRootNode(),newVP);
 	}
-	Viewpoint* getHomeViewpoint() { return homeViewpoint;}
+	
 	void setHomeViewpoint(Viewpoint* newVP){
-		if (homeViewpoint) delete homeViewpoint;
-		homeViewpoint = newVP;
+		ParamNode* pNode = GetRootNode()->GetNode(_homeViewTag);
+		if (pNode) GetRootNode()->DeleteNode(_homeViewTag);
+		GetRootNode()->AddRegisteredNode(_homeViewTag, newVP->GetRootNode(),newVP);
 	}
 	
-	float getRotationCenterLocal(int i){ return currentViewpoint->getRotationCenterLocal(i);}
+	double getRotationCenterLocal(int i){ return getCurrentViewpoint()->getRotationCenterLocal(i);}
 	
-	void setRotationCenterLocal(float* vec, int timestep){
-		currentViewpoint->setRotationCenterLocal(vec);
+	void setRotationCenterLocal(const vector<double>& vec){
+		getCurrentViewpoint()->setRotationCenterLocal(vec);
 	}
 	
-	void rescale(float scaleFac[3], int timestep);
+	void rescale(double scaleFac[3], int timestep);
 
 	//determine far and near distance to region based on current viewpoint
 	void getFarNearDist(float* boxFar, float* boxNear);
@@ -160,66 +197,70 @@ public:
 		for (int i = 0; i<16; i++) modelViewMatrix[i] = mtx[i];
 	}
 	
-	static const float* getDefaultViewDir(){return defaultViewDir;}
-	static const float* getDefaultUpVec(){return defaultUpVec;}
-	static const float* getDefaultLightDirection(int lightNum){return defaultLightDirection[lightNum];}
-	static float getDefaultAmbientCoeff(){return defaultAmbientCoeff;}
-	static float getDefaultSpecularExp(){return defaultSpecularExp;}
+	static const double* getDefaultViewDir(){return defaultViewDir;}
+	static const double* getDefaultUpVec(){return defaultUpVec;}
+	static const double* getDefaultLightDirection(int lightNum){return defaultLightDirection[lightNum];}
+	static double getDefaultAmbientCoeff(){return defaultAmbientCoeff;}
+	static double getDefaultSpecularExp(){return defaultSpecularExp;}
 	static int getDefaultNumLights(){return defaultNumLights;}
-	static const float* getDefaultDiffuseCoeff() {return defaultDiffuseCoeff;}
-	static const float* getDefaultSpecularCoeff() {return defaultSpecularCoeff;}
-	static void setDefaultLightDirection(int lightNum, float val[3]){
+	static const double* getDefaultDiffuseCoeff() {return defaultDiffuseCoeff;}
+	static const double* getDefaultSpecularCoeff() {return defaultSpecularCoeff;}
+	static void setDefaultLightDirection(int lightNum, double val[3]){
 		for (int i = 0; i<3; i++) defaultLightDirection[lightNum][i] = val[i];
 	}
-	static void setDefaultUpVec(float val[3]){
+	static void setDefaultUpVec(double val[3]){
 		for (int i = 0; i<3; i++) defaultUpVec[i] = val[i];
 	}
-	static void setDefaultViewDir(float val[3]){
+	static void setDefaultViewDir(double val[3]){
 		for (int i = 0; i<3; i++) defaultViewDir[i] = val[i];
 	}
-	static void setDefaultSpecularCoeff(float val[3]){
+	static void setDefaultSpecularCoeff(double val[3]){
 		for (int i = 0; i<3; i++) defaultSpecularCoeff[i] = val[i];
 	}
-	static void setDefaultDiffuseCoeff(float val[3]){
+	static void setDefaultDiffuseCoeff(double val[3]){
 		for (int i = 0; i<3; i++) defaultDiffuseCoeff[i] = val[i];
 	}
-	static void setDefaultAmbientCoeff(float val){ defaultAmbientCoeff = val;}
-	static void setDefaultSpecularExp(float val){ defaultSpecularExp = val;}
+	static void setDefaultAmbientCoeff(double val){ defaultAmbientCoeff = val;}
+	static void setDefaultSpecularExp(double val){ defaultSpecularExp = val;}
 	static void setDefaultNumLights(int val){ defaultNumLights = val;}
+	virtual Viewpoint* getCurrentViewpoint() {
+		ParamNode* pNode = GetRootNode()->GetNode(_currentViewTag);
+		if (pNode) return (Viewpoint*)pNode->GetParamsBase();
+		Viewpoint* vp = new Viewpoint();
+		GetRootNode()->AddNode(_currentViewTag, vp->GetRootNode());
+		return vp;
+	}
+	virtual Viewpoint* getHomeViewpoint() {
+		ParamNode* pNode = GetRootNode()->GetNode(_homeViewTag);
+		if (pNode) return (Viewpoint*)pNode->GetParamsBase();
+		Viewpoint* vp = new Viewpoint();
+		GetRootNode()->AddNode(_homeViewTag, vp->GetRootNode());
+		return vp;
+	}
 
 
 protected:
 
-	
-
 	static const string _shortName;
-	static const string _latLonAttr;
 	static const string _currentViewTag;
 	static const string _homeViewTag;
-	static const string _lightTag;
+	static const string _lightDirectionsTag;
+	static const string _diffuseCoeffTag;
+	static const string _specularCoeffTag;
+	static const string _specularExpTag;
+	static const string _ambientCoeffTag;
+	static const string _numLightsTag;
 	
-	
-	Viewpoint* currentViewpoint;
-	Viewpoint* homeViewpoint;
-	
-	int numLights;
-	float lightDirection[3][4];
-	float diffuseCoeff[3];
-	float specularCoeff[3];
-	float specularExp;
-	float ambientCoeff;
-
 	
 	//defaults:
-	static float defaultViewDir[3];
-	static float defaultUpVec[3];
-	static float defaultLightDirection[3][3];
-	static float defaultDiffuseCoeff[3];
-	static float defaultSpecularCoeff[3];
-	static float defaultAmbientCoeff;
-	static float defaultSpecularExp;
+	static double defaultViewDir[3];
+	static double defaultUpVec[3];
+	static double defaultLightDirection[3][3];
+	static double defaultDiffuseCoeff[3];
+	static double defaultSpecularCoeff[3];
+	static double defaultAmbientCoeff;
+	static double defaultSpecularExp;
 	static int defaultNumLights;
-	//Max sides
 	
 	//GL state saved here since it may be shared...
 	//

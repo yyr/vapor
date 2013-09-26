@@ -99,6 +99,13 @@ void vmult(const float *v, float s, float *w) {
 	w[1] = s*v[1]; 
 	w[2] = s*v[2];
 }
+// Scale, putting result in another vector
+//
+void vmult(const double *v, double s, double *w) {
+	w[0] = s*v[0]; 
+	w[1] = s*v[1]; 
+	w[2] = s*v[2];
+}
 
 void vhalf(const float *v1, const float *v2, float *half)
 {

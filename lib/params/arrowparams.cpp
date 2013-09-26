@@ -10,7 +10,6 @@ using namespace VAPoR;
 const string ArrowParams::_shortName = "Barbs";
 const string ArrowParams::_arrowParamsTag = "ArrowParams";
 const string ArrowParams::_constantColorTag = "ConstantColor";
-const string ArrowParams::_rakeExtentsTag = "RakeExtents";
 const string ArrowParams::_rakeGridTag = "GridDimensions";
 const string ArrowParams::_lineThicknessTag = "LineThickness";
 const string ArrowParams::_vectorScaleTag = "VectorScale";
@@ -44,12 +43,12 @@ reinit(bool doOverride){
 
 	DataStatus* ds = DataStatus::getInstance();
 	
-	int totNumVariables = ds->getNumSessionVariables()+ ds->getNumSessionVariables2D();
+	int totNumVariables = ds->getNumVariables2DXY()+ds->getNumVariables3D();
 	if (totNumVariables <= 0) return false;
 	bool is3D = VariablesAre3D();
 	int numVariables;
-	if (is3D) numVariables = ds->getNumSessionVariables();
-	else numVariables = ds->getNumSessionVariables2D();
+	if (is3D) numVariables = ds->getNumVariables3D();
+	else numVariables = ds->getNumVariables2DXY();
 	
 	//Set up the numRefinements. 
 	int maxNumRefinements = ds->getNumTransforms();
@@ -90,39 +89,25 @@ reinit(bool doOverride){
 					varname = ds->getVariableName3D(i);
 				}
 				else {
-					varname = ds->getVariableName2D(i);
+					varname = ds->getVariableName2DXY(i);
 				}
 			}
 			SetFieldVariableName(i,varname);
 		}
-	} else {
-		for (int i = 0; i<3; i++){
-			string varname = GetFieldVariableName(i);
-			int indx;
-			if (is3D){
-				indx = ds->getActiveVarNum3D(varname);
-			}
-			else {
-				indx = ds->getActiveVarNum2D(varname);
-			}
-			if (indx < 0) {
-				SetFieldVariableName(i,"0");
-			}
-		}
-	}
+	} 
 	//Use HGT as the height variable name, if it's there. If not just use the first 2d variable.
 	if (doOverride){
 		string varname = "HGT";
 		int indx = ds->getActiveVarNum2D(varname);
 		if (indx < 0 && ds->getNumActiveVariables2D()>0) {
-			varname = ds->getVariableName2D(0);
+			varname = ds->getVariableName2DXY(0);
 		}
 		SetHeightVariableName(varname);
 	} else {
 		string varname = GetHeightVariableName();
 		int indx = ds->getActiveVarNum2D(varname);
 		if (indx < 0 && ds->getNumActiveVariables2D()>0) {
-			varname = ds->getVariableName2D(0);
+			varname = ds->getVariableName2DXY(0);
 			SetHeightVariableName(varname);
 		}
 	}
@@ -140,14 +125,7 @@ reinit(bool doOverride){
 	} else {
 		double newExts[6];
 		GetRakeLocalExtents(newExts);
-		if (DataStatus::pre22Session()){
-			//In old session files, rake extents were not 0-based
-			float * offset = DataStatus::getPre22Offset();
-			for (int i = 0; i<3; i++){
-				newExts[i] -= offset[i];
-				newExts[i+3] -= offset[i];
-			}
-		}
+		
 		for (int i = 0; i<3; i++){
 			if (i != 2){
 				newExts[i] = Max(newExts[i], 0.);
@@ -262,7 +240,7 @@ void ArrowParams::calcDataAlignment(double rakeExts[6], int rakeGrid[3],size_t t
 		rakeGrid[i] = rGrid[i];
 	}
 	size_t voxExts[6];
-	mapBoxToVox(dataMgr, -1,GetCompressionLevel(),timestep, voxExts);
+	DataStatus::getInstance()->mapBoxToVox(GetBox(), -1,GetCompressionLevel(),timestep, voxExts);
 	for (int i = 0; i<3; i++) {
 		corner[i] = voxExts[i];
 		farCorner[i] = voxExts[i+3];
@@ -297,14 +275,6 @@ void ArrowParams::calcDataAlignment(double rakeExts[6], int rakeGrid[3],size_t t
 }
 
 
-
-float ArrowParams::getCameraDistance(ViewpointParams* vpp, RegionParams* , int ){
-	//Determine the box that contains the arrows:
-	
-	double dbexts[6];
-	GetRakeLocalExtents(dbexts);
-	return RenderParams::getCameraDistance(vpp,dbexts);
-}
 
 
 void ArrowParams::SetConstantColor(const float rgb[3]) {
@@ -379,13 +349,7 @@ double ArrowParams::calcDefaultScale(){
 		varname = GetFieldVariableName(i);
 		if (varname == "0") maxvarvals[i] = 0.;
 		else {
-			if (is3D){
-				sesvarnum = ds->getSessionVariableNum3D(varname);
-				maxvarvals[i] = Max(abs(ds->getDefaultDataMax3D(sesvarnum)),abs(ds->getDefaultDataMin3D(sesvarnum)));
-			} else {
-				sesvarnum = ds->getSessionVariableNum2D(varname);
-				maxvarvals[i] = Max(abs(ds->getDefaultDataMax2D(sesvarnum)),abs(ds->getDefaultDataMin2D(sesvarnum)));
-			}
+			maxvarvals[i] = Max(abs(ds->getDefaultDataMax(varname)),abs(ds->getDefaultDataMin(varname)));
 		}
 	}
 	for (int i = 0; i<3; i++) maxvarvals[i] *= stretch[i];

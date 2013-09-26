@@ -60,21 +60,27 @@ public:
 	
 #ifndef DOXYGEN_SKIP_THIS
 
-	virtual Params* deepCopy(ParamNode* n = 0);
 	static ParamsBase* CreateDefaultInstance() {return new RegionParams(-1);}
 	const std::string& getShortName() {return _shortName;}
+	virtual Box* GetBox() {
+		ParamNode* pNode = GetRootNode()->GetNode(Box::_boxTag);
+		if (pNode) return (Box*)pNode->GetParamsBase();
+		Box* box = new Box();
+		GetRootNode()->AddNode(Box::_boxTag, box->GetRootNode());
+		return box;
+	}
 	float getLocalRegionMin(int coord, int timestep){ 
 		double exts[6];
-		myBox->GetLocalExtents(exts, timestep);
+		GetBox()->GetLocalExtents(exts, timestep);
 		return exts[coord];
 	}
 	float getLocalRegionMax(int coord, int timestep){ 
 		double exts[6];
-		myBox->GetLocalExtents(exts, timestep);
+		GetBox()->GetLocalExtents(exts, timestep);
 		return exts[coord+3];
 	}
 	void getLocalRegionExtents(double exts[6],int timestep){
-		myBox->GetLocalExtents(exts,timestep);
+		GetBox()->GetLocalExtents(exts,timestep);
 		return;
 	}
 	float getLocalRegionCenter(int indx, int timestep) {
@@ -85,20 +91,16 @@ public:
 	bool reinit(bool doOverride);
 	virtual void restart();
 	
-	
-	
-	
-	virtual Box* GetBox() {return myBox;}
 	//Methods to set the region max and min from a float value.
 	//public so accessible from router
 	//
 	void setLocalRegionMin(int coord, float minval, int timestep, bool checkMax=true);
 	void setLocalRegionMax(int coord, float maxval, int timestep, bool checkMin=true);
 	
-	const vector<double>& GetAllExtents(){ return myBox->GetRootNode()->GetElementDouble(Box::_extentsTag);}
-	const vector<long>& GetTimes(){ return myBox->GetRootNode()->GetElementLong(Box::_timesTag);}
+	const vector<double>& GetAllExtents(){ return GetBox()->GetRootNode()->GetElementDouble(Box::_extentsTag);}
+	const vector<long>& GetTimes(){ return GetBox()->GetRootNode()->GetElementLong(Box::_timesTag);}
 	void clearRegionsMap();
-	bool extentsAreVarying(){ return myBox->GetTimes().size()>1;}
+	bool extentsAreVarying(){ return GetBox()->GetTimes().size()>1;}
 	//Insert a time in the list.  Return false if it's already there
 	bool insertTime(int timestep);
 	//Remove a time from the time-varying timesteps.  Return false if unsuccessful
@@ -106,20 +108,7 @@ public:
 
 protected:
 	static const string _shortName;
-	static const string _regionMinTag;
-	static const string _regionMaxTag;
-	static const string _regionCenterTag;
-	static const string _regionSizeTag;
-	static const string _regionAtTimeTag;
-	static const string _regionListTag;
-	static const string _maxSizeAttr;
-	static const string _numTransAttr;
-	static const string _fullHeightAttr;
-	static const string _timestepAttr;
-	static const string _extentsAttr;
 	
-	
-	Box* myBox;
 #endif //DOXYGEN_SKIP_THIS
 };
 

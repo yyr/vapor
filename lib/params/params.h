@@ -314,8 +314,6 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \retval Box* returns pointer to the Box associated with this Params.
 	virtual Box* GetBox() {return 0;}
 
-
-
 	//Following methods, while public, are not part of extensibility API
 	
 #ifndef DOXYGEN_SKIP_THIS
@@ -334,6 +332,8 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	static const string _viewpointParamsTag;
 	static const string _animationParamsTag;
 	static const string _RefinementLevelTag;
+	static const string _CompressionLevelTag;
+	static const string _VariableNamesTag;
 	static const string _VisualizerNumTag;
 	static const string _VariablesTag;
 	

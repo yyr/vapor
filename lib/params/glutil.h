@@ -93,6 +93,7 @@ PARAMS_API void	makeTransMatrix(float* transVec, double* matrix);
 PARAMS_API void	vscale (float *v, float s);
 PARAMS_API void	vscale (double *v, double s);
 PARAMS_API void	vmult(const float *v, float s, float *w); 
+PARAMS_API void	vmult(const double *v, double s, double *w); 
 PARAMS_API void	vhalf (const float *v1, const float *v2, float *half);
 PARAMS_API void	vcross (const float *v1, const float *v2, float *cross);
 PARAMS_API void	vcross (const double *v1, const double *v2, double *cross);

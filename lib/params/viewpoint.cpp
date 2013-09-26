@@ -43,15 +43,17 @@ const string Viewpoint::_camPosTag = "CameraPosition";
 const string Viewpoint::_viewDirTag = "ViewDirection";
 const string Viewpoint::_upVecTag = "UpVector";
 const string Viewpoint::_rotCenterTag = "RotationCenter";
-const string Viewpoint::_rotCenterLatLonTag = "RotCenterLatLon";
-const string Viewpoint::_camLatLonTag = "CameraLatLon";
-
 
 
 //Force the rotation center to lie in the center of the view.
 void Viewpoint::alignCenter(){
+	double viewDirection[3];
+	const vector <double>& vdir = getViewDir();
+	const vector<double>& rotationCenter = getRotationCenterLocal();
+	const vector<double>& cameraPosition = getCameraPosLocal();
+	for (int i = 0; i<3; i++) viewDirection[i] = vdir[i];
 	vnormal(viewDirection);
-	float rctr[3], cmps[3], temp[3];
+	double rctr[3], cmps[3], temp[3];
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
 	//stretch rotCenter and campos
 	for (int i = 0; i<3; i++){
@@ -61,10 +63,15 @@ void Viewpoint::alignCenter(){
 	//then project rotCenter-camPos in direction of view:
 	vsub(rctr, cmps, temp);
 	
-	float dt = vdot(viewDirection, temp);
+	double dt = vdot(viewDirection, temp);
 	vmult(viewDirection, dt, temp);
 
 	//apply unstretch to difference:
-	for (int i = 0; i<3; i++) temp[i] /= stretch[i];
-	vadd(temp, cameraPosition, rotationCenter);
+	vector<double>rotCtrLocal;
+	for (int i = 0; i<3; i++) {
+		temp[i] /= stretch[i];
+		rctr[i] = temp[i]+cameraPosition[i];
+		rotCtrLocal.push_back(rctr[i]);
+	}
+	setRotationCenterLocal(rotCtrLocal);
 }

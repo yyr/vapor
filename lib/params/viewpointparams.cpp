@@ -38,45 +38,41 @@
 #include "vapor/Version.h"
 
 
-float VAPoR::ViewpointParams::defaultUpVec[3] = {0.f, 1.f, 0.f};
-float VAPoR::ViewpointParams::defaultViewDir[3] = {0.f, 0.f, -1.f};
-float VAPoR::ViewpointParams::defaultLightDirection[3][3] = {{0.f, 0.f, 1.f},{0.f, 1.f, 0.f},{1.f, 0.f, 0.f}};
+double VAPoR::ViewpointParams::defaultUpVec[3] = {0.f, 1.f, 0.f};
+double VAPoR::ViewpointParams::defaultViewDir[3] = {0.f, 0.f, -1.f};
+double VAPoR::ViewpointParams::defaultLightDirection[3][3] = {{0.f, 0.f, 1.f},{0.f, 1.f, 0.f},{1.f, 0.f, 0.f}};
 int VAPoR::ViewpointParams::defaultNumLights = 2;
-float VAPoR::ViewpointParams::defaultDiffuseCoeff[3] = {0.8f, 0.8f, 0.8f};
-float VAPoR::ViewpointParams::defaultSpecularCoeff[3] = {0.3f, 0.3f, 0.3f};
-float VAPoR::ViewpointParams::defaultAmbientCoeff = 0.1f;
-float VAPoR::ViewpointParams::defaultSpecularExp = 20.f;
+double VAPoR::ViewpointParams::defaultDiffuseCoeff[3] = {0.8f, 0.8f, 0.8f};
+double VAPoR::ViewpointParams::defaultSpecularCoeff[3] = {0.3f, 0.3f, 0.3f};
+double VAPoR::ViewpointParams::defaultAmbientCoeff = 0.1f;
+double VAPoR::ViewpointParams::defaultSpecularExp = 20.f;
 
 
 using namespace VAPoR;
 
 const string ViewpointParams::_shortName = "View";
-const string ViewpointParams::_latLonAttr = "UseLatLon";
 const string ViewpointParams::_currentViewTag = "CurrentViewpoint";
 const string ViewpointParams::_homeViewTag = "HomeViewpoint";
-const string ViewpointParams::_lightTag = "Light";
+const string ViewpointParams::_lightDirectionsTag = "LightDirections";
+const string ViewpointParams::_diffuseCoeffTag = "DiffuseCoefficients";
+const string ViewpointParams::_specularCoeffTag = "SpecularCoefficients";
+const string ViewpointParams::_specularExpTag = "SpecularExponent";
+const string ViewpointParams::_ambientCoeffTag = "AmbientCoefficient";
+const string ViewpointParams::_numLightsTag = "NumLights";
 
 
 ViewpointParams::ViewpointParams(int winnum): Params(winnum, Params::_viewpointParamsTag){
 	
-	
-	homeViewpoint = 0;
-	currentViewpoint = 0;
 	restart();
-	
 }
 Params* ViewpointParams::
 deepCopy(ParamNode*){
 	ViewpointParams* p = new ViewpointParams(*this);
-	p->currentViewpoint = new Viewpoint(*currentViewpoint);
-	p->homeViewpoint = new Viewpoint(*homeViewpoint);
-	
 	return (Params*)(p);
 }
 ViewpointParams::~ViewpointParams(){
 	
-	delete currentViewpoint;
-	delete homeViewpoint;
+	
 }
 
 
@@ -87,26 +83,35 @@ ViewpointParams::~ViewpointParams(){
 //(this is starting state)
 void ViewpointParams::
 restart(){
-	
-	numLights = defaultNumLights;
+	//Make sure we have current and home viewpoints
+	if (!GetRootNode()->HasChild(_currentViewTag)){
+		Viewpoint* vp = new Viewpoint();
+		ParamNode* vpNode = vp->GetRootNode();
+		GetRootNode()->AddRegisteredNode(_currentViewTag,vpNode,vp);
+	}
+	if (!GetRootNode()->HasChild(_homeViewTag)){
+		Viewpoint* vp = new Viewpoint();
+		ParamNode* vpNode = vp->GetRootNode();
+		GetRootNode()->AddRegisteredNode(_homeViewTag,vpNode,vp);
+	}
+	setNumLights(defaultNumLights);
+	vector<double> ldirs;
+	vector<double> diffCoeffs;
+	vector<double> specCoeffs;
 	for (int i = 0; i<3; i++){
-		for (int j = 0; j<3; j++){
-			lightDirection[i][j] = defaultLightDirection[i][j];
+		for (int dir = 0; dir<3; dir++){
+			ldirs.push_back(defaultLightDirection[i][dir]);
 		}
 		//final component is 0 (for gl directional light)
-		lightDirection[i][3] = 0.f;
-		diffuseCoeff[i] = defaultDiffuseCoeff[i];
-		specularCoeff[i] = defaultSpecularCoeff[i];
+		ldirs.push_back(0.);
+		diffCoeffs.push_back(defaultDiffuseCoeff[i]);
+		specCoeffs.push_back(defaultSpecularCoeff[i]);
 	}
-	
-	specularExp = defaultSpecularExp;
-	ambientCoeff = defaultAmbientCoeff;
-
-	if (currentViewpoint) delete currentViewpoint;
-	currentViewpoint = new Viewpoint();
-	
-	if (homeViewpoint) delete homeViewpoint;
-	homeViewpoint = new Viewpoint(*currentViewpoint);
+	GetRootNode()->SetElementDouble(_lightDirectionsTag,ldirs);
+	GetRootNode()->SetElementDouble(_diffuseCoeffTag,diffCoeffs);
+	GetRootNode()->SetElementDouble(_specularCoeffTag,specCoeffs);
+	setExponent(defaultSpecularExp);
+	setAmbientCoeff(defaultAmbientCoeff);
 	
 	setCoordTrans();
 	
@@ -135,52 +140,38 @@ reinit(bool doOverride){
 	
 	setCoordTrans();
 	if (doOverride){
-		setViewDir(defaultViewDir);
-		setUpVec(defaultUpVec);
+		//set to defaults:
+		restart();
 		
-	
-		//Set the home viewpoint, but don't call setHomeViewpoint().
-		delete homeViewpoint;
-		homeViewpoint = new Viewpoint(*currentViewpoint);
-		//set lighting to defaults:
-		for (int i = 0; i<3; i++){
-			for (int j = 0; j<3; j++){
-				lightDirection[i][j] = defaultLightDirection[i][j];
-			}
-			//final component is 0 (for gl directional light)
-			lightDirection[i][3] = 0.f;
-			diffuseCoeff[i] = defaultDiffuseCoeff[i];
-			specularCoeff[i] = defaultSpecularCoeff[i];
-		}
-	
-		specularExp = defaultSpecularExp;
-		ambientCoeff = defaultAmbientCoeff;
 	} 
 	return true;
 }
 //Rescale viewing parameters when the scene is rescaled by factor
 void ViewpointParams::
-rescale (float scaleFac[3], int timestep){
-	float vtemp[3], vtemp2[3];
+rescale (double scaleFac[3], int timestep){
+	double vtemp[3];
 	Viewpoint* vp = getCurrentViewpoint();
 	Viewpoint* vph = getHomeViewpoint();
-	float* vps = vp->getCameraPosLocal();
-	float* vctr = vp->getRotationCenterLocal();
-	vsub(vps, vctr, vtemp);
+	const vector<double>& vps = vp->getCameraPosLocal();
+	const vector<double>& vctr = vp->getRotationCenterLocal();
+	vector<double> vtemp2;
 	//Want to move the camera in or out, based on scaling in directions orthogonal to view dir.
 	for (int i = 0; i<3; i++){
+		vtemp[i] = vps[i] - vctr[i];
 		vtemp[i] /= scaleFac[i];
+		vtemp2.push_back(vtemp[i]+vctr[i]);
 	}
-	vadd(vtemp, vctr, vtemp2);
 	vp->setCameraPosLocal(vtemp2);
 	//Do same for home viewpoint
-	vps = vph->getCameraPosLocal();
-	vctr = vph->getRotationCenterLocal();
-	vsub(vps, vctr, vtemp);
+	const vector<double>& vpsh = vp->getCameraPosLocal();
+	const vector<double>& vctrh = vp->getRotationCenterLocal();
+	
 	for (int i = 0; i<3; i++){
+		vtemp[i] = vpsh[i]-vctrh[i];
 		vtemp[i] /= scaleFac[i];
+		vtemp2[i] = vtemp[i] + vctrh[i];
 	}
-	vadd(vtemp, vctr, vtemp2);
+
 	vph->setCameraPosLocal(vtemp2);
 	
 }

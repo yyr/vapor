@@ -206,6 +206,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\lib\params\animationparams.cpp" />
+    <ClCompile Include="..\..\..\lib\params\arrowparams.cpp" />
     <ClCompile Include="..\..\..\lib\params\Box.cpp" />
     <ClCompile Include="..\..\..\lib\params\datastatus.cpp" />
     <ClCompile Include="..\..\..\lib\params\glutil.cpp" />
@@ -217,6 +218,7 @@
     <ClCompile Include="..\..\..\lib\params\viewpointparams.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\include\vapor\ExtensionClasses.h" />
     <ClInclude Include="..\..\..\lib\params\animationparams.h" />
     <ClInclude Include="..\..\..\lib\params\arrowparams.h" />
     <ClInclude Include="..\..\..\lib\params\Box.h" />

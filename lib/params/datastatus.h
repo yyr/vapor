@@ -78,18 +78,10 @@ public:
 	//! \retval size_t value of largest time step
 	size_t getMaxTimestep() {return maxTimeStep;}
 
-	
-
-	
 	//! Indicates whether any variable exists at a particular timestep.
 	//! \param[in] int timestep Time step
 	//! \retval true if the data exists
 	bool dataIsPresent(int timestep) {return true;}
-		
-	
-
-	
-	
 
 	//! Indicates the number of time steps in the current VDC.
 	//! \retval int number of timesteps
@@ -103,10 +95,21 @@ public:
 	//! \retval int number of LOD's
 	int getNumLODs() { return numLODs;}
 
+	int getNumVariables3D() {return dataMgr->GetVariables3D().size();}
+	int getNumVariables2DXY() {return dataMgr->GetVariables2DXY().size();}
+	 
+	const string& getVariableName2DXY(int i){return dataMgr->GetVariables2DXY()[i];}
+	const string& getVariableName3D(int i){return dataMgr->GetVariables3D()[i];}
+	int getNumActiveVariables3D() {return getNumVariables3D();}
+	int getNumActiveVariables2D() {return getNumVariables2DXY();}
+	int getActiveVarNum3D(string vname) {return getVarNum3D(vname);}
+	int getActiveVarNum2D(string vname) {return getVarNum2D(vname);}
+	int getVarNum3D(string vname);
+	int getVarNum2D(string vname);
+	float getDefaultDataMax(string vname);
+	float getDefaultDataMin(string vname);
+	void mapBoxToVox(Box* box, int refLevel, int lod, int timestep, size_t voxExts[6]);
 	
-
-	
-
 	//! Returns the current data manager (if it exists).
 	//! Returns null if it does not exist.
 	//! \retval DataMgr* pointer to current Data Manager

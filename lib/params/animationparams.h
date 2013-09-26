@@ -50,70 +50,63 @@ public:
 	//! Destructor
 	~AnimationParams();
 
-	//! Identify the current frame being rendered
-	//! \retval int current frame number
-	int getCurrentFrameNumber() {
-		
-		return currentTimestep;
-	}
-
 	//! Identify the current data timestep being used
-	//! \retval size_t current time step
-	int getCurrentTimestep() {
-		
-		return currentTimestep;
+	//! \retval long current time step
+	long getCurrentTimestep() {
+		return GetRootNode()->GetElementLong(_currentTimestepTag)[0];
+	}
+	//! Set the current data timestep being used
+	//! \param long current time step
+	void setCurrentTimestep(long ts) {
+		GetRootNode()->SetElementLong(_currentTimestepTag,ts);
 	}
 
-	//! Identify the starting frame number currently set in the UI.
+	//! Identify the starting time step currently set in the UI.
 	//! \retval int starting frame number.
-	int getStartFrameNumber() {
-		return startFrame;
+	int getStartTimestep() {
+		return GetRootNode()->GetElementLong(_startTimestepTag)[0];
+	}
+	//! set the starting time step
+	//! \param int starting timestep
+	void setStartTimestep(int val) {
+		GetRootNode()->SetElementLong(_startTimestepTag,val);
 	}
 
-	//! Identify the ending frame number as currently set in the UI.
-	//! \retval int ending frame number.
-	int getEndFrameNumber() {
-		
-		return endFrame;
+	//! Identify the ending time step used during playback
+	//! \retval int ending timestep
+	int getEndTimestep() {
+		return GetRootNode()->GetElementLong(_endTimestepTag)[0];
+	}
+	//! set the ending time step 
+	//! \param int ending timestep
+	void setEndTimestep(int val) {
+		GetRootNode()->SetElementLong(_endTimestepTag,val);
 	}
 
-	//! Identify the minimum frame number 
+	//! Identify the minimum time step (bound on setting start/end) 
 	//! \retval int minimum frame number.
-	int getMinTimestep() {return minTimestep;}
-
-	//! Identify the maximum frame number 
-	//! \retval int maximum frame number.
-	int getMaxTimestep() {return maxTimestep;}
-
-	//! Identify the minimum frame number 
-	//! \retval int minimum frame number.
-	int getMinFrame() {
-		
-		return minTimestep;
+	int getMinTimestep() {
+		return GetRootNode()->GetElementLong(_minTimestepTag)[0];
+	}
+	//! Set the minimum time step (bound on setting start/end) 
+	//! \param int minimum timestep
+	void setMinTimestep(int val) {
+		GetRootNode()->SetElementLong(_minTimestepTag,val);
+	}
+	//! Identify the maximum time step
+	//! \retval int maximum timestep
+	int getMaxTimestep() {
+		return GetRootNode()->GetElementLong(_maxTimestepTag)[0];
 	}
 
-	//! Identify the maximum frame number 
-	//! \retval int maximum frame number.
-	int getMaxFrame() {
-		
-		return maxTimestep;
+	//! Set the maximum time step
+	//! \param int maximum timestep
+	void setMaxTimestep(int val) {
+		GetRootNode()->SetElementLong(_maxTimestepTag,val);
 	}
-
-
-	//! Set the minimum frame number 
-	//! \param[in] int minimum frame number.
-	void setMinTimestep(int minF) {minTimestep = minF;}
-
-	//! Identify the maximum frame number 
-	//! \param[in] int maximum frame number.
-	void setMaxTimestep(int maxF) {maxTimestep = maxF;}
-
-		
 
 #ifndef DOXYGEN_SKIP_THIS
 
-	
-	
 	//The rest is not part of the public API
 	static ParamsBase* CreateDefaultInstance() {return new AnimationParams(-1);}
 	const std::string& getShortName() {return _shortName;}
@@ -123,50 +116,40 @@ public:
 	static void setDefaultPrefs();
 	virtual bool reinit(bool doOverride);
 
-	bool isPlaying() {return (playDirection != 0);}
+	bool isPlaying() {return (getPlayDirection() != 0);}
 
+	int getMinTimeToRender() {return ((int)(1000.f/getMaxFrameRate()) );}
+	
+	int getPlayDirection() {
+		return GetRootNode()->GetElementLong(_playDirectionTag)[0];
+	}
+	void setPlayDirection(int val) {
+		GetRootNode()->SetElementLong(_playDirectionTag,val);
+	}
+	int getFrameStepSize() {
+		return GetRootNode()->GetElementLong(_stepSizeTag)[0];
+	}
+	void setFrameStepSize(int val) {
+		GetRootNode()->SetElementLong(_stepSizeTag,val);
+	}
+	double getMaxFrameRate() {
+		return GetRootNode()->GetElementDouble(_maxRateTag)[0];
+	}
+	void setMaxFrameRate(double rate) {
+		GetRootNode()->SetElementDouble(_maxRateTag,rate);
+	}
 
-	int getMinTimeToRender() {return ((int)(1000.f/maxFrameRate) );}
-	
-	
-	int getPlayDirection() {return playDirection;}
-	int getFrameStepSize() {return frameStepSize;}
-	float getMaxFrameRate() {return maxFrameRate;}
-	void setCurrentInterpolatedFrame(int val){
-		currentInterpolatedFrame=val;
+	bool isRepeating() {
+		return (GetRootNode()->GetElementLong(_repeatTag)[0] != 0);
 	}
-	int getCurrentInterpolatedFrame(){
-		return currentInterpolatedFrame;
-	}
-	int getFrameIndex(int keyframeIndex);
-	void setCurrentFrameNumber(int val) {
-		
-		currentTimestep = val;
-	}
-	void setStartFrameNumber(int val) {
-		
-		startFrame=val;
-		
-	}
-	void setEndFrameNumber(int val) {
-		
-			endFrame=val;
-		
+	void setRepeating(bool onOff){
+		GetRootNode()->SetElementLong(_repeatTag,(long)onOff);
 	}
 	
 
-	bool isRepeating() {return repeatPlay;}
-	void setRepeating(bool onOff){repeatPlay = onOff;}
-	void setFrameStepSize(int sz){ frameStepSize = sz;}
-	void setMaxFrameRate(float val) {maxFrameRate = val;}
-	void setPlayDirection(int val){stateChanged = true; playDirection = val;}
-	bool isStateChanged() {return stateChanged;}
-	//Used when the state changes during a render:
-	void setStateChanged(bool state) {stateChanged = state;}
-
-	static float getDefaultMaxFPS() {return defaultMaxFPS;}
+	static double getDefaultMaxFPS() {return defaultMaxFPS;}
 	
-	static void setDefaultMaxFPS(float val) {defaultMaxFPS = val;}
+	static void setDefaultMaxFPS(double val) {defaultMaxFPS = val;}
 
 	//When rendering is finished, renderer calls this.  Returns true no change (if the change bit
 	//needs to be set. 
@@ -183,28 +166,14 @@ protected:
 	static const string _repeatTag;
 	static const string _maxRateTag;
 	static const string _stepSizeTag;
-	static const string _startFrameTag;
-	static const string _endFrameTag;
+	static const string _startTimestepTag;
+	static const string _endTimestepTag;
+	static const string _minTimestepTag;
+	static const string _maxTimestepTag;
+	static const string _playDirectionTag;
+	static const string _currentTimestepTag;
 	
-	static const string _currentFrameTag;
-	
-
-	int playDirection; //-1, 0, or 1
-	bool repeatPlay;
-	float maxFrameRate;
-	
-	int frameStepSize;// always 1 or greater
-	int startFrame;
-	int endFrame;
-	
-	int maxTimestep, minTimestep;
-	int currentInterpolatedFrame;
-	int currentTimestep;
-	
-	//If the animation state is changed, gui needs to update:
-	bool stateChanged;
-	
-	static float defaultMaxFPS;
+	static double defaultMaxFPS;
 
 	
 

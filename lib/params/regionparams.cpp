@@ -42,40 +42,16 @@
 
 using namespace VAPoR;
 
-const string RegionParams::_regionCenterTag = "RegionCenter";
 const string RegionParams::_shortName = "Region";
-const string RegionParams::_regionSizeTag = "RegionSize";
-const string RegionParams::_regionMinTag = "RegionMin";
-const string RegionParams::_regionMaxTag = "RegionMax";
-const string RegionParams::_regionAtTimeTag = "RegionAtTime";
-const string RegionParams::_regionListTag = "RegionList";
-
 
 RegionParams::RegionParams(int winnum): Params(winnum, Params::_regionParamsTag){
-	
-	myBox = 0;
 	restart();
 }
-Params* RegionParams::
-deepCopy(ParamNode* ){
-	//Just make a shallow copy, but duplicate the Box
-	//
-	RegionParams* p = new RegionParams(*this);
-	ParamNode* pNode = new ParamNode(*(myBox->GetRootNode()));
-	p->myBox = (Box*)myBox->deepCopy(pNode);
-	
-	return (Params*)(p);
-}
+
 
 RegionParams::~RegionParams(){
 	clearRegionsMap();
-	if (myBox) delete myBox;
 }
-
-
-
-
-
 
 
 //Reset region settings to initial state
@@ -85,13 +61,16 @@ restart(){
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds || !ds->getDataMgr()) ds = 0;
 	
-	if (!myBox){
-		myBox = new Box();
+	if (!GetRootNode()->HasChild(Box::_boxTag)){
+		Box* myBox = new Box();
+		ParamNode* boxNode = myBox->GetRootNode();
+		GetRootNode()->AddRegisteredNode(Box::_boxTag,boxNode,myBox);
 	}
 	
 	vector<double> regexts;
-	for (int i = 0; i<6; i++) regexts.push_back(0.);
-	myBox->SetLocalExtents(regexts);
+	for (int i = 0; i<3; i++) regexts.push_back(0.);
+	for (int i = 0; i<3; i++) regexts.push_back(1.);
+	GetBox()->SetLocalExtents(regexts);
 	
 }
 //Reinitialize region settings, session has changed
@@ -109,14 +88,14 @@ reinit(bool doOverride){
 			exts.push_back( extents[i+3]-extents[i]);
 		}
 		clearRegionsMap();
-		myBox->SetLocalExtents(exts);
-		myBox->Trim();
+		GetBox()->SetLocalExtents(exts);
+		GetBox()->Trim();
 	} else {
 		//ensure all the local time-extents to be valid
-		const vector<long>& times = myBox->GetTimes();
+		const vector<long>& times = GetBox()->GetTimes();
 		for (int timenum = 0; timenum< times.size(); timenum++){
 			int currTime = times[timenum];
-			myBox->GetLocalExtents(regionExtents,currTime);
+			GetBox()->GetLocalExtents(regionExtents,currTime);
 			
 			//force them to fit in current volume 
 			for (i = 0; i< 3; i++) {
@@ -134,7 +113,7 @@ reinit(bool doOverride){
 			}
 			exts.clear();
 			for (int j = 0; j< 6; j++) exts.push_back(regionExtents[j]);
-			myBox->SetLocalExtents(exts,currTime);
+			GetBox()->SetLocalExtents(exts,currTime);
 		}	
 	}
 	
@@ -150,10 +129,10 @@ void RegionParams::setLocalRegionMin(int coord, float minval, int timestep, bool
 		if (minval > fullSizes[coord]) minval = fullSizes[coord];
 	}
 	double exts[6];
-	myBox->GetLocalExtents(exts, timestep);
+	GetBox()->GetLocalExtents(exts, timestep);
 	if (checkMax) {if (minval > exts[coord+3]) minval = exts[coord+3];}
 	exts[coord] = minval;
-	myBox->SetLocalExtents(exts,timestep);
+	GetBox()->SetLocalExtents(exts,timestep);
 }
 void RegionParams::setLocalRegionMax(int coord, float maxval, int timestep, bool checkMin){
 	DataStatus* ds = DataStatus::getInstance();
@@ -164,19 +143,16 @@ void RegionParams::setLocalRegionMax(int coord, float maxval, int timestep, bool
 		if (maxval > fullSizes[coord]) maxval = fullSizes[coord];
 	}
 	double exts[6];
-	myBox->GetLocalExtents(exts, timestep);
+	GetBox()->GetLocalExtents(exts, timestep);
 	
 	if (checkMin){if (maxval < exts[coord]) maxval = exts[coord];}
 	exts[coord+3] = maxval;
-	myBox->SetLocalExtents(exts, timestep);
+	GetBox()->SetLocalExtents(exts, timestep);
 }
 
 
-
-
-
 void RegionParams::clearRegionsMap(){
-	myBox->Trim();
+	GetBox()->Trim();
 }
 bool RegionParams::insertTime(int timestep){
 	if (timestep<0) return false;
@@ -195,8 +171,8 @@ bool RegionParams::insertTime(int timestep){
 	copyTimes.push_back(timestep);
 	//Set the new extents to default extents:
 	for (int i = 0; i<6; i++) copyExts.push_back(extents[i]);
-	myBox->GetRootNode()->SetElementLong(Box::_timesTag, copyTimes);
-	myBox->GetRootNode()->SetElementDouble(Box::_extentsTag, copyExts);
+	GetBox()->GetRootNode()->SetElementLong(Box::_timesTag, copyTimes);
+	GetBox()->GetRootNode()->SetElementDouble(Box::_extentsTag, copyExts);
 	return true;
 }
 bool RegionParams::removeTime(int timestep){
