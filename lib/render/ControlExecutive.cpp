@@ -208,7 +208,7 @@ int ControlExecutive::Paint(int viz, bool force){return 0;}
 	//! \note (AN) It would be much better to incorporate the DataStatus methods into
 	//! the DataMgr class, rather than keeping them separate.
 	//
-	const DataInfo *ControlExecutive::LoadData(vector <string> files, bool default){return 0;}
+	const DataInfo *ControlExecutive::LoadData(vector <string> files, bool dt){return 0;}
 
 	//! Draw 2D text on the screen
 	//!

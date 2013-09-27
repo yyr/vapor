@@ -31,6 +31,9 @@
 #include <vapor/RegularGrid.h>
 #include <vapor/errorcodes.h>
 #include "Box.h"
+#include <iostream>
+#include <sstream>
+#include <string>
 
 
 using namespace VAPoR;
@@ -88,7 +91,9 @@ void Params::BailOut(const char *errstr, const char *fname, int lineno)
 	errorMessage += "\n in file: ";
 	errorMessage += fname;
 	errorMessage += " at line ";
-	errorMessage += std::to_string((long double)lineno);
+	std::stringstream ss;
+	ss << lineno;
+	errorMessage += ss.str(); 
 	SetErrMsg(VAPOR_FATAL,"Fatal error: %s",(const char*)errorMessage.c_str());
 	//MessageReporter::fatalMsg(errorMessage);
     exit(-1);

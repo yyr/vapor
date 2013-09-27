@@ -25,7 +25,11 @@
 #include "regionparams.h"
 #include "viewpointparams.h"
 #include "animationparams.h"
+#ifdef Darwin
+#include <gl.h>
+#else
 #include <GL/gl.h>
+#endif
 
 using namespace VAPoR;
 

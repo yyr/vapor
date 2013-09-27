@@ -41,7 +41,11 @@
 #include "assert.h"
 #include <vapor/jpegapi.h>
 #include <vapor/common.h>
-#include <GL/GL.h>
+#ifdef Darwin
+#include <gl.h>
+#else
+#include <GL/gl.h>
+#endif
 
 using namespace VAPoR;
 int GLWindow::activeWindowNum = 0;

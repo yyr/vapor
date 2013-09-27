@@ -202,7 +202,7 @@ public:
 	//! not containing explicit time information the ordering of 
 	//! time varying data will be determined by the order of the files
 	//! in \p files.
-	//! \param[in] default boolean indicating whether data will loaded into 
+	//! \param[in] deflt boolean indicating whether data will loaded into 
 	//! the default settings (versus into an existing session).
 	//!
 	//! \return datainfo Upon success a constant pointer to a DataInfo
@@ -221,7 +221,7 @@ public:
 	//! \note (AN) It would be much better to incorporate the DataStatus methods into
 	//! the DataMgr class, rather than keeping them separate.
 	//
-	const DataInfo *LoadData(vector <string> files, bool default = true);
+	const DataInfo *LoadData(vector <string> files, bool deflt = true);
 
 	//! Draw 2D text on the screen
 	//!
