@@ -1077,7 +1077,7 @@ int NetCDFCollection::_InitializeTimesMapCase3(
 				return(-1);
 			}
 
-			string timedim = variables[j].GetDimNames()[0];
+			string timedim = variables[index].GetDimNames()[0];
 			size_t timedimlen = netcdf->DimLen(timedim);
 
 			vector <double> times;
