@@ -67,7 +67,8 @@ private slots:
     void addVar();
 
 private:
-    bool validatePage();
+    bool isComplete();
+	bool validatePage();
     void populateCheckedVars();
     void cleanupPage();
     void setupVars();

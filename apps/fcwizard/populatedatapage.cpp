@@ -26,6 +26,8 @@
 #include "ui/Page4.h"
 #include "dataholder.h"
 
+#include "Images/2VDFsmall.xpm"
+
 using namespace VAPoR;
 
 PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
@@ -34,7 +36,7 @@ PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
     setupUi(this);
 
     //QPixmap populateDataPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/2VDFsmall.png");
-    QPixmap populateDataPixmap("../../../Images/2VDFsmall.png");
+    QPixmap populateDataPixmap(_VDFsmall);
     populateDataLabel->setPixmap(populateDataPixmap);
 
     dataHolder = DH;
@@ -85,7 +87,10 @@ void PopulateDataPage::setupVars() {
         int col = i%3;
         tableWidget->setItem(row,col,item);
     }
-    tableWidget->resizeColumnsToContents();
+    tableWidget->setColumnWidth(0,tableWidget->width()/3);
+    tableWidget->setColumnWidth(1,tableWidget->width()/3);
+    tableWidget->setColumnWidth(2,tableWidget->width()/3);
+	//tableWidget->resizeColumnsToContents();
 }
 
 // set some initial values in the page widgets, and set the appropriate
@@ -135,38 +140,46 @@ void PopulateDataPage::populateCheckedVars() {
     dataHolder->setPDSelectedVars(varsVector);
 }
 
+bool PopulateDataPage::isComplete() {
+	return dataHolder->vdcSettingsChanged;
+}
+
 bool PopulateDataPage::validatePage() {
     populateCheckedVars();
 
-    cout << "vdc changed:" << dataHolder->vdcSettingsChanged << endl;
+    cout << dataHolder->getErrors().size() << endl;
 
-    if (isComplete() == true) {
-        if (dataHolder->vdcSettingsChanged==true) {
+    //if (isComplete() == true) {
+      //  if (dataHolder->vdcSettingsChanged==true) {
             cout << "creating vdc" << endl;
             if (dataHolder->run2VDF()==0) {   
-                dataHolder->vdcSettingsChanged=false;
+            	cout << "2vdf success" << endl;
+			    dataHolder->vdcSettingsChanged=false;
                 return true;
             }   
             else {
+				cout << "error time" << dataHolder->getErrors().size() << endl;
                 dataHolder->vdcSettingsChanged=false;
                 for (int i=0;i<dataHolder->getErrors().size();i++){
                     errorMessage->errorList->append(dataHolder->getErrors()[i]);
                     errorMessage->errorList->append("\n");
                 }   
-                wizard()->button(QWizard::FinishButton)->setDisabled(true);
+                //wizard()->button(QWizard::FinishButton)->setDisabled(true);
                 errorMessage->show();
-                dataHolder->clearErrors();
+                errorMessage->setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
+				errorMessage->raise();
+				errorMessage->activateWindow();
+				dataHolder->clearErrors();
                 MyBase::SetErrCode(0);
                 return false;
             }   
-        }   
-        else return true;
-    }   
+        //}   
+      //  else return false;
+    //}   
     return false;   
 
 
 
-dataHolder->run2VDF();
-    
-    return true;
+//dataHolder->run2VDF();  
+//return true;
 }

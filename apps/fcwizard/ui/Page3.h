@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'Page3.ui'
 **
-** Created: Mon Sep 23 12:30:54 2013
+** Created: Thu Sep 26 11:52:54 2013
 **      by: Qt User Interface Compiler version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -90,6 +90,7 @@ public:
         tableWidget = new QTableWidget(Page3);
         tableWidget->setObjectName(QString::fromUtf8("tableWidget"));
         tableWidget->setGeometry(QRect(20, 126, 439, 200));
+        tableWidget->verticalHeader()->setVisible(false);
         vdfCommentButton = new QPushButton(Page3);
         vdfCommentButton->setObjectName(QString::fromUtf8("vdfCommentButton"));
         vdfCommentButton->setGeometry(QRect(233, 334, 183, 20));

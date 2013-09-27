@@ -1,0 +1,56 @@
+﻿Build started 9/26/2013 11:50:10 AM.
+Project "B:\make\win32\fcwizard\fcwizard.vcxproj" on node 2 (build target(s)).
+InitializeBuildStatus:
+  Touching "x64\Debug\fcwizard.unsuccessfulbuild".
+CustomBuild:
+  Moc'ing createvdfaddnewvar.h...
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\x86_amd64\CL.exe /c /IC:\Vapor3rdParty\include /I..\..\..\include /I..\..\..\lib\params /I..\..\..\apps\fcwizard /I../../../apps/fcwizard/ui\ /I"C:\Vapor3rdParty\python27-32/include" /I. /I..\..\..\apps\fcwizard\moc\ /IC:\vaporwin32deps\Qt\4.8.3/include/QtCore /IC:\vaporwin32deps\Qt\4.8.3/include/ /IC:\vaporwin32deps\Qt\4.8.3/include/QtGui /Zi /nologo /W3 /WX- /Od /D WIN32 /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"x64\Debug\\" /Fd"x64\Debug\vc100.pdb" /Gd /TP /errorReport:prompt ..\..\..\apps\fcwizard\moc\moc_createvdfaddnewvar.cpp
+  moc_createvdfaddnewvar.cpp
+ManifestResourceCompile:
+  C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\rc.exe /nologo /fo"x64\Debug\fcwizard.exe.embed.manifest.res" x64\Debug\fcwizard_manifest.rc 
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"B:\make\win32\common\x64\Debug\fcwizard.exe" /INCREMENTAL /NOLOGO /LIBPATH:C:\vaporwin64deps\Qt\4.8.3/lib /LIBPATH:"C:\Vapor3rdParty\python27-64/libs" /LIBPATH:C:\Vapor3rdParty\debugLib64 glew32.lib QtCored4.lib QtOpenGLd4.lib QtGuid4.lib qtmaind.lib mpr.lib ..\..\..\targets\win64\bin\params.lib ..\..\..\targets\win64\bin\vdf.lib ..\..\..\targets\win64\bin\common.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib python27_d.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"x64\Debug\fcwizard.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"B:\make\win32\common\x64\Debug\fcwizard.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"B:\make\win32\common\x64\Debug\fcwizard.lib" /MACHINE:X64 x64\Debug\fcwizard.exe.embed.manifest.res
+  x64\Debug\createvdfaddnewvar.obj
+  x64\Debug\createvdfadvanced.obj
+  x64\Debug\createvdfcomment.obj
+  x64\Debug\createvdfpage.obj
+  x64\Debug\dataholder.obj
+  x64\Debug\errormessage.obj
+  x64\Debug\fcwizard.obj
+  x64\Debug\intropage.obj
+  x64\Debug\main.obj
+  x64\Debug\moc_createvdfaddnewvar.obj
+  x64\Debug\moc_createvdfadvanced.obj
+  x64\Debug\moc_createvdfcomment.obj
+  x64\Debug\moc_createvdfpage.obj
+  x64\Debug\moc_errormessage.obj
+  x64\Debug\moc_fcwizard.obj
+  x64\Debug\moc_intropage.obj
+  x64\Debug\moc_popdataadvanced.obj
+  x64\Debug\moc_populatedatapage.obj
+  x64\Debug\moc_selectfilepage.obj
+  x64\Debug\moc_vdfbadfile.obj
+  x64\Debug\popdataadvanced.obj
+  x64\Debug\populatedatapage.obj
+  x64\Debug\selectfilepage.obj
+  x64\Debug\vdfbadfile.obj
+  B:\targets\win64\bin\common.lib
+  B:\targets\win64\bin\params.lib
+  B:\targets\win64\bin\udunits2.lib
+  B:\targets\win64\bin\vdf.lib
+  fcwizard.vcxproj -> B:\make\win32\common\x64\Debug\fcwizard.exe
+Manifest:
+  C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /out:"x64\Debug\fcwizard.exe.embed.manifest" /manifest x64\Debug\fcwizard.exe.intermediate.manifest
+  C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\rc.exe /nologo /fo"x64\Debug\fcwizard.exe.embed.manifest.res" x64\Debug\fcwizard_manifest.rc 
+LinkEmbedManifest:
+  All outputs are up-to-date.
+  fcwizard.vcxproj -> B:\make\win32\common\x64\Debug\fcwizard.exe
+FinalizeBuildStatus:
+  Deleting file "x64\Debug\fcwizard.unsuccessfulbuild".
+  Touching "x64\Debug\fcwizard.lastbuildstate".
+Done Building Project "B:\make\win32\fcwizard\fcwizard.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:06.90

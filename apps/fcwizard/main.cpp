@@ -26,6 +26,10 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
+	QFont myFont = a.font();
+	myFont.setPointSize(13);
+	a.setFont(myFont);
+
     FCWizard w;
     w.show();
 

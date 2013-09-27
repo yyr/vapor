@@ -72,6 +72,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ncdfvdfcreate", "..\ncdfvdf
 		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fcwizard", "..\fcwizard\fcwizard.vcxproj", "{A8DC2DCE-32AE-4332-8CF1-EB8489F28964}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -282,6 +284,14 @@ Global
 		{78EA5265-8F42-4DF3-997A-7EB0453216FA}.Release|Win32.Build.0 = Release|Win32
 		{78EA5265-8F42-4DF3-997A-7EB0453216FA}.Release|x64.ActiveCfg = Release|x64
 		{78EA5265-8F42-4DF3-997A-7EB0453216FA}.Release|x64.Build.0 = Release|x64
+		{A8DC2DCE-32AE-4332-8CF1-EB8489F28964}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A8DC2DCE-32AE-4332-8CF1-EB8489F28964}.Debug|Win32.Build.0 = Debug|Win32
+		{A8DC2DCE-32AE-4332-8CF1-EB8489F28964}.Debug|x64.ActiveCfg = Debug|x64
+		{A8DC2DCE-32AE-4332-8CF1-EB8489F28964}.Debug|x64.Build.0 = Debug|x64
+		{A8DC2DCE-32AE-4332-8CF1-EB8489F28964}.Release|Win32.ActiveCfg = Release|Win32
+		{A8DC2DCE-32AE-4332-8CF1-EB8489F28964}.Release|Win32.Build.0 = Release|Win32
+		{A8DC2DCE-32AE-4332-8CF1-EB8489F28964}.Release|x64.ActiveCfg = Release|x64
+		{A8DC2DCE-32AE-4332-8CF1-EB8489F28964}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

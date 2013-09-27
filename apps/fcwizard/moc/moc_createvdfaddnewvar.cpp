@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'createvdfaddnewvar.h'
 **
-** Created: Mon Sep 23 12:30:46 2013
+** Created: Thu Sep 26 12:12:33 2013
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.3)
 **
 ** WARNING! All changes made in this file will be lost!

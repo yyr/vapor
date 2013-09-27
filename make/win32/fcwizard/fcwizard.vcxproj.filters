@@ -1,0 +1,201 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Forms">
+      <UniqueIdentifier>{1f6ee051-6a76-48db-bc49-f5d601c588b6}</UniqueIdentifier>
+      <Extensions>ui</Extensions>
+      <ParseFiles>false</ParseFiles>
+    </Filter>
+    <Filter Include="Generated MOC Files">
+      <UniqueIdentifier>{390b52ca-323a-461e-94da-f596cdb82dae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated Form Files">
+      <UniqueIdentifier>{61e97898-5371-4f88-a93e-34e151b87e90}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated UI Files">
+      <UniqueIdentifier>{b5359e6f-af6c-40e1-a665-8f21c5f16a8e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\apps\fcwizard\ui\Page1.h">
+      <Filter>Generated Form Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\apps\fcwizard\ui\Page2.h">
+      <Filter>Generated Form Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\apps\fcwizard\ui\Page2badfile.h">
+      <Filter>Generated Form Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\apps\fcwizard\ui\Page3.h">
+      <Filter>Generated Form Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\apps\fcwizard\ui\Page3addnewvar.h">
+      <Filter>Generated Form Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\apps\fcwizard\ui\Page3adv.h">
+      <Filter>Generated Form Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\apps\fcwizard\ui\Page3cmt.h">
+      <Filter>Generated Form Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\apps\fcwizard\ui\Page4.h">
+      <Filter>Generated Form Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\apps\fcwizard\ui\Page4adv.h">
+      <Filter>Generated Form Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\apps\fcwizard\ui\ErrMsg.h">
+      <Filter>Generated Form Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\apps\fcwizard\createvdfaddnewvar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\createvdfadvanced.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\createvdfcomment.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\createvdfpage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\dataholder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\fcwizard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\intropage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\popdataadvanced.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\populatedatapage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\selectfilepage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\vdfbadfile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\moc\moc_createvdfadvanced.cpp">
+      <Filter>Generated MOC Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\moc\moc_createvdfcomment.cpp">
+      <Filter>Generated MOC Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\moc\moc_createvdfpage.cpp">
+      <Filter>Generated MOC Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\moc\moc_fcwizard.cpp">
+      <Filter>Generated MOC Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\moc\moc_intropage.cpp">
+      <Filter>Generated MOC Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\moc\moc_popdataadvanced.cpp">
+      <Filter>Generated MOC Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\moc\moc_populatedatapage.cpp">
+      <Filter>Generated MOC Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\moc\moc_selectfilepage.cpp">
+      <Filter>Generated MOC Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\moc\moc_vdfbadfile.cpp">
+      <Filter>Generated MOC Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\moc\moc_errormessage.cpp">
+      <Filter>Generated MOC Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\errormessage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\fcwizard\moc\moc_createvdfaddnewvar.cpp">
+      <Filter>Generated MOC Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\apps\fcwizard\ui\Page1.ui">
+      <Filter>Forms</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\fcwizard\ui\Page2.ui">
+      <Filter>Forms</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\fcwizard\ui\Page2badfile.ui">
+      <Filter>Forms</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\fcwizard\ui\Page3.ui">
+      <Filter>Forms</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\fcwizard\ui\Page3addnewvar.ui">
+      <Filter>Forms</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\fcwizard\ui\Page3adv.ui">
+      <Filter>Forms</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\fcwizard\ui\Page3cmt.ui">
+      <Filter>Forms</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\fcwizard\ui\Page4.ui">
+      <Filter>Forms</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\fcwizard\ui\Page4adv.ui">
+      <Filter>Forms</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\fcwizard\createvdfaddnewvar.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\fcwizard\createvdfadvanced.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\fcwizard\createvdfcomment.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\fcwizard\createvdfpage.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\fcwizard\dataholder.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\fcwizard\fcwizard.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\fcwizard\intropage.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\fcwizard\popdataadvanced.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\fcwizard\populatedatapage.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\fcwizard\selectfilepage.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\fcwizard\vdfbadfile.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\fcwizard\ui\ErrMsg.ui">
+      <Filter>Forms</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\fcwizard\errormessage.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>

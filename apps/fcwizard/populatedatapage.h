@@ -60,6 +60,7 @@ private:
     void setupVars();
     void populateCheckedVars();
     bool validatePage();
+	bool isComplete();
 };
 
 #endif // POPULATEDATAPAGE_H

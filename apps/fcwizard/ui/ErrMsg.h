@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'ErrMsg.ui'
 **
-** Created: Mon Sep 23 12:30:59 2013
+** Created: Thu Sep 26 11:52:54 2013
 **      by: Qt User Interface Compiler version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!

@@ -28,6 +28,8 @@
 #include "ui/Page3.h"
 #include "dataholder.h"
 
+#include "Images/makeVDFsmall.xpm"
+
 using namespace VAPoR;
 
 CreateVdfPage::CreateVdfPage(DataHolder *DH, QWidget *parent) :
@@ -36,7 +38,7 @@ CreateVdfPage::CreateVdfPage(DataHolder *DH, QWidget *parent) :
     setupUi(this);
 
     //QPixmap createVDFPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/makeVDFsmall.png");
-	QPixmap createVDFPixmap("../../../Images/makeVDFsmall.png");
+	QPixmap createVDFPixmap(makeVDFsmall);
     createVdfLabel->setPixmap(createVDFPixmap);
 
     dataHolder = DH;
@@ -52,13 +54,15 @@ CreateVdfPage::CreateVdfPage(DataHolder *DH, QWidget *parent) :
 
 // Check all loaded variables
 void CreateVdfPage::on_selectAllButton_clicked() {
-    for (int i=0; i<varList.size(); i++) {
+    /*for (int i=0; i<varList.size(); i++) {
         int row = i/3;
         int col = i%3;
         tableWidget->item(row,col)->setCheckState(Qt::Checked);
     }
     dataHolder->setVDFSelectedVars(dataHolder->getVDFDisplayedVars());
-	dataHolder->vdfSettingsChanged=true;
+	dataHolder->vdfSettingsChanged=true;*/
+	//cout << dataHolder->reader->->GetNumTimeSteps() << endl;
+	cout << dataHolder->getVDFnumTS() << endl;
 }
 
 // Uncheck all loaded variables
@@ -118,7 +122,10 @@ void CreateVdfPage::setupVars() {
         int col = i%3;
         tableWidget->setItem(row,col,item);
     }
-    tableWidget->resizeColumnsToContents();
+	tableWidget->setColumnWidth(0,tableWidget->width()/3);
+    tableWidget->setColumnWidth(1,tableWidget->width()/3);
+	tableWidget->setColumnWidth(2,tableWidget->width()/3);
+	//tableWidget->resizeColumnsToContents();
 }
 
 void CreateVdfPage::addVar() {
@@ -154,6 +161,10 @@ void CreateVdfPage::populateCheckedVars() {
     }
 
     dataHolder->setVDFSelectedVars(varsVector);
+}
+
+bool CreateVdfPage::isComplete() {
+	return dataHolder->vdfSettingsChanged;
 }
 
 bool CreateVdfPage::validatePage() {

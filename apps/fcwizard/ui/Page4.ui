@@ -170,6 +170,9 @@
      <height>200</height>
     </rect>
    </property>
+   <attribute name="verticalHeaderVisible">
+    <bool>false</bool>
+   </attribute>
   </widget>
   <widget class="QLabel" name="populateDataLabel">
    <property name="geometry">

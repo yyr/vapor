@@ -24,6 +24,9 @@
 #include "dataholder.h"
 #include <QDebug>
 
+#include "Images/makeVDF.xpm"
+#include "Images/2VDF.xpm"
+
 using namespace VAPoR;
 
 IntroPage::IntroPage(DataHolder *DH, QWidget *parent) :
@@ -33,15 +36,17 @@ IntroPage::IntroPage(DataHolder *DH, QWidget *parent) :
 
     dataHolder = DH;
     //QPixmap createVDFPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/makeVDF.png");
-	QPixmap createVDFPixmap("../../../Images/makeVDF.png");
-    QIcon createVDFButtonIcon(createVDFPixmap);
+	//QPixmap createVDFPixmap("../../../Images/makeVDF.png");
+    QPixmap createVDFPixmap(makeVDF);
+	QIcon createVDFButtonIcon(createVDFPixmap);
     createVDFButton->setIcon(createVDFButtonIcon);
     createVDFButton->setIconSize(createVDFPixmap.rect().size());
     createVDFButton->setCheckable(1);
 
     //QPixmap convertDataPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/2VDF.png");
-	QPixmap convertDataPixmap("../../../Images/2VDF.png");
-    QIcon convertDataButtonIcon(convertDataPixmap);
+	//QPixmap convertDataPixmap("../../../Images/2VDF.png");
+    QPixmap convertDataPixmap(_VDF);
+	QIcon convertDataButtonIcon(convertDataPixmap);
     populateDataButton->setIcon(convertDataButtonIcon);
     populateDataButton->setIconSize(convertDataPixmap.rect().size());
     populateDataButton->setCheckable(1);

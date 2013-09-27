@@ -26,6 +26,9 @@
 #include "dataholder.h"
 #include "vdfbadfile.h"
 
+#include "Images/makeVDFsmall.xpm"
+#include "Images/2VDFsmall.xpm"
+
 using namespace std;
 using namespace VAPoR;
 
@@ -43,10 +46,12 @@ SelectFilePage::SelectFilePage(DataHolder *DH, QWidget *parent) :
 	QString selectedDirectory;
 
 	//vdfCreatePixmap = QPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/makeVDFsmall.png");
-	vdfCreatePixmap = QPixmap("../../../Images/makeVDFsmall.png");
+	//vdfCreatePixmap = QPixmap("../../../Images/makeVDFsmall.png");
+	vdfCreatePixmap = QPixmap(makeVDFsmall);
 	//selectFilePixmap->setPixmap(vdfCreatePixmap);
     //toVdfPixmap = QPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/2vdfsmall.png");
-	toVdfPixmap = QPixmap("../../../Images/2VDFsmall.png");
+	//toVdfPixmap = QPixmap("../../../Images/2VDFsmall.png");
+	toVdfPixmap = QPixmap(_VDFsmall);
 
 	/*vector<string> tempVec;
 	tempVec.push_back("/glade/proj3/DASG/pearse/Vapor2.2updated/targets/Darwin_x86_64/bin");	
@@ -136,14 +141,12 @@ vector<string> SelectFilePage::getSelectedFiles() {
 }
 
 void SelectFilePage::cleanupPage() {
-    cout << "selectfilepage cleaned up" << endl;
 	QList<QWizard::WizardButton> layout;
     layout << QWizard::Stretch;
     wizard()->setButtonLayout(layout);
 }
 
 void SelectFilePage::initializePage() {
-    cout << "selectfilepage initialized" << endl;
 
 	if (dataHolder->getOperation() == "vdfcreate"){
         selectFilePixmap->setPixmap(vdfCreatePixmap);//.scaled(55,50,Qt::KeepAspectRatio));
