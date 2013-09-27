@@ -102,7 +102,7 @@ public:
 	}
 	bool IsTerrainMapped(){
 		const vector<long>off(1,0);
-		return (GetRootNode()->GetElementLong(_terrainMapTag,off)[0]);
+		return ((bool)GetRootNode()->GetElementLong(_terrainMapTag,off)[0]);
 	}
 	void SetTerrainMapped(bool val) {
 		GetRootNode()->SetElementLong(_terrainMapTag, (val ? 1:0));
@@ -131,7 +131,7 @@ public:
 	}
 	bool IsAlignedToData() {
 		const vector<long> notAligned(1,0);
-		return (GetRootNode()->GetElementLong(_alignGridTag,notAligned)[0]);
+		return ((bool)GetRootNode()->GetElementLong(_alignGridTag,notAligned)[0]);
 	}
 	const vector<long> GetGridAlignStrides(){
 		const vector<long> defaultStrides(3,10);

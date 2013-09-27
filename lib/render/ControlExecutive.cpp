@@ -1,28 +1,15 @@
-
-#ifndef ControlExecutive_h
-
-#include <string>
-#include <vector>
-using namespace std;
-namespace VAPoR {
-
-#include "common.h"
-
-class Params;
-class DataInfo;
-class ErrorHandler;
-
-//! \class ControlExecutive
-//!
-//!	Provides API for VAPOR visualizer User Interface (UI)
+//-- ControlExecutive.cpp ----------------------------------------------------------------
 //
+// Implementation of ControlExecutive methods
+//----------------------------------------------------------------------------
 
-class RENDER_API ControlExecutive {
-public:
-	//! Initialize the control executive
-	//!
-	//! \note what, if any, arguments are needed?
-	ControlExecutive();
+#include "vapor/ControlExecutive.h"
+#include "params.h"
+
+
+using namespace VAPoR;
+
+ControlExecutive::ControlExecutive(){}
 
 	//! Create a new visualizer
 	//!
@@ -47,7 +34,7 @@ public:
 	//! hints about what kind of graphics context is needed 
 	//! (e.g. double buffering)
 	//
-	int NewVisualizer(/*oglinfo_c oglinfo*/);
+int ControlExecutive::NewVisualizer(/*oglinfo_c oglinfo*/){return 0;}
 
 	//! Notify the control executive that a drawing object has
 	//! changed size.
@@ -59,7 +46,7 @@ public:
 	//! The UI should make the OGL context associated with \p viz
 	//! current prior to calling this method.
 	//
-	void ResizeViz(int viz);
+void ControlExecutive::ResizeViz(int viz){}
 
 	//! Render the contents of a drawable
 	//!
@@ -78,19 +65,19 @@ public:
 	//! on this visualizer have changed state.
 	//!
 	//!
-	int Paint(int viz, bool force=false);
+int ControlExecutive::Paint(int viz, bool force){return 0;}
 
 	//! Specify the current ModelViewMatrix
 	//!
 	//! Tells the control executive that the specified matrix will be used
-	//! at the next time Paint is called on the specified visualizer.
+	//! the next time Paint() is called on the specified visualizer.
 	//!
 	//! \param[in] viz A visualizer handle returned by NewVisualizer()
 	//!	\param[in] matrix Specifies a float array of 16 values representing the
 	//! new ModelView matrix.
 	//!
 	//!
-	int SetModelViewMatrix(int viz, double* mtx);
+	int SetModelViewMatrix(int viz, double* mtx){return 0;}
 
 	//! Create a new renderer
 	//!
@@ -107,7 +94,7 @@ public:
 	//!
 	//! \sa NewVisualizer()
 	//
-	int NewRenderer(int viz, std::string type, Params* p);
+	int ControlExecutive::NewRenderer(int viz, string type, Params* p){return 0;}
 
 	//! Activate or Deactivate a renderer
 	//!
@@ -124,7 +111,7 @@ public:
 	//! \return status A negative int is returned on failure, indicating that
 	//! the renderer cannot be activated
 	//
-	int ActivateRender(int viz, std::string type, int instance, bool on);
+	int ControlExecutive::ActivateRender(int viz, string type, int instance, bool on){return 0;}
 
 	//! Get a pointer to the existing parameter state information 
 	//!
@@ -150,7 +137,7 @@ public:
 	//! interest in change of *any* parameter if that proves to be useful.
 	//! 
 	//
-	Params* GetParams(int viz, string type, int instance);
+	Params* ControlExecutive::GetParams(int viz, string type, int instance){return 0;}
 
 	//! Determine how many instances of a given renderer type are present
 	//! in a visualizer.  Necessary for setting up a UI.
@@ -159,7 +146,7 @@ public:
 	//! \return number of instances 
 	//!
 
-	int GetNumParamsInstances(int viz, string type);
+	int ControlExecutive::GetNumParamsInstances(int viz, string type){return 0;}
 
 	//! Save the current session state to a file
 	//!
@@ -173,7 +160,7 @@ public:
 	//!
 	//! \sa RestoreSession()
 	//
-	int SaveSession(string file);
+	int ControlExecutive::SaveSession(string file){return 0;}
 
 	//!	Restore the session state from a session state file
 	//!
@@ -192,7 +179,7 @@ public:
 	//! \sa LoadData(), GetRenderParams(), etc.
 	//! \sa SaveSession()
 	//
-	int RestoreSession(string file);
+	int ControlExecutive::RestoreSession(string file){return 0;}
 
 	//! Load a data set into the current session
 	//!
@@ -221,7 +208,7 @@ public:
 	//! \note (AN) It would be much better to incorporate the DataStatus methods into
 	//! the DataMgr class, rather than keeping them separate.
 	//
-	const DataInfo *LoadData(vector <string> files, bool default = true);
+	const DataInfo *ControlExecutive::LoadData(vector <string> files, bool default){return 0;}
 
 	//! Draw 2D text on the screen
 	//!
@@ -239,7 +226,7 @@ public:
 	//! \param[in] size Font size in points
 	//! \param[in] text The text to render
 	//
-	int DrawText(int viz, int x, int y, string font, int size, string text);
+	int ControlExecutive::DrawText(int viz, int x, int y, string font, int size, string text){return 0;}
 
 	//! Make a new Params object
 	//!
@@ -258,7 +245,7 @@ public:
 	//!
 	//! \sa Undo(), Redo(), RestoreSession(), SaveSession()
 	//
-	Params *NewParams(string name, int viz);
+	Params * ControlExecutive::NewParams(string name, int viz){return 0;}
 
 	//! Undo the last session state change
 	//!
@@ -279,7 +266,7 @@ public:
 	//! \return Params* ptr A pointer to the Params object that reflects the change.  Pointer is null if there is nothing to undo.
 	//! \sa Redo()
 	//!
-	Params* Undo(int* instance, int *viz, string& type);
+	Params* ControlExecutive::Undo(int* instance, int *viz, string& type){return 0;}
 
 	//! Redo the next session state change
 	//!
@@ -299,7 +286,7 @@ public:
 	//! \return Params* ptr A pointer to the Params object that reflects the change.  Pointer is null if there is nothing to Redo
 	//! \sa UnDo()
 	//
-	Params* Redo(int* instance, int *viz, string& type);
+	Params* ControlExecutive::Redo(int* instance, int *viz, string& type){return 0;}
 
 	//! Initiate a new entry in the Undo/Redo queue.  The changes that occur
 	//! between StartCommand() and EndCommand() result in an entry in the Undo/Redo queue.
@@ -316,7 +303,7 @@ public:
 	//! \param[in] string text describes what is changing.
 	//! \sa EndCommand()
 	//
-	void StartCommand(Params* p, string text);
+	void ControlExecutive::StartCommand(Params* p, string text){}
 
 	//! Complete a new entry in the Undo/Redo queue.  All state changes that occur in a Params instance
 	//! between StartCommand() and EndCommand() result in a single entry in the Undo/Redo queue.
@@ -326,7 +313,7 @@ public:
 	//! when StartCommand was called
 	//! \sa StartCommand()
 	//
-	int EndCommand(Params* p);
+	int ControlExecutive::EndCommand(Params* p){return 0;}
 
 	//! Identify the changes in the undo/Redo queue
 	//! Returns the text associated with a change in the undo/redo queue.
@@ -336,7 +323,7 @@ public:
 	//! The null string is returned if there is no entry corresponding to n. 
 	//! \return descriptive text \p string associated with the specified command.
 	//
-	string& GetCommandText(int n);
+	string& ControlExecutive::GetCommandText(int n){return * (new string(""));}
 
 	//! Capture the next rendered image to a file
 	//!
@@ -349,7 +336,7 @@ public:
 	//! If this is called concurrently with a call to Paint(), the
 	//! image will not be captured until that rendering completes
 	//! and another Paint() is initiated.
-	int EnableCapture(string filename, int viz);
+	int ControlExecutive::EnableCapture(string filename, int viz){return 0;}
 
 	//! Specify an error handler that the ControlExecutive will use
 	//! to notify of asynchronous error conditions that arise.
@@ -358,15 +345,11 @@ public:
 	//! A string description and a numerical error code.
 	//! Only one ErrorHandler can be set.
 	//! If none is set, no errors will be reported to the UI.
-	int SetErrorHandler(ErrorHandler* handler);
+	int ControlExecutive::SetErrorHandler(ErrorHandler* handler){return 0;}
 
 	//! Verify that a Params instance is in a valid state
 	//! Used to handle synchronous error checking,
 	//! E.g. checking user input parameters.
 	//! \param[in] p pointer to Params instance being checked
 	//! \return status nonzero indicates error
-	int ValidateParams(Params* p);
-
-};
-};
-#endif //ControlExecutive_h
+	int ControlExecutive::ValidateParams(Params* p){return 0;}

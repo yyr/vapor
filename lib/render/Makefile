@@ -2,30 +2,14 @@ TOP = ../..
 
 include ${TOP}/make/config/prebase.mk
 
-QT = 1
 LIBRARY = render
-MOC_DIR = moc
-UI_DIR = ui
 
 FILES = \
-	DVRBase DVRDebug \
-	glwindow renderer twoDrenderer \
-	twoDimagerenderer twoDdatarenderer \
-	manip proberenderer\
+	glwindow renderer \
 	arrowrenderer \
-	trackball flowrenderer \
-	VolumeRenderer BBox ShaderProgram TextureBrick \
-	Vect3d Matrix3d Stopwatch DVRTexture3d \
-	DVRShader \
-	isorenderer GLModelNode \
-	DVRSpherical DVRRayCaster \
-	ModelRenderer \
-	ShaderMgr jfilewrite
+	ControlExecutive \
+	jfilewrite
 
-QT_HEADERS = \
-	renderer \
-	spintimer
-  
 
 ifeq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += -D"RENDER_EXPORTS"

@@ -28,7 +28,6 @@
 #include <unistd.h>
 #endif
 
-#include <qgl.h>
 #include "arrowrenderer.h"
 #include "regionparams.h"
 #include "animationparams.h"
@@ -292,7 +291,7 @@ void ArrowRenderer::performRendering(
 	
 	//Perform setup of OpenGL transform matrix.  This transforms the full stretched domain into the unit box
 	//by scaling and translating.
-	myGLWindow->TransformToUnitBox();
+	//myGLWindow->TransformToUnitBox();
 
 	//Then obtain stretch factors to use for coordinate mapping
 	//Don't apply a glScale to stretch the scene, because that would distort the arrow shape
@@ -428,9 +427,9 @@ setupVariableData(
 	}
 	if (aParams->IsTerrainMapped()){
 		string hname = aParams->GetHeightVariableName();
-		int sesvarnum = ds->getSessionVariableNum2D(hname);
+		
 		varnames.push_back(hname);
-		maxVerticalOffset = ds->getDataMax2D(sesvarnum,(int)timestep);
+		maxVerticalOffset = ds->getDefaultDataMax(hname);
 	}
 	
 	//Determine the region extents needed to include a voxel beyond all the rake vertices at ref level 0.
@@ -441,39 +440,17 @@ setupVariableData(
 	}
 	validExts[5] += maxVerticalOffset;
 
-
-	//Call RegionParams::PrepareCoordsForRetrieval to get the extents needed for data
-	//It may reduce the refinement level or indicate that the required data is not available.
-
 	int numxforms = aParams->GetRefinementLevel();
 	int lod = aParams->GetCompressionLevel();
-	int actualRefLevel = RegionParams::PrepareCoordsForRetrieval(numxforms, lod, timestep, varnames, 
-		validExts, validExts+3, min_dim, max_dim);
-	if (actualRefLevel < 0) {
-		SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Arrow data unavailable at timestep %d\n", timestep);
-		aParams->setBypass(timestep);
-		return -1;
-	}
+	dataMgr->GetEnclosingRegion(timestep,validExts, validExts+3, min_dim, max_dim,numxforms,lod);
+	
 
-	//Obtain the required data from the DataMgr.  The LOD of the data may need to be reduced.
+	//Obtain the required data from the DataMgr.  
 	
 	for (int i = 0; i<3; i++){
 		if(varnames[i] == "0") continue;
-		int useLOD = aParams->GetCompressionLevel();
-		int maxLOD = ds->maxLODPresent(varnames[i],timestep);
-		if (maxLOD < useLOD){
-			if (!ds->useLowerAccuracy()){
-				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Arrow data unavailable at LOD %d\n", aParams->GetCompressionLevel());
-				aParams->setBypass(timestep);
-				for (int k = 0; k<i; k++){
-					if (variableData[k])
-						dataMgr->UnlockGrid(variableData[k]);
-				}
-				return -1;
-			}
-			useLOD = maxLOD;
-		}
-		variableData[i] = dataMgr->GetGrid(timestep, varnames[i],actualRefLevel, useLOD,min_dim,max_dim,1);
+		
+		variableData[i] = dataMgr->GetGrid(timestep, varnames[i],numxforms, lod,min_dim,max_dim,1);
 		if (!variableData[i]){
 			SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Arrow data unavailable for %s\n", varnames[i].c_str());
 			aParams->setBypass(timestep);
@@ -487,18 +464,14 @@ setupVariableData(
 	//Obtain the height data, if required. Save it in variableData[3]
 	
 	if (aParams->IsTerrainMapped()){
-		int useLOD = aParams->GetCompressionLevel();
 		string hname = aParams->GetHeightVariableName();
-		int maxLOD = ds->maxLODPresent(hname,timestep);
-		if (maxLOD >= useLOD){
-			variableData[3] = dataMgr->GetGrid(timestep, hname, actualRefLevel, useLOD,min_dim,max_dim,1);
-		} else if (ds->useLowerAccuracy()){
-			variableData[3] = dataMgr->GetGrid(timestep, hname, actualRefLevel, maxLOD,min_dim,max_dim,1);
-		} else {
+		
+		variableData[3] = dataMgr->GetGrid(timestep, hname, numxforms, lod,min_dim,max_dim,1);
+		
+		if (!variableData[3]){
 			SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Height data unavailable at LOD %d\n", aParams->GetCompressionLevel());
 			aParams->setBypass(timestep);
-			variableData[3] = 0;
 		}
 	}
-	return actualRefLevel;
+	return numxforms;
 }

@@ -87,9 +87,9 @@ PARAMS_API void	computeGradientData(
 	int dim[3], int numChan, unsigned char *volume, unsigned char *gradient
 );
 PARAMS_API void	makeModelviewMatrix(float* vpos, float* vdir, float* upvec, float* matrix);
-PARAMS_API void	makeModelviewMatrixD(float* vpos, float* vdir, float* upvec, double* matrix);
+PARAMS_API void	makeModelviewMatrixD(double* vpos, double* vdir, double* upvec, double* matrix);
 PARAMS_API void	makeTransMatrix(float* transVec, float* matrix);
-PARAMS_API void	makeTransMatrix(float* transVec, double* matrix);
+PARAMS_API void	makeTransMatrix(double* transVec, double* matrix);
 PARAMS_API void	vscale (float *v, float s);
 PARAMS_API void	vscale (double *v, double s);
 PARAMS_API void	vmult(const float *v, float s, float *w); 

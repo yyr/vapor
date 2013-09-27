@@ -20,13 +20,13 @@
 
 #ifndef RENDERER_H
 #define RENDERER_H
-#include <qobject.h>
-#include <qimage.h>
+
+
 #include <vapor/MyBase.h>
 #include <vapor/common.h>
 #include "params.h"
 #include "glwindow.h"
-#include <qgl.h>
+
 using namespace VetsUtil;
 
 namespace VAPoR {
@@ -42,10 +42,8 @@ class Metadata;
 //! Renderer class is a pure virtual class that supports 
 //! OpenGL rendering in the VAPOR visualizer window.
 //! All renderers must derive from this class.
-class RENDER_API Renderer: public QObject, public MyBase
+class RENDER_API Renderer: public MyBase
 {
-     Q_OBJECT
-	
 	
 public:
 	//! Constructor should be invoked by any derived renderers.
@@ -112,18 +110,9 @@ public:
 
 #ifndef DOXYGEN_SKIP_THIS
 	const string& getMyName() const {return(_myName);};
-	//Obsolete methods:
-	virtual bool clutIsDirty() {return clutDirtyBit;}
-	virtual void setClutDirty(){clutDirtyBit = true;}
-	virtual void clearClutDirty(){clutDirtyBit = false;}
-	void renderColorscale(bool rebuild);
 	
 	GLWindow* myGLWindow;
 	
-	
-signals:
-
-    void statusMessage(const QString&);
 
 protected:
 	void enableClippingPlanes(const double extents[6]);
@@ -133,23 +122,9 @@ protected:
 	void disableFullClippingPlanes();
 	void disableRegionClippingPlanes();
 	RenderParams* currentRenderParams;
-	void buildColorscaleImage();
-	
-	
-	
-
-	//Dimensions of colormap image:
-	int imgWidth, imgHeight;
-	QImage glColorbarImage;
-	
-	float regionFrameColor[3];
-	float subregionFrameColor[3];
-	int savedNumXForms;
 	bool initialized;
-	GLuint _colorbarTexid;
 	
 private:
-	bool clutDirtyBit;
 	string _myName;
 #endif //DOXYGEN_SKIP_THIS
 };

@@ -22,49 +22,35 @@
 #pragma warning(disable : 4996)
 #endif
 #include <vapor/GetAppPath.h>
-
 #include "glwindow.h"
-#include "trackball.h"
 #include "renderer.h"
 #include "viewpointparams.h"
-#include "dvrparams.h"
-
 #include "regionparams.h"
-#include "probeparams.h"
-
 #include "animationparams.h"
-#include "manip.h"
+
 #include "datastatus.h"
 #include <vapor/MyBase.h>
+#include <vapor/errorcodes.h>
+#include "glutil.h"
 
 #include <algorithm>
 #include <vector>
 #include <math.h>
-#include <qgl.h>
-#include <qlabel.h>
-#include <qpainter.h>
-#include <qpixmap.h>
-#include <qimage.h>
-#include <qmutex.h>
-#include <qrect.h>
+
 #include "tiffio.h"
 #include "assert.h"
 #include <vapor/jpegapi.h>
 #include <vapor/common.h>
-#include <qapplication.h>
-#include "flowrenderer.h"
-#include "VolumeRenderer.h"
-#include "spintimer.h"
+#include <GL/GL.h>
 
 using namespace VAPoR;
 int GLWindow::activeWindowNum = 0;
 bool GLWindow::regionShareFlag = true;
 bool GLWindow::defaultTerrainEnabled = false;
-bool GLWindow::defaultSpinAnimateEnabled = false;
-bool GLWindow::spinAnimate = false;
+
 bool GLWindow::defaultAxisArrowsEnabled = false;
 bool GLWindow::nowPainting = false;
-bool GLWindow::depthPeeling = false;
+
 /* note: 
  * GL_ENUMS used by depth peeling for attaching the color buffers, currently 16 named points exist
  */
@@ -76,8 +62,7 @@ vector<string> GLWindow::modeName;
 map<ParamsBase::ParamsBaseType, int> GLWindow::modeFromParams;
 vector<ParamsBase::ParamsBaseType> GLWindow::paramsFromMode;
 int GLWindow::jpegQuality = 100;
-GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
-: QGLWidget(fmt, parent)
+GLWindow::GLWindow(int windowNum )
 
 {
 	currentParams.clear();
@@ -86,72 +71,26 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 
 	MyBase::SetDiagMsg("GLWindow::GLWindow() begin");
 	
-	mySpinTimer = 0;
-	isSpinning = false;
 
 	winNum = windowNum;
 	rendererMapping.clear();
 	assert(rendererMapping.size() == 0);
 	setViewerCoordsChanged(true);
-	setAutoBufferSwap(false);
-	setAutoFillBackground(false);
+	
 	wCenter[0] = 0.f;
 	wCenter[1] = 0.f;
 	wCenter[2] = 0.f;
 	maxDim = 1.f;
-	perspective = true;
-	oldPerspective = false;
+	
 	renderNew = false;
 	nowPainting = false;
 	
 	needsResize = true;
 	farDist = 100.f;
 	nearDist = 0.1f;
-	colorbarDirty = true;
-	timeAnnotDirty = true;
-	axisLabelsDirty = true;
-	for (int axis=0; axis < 3; axis++) axisLabels[axis].clear();
-	colorbarParamsTypeId = Params::GetTypeFromTag(Params::_dvrParamsTag);
+	
 	mouseDownHere = false;
 
-	//values of features:
-	timeAnnotColor = QColor(Qt::white);
-	timeAnnotCoords[0] = 0.1f;
-	timeAnnotCoords[1] = 0.1f;
-	timeAnnotTextSize = 10;
-	timeAnnotType = 0;
-
-	
-	colorbarBackgroundColor = QColor(Qt::black);
-	
-	
-	axisArrowsEnabled = getDefaultAxisArrowsEnabled();
-	axisAnnotationEnabled = false;
-	
-	colorbarEnabled = false;
-	for (int i = 0; i<3; i++){
-	    axisArrowCoord[i] = 0.f;
-		axisOriginCoord[i] = 0.f;
-		numTics[i] = 6;
-		ticLength[i] = 0.05f;
-		minTic[i] = 0.f;
-		maxTic[i] = 1.f;
-		ticDir[i] = 0;
-		axisLabelNums[i] = 0;
-	}
-	ticDir[0] = 1;
-	labelHeight = 10;
-	labelDigits = 4;
-	ticWidth = 2.f;
-	axisColor = QColor(Qt::white);
-
-	colorbarFontsize = 10;
-	colorbarDigits = 3;
-	colorbarLLCoord[0] = 0.1f;
-	colorbarLLCoord[1] = 0.1f;
-	colorbarURCoord[0] = 0.3f;
-	colorbarURCoord[1] = 0.5f;
-	numColorbarTics = 11;
 	numRenderers = 0;
 	for (int i = 0; i< MAXNUMRENDERERS; i++){
 		renderType[i] = 0;
@@ -159,78 +98,9 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 		renderer[i] = 0;
 	}
 
-	vizDirtyBit.clear();
-	
-	setDirtyBit(RegionBit, true);
-	
-	setDirtyBit(LightingBit, true);
-	setDirtyBit(NavigatingBit, true);
-	setDirtyBit(ViewportBit, true);
-	setDirtyBit(ProjMatrixBit, true);
 
-	capturingFlow = false;
-	
-	capturingImage = false;
 	newCaptureImage = false;
 
-	//Create Manips for every mode except 0
-	manipHolder.push_back(0);
-	for (int i = 1; i< manipFromMode.size(); i++){
-		if (manipFromMode[i]==1 || manipFromMode[i] == 2){
-			TranslateStretchManip* manip = new TranslateStretchManip(this,0);
-			manipHolder.push_back(manip);
-		} else if (manipFromMode[i]==3){
-			TranslateRotateManip* manip = new TranslateRotateManip(this, 0);
-			manipHolder.push_back(manip);
-		} else assert(0);
-	}
-
-	//Assume shaders in exec dir
-	QString path = qApp->applicationDirPath();
-	//GL_CONTEXT must be current if shaderMgr is to be instantiated
-	makeCurrent();
-	vector <string> paths;
-	paths.push_back("shaders");
-	string shaderPaths = GetAppPath("VAPOR", "share", paths);
-#ifdef DEBUG
-	cout << "shaderPaths " << shaderPaths << endl;
-#endif
-	/* note: 1
-	 * instantiate the shaderMgr
-	 * query the maxmium supported # of tex units, in order to set
-	 *  the texture unit used by depth peeling to the last one possible
-	 * reset the currentLayer, used by depth peeling to keep track of 
-	 *  which layer it is on
-	 */
-	manager = new ShaderMgr(shaderPaths, this);
-	currentLayer = 0;
-	peelInitialized = false;
-#ifdef DARWIN
-	//Apple OpenGL driver reports an incorrect # of units for support, throws error if try to use higher than MAX_TEX_UNITS=MAX_TEXTURE_COORDINATES
-	depthTexUnit = manager->maxTexUnits(true) - 1;
-#else
-	//we really want the last available programmable tex unit for the depth unit, otherwise chance of texture collision with raycaster on modern cards
-	//as they usually have only 4 fixed function units
-	depthTexUnit = manager->maxTexUnits(false) - 1; 
-#endif    
-	//note: force depth peeling data to null and check extension support
-	layers = NULL;
-	if (depthPeeling){
-	  //depth peeling enabled, check to see if possible to use
-	  if(!manager->supportsExtension("GL_ARB_framebuffer_object")){
-	    SetErrMsg("OpenGL Context DOES NOT support depth peeling extensions");
-	    depthPeeling = false;
-	  }      
-	}
-#ifdef DEBUG // note: print out all available GL driver information
-	cout << manager->GLVendor() << endl;
-	cout << manager->GLRenderer() << endl;
-	cout << manager->GLVersion() << endl;
-	cout << manager->GLExtensions() << endl;
-	cout << manager->GLShaderVersion() << endl;
-	cout << "Max OpenGL programmable texture units: " << manager->maxTexUnits(false) << endl;
-	cout << "Max OpenGL fixed texture units: " << manager->maxTexUnits(true) << endl;
-#endif
     MyBase::SetDiagMsg("GLWindow::GLWindow() end");
 }
 
@@ -241,23 +111,20 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 
 GLWindow::~GLWindow()
 {
-	if (isSpinning){
-		stopSpin();
-	}
-	makeCurrent();
+	
+	
 	for (int i = 0; i< getNumRenderers(); i++){
 		delete renderer[i];
 	}
 	setNumRenderers(0);
 	
-	delete manager;
 	nowPainting = false;
 	
 }
 
 void GLWindow::setDefaultPrefs(){
 	defaultTerrainEnabled = false;
-	defaultSpinAnimateEnabled = false;
+	
 	defaultAxisArrowsEnabled = false;
 	jpegQuality = 100;
 }
@@ -275,64 +142,26 @@ void GLWindow::resizeGL( int width, int height )
    * currently all depth peeling setup occurs in resizeGL, code that should be moved to
    *  initializeGL will be marked with an refactor note
    */
-  depthWidth = width;
-  depthHeight = height;
-  manager->loadShaders();
-#ifdef DEBUG
-  //print out the loaded effects
-  manager->printEffects();
-  cout << "resizeGL called, depthpeeling?: " << (int)depthPeeling << endl;
-#endif
-
-  //clean up gl resources used if they were used before
-  if(depthPeeling){
-    if(glIsTexture(depthA))
-      glDeleteTextures(1, &depthA);
-    if(glIsTexture(depthB))
-      glDeleteTextures(1, &depthB);
-    if(glIsFramebuffer(fboA))
-      glDeleteFramebuffers(1, &fboA);
-    if(glIsFramebuffer(fboB))
-      glDeleteFramebuffers(1, &fboB);
-    if(layers !=NULL){
-      glDeleteTextures(maxbuffers, layers);
-      free(layers);
-    }
-    if(manager->effectExists("depthpeeling")){
-	manager->undefEffect("depthpeeling");
-    }
-    if(manager->effectExists("texSampler")){
-      manager->undefEffect("texSampler");
-    }
+ 
 #ifdef DEBUG
     printOpenGLError();
     cout << "resizeGL beginning" << endl;
 #endif
-    //create shaders used for depth peeling
-    //note: refactor to initializeGL
-    manager->defineEffect("depthpeeling", "", "depthpeeling");
-
-    manager->defineEffect("texSampler", "", "texSampler");
-    glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxbuffers);
-    //note: hard code maxbuffers to an acceptable low value
-    maxbuffers = maxbuffers > 4 ? 4:maxbuffers;
-    glActiveTexture(GL_TEXTURE0 + depthTexUnit);
+    
+   
     GLsizei myheight =  (GLsizei)height;
     GLsizei mywidth = (GLsizei) width;
     //DEPTH PEELING
     //This depth peeling implementation makes use of OpenGL Frame Buffer Obects
     //Two depth and maximum amount of color textures will be used for rendering and depth peeling
 	
-    //Generate and configure depth textures 
-    //note: refactor to initializeGL
-    glGenTextures(1, &depthA);
-    glGenTextures(1, &depthB); 
+   
 
 #ifdef DEBUG
     printOpenGLError();
     cout << "resizeGL created textures" << endl;
 #endif
-    glBindTexture(GL_TEXTURE_2D, depthA);
+  
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE); //no compare mode for depth texture
@@ -340,7 +169,7 @@ void GLWindow::resizeGL( int width, int height )
     glTexParameteri( GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_LUMINANCE );
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, mywidth, myheight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	
-    glBindTexture(GL_TEXTURE_2D, depthB);
+  
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE); //no compare mode for depth texture
@@ -353,21 +182,7 @@ void GLWindow::resizeGL( int width, int height )
     cout << "resizeGL textures complete" << endl;
 #endif
 
-    //Create framebuffers used in depth peeling
-    //note: refactor to initializeGL
-    glGenFramebuffers(1, &fboA);
-    glGenFramebuffers(1, &fboB);
-	  
-    //Attach the first depth buffer to the first FBO
-    //note: refactor to intializeGL
-    glBindFramebuffer(GL_FRAMEBUFFER, fboA);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthA, 0);	
-
-    //Attach the second depth buffer to the second FBO
-    //note: refactor to initializeGL
-    glBindFramebuffer(GL_FRAMEBUFFER, fboB);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthB, 0);	
-	
+   
     //Depth buffers are setup, now we need to setup the color textures
     glBindFramebuffer(GL_FRAMEBUFFER, 0); //prevent framebuffers from being messed with
 
@@ -376,58 +191,19 @@ void GLWindow::resizeGL( int width, int height )
     cout << "resizeGL framebuffers complete" << endl;
 #endif
 
-    //We create as many color buffers as allowed on hardware
-    //note: refactor to initializeGL
-    layers = (GLuint*)malloc(maxbuffers * sizeof(GLuint));
-    glGenTextures(maxbuffers, layers);
 
-    //initialize the color texture information
-    //note: keep here since this deals with texture size
-    for (int i=0; i<maxbuffers; i++) {
-      glBindTexture(GL_TEXTURE_2D, layers[i]);
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-      glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);	
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mywidth, myheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);	
-#ifdef DEBUG
-      std::cout << "layers[" << i << "] :" << layers[i] << " created" << std::endl;
-#endif
-    }
+
+    
     //prevent textures from being messed with
     glBindTexture(GL_TEXTURE_2D, 0); 
     printOpenGLError();
 
     //Attach all of the available color buffers to the FBO
     //note: refactor to initializeGL
-    glBindFramebuffer(GL_FRAMEBUFFER, fboA);
-    for (int i=0; i<maxbuffers; i++) {
-      glFramebufferTexture2D(GL_FRAMEBUFFER, attach_points[i], GL_TEXTURE_2D, layers[i], 0);			
-    }
-    peelInitialized = true;
-    //Check that the framebuffer is ready to render to
-    //note: refactor to initializeGL
-    glBindFramebuffer(GL_FRAMEBUFFER, fboA);
-    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE){
-      peelInitialized = false;
-      SetErrMsg("framebuffer A not ready");
-    }
+   
+   
 
-    //Attach all of the available buffers to the FBO
-    //note: refactor to initializeGL
-    glBindFramebuffer(GL_FRAMEBUFFER, fboB);
-    for (int i=0; i<maxbuffers; i++) {
-      glFramebufferTexture2D(GL_FRAMEBUFFER, attach_points[i], GL_TEXTURE_2D, layers[i], 0);			
-    }
-    //Check that the framebuffer is ready to render to
-    //note: refactor to initializeGL
-    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE){
-      peelInitialized = false;
-      SetErrMsg("framebuffer B not ready");
-    }
+ 
 	
 #ifdef DEBUG
     cout << "resizeGL complete" << endl;
@@ -435,60 +211,32 @@ void GLWindow::resizeGL( int width, int height )
     //clear framebuffer binding, initialize depth peeling shaders with uniforms
     //note: leave here since this deals with texture size information
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    manager->uploadEffectData(std::string("depthpeeling"), std::string("previousPass"), depthTexUnit);
-    manager->uploadEffectData(std::string("depthpeeling"), std::string("height"), (float)height);
-    manager->uploadEffectData(std::string("depthpeeling"), std::string("width"), (float)width);	
-
-    manager->uploadEffectData(std::string("texSampler"), std::string("texUnit"), depthTexUnit);
-    manager->uploadEffectData(std::string("texSampler"), std::string("height"), (float)height);
-    manager->uploadEffectData(std::string("texSampler"), std::string("width"), (float)width);
+   
     glActiveTexture(GL_TEXTURE0);
     printOpenGLError();
-  }		
+
 }
 void GLWindow::setUpViewport(int width,int height){
    
 	glViewport( 0, 0, (GLint)width, (GLint)height );
 	//Save the current value...
 	glGetIntegerv(GL_VIEWPORT, viewport);
-	setDirtyBit(ViewportBit, true);
+	
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	if (perspective) {
-		GLfloat w = (float) width / (float) height;
+	
+	GLfloat w = (float) width / (float) height;
 		
-		//float mindist = Max(0.2f, wCenter[2]-maxDim-1.0f);
-		//glFrustum( -w, w, -h, h, mindist,(wCenter[2]+ maxDim + 1.0) );
-		//gluPerspective(45., w, mindist, (wCenter[2]+ maxDim + 10.0) );
-		//qWarning("setting near, far dist: %f %f", nearDist, farDist);
-		gluPerspective(45., w, nearDist, farDist );
-		//gluPerspective(45., w, 1.0, 5. );
-		//save the current value...
-		glGetDoublev(GL_PROJECTION_MATRIX, projectionMatrix);
+	//float mindist = Max(0.2f, wCenter[2]-maxDim-1.0f);
+	//glFrustum( -w, w, -h, h, mindist,(wCenter[2]+ maxDim + 1.0) );
+	//gluPerspective(45., w, mindist, (wCenter[2]+ maxDim + 10.0) );
+	//qWarning("setting near, far dist: %f %f", nearDist, farDist);
+	gluPerspective(45., w, nearDist, farDist );
+	//gluPerspective(45., w, 1.0, 5. );
+	//save the current value...
+	glGetDoublev(GL_PROJECTION_MATRIX, projectionMatrix);
 		
-	} else {
-		if (width > height) {
-			float l, r, s;
-			s = (float) width / (float) height;
-			l = wCenter[0] - (maxDim*s);
-			r = wCenter[0] + (maxDim*s);
-			
-			glOrtho(l, r, wCenter[1]-maxDim, wCenter[1]+maxDim, wCenter[2]-10.*maxDim-1.0, wCenter[2]+10.*maxDim+1.0); 
-			//fprintf(stderr, "glOrtho(%f, %f, %f, %f, %f, %f\n", l,r,yc-hmaxDim, yc+hmaxDim, zc-hmaxDim-1.0, zc+hmaxDim+1.0);
-		}
-		else {
-			float b, t, s;
-			s = (float) height / (float) width;
-			b = wCenter[1] - (maxDim*s);
-			t = wCenter[1] + (maxDim*s);
-			
-			glOrtho(wCenter[0]-maxDim, wCenter[1]+maxDim, b, t, wCenter[2]-10.*maxDim-1.0, wCenter[2]+10.*maxDim+1.0); 
-				//fprintf(stderr, "glOrtho(%f, %f, %f, %f, %f, %f\n", xc-hmaxDim, xc+hmaxDim, b, t, zc-hmaxDim-1.0, zc+hmaxDim+1.0);
-			
-				//glFrustum((wCenter[0]-maxDim)*.5, (wCenter[1]+maxDim)*.5, b*.5, t*.5, wCenter[2]-maxDim-1.0, wCenter[2]+maxDim+1.0); 
-		}
-	}
 	glMatrixMode(GL_MODELVIEW);
 	printOpenGLError();
 	
@@ -503,507 +251,8 @@ void GLWindow::resetView(ViewpointParams* vParams){
 	nearDist = nrbx * 0.25f;
 	needsResize = true;
 }
-//GL render calls separated for use in depth peeling.
-void GLWindow::renderScene(float extents[6], float minFull[3], float maxFull[3], int timeStep){
-  //If we are in regionMode, or if the preferences specify the full box will be rendered,
-  //draw it now, before the renderers do their thing.
-  if(regionFrameIsEnabled()|| GLWindow::getCurrentMouseMode() == GLWindow::regionMode){
-    renderDomainFrame(extents, minFull, maxFull);
-  } 
-  //In regionMode or if preferences specify it, draw the subregion frame.
-  if(subregionFrameIsEnabled() && 
-     !(GLWindow::getCurrentMouseMode() == GLWindow::regionMode) )
-    {
-      drawSubregionBounds(extents);
-    } 
 
-  //Draw axis arrows if enabled.
-  if (axisArrowsAreEnabled()) drawAxisArrows(extents);
-
-  //render the region manipulator, if in region mode, and active visualizer, or region shared
-  //with active visualizer.  Possibly redundant???
-  if(getCurrentMouseMode() == GLWindow::regionMode) { 
-    if( (windowIsActive() || 
-	 (!getActiveRegionParams()->isLocal() && activeWinSharesRegion()))){
-      TranslateStretchManip* regionManip = getManip(Params::_regionParamsTag);
-      regionManip->setParams(getActiveRegionParams());
-      regionManip->render();
-    } 
-  }
-  //Render other manips, if we are in appropriate mode:
-  //Note: Other manips don't have shared and local to deal with:
-  else if ((getCurrentMouseMode() != navigateMode) && windowIsActive()){
-    int mode = getCurrentMouseMode();
-    ParamsBase::ParamsBaseType t = getModeParamType(mode);
-    TranslateStretchManip* manip = manipHolder[mode];
-    RenderParams* p = (RenderParams*)getActiveParams(t);
-    manip->setParams(p);
-    manip->render();
-    int manipType = getModeManipType(mode);
-    //For probe and 2D manips, render 3D cursor too
-    if (manipType > 1) {
-      const float *localPoint = p->getSelectedPointLocal();
-			
-      draw3DCursor(localPoint);
-    }
-  }
-       
-  //Now we are ready for all the different renderers to proceed.
-  //Sort them;  If they are opaque, they go first.  If not opaque, they
-  //are sorted back to front.  This only works if all the geometry of a renderer is ordered by
-  //a simple depth test.
-	
-  printOpenGLError();
-  //Now go through all the active renderers
-  for (int i = 0; i< getNumRenderers(); i++){
-    //If a renderer is not initialized, or if its bypass flag is set, then don't render.
-    //Otherwise push and pop the GL matrix stack and all attribs
-    if(renderer[i]->isInitialized() && !(renderer[i]->doAlwaysBypass(timeStep))) {
-      // Push or reset state
-      glMatrixMode(GL_TEXTURE);
-      glPushMatrix();
-      glMatrixMode(GL_MODELVIEW);
-      glPushMatrix();
-      glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-      renderer[i]->paintGL();
-
-      glPopAttrib();
-      glMatrixMode(GL_MODELVIEW);
-      glPopMatrix();
-      glMatrixMode(GL_TEXTURE);
-      glPopMatrix();
-      printOpenGLErrorMsg(renderer[i]->getMyName().c_str());
-    }
-  }
-}
-/* note: special paintEvent for depth peeling, there are a few differences vs the regular one:
- *  no sortRenderers command
- *  aux geometry (domain frame, manipulators, etc) moved to renderScene
- *  addition of depth peeling loop and gl code
- */
-void GLWindow::depthPeelPaintEvent(){
-	MyBase::SetDiagMsg("GLWindow::paintGL()");
-	//Following is needed in case undo/redo leaves a disabled renderer in the renderer list, so it can be deleted.
-	removeDisabledRenderers();
-	//The renderMutex ensures that only one thread can be in this method at a time.  But the latest version
-	//ov vapor performs all the rendering in the main gui thread, so the mutex can probably be deleted.
-	if(!renderMutex.tryLock()) return;
-	//Following is probably not needed, too, although haven't checked it out.  Qt is supposed to always call paintGL in
-	//the GL context, but maybe not paintEvent?
-	makeCurrent();
-	printOpenGLError();
-	
-	
-	float extents[6] = {0.f,0.f,0.f,1.f,1.f,1.f};
-	float minFull[3] = {0.f,0.f,0.f};
-	float maxFull[3] = {1.f,1.f,1.f};
-	//Again, mutex probably not needed.  At some point the "nowPainting" flag was used to indicate
-	//that some thread was in this routine.
-	if (nowPainting) {
-		renderMutex.unlock();
-		return;
-	}
-	nowPainting = true;
-	
-	//Paint background
-	qglClearColor(getBackgroundColor()); 
-	
-	//Clear out the depth buffer in preparation for rendering
-	glClearDepth(1);
-	//Make the depth buffer writable
-	glDepthMask(GL_TRUE);
-	glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
-	
-	DataStatus *dataStatus = DataStatus::getInstance();
-
-	//If there is no data, or the session is not yet set up, stop here.
-	if (!dataStatus->getDataMgr() ||!(dataStatus->renderReady())) {
-		swapBuffers();
-		renderMutex.unlock();
-		nowPainting = false;
-		printOpenGLError();
-		return;
-	}
-	
-	//Improve polygon antialiasing
-	glEnable(GL_MULTISAMPLE);
-	
-	//automatically renormalize normals (especially needed for flow rendering)
-	glEnable(GL_NORMALIZE);
-
-	//If we are doing the first capture of an image sequence then set the
-	//newRender flag to true, whether or not it's a real new render.
-	//Then turn off the flag, subsequent renderings will only be captured
-	//if they really are new, or if we are spinning.
-	
-	//We need to prevent multiple frame capture, which could result from extraneous rendering.
-	//The renderNew flag is set to allow performing a jpeg capture.
-	//The newCaptureImage flag is set when we start a new image capture sequence.  When renderNew is
-	//set, the previousTimeStep and previousFrameNum indices are set to -1, to guarantee that the image
-	//will be captured.  Subsequent rendering will only be captured if the frame/timestep counters are changed, or 
-	//if the image is spinning.
-	renderNew = (captureIsNewImage()|| isSpinning);
-	if (renderNew) {previousTimeStep = -1; previousFrameNum = -1;} //reset saved time step
-	setCaptureNewImage(false); //Next time don't capture if frameNum or timestep are unchanged.
-
-	//Following line has been modified and moved to a later point in the code.  It is necessary to register with the 
-	//AnimationController, but not yet, because we don't yet know the frame number.
-	//(Tell the animation we are starting.  If it returns false, we are not
-	//being monitored by the animation controller
-	//bool isControlled = AnimationController::getInstance()->beginRendering(winNum);
-	
-	//If we are visualizing in latLon space, must update the local coordinates
-	//and put them in the trackball, prior to setting up the trackball.
-	//The frameNum is used with keyframe animation, it coincides with timeStep when keyframing is disabled.
-	int frameNum = getActiveAnimationParams()->getCurrentFrameNumber();
-	int timeStep = getActiveAnimationParams()->getCurrentTimestep();
-
-	//When performing keyframe animation, all the viewpoints are in the loadedViewpoints vector.
-	const vector<Viewpoint*>& loadedViewpoints = getActiveAnimationParams()->getLoadedViewpoints();
-	
-	//Prepare for keyframe animation
-	if (getActiveAnimationParams()->keyframingEnabled() && loadedViewpoints.size()>0){
-		//If we are performing keyframe animation, set the viewpoint (in the viewpoint params) to the appropriate one, based on
-		//the frameNum. 
-		//The viewerCoordsChanged flag is passed to the prerender callback and used to set the renderNew flag
-		setViewerCoordsChanged(true);
-		const Viewpoint* vp = loadedViewpoints[frameNum%loadedViewpoints.size()];
-		Viewpoint* newViewpoint = new Viewpoint(*vp);
-		getActiveViewpointParams()->setCurrentViewpoint(newViewpoint);
-		//setValuesFromGui causes the trackball to reflect the current viewpoint in the params
-		setValuesFromGui(getActiveViewpointParams());
-	} else if (vizIsDirty(NavigatingBit)){  
-		//If the viewpoint is not set by animation keyframing, but we are navigating, must still
-		//set the trackball
-		setValuesFromGui(getActiveViewpointParams());
-	}
-	//If using latlon coordinates the viewpoint changes every timeStep
-	if (getActiveViewpointParams()->isLatLon()&& timeStep != previousTimeStep){
-		setViewerCoordsChanged(true);
-		getActiveViewpointParams()->convertLocalFromLonLat(timeStep);
-		setValuesFromGui(getActiveViewpointParams());
-	}
-	if (timeStep != previousTimeStep) setTimeAnnotDirty(true);
-	//resetView sets the near/far clipping planes based on the viewpoint in the viewpointParams
-	resetView(getActiveViewpointParams());
-	//Set the projection matrix
-	setUpViewport(width(),height());
-	// Move to trackball view of scene  
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
-
-	//Lights are positioned relative to the view direction, do this before the modelView matrix is changed
-	placeLights();
-
-	//Set the GL modelview matrix, based on the Trackball state.
-	getTBall()->TrackballSetMatrix();
-
-	//The prerender callback is set in the vizwin. 
-	//It registers with the animation controller, 
-	//and tells the window the current viewer frame.
-	//This must be called prior to rendering.  The boolean "isControlled" indicates 
-	//whether or not the rendering is under the control of the animationController.
-	//If it is true, then the postRenderCallback must be called after the full rendering is complete.
-	bool isControlled = preRenderCB(winNum, viewerCoordsChanged());
-	//If there are new coords, get them from GL, send them to the gui
-	if (viewerCoordsChanged()){ 
-		setRenderNew();
-		setViewerCoordsChanged(false);
-	}
-
-	
-	//make sure to capture whenever the time step or frame index changes
-	if (timeStep != previousTimeStep || frameNum != previousFrameNum) {
-		setRenderNew();
-		previousTimeStep = timeStep;
-		previousFrameNum = frameNum;
-	}
-	
-	getActiveRegionParams()->calcStretchedBoxExtentsInCube(extents,timeStep);
-	DataStatus::getInstance()->getMaxStretchedExtentsInCube(maxFull);
-	
-	//INITIAL RENDER, NO DEPTH PEELING YET
-	if(!peelInitialized){
-	  SetErrMsg("Advanced Transparency has not been properly initialized! Restart VAPOR to enable");
-	  return;
-	}
-	printOpenGLError();
-	//bind first framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, fboA);
-	printOpenGLError();
-	currentBuffer = fboA;
-	// clear buffers
-	glActiveTexture(GL_TEXTURE0 + depthTexUnit);
-	glDisable(GL_TEXTURE_1D);
-	glDisable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glDisable(GL_BLEND);
-	glActiveTexture(GL_TEXTURE0);
-	printOpenGLError();
-	glDepthMask(GL_TRUE);
-	glDepthFunc(GL_LESS);
-	printOpenGLError();
-	glEnable(GL_DEPTH_TEST); //regular depth test for initial render pass
-	glPushAttrib(GL_VIEWPORT_BIT | GL_COLOR_BUFFER_BIT);
-	printOpenGLError();
-	//prepare framebuffer colorbuffers to draw/read from first attach_point
-	glDrawBuffer(attach_points[0]); 
-	printOpenGLError();
-	glReadBuffer(attach_points[0]);		
-	currentLayer = 0;
-	printOpenGLError();
-	glClearColor(0.0, 0.0, 0.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	printOpenGLError();
-	renderScene(extents, minFull, maxFull, timeStep);
-	//scene rendered, enable depth peeling for transparency blending
-	currentLayer = 1;
-	for (int j=1; j< maxbuffers ; j++) {
-	  if (j%2 != 0) {			
-	    //Bind next framebuffer
-	    glBindFramebuffer(GL_FRAMEBUFFER, fboB);
-	    //Bind depth buffer A to last texture unit
-	    currentBuffer = fboB;
-	    currentDepth = depthA;
-	    glDepthMask(GL_TRUE);
-	    glDepthFunc(GL_LESS);
-	    printOpenGLError();
-	    glEnable(GL_DEPTH_TEST);
-	    printOpenGLError();
-	    glDrawBuffer(attach_points[j]);
-	    printOpenGLError();
-	    glReadBuffer(attach_points[j]);		
-	    printOpenGLError();
-	    glClearColor(0.0, 0.0, 0.0, 1.0);
-	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	    printOpenGLError();
-	    glActiveTexture(GL_TEXTURE0 + depthTexUnit);
-	    glDisable(GL_TEXTURE_1D);
-	    glDisable(GL_TEXTURE_2D);
-	    glDisable(GL_BLEND);
-	    glBindTexture(GL_TEXTURE_2D, depthA);
-	    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE); //ensure texture comparison was not turned on elsewhere
-	    glActiveTexture(GL_TEXTURE0);		       
-	    printOpenGLError();
-	    if(!manager->enableEffect(std::string("depthpeeling")))
-	      SetErrMsg(VAPOR_ERROR_GL_VENDOR,"depth peeling not enabled");	
-	    //reset GL matrix stack
-	    //resetView sets the near/far clipping planes based on the viewpoint in the viewpointParams
-	    resetView(getActiveViewpointParams());
-	    //Set the projection matrix
-	    setUpViewport(width(),height());
-	    // Move to trackball view of scene  
-	    glMatrixMode(GL_MODELVIEW);
-
-	    glLoadIdentity();
-
-	    //Lights are positioned relative to the view direction, do this before the modelView matrix is changed
-	    placeLights();
-
-	    //Set the GL modelview matrix, based on the Trackball state.
-	    getTBall()->TrackballSetMatrix();
-	    renderScene(extents, minFull, maxFull, timeStep);
-
-	    printOpenGLError();
-	    manager->disableEffect();
-	    glActiveTexture(GL_TEXTURE0 + depthTexUnit);
-	    glBindTexture(GL_TEXTURE_2D, 0);
-	    glActiveTexture(GL_TEXTURE0);
-	    glFlush();
-	  }
-	  else{
-	    //Bind next framebuffer
-	    glBindFramebuffer(GL_FRAMEBUFFER, fboA);
-	    glDepthFunc(GL_LESS);
-	    glDepthMask(GL_TRUE);
-	    glEnable(GL_DEPTH_TEST);
-	    glDisable(GL_BLEND);
-	    currentBuffer = fboA;
-	    currentDepth = depthB;
-	    //Bind depth buffer B to last texture unit
-	    glDrawBuffer(attach_points[j]);
-	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	    printOpenGLError();
-	    glActiveTexture(GL_TEXTURE0 + depthTexUnit);
-	    glDisable(GL_TEXTURE_2D);
-	    glDisable(GL_TEXTURE_3D);
-	    glBindTexture(GL_TEXTURE_2D, depthB);
-	    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE); //ensure texture comparison was not turned on elsewhere
-	    glActiveTexture(GL_TEXTURE0);			
-	    printOpenGLError();
-	    if(!manager->enableEffect(std::string("depthpeeling")))
-	      SetErrMsg(VAPOR_ERROR_GL_VENDOR,"depth peeling not enabled");	
-	    //reset GL matrix stack
-	    //resetView sets the near/far clipping planes based on the viewpoint in the viewpointParams
-	    resetView(getActiveViewpointParams());
-	    //Set the projection matrix
-	    setUpViewport(width(),height());
-	    // Move to trackball view of scene  
-	    glMatrixMode(GL_MODELVIEW);
-
-	    glLoadIdentity();
-
-	    //Lights are positioned relative to the view direction, do this before the modelView matrix is changed
-	    placeLights();
-
-	    //Set the GL modelview matrix, based on the Trackball state.
-	    getTBall()->TrackballSetMatrix();
-	    renderScene(extents, minFull, maxFull, timeStep);
-
-	    printOpenGLError();
-	    manager->disableEffect();
-	    glActiveTexture(GL_TEXTURE0 + depthTexUnit);
-	    glBindTexture(GL_TEXTURE_2D, 0);
-	    glActiveTexture(GL_TEXTURE0);
-	    glFlush();
-	  }
-	  currentLayer++;
-	}
-	//SHOW PEELED COLORS
-	printOpenGLError();
-	glPopAttrib();
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	printOpenGLError();
-	glActiveTexture(GL_TEXTURE0 + depthTexUnit);
-	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_BLEND);
-	glDepthFunc(GL_LEQUAL);
-	glDepthMask(GL_TRUE);
-	glEnable(GL_DEPTH_TEST);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//makes use of programmable pipeline texture mapping to avoid state problems
-	manager->enableEffect("texSampler");
-	printOpenGLError();
-	for (int i = maxbuffers - 1; i > -1 ; i--){
-	  glBindTexture(GL_TEXTURE_2D, layers[i]);
-	  printOpenGLError();
-	  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	  glMatrixMode(GL_MODELVIEW); 
-	  glPushMatrix();
-	  glLoadIdentity(); 
-	  glMatrixMode(GL_PROJECTION);
-	  glPushMatrix();
-	  glLoadIdentity();
-	  glBegin(GL_QUADS);
-	  //glColor3f(0.0, 0.0, 0.0); debug purposes
-	  glVertex3i (-1, -1, -1);
-	  //glColor3f(1.0, 0.0, 1.0);
-	  glVertex3i (-1, 1, -1);
-	  //glColor3f(1.0, 1.0, 1.0);
-	  glVertex3i (1, 1, -1); 
-	  //glColor3f(0.0, 1.0, 0.0);
-	  glVertex3i (1, -1, -1); 
-	  glEnd ();
-	  glPopMatrix (); 
-	  glMatrixMode (GL_MODELVIEW); 
-	  glPopMatrix ();
-	}
-	manager->disableEffect();
-	//Go back to MODELVIEW for other matrix stuff
-	//By default the matrix is expected to be MODELVIEW
-	glMatrixMode(GL_MODELVIEW);
-
-	//Perform final touch-up on the final images, before capturing or displaying them.
-
-	//Axis annotation must be drawn after all the renderers are complete so that the axes are not hidden.
-	if (axisAnnotationIsEnabled()) {
-		drawAxisTics(timeStep);
-		//Now go to default 2D window
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-		drawAxisLabels(timeStep);
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-	}
-
-	//One colorbar may be drawn.  It is drawn at a fixed position on the final image.
-	//See if there is a renderer that has an enabled colorbar and a valid transfer function
-	RenderParams* p = dynamic_cast<RenderParams*>(getActiveParams(Params::GetTagFromType(colorbarParamsTypeId)));
-	if(p && colorbarIsEnabled() && p->isEnabled() && p->GetMapperFunc()){
-		//Now go to default 2D window
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-		
-		getRenderer(p)->renderColorscale(colorbarIsDirty());
-		
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-	}
-	
-	//Create time annotation from current time step.  Draw it over the image.
-	if(getTimeAnnotType()){
-		//Now go to default 2D window
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-		
-		renderTimeStamp(timeAnnotIsDirty());
-		
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-	}
-	
-	//Capture the back-buffer image, if not navigating.  
-	//This must be performed before swapBuffers after everything has been drawn.
-	if (renderNew && !mouseDownHere) 
-		doFrameCapture();
-
-	glPopMatrix();
-	swapBuffers();
-	glFlush();
-
-	//clear dirty bits for the next rendering.
-	
-	setDirtyBit(RegionBit,false);
-	setDirtyBit(AnimationBit,false);
-	setDirtyBit(NavigatingBit,false);
-	setDirtyBit(ProjMatrixBit, false);
-	setDirtyBit(ViewportBit, false);
-	setDirtyBit(LightingBit, false);
-	//Turn off the nowPainting flag (probably could be deleted)
-	nowPainting = false;
-	
-	//When spinning update the viewpoint appropriately.
-	if (isSpinning){
-		getTBall()->TrackballSpin();
-		setViewerCoordsChanged(true);
-		setDirtyBit(ProjMatrixBit, true);
-	}
-	//Now release the rendering mutex.
-	//Must be performed here or deadlock occurs!
-	renderMutex.unlock();
-	
-	//Tell the animation controller that this frame is complete.  
-	//This must be called exactly once after rendering is done.l
-	postRenderCB(winNum, isControlled);
-	
-	glDisable(GL_NORMALIZE);
-	printOpenGLError();
-}
-void GLWindow::paintEvent(QPaintEvent*){
-  if(depthPeeling)
-    depthPeelPaintEvent();
-  else
+void GLWindow::paintEvent(){
     regPaintEvent();
 }
 void GLWindow::regPaintEvent()
@@ -1011,12 +260,10 @@ void GLWindow::regPaintEvent()
 	MyBase::SetDiagMsg("GLWindow::paintGL()");
 	//Following is needed in case undo/redo leaves a disabled renderer in the renderer list, so it can be deleted.
 	removeDisabledRenderers();
-	//The renderMutex ensures that only one thread can be in this method at a time.  But the latest version
-	//ov vapor performs all the rendering in the main gui thread, so the mutex can probably be deleted.
-	if(!renderMutex.tryLock()) return;
+	
 	//Following is probably not needed, too, although haven't checked it out.  Qt is supposed to always call paintGL in
 	//the GL context, but maybe not paintEvent?
-	makeCurrent();
+	//makeCurrent();
 	printOpenGLError();
 	
 	
@@ -1025,14 +272,11 @@ void GLWindow::regPaintEvent()
 	float maxFull[3] = {1.f,1.f,1.f};
 	//Again, mutex probably not needed.  At some point the "nowPainting" flag was used to indicate
 	//that some thread was in this routine.
-    if (nowPainting) {
-		renderMutex.unlock();
-		return;
-	}
+    
 	nowPainting = true;
 	
 	//Paint background
-	qglClearColor(getBackgroundColor()); 
+	//glClearColor(getBackgroundColor()); 
 	
 	//Clear out the depth buffer in preparation for rendering
 	glClearDepth(1);
@@ -1042,14 +286,6 @@ void GLWindow::regPaintEvent()
 	
 	DataStatus *dataStatus = DataStatus::getInstance();
 
-	//If there is no data, or the session is not yet set up, stop here.
-	if (!dataStatus->getDataMgr() ||!(dataStatus->renderReady())) {
-		swapBuffers();
-		renderMutex.unlock();
-		nowPainting = false;
-		printOpenGLError();
-		return;
-	}
 	
 	//Improve polygon antialiasing
 	glEnable(GL_MULTISAMPLE);
@@ -1068,9 +304,7 @@ void GLWindow::regPaintEvent()
 	//set, the previousTimeStep and previousFrameNum indices are set to -1, to guarantee that the image
 	//will be captured.  Subsequent rendering will only be captured if the frame/timestep counters are changed, or 
 	//if the image is spinning.
-	renderNew = (captureIsNewImage()|| isSpinning);
-	if (renderNew) {previousTimeStep = -1; previousFrameNum = -1;} //reset saved time step
-	setCaptureNewImage(false); //Next time don't capture if frameNum or timestep are unchanged.
+	
 
 	//Following line has been modified and moved to a later point in the code.  It is necessary to register with the 
 	//AnimationController, but not yet, because we don't yet know the frame number.
@@ -1081,40 +315,16 @@ void GLWindow::regPaintEvent()
 	//If we are visualizing in latLon space, must update the local coordinates
 	//and put them in the trackball, prior to setting up the trackball.
 	//The frameNum is used with keyframe animation, it coincides with timeStep when keyframing is disabled.
-	int frameNum = getActiveAnimationParams()->getCurrentFrameNumber();
 	int timeStep = getActiveAnimationParams()->getCurrentTimestep();
 
-	//When performing keyframe animation, all the viewpoints are in the loadedViewpoints vector.
-	const vector<Viewpoint*>& loadedViewpoints = getActiveAnimationParams()->getLoadedViewpoints();
 	
-	//Prepare for keyframe animation
-	if (getActiveAnimationParams()->keyframingEnabled() && loadedViewpoints.size()>0){
-		//If we are performing keyframe animation, set the viewpoint (in the viewpoint params) to the appropriate one, based on
-		//the frameNum. 
-		//The viewerCoordsChanged flag is passed to the prerender callback and used to set the renderNew flag
-		setViewerCoordsChanged(true);
-		const Viewpoint* vp = loadedViewpoints[frameNum%loadedViewpoints.size()];
-		Viewpoint* newViewpoint = new Viewpoint(*vp);
-		getActiveViewpointParams()->setCurrentViewpoint(newViewpoint);
-		//setValuesFromGui causes the trackball to reflect the current viewpoint in the params
-		setValuesFromGui(getActiveViewpointParams());
-	} else if (vizIsDirty(NavigatingBit)){  
-		//If the viewpoint is not set by animation keyframing, but we are navigating, must still
-		//set the trackball
-		setValuesFromGui(getActiveViewpointParams());
-	}
-	//If using latlon coordinates the viewpoint changes every timeStep
-	if (getActiveViewpointParams()->isLatLon()&& timeStep != previousTimeStep){
-		setViewerCoordsChanged(true);
-		getActiveViewpointParams()->convertLocalFromLonLat(timeStep);
-		setValuesFromGui(getActiveViewpointParams());
-	}
-	if (timeStep != previousTimeStep) setTimeAnnotDirty(true);
+	
+	
+	setValuesFromGui(getActiveViewpointParams());
+
 	//resetView sets the near/far clipping planes based on the viewpoint in the viewpointParams
 	resetView(getActiveViewpointParams());
-	//Set the projection matrix
-	setUpViewport(width(),height());
-	// Move to trackball view of scene  
+	
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
@@ -1123,7 +333,7 @@ void GLWindow::regPaintEvent()
 	placeLights();
 
 	//Set the GL modelview matrix, based on the Trackball state.
-	getTBall()->TrackballSetMatrix();
+	glLoadMatrixd(getModelMatrix());
 
 	//The prerender callback is set in the vizwin. 
 	//It registers with the animation controller, 
@@ -1140,14 +350,13 @@ void GLWindow::regPaintEvent()
 
 	
 	//make sure to capture whenever the time step or frame index changes
-	if (timeStep != previousTimeStep || frameNum != previousFrameNum) {
+	if (timeStep != previousTimeStep) {
 		setRenderNew();
 		previousTimeStep = timeStep;
-		previousFrameNum = frameNum;
 	}
 	
-    getActiveRegionParams()->calcStretchedBoxExtentsInCube(extents,timeStep);
-    DataStatus::getInstance()->getMaxStretchedExtentsInCube(maxFull);
+    //getActiveRegionParams()->calcStretchedBoxExtentsInCube(extents,timeStep);
+    //DataStatus::getInstance()->getMaxStretchedExtentsInCube(maxFull);
 	
 	//Make the depth buffer writable
 	glDepthMask(GL_TRUE);
@@ -1157,60 +366,11 @@ void GLWindow::regPaintEvent()
 	glEnable (GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	//If we are in regionMode, or if the preferences specify the full box will be rendered,
-	//draw it now, before the renderers do their thing.
-    if(regionFrameIsEnabled()|| GLWindow::getCurrentMouseMode() == GLWindow::regionMode){
-      renderDomainFrame(extents, minFull, maxFull);
-    } 
-	//In regionMode or if preferences specify it, draw the subregion frame.
-    if(subregionFrameIsEnabled() && 
-       !(GLWindow::getCurrentMouseMode() == GLWindow::regionMode) )
-    {
-      drawSubregionBounds(extents);
-    } 
-
-	//Draw axis arrows if enabled.
-    if (axisArrowsAreEnabled()) drawAxisArrows(extents);
-	
-
-
-	//render the region manipulator, if in region mode, and active visualizer, or region shared
-	//with active visualizer.  Possibly redundant???
-	if(getCurrentMouseMode() == GLWindow::regionMode) { 
-		if( (windowIsActive() || 
-			(!getActiveRegionParams()->isLocal() && activeWinSharesRegion()))){
-				TranslateStretchManip* regionManip = getManip(Params::_regionParamsTag);
-				regionManip->setParams(getActiveRegionParams());
-				regionManip->render();
-		} 
-	}
-	//Render other manips, if we are in appropriate mode:
-	//Note: Other manips don't have shared and local to deal with:
-	else if ((getCurrentMouseMode() != navigateMode) && windowIsActive()){
-		int mode = getCurrentMouseMode();
-		ParamsBase::ParamsBaseType t = getModeParamType(mode);
-		TranslateStretchManip* manip = manipHolder[mode];
-		RenderParams* p = (RenderParams*)getActiveParams(t);
-		manip->setParams(p);
-		manip->render();
-		int manipType = getModeManipType(mode);
-		//For probe and 2D manips, render 3D cursor too
-		if (manipType > 1) {
-			const float *localPoint = p->getSelectedPointLocal();
-			
-			draw3DCursor(localPoint);
-		}
-	}
-	
-	
-	
 	//Now we are ready for all the different renderers to proceed.
 	//Sort them;  If they are opaque, they go first.  If not opaque, they
 	//are sorted back to front.  This only works if all the geometry of a renderer is ordered by
 	//a simple depth test.
 
-	sortRenderers(timeStep);
-	
 	printOpenGLError();
 	//Now go through all the active renderers
 	for (int i = 0; i< getNumRenderers(); i++){
@@ -1240,115 +400,19 @@ void GLWindow::regPaintEvent()
 
 	//Perform final touch-up on the final images, before capturing or displaying them.
 
-	//Axis annotation must be drawn after all the renderers are complete so that the axes are not hidden.
-	if (axisAnnotationIsEnabled()) {
-		drawAxisTics(timeStep);
-		//Now go to default 2D window
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-		drawAxisLabels(timeStep);
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-	}
-
-	//One colorbar may be drawn.  It is drawn at a fixed position on the final image.
-	//See if there is a renderer that has an enabled colorbar and a valid transfer function
-	RenderParams* p = dynamic_cast<RenderParams*>(getActiveParams(Params::GetTagFromType(colorbarParamsTypeId)));
-	if(p && colorbarIsEnabled() && p->isEnabled() && p->GetMapperFunc()){
-		//Now go to default 2D window
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-		
-		getRenderer(p)->renderColorscale(colorbarIsDirty());
-		
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-	}
-	
-	//Create time annotation from current time step.  Draw it over the image.
-	
-	if(getTimeAnnotType()){
-		//Now go to default 2D window
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-		
-		renderTimeStamp(timeAnnotIsDirty());
-		
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-	}
-	
-	//Capture the back-buffer image, if not navigating.  
-	//This must be performed before swapBuffers after everything has been drawn.
-	if (renderNew && !mouseDownHere) 
-		doFrameCapture();
-
 	glPopMatrix();
-	swapBuffers();
+	//swapBuffers();
 	glFlush();
 
-	//clear dirty bits for the next rendering.
 	
-	setDirtyBit(RegionBit,false);
-	setDirtyBit(AnimationBit,false);
-	setDirtyBit(NavigatingBit,false);
-	setDirtyBit(ProjMatrixBit, false);
-	setDirtyBit(ViewportBit, false);
-	setDirtyBit(LightingBit, false);
 	//Turn off the nowPainting flag (probably could be deleted)
 	nowPainting = false;
-	
-	//When spinning update the viewpoint appropriately.
-	if (isSpinning){
-		getTBall()->TrackballSpin();
-		setViewerCoordsChanged(true);
-		setDirtyBit(ProjMatrixBit, true);
-	}
-	//Now release the rendering mutex.
-	//Must be performed here or deadlock occurs!
-	renderMutex.unlock();
-	
-	//Tell the animation controller that this frame is complete.  
-	//This must be called exactly once after rendering is done.l
-	postRenderCB(winNum, isControlled);
 	
 	glDisable(GL_NORMALIZE);
 	printOpenGLError();
 }
 
-//Draw a 3D cursor at specified world coords
-void GLWindow::draw3DCursor(const float position[3]){
-	float cubePosition[3];
-	ViewpointParams::localToStretchedCube(position, cubePosition);
-	glLineWidth(3.f);
-	glColor3f(1.f,1.f,1.f);
-	glBegin(GL_LINES);
-	glVertex3f(cubePosition[0]-0.05f,cubePosition[1],cubePosition[2]);
-	glVertex3f(cubePosition[0]+0.05f,cubePosition[1],cubePosition[2]);
-	glVertex3f(cubePosition[0],cubePosition[1]-0.05f,cubePosition[2]);
-	glVertex3f(cubePosition[0],cubePosition[1]+0.05f,cubePosition[2]);
-	glVertex3f(cubePosition[0],cubePosition[1],cubePosition[2]-0.05f);
-	glVertex3f(cubePosition[0],cubePosition[1],cubePosition[2]+0.05f);
-	glEnd();
-}
+
 
 //
 //  Set up the OpenGL rendering state, and define display list
@@ -1398,8 +462,7 @@ void GLWindow::initializeGL()
 
 
 
-	//VizWinMgr::getInstance()->getDvrRouter()->initTypes();
-    qglClearColor(getBackgroundColor()); 		// Let OpenGL clear to black
+	
 	//Initialize existing renderers:
 	//
 	if (printOpenGLError()) return;
@@ -1407,7 +470,6 @@ void GLWindow::initializeGL()
 		renderer[i]->initializeGL();
 		printOpenGLErrorMsg(renderer[i]->getMyName().c_str());
 	}
-    glGenTextures(1,&_timeStampTexid);
 	nowPainting = false;
 	printOpenGLError();
 	
@@ -1424,15 +486,7 @@ bool GLWindow::projectPointToWin(float cubeCoords[3], float winCoords[2]){
 	GLdouble cbCoords[3];
 	for (int i = 0; i< 3; i++)
 		cbCoords[i] = (double) cubeCoords[i];
-	//double* mmtrx = getModelMatrix(); 
-	//double* pmtrx = getProjectionMatrix();
-	//double mMtrx[16], pMtrx[16];
-	//for (int q = 0; q<16; q++){
-	//	mMtrx[q]=mmtrx[q];
-	//	pMtrx[q]=pmtrx[q];
-	//}
-	//int* vprt = getViewport();
-
+	
 	bool success = gluProject(cbCoords[0],cbCoords[1],cbCoords[2], getModelMatrix(),
 		getProjectionMatrix(), getViewport(), wCoords, (wCoords+1),(GLdouble*)(&depth));
 	if (!success) return false;
@@ -1456,7 +510,7 @@ bool GLWindow::pixelToVector(float winCoords[2], const float camPos[3], float di
 		v[1] = (float)pt[1];
 		v[2] = (float)pt[2];
 		//transform position to world coords
-		ViewpointParams::localFromStretchedCube(v,dirVec);
+		//ViewpointParams::localFromStretchedCube(v,dirVec);
 		//Subtract viewer coords to get a direction vector:
 		vsub(dirVec, camPos, dirVec);
 		
@@ -1503,51 +557,7 @@ pointIsOnBox(float corners[8][3], float pickPt[2]){
 	return -1;
 }
 
-//Produce an array based on current contents of the (back) buffer
-bool GLWindow::
-getPixelData(unsigned char* data){
-	// set the current window 
-	makeCurrent();
-	 // Must clear previous errors first.
-	while(glGetError() != GL_NO_ERROR);
 
-	//if (front)
-	//
-	//glReadBuffer(GL_FRONT);
-	//
-	//else
-	//  {
-	glReadBuffer(GL_BACK);
-	//  }
-	glDisable( GL_SCISSOR_TEST );
-
-
- 
-	// Turn off texturing in case it is on - some drivers have a problem
-	// getting / setting pixels with texturing enabled.
-	glDisable( GL_TEXTURE_2D );
-
-	// Calling pack alignment ensures that we can grab the any size window
-	glPixelStorei( GL_PACK_ALIGNMENT, 1 );
-	glReadPixels(0, 0, width(), height(), GL_RGB,
-				GL_UNSIGNED_BYTE, data);
-	if (glGetError() != GL_NO_ERROR)
-		return false;
-	//Unfortunately gl reads these in the reverse order that jpeg expects, so
-	//Now we need to swap top and bottom!
-	unsigned char val;
-	for (int j = 0; j< height()/2; j++){
-		for (int i = 0; i<width()*3; i++){
-			val = data[i+width()*3*j];
-			data[i+width()*3*j] = data[i+width()*3*(height()-j-1)];
-			data[i+width()*3*(height()-j-1)] = val;
-		}
-	}
-	
-	return true;
-		
-  
-}
 //Routine to obtain gl state from viewpointparams
 GLdouble* GLWindow:: 
 getModelMatrix() {
@@ -1560,8 +570,6 @@ void GLWindow::renderDomainFrame(float* extents, float* minFull, float* maxFull)
 	int i; 
 	int numLines[3];
 	float regionSize, fullSize[3], modMin[3],modMax[3];
-	setRegionFrameColorFlt(DataStatus::getRegionFrameColor());
-	
 	
 	//Instead:  either have 2 or 1 lines in each dimension.  2 if the size is < 1/3
 	for (i = 0; i<3; i++){
@@ -1647,10 +655,6 @@ void GLWindow::renderDomainFrame(float* extents, float* minFull, float* maxFull)
 	}
 	
 	glEnd();//GL_LINES
-	
-	
-	
-
 }
 
 float* GLWindow::cornerPoint(float* extents, int faceNum){
@@ -1680,456 +684,10 @@ bool GLWindow::faceIsVisible(float* extents, float* viewerCoords, int faceNum){
 			return false;
 	}
 }
-void GLWindow::drawSubregionBounds(float* extents) {
-	setSubregionFrameColorFlt(DataStatus::getSubregionFrameColor());
-	glLineWidth( 2.0 );
-	glColor3fv(subregionFrameColorFlt);
-	glBegin(GL_LINE_LOOP);
-	glVertex3f(extents[0], extents[1], extents[2]);
-	glVertex3f(extents[0], extents[1], extents[5]);
-	glVertex3f(extents[0], extents[4], extents[5]);
-	glVertex3f(extents[0], extents[4], extents[2]);
-	glEnd();
-	glBegin(GL_LINE_LOOP);
-	glVertex3f(extents[3], extents[1], extents[2]);
-	glVertex3f(extents[3], extents[1], extents[5]);
-	glVertex3f(extents[3], extents[4], extents[5]);
-	glVertex3f(extents[3], extents[4], extents[2]);
-	glEnd();		
-	glBegin(GL_LINE_LOOP);
-	glVertex3f(extents[0], extents[4], extents[2]);
-	glVertex3f(extents[3], extents[4], extents[2]);
-	glVertex3f(extents[3], extents[4], extents[5]);
-	glVertex3f(extents[0], extents[4], extents[5]);
-	glEnd();
-	glBegin(GL_LINE_LOOP);
-	glVertex3f(extents[0], extents[1], extents[2]);
-	glVertex3f(extents[3], extents[1], extents[2]);
-	glVertex3f(extents[3], extents[1], extents[5]);
-	glVertex3f(extents[0], extents[1], extents[5]);
-	glEnd();
-}
 
 
 
-//Set colors to use in bound rendering:
-void GLWindow::setSubregionFrameColorFlt(const QColor& c){
-	subregionFrameColorFlt[0]= (float)c.red()/255.;
-	subregionFrameColorFlt[1]= (float)c.green()/255.;
-	subregionFrameColorFlt[2]= (float)c.blue()/255.;
-}
-void GLWindow::setRegionFrameColorFlt(const QColor& c){
-	regionFrameColorFlt[0]= (float)c.red()/255.;
-	regionFrameColorFlt[1]= (float)c.green()/255.;
-	regionFrameColorFlt[2]= (float)c.blue()/255.;
-}
-void GLWindow::
-buildTimeStampImage(){
-	
-	//Construct a string representing the text to be displayed:
-	size_t timeStep = (size_t)(getActiveAnimationParams()->getCurrentTimestep()); 
-	QString labelContents;
-	if (getTimeAnnotType() == 1){
-		labelContents = QString("TimeStep: ")+QString::number((int)timeStep) + " ";
-	}
-	else {//get string from metadata
-		const DataMgr *dataMgr = DataStatus::getInstance()->getDataMgr();
-		if (!dataMgr) labelContents = QString("");
-		else {
-			string timeStamp;
-			dataMgr->GetTSUserTimeStamp(timeStep, timeStamp);
-			labelContents = QString("Date/Time: ")+QString(timeStamp.c_str());
-		}
-	}
 
-	//Determine the size of the rectangle holding the text:
-	QFont f;
-	f.setPointSize(getTimeAnnotTextSize());
-	QFontMetrics metrics = QFontMetrics(f);
-	QRect rect = metrics.boundingRect(0,1000, width(), int(height()*0.25),Qt::AlignCenter, labelContents);
-
-	//create a QPixmap (specified background color) and draw the text on it.
-	QPixmap timeStampPixmap(rect.width(), rect.height());
-
-	QColor bgColor = getBackgroundColor();
-
-	//Draw the text into the pixmap
-	QPainter painter(&timeStampPixmap);
-	painter.setFont(f);
-	painter.setRenderHint(QPainter::TextAntialiasing);
-	painter.fillRect(QRect(0, 0, rect.width(), rect.height()), bgColor);
-	timeStampPixmap.fill(bgColor);
-	QColor fgColor = getTimeAnnotColor();
-	QPen myPen(fgColor, 6);
-	painter.setPen(myPen);
-	
-	//Setup font:
-	int textHeight = rect.height();
-	
-	textHeight = (int) (textHeight*getTimeAnnotTextSize()*0.1);
-	f.setPixelSize(textHeight);
-	
-	painter.drawText(QRect(0, 0, rect.width(), rect.height()),Qt::AlignCenter, labelContents);
-	
-	//Then, convert the pxmap to a QImage
-	QImage timeStampImage = timeStampPixmap.toImage();
-
-	//Finally create the gl-formatted texture 
-	//assert(colorbarImage.depth()==32);
-	glTimeStampImage = QGLWidget::convertToGLFormat(timeStampImage);
-	painter.end();
-	
-}
-void GLWindow::
-renderTimeStamp(bool dorebuild){
-	float whitecolor[4] = {1.,1.,1.,1.f};
-	if (dorebuild) buildTimeStampImage();
-
-	setTimeAnnotDirty(false);
-	glColor4fv(whitecolor);
-	glBindTexture(GL_TEXTURE_2D,_timeStampTexid);
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	//Disable z-buffer compare, always overwrite:
-	glDepthFunc(GL_ALWAYS);
-    glEnable( GL_TEXTURE_2D );
-	int txtWidth = glTimeStampImage.width();
-	int txtHeight = glTimeStampImage.height();
-	float fltTxtWidth = (float)txtWidth/(float)width();
-	float fltTxtHeight = (float)txtHeight/(float)height();
-	//create a polygon appropriately positioned in the scene.  It's inside the unit cube--
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, txtWidth, txtHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-		glTimeStampImage.bits());
-	
-	float llx = 2.f*getTimeAnnotCoord(0) - 1.f; 
-	float lly = 2.f*getTimeAnnotCoord(1)-2.*fltTxtHeight - 1.f; //Move down so it won't overlap default color scale location.
-	float urx = llx+2.*fltTxtWidth;
-	float ury = lly+2.*fltTxtHeight;
-	glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-	glBegin(GL_QUADS);
-	glTexCoord2f(0.0f, 0.0f); glVertex3f(llx, lly, 0.0f);
-	glTexCoord2f(0.0f, 1.0f); glVertex3f(llx, ury, 0.0f);
-	glTexCoord2f(1.0f, 1.0f); glVertex3f(urx, ury, 0.0f);
-	glTexCoord2f(1.0f, 0.0f); glVertex3f(urx, lly, 0.0f);
-	glEnd();
-	glDisable(GL_TEXTURE_2D);
-	//Reset to default:
-	glDepthFunc(GL_LESS);
-}
-void GLWindow::buildAxisLabels(int timestep){
-	//Set up the painter and font metrics
-	
-	
-
-	float lorigin[3], lticMin[3], lticMax[3];
-	float origin[3], ticMin[3], ticMax[3];
-	//Convert user to local by subtracting extent min.
-	const vector<double>& exts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
-	for (int i = 0; i<3; i++){
-		lorigin[i] = axisOriginCoord[i] - exts[i];
-		lticMin[i] = minTic[i] - exts[i];
-		lticMax[i] = maxTic[i] - exts[i];
-	}
-	ViewpointParams::localToStretchedCube(lorigin, origin);
-	//minTic and maxTic can be regarded as points in world space, defining
-	//corners of a box that's projected to axes.
-	ViewpointParams::localToStretchedCube(lticMin, ticMin);
-	ViewpointParams::localToStretchedCube(lticMax, ticMax);
-	float pointOnAxis[3];
-	float winCoords[2];
-	
-	for (int axis = 0; axis < 3; axis++){
-		
-		if (numTics[axis] > 1){
-			vcopy(origin, pointOnAxis);
-			for (int i = 0; i< numTics[axis]; i++){
-				if (axisLabels[axis].size() <= i) axisLabels[axis].push_back(*(new QImage()));
-				pointOnAxis[axis] = ticMin[axis] + (float)i* (ticMax[axis] - ticMin[axis])/(float)(numTics[axis]-1);
-				float labelValue = minTic[axis] + (float)i* (maxTic[axis] - minTic[axis])/(float)(numTics[axis]-1);
-				projectPointToWin(pointOnAxis, winCoords);
-				int x = (int)(winCoords[0]+2*ticWidth);
-				int y = (int)(height()-winCoords[1]+2*ticWidth);
-				if (x < 0 || x > width()) continue;
-				if (y < 0 || y > height()) continue;
-				//Note: Qt won't work right if we take the following out of the loop:  
-				QFont f;
-				f.setPointSize(labelHeight);
-				QString textLabel = QString::number(labelValue,'g',labelDigits);
-				QFontMetrics metrics = QFontMetrics(f);
-				QRect rect = metrics.boundingRect(0,1000, width(), height(), Qt::AlignCenter, textLabel);
-
-				//create a QPixmap (specified background color) and draw the text on it.
-				QPixmap labelPixmap(rect.width(), rect.height());
-				QColor bgColor = getBackgroundColor();
-				//Draw the text into the pixmap
-				QPainter painter(&labelPixmap);
-				painter.setFont(f);
-				painter.setRenderHint(QPainter::TextAntialiasing);
-				painter.fillRect(QRect(0, 0, rect.width(), rect.height()), bgColor);
-				labelPixmap.fill(bgColor);
-				QPen myPen(axisColor,6);
-				painter.setPen(myPen);
-	
-				//Setup font:
-				int textHeight = rect.height();
-	
-				textHeight = (int) (textHeight*labelHeight*0.1);
-				f.setPixelSize(textHeight);
-	
-				painter.drawText(QRect(0, 0, rect.width(), rect.height()),Qt::AlignCenter, textLabel);
-	
-				//Then, convert the pxmap to a QImage
-				QImage labelImage = labelPixmap.toImage();
-
-				//Finally create the gl-formatted texture
-				//
-				axisLabels[axis][i] = QGLWidget::convertToGLFormat(labelImage);
-				painter.end();
-		
-			}
-		}
-	}
-	axisLabelsDirty = false;
-}
-void GLWindow::drawAxisLabels(int timestep) {
-	float origin[3], ticMin[3], ticMax[3];
-	float lorigin[3], lticMin[3], lticMax[3];
-	if (labelHeight <= 0) return;
-	if (axisLabelsDirty) buildAxisLabels(timestep);
-	
-	
-	//Convert user to local by subtracting extent min.
-	const vector<double>& exts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
-	for (int i = 0; i<3; i++){
-		lorigin[i] = axisOriginCoord[i] - exts[i];
-		lticMin[i] = minTic[i] - exts[i];
-		lticMax[i] = maxTic[i] - exts[i];
-	}
-	ViewpointParams::localToStretchedCube(lorigin, origin);
-	//minTic and maxTic can be regarded as points in world space, defining
-	//corners of a box that's projected to axes.
-	ViewpointParams::localToStretchedCube(lticMin, ticMin);
-	ViewpointParams::localToStretchedCube(lticMax, ticMax);
-	
-	float pointOnAxis[3];
-	float winCoords[2] = {0.f,0.f};
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	glDepthFunc(GL_ALWAYS);
-    glEnable( GL_TEXTURE_2D );
-	for (int axis = 0; axis < 3; axis++){
-		if (numTics[axis] > 1){
-			vcopy(origin, pointOnAxis);
-			for (int i = 0; i< numTics[axis]; i++){
-				pointOnAxis[axis] = ticMin[axis] + (float)i* (ticMax[axis] - ticMin[axis])/(float)(numTics[axis]-1);
-				float labelValue = minTic[axis] + (float)i* (maxTic[axis] - minTic[axis])/(float)(numTics[axis]-1);
-				projectPointToWin(pointOnAxis, winCoords);
-				int x = (int)(winCoords[0]+2*ticWidth);
-				int y = (int)(height()-winCoords[1]+2*ticWidth);
-				if (x < 0 || x > width()) continue;
-				if (y < 0 || y > height()) continue;
-				glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-				glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-				//Disable z-buffer compare, always overwrite:
-	
-				int txtWidth = axisLabels[axis][i].width();
-				int txtHeight = axisLabels[axis][i].height();
-				float fltTxtWidth = (float)txtWidth/(float)width();
-				float fltTxtHeight = (float)txtHeight/(float)height();
-				//create a textured polygon appropriately positioned in the scene. 
-				glTexImage2D(GL_TEXTURE_2D, 0, 3, txtWidth, txtHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-					axisLabels[axis][i].bits());
-	
-				float llx = 2.*(float)x/(float)width() -1.;
-				float lly = 1. - 2.*(float)y/(float)height();
-				float urx = llx+2.*fltTxtWidth;
-				float ury = lly+2.*fltTxtHeight;
-				glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-				glBegin(GL_QUADS);
-				glTexCoord2f(0.0f, 0.0f); glVertex3f(llx, lly, 0.0f);
-				glTexCoord2f(0.0f, 1.0f); glVertex3f(llx, ury, 0.0f);
-				glTexCoord2f(1.0f, 1.0f); glVertex3f(urx, ury, 0.0f);
-				glTexCoord2f(1.0f, 0.0f); glVertex3f(urx, lly, 0.0f);
-				glEnd();
-	
-			}
-		}
-	}
-	glDisable(GL_TEXTURE_2D);
-	//Reset to default:
-	glDepthFunc(GL_LESS);
-	glPopAttrib();
-}
-
-
-void GLWindow::drawAxisTics(int timestep){
-	float origin[3], ticMin[3], ticMax[3], ticLen[3];
-	float lorigin[3], lticMin[3], lticMax[3];
-	//Convert user to local by subtracting extent min.
-	
-	const vector<double>& exts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
-	for (int i = 0; i<3; i++){
-		lorigin[i] = axisOriginCoord[i] - exts[i];
-		lticMin[i] = minTic[i] - exts[i];
-		lticMax[i] = maxTic[i] - exts[i];
-	}
-	ViewpointParams::localToStretchedCube(lorigin, origin);
-	//minTic and maxTic can be regarded as points in world space, defining
-	//corners of a box that's projected to axes.
-	ViewpointParams::localToStretchedCube(lticMin, ticMin);
-	ViewpointParams::localToStretchedCube(lticMax, ticMax);
-	//TicLength needs to be stretched based on which axes are used for tic direction
-	const float* stretch = DataStatus::getInstance()->getStretchFactors();
-	float maxStretchedCubeSide = ViewpointParams::getMaxStretchedCubeSide();
-	for (int i = 0; i<3; i++){
-		int j = ticDir[i];
-		ticLen[i] = ticLength[i]*stretch[j]/maxStretchedCubeSide;
-	}
-	
-	glDisable(GL_LIGHTING);
-
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glColor3f((float)axisColor.red()/255.f,(float)axisColor.green()/255.f, (float)axisColor.blue()/255.f);
-	glLineWidth(ticWidth);
-	//Draw lines on x-axis:
-	glBegin(GL_LINES);
-	glVertex3f(ticMin[0],origin[1],origin[2]);
-	glVertex3f(ticMax[0],origin[1],origin[2]);
-	glVertex3f(origin[0],ticMin[1],origin[2]);
-	glVertex3f(origin[0],ticMax[1],origin[2]);
-	glVertex3f(origin[0],origin[1],ticMin[2]);
-	glVertex3f(origin[0],origin[1],ticMax[2]);
-	float pointOnAxis[3];
-	float ticVec[3], drawPosn[3];
-	//Now draw tic marks for x:
-	if (numTics[0] > 1 && ticLength[0] > 0.f){
-		pointOnAxis[1] = origin[1];
-		pointOnAxis[2] = origin[2];
-		ticVec[0] = 0.f; ticVec[1] = 0.f; ticVec[2] = 0.f;
-		if (ticDir[0] == 1) ticVec[1] = ticLen[0]; 
-		else ticVec[2] = ticLen[0];
-		for (int i = 0; i< numTics[0]; i++){
-			pointOnAxis[0] = ticMin[0] + (float)i* (ticMax[0] - ticMin[0])/(float)(numTics[0]-1);
-			vsub(pointOnAxis, ticVec, drawPosn);
-			glVertex3fv(drawPosn);
-			vadd(pointOnAxis, ticVec, drawPosn);
-			glVertex3fv(drawPosn);
-		}
-	}
-	//Now draw tic marks for y:
-	if (numTics[1] > 1 && ticLen[1] > 0.f){
-		pointOnAxis[0] = origin[0];
-		pointOnAxis[2] = origin[2];
-		ticVec[0] = 0.f; ticVec[1] = 0.f; ticVec[2] = 0.f;
-		if (ticDir[1] == 0) ticVec[0] = ticLen[1]; 
-		else ticVec[2] = ticLen[1];
-		for (int i = 0; i< numTics[1]; i++){
-			pointOnAxis[1] = ticMin[1] + (float)i* (ticMax[1] - ticMin[1])/(float)(numTics[1]-1);
-			vsub(pointOnAxis, ticVec, drawPosn);
-			glVertex3fv(drawPosn);
-			vadd(pointOnAxis, ticVec, drawPosn);
-			glVertex3fv(drawPosn);
-		}
-	}
-	//Now draw tic marks for z:
-	if (numTics[2] > 1 && ticLen[2] > 0.f){
-		pointOnAxis[0] = origin[0];
-		pointOnAxis[1] = origin[1];
-		ticVec[0] = 0.f; ticVec[1] = 0.f; ticVec[2] = 0.f;
-		if (ticDir[2] == 0) ticVec[0] = ticLen[2]; 
-		else ticVec[1] = ticLen[2];
-		for (int i = 0; i< numTics[2]; i++){
-			pointOnAxis[2] = ticMin[2] + (float)i* (ticMax[2] - ticMin[2])/(float)(numTics[2]-1);
-			vsub(pointOnAxis, ticVec, drawPosn);
-			glVertex3fv(drawPosn);
-			vadd(pointOnAxis, ticVec, drawPosn);
-			glVertex3fv(drawPosn);
-		}
-	}
-	glEnd();
-	
-}
-
-void GLWindow::drawAxisArrows(float* extents){
-	float origin[3];
-	float maxLen = -1.f;
-	for (int i = 0; i<3; i++){
-		origin[i] = extents[i] + (getAxisArrowCoord(i))*(extents[i+3]-extents[i]);
-		if (extents[i+3] - extents[i] > maxLen) {
-			maxLen = extents[i+3] - extents[i];
-		}
-	}
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	float len = maxLen*0.2f;
-	glColor3f(1.f,0.f,0.f);
-	glLineWidth( 4.0 );
-	glBegin(GL_LINES);
-	glVertex3fv(origin);
-	glVertex3f(origin[0]+len,origin[1],origin[2]);
-	
-	glEnd();
-	glBegin(GL_TRIANGLES);
-	glVertex3f(origin[0]+len,origin[1],origin[2]);
-	glVertex3f(origin[0]+.8*len, origin[1]+.1*len, origin[2]);
-	glVertex3f(origin[0]+.8*len, origin[1], origin[2]+.1*len);
-
-	glVertex3f(origin[0]+len,origin[1],origin[2]);
-	glVertex3f(origin[0]+.8*len, origin[1], origin[2]+.1*len);
-	glVertex3f(origin[0]+.8*len, origin[1]-.1*len, origin[2]);
-
-	glVertex3f(origin[0]+len,origin[1],origin[2]);
-	glVertex3f(origin[0]+.8*len, origin[1]-.1*len, origin[2]);
-	glVertex3f(origin[0]+.8*len, origin[1], origin[2]-.1*len);
-
-	glVertex3f(origin[0]+len,origin[1],origin[2]);
-	glVertex3f(origin[0]+.8*len, origin[1], origin[2]-.1*len);
-	glVertex3f(origin[0]+.8*len, origin[1]+.1*len, origin[2]);
-	glEnd();
-
-	glColor3f(0.f,1.f,0.f);
-	glBegin(GL_LINES);
-	glVertex3fv(origin);
-	glVertex3f(origin[0],origin[1]+len,origin[2]);
-	glEnd();
-	glBegin(GL_TRIANGLES);
-	glVertex3f(origin[0],origin[1]+len,origin[2]);
-	glVertex3f(origin[0]+.1*len, origin[1]+.8*len, origin[2]);
-	glVertex3f(origin[0], origin[1]+.8*len, origin[2]+.1*len);
-
-	glVertex3f(origin[0],origin[1]+len,origin[2]);
-	glVertex3f(origin[0], origin[1]+.8*len, origin[2]+.1*len);
-	glVertex3f(origin[0]-.1*len, origin[1]+.8*len, origin[2]);
-
-	glVertex3f(origin[0],origin[1]+len,origin[2]);
-	glVertex3f(origin[0]-.1*len, origin[1]+.8*len, origin[2]);
-	glVertex3f(origin[0], origin[1]+.8*len, origin[2]-.1*len);
-
-	glVertex3f(origin[0],origin[1]+len,origin[2]);
-	glVertex3f(origin[0], origin[1]+.8*len, origin[2]-.1*len);
-	glVertex3f(origin[0]+.1*len, origin[1]+.8*len, origin[2]);
-	glEnd();
-	glColor3f(0.f,0.3f,1.f);
-	glBegin(GL_LINES);
-	glVertex3fv(origin);
-	glVertex3f(origin[0],origin[1],origin[2]+len);
-	glEnd();
-	glBegin(GL_TRIANGLES);
-	glVertex3f(origin[0],origin[1],origin[2]+len);
-	glVertex3f(origin[0]+.1*len, origin[1], origin[2]+.8*len);
-	glVertex3f(origin[0], origin[1]+.1*len, origin[2]+.8*len);
-
-	glVertex3f(origin[0],origin[1],origin[2]+len);
-	glVertex3f(origin[0], origin[1]+.1*len, origin[2]+.8*len);
-	glVertex3f(origin[0]-.1*len, origin[1], origin[2]+.8*len);
-
-	glVertex3f(origin[0],origin[1],origin[2]+len);
-	glVertex3f(origin[0]-.1*len, origin[1], origin[2]+.8*len);
-	glVertex3f(origin[0], origin[1]-.1*len, origin[2]+.8*len);
-
-	glVertex3f(origin[0],origin[1],origin[2]+len);
-	glVertex3f(origin[0], origin[1]-.1*len, origin[2]+.8*len);
-	glVertex3f(origin[0]+.1*len, origin[1], origin[2]+.8*len);
-	glEnd();
-}
 
 /*
  * Insert a renderer to this visualization window
@@ -2157,7 +715,7 @@ insertRenderer(RenderParams* rp, Renderer* ren, int newOrder)
 		renderOrder[i] = newOrder;
 		numRenderers++;
 		ren->initializeGL();
-		update();
+		
 	}
 }
 // Remove all renderers.  This is needed when we load new data into
@@ -2187,15 +745,14 @@ void GLWindow::removeAllRenderers(){
 bool GLWindow::removeRenderer(RenderParams* rp){
 	int i;
 	assert(!nowPainting);
-	renderMutex.lock();
+	
 	map<RenderParams*,Renderer*>::iterator find_iter = rendererMapping.find(rp);
 	if (find_iter == rendererMapping.end()) {
-		renderMutex.unlock();
 		return false;
 	}
 	Renderer* ren = find_iter->second;
 	
-	makeCurrent();
+	//makeCurrent();
 
 	//get it from the renderer list, and delete it:
 	for (i = 0; i<numRenderers; i++) {		
@@ -2215,8 +772,8 @@ bool GLWindow::removeRenderer(RenderParams* rp){
 		renderType[j] = renderType[j+1];
 		renderOrder[j] = renderOrder[j+1];
 	}
-	renderMutex.unlock();
-	update();
+	
+	
 	return true;
 }
 //Remove a <params,renderer> pair from the list.  But leave them
@@ -2249,22 +806,7 @@ Renderer* GLWindow::getRenderer(RenderParams* p){
 	return found_iter->second;
 }
 
-//set the dirty bit, 
-void GLWindow::
-setDirtyBit(DirtyBitType t, bool nowDirty){
-	vizDirtyBit[t] = nowDirty;
-	if (nowDirty){
-		if (t == RegionBit){
-			//Must clear all iso, dvr, and flow bypass flags
-			clearRendererBypass((Params::GetTypeFromTag(Params::_dvrParamsTag)));
-			clearRendererBypass((Params::GetTypeFromTag(Params::_isoParamsTag)));
-			clearRendererBypass((Params::GetTypeFromTag(Params::_flowParamsTag)));
-		} else if (t == NavigatingBit) {
-			clearRendererBypass((Params::GetTypeFromTag(Params::_isoParamsTag)));
-			clearRendererBypass((Params::GetTypeFromTag(Params::_dvrParamsTag)));
-		}
-	}
-}
+
 //Clear all render bypass flags for active renderers that match the specified type(s)
 
 void GLWindow::
@@ -2275,115 +817,17 @@ clearRendererBypass(Params::ParamsBaseType t){
 	}
 }
 
-bool GLWindow::
-vizIsDirty(DirtyBitType t) {
-	return vizDirtyBit[t];
-}
-void GLWindow::
-doFrameCapture(){
-	if (capturingImage == 0) return;
-	//Create a string consisting of captureName, followed by nnnn (framenum), 
-	//followed by .jpg or .tif
-	QString filename;
-	if (capturingImage == 2){
-		filename = captureNameImage;
-		filename += (QString("%1").arg(captureNumImage)).rightJustified(4,'0');
-		if (capturingTif) filename +=  ".tif";
-		else filename +=  ".jpg";
-	} //Otherwise we are just capturing one frame:
-	else filename = captureNameImage;
-	if (!(filename.endsWith(".jpg"))&&!(filename.endsWith(".tif"))) filename += ".jpg";
-	
-	FILE* jpegFile = NULL;
-	TIFF* tiffFile = NULL;
-	if (filename.endsWith(".tif")){
-		tiffFile = TIFFOpen((const char*)filename.toAscii(), "wb");
-		if (!tiffFile) {
-			SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error: Error opening output Tiff file: %s",(const char*)filename.toAscii());
-			capturingImage = 0;
-			return;
-		}
-	} else {
-		// open the jpeg file:
-		jpegFile = fopen((const char*)filename.toAscii(), "wb");
-		if (!jpegFile) {
-			SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error: Error opening output Jpeg file: %s",(const char*)filename.toAscii());
-			capturingImage = 0;
-			return;
-		}
-	}
-	//Get the image buffer 
-	unsigned char* buf = new unsigned char[3*width()*height()];
-	//Use openGL to fill the buffer:
-	if(!getPixelData(buf)){
-		//Error!
-		SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error; error obtaining GL data");
-		capturingImage = 0;
-		delete [] buf;
-		return;
-	}
-	
-	//Now call the Jpeg or tiff library to compress and write the file
-	//
-	if (filename.endsWith(".jpg")){
-		int quality = getJpegQuality();
-		int rc = write_JPEG_file(jpegFile, width(), height(), buf, quality);
-		if (rc){
-			//Error!
-			SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error; Error writing jpeg file %s",
-				(const char*)filename.toAscii());
-			capturingImage = 0;
-			delete [] buf;
-			return;
-		}
-	} else { //capture the tiff file, one scanline at a time
-		uint32 imagelength = (uint32) height();
-		uint32 imagewidth = (uint32) width();
-		TIFFSetField(tiffFile, TIFFTAG_IMAGELENGTH, imagelength);
-		TIFFSetField(tiffFile, TIFFTAG_IMAGEWIDTH, imagewidth);
-		TIFFSetField(tiffFile, TIFFTAG_PLANARCONFIG, 1);
-		TIFFSetField(tiffFile, TIFFTAG_SAMPLESPERPIXEL, 3);
-		TIFFSetField(tiffFile, TIFFTAG_ROWSPERSTRIP, 8);
-		TIFFSetField(tiffFile, TIFFTAG_BITSPERSAMPLE, 8);
-		TIFFSetField(tiffFile, TIFFTAG_PHOTOMETRIC, 2);
-		for (int row = 0; row < imagelength; row++){
-			int rc = TIFFWriteScanline(tiffFile, buf+row*3*imagewidth, row);
-			if (rc != 1){
-				SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error; Error writing tiff file %s",
-				(const char*)filename.toAscii());
-				break;
-			}
-		}
-		TIFFClose(tiffFile);
-	}
-
-	//If just capturing single frame, turn it off, otherwise advance frame number
-	if(capturingImage > 1) captureNumImage++;
-	else capturingImage = 0;
-	delete [] buf;
-	
-}
-
-float GLWindow::getPixelSize(){
-	float temp[3];
-	//Window height is subtended by viewing angle (45 degrees),
-	//at viewer distance (dist from camera to view center)
-	ViewpointParams* vpParams = getActiveViewpointParams();
-	vsub(vpParams->getRotationCenterLocal(),vpParams->getCameraPosLocal(),temp);
-	//Apply stretch factor:
-	const float* stretch = DataStatus::getInstance()->getStretchFactors();
-	for (int i = 0; i<3; i++) temp[i] = stretch[i]*temp[i];
-	float distToScene = vlength(temp);
-	//tan(45 deg *0.5) is ratio between half-height and dist to scene
-	float halfHeight = tan(M_PI*0.125)* distToScene;
-	return (2.f*halfHeight/(float)height()); 
-	
-}
 
 void GLWindow::placeLights(){
 	printOpenGLError();
 	ViewpointParams* vpParams = getActiveViewpointParams();
 	int nLights = vpParams->getNumLights();
+	float lightDirs[3][3];
+	for (int j = 0; j<nLights; j++){
+		for (int i = 0; i<3; i++){
+			lightDirs[j][i] = vpParams->getLightDirection(j,i);
+		}
+	}
 	if (nLights >0){
 		printOpenGLError();
 		float specColor[4], ambColor[4];
@@ -2397,7 +841,7 @@ void GLWindow::placeLights(){
 		lmodel_ambient[0]=lmodel_ambient[1]=lmodel_ambient[2] = vpParams->getAmbientCoeff();
 		//All the geometry will get a white specular color:
 		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specColor);
-		glLightfv(GL_LIGHT0, GL_POSITION, vpParams->getLightDirection(0));
+		glLightfv(GL_LIGHT0, GL_POSITION, lightDirs[0]);
 			
 		specLight[0] = specLight[1] = specLight[2] = vpParams->getSpecularCoeff(0);
 			
@@ -2413,7 +857,7 @@ void GLWindow::placeLights(){
 		printOpenGLError();
 		if (nLights > 1){
 			printOpenGLError();
-			glLightfv(GL_LIGHT1, GL_POSITION, vpParams->getLightDirection(1));
+			glLightfv(GL_LIGHT1, GL_POSITION, lightDirs[1]);
 			specLight[0] = specLight[1] = specLight[2] = vpParams->getSpecularCoeff(1);
 			diffLight[0] = diffLight[1] = diffLight[2] = vpParams->getDiffuseCoeff(1);
 			glLightfv(GL_LIGHT1, GL_DIFFUSE, diffLight);
@@ -2428,7 +872,7 @@ void GLWindow::placeLights(){
 		}
 		if (nLights > 2){
 			printOpenGLError();
-			glLightfv(GL_LIGHT2, GL_POSITION, vpParams->getLightDirection(2));
+			glLightfv(GL_LIGHT2, GL_POSITION, lightDirs[2]);
 			specLight[0] = specLight[1] = specLight[2] = vpParams->getSpecularCoeff(2);
 			diffLight[0] = diffLight[1] = diffLight[2] = vpParams->getDiffuseCoeff(2);
 			glLightfv(GL_LIGHT2, GL_DIFFUSE, diffLight);
@@ -2445,8 +889,6 @@ void GLWindow::placeLights(){
 	} 
 }
 
-int GLWindow::getJpegQuality() {return jpegQuality;}
-void GLWindow::setJpegQuality(int qual){jpegQuality = qual;}
 
 // Project the current mouse coordinates to a line in screen space.
 // The line starts at the mouseDownPosition, and points in the
@@ -2488,7 +930,7 @@ bool GLWindow::startHandleSlide(float mouseCoords[2], int handleNum, Params* man
 	else handleNum = 2 - handleNum;
 	float boxExtents[6];
 	int timestep = getActiveAnimationParams()->getCurrentTimestep();
-	manipParams->calcStretchedBoxExtentsInCube(boxExtents, timestep);
+	//manipParams->calcStretchedBoxExtentsInCube(boxExtents, timestep);
 	for (int i = 0; i<3; i++){boxCtr[i] = (boxExtents[i] + boxExtents[i+3])*0.5f;}
 	// project the boxCtr and one more point, to get a direction vector
 	
@@ -2547,106 +989,28 @@ GLWindow::OGLVendorType GLWindow::GetVendor()
 	return(UNKNOWN);
 }
 
-void GLWindow::startSpin(int renderMS){
-	
-	mySpinTimer = new SpinTimer();
-	mySpinTimer->setWindow(this);
-	mySpinTimer->start(renderMS);
-	isSpinning = true;
-	//Increment the rotation and request another render..
-	getTBall()->TrackballSpin();
-	setViewerCoordsChanged(true);
-	setDirtyBit(ProjMatrixBit, true);
-	update();
-}
-bool GLWindow::stopSpin(){
-	if (isSpinning){
-		mySpinTimer->stop();
-		delete mySpinTimer;
-		mySpinTimer = 0;
-		isSpinning = false;
-		return true;
-	}
-	return false;
-}
+
+
 
 void GLWindow::
 setValuesFromGui(ViewpointParams* vpparams){
 	
 	//Same as the version in vizwin, but doesn't force redraw.
 	Viewpoint* vp = vpparams->getCurrentViewpoint();
-	float transCameraPos[3];
-	float cubeCoords[3];
-	//Must transform from world coords to unit cube coords for trackball.
-	ViewpointParams::localToStretchedCube(vpparams->getCameraPosLocal(), transCameraPos);
-	ViewpointParams::localToStretchedCube(vpparams->getRotationCenterLocal(), cubeCoords);
-	myTBall->setFromFrame(transCameraPos, vp->getViewDir(), vp->getUpVec(), cubeCoords, vp->hasPerspective());
+	double transCameraPos[3];
+	double cubeCoords[3];
+	double vdir[3],upv[3];
+	for (int i = 0; i<3; i++) {
+		vdir[i] = vp->getViewDir()[i];
+		upv[i] = vp->getUpVec()[i];
+	}
 	
-	//If the perspective was changed, a resize event will be triggered at next redraw:
-	
-	setPerspective(vp->hasPerspective());
-	setDirtyBit(ProjMatrixBit,true);
+	double mtx[16];
+	setMatrixFromFrame(transCameraPos, vdir, upv, cubeCoords,mtx);
+	vpparams->setModelViewMatrix(mtx);
 	
 }
-void GLWindow::
-sortRenderers(int timestep){
-	//Reorder the priority 5 renderers with their distance from camera
-	
-	//Indices point to places in renderer list:
-	int start5Renderers = -1; //will point to where the priority 5 renderers start
-	int numOpaque5Renderers = 0; //count number of pri 5 renderers that are opaque
-	int numToSort = 0; //This will be num5Renderers - numOpaque5Renderers;
-	int num5Renderers = 0; //Count of all pri 5 renderers;
-	std::vector<RenderListElt*> sortList;
-	for (int i = 0; i<numRenderers; i++){
-		if (renderOrder[i] < 5) continue;
-		if (renderOrder[i] > 5) break;//found renderer with higher order
-		if (start5Renderers < 0) start5Renderers = i;  //save first sorted renderer position
-		//Move all opaque renderers up to the start.  Put the rest into the sort list
-		RenderParams* rParams = renderer[i]->getRenderParams();
-		if (rParams->IsOpaque()){ //move it up
-			assert(start5Renderers+numOpaque5Renderers <= i);
-			renderer[start5Renderers+numOpaque5Renderers] = renderer[i];
-			renderType[start5Renderers+numOpaque5Renderers] = renderType[i];
-			numOpaque5Renderers++;
-		} else { //Add it to the ones to sort:
-			RenderListElt* newRenListElt = new RenderListElt();
-			newRenListElt->ren = renderer[i];
-			newRenListElt->renType = renderType[i];
-			sortList.push_back(newRenListElt);
-			numToSort++;
-		}
-		num5Renderers++;
-	}
-	if(numToSort < 2) {
-		//No need to sort but may need to put transparent after opaque:
-		if (numToSort > 0){
-			int startSortPos = start5Renderers+numOpaque5Renderers;
-			renderer[startSortPos] = sortList[0]->ren;
-			renderType[startSortPos] = sortList[0]->renType;
-			delete sortList[0];
-		}
-		return; 
-	}
-	for (int i = 0; i<numToSort; i++){
-		//Determine the camera distance of each renderer
-		RenderParams* rParams = sortList[i]->ren->getRenderParams();
-		sortList[i]->camDist = rParams->getCameraDistance(getActiveViewpointParams(),getActiveRegionParams(), timestep);
-	}
 
-	sort(sortList.begin(), sortList.end(), renderPriority);
-	
-	//Now stuff the renderers, etc., back into numToSort positions of the
-	//renderer queue, starting at position = start5Renderers+numOpaque5Renderers;
-	//renderOrder remains unchanged
-	int startSortPos = start5Renderers+numOpaque5Renderers;
-	for (int i = 0; i<sortList.size(); i++){
-		renderer[i+startSortPos] = sortList[i]->ren;
-		renderType[i+startSortPos] = sortList[i]->renType;
-		delete sortList[i];
-	}
-	return;
-}
 void GLWindow::removeDisabledRenderers(){
 	//Repeat until we don't find any renderers to disable:
 	
@@ -2678,15 +1042,24 @@ int GLWindow::AddMouseMode(const std::string paramsTag, int manipType, const cha
 	assert(manipFromMode.size() == mode+1);
 	return (mode);
 }
-void GLWindow::TransformToUnitBox(){
-	DataStatus* ds = DataStatus::getInstance();
-	size_t timeStep = (size_t)getActiveAnimationParams()->getCurrentTimestep();
-	if (!ds->getDataMgr()) return;
-	const vector<double>& fullUsrExts = ds->getDataMgr()->GetExtents(timeStep);
-	float sceneScaleFactor = 1.f/ViewpointParams::getMaxStretchedCubeSide();
-	const float* scales = ds->getStretchFactors();
-	glScalef(sceneScaleFactor, sceneScaleFactor, sceneScaleFactor);
-	float transVec[3];
-	for (int i = 0; i<3; i++) transVec[i] = fullUsrExts[i]*scales[i];
-	glTranslatef(-transVec[0],-transVec[1], -transVec[2]);
+
+// Set the quaternion and translation from a viewer frame
+// Also happens to construct modelview matrix, but we don't use its translation
+void GLWindow::
+setMatrixFromFrame(double* posvec, double* dirvec, double* upvec, double* centerRot, double mvmtrx[16]){
+	//First construct the rotation matrix:
+	double mtrx1[16];
+	double trnsMtrx[16];
+	double mtrx[16];
+	makeTransMatrix(centerRot, trnsMtrx);
+	makeModelviewMatrixD(posvec, dirvec, upvec, mtrx);
+	
+	//Translate on both sides by translation
+	//first on left,
+	mmult(trnsMtrx, mtrx, mtrx1);
+	//then on right by negative:
+	trnsMtrx[12] = -trnsMtrx[12];
+	trnsMtrx[13] = -trnsMtrx[13];
+	trnsMtrx[14] = -trnsMtrx[14];
+	mmult(mtrx1,trnsMtrx, mvmtrx);
 }

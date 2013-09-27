@@ -21,7 +21,6 @@
 #include "glutil.h"	// Must be included first!!!
 #include <vapor/XmlNode.h>
 #include <cstring>
-#include <qapplication.h>
 #include <string>
 #include <vapor/MyBase.h>
 #include "assert.h"
@@ -85,12 +84,12 @@ void Params::BailOut(const char *errstr, const char *fname, int lineno)
     //Error("Error: %s, at %s:%d\n", errstr, fname, lineno);
     //if (coreDumpOnError)
 	//abort();
-	QString errorMessage(errstr);
+	string errorMessage(errstr);
 	errorMessage += "\n in file: ";
 	errorMessage += fname;
 	errorMessage += " at line ";
-	errorMessage += QString::number(lineno);
-	SetErrMsg(VAPOR_FATAL,"Fatal error: %s",(const char*)errorMessage.toAscii());
+	errorMessage += std::to_string((long double)lineno);
+	SetErrMsg(VAPOR_FATAL,"Fatal error: %s",(const char*)errorMessage.c_str());
 	//MessageReporter::fatalMsg(errorMessage);
     exit(-1);
 }

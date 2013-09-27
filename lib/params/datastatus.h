@@ -64,6 +64,8 @@ public:
 	const float* getLocalExtents() { return extents; }
 	const float* getFullSizes() {return fullSizes;}
 	const float* getFullStretchedSizes() {return fullStretchedSizes;}
+	float getMaxSide(){return Max(fullSizes[0],Max(fullSizes[1],fullSizes[2]));}
+	float getMaxStretchedSide(){return Max(fullStretchedSizes[0],Max(fullStretchedSizes[1],fullStretchedSizes[2]));}
 
 
 	//! Return the extents of the data in user coordinates multiplied by current stretch factors.
@@ -108,6 +110,7 @@ public:
 	int getVarNum2D(string vname);
 	float getDefaultDataMax(string vname);
 	float getDefaultDataMin(string vname);
+	int getDataRange(string vname, size_t timestep, float range[2]);
 	void mapBoxToVox(Box* box, int refLevel, int lod, int timestep, size_t voxExts[6]);
 	
 	//! Returns the current data manager (if it exists).
@@ -138,6 +141,12 @@ public:
 	
 
 	const float* getStretchFactors() {return stretchFactors;}
+	void applyStretch(const vector<double>& before, float after[3]){
+		for (int i = 0; i<3; i++) after[i] = before[i]*stretchFactors[i];
+	}
+	void applyStretch(const float before[3], float after[3]){
+		for (int i = 0; i<3; i++) after[i] = before[i]*stretchFactors[i];
+	}
 	
 	
 private:

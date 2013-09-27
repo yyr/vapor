@@ -21,44 +21,32 @@
 
 #ifndef GLWINDOW_H
 #define GLWINDOW_H
-#include <qgl.h>
+
 #include <map>
-#include "trackball.h"
-#include <qthread.h>
-#include <QMutex>
+
 #include <jpeglib.h>
-#include "qcolor.h"
-#include "qlabel.h"
+
 #include "params.h"
-#include "manip.h"
+
 #include <vapor/MyBase.h>
 #include <vapor/common.h>
 #include "datastatus.h"
-#include "ShaderMgr.h"
+
 //No more than 20 renderers in a window:
 //Eventually this may be dynamic.
 #define MAXNUMRENDERERS 20
 
-class QLabel;
-class QThread;
 
 
 namespace VAPoR {
 typedef bool (*renderCBFcn)(int winnum, bool newCoords);
-class SpinTimer;
+
 class ViewpointParams;
 class RegionParams;
-class DvrParams;
 class AnimationParams;
-class FlowParams;
-class ProbeParams;
-class TwoDDataParams;
-class TwoDImageParams;
 class Renderer;
-class TranslateStretchManip;
-class TranslateRotateManip;
-class FlowRenderer;
-class VolumeRenderer;
+
+
 
 //! \class GLWindow
 //! \brief A class for performing OpenGL rendering in a VAPOR Visualizer
@@ -73,22 +61,11 @@ class VolumeRenderer;
 //! and calls all the enabled VAPOR Renderer instances.
 //! The GLWindow maintains "Dirty bits" that indicate window-specific state that
 //! may require refreshing
-class RENDER_API GLWindow : public MyBase, public QGLWidget
+class RENDER_API GLWindow : public MyBase
 {
 public:
    
-	//! Method for setting window-specific dirty bits.
-	//! All the bits are defined in the params.h file, in the VAPoR namespace.
-	//! \param[in] DirtyBitType t identifies the property being set
-	//! \param[in] bool val sets the bit true (dirty) or false (clean)
-	void setDirtyBit(DirtyBitType t, bool val);
-
-	//! Method for checking window-specific dirty bits.
-	//! All the bits are defined in the params.h file, in the VAPoR namespace.
-	//! \param[in] DirtyBitType t identifies the property being checked
-	//! \retval bool is true if it is dirty.
-	bool vizIsDirty(DirtyBitType t);
-
+	
 	//! Method that returns the ViewpointParams that is active in this window.
 	//! \retval ViewpointParams* current active ViewpointParams
 	ViewpointParams* getActiveViewpointParams() {return (ViewpointParams*)getActiveParams(Params::_viewpointParamsTag);}
@@ -101,8 +78,6 @@ public:
 	//! \retval AnimationParams* current active AnimationParams
 	AnimationParams* getActiveAnimationParams() {return (AnimationParams*)getActiveParams(Params::_animationParamsTag);}
 
-	//! Method that transforms the world into the unit box, should be called by each renderer before rendering
-	void TransformToUnitBox();
 
 	//MouseMode support
 	//! Static method that indicates the manipulator type that is associated with a mouse mode.
@@ -140,13 +115,9 @@ public:
 
 
 #ifndef DOXYGEN_SKIP_THIS
-	 GLWindow( QGLFormat& fmt, QWidget* parent, int winnum);
+	 GLWindow( int winnum);
     ~GLWindow();
-	Trackball* myTBall;
 	
-	Trackball* getTBall() {return myTBall;}
-	void setPerspective(bool isPersp) {perspective = isPersp;}
-	bool getPerspective() {return perspective;}
 
 	//Enum describes various mouse modes:
 	enum mouseModeType {
@@ -209,83 +180,9 @@ public:
 	void renderTimeStamp(bool rebuild);
 	void buildTimeStampImage();
 	
-	//Get/set methods for vizfeatures
-	QColor getBackgroundColor() {return DataStatus::getInstance()->getBackgroundColor();}
-	QColor getRegionFrameColor() {return DataStatus::getInstance()->getRegionFrameColor();}
-	QColor getSubregionFrameColor() {return DataStatus::getInstance()->getSubregionFrameColor();}
-	QColor& getColorbarBackgroundColor() {return colorbarBackgroundColor;}
-	bool axisArrowsAreEnabled() {return axisArrowsEnabled;}
-	bool axisAnnotationIsEnabled() {return axisAnnotationEnabled;}
-	bool colorbarIsEnabled() {return colorbarEnabled;}
-	int getColorbarParamsTypeId() {return colorbarParamsTypeId;}
-	void setColorbarParamsTypeId(int val) {colorbarParamsTypeId = val;}
-	bool regionFrameIsEnabled() {return DataStatus::getInstance()->regionFrameIsEnabled();}
-	bool subregionFrameIsEnabled() {return DataStatus::getInstance()->subregionFrameIsEnabled();}
-	float getAxisArrowCoord(int i){return axisArrowCoord[i];}
-	float getAxisOriginCoord(int i){return axisOriginCoord[i];}
-	float getMinTic(int i){return minTic[i];}
-	float getMaxTic(int i){return maxTic[i];}
-	float getTicLength(int i){return ticLength[i];}
-	int getNumTics(int i){return numTics[i];}
-	int getTicDir(int i){return ticDir[i];}
-	int getLabelHeight() {return labelHeight;}
-	int getLabelDigits() {return labelDigits;}
-	float getTicWidth(){return ticWidth;}
-	QColor& getAxisColor() {return axisColor;}
-	float getColorbarLLCoord(int i) {return colorbarLLCoord[i];}
-	float getColorbarURCoord(int i) {return colorbarURCoord[i];}
-	int getColorbarNumTics() {return numColorbarTics;}
-	int getColorbarDigits() {return colorbarDigits;}
-	int getColorbarFontsize() {return colorbarFontsize;}
-		
-
-	int getTimeAnnotType() {return timeAnnotType;}
-	int getTimeAnnotTextSize() {return timeAnnotTextSize;}
-	float getTimeAnnotCoord(int j){return timeAnnotCoords[j];}
-	QColor getTimeAnnotColor(){return timeAnnotColor;}
-	void setTimeAnnotTextSize(int size){timeAnnotTextSize = size;}
-	void setTimeAnnotColor(QColor c) {timeAnnotColor = c;}
-	void setTimeAnnotType(int t) {timeAnnotType = t;}
-	void setTimeAnnotCoords(float crds[2]){
-		timeAnnotCoords[0] = crds[0]; 
-		timeAnnotCoords[1] = crds[1];
-	}
-
-	void setBackgroundColor(QColor& c) {DataStatus::getInstance()->setBackgroundColor(c);}
-	void setColorbarBackgroundColor(QColor& c) {colorbarBackgroundColor = c;}
-	void setRegionFrameColor(QColor& c) {DataStatus::getInstance()->setRegionFrameColor(c);}
-	void setSubregionFrameColor(QColor& c) {DataStatus::getInstance()->setSubregionFrameColor(c);}
-	void enableAxisArrows(bool enable) {axisArrowsEnabled = enable;}
-	void enableAxisAnnotation(bool enable) {axisAnnotationEnabled = enable;}
-	void enableColorbar(bool enable) {colorbarEnabled = enable;}
-	void enableRegionFrame(bool enable) {DataStatus::getInstance()->enableRegionFrame(enable);}
-	void enableSubregionFrame(bool enable) {DataStatus::getInstance()->enableSubregionFrame(enable);}
 	
-	void setAxisArrowCoord(int i, float val){axisArrowCoord[i] = val;}
-	void setAxisOriginCoord(int i, float val){axisOriginCoord[i] = val;}
-	void setNumTics(int i, int val) {numTics[i] = val;}
-	void setTicDir(int i, int val) {ticDir[i] = val;}
-	void setMinTic(int i, float val) {minTic[i] = val;}
-	void setMaxTic(int i, float val) {maxTic[i] = val;}
-	void setTicLength(int i, float val) {ticLength[i] = val;}
-	void setLabelHeight(int h){labelHeight = h;}
-	void setLabelDigits(int d) {labelDigits = d;}
-	void setTicWidth(float w) {ticWidth = w;}
-	void setAxisColor(QColor& c) {axisColor = c;}
 	void setDisplacement(float val){displacement = val;}
 	float getDisplacement() {return displacement;}
-	void setColorbarLLCoord(int i, float crd) {colorbarLLCoord[i] = crd;}
-	void setColorbarURCoord(int i, float crd) {colorbarURCoord[i] = crd;}
-	void setColorbarNumTics(int i) {numColorbarTics = i;}
-	bool colorbarIsDirty() {return colorbarDirty;}
-	bool timeAnnotIsDirty() {return timeAnnotDirty;}
-	void setColorbarDirty(bool val){colorbarDirty = val;}
-	void setTimeAnnotDirty(bool val){timeAnnotDirty = val;}
-	void setColorbarDigits(int ndigs) {colorbarDigits = ndigs;}
-	void setColorbarFontsize(int fsize) {colorbarFontsize = fsize;}
-	void setAxisLabelsDirty(bool val){axisLabelsDirty = val;}
-	bool axisLabelsAreDirty(){return axisLabelsDirty;}
-
 
 	bool mouseIsDown() {return mouseDownHere;}
 	void setMouseDown(bool downUp) {mouseDownHere = downUp;}
@@ -326,16 +223,12 @@ public:
 	void setActiveViewpointParams(Params* p) {setActiveParams(p,Params::_viewpointParamsTag);}
 	void setActiveRegionParams(Params* p) {
 		setActiveParams(p,Params::_regionParamsTag);
-		getManip(Params::_regionParamsTag)->setParams(p);
+		//getManip(Params::_regionParamsTag)->setParams(p);
 	}
 	void setActiveAnimationParams(Params* p) {setActiveParams(p,Params::_animationParamsTag);}
 
 	
-	FlowParams* getActiveFlowParams() {return (FlowParams*)getActiveParams(Params::_flowParamsTag);}
-	ProbeParams* getActiveProbeParams() {return (ProbeParams*)getActiveParams(Params::_probeParamsTag);}
-	TwoDDataParams* getActiveTwoDDataParams() {return (TwoDDataParams*)getActiveParams(Params::_twoDDataParamsTag);}
-	TwoDImageParams* getActiveTwoDImageParams() {return (TwoDImageParams*)getActiveParams(Params::_twoDImageParamsTag);}
-
+	
 	vector<Params*> currentParams;
 	Params* getActiveParams(ParamsBase::ParamsBaseType pType) {return currentParams[pType];}
 	Params* getActiveParams(const std::string& tag) {return currentParams[Params::GetTypeFromTag(tag)];}
@@ -356,61 +249,27 @@ public:
 	float getPixelSize();
 	bool viewerCoordsChanged() {return newViewerCoords;}
 	void setViewerCoordsChanged(bool isNew) {newViewerCoords = isNew;}
-	bool isCapturingImage() {return (capturingImage != 0);}
-	bool isCapturingFlow() {return (capturingFlow);}
-	bool isSingleCapturingImage() {return (capturingImage == 1);}
-	void startImageCapture(QString& name, int startNum, bool isTif) {
-		capturingImage = 2;
-		captureNumImage = startNum;
-		captureNameImage = name;
-		newCaptureImage = true;
-		capturingTif = isTif;
-		previousFrameNum = -1;
-		previousTimeStep = -1;
-		update();
-	}
-	void startFlowCapture(QString& name) {
-		capturingFlow = true;
-		captureNameFlow = name;
-		update();
-	}
-	void singleCaptureImage(QString& name){
-		capturingImage = 1;
-		captureNameImage = name;
-		newCaptureImage = true;
-		update();
-	}
-	bool captureIsNewImage() { return newCaptureImage;}
 	
-	void setCaptureNewImage(bool isNew){ newCaptureImage = isNew;}
-	
-	void stopImageCapture() {capturingImage = 0;}
-	void stopFlowCapture() {capturingFlow = false;}
 	//Routine is called at the end of rendering.  If capture is 1 or 2, it converts image
 	//to jpeg and saves file.  If it ever encounters an error, it turns off capture.
 	//If capture is 1 (single frame capture) it turns off capture.
 	void doFrameCapture();
-	QString& getFlowFilename(){return captureNameFlow;}
 	
-
-	TranslateStretchManip* getManip(const std::string& paramTag){
+	/*TranslateStretchManip* getManip(const std::string& paramTag){
 		int mode = getModeFromParams(ParamsBase::GetTypeFromTag(paramTag));
 		return manipHolder[mode];
-	}
+	}*/
 	
 
 	void setPreRenderCB(renderCBFcn f){preRenderCB = f;}
 	void setPostRenderCB(renderCBFcn f){postRenderCB = f;}
-	static int getJpegQuality();
-	static void setJpegQuality(int qual);
-	static bool depthPeelEnabled() {return depthPeeling;}
-	static void enableDepthPeeling(bool val) {depthPeeling = val;}
+	
 	static bool getDefaultAxisArrowsEnabled(){return defaultAxisArrowsEnabled;}
 	static void setDefaultAxisArrows(bool val){defaultAxisArrowsEnabled = val;}
 	static bool getDefaultTerrainEnabled(){return defaultTerrainEnabled;}
-	static bool getDefaultSpinAnimateEnabled(){return defaultSpinAnimateEnabled;}
+	
 	static void setDefaultShowTerrain(bool val){defaultTerrainEnabled = val;}
-	static void setDefaultSpinAnimate(bool val){defaultSpinAnimateEnabled = val;}
+	
 	static void setDefaultPrefs();
 	int getWindowNum() {return winNum;}
 	
@@ -421,15 +280,11 @@ public:
 	bool windowIsActive(){return (winNum == activeWindowNum);}
 	static bool activeWinSharesRegion() {return regionShareFlag;}
 	static void setRegionShareFlag(bool regionIsShared){regionShareFlag = regionIsShared;}
-	
-	
 	const GLdouble* getProjectionMatrix() { return projectionMatrix;}	
-	
 	void getNearFarClippingPlanes(GLfloat *nearplane, GLfloat *farplane) {
 		*nearplane = nearDist; *farplane = farDist;
 	}
 
-	
 	const GLint* getViewport() {return viewport;}
 
 	enum OGLVendorType {
@@ -440,50 +295,29 @@ public:
 		INTEL
 	};
 	static OGLVendorType GetVendor();
-
-	void startSpin(int renderMS);
-	//Terminate spin, return true if successful
-	bool stopSpin();
-	bool spinning(){return isSpinning;}
-
 	void clearRendererBypass(Params::ParamsBaseType t);
-	//Following is intended to prevent conflicts between concurrent
-	//opengl threads.  Probably it should be protected by a semaphore 
-	//For now, leave it and see if problems occur.
-	static bool isRendering(){return nowPainting;}
+	
 	void setValuesFromGui(ViewpointParams* vpparams);
-	static void setSpinAnimation(bool on){spinAnimate = on;}
-	static bool spinAnimationEnabled(){return spinAnimate;}
-	QMutex renderMutex;  //prevent recursive rendering
+	
 	bool isControlled;
-	//Depth peeling data
-	GLint maxbuffers;
-	GLuint fboA;
-	GLuint fboB;
-	GLuint currentBuffer;
-	GLuint currentDepth;
-	GLint currentLayer;
-	GLuint depthA, depthB;
-	GLuint *layers;
-	int depthWidth, depthHeight, depthTexUnit;
-	ShaderMgr* getShaderMgr() {return manager;}
-	void depthPeelPaintEvent();
+	
 	void renderScene(float extents[6], float minFull[3], float maxFull[3], int timeStep);
 	void regPaintEvent();
-	bool peelInitialized;
-	bool isDepthPeeling(){return depthPeeling;}
+	
+	
+	GLdouble* getModelMatrix();
+		
 	
 protected:
-	QImage glTimeStampImage;
-	SpinTimer *mySpinTimer;
-	ShaderMgr *manager;
+	
+	
 	//Mouse Mode tables.  Static since independent of window:
 	static vector<ParamsBase::ParamsBaseType> paramsFromMode;
 	static vector<int> manipFromMode;
 	static vector<string> modeName;
 	static map<ParamsBase::ParamsBaseType, int> modeFromParams;
 	//There's a separate manipholder for each window
-	vector<TranslateStretchManip*> manipHolder;
+	//vector<TranslateStretchManip*> manipHolder;
 	//Register a manip, including an icon and text
 	//Icon must be specified as an xpm or null
 	//Manip type is : 0 for navigation (nothing) 1 for 3D translate/stretch, 2 for 2D translate/stretch, 3 for 3D rotate/stretch
@@ -498,11 +332,7 @@ protected:
 	static bool renderPriority(RenderListElt* ren1, RenderListElt* ren2){
 		return (ren1->camDist > ren2->camDist);
 	}
-	std::vector<QImage> axisLabels[3];
 	
-	bool axisLabelsDirty;
-
-	static bool depthPeeling;
 	int winNum;
 	int previousTimeStep;
 	int previousFrameNum;
@@ -512,7 +342,7 @@ protected:
 	//at the next rendering
 	bool newViewerCoords;
 	static int currentMouseMode;
-	std::map<DirtyBitType,bool> vizDirtyBit; 
+	
 	Renderer* renderer[MAXNUMRENDERERS];
 	Params::ParamsBaseType renderType[MAXNUMRENDERERS];
 	int renderOrder[MAXNUMRENDERERS];
@@ -522,13 +352,6 @@ protected:
 	std::map<RenderParams*,Renderer*> rendererMapping;
 
 	int numRenderers;
-	//Picking helper functions, saved from last change in GL state.  These
-	//Deal with the cube coordinates (known to the trackball)
-	//openGL model matrix is kept in the viewpointparams, since
-	//it may be shared (global)
-	//
-	GLdouble* getModelMatrix();
-		
 	GLfloat tcoord[2];
 	
 	GLfloat* setTexCrd(int i, int j);
@@ -550,13 +373,11 @@ protected:
 	// from paintEvent().
 	// setAutoFillBackground(false) is called in the GLWindow constructor
 
-	void paintEvent(QPaintEvent* event);
+	void paintEvent();
 		
+	void setMatrixFromFrame(double* posvec, double* dirvec, double* upvec, double* centerRot, double mvmtx[16]);
 	void setUpViewport(int width, int height);
 	//Methods to support drawing domain bounds, axes etc.
-	//Set colors to use in domain-bound rendering:
-	void setSubregionFrameColorFlt(const QColor& c);
-	void setRegionFrameColorFlt(const QColor& c);
 	//Draw the region bounds and frame it in full domain.
 	//Arguments are in unit cube coordinates
 	void renderDomainFrame(float* extents, float* minFull, float* maxFull);
@@ -582,20 +403,14 @@ protected:
 
 	float	wCenter[3]; //World center coords
 	float	maxDim;		//Max of x, y, z size in world coords
-	bool perspective;	//perspective vs parallel coords;
-	bool oldPerspective;
+	
 	//Indicate if the current render is different from previous,
 	//Used for frame capture:
 	bool renderNew;
-	//Moved over from vizwin:
-	int capturingImage;
-	int captureNumImage;
-	bool capturingFlow;
-	bool capturingTif;
+	
 	//Flag to set indicating start of capture sequence.
 	bool newCaptureImage;
-	QString captureNameImage;
-	QString captureNameFlow;
+	
 	//Set the following to force a call to resizeGL at the next call to
 	//updateGL.
 	bool needsResize;
@@ -604,39 +419,11 @@ protected:
 	GLint viewport[4];
 	GLdouble projectionMatrix[16];
 	static bool nowPainting;
-
-	//values in vizFeature
-	QColor colorbarBackgroundColor;
-
-	int colorbarParamsTypeId;
-
-	int timeAnnotType;
-	int timeAnnotTextSize;
-	float timeAnnotCoords[2];
-	QColor timeAnnotColor;
 	
-	bool axisArrowsEnabled;
-	bool axisAnnotationEnabled;
-	int colorbarDigits;
-	int colorbarFontsize;
-	bool colorbarEnabled;
-	float axisArrowCoord[3];
-	float axisOriginCoord[3];
-	float minTic[3];
-	float maxTic[3];
-	float ticLength[3];
-	int ticDir[3];
-	int numTics[3];
-	int labelHeight, labelDigits;
-	float ticWidth;
-	QColor axisColor;
+	
+	
 	float displacement;
 
-	float colorbarLLCoord[2];
-	float colorbarURCoord[2];
-	int numColorbarTics;
-	bool colorbarDirty;
-	bool timeAnnotDirty;
 	bool mouseDownHere;
 
 
@@ -650,8 +437,7 @@ protected:
 	//the region is shared, and the active region is shared.
 	static bool regionShareFlag;
 	static bool defaultTerrainEnabled;
-	static bool defaultSpinAnimateEnabled;
-	static bool spinAnimate;
+	
 	static bool defaultAxisArrowsEnabled;
 	
 	
@@ -662,8 +448,7 @@ protected:
 	float mouseDownPoint[2];
 	// unit vector in direction of handle
 	float handleProjVec[2];
-	bool isSpinning;
-	GLuint _timeStampTexid;
+
 	
 #endif //DOXYGEN_SKIP_THIS
 	

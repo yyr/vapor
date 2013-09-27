@@ -340,7 +340,6 @@ const string& ArrowParams::GetFieldVariableName(int i){
 }
 double ArrowParams::calcDefaultScale(){
 	string varname;
-	int sesvarnum;
 	double maxvarvals[3];
 	bool is3D = VariablesAre3D();
 	DataStatus* ds = DataStatus::getInstance();

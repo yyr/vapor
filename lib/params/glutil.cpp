@@ -51,7 +51,6 @@
 #include <vapor/errorcodes.h>
 
 #include <GL/glew.h>
-#include <qgl.h>
 
 //#include "util.h"
 
@@ -740,7 +739,7 @@ makeTransMatrix(float *trans, float* mtrx){
 	vcopy(trans, mtrx+12);
 }
 void
-makeTransMatrix(float *trans, double* mtrx){
+makeTransMatrix(double *trans, double* mtrx){
 	for (int i = 0; i<12; i++) mtrx[i] = 0.;
 	mtrx[0] = 1.;
 	mtrx[5] = 1.;
@@ -803,7 +802,7 @@ makeModelviewMatrix(float* vpos, float* vdir, float* upvec, float* mtrx){
  * side-effect:  will alter input values if not valid.
  */
 void
-makeModelviewMatrixD(float* vpos, float* vdir, float* upvec, double* mtrx){
+makeModelviewMatrixD(double* vpos, double* vdir, double* upvec, double* mtrx){
 	double vtemp[3];
 	double left[3] = {-1.f, 0.f, 0.f};
 	double ydir[3] = {0.f, 1.f, 0.f};

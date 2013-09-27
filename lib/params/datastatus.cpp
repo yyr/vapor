@@ -189,6 +189,17 @@ DataStatus::getDefaultDataMin(string vname){
 	}
 	return dmin;
 }
+int
+DataStatus::getDataRange(string vname, size_t timestep, float range[2]){
+	range[0] = 0.f;
+	range[1] = 1.f;
+	int rc = 1;
+	if (dataMgr->VariableExists(timestep, vname.c_str())){
+		dataMgr->GetDataRange(timestep, vname.c_str(),range);
+		rc = 0;
+	}
+	return rc;
+}
 int DataStatus::getVarNum2D(string var){
 	for (int i = 0; i< dataMgr->GetVariables2DXY().size(); i++){
 		if (dataMgr->GetVariables2DXY()[i] == var)

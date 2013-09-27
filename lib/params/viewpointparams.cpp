@@ -193,3 +193,60 @@ void  ViewpointParams::transform3Vector(const float vec[3], float resvec[3])
 	resvec[1] = modelViewMatrix[4]*vec[0] + modelViewMatrix[5]*vec[1] + modelViewMatrix[6]*vec[2];
 	resvec[2] = modelViewMatrix[8]*vec[0] + modelViewMatrix[9]*vec[1] + modelViewMatrix[10]*vec[2];
 }
+//  First project all 8 box corners to the center line of the camera view, finding the furthest and
+//  nearest projection in front of the camera.  The furthest distance is used as the far distance.
+//  If some point projects behind the camera, then either the camera is inside the box, or a corner of the
+//  box is behind the camera.  This calculation is always performed in local coordinates since a translation won't affect
+//  the result
+void ViewpointParams::
+getFarNearDist(float* boxFar, float* boxNear){
+	//First check full box
+	float extents[6];
+	double wrk[3], cor[3], boxcor[3], cmpos[3];
+	double camPosBox[3],dvdir[3];
+	double maxProj = -1.e30;
+	double minProj = 1.e30; 
+
+	const float* exts = DataStatus::getInstance()->getLocalExtents();
+	//convert to local extents??
+	for (int i = 0; i<6; i++) extents[i] = exts[i]-exts[i%3];
+
+	//Convert camera position and corners to stretched  coordinates
+	for (int i = 0; i<3; i++) cmpos[i] = (double)getCameraPosLocal()[i];
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	for (int i = 0; i<3; i++) camPosBox[i] = cmpos[i]*stretch[i];
+	
+	
+	for (int i = 0;i<3; i++) dvdir[i] = getViewDir()[i];
+	vnormal(dvdir);
+	
+	//For each box corner, 
+	//   convert to box coords, then project to line of view
+	for (int i = 0; i<8; i++){
+		for (int j = 0; j< 3; j++){
+			cor[j] = ( (i>>j)&1) ? extents[j+3] : extents[j];
+		}
+		for (int k=0;k<3;k++) boxcor[i] = cor[i]*stretch[i];
+		
+		vsub(boxcor, camPosBox, wrk);
+		
+		float mdist = vdot(wrk, dvdir);
+		if (minProj > mdist) {
+			minProj = mdist;
+		}
+		if (maxProj < mdist) {
+			maxProj = mdist;
+		}
+	}
+
+	if (maxProj < 1.e-10) maxProj = 1.e-10;
+	if (minProj > 0.03*maxProj) minProj = 0.03*maxProj;
+	//minProj will be < 0 if either the camera is in the box, or
+	//if some of the region is behind the camera plane.  In that case, just
+	//set the nearDist a reasonable multiple of the fardist
+	if (minProj <= 0.0) minProj = 0.002*maxProj;
+	*boxFar = (float)maxProj;
+	*boxNear = (float)minProj;
+	
+	return;
+}

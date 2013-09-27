@@ -112,7 +112,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/geotiff;../../../include/;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include;$(QTDIR64)/include/QtGui;$(PYTHON64ROOT)/Lib/site-packages/numpy/core/include;$(PYTHON64ROOT)/include;../../../lib/vdf;../../../lib/params;../../../include/vaporinternal;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/geotiff;../../../include/;$(PYTHON64ROOT)/Lib/site-packages/numpy/core/include;$(PYTHON64ROOT)/include;../../../lib/vdf;../../../lib/params;../../../include/vaporinternal;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SPHERICAL_GRID;WIN32;DEBUG;_WINDOWS;_USRDLL;QT_GUI_LIB;MODELS;_CRT_SECURE_NO_WARNINGS;QT_CORE_LIB;QT_OPENGL_LIB;QT_LARGEFILE_SUPPORT;QT_THREAD_SUPPORT;RENDER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -126,7 +126,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>..\..\..\targets\win64\bin\vdf.lib;..\..\..\targets\win64\bin\common.lib;..\..\..\targets\win64\bin\params.lib;mpr.lib;QtCored4.lib;QtOpenGLd4.lib;QtGuid4.lib;opengl32.lib;glu32.lib;proj.lib;libtiff.lib;glew32.lib;libjpeg.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\..\..\targets\win64\bin\vdf.lib;..\..\..\targets\win64\bin\common.lib;..\..\..\targets\win64\bin\params.lib;mpr.lib;opengl32.lib;glu32.lib;proj.lib;libtiff.lib;glew32.lib;libjpeg.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>$(QTDIR64)/lib;$(VAPOR_WIN64_DEBUG_LIB_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>MSVCRT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -203,50 +203,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\lib\render\arrowrenderer.cpp" />
-    <ClCompile Include="..\..\..\lib\render\BBox.cpp" />
-    <ClCompile Include="..\..\..\lib\render\DVRBase.cpp" />
-    <ClCompile Include="..\..\..\lib\render\DVRDebug.cpp" />
-    <ClCompile Include="..\..\..\lib\render\DVRRayCaster.cpp" />
-    <ClCompile Include="..\..\..\lib\render\DVRShader.cpp" />
-    <ClCompile Include="..\..\..\lib\render\DVRSpherical.cpp" />
-    <ClCompile Include="..\..\..\lib\render\DVRTexture3d.cpp" />
-    <ClCompile Include="..\..\..\lib\render\DVRVolumizer.cpp" />
-    <ClCompile Include="..\..\..\lib\render\flowrenderer.cpp" />
-    <ClCompile Include="..\..\..\lib\render\GLModelNode.cpp" />
+    <ClCompile Include="..\..\..\lib\render\ControlExecutive.cpp" />
     <ClCompile Include="..\..\..\lib\render\glwindow.cpp" />
-    <ClCompile Include="..\..\..\lib\render\isorenderer.cpp" />
     <ClCompile Include="..\..\..\lib\render\jfilewrite.cpp" />
-    <ClCompile Include="..\..\..\lib\render\manip.cpp" />
-    <ClCompile Include="..\..\..\lib\render\Matrix3d.cpp" />
-    <ClCompile Include="..\..\..\lib\render\ModelRenderer.cpp" />
-    <ClCompile Include="..\..\..\lib\render\proberenderer.cpp" />
     <ClCompile Include="..\..\..\lib\render\renderer.cpp" />
-    <ClCompile Include="..\..\..\lib\render\ShaderMgr.cpp" />
-    <ClCompile Include="..\..\..\lib\render\ShaderProgram.cpp" />
-    <ClCompile Include="..\..\..\lib\render\Stopwatch.cpp" />
-    <ClCompile Include="..\..\..\lib\render\TextureBrick.cpp" />
-    <ClCompile Include="..\..\..\lib\render\trackball.cpp" />
-    <ClCompile Include="..\..\..\lib\render\twoDdatarenderer.cpp" />
-    <ClCompile Include="..\..\..\lib\render\twoDimagerenderer.cpp" />
-    <ClCompile Include="..\..\..\lib\render\twoDrenderer.cpp" />
-    <ClCompile Include="..\..\..\lib\render\Vect3d.cpp" />
-    <ClCompile Include="..\..\..\lib\render\VolumeRenderer.cpp" />
-    <ClCompile Include="..\..\..\lib\moc\moc_renderer.cpp" />
-    <ClCompile Include="..\..\..\lib\moc\moc_spintimer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\vaporGitDebug\include\vapor\ControlExecutive.h" />
+    <ClInclude Include="..\..\..\include\vapor\ControlExecutive.h" />
     <ClInclude Include="..\..\..\lib\render\arrowrenderer.h" />
-    <ClInclude Include="..\..\..\lib\render\BBox.h" />
-    <ClInclude Include="..\..\..\lib\render\DVRBase.h" />
-    <ClInclude Include="..\..\..\lib\render\DVRDebug.h" />
-    <ClInclude Include="..\..\..\lib\render\DVRRayCaster.h" />
-    <ClInclude Include="..\..\..\lib\render\DVRShader.h" />
-    <ClInclude Include="..\..\..\lib\render\DVRSpherical.h" />
-    <ClInclude Include="..\..\..\lib\render\DVRTexture3d.h" />
-    <ClInclude Include="..\..\..\lib\render\DVRVolumizer.h" />
-    <ClInclude Include="..\..\..\lib\render\flowrenderer.h" />
-    <ClInclude Include="..\..\..\lib\render\GLModelNode.h" />
     <CustomBuild Include="..\..\..\lib\render\glwindow.h">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </Message>
@@ -255,15 +219,8 @@
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Outputs)</Outputs>
     </CustomBuild>
-    <ClInclude Include="..\..\..\lib\render\isorenderer.h" />
     <ClInclude Include="..\..\..\include\vapor\jpegapi.h" />
-    <ClInclude Include="..\..\..\lib\render\manip.h" />
-    <ClInclude Include="..\..\..\lib\render\Matrix3d.h" />
-    <ClInclude Include="..\..\..\lib\render\ModelRenderer.h" />
-    <ClInclude Include="..\..\..\lib\render\Point3d.h" />
-    <ClInclude Include="..\..\..\lib\render\proberenderer.h" />
-    <ClInclude Include="..\..\..\lib\render\raycast_shaders.h" />
-    <CustomBuild Include="..\..\..\lib\render\renderer.h">
+    <ClInclude Include="..\..\..\lib\render\renderer.h">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc'ing renderer.h...</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\lib\render\renderer.h -o ..\..\..\lib\moc\moc_renderer.cpp
 </Command>
@@ -284,36 +241,7 @@
 </Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\lib\moc\moc_renderer.cpp;%(Outputs)</Outputs>
-    </CustomBuild>
-    <ClInclude Include="..\..\..\lib\render\ShaderMgr.h" />
-    <ClInclude Include="..\..\..\lib\render\ShaderProgram.h" />
-    <ClInclude Include="..\..\..\lib\render\shaders.h" />
-    <CustomBuild Include="..\..\..\lib\render\spintimer.h">
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc'ing spintimer.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\lib\render\spintimer.h -o  ..\..\..\lib\moc\moc_spintimer.cpp</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\lib\moc\moc_spintimer.cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc'ing spintimer.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\lib\render\spintimer.h -o  ..\..\..\lib\moc\moc_spintimer.cpp</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\lib\moc\moc_spintimer.cpp;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\lib\render\spintimer.h -o  ..\..\..\lib\moc\moc_spintimer.cpp</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\lib\render\spintimer.h -o  ..\..\..\lib\moc\moc_spintimer.cpp</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc'ing spintimer.h...</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc'ing spintimer.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\lib\moc\moc_spintimer.cpp;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\lib\moc\moc_spintimer.cpp;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
-    </CustomBuild>
-    <ClInclude Include="..\..\..\lib\render\Stopwatch.h" />
-    <ClInclude Include="..\..\..\lib\render\TextureBrick.h" />
-    <ClInclude Include="..\..\..\lib\render\trackball.h" />
-    <ClInclude Include="..\..\..\lib\render\twoDdatarenderer.h" />
-    <ClInclude Include="..\..\..\lib\render\twoDimagerenderer.h" />
-    <ClInclude Include="..\..\..\lib\render\twoDrenderer.h" />
-    <ClInclude Include="..\..\..\lib\render\Vect3d.h" />
-    <ClInclude Include="..\..\..\lib\render\VolumeRenderer.h" />
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\common\common.vcxproj">

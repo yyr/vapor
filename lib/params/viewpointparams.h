@@ -186,15 +186,19 @@ public:
 	
 	static void setCoordTrans();
 	
-	//Maintain the OpenGL Model Matrices, since they can be shared between visualizers
+	//Maintain the OpenGL Model Matrices
 	
 	const double* getModelViewMatrix() {return modelViewMatrix;}
+	const double* getProjectionMatrix() {return projectionMatrix;}
 
 	//Rotate a 3-vector based on current modelview matrix
 	void transform3Vector(const float vec[3], float resvec[3]);
 	
 	void setModelViewMatrix(double* mtx){
 		for (int i = 0; i<16; i++) modelViewMatrix[i] = mtx[i];
+	}
+	void setProjectionMatrix(double* mtx){
+		for (int i = 0; i<16; i++) projectionMatrix[i] = mtx[i];
 	}
 	
 	static const double* getDefaultViewDir(){return defaultViewDir;}
@@ -261,10 +265,8 @@ protected:
 	static double defaultAmbientCoeff;
 	static double defaultSpecularExp;
 	static int defaultNumLights;
-	
-	//GL state saved here since it may be shared...
-	//
 	double modelViewMatrix[16];
+	double projectionMatrix[16];
 #endif //DOXYGEN_SKIP_THIS
 };
 };
