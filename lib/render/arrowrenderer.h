@@ -31,7 +31,7 @@ namespace VAPoR {
       
   public:
 	
-    ArrowRenderer(GLWindow *w, RenderParams* rp);
+    ArrowRenderer(Visualizer *w, RenderParams* rp);
     virtual ~ArrowRenderer();
 	virtual void initializeGL();
 	virtual void paintGL();

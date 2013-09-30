@@ -15,7 +15,7 @@
 //
 //	Description:	Defines the Renderer class.
 //		A pure virtual class that is implemented for each renderer.
-//		Methods are called by the glwindow class as needed.
+//		Methods are called by the visualizer class as needed.
 //
 
 #ifndef RENDERER_H
@@ -25,7 +25,7 @@
 #include <vapor/MyBase.h>
 #include <vapor/common.h>
 #include "params.h"
-#include "glwindow.h"
+#include "visualizer.h"
 
 using namespace VetsUtil;
 
@@ -34,7 +34,7 @@ class DataMgr;
 class Metadata;
 
 //! \class Renderer
-//! \brief A class that performs rendering in the GLWindow
+//! \brief A class that performs rendering in a Visualizer
 //! \author Alan Norton
 //! \version $Revision$
 //! \date    $Date$
@@ -50,7 +50,7 @@ public:
 	//! It is invoked when the user enables a renderer.
 	//! Provides any needed setup of renderer state, but not of OpenGL state.
 	//
-	Renderer(GLWindow* vw, RenderParams* rp, string name);
+	Renderer(Visualizer* vw, RenderParams* rp, string name);
 	virtual ~Renderer();
 	//! Pure virtual method
 	//! Any OpenGL initialization is performed in initializeGL
@@ -111,7 +111,7 @@ public:
 #ifndef DOXYGEN_SKIP_THIS
 	const string& getMyName() const {return(_myName);};
 	
-	GLWindow* myGLWindow;
+	Visualizer* myVisualizer;
 	
 
 protected:

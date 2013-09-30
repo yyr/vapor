@@ -5,7 +5,7 @@ include ${TOP}/make/config/prebase.mk
 LIBRARY = render
 
 FILES = \
-	glwindow renderer \
+	visualizer renderer \
 	arrowrenderer \
 	ControlExecutive \
 	jfilewrite

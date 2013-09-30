@@ -16,7 +16,7 @@
 //
 //	Description:	Implements the Renderer class.
 //		A pure virtual class that is implemented for each renderer.
-//		Methods are called by the glwindow class as needed.
+//		Methods are called by the Visualizer class as needed.
 //
 #include "glutil.h"	// Must be included first!!!
 
@@ -33,13 +33,13 @@
 
 using namespace VAPoR;
 
-Renderer::Renderer( GLWindow* glw, RenderParams* rp, string name)
+Renderer::Renderer( Visualizer* glw, RenderParams* rp, string name)
 {
 	//Establish the data sources for the rendering:
 	//
 	
 	_myName = name;
-    myGLWindow = glw;
+    myVisualizer = glw;
 	currentRenderParams = rp;
 	initialized = false;
 	rp->initializeBypassFlags();
@@ -60,10 +60,10 @@ void Renderer::enableClippingPlanes(const double extents[6]){
     glPushMatrix();
     glLoadIdentity();
 
-	glLoadMatrixd(myGLWindow->getModelMatrix());
+	glLoadMatrixd(myVisualizer->getModelMatrix());
 
     //cerr << "transforming everything to unit box coords :-(\n";
-   // myGLWindow->TransformToUnitBox();
+   // myVisualizer->TransformToUnitBox();
 
     const float* scales = DataStatus::getInstance()->getStretchFactors();
     glScalef(scales[0], scales[1], scales[2]);
@@ -101,7 +101,7 @@ void Renderer::enableClippingPlanes(const double extents[6]){
 
 void Renderer::enableFullClippingPlanes() {
 
-	AnimationParams *myAnimationParams = myGLWindow->getActiveAnimationParams();
+	AnimationParams *myAnimationParams = myVisualizer->getActiveAnimationParams();
     size_t timeStep = myAnimationParams->getCurrentTimestep();
 	DataMgr *dataMgr = DataStatus::getInstance()->getDataMgr();
 
@@ -146,9 +146,9 @@ void Renderer::disableFullClippingPlanes(){
 
 void Renderer::enableRegionClippingPlanes() {
 
-	AnimationParams *myAnimationParams = myGLWindow->getActiveAnimationParams();
+	AnimationParams *myAnimationParams = myVisualizer->getActiveAnimationParams();
     size_t timeStep = myAnimationParams->getCurrentTimestep();
-	RegionParams* myRegionParams = myGLWindow->getActiveRegionParams();
+	RegionParams* myRegionParams = myVisualizer->getActiveRegionParams();
 
 	double regExts[6];
 	myRegionParams->GetBox()->GetUserExtents(regExts,timeStep);

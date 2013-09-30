@@ -6,21 +6,22 @@
 //																		*
 //************************************************************************/
 //
-//	File:		glwindow.h
+//	File:		Visualizer.h
 //
 //	Author:		Alan Norton
 //			National Center for Atmospheric Research
 //			PO 3000, Boulder, Colorado
 //
-//	Date:		July 2004
+//	Date:		September 2013
 //
-//	Description:  Definition of GLWindow class: 
-//	A GLWindow object is embedded in each visualizer window.  It performs basic
-//	 navigation and resize, and defers drawing to the viz window's list of 
-//	 registered renderers.
+//	Description:  Definition of Visualizer class: 
+//	A Visualizer object is associated with each visualization window.  It contains
+//  information required for rendering, performs
+//	navigation and resize, and defers drawing to the viz window's list of 
+//	registered renderers.
 
-#ifndef GLWINDOW_H
-#define GLWINDOW_H
+#ifndef Visualizer_H
+#define Visualizer_H
 
 #include <map>
 
@@ -31,11 +32,6 @@
 #include <vapor/MyBase.h>
 #include <vapor/common.h>
 #include "datastatus.h"
-
-//No more than 20 renderers in a window:
-//Eventually this may be dynamic.
-#define MAXNUMRENDERERS 20
-
 
 
 namespace VAPoR {
@@ -48,20 +44,19 @@ class Renderer;
 
 
 
-//! \class GLWindow
-//! \brief A class for performing OpenGL rendering in a VAPOR Visualizer
+//! \class Visualizer
+//! \brief A class for performing OpenGL rendering in  VAPOR Window
 //! \author Alan Norton
 //! \version $Revision$
 //! \date    $Date$
 //!
 //! 
-//! The GLWindow class is an OpenGL rendering window.  There is one instance for 
-//! each of the VAPOR visualizers.  The GLWindow is embedded in a VizWin instance.
+//! The Visualizer class is an OpenGL rendering window.  There is one instance for 
+//! each of the VAPOR visualizers.  The Visualizer is embedded in a VizWin instance.
 //! It performs basic setup for OpenGL rendering, renders incidental geometry,
 //! and calls all the enabled VAPOR Renderer instances.
-//! The GLWindow maintains "Dirty bits" that indicate window-specific state that
-//! may require refreshing
-class RENDER_API GLWindow : public MyBase
+
+class RENDER_API Visualizer : public MyBase
 {
 public:
    
@@ -115,8 +110,8 @@ public:
 
 
 #ifndef DOXYGEN_SKIP_THIS
-	 GLWindow( int winnum);
-    ~GLWindow();
+	 Visualizer( int winnum);
+    ~Visualizer();
 	
 
 	//Enum describes various mouse modes:
@@ -187,8 +182,8 @@ public:
 	bool mouseIsDown() {return mouseDownHere;}
 	void setMouseDown(bool downUp) {mouseDownHere = downUp;}
 
-	void setNumRenderers(int num) {numRenderers = num;}
-	int getNumRenderers() { return numRenderers;}
+	
+	
 	Params::ParamsBaseType getRendererType(int i) {return renderType[i];}
 
 	Renderer* getRenderer(int i) {return renderer[i];}
@@ -212,7 +207,7 @@ public:
 	
 	static int getCurrentMouseMode() {return currentMouseMode;}
 	static void setCurrentMouseMode(int t){currentMouseMode = t;}
-	//The glwindow keeps a copy of the params that are currently associated with the current
+	//The Visualizer keeps a copy of the params that are currently associated with the current
 	//instance.  This needs to change during:
 	//  -loading session
 	//  -undo/redo
@@ -239,7 +234,7 @@ public:
 		currentParams[Params::GetTypeFromTag(tag)] = p;
 	}
 
-	//The GLWindow keeps track of the renderers with an ordered list of them
+	//The Visualizer keeps track of the renderers with an ordered list of them
 	//as well as with a map from renderparams to renderer
 	
 	void mapRenderer(RenderParams* rp, Renderer* ren){rendererMapping[rp] = ren;}
@@ -273,7 +268,7 @@ public:
 	static void setDefaultPrefs();
 	int getWindowNum() {return winNum;}
 	
-	//Static methods so that the vizwinmgr can tell the glwindow about
+	//Static methods so that the vizwinmgr can tell the Visualizer about
 	//current active visualizer, and about region sharing
 	static int getActiveWinNum() { return activeWindowNum;}
 	static void setActiveWinNum(int winnum) {activeWindowNum = winnum;}
@@ -343,15 +338,14 @@ protected:
 	bool newViewerCoords;
 	static int currentMouseMode;
 	
-	Renderer* renderer[MAXNUMRENDERERS];
-	Params::ParamsBaseType renderType[MAXNUMRENDERERS];
-	int renderOrder[MAXNUMRENDERERS];
+	vector<Renderer*> renderer;
+	vector<Params::ParamsBaseType> renderType;
+	vector<int>renderOrder;
 
-	//Map params to renderer for set/get dirty bits, etc:
+	//Map params to renderer
 	
 	std::map<RenderParams*,Renderer*> rendererMapping;
 
-	int numRenderers;
 	GLfloat tcoord[2];
 	
 	GLfloat* setTexCrd(int i, int j);
@@ -365,13 +359,13 @@ protected:
 
 	//Following QT 4 guidance (see bubbles example), opengl painting is performed
 	//in paintEvent(), so that we can paint nice text over the window.
-	// GLWindow::paintGL() is not implemented.
+	// Visualizer::paintGL() is not implemented.
 	// The other changes include:
 	// GL_MULTISAMPLE is enabled
-	// GLWindow::updateGL() is replaced by GLWindow::update()
+	// Visualizer::updateGL() is replaced by Visualizer::update()
 	// resizeGL() contents have been moved to setUpViewport(), which is also called 
 	// from paintEvent().
-	// setAutoFillBackground(false) is called in the GLWindow constructor
+	// setAutoFillBackground(false) is called in the Visualizer constructor
 
 	void paintEvent();
 		
@@ -420,13 +414,9 @@ protected:
 	GLdouble projectionMatrix[16];
 	static bool nowPainting;
 	
-	
-	
 	float displacement;
 
 	bool mouseDownHere;
-
-
 
 	renderCBFcn preRenderCB;
 	renderCBFcn postRenderCB;
@@ -456,4 +446,4 @@ protected:
 
 };
 
-#endif // GLWINDOW_H
+#endif // Visualizer_H

@@ -204,21 +204,13 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\lib\render\arrowrenderer.cpp" />
     <ClCompile Include="..\..\..\lib\render\ControlExecutive.cpp" />
-    <ClCompile Include="..\..\..\lib\render\glwindow.cpp" />
     <ClCompile Include="..\..\..\lib\render\jfilewrite.cpp" />
     <ClCompile Include="..\..\..\lib\render\renderer.cpp" />
+    <ClCompile Include="..\..\..\lib\render\visualizer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\vapor\ControlExecutive.h" />
     <ClInclude Include="..\..\..\lib\render\arrowrenderer.h" />
-    <CustomBuild Include="..\..\..\lib\render\glwindow.h">
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Outputs)</Outputs>
-    </CustomBuild>
     <ClInclude Include="..\..\..\include\vapor\jpegapi.h" />
     <ClInclude Include="..\..\..\lib\render\renderer.h">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc'ing renderer.h...</Message>
@@ -242,6 +234,7 @@
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\lib\moc\moc_renderer.cpp;%(Outputs)</Outputs>
     </ClInclude>
+    <ClInclude Include="..\..\..\lib\render\visualizer.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\common\common.vcxproj">

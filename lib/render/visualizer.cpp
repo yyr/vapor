@@ -6,15 +6,15 @@
 //																		*
 //************************************************************************/
 //
-//	File:		glwindow.cpp
+//	File:		visualizer.cpp
 //
 //	Author:		Alan Norton
 //			National Center for Atmospheric Research
 //			PO 3000, Boulder, Colorado
 //
-//	Date:		July 2004
+//	Date:		September, 2013
 //
-//	Description:  Implementation of GLWindow class: 
+//	Description:  Implementation of Visualizer class: 
 //		It performs the opengl rendering for visualizers
 //
 #include "glutil.h"	// Must be included first!!!
@@ -22,7 +22,7 @@
 #pragma warning(disable : 4996)
 #endif
 #include <vapor/GetAppPath.h>
-#include "glwindow.h"
+#include "visualizer.h"
 #include "renderer.h"
 #include "viewpointparams.h"
 #include "regionparams.h"
@@ -48,32 +48,32 @@
 #endif
 
 using namespace VAPoR;
-int GLWindow::activeWindowNum = 0;
-bool GLWindow::regionShareFlag = true;
-bool GLWindow::defaultTerrainEnabled = false;
+int Visualizer::activeWindowNum = 0;
+bool Visualizer::regionShareFlag = true;
+bool Visualizer::defaultTerrainEnabled = false;
 
-bool GLWindow::defaultAxisArrowsEnabled = false;
-bool GLWindow::nowPainting = false;
+bool Visualizer::defaultAxisArrowsEnabled = false;
+bool Visualizer::nowPainting = false;
 
 /* note: 
  * GL_ENUMS used by depth peeling for attaching the color buffers, currently 16 named points exist
  */
 GLenum attach_points[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6, GL_COLOR_ATTACHMENT7, GL_COLOR_ATTACHMENT8, GL_COLOR_ATTACHMENT9, GL_COLOR_ATTACHMENT10, GL_COLOR_ATTACHMENT11, GL_COLOR_ATTACHMENT12, GL_COLOR_ATTACHMENT13, GL_COLOR_ATTACHMENT14, GL_COLOR_ATTACHMENT15};
 
-int GLWindow::currentMouseMode = GLWindow::navigateMode;
-vector<int> GLWindow::manipFromMode;
-vector<string> GLWindow::modeName;
-map<ParamsBase::ParamsBaseType, int> GLWindow::modeFromParams;
-vector<ParamsBase::ParamsBaseType> GLWindow::paramsFromMode;
-int GLWindow::jpegQuality = 100;
-GLWindow::GLWindow(int windowNum )
+int Visualizer::currentMouseMode = Visualizer::navigateMode;
+vector<int> Visualizer::manipFromMode;
+vector<string> Visualizer::modeName;
+map<ParamsBase::ParamsBaseType, int> Visualizer::modeFromParams;
+vector<ParamsBase::ParamsBaseType> Visualizer::paramsFromMode;
+int Visualizer::jpegQuality = 100;
+Visualizer::Visualizer(int windowNum )
 
 {
 	currentParams.clear();
 	for (int i = 0; i<= Params::GetNumParamsClasses(); i++)
 		currentParams.push_back(0);
 
-	MyBase::SetDiagMsg("GLWindow::GLWindow() begin");
+	MyBase::SetDiagMsg("Visualizer::Visualizer() begin");
 	
 
 	winNum = windowNum;
@@ -95,17 +95,15 @@ GLWindow::GLWindow(int windowNum )
 	
 	mouseDownHere = false;
 
-	numRenderers = 0;
-	for (int i = 0; i< MAXNUMRENDERERS; i++){
-		renderType[i] = 0;
-		renderOrder[i] = 0;
-		renderer[i] = 0;
-	}
+	renderType.clear();
+	renderOrder.clear();
+	renderer.clear();
+	
 
 
 	newCaptureImage = false;
 
-    MyBase::SetDiagMsg("GLWindow::GLWindow() end");
+    MyBase::SetDiagMsg("Visualizer::Visualizer() end");
 }
 
 
@@ -113,20 +111,20 @@ GLWindow::GLWindow(int windowNum )
   Release allocated resources.
 */
 
-GLWindow::~GLWindow()
+Visualizer::~Visualizer()
 {
 	
 	
-	for (int i = 0; i< getNumRenderers(); i++){
+	for (int i = 0; i< renderer.size(); i++){
 		delete renderer[i];
 	}
-	setNumRenderers(0);
+	
 	
 	nowPainting = false;
 	
 }
 
-void GLWindow::setDefaultPrefs(){
+void Visualizer::setDefaultPrefs(){
 	defaultTerrainEnabled = false;
 	
 	defaultAxisArrowsEnabled = false;
@@ -136,7 +134,7 @@ void GLWindow::setDefaultPrefs(){
 //  Set up the OpenGL view port, matrix mode, etc.
 //
 
-void GLWindow::resizeGL( int width, int height )
+void Visualizer::resizeGL( int width, int height )
 {
   setUpViewport(width, height);
   nowPainting = false;
@@ -220,7 +218,7 @@ void GLWindow::resizeGL( int width, int height )
     printOpenGLError();
 
 }
-void GLWindow::setUpViewport(int width,int height){
+void Visualizer::setUpViewport(int width,int height){
    
 	glViewport( 0, 0, (GLint)width, (GLint)height );
 	//Save the current value...
@@ -246,7 +244,7 @@ void GLWindow::setUpViewport(int width,int height){
 	
 }
 	
-void GLWindow::resetView(ViewpointParams* vParams){
+void Visualizer::resetView(ViewpointParams* vParams){
 	//Get the nearest and furthest distance to region from current viewpoint
 	float frbx, nrbx;
 	vParams->getFarNearDist(&frbx, &nrbx);
@@ -256,12 +254,12 @@ void GLWindow::resetView(ViewpointParams* vParams){
 	needsResize = true;
 }
 
-void GLWindow::paintEvent(){
+void Visualizer::paintEvent(){
     regPaintEvent();
 }
-void GLWindow::regPaintEvent()
+void Visualizer::regPaintEvent()
 {
-	MyBase::SetDiagMsg("GLWindow::paintGL()");
+	MyBase::SetDiagMsg("Visualizer::paintGL()");
 	//Following is needed in case undo/redo leaves a disabled renderer in the renderer list, so it can be deleted.
 	removeDisabledRenderers();
 	
@@ -377,7 +375,7 @@ void GLWindow::regPaintEvent()
 
 	printOpenGLError();
 	//Now go through all the active renderers
-	for (int i = 0; i< getNumRenderers(); i++){
+	for (int i = 0; i< renderer.size(); i++){
 		//If a renderer is not initialized, or if its bypass flag is set, then don't render.
 		//Otherwise push and pop the GL matrix stack and all attribs
 		if(renderer[i]->isInitialized() && !(renderer[i]->doAlwaysBypass(timeStep))) {
@@ -422,7 +420,7 @@ void GLWindow::regPaintEvent()
 //  Set up the OpenGL rendering state, and define display list
 //
 
-void GLWindow::initializeGL()
+void Visualizer::initializeGL()
 {
 	
 	GLenum glErr;
@@ -470,7 +468,7 @@ void GLWindow::initializeGL()
 	//Initialize existing renderers:
 	//
 	if (printOpenGLError()) return;
-	for (int i = 0; i< getNumRenderers(); i++){
+	for (int i = 0; i< renderer.size(); i++){
 		renderer[i]->initializeGL();
 		printOpenGLErrorMsg(renderer[i]->getMyName().c_str());
 	}
@@ -484,7 +482,7 @@ void GLWindow::initializeGL()
 //resulting screen coords returned in 2nd argument.  Note that
 //OpenGL coords are 0 at bottom of window!
 //
-bool GLWindow::projectPointToWin(float cubeCoords[3], float winCoords[2]){
+bool Visualizer::projectPointToWin(float cubeCoords[3], float winCoords[2]){
 	double depth;
 	GLdouble wCoords[2];
 	GLdouble cbCoords[3];
@@ -502,7 +500,7 @@ bool GLWindow::projectPointToWin(float cubeCoords[3], float winCoords[2]){
 //from the camera associated with the screen coords.  Note screen coords
 //are OpenGL style
 //
-bool GLWindow::pixelToVector(float winCoords[2], const float camPos[3], float dirVec[3]){
+bool Visualizer::pixelToVector(float winCoords[2], const float camPos[3], float dirVec[3]){
 	GLdouble pt[3];
 	float v[3];
 	//Obtain the coords of a point in view:
@@ -526,7 +524,7 @@ bool GLWindow::pixelToVector(float winCoords[2], const float camPos[3], float di
 //as viewed from the outside (pickable side) of the quad.  
 //Window coords are as in OpenGL (0 at bottom of window)
 //
-bool GLWindow::
+bool Visualizer::
 pointIsOnQuad(float cor1[3], float cor2[3], float cor3[3], float cor4[3], float pickPt[2])
 {
 	float winCoord1[2];
@@ -544,7 +542,7 @@ pointIsOnQuad(float cor1[3], float cor2[3], float cor3[3], float cor4[3], float 
 	return true;
 }
 //Test whether the pickPt is over (and outside) the box (as specified by 8 points)
-int GLWindow::
+int Visualizer::
 pointIsOnBox(float corners[8][3], float pickPt[2]){
 	//front (-Z)
 	if (pointIsOnQuad(corners[0],corners[1],corners[3],corners[2],pickPt)) return 2;
@@ -563,14 +561,14 @@ pointIsOnBox(float corners[8][3], float pickPt[2]){
 
 
 //Routine to obtain gl state from viewpointparams
-GLdouble* GLWindow:: 
+GLdouble* Visualizer:: 
 getModelMatrix() {
 	return (GLdouble*)getActiveViewpointParams()->getModelViewMatrix();
 }
 //Issue OpenGL commands to draw a grid of lines of the full domain.
 //Grid resolution is up to 2x2x2
 //
-void GLWindow::renderDomainFrame(float* extents, float* minFull, float* maxFull){
+void Visualizer::renderDomainFrame(float* extents, float* minFull, float* maxFull){
 	int i; 
 	int numLines[3];
 	float regionSize, fullSize[3], modMin[3],modMax[3];
@@ -661,11 +659,11 @@ void GLWindow::renderDomainFrame(float* extents, float* minFull, float* maxFull)
 	glEnd();//GL_LINES
 }
 
-float* GLWindow::cornerPoint(float* extents, int faceNum){
+float* Visualizer::cornerPoint(float* extents, int faceNum){
 	if(faceNum&1) return extents+3;
 	else return extents;
 }
-bool GLWindow::faceIsVisible(float* extents, float* viewerCoords, int faceNum){
+bool Visualizer::faceIsVisible(float* extents, float* viewerCoords, int faceNum){
 	float temp[3];
 	//Calc vector from a corner to the viewer.  Face is visible if
 	//the outward normal to the face points in same direction as this vector.
@@ -694,59 +692,59 @@ bool GLWindow::faceIsVisible(float* extents, float* viewerCoords, int faceNum){
 
 
 /*
- * Insert a renderer to this visualization window
+ * Insert a renderer to this visualizer
  * Add it after all renderers of lower render order
  */
-void GLWindow::
+void Visualizer::
 insertRenderer(RenderParams* rp, Renderer* ren, int newOrder)
 {
 	Params::ParamsBaseType rendType = rp->GetParamsBaseTypeId();
 	
-	if (numRenderers < MAXNUMRENDERERS){
-		mapRenderer(rp, ren);
-		//Move every renderer with higher order up:
-		int i;
-		for (i = numRenderers; i> 0; i--){
-			if (renderOrder[i-1] >= newOrder){
-				renderOrder[i] = renderOrder[i-1];
-				renderer[i] = renderer[i-1];
-				renderType[i] = renderType[i-1];
-			}
-			else break; //found a renderer that has lower order
-		}
-		renderer[i] = ren;
-		renderType[i] = rendType;
-		renderOrder[i] = newOrder;
-		numRenderers++;
-		ren->initializeGL();
-		
+	
+	mapRenderer(rp, ren);
+	//Find a renderer of lower order
+	int i;
+	for (i = renderer.size()-1; i>= 0; i--){
+		if (renderOrder[i] < newOrder) break;	
 	}
+	int lastPosn = i;
+	int maxPosn = renderer.size()-1;
+	renderer.push_back(renderer[maxPosn]);
+	renderType.push_back(renderType[maxPosn]);
+	renderOrder.push_back(renderOrder[maxPosn]);
+	for (i = maxPosn-1; i>lastPosn+1; i--){
+		renderer[i] = renderer[i-1];
+		renderType[i] = renderType[i-1];
+		renderOrder[i] = renderOrder[i-1];
+	}
+	renderer[lastPosn+1] = ren;
+	renderType[lastPosn+1] = rendType;
+	renderOrder[lastPosn+1] = newOrder;
+	ren->initializeGL();
 }
 // Remove all renderers.  This is needed when we load new data into
 // an existing session
-void GLWindow::removeAllRenderers(){
-	int saveNumRenderers = getNumRenderers();
+void Visualizer::removeAllRenderers(){
+	
 	//Prevent new rendering while we do this:
-	setNumRenderers(0);
-	for (int i = 0; i< saveNumRenderers; i++){
+	
+	for (int i = renderer.size()-1; i>=0; i--){
 		delete renderer[i];
 	}
-	//setNumRenderers(0);
 	
 	nowPainting = false;
-	numRenderers = 0;
-	for (int i = 0; i< MAXNUMRENDERERS; i++){
-		renderType[i] = 0;
-		renderOrder[i] = 0;
-		renderer[i] = 0;
-	}
+	
+	renderType.clear();
+	renderOrder.clear();
+	renderer.clear();
+		
 	rendererMapping.clear();
 	
 }
 /* 
  * Remove renderer of specified renderParams
  */
-bool GLWindow::removeRenderer(RenderParams* rp){
+bool Visualizer::removeRenderer(RenderParams* rp){
 	int i;
 	assert(!nowPainting);
 	
@@ -755,36 +753,35 @@ bool GLWindow::removeRenderer(RenderParams* rp){
 		return false;
 	}
 	Renderer* ren = find_iter->second;
-	
-	//makeCurrent();
 
 	//get it from the renderer list, and delete it:
-	for (i = 0; i<numRenderers; i++) {		
+	for (i = 0; i<renderer.size(); i++) {		
 		if (renderer[i] != ren) continue;
 		delete renderer[i];
 		renderer[i] = 0;
 		break;
 	}
 	int foundIndex = i;
-	assert(foundIndex < numRenderers);
+	
 	//Remove it from the mapping:
 	rendererMapping.erase(find_iter);
 	//Move renderers up.
-	numRenderers--;
+	int numRenderers = renderer.size()-1;
 	for (int j = foundIndex; j<numRenderers; j++){
 		renderer[j] = renderer[j+1];
 		renderType[j] = renderType[j+1];
 		renderOrder[j] = renderOrder[j+1];
 	}
-	
-	
+	renderer.resize(numRenderers);
+	renderType.resize(numRenderers);
+	renderOrder.resize(numRenderers);
 	return true;
 }
 //Remove a <params,renderer> pair from the list.  But leave them
 //both alone.  This is needed when the params change and another params
 //needs to use the existing renderer.
 //
-bool GLWindow::
+bool Visualizer::
 unmapRenderer(RenderParams* rp){
 	map<RenderParams*,Renderer*>::iterator find_iter = rendererMapping.find(rp);
 	if (find_iter == rendererMapping.end()) return false;
@@ -793,9 +790,9 @@ unmapRenderer(RenderParams* rp){
 }
 
 //find (first) renderer params of specified type:
-RenderParams* GLWindow::findARenderer(Params::ParamsBaseType renType){
+RenderParams* Visualizer::findARenderer(Params::ParamsBaseType renType){
 	
-	for (int i = 0; i<numRenderers; i++) {		
+	for (int i = 0; i<renderer.size(); i++) {		
 		if (renderType[i] != renType) continue;
 		RenderParams* rParams = renderer[i]->getRenderParams();
 		return rParams;
@@ -803,7 +800,7 @@ RenderParams* GLWindow::findARenderer(Params::ParamsBaseType renType){
 	return 0;
 }
 
-Renderer* GLWindow::getRenderer(RenderParams* p){
+Renderer* Visualizer::getRenderer(RenderParams* p){
 	if(rendererMapping.size() == 0) return 0;
 	map<RenderParams*, Renderer*>::iterator found_iter = rendererMapping.find(p);
 	if (found_iter == rendererMapping.end()) return 0;
@@ -813,16 +810,16 @@ Renderer* GLWindow::getRenderer(RenderParams* p){
 
 //Clear all render bypass flags for active renderers that match the specified type(s)
 
-void GLWindow::
+void Visualizer::
 clearRendererBypass(Params::ParamsBaseType t){
-	for (int i = 0; i< getNumRenderers(); i++){
+	for (int i = 0; i< renderer.size(); i++){
 		if(renderer[i]->isInitialized() && (renderType[i] == t))
 			renderer[i]->setAllBypass(false);
 	}
 }
 
 
-void GLWindow::placeLights(){
+void Visualizer::placeLights(){
 	printOpenGLError();
 	ViewpointParams* vpParams = getActiveViewpointParams();
 	int nLights = vpParams->getNumLights();
@@ -898,7 +895,7 @@ void GLWindow::placeLights(){
 // The line starts at the mouseDownPosition, and points in the
 // direction resulting from projecting to the screen the axis 
 // associated with the dragHandle.  Returns false on error.
-bool GLWindow::projectPointToLine(float mouseCoords[2], float projCoords[2]){
+bool Visualizer::projectPointToLine(float mouseCoords[2], float projCoords[2]){
 	//  State saved at a mouse press is:
 	//	mouseDownPoint[2] = P
 	//  handleProjVec[2] unit vector (U)
@@ -915,7 +912,7 @@ bool GLWindow::projectPointToLine(float mouseCoords[2], float projCoords[2]){
 	
 	return true;
 }
-bool GLWindow::startHandleSlide(float mouseCoords[2], int handleNum, Params* manipParams){
+bool Visualizer::startHandleSlide(float mouseCoords[2], int handleNum, Params* manipParams){
 	// When the mouse is first pressed over a handle, 
 	// need to save the
 	// windows coordinates of the click, as well as
@@ -953,7 +950,7 @@ bool GLWindow::startHandleSlide(float mouseCoords[2], int handleNum, Params* man
 
 
 
-GLWindow::OGLVendorType GLWindow::GetVendor()
+Visualizer::OGLVendorType Visualizer::GetVendor()
 {
 	string ven_str((const char *) glGetString(GL_VENDOR));
 	string ren_str((const char *) glGetString(GL_RENDERER));
@@ -996,7 +993,7 @@ GLWindow::OGLVendorType GLWindow::GetVendor()
 
 
 
-void GLWindow::
+void Visualizer::
 setValuesFromGui(ViewpointParams* vpparams){
 	
 	//Same as the version in vizwin, but doesn't force redraw.
@@ -1015,12 +1012,12 @@ setValuesFromGui(ViewpointParams* vpparams){
 	
 }
 
-void GLWindow::removeDisabledRenderers(){
+void Visualizer::removeDisabledRenderers(){
 	//Repeat until we don't find any renderers to disable:
 	
 	while(1){
 		bool retry = false;
-		for (int i = 0; i< numRenderers; i++){
+		for (int i = 0; i< renderer.size(); i++){
 			RenderParams* rParams = renderer[i]->getRenderParams();
 			if (!rParams->isEnabled()) {
 				removeRenderer(rParams);
@@ -1033,7 +1030,7 @@ void GLWindow::removeDisabledRenderers(){
 }
 		
 		
-int GLWindow::AddMouseMode(const std::string paramsTag, int manipType, const char* name){
+int Visualizer::AddMouseMode(const std::string paramsTag, int manipType, const char* name){
 	
 	ParamsBase::ParamsBaseType pType = ParamsBase::GetTypeFromTag(paramsTag);
 	paramsFromMode.push_back(pType);
@@ -1049,7 +1046,7 @@ int GLWindow::AddMouseMode(const std::string paramsTag, int manipType, const cha
 
 // Set the quaternion and translation from a viewer frame
 // Also happens to construct modelview matrix, but we don't use its translation
-void GLWindow::
+void Visualizer::
 setMatrixFromFrame(double* posvec, double* dirvec, double* upvec, double* centerRot, double mvmtrx[16]){
 	//First construct the rotation matrix:
 	double mtrx1[16];

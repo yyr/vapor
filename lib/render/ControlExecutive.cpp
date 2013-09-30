@@ -77,7 +77,7 @@ int ControlExecutive::Paint(int viz, bool force){return 0;}
 	//! new ModelView matrix.
 	//!
 	//!
-	int SetModelViewMatrix(int viz, double* mtx){return 0;}
+int SetModelViewMatrix(int viz, double* mtx){return 0;}
 
 	//! Create a new renderer
 	//!
@@ -94,7 +94,7 @@ int ControlExecutive::Paint(int viz, bool force){return 0;}
 	//!
 	//! \sa NewVisualizer()
 	//
-	int ControlExecutive::NewRenderer(int viz, string type, Params* p){return 0;}
+int ControlExecutive::NewRenderer(int viz, string type, Params* p){return 0;}
 
 	//! Activate or Deactivate a renderer
 	//!
@@ -111,7 +111,7 @@ int ControlExecutive::Paint(int viz, bool force){return 0;}
 	//! \return status A negative int is returned on failure, indicating that
 	//! the renderer cannot be activated
 	//
-	int ControlExecutive::ActivateRender(int viz, string type, int instance, bool on){return 0;}
+int ControlExecutive::ActivateRender(int viz, string type, int instance, bool on){return 0;}
 
 	//! Get a pointer to the existing parameter state information 
 	//!
@@ -137,9 +137,9 @@ int ControlExecutive::Paint(int viz, bool force){return 0;}
 	//! interest in change of *any* parameter if that proves to be useful.
 	//! 
 	//
-	Params* ControlExecutive::GetParams(int viz, string type, int instance){
-		return Params::GetParamsInstance(type,viz,instance);
-	}
+Params* ControlExecutive::GetParams(int viz, string type, int instance){
+	return Params::GetParamsInstance(type,viz,instance);
+}
 
 	//! Determine how many instances of a given renderer type are present
 	//! in a visualizer.  Necessary for setting up a UI.
@@ -148,7 +148,7 @@ int ControlExecutive::Paint(int viz, bool force){return 0;}
 	//! \return number of instances 
 	//!
 
-	int ControlExecutive::GetNumParamsInstances(int viz, string type){return 0;}
+int ControlExecutive::GetNumParamsInstances(int viz, string type){return 0;}
 
 	//! Save the current session state to a file
 	//!
@@ -162,7 +162,7 @@ int ControlExecutive::Paint(int viz, bool force){return 0;}
 	//!
 	//! \sa RestoreSession()
 	//
-	int ControlExecutive::SaveSession(string file){return 0;}
+int ControlExecutive::SaveSession(string file){return 0;}
 
 	//!	Restore the session state from a session state file
 	//!
@@ -181,7 +181,7 @@ int ControlExecutive::Paint(int viz, bool force){return 0;}
 	//! \sa LoadData(), GetRenderParams(), etc.
 	//! \sa SaveSession()
 	//
-	int ControlExecutive::RestoreSession(string file){return 0;}
+int ControlExecutive::RestoreSession(string file){return 0;}
 
 	//! Load a data set into the current session
 	//!
@@ -210,7 +210,7 @@ int ControlExecutive::Paint(int viz, bool force){return 0;}
 	//! \note (AN) It would be much better to incorporate the DataStatus methods into
 	//! the DataMgr class, rather than keeping them separate.
 	//
-	const DataInfo *ControlExecutive::LoadData(vector <string> files, bool dt){return 0;}
+const DataInfo *ControlExecutive::LoadData(vector <string> files, bool dt){return 0;}
 
 	//! Draw 2D text on the screen
 	//!
@@ -228,7 +228,7 @@ int ControlExecutive::Paint(int viz, bool force){return 0;}
 	//! \param[in] size Font size in points
 	//! \param[in] text The text to render
 	//
-	int ControlExecutive::DrawText(int viz, int x, int y, string font, int size, string text){return 0;}
+int ControlExecutive::DrawText(int viz, int x, int y, string font, int size, string text){return 0;}
 
 	//! Make a new Params object
 	//!
@@ -247,7 +247,7 @@ int ControlExecutive::Paint(int viz, bool force){return 0;}
 	//!
 	//! \sa Undo(), Redo(), RestoreSession(), SaveSession()
 	//
-	Params * ControlExecutive::NewParams(string name, int viz){return 0;}
+Params * ControlExecutive::NewParams(string name, int viz){return 0;}
 
 	//! Undo the last session state change
 	//!
@@ -268,7 +268,7 @@ int ControlExecutive::Paint(int viz, bool force){return 0;}
 	//! \return Params* ptr A pointer to the Params object that reflects the change.  Pointer is null if there is nothing to undo.
 	//! \sa Redo()
 	//!
-	Params* ControlExecutive::Undo(int* instance, int *viz, string& type){return 0;}
+Params* ControlExecutive::Undo(int* instance, int *viz, string& type){return 0;}
 
 	//! Redo the next session state change
 	//!
@@ -288,7 +288,7 @@ int ControlExecutive::Paint(int viz, bool force){return 0;}
 	//! \return Params* ptr A pointer to the Params object that reflects the change.  Pointer is null if there is nothing to Redo
 	//! \sa UnDo()
 	//
-	Params* ControlExecutive::Redo(int* instance, int *viz, string& type){return 0;}
+Params* ControlExecutive::Redo(int* instance, int *viz, string& type){return 0;}
 
 	//! Initiate a new entry in the Undo/Redo queue.  The changes that occur
 	//! between StartCommand() and EndCommand() result in an entry in the Undo/Redo queue.
@@ -305,7 +305,7 @@ int ControlExecutive::Paint(int viz, bool force){return 0;}
 	//! \param[in] string text describes what is changing.
 	//! \sa EndCommand()
 	//
-	void ControlExecutive::StartCommand(Params* p, string text){}
+void ControlExecutive::StartCommand(Params* p, string text){}
 
 	//! Complete a new entry in the Undo/Redo queue.  All state changes that occur in a Params instance
 	//! between StartCommand() and EndCommand() result in a single entry in the Undo/Redo queue.
@@ -315,7 +315,7 @@ int ControlExecutive::Paint(int viz, bool force){return 0;}
 	//! when StartCommand was called
 	//! \sa StartCommand()
 	//
-	int ControlExecutive::EndCommand(Params* p){return 0;}
+int ControlExecutive::EndCommand(Params* p){return 0;}
 
 	//! Identify the changes in the undo/Redo queue
 	//! Returns the text associated with a change in the undo/redo queue.
@@ -325,7 +325,7 @@ int ControlExecutive::Paint(int viz, bool force){return 0;}
 	//! The null string is returned if there is no entry corresponding to n. 
 	//! \return descriptive text \p string associated with the specified command.
 	//
-	string& ControlExecutive::GetCommandText(int n){return * (new string(""));}
+string& ControlExecutive::GetCommandText(int n){return * (new string(""));}
 
 	//! Capture the next rendered image to a file
 	//!
@@ -347,11 +347,11 @@ int ControlExecutive::Paint(int viz, bool force){return 0;}
 	//! A string description and a numerical error code.
 	//! Only one ErrorHandler can be set.
 	//! If none is set, no errors will be reported to the UI.
-	int ControlExecutive::SetErrorHandler(ErrorHandler* handler){return 0;}
+int ControlExecutive::SetErrorHandler(ErrorHandler* handler){return 0;}
 
 	//! Verify that a Params instance is in a valid state
 	//! Used to handle synchronous error checking,
 	//! E.g. checking user input parameters.
 	//! \param[in] p pointer to Params instance being checked
 	//! \return status nonzero indicates error
-	int ControlExecutive::ValidateParams(Params* p){return 0;}
+int ControlExecutive::ValidateParams(Params* p){return 0;}

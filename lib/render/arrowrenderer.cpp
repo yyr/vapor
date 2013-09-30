@@ -32,7 +32,7 @@
 #include "regionparams.h"
 #include "animationparams.h"
 #include "viewpointparams.h"
-#include "glwindow.h"
+#include "visualizer.h"
 #include "params.h"
 #include "renderer.h"
 #include "arrowparams.h"
@@ -45,7 +45,7 @@ using namespace VetsUtil;
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-ArrowRenderer::ArrowRenderer(GLWindow* glw, RenderParams* rp) 
+ArrowRenderer::ArrowRenderer(Visualizer* glw, RenderParams* rp) 
   : Renderer(glw,  rp, "ArrowRenderer")
 {
 }
@@ -83,7 +83,7 @@ void ArrowRenderer::paintGL(){
 	const vector<long> rakeGrid = aParams->GetRakeGrid();
 	double rakeExts[6];
 	aParams->GetRakeLocalExtents(rakeExts);
-	size_t timestep = (size_t)myGLWindow->getActiveAnimationParams()->getCurrentTimestep();
+	size_t timestep = (size_t)myVisualizer->getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double>& userExts = dataMgr->GetExtents(timestep);
 	for (int i = 0; i<3; i++) rakeExts[i] += userExts[i];
 	
@@ -261,7 +261,7 @@ void ArrowRenderer::performRendering(
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return;
-	size_t timestep = (size_t)myGLWindow->getActiveAnimationParams()->getCurrentTimestep();
+	size_t timestep = (size_t)myVisualizer->getActiveAnimationParams()->getCurrentTimestep();
 	
 	const vector<double> rExtents = aParams->GetRakeLocalExtents();
 	//Convert to user coordinates:
@@ -291,7 +291,7 @@ void ArrowRenderer::performRendering(
 	
 	//Perform setup of OpenGL transform matrix.  This transforms the full stretched domain into the unit box
 	//by scaling and translating.
-	//myGLWindow->TransformToUnitBox();
+	//Visualizer->TransformToUnitBox();
 
 	//Then obtain stretch factors to use for coordinate mapping
 	//Don't apply a glScale to stretch the scene, because that would distort the arrow shape
@@ -299,7 +299,7 @@ void ArrowRenderer::performRendering(
 	
 	//Set up lighting and color
 	
-	ViewpointParams* vpParams =  myGLWindow->getActiveViewpointParams();
+	ViewpointParams* vpParams =  myVisualizer->getActiveViewpointParams();
 	int nLights = vpParams->getNumLights();
 	if (nLights == 0) {
 		glDisable(GL_LIGHTING);
@@ -409,7 +409,7 @@ setupVariableData(
 ){
 
 	ArrowParams* aParams = (ArrowParams*)currentRenderParams;
-	size_t timestep = (size_t)myGLWindow->getActiveAnimationParams()->getCurrentTimestep();
+	size_t timestep = (size_t)myVisualizer->getActiveAnimationParams()->getCurrentTimestep();
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return -1;
