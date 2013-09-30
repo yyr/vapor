@@ -114,7 +114,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);$(VAPORDEPS_INC_DIR)/geotiff;../../../include/;$(PYTHON64ROOT)/Lib/site-packages/numpy/core/include;$(PYTHON64ROOT)/include;../../../lib/vdf;../../../lib/params;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>SPHERICAL_GRID;WIN32;_WINDOWS;PARAMS_EXPORTS;QT_GUI_LIB;_CRT_SECURE_NO_WARNINGS;MODELS;QT_CORE_LIB;QT_LARGEFILE_SUPPORT;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SPHERICAL_GRID;WIN32;_WINDOWS;PARAMS_EXPORTS;_CRT_SECURE_NO_WARNINGS;MODELS;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -130,7 +130,7 @@
     <Link>
       <AdditionalDependencies>..\..\..\targets\win64\bin\vdf.lib;..\..\..\targets\win64\bin\common.lib;mpr.lib;opengl32.lib;libtiff.lib;geotiff.lib;glu32.lib;proj.lib;python27_d.lib;libjpeg.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>$(QTDIR64)/lib;$(VAPOR_WIN64_DEBUG_LIB_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(VAPOR_WIN64_DEBUG_LIB_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>MSVCRT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>../../../targets/win32/bin/params.pdb</ProgramDatabaseFile>
@@ -177,7 +177,7 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);$(VAPORDEPS_INC_DIR)/geotiff;../../../include/;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include;$(QTDIR64)/include/QtGui;$(PYTHON64ROOT)/Lib/site-packages/numpy/core/include;$(PYTHON64ROOT)/include;../../../lib/vdf;../../../lib/params;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);$(VAPORDEPS_INC_DIR)/geotiff;../../../include/;$(QTDIR64)/include;$(PYTHON64ROOT)/Lib/site-packages/numpy/core/include;$(PYTHON64ROOT)/include;../../../lib/vdf;../../../lib/params;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SPHERICAL_GRID;WIN32;NDEBUG;_WINDOWS;_USRDLL;PARAMS_EXPORTS;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -189,9 +189,9 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>..\..\..\targets\win64\bin\vdf.lib;..\..\..\targets\win64\bin\common.lib;mpr.lib;QtCore4.lib;QtGui4.lib;opengl32.lib;libtiff.lib;geotiff.lib;glu32.lib;proj.lib;python27.lib;libjpeg.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\..\..\targets\win64\bin\vdf.lib;..\..\..\targets\win64\bin\common.lib;mpr.lib;opengl32.lib;libtiff.lib;geotiff.lib;glu32.lib;proj.lib;python27.lib;libjpeg.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>$(QTDIR64)/lib;$(VAPOR_WIN64_RELEASE_LIB_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(VAPOR_WIN64_RELEASE_LIB_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>msvcrtd;msvcr71d;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>

@@ -134,10 +134,10 @@ public:
 	//! is used to both query parameter information as well as change
 	//! parameter information. 
 	//!
-	//! \param[in] viz A visualizer handle returned by NewVisualizer(). 
+	//! \param[in] viz A visualizer handle returned by NewVisualizer().  Use -1 for the current active visualizer. 
 	//! \param[in] type The type of the Params (e.g. flow, probe)
 	//! This is the same as the type of Renderer for a RenderParams.
-	//! \param[in] instance Instance index, ignored for non-Render params
+	//! \param[in] instance Instance index, ignored for non-Render params.  Use -1 for the current active instance.
 	//!
 	//! \return ptr A pointer to the Params object of the specified type that is
 	//! currently associated with the specified visualizer (and of the specified instance, if
