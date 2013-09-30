@@ -726,7 +726,7 @@ insertRenderer(RenderParams* rp, Renderer* ren, int newOrder)
 // an existing session
 void Visualizer::removeAllRenderers(){
 	
-	//Prevent new rendering while we do this:
+	//Prevent new rendering while we do this?
 	
 	for (int i = renderer.size()-1; i>=0; i--){
 		delete renderer[i];
