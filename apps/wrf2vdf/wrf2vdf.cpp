@@ -1,4 +1,15 @@
-#include <iostream>
+#include <cstdio>
+#include <cstdlib>
+#include <vapor/2vdf.h>
+
+int main(int argc, char **argv) {
+	MyBase::SetErrMsgFilePtr(stderr);
+    string command = "wrf";
+    if (launch2vdf(argc, argv, command) < 0) exit(1);
+    exit(0);    
+}
+
+/*#include <iostream>
 #include <cstdio>
 #include <cstring>
 #include <vector>
@@ -393,3 +404,4 @@ int	main(int argc, char **argv) {
 	exit(estatus);
 
 } // End of main.
+*/

@@ -1,4 +1,18 @@
-#include <iostream>
+#include <cstdio>
+#include <cstdlib>
+#include <vapor/vdfcreate.h>
+
+using namespace std;
+using namespace VAPoR;
+
+int main(int argc, char **argv) {
+	MyBase::SetErrMsgFilePtr(stderr);
+	std::string command = "wrf";
+	if (launchVdfCreate(argc, argv, command) < 0) exit(1);
+	exit(0);	
+}
+
+/*#include <iostream>
 #include <cstdio>
 #include <cstring>
 #include <vector>
@@ -391,3 +405,4 @@ int	main(int argc, char **argv) {
 
 	exit(0);
 } // End of main.
+*/
