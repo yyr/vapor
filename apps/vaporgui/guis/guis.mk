@@ -11,7 +11,7 @@ GUI_QT_HEADERS := \
 	boxsliderframe \
 	vizselectcombo \
 	instancetable \
-	animationeventrouter floweventrouter \
+	animationeventrouter \
 	arroweventrouter \
 	regioneventrouter viewpointeventrouter\
 

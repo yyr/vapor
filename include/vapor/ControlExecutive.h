@@ -27,7 +27,7 @@ public:
 	ControlExecutive();
 
 	//! Obtain the singleton ControlExecutive object
-	static ControlExecutive* ControlExecutive::getInstance(){
+	static ControlExecutive* getInstance(){
 		if (!controlExecutive) controlExecutive = new ControlExecutive();
 		return controlExecutive;
 	}
