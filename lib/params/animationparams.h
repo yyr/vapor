@@ -46,7 +46,7 @@ class PARAMS_API AnimationParams : public Params {
 public: 
 	//! Constructor
 	//! \param[in] int winnum The number of the visualizer, or -1 for a global AnimationParams
-	AnimationParams(int winnum);
+	AnimationParams(XmlNode* parent, int winnum);
 	//! Destructor
 	~AnimationParams();
 
@@ -108,7 +108,7 @@ public:
 #ifndef DOXYGEN_SKIP_THIS
 
 	//The rest is not part of the public API
-	static ParamsBase* CreateDefaultInstance() {return new AnimationParams(-1);}
+	static ParamsBase* CreateDefaultInstance() {return new AnimationParams(0,-1);}
 	const std::string& getShortName() {return _shortName;}
 	virtual Params* deepCopy(ParamNode* n = 0);
 

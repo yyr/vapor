@@ -18,7 +18,7 @@ namespace VAPoR {
 
 class XmlNode;
 class ParamNode;
-class PanelCommand;
+
 class Params;
 class ArrowEventRouter : public QWidget, public Ui_Arrow, public EventRouter {
 
@@ -34,7 +34,6 @@ public:
 	}
 	//Connect signals and slots from tab
 	virtual void hookUpTab();
-	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1, bool reEnable = false);
 	
 	virtual void confirmText(bool /*render*/);
 	virtual void updateTab();
@@ -47,7 +46,7 @@ public:
 
 	virtual void captureMouseUp();
 	virtual void captureMouseDown(int button);
-	virtual QSize sizeHint() const;
+	
 	//Following needed if tab has embedded opengl frames
 	//virtual void refreshTab(){}
 

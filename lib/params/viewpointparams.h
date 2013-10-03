@@ -44,7 +44,7 @@ class PARAMS_API ViewpointParams : public Params {
 public: 
 	//! Constructor
 	//! \param[in] int window num, indicates the visualizer number, or -1 for a shared ViewpointParams
-	ViewpointParams(int winnum);
+	ViewpointParams(XmlNode* parent, int winnum);
 	//! Destructor
 	virtual ~ViewpointParams();
 	
@@ -86,7 +86,7 @@ public:
 	const vector<double>& getRotationCenterLocal(){return getCurrentViewpoint()->getRotationCenterLocal();}
 
 #ifndef DOXYGEN_SKIP_THIS
-	static ParamsBase* CreateDefaultInstance() {return new ViewpointParams(-1);}
+	static ParamsBase* CreateDefaultInstance() {return new ViewpointParams(0,-1);}
 	const std::string& getShortName() {return _shortName;}
 	virtual Params* deepCopy(ParamNode* n = 0);
 	//Note that all calls to get camera pos and get rot center return values
@@ -172,7 +172,7 @@ public:
 	void setRotationCenterLocal(const vector<double>& vec){
 		getCurrentViewpoint()->setRotationCenterLocal(vec);
 	}
-	
+	void centerFullRegion(int timestep);
 	void rescale(double scaleFac[3], int timestep);
 
 	//determine far and near distance to region based on current viewpoint
@@ -194,7 +194,7 @@ public:
 	//Rotate a 3-vector based on current modelview matrix
 	void transform3Vector(const float vec[3], float resvec[3]);
 	
-	void setModelViewMatrix(double* mtx){
+	void setModelViewMatrix(const double* mtx){
 		for (int i = 0; i<16; i++) modelViewMatrix[i] = mtx[i];
 	}
 	void setProjectionMatrix(double* mtx){

@@ -29,7 +29,6 @@
 #include "glutil.h"	// Must be included first!!!
 #include <QMenuItem>
 #include "mainform.h"
-#include "pythonedit.h"
 #include <QDockWidget>
 #include <QTextEdit>
 #include <QToolBar>
@@ -59,38 +58,19 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include "dvreventrouter.h"
-#include "isoeventrouter.h"
-#include "setoffset.h"
 #include "vizwin.h"
-#include "floweventrouter.h"
-#include "probeeventrouter.h"
-#include "twoDdataeventrouter.h"
-#include "twoDimageeventrouter.h"
+
 #include "vizselectcombo.h"
 #include "tabmanager.h"
 #include "viewpointeventrouter.h"
 #include "regioneventrouter.h"
-#include "vizwinmgr.h"
-#include "flowparams.h"
 #include "animationeventrouter.h"
-#include "session.h"
-#include "messagereporter.h"
 #include "viewpointparams.h"
 #include "regionparams.h"
-#include "dvrparams.h"
-#include "pythonpipeline.h"
-
 #include "animationparams.h"
-#include "probeparams.h"
-#include "twoDdataparams.h"
-#include "twoDimageparams.h"
-
 #include "assert.h"
-#include "command.h"
-
 #include "vizfeatureparams.h"
-#include "userpreferences.h"
+#include "vapor/ControlExecutive.h"
 
 #include <vapor/DataMgrWB.h>
 #include <vapor/DataMgrWC.h>
@@ -163,10 +143,6 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
     myMDIArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     setCentralWidget(myMDIArea);
 
-    
-	
-   
-   
     createActions();
     createMenus();
     
@@ -190,23 +166,14 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	
 	tabDockWindow->setWidget(tabWidget);
 	
-	//Setup  the session (hence the viz window manager)
-	Session* ses = Session::getInstance();
-	MessageReporter::infoMsg("MainForm::MainForm(): setup session");
-	bool lockSize = ses->getWindowSizeLock();
-	if (lockSize){
-		int win_width = ses->getLockWinWidth();
-		int win_height = ses->getLockWinHeight();
 	
-		setMinimumSize( QSize( win_width, win_height ) );
-		setMaximumSize( QSize( win_width, win_height ) );
-	}
 	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
 	
-	myVizMgr->createAllDefaultParams();
+	//Create the Control executive. Don't need to use it yet.
+	ControlExecutive::getInstance();
 	
 	createToolBars();	
-	myVizMgr->RegisterMouseModes();
+	
     (void)statusBar();
     Main_Form->adjustSize();
     languageChange();
@@ -214,45 +181,16 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 
 	//Now that the tabmgr and the viz mgr exist, hook up the tabs:
 	
-	//These need to be installed to set the tab pointers in the
-	//global params.
-	Session::getInstance()->blockRecording();
 	
 	//Create one initial visualizer:
 	myVizMgr->launchVisualizer();
 
-	Session::getInstance()->unblockRecording();
 	
-    	show();
-	((DvrEventRouter*)VizWinMgr::getInstance()->getEventRouter(Params::_dvrParamsTag))->initTypes();
+	
+    show();
+	
 
-	if(fileName != ""){
-		if (fileName.endsWith(".vss")){
-
-			ifstream is;
-			is.open((const char*)fileName.toAscii());
-			if (!is){//Report error if you can't open the file
-				MessageReporter::errorMsg("Unable to open session file: \n%s", (const char*)fileName.toAscii());
-				return;
-			}
-			//Remember file if load is successful:
-			if(Session::getInstance()->loadFromFile(is)){
-				QString sessionSaveFile = fileName;
-				QFileInfo fi(fileName);
-				Session::getInstance()->setSessionFilepath((const char*)sessionSaveFile.toAscii());
-			}
-		} else if (fileName.endsWith(".vdf")){
-#ifdef WIN32
-			//Windows:  Need to reverse the backwards slashes, so that
-			//DataMgr can deal with this path
-			fileName.replace('\\','/');
-#endif
-			vector<string> files;
-			files.push_back(fileName.toStdString());
-			Session::getInstance()->resetMetadata(files, false, false);
-		} 
-	}
-	MessageReporter::infoMsg("MainForm::MainForm() end");
+	
 }
 
 /*
@@ -262,8 +200,7 @@ MainForm::~MainForm()
 {
 	if (modeStatusWidget) delete modeStatusWidget;
    
-	delete Session::getInstance();
-	PythonPipeLine::terminate();
+	
     // no need to delete child widgets, Qt does it all for us?? (see closeEvent)
 }
 
@@ -309,15 +246,11 @@ void MainForm::createToolBars(){
 		"the animation tab ";
 	animationToolBar->setWhatsThis(qat);
 	
-
 // Viz tool bar:
 	vizToolBar = addToolBar("");
-//	vizToolBar->setAllowedAreas(Qt::TopToolBarArea);
-	
 
 	//Add a QComboBox to toolbar to select window
 	windowSelector = new VizSelectCombo(this, vizToolBar, myVizMgr);
-
 
 	vizToolBar->addAction(tileAction);
 	vizToolBar->addAction(cascadeAction);
@@ -356,8 +289,7 @@ void MainForm::createToolBars(){
 	vizToolBar->addWidget(interactiveRefinementSpin);
 }
 void MainForm::hookupSignals() {
-    VizWinMgr* myVizMgr = VizWinMgr::getInstance();
-    // signals and slots connections
+   
 	connect(modeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT( modeChange(int)));
 	connect( fileNew_SessionAction, SIGNAL( triggered() ), this, SLOT( newSession() ) );
 	connect( fileOpenAction, SIGNAL( triggered() ), this, SLOT( fileOpen() ) );
@@ -373,19 +305,13 @@ void MainForm::hookupSignals() {
 	
     connect( helpAboutAction, SIGNAL( triggered() ), this, SLOT( helpAbout() ) );
     
-	connect( dataMerge_MetafileAction, SIGNAL( triggered() ), this, SLOT( mergeData() ) );
-	connect( dataImportWRF_Action, SIGNAL( triggered() ), this, SLOT( importWRFData() ) );
-	connect( dataImportDefaultWRF_Action, SIGNAL( triggered() ), this, SLOT( importDefaultWRFData() ) );
-	connect( dataSave_MetafileAction, SIGNAL( triggered() ), this, SLOT( saveMetadata() ) );
+	
 	connect( dataLoad_MetafileAction, SIGNAL( triggered() ), this, SLOT( loadData() ) );
 	connect( dataLoad_DefaultMetafileAction, SIGNAL( triggered() ), this, SLOT( defaultLoadData() ) );
-	connect( dataExportToIDLAction, SIGNAL(triggered()), this, SLOT( exportToIDL()));
 	connect(captureMenu, SIGNAL(aboutToShow()), this, SLOT(initCaptureMenu()));
    
 	connect(Edit, SIGNAL(aboutToShow()), this, SLOT (setupEditMenu()));
-	connect( newPythonAction, SIGNAL(triggered()), this, SLOT(newPythonEditor()));
-	connect(editPythonStartupAction,SIGNAL(triggered()), this, SLOT(editPythonStartup()));
-	connect(editPythonMenu,SIGNAL(triggered(QAction*)), this, SLOT(launchPythonEditor(QAction*)));
+	
 	connect( captureStartJpegCaptureAction, SIGNAL( triggered() ), this, SLOT( startJpegCapture() ) );
 	connect( captureEndJpegCaptureAction, SIGNAL( triggered() ), this, SLOT( endJpegCapture() ) );
 	connect (captureSingleJpegCaptureAction, SIGNAL(triggered()), this, SLOT (captureSingleJpeg()));
@@ -395,13 +321,7 @@ void MainForm::hookupSignals() {
 
 	//Toolbar actions:
 	connect (navigationAction, SIGNAL(toggled(bool)), this, SLOT(setNavigate(bool)));
-	connect (cascadeAction, SIGNAL(triggered()), myVizMgr, SLOT(cascade()));
-	connect (tileAction, SIGNAL(triggered()), myVizMgr, SLOT(fitSpace()));
-	connect (homeAction, SIGNAL(triggered()), myVizMgr, SLOT(home()));
-	connect (sethomeAction, SIGNAL(triggered()), myVizMgr, SLOT(sethome()));
-	connect (viewAllAction, SIGNAL(triggered()), myVizMgr, SLOT(viewAll()));
-	connect (viewRegionAction, SIGNAL(triggered()), myVizMgr, SLOT(viewRegion()));
-	connect (alignViewCombo, SIGNAL(activated(int)), myVizMgr, SLOT(alignView(int)));
+	
 	connect (interactiveRefinementSpin, SIGNAL(valueChanged(int)), this, SLOT(setInteractiveRefLevel(int)));
 	connect (playForwardAction, SIGNAL(triggered()), this, SLOT(playForward()));
 	connect (playBackwardAction, SIGNAL(triggered()), this, SLOT(playBackward()));
@@ -538,9 +458,7 @@ void MainForm::createActions(){
 	//Toolbar buttons:
 	QPixmap* wheelIcon = new QPixmap(wheel);
 	
-	if (!wheelIcon){
-		MessageReporter::warningMsg("Unable to obtain image from images/wheel.xpm");
-	}
+	
 	navigationAction = new QAction(*wheelIcon,"Navigation Mode",mouseModeActions);
 	navigationAction->setCheckable(true);
 	navigationAction->setChecked(true);
@@ -711,182 +629,24 @@ void MainForm::languageChange()
 }
 
 
-
-
 void MainForm::fileOpen()
 {
 
-	//This launches a panel that enables the
-    //user to choose input session save files, then to
-	//load that session
-	Session* ses = Session::getInstance();
-	string s;
-	ses->makeSessionFilepath(s);
-	QString fn = s.c_str();//start with filename in session
-	QString filename = QFileDialog::getOpenFileName(this, 
-		"Choose a VAPOR session file to restore a session",
-		fn,
-		"Vapor Session Save Files (*.vss)");
-	if(filename.length() == 0) return;
-		
 	
-	//Force the name to end with .vss
-	if (!filename.endsWith(".vss")){
-		filename += ".vss";
-	}
-	ifstream is;
-	is.open((const char*)filename.toAscii());
-	if (!is){//Report error if you can't open the file
-		MessageReporter::errorMsg("Unable to open session file: \n%s", (const char*)filename.toAscii());
-		return;
-	}
-	//Remember file if load is successful:
-	if(Session::getInstance()->loadFromFile(is)){
-		Session::getInstance()->setSessionFilepath((const char*)filename.toAscii());
-	}
-	MessageReporter::infoMsg("Loaded session file: \n%s", (const char*)filename.toAscii());
 }
 
 
 void MainForm::fileSave()
 {
-	DataMgr *dataMgr = Session::getInstance()->getDataMgr();
-
-	//This directly saves the session to the current session save file.
-    	//It does not prompt the user unless there is an error
-	if (! dataMgr) {
-		MessageReporter::warningMsg( "There is no current metadata.  \nSession state cannot be saved");
-		return;
-	}
-	if (!Session::getInstance()->metadataIsSaved())
-		MessageReporter::warningMsg( "Note: The current (merged) Metadata \nhas not been saved. \nIt will be easier to restore this session \nif the Metadata is also saved.");
 	
-	ofstream fileout;
-	string s;
-	Session::getInstance()->makeSessionFilepath(s);
-	
-	fileout.open(s.c_str());
-	if (! fileout) {
-		MessageReporter::errorMsg( "Unable to open session file:\n%s", s.c_str());
-		return;
-	}
-	
-	if (!Session::getInstance()->saveToFile(fileout)){//Report error if can't save to file
-		MessageReporter::errorMsg("Failed to write session file: \n%s", s.c_str());
-		fileout.close();
-		return;
-	}
-	fileout.close();
-}
-//Save the metadata in a file in the current vdf directory.
-//The metadata currently won't work if it is saved to a different directory
-//
-void MainForm::saveMetadata()
-{
-	DataMgr *dataMgr = Session::getInstance()->getDataMgr();
-	DataMgrWB *dataMgrWB = dynamic_cast<DataMgrWB *> (dataMgr);
-	DataMgrWC *dataMgrWC = dynamic_cast<DataMgrWC *> (dataMgr);
-	MetadataVDC* md = dynamic_cast<MetadataVDC*> (dataMgr);
-
-	//Do nothing if there is no metadata:
-	if (!md ||(! dataMgrWB  && !dataMgrWC)) {
-			MessageReporter::errorMsg("There is no Metadata \nto save in current session");
-		return;
-	}
-	//Warn the user that this file is not portable:
-	MessageReporter::warningMsg("Note that the Metadata file\nto be written is non-portable;\n%s",
-		"You may not be able to load \nthe associated data from another system");
-	//This directly saves the session to the current vdf directory
-   	QString filename = QFileDialog::getSaveFileName(this,
-		"Choose the Metadata filename (in this directory) to save the current metadata",
-		Session::getInstance()->getMetadataFile().c_str(),
-		"Vapor Metadata Files (*.vdf)");
-
-	if(filename != QString::null){
-		//Make sure this filename is still in same directory
-		//If not, pop up an explanatory error message and quit.
-		int posn = filename.lastIndexOf("/");
-		QString path = filename.left(posn);
-		QString metadataFile = QString(Session::getInstance()->getMetadataFile().c_str());
-		if (!metadataFile.contains(path)){
-			int mposn = metadataFile.lastIndexOf("/");
-			QString mpath = metadataFile.left(mposn);
-			MessageReporter::errorMsg("Specified directory %s is invalid. \nMetadata must be saved to \n%s .",(const char*)path.toAscii(), (const char*)mpath.toAscii());
-			return;
-		}
-		//If ok, go ahead and try to save using current DataMgr
-		QFileInfo finfo(filename);
-		if (finfo.exists()){
-			int rc = QMessageBox::warning(0, "Metadata File Exists", QString("OK to replace existing metadata file?\n %1 ").arg(filename), QMessageBox::Ok, 
-				QMessageBox::No);
-			if (rc != QMessageBox::Ok) return;
-		}
-		std::string stdName = filename.toStdString();
-		int rc;
-		
-		rc = md->Write(stdName,0);
-
-		if (rc < 0)MessageReporter::errorMsg( "Unable to save metadata file:\n%s", (const char*)filename.toAscii());
-		else {
-			Session::getInstance()->setMetadataSaved(true);
-			//Save the metadata file name
-			Session::getInstance()->getMetadataFile() = filename.toStdString();
-		}
-		return;
-	}
 }
 
 
 void MainForm::fileSaveAs()
 {
-	DataMgr *dataMgr = Session::getInstance()->getDataMgr();
-
-	if (! dataMgr) {
-		MessageReporter::warningMsg( "There is no current metadata.  \nSession state cannot be saved");
-		return;
-	}
 	
-	if ( !Session::getInstance()->metadataIsSaved())
-		MessageReporter::warningMsg( "Note: The current (merged) Metadata \nhas not been saved. \n It will be easier to restore this session \nif the Metadata is also saved.");
-	//This launches a panel that enables the
-    //user to choose output session save files, saves to it
-	string s;
-	Session::getInstance()->makeSessionFilepath(s);
-	
-	QString filename = QFileDialog::getSaveFileName(this,
-		"Choose the output Session File to save current session",
-		s.c_str(),
-		"Vapor Session Save Files (*.vss)");
-
-	if(filename.length() == 0) return;
-		
-	
-	//Force the name to end with .vss
-	if (!filename.endsWith(".vss")){
-		filename += ".vss";
-	}
-	
-	ofstream fileout;
-	fileout.open(filename.toAscii());
-	if (! fileout) {
-		MessageReporter::errorMsg( "Unable to save to file: \n%s", (const char*)filename.toAscii());
-		return;
-	}
-	
-	if (!Session::getInstance()->saveToFile(fileout)){//Report error if can't save to file
-		MessageReporter::errorMsg("Failed to save session to: \n%s", (const char*)filename.toAscii());
-		fileout.close();
-		return;
-	}
-	fileout.close();
-	Session::getInstance()->setSessionFilepath((const char*)filename.toAscii());
 }
 
-
-void MainForm::filePrint()
-{
-
-}
 
 
 void MainForm::fileExit()
@@ -895,20 +655,14 @@ void MainForm::fileExit()
 }
 
 void MainForm::undo(){
-	Session::getInstance()->backupQueue();
+	
 }
 
 void MainForm::redo(){
-	Session::getInstance()->advanceQueue();
+	
 }
 
-// Disable the undo/redo actions, for when the 
-// command queue is reinitialized
-//
-void MainForm::disableUndoRedo(){
-	editUndoAction->setEnabled(false);
-	editRedoAction->setEnabled(false);
-}
+
 
 void MainForm::helpIndex()
 {
@@ -938,49 +692,13 @@ void MainForm::batchSetup(){
 }
 
 
-//int showWBInfo(const char* wbfile);
 
-void MainForm::browseData()
-{
-	static QString MDFile("");
-	//This launches a panel that enables the
-    	//user to peruse the available data files
-    	//or metafiles.  Initially it will just select (and open) a vdf file.
-	QString filename = QFileDialog::getOpenFileName(this,
-		"Choose a Metadata File",
-		MDFile,
-		"Metadata Files (*.vdf)");
-	if(filename!= QString::null) {
-		//Need to update this to browse vdf files
-		//showWBInfo(filename.toAscii());
-		MDFile = filename;
-	}
-	
-}
 void MainForm::loadPrefs(){
-	QString filename = QFileDialog::getOpenFileName(this,
-		"Choose the Preferences File to load into current session",
-		Session::getInstance()->getPreferencesFile().c_str(),
-		"Vapor Preferences Files (*.vapor_prefs)");
-	if(filename != QString::null){
-		QFileInfo fInfo(filename);
-		if (fInfo.isReadable() && fInfo.isFile())
-			UserPreferences::loadPreferences((const char*)filename.toAscii());
-		else MessageReporter::errorMsg("Unable to read preferences file: \n%s", (const char*)filename.toAscii());
-	}
+	
 	
 }
 void MainForm::savePrefs(){
-	QString filename = QFileDialog::getSaveFileName(this,
-		"Choose the file name to save current preferences",
-		Session::getInstance()->getPreferencesFile().c_str(),
-		"Vapor Preferences Files (*.vapor_prefs)");
-	if(filename != QString::null){
-		QFileInfo fInfo(filename);
-		
-		if(!UserPreferences::savePreferences((const char*)filename.toAscii()))
-			MessageReporter::errorMsg("Unable to save preferences file \n%s", (const char*)filename.toAscii());
-	}
+	
 }
 //Load data into current session
 //
@@ -990,6 +708,7 @@ void MainForm::loadData()
     	//user to choose input data files, then to
 	//create a datamanager using those files
     	//or metafiles.  
+	/*
 	QString filename = QFileDialog::getOpenFileName(this,
 		"Choose the Metadata File to load into current session",
 		Session::getInstance()->getMetadataFile().c_str(),
@@ -1013,52 +732,14 @@ void MainForm::loadData()
 		return;
 	}
 	else MessageReporter::errorMsg("Invalid metadata file");
+	*/
 }
-//Merge data into current session
-//
-void MainForm::mergeData()
-{
 
-	//This launches a panel that enables the
-    //user to choose input data files, then to
-	//merge into current metadata 
-	DataMgr* dm = DataStatus::getInstance()->getDataMgr();
-	MetadataVDC* md = dynamic_cast<MetadataVDC*> (dm);
-	if (!md){
-		MessageReporter::errorMsg("No current metadata available for merge");
-		return;
-	}
-	QString filename = QFileDialog::getOpenFileName(this,
-		"Choose the Metadata File to merge into current session",
-		Session::getInstance()->getMetadataFile().c_str(),
-		"Vapor Metadata Files (*.vdf)");
-
-	if(filename != QString::null){
-		//Check on the timestep offset:
-		int defaultOffset = 0;
-		QDialog sDialog(this);
-		Ui_SetOffsetDialog uiSetter;
-		uiSetter.setupUi(&sDialog);
-		int activeWinNum = VizWinMgr::getInstance()->getActiveViz();
-		if (activeWinNum >= 0){
-			defaultOffset = VizWinMgr::getInstance()->getAnimationParams(activeWinNum)->getCurrentTimestep();
-		}
-		uiSetter.timestepOffsetSpin->setValue(defaultOffset);
-		if (sDialog.exec() != QDialog::Accepted) return;
-		int offset = uiSetter.timestepOffsetSpin->value();
-		vector<string> files;
-		files.push_back(filename.toStdString());
-		if (!Session::getInstance()->resetMetadata(files, false, false, true, offset)){
-			MessageReporter::errorMsg("Unsuccessful metadata merge of \n%s",(const char*)filename.toAscii());
-		}
-	} else MessageReporter::errorMsg("Unable to open \n%s",(const char*)filename.toAscii());
-	
-}
 //import WRF data into current session
 //
 void MainForm::importWRFData()
 {
-
+/*
 	//This launches a panel that enables the
     //user to choose input WRF output files, then to
 	//use them to create a new data
@@ -1080,12 +761,12 @@ void MainForm::importWRFData()
 		DataStatus::setPre22Session(false);
 	
 	} else MessageReporter::errorMsg("No valid WRF files \n");
-	
+	*/
 }
 //import WRF data into default session
 void MainForm::importDefaultWRFData()
 {
-
+/*
 	//This launches a panel that enables the
     //user to choose input WRF output files, then to
 	//use them to create a new data
@@ -1107,13 +788,13 @@ void MainForm::importDefaultWRFData()
 		Session::getInstance()->resetMetadata(files, false, true);
 	
 	} else MessageReporter::errorMsg("No valid WRF files \n");
-	
+	*/
 }
 //Load data into default session
 //
 void MainForm::defaultLoadData()
 {
-
+	/*
 	//This launches a panel that enables the
     //user to choose input data files, then to
 	//create a datamanager using those files
@@ -1128,22 +809,16 @@ void MainForm::defaultLoadData()
 		files.push_back(filename.toStdString());
 		Session::getInstance()->resetMetadata(files, false, false);
 	}
-	
+	*/
 }
 void MainForm::newSession()
 {
-	vector<string> files;
-	Session::getInstance()->resetMetadata(files, false, false);
-	//Reload preferences:
-	UserPreferences::loadDefault();
 	
-	PythonEdit::loadUserStartupScript();
-	MessageReporter::getInstance()->resetCounts();
 	
 }
 void MainForm::launchVisualizer()
 {
-	VizWinMgr::getInstance()->launchVisualizer();
+	//VizWinMgr::getInstance()->launchVisualizer();
 		
 }
 
@@ -1154,236 +829,35 @@ void MainForm::launchVisualizer()
  */
 void MainForm::setNavigate(bool on)
 {
-	if (!on) return;
-	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
-	Session* currentSession = Session::getInstance();
-	//Only do something if this is an actual change of mode
-	if (GLWindow::getCurrentMouseMode() != GLWindow::navigateMode){
-		int oldMode = GLWindow::getCurrentMouseMode();
-		myVizMgr->setSelectionMode(GLWindow::navigateMode);
-		currentSession->blockRecording();
-		modeCombo->setCurrentIndex(0);
-		currentSession->unblockRecording();
-		currentSession->addToHistory(new MouseModeCommand(oldMode,  GLWindow::navigateMode));
-		GLWindow::setCurrentMouseMode(GLWindow::navigateMode);
-		VizWinMgr::getInstance()->updateActiveParams();
-		
-		if(modeStatusWidget) {
-			statusBar()->removeWidget(modeStatusWidget);
-			delete modeStatusWidget;
-		}
-		modeStatusWidget = new QLabel("Navigation Mode:  Use left mouse to rotate or spin-animate, right to zoom, middle to translate",this);
-		statusBar()->addWidget(modeStatusWidget,2);
-	}
+	
 }
 
 
 void MainForm::setupEditMenu(){
-	//Setup undo/redo text
-	Session* currentSession = Session::getInstance();
-	QString undoText("Undo ");
-	QString redoText("Redo ");
-	//If it's not active, just set default text:
-	if (editUndoAction->isEnabled()) {
-		undoText += currentSession->currentUndoCommand()->getDescription();
-	}
-	if (editRedoAction->isEnabled()) {
-		redoText += currentSession->currentRedoCommand()->getDescription();
-	}
-	editUndoAction->setText( undoText );
-	editRedoAction->setText( redoText );
-	//set up the menus based on what derived variables are available
 	
-	editPythonMenu->clear();
-	newPythonAction->setEnabled(true);
-	bool haveVars = false;
-	
-	map<int,vector<string> > pyMap = DataStatus::getDerived3DOutputMap();
-	//Iterate through the maps, getting all 3D variables
-	map <int,vector<string> > :: const_iterator var_Iter = pyMap.begin();
-	while (var_Iter != pyMap.end()){
-		const vector<string> varnames = var_Iter->second;
-		for (int i = 0; i<varnames.size(); i++){
-			const QString varname = QString(varnames[i].c_str());
-			editPythonMenu->addAction(varname);
-			haveVars = true;
-		}
-		var_Iter++;
-	}
-	pyMap = DataStatus::getDerived2DOutputMap();
-	//Iterate through the maps, getting all 2D variables
-	var_Iter = pyMap.begin();
-	while (var_Iter != pyMap.end()){
-		const vector<string> varnames = var_Iter->second;
-		for (int i = 0; i<varnames.size(); i++){
-			const QString varname = QString(varnames[i].c_str());
-			editPythonMenu->addAction(varname);
-			haveVars = true;
-		}
-		var_Iter++;
-	}
-	editPythonMenu->setEnabled(haveVars);
 
 }
 //Enable or disable the View menu options:
 void MainForm::initCaptureMenu(){
-	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
-	VizWin* viz = vizWinMgr->getActiveVisualizer();
-	int winNum = vizWinMgr->getActiveViz();
-	QString vizName = "";
-	if(winNum >= 0) vizName = vizWinMgr->getVizWinName(winNum);
-	//Disable the start capture if no viz, or if active viz already capturing
-	
-	
-	if (!viz || viz->getGLWindow()->isCapturingImage()) {
-		captureStartJpegCaptureAction->setText( "&Begin image capture sequence"  );
-		captureStartJpegCaptureAction->setEnabled(false);
-		captureSingleJpegCaptureAction->setText("Capture single image");
-		captureSingleJpegCaptureAction->setEnabled(false);
-		
-	} else {// there is a visualizer, but it's not capturing images
-		captureStartJpegCaptureAction->setText( "&Begin image capture sequence in "+(vizName) );
-		captureStartJpegCaptureAction->setEnabled(true);
-		
-		captureSingleJpegCaptureAction->setText("Capture single image of "+(vizName) );
-		captureSingleJpegCaptureAction->setEnabled(true);
-	}
-	//Likewise for flow:
-	if (!viz || viz->getGLWindow()->isCapturingFlow()) {
-		captureStartFlowCaptureAction->setText( "&Begin flow capture sequence"  );
-		captureStartFlowCaptureAction->setEnabled( false);
-	} else {// there is a visualizer, but it's not capturing flow
-		captureStartFlowCaptureAction->setText( "&Begin flow capture sequence in "+(vizName) );
-		captureStartFlowCaptureAction->setEnabled(true);
-	}
-	
-	//disable the end capture if no viz, or if active viz is not capturing
-	GLWindow* glWin=0;
-	if(viz) glWin= viz->getGLWindow();
-	if (!viz || !glWin->isCapturingImage()){
-		captureEndJpegCaptureAction->setText( "End image capture sequence" );
-		captureEndJpegCaptureAction->setEnabled( false);
-	} else {
-		captureEndJpegCaptureAction->setText("End image capture sequence in " +(vizName) );
-		captureEndJpegCaptureAction->setEnabled( true);
-	}
-	if (!viz || !glWin->isCapturingFlow()){
-		captureEndFlowCaptureAction->setText( "End flow capture sequence" );
-		captureEndFlowCaptureAction->setEnabled(false);
-	} else {
-		captureEndFlowCaptureAction->setText("End flow capture sequence in " +(vizName) );
-		captureEndFlowCaptureAction->setEnabled(true);
-	}
 	
 }
 
 //Make all the current region/animation settings available to IDL
 void MainForm::exportToIDL(){
-	Session::getInstance()->exportData();
+	
 }
 	
 //Begin capturing images.
 //Launch a file save dialog to specify the names
 //Then start file saving mode.
 void MainForm::startJpegCapture() {
-	showCitationReminder();
-	QFileDialog fileDialog(this,
-		"Specify first file name for image capture sequence",
-		Session::getInstance()->getJpegDirectory().c_str(),
-		"Jpeg or Tiff images (*.jpg *.tif)");
-	fileDialog.setAcceptMode(QFileDialog::AcceptSave);
-	fileDialog.move(pos());
-	fileDialog.resize(450,450);
-	if (fileDialog.exec() != QDialog::Accepted) return;
 	
-	//Extract the path, and the root name, from the returned string.
-	QStringList qsl = fileDialog.selectedFiles();
-	if (qsl.isEmpty()) return;
-	QString s = qsl[0];
-	QFileInfo* fileInfo = new QFileInfo(s);
-	//Save the path for future captures
-	Session::getInstance()->setJpegDirectory((const char*)fileInfo->absolutePath().toAscii());
-	QString fileBaseName = fileInfo->baseName();
-	//See if it ends with digits
-	int posn;
-	for (posn = fileBaseName.length()-1; posn >=0; posn--){
-		if (!fileBaseName.at(posn).isDigit()) break;
-	}
-	int startFileNum = 0;
-	unsigned int lastDigitPos = posn+1;
-	if (lastDigitPos < fileBaseName.length()) {
-		startFileNum = fileBaseName.right(fileBaseName.length()-lastDigitPos).toInt();
-		fileBaseName.truncate(lastDigitPos);
-	}
-	QString filePath = fileInfo->absolutePath() + "/" + fileBaseName;
-	//See if it ends with "tif":
-	bool isTif = false;
-	if (fileInfo->suffix() == "tif") isTif = true;
-	//Determine the active window:
-	//Turn on "image capture mode" in the current active visualizer
-	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
-	if (viz) {
-		viz->getGLWindow()->startImageCapture(filePath,startFileNum, isTif);
-		//Provide a popup stating the capture parameters in effect.
-		MessageReporter::infoMsg("Image Capture Activated \n Image is being captured to %s",
-			(const char*)filePath.toAscii());
-		
-	} else {
-		MessageReporter::errorMsg("Image Capture Error;\nNo active visualizer for capturing images");
-	}
-	delete fileInfo;
 }
 //Begin capturing flow.
 //Launch a file save dialog to specify the names
 //Then start file saving mode.
 void MainForm::startFlowCapture() {
-	//Check first that we are not capturing unsteady flow:
-	FlowParams* fparams = VizWinMgr::getActiveFlowParams();
-	if (fparams->getFlowType() == 1){
-		MessageReporter::errorMsg(" Unsteady flow lines may only be captured from flow panel");
-		return;
-	}
-	QFileDialog fileDialog(this,
-		"Specify first file name for flow capture sequence",
-		Session::getInstance()->getFlowDirectory().c_str(),
-		"text files (*.txt)");
-	fileDialog.setAcceptMode(QFileDialog::AcceptSave);
-	fileDialog.move(pos());
-	fileDialog.resize(450,450);
-	if (fileDialog.exec() != QDialog::Accepted) return;
 	
-	//Extract the path, and the root name, from the returned string.
-	QStringList qs = fileDialog.selectedFiles();
-	if (qs.isEmpty()) return;
-	QString s = qs[0];
-	QFileInfo* fileInfo = new QFileInfo(s);
-	//Save the path for future captures
-	Session::getInstance()->setFlowDirectory((const char*)fileInfo->absolutePath().toAscii());
-	QString fileBaseName = fileInfo->baseName();
-	//See if it ends with digits
-	int posn;
-	for (posn = fileBaseName.length()-1; posn >=0; posn--){
-		if (!fileBaseName.at(posn).isDigit()) break;
-	}
-	unsigned int lastDigitPos = posn+1;
-	if (lastDigitPos < fileBaseName.length()) {
-		fileBaseName.truncate(lastDigitPos);
-	}
-	
-	QString filePath = fileInfo->absolutePath() + "/" + fileBaseName;
-	//Determine the active window:
-	//Turn on "flow capture mode" in the current active visualizer
-	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
-	if (viz) {
-		viz->getGLWindow()->startFlowCapture(filePath);
-		//Provide a popup stating the capture parameters in effect.
-		MessageReporter::infoMsg("Flow Capture Activated \n Flow is being captured to %s",
-			(const char*)filePath.toAscii());
-		
-	} else {
-		MessageReporter::errorMsg("Flow Capture Error;\nNo active visualizer for capturing images");
-	}
-	delete fileInfo;
 }
 
 //Capture just one image
@@ -1391,85 +865,35 @@ void MainForm::startFlowCapture() {
 //Then put jpeg in it.
 //
 void MainForm::captureSingleJpeg() {
-	showCitationReminder();
-	QFileDialog fileDialog(this,
-		"Specify single image capture file name",
-		Session::getInstance()->getJpegDirectory().c_str(),
-		"Jpeg or Tiff images (*.jpg *.tif)");
-	fileDialog.setAcceptMode(QFileDialog::AcceptSave);
-	fileDialog.move(pos());
-	fileDialog.resize(450,450);
-	if (fileDialog.exec() != QDialog::Accepted) return;
 	
-	//Extract the path, and the root name, from the returned string.
-	QStringList files = fileDialog.selectedFiles();
-	if (files.isEmpty()) return;
-	QString filename = files[0];
-    
-	//Extract the path, and the root name, from the returned string.
-	QFileInfo* fileInfo = new QFileInfo(filename);
-	//Save the path for future captures
-	Session::getInstance()->setJpegDirectory((const char*)fileInfo->absolutePath().toAscii());
-	
-	//Determine the active window:
-	//Turn on "image capture mode" in the current active visualizer
-	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
-	if (viz) {
-		viz->getGLWindow()->singleCaptureImage(filename);
-		//Provide a message stating the capture in effect.
-		MessageReporter::infoMsg("Single Image is captured to %s",
-			(const char*)filename.toAscii());
-		
-	} else {
-		MessageReporter::errorMsg("Image Capture Error;\nNo active visualizer for capturing image");
-	}
 }
 void MainForm::endJpegCapture(){
-	//Turn off capture mode for the current active visualizer (if it is on!)
-	//Otherwise indicate that the visualizer is not capturing.
-	GLWindow* glWin = VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow();
-
-	if (glWin && glWin->isCapturingImage()) glWin->stopImageCapture();
-	else {
-		MessageReporter::warningMsg("Image Capture Warning;\nCurrent active visualizer is not capturing images");
-	}
+	
 }
 void MainForm::endFlowCapture(){
-	//Turn off capture mode for the current active visualizer (if it is on!)
-	//Otherwise indicate that the visualizer is not capturing.
-	GLWindow* glWin = VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow();
-
-	if (glWin && glWin->isCapturingFlow()) glWin->stopFlowCapture();
-	else {
-		MessageReporter::warningMsg("Image Capture Warning;\nCurrent active visualizer is not capturing images");
-	}
+	
 }
 void MainForm::launchVizFeaturesPanel(){
 	VizFeatureParams vFP;
 	vFP.launch();
 }
 void MainForm::launchPreferencesPanel(){
-	UserPreferences uPref;
-	uPref.launch();
+	
 }
 void MainForm::editPythonStartup(){
-	PythonEdit* pythonEditor = new PythonEdit(this, "startup script");
-	pythonEditor->show();
+	
 }
 void MainForm::newPythonEditor(){
-	PythonEdit* pythonEditor = new PythonEdit(this);
-	pythonEditor->show();
+	
 }
 void MainForm::launchPythonEditor(QAction* act){
-	QString str = act->text();
-	PythonEdit* pythonEditor = new PythonEdit(this,str);
-	pythonEditor->show();
+	
 }
 void MainForm::setInteractiveRefLevel(int val){
-	VizWinMgr::getInstance()->setInteractiveNavigating(val);
+	
 }
 void MainForm::setInteractiveRefinementSpin(int val){
-	if(interactiveRefinementSpin)interactiveRefinementSpin->setValue(val);
+	
 }
 	
 void MainForm::pauseClick(){
@@ -1494,14 +918,7 @@ void MainForm::stepForward(){
 }	
 //Respond to a change in the text in the animation toolbar
 void MainForm::setTimestep(){
-	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::_animationParamsTag);
-	int tstep = timeStepEdit->text().toInt();
-	AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
 	
-	if (tstep < aParams->getStartFrameNumber()) tstep = aParams->getStartFrameNumber();
-	if (tstep > aParams->getEndFrameNumber()) tstep = aParams->getEndFrameNumber();
-	if (tstep == aParams->getCurrentTimestep()) return;
-	aRouter->guiSetTimestep(tstep);
 }
 //Set the timestep in the animation toolbar:
 void MainForm::setCurrentTimestep(int tstep){
@@ -1513,8 +930,7 @@ void MainForm::enableKeyframing(bool ison){
 	timeStepEdit->setEnabled(!ison);
 }
 void MainForm::paintEvent(QPaintEvent* e){
-	MessageReporter::infoMsg("MainForm::paintEvent");
-	QMainWindow::paintEvent(e);
+	
 }
 void MainForm::showTab(const std::string& tag){
 	ParamsBase::ParamsBaseType t = Params::GetTypeFromTag(tag);
@@ -1523,48 +939,10 @@ void MainForm::showTab(const std::string& tag){
 	eRouter->updateTab();
 }
 void MainForm::modeChange(int newmode){
-	if (newmode == 0) {
-		navigationAction->setChecked(true);
-		return;
-	}
-	Session* currentSession = Session::getInstance();
-	int oldMode = GLWindow::getCurrentMouseMode();
-	VizWinMgr::getInstance()->setSelectionMode(newmode);
-	//bring up the tab, but don't put into history:
-	currentSession->blockRecording();
-	navigationAction->setChecked(false);
-	showTab(Params::GetTagFromType(GLWindow::getModeParamType(newmode)));
-	currentSession->unblockRecording();
-	currentSession->addToHistory(new MouseModeCommand(oldMode,  newmode));
-	GLWindow::setCurrentMouseMode(newmode);
-	VizWinMgr::getInstance()->updateActiveParams();
-	if(modeStatusWidget) {
-		statusBar()->removeWidget(modeStatusWidget);
-		delete modeStatusWidget;
-	}
-
-	modeStatusWidget = new QLabel(QString::fromStdString(GLWindow::getModeName(newmode))+" Mode: To modify box in scene, grab handle with left mouse to translate, right mouse to stretch",this); 
-	statusBar()->addWidget(modeStatusWidget,2);
+	
 	
 }
 void MainForm::showCitationReminder(){
-	//First check if reminder is turned off:
-	if (!Session::getInstance()->getCitationRemind()) return;
-	//Provide a customized message box
-	QMessageBox msgBox;
-	QString reminder("VAPOR is developed as an Open Source application by the National Center for Atmospheric Research ");
-	reminder.append("under the sponsorship of the National Science Foundation.  ");
-	reminder.append("Continued support from VAPOR is dependent on demonstrable evidence of the software's value to the scientific community.  ");
-	reminder.append("You are free to use VAPOR as permitted under the terms and conditions of the licence.\n\n ");
-	reminder.append("We kindly request that you cite VAPOR in your publications and presentations. ");
-	reminder.append("Citation details can be found on the VAPOR website at: \n\n  http://www.vapor.ucar.edu/index.php?id=citation");
-	msgBox.setText(reminder);
-	msgBox.setInformativeText("This reminder can be silenced from the User Preferences panel");
-		
-	msgBox.setStandardButtons(QMessageBox::Ok);
-	msgBox.setDefaultButton(QMessageBox::Ok);
-		
-	msgBox.exec();
-	Session::getInstance()->setCitationRemind(false);
+	
 
 }

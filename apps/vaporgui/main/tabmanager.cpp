@@ -27,18 +27,9 @@
 #include "assert.h"
 #include "viztab.h"
 #include "params.h"
-#include "command.h"
-#include "session.h"
-#include "vizwinmgr.h"
 #include "regioneventrouter.h"
-#include "floweventrouter.h"
-#include "dvreventrouter.h"
-#include "isoeventrouter.h"
-#include "probeeventrouter.h"
 #include "viewpointeventrouter.h"
 #include "animationeventrouter.h"
-#include "twoDdataeventrouter.h"
-#include "twoDimageeventrouter.h"
 #include "vizselectcombo.h"
 #include "mainform.h"
 
@@ -147,14 +138,14 @@ void TabManager::toggleFrontTabs(Params::ParamsBaseType currentType){
 	}
 	if (i >= tabOrdering.size()) return;
 	//move tab i to front, but dont trigger an undo event
-	Session::getInstance()->blockRecording();
+	
 	moveToFront(i+1);
 	EventRouter* eRouter = VizWinMgr::getInstance()->getEventRouter(i+1);
 	eRouter->updateTab();
 	moveToFront(currentType);
 	eRouter = VizWinMgr::getInstance()->getEventRouter(currentType);
 	eRouter->updateTab();
-	Session::getInstance()->unblockRecording();
+	
 	return;
 }
 //Catch any change in the front page:
@@ -164,7 +155,7 @@ newFrontTab(int newFrontPosn) {
 	
 	//Don't check, sometimes this method can be used to refresh
 	//the existing front tab
-	if (!Session::getInstance()->isRecording()) return;
+	
 	Params::ParamsBaseType prevType = 0;
 	if(currentFrontPage >= 0) prevType = usedTypes[currentFrontPage];
 	currentFrontPage = newFrontPosn;
@@ -176,8 +167,7 @@ newFrontTab(int newFrontPosn) {
 	eRouter->updateTab();
 	
 	//Put into history
-	TabChangeCommand* cmd = new TabChangeCommand(prevType, usedTypes[newFrontPosn]);
-	Session::getInstance()->addToHistory(cmd);
+	
 
 } 
 Params::ParamsBaseType TabManager::getTypeInPosition(int posn){
@@ -207,7 +197,7 @@ void TabManager::scrollFrontToTop(){
 	sv->ensureVisible(0,0);
 }
 void TabManager::orderTabs(){
-	Session::getInstance()->blockRecording();
+	
 	clear();
 	
 	setEnabled(false);
@@ -264,13 +254,11 @@ void TabManager::orderTabs(){
 				break;
 			}
 		}
-		if(!found){
-			MessageReporter::warningMsg("Params for tab %d not available in this install\n",i);
-		}
+		
 	}
 	currentFrontPage= numTabs-1;
 	setCurrentIndex(currentFrontPage);
-	Session::getInstance()->unblockRecording();
+	
 	setEnabled(true);
 	update();
 }

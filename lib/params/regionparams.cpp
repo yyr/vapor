@@ -44,7 +44,7 @@ using namespace VAPoR;
 
 const string RegionParams::_shortName = "Region";
 
-RegionParams::RegionParams(int winnum): Params(winnum, Params::_regionParamsTag){
+RegionParams::RegionParams(XmlNode* parent, int winnum): Params(parent, Params::_regionParamsTag, winnum){
 	restart();
 }
 

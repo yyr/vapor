@@ -22,11 +22,11 @@
 #define EVENTROUTER_H
 #include "assert.h"
 #include "params.h"
-#include "vizwinmgr.h"
+
 #include "vizwin.h"
-#include "histo.h"
-#include "mapperfunction.h"
-#include "panelcommand.h"
+
+
+
 #include <qobject.h>
 class QWidget;
 
@@ -36,8 +36,7 @@ class QWidget;
 #endif
 
 namespace VAPoR{
-	class PanelCommand;
-	class Histo;
+
 
 //! \class EventRouter
 //! \brief A pure virtual class specifying the common properties of all the parameter tabs in the VAPOR GUI
@@ -69,14 +68,6 @@ public:
 	//! Default does nothing.
 	virtual void updateUrgentTabState() {return;}
 
-	//! Pure virtual method that installs a new params instance during undo and redo.
-	//! \param[in] Params* prevParams  Params instance that is being replaced
-	//! \param[in] Params* newParams New Params instance being installed.
-	//! \param[in] bool newWin Indicates whether this is a new window.
-	//! \param[in] int instance Indicates the instance index to replace.  Default -1 indicates current instance.
-	//! Instance is -1 for non-render params.
-	//! \param[in] bool reEnable Indicates that the rendering should be disabled and re-enabled.
-	virtual void makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance = -1, bool reEnable = false) = 0;
 	
 	//! Method to change the current instance index, and perform associated undo/redo capture.
 	//! Child classes can use this to respond to instance selection in the instance selector.
@@ -136,15 +127,13 @@ public:
 
 #ifndef DOXYGEN_SKIP_THIS
 	EventRouter() {
-		textChangedFlag = 0; savedCommand = 0;
-		histogramList = 0;
-		numHistograms = 0;
+		textChangedFlag = 0;
+		
+		
 		isoShown = colorMapShown = opacityMapShown = texShown = false;
 	}
 	virtual ~EventRouter() {
-		for (int i = 0; i<numHistograms; i++) 
-			if (histogramList[i]) delete histogramList[i];
-		if (histogramList) delete [] histogramList;
+		
 	}
 	//Methods to change instances (for undo/redo).
 	//Only used by renderer params
@@ -179,25 +168,21 @@ public:
 	virtual void guiSetLocal(Params* p, bool lg){
 		if (textChangedFlag) confirmText(false);
 	
-		PanelCommand* cmd;
+		
 		Params* localParams = VizWinMgr::getInstance()->getCorrespondingLocalParams(p);
-		if (lg){
-			cmd = PanelCommand::captureStart(localParams,  "set Global to Local");
-		}
-		else cmd = PanelCommand::captureStart(localParams,  "set Local to Global");
+		
 		localParams->setLocal(lg);
 		int winnum = localParams->getVizNum();
-		GLWindow* glwin = VizWinMgr::getInstance()->getVizWin(winnum)->getGLWindow();
+		Visualizer* glwin = VizWinMgr::getInstance()->getVizWin(winnum)->getVisualizer();
 		glwin->setActiveParams(Params::GetCurrentParamsInstance(localParams->GetParamsBaseTypeId(),winnum),localParams->GetParamsBaseTypeId());
-		PanelCommand::captureEnd(cmd, localParams);
+		
 		updateTab();
 	}
 	
 	//Methods to support maintaining a list of histograms
 	//in each router (at least those with a TFE)
 
-	virtual Histo* getHistogram(RenderParams*, bool mustGet, bool isIsoWin = false);
-	virtual void refreshHistogram(RenderParams* , int sesVarNum, const float drange[2]);
+	
 
 	//For render params, setEditorDirty uses the current instance if Params
 	//arg is null
@@ -231,13 +216,13 @@ protected:
 	virtual void setDatarangeDirty(RenderParams* ) {assert(0);}
 	//Routers with histograms keep an array, one for each variable,
 	// or variable combination
-	Histo** histogramList;
-	int numHistograms; //how large is histo array..
+	
+	
 	//There is one tabbed panel for each class of Params
 	
 	Params::ParamsBaseType myParamsBaseType;
 	bool textChangedFlag;
-	PanelCommand* savedCommand;
+	
 #endif //DOXYGEN_SKIP_THIS
 };
 };

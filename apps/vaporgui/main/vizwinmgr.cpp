@@ -46,47 +46,35 @@
 #include <sstream>
 #include <typeinfo>
 #include "GL/glew.h"
-#include "glwindow.h"
-#include "histo.h"
+#include "visualizer.h"
+#include "vapor/ControlExecutive.h"
 #include "vizwin.h"
 #include "vizwinmgr.h"
-#include "messagereporter.h"
+
 #include "math.h"
 #include "mainform.h"
 #include "viewpointparams.h"
 #include "regionparams.h"
 #include "viztab.h"
-
 #include "tabmanager.h"
-#include "dvrparams.h"
-
 #include "params.h"
+#include "renderer.h"
 
 #include "vapor/ExtensionClasses.h"
-#include "twoDimageparams.h"
-#include "twoDdataparams.h"
+
 #include "animationparams.h"
-#include "probeparams.h"
-#include "animationcontroller.h"
 
 #include "assert.h"
-#include "trackball.h"
-#include "vizactivatecommand.h"
-#include "session.h"
+
+
 #include "animationeventrouter.h"
 #include "regioneventrouter.h"
-#include "dvreventrouter.h"
-#include "isoeventrouter.h"
-#include "viewpointeventrouter.h"
-#include "probeeventrouter.h"
-#include "twoDimageeventrouter.h"
-#include "twoDdataeventrouter.h"
-#include "floweventrouter.h"
-#include "panelcommand.h"
-#include "eventrouter.h"
-#include "VolumeRenderer.h"
-#include "flowrenderer.h"
 
+#include "viewpointeventrouter.h"
+
+#include "eventrouter.h"
+//Extension tabs also included (until we find a nicer way to separate extensions)
+#include "arroweventrouter.h"
 #include <vapor/XmlNode.h>
 #include <vapor/ExpatParseMgr.h>
 #include <vapor/ParamNode.h>
@@ -156,7 +144,7 @@ VizWinMgr::VizWinMgr()
 	myMainWindow = MainForm::getInstance();
     myMDIArea = myMainWindow->getMDIArea();
 	tabManager = MainForm::getTabManager();
-    previousClass = 0;
+   
 	activeViz = -1;
 	activationCount = 0;
     benchmark = DONE;
@@ -176,41 +164,20 @@ VizWinMgr::VizWinMgr()
 		
 		activationOrder[i] = -1;
     }
-	setSelectionMode(GLWindow::navigateMode);
+	setSelectionMode(Visualizer::navigateMode);
 }
 //Create the global params and the default renderer params:
 void VizWinMgr::
-createAllDefaultParams() {
+createAllDefaultTabs() {
 
-	//Install Extension Classes:
-	InstallExtensions();
-
-	ParamsBase::RegisterParamsBaseClass(Box::_boxTag, Box::CreateDefaultInstance, false);
-	ParamsBase::RegisterParamsBaseClass(TransferFunction::_transferFunctionTag, TransferFunction::CreateDefaultInstance, false);
-	ParamsBase::RegisterParamsBaseClass(MapperFunctionBase::_mapperFunctionTag, MapperFunction::CreateDefaultInstance, false);
-	ParamsBase::RegisterParamsBaseClass(ParamsIso::_IsoControlTag, IsoControl::CreateDefaultInstance, false);
-	//Animation comes first because others will refer to it.
-	ParamsBase::RegisterParamsBaseClass(Params::_animationParamsTag, AnimationParams::CreateDefaultInstance, true);
+	//Install Extension Tabs
+	InstallTab(ArrowParams::_arrowParamsTag, ArrowEventRouter::CreateTab);
+	//Install built-in tabs
 	InstallTab(Params::_animationParamsTag, AnimationEventRouter::CreateTab);
-	ParamsBase::RegisterParamsBaseClass(Params::_viewpointParamsTag, ViewpointParams::CreateDefaultInstance, true);
 	InstallTab(Params::_viewpointParamsTag, ViewpointEventRouter::CreateTab);
-	ParamsBase::RegisterParamsBaseClass(Params::_regionParamsTag, RegionParams::CreateDefaultInstance, true);
 	InstallTab(Params::_regionParamsTag, RegionEventRouter::CreateTab);
-	ParamsBase::RegisterParamsBaseClass(Params::_twoDDataParamsTag, TwoDDataParams::CreateDefaultInstance, true);
-	//For backwards compatibility; the tag changed in vapor 1.5
-	ParamsBase::ReregisterParamsBaseClass(Params::_twoDParamsTag, Params::_twoDDataParamsTag, true);
-	InstallTab(Params::_twoDDataParamsTag, TwoDDataEventRouter::CreateTab);
-	ParamsBase::RegisterParamsBaseClass(Params::_twoDImageParamsTag, TwoDImageParams::CreateDefaultInstance, true);
-	InstallTab(Params::_twoDImageParamsTag, TwoDImageEventRouter::CreateTab);
-	ParamsBase::RegisterParamsBaseClass(Params::_probeParamsTag, ProbeParams::CreateDefaultInstance, true);
-	InstallTab(Params::_probeParamsTag, ProbeEventRouter::CreateTab);
-	ParamsBase::RegisterParamsBaseClass(Params::_isoParamsTag, ParamsIso::CreateDefaultInstance, true);
-	InstallTab(Params::_isoParamsTag, IsoEventRouter::CreateTab);
-	ParamsBase::RegisterParamsBaseClass(Params::_flowParamsTag, FlowParams::CreateDefaultInstance, true);
-	InstallTab(Params::_flowParamsTag, FlowEventRouter::CreateTab);
-	ParamsBase::RegisterParamsBaseClass(Params::_dvrParamsTag, DvrParams::CreateDefaultInstance, true);
-	InstallTab(Params::_dvrParamsTag, DvrEventRouter::CreateTab);
-
+	
+	
 	
 	//Provide default tab ordering if needed:
 	vector<long> defaultOrdering = TabManager::getTabOrdering();
@@ -227,7 +194,6 @@ createAllDefaultParams() {
 		Params::SetDefaultParams(i, Params::CreateDefaultParams(i));
 	}
 	
-	globalTrackball = new Trackball();
 }
 
 /***********************************************************************
@@ -248,8 +214,6 @@ VizWinMgr::~VizWinMgr()
 void VizWinMgr::
 vizAboutToDisappear(int i)  {
    
-	//Tell the animation controller to drop this viz:
-	AnimationController::getInstance()->finishVisualizer(i);
 
     if (vizWin[i] == 0) return;
 
@@ -275,12 +239,7 @@ vizAboutToDisappear(int i)  {
 		else activeViz = -1;
 	}
 	
-	//Save the state in history before deleting the params,
-	//the next activeViz is the most recent active visualizer 
-	if (Session::getInstance()->isRecording()){
-		Session::getInstance()->addToHistory(new VizActivateCommand(
-			vwin, i, activeViz, Command::remove));
-	}
+	
 	if(activeViz >= 0) setActiveViz(activeViz);
 	
 	for (int j = 1; j<= Params::GetNumParamsClasses(); j++){
@@ -337,7 +296,7 @@ launchVisualizer(int useWindowNum, const char* newName, int newNum)
 			}
 			
 			if (i == MAXVIZWINS -1 && useWindowNum == -1) {
-				MessageReporter::errorMsg("Unable to create additional visualizers");
+				
 				return -1;
 			}	
 		}
@@ -352,7 +311,7 @@ launchVisualizer(int useWindowNum, const char* newName, int newNum)
     QRect* newRect = new QRect (*topLeft, *minSize);
 
     //Don't record events generated by window activation here:  
-    Session::getInstance()->blockRecording();
+    
 	//Default name is just "Visualizer No. N"
     	//qWarning("Creating new visualizer in position %d",useWindowNum);
 	if (strlen(newName) != 0) vizName[useWindowNum] = newName;
@@ -371,7 +330,7 @@ launchVisualizer(int useWindowNum, const char* newName, int newNum)
 	setActiveViz(useWindowNum);
 
 	vizWin[useWindowNum]->showMaximized();
-	maximize(useWindowNum);
+	
 	//Tile if more than one visualizer:
 	if(numVizWins > 1) fitSpace();
 
@@ -398,17 +357,9 @@ launchVisualizer(int useWindowNum, const char* newName, int newNum)
 		for (int i = 0; i<3; i++) tvExts.push_back(0.0);
 		for (int i = 0; i<3; i++) tvExts.push_back(1.0);
 	}
-	float axExts[6];
-	for (int i = 0; i<6; i++) axExts[i] = extents[i]+tvExts[i%3];
-	vizWin[useWindowNum]->setAxisExtents(axExts);
 	
 
-	//Prepare the visualizer for animation control.  It won't animate until user clicks
-	//play
-	AnimationController::getInstance()->initializeVisualizer(useWindowNum);
-	Session::getInstance()->unblockRecording();
-	Session::getInstance()->addToHistory(new VizActivateCommand(
-		vizWin[useWindowNum],prevActiveViz, useWindowNum, Command::create));
+	
 	return useWindowNum;
 }
 /*
@@ -462,7 +413,7 @@ closeEvent()
  **************************************************************/
 void 
 VizWinMgr::cascade(){
-	Session::getInstance()->blockRecording();
+	
    	myMDIArea->cascadeSubWindows(); 
 	//Now size them up to a reasonable size:
 	for (int i = 0; i< MAXVIZWINS; i++){
@@ -470,25 +421,25 @@ VizWinMgr::cascade(){
 			vizWin[i]->resize(400,400);
 		}	
 	} 
-	Session::getInstance()->unblockRecording();
+	
 }
 void 
 VizWinMgr::coverRight(){
-	Session::getInstance()->blockRecording();
+	
     for (int i = 0; i< MAXVIZWINS; i++){
 		if(vizWin[i]) {
 			vizWin[i]->showMaximized();
-			maximize(i);
+			
 		}
 	} 
-	Session::getInstance()->unblockRecording();
+	
 }
 
 void 
 VizWinMgr::fitSpace(){
-	Session::getInstance()->blockRecording();
+	
     myMDIArea->tileSubWindows();
-	Session::getInstance()->unblockRecording();
+	
 }
 
 
@@ -504,7 +455,7 @@ void VizWinMgr::
 setVizWinName(int winNum, QString& qs) {
 		vizName[winNum] = qs;
 		vizWin[winNum]->setWindowTitle(qs);
-		nameChanged(qs, winNum);
+		
 }
 
 /**********************************************************************
@@ -524,20 +475,17 @@ setActiveViz(int vizNum){
 		//Set the animation toolbar to the correct frame number:
 		int currentTS = getActiveAnimationParams()->getCurrentTimestep();
 		MainForm::getInstance()->setCurrentTimestep(currentTS);
-		//Tell the glwindows who is active
-		GLWindow::setActiveWinNum(vizNum);
+		//Tell the Visualizers who is active
+		Visualizer::setActiveWinNum(vizNum);
 		//Determine if the active viz is sharing the region
-		GLWindow::setRegionShareFlag(!getRegionParams(vizNum)->isLocal());
+		Visualizer::setRegionShareFlag(!getRegionParams(vizNum)->isLocal());
 
 		tabManager->show();
 		//Add to history if this is not during initial creation.
-		if (prevActiveViz >= 0){
-			Session::getInstance()->addToHistory(new VizActivateCommand(
-				vizWin[vizNum],prevActiveViz, vizNum, Command::activate));
-		}
+		
 		//Need to cause a redraw in all windows if we are not in navigate mode,
 		//So that the manips will change where they are drawn:
-		if (GLWindow::getCurrentMouseMode() != GLWindow::navigateMode){
+		if (Visualizer::getCurrentMouseMode() != Visualizer::navigateMode){
 			for (int i = 0; i< MAXVIZWINS; i++){
 				if (vizWin[i]) vizWin[i]->updateGL();
 			}
@@ -554,8 +502,8 @@ updateActiveParams(){
 		getEventRouter(i)->updateTab();
 	}
 	
-	//Also update the activeParams in the GLWindow:
-	GLWindow* glwin = getVizWin(activeViz)->getGLWindow();
+	//Also update the activeParams in the Visualizer:
+	Visualizer* glwin = getVizWin(activeViz)->getVisualizer();
 	
 	for (int i = 1; i<= Params::GetNumParamsClasses(); i++){
 		Params* p = Params::GetCurrentParamsInstance(i, activeViz);
@@ -575,79 +523,7 @@ killViz(int viznum){
 	vizWin[viznum] = 0;
 	
 }
-/*
- *  Methods for changing the parameter panels.  Only done during undo/redo.
- *  If instance is -1, then changes the current instance of renderParams
- *  For enabled render params, change the rendererMapping so that it will
- *  map the new params to the existing renderer.
- */
 
-void VizWinMgr::setParams(int winnum, Params* p, ParamsBase::ParamsBaseType clsId, int inst){
-	
-	assert(clsId > 0);
-	
-	if (!p || (!p->isRenderParams())){
-		assert (inst == -1);
-		
-		if (winnum < 0) { //global params!
-			Params* globalParams = getGlobalParams(clsId);
-			if (globalParams) delete globalParams;
-			if (p) setGlobalParams(p->deepCopy(),clsId);
-			else setGlobalParams(0,clsId);
-			globalParams = getGlobalParams(clsId);
-			//Set all windows that use global params:
-			for (int i = 0; i<MAXVIZWINS; i++){
-				if (!vizWin[i]) continue;
-				Params* realParams = Params::GetParamsInstance(clsId,i,-1);
-				if (realParams && !realParams->isLocal()){
-					vizWin[i]->getGLWindow()->setActiveParams(globalParams,clsId);
-				}
-			}
-		} else {
-			Params* realParams = Params::GetParamsInstance(clsId,winnum,-1);
-			if(realParams) delete realParams;
-			if (p) realParams = p->deepCopy();
-			else realParams = 0;
-			vizWin[winnum]->getGLWindow()->setActiveParams(realParams,clsId);
-		}
-	} else {  //Handle render params:
-		assert(p);
-		
-		if (inst == -1) inst = getCurrentInstanceIndex(winnum, clsId);
-		//Save the previous render params pointer.  It might be needed
-		//to enable/disable renderer
-		RenderParams* prevRParams = (RenderParams*)getParams(winnum,clsId,inst);
-		bool isRendering = (prevRParams != 0) && prevRParams->isEnabled();
-		RenderParams* newRParams = 0;
-		GLWindow* glwin = vizWin[winnum]->getGLWindow();
-		
-		
-		if (Params::GetNumParamsInstances(clsId,winnum) > inst){
-			if (Params::GetParamsInstance(clsId, winnum, inst)){
-				delete Params::GetParamsInstance(clsId, winnum, inst);
-			}
-			Params::GetAllParamsInstances(clsId,winnum)[inst] = p;
-		} else {
-			Params::AppendParamsInstance(clsId,winnum, p);
-		}
-		newRParams = (RenderParams*)p;
-		
-		
-		if (inst == getCurrentInstanceIndex(winnum, clsId))
-			glwin->setActiveParams(newRParams, clsId);
-		//May need to remap renderer:
-		Renderer* rend = 0;
-		if (isRendering){
-			rend = glwin->getRenderer(prevRParams);
-			assert(rend);
-			rend->setRenderParams(newRParams);
-			glwin->mapRenderer(newRParams,rend);
-			bool ok = glwin->unmapRenderer(prevRParams);
-			if(!ok) assert(ok);
-		}
-
-	}
-}
 
 
 /*
@@ -668,11 +544,7 @@ winActivated(int winNum){
 	
 	
 }
-//REspond to the name setting in the dialog
-void VizWinMgr::
-nameChanged(QString& name, int num){
-	emit (changeName(name, num));
-}
+
 /*******************************************************************
  *	Slots associated with VizTab:
  ********************************************************************/
@@ -682,7 +554,7 @@ home()
 {
 	VizWin* vw = getActiveVisualizer();
 	if (!vw) return;
-	vw->endSpin();
+	
 	getViewpointRouter()->useHomeViewpoint();
 	setViewerCoordsChanged(getViewpointParams(activeViz));
 }
@@ -691,7 +563,7 @@ sethome()
 {
 	VizWin* vw = getActiveVisualizer();
 	if (!vw) return;
-	vw->endSpin();
+	
 	getViewpointRouter()->setHomeViewpoint();
 }
 void VizWinMgr::
@@ -699,7 +571,7 @@ viewAll()
 {
 	VizWin* vw = getActiveVisualizer();
 	if (!vw) return;
-	vw->endSpin();
+	
 	getViewpointRouter()->guiCenterFullRegion(getRegionParams(activeViz));
 	setViewerCoordsChanged(getViewpointParams(activeViz));
 }
@@ -708,7 +580,7 @@ viewRegion()
 {
 	VizWin* vw = getActiveVisualizer();
 	if (!vw) return;
-	vw->endSpin();
+	
 	getViewpointRouter()->guiCenterSubRegion(getRegionParams(activeViz));
 	setViewerCoordsChanged(getViewpointParams(activeViz));
 }
@@ -717,7 +589,6 @@ alignView(int axis)
 {
 	VizWin* vw = getActiveVisualizer();
 	if (!vw) return;
-	vw->endSpin();
 	if (axis < 1) return;
 	//Always reset current item to first.
 	myMainWindow->alignViewCombo->setCurrentIndex(0);
@@ -760,92 +631,19 @@ void VizWinMgr::refreshViewpoint(ViewpointParams* vParams){
 	}
 }
 
-//Force the windows that uses  a flow params to rerender
-//(possibly with new data)
-void VizWinMgr::
-refreshFlow(FlowParams* fParams){
-	if (!fParams->isEnabled()) return;
-	int vizNum = fParams->getVizNum();
-	//There should only be one!
-	
-	if (vizNum >= 0){
-		vizWin[activeViz]->updateGL();
-	} else assert(0);
-}
 
-//Force the window that uses a probe params to rerender
-//(possibly with new data)
-void VizWinMgr::
-refreshProbe(ProbeParams* pParams){
-	if (!pParams->isEnabled()) return;
-	int vizNum = pParams->getVizNum();
-	if (vizNum >= 0){
-		vizWin[activeViz]->updateGL();
-	} else assert(0);
-}
-//Force the window that uses a TwoDImage params to rerender
-//(possibly with new data)
-void VizWinMgr::
-refreshTwoDImage(TwoDImageParams* pParams){
-	if (!pParams->isEnabled()) return;
-	int vizNum = pParams->getVizNum();
-	if (vizNum >= 0){
-		vizWin[activeViz]->updateGL();
-	} else assert(0);
-}
-//Force the window that uses a TwoDData params to rerender
-//(possibly with new data)
-void VizWinMgr::
-refreshTwoDData(TwoDDataParams* pParams){
-	if (!pParams->isEnabled()) return;
-	int vizNum = pParams->getVizNum();
-	if (vizNum >= 0){
-		vizWin[activeViz]->updateGL();
-	} else assert(0);
-}
 
 //set the changed bits for each of the visualizers associated with the
 //specified animationParams, preventing them from updating the frame counter.
 //Also set the lat/lon or local coordinates in the viewpoint params
 //
-void VizWinMgr::
-animationParamsChanged(AnimationParams* aParams){
-	AnimationController* ac = AnimationController::getInstance();
-	int vizNum = aParams->getVizNum();
-	ViewpointParams* vpp = 0;
-	if (vizNum>=0) {
-		ac->paramsChanged(vizNum);
-		vpp = getViewpointParams(vizNum);
-		if (vpp->isLatLon())
-			vpp->convertLocalFromLonLat(aParams->getCurrentTimestep());
-		else 
-			vpp->convertLocalToLonLat(aParams->getCurrentTimestep());
-	}
-	//If another viz is using these animation params, set their region dirty, too
-	//and set their latlon or local coords
-	if (aParams->isLocal()) return;
-	for (int i = 0; i< MAXVIZWINS; i++){
-		if (!vizWin[i]) continue;
-		AnimationParams* animationParams = (AnimationParams*)Params::GetParamsInstance(Params::_animationParamsTag,i);
-		if  (( i != vizNum)  &&  (!animationParams)||!animationParams->isLocal()){
-			ac->paramsChanged(i);
-			ViewpointParams* vp2 = getViewpointParams(i);
-			if (vp2!= vpp){
-				if (vp2->isLatLon())
-					vp2->convertLocalFromLonLat(aParams->getCurrentTimestep());
-				else 
-					vp2->convertLocalToLonLat(aParams->getCurrentTimestep());
-			}
-		}
-	}
-	MainForm::getInstance()->setCurrentTimestep(aParams->getCurrentTimestep());
-}
+
 //Set the viewer coords changed flag for all vizwin's using these params:
 void VizWinMgr::
 setViewerCoordsChanged(ViewpointParams* vp){
 	int vizNum = vp->getVizNum();
 	if (vizNum>=0) {
-		vizWin[vizNum]->getGLWindow()->setViewerCoordsChanged(true);
+		vizWin[vizNum]->getVisualizer()->setViewerCoordsChanged(true);
 	}
 	if(vp->isLocal()) return;
 	for (int i = 0; i< MAXVIZWINS; i++){
@@ -853,7 +651,7 @@ setViewerCoordsChanged(ViewpointParams* vp){
 		Params* vpParams = (ViewpointParams*)Params::GetParamsInstance(Params::_viewpointParamsTag, i);
 		if  (  (i != vizNum)  && ((!vpParams)||!vpParams->isLocal())
 			){
-			vizWin[i]->getGLWindow()->setViewerCoordsChanged(true);
+			vizWin[i]->getVisualizer()->setViewerCoordsChanged(true);
 		}
 	}
 }
@@ -864,7 +662,7 @@ void VizWinMgr::
 resetViews(ViewpointParams* vp){
 	int vizNum = vp->getVizNum();
 	if (vizNum>=0) {
-		GLWindow* glw = vizWin[vizNum]->getGLWindow();
+		Visualizer* glw = vizWin[vizNum]->getVisualizer();
 		if(glw) glw->resetView(vp);
 	}
 	if(vp->isLocal()) return;
@@ -872,32 +670,10 @@ resetViews(ViewpointParams* vp){
 		if (!vizWin[i]) continue;
 		Params* vpParams = (ViewpointParams*)Params::GetParamsInstance(Params::_viewpointParamsTag, i);
 		if  ( (i != vizNum)  && ((!vpParams)||!vpParams->isLocal())){
-			GLWindow* glw = vizWin[i]->getGLWindow();
+			Visualizer* glw = vizWin[i]->getVisualizer();
 			if(glw) glw->resetView(vp);
 		}
 	}
-}
-//Cause one or more visualizers to start play-animating, depending on
-//whether or not animation params are shared.
-void VizWinMgr::startPlay(AnimationParams* aParams){
-	AnimationController* ac = AnimationController::getInstance();
-	
-	if (activeViz>=0) {
-		ac->startPlay(activeViz);
-	}
-	//If another viz is sharing global animation params, start them playing, too
-	if (aParams->isLocal()) return;
-	
-	for (int i = 0; i< MAXVIZWINS; i++){
-		
-		if  ( vizWin[i] && (i != activeViz)  &&
-			(getRealAnimationParams(i) == aParams)
-			){
-			ac->startPlay(i);
-			
-		}
-	}
-	
 }
 
 
@@ -914,7 +690,7 @@ setAnimationLocalGlobal(int val){
 		//on the current dialog
 		if(getRealAnimationParams(activeViz))getAnimationRouter()->guiSetLocal(getRealAnimationParams(activeViz),false);
 		getAnimationRouter()->updateTab();
-		vizWin[activeViz]->getGLWindow()->setActiveAnimationParams(getGlobalAnimationParams());
+		vizWin[activeViz]->getVisualizer()->setActiveAnimationParams(getGlobalAnimationParams());
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
 		if (!getRealAnimationParams(activeViz)){
@@ -929,8 +705,8 @@ setAnimationLocalGlobal(int val){
 			getAnimationRouter()->updateTab();
 			
 		}
-		//set the local params in the glwindow:
-		vizWin[activeViz]->getGLWindow()->setActiveAnimationParams(getRealAnimationParams(activeViz));
+		//set the local params in the Visualizer:
+		vizWin[activeViz]->getVisualizer()->setActiveAnimationParams(getRealAnimationParams(activeViz));
 		//and then refresh the panel:
 		tabManager->show();
 	}
@@ -954,7 +730,7 @@ setVpLocalGlobal(int val){
 		//on the current dialog
 		getViewpointRouter()->guiSetLocal((ViewpointParams*)Params::GetParamsInstance(Params::_viewpointParamsTag, activeViz),false);
 		getViewpointRouter()->updateTab();
-		vizWin[activeViz]->getGLWindow()->setActiveViewpointParams((ViewpointParams*)Params::GetDefaultParams(Params::_viewpointParamsTag));
+		vizWin[activeViz]->getVisualizer()->setActiveViewpointParams((ViewpointParams*)Params::GetDefaultParams(Params::_viewpointParamsTag));
 		vizWin[activeViz]->setGlobalViewpoint(true);
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
@@ -972,7 +748,7 @@ setVpLocalGlobal(int val){
 			//and then refresh the panel:
 			tabManager->show();
 		}
-		vizWin[activeViz]->getGLWindow()->setActiveViewpointParams(vpParams);
+		vizWin[activeViz]->getVisualizer()->setActiveViewpointParams(vpParams);
 		vizWin[activeViz]->setGlobalViewpoint(false);
 	}
 }
@@ -995,7 +771,7 @@ setRgLocalGlobal(int val){
 		//on the current dialog
 		getRegionRouter()->guiSetLocal(getRegionParams(activeViz),false);
 		getRegionRouter()->updateTab();
-		vizWin[activeViz]->getGLWindow()->setActiveRegionParams(getGlobalRegionParams());
+		vizWin[activeViz]->getVisualizer()->setActiveRegionParams(getGlobalRegionParams());
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
 		if (!getRealRegionParams(activeViz)){
@@ -1011,14 +787,14 @@ setRgLocalGlobal(int val){
 			//and then refresh the panel:
 			tabManager->show();
 		}
-		vizWin[activeViz]->getGLWindow()->setActiveRegionParams(getRealRegionParams(activeViz));
+		vizWin[activeViz]->getVisualizer()->setActiveRegionParams(getRealRegionParams(activeViz));
 	}
 	//Specify if the active viz is sharing the region
 	
-	GLWindow::setRegionShareFlag(val == 0);
+	Visualizer::setRegionShareFlag(val == 0);
 	
 	//in region mode, refresh the global windows and this one
-	if (GLWindow::getCurrentMouseMode() == GLWindow::regionMode){
+	if (Visualizer::getCurrentMouseMode() == Visualizer::regionMode){
 		for (int i = 0; i<MAXVIZWINS; i++){
 			if(vizWin[i] && (!getRegionParams(i)->isLocal()|| (i == activeViz)))
 				vizWin[i]->updateGL();
@@ -1042,20 +818,7 @@ getRegionParams(int winNum){
 
 
 
-//For a renderer, there should exist a local version.
-ProbeParams* VizWinMgr::
-getProbeParams(int winNum, int instance){
-	return (ProbeParams*)Params::GetParamsInstance(Params::_probeParamsTag,winNum,instance);
-}
-//For a renderer, there should exist a local version.
-TwoDImageParams* VizWinMgr::
-getTwoDImageParams(int winNum, int instance){
-	return (TwoDImageParams*)Params::GetParamsInstance(Params::_twoDImageParamsTag,winNum,instance);
-}
-TwoDDataParams* VizWinMgr::
-getTwoDDataParams(int winNum, int instance){
-	return (TwoDDataParams*)Params::GetParamsInstance(Params::_twoDDataParamsTag,winNum,instance);
-}
+
 AnimationParams* VizWinMgr::
 getAnimationParams(int winNum){
 	if (winNum < 0) return getGlobalAnimationParams();
@@ -1063,10 +826,7 @@ getAnimationParams(int winNum){
 	return getGlobalAnimationParams();
 }
 
-FlowParams* VizWinMgr::
-getFlowParams(int winNum, int instance){
-	return (FlowParams*)Params::GetParamsInstance(Params::_flowParamsTag,winNum,instance);
-}
+
 //Return global ie default params
 Params* VizWinMgr::
 getGlobalParams(Params::ParamsBaseType pType){
@@ -1112,7 +872,7 @@ initViews(){
 				vizWin[i]->setValuesFromGui(vpParams);
 			}
 			else vizWin[i]->setValuesFromGui(getGlobalVPParams());
-			vizWin[i]->getGLWindow()->setViewerCoordsChanged(true);
+			vizWin[i]->getVisualizer()->setViewerCoordsChanged(true);
 		}
 	}
 }
@@ -1154,7 +914,7 @@ reinitializeParams(bool doOverride){
 		if (p->isRenderParams())p->reinit(true);
 	}
 
-	getRegionRouter()->refreshRegionInfo(getGlobalRegionParams());
+	
 	//NOTE that the vpparams need to be initialized after
 	//the global region params, since they use its settings..
 	//
@@ -1181,8 +941,8 @@ reinitializeParams(bool doOverride){
 		
 		if(getRealAnimationParams(i) && getRealAnimationParams(i)!= getGlobalAnimationParams()) getRealAnimationParams(i)->reinit(doOverride);
 		//setup near/far
-		if (getRealVPParams(i)) vizWin[i]->getGLWindow()->resetView(getViewpointParams(i));
-		if(!doOverride && vizWin[i]) vizWin[i]->getGLWindow()->removeAllRenderers();
+		if (getRealVPParams(i)) vizWin[i]->getVisualizer()->resetView(getViewpointParams(i));
+		if(!doOverride && vizWin[i]) vizWin[i]->getVisualizer()->removeAllRenderers();
 	}
 
     //
@@ -1209,7 +969,7 @@ reinitializeVariables(){
 	
 	getGlobalRegionParams()->reinit(false);
 	getRegionRouter()->reinitTab(false);
-	getRegionRouter()->refreshRegionInfo(getGlobalRegionParams());
+
 	//NOTE that the vpparams need to be initialized after
 	//the global region params, since they use its settings..
 	//
@@ -1244,7 +1004,7 @@ reinitializeVariables(){
 void VizWinMgr::refreshRenderData(){
 	for (int i = 0; i< MAXVIZWINS; i++){
 		if(vizWin[i]){
-			GLWindow* glwin= vizWin[i]->getGLWindow();
+			Visualizer* glwin= vizWin[i]->getVisualizer();
 			for (int j = 0; j< glwin->getNumRenderers(); j++){
 				Renderer* ren = glwin->getRenderer(j);
 				ren->setAllDataDirty();
@@ -1253,50 +1013,31 @@ void VizWinMgr::refreshRenderData(){
 		}
 	}
 }
-//Force all renderers to reload their shader data
-bool VizWinMgr::reloadShaders(){
-	for (int i = 0; i< MAXVIZWINS; i++){
-		if(vizWin[i]){
-			GLWindow* glwin= vizWin[i]->getGLWindow();
-			for (int j = 0; j< glwin->getNumRenderers(); j++){
-				Renderer* ren = glwin->getRenderer(j);
-				if (std::string::npos != std::string(typeid(*ren).name()).find("IsoRenderer") || std::string::npos != std::string(typeid(*ren).name()).find("VolumeRenderer")) {
-					//found iso or volume renderer
-					return false;
-				}
-			}
-			if (glwin->getShaderMgr()->reloadShaders() == false){
-				return false;
-			}
-		}
-	}
-	return true;
-}
+
 //
 //Disable all renderers that use specified variables
 void VizWinMgr::disableRenderers(const vector<string>& vars2D, const vector<string>& vars3D){
-	for (int i = 0; i< MAXVIZWINS; i++){
-		if(vizWin[i]){
-			GLWindow* glwin= vizWin[i]->getGLWindow();
-			int numRens = glwin->getNumRenderers();
-			for (int j = numRens-1; j >= 0; j--){
-				Renderer* ren = glwin->getRenderer(j);
-				RenderParams* rParams = ren->getRenderParams();
-				for (int k = 0; k<vars2D.size(); k++){
-					if(rParams->usingVariable(vars2D[k])){
-						Params::ParamsBaseType t = rParams->GetParamsBaseTypeId();
-						int instance = findInstanceIndex(i, rParams, t);
-						EventRouter* er = getEventRouter(t);
-						er->guiSetEnabled(false,instance, false);
-					}
+	ControlExecutive* ce = ControlExecutive::getInstance();
+	for (int i = 0; i<ce->GetNumVisualizers(); i++){
+		Visualizer* viz = ce->GetVisualizer(i);
+		int numRens = viz->getNumRenderers();
+		for (int j = numRens-1; j >= 0; j--){
+			Renderer* ren = viz->getRenderer(j);
+			RenderParams* rParams = ren->getRenderParams();
+			for (int k = 0; k<vars2D.size(); k++){
+				if(rParams->usingVariable(vars2D[k])){
+					Params::ParamsBaseType t = rParams->GetParamsBaseTypeId();
+					int instance = findInstanceIndex(i, rParams, t);
+					EventRouter* er = getEventRouter(t);
+					er->guiSetEnabled(false,instance, false);
 				}
-				for (int k = 0; k<vars3D.size(); k++){
-					if(rParams->usingVariable(vars3D[k])){
-						Params::ParamsBaseType t = rParams->GetParamsBaseTypeId();
-						int instance = findInstanceIndex(i, rParams, t);
-						EventRouter* er = getEventRouter(t);
-						er->guiSetEnabled(false,instance, false);
-					}
+			}
+			for (int k = 0; k<vars3D.size(); k++){
+				if(rParams->usingVariable(vars3D[k])){
+					Params::ParamsBaseType t = rParams->GetParamsBaseTypeId();
+					int instance = findInstanceIndex(i, rParams, t);
+					EventRouter* er = getEventRouter(t);
+					er->guiSetEnabled(false,instance, false);
 				}
 			}
 		}
@@ -1304,656 +1045,25 @@ void VizWinMgr::disableRenderers(const vector<string>& vars2D, const vector<stri
 }
 //Disable all renderers 
 void VizWinMgr::disableAllRenderers(){
-	int firstwin = -1;
-	for (int i = 0; i< MAXVIZWINS; i++){
-		if(vizWin[i]){
-			if (firstwin == -1) firstwin = i;
-			GLWindow* glwin= vizWin[i]->getGLWindow();
-			setActiveViz(i);
-			for (int j = glwin->getNumRenderers()-1; j>= 0; j--){
-				Renderer* ren = glwin->getRenderer(j);
-				RenderParams* rParams = ren->getRenderParams();
-				Params::ParamsBaseType t = rParams->GetParamsBaseTypeId();
-				tabManager->moveToFront(t);
-				int instance = findInstanceIndex(i, rParams, t);
-				EventRouter* er = getEventRouter(t);
-				
-				er->performGuiChangeInstance(instance, false);
-				
-				er->guiSetEnabled(false,instance,false);	
-			}
-			//In case a renderer was left behind due to undo/redo
-			glwin->removeAllRenderers();
-		}
-	}
-	if (firstwin != -1){
-		//Set the "first" one to be active:
-		setActiveViz(firstwin);
-		GLWindow::setActiveWinNum(firstwin);
+	ControlExecutive* ce = ControlExecutive::getInstance();
+	int numViz = ce->GetNumVisualizers();
+	for (int i = 0; i<numViz; i++){
+		Visualizer* viz = ce->GetVisualizer(i);
+		viz->removeAllRenderers();
 	}
 }
+	
 void VizWinMgr::
 setSelectionMode( int m){ 
-	GLWindow::setCurrentMouseMode(m);
+	Visualizer::setCurrentMouseMode(m);
 	//Update all visualizers:
 	for (int i = 0; i<MAXVIZWINS; i++){
 		if(vizWin[i]) vizWin[i]->updateGL();
 	}
 }
 
-ParamNode* VizWinMgr::buildNode() { 
-	//Create a visualizers node, put in one child for each visualizer
-	
-	string empty;
-	std::map <string, string> attrs;
-	attrs.empty();
-	ostringstream oss;
-	ParamNode* vizMgrNode = new ParamNode(_visualizersTag, attrs, getNumVisualizers());
-	for (int i = 0; i< MAXVIZWINS; i++){
-		if (vizWin[i]){
-			attrs.empty();
-			attrs[_vizWinNameAttr] = vizName[i].toStdString();
-			oss.str(empty);
-
-			QColor clr = vizWin[i]->getColorbarBackgroundColor();
-			oss << (long)clr.red() << " "
-				<< (long)clr.green() << " "
-				<< (long)clr.blue();
-			attrs[_vizColorbarBackgroundColorAttr] = oss.str();
-
-			
-
-			oss.str(empty);
-			clr = vizWin[i]->getTimeAnnotColor();
-			oss << (long)clr.red() << " "
-				<< (long)clr.green() << " "
-				<< (long)clr.blue();
-			attrs[_vizTimeAnnotColorAttr] = oss.str();
-			
-			oss.str(empty);
-			int tt = vizWin[i]->getTimeAnnotType();
-			if (tt == 2) oss << "timestamp";
-			else if (tt == 1) oss << "timestep";
-			else  oss << "none";
-			attrs[_vizTimeAnnotTypeAttr] = oss.str();
-
-			oss.str(empty);
-			int ts = vizWin[i]->getTimeAnnotTextSize();
-			oss << (long)ts;
-			attrs[_vizTimeAnnotTextSizeAttr] = oss.str();
-
-			oss.str(empty);
-			float xpos = vizWin[i]->getTimeAnnotCoord(0);
-			float ypos = vizWin[i]->getTimeAnnotCoord(1);
-			oss << xpos << " " << ypos;
-			attrs[_vizTimeAnnotCoordsAttr] = oss.str();
-	
-			oss.str(empty);
-			if (vizWin[i]->axisArrowsAreEnabled()) oss<<"true";
-				else oss << "false";
-			attrs[_vizAxisArrowsEnabledAttr] = oss.str();
 
 
-			oss.str(empty);
-			oss << (float)vizWin[i]->getAxisArrowCoord(0) << " "
-				<< (float)vizWin[i]->getAxisArrowCoord(1) << " "
-				<< (float)vizWin[i]->getAxisArrowCoord(2);
-			attrs[_vizAxisPositionAttr] = oss.str();
-
-			oss.str(empty);
-			if (vizWin[i]->axisAnnotationIsEnabled())oss<<"true";
-			else oss<<"false";
-			attrs[_vizAxisAnnotationEnabledAttr] = oss.str();
-
-			oss.str(empty);
-			oss << (float)vizWin[i]->getAxisOriginCoord(0) << " "
-				<< (float)vizWin[i]->getAxisOriginCoord(1) << " "
-				<< (float)vizWin[i]->getAxisOriginCoord(2);
-			attrs[_vizAxisOriginAttr] = oss.str();
-
-			oss.str(empty);
-			oss << (float)vizWin[i]->getMinTic(0) << " "
-				<< (float)vizWin[i]->getMinTic(1) << " "
-				<< (float)vizWin[i]->getMinTic(2);
-			attrs[_vizMinTicAttr] = oss.str();
-
-			oss.str(empty);
-			oss << (float)vizWin[i]->getMaxTic(0) << " "
-				<< (float)vizWin[i]->getMaxTic(1) << " "
-				<< (float)vizWin[i]->getMaxTic(2);
-			attrs[_vizMaxTicAttr] = oss.str();
-
-			oss.str(empty);
-			oss << (float)vizWin[i]->getTicLength(0) << " "
-				<< (float)vizWin[i]->getTicLength(1) << " "
-				<< (float)vizWin[i]->getTicLength(2);
-			attrs[_vizTicLengthAttr] = oss.str();
-
-			oss.str(empty);
-			oss << (long)vizWin[i]->getNumTics(0) << " "
-				<< (long)vizWin[i]->getNumTics(1) << " "
-				<< (long)vizWin[i]->getNumTics(2);
-			attrs[_vizNumTicsAttr] = oss.str();
-
-			oss.str(empty);
-			oss << (long)vizWin[i]->getTicDir(0) << " "
-				<< (long)vizWin[i]->getTicDir(1) << " "
-				<< (long)vizWin[i]->getTicDir(2);
-			attrs[_vizTicDirAttr] = oss.str();
-
-			oss.str(empty);
-			oss << (float)vizWin[i]->getTicWidth();
-			attrs[_vizTicWidthAttr] = oss.str();
-			oss.str(empty);
-			oss << (long)vizWin[i]->getLabelHeight();
-			attrs[_vizLabelHeightAttr] = oss.str();
-			oss.str(empty);
-			oss << (long)vizWin[i]->getLabelDigits();
-			attrs[_vizLabelDigitsAttr] = oss.str();
-			oss.str(empty);
-			clr = vizWin[i]->getAxisColor();
-			oss << (long)clr.red() << " "
-				<< (long)clr.green() << " "
-				<< (long)clr.blue();
-			attrs[_vizAxisColorAttr] = oss.str();
-
-			oss.str(empty);
-			if (vizWin[i]->colorbarIsEnabled()) oss << "true";
-				else oss << "false";
-			attrs[_vizColorbarEnabledAttr] = oss.str();
-
-			int ptypeId = vizWin[i]->getColorbarParamsTypeId();
-			string pname = Params::GetTagFromType(ptypeId);
-			attrs[_vizColorbarParamsNameAttr] = pname;
-
-			oss.str(empty);
-			oss << (float)vizWin[i]->getColorbarLLCoord(0) << " "
-				<< (float)vizWin[i]->getColorbarLLCoord(1);
-			attrs[_vizColorbarLLPositionAttr] = oss.str();
-
-			oss.str(empty);
-			oss << (float)vizWin[i]->getColorbarURCoord(0) << " "
-				<< (float)vizWin[i]->getColorbarURCoord(1);
-			attrs[_vizColorbarURPositionAttr] = oss.str();
-
-			oss.str(empty);
-			oss << (int) vizWin[i]->getColorbarNumTics();
-			attrs[_vizColorbarNumTicsAttr] = oss.str();
-			
-			oss.str(empty);
-			oss << (int) vizWin[i]->getColorbarDigits();
-			attrs[_vizColorbarDigitsAttr] = oss.str();
-			
-			oss.str(empty);
-			oss << (int) vizWin[i]->getColorbarFontsize();
-			attrs[_vizColorbarFontsizeAttr] = oss.str();
-
-			oss.str(empty);
-			oss << (int) i;
-			attrs[_visualizerNumAttr] = oss.str();
-			
-			ParamNode* locals = new ParamNode(_vizWinTag, attrs, 5);
-			vizMgrNode->AddChild(locals);
-			//Loop over all the local params that exist for this window:
-			
-			for (int pclass = 1; pclass<= Params::GetNumParamsClasses(); pclass++){
-				for (int inst = 0; inst<Params::GetNumParamsInstances(pclass,i); inst++){
-					Params* p = Params::GetParamsInstance(pclass,i,inst);
-					ParamNode* pnode = p->buildNode();
-					if (pnode) locals->AddChild(pnode);
-				}
-			}
-			for (int i = 0; i< Params::getNumDummyClasses(); i++){
-				Params* p = Params::getDummyParamsInstance(i);
-				ParamNode* pnode = p->buildNode();
-				if (pnode) locals->AddChild(pnode);
-			}
-
-		}
-	}
-	return vizMgrNode;
-}
-//To parse, just get the visualizer name, and pass on the params-parsing
-//The Visualizers node starts at depth 2, each visualizer is at depth 3
-bool VizWinMgr::
-elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char ** attrs){
-	switch (depth){
-	case(1):
-		if (StrCmpNoCase(tag, _visualizersTag) == 0) return true; 
-		else return false;
-	case(2):
-		{
-		parsingVizNum = -1;
-		//Expect only a vizwin tag here:
-		if (StrCmpNoCase(tag, _vizWinTag) != 0) return false;
-		//Create a visualizer
-		//Get the name & num
-		string winName;
-		int colorbarParamsTypeId = Params::GetTypeFromTag(Params::_dvrParamsTag);
-		QColor winBgColor = DataStatus::getBackgroundColor();
-		QColor winRgColor = DataStatus::getRegionFrameColor();
-		QColor winSubrgColor = DataStatus::getSubregionFrameColor();
-		QColor winColorbarColor(Qt::white);
-		
-		QColor winTimeAnnotColor(Qt::white);
-		float winTimeAnnotCoords[2] = {0.1f, 0.1f};
-		int winTimeAnnotTextSize = 10;
-		int winTimeAnnotType = 0;
-		float axisPos[3], axisOriginPos[3];
-		float minTic[3], maxTic[3], ticLength[3];
-		int numTics[3], ticDir[3];
-		axisPos[0]=axisPos[1]=axisPos[2]=0.f;
-		minTic[0] = minTic[1] = minTic[2] = 0.f;
-		maxTic[0] = maxTic[1] = maxTic[2] = 1.f;
-		numTics[0] = numTics[1] = numTics[2] = 6;
-		ticDir[0] = 1; ticDir[1] = 0; ticDir[2] = 0;
-		ticLength[0] = ticLength[1] = ticLength[2] = 0.05f;
-		axisOriginPos[0]=axisOriginPos[1]=axisOriginPos[2]=0.f;
-		QColor axisColor(Qt::white);
-		int labelHeight = 10;
-		int labelDigits = 4;
-		float ticWidth = 2.f;
-		float colorbarLLPos[2], colorbarURPos[2];
-		colorbarLLPos[0]=colorbarLLPos[1]=0.f;
-		colorbarURPos[0]=0.1f;
-		colorbarURPos[1]=0.3f;
-		int colorbarFontsize = 10;
-		int colorbarDigits = 3;
-		int colorbarTics = 11;
-		bool axesEnabled = false;
-		bool axisAnnotationEnabled = false;
-		bool colorbarEnabled = false;
-		bool regionEnabled = DataStatus::regionFrameIsEnabled();
-		bool subregionEnabled = DataStatus::subregionFrameIsEnabled();
-		
-		int numViz = -1;
-		while (*attrs) {
-			string attr = *attrs;
-			attrs++;
-			string value = *attrs;
-			attrs++;
-			istringstream ist(value);	
-			if (StrCmpNoCase(attr, _vizWinNameAttr) == 0) {
-				winName = value;
-			} else if (StrCmpNoCase(attr, _vizTimeAnnotColorAttr) == 0) {
-				int r,g,b;
-				ist >> r; ist >> g; ist >> b;
-				winTimeAnnotColor.setRgb(r,g,b);
-			} else if (StrCmpNoCase(attr, _vizTimeAnnotCoordsAttr) == 0) {
-				ist >> winTimeAnnotCoords[0];
-				ist >> winTimeAnnotCoords[1];
-			} else if (StrCmpNoCase(attr, _vizTimeAnnotTextSizeAttr) == 0) {
-				ist >> winTimeAnnotTextSize;
-			} else if (StrCmpNoCase(attr, _vizTimeAnnotTypeAttr) == 0){
-				if (value == "timestep") winTimeAnnotType = 1;
-				else if (value == "timestamp") winTimeAnnotType = 2;
-				else winTimeAnnotType = 0; //value = "none"
-			}
-			else if (StrCmpNoCase(attr, _vizBgColorAttr) == 0) {
-				int r,g,b;
-				ist >> r; ist>>g; ist>>b;
-				winBgColor.setRgb(r,g,b);
-			} 
-			else if (StrCmpNoCase(attr, _vizRegionColorAttr) == 0) {
-				int r,g,b;
-				ist >> r; ist>>g; ist>>b;
-				winRgColor.setRgb(r,g,b);
-			}
-			else if (StrCmpNoCase(attr, _vizSubregionColorAttr) == 0) {
-				int r,g,b;
-				ist >> r; ist>>g; ist>>b;
-				winSubrgColor.setRgb(r,g,b);
-			}
-			else if (StrCmpNoCase(attr, _vizColorbarBackgroundColorAttr) == 0) {
-				int r,g,b;
-				ist >> r; ist>>g; ist>>b;
-				winColorbarColor.setRgb(r,g,b);
-			}
-			else if (StrCmpNoCase(attr, _vizElevGridColorAttr) == 0) {
-				//obsolete
-			}
-			else if (StrCmpNoCase(attr, _vizElevGridRefinementAttr) == 0) {
-				//obsolete
-			}
-			else if (StrCmpNoCase(attr, _vizElevGridRotationAttr) == 0) {
-				//obsolete
-			}
-			else if (StrCmpNoCase(attr, _vizElevGridInvertedAttr) == 0) {
-				//obsolete
-			}
-			else if (StrCmpNoCase(attr, _vizElevGridTexturedAttr) == 0) {
-				//obsolete
-			}
-			else if (StrCmpNoCase(attr, _vizElevGridTextureNameAttr) == 0) {
-				//obsolete
-			}
-			else if (StrCmpNoCase(attr, _vizElevGridDisplacementAttr) == 0) {
-				//obsolete
-			}
-			else if (StrCmpNoCase(attr, _vizAxisPositionAttr) == 0) {
-				ist >> axisPos[0]; ist>>axisPos[1]; ist>>axisPos[2];
-			}
-			else if (StrCmpNoCase(attr, _vizAxisOriginAttr) == 0) {
-				ist >> axisOriginPos[0]; ist>>axisOriginPos[1]; ist>>axisOriginPos[2];
-			}
-			else if (StrCmpNoCase(attr, _vizMinTicAttr) == 0) {
-				ist >> minTic[0]; ist>>minTic[1]; ist>>minTic[2];
-			}
-			else if (StrCmpNoCase(attr, _vizMaxTicAttr) == 0) {
-				ist >> maxTic[0]; ist>>maxTic[1]; ist>>maxTic[2];
-			}
-			else if (StrCmpNoCase(attr, _vizNumTicsAttr) == 0) {
-				ist >> numTics[0]; ist>>numTics[1]; ist>>numTics[2];
-			}
-			else if (StrCmpNoCase(attr, _vizTicLengthAttr) == 0) {
-				ist >> ticLength[0]; ist>>ticLength[1]; ist>>ticLength[2];
-			}
-			else if (StrCmpNoCase(attr, _vizTicDirAttr) == 0) {
-				ist >> ticDir[0]; ist>>ticDir[1]; ist>>ticDir[2];
-			}
-			else if (StrCmpNoCase(attr, _vizLabelHeightAttr) == 0) {
-				ist >> labelHeight;
-			}
-			else if (StrCmpNoCase(attr, _vizLabelDigitsAttr) == 0) {
-				ist >> labelDigits;
-			}
-			else if (StrCmpNoCase(attr, _vizTicWidthAttr) == 0) {
-				ist >> ticWidth;
-			}
-			else if (StrCmpNoCase(attr, _vizAxisColorAttr) == 0) {
-				int r,g,b;
-				ist >> r; ist>>g; ist>>b;
-				axisColor.setRgb(r,g,b);
-			}
-			else if (StrCmpNoCase(attr, _vizColorbarDigitsAttr) == 0) {
-				ist >> colorbarDigits;
-			}
-			else if (StrCmpNoCase(attr, _vizColorbarFontsizeAttr) == 0) {
-				ist >> colorbarFontsize;
-			}
-			else if (StrCmpNoCase(attr, _vizColorbarNumTicsAttr) == 0) {
-				ist >> colorbarTics;
-			}
-			else if (StrCmpNoCase(attr, _vizColorbarLLPositionAttr) == 0) {
-				ist >> colorbarLLPos[0]; ist>>colorbarLLPos[1];
-			}
-			else if (StrCmpNoCase(attr, _vizColorbarURPositionAttr) == 0) {
-				ist >> colorbarURPos[0]; ist>>colorbarURPos[1];
-			}
-			else if (StrCmpNoCase(attr, _vizAxisArrowsEnabledAttr) == 0) {
-				if (value == "true") axesEnabled = true; 
-				else axesEnabled = false; 
-			}
-			else if (StrCmpNoCase(attr, _vizAxisAnnotationEnabledAttr) == 0) {
-				if (value == "true") axisAnnotationEnabled = true; 
-				else axisAnnotationEnabled = false; 
-			}
-			else if (StrCmpNoCase(attr, _vizElevGridEnabledAttr) == 0) {
-				//obsolete
-			}
-			else if (StrCmpNoCase(attr, _vizColorbarEnabledAttr) == 0) {
-				if (value == "true") colorbarEnabled = true; 
-				else colorbarEnabled = false; 
-			}
-			else if (StrCmpNoCase(attr, _vizColorbarParamsNameAttr) == 0) {
-				colorbarParamsTypeId = ParamsBase::GetTypeFromTag(value);
-			}
-			else if (StrCmpNoCase(attr, _vizRegionFrameEnabledAttr) == 0) {
-			if (value == "true") regionEnabled = true; 
-				else regionEnabled = false; 
-			}
-			else if (StrCmpNoCase(attr, _vizSubregionFrameEnabledAttr) == 0) {
-				if (value == "true") subregionEnabled = true; 
-				else subregionEnabled = false;
-
-			} else if (StrCmpNoCase(attr, _visualizerNumAttr) == 0) {
-				ist >> numViz;
-			}
-
-			else return false;
-		}
-		//Create the window:
-		parsingVizNum = launchVisualizer(-1, winName.c_str(),numViz);
-		parsingInstance.clear();
-		for (int i = 0; i<= Params::GetNumParamsClasses(); i++)
-			parsingInstance.push_back(-1);
-		
-		vizWin[parsingVizNum]->setBackgroundColor(winBgColor);
-		vizWin[parsingVizNum]->setRegionFrameColor(winRgColor);
-		vizWin[parsingVizNum]->setSubregionFrameColor(winSubrgColor);
-		vizWin[parsingVizNum]->setColorbarBackgroundColor(winColorbarColor);
-		vizWin[parsingVizNum]->enableAxisArrows(axesEnabled);
-		vizWin[parsingVizNum]->enableAxisAnnotation(axisAnnotationEnabled);
-		vizWin[parsingVizNum]->enableColorbar(colorbarEnabled);
-		vizWin[parsingVizNum]->enableRegionFrame(regionEnabled);
-		vizWin[parsingVizNum]->enableSubregionFrame(subregionEnabled);
-				
-		vizWin[parsingVizNum]->setTimeAnnotColor(winTimeAnnotColor);
-		vizWin[parsingVizNum]->setTimeAnnotCoords(winTimeAnnotCoords);
-		vizWin[parsingVizNum]->setTimeAnnotTextSize(winTimeAnnotTextSize);
-		vizWin[parsingVizNum]->setTimeAnnotType(winTimeAnnotType);
-		for (int j = 0; j< 3; j++){
-			vizWin[parsingVizNum]->setAxisArrowCoord(j, axisPos[j]);
-			vizWin[parsingVizNum]->setAxisOriginCoord(j, axisOriginPos[j]);
-			vizWin[parsingVizNum]->setNumTics(j, numTics[j]);
-			vizWin[parsingVizNum]->setMinTic(j, minTic[j]);
-			vizWin[parsingVizNum]->setMaxTic(j, maxTic[j]);
-			vizWin[parsingVizNum]->setTicLength(j, ticLength[j]);
-			vizWin[parsingVizNum]->setTicDir(j, ticDir[j]);
-		}
-		vizWin[parsingVizNum]->setLabelHeight(labelHeight);
-		vizWin[parsingVizNum]->setLabelDigits(labelDigits);
-		vizWin[parsingVizNum]->setTicWidth(ticWidth);
-		vizWin[parsingVizNum]->setAxisColor(axisColor);
-		vizWin[parsingVizNum]->setColorbarLLCoord(0, colorbarLLPos[0]);
-		vizWin[parsingVizNum]->setColorbarLLCoord(1, colorbarLLPos[1]);
-		vizWin[parsingVizNum]->setColorbarURCoord(0, colorbarURPos[0]);
-		vizWin[parsingVizNum]->setColorbarURCoord(1, colorbarURPos[1]);
-		vizWin[parsingVizNum]->setColorbarNumTics(colorbarTics);
-		vizWin[parsingVizNum]->setColorbarDigits(colorbarDigits);
-		vizWin[parsingVizNum]->setColorbarFontsize(colorbarFontsize);
-		vizWin[parsingVizNum]->setColorbarParamsTypeId(colorbarParamsTypeId);
-		
-		return true;
-		}
-	case(3):
-		{
-		//push the subsequent parsing to the params for current window 
-		if (parsingVizNum < 0) return false;//we should have already created a visualizer
-		Params::ParamsBaseType typeId = Params::GetTypeFromTag(tag);
-		if (typeId <= 0) {
-			MessageReporter::errorMsg("Unrecognized Params tag: %s",tag.c_str());
-			Params* dummyParams = Params::CreateDummyParams(tag);
-			Params::addDummyParamsInstance(dummyParams);
-			pm->pushClassStack(dummyParams);
-			dummyParams->elementStartHandler(pm,depth,tag,attrs);
-			return true;
-		}
-		parsingInstance[typeId]++;
-		Params* parsingParams;
-		if (parsingInstance[typeId] > 0){
-			parsingParams = Params::CreateDefaultParams(typeId);
-			assert(parsingParams->isRenderParams());
-			Params::AppendParamsInstance(typeId,parsingVizNum, parsingParams);
-		} else {
-			parsingParams = Params::GetParamsInstance(typeId,parsingVizNum, 0);
-		}
-		assert(Params::GetNumParamsInstances(typeId,parsingVizNum) == (parsingInstance[typeId] + 1));
-		//"push" to params parser. It will pop back to vizwinmgr when done.
-		EventRouter* eRouter = getEventRouter(typeId);
-		eRouter->cleanParams(parsingParams);
-		pm->pushClassStack(parsingParams);
-		parsingParams->elementStartHandler(pm, depth, tag, attrs);
-		if (parsingInstance[typeId] == 0){
-			if (parsingParams->isLocal())
-				vizWin[parsingVizNum]->getGLWindow()->setActiveParams(parsingParams, typeId);
-			else 
-				vizWin[parsingVizNum]->getGLWindow()->setActiveParams(Params::GetDefaultParams(typeId), typeId);
-		}
-		//Workaround 2.0.0 bug:  viznum may not be properly set in session file
-		if (!parsingParams->isRenderParams()){
-			parsingParams->setVizNum(parsingVizNum);
-		}
-		return true;
-		}
-		
-	default:
-		return false;
-	}
-}
-//End handler has nothing to do except for checking validity, except at end
-//need to pop back to session.
-bool VizWinMgr::elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
-	switch (depth) {
-		case(1):
-			{
-			if (StrCmpNoCase(tag, _visualizersTag) != 0) return false;
-			//need to pop the parse stack
-			ParsedXml* px = pm->popClassStack();
-			bool ok = px->elementEndHandler(pm, depth, tag);
-			//If there are multiple visualizers, show them all:
-			//Tile if more than one visualizer:
-			if(getNumVisualizers() > 1) {
-				//Make the last one active, since the vizwin will
-				//try to do this anyway...
-				setActiveViz(getNumVisualizers()-1);
-				fitSpace();
-			}
-			return ok;
-			}
-		case (2):
-			if (StrCmpNoCase(tag, _vizWinTag) != 0) return false;
-			//End of parsing all the params for a visualizer.
-			//Must force the front tab to refresh:
-			tabManager->newFrontTab(0);
-			parsingVizNum = -1;
-			return true;
-		case(3):
-			//End of parsing a params for a visualizer (popped back from params parsing)
-			if (parsingVizNum < 0) return false;
-			return true;
-		default:
-			return false;
-	}
-}
-//General function for non-render dirty bit setting:
-//Sets the dirty bit in all windows that are using the specified params.
-void VizWinMgr::setVizDirty(Params* p, DirtyBitType bittype, bool bit, bool refresh){
-	if (!(DataStatus::getInstance()->getDataMgr())) return;
-	VizWin* vw;
-	if (p->getVizNum()>= 0){
-		vw = getVizWin(p->getVizNum());
-		vw->setDirtyBit(bittype, bit);
-		if(bit&&refresh) vw->updateGL();
-	} else if (!p->isRenderParams()) {
-		//Need to check all the windows whose params are global,
-		int typId = p->GetParamsBaseTypeId();
-		for (int i = 0; i<MAXVIZWINS; i++){
-			vw = getVizWin(i);
-			if(!vw) continue;
-			Params* realParams = Params::GetParamsInstance(typId,i,-1);
-			if (!realParams || realParams->isLocal()) continue;
-			
-			vw->setDirtyBit(bittype, bit);
-			if(bit&&refresh) vw->updateGL();
-		}
-	}
-}
-//Special cases for renderer dirty-bit setting
-void VizWinMgr::setClutDirty(RenderParams* p){
-	if (!(DataStatus::getInstance()->getDataMgr())) return;
-	VizWin* vw = getVizWin(p->getVizNum());
-	if (!vw) return;
-	GLWindow* glwin = vw->getGLWindow();
-	if (!glwin) return;
-	Renderer* ren = glwin->getRenderer(p);
-	if (!ren) return;
-	vw->setColorbarDirty(true);
-	ren->setClutDirty();
-	p->setAllBypass(false);
-	if(p->isEnabled()) vw->updateGL();
-}
-void VizWinMgr::setDatarangeDirty(RenderParams* p){
-	if (!(DataStatus::getInstance()->getDataMgr())) return;
-	VizWin* vw = getVizWin(p->getVizNum());
-	if (!vw) return;
-	GLWindow* glwin = vw->getGLWindow();
-	if (!glwin) return;
-	VolumeRenderer* volRend = (VolumeRenderer*)glwin->getRenderer(p);
-	if (!volRend)return;
-	volRend->setDatarangeDirty();
-	p->setAllBypass(false);
-	if (p->isEnabled())vw->updateGL();
-}
-void VizWinMgr::setFlowGraphicsDirty(FlowParams* p){
-	if (!(DataStatus::getInstance()->getDataMgr())) return;
-	VizWin* vw = getVizWin(p->getVizNum());
-	if (!vw) return;
-	GLWindow* glwin = vw->getGLWindow();
-	if (!glwin) return;
-	FlowRenderer* flowRend = (FlowRenderer*)glwin->getRenderer(p);
-	if (!flowRend)return;
-	vw->setColorbarDirty(true);
-	flowRend->setGraphicsDirty();
-	p->setAllBypass(false);
-	if (p->isEnabled())vw->updateGL();
-}
-//Set all the twoD (data and image) renderers dirty,
-//So they will all reconstruct their terrain mappings
-void VizWinMgr::setAllTwoDElevDirty(){
-	for (int i = 0; i<MAXVIZWINS; i++){
-		if (vizWin[i]){
-			for (int j = 0; j< Params::GetNumParamsInstances(Params::_twoDDataParamsTag,i); j++){
-				TwoDDataParams* dParams = (TwoDDataParams*)Params::GetParamsInstance(Params::_twoDDataParamsTag,i,j);
-				dParams->setElevGridDirty(true);
-			}
-			for (int j = 0; j< Params::GetNumParamsInstances(Params::_twoDImageParamsTag,i); j++){
-				TwoDImageParams* dParams = (TwoDImageParams*)Params::GetParamsInstance(Params::_twoDImageParamsTag,i,j);
-				dParams->setElevGridDirty(true);
-			}
-		}
-	}
-}
-void VizWinMgr::setFlowDataDirty(FlowParams* p, bool doInterrupt){
-	if (!(DataStatus::getInstance()->getDataMgr())) return;
-	VizWin* vw = getVizWin(p->getVizNum());
-	if (!vw) return;
-	GLWindow* glwin = vw->getGLWindow();
-	if (!glwin) return;
-	FlowRenderer* flowRend = (FlowRenderer*)glwin->getRenderer(p);
-	if(flowRend)
-		flowRend->setDataDirty(doInterrupt);
-	vw->setColorbarDirty(true);
-	p->setAllBypass(false);
-	if (p->isEnabled())vw->updateGL();
-}
-
-void VizWinMgr::setFlowDisplayListDirty(FlowParams* p){
-	if (!(DataStatus::getInstance()->getDataMgr())) return;
-	VizWin* vw = getVizWin(p->getVizNum());
-	if (!vw) return;
-	GLWindow* glwin = vw->getGLWindow();
-	if (!glwin) return;
-	FlowRenderer* flowRend = (FlowRenderer*)glwin->getRenderer(p);
-	if(flowRend) {
-		flowRend->setDisplayListDirty();
-		if (p->isEnabled())flowRend->paintGL();
-	}
-}
-
-bool VizWinMgr::flowDataIsDirty(FlowParams* p){
-	VizWin* vw = getVizWin(p->getVizNum());
-	if (!vw) return false;
-	GLWindow* glwin = vw->getGLWindow();
-	if(!glwin) return false;
-	FlowRenderer* flowRend = (FlowRenderer*)glwin->getRenderer(p);
-	if (!flowRend) return false;
-	if (p->getFlowType()==1){
-		return (flowRend->allFlowDataIsDirty());
-	}
-	int timeStep = getAnimationParams(p->getVizNum())->getCurrentTimestep();
-	return flowRend->flowDataIsDirty(timeStep);
-}
 
 
 
@@ -1993,62 +1103,8 @@ int VizWinMgr::getNumInstances(int winnum, Params::ParamsBaseType pType){
 	return (Params::GetNumParamsInstances(pType,winnum));
 }
 	
-void VizWinMgr::setInteractiveNavigating(int level){
-	DataStatus::setInteractiveRefinementLevel(level);
-	for (int i = 0; i< MAXVIZWINS; i++){
-		if (vizWin[i]) vizWin[i]->setDirtyBit(NavigatingBit, true);
-	}
-}
-//Determine (for error checking) if there are any enabled 2d renderers in the window that match
-//coordinate, terrain mapping
-bool VizWinMgr::findCoincident2DSurface(int vizwin,  float coordinate, TwoDParams *tParams){
-	vector<Params*>& dparams = Params::GetAllParamsInstances(Params::_twoDDataParamsTag,vizwin);
-	vector<Params*>& iparams = Params::GetAllParamsInstances(Params::_twoDImageParamsTag,vizwin);
-	const float * extents = DataStatus::getInstance()->getLocalExtents();
-	int orientation = tParams->getOrientation();
-	bool terrainMapped = tParams->isMappedToTerrain();
-	string heightVar = tParams->GetHeightVariableName();
-	float tol = (extents[orientation+3]-extents[orientation])*0.0001f;
 
-	for (int i = 0; i< dparams.size(); i++){
-		TwoDDataParams* p = (TwoDDataParams*)dparams[i];
-		if (p==tParams) continue;
-		if (!p->isEnabled()) continue;
-		if (p->getOrientation() != orientation) continue;
-		if (p->isMappedToTerrain() != terrainMapped) continue;
-		if (terrainMapped && (heightVar != p->GetHeightVariableName())) continue;
-		if (abs(p->getLocalTwoDMin(orientation) - coordinate)> tol) continue;
-		return true;
-	}
-	for (int i = 0; i< iparams.size(); i++){
-		TwoDImageParams* p = (TwoDImageParams*)iparams[i];
-		if (p == tParams) continue;
-		if (!p->isEnabled()) continue;
-		if (p->getOrientation() != orientation) continue;
-		if (p->isMappedToTerrain() != terrainMapped) continue;
-		if (terrainMapped && (heightVar != p->GetHeightVariableName())) continue;
-		if (abs(p->getLocalTwoDMin(orientation) - coordinate)> tol) continue;
-		return true;
-	}
-	return false;
-}
-//Stop all the unsteady flow integrations that are occurring in any visualizer
-void VizWinMgr::stopFlowIntegration(){
-	//Do the same as a stop click on the available router
-	FlowEventRouter* fRouter = getFlowRouter();
-	fRouter->stopClicked();
-	//Then check for any other active flow rendering
-	for (int i = 0; i< MAXVIZWINS; i++){
-		if(vizWin[i]){
-			for (int j = 0; j<Params::GetNumParamsInstances(Params::_flowParamsTag,i); j++){
-				FlowParams* fParams = getFlowParams(i,j);
-				if (fParams->isEnabled() && !fParams->flowIsSteady()){
-					fParams->setStopFlag(true);
-				}
-			}
-		}
-	}
-}
+
 Params::ParamsBaseType VizWinMgr::RegisterEventRouter(const std::string tag, EventRouter* router){
 	Params::ParamsBaseType t = Params::GetTypeFromTag(tag);
 	if (t <= 0) return 0;
@@ -2058,11 +1114,17 @@ Params::ParamsBaseType VizWinMgr::RegisterEventRouter(const std::string tag, Eve
 void VizWinMgr::RegisterMouseModes(){
 	RegisterMouseMode(Params::_viewpointParamsTag,0,"Navigation", wheel );
 	RegisterMouseMode(Params::_regionParamsTag,1, "Region",cube );
-	RegisterMouseMode(Params::_flowParamsTag,1, "Flow rake",rake );
-	RegisterMouseMode(Params::_probeParamsTag,3,"Probe", probe);
-	RegisterMouseMode(Params::_twoDDataParamsTag,2,"2D Data", twoDData);
-	RegisterMouseMode(Params::_twoDImageParamsTag,2, "Image",twoDImage);
-	InstallExtensionMouseModes();
+	//RegisterMouseMode(Params::_flowParamsTag,1, "Flow rake",rake );
+	//RegisterMouseMode(Params::_probeParamsTag,3,"Probe", probe);
+	//RegisterMouseMode(Params::_twoDDataParamsTag,2,"2D Data", twoDData);
+	//RegisterMouseMode(Params::_twoDImageParamsTag,2, "Image",twoDImage);
+
+	//RegisterExtensionMouseModes:
+	//For each class that has a manipulator associated with it, insert the method
+	//VizWinMgr::RegisterMouseMode(tag, modeType, manip name, xpm (pixmap) )
+	
+	RegisterMouseMode(ArrowParams::_arrowParamsTag,1, "Barb rake", arrowrake );
+	
 }
 int VizWinMgr::RegisterMouseMode(const std::string paramsTag, int manipType,  const char* name, const char* const xpmIcon[]){
 	QIcon icon;
@@ -2073,7 +1135,7 @@ int VizWinMgr::RegisterMouseMode(const std::string paramsTag, int manipType,  co
 	int newMode; 
 	QString qname(name);
 	newMode =  MainForm::getInstance()->addMode(qname,icon);
-	GLWindow::AddMouseMode(paramsTag, manipType, name);
+	Visualizer::AddMouseMode(paramsTag, manipType, name);
 	return newMode;
 }
 void VizWinMgr::InstallTab(const std::string tag, EventRouterCreateFcn fcn){
@@ -2084,9 +1146,9 @@ void VizWinMgr::InstallTab(const std::string tag, EventRouterCreateFcn fcn){
 	eRouter->hookUpTab();
 	QWidget* tabWidget = dynamic_cast<QWidget*> (eRouter);
 	assert(tabWidget);
-	Session::getInstance()->blockRecording();
+	
 	tabManager->addWidget(tabWidget, typ);
-	Session::getInstance()->unblockRecording();
+	
 	
 }
 AnimationEventRouter* VizWinMgr::
@@ -2101,22 +1163,7 @@ RegionEventRouter* VizWinMgr::
 getRegionRouter() {
 	return (RegionEventRouter*)getEventRouter(Params::_regionParamsTag);
 }
-FlowEventRouter* VizWinMgr::
-getFlowRouter() {
-	return (FlowEventRouter*)getEventRouter(Params::_flowParamsTag);
-}
-ProbeEventRouter* VizWinMgr::
-getProbeRouter() {
-	return (ProbeEventRouter*)getEventRouter(Params::_probeParamsTag);
-}
-TwoDDataEventRouter* VizWinMgr::
-getTwoDDataRouter() {
-	return (TwoDDataEventRouter*)getEventRouter(Params::_twoDDataParamsTag);
-}
-TwoDImageEventRouter* VizWinMgr::
-getTwoDImageRouter() {
-	return (TwoDImageEventRouter*)getEventRouter(Params::_twoDImageParamsTag);
-}
+
 void VizWinMgr::forceRender(RenderParams* rp, bool always){
 	if (!always && !rp->isEnabled()) return;
 	int viznum = rp->getVizNum();

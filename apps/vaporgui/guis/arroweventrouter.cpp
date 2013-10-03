@@ -33,10 +33,7 @@
 #include <sstream>
 #include "instancetable.h"
 #include "mainform.h"
-#include "vizwinmgr.h"
-#include "session.h"
-#include "panelcommand.h"
-#include "messagereporter.h"
+
 #include "params.h"
 #include <vapor/XmlNode.h>
 #include "tabmanager.h"
@@ -44,6 +41,7 @@
 #include "arrowrenderer.h"
 #include "arroweventrouter.h"
 #include "eventrouter.h"
+#include "vapor/ControlExecutive.h"
 
 
 using namespace VAPoR;
@@ -52,14 +50,14 @@ using namespace VAPoR;
 ArrowEventRouter::ArrowEventRouter(QWidget* parent): QWidget(parent), Ui_Arrow(), EventRouter(){
         setupUi(this);
 	myParamsBaseType = Params::GetTypeFromTag(ArrowParams::_arrowParamsTag);
-	savedCommand = 0;
+
 	showAppearance = false;
 	showLayout = false;
 }
 
 
 ArrowEventRouter::~ArrowEventRouter(){
-	if (savedCommand) delete savedCommand;
+	
 }
 /**********************************************************
  * Whenever a new Arrowtab is created it must be hooked up here
@@ -148,7 +146,7 @@ void ArrowEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
 	
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "edit Arrow text");
+	
 	bool changed = false;
 	QString strn;
 	//Get all text values from gui, apply to params
@@ -192,7 +190,7 @@ void ArrowEventRouter::confirmText(bool /*render*/){
 	}
 	
 	guiSetTextChanged(false);
-	PanelCommand::captureEnd(cmd, aParams);
+	
 	if (changed) updateTab();
 	VizWinMgr::getInstance()->forceRender(aParams);	
 	
@@ -204,9 +202,8 @@ captureMouseDown(int){
 	//If text has changed, will ignore it-- don't call confirmText()!
 	//
 	guiSetTextChanged(false);
-	if (savedCommand) delete savedCommand;
-	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
-	savedCommand = PanelCommand::captureStart(aParams,  "slide rake handle");
+	
+	
 	
 }
 void ArrowEventRouter::
@@ -219,12 +216,11 @@ captureMouseUp(){
 		if (viznum >= 0 && (aParams == vwm->getParams(viznum, ParamsBase::GetTypeFromTag(ArrowParams::_arrowParamsTag))))
 			updateTab();
 	}
-	if (!savedCommand) return;
-	PanelCommand::captureEnd(savedCommand, aParams);
+	
 	
 	//force render:
 	VizWinMgr::getInstance()->forceRender(aParams,true);
-	savedCommand = 0;
+	
 }
 void ArrowEventRouter::
 arrowReturnPressed(void){
@@ -235,7 +231,7 @@ guiSetVariableDims(int is3D){
 	confirmText(true);
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
 	if (aParams->VariablesAre3D() == (is3D == 1)) return;
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "set barb variable dimensions");
+	
 	aParams->SetVariables3D(is3D == 1);
 	xVarCombo->setCurrentIndex(0);
 	yVarCombo->setCurrentIndex(0);
@@ -246,7 +242,7 @@ guiSetVariableDims(int is3D){
 	//Set up variable combos:
 	populateVariableCombos(is3D);
 	aParams->SetVectorScale(aParams->calcDefaultScale());
-	PanelCommand::captureEnd(cmd,aParams);
+	
 	updateTab();
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
@@ -262,21 +258,21 @@ populateVariableCombos(bool is3D){
 		xVarCombo->setMaxCount(ds->getNumActiveVariables3D()+1);
 		xVarCombo->addItem(QString("0"));
 		for (int i = 0; i< ds->getNumActiveVariables3D(); i++){
-			const std::string& s = ds->getActiveVarName3D(i);
+			const std::string& s = ds->getVariableName3D(i);
 			xVarCombo->addItem(QString::fromStdString(s));
 		}
 		yVarCombo->clear();
 		yVarCombo->setMaxCount(ds->getNumActiveVariables3D()+1);
 		yVarCombo->addItem(QString("0"));
 		for (int i = 0; i< ds->getNumActiveVariables3D(); i++){
-			const std::string& s = ds->getActiveVarName3D(i);
+			const std::string& s = ds->getVariableName3D(i);
 			yVarCombo->addItem(QString::fromStdString(s));
 		}
 		zVarCombo->clear();
 		zVarCombo->setMaxCount(ds->getNumActiveVariables3D()+1);
 		zVarCombo->addItem(QString("0"));
 		for (int i = 0; i< ds->getNumActiveVariables3D(); i++){
-			const std::string& s = ds->getActiveVarName3D(i);
+			const std::string& s = ds->getVariableName3D(i);
 			zVarCombo->addItem(QString::fromStdString(s));
 		}
 	} else { //2D vars:
@@ -285,21 +281,21 @@ populateVariableCombos(bool is3D){
 		xVarCombo->setMaxCount(ds->getNumActiveVariables2D()+1);
 		xVarCombo->addItem(QString("0"));
 		for (int i = 0; i< ds->getNumActiveVariables2D(); i++){
-			const std::string& s = ds->getActiveVarName2D(i);
+			const std::string& s = ds->getVariableName2DXY(i);
 			xVarCombo->addItem(QString::fromStdString(s));
 		}
 		yVarCombo->clear();
 		yVarCombo->setMaxCount(ds->getNumActiveVariables2D()+1);
 		yVarCombo->addItem(QString("0"));
 		for (int i = 0; i< ds->getNumActiveVariables2D(); i++){
-			const std::string& s = ds->getActiveVarName2D(i);
+			const std::string& s = ds->getVariableName2DXY(i);
 			yVarCombo->addItem(QString::fromStdString(s));
 		}
 		zVarCombo->clear();
 		zVarCombo->setMaxCount(ds->getNumActiveVariables2D()+1);
 		zVarCombo->addItem(QString("0"));
 		for (int i = 0; i< ds->getNumActiveVariables2D(); i++){
-			const std::string& s = ds->getActiveVarName2D(i);
+			const std::string& s = ds->getVariableName2DXY(i);
 			zVarCombo->addItem(QString::fromStdString(s));
 		}
 	}
@@ -307,7 +303,7 @@ populateVariableCombos(bool is3D){
 	heightCombo->clear();
 	heightCombo->setMaxCount(ds->getNumActiveVariables2D());
 	for (int i = 0; i< ds->getNumActiveVariables2D(); i++){
-		const std::string& s = ds->getActiveVarName2D(i);
+		const std::string& s = ds->getVariableName2DXY(i);
 		heightCombo->addItem(QString::fromStdString(s));
 	}
 }
@@ -317,77 +313,52 @@ void ArrowEventRouter::
 guiSetXVarNum(int vnum){
 	confirmText(true);
 	
-	int sesvarnum=0;
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
 	bool is3D = aParams->VariablesAre3D();
-	if(vnum > 0) {
-		//Make sure its a valid variable..
-		if (is3D)
-			sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum3D(vnum-1);
-		else 
-			sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum2D(vnum-1);
-		if (sesvarnum < 0) return; 
-	}
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "set barb x variable");
+	
 	if (vnum > 0){
 		if (is3D)
-			aParams->SetFieldVariableName(0,DataStatus::getInstance()->getVariableName3D(sesvarnum));
+			aParams->SetFieldVariableName(0,DataStatus::getInstance()->getVariableName3D(vnum-1));
 		else 
-			aParams->SetFieldVariableName(0,DataStatus::getInstance()->getVariableName2D(sesvarnum));
+			aParams->SetFieldVariableName(0,DataStatus::getInstance()->getVariableName2DXY(vnum-1));
 	} else aParams->SetFieldVariableName(0,"0");
 	aParams->SetVectorScale(aParams->calcDefaultScale());
-	PanelCommand::captureEnd(cmd, aParams);
+	
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
 void ArrowEventRouter::
 guiSetYVarNum(int vnum){
-	int sesvarnum=0;
+	
 	confirmText(true);
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
 	bool is3D = aParams->VariablesAre3D();
-	if(vnum > 0) {
-		//Make sure its a valid variable..
-		if (is3D)
-			sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum3D(vnum-1);
-		else 
-			sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum2D(vnum-1);
-		if (sesvarnum < 0) return; 
-	}
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "set barb y variable");
+	
+	
 	if (vnum > 0){
 		if (is3D)
-			aParams->SetFieldVariableName(1,DataStatus::getInstance()->getVariableName3D(sesvarnum));
+			aParams->SetFieldVariableName(1,DataStatus::getInstance()->getVariableName3D(vnum-1));
 		else 
-			aParams->SetFieldVariableName(1,DataStatus::getInstance()->getVariableName2D(sesvarnum));
+			aParams->SetFieldVariableName(1,DataStatus::getInstance()->getVariableName2DXY(vnum-1));
 	} else aParams->SetFieldVariableName(1,"0");
 	aParams->SetVectorScale(aParams->calcDefaultScale());
-	PanelCommand::captureEnd(cmd, aParams);
+	
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
 void ArrowEventRouter::
 guiSetZVarNum(int vnum){
-	int sesvarnum=0;
+	
 	confirmText(true);
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
 	bool is3D = aParams->VariablesAre3D();
-	if(vnum > 0) {
-		//Make sure its a valid variable..
-		if (is3D)
-			sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum3D(vnum-1);
-		else 
-			sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum2D(vnum-1);
-		if (sesvarnum < 0) return; 
-	}
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "set barb z variable");
 	if (vnum > 0){
 		if (is3D)
-			aParams->SetFieldVariableName(2,DataStatus::getInstance()->getVariableName3D(sesvarnum));
+			aParams->SetFieldVariableName(2,DataStatus::getInstance()->getVariableName3D(vnum-1));
 		else 
-			aParams->SetFieldVariableName(2,DataStatus::getInstance()->getVariableName2D(sesvarnum));
+			aParams->SetFieldVariableName(2,DataStatus::getInstance()->getVariableName2DXY(vnum-1));
 	} else aParams->SetFieldVariableName(2,"0");
 	aParams->SetVectorScale(aParams->calcDefaultScale());
 	updateTab();
-	PanelCommand::captureEnd(cmd, aParams);
+	
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
 void ArrowEventRouter::
@@ -395,13 +366,10 @@ guiSetHeightVarNum(int vnum){
 	int sesvarnum=0;
 	confirmText(true);
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
-	//Make sure its a valid variable..
-	sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum2D(vnum);
-	if (sesvarnum < 0) return; 
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "set terrain height variable");
-	aParams->SetHeightVariableName(DataStatus::getInstance()->getVariableName2D(sesvarnum));
+	
+	aParams->SetHeightVariableName(DataStatus::getInstance()->getVariableName2DXY(sesvarnum));
 	updateTab();
-	PanelCommand::captureEnd(cmd, aParams);
+	
 	if (!aParams->IsTerrainMapped()) return;
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
@@ -409,9 +377,9 @@ void ArrowEventRouter::
 guiToggleTerrainAlign(bool isOn){
 	confirmText(true);
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "toggle terrain alignment");
+	
 	aParams->SetTerrainMapped(isOn);
-	PanelCommand::captureEnd(cmd, aParams);
+	
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
 void ArrowEventRouter::
@@ -423,20 +391,20 @@ guiSelectColor(){
 	pal.setColor(QPalette::Base, newColor);
 	colorBox->setPalette(pal);
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "change barb color");
+	
 	qreal rgb[3];
 	newColor.getRgbF(rgb,rgb+1,rgb+2);
 	float rgbf[3];
 	for (int i = 0; i<3; i++) rgbf[i] = (float)rgb[i];
 	aParams->SetConstantColor(rgbf);
-	PanelCommand::captureEnd(cmd, aParams);
+	
 }
 void ArrowEventRouter::
 guiChangeExtents(){
 	confirmText(true);
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "change barb extents");
+	
 	double newExts[6];
 	boxSliderFrame->getBoxExtents(newExts);
 	Box* bx = aParams->GetBox();
@@ -445,19 +413,19 @@ guiChangeExtents(){
 	const vector<double>& tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
 	for (int i = 0; i<6; i++) newExts[i] -= tvExts[i%3];
 	bx->SetLocalExtents(newExts);
-	PanelCommand::captureEnd(cmd,aParams);
+	
 	updateTab();
-	VizWinMgr::getInstance()->forceRender(aParams,GLWindow::getCurrentMouseMode() == GLWindow::barbMode);
+	VizWinMgr::getInstance()->forceRender(aParams,Visualizer::getCurrentMouseMode() == Visualizer::barbMode);
 }
 void ArrowEventRouter::
 guiAlignToData(bool doAlign){
 	confirmText(true);
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "toggle align to data ");
+
 	aParams->AlignGridToData(doAlign);
 	xStrideEdit->setEnabled(doAlign);
 	yStrideEdit->setEnabled(doAlign);
-	PanelCommand::captureEnd(cmd,aParams);
+	
 	updateTab();
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
@@ -484,10 +452,9 @@ setArrowEnabled(bool val, int instance){
 //
 void ArrowEventRouter::updateTab(){
 	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
-	MessageReporter::infoMsg("ArrowEventRouter::updateTab()");
+	
 	if (!isEnabled()) return;
-	Session *session = Session::getInstance();
-	session->blockRecording();
+	
 
 	//Set up the instance table:
 	DataStatus* ds = DataStatus::getInstance();
@@ -572,7 +539,7 @@ void ArrowEventRouter::updateTab(){
 	const vector<double>& rakeexts = arrowParams->GetRakeLocalExtents();
 	//Now adjust for moving extents
 	if (!DataStatus::getInstance()->getDataMgr()) {
-		session->unblockRecording();
+		
 		return;
 	}
 		
@@ -585,25 +552,7 @@ void ArrowEventRouter::updateTab(){
 	boxSliderFrame->setBoxExtents(usrRakeExts);
 	boxSliderFrame->setNumRefinements(numRefs);
 
-	//Provide latlon corner coords if available, based on usrRakeExts
-	if (DataStatus::getProjectionString().size() == 0){
-		latLonFrame->hide();
-	} else {
-		double cornerLatLon[4];
-		cornerLatLon[0] = usrRakeExts[0];
-		cornerLatLon[1] = usrRakeExts[1];
-		cornerLatLon[2] = usrRakeExts[3];
-		cornerLatLon[3] = usrRakeExts[4];
-		if (DataStatus::convertToLonLat(cornerLatLon,2)){
-			LLLonEdit->setText(QString::number(cornerLatLon[0]));
-			LLLatEdit->setText(QString::number(cornerLatLon[1]));
-			URLonEdit->setText(QString::number(cornerLatLon[2]));
-			URLatEdit->setText(QString::number(cornerLatLon[3]));
-			latLonFrame->show();
-		} else {
-			latLonFrame->hide();
-		}
-	}
+	
 
 	const vector<long>rakeGrid = arrowParams->GetRakeGrid();
 	xDimEdit->setText(QString::number(rakeGrid[0]));
@@ -617,8 +566,8 @@ void ArrowEventRouter::updateTab(){
 	thicknessEdit->setText(QString::number(arrowParams->GetLineThickness()));
 	scaleEdit->setText(QString::number(arrowParams->GetVectorScale()));
 	//Only allow terrainAlignCheckbox if height variable exists
-	int varnum = ds->getSessionVariableNum2D(arrowParams->GetHeightVariableName());
-	if (ds->variableIsPresent2D(varnum)){
+	
+	if (ds->getDataMgr()->VariableExists(currentTimeStep,arrowParams->GetHeightVariableName().c_str())){
 		terrainAlignCheckbox->setEnabled(true);
 		terrainAlignCheckbox->setChecked(arrowParams->IsTerrainMapped());
 	} else {
@@ -650,7 +599,7 @@ void ArrowEventRouter::updateTab(){
 	adjustSize();
 	update();
 	guiSetTextChanged(false);
-	Session::getInstance()->unblockRecording();
+	
 	vizMgr->getTabManager()->update();
 }
 
@@ -661,7 +610,7 @@ void ArrowEventRouter::
 reinitTab(bool doOverride){
 	
 	DataStatus* ds = DataStatus::getInstance();
-	if (ds->dataIsPresent3D()||ds->dataIsPresent2D()) {
+	if (ds->getDataMgr()) {
 		setEnabled(true);
 		instanceTable->setEnabled(true);
 		instanceTable->rebuild(this);
@@ -706,11 +655,11 @@ guiSetCompRatio(int num){
 	ArrowParams* dParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
 	if (num == dParams->GetCompressionLevel()) return;
 	
-	PanelCommand* cmd = PanelCommand::captureStart(dParams, "set compression level");
+	
 	
 	dParams->SetCompressionLevel(num);
 	lodCombo->setCurrentIndex(num);
-	PanelCommand::captureEnd(cmd, dParams);
+	
 	VizWinMgr::getInstance()->forceRender(dParams);
 }
 void ArrowEventRouter::
@@ -733,7 +682,7 @@ guiReleaseScaleSlider(){
 	int sliderval = barbLengthSlider->value();
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
 	
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "move barb scale slider");
+	
 	double defaultScale = aParams->calcDefaultScale();
 	// find the new length as 10**(sliderVal)*defaultLength
 	// note that the slider goes from -100 to +100
@@ -741,7 +690,7 @@ guiReleaseScaleSlider(){
 	scaleEdit->setText(QString::number(newVal));
 	guiSetTextChanged(false); //Don't respond to text-change event
 	aParams->SetVectorScale(newVal);
-	PanelCommand::captureEnd(cmd, aParams);
+	
 	VizWinMgr::getInstance()->forceRender(aParams);
 }
 
@@ -752,12 +701,12 @@ guiSetNumRefinements(int num){
 	ArrowParams* dParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
 	if (num == dParams->GetRefinementLevel()) return;
 	
-	PanelCommand* cmd = PanelCommand::captureStart(dParams, "set number of refinements");
+	
 		
 	dParams->SetRefinementLevel(num);
 	refinementCombo->setCurrentIndex(num);
 	boxSliderFrame->setNumRefinements(num);
-	PanelCommand::captureEnd(cmd, dParams);
+	
 	VizWinMgr::getInstance()->forceRender(dParams);
 }
 void ArrowEventRouter::
@@ -769,10 +718,9 @@ guiSetEnabled(bool value, int instance, bool undoredo){
 	
 	if (value == dParams->isEnabled()) return;
 	confirmText(false);
-	PanelCommand* cmd;
-	if(undoredo) cmd = PanelCommand::captureStart(dParams, "toggle arrow enabled", instance);
+	
 	dParams->setEnabled(value);
-	if(undoredo) PanelCommand::captureEnd(cmd, dParams);
+	
 	//Make the change in enablement occur in the rendering window, 
 	// Local/Global is not changing.
 	updateRenderer(dParams,!value, false);
@@ -785,7 +733,7 @@ void ArrowEventRouter::
 guiFitToData(){
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
 	if (!DataStatus::getInstance()->getDataMgr()) return;
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Fit to full data extents");
+	
 		
 	const float* fullSizes = DataStatus::getInstance()->getFullSizes();
 	Box* box = aParams->GetBox();
@@ -802,8 +750,8 @@ guiFitToData(){
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double>& currExts =DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
 	boxSliderFrame->setBoxExtents(currExts);
-	PanelCommand::captureEnd(cmd, aParams);
-	VizWinMgr::getInstance()->forceRender(aParams,GLWindow::getCurrentMouseMode() == GLWindow::barbMode);
+
+	VizWinMgr::getInstance()->forceRender(aParams,Visualizer::getCurrentMouseMode() == Visualizer::barbMode);
 }
 
 void ArrowEventRouter::
@@ -890,10 +838,10 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 	
 	if (nowEnabled && !prevEnabled ){//For case 2.:  create a renderer in the active window:
 
-		Renderer* myArrow = new ArrowRenderer(viz->getGLWindow(), dParams);
+		Renderer* myArrow = new ArrowRenderer(viz->getVisualizer(), dParams);
 
 
-		viz->getGLWindow()->insertSortedRenderer(dParams,myArrow);
+		viz->getVisualizer()->insertSortedRenderer(dParams,myArrow);
 
 		//force the renderer to refresh 
 		
@@ -904,66 +852,9 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 	}
 	
 	assert(prevEnabled && !nowEnabled); //case 6, disable 
-	viz->getGLWindow()->removeRenderer(dParams);
+	viz->getVisualizer()->removeRenderer(dParams);
 
 	return;
 }
 
 
-//Method called when undo/redo changes params.  If prevParams is null, the
-//vizwinmgr will create a new instance.
-void ArrowEventRouter::
-makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance, bool reEnable) {
-	assert(instance >= 0);
-
-	ArrowParams* dParams = (ArrowParams*)(newParams->deepCopy());
-	int vizNum = dParams->getVizNum();
-	
-	//If we are creating one, it should be the first missing instance:
-	if (!prevParams) assert(VizWinMgr::getInstance()->getNumInstances(vizNum,Params::GetTypeFromTag(ArrowParams::_arrowParamsTag)) == instance);
-	VizWinMgr::getInstance()->setParams(vizNum, dParams, Params::GetTypeFromTag(ArrowParams::_arrowParamsTag), instance);
-	
-	
-	ArrowParams* formerParams = (ArrowParams*)prevParams;
-	if (reEnable){
-		//Need to disable the current instance
-		assert(dParams->isEnabled() && formerParams->isEnabled());
-		assert(!newWin);
-		dParams->setEnabled(false);
-		//Install dParams disabled:
-		updateRenderer(dParams, true, false);
-		//Then enable it
-		dParams->setEnabled(true);
-		updateRenderer(dParams, false, false);
-
-	} else {
-		bool wasEnabled = false;
-		if (formerParams) wasEnabled = formerParams->isEnabled();
-		//Check if the enabled and/or Local settings changed:
-		if (newWin || (formerParams->isEnabled() != dParams->isEnabled())){
-			updateRenderer(dParams, wasEnabled,  newWin);
-		}
-	}
-
-	updateTab();
-}
-
-QSize ArrowEventRouter::sizeHint() const {
-	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
-	if (!aParams) return QSize(460,1500);
-	int vertsize = 265;//basic panel plus instance panel 
-	//add showAppearance button, showLayout button, frames
-	vertsize += 100;
-	if (showLayout) {
-		vertsize += 358;
-		if (DataStatus::getProjectionString().size() == 0) vertsize -= 66; //no lat/lon coordinates
-	}
-	if (showAppearance) vertsize += 153;  //Add in appearance panel 
-	
-	//Mac and Linux have gui elements fatter than windows by about 10%
-#ifndef WIN32
-	vertsize = (int)(1.1*vertsize);
-#endif
-
-	return QSize(460,vertsize);
-}

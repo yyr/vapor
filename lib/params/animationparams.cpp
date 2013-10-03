@@ -52,7 +52,7 @@ const string AnimationParams::_playDirectionTag = "PlayDirection";
 
 double AnimationParams::defaultMaxFPS = 10.f;
 
-AnimationParams::AnimationParams(int winnum): Params( winnum, Params::_animationParamsTag){
+AnimationParams::AnimationParams(XmlNode* parent, int winnum): Params( parent, Params::_animationParamsTag, winnum){
 	restart();
 }
 AnimationParams::~AnimationParams(){

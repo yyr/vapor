@@ -60,7 +60,7 @@ void Renderer::enableClippingPlanes(const double extents[6]){
     glPushMatrix();
     glLoadIdentity();
 
-	glLoadMatrixd(myVisualizer->getModelMatrix());
+	glLoadMatrixd(myVisualizer->getModelViewMatrix());
 
     //cerr << "transforming everything to unit box coords :-(\n";
    // myVisualizer->TransformToUnitBox();

@@ -36,7 +36,7 @@ namespace VAPoR {
 
 class ViewpointParams;
 class XmlNode;
-class PanelCommand;
+
 class RegionEventRouter : public QWidget, public Ui_RegionTab, public EventRouter {
 
 	Q_OBJECT
@@ -53,17 +53,12 @@ public:
 	virtual void confirmText(bool /*render*/);
 	virtual void updateTab();
     virtual void relabel();
-	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1, bool reEnable = false);
-
+	
 	
 	//Following methods are set from gui, have undo/redo support:
 	//
-	void guiSetCenter(const float * coords);
+	void guiSetCenter(const double * coords);
 	
-	
-	void guiCopyRakeToRegion();
-	void guiCopyProbeToRegion();
-
 	
 
 	//Methods to make sliders and text valid and consistent for region:
@@ -78,8 +73,6 @@ public:
 	//Methods to make sliders and text valid and consistent for region:
 	void textToSlider(int coord, float center, float size);
 	void sliderToText(int coord, int center, int size);
-	void refreshRegionInfo(RegionParams* rp);
-	
 	
 	virtual void reinitTab(bool doOverride);
 
@@ -91,9 +84,7 @@ protected slots:
 	void setRegionTabTextChanged(const QString& qs);
 	void regionReturnPressed();
 	void guiSetMaxSize();
-	void guiSetNumRefinements(int n);
-	void guiSetVarNum(int n);
-	void guiSetTimeStep(int n);
+	
 	void guiSetXCenter(int n);
 	void guiSetXSize(int n);
 	void guiSetYCenter(int n);
@@ -102,7 +93,6 @@ protected slots:
 	void guiSetZSize(int n);
 	void copyRegionToRake();
 	void copyRakeToRegion();
-	void copyRegionToProbe();
 	void copyProbeToRegion();
 
 };

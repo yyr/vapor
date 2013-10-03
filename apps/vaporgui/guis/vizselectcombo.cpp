@@ -22,7 +22,7 @@
 #include <qcombobox.h>
 #include <QToolBar>
 #include <qtooltip.h>
-#include "vizwinmgr.h"
+
 #include "mainform.h"
 #include "assert.h"
 using namespace VAPoR;

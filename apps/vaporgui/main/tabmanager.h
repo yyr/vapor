@@ -25,7 +25,7 @@
 #include "eventrouter.h"
 
 namespace VAPoR {
-class Session;
+
 class MainForm;
 //Total number of different widgets that can go into tabs
 //

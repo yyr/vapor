@@ -49,8 +49,6 @@ namespace VAPoR {
 class PARAMS_API DataStatus{
 public:
 	
-	
-
 	//! static getInstance() method is used to obtain the singleton instance of the Datastatus.
 	//! \retval current DataStatus instance
 	static DataStatus* getInstance() {
@@ -112,6 +110,12 @@ public:
 	float getDefaultDataMin(string vname);
 	int getDataRange(string vname, size_t timestep, float range[2]);
 	void mapBoxToVox(Box* box, int refLevel, int lod, int timestep, size_t voxExts[6]);
+
+	float getVoxelSize(int numrefinements, int dir){
+		size_t dim[3];
+		dataMgr->GetDim(dim,numrefinements);
+		return fullStretchedSizes[dir]/dim[dir];
+	}
 	
 	//! Returns the current data manager (if it exists).
 	//! Returns null if it does not exist.

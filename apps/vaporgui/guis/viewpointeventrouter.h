@@ -50,7 +50,6 @@ public:
 	virtual void hookUpTab();
 	virtual void confirmText(bool /*render*/);
 	virtual void updateTab();
-	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1, bool reEnable = false);
 	
 	
 	//Following methods are for undo/redo support:
@@ -74,7 +73,7 @@ public:
 	void guiAlignView(int axis);
 
 	//Set from probe:
-	void guiSetCenter(const float* centerCoords);
+	void guiSetCenter(const double* centerCoords);
 	
 	virtual void reinitTab(bool doOverride);
 	void updateRenderer(ViewpointParams* dParams, bool prevEnabled,  bool newWindow);
@@ -85,8 +84,7 @@ protected:
 
 	
 protected slots:
-	void guiSetStereoMode(int);
-	void guiToggleLatLon(bool);
+	
 	void viewpointReturnPressed();
 	void setVtabTextChanged(const QString& qs);
 

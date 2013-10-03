@@ -39,7 +39,7 @@ namespace VAPoR {
 class ViewpointParams;
 class XmlNode;
 class ParamNode;
-class PanelCommand;
+
 class AnimationEventRouter : public QWidget, public Ui_AnimationTab, public EventRouter {
 
 	Q_OBJECT
@@ -57,7 +57,6 @@ public:
 	virtual void confirmText(bool /*render*/);
 	virtual void updateTab();
 	virtual void reinitTab(bool doOverride);
-	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1, bool reEnable = false);
 	//Following are set by gui, result in save history state, 
 	//plus notification to animation controller
 	void guiSetPlay(int direction);
@@ -98,14 +97,7 @@ protected:
 protected slots:
 	void guiSetPosition(int sliderposition);
 	void guiSetFrameStep(int sliderposition);
-	
-	void guiToggleTimestepSample(bool on);
-	void timestepChanged(int row, int col);
-	void addSample();
-	void deleteSample();
-	void guiRebuildList();
 	void setAtabTextChanged(const QString& qs);
-	void setKeyframeTextChanged(const QString& qs);
 	void setEndFrameTextChanged(const QString& qs);
 	void animationReturnPressed();
 	
@@ -113,18 +105,7 @@ protected slots:
 	void animationReplayClick();
 	void animationToBeginClick();
 	void animationToEndClick();
-	//keyframing slots:
-	void guiChangeKeyIndex(int);
-	void guiEnableKeyframing(bool);
-	void guiSynchToFrame(bool);
-	void guiChangeKeyframe();
-	void guiDeleteKeyframe();
-	void guiInsertKeyframe();
-	void guiGotoKeyframe();
-	//Check and fix keyframes,
-	void fixKeyframes(bool silent = false);
-	//set the timestep rate etc. whenever key index changes
-	bool calcTimestepRate(int keyindex, AnimationParams* aParams);
+	
 
 };
 

@@ -18,13 +18,9 @@
 //
 
 #include "vizfeatureparams.h"
-#include "command.h"
 #include "vizwin.h"
 #include "vizfeatures.h"
-#include "vizwinmgr.h"
-#include "messagereporter.h"
 #include "mainform.h"
-#include "session.h"
 #include "datastatus.h"
 #include <qlineedit.h>
 #include <QFileDialog>
@@ -37,7 +33,7 @@
 #include <qcolordialog.h>
 #include <qlayout.h>
 #include <vector>
-#include "glwindow.h"
+#include "visualizer.h"
 
 
 using namespace VAPoR;
@@ -48,15 +44,6 @@ VizFeatureParams::VizFeatureParams(){
 	vizFeatureDlg = 0;
 	featureHolder = 0;
 	currentComboIndex = -1;
-	
-	
-	Session* currentSession = Session::getInstance();
-	
-	for (int i = 0; i< 3; i++) stretch[i] = currentSession->getStretch(i);
-
-	DataStatus *ds;
-	ds = DataStatus::getInstance();
-	
 }
 //Clone a new vizfeatureparams
 VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
@@ -117,17 +104,12 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 void VizFeatureParams::launch(){
 	//Determine current combo entry
 	int vizNum = VizWinMgr::getInstance()->getActiveViz();
-	if (vizNum < 0 || 
-		(!DataStatus::getInstance()->dataIsPresent3D() &&
-		!DataStatus::getInstance()->dataIsPresent2D())){
-		QMessageBox::warning(vizFeatureDlg,"No visualizers or variables",
-			QString("No visualizers or variables exist to be modified"),
-			QMessageBox::Ok, Qt::NoButton);
+	if (vizNum < 0 || !DataStatus::getInstance()->getDataMgr()){
+		
 		return;
 	}
 	
-	//Determine corresponding combo index for currentVizNum:
-	currentComboIndex = getComboIndex(vizNum);
+	
 	
 	featureHolder = new ScrollContainer((QWidget*)MainForm::getInstance(), "Visualizer Feature Selection");
 	
@@ -322,52 +304,23 @@ selectAxisColor(){
 void VizFeatureParams::
 setDialog(){
 
-	int i;
+	
 	vizFeatureDlg->stretch0Edit->setText(QString::number(stretch[0]));
 	vizFeatureDlg->stretch1Edit->setText(QString::number(stretch[1]));
 	vizFeatureDlg->stretch2Edit->setText(QString::number(stretch[2]));
 
-	Session* currentSession = Session::getInstance();
-	bool enableStretch = !currentSession->sphericalTransform();
-    vizFeatureDlg->stretch0Edit->setEnabled(enableStretch);
-    vizFeatureDlg->stretch1Edit->setEnabled(enableStretch);
-    vizFeatureDlg->stretch2Edit->setEnabled(enableStretch);
+
 	
 	int vizNum = getVizNum(currentComboIndex);
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
-	VizWin* vizWin = vizWinMgr->getVizWin(vizNum);
-
-	//Put all the visualizer names into the combo box:
-	vizFeatureDlg->currentNameCombo->clear();
-	for (i = 0; i<MAXVIZWINS; i++){
-		if (vizWinMgr->getVizWin(i))
-			vizFeatureDlg->currentNameCombo->addItem(vizWinMgr->getVizWinName(i));
-	}
-	vizFeatureDlg->currentNameCombo->setCurrentIndex(currentComboIndex);
-	//Save the current one:
-	vizName = vizWinMgr->getVizWinName(vizNum);
-	vizFeatureDlg->vizNameEdit->setText(vizName);
-	for (i = 0; i<3; i++){
-		axisArrowCoords[i] = vizWin->getAxisArrowCoord(i);
-	}
-	vizFeatureDlg->axisXEdit->setText(QString::number(axisArrowCoords[0]));
-	vizFeatureDlg->axisYEdit->setText(QString::number(axisArrowCoords[1]));
-	vizFeatureDlg->axisZEdit->setText(QString::number(axisArrowCoords[2]));
-
-	//Handle axis annotation parameters.
-	showAxisAnnotation = vizWin->axisAnnotationIsEnabled();
+	
+	
+	
+	
 
 	vizFeatureDlg->axisAnnotationCheckbox->setChecked(showAxisAnnotation);
-	//axis annotation setup:
-	for (i = 0; i<3; i++) axisOriginCoords[i] = vizWin->getAxisOriginCoord(i);
-	vizFeatureDlg->axisOriginXEdit->setText(QString::number(axisOriginCoords[0]));
-	vizFeatureDlg->axisOriginYEdit->setText(QString::number(axisOriginCoords[1]));
-	vizFeatureDlg->axisOriginZEdit->setText(QString::number(axisOriginCoords[2]));
-	for (i = 0; i< 3; i++) minTic[i] = vizWin->getMinTic(i);
-	for (i = 0; i< 3; i++) maxTic[i] = vizWin->getMaxTic(i);
-	for (i = 0; i< 3; i++) numTics[i] = vizWin->getNumTics(i);
-	for (i = 0; i< 3; i++) ticLength[i] = vizWin->getTicLength(i);
-	for (i = 0; i< 3; i++) ticDir[i] = vizWin->getTicDir(i);
+	
+	
 	vizFeatureDlg->xMinTicEdit->setText(QString::number(minTic[0]));
 	vizFeatureDlg->yMinTicEdit->setText(QString::number(minTic[1]));
 	vizFeatureDlg->zMinTicEdit->setText(QString::number(minTic[2]));
@@ -383,89 +336,30 @@ setDialog(){
 	vizFeatureDlg->xTicOrientCombo->setCurrentIndex(ticDir[0]-1);
 	vizFeatureDlg->yTicOrientCombo->setCurrentIndex(ticDir[1]/2);
 	vizFeatureDlg->zTicOrientCombo->setCurrentIndex(ticDir[2]);
-	labelHeight = vizWin->getLabelHeight();
-	labelDigits = vizWin->getLabelDigits();
-	ticWidth = vizWin->getTicWidth();
+	
 	vizFeatureDlg->labelHeightEdit->setText(QString::number(labelHeight));
 	vizFeatureDlg->labelDigitsEdit->setText(QString::number(labelDigits));
 	vizFeatureDlg->ticWidthEdit->setText(QString::number(ticWidth));
-	axisAnnotationColor = vizWin->getAxisColor();
+	
 	tempAxisAnnotationColor = axisAnnotationColor;
 	QPalette pal0(vizFeatureDlg->axisColorEdit->palette());
 	pal0.setColor(QPalette::Base,axisAnnotationColor);
 	vizFeatureDlg->axisColorEdit->setPalette(pal0);
 	
 	
-	colorbarDigits = vizWin->getColorbarDigits();
-	colorbarRendererTypeId = vizWin->getColorbarParamsTypeId();
+	
 	int indx = 0;
 	for (int i = 0; i< rendererTypeLookup.size(); i++){
 		if(rendererTypeLookup[i] == colorbarRendererTypeId) indx = i;
 	}
 	vizFeatureDlg->rendererCombo->setCurrentIndex(indx);
-	colorbarFontsize = vizWin->getColorbarFontsize();
+	
 	vizFeatureDlg->colorbarFontsizeEdit->setText(QString::number(colorbarFontsize));
 	vizFeatureDlg->colorbarNumDigitsEdit->setText(QString::number(colorbarDigits));
-	colorbarLLCoords[0] = vizWin->getColorbarLLCoord(0);
-	colorbarLLCoords[1] = vizWin->getColorbarLLCoord(1);
-	vizFeatureDlg->colorbarLLXEdit->setText(QString::number(colorbarLLCoords[0]));
-	vizFeatureDlg->colorbarLLYEdit->setText(QString::number(colorbarLLCoords[1]));
-	colorbarURCoords[0] = vizWin->getColorbarURCoord(0);
-	colorbarURCoords[1] = vizWin->getColorbarURCoord(1);
-	vizFeatureDlg->colorbarXSizeEdit->setText(QString::number(colorbarURCoords[0]-colorbarLLCoords[0]));
-	vizFeatureDlg->colorbarYSizeEdit->setText(QString::number(colorbarURCoords[1]-colorbarLLCoords[1]));
-
-	timeAnnotCoords[0] = vizWin->getTimeAnnotCoord(0);
-	timeAnnotCoords[1] = vizWin->getTimeAnnotCoord(1);
-	timeAnnotType = vizWin->getTimeAnnotType();
-	timeAnnotColor = vizWin->getTimeAnnotColor();
-	tempTimeAnnotColor=timeAnnotColor;
-	timeAnnotTextSize = vizWin->getTimeAnnotTextSize();
-	vizFeatureDlg->timeCombo->setCurrentIndex(timeAnnotType);
-	vizFeatureDlg->timeLLXEdit->setText(QString::number(timeAnnotCoords[0]));
-	vizFeatureDlg->timeLLYEdit->setText(QString::number(timeAnnotCoords[1]));
-	vizFeatureDlg->timeSizeEdit->setText(QString::number(timeAnnotTextSize));
-	QPalette pal1(vizFeatureDlg->timeColorEdit->palette());
-	pal1.setColor(QPalette::Base, timeAnnotColor);
-	vizFeatureDlg->timeColorEdit->setPalette(pal1);
-
-	numColorbarTics = vizWin->getColorbarNumTics();
-	vizFeatureDlg->numTicsEdit->setText(QString::number(numColorbarTics));
-	showBar = vizWin->colorbarIsEnabled();
-	vizFeatureDlg->colorbarCheckbox->setChecked(showBar);
-	showAxisArrows = vizWin->axisArrowsAreEnabled();
-
-	vizFeatureDlg->axisCheckbox->setChecked(showAxisArrows);
-
-	enableSpin = GLWindow::spinAnimationEnabled();
-	vizFeatureDlg->spinAnimationCheckbox->setChecked(enableSpin);
-	
-	colorbarBackgroundColor = vizWin->getColorbarBackgroundColor();
-	tempColorbarBackgroundColor = colorbarBackgroundColor;
-	QPalette pal2(vizFeatureDlg->colorbarBackgroundEdit->palette());
-	pal2.setColor(QPalette::Base, colorbarBackgroundColor);
-	vizFeatureDlg->colorbarBackgroundEdit->setPalette(pal2);
-
 
 	//Set up the renderer combo.
 	vizFeatureDlg->rendererCombo->clear();
 	rendererTypeLookup.clear();
-	
-	int typeId = vizWin->getColorbarParamsTypeId();
-	int comboIndex = 0;
-	for (int i = 1; i<= Params::GetNumParamsClasses(); i++){
-		RenderParams* p = dynamic_cast<RenderParams*>(Params::GetDefaultParams(i));
-		if (!p) continue;
-		if (!p->UsesMapperFunction()) continue;
-		const string& s = p->getShortName();
-		vizFeatureDlg->rendererCombo->addItem(s.c_str());
-		rendererTypeLookup.push_back(p->GetParamsBaseTypeId());
-		
-		if (p->GetParamsBaseTypeId() == typeId) 
-			vizFeatureDlg->rendererCombo->setCurrentIndex(comboIndex);
-		comboIndex++;
-	}
-
 }
 //Copy values from the dialog into 'this', and also to the visualizer state specified
 //by the currentComboIndex (not the actual combo index).  This event gets captured in the
@@ -478,7 +372,7 @@ copyFromDialog(){
 	int vizNum = getVizNum(currentComboIndex);
 	//Make copy for history.  Note that the "currentComboIndex" is not part
 	//Of the state that will modify visualizer
-	VizFeatureCommand* cmd = VizFeatureCommand::captureStart(this, "Feature edit", vizNum);
+	
 
 	
 
@@ -563,8 +457,7 @@ copyFromDialog(){
 	
 	applyToViz(vizNum);
 	
-	//Save the new visualizer state in the history
-	VizFeatureCommand::captureEnd(cmd, this);
+	
 	
 	
 }
@@ -579,7 +472,7 @@ applyToViz(int vizNum){
 	
 	bool stretchChanged = false;
 	float oldStretch[3];
-	float ratio[3] = { 1.f, 1.f, 1.f };
+	double ratio[3] = { 1.f, 1.f, 1.f };
 	for (i = 0; i<3; i++) oldStretch[i] = ds->getStretchFactors()[i];
 	
 	float minStretch = 1.e30f;
@@ -593,7 +486,6 @@ applyToViz(int vizNum){
 		if (stretch[i] != oldStretch[i]){
 			ratio[i] = stretch[i]/oldStretch[i];
 			stretchChanged = true;
-			Session::getInstance()->setStretch(i, stretch[i]);
 		}
 	}
 	if (stretchChanged) {
@@ -602,27 +494,20 @@ applyToViz(int vizNum){
 		ds->stretchExtents(stretch);
 		
 		VizWinMgr* vizMgr = VizWinMgr::getInstance();
-		vizMgr->setAllTwoDElevDirty();
+		
 		int timestep = vizMgr->getActiveAnimationParams()->getCurrentTimestep();
 		//Set the region dirty bit in every window:
 		bool firstSharedVp = false;
-		bool firstSharedAp = true;
+		
 		for (int j = 0; j< MAXVIZWINS; j++) {
 			VizWin* win = vizMgr->getVizWin(j);
 			if (!win) continue;
 			
 			//Only do each viewpoint params once
 			ViewpointParams* vpp = vizMgr->getViewpointParams(j);
-			AnimationParams* aParams = vizMgr->getAnimationParams(j);
+		
 			//Rescale the keyframes of animation params,
-			//Just rescale keyframes of the first shared animation params
-			if (!aParams->isLocal()){
-				if (firstSharedAp){
-					aParams->rescaleKeyframes(ratio);
-					firstSharedAp = false;
-				}
-			} else aParams->rescaleKeyframes(ratio);
-
+			
 			if (!vpp->isLocal()) {
 				if(firstSharedVp) continue;
 				else firstSharedVp = true;
@@ -633,7 +518,6 @@ applyToViz(int vizNum){
 			win->setValuesFromGui(vpp);
 			vizMgr->resetViews(vpp);
 			vizMgr->setViewerCoordsChanged(vpp);
-			win->setDirtyBit(RegionBit, true);
 		}
 		
 	}
@@ -641,46 +525,8 @@ applyToViz(int vizNum){
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	VizWin* vizWin = vizWinMgr->getVizWin(vizNum);
 	vizWinMgr->setVizWinName(vizNum, vizName);
-	for (i = 0; i<3; i++){
-		vizWin->setAxisArrowCoord(i, axisArrowCoords[i]);
-		vizWin->setAxisOriginCoord(i, axisOriginCoords[i]);
-		vizWin->setMinTic(i, minTic[i]);
-		vizWin->setMaxTic(i, maxTic[i]);
-		vizWin->setNumTics(i, numTics[i]);
-		vizWin->setTicLength(i, ticLength[i]);
-		vizWin->setTicDir(i, ticDir[i]);
-	}
-	vizWin->setAxisColor(axisAnnotationColor);
-	vizWin->setTicWidth(ticWidth);
-	vizWin->setLabelHeight(labelHeight);
-	vizWin->setLabelDigits(labelDigits);
 	
-	vizWin->setColorbarDigits(colorbarDigits);
-	vizWin->setColorbarParamsTypeId(colorbarRendererTypeId);
-	vizWin->setColorbarFontsize(colorbarFontsize);
-	vizWin->setColorbarLLCoord(0,colorbarLLCoords[0]);
-	vizWin->setColorbarLLCoord(1,colorbarLLCoords[1]);
-	vizWin->setColorbarURCoord(0,colorbarURCoords[0]);
-	vizWin->setColorbarURCoord(1,colorbarURCoords[1]);
-	vizWin->setColorbarParamsTypeId(colorbarRendererTypeId);
 	
-	vizWin->enableColorbar(showBar);
-	vizWin->enableAxisArrows(showAxisArrows);
-	vizWin->enableAxisAnnotation(showAxisAnnotation);
-
-	GLWindow::setSpinAnimation(enableSpin);
-	
-	vizWin->setColorbarNumTics(numColorbarTics);
-	vizWin->setColorbarBackgroundColor(colorbarBackgroundColor);
-
-	vizWin->setTimeAnnotCoords(timeAnnotCoords);
-	vizWin->setTimeAnnotColor(timeAnnotColor);
-	vizWin->setTimeAnnotTextSize(timeAnnotTextSize);
-	vizWin->setTimeAnnotType(timeAnnotType);
-	vizWin->setTimeAnnotDirty();
-	vizWin->setAxisLabelsDirty();
-	
-	vizWin->setColorbarDirty(true);
 	vizWin->updateGL();
 	
 }
@@ -737,14 +583,5 @@ doHelp(){
 }
 void VizFeatureParams::checkSurface(bool on){
 	if (!on) return;
-	MessageReporter::warningMsg("Note: Improved terrain mapping capabilities are available\n%s",
-		"in the Image panel and in the 2D Data panel.");
 }
-void VizFeatureParams::
-reloadShaders(){
-	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	bool rc = vizMgr->reloadShaders();
-	if (!rc) MessageReporter::errorMsg("Error reloading shaders\n%s",
-		"Note that all applicable renderers must be disabled when reloading shaders.");
 
-}

@@ -23,7 +23,7 @@
 #include "mainform.h"
 #include <qfont.h>
 #include <QMessageBox>
-#include "messagereporter.h"
+
 #include "vapor/GetAppPath.h"
 #ifdef WIN32
 #include "Windows.h"
@@ -34,13 +34,13 @@ void myMessageOutput( QtMsgType type, const char *msg )
 {
     switch ( type ) {
         case QtDebugMsg:
-	    MessageReporter::infoMsg("qDebug: %s\n", msg );
+	    
             break;
         case QtWarningMsg:
-            MessageReporter::infoMsg("qWarning: %s\n", msg );
+            
             break;
         case QtFatalMsg:
-            MessageReporter::fatalMsg("qFatal %s\n", msg ); 
+            
 			break;
 		default://ignore QtCriticalMsg and QtSystemMsg
 			break;

@@ -153,9 +153,6 @@ void Visualizer::resizeGL( int width, int height )
    
     GLsizei myheight =  (GLsizei)height;
     GLsizei mywidth = (GLsizei) width;
-    //DEPTH PEELING
-    //This depth peeling implementation makes use of OpenGL Frame Buffer Obects
-    //Two depth and maximum amount of color textures will be used for rendering and depth peeling
 	
    
 
@@ -203,9 +200,6 @@ void Visualizer::resizeGL( int width, int height )
     //Attach all of the available color buffers to the FBO
     //note: refactor to initializeGL
    
-   
-
- 
 	
 #ifdef DEBUG
     cout << "resizeGL complete" << endl;
@@ -254,10 +248,8 @@ void Visualizer::resetView(ViewpointParams* vParams){
 	needsResize = true;
 }
 
-void Visualizer::paintEvent(){
-    regPaintEvent();
-}
-void Visualizer::regPaintEvent()
+
+void Visualizer::paintEvent(bool force)
 {
 	MyBase::SetDiagMsg("Visualizer::paintGL()");
 	//Following is needed in case undo/redo leaves a disabled renderer in the renderer list, so it can be deleted.
@@ -335,7 +327,7 @@ void Visualizer::regPaintEvent()
 	placeLights();
 
 	//Set the GL modelview matrix, based on the Trackball state.
-	glLoadMatrixd(getModelMatrix());
+	glLoadMatrixd(getModelViewMatrix());
 
 	//The prerender callback is set in the vizwin. 
 	//It registers with the animation controller, 
@@ -489,7 +481,7 @@ bool Visualizer::projectPointToWin(float cubeCoords[3], float winCoords[2]){
 	for (int i = 0; i< 3; i++)
 		cbCoords[i] = (double) cubeCoords[i];
 	
-	bool success = gluProject(cbCoords[0],cbCoords[1],cbCoords[2], getModelMatrix(),
+	bool success = gluProject(cbCoords[0],cbCoords[1],cbCoords[2], getModelViewMatrix(),
 		getProjectionMatrix(), getViewport(), wCoords, (wCoords+1),(GLdouble*)(&depth));
 	if (!success) return false;
 	winCoords[0] = (float)wCoords[0];
@@ -504,7 +496,7 @@ bool Visualizer::pixelToVector(float winCoords[2], const float camPos[3], float 
 	GLdouble pt[3];
 	float v[3];
 	//Obtain the coords of a point in view:
-	bool success = gluUnProject((GLdouble)winCoords[0],(GLdouble)winCoords[1],(GLdouble)1.0, getModelMatrix(),
+	bool success = gluUnProject((GLdouble)winCoords[0],(GLdouble)winCoords[1],(GLdouble)1.0, getModelViewMatrix(),
 		getProjectionMatrix(), getViewport(),pt, pt+1, pt+2);
 	if (success){
 		//Convert point to float
@@ -560,10 +552,15 @@ pointIsOnBox(float corners[8][3], float pickPt[2]){
 }
 
 
-//Routine to obtain gl state from viewpointparams
+//Routine to obtain gl matrix from viewpointparams
 GLdouble* Visualizer:: 
-getModelMatrix() {
+getModelViewMatrix() {
 	return (GLdouble*)getActiveViewpointParams()->getModelViewMatrix();
+}
+//Routine to set gl matrix in viewpointparams
+void Visualizer:: 
+setModelViewMatrix(const double mtx[16]) {
+	getActiveViewpointParams()->setModelViewMatrix(mtx);
 }
 //Issue OpenGL commands to draw a grid of lines of the full domain.
 //Grid resolution is up to 2x2x2
@@ -695,7 +692,7 @@ bool Visualizer::faceIsVisible(float* extents, float* viewerCoords, int faceNum)
  * Insert a renderer to this visualizer
  * Add it after all renderers of lower render order
  */
-void Visualizer::
+int Visualizer::
 insertRenderer(RenderParams* rp, Renderer* ren, int newOrder)
 {
 	Params::ParamsBaseType rendType = rp->GetParamsBaseTypeId();
@@ -721,6 +718,7 @@ insertRenderer(RenderParams* rp, Renderer* ren, int newOrder)
 	renderType[lastPosn+1] = rendType;
 	renderOrder[lastPosn+1] = newOrder;
 	ren->initializeGL();
+	return lastPosn+1;
 }
 // Remove all renderers.  This is needed when we load new data into
 // an existing session

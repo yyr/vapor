@@ -53,14 +53,14 @@ class PARAMS_API RegionParams : public Params {
 public: 
 
 	//! \param[in] int winnum The window number, or -1 for a global RegionParams
-	RegionParams(int winnum);
+	RegionParams(XmlNode* parent, int winnum);
 
 	//! Destructor
 	~RegionParams();
 	
 #ifndef DOXYGEN_SKIP_THIS
 
-	static ParamsBase* CreateDefaultInstance() {return new RegionParams(-1);}
+	static ParamsBase* CreateDefaultInstance() {return new RegionParams(0, -1);}
 	const std::string& getShortName() {return _shortName;}
 	virtual Box* GetBox() {
 		ParamNode* pNode = GetRootNode()->GetNode(Box::_boxTag);

@@ -32,7 +32,7 @@
 #include <QLabel>
 #include <QComboBox>
 #include <QIcon>
-#include "command.h"
+
 #include "params.h"
 class QApplication;
 class QSpacerItem;
@@ -57,7 +57,7 @@ class VizWindow;
 class VizWinMgr;
 class VizSelectCombo;
 class Vcr;
-class Session;
+
 class ViewpointEventRouter;
 
 class MainForm : public QMainWindow
@@ -77,8 +77,7 @@ public:
 
 	static void showTab(const std::string& tag);
 	QMdiArea* getMDIArea() {return myMDIArea;}
-	//Disable the editUndo/Redo action:
-	void disableUndoRedo();
+	
 	QApplication* getApp() {return theApp;}
 	
 	void setInteractiveRefinementSpin(int);
@@ -174,19 +173,15 @@ private:
     
 	//Toolbars:
 	QActionGroup* mouseModeActions;
-	
 	QAction* tileAction;
 	QAction* cascadeAction;
 	QAction* homeAction;
 	QAction* sethomeAction;
 	QAction* viewAllAction;
 	QAction* viewRegionAction;
-
 	QAction* stepForwardAction;
 	QAction* stepBackAction;
-	
 	QSpinBox* interactiveRefinementSpin;
-
     QDockWidget* tabDockWindow;
 	
 	
@@ -197,7 +192,7 @@ public slots:
     virtual void fileOpen();
     virtual void fileSave();
     virtual void fileSaveAs();
-    virtual void filePrint();
+    
     virtual void fileExit();
 	virtual void loadPrefs();
 	virtual void savePrefs();
@@ -209,13 +204,13 @@ public slots:
     virtual void helpContents();
     virtual void helpAbout();
     
-    virtual void browseData();
+   
 	virtual void loadData();
 	virtual void defaultLoadData();
-	virtual void mergeData();
+	
 	virtual void importWRFData();
 	virtual void importDefaultWRFData();
-	virtual void saveMetadata();
+	
 	virtual void newSession();
 	virtual void exportToIDL();
     virtual void launchVisualizer();
@@ -248,18 +243,12 @@ protected:
 	virtual void paintEvent(QPaintEvent* e);
 	static MainForm* theMainForm;
 	
-	
 	QMdiArea* myMDIArea;
     static TabManager* tabWidget;
     QDesktopWidget* myDesktopWidget;
-	
 	QApplication* theApp;
-	
 	VizSelectCombo* windowSelector;
-
 	QLabel* modeStatusWidget;
-	
-	
 	Vcr* vcrPanel;
 	
 

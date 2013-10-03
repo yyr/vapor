@@ -37,11 +37,9 @@
 #include "GL/glew.h"
 #include "regionparams.h"
 #include "regiontab.h"
-#include "messagereporter.h"
+
 #include "mainform.h"
-#include "vizwinmgr.h"
-#include "session.h"
-#include "panelcommand.h"
+
 #include <qlineedit.h>
 #include <qcombobox.h>
 #include <qspinbox.h>
@@ -59,9 +57,9 @@
 #include "tabmanager.h"
 
 #include "regioneventrouter.h"
-#include "probeeventrouter.h"
+
 #include "eventrouter.h"
-#include "floweventrouter.h"
+
 
 using namespace VAPoR;
 
@@ -69,13 +67,13 @@ using namespace VAPoR;
 RegionEventRouter::RegionEventRouter(QWidget* parent ): QWidget(parent), Ui_RegionTab(), EventRouter() {
 	setupUi(this);
 	myParamsBaseType = Params::GetTypeFromTag(Params::_regionParamsTag);
-	MessageReporter::infoMsg("RegionEventRouter::RegionEventRouter()");
+	
 	setIgnoreBoxSliderEvents(false);
 }
 
 
 RegionEventRouter::~RegionEventRouter(){
-	if (savedCommand) delete savedCommand;
+	
 }
 /**********************************************************
  * Whenever a new regiontab is created it must be hooked up here
@@ -134,7 +132,7 @@ setRegionTabTextChanged(const QString& ){
 void RegionEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(rParams, "edit region text");
+	
 	float centerPos[3], regSize[3];
 	centerPos[0] = xCntrEdit->text().toFloat();
 	centerPos[1] = yCntrEdit->text().toFloat();
@@ -147,16 +145,15 @@ void RegionEventRouter::confirmText(bool /*render*/){
 	for (int i = 0; i<3; i++)
 		textToSlider(rParams,i,centerPos[i],regSize[i]);
 
-	refreshRegionInfo(rParams);
 	
 	updateTab();
-	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);
+	
 	
 	//Cancel any response to events generated in this method:
 	//
 	guiSetTextChanged(false);
 	
-	PanelCommand::captureEnd(cmd, rParams);
+	
 }
 void RegionEventRouter::
 regionReturnPressed(void){
@@ -165,23 +162,17 @@ regionReturnPressed(void){
 
 
 void RegionEventRouter::copyRakeToRegion(){
-	guiCopyRakeToRegion();
+	
 }
 void RegionEventRouter::copyProbeToRegion(){
-	guiCopyProbeToRegion();
+	
 }
 void RegionEventRouter::copyRegionToRake(){
 	//Need to find relevant Flowparams, make it update with this region.
 	
-	FlowEventRouter* fer = VizWinMgr::getInstance()->getFlowRouter();
-	fer->guiSetRakeToRegion();
+	
 }
-void RegionEventRouter::copyRegionToProbe(){
-	//Need to find relevant Probe, make it update with this region.
-	//Currently there is no probe router
-	ProbeEventRouter* per = VizWinMgr::getInstance()->getProbeRouter();
-	per->guiCopyRegionToProbe();
-}
+
 
 //Insert values from params into tab panel
 //
@@ -209,7 +200,7 @@ void RegionEventRouter::updateTab(){
 		regUsrExts[i] = regLocalExts[i]+usrExts[i%3];
 	}
 
-	Session::getInstance()->blockRecording();
+	
 	for (int i = 0; i< 3; i++){
 		textToSlider(rParams, i, (regUsrExts[i]+regUsrExts[i+3])*0.5f,
 			regUsrExts[i+3]-regUsrExts[i]);
@@ -236,33 +227,15 @@ void RegionEventRouter::updateTab(){
 		LocalGlobal->setCurrentIndex(1);
 	else 
 		LocalGlobal->setCurrentIndex(0);
-	refreshRegionInfo(rParams);
 
-	//Provide latlon box extents if available:
-	if (DataStatus::getProjectionString().size() == 0){
-		minMaxLonLatFrame->hide();
-	} else {
-		double boxLatLon[4];
-		boxLatLon[0] = regUsrExts[0];
-		boxLatLon[1] = regUsrExts[1];
-		boxLatLon[2] = regUsrExts[3];
-		boxLatLon[3] = regUsrExts[4];
-		
-		if (DataStatus::convertToLonLat(boxLatLon,2)){
-			minLonLabel->setText(QString::number(boxLatLon[0]));
-			minLatLabel->setText(QString::number(boxLatLon[1]));
-			maxLonLabel->setText(QString::number(boxLatLon[2]));
-			maxLatLabel->setText(QString::number(boxLatLon[3]));
-			minMaxLonLatFrame->show();
-		} else {
-			minMaxLonLatFrame->hide();
-		}
-	}
+	
+	minMaxLonLatFrame->hide();
+	
 	guiSetTextChanged(false);
 
     relabel();
 	
-	Session::getInstance()->unblockRecording();
+	
 	VizWinMgr::getInstance()->getTabManager()->update();
 	setIgnoreBoxSliderEvents(false);
 }
@@ -272,30 +245,8 @@ void RegionEventRouter::updateTab(){
 //
 void RegionEventRouter::relabel()
 {
-  if (0 && Session::getInstance()->sphericalTransform())
-  {
-    QString labels[3] = {"Lon", "Lat", "Rad"};
-    const DataMgr *dataMgr = Session::getInstance()->getDataMgr();
-    const vector<long> &permutation = dataMgr->GetGridPermutation();
-
-    xCenterLabel->setText(labels[permutation[0]]);
-    yCenterLabel->setText(labels[permutation[1]]);
-    zCenterLabel->setText(labels[permutation[2]]);
-    
-    xSizeLabel->setText(labels[permutation[0]] + " Size");
-    ySizeLabel->setText(labels[permutation[1]] + " Size");
-    zSizeLabel->setText(labels[permutation[2]] + " Size");
-    
-    xUserLabel->setText(labels[permutation[0]]);
-    yUserLabel->setText(labels[permutation[1]]);
-    zUserLabel->setText(labels[permutation[2]]);
-    
-                          
-    xVoxelLabel->setText("Vox" + labels[permutation[0]]);
-    yVoxelLabel->setText("Vox" + labels[permutation[1]]);
-    zVoxelLabel->setText("Vox" + labels[permutation[2]]);
-  }
-  else
+  
+ 
   {
     xCenterLabel->setText("X");
     yCenterLabel->setText("Y");
@@ -478,323 +429,41 @@ sliderToText(RegionParams* rp, int coord, int slideCenter, int slideSize){
 	}
 	guiSetTextChanged(false);
 	update();
-	//force a new render with new flow data
-	VizWinMgr::getInstance()->setVizDirty(rp, RegionBit, true);
+	
 	return;
 }	
-void RegionEventRouter::
-refreshRegionInfo(RegionParams* rParams){
-	//First setup the timestep & refinement components
-	//Make sure that the refinement levels are valid for the specified timestep.
-	//If not, correct them.  If there is no data at specified timestep,
-	//Then don't show anything in refinementCombo
-	int mdVarNum = variableCombo->currentIndex();
-	//This index is only relevant to metadata numbering
-	
-	DataStatus* ds= DataStatus::getInstance();
-	DataMgr* dataMgr = ds->getDataMgr();
-	if (!dataMgr) ds = 0;
-	int timeStep = timestepSpin->value();
-	if (!dataMgr) timeStep = 0;
-	else if ((timeStep < (int)ds->getMinTimestep()) || (timeStep > (int) ds->getMaxTimestep()) )timeStep = ds->getMinTimestep();
-
-	//Get the user coordinate min/max
-	vector<double> userExtents(6,0.);
-	if(dataMgr) userExtents = dataMgr->GetExtents((size_t)timeStep);
-	//Distinguish between the actual data available and the numtransforms
-	//in the metadata.  If the data isn't there, we will display blanks
-	//in the "selected" area.
-	int maxRefLevel = 10;
-	double regionMin[3],regionMax[3];
-	for (int i = 0; i<3; i++){
-		regionMin[i] = (double)rParams->getLocalRegionMin(i,timeStep)+userExtents[i];
-		regionMax[i] = (double)rParams->getLocalRegionMax(i,timeStep)+userExtents[i];
-	}
-	
-	int varNum = -1;
-	std::string varName;
-	bool is3D = false;
-	int orientation = -1;
-	if (ds ) {
-		const DataMgr* dataMgr = ds->getDataMgr();
-		varName = dataMgr->GetVariableNames()[mdVarNum];
-		vector<string> varnames = dataMgr->GetVariables3D();
-		for (int i = 0; i< varnames.size(); i++){
-			if (varName == varnames[i]) {
-				is3D = true;
-				break;
-			}
-		}
-		if (is3D){
-			varNum = ds->getSessionVariableNum3D(varName);
-			maxRefLevel = ds->maxXFormPresent3D(varNum, timeStep);
-		}
-		else {
-			int mdVarnum = ds->getActiveVarNum2D(varName);
-			orientation = ds->get2DOrientation(mdVarnum);
-			varNum = ds->getSessionVariableNum2D(varName);
-			maxRefLevel = ds->maxXFormPresent2D(varNum, timeStep);
-		}
-		
-	} 
-
-	int refLevel = refinementCombo->currentIndex();
-	
-	minXFullLabel->setText(QString::number(userExtents[0],'g',3));
-	minYFullLabel->setText(QString::number(userExtents[1],'g',3));
-	minZFullLabel->setText(QString::number(userExtents[2],'g',3));
-	maxXFullLabel->setText(QString::number(userExtents[3],'g',3));
-	maxYFullLabel->setText(QString::number(userExtents[4],'g',3));
-	maxZFullLabel->setText(QString::number(userExtents[5],'g',3));
-	
-	//For now, the min and max var extents are the whole thing:
 
 
-	minXSelectedLabel->setText(QString::number(regionMin[0],'g',3));
-	minYSelectedLabel->setText(QString::number(regionMin[1],'g',3));
-	minZSelectedLabel->setText(QString::number(regionMin[2],'g',3));
-	maxXSelectedLabel->setText(QString::number(regionMax[0],'g',3));
-	maxYSelectedLabel->setText(QString::number(regionMax[1],'g',3));
-	maxZSelectedLabel->setText(QString::number(regionMax[2],'g',3));
 
-
-	//Now produce the corresponding voxel coords:
-	size_t min_dim[3] = {0,0,0}, max_dim[3] = {0,0,0};
-		
-	// if region isn't valid just don't show the bounds:
-	if (ds && refLevel <= maxRefLevel){
-		dataMgr->GetEnclosingRegion(timeStep,regionMin,regionMax,min_dim,max_dim,refLevel);
-		minXVoxSelectedLabel->setText(QString::number(min_dim[0]));
-		minYVoxSelectedLabel->setText(QString::number(min_dim[1]));
-		minZVoxSelectedLabel->setText(QString::number(min_dim[2]));
-		maxXVoxSelectedLabel->setText(QString::number(max_dim[0]));
-		maxYVoxSelectedLabel->setText(QString::number(max_dim[1]));
-		maxZVoxSelectedLabel->setText(QString::number(max_dim[2]));
-	} else { 
-		minXVoxSelectedLabel->setText("");
-		minYVoxSelectedLabel->setText("");
-		minZVoxSelectedLabel->setText("");
-		maxXVoxSelectedLabel->setText("");
-		maxYVoxSelectedLabel->setText("");
-		maxZVoxSelectedLabel->setText("");
-	}
-	
-	if (ds){
-		//Entire region size in voxels
-		for (int i = 0; i<3; i++){
-			max_dim[i] = ds->getFullSizeAtLevel(refLevel,i) - 1;
-	
-		}
-	}
-	minXVoxFullLabel->setText("0");
-	minYVoxFullLabel->setText("0");
-	minZVoxFullLabel->setText("0");
-	maxXVoxFullLabel->setText(QString::number(max_dim[0]));
-	maxYVoxFullLabel->setText(QString::number(max_dim[1]));
-	maxZVoxFullLabel->setText(QString::number(max_dim[2]));
-
-	//Find the variable voxel limits:
-	size_t min_vdim[3], max_vdim[3];
-	
-	double var_ext[6];
-	int rc = -1;
-	if (ds && refLevel <= maxRefLevel )
-		rc = RegionParams::getValidRegion(timeStep, varName.c_str(),
-			refLevel, min_vdim, max_vdim);
-	if (rc>= 0)	{
-		minXVoxVarLabel->setText(QString::number(min_vdim[0]));
-		minYVoxVarLabel->setText(QString::number(min_vdim[1]));
-		minZVoxVarLabel->setText(QString::number(min_vdim[2]));
-		maxXVoxVarLabel->setText(QString::number(max_vdim[0]));
-		maxYVoxVarLabel->setText(QString::number(max_vdim[1]));
-		maxZVoxVarLabel->setText(QString::number(max_vdim[2]));
-		
-		dataMgr->MapVoxToUser((size_t)timeStep, min_vdim, var_ext,refLevel,0);
-		dataMgr->MapVoxToUser((size_t)timeStep, max_vdim, var_ext+3,refLevel,0);
-		
-		//Use full extents if variable is at extremes, to avoid confusion...
-		for (int k = 0; k<3; k++){
-			if (min_vdim[k] == 0) var_ext[k] = userExtents[k];
-			if (max_vdim[k] == max_dim[k]) var_ext[k+3] = userExtents[k+3];
-		}
-		//Calculate fraction of extents:
-		minVarXLabel->setText(QString::number(var_ext[0],'g',3));
-		minVarYLabel->setText(QString::number(var_ext[1],'g',3));
-		minVarZLabel->setText(QString::number(var_ext[2],'g',3));
-		maxVarXLabel->setText(QString::number(var_ext[3],'g',3));
-		maxVarYLabel->setText(QString::number(var_ext[4],'g',3));
-		maxVarZLabel->setText(QString::number(var_ext[5],'g',3));
-	} else {
-		minXVoxVarLabel->setText("");
-		minYVoxVarLabel->setText("");
-		minZVoxVarLabel->setText("");
-		maxXVoxVarLabel->setText("");
-		maxYVoxVarLabel->setText("");
-		maxZVoxVarLabel->setText("");
-		minVarXLabel->setText("");
-		minVarYLabel->setText("");
-		minVarZLabel->setText("");
-		maxVarXLabel->setText("");
-		maxVarYLabel->setText("");
-		maxVarZLabel->setText("");
-	}
-
-	switch (orientation){
-		case 0 : 
-			minVarXLabel->setText("-");
-			maxVarXLabel->setText("-");
-			minXVoxVarLabel->setText("-");
-			maxXVoxVarLabel->setText("-");
-			minXVoxSelectedLabel->setText("-");
-			maxXVoxSelectedLabel->setText("-");
-			minXSelectedLabel->setText("-");
-			maxXSelectedLabel->setText("-");
-			break;
-		case 1 : 
-			minVarYLabel->setText("-");
-			maxVarYLabel->setText("-");
-			minYVoxVarLabel->setText("-");
-			maxYVoxVarLabel->setText("-");
-			minYVoxSelectedLabel->setText("-");
-			maxYVoxSelectedLabel->setText("-");
-			minYSelectedLabel->setText("-");
-			maxYSelectedLabel->setText("-");
-			break;
-		case 2 : 
-			minVarZLabel->setText("-");
-			maxVarZLabel->setText("-");
-			minZVoxVarLabel->setText("-");
-			maxZVoxVarLabel->setText("-");
-			minZVoxSelectedLabel->setText("-");
-			maxZVoxSelectedLabel->setText("-");
-			minZSelectedLabel->setText("-");
-			maxZSelectedLabel->setText("-");
-			break;
-		default:
-			break;
-	}
-	if (rc >= 0){
-		rParams->getRegionVoxelCoords(refLevel,0,min_dim,max_dim,
-									  timeStep);
-		
-		//Size needed for data assumes blocksize = 2**5, 6 bytes per voxel, times 2.
-		float newFullMB;
-		if (is3D)
-			newFullMB = (float)((max_dim[0]-min_dim[0]+1)*(max_dim[1]-min_dim[1]+1)*(max_dim[2]-min_dim[2]+1));
-		else {
-			//get other coords:
-			int crd0 = 0, crd1 = 1;
-			if (orientation < 2) crd1++;
-			if (orientation < 1) crd0++;
-			newFullMB = (float)((max_dim[crd0]-min_dim[crd0]+1)*(max_dim[crd1]-min_dim[crd1]+1));
-		}
-		
-		//divide by 1 million for megabytes, mult by 4 for 4 bytes per voxel:
-		newFullMB /= 262144.f;
-
-		selectedDataSizeLabel->setText(QString::number(newFullMB,'g',8));
-	}
-	else
-		selectedDataSizeLabel->setText("Data not present in VDC");
-}
-
-//Methods in support of undo/redo:
-//
-//Make region match probe.  Responds to button in region panel
-void RegionEventRouter::
-guiCopyProbeToRegion(){
-	confirmText(false);
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "copy probe to region");
-	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_probeParamsTag);
-	if (pParams->getPhi() != 0.f ||
-		pParams->getTheta() != 0.f ||
-		pParams->getPsi() != 0.f) {
-			MessageReporter::warningMsg("Note: current probe is rotated.\n%s",
-				"Copied region is the smallest \naxis-aligned box that contains the probe");
-	}
-	float regMin[3], regMax[3];
-	pParams->getLocalContainingRegion(regMin, regMax);
-	rParams->setLocalBox(regMin, regMax,timestep);
-	updateTab();
-	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);
-	PanelCommand::captureEnd(cmd,rParams);
-	
-}
-//Make region match rake.  Responds to button in region panel
-void RegionEventRouter::
-guiCopyRakeToRegion(){
-	confirmText(false);
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "copy rake to region");
-	FlowParams* fParams = (FlowParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_flowParamsTag);
-	float boxmin[3],boxmax[3];
-	fParams->getLocalBox(boxmin, boxmax, timestep);
-	rParams->setLocalBox(boxmin, boxmax, timestep);
-	
-	updateTab();
-	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);
-	PanelCommand::captureEnd(cmd,rParams);
-	
-}
-void RegionEventRouter::
-guiSetVarNum(int n){
-	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(rParams, "set variable");
-	rParams->setInfoVarNum(n);
-	refreshRegionInfo(rParams);
-	PanelCommand::captureEnd(cmd, rParams);
-
-}
-void RegionEventRouter::guiSetTimeStep(int n){
-	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(rParams, "set time step");
-	rParams->setInfoTimeStep(n);
-	PanelCommand::captureEnd(cmd, rParams);
-	updateTab();
-}
-void RegionEventRouter::
-guiSetNumRefinements(int n){
-	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(rParams, "set number of Refinements");
-	rParams->setInfoNumRefinements(n);
-	refreshRegionInfo(rParams);
-	PanelCommand::captureEnd(cmd, rParams);
-}
 
 
 //Move the region center to specified user coords, shrink it if necessary
 void RegionEventRouter::
-guiSetCenter(const float* coords){
+guiSetCenter(const double* coords){
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 
 	if (!DataStatus::getInstance()->getDataMgr()) return;
-	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "move region center");
+	
 	
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double>&userExtents = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
-	float boxmin[3], boxmax[3];
-	rParams->getLocalBox(boxmin,boxmax,timestep);
+	float boxexts[6];
+	rParams->GetBox()->GetLocalExtents(boxexts, timestep);
+	
 	for (int i = 0; i< 3; i++){
 		float coord = coords[i];
 		float fullMin = userExtents[i];
 		float fullMax = userExtents[i+3];
 		if (coord < fullMin) coord = fullMin;
 		if (coord > fullMax) coord = fullMax;
-		float regSize = boxmax[i]-boxmin[i];
+		float regSize = boxexts[i+3]-boxexts[i];
 		if (coord + 0.5f*regSize > fullMax) regSize = 2.f*(fullMax - coord);
 		if (coord - 0.5f*regSize < fullMin) regSize = 2.f*(coord - fullMin);
-		boxmax[i] = coord + 0.5f*regSize - userExtents[i];
-		boxmin[i] = coord - 0.5f*regSize - userExtents[i];
+		boxexts[i+3] = coord + 0.5f*regSize - userExtents[i];
+		boxexts[i] = coord - 0.5f*regSize - userExtents[i];
 	}
-	rParams->setLocalBox(boxmin, boxmax, timestep);
-	PanelCommand::captureEnd(cmd, rParams);
-	VizWinMgr::getInstance()->setRegionDirty(rParams);
+	rParams->GetBox()->SetLocalExtents(boxexts, timestep);
+	
 }
 //Following are set when slider is released:
 void RegionEventRouter::
@@ -802,14 +471,11 @@ guiSetXCenter(int sliderval){
 	if(ignoreBoxSliderEvents)return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "slide region X center");
+	
 	
 	sliderToText(rParams, 0, sliderval, xSizeSlider->value());
 	
-	PanelCommand::captureEnd(cmd, rParams);
-	refreshRegionInfo(rParams);
-	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);
-	VizWinMgr::getInstance()->setRegionDirty(rParams);
+	
 }
 //Following are set when slider is released:
 void RegionEventRouter::
@@ -817,11 +483,8 @@ guiSetYCenter(int sliderval){
 	if(ignoreBoxSliderEvents)return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "slide region Y center");
+	
 	sliderToText(rParams, 1, sliderval, ySizeSlider->value());
-	refreshRegionInfo(rParams);
-	PanelCommand::captureEnd(cmd, rParams);
-	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);
 	
 }
 //Following are set when slider is released:
@@ -830,11 +493,8 @@ guiSetZCenter(int sliderval){
 	if(ignoreBoxSliderEvents)return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "slide region Z center");
+	
 	sliderToText(rParams, 2, sliderval, zSizeSlider->value());
-	refreshRegionInfo(rParams);
-	PanelCommand::captureEnd(cmd, rParams);
-	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);
 	
 }
 
@@ -843,53 +503,45 @@ guiSetXSize(int sliderval){
 	if(ignoreBoxSliderEvents)return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "slide region X size");
+	
 	sliderToText(rParams, 0, xCenterSlider->value(),sliderval);
-	refreshRegionInfo(rParams);
-	PanelCommand::captureEnd(cmd, rParams);
-	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);
+	
 }
 void RegionEventRouter::
 guiSetYSize(int sliderval){
 	if(ignoreBoxSliderEvents)return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "slide region Y size");
+	
 	sliderToText(rParams, 1, yCenterSlider->value(),sliderval);
-	refreshRegionInfo(rParams);
-	PanelCommand::captureEnd(cmd, rParams);
-	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);
+	
 }
 void RegionEventRouter::
 guiSetZSize(int sliderval){
 	if(ignoreBoxSliderEvents)return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "slide region Z size");
+	
 	sliderToText(rParams, 2, zCenterSlider->value(),sliderval);
-	refreshRegionInfo(rParams);
-	PanelCommand::captureEnd(cmd, rParams);
-	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);
+	
 }
 
 void RegionEventRouter::
 guiSetMaxSize(){
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(rParams, "change region size to max");
+	
 	const float* fullDataExtents = DataStatus::getInstance()->getLocalExtents();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	float boxmin[3],boxmax[3];
+	float boxexts[6];
 	for (int i = 0; i<3; i++){
-		boxmin[i] = 0.;
-		boxmax[i]= fullDataExtents[i+3]-fullDataExtents[i];
+		boxexts[i] = 0.;
+		boxexts[i+3]= fullDataExtents[i+3]-fullDataExtents[i];
 	}
-	rParams->setLocalBox(boxmin, boxmax, timestep);
+	rParams->GetBox()->SetLocalExtents(boxexts, timestep);
 	
 	updateTab();
-	PanelCommand::captureEnd(cmd, rParams);
-
-	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);
+	
 }
 
 //Reinitialize region tab settings, session has changed
@@ -898,7 +550,7 @@ void RegionEventRouter::
 reinitTab(bool doOverride){
 	int i;
 	setIgnoreBoxSliderEvents(false);
-	const DataMgr *dataMgr = Session::getInstance()->getDataMgr();
+	const DataMgr *dataMgr = DataStatus::getInstance()->getDataMgr();
 	
 	//Set up the combo boxes in the gui based on info in the session:
 	const vector<string>& varNames = dataMgr->GetVariableNames();
@@ -933,8 +585,7 @@ captureMouseDown(int){
 	//
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	guiSetTextChanged(false);
-	if (savedCommand) delete savedCommand;
-	savedCommand = PanelCommand::captureStart(rParams,  "slide region handle");
+	
 	
 	//Force a rerender, so we will see the selected face:
 	VizWinMgr::getInstance()->refreshRegion(rParams);
@@ -943,26 +594,15 @@ void RegionEventRouter::
 captureMouseUp(){
 	//Update the tab:
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	if (!savedCommand) return;
+	
 	updateTab();
-	PanelCommand::captureEnd(savedCommand, rParams);
-	//Set region  dirty
-	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);
-	savedCommand = 0;
+	
+	
 	//Force a rerender:
 	VizWinMgr::getInstance()->refreshRegion(rParams);
 	
 }
-void RegionEventRouter::
-makeCurrent(Params* prev, Params* nextParams ,bool, int,bool) {
-	RegionParams* rParams = (RegionParams*) nextParams;
-	int vizNum = rParams->getVizNum();
-	VizWinMgr::getInstance()->setRegionParams(vizNum, rParams);
-	//Also update current Tab.  It's probably visible.
-	//
-	updateTab();
-	VizWinMgr::getInstance()->setVizDirty(rParams,RegionBit,true);
-}
+
 void RegionEventRouter::
 guiLoadRegionExtents(){
 	//load a list of
@@ -972,7 +612,7 @@ guiLoadRegionExtents(){
 	//Launch a file-open dialog
 	QString filename = QFileDialog::getOpenFileName(this,
         	"Specify file name for loading list of time-varying Region extents", 
-		Session::getInstance()->getFlowDirectory().c_str(),
+		".",
         	"Text files (*.txt)");
 	//Check that user did specify a file:
 	if (filename.isNull()) {
@@ -982,12 +622,12 @@ guiLoadRegionExtents(){
 	//Open the file:
 	FILE* regionFile = fopen((const char*)filename.toAscii(),"r");
 	if (!regionFile){
-		MessageReporter::errorMsg("Region Load Error;\nUnable to open file %s",(const char*)filename.toAscii());
+		
 		return;
 	}
 	//File is OK, save the state in command queue
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(rParams, "read regions file");
+	
 
 	const float* fullExtents = DataStatus::getInstance()->getLocalExtents();
 	//Read the file
@@ -1002,7 +642,7 @@ guiLoadRegionExtents(){
 			
 		if (numVals < 7) {
 			if (numVals > 0 && numregions > 0){
-				MessageReporter::warningMsg("Invalid region extents at timestep %d",ts);
+				
 			}
 			break;
 		}
@@ -1015,7 +655,7 @@ guiLoadRegionExtents(){
 			if (exts[i] > exts[i+3]) { ok = false; exts[i+3] = exts[i];}
 		}
 		if (!ok){
-			MessageReporter::warningMsg("Repaired region extents at timestep %d",ts);
+			
 		}
 		rParams->insertTime(ts);
 		double dbexts[6];
@@ -1024,18 +664,18 @@ guiLoadRegionExtents(){
 
 	}
 	if (numregions == 0) {
-		MessageReporter::errorMsg("Region Load Error;\nNo valid region extents in file %s",(const char*)filename.toAscii());
-		delete cmd;
+		
+		
 		fclose(regionFile);
 		return;
 	}
 
 	
-	PanelCommand::captureEnd(cmd, rParams);
+	
 	
 	fclose(regionFile);
 	updateTab();
-	VizWinMgr::getInstance()->setVizDirty(rParams,RegionBit,true);
+	
 }
 void RegionEventRouter::
 saveRegionExtents(){
@@ -1048,13 +688,13 @@ saveRegionExtents(){
 	
 	//Are there any extents to write?
 	if (!rParams->extentsAreVarying()) {
-		MessageReporter::errorMsg("No time-varying region extents to write to file");
+		
 		return;
 	}
 	//Launch a file-open dialog
 	QString filename = QFileDialog::getSaveFileName(this,
         	"Specify file name for saving list of current time-varying Local Region extents",
-		Session::getInstance()->getFlowDirectory().c_str(),
+		".",
         	"Text files (*.txt)");
 	//Check that user did specify a file:
 	if (filename.isNull()) {
@@ -1064,7 +704,7 @@ saveRegionExtents(){
 	//Open the file:
 	FILE* regionFile = fopen((const char*)filename.toAscii(),"w");
 	if (!regionFile){
-		MessageReporter::errorMsg("Region Save Error;\nUnable to open file %s",(const char*)filename.toAscii());
+		
 		return;
 	}
 	const vector<double> extents = rParams->GetAllExtents();
@@ -1076,7 +716,7 @@ saveRegionExtents(){
 		int rc = fprintf(regionFile, "%d %g %g %g %g %g %g\n",
 			timestep, exts[0], exts[1],exts[2], exts[3],exts[4], exts[5]);
 		if (rc < 7) {
-			MessageReporter::errorMsg("Error writing region extents at timestep %d",timestep);
+			
 			fclose(regionFile);
 			return;
 		}
@@ -1089,11 +729,11 @@ guiAdjustExtents(){
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "adjust current extents");
+	
 	
 	if(!rParams->insertTime(timestep)){  //no change
-		delete cmd;
+		
 		return;
 	}
-	PanelCommand::captureEnd(cmd, rParams);
+	
 }

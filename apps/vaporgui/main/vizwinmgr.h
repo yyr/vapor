@@ -27,45 +27,28 @@ class QMainWidget;
 class QTimer;
 
 #include <qobject.h>
-#include "twoDdataparams.h"
-#include "twoDimageparams.h"
+
 #include "viewpointparams.h"
 #include "regionparams.h"
-#include "probeparams.h"
-#include "flowparams.h"
-
-#include "dvrparams.h"
 #include "animationparams.h"
 #include <vapor/common.h>
 #include "params.h"
-#include "command.h"
 
+#define MAXVIZWINS 16
 
 namespace VAPoR{
-class AnimationController;
-class AnimationParams;
 
+class AnimationParams;
 class EventRouter;
 class TabManager;
 class MainForm;
 class ViewpointParams;
 class RegionParams;
-class DvrParams;
-class ProbeParams;
-class TwoDDataParams;
-class TwoDImageParams;
-class Trackball;
+
 class VizWin;
 class AnimationEventRouter;
 class RegionEventRouter;
-class DvrEventRouter;
-class ProbeEventRouter;
-class TwoDDataEventRouter;
-class TwoDImageEventRouter;
 class ViewpointEventRouter;
-class FlowEventRouter;
-class IsoEventRouter;
-
 typedef EventRouter* (EventRouterCreateFcn)();
 
 //! \class VizWinMgr
@@ -77,7 +60,7 @@ typedef EventRouter* (EventRouterCreateFcn)();
 //!	Its main function is to keep track of what visualizers are active
 //!	and what EventRouter and Params instances are associated with each visualizer.
 //
-class VizWinMgr : public QObject, public ParsedXml
+class VizWinMgr : public QObject
 {
 	Q_OBJECT
 
@@ -106,8 +89,7 @@ public:
 	//! \param[in] bool always indicates that rerender will occur even if the params is disabled.
 	void forceRender(RenderParams* rp, bool always=false);
 	
-	//!Method that forces all glWindows to reload their shaders
-	bool reloadShaders();
+	
 	//! Static method obtains the EventRouter instance associated with a particular Params type.  There is a unique EventRouter
 	//! subclass associated with each tab, and a unique instance of that subclass.
 	//! \param[in] Params::ParamsBaseType TypeId of the Params type
@@ -134,15 +116,7 @@ public:
 	//! \retval Params* pointer to the associated Params instance
 	static Params* getGlobalParams(Params::ParamsBaseType ptype);
 
-	//! Method that specifies a params instance that is to be associated with a particular instance index in the renderer tab. 
-	//! This is needed during EventRouter::MakeCurrent(), when the
-	//! Params instance changes as a result of Undo/Redo action.
-	//! \param[in] int winNum : Visualizer number
-	//! \param[in] Params* p : Pointer to the new Params instance
-	//! \param[in] ParamsBase::ParamsBaseType TypeId associated with this Params
-	//! \param[in] int instance : The index of the associated instance, or -1 for the active instance.
-	void setParams(int winNum, Params* p, ParamsBase::ParamsBaseType typeId, int instance = -1);
-
+	
 	//! Method that identifies the params instance associated with a visualizer, type, and instance index. 
 	//! \param[in] int winNum : Visualizer number
 	//! \param[in] ParamsBase::ParamsBaseType TypeId associated with this Params
@@ -190,16 +164,7 @@ public:
 		return getApplicableParams(ParamsBase::GetTypeFromTag(tag));
 	}
 
-	//! General function for window-specific dirty bit setting.
-	//! Useful when the state of a Params has changed and some window(s) will need to be redrawn.
-	//! Turns on or off the specified dirty bit in all of the windows where the
-	//! specified Params is used.
-	//! Optionally requests a refresh in those windows.
-	//! \param[in] Params* : Pointer to a Params instance.
-	//! \param[in] DirtyBitType bittype : Dirty bit that is being set
-	//! \param[in] bit : Indicates whether it is being set dirty (true, default) or clean.
-	//! \param[in] bool refresh : Indicates whether a refresh is also requested; true by default.
-	void setVizDirty(Params* p, DirtyBitType bittype, bool bit = true, bool refresh = true);
+	
 
 	//! Static method that enables use of a manipulator with a Mouse Mode. 
 	//! \param[in] const std::string Tag associated with Params class that owns the manipulator
@@ -216,50 +181,25 @@ public:
 			theVizWinMgr = new VizWinMgr();
 		return theVizWinMgr;
 	}
-	static DvrParams* getActiveDvrParams(){
-		return((DvrParams*)Params::GetParamsInstance(Params::_dvrParamsTag,getInstance()->activeViz,-1));
-	}
-	static ProbeParams* getActiveProbeParams(){
-		return ((ProbeParams*)Params::GetParamsInstance(Params::_probeParamsTag,getInstance()->activeViz,-1));}
-	static TwoDDataParams* getActiveTwoDDataParams(){
-		return ((TwoDDataParams*)Params::GetParamsInstance(Params::_twoDDataParamsTag,getInstance()->activeViz,-1));}
-	static TwoDImageParams* getActiveTwoDImageParams(){
-		return ((TwoDImageParams*)Params::GetParamsInstance(Params::_twoDImageParamsTag,getInstance()->activeViz,-1));}
+	
 	static RegionParams* getActiveRegionParams(){
 		return (getInstance()->getRegionParams(getInstance()->activeViz));
 	}
-	static FlowParams* getActiveFlowParams(){
-		return ((FlowParams*)Params::GetParamsInstance(Params::_flowParamsTag,getInstance()->activeViz,-1));}
 	static ViewpointParams* getActiveVPParams(){
 		return (getInstance()->getViewpointParams(getInstance()->activeViz));
 	}
 	static AnimationParams* getActiveAnimationParams(){
 		return (getInstance()->getAnimationParams(getInstance()->activeViz));
 	}
-	
-	void createAllDefaultParams();
+	void createAllDefaultTabs();
+	void InstallExtensionTabs();
 	void RegisterMouseModes();
     
     //Respond to end:
     void closeEvent();
     void vizAboutToDisappear(int i); 
 
-    //Public Inlines:
-    //Respond to user events,
-    //Make sure this state tracks actual window state.
-    void minimize(int i) {
-        isMin[i] = true;
-        isMax[i] = false;
-    }
-    void maximize(int i) {
-        isMin[i] = false;
-        isMax[i] = true;
     
-    }
-    void normalize(int i) {
-        isMin[i] = false;
-        isMax[i] = false;
-    }
     //method to launch a viz window, returns vizNum
 	//Default values create a new vis use whatever available number.
 	//If usenum is >= 0 it relaunches a previously used visualizer.
@@ -267,8 +207,7 @@ public:
 	//at position "newNum"
     int launchVisualizer(int usenum = -1, const char* name = "", int newNum = -1);
     
-	void nameChanged(QString& name, int num);
-    
+	
     int getNumVisualizers(); 
     TabManager* getTabManager() { return tabManager;}
     
@@ -286,26 +225,8 @@ public:
 	//For a renderer, there will only exist a local version.
 	// If instance is negative, return the current instance.
 	
-	Params* getIsoParams(int winnum, int instance = -1){
-		return Params::GetParamsInstance(Params::GetTypeFromTag(Params::_isoParamsTag),winnum, instance);
-	}
-	Params* getDvrParams(int winnum, int instance = -1){
-		return Params::GetParamsInstance(Params::GetTypeFromTag(Params::_dvrParamsTag),winnum, instance);
-	}
-	ProbeParams* getProbeParams(int winNum, int instance = -1);
-	TwoDDataParams* getTwoDDataParams(int winNum, int instance = -1);
-	TwoDImageParams* getTwoDImageParams(int winNum, int instance = -1);
 	
-	int getNumFlowInstances(int winnum){return Params::GetNumParamsInstances(Params::_flowParamsTag,winnum);}
-	int getNumProbeInstances(int winnum){return Params::GetNumParamsInstances(Params::_probeParamsTag,winnum);}
-	int getNumTwoDDataInstances(int winnum){return Params::GetNumParamsInstances(Params::_twoDDataParamsTag,winnum);}
-	int getNumTwoDImageInstances(int winnum){return Params::GetNumParamsInstances(Params::_twoDImageParamsTag,winnum);}
-	int getNumDvrInstances(int winnum){
-		return Params::GetNumParamsInstances(Params::_dvrParamsTag, winnum);
-	}
-	int getNumIsoInstances(int winnum){
-		return Params::GetNumParamsInstances(Params::_isoParamsTag, winnum);
-	}
+	
 	
 	void setCurrentInstanceIndex(int winnum, int inst, Params::ParamsBaseType t);
 	
@@ -315,16 +236,14 @@ public:
 	
 	
 	void removeInstance(int winnum, int instance, Params::ParamsBaseType t);
-	FlowParams* getFlowParams(int winNum, int instance = -1);
+	
 	AnimationParams* getAnimationParams(int winNum);
 
 	RegionEventRouter* getRegionRouter();
 	AnimationEventRouter* getAnimationRouter(); 
-	ProbeEventRouter* getProbeRouter();
-	TwoDDataEventRouter* getTwoDDataRouter(); 
-	TwoDImageEventRouter* getTwoDImageRouter();
+	
 	ViewpointEventRouter* getViewpointRouter();
-	FlowEventRouter* getFlowRouter();
+
 
 	
 	//Make all the params for the current window update their tabs:
@@ -340,9 +259,6 @@ public:
 	bool isMaximized(int winNum) {return isMax[winNum];}
 	
 	
-	void setViewpointParams(int winNum, ViewpointParams* p){setParams(winNum, (Params*)p, Params::GetTypeFromTag(Params::_viewpointParamsTag));}
-	void setRegionParams(int winNum, RegionParams* p){setParams(winNum, (Params*)p, Params::GetTypeFromTag(Params::_regionParamsTag));}
-	void setAnimationParams(int winNum, AnimationParams* p){setParams(winNum, (Params*)p, Params::GetTypeFromTag(Params::_animationParamsTag));}
 	void replaceGlobalParams(Params* p, ParamsBase::ParamsBaseType t);
 	void createDefaultParams(int winnum);
 	Params* getCorrespondingLocalParams(Params* p) {
@@ -357,7 +273,7 @@ public:
 		if (p->isLocal()) return (ViewpointParams*)p;
 		return (ViewpointParams*)Params::GetDefaultParams(Params::_viewpointParamsTag);
 	}
-	Trackball* getGlobalTrackball() {return globalTrackball;}
+	//Trackball* getGlobalTrackball() {return globalTrackball;}
 	
 	//Force all renderers to re-obtain render data
 	void refreshRenderData();
@@ -372,38 +288,10 @@ public:
 	//region parameter setting
 	//
 	
-	void setRegionDirty(RegionParams* p){setVizDirty(p, RegionBit, true);}
-	
-	//AnimationParams, force a render.  Probe & Volume renderer need to rebuild
-	//
-	void setAnimationDirty(AnimationParams* ap){setVizDirty(ap, AnimationBit, true);}
-	//Force rerender of window using a flowParams, or region params..
-	//
-	void refreshFlow(FlowParams*);
 	void refreshViewpoint(ViewpointParams* vParams);
 	void refreshRegion(RegionParams* rParams);
-	void refreshProbe(ProbeParams* pParams);
-	void refreshTwoDData(TwoDDataParams* pParams);
-	void refreshTwoDImage(TwoDImageParams* pParams);
 	
-	//Force dvr renderer to get latest CLUT
-	//
-	void setClutDirty(RenderParams* p);
 	
-	//Force dvr renderers to get latest DataRange
-	//
-	void setDatarangeDirty(RenderParams* p); 
-	void setFlowGraphicsDirty(FlowParams* p);
-	void setFlowDataDirty(FlowParams* p, bool doInterrupt = true);
-	void setFlowDisplayListDirty(FlowParams* p);
-	bool flowDataIsDirty(FlowParams* p);
-
-	//Force reconstructing of all elevation grids
-	void setAllTwoDElevDirty();
-	//Tell the animationController that the frame counter has changed 
-	//for all the associated windows.
-	//
-	void animationParamsChanged(AnimationParams* );
 	//Reset the near/far distances for all the windows that
 	//share a viewpoint, based on region in specified regionparams
 	//
@@ -411,9 +299,7 @@ public:
 	//Set the viewer coords changed flag in all the visualizers
 	//that use these vp params:
 	void setViewerCoordsChanged(ViewpointParams* vp);
-	//Change to play state for the specified renderers:
-	//
-	void startPlay(AnimationParams* aParams);
+	
 	//Tell all parameter panels to reinitialize (based on change of 
 	//Metadata).  If the parameter is true, we can override the panels' 
 	//previous state
@@ -430,17 +316,14 @@ public:
 	//Make each window use its viewpoint params
 	void initViews();
 	
-	//Methods to handle save/restore of session state
-	ParamNode* buildNode();
-	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
-	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
+	
 	//this tag needs to be visible in session class
 	static const string _visualizersTag;
 
 	
 	
 	void setInteractiveNavigating(int level);
-	bool findCoincident2DSurface(int vizwin,  float coordinate, TwoDParams *tParams);
+	
 	void stopFlowIntegration();
 
 	
@@ -572,7 +455,7 @@ protected:
 		}
 		return mj;
 	}
-	Trackball* globalTrackball;
+	//Trackball* globalTrackball;
 
 	
 
@@ -584,8 +467,7 @@ protected:
 	int parsingVizNum, parsingDvrInstance, parsingIsoInstance,parsingFlowInstance, parsingProbeInstance,parsingTwoDDataInstance,parsingTwoDImageInstance;
 	
     QMdiArea* myMDIArea;
-	FlowTab* myFlowTab;
-
+	
     int     benchmark;
     QTimer *benchmarkTimer;
 	bool spinAnimate;

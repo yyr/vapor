@@ -107,7 +107,21 @@ public:
 	//! \retval int Resulting mouse mode
 	static int AddMouseMode(const std::string paramsTag, int manipType, const char* name);
 
+	//! Method to initialize GL rendering.  Must  be called from a GL context.
+	void	initializeGL();
+	//Following QT 4 guidance (see bubbles example), opengl painting is performed
+	//in paintEvent(), so that we can paint nice text over the window.
+	// Visualizer::paintGL() is not implemented.
+	// The other changes include:
+	// GL_MULTISAMPLE is enabled
+	// Visualizer::updateGL() is replaced by Visualizer::update()
+	// resizeGL() contents have been moved to setUpViewport(), which is also called 
+	// from paintEvent().
+	// setAutoFillBackground(false) is called in the Visualizer constructor
 
+	void paintEvent(bool force);
+
+	void resizeGL( int w, int h );
 
 #ifndef DOXYGEN_SKIP_THIS
 	 Visualizer( int winnum);
@@ -187,16 +201,17 @@ public:
 	Params::ParamsBaseType getRendererType(int i) {return renderType[i];}
 
 	Renderer* getRenderer(int i) {return renderer[i];}
+	int getNumRenderers(){return renderer.size();}
 	Renderer* getRenderer(RenderParams* p);
 	
 	//Renderers can be added early or late, using a "render Order" parameter.
 	//The order is between 0 and 10; lower order gets rendered first.
 	//Sorted renderers get sorted before each render
 	//
-	void insertSortedRenderer(RenderParams* p, Renderer* ren){insertRenderer(p, ren, 5);}
-	void prependRenderer(RenderParams* p, Renderer* ren) {insertRenderer(p, ren, 0);}
-	void appendRenderer(RenderParams* p, Renderer* ren){insertRenderer(p, ren, 10);}
-	void insertRenderer(RenderParams* p, Renderer* ren, int order);
+	int insertSortedRenderer(RenderParams* p, Renderer* ren){return insertRenderer(p, ren, 5);}
+	int prependRenderer(RenderParams* p, Renderer* ren) {return insertRenderer(p, ren, 0);}
+	int appendRenderer(RenderParams* p, Renderer* ren){return insertRenderer(p, ren, 10);}
+	int insertRenderer(RenderParams* p, Renderer* ren, int order);
 	bool removeRenderer(RenderParams* p);  //Return true if successful
 	void removeAllRenderers();
 	void sortRenderers(int timestep);  //Sort all the pri 0 renderers
@@ -275,12 +290,12 @@ public:
 	bool windowIsActive(){return (winNum == activeWindowNum);}
 	static bool activeWinSharesRegion() {return regionShareFlag;}
 	static void setRegionShareFlag(bool regionIsShared){regionShareFlag = regionIsShared;}
-	const GLdouble* getProjectionMatrix() { return projectionMatrix;}	
-	void getNearFarClippingPlanes(GLfloat *nearplane, GLfloat *farplane) {
+	const double* getProjectionMatrix() { return projectionMatrix;}	
+	void getNearFarClippingPlanes(float *nearplane, float *farplane) {
 		*nearplane = nearDist; *farplane = farDist;
 	}
 
-	const GLint* getViewport() {return viewport;}
+	const int* getViewport() {return viewport;}
 
 	enum OGLVendorType {
 		UNKNOWN = 0,
@@ -300,7 +315,8 @@ public:
 	void regPaintEvent();
 	
 	
-	GLdouble* getModelMatrix();
+	double* getModelViewMatrix();
+	void setModelViewMatrix(const double mtx[16]);
 		
 	
 protected:
@@ -346,29 +362,10 @@ protected:
 	
 	std::map<RenderParams*,Renderer*> rendererMapping;
 
-	GLfloat tcoord[2];
+	float tcoord[2];
 	
-	GLfloat* setTexCrd(int i, int j);
-	
-	//These methods cannot be overridden, but the initialize and paint methods
-	//call the corresponding Renderer methods.
-	//
-    void		initializeGL();
-  
-    void		resizeGL( int w, int h );
-
-	//Following QT 4 guidance (see bubbles example), opengl painting is performed
-	//in paintEvent(), so that we can paint nice text over the window.
-	// Visualizer::paintGL() is not implemented.
-	// The other changes include:
-	// GL_MULTISAMPLE is enabled
-	// Visualizer::updateGL() is replaced by Visualizer::update()
-	// resizeGL() contents have been moved to setUpViewport(), which is also called 
-	// from paintEvent().
-	// setAutoFillBackground(false) is called in the Visualizer constructor
-
-	void paintEvent();
-		
+	float* setTexCrd(int i, int j);
+    
 	void setMatrixFromFrame(double* posvec, double* dirvec, double* upvec, double* centerRot, double mvmtx[16]);
 	void setUpViewport(int width, int height);
 	//Methods to support drawing domain bounds, axes etc.
@@ -410,8 +407,8 @@ protected:
 	bool needsResize;
 	float farDist, nearDist;
 
-	GLint viewport[4];
-	GLdouble projectionMatrix[16];
+	int viewport[4];
+	double projectionMatrix[16];
 	static bool nowPainting;
 	
 	float displacement;

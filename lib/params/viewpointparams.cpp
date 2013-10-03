@@ -61,7 +61,7 @@ const string ViewpointParams::_ambientCoeffTag = "AmbientCoefficient";
 const string ViewpointParams::_numLightsTag = "NumLights";
 
 
-ViewpointParams::ViewpointParams(int winnum): Params(winnum, Params::_viewpointParamsTag){
+ViewpointParams::ViewpointParams(XmlNode* parent, int winnum): Params(parent, Params::_viewpointParamsTag, winnum){
 	
 	restart();
 }
@@ -249,4 +249,30 @@ getFarNearDist(float* boxFar, float* boxNear){
 	*boxNear = (float)minProj;
 	
 	return;
+}
+void ViewpointParams::
+centerFullRegion(int timestep){
+	//Find the largest of the dimensions of the current region:
+	const float* fullExtent = DataStatus::getInstance()->getLocalExtents();
+
+	float maxSide = Max(fullExtent[5]-fullExtent[2], 
+		Max(fullExtent[4]-fullExtent[1],
+		fullExtent[3]-fullExtent[0]));
+	//calculate the camera position: center - 2.5*viewDir*maxSide;
+	//Position the camera 2.5*maxSide units away from the center, aimed
+	//at the center.
+	//But divide it by stretch factors
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	Viewpoint* currentViewpoint = getCurrentViewpoint();
+	//Make sure the viewDir is normalized:
+	double viewDir[3];
+	for (int j = 0; j<3; j++) viewDir[j] = currentViewpoint->getViewDir()[j];
+	vnormal(viewDir);
+	for (int i = 0; i<3; i++){
+		float dataCenter = 0.5f*(fullExtent[i+3]-fullExtent[i]);
+		float camPosCrd = dataCenter -2.5*maxSide*viewDir[i]/stretch[i];
+		currentViewpoint->setCameraPosLocal(i, camPosCrd);
+		currentViewpoint->setRotationCenterLocal(i, dataCenter);
+	}
+	
 }

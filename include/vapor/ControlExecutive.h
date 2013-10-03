@@ -8,8 +8,10 @@ namespace VAPoR {
 
 #include "common.h"
 
+class Visualizer;
 class Params;
-class DataInfo;
+class RenderParams;
+class DataMgr;
 class ErrorHandler;
 
 //! \class ControlExecutive
@@ -23,6 +25,13 @@ public:
 	//!
 	//! \note what, if any, arguments are needed?
 	ControlExecutive();
+
+	//! Obtain the singleton ControlExecutive object
+	static ControlExecutive* ControlExecutive::getInstance(){
+		if (!controlExecutive) controlExecutive = new ControlExecutive();
+		return controlExecutive;
+	}
+		
 
 	//! Create a new visualizer
 	//!
@@ -49,17 +58,31 @@ public:
 	//
 	int NewVisualizer(/*oglinfo_c oglinfo*/);
 
+	//! Perform OpenGL initialization of specified visualizer
+	//!
+	//! \param[in] viz A visualizer handle returned by NewVisualizer()
+	//! \param[in] width Width of visualizer
+	//! \param[in] height Height of visualizer
+	//!
+	//! This method should be called by the UI once before any rendering is performed.
+	//! The UI should make the OGL context associated with \p viz
+	//! current prior to calling this method.
+	//
+	void InitializeViz(int viz, int width, int height);
+
 	//! Notify the control executive that a drawing object has
 	//! changed size.
 	//!
 	//! \param[in] viz A visualizer handle returned by NewVisualizer()
+	//! \param[in] width Width of visualizer
+	//! \param[in] height Height of visualizer
 	//!
 	//! This method should be called by the UI whenever the drawing
 	//! object (e.g. window) associated with \p viz has changed size.
 	//! The UI should make the OGL context associated with \p viz
 	//! current prior to calling this method.
 	//
-	void ResizeViz(int viz);
+	void ResizeViz(int viz, int width, int height);
 
 	//! Render the contents of a drawable
 	//!
@@ -90,14 +113,14 @@ public:
 	//! new ModelView matrix.
 	//!
 	//!
-	int SetModelViewMatrix(int viz, double* mtx);
+	int SetModelViewMatrix(int viz, const double* mtx);
 
 	//! Create a new renderer
 	//!
 	//! This method creates a new renderer, capable of rendering into 
 	//! the visualizer associated with \p viz.
 	//!
-	//! \param[in] viz A visualizer handle returned by NewVisualizer()
+	//! \param[in] viz A visualizer handle returned by NewVisualizer(). 
 	//! \param[in] type The type of renderer to be created. Supported types
 	//! include "dvr", "iso", "flow", etc.
 	//! \param[in] p An instance of a RenderParams class, of same type, that is associated with the renderer
@@ -107,7 +130,7 @@ public:
 	//!
 	//! \sa NewVisualizer()
 	//
-	int NewRenderer(int viz, std::string type, Params* p);
+	int NewRenderer(int viz, std::string type, RenderParams* p);
 
 	//! Activate or Deactivate a renderer
 	//!
@@ -134,7 +157,7 @@ public:
 	//! is used to both query parameter information as well as change
 	//! parameter information. 
 	//!
-	//! \param[in] viz A visualizer handle returned by NewVisualizer().  Use -1 for the current active visualizer. 
+	//! \param[in] viz A visualizer handle returned by NewVisualizer(). 
 	//! \param[in] type The type of the Params (e.g. flow, probe)
 	//! This is the same as the type of Renderer for a RenderParams.
 	//! \param[in] instance Instance index, ignored for non-Render params.  Use -1 for the current active instance.
@@ -152,6 +175,23 @@ public:
 	//
 	Params* GetParams(int viz, string type, int instance);
 
+	//! Specify the Params instance for a particular visualizer, instance index, and Params type
+	//! This can be used to replace the current Params instance using a new Params pointer.
+	//! This should not be used to install a Params instance where one did not exist already; Use
+	//! NewParams for that purpose
+	//!
+	//! \param[in] viz A visualizer handle returned by NewVisualizer().  Specify -1 if the Params is global. 
+	//! \param[in] type The type of the Params (e.g. flow, probe)
+	//! \param[in] Params* The pointer to the Params instance being installed.
+	//! This is the same as the type of Renderer for a RenderParams.
+	//! \param[in] instance Instance index, ignored for non-Render params.  Use -1 for the current active instance.
+	//!
+	//! \return int is zero if successful
+	//!
+	//! 
+	//
+	int SetParams(int viz, string type, int instance, Params* p);
+
 	//! Determine how many instances of a given renderer type are present
 	//! in a visualizer.  Necessary for setting up a UI.
 	//! \param[in] viz A visualizer handle returned by NewVisualizer()
@@ -160,6 +200,22 @@ public:
 	//!
 
 	int GetNumParamsInstances(int viz, string type);
+
+	//! Determine how many visualizer windows are present
+	//! \return number of visualizers 
+	//!
+
+	int GetNumVisualizers(){
+		return (int)visualizers.size();
+	}
+	//! obtain an existing visualizer
+	//! \param[in] viz Handle of desired visualizer
+	//! \return pointer to specified visualizer 
+	//!
+
+	Visualizer* GetVisualizer(int viz){
+		return visualizers[viz];
+	}
 
 	//! Save the current session state to a file
 	//!
@@ -221,7 +277,7 @@ public:
 	//! \note (AN) It would be much better to incorporate the DataStatus methods into
 	//! the DataMgr class, rather than keeping them separate.
 	//
-	const DataInfo *LoadData(vector <string> files, bool deflt = true);
+	const DataMgr *LoadData(vector <string> files, bool deflt = true);
 
 	//! Draw 2D text on the screen
 	//!
@@ -367,6 +423,12 @@ public:
 	//! \return status nonzero indicates error
 	int ValidateParams(Params* p);
 
+	private:
+		//! At startup, create the initial Params instances:
+		void createAllDefaultParams();
+		vector<Visualizer*> visualizers;
+		DataMgr* dataMgr;
+		static ControlExecutive* controlExecutive;
 };
 };
 #endif //ControlExecutive_h

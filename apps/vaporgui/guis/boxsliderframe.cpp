@@ -19,12 +19,12 @@
 //		Intended to be used with boxframe.ui for event routers that embed a box slider control
 //
 #include "boxsliderframe.h"
-#include "vizwinmgr.h"
 #include <QFrame>
 #include <qwidget.h>
 #include <vector>
 #include <QString>
 #include "datastatus.h"
+#include "vizwinmgr.h"
 using namespace VAPoR;
 
 BoxSliderFrame::BoxSliderFrame( QWidget * parent) : QFrame(parent), Ui_boxframe(){

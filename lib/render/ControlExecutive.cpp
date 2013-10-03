@@ -5,11 +5,21 @@
 
 #include "vapor/ControlExecutive.h"
 #include "params.h"
-
+#include "visualizer.h"
+#include "renderer.h"
+#include "arrowrenderer.h"
+#include "arrowparams.h"
+#include "animationparams.h"
+#include "regionparams.h"
+#include "viewpointparams.h"
+#include "vapor/ExtensionClasses.h"
 
 using namespace VAPoR;
+ControlExecutive* ControlExecutive::controlExecutive = 0;
 
-ControlExecutive::ControlExecutive(){}
+ControlExecutive::ControlExecutive(){
+	createAllDefaultParams();
+}
 
 	//! Create a new visualizer
 	//!
@@ -34,19 +44,45 @@ ControlExecutive::ControlExecutive(){}
 	//! hints about what kind of graphics context is needed 
 	//! (e.g. double buffering)
 	//
-int ControlExecutive::NewVisualizer(/*oglinfo_c oglinfo*/){return 0;}
+int ControlExecutive::NewVisualizer(){
+	int numviz = visualizers.size();
+	Visualizer* viz = new Visualizer(numviz);
+	visualizers.push_back(viz);
+	return numviz;
+}
+
+	//! Perform OpenGL initialization of specified visualizer
+	//!
+	//! \param[in] viz A visualizer handle returned by NewVisualizer()
+	//! \param[in] width Width of visualizer
+	//! \param[in] height Height of visualizer
+	//!
+	//! This method should be called by the UI once before any rendering is performed.
+	//! The UI should make the OGL context associated with \p viz
+	//! current prior to calling this method.
+	//
+
+void ControlExecutive::InitializeViz(int viz, int width, int height){
+	Visualizer* v = visualizers[viz];
+	v->initializeGL();
+}
 
 	//! Notify the control executive that a drawing object has
 	//! changed size.
 	//!
 	//! \param[in] viz A visualizer handle returned by NewVisualizer()
+	//! \param[in] width Width of visualizer
+	//! \param[in] height Height of visualizer
 	//!
 	//! This method should be called by the UI whenever the drawing
 	//! object (e.g. window) associated with \p viz has changed size.
 	//! The UI should make the OGL context associated with \p viz
 	//! current prior to calling this method.
 	//
-void ControlExecutive::ResizeViz(int viz){}
+void ControlExecutive::ResizeViz(int viz, int width, int height){
+	Visualizer* v = visualizers[viz];
+	v->resizeGL(width, height);
+}
 
 	//! Render the contents of a drawable
 	//!
@@ -65,7 +101,12 @@ void ControlExecutive::ResizeViz(int viz){}
 	//! on this visualizer have changed state.
 	//!
 	//!
-int ControlExecutive::Paint(int viz, bool force){return 0;}
+int ControlExecutive::Paint(int viz, bool force){
+	Visualizer* v = visualizers[viz];
+	if (!v) return -1;
+	v->paintEvent(force);
+	return 0;
+}
 
 	//! Specify the current ModelViewMatrix
 	//!
@@ -77,7 +118,11 @@ int ControlExecutive::Paint(int viz, bool force){return 0;}
 	//! new ModelView matrix.
 	//!
 	//!
-int SetModelViewMatrix(int viz, double* mtx){return 0;}
+int ControlExecutive::SetModelViewMatrix(int viz, const double* mtx){
+	Visualizer* v = visualizers[viz];
+	v->setModelViewMatrix(mtx);
+	return 0;
+}
 
 	//! Create a new renderer
 	//!
@@ -94,24 +139,46 @@ int SetModelViewMatrix(int viz, double* mtx){return 0;}
 	//!
 	//! \sa NewVisualizer()
 	//
-int ControlExecutive::NewRenderer(int viz, string type, Params* p){return 0;}
+int ControlExecutive::NewRenderer(int viz, string type, RenderParams* p){
+	//Determine the instance index associated with p:
+	vector<Params*>& paramsInWin = Params::GetAllParamsInstances(type, viz);
+	int instance = -1;
+	for (int i = 0; i<paramsInWin.size(); i++){
+		if (paramsInWin[i] != p) continue;
+		instance = i; 
+		break;
+	}
+	if (instance < 0) return instance; //Params not available
+	if (type == ArrowParams::_arrowParamsTag){
+		Visualizer* v = visualizers[viz];
+		Renderer* myArrow = new ArrowRenderer(visualizers[viz], p);
+		return instance;
+	} 
+	else return -2; //type not available
+}
 
 	//! Activate or Deactivate a renderer
 	//!
-	//! This method marks a renderer as active or inactive. An active 
-	//! renderer will render when the Paint method is called. An inactive
-	//! rendender will perform no rendering.
-	//! 
-	//! \param[in] viz The visualizer where the renderer is 
-	//! \param[in] type The type of renderer.
-	//! \param[in] instance The instance index to be (de)activated.
-	//! \param[in] on A boolean indicating if the renderer is to be made
-	//! active (true) or inactive (off)
 	//!
 	//! \return status A negative int is returned on failure, indicating that
-	//! the renderer cannot be activated
+	//! the renderer cannot be (de)activated
 	//
-int ControlExecutive::ActivateRender(int viz, string type, int instance, bool on){return 0;}
+int ControlExecutive::ActivateRender(int viz, string type, int instance, bool on){
+	int numInsts = Params::GetNumParamsInstances(type,viz);
+	if (numInsts < instance) return -1;
+	RenderParams* p = (RenderParams*)Params::GetParamsInstance(type,viz,instance);
+	if (p->isEnabled()){
+		if (on) return -2; //already enabled
+		else p->setEnabled(false);
+		return 0;
+	}
+	//OK, p is not enabled
+	if (on) { 
+		p->setEnabled(true); 
+		return 0;
+	}
+	else return -1;//already disabled
+}
 
 	//! Get a pointer to the existing parameter state information 
 	//!
@@ -140,7 +207,38 @@ int ControlExecutive::ActivateRender(int viz, string type, int instance, bool on
 Params* ControlExecutive::GetParams(int viz, string type, int instance){
 	return Params::GetParamsInstance(type,viz,instance);
 }
-
+//! Specify the Params instance for a particular visualizer, instance index, and Params type
+	//! This can be used to replace the current Params instance using a new Params pointer.
+	//! When used to install a Params instance the instance index must be equal to the number of instances.
+	//!
+	//! \param[in] viz A visualizer handle returned by NewVisualizer().
+	//! \param[in] type The type of the Params (e.g. flow, probe)
+	//! \param[in] Params* The pointer to the Params instance being installed.
+	//! This is the same as the type of Renderer for a RenderParams.
+	//! \param[in] instance Instance index, ignored for non-Render params.  Use -1 for the current active instance.
+	//!
+	//! \return int is zero if successful
+	//!
+	//! 
+	//
+int SetParams(int viz, string type, int instance, Params* p){
+	if (viz == -1) { //Global or default params.  Ignore instance.
+		Params::SetDefaultParams(type,p);
+		return 0;
+	}
+	if (instance == -1) { //Current instance
+		instance = Params::GetCurrentParamsInstanceIndex(type,viz);
+	}
+	if (instance == Params::GetNumParamsInstances(type, viz)){
+		Params::AppendParamsInstance(type, viz, p);
+		return 0;
+	}
+	if (instance < 0 || instance >= Params::GetNumParamsInstances(type, viz) )
+		return -1;
+	vector<Params*>& paramsvec = Params::GetAllParamsInstances(type, viz);
+	paramsvec[instance] = p;
+	return 0;
+}
 	//! Determine how many instances of a given renderer type are present
 	//! in a visualizer.  Necessary for setting up a UI.
 	//! \param[in] viz A visualizer handle returned by NewVisualizer()
@@ -148,7 +246,9 @@ Params* ControlExecutive::GetParams(int viz, string type, int instance){
 	//! \return number of instances 
 	//!
 
-int ControlExecutive::GetNumParamsInstances(int viz, string type){return 0;}
+int ControlExecutive::GetNumParamsInstances(int viz, string type){
+	return Params::GetNumParamsInstances(type,viz);
+}
 
 	//! Save the current session state to a file
 	//!
@@ -190,14 +290,15 @@ int ControlExecutive::RestoreSession(string file){return 0;}
 	//! \param[in] files A vector of data file paths. For data sets
 	//! not containing explicit time information the ordering of 
 	//! time varying data will be determined by the order of the files
-	//! in \p files.
-	//! \param[in] default boolean indicating whether data will loaded into 
+	//! in \p files.  Initially this will just be a vdf file.
+	//! \param[in] dflt boolean indicating whether data will loaded into 
 	//! the default settings (versus into an existing session).
 	//!
 	//! \return datainfo Upon success a constant pointer to a DataInfo
 	//! structure is returned. The DataInfo structure can be used to 
 	//! query metadata information about the data set. A NULL pointer 
-	//! is returned on failure. Subsequent calls to LoadData() will 
+	//! is returned on failure. Initially this will just be a DataMgr
+	//! Subsequent calls to LoadData() will 
 	//! invalidate previously returned pointers. 
 	//!
 	//! \note The proposed DataMgr API doesn't provide methods to easily 
@@ -210,7 +311,9 @@ int ControlExecutive::RestoreSession(string file){return 0;}
 	//! \note (AN) It would be much better to incorporate the DataStatus methods into
 	//! the DataMgr class, rather than keeping them separate.
 	//
-const DataInfo *ControlExecutive::LoadData(vector <string> files, bool dt){return 0;}
+const DataMgr *ControlExecutive::LoadData(vector <string> files, bool dflt){
+	return 0;
+}
 
 	//! Draw 2D text on the screen
 	//!
@@ -355,3 +458,19 @@ int ControlExecutive::SetErrorHandler(ErrorHandler* handler){return 0;}
 	//! \param[in] p pointer to Params instance being checked
 	//! \return status nonzero indicates error
 int ControlExecutive::ValidateParams(Params* p){return 0;}
+
+//Create the global params and the default renderer params:
+void ControlExecutive::
+createAllDefaultParams() {
+
+	//Install Extension Classes:
+	InstallExtensions();
+
+	ParamsBase::RegisterParamsBaseClass(Box::_boxTag, Box::CreateDefaultInstance, false);
+	ParamsBase::RegisterParamsBaseClass(Viewpoint::_viewpointTag, Viewpoint::CreateDefaultInstance, false);
+
+	//Animation Params comes first because others will refer to it.
+	ParamsBase::RegisterParamsBaseClass(Params::_animationParamsTag, AnimationParams::CreateDefaultInstance, true);
+	ParamsBase::RegisterParamsBaseClass(Params::_viewpointParamsTag, ViewpointParams::CreateDefaultInstance, true);
+	ParamsBase::RegisterParamsBaseClass(Params::_regionParamsTag, RegionParams::CreateDefaultInstance, true);
+}

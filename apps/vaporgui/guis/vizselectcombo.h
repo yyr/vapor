@@ -21,8 +21,8 @@
 #ifndef VIZSELECTCOMBO_H
 #define VIZSELECTCOMBO_H
 #include <qcombobox.h>
+#include "mainform.h"
 #include "vizwinmgr.h"
-
 class QToolBar;
 
 namespace VAPoR {
