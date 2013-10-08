@@ -172,9 +172,6 @@ public:
 		Params* localParams = VizWinMgr::getInstance()->getCorrespondingLocalParams(p);
 		
 		localParams->setLocal(lg);
-		int winnum = localParams->getVizNum();
-		Visualizer* glwin = VizWinMgr::getInstance()->getVizWin(winnum)->getVisualizer();
-		glwin->setActiveParams(Params::GetCurrentParamsInstance(localParams->GetParamsBaseTypeId(),winnum),localParams->GetParamsBaseTypeId());
 		
 		updateTab();
 	}

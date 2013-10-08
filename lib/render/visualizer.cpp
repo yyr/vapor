@@ -67,26 +67,15 @@ map<ParamsBase::ParamsBaseType, int> Visualizer::modeFromParams;
 vector<ParamsBase::ParamsBaseType> Visualizer::paramsFromMode;
 int Visualizer::jpegQuality = 100;
 Visualizer::Visualizer(int windowNum )
-
 {
-	currentParams.clear();
-	for (int i = 0; i<= Params::GetNumParamsClasses(); i++)
-		currentParams.push_back(0);
-
+	
 	MyBase::SetDiagMsg("Visualizer::Visualizer() begin");
 	
 
 	winNum = windowNum;
 	rendererMapping.clear();
 	assert(rendererMapping.size() == 0);
-	setViewerCoordsChanged(true);
 	
-	wCenter[0] = 0.f;
-	wCenter[1] = 0.f;
-	wCenter[2] = 0.f;
-	maxDim = 1.f;
-	
-	renderNew = false;
 	nowPainting = false;
 	
 	needsResize = true;
@@ -98,10 +87,6 @@ Visualizer::Visualizer(int windowNum )
 	renderType.clear();
 	renderOrder.clear();
 	renderer.clear();
-	
-
-
-	newCaptureImage = false;
 
     MyBase::SetDiagMsg("Visualizer::Visualizer() end");
 }
@@ -224,9 +209,7 @@ void Visualizer::setUpViewport(int width,int height){
 	
 	GLfloat w = (float) width / (float) height;
 		
-	//float mindist = Max(0.2f, wCenter[2]-maxDim-1.0f);
-	//glFrustum( -w, w, -h, h, mindist,(wCenter[2]+ maxDim + 1.0) );
-	//gluPerspective(45., w, mindist, (wCenter[2]+ maxDim + 10.0) );
+	
 	//qWarning("setting near, far dist: %f %f", nearDist, farDist);
 	gluPerspective(45., w, nearDist, farDist );
 	//gluPerspective(45., w, 1.0, 5. );
@@ -292,13 +275,6 @@ void Visualizer::paintEvent(bool force)
 	//Then turn off the flag, subsequent renderings will only be captured
 	//if they really are new, or if we are spinning.
 	
-	//We need to prevent multiple frame capture, which could result from extraneous rendering.
-	//The renderNew flag is set to allow performing a jpeg capture.
-	//The newCaptureImage flag is set when we start a new image capture sequence.  When renderNew is
-	//set, the previousTimeStep and previousFrameNum indices are set to -1, to guarantee that the image
-	//will be captured.  Subsequent rendering will only be captured if the frame/timestep counters are changed, or 
-	//if the image is spinning.
-	
 
 	//Following line has been modified and moved to a later point in the code.  It is necessary to register with the 
 	//AnimationController, but not yet, because we don't yet know the frame number.
@@ -335,17 +311,12 @@ void Visualizer::paintEvent(bool force)
 	//This must be called prior to rendering.  The boolean "isControlled" indicates 
 	//whether or not the rendering is under the control of the animationController.
 	//If it is true, then the postRenderCallback must be called after the full rendering is complete.
-	bool isControlled = preRenderCB(winNum, viewerCoordsChanged());
-	//If there are new coords, get them from GL, send them to the gui
-	if (viewerCoordsChanged()){ 
-		setRenderNew();
-		setViewerCoordsChanged(false);
-	}
+	//bool isControlled = preRenderCB(winNum, viewerCoordsChanged());
+	
 
 	
 	//make sure to capture whenever the time step or frame index changes
 	if (timeStep != previousTimeStep) {
-		setRenderNew();
 		previousTimeStep = timeStep;
 	}
 	

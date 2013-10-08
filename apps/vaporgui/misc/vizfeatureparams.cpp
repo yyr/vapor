@@ -309,15 +309,6 @@ setDialog(){
 	vizFeatureDlg->stretch1Edit->setText(QString::number(stretch[1]));
 	vizFeatureDlg->stretch2Edit->setText(QString::number(stretch[2]));
 
-
-	
-	int vizNum = getVizNum(currentComboIndex);
-	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
-	
-	
-	
-	
-
 	vizFeatureDlg->axisAnnotationCheckbox->setChecked(showAxisAnnotation);
 	
 	
@@ -499,7 +490,7 @@ applyToViz(int vizNum){
 		//Set the region dirty bit in every window:
 		bool firstSharedVp = false;
 		
-		for (int j = 0; j< MAXVIZWINS; j++) {
+		for (int j = 0; j< vizMgr->getNumVisualizers(); j++) {
 			VizWin* win = vizMgr->getVizWin(j);
 			if (!win) continue;
 			
@@ -517,7 +508,7 @@ applyToViz(int vizNum){
 			vpp->setCoordTrans();
 			win->setValuesFromGui(vpp);
 			vizMgr->resetViews(vpp);
-			vizMgr->setViewerCoordsChanged(vpp);
+			
 		}
 		
 	}
@@ -547,7 +538,7 @@ getVizNum(int comboIndex){
 	//These are always in the same order as stored in the VizWinMgr
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int vizCount = -1;
-	for (int i = 0; i<MAXVIZWINS; i++){
+	for (int i = 0; i<vizMgr->getNumVisualizers(); i++){
 		if (vizMgr->getVizWin(i)) vizCount++;
 		if (vizCount == comboIndex) return i;
 	}

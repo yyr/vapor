@@ -34,7 +34,6 @@ class QTimer;
 #include <vapor/common.h>
 #include "params.h"
 
-#define MAXVIZWINS 16
 
 namespace VAPoR{
 
@@ -201,11 +200,8 @@ public:
 
     
     //method to launch a viz window, returns vizNum
-	//Default values create a new vis use whatever available number.
-	//If usenum is >= 0 it relaunches a previously used visualizer.
-	//If usenum is < 0 and newNum is >=0, it creates a new visualizer
-	//at position "newNum"
-    int launchVisualizer(int usenum = -1, const char* name = "", int newNum = -1);
+
+    int launchVisualizer();
     
 	
     int getNumVisualizers(); 
@@ -214,19 +210,23 @@ public:
 	//activeViz is -1 if none is active, otherwise is no. of active viz win.
 	int getActiveViz() {return activeViz;}
 	VizWin* getActiveVisualizer() {
-		if(activeViz>=0)return vizWin[activeViz];
+		if(activeViz>=0)return VizWindow[activeViz];
 		else return 0;
 	}
 	//Method that is called when a window is made active:
 	void setActiveViz(int vizNum); 
 	//Obtain the parameters that currently apply in specified window:
-	ViewpointParams* getViewpointParams(int winNum);
-	RegionParams* getRegionParams(int winNum);
+	ViewpointParams* getViewpointParams(int winNum){
+		return (ViewpointParams*)Params::GetCurrentParamsInstance(Params::GetTypeFromTag(Params::_viewpointParamsTag),winNum);
+	}
+	RegionParams* getRegionParams(int winNum){
+		return (RegionParams*)Params::GetCurrentParamsInstance(Params::GetTypeFromTag(Params::_regionParamsTag),winNum);
+	}
+	AnimationParams* getAnimationParams(int winNum){
+		return (AnimationParams*)Params::GetCurrentParamsInstance(Params::GetTypeFromTag(Params::_animationParamsTag),winNum);
+	}
 	//For a renderer, there will only exist a local version.
 	// If instance is negative, return the current instance.
-	
-	
-	
 	
 	void setCurrentInstanceIndex(int winnum, int inst, Params::ParamsBaseType t);
 	
@@ -237,27 +237,19 @@ public:
 	
 	void removeInstance(int winnum, int instance, Params::ParamsBaseType t);
 	
-	AnimationParams* getAnimationParams(int winNum);
-
 	RegionEventRouter* getRegionRouter();
 	AnimationEventRouter* getAnimationRouter(); 
-	
 	ViewpointEventRouter* getViewpointRouter();
 
-
-	
 	//Make all the params for the current window update their tabs:
 	void updateActiveParams();
 	
 	//set/get Data describing window states
-	VizWin* getVizWin(int i) {return vizWin[i];}
-	
+	VizWin* getVizWin(int i) {return VizWindow[i];}
+	int maxVizWins(){return VizWindow.size();}
 	
 	void setVizWinName(int winNum, QString& qs);
-	QString& getVizWinName(int winNum) {return vizName[winNum];}
-	bool isMinimized(int winNum) {return isMin[winNum];}
-	bool isMaximized(int winNum) {return isMax[winNum];}
-	
+	QString& getVizWinName(int winNum) {return VizName[winNum];}
 	
 	void replaceGlobalParams(Params* p, ParamsBase::ParamsBaseType t);
 	void createDefaultParams(int winnum);
@@ -268,7 +260,7 @@ public:
 	void setSelectionMode( int mode);
 	//Direct access to actual params object:
 	ViewpointParams* getRealVPParams(int win) {
-		if (!vizWin[win]) return 0;
+		if (!VizWindow[win]) return 0;
 		Params* p = Params::GetParamsInstance(Params::_viewpointParamsTag,win,-1);
 		if (p->isLocal()) return (ViewpointParams*)p;
 		return (ViewpointParams*)Params::GetDefaultParams(Params::_viewpointParamsTag);
@@ -296,9 +288,6 @@ public:
 	//share a viewpoint, based on region in specified regionparams
 	//
 	void resetViews(ViewpointParams* vp);
-	//Set the viewer coords changed flag in all the visualizers
-	//that use these vp params:
-	void setViewerCoordsChanged(ViewpointParams* vp);
 	
 	//Tell all parameter panels to reinitialize (based on change of 
 	//Metadata).  If the parameter is true, we can override the panels' 
@@ -406,13 +395,13 @@ protected:
 
 	
 	RegionParams* getRealRegionParams(int win) {
-		if (!vizWin[win]) return 0;
+		if (!VizWindow[win]) return 0;
 		Params* p = Params::GetParamsInstance(Params::_regionParamsTag,win,-1);
 		if (p->isLocal()) return (RegionParams*)p;
 		return (RegionParams*)Params::GetDefaultParams(Params::_regionParamsTag);
 	}
 	AnimationParams* getRealAnimationParams(int win) {
-		if (!vizWin[win]) return 0;
+		if (!VizWindow[win]) return 0;
 		Params* p = Params::GetParamsInstance(Params::_animationParamsTag,win,-1);
 		if (p->isLocal()) return (AnimationParams*)p;
 		return (AnimationParams*)Params::GetDefaultParams(Params::_animationParamsTag);
@@ -435,29 +424,25 @@ protected:
 	static VizWinMgr* theVizWinMgr;
 	VizWinMgr ();
 	
-    VizWin* vizWin[MAXVIZWINS];
-	QMdiSubWindow* vizMdiWin[MAXVIZWINS];
    
-    QString vizName[MAXVIZWINS];
-    bool isMax[MAXVIZWINS];
-    bool isMin[MAXVIZWINS];
+	std::map<int, VizWin*> VizWindow;
+	std::map<int,QMdiSubWindow*> VizMdiWin;
+	std::map<int,QString> VizName;
+	std::map<int,int> ActivationOrder;
 	
 	//Remember the activation order:
-	int activationOrder[MAXVIZWINS];
 	int activationCount;
 	int getLastActive(){
 		int mx = -1; int mj = -1;
-		for (int j = 0; j< MAXVIZWINS; j++){
-			if (vizWin[j] && activationOrder[j]>mx){ 
-				mx = activationOrder[j];
+		for (int j = 0; j< VizWindow.size(); j++){
+			if (VizWindow[j] && ActivationOrder[j]>mx){ 
+				mx = ActivationOrder[j];
 				mj = j;
 			}
 		}
 		return mj;
 	}
 	//Trackball* globalTrackball;
-
-	
 
     MainForm* myMainWindow;
     static TabManager* tabManager;
@@ -468,8 +453,7 @@ protected:
 	
     QMdiArea* myMDIArea;
 	
-    int     benchmark;
-    QTimer *benchmarkTimer;
+	int numVizWins;
 	bool spinAnimate;
 
 #endif //DOXYGEN_SKIP_THIS

@@ -669,7 +669,7 @@ updateRenderer(ViewpointParams* vpParams, bool prevEnabled,   bool newWindow){
 	//(All global visualizers will be sharing the same trackball)
 	//
 	VizWin* viz = myVizMgr->getActiveVisualizer();
-	viz->getVisualizer()->setViewerCoordsChanged(true);
+	
 	//If this panel is associated with the active visualizer, stuff the values
 	//into that viz:
 	if (viz) {
@@ -682,10 +682,9 @@ updateRenderer(ViewpointParams* vpParams, bool prevEnabled,   bool newWindow){
 		//That is the case if the window is non-null, and if the corresponding
 		//vpparms is either null or set to Global
 		//
-		for (int i = 0; i< MAXVIZWINS; i++){
+		for (int i = 0; i< myVizMgr->getNumVisualizers(); i++){
 			if (i == myVizMgr->getActiveViz()) continue;
 			if( viz == myVizMgr->getVizWin(i)){
-				viz->getVisualizer()->setViewerCoordsChanged(true);
 				//Bypass normal access to vpParams!
 				if(!(myVizMgr->getRealVPParams(i)) || !(myVizMgr->getRealVPParams(i)->isLocal())){
 					viz->updateGL();

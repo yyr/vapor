@@ -35,7 +35,7 @@ public:
 	void makeConsistent(int activeVizNum);
 protected:
 	//Lookup window num associated with slot
-	int winNum[MAXVIZWINS+1];
+	vector<int> winNums;
 	VizWinMgr* vizWinMgr;
 	int currentActive;
 	

@@ -84,7 +84,7 @@ protected slots:
 	
 protected:
 	void populateVariableCombos(bool is3d);
-	int copyCount[MAXVIZWINS+1];
+	vector<int> copyCount;
 	bool showLayout;
 	bool showAppearance;
 

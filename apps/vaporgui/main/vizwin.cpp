@@ -1,9 +1,9 @@
 //************************************************************************
-//									*
-//		     Copyright (C)  2004				*
-//     University Corporation for Atmospheric Research			*
-//		     All Rights Reserved				*
-//									*
+//																		*
+//		     Copyright (C)  2013										*
+//     University Corporation for Atmospheric Research					*
+//		     All Rights Reserved										*
+//																		*
 //************************************************************************/
 //	File:		vizwin.cpp
 //
@@ -11,10 +11,10 @@
 //			National Center for Atmospheric Research
 //			PO 3000, Boulder, Colorado
 //
-//	Date:		July 2004
+//	Date:		October 2013
 //
 //	Description:	Implements the VizWin class
-//		This is the widget that contains the visualizers
+//		This is the QGLWidget that performs OpenGL rendering (using associated Visualizer)
 //		Supports mouse event reporting
 //
 #include "glutil.h"	// Must be included first!!!
@@ -38,6 +38,7 @@
 #include <QMouseEvent>
 #include <QCloseEvent>
 #include "visualizer.h"
+#include "vapor/ControlExecutive.h"
 #include <qdesktopwidget.h>
 #include "tabmanager.h"
 #include "viztab.h"
@@ -83,10 +84,7 @@ VizWin::VizWin( MainForm* parent, const QString& name, Qt::WFlags fl, VizWinMgr*
     languageChange();
 	setWindowIcon(QPixmap(vapor_icon___));
     
-
-
-	for (int i = 1; i<= Params::GetNumParamsClasses(); i++)
-		myVisualizer->setActiveParams(Params::GetCurrentParamsInstance(i,myWindowNum),i);
+	myVisualizer = ControlExecutive::getInstance()->GetVisualizer(myWindowNum);
 	
 	myVisualizer->setPreRenderCB(preRenderSetup);
 	myVisualizer->setPostRenderCB(endRender);
@@ -243,10 +241,9 @@ changeCoords(float *vpos, float* vdir, float* upvec) {
 //	ViewpointParams::localFromStretchedCube(vpos,worldPos);
 	myWinMgr->getViewpointRouter()->navigate(myWinMgr->getViewpointParams(myWindowNum),worldPos, vdir, upvec);
 	
-	myVisualizer->setViewerCoordsChanged(false);
 	//If this window is using global VP, must tell all other global windows to update:
 	if (globalVP){
-		for (int i = 0; i< MAXVIZWINS; i++){
+		for (int i = 0; i< myWinMgr->getNumVisualizers(); i++){
 			if (i == myWindowNum) continue;
 			VizWin* viz = myWinMgr->getVizWin(i);
 			if (viz && viz->globalVP) viz->updateGL();

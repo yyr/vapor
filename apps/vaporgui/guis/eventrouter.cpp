@@ -57,7 +57,6 @@ void EventRouter::changeRendererInstance(int winnum, int newCurrentInst){
 	assert(newCurrentInst >= 0 && newCurrentInst < vizMgr->getNumInstances(winnum, myParamsBaseType));
 	vizMgr->setCurrentInstanceIndex(winnum, newCurrentInst, myParamsBaseType);
 	updateTab();
-	vizMgr->getVizWin(winnum)->getVisualizer()->setActiveParams(vizMgr->getParams(winnum, myParamsBaseType),myParamsBaseType);
 }
 //Put a default instance of specified renderer as the last instance:
 void EventRouter::newRendererInstance(int winnum){
@@ -81,7 +80,6 @@ void EventRouter::removeRendererInstance(int winnum, int instance){
 	}
 	vizMgr->removeInstance(winnum, instance, myParamsBaseType);
 	updateTab();
-	vizMgr->getVizWin(winnum)->getVisualizer()->setActiveParams(vizMgr->getParams(winnum,myParamsBaseType),myParamsBaseType);
 }
 void EventRouter::performGuiChangeInstance(int newCurrent, bool undoredo){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
@@ -91,9 +89,8 @@ void EventRouter::performGuiChangeInstance(int newCurrent, bool undoredo){
 	if (instance == newCurrent) return;
 	
 	changeRendererInstance(winnum, newCurrent);
-	Params* p = vizMgr->getParams(winnum, myParamsBaseType);
+	
 	VizWin* vw = vizMgr->getVizWin(winnum);
-	vw->getVisualizer()->setActiveParams(p,myParamsBaseType);
 	
 	vw->updateGL();
 }
@@ -110,9 +107,8 @@ void EventRouter::performGuiDeleteInstance(){
 	Params* rParams = vizMgr->getParams(winnum,myParamsBaseType, instance);
 	
 	removeRendererInstance(winnum, instance);
-	Params* p = vizMgr->getParams(winnum, myParamsBaseType);
+	
 	VizWin* vw = vizMgr->getVizWin(winnum);
-	vw->getVisualizer()->setActiveParams(p,myParamsBaseType);
 	vw->updateGL();
 }
 void EventRouter::performGuiCopyInstance(){

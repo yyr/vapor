@@ -63,15 +63,21 @@ public:
 	
 	//! Method that returns the ViewpointParams that is active in this window.
 	//! \retval ViewpointParams* current active ViewpointParams
-	ViewpointParams* getActiveViewpointParams() {return (ViewpointParams*)getActiveParams(Params::_viewpointParamsTag);}
+	ViewpointParams* getActiveViewpointParams() {
+		return (ViewpointParams*)Params::GetCurrentParamsInstance(Params::GetTypeFromTag(Params::_viewpointParamsTag),winNum);
+	}
 
 	//! Method that returns the RegionParams that is active in this window.
 	//! \retval RegionParams* current active RegionParams
-	RegionParams* getActiveRegionParams() {return (RegionParams*)getActiveParams(Params::_regionParamsTag);}
+	RegionParams* getActiveRegionParams() {
+		return (RegionParams*)Params::GetCurrentParamsInstance(Params::GetTypeFromTag(Params::_regionParamsTag),winNum);
+	}
 
 	//! Method that returns the AnimationParams that is active in this window.
 	//! \retval AnimationParams* current active AnimationParams
-	AnimationParams* getActiveAnimationParams() {return (AnimationParams*)getActiveParams(Params::_animationParamsTag);}
+	AnimationParams* getActiveAnimationParams() {
+		return (AnimationParams*)Params::GetCurrentParamsInstance(Params::GetTypeFromTag(Params::_animationParamsTag),winNum);
+	}
 
 
 	//MouseMode support
@@ -145,11 +151,10 @@ public:
 	//inside the doubled region, region, make the near clipping plane 1% of the region size.
 
 	void resetView(ViewpointParams* vpParams);
-	void setMaxSize(float wsize) {maxDim = wsize;}
-	void setCenter(float cntr[3]) { wCenter[0] = cntr[0]; wCenter[1] = cntr[1]; wCenter[2] = cntr[2];}
+	
 	//Test if the screen projection of a 3D quad encloses a point on the screen.
 	//The 4 corners of the quad must be specified in counter-clockwise order
-	//as viewed from the outside (pickable side) of the quad.  
+	//as viewed from the outside (pickable side) of the quad.  Should be moved to Manip.cpp
 	//
 	bool pointIsOnQuad(float cor1[3],float cor2[3],float cor3[3],float cor4[3], float pickPt[2]);
 
@@ -157,11 +162,12 @@ public:
 	//the first four corners are the counter-clockwise (from outside) vertices of one face,
 	//the last four are the corresponding back vertices, clockwise from outside
 	//Returns index of face (0..5), or -1 if not on Box
+	//This is used by Manips, should be moved there.
 	//
 	int pointIsOnBox(float corners[8][3], float pickPt[2]);
 
 	//Project a 3D point (in cube coord system) to window coords.
-	//Return true if in front of camera
+	//Return true if in front of camera.  Used by pointIsOnQuad, as well as in building Axis labels.
 	//
 	bool projectPointToWin(float cubeCoords[3], float winCoords[2]);
 
@@ -169,6 +175,7 @@ public:
 	// The line starts at the mouseDownPosition, and points in the
 	// direction resulting from projecting to the screen the axis 
 	// associated with the dragHandle.  Returns false on error.
+	// Invoked during mouseMoveEvent, uses values of mouseDownPoint, handleProjVec, mouseDownHere
 
 	bool projectPointToLine(float mouseCoords[2], float projCoords[2]);
 
@@ -176,29 +183,18 @@ public:
 	bool startHandleSlide(float mouseCoords[2], int handleNum, Params* p);
 	
 	//Determine a unit direction vector associated with a pixel.  Uses OpenGL screencoords
-	// I.e. y = 0 at bottom.  Returns false on failure.
+	// I.e. y = 0 at bottom.  Returns false on failure.  Used during mouseMoveEvent.
 	//
 	bool pixelToVector(float winCoords[2], const float cameraPos[3], float dirVec[3]);
 
 	//Get the current image in the front buffer;
 	bool getPixelData(unsigned char* data);
 
-	void setRenderNew() {renderNew = true;}
 	void draw3DCursor(const float position[3]);
 
-	void renderTimeStamp(bool rebuild);
-	void buildTimeStampImage();
-	
-	
-	void setDisplacement(float val){displacement = val;}
-	float getDisplacement() {return displacement;}
-
+	//Following needed for manip rendering:
 	bool mouseIsDown() {return mouseDownHere;}
 	void setMouseDown(bool downUp) {mouseDownHere = downUp;}
-
-	
-	
-	Params::ParamsBaseType getRendererType(int i) {return renderType[i];}
 
 	Renderer* getRenderer(int i) {return renderer[i];}
 	int getNumRenderers(){return renderer.size();}
@@ -217,7 +213,9 @@ public:
 	void sortRenderers(int timestep);  //Sort all the pri 0 renderers
 	
 	void removeDisabledRenderers();  //Remove renderers whose params are disabled
-	//Find a renderParams in renderer list, if it exists:
+
+	//Find a renderParams in renderer list, if it exists.   Used to determine
+	//that only one DVR is active.
 	RenderParams* findARenderer(Params::ParamsBaseType renderertype);
 	
 	static int getCurrentMouseMode() {return currentMouseMode;}
@@ -230,25 +228,8 @@ public:
 	//	-reinit
 	//	-new visualizer
 	
-	void setActiveViewpointParams(Params* p) {setActiveParams(p,Params::_viewpointParamsTag);}
-	void setActiveRegionParams(Params* p) {
-		setActiveParams(p,Params::_regionParamsTag);
-		//getManip(Params::_regionParamsTag)->setParams(p);
-	}
-	void setActiveAnimationParams(Params* p) {setActiveParams(p,Params::_animationParamsTag);}
 
 	
-	
-	vector<Params*> currentParams;
-	Params* getActiveParams(ParamsBase::ParamsBaseType pType) {return currentParams[pType];}
-	Params* getActiveParams(const std::string& tag) {return currentParams[Params::GetTypeFromTag(tag)];}
-	void setActiveParams(Params* p, ParamsBase::ParamsBaseType pType){
-		currentParams[pType] = p;
-	}
-	void setActiveParams(Params* p, const std::string& tag){
-		currentParams[Params::GetTypeFromTag(tag)] = p;
-	}
-
 	//The Visualizer keeps track of the renderers with an ordered list of them
 	//as well as with a map from renderparams to renderer
 	
@@ -257,9 +238,8 @@ public:
 	
 	//Determine the approximate size of a pixel in terms of viewer coordinates.
 	float getPixelSize();
-	bool viewerCoordsChanged() {return newViewerCoords;}
-	void setViewerCoordsChanged(bool isNew) {newViewerCoords = isNew;}
 	
+
 	//Routine is called at the end of rendering.  If capture is 1 or 2, it converts image
 	//to jpeg and saves file.  If it ever encounters an error, it turns off capture.
 	//If capture is 1 (single frame capture) it turns off capture.
@@ -348,10 +328,7 @@ protected:
 	int previousTimeStep;
 	int previousFrameNum;
 	static int jpegQuality;
-	//Following flag is set whenever there is mouse navigation, so that we can use 
-	//the new viewer position
-	//at the next rendering
-	bool newViewerCoords;
+	
 	static int currentMouseMode;
 	
 	vector<Renderer*> renderer;
@@ -389,18 +366,7 @@ protected:
 
 	float regionFrameColorFlt[3];
 	float subregionFrameColorFlt[3];
-
 	
-
-	float	wCenter[3]; //World center coords
-	float	maxDim;		//Max of x, y, z size in world coords
-	
-	//Indicate if the current render is different from previous,
-	//Used for frame capture:
-	bool renderNew;
-	
-	//Flag to set indicating start of capture sequence.
-	bool newCaptureImage;
 	
 	//Set the following to force a call to resizeGL at the next call to
 	//updateGL.

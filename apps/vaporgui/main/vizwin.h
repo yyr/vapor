@@ -1,9 +1,9 @@
 //************************************************************************
-//											*
-//		     Copyright (C)  2004						*
+//																		*
+//		     Copyright (C)  2013										*
 //     University Corporation for Atmospheric Research					*
-//		     All Rights Reserved						*
-//											*
+//		     All Rights Reserved										*
+//																		*
 //************************************************************************/
 //					
 //	File:		vizwin.h
@@ -12,12 +12,12 @@
 //			National Center for Atmospheric Research
 //			PO 3000, Boulder, Colorado
 //
-//	Date:		Sept 2004
+//	Date:		October 2013
 //
 //	Description:	Defines the VizWin class
-//		This is the widget that contains the visualizers
+//		This is a QGL widget for OpenGL rendering
 //		Supports mouse event reporting
-//		The actual GL rendering window is inserted as a frame into this
+//		The GL rendering calls are performed by the associated Visualizer class in the render lib
 //
 
 #ifndef VIZWIN_H

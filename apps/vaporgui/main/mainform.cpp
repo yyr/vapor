@@ -168,7 +168,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	
 	
 	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
-	
+	myVizMgr->createAllDefaultTabs();
 	//Create the Control executive. Don't need to use it yet.
 	ControlExecutive::getInstance();
 	
@@ -708,10 +708,10 @@ void MainForm::loadData()
     	//user to choose input data files, then to
 	//create a datamanager using those files
     	//or metafiles.  
-	/*
+	
 	QString filename = QFileDialog::getOpenFileName(this,
 		"Choose the Metadata File to load into current session",
-		Session::getInstance()->getMetadataFile().c_str(),
+		"",
 		"Vapor Metadata Files (*.vdf)");
 	if (filename == QString::null){
 		//Try again.  Probably invalid Metadata file
@@ -725,14 +725,13 @@ void MainForm::loadData()
 		if (fInfo.isReadable() && fInfo.isFile()){
 			vector<string> files;
 			files.push_back(filename.toStdString());
-			Session::getInstance()->resetMetadata(files, true, false);
-			DataStatus::setPre22Session(false);
+			ControlExecutive::getInstance()->LoadData(files,true);
 		}
-		else MessageReporter::errorMsg("Unable to read metadata file \n%s", (const char*)filename.toAscii());
+		else QMessageBox::information(this,"Load Data Error","Unable to read metadata file ");
 		return;
 	}
-	else MessageReporter::errorMsg("Invalid metadata file");
-	*/
+	else QMessageBox::information(this,"Load Data Error","Unable to read metadata file ");
+
 }
 
 //import WRF data into current session
@@ -818,7 +817,7 @@ void MainForm::newSession()
 }
 void MainForm::launchVisualizer()
 {
-	//VizWinMgr::getInstance()->launchVisualizer();
+	VizWinMgr::getInstance()->launchVisualizer();
 		
 }
 

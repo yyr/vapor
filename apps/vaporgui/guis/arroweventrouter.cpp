@@ -363,11 +363,11 @@ guiSetZVarNum(int vnum){
 }
 void ArrowEventRouter::
 guiSetHeightVarNum(int vnum){
-	int sesvarnum=0;
+	
 	confirmText(true);
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
 	
-	aParams->SetHeightVariableName(DataStatus::getInstance()->getVariableName2DXY(sesvarnum));
+	aParams->SetHeightVariableName(DataStatus::getInstance()->getVariableName2DXY(vnum));
 	updateTab();
 	
 	if (!aParams->IsTerrainMapped()) return;
@@ -471,16 +471,17 @@ void ArrowEventRouter::updateTab(){
 	copyCombo->addItem("This visualizer");
 	if (numViz > 1) {
 		int copyNum = 2;
-		for (int i = 0; i<MAXVIZWINS; i++){
+		copyCount.clear();
+		for (int i = 0; i<vizMgr->getNumVisualizers(); i++){
 			if (vizMgr->getVizWin(i) && winnum != i){
 				copyCombo->addItem(vizMgr->getVizWinName(i));
 				//Remember the viznum corresponding to a combo item:
-				copyCount[copyNum++] = i;
+				copyCount.push_back(i);
 			}
 		}
 	}
 	deleteInstanceButton->setEnabled(vizMgr->getNumInstances(winnum, Params::GetTypeFromTag(ArrowParams::_arrowParamsTag)) > 1);
-
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	//Set up refinements and LOD combos:
 	int numRefs = arrowParams->GetRefinementLevel();
 	if(numRefs <= refinementCombo->count())

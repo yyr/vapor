@@ -31,12 +31,10 @@ VizSelectCombo::VizSelectCombo(MainForm* mainWin, QToolBar* tBar, VizWinMgr* mgr
 	tBar->addWidget(this);
 	vizWinMgr = mgr;
 	currentActive = -1;
-	for (int i = 0; i< MAXVIZWINS; i++){
-		winNum[i] = -1;
-	}
+	winNums.clear();
 	insertItem(0,"Create New Visualizer");
 	//Remember this one with -100:
-	winNum[0] = -100;
+	winNums.push_back(-100);
 	//This initially has just the "New viz" entry.
 	//Hookup signals and slots:
 	connect (this, SIGNAL(activated(int)), this, SLOT(activeWin(int)));
@@ -61,16 +59,18 @@ addWindow(QString& windowName, int windowNum){
 	//First look to find the right place; insert it in a gap if necessary.
 	int i;
 	for (i = 0; i<count()-1; i++){
-		if (winNum[i] > windowNum) break;
+		if (winNums[i] > windowNum) break;
 	}
 	//Insert name at the specified place:
 	insertItem(i,windowName);
 	//Move the corresponding numbering up.
 	//Note that count has now (already) increased by 1.
+	//Put -100 at end:
+	winNums.push_back(-100);
 	for (int j = count()-1; j> i; j--){
-		winNum[j] = winNum[j-1];
+		winNums[j] = winNums[j-1];
 	}
-	winNum[i] = windowNum;
+	winNums[i] = windowNum;
 	currentActive = currentIndex();
 	if (currentActive < 0) setWindowActive(windowNum);
 }
@@ -83,20 +83,21 @@ removeWindow(int windowNum){
 	int i;
 	//It should be found in the bottom part of the combo
 	for (i = 0; i< count()-1; i++){
-		if (winNum[i] == windowNum) break;
+		if (winNums[i] == windowNum) break;
 	}
 	assert(i < count()-1);
 	removeItem(i);
 	//Now count() has already been reduced by one
-	assert(winNum[count()] == -100);
+	assert(winNums.size() == count());
 	for (int j = i; j<count(); j++){
-		winNum[j] = winNum[j+1];
+		winNums[j] = winNums[j+1];
 	}
+	winNums.pop_back();
 	//need to reset the active setting
 	int activenum = VizWinMgr::getInstance()->getActiveViz();
 	if (activenum >= 0){
 		for (int k = 0; k<count() -1; k++){
-			if (activenum == winNum[k]){
+			if (activenum == winNums[k]){
 				setCurrentIndex(k);
 				currentActive = k;
 				break;
@@ -116,7 +117,7 @@ setWindowActive(int win){
 	//find which entry this corresponds to:
 	int i;
 	for (i = 0; i<count()-1; i++){
-		if (winNum[i] == win) break;
+		if (winNums[i] == win) break;
 	}
 	if (i >= count() - 1){
 		assert (i < count()-1);
@@ -137,7 +138,7 @@ setWindowName(QString& newName, int windowNum){
 	//Find the specified winNum:
 	int i;
 	for (i = 0; i< count(); i++){
-		if (windowNum == winNum[i]) break;
+		if (windowNum == winNums[i]) break;
 	}
 	assert(i<count());
 	//Note we can only change the text of the current item
@@ -164,7 +165,7 @@ activeWin(int index){
 		return;
 	}
 	//Activate the window that is in position index in the list:
-	emit (winActivated(winNum[index]));
+	emit (winActivated(winNums[index]));
 	
 }
 void VizSelectCombo::
