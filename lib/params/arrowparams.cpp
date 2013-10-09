@@ -77,7 +77,7 @@ reinit(bool doOverride){
 	//Set up the variables. If doOverride is true, just make the first 3 variables the first 3 variables in the VDC.
 	//Otherwise try to use the current variables 
 	//In either case, if they don't exist replace them with 0.
-	vector<string>& vars = (is3D ? dataMgr->GetVariables3D() : dataMgr->GetVariables2DXY());
+	const vector<string>& vars = (is3D ? dataMgr->GetVariables3D() : dataMgr->GetVariables2DXY());
 	if (doOverride){
 
 		for (int i = 0; i<3; i++){

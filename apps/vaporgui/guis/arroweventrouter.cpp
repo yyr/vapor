@@ -253,7 +253,7 @@ populateVariableCombos(bool is3D){
 	DataStatus* ds;
 	ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
-	vector<string>& vars = (is3D ? dataMgr->GetVariables3D() : dataMgr->GetVariables2DXY());
+	const vector<string>& vars = (is3D ? dataMgr->GetVariables3D() : dataMgr->GetVariables2DXY());
 	if (is3D){
 		//The first entry is "0"
 		xVarCombo->clear();
