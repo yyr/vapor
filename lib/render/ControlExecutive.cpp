@@ -13,6 +13,7 @@
 #include "regionparams.h"
 #include "viewpointparams.h"
 #include "vapor/ExtensionClasses.h"
+#include "vapor/DataMgrFactory.h"
 
 using namespace VAPoR;
 ControlExecutive* ControlExecutive::controlExecutive = 0;
@@ -312,7 +313,11 @@ int ControlExecutive::RestoreSession(string file){return 0;}
 	//! the DataMgr class, rather than keeping them separate.
 	//
 const DataMgr *ControlExecutive::LoadData(vector <string> files, bool dflt){
-	return 0;
+	int cacheMB = 2000;
+	dataMgr = DataMgrFactory::New(files, cacheMB);
+	DataStatus::getInstance()->reset(dataMgr,cacheMB);
+	reinitializeParams(dflt);
+	return dataMgr;
 }
 
 	//! Draw 2D text on the screen
@@ -473,4 +478,29 @@ createAllDefaultParams() {
 	ParamsBase::RegisterParamsBaseClass(Params::_animationParamsTag, AnimationParams::CreateDefaultInstance, true);
 	ParamsBase::RegisterParamsBaseClass(Params::_viewpointParamsTag, ViewpointParams::CreateDefaultInstance, true);
 	ParamsBase::RegisterParamsBaseClass(Params::_regionParamsTag, RegionParams::CreateDefaultInstance, true);
+}
+void ControlExecutive::
+reinitializeParams(bool doOverride){
+	// Default render params should override; non render don't necessarily:
+	for (int i = 1; i<= Params::GetNumParamsClasses(); i++){
+		Params* p = Params::GetDefaultParams(i);
+		p->reinit(true);
+	}
+
+	
+	for (int i = 0; i< GetNumVisualizers(); i++){
+		if (!GetVisualizer(i)) continue;
+	
+		//Reinitialize all the render params for each window
+		for (int pType = 1; pType <= Params::GetNumParamsClasses(); pType++){
+			for (int inst = 0; inst < Params::GetNumParamsInstances(pType, i); inst++){
+				Params* p = Params::GetParamsInstance(pType,i,inst);
+				p->reinit(doOverride);
+				if (!p->isRenderParams()) break;
+				RenderParams* rParams = (RenderParams*)p;
+				rParams->setEnabled(false);
+			}
+		}
+		GetVisualizer(i)->removeAllRenderers();
+	}
 }

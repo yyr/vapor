@@ -426,6 +426,8 @@ public:
 	private:
 		//! At startup, create the initial Params instances:
 		void createAllDefaultParams();
+		//! when loading new data, reinitialize all the Params instances
+		void reinitializeParams(bool doOverride);
 		vector<Visualizer*> visualizers;
 		DataMgr* dataMgr;
 		static ControlExecutive* controlExecutive;

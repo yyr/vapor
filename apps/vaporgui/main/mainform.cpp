@@ -165,12 +165,12 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	
 	
 	tabDockWindow->setWidget(tabWidget);
-	
+	//Create the Control executive before the VizWinMgr.
+	ControlExecutive::getInstance();
 	
 	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
 	myVizMgr->createAllDefaultTabs();
-	//Create the Control executive. Don't need to use it yet.
-	ControlExecutive::getInstance();
+	
 	
 	createToolBars();	
 	

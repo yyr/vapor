@@ -42,7 +42,7 @@ bool ArrowParams::
 reinit(bool doOverride){
 
 	DataStatus* ds = DataStatus::getInstance();
-	
+	DataMgr* dataMgr = ds->getDataMgr();
 	int totNumVariables = ds->getNumVariables2DXY()+ds->getNumVariables3D();
 	if (totNumVariables <= 0) return false;
 	bool is3D = VariablesAre3D();
@@ -66,8 +66,8 @@ reinit(bool doOverride){
 	else {
 		int numCompressions = 0;
 	
-		if (ds->getDataMgr()) {
-			numCompressions = ds->getDataMgr()->GetCRatios().size();
+		if (dataMgr) {
+			numCompressions = dataMgr->GetCRatios().size();
 		}
 		
 		if (GetCompressionLevel() >= numCompressions){
@@ -77,21 +77,18 @@ reinit(bool doOverride){
 	//Set up the variables. If doOverride is true, just make the first 3 variables the first 3 variables in the VDC.
 	//Otherwise try to use the current variables 
 	//In either case, if they don't exist replace them with 0.
-	
+	vector<string>& vars = (is3D ? dataMgr->GetVariables3D() : dataMgr->GetVariables2DXY());
 	if (doOverride){
+
 		for (int i = 0; i<3; i++){
 			string varname;
 			if (i>=numVariables) {
 				varname = "0";
 			}
 			else {
-				if (is3D) {
-					varname = ds->getVariableName3D(i);
-				}
-				else {
-					varname = ds->getVariableName2DXY(i);
-				}
+				varname = vars[i];
 			}
+			
 			SetFieldVariableName(i,varname);
 		}
 	} 
@@ -100,14 +97,14 @@ reinit(bool doOverride){
 		string varname = "HGT";
 		int indx = ds->getActiveVarNum2D(varname);
 		if (indx < 0 && ds->getNumActiveVariables2D()>0) {
-			varname = ds->getVariableName2DXY(0);
+			varname = dataMgr->GetVariables2DXY()[0];
 		}
 		SetHeightVariableName(varname);
 	} else {
 		string varname = GetHeightVariableName();
 		int indx = ds->getActiveVarNum2D(varname);
 		if (indx < 0 && ds->getNumActiveVariables2D()>0) {
-			varname = ds->getVariableName2DXY(0);
+			varname = dataMgr->GetVariables2DXY()[0];
 			SetHeightVariableName(varname);
 		}
 	}

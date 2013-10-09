@@ -154,7 +154,7 @@ VizWinMgr::VizWinMgr()
 	VizName.clear();
 	
 	ActivationOrder.clear();
-    ControlExecutive* ce = ControlExecutive::getInstance();
+	
 	setSelectionMode(Visualizer::navigateMode);
 }
 //Create the global params and the default renderer params:

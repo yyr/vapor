@@ -110,7 +110,6 @@ public:
 	//The rest is not part of the public API
 	static ParamsBase* CreateDefaultInstance() {return new AnimationParams(0,-1);}
 	const std::string& getShortName() {return _shortName;}
-	virtual Params* deepCopy(ParamNode* n = 0);
 
 	virtual void restart();
 	static void setDefaultPrefs();

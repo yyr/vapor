@@ -88,7 +88,7 @@ public:
 #ifndef DOXYGEN_SKIP_THIS
 	static ParamsBase* CreateDefaultInstance() {return new ViewpointParams(0,-1);}
 	const std::string& getShortName() {return _shortName;}
-	virtual Params* deepCopy(ParamNode* n = 0);
+	
 	//Note that all calls to get camera pos and get rot center return values
 	//in local coordinates, not in lat/lon.  When the viewpoint params is in
 	//latlon mode, it is necessary to perform convertLocalFromLonLat and convertLocalToLonLat

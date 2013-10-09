@@ -98,8 +98,6 @@ public:
 	int getNumVariables3D() {return dataMgr->GetVariables3D().size();}
 	int getNumVariables2DXY() {return dataMgr->GetVariables2DXY().size();}
 	 
-	const string& getVariableName2DXY(int i){return dataMgr->GetVariables2DXY()[i];}
-	const string& getVariableName3D(int i){return dataMgr->GetVariables3D()[i];}
 	int getNumActiveVariables3D() {return getNumVariables3D();}
 	int getNumActiveVariables2D() {return getNumVariables2DXY();}
 	int getActiveVarNum3D(string vname) {return getVarNum3D(vname);}

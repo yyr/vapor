@@ -65,19 +65,11 @@ ViewpointParams::ViewpointParams(XmlNode* parent, int winnum): Params(parent, Pa
 	
 	restart();
 }
-Params* ViewpointParams::
-deepCopy(ParamNode*){
-	ViewpointParams* p = new ViewpointParams(*this);
-	return (Params*)(p);
-}
+
 ViewpointParams::~ViewpointParams(){
 	
 	
 }
-
-
-
-
 
 //Reinitialize viewpoint settings, to center view on the center of full region.
 //(this is starting state)

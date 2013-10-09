@@ -60,13 +60,6 @@ AnimationParams::~AnimationParams(){
 }
 
 
-//Currently nothing "deep" to copy:
-Params* AnimationParams::deepCopy(ParamNode*){
-	AnimationParams* newParams = new AnimationParams(*this);
-	
-	return (Params*)newParams;
-}
-
 //Reset to initial state
 //
 void AnimationParams::

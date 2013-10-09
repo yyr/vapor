@@ -104,7 +104,6 @@ void EventRouter::performGuiDeleteInstance(){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
 	int instance = vizMgr->getCurrentInstanceIndex(winnum, myParamsBaseType);
-	Params* rParams = vizMgr->getParams(winnum,myParamsBaseType, instance);
 	
 	removeRendererInstance(winnum, instance);
 	

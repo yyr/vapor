@@ -252,27 +252,29 @@ void ArrowEventRouter::
 populateVariableCombos(bool is3D){
 	DataStatus* ds;
 	ds = DataStatus::getInstance();
+	DataMgr* dataMgr = ds->getDataMgr();
+	vector<string>& vars = (is3D ? dataMgr->GetVariables3D() : dataMgr->GetVariables2DXY());
 	if (is3D){
 		//The first entry is "0"
 		xVarCombo->clear();
 		xVarCombo->setMaxCount(ds->getNumActiveVariables3D()+1);
 		xVarCombo->addItem(QString("0"));
 		for (int i = 0; i< ds->getNumActiveVariables3D(); i++){
-			const std::string& s = ds->getVariableName3D(i);
+			const std::string& s = vars[i];
 			xVarCombo->addItem(QString::fromStdString(s));
 		}
 		yVarCombo->clear();
 		yVarCombo->setMaxCount(ds->getNumActiveVariables3D()+1);
 		yVarCombo->addItem(QString("0"));
 		for (int i = 0; i< ds->getNumActiveVariables3D(); i++){
-			const std::string& s = ds->getVariableName3D(i);
+			const std::string& s = vars[i];
 			yVarCombo->addItem(QString::fromStdString(s));
 		}
 		zVarCombo->clear();
 		zVarCombo->setMaxCount(ds->getNumActiveVariables3D()+1);
 		zVarCombo->addItem(QString("0"));
 		for (int i = 0; i< ds->getNumActiveVariables3D(); i++){
-			const std::string& s = ds->getVariableName3D(i);
+			const std::string& s = vars[i];
 			zVarCombo->addItem(QString::fromStdString(s));
 		}
 	} else { //2D vars:
@@ -281,21 +283,21 @@ populateVariableCombos(bool is3D){
 		xVarCombo->setMaxCount(ds->getNumActiveVariables2D()+1);
 		xVarCombo->addItem(QString("0"));
 		for (int i = 0; i< ds->getNumActiveVariables2D(); i++){
-			const std::string& s = ds->getVariableName2DXY(i);
+			const std::string& s = vars[i];
 			xVarCombo->addItem(QString::fromStdString(s));
 		}
 		yVarCombo->clear();
 		yVarCombo->setMaxCount(ds->getNumActiveVariables2D()+1);
 		yVarCombo->addItem(QString("0"));
 		for (int i = 0; i< ds->getNumActiveVariables2D(); i++){
-			const std::string& s = ds->getVariableName2DXY(i);
+			const std::string& s = vars[i];
 			yVarCombo->addItem(QString::fromStdString(s));
 		}
 		zVarCombo->clear();
 		zVarCombo->setMaxCount(ds->getNumActiveVariables2D()+1);
 		zVarCombo->addItem(QString("0"));
 		for (int i = 0; i< ds->getNumActiveVariables2D(); i++){
-			const std::string& s = ds->getVariableName2DXY(i);
+			const std::string& s = vars[i];
 			zVarCombo->addItem(QString::fromStdString(s));
 		}
 	}
@@ -303,7 +305,7 @@ populateVariableCombos(bool is3D){
 	heightCombo->clear();
 	heightCombo->setMaxCount(ds->getNumActiveVariables2D());
 	for (int i = 0; i< ds->getNumActiveVariables2D(); i++){
-		const std::string& s = ds->getVariableName2DXY(i);
+		const std::string& s = dataMgr->GetVariables2DXY()[i];
 		heightCombo->addItem(QString::fromStdString(s));
 	}
 }
@@ -318,9 +320,9 @@ guiSetXVarNum(int vnum){
 	
 	if (vnum > 0){
 		if (is3D)
-			aParams->SetFieldVariableName(0,DataStatus::getInstance()->getVariableName3D(vnum-1));
+			aParams->SetFieldVariableName(0,DataStatus::getInstance()->getDataMgr()->GetVariables3D()[vnum-1]);
 		else 
-			aParams->SetFieldVariableName(0,DataStatus::getInstance()->getVariableName2DXY(vnum-1));
+			aParams->SetFieldVariableName(0,DataStatus::getInstance()->getDataMgr()->GetVariables2DXY()[vnum-1]);
 	} else aParams->SetFieldVariableName(0,"0");
 	aParams->SetVectorScale(aParams->calcDefaultScale());
 	
@@ -336,9 +338,9 @@ guiSetYVarNum(int vnum){
 	
 	if (vnum > 0){
 		if (is3D)
-			aParams->SetFieldVariableName(1,DataStatus::getInstance()->getVariableName3D(vnum-1));
+			aParams->SetFieldVariableName(1,DataStatus::getInstance()->getDataMgr()->GetVariables3D()[vnum-1]);
 		else 
-			aParams->SetFieldVariableName(1,DataStatus::getInstance()->getVariableName2DXY(vnum-1));
+			aParams->SetFieldVariableName(1,DataStatus::getInstance()->getDataMgr()->GetVariables2DXY()[vnum-1]);
 	} else aParams->SetFieldVariableName(1,"0");
 	aParams->SetVectorScale(aParams->calcDefaultScale());
 	
@@ -352,9 +354,9 @@ guiSetZVarNum(int vnum){
 	bool is3D = aParams->VariablesAre3D();
 	if (vnum > 0){
 		if (is3D)
-			aParams->SetFieldVariableName(2,DataStatus::getInstance()->getVariableName3D(vnum-1));
+			aParams->SetFieldVariableName(2,DataStatus::getInstance()->getDataMgr()->GetVariables3D()[vnum-1]);
 		else 
-			aParams->SetFieldVariableName(2,DataStatus::getInstance()->getVariableName2DXY(vnum-1));
+			aParams->SetFieldVariableName(2,DataStatus::getInstance()->getDataMgr()->GetVariables2DXY()[vnum-1]);
 	} else aParams->SetFieldVariableName(2,"0");
 	aParams->SetVectorScale(aParams->calcDefaultScale());
 	updateTab();
@@ -367,7 +369,7 @@ guiSetHeightVarNum(int vnum){
 	confirmText(true);
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
 	
-	aParams->SetHeightVariableName(DataStatus::getInstance()->getVariableName2DXY(vnum));
+	aParams->SetHeightVariableName(DataStatus::getInstance()->getDataMgr()->GetVariables2DXY()[vnum-1]);
 	updateTab();
 	
 	if (!aParams->IsTerrainMapped()) return;
@@ -470,7 +472,6 @@ void ArrowEventRouter::updateTab(){
 	copyCombo->addItem("Duplicate In:");
 	copyCombo->addItem("This visualizer");
 	if (numViz > 1) {
-		int copyNum = 2;
 		copyCount.clear();
 		for (int i = 0; i<vizMgr->getNumVisualizers(); i++){
 			if (vizMgr->getVizWin(i) && winnum != i){
