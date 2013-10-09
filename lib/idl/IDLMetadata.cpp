@@ -52,11 +52,11 @@ IDL_VPTR vdfMetadataCreate(int argc, IDL_VPTR *argv, char *argk)
 			(int *) IDL_KW_OFFSETOF(bs_there), IDL_CHARA(bs_d)
 		},
 		{
-			(char *) "NFILTERCOEF", IDL_TYP_LONG, 1, IDL_KW_ZERO, 0, 
+			(char *) "NFILTERCOEF", IDL_TYP_LONG, 1, 0, 0, 
 			(char *) IDL_KW_OFFSETOF(nFilterCoef)
 		},
 		{
-			(char *) "NLIFTINGCOEF",IDL_TYP_LONG, 1, IDL_KW_ZERO, 0, 
+			(char *) "NLIFTINGCOEF",IDL_TYP_LONG, 1, 0, 0, 
 			(char *) IDL_KW_OFFSETOF(nLiftingCoef)
 		},
 		{
