@@ -40,7 +40,6 @@ private:
  MetadataVDC *CreateMetadataVDC(const VDCFactory &vdcf,
 				const DCReader *DCdata);
 
- char ** argv_merge(int argc1, char **argv1, int argc2, char **argv2, int &newargc);
 
 };
 };

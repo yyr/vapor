@@ -26,7 +26,7 @@ namespace VAPoR {
 class VDF_API VDCFactory : public VetsUtil::MyBase {
 public:
  
- VDCFactory();
+ VDCFactory(bool vdc2 = true);
  int Parse(int *argc, char **argv);
  void RemoveOptions(std::vector <string> options) {
 	_removeOptions = options;
@@ -36,9 +36,9 @@ public:
 
 private:
 	VetsUtil::OptionParser _op;
+	bool _vdc2;
 
 	VetsUtil::OptionParser::Dimension3D_T _bs;
-	bool _vdc2;
 	int _level;
 	int _nfilter;
 	int _nlifting;
