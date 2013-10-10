@@ -210,18 +210,6 @@ MetadataVDC *vdfcreate::CreateMetadataVDC(
 	return(file);
 }
 
-char ** vdfcreate::argv_merge(
-	int argc1, char **argv1, int argc2, char **argv2,
-	int &newargc
-) {
-	char **newargv = new char * [argc1+argc2+1];
-	newargc = 0;
-	for (int i=0; i<argc1; i++) newargv[newargc++] = argv1[i];
-	for (int i=0; i<argc2; i++) newargv[newargc++] = argv2[i];
-	newargv[newargc] = NULL;
-	return(newargv);
-}
-
 int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 
 	OptionParser::OptDescRec_T	set_opts[] = {
@@ -253,23 +241,15 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 
     _progname = Basename(argv[0]);
 
-    // Ugh. All this just to add a default option to argv
-    //
-    char **myargv;
-    int myargc;
-    char *argv2[] = { (char *) "-vdc2", NULL };
-    myargv = argv_merge(argc, argv, 1, argv2, myargc);
-
-
     if (op.AppendOptions(set_opts) < 0) {
 	    return (-1);
 	}
 
-    if (op.ParseOptions(&myargc, myargv, get_options) < 0) {
+    if (op.ParseOptions(&argc, argv, get_options) < 0) {
 	    return (-1);
 	}
 
-	VDCFactory vdcf;
+	VDCFactory vdcf(true);
 	vector <string> rmopts;
 	rmopts.push_back("nfilter");
 	rmopts.push_back("nlifting");
@@ -294,7 +274,7 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 
     vdcf.RemoveOptions(rmopts);
 
-	if (vdcf.Parse(&myargc, myargv) < 0) {
+	if (vdcf.Parse(&argc, argv) < 0) {
 	    return (-1);
 	    //exit(1);
 	}
@@ -308,10 +288,10 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 	}
 
 
-	myargv++;
-	myargc--;
+	argv++;
+	argc--;
 
-	if (myargc < 2) {
+	if (argc < 2) {
         Usage(op, "No files to process");
         vdcf.Usage(stderr);
 		MyBase::SetErrMsg("No files to process");
@@ -319,8 +299,8 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 	}
 
 	vector<string> ncdffiles;
-	for (int i=0; i<myargc-1; i++) {
-		 ncdffiles.push_back(myargv[i]);
+	for (int i=0; i<argc-1; i++) {
+		 ncdffiles.push_back(argv[i]);
 	}
 	
     if (NetCDFtype == "roms") DCdata = new DCReaderROMS(ncdffiles);
@@ -340,7 +320,7 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
     file = CreateMetadataVDC(vdcf, DCdata);
 
 	// Write file.
-	if (file->Write(myargv[myargc-1]) < 0) {
+	if (file->Write(argv[argc-1]) < 0) {
 	    //MyBase::SetErrMsg already called here?
 	    return (-1);//file->GetErrMsg();	
 	    //exit(1);

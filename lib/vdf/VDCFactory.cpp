@@ -10,9 +10,9 @@ using namespace VAPoR;
 using namespace VetsUtil;
 using namespace std;
 
-VDCFactory::VDCFactory() {
+VDCFactory::VDCFactory(bool vdc2) {
+	_vdc2 = vdc2;
 	_bs.nx = _bs.ny = _bs.nz = -1;
-	_vdc2 = false;
 	_level = 2;
 	_nfilter = 1;
 	_nlifting = 1;
@@ -59,10 +59,6 @@ int VDCFactory::Parse(int *argc, char **argv) {
 			"bs", 1, "-1x-1x-1",
 			"Internal storage blocking factor expressed in grid points "
 			"(NXxNYxNZ). Defaults: 32x32x32 (VDC type 1), 64x64x64 (VDC type 2)"
-		},
-		{
-			"vdc2",	0,	"",	
-			"Generate a VDC Type 2 .vdf file (default is VDC Type 1)"
 		},
 		{
 			"level", 1, "2", "Number of approximation levels in hierarchy. "
@@ -177,7 +173,6 @@ int VDCFactory::Parse(int *argc, char **argv) {
 
 	OptionParser::Option_T  get_options[] = {
 		{"bs", VetsUtil::CvtToDimension3D, &_bs, sizeof(_bs)},
-		{"vdc2", VetsUtil::CvtToBoolean, &_vdc2, sizeof(_vdc2)},
 		{"level", VetsUtil::CvtToInt, &_level, sizeof(_level)},
 		{"nfilter", VetsUtil::CvtToInt, &_nfilter, sizeof(_nfilter)},
 		{"nlifting", VetsUtil::CvtToInt, &_nlifting, sizeof(_nlifting)},
