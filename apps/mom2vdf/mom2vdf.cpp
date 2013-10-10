@@ -1,10 +1,16 @@
 #include <cstdio>
 #include <cstdlib>
-//#include "2vdf.h"
-#include <vapor/2vdf.h>
+#include <vapor/Copy2VDF.h>
+
+using namespace VAPoR;
 
 int main(int argc, char **argv) {
-        string command = "mom";
-        launch2vdf(argc, argv, command);
-        exit(0);    
+
+	Copy2VDF c2vdf;
+	string command = "mom";
+	int rc = c2vdf.launch2vdf(argc, argv, command);
+
+	if (rc == 0) exit(0);
+	else exit(1);
+
 }
