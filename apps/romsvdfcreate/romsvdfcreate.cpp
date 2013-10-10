@@ -7,7 +7,9 @@ using namespace std;
 using namespace VAPoR;
 
 int main(int argc, char **argv) {
+	
+	vdfcreate vdfc;
 	std::string command = "roms";
-	launchVdfCreate(argc, argv, command);
+	vdfc.launchVdfCreate(argc, argv, command);
 	exit(0);	
 }
