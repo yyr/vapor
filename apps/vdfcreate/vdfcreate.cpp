@@ -19,12 +19,18 @@ using namespace VAPoR;
 struct opt_t {
 	OptionParser::Dimension3D_T	dim;
 	OptionParser::Boolean_T	help;
+	OptionParser::Boolean_T	vdc2;
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
 	{"dimension",1, "512x512x512",	"Data volume dimensions expressed in "
 		"grid points (NXxNYxNZ)"},
 	{"help",	0,	"",	"Print this message and exit"},
+	{
+		"vdc2", 0,  "",
+		"Generate a VDC Type 2 .vdf file (default is VDC Type 1)"
+	},
+
 	{NULL}
 };
 
@@ -32,6 +38,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 OptionParser::Option_T	get_options[] = {
 	{"dimension", VetsUtil::CvtToDimension3D, &opt.dim, sizeof(opt.dim)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
+	{"vdc2", VetsUtil::CvtToBoolean, &opt.vdc2, sizeof(opt.vdc2)},
 	{NULL}
 };
 
@@ -57,7 +64,7 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
-	VDCFactory	vdcf;
+	VDCFactory	vdcf(opt.vdc2);
 	if (vdcf.Parse(&argc, argv) < 0) {
 		exit(1);
 	}
