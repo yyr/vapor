@@ -8,22 +8,41 @@
 #include <vapor/DCReader.h>
 #include <vapor/VDCFactory.h>
 
-using namespace VetsUtil;
-using namespace VAPoR;
 
-//namespace VAPoR{
-void vdfcreateUsage(OptionParser &op, const char * msg);
-void populateVariables(std::vector<std::string> &vars, 
-			std::vector<std::string> candidate_vars,
-			MetadataVDC *file, 
-			int (MetadataVDC::*SetVarFunction)(const std::vector<std::string>&));
+namespace VAPoR {
 
-void writeToScreen(DCReader *DCdata, MetadataVDC *file);
-MetadataVDC *CreateMetadataVDC(const VDCFactory &vdcf,
+class VDF_API vdfcreate : public VetsUtil::MyBase {
+public:
+ vdfcreate();
+ ~vdfcreate();
+ int VDF_API launchVdfCreate(int argc, char **argv, string NetCDFtype);
+
+private:
+ string _progname;
+
+ //
+ // command line options passed to launchVdfCreate
+ //
+ vector <string> _vars;
+ VetsUtil::OptionParser::Boolean_T _help;
+ VetsUtil::OptionParser::Boolean_T _quiet;
+ VetsUtil::OptionParser::Boolean_T _debug;
+
+
+ void Usage(VetsUtil::OptionParser &op, const char * msg);
+ void populateVariables(std::vector<std::string> &vars, 
+	std::vector<std::string> candidate_vars,
+	MetadataVDC *file, 
+	int (MetadataVDC::*SetVarFunction)(const std::vector<std::string>&)
+ );
+
+ void writeToScreen(DCReader *DCdata, MetadataVDC *file);
+ MetadataVDC *CreateMetadataVDC(const VDCFactory &vdcf,
 				const DCReader *DCdata);
 
-char ** argv_merge(int argc1, char **argv1, int argc2, char **argv2, int &newargc);
-int VDF_API launchVdfCreate(int argc, char **argv, string NetCDFtype);
-//};
+ char ** argv_merge(int argc1, char **argv1, int argc2, char **argv2, int &newargc);
+
+};
+};
 
 #endif
