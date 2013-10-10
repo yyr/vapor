@@ -15,53 +15,45 @@
 #ifdef WIN32
 #pragma warning(disable : 4996)
 #endif
+
 using namespace std;
 using namespace VAPoR;
+using namespace VetsUtil;
 
-struct opt_t {
-	vector <string> vars;
-	OptionParser::Boolean_T	help;
-	OptionParser::Boolean_T	quiet;
-} optvdfcreate;
 
-OptionParser::OptDescRec_T	set_optsvdfcreate[] = {
-	{"vars",1,    "",	"Colon delimited list of variables to be copied "
-		"from ncdf data. The default is to copy all 2D and 3D variables"},
-	{"help",	0,	"",	"Print this message and exit"},
-	{"quiet",	0,	"",	"Operate quietly"},
-	{NULL}
-};
+vdfcreate::vdfcreate() {
+	_progname.clear();
+	_vars.clear();
+	_help = false;
+	_quiet = false;
+	_debug = false;
+}
 
-OptionParser::Option_T	get_optionsvdfcreate[] = {
-    {"vars", VetsUtil::CvtToStrVec, &optvdfcreate.vars, sizeof(optvdfcreate.vars)},
-    {"help", VetsUtil::CvtToBoolean, &optvdfcreate.help, sizeof(optvdfcreate.help)},
-    {"quiet", VetsUtil::CvtToBoolean, &optvdfcreate.quiet, sizeof(optvdfcreate.quiet)},
-	{NULL}
-};
+vdfcreate::~vdfcreate() {
+}
 
-const char *vdfcreateProgName;
-
-void vdfcreateUsage(OptionParser &op, const char * msg) {
+void vdfcreate::Usage(OptionParser &op, const char * msg) {
 
 	if (msg) {
-        cerr << vdfcreateProgName << " : " << msg << endl;
+        cerr << _progname << " : " << msg << endl;
 	}
-    cerr << "Usage: " << vdfcreateProgName << " [options] ncdf_file... vdf_file" << endl;
+    cerr << "Usage: " << _progname << " [options] ncdf_file... vdf_file" << endl;
 	op.PrintOptionHelp(stderr, 80, false);
 }
 
-void populateVariables(vector<string> &vars, vector<string> candidate_vars,
-                       MetadataVDC *file, int (MetadataVDC::*SetVarFunction)(const vector<string>&)) {
-    if (! optvdfcreate.vars.size()) {
+void vdfcreate::populateVariables(
+	vector<string> &vars, vector<string> candidate_vars,
+	MetadataVDC *file, int (MetadataVDC::*SetVarFunction)(const vector<string>&)) {
+    if (! _vars.size()) {
             vars = candidate_vars;
         }
         else {
 
             vars.clear();
-            for (int i=0; i<optvdfcreate.vars.size(); i++) {
-                vector <string>::iterator itr = find(candidate_vars.begin(), candidate_vars.end(), optvdfcreate.vars[i]);
+            for (int i=0; i<_vars.size(); i++) {
+                vector <string>::iterator itr = find(candidate_vars.begin(), candidate_vars.end(), _vars[i]);
                 if (itr != candidate_vars.end()) {
-                    vars.push_back(optvdfcreate.vars[i]);
+                    vars.push_back(_vars[i]);
                 }
             }
         }
@@ -73,8 +65,8 @@ void populateVariables(vector<string> &vars, vector<string> candidate_vars,
     }
 }
 
-void writeToScreen(DCReader *DCdata, MetadataVDC *file) {
-    if (! optvdfcreate.quiet && DCdata->GetNumTimeSteps() > 0) {
+void vdfcreate::writeToScreen(DCReader *DCdata, MetadataVDC *file) {
+    if (! _quiet && DCdata->GetNumTimeSteps() > 0) {
         cout << "Created VDF file:" << endl;
         cout << "\tNum time steps : " << file->GetNumTimeSteps() << endl;
 
@@ -124,7 +116,7 @@ void writeToScreen(DCReader *DCdata, MetadataVDC *file) {
     }
 }
 
-MetadataVDC *CreateMetadataVDC(
+MetadataVDC *vdfcreate::CreateMetadataVDC(
 	const VDCFactory &vdcf,
     const DCReader *DCdata
 ) {
@@ -151,7 +143,6 @@ MetadataVDC *CreateMetadataVDC(
 	// Add checking of return values and error messsages.
 	//
     if(file->SetNumTimeSteps(DCdata->GetNumTimeSteps())) {
-		cerr << "Error populating NumTimeSteps." << endl;
 		file->SetErrMsg(2,"Error populating NumTimeSteps.");
 		return file;
 		//exit(1);
@@ -190,7 +181,6 @@ MetadataVDC *CreateMetadataVDC(
 		usertime.clear();
         usertime.push_back(DCdata->GetTSUserTime(t));
 		if(file->SetTSUserTime(t, usertime)) {
-			cerr << "Error populating TSUserTime." << endl;
 			file->SetErrMsg(1,"Error populating TSUserTime.");
 			return file;//exit(1);
 		}
@@ -220,7 +210,7 @@ MetadataVDC *CreateMetadataVDC(
 	return(file);
 }
 
-char ** argv_merge(
+char ** vdfcreate::argv_merge(
 	int argc1, char **argv1, int argc2, char **argv2,
 	int &newargc
 ) {
@@ -232,7 +222,24 @@ char ** argv_merge(
 	return(newargv);
 }
 
-int launchVdfCreate(int argc, char **argv, string NetCDFtype) {
+int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
+
+	OptionParser::OptDescRec_T	set_opts[] = {
+		{"vars",1,    "",	"Colon delimited list of variables to be copied "
+			"from ncdf data. The default is to copy all 2D and 3D variables"},
+		{"help",	0,	"",	"Print this message and exit"},
+		{"quiet",	0,	"",	"Operate quietly"},
+		{"debug",   0,  "", "Turn on debugging"},
+		{NULL}
+	};
+
+	OptionParser::Option_T	get_options[] = {
+		{"vars", VetsUtil::CvtToStrVec, &_vars, sizeof(_vars)},
+		{"help", VetsUtil::CvtToBoolean, &_help, sizeof(_help)},
+		{"quiet", VetsUtil::CvtToBoolean, &_quiet, sizeof(_quiet)},
+		{"debug", VetsUtil::CvtToBoolean, &_debug, sizeof(_debug)},
+		{NULL}
+	};
 
     for(int i=0;i<argc;i++) cout << argv[i] << " ";
 
@@ -244,7 +251,7 @@ int launchVdfCreate(int argc, char **argv, string NetCDFtype) {
     string s;
     DCReader *DCdata;
 
-    vdfcreateProgName = Basename(argv[0]);
+    _progname = Basename(argv[0]);
 
     // Ugh. All this just to add a default option to argv
     //
@@ -254,12 +261,12 @@ int launchVdfCreate(int argc, char **argv, string NetCDFtype) {
     myargv = argv_merge(argc, argv, 1, argv2, myargc);
 
 
-    if (op.AppendOptions(set_optsvdfcreate) < 0) {
-	    return 1;
+    if (op.AppendOptions(set_opts) < 0) {
+	    return (-1);
 	}
 
-    if (op.ParseOptions(&myargc, myargv, get_optionsvdfcreate) < 0) {
-	    return 1;
+    if (op.ParseOptions(&myargc, myargv, get_options) < 0) {
+	    return (-1);
 	}
 
 	VDCFactory vdcf;
@@ -288,14 +295,16 @@ int launchVdfCreate(int argc, char **argv, string NetCDFtype) {
     vdcf.RemoveOptions(rmopts);
 
 	if (vdcf.Parse(&myargc, myargv) < 0) {
-	    return 1;
+	    return (-1);
 	    //exit(1);
 	}
+    if (_debug) MyBase::SetDiagMsgFilePtr(stderr);
 
-    if (optvdfcreate.help) {
-        vdfcreateUsage(op, NULL);
-        vdcf.Usage(stderr);
-	return 0;//exit(0);
+
+    if (_help) {
+		Usage(op, NULL);
+		vdcf.Usage(stderr);
+		return 0;//exit(0);
 	}
 
 
@@ -303,10 +312,10 @@ int launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 	myargc--;
 
 	if (myargc < 2) {
-        vdfcreateUsage(op, "No files to process");
+        Usage(op, "No files to process");
         vdcf.Usage(stderr);
-	MyBase::SetErrMsg("No files to process");
-	return 1;//exit(1);
+		MyBase::SetErrMsg("No files to process");
+		return (-1);
 	}
 
 	vector<string> ncdffiles;
@@ -317,11 +326,9 @@ int launchVdfCreate(int argc, char **argv, string NetCDFtype) {
     if (NetCDFtype == "roms") DCdata = new DCReaderROMS(ncdffiles);
     else DCdata = new DCReaderMOM(ncdffiles);
 
-    //DCdata = new DCReaderMOM(ncdffiles);
-    if (MyBase::GetErrCode() != 0) return 1;
+    if (MyBase::GetErrCode() != 0) return (-1);
 
     if(DCdata->GetNumTimeSteps() < 0) {
-		cerr << "No output file generated due to no input files processed." << endl;
 		MyBase::SetErrMsg("No output file generated due to no input files processed.");
 		return 0;
 	}
@@ -335,10 +342,12 @@ int launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 	// Write file.
 	if (file->Write(myargv[myargc-1]) < 0) {
 	    //MyBase::SetErrMsg already called here?
-	    return 1;//file->GetErrMsg();	
+	    return (-1);//file->GetErrMsg();	
 	    //exit(1);
 	}
 
     writeToScreen(DCdata,file);
+
+	if (DCdata) delete DCdata;
     return 0;
 }
