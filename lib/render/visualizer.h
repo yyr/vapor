@@ -325,6 +325,7 @@ protected:
 	}
 	
 	int winNum;
+	int width, height;
 	int previousTimeStep;
 	int previousFrameNum;
 	static int jpegQuality;

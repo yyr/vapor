@@ -119,9 +119,11 @@ void Visualizer::setDefaultPrefs(){
 //  Set up the OpenGL view port, matrix mode, etc.
 //
 
-void Visualizer::resizeGL( int width, int height )
+void Visualizer::resizeGL( int wid, int ht )
 {
-  setUpViewport(width, height);
+  setUpViewport(wid, ht);
+  height = ht;
+  width = wid;
   nowPainting = false;
   needsResize = false;
 
@@ -211,10 +213,11 @@ void Visualizer::setUpViewport(int width,int height){
 		
 	
 	//qWarning("setting near, far dist: %f %f", nearDist, farDist);
-	gluPerspective(45., w, nearDist, farDist );
+	//gluPerspective(45., w, nearDist, farDist );
+	gluPerspective(60., w, 0.1f, 512.f );
 	//gluPerspective(45., w, 1.0, 5. );
 	//save the current value...
-	glGetDoublev(GL_PROJECTION_MATRIX, projectionMatrix);
+	//glGetDoublev(GL_PROJECTION_MATRIX, projectionMatrix);
 		
 	glMatrixMode(GL_MODELVIEW);
 	printOpenGLError();
@@ -238,9 +241,6 @@ void Visualizer::paintEvent(bool force)
 	//Following is needed in case undo/redo leaves a disabled renderer in the renderer list, so it can be deleted.
 	removeDisabledRenderers();
 	
-	//Following is probably not needed, too, although haven't checked it out.  Qt is supposed to always call paintGL in
-	//the GL context, but maybe not paintEvent?
-	//makeCurrent();
 	printOpenGLError();
 	
 	
@@ -269,59 +269,31 @@ void Visualizer::paintEvent(bool force)
 	
 	//automatically renormalize normals (especially needed for flow rendering)
 	glEnable(GL_NORMALIZE);
-
-	//If we are doing the first capture of an image sequence then set the
-	//newRender flag to true, whether or not it's a real new render.
-	//Then turn off the flag, subsequent renderings will only be captured
-	//if they really are new, or if we are spinning.
-	
-
-	//Following line has been modified and moved to a later point in the code.  It is necessary to register with the 
-	//AnimationController, but not yet, because we don't yet know the frame number.
-	//(Tell the animation we are starting.  If it returns false, we are not
-	//being monitored by the animation controller
-	//bool isControlled = AnimationController::getInstance()->beginRendering(winNum);
-	
-	//If we are visualizing in latLon space, must update the local coordinates
-	//and put them in the trackball, prior to setting up the trackball.
-	//The frameNum is used with keyframe animation, it coincides with timeStep when keyframing is disabled.
 	int timeStep = getActiveAnimationParams()->getCurrentTimestep();
 
-	
-	
-	
-	setValuesFromGui(getActiveViewpointParams());
+	//following gets viewpoint from viewpoint params
+	//setValuesFromGui(getActiveViewpointParams());
 
 	//resetView sets the near/far clipping planes based on the viewpoint in the viewpointParams
-	resetView(getActiveViewpointParams());
+	//resetView(getActiveViewpointParams());
 	
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
+	//TEMPORARY:  do a default matrix:
+	glTranslatef(0.,0.,-5.0);
 
 	//Lights are positioned relative to the view direction, do this before the modelView matrix is changed
 	placeLights();
 
 	//Set the GL modelview matrix, based on the Trackball state.
-	glLoadMatrixd(getModelViewMatrix());
-
-	//The prerender callback is set in the vizwin. 
-	//It registers with the animation controller, 
-	//and tells the window the current viewer frame.
-	//This must be called prior to rendering.  The boolean "isControlled" indicates 
-	//whether or not the rendering is under the control of the animationController.
-	//If it is true, then the postRenderCallback must be called after the full rendering is complete.
-	//bool isControlled = preRenderCB(winNum, viewerCoordsChanged());
-	
-
+	//glLoadMatrixd(getModelViewMatrix());
 	
 	//make sure to capture whenever the time step or frame index changes
 	if (timeStep != previousTimeStep) {
 		previousTimeStep = timeStep;
 	}
 	
-    //getActiveRegionParams()->calcStretchedBoxExtentsInCube(extents,timeStep);
-    //DataStatus::getInstance()->getMaxStretchedExtentsInCube(maxFull);
 	
 	//Make the depth buffer writable
 	glDepthMask(GL_TRUE);
@@ -366,7 +338,6 @@ void Visualizer::paintEvent(bool force)
 	//Perform final touch-up on the final images, before capturing or displaying them.
 
 	glPopMatrix();
-	//swapBuffers();
 	glFlush();
 
 	
@@ -435,6 +406,7 @@ void Visualizer::initializeGL()
 		renderer[i]->initializeGL();
 		printOpenGLErrorMsg(renderer[i]->getMyName().c_str());
 	}
+	//setUpViewport(width, height);
 	nowPainting = false;
 	printOpenGLError();
 	
@@ -670,6 +642,14 @@ insertRenderer(RenderParams* rp, Renderer* ren, int newOrder)
 	
 	
 	mapRenderer(rp, ren);
+	//For the first renderer:
+	if (renderer.size() == 0){
+		renderer.push_back(ren);
+		renderType.push_back(rendType);
+		renderOrder.push_back(newOrder);
+		ren->initializeGL();
+		return 0;
+	}
 	//Find a renderer of lower order
 	int i;
 	for (i = renderer.size()-1; i>= 0; i--){
@@ -677,6 +657,7 @@ insertRenderer(RenderParams* rp, Renderer* ren, int newOrder)
 	}
 	int lastPosn = i;
 	int maxPosn = renderer.size()-1;
+
 	renderer.push_back(renderer[maxPosn]);
 	renderType.push_back(renderType[maxPosn]);
 	renderOrder.push_back(renderOrder[maxPosn]);

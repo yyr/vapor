@@ -87,9 +87,7 @@ public:
 		myVisualizer->setMouseDown(downUp);
 	}
 	bool mouseIsDown() {return mouseDownHere;}
-	
 
-	
 	static bool preRenderSetup(int viznum, bool newCoords){
 		if (newCoords) {
 			VizWinMgr::getInstance()->getVizWin(viznum)->changeViewerFrame();
@@ -102,21 +100,16 @@ public:
 		return VizWinMgr::getInstance()->getVizWin(viznum)->mouseIsDown();
 	}
 
-public slots:
     //Force an update in the gl window:
-	void updateGL() { 
-		myVisualizer->paintEvent(true);
-	}
-
-	
+public slots:
+	void updateGL();
+		
 protected:
 	
     MainForm* myParent;
     int myWindowNum;
-    	VizWinMgr* myWinMgr;
-	//Trackball* myTrackball;
-	//Trackball* localTrackball;
-	//OpenGL widget for graphics:
+    VizWinMgr* myWinMgr;
+	
 	Visualizer* myVisualizer;
 
 	//Method that gets the coord frame from GL, 
@@ -134,8 +127,6 @@ public slots:
     virtual void helpAbout();
 	virtual void setFocus();
 
-	
-
 protected:
 	virtual QSize minimumSizeHint() const 
 		{return QSize(400,400);}
@@ -152,11 +143,12 @@ protected:
 	virtual void mousePressEvent(QMouseEvent*);
 	virtual void mouseReleaseEvent(QMouseEvent*);
 	virtual void mouseMoveEvent(QMouseEvent*);
-	virtual void focusInEvent(QFocusEvent* e);
+	//virtual void focusInEvent(QFocusEvent* e);
     virtual void closeEvent(QCloseEvent*);
     virtual void hideEvent(QHideEvent*);
     virtual void windowActivationChange(bool oldActive);
-    virtual void resizeEvent(QResizeEvent*);
+    virtual void resizeGL(int width, int height);
+	virtual void initializeGL();
     bool isReallyMaximized();
 	//Variables to control spin animation: 
 	QTime* spinTimer;

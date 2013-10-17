@@ -63,6 +63,85 @@ void ArrowRenderer::initializeGL(){
 
 void ArrowRenderer::paintGL(){
 	
+	//TEMPORARY:  Just draw a box.
+	glColor3f(1.,1.,1.);
+	glBegin(GL_LINES);
+	
+	glVertex3f(1.,1.,-1.f);
+	glVertex3f(1.,-1.,-1.f);
+
+	glVertex3f(1.,1.,-1.f);
+	glVertex3f(-1.,1.,-1.f);
+
+	glVertex3f(-1.,1.,-1.f);
+	glVertex3f(-1.,-1.,-1.f);
+
+	glVertex3f(1.,-1.,-1.f);
+	glVertex3f(-1.,-1.,-1.f);
+
+	
+	glVertex3f(1.,1.,1.f);
+	glVertex3f(1.,-1.,1.f);
+
+	glVertex3f(1.,1.,1.f);
+	glVertex3f(-1.,1.,1.f);
+
+	glVertex3f(-1.,1.,1.f);
+	glVertex3f(-1.,-1.,1.f);
+
+	glVertex3f(1.,-1.,1.f);
+	glVertex3f(-1.,-1.,1.f);
+
+	glVertex3f(1.,1.,1.f);
+	glVertex3f(1.,-1.,1.f);
+
+	glVertex3f(1.,1.,1.f);
+	glVertex3f(1.,1.,-1.f);
+
+	glVertex3f(1.,1.,-1.f);
+	glVertex3f(1.,-1.,-1.f);
+
+	glVertex3f(1.,-1.,1.f);
+	glVertex3f(1.,-1.,-1.f);
+
+	glVertex3f(-1.,1.,1.f);
+	glVertex3f(-1.,-1.,1.f);
+
+	glVertex3f(-1.,1.,1.f);
+	glVertex3f(-1.,1.,-1.f);
+
+	glVertex3f(-1.,1.,-1.f);
+	glVertex3f(-1.,-1.,-1.f);
+
+	glVertex3f(-1.,-1.,1.f);
+	glVertex3f(-1.,-1.,-1.f);
+
+	glVertex3f(1.,1.,1.f);
+	glVertex3f(-1.,1.,1.f);
+
+	glVertex3f(1.,1.,1.f);
+	glVertex3f(1.,1.,-1.f);
+
+	glVertex3f(1.,1.,-1.f);
+	glVertex3f(-1.,1.,-1.f);
+
+	glVertex3f(-1.,1.,1.f);
+	glVertex3f(-1.,1.,-1.f);
+
+	glVertex3f(1.,-1.,1.f);
+	glVertex3f(-1.,-1.,1.f);
+
+	glVertex3f(1.,-1.,1.f);
+	glVertex3f(1.,-1.,-1.f);
+
+	glVertex3f(1.,-1.,-1.f);
+	glVertex3f(-1.,-1.,-1.f);
+
+	glVertex3f(-1.,-1.,1.f);
+	glVertex3f(-1.,-1.,-1.f);
+	glEnd();
+	return;
+
 	ArrowParams* aParams = (ArrowParams*)currentRenderParams;
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();

@@ -65,8 +65,9 @@ using namespace VAPoR;
  *
  */
 VizWin::VizWin( MainForm* parent, const QString& name, Qt::WFlags fl, VizWinMgr* myMgr, QRect* location, int winNum)
-    : QGLWidget(QGLFormat(QGL::SampleBuffers), (QWidget*)parent)
+    : QGLWidget()
 {
+	return;
 	setAttribute(Qt::WA_DeleteOnClose);
 	
 	myName = name;
@@ -124,6 +125,7 @@ void VizWin::closeEvent(QCloseEvent* e){
 /******************************************************
  * React when focus is on window:
  ******************************************************/
+/*
 void VizWin::
 focusInEvent(QFocusEvent* e){
 	//Test for hidden here, since a vanishing window can get this event.
@@ -133,7 +135,7 @@ focusInEvent(QFocusEvent* e){
 		}
 	}
 }
-
+*/
 // React to a user-change in window activation:
 void VizWin::windowActivationChange(bool ){
 	
@@ -143,21 +145,35 @@ void VizWin::windowActivationChange(bool ){
 }
 // React to a user-change in window size/position (or possibly max/min)
 // Either the window is minimized, maximized, restored, or just resized.
-void VizWin::resizeEvent(QResizeEvent*){
-		
-		
+void VizWin::resizeGL(int width, int height){
+	glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glViewport(0, 0, width, height);
+    gluPerspective(60, (float)width / (float)height, 0.1f, 512.f);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    //updated = true;
+	return;
+	ControlExecutive* ce = ControlExecutive::getInstance();
+	ce->ResizeViz(myWindowNum, width, height);
 }
-
+void VizWin::initializeGL(){
+	glClearColor(0.1f, 0.1f, 0.1f, 1.f);
+    glDepthMask(true);
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+    //setProjection(w, h);
+	//ControlExecutive* ce = ControlExecutive::getInstance();
+	//ce->InitializeViz(myWindowNum, width(),height());
+}
 void VizWin::hideEvent(QHideEvent* ){
-//	myWinMgr->minimize(myWindowNum);
-	
+
 }
 /* If the user presses the mouse on the active viz window,
  * We record the position of the click.
  */
 void VizWin::
 mousePressEvent(QMouseEvent* e){
-	
 }
 /*
  * If the user releases the mouse or moves it (with the left mouse down)
@@ -309,7 +325,71 @@ changeViewerFrame(){
 	changeCoords(minv+12, minv+8, minv+4);
 	
 }
-
+void VizWin::updateGL(){
+	glClearColor(0.1f, 0.1f, 0.1f, 1.f);
+	float* X = new float[3];
+    X[0] = 1.f;
+    X[1] = 0.f;
+    X[2] = 0.f;
+    float* x = new float[3];
+    x[0] = 0.f;
+    x[1] = 1.f;
+    x[2] = 1.f;
+    float* Y = new float[3];
+    Y[0] = 0.f;
+    Y[1] = 1.f;
+    Y[2] = 0.f;
+    float* y = new float[3];
+    y[0] = 1.f;
+    y[1] = 0.f;
+    y[2] = 1.f;
+    float* Z = new float[3];
+    Z[0] = 0.f;
+    Z[1] = 0.f;
+    Z[2] = 1.f;
+    float* z = new float[3];
+    z[0] = 1.f;
+    z[1] = 1.f;
+    z[2] = 0.f;
+	glPushMatrix();
+	glLoadIdentity();
+	glTranslatef(0.f,0.f,-5.f);
+	 glBegin(GL_QUADS);		// Draw The Cube Using quads
+        glColor3f(Y[0],Y[1],Y[2]);
+        glVertex3f( 1.0f, 1.0f,-1.0f);	// Top Right Of The Quad (Top)
+        glVertex3f(-1.0f, 1.0f,-1.0f);	// Top Left Of The Quad (Top)
+        glVertex3f(-1.0f, 1.0f, 1.0f);	// Bottom Left Of The Quad (Top)
+        glVertex3f( 1.0f, 1.0f, 1.0f);	// Bottom Right Of The Quad (Top)
+      glColor3f(y[0],y[1],y[2]);
+        glVertex3f( 1.0f,-1.0f, 1.0f);	// Top Right Of The Quad (Bottom)
+        glVertex3f(-1.0f,-1.0f, 1.0f);	// Top Left Of The Quad (Bottom)
+        glVertex3f(-1.0f,-1.0f,-1.0f);	// Bottom Left Of The Quad (Bottom)
+        glVertex3f( 1.0f,-1.0f,-1.0f);	// Bottom Right Of The Quad (Bottom)
+      glColor3f(Z[0],Z[1],Z[2]);
+        glVertex3f( 1.0f, 1.0f, 1.0f);	// Top Right Of The Quad (Front)
+        glVertex3f(-1.0f, 1.0f, 1.0f);	// Top Left Of The Quad (Front)
+        glVertex3f(-1.0f,-1.0f, 1.0f);	// Bottom Left Of The Quad (Front)
+        glVertex3f( 1.0f,-1.0f, 1.0f);	// Bottom Right Of The Quad (Front)
+      glColor3f(z[0],z[1],z[2]);
+        glVertex3f( 1.0f,-1.0f,-1.0f);	// Top Right Of The Quad (Back)
+        glVertex3f(-1.0f,-1.0f,-1.0f);	// Top Left Of The Quad (Back)
+        glVertex3f(-1.0f, 1.0f,-1.0f);	// Bottom Left Of The Quad (Back)
+        glVertex3f( 1.0f, 1.0f,-1.0f);	// Bottom Right Of The Quad (Back)
+      glColor3f(x[0],x[1],x[2]);
+        glVertex3f(-1.0f, 1.0f, 1.0f);	// Top Right Of The Quad (Left)
+        glVertex3f(-1.0f, 1.0f,-1.0f);	// Top Left Of The Quad (Left)
+        glVertex3f(-1.0f,-1.0f,-1.0f);	// Bottom Left Of The Quad (Left)
+        glVertex3f(-1.0f,-1.0f, 1.0f);	// Bottom Right Of The Quad (Left)
+      glColor3f(X[0],X[1],X[2]);
+        glVertex3f( 1.0f, 1.0f,-1.0f);	// Top Right Of The Quad (Right)
+        glVertex3f( 1.0f, 1.0f, 1.0f);	// Top Left Of The Quad (Right)
+        glVertex3f( 1.0f,-1.0f, 1.0f);	// Bottom Left Of The Quad (Right)
+        glVertex3f( 1.0f,-1.0f,-1.0f);	// Bottom Right Of The Quad (Right)
+    glEnd();			// End Drawing The Cube
+	glPopMatrix();
+//	ControlExecutive* ce = ControlExecutive::getInstance();
+//	ce->Paint(myWindowNum, true);
+}
 
 
     

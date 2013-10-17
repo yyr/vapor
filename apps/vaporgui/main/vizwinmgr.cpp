@@ -179,12 +179,7 @@ createAllDefaultTabs() {
 	//Now insert just the desired tabs:
 	tabManager->setTabOrdering(defaultOrdering);
 	tabManager->orderTabs();
-	//Create a default parameter set
-	//For non-renderer params, the default ones are the global ones.
-	for (int i = 1; i<= Params::GetNumParamsClasses(); i++){
-		Params::SetDefaultParams(i, Params::CreateDefaultParams(i));
-	}
-	
+
 }
 
 /***********************************************************************
@@ -272,7 +267,12 @@ launchVisualizer()
 	VizName[useWindowNum] = ((QString("Visualizer No. ")+QString::number(useWindowNum)));
 	emit (newViz(VizName[useWindowNum], useWindowNum));
 	VizWindow[useWindowNum] = new VizWin (MainForm::getInstance(), VizName[useWindowNum], 0, this, newRect, useWindowNum);
-	VizMdiWin[useWindowNum]=MainForm::getInstance()->getMDIArea()->addSubWindow(VizWindow[useWindowNum]);
+	QMdiSubWindow* subwin = new QMdiSubWindow;
+	subwin->setWidget(VizWindow[useWindowNum]);
+	subwin->setAttribute(Qt::WA_DeleteOnClose);
+	QMdiSubWindow* qsbw = MainForm::getInstance()->getMDIArea()->addSubWindow(subwin);
+	VizMdiWin[useWindowNum]=qsbw;
+	//VizMdiWin[useWindowNum]=MainForm::getInstance()->getMDIArea()->addSubWindow(VizWindow[useWindowNum]);
 	VizWindow[useWindowNum]->setWindowNum(useWindowNum);
 	VizWindow[useWindowNum]->setFocusPolicy(Qt::ClickFocus);
 

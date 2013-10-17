@@ -843,7 +843,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 		Renderer* myArrow = new ArrowRenderer(viz->getVisualizer(), dParams);
 
 
-		viz->getVisualizer()->insertSortedRenderer(dParams,myArrow);
+		//viz->getVisualizer()->insertSortedRenderer(dParams,myArrow);
 
 		//force the renderer to refresh 
 		
