@@ -1,11 +1,12 @@
 #include <cstdio>
 #include <cstdlib>
-#include <vapor/2vdf.h>
+#include <vapor/Copy2VDF.h>
 
 int main(int argc, char **argv) {
 	MyBase::SetErrMsgFilePtr(stderr);
     string command = "wrf";
-    if (launch2vdf(argc, argv, command) < 0) exit(1);
+	Copy2VDF vdfcreator;
+    if (vdfcreator.launch2vdf(argc, argv, command) < 0) exit(1);
     exit(0);    
 }
 

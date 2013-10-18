@@ -15,7 +15,7 @@ class VDF_API vdfcreate : public VetsUtil::MyBase {
 public:
  vdfcreate();
  ~vdfcreate();
- int VDF_API launchVdfCreate(int argc, char **argv, string NetCDFtype);
+int launchVdfCreate(int argc, char **argv, string NetCDFtype);
 
 private:
  string _progname;

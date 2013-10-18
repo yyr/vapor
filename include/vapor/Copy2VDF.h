@@ -23,7 +23,7 @@ public:
  //! implies failure, the destination VDC may be corrupt. A status 
  //! greater than 0 implies some variables were not copied
  //!
- int VDF_API launch2vdf(int argc, char **argv, string dataType);
+int launch2vdf(int argc, char **argv, string dataType);
 
 private:
  string _progname;
@@ -56,7 +56,7 @@ private:
           	int startts,
           	int numts,
           	map <size_t, size_t> &timemap);
- void VDF_API GetVariables(const VDFIOBase *vdfio,
+ void GetVariables(const VDFIOBase *vdfio,
 	          const DCReader *DCData,
         	  const vector <string> &in_varnames,
         	  vector <string> &out_varnames);
