@@ -1,14 +1,17 @@
 #include <cstdio>
 #include <cstdlib>
 #include <vapor/vdfcreate.h>
+#include <vapor/MyBase.h>
 
 using namespace std;
 using namespace VAPoR;
+using namespace VetsUtil;
 
 int main(int argc, char **argv) {
 	MyBase::SetErrMsgFilePtr(stderr);
 	std::string command = "wrf";
-	if (launchVdfCreate(argc, argv, command) < 0) exit(1);
+	vdfcreate launcher;
+	if (launcher.launchVdfCreate(argc, argv, command) < 0) exit(1);
 	exit(0);	
 }
 
