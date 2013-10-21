@@ -725,7 +725,7 @@ guiSetEnabled(bool value, int instance, bool undoredo){
 	
 	//Make the change in enablement occur in the rendering window, 
 	// Local/Global is not changing.
-	updateRenderer(dParams,!value, false);
+	updateRenderer(dParams,!value,instance, false);
 	
 	updateTab();
 	vizWinMgr->forceRender(dParams);
@@ -796,7 +796,7 @@ showHideLayout(){
  
  */
 void ArrowEventRouter::
-updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
+updateRenderer(RenderParams* rParams, bool prevEnabled,int instance, bool newWindow){
 	
 	
 	ArrowParams* dParams = (ArrowParams*)rParams;
@@ -839,10 +839,9 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 
 	
 	if (nowEnabled && !prevEnabled ){//For case 2.:  create a renderer in the active window:
-
-		Renderer* myArrow = new ArrowRenderer(viz->getVisualizer(), dParams);
-
-
+		ControlExecutive* ce = ControlExecutive::getInstance();
+		ce->ActivateRender(winnum,ArrowParams::_arrowParamsTag,instance,true);
+		//Renderer* myArrow = new ArrowRenderer(viz->getVisualizer(), dParams);
 		//viz->getVisualizer()->insertSortedRenderer(dParams,myArrow);
 
 		//force the renderer to refresh 
@@ -854,7 +853,9 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 	}
 	
 	assert(prevEnabled && !nowEnabled); //case 6, disable 
-	viz->getVisualizer()->removeRenderer(dParams);
+	ControlExecutive* ce = ControlExecutive::getInstance();
+	ce->ActivateRender(winnum,ArrowParams::_arrowParamsTag,instance,false);
+	//viz->getVisualizer()->removeRenderer(dParams);
 
 	return;
 }

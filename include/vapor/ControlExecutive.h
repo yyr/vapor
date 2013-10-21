@@ -118,7 +118,9 @@ public:
 	//! Create a new renderer
 	//!
 	//! This method creates a new renderer, capable of rendering into 
-	//! the visualizer associated with \p viz.
+	//! the visualizer associated with \p viz.  Note:  This method is not
+	//! necessary and is being eliminated.  A renderer can be created at the time
+	//! that ActivateRender() is called
 	//!
 	//! \param[in] viz A visualizer handle returned by NewVisualizer(). 
 	//! \param[in] type The type of renderer to be created. Supported types
@@ -128,9 +130,9 @@ public:
 	//! \return instance The instance index of the new renderer
 	//! is returned. A negative int is returned on failure
 	//!
-	//! \sa NewVisualizer()
+	//! \sa NewVisualizer(), ActivateRender()
 	//
-	int NewRenderer(int viz, std::string type, RenderParams* p);
+	int NewRenderer(int viz, std::string type, RenderParams* p){return -1;}
 
 	//! Activate or Deactivate a renderer
 	//!
@@ -140,7 +142,7 @@ public:
 	//! 
 	//! \param[in] viz The visualizer where the renderer is 
 	//! \param[in] type The type of renderer.
-	//! \param[in] instance The instance index to be (de)activated.
+	//! \param[in] instance The instance index to be (de)activated.  Must be > 0.
 	//! \param[in] on A boolean indicating if the renderer is to be made
 	//! active (true) or inactive (off)
 	//!
@@ -188,9 +190,24 @@ public:
 	//!
 	//! \return int is zero if successful
 	//!
-	//! 
 	//
 	int SetParams(int viz, string type, int instance, Params* p);
+
+	//! Delete a RenderParams instance for a particular visualizer, instance index, and Params type
+	//! The specified instance must previously have been de-activated.
+	//! There must exist more than one instance or this will fail.
+	//! All existing Params instances in the same visualizer and with larger instance index will have their
+	//! instance index reduced by one (so as to avoid gaps in instance numbering).
+	//!
+	//! \param[in] viz A visualizer handle returned by NewVisualizer(). 
+	//! \param[in] type The type of the RenderParams (e.g. flow, probe)
+	//! \param[in] instance Instance index to be removed.  Use -1 for the current active instance.
+	//!
+	//! \return int is zero if successful
+	//!
+	//! \sa ActivateRender
+	//
+	int RemoveParams(int viz, string type, int instance);
 
 	//! Determine how many instances of a given renderer type are present
 	//! in a visualizer.  Necessary for setting up a UI.

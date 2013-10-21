@@ -267,14 +267,14 @@ launchVisualizer()
 	VizName[useWindowNum] = ((QString("Visualizer No. ")+QString::number(useWindowNum)));
 	emit (newViz(VizName[useWindowNum], useWindowNum));
 	VizWindow[useWindowNum] = new VizWin (MainForm::getInstance(), VizName[useWindowNum], 0, this, newRect, useWindowNum);
-	QMdiSubWindow* subwin = new QMdiSubWindow;
-	subwin->setWidget(VizWindow[useWindowNum]);
-	subwin->setAttribute(Qt::WA_DeleteOnClose);
-	QMdiSubWindow* qsbw = MainForm::getInstance()->getMDIArea()->addSubWindow(subwin);
+	//QMdiSubWindow* subwin = new QMdiSubWindow;
+	//subwin->setWidget(VizWindow[useWindowNum]);
+	//subwin->setAttribute(Qt::WA_DeleteOnClose);
+	QMdiSubWindow* qsbw = MainForm::getInstance()->getMDIArea()->addSubWindow(VizWindow[useWindowNum]);
 	VizMdiWin[useWindowNum]=qsbw;
 	//VizMdiWin[useWindowNum]=MainForm::getInstance()->getMDIArea()->addSubWindow(VizWindow[useWindowNum]);
 	VizWindow[useWindowNum]->setWindowNum(useWindowNum);
-	VizWindow[useWindowNum]->setFocusPolicy(Qt::ClickFocus);
+	//VizWindow[useWindowNum]->setFocusPolicy(Qt::ClickFocus);
 
 
 	setActiveViz(useWindowNum);
@@ -806,7 +806,7 @@ reinitializeParams(bool doOverride){
 				p->setVizNum(i);  //needed because of iso bug in 2.0.0
 				//turn off rendering
 				rParams->setEnabled(false);
-				eRouter->updateRenderer(rParams, rParams->isEnabled(), false);
+				eRouter->updateRenderer(rParams, rParams->isEnabled(), inst, false);
 			}
 		}
 		
@@ -1039,5 +1039,5 @@ void VizWinMgr::forceRender(RenderParams* rp, bool always){
 	if (!always && !rp->isEnabled()) return;
 	int viznum = rp->getVizNum();
 	if (viznum < 0) return;
-	VizWindow[viznum]->updateGL();
+	VizWindow[viznum]->myupdate();
 }

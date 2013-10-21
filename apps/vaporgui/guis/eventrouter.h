@@ -154,7 +154,7 @@ public:
 
 	//UpdateRenderer ignores renderParams argument and uses the
 	//params associated with the instance if it is nonnegative
-	virtual void updateRenderer(RenderParams* , bool /*wasEnabled*/, bool /*newWindow*/){assert(0);}
+	virtual void updateRenderer(RenderParams* , bool /*wasEnabled*/, int /*instance*/, bool /*newWindow*/){assert(0);}
 	
 	//make sure the params cleanly detaches from gui, to
 	//handle possible connections from editors, frames, etc.

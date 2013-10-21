@@ -100,12 +100,11 @@ public:
 		return VizWinMgr::getInstance()->getVizWin(viznum)->mouseIsDown();
 	}
 
-    //Force an update in the gl window:
-public slots:
-	void updateGL();
+	void paintGL();
+	void myupdate();
 		
 protected:
-	
+	int xRot,yRot,zRot;
     MainForm* myParent;
     int myWindowNum;
     VizWinMgr* myWinMgr;

@@ -76,7 +76,7 @@ public:
 	void guiSetCenter(const double* centerCoords);
 	
 	virtual void reinitTab(bool doOverride);
-	void updateRenderer(ViewpointParams* dParams, bool prevEnabled,  bool newWindow);
+	void updateRenderer(ViewpointParams* dParams, bool prevEnabled,  int instance, bool newWindow);
 
 protected:
 	float lastCamPos[3];

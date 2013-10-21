@@ -41,7 +41,7 @@ public:
 	virtual void guiSetEnabled(bool value, int instance, bool undoredo = true);
 	
 
-	virtual void updateRenderer(RenderParams* dParams, bool prevEnabled,  bool newWindow);
+	virtual void updateRenderer(RenderParams* dParams, bool prevEnabled, int instance, bool newWindow);
 	virtual void reinitTab(bool doOverride);
 
 	virtual void captureMouseUp();

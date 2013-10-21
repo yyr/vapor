@@ -125,39 +125,6 @@ int ControlExecutive::SetModelViewMatrix(int viz, const double* mtx){
 	return 0;
 }
 
-	//! Create a new renderer
-	//!
-	//! This method creates a new renderer, capable of rendering into 
-	//! the visualizer associated with \p viz.
-	//!
-	//! \param[in] viz A visualizer handle returned by NewVisualizer()
-	//! \param[in] type The type of renderer to be created. Supported types
-	//! include "dvr", "iso", "flow", etc.
-	//! \param[in] p An instance of a RenderParams class, of same type, that is associated with the renderer
-	//!
-	//! \return instance The instance index of the new renderer
-	//! is returned. A negative int is returned on failure
-	//!
-	//! \sa NewVisualizer()
-	//
-int ControlExecutive::NewRenderer(int viz, string type, RenderParams* p){
-	//Determine the instance index associated with p:
-	vector<Params*>& paramsInWin = Params::GetAllParamsInstances(type, viz);
-	int instance = -1;
-	for (int i = 0; i<paramsInWin.size(); i++){
-		if (paramsInWin[i] != p) continue;
-		instance = i; 
-		break;
-	}
-	if (instance < 0) return instance; //Params not available
-	if (type == ArrowParams::_arrowParamsTag){
-		Visualizer* v = visualizers[viz];
-		Renderer* myArrow = new ArrowRenderer(visualizers[viz], p);
-		return instance;
-	} 
-	else return -2; //type not available
-}
-
 	//! Activate or Deactivate a renderer
 	//!
 	//!
@@ -168,17 +135,19 @@ int ControlExecutive::ActivateRender(int viz, string type, int instance, bool on
 	int numInsts = Params::GetNumParamsInstances(type,viz);
 	if (numInsts < instance) return -1;
 	RenderParams* p = (RenderParams*)Params::GetParamsInstance(type,viz,instance);
-	if (p->isEnabled()){
-		if (on) return -2; //already enabled
-		else p->setEnabled(false);
+	//p should already have its state set to enabled if we are activating it here
+	if (!p->isEnabled()){ //we should deactivate it here
+		if (on) return -2; //should not be activating it
+		//put code here to de-activate the renderer!
 		return 0;
 	}
-	//OK, p is not enabled
+	//OK, p is enabled, we should activate it
 	if (on) { 
-		p->setEnabled(true); 
+		Renderer* myArrow = new ArrowRenderer(GetVisualizer(viz), p);
+		GetVisualizer(viz)->insertSortedRenderer(p,myArrow);
 		return 0;
 	}
-	else return -1;//already disabled
+	else return -1;//not on!
 }
 
 	//! Get a pointer to the existing parameter state information 

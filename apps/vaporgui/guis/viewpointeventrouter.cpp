@@ -250,7 +250,7 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 	currentViewpoint->setRotationCenterLocal(2,rotCenter2->text().toFloat()-tvExts[2]);
 	
 	
-	updateRenderer(vParams,false, false);
+	updateRenderer(vParams,false, -1, false);
 	guiSetTextChanged(false);
 
 	if (changed) updateTab();
@@ -416,7 +416,7 @@ guiCenterSubRegion(RegionParams* rParams){
 	VizWinMgr::getInstance()->resetViews(vpParams);
 	
 	updateTab();
-	updateRenderer(vpParams,false,  false);
+	updateRenderer(vpParams,false,-1,  false);
 	
 	
 }
@@ -430,7 +430,7 @@ guiCenterFullRegion(RegionParams* rParams){
 	//modify near/far distance as needed:
 	VizWinMgr::getInstance()->resetViews(vpParams);
 	updateTab();
-	updateRenderer(vpParams,false,  false);
+	updateRenderer(vpParams,false, -1, false);
 	
 	
 }
@@ -516,7 +516,7 @@ guiAlignView(int axis){
 	currentViewpoint->setStretchedCamPosLocal(dvpos);
 	
 	updateTab();
-	updateRenderer(vpParams,false,false);
+	updateRenderer(vpParams,false,-1,false);
 	
 }
 
@@ -549,7 +549,7 @@ guiSetCenter(const double* coords){
 	}
 	
 	updateTab();
-	updateRenderer(vpParams,false,  false);
+	updateRenderer(vpParams,false, -1, false);
 	
 	
 }
@@ -561,7 +561,7 @@ setHomeViewpoint(){
 	Viewpoint* currentViewpoint = vpParams->getCurrentViewpoint();
 	vpParams->setHomeViewpoint(new Viewpoint(*currentViewpoint));
 	updateTab();
-	updateRenderer(vpParams,false,false);
+	updateRenderer(vpParams,false,-1,false);
 	
 }
 void ViewpointEventRouter::
@@ -573,7 +573,7 @@ useHomeViewpoint(){
 	vpParams->setCurrentViewpoint(new Viewpoint(*homeViewpoint));
 	
 	updateTab();
-	updateRenderer(vpParams,false,  false);
+	updateRenderer(vpParams,false, -1, false);
 	
 }
 void ViewpointEventRouter::
@@ -594,7 +594,7 @@ captureMouseUp(){
 		}
 		vpParams->setRotationCenterLocal(newRot);
 		panChanged = false;
-		updateRenderer(vpParams,false,false);
+		updateRenderer(vpParams,false,-1,false);
 	}
 	updateTab();
 	
@@ -659,7 +659,7 @@ captureMouseDown(int button){
 }
 
 void ViewpointEventRouter::
-updateRenderer(ViewpointParams* vpParams, bool prevEnabled,   bool newWindow){
+updateRenderer(ViewpointParams* vpParams, bool prevEnabled,  int /*instance*/, bool newWindow){
 	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
 	bool local = vpParams->isLocal();
 	//Always set the values in the active viz.  This amounts to stuffing

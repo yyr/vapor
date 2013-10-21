@@ -76,7 +76,7 @@ void EventRouter::removeRendererInstance(int winnum, int instance){
 	//disable it first if necessary:
 	if (rp->isEnabled()){
 		rp->setEnabled(false);
-		updateRenderer(rp, true, false);
+		updateRenderer(rp, true, instance, false);
 	}
 	vizMgr->removeInstance(winnum, instance, myParamsBaseType);
 	updateTab();

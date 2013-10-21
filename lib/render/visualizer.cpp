@@ -121,6 +121,12 @@ void Visualizer::setDefaultPrefs(){
 
 void Visualizer::resizeGL( int wid, int ht )
 {
+  glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glViewport(0, 0, wid, ht);
+    gluPerspective(60, (float)wid / (float)ht, 0.1f, 512.f);
+    glMatrixMode(GL_MODELVIEW);
+  return;
   setUpViewport(wid, ht);
   height = ht;
   width = wid;
@@ -242,13 +248,14 @@ void Visualizer::paintEvent(bool force)
 	removeDisabledRenderers();
 	
 	printOpenGLError();
-	
+	glClearColor(0.f, 0.0f, 0.0f, 1.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glLoadIdentity();
+    glTranslatef(0.0, 0.0, -5.0);
 	
 	float extents[6] = {0.f,0.f,0.f,1.f,1.f,1.f};
 	float minFull[3] = {0.f,0.f,0.f};
 	float maxFull[3] = {1.f,1.f,1.f};
-	//Again, mutex probably not needed.  At some point the "nowPainting" flag was used to indicate
-	//that some thread was in this routine.
     
 	nowPainting = true;
 	
@@ -356,7 +363,12 @@ void Visualizer::paintEvent(bool force)
 
 void Visualizer::initializeGL()
 {
-	
+	glClearColor(1.f, 0.1f, 0.1f, 1.f);
+    glDepthMask(true);
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+
+	return;
 	GLenum glErr;
 	glErr = glGetError();
 	if (glErr != GL_NO_ERROR){
@@ -395,8 +407,6 @@ void Visualizer::initializeGL()
 		"OpenGL Capabilities : GLEW_ARB_shader_objects %s",
 		GLEW_ARB_shader_objects ? "ok" : "missing"
 	);
-
-
 
 	
 	//Initialize existing renderers:
