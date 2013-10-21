@@ -19,6 +19,7 @@
 //
 //
 
+#include <iostream>
 #include "vdfbadfile.h"
 #include "ui/Page2badfile.h"
 
@@ -28,6 +29,16 @@ VdfBadFile::VdfBadFile(QWidget *parent) :
     QDialog(parent), Ui_Page2badfile()
 {
     setupUi(this);
+}
+
+void VdfBadFile::on_continueButton_clicked() {
+	cout << "!"<<Continue << endl;
+    Continue=true;
+}
+
+void VdfBadFile::on_exitButton_clicked() {
+    cout << "!"<<Continue << endl;
+	Continue=false;
 }
 
 void VdfBadFile::on_buttonBox_accepted() { hide(); }

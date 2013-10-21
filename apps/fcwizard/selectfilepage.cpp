@@ -60,8 +60,9 @@ SelectFilePage::SelectFilePage(DataHolder *DH, QWidget *parent) :
 }
 
 void SelectFilePage::on_browseOutputVdfFile_clicked() {
-    QString file = QFileDialog::getOpenFileName(this,"Select output metada (.vdf) file.","/glade/proj3/DASG/pearse/data");
-    selectedDirectory = QDir(file).absolutePath();
+    //QString file = QFileDialog::getOpenFileName(this,"Select output metada (.vdf) file.","/glade/proj3/DASG/pearse/data");
+    QString file = QFileDialog::getSaveFileName(this,"Select output metada (.vdf) file.","/glade/proj3/DASG/pearse/data");
+	selectedDirectory = QDir(file).absolutePath();
 	int size = file.split(".",QString::SkipEmptyParts).size();
     if (file != ""){
         if (file.split(".",QString::SkipEmptyParts).at(size-1) != "vdf") vdfBadFile->show();
@@ -91,7 +92,8 @@ void SelectFilePage::on_addFileButton_clicked() {
         momRadioButton->setEnabled(true);
         popRadioButton->setEnabled(true);
         romsRadioButton->setEnabled(true);
-    }
+    	wrfRadioButton->setEnabled(true);
+	}
 
     // convert fileList into a vector of std::string
     // (not QStrings) to feed into DCReaderMOM
@@ -131,6 +133,12 @@ void SelectFilePage::on_romsRadioButton_clicked() {
     if (romsRadioButton->isChecked()) dataHolder->setFileType("roms");
     else dataHolder->setFileType("");
 	completeChanged();
+}
+
+void SelectFilePage::on_wrfRadioButton_clicked() {
+    if (wrfRadioButton->isChecked()) dataHolder->setFileType("wrf");
+    else dataHolder->setFileType("");
+    completeChanged();
 }
 
 vector<string> SelectFilePage::getSelectedFiles() {

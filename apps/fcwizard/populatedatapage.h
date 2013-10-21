@@ -29,6 +29,7 @@
 #include "ui/Page4.h"
 #include "dataholder.h"
 #include "errormessage.h"
+#include "vdfbadfile.h"
 
 namespace Ui {
 class PopulateDataPage;
@@ -43,6 +44,7 @@ public:
     PopDataAdvanced *popAdvancedOpts;
     DataHolder *dataHolder;
 	ErrorMessage *errorMessage;
+	VdfBadFile *successMessage;
 
     void findVars();
     vector<string> varList;

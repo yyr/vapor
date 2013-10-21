@@ -7,15 +7,20 @@ using namespace std;
 using namespace VAPoR;
 using namespace VetsUtil;
 
-int main(int argc, char **argv) {
+
+// Some of the wrf data converter logic differs from the ocean model converters.
+// Therefore, we are currently giving the wrf conversion routine its own dediated
+// code base.  Perhaps at a later date, we will be able to integrate the wrf
+// conversion to be run by the vdfcreate.cpp and Copy2VDF.cpp code bases.
+/*int main(int argc, char **argv) {
 	MyBase::SetErrMsgFilePtr(stderr);
 	std::string command = "wrf";
 	vdfcreate launcher;
 	if (launcher.launchVdfCreate(argc, argv, command) < 0) exit(1);
 	exit(0);	
-}
+}*/
 
-/*#include <iostream>
+#include <iostream>
 #include <cstdio>
 #include <cstring>
 #include <vector>
@@ -408,4 +413,3 @@ int	main(int argc, char **argv) {
 
 	exit(0);
 } // End of main.
-*/

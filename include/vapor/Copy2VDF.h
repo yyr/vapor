@@ -56,10 +56,6 @@ private:
           	int startts,
           	int numts,
           	map <size_t, size_t> &timemap);
- void GetVariables(const VDFIOBase *vdfio,
-	          const DCReader *DCData,
-        	  const vector <string> &in_varnames,
-        	  vector <string> &out_varnames);
  void MissingValue(VDFIOBase *vdfio,
 	         DCReader *DCData,
         	 size_t vdcTS,
@@ -76,6 +72,12 @@ private:
          string ncdfVar,
          int level,
          int lod);
+
+public:
+ void GetVariables(const VDFIOBase *vdfio,
+              const DCReader *DCData,
+              const vector <string> &in_varnames,
+              vector <string> &out_varnames);
 
 };
 

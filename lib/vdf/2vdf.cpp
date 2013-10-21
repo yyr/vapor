@@ -17,6 +17,8 @@
 #ifdef WIN32
 #pragma warning(disable : 4996)
 #endif
+
+using namespace std;
 using namespace VetsUtil;
 using namespace VAPoR;
 
