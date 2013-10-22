@@ -1,5 +1,5 @@
 /* XPM */
-static char *_VDF[] = {
+const static char *_VDF[] = {
 /* columns rows colors chars-per-pixel */
 "111 138 256 2 ",
 "   c #1C2626",

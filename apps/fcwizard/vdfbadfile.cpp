@@ -32,13 +32,11 @@ VdfBadFile::VdfBadFile(QWidget *parent) :
 }
 
 void VdfBadFile::on_continueButton_clicked() {
-	cout << "!"<<Continue << endl;
-    Continue=true;
+	hide();
 }
 
 void VdfBadFile::on_exitButton_clicked() {
-    cout << "!"<<Continue << endl;
-	Continue=false;
+	exit(0);
 }
 
 void VdfBadFile::on_buttonBox_accepted() { hide(); }

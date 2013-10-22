@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'vdfbadfile.h'
 **
-** Created: Mon Oct 21 16:13:31 2013
+** Created: Tue Oct 22 09:12:25 2013
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.3)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,25 +23,39 @@ static const uint qt_meta_data_VdfBadFile[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-       0,    0, // methods
+       3,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
        0,       // flags
        0,       // signalCount
 
+ // slots: signature, parameters, type, tag, flags
+      12,   11,   11,   11, 0x08,
+      36,   11,   11,   11, 0x08,
+      64,   11,   11,   11, 0x08,
+
        0        // eod
 };
 
 static const char qt_meta_stringdata_VdfBadFile[] = {
-    "VdfBadFile\0"
+    "VdfBadFile\0\0on_buttonBox_accepted()\0"
+    "on_continueButton_clicked()\0"
+    "on_exitButton_clicked()\0"
 };
 
 void VdfBadFile::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
-    Q_UNUSED(_o);
-    Q_UNUSED(_id);
-    Q_UNUSED(_c);
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        Q_ASSERT(staticMetaObject.cast(_o));
+        VdfBadFile *_t = static_cast<VdfBadFile *>(_o);
+        switch (_id) {
+        case 0: _t->on_buttonBox_accepted(); break;
+        case 1: _t->on_continueButton_clicked(); break;
+        case 2: _t->on_exitButton_clicked(); break;
+        default: ;
+        }
+    }
     Q_UNUSED(_a);
 }
 
@@ -78,6 +92,11 @@ int VdfBadFile::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     _id = QDialog::qt_metacall(_c, _id, _a);
     if (_id < 0)
         return _id;
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        if (_id < 3)
+            qt_static_metacall(this, _c, _id, _a);
+        _id -= 3;
+    }
     return _id;
 }
 QT_END_MOC_NAMESPACE
