@@ -21,11 +21,11 @@
 #ifndef PARAMS_H
 #define PARAMS_H
 
+#include <cassert>
+#include <qwidget.h>
 #include <vapor/XmlNode.h>
 #include <vapor/ExpatParseMgr.h>
 #include <vapor/ParamNode.h>
-#include <qwidget.h>
-#include "assert.h"
 #include <vapor/common.h>
 #include <vapor/ParamsBase.h>
 #include <vapor/RegularGrid.h>

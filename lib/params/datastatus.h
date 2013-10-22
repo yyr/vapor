@@ -24,10 +24,10 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <qcolor.h>
 #include <vapor/common.h>
 #include <vapor/DataMgr.h>
 #include <vapor/MetadataVDC.h>
-#include <qcolor.h>
 #include "regionparams.h" 
 class QApplication;
 
