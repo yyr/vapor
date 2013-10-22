@@ -8,6 +8,7 @@
 #include <vapor/MetadataVDC.h>
 #include <vapor/DCReaderROMS.h>
 #include <vapor/DCReaderMOM.h>
+#include <vapor/DCReaderWRF.h>
 #include <vapor/DCReader.h>
 #include <vapor/WaveCodecIO.h>
 #include <vapor/WaveletBlock3DBufWriter.h>
