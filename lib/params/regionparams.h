@@ -22,12 +22,12 @@
 #define REGIONPARAMS_H
 
 
-#include <qwidget.h>
 #include <vector>
 #include <map>
+#include <qwidget.h>
+#include <vapor/MyBase.h>
 #include <vapor/common.h>
 #include "params.h"
-#include <vapor/MyBase.h>
 
 
 using namespace VetsUtil;

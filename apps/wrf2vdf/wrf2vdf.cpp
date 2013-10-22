@@ -2,18 +2,19 @@
 #include <cstdlib>
 #include <vapor/Copy2VDF.h>
 
-
 // Some of the wrf data converter logic differs from the ocean model converters.
 // Therefore, we are currently giving the wrf conversion routine its own dediated
 // code base.  Perhaps at a later date, we will be able to integrate the wrf
 // conversion to be run by the vdfcreate.cpp and Copy2VDF.cpp code bases.
-/*int main(int argc, char **argv) {
+#ifdef	DEAD
+int main(int argc, char **argv) {
 	MyBase::SetErrMsgFilePtr(stderr);
     string command = "wrf";
 	Copy2VDF vdfcreator;
     if (vdfcreator.launch2vdf(argc, argv, command) < 0) exit(1);
     exit(0);    
-}*/
+}
+#endif
 
 #include <iostream>
 #include <cstdio>

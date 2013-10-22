@@ -1,20 +1,19 @@
-#include <Python.h>
-#include "pythonpipeline.h"
-#include <numpy/arrayobject.h>
 #include <cstdio>
 #include <cstring>
 #include <cassert>
 #include <vector>
+#include <sstream>
 #include <map>
 #include <fstream>
 #include <iostream>
+#include <QMutex>
+#include <Python.h>
+#include <numpy/arrayobject.h>
 #include <vapor/DataMgr.h>
 #include <vapor/common.h>
 #include <vapor/errorcodes.h>
 #include <vapor/GetAppPath.h>
 #include "pythonpipeline.h"
-#include <QMutex>
-#include <sstream>
 
 using namespace VetsUtil;
 using namespace VAPoR;

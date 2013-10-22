@@ -21,29 +21,28 @@
 #ifdef WIN32
 #pragma warning(disable : 4251 4100)
 #endif
-#include "datastatus.h"
-#include "pythonpipeline.h"
 
 #include <cassert>
 #include <cstring>
 #include <iostream>
 #include <fstream>
 #include <sstream>
-
-#include <vapor/ImpExp.h>
-#include <vapor/MyBase.h>
-#include <vapor/DataMgr.h>
-#include <vapor/Version.h>
+#include <cmath>
 #include <qstring.h>
 #include <qapplication.h>
 #include <qcursor.h>
 #include <qcolor.h>
+#include <proj_api.h>
+
+#include <vapor/ImpExp.h>
+#include <vapor/MyBase.h>
+#include <vapor/Version.h>
 #include <vapor/errorcodes.h>
-#include "proj_api.h"
-#include "math.h"
+#include "datastatus.h"
+#include "pythonpipeline.h"
+
 using namespace VAPoR;
 using namespace VetsUtil;
-#include <vapor/common.h>
 
 //This is a singleton class, but it's created by the Session.
 //Following are static, must persist even when there is no instance:

@@ -12,13 +12,15 @@ using namespace VetsUtil;
 // Therefore, we are currently giving the wrf conversion routine its own dediated
 // code base.  Perhaps at a later date, we will be able to integrate the wrf
 // conversion to be run by the vdfcreate.cpp and Copy2VDF.cpp code bases.
-/*int main(int argc, char **argv) {
+#ifdef	DEAD
+int main(int argc, char **argv) {
 	MyBase::SetErrMsgFilePtr(stderr);
 	std::string command = "wrf";
 	vdfcreate launcher;
 	if (launcher.launchVdfCreate(argc, argv, command) < 0) exit(1);
 	exit(0);	
-}*/
+}
+#endif
 
 #include <iostream>
 #include <cstdio>
@@ -38,9 +40,19 @@ using namespace VetsUtil;
 using namespace VetsUtil;
 using namespace VAPoR;
 
+#ifdef	DEAD
+int main(int argc, char **argv) {
+	MyBase::SetErrMsgFilePtr(stderr);
+	std::string command = "wrf";
+	if (launchVdfCreate(argc, argv, command) < 0) exit(1);
+	exit(0);	
+}
+#endif
+
 struct opt_t {
 	vector <string> vars;
 	vector <string> dervars;
+    OptionParser::Boolean_T vdc2; 
     OptionParser::Boolean_T append; 
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	quiet;
@@ -51,6 +63,10 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"vars",1,    "",	"Colon delimited list of variables to be copied "
 		"from ncdf data. The default is to copy all 2D and 3D variables"},
 	{"dervars", 1,    "",	"Deprecated"},
+	{
+		"vdc2", 0,  "",
+		"Generate a VDC Type 2 .vdf file (default is VDC Type 1)"
+	},
 	{"append",  0,  "", "Append WRF files to an existing .vdfd"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"quiet",	0,	"",	"Operate quietly"},
@@ -61,6 +77,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 OptionParser::Option_T	get_options[] = {
 	{"vars", VetsUtil::CvtToStrVec, &opt.vars, sizeof(opt.vars)},
 	{"dervars", VetsUtil::CvtToStrVec, &opt.dervars, sizeof(opt.dervars)},
+    {"vdc2", VetsUtil::CvtToBoolean, &opt.vdc2, sizeof(opt.vdc2)},
     {"append", VetsUtil::CvtToBoolean, &opt.append, sizeof(opt.append)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
@@ -290,7 +307,7 @@ int	main(int argc, char **argv) {
 	}
 	if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
 
-	VDCFactory vdcf;
+	VDCFactory vdcf(opt.vdc2);
 	vector <string> rmopts;
 	rmopts.push_back("nfilter");
 	rmopts.push_back("nlifting");
@@ -313,6 +330,7 @@ int	main(int argc, char **argv) {
 	rmopts.push_back("coordsystem");
 	rmopts.push_back("extents");
 	rmopts.push_back("startt");
+	rmopts.push_back("numts");
 
 	vdcf.RemoveOptions(rmopts);
 	if (vdcf.Parse(&argc, argv) < 0) {
