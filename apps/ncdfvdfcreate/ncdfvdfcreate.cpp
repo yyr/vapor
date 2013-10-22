@@ -26,6 +26,7 @@ struct opt_t {
 	string xcoordvar;
 	string ycoordvar;
 	string zcoordvar;
+	OptionParser::Boolean_T	vdc2;
 	OptionParser::Boolean_T	misstv;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	quiet;
@@ -58,6 +59,10 @@ OptionParser::OptDescRec_T	set_opts[] = {
 		"grid coordinates. This option is ignored if the grid type (-gridtype) "
 		"is not layered or stretched"
 	},
+	{
+		"vdc2", 0,  "",
+		"Generate a VDC Type 2 .vdf file (default is VDC Type 1)"
+	},
 	{"misstv",	0,	"",	"Set this option if missing data locations vary "
 		"between time steps and/or variables"},
 	{"help",	0,	"",	"Print this message and exit"},
@@ -76,6 +81,7 @@ OptionParser::Option_T	get_options[] = {
 	{"xcoordvar", VetsUtil::CvtToCPPStr, &opt.xcoordvar, sizeof(opt.xcoordvar)},
 	{"ycoordvar", VetsUtil::CvtToCPPStr, &opt.ycoordvar, sizeof(opt.ycoordvar)},
 	{"zcoordvar", VetsUtil::CvtToCPPStr, &opt.zcoordvar, sizeof(opt.zcoordvar)},
+	{"vdc2", VetsUtil::CvtToBoolean, &opt.vdc2, sizeof(opt.vdc2)},
 	{"misstv", VetsUtil::CvtToBoolean, &opt.misstv, sizeof(opt.misstv)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
@@ -315,7 +321,7 @@ int	main(int argc, char **argv) {
 	}
 	if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
 
-	VDCFactory vdcf;
+	VDCFactory vdcf(opt.vdc2);
 	if (vdcf.Parse(&argc, argv) < 0) {
 		exit(1);
 	}
