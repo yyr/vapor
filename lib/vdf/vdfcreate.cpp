@@ -261,7 +261,6 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 	rmopts.push_back("missing");
 	rmopts.push_back("level");
 	rmopts.push_back("order");
-	rmopts.push_back("start");
 	rmopts.push_back("deltat");
 	rmopts.push_back("gridtype");
 	rmopts.push_back("usertimes");
@@ -271,6 +270,8 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 	rmopts.push_back("mapprojection");
 	rmopts.push_back("coordsystem");
 	rmopts.push_back("extents");
+	rmopts.push_back("startt");
+	rmopts.push_back("numts");
 
     vdcf.RemoveOptions(rmopts);
 
