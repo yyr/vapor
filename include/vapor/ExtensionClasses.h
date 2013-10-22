@@ -6,7 +6,7 @@
 
 #include "../lib/params/arrowparams.h"
 #include "../lib/params/viewpoint.h"
-#include "../lib/params/box.h"
+#include "../lib/params/Box.h"
 #include "../apps/vaporgui/images/arrowrake.xpm"
 
 
