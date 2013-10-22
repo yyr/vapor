@@ -36,8 +36,10 @@ PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
 {
     setupUi(this);
 
-    //QPixmap populateDataPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/2VDFsmall.png");
-    QPixmap populateDataPixmap(_VDFsmall);
+	progressBar->setValue(0);    
+	progressBar->setTextVisible(true);
+
+	QPixmap populateDataPixmap(_VDFsmall);
     populateDataLabel->setPixmap(populateDataPixmap);
 
     dataHolder = DH;
@@ -47,12 +49,6 @@ PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
 	successMessage->buttonBox->setVisible(false);
     successMessage->label->setText("Success!");
     successMessage->label_2->setText("The specified data was successfully translated into the VDC format.  Click the 'Continue' button if you'd like to perform further data conversions.");
-
-}
-
-void PopulateDataPage::findVars(){
-    //VDFIOBase *vdfio = NULL;
-    //wcwriter = new WaveCodecIO;
 }
 
 void PopulateDataPage::on_selectAllButton_clicked() {
@@ -147,9 +143,14 @@ bool PopulateDataPage::isComplete() {
 }
 
 bool PopulateDataPage::validatePage() {
-    int varsSize = 1;//dataHolder->getPDSelectedVars().size();
-	int tsSize = 1;//atoi(dataHolder->getPDnumTS().c_str());
+    int varsSize = dataHolder->getPDSelectedVars().size();
+	int tsSize = atoi(dataHolder->getPDnumTS().c_str());
 	int dataChunks = varsSize * tsSize;
+	progressBar->setRange(0,dataChunks);
+
+	stringstream ss;
+	char percentComplete[40];
+
 	populateCheckedVars();
     cout << dataHolder->getErrors().size() << endl;
     cout << "creating vdc" << endl;
@@ -172,32 +173,20 @@ bool PopulateDataPage::validatePage() {
         		errorMessage->activateWindow();
         		dataHolder->clearErrors();
 		        MyBase::SetErrCode(0);
+				progressBar->reset();
 				return false;
 			}
-			else cout << "var: " << dataHolder->getPDSelectedVars().at(var) << " ts: " << ss.str() << endl;	
+			cout << timeStep << " " << var << " " << (timeStep*varsSize)+var << "/" << dataChunks << endl;
+		    sprintf(percentComplete,"%.0f%% Complete",(100*((double)(varsSize*timeStep+var)/(double)dataChunks)));
+			cout << percentComplete << endl;	
+			//ss << 100*((double)(tsSize*var)/(double)dataChunks);
+			//ss << "%";
+			percentCompleteLabel->setText(QString::fromUtf8(percentComplete));//ss.str()));
+			progressBar->setValue((varsSize*timeStep)+var);
+			QApplication::processEvents();
 		}
 	}	
 	
-	/*if (dataHolder->run2VDFcomplete()==0) {   
-        cout << "2vdf success" << endl;
-		dataHolder->vdcSettingsChanged=false;
-   		return true;
-    }   
-    else {
-	    cout << "error time" << dataHolder->getErrors().size() << endl;
-        dataHolder->vdcSettingsChanged=false;
-        for (int i=0;i<dataHolder->getErrors().size();i++){
-            errorMessage->errorList->append(dataHolder->getErrors()[i]);
-        	errorMessage->errorList->append("\n");
-        }   
-        errorMessage->show();
-        errorMessage->setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
-		errorMessage->raise();
-		errorMessage->activateWindow();
-		dataHolder->clearErrors();
-        MyBase::SetErrCode(0);
-    	return false;
-    }*/   
     successMessage->show();
-	return successMessage->Continue;   
+	return false;   
 }

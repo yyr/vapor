@@ -22,8 +22,11 @@
 #ifndef VDFBADFILE_H
 #define VDFBADFILE_H
 
+#include <iostream>
 #include <QDialog>
 #include "ui/Page2badfile.h"
+
+using namespace std;
 
 namespace Ui {
 class VdfBadFile;
@@ -36,11 +39,11 @@ class VdfBadFile : public QDialog, public Ui_Page2badfile
 public:
 
     VdfBadFile(QWidget *parent=0);
-    void on_buttonBox_accepted();// { hide(); }
+	bool Continue;
+
+private slots:
+    void on_buttonBox_accepted();
 	void on_continueButton_clicked();
 	void on_exitButton_clicked();
-
-	bool Continue;
 };
-
 #endif // VDFBADFILE_H
