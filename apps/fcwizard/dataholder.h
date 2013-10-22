@@ -25,6 +25,8 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <vapor/Copy2VDF.h>
+#include <vapor/vdfcreate.h>
 #include <vapor/DCReaderMOM.h>
 #include <vapor/DCReaderROMS.h>
 #include <vapor/vdfcreate.h>
@@ -88,6 +90,7 @@ public:
 
     // Get functions used by Populate Data
     vector<string> getPDDisplayedVars() { return PDDisplayedVars; }
+	vector<string> getPDSelectedVars() { return PDSelectedVars; }
     string getPDinputVDFfile() const { return PDinputVDFfile; }
     string getPDnumTS() const { return PDnumTS; }
     string getPDStartTime() const { return PDstartTime; }
@@ -103,14 +106,18 @@ public:
     // File generation commands
     void findPopDataVars();
     int VDFCreate();
-    int run2VDF();
+    int run2VDFcomplete();
+	int run2VDFincremental(string start, string var);
 
     // Error Message setter/getter
     void setErrorMessage(string err) { errorMsg = err; }
     string getErrorMessage() { return errorMsg; }
 
 private:
-    //void launchVdfCreate(int argc, char **argv, string NetCDFtype);
+    Copy2VDF launcher2VDF;
+	vdfcreate launcherVdfCreate;
+
+	//void launchVdfCreate(int argc, char **argv, string NetCDFtype);
     string operation;
 
     // Shared variables

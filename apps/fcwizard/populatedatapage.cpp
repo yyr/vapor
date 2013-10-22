@@ -22,6 +22,7 @@
 #include <QDebug>
 #include <cstdio>
 #include "createvdfpage.h"
+#include "selectfilepage.h"
 #include "populatedatapage.h"
 #include "ui/Page4.h"
 #include "dataholder.h"
@@ -41,8 +42,12 @@ PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
 
     dataHolder = DH;
     popAdvancedOpts = new PopDataAdvanced(dataHolder);
-
 	errorMessage = new ErrorMessage;
+	successMessage = new VdfBadFile;
+	successMessage->buttonBox->setVisible(false);
+    successMessage->label->setText("Success!");
+    successMessage->label_2->setText("The specified data was successfully translated into the VDC format.  Click the 'Continue' button if you'd like to perform further data conversions.");
+
 }
 
 void PopulateDataPage::findVars(){
@@ -56,7 +61,6 @@ void PopulateDataPage::on_selectAllButton_clicked() {
         int col = i%3;
         tableWidget->item(row,col)->setCheckState(Qt::Checked);
     }
-    //dataHolder->setVDFSelectedVars(dataHolder->getVDFDisplayedVars());
 	dataHolder->setPDSelectedVars(dataHolder->getPDDisplayedVars());
 }
 
@@ -90,7 +94,6 @@ void PopulateDataPage::setupVars() {
     tableWidget->setColumnWidth(0,tableWidget->width()/3);
     tableWidget->setColumnWidth(1,tableWidget->width()/3);
     tableWidget->setColumnWidth(2,tableWidget->width()/3);
-	//tableWidget->resizeColumnsToContents();
 }
 
 // set some initial values in the page widgets, and set the appropriate
@@ -102,7 +105,6 @@ void PopulateDataPage::initializePage(){
     numtsSpinner->setMaximum(atoi(dataHolder->getPDnumTS().c_str()));
     dataHolder->findPopDataVars();
 
-    //dataHolder->setPDnumTS(strstream);//dataHolder->reader->GetNumTimeSteps());
     setupVars();
 
     QList<QWizard::WizardButton> layout;
@@ -145,41 +147,57 @@ bool PopulateDataPage::isComplete() {
 }
 
 bool PopulateDataPage::validatePage() {
-    populateCheckedVars();
-
+    int varsSize = 1;//dataHolder->getPDSelectedVars().size();
+	int tsSize = 1;//atoi(dataHolder->getPDnumTS().c_str());
+	int dataChunks = varsSize * tsSize;
+	populateCheckedVars();
     cout << dataHolder->getErrors().size() << endl;
-
-    //if (isComplete() == true) {
-      //  if (dataHolder->vdcSettingsChanged==true) {
-            cout << "creating vdc" << endl;
-            if (dataHolder->run2VDF()==0) {   
-            	cout << "2vdf success" << endl;
-			    dataHolder->vdcSettingsChanged=false;
-                return true;
-            }   
-            else {
+    cout << "creating vdc" << endl;
+    
+	//Cycle through variables in each timestep
+	for (int timeStep=0;timeStep<tsSize;timeStep++){
+		for (int var=0;var<varsSize;var++){
+			stringstream ss;
+			ss << timeStep;
+			if (dataHolder->run2VDFincremental(ss.str(),dataHolder->getPDSelectedVars().at(var)) != 0) {
 				cout << "error time" << dataHolder->getErrors().size() << endl;
-                dataHolder->vdcSettingsChanged=false;
-                for (int i=0;i<dataHolder->getErrors().size();i++){
-                    errorMessage->errorList->append(dataHolder->getErrors()[i]);
-                    errorMessage->errorList->append("\n");
-                }   
-                //wizard()->button(QWizard::FinishButton)->setDisabled(true);
-                errorMessage->show();
-                errorMessage->setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
-				errorMessage->raise();
-				errorMessage->activateWindow();
-				dataHolder->clearErrors();
-                MyBase::SetErrCode(0);
-                return false;
-            }   
-        //}   
-      //  else return false;
-    //}   
-    return false;   
-
-
-
-//dataHolder->run2VDF();  
-//return true;
+        		dataHolder->vdcSettingsChanged=false;
+        		for (int i=0;i<dataHolder->getErrors().size();i++){
+            		errorMessage->errorList->append(dataHolder->getErrors()[i]);
+            		errorMessage->errorList->append("\n");
+        		}   
+        		errorMessage->show();
+        		errorMessage->setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
+        		errorMessage->raise();
+        		errorMessage->activateWindow();
+        		dataHolder->clearErrors();
+		        MyBase::SetErrCode(0);
+				return false;
+			}
+			else cout << "var: " << dataHolder->getPDSelectedVars().at(var) << " ts: " << ss.str() << endl;	
+		}
+	}	
+	
+	/*if (dataHolder->run2VDFcomplete()==0) {   
+        cout << "2vdf success" << endl;
+		dataHolder->vdcSettingsChanged=false;
+   		return true;
+    }   
+    else {
+	    cout << "error time" << dataHolder->getErrors().size() << endl;
+        dataHolder->vdcSettingsChanged=false;
+        for (int i=0;i<dataHolder->getErrors().size();i++){
+            errorMessage->errorList->append(dataHolder->getErrors()[i]);
+        	errorMessage->errorList->append("\n");
+        }   
+        errorMessage->show();
+        errorMessage->setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
+		errorMessage->raise();
+		errorMessage->activateWindow();
+		dataHolder->clearErrors();
+        MyBase::SetErrCode(0);
+    	return false;
+    }*/   
+    successMessage->show();
+	return successMessage->Continue;   
 }

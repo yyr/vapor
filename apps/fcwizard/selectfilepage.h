@@ -63,6 +63,7 @@ private slots:
     void on_momRadioButton_clicked();
     void on_popRadioButton_clicked();
     void on_romsRadioButton_clicked();
+	void on_wrfRadioButton_clicked();
 
 private:
 	int nextId() const;

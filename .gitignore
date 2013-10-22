@@ -43,6 +43,7 @@ lib/vdf/AMRTree.h
 lib/vdf/AMRTreeBranch.h
 lib/vdf/BlkMemMgr.h
 lib/vdf/Compressor.h
+lib/vdf/Copy2VDF.h
 lib/vdf/DCReader.h
 lib/vdf/DCReaderMOM.h
 lib/vdf/DCReaderNCDF.h

@@ -8,6 +8,7 @@
 #include <vapor/MetadataVDC.h>
 #include <vapor/DCReaderMOM.h>
 #include <vapor/DCReaderROMS.h>
+#include <vapor/DCReaderWRF.h>
 #include <vapor/VDCFactory.h>
 #include <vapor/CFuncs.h>
 #include <vapor/vdfcreate.h>
@@ -305,7 +306,8 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 	}
 	
     if (NetCDFtype == "roms") DCdata = new DCReaderROMS(ncdffiles);
-    else DCdata = new DCReaderMOM(ncdffiles);
+    else if (NetCDFtype == "wrf") DCdata = new DCReaderWRF(ncdffiles);
+	else DCdata = new DCReaderMOM(ncdffiles);
 
     if (MyBase::GetErrCode() != 0) return (-1);
 

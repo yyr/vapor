@@ -34,8 +34,13 @@ class VdfBadFile : public QDialog, public Ui_Page2badfile
     Q_OBJECT
 
 public:
+
     VdfBadFile(QWidget *parent=0);
     void on_buttonBox_accepted();// { hide(); }
+	void on_continueButton_clicked();
+	void on_exitButton_clicked();
+
+	bool Continue;
 };
 
 #endif // VDFBADFILE_H

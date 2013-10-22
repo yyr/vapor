@@ -6,7 +6,7 @@
 #include <sstream>
 #include <iterator>
 #include <cassert>
-
+#include <stdio.h>
 #include <vapor/DCReaderWRF.h>
 #include <vapor/UDUnits.h>
 

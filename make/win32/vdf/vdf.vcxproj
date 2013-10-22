@@ -216,13 +216,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\lib\vdf\2vdf.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\AMRData.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\AMRIO.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\AMRTree.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\AMRTreeBranch.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\BlkMemMgr.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\Compressor.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\Copy2VDF.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\DataMgr.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\DataMgrAMR.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\DataMgrFactory.cpp" />
@@ -281,12 +281,12 @@
     <ClCompile Include="..\..\..\lib\vdf\XmlNode.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\include\vapor\2vdf.h" />
     <ClInclude Include="..\..\..\include\vapor\AMRData.h" />
     <ClInclude Include="..\..\..\include\vapor\AMRIO.h" />
     <ClInclude Include="..\..\..\include\vapor\AMRTree.h" />
     <ClInclude Include="..\..\..\include\vapor\AMRTreeBranch.h" />
     <ClInclude Include="..\..\..\include\vapor\BlkMemMgr.h" />
+    <ClInclude Include="..\..\..\include\vapor\Copy2VDF.h" />
     <ClInclude Include="..\..\..\include\vapor\DataMgr.h" />
     <ClInclude Include="..\..\..\include\vapor\DataMgrFactory.h" />
     <ClInclude Include="..\..\..\include\vapor\DataMgrMOM.h" />

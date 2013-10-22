@@ -25,8 +25,8 @@
    </property>
    <property name="geometry">
     <rect>
-     <x>322</x>
-     <y>330</y>
+     <x>294</x>
+     <y>331</y>
      <width>61</width>
      <height>21</height>
     </rect>
@@ -60,7 +60,7 @@
   <widget class="QLabel" name="label_8">
    <property name="geometry">
     <rect>
-     <x>65</x>
+     <x>35</x>
      <y>324</y>
      <width>91</width>
      <height>31</height>
@@ -104,8 +104,8 @@
    </property>
    <property name="geometry">
     <rect>
-     <x>172</x>
-     <y>330</y>
+     <x>142</x>
+     <y>331</y>
      <width>61</width>
      <height>20</height>
     </rect>
@@ -152,8 +152,8 @@
    </property>
    <property name="geometry">
     <rect>
-     <x>252</x>
-     <y>330</y>
+     <x>220</x>
+     <y>331</y>
      <width>61</width>
      <height>20</height>
     </rect>
@@ -236,6 +236,28 @@
    </property>
    <property name="text">
     <string/>
+   </property>
+  </widget>
+  <widget class="QRadioButton" name="wrfRadioButton">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>374</x>
+     <y>331</y>
+     <width>61</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::LeftToRight</enum>
+   </property>
+   <property name="text">
+    <string>WRF</string>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
    </property>
   </widget>
  </widget>

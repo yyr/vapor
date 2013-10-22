@@ -27,12 +27,13 @@
 #include <QDebug>
 #include <QString>
 #include <vapor/vdfcreate.h>
-#include <vapor/2vdf.h>
+#include <vapor/Copy2vdf.h>
 #include <vapor/MetadataVDC.h>
 #include <vapor/WaveCodecIO.h>
 #include <vapor/DCReader.h>
 #include <vapor/DCReaderMOM.h>
 #include <vapor/DCReaderROMS.h>
+#include <vapor/DCReaderWRF.h>
 #include "dataholder.h"
 
 using namespace VAPoR;
@@ -62,19 +63,16 @@ DataHolder::DataHolder(){
 void DataHolder::setVDFstartTime(string startTime) {
 	VDFstartTime = startTime;
 	vdfSettingsChanged = true;
-     cout << "true1" << endl;
 }
 
 void DataHolder::setVDFnumTS(string numTS) {
 	VDFnumTS = numTS;
 	vdfSettingsChanged = true;
-     cout << "true2" << endl;
 }
 
 void DataHolder::setVDFDisplayedVars(vector<string> selectedVars) {
 	VDFDisplayedVars = selectedVars;
 	vdfSettingsChanged = true;
-     cout << "true3" << endl;
 }
 
 void DataHolder::setVDFSelectedVars(vector<string> selectedVars) { 
@@ -82,19 +80,16 @@ void DataHolder::setVDFSelectedVars(vector<string> selectedVars) {
 
 	VDFSelectedVars = selectedVars;
 	//vdfSettingsChanged = true;
-     cout << "true4" << endl;
 }
 
 void DataHolder::addVDFDisplayedVar(string var) { 
 	VDFDisplayedVars.push_back(var); 
 	vdfSettingsChanged = true;
-     cout << "true5" << endl;
 }
 
 void DataHolder::addVDFSelectedVar(string var) { 
 	VDFSelectedVars.push_back(var); 
     vdfSettingsChanged = true;
-     cout << "true6" << endl;
 }
 
 void DataHolder::deleteVDFSelectedVar(string var) {
@@ -102,21 +97,18 @@ void DataHolder::deleteVDFSelectedVar(string var) {
         if (VDFSelectedVars[i] == var) VDFSelectedVars.erase(VDFSelectedVars.begin()+i);
     }
 	vdfSettingsChanged = true;
-     cout << "true7" << endl;
 }
 
 void DataHolder::clearVDFSelectedVars() { 
 	VDFSelectedVars.clear();
 	vdfSettingsChanged = true;
-	cout << "true8" << endl;
 }
 
 // Create a DCReader object and pull important data from it
 int DataHolder::createReader() {
-	cout << "creating DCReader" << endl;
-
 	if (fileType == "roms") reader = new DCReaderROMS(dataFiles);
-    else reader = new DCReaderMOM(dataFiles);
+    else if (fileType == "wrf") reader = new DCReaderWRF(dataFiles);
+	else reader = new DCReaderMOM(dataFiles);
 	
 	if (MyBase::GetErrCode()!=0) return 1;
 	
@@ -140,7 +132,7 @@ void DataHolder::findPopDataVars() {
     vector<string> emptyVars;
     vector<string> outVars;
     //createReader();
-    GetVariables(vdfio, reader, emptyVars, outVars);
+    launcher2VDF.GetVariables(vdfio, reader, emptyVars, outVars);
     std::sort(outVars.begin(),outVars.end());
     setPDDisplayedVars(outVars);
 }
@@ -152,7 +144,8 @@ int DataHolder::VDFCreate() {
     int argc = 2;
     vector<std::string> argv;
     if (getFileType() == "roms") argv.push_back("romsvdfcreate");
-    else argv.push_back("momvdfcreate");
+    else if (getFileType() == "wrf") argv.push_back("wrfvdfcreate");
+	else argv.push_back("momvdfcreate");
     argv.push_back("-quiet");
 
     if (VDFstartTime != "") {
@@ -210,22 +203,21 @@ int DataHolder::VDFCreate() {
 
 	char** args = new char*[ argv.size() + 1 ];
     for(size_t a=0; a<argv.size(); a++) {
-        //cout << argv[a].c_str() << endl;
+        cout << argv[a].c_str() << endl;
         args[a] = strdup(argv[a].c_str());
     }
     
+    return launcherVdfCreate.launchVdfCreate(argc,args,getFileType());
 
-    launchVdfCreate(argc,args,getFileType());
-
-	return 0;
+	//return 0;
 }
 
-//void DataHolder::runRomsVDFCreate() {}
-int DataHolder::run2VDF() {
+int DataHolder::run2VDFcomplete() {
     int argc = 2;
     vector<std::string> argv;
     if (getFileType() == "roms") argv.push_back("roms2vdf");
-    else argv.push_back("mom2vdf");
+    else if (getFileType() == "wrf") argv.push_back("wrf2vdf");
+	else argv.push_back("mom2vdf");
     argv.push_back("-quiet");
 
     if (PDrefinement != "") {
@@ -283,7 +275,74 @@ int DataHolder::run2VDF() {
         args[a] = strdup(argv[a].c_str());
     }
 
-    return launch2vdf(argc, args, getFileType());
+    return launcher2VDF.launch2vdf(argc, args, getFileType());
+}
 
-	
+int DataHolder::run2VDFincremental(string start, string var) {
+    int argc = 2;
+    vector<std::string> argv;
+    if (getFileType() == "roms") argv.push_back("roms2vdf");
+    else if (getFileType() == "wrf") argv.push_back("wrf2vdf");
+    else argv.push_back("mom2vdf");
+    argv.push_back("-quiet");
+
+    if (PDrefinement != "") {
+        argv.push_back("-level");
+        argv.push_back(PDrefinement);
+        argc+=2;
+    }   
+    if (PDcompression != "") {
+        argv.push_back("-lod");
+        argv.push_back(PDcompression);
+        argc+=2;
+    }   
+    if (PDnumThreads != "") {
+        argv.push_back("-numthreads");
+        argv.push_back(PDnumThreads);
+        argc+=2;
+    }   
+    
+    argv.push_back("-numts");
+    argv.push_back("1");
+    argc+=2;
+  
+	argv.push_back("-startts");
+    argv.push_back(start);
+    argc+=2;
+  
+	argv.push_back("-vars");
+	argv.push_back(var);
+	argc+=2;
+     
+    /*if (PDSelectedVars.size() != 0) {
+        argv.push_back("-vars");
+        argc++;
+
+        string stringVars;
+        for(vector<string>::iterator it = PDSelectedVars.begin();
+            it != PDSelectedVars.end(); ++it) {
+            if(it != PDSelectedVars.begin()) stringVars += ":";
+            stringVars += *it;
+        }   
+        argv.push_back(stringVars);
+        argc++;
+    }*/  
+
+    for (int i=0;i<dataFiles.size();i++){
+        argv.push_back(dataFiles.at(i));
+        argc++;
+    }   
+
+    argv.push_back(PDinputVDFfile);
+    argc++;
+
+    //cout << endl;
+    //cout << argc << endl;
+    char** args = new char*[ argv.size() + 1 ];
+    for(size_t a=0; a<argv.size(); a++) {
+        //cout << argv[a].c_str() << endl;
+        args[a] = strdup(argv[a].c_str());
+    }   
+
+    return launcher2VDF.launch2vdf(argc, args, getFileType());
 }
