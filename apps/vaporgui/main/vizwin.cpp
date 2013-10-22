@@ -73,6 +73,7 @@ VizWin::VizWin( MainForm* parent, const QString& name, Qt::WFlags fl, VizWinMgr*
 	myVisualizer = ControlExecutive::getInstance()->GetVisualizer(myWindowNum);
 	myParent = parent;
 	myName = name;
+	setAutoBufferSwap(false);
 	return;
 	
 	
@@ -106,7 +107,7 @@ void VizWin::windowActivationChange(bool ){
 void VizWin::resizeGL(int width, int height){
 	ControlExecutive* ce = ControlExecutive::getInstance();
 	ce->ResizeViz(myWindowNum, width, height);
-	myupdate();
+	reallyUpdate();
 	return;
 }
 void VizWin::initializeGL(){
@@ -276,11 +277,13 @@ changeViewerFrame(){
 }
 void VizWin::paintGL(){
 	ControlExecutive* ce = ControlExecutive::getInstance();
-	ce->Paint(myWindowNum, false);
+	//only paint if necessary
+	int rc = ce->Paint(myWindowNum, false);
+	if (!rc) swapBuffers();
 	return;
 	
 }
-void VizWin::myupdate(){
+void VizWin::reallyUpdate(){
 	makeCurrent();
 	ControlExecutive* ce = ControlExecutive::getInstance();
 	ce->Paint(myWindowNum, true);

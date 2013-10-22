@@ -99,6 +99,7 @@ public:
 	//! their scenes. If false, rendering will only be performed if
 	//! the params objects associated with any of the active renderers 
 	//! on this visualizer have changed state.
+	//! \return rc is 0 if actual painting occurred, -1 if not.
 	//!
 	//!
 	int Paint(int viz, bool force=false);

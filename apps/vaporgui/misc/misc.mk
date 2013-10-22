@@ -1,5 +1,5 @@
 MISC_FILES := \
-	vizfeatureparams 
+	vizfeatureparams trackball 
 	
 
 MISC_QT_HEADERS := \

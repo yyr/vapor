@@ -11,7 +11,7 @@
 
 
 namespace VAPoR {
-	//For each extension class, insert the methods ParamsBase::RegisterParamsBaseClass and VizWinMgr::InstallTab
+	//For each extension class, insert the methods ParamsBase::RegisterParamsBaseClass 
 	//Into the following method:
 	static void InstallExtensions(){
            ParamsBase::RegisterParamsBaseClass(ArrowParams::_arrowParamsTag, ArrowParams::CreateDefaultInstance, true);

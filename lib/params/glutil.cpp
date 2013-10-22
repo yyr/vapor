@@ -463,8 +463,57 @@ void qmult(const float *q1, const float *q2, float *dest)
     //}
 }
 
-
+void qmult(const double *q1, const double *q2, double *dest)
+{
+    /* Multiply two quaternions.  Note quaternion real part is 4th coefficient!
+     */
+    //static int	count = 0;
+    double 	t1[3], t2[3], t3[3];
+    double 	tf[4];
+    
+    vcopy(q1, t1); 
+    vscale(t1, q2[3]);
+    
+    vcopy(q2, t2); 
+    vscale(t2, q1[3]);
+    
+    vcross(q2, q1, t3);
+    vadd(t1, t2, tf);
+    vadd(t3, tf, tf);
+    tf[3] = q1[3] * q2[3] - vdot(q1, q2);
+    
+    qcopy(tf, dest);
+    // why is this code here?
+    //if (++count >= 97) {
+	//	count = 0;
+	//	qnormal(dest);
+    //}
+}
 void qmatrix(const float *q, GLfloat *m)
+{
+    /* Build a rotation matrix, given a quaternion rotation.
+     */
+    m[0] = 1 - 2 * (q[1] * q[1] + q[2] * q[2]);
+    m[1] = 2 * (q[0] * q[1] - q[2] * q[3]);
+    m[2] = 2 * (q[2] * q[0] + q[1] * q[3]);
+    m[3] = 0;
+    
+    m[4] = 2 * (q[0] * q[1] + q[2] * q[3]);
+    m[5] = 1 - 2 * (q[2] * q[2] + q[0] * q[0]);
+    m[6] = 2 * (q[1] * q[2] - q[0] * q[3]);
+    m[7] = 0;
+    
+    m[8] = 2 * (q[2] * q[0] - q[1] * q[3]);
+    m[9] = 2 * (q[1] * q[2] + q[0] * q[3]);
+    m[10] = 1 - 2 * (q[1] * q[1] + q[0] * q[0]);
+    m[11] = 0;
+    
+    m[12] = 0;
+    m[13] = 0;
+    m[14] = 0;
+    m[15] = 1;
+}
+void qmatrix(const double *q, GLdouble *m)
 {
     /* Build a rotation matrix, given a quaternion rotation.
      */
@@ -583,6 +632,33 @@ void	rvec2q(
 	q[2] = sin(radians/2.0) * rvec_normal[2];
 	q[3] = cos(radians/2.0);
 }
+void	rvec2q(
+	const double	rvec[3],
+	double		radians,
+	double		q[4]
+) {
+
+	double  rvec_normal[3];
+	double  d;
+
+	d = sqrt(rvec[0]*rvec[0] + rvec[1]*rvec[1] + rvec[2]*rvec[2]);
+
+	if (d != 0.0) {
+		rvec_normal[0] = rvec[0] / d;
+		rvec_normal[1] = rvec[1] / d;
+		rvec_normal[2] = rvec[2] / d;
+	}
+	else {
+		rvec_normal[0] = 0.0;
+		rvec_normal[1] = 0.0;
+		rvec_normal[2] = 1.0;
+	}
+
+	q[0] = sin(radians/2.0) * rvec_normal[0];
+	q[1] = sin(radians/2.0) * rvec_normal[1];
+	q[2] = sin(radians/2.0) * rvec_normal[2];
+	q[3] = cos(radians/2.0);
+}
 
 
 float ProjectToSphere(float r, float x, float y)
@@ -614,6 +690,36 @@ void CalcRotation(float *q, float newX, float newY,
      */
     float	p1[3], p2[3];	/* 3D mouse points  */
     float	L;		/* sin^2(2 * phi)   */
+   
+    /* Check for zero rotation
+     */
+    if (newX == oldX  &&  newY == oldY) {
+	qzero(q); 
+	return;
+    }
+    
+    /* Form two vectors based on input points, find rotation axis
+     */
+    vset(p1, newX, newY, ProjectToSphere(ballsize, newX, newY));
+    vset(p2, oldX, oldY, ProjectToSphere(ballsize, oldX, oldY));
+    
+    vcross(p1, p2, q);		/* axis of rotation from p1 and p2 */
+    
+    L = vdot(q, q) / (vdot(p1, p1) * vdot(p2, p2));
+    L = sqrt((double) (1 - L));
+    
+    vnormal(q);				/* q' = axis of rotation */
+    vscale(q, sqrt((double) ((1 - L)/2)));	/* q' = q' * sin(phi) */
+    q[3] = sqrt((double) ((1 + L)/2));		/* qs = qs * cos(phi) */
+}
+void CalcRotation(double *q, double newX, double newY,
+		  double oldX, double oldY, double ballsize)
+{
+    /* Given old and new mouse positions (scaled to [-1, 1]),
+     * Find the rotation quaternion q.
+     */
+    double	p1[3], p2[3];	/* 3D mouse points  */
+    double	L;		/* sin^2(2 * phi)   */
    
     /* Check for zero rotation
      */

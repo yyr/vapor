@@ -86,6 +86,7 @@ restart(){
 		ParamNode* vpNode = vp->GetRootNode();
 		GetRootNode()->AddRegisteredNode(_homeViewTag,vpNode,vp);
 	}
+	centerFullRegion(0);
 	setNumLights(defaultNumLights);
 	vector<double> ldirs;
 	vector<double> diffCoeffs;

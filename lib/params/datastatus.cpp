@@ -175,7 +175,7 @@ DataStatus::getDefaultDataMax(string vname){
 	float dmax = 1.f;
 	if (dataMgr->VariableExists(minTimeStep, vname.c_str())){
 		dataMgr->GetDataRange(minTimeStep, vname.c_str(),range);
-		dmax = range[2];
+		dmax = range[1];
 	}
 	return dmax;
 }
@@ -185,7 +185,7 @@ DataStatus::getDefaultDataMin(string vname){
 	float dmin = 0.f;
 	if (dataMgr->VariableExists(minTimeStep, vname.c_str())){
 		dataMgr->GetDataRange(minTimeStep, vname.c_str(),range);
-		dmin = range[2];
+		dmin = range[0];
 	}
 	return dmin;
 }

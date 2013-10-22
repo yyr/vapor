@@ -101,7 +101,7 @@ public:
 	}
 
 	void paintGL();
-	void myupdate();
+	void reallyUpdate();
 		
 protected:
 	int xRot,yRot,zRot;

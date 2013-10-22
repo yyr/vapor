@@ -87,7 +87,10 @@ Visualizer::Visualizer(int windowNum )
 	renderType.clear();
 	renderOrder.clear();
 	renderer.clear();
-
+	for (int i = 0; i<3; i++){
+		regionFrameColorFlt[i] = 1.;
+		subregionFrameColorFlt[i] = .5;
+	}
     MyBase::SetDiagMsg("Visualizer::Visualizer() end");
 }
 
@@ -124,7 +127,7 @@ void Visualizer::resizeGL( int wid, int ht )
   glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glViewport(0, 0, wid, ht);
-    gluPerspective(60, (float)wid / (float)ht, 0.1f, 512.f);
+    gluPerspective(45., (float)wid / (float)ht, 0.1f, 512.f);
     glMatrixMode(GL_MODELVIEW);
   return;
   setUpViewport(wid, ht);
@@ -133,10 +136,7 @@ void Visualizer::resizeGL( int wid, int ht )
   nowPainting = false;
   needsResize = false;
 
-  /* note: 2
-   * currently all depth peeling setup occurs in resizeGL, code that should be moved to
-   *  initializeGL will be marked with an refactor note
-   */
+
  
 #ifdef DEBUG
     printOpenGLError();
@@ -220,7 +220,7 @@ void Visualizer::setUpViewport(int width,int height){
 	
 	//qWarning("setting near, far dist: %f %f", nearDist, farDist);
 	//gluPerspective(45., w, nearDist, farDist );
-	gluPerspective(60., w, 0.1f, 512.f );
+	gluPerspective(45., w, 0.1f, 512.f );
 	//gluPerspective(45., w, 1.0, 5. );
 	//save the current value...
 	//glGetDoublev(GL_PROJECTION_MATRIX, projectionMatrix);
@@ -241,8 +241,14 @@ void Visualizer::resetView(ViewpointParams* vParams){
 }
 
 
-void Visualizer::paintEvent(bool force)
+int Visualizer::paintEvent(bool force)
 {
+	if (!force) {
+		//check if any params changed. If not, return -1;
+	}
+	
+	double mvmatrix[16];
+	double vdir[3], vpos[3], upvec[3];
 	MyBase::SetDiagMsg("Visualizer::paintGL()");
 	//Following is needed in case undo/redo leaves a disabled renderer in the renderer list, so it can be deleted.
 	removeDisabledRenderers();
@@ -250,8 +256,21 @@ void Visualizer::paintEvent(bool force)
 	printOpenGLError();
 	glClearColor(0.f, 0.0f, 0.0f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	if (!DataStatus::getInstance()->getDataMgr()) {
+		return 0;
+	}
+
+	//Get the ModelView matrix from the viewpoint params:
+	ViewpointParams* vpParams = getActiveViewpointParams();
+	Viewpoint* vp = vpParams->getCurrentViewpoint();
+	for (int i = 0; i<3; i++){
+		vdir[i] = vp->getViewDir()[i];
+		upvec[i] = vp->getUpVec()[i];
+		vpos[i] = vp->getCameraPosLocal()[i];
+	}
+	makeModelviewMatrixD(vpos, vdir, upvec,mvmatrix);
     glLoadIdentity();
-    glTranslatef(0.0, 0.0, -5.0);
+    //glTranslatef(0.0, 0.0, -5.0);
 	
 	float extents[6] = {0.f,0.f,0.f,1.f,1.f,1.f};
 	float minFull[3] = {0.f,0.f,0.f};
@@ -287,20 +306,22 @@ void Visualizer::paintEvent(bool force)
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
-	//TEMPORARY:  do a default matrix:
-	glTranslatef(0.,0.,-5.0);
+	
 
 	//Lights are positioned relative to the view direction, do this before the modelView matrix is changed
 	placeLights();
 
 	//Set the GL modelview matrix, based on the Trackball state.
-	//glLoadMatrixd(getModelViewMatrix());
+	glLoadMatrixd(mvmatrix);
 	
 	//make sure to capture whenever the time step or frame index changes
 	if (timeStep != previousTimeStep) {
 		previousTimeStep = timeStep;
 	}
-	
+	RegionParams* rParams = getActiveRegionParams();
+	double subExts[6];
+	rParams->getLocalRegionExtents(subExts, timeStep);
+	renderDomainFrame(dataStatus->getLocalExtents(), subExts, subExts+3);
 	
 	//Make the depth buffer writable
 	glDepthMask(GL_TRUE);
@@ -353,6 +374,7 @@ void Visualizer::paintEvent(bool force)
 	
 	glDisable(GL_NORMALIZE);
 	printOpenGLError();
+	return 0;
 }
 
 
@@ -434,8 +456,8 @@ bool Visualizer::projectPointToWin(float cubeCoords[3], float winCoords[2]){
 	for (int i = 0; i< 3; i++)
 		cbCoords[i] = (double) cubeCoords[i];
 	
-	bool success = gluProject(cbCoords[0],cbCoords[1],cbCoords[2], getModelViewMatrix(),
-		getProjectionMatrix(), getViewport(), wCoords, (wCoords+1),(GLdouble*)(&depth));
+	bool success = (0!=gluProject(cbCoords[0],cbCoords[1],cbCoords[2], getModelViewMatrix(),
+		getProjectionMatrix(), getViewport(), wCoords, (wCoords+1),(GLdouble*)(&depth)));
 	if (!success) return false;
 	winCoords[0] = (float)wCoords[0];
 	winCoords[1] = (float)wCoords[1];
@@ -449,8 +471,8 @@ bool Visualizer::pixelToVector(float winCoords[2], const float camPos[3], float 
 	GLdouble pt[3];
 	float v[3];
 	//Obtain the coords of a point in view:
-	bool success = gluUnProject((GLdouble)winCoords[0],(GLdouble)winCoords[1],(GLdouble)1.0, getModelViewMatrix(),
-		getProjectionMatrix(), getViewport(),pt, pt+1, pt+2);
+	bool success = (0 != gluUnProject((GLdouble)winCoords[0],(GLdouble)winCoords[1],(GLdouble)1.0, getModelViewMatrix(),
+		getProjectionMatrix(), getViewport(),pt, pt+1, pt+2));
 	if (success){
 		//Convert point to float
 		v[0] = (float)pt[0];
@@ -518,7 +540,7 @@ setModelViewMatrix(const double mtx[16]) {
 //Issue OpenGL commands to draw a grid of lines of the full domain.
 //Grid resolution is up to 2x2x2
 //
-void Visualizer::renderDomainFrame(float* extents, float* minFull, float* maxFull){
+void Visualizer::renderDomainFrame(const float* extents, const double* minFull, const double* maxFull){
 	int i; 
 	int numLines[3];
 	float regionSize, fullSize[3], modMin[3],modMax[3];

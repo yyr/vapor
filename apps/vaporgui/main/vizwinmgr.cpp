@@ -974,8 +974,6 @@ int VizWinMgr::getNumInstances(int winnum, Params::ParamsBaseType pType){
 	return (Params::GetNumParamsInstances(pType,winnum));
 }
 	
-
-
 Params::ParamsBaseType VizWinMgr::RegisterEventRouter(const std::string tag, EventRouter* router){
 	Params::ParamsBaseType t = Params::GetTypeFromTag(tag);
 	if (t <= 0) return 0;
@@ -1011,7 +1009,6 @@ int VizWinMgr::RegisterMouseMode(const std::string paramsTag, int manipType,  co
 }
 void VizWinMgr::InstallTab(const std::string tag, EventRouterCreateFcn fcn){
 
-	
 	EventRouter* eRouter = fcn();
 	Params::ParamsBaseType typ = RegisterEventRouter(tag, eRouter);
 	eRouter->hookUpTab();
@@ -1039,5 +1036,5 @@ void VizWinMgr::forceRender(RenderParams* rp, bool always){
 	if (!always && !rp->isEnabled()) return;
 	int viznum = rp->getVizNum();
 	if (viznum < 0) return;
-	VizWindow[viznum]->myupdate();
+	VizWindow[viznum]->reallyUpdate();
 }

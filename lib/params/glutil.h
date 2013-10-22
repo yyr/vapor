@@ -135,11 +135,15 @@ PARAMS_API int rayBoxIntersect(const float rayStart[3], const float rayDir[3],co
 PARAMS_API void	qnormal (float *q);
 PARAMS_API void qinv(const float q1[4], float q2[4]);
 PARAMS_API void	qmult (const float *q1, const float *q2, float *dest);
+PARAMS_API void	qmult (const double *q1, const double *q2, double *dest);
 PARAMS_API void	qmatrix (const float *q, GLfloat *m);
+PARAMS_API void	qmatrix (const double *q, GLdouble *m);
 PARAMS_API float	ProjectToSphere (float r, float x, float y);
 PARAMS_API void	CalcRotation (float *q, float newX, float newY, float oldX, float oldY, float ballsize);
+PARAMS_API void	CalcRotation (double *q, double newX, double newY, double oldX, double oldY, double ballsize);
 PARAMS_API float	ScalePoint (long pt, long origin, long size);
 PARAMS_API void	rvec2q(const float	rvec[3],float		radians,float		q[4]);
+PARAMS_API void	rvec2q(const double	rvec[3],double		radians,double		q[4]);
 PARAMS_API void	rotmatrix2q(float* m, float *q );
 PARAMS_API void	rotmatrix2q(double* m, double *q );
 PARAMS_API float   getScale(GLfloat* rotmatrix);
@@ -157,6 +161,7 @@ PARAMS_API void views2ImagQuats(float vdir1[3],float upvec1[3],float vdir2[3],fl
 
 
 inline void vset(float* a, const float x, const float y, const float z){a[0] = x, a[1] = y, a[2] = z;}
+inline void vset(double* a, const double x, const double y, const double z){a[0] = x, a[1] = y, a[2] = z;}
 inline float vdot(const float* a, const float* b)
 	{return (a[0]*b[0]+a[1]*b[1]+a[2]*b[2]);}
 inline double vdot(const double* a, const double* b)
@@ -178,11 +183,15 @@ inline void vadd(const float* a, const float* b, float* c)
 inline void vadd(const double* a, const double* b, double* c)
 	{c[0] = a[0]+b[0], c[1] = a[1]+b[1], c[2] = a[2]+b[2];}
 inline void vzero(float *a) {a[0] = a[1] = a[2] = 0.f;}
+inline void vzero(double *a) {a[0] = a[1] = a[2] = 0.;}
 inline void qset(float* a,  float x,  float y,  float z,  float w)
 	{a[0] = x, a[1] = y, a[2] = z, a[3] = w;}
 inline void qcopy(const float*a, float* b)	
 	{b[0] = a[0], b[1] = a[1], b[2] = a[2], b[3] = a[3];}
+inline void qcopy(const double*a, double* b)	
+	{b[0] = a[0], b[1] = a[1], b[2] = a[2], b[3] = a[3];}
 inline void qzero(float* a)	{a[0] = a[1] = a[2] = 0, a[3] = 1;}
+inline void qzero(double* a)	{a[0] = a[1] = a[2] = 0., a[3] = 1.;}
 inline void qadd(const float* a,const float* b,float* c)	
 	{vadd(a,b,c), c[3]=a[3]+b[3];}
 inline float qlength(const float q[4]){

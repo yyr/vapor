@@ -24,15 +24,11 @@
 #define Visualizer_H
 
 #include <map>
-
 #include <jpeglib.h>
-
 #include "params.h"
-
 #include <vapor/MyBase.h>
 #include <vapor/common.h>
 #include "datastatus.h"
-
 
 namespace VAPoR {
 typedef bool (*renderCBFcn)(int winnum, bool newCoords);
@@ -42,10 +38,8 @@ class RegionParams;
 class AnimationParams;
 class Renderer;
 
-
-
 //! \class Visualizer
-//! \brief A class for performing OpenGL rendering in  VAPOR Window
+//! \brief A class for performing OpenGL rendering in VAPOR GUI Window
 //! \author Alan Norton
 //! \version $Revision$
 //! \date    $Date$
@@ -115,6 +109,7 @@ public:
 
 	//! Method to initialize GL rendering.  Must  be called from a GL context.
 	void	initializeGL();
+
 	//Following QT 4 guidance (see bubbles example), opengl painting is performed
 	//in paintEvent(), so that we can paint nice text over the window.
 	// Visualizer::paintGL() is not implemented.
@@ -125,7 +120,7 @@ public:
 	// from paintEvent().
 	// setAutoFillBackground(false) is called in the Visualizer constructor
 
-	void paintEvent(bool force);
+	int paintEvent(bool force);
 
 	void resizeGL( int w, int h );
 
@@ -228,8 +223,6 @@ public:
 	//	-reinit
 	//	-new visualizer
 	
-
-	
 	//The Visualizer keeps track of the renderers with an ordered list of them
 	//as well as with a map from renderparams to renderer
 	
@@ -239,7 +232,6 @@ public:
 	//Determine the approximate size of a pixel in terms of viewer coordinates.
 	float getPixelSize();
 	
-
 	//Routine is called at the end of rendering.  If capture is 1 or 2, it converts image
 	//to jpeg and saves file.  If it ever encounters an error, it turns off capture.
 	//If capture is 1 (single frame capture) it turns off capture.
@@ -349,7 +341,7 @@ protected:
 	//Methods to support drawing domain bounds, axes etc.
 	//Draw the region bounds and frame it in full domain.
 	//Arguments are in unit cube coordinates
-	void renderDomainFrame(float* extents, float* minFull, float* maxFull);
+	void renderDomainFrame(const float* extents,const double* minFull,const double* maxFull);
 	
 	void drawSubregionBounds(float* extents);
 	void drawAxisArrows(float* extents);
@@ -367,7 +359,6 @@ protected:
 
 	float regionFrameColorFlt[3];
 	float subregionFrameColorFlt[3];
-	
 	
 	//Set the following to force a call to resizeGL at the next call to
 	//updateGL.

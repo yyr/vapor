@@ -105,6 +105,9 @@
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_vizwinmgr.cpp">
       <Filter>Generated MOC Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\apps\vaporgui\misc\trackball.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\apps\vaporgui\guis\eventrouter.h">
@@ -127,6 +130,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\viztab.h">
       <Filter>Generated Form Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\apps\vaporgui\misc\trackball.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

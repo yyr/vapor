@@ -541,7 +541,6 @@ void ArrowEventRouter::updateTab(){
 	const vector<double>& rakeexts = arrowParams->GetRakeLocalExtents();
 	//Now adjust for moving extents
 	if (!DataStatus::getInstance()->getDataMgr()) {
-		
 		return;
 	}
 		
@@ -808,54 +807,35 @@ updateRenderer(RenderParams* rParams, bool prevEnabled,int instance, bool newWin
 	}
 	
 	bool nowEnabled = rParams->isEnabled();
-	
 	if (prevEnabled == nowEnabled) return;
 
-	
 	VizWin* viz = 0;
 	if(winnum >= 0){//Find the viz that this applies to:
-		//Note that this is only for the cases below where one particular
-		//visualizer is needed
 		viz = vizWinMgr->getVizWin(winnum);
 	} 
 	
 	//cases to consider:
 	//1.  unchanged disabled renderer; do nothing.
-	//  enabled renderer, just force refresh:
-	
+	//  enabled renderer, just refresh:
+	ControlExecutive* ce = ControlExecutive::getInstance();
 	if (prevEnabled == nowEnabled) {
 		if (!prevEnabled) return;
-		VizWinMgr::getInstance()->forceRender(dParams,true);
+		vizWinMgr->forceRender(rParams, false);
 		return;
 	}
 	
-	//2.  Change of disable->enable .  Create a new renderer in active window.
-	
-	
-	//6.  Change of enable->disable with local renderer.  Delete renderer in local window same as:
-	
-	
-	//For a new renderer
-
-	
 	if (nowEnabled && !prevEnabled ){//For case 2.:  create a renderer in the active window:
-		ControlExecutive* ce = ControlExecutive::getInstance();
-		ce->ActivateRender(winnum,ArrowParams::_arrowParamsTag,instance,true);
-		//Renderer* myArrow = new ArrowRenderer(viz->getVisualizer(), dParams);
-		//viz->getVisualizer()->insertSortedRenderer(dParams,myArrow);
-
-		//force the renderer to refresh 
+		int rc = ce->ActivateRender(winnum,ArrowParams::_arrowParamsTag,instance,true);
 		
-		VizWinMgr::getInstance()->forceRender(dParams,true);
+		//force the renderer to refresh 
+		if (!rc) vizWinMgr->forceRender(rParams, true);
 	
-		//Quit 
 		return;
 	}
 	
 	assert(prevEnabled && !nowEnabled); //case 6, disable 
-	ControlExecutive* ce = ControlExecutive::getInstance();
-	ce->ActivateRender(winnum,ArrowParams::_arrowParamsTag,instance,false);
-	//viz->getVisualizer()->removeRenderer(dParams);
+	int rc = ce->ActivateRender(winnum,ArrowParams::_arrowParamsTag,instance,false);
+	if (!rc) vizWinMgr->forceRender(rParams, true);
 
 	return;
 }

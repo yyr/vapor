@@ -105,8 +105,7 @@ void ControlExecutive::ResizeViz(int viz, int width, int height){
 int ControlExecutive::Paint(int viz, bool force){
 	Visualizer* v = visualizers[viz];
 	if (!v) return -1;
-	v->paintEvent(force);
-	return 0;
+	return v->paintEvent(force);
 }
 
 	//! Specify the current ModelViewMatrix
@@ -138,7 +137,7 @@ int ControlExecutive::ActivateRender(int viz, string type, int instance, bool on
 	//p should already have its state set to enabled if we are activating it here
 	if (!p->isEnabled()){ //we should deactivate it here
 		if (on) return -2; //should not be activating it
-		//put code here to de-activate the renderer!
+		GetVisualizer(viz)->removeRenderer(p);
 		return 0;
 	}
 	//OK, p is enabled, we should activate it

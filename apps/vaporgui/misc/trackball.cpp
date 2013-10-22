@@ -104,10 +104,10 @@ Trackball::Trackball(void)
 }
 
 void	Trackball::TrackballSetTo(
-	float		scale,
-	float		rvec[3],
-	float		radians,
-	float		trans[3]
+	double		scale,
+	double		rvec[3],
+	double		radians,
+	double		trans[3]
 ) {
 	if (scale < 1.0) {
 		trans[2] = 1 - (1.0 / scale);
@@ -131,19 +131,19 @@ void Trackball::TrackballSetMatrix()
     /* Modify the current gl matrix by the trackball 
      * rotation and translation.
      */
-    GLfloat 	m[16];
+    GLdouble 	m[16];
 	/*Start with the "home" matrix:
 	Currently assuming identity??
 	*/
 	//sendGLHomeViewpoint();
 
     if (perspective) {
-		glTranslatef(center[0], center[1], center[2]);
-	    glTranslatef(trans[0],  trans[1],  trans[2]);
+		glTranslated(center[0], center[1], center[2]);
+	    glTranslated(trans[0],  trans[1],  trans[2]);
 		//qWarning("translate %f %f %f", trans[0], trans[1], trans[2]);
 	    qmatrix(qrot, m);
-	    glMultMatrixf(m);
-		glTranslatef(-center[0], -center[1], -center[2]);
+	    glMultMatrixd(m);
+		glTranslated(-center[0], -center[1], -center[2]);
 		//float* matrix = (float*)m;
 		/*
 		qWarning( "trackball perspective Matrix is: \n %f %f %f %f \n %f %f %f %f \n %f %f %f %f \n %f %f %f %f ",
@@ -153,7 +153,7 @@ void Trackball::TrackballSetMatrix()
 			matrix[12], matrix[13],matrix[14],matrix[15]);*/
     }
     else {
-	    GLfloat scale_factor = 1.0;
+	    GLdouble scale_factor = 1.0;
 
 	    if (trans[2] < 0.0) {
 			scale_factor = 5.0 / (1 - trans[2]);
@@ -162,11 +162,11 @@ void Trackball::TrackballSetMatrix()
 			scale_factor = 5.0 + trans[2];
 	    }
 
-	    glTranslatef(trans[0],  trans[1],  trans[2]);
+	    glTranslated(trans[0],  trans[1],  trans[2]);
 	    qmatrix(qrot, m);
-	    glMultMatrixf(m);
+	    glMultMatrixd(m);
 		
-	    glScalef(scale_factor, scale_factor, scale_factor);
+	    glScaled(scale_factor, scale_factor, scale_factor);
 		//qWarning("translate, scale %f %f %f %f", trans[0], trans[1], trans[2], scale_factor);
 		//float* matrix = (float*)m;
 		/*qWarning( "trackball parallel Matrix is: \n %f %f %f %f \n %f %f %f %f \n %f %f %f %f \n %f %f %f %f ",
@@ -180,7 +180,7 @@ void Trackball::TrackballSetMatrix()
 #ifndef	M_SQRT1_2
 #define M_SQRT1_2  0.707106781186547524401f
 #endif
-static float q90[3][4] = {
+static double q90[3][4] = {
     { M_SQRT1_2, 0.0, 0.0, M_SQRT1_2 },
     { 0.0, M_SQRT1_2, 0.0, M_SQRT1_2 },
     { 0.0, 0.0,-M_SQRT1_2, M_SQRT1_2 },
@@ -221,7 +221,7 @@ int Trackball::TrackballSpinning()
 }
 
 
-void Trackball::TrackballSetPosition(float newx, float newy)
+void Trackball::TrackballSetPosition(double newx, double newy)
 {
     /* Call this when the user does a mouse down.  
      * Stop the trackball glide, then remember the mouse
@@ -233,7 +233,7 @@ void Trackball::TrackballSetPosition(float newx, float newy)
 }
 
 
-void Trackball::TrackballRotate(float newx, float newy)
+void Trackball::TrackballRotate(double newx, double newy)
 {
 	/* OGLXXX glBegin: Use GL_LINES if only one line segment is desired. */
     /* Call this when the mouse glBegin(GL_LINE_STRIP); glVertex3s(i.e. PointerMotion, $2, $3).
@@ -250,7 +250,7 @@ void Trackball::TrackballRotate(float newx, float newy)
 }
 
 
-void Trackball::TrackballPan( float newx, float newy)
+void Trackball::TrackballPan( double newx, double newy)
 {
 	/* OGLXXX glBegin: Use GL_LINES if only one line segment is desired. */
     /* Call this when the mouse glBegin(GL_LINE_STRIP); glVertex3s(i.e. PointerMotion, $2, $3).
@@ -263,7 +263,7 @@ void Trackball::TrackballPan( float newx, float newy)
 }
 
 
-void Trackball::TrackballZoom(float newx, float newy)
+void Trackball::TrackballZoom(double newx, double newy)
 {
 	/* OGLXXX glBegin: Use GL_LINES if only one line segment is desired. */
     /* Call this when the mouse glBegin(GL_LINE_STRIP); glVertex3s(i.e. PointerMotion, $2, $3).
@@ -297,7 +297,7 @@ void Trackball::MouseOnTrackball(int eventNum, Qt::MouseButton thisButton, int x
      * width, height	: of event window
      * tball		: trackball to modify
      */
-    float	x, y;
+    double	x, y;
 	static Qt::MouseButton	button;
 	//Ignore time: Qt doesn't provide time with events (may need to revisit this later????)
     //static Time	downTime;
@@ -344,7 +344,7 @@ void Trackball::MouseOnTrackball(int eventNum, Qt::MouseButton thisButton, int x
 // Set the quaternion and translation from a viewer frame
 // Also happens to construct modelview matrix, but we don't use its translation
 void Trackball::
-setFromFrame(float* posvec, float* dirvec, float* upvec, float* centerRot, bool persp){
+setFromFrame(double* posvec, double* dirvec, double* upvec, double* centerRot, bool persp){
 	//First construct the rotation matrix:
 	double mtrx1[16];
 	double trnsMtrx[16];
@@ -364,12 +364,12 @@ setFromFrame(float* posvec, float* dirvec, float* upvec, float* centerRot, bool 
 	double qrotd[4];
 	//convert rotation part to quaternion:
 	rotmatrix2q(mtrx, qrotd);
-	for (int i = 0; i<4; i++) qrot[i] = (float)qrotd[i];
+	for (int i = 0; i<4; i++) qrot[i] = (double)qrotd[i];
 	//set the translation?
 	//If parallel (ortho) transform, z used for translation
 	perspective = persp;
 	//vcopy(posvec, trans);
-	for (int i = 0; i<3; i++) trans[i] = (float)mtrx[i+12];
+	for (int i = 0; i<3; i++) trans[i] = (double)mtrx[i+12];
 	
 }
 
