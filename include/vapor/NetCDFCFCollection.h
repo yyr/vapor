@@ -12,7 +12,7 @@
 
 #include <sstream>
 #include <vapor/MyBase.h>
-#include <vapor/UDUnits.h>
+#include <vapor/UDUnitsClass.h>
 #include <vapor/NetCDFCollection.h>
 
 union ut_unit;
