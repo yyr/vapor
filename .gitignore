@@ -76,6 +76,7 @@ lib/vdf/SignificanceMap.h
 lib/vdf/SphericalGrid.h
 lib/vdf/StretchedGrid.h
 lib/vdf/Transpose.h
+lib/vdf/UDUnitsClass.h
 lib/vdf/VDCFactory.h
 lib/vdf/VDFIOBase.h
 lib/vdf/WRF.h
