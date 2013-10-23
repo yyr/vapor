@@ -306,7 +306,9 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 	}
 	
     if (NetCDFtype == "roms") DCdata = new DCReaderROMS(ncdffiles);
-    else if (NetCDFtype == "wrf") DCdata = new DCReaderWRF(ncdffiles);
+    else if (NetCDFtype == "wrf") {
+		DCdata = new DCReaderWRF(ncdffiles);
+	}
 	else DCdata = new DCReaderMOM(ncdffiles);
 
     if (MyBase::GetErrCode() != 0) return (-1);

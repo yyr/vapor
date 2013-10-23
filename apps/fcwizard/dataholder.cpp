@@ -148,12 +148,12 @@ int DataHolder::VDFCreate() {
 	else argv.push_back("momvdfcreate");
     argv.push_back("-quiet");
 
-    if (VDFstartTime != "") {
+    if ((getFileType()!="wrf")&&(VDFstartTime != "")) {
         argv.push_back("-startt");
         argv.push_back(VDFstartTime);
 		argc+=2;
     }
-    if (VDFnumTS != "") {
+    if ((getFileType()!="wrf")&&(VDFnumTS != "")) {
         argv.push_back("-numts");
         argv.push_back(VDFnumTS);
         argc+=2;
@@ -179,7 +179,7 @@ int DataHolder::VDFCreate() {
         argc+=2;
     }
     if (VDFSelectedVars.size() != 0) {
-        argv.push_back("-vars");
+		argv.push_back("-vars");
         argc++;
 
         string stringVars;
@@ -206,10 +206,8 @@ int DataHolder::VDFCreate() {
         cout << argv[a].c_str() << endl;
         args[a] = strdup(argv[a].c_str());
     }
-    
-    return launcherVdfCreate.launchVdfCreate(argc,args,getFileType());
-
-	//return 0;
+  	cout << getFileType() << endl; 
+	return launcherVdfCreate.launchVdfCreate(argc,args,getFileType());
 }
 
 int DataHolder::run2VDFcomplete() {
@@ -246,7 +244,7 @@ int DataHolder::run2VDFcomplete() {
         argc+=2;
     }
     if (PDSelectedVars.size() != 0) {
-        argv.push_back("-vars");
+		argv.push_back("-vars");
         argc++;
 
         string stringVars;
@@ -267,11 +265,8 @@ int DataHolder::run2VDFcomplete() {
     argv.push_back(PDinputVDFfile);
     argc++;
 
-    //cout << endl;
-    //cout << argc << endl;
     char** args = new char*[ argv.size() + 1 ];
     for(size_t a=0; a<argv.size(); a++) {
-        //cout << argv[a].c_str() << endl;
         args[a] = strdup(argv[a].c_str());
     }
 
@@ -314,20 +309,6 @@ int DataHolder::run2VDFincremental(string start, string var) {
 	argv.push_back(var);
 	argc+=2;
      
-    /*if (PDSelectedVars.size() != 0) {
-        argv.push_back("-vars");
-        argc++;
-
-        string stringVars;
-        for(vector<string>::iterator it = PDSelectedVars.begin();
-            it != PDSelectedVars.end(); ++it) {
-            if(it != PDSelectedVars.begin()) stringVars += ":";
-            stringVars += *it;
-        }   
-        argv.push_back(stringVars);
-        argc++;
-    }*/  
-
     for (int i=0;i<dataFiles.size();i++){
         argv.push_back(dataFiles.at(i));
         argc++;

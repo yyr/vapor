@@ -45,6 +45,7 @@ public:
     DataHolder *dataHolder;
 	ErrorMessage *errorMessage;
 	VdfBadFile *successMessage;
+	VdfBadFile *checkOverwrites;
 
     void findVars();
     vector<string> varList;
@@ -63,6 +64,7 @@ private:
     void populateCheckedVars();
     bool validatePage();
 	bool isComplete();
+	bool checkForOverwrites();
 };
 
 #endif // POPULATEDATAPAGE_H

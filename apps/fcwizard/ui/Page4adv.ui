@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>36</x>
-     <y>58</y>
+     <y>40</y>
      <width>131</width>
      <height>16</height>
     </rect>
@@ -33,7 +33,7 @@
    <property name="geometry">
     <rect>
      <x>42</x>
-     <y>102</y>
+     <y>80</y>
      <width>80</width>
      <height>31</height>
     </rect>
@@ -52,13 +52,16 @@
    <property name="geometry">
     <rect>
      <x>170</x>
-     <y>108</y>
+     <y>82</y>
      <width>82</width>
      <height>25</height>
     </rect>
    </property>
    <property name="toolTip">
     <string>Number of execution threads (0 =&gt; # processors).</string>
+   </property>
+   <property name="minimum">
+    <number>1</number>
    </property>
   </widget>
   <widget class="QSpinBox" name="refinementLevelSpinner">
@@ -84,7 +87,7 @@
    <property name="geometry">
     <rect>
      <x>170</x>
-     <y>56</y>
+     <y>36</y>
      <width>82</width>
      <height>25</height>
     </rect>
@@ -118,8 +121,8 @@
   <widget class="QPushButton" name="acceptButton">
    <property name="geometry">
     <rect>
-     <x>150</x>
-     <y>180</y>
+     <x>153</x>
+     <y>170</y>
      <width>114</width>
      <height>20</height>
     </rect>
@@ -131,8 +134,8 @@
   <widget class="QPushButton" name="cancelButton">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>180</y>
+     <x>33</x>
+     <y>170</y>
      <width>114</width>
      <height>20</height>
     </rect>
@@ -145,7 +148,7 @@
    <property name="geometry">
     <rect>
      <x>70</x>
-     <y>146</y>
+     <y>136</y>
      <width>171</width>
      <height>20</height>
     </rect>

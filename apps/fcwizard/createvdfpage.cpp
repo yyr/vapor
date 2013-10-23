@@ -48,19 +48,24 @@ CreateVdfPage::CreateVdfPage(DataHolder *DH, QWidget *parent) :
 
 	errorMessage = new ErrorMessage;
 
+	label_11->hide();
+	label_3->hide();
+	startTimeSpinner->hide();
+	numtsSpinner->hide();
+
     connect(vdfNewVar->buttonBox, SIGNAL(accepted()), this,
             SLOT(addVar()));
 }
 
 // Check all loaded variables
 void CreateVdfPage::on_selectAllButton_clicked() {
-    /*for (int i=0; i<varList.size(); i++) {
+    for (int i=0; i<varList.size(); i++) {
         int row = i/3;
         int col = i%3;
         tableWidget->item(row,col)->setCheckState(Qt::Checked);
     }
     dataHolder->setVDFSelectedVars(dataHolder->getVDFDisplayedVars());
-	dataHolder->vdfSettingsChanged=true;*/
+	dataHolder->vdfSettingsChanged=true;
 	//cout << dataHolder->reader->->GetNumTimeSteps() << endl;
 	cout << dataHolder->getVDFnumTS() << endl;
 }
@@ -170,14 +175,15 @@ bool CreateVdfPage::isComplete() {
 bool CreateVdfPage::validatePage() {
     populateCheckedVars();
 
-	cout << "vdf changed:" << dataHolder->vdfSettingsChanged << endl;
+	//cout << "vdf changed:" << dataHolder->vdfSettingsChanged << endl;
 
     if (isComplete() == true) {
         if (dataHolder->vdfSettingsChanged==true) {
             cout << "creating vdf" << endl;
 			if (dataHolder->VDFCreate()==0) {   
                 dataHolder->vdfSettingsChanged=false;
-                return true;
+                cout << "true1" << endl;
+				return true;
             }   
             else {
                 dataHolder->vdfSettingsChanged=false;
@@ -189,10 +195,13 @@ bool CreateVdfPage::validatePage() {
                 errorMessage->show();
                 dataHolder->clearErrors();
                 MyBase::SetErrCode(0);
-                return false;
+                cout << "false1" << endl;
+				return false;
             }   
         }   
-        else return true;
+		cout << "true2" << endl;
+        return true;
     }   
-    return false;	
+	cout << "false2" << endl;
+    return true;	
 }

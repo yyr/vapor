@@ -45,18 +45,8 @@ SelectFilePage::SelectFilePage(DataHolder *DH, QWidget *parent) :
 
 	QString selectedDirectory;
 
-	//vdfCreatePixmap = QPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/makeVDFsmall.png");
-	//vdfCreatePixmap = QPixmap("../../../Images/makeVDFsmall.png");
 	vdfCreatePixmap = QPixmap(makeVDFsmall);
-	//selectFilePixmap->setPixmap(vdfCreatePixmap);
-    //toVdfPixmap = QPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/2vdfsmall.png");
-	//toVdfPixmap = QPixmap("../../../Images/2VDFsmall.png");
 	toVdfPixmap = QPixmap(_VDFsmall);
-
-	/*vector<string> tempVec;
-	tempVec.push_back("/glade/proj3/DASG/pearse/Vapor2.2updated/targets/Darwin_x86_64/bin");	
-	dataHolder->setVDFfileName("/glade/p/DASG/pearse/Data/test.vdf");
-	dataHolder->setFiles(tempVec);*/
 }
 
 void SelectFilePage::on_browseOutputVdfFile_clicked() {
@@ -180,7 +170,7 @@ void SelectFilePage::initializePage() {
 }
 
 bool SelectFilePage::isComplete() const {
-	if (dataHolder->ncdfFilesChanged==false) return false;
+	//if (dataHolder->ncdfFilesChanged==false) return false;
 
 	//check for correct inputs and try creating DCReader
 	if ((dataHolder->getFileType() == "") &&

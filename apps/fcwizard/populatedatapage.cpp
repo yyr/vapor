@@ -48,7 +48,13 @@ PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
 	successMessage = new VdfBadFile;
 	successMessage->buttonBox->setVisible(false);
     successMessage->label->setText("Success!");
-    successMessage->label_2->setText("The specified data was successfully translated into the VDC format.  Click the 'Continue' button if you'd like to perform further data conversions.");
+    successMessage->label_2->setText("At least one of your variables already has data in the targeted output folder.  Some of this data may be overwritten upon proceeding.  Do you wish to continue?");
+
+	checkOverwrites = new VdfBadFile;
+	checkOverwrites->exitButton->setVisible(false);
+	checkOverwrites->continueButton->setVisible(false);
+	checkOverwrites->label->setText("Warning");
+	checkOverwrites->label_2->setText("Some of the selected variables already have data files in the vdf directory.  These files may be overwritten.  Do you still want to proceed?");
 }
 
 void PopulateDataPage::on_selectAllButton_clicked() {
@@ -69,12 +75,13 @@ void PopulateDataPage::on_clearAllButton_clicked() {
     }
 
     dataHolder->clearPDSelectedVars();
-    cout << dataHolder->getPDSelectedVars().size();
+    //cout << dataHolder->getPDSelectedVars().size();
 }
 
 void PopulateDataPage::setupVars() {
-    varList = dataHolder->getPDDisplayedVars();
-    dataHolder->setPDSelectedVars(varList);
+    if (dataHolder->getOperation()=="2vdf") varList = dataHolder->getPDDisplayedVars();
+	else varList = dataHolder->getVDFSelectedVars();
+	dataHolder->setPDSelectedVars(varList);
     dataHolder->setPDDisplayedVars(varList);
     tableWidget->setRowCount(varList.size()/3+1);
     tableWidget->setColumnCount(3);
@@ -142,51 +149,83 @@ bool PopulateDataPage::isComplete() {
 	return dataHolder->vdcSettingsChanged;
 }
 
-bool PopulateDataPage::validatePage() {
-    int varsSize = dataHolder->getPDSelectedVars().size();
-	int tsSize = atoi(dataHolder->getPDnumTS().c_str());
-	int dataChunks = varsSize * tsSize;
-	progressBar->setRange(0,dataChunks);
+bool PopulateDataPage::checkForOverwrites() {
+	/*QString qbaseDir = QString::fromStdString(dataHolder->getVDFfileName());
+	string baseDir = QFileInfo(qbaseDir).absolutePath().toStdString();
+	for (int var=0; var<dataHolder->getPDSelectedVars().size(); var++){
+		char fileLocation[100];
+		strcpy(fileLocation, baseDir.c_str());
+		strcat(fileLocation,"/");
+		strcat(fileLocation, dataHolder->getPDSelectedVars().at(var).c_str());
+		QDir dir(QString::fromStdString(fileLocation));
+	*/
+	QString qdirString = QString::fromStdString(dataHolder->getVDFfileName());
+	QFileInfo qfileinfo(qdirString);
+	//QFileInfo dataDirInfo(qfileinfo.baseName());
 
-	stringstream ss;
-	char percentComplete[40];
-
-	populateCheckedVars();
-    cout << dataHolder->getErrors().size() << endl;
-    cout << "creating vdc" << endl;
-    
-	//Cycle through variables in each timestep
-	for (int timeStep=0;timeStep<tsSize;timeStep++){
-		for (int var=0;var<varsSize;var++){
-			stringstream ss;
-			ss << timeStep;
-			if (dataHolder->run2VDFincremental(ss.str(),dataHolder->getPDSelectedVars().at(var)) != 0) {
-				cout << "error time" << dataHolder->getErrors().size() << endl;
-        		dataHolder->vdcSettingsChanged=false;
-        		for (int i=0;i<dataHolder->getErrors().size();i++){
-            		errorMessage->errorList->append(dataHolder->getErrors()[i]);
-            		errorMessage->errorList->append("\n");
-        		}   
-        		errorMessage->show();
-        		errorMessage->setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
-        		errorMessage->raise();
-        		errorMessage->activateWindow();
-        		dataHolder->clearErrors();
-		        MyBase::SetErrCode(0);
-				progressBar->reset();
-				return false;
-			}
-			cout << timeStep << " " << var << " " << (timeStep*varsSize)+var << "/" << dataChunks << endl;
-		    sprintf(percentComplete,"%.0f%% Complete",(100*((double)(varsSize*timeStep+var)/(double)dataChunks)));
-			cout << percentComplete << endl;	
-			//ss << 100*((double)(tsSize*var)/(double)dataChunks);
-			//ss << "%";
-			percentCompleteLabel->setText(QString::fromUtf8(percentComplete));//ss.str()));
-			progressBar->setValue((varsSize*timeStep)+var);
-			QApplication::processEvents();
+	char fileLocation[100];
+	strcpy(fileLocation,qfileinfo.path().toStdString().c_str());
+	strcat(fileLocation,"/");
+	strcat(fileLocation,qfileinfo.baseName().toStdString().c_str());
+	strcat(fileLocation,"_data");
+	QString tempString = QString::fromStdString(fileLocation);
+	QFileInfo dataDirInfo(tempString);	
+	if (dataDirInfo.exists()){
+			if (checkOverwrites->exec()==QDialog::Accepted) return true;
+			else return false;
 		}
-	}	
+	return true;
+}
+
+bool PopulateDataPage::validatePage() {
+    populateCheckedVars();
 	
-    successMessage->show();
-	return false;   
+	if (checkForOverwrites()==false) return false;
+	else {
+		
+		int varsSize = dataHolder->getPDSelectedVars().size();
+		int tsSize = atoi(dataHolder->getPDnumTS().c_str());
+		int dataChunks = varsSize * tsSize;
+		progressBar->setRange(0,dataChunks-1);
+	
+		stringstream ss;
+		char percentComplete[20];
+	
+   		//cout << dataHolder->getErrors().size() << endl;
+    
+		//Cycle through variables in each timestep
+		for (int timeStep=0;timeStep<tsSize;timeStep++){
+			for (int var=0;var<varsSize;var++){
+				stringstream ss;
+				ss << timeStep;
+				if (dataHolder->run2VDFincremental(ss.str(),dataHolder->getPDSelectedVars().at(var)) != 0) {
+					//cout << "error time" << dataHolder->getErrors().size() << endl;
+   		     		dataHolder->vdcSettingsChanged=false;
+   		     		for (int i=0;i<dataHolder->getErrors().size();i++){
+   		         		errorMessage->errorList->append(dataHolder->getErrors()[i]);
+       		     		errorMessage->errorList->append("\n");
+        			}   
+        			errorMessage->show();
+        			errorMessage->setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
+        			errorMessage->raise();
+        			errorMessage->activateWindow();
+        			dataHolder->clearErrors();
+		   		    MyBase::SetErrCode(0);
+					progressBar->reset();
+					return false;
+				}
+				//cout << timeStep << " " << var << " " << (timeStep*varsSize)+var << "/" << dataChunks << endl;
+			    sprintf(percentComplete,"%.1f%% Complete",(100*((double)(varsSize*timeStep+var)/(double)(dataChunks-1))));
+				//cout << percentComplete << endl;	
+				percentCompleteLabel->setText(QString::fromUtf8(percentComplete));
+				progressBar->setValue((varsSize*timeStep)+var);
+				QApplication::processEvents();
+			}
+		}	
+		//progressBar->reset();	
+   		successMessage->show();
+	
+		//stay on page if successMessage does not exit(0)
+		return false;   
+	}
 }
