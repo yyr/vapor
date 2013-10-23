@@ -9,7 +9,7 @@
 #include <udunits2.h>
 #endif
 #include <vapor/GetAppPath.h>
-#include <vapor/UDUnits.h>
+#include <vapor/UDUnitsClass.h>
 
 using namespace VAPoR;
 using namespace VetsUtil;

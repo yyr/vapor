@@ -3,8 +3,8 @@
 //
 
 
-#ifndef	_UDUnits_h_
-#define	_UDUnits_h_
+#ifndef	_UDUnitsClass_h_
+#define	_UDUnitsClass_h_
 
 #include <string>
 #include <vector>
@@ -26,7 +26,7 @@ namespace VAPoR {
 //! flag, with a negative value indicating error. Error messages for the 
 //! most recent error can be retrieved with GetErrMsg().
 //!
-class UDUNITS2_API UDUnits {
+class UDUnits {
 public:
  UDUnits();
  ~UDUnits();

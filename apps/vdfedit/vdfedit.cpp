@@ -31,7 +31,7 @@
 #include <vapor/OptionParser.h>
 #include <vapor/MetadataVDC.h>
 #include <vapor/MetadataSpherical.h>
-#include <vapor/UDUnits.h>
+#include <vapor/UDUnitsClass.h>
 #ifdef WIN32
 #include "windows.h"
 #endif

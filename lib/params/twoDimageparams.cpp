@@ -46,7 +46,7 @@
 
 #include <vapor/DataMgr.h>
 #include <vapor/errorcodes.h>
-#include <vapor/UDUnits.h>
+#include <vapor/UDUnitsClass.h>
 #include "sys/stat.h"
 #include "GeoTileEquirectangular.h"
 //tiff stuff:

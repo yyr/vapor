@@ -8,7 +8,7 @@
 #include <cassert>
 #include <stdio.h>
 #include <vapor/DCReaderWRF.h>
-#include <vapor/UDUnits.h>
+#include <vapor/UDUnitsClass.h>
 
 #ifdef _WINDOWS
 #define _USE_MATH_DEFINES
