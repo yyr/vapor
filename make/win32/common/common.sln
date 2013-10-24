@@ -72,7 +72,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ncdfvdfcreate", "..\ncdfvdf
 		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fcwizard", "..\fcwizard\fcwizard.vcxproj", "{A8DC2DCE-32AE-4332-8CF1-EB8489F28964}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vdcwizard", "..\vdcwizard\vdcwizard.vcxproj", "{A8DC2DCE-32AE-4332-8CF1-EB8489F28964}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
