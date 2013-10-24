@@ -16,7 +16,7 @@
 //
 //      Description:    Implements an entity class that holds and shares
 //                      data values that are selected by the user in
-//                      FCWizard's contained pages.
+//                      VDCWizard's contained pages.
 //
 
 #include <stdlib.h>
@@ -321,7 +321,7 @@ int DataHolder::run2VDFincremental(string start, string var) {
     //cout << argc << endl;
     char** args = new char*[ argv.size() + 1 ];
     for(size_t a=0; a<argv.size(); a++) {
-        //cout << argv[a].c_str() << endl;
+        cout << argv[a].c_str() << endl;
         args[a] = strdup(argv[a].c_str());
     }   
 

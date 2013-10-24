@@ -6,7 +6,7 @@
 //                                                                                                                                              *
 //************************************************************************/
 //
-//      File:           fcwizard.cpp
+//      File:           vdcwizard.h
 //
 //      Author:         Scott Pearse
 //                      National Center for Atmospheric Research
@@ -19,32 +19,36 @@
 //                      across all four pages.
 //
 
-#include <QDebug>
-#include <QtGui/QMessageBox>
+#ifndef VDCWIZARD_H
+#define VDCWIZARD_H
 
-#include "fcwizard.h"
+#include <QWizard>
+#include <QDialog>
+#include <QtCore>
+#include <QtGui>
+#include "dataholder.h"
+#include "intropage.h"
+#include "selectfilepage.h"
+#include "createvdfpage.h"
+#include "populatedatapage.h"
 
-using namespace VAPoR;
+class CreateVdfPage;
 
-FCWizard::FCWizard(QWidget *parent) :
-    QWizard(parent)
+class VDCWizard : public QWizard
 {
-    setWizardStyle(QWizard::AeroStyle);
-    //setWizardStyle(QWizard::ClassicStyle);
-    //setWizardStyle(QWizard::ModernStyle);
-    //setWizardStyle(QWizard::MacStyle);
-    resize(QSize(500,450).expandedTo(minimumSizeHint()));
+    Q_OBJECT
+    
+public:
+    VDCWizard(QWidget *parent = 0);
 
-    dataHolder = new DataHolder;
-    introPage = new IntroPage(dataHolder);
-    selectFilePage = new SelectFilePage(dataHolder);
-    createVdfPage = new CreateVdfPage(dataHolder);
-    populateDataPage = new PopulateDataPage(dataHolder);
+    enum { Intro_Page, SelectFile_Page, Create_VdfPage, Populate_DataPage };
 
-    setPage(Intro_Page, introPage);
-    setPage(SelectFile_Page, selectFilePage);
-    setPage(Create_VdfPage, createVdfPage);
-    setPage(Populate_DataPage, populateDataPage);
+    QString operation;
+    DataHolder *dataHolder;
+    IntroPage *introPage;
+    SelectFilePage *selectFilePage;
+    CreateVdfPage *createVdfPage;
+    PopulateDataPage *populateDataPage;
+};
 
-    setOption(QWizard::NoBackButtonOnStartPage,true);
-}
+#endif // VDCWIZARDDIALOG_H
