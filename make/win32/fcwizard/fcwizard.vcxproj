@@ -1144,6 +1144,10 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Uic%27ing ErrMsg.ui...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\fcwizard\ui\ErrMsg.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\ErrMsg.ui -o ..\..\..\apps\fcwizard\ui\ErrMsg.h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Uic%27ing ErrMsg.ui...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\fcwizard\ui\ErrMsg.h;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
