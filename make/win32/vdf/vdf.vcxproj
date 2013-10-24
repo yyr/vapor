@@ -254,7 +254,7 @@
     <ClCompile Include="..\..\..\lib\vdf\SphericalGrid.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\StretchedGrid.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\Transpose.cpp" />
-    <ClCompile Include="..\..\..\lib\vdf\UDUnits.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\UDUnitsClass.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\VDCFactory.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\vdf.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\vdfcreate.cpp" />
@@ -311,7 +311,7 @@
     <ClInclude Include="..\..\..\include\vapor\SphericalGrid.h" />
     <ClInclude Include="..\..\..\include\vapor\StretchedGrid.h" />
     <ClInclude Include="..\..\..\include\vapor\Transpose.h" />
-    <ClInclude Include="..\..\..\include\vapor\UDUnits.h" />
+    <ClInclude Include="..\..\..\include\vapor\UDUnitsClass.h" />
     <ClInclude Include="..\..\..\include\vapor\VDCFactory.h" />
     <ClInclude Include="..\..\..\include\vapor\vdfcreate.h" />
     <ClInclude Include="..\..\..\include\vapor\VDFIOBase.h" />

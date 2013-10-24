@@ -26,7 +26,7 @@ namespace VAPoR {
 //! flag, with a negative value indicating error. Error messages for the 
 //! most recent error can be retrieved with GetErrMsg().
 //!
-class UDUnits {
+class VDF_API UDUnits {
 public:
  UDUnits();
  ~UDUnits();

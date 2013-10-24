@@ -195,13 +195,13 @@
     <ClCompile Include="..\..\..\lib\vdf\DCReaderWRF.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\lib\vdf\UDUnits.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\lib\vdf\vdfcreate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\lib\vdf\Copy2VDF.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lib\vdf\UDUnitsClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -335,9 +335,6 @@
     <ClInclude Include="..\..\..\include\vapor\DataMgrROMS.h">
       <Filter>Source Files\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\vapor\UDUnits.h">
-      <Filter>Source Files\Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\vapor\DCReaderWRF.h">
       <Filter>Source Files\Header Files</Filter>
     </ClInclude>
@@ -345,6 +342,9 @@
       <Filter>Source Files\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\vapor\Copy2VDF.h">
+      <Filter>Source Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\vapor\UDUnitsClass.h">
       <Filter>Source Files\Header Files</Filter>
     </ClInclude>
   </ItemGroup>
