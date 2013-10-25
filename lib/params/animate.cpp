@@ -175,19 +175,21 @@ void animate::priorInterPolationCalcs(const std::vector<Keyframe*>& key_vec){
 				int absFrame = abs(frameCount);
 				float C = (3.-2.*A*N)/(N*N);
 				float D = (A*N-2.)/(N*N*N);
+				float* TT = new float[absFrame+1];
 				for (int k = 0; k<=absFrame; k++){
 					float K = (float)k;
-					T[k] = A*K+C*K*K+D*K*K*K;
-					//Force T to be monotonic, between 0 and 1.  Bound by a monotonic function (circular arc) increasing to 1,
+					TT[k] = A*K+C*K*K+D*K*K*K;
+					//Force TT to be monotonic, between 0 and 1.  Bound by a monotonic function (circular arc) increasing to 1,
 					//In case the cubic approximation fails to be monotonic.
 					float upperBound = sqrt(K/N);
-					if (T[k] < 0.) T[k] = 0.;
-					if (T[k] > upperBound) T[k] = upperBound;
-					if (k>0 && T[k] < T[k-1]) T[k] = T[k-1];
+					if (TT[k] < 0.) TT[k] = 0.;
+					if (TT[k] > upperBound) TT[k] = upperBound;
+					if (k>0 && TT[k] < TT[k-1]) TT[k] = TT[k-1];
 				}
 				
-				interpolate (T,absFrame,i, key_vec, false);
+				interpolate (TT,absFrame,i, key_vec, false);
 				key_vec[i+1]->numFrames = absFrame;
+				delete TT;
 			}
 		}
 		
