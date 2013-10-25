@@ -576,7 +576,11 @@
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\vdcwizard\errormessage.cpp" />
+    <ClCompile Include="..\..\..\apps\vdcwizard\errormessage.cpp">
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\vdcwizard.pdb</ProgramDataBaseFileName>
+    </ClCompile>
     <ClCompile Include="..\..\..\apps\vdcwizard\vdcwizard.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
