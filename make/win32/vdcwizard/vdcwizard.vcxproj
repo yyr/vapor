@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A8DC2DCE-32AE-4332-8CF1-EB8489F28964}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>fcwizard</RootNamespace>
+    <RootNamespace>vdcwizard</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -89,7 +89,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\fcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard\ui;../../../apps//guis/ui\;$(PYTHON32ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/QtOpenGL;$(QTDIR32)/include/;$(QTDIR32)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON32ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/QtOpenGL;$(QTDIR32)/include/;$(QTDIR32)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -105,7 +105,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard;../../../apps/fcwizard/ui\;$(PYTHON32ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/;$(QTDIR32)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard;../../../apps/vdcwizard/ui\;$(PYTHON32ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/;$(QTDIR32)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -123,15 +123,15 @@
       </FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <PreprocessorDefinitions>SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\fcwizard;..\..\..\include;..\..\..\lib\vdf;..\..\..\apps\fcwizard\ui;;$(PYTHON32ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/QtOpenGL;$(QTDIR32)/include/;$(QTDIR32)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\vdcwizard;..\..\..\include;..\..\..\lib\vdf;..\..\..\apps\vdcwizard\ui;;$(PYTHON32ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/QtOpenGL;$(QTDIR32)/include/;$(QTDIR32)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OmitFramePointers>
       </OmitFramePointers>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <AssemblerListingLocation>..\..\..\targets\win32\built\fcwizard\</AssemblerListingLocation>
-      <ObjectFileName>..\..\..\targets\win32\built\fcwizard\</ObjectFileName>
-      <ProgramDataBaseFileName>..\..\..\targets\win32\built\fcwizard\fcwizard.pdb</ProgramDataBaseFileName>
+      <AssemblerListingLocation>..\..\..\targets\win32\built\vdcwizard\</AssemblerListingLocation>
+      <ObjectFileName>..\..\..\targets\win32\built\vdcwizard\</ObjectFileName>
+      <ProgramDataBaseFileName>..\..\..\targets\win32\built\vdcwizard\vdcwizard.pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -161,7 +161,7 @@
       </FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <PreprocessorDefinitions>SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>c:\vaporwin64deps\vapordlls;$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\fcwizard;..\..\..\include\vapor;..\..\..\lib\vdf;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>c:\vaporwin64deps\vapordlls;$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\vdcwizard;..\..\..\include\vapor;..\..\..\lib\vdf;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OmitFramePointers>
       </OmitFramePointers>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -169,7 +169,7 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AssemblerListingLocation>..\..\..\targets\win64\built\\</AssemblerListingLocation>
       <ObjectFileName>..\..\..\targets\win64\built\\</ObjectFileName>
-      <ProgramDataBaseFileName>..\..\..\targets\win64\built\\fcwizard.pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>..\..\..\targets\win64\built\\vdcwizard.pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -191,232 +191,282 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\..\apps\fcwizard\createvdfaddnewvar.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\fcwizard\createvdfaddnewvar.h -o ..\..\..\apps\moc\moc_createvdfaddnewvar.h</Command>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\createvdfaddnewvar.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\createvdfaddnewvar.h -o ..\..\..\apps\vdcwizard\moc\moc_createvdfaddnewvar.cpp</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing createvdfaddnewvar.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\moc\moc_createvdfaddnewvar.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\moc\moc_createvdfaddnewvar.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\createvdfaddnewvar.h -o ..\..\..\apps\vdcwizard\moc\moc_createvdfaddnewvar.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing createvdfaddnewvar.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_createvdfaddnewvar.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\fcwizard\createvdfadvanced.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\fcwizard\createvdfadvanced.h -o ..\..\..\apps\\moc\moc_createvdfadvanced.cpp</Command>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\createvdfadvanced.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\createvdfadvanced.h -o ..\..\..\apps\vdcwizard\moc\moc_createvdfadvanced.cpp</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing createvdfadvanced.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\\moc\moc_createvdfadvanced.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\moc\moc_createvdfadvanced.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\createvdfadvanced.h -o ..\..\..\apps\vdcwizard\moc\moc_createvdfadvanced.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing createvdfadvanced.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_createvdfadvanced.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\fcwizard\createvdfcomment.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\fcwizard\createvdfcomment.h -o ..\..\..\apps\\moc\moc_createvdfcomment.cpp</Command>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\createvdfcomment.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\createvdfcomment.h -o ..\..\..\apps\vdcwizard\moc\moc_createvdfcomment.cpp</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing createvdfcomment.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\\moc\moc_createvdfcomment.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\moc\moc_createvdfcomment.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\createvdfcomment.h -o ..\..\..\apps\vdcwizard\moc\moc_createvdfcomment.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing createvdfcomment.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_createvdfcomment.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\fcwizard\createvdfpage.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\fcwizard\createvdfpage.h -o ..\..\..\apps\moc\moc_createvdfpage.cpp</Command>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\createvdfpage.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\createvdfpage.h -o ..\..\..\apps\vdcwizard\moc\moc_createvdfpage.cpp</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing createvdfpage.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\\moc\moc_createvdfpage.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\moc\moc_createvdfpage.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\createvdfpage.h -o ..\..\..\apps\vdcwizard\moc\moc_createvdfpage.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing createvdfpage.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_createvdfpage.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\fcwizard\dataholder.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\fcwizard\dataholder.h -o ..\..\..\apps\\moc\moc_dataholder.cpp</Command>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\dataholder.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\dataholder.h -o ..\..\..\apps\vdcwizard\moc\moc_dataholder.cpp</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing dataholder.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\\moc\moc_dataholder.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\moc\moc_dataholder.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\dataholder.h -o ..\..\..\apps\vdcwizard\moc\moc_dataholder.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing dataholder.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_dataholder.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\fcwizard\fcwizard.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\fcwizard\fcwizard.h -o ..\..\..\apps\\moc\moc_fcwizard.cpp</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing fcwizard.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\\moc\moc_fcwizard.cpp;%(Outputs)</Outputs>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\vdcwizard.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\vdcwizard.h -o ..\..\..\apps\vdcwizard\moc\moc_vdcwizard.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing vdcwizard.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\moc\moc_vdcwizard.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\vdcwizard.h -o ..\..\..\apps\vdcwizard\moc\moc_vdcwizard.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing vdcwizard.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_vdcwizard.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\fcwizard\intropage.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\fcwizard\intropage.h -o ..\..\..\apps\\moc\moc_intropage.cpp</Command>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\intropage.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\intropage.h -o ..\..\..\apps\vdcwizard\moc\moc_intropage.cpp</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing intropage.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\\moc\moc_intropage.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\moc\moc_intropage.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\intropage.h -o ..\..\..\apps\vdcwizard\moc\moc_intropage.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing intropage.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_intropage.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\fcwizard\popdataadvanced.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\fcwizard\popdataadvanced.h -o ..\..\..\apps\\moc\moc_popdataadvanced.cpp</Command>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\popdataadvanced.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\popdataadvanced.h -o ..\..\..\apps\vdcwizard\moc\moc_popdataadvanced.cpp</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing popdataadvanced.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\\moc\moc_popdataadvanced.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\moc\moc_popdataadvanced.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\popdataadvanced.h -o ..\..\..\apps\vdcwizard\moc\moc_popdataadvanced.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing popdataadvanced.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_popdataadvanced.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\fcwizard\populatedatapage.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\fcwizard\populatedatapage.h -o ..\..\..\apps\\moc\moc_populatedatapage.cpp</Command>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\populatedatapage.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\populatedatapage.h -o ..\..\..\apps\vdcwizard\moc\moc_populatedatapage.cpp</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing populatedatapage.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\\moc\moc_populatedatapage.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\moc\moc_populatedatapage.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\populatedatapage.h -o ..\..\..\apps\vdcwizard\moc\moc_populatedatapage.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing populatedatapage.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_populatedatapage.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\fcwizard\selectfilepage.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\fcwizard\selectfilepage.h -o ..\..\..\apps\\moc\moc_selectfilepage.cpp</Command>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\selectfilepage.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\selectfilepage.h -o ..\..\..\apps\vdcwizard\moc\moc_selectfilepage.cpp</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing selectfilepage.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\\moc\moc_selectfilepage.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\moc\moc_selectfilepage.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\selectfilepage.h -o ..\..\..\apps\vdcwizard\moc\moc_selectfilepage.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing selectfilepage.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_selectfilepage.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\fcwizard\errormessage.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\fcwizard\errormessage.h -o ..\..\..\apps\moc\moc_errormessage.cpp</Command>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\errormessage.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\errormessage.h -o ..\..\..\apps\vdcwizard\moc\moc_errormessage.cpp</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing errormessage.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\\moc\moc_errormessage.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\moc\moc_errormessage.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\errormessage.h -o ..\..\..\apps\vdcwizard\moc\moc_errormessage.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing errormessage.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_errormessage.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
-    <ClInclude Include="..\..\..\apps\fcwizard\ui\ErrMsg.h" />
-    <ClInclude Include="..\..\..\apps\fcwizard\ui\Page1.h" />
-    <ClInclude Include="..\..\..\apps\fcwizard\ui\Page2.h" />
-    <ClInclude Include="..\..\..\apps\fcwizard\ui\Page2badfile.h" />
-    <ClInclude Include="..\..\..\apps\fcwizard\ui\Page3.h" />
-    <ClInclude Include="..\..\..\apps\fcwizard\ui\Page3addnewvar.h" />
-    <ClInclude Include="..\..\..\apps\fcwizard\ui\Page3adv.h" />
-    <ClInclude Include="..\..\..\apps\fcwizard\ui\Page3cmt.h" />
-    <ClInclude Include="..\..\..\apps\fcwizard\ui\Page4.h" />
-    <ClInclude Include="..\..\..\apps\fcwizard\ui\Page4adv.h" />
-    <CustomBuild Include="..\..\..\apps\fcwizard\vdfbadfile.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\fcwizard\vdfbadfile.h -o ..\..\..\apps\\moc\moc_vdfbadfile.cpp</Command>
+    <ClInclude Include="..\..\..\apps\vdcwizard\ui\ErrMsg.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\ErrMSg.h -o ..\..\..\apps\\moc\moc_ErrMsg.cpp</Command>
+    </ClInclude>
+    <ClInclude Include="..\..\..\apps\vdcwizard\ui\Page1.h" />
+    <ClInclude Include="..\..\..\apps\vdcwizard\ui\Page2.h" />
+    <ClInclude Include="..\..\..\apps\vdcwizard\ui\Page2badfile.h" />
+    <ClInclude Include="..\..\..\apps\vdcwizard\ui\Page3.h" />
+    <ClInclude Include="..\..\..\apps\vdcwizard\ui\Page3addnewvar.h" />
+    <ClInclude Include="..\..\..\apps\vdcwizard\ui\Page3adv.h" />
+    <ClInclude Include="..\..\..\apps\vdcwizard\ui\Page3cmt.h" />
+    <ClInclude Include="..\..\..\apps\vdcwizard\ui\Page4.h" />
+    <ClInclude Include="..\..\..\apps\vdcwizard\ui\Page4adv.h" />
+    <CustomBuild Include="..\..\..\apps\vdcwizard\vdfbadfile.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\vdfbadfile.h -o ..\..\..\apps\vdcwizard\moc\moc_vdfbadfile.cpp</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing vdfbadfile.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\\moc\moc_vdfbadfile.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\moc\moc_vdfbadfile.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\vdfbadfile.h -o ..\..\..\apps\vdcwizard\moc\moc_vdfbadfile.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing vdfbadfile.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_vdfbadfile.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\..\apps\fcwizard\ui\Page1.ui">
+    <CustomBuild Include="..\..\..\apps\vdcwizard\ui\Page1.ui">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page1.ui -o ..\..\..\apps\fcwizard\ui\Page1.h</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page1.ui -o ..\..\..\apps\fcwizard\ui\Page1.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page1.ui -o ..\..\..\apps\vdcwizard\ui\Page1.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page1.ui -o ..\..\..\apps\vdcwizard\ui\Page1.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Uic%27ing Page1.ui...</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Uic%27ing Page1.ui...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\fcwizard\ui\Page1.h;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\fcwizard\ui\Page1.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vdcwizard\ui\Page1.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\ui\Page1.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page1.ui -o ..\..\..\apps\fcwizard\ui\Page1.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page1.ui -o ..\..\..\apps\vdcwizard\ui\Page1.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Uic%27ing Page1.ui...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\fcwizard\ui\Page1.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vdcwizard\ui\Page1.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page1.ui -o ..\..\..\apps\fcwizard\ui\Page1.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page1.ui -o ..\..\..\apps\vdcwizard\ui\Page1.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Uic%27ing Page1.ui...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\fcwizard\ui\Page1.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\ui\Page1.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\fcwizard\ui\Page2.ui">
+    <CustomBuild Include="..\..\..\apps\vdcwizard\ui\Page2.ui">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page2.ui -o ..\..\..\apps\fcwizard\ui\Page2.h</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page2.ui -o ..\..\..\apps\fcwizard\ui\Page2.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page2.ui -o ..\..\..\apps\vdcwizard\ui\Page2.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page2.ui -o ..\..\..\apps\vdcwizard\ui\Page2.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Uic%27ing Page2.ui...</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Uic%27ing Page2.ui...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\fcwizard\ui\Page2.h;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\fcwizard\ui\Page2.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vdcwizard\ui\Page2.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\ui\Page2.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page2.ui -o ..\..\..\apps\fcwizard\ui\Page2.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page2.ui -o ..\..\..\apps\vdcwizard\ui\Page2.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Uic%27ing Page2.ui...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\fcwizard\ui\Page2.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\ui\Page2.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\fcwizard\ui\Page2badfile.ui">
+    <CustomBuild Include="..\..\..\apps\vdcwizard\ui\Page2badfile.ui">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page2badfile.ui -o ..\..\..\apps\fcwizard\ui\Page2badfile.h</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page2badfile.ui -o ..\..\..\apps\fcwizard\ui\Page2badfile.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page2badfile.ui -o ..\..\..\apps\vdcwizard\ui\Page2badfile.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page2badfile.ui -o ..\..\..\apps\vdcwizard\ui\Page2badfile.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Uic%27ing Page2badfile.ui...</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Uic%27ing Page2badfile.ui...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\fcwizard\ui\Page2badfile.h;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\fcwizard\ui\Page2badfile.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vdcwizard\ui\Page2badfile.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\ui\Page2badfile.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page2badfile.ui -o ..\..\..\apps\fcwizard\ui\Page2badfile.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page2badfile.ui -o ..\..\..\apps\vdcwizard\ui\Page2badfile.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Uic%27ing Page2badfile.ui...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\fcwizard\ui\Page2badfile.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\ui\Page2badfile.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\fcwizard\ui\Page3.ui">
+    <CustomBuild Include="..\..\..\apps\vdcwizard\ui\Page3.ui">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page3.ui -o ..\..\..\apps\fcwizard\ui\Page3.h</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page3.ui -o ..\..\..\apps\fcwizard\ui\Page3.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page3.ui -o ..\..\..\apps\vdcwizard\ui\Page3.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page3.ui -o ..\..\..\apps\vdcwizard\ui\Page3.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Uic%27ing Page3.ui...</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Uic%27ing Page3.ui...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\fcwizard\ui\Page3.h;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\fcwizard\ui\Page3.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vdcwizard\ui\Page3.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\ui\Page3.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page3.ui -o ..\..\..\apps\fcwizard\ui\Page3.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page3.ui -o ..\..\..\apps\vdcwizard\ui\Page3.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Uic%27ing Page3.ui...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\fcwizard\ui\Page3.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\ui\Page3.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\fcwizard\ui\Page3addnewvar.ui">
+    <CustomBuild Include="..\..\..\apps\vdcwizard\ui\Page3addnewvar.ui">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page3addnewvar.ui -o ..\..\..\apps\fcwizard\ui\Page3addnewvar.h</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page3addnewvar.ui -o ..\..\..\apps\fcwizard\ui\Page3addnewvar.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page3addnewvar.ui -o ..\..\..\apps\vdcwizard\ui\Page3addnewvar.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page3addnewvar.ui -o ..\..\..\apps\vdcwizard\ui\Page3addnewvar.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Uic%27ing Page3addnewvar.ui...</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Uic%27ing Page3addnewvar.ui...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\fcwizard\ui\Page3addnewvar.h;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\fcwizard\ui\Page3addnewvar.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vdcwizard\ui\Page3addnewvar.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\ui\Page3addnewvar.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page3addnewvar.ui -o ..\..\..\apps\fcwizard\ui\Page3addnewvar.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page3addnewvar.ui -o ..\..\..\apps\vdcwizard\ui\Page3addnewvar.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Uic%27ing Page3addnewvar.ui...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\fcwizard\ui\Page3addnewvar.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\ui\Page3addnewvar.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\fcwizard\ui\Page3adv.ui">
+    <CustomBuild Include="..\..\..\apps\vdcwizard\ui\Page3adv.ui">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page3adv.ui -o ..\..\..\apps\fcwizard\ui\Page3adv.h</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page3adv.ui -o ..\..\..\apps\fcwizard\ui\Page3adv.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page3adv.ui -o ..\..\..\apps\vdcwizard\ui\Page3adv.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page3adv.ui -o ..\..\..\apps\vdcwizard\ui\Page3adv.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Uic%27ing Page3adv.ui...</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Uic%27ing Page3adv.ui...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\fcwizard\ui\Page3adv.h;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\fcwizard\ui\Page3adv.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vdcwizard\ui\Page3adv.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\ui\Page3adv.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page3adv.ui -o ..\..\..\apps\fcwizard\ui\Page3adv.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page3adv.ui -o ..\..\..\apps\vdcwizard\ui\Page3adv.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Uic%27ing Page3adv.ui...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\fcwizard\ui\Page3adv.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\ui\Page3adv.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\fcwizard\ui\Page3cmt.ui">
+    <CustomBuild Include="..\..\..\apps\vdcwizard\ui\Page3cmt.ui">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page3cmt.ui -o ..\..\..\apps\fcwizard\ui\Page3cmt.h</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page3cmt.ui -o ..\..\..\apps\fcwizard\ui\Page3cmt.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page3cmt.ui -o ..\..\..\apps\vdcwizard\ui\Page3cmt.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page3cmt.ui -o ..\..\..\apps\vdcwizard\ui\Page3cmt.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Uic%27ing Page3cmt.ui...</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Uic%27ing Page3cmt.ui...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\fcwizard\ui\Page3cmt.h;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\fcwizard\ui\Page3cmt.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vdcwizard\ui\Page3cmt.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\ui\Page3cmt.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page3cmt.ui -o ..\..\..\apps\fcwizard\ui\Page3cmt.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page3cmt.ui -o ..\..\..\apps\vdcwizard\ui\Page3cmt.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Uic%27ing Page3cmt.ui...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\fcwizard\ui\Page3cmt.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\ui\Page3cmt.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\fcwizard\ui\Page4.ui">
+    <CustomBuild Include="..\..\..\apps\vdcwizard\ui\Page4.ui">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page4.ui -o ..\..\..\apps\fcwizard\ui\Page4.h</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page4.ui -o ..\..\..\apps\fcwizard\ui\Page4.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page4.ui -o ..\..\..\apps\vdcwizard\ui\Page4.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page4.ui -o ..\..\..\apps\vdcwizard\ui\Page4.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Uic%27ing Page4.ui...</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Uic%27ing Page4.ui...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\fcwizard\ui\Page4.h;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\fcwizard\ui\Page4.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vdcwizard\ui\Page4.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\ui\Page4.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page4.ui -o ..\..\..\apps\fcwizard\ui\Page4.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page4.ui -o ..\..\..\apps\vdcwizard\ui\Page4.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Uic%27ing Page4.ui...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\fcwizard\ui\Page4.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\ui\Page4.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\fcwizard\ui\Page4adv.ui">
+    <CustomBuild Include="..\..\..\apps\vdcwizard\ui\Page4adv.ui">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page4adv.ui -o ..\..\..\apps\fcwizard\ui\Page4adv.h</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page4adv.ui -o ..\..\..\apps\fcwizard\ui\Page4adv.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page4adv.ui -o ..\..\..\apps\vdcwizard\ui\Page4adv.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page4adv.ui -o ..\..\..\apps\vdcwizard\ui\Page4adv.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Uic%27ing Page4adv.ui...</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Uic%27ing Page4adv.ui...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\fcwizard\ui\Page4adv.h;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\fcwizard\ui\Page4adv.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vdcwizard\ui\Page4adv.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\ui\Page4adv.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\Page4adv.ui -o ..\..\..\apps\fcwizard\ui\Page4adv.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\Page4adv.ui -o ..\..\..\apps\vdcwizard\ui\Page4adv.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Uic%27ing Page4adv.ui...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\fcwizard\ui\Page4adv.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\ui\Page4adv.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\apps\fcwizard\createvdfaddnewvar.cpp">
+    <ClCompile Include="..\..\..\apps\vdcwizard\createvdfaddnewvar.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
       <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IntrinsicFunctions>
@@ -427,8 +477,8 @@
       </OmitFramePointers>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BufferSecurityCheck Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</BufferSecurityCheck>
@@ -441,14 +491,14 @@
       <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RuntimeTypeInfo>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\fcwizard\createvdfadvanced.cpp">
+    <ClCompile Include="..\..\..\apps\vdcwizard\createvdfadvanced.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
       <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IntrinsicFunctions>
@@ -459,8 +509,8 @@
       </OmitFramePointers>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BufferSecurityCheck Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</BufferSecurityCheck>
@@ -473,14 +523,14 @@
       <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RuntimeTypeInfo>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\fcwizard\createvdfcomment.cpp">
+    <ClCompile Include="..\..\..\apps\vdcwizard\createvdfcomment.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
       <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IntrinsicFunctions>
@@ -491,8 +541,8 @@
       </OmitFramePointers>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BufferSecurityCheck Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</BufferSecurityCheck>
@@ -505,14 +555,14 @@
       <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RuntimeTypeInfo>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\fcwizard\createvdfpage.cpp">
+    <ClCompile Include="..\..\..\apps\vdcwizard\createvdfpage.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
       <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IntrinsicFunctions>
@@ -523,8 +573,8 @@
       </OmitFramePointers>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BufferSecurityCheck Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</BufferSecurityCheck>
@@ -537,14 +587,14 @@
       <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RuntimeTypeInfo>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\fcwizard\dataholder.cpp">
+    <ClCompile Include="..\..\..\apps\vdcwizard\dataholder.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
       <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IntrinsicFunctions>
@@ -555,8 +605,8 @@
       </OmitFramePointers>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\lib\vdf;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\lib\vdf;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BufferSecurityCheck Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</BufferSecurityCheck>
@@ -569,15 +619,19 @@
       <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RuntimeTypeInfo>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\fcwizard\errormessage.cpp" />
-    <ClCompile Include="..\..\..\apps\fcwizard\fcwizard.cpp">
+    <ClCompile Include="..\..\..\apps\vdcwizard\errormessage.cpp">
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\vdcwizard.pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\vdcwizard.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
       <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IntrinsicFunctions>
@@ -588,8 +642,8 @@
       </OmitFramePointers>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BufferSecurityCheck Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</BufferSecurityCheck>
@@ -602,14 +656,14 @@
       <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RuntimeTypeInfo>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\fcwizard\intropage.cpp">
+    <ClCompile Include="..\..\..\apps\vdcwizard\intropage.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
       <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IntrinsicFunctions>
@@ -620,8 +674,8 @@
       </OmitFramePointers>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BufferSecurityCheck Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</BufferSecurityCheck>
@@ -634,14 +688,14 @@
       <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RuntimeTypeInfo>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\fcwizard\main.cpp">
+    <ClCompile Include="..\..\..\apps\vdcwizard\main.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
       <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IntrinsicFunctions>
@@ -652,8 +706,8 @@
       </OmitFramePointers>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BufferSecurityCheck Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</BufferSecurityCheck>
@@ -666,16 +720,16 @@
       <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RuntimeTypeInfo>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\fcwizard\moc\moc_createvdfaddnewvar.cpp">
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\fcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\fcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_createvdfaddnewvar.cpp">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
       <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IntrinsicFunctions>
@@ -705,9 +759,9 @@
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\\vc70.pdb</ProgramDataBaseFileName>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\\vc70.pdb</ProgramDataBaseFileName>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\fcwizard\moc\moc_createvdfadvanced.cpp">
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\fcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\fcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_createvdfadvanced.cpp">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
       <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IntrinsicFunctions>
@@ -737,9 +791,9 @@
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\\vc70.pdb</ProgramDataBaseFileName>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\\vc70.pdb</ProgramDataBaseFileName>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\fcwizard\moc\moc_createvdfcomment.cpp">
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\fcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\fcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_createvdfcomment.cpp">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
       <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IntrinsicFunctions>
@@ -769,9 +823,9 @@
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\\vc70.pdb</ProgramDataBaseFileName>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\\vc70.pdb</ProgramDataBaseFileName>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\fcwizard\moc\moc_createvdfpage.cpp">
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\fcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\fcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_createvdfpage.cpp">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
       <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IntrinsicFunctions>
@@ -801,10 +855,10 @@
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\\vc70.pdb</ProgramDataBaseFileName>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\\vc70.pdb</ProgramDataBaseFileName>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\fcwizard\moc\moc_errormessage.cpp" />
-    <ClCompile Include="..\..\..\apps\fcwizard\moc\moc_fcwizard.cpp">
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\fcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\fcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_errormessage.cpp" />
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_vdcwizard.cpp">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
       <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IntrinsicFunctions>
@@ -834,9 +888,9 @@
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\\vc70.pdb</ProgramDataBaseFileName>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\\vc70.pdb</ProgramDataBaseFileName>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\fcwizard\moc\moc_intropage.cpp">
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\fcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\fcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_intropage.cpp">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
       <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IntrinsicFunctions>
@@ -866,9 +920,9 @@
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\\vc70.pdb</ProgramDataBaseFileName>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\\vc70.pdb</ProgramDataBaseFileName>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\fcwizard\moc\moc_popdataadvanced.cpp">
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\fcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\fcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_popdataadvanced.cpp">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
       <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IntrinsicFunctions>
@@ -898,9 +952,9 @@
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\\vc70.pdb</ProgramDataBaseFileName>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\\vc70.pdb</ProgramDataBaseFileName>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\fcwizard\moc\moc_populatedatapage.cpp">
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\fcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\fcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_populatedatapage.cpp">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
       <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IntrinsicFunctions>
@@ -930,9 +984,9 @@
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\\vc70.pdb</ProgramDataBaseFileName>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\\vc70.pdb</ProgramDataBaseFileName>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\fcwizard\moc\moc_selectfilepage.cpp">
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\fcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\fcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_selectfilepage.cpp">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
       <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IntrinsicFunctions>
@@ -962,9 +1016,9 @@
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\\vc70.pdb</ProgramDataBaseFileName>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\\vc70.pdb</ProgramDataBaseFileName>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\fcwizard\moc\moc_vdfbadfile.cpp">
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\fcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\fcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_vdfbadfile.cpp">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
       <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IntrinsicFunctions>
@@ -994,7 +1048,7 @@
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\\vc70.pdb</ProgramDataBaseFileName>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\\vc70.pdb</ProgramDataBaseFileName>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\fcwizard\popdataadvanced.cpp">
+    <ClCompile Include="..\..\..\apps\vdcwizard\popdataadvanced.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
       <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IntrinsicFunctions>
@@ -1005,8 +1059,8 @@
       </OmitFramePointers>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BufferSecurityCheck Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</BufferSecurityCheck>
@@ -1019,14 +1073,14 @@
       <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RuntimeTypeInfo>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\fcwizard\populatedatapage.cpp">
+    <ClCompile Include="..\..\..\apps\vdcwizard\populatedatapage.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
       <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IntrinsicFunctions>
@@ -1037,8 +1091,8 @@
       </OmitFramePointers>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BufferSecurityCheck Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</BufferSecurityCheck>
@@ -1051,14 +1105,14 @@
       <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RuntimeTypeInfo>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\fcwizard\selectfilepage.cpp">
+    <ClCompile Include="..\..\..\apps\vdcwizard\selectfilepage.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
       <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IntrinsicFunctions>
@@ -1069,8 +1123,8 @@
       </OmitFramePointers>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\fcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\fcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BufferSecurityCheck Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</BufferSecurityCheck>
@@ -1083,14 +1137,14 @@
       <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RuntimeTypeInfo>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\fcwizard\vdfbadfile.cpp">
+    <ClCompile Include="..\..\..\apps\vdcwizard\vdfbadfile.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
       <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IntrinsicFunctions>
@@ -1101,8 +1155,8 @@
       </OmitFramePointers>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\fcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\fcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BufferSecurityCheck Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</BufferSecurityCheck>
@@ -1115,12 +1169,12 @@
       <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RuntimeTypeInfo>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</AssemblerListingLocation>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\</ObjectFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
-      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\fcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <AssemblerListingLocation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</AssemblerListingLocation>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\</ObjectFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\targets\win64\built\vdcwizard\fcwiz.pdb</ProgramDataBaseFileName>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1138,15 +1192,15 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\..\apps\fcwizard\ui\ErrMsg.ui">
+    <CustomBuild Include="..\..\..\apps\vdcwizard\ui\ErrMsg.ui">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\ErrMsg.ui -o ..\..\..\apps\fcwizard\ui\ErrMsg.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\ErrMsg.ui -o ..\..\..\apps\vdcwizard\ui\ErrMsg.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Uic%27ing ErrMsg.ui...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\fcwizard\ui\ErrMsg.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\ui\ErrMsg.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\fcwizard\ui\ErrMsg.ui -o ..\..\..\apps\fcwizard\ui\ErrMsg.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\ErrMsg.ui -o ..\..\..\apps\vdcwizard\ui\ErrMsg.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Uic%27ing ErrMsg.ui...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\fcwizard\ui\ErrMsg.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\ui\ErrMsg.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>

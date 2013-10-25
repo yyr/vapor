@@ -16,7 +16,7 @@
 //
 //      Description:    Implements an entity class that holds and shares
 //                      data values that are selected by the user in
-//                      FCWizard's contained pages.
+//                      VDCWizard's contained pages.
 //
 
 #ifndef DATAHOLDER_H

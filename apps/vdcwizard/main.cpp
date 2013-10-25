@@ -14,12 +14,13 @@
 //
 //      Date:           August 2013
 //
-//      Description:    main function for FCWizard, which intializes the
-//                      FCWizard class and executes it.
+//      Description:    main function for VDCWizard, which intializes the
+//                      VDCWizard class and executes it.
 //
 //
 
-#include "fcwizard.h"
+//#include "fcwizard.h"
+#include "vdcwizard.h"
 #include <QApplication>
 
 int main(int argc, char *argv[])
@@ -30,7 +31,7 @@ int main(int argc, char *argv[])
 	myFont.setPointSize(13);
 	a.setFont(myFont);
 
-    FCWizard w;
+    VDCWizard w;
     w.show();
 
     return a.exec();

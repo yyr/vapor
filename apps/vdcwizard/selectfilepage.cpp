@@ -19,7 +19,8 @@
 //                      which NetCDF files to reference, and what their
 //                      NetCDF data type is (mom, pop, or roms)
 
-#include "fcwizard.h"
+//#include "vdcwizard.h"
+#include "vdcwizard.h"
 #include "selectfilepage.h"
 #include "ui/Page2.h"
 #include "intropage.h"
@@ -40,9 +41,11 @@ SelectFilePage::SelectFilePage(DataHolder *DH, QWidget *parent) :
     momPopOrRoms = "mom";
     dataHolder = DH;
     vdfBadFile = new VdfBadFile;
+    vdfBadFile->exitButton->hide();
+    vdfBadFile->continueButton->hide();
     
 	errorMessage = new ErrorMessage;
-
+	
 	QString selectedDirectory;
 
 	vdfCreatePixmap = QPixmap(makeVDFsmall);
@@ -189,8 +192,8 @@ int SelectFilePage::nextId() const {
 		if (dataHolder->ncdfFilesChanged==true) {
 			if (dataHolder->createReader()==0) {
 				dataHolder->ncdfFilesChanged=false;
-				if (dataHolder->getOperation() == "vdfcreate") return FCWizard::Create_VdfPage;
-	    	    else return FCWizard::Populate_DataPage;
+				if (dataHolder->getOperation() == "vdfcreate") return VDCWizard::Create_VdfPage;
+	    	    else return VDCWizard::Populate_DataPage;
 			}	
         	else {
 				dataHolder->ncdfFilesChanged=false;
@@ -202,15 +205,15 @@ int SelectFilePage::nextId() const {
     	        errorMessage->show();
             	dataHolder->clearErrors();
 				MyBase::SetErrCode(0);
-    	        return FCWizard::SelectFile_Page;
+    	        return VDCWizard::SelectFile_Page;
 	        }
 		}
 		//else, we have already created the DCReader and there are no current modifications
 		//to it, so procede with the DCReader that was generated previously
 		else {
-        	if (dataHolder->getOperation() == "vdfcreate") return FCWizard::Create_VdfPage;
-        	else return FCWizard::Populate_DataPage;
+        	if (dataHolder->getOperation() == "vdfcreate") return VDCWizard::Create_VdfPage;
+        	else return VDCWizard::Populate_DataPage;
 		}
 	}
-	return FCWizard::SelectFile_Page;
+	return VDCWizard::SelectFile_Page;
 }

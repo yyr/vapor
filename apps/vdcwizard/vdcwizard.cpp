@@ -6,7 +6,7 @@
 //                                                                                                                                              *
 //************************************************************************/
 //
-//      File:           fcwizard.h
+//      File:           vdcwizard.cpp
 //
 //      Author:         Scott Pearse
 //                      National Center for Atmospheric Research
@@ -19,34 +19,32 @@
 //                      across all four pages.
 //
 
-#ifndef FCWIZARD_H
-#define FCWIZARD_H
+#include <QDebug>
+#include <QtGui/QMessageBox>
 
-#include <QWizard>
-#include <QDialog>
-#include <QtCore>
-#include <QtGui>
-#include "dataholder.h"
-#include "intropage.h"
-#include "selectfilepage.h"
-#include "createvdfpage.h"
-#include "populatedatapage.h"
+#include "vdcwizard.h"
 
-class FCWizard : public QWizard
+using namespace VAPoR;
+
+VDCWizard::VDCWizard(QWidget *parent) :
+    QWizard(parent)
 {
-    Q_OBJECT
-    
-public:
-    FCWizard(QWidget *parent = 0);
+    setWizardStyle(QWizard::AeroStyle);
+    //setWizardStyle(QWizard::ClassicStyle);
+    //setWizardStyle(QWizard::ModernStyle);
+    //setWizardStyle(QWizard::MacStyle);
+    resize(QSize(500,450).expandedTo(minimumSizeHint()));
 
-    enum { Intro_Page, SelectFile_Page, Create_VdfPage, Populate_DataPage };
+    dataHolder = new DataHolder;
+    introPage = new IntroPage(dataHolder);
+    selectFilePage = new SelectFilePage(dataHolder);
+    createVdfPage = new CreateVdfPage(dataHolder);
+    populateDataPage = new PopulateDataPage(dataHolder);
 
-    QString operation;
-    DataHolder *dataHolder;
-    IntroPage *introPage;
-    SelectFilePage *selectFilePage;
-    CreateVdfPage *createVdfPage;
-    PopulateDataPage *populateDataPage;
-};
+    setPage(Intro_Page, introPage);
+    setPage(SelectFile_Page, selectFilePage);
+    setPage(Create_VdfPage, createVdfPage);
+    setPage(Populate_DataPage, populateDataPage);
 
-#endif // FCWIZARDDIALOG_H
+    setOption(QWizard::NoBackButtonOnStartPage,true);
+}

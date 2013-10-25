@@ -15,7 +15,7 @@
 //      Date:           August 2013
 //
 //      Description:    Implements the vdf creation page for the
-//                      File Converter Wizard (FCWizard)
+//                      File Converter Wizard (VDCWizard)
 //
 //
 
@@ -25,7 +25,7 @@
 #include <QWizardPage>
 #include <QtGui/QtGui>
 #include <QTableWidgetItem>
-//#include "fcwizard.h"
+#include "vdcwizard.h"
 #include "dataholder.h"
 #include "createvdfadvanced.h"
 #include "createvdfcomment.h"
