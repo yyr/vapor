@@ -11,7 +11,7 @@ SUBDIRS += flashamr2vdf
 endif
 
 ifeq ($(BUILD_GUI), 1)
-SUBDIRS += vaporgui asciitf2vtf tiff2geotiff
+SUBDIRS += vaporgui asciitf2vtf tiff2geotiff vdcwizard
 endif
 
 include ${TOP}/make/config/base.mk
