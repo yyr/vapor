@@ -51,8 +51,6 @@ public:
 	virtual void updateClut(RenderParams* p){
 		VizWinMgr::getInstance()->setFlowGraphicsDirty((FlowParams*)p);
 	}
-	// Flow panel doesn't have histograms.
-	virtual Histo* getHistogram(RenderParams*, bool, bool) {return 0;}
 	
 	//Connect signals and slots from tab
 	virtual void hookUpTab();
@@ -64,10 +62,12 @@ public:
 	virtual void refreshTab();
 	virtual QSize sizeHint() const;
 	
-	void sessionLoadTF(QString*) {assert(0);}  
+	void sessionLoadTF(QString*);
 		
 	//There are multiple notions of "dirty" here!
 	virtual void setEditorDirty(RenderParams* p = 0);
+	
+	virtual void setDatarangeDirty(RenderParams* fp) {VizWinMgr::getInstance()->setFlowGraphicsDirty((FlowParams*)fp);}
 		
 	virtual void reinitTab(bool doOverride);
 
@@ -99,7 +99,13 @@ public slots:
 	void stopClicked();
 
 protected slots:
-	
+	void guiBindColorToOpac();
+	void guiBindOpacToColor();
+	void guiFitTFToData();
+	void flowLoadTF();
+	void flowLoadInstalledTF();
+	void flowSaveTF();
+	void refreshHisto();
 	void showSetupHelp();
 	void addSample();
 	void deleteSample();
@@ -150,7 +156,7 @@ protected slots:
 	void setFlowConstantColor();
 	void guiSetFlowGeometry(int geomNum);
 	void guiSetColorMapEntity( int entityNum);
-	void guiSetOpacMapEntity( int entityNum);
+	
 	void setFlowEditMode(bool);
 	void setFlowNavigateMode(bool);
 	

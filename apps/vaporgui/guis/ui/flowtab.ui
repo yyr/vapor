@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>442</width>
-    <height>2119</height>
+    <width>456</width>
+    <height>2337</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -28,7 +28,7 @@
   <property name="toolTip">
    <string/>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_12">
+  <layout class="QHBoxLayout" name="horizontalLayout_17">
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_10">
      <item>
@@ -4042,7 +4042,7 @@ in this panel.</string>
             <property name="lineWidth">
              <number>0</number>
             </property>
-            <layout class="QHBoxLayout" name="horizontalLayout_10">
+            <layout class="QHBoxLayout" name="horizontalLayout_12">
              <item>
               <layout class="QVBoxLayout" name="verticalLayout_8">
                <item>
@@ -5026,63 +5026,6 @@ of such diamonds.</string>
                <item>
                 <layout class="QHBoxLayout">
                  <item>
-                  <widget class="QLabel" name="textLabel1_5">
-                   <property name="text">
-                    <string>Opacity:</string>
-                   </property>
-                   <property name="wordWrap">
-                    <bool>false</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QComboBox" name="opacmapEntityCombo">
-                   <property name="toolTip">
-                    <string>Specify the entity that will be mapped to opacity</string>
-                   </property>
-                   <item>
-                    <property name="text">
-                     <string>Constant</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>Relative Timestep</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>Field Magnitude</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>wx</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>wy</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>wz</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>enst</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>r0</string>
-                    </property>
-                   </item>
-                  </widget>
-                 </item>
-                 <item>
                   <spacer name="spacer82">
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
@@ -5107,7 +5050,7 @@ of such diamonds.</string>
                     </size>
                    </property>
                    <property name="text">
-                    <string>Color:</string>
+                    <string>Color/Opacity mapped entity:</string>
                    </property>
                    <property name="wordWrap">
                     <bool>false</bool>
@@ -5207,12 +5150,34 @@ of such diamonds.</string>
                    </property>
                   </widget>
                  </item>
+                 <item>
+                  <widget class="QPushButton" name="newHistoButton">
+                   <property name="toolTip">
+                    <string>Click to refresh the histogram based on the current region settings, animation timestep, and transfer function bounds</string>
+                   </property>
+                   <property name="whatsThis">
+                    <string>Click the Histo button to refresh the
+histogram that is displayed in the transfer
+function edit window.  The data that is 
+histogrammed is determined by the 
+current variable, the refinement level,
+the current time step, the applicable
+region extents, and the data bounds.
+Use the right mouse menu in the 
+transfer function window to choose
+how the histogram is scaled.</string>
+                   </property>
+                   <property name="text">
+                    <string>Histo</string>
+                   </property>
+                  </widget>
+                 </item>
                 </layout>
                </item>
                <item>
-                <layout class="QHBoxLayout">
+                <layout class="QHBoxLayout" name="_3">
                  <item>
-                  <widget class="QLabel" name="textLabel1_6">
+                  <widget class="QLabel" name="textLabel1_9">
                    <property name="text">
                     <string>Constant color, opacity values:</string>
                    </property>
@@ -5229,7 +5194,7 @@ of such diamonds.</string>
                   </widget>
                  </item>
                  <item>
-                  <spacer name="spacer75">
+                  <spacer name="spacer75_2">
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -5361,181 +5326,42 @@ of such diamonds.</string>
                 </layout>
                </item>
                <item>
-                <layout class="QHBoxLayout">
+                <layout class="QHBoxLayout" name="horizontalLayout_10">
                  <item>
-                  <widget class="QLabel" name="minOpacityBound">
+                  <widget class="MappingFrame" name="colorMappingFrame" native="true">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="minimumSize">
                     <size>
-                     <width>0</width>
-                     <height>15</height>
+                     <width>300</width>
+                     <height>150</height>
                     </size>
-                   </property>
-                   <property name="font">
-                    <font/>
-                   </property>
-                   <property name="toolTip">
-                    <string>Smallest value of opacity-mapped variable</string>
-                   </property>
-                   <property name="text">
-                    <string>0.0</string>
-                   </property>
-                   <property name="wordWrap">
-                    <bool>false</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="textLabel2_5_3">
-                   <property name="text">
-                    <string>Opacity data limits</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
-                   </property>
-                   <property name="wordWrap">
-                    <bool>false</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="maxOpacityBound">
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>15</height>
-                    </size>
-                   </property>
-                   <property name="font">
-                    <font/>
-                   </property>
-                   <property name="toolTip">
-                    <string>Largest value of opacity-mapped variable</string>
-                   </property>
-                   <property name="text">
-                    <string>1.0</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                   <property name="wordWrap">
-                    <bool>false</bool>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QHBoxLayout">
-                 <item>
-                  <widget class="QLineEdit" name="minOpacmapEdit">
-                   <property name="maximumSize">
-                    <size>
-                     <width>100</width>
-                     <height>32767</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>Specify the minimum entity value that is mapped to color</string>
                    </property>
                    <property name="whatsThis">
-                    <string>The data limits for the opacity and color
-maps are set to the likely max and min
-bounds for the associated variable.
-However these are not always correct,
-since they may be based on data limits
-at time steps other than the current one.
-Users should always set these endpoints
-if the values are not consistent with data
-bounds.</string>
+                    <string>The color editor displays a 
+mapping from the Color entity
+to opacity,  This editor is only
+available when you select an
+entity other than &quot;Constant&quot; for
+color mapping.   This mapping
+determines the color of flow lines
+in the visualizer.  Additional
+options are available from the
+right mouse button.</string>
                    </property>
-                   <property name="text">
-                    <string>-2..731</string>
+                   <property name="colorMapping" stdset="0">
+                    <bool>true</bool>
                    </property>
-                   <property name="alignment">
-                    <set>Qt::AlignHCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="spacer54">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeType">
-                    <enum>QSizePolicy::Expanding</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>31</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="textLabel17_2">
-                   <property name="text">
-                    <string>Opacity map endpoints</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
-                   </property>
-                   <property name="wordWrap">
-                    <bool>false</bool>
+                   <property name="opacityMapping" stdset="0">
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <spacer name="spacer55">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeType">
-                    <enum>QSizePolicy::Expanding</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>21</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="maxOpacmapEdit">
-                   <property name="maximumSize">
-                    <size>
-                     <width>100</width>
-                     <height>32767</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>Specify the maximum entity value that is mapped to color</string>
-                   </property>
-                   <property name="whatsThis">
-                    <string>The data limits for the opacity and color
-maps are set to the likely max and min
-bounds for the associated variable.
-However these are not always correct,
-since they may be based on data limits
-at time steps other than the current one.
-Users should always set these endpoints
-if the values are not consistent with data
-bounds.</string>
-                   </property>
-                   <property name="text">
-                    <string>2.80</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignHCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QGridLayout">
-                 <item row="0" column="1" rowspan="2">
                   <layout class="QVBoxLayout">
                    <item>
                     <widget class="QSlider" name="opacityScaleSlider">
@@ -5577,109 +5403,20 @@ bounds.</string>
                    </item>
                   </layout>
                  </item>
-                 <item row="0" column="0">
-                  <widget class="QFrame" name="frame21">
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>105</height>
-                    </size>
-                   </property>
-                   <property name="frameShape">
-                    <enum>QFrame::NoFrame</enum>
-                   </property>
-                   <property name="frameShadow">
-                    <enum>QFrame::Raised</enum>
-                   </property>
-                   <layout class="QVBoxLayout">
-                    <property name="spacing">
-                     <number>0</number>
-                    </property>
-                    <property name="margin">
-                     <number>0</number>
-                    </property>
-                    <item>
-                     <widget class="MappingFrame" name="opacityMappingFrame" native="true">
-                      <property name="minimumSize">
-                       <size>
-                        <width>0</width>
-                        <height>80</height>
-                       </size>
-                      </property>
-                      <property name="whatsThis">
-                       <string>The opacity editor displays a
-mapping from the opacity entity
-to opacity,  This editor is only
-available when you select an
-entity other than &quot;Constant&quot; for
-opacity mapping.   This mapping
-determines the opacity of flow lines
-in the visualizer. The opacity values
-are shown as a green curve.
-Additional options are available from
-the right mouse button.</string>
-                      </property>
-                      <property name="opacityMapping" stdset="0">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </widget>
-                 </item>
-                 <item row="1" column="0">
-                  <widget class="QFrame" name="frame20">
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>67</height>
-                    </size>
-                   </property>
-                   <property name="frameShape">
-                    <enum>QFrame::NoFrame</enum>
-                   </property>
-                   <property name="frameShadow">
-                    <enum>QFrame::Raised</enum>
-                   </property>
-                   <layout class="QVBoxLayout">
-                    <property name="margin">
-                     <number>0</number>
-                    </property>
-                    <item>
-                     <widget class="MappingFrame" name="colorMappingFrame" native="true">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="minimumSize">
-                       <size>
-                        <width>0</width>
-                        <height>30</height>
-                       </size>
-                      </property>
-                      <property name="whatsThis">
-                       <string>The color editor displays a 
-mapping from the Color entity
-to opacity,  This editor is only
-available when you select an
-entity other than &quot;Constant&quot; for
-color mapping.   This mapping
-determines the color of flow lines
-in the visualizer.  Additional
-options are available from the
-right mouse button.</string>
-                      </property>
-                      <property name="colorMapping" stdset="0">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </widget>
-                 </item>
                 </layout>
+               </item>
+               <item>
+                <spacer name="verticalSpacer_4">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>5</height>
+                  </size>
+                 </property>
+                </spacer>
                </item>
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_16">
@@ -5781,7 +5518,7 @@ bounds.</string>
                  <item>
                   <widget class="QLabel" name="textLabel17">
                    <property name="text">
-                    <string>Color map endpoints</string>
+                    <string>TF Domain Bounds</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
@@ -5872,7 +5609,7 @@ bounds.</string>
                  <item>
                   <widget class="QLabel" name="textLabel2_5_2">
                    <property name="text">
-                    <string>Color data limits</string>
+                    <string>Data Bounds</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
@@ -5909,7 +5646,265 @@ bounds.</string>
                  </item>
                 </layout>
                </item>
+               <item>
+                <layout class="QHBoxLayout" name="noname2_2">
+                 <item>
+                  <spacer name="spacer43_2">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Expanding</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>21</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="ColorBindButton">
+                   <property name="toolTip">
+                    <string>Move selected color to same x coord as selected opacity </string>
+                   </property>
+                   <property name="whatsThis">
+                    <string>When exactly one color control point
+and exacty one opacity control point 
+are selected, click on these &quot;Bind&quot;
+buttons to force those two control
+points to coincide.  Either the opacity
+control point is moved to position of
+the color control point, or vice-versa,
+depending on which button is clicked.</string>
+                   </property>
+                   <property name="text">
+                    <string>Bind Color-&gt;Opacity</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="spacer27_2">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Expanding</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>22</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="OpacityBindButton">
+                   <property name="toolTip">
+                    <string>Move selected opacity to same x coord as selected color</string>
+                   </property>
+                   <property name="whatsThis">
+                    <string>When exactly one color control point
+and exacty one opacity control point 
+are selected, click on these &quot;Bind&quot;
+buttons to force those two control
+points to coincide.  Either the opacity
+control point is moved to position of
+the color control point, or vice-versa,
+depending on which button is clicked.</string>
+                   </property>
+                   <property name="text">
+                    <string>Bind Opacity-&gt;Color</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="spacer97_2">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Expanding</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>21</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="fitDataButton">
+                   <property name="toolTip">
+                    <string>Fit TF domain bounds to data bounds</string>
+                   </property>
+                   <property name="whatsThis">
+                    <string>Click this button to set the current transfer function editor domain bounds to the bounds of the variable at the current time step.</string>
+                   </property>
+                   <property name="text">
+                    <string>Fit Data</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="spacer44_4">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Expanding</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>27</width>
+                     <height>21</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="nonam3">
+                 <item>
+                  <spacer name="spacer45_2">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Expanding</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>16</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="loadButton">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>200</width>
+                     <height>32767</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>Load transfer function from file or session</string>
+                   </property>
+                   <property name="text">
+                    <string>Load TF</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="spacer160">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Expanding</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>31</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="loadInstalledButton">
+                   <property name="toolTip">
+                    <string>Load Transfer Function from directory of pre-installed transfer functions</string>
+                   </property>
+                   <property name="text">
+                    <string>Load Installed TF</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="spacer30">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Expanding</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>16</width>
+                     <height>21</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="saveButton">
+                   <property name="maximumSize">
+                    <size>
+                     <width>200</width>
+                     <height>32767</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>Save this transfer function to a file or session</string>
+                   </property>
+                   <property name="text">
+                    <string>Save TF</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="spacer46_2">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Expanding</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>23</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
               </layout>
+             </item>
+             <item>
+              <widget class="QFrame" name="frame20">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>67</height>
+                </size>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::NoFrame</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+               <layout class="QVBoxLayout">
+                <property name="margin">
+                 <number>0</number>
+                </property>
+               </layout>
+              </widget>
              </item>
             </layout>
            </widget>

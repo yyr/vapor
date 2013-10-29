@@ -24,12 +24,12 @@
 #include <qwidget.h>
 #include <qcolor.h>
 #include "params.h"
-#include "mapperfunction.h"
+#include "transferfunction.h"
 #include <vapor/common.h>
 class FlowTab;
 #define IGNORE_FLAG 2.e30f
 namespace VAPoR {
-class MapperFunction;
+class TransferFunction;
 class VaporFlow;
 class ExpatParseMgr;
 class VECTOR4;
@@ -67,7 +67,7 @@ public:
 	virtual bool elementStartHandler(ExpatParseMgr*, int  depth , std::string& tag, const char ** attribs);
 	virtual bool elementEndHandler(ExpatParseMgr*, int depth , std::string& tag);
 	
-	virtual bool IsOpaque() { return mapperFunction->isOpaque();}
+	virtual bool IsOpaque() { return transferFunction->isOpaque();}
 	
 	//Virtual methods to set map bounds.  Get() is in parent class
 	//Needed here because the map bounds are saved in params class for each mapped variable
@@ -231,10 +231,8 @@ public:
 	
 	void setEditMode(bool mode) {editMode = mode;}
 	bool getEditMode() {return editMode;}
-	virtual MapperFunction* GetMapperFunc() {return mapperFunction;}
+	virtual MapperFunction* GetMapperFunc() {return transferFunction;}
 
-
-	
 	float getListSeedPoint(int i, int coord){
 		return seedPointList[i].getVal(coord);
 	}
@@ -333,7 +331,8 @@ public:
 	int getComboPriorityVarnum(int indx) {return comboPriorityVarNum[indx];}
 	
 	int getNumComboVariables() {return numComboVariables;}
-
+	void setHistoStretch(float factor){histoStretchFactor = factor;}
+	virtual float GetHistoStretch(){return histoStretchFactor;}
 	float getOpacityScale(); 
 	void setOpacityScale(float val); 
 	int getMaxFrame() {return maxFrame;}
@@ -347,8 +346,8 @@ public:
 	void periodicMap(float origCoords[3],float newCoords[3], bool unscale);
 	std::vector<int>& getUnsteadyTimesteps() { return unsteadyTimestepList;}
 	
-	//This virtual RenderParams method is not useful for flow params
-	virtual int getSessionVarNum() { assert(0); return -1;}
+	virtual int getSessionVarNum(); 
+	virtual const float* getCurrentDatarange();
 
 	static float getDefaultIntegrationAccuracy(){return defaultIntegrationAccuracy;}
 	static float getDefaultSmoothness(){ return defaultSmoothness;}
@@ -364,7 +363,7 @@ public:
 	static void setDefaultArrowSize(float val){defaultArrowSize = val;}
 	static void setDefaultDiamondSize(float val){defaultDiamondSize = val;}
 	static void setDefaultGeometryType(int val){defaultGeometryType = val;}
-
+	virtual void hookupTF(TransferFunction* tf, int index);
 	
 protected:
 	static const string _shortName;
@@ -469,7 +468,8 @@ protected:
 	float steadyScale;
 	float unsteadyScale;
 	float steadySmoothness;
-	
+	float histoStretchFactor;
+
 	int timeSamplingInterval;
 	int timeSamplingStart;
 	int timeSamplingEnd;
@@ -498,7 +498,7 @@ protected:
 	QRgb constantColor;
 	float constantOpacity;
 	
-	MapperFunction* mapperFunction;
+	TransferFunction* transferFunction;
 	
 	//Save the min and max bounds for each of the flow mappings, plus 
 	//min and max for each variable
@@ -506,7 +506,7 @@ protected:
 	float* maxOpacBounds;
 	float* minColorBounds;
 	float* maxColorBounds;
-	
+	float dataRange[2];
 	int maxPoints;  //largest length of any flow
 	int compressionLevel;
 	
@@ -540,7 +540,6 @@ protected:
 	static float defaultArrowSize;
 	static float defaultDiamondSize;
 	static int defaultGeometryType;
-		
 
 };
 };

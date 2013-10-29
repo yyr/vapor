@@ -38,7 +38,7 @@
 #include <qapplication.h>
 #include <qcursor.h>
 
-#include "mapperfunction.h"
+#include "transferfunction.h"
 
 #include <vapor/common.h>
 
@@ -119,7 +119,7 @@ using namespace VAPoR;
 	FlowParams::FlowParams(int winnum) : RenderParams(winnum, Params::_flowParamsTag) {
 	
 	myBox= 0;
-	mapperFunction = 0;
+	transferFunction = 0;
 	
 	//Set all parameters to default values
 	restart();
@@ -127,8 +127,8 @@ using namespace VAPoR;
 }
 FlowParams::~FlowParams(){
 	if(myBox) delete myBox;
-	if (mapperFunction){
-		delete mapperFunction;
+	if (transferFunction){
+		delete transferFunction;
 	}
 	
 		
@@ -143,6 +143,7 @@ FlowParams::~FlowParams(){
 //Set everything in sight to default state:
 void FlowParams::
 restart() {
+	histoStretchFactor = 1.;
 	useDisplayLists = false;
 	stopFlag = false;
 	autoScale = true;
@@ -327,10 +328,10 @@ deepCopy(ParamNode*){
 	}
 	
 	//Clone the Transfer Functions
-	if (mapperFunction) {
-		newFlowParams->mapperFunction = new MapperFunction(*mapperFunction);
+	if (transferFunction) {
+		newFlowParams->transferFunction = new TransferFunction(*transferFunction);
 	} else {
-		newFlowParams->mapperFunction = 0;
+		newFlowParams->transferFunction = 0;
 	}
 	
 
@@ -586,18 +587,18 @@ reinit(bool doOverride){
 	float* newMaxOpacEditBounds = new float[newNumComboVariables+4];
 	float* newMinColorEditBounds = new float[newNumComboVariables+4];
 	float* newMaxColorEditBounds = new float[newNumComboVariables+4];
-	//Either try to reuse existing MapperFunction, or create a new one.
+	//Either try to reuse existing transferFunction, or create a new one.
 	if (doOverride){ //create new ones:
 		//For now, assume 8-bits mapping
-		MapperFunction* newMapperFunction = new MapperFunction(this, 8);
+		TransferFunction* newTransferFunction = new TransferFunction(this, 8);
 		//Initialize to be fully opaque:
-		newMapperFunction->setOpaque();
+		newTransferFunction->setOpaque();
 
         //Set to default map bounds
-		newMapperFunction->setMinColorMapValue(0.f);
-		newMapperFunction->setMaxColorMapValue(1.f);
-		newMapperFunction->setMinOpacMapValue(0.f);
-		newMapperFunction->setMaxOpacMapValue(1.f);
+		newTransferFunction->setMinColorMapValue(0.f);
+		newTransferFunction->setMaxColorMapValue(1.f);
+		newTransferFunction->setMinOpacMapValue(0.f);
+		newTransferFunction->setMaxOpacMapValue(1.f);
 		//const
 		newMinOpacEditBounds[0] = 0.f;
 		newMaxOpacEditBounds[0] = 1.f;
@@ -628,8 +629,8 @@ reinit(bool doOverride){
 			}
 		} 
 
-		delete mapperFunction;
-        mapperFunction = newMapperFunction;
+		delete transferFunction;
+        transferFunction = newTransferFunction;
 
 		setColorMapEntity(0);
 		setOpacMapEntity(0);
@@ -651,10 +652,10 @@ reinit(bool doOverride){
 				newMaxColorEditBounds[i+4] = maxColorEditBounds[i+4];
 			}
 		} 
-		if (!mapperFunction) mapperFunction = new MapperFunction(this, 8);
+		if (!transferFunction) transferFunction = new TransferFunction(this, 8);
 
-        mapperFunction->setColorVarNum(getColorMapEntityIndex());
-        mapperFunction->setOpacVarNum(getOpacMapEntityIndex());
+        transferFunction->setColorVarNum(getColorMapEntityIndex());
+        transferFunction->setOpacVarNum(getOpacMapEntityIndex());
 	}
 	
 		
@@ -686,9 +687,9 @@ reinit(bool doOverride){
 
 float FlowParams::getOpacityScale() {
 
-  if (mapperFunction)
+  if (transferFunction)
   {
-    return mapperFunction->getOpacityScaleFactor();
+    return transferFunction->getOpacityScaleFactor();
   }
 
   return 1.0;
@@ -696,9 +697,9 @@ float FlowParams::getOpacityScale() {
 
 void FlowParams::setOpacityScale(float val) {
  
-  if (mapperFunction)
+  if (transferFunction)
   {
-    mapperFunction->setOpacityScaleFactor(val);
+    transferFunction->setOpacityScaleFactor(val);
   }
 }
 
@@ -1612,7 +1613,7 @@ buildNode() {
 	//Now add children:  
 	//There's a child for geometry, a child for
 	//Seeding, and a child for each variable.
-	//The geometry child contains the mapperFunction
+	//The geometry child contains the transferFunction
 	
 	
 	attrs.clear();
@@ -1705,9 +1706,7 @@ buildNode() {
 	oss.str(empty);
 	oss << getColorMapEntityIndex();
 	attrs[_colorMappedEntityAttr] = oss.str();
-	oss.str(empty);
-	oss << getOpacMapEntityIndex();
-	attrs[_opacityMappedEntityAttr] = oss.str();
+	
 	oss.str(empty);
 	int r = qRed(constantColor);
 	int g = qGreen(constantColor);
@@ -1719,22 +1718,20 @@ buildNode() {
 	attrs[_constantOpacityAttr] = oss.str();
 
 	//Specify the opacity scale from the transfer function
-	if(mapperFunction){
+	if(transferFunction){
 		oss.str(empty);
-		oss << mapperFunction->getOpacityScaleFactor();
+		oss << transferFunction->getOpacityScaleFactor();
 		attrs[_opacityScaleAttr] = oss.str();
 	}
 
 	ParamNode* graphicNode = new ParamNode(_geometryTag,attrs,2*numComboVariables+1);
 
 	//Create a mapper function node, add it as child
-	if(mapperFunction) {
-		ParamNode* mfNode = mapperFunction->buildNode();
+	if(transferFunction) {
+		ParamNode* mfNode = transferFunction->buildNode();
 		graphicNode->AddChild(mfNode);
 	}
 	
-
-
 	flowNode->AddChild(graphicNode);
 	//Create a node for each of the variables
 	for (int i = 0; i< numComboVariables+4; i++){
@@ -1757,16 +1754,8 @@ buildNode() {
 		oss.str(empty);
 		oss << (double)maxColorBounds[i];
 		varAttrs[_rightColorBoundAttr] = oss.str();
-		oss.str(empty);
-		oss << (double)minOpacBounds[i];
-		varAttrs[_leftOpacityBoundAttr] = oss.str();
-		oss.str(empty);
-		oss << (double)maxOpacBounds[i];
-		varAttrs[_rightOpacityBoundAttr] = oss.str();
 		flowNode->NewChild(_variableTag, varAttrs, 0);
 	}
-	
-	
 	
 	return flowNode;
 }
@@ -1776,9 +1765,9 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 	
 	//Take care of attributes of flowParamsNode
 	if (StrCmpNoCase(tagString, _flowParamsTag) == 0) {
-		//Start with a new, default mapperFunction
-		if (mapperFunction) delete mapperFunction;
-		mapperFunction = new MapperFunction(this, 8);
+		//Start with a new, default transferFunction
+		if (transferFunction) delete transferFunction;
+		transferFunction = new TransferFunction(this, 8);
 
 		int newNumVariables = 0;
 		//Default autoscale to false, consistent with pre-1.2
@@ -2099,9 +2088,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 				setColorMapEntity(indx);
 			}
 			else if (StrCmpNoCase(attribName, _opacityMappedEntityAttr) == 0) {
-				int indx;
-				ist >> indx;
-				setOpacMapEntity(indx);
+				//obsolete
 			}
 			else if (StrCmpNoCase(attribName, _constantColorAttr) == 0){
 				int r,g,b;
@@ -2111,20 +2098,27 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _opacityScaleAttr) == 0){
 				float opacScale;
 				ist >> opacScale;
-				mapperFunction->setOpacityScaleFactor(opacScale);
+				transferFunction->setOpacityScaleFactor(opacScale);
 			} 
 			else if (StrCmpNoCase(attribName, _constantOpacityAttr) == 0){
 				ist >> constantOpacity;
 			}
 			
 		}
-	//Parse a mapperFunction node (inside the geometry node):
+	//Parse a mapperFunction node (inside the geometry node) (prior to 2.3.0)
 	} else if (StrCmpNoCase(tagString, MapperFunction::_mapperFunctionTag) == 0) {
+		//Need to "push" to transfer function parser.
+		//That parser will "pop" back to flowparams when done.
+		
+		pm->pushClassStack(transferFunction);
+		transferFunction->elementStartHandler(pm, depth, tagString, attrs);
+		return true;
+	} else if (StrCmpNoCase(tagString, TransferFunction::_transferFunctionTag) == 0) {
 		//Need to "push" to mapper function parser.
 		//That parser will "pop" back to flowparams when done.
 		
-		pm->pushClassStack(mapperFunction);
-		mapperFunction->elementStartHandler(pm, depth, tagString, attrs);
+		pm->pushClassStack(transferFunction);
+		transferFunction->elementStartHandler(pm, depth, tagString, attrs);
 		return true;
 	//Parse variableMapping tags:
 	} else if (StrCmpNoCase(tagString,_variableTag) == 0){
@@ -2219,9 +2213,11 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 		return true;
 	else if (StrCmpNoCase(tag, _variableTag) == 0)
 		return true;
-	else if (StrCmpNoCase(tag, MapperFunction::_mapperFunctionTag) == 0) {
+	else if (StrCmpNoCase(tag, MapperFunction::_mapperFunctionTag) == 0)
 		return true;
-	} else {
+	else if (StrCmpNoCase(tag, TransferFunction::_transferFunctionTag) == 0) 
+		return true;
+	else {
 		pm->parseError("Unrecognized end tag in FlowParams %s",tag.c_str());
 		return false; 
 	}
@@ -2238,18 +2234,16 @@ void FlowParams::
 mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionParams* rParams){
 	//Create lut based on current mapping data
 	float* lut = new float[256*4];
-	mapperFunction->makeLut(lut);
+	transferFunction->makeLut(lut);
 	//Setup mapping
 	
-	float opacMin = mapperFunction->getMinOpacMapValue();
-	float colorMin = mapperFunction->getMinColorMapValue();
-	float opacMax = mapperFunction->getMaxOpacMapValue();
-	float colorMax = mapperFunction->getMaxColorMapValue();
+	float colorMin = transferFunction->getMinColorMapValue();
+	float colorMax = transferFunction->getMaxColorMapValue();
 
-	float opacVar, colorVar;
-	RegularGrid* colorGrid = 0, *opacGrid=0;
+	float colorVar;
+	RegularGrid* colorGrid = 0;
 	//min and max of valid mappings into data volume:
-	int opacMinMap[3], opacMaxMap[3], colorMinMap[3], colorMaxMap[3];
+	int colorMinMap[3], colorMaxMap[3];
 	
 	//separate color, opac 
 	
@@ -2257,62 +2251,10 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 	DataMgr* dataMgr = ds->getDataMgr();
 	if(!dataMgr) return;
 	//Make sure RGBAs are available if needed:
-	if (getOpacMapEntityIndex() + getColorMapEntityIndex() > 0)
+	if (getColorMapEntityIndex() > 0)
 		container->enableRGBAs();
 		
-	//Get the variable (grid over entire region) if needed for mapping opac/color
-	if (getOpacMapEntityIndex() > 3){
-		//set up args for GetGrid
-		//If flow is unsteady, just get the first available timestep  (BUG!!!)
-		int timeStep = currentTimeStep;
-		if(flowType == 1){//unsteady flow
-			timeStep = ds->getFirstTimestep(getOpacMapEntityIndex()-4);
-			if (timeStep < 0) MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"No data for flow mapped variable");
-		}
-		int lod = GetCompressionLevel();
-		size_t min_dim[3], max_dim[3];
-		double validExts[6];
-		rParams->GetBox()->GetUserExtents(validExts, (size_t)timeStep);
-
-		vector<string> opacVarname;
-		opacVarname.push_back(opacMapEntity[getOpacMapEntityIndex()]);
-		int opacRefLevel = RegionParams::PrepareCoordsForRetrieval(numRefinements, lod, timeStep, opacVarname, 
-			validExts, validExts+3,min_dim, max_dim);
-		if (opacRefLevel < 0) {
-			SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"flow opacity mapping data unavailable at timestep %d\n", timeStep);
-			setBypass(timeStep);
-			return;
-		}
-
-		//Obtain the required grid from the DataMgr.  The LOD of the data may need to be reduced.
 	
-		int useLOD = GetCompressionLevel();
-		int maxLOD = ds->maxLODPresent(opacVarname[0],timeStep);
-		if (maxLOD < useLOD){
-			if (!ds->useLowerAccuracy()){
-				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Opacity data unavailable at LOD %d\n", GetCompressionLevel());
-				setBypass(timeStep);
-				return;
-			}
-			useLOD = maxLOD;
-		}
-
-		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		opacGrid = dataMgr->GetGrid(timeStep, opacVarname[0],opacRefLevel, useLOD,min_dim,max_dim,0);
-		QApplication::restoreOverrideCursor();
-
-		if (!opacGrid){
-			DataStatus::getInstance()->getDataMgr()->SetErrCode(0);
-			if (DataStatus::getInstance()->warnIfDataMissing())
-				MyBase::SetErrMsg(VAPOR_ERROR_FLOW_DATA,"Opacity mapped variable data unavailable\nfor refinement %d at timestep %d", opacRefLevel, timeStep);
-			return;
-		}
-		for (int i = 0; i<3; i++){
-			opacMinMap[i] = min_dim[i];
-			opacMaxMap[i] = max_dim[i];
-		}
-	}
-		
 	if (getColorMapEntityIndex() > 3){
 		//set up args for GetGrid
 		//If flow is unsteady, just get the first available timestep  (BUG!!!)
@@ -2373,39 +2315,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 
 	for (int lineNum = 0; lineNum<container->getNumLines(); lineNum++){
 		for (int pointNum = container->getStartIndex(lineNum); pointNum<= container->getEndIndex(lineNum); pointNum++){
-		//for (int k = 0; k<maxPoints; k++) {
-			
-			switch (getOpacMapEntityIndex()){
-				case (0): //constant
-					opacVar = 0.f;
-					break;
-				case (1): //age
-					if (flowType != 1)
-						//Map k in [0..objectsPerFlowline] to the interval (0,1)
-						opacVar =  
-							(float)pointNum/((float)objectsPerFlowline);
-					else
-						opacVar = (float)(minFrame + (float)pointNum/(float)objectsPerTimestep);
-					break;
-				case (2): //speed
-					if (container->doSpeeds())
-						opacVar = container->getSpeed(lineNum,pointNum);
-					else opacVar = 0.f;
-					break;
-				case (3): //opacity mapped from seed index
-					opacVar = container->getSeedIndex(lineNum);
-					break;
-				default : //variable
-					float* dataPoint = container->getFlowPoint(lineNum,pointNum);
-					assert(dataPoint[0] != IGNORE_FLAG);
-					opacVar = opacGrid->GetValue(dataPoint[0],dataPoint[1],dataPoint[2]);
-					if (opacVar == opacGrid->GetMissingValue()) colorVar = 0.;
-					break;
-			}
-			int opacIndex = (int)((opacVar - opacMin)*255.99/(opacMax-opacMin));
-			if (opacIndex<0) opacIndex = 0;
-			if (opacIndex> 255) opacIndex =255;
-			//opacity = lut[3+4*opacIndex];
+		
 			switch (getColorMapEntityIndex()){
 				case (0): //constant
 					colorVar = 0.f;
@@ -2452,20 +2362,17 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 			if (colorIndex<0) colorIndex = 0;
 			if (colorIndex> 255) colorIndex =255;
 			//Now assign color etc.
-			//Special case for constant colors and/or opacities
-			if (getOpacMapEntityIndex() == 0){
-				container->setAlpha(lineNum,pointNum,constantOpacity);
-			} else {
-				container->setAlpha(lineNum,pointNum,lut[4*opacIndex+3]);
-			}
+			
 			if (getColorMapEntityIndex() == 0){
 				container->setRGB(lineNum,pointNum,((float)qRed(constantColor))/255.f,
 					((float)qGreen(constantColor))/255.f,
 					((float)qBlue(constantColor))/255.f);
+				container->setAlpha(lineNum,pointNum,constantOpacity);
 			} else {
 				container->setRGB(lineNum,pointNum,lut[4*colorIndex],
 					lut[4*colorIndex+1],
 					lut[4*colorIndex+2]);
+				container->setAlpha(lineNum,pointNum,lut[4*colorIndex+3]);
 			}
 		}
 		
@@ -2482,20 +2389,16 @@ mapUnsteadyColors(PathLineData* container, int startTimeStep, int minFrame, Regi
 		mapColors(container,startTimeStep,minFrame, rParams);
 		return;
 	}
-	//Create lut based on current mapperFunction (assumes it doesn't change over time!)
+	//Create lut based on current transferFunction (assumes it doesn't change over time!)
 	float* lut = new float[256*4];
-	mapperFunction->makeLut(lut);
+	transferFunction->makeLut(lut);
 	//Setup color and opacity mappings
 	
-	float opacMin = mapperFunction->getMinOpacMapValue();
-	float colorMin = mapperFunction->getMinColorMapValue();
-	float opacMax = mapperFunction->getMaxOpacMapValue();
-	float colorMax = mapperFunction->getMaxColorMapValue();
 
-	float opacVar, colorVar;
-	RegularGrid* opacGrid=0;
-	//min and max of valid mappings into data volume:
-	int opacMinMap[3], opacMaxMap[3];
+	float colorMin = transferFunction->getMinColorMapValue();
+	float colorMax = transferFunction->getMaxColorMapValue();
+
+	float colorVar;
 	
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
@@ -2504,64 +2407,6 @@ mapUnsteadyColors(PathLineData* container, int startTimeStep, int minFrame, Regi
 
 	container->enableRGBAs();
 	double validExts[6];
-	//Get the variable (grid over entire region) needed for mapping opac
-	//Will only use the first time step for opacity (BUG!) since we expect to
-	//eventually combine opac and color in one transfer function.
-	if (getOpacMapEntityIndex() > 3){
-		//set up args for GetGrid
-		//just get the first available timestep  (BUG!!!)
-		int timeStep = startTimeStep;
-		
-		timeStep = ds->getFirstTimestep(getOpacMapEntityIndex()-4);
-		if (timeStep < 0) {
-			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"No data for flow mapped opacity variable");
-			setBypass(timeStep);
-			return;
-		}
-		
-		size_t min_dim[3], max_dim[3];
-	
-		rParams->GetBox()->GetUserExtents(validExts, (size_t)timeStep);
-		int lod = GetCompressionLevel();
-		vector<string> opacVarname;
-		opacVarname.push_back(opacMapEntity[getOpacMapEntityIndex()]);
-		int opacRefLevel = RegionParams::PrepareCoordsForRetrieval(numRefinements, lod, timeStep, opacVarname, 
-			validExts, validExts+3,min_dim, max_dim);
-		if (opacRefLevel < 0) {
-			SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"flow opacity mapping data unavailable at timestep %d\n", timeStep);
-			setBypass(timeStep);
-			return;
-		}
-
-		//Obtain the required grid from the DataMgr.  The LOD of the data may need to be reduced.
-	
-		int useLOD = GetCompressionLevel();
-		int maxLOD = ds->maxLODPresent(opacVarname[0],timeStep);
-		if (maxLOD < useLOD){
-			if (!ds->useLowerAccuracy()){
-				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Opacity data unavailable at LOD %d\n", GetCompressionLevel());
-				setBypass(timeStep);
-				return;
-			}
-			useLOD = maxLOD;
-		}
-
-		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		opacGrid = dataMgr->GetGrid(timeStep, opacVarname[0],opacRefLevel, useLOD,min_dim,max_dim,0);
-		QApplication::restoreOverrideCursor();
-
-		if (!opacGrid){
-			DataStatus::getInstance()->getDataMgr()->SetErrCode(0);
-			if (DataStatus::getInstance()->warnIfDataMissing())
-				MyBase::SetErrMsg(VAPOR_ERROR_FLOW_DATA,"Opacity mapped variable data unavailable\nfor refinement %d at timestep %d", opacRefLevel, timeStep);
-			return;
-		}
-		for (int i = 0; i<3; i++){
-			opacMinMap[i] = min_dim[i];
-			opacMaxMap[i] = max_dim[i];
-		}
-	}
-		
 	
 	vector<string> colorVarname;
 	colorVarname.push_back(colorMapEntity[getColorMapEntityIndex()]);
@@ -2698,41 +2543,11 @@ mapUnsteadyColors(PathLineData* container, int startTimeStep, int minFrame, Regi
 				if (colorIndex<0) colorIndex = 0;
 				if (colorIndex> 255) colorIndex =255;
 			}
-			// Perform opacity mapping of the point, before color mapping:
-			switch (getOpacMapEntityIndex()){
-				case (0): //constant
-					opacVar = 0.f;
-					break;
-				case (1): //age
-					opacVar = (float)(minFrame + (float)indx/(float)objectsPerTimestep);
-					break;
-				case (2): //speed
-					if (container->doSpeeds())
-						opacVar = container->getSpeed(lineNum,indx);
-					else opacVar = 0.f;
-					break;
-				case (3): //opacity mapped from seed index
-					opacVar = container->getSeedIndex(lineNum);
-					break;
-				default : //variable
-					float* dataPoint = container->getFlowPoint(lineNum,indx);
-					assert(dataPoint[0] != IGNORE_FLAG);
-					opacVar = opacGrid->GetValue(dataPoint[0],dataPoint[1],dataPoint[2]);
-					if (opacVar == opacGrid->GetMissingValue()) colorIndex = -1;
-					break;
-			}
-			int opacIndex = (int)((opacVar - opacMin)*255.99/(opacMax-opacMin));
-			if (opacIndex<0) opacIndex = 0;
-			if (opacIndex> 255) opacIndex =255;
-
-			//Map to color
+			
+			//Map to color and opacity
 			if (colorIndex >= 0){
 				container->setRGB(lineNum,indx,lut[4*colorIndex],lut[4*colorIndex+1],lut[4*colorIndex+2]);
-				if (getOpacMapEntityIndex() == 0){
-					container->setAlpha(lineNum,indx,constantOpacity);
-				} else {
-					container->setAlpha(lineNum,indx,lut[4*opacIndex+3]);
-				}
+				container->setAlpha(lineNum, indx, lut[4*colorIndex+3]);
 			}
 			else { //use the bottom value, but it will be transparent
 				container->setRGB(lineNum,indx,lut[0],lut[1],lut[2]);
@@ -2745,7 +2560,6 @@ mapUnsteadyColors(PathLineData* container, int startTimeStep, int minFrame, Regi
 		delete nextData;
 		numGrids--;
 	}
-	if(opacGrid) delete opacGrid;
 	assert(numGrids == 0);
 
 }
@@ -2770,28 +2584,28 @@ void FlowParams::periodicMap(float origCoords[3], float mappedCoords[3],bool uns
 
 int FlowParams::
 getColorMapEntityIndex() {
-	if (!mapperFunction) return 0;
-	return mapperFunction->getColorVarNum();
+	if (!transferFunction) return 0;
+	return transferFunction->getColorVarNum();
 }
 
 int FlowParams::
 getOpacMapEntityIndex() {
-	if (!mapperFunction) return 0;
-	return mapperFunction->getOpacVarNum();
+	if (!transferFunction) return 0;
+	return transferFunction->getOpacVarNum();
 }
 void FlowParams::
 setColorMapEntity( int entityNum){
-	if (!mapperFunction) return;
-	mapperFunction->setMinColorMapValue(minColorBounds[entityNum]);
-	mapperFunction->setMaxColorMapValue(maxColorBounds[entityNum]);
-	mapperFunction->setColorVarNum(entityNum);
+	if (!transferFunction) return;
+	transferFunction->setMinColorMapValue(minColorBounds[entityNum]);
+	transferFunction->setMaxColorMapValue(maxColorBounds[entityNum]);
+	transferFunction->setColorVarNum(entityNum);
 }
 void FlowParams::
 setOpacMapEntity( int entityNum){
-	if (!mapperFunction) return;
-	mapperFunction->setMinOpacMapValue(minOpacBounds[entityNum]);
-	mapperFunction->setMaxOpacMapValue(maxOpacBounds[entityNum]);
-    mapperFunction->setOpacVarNum(entityNum);
+	if (!transferFunction) return;
+	transferFunction->setMinOpacMapValue(minOpacBounds[entityNum]);
+	transferFunction->setMaxOpacMapValue(maxOpacBounds[entityNum]);
+    transferFunction->setOpacVarNum(entityNum);
 }
 
 
@@ -2829,7 +2643,7 @@ float FlowParams::minRange(int index, int timestep){
 		default:
 			int varnum = DataStatus::mapActiveToSessionVarNum3D(index -4);
 			if (DataStatus::getInstance()&& DataStatus::getInstance()->variableIsPresent3D(varnum)){
-				return( DataStatus::getInstance()->getDefaultDataMin3D(varnum));
+				return( DataStatus::getInstance()->getDataMin3D(varnum,timestep));
 			}
 			else return 0.f;
 	}
@@ -2863,7 +2677,7 @@ float FlowParams::maxRange(int index, int timestep){
 		default:
 			int varnum = DataStatus::mapActiveToSessionVarNum3D(index -4);
 			if (DataStatus::getInstance()&& DataStatus::getInstance()->variableIsPresent3D(varnum)){
-				return( DataStatus::getInstance()->getDefaultDataMax3D(varnum));
+				return( DataStatus::getInstance()->getDataMax3D(varnum,timestep));
 			}
 			else return 1.f;
 	}
@@ -3676,4 +3490,35 @@ int FlowParams::getNextTimestepSample(float ts){
 	int n = (int)(0.5+ (ts - timeSamplingStart)/(float)timeSamplingInterval);
 	if (timeSamplingStart+n*timeSamplingInterval < ts - .001f) n++; //n is too small
 	return (timeSamplingStart+n*timeSamplingInterval);
+}
+//Hook up the new transfer function in specified slot,
+//Delete the old one.  This is called whenever a new tf is loaded.
+//
+void FlowParams::
+hookupTF(TransferFunction* tf, int index){
+
+	//Create a new TFEditor
+	if (transferFunction) delete transferFunction;
+	transferFunction = tf;
+
+	minColorEditBounds[index] = tf->getMinMapValue();
+	maxColorEditBounds[index] = tf->getMaxMapValue();
+	tf->setParams(this);
+	tf->setVarNum(getColorMapEntityIndex());
+	
+}
+int FlowParams::getSessionVarNum() { 
+	int varIndex = (getColorMapEntityIndex()-4);
+	if (varIndex < 0) return varIndex;
+	return(DataStatus::getInstance()->mapActiveToSessionVarNum3D(varIndex));
+}
+const float* FlowParams::getCurrentDatarange(){
+	if (!transferFunction) {
+		dataRange[0]=0.;
+		dataRange[1]=1.;
+	} else {
+		dataRange[0] = transferFunction->getMinMapValue();
+		dataRange[1] = transferFunction->getMaxMapValue();
+	}
+	return dataRange;
 }

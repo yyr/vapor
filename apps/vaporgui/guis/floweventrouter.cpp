@@ -95,9 +95,7 @@ FlowEventRouter::FlowEventRouter(QWidget* parent): QWidget(parent), Ui_FlowTab()
 
 #if defined(Darwin) && (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 	colorMapShown=false;
-	opacityMapShown = false;
 	colorMappingFrame->hide();
-	opacityMappingFrame->hide();
 #endif
 }
 
@@ -115,6 +113,7 @@ FlowEventRouter::hookUpTab()
 	connect (addSampleButton1,SIGNAL(clicked()), this, SLOT(addSample()));
 	
 	connect (flowHelpButton, SIGNAL(clicked()), this, SLOT(showSetupHelp()));
+	
 	connect (deleteSampleButton1,SIGNAL(clicked()), this, SLOT(deleteSample()));
 	connect (rebuildButton1, SIGNAL(clicked()), this, SLOT(guiRebuildList()));
 	
@@ -164,21 +163,22 @@ FlowEventRouter::hookUpTab()
 	connect (steadyLengthSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetSteadyLength(int)));
 	connect (smoothnessSlider, SIGNAL(valueChanged(int)), this, SLOT(guiSetSmoothness(int)));
 	connect (steadySamplesSlider1, SIGNAL(valueChanged(int)), this, SLOT(guiSetSteadySamples(int)));
-	
-	
+	connect (fitDataButton, SIGNAL(clicked()), this, SLOT(guiFitTFToData()));
+	connect (ColorBindButton, SIGNAL(pressed()), this, SLOT(guiBindColorToOpac()));
+	connect (OpacityBindButton, SIGNAL(pressed()), this, SLOT(guiBindOpacToColor()));
 	connect (unsteadySamplesSlider, SIGNAL(valueChanged(int)), this, SLOT(guiSetUnsteadySamples(int)));
 	
 	connect (geometryCombo, SIGNAL(activated(int)),SLOT(guiSetFlowGeometry(int)));
 	connect (constantColorButton, SIGNAL(clicked()), this, SLOT(setFlowConstantColor()));
 	connect (rakeOnRegionButton, SIGNAL(clicked()), this, SLOT(guiSetRakeToRegion()));
 	connect (colormapEntityCombo,SIGNAL(activated(int)),SLOT(guiSetColorMapEntity(int)));
-	connect (opacmapEntityCombo,SIGNAL(activated(int)),SLOT(guiSetOpacMapEntity(int)));
 	connect (refreshButton,SIGNAL(clicked()), this, SLOT(refreshFlow()));
 	connect (periodicXCheck,SIGNAL(toggled(bool)), this, SLOT(guiCheckPeriodicX(bool)));
 	connect (periodicYCheck,SIGNAL(toggled(bool)), this, SLOT(guiCheckPeriodicY(bool)));
 	connect (periodicZCheck,SIGNAL(toggled(bool)), this, SLOT(guiCheckPeriodicZ(bool)));
 	//Line edits.  Note that the textChanged may either affect the flow or the geometry
-	
+	connect (constantOpacityEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
+	connect (constantOpacityEdit, SIGNAL(returnPressed()), this, SLOT( flowTabReturnPressed()));
 	connect (smoothnessSamplesEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (smoothnessSamplesEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (steadyLengthEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
@@ -196,8 +196,7 @@ FlowEventRouter::hookUpTab()
 	connect (ySeedEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (zSeedEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (zSeedEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (constantOpacityEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (constantOpacityEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
+	
 	connect (integrationAccuracyEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (integrationAccuracyEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 		
@@ -260,10 +259,6 @@ FlowEventRouter::hookUpTab()
 	connect (minColormapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabRangeTextChanged(const QString&)));
 	connect (maxColormapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (maxColormapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabRangeTextChanged(const QString&)));
-	connect (minOpacmapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (minOpacmapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabRangeTextChanged(const QString&)));
-	connect (maxOpacmapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (maxOpacmapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabRangeTextChanged(const QString&)));
 	
 	connect (opacityScaleSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetOpacityScale(int)));
 	connect (navigateButton, SIGNAL(toggled(bool)), this, SLOT(setFlowNavigateMode(bool)));
@@ -275,15 +270,6 @@ FlowEventRouter::hookUpTab()
 	connect (seedListEditButton, SIGNAL(clicked()), this, SLOT(guiEditSeedList()));
 
 	connect(editButton, SIGNAL(toggled(bool)), 
-            opacityMappingFrame, SLOT(setEditMode(bool)));
-	connect(alignButton, SIGNAL(clicked()),
-            opacityMappingFrame, SLOT(fitToView()));
-    connect(opacityMappingFrame, SIGNAL(startChange(QString)), 
-            this, SLOT(guiStartChangeMapFcn(QString)));
-    connect(opacityMappingFrame, SIGNAL(endChange()),
-            this, SLOT(guiEndChangeMapFcn()));
-
-	connect(editButton, SIGNAL(toggled(bool)), 
             colorMappingFrame, SLOT(setEditMode(bool)));
 	connect(alignButton, SIGNAL(clicked()),
             colorMappingFrame, SLOT(fitToView()));
@@ -291,6 +277,10 @@ FlowEventRouter::hookUpTab()
             this, SLOT(guiStartChangeMapFcn(QString)));
     connect(colorMappingFrame, SIGNAL(endChange()),
             this, SLOT(guiEndChangeMapFcn()));
+	connect (loadButton, SIGNAL(clicked()), this, SLOT(flowLoadTF()));
+	connect (loadInstalledButton, SIGNAL(clicked()), this, SLOT(flowLoadInstalledTF()));
+	connect (saveButton, SIGNAL(clicked()), this, SLOT(flowSaveTF()));
+	connect (newHistoButton, SIGNAL(clicked()), this, SLOT(refreshHisto()));
 
 	connect (instanceTable, SIGNAL(changeCurrentInstance(int)), this, SLOT(guiChangeInstance(int)));
 	connect (copyCombo, SIGNAL(activated(int)), this, SLOT(guiCopyInstanceTo(int)));
@@ -345,7 +335,6 @@ void FlowEventRouter::updateTab(){
 			advancedLineAdvectionFrame->hide();
 			
 			colormapEntityCombo->setItemText(1,"Position on Flow");
-			opacmapEntityCombo->setItemText(1,"Position on Flow");
 			break;
 		case (1) : //unsteady
 			steadyFieldFrame->hide();
@@ -360,7 +349,7 @@ void FlowEventRouter::updateTab(){
 		
 			
 			colormapEntityCombo->setItemText(1,"Time Step");
-			opacmapEntityCombo->setItemText(1,"Time Step");
+
 			break;
 		case(2) : //field line advection
 			advancedLineAdvectionFrame->show();
@@ -385,7 +374,7 @@ void FlowEventRouter::updateTab(){
 			seedtimeEndEdit->setEnabled(false);
 			
 			colormapEntityCombo->setItemText(1,"Position on Flow");
-			opacmapEntityCombo->setItemText(1,"Position on Flow");
+			
 			break;
 		default :
 			assert(0);
@@ -515,7 +504,6 @@ void FlowEventRouter::updateTab(){
 	}
 	if (fParams->GetMapperFunc()){
 		fParams->GetMapperFunc()->setParams(fParams);
-		opacityMappingFrame->setMapperFunction(fParams->GetMapperFunc());
 		colorMappingFrame->setMapperFunction(fParams->GetMapperFunc());
 		TFInterpolator::type t = fParams->GetMapperFunc()->colorInterpType();
 		if (colorInterpCheckbox->isChecked() && t != TFInterpolator::discrete) 
@@ -524,7 +512,6 @@ void FlowEventRouter::updateTab(){
 			colorInterpCheckbox->setChecked(true);
 	}
 
-    opacityMappingFrame->setVariableName(opacmapEntityCombo->currentText().toStdString());
     colorMappingFrame->setVariableName(colormapEntityCombo->currentText().toStdString());
 
 	
@@ -593,10 +580,8 @@ void FlowEventRouter::updateTab(){
 	geometryCombo->setCurrentIndex(fParams->getShapeType());
 	
 	colormapEntityCombo->setCurrentIndex(fParams->getColorMapEntityIndex());
-	opacmapEntityCombo->setCurrentIndex(fParams->getOpacMapEntityIndex());
 
     // Disable the mapping frame if a "Constant" color is selected;
-    opacityMappingFrame->setEnabled(fParams->getOpacMapEntityIndex() != 0);
     colorMappingFrame->setEnabled(fParams->getColorMapEntityIndex() != 0);
 
 	if (fParams->isRandom() && fParams->rakeEnabled()){//random rake
@@ -717,8 +702,6 @@ void FlowEventRouter::updateTab(){
 	if (fParams->GetMapperFunc()){
 		minColormapEdit->setText(QString::number(fParams->GetMapperFunc()->getMinColorMapValue()));
 		maxColormapEdit->setText(QString::number(fParams->GetMapperFunc()->getMaxColorMapValue()));
-		minOpacmapEdit->setText(QString::number(fParams->GetMapperFunc()->getMinOpacMapValue()));
-		maxOpacmapEdit->setText(QString::number(fParams->GetMapperFunc()->getMaxOpacMapValue()));
 	}
 	//Add time-varying displacement to rake extents:
 	size_t timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
@@ -774,26 +757,7 @@ void FlowEventRouter::updateTab(){
 		minColorBound->setText(QString::number(minval));
 		maxColorBound->setText(QString::number(maxval));
 	}
-	var = fParams->getOpacMapEntityIndex();
-	if (var < 4){
-		minOpacityBound->setText(QString::number(fParams->minRange(var, tstep)));
-		maxOpacityBound->setText(QString::number(fParams->maxRange(var, tstep)));
-	} else {
-		int varnum = DataStatus::mapActiveToSessionVarNum3D(var -4);
-		float minval= -1.f, maxval = 1.f;
-		if (dStatus->variableIsPresent3D(varnum)){
-			if (fParams->isEnabled()){
-				minval = dStatus->getDataMin3D(varnum, tstep);
-				maxval = dStatus->getDataMax3D(varnum, tstep);
-			} else {
-				minval = dStatus->getDefaultDataMin3D(varnum);
-				maxval = dStatus->getDefaultDataMax3D(varnum);
-			}
-		}
-		minOpacityBound->setText(QString::number(minval));
-		maxOpacityBound->setText(QString::number(maxval));
-	}
-
+	
 	updateMapBounds(fParams);
 	update();
 	guiSetTextChanged(false);
@@ -830,30 +794,21 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			colorMapMax = colorMapMin+1.e-6;
 			maxColormapEdit->setText(QString::number(colorMapMax));
 		}
-		float opacMapMin = minOpacmapEdit->text().toFloat();
-		float opacMapMax = maxOpacmapEdit->text().toFloat();
-		if (opacMapMin >= opacMapMax){
-			opacMapMax = opacMapMin+1.e-6;
-			maxOpacmapEdit->setText(QString::number(opacMapMax));
-		}
-		MapperFunction* mapperFunction = fParams->GetMapperFunc();
-		if (mapperFunction){
-			mapperFunction->setMaxColorMapValue(colorMapMax);
-			mapperFunction->setMinColorMapValue(colorMapMin);
-			mapperFunction->setMaxOpacMapValue(opacMapMax);
-			mapperFunction->setMinOpacMapValue(opacMapMin);
+		
+		TransferFunction* transferFunction = (TransferFunction*)fParams->GetMapperFunc();
+		if (transferFunction){
+			transferFunction->setMaxColorMapValue(colorMapMax);
+			transferFunction->setMinColorMapValue(colorMapMin);
 		}
 		fParams->setMinColorMapBound(colorMapMin);
 		fParams->setMaxColorMapBound(colorMapMax);
 		
-		fParams->setMinOpacMapBound(opacMapMin);
-		fParams->setMaxOpacMapBound(opacMapMax);
+
 		
 		//Align the editor:
 		fParams->setMinColorEditBound(fParams->getMinColorMapBound(),fParams->getColorMapEntityIndex());
 		fParams->setMaxColorEditBound(fParams->getMaxColorMapBound(),fParams->getColorMapEntityIndex());
-		fParams->setMinOpacEditBound(fParams->getMinOpacMapBound(),fParams->getOpacMapEntityIndex());
-		fParams->setMaxOpacEditBound(fParams->getMaxOpacMapBound(),fParams->getOpacMapEntityIndex());
+
 		setEditorDirty();
 	}
 	int flowType = fParams->getFlowType();
@@ -1496,20 +1451,15 @@ reinitTab(bool doOverride){
 	}
 	
 	std::vector<string> colorMapEntity;
-	std::vector<string> opacMapEntity;
+	
 	colorMapEntity.clear();
 	colorMapEntity.push_back("Constant");
 	colorMapEntity.push_back("Timestep");
 	colorMapEntity.push_back("Field Magnitude");
 	colorMapEntity.push_back("Seed Index");
-	opacMapEntity.clear();
-	opacMapEntity.push_back("Constant");
-	opacMapEntity.push_back("Timestep");
-	opacMapEntity.push_back("Field Magnitude");
-	opacMapEntity.push_back("Seed Index");
+	
 	for (int i = 0; i< newNumComboVariables; i++){
 		colorMapEntity.push_back(DataStatus::getInstance()->getActiveVarName3D(i));
-		opacMapEntity.push_back(DataStatus::getInstance()->getActiveVarName3D(i));
 	}
 	//Set up the color, opac map entity combos:
 	
@@ -1518,10 +1468,7 @@ reinitTab(bool doOverride){
 	for (int i = 0; i< (int)colorMapEntity.size(); i++){
 		colormapEntityCombo->addItem(QString(colorMapEntity[i].c_str()));
 	}
-	opacmapEntityCombo->clear();
-	for (int i = 0; i< (int)colorMapEntity.size(); i++){
-		opacmapEntityCombo->addItem(QString(opacMapEntity[i].c_str()));
-	}
+	
 	updateTab();
 	dontUpdate=false;
 }
@@ -2230,12 +2177,14 @@ guiSetColorMapEntity( int entityNum){
 	confirmText(false);
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set flow colormap entity");
-	//set the entity, put the entity bounds into the mapper function
+	//set the entity, put the entity bounds into the transfer function
 	fParams->setColorMapEntity(entityNum);
 
 	//Align the color part of the editor:
 	fParams->setMinColorEditBound(fParams->getMinColorMapBound(),entityNum);
 	fParams->setMaxColorEditBound(fParams->getMaxColorMapBound(),entityNum);
+	fParams->GetMapperFunc()->setMinOpacMapValue(fParams->getMinColorMapBound());
+	fParams->GetMapperFunc()->setMaxOpacMapValue(fParams->getMaxColorMapBound());
 
     // Disable the mapping frame if a "Constant" color is selected;
     colorMappingFrame->setEnabled(entityNum != 0);
@@ -2361,31 +2310,7 @@ guiEditSeedList(){
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
-void FlowEventRouter::
-guiSetOpacMapEntity( int entityNum){
-	confirmText(false);
-	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
-	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set flow opacity map entity");
-	//Change the entity, putting entity bounds into mapperFunction
-	fParams->setOpacMapEntity(entityNum);
-	//Align the opacity part of the editor
-	fParams->setMinOpacEditBound(fParams->getMinOpacMapBound(),entityNum);
-	fParams->setMaxOpacEditBound(fParams->getMaxOpacMapBound(),entityNum);
 
-    // Disable the mapping frame if a "Constant" color is selected;
-    opacityMappingFrame->setEnabled(entityNum != 0);
-
-	PanelCommand::captureEnd(cmd, fParams);
-	updateMapBounds(fParams);
-	updateTab();
-	update();
-	//We only need to redo the flowData if the entity is changing to "speed"
-	if(entityNum == 2) {
-		if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-		VizWinMgr::getInstance()->setFlowDataDirty(fParams);
-	}
-	else VizWinMgr::getInstance()->setFlowGraphicsDirty(fParams);
-}
 
 //Change mouse mode to specified value
 //0,1,2 correspond to edit, zoom, pan
@@ -3150,15 +3075,11 @@ void FlowEventRouter::
 updateMapBounds(RenderParams* params){
 	FlowParams* fParams = (FlowParams*)params;
 	QString strn;
-	MapperFunction* mpFunc = fParams->GetMapperFunc();
+	TransferFunction* mpFunc = (TransferFunction*)fParams->GetMapperFunc();
 	if (mpFunc){
-		minOpacmapEdit->setText(strn.setNum(mpFunc->getMinOpacMapValue(),'g',4));
-		maxOpacmapEdit->setText(strn.setNum(mpFunc->getMaxOpacMapValue(),'g',4));
 		minColormapEdit->setText(strn.setNum(mpFunc->getMinColorMapValue(),'g',4));
 		maxColormapEdit->setText(strn.setNum(mpFunc->getMaxColorMapValue(),'g',4));
 	} else {
-		minOpacmapEdit->setText("0.0");
-		maxOpacmapEdit->setText("1.0");
 		minColormapEdit->setText("0.0");
 		maxColormapEdit->setText("1.0");
 	}
@@ -3177,9 +3098,6 @@ setEditorDirty(RenderParams* p ){
 		if (!colorInterpCheckbox->isChecked() && t == TFInterpolator::discrete) 
 			colorInterpCheckbox->setChecked(true);
 	}
-    opacityMappingFrame->setMapperFunction(fp->GetMapperFunc());
-    opacityMappingFrame->setVariableName(opacmapEntityCombo->currentText().toStdString());
-    opacityMappingFrame->updateParams();
     
     colorMappingFrame->setMapperFunction(fp->GetMapperFunc());
     colorMappingFrame->setVariableName(colormapEntityCombo->currentText().toStdString());
@@ -3218,10 +3136,6 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance,boo
 
 void FlowEventRouter::cleanParams(Params* p) 
 {
-  opacityMappingFrame->setMapperFunction(NULL);
-  opacityMappingFrame->setVariableName("");
-  opacityMappingFrame->updateParams();
-
   colorMappingFrame->setMapperFunction(NULL);
   colorMappingFrame->setVariableName("");
   colorMappingFrame->updateParams();
@@ -3248,14 +3162,6 @@ void FlowEventRouter::paintEvent(QPaintEvent* ev){
 			colorMappingFrame->show();
 			QWidget::paintEvent(ev);
 			return;
-		}
-		if(!opacityMapShown ){
-#if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
-			QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
-			sArea->ensureWidgetVisible(opacityMappingFrame);
-			opacityMapShown = true;
-#endif
-			opacityMappingFrame->show();
 		}
 	}
 	QWidget::paintEvent(ev);
@@ -3293,4 +3199,116 @@ QSize FlowEventRouter::sizeHint() const {
 #endif
 
 	return QSize(460,vertsize);
+}
+//Respond to user click on save/load TF.  This launches the intermediate
+//dialog, then sends the result to the Flow params
+void FlowEventRouter::
+flowSaveTF(void){
+	FlowParams* dParams = VizWinMgr::getActiveFlowParams();
+	saveTF(dParams);
+}
+
+void FlowEventRouter::
+flowLoadInstalledTF(){
+	FlowParams* dParams = VizWinMgr::getActiveFlowParams();
+	TransferFunction* tf = (TransferFunction*)dParams->GetMapperFunc();
+	if (!tf) return;
+	float minb = tf->getMinMapValue();
+	float maxb = tf->getMaxMapValue();
+	if (minb >= maxb){ minb = 0.0; maxb = 1.0;}
+	loadInstalledTF(dParams,0);
+	tf = (TransferFunction*)dParams->GetMapperFunc();
+	tf->setMinMapValue(minb);
+	tf->setMaxMapValue(maxb);
+	setEditorDirty();
+	setDatarangeDirty(dParams);
+	VizWinMgr::getInstance()->setClutDirty(dParams);
+}
+void FlowEventRouter::
+flowLoadTF(void){
+	//If there are no TF's currently in Session, just launch file load dialog.
+	FlowParams* dParams = VizWinMgr::getActiveFlowParams();
+	loadTF(dParams,dParams->getColorMapEntityIndex());
+	
+	VizWinMgr::getInstance()->setClutDirty(dParams);
+}
+//Respond to user request to load/save TF
+//Assumes name is valid
+//
+void FlowEventRouter::
+sessionLoadTF(QString* name){
+	FlowParams* dParams = VizWinMgr::getActiveFlowParams();
+	confirmText(false);
+	
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Load Transfer Function from Session");
+	
+	//Get the transfer function from the session:
+	
+	std::string s(name->toStdString());
+	TransferFunction* tf = Session::getInstance()->getTF(&s);
+	assert(tf);
+	int varNum = dParams->getSessionVarNum();
+	dParams->hookupTF(tf, varNum);
+	PanelCommand::captureEnd(cmd, dParams);
+	setEditorDirty();
+	setDatarangeDirty(dParams);
+	VizWinMgr::getInstance()->setClutDirty(dParams);
+}
+void FlowEventRouter::
+refreshHisto(){
+	VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
+	if (!vizWin) return;
+	FlowParams* dParams = VizWinMgr::getInstance()->getActiveFlowParams();
+	if (dParams->doBypass(VizWinMgr::getActiveAnimationParams()->getCurrentTimestep())){
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Unable to refresh histogram");
+		return;
+	}
+	int varnum = dParams->getColorMapEntityIndex();
+	if (varnum < 4)return; //not a variable
+	int sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum -4);
+	DataMgr* dataManager = Session::getInstance()->getDataMgr();
+	float datarange[2];
+	datarange[0] = dParams->getMinColorMapBound();
+	datarange[1] = dParams->getMaxColorMapBound();
+
+	if (dataManager) {
+		refreshHistogram(dParams,sesvarnum,datarange);
+		setEditorDirty();
+	}
+}
+void FlowEventRouter::guiFitTFToData(){
+	
+	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return;
+	confirmText(false);
+	FlowParams* pParams = VizWinMgr::getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "fit TF to data");
+	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
+
+	
+	int varnum = pParams->getColorMapEntityIndex();
+	float minBound = pParams->minRange(varnum,ts);
+	float maxBound = pParams->maxRange(varnum,ts);
+	
+	((TransferFunction*)pParams->GetMapperFunc())->setMinMapValue(minBound);
+	((TransferFunction*)pParams->GetMapperFunc())->setMaxMapValue(maxBound);
+	PanelCommand::captureEnd(cmd, pParams);
+	setDatarangeDirty(pParams);
+	updateTab();
+}
+void FlowEventRouter::
+guiBindColorToOpac(){
+	confirmText(false);
+	FlowParams* pParams = VizWinMgr::getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "bind Color to Opacity");
+    colorMappingFrame->bindColorToOpacity();
+	PanelCommand::captureEnd(cmd, pParams);
+}
+void FlowEventRouter::
+guiBindOpacToColor(){
+	confirmText(false);
+	FlowParams* pParams = VizWinMgr::getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "bind Opacity to Color");
+    colorMappingFrame->bindOpacityToColor();
+	PanelCommand::captureEnd(cmd, pParams);
 }
