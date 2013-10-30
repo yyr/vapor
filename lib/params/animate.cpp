@@ -59,8 +59,10 @@ void animate:: keyframeInterpolate(std::vector<Keyframe*>& key_vec, std::vector<
 	}
    
    
-   //init of frames between two starting frames 
-    for (int i=0; i < noVPs; i++) totalSegments[i]=0;
+	//initialize no. of frames between the starting frames 
+    for (int i=0; i < noVPs; i++) {
+		totalSegments[i]=key_vec[i]->numFrames;
+	}
 	
    //pre-calculations for the interpolation
     priorInterPolationCalcs(key_vec); 
@@ -72,9 +74,11 @@ void animate:: keyframeInterpolate(std::vector<Keyframe*>& key_vec, std::vector<
     
     }
     
-    //fill out the no of frames in between starting keyframes
+    //fill out the no of frames in between starting keyframes.
+	//If the stationary flag was not set (on the next keyframe) then totalSegments[i] 
+	//is the calculated number of frames in the segment
 	for (int i=0; i < noVPs ; i++) {
-		if (!key_vec[i]->stationaryFlag)
+		if ((i == noVPs -1) || (!key_vec[i+1]->stationaryFlag))
 			key_vec[i]->numFrames=totalSegments[i];
 	}
     

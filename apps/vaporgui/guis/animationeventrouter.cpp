@@ -216,7 +216,9 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Animation tab text change");
 	bool frameChanged = false;
 	if (keyframeTextChanged){
-		
+		//Handle change in timestepsPerFrame.  
+		currentKeyIndex = keyIndexSpin->value();
+		if (currentKeyIndex == 0) timestepRateEdit->setText("0");
 		Keyframe* key = aParams->getKeyframe(currentKeyIndex);
 		key->speed = abs(speedEdit->text().toFloat());
 		int tstep = keyTimestepEdit->text().toInt();
@@ -224,9 +226,7 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 		if (tstep < ds->getMinTimestep()) tstep = ds->getMinTimestep();
 		if (tstep > ds->getMaxTimestep()) tstep = ds->getMaxTimestep();
 		key->timeStep = tstep;
-		//Handle change in timestepsPerFrame.  
-		int currentKeyIndex = keyIndexSpin->value();
-		if (currentKeyIndex == 0) timestepRateEdit->setText("0");
+		
 		if (key->synch && currentKeyIndex>0) {
 			key->timestepsPerFrame = timestepRateEdit->text().toInt();
 			Keyframe* prevKey = aParams->getKeyframe(currentKeyIndex-1);
@@ -237,8 +237,9 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 
 		if (numFramesEdit->isEnabled()){
 			int newNumFrames = numFramesEdit->text().toInt();
-			//Need to make sure that the new numFrames at least 1
-			if (newNumFrames < 1) newNumFrames = 1;
+			//Need to make sure that the new numFrames at least 1, except for the first one.
+			if (currentKeyIndex == 0) newNumFrames = 0;
+			else if (newNumFrames < 1) newNumFrames = 1;
 			key->numFrames = newNumFrames;
 		} 
 		fixKeyframes();
@@ -410,6 +411,8 @@ void AnimationEventRouter::updateTab(){
 		numFramesEdit->setText("0");
 		timestepRateEdit->setText("0");
 		timestepRateEdit->setEnabled(false);
+		numFramesEdit->setEnabled(false);
+		kf->numFrames = 0;
 	} else {
 		if (!calcTimestepRate(currentKeyIndex, aParams)) kf->synch = false;
 	} 
@@ -426,10 +429,15 @@ void AnimationEventRouter::updateTab(){
 		minframeLabel->setText("Min Time Step:");
 		maxframeLabel->setText("Max Time Step:");
 	}
-	if (kf->stationaryFlag){
-		numFramesEdit->setEnabled(true);
-	} else {
-		numFramesEdit->setEnabled(false);
+	//Stationary flag indicates that the viewpoint does not change between this and the next key frame.
+	//THerefore need to look at the stationary flag for the previous frame to know if we can edit the numFrames
+	if (kf->synch) numFramesEdit->setEnabled(false);
+	else if(currentKeyIndex > 0){
+		if (kf->stationaryFlag){
+			numFramesEdit->setEnabled(true);
+		} else {
+			numFramesEdit->setEnabled(false);
+		}
 	}
 
 	guiSetTextChanged(false);
@@ -854,11 +862,15 @@ void AnimationEventRouter::guiChangeKeyIndex(int keyIndex){
 	
 	frameIndexEdit->setText(QString::number(aParams->getFrameIndex(currentKeyIndex)));
 	speedEdit->setText(QString::number(kf->speed));
-	if (kf->stationaryFlag){
-		numFramesEdit->setEnabled(true);
-	} else {
-		numFramesEdit->setEnabled(false);
+	if (kf->synch) numFramesEdit->setEnabled(false);
+	else if(currentKeyIndex > 0){
+		if (kf->stationaryFlag){
+			numFramesEdit->setEnabled(true);
+		} else {
+			numFramesEdit->setEnabled(false);
+		}
 	}
+	
 	//Don't emit a signal:
 	synchCheckBox->setEnabled(false);
 	synchCheckBox->setChecked(kf->synch);
@@ -914,6 +926,14 @@ void AnimationEventRouter::guiSynchToFrame(bool val){
 		MessageReporter::errorMsg("The current and previous keyframes must have different time steps if time steps are matched to the frame counter");
 		kf->synch = false;
 		return;
+	}
+	if (kf->synch) numFramesEdit->setEnabled(false);
+	else if(currentKeyIndex > 0){
+		if (kf->stationaryFlag){
+			numFramesEdit->setEnabled(true);
+		} else {
+			numFramesEdit->setEnabled(false);
+		}
 	}
 	
 	aParams->buildViewsAndTimes();
@@ -1017,6 +1037,7 @@ void AnimationEventRouter::guiInsertKeyframe(){
 	} else {
 		//In this case we know the camera moved so there needs to be a nonzero speed:
 		if (newSpeed == 0.) newKeyframe->speed = 0.1;
+		newKeyframe->stationaryFlag = false;
 	}
 	aParams->insertKeyframe(currentKeyIndex,newKeyframe);
 	if (keyIndexSpin->maximum() < currentKeyIndex+1) keyIndexSpin->setMaximum(currentKeyIndex+1);

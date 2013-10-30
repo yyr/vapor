@@ -644,6 +644,7 @@ void AnimationParams::buildViewsAndTimes(){
 	for (int i = 0; i<animKeyframes.size(); i++){
 		keyframes[i]->numFrames = animKeyframes[i]->numFrames;
 		if (keyframes[i]->synch) keyframes[i]->speed = animKeyframes[i]->speed/maxStretchedSize;
+		keyframes[i]->stationaryFlag = animKeyframes[i]->stationaryFlag;
 	}
 	
 	//Undo stretch:
