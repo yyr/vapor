@@ -212,7 +212,7 @@ bool TransferFunction::elementStartHandler(ExpatParseMgr* pm, int depth ,
                                            std::string& tagString, 
                                            const char **attrs)
 {
-  if (StrCmpNoCase(tagString, _transferFunctionTag) == 0)
+  if (StrCmpNoCase(tagString, _transferFunctionTag) == 0 || StrCmpNoCase(tagString, _mapperFunctionTag) == 0)
   {
     //If it's a TransferFunction tag, save the left/right bounds attributes.
     //Ignore the name tag
@@ -236,13 +236,13 @@ bool TransferFunction::elementStartHandler(ExpatParseMgr* pm, int depth ,
       {
         ist >> mapperName;
       }
-      else if (StrCmpNoCase(attribName, _leftBoundAttr) == 0) 
+      else if (StrCmpNoCase(attribName, _leftBoundAttr) == 0 ||StrCmpNoCase(attribName, _leftColorBoundAttr) == 0)
       {
         float floatval;
         ist >> floatval;
         setMinMapValue(floatval);
       }
-      else if (StrCmpNoCase(attribName, _rightBoundAttr) == 0) 
+      else if (StrCmpNoCase(attribName, _rightBoundAttr) == 0 || StrCmpNoCase(attribName, _rightColorBoundAttr) == 0)
       {
         float floatval;
         ist >> floatval;
@@ -341,6 +341,9 @@ bool TransferFunction::elementStartHandler(ExpatParseMgr* pm, int depth ,
   //Prepare for data tags, only in versions after 1.5
   else if ((StrCmpNoCase(tagString, _leftBoundTag) == 0) ||
 			(StrCmpNoCase(tagString, _rightBoundTag) == 0) || 
+			//MapperFunction tags are read here too:
+			(StrCmpNoCase(tagString, _leftColorBoundTag) == 0) ||
+			(StrCmpNoCase(tagString, _rightColorBoundTag) == 0) || 
 			(StrCmpNoCase(tagString, _opacityCompositionTag) == 0) ||
 			(StrCmpNoCase(tagString, _tfNameTag) == 0)) {
 		//Should have a double or long type attribute
@@ -383,11 +386,11 @@ bool TransferFunction::elementEndHandler(ExpatParseMgr* pm, int depth ,
 		  bool ok = px->elementEndHandler(pm, depth, tag);
 		  return ok;
 	} //Otherwise need to obtain data values
-	else if (StrCmpNoCase(tag, _leftBoundTag) == 0){
+	else if (StrCmpNoCase(tag, _leftBoundTag) == 0 || StrCmpNoCase(tag, _leftColorBoundTag) == 0){
 		vector<double> val = pm->getDoubleData();
 		setMinMapValue((float)val[0]);
 		return true;
-	} else if (StrCmpNoCase(tag, _rightBoundTag) == 0){
+	} else if (StrCmpNoCase(tag, _rightBoundTag) == 0 || StrCmpNoCase(tag, _rightColorBoundTag) == 0){
 		vector<double> val = pm->getDoubleData();
 		setMaxMapValue((float)val[0]);
 		return true;
