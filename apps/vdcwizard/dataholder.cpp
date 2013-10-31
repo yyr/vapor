@@ -27,7 +27,7 @@
 #include <QDebug>
 #include <QString>
 #include <vapor/vdfcreate.h>
-#include <vapor/Copy2vdf.h>
+#include <vapor/Copy2VDF.h>
 #include <vapor/MetadataVDC.h>
 #include <vapor/WaveCodecIO.h>
 #include <vapor/DCReader.h>
