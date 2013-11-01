@@ -37,6 +37,8 @@ Copy2VDF::Copy2VDF() {
 	_mvMask2DXY = NULL;
 	_mvMask2DXZ = NULL;
 	_mvMask2DYZ = NULL;
+
+	DCData = NULL;
 }
 
 Copy2VDF::~Copy2VDF() {
@@ -395,7 +397,7 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
     MyBase::SetErrMsgFilePtr(stderr);
 
     _progname = Basename(argv[0]);
-	DCReader *DCData;
+	//DCReader *DCData;
 
 	OptionParser op;
     if (op.AppendOptions(set_opts) < 0) {
@@ -434,11 +436,13 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 	string metafile = argv[argc-1];
 	
 	//string dataType = "mom";
-	if (dataType == "roms") DCData = new DCReaderROMS(ncdffiles); 
-	else if (dataType == "wrf") {
-		DCData = new DCReaderWRF(ncdffiles);
+	if (DCData==NULL){
+		if (dataType == "roms") DCData = new DCReaderROMS(ncdffiles); 
+		else if (dataType == "wrf") {
+			DCData = new DCReaderWRF(ncdffiles);
+		}
+		else DCData = new DCReaderMOM(ncdffiles);
 	}
-	else DCData = new DCReaderMOM(ncdffiles);
 
 	if (MyBase::GetErrCode() != 0) return(-1);
 
