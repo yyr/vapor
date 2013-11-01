@@ -595,10 +595,9 @@ reinit(bool doOverride){
 		newTransferFunction->setOpaque();
 
         //Set to default map bounds
-		newTransferFunction->setMinColorMapValue(0.f);
-		newTransferFunction->setMaxColorMapValue(1.f);
-		newTransferFunction->setMinOpacMapValue(0.f);
-		newTransferFunction->setMaxOpacMapValue(1.f);
+		
+		newTransferFunction->setMinMapValue(0.f);
+		newTransferFunction->setMaxMapValue(1.f);
 		//const
 		newMinOpacEditBounds[0] = 0.f;
 		newMaxOpacEditBounds[0] = 1.f;
@@ -2112,6 +2111,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 		
 		pm->pushClassStack(transferFunction);
 		transferFunction->elementStartHandler(pm, depth, tagString, attrs);
+		
 		return true;
 	} else if (StrCmpNoCase(tagString, TransferFunction::_transferFunctionTag) == 0) {
 		//Need to "push" to mapper function parser.
@@ -2213,7 +2213,7 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 		return true;
 	else if (StrCmpNoCase(tag, _variableTag) == 0)
 		return true;
-	else if (StrCmpNoCase(tag, MapperFunction::_mapperFunctionTag) == 0)
+	else if (StrCmpNoCase(tag, MapperFunction::_mapperFunctionTag) == 0)	
 		return true;
 	else if (StrCmpNoCase(tag, TransferFunction::_transferFunctionTag) == 0) 
 		return true;
@@ -2237,8 +2237,8 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 	transferFunction->makeLut(lut);
 	//Setup mapping
 	
-	float colorMin = transferFunction->getMinColorMapValue();
-	float colorMax = transferFunction->getMaxColorMapValue();
+	float colorMin = transferFunction->getMinMapValue();
+	float colorMax = transferFunction->getMaxMapValue();
 
 	float colorVar;
 	RegularGrid* colorGrid = 0;
@@ -2395,8 +2395,8 @@ mapUnsteadyColors(PathLineData* container, int startTimeStep, int minFrame, Regi
 	//Setup color and opacity mappings
 	
 
-	float colorMin = transferFunction->getMinColorMapValue();
-	float colorMax = transferFunction->getMaxColorMapValue();
+	float colorMin = transferFunction->getMinMapValue();
+	float colorMax = transferFunction->getMaxMapValue();
 
 	float colorVar;
 	
@@ -2596,16 +2596,16 @@ getOpacMapEntityIndex() {
 void FlowParams::
 setColorMapEntity( int entityNum){
 	if (!transferFunction) return;
-	transferFunction->setMinColorMapValue(minColorBounds[entityNum]);
-	transferFunction->setMaxColorMapValue(maxColorBounds[entityNum]);
-	transferFunction->setColorVarNum(entityNum);
+	transferFunction->setMinMapValue(minColorBounds[entityNum]);
+	transferFunction->setMaxMapValue(maxColorBounds[entityNum]);
+	transferFunction->setVarNum(entityNum);
 }
 void FlowParams::
 setOpacMapEntity( int entityNum){
 	if (!transferFunction) return;
-	transferFunction->setMinOpacMapValue(minOpacBounds[entityNum]);
-	transferFunction->setMaxOpacMapValue(maxOpacBounds[entityNum]);
-    transferFunction->setOpacVarNum(entityNum);
+	transferFunction->setMinMapValue(minOpacBounds[entityNum]);
+	transferFunction->setMaxMapValue(maxOpacBounds[entityNum]);
+    transferFunction->setVarNum(entityNum);
 }
 
 
@@ -2619,12 +2619,12 @@ void FlowParams::setMaxColorMapBound(float val){
 	if(GetMapperFunc())GetMapperFunc()->setMaxColorMapValue(val);
 }
 void FlowParams::setMinOpacMapBound(float val){
-	minOpacBounds[getOpacMapEntityIndex()] = val;
-	if(GetMapperFunc())GetMapperFunc()->setMinOpacMapValue(val);
+	minColorBounds[getOpacMapEntityIndex()] = val;
+	if(GetMapperFunc())GetMapperFunc()->setMinColorMapValue(val);
 }
 void FlowParams::setMaxOpacMapBound(float val){
-	maxOpacBounds[getOpacMapEntityIndex()] = val;
-	if(GetMapperFunc())GetMapperFunc()->setMaxOpacMapValue(val);
+	maxColorBounds[getOpacMapEntityIndex()] = val;
+	if(GetMapperFunc())GetMapperFunc()->setMaxColorMapValue(val);
 }
 
 //Determine the max and min (likely range) associated with a mapped index:
@@ -3067,8 +3067,8 @@ bool FlowParams::multiAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** stea
 	//One-line Fix for bug 1680062 in 1.1.0:
 	int numSeedPoints = calcNumSeedPoints(seedTimeStart);
 	maxPoints = calcMaxPoints();
-	bool useSpeeds =  (getColorMapEntityIndex() == 2 || getOpacMapEntityIndex() == 2);
-	bool doRGBAs = (getColorMapEntityIndex() + getOpacMapEntityIndex() > 0);
+	bool useSpeeds =  (getColorMapEntityIndex() == 2);
+	bool doRGBAs = (getColorMapEntityIndex() > 0);
 
 	//  Previous cache should already exist:
 	assert(steadyFlowCache[startTime]);
@@ -3504,7 +3504,7 @@ hookupTF(TransferFunction* tf, int index){
 	minColorEditBounds[index] = tf->getMinMapValue();
 	maxColorEditBounds[index] = tf->getMaxMapValue();
 	tf->setParams(this);
-	tf->setVarNum(getColorMapEntityIndex());
+	tf->setVarNum(index);
 	
 }
 int FlowParams::getSessionVarNum() { 

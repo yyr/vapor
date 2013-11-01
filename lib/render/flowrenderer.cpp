@@ -150,7 +150,7 @@ void FlowRenderer::paintGL()
 	int timeStep = currentTimestep;
 	bool didRebuild = false;
 	bool didRemap = false;
-	bool constColors = ((myFlowParams->getColorMapEntityIndex() + myFlowParams->getOpacMapEntityIndex()) == 0);
+	bool constColors = (myFlowParams->getColorMapEntityIndex() == 0);
 	
 	constFlowColor[3] = myFlowParams->getConstantOpacity();
 	QRgb constRgb = myFlowParams->getConstantColor();
@@ -738,7 +738,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 	//that occurs if the map bit is dirty, but there's no need to rebuild data.
 	bool graphicsOnly = (flowMapIsDirty(timeStep) && 
 		!(flowDataIsDirty(timeStep) && needsRefresh(myFlowParams,timeStep)) );
-	bool constColors = ((myFlowParams->getColorMapEntityIndex() + myFlowParams->getOpacMapEntityIndex())== 0);
+	bool constColors = (myFlowParams->getColorMapEntityIndex() == 0);
 	
 	//Clean the dirty parts of cache, unless this is just a rebuild of the graphics:
 	bool OK = true;

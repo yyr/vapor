@@ -194,8 +194,8 @@ public:
 			seedPointList[seedPointList.size()-1].set3Val(newCoords);
 	}
 	void emptySeedList(){seedPointList.clear();}
-	int getColorMapEntityIndex() ;
-	int getOpacMapEntityIndex() ;
+	int getColorMapEntityIndex();
+	int getOpacMapEntityIndex();
 	std::string& getColorMapEntity(int indx) {return colorMapEntity[indx];}
 	std::string& getOpacMapEntity(int indx) {return opacMapEntity[indx];}
 	bool refreshIsAuto() {return autoRefresh;}

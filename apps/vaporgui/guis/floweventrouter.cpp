@@ -797,8 +797,8 @@ void FlowEventRouter::confirmText(bool /*render*/){
 		
 		TransferFunction* transferFunction = (TransferFunction*)fParams->GetMapperFunc();
 		if (transferFunction){
-			transferFunction->setMaxColorMapValue(colorMapMax);
-			transferFunction->setMinColorMapValue(colorMapMin);
+			transferFunction->setMaxMapValue(colorMapMax);
+			transferFunction->setMinMapValue(colorMapMin);
 		}
 		fParams->setMinColorMapBound(colorMapMin);
 		fParams->setMaxColorMapBound(colorMapMax);
@@ -2180,11 +2180,11 @@ guiSetColorMapEntity( int entityNum){
 	//set the entity, put the entity bounds into the transfer function
 	fParams->setColorMapEntity(entityNum);
 
-	//Align the color part of the editor:
+	//Align the the editor:
 	fParams->setMinColorEditBound(fParams->getMinColorMapBound(),entityNum);
 	fParams->setMaxColorEditBound(fParams->getMaxColorMapBound(),entityNum);
-	fParams->GetMapperFunc()->setMinOpacMapValue(fParams->getMinColorMapBound());
-	fParams->GetMapperFunc()->setMaxOpacMapValue(fParams->getMaxColorMapBound());
+	fParams->GetMapperFunc()->setMinColorMapValue(fParams->getMinColorMapBound());
+	fParams->GetMapperFunc()->setMaxColorMapValue(fParams->getMaxColorMapBound());
 
     // Disable the mapping frame if a "Constant" color is selected;
     colorMappingFrame->setEnabled(entityNum != 0);
@@ -3216,7 +3216,7 @@ flowLoadInstalledTF(){
 	float minb = tf->getMinMapValue();
 	float maxb = tf->getMaxMapValue();
 	if (minb >= maxb){ minb = 0.0; maxb = 1.0;}
-	loadInstalledTF(dParams,0);
+	loadInstalledTF(dParams,dParams->getColorMapEntityIndex());
 	tf = (TransferFunction*)dParams->GetMapperFunc();
 	tf->setMinMapValue(minb);
 	tf->setMaxMapValue(maxb);
@@ -3229,7 +3229,13 @@ flowLoadTF(void){
 	//If there are no TF's currently in Session, just launch file load dialog.
 	FlowParams* dParams = VizWinMgr::getActiveFlowParams();
 	loadTF(dParams,dParams->getColorMapEntityIndex());
-	
+	TransferFunction* tf = (TransferFunction*)dParams->GetMapperFunc();
+	float minval = tf->getMinMapValue();
+	float maxval = tf->getMaxMapValue();
+	minColormapEdit->setText(QString::number(minval));
+	maxColormapEdit->setText(QString::number(maxval));
+	dParams->setMinColorMapBound(minval);
+	dParams->setMaxColorMapBound(maxval);
 	VizWinMgr::getInstance()->setClutDirty(dParams);
 }
 //Respond to user request to load/save TF
@@ -3247,7 +3253,7 @@ sessionLoadTF(QString* name){
 	std::string s(name->toStdString());
 	TransferFunction* tf = Session::getInstance()->getTF(&s);
 	assert(tf);
-	int varNum = dParams->getSessionVarNum();
+	int varNum = dParams->getColorMapEntityIndex();
 	dParams->hookupTF(tf, varNum);
 	PanelCommand::captureEnd(cmd, dParams);
 	setEditorDirty();
