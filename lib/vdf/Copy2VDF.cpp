@@ -97,7 +97,7 @@ void Copy2VDF::GetTimeMap(
 	// Cross-reference ncdf and vdc times
 	//
 	float ncdftime; 
-	for (int i=startts; i<numts && i<DCData->GetNumTimeSteps(); i++) {
+	for (int i=startts; i<numts+startts && i<DCData->GetNumTimeSteps(); i++) {
 		ncdftime = ncdftimes[i];
 
 		vector <float>::iterator itr = find(
