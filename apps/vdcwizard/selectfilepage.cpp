@@ -54,13 +54,22 @@ SelectFilePage::SelectFilePage(DataHolder *DH, QWidget *parent) :
 
 void SelectFilePage::on_browseOutputVdfFile_clicked() {
 	QString file;
-    if (dataHolder->getOperation()=="2vdf") file = QFileDialog::getOpenFileName(this,"Select output metada (.vdf) file.","/glade/proj3/DASG/pearse/data");
-    else file = QFileDialog::getSaveFileName(this,"Select output metada (.vdf) file.","/glade/proj3/DASG/pearse/data");
+    if (dataHolder->getOperation()=="2vdf") file = QFileDialog::getOpenFileName(this,"Select output metada (.vdf) file.",selectedDirectory);//,"/glade/proj3/DASG/pearse/data");
+    else file = QFileDialog::getSaveFileName(this,"Select output metada (.vdf) file.",selectedDirectory);//"/glade/proj3/DASG/pearse/data");
 	selectedDirectory = QDir(file).absolutePath();
 	int size = file.split(".",QString::SkipEmptyParts).size();
-    if (file != ""){
-        if (file.split(".",QString::SkipEmptyParts).at(size-1) != "vdf") vdfBadFile->show();
-        outputVDFtext->setText(file);
+	if (file != ""){
+		QString base = file.split(".",QString::SkipEmptyParts).at(0);
+		QString extension = file.split(".",QString::SkipEmptyParts).at(size-1);
+        qDebug() << extension;// << endl;
+		qDebug() << base;
+		QStringList list;
+		list.append(base);
+		if ((size==1)||(extension == NULL)||(extension != "vdf")) {
+			list.append(".vdf");
+			file = list.join("");
+		}
+		outputVDFtext->setText(file);
         dataHolder->setVDFfileName(file.toStdString());
         dataHolder->setPDVDFfile(file.toStdString());
     }
@@ -89,6 +98,7 @@ void SelectFilePage::on_addFileButton_clicked() {
     	wrfRadioButton->setEnabled(true);
 	}
 
+	selectedDirectory = QDir(fileNames.at(0)).absolutePath();
     // convert fileList into a vector of std::string
     // (not QStrings) to feed into DCReaderMOM
     stdFileList = getSelectedFiles();

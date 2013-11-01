@@ -42,7 +42,6 @@ using namespace VAPoR;
 vector<const char*> errors;
 
 void ErrMsgCBHandler(const char* error, int){
-	//cout << error << "!" << endl;
 	errors.push_back(error);
 }
 
@@ -203,10 +202,9 @@ int DataHolder::VDFCreate() {
 
 	char** args = new char*[ argv.size() + 1 ];
     for(size_t a=0; a<argv.size(); a++) {
-        cout << argv[a].c_str() << endl;
+        //cout << argv[a].c_str() << endl;
         args[a] = strdup(argv[a].c_str());
     }
-  	cout << getFileType() << endl; 
 	return launcherVdfCreate.launchVdfCreate(argc,args,getFileType());
 }
 
@@ -317,11 +315,9 @@ int DataHolder::run2VDFincremental(string start, string var) {
     argv.push_back(PDinputVDFfile);
     argc++;
 
-    //cout << endl;
-    //cout << argc << endl;
     char** args = new char*[ argv.size() + 1 ];
     for(size_t a=0; a<argv.size(); a++) {
-        cout << argv[a].c_str() << endl;
+        //cout << argv[a].c_str() << endl;
         args[a] = strdup(argv[a].c_str());
     }   
 

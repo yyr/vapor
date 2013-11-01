@@ -70,7 +70,6 @@ void IntroPage::on_populateDataButton_clicked()
 }
 
 void IntroPage::initializePage() {
-    cout << "intropage initialized" << endl;
 	QList<QWizard::WizardButton> layout;
     wizard()->setButtonLayout(layout);
 }

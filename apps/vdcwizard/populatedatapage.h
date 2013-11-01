@@ -58,7 +58,9 @@ private slots:
     void on_numtsSpinner_valueChanged(QString value){ dataHolder->setPDnumTS(value.toStdString()); }
 
 private:
-    void cleanupPage();
+	void enableWidgets();
+    void disableWidgets();
+	void cleanupPage();
     void initializePage();
     void setupVars();
     void populateCheckedVars();
