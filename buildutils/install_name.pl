@@ -59,8 +59,9 @@ sub get_deps {
 	my($cmd) = "/usr/bin/file $target";
 	$_ = `$cmd`;
 	if ($?>>8) {
-		printf STDERR "$ProgName: Command \"$cmd\" failed\n";
-		exit(1);
+		#printf STDERR "$ProgName: Command \"$cmd\" failed\n";
+		#exit(1);
+		return(@Deps);
 	}
 	if ($_ =~ "executable") {
 		$target_is_lib = 0;
@@ -142,8 +143,9 @@ sub want_libraries {
 		my ($cmd) = "/usr/bin/file $File::Find::name";
 		$_ = `$cmd`;
 		if ($?>>8) {
-			printf STDERR "$ProgName: Command \"$cmd\" failed\n";
-			exit(1);
+			#printf STDERR "$ProgName: Command \"$cmd\" failed\n";
+			#exit(1);
+			return;
 		}
 		if ($_ =~ "Mach-O" && $_ =~ "library") {
 			push (@WantedFiles, $File::Find::name);
@@ -157,8 +159,9 @@ sub want_executables {
 		my ($cmd) = "/usr/bin/file $File::Find::name";
 		$_ = `$cmd`;
 		if ($?>>8) {
-			printf STDERR "$ProgName: Command \"$cmd\" failed\n";
-			exit(1);
+			#printf STDERR "$ProgName: Command \"$cmd\" failed\n";
+			#exit(1);
+			return;
 		}
 		if ($_ =~ "Mach-O" && $_ =~ "executable") {
 			push (@WantedFiles, $File::Find::name);
@@ -300,7 +303,7 @@ foreach $target (@Libraries) {
 	my($vol, $dir, $libname) = File::Spec->splitpath($target);
 	my (@cmd) = (
 		"/usr/bin/install_name_tool", "-id", 
-		"/Applications/VAPOR.app/Contents/MacOS/$libname", $target
+		"/Applications/VAPOR/VAPOR.app/Contents/MacOS/$libname", $target
 	);
 #	my (@cmd) = (
 #		"/usr/bin/install_name_tool", "-id", 

@@ -160,13 +160,18 @@ sub edit_template {
 	close (IFH);
 }
 
-if ($#ARGV != 3) {
+if ($#ARGV == 2) {
+	$TemplatePath = File::Spec->canonpath(shift(@ARGV));
+	$DstDir = File::Spec->canonpath(shift(@ARGV));
+}
+elsif ($#ARGV == 3) {
+	$InstallPath = File::Spec->canonpath(shift(@ARGV));
+	$TemplatePath = File::Spec->canonpath(shift(@ARGV));
+	$DstDir = File::Spec->canonpath(shift(@ARGV));
+}
+else {
 	usage("Wrong # of arguments");
 }
-
-$InstallPath = File::Spec->canonpath(shift(@ARGV));
-$TemplatePath = File::Spec->canonpath(shift(@ARGV));
-$DstDir = File::Spec->canonpath(shift(@ARGV));
 $VersionString = shift(@ARGV);
 
 @dirs = File::Spec->splitdir($TemplatePath);
@@ -183,12 +188,17 @@ copy_template($TemplatePath, $BundlePath);
 
 edit_template($TemplatePath, $BundlePath, $VersionString);
 
+if (! (defined($InstallPath))) {
+	# we're done.
+	exit(0);
+}  
+
 copy_install_targets($InstallPath, $BundlePath);
 
 
 $vapor_install = File::Spec->catfile($InstallPath, "vapor-install.csh");
-$macos_dir = File::Spec->catdir($bundle_path, "Contents", "MacOS");
-$plugins_dir = File::Spec->catdir($bundle_path, "Contents", "Plugins");
+$macos_dir = File::Spec->catdir($BundlePath, "Contents", "MacOS");
+$plugins_dir = File::Spec->catdir($BundlePath, "Contents", "Plugins");
 
 my ($vol, $dir, $file) = File::Spec->splitpath($0);
 print "dir = $dir\n";
