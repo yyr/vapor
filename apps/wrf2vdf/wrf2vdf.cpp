@@ -1,19 +1,19 @@
 #include <cstdio>
 #include <cstdlib>
-#include <vapor/Copy2VDF.h>
+#include <wrf2vdf.h>
 
 // Some of the wrf data converter logic differs from the ocean model converters.
 // Therefore, we are currently giving the wrf conversion routine its own dediated
 // code base.  Perhaps at a later date, we will be able to integrate the wrf
 // conversion to be run by the vdfcreate.cpp and Copy2VDF.cpp code bases.
 #ifdef	DEAD
-int main(int argc, char **argv) {
+/*int main(int argc, char **argv) {
 	MyBase::SetErrMsgFilePtr(stderr);
     string command = "wrf";
 	Copy2VDF vdfcreator;
     if (vdfcreator.launch2vdf(argc, argv, command) < 0) exit(1);
     exit(0);    
-}
+}*/
 #endif
 
 #include <iostream>
@@ -35,7 +35,35 @@ int main(int argc, char **argv) {
 using namespace VetsUtil;
 using namespace VAPoR;
 
-struct opt_t {
+wrf2vdf::wrf2vdf() {
+        _progname.clear();
+        _vars.clear();
+        _numts = 0;
+        _startts = 0;
+        _level = 0;
+        _lod = 0;
+        _nthreads = 0;
+        _help = false;
+        _quiet = false;
+        _debug = false;
+
+        _mvMask3D = NULL;
+        _mvMask2DXY = NULL;
+        _mvMask2DXZ = NULL;
+        _mvMask2DYZ = NULL;
+
+        DCData = NULL;
+}
+
+wrf2vdf::~wrf2vdf() {
+        if (_mvMask3D) delete []  _mvMask3D;
+        if (_mvMask2DXY) delete [] _mvMask2DXY;
+        if (_mvMask2DXZ) delete [] _mvMask2DXZ;
+        if (_mvMask2DYZ) delete [] _mvMask2DYZ;
+}
+
+
+/*struct opt_t {
 	vector <string> vars;
 	int numts;
 	int startts;
@@ -69,21 +97,21 @@ OptionParser::OptDescRec_T	set_opts[] = {
 };
 
 OptionParser::Option_T	get_options[] = {
-	{"vars", VetsUtil::CvtToStrVec, &opt.vars, sizeof(opt.vars)},
-	{"numts", VetsUtil::CvtToInt, &opt.numts, sizeof(opt.numts)},
-	{"startts", VetsUtil::CvtToInt, &opt.startts, sizeof(opt.startts)},
-	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
-	{"lod", VetsUtil::CvtToInt, &opt.lod, sizeof(opt.lod)},
-	{"nthreads", VetsUtil::CvtToInt, &opt.nthreads, sizeof(opt.nthreads)},
-	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
-	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
-	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
+	{"vars", VetsUtil::CvtToStrVec, &_vars, sizeof(_vars)},
+	{"numts", VetsUtil::CvtToInt, &_numts, sizeof(_numts)},
+	{"startts", VetsUtil::CvtToInt, &_startts, sizeof(_startts)},
+	{"level", VetsUtil::CvtToInt, &_level, sizeof(_level)},
+	{"lod", VetsUtil::CvtToInt, &_lod, sizeof(_lod)},
+	{"nthreads", VetsUtil::CvtToInt, &_nthreads, sizeof(_nthreads)},
+	{"help", VetsUtil::CvtToBoolean, &_help, sizeof(opt.help)},
+	{"quiet", VetsUtil::CvtToBoolean, &_quiet, sizeof(_quiet)},
+	{"debug", VetsUtil::CvtToBoolean, &_debug, sizeof(_debug)},
 	{NULL}
-};
+};*/
 
 const char *ProgName;
 
-void Usage(OptionParser &op, const char * msg) {
+void wrf2vdf::Usage(OptionParser &op, const char * msg) {
 
 	if (msg) {
 		cerr << ProgName << " : " << msg << endl;
@@ -98,7 +126,7 @@ void Usage(OptionParser &op, const char * msg) {
 // Generate a map between VDC time steps and time steps in the DCReaderWRF
 // i.e. ncdfTimeStep = timemap[vdcTimeStep]
 //
-void GetTimeMap(
+void wrf2vdf::GetTimeMap(
 	const VDFIOBase *vdfio,
 	const DCReaderWRF *wrfData,
 	int startts,
@@ -145,7 +173,7 @@ void GetTimeMap(
 	}
 }
 	
-void GetVariables(
+void wrf2vdf::GetVariables(
 	const VDFIOBase *vdfio,
 	const DCReaderWRF *wrfData,
 	const vector <string> &in_varnames,
@@ -208,7 +236,7 @@ void GetVariables(
 }
 
 
-int CopyVar(
+int wrf2vdf::CopyVar(
 	VDFIOBase *vdfio,
 	DCReaderWRF *wrfData,
 	int vdcTS,
@@ -279,9 +307,43 @@ int CopyVar(
 
 }
 
-int	main(int argc, char **argv) {
+int	wrf2vdf::launchWrf2Vdf(int argc, char **argv) {
 
-    MyBase::SetErrMsgFilePtr(stderr);
+	OptionParser::OptDescRec_T      set_opts[] = {
+        	{"vars",1,    "",       "Colon delimited list of variables to be copied "
+                	"from ncdf data. The default is to copy all 2D and 3D variables"},
+        	{
+                	"numts",        1,      "-1",   "Maximum number of time steps that may be "
+               		"converted. A -1 implies the conversion of all time steps found"
+        	},
+        	{
+                	"startts",      1,      "0",    "Offset of first time step in netCDF files "
+        	        " to be converted"
+        	},
+        	{"level",   1,  "-1","Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
+        	{"lod", 1,  "-1",   "Compression levels saved. 0 => coarsest, 1 => "
+                "next refinement, etc. -1 => all levels defined by the .vdf file"},
+        	{"nthreads",1,  "0",    "Number of execution threads (0 => # processors)"},
+        	{"help",        0,      "",     "Print this message and exit"},
+        	{"quiet",       0,      "",     "Operate quietly"},
+	        {"debug",       0,      "",     "Turn on debugging"},
+        	{NULL}
+	};
+
+	OptionParser::Option_T  get_options[] = {
+        	{"vars", VetsUtil::CvtToStrVec, &_vars, sizeof(_vars)},
+        	{"numts", VetsUtil::CvtToInt, &_numts, sizeof(_numts)},
+        	{"startts", VetsUtil::CvtToInt, &_startts, sizeof(_startts)},
+        	{"level", VetsUtil::CvtToInt, &_level, sizeof(_level)},
+        	{"lod", VetsUtil::CvtToInt, &_lod, sizeof(_lod)},
+        	{"nthreads", VetsUtil::CvtToInt, &_nthreads, sizeof(_nthreads)},
+        	{"help", VetsUtil::CvtToBoolean, &_help, sizeof(_help)},
+        	{"quiet", VetsUtil::CvtToBoolean, &_quiet, sizeof(_quiet)},
+        	{"debug", VetsUtil::CvtToBoolean, &_debug, sizeof(_debug)},
+        	{NULL}
+	};
+
+        MyBase::SetErrMsgFilePtr(stderr);
 
 	ProgName = Basename(argv[0]);
 
@@ -294,8 +356,8 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
-	if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
-	if (opt.help) {
+	if (_debug) MyBase::SetDiagMsgFilePtr(stderr);
+	if (_help) {
 		Usage(op, NULL);
 		exit(0);
 	}
@@ -340,7 +402,7 @@ int	main(int argc, char **argv) {
 		vdfio = wbwriter3D;
 	} 
 	else {
-		wcwriter = new WaveCodecIO(metadata, opt.nthreads);
+		wcwriter = new WaveCodecIO(metadata, _nthreads);
 		vdfio = wcwriter;
 	}
 	if (vdfio->GetErrCode() != 0) {
@@ -361,13 +423,13 @@ int	main(int argc, char **argv) {
 	// Get Mapping between VDC time steps and ncdf time steps
 	//
 	map <size_t, size_t> timemap;
-	GetTimeMap(vdfio, wrfData, opt.startts, opt.numts, timemap);
+	GetTimeMap(vdfio, wrfData, _startts, _numts, timemap);
 
 	//
 	// Figure out which variables to transform
 	//
 	vector <string> variables;
-	GetVariables(vdfio, wrfData, opt.vars, variables);
+	GetVariables(vdfio, wrfData, _vars, variables);
 
 	//
 	// Copy (transform) variables
@@ -375,11 +437,11 @@ int	main(int argc, char **argv) {
 	int fails = 0;
 	map <size_t, size_t>::iterator itr;
 	for (itr = timemap.begin(); itr != timemap.end(); ++itr) {
-		if (! opt.quiet) {
+		if (! _quiet) {
 			cout << "Processing VDC time step " << itr->first << endl;
 		}
 		for (int v = 0; v < variables.size(); v++) {
-			if (! opt.quiet) {
+			if (! _quiet) {
 				cout << " Processing variable " << variables[v] << ", ";
 			}
 			if (! wrfData->VariableExists(itr->second, variables[v])) {
@@ -390,7 +452,7 @@ int	main(int argc, char **argv) {
 			int rc = CopyVar(
 				vdfio, wrfData, itr->first, itr->second, 
 				variables[v], variables[v],
-				opt.level, opt.lod
+				_level, _lod
 			);
 			if (rc<0) {
 				MyBase::SetErrCode(0); 	// must clear error code
@@ -410,4 +472,12 @@ int	main(int argc, char **argv) {
 	}
 	exit(estatus);
 
+}
+
+int main(int argc, char ** argv) {
+	MyBase::SetErrMsgFilePtr(stderr);
+	wrf2vdf w2v;
+	int rc = w2v.launchWrf2Vdf(argc, argv);
+	if (rc == 0) exit(0);
+	else exit(1);
 } // End of main.
