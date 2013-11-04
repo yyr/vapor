@@ -194,10 +194,8 @@ public:
 			seedPointList[seedPointList.size()-1].set3Val(newCoords);
 	}
 	void emptySeedList(){seedPointList.clear();}
-	int getColorMapEntityIndex() ;
-	int getOpacMapEntityIndex() ;
+	int getColorMapEntityIndex();
 	std::string& getColorMapEntity(int indx) {return colorMapEntity[indx];}
-	std::string& getOpacMapEntity(int indx) {return opacMapEntity[indx];}
 	bool refreshIsAuto() {return autoRefresh;}
 	void setAutoRefresh(bool onOff) {autoRefresh = onOff;}
 	bool flowIsSteady() {return (flowType == 0);} // 0= steady, 1 = unsteady, 2 = line advection
@@ -316,7 +314,6 @@ public:
 	
 	void setFlowGeometry(int geomNum){geometryType = geomNum;}
 	void setColorMapEntity( int entityNum);
-	void setOpacMapEntity( int entityNum);
 	void setComboSteadyVarnum(int indx, int varnum){
 		comboSteadyVarNum[indx] = varnum;
 		if (priorityIsSteady && varnum >0) comboPriorityVarNum[indx] = varnum-1;
@@ -502,8 +499,7 @@ protected:
 	
 	//Save the min and max bounds for each of the flow mappings, plus 
 	//min and max for each variable
-	float* minOpacBounds;
-	float* maxOpacBounds;
+	
 	float* minColorBounds;
 	float* maxColorBounds;
 	float dataRange[2];
@@ -514,8 +510,7 @@ protected:
 	//flow data caches.
 	
 	std::vector<string> colorMapEntity;
-	std::vector<string> opacMapEntity;
-
+	
 	std::vector<Point4> seedPointList;
 	std::vector<int> unsteadyTimestepList;
 	

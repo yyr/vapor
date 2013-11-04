@@ -67,8 +67,6 @@ void CreateVdfPage::on_selectAllButton_clicked() {
     }
     dataHolder->setVDFSelectedVars(dataHolder->getVDFDisplayedVars());
 	dataHolder->vdfSettingsChanged=true;
-	//cout << dataHolder->reader->->GetNumTimeSteps() << endl;
-	cout << dataHolder->getVDFnumTS() << endl;
 }
 
 // Uncheck all loaded variables
@@ -176,14 +174,10 @@ bool CreateVdfPage::isComplete() {
 bool CreateVdfPage::validatePage() {
     populateCheckedVars();
 
-	//cout << "vdf changed:" << dataHolder->vdfSettingsChanged << endl;
-
     if (isComplete() == true) {
         if (dataHolder->vdfSettingsChanged==true) {
-            cout << "creating vdf" << endl;
 			if (dataHolder->VDFCreate()==0) {   
                 dataHolder->vdfSettingsChanged=false;
-                cout << "true1" << endl;
 				return true;
             }   
             else {
@@ -196,13 +190,10 @@ bool CreateVdfPage::validatePage() {
                 errorMessage->show();
                 dataHolder->clearErrors();
                 MyBase::SetErrCode(0);
-                cout << "false1" << endl;
 				return false;
             }   
         }   
-		cout << "true2" << endl;
         return true;
     }   
-	cout << "false2" << endl;
     return true;	
 }

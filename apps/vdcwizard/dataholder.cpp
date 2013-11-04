@@ -42,7 +42,6 @@ using namespace VAPoR;
 vector<const char*> errors;
 
 void ErrMsgCBHandler(const char* error, int){
-	//cout << error << "!" << endl;
 	errors.push_back(error);
 }
 
@@ -131,7 +130,6 @@ void DataHolder::findPopDataVars() {
     vdfio = wcwriter;
     vector<string> emptyVars;
     vector<string> outVars;
-    //createReader();
     launcher2VDF.GetVariables(vdfio, reader, emptyVars, outVars);
     std::sort(outVars.begin(),outVars.end());
     setPDDisplayedVars(outVars);
@@ -148,16 +146,18 @@ int DataHolder::VDFCreate() {
 	else argv.push_back("momvdfcreate");
     argv.push_back("-quiet");
 
-    if ((getFileType()!="wrf")&&(VDFstartTime != "")) {
+    /*if ((getFileType()!="wrf")&&(VDFstartTime != "")) {
         argv.push_back("-startt");
         argv.push_back(VDFstartTime);
 		argc+=2;
     }
+
     if ((getFileType()!="wrf")&&(VDFnumTS != "")) {
         argv.push_back("-numts");
         argv.push_back(VDFnumTS);
         argc+=2;
-    }
+    }*/
+
     if (VDFSBFactor != "") {
         argv.push_back("-bs");
         argv.push_back(VDFSBFactor);
@@ -203,10 +203,9 @@ int DataHolder::VDFCreate() {
 
 	char** args = new char*[ argv.size() + 1 ];
     for(size_t a=0; a<argv.size(); a++) {
-        cout << argv[a].c_str() << endl;
+        //cout << argv[a].c_str() << endl;
         args[a] = strdup(argv[a].c_str());
     }
-  	cout << getFileType() << endl; 
 	return launcherVdfCreate.launchVdfCreate(argc,args,getFileType());
 }
 
@@ -317,13 +316,12 @@ int DataHolder::run2VDFincremental(string start, string var) {
     argv.push_back(PDinputVDFfile);
     argc++;
 
-    //cout << endl;
-    //cout << argc << endl;
     char** args = new char*[ argv.size() + 1 ];
     for(size_t a=0; a<argv.size(); a++) {
-        cout << argv[a].c_str() << endl;
+        //cout << argv[a].c_str() << " ";
         args[a] = strdup(argv[a].c_str());
     }   
+	//cout << endl;
 
     return launcher2VDF.launch2vdf(argc, args, getFileType());
 }

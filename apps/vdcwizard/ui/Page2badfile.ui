@@ -48,11 +48,11 @@
      <x>50</x>
      <y>30</y>
      <width>271</width>
-     <height>81</height>
+     <height>71</height>
     </rect>
    </property>
    <property name="text">
-    <string>The file you've selected does not have the standard .vdf file extension.  If the specified file already exists, its will be corrupted if you proceed.</string>
+    <string>The file you've selected does not have the standard .vdf file extension.  This will be automatically corrected.</string>
    </property>
    <property name="wordWrap">
     <bool>true</bool>

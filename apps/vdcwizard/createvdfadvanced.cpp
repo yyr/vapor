@@ -53,7 +53,6 @@ void CreateVdfAdvanced::on_restoreDefaultButton_clicked(){
 // Write data values to dataHolder and hide window
 void CreateVdfAdvanced::on_acceptButton_clicked()
 {
-	cout << "shock the monkey" << endl;
     dataHolder->setVDFcrList(compressionRatioBox->toPlainText().toStdString());
 
     QString SBFx = bsxSpinner->text();

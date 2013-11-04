@@ -132,7 +132,7 @@ void GetTimeMap(
 	// Cross-reference ncdf and vdc times
 	//
 	float ncdftime; 
-	for (int i=startts; i<numts && i<wrfData->GetNumTimeSteps(); i++) {
+	for (int i=startts; i<numts+startts && i<wrfData->GetNumTimeSteps(); i++) {
 		ncdftime = ncdftimes[i];
 
 		vector <float>::iterator itr = find(

@@ -32,7 +32,6 @@ ErrorMessage::ErrorMessage(QWidget *parent, QWizard *wizard) :
 }
 
 void ErrorMessage::on_buttonBox_accepted() {
-	cout << "hello" << endl;
 	errorList->clear();
 	hide();
 }

@@ -27,6 +27,7 @@ int launch2vdf(int argc, char **argv, string dataType);
 
 private:
  string _progname;
+ DCReader *DCData;
 
  //
  // Missing data masks

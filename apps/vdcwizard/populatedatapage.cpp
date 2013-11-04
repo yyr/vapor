@@ -75,7 +75,6 @@ void PopulateDataPage::on_clearAllButton_clicked() {
     }
 
     dataHolder->clearPDSelectedVars();
-    //cout << dataHolder->getPDSelectedVars().size();
 }
 
 void PopulateDataPage::setupVars() {
@@ -150,18 +149,8 @@ bool PopulateDataPage::isComplete() {
 }
 
 bool PopulateDataPage::checkForOverwrites() {
-	/*QString qbaseDir = QString::fromStdString(dataHolder->getVDFfileName());
-	string baseDir = QFileInfo(qbaseDir).absolutePath().toStdString();
-	for (int var=0; var<dataHolder->getPDSelectedVars().size(); var++){
-		char fileLocation[100];
-		strcpy(fileLocation, baseDir.c_str());
-		strcat(fileLocation,"/");
-		strcat(fileLocation, dataHolder->getPDSelectedVars().at(var).c_str());
-		QDir dir(QString::fromStdString(fileLocation));
-	*/
 	QString qdirString = QString::fromStdString(dataHolder->getVDFfileName());
 	QFileInfo qfileinfo(qdirString);
-	//QFileInfo dataDirInfo(qfileinfo.baseName());
 
 	char fileLocation[100];
 	strcpy(fileLocation,qfileinfo.path().toStdString().c_str());
@@ -170,6 +159,8 @@ bool PopulateDataPage::checkForOverwrites() {
 	strcat(fileLocation,"_data");
 	QString tempString = QString::fromStdString(fileLocation);
 	QFileInfo dataDirInfo(tempString);	
+	//qDebug() << dataDirInfo;
+	//qDebug() << dataDirInfo.exists();
 	if (dataDirInfo.exists()){
 			if (checkOverwrites->exec()==QDialog::Accepted) return true;
 			else return false;
@@ -177,8 +168,38 @@ bool PopulateDataPage::checkForOverwrites() {
 	return true;
 }
 
+void PopulateDataPage::enableWidgets() {
+    selectAllButton->setEnabled(true);
+    clearAllButton->setEnabled(true);
+    startTimeSpinner->setEnabled(true);
+    numtsSpinner->setEnabled(true);
+    advancedOptionsButton->setEnabled(true);
+
+    for (int i=0; i<varList.size(); i++) {
+        int row = i/3;
+        int col = i%3;
+        tableWidget->item(row,col)->setFlags(tableWidget->item(row,col)->flags() & Qt::ItemIsEnabled);
+    }   
+}
+
+void PopulateDataPage::disableWidgets() {
+	selectAllButton->setEnabled(false);
+	clearAllButton->setEnabled(false);
+	startTimeSpinner->setEnabled(false);
+	numtsSpinner->setEnabled(false);
+	advancedOptionsButton->setEnabled(false);
+
+	for (int i=0; i<varList.size(); i++) {
+    	int row = i/3;
+     	int col = i%3;
+		tableWidget->item(row,col)->setFlags(tableWidget->item(row,col)->flags() & ~Qt::ItemIsEnabled);
+    }   
+}
+
 bool PopulateDataPage::validatePage() {
     populateCheckedVars();
+
+	disableWidgets();	
 	
 	if (checkForOverwrites()==false) return false;
 	else {
@@ -191,7 +212,6 @@ bool PopulateDataPage::validatePage() {
 		stringstream ss;
 		char percentComplete[20];
 	
-   		//cout << dataHolder->getErrors().size() << endl;
     
 		//Cycle through variables in each timestep
 		for (int timeStep=0;timeStep<tsSize;timeStep++){
@@ -199,7 +219,6 @@ bool PopulateDataPage::validatePage() {
 				stringstream ss;
 				ss << timeStep;
 				if (dataHolder->run2VDFincremental(ss.str(),dataHolder->getPDSelectedVars().at(var)) != 0) {
-					//cout << "error time" << dataHolder->getErrors().size() << endl;
    		     		dataHolder->vdcSettingsChanged=false;
    		     		for (int i=0;i<dataHolder->getErrors().size();i++){
    		         		errorMessage->errorList->append(dataHolder->getErrors()[i]);
@@ -214,9 +233,7 @@ bool PopulateDataPage::validatePage() {
 					progressBar->reset();
 					return false;
 				}
-				//cout << timeStep << " " << var << " " << (timeStep*varsSize)+var << "/" << dataChunks << endl;
 			    sprintf(percentComplete,"%.1f%% Complete",(100*((double)(varsSize*timeStep+var)/(double)(dataChunks-1))));
-				//cout << percentComplete << endl;	
 				percentCompleteLabel->setText(QString::fromUtf8(percentComplete));
 				progressBar->setValue((varsSize*timeStep)+var);
 				QApplication::processEvents();

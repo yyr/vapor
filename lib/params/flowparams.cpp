@@ -134,9 +134,7 @@ FlowParams::~FlowParams(){
 		
 	if (minColorBounds) {
 		delete [] minColorBounds;
-		delete [] minOpacBounds;
 		delete [] maxColorBounds;
-		delete [] maxOpacBounds;
 	}
 	
 }
@@ -246,12 +244,7 @@ restart() {
 	colorMapEntity.push_back("Field Magnitude");
 	colorMapEntity.push_back("Seed Index");
 
-	opacMapEntity.clear();
 	
-	opacMapEntity.push_back("Constant");
-	opacMapEntity.push_back("Timestep");
-	opacMapEntity.push_back("Field Magnitude");
-	opacMapEntity.push_back("Seed Index");
 	minColorEditBounds = new float[4];
 	maxColorEditBounds = new float[4];
 	minOpacEditBounds = new float[4];
@@ -269,13 +262,11 @@ restart() {
 	maxPoints = 0;
 	maxFrame = 0;
 
-	minOpacBounds = new float[4];
-	maxOpacBounds= new float[4];
 	minColorBounds= new float[4];
 	maxColorBounds= new float[4];
 	for (int k = 0; k<4; k++){
-		minColorBounds[k] = minOpacBounds[k] = 0.f;
-		maxColorBounds[k] = maxOpacBounds[k] = 1.f;
+		minColorBounds[k] = 0.f;
+		maxColorBounds[k] = 1.f;
 	}
 	
 	doRake = true;
@@ -314,8 +305,6 @@ deepCopy(ParamNode*){
 	//Clone the variable bounds:
 	newFlowParams->minColorBounds = new float[numVars];
 	newFlowParams->maxColorBounds = new float[numVars];
-	newFlowParams->minOpacBounds = new float[numVars];
-	newFlowParams->maxOpacBounds = new float[numVars];
 	for (int i = 0; i<numVars; i++){
 		newFlowParams->minColorEditBounds[i] = minColorEditBounds[i];
 		newFlowParams->maxColorEditBounds[i] = maxColorEditBounds[i];
@@ -323,8 +312,6 @@ deepCopy(ParamNode*){
 		newFlowParams->maxOpacEditBounds[i] = maxOpacEditBounds[i];
 		newFlowParams->minColorBounds[i] = minColorBounds[i];
 		newFlowParams->maxColorBounds[i] = maxColorBounds[i];
-		newFlowParams->minOpacBounds[i] = minOpacBounds[i];
-		newFlowParams->maxOpacBounds[i] = maxOpacBounds[i];
 	}
 	
 	//Clone the Transfer Functions
@@ -452,10 +439,7 @@ reinit(bool doOverride){
 	
 	if (newNumVariables == 0 || newNumComboVariables == 0) return false;
 	//Rebuild map bounds arrays:
-	if(minOpacBounds) delete [] minOpacBounds;
-	minOpacBounds = new float[newNumComboVariables+4];
-	if(maxOpacBounds) delete [] maxOpacBounds;
-	maxOpacBounds = new float[newNumComboVariables+4];
+	
 	if(minColorBounds) delete [] minColorBounds;
 	minColorBounds = new float[newNumComboVariables+4];
 	if(maxColorBounds) delete [] maxColorBounds;
@@ -467,19 +451,11 @@ reinit(bool doOverride){
 	colorMapEntity.push_back("Timestep");
 	colorMapEntity.push_back("Field Magnitude");
 	colorMapEntity.push_back("Seed Index");
-	opacMapEntity.clear();
-	opacMapEntity.push_back("Constant");
-	opacMapEntity.push_back("Timestep");
-	opacMapEntity.push_back("Field Magnitude");
-	opacMapEntity.push_back("Seed Index");
+	
 	for (i = 0; i< newNumComboVariables; i++){
 		colorMapEntity.push_back(DataStatus::getInstance()->getActiveVarName3D(i));
-		opacMapEntity.push_back(DataStatus::getInstance()->getActiveVarName3D(i));
 	}
 	
-	if(doOverride || getOpacMapEntityIndex() >= newNumComboVariables+4){
-		setOpacMapEntity(0);
-	}
 	if(doOverride || getColorMapEntityIndex() >= newNumComboVariables+4){
 		setColorMapEntity(0);
 	}
@@ -577,8 +553,8 @@ reinit(bool doOverride){
 	
 	//Now set up bounds arrays based on current mapped variable settings:
 	for (i = 0; i< newNumComboVariables+4; i++){
-		minOpacBounds[i] = minColorBounds[i] = minRange(i, minFrame);
-		maxOpacBounds[i] = maxColorBounds[i] = maxRange(i, minFrame);
+		minColorBounds[i] = minRange(i, minFrame);
+		maxColorBounds[i] = maxRange(i, minFrame);
 	}
 	
 	
@@ -595,10 +571,9 @@ reinit(bool doOverride){
 		newTransferFunction->setOpaque();
 
         //Set to default map bounds
-		newTransferFunction->setMinColorMapValue(0.f);
-		newTransferFunction->setMaxColorMapValue(1.f);
-		newTransferFunction->setMinOpacMapValue(0.f);
-		newTransferFunction->setMaxOpacMapValue(1.f);
+		
+		newTransferFunction->setMinMapValue(0.f);
+		newTransferFunction->setMaxMapValue(1.f);
 		//const
 		newMinOpacEditBounds[0] = 0.f;
 		newMaxOpacEditBounds[0] = 1.f;
@@ -606,12 +581,11 @@ reinit(bool doOverride){
 		newMaxColorEditBounds[0] = 1.f;
 		//speed
 		newMinOpacEditBounds[1] = 0.f;
-		newMaxOpacEditBounds[1] = maxOpacBounds[1];
+		newMaxOpacEditBounds[1] = maxColorBounds[1];
 		newMinColorEditBounds[1] = 0.f;
 		newMaxColorEditBounds[1] = maxColorBounds[1];
 		//age
-		newMinOpacEditBounds[2] = minOpacBounds[2];
-		newMaxOpacEditBounds[2] = maxOpacBounds[2];
+		
 		newMinColorEditBounds[2] = minColorBounds[2];
 		newMaxColorEditBounds[2] = maxColorBounds[2];
 		//Other variables:
@@ -633,7 +607,6 @@ reinit(bool doOverride){
         transferFunction = newTransferFunction;
 
 		setColorMapEntity(0);
-		setOpacMapEntity(0);
 	}
 	else { 
 		
@@ -655,7 +628,6 @@ reinit(bool doOverride){
 		if (!transferFunction) transferFunction = new TransferFunction(this, 8);
 
         transferFunction->setColorVarNum(getColorMapEntityIndex());
-        transferFunction->setOpacVarNum(getOpacMapEntityIndex());
 	}
 	
 		
@@ -678,8 +650,8 @@ reinit(bool doOverride){
 
 	setMinColorEditBound(getMinColorMapBound(),getColorMapEntityIndex());
 	setMaxColorEditBound(getMaxColorMapBound(),getColorMapEntityIndex());
-	setMinOpacEditBound(getMinOpacMapBound(),getOpacMapEntityIndex());
-	setMaxOpacEditBound(getMaxOpacMapBound(),getOpacMapEntityIndex());
+	setMinOpacEditBound(getMinOpacMapBound(),getColorMapEntityIndex());
+	setMaxOpacEditBound(getMaxOpacMapBound(),getColorMapEntityIndex());
 	initializeBypassFlags();
 	return true;
 }
@@ -1077,8 +1049,8 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 	
 	maxPoints = calcMaxPoints();
 
-	bool useSpeeds =  (getColorMapEntityIndex() == 2 || getOpacMapEntityIndex() == 2);
-	bool doRGBAs = (getColorMapEntityIndex() + getOpacMapEntityIndex() > 0);
+	bool useSpeeds =  (getColorMapEntityIndex() == 2 );
+	bool doRGBAs = (getColorMapEntityIndex() > 0);
 
 
 	FlowLineData* steadyFlowData = flowLines;
@@ -1245,8 +1217,8 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 			//All points are kept in flow line data (steadyCache)
 			//Get some initial settings:
 			maxPoints = calcMaxPoints();
-			bool useSpeeds =  (getColorMapEntityIndex() == 2 || getOpacMapEntityIndex() == 2);
-			bool doRGBAs = (getColorMapEntityIndex() + getOpacMapEntityIndex() > 0);
+			bool useSpeeds =  (getColorMapEntityIndex() == 2 );
+			bool doRGBAs = (getColorMapEntityIndex() );
 			FlowLineData* flData1 = new FlowLineData(numLines, maxPoints, useSpeeds, steadyFlowDirection, doRGBAs); 
 			//Now set this up with seed points:
 			int nlines = insertSteadySeeds(rParams, flowLib, flData1, seedTimeStart);
@@ -1285,8 +1257,8 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 			numLines += calcNumSeedPoints(i);
 		}
 		if (numLines <= 0) return 0;
-		bool useSpeeds = (getColorMapEntityIndex() == 2 || getOpacMapEntityIndex() == 2);
-		bool doRGBAs = (getColorMapEntityIndex() > 0 || getOpacMapEntityIndex() > 0);
+		bool useSpeeds = (getColorMapEntityIndex() == 2 );
+		bool doRGBAs = (getColorMapEntityIndex() > 0);
 		PathLineData* pathLines = new PathLineData(numLines, mPoints, useSpeeds, doRGBAs, minFrame, maxFrame, sampleRate);
 		// Now insert the seeds:
 		int seedsInserted = 0;
@@ -1961,12 +1933,8 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 		//by the geometry nodes
 		numComboVariables = newNumVariables;
 		
-		delete [] minOpacBounds;
-		delete [] maxOpacBounds;
 		delete [] minColorBounds;
 		delete [] maxColorBounds;
-		minOpacBounds = new float[numComboVariables+4];
-		maxOpacBounds = new float[numComboVariables+4];
 		minColorBounds = new float[numComboVariables+4];
 		maxColorBounds = new float[numComboVariables+4];
 		//Do same for edit bounds
@@ -2112,6 +2080,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 		
 		pm->pushClassStack(transferFunction);
 		transferFunction->elementStartHandler(pm, depth, tagString, attrs);
+		
 		return true;
 	} else if (StrCmpNoCase(tagString, TransferFunction::_transferFunctionTag) == 0) {
 		//Need to "push" to mapper function parser.
@@ -2127,8 +2096,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 		
 		float leftColorBound = 0.f;
 		float rightColorBound = 1.f;
-		float leftOpacBound = 0.f;
-		float rightOpacBound = 1.f;
+		
 		while (*attrs) {
 			string attribName = *attrs;
 			attrs++;
@@ -2145,10 +2113,10 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 				ist >> rightColorBound;
 			}
 			else if (StrCmpNoCase(attribName, _leftOpacityBoundAttr) == 0) {
-				ist >> leftOpacBound;
+				//obsolete
 			}
 			else if (StrCmpNoCase(attribName, _rightOpacityBoundAttr) == 0) {
-				ist >> rightOpacBound;
+				//obsolete
 			}
 		}
 		//Plug in these values:
@@ -2168,12 +2136,11 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 		}
 		minColorBounds[varNum]= leftColorBound;
 		maxColorBounds[varNum] = rightColorBound;
-		minOpacBounds[varNum]= leftOpacBound;
-		maxOpacBounds[varNum] = rightOpacBound;
+	
 		minColorEditBounds[varNum]= leftColorBound;
 		maxColorEditBounds[varNum] = rightColorBound;
-		minOpacEditBounds[varNum]= leftOpacBound;
-		maxOpacEditBounds[varNum] = rightOpacBound;
+		minOpacEditBounds[varNum]= leftColorBound;
+		maxOpacEditBounds[varNum] = rightColorBound;
 		
 	}
 	return true;
@@ -2186,8 +2153,8 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 		
 		setMinColorEditBound(getMinColorMapBound(),getColorMapEntityIndex());
 		setMaxColorEditBound(getMaxColorMapBound(),getColorMapEntityIndex());
-		setMinOpacEditBound(getMinOpacMapBound(),getOpacMapEntityIndex());
-		setMaxOpacEditBound(getMaxOpacMapBound(),getOpacMapEntityIndex());
+		setMinOpacEditBound(getMinOpacMapBound(),getColorMapEntityIndex());
+		setMaxOpacEditBound(getMaxOpacMapBound(),getColorMapEntityIndex());
 		
 		//Check if the seedDist and priority field names were set.
 		// if not, set them to the steady field:
@@ -2213,7 +2180,7 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 		return true;
 	else if (StrCmpNoCase(tag, _variableTag) == 0)
 		return true;
-	else if (StrCmpNoCase(tag, MapperFunction::_mapperFunctionTag) == 0)
+	else if (StrCmpNoCase(tag, MapperFunction::_mapperFunctionTag) == 0)	
 		return true;
 	else if (StrCmpNoCase(tag, TransferFunction::_transferFunctionTag) == 0) 
 		return true;
@@ -2237,8 +2204,8 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 	transferFunction->makeLut(lut);
 	//Setup mapping
 	
-	float colorMin = transferFunction->getMinColorMapValue();
-	float colorMax = transferFunction->getMaxColorMapValue();
+	float colorMin = transferFunction->getMinMapValue();
+	float colorMax = transferFunction->getMaxMapValue();
 
 	float colorVar;
 	RegularGrid* colorGrid = 0;
@@ -2395,8 +2362,8 @@ mapUnsteadyColors(PathLineData* container, int startTimeStep, int minFrame, Regi
 	//Setup color and opacity mappings
 	
 
-	float colorMin = transferFunction->getMinColorMapValue();
-	float colorMax = transferFunction->getMaxColorMapValue();
+	float colorMin = transferFunction->getMinMapValue();
+	float colorMax = transferFunction->getMaxMapValue();
 
 	float colorVar;
 	
@@ -2588,25 +2555,15 @@ getColorMapEntityIndex() {
 	return transferFunction->getColorVarNum();
 }
 
-int FlowParams::
-getOpacMapEntityIndex() {
-	if (!transferFunction) return 0;
-	return transferFunction->getOpacVarNum();
-}
+
 void FlowParams::
 setColorMapEntity( int entityNum){
 	if (!transferFunction) return;
-	transferFunction->setMinColorMapValue(minColorBounds[entityNum]);
-	transferFunction->setMaxColorMapValue(maxColorBounds[entityNum]);
-	transferFunction->setColorVarNum(entityNum);
+	transferFunction->setMinMapValue(minColorBounds[entityNum]);
+	transferFunction->setMaxMapValue(maxColorBounds[entityNum]);
+	transferFunction->setVarNum(entityNum);
 }
-void FlowParams::
-setOpacMapEntity( int entityNum){
-	if (!transferFunction) return;
-	transferFunction->setMinOpacMapValue(minOpacBounds[entityNum]);
-	transferFunction->setMaxOpacMapValue(maxOpacBounds[entityNum]);
-    transferFunction->setOpacVarNum(entityNum);
-}
+
 
 
 //When we set the min/map bounds, must save them locally and in the mapper function
@@ -2619,12 +2576,18 @@ void FlowParams::setMaxColorMapBound(float val){
 	if(GetMapperFunc())GetMapperFunc()->setMaxColorMapValue(val);
 }
 void FlowParams::setMinOpacMapBound(float val){
-	minOpacBounds[getOpacMapEntityIndex()] = val;
-	if(GetMapperFunc())GetMapperFunc()->setMinOpacMapValue(val);
+	minColorBounds[getColorMapEntityIndex()] = val;
+	if(GetMapperFunc()){
+		GetMapperFunc()->setMinColorMapValue(val);
+		GetMapperFunc()->setMinOpacMapValue(val);
+	}
 }
 void FlowParams::setMaxOpacMapBound(float val){
-	maxOpacBounds[getOpacMapEntityIndex()] = val;
-	if(GetMapperFunc())GetMapperFunc()->setMaxOpacMapValue(val);
+	maxColorBounds[getColorMapEntityIndex()] = val;
+	if(GetMapperFunc()){
+		GetMapperFunc()->setMaxColorMapValue(val);
+		GetMapperFunc()->setMaxOpacMapValue(val);
+	}
 }
 
 //Determine the max and min (likely range) associated with a mapped index:
@@ -3067,8 +3030,8 @@ bool FlowParams::multiAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** stea
 	//One-line Fix for bug 1680062 in 1.1.0:
 	int numSeedPoints = calcNumSeedPoints(seedTimeStart);
 	maxPoints = calcMaxPoints();
-	bool useSpeeds =  (getColorMapEntityIndex() == 2 || getOpacMapEntityIndex() == 2);
-	bool doRGBAs = (getColorMapEntityIndex() + getOpacMapEntityIndex() > 0);
+	bool useSpeeds =  (getColorMapEntityIndex() == 2);
+	bool doRGBAs = (getColorMapEntityIndex() > 0);
 
 	//  Previous cache should already exist:
 	assert(steadyFlowCache[startTime]);
@@ -3504,7 +3467,7 @@ hookupTF(TransferFunction* tf, int index){
 	minColorEditBounds[index] = tf->getMinMapValue();
 	maxColorEditBounds[index] = tf->getMaxMapValue();
 	tf->setParams(this);
-	tf->setVarNum(getColorMapEntityIndex());
+	tf->setVarNum(index);
 	
 }
 int FlowParams::getSessionVarNum() { 
