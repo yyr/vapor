@@ -116,7 +116,7 @@ public:
 	//! Calculate the full size of the region in megabytes, at specified refinement level.
 	//! \param[in] int reflevel		Refinement level of data, use -1 for max refinement.
 	//! \retval	float size in megabytes.
-	float RegionParams::fullRegionMBs(int refLevel);
+	float fullRegionMBs(int refLevel);
 
 #ifndef DOXYGEN_SKIP_THIS
 
