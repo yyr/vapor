@@ -25,10 +25,11 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <vapor/Wrf2vdf.h>
 #include <vapor/Copy2VDF.h>
 #include <vapor/vdfcreate.h>
-#include <vapor/DCReaderMOM.h>
-#include <vapor/DCReaderROMS.h>
+//#include <vapor/DCReaderMOM.h>
+//#include <vapor/DCReaderROMS.h>
 #include <vapor/vdfcreate.h>
 #include <vapor/2vdf.h>
 
@@ -108,12 +109,12 @@ public:
     int VDFCreate();
     int run2VDFcomplete();
 	int run2VDFincremental(string start, string var);
-
     // Error Message setter/getter
     void setErrorMessage(string err) { errorMsg = err; }
     string getErrorMessage() { return errorMsg; }
 
 private:
+    Wrf2vdf w2v;
     Copy2VDF launcher2VDF;
 	vdfcreate launcherVdfCreate;
 

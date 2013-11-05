@@ -34,6 +34,8 @@
 #include <vapor/DCReaderMOM.h>
 #include <vapor/DCReaderROMS.h>
 #include <vapor/DCReaderWRF.h>
+//#include <../Wrf2vdf/Wrf2vdf.cpp>
+#include <vapor/Wrf2vdf.h>
 #include "dataholder.h"
 
 using namespace VAPoR;
@@ -196,6 +198,7 @@ int DataHolder::VDFCreate() {
         argv.push_back(dataFiles.at(i));
         argc++;
     }
+	
     if (VDFfileName != "") {
         argv.push_back(VDFfileName);
         argc++;
@@ -304,24 +307,48 @@ int DataHolder::run2VDFincremental(string start, string var) {
     argv.push_back(start);
     argc+=2;
   
-	argv.push_back("-vars");
-	argv.push_back(var);
-	argc+=2;
-     
+    if (PDSelectedVars.size() != 0) {
+                argv.push_back("-vars");
+        argc++;
+
+        string stringVars;
+        for(vector<string>::iterator it = PDSelectedVars.begin();
+            it != PDSelectedVars.end(); ++it) {
+            if(it != PDSelectedVars.begin()) stringVars += ":";
+            stringVars += *it;
+        }
+        argv.push_back(stringVars);
+        argc++;
+    }
+   
+ 
+    if (getFileType()=="wrf"){
+        argv.push_back(PDinputVDFfile);
+        argc++;
+    }
+
+ 
     for (int i=0;i<dataFiles.size();i++){
         argv.push_back(dataFiles.at(i));
         argc++;
     }   
 
-    argv.push_back(PDinputVDFfile);
-    argc++;
+    if (getFileType() != "wrf"){
+    	argv.push_back(PDinputVDFfile);
+    	argc++;
+    }
 
+    cout << "COMMAND: " << endl;
     char** args = new char*[ argv.size() + 1 ];
     for(size_t a=0; a<argv.size(); a++) {
-        //cout << argv[a].c_str() << " ";
+        cout << argv[a].c_str() << " ";
         args[a] = strdup(argv[a].c_str());
     }   
 	//cout << endl;
 
-    return launcher2VDF.launch2vdf(argc, args, getFileType());
+    if (getFileType()=="wrf") {
+	cout << "LAUNCHING WRF" << endl;
+	return w2v.launchWrf2Vdf(argc,args);
+    }
+    else return launcher2VDF.launch2vdf(argc, args, getFileType());
 }

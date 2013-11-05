@@ -159,8 +159,6 @@ bool PopulateDataPage::checkForOverwrites() {
 	strcat(fileLocation,"_data");
 	QString tempString = QString::fromStdString(fileLocation);
 	QFileInfo dataDirInfo(tempString);	
-	//qDebug() << dataDirInfo;
-	//qDebug() << dataDirInfo.exists();
 	if (dataDirInfo.exists()){
 			if (checkOverwrites->exec()==QDialog::Accepted) return true;
 			else return false;
@@ -201,7 +199,10 @@ bool PopulateDataPage::validatePage() {
 
 	disableWidgets();	
 	
-	if (checkForOverwrites()==false) return false;
+	if (checkForOverwrites()==false) {
+		cout << "retfalse 9" << endl;
+		return false;
+	}
 	else {
 		
 		int varsSize = dataHolder->getPDSelectedVars().size();
@@ -215,25 +216,28 @@ bool PopulateDataPage::validatePage() {
     
 		//Cycle through variables in each timestep
 		for (int timeStep=0;timeStep<tsSize;timeStep++){
+			cout << "start time loop " << timeStep << endl;
 			for (int var=0;var<varsSize;var++){
+				cout << "start var loop " << var << endl;
 				stringstream ss;
 				ss << timeStep;
 				if (dataHolder->run2VDFincremental(ss.str(),dataHolder->getPDSelectedVars().at(var)) != 0) {
-   		     		dataHolder->vdcSettingsChanged=false;
-   		     		for (int i=0;i<dataHolder->getErrors().size();i++){
-   		         		errorMessage->errorList->append(dataHolder->getErrors()[i]);
-       		     		errorMessage->errorList->append("\n");
-        			}   
-        			errorMessage->show();
-        			errorMessage->setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
-        			errorMessage->raise();
-        			errorMessage->activateWindow();
-        			dataHolder->clearErrors();
+   		     		    dataHolder->vdcSettingsChanged=false;
+   		     		    for (int i=0;i<dataHolder->getErrors().size();i++){
+					errorMessage->errorList->append(dataHolder->getErrors()[i]);
+       		     		        errorMessage->errorList->append("\n");
+        			    }   
+        			    errorMessage->show();
+        			    errorMessage->setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
+        			    errorMessage->raise();
+        			    errorMessage->activateWindow();
+        			    dataHolder->clearErrors();
 		   		    MyBase::SetErrCode(0);
-					progressBar->reset();
-					return false;
+				    progressBar->reset();
+				    cout << "retfalse 0" << endl;
+				    return false;
 				}
-			    sprintf(percentComplete,"%.1f%% Complete",(100*((double)(varsSize*timeStep+var)/(double)(dataChunks-1))));
+			        sprintf(percentComplete,"%.1f%% Complete",(100*((double)(varsSize*timeStep+var)/(double)(dataChunks-1))));
 				percentCompleteLabel->setText(QString::fromUtf8(percentComplete));
 				progressBar->setValue((varsSize*timeStep)+var);
 				QApplication::processEvents();
@@ -243,6 +247,8 @@ bool PopulateDataPage::validatePage() {
    		successMessage->show();
 	
 		//stay on page if successMessage does not exit(0)
+		cout << "retfalse 1" << endl;
 		return false;   
 	}
+	cout << "who knew?" << endl;
 }
