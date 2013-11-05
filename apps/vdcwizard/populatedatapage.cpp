@@ -35,7 +35,8 @@ PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
     QWizardPage(parent), Ui_Page4()
 {
     setupUi(this);
-
+    cancelButton->setEnabled(false);
+    activateCancel = false;
 	progressBar->setValue(0);    
 	progressBar->setTextVisible(true);
 
@@ -75,6 +76,12 @@ void PopulateDataPage::on_clearAllButton_clicked() {
     }
 
     dataHolder->clearPDSelectedVars();
+}
+
+void PopulateDataPage::on_cancelButton_clicked(){
+	cout << "clicked" << endl;
+	activateCancel = true;
+	enableWidgets();
 }
 
 void PopulateDataPage::setupVars() {
@@ -167,6 +174,7 @@ bool PopulateDataPage::checkForOverwrites() {
 }
 
 void PopulateDataPage::enableWidgets() {
+    cancelButton->setEnabled(false);
     selectAllButton->setEnabled(true);
     clearAllButton->setEnabled(true);
     startTimeSpinner->setEnabled(true);
@@ -192,6 +200,7 @@ void PopulateDataPage::disableWidgets() {
      	int col = i%3;
 		tableWidget->item(row,col)->setFlags(tableWidget->item(row,col)->flags() & ~Qt::ItemIsEnabled);
     }   
+	cancelButton->setEnabled(true);
 }
 
 bool PopulateDataPage::validatePage() {
@@ -200,7 +209,6 @@ bool PopulateDataPage::validatePage() {
 	disableWidgets();	
 	
 	if (checkForOverwrites()==false) {
-		cout << "retfalse 9" << endl;
 		return false;
 	}
 	else {
@@ -216,39 +224,41 @@ bool PopulateDataPage::validatePage() {
     
 		//Cycle through variables in each timestep
 		for (int timeStep=0;timeStep<tsSize;timeStep++){
-			cout << "start time loop " << timeStep << endl;
 			for (int var=0;var<varsSize;var++){
-				cout << "start var loop " << var << endl;
-				stringstream ss;
-				ss << timeStep;
-				if (dataHolder->run2VDFincremental(ss.str(),dataHolder->getPDSelectedVars().at(var)) != 0) {
-   		     		    dataHolder->vdcSettingsChanged=false;
-   		     		    for (int i=0;i<dataHolder->getErrors().size();i++){
-					errorMessage->errorList->append(dataHolder->getErrors()[i]);
-       		     		        errorMessage->errorList->append("\n");
-        			    }   
-        			    errorMessage->show();
-        			    errorMessage->setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
-        			    errorMessage->raise();
-        			    errorMessage->activateWindow();
-        			    dataHolder->clearErrors();
-		   		    MyBase::SetErrCode(0);
-				    progressBar->reset();
-				    cout << "retfalse 0" << endl;
-				    return false;
+				if (activateCancel==0) {
+					stringstream ss;
+					ss << timeStep;
+					if (dataHolder->run2VDFincremental(ss.str(),dataHolder->getPDSelectedVars().at(var)) != 0) {
+   			     		    dataHolder->vdcSettingsChanged=false;
+   			     		    for (int i=0;i<dataHolder->getErrors().size();i++){
+						errorMessage->errorList->append(dataHolder->getErrors()[i]);
+       			     		        errorMessage->errorList->append("\n");
+       		 			    }   
+       		 			    errorMessage->show();
+        				    errorMessage->setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
+        				    errorMessage->raise();
+        				    errorMessage->activateWindow();
+        				    dataHolder->clearErrors();
+			   		    MyBase::SetErrCode(0);
+					    progressBar->reset();
+					    return false;
+					}
+				        sprintf(percentComplete,"%.1f%% Complete",(100*((double)(varsSize*timeStep+var+1)/(double)(dataChunks))));
+					percentCompleteLabel->setText(QString::fromUtf8(percentComplete));
+					progressBar->setValue((varsSize*timeStep)+var);
+					QApplication::processEvents();
 				}
-			        sprintf(percentComplete,"%.1f%% Complete",(100*((double)(varsSize*timeStep+var)/(double)(dataChunks-1))));
-				percentCompleteLabel->setText(QString::fromUtf8(percentComplete));
-				progressBar->setValue((varsSize*timeStep)+var);
-				QApplication::processEvents();
+				else {
+					cancelButton->setEnabled(false);
+					activateCancel=0;
+					return false;
+				}
 			}
 		}	
 		//progressBar->reset();	
    		successMessage->show();
 	
 		//stay on page if successMessage does not exit(0)
-		cout << "retfalse 1" << endl;
 		return false;   
 	}
-	cout << "who knew?" << endl;
 }

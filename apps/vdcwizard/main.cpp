@@ -19,7 +19,6 @@
 //
 //
 
-//#include "fcwizard.h"
 #include "vdcwizard.h"
 #include <QApplication>
 
@@ -33,6 +32,9 @@ int main(int argc, char *argv[])
 
     VDCWizard w;
     w.show();
+    //w.setWindowState(~Qt::WindowMinimized) | Qt::WindowActive);
+    w.raise();
+    w.activateWindow();
 
     return a.exec();
 }
