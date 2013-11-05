@@ -204,8 +204,8 @@ public:
 	virtual void setEditorDirty(RenderParams*){}
 	virtual void updateMapBounds(RenderParams*) {assert (0);}
 	virtual void updateClut(RenderParams*){assert(0);}
-
-	
+	//Use quality setting and preferences to calculate LOD and Refinement
+	virtual void calcLODRefLevel(int dim, float quality, float regMBs, int* lod, int* refLevel);
 
 //Methods for loading/saving transfer functions:
 void saveTF(RenderParams* rParams);

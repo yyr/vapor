@@ -109,6 +109,9 @@ DvrEventRouter::hookUpTab()
 	connect (loadButton, SIGNAL(clicked()), this, SLOT(dvrLoadTF()));
 	connect (loadInstalledButton, SIGNAL(clicked()), this, SLOT(dvrLoadInstalledTF()));
 	connect (saveButton, SIGNAL(clicked()), this, SLOT(dvrSaveTF()));
+	connect (qualitySlider,SIGNAL(sliderReleased()), this, SLOT(guiSetQuality()));
+	connect (qualitySlider,SIGNAL(sliderMoved(int)), this, SLOT(qualityChanging(int)));
+	connect (qualityDefaultButton, SIGNAL(clicked()), this, SLOT(guiSetQualityDefault()));
 	
 	connect (variableCombo, SIGNAL( activated(int) ), this, SLOT( guiSetComboVarNum(int) ) );
 	connect (lightingCheckbox, SIGNAL( toggled(bool) ), this, SLOT( guiSetLighting(bool) ) );
@@ -219,6 +222,21 @@ void DvrEventRouter::confirmText(bool /*render*/){
 		tf->setMinMapValue(leftMappingBound->text().toFloat());
 		tf->setMaxMapValue(rightMappingBound->text().toFloat());
 		setEditorDirty();
+	}
+	float qual = qualityEdit->text().toFloat();
+	if (qual < 0. || qual > 1.f) qual = 0.5f;
+	int sliderval = (int) (qual*256.);
+	qualitySlider->setValue(sliderval);
+	if (!dParams->getIgnoreQuality()){
+		RegionParams* rParams = VizWinMgr::getActiveRegionParams();
+		float regionMBs = rParams->fullRegionMBs(-1);
+		int lod, reflevel;
+		calcLODRefLevel(3, qual, regionMBs, &lod, &reflevel);
+		if (lod != dParams->GetCompressionLevel() || reflevel != dParams->GetRefinementLevel()){
+			dParams->setQuality(qual);
+			dParams->SetCompressionLevel(lod);
+			dParams->SetRefinementLevel(reflevel);
+		}
 	}
 	guiSetTextChanged(false);
 	setDatarangeDirty(dParams);
@@ -401,24 +419,33 @@ void DvrEventRouter::updateTab(){
     {
       transferFunctionFrame->setVariableName("");
     }
-	//Force the dvr to refresh  WHY?
-	//VizWinMgr::getInstance()->setClutDirty(dvrParams);
-    //VizWinMgr::getInstance()->setDatarangeDirty(dvrParams);
-	//VizWinMgr::getInstance()->setVizDirty(dvrParams,NavigatingBit,true, true);
-
+	
 	
 	//Disable the typeCombo and bits per pixel whenever the renderer is enabled:
 	typeCombo->setEnabled(!(dvrParams->isEnabled()));
 	
 	typeCombo->setCurrentIndex(typemapi[dvrParams->getType()]);
 
-	int numRefs = dvrParams->GetRefinementLevel();
-	if(numRefs <= refinementCombo->count())
-		refinementCombo->setCurrentIndex(numRefs);
+	
 	variableCombo->setCurrentIndex(dvrParams->getComboVarNum());
 	
-	lodCombo->setCurrentIndex(dvrParams->GetCompressionLevel());
 	
+	float quality = dvrParams->getQuality();
+	qualitySlider->setValue((int)(quality*256.));
+	qualityEdit->setText(QString::number(quality));
+	if (!dvrParams->getIgnoreQuality()){
+		RegionParams* rParams = VizWinMgr::getActiveRegionParams();
+		float regionMBs = rParams->fullRegionMBs(-1);
+		int lod, reflevel;
+		calcLODRefLevel(3, quality, regionMBs, &lod, &reflevel);
+		lodCombo->setCurrentIndex(lod);
+		refinementCombo->setCurrentIndex(reflevel);
+	} else {
+		int numRefs = dvrParams->GetRefinementLevel();
+		if(numRefs <= refinementCombo->count())
+			refinementCombo->setCurrentIndex(numRefs);
+		lodCombo->setCurrentIndex(dvrParams->GetCompressionLevel());
+	}
 	lightingCheckbox->setChecked(dvrParams->getLighting());
 	preintegratedCheckbox->setChecked(dvrParams->getPreIntegration());
 
@@ -546,7 +573,7 @@ guiSetCompRatio(int num){
 	if (num == dParams->GetCompressionLevel()) return;
 	
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "set compression level");
-	
+	dParams->setIgnoreQuality(true);
 	dParams->SetCompressionLevel(num);
 	lodCombo->setCurrentIndex(num);
 	PanelCommand::captureEnd(cmd, dParams);
@@ -561,7 +588,7 @@ guiSetNumRefinements(int num){
 	if (num == dParams->GetRefinementLevel()) return;
 	
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "set number of refinements");
-		
+	dParams->setIgnoreQuality(true);
 	dParams->SetRefinementLevel(num);
 	refinementCombo->setCurrentIndex(num);
 	PanelCommand::captureEnd(cmd, dParams);
@@ -1351,7 +1378,79 @@ void DvrEventRouter::guiFitTFToData(){
 	updateTab();
 	
 }
-
+//Occurs when user releases quality slider
+void DvrEventRouter::guiSetQuality(){
+	// Recalculate LOD and refinement based on current slider value and/or current text value
+	//.  If they don't change, then don't 
+	// generate an event.
+	confirmText(false);
+	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
+	int lodSet = dParams->GetCompressionLevel();
+	int refSet = dParams->GetRefinementLevel();
+	
+	//Determine region size
+	RegionParams    *regionParams = VizWinMgr::getActiveRegionParams();
+	float regionMBs = regionParams->fullRegionMBs(-1);
+	int q = qualitySlider->value();
+	float quality = (float)q/256.;
+	qualityEdit->setText(QString::number(quality));
+	int lod, reflevel;
+	calcLODRefLevel(3, quality, regionMBs, &lod, &reflevel);
+	if (lod == lodSet && refSet == reflevel) return;
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Data Quality");
+	dParams->SetCompressionLevel(lod);
+	dParams->SetRefinementLevel(reflevel);
+	dParams->setQuality(quality);
+	dParams->setIgnoreQuality(false);
+	//change values of LOD and refinement combos using setCurrentIndex().
+	lodCombo->setCurrentIndex(lod);
+	refinementCombo->setCurrentIndex(reflevel);
+	PanelCommand::captureEnd(cmd, dParams);
+	VizWinMgr::getInstance()->forceRender(dParams, true);
+}
+//As quality slider moves, update the LOD and refinement combos without causing
+//change in data
+void DvrEventRouter::qualityChanging(int val){
+	//Determine region size
+	RegionParams    *regionParams = VizWinMgr::getActiveRegionParams();
+	float regionMBs = regionParams->fullRegionMBs(-1);
+	float quality = (float)val/256.;
+	qualityEdit->setText(QString::number(quality));
+	int lod, reflevel;
+	calcLODRefLevel(3, quality, regionMBs, &lod, &reflevel);
+	//change values of LOD and refinement combos using setCurrentIndex().
+	lodCombo->setCurrentIndex(lod);
+	refinementCombo->setCurrentIndex(reflevel);
+}
+//User clicks on SetDefault button, need to make current quality settings the default.
+void DvrEventRouter::guiSetQualityDefault(){
+	//Check current values of LOD and refinement and their combos.
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	if (!dataMgr) return;
+	confirmText(false);
+	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Quality Default LOD and refinement");
+	int lodSet = dParams->GetCompressionLevel();
+	int refSet = dParams->GetRefinementLevel();
+	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
+	float regionMBs = rParams->fullRegionMBs(-1);
+	//Adjust lod, ref based on actual region size
+	const vector<size_t> comprs = dataMgr->GetCRatios();
+	float lodDefault = (float)comprs[lodSet]/regionMBs;
+	float refDefault = (float)refSet+log(regionMBs)/log(2.);
+	//Set defaultLOD3d and defaultRefinement3D values
+	UserPreferences::setDefaultLODQuality3D(lodDefault);
+	UserPreferences::setDefaultRefinementQuality3D(refDefault);
+	UserPreferences::requestSave();
+	//Clear ignoreQuality flag
+	dParams->setIgnoreQuality(false);
+	//Set quality to 0.5.
+	dParams->setQuality(0.5f);
+	qualitySlider->setValue(128);
+	qualityEdit->setText("0.5");
+	PanelCommand::captureEnd(cmd, dParams);
+	//Need undo/redo to include preference settings!
+}
 //Workaround for Qt/Cocoa bug: postpone showing of OpenGL widget 
 
 #ifdef Darwin

@@ -51,7 +51,7 @@ public:
 	//If filename not specified then save to default path/name 
 	//void save(QString* filename = 0);
 	//When user requests save state, launch file save dialog:
-	void requestSave();
+	static void requestSave();
 	//Make these preferences apply to state
 	void applyToState();
 	void getTextChanges();
@@ -67,6 +67,15 @@ public:
 	static bool loadDefault();
 	static void setDefault();
 	static bool depthPeelIsInState(){return depthPeelInState;}
+	//Data quality settings:
+	static float getDefaultLODQuality2D(){return defaultLODQuality2D;}
+	static float getDefaultRefinementQuality2D(){return defaultRefQuality2D;}
+	static float getDefaultLODQuality3D(){return defaultLODQuality3D;}
+	static float getDefaultRefinementQuality3D(){return defaultRefQuality3D;}
+	static void setDefaultLODQuality2D(float q) {defaultLODQuality2D = q;}
+	static void setDefaultLODQuality3D(float q) {defaultLODQuality3D = q;}
+	static void setDefaultRefinementQuality2D(float q){defaultRefQuality2D = q;}
+	static void setDefaultRefinementQuality3D(float q){defaultRefQuality3D = q;}
 	
 signals: 
 	void doneWithIt();
@@ -177,6 +186,7 @@ protected:
 
 	static bool depthPeelInState;
 	static bool firstPreferences;
+	
 	//Copy data from session to dialog
 	void setDialog();
 	//Copy from dialog to session
@@ -188,6 +198,10 @@ protected:
 	//So far no use for this; indicates the version of
 	//VAPOR that wrote the current preferences to file.
 	static string preferencesVersionString;
+	static float defaultRefQuality2D;
+	static float defaultRefQuality3D;
+	static float defaultLODQuality2D;
+	static float defaultLODQuality3D;
 	bool subregionFrameEnabled;
 	bool regionFrameEnabled;
 	QColor subregionFrameColor;

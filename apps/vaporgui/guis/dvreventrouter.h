@@ -102,9 +102,13 @@ public slots:
 
 	//respond to changes in TF (for undo/redo):
 	//
+
 	virtual void guiStartChangeMapFcn(QString s);
 	virtual void guiEndChangeMapFcn();
 	void guiSetOpacityScale(int val);
+	void guiSetQuality();
+	void qualityChanging(int val);
+	void guiSetQualityDefault();
 
 	void setBindButtons(bool canBind);
 

@@ -112,6 +112,11 @@ public:
 	//! \param[in] int lod				Compression level of requested data
 	//! \param[in] int timeStep			Time step of data
 	static float calcCurrentValue( const string& varname, const double point[3], int numRefinements, int lod, size_t timeStep);
+	//!
+	//! Calculate the full size of the region in megabytes, at specified refinement level.
+	//! \param[in] int reflevel		Refinement level of data, use -1 for max refinement.
+	//! \retval	float size in megabytes.
+	float RegionParams::fullRegionMBs(int refLevel);
 
 #ifndef DOXYGEN_SKIP_THIS
 

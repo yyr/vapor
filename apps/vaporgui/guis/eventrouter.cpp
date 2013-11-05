@@ -41,6 +41,11 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#ifdef _WINDOWS 
+#define _USE_MATH_DEFINES
+#include <math.h>
+#pragma warning(disable : 4996)
+#endif
 
 using namespace VAPoR;
 
@@ -272,7 +277,51 @@ Histo* EventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool){
 	return histogramList[varNum];
 	
 }
- 
+void EventRouter::calcLODRefLevel(int dim, float quality, float regMBs, int* lod, int* refinement){
+	//Determine min/max lod and ref levels:
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	if (!dataMgr) return;
+	size_t cacheMB = Session::getInstance()->getCacheMB();
+	const vector<size_t> cratios = dataMgr->GetCRatios();
+	int maxRefLevel = dataMgr->GetNumTransforms()+1;
+	//Make sure region at maxRefLevel isn't larger than cache*.5:
+	int maxMaxRef = (int) log(.5*cacheMB/regMBs)/log(2.);
+	if (maxRefLevel > maxMaxRef) maxRefLevel = maxMaxRef;
+	float defaultRefLevel, defaultLOD;
+	if (dim == 3){
+		defaultRefLevel = UserPreferences::getDefaultRefinementQuality3D()-log(regMBs)/log(2.);
+		defaultLOD = UserPreferences::getDefaultLODQuality3D()*regMBs;
+	} else {
+		defaultRefLevel = UserPreferences::getDefaultRefinementQuality2D()-log(regMBs)/log(2.);
+		defaultLOD = UserPreferences::getDefaultLODQuality2D()*regMBs;
+	}
+	float loglod, reflev;
+	if (quality < 0.5){
+		loglod = 2.*log((float)cratios[cratios.size()-1])*(.5-quality) +2.*quality*log(defaultLOD);
+		reflev = 2.*quality*defaultRefLevel;
+	} else {
+		loglod = 2.*(1.-quality)*log(defaultLOD);
+		reflev = 2.*(1.-quality)*defaultRefLevel + 2.*(quality-.5)*maxRefLevel;
+	}
+	//Now find nearest valid reflevel and lod:
+	int ireflev = (int)(reflev+0.5f);
+	if (ireflev < 0) ireflev = 0;
+	if (ireflev > maxRefLevel) ireflev = maxRefLevel;
+	float maxDiff = 1000.f;
+	int maxIndx = -1;
+	for (int i = 0; i<cratios.size(); i++){
+		if (maxDiff > abs(log((float)cratios[i]) - loglod)) {
+			maxDiff = abs(log((float)cratios[i]) - loglod);
+			maxIndx = i;
+		}
+	}
+	
+	assert(maxIndx >=0 && maxIndx<= (float)cratios[cratios.size()-1]);
+	assert(ireflev >= 0 && ireflev <= maxRefLevel);
+	*lod = maxIndx;
+	*refinement = ireflev;
+}
+
 
 //Respond to user click on save/load TF.  This launches the intermediate
 //dialog, then sends the result to the DVR params

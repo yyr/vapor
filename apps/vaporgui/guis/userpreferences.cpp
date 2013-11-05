@@ -127,6 +127,10 @@ const string UserPreferences::_defaultSpinAnimateAttr = "DefaultEnableSpin";
 string UserPreferences::preferencesVersionString = "";
 bool UserPreferences::depthPeelInState = false;
 bool UserPreferences::firstPreferences = true;
+float UserPreferences::defaultRefQuality2D = 2.f;
+float UserPreferences::defaultRefQuality3D = 2.f;
+float UserPreferences::defaultLODQuality2D = 10.f;
+float UserPreferences::defaultLODQuality3D = 10.f;
 
 //Create a new UserPreferences
 UserPreferences::UserPreferences() : QDialog(0), Ui_Preferences(){
@@ -999,7 +1003,7 @@ void UserPreferences::requestSave(){
 		 QMessageBox::Yes|QMessageBox::Default,QMessageBox::No,Qt::NoButton);
 	if (rc != QMessageBox::Yes) return;
 	
-	QString filename = QFileDialog::getSaveFileName(this,
+	QString filename = QFileDialog::getSaveFileName(MainForm::getInstance(),
             	"Select the filename for saving user preferences", 
 		Session::getPreferencesFile().c_str(),
             	".*");
