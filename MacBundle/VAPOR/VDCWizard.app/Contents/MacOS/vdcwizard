@@ -1,0 +1,3 @@
+#!/bin/csh -f
+/Applications/VAPOR/VAPOR.app/Contents/MacOS/vdcwizard
+
