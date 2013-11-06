@@ -195,6 +195,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\apps\wrf2vdf\wrf2vdf.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\Wrf2vdf.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\common\common.vcxproj">
@@ -205,6 +206,9 @@
       <Project>{91c4e098-bc79-4784-94b7-c96b3548682d}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\lib\vdf\Wrf2vdf.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
