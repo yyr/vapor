@@ -231,7 +231,7 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_createvdfpage.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\vdcwizard\dataholder.h">
+    <ClInclude Include="..\..\..\apps\vdcwizard\dataholder.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\dataholder.h -o ..\..\..\apps\vdcwizard\moc\moc_dataholder.cpp</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing dataholder.h...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\moc\moc_dataholder.cpp;%(Outputs)</Outputs>
@@ -240,7 +240,7 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing dataholder.h...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_dataholder.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
-    </CustomBuild>
+    </ClInclude>
     <CustomBuild Include="..\..\..\apps\vdcwizard\vdcwizard.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\vdcwizard.h -o ..\..\..\apps\vdcwizard\moc\moc_vdcwizard.cpp</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing vdcwizard.h...</Message>
