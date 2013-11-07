@@ -56,6 +56,8 @@ PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
 	checkOverwrites->continueButton->setVisible(false);
 	checkOverwrites->label->setText("Warning");
 	checkOverwrites->label_2->setText("Some of the selected variables already have data files in the vdf directory.  These files may be overwritten.  Do you still want to proceed?");
+
+	
 }
 
 void PopulateDataPage::on_selectAllButton_clicked() {
@@ -225,25 +227,30 @@ bool PopulateDataPage::validatePage() {
 		//Cycle through variables in each timestep
 		for (int timeStep=0;timeStep<tsSize;timeStep++){
 			for (int var=0;var<varsSize;var++){
-				if (activateCancel==0) {
+				ss << timeStep;
+				if (dataHolder->run2VDFincremental(ss.str(),dataHolder->getPDSelectedVars().at(var)) != 0){//activateCancel==0) {
 					stringstream ss;
-					ss << timeStep;
+					//ss << timeStep;
 					if (dataHolder->run2VDFincremental(ss.str(),dataHolder->getPDSelectedVars().at(var)) != 0) {
-   			     		    dataHolder->vdcSettingsChanged=false;
-   			     		    for (int i=0;i<dataHolder->getErrors().size();i++){
-						errorMessage->errorList->append(dataHolder->getErrors()[i]);
-       			     		        errorMessage->errorList->append("\n");
-       		 			    }   
-       		 			    errorMessage->show();
-        				    errorMessage->setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
-        				    errorMessage->raise();
-        				    errorMessage->activateWindow();
-        				    dataHolder->clearErrors();
+					    dataHolder->vdcSettingsChanged=false;
+   		     		    for (int i=0;i<dataHolder->getErrors().size();i++){
+							errorMessage->errorList->append(dataHolder->getErrors()[i]);
+       	     		        errorMessage->errorList->append("\n");
+   		 			    }   
+       		 			errorMessage->show();
+        			    errorMessage->setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
+        			    errorMessage->raise();
+        			    errorMessage->activateWindow();
+        			    dataHolder->clearErrors();
 			   		    MyBase::SetErrCode(0);
 					    progressBar->reset();
 					    return false;
 					}
-				        sprintf(percentComplete,"%.1f%% Complete",(100*((double)(varsSize*timeStep+var+1)/(double)(dataChunks))));
+					
+					cout << "Processed " << dataHolder->getPDSelectedVars().at(var) << " at timestep " << timeStep << endl;
+					
+					// Update progress bar
+				    sprintf(percentComplete,"%.1f%% Complete",(100*((double)(varsSize*timeStep+var+1)/(double)(dataChunks))));
 					percentCompleteLabel->setText(QString::fromUtf8(percentComplete));
 					progressBar->setValue((varsSize*timeStep)+var);
 					QApplication::processEvents();
@@ -262,3 +269,15 @@ bool PopulateDataPage::validatePage() {
 		return false;   
 	}
 }
+
+/*class RunMultithreaded2VDF : public QThread {
+
+public:
+	int runIncrement();
+signals:
+	void percentageComplete(int);
+};
+
+int MyThread::runIncrement() {
+	
+}*/

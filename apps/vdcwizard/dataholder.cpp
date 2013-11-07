@@ -34,12 +34,10 @@
 #include <vapor/DCReaderMOM.h>
 #include <vapor/DCReaderROMS.h>
 #include <vapor/DCReaderWRF.h>
-//#include <../Wrf2vdf/Wrf2vdf.cpp>
 #include <vapor/Wrf2vdf.h>
 #include "dataholder.h"
 
 using namespace VAPoR;
-//using namespace VetsUtil;
 
 vector<const char*> errors;
 
@@ -80,7 +78,6 @@ void DataHolder::setVDFSelectedVars(vector<string> selectedVars) {
 	if (VDFSelectedVars != selectedVars) vdfSettingsChanged = true;
 
 	VDFSelectedVars = selectedVars;
-	//vdfSettingsChanged = true;
 }
 
 void DataHolder::addVDFDisplayedVar(string var) { 
@@ -307,7 +304,7 @@ int DataHolder::run2VDFincremental(string start, string var) {
     argv.push_back(start);
     argc+=2;
   
-    if (PDSelectedVars.size() != 0) {
+    /*if (PDSelectedVars.size() != 0) {
                 argv.push_back("-vars");
         argc++;
 
@@ -319,8 +316,12 @@ int DataHolder::run2VDFincremental(string start, string var) {
         }
         argv.push_back(stringVars);
         argc++;
-    }
-   
+    }*/
+    
+	argv.push_back("-vars");
+	argc++;
+	argv.push_back(var);
+	argc++;
  
     if (getFileType()=="wrf"){
         argv.push_back(PDinputVDFfile);
