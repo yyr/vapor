@@ -27,7 +27,7 @@ public:
 
 private:
  string _progname;
- DCReader *DCData;
+ DCReaderWRF *wrfData;
 
  //
  // Missing data masks

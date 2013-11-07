@@ -283,7 +283,7 @@ void EventRouter::calcLODRefLevel(int dim, float quality, float regMBs, int* lod
 	if (!dataMgr) return;
 	size_t cacheMB = Session::getInstance()->getCacheMB();
 	const vector<size_t> cratios = dataMgr->GetCRatios();
-	int maxRefLevel = dataMgr->GetNumTransforms()+1;
+	int maxRefLevel = dataMgr->GetNumTransforms();
 	//Make sure region at maxRefLevel isn't larger than cache*.5:
 	int maxMaxRef = (int) log(.5*cacheMB/regMBs)/log(2.);
 	if (maxRefLevel > maxMaxRef) maxRefLevel = maxMaxRef;
@@ -297,10 +297,10 @@ void EventRouter::calcLODRefLevel(int dim, float quality, float regMBs, int* lod
 	}
 	float loglod, reflev;
 	if (quality < 0.5){
-		loglod = 2.*log((float)cratios[cratios.size()-1])*(.5-quality) +2.*quality*log(defaultLOD);
+		loglod = 2.*log((float)cratios[0])*(.5-quality) +2.*quality*log(defaultLOD);
 		reflev = 2.*quality*defaultRefLevel;
 	} else {
-		loglod = 2.*(1.-quality)*log(defaultLOD);
+		loglod = 2.*(1.-quality)*log(defaultLOD)+2.*(quality-.5)*log((float)cratios[cratios.size()-1]);
 		reflev = 2.*(1.-quality)*defaultRefLevel + 2.*(quality-.5)*maxRefLevel;
 	}
 	//Now find nearest valid reflevel and lod:
@@ -316,7 +316,7 @@ void EventRouter::calcLODRefLevel(int dim, float quality, float regMBs, int* lod
 		}
 	}
 	
-	assert(maxIndx >=0 && maxIndx<= (float)cratios[cratios.size()-1]);
+	assert(maxIndx >=0 && maxIndx < cratios.size());
 	assert(ireflev >= 0 && ireflev <= maxRefLevel);
 	*lod = maxIndx;
 	*refinement = ireflev;
