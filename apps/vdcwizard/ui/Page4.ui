@@ -199,6 +199,9 @@
    <property name="value">
     <number>24</number>
    </property>
+   <property name="textVisible">
+    <bool>false</bool>
+   </property>
   </widget>
   <widget class="QLabel" name="percentCompleteLabel">
    <property name="geometry">
