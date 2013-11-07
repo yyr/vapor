@@ -39,7 +39,7 @@ Wrf2vdf::Wrf2vdf() {
         _mvMask2DXZ = NULL;
         _mvMask2DYZ = NULL;
 
-        DCData = NULL;
+        wrfData = NULL;
 }
 
 Wrf2vdf::~Wrf2vdf() {
@@ -369,7 +369,9 @@ int	Wrf2vdf::launchWrf2Vdf(int argc, char **argv) {
 		 ncdffiles.push_back(argv[i]);
 	}
 	
-	DCReaderWRF *wrfData = new DCReaderWRF(ncdffiles);
+	if (wrfData == NULL){
+		wrfData = new DCReaderWRF(ncdffiles);
+	}
 
 	if (MyBase::GetErrCode() != 0) return -1;
 
