@@ -61,6 +61,7 @@
 
 using namespace VAPoR;
 
+const string UserPreferences::_fidelityDefaultsTag = "FidelityDefaults";
 const string UserPreferences::_tabOrderingTag = "TabOrdering";
 const string UserPreferences::_preferencesTag = "UserPreferences";
 const string UserPreferences::_sceneColorsTag = "SceneColors";
@@ -127,10 +128,10 @@ const string UserPreferences::_defaultSpinAnimateAttr = "DefaultEnableSpin";
 string UserPreferences::preferencesVersionString = "";
 bool UserPreferences::depthPeelInState = false;
 bool UserPreferences::firstPreferences = true;
-float UserPreferences::defaultRefQuality2D = 2.f;
-float UserPreferences::defaultRefQuality3D = 2.f;
-float UserPreferences::defaultLODQuality2D = 10.f;
-float UserPreferences::defaultLODQuality3D = 10.f;
+float UserPreferences::defaultRefFidelity2D = 4.f;
+float UserPreferences::defaultRefFidelity3D = 4.f;
+float UserPreferences::defaultLODFidelity2D = 2.f;
+float UserPreferences::defaultLODFidelity3D = 2.f;
 
 //Create a new UserPreferences
 UserPreferences::UserPreferences() : QDialog(0), Ui_Preferences(){
@@ -997,11 +998,13 @@ void UserPreferences::okClicked(){
 	emit doneWithIt();
 	
 }
-void UserPreferences::requestSave(){
-	int rc = QMessageBox::question(0, "Save User Preferences?", 
-		"User Preferences have changed.\nDo you want to save them to file?",
-		 QMessageBox::Yes|QMessageBox::Default,QMessageBox::No,Qt::NoButton);
-	if (rc != QMessageBox::Yes) return;
+void UserPreferences::requestSave(bool prompt){
+	if(prompt){
+		int rc = QMessageBox::question(0, "Save User Preferences?", 
+			"User Preferences have changed.\nDo you want to save them to file?",
+			 QMessageBox::Yes|QMessageBox::Default,QMessageBox::No,Qt::NoButton);
+		if (rc != QMessageBox::Yes) return;
+	}
 	
 	QString filename = QFileDialog::getSaveFileName(MainForm::getInstance(),
             	"Select the filename for saving user preferences", 
@@ -1146,6 +1149,13 @@ ParamNode* UserPreferences::buildNode(){
 	mainNode->SetElementString(_exportFileNameTag, ses->getExportFile());
 	mainNode->SetElementString(_logFileNameTag, ses->getLogfileName());
 	mainNode->SetElementLong(_tabOrderingTag, TabManager::getTabOrdering());
+
+	vector<double> fidelityDefaults;
+	fidelityDefaults.push_back(defaultRefFidelity2D);
+	fidelityDefaults.push_back(defaultRefFidelity3D);
+	fidelityDefaults.push_back(defaultLODFidelity2D);
+	fidelityDefaults.push_back(defaultLODFidelity3D);
+	mainNode->SetElementDouble(_fidelityDefaultsTag,fidelityDefaults);
 	
 	//Create a node for message reporting:
 
@@ -1561,7 +1571,8 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 				StrCmpNoCase(tag, _sessionPathTag) == 0 ||
 				StrCmpNoCase(tag, _metadataPathTag) == 0 ||
 				StrCmpNoCase(tag, _autoSaveFilenameTag) == 0 ||
-				StrCmpNoCase(tag, _tabOrderingTag) == 0 )
+				StrCmpNoCase(tag, _tabOrderingTag) == 0 ||
+				StrCmpNoCase(tag, _fidelityDefaultsTag) == 0)
 			{
 				if (*attrs) {
 					if (StrCmpNoCase(*attrs, _typeAttr) != 0) {
@@ -1648,8 +1659,7 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 							ViewpointParams::setDefaultLightDirection(light, fltVal);
 						}
 					}
-					else {
-					}
+					
 				}
 				return true;
 			} else if (StrCmpNoCase(tag, _flowDefaultsTag) == 0){
@@ -1772,8 +1782,7 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 						else val = false;
 						GLWindow::setDefaultSpinAnimate(val);
 						GLWindow::setSpinAnimation(val);
-					} else {
-					}
+					} 
 				}
 				return true;
 			} else {
@@ -1806,6 +1815,7 @@ bool UserPreferences::elementEndHandler(ExpatParseMgr* pm, int depth, std::strin
 
 	const string &strdata = pm->getStringData();
 	const vector<long>& longdata = pm->getLongData();
+	const vector<double>& doubledata = pm->getDoubleData();
 	Session* ses = Session::getInstance();
 	if (StrCmpNoCase(tag, _exportFileNameTag) == 0){
 		ses->setExportFile(strdata.c_str());
@@ -1827,6 +1837,11 @@ bool UserPreferences::elementEndHandler(ExpatParseMgr* pm, int depth, std::strin
 		ses->setPrefMetadataDirectory(strdata.c_str());
 	} else if (StrCmpNoCase(tag, _tabOrderingTag) == 0){
 		tabPositions = longdata;
+	} else if (StrCmpNoCase(tag, _fidelityDefaultsTag) == 0){
+		defaultRefFidelity2D = doubledata[0]; 
+		defaultRefFidelity3D = doubledata[1]; 
+		defaultLODFidelity2D = doubledata[2]; 
+		defaultLODFidelity3D = doubledata[3]; 
 	} else {
 		pm->parseError("Invalid preferences tag  : \"%s\"", tag.c_str());
 		return false;

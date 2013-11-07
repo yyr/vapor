@@ -51,7 +51,7 @@ public:
 	//If filename not specified then save to default path/name 
 	//void save(QString* filename = 0);
 	//When user requests save state, launch file save dialog:
-	static void requestSave();
+	static void requestSave(bool prompt = true);
 	//Make these preferences apply to state
 	void applyToState();
 	void getTextChanges();
@@ -67,15 +67,15 @@ public:
 	static bool loadDefault();
 	static void setDefault();
 	static bool depthPeelIsInState(){return depthPeelInState;}
-	//Data quality settings:
-	static float getDefaultLODQuality2D(){return defaultLODQuality2D;}
-	static float getDefaultRefinementQuality2D(){return defaultRefQuality2D;}
-	static float getDefaultLODQuality3D(){return defaultLODQuality3D;}
-	static float getDefaultRefinementQuality3D(){return defaultRefQuality3D;}
-	static void setDefaultLODQuality2D(float q) {defaultLODQuality2D = q;}
-	static void setDefaultLODQuality3D(float q) {defaultLODQuality3D = q;}
-	static void setDefaultRefinementQuality2D(float q){defaultRefQuality2D = q;}
-	static void setDefaultRefinementQuality3D(float q){defaultRefQuality3D = q;}
+	//Data fidelity settings:
+	static float getDefaultLODFidelity2D(){return defaultLODFidelity2D;}
+	static float getDefaultRefinementFidelity2D(){return defaultRefFidelity2D;}
+	static float getDefaultLODFidelity3D(){return defaultLODFidelity3D;}
+	static float getDefaultRefinementFidelity3D(){return defaultRefFidelity3D;}
+	static void setDefaultLODFidelity2D(float q) {defaultLODFidelity2D = q;}
+	static void setDefaultLODFidelity3D(float q) {defaultLODFidelity3D = q;}
+	static void setDefaultRefinementFidelity2D(float q){defaultRefFidelity2D = q;}
+	static void setDefaultRefinementFidelity3D(float q){defaultRefFidelity3D = q;}
 	
 signals: 
 	void doneWithIt();
@@ -139,6 +139,7 @@ protected:
 	static const string _metadataPathTag;
 	static const string _sessionPathTag;
 	static const string _autoSaveFilenameTag;
+	static const string _fidelityDefaultsTag;
 	static const string _autoSaveIntervalAttr;
 	static const string _messagesTag;
 	static const string _probeDefaultsTag;
@@ -198,10 +199,10 @@ protected:
 	//So far no use for this; indicates the version of
 	//VAPOR that wrote the current preferences to file.
 	static string preferencesVersionString;
-	static float defaultRefQuality2D;
-	static float defaultRefQuality3D;
-	static float defaultLODQuality2D;
-	static float defaultLODQuality3D;
+	static float defaultRefFidelity2D;
+	static float defaultRefFidelity3D;
+	static float defaultLODFidelity2D;
+	static float defaultLODFidelity3D;
 	bool subregionFrameEnabled;
 	bool regionFrameEnabled;
 	QColor subregionFrameColor;

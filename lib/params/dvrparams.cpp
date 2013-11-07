@@ -282,8 +282,8 @@ restart(){
     preIntegrationOn = defaultPreIntegrationEnabled;
 	numBits = defaultBitsPerVoxel;
 	compressionLevel = 0;
-	qualityLevel = 0.5f;
-	ignoreQuality = true;
+	fidelityLevel = 0.5f;
+	ignoreFidelity = false;
 	
 	if(numVariables > 0){
 		for (int i = 0; i<numVariables; i++){
