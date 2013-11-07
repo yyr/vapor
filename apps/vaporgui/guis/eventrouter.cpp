@@ -281,12 +281,14 @@ void EventRouter::calcLODRefLevel(int dim, float fidelity, float regMBs, int* lo
 	//Determine min/max lod and ref levels:
 	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
 	if (!dataMgr) return;
-	size_t cacheMB = Session::getInstance()->getCacheMB();
+	float cacheMB = (float)Session::getInstance()->getCacheMB();
 	const vector<size_t> cratios = dataMgr->GetCRatios();
 	int maxRefLevel = dataMgr->GetNumTransforms();
 	//Make sure region at maxRefLevel isn't larger than cache*.5:
-	int maxMaxRef = (int) log(.5*cacheMB/regMBs)/log(2.);
-	if (maxRefLevel > maxMaxRef) maxRefLevel = maxMaxRef;
+	float logOver = log(.5*cacheMB/regMBs)/log(2.);
+	if (logOver < 0.f){//Can't fit full volume in cache
+		maxRefLevel -= (int)(-logOver);
+	}
 	float defaultRefLevel, defaultLOD;
 	if (dim == 3){
 		defaultRefLevel = UserPreferences::getDefaultRefinementFidelity3D()-log(regMBs)/log(2.);

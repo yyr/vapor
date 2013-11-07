@@ -259,10 +259,10 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;LOD (compression level) and Refinement (data resolution) are both controllable with the Fidelity setting,a value  between 0 and 1.  The Fidelity uses region size to control the number of wavelet coefficients to be loaded from disk as well as the volume of data to be displayed.  Users can specify the default LOD and Refinement to be used with the current region size, by clicking &amp;quot;Set Default&amp;quot;.  The default LOD and Refinement will result when the Fidelity is set to 0.5.  The current default Fidelity settings are saved in the user preferences when the &amp;quot;Save&amp;quot; button is clicked.  The LOD and Refinement associated with a given Fidelity setting are displayed as the Fidelity slider is moved.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="frameShape">
-             <enum>QFrame::NoFrame</enum>
+             <enum>QFrame::StyledPanel</enum>
             </property>
             <property name="frameShadow">
-             <enum>QFrame::Raised</enum>
+             <enum>QFrame::Plain</enum>
             </property>
             <property name="lineWidth">
              <number>0</number>
