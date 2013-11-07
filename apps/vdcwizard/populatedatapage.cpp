@@ -176,6 +176,7 @@ bool PopulateDataPage::checkForOverwrites() {
 }
 
 void PopulateDataPage::enableWidgets() {
+	activateCancel=0;
     cancelButton->setEnabled(false);
     selectAllButton->setEnabled(true);
     clearAllButton->setEnabled(true);
@@ -220,48 +221,51 @@ bool PopulateDataPage::validatePage() {
 		int dataChunks = varsSize * tsSize;
 		progressBar->setRange(0,dataChunks-1);
 	
-		stringstream ss;
+		//stringstream ss;
 		char percentComplete[20];
 	
     
 		//Cycle through variables in each timestep
 		for (int timeStep=0;timeStep<tsSize;timeStep++){
 			for (int var=0;var<varsSize;var++){
+				std::stringstream ss;
+				ss.clear();
 				ss << timeStep;
+				
 				if (dataHolder->run2VDFincremental(ss.str(),dataHolder->getPDSelectedVars().at(var)) != 0){//activateCancel==0) {
-					stringstream ss;
-					//ss << timeStep;
-					if (dataHolder->run2VDFincremental(ss.str(),dataHolder->getPDSelectedVars().at(var)) != 0) {
-					    dataHolder->vdcSettingsChanged=false;
-   		     		    for (int i=0;i<dataHolder->getErrors().size();i++){
-							errorMessage->errorList->append(dataHolder->getErrors()[i]);
-       	     		        errorMessage->errorList->append("\n");
-   		 			    }   
-       		 			errorMessage->show();
-        			    errorMessage->setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
-        			    errorMessage->raise();
-        			    errorMessage->activateWindow();
-        			    dataHolder->clearErrors();
-			   		    MyBase::SetErrCode(0);
-					    progressBar->reset();
-					    return false;
-					}
-					
-					cout << "Processed " << dataHolder->getPDSelectedVars().at(var) << " at timestep " << timeStep << endl;
-					
-					// Update progress bar
-				    sprintf(percentComplete,"%.1f%% Complete",(100*((double)(varsSize*timeStep+var+1)/(double)(dataChunks))));
-					percentCompleteLabel->setText(QString::fromUtf8(percentComplete));
-					progressBar->setValue((varsSize*timeStep)+var);
-					QApplication::processEvents();
+   			     	cout << "variable not processed" << endl;
+				    dataHolder->vdcSettingsChanged=false;
+   	     		    for (int i=0;i<dataHolder->getErrors().size();i++){
+						errorMessage->errorList->append(dataHolder->getErrors()[i]);
+           		        errorMessage->errorList->append("\n");
+   	 			    }   
+       		 		errorMessage->show();
+        		    errorMessage->setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
+        		    errorMessage->raise();
+       			    errorMessage->activateWindow();
+       			    dataHolder->clearErrors();
+		   		    MyBase::SetErrCode(0);
+				    progressBar->reset();
+				    
+					enableWidgets();
+					return false;
 				}
-				else {
+				cout << "Processed " << dataHolder->getPDSelectedVars().at(var) << " at timestep " << timeStep << endl;
+				
+				// Update progress bar
+			    sprintf(percentComplete,"%.1f%% Complete",(100*((double)(varsSize*timeStep+var+1)/(double)(dataChunks))));
+				percentCompleteLabel->setText(QString::fromUtf8(percentComplete));
+				progressBar->setValue((varsSize*timeStep)+var);
+				QApplication::processEvents();
+			}
+		}
+			/*else {
 					cancelButton->setEnabled(false);
 					activateCancel=0;
 					return false;
 				}
 			}
-		}	
+		}*/	
 		//progressBar->reset();	
    		successMessage->show();
 	

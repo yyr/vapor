@@ -14,8 +14,6 @@
 #include <vapor/CFuncs.h>
 #include <vapor/Wrf2vdf.h>
 
-//#include "wrf2vdf.h"
-
 #ifdef WIN32
 #pragma warning(disable : 4996)
 #endif
@@ -48,53 +46,6 @@ Wrf2vdf::~Wrf2vdf() {
         if (_mvMask2DXZ) delete [] _mvMask2DXZ;
         if (_mvMask2DYZ) delete [] _mvMask2DYZ;
 }
-
-
-/*struct opt_t {
-	vector <string> vars;
-	int numts;
-	int startts;
-    int level;
-    int lod;
-    int nthreads;
-	OptionParser::Boolean_T	help;
-	OptionParser::Boolean_T	quiet;
-	OptionParser::Boolean_T	debug;
-} opt;
-
-OptionParser::OptDescRec_T	set_opts[] = {
-	{"vars",1,    "",	"Colon delimited list of variables to be copied "
-		"from ncdf data. The default is to copy all 2D and 3D variables"},
-	{
-		"numts",	1,	"-1",	"Maximum number of time steps that may be "
-		"converted. A -1 implies the conversion of all time steps found"
-	},
-	{
-		"startts",	1,	"0",	"Offset of first time step in netCDF files "
-		" to be converted"
-	},
-	{"level",   1,  "-1","Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
-	{"lod", 1,  "-1",   "Compression levels saved. 0 => coarsest, 1 => "
-		"next refinement, etc. -1 => all levels defined by the .vdf file"},
-	{"nthreads",1,  "0",    "Number of execution threads (0 => # processors)"},
-	{"help",	0,	"",	"Print this message and exit"},
-	{"quiet",	0,	"",	"Operate quietly"},
-	{"debug",	0,	"",	"Turn on debugging"},
-	{NULL}
-};
-
-OptionParser::Option_T	get_options[] = {
-	{"vars", VetsUtil::CvtToStrVec, &_vars, sizeof(_vars)},
-	{"numts", VetsUtil::CvtToInt, &_numts, sizeof(_numts)},
-	{"startts", VetsUtil::CvtToInt, &_startts, sizeof(_startts)},
-	{"level", VetsUtil::CvtToInt, &_level, sizeof(_level)},
-	{"lod", VetsUtil::CvtToInt, &_lod, sizeof(_lod)},
-	{"nthreads", VetsUtil::CvtToInt, &_nthreads, sizeof(_nthreads)},
-	{"help", VetsUtil::CvtToBoolean, &_help, sizeof(opt.help)},
-	{"quiet", VetsUtil::CvtToBoolean, &_quiet, sizeof(_quiet)},
-	{"debug", VetsUtil::CvtToBoolean, &_debug, sizeof(_debug)},
-	{NULL}
-};*/
 
 const char *ProgName;
 
@@ -368,7 +319,7 @@ int	Wrf2vdf::launchWrf2Vdf(int argc, char **argv) {
 	for (int i=0; i<argc; i++) {
 		 ncdffiles.push_back(argv[i]);
 	}
-	
+
 	if (wrfData == NULL){
 		wrfData = new DCReaderWRF(ncdffiles);
 	}
@@ -449,7 +400,7 @@ int	Wrf2vdf::launchWrf2Vdf(int argc, char **argv) {
 				fails++;
 			}
 			const float * drange = vdfio->GetDataRange();
-			cout << "data range (" << drange[0] << ", " << drange[1]<< ")\n";
+			//cout << "data range (" << drange[0] << ", " << drange[1]<< ")\n";
 
 		}
 	}
@@ -462,11 +413,3 @@ int	Wrf2vdf::launchWrf2Vdf(int argc, char **argv) {
 	//exit(estatus);
 	return estatus;
 }
-
-/*int main(int argc, char ** argv) {
-	MyBase::SetErrMsgFilePtr(stderr);
-	Wrf2vdf w2v;
-	int rc = w2v.launchWrf2Vdf(argc, argv);
-	if (rc == 0) return 0;
-	else return -1;
-}*/ // End of main.
