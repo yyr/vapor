@@ -762,22 +762,36 @@ bool RegionParams::removeTime(int timestep){
 // if reflevel is -1, the highest refinement level is used.
 float RegionParams::fullRegionMBs(int refLevel){
 	
+	static vector<double>oldExtents(6,0.);
+	static size_t min_dim[3] = {0,0,0};
+	static size_t max_dim[3] = {0,0,0};
+	static int oldRefLevel = -2;
 	DataMgr*dataMgr = DataStatus::getInstance()->getDataMgr();
 	if (!dataMgr) return -1.f;
 	float regExts[6];
 	double userMinCoords[3],userMaxCoords[3];
-	size_t min_dim[3],max_dim[3];
-	GetBox()->GetLocalExtents(regExts);
 	
-	const vector<double>& usrExts = dataMgr->GetExtents(0);
-	for (int i = 0; i<3; i++){
-		userMinCoords[i] = regExts[i]+usrExts[i];
-		userMaxCoords[i] = regExts[i+3]+usrExts[i];
+	GetBox()->GetLocalExtents(regExts);
+	bool extentsChanged = false;(oldRefLevel != refLevel);
+	//Because of the slowness of GetEnclosingRegion, we are caching the region extents in this method.
+	for (int i = 0; i<6; i++){
+		if (regExts[i] != oldExtents[i]){
+			extentsChanged=true;
+			oldExtents[i]=regExts[i];
+		}
 	}
 	
-	//Determine containing voxel coord box:
-	dataMgr->GetEnclosingRegion(0, userMinCoords, userMaxCoords, min_dim, max_dim,refLevel);
-
+	if (extentsChanged || refLevel != oldRefLevel){
+		const vector<double>& usrExts = dataMgr->GetExtents(0);
+		for (int i = 0; i<3; i++){
+			userMinCoords[i] = regExts[i]+usrExts[i];
+			userMaxCoords[i] = regExts[i+3]+usrExts[i];
+		}
+	
+		//Determine containing voxel coord box,if region has changed
+		dataMgr->GetEnclosingRegion(0, userMinCoords, userMaxCoords, min_dim, max_dim,refLevel);
+		oldRefLevel = refLevel;
+	}
 	size_t fullsize = (max_dim[2]-min_dim[2])*(max_dim[1]-min_dim[1])*(max_dim[0]-min_dim[0]);
 	float regionMBs = 4.*(float)fullsize/1.e06;
 	
