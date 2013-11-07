@@ -667,10 +667,10 @@ public:
 	virtual void hookupTF(TransferFunction* , int ) {assert(0);}
 
 	
-	virtual float getQuality(){return qualityLevel;}
-	virtual void setQuality(float q){qualityLevel = q;}
-	virtual bool getIgnoreQuality() {return ignoreQuality;}
-	virtual void setIgnoreQuality(bool ignoreIt) {ignoreQuality = ignoreIt;}
+	virtual float getFidelity(){return fidelityLevel;}
+	virtual void setFidelity(float q){fidelityLevel = q;}
+	virtual bool getIgnoreFidelity() {return ignoreFidelity;}
+	virtual void setIgnoreFidelity(bool ignoreIt) {ignoreFidelity = ignoreIt;}
 	
 	//The following may be redefined by some renderer params.  Parent version should never be invoked
 	virtual void setMinColorMapBound(float) {assert(0);}
@@ -734,8 +734,8 @@ protected:
 	float* maxColorEditBounds;
 	float* minOpacEditBounds;
 	float* maxOpacEditBounds;
-	bool ignoreQuality;
-	float qualityLevel;
+	bool ignoreFidelity;
+	float fidelityLevel;
 	vector<int> bypassFlags;
 #endif //DOXYGEN_SKIP_THIS
 };

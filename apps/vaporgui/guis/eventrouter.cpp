@@ -277,7 +277,7 @@ Histo* EventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool){
 	return histogramList[varNum];
 	
 }
-void EventRouter::calcLODRefLevel(int dim, float quality, float regMBs, int* lod, int* refinement){
+void EventRouter::calcLODRefLevel(int dim, float fidelity, float regMBs, int* lod, int* refinement){
 	//Determine min/max lod and ref levels:
 	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
 	if (!dataMgr) return;
@@ -289,19 +289,19 @@ void EventRouter::calcLODRefLevel(int dim, float quality, float regMBs, int* lod
 	if (maxRefLevel > maxMaxRef) maxRefLevel = maxMaxRef;
 	float defaultRefLevel, defaultLOD;
 	if (dim == 3){
-		defaultRefLevel = UserPreferences::getDefaultRefinementQuality3D()-log(regMBs)/log(2.);
-		defaultLOD = UserPreferences::getDefaultLODQuality3D()*regMBs;
+		defaultRefLevel = UserPreferences::getDefaultRefinementFidelity3D()-log(regMBs)/log(2.);
+		defaultLOD = UserPreferences::getDefaultLODFidelity3D()*regMBs;
 	} else {
-		defaultRefLevel = UserPreferences::getDefaultRefinementQuality2D()-log(regMBs)/log(2.);
-		defaultLOD = UserPreferences::getDefaultLODQuality2D()*regMBs;
+		defaultRefLevel = UserPreferences::getDefaultRefinementFidelity2D()-log(regMBs)/log(2.);
+		defaultLOD = UserPreferences::getDefaultLODFidelity2D()*regMBs;
 	}
 	float loglod, reflev;
-	if (quality < 0.5){
-		loglod = 2.*log((float)cratios[0])*(.5-quality) +2.*quality*log(defaultLOD);
-		reflev = 2.*quality*defaultRefLevel;
+	if (fidelity < 0.5){
+		loglod = 2.*log((float)cratios[0])*(.5-fidelity) +2.*fidelity*log(defaultLOD);
+		reflev = 2.*fidelity*defaultRefLevel;
 	} else {
-		loglod = 2.*(1.-quality)*log(defaultLOD)+2.*(quality-.5)*log((float)cratios[cratios.size()-1]);
-		reflev = 2.*(1.-quality)*defaultRefLevel + 2.*(quality-.5)*maxRefLevel;
+		loglod = 2.*(1.-fidelity)*log(defaultLOD)+2.*(fidelity-.5)*log((float)cratios[cratios.size()-1]);
+		reflev = 2.*(1.-fidelity)*defaultRefLevel + 2.*(fidelity-.5)*maxRefLevel;
 	}
 	//Now find nearest valid reflevel and lod:
 	int ireflev = (int)(reflev+0.5f);
