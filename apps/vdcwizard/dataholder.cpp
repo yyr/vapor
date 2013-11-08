@@ -206,7 +206,9 @@ int DataHolder::VDFCreate() {
         //cout << argv[a].c_str() << endl;
         args[a] = strdup(argv[a].c_str());
     }
-	return launcherVdfCreate.launchVdfCreate(argc,args,getFileType());
+
+	if (getFileType()=="wrf") return launcherWrfVdfCreate.launchVdfCreate(argc,args);
+	else return launcherVdfCreate.launchVdfCreate(argc,args,getFileType());
 }
 
 int DataHolder::run2VDFcomplete() {
@@ -348,8 +350,7 @@ int DataHolder::run2VDFincremental(string start, string var) {
 	//cout << endl;
 
     if (getFileType()=="wrf") {
-	cout << "LAUNCHING WRF" << endl;
-	return w2v.launchWrf2Vdf(argc,args);
+		return w2v.launchWrf2Vdf(argc,args);
     }
     else return launcher2VDF.launch2vdf(argc, args, getFileType());
 }

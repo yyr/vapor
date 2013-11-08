@@ -20,7 +20,8 @@ FILES = \
 	LayeredGrid RegularGrid SphericalGrid StretchedGrid NetCDFSimple \
 	NetCDFCollection NetCDFCFCollection WeightTable \
 	DCReaderNCDF  DCReaderMOM DCReaderROMS VDCFactory \
-	DataMgrROMS DataMgrMOM DCReaderWRF UDUnitsClass Copy2VDF vdfcreate Wrf2vdf
+	DataMgrROMS DataMgrMOM DCReaderWRF UDUnitsClass Copy2VDF vdfcreate Wrf2vdf \
+	wrfvdfcreate
 
 HEADER_FILES = \
 	BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata MetadataVDC \
@@ -39,7 +40,8 @@ HEADER_FILES = \
 	LayeredGrid RegularGrid SphericalGrid StretchedGrid NetCDFSimple \
 	NetCDFCollection NetCDFCFCollection WeightTable \
 	DCReader DCReaderNCDF DCReaderMOM DCReaderROMS VDCFactory \
-	DataMgrROMS DataMgrMOM DCReaderWRF UDUnitsClass Copy2VDF vdfcreate Wrf2vdf
+	DataMgrROMS DataMgrMOM DCReaderWRF UDUnitsClass Copy2VDF vdfcreate Wrf2vdf \
+	wrfvdfcreate
 
 
 #LIB_DEFS = vdf.def
