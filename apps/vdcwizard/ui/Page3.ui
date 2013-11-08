@@ -117,7 +117,7 @@
    <property name="geometry">
     <rect>
      <x>63</x>
-     <y>334</y>
+     <y>332</y>
      <width>161</width>
      <height>20</height>
     </rect>
@@ -129,9 +129,9 @@
   <widget class="QPushButton" name="selectAllButton">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>19</x>
      <y>94</y>
-     <width>71</width>
+     <width>80</width>
      <height>21</height>
     </rect>
    </property>
@@ -142,9 +142,9 @@
   <widget class="QPushButton" name="newVarButton">
    <property name="geometry">
     <rect>
-     <x>176</x>
+     <x>175</x>
      <y>94</y>
-     <width>71</width>
+     <width>76</width>
      <height>21</height>
     </rect>
    </property>
@@ -157,7 +157,7 @@
     <rect>
      <x>98</x>
      <y>94</y>
-     <width>71</width>
+     <width>78</width>
      <height>21</height>
     </rect>
    </property>
@@ -182,7 +182,7 @@
    <property name="geometry">
     <rect>
      <x>233</x>
-     <y>334</y>
+     <y>332</y>
      <width>183</width>
      <height>20</height>
     </rect>

@@ -207,6 +207,7 @@ void PopulateDataPage::disableWidgets() {
 }
 
 bool PopulateDataPage::validatePage() {
+	wizard()->button(QWizard::NextButton)->setDisabled(true);
     populateCheckedVars();
 
 	disableWidgets();	
