@@ -26,6 +26,7 @@
 #include <cstdio>
 #include <QDebug>
 #include <QString>
+#include <vapor/wrfvdfcreate.h>
 #include <vapor/vdfcreate.h>
 #include <vapor/Copy2VDF.h>
 #include <vapor/MetadataVDC.h>
@@ -138,14 +139,14 @@ void DataHolder::findPopDataVars() {
 // the user's selected arguments.  momvdfcreate receives this array,
 // as well as a count (argc) which is the size of the array.
 int DataHolder::VDFCreate() {
-    int argc = 2;
+    int argc = 3;
     vector<std::string> argv;
     if (getFileType() == "roms") argv.push_back("romsvdfcreate");
-    else if (getFileType() == "wrf") argv.push_back("wrfvdfcreate");
+    else if (getFileType() == "wrf") argv.push_back("wrfvdfcreate");//Users/pearse/VaporWinTestDir2/targets/Darwin_x86_64/bin/wrfvdfcreate");
 	else argv.push_back("momvdfcreate");
     argv.push_back("-quiet");
-
-    /*if ((getFileType()!="wrf")&&(VDFstartTime != "")) {
+    argv.push_back("-vdc2");
+	/*if ((getFileType()!="wrf")&&(VDFstartTime != "")) {
         argv.push_back("-startt");
         argv.push_back(VDFstartTime);
 		argc+=2;
@@ -191,6 +192,13 @@ int DataHolder::VDFCreate() {
         argc++;
     }
 
+	/*if (getFileType()=="wrf") {
+		argv.push_back("-wname");
+		argv.push_back("bior3.3");
+		argc++;
+		argc++;
+	}*/
+
     for (int i=0;i<dataFiles.size();i++){
         argv.push_back(dataFiles.at(i));
         argc++;
@@ -203,11 +211,15 @@ int DataHolder::VDFCreate() {
 
 	char** args = new char*[ argv.size() + 1 ];
     for(size_t a=0; a<argv.size(); a++) {
-        //cout << argv[a].c_str() << endl;
+        cout << argv[a].c_str() << endl;
         args[a] = strdup(argv[a].c_str());
     }
 
-	if (getFileType()=="wrf") return launcherWrfVdfCreate.launchVdfCreate(argc,args);
+	if (getFileType()=="wrf") {
+		wrfvdfcreate launcherWrfVdfCreate;
+		int rc = launcherWrfVdfCreate.launchVdfCreate(argc,args);
+		return rc;
+	}
 	else return launcherVdfCreate.launchVdfCreate(argc,args,getFileType());
 }
 

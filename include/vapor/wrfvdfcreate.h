@@ -45,7 +45,7 @@ private:
 
  void writeToScreen(DCReaderWRF *DCdata, MetadataVDC *file);
  MetadataVDC *CreateMetadataVDC(const VDCFactory &vdcf,
-                const DCReaderWRF *DCdata, vector <string> _vars);
+                const DCReaderWRF *DCdata);
 
 
 };
