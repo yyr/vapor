@@ -157,7 +157,8 @@ protected slots:
 
 
 protected:
-
+	static const char* webHelpText[];
+	static const char* webHelpURL[];
     int     benchmark;
     QTimer *benchmarkTimer;
 

@@ -47,7 +47,16 @@
 
 
 using namespace VAPoR;
-
+const char* ArrowEventRouter::webHelpText[] = 
+{
+"Explanation of the settings in the Barbs tab",
+"Barb alignment options","<>"
+};
+const char* ArrowEventRouter::webHelpURL[] =
+{
+"http://www.vapor.ucar.edu/docs/vapor-gui-help/barbs",
+"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/barb-alignment"
+};
 
 ArrowEventRouter::ArrowEventRouter(QWidget* parent): QWidget(parent), Ui_Arrow(), EventRouter(){
         setupUi(this);
@@ -55,6 +64,8 @@ ArrowEventRouter::ArrowEventRouter(QWidget* parent): QWidget(parent), Ui_Arrow()
 	savedCommand = 0;
 	showAppearance = false;
 	showLayout = false;
+	myWebHelpActions = makeWebHelpActions(webHelpText,webHelpURL);
+	
 }
 
 
@@ -488,7 +499,7 @@ void ArrowEventRouter::updateTab(){
 	if (!isEnabled()) return;
 	Session *session = Session::getInstance();
 	session->blockRecording();
-
+	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
 	//Set up the instance table:
 	DataStatus* ds = DataStatus::getInstance();
 	if (ds->getDataMgr()) instanceTable->setEnabled(true);

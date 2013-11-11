@@ -137,6 +137,8 @@ protected slots:
 
 
 protected:
+	static const char* webHelpText[];
+	static const char* webHelpURL[];
 	virtual void setEditorDirty(RenderParams *p = 0);
 	void updateHistoBounds(RenderParams*);
 	virtual void setDatarangeDirty(RenderParams*);

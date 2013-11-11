@@ -216,6 +216,8 @@ protected slots:
 	
 	
 protected:
+	static const char* webHelpText[];
+	static const char* webHelpURL[];
 	void setProbeToExtents(const float* extents, ProbeParams* pparams);
 	void mapCursor();
 	void updateBoundsText(RenderParams*);
