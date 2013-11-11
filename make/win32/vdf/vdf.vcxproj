@@ -279,6 +279,7 @@
     <ClCompile Include="..\..\..\lib\vdf\WRF.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\Wrf2vdf.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\WRFReader.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\wrfvdfcreate.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\XmlNode.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -330,6 +331,7 @@
     <ClInclude Include="..\..\..\include\vapor\WRF.h" />
     <ClInclude Include="..\..\..\include\vapor\XmlNode.h" />
     <ClInclude Include="..\..\..\lib\vdf\Wrf2vdf.h" />
+    <ClInclude Include="..\..\..\lib\vdf\wrfvdfcreate.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
