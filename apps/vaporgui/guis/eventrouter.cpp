@@ -27,12 +27,14 @@
 #include "vizwinmgr.h"
 #include <qapplication.h>
 #include <qcursor.h>
+#include <qurl.h>
 #include <qmessagebox.h>
 #include <qfileinfo.h>
 #include <QFileDialog>
 #include <vapor/DataMgr.h>
 #include <vapor/errorcodes.h>
 #include "vapor/GetAppPath.h"
+#include "mainform.h"
 #include "session.h"
 #include "messagereporter.h"
 #include "transferfunction.h"
@@ -450,3 +452,16 @@ fileLoadTF(RenderParams* rParams, int varnum, const char* startPath, bool savePa
 }
 
 	
+vector<QAction*>* EventRouter::makeWebHelpActions(const char* texts[], const char* urls[]){
+	std::vector<QAction*>* actionVector = new std::vector<QAction*>;
+	for (int i = 0;; i++){
+		const char* currText = texts[i];
+		if (strcmp(currText,"<>") == 0) break;
+		QAction* currAction = new QAction(QString(currText),MainForm::getInstance());
+		QUrl myqurl(urls[i]);
+		QVariant qv(myqurl);
+		currAction->setData(qv);
+		actionVector->push_back(currAction);
+	}
+	return actionVector;
+}

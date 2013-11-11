@@ -186,7 +186,8 @@ protected slots:
 	void showHideUnsteadyTime();
 
 protected:
-	
+	static const char* webHelpText[];
+	static const char* webHelpURL[];
 	bool dontUpdate;
 	void guiUpdateUnsteadyTimes(QTableWidget*, const char*);
 	void populateTimestepTables();

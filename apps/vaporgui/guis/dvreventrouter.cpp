@@ -73,7 +73,25 @@
 
 
 using namespace VAPoR;
+using namespace VAPoR;
+const char* DvrEventRouter::webHelpText[] = 
+{
+"Overview of Direct Volume Rendering",
+"Editing color and opacity (using the Transfer Function Editor)",
+"Color Selection in the DVR tab",
+"Volume Rendering Quality",
+"Data Histograms",
+"<>"
+};
+const char* DvrEventRouter::webHelpURL[] =
+{
+"http://www.vapor.ucar.edu/docs/vapor-gui-help/volume-rendering-dvr",
+"http://www.vapor.ucar.edu/docs/vapor-how-guide/transfer-function-editing",
+"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/dvr-color-selection",
+"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/dvr-rendering-quality",
+"http://www.vapor.ucar.edu/docs/vapor-gui-help/data-histograms"
 
+};
 
 DvrEventRouter::DvrEventRouter(QWidget* parent): QWidget(parent), Ui_DVR(), EventRouter(){
         setupUi(this);
@@ -83,6 +101,7 @@ DvrEventRouter::DvrEventRouter(QWidget* parent): QWidget(parent), Ui_DVR(), Even
     benchmark = DONE;
     benchmarkTimer = 0;
 	MessageReporter::infoMsg("DvrEventRouter::DvrEventRouter()");
+	myWebHelpActions = makeWebHelpActions(webHelpText, webHelpURL);
 #ifndef BENCHMARKING
 	benchmarkGroup->setMaximumSize(0,0);
 #endif
@@ -380,7 +399,7 @@ void DvrEventRouter::updateTab(){
 	if (GLWindow::isRendering())return;
 	Session *session = Session::getInstance();
 	session->blockRecording();
-
+	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
 	if (DataStatus::getInstance()->getDataMgr()) instanceTable->setEnabled(true);
 	else instanceTable->setEnabled(false);
 	instanceTable->rebuild(this);

@@ -239,6 +239,10 @@ protected:
 	bool textChangedFlag;
 	bool fidelityTextChanged;
 	PanelCommand* savedCommand;
+	
+	vector<QAction*>* makeWebHelpActions(const char* text[], const char* urls[]);
+	virtual QAction* getWebHelpAction(int n) {return (*myWebHelpActions)[n];}
+	vector<QAction*>* myWebHelpActions;
 #endif //DOXYGEN_SKIP_THIS
 };
 };

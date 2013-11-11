@@ -163,7 +163,8 @@ protected slots:
 	void captureImage();
 	
 protected:
-	
+	static const char* webHelpText[];
+	static const char* webHelpURL[];
 	//Calculate the current cursor position, set it in the Params:
 	void mapCursor();
 	// update the left and right bounds text:
