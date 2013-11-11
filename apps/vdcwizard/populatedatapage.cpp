@@ -36,7 +36,7 @@ PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
 {
     setupUi(this);
     cancelButton->setEnabled(false);
-    activateCancel = false;
+    activateCancel = 0;
 	progressBar->setValue(0);    
 	progressBar->setTextVisible(true);
 
@@ -49,7 +49,7 @@ PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
 	successMessage = new VdfBadFile;
 	successMessage->buttonBox->setVisible(false);
     successMessage->label->setText("Success!");
-    successMessage->label_2->setText("At least one of your variables already has data in the targeted output folder.  Some of this data may be overwritten upon proceeding.  Do you wish to continue?");
+    successMessage->label_2->setText("The specified data has finished the conversion process.  You may choose to exit the wizard, or make further data conversions.");
 
 	checkOverwrites = new VdfBadFile;
 	checkOverwrites->exitButton->setVisible(false);
@@ -81,8 +81,7 @@ void PopulateDataPage::on_clearAllButton_clicked() {
 }
 
 void PopulateDataPage::on_cancelButton_clicked(){
-	cout << "clicked" << endl;
-	activateCancel = true;
+	activateCancel = 1;
 	enableWidgets();
 }
 
@@ -176,7 +175,6 @@ bool PopulateDataPage::checkForOverwrites() {
 }
 
 void PopulateDataPage::enableWidgets() {
-	activateCancel=0;
     cancelButton->setEnabled(false);
     selectAllButton->setEnabled(true);
     clearAllButton->setEnabled(true);
@@ -187,7 +185,7 @@ void PopulateDataPage::enableWidgets() {
     for (int i=0; i<varList.size(); i++) {
         int row = i/3;
         int col = i%3;
-        tableWidget->item(row,col)->setFlags(tableWidget->item(row,col)->flags() & Qt::ItemIsEnabled);
+        tableWidget->item(row,col)->setFlags(tableWidget->item(row,col)->flags() |= Qt::ItemIsEnabled);
     }   
 }
 
@@ -209,9 +207,10 @@ void PopulateDataPage::disableWidgets() {
 bool PopulateDataPage::validatePage() {
 	wizard()->button(QWizard::NextButton)->setDisabled(true);
     populateCheckedVars();
+	percentCompleteLabel->setStyleSheet("QLabel {color : black}");
 
 	disableWidgets();	
-	
+
 	if (checkForOverwrites()==false) {
 		return false;
 	}
@@ -229,60 +228,54 @@ bool PopulateDataPage::validatePage() {
 		//Cycle through variables in each timestep
 		for (int timeStep=0;timeStep<tsSize;timeStep++){
 			for (int var=0;var<varsSize;var++){
-				std::stringstream ss;
-				ss.clear();
-				ss << timeStep;
-				
-				if (dataHolder->run2VDFincremental(ss.str(),dataHolder->getPDSelectedVars().at(var)) != 0){//activateCancel==0) {
-   			     	cout << "variable not processed" << endl;
-				    dataHolder->vdcSettingsChanged=false;
-   	     		    for (int i=0;i<dataHolder->getErrors().size();i++){
-						errorMessage->errorList->append(dataHolder->getErrors()[i]);
-           		        errorMessage->errorList->append("\n");
-   	 			    }   
-       		 		errorMessage->show();
-        		    errorMessage->setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
-        		    errorMessage->raise();
-       			    errorMessage->activateWindow();
-       			    dataHolder->clearErrors();
-		   		    MyBase::SetErrCode(0);
-				    progressBar->reset();
+				if (activateCancel==0){
+					std::stringstream ss;
+					ss.clear();
+					ss << timeStep;
+					
+					if (dataHolder->run2VDFincremental(ss.str(),dataHolder->getPDSelectedVars().at(var)) != 0){//activateCancel==0) {
+					    dataHolder->vdcSettingsChanged=false;
+   		     		    for (int i=0;i<dataHolder->getErrors().size();i++){
+							errorMessage->errorList->append(dataHolder->getErrors()[i]);
+   	        		        errorMessage->errorList->append("\n");
+   		 			    }   
+   	    		 		errorMessage->show();
+	   	     		    errorMessage->setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
+	   	     		    errorMessage->raise();
+   	    			    errorMessage->activateWindow();
+   	    			    dataHolder->clearErrors();
+			   		    MyBase::SetErrCode(0);
+					    progressBar->reset();
 				    
-					enableWidgets();
-					return false;
+						enableWidgets();
+						return false;
+					}
+					
+					// Update progress bar
+				    sprintf(percentComplete,"%.1f%% Complete",(100*((double)(varsSize*timeStep+var+1)/(double)(dataChunks))));
+					percentCompleteLabel->setText(QString::fromUtf8(percentComplete));
+					progressBar->setValue((varsSize*timeStep)+var);
+					QApplication::processEvents();
 				}
-				cout << "Processed " << dataHolder->getPDSelectedVars().at(var) << " at timestep " << timeStep << endl;
-				
-				// Update progress bar
-			    sprintf(percentComplete,"%.1f%% Complete",(100*((double)(varsSize*timeStep+var+1)/(double)(dataChunks))));
-				percentCompleteLabel->setText(QString::fromUtf8(percentComplete));
-				progressBar->setValue((varsSize*timeStep)+var);
-				QApplication::processEvents();
+				/*else {
+				percentCompleteLabel->setStyleSheet("QLabel {color : red}");
+				percentCompleteLabel->setText("Process Aborted");
+				enableWidgets();
+				}*/
 			}
 		}
-			/*else {
-					cancelButton->setEnabled(false);
-					activateCancel=0;
-					return false;
-				}
-			}
-		}*/	
-		//progressBar->reset();	
-   		successMessage->show();
-	
-		//stay on page if successMessage does not exit(0)
-		return false;   
+		if (activateCancel==1){
+			percentCompleteLabel->setStyleSheet("QLabel {color : red}");
+	        percentCompleteLabel->setText("Process Aborted");
+	        enableWidgets();
+			cancelButton->setEnabled(false);
+			activateCancel=0;
+			return false;
+		}
 	}
-}
-
-/*class RunMultithreaded2VDF : public QThread {
-
-public:
-	int runIncrement();
-signals:
-	void percentageComplete(int);
-};
-
-int MyThread::runIncrement() {
+	progressBar->reset();	
+	successMessage->show();
 	
-}*/
+	//stay on page if successMessage does not exit(0)
+	return false; 	
+}

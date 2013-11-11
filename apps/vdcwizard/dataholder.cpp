@@ -145,7 +145,7 @@ int DataHolder::VDFCreate() {
     else if (getFileType() == "wrf") argv.push_back("wrfvdfcreate");//Users/pearse/VaporWinTestDir2/targets/Darwin_x86_64/bin/wrfvdfcreate");
 	else argv.push_back("momvdfcreate");
     argv.push_back("-quiet");
-    argv.push_back("-vdc2");
+	argv.push_back("-vdc2");
 	/*if ((getFileType()!="wrf")&&(VDFstartTime != "")) {
         argv.push_back("-startt");
         argv.push_back(VDFstartTime);
@@ -179,6 +179,8 @@ int DataHolder::VDFCreate() {
         argc+=2;
     }
     if (VDFSelectedVars.size() != 0) {
+		//if (getFileType() == "wrf") argv.push_back("-vars3d");
+		//else 
 		argv.push_back("-vars");
         argc++;
 
@@ -192,13 +194,6 @@ int DataHolder::VDFCreate() {
         argc++;
     }
 
-	/*if (getFileType()=="wrf") {
-		argv.push_back("-wname");
-		argv.push_back("bior3.3");
-		argc++;
-		argc++;
-	}*/
-
     for (int i=0;i<dataFiles.size();i++){
         argv.push_back(dataFiles.at(i));
         argc++;
@@ -211,9 +206,10 @@ int DataHolder::VDFCreate() {
 
 	char** args = new char*[ argv.size() + 1 ];
     for(size_t a=0; a<argv.size(); a++) {
-        cout << argv[a].c_str() << endl;
+        //cout << argv[a].c_str() ;
         args[a] = strdup(argv[a].c_str());
     }
+	//cout << endl;
 
 	if (getFileType()=="wrf") {
 		wrfvdfcreate launcherWrfVdfCreate;
@@ -353,10 +349,10 @@ int DataHolder::run2VDFincremental(string start, string var) {
     	argc++;
     }
 
-    cout << "COMMAND: " << endl;
+    //cout << "COMMAND: " << endl;
     char** args = new char*[ argv.size() + 1 ];
     for(size_t a=0; a<argv.size(); a++) {
-        cout << argv[a].c_str() << " ";
+        //cout << argv[a].c_str() << " ";
         args[a] = strdup(argv[a].c_str());
     }   
 	//cout << endl;
