@@ -411,5 +411,6 @@ int	Wrf2vdf::launchWrf2Vdf(int argc, char **argv) {
 		estatus = 1;
 	}
 	//exit(estatus);
+	delete wcwriter;
 	return estatus;
 }
