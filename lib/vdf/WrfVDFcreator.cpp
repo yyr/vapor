@@ -13,7 +13,7 @@
 #include <vapor/DCReaderWRF.h>
 #include <vapor/VDCFactory.h>
 #include <vapor/CFuncs.h>
-#include <vapor/wrfvdfcreate.h>
+#include <vapor/WrfVDFcreator.h>
 
 #ifdef WIN32
 #pragma warning(disable : 4996)

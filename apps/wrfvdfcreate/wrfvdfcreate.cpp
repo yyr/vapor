@@ -1,6 +1,6 @@
 #include <cstdio>
 #include <cstdlib>
-#include <vapor/wrfvdfcreate.h>
+#include <vapor/WrfVDFcreator.h>
 #include <vapor/MyBase.h>
 
 using namespace VAPoR;
