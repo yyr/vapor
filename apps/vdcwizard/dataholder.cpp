@@ -26,7 +26,7 @@
 #include <cstdio>
 #include <QDebug>
 #include <QString>
-#include <vapor/wrfvdfcreate.h>
+#include <vapor/WrfVDFcreator.h>
 #include <vapor/vdfcreate.h>
 #include <vapor/Copy2VDF.h>
 #include <vapor/MetadataVDC.h>
@@ -35,7 +35,7 @@
 #include <vapor/DCReaderMOM.h>
 #include <vapor/DCReaderROMS.h>
 #include <vapor/DCReaderWRF.h>
-#include <vapor/Wrf2vdf.h>
+#include <vapor/WrfVDCcreator.h>
 #include "dataholder.h"
 
 using namespace VAPoR;

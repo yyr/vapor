@@ -25,7 +25,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <vapor/Wrf2vdf.h>
+#include <vapor/WrfVDCcreator.h>
 #include <vapor/Copy2VDF.h>
 //#include <vapor/wrfvdfcreate.h>
 #include <vapor/vdfcreate.h>
