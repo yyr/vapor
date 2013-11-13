@@ -46,7 +46,7 @@ endif
 
 
 ifneq ($(QT_FRAMEWORK), 1) 
-QT_LIB = QtOpenGL QtGui QtCore  
+QT_LIB = QtOpenGL QtGui QtCore QtNetwork 
 endif
 
 OBJDIR := $(BUILDDIR)

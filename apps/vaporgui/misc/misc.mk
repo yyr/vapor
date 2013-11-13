@@ -1,14 +1,18 @@
 MISC_FILES := \
-	animationcontroller helpwindow\
-	sharedcontrollerthread\
+	animationcontroller helpwindow \
+	sharedcontrollerthread \
 	unsharedcontrollerthread \
 	vizfeatureparams \
-	pythonedit
+	pythonedit \
+	versionchecker \
+	vcheckgui
 
 
 MISC_QT_HEADERS := \
-	helpwindow\
-	vizfeatureparams\
-	pythonedit 
+	helpwindow \
+	vizfeatureparams \
+	pythonedit \
+	versionchecker \
+	vcheckgui
  
 
