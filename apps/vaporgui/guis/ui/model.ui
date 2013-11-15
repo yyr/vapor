@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>443</width>
+    <width>482</width>
     <height>814</height>
    </rect>
   </property>
@@ -272,6 +272,9 @@ is controlled by the values in this
           </item>
           <item>
            <widget class="QComboBox" name="lodCombo">
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
             <property name="toolTip">
              <string>Specify the approximation level for the data being visualized</string>
             </property>
@@ -318,6 +321,9 @@ is controlled by the values in this
           </item>
           <item>
            <widget class="QComboBox" name="refinementCombo">
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
             <property name="toolTip">
              <string>Specify the refinement level (resolution) of the data being visualized</string>
             </property>

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>448</width>
+    <width>467</width>
     <height>1740</height>
    </rect>
   </property>
@@ -188,6 +188,9 @@ create new 2D planar instances.</string>
                <height>0</height>
               </size>
              </property>
+             <property name="focusPolicy">
+              <enum>Qt::ClickFocus</enum>
+             </property>
              <property name="toolTip">
               <string>Select a visualizer where this renderer instance will be copied</string>
              </property>
@@ -294,6 +297,9 @@ create new 2D planar instances.</string>
           </item>
           <item>
            <widget class="QComboBox" name="lodCombo">
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
             <property name="toolTip">
              <string>Specify the approximation level for the data being visualized</string>
             </property>
@@ -346,6 +352,9 @@ create new 2D planar instances.</string>
           </item>
           <item>
            <widget class="QComboBox" name="refinementCombo">
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
             <property name="toolTip">
              <string>Select the refinement level (resolution) of the current 2D data</string>
             </property>
@@ -421,6 +430,9 @@ create new 2D planar instances.</string>
            <widget class="QComboBox" name="orientationCombo">
             <property name="enabled">
              <bool>false</bool>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
             </property>
             <property name="toolTip">
              <string>Specifies coordinate plane alignment of data or image</string>
@@ -530,6 +542,9 @@ create new 2D planar instances.</string>
                  <height>0</height>
                 </size>
                </property>
+               <property name="focusPolicy">
+                <enum>Qt::ClickFocus</enum>
+               </property>
                <property name="toolTip">
                 <string>Choose the 2D variable to be displayed.</string>
                </property>
@@ -622,6 +637,9 @@ create new 2D planar instances.</string>
           </item>
           <item>
            <widget class="QComboBox" name="heightCombo">
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
             <property name="toolTip">
              <string>Specify Variable that represents terrain height</string>
             </property>

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>456</width>
-    <height>2337</height>
+    <height>2697</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -178,6 +178,9 @@ is controlled by the values in this
                <width>120</width>
                <height>0</height>
               </size>
+             </property>
+             <property name="focusPolicy">
+              <enum>Qt::ClickFocus</enum>
              </property>
              <property name="toolTip">
               <string>Select a visualizer where this renderer instance will be copied</string>
@@ -423,6 +426,9 @@ in the unsteady field.</string>
             </item>
             <item>
              <widget class="QComboBox" name="lodCombo">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="toolTip">
                <string>Specify the approximation level for the data being visualized</string>
               </property>
@@ -477,6 +483,9 @@ in the unsteady field.</string>
             </item>
             <item>
              <widget class="QComboBox" name="refinementCombo">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="toolTip">
                <string>The refinement level specifies the resolution of data that is used</string>
               </property>
@@ -790,6 +799,9 @@ rendering calculations.</string>
                      <height>0</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Specify the variable that is mapped to the X coord of the field</string>
                    </property>
@@ -822,6 +834,9 @@ rendering calculations.</string>
                      <width>80</width>
                      <height>0</height>
                     </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="toolTip">
                     <string>Specify the variable that is mapped to the Y coord of the field</string>
@@ -858,6 +873,9 @@ rendering calculations.</string>
                      <width>80</width>
                      <height>0</height>
                     </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="toolTip">
                     <string>Specify the variable that is mapped to the Z coord of the field</string>
@@ -1034,6 +1052,9 @@ rendering calculations.</string>
                      <height>0</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Specify the variable that is mapped to the X coord of the field</string>
                    </property>
@@ -1066,6 +1087,9 @@ rendering calculations.</string>
                      <width>80</width>
                      <height>0</height>
                     </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="toolTip">
                     <string>Specify the variable that is mapped to the Y coord of the field</string>
@@ -1102,6 +1126,9 @@ rendering calculations.</string>
                      <width>80</width>
                      <height>0</height>
                     </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="toolTip">
                     <string>Specify the variable that is mapped to the Z coord of the field</string>
@@ -1187,6 +1214,9 @@ rendering calculations.</string>
                      <width>100</width>
                      <height>0</height>
                     </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="toolTip">
                     <string>Specify the time-direction of unsteady flow integration</string>
@@ -2215,6 +2245,9 @@ time steps are specified in the animation panel.</string>
                      <height>32767</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Specify whether seeds are from a list, or a random or nonrandom rake</string>
                    </property>
@@ -2648,6 +2681,9 @@ coordinate.</string>
                      <height>0</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Specify the variable that is mapped to the X coord of the field</string>
                    </property>
@@ -2678,6 +2714,9 @@ coordinate.</string>
                      <width>80</width>
                      <height>0</height>
                     </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="toolTip">
                     <string>Specify the variable that is mapped to the Y coord of the field</string>
@@ -2712,6 +2751,9 @@ coordinate.</string>
                      <width>80</width>
                      <height>0</height>
                     </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="toolTip">
                     <string>Specify the variable that is mapped to the Z coord of the field</string>
@@ -2915,6 +2957,9 @@ detailed information.</string>
                           <height>0</height>
                          </size>
                         </property>
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
+                        </property>
                         <property name="toolTip">
                          <string>Specify field components to be used in prioritizing seeds to advect to next time step</string>
                         </property>
@@ -2958,6 +3003,9 @@ steady flow at the next time step.</string>
                           <width>80</width>
                           <height>0</height>
                          </size>
+                        </property>
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
                         </property>
                         <property name="toolTip">
                          <string>Specify field components to be used in prioritizing seeds to advect to next time step</string>
@@ -3005,6 +3053,9 @@ steady flow at the next time step.</string>
                           <width>80</width>
                           <height>0</height>
                          </size>
+                        </property>
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
                         </property>
                         <property name="toolTip">
                          <string>Specify field components to be used in prioritizing seeds to advect to next time step</string>
@@ -3151,6 +3202,9 @@ steady flow at the next time step.</string>
                      <layout class="QHBoxLayout">
                       <item>
                        <widget class="QComboBox" name="flaOptionCombo">
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
+                        </property>
                         <property name="toolTip">
                          <string>Select whether the steady seeds are prioritized before or after advection in time</string>
                         </property>
@@ -4763,6 +4817,9 @@ p, li { white-space: pre-wrap; }
                  </item>
                  <item>
                   <widget class="QComboBox" name="geometryCombo">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Specify the shapes that will be used for the flow </string>
                    </property>
@@ -5059,6 +5116,9 @@ of such diamonds.</string>
                  </item>
                  <item>
                   <widget class="QComboBox" name="colormapEntityCombo">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Specify the entity that will be mapped to color</string>
                    </property>

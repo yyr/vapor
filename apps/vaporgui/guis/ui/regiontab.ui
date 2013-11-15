@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>467</width>
-    <height>922</height>
+    <height>1110</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -87,6 +87,9 @@ the probe panels).</string>
            <width>120</width>
            <height>0</height>
           </size>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::ClickFocus</enum>
          </property>
          <property name="toolTip">
           <string>Apply these settings to visualizers, either globally or locally</string>
@@ -1494,6 +1497,9 @@ share the same region settings.</string>
             </item>
             <item>
              <widget class="QComboBox" name="refinementCombo">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="toolTip">
                <string>Specify a refinement level for region information</string>
               </property>
@@ -1555,6 +1561,9 @@ share the same region settings.</string>
                 <width>100</width>
                 <height>32767</height>
                </size>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
               </property>
               <property name="toolTip">
                <string>Specify a variable for region information</string>
@@ -1620,6 +1629,9 @@ share the same region settings.</string>
                 <width>40</width>
                 <height>32767</height>
                </size>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
               </property>
               <property name="toolTip">
                <string>Specify a time step for region information</string>

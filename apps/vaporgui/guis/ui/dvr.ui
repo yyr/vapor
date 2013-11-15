@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>429</width>
-    <height>1072</height>
+    <width>453</width>
+    <height>1280</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -167,6 +167,9 @@ is controlled by the values in this
                <width>120</width>
                <height>0</height>
               </size>
+             </property>
+             <property name="focusPolicy">
+              <enum>Qt::ClickFocus</enum>
              </property>
              <property name="toolTip">
               <string>Select a visualizer where this renderer instance will be copied</string>
@@ -351,6 +354,9 @@ p, li { white-space: pre-wrap; }
                  </item>
                  <item>
                   <widget class="QComboBox" name="lodCombo">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -401,6 +407,9 @@ p, li { white-space: pre-wrap; }
                  </item>
                  <item>
                   <widget class="QComboBox" name="refinementCombo">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -1339,6 +1348,9 @@ depending on which button is clicked.</string>
             </item>
             <item>
              <widget class="QComboBox" name="numBitsCombo">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="toolTip">
                <string>Specify the precision of the volume renderer</string>
               </property>
