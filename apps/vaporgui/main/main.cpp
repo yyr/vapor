@@ -25,7 +25,7 @@
 #include <QMessageBox>
 #include "messagereporter.h"
 #include "vapor/GetAppPath.h"
-#include "versionchecker.h"
+//#include "versionchecker.h"
 #ifdef WIN32
 #include "Windows.h"
 #define PYTHONVERSION "2.6"
@@ -169,8 +169,8 @@ int main( int argc, char ** argv ) {
     if (argc > 1) fileName = argv[1];
     MainForm* mw = new MainForm(fileName,app);
 	
-	VersionChecker* vcheck = new VersionChecker();
-	vcheck->request("http://www.vis.ucar.edu/~milesrl/vapor-version");
+	//VersionChecker* vcheck = new VersionChecker();
+	//vcheck->request("http://www.vis.ucar.edu/~milesrl/vapor-version");
 	
     mw->setWindowTitle( "VAPOR User Interface" );
     mw->show();
