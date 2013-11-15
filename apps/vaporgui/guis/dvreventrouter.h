@@ -106,8 +106,7 @@ public slots:
 	virtual void guiStartChangeMapFcn(QString s);
 	virtual void guiEndChangeMapFcn();
 	void guiSetOpacityScale(int val);
-	void guiSetFidelity();
-	void fidelityChanging(int val);
+	void guiSetFidelity(int buttonID);
 	void guiSetFidelityDefault();
 
 	void setBindButtons(bool canBind);
@@ -117,7 +116,6 @@ protected slots:
 	void guiChangeInstance(int);
 	void guiNewInstance();
 	void guiDeleteInstance();
-	void setFidelityTextChanged(const QString&);
 	void guiCopyInstanceTo(int toViz);
 	void guiSetType(int val);
 	void guiSetComboVarNum(int val);
@@ -143,7 +141,6 @@ protected slots:
 	void dvrLoadTF();
 	void dvrLoadInstalledTF();
 	void dvrSaveTF();
-	void dvrSavePrefs();
 	void refreshHisto();
 
     // Benchmark slots
@@ -161,7 +158,9 @@ protected:
 	static const char* webHelpURL[];
     int     benchmark;
     QTimer *benchmarkTimer;
-
+	QButtonGroup* fidelityButtons;
+	
+	void setupFidelity();
 	virtual void setDatarangeDirty(RenderParams* dParams);
 	std::map<int, DvrParams::DvrType> typemap;
     std::map<DvrParams::DvrType, int> typemapi; // inverse typemap
