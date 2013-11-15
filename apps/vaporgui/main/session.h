@@ -178,7 +178,7 @@ public:
 	//Setup session for a new Metadata, by specifying vdf file
 	//If the argument is null, it resets to default state
 	//
-	bool resetMetadata(vector<string>& files, bool restoringSession, bool importing, bool isMerged = false, int mergeOffset = 0);
+	bool resetMetadata(vector<string>& files, bool restoringSession, const string& importType = "", bool isMerged = false, int mergeOffset = 0);
 	
 	void setMetadataSaved(bool isSaved) { metadataSaved = isSaved;}
 	bool metadataIsSaved() {return metadataSaved;}

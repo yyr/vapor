@@ -117,6 +117,7 @@ private:
     void createMenus();
     void hookupSignals();
     void createToolBars();
+	void importData(const string& modelType, bool useDefault);
 
     QWidget* tab;
     QWidget* tab_2;
@@ -158,8 +159,14 @@ private:
     QAction* dataExportToIDLAction;
     QAction* dataConfigure_MetafileAction;
     QAction* dataMerge_MetafileAction;
+	QMenu* importDataMenu;
+	QMenu* importDefaultDataMenu;
     QAction* dataImportWRF_Action;
     QAction* dataImportDefaultWRF_Action;
+	QAction* dataImportMOM_Action;
+    QAction* dataImportDefaultMOM_Action;
+	QAction* dataImportROMS_Action;
+    QAction* dataImportDefaultROMS_Action;
     QAction* dataLoad_MetafileAction;
     QAction* dataLoad_DefaultMetafileAction;
     QAction* dataSave_MetafileAction;
@@ -217,6 +224,10 @@ public slots:
 	virtual void mergeData();
 	virtual void importWRFData();
 	virtual void importDefaultWRFData();
+	virtual void importMOMData();
+	virtual void importDefaultMOMData();
+	virtual void importROMSData();
+	virtual void importDefaultROMSData();
 	virtual void saveMetadata();
 	virtual void newSession();
 	virtual void exportToIDL();

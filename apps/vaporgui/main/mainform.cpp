@@ -251,7 +251,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 #endif
 			vector<string> files;
 			files.push_back(fileName.toStdString());
-			Session::getInstance()->resetMetadata(files, false, false);
+			Session::getInstance()->resetMetadata(files, false);
 		} 
 	}
 	MessageReporter::infoMsg("MainForm::MainForm() end");
@@ -378,6 +378,10 @@ void MainForm::hookupSignals() {
 	connect( dataMerge_MetafileAction, SIGNAL( triggered() ), this, SLOT( mergeData() ) );
 	connect( dataImportWRF_Action, SIGNAL( triggered() ), this, SLOT( importWRFData() ) );
 	connect( dataImportDefaultWRF_Action, SIGNAL( triggered() ), this, SLOT( importDefaultWRFData() ) );
+	connect( dataImportMOM_Action, SIGNAL( triggered() ), this, SLOT( importMOMData() ) );
+	connect( dataImportDefaultMOM_Action, SIGNAL( triggered() ), this, SLOT( importDefaultMOMData() ) );
+	connect( dataImportROMS_Action, SIGNAL( triggered() ), this, SLOT( importROMSData() ) );
+	connect( dataImportDefaultROMS_Action, SIGNAL( triggered() ), this, SLOT( importDefaultROMSData() ) );
 	connect( dataSave_MetafileAction, SIGNAL( triggered() ), this, SLOT( saveMetadata() ) );
 	connect( dataLoad_MetafileAction, SIGNAL( triggered() ), this, SLOT( loadData() ) );
 	connect( dataLoad_DefaultMetafileAction, SIGNAL( triggered() ), this, SLOT( defaultLoadData() ) );
@@ -445,8 +449,16 @@ void MainForm::createMenus(){
 	
     Data->addAction(dataLoad_MetafileAction );
     Data->addAction(dataLoad_DefaultMetafileAction );
-    Data->addAction(dataImportWRF_Action);
-    Data->addAction(dataImportDefaultWRF_Action);
+	importDataMenu = new QMenu("Import data into current session");
+	importDefaultDataMenu = new QMenu("Import data into default session");
+	Data->addMenu(importDataMenu);
+	Data->addMenu(importDefaultDataMenu);
+    importDataMenu->addAction(dataImportWRF_Action);
+    importDefaultDataMenu->addAction(dataImportDefaultWRF_Action);
+	importDataMenu->addAction(dataImportMOM_Action);
+    importDefaultDataMenu->addAction(dataImportDefaultMOM_Action);
+	importDataMenu->addAction(dataImportROMS_Action);
+    importDefaultDataMenu->addAction(dataImportDefaultROMS_Action);
 	Data->addAction(dataMerge_MetafileAction);
 	Data->addAction(dataSave_MetafileAction);
 	
@@ -518,6 +530,10 @@ void MainForm::createActions(){
 	dataMerge_MetafileAction = new QAction( this );
 	dataImportWRF_Action = new QAction( this );
 	dataImportDefaultWRF_Action = new QAction( this );
+	dataImportMOM_Action = new QAction( this );
+	dataImportDefaultMOM_Action = new QAction( this );
+	dataImportROMS_Action = new QAction( this );
+	dataImportDefaultROMS_Action = new QAction( this );
 	dataSave_MetafileAction = new QAction( this );
 	dataLoad_DefaultMetafileAction = new QAction(this);
 	fileNew_SessionAction = new QAction( this );
@@ -660,10 +676,18 @@ void MainForm::languageChange()
 	dataLoad_DefaultMetafileAction->setToolTip("Specify a data set to be loaded into a new session with default settings");
 	
 	
-	dataImportDefaultWRF_Action->setText(tr("Import WRF-ARW output files into default session"));
+	dataImportDefaultWRF_Action->setText(tr("WRF-ARW "));
 	dataImportDefaultWRF_Action->setToolTip("Specify one or more WRF-ARW output files to import into a new session");
-	dataImportWRF_Action->setText(tr("Import WRF-ARW output files into current session"));
+	dataImportWRF_Action->setText(tr("WRF-ARW"));
 	dataImportWRF_Action->setToolTip("Specify one or more WRF-ARW output files to import into the current session");
+	dataImportDefaultMOM_Action->setText(tr("MOM4 or POP"));
+	dataImportDefaultMOM_Action->setToolTip("Specify one or more MOM4 or POP output files to import into a new session");
+	dataImportMOM_Action->setText(tr("MOM4 or POP"));
+	dataImportMOM_Action->setToolTip("Specify one or more MOM4 or POP output files to import into the current session");
+	dataImportDefaultROMS_Action->setText(tr("ROMS"));
+	dataImportDefaultROMS_Action->setToolTip("Specify one or more ROMS output files to import into a new session");
+	dataImportROMS_Action->setText(tr("ROMS"));
+	dataImportROMS_Action->setToolTip("Specify one or more ROMS output files to import into the current session");
 	dataMerge_MetafileAction->setText( tr( "Merge a VDC Dataset into Current Session" ) );
 	
     
@@ -1011,7 +1035,7 @@ void MainForm::loadData()
 		if (fInfo.isReadable() && fInfo.isFile()){
 			vector<string> files;
 			files.push_back(filename.toStdString());
-			Session::getInstance()->resetMetadata(files, true, false);
+			Session::getInstance()->resetMetadata(files, true);
 			DataStatus::setPre22Session(false);
 		}
 		else MessageReporter::errorMsg("Unable to read metadata file \n%s", (const char*)filename.toAscii());
@@ -1053,66 +1077,71 @@ void MainForm::mergeData()
 		int offset = uiSetter.timestepOffsetSpin->value();
 		vector<string> files;
 		files.push_back(filename.toStdString());
-		if (!Session::getInstance()->resetMetadata(files, false, false, true, offset)){
+		if (!Session::getInstance()->resetMetadata(files, false, "", true, offset)){
 			MessageReporter::errorMsg("Unsuccessful metadata merge of \n%s",(const char*)filename.toAscii());
 		}
 	} else MessageReporter::errorMsg("Unable to open \n%s",(const char*)filename.toAscii());
 	
 }
-//import WRF data into current session
+//import wrf data into current session
 //
 void MainForm::importWRFData()
 {
-
-	//This launches a panel that enables the
-    //user to choose input WRF output files, then to
-	//use them to create a new data
-	
-	QStringList filenames = QFileDialog::getOpenFileNames(this,
-		"Select WRF-ARW Output Files to import into current session",
-		Session::getInstance()->getMetadataFile().c_str(),"");
-
-	if (filenames.length() > 0){
-		//Create a string vector from the QStringList
-		vector<string> files;
-		QStringList list = filenames;
-		QStringList::Iterator it = list.begin();
-		while(it != list.end()) {
-			files.push_back((*it).toStdString());
-			++it;
-		}
-		Session::getInstance()->resetMetadata(files, true, true);
-		DataStatus::setPre22Session(false);
-	
-	} else MessageReporter::errorMsg("No valid WRF files \n");
-	
+	importData("wrf",false);
 }
 //import WRF data into default session
 void MainForm::importDefaultWRFData()
 {
-
+	importData("wrf",true);
+}
+//import mom data into current session
+//
+void MainForm::importMOMData()
+{
+	importData("mom4",false);
+}
+//import MOM data into default session
+void MainForm::importDefaultMOMData()
+{
+	importData("mom4",true);
+}
+//import MOM data into current session
+//
+void MainForm::importROMSData()
+{
+	importData("roms",false);
+}
+//import MOM data into default session
+void MainForm::importDefaultROMSData()
+{
+	importData("roms",true);
+}
+void MainForm::importData(const string& modelType, bool useDefault){
 	//This launches a panel that enables the
-    //user to choose input WRF output files, then to
-	//use them to create a new data
+    //user to choose netcdf files, then to
+	//use them to create a new data manager
+	QString prompt ("Select ");
+	prompt += modelType.c_str();
+	prompt += " NetCDF files to import into session.";
+
 	QStringList filenames = QFileDialog::getOpenFileNames(this,
-		"Select WRF-ARW Output Files to import into default session",
+		prompt,
 		Session::getInstance()->getMetadataFile().c_str(),"");
 	
 	if (filenames.length() > 0){
 		//Create a string vector from the QStringList
 		vector<string> files;
 		//reset to default session:
-		Session::getInstance()->resetMetadata(files, false, false);
+		if(useDefault) Session::getInstance()->resetMetadata(files, false);
 		QStringList list = filenames;
 		QStringList::Iterator it = list.begin();
 		while(it != list.end()) {
 			files.push_back((*it).toStdString());
 			++it;
 		}
-		Session::getInstance()->resetMetadata(files, false, true);
+		Session::getInstance()->resetMetadata(files, !useDefault ,modelType);
 	
-	} else MessageReporter::errorMsg("No valid WRF files \n");
-	
+	} else MessageReporter::errorMsg("No valid %s files \n", modelType.c_str());
 }
 //Load data into default session
 //
@@ -1129,16 +1158,16 @@ void MainForm::defaultLoadData()
 		"Vapor Metadata Files (*.vdf)");
 	if(filename != QString::null){
 		vector<string> files;
-		Session::getInstance()->resetMetadata(files, false, false);
+		Session::getInstance()->resetMetadata(files, false);
 		files.push_back(filename.toStdString());
-		Session::getInstance()->resetMetadata(files, false, false);
+		Session::getInstance()->resetMetadata(files, false);
 	}
 	
 }
 void MainForm::newSession()
 {
 	vector<string> files;
-	Session::getInstance()->resetMetadata(files, false, false);
+	Session::getInstance()->resetMetadata(files, false);
 	//Reload preferences:
 	UserPreferences::loadDefault();
 	

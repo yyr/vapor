@@ -424,7 +424,7 @@ bool Session::
 loadFromFile(ifstream& ifs){
 	//Call resetMetadata to clean stuff out
 	vector<string> files;
-	resetMetadata(files,true, false);
+	resetMetadata(files,true);
 	//Reset message counts:
 	MessageReporter::getInstance()->resetCounts();
 	
@@ -831,7 +831,7 @@ exportData(){
  * not reloaded.  
  */
 bool Session::
-resetMetadata(vector<string>& files, bool restoredSession, bool importing, bool doMerge, int mergeOffset)
+resetMetadata(vector<string>& files, bool restoredSession,const string& importType, bool doMerge, int mergeOffset)
 {
 	int i;
 	//This is a flag used by renderers to avoid rendering while state
@@ -869,12 +869,12 @@ resetMetadata(vector<string>& files, bool restoredSession, bool importing, bool 
 		
 		if (!doMerge) {
 			if (!restoredSession) DataStatus::clearVariableNames();
-			if (importing) {
-				dataMgr = DataMgrFactory::New(files, cacheMB,"wrf");
+			if (importType != "") {
+				dataMgr = DataMgrFactory::New(files, cacheMB,importType);
 
 				if (DataMgr::GetErrCode() != 0) {
-					MessageReporter::errorMsg("WRF loading error %d, creating Data Manager:\n %s",
-						DataMgr::GetErrCode(),DataMgr::GetErrMsg());
+					MessageReporter::errorMsg("Data import %s error %d,  creating Data Manager:\n %s",
+						importType.c_str(), DataMgr::GetErrCode(),DataMgr::GetErrMsg());
 					DataMgr::SetErrCode(0);
 					if (dataMgr) delete dataMgr;
 					dataMgr = 0;
