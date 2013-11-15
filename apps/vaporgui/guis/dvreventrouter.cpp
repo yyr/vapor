@@ -571,7 +571,7 @@ void DvrEventRouter::setupFidelity(){
 	QHBoxLayout* hbox = new QHBoxLayout;
 	fidelityLayout->removeWidget(fidelityBox);
 	delete fidelityBox;// this also deletes buttongroup
-	fidelityBox = new QGroupBox("Fidelity",this);
+	fidelityBox = new QGroupBox("low .. Fidelity .. high",this);
 	
 	fidelityButtons = new QButtonGroup(fidelityBox);
 	for (int i = 0; i<numButtons; i++){
