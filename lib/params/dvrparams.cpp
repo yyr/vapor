@@ -200,6 +200,7 @@ reinit(bool doOverride){
 	//If we are overriding previous values, delete the transfer functions, create new ones.
 	//Set the map bounds to the actual bounds in the data
 	if (doOverride){
+		ignoreFidelity = false;
 		for (i = 0; i<numVariables; i++){
 			delete transFunc[i];
 		}

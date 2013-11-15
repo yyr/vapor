@@ -206,6 +206,7 @@ public:
 	virtual void updateClut(RenderParams*){assert(0);}
 	//Use fidelity setting and preferences to calculate LOD and Refinement
 	virtual void calcLODRefLevel(int dim, float fidelity, float regMBs, int* lod, int* refLevel);
+	virtual int orderLODRefs(int dim);
 
 //Methods for loading/saving transfer functions:
 void saveTF(RenderParams* rParams);
@@ -224,6 +225,7 @@ public slots:
 	
 	
 protected:
+	bool textChangedFlag;
 	//for subclasses with a box:
 	void setIgnoreBoxSliderEvents(bool val) {ignoreBoxSliderEvents = val;}
 	bool ignoreBoxSliderEvents;
@@ -236,13 +238,16 @@ protected:
 	//There is one tabbed panel for each class of Params
 	
 	Params::ParamsBaseType myParamsBaseType;
-	bool textChangedFlag;
-	bool fidelityTextChanged;
+	
 	PanelCommand* savedCommand;
 	
 	vector<QAction*>* makeWebHelpActions(const char* text[], const char* urls[]);
 	virtual QAction* getWebHelpAction(int n) {return (*myWebHelpActions)[n];}
 	vector<QAction*>* myWebHelpActions;
+
+	vector<int> fidelityRefinements;
+	vector<int> fidelityLODs;
+	vector<float>fidelities;
 #endif //DOXYGEN_SKIP_THIS
 };
 };

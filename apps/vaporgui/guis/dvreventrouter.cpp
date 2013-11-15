@@ -23,6 +23,7 @@
 #pragma warning( disable : 4100 )
 #endif
 #include <QScrollArea>
+#include <QButtonGroup>
 #include <QScrollBar>
 #include <qapplication.h>
 #include <qcursor.h>
@@ -47,6 +48,7 @@
 #include "session.h"
 #include "panelcommand.h"
 #include "messagereporter.h"
+#include <QRadioButton>
 #include <qlineedit.h>
 #include <qcombobox.h>
 #include <qspinbox.h>
@@ -98,6 +100,7 @@ DvrEventRouter::DvrEventRouter(QWidget* parent): QWidget(parent), Ui_DVR(), Even
 	
 	myParamsBaseType = Params::GetTypeFromTag(Params::_dvrParamsTag);
 	savedCommand = 0;
+	fidelityButtons = 0;
     benchmark = DONE;
     benchmarkTimer = 0;
 	MessageReporter::infoMsg("DvrEventRouter::DvrEventRouter()");
@@ -128,10 +131,9 @@ DvrEventRouter::hookUpTab()
 	connect (loadButton, SIGNAL(clicked()), this, SLOT(dvrLoadTF()));
 	connect (loadInstalledButton, SIGNAL(clicked()), this, SLOT(dvrLoadInstalledTF()));
 	connect (saveButton, SIGNAL(clicked()), this, SLOT(dvrSaveTF()));
-	connect (savePrefsButton, SIGNAL(clicked()), this, SLOT(dvrSavePrefs()));
-	connect (fidelitySlider,SIGNAL(sliderReleased()), this, SLOT(guiSetFidelity()));
-	connect (fidelitySlider,SIGNAL(sliderMoved(int)), this, SLOT(fidelityChanging(int)));
+	
 	connect (fidelityDefaultButton, SIGNAL(clicked()), this, SLOT(guiSetFidelityDefault()));
+	
 	
 	connect (variableCombo, SIGNAL( activated(int) ), this, SLOT( guiSetComboVarNum(int) ) );
 	connect (lightingCheckbox, SIGNAL( toggled(bool) ), this, SLOT( guiSetLighting(bool) ) );
@@ -142,9 +144,7 @@ DvrEventRouter::hookUpTab()
 	connect (leftMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setDvrTabTextChanged(const QString&)));
 	connect (rightMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setDvrTabTextChanged(const QString&)));
 	connect (histoScaleEdit, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed()));
-	connect (fidelityEdit, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed()));
-	connect (fidelityEdit, SIGNAL(textChanged(const QString&) ), this,SLOT(setDvrTabTextChanged(const QString&)));
-	connect (fidelityEdit, SIGNAL(textChanged(const QString&) ), this,SLOT(setFidelityTextChanged(const QString&)));
+	
 	connect (numBitsCombo, SIGNAL (activated(int)), this, SLOT(guiSetNumBits(int)));
 	
 	// Transfer function controls:
@@ -231,10 +231,7 @@ void DvrEventRouter::
 setDvrTabTextChanged(const QString& ){
 	guiSetTextChanged(true);
 }
-void DvrEventRouter::
-setFidelityTextChanged(const QString& ){
-	fidelityTextChanged = true;
-}
+
 void DvrEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
 	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_dvrParamsTag);
@@ -250,28 +247,7 @@ void DvrEventRouter::confirmText(bool /*render*/){
 		tf->setMaxMapValue(rightMappingBound->text().toFloat());
 		setEditorDirty();
 	}
-	if(fidelityTextChanged) {
-		dParams->setIgnoreFidelity(false);
-		float qual = fidelityEdit->text().toFloat();
-		if (qual < 0. || qual > 1.f) qual = 0.5f;
-		int sliderval = (int) (qual*256.);
-		fidelitySlider->setValue(sliderval);
-		dParams->setFidelity(qual);
-	}
 	
-	if (!dParams->getIgnoreFidelity()){
-		float qual = dParams->getFidelity();
-		RegionParams* rParams = VizWinMgr::getActiveRegionParams();
-		float regionMBs = rParams->fullRegionMBs(-1);
-		int lod, reflevel;
-		calcLODRefLevel(3, qual, regionMBs, &lod, &reflevel);
-		if (lod != dParams->GetCompressionLevel() || reflevel != dParams->GetRefinementLevel()){
-			dParams->SetCompressionLevel(lod);
-			dParams->SetRefinementLevel(reflevel);
-			refinementCombo->setCurrentIndex(reflevel);
-			lodCombo->setCurrentIndex(lod);
-		}
-	}
 	guiSetTextChanged(false);
 	setDatarangeDirty(dParams);
     VizWinMgr::getInstance()->setVizDirty(dParams, LightingBit, true);		
@@ -464,16 +440,25 @@ void DvrEventRouter::updateTab(){
 	variableCombo->setCurrentIndex(dvrParams->getComboVarNum());
 	
 	
-	float fidelity = dvrParams->getFidelity();
-	fidelitySlider->setValue((int)(fidelity*256.));
-	fidelityEdit->setText(QString::number(fidelity));
 	if (!dvrParams->getIgnoreFidelity()){
-		RegionParams* rParams = VizWinMgr::getActiveRegionParams();
-		float regionMBs = rParams->fullRegionMBs(-1);
-		int lod, reflevel;
-		calcLODRefLevel(3, fidelity, regionMBs, &lod, &reflevel);
-		lodCombo->setCurrentIndex(lod);
-		refinementCombo->setCurrentIndex(reflevel);
+		//Which button corresponds to fidelity?
+		float fidelity = dvrParams->getFidelity();
+		float fiddist = 1000.;
+		int defIndx = -1;
+		for (int i = 0; i<fidelities.size(); i++){
+			float dst = abs(fidelities[i]-fidelity);
+			if (dst < fiddist) {fiddist = dst; defIndx = i;}
+		}
+		if (defIndx >= 0){
+			int lod = fidelityLODs[defIndx];
+			int refLevel = fidelityRefinements[defIndx];
+			lodCombo->setCurrentIndex(lod);
+			refinementCombo->setCurrentIndex(refLevel);
+			dvrParams->SetRefinementLevel(refLevel);
+			dvrParams->SetCompressionLevel(lod);
+			QRadioButton* activeButton = (QRadioButton*)fidelityButtons->button(defIndx);
+			activeButton->setChecked(true);
+		}
 	} else {
 		int numRefs = dvrParams->GetRefinementLevel();
 		if(numRefs <= refinementCombo->count())
@@ -548,9 +533,9 @@ reinitTab(bool doOverride){
 	for (i = 0; i<= numRefinements; i++){
 		refinementCombo->addItem(QString::number(i));
 	}
-	
+	vector<size_t>cRatios;
 	if (dataMgr){
-		vector<size_t> cRatios = dataMgr->GetCRatios();
+		cRatios = dataMgr->GetCRatios();
 		lodCombo->clear();
 		lodCombo->setMaxCount(cRatios.size());
 		for (int i = 0; i<cRatios.size(); i++){
@@ -570,8 +555,41 @@ reinitTab(bool doOverride){
 		numHistograms = 0;
 	}
 	setBindButtons(false);
-	fidelityTextChanged = false;
+	//Set up the fidelityBox
+	setupFidelity();
+	
 	updateTab();
+}
+void DvrEventRouter::setupFidelity(){
+	
+	
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	if (!dataMgr) return;
+	const vector<size_t> cRatios = dataMgr->GetCRatios();
+	int deflt = orderLODRefs(3);
+	int numButtons = fidelityLODs.size();
+	QHBoxLayout* hbox = new QHBoxLayout;
+	fidelityLayout->removeWidget(fidelityBox);
+	delete fidelityBox;// this also deletes buttongroup
+	fidelityBox = new QGroupBox("Fidelity",this);
+	
+	fidelityButtons = new QButtonGroup(fidelityBox);
+	for (int i = 0; i<numButtons; i++){
+		QRadioButton * rd = new QRadioButton(this);
+		hbox->addWidget(rd);
+		fidelityButtons->addButton(rd, i);
+		QString refLevel = "Refinement "+QString::number(fidelityRefinements[i]);
+		QString LOD = "\nLOD "+QString::number(cRatios[fidelityLODs[i]])+":1";
+		QString tt = refLevel+LOD;
+		rd->setToolTip(tt);
+		if (i == deflt) rd->setChecked(true);
+	}
+	
+	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
+	fidelityBox->setToolTip("Click a button to specify the fidelity (both LOD and refinement)\n Each button has a tooltip indicating its associated LOD and refinement.");
+	fidelityBox->setLayout(hbox);
+	fidelityLayout->addWidget(fidelityBox);
+	fidelityBox->adjustSize();
 }
 void DvrEventRouter::
 guiToggleColorInterpType(bool isDiscrete){
@@ -1413,50 +1431,33 @@ void DvrEventRouter::guiFitTFToData(){
 	updateTab();
 	
 }
-//Occurs when user releases fidelity slider
-void DvrEventRouter::guiSetFidelity(){
+
+//Occurs when user clicks a fidelity radio button
+void DvrEventRouter::guiSetFidelity(int buttonID){
 	// Recalculate LOD and refinement based on current slider value and/or current text value
 	//.  If they don't change, then don't 
 	// generate an event.
 	confirmText(false);
 	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
+	int newLOD = fidelityLODs[buttonID];
+	int newRef = fidelityRefinements[buttonID];
 	int lodSet = dParams->GetCompressionLevel();
 	int refSet = dParams->GetRefinementLevel();
+	if (lodSet == newLOD && refSet == newRef) return;
+	float fidelity = fidelities[buttonID];
 	
-	//Determine region size
-	RegionParams    *regionParams = VizWinMgr::getActiveRegionParams();
-	float regionMBs = regionParams->fullRegionMBs(-1);
-	int q = fidelitySlider->value();
-	float fidelity = (float)q/256.;
-	fidelityEdit->setText(QString::number(fidelity));
-	int lod, reflevel;
-	calcLODRefLevel(3, fidelity, regionMBs, &lod, &reflevel);
-	if (lod == lodSet && refSet == reflevel) return;
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Data Fidelity");
-	dParams->SetCompressionLevel(lod);
-	dParams->SetRefinementLevel(reflevel);
+	dParams->SetCompressionLevel(newLOD);
+	dParams->SetRefinementLevel(newRef);
 	dParams->setFidelity(fidelity);
 	dParams->setIgnoreFidelity(false);
 	//change values of LOD and refinement combos using setCurrentIndex().
-	lodCombo->setCurrentIndex(lod);
-	refinementCombo->setCurrentIndex(reflevel);
+	lodCombo->setCurrentIndex(newLOD);
+	refinementCombo->setCurrentIndex(newRef);
 	PanelCommand::captureEnd(cmd, dParams);
-	VizWinMgr::getInstance()->forceRender(dParams, true);
+	VizWinMgr::getInstance()->forceRender(dParams, false);
 }
-//As fidelity slider moves, update the LOD and refinement combos without causing
-//change in data
-void DvrEventRouter::fidelityChanging(int val){
-	//Determine region size
-	RegionParams    *regionParams = VizWinMgr::getActiveRegionParams();
-	float regionMBs = regionParams->fullRegionMBs(-1);
-	float fidelity = (float)val/256.;
-	fidelityEdit->setText(QString::number(fidelity));
-	int lod, reflevel;
-	calcLODRefLevel(3, fidelity, regionMBs, &lod, &reflevel);
-	//change values of LOD and refinement combos using setCurrentIndex().
-	lodCombo->setCurrentIndex(lod);
-	refinementCombo->setCurrentIndex(reflevel);
-}
+
 //User clicks on SetDefault button, need to make current fidelity settings the default.
 void DvrEventRouter::guiSetFidelityDefault(){
 	//Check current values of LOD and refinement and their combos.
@@ -1474,21 +1475,29 @@ void DvrEventRouter::guiSetFidelityDefault(){
 	float lodDefault = (float)comprs[lodSet]/regionMBs;
 	float refDefault = (float)refSet+log(regionMBs)/log(2.);
 	//Set defaultLOD3d and defaultRefinement3D values
-	UserPreferences::setDefaultLODFidelity3D(lodDefault);
-	UserPreferences::setDefaultRefinementFidelity3D(refDefault);
+	float oldLODDefault = UserPreferences::getDefaultLODFidelity3D();
+	float oldRefDefault = UserPreferences::getDefaultRefinementFidelity3D();
+	if (oldLODDefault != lodDefault || oldRefDefault != refDefault){
+		UserPreferences::setDefaultLODFidelity3D(lodDefault);
+		UserPreferences::setDefaultRefinementFidelity3D(refDefault);
+		UserPreferences::requestSave();
+	}
 	
+	//Set Fidelity to 0.5 unless it is at an extreme:
+	float fidelity = 0.5f;
+	if (lodSet == comprs.size()-1 && refSet == dataMgr->GetNumTransforms()) fidelity = 1.f;
+	if (lodSet == 0 && refSet == 0) fidelity = 0.f;
+	dParams->setFidelity(fidelity);
+	//Setup the buttons
+	setupFidelity();
 	//Clear ignoreFidelity flag
 	dParams->setIgnoreFidelity(false);
-	//Set Fidelity to 0.5.
-	dParams->setFidelity(0.5f);
-	fidelitySlider->setValue(128);
-	fidelityEdit->setText("0.5");
+	
 	PanelCommand::captureEnd(cmd, dParams);
+	updateTab();
 	//Need undo/redo to include preference settings!
 }
-void DvrEventRouter::dvrSavePrefs(){
-	UserPreferences::requestSave(false);
-}
+
 //Workaround for Qt/Cocoa bug: postpone showing of OpenGL widget 
 
 #ifdef Darwin
