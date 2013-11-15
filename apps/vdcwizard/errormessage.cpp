@@ -22,6 +22,7 @@
 #include <iostream>
 #include "errormessage.h"
 #include "ui/ErrMsg.h"
+#include "ui/CmdLine.h"
 
 using namespace std;
 
@@ -33,5 +34,16 @@ ErrorMessage::ErrorMessage(QWidget *parent, QWizard *wizard) :
 
 void ErrorMessage::on_buttonBox_accepted() {
 	errorList->clear();
+	hide();
+}
+
+CommandLine::CommandLine(QWidget *parent, QWizard *wizard) :
+	QDialog(parent), Ui_CommandLine()
+{
+	setupUi(this);
+}
+
+void CommandLine::on_buttonBox_accepted() {
+	commandLineText->clear();
 	hide();
 }

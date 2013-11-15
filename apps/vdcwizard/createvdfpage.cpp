@@ -22,7 +22,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <QtGui>
-//#include "fcwizard.h"
 #include "vdcwizard.h"
 #include "createvdfpage.h"
 #include "createvdfcomment.h"
@@ -38,7 +37,6 @@ CreateVdfPage::CreateVdfPage(DataHolder *DH, QWidget *parent) :
 {
     setupUi(this);
 
-    //QPixmap createVDFPixmap("/Users/pearse/Documents/FileConverterWizard/Icons/makeVDFsmall.png");
 	QPixmap createVDFPixmap(makeVDFsmall);
     createVdfLabel->setPixmap(createVDFPixmap);
 
@@ -48,6 +46,7 @@ CreateVdfPage::CreateVdfPage(DataHolder *DH, QWidget *parent) :
     vdfNewVar = new CreateVdfAddNewVar(dataHolder);
 
 	errorMessage = new ErrorMessage;
+	commandLine = new CommandLine;
 
 	label_11->hide();
 	label_3->hide();
@@ -56,6 +55,16 @@ CreateVdfPage::CreateVdfPage(DataHolder *DH, QWidget *parent) :
 
     connect(vdfNewVar->buttonBox, SIGNAL(accepted()), this,
             SLOT(addVar()));
+}
+
+void CreateVdfPage::on_showCommandButton_clicked() {
+	string command;
+	command = dataHolder->getCreateVDFcmd();
+	commandLine->commandLineText->clear();
+
+	QString qcommand = QString::fromUtf8(command.c_str());
+	commandLine->commandLineText->insertPlainText(qcommand);
+	commandLine->show();
 }
 
 // Check all loaded variables

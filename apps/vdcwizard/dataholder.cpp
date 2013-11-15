@@ -135,28 +135,138 @@ void DataHolder::findPopDataVars() {
     setPDDisplayedVars(outVars);
 }
 
+string DataHolder::getCreateVDFcmd() {
+    vector<std::string> argv;
+    if (getFileType() == "roms") argv.push_back("romsvdfcreate");
+    else if (getFileType() == "wrf") argv.push_back("wrfvdfcreate");//Users/pears
+    else argv.push_back("momvdfcreate");
+    argv.push_back("-quiet");
+    if (getFileType()=="wrf") argv.push_back("-vdc2");
+
+    if (VDFSBFactor != "") {
+        argv.push_back("-bs");
+        argv.push_back(VDFSBFactor);
+    }   
+    if (VDFcomment != "") {
+        argv.push_back("-comment");
+        argv.push_back(VDFcomment);
+    }   
+    if (VDFcrList != "") {
+        argv.push_back("-cratios");
+        argv.push_back(VDFcrList);
+    }   
+    if (VDFPeriodicity != "") {
+        argv.push_back("-periodic");
+        argv.push_back(VDFPeriodicity);
+    }   
+    if (VDFSelectedVars.size() != 0) {
+        argv.push_back("-vars");
+
+        string stringVars;
+        for(vector<string>::iterator it = VDFSelectedVars.begin();
+            it != VDFSelectedVars.end(); ++it) {
+            if(it != VDFSelectedVars.begin()) stringVars += ":";
+            stringVars += *it;
+        }   
+        argv.push_back(stringVars);
+    }   
+
+    for (int i=0;i<dataFiles.size();i++){
+        argv.push_back(dataFiles.at(i));
+    }   
+       
+    if (VDFfileName != "") {
+        argv.push_back(VDFfileName);
+    }   
+
+
+	std::ostringstream imploded;
+	const char* const delim = " ";
+	std::copy(argv.begin(), argv.end(),std::ostream_iterator<string>(imploded,delim));
+
+	return imploded.str();
+}
+
+string DataHolder::getPopDataCmd() {
+    vector<std::string> argv;
+    if (getFileType() == "roms") argv.push_back("roms2vdf");
+    else if (getFileType() == "wrf") argv.push_back("wrf2vdf");
+    else argv.push_back("mom2vdf");
+    argv.push_back("-quiet");
+
+    if (PDrefinement != "") {
+        argv.push_back("-level");
+        argv.push_back(PDrefinement);
+    }   
+    if (PDcompression != "") {
+        argv.push_back("-lod");
+        argv.push_back(PDcompression);
+    }   
+    if (PDnumThreads != "") {
+        argv.push_back("-numthreads");
+        argv.push_back(PDnumThreads);
+    }   
+    
+    argv.push_back("-numts");
+    argv.push_back(PDnumTS);
+  
+    argv.push_back("-startts");
+    argv.push_back(PDstartTime);
+  
+    if (PDSelectedVars.size() != 0) {
+        argv.push_back("-vars");
+
+        string stringVars;
+        for(vector<string>::iterator it = PDSelectedVars.begin();
+            it != PDSelectedVars.end(); ++it) {
+            if(it != PDSelectedVars.begin()) stringVars += ":";
+            stringVars += *it;
+        }   
+        argv.push_back(stringVars);
+    }
+ 
+    if (getFileType()=="wrf"){
+        argv.push_back(PDinputVDFfile);
+    }   
+
+ 
+    for (int i=0;i<dataFiles.size();i++){
+        argv.push_back(dataFiles.at(i));
+    }   
+
+    if (getFileType() != "wrf"){
+        argv.push_back(PDinputVDFfile);
+    }   
+
+    //cout << "COMMAND: " << endl;
+    char** args = new char*[ argv.size() + 1 ];
+    for(size_t a=0; a<argv.size(); a++) {
+        args[a] = strdup(argv[a].c_str());
+    }
+
+	std::ostringstream imploded;
+	const char* const delim = " ";
+	std::copy(argv.begin(), argv.end(), std::ostream_iterator<string>(imploded,delim));
+
+	return imploded.str();
+}
+
+
 // Generate an array of chars from our vector<string>, which holds
 // the user's selected arguments.  momvdfcreate receives this array,
 // as well as a count (argc) which is the size of the array.
 int DataHolder::VDFCreate() {
-    int argc = 3;
+    int argc = 2;
     vector<std::string> argv;
     if (getFileType() == "roms") argv.push_back("romsvdfcreate");
     else if (getFileType() == "wrf") argv.push_back("wrfvdfcreate");//Users/pearse/VaporWinTestDir2/targets/Darwin_x86_64/bin/wrfvdfcreate");
 	else argv.push_back("momvdfcreate");
     argv.push_back("-quiet");
-	argv.push_back("-vdc2");
-	/*if ((getFileType()!="wrf")&&(VDFstartTime != "")) {
-        argv.push_back("-startt");
-        argv.push_back(VDFstartTime);
-		argc+=2;
-    }
-
-    if ((getFileType()!="wrf")&&(VDFnumTS != "")) {
-        argv.push_back("-numts");
-        argv.push_back(VDFnumTS);
-        argc+=2;
-    }*/
+	
+	if (getFileType() == "wrf")	{
+		argv.push_back("-vdc2");
+		argc++;
+	}
 
     if (VDFSBFactor != "") {
         argv.push_back("-bs");
@@ -179,8 +289,6 @@ int DataHolder::VDFCreate() {
         argc+=2;
     }
     if (VDFSelectedVars.size() != 0) {
-		//if (getFileType() == "wrf") argv.push_back("-vars3d");
-		//else 
 		argv.push_back("-vars");
         argc++;
 

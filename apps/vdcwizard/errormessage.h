@@ -24,9 +24,11 @@
 #include <QWizard>
 #include <QDialog>
 #include "ui/ErrMsg.h"
+#include "ui/CmdLine.h"
 
 namespace Ui {
 class ErrorMessage;
+class CommandLine;
 }
 
 class ErrorMessage : public QDialog, public Ui_ErrMsg
@@ -35,6 +37,17 @@ class ErrorMessage : public QDialog, public Ui_ErrMsg
 
 public:
     ErrorMessage(QWidget *parent=0, QWizard *wiz=0);
+
+private slots:
+    void on_buttonBox_accepted();
+};
+
+class CommandLine : public QDialog, public Ui_CommandLine
+{
+    Q_OBJECT
+
+public:
+    CommandLine(QWidget *parent=0, QWizard *wiz=0);
 
 private slots:
     void on_buttonBox_accepted();

@@ -46,6 +46,7 @@ PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
     dataHolder = DH;
     popAdvancedOpts = new PopDataAdvanced(dataHolder);
 	errorMessage = new ErrorMessage;
+	commandLine = new CommandLine;
 	successMessage = new VdfBadFile;
 	successMessage->buttonBox->setVisible(false);
     successMessage->label->setText("Success!");
@@ -58,6 +59,16 @@ PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
 	checkOverwrites->label_2->setText("Some of the selected variables already have data files in the vdf directory.  These files may be overwritten.  Do you still want to proceed?");
 
 	
+}
+
+void PopulateDataPage::on_showCommandButton_clicked() {
+    string command;
+    command = dataHolder->getPopDataCmd();
+    commandLine->commandLineText->clear();
+
+    QString qcommand = QString::fromUtf8(command.c_str());
+    commandLine->commandLineText->insertPlainText(qcommand);
+    commandLine->show();
 }
 
 void PopulateDataPage::on_selectAllButton_clicked() {
@@ -176,6 +187,7 @@ bool PopulateDataPage::checkForOverwrites() {
 
 void PopulateDataPage::enableWidgets() {
     cancelButton->setEnabled(false);
+	showCommandButton->setEnabled(true);
     selectAllButton->setEnabled(true);
     clearAllButton->setEnabled(true);
     startTimeSpinner->setEnabled(true);
@@ -190,6 +202,7 @@ void PopulateDataPage::enableWidgets() {
 }
 
 void PopulateDataPage::disableWidgets() {
+	showCommandButton->setEnabled(false);
 	selectAllButton->setEnabled(false);
 	clearAllButton->setEnabled(false);
 	startTimeSpinner->setEnabled(false);
@@ -275,7 +288,7 @@ bool PopulateDataPage::validatePage() {
 	}
 	progressBar->reset();	
 	successMessage->show();
-	
+	enableWidgets();	
 	//stay on page if successMessage does not exit(0)
 	return false; 	
 }
