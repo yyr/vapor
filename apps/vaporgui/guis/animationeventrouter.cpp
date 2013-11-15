@@ -75,16 +75,19 @@
 using namespace VAPoR;
 const char* AnimationEventRouter::webHelpText[] = 
 {
-"General capabilities of VAPOR's global tabs",
-"Settings in the Animation tab",
-"Creating key-framed animations",
+"Animation overview",
+"Animation capture",
+"Settings for key-framed animation",
+"How to create a key-framed animation sequence",
 "<>"
 };
 const char* AnimationEventRouter::webHelpURL[] =
 {
-"http://www.vapor.ucar.edu/docs/vapor-gui-help/global-tabs-vapor-gui",
-"http://www.vapor.ucar.edu/docs/vapor-how-guide/animation",
-"http://www.vapor.ucar.edu/docs/vapor-gui-help/creating-key-framed-animation"
+
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/animation#AnimationOverview",
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/animation#AnimationCapture",
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/animation#KeyFrameSettings",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/creating-key-framed-animation"
 };
 QT_USE_NAMESPACE
 
@@ -330,12 +333,13 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 //
 void AnimationEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
+	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	AnimationParams* aParams = (AnimationParams*) VizWinMgr::getInstance()->getActiveAnimationParams();
 	float sliderVal;
 	QString strn;
 	Session::getInstance()->blockRecording();
-	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
+	
 	
 	sliderVal = 0.f;
 	int startFrame = aParams->getStartFrameNumber();

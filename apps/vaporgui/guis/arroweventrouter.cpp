@@ -49,12 +49,16 @@
 using namespace VAPoR;
 const char* ArrowEventRouter::webHelpText[] = 
 {
-"Explanation of the settings in the Barbs tab",
+"Barbs Overview",
+"Barb layout options",
+"Barb Appearance settings",
 "Barb alignment options","<>"
 };
 const char* ArrowEventRouter::webHelpURL[] =
 {
-"http://www.vapor.ucar.edu/docs/vapor-gui-help/barbs",
+"http://www.vapor.ucar.edu/docs/vapor-gui-help/barbs#BarbsOverview",
+"http://www.vapor.ucar.edu/docs/vapor-gui-help/barbs#BarbLayout",
+"http://www.vapor.ucar.edu/docs/vapor-gui-help/barbs#BarbAppearance",
 "http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/barb-alignment"
 };
 

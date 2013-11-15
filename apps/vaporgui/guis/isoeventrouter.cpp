@@ -70,7 +70,22 @@
 
 
 using namespace VAPoR;
+const char* IsoEventRouter::webHelpText[] = 
+{
+"Isosurface overview",
+"Controlling the Iso-value",
+"Isosurface color and transparency",
+"Isosurface quality",
+"<>"
+};
+const char* IsoEventRouter::webHelpURL[] =
+{
 
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/isosurfaces",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/controlling-iso-value",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/isosurface-color-and-transparency",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/isosurface-quality",
+};
 
 IsoEventRouter::IsoEventRouter(QWidget* parent): QWidget(parent), Ui_IsoTab(),  EventRouter(){
 	setupUi(this);
@@ -82,7 +97,7 @@ IsoEventRouter::IsoEventRouter(QWidget* parent): QWidget(parent), Ui_IsoTab(),  
 	isoSelectionFrame->setColorMapping(false);
 	isoSelectionFrame->setIsoSlider(true);
 	MessageReporter::infoMsg("IsoEventRouter::IsoEventRouter()");
-
+	myWebHelpActions = makeWebHelpActions(webHelpText, webHelpURL);
 #if defined(Darwin) && (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 	opacityMapShown = false;
 	isoShown = false;
@@ -194,6 +209,7 @@ IsoEventRouter::hookUpTab()
 //
 void IsoEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
+	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
 	if (!isEnabled()) return;
 	if (GLWindow::isRendering()) return;
 	Session *session = Session::getInstance();

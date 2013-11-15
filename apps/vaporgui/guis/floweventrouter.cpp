@@ -78,7 +78,37 @@
 #include "VolumeRenderer.h"
 
 using namespace VAPoR;
+const char* FlowEventRouter::webHelpText[] = 
+{
+"Flow overview",
+"Basic flow settings",
+"Flow seeding",
+"Flow appearance",
+"Streamlines (steady flow)",
+"Unsteady (time-varying) flow",
+"Unsteady flow time settings",
+"Field line advection",
+"Specifying flow seed points interactively with the Probe",
+"Displaying barb arrows with the flow tab",
+"Reading and writing seed points and flow lines",
+"<>"
+};
+const char* FlowEventRouter::webHelpURL[] =
+{
 
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/flow-tab-steady-flow#FlowOverview",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/flow-tab-steady-flow#BasicFlowSettings",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/flow-seeding",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/appearance-flow",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/streamlines-steady-flow",
+	"http://www.vapor.ucar.edu/docs/vapor-renderer-guide/flow-tab-unsteady-flow",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/unsteady-flow-time-settings",
+	"http://www.vapor.ucar.edu/docs/vapor-renderer-guide/flow-tab-field-line-advection",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/specifying-flow-seeds-probe",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/displaying-barbs-using-flow-tab",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/reading-and-writing-seed-points-and-flow-lines",
+	
+};
 
 FlowEventRouter::FlowEventRouter(QWidget* parent): QWidget(parent), Ui_FlowTab(), EventRouter(){
 	setupUi(this);
@@ -92,7 +122,7 @@ FlowEventRouter::FlowEventRouter(QWidget* parent): QWidget(parent), Ui_FlowTab()
 	showUnsteadyTime=false;
 	MessageReporter::infoMsg("FlowEventRouter::FlowEventRouter()");
 	dontUpdate=false;
-
+	myWebHelpActions = makeWebHelpActions(webHelpText, webHelpURL);
 #if defined(Darwin) && (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 	colorMapShown=false;
 	colorMappingFrame->hide();
@@ -299,6 +329,7 @@ FlowEventRouter::hookUpTab()
 //
 void FlowEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
+	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
 	if (!isEnabled()) return;
 	if (GLWindow::isRendering())return;
 	DataStatus* dStatus = DataStatus::getInstance();
