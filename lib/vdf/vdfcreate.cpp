@@ -230,7 +230,7 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 		{NULL}
 	};
 
-    for(int i=0;i<argc;i++) cout << argv[i] << " ";
+    //for(int i=0;i<argc;i++) cout << argv[i] << " ";
 
     //not for production - ok for command line
     //MyBase::SetErrMsgFilePtr(stderr);

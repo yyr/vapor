@@ -73,6 +73,19 @@
 #include "../images/replayA.xpm"
 
 using namespace VAPoR;
+const char* AnimationEventRouter::webHelpText[] = 
+{
+"General capabilities of VAPOR's global tabs",
+"Settings in the Animation tab",
+"Creating key-framed animations",
+"<>"
+};
+const char* AnimationEventRouter::webHelpURL[] =
+{
+"http://www.vapor.ucar.edu/docs/vapor-gui-help/global-tabs-vapor-gui",
+"http://www.vapor.ucar.edu/docs/vapor-how-guide/animation",
+"http://www.vapor.ucar.edu/docs/vapor-gui-help/creating-key-framed-animation"
+};
 QT_USE_NAMESPACE
 
 
@@ -81,6 +94,7 @@ AnimationEventRouter::AnimationEventRouter(QWidget* parent) : QWidget(parent,0),
 	currentKeyIndex = 0;
 	myParamsBaseType = Params::GetTypeFromTag(Params::_animationParamsTag);
 	MessageReporter::infoMsg("AnimationEventRouter::AnimationEventRouter()");
+	myWebHelpActions = makeWebHelpActions(webHelpText,webHelpURL);
 	dontUpdate = false;
 	QPixmap* playForwardIcon = new QPixmap(playforward);
 	playForwardButton->setIcon(QIcon(*playForwardIcon));
@@ -321,6 +335,7 @@ void AnimationEventRouter::updateTab(){
 	float sliderVal;
 	QString strn;
 	Session::getInstance()->blockRecording();
+	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
 	
 	sliderVal = 0.f;
 	int startFrame = aParams->getStartFrameNumber();

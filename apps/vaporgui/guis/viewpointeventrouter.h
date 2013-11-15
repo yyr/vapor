@@ -80,6 +80,8 @@ public:
 	void updateRenderer(ViewpointParams* dParams, bool prevEnabled,  bool newWindow);
 
 protected:
+	static const char* webHelpText[];
+	static const char* webHelpURL[];
 	float lastCamPos[3];
 	bool panChanged;
 

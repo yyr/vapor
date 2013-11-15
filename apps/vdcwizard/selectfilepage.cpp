@@ -55,7 +55,7 @@ SelectFilePage::SelectFilePage(DataHolder *DH, QWidget *parent) :
 void SelectFilePage::on_browseOutputVdfFile_clicked() {
 	QString file;
     if (dataHolder->getOperation()=="2vdf") file = QFileDialog::getOpenFileName(this,"Select output metada (.vdf) file.",selectedDirectory);//,"/glade/proj3/DASG/pearse/data");
-    else file = QFileDialog::getSaveFileName(this,"Select output metada (.vdf) file.",selectedDirectory);//"/glade/proj3/DASG/pearse/data");
+    else file = QFileDialog::getSaveFileName(this,"Select output metada (.vdf) file.",selectedDirectory);//,selectedFilter=tr("files(*.vdf )"));
 	selectedDirectory = QDir(file).absolutePath();
 	int size = file.split(".",QString::SkipEmptyParts).size();
 	if (file != ""){

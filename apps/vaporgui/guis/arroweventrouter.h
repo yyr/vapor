@@ -88,7 +88,9 @@ protected:
 	int copyCount[MAXVIZWINS+1];
 	bool showLayout;
 	bool showAppearance;
-
+	
+	static const char* webHelpText[];
+	static const char* webHelpURL[];
    };
 
 };

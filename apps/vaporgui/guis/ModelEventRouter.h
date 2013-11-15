@@ -68,7 +68,8 @@ public:
    //virtual void refreshTab(){}
 
 protected:
-
+	static const char* webHelpText[];
+	static const char* webHelpURL[];
    bool eventFilter(QObject *obj, QEvent *event);
    
 protected slots:

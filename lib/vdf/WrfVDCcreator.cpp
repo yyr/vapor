@@ -12,7 +12,7 @@
 #include <vapor/WaveCodecIO.h>
 #include <vapor/WaveletBlock3DBufWriter.h>
 #include <vapor/CFuncs.h>
-#include <vapor/Wrf2vdf.h>
+#include <vapor/WrfVDCcreator.h>
 
 #ifdef WIN32
 #pragma warning(disable : 4996)
@@ -411,5 +411,6 @@ int	Wrf2vdf::launchWrf2Vdf(int argc, char **argv) {
 		estatus = 1;
 	}
 	//exit(estatus);
+	delete wcwriter;
 	return estatus;
 }

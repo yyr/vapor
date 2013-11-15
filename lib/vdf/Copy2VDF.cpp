@@ -525,5 +525,6 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 		SetErrMsg("Failed to copy %d variables", fails);
 		estatus = 1;
 	}
+	delete wcwriter;
 	return estatus;
 } // End of main.

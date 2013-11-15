@@ -76,7 +76,7 @@ protected:
 	bool dontUpdate;
 	
 	void setSliders (AnimationParams* a);
-
+	
 	void refreshFrontTab();
 	void guiJumpToBegin();
 	void guiJumpToEnd();
@@ -94,6 +94,8 @@ protected:
 	bool keyframeTextChanged;
 	bool endFrameTextChanged;
 	int currentKeyIndex;
+	static const char* webHelpText[];
+	static const char* webHelpURL[];
 	
 protected slots:
 	void guiSetPosition(int sliderposition);

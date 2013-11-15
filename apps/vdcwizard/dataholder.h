@@ -25,11 +25,9 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <vapor/Wrf2vdf.h>
+#include <vapor/WrfVDCcreator.h>
 #include <vapor/Copy2VDF.h>
-#include <vapor/vdfcreate.h>
-//#include <vapor/DCReaderMOM.h>
-//#include <vapor/DCReaderROMS.h>
+//#include <vapor/wrfvdfcreate.h>
 #include <vapor/vdfcreate.h>
 #include <vapor/2vdf.h>
 
@@ -115,6 +113,7 @@ public:
 
 private:
     Wrf2vdf w2v;
+	//wrfvdfcreate launcherWrfVdfCreate;
     Copy2VDF launcher2VDF;
 	vdfcreate launcherVdfCreate;
 

@@ -26,6 +26,7 @@
 #include <cstdio>
 #include <QDebug>
 #include <QString>
+#include <vapor/WrfVDFcreator.h>
 #include <vapor/vdfcreate.h>
 #include <vapor/Copy2VDF.h>
 #include <vapor/MetadataVDC.h>
@@ -34,7 +35,7 @@
 #include <vapor/DCReaderMOM.h>
 #include <vapor/DCReaderROMS.h>
 #include <vapor/DCReaderWRF.h>
-#include <vapor/Wrf2vdf.h>
+#include <vapor/WrfVDCcreator.h>
 #include "dataholder.h"
 
 using namespace VAPoR;
@@ -138,14 +139,14 @@ void DataHolder::findPopDataVars() {
 // the user's selected arguments.  momvdfcreate receives this array,
 // as well as a count (argc) which is the size of the array.
 int DataHolder::VDFCreate() {
-    int argc = 2;
+    int argc = 3;
     vector<std::string> argv;
     if (getFileType() == "roms") argv.push_back("romsvdfcreate");
-    else if (getFileType() == "wrf") argv.push_back("wrfvdfcreate");
+    else if (getFileType() == "wrf") argv.push_back("wrfvdfcreate");//Users/pearse/VaporWinTestDir2/targets/Darwin_x86_64/bin/wrfvdfcreate");
 	else argv.push_back("momvdfcreate");
     argv.push_back("-quiet");
-
-    /*if ((getFileType()!="wrf")&&(VDFstartTime != "")) {
+	argv.push_back("-vdc2");
+	/*if ((getFileType()!="wrf")&&(VDFstartTime != "")) {
         argv.push_back("-startt");
         argv.push_back(VDFstartTime);
 		argc+=2;
@@ -178,6 +179,8 @@ int DataHolder::VDFCreate() {
         argc+=2;
     }
     if (VDFSelectedVars.size() != 0) {
+		//if (getFileType() == "wrf") argv.push_back("-vars3d");
+		//else 
 		argv.push_back("-vars");
         argc++;
 
@@ -203,10 +206,17 @@ int DataHolder::VDFCreate() {
 
 	char** args = new char*[ argv.size() + 1 ];
     for(size_t a=0; a<argv.size(); a++) {
-        //cout << argv[a].c_str() << endl;
+        //cout << argv[a].c_str() ;
         args[a] = strdup(argv[a].c_str());
     }
-	return launcherVdfCreate.launchVdfCreate(argc,args,getFileType());
+	//cout << endl;
+
+	if (getFileType()=="wrf") {
+		wrfvdfcreate launcherWrfVdfCreate;
+		int rc = launcherWrfVdfCreate.launchVdfCreate(argc,args);
+		return rc;
+	}
+	else return launcherVdfCreate.launchVdfCreate(argc,args,getFileType());
 }
 
 int DataHolder::run2VDFcomplete() {
@@ -339,17 +349,16 @@ int DataHolder::run2VDFincremental(string start, string var) {
     	argc++;
     }
 
-    cout << "COMMAND: " << endl;
+    //cout << "COMMAND: " << endl;
     char** args = new char*[ argv.size() + 1 ];
     for(size_t a=0; a<argv.size(); a++) {
-        cout << argv[a].c_str() << " ";
+        //cout << argv[a].c_str() << " ";
         args[a] = strdup(argv[a].c_str());
     }   
 	//cout << endl;
 
     if (getFileType()=="wrf") {
-	cout << "LAUNCHING WRF" << endl;
-	return w2v.launchWrf2Vdf(argc,args);
+		return w2v.launchWrf2Vdf(argc,args);
     }
     else return launcher2VDF.launch2vdf(argc, args, getFileType());
 }

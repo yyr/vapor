@@ -28,6 +28,8 @@
 #endif
 #include "glutil.h"	// Must be included first!!!
 #include <QMenuItem>
+#include <qdesktopservices.h>
+#include <qurl.h>
 #include "mainform.h"
 #include "pythonedit.h"
 #include <QDockWidget>
@@ -409,6 +411,7 @@ void MainForm::hookupSignals() {
 	connect (stepForwardAction, SIGNAL(triggered()), this, SLOT(stepForward()));
 	connect (stepBackAction, SIGNAL(triggered()), this, SLOT(stepBack()));
 	connect (timeStepEdit, SIGNAL(editingFinished()),this, SLOT(setTimestep()));
+	connect (webHelpMenu, SIGNAL(triggered(QAction*)),this, SLOT(launchWebHelp(QAction*)));
 }
 
 void MainForm::createMenus(){
@@ -472,6 +475,8 @@ void MainForm::createMenus(){
     helpMenu->addAction(whatsThisAction);
     helpMenu->addSeparator();
     helpMenu->addAction(helpAboutAction );
+	webHelpMenu = new QMenu("Web Help Topics for the current tab",this);
+	helpMenu->addMenu(webHelpMenu);
 }
 
 void MainForm::createActions(){
@@ -1567,4 +1572,19 @@ void MainForm::showCitationReminder(){
 	msgBox.exec();
 	Session::getInstance()->setCitationRemind(false);
 
+}
+void MainForm::launchWebHelp(QAction* webAction){
+	QVariant qv = webAction->data();
+	QUrl myURL = qv.toUrl();
+	bool success = QDesktopServices::openUrl(myURL);
+	if (!success){
+		MessageReporter::errorMsg("Unable to launch Web browser for URL %s\n",
+			myURL.toString().toAscii());
+	}
+}
+void MainForm::buildWebHelpMenu(vector<QAction*>* actions){
+	webHelpMenu->clear();
+	for (int i = 0; i< (*actions).size(); i++){
+		webHelpMenu->addAction((*actions)[i]);
+	}
 }

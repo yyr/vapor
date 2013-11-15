@@ -277,8 +277,9 @@
     <ClCompile Include="..\..\..\lib\vdf\WaveletBlockIOBase.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\WeightTable.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\WRF.cpp" />
-    <ClCompile Include="..\..\..\lib\vdf\Wrf2vdf.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\WRFReader.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\WrfVDCcreator.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\WrfVDFcreator.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\XmlNode.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -329,7 +330,8 @@
     <ClInclude Include="..\..\..\include\vapor\WeightTable.h" />
     <ClInclude Include="..\..\..\include\vapor\WRF.h" />
     <ClInclude Include="..\..\..\include\vapor\XmlNode.h" />
-    <ClInclude Include="..\..\..\lib\vdf\Wrf2vdf.h" />
+    <ClInclude Include="..\..\..\lib\vdf\WrfVDCcreator.h" />
+    <ClInclude Include="..\..\..\lib\vdf\WrfVDFcreator.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

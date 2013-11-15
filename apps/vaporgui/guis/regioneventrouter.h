@@ -104,6 +104,9 @@ protected slots:
 	void copyRakeToRegion();
 	void copyRegionToProbe();
 	void copyProbeToRegion();
+protected:
+	static const char* webHelpText[];
+	static const char* webHelpURL[];
 
 };
 
