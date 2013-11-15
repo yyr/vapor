@@ -47,6 +47,7 @@ public:
     CreateVdfComment *vdfTLComment;
     DataHolder *dataHolder;
     CreateVdfAddNewVar *vdfNewVar;
+	CommandLine *commandLine;
 	ErrorMessage *errorMessage;
 
     vector<string> varList;
@@ -56,7 +57,8 @@ public slots:
     void saveAndExit();
 
 private slots:
-    void on_advanceOptionButton_clicked() { vdfAdvancedOpts->show(); }
+    void on_showCommandButton_clicked();
+	void on_advanceOptionButton_clicked() { vdfAdvancedOpts->show(); }
     void on_vdfCommentButton_clicked() { vdfTLComment->show(); }
     void on_newVarButton_clicked() { vdfNewVar->show(); }
     void on_clearAllButton_clicked();

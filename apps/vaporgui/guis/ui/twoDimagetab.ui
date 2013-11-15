@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>465</width>
+    <width>470</width>
     <height>1170</height>
    </rect>
   </property>
@@ -188,6 +188,9 @@ create new 2D planar instances.</string>
                <height>0</height>
               </size>
              </property>
+             <property name="focusPolicy">
+              <enum>Qt::ClickFocus</enum>
+             </property>
              <property name="toolTip">
               <string>Select a visualizer where this renderer instance will be copied</string>
              </property>
@@ -315,6 +318,9 @@ create new 2D planar instances.</string>
             </item>
             <item>
              <widget class="QComboBox" name="lodCombo">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="toolTip">
                <string>Specify the approximation level for the data being visualized</string>
               </property>
@@ -372,6 +378,9 @@ create new 2D planar instances.</string>
             </item>
             <item>
              <widget class="QComboBox" name="refinementCombo">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="toolTip">
                <string>Select the refinement level (resolution) to use when mapping image to terrain elevation.</string>
               </property>
@@ -445,6 +454,9 @@ create new 2D planar instances.</string>
             </item>
             <item>
              <widget class="QComboBox" name="orientationCombo">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="toolTip">
                <string>Specifies coordinate plane alignment of data or image</string>
               </property>

@@ -188,6 +188,9 @@ create new Probe/Contour instances.</string>
                <height>0</height>
               </size>
              </property>
+             <property name="focusPolicy">
+              <enum>Qt::ClickFocus</enum>
+             </property>
              <property name="toolTip">
               <string>Select a visualizer where this renderer instance will be copied</string>
              </property>
@@ -369,6 +372,9 @@ probe volume.</string>
             </item>
             <item>
              <widget class="QComboBox" name="lodCombo">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="toolTip">
                <string>Specify the approximation level for the data being visualized</string>
               </property>
@@ -429,6 +435,9 @@ probe volume.</string>
             </item>
             <item>
              <widget class="QComboBox" name="refinementCombo">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="toolTip">
                <string>Select the refinement level (resolution) of the current probe/contour plane</string>
               </property>
@@ -516,6 +525,9 @@ probe volume.</string>
             </item>
             <item>
              <widget class="QComboBox" name="probeTypeCombo">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="toolTip">
                <string>Select whether the probe will display the color-mapped data or a tlow image (using image-based flow visualization)</string>
               </property>
@@ -555,7 +567,11 @@ probe volume.</string>
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="variableCombo"/>
+             <widget class="QComboBox" name="variableCombo">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
+             </widget>
             </item>
             <item>
              <spacer name="horizontalSpacer_3">
@@ -2583,6 +2599,9 @@ Domain</string>
                           <height>0</height>
                          </size>
                         </property>
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
+                        </property>
                         <property name="toolTip">
                          <string>Specify the variable that is mapped to the X coordinate of the field</string>
                         </property>
@@ -2615,6 +2634,9 @@ Domain</string>
                           <width>80</width>
                           <height>0</height>
                          </size>
+                        </property>
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
                         </property>
                         <property name="toolTip">
                          <string>Specify the variable that is mapped to the Y coordinate of the field</string>
@@ -2651,6 +2673,9 @@ Domain</string>
                           <width>80</width>
                           <height>0</height>
                          </size>
+                        </property>
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
                         </property>
                         <property name="toolTip">
                          <string>Specify the variable that is mapped to the Z coordinate of the field</string>
@@ -4450,6 +4475,9 @@ p, li { white-space: pre-wrap; }
                   <widget class="QSpinBox" name="numBitsSpin">
                    <property name="enabled">
                     <bool>false</bool>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="toolTip">
                     <string>Specify number of bits (not currently implemented)</string>

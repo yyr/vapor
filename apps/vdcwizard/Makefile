@@ -10,17 +10,11 @@ PROGRAM = vdcwizard
 MOC_DIR = ./moc
 
 LIBRARIES += $(QT_LIB) vdf common proj udunits2 $(NETCDF_LIBS) expat
-#common
-#QDialog QtGui QtCore
-#add all library #includes to this definintion?
 
 ifeq ($(ARCH),Darwin)
-#MAKEFILE_LDFLAGS = -framework QDialog -framework QtCore -framework QtGui
-#MAKEFILE_LDFLAGS += -framework CoreFoundation -framework CoreServices
 MAKEFILE_LDFLAGS += -framework Cocoa -framework AppKit
 MAKEFILE_LDFLAGS += -framework ApplicationServices -framework OpenGL -framework AGL
 
-#ifeq ($(QT_FRAMEWORK), 1)
 MAKEFILE_LDFLAGS += -F$(QTDIR)/lib -framework QtCore -framework QtGui
 MAKEFILE_LDFLAGS += -framework QtOpenGL
 #endif
@@ -81,6 +75,7 @@ Page3adv \
 Page3cmt \
 Page4 \
 Page4adv \
+CmdLine \
 ErrMsg
 
 include ${TOP}/make/config/base.mk

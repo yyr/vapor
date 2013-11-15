@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>423</width>
+    <width>426</width>
     <height>1342</height>
    </rect>
   </property>
@@ -343,6 +343,9 @@ create new isosurface instances.</string>
             </item>
             <item>
              <widget class="QComboBox" name="lodCombo">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="toolTip">
                <string>Specify the approximation level for the data being visualized</string>
               </property>
@@ -389,6 +392,9 @@ create new isosurface instances.</string>
             </item>
             <item>
              <widget class="QComboBox" name="refinementCombo">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="toolTip">
                <string>Specify the refinement level (resolution) of the data being visualized</string>
               </property>
@@ -467,6 +473,9 @@ create new isosurface instances.</string>
                 <width>100</width>
                 <height>32767</height>
                </size>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
               </property>
               <property name="toolTip">
                <string>Specify the variable whose isosurface is visualized</string>

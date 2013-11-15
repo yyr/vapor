@@ -116,9 +116,9 @@
   <widget class="QPushButton" name="advanceOptionButton">
    <property name="geometry">
     <rect>
-     <x>63</x>
+     <x>28</x>
      <y>332</y>
-     <width>161</width>
+     <width>133</width>
      <height>20</height>
     </rect>
    </property>
@@ -181,9 +181,9 @@
   <widget class="QPushButton" name="vdfCommentButton">
    <property name="geometry">
     <rect>
-     <x>233</x>
+     <x>174</x>
      <y>332</y>
-     <width>183</width>
+     <width>136</width>
      <height>20</height>
     </rect>
    </property>
@@ -202,6 +202,19 @@
    </property>
    <property name="text">
     <string/>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="showCommandButton">
+   <property name="geometry">
+    <rect>
+     <x>324</x>
+     <y>332</y>
+     <width>126</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Show Command</string>
    </property>
   </widget>
  </widget>

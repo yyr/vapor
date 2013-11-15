@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>429</width>
-    <height>920</height>
+    <height>1132</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -82,6 +82,9 @@ time steps is also controlled here.</string>
            <width>120</width>
            <height>0</height>
           </size>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::ClickFocus</enum>
          </property>
          <property name="toolTip">
           <string>Apply these settings to visualizers, either globally or locally</string>
@@ -1129,6 +1132,9 @@ p, li { white-space: pre-wrap; }
                   <width>52</width>
                   <height>0</height>
                  </size>
+                </property>
+                <property name="focusPolicy">
+                 <enum>Qt::ClickFocus</enum>
                 </property>
                 <property name="toolTip">
                  <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;

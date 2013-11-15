@@ -1204,6 +1204,14 @@
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\ui\CmdLine.ui">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\CmdLine.ui -o ..\..\..\apps\vdcwizard\ui\CmdLine.h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Uic%27ing CmdLine.ui...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\ui\CmdLine.h;%(Outputs)</Outputs>
+    </CustomBuild>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

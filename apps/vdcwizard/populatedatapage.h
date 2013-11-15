@@ -43,6 +43,7 @@ public:
     PopulateDataPage(DataHolder *DH, QWidget *parent = 0);
     PopDataAdvanced *popAdvancedOpts;
     DataHolder *dataHolder;
+	CommandLine *commandLine;
 	ErrorMessage *errorMessage;
 	VdfBadFile *successMessage;
 	VdfBadFile *checkOverwrites;
@@ -51,7 +52,8 @@ public:
     vector<string> varList;
 
 private slots:
-    void on_clearAllButton_clicked();
+    void on_showCommandButton_clicked();
+	void on_clearAllButton_clicked();
     void on_selectAllButton_clicked();
     void on_advancedOptionsButton_clicked() { popAdvancedOpts->show(); }
     void on_startTimeSpinner_valueChanged(QString value){ dataHolder->setPDstartTime(value.toStdString()); }
