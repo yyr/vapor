@@ -354,17 +354,22 @@ int EventRouter::orderLODRefs(int dim){
 	int defLODIndx, defref;
 	calcLODRefLevel(dim, 0.5, fullMBs, &defLODIndx, &defref);
 	bool addDefaults = false;
+	bool oneButton = false;
+	if (maxRefLevel == 0 && cratios.size()==1) oneButton = true;
 	if (defLODIndx != 0 && defLODIndx != (cratios.size()-1)) addDefaults = true;
 	if (defref != 0 && defref != maxRefLevel) addDefaults = true;
 	fidelityLODs.push_back(0);
 	if (addDefaults) fidelityLODs.push_back(defLODIndx);
-	fidelityLODs.push_back(cratios.size()-1);
+	if (!oneButton) fidelityLODs.push_back(cratios.size()-1);
 	fidelityRefinements.push_back(0);
 	if (addDefaults) fidelityRefinements.push_back(defref);
-	fidelityRefinements.push_back(maxRefLevel);
-	fidelities.push_back(0.f);
-	if (addDefaults)fidelities.push_back(0.5f);
-	fidelities.push_back(1.0);
+	if(!oneButton) fidelityRefinements.push_back(maxRefLevel);
+	if (oneButton) fidelities.push_back(0.5f);
+	else {
+		fidelities.push_back(0.f);
+		if (addDefaults)fidelities.push_back(0.5f);
+		fidelities.push_back(1.0);
+	}
 	//Repeat:
 	while(1){
 		//look for first position where there is more than one change between adjacent entries, if none we are done
@@ -426,7 +431,7 @@ int EventRouter::orderLODRefs(int dim){
 		//binary search complete.  Continue to fill in array 
 	}
 	//THe arrays should be full:
-	assert(fidelityRefinements.size() == maxRefLevel+cratios.size());
+	if (!oneButton) assert(fidelityRefinements.size() == maxRefLevel+cratios.size());
 	assert(fidelityRefinements.size() == fidelities.size() && (fidelityLODs.size() == fidelities.size()));
 	//find the closest fidelity to default
 	float fiddist = 1000.;
