@@ -160,7 +160,7 @@ protected:
     QTimer *benchmarkTimer;
 	QButtonGroup* fidelityButtons;
 	
-	void setupFidelity();
+	void setupFidelity(bool useDefault = false);
 	virtual void setDatarangeDirty(RenderParams* dParams);
 	std::map<int, DvrParams::DvrType> typemap;
     std::map<DvrParams::DvrType, int> typemapi; // inverse typemap

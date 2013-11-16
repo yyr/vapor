@@ -556,11 +556,11 @@ reinitTab(bool doOverride){
 	}
 	setBindButtons(false);
 	//Set up the fidelityBox
-	setupFidelity();
+	setupFidelity(doOverride);
 	
 	updateTab();
 }
-void DvrEventRouter::setupFidelity(){
+void DvrEventRouter::setupFidelity(bool useDefault){
 	
 	
 	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
@@ -583,6 +583,13 @@ void DvrEventRouter::setupFidelity(){
 		QString tt = refLevel+LOD;
 		rd->setToolTip(tt);
 		if (i == deflt) rd->setChecked(true);
+	}
+	if(useDefault){
+		//set the default fidelity to be closest to the preference setting, when initially setting up tab
+		
+		DvrParams* dParams = VizWinMgr::getActiveDvrParams();
+		float fidelity = fidelities[deflt];
+		dParams->setFidelity(fidelity);
 	}
 	
 	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
