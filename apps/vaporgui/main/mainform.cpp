@@ -1608,7 +1608,7 @@ void MainForm::launchWebHelp(QAction* webAction){
 	bool success = QDesktopServices::openUrl(myURL);
 	if (!success){
 		MessageReporter::errorMsg("Unable to launch Web browser for URL %s\n",
-			myURL.toString().toAscii());
+			myURL.toString().toAscii().data());
 	}
 }
 void MainForm::buildWebHelpMenu(vector<QAction*>* actions){
