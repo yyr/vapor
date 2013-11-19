@@ -91,6 +91,7 @@ IsoEventRouter::IsoEventRouter(QWidget* parent): QWidget(parent), Ui_IsoTab(),  
 	setupUi(this);
 	
 	myParamsBaseType = Params::GetTypeFromTag(Params::_isoParamsTag);
+	fidelityButtons = 0;
 	savedCommand = 0;  
 	renderTextChanged = false;
 	isoSelectionFrame->setOpacityMapping(true);
@@ -124,6 +125,7 @@ IsoEventRouter::hookUpTab()
 	connect (mapVariableCombo, SIGNAL( activated(int) ), this, SLOT( guiSetMapComboVarNum(int) ) );
 	connect (numBitsCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumBits(int)));
 	connect (lightingCheckbox, SIGNAL( toggled(bool) ), this, SLOT( guiSetLighting(bool) ) );
+	connect (fidelityDefaultButton, SIGNAL(clicked()), this, SLOT(guiSetFidelityDefault()));
  
 	//Line edits:
 	connect (histoScaleEdit,SIGNAL(textChanged(const QString&)),this, SLOT(setIsoTabTextChanged(const QString&)));
@@ -255,7 +257,7 @@ void IsoEventRouter::updateTab(){
 	opacityScaleSlider->setToolTip("Opacity Scale Value = "+QString::number(sliderVal));
 	opacityScaleSlider->setValue((int)(256*(1.-sliderVal)));
 	mapVariableCombo->setCurrentIndex(mapComboVarNum);
-	lodCombo->setCurrentIndex(isoParams->GetCompressionLevel());
+	updateFidelity(isoParams,lodCombo,refinementCombo);
 	//setup the transfer function editor:
 	if(mapComboVarNum > 0 && isoParams->GetMapperFunc()) {
 		transferFunctionFrame->setMapperFunction(isoParams->GetMapperFunc());
@@ -283,11 +285,7 @@ void IsoEventRouter::updateTab(){
 	  return;
     }
 	
-	
 	numBitsCombo->setCurrentIndex((isoParams->GetNumBits())>>4);
-	int numRefs = isoParams->GetRefinementLevel();
-	if(numRefs <= refinementCombo->count())
-		refinementCombo->setCurrentIndex(numRefs);
 
 	int comboVarNum = DataStatus::getInstance()->getActiveVarNum3D(
 		isoParams->GetIsoVariableName());
@@ -803,6 +801,9 @@ reinitTab(bool doOverride){
 	}
 	
 	setBindButtons(false);
+	ParamsIso* dParams = (ParamsIso*)VizWinMgr::getActiveParams(Params::_isoParamsTag);
+	setupFidelity(3, fidelityLayout,fidelityBox, dParams, doOverride);
+	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 	updateTab();
 }
 
@@ -817,6 +818,7 @@ guiSetCompRatio(int num){
 	
 	iParams->SetCompressionLevel(num);
 	lodCombo->setCurrentIndex(num);
+	iParams->SetIgnoreFidelity(true);
 	PanelCommand::captureEnd(cmd, iParams);
 	VizWinMgr::getInstance()->setVizDirty(iParams,RegionBit);
 }
@@ -833,6 +835,7 @@ guiSetNumRefinements(int num){
 	
 	iParams->SetRefinementLevel(num);
 	refinementCombo->setCurrentIndex(num);
+	iParams->SetIgnoreFidelity(true);
 	PanelCommand::captureEnd(cmd, iParams);
 	VizWinMgr::getInstance()->setVizDirty(iParams, RegionBit);
 	
@@ -1418,3 +1421,48 @@ void IsoEventRouter::paintEvent(QPaintEvent* ev){
 	return;
 	}
 #endif
+//Occurs when user clicks a fidelity radio button
+void IsoEventRouter::guiSetFidelity(int buttonID){
+	// Recalculate LOD and refinement based on current slider value and/or current text value
+	//.  If they don't change, then don't 
+	// generate an event.
+	confirmText(false);
+	ParamsIso* dParams = (ParamsIso*)VizWinMgr::getActiveParams(Params::_isoParamsTag);
+	int newLOD = fidelityLODs[buttonID];
+	int newRef = fidelityRefinements[buttonID];
+	int lodSet = dParams->GetCompressionLevel();
+	int refSet = dParams->GetRefinementLevel();
+	if (lodSet == newLOD && refSet == newRef) return;
+	float fidelity = fidelities[buttonID];
+	
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Data Fidelity");
+	dParams->SetCompressionLevel(newLOD);
+	dParams->SetRefinementLevel(newRef);
+	dParams->SetFidelityLevel(fidelity);
+	dParams->SetIgnoreFidelity(false);
+	//change values of LOD and refinement combos using setCurrentIndex().
+	lodCombo->setCurrentIndex(newLOD);
+	refinementCombo->setCurrentIndex(newRef);
+	PanelCommand::captureEnd(cmd, dParams);
+	VizWinMgr::getInstance()->forceRender(dParams, false);
+}
+
+//User clicks on SetDefault button, need to make current fidelity settings the default.
+void IsoEventRouter::guiSetFidelityDefault(){
+	//Check current values of LOD and refinement and their combos.
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	if (!dataMgr) return;
+	confirmText(false);
+	ParamsIso* dParams = (ParamsIso*)VizWinMgr::getActiveParams(Params::_isoParamsTag);
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Fidelity Default LOD and refinement");
+	
+	setFidelityDefault(3,dParams);
+	
+	//Setup the buttons
+	setupFidelity(3, fidelityLayout,fidelityBox, dParams);
+	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
+	
+	PanelCommand::captureEnd(cmd, dParams);
+	updateTab();
+	//Need undo/redo to include preference settings!
+}

@@ -277,6 +277,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 	
 	if (StrCmpNoCase(tagString, _twoDImageParamsTag) == 0) {
 		//Set defaults 
+		SetIgnoreFidelity(true);
+		SetFidelityLevel(0.5f);
 		resampRate = 1.f;
 		opacityMultiplier = 1.f;
 		useGeoreferencing = true;
@@ -308,6 +310,15 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			}
 			else if (StrCmpNoCase(attribName, _CompressionLevelTag) == 0){
 				ist >> compressionLevel;
+			}
+			else if (StrCmpNoCase(attribName, _FidelityLevelTag) == 0){
+				float fid;
+				ist >> fid;
+				SetFidelityLevel(fid);
+			}
+			else if (StrCmpNoCase(attribName, _IgnoreFidelityTag) == 0){
+				if (value == "true") SetIgnoreFidelity(true); 
+				else SetIgnoreFidelity(false);
 			}
 			else if (StrCmpNoCase(attribName, _terrainMapAttr) == 0){
 				if (value == "true") setMappedToTerrain(true); 
@@ -412,7 +423,15 @@ buildNode() {
 	oss.str(empty);
 	oss << (long)compressionLevel;
 	attrs[_CompressionLevelTag] = oss.str();
-
+	oss.str(empty);
+	oss << (double)GetFidelityLevel();
+	attrs[_FidelityLevelTag] = oss.str();
+	oss.str(empty);
+	if (GetIgnoreFidelity())
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_IgnoreFidelityTag] = oss.str();
 	oss.str(empty);
 	if (isMappedToTerrain())
 		oss << "true";

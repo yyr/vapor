@@ -280,6 +280,12 @@ public:
 	bool linearInterpTex() {return linearInterp;}
 	void setLinearInterp(bool interp){linearInterp = interp;}
 	void setIBFVColorMerged(bool val) {mergeColor = val;}
+	
+	virtual bool GetIgnoreFidelity() {return ignoreFidelity;}
+	virtual void SetIgnoreFidelity(bool val){ignoreFidelity = val;}
+	virtual float GetFidelityLevel() {return fidelityLevel;}
+	virtual void SetFidelityLevel(float lev){fidelityLevel = lev;}
+
 	static void setDefaultScale(float val){defaultScale = val;}
 	static float getDefaultScale(){return defaultScale;}
 	static float getDefaultAlpha(){return defaultAlpha;}
@@ -312,6 +318,8 @@ protected:
 	static const string _probeTypeAttr;
 	static const string _linearInterpAttr;
 	
+	float fidelityLevel;
+	bool ignoreFidelity;
 	void refreshCtab();
 			
 	//Utility functions for building texture and histogram

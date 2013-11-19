@@ -106,12 +106,11 @@ public slots:
 	virtual void guiStartChangeMapFcn(QString s);
 	virtual void guiEndChangeMapFcn();
 	void guiSetOpacityScale(int val);
-	void guiSetFidelity(int buttonID);
-	void guiSetFidelityDefault();
-
 	void setBindButtons(bool canBind);
 
 protected slots:
+	void guiSetFidelity(int buttonID);
+	void guiSetFidelityDefault();
 	void guiFitTFToData();
 	void guiChangeInstance(int);
 	void guiNewInstance();
@@ -158,9 +157,7 @@ protected:
 	static const char* webHelpURL[];
     int     benchmark;
     QTimer *benchmarkTimer;
-	QButtonGroup* fidelityButtons;
 	
-	void setupFidelity(bool useDefault = false);
 	virtual void setDatarangeDirty(RenderParams* dParams);
 	std::map<int, DvrParams::DvrType> typemap;
     std::map<DvrParams::DvrType, int> typemapi; // inverse typemap

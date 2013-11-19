@@ -568,6 +568,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		//default to linear interpolation off, for old session files
 		setLinearInterp(false);
 		int newNumVariables = 0;
+		SetIgnoreFidelity(true);
+		SetFidelityLevel(0.5f);
 		//If it's a Probe tag, obtain 10 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
 		while (*attrs) {
@@ -599,6 +601,15 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			}
 			else if (StrCmpNoCase(attribName, _CompressionLevelTag) == 0){
 				ist >> compressionLevel;
+			}
+			else if (StrCmpNoCase(attribName, _FidelityLevelTag) == 0){
+				float fid;
+				ist >> fid;
+				SetFidelityLevel(fid);
+			}
+			else if (StrCmpNoCase(attribName, _IgnoreFidelityTag) == 0){
+				if (value == "true") SetIgnoreFidelity(true); 
+				else SetIgnoreFidelity(false);
 			}
 			else if (StrCmpNoCase(attribName, _editModeAttr) == 0){
 				if (value == "true") setEditMode(true); 
@@ -851,6 +862,15 @@ buildNode() {
 	oss << (long)compressionLevel;
 	attrs[_CompressionLevelTag] = oss.str();
 
+	oss.str(empty);
+	oss << (double)GetFidelityLevel();
+	attrs[_FidelityLevelTag] = oss.str();
+	oss.str(empty);
+	if (GetIgnoreFidelity())
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_IgnoreFidelityTag] = oss.str();
 	oss.str(empty);
 	if (editMode)
 		oss << "true";

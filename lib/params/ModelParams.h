@@ -76,12 +76,33 @@ public:
  //
  virtual void SetRefinementLevel(int) {}
 
- //! Return the current refinement level. (Not Used)
+ //! Return the current fidelity level. (Not Used)
  //!
  //! Pure virtual method required of render params
  //
  virtual int GetRefinementLevel() { return 0; }
+ //! Specify the current level of fidelity of this Params. (Not used)
+ //!
+ //! Pure virtual method required of render params
+ //
+ virtual void SetFidelityLevel(float) {}
 
+ //! Return whether fidelity is used. (Not Used)
+ //!
+ //! Pure virtual method required of render params
+ //
+ virtual bool GetIgnoreFidelity() { return true; }
+ //! Specify the current number of refinements of this Params. (Not used)
+ //!
+ //! Pure virtual method required of render params
+ //
+ virtual void SetIgnoreFidelity(bool) {}
+
+ //! Return the current fidelity level. (Not Used)
+ //!
+ //! Pure virtual method required of render params
+ //
+ virtual float GetFidelityLevel() { return 0.5f; }
  //! Obtain the current compression level. (Not used)
  //!
  //! Pure virtual method required of render params

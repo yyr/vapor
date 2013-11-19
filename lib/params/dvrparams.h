@@ -117,6 +117,11 @@ public:
 	virtual int GetRefinementLevel() {return numRefinements;}
 	void SetRefinementLevel(int n) {numRefinements = n;}
 
+	virtual bool GetIgnoreFidelity() {return ignoreFidelity;}
+	virtual void SetIgnoreFidelity(bool val){ignoreFidelity = val;}
+	virtual float GetFidelityLevel() {return fidelityLevel;}
+	virtual void SetFidelityLevel(float lev){fidelityLevel = lev;}
+
 	//Virtual methods to set map bounds.  Get() is in parent class
 	//this causes it to be set in the mapperfunction (transfer function)
 	virtual void setMinColorMapBound(float val);
@@ -200,6 +205,8 @@ protected:
 	
 	int numRefinements;
 	int compressionLevel;
+	float fidelityLevel;
+	bool ignoreFidelity;
 	
 	bool editMode;
 	//Transfer fcn LUT: (R,G,B,A)

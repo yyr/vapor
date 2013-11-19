@@ -79,7 +79,7 @@ TwoDImageEventRouter::TwoDImageEventRouter(QWidget* parent): QWidget(parent), Ui
 	setupUi(this);
 	myParamsBaseType = Params::GetTypeFromTag(Params::_twoDImageParamsTag);
 	MessageReporter::infoMsg("TwoDImageEventRouter::TwoDImageEventRouter()");
-
+	fidelityButtons = 0;
 #if defined(Darwin) && (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 	texShown = false;
 	twoDTextureFrame->hide();
@@ -103,6 +103,7 @@ TwoDImageEventRouter::hookUpTab()
 	connect (lengthSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeYSize(int)));
 	connect (yCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeYCenter(int)));
 	connect (zCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeZCenter(int)));
+	connect (fidelityDefaultButton, SIGNAL(clicked()), this, SLOT(guiSetFidelityDefault()));
 	
 	connect (xCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
 	connect (yCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
@@ -186,8 +187,7 @@ void TwoDImageEventRouter::updateTab(){
 	if (!ds->getDataMgr()) return;
 	ses->blockRecording();
     
-	refinementCombo->setCurrentIndex(twoDParams->GetRefinementLevel());
-	lodCombo->setCurrentIndex(twoDParams->GetCompressionLevel());
+	updateFidelity(twoDParams,lodCombo,refinementCombo);
 	int orientation = twoDParams->getOrientation();
 	
 	orientationCombo->setCurrentIndex(orientation);
@@ -841,7 +841,9 @@ reinitTab(bool doOverride){
 		const std::string& s = ds->getActiveVarName2D(i);
 		heightCombo->addItem(QString::fromStdString(s));
 	}
-	
+	TwoDImageParams* dParams = (TwoDImageParams*)VizWinMgr::getActiveParams(Params::_twoDImageParamsTag);
+	setupFidelity(3, fidelityLayout,fidelityBox, dParams, doOverride);
+	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 	updateTab();
 }
 
@@ -1055,6 +1057,7 @@ guiSetCompRatio(int num){
 	
 	iParams->SetCompressionLevel(num);
 	lodCombo->setCurrentIndex(num);
+	iParams->SetIgnoreFidelity(true);
 	PanelCommand::captureEnd(cmd, iParams);
 	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->forceRender(iParams);
@@ -1076,6 +1079,7 @@ guiSetNumRefinements(int n){
 		}
 	} else if (n > maxNumRefinements) maxNumRefinements = n;
 	pParams->SetRefinementLevel(n);
+	pParams->SetIgnoreFidelity(true);
 	PanelCommand::captureEnd(cmd, pParams);
 	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams);
@@ -1720,3 +1724,48 @@ void TwoDImageEventRouter::paintEvent(QPaintEvent* ev){
 	QWidget::paintEvent(ev);
 }
 #endif
+//Occurs when user clicks a fidelity radio button
+void TwoDImageEventRouter::guiSetFidelity(int buttonID){
+	// Recalculate LOD and refinement based on current slider value and/or current text value
+	//.  If they don't change, then don't 
+	// generate an event.
+	confirmText(false);
+	TwoDImageParams* dParams = (TwoDImageParams*)VizWinMgr::getActiveParams(Params::_twoDImageParamsTag);
+	int newLOD = fidelityLODs[buttonID];
+	int newRef = fidelityRefinements[buttonID];
+	int lodSet = dParams->GetCompressionLevel();
+	int refSet = dParams->GetRefinementLevel();
+	if (lodSet == newLOD && refSet == newRef) return;
+	float fidelity = fidelities[buttonID];
+	
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Data Fidelity");
+	dParams->SetCompressionLevel(newLOD);
+	dParams->SetRefinementLevel(newRef);
+	dParams->SetFidelityLevel(fidelity);
+	dParams->SetIgnoreFidelity(false);
+	//change values of LOD and refinement combos using setCurrentIndex().
+	lodCombo->setCurrentIndex(newLOD);
+	refinementCombo->setCurrentIndex(newRef);
+	PanelCommand::captureEnd(cmd, dParams);
+	VizWinMgr::getInstance()->forceRender(dParams, false);
+}
+
+//User clicks on SetDefault button, need to make current fidelity settings the default.
+void TwoDImageEventRouter::guiSetFidelityDefault(){
+	//Check current values of LOD and refinement and their combos.
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	if (!dataMgr) return;
+	confirmText(false);
+	TwoDImageParams* dParams = (TwoDImageParams*)VizWinMgr::getActiveParams(Params::_twoDImageParamsTag);
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Fidelity Default LOD and refinement");
+	
+	setFidelityDefault(2,dParams);
+	
+	//Setup the buttons
+	setupFidelity(2, fidelityLayout,fidelityBox, dParams);
+	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
+	
+	PanelCommand::captureEnd(cmd, dParams);
+	updateTab();
+	//Need undo/redo to include preference settings!
+}

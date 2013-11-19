@@ -28,8 +28,12 @@
 #include "mapperfunction.h"
 #include "panelcommand.h"
 #include <qobject.h>
-class QWidget;
 
+class QWidget;
+class QComboBox;
+class QButtonGroup;
+class QGroupBox;
+class QHBoxLayout;
 #ifdef WIN32
 //Annoying unreferenced formal parameter warning
 #pragma warning( disable : 4100)
@@ -204,10 +208,7 @@ public:
 	virtual void setEditorDirty(RenderParams*){}
 	virtual void updateMapBounds(RenderParams*) {assert (0);}
 	virtual void updateClut(RenderParams*){assert(0);}
-	//Use fidelity setting and preferences to calculate LOD and Refinement
-	virtual void calcLODRefLevel(int dim, float fidelity, float regMBs, int* lod, int* refLevel);
-	virtual int orderLODRefs(int dim);
-
+	
 //Methods for loading/saving transfer functions:
 void saveTF(RenderParams* rParams);
 void fileSaveTF(RenderParams* rParams);
@@ -226,8 +227,27 @@ public slots:
 	
 protected:
 	bool textChangedFlag;
+	QButtonGroup* fidelityButtons;
 	//for subclasses with a box:
 	void setIgnoreBoxSliderEvents(bool val) {ignoreBoxSliderEvents = val;}
+	//Use fidelity setting and preferences to calculate LOD and Refinement
+	//To support Fidelity, each eventRouter class must perform the following:
+	//Implement fidelityBox and fidelityLayout as in dvr.ui
+	// set fidelityButtons = 0 in constructor
+	// implement slots guiSetFidelity(int) and guiSetFidelityDefault()
+	// connect fidelityDefaultButton clicked() to guiSetFidelityDefault
+	// in updateTab, call updateFidelity()
+	// in reinitTab, call SetFidelityLevel, then connect fidelityButtons to guiSetFidelity
+	// in guiSetCompRatios, call SetIgnoreFidelity(true)
+	// in guiSetRefinement, call SetIgnoreFidelity(true)
+	// in guiSetFidelityDefault, call setFidelityDefault
+	virtual void calcLODRefLevel(int dim, float fidelity, float regMBs, int* lod, int* refLevel);
+	virtual int orderLODRefs(int dim);
+	virtual void updateFidelity(RenderParams* rp, QComboBox* lodCombo, QComboBox* refinementCombo);
+
+	void setupFidelity(int dim, QHBoxLayout* fidelityLayout,
+		QGroupBox* fidelityBox, RenderParams* dParams, bool useDefault=false);
+	void setFidelityDefault(int dim, RenderParams* dParams);
 	bool ignoreBoxSliderEvents;
 	//for subclasses with a datarange:
 	virtual void setDatarangeDirty(RenderParams* ) {assert(0);}

@@ -487,6 +487,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 	if (StrCmpNoCase(tagString, _twoDDataParamsTag) == 0 ||
 		StrCmpNoCase(tagString, _twoDParamsTag) == 0) {
 		//Set defaults in case reading an old session:
+		SetIgnoreFidelity(true);
+		SetFidelityLevel(0.5f);
 		setLinearInterp(false);
 		orientation = 2; //X-Y aligned
 		int newNumVariables = 0;
@@ -511,6 +513,15 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			}
 			else if (StrCmpNoCase(attribName, _CompressionLevelTag) == 0){
 				ist >> compressionLevel;
+			}
+			else if (StrCmpNoCase(attribName, _FidelityLevelTag) == 0){
+				float fid;
+				ist >> fid;
+				SetFidelityLevel(fid);
+			}
+			else if (StrCmpNoCase(attribName, _IgnoreFidelityTag) == 0){
+				if (value == "true") SetIgnoreFidelity(true); 
+				else SetIgnoreFidelity(false);
 			}
 			else if (StrCmpNoCase(attribName, _localAttr) == 0) {
 				//Ignore this
@@ -740,7 +751,15 @@ buildNode() {
 	oss.str(empty);
 	oss << (long)compressionLevel;
 	attrs[_CompressionLevelTag] = oss.str();
-
+	oss.str(empty);
+	oss << (double)GetFidelityLevel();
+	attrs[_FidelityLevelTag] = oss.str();
+	oss.str(empty);
+	if (GetIgnoreFidelity())
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_IgnoreFidelityTag] = oss.str();
 	oss.str(empty);
 	if (editMode)
 		oss << "true";
