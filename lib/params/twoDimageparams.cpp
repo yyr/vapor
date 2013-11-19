@@ -68,34 +68,26 @@ const string TwoDImageParams::_imageFileNameAttr = "ImageFileName";
 
 TwoDImageParams::TwoDImageParams(int winnum) : TwoDParams(winnum, Params::_twoDImageParamsTag){
 	
-	imageExtents = 0;
-	textureSizes = 0;
+	_imageExtents[0] = _imageExtents[1] = _imageExtents[2] = _imageExtents[3] = 0.0;
+	_timestep = -1;
+	_lonlatexts[0] = _lonlatexts[1] = _lonlatexts[2] = _lonlatexts[3] = 0.0;
+	_textureSizes[0] = _textureSizes[1] = 0;
+	_texBuf = NULL;
+	_geotiffImage = false;
+
 	imageNums = 0;
-	twoDDataTextures = 0;
 	maxTimestep = 1;
-	cachedTimestep = -1;
 	linearInterp = false;
 	restart();
 	
 }
+
 TwoDImageParams::~TwoDImageParams(){
 	
 	
-	if (twoDDataTextures) {
-		
-		if (twoDDataTextures[0]) delete [] twoDDataTextures[0];
-		
-		delete [] twoDDataTextures;
-		delete [] textureSizes;
-		if (imageExtents){
-			delete [] imageExtents;
-		}
-		if (imageNums) delete [] imageNums;
-		imageNums = 0;
-	}
-	
-	
-	
+	if (_texBuf) delete [] _texBuf;
+	if (imageNums) delete [] imageNums;
+	imageNums = 0;
 }
 
 
@@ -106,10 +98,10 @@ deepCopy(ParamNode*){
 	ParamNode* pNode = new ParamNode(*(myBox->GetRootNode()));
 	newParams->myBox = (Box*)myBox->deepCopy(pNode);
 	//TwoD texture must be recreated when needed
-	newParams->twoDDataTextures = 0;
-	newParams->imageExtents = 0;
 	newParams->imageNums = 0;
-	newParams->textureSizes = 0;
+	_timestep = -1;
+	_geotiffImage = false;
+	newParams->_texBuf = NULL;
 	
 	return newParams;
 }
@@ -200,20 +192,10 @@ reinit(bool doOverride){
 	
 	// set up the texture cache
 	setTwoDDirty();
-	if (twoDDataTextures) {
-		if (twoDDataTextures[0])
-			delete [] twoDDataTextures[0];
-		delete [] twoDDataTextures;
-		delete [] imageExtents;
-		delete [] textureSizes;
-		if(imageNums) delete [] imageNums;
-		imageNums = 0;
-	}
+	if(imageNums) delete [] imageNums;
+	imageNums = 0;
 	
 	maxTimestep = DataStatus::getInstance()->getNumTimesteps()-1;
-	twoDDataTextures = 0;
-	imageExtents = 0;
-	textureSizes = 0;
 	initializeBypassFlags();
 	return true;
 }
@@ -233,17 +215,9 @@ restart(){
 	orientation = 2;
 	compressionLevel = 0;
 	setTwoDDirty();
-	if (twoDDataTextures) {
-		if (twoDDataTextures[0]) delete [] twoDDataTextures[0];
-		delete [] twoDDataTextures;
-		delete [] imageExtents;
-		delete [] textureSizes;
-		if (imageNums) delete [] imageNums;
-	}
-	twoDDataTextures = 0;
-	imageExtents = 0;
-	textureSizes = 0;
+	if (imageNums) delete [] imageNums;
 	imageNums = 0;
+
 	resampRate = 1.f;
 	opacityMultiplier = 1.f;
 	
@@ -482,26 +456,14 @@ void TwoDImageParams::setTwoDDirty(){
 }
 //clear out cached images
 void TwoDImageParams::setImagesDirty(){
-	if (twoDDataTextures){
-		if (twoDDataTextures[0]) {
-			delete [] twoDDataTextures[0];
-			twoDDataTextures[0] = 0;
-		}
-		
-		twoDDataTextures = 0;
-		delete [] imageExtents;
-		delete [] textureSizes;
-		imageExtents = 0;
-		textureSizes = 0;
-		if (imageNums) delete [] imageNums;
-		imageNums = 0;
-	}
+	if (imageNums) delete [] imageNums;
+	imageNums = 0;
 	setElevGridDirty(true);
 	setAllBypass(false);
-	cachedTimestep = -1;
 	singleImage = false;
-	lastTwoDTexture = 0;
 	transparentAlpha = false;
+	_timestep = -1;
+	_lonlatexts[0] = _lonlatexts[1] = _lonlatexts[2] = _lonlatexts[3] = 0.0;
 }
 
 
@@ -509,44 +471,37 @@ void TwoDImageParams::setImagesDirty(){
 //It's kept (cached) in the twoD params
 //If nonzero texture dimensions are provided, then the cached image
 //is not affected 
-unsigned char* TwoDImageParams::
-calcTwoDDataTexture(int ts, int texWidth, int texHeight){
+const unsigned char* TwoDImageParams::
+calcTwoDDataTexture(int ts, int &texWidth, int &texHeight){
 	
 	if (!isEnabled()) return 0;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return 0;
 	if (doBypass(ts)) return 0;
-	
-	if(isSingleImage() && getCurrentTwoDTexture(0)) return getCurrentTwoDTexture(0);
-	//if width and height are 0, then the image will
-	//be of the size specified in the 2D params, and the result
-	//will be placed in the cache. Otherwise we are just needing
-	//an image of specified size for writing to file, not to be put in the cache.
-	//
-	bool doCache = (texWidth == 0 && texHeight == 0);
 
+	if (! twoDIsDirty(ts)) {
+		texWidth = _textureSizes[0];
+		texHeight = _textureSizes[1];
+		return(_texBuf); 
+	}
+	
 	//we need to read the current timestep
-	//of image into the texture for this timestep.  If there's only
-	//one image, then we shall put it in position 0 in the cache.
+	//of image into the texture for this timestep.  
 	//If a map projection is undefined, invalid imageExts are returned
 	// (i.e. imgExts[2]<imgExts[0])
 	
-	int wid, ht;
-	float imgExts[4];
-	int imgSize[2];
-	unsigned char* img = readTextureImage(ts, &wid, &ht, imgExts);
-	if (doCache && img) {
-		
-		imgSize[0] = wid;
-		imgSize[1] = ht;
-		setTwoDTexture(img,ts, imgSize, imgExts);
-	}
-	return img;
+	_texBuf = readTextureImage(
+		ts, &_textureSizes[0], &_textureSizes[1], _imageExtents
+	);
+	_timestep = ts;
+	texWidth = _textureSizes[0];
+	texHeight = _textureSizes[1];
+	return _texBuf;
 }
 
 //Get texture from image file, set it in the cache
 
-unsigned char* TwoDImageParams::
+const unsigned char* TwoDImageParams::
 readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	
 	static const basic_string <char>::size_type npos = (size_t)-1;
@@ -567,6 +522,7 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	}
 	//Not using memory-mapped IO (m) is reputed to help plug leaks (but doesn't do any good on windows for me)
     TIFF* tif = XTIFFOpen(imageFileName.c_str(), "rm");
+	_geotiffImage = isGeoTIFF(tif);
 	
 	if (!tif) {
 		MyBase::SetErrMsg(VAPOR_ERROR_TWO_D, 
@@ -703,7 +659,7 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	
 	//Check for georeferencing:
 	projPJ p = 0;
-	if (DataStatus::getProjectionString().size() > 0){  //get a proj4 definition string if it exists, using geoTiff lib
+	if (DataStatus::getProjectionString().size() > 0 && _geotiffImage){  //get a proj4 definition string if it exists, using geoTiff lib
 		GTIF* gtifHandle = GTIFNew(tif);
 		GTIFDefn* gtifDef = new GTIFDefn();
 		//int rc1 = 
@@ -780,24 +736,23 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	if(p && isGeoreferenced()&& pj_is_latlong(p) && 
 		(imgExts[0] < -179. && imgExts[1]<-88. && imgExts[2]>179. && imgExts[3]>88.)){
 	
-		float lonlatexts[4];
-		if (getLonLatExts((size_t)timestep, lonlatexts)){
+		if (getLonLatExts((size_t)timestep, _lonlatexts)){
 			//const size_t* dataSize = DataStatus::getInstance()->getFullDataSize();
 			
 			//OK, we need to extract a sub-image, that maps to the current lon-lat extents
 			int wid2 = *wid, ht2 = *ht;
 			//Choose a level of detail so the image is not too large. 
 			//If we do no reduction of level of detail the image size will be proportional to the fraction of latlonexts:
-			//int xdim = (int) ((lonlatexts[2]-lonlatexts[0])*(float)w/360.);
-			//int ydim = (int) ((lonlatexts[3]-lonlatexts[1])*(float)h/180.);
+			//int xdim = (int) ((_lonlatexts[2]-_lonlatexts[0])*(float)w/360.);
+			//int ydim = (int) ((_lonlatexts[3]-_lonlatexts[1])*(float)h/180.);
 			//int minMag = (int)Min((float)xdim/(float)dataSize[0],(float)ydim/(float)dataSize[1]);
 			int lev = 0;
 			//if (minMag > 1) lev = VetsUtil::ILog2(minMag);
-			unsigned char* subTexture = extractSubtexture((unsigned char*)texture, lonlatexts, &wid2, &ht2, lev);
+			unsigned char* subTexture = extractSubtexture((unsigned char*)texture, _lonlatexts, &wid2, &ht2, lev);
 			if (subTexture){
 				*wid = wid2;
 				*ht = ht2;
-				for (int i = 0; i<4; i++) imgExts[i] = lonlatexts[i];
+				for (int i = 0; i<4; i++) imgExts[i] = _lonlatexts[i];
 				delete [] texture;
 				if (p) pj_free(p);
 				return subTexture;
@@ -809,6 +764,31 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	if (p) pj_free(p);
 	return (unsigned char*) texture;
 }
+
+bool TwoDImageParams::twoDIsDirty(int timestep) {
+	if (timestep != _timestep) return (true);
+		
+	if (DataStatus::getProjectionString().size() > 0 && _geotiffImage){
+		float lonlatexts[4];
+		if (getLonLatExts((size_t)timestep, lonlatexts)){
+			for (int i=0; i<4; i++) {
+				if (lonlatexts[i] != _lonlatexts[i]) return(true);
+			}
+		}
+	}
+	return(false);
+}
+bool TwoDImageParams::isGeoTIFF(TIFF *tif) const {
+		GTIF* gtifHandle = GTIFNew(tif);
+		GTIFDefn gtifDef;
+		GTIFGetDefn(gtifHandle,&gtifDef);
+		GTIFFree(gtifHandle);
+		string proj4String = GTIFGetProj4Defn(&gtifDef);
+
+		return(! proj4String.empty());
+}
+
+
 unsigned char* TwoDImageParams::extractSubtexture(unsigned char* texture, float lonlatexts[4], int* wid2, int* ht2, int lev){
 	GeoTileEquirectangular geotile(*wid2, *ht2,4);
 	geotile.Insert("",texture);

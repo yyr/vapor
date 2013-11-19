@@ -52,11 +52,11 @@ public:
 	
 	virtual Params* deepCopy(ParamNode* =0);
 	
-	virtual bool twoDIsDirty(int timestep) {
-		return (!twoDDataTextures || twoDDataTextures[timestep] == 0);
-	}
 	
-	virtual void getTextureSize(int sze[2], int timestep) {sze[0] = textureSizes[2*timestep]; sze[1] = textureSizes[2*timestep+1];}
+	virtual void getTextureSize(int sze[2]) {
+		sze[0] = _textureSizes[0];
+		sze[1] = _textureSizes[1];
+	}
 	
 	virtual const float* getCurrentDatarange(){
 		return currentDatarange;
@@ -154,35 +154,8 @@ public:
 	void setHistoStretch(float factor){histoStretchFactor = factor;}
 	virtual float GetHistoStretch(){return histoStretchFactor;}
 	
-	void setTwoDTexture(unsigned char* tex, int timestep, int imgSize[2],
-		float[4] = 0 ){ 
-		unsigned char** textureArray = twoDDataTextures;
-		if (!textureArray){
-			textureArray = new unsigned char*[maxTimestep + 1];
-			textureSizes = new int[2*(maxTimestep+1)];
-			for (int i = 0; i<= maxTimestep; i++) {
-				textureArray[i] = 0;
-				textureSizes[2*i] = 0;
-				textureSizes[2*i+1] = 0;
-			}
-			
-			twoDDataTextures = textureArray;	
-		}
-		if (textureArray[timestep]) 
-			delete textureArray[timestep];
-		textureSizes[2*timestep] = imgSize[0];
-		textureSizes[2*timestep+1] = imgSize[1];
-		textureArray[timestep] = tex;
-		
-		 
-	}
-	unsigned char* calcTwoDDataTexture(int timestep, int wid, int ht);
+	const unsigned char* calcTwoDDataTexture(int timestep, int &wid, int &ht);
 
-	
-	virtual unsigned char* getCurrentTwoDTexture(int timestep) {
-		return twoDDataTextures[timestep];
-		
-	}
 	
 	virtual void hookupTF(TransferFunction* t, int index);
 	float getOpacityScale(); 
@@ -227,7 +200,15 @@ protected:
 	int numVariables;
 	int numVariablesSelected;
 
+private:
+	int _timestep;
+	vector <string> _varname;
+	int _reflevel;
+	int _lod;
+	vector <double> _usrExts;
+	unsigned char *_texBuf;
 	
+	bool twoDIsDirty(int timestep);
 	
 };
 };

@@ -54,10 +54,16 @@ const string TwoDDataParams::_linearInterpAttr = "LinearInterp";
 
 TwoDDataParams::TwoDDataParams(int winnum) : TwoDParams(winnum, Params::_twoDDataParamsTag){
 	
+	_timestep = -1;
+	_varname.clear();
+	_reflevel = -1;
+	_lod = -1;
+	_usrExts.clear();
+	_textureSizes[0] = _textureSizes[1] = 0;
+	_texBuf = NULL;
+
 	numVariables = 0;
-	twoDDataTextures = 0;
 	maxTimestep = 1;
-	textureSizes = 0;
 	restart();
 	
 }
@@ -69,12 +75,7 @@ TwoDDataParams::~TwoDDataParams(){
 		}
 		delete [] transFunc;
 	}
-	if (twoDDataTextures) {
-		for (int i = 0; i<= maxTimestep; i++){
-			if (twoDDataTextures[i]) delete [] twoDDataTextures[i];
-		}
-		delete [] twoDDataTextures;
-	}
+	if (_texBuf) delete [] _texBuf;
 	
 }
 
@@ -99,18 +100,32 @@ deepCopy(ParamNode*){
 		newParams->minOpacEditBounds[i] = minOpacEditBounds[i];
 		newParams->maxOpacEditBounds[i] = maxOpacEditBounds[i];
 	}
+	_timestep = -1;
+	_texBuf = NULL;
 
 	//Clone the Transfer Functions
 	newParams->transFunc = new TransferFunction*[numVariables];
 	for (int i = 0; i<numVariables; i++){
 		newParams->transFunc[i] = new TransferFunction(*transFunc[i]);
 	}
-	//TwoD texture must be recreated when needed
-	newParams->twoDDataTextures = 0;
 	//never keep the SavedCommand:
 	
 	return newParams;
 }
+
+bool TwoDDataParams::twoDIsDirty(int timestep) {
+	DataStatus* ds = DataStatus::getInstance();
+
+	if (timestep != _timestep) return(true);
+	if (! _varname.size()) return(true);
+	if (_varname[0].compare(ds->getVariableName2D(firstVarNum)) != 0) return(true);
+	if (_reflevel != GetRefinementLevel()) return(true);
+	if (_lod != GetCompressionLevel()) return(true);
+	if (_usrExts != ds->getDataMgr()->GetExtents((size_t)timestep)) return(true);
+
+	return(false);
+}
+
 
 
 void TwoDDataParams::
@@ -375,12 +390,8 @@ reinit(bool doOverride){
 	
 	// set up the texture cache
 	setTwoDDirty();
-	if (twoDDataTextures) {
-		delete [] twoDDataTextures;
-	}
 	
 	maxTimestep = DataStatus::getInstance()->getNumTimesteps()-1;
-	twoDDataTextures = 0;
 	
 	initializeBypassFlags();
 	return true;
@@ -401,10 +412,6 @@ restart(){
 	firstVarNum = 0;
 	orientation = 2;
 	setTwoDDirty();
-	if (twoDDataTextures) {
-		delete [] twoDDataTextures;
-	}
-	twoDDataTextures = 0;
 
 	if(numVariables > 0){
 		for (int i = 0; i<numVariables; i++){
@@ -850,27 +857,22 @@ void TwoDDataParams::setMaxOpacMapBound(float val){
 //just delete the elevation grid
 void TwoDDataParams::setTwoDDirty(){
 	
-	if (twoDDataTextures){
-		for (int i = 0; i<=maxTimestep; i++){
-			if (twoDDataTextures[i]) {
-				delete [] twoDDataTextures[i];
-				twoDDataTextures[i] = 0;
-			}
-		}
-		twoDDataTextures = 0;
-	}
-	
+	_timestep = -1;
+	_varname.clear();
+	_reflevel = -1;
+	_lod = -1;
+	_usrExts.clear();
+
 	setElevGridDirty(true);
 	setAllBypass(false);
-	lastTwoDTexture = 0;
 }
 
 //Calculate the twoD texture (if it needs refreshing).
 //It's kept (cached) in the twoD params
 //If nonzero texture dimensions are provided, then the cached image
 //is not affected 
-unsigned char* TwoDDataParams::
-calcTwoDDataTexture(int ts, int texWidth, int texHeight){
+const unsigned char* TwoDDataParams::
+calcTwoDDataTexture(int ts, int &texWidth, int &texHeight){
 	
 	if (!isEnabled()) return 0;
 	DataStatus* ds = DataStatus::getInstance();
@@ -878,29 +880,29 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 
 	if (!dataMgr) return 0;
 	if (doBypass(ts)) return 0;
+
+    if (! twoDIsDirty(ts)) {
+		texWidth = _textureSizes[0];
+		texHeight = _textureSizes[1];
+		return(_texBuf); 
+	}
+
 	
-	//if width and height are 0, then the image will
-	//be of the size specified in the 2D params, and the result
-	//will be placed in the cache. Otherwise we are just needing
-	//an image of specified size for writing to file, not to be put in the cache.
-	//
-	bool doCache = (texWidth == 0 && texHeight == 0);
-
-
 	//Get the first variable name
-	vector<string>varname;
-	varname.push_back(ds->getVariableName2D(firstVarNum));
+	_varname.clear();
+	_varname.push_back(ds->getVariableName2D(firstVarNum));
+	_timestep = ts;
 	
 	RegularGrid* twoDGrid;
-	int actualRefLevel = GetRefinementLevel();
-	int lod = GetCompressionLevel();
+	_reflevel = GetRefinementLevel();
+	_lod = GetCompressionLevel();
 	double exts[6];
-	const vector<double>& usrExts = dataMgr->GetExtents((size_t)ts);
+	_usrExts = dataMgr->GetExtents((size_t)ts);
 	for (int i = 0; i<3; i++){
-		exts[i] = getLocalTwoDMin(i)+usrExts[i];
-		exts[i+3] = getLocalTwoDMax(i)+usrExts[i];
+		exts[i] = getLocalTwoDMin(i)+_usrExts[i];
+		exts[i+3] = getLocalTwoDMax(i)+_usrExts[i];
 	}
-	int rc = getGrids(ts, varname, exts, &actualRefLevel, &lod,  &twoDGrid);
+	int rc = getGrids(ts, _varname, exts, &_reflevel, &_lod,  &twoDGrid);
 	if(!rc){
 		setBypass(ts);
 		return 0;
@@ -918,7 +920,7 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 	int dataSize[3];
 	//Start by initializing extents
 	for (int i = 0; i< 3; i++){
-		dataSize[i] = (int)ds->getFullSizeAtLevel(actualRefLevel,i);
+		dataSize[i] = (int)ds->getFullSizeAtLevel(_reflevel,i);
 	}
 	//Now calculate the texture.
 	//
@@ -957,14 +959,12 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 		dataCoord[mapDims[1]] = a[1]*twoDCoord[1]+b[1];
 		
 	}
-	int txsize[2];
-	if (doCache) {
-		adjustTextureSize(txsize);
-		texWidth = txsize[0];
-		texHeight = txsize[1];
-	}
-	
-	unsigned char* twoDTexture = new unsigned char[texWidth*texHeight*4];
+
+	adjustTextureSize(_textureSizes);
+	texWidth = _textureSizes[0];
+	texHeight = _textureSizes[1];
+
+	_texBuf = new unsigned char[texWidth*texHeight*4];
 
 	//Loop over pixels in texture.  Pixel centers start at 1/2 pixel from edge
 	int dataOrientation = ds->get2DOrientation(firstVarNum);
@@ -993,7 +993,7 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 			if(dataOK) { //find the coordinate in the data array
 				//Convert to user coordinates
 				
-				for (int k=0; k<3; k++) dataCoord[k] += usrExts[k];
+				for (int k=0; k<3; k++) dataCoord[k] += _usrExts[k];
 				float varVal = twoDGrid->GetValue(dataCoord[0],dataCoord[1],dataCoord[2]);
 
 				if (varVal != twoDGrid->GetMissingValue()){ 
@@ -1001,28 +1001,28 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 					//Use the transfer function to map the data:
 					int lutIndex = transFunc->mapFloatToIndex(varVal);
 				
-					twoDTexture[4*(ix+texWidth*iy)] = (unsigned char)(0.5+ clut[4*lutIndex]*255.f);
-					twoDTexture[4*(ix+texWidth*iy)+1] = (unsigned char)(0.5+ clut[4*lutIndex+1]*255.f);
-					twoDTexture[4*(ix+texWidth*iy)+2] = (unsigned char)(0.5+ clut[4*lutIndex+2]*255.f);
-					twoDTexture[4*(ix+texWidth*iy)+3] = (unsigned char)(0.5+ clut[4*lutIndex+3]*255.f);
+					_texBuf[4*(ix+texWidth*iy)] = (unsigned char)(0.5+ clut[4*lutIndex]*255.f);
+					_texBuf[4*(ix+texWidth*iy)+1] = (unsigned char)(0.5+ clut[4*lutIndex+1]*255.f);
+					_texBuf[4*(ix+texWidth*iy)+2] = (unsigned char)(0.5+ clut[4*lutIndex+2]*255.f);
+					_texBuf[4*(ix+texWidth*iy)+3] = (unsigned char)(0.5+ clut[4*lutIndex+3]*255.f);
 				} else {dataOK = false;}
 				
 			}
 			if(!dataOK) {//point out of region or missing value:
-				twoDTexture[4*(ix+texWidth*iy)] = 0;
-				twoDTexture[4*(ix+texWidth*iy)+1] = 0;
-				twoDTexture[4*(ix+texWidth*iy)+2] = 0;
-				twoDTexture[4*(ix+texWidth*iy)+3] = 0;
+				_texBuf[4*(ix+texWidth*iy)] = 0;
+				_texBuf[4*(ix+texWidth*iy)+1] = 0;
+				_texBuf[4*(ix+texWidth*iy)+2] = 0;
+				_texBuf[4*(ix+texWidth*iy)+3] = 0;
 			}
 
 		}//End loop over ix
 	}//End loop over iy
 	
-	if (doCache) setTwoDTexture(twoDTexture,ts, txsize);
 	dataMgr->UnlockGrid(twoDGrid);
 	delete twoDGrid;
-	return twoDTexture;
+	return _texBuf;
 }
+
 void TwoDDataParams::adjustTextureSize(int sz[2]){
 	//Need to determine appropriate texture dimensions
 	//It should be at least 256x256, or more if the data resolution

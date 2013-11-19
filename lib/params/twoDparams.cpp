@@ -66,7 +66,6 @@ const string TwoDParams::_heightVariableAttr = "HeightVariable";
 
 TwoDParams::TwoDParams(int winnum, const string& name) : RenderParams(winnum, name){
 	
-	lastTwoDTexture = 0;
 	myBox = 0;
 
 }
@@ -74,11 +73,6 @@ TwoDParams::~TwoDParams(){
 	if (myBox) delete myBox;
 	
 }
-
-
-
-
-
 
 
 //Find the smallest stretched extents containing the twoD, 
