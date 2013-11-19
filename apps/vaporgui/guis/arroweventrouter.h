@@ -53,7 +53,8 @@ public:
 
 
 protected slots:
-
+	void guiSetFidelity(int buttonID);
+	void guiSetFidelityDefault();
 	void guiChangeInstance(int);
 	void guiNewInstance();
 	void guiDeleteInstance();

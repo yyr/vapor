@@ -172,7 +172,12 @@ public:
 	void setNumVariablesSelected(int numselected){numVariablesSelected = numselected;}
 	int getNumVariablesSelected() {return numVariablesSelected;}
 	
-	
+		
+	virtual bool GetIgnoreFidelity() {return ignoreFidelity;}
+	virtual void SetIgnoreFidelity(bool val){ignoreFidelity = val;}
+	virtual float GetFidelityLevel() {return fidelityLevel;}
+	virtual void SetFidelityLevel(float lev){fidelityLevel = lev;}
+
 protected:
 	static const string _shortName;
 	static const string _editModeAttr;
@@ -180,7 +185,8 @@ protected:
 	static const string _variableSelectedAttr;
 	static const string _linearInterpAttr;
 	void refreshCtab();
-			
+	float fidelityLevel;
+	bool ignoreFidelity;
 	//Utility functions for building texture and histogram
 	
 	float currentDatarange[2];

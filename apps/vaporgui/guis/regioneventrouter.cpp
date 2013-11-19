@@ -66,24 +66,28 @@
 using namespace VAPoR;
 const char* RegionEventRouter::webHelpText[] = 
 {
-"General capabilities of VAPOR's global tabs",
-"Settings in the Region tab",
+
+"Overview of the Region tab",
+"Controlling the region extents",
+"Time-varying region extents",
+"Displaying information about current data in the region",
 "Scene extents and boxes",
 "Copying box extents",
-"Time-varying extents",
 "Mouse control of region extents",
-"Controlling region extents in the tab",
+"Tips for controlling region extents in the tab",
 "<>"
 };
 const char* RegionEventRouter::webHelpURL[] =
 {
-"http://www.vapor.ucar.edu/docs/vapor-gui-help/global-tabs-vapor-gui",
-"http://www.vapor.ucar.edu/docs/vapor-gui-help/region-tab",
-"http://www.vapor.ucar.edu/docs/vapor-gui-help/scene-extents-and-boxes",
-"http://www.vapor.ucar.edu/docs/vapor-gui-help/copying-box-extents",
-"http://www.vapor.ucar.edu/docs/vapor-gui-help/time-varying-extents",
-"http://www.vapor.ucar.edu/docs/vapor-gui-help/mouse-modes",
-"http://www.vapor.ucar.edu/docs/vapor-gui-help/control-box-extents-tab",
+
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/region-tab#RegionOverview",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/region-tab#RegionControl",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/region-tab#TimeVaryingRegionExtents",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/region-tab#RegionInfoLoadedData",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/scene-extents-and-boxes",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/copying-box-extents",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/mouse-modes",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/control-box-extents-tab",
 };
 
 RegionEventRouter::RegionEventRouter(QWidget* parent ): QWidget(parent), Ui_RegionTab(), EventRouter() {
@@ -208,8 +212,9 @@ void RegionEventRouter::copyRegionToProbe(){
 //
 void RegionEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
-	if (!DataStatus::getInstance()->getDataMgr()) return;
 	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
+	if (!DataStatus::getInstance()->getDataMgr()) return;
+	
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	double regLocalExts[6], regUsrExts[6];

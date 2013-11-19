@@ -78,11 +78,42 @@
 #include "VolumeRenderer.h"
 
 using namespace VAPoR;
+const char* FlowEventRouter::webHelpText[] = 
+{
+"Flow overview",
+"Basic flow settings",
+"Flow seeding",
+"Flow appearance",
+"Streamlines (steady flow)",
+"Unsteady (time-varying) flow",
+"Unsteady flow time settings",
+"Field line advection",
+"Specifying flow seed points interactively with the Probe",
+"Displaying barb arrows with the flow tab",
+"Reading and writing seed points and flow lines",
+"<>"
+};
+const char* FlowEventRouter::webHelpURL[] =
+{
 
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/flow-tab-steady-flow#FlowOverview",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/flow-tab-steady-flow#BasicFlowSettings",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/flow-seeding",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/appearance-flow",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/streamlines-steady-flow",
+	"http://www.vapor.ucar.edu/docs/vapor-renderer-guide/flow-tab-unsteady-flow",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/unsteady-flow-time-settings",
+	"http://www.vapor.ucar.edu/docs/vapor-renderer-guide/flow-tab-field-line-advection",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/specifying-flow-seeds-probe",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/displaying-barbs-using-flow-tab",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/reading-and-writing-seed-points-and-flow-lines",
+	
+};
 
 FlowEventRouter::FlowEventRouter(QWidget* parent): QWidget(parent), Ui_FlowTab(), EventRouter(){
 	setupUi(this);
 	myParamsBaseType = Params::GetTypeFromTag(Params::_flowParamsTag);
+	fidelityButtons = 0;
 	savedCommand = 0;
 	flowDataChanged = false;
 	mapBoundsChanged = false;
@@ -92,7 +123,7 @@ FlowEventRouter::FlowEventRouter(QWidget* parent): QWidget(parent), Ui_FlowTab()
 	showUnsteadyTime=false;
 	MessageReporter::infoMsg("FlowEventRouter::FlowEventRouter()");
 	dontUpdate=false;
-
+	myWebHelpActions = makeWebHelpActions(webHelpText, webHelpURL);
 #if defined(Darwin) && (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 	colorMapShown=false;
 	colorMappingFrame->hide();
@@ -111,7 +142,7 @@ FlowEventRouter::hookUpTab()
 {
 	//Connect up the sampleTable events:
 	connect (addSampleButton1,SIGNAL(clicked()), this, SLOT(addSample()));
-	
+	connect (fidelityDefaultButton, SIGNAL(clicked()), this, SLOT(guiSetFidelityDefault()));
 	connect (flowHelpButton, SIGNAL(clicked()), this, SLOT(showSetupHelp()));
 	
 	connect (deleteSampleButton1,SIGNAL(clicked()), this, SLOT(deleteSample()));
@@ -299,6 +330,7 @@ FlowEventRouter::hookUpTab()
 //
 void FlowEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
+	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
 	if (!isEnabled()) return;
 	if (GLWindow::isRendering())return;
 	DataStatus* dStatus = DataStatus::getInstance();
@@ -313,7 +345,6 @@ void FlowEventRouter::updateTab(){
 	Session::getInstance()->blockRecording();
 
 	stopButton->setEnabled( flowType != 0 && fParams->isEnabled());
-	lodCombo->setCurrentIndex(fParams->GetCompressionLevel());
 	displayListCheckbox->setChecked(fParams->usingDisplayLists());
 
 	
@@ -525,9 +556,7 @@ void FlowEventRouter::updateTab(){
 	
 	
 	flowTypeCombo->setCurrentIndex(flowType);
-	int numRefs = fParams->GetRefinementLevel();
-	if(numRefs <= refinementCombo->count())
-		refinementCombo->setCurrentIndex(numRefs);
+	updateFidelity(fParams,lodCombo,refinementCombo);
 
 	float sliderVal = fParams->getOpacityScale();
 	opacityScaleSlider->setToolTip("Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
@@ -1468,7 +1497,9 @@ reinitTab(bool doOverride){
 	for (int i = 0; i< (int)colorMapEntity.size(); i++){
 		colormapEntityCombo->addItem(QString(colorMapEntity[i].c_str()));
 	}
-	
+	FlowParams* dParams = (FlowParams*)VizWinMgr::getActiveParams(Params::_flowParamsTag);
+	setupFidelity(3, fidelityLayout,fidelityBox, dParams, doOverride);
+	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 	updateTab();
 	dontUpdate=false;
 }
@@ -1696,6 +1727,7 @@ guiSetCompRatio(int num){
 	
 	fParams->SetCompressionLevel(num);
 	lodCombo->setCurrentIndex(num);
+	fParams->SetIgnoreFidelity(true);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -1714,6 +1746,7 @@ guiSetNumRefinements(int n){
 	}
 	PanelCommand* cmd = PanelCommand::captureStart(fParams, "set number Refinements in Flow data");
 	fParams->SetRefinementLevel(newNumTrans);
+	fParams->SetIgnoreFidelity(true);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -3317,4 +3350,49 @@ guiBindOpacToColor(){
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "bind Opacity to Color");
     colorMappingFrame->bindOpacityToColor();
 	PanelCommand::captureEnd(cmd, pParams);
+}
+//Occurs when user clicks a fidelity radio button
+void FlowEventRouter::guiSetFidelity(int buttonID){
+	// Recalculate LOD and refinement based on current slider value and/or current text value
+	//.  If they don't change, then don't 
+	// generate an event.
+	confirmText(false);
+	FlowParams* dParams = (FlowParams*)VizWinMgr::getActiveParams(Params::_flowParamsTag);
+	int newLOD = fidelityLODs[buttonID];
+	int newRef = fidelityRefinements[buttonID];
+	int lodSet = dParams->GetCompressionLevel();
+	int refSet = dParams->GetRefinementLevel();
+	if (lodSet == newLOD && refSet == newRef) return;
+	float fidelity = fidelities[buttonID];
+	
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Data Fidelity");
+	dParams->SetCompressionLevel(newLOD);
+	dParams->SetRefinementLevel(newRef);
+	dParams->SetFidelityLevel(fidelity);
+	dParams->SetIgnoreFidelity(false);
+	//change values of LOD and refinement combos using setCurrentIndex().
+	lodCombo->setCurrentIndex(newLOD);
+	refinementCombo->setCurrentIndex(newRef);
+	PanelCommand::captureEnd(cmd, dParams);
+	VizWinMgr::getInstance()->forceRender(dParams, false);
+}
+
+//User clicks on SetDefault button, need to make current fidelity settings the default.
+void FlowEventRouter::guiSetFidelityDefault(){
+	//Check current values of LOD and refinement and their combos.
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	if (!dataMgr) return;
+	confirmText(false);
+	FlowParams* dParams = (FlowParams*)VizWinMgr::getActiveParams(Params::_flowParamsTag);
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Fidelity Default LOD and refinement");
+	
+	setFidelityDefault(3,dParams);
+	
+	//Setup the buttons
+	setupFidelity(3, fidelityLayout,fidelityBox, dParams);
+	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
+	
+	PanelCommand::captureEnd(cmd, dParams);
+	updateTab();
+	//Need undo/redo to include preference settings!
 }

@@ -439,32 +439,8 @@ void DvrEventRouter::updateTab(){
 	
 	variableCombo->setCurrentIndex(dvrParams->getComboVarNum());
 	
+	updateFidelity(dvrParams,lodCombo,refinementCombo);
 	
-	if (!dvrParams->getIgnoreFidelity()){
-		//Which button corresponds to fidelity?
-		float fidelity = dvrParams->getFidelity();
-		float fiddist = 1000.;
-		int defIndx = -1;
-		for (int i = 0; i<fidelities.size(); i++){
-			float dst = abs(fidelities[i]-fidelity);
-			if (dst < fiddist) {fiddist = dst; defIndx = i;}
-		}
-		if (defIndx >= 0){
-			int lod = fidelityLODs[defIndx];
-			int refLevel = fidelityRefinements[defIndx];
-			lodCombo->setCurrentIndex(lod);
-			refinementCombo->setCurrentIndex(refLevel);
-			dvrParams->SetRefinementLevel(refLevel);
-			dvrParams->SetCompressionLevel(lod);
-			QRadioButton* activeButton = (QRadioButton*)fidelityButtons->button(defIndx);
-			activeButton->setChecked(true);
-		}
-	} else {
-		int numRefs = dvrParams->GetRefinementLevel();
-		if(numRefs <= refinementCombo->count())
-			refinementCombo->setCurrentIndex(numRefs);
-		lodCombo->setCurrentIndex(dvrParams->GetCompressionLevel());
-	}
 	lightingCheckbox->setChecked(dvrParams->getLighting());
 	preintegratedCheckbox->setChecked(dvrParams->getPreIntegration());
 
@@ -556,41 +532,13 @@ reinitTab(bool doOverride){
 	}
 	setBindButtons(false);
 	//Set up the fidelityBox
-	setupFidelity();
+	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
+	setupFidelity(3, fidelityLayout,fidelityBox, dParams, doOverride);
+	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 	
 	updateTab();
 }
-void DvrEventRouter::setupFidelity(){
-	
-	
-	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
-	if (!dataMgr) return;
-	const vector<size_t> cRatios = dataMgr->GetCRatios();
-	int deflt = orderLODRefs(3);
-	int numButtons = fidelityLODs.size();
-	QHBoxLayout* hbox = new QHBoxLayout;
-	fidelityLayout->removeWidget(fidelityBox);
-	delete fidelityBox;// this also deletes buttongroup
-	fidelityBox = new QGroupBox("low .. Fidelity .. high",this);
-	
-	fidelityButtons = new QButtonGroup(fidelityBox);
-	for (int i = 0; i<numButtons; i++){
-		QRadioButton * rd = new QRadioButton(this);
-		hbox->addWidget(rd);
-		fidelityButtons->addButton(rd, i);
-		QString refLevel = "Refinement "+QString::number(fidelityRefinements[i]);
-		QString LOD = "\nLOD "+QString::number(cRatios[fidelityLODs[i]])+":1";
-		QString tt = refLevel+LOD;
-		rd->setToolTip(tt);
-		if (i == deflt) rd->setChecked(true);
-	}
-	
-	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
-	fidelityBox->setToolTip("Click a button to specify the fidelity (both LOD and refinement)\n Each button has a tooltip indicating its associated LOD and refinement.");
-	fidelityBox->setLayout(hbox);
-	fidelityLayout->addWidget(fidelityBox);
-	fidelityBox->adjustSize();
-}
+
 void DvrEventRouter::
 guiToggleColorInterpType(bool isDiscrete){
 	confirmText(false);
@@ -626,7 +574,7 @@ guiSetCompRatio(int num){
 	if (num == dParams->GetCompressionLevel()) return;
 	
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "set compression level");
-	dParams->setIgnoreFidelity(true);
+	dParams->SetIgnoreFidelity(true);
 	dParams->SetCompressionLevel(num);
 	lodCombo->setCurrentIndex(num);
 	PanelCommand::captureEnd(cmd, dParams);
@@ -641,7 +589,7 @@ guiSetNumRefinements(int num){
 	if (num == dParams->GetRefinementLevel()) return;
 	
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "set number of refinements");
-	dParams->setIgnoreFidelity(true);
+	dParams->SetIgnoreFidelity(true);
 	dParams->SetRefinementLevel(num);
 	refinementCombo->setCurrentIndex(num);
 	PanelCommand::captureEnd(cmd, dParams);
@@ -1449,8 +1397,8 @@ void DvrEventRouter::guiSetFidelity(int buttonID){
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Data Fidelity");
 	dParams->SetCompressionLevel(newLOD);
 	dParams->SetRefinementLevel(newRef);
-	dParams->setFidelity(fidelity);
-	dParams->setIgnoreFidelity(false);
+	dParams->SetFidelityLevel(fidelity);
+	dParams->SetIgnoreFidelity(false);
 	//change values of LOD and refinement combos using setCurrentIndex().
 	lodCombo->setCurrentIndex(newLOD);
 	refinementCombo->setCurrentIndex(newRef);
@@ -1466,32 +1414,11 @@ void DvrEventRouter::guiSetFidelityDefault(){
 	confirmText(false);
 	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Fidelity Default LOD and refinement");
-	int lodSet = dParams->GetCompressionLevel();
-	int refSet = dParams->GetRefinementLevel();
-	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
-	float regionMBs = rParams->fullRegionMBs(-1);
-	//Adjust lod, ref based on actual region size
-	const vector<size_t> comprs = dataMgr->GetCRatios();
-	float lodDefault = (float)comprs[lodSet]/regionMBs;
-	float refDefault = (float)refSet+log(regionMBs)/log(2.);
-	//Set defaultLOD3d and defaultRefinement3D values
-	float oldLODDefault = UserPreferences::getDefaultLODFidelity3D();
-	float oldRefDefault = UserPreferences::getDefaultRefinementFidelity3D();
-	if (oldLODDefault != lodDefault || oldRefDefault != refDefault){
-		UserPreferences::setDefaultLODFidelity3D(lodDefault);
-		UserPreferences::setDefaultRefinementFidelity3D(refDefault);
-		UserPreferences::requestSave();
-	}
+	setFidelityDefault(3,dParams);
 	
-	//Set Fidelity to 0.5 unless it is at an extreme:
-	float fidelity = 0.5f;
-	if (lodSet == comprs.size()-1 && refSet == dataMgr->GetNumTransforms()) fidelity = 1.f;
-	if (lodSet == 0 && refSet == 0) fidelity = 0.f;
-	dParams->setFidelity(fidelity);
 	//Setup the buttons
-	setupFidelity();
-	//Clear ignoreFidelity flag
-	dParams->setIgnoreFidelity(false);
+	setupFidelity(3, fidelityLayout,fidelityBox, dParams);
+	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 	
 	PanelCommand::captureEnd(cmd, dParams);
 	updateTab();

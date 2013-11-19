@@ -132,6 +132,11 @@ public:
 	bool mapGeorefPoint(int timestep, double pt[2]);
 	bool isSingleImage() {return singleImage;}
 	bool hasTransparentAlpha() {return transparentAlpha;}
+		
+	virtual bool GetIgnoreFidelity() {return ignoreFidelity;}
+	virtual void SetIgnoreFidelity(bool val){ignoreFidelity = val;}
+	virtual float GetFidelityLevel() {return fidelityLevel;}
+	virtual void SetFidelityLevel(float lev){fidelityLevel = lev;}
 	
 	
 protected:
@@ -144,7 +149,8 @@ protected:
 	static const string _imagePlacementAttr;
 
 	
-	
+	float fidelityLevel;
+	bool ignoreFidelity;
 	int getImageNum(int timestep){
 		return imageNums[timestep];
 	}
