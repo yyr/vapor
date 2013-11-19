@@ -1586,11 +1586,11 @@ void TwoDDataEventRouter::captureImage() {
 	
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	int imgSize[2];
-	pParams->getTextureSize(imgSize, timestep);
+	pParams->getTextureSize(imgSize);
 	int wid = imgSize[0];
 	int ht = imgSize[1];
 	unsigned char* twoDTex;
-	unsigned char* buf;
+	const unsigned char* buf;
 	
 		
 		//Determine the image size.  Start with the texture dimensions in 
@@ -1640,7 +1640,6 @@ void TwoDDataEventRouter::captureImage() {
 		//Error!
 		MessageReporter::errorMsg("Image Capture Error; \nError writing jpeg file: \n%s",
 			(const char*)filename.toAscii());
-		delete [] buf;
 		return;
 	}
 	//Provide a message stating the capture in effect.

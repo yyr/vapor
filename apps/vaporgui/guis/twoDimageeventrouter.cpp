@@ -1601,15 +1601,14 @@ adjustBoxSize(TwoDImageParams* pParams){
 void TwoDImageEventRouter::resetTextureSize(TwoDImageParams* twoDParams){
 	//setup the texture size.  If the image has been read, get the dimensions 
 	//from the image:
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	if (twoDParams->getCurrentTwoDTexture(timestep)){
-		int txsize[2];
-		twoDParams->getTextureSize(txsize, timestep);
+	int txsize[2];
+	twoDParams->getTextureSize(txsize);
+	if (txsize[0] != 0 && txsize[1] != 0) {
 		twoDTextureFrame->setTextureSize((float)txsize[0],(float)txsize[1]);
-		return;
 	}
-	//Otherwise just do a square
-	twoDTextureFrame->setTextureSize(1.f,1.f);
+	else {
+		twoDTextureFrame->setTextureSize(1.0, 1.0);
+	}
 }
 
 void TwoDImageEventRouter::mapCursor(){

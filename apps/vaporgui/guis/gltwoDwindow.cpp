@@ -105,7 +105,7 @@ void GLTwoDWindow::_resizeGL() {
 		rectLeft = -1.f;
 		rectTop = texAspect/winAspect;
 	} else {
-		rectLeft = winAspect/texAspect;
+		rectLeft = -winAspect/texAspect;
 		rectTop = 1.f;
 	}
 }
@@ -160,23 +160,23 @@ void GLTwoDWindow::paintGL()
 	glDisable(GL_BLEND);
 	glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
 	//get the twoD texture:
-	unsigned char* twoDTexture = 0;
-	int imgSize[2];
-	if(myParams ){
-		if (myParams->twoDIsDirty(timestep)){
-			QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-			twoDTexture = TwoDRenderer::getTwoDTexture(myParams,timestep,false);
-			QApplication::restoreOverrideCursor();
-		} else {
-			twoDTexture = TwoDRenderer::getTwoDTexture(myParams,timestep,false);
-		}
+
+	int texWidth, texHeight;
+	const unsigned char *twoDTexture = NULL;
+	if(myParams ) {
+		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+
+		twoDTexture = TwoDRenderer::getTwoDTexture(
+				myParams,timestep,texWidth,texHeight
+		);
+
+		QApplication::restoreOverrideCursor();
 	}
 	
 	
 	if(twoDTexture) {
-		myParams->getTextureSize(imgSize, timestep);
 		glEnable(GL_TEXTURE_2D);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgSize[0],imgSize[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, twoDTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texWidth,texHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, twoDTexture);
 	} else {
 		rendering = false;
 		return;
