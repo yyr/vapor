@@ -696,7 +696,7 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 			newString = proj4String;
 		}
 
-		qWarning("proj4 string: %s",newString);
+		//qWarning("proj4 string: %s",newString);
 		MyBase::SetDiagMsg("proj4 string: %s in image file %s",newString,imageFileName.c_str());
 		setImageProjectionString(newString);
 
