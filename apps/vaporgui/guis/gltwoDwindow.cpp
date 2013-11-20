@@ -91,7 +91,7 @@ void GLTwoDWindow::_resizeGL() {
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(1.0, -1.0, -1.0, 1.0, -1.0, 1.0);
+	glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
 
 	glMatrixMode(GL_MODELVIEW);
 	qglClearColor(palette().color(QPalette::Window));		// same as frame
