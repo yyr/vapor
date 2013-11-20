@@ -51,7 +51,23 @@
 
 #include "params.h"
 using namespace VAPoR;
+using namespace VAPoR;
+const char* ViewpointEventRouter::webHelpText[] = 
+{
+	"View Tab Overview",
+	"Controlling the Viewpoint in VAPOR GUI",
+	"Viewpoint Settings",
+	"Lighting Settings",
+	"<>"
+};
+const char* ViewpointEventRouter::webHelpURL[] =
+{
 
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/viewpoint-and-lighting",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/viewpoint-and-lighting#ControlView",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/viewpoint-and-lighting#ViewpointSettings",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/viewpoint-and-lighting#LightingControl"
+};
 ViewpointEventRouter::ViewpointEventRouter(QWidget* parent ): QWidget(parent), Ui_VizTab(), EventRouter(){
 	setupUi(this);
 	myParamsBaseType = Params::GetTypeFromTag(Params::_viewpointParamsTag);
@@ -60,6 +76,7 @@ ViewpointEventRouter::ViewpointEventRouter(QWidget* parent ): QWidget(parent), U
 	for (int i = 0; i<3; i++)lastCamPos[i] = 0.f;
 
 	MessageReporter::infoMsg("ViewpointEventRouter::ViewpointEventRouter()");
+	myWebHelpActions = makeWebHelpActions(webHelpText,webHelpURL);
 }
 
 
@@ -304,6 +321,7 @@ viewpointReturnPressed(void){
 //
 void ViewpointEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
+	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
 	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
 	
 	QString strng;

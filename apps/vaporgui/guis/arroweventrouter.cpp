@@ -49,17 +49,21 @@
 using namespace VAPoR;
 const char* ArrowEventRouter::webHelpText[] = 
 {
-"Barbs Overview",
-"Barb layout options",
-"Barb Appearance settings",
-"Barb alignment options","<>"
+	"Barbs Overview",
+	"Renderer control",
+	"Data accuracy control",
+	"Barb layout options",
+	"Barb Appearance settings",
+	"Barb alignment options","<>"
 };
 const char* ArrowEventRouter::webHelpURL[] =
 {
-"http://www.vapor.ucar.edu/docs/vapor-gui-help/barbs#BarbsOverview",
-"http://www.vapor.ucar.edu/docs/vapor-gui-help/barbs#BarbLayout",
-"http://www.vapor.ucar.edu/docs/vapor-gui-help/barbs#BarbAppearance",
-"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/barb-alignment"
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/barbs#BarbsOverview",
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/renderer-instances",
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/refinement-and-lod-control",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/barbs#BarbLayout",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/barbs#BarbAppearance",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/barb-alignment"
 };
 
 ArrowEventRouter::ArrowEventRouter(QWidget* parent): QWidget(parent), Ui_Arrow(), EventRouter(){
@@ -504,11 +508,12 @@ setArrowEnabled(bool val, int instance){
 //
 void ArrowEventRouter::updateTab(){
 	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
+	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
 	MessageReporter::infoMsg("ArrowEventRouter::updateTab()");
 	if (!isEnabled()) return;
 	Session *session = Session::getInstance();
 	session->blockRecording();
-	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
+	
 	//Set up the instance table:
 	DataStatus* ds = DataStatus::getInstance();
 	if (ds->getDataMgr()) instanceTable->setEnabled(true);

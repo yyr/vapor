@@ -77,10 +77,43 @@
 
 using namespace VAPoR;
 const float ProbeEventRouter::thumbSpeedFactor = 0.0005f;  //rotates ~45 degrees at full thumbwheel width
+const char* ProbeEventRouter::webHelpText[] = 
+{
+	"Probe overview",
+	"Renderer control",
+	"Data accuracy control",
+	"Probe basic settings",
+	"Probe layout",
+	"Probe image settings",
+	"Probe appearance",
+	"Probe orientation",
+	"Crop or Fit the Probe to Region",
+	"Histogramming data with the Probe",
+	"Image-based flow visualization in the Probe",
+	"Specifying flow seeds with the Probe",
+	"<>"
+};
+const char* ProbeEventRouter::webHelpURL[] =
+{
+
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/probe-tab-data-probe-or-contour-plane",
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/renderer-instances",
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/refinement-and-lod-control",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/probe-tab-data-probe-or-contour-plane#BasicProbeSettings",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/probe-tab-data-probe-or-contour-plane#ProbeLayout",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/probe-tab-data-probe-or-contour-plane#ProbeImageSettings",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/probe-tab-data-probe-or-contour-plane#ProbeAppearance",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/orientation-probe",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/crop-or-fit-probe-region",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/histogramming-data-values-probe",
+	"http://www.vapor.ucar.edu/docs/vapor-renderer-guide/probe-tab-image-based-flow-visualization",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/specifying-flow-seeds-probe"
+};
 
 ProbeEventRouter::ProbeEventRouter(QWidget* parent): QWidget(parent), Ui_ProbeTab(), EventRouter(){
 	setupUi(this);
 	myParamsBaseType = Params::GetTypeFromTag(Params::_probeParamsTag);
+	myWebHelpActions = makeWebHelpActions(webHelpText,webHelpURL);
 	fidelityButtons = 0;
 	savedCommand = 0;
 	ignoreComboChanges = false;
@@ -263,6 +296,7 @@ ProbeEventRouter::hookUpTab()
 //
 void ProbeEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
+	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
 	if (GLWindow::isRendering())return;
 	guiSetTextChanged(false);
 	setIgnoreBoxSliderEvents(true);  //don't generate nudge events

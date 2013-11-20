@@ -208,6 +208,8 @@ void ArrowParams::restart() {
 	
 	SetRefinementLevel(0);
 	SetCompressionLevel(0);
+	SetFidelityLevel(0.5f);
+	SetIgnoreFidelity(false);
 	SetVisualizerNum(vizNum);
 	SetFieldVariableName(0, "xvar");
 	SetFieldVariableName(1, "yvar");

@@ -78,20 +78,24 @@ using namespace VAPoR;
 using namespace VAPoR;
 const char* DvrEventRouter::webHelpText[] = 
 {
-"Overview of Direct Volume Rendering",
-"Editing color and opacity (using the Transfer Function Editor)",
-"Color Selection in the DVR tab",
-"Volume Rendering Quality",
-"Data Histograms",
-"<>"
+	"Overview of Direct Volume Rendering",
+	"Renderer control",
+	"Data accuracy control",
+	"Editing color and opacity (using the Transfer Function Editor)",
+	"Color Selection in the DVR tab",
+	"Volume Rendering Quality",
+	"Data Histograms",
+	"<>"
 };
 const char* DvrEventRouter::webHelpURL[] =
 {
-"http://www.vapor.ucar.edu/docs/vapor-gui-help/volume-rendering-dvr",
-"http://www.vapor.ucar.edu/docs/vapor-how-guide/transfer-function-editing",
-"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/dvr-color-selection",
-"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/dvr-rendering-quality",
-"http://www.vapor.ucar.edu/docs/vapor-gui-help/data-histograms"
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/volume-rendering-dvr",
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/renderer-instances",
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/refinement-and-lod-control",
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/transfer-function-editing",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/dvr-color-selection",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/dvr-rendering-quality",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/data-histograms"
 
 };
 
@@ -370,12 +374,13 @@ sessionLoadTF(QString* name){
 //
 void DvrEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
+	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
 	MessageReporter::infoMsg("DvrEventRouter::updateTab()");
 	if (!isEnabled()) return;
 	if (GLWindow::isRendering())return;
 	Session *session = Session::getInstance();
 	session->blockRecording();
-	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
+	
 	if (DataStatus::getInstance()->getDataMgr()) instanceTable->setEnabled(true);
 	else instanceTable->setEnabled(false);
 	instanceTable->rebuild(this);

@@ -72,16 +72,20 @@
 using namespace VAPoR;
 const char* IsoEventRouter::webHelpText[] = 
 {
-"Isosurface overview",
-"Controlling the Iso-value",
-"Isosurface color and transparency",
-"Isosurface quality",
-"<>"
+	"Isosurface overview",
+	"Renderer control",
+	"Data accuracy control",
+	"Controlling the Iso-value",
+	"Isosurface color and transparency",
+	"Isosurface quality",
+	"<>"
 };
 const char* IsoEventRouter::webHelpURL[] =
 {
 
 	"http://www.vapor.ucar.edu/docs/vapor-gui-help/isosurfaces",
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/renderer-instances",
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/refinement-and-lod-control",
 	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/controlling-iso-value",
 	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/isosurface-color-and-transparency",
 	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/isosurface-quality",

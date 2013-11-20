@@ -73,11 +73,28 @@
 #include "VolumeRenderer.h"
 
 using namespace VAPoR;
+const char* TwoDDataEventRouter::webHelpText[] = 
+{
+	"2D data overview",
+	"Renderer control",
+	"Data accuracy control",
+	"Capabilities of the 2D data panel",
+	"<>"
+};
+const char* TwoDDataEventRouter::webHelpURL[] =
+{
 
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/2d-data",
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/renderer-instances",
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/refinement-and-lod-control",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/2d-data#Capabilities"
+};
+	
 
 TwoDDataEventRouter::TwoDDataEventRouter(QWidget* parent ): QWidget(parent), Ui_TwoDDataTab(), TwoDEventRouter(){
 	setupUi(this);
 	myParamsBaseType = Params::GetTypeFromTag(Params::_twoDDataParamsTag);
+	myWebHelpActions = makeWebHelpActions(webHelpText,webHelpURL);
 	savedCommand = 0;
 	ignoreComboChanges = false;
 	numVariables = 0;
@@ -187,6 +204,7 @@ TwoDDataEventRouter::hookUpTab()
 //
 void TwoDDataEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
+	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (dataMgr && ds->dataIsPresent2D()){

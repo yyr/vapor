@@ -46,7 +46,21 @@
 #include "TransformDelegate.h"
 
 using namespace VAPoR;
+using namespace VAPoR;
+const char* ModelEventRouter::webHelpText[] = 
+{
+	"Model Rendering Overview",
+	"Renderer control",
+	"Assimp: Open Asset Import Library",
+	"<>"
+};
+const char* ModelEventRouter::webHelpURL[] =
+{
 
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/model-tab-3d-geometry-display",
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/renderer-instances",
+	"http://assimp.sourceforge.net"
+};
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
@@ -57,6 +71,7 @@ ModelEventRouter::ModelEventRouter(QWidget* parent):
 {
    setupUi(this);
    myParamsBaseType = Params::GetTypeFromTag(ModelParams::_modelParamsTag);
+   myWebHelpActions = makeWebHelpActions(webHelpText,webHelpURL);
    savedCommand = 0;
 
    QStringList transforms;
@@ -360,7 +375,7 @@ void ModelEventRouter::setModelEnabled(bool val, int instance)
 void ModelEventRouter::updateTab()
 {
    if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
-
+   MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
    MessageReporter::infoMsg("ModelEventRouter::updateTab()");
 	
    if (!isEnabled()) return;

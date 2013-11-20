@@ -73,11 +73,37 @@
 
 using namespace VAPoR;
 using namespace VetsUtil;
+using namespace VAPoR;
+const char* TwoDImageEventRouter::webHelpText[] = 
+{
+	"Image Overview",
+	"Renderer control",
+	"Data accuracy control",
+	"Capabilities of Image panel",
+	"Using pre-installed images",
+	"Image orientation",
+	"Obtaining geo-referenced images",
+	"Using NCL plots as images",
+	"<>"
+};
+const char* TwoDImageEventRouter::webHelpURL[] =
+{
 
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/image-rendering",
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/renderer-instances",
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/refinement-and-lod-control",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/image-rendering#Capabilities",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/installed-images",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/image-orientation",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/obtaining-geo-referenced-images",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/using-ncl-plots-images"
+	
+};
 
 TwoDImageEventRouter::TwoDImageEventRouter(QWidget* parent): QWidget(parent), Ui_TwoDImageTab(), TwoDEventRouter(){
 	setupUi(this);
 	myParamsBaseType = Params::GetTypeFromTag(Params::_twoDImageParamsTag);
+	myWebHelpActions = makeWebHelpActions(webHelpText,webHelpURL);
 	MessageReporter::infoMsg("TwoDImageEventRouter::TwoDImageEventRouter()");
 	fidelityButtons = 0;
 #if defined(Darwin) && (QT_VERSION < QT_VERSION_CHECK(4,8,0))
@@ -160,6 +186,7 @@ TwoDImageEventRouter::hookUpTab()
 //
 void TwoDImageEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
+	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
 	if (!isEnabled()) return;
 	if (GLWindow::isRendering()) return;
 	guiSetTextChanged(false);

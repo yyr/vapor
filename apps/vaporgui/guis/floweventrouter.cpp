@@ -81,6 +81,8 @@ using namespace VAPoR;
 const char* FlowEventRouter::webHelpText[] = 
 {
 "Flow overview",
+"Renderer control",
+"Data accuracy control",
 "Basic flow settings",
 "Flow seeding",
 "Flow appearance",
@@ -97,6 +99,8 @@ const char* FlowEventRouter::webHelpURL[] =
 {
 
 	"http://www.vapor.ucar.edu/docs/vapor-gui-help/flow-tab-steady-flow#FlowOverview",
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/renderer-instances",
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/refinement-and-lod-control",
 	"http://www.vapor.ucar.edu/docs/vapor-gui-help/flow-tab-steady-flow#BasicFlowSettings",
 	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/flow-seeding",
 	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/appearance-flow",
