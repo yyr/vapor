@@ -47,6 +47,11 @@ public:
 	
 protected:
 	bool rebuildElevationGrid(size_t timestep);
+
+private:
+	unsigned char *_twoDTex;
+	int _imgWidth;
+	int _imgHeight;
 	
 };
 };

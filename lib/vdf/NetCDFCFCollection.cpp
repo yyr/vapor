@@ -920,7 +920,7 @@ int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g1::Open(size_t) {
 	int rc;
 	double mv;
 
-	int fd = _ncdfc->OpenRead(0, _svar); if (rc<0) return(-1);
+	int fd = _ncdfc->OpenRead(0, _svar); if (fd<0) return(-1);
 	rc = _ncdfc->Read(_s, fd); if (rc<0) return(-1);
 	rc = _ncdfc->Close(fd); if (rc<0) return(-1);
 	if (_ncdfc->GetMissingValue(_svar, mv)) {	// zero out any mv
@@ -929,7 +929,7 @@ int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g1::Open(size_t) {
 		}
 	} 
 
-	fd = _ncdfc->OpenRead(0, _Cvar); if (rc<0) return(-1);
+	fd = _ncdfc->OpenRead(0, _Cvar); if (fd<0) return(-1);
 	rc = _ncdfc->Read(_C, fd); if (rc<0) return(-1);
 	rc = _ncdfc->Close(fd); if (rc<0) return(-1);
 	if (_ncdfc->GetMissingValue(_Cvar, mv)) {
@@ -938,7 +938,7 @@ int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g1::Open(size_t) {
 		}
 	} 
 
-	fd = _ncdfc->OpenRead(0, _etavar); if (rc<0) return(-1);
+	fd = _ncdfc->OpenRead(0, _etavar); if (fd<0) return(-1);
 	rc = _ncdfc->Read(_eta, fd); if (rc<0) return(-1);
 	rc = _ncdfc->Close(fd); if (rc<0) return(-1);
 	if (_ncdfc->GetMissingValue(_etavar, mv)) {
@@ -947,7 +947,7 @@ int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g1::Open(size_t) {
 		}
 	} 
 
-	fd = _ncdfc->OpenRead(0, _depthvar); if (rc<0) return(-1);
+	fd = _ncdfc->OpenRead(0, _depthvar); if (fd<0) return(-1);
 	rc = _ncdfc->Read(_depth,fd); if (rc<0) return(-1);
 	rc = _ncdfc->Close(fd); if (rc<0) return(-1);
 	if (_ncdfc->GetMissingValue(_depthvar, mv)) {
@@ -956,7 +956,7 @@ int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g1::Open(size_t) {
 		}
 	} 
 
-	fd = _ncdfc->OpenRead(0, _depth_cvar); if (rc<0) return(-1);
+	fd = _ncdfc->OpenRead(0, _depth_cvar); if (fd<0) return(-1);
 	rc = _ncdfc->Read(&_depth_c, fd); if (rc<0) return(-1);
 	rc = _ncdfc->Close(fd); if (rc<0) return(-1);
 
@@ -1133,7 +1133,7 @@ int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g2::Open(size_t) {
 	int rc;
 	double mv;
 
-	int fd = _ncdfc->OpenRead(0, _svar); if (rc<0) return(-1);
+	int fd = _ncdfc->OpenRead(0, _svar); if (fd<0) return(-1);
 	rc = _ncdfc->Read(_s, fd); if (rc<0) return(-1);
 	rc = _ncdfc->Close(fd); if (rc<0) return(-1);
 	if (_ncdfc->GetMissingValue(_svar, mv)) {	// zero out any mv
@@ -1142,7 +1142,7 @@ int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g2::Open(size_t) {
 		}
 	} 
 
-	fd = _ncdfc->OpenRead(0, _Cvar); if (rc<0) return(-1);
+	fd = _ncdfc->OpenRead(0, _Cvar); if (fd<0) return(-1);
 	rc = _ncdfc->Read(_C, fd); if (rc<0) return(-1);
 	rc = _ncdfc->Close(fd); if (rc<0) return(-1);
 	if (_ncdfc->GetMissingValue(_Cvar, mv)) {
@@ -1151,7 +1151,7 @@ int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g2::Open(size_t) {
 		}
 	} 
 
-	fd = _ncdfc->OpenRead(0, _etavar); if (rc<0) return(-1);
+	fd = _ncdfc->OpenRead(0, _etavar); if (fd<0) return(-1);
 	rc = _ncdfc->Read(_eta, fd); if (rc<0) return(-1);
 	rc = _ncdfc->Close(fd); if (rc<0) return(-1);
 	if (_ncdfc->GetMissingValue(_etavar, mv)) {
@@ -1160,7 +1160,7 @@ int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g2::Open(size_t) {
 		}
 	} 
 
-	fd = _ncdfc->OpenRead(0, _depthvar); if (rc<0) return(-1);
+	fd = _ncdfc->OpenRead(0, _depthvar); if (fd<0) return(-1);
 	rc = _ncdfc->Read(_depth, fd); if (rc<0) return(-1);
 	rc = _ncdfc->Close(fd); if (rc<0) return(-1);
 	if (_ncdfc->GetMissingValue(_depthvar, mv)) {
@@ -1169,7 +1169,7 @@ int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g2::Open(size_t) {
 		}
 	} 
 
-	fd = _ncdfc->OpenRead(0, _depth_cvar); if (rc<0) return(-1);
+	fd = _ncdfc->OpenRead(0, _depth_cvar); if (fd<0) return(-1);
 	rc = _ncdfc->Read(&_depth_c, fd); if (rc<0) return(-1);
 	rc = _ncdfc->Close(fd); if (rc<0) return(-1);
 

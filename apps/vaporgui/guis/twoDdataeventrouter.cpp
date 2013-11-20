@@ -82,7 +82,7 @@ TwoDDataEventRouter::TwoDDataEventRouter(QWidget* parent ): QWidget(parent), Ui_
 	ignoreComboChanges = false;
 	numVariables = 0;
 	seedAttached = false;
-	
+	fidelityButtons = 0;
 	MessageReporter::infoMsg("TwoDDataEventRouter::TwoDDataEventRouter()");
 
 #if defined(Darwin) && (QT_VERSION < QT_VERSION_CHECK(4,8,0))
@@ -107,6 +107,7 @@ TwoDDataEventRouter::hookUpTab()
 	connect (xCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeXCenter(int)));
 	connect (ySizeSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeYSize(int)));
 	connect (yCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeYCenter(int)));
+	connect (fidelityDefaultButton, SIGNAL(clicked()), this, SLOT(guiSetFidelityDefault()));
 	
 	connect (zCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeZCenter(int)));
 	
@@ -221,7 +222,6 @@ void TwoDDataEventRouter::updateTab(){
 	int currentTimeStep = vizMgr->getActiveAnimationParams()->getCurrentTimestep();
 	int winnum = vizMgr->getActiveViz();
 	const vector<double>& tvExts = dataMgr->GetExtents((size_t)currentTimeStep);
-	lodCombo->setCurrentIndex(twoDParams->GetCompressionLevel());
 	
 	int orientation = 2; //x-y aligned
 	//set up the cursor position
@@ -289,9 +289,7 @@ void TwoDDataEventRouter::updateTab(){
 		transferFunctionFrame->setVariableName("");
 		variableLabel->setText("");
 	}
-	int numRefs = twoDParams->GetRefinementLevel();
-	if(numRefs <= refinementCombo->count())
-		refinementCombo->setCurrentIndex(numRefs);
+	updateFidelity(twoDParams,lodCombo,refinementCombo);
 	
 	histoScaleEdit->setText(QString::number(twoDParams->GetHistoStretch()));
 	//List the variables in the combo
@@ -899,6 +897,9 @@ reinitTab(bool doOverride){
 		numHistograms = 0;
 	}
 	setBindButtons(false);
+	TwoDDataParams* dParams = (TwoDDataParams*)VizWinMgr::getActiveParams(Params::_twoDDataParamsTag);
+	setupFidelity(3, fidelityLayout,fidelityBox, dParams, doOverride);
+	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 	updateTab();
 }
 //Change mouse mode to specified value
@@ -1280,6 +1281,7 @@ guiSetCompRatio(int num){
 	
 	dParams->SetCompressionLevel(num);
 	lodCombo->setCurrentIndex(num);
+	dParams->SetIgnoreFidelity(true);
 	PanelCommand::captureEnd(cmd, dParams);
 	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->forceRender(dParams);
@@ -1300,6 +1302,7 @@ guiSetNumRefinements(int n){
 		}
 	} else if (n > maxNumRefinements) maxNumRefinements = n;
 	pParams->SetRefinementLevel(n);
+	pParams->SetIgnoreFidelity(true);
 	PanelCommand::captureEnd(cmd, pParams);
 	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams);
@@ -1586,11 +1589,11 @@ void TwoDDataEventRouter::captureImage() {
 	
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	int imgSize[2];
-	pParams->getTextureSize(imgSize, timestep);
+	pParams->getTextureSize(imgSize);
 	int wid = imgSize[0];
 	int ht = imgSize[1];
 	unsigned char* twoDTex;
-	unsigned char* buf;
+	const unsigned char* buf;
 	
 		
 		//Determine the image size.  Start with the texture dimensions in 
@@ -1640,7 +1643,6 @@ void TwoDDataEventRouter::captureImage() {
 		//Error!
 		MessageReporter::errorMsg("Image Capture Error; \nError writing jpeg file: \n%s",
 			(const char*)filename.toAscii());
-		delete [] buf;
 		return;
 	}
 	//Provide a message stating the capture in effect.
@@ -2221,4 +2223,49 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	
 	delete histoGrid;
 
+}
+//Occurs when user clicks a fidelity radio button
+void TwoDDataEventRouter::guiSetFidelity(int buttonID){
+	// Recalculate LOD and refinement based on current slider value and/or current text value
+	//.  If they don't change, then don't 
+	// generate an event.
+	confirmText(false);
+	TwoDDataParams* dParams = (TwoDDataParams*)VizWinMgr::getActiveParams(Params::_twoDDataParamsTag);
+	int newLOD = fidelityLODs[buttonID];
+	int newRef = fidelityRefinements[buttonID];
+	int lodSet = dParams->GetCompressionLevel();
+	int refSet = dParams->GetRefinementLevel();
+	if (lodSet == newLOD && refSet == newRef) return;
+	float fidelity = fidelities[buttonID];
+	
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Data Fidelity");
+	dParams->SetCompressionLevel(newLOD);
+	dParams->SetRefinementLevel(newRef);
+	dParams->SetFidelityLevel(fidelity);
+	dParams->SetIgnoreFidelity(false);
+	//change values of LOD and refinement combos using setCurrentIndex().
+	lodCombo->setCurrentIndex(newLOD);
+	refinementCombo->setCurrentIndex(newRef);
+	PanelCommand::captureEnd(cmd, dParams);
+	VizWinMgr::getInstance()->forceRender(dParams, false);
+}
+
+//User clicks on SetDefault button, need to make current fidelity settings the default.
+void TwoDDataEventRouter::guiSetFidelityDefault(){
+	//Check current values of LOD and refinement and their combos.
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	if (!dataMgr) return;
+	confirmText(false);
+	TwoDDataParams* dParams = (TwoDDataParams*)VizWinMgr::getActiveParams(Params::_twoDDataParamsTag);
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Fidelity Default LOD and refinement");
+	
+	setFidelityDefault(2,dParams);
+	
+	//Setup the buttons
+	setupFidelity(2, fidelityLayout,fidelityBox, dParams);
+	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
+	
+	PanelCommand::captureEnd(cmd, dParams);
+	updateTab();
+	//Need undo/redo to include preference settings!
 }

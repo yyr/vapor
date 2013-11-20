@@ -362,6 +362,11 @@ public:
 	static void setDefaultGeometryType(int val){defaultGeometryType = val;}
 	virtual void hookupTF(TransferFunction* tf, int index);
 	
+	virtual bool GetIgnoreFidelity() {return ignoreFidelity;}
+	virtual void SetIgnoreFidelity(bool val){ignoreFidelity = val;}
+	virtual float GetFidelityLevel() {return fidelityLevel;}
+	virtual void SetFidelityLevel(float lev){fidelityLevel = lev;}
+	
 protected:
 	static const string _shortName;
 	//Tags for attributes in session save
@@ -432,6 +437,8 @@ protected:
 	static const string _numFLASamplesAttr;
 	static const string _advectBeforePrioritizeAttr;
 	
+	float fidelityLevel;
+	bool ignoreFidelity;
 	//Insert seeds into a pathLineData at the specified time step.
 	int insertUnsteadySeeds(RegionParams* rParams, VaporFlow* fLib, PathLineData* pathLines, int timeStep);
 	//Similarly with fieldLineData:

@@ -46,8 +46,6 @@ public:
 	TwoDParams(int winnum, const string& name);
 	~TwoDParams();
 	
-	virtual bool twoDIsDirty(int timestep)= 0;
-		
 	bool elevGridIsDirty() { 
 		return elevGridDirty;
 	}
@@ -69,7 +67,7 @@ public:
 	int getOrientation() {return orientation;}
 	bool linearInterpTex() {return linearInterp;}
 	void setLinearInterp(bool interp){linearInterp = interp;}
-	virtual void getTextureSize(int sze[2], int timestep) = 0;
+	virtual void getTextureSize(int sze[2]) = 0;
 	
 	void getTwoDVoxelExtents(float voxdims[2]);
 	
@@ -124,14 +122,8 @@ public:
 	virtual bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/)=0;
 	
 	
-	virtual void setTwoDTexture(unsigned char* tex, int timestep, int imgSize[2],
-		float imExts[4] = 0 ) = 0;
-	virtual unsigned char* calcTwoDDataTexture(int timestep, int wid, int ht)= 0;
+	virtual const unsigned char* calcTwoDDataTexture(int timestep, int &wid, int &ht)= 0;
 
-	virtual unsigned char* getCurrentTwoDTexture(int timestep)= 0; 
-	
-	
-	
 	virtual Box* GetBox(){return myBox;}
 	//Get the bounding extents of twoD, in cube coords
 	virtual void calcContainingStretchedBoxExtentsInCube(float* extents);
@@ -152,8 +144,6 @@ public:
 	//Construct transform of form (x,y)-> a[0]x+b[0],a[1]y+b[1],
 	//Mapping [-1,1]X[-1,1] into local 3D volume coordinates.
 	void buildLocal2DTransform(float a[2],float b[2], float* constVal, int mappedDims[3]);
-	void setLastTwoDTexture(unsigned char* tex) {lastTwoDTexture = tex;}
-	unsigned char* getLastTwoDTexture() {return lastTwoDTexture;}
 protected:
 	
 	static const string _geometryTag;
@@ -170,13 +160,6 @@ protected:
 
 	bool elevGridDirty;
 
-	//Cache of twoD textures, one per timestep.
-	//Also cache image positions, because each image has 
-	//different LL and UR coordinates (meters in projection space)
-	//for each time step.
-	//The elev grid is cached in the 
-	//renderer class
-	unsigned char** twoDDataTextures;
 	int maxTimestep;
 
 	int orientation; //Only settable in image mode
@@ -184,13 +167,12 @@ protected:
 	bool linearInterp;
 	Box* myBox;
 	int numRefinements, maxNumRefinements;
-	int * textureSizes; //2 ints for each time step
+	int  _textureSizes[2]; //2 ints for each time step
 	float selectPoint[3];
 	float cursorCoords[2];
 	float verticalDisplacement;
 	bool mapToTerrain;
 	float minTerrainHeight, maxTerrainHeight;
-	unsigned char* lastTwoDTexture;
 	int compressionLevel;
 	string heightVariableName;
 	

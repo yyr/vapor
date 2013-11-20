@@ -102,6 +102,14 @@ reinit(bool doOverride){
 		numrefs = 0;
 		SetNumBits(defaultBitsPerVoxel);
 	} else {  //Try to use existing values
+		//For versions prior to 2.3.0, don't use fidelity
+		
+		const std::string& sessionVersion = ds->getSessionVersion();
+		int gt = Version::Compare(sessionVersion, "2.2.4");
+		if(gt <= 0) {
+			SetFidelityLevel(0.5f);
+			SetIgnoreFidelity(true);
+		}
 		if (numrefs > maxNumRefinements) numrefs = maxNumRefinements;
 		if (numrefs < 0) numrefs = 0;
 	}
@@ -286,6 +294,8 @@ void ParamsIso::restart() {
 	SetSelectedPoint(pnt);
 	SetRefinementLevel(0);
 	SetCompressionLevel(0);
+	SetFidelityLevel(0.5);
+	SetIgnoreFidelity(false);
 	SetVisualizerNum(vizNum);
 	SetIsoVariableName("none");
 	SetMapVariableName("Constant");
@@ -550,6 +560,22 @@ int ParamsIso::GetCompressionLevel(){
 void ParamsIso::SetCompressionLevel(int level){
 	 vector<long> valvec(1,(long)level);
 	 GetRootNode()->SetElementLong(_CompressionLevelTag,valvec);
+ }
+float ParamsIso::GetFidelityLevel(){
+	vector<double> valvec = GetRootNode()->GetElementDouble(_FidelityLevelTag);
+	return (float)valvec[0];
+ }
+void ParamsIso::SetFidelityLevel(float level){
+	 vector<double> valvec(1,(double)level);
+	 GetRootNode()->SetElementDouble(_FidelityLevelTag,valvec);
+ }
+bool ParamsIso::GetIgnoreFidelity(){
+	vector<long> valvec = GetRootNode()->GetElementLong(_IgnoreFidelityTag);
+	return (bool)valvec[0];
+ }
+void ParamsIso::SetIgnoreFidelity(bool val){
+	 vector<long> valvec(1,(long)val);
+	 GetRootNode()->SetElementLong(_IgnoreFidelityTag,valvec);
  }
 void ParamsIso::RegisterCompressionDirtyFlag(ParamNode::DirtyFlag *df){
 	GetRootNode()->RegisterDirtyFlag(_CompressionLevelTag, df);
