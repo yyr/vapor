@@ -56,6 +56,8 @@ reinit(bool doOverride){
 	int numrefs = GetRefinementLevel();
 	if (doOverride) { 
 		numrefs = 0;
+		SetFidelityLevel(0.5f);
+		SetIgnoreFidelity(false);
 	} else {  //Try to use existing values
 		const std::string& sessionVersion = ds->getSessionVersion();
 		int gt = Version::Compare(sessionVersion, "2.2.4");

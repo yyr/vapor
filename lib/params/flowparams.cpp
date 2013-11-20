@@ -162,7 +162,7 @@ restart() {
 	arrowDiameter = defaultArrowSize;
 	diamondDiameter = defaultDiamondSize;
 
-
+	SetIgnoreFidelity(false);
 	flowType = 0; //steady
 	periodicDim[0]=periodicDim[1]=periodicDim[2]=false;
 	autoRefresh = true;
@@ -375,7 +375,8 @@ reinit(bool doOverride){
 		shapeDiameter = defaultFlowDiameter;
 		arrowDiameter = defaultArrowSize;
 		diamondDiameter = defaultDiamondSize;
-
+		SetFidelityLevel(0.5f);
+		SetIgnoreFidelity(false);
 	} else {
 		if (numRefinements> maxNumRefinements) numRefinements = maxNumRefinements;
 		

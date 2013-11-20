@@ -235,6 +235,8 @@ reinit(bool doOverride){
 		
 		cursorCoords[0] = cursorCoords[1] = 0.0f;
 		numRefinements = 0;
+		SetFidelityLevel(0.5f);
+		SetIgnoreFidelity(false);
 	} else {
 		//Force the probe size to be no larger than the domain extents, Note that
 		//because of rotation, the probe max/min may not correspond
@@ -450,6 +452,7 @@ restart(){
 	if (!myBox){
 		myBox = new Box();
 	}
+	SetIgnoreFidelity(false);
 	setProbeDirty();
 	if (probeDataTextures) delete [] probeDataTextures;
 	probeDataTextures = 0;

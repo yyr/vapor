@@ -138,6 +138,8 @@ reinit(bool doOverride){
 		
 		cursorCoords[0] = cursorCoords[1] = 0.0f;
 		numRefinements = 0;
+		SetFidelityLevel(0.5f);
+		SetIgnoreFidelity(false);
 	} else {
 		//Just force the mins to be less than the max's
 		//There is no constraint on size or position
@@ -229,7 +231,7 @@ restart(){
 	//Initialize the mapping bounds to [0,1] until data is read
 	
 	setEnabled(false);
-	
+	SetIgnoreFidelity(false);
 	numRefinements = 0;
 	maxNumRefinements = 10;
 	double twoDExtents[6];

@@ -200,6 +200,8 @@ reinit(bool doOverride){
 		cursorCoords[0] = 0.;
 		cursorCoords[1] = 0.;
 		numRefinements = 0;
+		SetFidelityLevel(0.5f);
+		SetIgnoreFidelity(false);
 	} else {
 		//Force the twoD horizontal size to be no larger than the domain size, and 
 		//force the twoD horizontal center to be inside the domain.  Note that
@@ -412,7 +414,7 @@ restart(){
 	firstVarNum = 0;
 	orientation = 2;
 	setTwoDDirty();
-
+	SetIgnoreFidelity(false);
 	if(numVariables > 0){
 		for (int i = 0; i<numVariables; i++){
 			delete transFunc[i];

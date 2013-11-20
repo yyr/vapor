@@ -101,6 +101,8 @@ reinit(bool doOverride){
 	if (doOverride) { 
 		numrefs = 0;
 		SetNumBits(defaultBitsPerVoxel);
+		SetFidelityLevel(0.5f);
+		SetIgnoreFidelity(false);
 	} else {  //Try to use existing values
 		//For versions prior to 2.3.0, don't use fidelity
 		

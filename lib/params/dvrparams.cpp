@@ -189,6 +189,8 @@ reinit(bool doOverride){
 		numBits = defaultBitsPerVoxel;
 		lightingOn = defaultLightingEnabled;
 		preIntegrationOn = defaultPreIntegrationEnabled;
+		SetFidelityLevel(0.5f);
+		SetIgnoreFidelity(false);
 	} else {//Try to use existing value
 		if (numRefinements > maxNumRefinements) numRefinements = maxNumRefinements;
 	}
