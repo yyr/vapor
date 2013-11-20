@@ -49,7 +49,6 @@ public:
 protected:
 	
 	bool rebuildElevationGrid(size_t timestep);
-	
 
 };
 };

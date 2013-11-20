@@ -39,7 +39,6 @@ using namespace VAPoR;
 TwoDImageRenderer::TwoDImageRenderer(GLWindow* glw, TwoDImageParams* pParams )
 : TwoDRenderer(glw, pParams)
 {
-	
 }
 
 
@@ -49,7 +48,6 @@ TwoDImageRenderer::TwoDImageRenderer(GLWindow* glw, TwoDImageParams* pParams )
 
 TwoDImageRenderer::~TwoDImageRenderer()
 {
-	
 }
 
 
@@ -66,36 +64,27 @@ void TwoDImageRenderer::paintGL()
 	int currentTimestep = myAnimationParams->getCurrentTimestep();
 	
 	
-	unsigned char* twoDTex = 0;
+	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	
-	if (myTwoDImageParams->twoDIsDirty(currentTimestep)){
-		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		twoDTex = getTwoDTexture(myTwoDImageParams,currentTimestep,true);
-		QApplication::restoreOverrideCursor();
-		if(!twoDTex) {setBypass(currentTimestep); return;}
-		myGLWindow->setRenderNew();
-	} else { //existing texture is OK:
-		twoDTex = getTwoDTexture(myTwoDImageParams,currentTimestep,true);
-	}
+	int imgWidth, imgHeight;
+	const unsigned char *twoDTex = getTwoDTexture(
+		myTwoDImageParams, currentTimestep,imgWidth, imgHeight
+	);
+	QApplication::restoreOverrideCursor();
+	if(!twoDTex) {setBypass(currentTimestep); return;}
+	myGLWindow->setRenderNew();
+
 	if (myTwoDImageParams->elevGridIsDirty()){
 		invalidateElevGrid();
 		myTwoDImageParams->setElevGridDirty(false);
 		myGLWindow->setRenderNew();
 	}
-	int imgSize[2];
-	myTwoDImageParams->getTextureSize(imgSize, currentTimestep);
-	int imgWidth = imgSize[0];
-	int imgHeight = imgSize[1];
 	if (twoDTex){
 		
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
 		glMatrixMode(GL_MODELVIEW);
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-		//Bind if the image changed
-		if (myTwoDImageParams->getLastTwoDTexture() != twoDTex){
-			glDeleteTextures(1,&_twoDid);
-		}
 		glBindTexture(GL_TEXTURE_2D, _twoDid);
 		glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -107,7 +96,6 @@ void TwoDImageRenderer::paintGL()
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth,imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, twoDTex);
 		
-		myTwoDImageParams->setLastTwoDTexture(twoDTex);
 		//Do write to the z buffer
 		glDepthMask(GL_TRUE);
 		
@@ -186,7 +174,7 @@ void TwoDImageRenderer::paintGL()
 	glFlush();
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
-	if (twoDTex) glDisable(GL_TEXTURE_2D);
+	glDisable(GL_TEXTURE_2D);
 	
 }
 
