@@ -296,7 +296,7 @@ ProbeEventRouter::hookUpTab()
 //
 void ProbeEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
-	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
+	MainForm::getInstance()->buildWebTabHelpMenu(myWebHelpActions);
 	if (GLWindow::isRendering())return;
 	guiSetTextChanged(false);
 	setIgnoreBoxSliderEvents(true);  //don't generate nudge events

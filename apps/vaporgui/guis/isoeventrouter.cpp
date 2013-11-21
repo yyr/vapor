@@ -215,7 +215,7 @@ IsoEventRouter::hookUpTab()
 //
 void IsoEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
-	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
+	MainForm::getInstance()->buildWebTabHelpMenu(myWebHelpActions);
 	if (!isEnabled()) return;
 	if (GLWindow::isRendering()) return;
 	Session *session = Session::getInstance();

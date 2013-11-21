@@ -321,7 +321,7 @@ viewpointReturnPressed(void){
 //
 void ViewpointEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
-	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
+	MainForm::getInstance()->buildWebTabHelpMenu(myWebHelpActions);
 	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
 	
 	QString strng;

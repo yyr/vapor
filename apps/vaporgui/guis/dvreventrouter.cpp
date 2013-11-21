@@ -374,7 +374,7 @@ sessionLoadTF(QString* name){
 //
 void DvrEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
-	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
+	MainForm::getInstance()->buildWebTabHelpMenu(myWebHelpActions);
 	MessageReporter::infoMsg("DvrEventRouter::updateTab()");
 	if (!isEnabled()) return;
 	if (GLWindow::isRendering())return;

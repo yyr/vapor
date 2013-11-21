@@ -508,7 +508,7 @@ setArrowEnabled(bool val, int instance){
 //
 void ArrowEventRouter::updateTab(){
 	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
-	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
+	MainForm::getInstance()->buildWebTabHelpMenu(myWebHelpActions);
 	MessageReporter::infoMsg("ArrowEventRouter::updateTab()");
 	if (!isEnabled()) return;
 	Session *session = Session::getInstance();

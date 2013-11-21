@@ -375,7 +375,7 @@ void ModelEventRouter::setModelEnabled(bool val, int instance)
 void ModelEventRouter::updateTab()
 {
    if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
-   MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
+   MainForm::getInstance()->buildWebTabHelpMenu(myWebHelpActions);
    MessageReporter::infoMsg("ModelEventRouter::updateTab()");
 	
    if (!isEnabled()) return;

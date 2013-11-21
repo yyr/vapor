@@ -212,7 +212,7 @@ void RegionEventRouter::copyRegionToProbe(){
 //
 void RegionEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
-	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
+	MainForm::getInstance()->buildWebTabHelpMenu(myWebHelpActions);
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
