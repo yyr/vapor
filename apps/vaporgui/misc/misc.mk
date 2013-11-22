@@ -3,12 +3,16 @@ MISC_FILES := \
 	sharedcontrollerthread\
 	unsharedcontrollerthread \
 	vizfeatureparams \
-	pythonedit
+	pythonedit \
+	versionchecker \
+	vcheckgui
 
 
 MISC_QT_HEADERS := \
 	helpwindow\
 	vizfeatureparams\
-	pythonedit 
+	pythonedit \
+	vcheckgui \
+	versionchecker
  
 

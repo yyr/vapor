@@ -24,8 +24,8 @@
 #include <qfont.h>
 #include <QMessageBox>
 #include "messagereporter.h"
+#include "versionchecker.h"
 #include "vapor/GetAppPath.h"
-//#include "versionchecker.h"
 #ifdef WIN32
 #include "Windows.h"
 #define PYTHONVERSION "2.6"
@@ -161,16 +161,15 @@ int main( int argc, char ** argv ) {
 	QFont myFont = a.font();
 	myFont.setPointSize(10);
     a.setFont(myFont);
-
-
-
+    
+    
 
 	QString fileName("");
     if (argc > 1) fileName = argv[1];
     MainForm* mw = new MainForm(fileName,app);
-	
-	//VersionChecker* vcheck = new VersionChecker();
-	//vcheck->request("http://www.vis.ucar.edu/~milesrl/vapor-version");
+    
+    VersionChecker* vc = new VersionChecker();
+    vc->request("http://www.vis.ucar.edu/~milesrl/vapor-version");
 	
     mw->setWindowTitle( "VAPOR User Interface" );
     mw->show();
