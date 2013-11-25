@@ -61,8 +61,6 @@ void SelectFilePage::on_browseOutputVdfFile_clicked() {
 	if (file != ""){
 		QString base = file.split(".",QString::SkipEmptyParts).at(0);
 		QString extension = file.split(".",QString::SkipEmptyParts).at(size-1);
-        qDebug() << extension;// << endl;
-		qDebug() << base;
 		QStringList list;
 		list.append(base);
 		if ((size==1)||(extension == NULL)||(extension != "vdf")) {
