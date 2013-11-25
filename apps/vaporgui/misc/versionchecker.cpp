@@ -129,6 +129,25 @@ void VAPoR::VersionChecker::on_version_reply(QNetworkReply* reply)
 				prior = false;
 			}
 			
+			bool old = 
+			(
+				VetsUtil::Version::GetMajor() < webversion[0]
+				||
+				(
+					VetsUtil::Version::GetMajor() == webversion[0]
+					&&
+					(
+						VetsUtil::Version::GetMinor() < webversion[1]
+						||
+						(
+							VetsUtil::Version::GetMinor() == webversion[1]
+							&&
+							VetsUtil::Version::GetMinorMinor() < webversion[2]
+						)
+					)
+				)
+			);
+
 			//don't notify if user is up-to-date or if we already noted on this webversion
 			if
 			(
@@ -136,23 +155,7 @@ void VAPoR::VersionChecker::on_version_reply(QNetworkReply* reply)
 				prior == false
 				||
 				( // current version less than web version, last checked less than web version
-				    (
-						VetsUtil::Version::GetMajor() < webversion[0]
-						||
-						(
-							VetsUtil::Version::GetMajor() == webversion[0]
-							&&
-							(
-								VetsUtil::Version::GetMinor() < webversion[1]
-								||
-								(
-									VetsUtil::Version::GetMinor() == webversion[1]
-									&&
-									VetsUtil::Version::GetMinorMinor() < webversion[2]
-								)
-							)
-						)
-					)
+					old
 					&& 
 					(
 						last.major < webversion[0]
@@ -178,8 +181,11 @@ void VAPoR::VersionChecker::on_version_reply(QNetworkReply* reply)
 				last.minor = webversion[1];
 				last.mminor = webversion[2];
 				last.time = time(NULL);
-				vCheckGUI msg(output, &last.optout);
-				msg.exec();
+				if(old)
+				{
+					vCheckGUI msg(output, &last.optout);
+					msg.exec();
+				}
 				last.saveFile(vfilename);
 			}
 		}
