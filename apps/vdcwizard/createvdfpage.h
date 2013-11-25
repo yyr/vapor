@@ -53,6 +53,8 @@ public:
     vector<string> varList;
     vector<string> varSelectionList;
 
+	bool isComplete() const;
+
 public slots:
     void saveAndExit();
 
@@ -69,7 +71,8 @@ private slots:
     void addVar();
 
 private:
-    bool isComplete();
+	int Complete;
+	bool isComplete();
 	bool validatePage();
     void populateCheckedVars();
     void cleanupPage();

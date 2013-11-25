@@ -37,6 +37,8 @@ CreateVdfPage::CreateVdfPage(DataHolder *DH, QWidget *parent) :
 {
     setupUi(this);
 
+	Complete=1;
+
 	QPixmap createVDFPixmap(makeVDFsmall);
     createVdfLabel->setPixmap(createVDFPixmap);
 
@@ -117,7 +119,9 @@ void CreateVdfPage::initializePage(){
    	QList<QWizard::WizardButton> layout;
    	layout << QWizard::Stretch << QWizard::BackButton << QWizard::CustomButton1 << QWizard::NextButton;
    	wizard()->setButtonLayout(layout);
-   	connect(wizard(), SIGNAL(customButtonClicked(int)), this, SLOT(saveAndExit()));
+    wizard()->button(QWizard::CustomButton1)->setEnabled(true);
+	QApplication::processEvents();   	
+	connect(wizard(), SIGNAL(customButtonClicked(int)), this, SLOT(saveAndExit()));
 }
 
 void CreateVdfPage::setupVars() {
@@ -175,33 +179,41 @@ void CreateVdfPage::populateCheckedVars() {
     dataHolder->setVDFSelectedVars(varsVector);
 }
 
-bool CreateVdfPage::isComplete() {
-	return dataHolder->vdfSettingsChanged;
+bool CreateVdfPage::validatePage() {
+	populateCheckedVars();
+	Complete=0;
+	completeChanged();
+	wizard()->button(QWizard::BackButton)->setEnabled(false);
+	wizard()->button(QWizard::CustomButton1)->setEnabled(false);
+	QApplication::processEvents();
+	if (dataHolder->VDFCreate()==0) {   
+        Complete=1;
+		completeChanged();
+        wizard()->button(QWizard::BackButton)->setEnabled(true);
+   	    wizard()->button(QWizard::CustomButton1)->setEnabled(true);
+		dataHolder->vdfSettingsChanged=false;
+		return true;
+    }   
+    else {
+        dataHolder->vdfSettingsChanged=false;
+        for (int i=0;i<dataHolder->getErrors().size();i++){
+            errorMessage->errorList->append(dataHolder->getErrors()[i]);
+            errorMessage->errorList->append("\n");
+        }   
+        errorMessage->show();
+        dataHolder->clearErrors();
+        MyBase::SetErrCode(0);
+		Complete=1;
+		completeChanged();
+        wizard()->button(QWizard::BackButton)->setEnabled(true);
+        wizard()->button(QWizard::CustomButton1)->setEnabled(true);
+		QApplication::processEvents();
+		return false;
+    }   
 }
 
-bool CreateVdfPage::validatePage() {
-    populateCheckedVars();
-
-    if (isComplete() == true) {
-        if (dataHolder->vdfSettingsChanged==true) {
-			if (dataHolder->VDFCreate()==0) {   
-                dataHolder->vdfSettingsChanged=false;
-				return true;
-            }   
-            else {
-                dataHolder->vdfSettingsChanged=false;
-                for (int i=0;i<dataHolder->getErrors().size();i++){
-                    errorMessage->errorList->append(dataHolder->getErrors()[i]);
-                    errorMessage->errorList->append("\n");
-                }   
-                wizard()->button(QWizard::NextButton)->setDisabled(true);
-                errorMessage->show();
-                dataHolder->clearErrors();
-                MyBase::SetErrCode(0);
-				return false;
-            }   
-        }   
-        return true;
-    }   
-    return true;	
+bool CreateVdfPage::isComplete() const {
+    if (Complete==0) return false;
+    else return true;
+    //dataHolder->vdfSettingsChanged;
 }
