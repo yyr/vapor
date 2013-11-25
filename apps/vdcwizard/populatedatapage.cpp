@@ -288,6 +288,8 @@ bool PopulateDataPage::validatePage() {
 	}
 	progressBar->reset();	
 	successMessage->show();
+	successMessage->raise();
+	successMessage->activateWindow();
 	enableWidgets();	
 	//stay on page if successMessage does not exit(0)
 	return false; 	
