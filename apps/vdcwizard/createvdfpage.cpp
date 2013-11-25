@@ -149,7 +149,6 @@ void CreateVdfPage::addVar() {
 
     QTableWidgetItem *newVar = new QTableWidgetItem(selection);
     newVar->setCheckState(Qt::Checked);
-    qDebug() << size << tableWidget->rowCount();
 
     if (tableWidget->rowCount() <= size/3) {
         tableWidget->insertRow(tableWidget->rowCount());
