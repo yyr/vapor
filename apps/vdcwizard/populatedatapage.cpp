@@ -35,6 +35,7 @@ PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
     QWizardPage(parent), Ui_Page4()
 {
     setupUi(this);
+	Complete=1;
     cancelButton->setEnabled(false);
     activateCancel = 0;
 	progressBar->setValue(0);    
@@ -57,8 +58,6 @@ PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
 	checkOverwrites->continueButton->setVisible(false);
 	checkOverwrites->label->setText("Warning");
 	checkOverwrites->label_2->setText("Some of the selected variables already have data files in the vdf directory.  These files may be overwritten.  Do you still want to proceed?");
-
-	
 }
 
 void PopulateDataPage::on_showCommandButton_clicked() {
@@ -163,8 +162,11 @@ void PopulateDataPage::populateCheckedVars() {
     dataHolder->setPDSelectedVars(varsVector);
 }
 
-bool PopulateDataPage::isComplete() {
-	return dataHolder->vdcSettingsChanged;
+bool PopulateDataPage::isComplete() const{
+    if (Complete==0) return false;
+    else return true;
+
+//	return dataHolder->vdcSettingsChanged;
 }
 
 bool PopulateDataPage::checkForOverwrites() {
@@ -223,8 +225,17 @@ bool PopulateDataPage::validatePage() {
 	percentCompleteLabel->setStyleSheet("QLabel {color : black}");
 
 	disableWidgets();	
+	Complete=0;
+	completeChanged();
+	wizard()->button(QWizard::BackButton)->setEnabled(false);
+	QApplication::processEvents();	
 
 	if (checkForOverwrites()==false) {
+        enableWidgets();
+        Complete=1;
+        completeChanged();
+        wizard()->button(QWizard::BackButton)->setEnabled(true);
+        QApplication::processEvents();
 		return false;
 	}
 	else {
@@ -261,6 +272,10 @@ bool PopulateDataPage::validatePage() {
 					    progressBar->reset();
 				    
 						enableWidgets();
+					    Complete=1;
+					    completeChanged();
+					    wizard()->button(QWizard::BackButton)->setEnabled(true);
+					    QApplication::processEvents();
 						return false;
 					}
 					
@@ -283,6 +298,10 @@ bool PopulateDataPage::validatePage() {
 	        enableWidgets();
 			cancelButton->setEnabled(false);
 			activateCancel=0;
+            Complete=1;
+            completeChanged();
+            wizard()->button(QWizard::BackButton)->setEnabled(true);
+            QApplication::processEvents();
 			return false;
 		}
 	}
@@ -290,7 +309,11 @@ bool PopulateDataPage::validatePage() {
 	successMessage->show();
 	successMessage->raise();
 	successMessage->activateWindow();
-	enableWidgets();	
+	enableWidgets();
+    Complete=1;
+    completeChanged();
+    wizard()->button(QWizard::BackButton)->setEnabled(true);
+    QApplication::processEvents();	
 	//stay on page if successMessage does not exit(0)
 	return false; 	
 }
