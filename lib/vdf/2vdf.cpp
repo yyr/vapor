@@ -392,7 +392,7 @@ int CopyVar(
 
 int launch2vdf(int argc, char **argv, string dataType) {
 
-    for(int i=0;i<argc;i++) cout << argv[i] << " ";
+    //for(int i=0;i<argc;i++) cout << argv[i] << " ";
 
     MyBase::SetErrMsgFilePtr(stderr);
 
