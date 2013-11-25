@@ -48,12 +48,12 @@ PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
     popAdvancedOpts = new PopDataAdvanced(dataHolder);
 	errorMessage = new ErrorMessage;
 	commandLine = new CommandLine;
-	successMessage = new VdfBadFile;
+	successMessage = new VdfBadFile(this);
 	successMessage->buttonBox->setVisible(false);
     successMessage->label->setText("Success!");
     successMessage->label_2->setText("The specified data has finished the conversion process.  You may choose to exit the wizard, or make further data conversions.");
 
-	checkOverwrites = new VdfBadFile;
+	checkOverwrites = new VdfBadFile(this);
 	checkOverwrites->exitButton->setVisible(false);
 	checkOverwrites->continueButton->setVisible(false);
 	checkOverwrites->label->setText("Warning");
@@ -224,6 +224,7 @@ bool PopulateDataPage::validatePage() {
     populateCheckedVars();
 	percentCompleteLabel->setStyleSheet("QLabel {color : black}");
 
+	progressBar->reset();
 	disableWidgets();	
 	Complete=0;
 	completeChanged();
@@ -305,7 +306,6 @@ bool PopulateDataPage::validatePage() {
 			return false;
 		}
 	}
-	progressBar->reset();	
 	successMessage->show();
 	successMessage->raise();
 	successMessage->activateWindow();
