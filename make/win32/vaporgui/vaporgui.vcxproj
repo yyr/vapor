@@ -85,7 +85,7 @@
     <ClCompile>
       <AdditionalOptions>-Zm200 /EHsc -w34100 -w34189 /EHsc %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;$(PYTHON32ROOT)/include;.;..\..\..\apps\vaporgui\moc\;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/QtOpenGL;$(QTDIR32)/include/;$(QTDIR32)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;$(PYTHON32ROOT)/include;.;..\..\..\apps\vaporgui\moc\;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/QtOpenGL;$(QTDIR32)/include/;$(QTDIR32)/include/QtGui;$(QTDIR32)/include/QtNetwork;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
@@ -105,7 +105,7 @@
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>glew32.lib;QtCore4.lib;QtOpenGL4.lib;QtGui4.lib;qtmain.lib;..\..\..\targets\win32\bin\params.lib;opengl32.lib;assimp.lib;glu32.lib;mpr.lib;..\..\..\targets\win32\bin\vdf.lib;..\..\..\targets\win32\bin\common.lib;kernel32.lib;user32.lib;gdi32.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;imm32.lib;winmm.lib;wsock32.lib;winspool.lib;delayimp.lib;python27.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew32.lib;QtCore4.lib;QtOpenGL4.lib;QtGui4.lib;QtNetwork4.lib;qtmain.lib;..\..\..\targets\win32\bin\params.lib;opengl32.lib;assimp.lib;glu32.lib;mpr.lib;..\..\..\targets\win32\bin\vdf.lib;..\..\..\targets\win32\bin\common.lib;kernel32.lib;user32.lib;gdi32.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;imm32.lib;winmm.lib;wsock32.lib;winspool.lib;delayimp.lib;python27.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>$(QTDIR32)/lib;$(PYTHON32ROOT)/libs;$(VAPOR_WIN32_RELEASE_LIB_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -132,7 +132,7 @@
     <ClCompile>
       <AdditionalOptions>-Zm200 /EHsc -w34100 -w34189 /EHsc %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\vaporgui\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\vaporgui\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;$(QTDIR32)/include/QtNetwork;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
@@ -152,7 +152,7 @@
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>glew32.lib;QtCore4.lib;QtOpenGL4.lib;QtGui4.lib;qtmain.lib;opengl32.lib;assimp.lib;glu32.lib;mpr.lib;..\..\..\targets\win64\bin\params.lib;..\..\..\targets\win64\bin\vdf.lib;..\..\..\targets\win64\bin\common.lib;kernel32.lib;user32.lib;gdi32.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;imm32.lib;winmm.lib;wsock32.lib;winspool.lib;delayimp.lib;python27.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew32.lib;QtCore4.lib;QtOpenGL4.lib;QtGui4.lib;QtNetwork4.lib;qtmain.lib;opengl32.lib;assimp.lib;glu32.lib;mpr.lib;..\..\..\targets\win64\bin\params.lib;..\..\..\targets\win64\bin\vdf.lib;..\..\..\targets\win64\bin\common.lib;kernel32.lib;user32.lib;gdi32.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;imm32.lib;winmm.lib;wsock32.lib;winspool.lib;delayimp.lib;python27.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>$(QTDIR64)/lib;$(PYTHON64ROOT)/libs;$(VAPOR_WIN64_RELEASE_LIB_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -179,7 +179,7 @@
     <ClCompile>
       <AdditionalOptions>-Zm200 /EHsc -w34100 -w34189 %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;$(PYTHON32ROOT)/include;.;..\..\..\apps\vaporgui\moc\;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/QtOpenGL;$(QTDIR32)/include/;$(QTDIR32)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;$(PYTHON32ROOT)/include;.;..\..\..\apps\vaporgui\moc\;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/QtOpenGL;$(QTDIR32)/include/;$(QTDIR32)/include/QtNetwork;$(QTDIR32)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;QT_CORE_LIB;QT_GUI_LIB;QT_THREAD_SUPPORT;QT_OPENGL_LIB;_CRT_SECURE_NO_WARNINGS;MODELS;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
@@ -201,7 +201,7 @@
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>glew32.lib;QtCored4.lib;QtOpenGLd4.lib;QtGuid4.lib;qtmaind.lib;assimp.lib;opengl32.lib;glu32.lib;mpr.lib;..\..\..\targets\win32\bin\params.lib;..\..\..\targets\win32\bin\vdf.lib;..\..\..\targets\win32\bin\common.lib;..\..\..\targets\win32\bin\render.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;imm32.lib;winmm.lib;wsock32.lib;winspool.lib;delayimp.lib;python27_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew32.lib;QtCored4.lib;QtOpenGLd4.lib;QtGuid4.lib;QtNetworkd4.lib;qtmaind.lib;assimp.lib;opengl32.lib;glu32.lib;mpr.lib;..\..\..\targets\win32\bin\params.lib;..\..\..\targets\win32\bin\vdf.lib;..\..\..\targets\win32\bin\common.lib;..\..\..\targets\win32\bin\render.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;imm32.lib;winmm.lib;wsock32.lib;winspool.lib;delayimp.lib;python27_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>$(QTDIR32)/lib;$(PYTHON32ROOT)/libs;$(VAPOR_WIN32_DEBUG_LIB_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -227,7 +227,7 @@
     <ClCompile>
       <AdditionalOptions>-Zm200 /EHsc -w34100 -w34189 %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\vaporgui\moc\;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/QtOpenGL;$(QTDIR32)/include/;$(QTDIR32)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;$(PYTHON64ROOT)/include;.;..\..\..\apps\vaporgui\moc\;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/QtOpenGL;$(QTDIR32)/include/;$(QTDIR32)/include/QtGui;$(QTDIR32)/include/QtNetwork;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;QT_CORE_LIB;QT_GUI_LIB;QT_THREAD_SUPPORT;QT_OPENGL_LIB;_CRT_SECURE_NO_WARNINGS;MODELS;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
@@ -249,7 +249,7 @@
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>glew32.lib;QtCored4.lib;QtOpenGLd4.lib;QtGuid4.lib;qtmaind.lib;assimp.lib;opengl32.lib;glu32.lib;mpr.lib;..\..\..\targets\win64\bin\params.lib;..\..\..\targets\win64\bin\vdf.lib;..\..\..\targets\win64\bin\common.lib;..\..\..\targets\win64\bin\render.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;imm32.lib;winmm.lib;wsock32.lib;winspool.lib;delayimp.lib;python27_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew32.lib;QtCored4.lib;QtOpenGLd4.lib;QtGuid4.lib;QtNetworkd4.lib;qtmaind.lib;assimp.lib;opengl32.lib;glu32.lib;mpr.lib;..\..\..\targets\win64\bin\params.lib;..\..\..\targets\win64\bin\vdf.lib;..\..\..\targets\win64\bin\common.lib;..\..\..\targets\win64\bin\render.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;imm32.lib;winmm.lib;wsock32.lib;winspool.lib;delayimp.lib;python27_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>$(QTDIR64)/lib;$(PYTHON64ROOT)/libs;$(VAPOR_WIN64_DEBUG_LIB_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -314,6 +314,8 @@
     <ClCompile Include="..\..\..\apps\vaporgui\guis\userpreferences.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\viewpointeventrouter.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\main\vizactivatecommand.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\misc\vcheckgui.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\misc\versionchecker.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\misc\vizfeatureparams.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\vizselectcombo.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\main\vizwin.cpp" />
@@ -351,6 +353,8 @@
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_twodframe.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_twoDimageeventrouter.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_userpreferences.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_vcheckgui.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_versionchecker.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_viewpointeventrouter.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_vizfeatureparams.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_vizselectcombo.cpp" />
@@ -359,6 +363,42 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\apps\vaporgui\misc\animationcontroller.h" />
+    <CustomBuild Include="..\..\..\apps\vaporgui\misc\vcheckgui.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\misc\vcheckgui.h -o ..\..\..\apps\vaporgui\moc\moc_vcheckgui.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing vcheckgui.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\moc\moc_vcheckgui.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\misc\vcheckgui.h -o ..\..\..\apps\vaporgui\moc\moc_vcheckgui.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\misc\vcheckgui.h -o ..\..\..\apps\vaporgui\moc\moc_vcheckgui.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\misc\vcheckgui.h -o ..\..\..\apps\vaporgui\moc\moc_vcheckgui.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing vcheckgui.h...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing vcheckgui.h...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing vcheckgui.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vaporgui\moc\moc_vcheckgui.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vaporgui\moc\moc_vcheckgui.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\moc\moc_vcheckgui.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\misc\versionchecker.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\misc\versionchecker.h -o ..\..\..\apps\vaporgui\moc\moc_versionchecker.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing versionchecker.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\moc\moc_versionchecker.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\misc\versionchecker.h -o ..\..\..\apps\vaporgui\moc\moc_versionchecker.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\misc\versionchecker.h -o ..\..\..\apps\vaporgui\moc\moc_versionchecker.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\misc\versionchecker.h -o ..\..\..\apps\vaporgui\moc\moc_versionchecker.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing versionchecker.h...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing versionchecker.h...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing versionchecker.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vaporgui\moc\moc_versionchecker.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vaporgui\moc\moc_versionchecker.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\moc\moc_versionchecker.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\animationeventrouter.h">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing animationeventrouter.h...</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\animationeventrouter.h -o ..\..\..\apps\vaporgui\moc\moc_animationeventrouter.cpp

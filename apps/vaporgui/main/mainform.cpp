@@ -1630,6 +1630,7 @@ void MainForm::buildWebTabHelpMenu(vector<QAction*>* actions){
 		webTabHelpMenu->addAction((*actions)[i]);
 	}
 }
+
 void MainForm::buildWebHelpMenus(){
 	//Basci web help
 	const char* currText = "VAPOR Overview";

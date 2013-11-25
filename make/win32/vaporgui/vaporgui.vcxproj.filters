@@ -294,6 +294,18 @@
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_vizwinmgr.cpp">
       <Filter>Generated MOC Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_vcheckgui.cpp">
+      <Filter>Generated MOC Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_versionchecker.cpp">
+      <Filter>Generated MOC Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vaporgui\misc\vcheckgui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vaporgui\misc\versionchecker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\apps\vaporgui\misc\animationcontroller.h">
@@ -543,6 +555,12 @@
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\viztab.ui">
       <Filter>Forms</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\misc\vcheckgui.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\misc\versionchecker.h">
+      <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>
 </Project>
