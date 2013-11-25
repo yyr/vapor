@@ -184,9 +184,9 @@ ColorMapBase::ControlPoint::ControlPoint(const ControlPoint &cp) :
 // Constructor
 //----------------------------------------------------------------------------
 ColorMapBase::ColorMapBase() :
+  _interpType(TFInterpolator::linear),
   _minValue(0.0),
-  _maxValue(1.0),
-  _interpType(TFInterpolator::linear)
+  _maxValue(1.0)
 {
   _controlPoints.push_back(new ControlPoint(Color(0, 1.0, 1.0), 0.0));
   _controlPoints.push_back(new ControlPoint(Color(0.333, 1.0, 1.0), 0.333));
@@ -198,9 +198,9 @@ ColorMapBase::ColorMapBase() :
 // Copy constructor
 //----------------------------------------------------------------------------
 ColorMapBase::ColorMapBase(const ColorMapBase &cmap) :
+  _interpType(cmap._interpType),
   _minValue(cmap._minValue),
-  _maxValue(cmap._maxValue),
-  _interpType(cmap._interpType)
+  _maxValue(cmap._maxValue)
 {
   for(int i=0; i<cmap._controlPoints.size(); i++)
   {
