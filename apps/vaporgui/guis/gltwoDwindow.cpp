@@ -96,6 +96,17 @@ void GLTwoDWindow::_resizeGL() {
 	glMatrixMode(GL_MODELVIEW);
 	qglClearColor(palette().color(QPalette::Window));		// same as frame
 
+	TwoDParams* myParams;
+	if (isDataWindow) myParams = VizWinMgr::getActiveTwoDDataParams();
+	else myParams = VizWinMgr::getActiveTwoDImageParams();
+
+    int txsize[2];
+    myParams->getTextureSize(txsize);
+	horizTexSize = txsize[0];
+	vertTexSize = txsize[1];
+	if (horizTexSize == 0) horizTexSize = 1;
+	if (vertTexSize == 0) vertTexSize = 1;
+
 	//Calculate the lower-left and upper right positions for the 
 	//texture to be mapped
 	float winAspect = (float) _winHeight/(float) _winWidth;
@@ -197,7 +208,7 @@ void GLTwoDWindow::paintGL()
 	//Now draw the crosshairs
 	if (myParams){
 		const float* crossHairCoords = myParams->getCursorCoords();
-		float crossX = crossHairCoords[0]*rectLeft;
+		float crossX = -1.0 * crossHairCoords[0]*rectLeft;
 		float crossY = crossHairCoords[1]*rectTop;
 		glColor3f(CURSOR_COLOR);
 		glLineWidth(2.f);
