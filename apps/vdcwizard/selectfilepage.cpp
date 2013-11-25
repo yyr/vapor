@@ -79,30 +79,34 @@ void SelectFilePage::on_outputVDFtext_textChanged() {
 	completeChanged();
 }
 
+
 void SelectFilePage::on_addFileButton_clicked() {
-    QStringList fileNames = QFileDialog::getOpenFileNames(this,"Select basis files for metadata creation.",selectedDirectory);//"/glade/proj4/DASG/pearse/data");
-    int count = fileList->count();
-    for (int i=0;i<count;i++){
-        fileNames.append(fileList->item(i)->text());
-    }
-    fileNames.removeDuplicates();
-    fileList->clear();
-    fileList->addItems(fileNames);
-
-    if (fileList->count() > 0) {
-        momRadioButton->setEnabled(true);
-        popRadioButton->setEnabled(true);
-        romsRadioButton->setEnabled(true);
-    	wrfRadioButton->setEnabled(true);
-	}
-
-	selectedDirectory = QDir(fileNames.at(0)).absolutePath();
-    // convert fileList into a vector of std::string
-    // (not QStrings) to feed into DCReaderMOM
-    stdFileList = getSelectedFiles();
-    dataHolder->setFiles(stdFileList);
-	dataHolder->ncdfFilesChanged = true;
-	completeChanged();
+	QStringList fileNames = QFileDialog::getOpenFileNames(this,"Select basis files for metadata creation.",selectedDirectory);//"/glade/proj4/DASG/pearse/data");
+	if (fileNames.count() >0){
+		int count = fileList->count();
+		for (int i=0;i<count;i++){
+			fileNames.append(fileList->item(i)->text());
+		}
+	
+		fileNames.removeDuplicates();
+		fileList->clear();
+		fileList->addItems(fileNames);
+	
+		if (fileList->count() > 0) {
+			momRadioButton->setEnabled(true);
+			popRadioButton->setEnabled(true);
+			romsRadioButton->setEnabled(true);
+			wrfRadioButton->setEnabled(true);
+		}
+	
+		selectedDirectory = QDir(fileNames.at(0)).absolutePath();
+		// convert fileList into a vector of std::string
+		// (not QStrings) to feed into DCReaderMOM
+		stdFileList = getSelectedFiles();
+		dataHolder->setFiles(stdFileList);
+		dataHolder->ncdfFilesChanged = true;
+		completeChanged();
+	} 
 }
 
 void SelectFilePage::on_removeFileButton_clicked() {
