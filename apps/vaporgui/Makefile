@@ -43,7 +43,7 @@ MAKEFILE_LDFLAGS += -u _PyMac_Error
 
 ifeq ($(QT_FRAMEWORK), 1)
 MAKEFILE_LDFLAGS += -F$(QTDIR)/lib -framework QtCore -framework QtGui 
-MAKEFILE_LDFLAGS += -framework QtOpenGL
+MAKEFILE_LDFLAGS += -framework QtOpenGL -framework QtNetwork
 endif
 
 MAKEFILE_CXXFLAGS += -Wno-unused-variable -Wno-non-virtual-dtor
