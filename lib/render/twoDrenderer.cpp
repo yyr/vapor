@@ -45,7 +45,6 @@ TwoDRenderer::TwoDRenderer(GLWindow* glw, TwoDParams* pParams )
 	elevVert = 0;
 	elevNorm = 0;
 	cachedTimeStep = -1;
-	pParams->setLastTwoDTexture(0);
 	lambertOrMercator = false;
 }
 
@@ -73,16 +72,10 @@ void TwoDRenderer::initializeGL()
 	initialized = true;
 }
 //Static method to calculate the twoD texture 
-unsigned char* TwoDRenderer::getTwoDTexture(TwoDParams* pParams, int frameNum,  bool doCache){
-	unsigned char* tex;
-	if (!pParams->twoDIsDirty(frameNum)) {
-		tex =  pParams->getCurrentTwoDTexture(frameNum);
-		if (tex) {
-			return tex;
-		}
-	}
-	return pParams->calcTwoDDataTexture(frameNum, 0,0);
-	
+const unsigned char* TwoDRenderer::getTwoDTexture(
+	TwoDParams* pParams, int frameNum,  int &width, int &height
+) {
+	return pParams->calcTwoDDataTexture(frameNum, width,height);
 }
 //Draw an elevation grid (surface) inside the current region extents.
 //Texture is already specified

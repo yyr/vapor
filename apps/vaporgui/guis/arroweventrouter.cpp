@@ -49,22 +49,27 @@
 using namespace VAPoR;
 const char* ArrowEventRouter::webHelpText[] = 
 {
-"Barbs Overview",
-"Barb layout options",
-"Barb Appearance settings",
-"Barb alignment options","<>"
+	"Barbs Overview",
+	"Renderer control",
+	"Data accuracy control",
+	"Barb layout options",
+	"Barb Appearance settings",
+	"Barb alignment options","<>"
 };
 const char* ArrowEventRouter::webHelpURL[] =
 {
-"http://www.vapor.ucar.edu/docs/vapor-gui-help/barbs#BarbsOverview",
-"http://www.vapor.ucar.edu/docs/vapor-gui-help/barbs#BarbLayout",
-"http://www.vapor.ucar.edu/docs/vapor-gui-help/barbs#BarbAppearance",
-"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/barb-alignment"
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/barbs#BarbsOverview",
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/renderer-instances",
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/refinement-and-lod-control",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/barbs#BarbLayout",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/barbs#BarbAppearance",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/barb-alignment"
 };
 
 ArrowEventRouter::ArrowEventRouter(QWidget* parent): QWidget(parent), Ui_Arrow(), EventRouter(){
         setupUi(this);
 	myParamsBaseType = Params::GetTypeFromTag(ArrowParams::_arrowParamsTag);
+	fidelityButtons = 0;
 	savedCommand = 0;
 	showAppearance = false;
 	showLayout = false;
@@ -91,6 +96,7 @@ ArrowEventRouter::hookUpTab()
 	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
 	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
 	connect (instanceTable, SIGNAL(enableInstance(bool,int)), this, SLOT(setArrowEnabled(bool,int)));
+	connect (fidelityDefaultButton, SIGNAL(clicked()), this, SLOT(guiSetFidelityDefault()));
 	
 	//Unique connections for ArrowTab:
 	//Connect all line edits to textChanged and return pressed: 
@@ -261,6 +267,9 @@ guiSetVariableDims(int is3D){
 	//Set up variable combos:
 	populateVariableCombos(is3D);
 	aParams->SetVectorScale(aParams->calcDefaultScale());
+	
+	setupFidelity(3, fidelityLayout,fidelityBox, aParams, true);
+	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 	PanelCommand::captureEnd(cmd,aParams);
 	updateTab();
 	VizWinMgr::getInstance()->forceRender(aParams);	
@@ -499,11 +508,12 @@ setArrowEnabled(bool val, int instance){
 //
 void ArrowEventRouter::updateTab(){
 	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
+	MainForm::getInstance()->buildWebTabHelpMenu(myWebHelpActions);
 	MessageReporter::infoMsg("ArrowEventRouter::updateTab()");
 	if (!isEnabled()) return;
 	Session *session = Session::getInstance();
 	session->blockRecording();
-	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
+	
 	//Set up the instance table:
 	DataStatus* ds = DataStatus::getInstance();
 	if (ds->getDataMgr()) instanceTable->setEnabled(true);
@@ -530,11 +540,7 @@ void ArrowEventRouter::updateTab(){
 	deleteInstanceButton->setEnabled(vizMgr->getNumInstances(winnum, Params::GetTypeFromTag(ArrowParams::_arrowParamsTag)) > 1);
 
 	//Set up refinements and LOD combos:
-	int numRefs = arrowParams->GetRefinementLevel();
-	if(numRefs <= refinementCombo->count())
-		refinementCombo->setCurrentIndex(numRefs);
-	lodCombo->setCurrentIndex(arrowParams->GetCompressionLevel());
-	
+	updateFidelity(arrowParams,lodCombo,refinementCombo);
 	//Set the combo based on the current field variables
 	int comboIndex[3] = { 0,0,0};
 	bool is3D = arrowParams->VariablesAre3D();
@@ -596,6 +602,7 @@ void ArrowEventRouter::updateTab(){
 		fullUsrExts[i]+= usrExts[i%3];
 		usrRakeExts.push_back(rakeexts[i]+usrExts[i%3]);
 	}
+	int numRefs = arrowParams->GetRefinementLevel();
 	boxSliderFrame->setFullDomain(fullUsrExts);
 	boxSliderFrame->setBoxExtents(usrRakeExts);
 	boxSliderFrame->setNumRefinements(numRefs);
@@ -708,9 +715,11 @@ reinitTab(bool doOverride){
 	//Set up the variable combos with default 3D variables  
 	populateVariableCombos(true);
 	
-	
 	//set the combo to 3D
 	variableDimCombo->setCurrentIndex(1);
+	ArrowParams* dParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
+	setupFidelity(3, fidelityLayout,fidelityBox, dParams, doOverride);
+	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 	updateTab();
 }
 
@@ -725,6 +734,7 @@ guiSetCompRatio(int num){
 	
 	dParams->SetCompressionLevel(num);
 	lodCombo->setCurrentIndex(num);
+	dParams->SetIgnoreFidelity(true);
 	PanelCommand::captureEnd(cmd, dParams);
 	VizWinMgr::getInstance()->forceRender(dParams);
 }
@@ -772,6 +782,7 @@ guiSetNumRefinements(int num){
 	dParams->SetRefinementLevel(num);
 	refinementCombo->setCurrentIndex(num);
 	boxSliderFrame->setNumRefinements(num);
+	dParams->SetIgnoreFidelity(true);
 	PanelCommand::captureEnd(cmd, dParams);
 	VizWinMgr::getInstance()->forceRender(dParams);
 }
@@ -981,4 +992,50 @@ QSize ArrowEventRouter::sizeHint() const {
 #endif
 
 	return QSize(460,vertsize);
+}
+//Occurs when user clicks a fidelity radio button
+void ArrowEventRouter::guiSetFidelity(int buttonID){
+	// Recalculate LOD and refinement based on current slider value and/or current text value
+	//.  If they don't change, then don't 
+	// generate an event.
+	confirmText(false);
+	ArrowParams* dParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
+	int newLOD = fidelityLODs[buttonID];
+	int newRef = fidelityRefinements[buttonID];
+	int lodSet = dParams->GetCompressionLevel();
+	int refSet = dParams->GetRefinementLevel();
+	if (lodSet == newLOD && refSet == newRef) return;
+	float fidelity = fidelities[buttonID];
+	
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Data Fidelity");
+	dParams->SetCompressionLevel(newLOD);
+	dParams->SetRefinementLevel(newRef);
+	dParams->SetFidelityLevel(fidelity);
+	dParams->SetIgnoreFidelity(false);
+	//change values of LOD and refinement combos using setCurrentIndex().
+	lodCombo->setCurrentIndex(newLOD);
+	refinementCombo->setCurrentIndex(newRef);
+	PanelCommand::captureEnd(cmd, dParams);
+	VizWinMgr::getInstance()->forceRender(dParams, false);
+}
+
+//User clicks on SetDefault button, need to make current fidelity settings the default.
+void ArrowEventRouter::guiSetFidelityDefault(){
+	//Check current values of LOD and refinement and their combos.
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	if (!dataMgr) return;
+	confirmText(false);
+	ArrowParams* dParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Fidelity Default LOD and refinement");
+	int dim = 2;
+	if (dParams->VariablesAre3D()) dim = 3;
+	setFidelityDefault(dim,dParams);
+	
+	//Setup the buttons
+	setupFidelity(dim, fidelityLayout,fidelityBox, dParams);
+	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
+	
+	PanelCommand::captureEnd(cmd, dParams);
+	updateTab();
+	//Need undo/redo to include preference settings!
 }

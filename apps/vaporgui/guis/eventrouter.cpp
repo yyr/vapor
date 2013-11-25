@@ -31,6 +31,7 @@
 #include <qmessagebox.h>
 #include <qfileinfo.h>
 #include <QFileDialog>
+#include <qgroupbox.h>
 #include <vapor/DataMgr.h>
 #include <vapor/errorcodes.h>
 #include "vapor/GetAppPath.h"
@@ -43,6 +44,11 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <qcombobox.h>
+#include <qbuttongroup.h>
+#include <qradiobutton.h>
+#include <QHBoxLayout>
+
 #ifdef _WINDOWS 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -585,4 +591,108 @@ vector<QAction*>* EventRouter::makeWebHelpActions(const char* texts[], const cha
 		actionVector->push_back(currAction);
 	}
 	return actionVector;
+}
+void EventRouter::updateFidelity(RenderParams* rp, QComboBox* lodCombo, QComboBox* refinementCombo){
+	if (!rp->GetIgnoreFidelity()){
+		//Which button corresponds to fidelity?
+		float fidelity = rp->GetFidelityLevel();
+		float fiddist = 1000.;
+		int defIndx = -1;
+		for (int i = 0; i<fidelities.size(); i++){
+			float dst = abs(fidelities[i]-fidelity);
+			if (dst < fiddist) {fiddist = dst; defIndx = i;}
+		}
+		if (defIndx >= 0){
+			int lod = fidelityLODs[defIndx];
+			int refLevel = fidelityRefinements[defIndx];
+			lodCombo->setCurrentIndex(lod);
+			refinementCombo->setCurrentIndex(refLevel);
+			rp->SetRefinementLevel(refLevel);
+			rp->SetCompressionLevel(lod);
+			QRadioButton* activeButton = (QRadioButton*)fidelityButtons->button(defIndx);
+			activeButton->setChecked(true);
+		}
+	} else {
+		int numRefs = rp->GetRefinementLevel();
+		if(numRefs <= refinementCombo->count())
+			refinementCombo->setCurrentIndex(numRefs);
+		lodCombo->setCurrentIndex(rp->GetCompressionLevel());
+	}
+}
+void EventRouter::setupFidelity(int dim, QHBoxLayout* fidelityLayout,
+	QGroupBox* fidelityBox, RenderParams* dParams, bool useDefault){
+	
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	if (!dataMgr) return;
+	const vector<size_t> cRatios = dataMgr->GetCRatios();
+	int deflt = orderLODRefs(dim);
+	int numButtons = fidelityLODs.size();
+	QHBoxLayout* hbox = new QHBoxLayout;
+	fidelityLayout->removeWidget(fidelityBox);
+	delete fidelityBox;// this also deletes buttongroup
+	fidelityBox = new QGroupBox("low .. Fidelity .. high");
+	
+	fidelityButtons = new QButtonGroup(fidelityBox);
+	for (int i = 0; i<numButtons; i++){
+		QRadioButton * rd = new QRadioButton(fidelityBox);
+		hbox->addWidget(rd);
+		fidelityButtons->addButton(rd, i);
+		QString refLevel = "Refinement "+QString::number(fidelityRefinements[i]);
+		QString LOD = "\nLOD "+QString::number(cRatios[fidelityLODs[i]])+":1";
+		QString tt = refLevel+LOD;
+		rd->setToolTip(tt);
+		if (i == deflt) rd->setChecked(true);
+	}
+	if(useDefault){
+		//set the default fidelity to be closest to the preference setting, when initially setting up tab
+		float fidelity = fidelities[deflt];
+		dParams->SetFidelityLevel(fidelity);
+	}
+	
+	fidelityBox->setToolTip("Click a button to specify the fidelity (both LOD and refinement)\n Each button has a tooltip indicating its associated LOD and refinement.");
+	fidelityBox->setLayout(hbox);
+	fidelityLayout->addWidget(fidelityBox);
+	fidelityBox->adjustSize();
+	return;
+}
+//User clicks on SetDefault button, need to make current fidelity settings the default.
+void EventRouter::setFidelityDefault(int dim, RenderParams* dParams){
+	
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	int lodSet = dParams->GetCompressionLevel();
+	int refSet = dParams->GetRefinementLevel();
+	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
+	float regionMBs = rParams->fullRegionMBs(-1);
+	//Adjust lod, ref based on actual region size
+	const vector<size_t> comprs = dataMgr->GetCRatios();
+	float lodDefault = (float)comprs[lodSet]/regionMBs;
+	float refDefault = (float)refSet+log(regionMBs)/log(2.);
+	//Set defaultLOD3d and defaultRefinement3D values
+	if (dim == 3){
+		float oldLODDefault = UserPreferences::getDefaultLODFidelity3D();
+		float oldRefDefault = UserPreferences::getDefaultRefinementFidelity3D();
+		if (oldLODDefault != lodDefault || oldRefDefault != refDefault){
+			UserPreferences::setDefaultLODFidelity3D(lodDefault);
+			UserPreferences::setDefaultRefinementFidelity3D(refDefault);
+			UserPreferences::requestSave();
+		}
+	} else {
+		float oldLODDefault = UserPreferences::getDefaultLODFidelity2D();
+		float oldRefDefault = UserPreferences::getDefaultRefinementFidelity2D();
+		if (oldLODDefault != lodDefault || oldRefDefault != refDefault){
+			UserPreferences::setDefaultLODFidelity2D(lodDefault);
+			UserPreferences::setDefaultRefinementFidelity2D(refDefault);
+			UserPreferences::requestSave();
+		}
+	}
+	//Set Fidelity to 0.5 unless it is at an extreme:
+	float fidelity = 0.5f;
+	if (lodSet == comprs.size()-1 && refSet == dataMgr->GetNumTransforms()) fidelity = 1.f;
+	if (lodSet == 0 && refSet == 0) fidelity = 0.f;
+	dParams->SetFidelityLevel(fidelity);
+	
+	//Clear ignoreFidelity flag
+	dParams->SetIgnoreFidelity(false);
+	
+	//Need undo/redo to include preference settings!
 }

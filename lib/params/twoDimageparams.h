@@ -44,16 +44,19 @@ class PARAMS_API TwoDImageParams : public TwoDParams {
 	
 public: 
 	TwoDImageParams(int winnum);
+
 	~TwoDImageParams();
 	static ParamsBase* CreateDefaultInstance() {return new TwoDImageParams(-1);}
 	const std::string& getShortName() {return _shortName;}
 	
 	virtual Params* deepCopy(ParamNode* =0); 
 	
-	virtual bool twoDIsDirty(int timestep) {
-		return (!twoDDataTextures || twoDDataTextures[0] == 0 || cachedTimestep != timestep);
+	
+
+	virtual void getTextureSize(int sze[2]){
+		sze[0] = _textureSizes[0];
+		sze[1] = _textureSizes[1];
 	}
-	virtual void getTextureSize(int sze[2], int){sze[0] = textureSizes[0]; sze[1] = textureSizes[1];}
 	virtual bool usingVariable(const string& varname);
 	
 	virtual int getSessionVarNum() {return -1;}  //following not used by this params
@@ -92,40 +95,10 @@ public:
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	
 	
-	void setTwoDTexture(unsigned char* tex, int timestep , int imgSize[2],
-		float imExts[4] = 0 ){ 
-		unsigned char** textureArray = twoDDataTextures;
-		if (!textureArray){
-			textureArray = new unsigned char*[1];
-			textureSizes = new int[2];
-			
-				textureArray[0] = 0;
-				textureSizes[0] = 0;
-				textureSizes[1] = 0;
-			
-			if (imageExtents) delete [] imageExtents;
-			imageExtents = 0;
-			if(imExts) 
-				imageExtents = new float [4];
-			twoDDataTextures = textureArray;	
-		}
-		if (textureArray[0]) 
-			delete textureArray[0];
-		textureSizes[0] = imgSize[0];
-		textureSizes[1] = imgSize[1];
-		textureArray[0] = tex;
-		if(imExts) {
-			for (int k = 0; k < 4; k++)
-				imageExtents[k] = imExts[k];
-		}
-		cachedTimestep = timestep;
-		 
-	}
-	
-	unsigned char* calcTwoDDataTexture(int timestep, int wid, int ht);
+	const unsigned char* calcTwoDDataTexture(int timestep, int &wid, int &ht);
 
 	//Read texture image from tif (or kml).
-	unsigned char* readTextureImage(int timestep, int* wid, int* ht,
+	const unsigned char* readTextureImage(int timestep, int* wid, int* ht,
 		float imgExtents[4]);
 
 	//Whenever the 2D image filename changes or the session changes,
@@ -133,22 +106,17 @@ public:
 	void setImagesDirty();
 	
 	//Go over domain, find min,max lonlatexts at a timestep
-	bool getLonLatExts(size_t timestep, float lonlatexts[4]);
+	bool getLonLatExts(size_t timestep, float lonlatexts[4]) ;
 	
 	unsigned char* extractSubtexture(unsigned char* texture, float lonlatexts[4], int* wid2, int* ht2, int lev);
 
-	virtual unsigned char* getCurrentTwoDTexture(int ) {
-		if (!twoDDataTextures) return 0;
-		return twoDDataTextures[0];
-		
-	}
 	//Override default, allow manip to go outside of data:
 	virtual bool isDomainConstrained() {return false;}
 
 	// Return the image extents in the current displayed image
 	float * getCurrentTwoDImageExtents(){
-		if (!imageExtents) return 0;
-		return imageExtents;
+		if (!_imageExtents) return 0;
+		return _imageExtents;
 	}
 	
 	std::string& getImageProjectionString() {return projDefinitionString;}
@@ -164,6 +132,11 @@ public:
 	bool mapGeorefPoint(int timestep, double pt[2]);
 	bool isSingleImage() {return singleImage;}
 	bool hasTransparentAlpha() {return transparentAlpha;}
+		
+	virtual bool GetIgnoreFidelity() {return ignoreFidelity;}
+	virtual void SetIgnoreFidelity(bool val){ignoreFidelity = val;}
+	virtual float GetFidelityLevel() {return fidelityLevel;}
+	virtual void SetFidelityLevel(float lev){fidelityLevel = lev;}
 	
 	
 protected:
@@ -176,7 +149,8 @@ protected:
 	static const string _imagePlacementAttr;
 
 	
-	
+	float fidelityLevel;
+	bool ignoreFidelity;
 	int getImageNum(int timestep){
 		return imageNums[timestep];
 	}
@@ -189,7 +163,7 @@ protected:
 	//The elev grid is cached in the 
 	//renderer class
 	
-	float * imageExtents; //(4 floats for each time step), only for georeferenced images
+	float _imageExtents[4]; //(4 floats for each time step), only for georeferenced images
 
 	int* imageNums;
 	
@@ -200,9 +174,17 @@ protected:
 	string imageFileName;
 	int imagePlacement;
 	std::string projDefinitionString;
-	int cachedTimestep;
 	bool singleImage;  //indicates there is only one image for all timesteps
 	bool transparentAlpha;
+
+private:
+	int _timestep;
+	float _lonlatexts[4];
+	const unsigned char *_texBuf;
+
+	bool twoDIsDirty(int timestep) ;
+	bool isGeoTIFF(TIFF *tif) const;
+	bool _geotiffImage;
 	
 };
 };

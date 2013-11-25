@@ -111,6 +111,8 @@ public slots:
 	void setBindButtons(bool canbind);
 
 protected slots:
+	void guiSetFidelity(int buttonID);
+	void guiSetFidelityDefault();
 	void guiFitTFToData();
 	void guiFitToRegion();
 	void guiChangeInstance(int);

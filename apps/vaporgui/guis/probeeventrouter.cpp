@@ -77,10 +77,44 @@
 
 using namespace VAPoR;
 const float ProbeEventRouter::thumbSpeedFactor = 0.0005f;  //rotates ~45 degrees at full thumbwheel width
+const char* ProbeEventRouter::webHelpText[] = 
+{
+	"Probe overview",
+	"Renderer control",
+	"Data accuracy control",
+	"Probe basic settings",
+	"Probe layout",
+	"Probe image settings",
+	"Probe appearance",
+	"Probe orientation",
+	"Crop or Fit the Probe to Region",
+	"Histogramming data with the Probe",
+	"Image-based flow visualization in the Probe",
+	"Specifying flow seeds with the Probe",
+	"<>"
+};
+const char* ProbeEventRouter::webHelpURL[] =
+{
+
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/probe-tab-data-probe-or-contour-plane",
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/renderer-instances",
+	"http://www.vapor.ucar.edu/docs/vapor-how-guide/refinement-and-lod-control",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/probe-tab-data-probe-or-contour-plane#BasicProbeSettings",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/probe-tab-data-probe-or-contour-plane#ProbeLayout",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/probe-tab-data-probe-or-contour-plane#ProbeImageSettings",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/probe-tab-data-probe-or-contour-plane#ProbeAppearance",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/orientation-probe",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/crop-or-fit-probe-region",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/histogramming-data-values-probe",
+	"http://www.vapor.ucar.edu/docs/vapor-renderer-guide/probe-tab-image-based-flow-visualization",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-help/specifying-flow-seeds-probe"
+};
 
 ProbeEventRouter::ProbeEventRouter(QWidget* parent): QWidget(parent), Ui_ProbeTab(), EventRouter(){
 	setupUi(this);
 	myParamsBaseType = Params::GetTypeFromTag(Params::_probeParamsTag);
+	myWebHelpActions = makeWebHelpActions(webHelpText,webHelpURL);
+	fidelityButtons = 0;
 	savedCommand = 0;
 	ignoreComboChanges = false;
 	numVariables = 0;
@@ -160,7 +194,7 @@ ProbeEventRouter::hookUpTab()
 	connect(colorInterpCheckbox,SIGNAL(toggled(bool)), this, SLOT(guiToggleColorInterpType(bool)));
 	connect(smoothCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiToggleSmooth(bool)));
 	connect (alphaEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	
+	connect (fidelityDefaultButton, SIGNAL(clicked()), this, SLOT(guiSetFidelityDefault()));
 	connect (fieldScaleEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
 
 	connect (leftMappingBound, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
@@ -262,6 +296,7 @@ ProbeEventRouter::hookUpTab()
 //
 void ProbeEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
+	MainForm::getInstance()->buildWebTabHelpMenu(myWebHelpActions);
 	if (GLWindow::isRendering())return;
 	guiSetTextChanged(false);
 	setIgnoreBoxSliderEvents(true);  //don't generate nudge events
@@ -276,7 +311,7 @@ void ProbeEventRouter::updateTab(){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	size_t timestep = (size_t)vizMgr->getActiveAnimationParams()->getCurrentTimestep();
 	int winnum = vizMgr->getActiveViz();
-	lodCombo->setCurrentIndex(probeParams->GetCompressionLevel());
+	updateFidelity(probeParams,lodCombo,refinementCombo);
 	int pType = probeParams->getProbeType();
 	probeTypeCombo->setCurrentIndex(pType);
 	if (pType == 1) {
@@ -370,9 +405,6 @@ void ProbeEventRouter::updateTab(){
       transferFunctionFrame->setVariableName("");
 	  variableLabel->setText("");
     }
-	int numRefs = probeParams->GetRefinementLevel();
-	if(numRefs <= refinementCombo->count())
-		refinementCombo->setCurrentIndex(numRefs);
 	
 	histoScaleEdit->setText(QString::number(probeParams->GetHistoStretch()));
 	guiSetTextChanged(false);
@@ -1461,6 +1493,9 @@ reinitTab(bool doOverride){
 		zSteadyVarCombo->addItem(text);
 	}
 	setBindButtons(false);
+	ProbeParams* dParams = (ProbeParams*)VizWinMgr::getActiveParams(Params::_probeParamsTag);
+	setupFidelity(3, fidelityLayout,fidelityBox, dParams, doOverride);
+	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 	updateTab();
 }
 //Change mouse mode to specified value
@@ -1826,6 +1861,7 @@ guiSetCompRatio(int num){
 	
 	pParams->SetCompressionLevel(num);
 	lodCombo->setCurrentIndex(num);
+	pParams->SetIgnoreFidelity(true);
 	PanelCommand::captureEnd(cmd, pParams);
 	setProbeDirty(pParams);
 	probeTextureFrame->update();
@@ -1846,6 +1882,7 @@ guiSetNumRefinements(int n){
 		}
 	} else if (n > maxNumRefinements) maxNumRefinements = n;
 	pParams->SetRefinementLevel(n);
+	pParams->SetIgnoreFidelity(true);
 	PanelCommand::captureEnd(cmd, pParams);
 	setProbeDirty(pParams);
 	probeTextureFrame->update();
@@ -3295,4 +3332,49 @@ QSize ProbeEventRouter::sizeHint() const {
 #endif
 
 	return QSize(460,vertsize);
+}
+//Occurs when user clicks a fidelity radio button
+void ProbeEventRouter::guiSetFidelity(int buttonID){
+	// Recalculate LOD and refinement based on current slider value and/or current text value
+	//.  If they don't change, then don't 
+	// generate an event.
+	confirmText(false);
+	ProbeParams* dParams = (ProbeParams*)VizWinMgr::getActiveParams(Params::_probeParamsTag);
+	int newLOD = fidelityLODs[buttonID];
+	int newRef = fidelityRefinements[buttonID];
+	int lodSet = dParams->GetCompressionLevel();
+	int refSet = dParams->GetRefinementLevel();
+	if (lodSet == newLOD && refSet == newRef) return;
+	float fidelity = fidelities[buttonID];
+	
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Data Fidelity");
+	dParams->SetCompressionLevel(newLOD);
+	dParams->SetRefinementLevel(newRef);
+	dParams->SetFidelityLevel(fidelity);
+	dParams->SetIgnoreFidelity(false);
+	//change values of LOD and refinement combos using setCurrentIndex().
+	lodCombo->setCurrentIndex(newLOD);
+	refinementCombo->setCurrentIndex(newRef);
+	PanelCommand::captureEnd(cmd, dParams);
+	VizWinMgr::getInstance()->forceRender(dParams, false);
+}
+
+//User clicks on SetDefault button, need to make current fidelity settings the default.
+void ProbeEventRouter::guiSetFidelityDefault(){
+	//Check current values of LOD and refinement and their combos.
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	if (!dataMgr) return;
+	confirmText(false);
+	ProbeParams* dParams = (ProbeParams*)VizWinMgr::getActiveParams(Params::_probeParamsTag);
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Fidelity Default LOD and refinement");
+	
+	setFidelityDefault(3,dParams);
+	
+	//Setup the buttons
+	setupFidelity(3, fidelityLayout,fidelityBox, dParams);
+	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
+	
+	PanelCommand::captureEnd(cmd, dParams);
+	updateTab();
+	//Need undo/redo to include preference settings!
 }

@@ -99,7 +99,8 @@ public:
 
 
 protected slots:
-
+	void guiSetFidelity(int buttonID);
+	void guiSetFidelityDefault();
 	void guiFitToRegion();
 	void guiChangeInstance(int);
 	void guiNewInstance();

@@ -90,6 +90,8 @@ public:
 	void sessionLoadTF(QString* name);
 	
 protected slots:
+	void guiSetFidelity(int buttonID);
+	void guiSetFidelityDefault();
 	void guiFitTFToData();
 	void guiSetOpacityScale(int val);
 	void guiChangeInstance(int);

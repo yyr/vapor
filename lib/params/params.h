@@ -444,6 +444,8 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	static const string _flowParamsTag;
 	static const string _RefinementLevelTag;
 	static const string _CompressionLevelTag;
+	static const string _FidelityLevelTag;
+	static const string _IgnoreFidelityTag;
 	static const string _VariableNameTag;
 	static const string _VariableNamesTag;
 	static const string _VisualizerNumTag;
@@ -562,6 +564,22 @@ public:
 	//! \retval integer compression level, 0 is most compressed
 	//!
 	virtual int GetCompressionLevel()=0;
+	//! Pure virtual method indicates current fidelity level
+	//! \retval float between 0 and 1
+	//!
+	virtual float GetFidelityLevel()=0;
+	//! Pure virtual method sets current fidelity level
+	//! \param[in] float level
+	//!
+	virtual void SetFidelityLevel(float level)=0;
+	//! Pure virtual method indicates fidelity is ignored
+	//! \retval bool
+	//!
+	virtual bool GetIgnoreFidelity()=0;
+	//! Pure virtual method sets whether fidelity is ignored
+	//! \param[in] bool 
+	//!
+	virtual void SetIgnoreFidelity(bool val)=0;
 	//! Pure virtual method sets current Compression level.
 	//! \param[in] val  compression level, 0 is most compressed
 	//!
@@ -667,11 +685,6 @@ public:
 	virtual void hookupTF(TransferFunction* , int ) {assert(0);}
 
 	
-	virtual float getFidelity(){return fidelityLevel;}
-	virtual void setFidelity(float q){fidelityLevel = q;}
-	virtual bool getIgnoreFidelity() {return ignoreFidelity;}
-	virtual void setIgnoreFidelity(bool ignoreIt) {ignoreFidelity = ignoreIt;}
-	
 	//The following may be redefined by some renderer params.  Parent version should never be invoked
 	virtual void setMinColorMapBound(float) {assert(0);}
 	virtual void setMaxColorMapBound(float){assert(0);}
@@ -734,8 +747,7 @@ protected:
 	float* maxColorEditBounds;
 	float* minOpacEditBounds;
 	float* maxOpacEditBounds;
-	bool ignoreFidelity;
-	float fidelityLevel;
+	
 	vector<int> bypassFlags;
 #endif //DOXYGEN_SKIP_THIS
 };

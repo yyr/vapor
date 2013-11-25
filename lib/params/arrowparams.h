@@ -35,6 +35,26 @@ public:
 	//! Pure virtual method required of render params
 	//
 	virtual void SetCompressionLevel(int val);
+	 //! Set the current fidelity level.
+	 //! \param [in] float fidelity
+	 //! Pure virtual method required of render params
+	 //
+	 virtual void SetFidelityLevel(float val);
+	 //! Obtain whether fidelity is ignored
+	 //!
+	 //! Pure virtual method required of render params
+	 //! \retval val bool specified if it is ignored
+	 virtual bool GetIgnoreFidelity();
+	 //! Set current ignoring of fidelity
+	 //! \param [in] bool
+	 //! Pure virtual method required of render params
+	 //
+	 virtual void SetIgnoreFidelity(bool val);
+	 //! Obtain the current fidelity level.
+	 //!
+	 //! Pure virtual method required of render params
+	 //! \retval level float between 0 and 1
+	 virtual float GetFidelityLevel();
 	//! Reinitialize the object for a new dataset.
 	//!
 	//! Pure virtual method required of Params

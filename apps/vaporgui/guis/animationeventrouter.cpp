@@ -333,7 +333,7 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 //
 void AnimationEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
-	MainForm::getInstance()->buildWebHelpMenu(myWebHelpActions);
+	MainForm::getInstance()->buildWebTabHelpMenu(myWebHelpActions);
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	AnimationParams* aParams = (AnimationParams*) VizWinMgr::getInstance()->getActiveAnimationParams();
 	float sliderVal;

@@ -189,6 +189,8 @@ reinit(bool doOverride){
 		numBits = defaultBitsPerVoxel;
 		lightingOn = defaultLightingEnabled;
 		preIntegrationOn = defaultPreIntegrationEnabled;
+		SetFidelityLevel(0.5f);
+		SetIgnoreFidelity(false);
 	} else {//Try to use existing value
 		if (numRefinements > maxNumRefinements) numRefinements = maxNumRefinements;
 	}
@@ -283,8 +285,8 @@ restart(){
     preIntegrationOn = defaultPreIntegrationEnabled;
 	numBits = defaultBitsPerVoxel;
 	compressionLevel = 0;
-	fidelityLevel = 0.5f;
-	ignoreFidelity = false;
+	SetFidelityLevel(0.5f);
+	SetIgnoreFidelity(false);
 	
 	if(numVariables > 0){
 		for (int i = 0; i<numVariables; i++){
@@ -353,6 +355,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 	string activeVarName;   //name of current variable
 	if (StrCmpNoCase(tagString, _dvrParamsTag) == 0) {
 		int newNumVariables = 0;
+		SetIgnoreFidelity(true); //default for old session files
+		SetFidelityLevel(0.5f);
 		//If it's a Dvr tag, save 5 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
 		while (*attrs) {
@@ -383,6 +387,15 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 				float histStretch;
 				ist >> histStretch;
 				setHistoStretch(histStretch);
+			}
+			else if (StrCmpNoCase(attribName, _FidelityLevelTag) == 0){
+				float fid;
+				ist >> fid;
+				SetFidelityLevel(fid);
+			}
+			else if (StrCmpNoCase(attribName, _IgnoreFidelityTag) == 0){
+				if (value == "true") SetIgnoreFidelity(true); 
+				else SetIgnoreFidelity(false);
 			}
 			else if (StrCmpNoCase(attribName, _editModeAttr) == 0){
 				if (value == "true") setEditMode(true); 
@@ -557,6 +570,15 @@ buildNode() {
 		oss << varName;
 		attrs[_activeVariableNameAttr] = oss.str();
 	}
+	oss.str(empty);
+	oss << (double)GetFidelityLevel();
+	attrs[_FidelityLevelTag] = oss.str();
+	oss.str(empty);
+	if (GetIgnoreFidelity())
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_IgnoreFidelityTag] = oss.str();
 
 	oss.str(empty);
 	if (editMode)
