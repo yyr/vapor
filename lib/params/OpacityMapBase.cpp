@@ -93,6 +93,7 @@ OpacityMapBase::ControlPoint::ControlPoint(const ControlPoint &cp) :
 // Constructor
 //----------------------------------------------------------------------------
 OpacityMapBase::OpacityMapBase(OpacityMapBase::Type type) :
+  _interpType(TFInterpolator::linear),
   _minValue(0.0),
   _maxValue(1.0),
   _type(type),
@@ -106,8 +107,7 @@ OpacityMapBase::OpacityMapBase(OpacityMapBase::Type type) :
   _minFreq(1.0),
   _maxFreq(30.0),
   _minPhase(0.0),
-  _maxPhase(2*M_PI),
-  _interpType(TFInterpolator::linear)
+  _maxPhase(2*M_PI)
 {
   _controlPoints.push_back(new ControlPoint(0.0, 0.0));
   _controlPoints.push_back(new ControlPoint(0.333, 0.333));
@@ -119,10 +119,10 @@ OpacityMapBase::OpacityMapBase(OpacityMapBase::Type type) :
 // Copy constructor
 //----------------------------------------------------------------------------
 OpacityMapBase::OpacityMapBase(const OpacityMapBase &omap) :
+  _interpType(omap._interpType),
   _minValue(omap._minValue),
   _maxValue(omap._maxValue),
   _type(omap._type),
-  _interpType(omap._interpType),
   _enabled(omap._enabled),
   _mean(omap._mean),
   _ssq(omap._ssq),

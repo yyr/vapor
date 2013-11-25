@@ -264,11 +264,14 @@ int	wrfvdfcreate::launchVdfCreate(int argc, char **argv) {
 	    {NULL}
 	};
 
+<<<<<<< HEAD
 	//for (size_t a=0; a<argc; a++){
 	//	cout << argv[a] << " ";
 	//}
 	//cout << endl;
 
+=======
+>>>>>>> 4a9d61d7d69252c030e1bd985d9a55ea12ce662b
     MyBase::SetErrMsgFilePtr(stderr);
 
 	OptionParser op;
