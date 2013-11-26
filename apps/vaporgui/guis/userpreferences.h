@@ -52,8 +52,8 @@ public:
 	//void save(QString* filename = 0);
 	//When user requests save state, launch file save dialog:
 	static void requestSave(bool prompt = true);
-	//Make these preferences apply to state
-	void applyToState();
+	//Make these preferences apply to state.  If orderTabs is false a tabOrdering change won't be applied
+	void applyToState(bool orderTabs = true);
 	void getTextChanges();
 	static bool saveToFile(ofstream& ofs );
 	static ParamNode* buildNode(); 
@@ -62,20 +62,27 @@ public:
                                      std::string&, const char **);
 
 	virtual bool elementEndHandler(ExpatParseMgr*, int, std::string&);
+	//Create instance used to make a UserPreferences with no dialog
+	//Purpose is to support Undo/Redo when UserPreferences are changed outside the dialog.
+	static UserPreferences* getInstance(){
+		UserPreferences* up = new UserPreferences();
+		up->setDialog();
+		return up;
+	}
 	static bool loadPreferences(const char* filename);
 	static bool savePreferences(const char* filename);
 	static bool loadDefault();
 	static void setDefault();
 	static bool depthPeelIsInState(){return depthPeelInState;}
 	//Data fidelity settings:
-	static float getDefaultLODFidelity2D(){return defaultLODFidelity2D;}
-	static float getDefaultRefinementFidelity2D(){return defaultRefFidelity2D;}
-	static float getDefaultLODFidelity3D(){return defaultLODFidelity3D;}
-	static float getDefaultRefinementFidelity3D(){return defaultRefFidelity3D;}
-	static void setDefaultLODFidelity2D(float q) {defaultLODFidelity2D = q;}
-	static void setDefaultLODFidelity3D(float q) {defaultLODFidelity3D = q;}
-	static void setDefaultRefinementFidelity2D(float q){defaultRefFidelity2D = q;}
-	static void setDefaultRefinementFidelity3D(float q){defaultRefFidelity3D = q;}
+	float getDefaultLODFidelity2D(){return defaultLODFidelity2D;}
+	float getDefaultRefinementFidelity2D(){return defaultRefFidelity2D;}
+	float getDefaultLODFidelity3D(){return defaultLODFidelity3D;}
+	float getDefaultRefinementFidelity3D(){return defaultRefFidelity3D;}
+	void setDefaultLODFidelity2D(float q) {defaultLODFidelity2D = q;}
+	void setDefaultLODFidelity3D(float q) {defaultLODFidelity3D = q;}
+	void setDefaultRefinementFidelity2D(float q){defaultRefFidelity2D = q;}
+	void setDefaultRefinementFidelity3D(float q){defaultRefFidelity3D = q;}
 	
 signals: 
 	void doneWithIt();
@@ -199,10 +206,10 @@ protected:
 	//So far no use for this; indicates the version of
 	//VAPOR that wrote the current preferences to file.
 	static string preferencesVersionString;
-	static float defaultRefFidelity2D;
-	static float defaultRefFidelity3D;
-	static float defaultLODFidelity2D;
-	static float defaultLODFidelity3D;
+	float defaultRefFidelity2D;
+	float defaultRefFidelity3D;
+	float defaultLODFidelity2D;
+	float defaultLODFidelity3D;
 	bool subregionFrameEnabled;
 	bool regionFrameEnabled;
 	QColor subregionFrameColor;

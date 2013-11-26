@@ -261,7 +261,12 @@ void IsoEventRouter::updateTab(){
 	opacityScaleSlider->setToolTip("Opacity Scale Value = "+QString::number(sliderVal));
 	opacityScaleSlider->setValue((int)(256*(1.-sliderVal)));
 	mapVariableCombo->setCurrentIndex(mapComboVarNum);
-	updateFidelity(isoParams,lodCombo,refinementCombo);
+	if (fidelityDefaultChanged){
+		setupFidelity(3, fidelityLayout,fidelityBox, isoParams, false);
+		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
+		fidelityDefaultChanged = false;
+	}
+	if (DataStatus::getInstance()->getDataMgr())updateFidelity(isoParams,lodCombo,refinementCombo);
 	//setup the transfer function editor:
 	if(mapComboVarNum > 0 && isoParams->GetMapperFunc()) {
 		transferFunctionFrame->setMapperFunction(isoParams->GetMapperFunc());
@@ -1437,7 +1442,7 @@ void IsoEventRouter::guiSetFidelity(int buttonID){
 	int lodSet = dParams->GetCompressionLevel();
 	int refSet = dParams->GetRefinementLevel();
 	if (lodSet == newLOD && refSet == newRef) return;
-	float fidelity = fidelities[buttonID];
+	float fidelity = buttonID;
 	
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Data Fidelity");
 	dParams->SetCompressionLevel(newLOD);
@@ -1458,15 +1463,14 @@ void IsoEventRouter::guiSetFidelityDefault(){
 	if (!dataMgr) return;
 	confirmText(false);
 	ParamsIso* dParams = (ParamsIso*)VizWinMgr::getActiveParams(Params::_isoParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Fidelity Default LOD and refinement");
-	
+	UserPreferences *prePrefs = UserPreferences::getInstance();
+	PreferencesCommand* pcommand = PreferencesCommand::captureStart(prePrefs, "Set Fidelity Default Preference");
+
 	setFidelityDefault(3,dParams);
 	
-	//Setup the buttons
-	setupFidelity(3, fidelityLayout,fidelityBox, dParams);
-	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
-	
-	PanelCommand::captureEnd(cmd, dParams);
+	UserPreferences *postPrefs = UserPreferences::getInstance();
+	PreferencesCommand::captureEnd(pcommand,postPrefs);
+	delete prePrefs;
+	delete postPrefs;
 	updateTab();
-	//Need undo/redo to include preference settings!
 }

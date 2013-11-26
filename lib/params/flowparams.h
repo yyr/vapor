@@ -364,8 +364,8 @@ public:
 	
 	virtual bool GetIgnoreFidelity() {return ignoreFidelity;}
 	virtual void SetIgnoreFidelity(bool val){ignoreFidelity = val;}
-	virtual float GetFidelityLevel() {return fidelityLevel;}
-	virtual void SetFidelityLevel(float lev){fidelityLevel = lev;}
+	virtual int GetFidelityLevel() {return fidelityLevel;}
+	virtual void SetFidelityLevel(int lev){fidelityLevel = lev;}
 	
 protected:
 	static const string _shortName;
@@ -437,7 +437,7 @@ protected:
 	static const string _numFLASamplesAttr;
 	static const string _advectBeforePrioritizeAttr;
 	
-	float fidelityLevel;
+	int fidelityLevel;
 	bool ignoreFidelity;
 	//Insert seeds into a pathLineData at the specified time step.
 	int insertUnsteadySeeds(RegionParams* rParams, VaporFlow* fLib, PathLineData* pathLines, int timeStep);

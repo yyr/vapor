@@ -213,8 +213,12 @@ void TwoDImageEventRouter::updateTab(){
 	Session* ses = Session::getInstance();
 	if (!ds->getDataMgr()) return;
 	ses->blockRecording();
-    
-	updateFidelity(twoDParams,lodCombo,refinementCombo);
+    if (fidelityDefaultChanged){
+		setupFidelity(2, fidelityLayout,fidelityBox, twoDParams, false);
+		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
+		fidelityDefaultChanged = false;
+	}
+	if (ds->getDataMgr()) updateFidelity(twoDParams,lodCombo,refinementCombo);
 	int orientation = twoDParams->getOrientation();
 	
 	orientationCombo->setCurrentIndex(orientation);
@@ -1762,7 +1766,7 @@ void TwoDImageEventRouter::guiSetFidelity(int buttonID){
 	int lodSet = dParams->GetCompressionLevel();
 	int refSet = dParams->GetRefinementLevel();
 	if (lodSet == newLOD && refSet == newRef) return;
-	float fidelity = fidelities[buttonID];
+	int fidelity = buttonID;
 	
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Data Fidelity");
 	dParams->SetCompressionLevel(newLOD);
@@ -1783,15 +1787,14 @@ void TwoDImageEventRouter::guiSetFidelityDefault(){
 	if (!dataMgr) return;
 	confirmText(false);
 	TwoDImageParams* dParams = (TwoDImageParams*)VizWinMgr::getActiveParams(Params::_twoDImageParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Fidelity Default LOD and refinement");
-	
+	UserPreferences *prePrefs = UserPreferences::getInstance();
+	PreferencesCommand* pcommand = PreferencesCommand::captureStart(prePrefs, "Set Fidelity Default Preference");
+
 	setFidelityDefault(2,dParams);
 	
-	//Setup the buttons
-	setupFidelity(2, fidelityLayout,fidelityBox, dParams);
-	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
-	
-	PanelCommand::captureEnd(cmd, dParams);
+	UserPreferences *postPrefs = UserPreferences::getInstance();
+	PreferencesCommand::captureEnd(pcommand,postPrefs);
+	delete prePrefs;
+	delete postPrefs;
 	updateTab();
-	//Need undo/redo to include preference settings!
 }

@@ -285,173 +285,101 @@ Histo* EventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool){
 	return histogramList[varNum];
 	
 }
-void EventRouter::calcLODRefLevel(int dim, float fidelity, float regMBs, int* lod, int* refinement){
-	//Determine min/max lod and ref levels:
+void EventRouter::calcLODRefDefault(int dim, float regMBs, int* lodLevel, int* refLevel){
 	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
 	if (!dataMgr) return;
 	
 	const vector<size_t> cratios = dataMgr->GetCRatios();
 	int maxRefLevel = dataMgr->GetNumTransforms();
 
-	//Don't: Make sure region at maxRefLevel isn't larger than cache*.5
-	//This doesn't work with the buttonGroup requiring being laid-out again for each region size
-	//float cacheMB = (float)Session::getInstance()->getCacheMB();//not used any more
-	//float logOver = log(.5*cacheMB/regMBs)/log(2.);
-	//if (logOver < 0.f){//Can't fit full volume in cache
-	//	maxRefLevel -= (int)(-logOver);
-	//}
-
+	
+	Session* ses = Session::getInstance();
 	float defaultRefLevel, defaultLOD;
 	if (dim == 3){//adjust defaults based on region size and dimension
-		defaultRefLevel = UserPreferences::getDefaultRefinementFidelity3D()-log(regMBs)/log(2.);
-		defaultLOD = UserPreferences::getDefaultLODFidelity3D()*regMBs;
+		defaultRefLevel = ses->getDefaultRefinementFidelity3D()-log(regMBs)/log(2.);
+		defaultLOD = ses->getDefaultLODFidelity3D()*regMBs;
 	} else {
-		defaultRefLevel = UserPreferences::getDefaultRefinementFidelity2D()-log(regMBs)/log(2.);
-		defaultLOD = UserPreferences::getDefaultLODFidelity2D()*regMBs;
+		defaultRefLevel = ses->getDefaultRefinementFidelity2D()-log(regMBs)/log(2.);
+		defaultLOD = ses->getDefaultLODFidelity2D()*regMBs;
 	}
-
-	float loglod, reflev;
-	//Linearly interpolate loglod and refLevel, based on fidelity
-	//There is an interpolation from 0 to 0.5 and from 0.5 to 1, so that they go through the default values at 0.5
-	if (fidelity < 0.5){
-		loglod = 2.*log((float)cratios[0])*(.5-fidelity) +2.*fidelity*log(defaultLOD);
-		reflev = 2.*fidelity*defaultRefLevel;
-	} else {
-		loglod = 2.*(1.-fidelity)*log(defaultLOD)+2.*(fidelity-.5)*log((float)cratios[cratios.size()-1]);
-		reflev = 2.*(1.-fidelity)*defaultRefLevel + 2.*(fidelity-.5)*maxRefLevel;
-	}
-	//Now find nearest valid reflevel and lod:
-	int ireflev = (int)(reflev+0.5f);
-	if (ireflev < 0) ireflev = 0;
-	if (ireflev > maxRefLevel) ireflev = maxRefLevel;
-	float maxDiff = 1000.f;
-	int maxIndx = -1;
-	//likewise hunt for the closest lod
+	if (defaultRefLevel < 0) defaultRefLevel = 0;
+	if (defaultRefLevel > maxRefLevel) defaultRefLevel = maxRefLevel;
+	//log(defaultLOD) is the default compression ratio
+	if (defaultLOD < 1.e-20f) defaultLOD = 1.e-20f;
+	float defCompRatio = log(defaultLOD);
+	if (defCompRatio < (float)cratios[cratios.size()-1]) defCompRatio = (float)cratios[cratios.size()-1];
+	if (defCompRatio > (float)cratios[0]) defCompRatio = (float)cratios[0];
+	//Now find closest integer, round slightly up
+	int intRefLevel = (int)(defaultRefLevel+0.1);
+	int intCompLevel = 0;
+	//find the index of the smallest compression ratio denominator that is greater than the default;
 	for (int i = 0; i<cratios.size(); i++){
-		if (maxDiff > abs(log((float)cratios[i]) - loglod)) {
-			maxDiff = abs(log((float)cratios[i]) - loglod);
-			maxIndx = i;
-		}
+		if(cratios[i] >= (int)(defCompRatio+0.5f)) intCompLevel = i;
 	}
-	
-	assert(maxIndx >=0 && maxIndx < cratios.size());
-	assert(ireflev >= 0 && ireflev <= maxRefLevel);
-	*lod = maxIndx;
-	*refinement = ireflev;
+	*refLevel = intRefLevel;
+	*lodLevel = intCompLevel;
+
 }
-//Following constructs vectors of lods and refLevels
+
+//Following constructs vectors of lods and refLevels that passes through the default lod/ref 
+//Returns the default fidelity level.
 int EventRouter::orderLODRefs(int dim){
 	//Determine array of cratios and max Ref levels.
 	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
 	if (!dataMgr) return -1;
-	//Determine the no. of megabytes in the full data volume or a full 2D slice
+	//Determine the no. of megabytes in the full data volume
 	size_t dims[3];
 	dataMgr->GetDim(dims,-1);
-	float fullMBs;
-	if (dim == 2) fullMBs = (float)dims[0]*(float)dims[1]*4./1.e6;
-	else fullMBs = (float)dims[0]*(float)dims[1]*(float)dims[2]*4./1.e6;
+	float fullMBs = (float)dims[0]*(float)dims[1]*(float)dims[2]*4./1.e6;
 	const vector<size_t> cratios = dataMgr->GetCRatios();
 	int maxRefLevel = dataMgr->GetNumTransforms();
 	
 	//Create vectors of fidelity, cratios, ref levels, initialize with mins and maxs and default
 	fidelityRefinements.clear();
 	fidelityLODs.clear();
-	fidelities.clear();
 	int defLODIndx, defref;
-	calcLODRefLevel(dim, 0.5, fullMBs, &defLODIndx, &defref);
-	bool addDefaults = false;
+	calcLODRefDefault(dim, fullMBs, &defLODIndx, &defref);
+	//Initialize arrays with min and max values
 	bool oneButton = false;
 	if (maxRefLevel == 0 && cratios.size()==1) oneButton = true;
-	if (defLODIndx != 0 && defLODIndx != (cratios.size()-1)) addDefaults = true;
-	if (defref != 0 && defref != maxRefLevel) addDefaults = true;
 	fidelityLODs.push_back(0);
-	if (addDefaults) fidelityLODs.push_back(defLODIndx);
-	if (!oneButton) fidelityLODs.push_back(cratios.size()-1);
 	fidelityRefinements.push_back(0);
-	if (addDefaults) fidelityRefinements.push_back(defref);
-	if(!oneButton) fidelityRefinements.push_back(maxRefLevel);
-	if (oneButton) fidelities.push_back(0.5f);
-	else {
-		fidelities.push_back(0.f);
-		if (addDefaults)fidelities.push_back(0.5f);
-		fidelities.push_back(1.0);
-	}
-	//Repeat:
-	while(1){
-		//look for first position where there is more than one change between adjacent entries, if none we are done
-		int nextPos;
-		for(nextPos = 0; nextPos<fidelities.size()-1; nextPos++){
-			//See if either crat and ref change by 2 or each change by at least one
-			if (fidelityLODs[nextPos]<fidelityLODs[nextPos+1]-1) break;
-			if (fidelityRefinements[nextPos]<fidelityRefinements[nextPos+1]-1) break;
-			if ((fidelityLODs[nextPos]<fidelityLODs[nextPos+1]) && (fidelityRefinements[nextPos]<fidelityRefinements[nextPos+1])) break;
-		}
-		if (nextPos == fidelities.size()-1) break;
-		//Do binary search for fidelity that results in change LOD or Ref level, both above and below
-		int depth = 0;
-		float fidmin = fidelities[nextPos];
-		float fidmax = fidelities[nextPos+1];
-		int midLODIndx;
-		while(1){
-			float fidmid = 0.5*(fidmin+fidmax);
-			int midref;
-			calcLODRefLevel(dim, fidmid, fullMBs, &midLODIndx, &midref);
-			
-			//Is it different from below and above?
-			bool lowdiff = false;
-			bool updiff = false;
-			if (midref > fidelityRefinements[nextPos] || midLODIndx > fidelityLODs[nextPos]) lowdiff = true;
-			if (midref < fidelityRefinements[nextPos+1] || midLODIndx < fidelityLODs[nextPos+1]) updiff = true;
-			
-			//Should we look deeper?
-			if (depth++ > 10 && (!(lowdiff && updiff))) {
-				//enough depth of search.  Just insert a value slightly above low end of search
-				midLODIndx = fidelityLODs[nextPos];
-				midref = fidelityRefinements[nextPos];
-				if (fidelityLODs[nextPos]<fidelityLODs[nextPos+1]-1) 
-					midLODIndx = fidelityLODs[nextPos]+1;
-				else if (fidelityRefinements[nextPos]<fidelityRefinements[nextPos+1]-1) 
-					midref = fidelityRefinements[nextPos]+1;
-				else //both ref and lod are incremented, arbitrarily increment just ref:
-					midref = fidelityRefinements[nextPos]+1;
-				//Pick mid fidelity below current mid
-				fidmid = 0.5*(fidmin+fidmid);
-			}
-			if ((lowdiff && updiff)||(depth>10)){
-				//Insert the middle values at fidmid
-				std::vector<int>::iterator itint1;
-				std::vector<int>::iterator itint2;
-				std::vector<float>::iterator itflt;
-				itint1 = fidelityLODs.begin()+nextPos+1;
-				itint2 = fidelityRefinements.begin()+nextPos+1;
-				itflt = fidelities.begin()+nextPos+1;
-				fidelityLODs.insert(itint1, midLODIndx);
-				fidelityRefinements.insert(itint2, midref);
-				fidelities.insert(itflt, fidmid);
-				break; //Done with the binary search
-			}
-			//continue with next step of binary search:
-			if (lowdiff) fidmax = fidmid;
-			else {fidmin = fidmid; assert (updiff);}
-		}
-		//binary search complete.  Continue to fill in array 
-	}
-	//THe arrays should be full:
-	if (!oneButton) assert(fidelityRefinements.size() == maxRefLevel+cratios.size());
-	assert(fidelityRefinements.size() == fidelities.size() && (fidelityLODs.size() == fidelities.size()));
-	//find the closest fidelity to default
-	float fiddist = 1000.;
-	int defIndx = -1;
-	//Find values closest to fidelity 0.5
-	for (int i = 0; i<fidelities.size(); i++){
-		float dst = abs(fidelities[i]-0.5);
-		if (dst < fiddist) {fiddist = dst; defIndx = i;}
-	}
-	//Endpoint defaults require special case
-	if (defref == 0 && defLODIndx == 0) defIndx = 0;
-	if (defref == maxRefLevel && defLODIndx == cratios.size()-1) defIndx = fidelities.size()-1;
-	return defIndx;
+	
 
+	if (oneButton) return 0;
+	//Now step through the 2D array of refinements and lodLevels, from origin to defaults
+	int currLodLevel = 0;
+	int currRefLevel = 0;
+	bool firstHalf = true;
+	int goalLodLevel = defLODIndx;
+	int goalRefLevel = defref;
+	int defaultFidelity = -1;
+	for (int i = 0; i< (maxRefLevel+cratios.size()-1); i++){
+		int currDistSq = (goalLodLevel - currLodLevel)*(goalLodLevel - currLodLevel) + 
+			(goalRefLevel - currRefLevel)*(goalRefLevel - currRefLevel);
+		if (currDistSq == 0){//have attained initial goal, the default lod and refinements
+			assert(firstHalf);
+			firstHalf = false;
+			defaultFidelity = i;
+			goalLodLevel = cratios.size()-1;
+			goalRefLevel = maxRefLevel;
+		}
+		//increment either lod (x) or refinement (y) and see which is closer to goal:
+		int xdistsq = (goalLodLevel - currLodLevel-1)*(goalLodLevel - currLodLevel-1) + 
+			(goalRefLevel - currRefLevel)*(goalRefLevel - currRefLevel);
+		int ydistsq = (goalLodLevel - currLodLevel)*(goalLodLevel - currLodLevel) + 
+			(goalRefLevel - currRefLevel-1)*(goalRefLevel - currRefLevel-1);
+		if (xdistsq < ydistsq) currLodLevel++;
+		else currRefLevel++;
+		fidelityLODs.push_back(currLodLevel);
+		fidelityRefinements.push_back(currRefLevel);
+	}
+	assert(currLodLevel == cratios.size()-1);
+	assert(currRefLevel == maxRefLevel);
+	
+	if (firstHalf) defaultFidelity = fidelityLODs.size()-1;
+	assert(fidelityLODs.size() == maxRefLevel+cratios.size());
+	return defaultFidelity;
 }
 
 //Respond to user click on save/load TF.  This launches the intermediate
@@ -594,24 +522,17 @@ vector<QAction*>* EventRouter::makeWebHelpActions(const char* texts[], const cha
 }
 void EventRouter::updateFidelity(RenderParams* rp, QComboBox* lodCombo, QComboBox* refinementCombo){
 	if (!rp->GetIgnoreFidelity()){
-		//Which button corresponds to fidelity?
-		float fidelity = rp->GetFidelityLevel();
-		float fiddist = 1000.;
-		int defIndx = -1;
-		for (int i = 0; i<fidelities.size(); i++){
-			float dst = abs(fidelities[i]-fidelity);
-			if (dst < fiddist) {fiddist = dst; defIndx = i;}
-		}
-		if (defIndx >= 0){
-			int lod = fidelityLODs[defIndx];
-			int refLevel = fidelityRefinements[defIndx];
-			lodCombo->setCurrentIndex(lod);
-			refinementCombo->setCurrentIndex(refLevel);
-			rp->SetRefinementLevel(refLevel);
-			rp->SetCompressionLevel(lod);
-			QRadioButton* activeButton = (QRadioButton*)fidelityButtons->button(defIndx);
-			activeButton->setChecked(true);
-		}
+		
+		int defIndx = rp->GetFidelityLevel();
+		int lod = fidelityLODs[defIndx];
+		int refLevel = fidelityRefinements[defIndx];
+		lodCombo->setCurrentIndex(lod);
+		refinementCombo->setCurrentIndex(refLevel);
+		rp->SetRefinementLevel(refLevel);
+		rp->SetCompressionLevel(lod);
+		QRadioButton* activeButton = (QRadioButton*)fidelityButtons->button(defIndx);
+		activeButton->setChecked(true);
+		
 	} else {
 		int numRefs = rp->GetRefinementLevel();
 		if(numRefs <= refinementCombo->count())
@@ -628,10 +549,9 @@ void EventRouter::setupFidelity(int dim, QHBoxLayout* fidelityLayout,
 	int deflt = orderLODRefs(dim);
 	int numButtons = fidelityLODs.size();
 	QHBoxLayout* hbox = new QHBoxLayout;
-	fidelityLayout->removeWidget(fidelityBox);
+	//fidelityLayout->removeWidget(fidelityBox);
 	delete fidelityBox;// this also deletes buttongroup
 	fidelityBox = new QGroupBox("low .. Fidelity .. high");
-	
 	fidelityButtons = new QButtonGroup(fidelityBox);
 	for (int i = 0; i<numButtons; i++){
 		QRadioButton * rd = new QRadioButton(fidelityBox);
@@ -645,8 +565,7 @@ void EventRouter::setupFidelity(int dim, QHBoxLayout* fidelityLayout,
 	}
 	if(useDefault){
 		//set the default fidelity to be closest to the preference setting, when initially setting up tab
-		float fidelity = fidelities[deflt];
-		dParams->SetFidelityLevel(fidelity);
+		dParams->SetFidelityLevel(deflt);
 	}
 	
 	fidelityBox->setToolTip("Click a button to specify the fidelity (both LOD and refinement)\n Each button has a tooltip indicating its associated LOD and refinement.");
@@ -663,36 +582,32 @@ void EventRouter::setFidelityDefault(int dim, RenderParams* dParams){
 	int refSet = dParams->GetRefinementLevel();
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	float regionMBs = rParams->fullRegionMBs(-1);
+	Session* ses = Session::getInstance();
 	//Adjust lod, ref based on actual region size
 	const vector<size_t> comprs = dataMgr->GetCRatios();
 	float lodDefault = (float)comprs[lodSet]/regionMBs;
 	float refDefault = (float)refSet+log(regionMBs)/log(2.);
 	//Set defaultLOD3d and defaultRefinement3D values
 	if (dim == 3){
-		float oldLODDefault = UserPreferences::getDefaultLODFidelity3D();
-		float oldRefDefault = UserPreferences::getDefaultRefinementFidelity3D();
+		float oldLODDefault = ses->getDefaultLODFidelity3D();
+		float oldRefDefault = ses->getDefaultRefinementFidelity3D();
 		if (oldLODDefault != lodDefault || oldRefDefault != refDefault){
-			UserPreferences::setDefaultLODFidelity3D(lodDefault);
-			UserPreferences::setDefaultRefinementFidelity3D(refDefault);
+			ses->setDefaultLODFidelity3D(lodDefault);
+			ses->setDefaultRefinementFidelity3D(refDefault);
 			UserPreferences::requestSave();
 		}
 	} else {
-		float oldLODDefault = UserPreferences::getDefaultLODFidelity2D();
-		float oldRefDefault = UserPreferences::getDefaultRefinementFidelity2D();
+		float oldLODDefault = ses->getDefaultLODFidelity2D();
+		float oldRefDefault = ses->getDefaultRefinementFidelity2D();
 		if (oldLODDefault != lodDefault || oldRefDefault != refDefault){
-			UserPreferences::setDefaultLODFidelity2D(lodDefault);
-			UserPreferences::setDefaultRefinementFidelity2D(refDefault);
+			ses->setDefaultLODFidelity2D(lodDefault);
+			ses->setDefaultRefinementFidelity2D(refDefault);
 			UserPreferences::requestSave();
 		}
 	}
-	//Set Fidelity to 0.5 unless it is at an extreme:
-	float fidelity = 0.5f;
-	if (lodSet == comprs.size()-1 && refSet == dataMgr->GetNumTransforms()) fidelity = 1.f;
-	if (lodSet == 0 && refSet == 0) fidelity = 0.f;
-	dParams->SetFidelityLevel(fidelity);
 	
 	//Clear ignoreFidelity flag
 	dParams->SetIgnoreFidelity(false);
-	
+	VizWinMgr::getInstance()->forceFidelityUpdate();
 	//Need undo/redo to include preference settings!
 }

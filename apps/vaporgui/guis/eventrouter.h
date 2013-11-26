@@ -141,6 +141,7 @@ public:
 #ifndef DOXYGEN_SKIP_THIS
 	EventRouter() {
 		textChangedFlag = 0; savedCommand = 0;
+		fidelityDefaultChanged = true;
 		histogramList = 0;
 		numHistograms = 0;
 		isoShown = colorMapShown = opacityMapShown = texShown = false;
@@ -197,6 +198,7 @@ public:
 		updateTab();
 	}
 	
+	virtual void setFidelityDefaultChangedFlag(bool val){fidelityDefaultChanged = val;}
 	//Methods to support maintaining a list of histograms
 	//in each router (at least those with a TFE)
 
@@ -236,13 +238,17 @@ protected:
 	// set fidelityButtons = 0 in constructor
 	// implement slots guiSetFidelity(int) and guiSetFidelityDefault()
 	// connect fidelityDefaultButton clicked() to guiSetFidelityDefault
-	// in updateTab, call updateFidelity()
+	// in updateTab, check for fidelityUpdateChanged, if so, call setupFidelity
+	//	 then connect fidelityButtons to guiSetFidelity, then call updateFidelity()
 	// in reinitTab, call SetFidelityLevel, then connect fidelityButtons to guiSetFidelity
 	// in guiSetCompRatios, call SetIgnoreFidelity(true)
 	// in guiSetRefinement, call SetIgnoreFidelity(true)
 	// in guiSetFidelityDefault, call setFidelityDefault
-	virtual void calcLODRefLevel(int dim, float fidelity, float regMBs, int* lod, int* refLevel);
+
+	//Build the vectors of reflevels and lods
 	virtual int orderLODRefs(int dim);
+	//Determine the default lod and ref level for a specified region size
+	virtual void calcLODRefDefault(int dim, float regMBs, int* lod, int* reflevel);
 	virtual void updateFidelity(RenderParams* rp, QComboBox* lodCombo, QComboBox* refinementCombo);
 
 	void setupFidelity(int dim, QHBoxLayout* fidelityLayout,
@@ -267,7 +273,8 @@ protected:
 
 	vector<int> fidelityRefinements;
 	vector<int> fidelityLODs;
-	vector<float>fidelities;
+	bool fidelityDefaultChanged;
+	
 #endif //DOXYGEN_SKIP_THIS
 };
 };

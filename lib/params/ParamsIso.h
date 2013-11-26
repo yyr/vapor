@@ -88,7 +88,7 @@ public:
  //! \param [in] float fidelity
  //! Pure virtual method required of render params
  //
- virtual void SetFidelityLevel(float val);
+ virtual void SetFidelityLevel(int val);
  //! Obtain whether fidelity is ignored
  //!
  //! Pure virtual method required of render params
@@ -103,7 +103,7 @@ public:
  //!
  //! Pure virtual method required of render params
  //! \retval level float between 0 and 1
- virtual float GetFidelityLevel();
+ virtual int GetFidelityLevel();
  //! Set the current compression level.
  //!
  //! Pure virtual method required of render params

@@ -200,7 +200,7 @@ reinit(bool doOverride){
 		cursorCoords[0] = 0.;
 		cursorCoords[1] = 0.;
 		numRefinements = 0;
-		SetFidelityLevel(0.5f);
+		SetFidelityLevel(0);
 		SetIgnoreFidelity(false);
 	} else {
 		//Force the twoD horizontal size to be no larger than the domain size, and 
@@ -497,7 +497,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		StrCmpNoCase(tagString, _twoDParamsTag) == 0) {
 		//Set defaults in case reading an old session:
 		SetIgnoreFidelity(true);
-		SetFidelityLevel(0.5f);
+		SetFidelityLevel(0);
 		setLinearInterp(false);
 		orientation = 2; //X-Y aligned
 		int newNumVariables = 0;
@@ -524,7 +524,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 				ist >> compressionLevel;
 			}
 			else if (StrCmpNoCase(attribName, _FidelityLevelTag) == 0){
-				float fid;
+				int fid;
 				ist >> fid;
 				SetFidelityLevel(fid);
 			}
@@ -761,7 +761,7 @@ buildNode() {
 	oss << (long)compressionLevel;
 	attrs[_CompressionLevelTag] = oss.str();
 	oss.str(empty);
-	oss << (double)GetFidelityLevel();
+	oss << (int)GetFidelityLevel();
 	attrs[_FidelityLevelTag] = oss.str();
 	oss.str(empty);
 	if (GetIgnoreFidelity())

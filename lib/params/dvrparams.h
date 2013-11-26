@@ -119,8 +119,8 @@ public:
 
 	virtual bool GetIgnoreFidelity() {return ignoreFidelity;}
 	virtual void SetIgnoreFidelity(bool val){ignoreFidelity = val;}
-	virtual float GetFidelityLevel() {return fidelityLevel;}
-	virtual void SetFidelityLevel(float lev){fidelityLevel = lev;}
+	virtual int GetFidelityLevel() {return fidelityLevel;}
+	virtual void SetFidelityLevel(int lev){fidelityLevel = lev;}
 
 	//Virtual methods to set map bounds.  Get() is in parent class
 	//this causes it to be set in the mapperfunction (transfer function)
@@ -205,7 +205,7 @@ protected:
 	
 	int numRefinements;
 	int compressionLevel;
-	float fidelityLevel;
+	int fidelityLevel;
 	bool ignoreFidelity;
 	
 	bool editMode;

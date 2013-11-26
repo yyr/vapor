@@ -150,13 +150,13 @@ setNext(UserPreferences* nextPrefs){
 }
 void PreferencesCommand::unDo(){
 	Session::getInstance()->blockRecording();
-	previousPrefs->applyToState();
+	previousPrefs->applyToState(false);
 	Session::getInstance()->unblockRecording();
 }
 
 void PreferencesCommand::reDo(){
 	Session::getInstance()->blockRecording();
-	currentPrefs->applyToState();
+	currentPrefs->applyToState(false);
 	Session::getInstance()->unblockRecording();
 }
 

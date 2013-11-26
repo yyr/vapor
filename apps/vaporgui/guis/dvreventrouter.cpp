@@ -443,7 +443,11 @@ void DvrEventRouter::updateTab(){
 
 	
 	variableCombo->setCurrentIndex(dvrParams->getComboVarNum());
-	
+	if (fidelityDefaultChanged){
+		setupFidelity(3, fidelityLayout,fidelityBox, dvrParams, false);
+		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
+		fidelityDefaultChanged = false;
+	}
 	updateFidelity(dvrParams,lodCombo,refinementCombo);
 	
 	lightingCheckbox->setChecked(dvrParams->getLighting());
@@ -1397,7 +1401,7 @@ void DvrEventRouter::guiSetFidelity(int buttonID){
 	int lodSet = dParams->GetCompressionLevel();
 	int refSet = dParams->GetRefinementLevel();
 	if (lodSet == newLOD && refSet == newRef) return;
-	float fidelity = fidelities[buttonID];
+	int fidelity = buttonID;
 	
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Data Fidelity");
 	dParams->SetCompressionLevel(newLOD);
@@ -1418,16 +1422,18 @@ void DvrEventRouter::guiSetFidelityDefault(){
 	if (!dataMgr) return;
 	confirmText(false);
 	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
-	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Fidelity Default LOD and refinement");
+	UserPreferences *prePrefs = UserPreferences::getInstance();
+	PreferencesCommand* pcommand = PreferencesCommand::captureStart(prePrefs, "Set Fidelity Default Preference");
+
 	setFidelityDefault(3,dParams);
 	
-	//Setup the buttons
-	setupFidelity(3, fidelityLayout,fidelityBox, dParams);
-	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
+	UserPreferences *postPrefs = UserPreferences::getInstance();
+	PreferencesCommand::captureEnd(pcommand,postPrefs);
+	delete prePrefs;
+	delete postPrefs;
 	
-	PanelCommand::captureEnd(cmd, dParams);
 	updateTab();
-	//Need undo/redo to include preference settings!
+	
 }
 
 //Workaround for Qt/Cocoa bug: postpone showing of OpenGL widget 
