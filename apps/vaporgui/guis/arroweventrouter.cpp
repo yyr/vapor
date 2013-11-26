@@ -543,12 +543,13 @@ void ArrowEventRouter::updateTab(){
 	int dim = 3;
 	bool is3D = arrowParams->VariablesAre3D();
 	if (!is3D) dim = 2;
+
 	if (fidelityDefaultChanged){
 		setupFidelity(dim, fidelityLayout,fidelityBox, arrowParams, false);
 		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 		fidelityDefaultChanged = false;
 	}
-	updateFidelity(arrowParams,lodCombo,refinementCombo);
+	if (ds->getDataMgr()) updateFidelity(arrowParams,lodCombo,refinementCombo);
 	//Set the combo based on the current field variables
 	int comboIndex[3] = { 0,0,0};
 	

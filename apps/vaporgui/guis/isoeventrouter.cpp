@@ -266,7 +266,7 @@ void IsoEventRouter::updateTab(){
 		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 		fidelityDefaultChanged = false;
 	}
-	updateFidelity(isoParams,lodCombo,refinementCombo);
+	if (DataStatus::getInstance()->getDataMgr())updateFidelity(isoParams,lodCombo,refinementCombo);
 	//setup the transfer function editor:
 	if(mapComboVarNum > 0 && isoParams->GetMapperFunc()) {
 		transferFunctionFrame->setMapperFunction(isoParams->GetMapperFunc());
