@@ -44,6 +44,7 @@ public:
 	}
 };
 
+//Only for initializing internal variables
 VAPoR::VersionChecker::VersionChecker()
 {
 	//old url: "http://www.vis.ucar.edu/~milesrl/vapor-version"
@@ -53,21 +54,24 @@ VAPoR::VersionChecker::VersionChecker()
 	error = "";
 }
 
+//This sends out an http request, and sets a callback so that when the request returns,
+//  it will be handled by on_version_reply (another method of this class).
 void VAPoR::VersionChecker::request(QString url)
 {
-	//build the filename based on OS
+	//build the version check filename based on OS
 	char* vfilename = new char[strlen(vfilepath) + strlen("/.vapor-version") + 1];
 	vfilename[0] = 0;
 	strcat(vfilename, vfilepath);
 	strcat(vfilename, "/.vapor-version");
 
-	//check for previous
+	//check for previous version checks
 	vfiledata vfile;
 	//handle timing and optout
-	if(vfile.loadFile(vfilename) && (time(NULL) - vfile.time < (60 * 60 * 24 * 30) || vfile.optout == true)) return;
-	//check our access rights for target dir
+	if(vfile.loadFile(vfilename) && (time(NULL) - vfile.time < (60 * 60 * 24 * 30))) return;
+	//check our access rights for dir of version check file
 	FILE* acheck = 0;
 	acheck = fopen(vfilename, "a");
+	delete[] vfilename;
 	if(!acheck) return;
 	fclose(acheck);
 
@@ -80,17 +84,20 @@ void VAPoR::VersionChecker::request(QString url)
 	manager->get(QNetworkRequest(QUrl(url)));
 }
 
+//processes the reply to our request (here's where the actual checking and notification happens)
 void VAPoR::VersionChecker::on_version_reply(QNetworkReply* reply)
 {
 	//get contents of reply
     QString r = reply->readAll();
     if(reply->error() != QNetworkReply::NoError)
     {
+		//something went wrong with the request
         bad = true;
         error = reply->errorString();
     }
     else
     {
+		//get the version from the returned string, make sure that string is properly formatted
         QStringList tok = r.split('.');
         bool ok = false;
 		int webversion[3];
@@ -104,6 +111,7 @@ void VAPoR::VersionChecker::on_version_reply(QNetworkReply* reply)
         }
         if(!ok)
         {
+			//the string was not properly formatted
 			bad = true;
             error = "The web version file contained a bogus version number";
         }
@@ -119,6 +127,7 @@ void VAPoR::VersionChecker::on_version_reply(QNetworkReply* reply)
 
 			vfiledata last;
 			bool prior = true;
+			//get information on the previous version check
 			if(!last.loadFile(vfilename))
 			{
 				last.major = 0;
@@ -129,6 +138,7 @@ void VAPoR::VersionChecker::on_version_reply(QNetworkReply* reply)
 				prior = false;
 			}
 			
+			//is the user's version old?
 			bool old = 
 			(
 				VetsUtil::Version::GetMajor() < webversion[0]
@@ -148,39 +158,36 @@ void VAPoR::VersionChecker::on_version_reply(QNetworkReply* reply)
 				)
 			);
 
-			//don't notify if user is up-to-date or if we already noted on this webversion
-			if
+			//is the last checked version older than the latest?
+			bool checkold = 
 			(
-				// first time ever notifying user
-				prior == false
+				last.major < webversion[0]
 				||
-				( // current version less than web version, last checked less than web version
-					old
-					&& 
+				(
+					last.major == webversion[0]
+					&&
 					(
-						last.major < webversion[0]
+						last.minor < webversion[1]
 						||
 						(
-							last.major == webversion[0]
+							last.minor == webversion[1]
 							&&
-							(
-								last.minor < webversion[1]
-								||
-								(
-									last.minor == webversion[1]
-									&&
-									last.mminor < webversion[2]
-								)
-							)
+							last.mminor < webversion[2]
 						)
 					)
 				)
-			)
+			);
+
+			//don't notify if user is up-to-date or if we already noted on this webversion
+			//don't notify if the user opted out of the current version's notifications
+			//writes the file either way (write file only if !prior or if we will notify user)
+			if(!prior || (!last.optout && old) || (last.optout && old && checkold))
 			{
 				last.major = webversion[0];
 				last.minor = webversion[1];
 				last.mminor = webversion[2];
 				last.time = time(NULL);
+				//only notify if the version is old
 				if(old)
 				{
 					vCheckGUI msg(output, &last.optout);
@@ -188,6 +195,8 @@ void VAPoR::VersionChecker::on_version_reply(QNetworkReply* reply)
 				}
 				last.saveFile(vfilename);
 			}
+			delete[] output;
+			delete[] vfilename;
 		}
     }
     reply->deleteLater();
