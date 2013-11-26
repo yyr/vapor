@@ -283,8 +283,8 @@ public:
 	
 	virtual bool GetIgnoreFidelity() {return ignoreFidelity;}
 	virtual void SetIgnoreFidelity(bool val){ignoreFidelity = val;}
-	virtual float GetFidelityLevel() {return fidelityLevel;}
-	virtual void SetFidelityLevel(float lev){fidelityLevel = lev;}
+	virtual int GetFidelityLevel() {return fidelityLevel;}
+	virtual void SetFidelityLevel(int lev){fidelityLevel = lev;}
 
 	static void setDefaultScale(float val){defaultScale = val;}
 	static float getDefaultScale(){return defaultScale;}
@@ -318,7 +318,7 @@ protected:
 	static const string _probeTypeAttr;
 	static const string _linearInterpAttr;
 	
-	float fidelityLevel;
+	int fidelityLevel;
 	bool ignoreFidelity;
 	void refreshCtab();
 			

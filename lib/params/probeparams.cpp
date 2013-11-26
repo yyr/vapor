@@ -235,7 +235,7 @@ reinit(bool doOverride){
 		
 		cursorCoords[0] = cursorCoords[1] = 0.0f;
 		numRefinements = 0;
-		SetFidelityLevel(0.5f);
+		SetFidelityLevel(0);
 		SetIgnoreFidelity(false);
 	} else {
 		//Force the probe size to be no larger than the domain extents, Note that
@@ -572,7 +572,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		setLinearInterp(false);
 		int newNumVariables = 0;
 		SetIgnoreFidelity(true);
-		SetFidelityLevel(0.5f);
+		SetFidelityLevel(0);
 		//If it's a Probe tag, obtain 10 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
 		while (*attrs) {
@@ -606,7 +606,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 				ist >> compressionLevel;
 			}
 			else if (StrCmpNoCase(attribName, _FidelityLevelTag) == 0){
-				float fid;
+				int fid;
 				ist >> fid;
 				SetFidelityLevel(fid);
 			}
@@ -866,7 +866,7 @@ buildNode() {
 	attrs[_CompressionLevelTag] = oss.str();
 
 	oss.str(empty);
-	oss << (double)GetFidelityLevel();
+	oss << (int)GetFidelityLevel();
 	attrs[_FidelityLevelTag] = oss.str();
 	oss.str(empty);
 	if (GetIgnoreFidelity())

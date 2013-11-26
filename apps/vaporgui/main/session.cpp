@@ -112,7 +112,10 @@ Session::Session() {
 	MyBase::SetDiagMsgCB(infoCallbackFcn);
 	previousClass = 0;
 	dataMgr = 0;
-	
+	defaultRefFidelity2D = 4.f;
+	defaultRefFidelity3D = 4.f;
+	defaultLODFidelity2D = 2.f;
+	defaultLODFidelity3D = 2.f;
 	stretchFactors[0] = stretchFactors[1] = stretchFactors[2] = 1.f;
 	visualizeSpherically = false;
 	
@@ -229,6 +232,10 @@ void Session::init() {
 	
 }
 void Session::setDefaultPrefs(){
+	defaultRefFidelity2D = 4.f;
+	defaultRefFidelity3D = 4.f;
+	defaultLODFidelity2D = 2.f;
+	defaultLODFidelity3D = 2.f;
 	cacheMB = 1024;
 	textureSizeSpecified = false;
 	textureSize = 0;

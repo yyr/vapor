@@ -540,10 +540,18 @@ void ArrowEventRouter::updateTab(){
 	deleteInstanceButton->setEnabled(vizMgr->getNumInstances(winnum, Params::GetTypeFromTag(ArrowParams::_arrowParamsTag)) > 1);
 
 	//Set up refinements and LOD combos:
+	int dim = 3;
+	bool is3D = arrowParams->VariablesAre3D();
+	if (!is3D) dim = 2;
+	if (fidelityDefaultChanged){
+		setupFidelity(dim, fidelityLayout,fidelityBox, arrowParams, false);
+		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
+		fidelityDefaultChanged = false;
+	}
 	updateFidelity(arrowParams,lodCombo,refinementCombo);
 	//Set the combo based on the current field variables
 	int comboIndex[3] = { 0,0,0};
-	bool is3D = arrowParams->VariablesAre3D();
+	
 	int dimComIndex = variableDimCombo->currentIndex();
 	if (is3D != (dimComIndex == 1)){
 		variableDimCombo->setCurrentIndex(1-dimComIndex);
@@ -977,7 +985,7 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance, bo
 QSize ArrowEventRouter::sizeHint() const {
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
 	if (!aParams) return QSize(460,1500);
-	int vertsize = 265;//basic panel plus instance panel 
+	int vertsize = 340;//basic panel plus instance panel 
 	//add showAppearance button, showLayout button, frames
 	vertsize += 100;
 	if (showLayout) {
@@ -1005,7 +1013,7 @@ void ArrowEventRouter::guiSetFidelity(int buttonID){
 	int lodSet = dParams->GetCompressionLevel();
 	int refSet = dParams->GetRefinementLevel();
 	if (lodSet == newLOD && refSet == newRef) return;
-	float fidelity = fidelities[buttonID];
+	int fidelity = buttonID;
 	
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Data Fidelity");
 	dParams->SetCompressionLevel(newLOD);
@@ -1026,16 +1034,17 @@ void ArrowEventRouter::guiSetFidelityDefault(){
 	if (!dataMgr) return;
 	confirmText(false);
 	ArrowParams* dParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Fidelity Default LOD and refinement");
 	int dim = 2;
 	if (dParams->VariablesAre3D()) dim = 3;
+	UserPreferences *prePrefs = UserPreferences::getInstance();
+	PreferencesCommand* pcommand = PreferencesCommand::captureStart(prePrefs, "Set Fidelity Default Preference");
+
 	setFidelityDefault(dim,dParams);
 	
-	//Setup the buttons
-	setupFidelity(dim, fidelityLayout,fidelityBox, dParams);
-	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
-	
-	PanelCommand::captureEnd(cmd, dParams);
+	UserPreferences *postPrefs = UserPreferences::getInstance();
+	PreferencesCommand::captureEnd(pcommand,postPrefs);
+	delete prePrefs;
+	delete postPrefs;
 	updateTab();
-	//Need undo/redo to include preference settings!
+	
 }

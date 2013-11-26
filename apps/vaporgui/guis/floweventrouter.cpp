@@ -560,6 +560,11 @@ void FlowEventRouter::updateTab(){
 	
 	
 	flowTypeCombo->setCurrentIndex(flowType);
+	if (fidelityDefaultChanged){
+		setupFidelity(3, fidelityLayout,fidelityBox, fParams, false);
+		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
+		fidelityDefaultChanged = false;
+	}
 	updateFidelity(fParams,lodCombo,refinementCombo);
 
 	float sliderVal = fParams->getOpacityScale();
@@ -3207,7 +3212,7 @@ void FlowEventRouter::paintEvent(QPaintEvent* ev){
 QSize FlowEventRouter::sizeHint() const {
 	FlowParams* fParams = (FlowParams*) VizWinMgr::getActiveFlowParams();
 	if (!fParams) return QSize(460,1500);
-	int vertsize = 555;//Full basic panel plus instance panel , with both steady and unsteady field frames
+	int vertsize = 600;//Full basic panel plus instance panel , with both steady and unsteady field frames
 	//add showAppearance button, showSeeding button, frames
 	vertsize += 100;
 	switch (fParams->getFlowType()){
@@ -3367,7 +3372,7 @@ void FlowEventRouter::guiSetFidelity(int buttonID){
 	int lodSet = dParams->GetCompressionLevel();
 	int refSet = dParams->GetRefinementLevel();
 	if (lodSet == newLOD && refSet == newRef) return;
-	float fidelity = fidelities[buttonID];
+	int fidelity = buttonID;
 	
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Data Fidelity");
 	dParams->SetCompressionLevel(newLOD);
@@ -3388,15 +3393,15 @@ void FlowEventRouter::guiSetFidelityDefault(){
 	if (!dataMgr) return;
 	confirmText(false);
 	FlowParams* dParams = (FlowParams*)VizWinMgr::getActiveParams(Params::_flowParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Fidelity Default LOD and refinement");
-	
+	UserPreferences *prePrefs = UserPreferences::getInstance();
+	PreferencesCommand* pcommand = PreferencesCommand::captureStart(prePrefs, "Set Fidelity Default Preference");
+
 	setFidelityDefault(3,dParams);
 	
-	//Setup the buttons
-	setupFidelity(3, fidelityLayout,fidelityBox, dParams);
-	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
-	
-	PanelCommand::captureEnd(cmd, dParams);
+	UserPreferences *postPrefs = UserPreferences::getInstance();
+	PreferencesCommand::captureEnd(pcommand,postPrefs);
+	delete prePrefs;
+	delete postPrefs;
 	updateTab();
-	//Need undo/redo to include preference settings!
+	
 }

@@ -128,10 +128,7 @@ const string UserPreferences::_defaultSpinAnimateAttr = "DefaultEnableSpin";
 string UserPreferences::preferencesVersionString = "";
 bool UserPreferences::depthPeelInState = false;
 bool UserPreferences::firstPreferences = true;
-float UserPreferences::defaultRefFidelity2D = 4.f;
-float UserPreferences::defaultRefFidelity3D = 4.f;
-float UserPreferences::defaultLODFidelity2D = 2.f;
-float UserPreferences::defaultLODFidelity3D = 2.f;
+
 
 //Create a new UserPreferences
 UserPreferences::UserPreferences() : QDialog(0), Ui_Preferences(){
@@ -222,6 +219,11 @@ UserPreferences* UserPreferences::clone(){
 	newPrefs->ambientCoeff = ambientCoeff;
 	newPrefs->specularExp = specularExp;
 	newPrefs->tabPositions = tabPositions;
+	newPrefs->defaultLODFidelity2D = defaultLODFidelity2D;
+	newPrefs->defaultLODFidelity3D = defaultLODFidelity3D;
+	newPrefs->defaultRefFidelity2D=defaultRefFidelity2D;
+	newPrefs->defaultRefFidelity3D=defaultRefFidelity3D;
+	
 	return newPrefs;
 }
 //Set up the dialog with current parameters from session state
@@ -724,6 +726,11 @@ void UserPreferences::
 setDialog(){
 
 	Session* ses = Session::getInstance();
+	defaultLODFidelity2D = ses->getDefaultLODFidelity2D();
+	defaultLODFidelity3D = ses->getDefaultLODFidelity3D();
+	defaultRefFidelity2D = ses->getDefaultRefinementFidelity2D();
+	defaultRefFidelity3D = ses->getDefaultRefinementFidelity3D();
+	
 	cacheMB = ses->getCacheMB();
 	winWidth = ses->getLockWinWidth();
 	winHeight = ses->getLockWinHeight();
@@ -896,10 +903,22 @@ setDialog(){
 
 }
 void UserPreferences::
-applyToState(){
+applyToState(bool orderTabs){
 	
 	//Copy from this (not QDialog) to session
 	Session* ses = Session::getInstance();
+	//If fidelity default changes, need to force all fidelities to update
+	bool fidelityChanged = false;
+	if (ses->getDefaultRefinementFidelity2D() != defaultRefFidelity2D ||
+		ses->getDefaultRefinementFidelity3D() != defaultRefFidelity3D ||
+		ses->getDefaultLODFidelity2D() != defaultLODFidelity2D ||
+		ses->getDefaultLODFidelity3D() != defaultLODFidelity3D){
+			ses->setDefaultLODFidelity2D(defaultLODFidelity2D);
+			ses->setDefaultLODFidelity3D(defaultLODFidelity3D);
+			ses->setDefaultRefinementFidelity2D(defaultRefFidelity2D);
+			ses->setDefaultRefinementFidelity3D(defaultRefFidelity3D);
+			VizWinMgr::getInstance()->forceFidelityUpdate();
+	}
 	ses->setCacheMB(cacheMB);
 	ses->setLockWinWidth(winWidth);
 	ses->setLockWinHeight(winHeight);
@@ -977,7 +996,7 @@ applyToState(){
 	GLWindow::setSpinAnimation(spinAnimate);
 	
 	TabManager::setTabOrdering(tabPositions);
-	MainForm::getInstance()->getTabManager()->orderTabs();
+	if (orderTabs)MainForm::getInstance()->getTabManager()->orderTabs();
 	
 }
 void UserPreferences::okClicked(){
@@ -1151,10 +1170,10 @@ ParamNode* UserPreferences::buildNode(){
 	mainNode->SetElementLong(_tabOrderingTag, TabManager::getTabOrdering());
 
 	vector<double> fidelityDefaults;
-	fidelityDefaults.push_back(defaultRefFidelity2D);
-	fidelityDefaults.push_back(defaultRefFidelity3D);
-	fidelityDefaults.push_back(defaultLODFidelity2D);
-	fidelityDefaults.push_back(defaultLODFidelity3D);
+	fidelityDefaults.push_back(ses->getDefaultRefinementFidelity2D());
+	fidelityDefaults.push_back(ses->getDefaultRefinementFidelity3D());
+	fidelityDefaults.push_back(ses->getDefaultLODFidelity2D());
+	fidelityDefaults.push_back(ses->getDefaultLODFidelity3D());
 	mainNode->SetElementDouble(_fidelityDefaultsTag,fidelityDefaults);
 	
 	//Create a node for message reporting:
@@ -1842,6 +1861,10 @@ bool UserPreferences::elementEndHandler(ExpatParseMgr* pm, int depth, std::strin
 		defaultRefFidelity3D = doubledata[1]; 
 		defaultLODFidelity2D = doubledata[2]; 
 		defaultLODFidelity3D = doubledata[3]; 
+		ses->setDefaultLODFidelity2D(defaultLODFidelity2D);
+		ses->setDefaultLODFidelity3D(defaultLODFidelity3D);
+		ses->setDefaultRefinementFidelity2D(defaultRefFidelity2D);
+		ses->setDefaultRefinementFidelity3D(defaultRefFidelity3D);
 	} else {
 		pm->parseError("Invalid preferences tag  : \"%s\"", tag.c_str());
 		return false;
@@ -1861,6 +1884,11 @@ bool UserPreferences::loadPreferences(const char* filename){
 	//Create a dummy userpreferences class that does the parsing
 	UserPreferences* userPrefs = new UserPreferences;
 	userPrefs->tabPositions.clear();
+	//INitialize to default fidelity, for pre 2.3 preferences
+	userPrefs->defaultRefFidelity2D = 4.f;
+	userPrefs->defaultRefFidelity3D = 4.f;
+	userPrefs->defaultLODFidelity2D = 2.f;
+	userPrefs->defaultLODFidelity3D = 2.f;
 	ExpatParseMgr* parseMgr = new ExpatParseMgr(userPrefs);
 	parseMgr->parse(is);
 	is.close();

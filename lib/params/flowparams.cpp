@@ -375,7 +375,7 @@ reinit(bool doOverride){
 		shapeDiameter = defaultFlowDiameter;
 		arrowDiameter = defaultArrowSize;
 		diamondDiameter = defaultDiamondSize;
-		SetFidelityLevel(0.5f);
+		SetFidelityLevel(0);
 		SetIgnoreFidelity(false);
 	} else {
 		if (numRefinements> maxNumRefinements) numRefinements = maxNumRefinements;
@@ -1449,7 +1449,7 @@ buildNode() {
 	attrs[_CompressionLevelTag] = oss.str();
 
 	oss.str(empty);
-	oss << (double)GetFidelityLevel();
+	oss << (int)GetFidelityLevel();
 	attrs[_FidelityLevelTag] = oss.str();
 	oss.str(empty);
 	if (GetIgnoreFidelity())
@@ -1749,7 +1749,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 	//Take care of attributes of flowParamsNode
 	if (StrCmpNoCase(tagString, _flowParamsTag) == 0) {
 		SetIgnoreFidelity(true);
-		SetFidelityLevel(0.5f);
+		SetFidelityLevel(0);
 		//Start with a new, default transferFunction
 		if (transferFunction) delete transferFunction;
 		transferFunction = new TransferFunction(this, 8);
@@ -1887,7 +1887,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 				ist >> compressionLevel;
 			}
 			else if (StrCmpNoCase(attribName, _FidelityLevelTag) == 0){
-				float fid;
+				int fid;
 				ist >> fid;
 				SetFidelityLevel(fid);
 			}

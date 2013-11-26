@@ -307,6 +307,11 @@ void TwoDDataEventRouter::updateTab(){
 		transferFunctionFrame->setVariableName("");
 		variableLabel->setText("");
 	}
+	if (fidelityDefaultChanged){
+		setupFidelity(2, fidelityLayout,fidelityBox, twoDParams, false);
+		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
+		fidelityDefaultChanged = false;
+	}
 	updateFidelity(twoDParams,lodCombo,refinementCombo);
 	
 	histoScaleEdit->setText(QString::number(twoDParams->GetHistoStretch()));
@@ -2254,7 +2259,7 @@ void TwoDDataEventRouter::guiSetFidelity(int buttonID){
 	int lodSet = dParams->GetCompressionLevel();
 	int refSet = dParams->GetRefinementLevel();
 	if (lodSet == newLOD && refSet == newRef) return;
-	float fidelity = fidelities[buttonID];
+	int fidelity = buttonID;
 	
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Data Fidelity");
 	dParams->SetCompressionLevel(newLOD);
@@ -2275,15 +2280,14 @@ void TwoDDataEventRouter::guiSetFidelityDefault(){
 	if (!dataMgr) return;
 	confirmText(false);
 	TwoDDataParams* dParams = (TwoDDataParams*)VizWinMgr::getActiveParams(Params::_twoDDataParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Fidelity Default LOD and refinement");
-	
+	UserPreferences *prePrefs = UserPreferences::getInstance();
+	PreferencesCommand* pcommand = PreferencesCommand::captureStart(prePrefs, "Set Fidelity Default Preference");
+
 	setFidelityDefault(2,dParams);
 	
-	//Setup the buttons
-	setupFidelity(2, fidelityLayout,fidelityBox, dParams);
-	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
-	
-	PanelCommand::captureEnd(cmd, dParams);
+	UserPreferences *postPrefs = UserPreferences::getInstance();
+	PreferencesCommand::captureEnd(pcommand,postPrefs);
+	delete prePrefs;
+	delete postPrefs;
 	updateTab();
-	//Need undo/redo to include preference settings!
 }

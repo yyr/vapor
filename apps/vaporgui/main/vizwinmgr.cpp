@@ -2123,3 +2123,9 @@ void VizWinMgr::forceRender(RenderParams* rp, bool always){
 	if (viznum < 0) return;
 	vizWin[viznum]->updateGL();
 }
+void VizWinMgr::forceFidelityUpdate(){
+	for (int pType = 1; pType <= Params::GetNumParamsClasses(); pType++){
+		EventRouter* eRouter = getEventRouter(pType);
+		eRouter->setFidelityDefaultChangedFlag(true);
+	}
+}

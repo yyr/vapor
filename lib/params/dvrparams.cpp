@@ -189,7 +189,7 @@ reinit(bool doOverride){
 		numBits = defaultBitsPerVoxel;
 		lightingOn = defaultLightingEnabled;
 		preIntegrationOn = defaultPreIntegrationEnabled;
-		SetFidelityLevel(0.5f);
+		SetFidelityLevel(0);
 		SetIgnoreFidelity(false);
 	} else {//Try to use existing value
 		if (numRefinements > maxNumRefinements) numRefinements = maxNumRefinements;
@@ -285,7 +285,7 @@ restart(){
     preIntegrationOn = defaultPreIntegrationEnabled;
 	numBits = defaultBitsPerVoxel;
 	compressionLevel = 0;
-	SetFidelityLevel(0.5f);
+	SetFidelityLevel(0);
 	SetIgnoreFidelity(false);
 	
 	if(numVariables > 0){
@@ -356,7 +356,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 	if (StrCmpNoCase(tagString, _dvrParamsTag) == 0) {
 		int newNumVariables = 0;
 		SetIgnoreFidelity(true); //default for old session files
-		SetFidelityLevel(0.5f);
+		SetFidelityLevel(0);
 		//If it's a Dvr tag, save 5 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
 		while (*attrs) {
@@ -389,7 +389,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 				setHistoStretch(histStretch);
 			}
 			else if (StrCmpNoCase(attribName, _FidelityLevelTag) == 0){
-				float fid;
+				int fid;
 				ist >> fid;
 				SetFidelityLevel(fid);
 			}
@@ -571,7 +571,7 @@ buildNode() {
 		attrs[_activeVariableNameAttr] = oss.str();
 	}
 	oss.str(empty);
-	oss << (double)GetFidelityLevel();
+	oss << (int)GetFidelityLevel();
 	attrs[_FidelityLevelTag] = oss.str();
 	oss.str(empty);
 	if (GetIgnoreFidelity())

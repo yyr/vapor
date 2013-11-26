@@ -175,8 +175,8 @@ public:
 		
 	virtual bool GetIgnoreFidelity() {return ignoreFidelity;}
 	virtual void SetIgnoreFidelity(bool val){ignoreFidelity = val;}
-	virtual float GetFidelityLevel() {return fidelityLevel;}
-	virtual void SetFidelityLevel(float lev){fidelityLevel = lev;}
+	virtual int GetFidelityLevel() {return fidelityLevel;}
+	virtual void SetFidelityLevel(int lev){fidelityLevel = lev;}
 
 protected:
 	static const string _shortName;
@@ -185,7 +185,7 @@ protected:
 	static const string _variableSelectedAttr;
 	static const string _linearInterpAttr;
 	void refreshCtab();
-	float fidelityLevel;
+	int fidelityLevel;
 	bool ignoreFidelity;
 	//Utility functions for building texture and histogram
 	

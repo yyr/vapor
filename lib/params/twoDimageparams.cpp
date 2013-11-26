@@ -138,7 +138,7 @@ reinit(bool doOverride){
 		
 		cursorCoords[0] = cursorCoords[1] = 0.0f;
 		numRefinements = 0;
-		SetFidelityLevel(0.5f);
+		SetFidelityLevel(0);
 		SetIgnoreFidelity(false);
 	} else {
 		//Just force the mins to be less than the max's
@@ -254,7 +254,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 	if (StrCmpNoCase(tagString, _twoDImageParamsTag) == 0) {
 		//Set defaults 
 		SetIgnoreFidelity(true);
-		SetFidelityLevel(0.5f);
+		SetFidelityLevel(0);
 		resampRate = 1.f;
 		opacityMultiplier = 1.f;
 		useGeoreferencing = true;
@@ -288,7 +288,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 				ist >> compressionLevel;
 			}
 			else if (StrCmpNoCase(attribName, _FidelityLevelTag) == 0){
-				float fid;
+				int fid;
 				ist >> fid;
 				SetFidelityLevel(fid);
 			}
@@ -400,7 +400,7 @@ buildNode() {
 	oss << (long)compressionLevel;
 	attrs[_CompressionLevelTag] = oss.str();
 	oss.str(empty);
-	oss << (double)GetFidelityLevel();
+	oss << (int)GetFidelityLevel();
 	attrs[_FidelityLevelTag] = oss.str();
 	oss.str(empty);
 	if (GetIgnoreFidelity())
@@ -948,7 +948,7 @@ void TwoDImageParams::setupImageNums(TIFF* tif){
 				break;
             }
             double seconds = udunits.EncodeTime(year, mon, mday, hour, min,sec);
-			tiffTimes.push_back((TIME64_T) seconds);
+			tiffTimes.push_back((TIME64_T)seconds);
 
 		} while (TIFFReadDirectory(tif));
 	}

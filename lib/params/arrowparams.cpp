@@ -56,13 +56,13 @@ reinit(bool doOverride){
 	int numrefs = GetRefinementLevel();
 	if (doOverride) { 
 		numrefs = 0;
-		SetFidelityLevel(0.5f);
+		SetFidelityLevel(0);
 		SetIgnoreFidelity(false);
 	} else {  //Try to use existing values
 		const std::string& sessionVersion = ds->getSessionVersion();
 		int gt = Version::Compare(sessionVersion, "2.2.4");
 		if(gt <= 0) {
-			SetFidelityLevel(0.5f);
+			SetFidelityLevel(0);
 			SetIgnoreFidelity(true);
 		}
 		if (numrefs > maxNumRefinements) numrefs = maxNumRefinements;
@@ -208,7 +208,7 @@ void ArrowParams::restart() {
 	
 	SetRefinementLevel(0);
 	SetCompressionLevel(0);
-	SetFidelityLevel(0.5f);
+	SetFidelityLevel(0);
 	SetIgnoreFidelity(false);
 	SetVisualizerNum(vizNum);
 	SetFieldVariableName(0, "xvar");
@@ -342,13 +342,13 @@ void ArrowParams::SetCompressionLevel(int level){
 	 GetRootNode()->SetElementLong(_CompressionLevelTag,valvec);
 	 setAllBypass(false);
  }
-float ArrowParams::GetFidelityLevel(){
-	vector<double> valvec = GetRootNode()->GetElementDouble(_FidelityLevelTag);
-	return (float)valvec[0];
+int ArrowParams::GetFidelityLevel(){
+	vector<long> valvec = GetRootNode()->GetElementLong(_FidelityLevelTag);
+	return (int)valvec[0];
  }
-void ArrowParams::SetFidelityLevel(float level){
-	 vector<double> valvec(1,(double)level);
-	 GetRootNode()->SetElementDouble(_FidelityLevelTag,valvec);
+void ArrowParams::SetFidelityLevel(int level){
+	 vector<long> valvec(1,(long)level);
+	 GetRootNode()->SetElementLong(_FidelityLevelTag,valvec);
  }
 bool ArrowParams::GetIgnoreFidelity(){
 	vector<long> valvec = GetRootNode()->GetElementLong(_IgnoreFidelityTag);

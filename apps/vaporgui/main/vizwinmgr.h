@@ -236,7 +236,7 @@ public:
 	static AnimationParams* getActiveAnimationParams(){
 		return (getInstance()->getAnimationParams(getInstance()->activeViz));
 	}
-	
+	void forceFidelityUpdate();
 	void createAllDefaultParams();
 	void RegisterMouseModes();
     

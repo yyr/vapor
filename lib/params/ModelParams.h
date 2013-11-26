@@ -85,7 +85,7 @@ public:
  //!
  //! Pure virtual method required of render params
  //
- virtual void SetFidelityLevel(float) {}
+ virtual void SetFidelityLevel(int) {}
 
  //! Return whether fidelity is used. (Not Used)
  //!
@@ -102,7 +102,7 @@ public:
  //!
  //! Pure virtual method required of render params
  //
- virtual float GetFidelityLevel() { return 0.5f; }
+ virtual int GetFidelityLevel() { return 0; }
  //! Obtain the current compression level. (Not used)
  //!
  //! Pure virtual method required of render params

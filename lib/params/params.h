@@ -567,11 +567,11 @@ public:
 	//! Pure virtual method indicates current fidelity level
 	//! \retval float between 0 and 1
 	//!
-	virtual float GetFidelityLevel()=0;
+	virtual int GetFidelityLevel()=0;
 	//! Pure virtual method sets current fidelity level
 	//! \param[in] float level
 	//!
-	virtual void SetFidelityLevel(float level)=0;
+	virtual void SetFidelityLevel(int level)=0;
 	//! Pure virtual method indicates fidelity is ignored
 	//! \retval bool
 	//!

@@ -304,7 +304,14 @@ public:
 		textureSizeSpecified = val;
 		DataStatus::getInstance()->specifyTextureSize(val);
 	}
-	
+	float getDefaultLODFidelity2D(){return defaultLODFidelity2D;}
+	float getDefaultRefinementFidelity2D(){return defaultRefFidelity2D;}
+	float getDefaultLODFidelity3D(){return defaultLODFidelity3D;}
+	float getDefaultRefinementFidelity3D(){return defaultRefFidelity3D;}
+	void setDefaultLODFidelity2D(float q) {defaultLODFidelity2D = q;}
+	void setDefaultLODFidelity3D(float q) {defaultLODFidelity3D = q;}
+	void setDefaultRefinementFidelity2D(float q){defaultRefFidelity2D = q;}
+	void setDefaultRefinementFidelity3D(float q){defaultRefFidelity3D = q;}
 		
 	static const string& getPreferencesFile();
 	static const string _specifyTextureSizeAttr;
@@ -375,6 +382,10 @@ protected:
 	//Following parameters are in session state, modified by session panel:
 	//Cache size in megabytes
 	size_t cacheMB;
+	float defaultRefFidelity2D;
+	float defaultRefFidelity3D;
+	float defaultLODFidelity2D;
+	float defaultLODFidelity3D;
 	static int lockWinWidth, lockWinHeight;
 	static bool lockWin;
 	string currentLogfileName;

@@ -135,8 +135,8 @@ public:
 		
 	virtual bool GetIgnoreFidelity() {return ignoreFidelity;}
 	virtual void SetIgnoreFidelity(bool val){ignoreFidelity = val;}
-	virtual float GetFidelityLevel() {return fidelityLevel;}
-	virtual void SetFidelityLevel(float lev){fidelityLevel = lev;}
+	virtual int GetFidelityLevel() {return fidelityLevel;}
+	virtual void SetFidelityLevel(int lev){fidelityLevel = lev;}
 	
 	
 protected:
@@ -149,7 +149,7 @@ protected:
 	static const string _imagePlacementAttr;
 
 	
-	float fidelityLevel;
+	int fidelityLevel;
 	bool ignoreFidelity;
 	int getImageNum(int timestep){
 		return imageNums[timestep];
