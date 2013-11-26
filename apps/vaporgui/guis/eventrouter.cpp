@@ -549,10 +549,9 @@ void EventRouter::setupFidelity(int dim, QHBoxLayout* fidelityLayout,
 	int deflt = orderLODRefs(dim);
 	int numButtons = fidelityLODs.size();
 	QHBoxLayout* hbox = new QHBoxLayout;
-	fidelityLayout->removeWidget(fidelityBox);
+	//fidelityLayout->removeWidget(fidelityBox);
 	delete fidelityBox;// this also deletes buttongroup
 	fidelityBox = new QGroupBox("low .. Fidelity .. high");
-	
 	fidelityButtons = new QButtonGroup(fidelityBox);
 	for (int i = 0; i<numButtons; i++){
 		QRadioButton * rd = new QRadioButton(fidelityBox);
