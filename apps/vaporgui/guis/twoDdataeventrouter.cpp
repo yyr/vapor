@@ -2003,8 +2003,8 @@ void TwoDDataEventRouter::mapCursor(){
 	tParams->buildLocal2DTransform(a,b,constVal,mapDims);
 	const float* cursorCoords = tParams->getCursorCoords();
 	//If using flat plane, the cursor sits in the z=0 plane of the twoD box coord system.
-	//x is reversed because we are looking from the opposite direction 
-	twoDCoord[0] = -cursorCoords[0];
+
+	twoDCoord[0] = cursorCoords[0];
 	twoDCoord[1] = cursorCoords[1];
 	twoDCoord[2] = 0.f;
 	double selectPoint[3];

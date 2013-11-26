@@ -399,8 +399,10 @@ int	Wrf2vdf::launchWrf2Vdf(int argc, char **argv) {
 				cout << endl;
 				fails++;
 			}
-			const float * drange = vdfio->GetDataRange();
-			//cout << "data range (" << drange[0] << ", " << drange[1]<< ")\n";
+			if (! _quiet) {
+				const float * drange = vdfio->GetDataRange();
+				cout << "data range (" << drange[0] << ", " << drange[1]<< ")\n";
+			}
 
 		}
 	}

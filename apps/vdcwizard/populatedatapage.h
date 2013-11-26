@@ -48,7 +48,9 @@ public:
 	VdfBadFile *successMessage;
 	VdfBadFile *checkOverwrites;
 
-    void findVars();
+	int Complete;
+    bool isComplete() const;
+	void findVars();
     vector<string> varList;
 
 private slots:
@@ -68,7 +70,6 @@ private:
     void setupVars();
     void populateCheckedVars();
     bool validatePage();
-	bool isComplete();
 	bool checkForOverwrites();
 	bool activateCancel;
 };

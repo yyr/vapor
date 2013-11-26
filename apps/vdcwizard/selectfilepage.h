@@ -52,8 +52,8 @@ public:
     QPixmap vdfCreatePixmap;
     QPixmap toVdfPixmap;
 	QString selectedDirectory;
-
-    bool isComplete() const;
+	int Complete;
+	bool isComplete() const;
 
 private slots:
     void on_browseOutputVdfFile_clicked();

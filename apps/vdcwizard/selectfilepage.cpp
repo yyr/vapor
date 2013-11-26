@@ -38,6 +38,7 @@ SelectFilePage::SelectFilePage(DataHolder *DH, QWidget *parent) :
 {
     setupUi(this);
 
+	Complete=1;
     momPopOrRoms = "mom";
     dataHolder = DH;
     vdfBadFile = new VdfBadFile;
@@ -185,19 +186,19 @@ void SelectFilePage::initializePage() {
 }
 
 bool SelectFilePage::isComplete() const {
-	//if (dataHolder->ncdfFilesChanged==false) return false;
-
+	if (Complete==1){
 	//check for correct inputs and try creating DCReader
-	if ((dataHolder->getFileType() == "") &&
-    	(dataHolder->getVDFfileName() == "")) return false;
-	if ((dataHolder->getFileType() != "") &&
-       	(dataHolder->getVDFfileName() != "")){
-		return true;
+		if ((dataHolder->getFileType() == "") &&
+    		(dataHolder->getVDFfileName() == "")) return false;
+		if ((dataHolder->getFileType() != "") &&
+       		(dataHolder->getVDFfileName() != "")){
+			return true;
+		}
 	}
 	return false;
 }
 
-int SelectFilePage::nextId() const {
+int SelectFilePage::nextId() const{
 	if (isComplete() == true){
 		//if there has been a change to the ncdf files, we will need to generate a new
 		//DCReader, and go through our error checking process

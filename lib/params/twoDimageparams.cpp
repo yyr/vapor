@@ -948,7 +948,7 @@ void TwoDImageParams::setupImageNums(TIFF* tif){
 				break;
             }
             double seconds = udunits.EncodeTime(year, mon, mday, hour, min,sec);
-			tiffTimes.push_back(seconds);
+			tiffTimes.push_back((TIME64_T) seconds);
 
 		} while (TIFFReadDirectory(tif));
 	}
