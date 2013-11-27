@@ -353,6 +353,9 @@ p, li { white-space: pre-wrap; }
                 <property name="title">
                  <string>low .. Fidelity .. high</string>
                 </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
                </widget>
               </item>
              </layout>

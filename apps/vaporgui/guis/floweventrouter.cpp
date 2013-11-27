@@ -1738,6 +1738,9 @@ guiSetCompRatio(int num){
 	fParams->SetCompressionLevel(num);
 	lodCombo->setCurrentIndex(num);
 	fParams->SetIgnoreFidelity(true);
+	QPalette pal = QPalette(fidelityBox->palette());
+	pal.setColor(QPalette::WindowText, Qt::gray);
+	fidelityBox->setPalette(pal);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -1757,6 +1760,9 @@ guiSetNumRefinements(int n){
 	PanelCommand* cmd = PanelCommand::captureStart(fParams, "set number Refinements in Flow data");
 	fParams->SetRefinementLevel(newNumTrans);
 	fParams->SetIgnoreFidelity(true);
+	QPalette pal = QPalette(fidelityBox->palette());
+	pal.setColor(QPalette::WindowText, Qt::gray);
+	fidelityBox->setPalette(pal);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -3380,6 +3386,9 @@ void FlowEventRouter::guiSetFidelity(int buttonID){
 	dParams->SetRefinementLevel(newRef);
 	dParams->SetFidelityLevel(fidelity);
 	dParams->SetIgnoreFidelity(false);
+	QPalette pal = QPalette(fidelityBox->palette());
+	pal.setColor(QPalette::WindowText, Qt::black);
+	fidelityBox->setPalette(pal);
 	//change values of LOD and refinement combos using setCurrentIndex().
 	lodCombo->setCurrentIndex(newLOD);
 	refinementCombo->setCurrentIndex(newRef);

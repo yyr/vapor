@@ -535,7 +535,7 @@ void EventRouter::updateFidelity(QGroupBox* fidelityBox, RenderParams* rp, QComb
 		activeButton->setChecked(true);
 		
 	} else {
-		pal.setColor(QPalette::WindowText, Qt::lightGray);
+		pal.setColor(QPalette::WindowText, Qt::gray);
 		int numRefs = rp->GetRefinementLevel();
 		if(numRefs <= refinementCombo->count())
 			refinementCombo->setCurrentIndex(numRefs);

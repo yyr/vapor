@@ -1089,6 +1089,9 @@ guiSetCompRatio(int num){
 	iParams->SetCompressionLevel(num);
 	lodCombo->setCurrentIndex(num);
 	iParams->SetIgnoreFidelity(true);
+	QPalette pal = QPalette(fidelityBox->palette());
+	pal.setColor(QPalette::WindowText, Qt::gray);
+	fidelityBox->setPalette(pal);
 	PanelCommand::captureEnd(cmd, iParams);
 	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->forceRender(iParams);
@@ -1111,6 +1114,9 @@ guiSetNumRefinements(int n){
 	} else if (n > maxNumRefinements) maxNumRefinements = n;
 	pParams->SetRefinementLevel(n);
 	pParams->SetIgnoreFidelity(true);
+	QPalette pal = QPalette(fidelityBox->palette());
+	pal.setColor(QPalette::WindowText, Qt::gray);
+	fidelityBox->setPalette(pal);
 	PanelCommand::captureEnd(cmd, pParams);
 	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams);
@@ -1773,6 +1779,9 @@ void TwoDImageEventRouter::guiSetFidelity(int buttonID){
 	dParams->SetRefinementLevel(newRef);
 	dParams->SetFidelityLevel(fidelity);
 	dParams->SetIgnoreFidelity(false);
+	QPalette pal = QPalette(fidelityBox->palette());
+	pal.setColor(QPalette::WindowText, Qt::black);
+	fidelityBox->setPalette(pal);
 	//change values of LOD and refinement combos using setCurrentIndex().
 	lodCombo->setCurrentIndex(newLOD);
 	refinementCombo->setCurrentIndex(newRef);

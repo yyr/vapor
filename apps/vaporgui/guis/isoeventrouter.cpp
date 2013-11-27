@@ -828,6 +828,9 @@ guiSetCompRatio(int num){
 	iParams->SetCompressionLevel(num);
 	lodCombo->setCurrentIndex(num);
 	iParams->SetIgnoreFidelity(true);
+	QPalette pal = QPalette(fidelityBox->palette());
+	pal.setColor(QPalette::WindowText, Qt::gray);
+	fidelityBox->setPalette(pal);
 	PanelCommand::captureEnd(cmd, iParams);
 	VizWinMgr::getInstance()->setVizDirty(iParams,RegionBit);
 }
@@ -845,6 +848,9 @@ guiSetNumRefinements(int num){
 	iParams->SetRefinementLevel(num);
 	refinementCombo->setCurrentIndex(num);
 	iParams->SetIgnoreFidelity(true);
+	QPalette pal = QPalette(fidelityBox->palette());
+	pal.setColor(QPalette::WindowText, Qt::gray);
+	fidelityBox->setPalette(pal);
 	PanelCommand::captureEnd(cmd, iParams);
 	VizWinMgr::getInstance()->setVizDirty(iParams, RegionBit);
 	
@@ -1449,6 +1455,9 @@ void IsoEventRouter::guiSetFidelity(int buttonID){
 	dParams->SetRefinementLevel(newRef);
 	dParams->SetFidelityLevel(fidelity);
 	dParams->SetIgnoreFidelity(false);
+	QPalette pal = QPalette(fidelityBox->palette());
+	pal.setColor(QPalette::WindowText, Qt::black);
+	fidelityBox->setPalette(pal);
 	//change values of LOD and refinement combos using setCurrentIndex().
 	lodCombo->setCurrentIndex(newLOD);
 	refinementCombo->setCurrentIndex(newRef);

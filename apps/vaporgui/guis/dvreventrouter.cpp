@@ -448,7 +448,7 @@ void DvrEventRouter::updateTab(){
 		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 		fidelityDefaultChanged = false;
 	}
-	updateFidelity(fidelityBox,dvrParams,lodCombo,refinementCombo);
+	if (DataStatus::getInstance()->getDataMgr()) updateFidelity(fidelityBox,dvrParams,lodCombo,refinementCombo);
 	
 	lightingCheckbox->setChecked(dvrParams->getLighting());
 	preintegratedCheckbox->setChecked(dvrParams->getPreIntegration());
@@ -584,6 +584,9 @@ guiSetCompRatio(int num){
 	
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "set compression level");
 	dParams->SetIgnoreFidelity(true);
+	QPalette pal = QPalette(fidelityBox->palette());
+	pal.setColor(QPalette::WindowText, Qt::gray);
+	fidelityBox->setPalette(pal);
 	dParams->SetCompressionLevel(num);
 	lodCombo->setCurrentIndex(num);
 	PanelCommand::captureEnd(cmd, dParams);
@@ -599,6 +602,9 @@ guiSetNumRefinements(int num){
 	
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "set number of refinements");
 	dParams->SetIgnoreFidelity(true);
+	QPalette pal = QPalette(fidelityBox->palette());
+	pal.setColor(QPalette::WindowText, Qt::gray);
+	fidelityBox->setPalette(pal);
 	dParams->SetRefinementLevel(num);
 	refinementCombo->setCurrentIndex(num);
 	PanelCommand::captureEnd(cmd, dParams);
@@ -1408,6 +1414,9 @@ void DvrEventRouter::guiSetFidelity(int buttonID){
 	dParams->SetRefinementLevel(newRef);
 	dParams->SetFidelityLevel(fidelity);
 	dParams->SetIgnoreFidelity(false);
+	QPalette pal = QPalette(fidelityBox->palette());
+	pal.setColor(QPalette::WindowText, Qt::black);
+	fidelityBox->setPalette(pal);
 	//change values of LOD and refinement combos using setCurrentIndex().
 	lodCombo->setCurrentIndex(newLOD);
 	refinementCombo->setCurrentIndex(newRef);
