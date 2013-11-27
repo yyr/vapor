@@ -388,7 +388,11 @@ reinit(bool doOverride){
 		if (seedTimeEnd > maxFrame) seedTimeEnd = maxFrame;
 		if (seedTimeEnd < seedTimeStart) seedTimeEnd = seedTimeStart;
 	}
-	
+	//Make sure fidelity is valid:
+	int fidelity = GetFidelityLevel();
+	DataMgr* dataMgr = ds->getDataMgr();
+	if (dataMgr && fidelity > maxNumRefinements+dataMgr->GetCRatios().size()-1)
+		SetFidelityLevel(maxNumRefinements+dataMgr->GetCRatios().size()-1);
 
 	//Set up the seed region:
 	const float* fullExtents = DataStatus::getInstance()->getLocalExtents();

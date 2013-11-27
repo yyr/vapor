@@ -194,6 +194,11 @@ reinit(bool doOverride){
 	} else {//Try to use existing value
 		if (numRefinements > maxNumRefinements) numRefinements = maxNumRefinements;
 	}
+	//Make sure fidelity is valid:
+	int fidelity = GetFidelityLevel();
+	DataMgr* dataMgr = ds->getDataMgr();
+	if (dataMgr && fidelity > maxNumRefinements+dataMgr->GetCRatios().size()-1)
+		SetFidelityLevel(maxNumRefinements+dataMgr->GetCRatios().size()-1);
 	//Create new arrays to hold bounds and transfer functions:
 	assert(totNumVariables > 0);
 	TransferFunction** newTransFunc = new TransferFunction*[totNumVariables];
