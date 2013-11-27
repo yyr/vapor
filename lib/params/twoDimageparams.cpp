@@ -160,7 +160,11 @@ reinit(bool doOverride){
 	}
 	GetBox()->SetLocalExtents(twoDExtents);
 	
-	
+	//Make sure fidelity is valid:
+	int fidelity = GetFidelityLevel();
+	DataMgr* dataMgr = ds->getDataMgr();
+	if (dataMgr && fidelity > maxNumRefinements+dataMgr->GetCRatios().size()-1)
+		SetFidelityLevel(maxNumRefinements+dataMgr->GetCRatios().size()-1);
 	//Create new arrays to hold bounds 
 	
 	//If we are overriding previous values, delete the transfer functions, create new ones.

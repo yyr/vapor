@@ -169,7 +169,7 @@ int main( int argc, char ** argv ) {
     MainForm* mw = new MainForm(fileName,app);
     
 	//QString version_file_name = "http://vis.ucar.edu/~milesrl/vapor-version";
-    QString version_file_name = "http://www.vapor.ucar.edu/sites/default/vapor-version";
+    QString version_file_name = "http://www.vapor.ucar.edu/sites/default/files/vapor-version";
 	VersionChecker* vc = new VersionChecker();
     vc->request(version_file_name);
 	

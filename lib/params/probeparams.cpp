@@ -261,6 +261,12 @@ reinit(bool doOverride){
 		if (numRefinements > maxNumRefinements) numRefinements = maxNumRefinements;
 	}
 	GetBox()->SetLocalExtents(exts);
+
+	//Make sure fidelity is valid:
+	int fidelity = GetFidelityLevel();
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	if (dataMgr && fidelity > maxNumRefinements+dataMgr->GetCRatios().size()-1)
+		SetFidelityLevel(maxNumRefinements+dataMgr->GetCRatios().size()-1);
 	//Get the variable names:
 
 	int newNumVariables = DataStatus::getInstance()->getNumSessionVariables();

@@ -238,6 +238,12 @@ reinit(bool doOverride){
 		if (numRefinements > maxNumRefinements) numRefinements = maxNumRefinements;
 	}
 	GetBox()->SetLocalExtents(twoDExts);
+	//Make sure fidelity is valid:
+	int fidelity = GetFidelityLevel();
+	DataMgr* dataMgr = ds->getDataMgr();
+	if (dataMgr && fidelity > maxNumRefinements+dataMgr->GetCRatios().size()-1)
+		SetFidelityLevel(maxNumRefinements+dataMgr->GetCRatios().size()-1);
+
 	//Get the variable names:
 
 	int newNumVariables = ds->getNumSessionVariables2D();

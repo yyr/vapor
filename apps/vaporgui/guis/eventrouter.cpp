@@ -567,7 +567,7 @@ void EventRouter::setupFidelity(int dim, QHBoxLayout* fidelityLayout,
 		//set the default fidelity to be closest to the preference setting, when initially setting up tab
 		dParams->SetFidelityLevel(deflt);
 	}
-	
+	if (dParams->GetFidelityLevel() >= fidelityLODs.size()) dParams->SetFidelityLevel(fidelityLODs.size()-1);
 	fidelityBox->setToolTip("Click a button to specify the fidelity (both LOD and refinement)\n Each button has a tooltip indicating its associated LOD and refinement.");
 	fidelityBox->setLayout(hbox);
 	fidelityLayout->addWidget(fidelityBox);
