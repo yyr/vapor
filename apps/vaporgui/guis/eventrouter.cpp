@@ -520,9 +520,10 @@ vector<QAction*>* EventRouter::makeWebHelpActions(const char* texts[], const cha
 	}
 	return actionVector;
 }
-void EventRouter::updateFidelity(RenderParams* rp, QComboBox* lodCombo, QComboBox* refinementCombo){
+void EventRouter::updateFidelity(QGroupBox* fidelityBox, RenderParams* rp, QComboBox* lodCombo, QComboBox* refinementCombo){
+	QPalette pal = QPalette(fidelityBox->palette());
 	if (!rp->GetIgnoreFidelity()){
-		
+		pal.setColor(QPalette::WindowText, Qt::black);
 		int defIndx = rp->GetFidelityLevel();
 		int lod = fidelityLODs[defIndx];
 		int refLevel = fidelityRefinements[defIndx];
@@ -534,11 +535,13 @@ void EventRouter::updateFidelity(RenderParams* rp, QComboBox* lodCombo, QComboBo
 		activeButton->setChecked(true);
 		
 	} else {
+		pal.setColor(QPalette::WindowText, Qt::gray);
 		int numRefs = rp->GetRefinementLevel();
 		if(numRefs <= refinementCombo->count())
 			refinementCombo->setCurrentIndex(numRefs);
 		lodCombo->setCurrentIndex(rp->GetCompressionLevel());
 	}
+	fidelityBox->setPalette(pal);
 }
 void EventRouter::setupFidelity(int dim, QHBoxLayout* fidelityLayout,
 	QGroupBox* fidelityBox, RenderParams* dParams, bool useDefault){
@@ -548,14 +551,20 @@ void EventRouter::setupFidelity(int dim, QHBoxLayout* fidelityLayout,
 	const vector<size_t> cRatios = dataMgr->GetCRatios();
 	int deflt = orderLODRefs(dim);
 	int numButtons = fidelityLODs.size();
-	QHBoxLayout* hbox = new QHBoxLayout;
-	//fidelityLayout->removeWidget(fidelityBox);
-	delete fidelityBox;// this also deletes buttongroup
-	fidelityBox = new QGroupBox("low .. Fidelity .. high");
-	fidelityButtons = new QButtonGroup(fidelityBox);
+	if (!fidelityButtons) fidelityButtons = new QButtonGroup(fidelityBox);
+	QHBoxLayout* hlay = (QHBoxLayout*)fidelityBox->layout();
+	if (!hlay) hlay = new QHBoxLayout(fidelityBox);
+	hlay->setAlignment(Qt::AlignHCenter);
+
+	QList<QAbstractButton*> btns = fidelityButtons->buttons();
+	for (int i = 0; i<btns.size(); i++){
+		fidelityButtons->removeButton(btns[i]);
+		hlay->removeWidget(btns[i]);
+		delete btns[i];
+	}
 	for (int i = 0; i<numButtons; i++){
 		QRadioButton * rd = new QRadioButton(fidelityBox);
-		hbox->addWidget(rd);
+		hlay->addWidget(rd);
 		fidelityButtons->addButton(rd, i);
 		QString refLevel = "Refinement "+QString::number(fidelityRefinements[i]);
 		QString LOD = "\nLOD "+QString::number(cRatios[fidelityLODs[i]])+":1";
@@ -568,9 +577,6 @@ void EventRouter::setupFidelity(int dim, QHBoxLayout* fidelityLayout,
 		dParams->SetFidelityLevel(deflt);
 	}
 	if (dParams->GetFidelityLevel() >= fidelityLODs.size()) dParams->SetFidelityLevel(fidelityLODs.size()-1);
-	fidelityBox->setToolTip("Click a button to specify the fidelity (both LOD and refinement)\n Each button has a tooltip indicating its associated LOD and refinement.");
-	fidelityBox->setLayout(hbox);
-	fidelityLayout->addWidget(fidelityBox);
 	fidelityBox->adjustSize();
 	return;
 }
