@@ -566,7 +566,7 @@ void FlowEventRouter::updateTab(){
 		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 		fidelityDefaultChanged = false;
 	}
-	if (dStatus->getDataMgr()) updateFidelity(fParams,lodCombo,refinementCombo);
+	if (dStatus->getDataMgr()) updateFidelity(fidelityBox,fParams,lodCombo,refinementCombo);
 
 	float sliderVal = fParams->getOpacityScale();
 	opacityScaleSlider->setToolTip("Opacity Scale Value = "+QString::number(sliderVal*sliderVal));

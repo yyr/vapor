@@ -549,7 +549,7 @@ void ArrowEventRouter::updateTab(){
 		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 		fidelityDefaultChanged = false;
 	}
-	if (ds->getDataMgr()) updateFidelity(arrowParams,lodCombo,refinementCombo);
+	if (ds->getDataMgr()) updateFidelity(fidelityBox,arrowParams,lodCombo,refinementCombo);
 	//Set the combo based on the current field variables
 	int comboIndex[3] = { 0,0,0};
 	

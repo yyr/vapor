@@ -218,7 +218,7 @@ void TwoDImageEventRouter::updateTab(){
 		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 		fidelityDefaultChanged = false;
 	}
-	if (ds->getDataMgr()) updateFidelity(twoDParams,lodCombo,refinementCombo);
+	if (ds->getDataMgr()) updateFidelity(fidelityBox,twoDParams,lodCombo,refinementCombo);
 	int orientation = twoDParams->getOrientation();
 	
 	orientationCombo->setCurrentIndex(orientation);

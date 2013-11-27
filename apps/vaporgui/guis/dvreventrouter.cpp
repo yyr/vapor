@@ -448,7 +448,7 @@ void DvrEventRouter::updateTab(){
 		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 		fidelityDefaultChanged = false;
 	}
-	updateFidelity(dvrParams,lodCombo,refinementCombo);
+	updateFidelity(fidelityBox,dvrParams,lodCombo,refinementCombo);
 	
 	lightingCheckbox->setChecked(dvrParams->getLighting());
 	preintegratedCheckbox->setChecked(dvrParams->getPreIntegration());

@@ -312,7 +312,7 @@ void TwoDDataEventRouter::updateTab(){
 		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 		fidelityDefaultChanged = false;
 	}
-	if (dataMgr) updateFidelity(twoDParams,lodCombo,refinementCombo);
+	if (dataMgr) updateFidelity(fidelityBox,twoDParams,lodCombo,refinementCombo);
 	
 	histoScaleEdit->setText(QString::number(twoDParams->GetHistoStretch()));
 	//List the variables in the combo

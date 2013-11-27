@@ -316,7 +316,7 @@ void ProbeEventRouter::updateTab(){
 		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 		fidelityDefaultChanged = false;
 	}
-	if (ds->getDataMgr()) updateFidelity(probeParams,lodCombo,refinementCombo);
+	if (ds->getDataMgr()) updateFidelity(fidelityBox, probeParams,lodCombo,refinementCombo);
 	int pType = probeParams->getProbeType();
 	probeTypeCombo->setCurrentIndex(pType);
 	if (pType == 1) {
