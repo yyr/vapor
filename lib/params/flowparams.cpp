@@ -390,7 +390,7 @@ reinit(bool doOverride){
 	}
 	//Make sure fidelity is valid:
 	int fidelity = GetFidelityLevel();
-	DataMgr* dataMgr = ds->getDataMgr();
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
 	if (dataMgr && fidelity > maxNumRefinements+dataMgr->GetCRatios().size()-1)
 		SetFidelityLevel(maxNumRefinements+dataMgr->GetCRatios().size()-1);
 
