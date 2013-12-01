@@ -1666,7 +1666,7 @@ void TwoDImageEventRouter::mapCursor(){
 	if (tParams->isGeoreferenced()){
 		
 		double mappt[2];
-		mappt[0] = -cursorCoords[0];
+		mappt[0] = cursorCoords[0];
 		mappt[1] = cursorCoords[1];
 		
 		if (tParams->mapGeorefPoint(currentTimeStep, mappt)) {
