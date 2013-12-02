@@ -6,6 +6,8 @@
 	<string>English</string>
 	<key>CFBundleExecutable</key>
 	<string>vdcwizard</string>
+    <key>CFBundleIconFile</key>
+    <string>VDCWizard.icns</string>
 	<key>CFBundleIdentifier</key>
 	<string>edu.ncar.VAPOR</string>
 	<key>CFBundleInfoDictionaryVersion</key>
