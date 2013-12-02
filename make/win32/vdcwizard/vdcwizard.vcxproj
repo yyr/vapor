@@ -1210,6 +1210,11 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\CmdLine.ui -o ..\..\..\apps\vdcwizard\ui\CmdLine.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Uic%27ing CmdLine.ui...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vdcwizard\ui\CmdLine.h;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vdcwizard\ui\CmdLine.ui -o ..\..\..\apps\vdcwizard\ui\CmdLine.h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Uic%27ing CmdLine.ui...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\ui\CmdLine.h;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
