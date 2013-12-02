@@ -908,7 +908,6 @@ applyToState(bool orderTabs){
 	//Copy from this (not QDialog) to session
 	Session* ses = Session::getInstance();
 	//If fidelity default changes, need to force all fidelities to update
-	bool fidelityChanged = false;
 	if (ses->getDefaultRefinementFidelity2D() != defaultRefFidelity2D ||
 		ses->getDefaultRefinementFidelity3D() != defaultRefFidelity3D ||
 		ses->getDefaultLODFidelity2D() != defaultLODFidelity2D ||

@@ -827,7 +827,7 @@ animationParamsChanged(AnimationParams* aParams){
 	for (int i = 0; i< MAXVIZWINS; i++){
 		if (!vizWin[i]) continue;
 		AnimationParams* animationParams = (AnimationParams*)Params::GetParamsInstance(Params::_animationParamsTag,i);
-		if  (( i != vizNum)  &&  (!animationParams)||!animationParams->isLocal()){
+		if  (( i != vizNum)  &&  ((!animationParams)||!animationParams->isLocal())){
 			ac->paramsChanged(i);
 			ViewpointParams* vp2 = getViewpointParams(i);
 			if (vp2!= vpp){
