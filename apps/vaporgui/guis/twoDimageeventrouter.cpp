@@ -213,7 +213,7 @@ void TwoDImageEventRouter::updateTab(){
 	Session* ses = Session::getInstance();
 	if (!ds->getDataMgr()) return;
 	ses->blockRecording();
-    if (fidelityDefaultChanged){
+    if (ds->getDataMgr() && fidelityDefaultChanged){
 		setupFidelity(2, fidelityLayout,fidelityBox, twoDParams, false);
 		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 		fidelityDefaultChanged = false;

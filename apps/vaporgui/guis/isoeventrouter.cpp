@@ -261,7 +261,7 @@ void IsoEventRouter::updateTab(){
 	opacityScaleSlider->setToolTip("Opacity Scale Value = "+QString::number(sliderVal));
 	opacityScaleSlider->setValue((int)(256*(1.-sliderVal)));
 	mapVariableCombo->setCurrentIndex(mapComboVarNum);
-	if (fidelityDefaultChanged){
+	if (DataStatus::getInstance()->getDataMgr() && fidelityDefaultChanged){
 		setupFidelity(3, fidelityLayout,fidelityBox, isoParams, false);
 		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 		fidelityDefaultChanged = false;

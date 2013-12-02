@@ -311,7 +311,7 @@ void ProbeEventRouter::updateTab(){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	size_t timestep = (size_t)vizMgr->getActiveAnimationParams()->getCurrentTimestep();
 	int winnum = vizMgr->getActiveViz();
-	if (fidelityDefaultChanged){
+	if (ds->getDataMgr() && fidelityDefaultChanged){
 		setupFidelity(3, fidelityLayout,fidelityBox, probeParams, false);
 		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 		fidelityDefaultChanged = false;

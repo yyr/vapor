@@ -561,7 +561,7 @@ void FlowEventRouter::updateTab(){
 	
 	flowTypeCombo->setCurrentIndex(flowType);
 	
-	if (fidelityDefaultChanged){
+	if (dStatus->getDataMgr() && fidelityDefaultChanged){
 		setupFidelity(3, fidelityLayout,fidelityBox, fParams, false);
 		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 		fidelityDefaultChanged = false;
