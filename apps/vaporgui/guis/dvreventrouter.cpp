@@ -443,7 +443,7 @@ void DvrEventRouter::updateTab(){
 
 	
 	variableCombo->setCurrentIndex(dvrParams->getComboVarNum());
-	if (fidelityDefaultChanged){
+	if (DataStatus::getInstance()->getDataMgr() && fidelityDefaultChanged){
 		setupFidelity(3, fidelityLayout,fidelityBox, dvrParams, false);
 		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 		fidelityDefaultChanged = false;

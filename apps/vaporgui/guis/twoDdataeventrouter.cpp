@@ -307,7 +307,7 @@ void TwoDDataEventRouter::updateTab(){
 		transferFunctionFrame->setVariableName("");
 		variableLabel->setText("");
 	}
-	if (fidelityDefaultChanged){
+	if (dataMgr && fidelityDefaultChanged){
 		setupFidelity(2, fidelityLayout,fidelityBox, twoDParams, false);
 		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 		fidelityDefaultChanged = false;

@@ -202,7 +202,7 @@ int SelectFilePage::nextId() const{
 	if (isComplete() == true){
 		//if there has been a change to the ncdf files, we will need to generate a new
 		//DCReader, and go through our error checking process
-		if (dataHolder->ncdfFilesChanged==true) {
+		//if (dataHolder->ncdfFilesChanged==true) {
 			if (dataHolder->createReader()==0) {
 				dataHolder->ncdfFilesChanged=false;
 				if (dataHolder->getOperation() == "vdfcreate") return VDCWizard::Create_VdfPage;
@@ -220,13 +220,13 @@ int SelectFilePage::nextId() const{
 				MyBase::SetErrCode(0);
     	        return VDCWizard::SelectFile_Page;
 	        }
-		}
+		//}
 		//else, we have already created the DCReader and there are no current modifications
 		//to it, so procede with the DCReader that was generated previously
-		else {
-        	if (dataHolder->getOperation() == "vdfcreate") return VDCWizard::Create_VdfPage;
-        	else return VDCWizard::Populate_DataPage;
-		}
+		//else {
+        //	if (dataHolder->getOperation() == "vdfcreate") return VDCWizard::Create_VdfPage;
+        //	else return VDCWizard::Populate_DataPage;
+		//}
 	}
 	return VDCWizard::SelectFile_Page;
 }

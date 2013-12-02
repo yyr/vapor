@@ -9,6 +9,7 @@
 	SLP - sea-level pressure (2D)
 	TD - dewpoint temperature
 	TK - temperature in degrees Kelvin.
+	CTHGT - cloud-top height
 	wrf_deriv_findiff - 6th order finite-difference derivative 	wrf_curl_findiff - finite-difference curl
 	wrf_grad_findiff - finite-difference gradient
 	wrf_div_findiff - finite-difference divergence'''
@@ -59,6 +60,51 @@ def CTT(P,PB,T,QCLOUD,QICE):
 			WRF_CTT = numpy.where(logArray,tmk[k,:,:]-celkel,WRF_CTT[:,:])
 			opdepthu = opdepthd
 	return WRF_CTT
+
+def CTHGT(P,PB,T,QCLOUD,QICE,ELEVATION):
+	'''Calculate cloud-top height using WRF variables.
+	Calling sequence: VAL=CTHGT(P,PB,T,QCLOUD,QICE,ELEVATION)
+	Where P,PB,T,QCLOUD,QICE are 3D WRF variables.
+	(Replace QICE by 0 if not in data)
+	Result VAL is a 2D variable.'''
+#Copied (and adapted) from RIP4 fortran code cttcalc.f
+#constants:
+#iice should be 1 if QSNOW and QICE is present
+	iice = (vapor.VariableExists(vapor.TIMESTEP,"QSNOW") and vapor.VariableExists(vapor.TIMESTEP,"QICE"))
+	# if iice is 0, need to use T, otherwise not.
+	grav=9.81
+	celkel=273.15 #celsius to kelvin difference
+	c = 2.0/7.0
+	abscoefi = 0.272
+	abscoef = 0.145
+#calculate TK:
+	pf = P+PB
+	tmk = (T+300.0)*numpy.power(pf*.00001,c)
+	s = numpy.shape(P)	#size of the input array
+	ss = [s[1],s[2]] # shape of 2d arrays
+#initialize with value at bottom:
+	CTHT = numpy.zeros(ss,numpy.float32) 
+	opdepthd = numpy.zeros(ss,numpy.float32) #next value
+	opdepthu = numpy.zeros(ss,numpy.float32) #previous value
+#Sweep array from top to bottom, accumulating optical depth
+	if (iice == 1):
+		for k in range(s[0]-2,-1,-1): #start at top-1, end at bottom (k=0) accumulate opacity
+			dp =100.*(pf[k,:,:]-pf[k+1,:,:]) 
+			opdepthd=opdepthu+(abscoef*QCLOUD[k,:,:]+abscoefi*QICE[k,:,:])*dp/grav
+			logArray= numpy.logical_and(opdepthd > 1.0,opdepthu <= 1.0)
+		#identify level when opac=1 is reached
+			CTHT = numpy.where(logArray,ELEVATION[k,:,:],CTHT[:,:])
+			opdepthu = opdepthd
+	else:
+		for k in range(s[0]-2,-1,-1): #start at top-1, end at bottom (k=0) accumulate opacity
+			dp =100.*(pf[k,:,:]-pf[k+1,:,:]) 
+			logArray1 = tmk[k,:,:]<celkel
+			opdepthd= numpy.where(logArray1,opdepthu+abscoefi*QCLOUD[k,:,:]*dp/grav,opdepthu+abscoef*QCLOUD[k,:,:]*dp/grav)
+			logArray= numpy.logical_and(opdepthd > 1.0,opdepthu <= 1.0)
+		#identify level when opac=1 is reached
+			CTHT = numpy.where(logArray,ELEVATION[k,:,:],CTHT[:,:])
+			opdepthu = opdepthd
+	return CTHT
 
 def DBZ(P,PB,QRAIN,QGRAUP,QSNOW,T,QVAPOR,iliqskin=0,ivarint=0):
 	''' Calculates 3D radar reflectivity based on WRF variables.
