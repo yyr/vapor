@@ -280,9 +280,9 @@ FlowEventRouter::hookUpTab()
 	connect (seedtimeIncrementEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	
 	connect (firstDisplayFrameEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (firstDisplayFrameEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
+	connect (firstDisplayFrameEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (lastDisplayFrameEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (lastDisplayFrameEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
+	connect (lastDisplayFrameEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (diameterEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (diameterEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
 	connect (diamondSizeEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
@@ -566,7 +566,7 @@ void FlowEventRouter::updateTab(){
 		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 		fidelityDefaultChanged = false;
 	}
-	if (dStatus->getDataMgr()) updateFidelity(fParams,lodCombo,refinementCombo);
+	if (dStatus->getDataMgr()) updateFidelity(fidelityBox,fParams,lodCombo,refinementCombo);
 
 	float sliderVal = fParams->getOpacityScale();
 	opacityScaleSlider->setToolTip("Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
@@ -1074,7 +1074,7 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			fParams->setNumGenerators(2,genCount);
 			generatorCountEdit->setText(QString::number(fParams->getNumRakeSeedPoints()));
 		}	
-		if(flowType != 0){//rake settings that are for non-steady flow
+		if(flowType != 0){//settings that are for non-steady flow
 			int seedTimeStart = seedtimeStartEdit->text().toUInt();
 			int seedTimeEnd = seedTimeStart;
 			if (flowType == 1)
@@ -1097,6 +1097,17 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			int seedTimeIncrement = seedtimeIncrementEdit->text().toUInt();
 			if (seedTimeIncrement < 1) seedTimeIncrement = 1;
 			fParams->setSeedTimeIncrement(seedTimeIncrement);
+			int lastDisplayFrame = lastDisplayFrameEdit->text().toInt();
+			int firstDisplayFrame = firstDisplayFrameEdit->text().toInt();
+			
+			//Make sure at least one frame is displayed with unsteady display interval.
+			//
+			if (firstDisplayFrame >= lastDisplayFrame) {
+				lastDisplayFrame = firstDisplayFrame+1;
+				lastDisplayFrameEdit->setText(QString::number(lastDisplayFrame));
+			}
+			fParams->setFirstDisplayFrame(firstDisplayFrame);
+			fParams->setLastDisplayFrame(lastDisplayFrame);
 			
 		} //end of rake settings for unsteady flow
 		
@@ -1125,19 +1136,6 @@ void FlowEventRouter::confirmText(bool /*render*/){
 		fParams->setArrowDiameter(arrowDiameter);
 		fParams->setDiamondDiameter(diamondDiameter);
 		fParams->setConstantOpacity(constantOpacity);
-		if (fParams->getFlowType() == 1){
-			int lastDisplayFrame = lastDisplayFrameEdit->text().toInt();
-			int firstDisplayFrame = firstDisplayFrameEdit->text().toInt();
-			
-			//Make sure at least one frame is displayed.
-			//
-			if (firstDisplayFrame >= lastDisplayFrame) {
-				lastDisplayFrame = firstDisplayFrame+1;
-				lastDisplayFrameEdit->setText(QString::number(lastDisplayFrame));
-			}
-			fParams->setFirstDisplayFrame(firstDisplayFrame);
-			fParams->setLastDisplayFrame(lastDisplayFrame);
-		}
 	}
 	
 	guiSetTextChanged(false);
@@ -1674,8 +1672,8 @@ guiSetFlowType(int typenum){
 	if (fParams->getFlowType() == typenum) return;
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set flow type");
 	fParams->setFlowType(typenum);
-	if (typenum == 0){
-		//Need non-positive first display frame for steady flow
+	if (typenum != 0){
+		//Need non-positive first display frame for unsteady flow
 		int firstDisplayFrame = fParams->getFirstDisplayFrame();
 		if (firstDisplayFrame > 0) {
 			firstDisplayFrame = 0;
@@ -1738,6 +1736,9 @@ guiSetCompRatio(int num){
 	fParams->SetCompressionLevel(num);
 	lodCombo->setCurrentIndex(num);
 	fParams->SetIgnoreFidelity(true);
+	QPalette pal = QPalette(fidelityBox->palette());
+	pal.setColor(QPalette::WindowText, Qt::gray);
+	fidelityBox->setPalette(pal);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -1757,6 +1758,9 @@ guiSetNumRefinements(int n){
 	PanelCommand* cmd = PanelCommand::captureStart(fParams, "set number Refinements in Flow data");
 	fParams->SetRefinementLevel(newNumTrans);
 	fParams->SetIgnoreFidelity(true);
+	QPalette pal = QPalette(fidelityBox->palette());
+	pal.setColor(QPalette::WindowText, Qt::gray);
+	fidelityBox->setPalette(pal);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -3380,6 +3384,9 @@ void FlowEventRouter::guiSetFidelity(int buttonID){
 	dParams->SetRefinementLevel(newRef);
 	dParams->SetFidelityLevel(fidelity);
 	dParams->SetIgnoreFidelity(false);
+	QPalette pal = QPalette(fidelityBox->palette());
+	pal.setColor(QPalette::WindowText, Qt::black);
+	fidelityBox->setPalette(pal);
 	//change values of LOD and refinement combos using setCurrentIndex().
 	lodCombo->setCurrentIndex(newLOD);
 	refinementCombo->setCurrentIndex(newRef);

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>470</width>
-    <height>1170</height>
+    <width>448</width>
+    <height>1335</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -352,6 +352,9 @@ p, li { white-space: pre-wrap; }
                <widget class="QGroupBox" name="fidelityBox">
                 <property name="title">
                  <string>low .. Fidelity .. high</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
                 </property>
                </widget>
               </item>
@@ -2493,22 +2496,6 @@ below the contour view.</string>
                   <string>The contour view shows a planar image of the subset of the 2D data  determined by the size limits.  The colors in the plane are determined by mapping the variables in the 2D data using the color mapping of the current transfer function. The same plane is displayed in the scene, however the in-scene image is influenced by the opacity as well as the color of the transfer function.  Left-mouse clicks in this window are used to select a point in the plane, that is displayed with a cursor.  In 2D planer mode, the cursor is also shown in 3D in the visualizer.  The coordinates and variable value at the selected point are shown below  the contour view.</string>
                  </property>
                 </widget>
-               </item>
-               <item>
-                <spacer name="spacer49">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
-                 </property>
-                 <property name="sizeType">
-                  <enum>QSizePolicy::Expanding</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>19</height>
-                  </size>
-                 </property>
-                </spacer>
                </item>
               </layout>
              </item>

@@ -316,7 +316,7 @@ void ProbeEventRouter::updateTab(){
 		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 		fidelityDefaultChanged = false;
 	}
-	if (ds->getDataMgr()) updateFidelity(probeParams,lodCombo,refinementCombo);
+	if (ds->getDataMgr()) updateFidelity(fidelityBox, probeParams,lodCombo,refinementCombo);
 	int pType = probeParams->getProbeType();
 	probeTypeCombo->setCurrentIndex(pType);
 	if (pType == 1) {
@@ -1867,6 +1867,9 @@ guiSetCompRatio(int num){
 	pParams->SetCompressionLevel(num);
 	lodCombo->setCurrentIndex(num);
 	pParams->SetIgnoreFidelity(true);
+	QPalette pal = QPalette(fidelityBox->palette());
+	pal.setColor(QPalette::WindowText, Qt::gray);
+	fidelityBox->setPalette(pal);
 	PanelCommand::captureEnd(cmd, pParams);
 	setProbeDirty(pParams);
 	probeTextureFrame->update();
@@ -1888,6 +1891,9 @@ guiSetNumRefinements(int n){
 	} else if (n > maxNumRefinements) maxNumRefinements = n;
 	pParams->SetRefinementLevel(n);
 	pParams->SetIgnoreFidelity(true);
+	QPalette pal = QPalette(fidelityBox->palette());
+	pal.setColor(QPalette::WindowText, Qt::gray);
+	fidelityBox->setPalette(pal);
 	PanelCommand::captureEnd(cmd, pParams);
 	setProbeDirty(pParams);
 	probeTextureFrame->update();
@@ -3357,6 +3363,9 @@ void ProbeEventRouter::guiSetFidelity(int buttonID){
 	dParams->SetRefinementLevel(newRef);
 	dParams->SetFidelityLevel(fidelity);
 	dParams->SetIgnoreFidelity(false);
+	QPalette pal = QPalette(fidelityBox->palette());
+	pal.setColor(QPalette::WindowText, Qt::black);
+	fidelityBox->setPalette(pal);
 	//change values of LOD and refinement combos using setCurrentIndex().
 	lodCombo->setCurrentIndex(newLOD);
 	refinementCombo->setCurrentIndex(newRef);

@@ -1135,7 +1135,10 @@ void MainForm::importData(const string& modelType, bool useDefault){
 	//use them to create a new data manager
 	QString prompt ("Select ");
 	prompt += modelType.c_str();
-	prompt += " NetCDF files to import into session.";
+	if (useDefault)
+		prompt += " NetCDF files to import into default session.";
+	else 
+		prompt += " NetCDF files to import into current session.";
 
 	QStringList filenames = QFileDialog::getOpenFileNames(this,
 		prompt,

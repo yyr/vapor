@@ -249,7 +249,7 @@ protected:
 	virtual int orderLODRefs(int dim);
 	//Determine the default lod and ref level for a specified region size
 	virtual void calcLODRefDefault(int dim, float regMBs, int* lod, int* reflevel);
-	virtual void updateFidelity(RenderParams* rp, QComboBox* lodCombo, QComboBox* refinementCombo);
+	virtual void updateFidelity(QGroupBox*, RenderParams* rp, QComboBox* lodCombo, QComboBox* refinementCombo);
 
 	void setupFidelity(int dim, QHBoxLayout* fidelityLayout,
 		QGroupBox* fidelityBox, RenderParams* dParams, bool useDefault=false);

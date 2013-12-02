@@ -69,6 +69,11 @@ reinit(bool doOverride){
 		if (numrefs < 0) numrefs = 0;
 	}
 	SetRefinementLevel(numrefs);
+	//Make sure fidelity is valid:
+	int fidelity = GetFidelityLevel();
+	DataMgr* dataMgr = ds->getDataMgr();
+	if (dataMgr && fidelity > maxNumRefinements+dataMgr->GetCRatios().size()-1)
+		SetFidelityLevel(maxNumRefinements+dataMgr->GetCRatios().size()-1);
 	//Set up the compression level.  Whether or not override is true, make sure
 	//That the compression level is valid.  If override is true set it to 0;
 	if (doOverride) SetCompressionLevel(0);
