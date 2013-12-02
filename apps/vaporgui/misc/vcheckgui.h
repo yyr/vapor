@@ -10,7 +10,7 @@ class vCheckGUI : public QDialog
 {
 	Q_OBJECT
 public:
-	vCheckGUI(char* info, bool* optout);
+	vCheckGUI(const char* info, bool* optout);
 
 private:
 	QLabel* infoLabel;
