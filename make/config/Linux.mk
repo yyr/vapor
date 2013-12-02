@@ -111,7 +111,6 @@ CLD_EXCLUDE_LIBS = ^/usr ^/lib
 # flavors of linux
 #
 CLD_INCLUDE_LIBS += libcurl
-CLD_INCLUDE_LIBS += libexpat
 CLD_INCLUDE_LIBS += liblapack
 CLD_INCLUDE_LIBS += libblas
 CLD_INCLUDE_LIBS += libgfortran
