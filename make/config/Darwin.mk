@@ -7,15 +7,18 @@ QT_FRAMEWORK = 1
 endif
 
 CXXFLAGS          += -DDARWIN -Wall -Wno-format -Wno-sign-compare  -fPIC  
+CXXFLAGS          += -mmacosx-version-min=10.6 -isysroot /Developer/SDKs/MacOSX10.6.sdk
 CXXFLAGS          += -Wno-overloaded-virtual
 CXX_RELEASE_FLAGS += -O3 -DNDEBUG
 CXX_DEBUG_FLAGS   += -g
 
 CFLAGS            += -DDARWIN -Wall -Wno-format -fPIC
+CFLAGS            += -mmacosx-version-min=10.6 -isysroot /Developer/SDKs/MacOSX10.6.sdk
 C_RELEASE_FLAGS   += -O3 -DNDEBUG
 C_DEBUG_FLAGS     += -g
 
 LDFLAGS           += -framework CoreFoundation
+LDFLAGS           += -mmacosx-version-min=10.6
 LD_RELEASE_FLAGS  += 
 LD_DEBUG_FLAGS    += 
 
@@ -23,11 +26,13 @@ PROFILEFLAGS = -pg -a
 
 ifeq ($(MACHTYPE),x86_64)
 SHARED_LDFLAGS += -m64 
+SHARED_LDFLAGS += -mmacosx-version-min=10.6
 LDFLAGS += -m64
 CXXFLAGS += -m64
 CFLAGS += -m64
 else 
 SHARED_LDFLAGS += -m32 
+SHARED_LDFLAGS += -mmacosx-version-min=10.6
 LDFLAGS += -m32
 CXXFLAGS += -m32
 CFLAGS += -m32

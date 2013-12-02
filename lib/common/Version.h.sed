@@ -80,6 +80,14 @@ public:
  static const string &GetDateString() {
 	_dateString.assign(DATE); return(_dateString);
  }
+
+ //! Parse a version string into it's component major, minor,
+ //! and minorminor numbers
+ //
+ static void Parse(
+    std::string ver, int &major, int &minor, int &minorminor, string &rc
+ );
+
  static int Compare(int major, int minor, int minorminor) ;
  static int Compare(std::string ver1, std::string ver2);
 

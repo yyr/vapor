@@ -2,7 +2,7 @@
 
 #include <qboxlayout.h>
 
-vCheckGUI::vCheckGUI(char* info, bool* poptout)
+vCheckGUI::vCheckGUI(const char* info, bool* poptout)
 {
 	optout = poptout;
 
