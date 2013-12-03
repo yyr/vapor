@@ -25,21 +25,6 @@
     <ClCompile Include="..\..\..\apps\vdcwizard\main.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_createvdfaddnewvar.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_createvdfadvanced.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_createvdfcomment.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_createvdfpage.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_errormessage.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_intropage.cpp">
       <Filter>moc</Filter>
     </ClCompile>
@@ -72,6 +57,21 @@
     </ClCompile>
     <ClCompile Include="..\..\..\apps\vdcwizard\popdataadvanced.cpp">
       <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_createvdfaddnewvar.cpp">
+      <Filter>moc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_errormessage.cpp">
+      <Filter>moc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_createvdfadvanced.cpp">
+      <Filter>moc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_createvdfcomment.cpp">
+      <Filter>moc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_createvdfpage.cpp">
+      <Filter>moc</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
