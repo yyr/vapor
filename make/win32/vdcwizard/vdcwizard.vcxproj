@@ -200,6 +200,14 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing createvdfaddnewvar.h...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_createvdfaddnewvar.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\createvdfaddnewvar.h -o ..\..\..\apps\vdcwizard\moc\moc_createvdfaddnewvar.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing createvdfaddnewvar.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vdcwizard\moc\moc_createvdfaddnewvar.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\createvdfaddnewvar.h -o ..\..\..\apps\vdcwizard\moc\moc_createvdfaddnewvar.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing createvdfaddnewvar.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vdcwizard\moc\moc_createvdfaddnewvar.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vdcwizard\createvdfadvanced.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\createvdfadvanced.h -o ..\..\..\apps\vdcwizard\moc\moc_createvdfadvanced.cpp</Command>
@@ -210,6 +218,14 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing createvdfadvanced.h...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_createvdfadvanced.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\createvdfadvanced.h -o ..\..\..\apps\vdcwizard\moc\moc_createvdfadvanced.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing createvdfadvanced.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vdcwizard\moc\moc_createvdfadvanced.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\createvdfadvanced.h -o ..\..\..\apps\vdcwizard\moc\moc_createvdfadvanced.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing createvdfadvanced.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vdcwizard\moc\moc_createvdfadvanced.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vdcwizard\createvdfcomment.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\createvdfcomment.h -o ..\..\..\apps\vdcwizard\moc\moc_createvdfcomment.cpp</Command>
@@ -220,6 +236,14 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing createvdfcomment.h...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_createvdfcomment.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\createvdfcomment.h -o ..\..\..\apps\vdcwizard\moc\moc_createvdfcomment.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing createvdfcomment.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vdcwizard\moc\moc_createvdfcomment.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\createvdfcomment.h -o ..\..\..\apps\vdcwizard\moc\moc_createvdfcomment.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing createvdfcomment.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vdcwizard\moc\moc_createvdfcomment.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vdcwizard\createvdfpage.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\createvdfpage.h -o ..\..\..\apps\vdcwizard\moc\moc_createvdfpage.cpp</Command>
@@ -230,6 +254,14 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing createvdfpage.h...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_createvdfpage.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\createvdfpage.h -o ..\..\..\apps\vdcwizard\moc\moc_createvdfpage.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing createvdfpage.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vdcwizard\moc\moc_createvdfpage.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\createvdfpage.h -o ..\..\..\apps\vdcwizard\moc\moc_createvdfpage.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing createvdfpage.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vdcwizard\moc\moc_createvdfpage.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
     <ClInclude Include="..\..\..\apps\vdcwizard\dataholder.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\dataholder.h -o ..\..\..\apps\vdcwizard\moc\moc_dataholder.cpp</Command>
@@ -250,6 +282,14 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing vdcwizard.h...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_vdcwizard.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\vdcwizard.h -o ..\..\..\apps\vdcwizard\moc\moc_vdcwizard.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing vdcwizard.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vdcwizard\moc\moc_vdcwizard.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\vdcwizard.h -o ..\..\..\apps\vdcwizard\moc\moc_vdcwizard.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing vdcwizard.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vdcwizard\moc\moc_vdcwizard.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vdcwizard\intropage.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\intropage.h -o ..\..\..\apps\vdcwizard\moc\moc_intropage.cpp</Command>
@@ -260,6 +300,14 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing intropage.h...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_intropage.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\intropage.h -o ..\..\..\apps\vdcwizard\moc\moc_intropage.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing intropage.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vdcwizard\moc\moc_intropage.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\intropage.h -o ..\..\..\apps\vdcwizard\moc\moc_intropage.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing intropage.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vdcwizard\moc\moc_intropage.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vdcwizard\popdataadvanced.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\popdataadvanced.h -o ..\..\..\apps\vdcwizard\moc\moc_popdataadvanced.cpp</Command>
@@ -270,6 +318,14 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing popdataadvanced.h...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_popdataadvanced.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\popdataadvanced.h -o ..\..\..\apps\vdcwizard\moc\moc_popdataadvanced.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing popdataadvanced.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vdcwizard\moc\moc_popdataadvanced.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\popdataadvanced.h -o ..\..\..\apps\vdcwizard\moc\moc_popdataadvanced.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing popdataadvanced.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vdcwizard\moc\moc_popdataadvanced.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vdcwizard\populatedatapage.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\populatedatapage.h -o ..\..\..\apps\vdcwizard\moc\moc_populatedatapage.cpp</Command>
@@ -280,6 +336,14 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing populatedatapage.h...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_populatedatapage.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\populatedatapage.h -o ..\..\..\apps\vdcwizard\moc\moc_populatedatapage.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing populatedatapage.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vdcwizard\moc\moc_populatedatapage.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\populatedatapage.h -o ..\..\..\apps\vdcwizard\moc\moc_populatedatapage.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing populatedatapage.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vdcwizard\moc\moc_populatedatapage.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vdcwizard\selectfilepage.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\selectfilepage.h -o ..\..\..\apps\vdcwizard\moc\moc_selectfilepage.cpp</Command>
@@ -290,6 +354,14 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing selectfilepage.h...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_selectfilepage.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\selectfilepage.h -o ..\..\..\apps\vdcwizard\moc\moc_selectfilepage.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing selectfilepage.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vdcwizard\moc\moc_selectfilepage.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\selectfilepage.h -o ..\..\..\apps\vdcwizard\moc\moc_selectfilepage.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing selectfilepage.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vdcwizard\moc\moc_selectfilepage.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vdcwizard\errormessage.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\errormessage.h -o ..\..\..\apps\vdcwizard\moc\moc_errormessage.cpp</Command>
@@ -300,6 +372,14 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing errormessage.h...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_errormessage.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\errormessage.h -o ..\..\..\apps\vdcwizard\moc\moc_errormessage.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing errormessage.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vdcwizard\moc\moc_errormessage.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\errormessage.h -o ..\..\..\apps\vdcwizard\moc\moc_errormessage.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing errormessage.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vdcwizard\moc\moc_errormessage.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
     <ClInclude Include="..\..\..\apps\vdcwizard\ui\ErrMsg.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\ErrMSg.h -o ..\..\..\apps\\moc\moc_ErrMsg.cpp</Command>
@@ -322,6 +402,14 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing vdfbadfile.h...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vdcwizard\moc\moc_vdfbadfile.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\vdfbadfile.h -o ..\..\..\apps\vdcwizard\moc\moc_vdfbadfile.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing vdfbadfile.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vdcwizard\moc\moc_vdfbadfile.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vdcwizard\vdfbadfile.h -o ..\..\..\apps\vdcwizard\moc\moc_vdfbadfile.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing vdfbadfile.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vdcwizard\moc\moc_vdfbadfile.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>

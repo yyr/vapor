@@ -1,3 +1,176 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\..\apps\vdcwizard\createvdfaddnewvar.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\createvdfadvanced.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\createvdfcomment.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\createvdfpage.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\dataholder.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\errormessage.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\intropage.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\main.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_createvdfaddnewvar.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_createvdfadvanced.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_createvdfcomment.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_createvdfpage.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_errormessage.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_intropage.cpp">
+      <Filter>moc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_vdfbadfile.cpp">
+      <Filter>moc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_popdataadvanced.cpp">
+      <Filter>moc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_populatedatapage.cpp">
+      <Filter>moc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_selectfilepage.cpp">
+      <Filter>moc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\moc\moc_vdcwizard.cpp">
+      <Filter>moc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\vdfbadfile.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\vdcwizard.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\selectfilepage.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\populatedatapage.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vdcwizard\popdataadvanced.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\apps\vdcwizard\ui\Page1.h" />
+    <ClInclude Include="..\..\..\apps\vdcwizard\ui\Page2.h" />
+    <ClInclude Include="..\..\..\apps\vdcwizard\ui\Page2badfile.h" />
+    <ClInclude Include="..\..\..\apps\vdcwizard\ui\Page3.h" />
+    <ClInclude Include="..\..\..\apps\vdcwizard\ui\Page3addnewvar.h" />
+    <ClInclude Include="..\..\..\apps\vdcwizard\ui\Page3adv.h" />
+    <ClInclude Include="..\..\..\apps\vdcwizard\ui\Page3cmt.h" />
+    <ClInclude Include="..\..\..\apps\vdcwizard\ui\Page4.h" />
+    <ClInclude Include="..\..\..\apps\vdcwizard\ui\Page4adv.h" />
+    <ClInclude Include="..\..\..\apps\vdcwizard\dataholder.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\apps\vdcwizard\ui\ErrMsg.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\createvdfaddnewvar.h">
+      <Filter>Headers</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\createvdfadvanced.h">
+      <Filter>Headers</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\createvdfpage.h">
+      <Filter>Headers</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\createvdfcomment.h">
+      <Filter>Headers</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\ui\CmdLine.ui">
+      <Filter>ui</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\ui\ErrMsg.ui">
+      <Filter>ui</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\ui\Page1.ui">
+      <Filter>ui</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\ui\Page2.ui">
+      <Filter>ui</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\ui\Page2badfile.ui">
+      <Filter>ui</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\ui\Page3.ui">
+      <Filter>ui</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\errormessage.h">
+      <Filter>Headers</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\intropage.h">
+      <Filter>Headers</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\ui\Page3addnewvar.ui">
+      <Filter>ui</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\ui\Page3adv.ui">
+      <Filter>ui</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\ui\Page3cmt.ui">
+      <Filter>ui</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\ui\Page4.ui">
+      <Filter>ui</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\ui\Page4adv.ui">
+      <Filter>ui</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\vdfbadfile.h">
+      <Filter>Headers</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\vdcwizard.h">
+      <Filter>Headers</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\selectfilepage.h">
+      <Filter>Headers</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\populatedatapage.h">
+      <Filter>Headers</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vdcwizard\popdataadvanced.h">
+      <Filter>Headers</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{e8dcd2e5-dadc-4a9d-b055-503f46c0e651}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{b859001f-ff4e-45eb-b829-14b712bd5aba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ui">
+      <UniqueIdentifier>{e530af10-2556-45b2-8f54-a52d6638889f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="moc">
+      <UniqueIdentifier>{e6399b83-5beb-4910-b0c2-7aa818079d16}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
 </Project>
