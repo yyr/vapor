@@ -19,7 +19,6 @@
 //                      which NetCDF files to reference, and what their
 //                      NetCDF data type is (mom, pop, or roms)
 
-//#include "vdcwizard.h"
 #include "vdcwizard.h"
 #include "selectfilepage.h"
 #include "ui/Page2.h"
@@ -114,11 +113,11 @@ void SelectFilePage::on_removeFileButton_clicked() {
     dataHolder->ncdfFilesChanged = true;
 	qDeleteAll(fileList->selectedItems());
 
-    QStringList fileNames;
+    /*QStringList fileNames;
     int count = fileList->count();
     for (int i=0;i<count;i++) {
         fileNames.append(fileList->item(i)->text());
-    }
+    }*/
     stdFileList = getSelectedFiles();
     dataHolder->setFiles(stdFileList);
 	completeChanged();
@@ -164,12 +163,12 @@ void SelectFilePage::cleanupPage() {
 void SelectFilePage::initializePage() {
 
 	if (dataHolder->getOperation() == "vdfcreate"){
-        selectFilePixmap->setPixmap(vdfCreatePixmap);//.scaled(55,50,Qt::KeepAspectRatio));
+        selectFilePixmap->setPixmap(vdfCreatePixmap);
         vdfLabel->setText("Output VDF File:");
         Title->setText("Files for Create VDF");
     }
     else {
-        selectFilePixmap->setPixmap(toVdfPixmap);//,50,Qt::KeepAspectRatio));
+        selectFilePixmap->setPixmap(toVdfPixmap);
         vdfLabel->setText("Reference VDF File:");
         Title->setText("Files for Populate VDC");
     }
@@ -202,31 +201,20 @@ int SelectFilePage::nextId() const{
 	if (isComplete() == true){
 		//if there has been a change to the ncdf files, we will need to generate a new
 		//DCReader, and go through our error checking process
-		//if (dataHolder->ncdfFilesChanged==true) {
-			if (dataHolder->createReader()==0) {
-				dataHolder->ncdfFilesChanged=false;
-				if (dataHolder->getOperation() == "vdfcreate") return VDCWizard::Create_VdfPage;
-	    	    else return VDCWizard::Populate_DataPage;
-			}	
-        	else {
-				dataHolder->ncdfFilesChanged=false;
-        	    for(int i=0;i<dataHolder->getErrors().size();i++){
-					errorMessage->errorList->append(dataHolder->getErrors()[i]);
-					errorMessage->errorList->append("\n");
-				}
-				wizard()->button(QWizard::NextButton)->setDisabled(true);
-    	        errorMessage->show();
-            	dataHolder->clearErrors();
-				MyBase::SetErrCode(0);
-    	        return VDCWizard::SelectFile_Page;
-	        }
-		//}
-		//else, we have already created the DCReader and there are no current modifications
-		//to it, so procede with the DCReader that was generated previously
-		//else {
-        //	if (dataHolder->getOperation() == "vdfcreate") return VDCWizard::Create_VdfPage;
-        //	else return VDCWizard::Populate_DataPage;
-		//}
+		if (dataHolder->createReader()==0) {
+			if (dataHolder->getOperation() == "vdfcreate") return VDCWizard::Create_VdfPage;
+	        else return VDCWizard::Populate_DataPage;
+		}	
+        else {
+            for(int i=0;i<dataHolder->getErrors().size();i++){
+				errorMessage->errorList->append(dataHolder->getErrors()[i]);
+				errorMessage->errorList->append("\n");
+			}
+			wizard()->button(QWizard::NextButton)->setDisabled(true);
+    	    errorMessage->show();
+           	dataHolder->clearErrors();
+			MyBase::SetErrCode(0);
+	    }
 	}
 	return VDCWizard::SelectFile_Page;
 }

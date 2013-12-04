@@ -448,7 +448,7 @@ int DataHolder::run2VDFincremental(string start, string var) {
 
  
     for (int i=0;i<dataFiles.size();i++){
-        argv.push_back(dataFiles.at(i));
+		argv.push_back(dataFiles.at(i));
         argc++;
     }   
 
@@ -466,7 +466,11 @@ int DataHolder::run2VDFincremental(string start, string var) {
 	//cout << endl;
 
     if (getFileType()=="wrf") {
+		w2v.deleteWrfData();
 		return w2v.launchWrf2Vdf(argc,args);
     }
-    else return launcher2VDF.launch2vdf(argc, args, getFileType());
+    else {
+		launcher2VDF.deleteDCData();
+		return launcher2VDF.launch2vdf(argc, args, getFileType());
+	}
 }

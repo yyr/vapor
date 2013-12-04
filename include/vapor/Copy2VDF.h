@@ -75,6 +75,7 @@ private:
          int lod);
 
 public:
+ void deleteDCData();
  void GetVariables(const VDFIOBase *vdfio,
               const DCReader *DCData,
               const vector <string> &in_varnames,

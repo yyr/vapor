@@ -358,6 +358,11 @@ int Copy2VDF::CopyVar(
 
 }
 
+void Copy2VDF::deleteDCData(){
+	delete DCData;
+	DCData = NULL;
+}
+
 int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 
 	OptionParser::OptDescRec_T	set_opts[] = {
@@ -526,5 +531,7 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 		estatus = 1;
 	}
 	delete wcwriter;
+	delete DCData;
+	DCData=NULL;
 	return estatus;
 } // End of main.

@@ -67,6 +67,7 @@ private:
          int lod);
 
 public:
+ void deleteWrfData();
  void GetVariables(const VDFIOBase *vdfio,
               const DCReaderWRF *wrfData,
               const vector <string> &in_varnames,
