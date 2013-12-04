@@ -60,7 +60,7 @@ MetadataVDC *wrfvdfcreate::CreateMetadataVDC(
 	//
 	MetadataVDC *file;
 	file = vdcf.New(dims);
-	if (MetadataVDC::GetErrCode() != 0) return file;
+	if (MetadataVDC::GetErrCode() != 0) return (NULL);
 
 	// Copy values over from DCReaderWRF to MetadataVDC.
 	// Add checking of return values and error messsages.
@@ -68,7 +68,7 @@ MetadataVDC *wrfvdfcreate::CreateMetadataVDC(
 	if(file->SetNumTimeSteps(wrfData->GetNumTimeSteps())) {
 		file->SetErrMsg(0,"Error in GetNumTimeSteps().");
 		//cerr << "Error populating NumTimeSteps." << endl;
-		return file;
+		return (NULL);
 	}
 
 	file->SetExtents(wrfData->GetExtents());
@@ -100,7 +100,7 @@ MetadataVDC *wrfvdfcreate::CreateMetadataVDC(
 	if(file->SetVariables3D(vars)) {
 		file->SetErrMsg(0,"Error in SetVariables3D.");
 		//cerr << "Error populating Variables." << endl;
-		return file;
+		return (NULL);
 	}
 
 	candidate_vars = wrfData->GetVariables2DXY();
@@ -120,7 +120,7 @@ MetadataVDC *wrfvdfcreate::CreateMetadataVDC(
 	if(file->SetVariables2DXY(vars)) {
 		file->SetErrMsg(0,"Error in SetVariables2DXY.");
 		//cerr << "Error populating Variables." << endl;
-		return file;
+		return (NULL);
 	}
 
 	candidate_vars = wrfData->GetVariables2DXZ();
@@ -140,7 +140,7 @@ MetadataVDC *wrfvdfcreate::CreateMetadataVDC(
 	if(file->SetVariables2DXZ(vars)) {
 		file->SetErrMsg(0,"Error in SetVariables2DXZ.");
 		//cerr << "Error populating Variables." << endl;
-		return file;
+		return (NULL);
 	}
 
 	candidate_vars = wrfData->GetVariables2DYZ();
@@ -160,7 +160,7 @@ MetadataVDC *wrfvdfcreate::CreateMetadataVDC(
 	if(file->SetVariables2DYZ(vars)) {
 		file->SetErrMsg(0,"Error in SetVariables2DYZ.");
 		//cerr << "Error populating Variables." << endl;
-		return file;
+		return (NULL);
 	}
 
 	vector <double> usertime;
@@ -171,7 +171,7 @@ MetadataVDC *wrfvdfcreate::CreateMetadataVDC(
 		if(file->SetTSUserTime(t, usertime)) {
 			file->SetErrMsg(0,"Error in SetTSUserTime.");
 			//cerr << "Error populating TSUserTime." << endl;
-			return file;
+			return (NULL);
 		}
 
 		string timestamp;
@@ -354,6 +354,7 @@ int	wrfvdfcreate::launchVdfCreate(int argc, char **argv) {
 	//
 	MetadataVDC *file;
 	file = CreateMetadataVDC(vdcf, wrfData);//,_vars);
+	if (! file) return(-1);
 
 	// Write file.
 	if (file->Write(argv[argc-1]) < 0) {

@@ -29,27 +29,39 @@
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>140</x>
+     <x>40</x>
      <y>20</y>
-     <width>201</width>
-     <height>16</height>
+     <width>391</width>
+     <height>20</height>
     </rect>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>300</width>
+     <height>0</height>
+    </size>
    </property>
    <property name="text">
     <string>VAPOR Data Conversion Wizard</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="label_2">
    <property name="geometry">
     <rect>
-     <x>181</x>
+     <x>121</x>
      <y>50</y>
-     <width>131</width>
-     <height>16</height>
+     <width>261</width>
+     <height>20</height>
     </rect>
    </property>
    <property name="text">
     <string>Would you like to:</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
   <widget class="QPushButton" name="createVDFButton">
