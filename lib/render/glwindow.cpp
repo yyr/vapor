@@ -1017,6 +1017,18 @@ void GLWindow::regPaintEvent()
 	//Following is probably not needed, too, although haven't checked it out.  Qt is supposed to always call paintGL in
 	//the GL context, but maybe not paintEvent?
 	makeCurrent();
+
+	//
+	// The following is a workaround for bug #947: OpenGL errors on Mac 
+	// Under Mac OS X 10.8, with Qt 4.8 the frame buffer becomes invalid
+	// if data are re-loaded into vaporgui.
+	//
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE){
+		renderMutex.unlock();
+		return;
+	}
 	printOpenGLError();
 	
 	
