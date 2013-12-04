@@ -160,10 +160,10 @@ VizWin::~VizWin()
 	 if (spinTimer) delete spinTimer;
 }
 void VizWin::closeEvent(QCloseEvent* e){
+	delete myGLWindow;
 	//Tell the winmgr that we are closing:
     myWinMgr->vizAboutToDisappear(myWindowNum);
 	QWidget::closeEvent(e);
-	delete myGLWindow;
 }
 /******************************************************
  * React when focus is on window:
