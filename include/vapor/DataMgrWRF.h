@@ -52,8 +52,8 @@ protected:
 	return(DCReaderWRF::GetGridType());
  }
 
- virtual vector<double> _GetExtents(size_t ) const {
-	return(DCReaderWRF::GetExtents());
+ virtual vector<double> _GetExtents(size_t ts) const {
+	return(DCReaderWRF::GetExtents(ts));
  };
 
  virtual long _GetNumTimeSteps() const {
