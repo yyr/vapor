@@ -245,6 +245,11 @@ int Wrf2vdf::CopyVar(
 
 }
 
+void Wrf2vdf::deleteWrfData(){
+	delete wrfData;
+	wrfData=NULL;
+}
+
 int	Wrf2vdf::launchWrf2Vdf(int argc, char **argv) {
 
 	OptionParser::OptDescRec_T      set_opts[] = {
@@ -413,6 +418,8 @@ int	Wrf2vdf::launchWrf2Vdf(int argc, char **argv) {
 		estatus = 1;
 	}
 	//exit(estatus);
+	delete wrfData;
+	wrfData=NULL;
 	delete wcwriter;
 	return estatus;
 }

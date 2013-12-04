@@ -246,9 +246,7 @@ bool PopulateDataPage::validatePage() {
 		int dataChunks = varsSize * tsSize;
 		progressBar->setRange(0,dataChunks-1);
 	
-		//stringstream ss;
 		char percentComplete[20];
-	
     
 		//Cycle through variables in each timestep
 		for (int timeStep=0;timeStep<tsSize;timeStep++){
@@ -258,7 +256,7 @@ bool PopulateDataPage::validatePage() {
 					ss.clear();
 					ss << timeStep;
 					
-					if (dataHolder->run2VDFincremental(ss.str(),dataHolder->getPDSelectedVars().at(var)) != 0){//activateCancel==0) {
+					if (dataHolder->run2VDFincremental(ss.str(),dataHolder->getPDSelectedVars().at(var)) != 0){
 					    dataHolder->vdcSettingsChanged=false;
    		     		    for (int i=0;i<dataHolder->getErrors().size();i++){
 							errorMessage->errorList->append(dataHolder->getErrors()[i]);
@@ -286,11 +284,6 @@ bool PopulateDataPage::validatePage() {
 					progressBar->setValue((varsSize*timeStep)+var);
 					QApplication::processEvents();
 				}
-				/*else {
-				percentCompleteLabel->setStyleSheet("QLabel {color : red}");
-				percentCompleteLabel->setText("Process Aborted");
-				enableWidgets();
-				}*/
 			}
 		}
 		if (activateCancel==1){
