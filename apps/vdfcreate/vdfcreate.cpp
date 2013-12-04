@@ -87,13 +87,13 @@ int	main(int argc, char **argv) {
 
 	size_t dims[] = {opt.dim.nx, opt.dim.ny, opt.dim.nz};
 	file = vdcf.New(dims);
+	if (! file) exit(1);
 
 	if (file->GetVariableNames().size() == 0) {
 		vector <string> vars(1, "var1");
 		file->SetVariables3D(vars);
 	}
 
-	if (! file) exit(1);
 
 
 	if (file->Write(argv[1]) < 0) {

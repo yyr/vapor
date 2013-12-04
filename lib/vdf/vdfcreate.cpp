@@ -131,13 +131,12 @@ MetadataVDC *vdfcreate::CreateMetadataVDC(
 	//
 	MetadataVDC *file;
 	file = vdcf.New(dims);
-	if (MetadataVDC::GetErrCode() != 0) return file;//exit(1);
+	if (MetadataVDC::GetErrCode() != 0) return (NULL);
 
 	if (file->GetVDCType() == 1) {
 		//cerr << "VDC Type 1 not supported\n";
 		file->SetErrMsg(1,"VDC Type 1 not supported");
-		return file;
-		//exit(1);
+		return (NULL);
 	}
 
 	// Copy values over from DCReaderMOM to MetadataVDC.
@@ -145,7 +144,7 @@ MetadataVDC *vdfcreate::CreateMetadataVDC(
 	//
     if(file->SetNumTimeSteps(DCdata->GetNumTimeSteps())) {
 		file->SetErrMsg(2,"Error populating NumTimeSteps.");
-		return file;
+		return (NULL);
 		//exit(1);
 	}
 
@@ -183,7 +182,7 @@ MetadataVDC *vdfcreate::CreateMetadataVDC(
         usertime.push_back(DCdata->GetTSUserTime(t));
 		if(file->SetTSUserTime(t, usertime)) {
 			file->SetErrMsg(1,"Error populating TSUserTime.");
-			return file;//exit(1);
+			return (NULL);
 		}
 
 		string timestamp;
@@ -198,7 +197,7 @@ MetadataVDC *vdfcreate::CreateMetadataVDC(
             int rc = file->SetTSZCoords(ts, DCdata->GetTSZCoords(ts));
 			if (rc<0) {
             	file->SetErrMsg(1,"SetTSZCoords() failed.");
-		    	return file;//exit(1);
+		    	return (NULL);
 			}
 	    }
 	}
@@ -323,6 +322,7 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 	//
 	MetadataVDC *file;
     file = CreateMetadataVDC(vdcf, DCdata);
+	if (! file) return(-1);
 
 	// Write file.
 	if (file->Write(argv[argc-1]) < 0) {
