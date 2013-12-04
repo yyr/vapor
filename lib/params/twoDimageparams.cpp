@@ -99,7 +99,10 @@ deepCopy(ParamNode*){
 	newParams->myBox = (Box*)myBox->deepCopy(pNode);
 	//TwoD texture must be recreated when needed
 	newParams->imageNums = 0;
-	_timestep = -1;
+	newParams->_timestep = -1;
+	for (int i=0; i<4; i++) {
+		newParams->_imageExtents[i] = 0.0;
+	}
 	_geotiffImage = false;
 	newParams->_texBuf = NULL;
 	
@@ -515,6 +518,7 @@ calcTwoDDataTexture(int ts, int &texWidth, int &texHeight){
 	//If a map projection is undefined, invalid imageExts are returned
 	// (i.e. imgExts[2]<imgExts[0])
 	
+	if (_texBuf) delete [] _texBuf;
 	_texBuf = readTextureImage(
 		ts, &_textureSizes[0], &_textureSizes[1], _imageExtents
 	);
@@ -791,13 +795,17 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 }
 
 bool TwoDImageParams::twoDIsDirty(int timestep) {
-	if (timestep != _timestep) return (true);
+	if (timestep != _timestep) {
+		return (true);
+	}
 		
 	if (DataStatus::getProjectionString().size() > 0 && _geotiffImage){
 		float lonlatexts[4];
 		if (getLonLatExts((size_t)timestep, lonlatexts)){
 			for (int i=0; i<4; i++) {
-				if (lonlatexts[i] != _lonlatexts[i]) return(true);
+				if (lonlatexts[i] != _lonlatexts[i]) {
+					return(true);
+				}
 			}
 		}
 	}
@@ -1039,7 +1047,6 @@ bool TwoDImageParams::getImageCorners(double displayCorners[8]){
 
 	
 	const float* imgExts = getCurrentTwoDImageExtents();
-	if (!imgExts) return false;
 	//Set up proj.4 to convert from image space to VDC coords
 	projPJ dst_proj;
 	projPJ src_proj; 
@@ -1146,10 +1153,16 @@ bool TwoDImageParams::getImageCorners(double displayCorners[8]){
 //Input values are using [-1,1] as coordinates in image
 bool TwoDImageParams::mapGeorefPoint(int timestep, double pt[2]){
 
+	//
+	// Force loading of texture so we have the correct image 
+	// extents. Sigh :-(
+	//
+	int dummy1, dummy2;
+	(void) calcTwoDDataTexture(timestep, dummy1, dummy2);
+
 	//obtain the extents of the image in the projected space.
 	//the point pt is relative to these extents
 	const float* imgExts = getCurrentTwoDImageExtents();
-	if (!imgExts) return false;
 	//Set up proj.4 to convert from image space to VDC coords
 	projPJ dst_proj;
 	projPJ src_proj; 

@@ -115,7 +115,6 @@ public:
 
 	// Return the image extents in the current displayed image
 	float * getCurrentTwoDImageExtents(){
-		if (!_imageExtents) return 0;
 		return _imageExtents;
 	}
 	

@@ -100,8 +100,8 @@ deepCopy(ParamNode*){
 		newParams->minOpacEditBounds[i] = minOpacEditBounds[i];
 		newParams->maxOpacEditBounds[i] = maxOpacEditBounds[i];
 	}
-	_timestep = -1;
-	_texBuf = NULL;
+	newParams->_timestep = -1;
+	newParams->_texBuf = NULL;
 
 	//Clone the Transfer Functions
 	newParams->transFunc = new TransferFunction*[numVariables];
@@ -913,6 +913,7 @@ calcTwoDDataTexture(int ts, int &texWidth, int &texHeight){
 		texHeight = _textureSizes[1];
 		return(_texBuf); 
 	}
+	if (_texBuf) delete [] _texBuf;
 
 	
 	//Get the first variable name
