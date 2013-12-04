@@ -29,7 +29,6 @@
 #include <vapor/Copy2VDF.h>
 //#include <vapor/wrfvdfcreate.h>
 #include <vapor/vdfcreate.h>
-#include <vapor/2vdf.h>
 
 using namespace std;
 using namespace VAPoR;
