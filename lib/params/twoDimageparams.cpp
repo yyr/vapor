@@ -762,10 +762,8 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 		}
 	}
 	//Check if we should extract a smaller tile;
-	if(p && isGeoreferenced()&& pj_is_latlong(p) && 
-		(imgExts[0] < -179. && imgExts[1]<-88. && imgExts[2]>179. && imgExts[3]>88.)){
-	
-		if (getLonLatExts((size_t)timestep, _lonlatexts)){
+	if(p && isGeoreferenced()&& pj_is_latlong(p)&& getLonLatExts((size_t)timestep, _lonlatexts)) {
+		if (imgExts[0] < -179. && imgExts[1]<-88. && imgExts[2]>179. && imgExts[3]>88.){
 			//const size_t* dataSize = DataStatus::getInstance()->getFullDataSize();
 			
 			//OK, we need to extract a sub-image, that maps to the current lon-lat extents
@@ -788,7 +786,18 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 			}
 		}
 
-		
+		else {// make sure the lat/lon extents are not 360 degrees off
+			//is the image west of the domain, and will adding 360 result in the image intersecting the domain?
+			if (_lonlatexts[0] > imgExts[2] && (_lonlatexts[0] <= (imgExts[2]+360.)) && (_lonlatexts[2] >= imgExts[0]+360.)){
+				imgExts[0]+= 360.;
+				imgExts[2]+= 360.;
+			// or is it too far east?
+			} else if (_lonlatexts[2] < imgExts[0] && (_lonlatexts[2] >= (imgExts[0]-360.)) && (_lonlatexts[0] <= (imgExts[2]-360.))){
+				imgExts[0] -= 360.;
+				imgExts[2] -= 360.;
+			}
+			
+		}
 	}
 	if (p) pj_free(p);
 	return (unsigned char*) texture;
