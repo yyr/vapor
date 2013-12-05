@@ -1012,7 +1012,7 @@ int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g1::SeekSlice(
 ) {
 	size_t nz = _dims[0];
 
-    int slice;
+    int slice = 0;
     if (whence == 0) {
         slice = offset;
     }
@@ -1224,7 +1224,7 @@ int NetCDFCFCollection::DerivedVar_ocean_s_coordinate_g2::SeekSlice(    int offs
 ) {
     size_t nz = _dims[0];
 
-    int slice;
+    int slice = 0;
     if (whence == 0) {
         slice = offset;
     }
