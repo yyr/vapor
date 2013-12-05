@@ -828,7 +828,7 @@ void ArrowEventRouter::
 guiFitToData(){
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
 	if (!DataStatus::getInstance()->getDataMgr()) return;
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Fit to full data extents");
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Fit to horizontal data extents");
 		
 	const float* fullSizes = DataStatus::getInstance()->getFullSizes();
 	Box* box = aParams->GetBox();
@@ -836,10 +836,10 @@ guiFitToData(){
 	vector<double> newExtents;
 	newExtents.push_back(0.);
 	newExtents.push_back(0.);
-	newExtents.push_back(0.);
+	newExtents.push_back(boxExts[2]);
 	newExtents.push_back(fullSizes[0]);
 	newExtents.push_back(fullSizes[1]);
-	newExtents.push_back(fullSizes[2]);
+	newExtents.push_back(boxExts[5]);
 	
 	box->SetLocalExtents(newExtents);
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
