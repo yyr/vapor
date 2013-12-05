@@ -45,6 +45,7 @@ int	cvtTo3DBool(const char *from, void *to);
 int	cvtToOrder(const char *from, void *to);
 
 struct opt_t {
+	char *outfile;
 	char *mapprojection;
 	vector <string> addvars3d;
 	vector <string> addvars2dxy;
@@ -58,6 +59,7 @@ struct opt_t {
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
+	{"outfile",1,	"",			"Specify an alternate output file"},
 	{"mapprojection",1,	"",			"A whitespace delineated, quoted list "
         "of PROJ key/value pairs of the form '+paramname=paramvalue'.  vdfedit "
         "does not validate the string for correctness in any way"},
@@ -75,6 +77,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 
 
 OptionParser::Option_T	get_options[] = {
+	{"outfile", VetsUtil::CvtToString, &opt.outfile, sizeof(opt.outfile)},
 	{"mapprojection", VetsUtil::CvtToString, &opt.mapprojection, sizeof(opt.mapprojection)},
 	{"addvars3d", VetsUtil::CvtToStrVec, &opt.addvars3d, sizeof(opt.addvars3d)},
 	{"addvars2dxy", VetsUtil::CvtToStrVec, &opt.addvars2dxy, sizeof(opt.addvars2dxy)},
@@ -164,12 +167,16 @@ int	main(int argc, char **argv) {
 		if (metadata->MakeCurrent() < 0) exit(1);
 	}
 		
+	string outfile = opt.outfile;
+	if (outfile.empty()) {
+		outfile = metafile;
 
-	string bkupfile(metafile);
-	bkupfile += ".bak";
+		string bkupfile(outfile);
+		bkupfile += ".bak";
 
-	if (metadata->Write(bkupfile) < 0) {
-		exit(1);
+		if (metadata->Write(bkupfile) < 0) {
+			exit(1);
+		}
 	}
 
 	if (strlen(opt.mapprojection)) {
@@ -298,7 +305,7 @@ int	main(int argc, char **argv) {
 		}
     }
 
-	if (metadata->Write(metafile) < 0) {
+	if (metadata->Write(outfile) < 0) {
 		exit(1);
 	}
 }
