@@ -203,8 +203,8 @@ string DataHolder::getPopDataCmd() {
         argv.push_back(PDcompression);
     }   
     if (PDnumThreads != "") {
-        argv.push_back("-numthreads");
-        argv.push_back(PDnumThreads);
+        argv.push_back("-nthreads");
+		argv.push_back(PDnumThreads);
     }   
     
     argv.push_back("-numts");
@@ -346,7 +346,7 @@ int DataHolder::run2VDFcomplete() {
         argc+=2;
     }
     if (PDnumThreads != "") {
-        argv.push_back("-numthreads");
+        argv.push_back("-nthreads");
         argv.push_back(PDnumThreads);
         argc+=2;
     }
@@ -409,8 +409,8 @@ int DataHolder::run2VDFincremental(string start, string var) {
         argc+=2;
     }   
     if (PDnumThreads != "") {
-        argv.push_back("-numthreads");
-        argv.push_back(PDnumThreads);
+        argv.push_back("-nthreads");
+		argv.push_back(PDnumThreads);
         argc+=2;
     }   
     
