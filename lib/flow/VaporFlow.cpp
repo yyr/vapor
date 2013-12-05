@@ -24,18 +24,18 @@ VaporFlow::VaporFlow(DataMgr* dm)
 	dataMgr = dm;
 
 	
-	xSteadyVarName = NULL;
-	ySteadyVarName = NULL;
-	zSteadyVarName = NULL;
-	xUnsteadyVarName = NULL;
-	yUnsteadyVarName = NULL;
-	zUnsteadyVarName = NULL;
-	xPriorityVarName = NULL;
-	yPriorityVarName = NULL;
-	zPriorityVarName = NULL;
-	xSeedDistVarName = NULL;
-	ySeedDistVarName = NULL;
-	zSeedDistVarName = NULL;
+	xSteadyVarName.clear();
+	ySteadyVarName.clear();
+	zSteadyVarName.clear();
+	xUnsteadyVarName.clear();
+	yUnsteadyVarName.clear();
+	zUnsteadyVarName.clear();
+	xPriorityVarName.clear();
+	yPriorityVarName.clear();
+	zPriorityVarName.clear();
+	xSeedDistVarName.clear();
+	ySeedDistVarName.clear();
+	zSeedDistVarName.clear();
 
 	minPriorityVal = 0.f;
 	maxPriorityVal = 1.e30f;
@@ -65,20 +65,6 @@ VaporFlow::VaporFlow(DataMgr* dm)
 
 VaporFlow::~VaporFlow()
 {
-	
-	if(xSteadyVarName) delete [] xSteadyVarName;
-	if(ySteadyVarName) delete [] ySteadyVarName;
-	if(zSteadyVarName) delete [] zSteadyVarName;
-	if(xUnsteadyVarName) delete [] xUnsteadyVarName;
-	if(yUnsteadyVarName) delete [] yUnsteadyVarName;
-	if(zUnsteadyVarName) delete [] zUnsteadyVarName;
-	if(xPriorityVarName) delete [] xPriorityVarName;
-	if(yPriorityVarName) delete [] yPriorityVarName;
-	if(zPriorityVarName) delete [] zPriorityVarName;
-	if(xSeedDistVarName) delete [] xSeedDistVarName;
-	if(ySeedDistVarName) delete [] ySeedDistVarName;
-	if(zSeedDistVarName) delete [] zSeedDistVarName;
-	
 	
 }
 
@@ -112,16 +98,9 @@ void VaporFlow::SetSteadyFieldComponents(const char* xvar,
 								   const char* yvar,
 								   const char* zvar)
 {
-	if(!xSteadyVarName)
-		xSteadyVarName = new char[260];
-	if(!ySteadyVarName)
-		ySteadyVarName = new char[260];
-	if(!zSteadyVarName)
-		zSteadyVarName = new char[260];
-
-	strcpy(xSteadyVarName, xvar);
-	strcpy(ySteadyVarName, yvar);
-	strcpy(zSteadyVarName, zvar);
+	xSteadyVarName = xvar;
+	ySteadyVarName = yvar;
+	zSteadyVarName = zvar;
 }
 //////////////////////////////////////////////////////////////////////////
 // specify the names of the three variables that define the components
@@ -131,16 +110,9 @@ void VaporFlow::SetUnsteadyFieldComponents(const char* xvar,
 								   const char* yvar,
 								   const char* zvar)
 {
-	if(!xUnsteadyVarName)
-		xUnsteadyVarName = new char[260];
-	if(!yUnsteadyVarName)
-		yUnsteadyVarName = new char[260];
-	if(!zUnsteadyVarName)
-		zUnsteadyVarName = new char[260];
-
-	strcpy(xUnsteadyVarName, xvar);
-	strcpy(yUnsteadyVarName, yvar);
-	strcpy(zUnsteadyVarName, zvar);
+	xUnsteadyVarName = xvar;
+	yUnsteadyVarName = yvar;
+	zUnsteadyVarName = zvar;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -244,12 +216,13 @@ void VaporFlow::SetRegularSeedPoints(const double min[3],
 // If data is not obtained, unlock previously obtained data
 //////////////////////////////////////////////////////////////////////////
 bool VaporFlow::Get3GridData(size_t ts, 
-			const char* xVarName,const char* yVarName,const char* zVarName,	 size_t minExt[3], size_t maxExt[3],
+			string xVarName, string yVarName, string zVarName,
+			size_t minExt[3], size_t maxExt[3],
 			RegularGrid** pxGrid, RegularGrid** pyGrid, RegularGrid** pzGrid)
 {
-	bool zeroX = (strcmp(xVarName, "0") == 0); 
-	bool zeroY = (strcmp(yVarName, "0") == 0); 
-	bool zeroZ = (strcmp(zVarName, "0") == 0); 
+	bool zeroX = xVarName.compare("0") == 0; 
+	bool zeroY = yVarName.compare("0") == 0; 
+	bool zeroZ = zVarName.compare("0") == 0; 
 	*pxGrid = 0; *pyGrid = 0; *pzGrid = 0;
 	if(!zeroX) *pxGrid = dataMgr->GetGrid(ts, xVarName, (int)numXForms, compressLevel, minExt, maxExt,1);
 	if((zeroX || *pxGrid) && !zeroY) *pyGrid = dataMgr->GetGrid(ts, yVarName, (int)numXForms, compressLevel, minExt, maxExt,1);
@@ -269,7 +242,10 @@ int VaporFlow::GenRakeSeeds(float* seeds, int timeStep, unsigned int randomSeed,
 	seedNum = (int)(numSeeds[0]*numSeeds[1]*numSeeds[2]);
 	SeedGenerator* pSeedGenerator = new SeedGenerator(minLocalRakeExt, maxLocalRakeExt, numSeeds);
 	if (bUseRandomSeeds){
-		pSeedGenerator->SetSeedDistrib(seedDistBias, timeStep, numXForms,xSeedDistVarName, ySeedDistVarName, zSeedDistVarName);
+		pSeedGenerator->SetSeedDistrib(
+			seedDistBias, timeStep, numXForms, xSeedDistVarName.c_str(), 
+			ySeedDistVarName.c_str(), zSeedDistVarName.c_str()
+		);
 	}
 	pSeedGenerator->GetSeeds(timeStep, this, seeds, bUseRandomSeeds, randomSeed, stride);
 	delete pSeedGenerator;
@@ -419,15 +395,9 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 void VaporFlow::SetPriorityField(const char* varx, const char* vary, const char* varz,
 									   float minField , float maxField)
 {
-	if(!xPriorityVarName)
-		xPriorityVarName = new char[260];
-	if(!yPriorityVarName)
-		yPriorityVarName = new char[260];
-	if(!zPriorityVarName)
-		zPriorityVarName = new char[260];
-	strcpy(xPriorityVarName, varx);
-	strcpy(yPriorityVarName, vary);
-	strcpy(zPriorityVarName, varz); 
+	xPriorityVarName = varx;
+	yPriorityVarName = vary;
+	zPriorityVarName = varz; 
 	minPriorityVal = minField;
 	maxPriorityVal = maxField;
 }					
@@ -445,30 +415,24 @@ void VaporFlow::SetDistributedSeedPoints(const double min[3], const double max[3
 	this->numSeeds[2] = 1;
 
 	bUseRandomSeeds = true;
-	if(!xSeedDistVarName)
-		xSeedDistVarName = new char[260];
-	if(!ySeedDistVarName)
-		ySeedDistVarName = new char[260];
-	if(!zSeedDistVarName)
-		zSeedDistVarName = new char[260];
 	//If no bias, use a nonzero steady or unsteady field as the seed Dist field, just to tell where missing values are.
 	//Only the x component is used in all 3 places
 	if (bias == 0.f){
 		if (flowType == 0){
-			if (strcmp(xSteadyVarName,"0") != 0) strcpy(xSeedDistVarName,xSteadyVarName);
-			else if (strcmp(ySteadyVarName,"0") != 0)strcpy(xSeedDistVarName,ySteadyVarName);
-			else strcpy(xSeedDistVarName,zSteadyVarName);
+			if (xSteadyVarName.compare("0") != 0) xSeedDistVarName = xSteadyVarName;
+			else if (ySteadyVarName.compare("0") != 0) xSeedDistVarName = ySteadyVarName;
+			else xSeedDistVarName = zSteadyVarName;
 		} else {
-			if (strcmp(xUnsteadyVarName,"0") != 0) strcpy(xSeedDistVarName,xUnsteadyVarName);
-			else if (strcmp(yUnsteadyVarName,"0") != 0)strcpy(xSeedDistVarName,yUnsteadyVarName);
-			else strcpy(xSeedDistVarName,zUnsteadyVarName);
+			if (xUnsteadyVarName.compare("0") != 0) xSeedDistVarName = xUnsteadyVarName;
+			else if (yUnsteadyVarName.compare("0") != 0) xSeedDistVarName = yUnsteadyVarName;
+			else xSeedDistVarName = zUnsteadyVarName;
 		}
-		strcpy(ySeedDistVarName,xSeedDistVarName);
-		strcpy(zSeedDistVarName,xSeedDistVarName);
+		ySeedDistVarName = xSeedDistVarName;
+		zSeedDistVarName = xSeedDistVarName;
 	} else {
-		strcpy(xSeedDistVarName, varx);
-		strcpy(ySeedDistVarName, vary);
-		strcpy(zSeedDistVarName, varz); 
+		xSeedDistVarName = varx;
+		ySeedDistVarName = vary;
+		zSeedDistVarName = varz; 
 	}
 	
 	seedDistBias = bias;
@@ -483,8 +447,11 @@ bool VaporFlow::GenStreamLines(int timestep, FlowLineData* container, unsigned i
 	seedPtr = new float[seedNum*3];
 	SeedGenerator* pSeedGenerator = new SeedGenerator(minLocalRakeExt, maxLocalRakeExt, numSeeds);
 	if (bUseRandomSeeds)
-		pSeedGenerator->SetSeedDistrib(seedDistBias, steadyStartTimeStep, (int)numXForms,
-			xSeedDistVarName,ySeedDistVarName,zSeedDistVarName);
+		pSeedGenerator->SetSeedDistrib(
+			seedDistBias, steadyStartTimeStep, (int)numXForms,
+			xSeedDistVarName.c_str(),ySeedDistVarName.c_str(),
+			zSeedDistVarName.c_str()
+		);
 	bool rc = pSeedGenerator->GetSeeds(timestep, this, seedPtr, bUseRandomSeeds, randomSeed);
 	delete pSeedGenerator;
 	if (!rc) return false;
@@ -702,9 +669,9 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	//numTimesteps is the number of time steps needed
 	int numTimesteps = abs(endTimeStep - startTimeStep) + 1;
 	int numTimeSamples = abs(sampleStartIndex - sampleEndIndex) + 1;
-	bool zeroX = (strcmp(xUnsteadyVarName, "0") == 0); 
-	bool zeroY = (strcmp(yUnsteadyVarName, "0") == 0); 
-	bool zeroZ = (strcmp(zUnsteadyVarName, "0") == 0); 
+	bool zeroX = xUnsteadyVarName.compare("0") == 0; 
+	bool zeroY = yUnsteadyVarName.compare("0") == 0; 
+	bool zeroZ = zUnsteadyVarName.compare("0") == 0; 
 	if (zeroX) pUGrid = 0;
 	else {
 		pUGrid = new RegularGrid*[numTimeSamples];
@@ -956,9 +923,9 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 	int numTimeSamples = abs(sampleStartIndex - sampleEndIndex) + 1;
 	
 	
-    bool zeroX = (strcmp(xUnsteadyVarName, "0") == 0); 
-	bool zeroY = (strcmp(yUnsteadyVarName, "0") == 0); 
-	bool zeroZ = (strcmp(zUnsteadyVarName, "0") == 0); 
+    bool zeroX = xUnsteadyVarName.compare("0") == 0; 
+	bool zeroY = yUnsteadyVarName.compare("0") == 0; 
+	bool zeroZ = zUnsteadyVarName.compare("0") == 0; 
 	if (zeroX) pUGrid = 0;
 	else {
 		pUGrid = new RegularGrid*[numTimeSamples];

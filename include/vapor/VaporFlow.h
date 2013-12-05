@@ -11,6 +11,7 @@
 #ifndef	_VaporFlow_h_
 #define	_VaporFlow_h_
 
+#include <string>
 #include <vapor/DataMgr.h>
 #include <vapor/MyBase.h>
 #include <vapor/common.h>
@@ -106,8 +107,10 @@ namespace VAPoR
 	 
 	private:
 		
-		bool Get3GridData(size_t ts, const char* xVarName, const char* yVarName, 
-			const char* zVarName, size_t minreg[3], size_t maxreg[3], RegularGrid** xGrid, RegularGrid** yGrid, RegularGrid** zGrid);
+		bool Get3GridData(
+			size_t ts, std::string xVarName, std::string yVarName, 
+			std::string zVarName, size_t minreg[3], size_t maxreg[3],
+			RegularGrid** xGrid, RegularGrid** yGrid, RegularGrid** zGrid);
 		double getMaxStepSize(double mingrid[3]);
 		double getInitStepSize(double mingrid[3]);
 
@@ -141,13 +144,13 @@ namespace VAPoR
 		bool bUseRandomSeeds;						// whether use randomly or regularly generated seeds
 
 		DataMgr* dataMgr;							// data manager
-		char *xSteadyVarName, *ySteadyVarName, *zSteadyVarName;		
+		std::string xSteadyVarName, ySteadyVarName, zSteadyVarName;		
 													// name of three variables for steady field
-		char *xUnsteadyVarName, *yUnsteadyVarName, *zUnsteadyVarName;		
+		std::string xUnsteadyVarName, yUnsteadyVarName, zUnsteadyVarName;		
 													// name of three variables for unsteady field
-		char *xPriorityVarName, *yPriorityVarName, *zPriorityVarName;
+		std::string xPriorityVarName, yPriorityVarName, zPriorityVarName;
 													// field variables used for prioritizing seeds on flowlines
-		char *xSeedDistVarName, *ySeedDistVarName, *zSeedDistVarName;
+		std::string xSeedDistVarName, ySeedDistVarName, zSeedDistVarName;
 													// field variables used to determine random seed distribution
 		size_t numXForms;
 		int compressLevel;
