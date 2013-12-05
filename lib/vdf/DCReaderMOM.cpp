@@ -42,6 +42,8 @@ DCReaderMOM::DCReaderMOM(const vector <string> &files) {
 	_ovr_fd = -1;
 	_defaultMV = 1e37;
 	_reverseRead = false;
+	_angleRADBuf = NULL;
+	_latDEGBuf = NULL;
 
 	NetCDFCFCollection *ncdfc = new NetCDFCFCollection();
 	ncdfc->Initialize(files);

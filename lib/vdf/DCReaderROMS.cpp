@@ -38,6 +38,8 @@ DCReaderROMS::DCReaderROMS(const vector <string> &files) {
 	_ovr_slice = 0;
 	_ovr_fd = -1;
 	_defaultMV = 1e37;
+	_angleRADBuf = NULL;
+	_latDEGBuf = NULL;
 
 	NetCDFCFCollection *ncdfc = new NetCDFCFCollection();
 	ncdfc->Initialize(files);
