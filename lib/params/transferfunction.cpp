@@ -375,7 +375,7 @@ bool TransferFunction::elementEndHandler(ExpatParseMgr* pm, int depth ,
                                          std::string& tag)
 {
 	  //Check for the transferfunction tag,
-	if (StrCmpNoCase(tag, _transferFunctionTag) == 0) {
+	if (StrCmpNoCase(tag, _transferFunctionTag) == 0 || StrCmpNoCase(tag, _mapperFunctionTag) == 0 ) {
 	  
 		  //If depth is 0, this is a transfer function file; otherwise need to
 		  //pop the parse stack.  The caller will need to save the resulting

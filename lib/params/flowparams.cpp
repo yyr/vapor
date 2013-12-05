@@ -2099,6 +2099,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			}
 			
 		}
+		return true;
 	//Parse a mapperFunction node (inside the geometry node) (prior to 2.3.0)
 	} else if (StrCmpNoCase(tagString, MapperFunction::_mapperFunctionTag) == 0) {
 		//Need to "push" to transfer function parser.
