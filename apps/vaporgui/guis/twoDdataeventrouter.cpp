@@ -1309,6 +1309,7 @@ guiSetCompRatio(int num){
 	pal.setColor(QPalette::WindowText, Qt::gray);
 	fidelityBox->setPalette(pal);
 	PanelCommand::captureEnd(cmd, dParams);
+	setTwoDDirty(dParams);
 	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->forceRender(dParams);
 
@@ -1333,6 +1334,7 @@ guiSetNumRefinements(int n){
 	pal.setColor(QPalette::WindowText, Qt::gray);
 	fidelityBox->setPalette(pal);
 	PanelCommand::captureEnd(cmd, pParams);
+	setTwoDDirty(pParams);
 	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams);
 }
@@ -2279,6 +2281,8 @@ void TwoDDataEventRouter::guiSetFidelity(int buttonID){
 	lodCombo->setCurrentIndex(newLOD);
 	refinementCombo->setCurrentIndex(newRef);
 	PanelCommand::captureEnd(cmd, dParams);
+	setTwoDDirty(dParams);
+	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->forceRender(dParams, false);
 }
 

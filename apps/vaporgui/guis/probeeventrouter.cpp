@@ -3370,7 +3370,9 @@ void ProbeEventRouter::guiSetFidelity(int buttonID){
 	lodCombo->setCurrentIndex(newLOD);
 	refinementCombo->setCurrentIndex(newRef);
 	PanelCommand::captureEnd(cmd, dParams);
-	VizWinMgr::getInstance()->forceRender(dParams, false);
+	setProbeDirty(dParams);
+	probeTextureFrame->update();
+	VizWinMgr::getInstance()->forceRender(dParams);	
 }
 
 //User clicks on SetDefault button, need to make current fidelity settings the default.

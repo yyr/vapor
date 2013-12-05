@@ -3391,7 +3391,8 @@ void FlowEventRouter::guiSetFidelity(int buttonID){
 	lodCombo->setCurrentIndex(newLOD);
 	refinementCombo->setCurrentIndex(newRef);
 	PanelCommand::captureEnd(cmd, dParams);
-	VizWinMgr::getInstance()->forceRender(dParams, false);
+	VizWinMgr::getInstance()->setFlowDataDirty(dParams);
+	if (!dParams->refreshIsAuto()) refreshButton->setEnabled(true);
 }
 
 //User clicks on SetDefault button, need to make current fidelity settings the default.
