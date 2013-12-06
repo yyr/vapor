@@ -216,6 +216,13 @@ string DataHolder::getPopDataCmd() {
     if (PDSelectedVars.size() != 0) {
         argv.push_back("-vars");
 
+		if (getFileType()!="mom"){
+			// If ELEVATION var is already included
+			if (std::find(PDSelectedVars.begin(), PDSelectedVars.end(), "ELEVATION") == PDSelectedVars.end()) {
+				PDSelectedVars.push_back("ELEVATION");
+			}			
+		}
+
         string stringVars;
         for(vector<string>::iterator it = PDSelectedVars.begin();
             it != PDSelectedVars.end(); ++it) {
@@ -292,6 +299,13 @@ int DataHolder::VDFCreate() {
 		argv.push_back("-vars");
         argc++;
 
+        if (getFileType()!="mom"){
+            // If ELEVATION var is already included
+            if (std::find(PDSelectedVars.begin(), PDSelectedVars.end(), "ELEVATION") == PDSelectedVars.end()) {
+                PDSelectedVars.push_back("ELEVATION");
+            }               
+        }   
+
         string stringVars;
         for(vector<string>::iterator it = VDFSelectedVars.begin();
             it != VDFSelectedVars.end(); ++it) {
@@ -363,6 +377,13 @@ int DataHolder::run2VDFcomplete() {
     if (PDSelectedVars.size() != 0) {
 		argv.push_back("-vars");
         argc++;
+
+        if (getFileType()!="mom"){
+            // If ELEVATION var is already included
+            if (std::find(PDSelectedVars.begin(), PDSelectedVars.end(), "ELEVATION") == PDSelectedVars.end()) {
+                PDSelectedVars.push_back("ELEVATION");
+            }               
+        }   
 
         string stringVars;
         for(vector<string>::iterator it = PDSelectedVars.begin();
