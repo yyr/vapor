@@ -1677,9 +1677,10 @@ void TwoDImageEventRouter::mapCursor(){
 		else
 			for (int i = 0; i< 3; i++) selectPoint[i] = 0.f;
 
-		//Convert selected point (in user coordinates) to local coordinates
+		//Convert selected point x,y (in user coordinates) to local coordinates
+		//z is already local.
 		
-		for (int i = 0; i<3; i++) selectPoint[i] -= userExtents[i];
+		for (int i = 0; i<2; i++) selectPoint[i] -= userExtents[i];
 	}
 		
 	else { //map linearly into volume
