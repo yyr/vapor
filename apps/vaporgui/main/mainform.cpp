@@ -1003,7 +1003,8 @@ void MainForm::loadPrefs(){
 	QString filename = QFileDialog::getOpenFileName(this,
 		"Choose the Preferences File to load into current session",
 		Session::getInstance()->getPreferencesFile().c_str(),
-		"Vapor Preferences Files (*.vapor_prefs)");
+		"Vapor Preferences Files (*.vapor_prefs )",0,
+		QFileDialog::DontUseNativeDialog);
 	if(filename != QString::null){
 		QFileInfo fInfo(filename);
 		if (fInfo.isReadable() && fInfo.isFile())
@@ -1016,7 +1017,8 @@ void MainForm::savePrefs(){
 	QString filename = QFileDialog::getSaveFileName(this,
 		"Choose the file name to save current preferences",
 		Session::getInstance()->getPreferencesFile().c_str(),
-		"Vapor Preferences Files (*.vapor_prefs)");
+		"Vapor Preferences Files (*.vapor_prefs)",0,
+		QFileDialog::DontUseNativeDialog);
 	if(filename != QString::null){
 		QFileInfo fInfo(filename);
 		
