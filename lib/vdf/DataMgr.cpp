@@ -477,6 +477,15 @@ void	DataMgr::RemovePipeline(string name) {
 	for (itr = _PipeLines.begin(); itr != _PipeLines.end(); itr++) {
 		if (name.compare((*itr)->GetName()) == 0) {
 			_PipeLines.erase(itr);
+
+			const vector <pair <string, VarType_T> > &output_vars = (*itr)->GetOutputs();
+			//
+			// Remove any cached instances of variable
+			//
+			for (int i=0; i<output_vars.size(); i++) {
+				string var = output_vars[i].first;
+				DataMgr::PurgeVariable(var);
+			}
 			break;
 		}
 	}
