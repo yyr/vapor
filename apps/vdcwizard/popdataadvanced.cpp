@@ -37,7 +37,7 @@ PopDataAdvanced::PopDataAdvanced(DataHolder *DH, QWidget *parent) :
 
 void PopDataAdvanced::on_restoreDefaultButton_clicked(){
     refinementLevelSpinner->setValue(0);
-    compressionLevelSpinner->setValue(0);
+    compressionLevelSpinner->setValue(-1);
     numThreadsSpinner->setValue(0);
 }
 

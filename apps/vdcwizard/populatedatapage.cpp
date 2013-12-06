@@ -250,11 +250,12 @@ bool PopulateDataPage::validatePage() {
     
 		//Cycle through variables in each timestep
 		for (int timeStep=0;timeStep<tsSize;timeStep++){
+		//for (int timeStep=tsSize;timeStep>0;timeStep--){	
 			for (int var=0;var<varsSize;var++){
 				if (activateCancel==0){
 					std::stringstream ss;
 					ss.clear();
-					ss << timeStep;
+					ss << tsSize-timeStep-1;
 					
 					if (dataHolder->run2VDFincremental(ss.str(),dataHolder->getPDSelectedVars().at(var)) != 0){
 					    dataHolder->vdcSettingsChanged=false;
