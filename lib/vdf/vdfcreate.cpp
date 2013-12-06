@@ -48,16 +48,15 @@ void vdfcreate::populateVariables(
     if (! _vars.size()) {
             vars = candidate_vars;
         }
-        else {
-
-            vars.clear();
-            for (int i=0; i<_vars.size(); i++) {
-                vector <string>::iterator itr = find(candidate_vars.begin(), candidate_vars.end(), _vars[i]);
-                if (itr != candidate_vars.end()) {
-                    vars.push_back(_vars[i]);
-                }
+    else {
+        vars.clear();
+        for (int i=0; i<_vars.size(); i++) {
+            vector <string>::iterator itr = find(candidate_vars.begin(), candidate_vars.end(), _vars[i]);
+            if (itr != candidate_vars.end()) {
+                vars.push_back(_vars[i]);
             }
         }
+    }
     
     if((file->*SetVarFunction)(vars)) {
         //cerr << "Error populating Variables." << endl;
@@ -165,12 +164,14 @@ MetadataVDC *vdfcreate::CreateMetadataVDC(
     populateVariables(vars,candidate_vars,file,&MetadataVDC::SetVariables2DYZ);
 
 
-    vars = DCdata->GetVariableNames();
+    //vars = DCdata->GetVariableNames();
     for(int t = 0; t < DCdata->GetNumTimeSteps(); t++) {
 		for (int j=0; j<vars.size(); j++) {
 			float mv;
             bool has_missing = DCdata->GetMissingValue(vars[j], mv);
-			if (has_missing) file->SetVMissingValue(t,vars[j], 1e37);
+			if (has_missing){
+				file->SetVMissingValue(t,vars[j], 1e37);
+			}
 		}
 	}
 
