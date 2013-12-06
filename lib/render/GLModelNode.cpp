@@ -157,11 +157,11 @@ const char* GLModelNode::errorString()
 //----------------------------------------------------------------------------
 GLModelNode::~GLModelNode()
 {
-   glDeleteLists(1, _displayList);
+   if (_displayList) glDeleteLists(_displayList, 1);
 
    for (unsigned int n=0; n < _children.size(); n++)
    {
-      delete _children[n];
+      if (_children[n]) delete _children[n];
    }
 
    _children.clear();

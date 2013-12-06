@@ -278,7 +278,7 @@ const ModelScene* ModelRenderer::getModelScene(ModelParams *mParams)
       return _scene;
    }
 
-   delete _scene;
+   if (_scene) delete _scene;
    _scene = new ModelScene();
 
    const string filename = mParams->GetSceneFilename();
