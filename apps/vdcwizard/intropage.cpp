@@ -71,5 +71,10 @@ void IntroPage::on_populateDataButton_clicked()
 
 void IntroPage::initializePage() {
 	QList<QWizard::WizardButton> layout;
-    wizard()->setButtonLayout(layout);
+    layout << QWizard::NextButton;
+	wizard()->setButtonLayout(layout);
+	
+	QList<QWizard::WizardButton> overwriteLayout;
+	wizard()->setButtonLayout(overwriteLayout);
+	//wizard()->button(QWizard::NextButton)->hide();
 }
