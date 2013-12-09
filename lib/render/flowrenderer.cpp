@@ -307,28 +307,35 @@ renderFlowData(bool constColors, int currentFrameNum){
 	//Set up size constants:
 	//voxelSize is actually the max of the sides of the voxel in user coords,
 	//At full resolution
-	const float* fullSizes = DataStatus::getInstance()->getFullStretchedSizes();
+	const float* fullSizes = DataStatus::getInstance()->getFullSizes();
 	const size_t* fullDims = DataStatus::getInstance()->getFullDataSize();
 	voxelSize = Max((fullSizes[2])/fullDims[2],
 		Max((fullSizes[1])/fullDims[1], (fullSizes[0])/fullDims[0]));
 		
 	
+	
 	stationaryRadius = 0.5f*voxelSize*myFlowParams->getDiamondDiameter();
 	float userRadius = 0.5f*diam*voxelSize;
 	arrowHeadRadius = (myFlowParams->getArrowDiameter())*userRadius;
+	
+
 
 	// Set up clipping planes. Clip to region bounds, adding padding
 	// to handle any geometry from the rendering primitives that escape
 	// the box. Fixes 3613859 
 	//
-//	enableRegionClippingPlanes();
+
     double regExts[6];
 	RegionParams* rParams = myGLWindow->getActiveRegionParams();
     rParams->GetBox()->GetUserExtents(regExts,currentFrameNum);
-	float r = max(stationaryRadius, max(userRadius, arrowHeadRadius));
+	float vxsize[3]; //3-coordinate voxel size for clipping calculation
+	for (int i = 0; i<3; i++) {
+		vxsize[i] = fullSizes[i]/fullDims[i];
+		vxsize[i] *= 0.5*Max(diam,Max(myFlowParams->getDiamondDiameter(),myFlowParams->getArrowDiameter()*diam));
+	}
 	for (int i=0; i<3; i++) {
-		regExts[i] -= r;
-		regExts[i+3] += r;
+		regExts[i] -= vxsize[i];
+		regExts[i+3] += vxsize[i];
 	}
 	enableClippingPlanes(regExts);
 
