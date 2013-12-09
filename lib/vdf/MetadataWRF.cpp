@@ -214,26 +214,6 @@ void MetadataWRF::_MetadataWRF(
           }
         } // end of else Global_attr.
 
-        if(Vars3D.size() != twrfvars3d.size())
-          mismatch_flag = true;
-        else {
-          for(striter = Vars3D.begin(); striter < Vars3D.end(); striter++) {
-            if (find(twrfvars3d.begin(), twrfvars3d.end(), *striter) == twrfvars3d.end()) {
-              mismatch_flag = true;
-            }
-          }
-        } // end of else Vars3D.
-
-        if(Vars2Dxy.size() != twrfvars2d.size())
-          mismatch_flag = true;
-        else {
-          for(striter = Vars2Dxy.begin(); striter < Vars2Dxy.end(); striter++) {
-            if (find(twrfvars2d.begin(), twrfvars2d.end(), *striter) == twrfvars2d.end()) {
-              mismatch_flag = true;
-            }
-          }
-        } // end of else Vars2Dxy.
-
         if(mismatch_flag) {
           ErrMsgStr.assign("File mismatch, skipping file ");
           ErrMsgStr += infiles[i];
