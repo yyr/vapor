@@ -119,7 +119,8 @@ void PopulateDataPage::setupVars() {
 // set some initial values in the page widgets, and set the appropriate
 // buttons on the wizard (in this case, we only need back and next)
 void PopulateDataPage::initializePage(){
-    startTimeSpinner->setMaximum(atoi(dataHolder->getPDStartTime().c_str()));
+	tableWidget->clear();
+	startTimeSpinner->setMaximum(atoi(dataHolder->getPDStartTime().c_str()));
 	startTimeSpinner->setValue(atoi(dataHolder->getPDStartTime().c_str()));
     numtsSpinner->setValue(atoi(dataHolder->getPDnumTS().c_str()));
     numtsSpinner->setMaximum(atoi(dataHolder->getPDnumTS().c_str()));
