@@ -39,7 +39,7 @@ PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
     cancelButton->setEnabled(false);
     activateCancel = 0;
 	progressBar->setValue(0);    
-	progressBar->setTextVisible(true);
+	progressBar->setTextVisible(false);
 
 	QPixmap populateDataPixmap(_VDFsmall);
     populateDataLabel->setPixmap(populateDataPixmap);
@@ -286,7 +286,7 @@ bool PopulateDataPage::validatePage() {
 					}
 					
 					// Update progress bar
-				    sprintf(percentComplete,"%.1f%% Complete",(100*((double)(varsSize*timeStep+var+1)/(double)(dataChunks))));
+					sprintf(percentComplete,"%.1f%% Complete",(100*((double)(varsSize*timeStep+var+1)/(double)(dataChunks))));
 					percentCompleteLabel->setText(QString::fromUtf8(percentComplete));
 					progressBar->setValue((varsSize*timeStep)+var);
 					QApplication::processEvents();

@@ -198,14 +198,17 @@ bool SelectFilePage::isComplete() const {
 }
 
 int SelectFilePage::nextId() const{
+	wizard()->button(QWizard::NextButton)->setEnabled(false);
 	if (isComplete() == true){
 		//if there has been a change to the ncdf files, we will need to generate a new
 		//DCReader, and go through our error checking process
 		if (dataHolder->createReader()==0) {
+			wizard()->button(QWizard::NextButton)->setEnabled(true);
 			if (dataHolder->getOperation() == "vdfcreate") return VDCWizard::Create_VdfPage;
 	        else return VDCWizard::Populate_DataPage;
 		}	
         else {
+
             for(int i=0;i<dataHolder->getErrors().size();i++){
 				errorMessage->errorList->append(dataHolder->getErrors()[i]);
 				errorMessage->errorList->append("\n");
@@ -216,5 +219,6 @@ int SelectFilePage::nextId() const{
 			MyBase::SetErrCode(0);
 	    }
 	}
+	wizard()->button(QWizard::NextButton)->setEnabled(true);
 	return VDCWizard::SelectFile_Page;
 }

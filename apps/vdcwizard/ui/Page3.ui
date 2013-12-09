@@ -18,7 +18,7 @@
     <rect>
      <x>100</x>
      <y>13</y>
-     <width>121</width>
+     <width>231</width>
      <height>41</height>
     </rect>
    </property>
@@ -78,7 +78,7 @@
   <widget class="QSpinBox" name="numtsSpinner">
    <property name="geometry">
     <rect>
-     <x>368</x>
+     <x>367</x>
      <y>95</y>
      <width>91</width>
      <height>25</height>
@@ -116,10 +116,10 @@
   <widget class="QPushButton" name="advanceOptionButton">
    <property name="geometry">
     <rect>
-     <x>28</x>
+     <x>21</x>
      <y>332</y>
-     <width>133</width>
-     <height>20</height>
+     <width>151</width>
+     <height>23</height>
     </rect>
    </property>
    <property name="text">
@@ -130,7 +130,7 @@
    <property name="geometry">
     <rect>
      <x>19</x>
-     <y>94</y>
+     <y>96</y>
      <width>80</width>
      <height>21</height>
     </rect>
@@ -143,7 +143,7 @@
    <property name="geometry">
     <rect>
      <x>175</x>
-     <y>94</y>
+     <y>96</y>
      <width>76</width>
      <height>21</height>
     </rect>
@@ -156,7 +156,7 @@
    <property name="geometry">
     <rect>
      <x>98</x>
-     <y>94</y>
+     <y>96</y>
      <width>78</width>
      <height>21</height>
     </rect>
@@ -181,10 +181,10 @@
   <widget class="QPushButton" name="vdfCommentButton">
    <property name="geometry">
     <rect>
-     <x>174</x>
+     <x>296</x>
      <y>332</y>
-     <width>136</width>
-     <height>20</height>
+     <width>161</width>
+     <height>23</height>
     </rect>
    </property>
    <property name="text">
@@ -207,10 +207,10 @@
   <widget class="QPushButton" name="showCommandButton">
    <property name="geometry">
     <rect>
-     <x>324</x>
+     <x>171</x>
      <y>332</y>
      <width>126</width>
-     <height>20</height>
+     <height>23</height>
     </rect>
    </property>
    <property name="text">
