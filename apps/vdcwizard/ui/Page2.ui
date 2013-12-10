@@ -174,8 +174,11 @@
      <height>22</height>
     </rect>
    </property>
+   <property name="readOnly">
+    <bool>false</bool>
+   </property>
    <property name="textInteractionFlags">
-    <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+    <set>Qt::TextEditorInteraction</set>
    </property>
   </widget>
   <widget class="QLabel" name="vdfLabel">
