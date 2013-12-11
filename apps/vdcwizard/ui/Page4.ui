@@ -132,7 +132,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Advanced Options</string>
+    <string>Advanced</string>
    </property>
   </widget>
   <widget class="QPushButton" name="clearAllButton">
@@ -235,9 +235,9 @@
   <widget class="QPushButton" name="showCommandButton">
    <property name="geometry">
     <rect>
-     <x>189</x>
+     <x>183</x>
      <y>328</y>
-     <width>151</width>
+     <width>163</width>
      <height>23</height>
     </rect>
    </property>
