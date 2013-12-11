@@ -487,11 +487,15 @@ int DataHolder::run2VDFincremental(string start, string var) {
 	//cout << endl;
 
     if (getFileType()=="wrf") {
-		w2v.deleteWrfData();
+		//w2v.deleteWrfData();
 		return w2v.launchWrf2Vdf(argc,args);
     }
     else {
 		launcher2VDF.deleteDCData();
 		return launcher2VDF.launch2vdf(argc, args, getFileType());
 	}
+}
+
+void DataHolder::purgeObjects() {
+	w2v.deleteObjects();
 }

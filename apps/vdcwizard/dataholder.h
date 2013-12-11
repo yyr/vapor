@@ -38,8 +38,8 @@ class DataHolder
 {
 public:
     DataHolder();
-
-	//void ErrMsgCBHandler();//(const char* error, int);
+	
+	void purgeObjects();
 	
 	bool ncdfFilesChanged;
 	bool vdfSettingsChanged;
