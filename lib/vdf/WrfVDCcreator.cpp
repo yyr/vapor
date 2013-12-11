@@ -352,8 +352,8 @@ int	Wrf2vdf::launchWrf2Vdf(int argc, char **argv) {
 	else {
 		if (wcwriter == NULL){
 			wcwriter = new WaveCodecIO(metadata, _nthreads);
-			vdfio = wcwriter;
-		}
+		}	
+		vdfio = wcwriter;
 	}
 	if (vdfio->GetErrCode() != 0) {
 		return -1;
