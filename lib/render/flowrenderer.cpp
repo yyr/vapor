@@ -205,6 +205,12 @@ void FlowRenderer::paintGL()
 	dirtyDL = (dirtyDL || !useDisplayLists || didRemap || didRebuild || timeStep != lastTimeStep || newType ); 
 	useDisplayLists = myFlowParams->usingDisplayLists();
 
+	// Ugh. Can't use display lists because renderFlowData() relies
+	// on glVertexPointer(), which is not supported with display lists
+	// Workaround bug # 963
+	//
+	useDisplayLists = false;
+
 	if (useDisplayLists && dirtyDL) {
 		glNewList(flowDisplayList, GL_COMPILE);
 	}

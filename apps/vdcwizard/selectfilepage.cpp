@@ -199,6 +199,24 @@ bool SelectFilePage::isComplete() const {
 
 int SelectFilePage::nextId() const{
 	wizard()->button(QWizard::NextButton)->setEnabled(false);
+	
+	QString file;
+	file = outputVDFtext->toPlainText();
+    int size = file.split(".",QString::SkipEmptyParts).size();
+	if (file != ""){
+        QString base = file.split(".",QString::SkipEmptyParts).at(0);
+        QString extension = file.split(".",QString::SkipEmptyParts).at(size-1);
+        QStringList list;
+        list.append(base);
+        if ((size==1)||(extension == NULL)||(extension != "vdf")) {
+            list.append(".vdf");
+            file = list.join("");
+        }   
+        outputVDFtext->setText(file);
+        dataHolder->setVDFfileName(file.toStdString());
+        dataHolder->setPDVDFfile(file.toStdString());
+    } 
+
 	if (isComplete() == true){
 		//if there has been a change to the ncdf files, we will need to generate a new
 		//DCReader, and go through our error checking process
