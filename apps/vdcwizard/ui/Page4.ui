@@ -125,10 +125,10 @@
   <widget class="QPushButton" name="advancedOptionsButton">
    <property name="geometry">
     <rect>
-     <x>38</x>
+     <x>28</x>
      <y>328</y>
-     <width>141</width>
-     <height>20</height>
+     <width>151</width>
+     <height>23</height>
     </rect>
    </property>
    <property name="text">
@@ -166,7 +166,7 @@
     <rect>
      <x>20</x>
      <y>121</y>
-     <width>431</width>
+     <width>439</width>
      <height>200</height>
     </rect>
    </property>
@@ -222,10 +222,10 @@
   <widget class="QPushButton" name="cancelButton">
    <property name="geometry">
     <rect>
-     <x>333</x>
+     <x>350</x>
      <y>328</y>
      <width>101</width>
-     <height>20</height>
+     <height>23</height>
     </rect>
    </property>
    <property name="text">
@@ -235,10 +235,10 @@
   <widget class="QPushButton" name="showCommandButton">
    <property name="geometry">
     <rect>
-     <x>194</x>
+     <x>189</x>
      <y>328</y>
-     <width>126</width>
-     <height>20</height>
+     <width>151</width>
+     <height>23</height>
     </rect>
    </property>
    <property name="text">

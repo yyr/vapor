@@ -1520,7 +1520,14 @@ guiEndCursorMove(){
 	mapCursor();
 	//If we are connected to a seed, move it:
 	if (seedIsAttached() && attachedFlow){
-		VizWinMgr::getInstance()->getFlowRouter()->guiMoveLastSeed(pParams->getSelectedPointLocal());
+		float pt[3];
+		for (int i = 0; i<3; i++) pt[i] = pParams->getSelectedPointLocal()[i];
+		//Convert local to user coords
+		AnimationParams* ap = (AnimationParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_animationParamsTag);
+		int ts = ap->getCurrentTimestep();
+		const vector<double>& usrExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)ts);
+		for (int i = 0; i<3; i++) pt[i]+=usrExts[i];
+		VizWinMgr::getInstance()->getFlowRouter()->guiMoveLastSeed(pt);
 	}
 	
 	//Update the tab, it's in front:

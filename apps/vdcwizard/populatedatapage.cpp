@@ -39,7 +39,7 @@ PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
     cancelButton->setEnabled(false);
     activateCancel = 0;
 	progressBar->setValue(0);    
-	progressBar->setTextVisible(true);
+	progressBar->setTextVisible(false);
 
 	QPixmap populateDataPixmap(_VDFsmall);
     populateDataLabel->setPixmap(populateDataPixmap);
@@ -119,7 +119,8 @@ void PopulateDataPage::setupVars() {
 // set some initial values in the page widgets, and set the appropriate
 // buttons on the wizard (in this case, we only need back and next)
 void PopulateDataPage::initializePage(){
-    startTimeSpinner->setMaximum(atoi(dataHolder->getPDStartTime().c_str()));
+	tableWidget->clear();
+	startTimeSpinner->setMaximum(atoi(dataHolder->getPDStartTime().c_str()));
 	startTimeSpinner->setValue(atoi(dataHolder->getPDStartTime().c_str()));
     numtsSpinner->setValue(atoi(dataHolder->getPDnumTS().c_str()));
     numtsSpinner->setMaximum(atoi(dataHolder->getPDnumTS().c_str()));
@@ -158,6 +159,13 @@ void PopulateDataPage::populateCheckedVars() {
             varsVector.push_back(tableWidget->item(row,col)->text().toStdString());
         }
     }
+
+    if (dataHolder->getFileType()!="mom"){
+        // If ELEVATION var is already included
+        if (std::find(varsVector.begin(), varsVector.end(), "ELEVATION") == varsVector.end()) {
+            varsVector.push_back("ELEVATION");
+        }               
+    }   
 
     dataHolder->setPDSelectedVars(varsVector);
 }
@@ -254,7 +262,7 @@ bool PopulateDataPage::validatePage() {
 				if (activateCancel==0){
 					std::stringstream ss;
 					ss.clear();
-					ss << timeStep;
+					ss << tsSize-timeStep-1;
 					
 					if (dataHolder->run2VDFincremental(ss.str(),dataHolder->getPDSelectedVars().at(var)) != 0){
 					    dataHolder->vdcSettingsChanged=false;
@@ -279,7 +287,7 @@ bool PopulateDataPage::validatePage() {
 					}
 					
 					// Update progress bar
-				    sprintf(percentComplete,"%.1f%% Complete",(100*((double)(varsSize*timeStep+var+1)/(double)(dataChunks))));
+					sprintf(percentComplete,"%.1f%% Complete",(100*((double)(varsSize*timeStep+var+1)/(double)(dataChunks))));
 					percentCompleteLabel->setText(QString::fromUtf8(percentComplete));
 					progressBar->setValue((varsSize*timeStep)+var);
 					QApplication::processEvents();

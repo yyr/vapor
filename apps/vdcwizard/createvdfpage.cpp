@@ -125,7 +125,7 @@ void CreateVdfPage::initializePage(){
 }
 
 void CreateVdfPage::setupVars() {
-    varList = dataHolder->getNcdfVars();
+	varList = dataHolder->getNcdfVars();
     dataHolder->setVDFSelectedVars(varList);
     dataHolder->setVDFDisplayedVars(varList);
     tableWidget->setRowCount(varList.size()/3+1);
@@ -176,7 +176,16 @@ void CreateVdfPage::populateCheckedVars() {
         }
     }
 
+    if (dataHolder->getFileType()!="mom"){
+        // If ELEVATION var is already included
+        if (std::find(varsVector.begin(), varsVector.end(), "ELEVATION") == varsVector.end()) {
+            varsVector.push_back("ELEVATION");
+        }    
+    }  
+
     dataHolder->setVDFSelectedVars(varsVector);
+	dataHolder->setPDSelectedVars(varsVector);
+	dataHolder->setPDDisplayedVars(varsVector);
 }
 
 bool CreateVdfPage::validatePage() {
@@ -186,6 +195,7 @@ bool CreateVdfPage::validatePage() {
 	wizard()->button(QWizard::BackButton)->setEnabled(false);
 	wizard()->button(QWizard::CustomButton1)->setEnabled(false);
 	QApplication::processEvents();
+	populateCheckedVars();
 	if (dataHolder->VDFCreate()==0) {   
         Complete=1;
 		completeChanged();

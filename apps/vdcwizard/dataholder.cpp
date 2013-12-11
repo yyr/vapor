@@ -203,8 +203,8 @@ string DataHolder::getPopDataCmd() {
         argv.push_back(PDcompression);
     }   
     if (PDnumThreads != "") {
-        argv.push_back("-numthreads");
-        argv.push_back(PDnumThreads);
+        argv.push_back("-nthreads");
+		argv.push_back(PDnumThreads);
     }   
     
     argv.push_back("-numts");
@@ -215,6 +215,13 @@ string DataHolder::getPopDataCmd() {
   
     if (PDSelectedVars.size() != 0) {
         argv.push_back("-vars");
+
+		if (getFileType()!="mom"){
+			// If ELEVATION var is already included
+			if (std::find(PDSelectedVars.begin(), PDSelectedVars.end(), "ELEVATION") == PDSelectedVars.end()) {
+				PDSelectedVars.push_back("ELEVATION");
+			}			
+		}
 
         string stringVars;
         for(vector<string>::iterator it = PDSelectedVars.begin();
@@ -292,6 +299,13 @@ int DataHolder::VDFCreate() {
 		argv.push_back("-vars");
         argc++;
 
+        if (getFileType()!="mom"){
+            // If ELEVATION var is already included
+            if (std::find(PDSelectedVars.begin(), PDSelectedVars.end(), "ELEVATION") == PDSelectedVars.end()) {
+                PDSelectedVars.push_back("ELEVATION");
+            }               
+        }   
+
         string stringVars;
         for(vector<string>::iterator it = VDFSelectedVars.begin();
             it != VDFSelectedVars.end(); ++it) {
@@ -346,7 +360,7 @@ int DataHolder::run2VDFcomplete() {
         argc+=2;
     }
     if (PDnumThreads != "") {
-        argv.push_back("-numthreads");
+        argv.push_back("-nthreads");
         argv.push_back(PDnumThreads);
         argc+=2;
     }
@@ -363,6 +377,13 @@ int DataHolder::run2VDFcomplete() {
     if (PDSelectedVars.size() != 0) {
 		argv.push_back("-vars");
         argc++;
+
+        if (getFileType()!="mom"){
+            // If ELEVATION var is already included
+            if (std::find(PDSelectedVars.begin(), PDSelectedVars.end(), "ELEVATION") == PDSelectedVars.end()) {
+                PDSelectedVars.push_back("ELEVATION");
+            }               
+        }   
 
         string stringVars;
         for(vector<string>::iterator it = PDSelectedVars.begin();
@@ -409,8 +430,8 @@ int DataHolder::run2VDFincremental(string start, string var) {
         argc+=2;
     }   
     if (PDnumThreads != "") {
-        argv.push_back("-numthreads");
-        argv.push_back(PDnumThreads);
+        argv.push_back("-nthreads");
+		argv.push_back(PDnumThreads);
         argc+=2;
     }   
     

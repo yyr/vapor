@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <algorithm>
 #include <iterator>
 #include <cassert>
 #include <stdio.h>
@@ -45,7 +46,16 @@ DCReaderWRF::DCReaderWRF(const vector <string> &files) {
 
 	NetCDFCollection *ncdfc = new NetCDFCollection();
 
-	ncdfc->Initialize(files, time_dimnames, time_coordvars);
+	// Workaround for bug #953:  reverses time in WRF vdc conversion
+	// NetCDFCollection expects a 1D time coordinate variable. WRF
+	// data use a 2D "Times" time coordinate variable. By convention,
+	// however, WRF output files are sorted by time. Just need to
+	// make sure they're passed in the proper order
+	//
+	vector <string> sorted_files = files;
+	std::sort(sorted_files.begin(), sorted_files.end());
+
+	ncdfc->Initialize(sorted_files, time_dimnames, time_coordvars);
 	if (GetErrCode() != 0) return;
 
 	// Get required and optional global attributes 

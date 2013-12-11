@@ -18,7 +18,7 @@
     <rect>
      <x>100</x>
      <y>13</y>
-     <width>121</width>
+     <width>231</width>
      <height>41</height>
     </rect>
    </property>
@@ -36,7 +36,7 @@
     <rect>
      <x>20</x>
      <y>72</y>
-     <width>151</width>
+     <width>211</width>
      <height>21</height>
     </rect>
    </property>
@@ -78,7 +78,7 @@
   <widget class="QSpinBox" name="numtsSpinner">
    <property name="geometry">
     <rect>
-     <x>368</x>
+     <x>367</x>
      <y>95</y>
      <width>91</width>
      <height>25</height>
@@ -116,22 +116,22 @@
   <widget class="QPushButton" name="advanceOptionButton">
    <property name="geometry">
     <rect>
-     <x>28</x>
+     <x>21</x>
      <y>332</y>
-     <width>133</width>
-     <height>20</height>
+     <width>143</width>
+     <height>23</height>
     </rect>
    </property>
    <property name="text">
-    <string> Advanced Options</string>
+    <string> Advanced</string>
    </property>
   </widget>
   <widget class="QPushButton" name="selectAllButton">
    <property name="geometry">
     <rect>
-     <x>19</x>
-     <y>94</y>
-     <width>80</width>
+     <x>21</x>
+     <y>96</y>
+     <width>94</width>
      <height>21</height>
     </rect>
    </property>
@@ -142,9 +142,9 @@
   <widget class="QPushButton" name="newVarButton">
    <property name="geometry">
     <rect>
-     <x>175</x>
-     <y>94</y>
-     <width>76</width>
+     <x>206</x>
+     <y>96</y>
+     <width>90</width>
      <height>21</height>
     </rect>
    </property>
@@ -155,14 +155,14 @@
   <widget class="QPushButton" name="clearAllButton">
    <property name="geometry">
     <rect>
-     <x>98</x>
-     <y>94</y>
-     <width>78</width>
+     <x>121</x>
+     <y>96</y>
+     <width>79</width>
      <height>21</height>
     </rect>
    </property>
    <property name="text">
-    <string>Clear All</string>
+    <string>Clear</string>
    </property>
   </widget>
   <widget class="QTableWidget" name="tableWidget">
@@ -181,14 +181,14 @@
   <widget class="QPushButton" name="vdfCommentButton">
    <property name="geometry">
     <rect>
-     <x>174</x>
+     <x>307</x>
      <y>332</y>
-     <width>136</width>
-     <height>20</height>
+     <width>147</width>
+     <height>23</height>
     </rect>
    </property>
    <property name="text">
-    <string>Add VDF Comment</string>
+    <string>Add Comment</string>
    </property>
   </widget>
   <widget class="QLabel" name="createVdfLabel">
@@ -207,10 +207,10 @@
   <widget class="QPushButton" name="showCommandButton">
    <property name="geometry">
     <rect>
-     <x>324</x>
+     <x>162</x>
      <y>332</y>
-     <width>126</width>
-     <height>20</height>
+     <width>147</width>
+     <height>23</height>
     </rect>
    </property>
    <property name="text">

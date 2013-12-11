@@ -71,5 +71,5 @@ void IntroPage::on_populateDataButton_clicked()
 
 void IntroPage::initializePage() {
 	QList<QWizard::WizardButton> layout;
-    wizard()->setButtonLayout(layout);
+	wizard()->setButtonLayout(layout);
 }

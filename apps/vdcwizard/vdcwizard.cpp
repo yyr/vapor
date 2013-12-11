@@ -29,11 +29,16 @@ using namespace VAPoR;
 VDCWizard::VDCWizard(QWidget *parent) :
     QWizard(parent)
 {
-    setWizardStyle(QWizard::AeroStyle);
-    //setWizardStyle(QWizard::ClassicStyle);
+	#ifdef _WIN32
+		resize(QSize(525,500).expandedTo(minimumSizeHint()));
+	#else
+		resize(QSize(500,450).expandedTo(minimumSizeHint()));
+		setWizardStyle(QWizard::AeroStyle);
+	#endif
+	//setWizardStyle(QWizard::ClassicStyle);
     //setWizardStyle(QWizard::ModernStyle);
     //setWizardStyle(QWizard::MacStyle);
-    resize(QSize(500,450).expandedTo(minimumSizeHint()));
+    //resize(QSize(500,450).expandedTo(minimumSizeHint()));
 
     dataHolder = new DataHolder;
     introPage = new IntroPage(dataHolder);

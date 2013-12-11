@@ -693,6 +693,22 @@ float* FlowParams::getRakeSeeds(RegionParams* rParams, int* numseeds, int timeSt
 	//Prepare the flowLib:
 	double seedBox[6];
 	GetBox()->GetLocalExtents(seedBox);
+	//specify field components:
+	ds = DataStatus::getInstance();
+	const char* xVar = "0", *yVar = "0", *zVar = "0";
+	const char* uxVar = "0", *uyVar = "0", *uzVar = "0";
+	if (flowType != 1){
+		if(steadyVarNum[0]>0) xVar = ds->getVariableName3D(steadyVarNum[0]-1).c_str();
+		if(steadyVarNum[1]>0) yVar = ds->getVariableName3D(steadyVarNum[1]-1).c_str();
+		if(steadyVarNum[2]>0) zVar = ds->getVariableName3D(steadyVarNum[2]-1).c_str();
+		flowLib->SetSteadyFieldComponents(xVar, yVar, zVar);
+	}
+	if (flowType != 0){
+		if(unsteadyVarNum[0]>0) uxVar = ds->getVariableName3D(unsteadyVarNum[0]-1).c_str();
+		if(unsteadyVarNum[1]>0) uyVar = ds->getVariableName3D(unsteadyVarNum[1]-1).c_str();
+		if(unsteadyVarNum[2]>0) uzVar = ds->getVariableName3D(unsteadyVarNum[2]-1).c_str();
+		flowLib->SetUnsteadyFieldComponents(uxVar, uyVar, uzVar);
+	}
 	if (randomGen){
 		const char* xVar = ds->getVariableName3D(seedDistVarNum[0]).c_str();
 		const char* yVar = ds->getVariableName3D(seedDistVarNum[1]).c_str();
