@@ -36,7 +36,7 @@
     <rect>
      <x>20</x>
      <y>72</y>
-     <width>151</width>
+     <width>211</width>
      <height>21</height>
     </rect>
    </property>
@@ -118,20 +118,20 @@
     <rect>
      <x>21</x>
      <y>332</y>
-     <width>151</width>
+     <width>143</width>
      <height>23</height>
     </rect>
    </property>
    <property name="text">
-    <string> Advanced Options</string>
+    <string> Advanced</string>
    </property>
   </widget>
   <widget class="QPushButton" name="selectAllButton">
    <property name="geometry">
     <rect>
-     <x>19</x>
+     <x>21</x>
      <y>96</y>
-     <width>80</width>
+     <width>94</width>
      <height>21</height>
     </rect>
    </property>
@@ -142,9 +142,9 @@
   <widget class="QPushButton" name="newVarButton">
    <property name="geometry">
     <rect>
-     <x>175</x>
+     <x>206</x>
      <y>96</y>
-     <width>76</width>
+     <width>90</width>
      <height>21</height>
     </rect>
    </property>
@@ -155,14 +155,14 @@
   <widget class="QPushButton" name="clearAllButton">
    <property name="geometry">
     <rect>
-     <x>98</x>
+     <x>121</x>
      <y>96</y>
-     <width>78</width>
+     <width>79</width>
      <height>21</height>
     </rect>
    </property>
    <property name="text">
-    <string>Clear All</string>
+    <string>Clear</string>
    </property>
   </widget>
   <widget class="QTableWidget" name="tableWidget">
@@ -181,14 +181,14 @@
   <widget class="QPushButton" name="vdfCommentButton">
    <property name="geometry">
     <rect>
-     <x>296</x>
+     <x>307</x>
      <y>332</y>
-     <width>161</width>
+     <width>147</width>
      <height>23</height>
     </rect>
    </property>
    <property name="text">
-    <string>Add VDF Comment</string>
+    <string>Add Comment</string>
    </property>
   </widget>
   <widget class="QLabel" name="createVdfLabel">
@@ -207,9 +207,9 @@
   <widget class="QPushButton" name="showCommandButton">
    <property name="geometry">
     <rect>
-     <x>171</x>
+     <x>162</x>
      <y>332</y>
-     <width>126</width>
+     <width>147</width>
      <height>23</height>
     </rect>
    </property>

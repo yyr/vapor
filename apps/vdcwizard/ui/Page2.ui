@@ -60,10 +60,10 @@
   <widget class="QLabel" name="label_8">
    <property name="geometry">
     <rect>
-     <x>21</x>
-     <y>321</y>
-     <width>131</width>
-     <height>31</height>
+     <x>11</x>
+     <y>319</y>
+     <width>141</width>
+     <height>41</height>
     </rect>
    </property>
    <property name="layoutDirection">
