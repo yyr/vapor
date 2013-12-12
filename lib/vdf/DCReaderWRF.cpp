@@ -110,6 +110,11 @@ DCReaderWRF::DCReaderWRF(const vector <string> &files) {
 	if (rc<0) return;
 
 	_ncdfc = ncdfc;
+
+	sort(_vars3d.begin(), _vars3d.end());
+	sort(_vars2dXY.begin(), _vars2dXY.end());
+	sort(_vars3dExcluded.begin(), _vars3dExcluded.end());
+	sort(_vars2dExcluded.begin(), _vars2dExcluded.end());
 }
 
 int DCReaderWRF::_GetHorizExtents(
