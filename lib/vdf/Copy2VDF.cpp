@@ -443,19 +443,15 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 	}
 	string metafile = argv[argc-1];
 	
-	//string dataType = "mom";
 	if (DCData==NULL){
 		if (dataType == "roms") DCData = new DCReaderROMS(ncdffiles); 
-		else if (dataType == "wrf") {
-			DCData = new DCReaderWRF(ncdffiles);
-		}
 		else DCData = new DCReaderMOM(ncdffiles);
 	}
 
 	if (MyBase::GetErrCode() != 0) return(-1);
 
 	WaveletBlockIOBase	*wbwriter3D = NULL;	// VDC type 1 writer
-	WaveCodecIO	*wcwriter = NULL;	// VDC type 2 writer
+	//WaveCodecIO	*wcwriter = NULL;	// VDC type 2 writer
 	VDFIOBase *vdfio = NULL;
 
 	MetadataVDC metadata (metafile);
