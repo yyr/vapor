@@ -30,7 +30,7 @@ private:
 
 
  void Usage(VetsUtil::OptionParser &op, const char * msg);
- void populateVariables(std::vector<std::string> &vars, 
+ void populateVariables(std::vector<std::string> vars, 
 	std::vector<std::string> candidate_vars,
 	MetadataVDC *file, 
 	int (MetadataVDC::*SetVarFunction)(const std::vector<std::string>&)

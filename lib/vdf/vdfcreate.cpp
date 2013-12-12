@@ -43,25 +43,23 @@ void vdfcreate::Usage(OptionParser &op, const char * msg) {
 }
 
 void vdfcreate::populateVariables(
-	vector<string> &vars, vector<string> candidate_vars,
+	vector <string> cml_vars, vector<string> candidate_vars,
 	MetadataVDC *file, int (MetadataVDC::*SetVarFunction)(const vector<string>&)) {
-    if (! _vars.size()) {
-            vars = candidate_vars;
-        }
+	vector <string> vars;
+    if (! cml_vars.size()) {
+		vars = candidate_vars;
+	}
     else {
-        vars.clear();
-        for (int i=0; i<_vars.size(); i++) {
-            vector <string>::iterator itr = find(candidate_vars.begin(), candidate_vars.end(), _vars[i]);
+        for (int i=0; i<cml_vars.size(); i++) {
+            vector <string>::iterator itr = find(candidate_vars.begin(), candidate_vars.end(), cml_vars[i]);
             if (itr != candidate_vars.end()) {
-                vars.push_back(_vars[i]);
+                vars.push_back(cml_vars[i]);
             }
         }
     }
     
-    if((file->*SetVarFunction)(vars)) {
-        //cerr << "Error populating Variables." << endl;
+    if((file->*SetVarFunction)(vars)<0) {
         file->SetErrMsg(1,"Error populating Variables."); 
-		//exit(1);
     }
 }
 
@@ -153,18 +151,18 @@ MetadataVDC *vdfcreate::CreateMetadataVDC(
 	// By default we populate the VDC with all 2D and 3D variables found in 
 	// the netCDF files. This can be overriden by the "-vars" option
 	// 
-	vector <string> candidate_vars, vars;
+	vector <string> candidate_vars;
     candidate_vars = DCdata->GetVariables3D();
-    populateVariables(vars,candidate_vars,file,&MetadataVDC::SetVariables3D);
+    populateVariables(_vars,candidate_vars,file,&MetadataVDC::SetVariables3D);
     candidate_vars = DCdata->GetVariables2DXY();
-    populateVariables(vars,candidate_vars,file,&MetadataVDC::SetVariables2DXY);
+    populateVariables(_vars,candidate_vars,file,&MetadataVDC::SetVariables2DXY);
     candidate_vars = DCdata->GetVariables2DXZ();
-    populateVariables(vars,candidate_vars,file,&MetadataVDC::SetVariables2DXZ);
+    populateVariables(_vars,candidate_vars,file,&MetadataVDC::SetVariables2DXZ);
     candidate_vars = DCdata->GetVariables2DYZ();
-    populateVariables(vars,candidate_vars,file,&MetadataVDC::SetVariables2DYZ);
+    populateVariables(_vars,candidate_vars,file,&MetadataVDC::SetVariables2DYZ);
 
 
-    //vars = DCdata->GetVariableNames();
+    vector <string> vars = file->GetVariableNames();
     for(int t = 0; t < DCdata->GetNumTimeSteps(); t++) {
 		for (int j=0; j<vars.size(); j++) {
 			float mv;
