@@ -491,11 +491,11 @@ int DataHolder::run2VDFincremental(string start, string var) {
 		return w2v.launchWrf2Vdf(argc,args);
     }
     else {
-		launcher2VDF.deleteDCData();
 		return launcher2VDF.launch2vdf(argc, args, getFileType());
 	}
 }
 
 void DataHolder::purgeObjects() {
+	launcher2VDF.deleteObjects();
 	w2v.deleteObjects();
 }

@@ -38,6 +38,7 @@ Copy2VDF::Copy2VDF() {
 	_mvMask2DXZ = NULL;
 	_mvMask2DYZ = NULL;
 
+	wcwriter = NULL;
 	DCData = NULL;
 }
 
@@ -358,8 +359,10 @@ int Copy2VDF::CopyVar(
 
 }
 
-void Copy2VDF::deleteDCData(){
+void Copy2VDF::deleteObjects(){
 	delete DCData;
+	delete wcwriter;
+	wcwriter = NULL;
 	DCData = NULL;
 }
 
@@ -468,7 +471,9 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 		vdfio = wbwriter3D;
 	} 
 	else {
-        wcwriter = new WaveCodecIO(metadata, _nthreads);
+        if (wcwriter == NULL){
+			wcwriter = new WaveCodecIO(metadata, _nthreads);
+		}
 		vdfio = wcwriter;
 	}
 	if (vdfio->GetErrCode() != 0) {
@@ -530,8 +535,8 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 		SetErrMsg("Failed to copy %d variables", fails);
 		estatus = 1;
 	}
-	delete wcwriter;
-	delete DCData;
-	DCData=NULL;
+	//delete wcwriter;
+	//delete DCData;
+	//DCData=NULL;
 	return estatus;
-} // End of main.
+}
