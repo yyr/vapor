@@ -28,7 +28,7 @@ int launch2vdf(int argc, char **argv, string dataType);
 private:
  string _progname;
  DCReader *DCData;
-
+ WaveCodecIO *wcwriter;
  //
  // Missing data masks
  //
@@ -75,7 +75,7 @@ private:
          int lod);
 
 public:
- void deleteDCData();
+ void deleteObjects();
  void GetVariables(const VDFIOBase *vdfio,
               const DCReader *DCData,
               const vector <string> &in_varnames,

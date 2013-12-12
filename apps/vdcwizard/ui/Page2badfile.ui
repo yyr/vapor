@@ -68,7 +68,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Exit VDCwizard</string>
+    <string>Exit</string>
    </property>
   </widget>
   <widget class="QPushButton" name="continueButton">

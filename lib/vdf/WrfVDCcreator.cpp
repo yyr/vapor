@@ -37,6 +37,7 @@ Wrf2vdf::Wrf2vdf() {
         _mvMask2DXZ = NULL;
         _mvMask2DYZ = NULL;
 
+		wcwriter = NULL;
         wrfData = NULL;
 }
 
@@ -245,9 +246,11 @@ int Wrf2vdf::CopyVar(
 
 }
 
-void Wrf2vdf::deleteWrfData(){
+void Wrf2vdf::deleteObjects(){
+	delete wcwriter;
 	delete wrfData;
 	wrfData=NULL;
+	wcwriter=NULL;
 }
 
 int	Wrf2vdf::launchWrf2Vdf(int argc, char **argv) {
@@ -332,7 +335,7 @@ int	Wrf2vdf::launchWrf2Vdf(int argc, char **argv) {
 	if (MyBase::GetErrCode() != 0) return -1;
 
 	WaveletBlockIOBase	*wbwriter3D = NULL;	// VDC type 1 writer
-	WaveCodecIO	*wcwriter = NULL;	// VDC type 2 writer
+	//WaveCodecIO	*wcwriter = NULL;	// VDC type 2 writer
 	VDFIOBase *vdfio = NULL;
 
 	MetadataVDC metadata (metafile);
@@ -347,7 +350,9 @@ int	Wrf2vdf::launchWrf2Vdf(int argc, char **argv) {
 		vdfio = wbwriter3D;
 	} 
 	else {
-		wcwriter = new WaveCodecIO(metadata, _nthreads);
+		if (wcwriter == NULL){
+			wcwriter = new WaveCodecIO(metadata, _nthreads);
+		}	
 		vdfio = wcwriter;
 	}
 	if (vdfio->GetErrCode() != 0) {
@@ -417,9 +422,11 @@ int	Wrf2vdf::launchWrf2Vdf(int argc, char **argv) {
 		cerr << "Failed to copy " << fails << " variables" << endl;
 		estatus = 1;
 	}
-	//exit(estatus);
-	delete wrfData;
-	wrfData=NULL;
-	delete wcwriter;
+	
+    //commented for troubleshooting bug #972
+    //call deleteObjects from dataholder.cpp insteald of deleting them here
+	//delete wrfData;
+	//wrfData=NULL;
+	//delete wcwriter;
 	return estatus;
 }

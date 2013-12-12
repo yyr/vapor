@@ -283,6 +283,7 @@ bool PopulateDataPage::validatePage() {
 					    completeChanged();
 					    wizard()->button(QWizard::BackButton)->setEnabled(true);
 					    QApplication::processEvents();
+						dataHolder->purgeObjects();
 						return false;
 					}
 					
@@ -304,6 +305,7 @@ bool PopulateDataPage::validatePage() {
             completeChanged();
             wizard()->button(QWizard::BackButton)->setEnabled(true);
             QApplication::processEvents();
+			dataHolder->purgeObjects();
 			return false;
 		}
 	}
@@ -316,5 +318,6 @@ bool PopulateDataPage::validatePage() {
     wizard()->button(QWizard::BackButton)->setEnabled(true);
     QApplication::processEvents();	
 	//stay on page if successMessage does not exit(0)
+	dataHolder->purgeObjects();
 	return false; 	
 }

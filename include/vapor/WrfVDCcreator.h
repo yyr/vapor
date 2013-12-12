@@ -28,7 +28,7 @@ public:
 private:
  string _progname;
  DCReaderWRF *wrfData;
-
+ WaveCodecIO *wcwriter;
  //
  // Missing data masks
  //
@@ -67,7 +67,7 @@ private:
          int lod);
 
 public:
- void deleteWrfData();
+ void deleteObjects();
  void GetVariables(const VDFIOBase *vdfio,
               const DCReaderWRF *wrfData,
               const vector <string> &in_varnames,

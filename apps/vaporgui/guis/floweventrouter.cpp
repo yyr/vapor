@@ -1026,8 +1026,8 @@ void FlowEventRouter::confirmText(bool /*render*/){
 		}
 		fParams->setSeedDistBias(seedDistBias);
 		float integrationAccuracy = integrationAccuracyEdit->text().toFloat();
-		if (integrationAccuracy < 0.f || integrationAccuracy > 1.f) {
-			if (integrationAccuracy > 1.f) integrationAccuracy = 1.f;
+		if (integrationAccuracy < 0.f || integrationAccuracy > 0.99f) {
+			if (integrationAccuracy > 0.99f) integrationAccuracy = 0.99f;
 			if (integrationAccuracy < 0.f) integrationAccuracy = 0.f;
 			integrationAccuracyEdit->setText(QString::number(integrationAccuracy));
 		}
