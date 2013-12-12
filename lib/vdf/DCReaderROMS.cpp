@@ -115,6 +115,11 @@ DCReaderROMS::DCReaderROMS(const vector <string> &files) {
 	_getRotationVariables(_weightTable, _angleRADBuf, _latDEGBuf);
 
 	_ncdfc = ncdfc;
+
+	sort(_vars3d.begin(), _vars3d.end());
+	sort(_vars2dXY.begin(), _vars2dXY.end());
+	sort(_vars3dExcluded.begin(), _vars3dExcluded.end());
+	sort(_vars2dExcluded.begin(), _vars2dExcluded.end());
 }
 
 vector <double> DCReaderROMS::GetExtents(size_t ) const {

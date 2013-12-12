@@ -99,9 +99,11 @@ void vector_delete (vector <string> &vec, const string &value) {
 }
 
 //
-// Delete any duplicate entries from 'vec'.
+// Delete any duplicate entries from 'vec', and sort it.
 //
 void vector_unique (vector <string> &vec) {
+
+	sort(vec.begin(), vec.end());
 
 	vector <string> tmpvec;
 	vector<string>::iterator itr1;
@@ -915,6 +917,7 @@ int MetadataVDC::_SetVariableNames(
 	// Maintain compatability with pre-version 4 translators 
 	//
 	vector <string> v = GetVariableNames();
+	sort (v.begin(), v.end());
 	_rootnode->SetElementStringVec(_varNamesTag,v);
 
 	return(0);
