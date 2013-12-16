@@ -267,8 +267,9 @@ guiSetVariableDims(int is3D){
 	//Set up variable combos:
 	populateVariableCombos(is3D);
 	aParams->SetVectorScale(aParams->calcDefaultScale());
-	
-	setupFidelity(3, fidelityLayout,fidelityBox, aParams, true);
+	int dim = 2;
+	if (is3D) dim = 3;
+	setupFidelity(dim, fidelityLayout,fidelityBox, aParams, true);
 	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 	PanelCommand::captureEnd(cmd,aParams);
 	updateTab();

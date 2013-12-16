@@ -921,7 +921,7 @@ reinitTab(bool doOverride){
 	}
 	setBindButtons(false);
 	TwoDDataParams* dParams = (TwoDDataParams*)VizWinMgr::getActiveParams(Params::_twoDDataParamsTag);
-	setupFidelity(3, fidelityLayout,fidelityBox, dParams, doOverride);
+	setupFidelity(2, fidelityLayout,fidelityBox, dParams, doOverride);
 	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 	updateTab();
 }

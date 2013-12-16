@@ -304,17 +304,21 @@ void EventRouter::calcLODRefDefault(int dim, float regMBs, int* lodLevel, int* r
 	}
 	if (defaultRefLevel < 0) defaultRefLevel = 0;
 	if (defaultRefLevel > maxRefLevel) defaultRefLevel = maxRefLevel;
-	//log(defaultLOD) is the default compression ratio
-	if (defaultLOD < 1.e-20f) defaultLOD = 1.e-20f;
-	float defCompRatio = log(defaultLOD);
-	if (defCompRatio < (float)cratios[cratios.size()-1]) defCompRatio = (float)cratios[cratios.size()-1];
-	if (defCompRatio > (float)cratios[0]) defCompRatio = (float)cratios[0];
+	//defaultLOD is the default compression ratio
+	if (defaultLOD < 1) defaultLOD = 1.;
+	
+	if (defaultLOD < (float)cratios[cratios.size()-1]) defaultLOD = (float)cratios[cratios.size()-1];
+	if (defaultLOD > (float)cratios[0]) defaultLOD = (float)cratios[0];
 	//Now find closest integer, round slightly up
 	int intRefLevel = (int)(defaultRefLevel+0.1);
 	int intCompLevel = 0;
-	//find the index of the smallest compression ratio denominator that is greater than the default;
+	//find the index of the smallest compression ratio denominator that is closest to the default;
+	float dist=1.e30f;
 	for (int i = 0; i<cratios.size(); i++){
-		if(cratios[i] >= (int)(defCompRatio+0.5f)) intCompLevel = i;
+		if (abs((float)cratios[i] - defaultLOD) < dist) {
+			dist = abs((float)cratios[i] - defaultLOD);
+			intCompLevel = i;
+		}
 	}
 	*refLevel = intRefLevel;
 	*lodLevel = intCompLevel;
@@ -576,6 +580,8 @@ void EventRouter::setupFidelity(int dim, QHBoxLayout* fidelityLayout,
 		//set the default fidelity to be closest to the preference setting, when initially setting up tab
 		dParams->SetFidelityLevel(deflt);
 	}
+	RenderParams* defaultRenParams = (RenderParams*)Params::GetDefaultParams(dParams->GetParamsBaseTypeId());
+	defaultRenParams->SetFidelityLevel(deflt);
 	if (dParams->GetFidelityLevel() >= fidelityLODs.size()) dParams->SetFidelityLevel(fidelityLODs.size()-1);
 	fidelityBox->adjustSize();
 	return;
