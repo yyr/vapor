@@ -28,7 +28,7 @@
 #include "vapor/GetAppPath.h"
 #ifdef WIN32
 #include "Windows.h"
-#define PYTHONVERSION "2.6"
+#define PYTHONVERSION "2.7"
 #endif
 using namespace VAPoR;
 void myMessageOutput( QtMsgType type, const char *msg )
