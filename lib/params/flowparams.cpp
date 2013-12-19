@@ -391,6 +391,7 @@ reinit(bool doOverride){
 	//Make sure fidelity is valid:
 	int fidelity = GetFidelityLevel();
 	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	if (dataMgr->GetGridType().compare("layered")== 0) periodicDim[2] = false;
 	if (dataMgr && fidelity > maxNumRefinements+dataMgr->GetCRatios().size()-1)
 		SetFidelityLevel(maxNumRefinements+dataMgr->GetCRatios().size()-1);
 
