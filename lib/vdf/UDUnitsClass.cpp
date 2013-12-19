@@ -264,11 +264,11 @@ string UDUnits::GetErrMsg() const {
 }
 
 UDUnits::~UDUnits() {
-	if (_unitSystem) ut_free_system(_unitSystem);
 	if (_pressureUnit) ut_free(_pressureUnit);
 	if (_timeUnit) ut_free(_timeUnit);
 	if (_latUnit) ut_free(_latUnit);
 	if (_lonUnit) ut_free(_lonUnit);
 	if (_lengthUnit) ut_free(_lengthUnit);
+	if (_unitSystem) ut_free_system(_unitSystem);
 }
 
