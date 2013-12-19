@@ -2139,8 +2139,9 @@ calcCurrentValue(ProbeParams* pParams, const float point[3], int* , int ){
 	RegularGrid* valGrid = dataMgr->GetGrid(timeStep, varNames[0].c_str(), actualRefLevel, lod, coordMin,coordMax,0);
 		
 	if (!valGrid) return OUT_OF_BOUNDS;
-	
-	valGrid->SetInterpolationOrder(1);
+	int interpOrder = 1;
+	if (!pParams->linearInterpTex()) interpOrder = 0;
+	valGrid->SetInterpolationOrder(interpOrder);
 		
 	float varVal = valGrid->GetValue(point[0],point[1],point[2]);
 	delete valGrid;
@@ -2158,7 +2159,7 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return;
 	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	const vector<double>&userExts = dataMgr->GetExtents((size_t)timeStep);
+	
 	if(pParams->doBypass(timeStep)) return;
 	if (!histogramList){
 		histogramList = new Histo*[numVariables];
@@ -2171,141 +2172,7 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	}
 	Histo* histo = histogramList[firstVarNum];
 	histo->reset(256,currentDatarange[0],currentDatarange[1]);
-	//Determine what resolution is available:
-	int refLevel = pParams->GetRefinementLevel();
-	refLevel = Min(ds->maxXFormPresent3D(firstVarNum, timeStep), refLevel);
-	if (refLevel < 0) return;
-	if (!ds->useLowerAccuracy() && refLevel < pParams->GetRefinementLevel()){
-		return;
-	} 
-	int lod = pParams->GetCompressionLevel();
-	if (lod < 0 ) return;
-	lod = Min(ds->maxLODPresent3D(firstVarNum, timeStep),lod);
-	if (!ds->useLowerAccuracy() && lod < pParams->GetCompressionLevel()){
-		return;
-	} 
-
-	//create the smallest containing box
-	size_t boxMin[3],boxMax[3];
-	
-	pParams->getAvailableBoundingBox(timeStep,  boxMin, boxMax, refLevel,lod);
-	
-	//Check if the region/resolution is too big:
-	int numMBs = (boxMax[0]-boxMin[0]+1)*(boxMax[1]-boxMin[1]+1)*(boxMax[2]-boxMin[2]+1)/250000;
-	
-	int cacheSize = DataStatus::getInstance()->getCacheMB();
-	if (numMBs > (int)(cacheSize*0.75)){
-		pParams->setAllBypass(true);
-		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small\nfor current probe and resolution.\n%s \n%s",
-			"Lower the refinement level,\nreduce the probe size,\nor increase the cache size.",
-			"Rendering has been disabled.");
-		int instance = Params::GetCurrentParamsInstanceIndex(pParams->GetParamsBaseTypeId(),pParams->getVizNum());
-		assert(instance >= 0);
-		guiSetEnabled(false, instance, false);
-		updateTab();
-		return;
-	}
-	const string& varname = ds->getVariableName3D(firstVarNum);
-	
-	RegularGrid* histoGrid = dataMgr->GetGrid((size_t)timeStep, varname, refLevel, lod, boxMin, boxMax,1);	
-	if (!histoGrid){
-		pParams->setBypass(timeStep);
-		return;
-	}
-	// Setting the interpolation order is a no-op because no 
-	// interpolation is being done
-	//
-	//histoGrid->SetInterpolationOrder(0);	
-	
-	//Get the data dimensions (at current resolution):
-	size_t dataSize[3];
-	float gridSpacing[3];
-	const float* fullSizes = DataStatus::getInstance()->getFullSizes();
-	
-	for (int i = 0; i< 3; i++){
-		dataSize[i] = DataStatus::getInstance()->getFullSizeAtLevel(refLevel,i);
-		gridSpacing[i] = fullSizes[i]/(float)(dataSize[i]-1);
-		if (boxMax[i] >= dataSize[i]) boxMax[i] = dataSize[i] - 1;
-	}
-	float voxSize = vlength(gridSpacing);
-	size_t dims[3];
-	histoGrid->GetDimensions(dims);
-
-	//Prepare for test by finding corners and normals to box:
-	float corner[8][3];
-	float normals[6][3];
-	float vec1[3], vec2[3];
-
-	//Get box that is very slightly fattened, to ensure nondegenerate normals
-	pParams->calcLocalBoxCorners(corner, voxSize*1.e-15, -1);
-	//The first 6 corners are reference points for testing
-	//the 6 normal vectors are outward pointing from these points
-	//Normals are calculated as if cube were axis aligned but this is of 
-	//course not really true, just gives the right orientation
-	//
-	// +Z normal: (c2-c0)X(c1-c0)
-	vsub(corner[2],corner[0],vec1);
-	vsub(corner[1],corner[0],vec2);
-	vcross(vec1,vec2,normals[0]);
-	vnormal(normals[0]);
-	// -Y normal: (c5-c1)X(c0-c1)
-	vsub(corner[5],corner[1],vec1);
-	vsub(corner[0],corner[1],vec2);
-	vcross(vec1,vec2,normals[1]);
-	vnormal(normals[1]);
-	// +Y normal: (c6-c2)X(c3-c2)
-	vsub(corner[6],corner[2],vec1);
-	vsub(corner[3],corner[2],vec2);
-	vcross(vec1,vec2,normals[2]);
-	vnormal(normals[2]);
-	// -X normal: (c7-c3)X(c1-c3)
-	vsub(corner[7],corner[3],vec1);
-	vsub(corner[1],corner[3],vec2);
-	vcross(vec1,vec2,normals[3]);
-	vnormal(normals[3]);
-	// +X normal: (c6-c4)X(c0-c4)
-	vsub(corner[6],corner[4],vec1);
-	vsub(corner[0],corner[4],vec2);
-	vcross(vec1,vec2,normals[4]);
-	vnormal(normals[4]);
-	// -Z normal: (c7-c5)X(c4-c5)
-	vsub(corner[7],corner[5],vec1);
-	vsub(corner[4],corner[5],vec2);
-	vcross(vec1,vec2,normals[5]);
-	vnormal(normals[5]);
-
-	double xyz[3]={0.,0.,0.};
-	float flxyz[3]={0.,0.,0.};
-	
-	
-	//Now loop over the grid points in the bounding box
-	for (size_t k = 0; k < dims[2]; k++){
-		for (size_t j = 0; j < dims[1]; j++){
-			for (size_t i = 0; i <= dims[0]; i++){
-				histoGrid->GetUserCoordinates(i,j,k, xyz, xyz+1, xyz+2);
-				//convert to local, make float.
-				for (int q = 0; q<3; q++) flxyz[q]=(xyz[q]-userExts[q]);
-				//test if x,y,z is in probe:
-				float maxDist[3]; 
-				float distOut = pParams->distancesToCube(flxyz, normals, corner, maxDist);
-				if (distOut < voxSize){
-					
-					//Point is (almost) inside.  Is it really less than one voxel out?
-					bool moreThanVoxelOut = false;
-					if (distOut > 0.) for (int k = 0; k<3; k++){
-						if (maxDist[k]>gridSpacing[k])moreThanVoxelOut = true;
-					}
-					if (moreThanVoxelOut) continue;
-					float varVal = histoGrid->AccessIJK(i,j,k);
-					if (varVal == histoGrid->GetMissingValue()) continue;
-					histo->addToBin(varVal);
-				} 
-			}
-		}
-	}
-	dataMgr->UnlockGrid(histoGrid);
-	delete histoGrid;
-
+	pParams->calcProbeHistogram(timeStep, histo);
 }
 
 	

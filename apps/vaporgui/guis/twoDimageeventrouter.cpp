@@ -873,7 +873,7 @@ reinitTab(bool doOverride){
 		heightCombo->addItem(QString::fromStdString(s));
 	}
 	TwoDImageParams* dParams = (TwoDImageParams*)VizWinMgr::getActiveParams(Params::_twoDImageParamsTag);
-	setupFidelity(3, fidelityLayout,fidelityBox, dParams, doOverride);
+	setupFidelity(2, fidelityLayout,fidelityBox, dParams, doOverride);
 	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 	updateTab();
 }

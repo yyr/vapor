@@ -205,7 +205,7 @@ public:
 		if (textureType == 0) probeDataTextures = textureArray; else probeIBFVTextures = textureArray;
 	}
 	unsigned char* calcProbeDataTexture(int timestep, int wid, int ht);
-
+	void calcProbeHistogram(int timestep, Histo* histo);
 	
 	
 	unsigned char* getCurrentProbeTexture(int timestep, int texType) {

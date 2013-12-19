@@ -1353,6 +1353,172 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 	delete probeGrid;
 	return probeTexture;
 }
+//Evaluate the probe histogram 
+
+void ProbeParams::
+calcProbeHistogram(int ts, Histo* histo){
+	
+	
+	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return;
+
+	if (doBypass(ts)) return;
+
+	int actualRefLevel = GetRefinementLevel();
+	int lod = GetCompressionLevel();
+		
+	const vector<double>&userExts = ds->getDataMgr()->GetExtents((size_t)ts);
+	RegularGrid* probeGrid;
+	vector<string>varnames;
+	varnames.push_back(ds->getVariableName3D(firstVarNum));
+	double extents[6];
+	float boxmin[3],boxmax[3];
+	getLocalContainingRegion(boxmin, boxmax);
+	for (int i = 0; i<3; i++){
+		extents[i] = boxmin[i]+userExts[i];
+		extents[i+3] = boxmax[i]+userExts[i];
+	}
+	
+	int rc = getGrids( ts, varnames, extents, &actualRefLevel, &lod, &probeGrid);
+	
+	if(!rc){
+		return;
+	}
+	
+	if (linearInterpTex())probeGrid->SetInterpolationOrder(1);
+	else probeGrid->SetInterpolationOrder(0);
+
+	float transformMatrix[12];
+	//Set up to transform from probe into volume:
+	buildLocalCoordTransform(transformMatrix, 0.f, -1);
+
+	//Get the data dimensions (at this resolution):
+	int dataSize[3];
+	//Start by initializing extents
+	for (int i = 0; i< 3; i++){
+		dataSize[i] = (int)ds->getFullSizeAtLevel(actualRefLevel,i);
+	}
+	const float* fullSizes = ds->getFullSizes();
+	//Now calculate the histogram
+	//
+	//For each voxel, map it into the volume.
+	
+	
+	//We first map the coords in the probe to the volume.  
+	//Then we map the volume into the region provided by dataMgr
+	
+	
+	
+	float probeCoord[3];
+	double dataCoord[3];
+	const float* sizes = ds->getFullSizes();
+	float extExtents[6]; //Extend extents 1/2 voxel on each side so no bdry issues.
+	for (int i = 0; i<3; i++){
+		float mid = (sizes[i])*0.5;
+		float halfExtendedSize = sizes[i]*0.5*(1.f+dataSize[i])/(float)(dataSize[i]);
+		extExtents[i] = mid - halfExtendedSize;
+		extExtents[i+3] = mid + halfExtendedSize;
+	}
+	
+	// To determine the grid resolution to histogram, find out the change
+	// in grid coordinate along each edge of the probe box.  Map each corner of the box to grid coordinates at current refinement level:
+	// First map them to user coordinates, then convert these user coordinates to grid coordinates.
+
+	//icor will contain the integer coordinates of each of the 8 corners of the probe box.
+	int icor[8][3];
+	for (int cornum = 0; cornum < 8; cornum++){
+		// coords relative to (-1,1)
+		probeCoord[2] = -1.f + 2.f*(float)(cornum/4);
+		probeCoord[1] = -1.f + 2.f*(float)((cornum/2)%2);
+		probeCoord[0] = -1.f + 2.f*(float)(cornum%2);
+		//Then transform to values in data 
+		vtransform(probeCoord, transformMatrix, dataCoord);
+		//Then get array coords.
+		// icor[k][dir] indicates the integer (data grid) coordinate of corner k along data grid axis dir
+		for (int i = 0; i<3; i++){
+			icor[cornum][i] = (size_t) (0.5f+(float)dataSize[i]*dataCoord[i]/fullSizes[i]);
+		}
+	}
+	//Find the resolution along each axis of the probe
+	//for each probe axis direction,  find the difference of each of the integer coordinates of the probe, across the probe in that direction.
+	//Because the data is layered, try all 4 edges for each direction.  The various edges are identified by cornum increasing by 4,1,or 2 starting at
+	//(0,1,2,3), (0,2,4,6), (0,1,4,5)
+	// Once the fastest varying coordinate is known, subdivide that axis to match the resolution of that coordinate.
+	// difference of a coordinate across a probe-axis direction is determined by the change in data-grid coordinates going from one face to the
+	// opposite face of the probe.
+
+	int gridRes[3] = {0,0,0};
+	int difmax = -1;
+	for (int dir = 0; dir<3;dir++){
+		
+		//four differences in the data-grid z direction, for data grid coordinate dir
+		difmax = Max(difmax, abs(icor[0][dir]-icor[4][dir]));
+		difmax = Max(difmax, abs(icor[1][dir]-icor[5][dir]));
+		difmax = Max(difmax, abs(icor[2][dir]-icor[6][dir]));
+		difmax = Max(difmax, abs(icor[3][dir]-icor[7][dir]));
+
+	}
+	gridRes[2] = difmax+1;
+	difmax = -1;
+	for (int dir = 0; dir<3;dir++){
+		//four differences in the data-grid y direction
+		difmax = Max(difmax, abs(icor[0][dir]-icor[2][dir]));
+		difmax = Max(difmax, abs(icor[1][dir]-icor[3][dir]));
+		difmax = Max(difmax, abs(icor[4][dir]-icor[6][dir]));
+		difmax = Max(difmax, abs(icor[5][dir]-icor[7][dir]));
+	}
+	gridRes[1] = difmax+1;
+	difmax = -1;
+	for (int dir = 0; dir<3;dir++){
+		//four differences in the data-grid x direction
+		difmax = Max(difmax, abs(icor[0][dir]-icor[1][dir]));
+		difmax = Max(difmax, abs(icor[2][dir]-icor[3][dir]));
+		difmax = Max(difmax, abs(icor[4][dir]-icor[5][dir]));
+		difmax = Max(difmax, abs(icor[6][dir]-icor[7][dir]));
+	}
+	gridRes[0] = difmax+1;
+		
+	//Now gridRes represents the number of samples to take in each direction across the probe
+	//Use the region reader to calculate coordinates in volume
+	DataMgr* dataMgr = ds->getDataMgr();
+
+	//Loop over pixels in texture.  Pixel centers map to edges of probe
+	for (int iz = 0; iz < gridRes[2]; iz++){
+		if (gridRes[2] == 1) probeCoord[2] = 0.;
+		else probeCoord[2] = -1. + 2.*iz/(float)(gridRes[2]-1);
+		for (int iy = 0; iy < gridRes[1]; iy++){
+			//Map iy to a value between -1 and 1
+			if (gridRes[1] == 1) probeCoord[1] = 0.f; 
+			else probeCoord[1] = -1.f + 2.f*(float)iy/(float)(gridRes[1]-1);
+			for (int ix = 0; ix < gridRes[0]; ix++){
+				if (gridRes[0] == 1) probeCoord[0] = 0.5f;
+				else probeCoord[0] = -1.f + 2.f*(float)ix/(float)(gridRes[0]-1);
+				vtransform(probeCoord, transformMatrix, dataCoord);
+				//find the coords that the texture maps to
+				//probeCoord is the coord in the probe, dataCoord is in data volume 
+				bool dataOK = true;
+				for (int i = 0; i< 3; i++){
+					if (dataCoord[i] < extExtents[i] || dataCoord[i] > extExtents[i+3]) dataOK = false;
+					dataCoord[i] += userExts[i]; //Convert to user coordinates.
+				}
+				float varVal;
+				if(dataOK) { //find the coordinate in the data array
+				
+					varVal = probeGrid->GetValue(dataCoord[0],dataCoord[1],dataCoord[2]);
+					if (varVal == probeGrid->GetMissingValue()) dataOK = false;
+				}
+				if (dataOK) {				
+					// Add this sample to the histogram
+					histo->addToBin(varVal);
+				}
+				// otherwise ignore this sample...
+			}//End loop over ix
+		}//End loop over iy
+	}//End loop over iz;
+	
+	dataMgr->UnlockGrid(probeGrid);
+	delete probeGrid;
+}
 void ProbeParams::adjustTextureSize(int sz[2]){
 	//Need to determine appropriate texture dimensions
 	
