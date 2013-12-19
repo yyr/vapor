@@ -2063,6 +2063,14 @@ void FlowEventRouter::
 guiCheckPeriodicZ(bool periodic){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	if (fParams->getPeriodicDim(2) == periodic) return;
+	if (periodic){
+		//layered data cannot be periodic in Z.
+		if(DataStatus::getInstance()->getDataMgr() && 
+			DataStatus::getInstance()->getDataMgr()->GetGridType().compare("layered")==0) {
+				periodicZCheck->setChecked(false);
+				return;
+		}
+	}
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle periodic Z coords");
 	fParams->setPeriodicDim(2,periodic);
