@@ -46,7 +46,7 @@ endif
 
 
 ifneq ($(QT_FRAMEWORK), 1) 
-QT_LIB = QtOpenGL QtGui QtCore QtNetwork 
+QT_LIB = QtGui QtCore QtNetwork 
 endif
 
 OBJDIR := $(BUILDDIR)
@@ -149,7 +149,7 @@ $(MOC_DIR)/moc_%.cpp : %.h
 #	@$(MOC) $< -o $@ 
 
 QT_INCLUDE_DIRS += $(QTDIR)/include
-QT_INCLUDE_DIRS += $(addprefix $(QTDIR)/include/, Qt QtCore QtGui QtOpenGL)
+QT_INCLUDE_DIRS += $(addprefix $(QTDIR)/include/, Qt QtCore QtGui)
 QT_INCLUDE_DIRS += $(UI_DIR)
 
 ifneq ($(QT_FRAMEWORK), 1)

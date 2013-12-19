@@ -9,6 +9,8 @@ MAKEFILE_INCLUDE_DIRS += -I../guis -I../main -I../../../lib/params -I../../../li
 MAKEFILE_INCLUDE_DIRS += -I$(PYTHONDIR)/Include
 MAKEFILE_INCLUDE_DIRS += -I$(PYTHONDIR)/
 MAKEFILE_INCLUDE_DIRS += -I$(PYTHONDIR)/site-packages/numpy/core/include/numpy
+MAKEFILE_INCLUDE_DIRS += -I$(addprefix $(QTDIR)/include/, QtOpenGL)
+
 
 MAKEFILE_CXXFLAGS += -DBINDIR=\"$(BINDIR)\"
 MAKEFILE_CXXFLAGS += -DDSO_DIR=\"$(DSO_DIR)\"

@@ -19,6 +19,10 @@ export PROGRAM
 
 MAKEFILE_INCLUDE_DIRS += -Iguis -Imain -Imisc -I../../lib/params -I../../lib/render
 
+ifneq ($(QT_FRAMEWORK), 1)
+QT_LIB += QtOpenGL 
+endif
+
 LIBRARIES = dl util m render params flow jpeg vdf common udunits2 $(NETCDF_LIBS) expat $(QT_LIB) GLEW tiff geotiff proj python$(PYTHONVERSION)
 
 ifeq ($(BUILD_MODELS),1)
@@ -30,6 +34,7 @@ LIBRARIES += $(GLU_LIB) $(OGL_LIB)
 MAKEFILE_LDFLAGS += -Xlinker -export-dynamic
 endif
 
+MAKEFILE_INCLUDE_DIRS += -I$(addprefix $(QTDIR)/include/, QtOpenGL)
 
 ifeq ($(ARCH),Darwin)
 
@@ -38,6 +43,7 @@ MAKEFILE_INCLUDE_DIRS += -I/System/Library/Frameworks/AGL.framework/Headers
 
 MAKEFILE_LDFLAGS += -framework CoreFoundation -framework CoreServices 
 MAKEFILE_LDFLAGS += -framework Cocoa -framework AppKit -framework 
+:w
 MAKEFILE_LDFLAGS += ApplicationServices -framework OpenGL -framework AGL
 MAKEFILE_LDFLAGS += -u _PyMac_Error 
 
