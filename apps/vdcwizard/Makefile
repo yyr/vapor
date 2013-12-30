@@ -13,12 +13,11 @@ LIBRARIES += $(QT_LIB) vdf common proj udunits2 $(NETCDF_LIBS) expat
 
 ifeq ($(ARCH),Darwin)
 MAKEFILE_LDFLAGS += -framework Cocoa -framework AppKit
-MAKEFILE_LDFLAGS += -framework ApplicationServices -framework OpenGL -framework AGL
-
+MAKEFILE_LDFLAGS += -framework ApplicationServices -framework AGL
 MAKEFILE_LDFLAGS += -F$(QTDIR)/lib -framework QtCore -framework QtGui
-MAKEFILE_LDFLAGS += -framework QtOpenGL
-#endif
 endif
+
+MAKEFILE_INCLUDE_DIRS += $(addprefix $(QTDIR)/include/, Qt QtCore QtGui)
 
 
 HEADERS = \

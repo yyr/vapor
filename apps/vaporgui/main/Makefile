@@ -6,7 +6,10 @@ QT = 1
 COMPILE_ONLY = 1
 PROGRAM = vaporgui
 
-MAKEFILE_INCLUDE_DIRS := -I../guis -I../misc -I.. -I../../../lib/params -I../../../lib/render
+MAKEFILE_INCLUDE_DIRS += -I../guis -I../misc -I.. -I../../../lib/params -I../../../lib/render
+
+
+MAKEFILE_INCLUDE_DIRS += -I$(addprefix $(QTDIR)/include/, QtOpenGL)
 
 
 ifeq ($(ARCH),Darwin)
@@ -41,4 +44,5 @@ include ${TOP}/make/config/base.mk
 
 cat:
 	echo "QTDIR=$(QTDIR)"
+	echo "MAKEFILE_INCLUDE_DIRS=$(MAKEFILE_INCLUDE_DIRS)"
 

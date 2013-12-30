@@ -46,8 +46,11 @@ DCReaderMOM::DCReaderMOM(const vector <string> &files) {
 	_latDEGBuf = NULL;
 
 	NetCDFCFCollection *ncdfc = new NetCDFCFCollection();
-	ncdfc->Initialize(files);
-	if (GetErrCode() != 0) return;
+	int rc = ncdfc->Initialize(files);
+    if (rc<0) {
+        SetErrMsg("Failed to initialize netCDF data collection for reading");
+        return;
+    }
 
 	//
 	// Identify data and coordinate variables. Sets up members:
@@ -55,7 +58,7 @@ DCReaderMOM::DCReaderMOM(const vector <string> &files) {
 	// _latCVs, _lon_CVs, _timeCV, _vertCV, _vars3dExcluded,
 	// _vars2dExcluded
 	//
-	int rc = _InitCoordVars(ncdfc) ;
+	rc = _InitCoordVars(ncdfc) ;
 	if (rc<0) return;
 
 	if (! _vertCV.empty() && ncdfc->IsVertDimensionless(_vertCV)) {
@@ -441,6 +444,8 @@ int DCReaderMOM::OpenVariableRead(
 	_ovr_nz = (_GetSpatialDims(_ncdfc, varname).size() == 3) ? _dims[2] : 1;
 
 	_ovr_fd = _ncdfc->OpenRead(timestep, varname);
+	if (_ovr_fd < 0) return (_ovr_fd);
+
 	if (_reverseRead) {
 		_ncdfc->SeekSlice(0,2,_ovr_fd);
 	}
@@ -448,6 +453,7 @@ int DCReaderMOM::OpenVariableRead(
 }
 
 int DCReaderMOM::ReadSlice(float *slice) {
+	if (_ovr_fd < 0) return (-1);
 
 	if (_ovr_slice >= _ovr_nz) {
 		return(0); // EOF

@@ -42,8 +42,11 @@ DCReaderROMS::DCReaderROMS(const vector <string> &files) {
 	_latDEGBuf = NULL;
 
 	NetCDFCFCollection *ncdfc = new NetCDFCFCollection();
-	ncdfc->Initialize(files);
-	if (GetErrCode() != 0) return;
+	int rc = ncdfc->Initialize(files);
+	if (rc<0) {
+		SetErrMsg("Failed to initialize netCDF data collection for reading");
+		return;
+	}
 
 	//
 	// Identify data and coordinate variables. Sets up members:
@@ -51,7 +54,7 @@ DCReaderROMS::DCReaderROMS(const vector <string> &files) {
 	// _latCVs, _lonCVs, _timeCV, _vertCVs, _vars3dExcluded,
 	// _vars2dExcluded
 	//
-	int rc = _InitCoordVars(ncdfc) ;
+	rc = _InitCoordVars(ncdfc) ;
 	if (rc<0) return;
 
 	rc = _InitVerticalCoordinates(

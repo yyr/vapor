@@ -58,24 +58,52 @@ GLModelNode::GLModelNode(const aiScene *scene, const aiNode *node) :
    {
       const aiMesh *mesh = scene->mMeshes[node->mMeshes[m]];
 
-      for (unsigned int f=0; f < mesh->mNumFaces; f++)
-      {
-         const aiFace *face = &mesh->mFaces[f];
+      if (mesh->HasVertexColors(0)) {
+        for (unsigned int f=0; f < mesh->mNumFaces; f++)
+        {
+           const aiFace *face = &mesh->mFaces[f];
+  
+           assert(face->mNumIndices == 3);
+  
+           for (int i=0; i<3; i++)
+           {
+              int index = face->mIndices[i];
+  
+              glColor4f(mesh->mColors[0][index].r,
+                         mesh->mColors[0][index].g,
+                         mesh->mColors[0][index].b,
+                         mesh->mColors[0][index].a);
 
-         assert(face->mNumIndices == 3);
+              glNormal3f(mesh->mNormals[index].x,
+                         mesh->mNormals[index].y,
+                         mesh->mNormals[index].z);
 
-         for (int i=0; i<3; i++)
-         {
-            int index = face->mIndices[i];
+              glVertex3f(mesh->mVertices[index].x,
+                         mesh->mVertices[index].y,
+                         mesh->mVertices[index].z);
+           }
+        }
+     }
+     else {
+        for (unsigned int f=0; f < mesh->mNumFaces; f++)
+        {
+           const aiFace *face = &mesh->mFaces[f];
+  
+           assert(face->mNumIndices == 3);
+  
+           for (int i=0; i<3; i++)
+           {
+              int index = face->mIndices[i];
+  
+              glNormal3f(mesh->mNormals[index].x,
+                         mesh->mNormals[index].y,
+                         mesh->mNormals[index].z);
 
-            glNormal3f(mesh->mNormals[index].x,
-                       mesh->mNormals[index].y,
-                       mesh->mNormals[index].z);
-
-            glVertex3f(mesh->mVertices[index].x,
-                       mesh->mVertices[index].y,
-                       mesh->mVertices[index].z);
-         }
+              glVertex3f(mesh->mVertices[index].x,
+                         mesh->mVertices[index].y,
+                         mesh->mVertices[index].z);
+           }
+        }
       }
    }
 

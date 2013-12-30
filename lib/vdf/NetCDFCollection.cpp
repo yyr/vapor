@@ -1618,6 +1618,8 @@ int NetCDFCollection::Close(int fd) {
 		return(0);
 	}
 
+	if (! fh._ncdfptr) return(0);
+
 	int rc = fh._ncdfptr->Close(fh._fd);
 	if (fh._slicebuf) delete [] fh._slicebuf;
 	if (fh._linebuf) delete [] fh._linebuf;

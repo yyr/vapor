@@ -19,7 +19,13 @@ export PROGRAM
 
 MAKEFILE_INCLUDE_DIRS += -Iguis -Imain -Imisc -I../../lib/params -I../../lib/render
 
-LIBRARIES = dl util m render params flow jpeg vdf common udunits2 $(NETCDF_LIBS) expat $(QT_LIB) GLEW tiff geotiff proj python$(PYTHONVERSION)
+
+LIBRARIES = dl util m render params flow jpeg vdf common udunits2 
+LIBRARIES += $(NETCDF_LIBS) expat $(QT_LIB) 
+ifneq ($(QT_FRAMEWORK), 1)
+LIBRARIES += QtOpenGL 
+endif
+LIBRARIES += GLEW tiff geotiff proj python$(PYTHONVERSION)
 
 ifeq ($(BUILD_MODELS),1)
 LIBRARIES += assimp
@@ -30,6 +36,7 @@ LIBRARIES += $(GLU_LIB) $(OGL_LIB)
 MAKEFILE_LDFLAGS += -Xlinker -export-dynamic
 endif
 
+MAKEFILE_INCLUDE_DIRS += -I$(addprefix $(QTDIR)/include/, QtOpenGL)
 
 ifeq ($(ARCH),Darwin)
 
@@ -38,6 +45,7 @@ MAKEFILE_INCLUDE_DIRS += -I/System/Library/Frameworks/AGL.framework/Headers
 
 MAKEFILE_LDFLAGS += -framework CoreFoundation -framework CoreServices 
 MAKEFILE_LDFLAGS += -framework Cocoa -framework AppKit -framework 
+:w
 MAKEFILE_LDFLAGS += ApplicationServices -framework OpenGL -framework AGL
 MAKEFILE_LDFLAGS += -u _PyMac_Error 
 
@@ -58,8 +66,3 @@ QT_HEADERS := $(MISC_QT_HEADERS) $(MAIN_QT_HEADERS) $(GUI_QT_HEADERS)
 FILES := $(MISC_FILES) $(GUI_FILES) $(MAIN_FILES) 
 
 include ${TOP}/make/config/base.mk
-
-
-cat:
-	echo "QTDIR=$(QTDIR)"
-

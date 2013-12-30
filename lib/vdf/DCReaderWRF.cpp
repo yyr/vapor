@@ -55,14 +55,17 @@ DCReaderWRF::DCReaderWRF(const vector <string> &files) {
 	vector <string> sorted_files = files;
 	std::sort(sorted_files.begin(), sorted_files.end());
 
-	ncdfc->Initialize(sorted_files, time_dimnames, time_coordvars);
-	if (GetErrCode() != 0) return;
+	int rc = ncdfc->Initialize(sorted_files, time_dimnames, time_coordvars);
+	if (rc<0) {
+		SetErrMsg("Failed to initialize netCDF data collection for reading");
+		return;
+	}
 
 	// Get required and optional global attributes 
 	// Initializes members: _dx, _dy, _cen_lat, _cen_lon, _grav,
 	// _days_per_year, _radius, _p2si
 	//
-	int rc = _InitAtts(ncdfc);
+	rc = _InitAtts(ncdfc);
 	if (rc< 0) {
 		return;
 	}
