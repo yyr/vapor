@@ -1927,36 +1927,201 @@ void ProbeParams::projToPlane(float vecField[3], float invRotMtrx[9], float* U, 
 //Clip the probe to the specified box extents
 //Return false (and make no change) if the probe rectangle does not have a positive (rectangular)
 //intersection in the box.
-bool ProbeParams::cropToBox(const float boxExts[6]){
 
-
-	//First find the intersection of the box with the smallest box containing the probe:
-	float regMin[3],regMax[3];
-	float boxIntersection[6];
-	getLocalContainingRegion(regMin, regMax, false);
-	//Check if it's already in box, if so do nothing:
-	bool inbox = true;
-	for (int i = 0; i< 3; i++){
-		if (regMin[i] < boxExts[i]) inbox = false;
-		if (regMax[i] > boxExts[i+3]) inbox = false;
-		if (!inbox) break;
+bool ProbeParams::cropToBox(const double bxExts[6]){
+	//1. Transform the four probe corners to local region 
+	double transformMatrix[12];
+	double cor[4][3]; //probe corners in local user coords
+	double pcorn[3] = {0.,0.,0.}; //local probe corner coordinates
+	
+	double boxExts[6];
+	//shrink box slightly, otherwise errors occur with highly stretched domains.
+	for (int i = 0; i<3; i++){
+		boxExts[i] = bxExts[i]+(bxExts[i+3]-bxExts[i])*1.e-4;
+		boxExts[i+3] = bxExts[i+3]-(bxExts[i+3]-bxExts[i])*1.e-4;
 	}
-	if (inbox) return true;
-	for (int i = 0; i< 3; i++){
-		boxIntersection[i] = Max(regMin[i],boxExts[i]);
-		boxIntersection[i+3] = Min(regMax[i],boxExts[i+3]);
-		if (boxIntersection[i] > boxIntersection[i+3]) return false;
-	}
-	//Now try to fit the probe to the new box:
-	return (fitToBox(boxIntersection));
+	buildLocalCoordTransform(transformMatrix, 0.f, -1);
+	bool cornerInFace[4][6];
+	for (int i = 0; i<4; i++){
+		//make pcorn rotate counter-clockwise around probe 
+		pcorn[0] = -1.;
+		pcorn[1] = -1.;
+		if (i>1) pcorn[1] = 1.;
+		if (i==1 || i==2) pcorn[0] = 1.;
+		vtransform(pcorn, transformMatrix, cor[i]);
+		for (int k = 0; k<3; k++){
+			//Classify each corner as to whether it is inside or outside the half-space defined by each face
+			//cornerInFace[i][j] is true if the cor[i][j] is inside the half-space
+			if (cor[i][k] <= boxExts[k]) cornerInFace[i][k] = false; else cornerInFace[i][k] = true;
+			if (cor[i][k] >= boxExts[k+3]) cornerInFace[i][k+3] = false; else cornerInFace[i][k+3] = true;
+		}
 
+	}
+
+	//initialize probe min & max:
+	double minx = -1., miny = -1.;
+	double maxx = 1., maxy = 1.;
+	//2. For each box face:
+	for (int face = 0; face < 6; face++){
+		int faceDim = face%3; //(x, y, or z-oriented face)
+		int faceDir = face/3; //either low or high face
+		//Intersect this face with four sides of probe.
+		//A side of probe is determined by line (1-t)*cor[k] + t*cor[(k+1)%4], going from cor[k] to cor[k+1]
+		//for each pair of corners, equation is
+		// (1-t)*cor[k][faceDim] + t*cor[k+1][faceDim] = boxExts[faceDim+faceDir*3]
+		// t*(cor[(k+1)%4][faceDim] - cor[k][faceDim]) = boxExts[faceDim+faceDir*3] - cor[k][faceDim]
+		// i.e.: t = (boxExts[faceDim+faceDir*3] - cor[k][faceDim])/(cor[(k+1)%4][faceDim] - cor[k][faceDim]);
+		int interNum = 0;
+		double interPoint[2][3];
+		double interT[2];
+		int interSide[2];
+		//a. determine either 2 or 0 intersection points between probe boundary and box face, by intersecting all sides of probe with face
+		for (int k=0;k<4; k++){
+			double denom = (cor[(k+1)%4][faceDim] - cor[k][faceDim]);
+			if (denom == 0.) continue;
+			double t = (boxExts[faceDim+faceDir*3] - cor[k][faceDim])/denom;
+			if (t< 0. || t>1.) continue;
+			for (int j = 0; j<3; j++){
+				interPoint[interNum][j] = (1.-t)*cor[k][j] + t*cor[(k+1)%4][j];
+			}
+			//Replace t with T, going from -1 to +1, increasing with x and y
+			//This simplifies the logic later.
+			if (k > 1) t = 1.-t; //make t increase with x and y
+			interT[interNum] = 2.*t -1.; //make T go from -1 to 1 instead of 0 to 1
+			interSide[interNum] = k;
+			interNum++;	
+		}
+		assert(interNum == 0 || interNum == 2);
+		//Are there two intersections?
+		if (interNum==2){
+			//are they on opposite sides?
+			if (interSide[1]-interSide[0] == 2){
+				//Does it intersect the two horizonal edges?
+				if (interSide[0] == 0){
+					//is vertex 0 in this half-space? If so use min t-coordinate to cut the probe max x-extents
+					if (cornerInFace[interSide[0]][face]){
+						double mint = Min(interT[0],interT[1]);
+						if (maxx > mint) maxx = mint;
+					} else { //must be vertex 0 is outside half-space, so use maxt to trim probe min x-extents
+						double maxt = Max(interT[0],interT[1]);
+						if (minx < maxt) minx = maxt;
+					}
+				} else { //It must intersect the two vertical edges, check if vertex 0 is inside half-space
+					assert(interSide[0] == 1);
+					if (cornerInFace[interSide[0]][face]){
+						double mint = Min(interT[0],interT[1]);
+						if (maxy > mint) maxy = mint;
+					} else { //must be vertex 0 is outside half-space, so use max to trim
+						double maxt = Max(interT[0],interT[1]);
+						if (miny < maxt) miny = maxt;
+					}
+				}
+			} else { //The two intersections must cut off a corner of the probe
+				//The possible cases for interSide's are: 0,1 (cuts of vertex 1); 0,3 (cuts off vertex 0); 
+				//1,2 (cuts off vertex 2); 2,3(cuts off vertex 3);  each case can exclude or include the corner vertex
+				if (interSide[0] == 0 && interSide[1] == 1) {
+					//new corner is midpoint of line between the two intersection points.
+					double newcorx = 0.5*(interT[0]+1.);
+					double newcory = 0.5*(interT[1]-1.);
+					if (cornerInFace[interSide[1]][face]){
+						//if vertex 1 is inside then minx must be at least as large as newcorx, maxy as small as newcory
+						minx = Max(minx,newcorx);
+						maxy = Min(maxy,newcory);
+					} else { //maxx must be as small as newcorx, miny must be as large as newcory
+						maxx = Min(maxx,newcorx);
+						miny = Max(miny,newcory);
+					}
+				} else if (interSide[0] == 0 && interSide[1] == 3){
+					//new corner is midpoint of line between the two intersection points.
+					double newcorx = 0.5*(interT[0]-1.);
+					double newcory = 0.5*(interT[1]-1.);
+					if (cornerInFace[interSide[0]][face]){
+						//if vertex 0 is inside then maxx must be at least as small as newcorx, maxy as small as newcory
+						maxx = Min(maxx,newcorx);
+						maxy = Min(maxy,newcory);
+					} else { //minx must be as large as newcorx, miny must be as large as newcory
+						minx = Max(minx,newcorx);
+						miny = Max(miny,newcory);
+					}
+				} else if (interSide[0] == 1 && interSide[1] == 2){
+					//new corner is midpoint of line between the two intersection points.
+					double newcory = 0.5*(interT[0]+1.);
+					double newcorx = 0.5*(interT[1]+1.);
+					if (cornerInFace[interSide[1]][face]){
+						//if vertex 2 is inside then minx must be at least as large as newcorx, miny as large as newcory
+						minx = Max(minx,newcorx);
+						miny = Max(miny,newcory);
+					} else { //maxx must be as small as newcorx, maxy must be as small as newcory
+						maxx = Min(maxx,newcorx);
+						maxy = Min(maxy,newcory);
+					}
+				} else if (interSide[0] == 2 && interSide[1] == 3){
+					//new corner is midpoint of line between the two intersection points.
+					double newcorx = 0.5*(interT[0]-1.);
+					double newcory = 0.5*(interT[1]+1.);
+					if (cornerInFace[interSide[1]][face]){
+						//if vertex 3 is inside then maxx must be at least as small as newcorx, miny as large as newcory
+						maxx = Min(maxx,newcorx);
+						minx = Max(miny,newcory);
+					} else { //minx must be as large as newcorx, maxy must be as small as newcory
+						minx = Max(minx,newcorx);
+						maxy = Min(maxy,newcory);
+					}
+				} else assert(0);
+			} //end of cutting off corner
+		} else {
+			//If no intersections, check if the probe is completely outside slab determined by the face
+			//If any corner is outside, entire probe is outside, so check first corner
+			
+			if (faceDir == 0 && cor[0][faceDim] < boxExts[face]) return false;
+			if (faceDir == 1 && cor[0][faceDim] > boxExts[face]) return false;
+			
+			//OK, entire probe is inside this face
+		}
+	} //finished with all 6 faces.
+	//Use minx, miny, maxx, maxy to recalculate probe extents.
+	
+	//3.  Resulting probe extents are intersection of all limits found
+	// convert minx, miny, maxx, maxy to interpolate between 0 and 1 (instead of -1 and +1)
+	maxx = 0.5*(maxx+1.);
+	maxy = 0.5*(maxy+1.);
+	minx = 0.5*(minx+1.);
+	miny = 0.5*(miny+1.);
+	//Determine center of probe (in world coords) by bilinearly interpolating from corners using minx, maxx, miny,maxy
+	double pcenter[3];
+	double newCor[4][3];
+	for (int k = 0; k<3; k++){
+		newCor[0][k] = ((1.-minx)*cor[0][k] + minx*cor[1][k])*(1.-miny) +
+			miny*((1.-minx)*cor[3][k] + minx*cor[2][k]);
+		newCor[1][k] = ((1.-maxx)*cor[0][k] + maxx*cor[1][k])*(1.-miny) +
+			miny*((1.-maxx)*cor[1][k] + maxx*cor[2][k]);
+		newCor[2][k] = ((1.-maxx)*cor[0][k] + maxx*cor[1][k])*(1.-maxy) +
+			maxy*((1.-maxx)*cor[3][k] + maxx*cor[2][k]);
+		newCor[3][k] = ((1.-minx)*cor[0][k] + minx*cor[1][k])*(1.-maxy) +
+			maxy*((1.-minx)*cor[3][k] + minx*cor[2][k]);
+		pcenter[k] = 0.25*(newCor[0][k]+newCor[1][k]+newCor[2][k]+newCor[3][k]);
+	}
+	//The x-size and y-size of probe is determined by maxx-minx and maxy-miny times the original x-size, ysize.
+	double ht = vdist(cor[1],cor[2])*(maxy-miny);
+	double wid = vdist(cor[0],cor[1])*(maxx-minx);
+	double exts[6];
+	GetBox()->GetLocalExtents(exts);
+	double depth = abs(exts[5]-exts[2]);
+	exts[0] = pcenter[0] - 0.5*wid;
+	exts[3] = pcenter[0] + 0.5*wid;
+	exts[1] = pcenter[1] - 0.5*ht;
+	exts[4] = pcenter[1] + 0.5*ht;
+	exts[2] = pcenter[2] - 0.5*depth;
+	exts[5] = pcenter[2] + 0.5*depth;
+	GetBox()->SetLocalExtents(exts);
+	return true;
 }
 
 //Find probe extents that are maximal and fit in box
-bool ProbeParams::fitToBox(const float boxExts[6]){
+bool ProbeParams::fitToBox(const double boxExts[6]){
 
 	//Increase the box if it is flat:
-	float modBoxExts[6];
+	double modBoxExts[6];
 	for (int i = 0; i<3; i++){
 		modBoxExts[i] = boxExts[i];
 		modBoxExts[i+3] = boxExts[i+3];
@@ -1979,38 +2144,55 @@ bool ProbeParams::fitToBox(const float boxExts[6]){
 			
 	//find a point in the probe that lies in the box.   Do this by finding the intersections
 	//of the box with the probe plane and averaging the resulting points:
-	float startPoint[3];
-	float interceptPoints[6][3];
+	double startPoint[3];
+	double interceptPoints[6][3];
 	int numintercept = interceptBox(modBoxExts, interceptPoints);
 	if (numintercept < 3) return false;
 	vzero(startPoint);
 	for (int i = 0; i<numintercept; i++){
 		for (int j = 0; j< 3; j++){
-			startPoint[j] += interceptPoints[i][j]*(1.f/(float)numintercept);
+			startPoint[j] += interceptPoints[i][j]*(1.f/(double)numintercept);
 		}
 	}
+	/*
+	//Expand the probe so that it will exceed the box extents in all dimensions
+	//Find the largest box extent
+	
+	double maxrad = 0.;
+	for (int i = 0; i<3; i++) maxrad += (boxExts[i+3]-boxExts[i]);
 
+	vector <double> pExts = GetBox()->GetLocalExtents();
+
+	for (int i = 0; i<2; i++){
+		pExts[i] = pExts[i] - maxrad;
+		pExts[i+3] = pExts[i+3] + maxrad;
+	}
+	GetBox()->SetLocalExtents(pExts);
+
+	cropToBox(boxExts);
+	return true;
+	*/
 	//find a smaller rectangle that fits in box.  Take 4 probe-axis-aligned rays
 	//from the startPoint.  Find the distance to box of each.  Take 0.7 times shortest distance.
 
-	float transformMatrix[12];
-	float cor[4][3], cor2[4][3];
-	float probeCenter[3];
-	buildLocalCoordTransform(transformMatrix, 0.f, -1);
-	float rotMatrix[9];
+	double transformMatrix[12];
+	double cor[4][3], cor2[4][3];
+	double probeCenter[3];
+	buildLocalCoordTransform(transformMatrix, 0., -1);
+	double rotMatrix[9];
 	const vector<double>& angles = GetBox()->GetAngles();
 	getRotationMatrix((float)(angles[0]*M_PI/180.), (float)(angles[1]*M_PI/180.), (float)(angles[2]*M_PI/180.), rotMatrix);
 
 
 	//determine the probe x- and y- direction vectors
-	float vecx[3] = { 1.f, 0.f,0.f};
-	float vecy[3] = { 0.f, 1.f,0.f};
-	float vmid[3] = { 0.f,0.f,0.f};
+	double vecx[3] = { 1., 0.,0.};
+	double vecy[3] = { 0., 1.,0.};
+	double vmid[3] = { 0.,0.,0.};
 	
 	//Direction vectors:
-	float dir[4][3];
+	double dir[4][3];
 	//Intersection parameters
-	float result[4][2];
+	double result[4][2];
 	//Construct two rays starting at the probe corner whose parameter interval (0,1) maps to the y - extents 
 	vtransform(vmid, transformMatrix, probeCenter);
 	vtransform3(vecx, rotMatrix, dir[0]);
@@ -2032,13 +2214,13 @@ bool ProbeParams::fitToBox(const float boxExts[6]){
 	}
 	
 	//Find the closest intersection:
-	float mindist = 1.e30f;
+	double mindist = 1.e30;
 	for (int i = 0; i<4; i++){
-		float distvec[3];
+		double distvec[3];
 		for (int j = 0; j<3; j++){
 			distvec[j] = result[i][1]*dir[i][j];
 		}
-		float dist = vlength(distvec);
+		double dist = vlength(distvec);
 		if (dist<mindist) mindist = dist;
 	}
 	//Now know corners of square that fits.  Obtained by going diagonally from startPoint
@@ -2047,7 +2229,7 @@ bool ProbeParams::fitToBox(const float boxExts[6]){
 		vadd(dir[i],dir[(i+1)%4], cor[i]);
 		//force the corner to be distance mindist*.7 from startpoint, so it's guaranteed
 		//to be inside the diamond
-		float len = vlength(cor[i]);
+		double len = vlength(cor[i]);
 		vmult(cor[i], mindist/len, cor[i]);
 		vadd(startPoint, cor[i], cor[i]);
 	}
@@ -2115,17 +2297,17 @@ bool ProbeParams::fitToBox(const float boxExts[6]){
 	for (int i = 0; i< 4; i++){
 		vadd(probeCenter, cor[i],probeCenter);
 	}
-	vmult(probeCenter, 0.25f, probeCenter);
+	vmult(probeCenter, 0.25, probeCenter);
 
 	//find the width and height of the probe:
 	
-	float ht = vdist(cor[1],cor[2]);
+	double ht = vdist(cor[1],cor[2]);
 
-	float wid = vdist(cor[0],cor[1]);
+	double wid = vdist(cor[0],cor[1]);
 
 	double exts[6];
 	GetBox()->GetLocalExtents(exts);
-	float depth = abs(exts[5]-exts[2]);
+	double depth = abs(exts[5]-exts[2]);
 	exts[0] = probeCenter[0] - 0.5f*wid;
 	exts[3] = probeCenter[0] + 0.5f*wid;
 	exts[1] = probeCenter[1] - 0.5f*ht;
@@ -2138,25 +2320,25 @@ bool ProbeParams::fitToBox(const float boxExts[6]){
 
 //Calculate up to six intersections of box edges with probe plane, return the number found.
 //Up to 6 intersection points are placed in intercept array
-int ProbeParams::interceptBox(const float boxExts[6], float intercept[6][3]){
+int ProbeParams::interceptBox(const double boxExts[6], double intercept[6][3]){
 	int numfound = 0;
 	//Get the equation of the probe plane
 	//First, find normal to plane:
-	float rotMatrix[9];
-	const float vecz[3] = {0.f,0.f,1.f};
-	const float vec0[3] = {0.f,0.f,0.f};
-	float probeNormal[3], probeCenter[3];
+	double rotMatrix[9];
+	const double vecz[3] = {0.,0.,1.};
+	const double vec0[3] = {0.,0.,0.};
+	double probeNormal[3], probeCenter[3];
 	const vector<double>& angles = GetBox()->GetAngles();
 	getRotationMatrix((float)(angles[0]*M_PI/180.), (float)(angles[1]*M_PI/180.), (float)(angles[2]*M_PI/180.), rotMatrix);
 	
 	vtransform3(vecz, rotMatrix, probeNormal);
-	float transformMatrix[12];
+	double transformMatrix[12];
 	
-	buildLocalCoordTransform(transformMatrix, 0.01f, -1);
+	buildLocalCoordTransform(transformMatrix, 0.01, -1);
 	vtransform(vec0, transformMatrix, probeCenter);
 	vnormal(probeNormal);
 	//The equation of the probe plane is dot(V, probeNormal) = dst:
-	float dst = vdot(probeNormal, probeCenter);
+	double dst = vdot(probeNormal, probeCenter);
 	//Now intersect the plane with all 6 edges of box.
 	//each edge is defined by two equations of the form
 	// x = boxExts[0] or boxExts[3]; y = boxExts[1] or boxExts[4]; z = boxExts[2] or boxExts[5]
@@ -2172,7 +2354,7 @@ int ProbeParams::interceptBox(const float boxExts[6], float intercept[6][3]){
 		int vcoord = edge%3;
 		int coord1 = (edge+1)%3;
 		int coord2 = (edge+2)%3;
-		float rhs = dst -boxExts[coord1 + 3*((edge/3)%2)]*probeNormal[coord1] - boxExts[coord2+3*(edge/6)]*probeNormal[coord2];
+		double rhs = dst -boxExts[coord1 + 3*((edge/3)%2)]*probeNormal[coord1] - boxExts[coord2+3*(edge/6)]*probeNormal[coord2];
 		// and the equation is V*probeNormal[vcoord] = rhs
 		//Question is whether the other (vcoord) coordinate of the intersection point lies between
 		//boxExts[vcoord] and boxExts[vcoord+3]

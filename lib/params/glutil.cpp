@@ -99,7 +99,11 @@ void vmult(const float *v, float s, float *w) {
 	w[1] = s*v[1]; 
 	w[2] = s*v[2];
 }
-
+void vmult(const double *v, double s, double *w) {
+	w[0] = s*v[0]; 
+	w[1] = s*v[1]; 
+	w[2] = s*v[2];
+}
 void vhalf(const float *v1, const float *v2, float *half)
 {
     /* Return in 'half' the unit vector 
@@ -186,7 +190,17 @@ void vtransform(const double *v, GLfloat mat[12], double *vt)
 	t[2] = v[0]*mat[8] + v[1]*mat[9] + v[2]*mat[10] + mat[11];
 	vcopy(t, vt);
 }
-	
+void vtransform(const double *v, GLdouble mat[12], double *vt)
+{
+	/* Vector transform in software...
+	*/
+	double	t[3];
+		
+	t[0] = v[0]*mat[0] + v[1]*mat[1] + v[2]*mat[2] + mat[3];
+	t[1] = v[0]*mat[4] + v[1]*mat[5] + v[2]*mat[6] + mat[7];
+	t[2] = v[0]*mat[8] + v[1]*mat[9] + v[2]*mat[10] + mat[11];
+	vcopy(t, vt);
+}
 
 void vtransform4(const float *v, GLfloat *mat, float *vt)
 {
@@ -201,6 +215,14 @@ void vtransform4(const float *v, GLfloat *mat, float *vt)
     qcopy(t, vt);
 }
 void vtransform3(const float *v, float *mat, float *vt)
+{
+    /* 3x3 matrix multiply
+     */
+    vt[0] = v[0]*mat[0] + v[1]*mat[1] + v[2]*mat[2];
+    vt[1] = v[0]*mat[3] + v[1]*mat[4] + v[2]*mat[5];
+    vt[2] = v[0]*mat[6] + v[1]*mat[7] + v[2]*mat[8];
+}
+void vtransform3(const double *v, double *mat, double *vt)
 {
     /* 3x3 matrix multiply
      */
@@ -1136,6 +1158,15 @@ void mmult33(const float* m1, const float* m2, float* result){
 		}
 	}
 }
+void mmult33(const double* m1, const double* m2, double* result){
+	for (int row = 0; row < 3; row++){
+		for (int col = 0; col < 3; col++) {
+			result[row*3 + col] = (m1[row*3]  * m2[col] + 
+				m1[1+row*3] * m2[col+3] +
+				m1[2+row*3] * m2[col+6]);
+		}
+	}
+}
 
 //Same as above, but use the transpose (i.e. inverse for rotations) on the left
 void mmultt33(const float* m1Trans, const float* m2, float* result){
@@ -1184,7 +1215,39 @@ void getRotationMatrix(float theta, float phi, float psi, float* matrix){
 	mtrx2[8] = 1.f;
 	mmult33(mtrx1, mtrx2, matrix);
 }
-
+void getRotationMatrix(float theta, float phi, float psi, double* matrix){
+	//do the theta-phi rotation first:
+	double mtrx1[9], mtrx2[9];
+	double cosTheta = cos(theta);
+	double sinTheta = sin(theta);
+	double cosPhi = cos(phi);
+	double sinPhi = sin(phi);
+	double cosPsi = cos(psi);
+	double sinPsi = sin(psi);
+	//specify mtrx1 as an (X,Z) rotation by -phi, followed by an (X,Y) rotation by theta:
+	mtrx1[0] = cosTheta*cosPhi;
+	mtrx1[1] = -sinTheta;
+	mtrx1[2] = cosTheta*sinPhi;
+	//2nd row:
+	mtrx1[3] = sinTheta*cosPhi;
+	mtrx1[4] = cosTheta;
+	mtrx1[5] = sinTheta*sinPhi;
+	//3rd row:
+	mtrx1[6] = -sinPhi;
+	mtrx1[7] = 0.f;
+	mtrx1[8] = cosPhi;
+	// mtrx2 is a rotation by psi in the x,y plane:
+	mtrx2[0] = cosPsi;
+	mtrx2[1] = -sinPsi;
+	mtrx2[2] = 0.f;
+	mtrx2[3] = sinPsi;
+	mtrx2[4] = cosPsi;
+	mtrx2[5] = 0.f;
+	mtrx2[6] = 0.f;
+	mtrx2[7] = 0.f;
+	mtrx2[8] = 1.f;
+	mmult33(mtrx1, mtrx2, matrix);
+}
 //Determine a rotation matrix about an axis:
 PARAMS_API void getAxisRotation(int axis, float rotation, float* matrix){
 	for (int col = 0; col < 3; col++){
@@ -1278,6 +1341,46 @@ int rayBoxIntersect(const float rayStart[3], const float rayDir[3],const float b
 				//order the points in increasing t:
 				if (numfound == 2 && (results[1] < results[0])){
 					float temp = results[0];
+					results[0] = results[1];
+					results[1] = temp;
+				}
+				if (numfound == 2) return numfound;
+			}
+			
+		}
+	}
+	return numfound;
+
+}
+int rayBoxIntersect(const double rayStart[3], const double rayDir[3],const double boxExts[6], double results[2]){
+	//Loop over axes of cube.  Intersect faces with the ray, then test if it's inside box extents:
+	int numfound = 0;
+	for (int axis = 0; axis < 3; axis++){
+		
+		//Points along ray are rayStart+t*rayDir.  
+		//To intersect face, rayStart+t*rayDir has axis coordinate equal to boxExts[axis] or boxExts[axis+3]
+		//so that t = (boxExts[axis+(0 or 3)] - rayStart[axis])/rayDir[axis];
+		if (rayDir[axis] == 0. ) continue; //Plane is parallel to ray
+		//check front and back intersections:
+		for (int frontBack = 0; frontBack < 4; frontBack+=3){
+			float t = (boxExts[axis+frontBack] - rayStart[axis])/rayDir[axis];
+			//Check to see if point is within other two box bounds
+			float intersectPoint[3];
+			for (int j = 0; j< 3; j++) {
+				intersectPoint[j] = rayStart[j]+t*rayDir[j];
+			}
+			bool pointOK = true;
+			for (int otherCoord = 0; otherCoord < 3; otherCoord++){
+				if (otherCoord == axis) continue;
+				if (intersectPoint[otherCoord] < boxExts[otherCoord]) {pointOK = false; break;}
+				if (intersectPoint[otherCoord] > boxExts[otherCoord+3]) {pointOK = false; break;}
+			}
+			if (pointOK){
+				//Found an intersection!
+				results[numfound++] = t;
+				//order the points in increasing t:
+				if (numfound == 2 && (results[1] < results[0])){
+					double temp = results[0];
 					results[0] = results[1];
 					results[1] = temp;
 				}

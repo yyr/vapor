@@ -1372,7 +1372,7 @@ guiFitDomain(){
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "fit probe to domain");
 
-	float locextents[6];
+	double locextents[6];
 	const float* sizes = DataStatus::getInstance()->getFullSizes();
 	for (int i = 0; i<3; i++){
 		locextents[i] = 0.;
@@ -2877,7 +2877,7 @@ guiCropToRegion(){
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "crop probe to region");
-	float extents[6];
+	double extents[6];
 	rParams->getLocalBox(extents,extents+3,timestep);
 
 	if (pParams->cropToBox(extents)){
@@ -2898,7 +2898,7 @@ guiCropToDomain(){
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "crop probe to domain");
 	const float *sizes = DataStatus::getInstance()->getFullSizes();
-	float extents[6];
+	double extents[6];
 	for (int i = 0; i<3; i++){
 		extents[i] = 0.;
 		extents[i+3]=sizes[i];
@@ -2922,7 +2922,7 @@ guiFitRegion(){
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "fit probe to region");
-	float extents[6];
+	double extents[6];
 	rParams->getLocalBox(extents,extents+3,timestep);
 	setProbeToExtents(extents,pParams);
 	updateTab();
@@ -2933,20 +2933,20 @@ guiFitRegion(){
 	
 }
 void ProbeEventRouter::
-setProbeToExtents(const float extents[6], ProbeParams* pParams){
+setProbeToExtents(const double extents[6], ProbeParams* pParams){
 	
 	//First try to fit to extents.  If we fail, then move probe to fit 
 	bool success = pParams->fitToBox(extents);
 	if (success) return;
 	//  Construct transformation for a probe that maps to region, as follows:
 	//a.  get current rotation matrix
-	float rotMatrix[9];
+	double rotMatrix[9];
 	getRotationMatrix(pParams->getTheta()*M_PI/180., pParams->getPhi()*M_PI/180., pParams->getPsi()*M_PI/180., rotMatrix);
 
 	//Calculate directions of probe mapped into user space, so we can determine
 	//closest axes or rotated probe
-	const float unitVec[3][3] = {{1.f,0.f,0.f},{0.f,1.f,0.f},{0.f,0.f,1.f}};
-	float mappedDirs[3][3];
+	const double unitVec[3][3] = {{1.,0.,0.},{0.,1.,0.},{0.,0.,1.}};
+	double mappedDirs[3][3];
 	for (int i = 0; i< 3; i++)
 		vtransform3(unitVec[i], rotMatrix, mappedDirs[i]);
 
@@ -2956,10 +2956,10 @@ setProbeToExtents(const float extents[6], ProbeParams* pParams){
 	
 	for (int probeDim = 0; probeDim< 3; probeDim++){
 		//see which axis is closest to the probe axis in user space
-		float maxAlign = -1.f;
+		double maxAlign = -1.f;
 		int alignDir = -1;
 		for (int axis = 0; axis < 3; axis++){
-			float axisAlignment = vdot(unitVec[axis],mappedDirs[probeDim]);
+			double axisAlignment = vdot(unitVec[axis],mappedDirs[probeDim]);
 			if (abs(axisAlignment) > maxAlign){
 				//Don't pick max it it's already taken:
 				if (!((probeDim > 0 && axis == align[0]) ||
@@ -2973,8 +2973,8 @@ setProbeToExtents(const float extents[6], ProbeParams* pParams){
 	}
 
 	//c.  Find scale S and translation T that takes [-1,1]cube to region extents
-	float newScale[3], newCenter[3];
-	float boxmin[3],boxmax[3];
+	double newScale[3], newCenter[3];
+	double boxmin[3],boxmax[3];
 		//get box in local coords
 	pParams->getLocalBox(boxmin,boxmax,-1);
 	for (int i = 0; i< 3; i++){
@@ -2983,18 +2983,18 @@ setProbeToExtents(const float extents[6], ProbeParams* pParams){
 		int forTrans = align[i];
 		newScale[i] = extents[forTrans+3]-extents[forTrans];
 		//Initialize center where it already is:
-		newCenter[i] = (boxmin[i]+boxmax[i])*0.5f;
+		newCenter[i] = (boxmin[i]+boxmax[i])*0.5;
 	}
 
 	//If the probe is not planar, we are done. 
 	if (pParams->isPlanar())
-		newScale[2] = 0.f;	
+		newScale[2] = 0.;	
 
 	//Now use these values to modify probe size (but not rotation)
 	float probeMin[3],probeMax[3];
 	for (int i = 0; i< 3; i++){
-		probeMin[i] = newCenter[i]-0.5f*newScale[i];
-		probeMax[i] = newCenter[i]+0.5f*newScale[i];
+		probeMin[i] = newCenter[i]-0.5*newScale[i];
+		probeMax[i] = newCenter[i]+0.5*newScale[i];
 	}
 	pParams->setLocalBox(probeMin, probeMax, -1);
 	

@@ -220,7 +220,7 @@ protected slots:
 protected:
 	static const char* webHelpText[];
 	static const char* webHelpURL[];
-	void setProbeToExtents(const float* extents, ProbeParams* pparams);
+	void setProbeToExtents(const double* extents, ProbeParams* pparams);
 	void mapCursor();
 	void updateBoundsText(RenderParams*);
 	//Convert rotation about axis between actual and viewed in stretched coords:

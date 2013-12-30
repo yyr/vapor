@@ -290,6 +290,50 @@ buildLocalCoordTransform(float transformMatrix[12], float extraThickness, int ti
 	transformMatrix[11] = .5f*(boxMax[2]+boxMin[2]);
 	
 }
+void Params::
+buildLocalCoordTransform(double transformMatrix[12], double extraThickness, int timestep, float rotation, int axis){
+	
+	float theta, phi, psi;
+	if (rotation != 0.f) {
+		convertThetaPhiPsi(&theta,&phi,&psi, axis, rotation);
+	} else {
+		theta = getTheta();
+		phi = getPhi();
+		psi = getPsi();
+	}
+	
+	double boxSize[3];
+	double boxMin[3], boxMax[3];
+	getLocalBox(boxMin, boxMax, timestep);
+
+	for (int i = 0; i< 3; i++) {
+		boxMin[i] -= extraThickness;
+		boxMax[i] += extraThickness;
+		boxSize[i] = (boxMax[i] - boxMin[i]);
+	}
+	
+	//Get the 3x3 rotation matrix:
+	double rotMatrix[9];
+	getRotationMatrix(theta*M_PI/180., phi*M_PI/180., psi*M_PI/180., rotMatrix);
+
+	//then scale according to box:
+	transformMatrix[0] = 0.5*boxSize[0]*rotMatrix[0];
+	transformMatrix[1] = 0.5*boxSize[1]*rotMatrix[1];
+	transformMatrix[2] = 0.5*boxSize[2]*rotMatrix[2];
+	//2nd row:
+	transformMatrix[4] = 0.5*boxSize[0]*rotMatrix[3];
+	transformMatrix[5] = 0.5*boxSize[1]*rotMatrix[4];
+	transformMatrix[6] = 0.5*boxSize[2]*rotMatrix[5];
+	//3rd row:
+	transformMatrix[8] = 0.5*boxSize[0]*rotMatrix[6];
+	transformMatrix[9] = 0.5*boxSize[1]*rotMatrix[7];
+	transformMatrix[10] = 0.5*boxSize[2]*rotMatrix[8];
+	//last column, i.e. translation:
+	transformMatrix[3] = .5f*(boxMax[0]+boxMin[0]);
+	transformMatrix[7] = .5f*(boxMax[1]+boxMin[1]);
+	transformMatrix[11] = .5f*(boxMax[2]+boxMin[2]);
+	
+}
 
 //static method to measure how far point is from cube.
 //Needed for histogram testing

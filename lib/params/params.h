@@ -373,6 +373,14 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 		}
 		GetBox()->SetLocalExtents(extents,timestep);
 	}
+	void setLocalBox(const double boxMin[3], const double boxMax[3], int timestep = -1 ) {
+		double extents[6];
+		for (int i = 0; i<3; i++){
+			extents[i] = boxMin[i];
+			extents[i+3] = boxMax[i];
+		}
+		GetBox()->SetLocalExtents(extents,timestep);
+	}
 	//Map corners of box to voxels
 	void mapBoxToVox(DataMgr* dataMgr, int refLevel, int lod, int timestep, size_t voxExts[6]);
 	void setTheta(float th) {
@@ -401,6 +409,14 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	//! \param[out] float[3] boxMax  The maximum coordinates of the box.
 	//! \param[in] int time step Current time step (only for moving boxes).
 	void getLocalBox(float boxMin[3], float boxMax[3], int timestep = -1) {
+		double extents[6];
+		GetBox()->GetLocalExtents(extents, timestep);
+		for (int i = 0; i<3; i++){
+			boxMin[i] = extents[i];
+			boxMax[i] = extents[i+3];
+		}
+	}
+	void getLocalBox(double boxMin[3], double boxMax[3], int timestep = -1) {
 		double extents[6];
 		GetBox()->GetLocalExtents(extents, timestep);
 		for (int i = 0; i<3; i++){
@@ -478,6 +494,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	// Construct transformation as a mapping of [-1,1]^3 into volume array
 	// coordinates at current resolution
 	void buildLocalCoordTransform(float transformMatrix[12], float extraThickness, int timestep, float rotation = 0.f, int axis = -1);
+	void buildLocalCoordTransform(double transformMatrix[12], double extraThickness, int timestep, float rotation = 0.f, int axis = -1);
 
 
 	//Helper function for testing distances,

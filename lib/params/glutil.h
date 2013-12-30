@@ -93,6 +93,7 @@ PARAMS_API void	makeTransMatrix(float* transVec, double* matrix);
 PARAMS_API void	vscale (float *v, float s);
 PARAMS_API void	vscale (double *v, double s);
 PARAMS_API void	vmult(const float *v, float s, float *w); 
+PARAMS_API void	vmult(const double *v, double s, double *w); 
 PARAMS_API void	vhalf (const float *v1, const float *v2, float *half);
 PARAMS_API void	vcross (const float *v1, const float *v2, float *cross);
 PARAMS_API void	vcross (const double *v1, const double *v2, double *cross);
@@ -100,8 +101,10 @@ PARAMS_API void	vreflect (const float *in, const float *mirror, float *out);
 PARAMS_API void	vtransform (const float *v, GLfloat *mat, float *vt);
 PARAMS_API void	vtransform (const float *v, GLfloat *mat, double *vt);
 PARAMS_API void	vtransform (const double *v, GLfloat *mat, double *vt);
+PARAMS_API void	vtransform (const double *v, GLdouble *mat, double *vt);
 PARAMS_API void	vtransform4 (const float *v, GLfloat *mat, float *vt);
 PARAMS_API void	vtransform3 (const float *v, float *mat, float *vt);
+PARAMS_API void	vtransform3 (const double *v, double *mat, double *vt);
 PARAMS_API void	vtransform3t (const float *v, float *mat, float *vt);
 PARAMS_API bool	pointOnRight(float* pt1, float* pt2, float* testPt);
 PARAMS_API void	mcopy (GLfloat *m1, GLfloat *m2);
@@ -114,6 +117,7 @@ PARAMS_API int	minvert (GLdouble *mat, GLdouble *result);
 //Some routines to handle 3x3 rotation matrices, represented as 9 floats, 
 //where the column index increments faster (like in 4x4 case
 PARAMS_API void	mmult33(const float* m1, const float* m2, float* result);
+PARAMS_API void	mmult33(const double* m1, const double* m2, double* result);
 
 //Same as above, but use the transpose (i.e. inverse for rotations) on the left
 PARAMS_API void	mmultt33(const float* m1Trans, const float* m2, float* result);
@@ -123,6 +127,7 @@ PARAMS_API void	mmultt33(const float* m1Trans, const float* m2, float* result);
 //to the vector with direction (theta,phi) by rotating by phi in the (x,z) plane and then
 //rotating in the (x,y)plane by theta.
 PARAMS_API void	getRotationMatrix(float theta, float phi, float psi, float* matrix);
+PARAMS_API void	getRotationMatrix(float theta, float phi, float psi, double* matrix);
 
 //Determine a rotation matrix about an axis:
 PARAMS_API void getAxisRotation(int axis, float rotation, float* matrix);
@@ -130,6 +135,7 @@ PARAMS_API void getAxisRotation(int axis, float rotation, float* matrix);
 //Determine the psi, phi, theta from a rotation matrix:
 PARAMS_API void getRotAngles(float* theta, float* phi, float* psi, const float* matrix);
 PARAMS_API int rayBoxIntersect(const float rayStart[3], const float rayDir[3],const float boxExts[6], float results[2]);
+PARAMS_API int rayBoxIntersect(const double rayStart[3], const double rayDir[3],const double boxExts[6], double results[2]);
 
 PARAMS_API void	qnormal (float *q);
 PARAMS_API void qinv(const float q1[4], float q2[4]);
@@ -164,6 +170,8 @@ inline float vlength(const float*a) {return sqrt(vdot(a,a));}
 inline double vlength(const double*a) {return sqrt(vdot(a,a));}
 inline float vdist(const float* a, const float*b) {
 	return (sqrt((a[0]-b[0])*(a[0]-b[0])+(a[1]-b[1])*(a[1]-b[1])+(a[2]-b[2])*(a[2]-b[2]))); }
+inline double vdist(const double* a, const double*b) {
+	return (sqrt((a[0]-b[0])*(a[0]-b[0])+(a[1]-b[1])*(a[1]-b[1])+(a[2]-b[2])*(a[2]-b[2]))); }
 inline void vnormal(float *a) {vscale(a, 1/vlength(a));}
 inline void vnormal(double *a) {vscale(a, 1/vlength(a));}
 inline void vcopy(const float* a, float* b) {b[0] = a[0], b[1] = a[1], b[2] = a[2];}
@@ -177,6 +185,7 @@ inline void vadd(const float* a, const float* b, float* c)
 inline void vadd(const double* a, const double* b, double* c)
 	{c[0] = a[0]+b[0], c[1] = a[1]+b[1], c[2] = a[2]+b[2];}
 inline void vzero(float *a) {a[0] = a[1] = a[2] = 0.f;}
+inline void vzero(double *a) {a[0] = a[1] = a[2] = 0.;}
 inline void qset(float* a,  float x,  float y,  float z,  float w)
 	{a[0] = x, a[1] = y, a[2] = z, a[3] = w;}
 inline void qcopy(const float*a, float* b)	
