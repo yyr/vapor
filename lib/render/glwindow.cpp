@@ -80,6 +80,8 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 : QGLWidget(fmt, parent)
 
 {
+	_readyToDraw = false;
+
 	currentParams.clear();
 	for (int i = 0; i<= Params::GetNumParamsClasses(); i++)
 		currentParams.push_back(0);
@@ -1001,6 +1003,8 @@ void GLWindow::depthPeelPaintEvent(){
 	printOpenGLError();
 }
 void GLWindow::paintEvent(QPaintEvent*){
+	if (! _readyToDraw) return;
+
   if(depthPeeling)
     depthPeelPaintEvent();
   else
@@ -1018,10 +1022,15 @@ void GLWindow::regPaintEvent()
 	//the GL context, but maybe not paintEvent?
 	makeCurrent();
 
+#ifdef	DEAD
 	//
 	// The following is a workaround for bug #947: OpenGL errors on Mac 
 	// Under Mac OS X 10.8, with Qt 4.8 the frame buffer becomes invalid
 	// if data are re-loaded into vaporgui.
+	//
+	// Updated Tue Dec 31 13:32:37 MST 2013: The glCheckFramebufferStatus
+	// results in a core dump on Linux systems when rendering is occuring 
+	// remotely via X11.
 	//
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -1029,6 +1038,8 @@ void GLWindow::regPaintEvent()
 		renderMutex.unlock();
 		return;
 	}
+#endif
+
 	printOpenGLError();
 	
 	
@@ -1423,6 +1434,10 @@ void GLWindow::initializeGL()
 	nowPainting = false;
 	printOpenGLError();
 	
+	_readyToDraw = true;
+#ifdef	Darwin
+	_readyToDraw = false;
+#endif
     
 }
 
@@ -2702,3 +2717,24 @@ void GLWindow::TransformToUnitBox(){
 	for (int i = 0; i<3; i++) transVec[i] = fullUsrExts[i]*scales[i];
 	glTranslatef(-transVec[0],-transVec[1], -transVec[2]);
 }
+
+#ifdef	Darwin
+//
+// Workaround for:
+//	743: core dump when rendering over X11
+//	947: OpenGL errors on Mac
+//
+// With Qt 4.8 paint events are generated before the window is exposed. 
+// This causes problems on Mac systems. Unforunately, there is no way to
+// detect an expose event with Qt 4.8. This method looks for a "PolishRequest"
+// event before allowing vaporgui to perform any OpenGL rendering. Hopefully
+// Qt 5.x will either not generate paint events until after the window
+// is exposed, or will provide a true expose event.
+//
+bool GLWindow::event ( QEvent * e ){
+	if (e->type() == QEvent::PolishRequest) {
+		_readyToDraw = true;
+	}
+    return(QGLWidget::event(e));
+}
+#endif

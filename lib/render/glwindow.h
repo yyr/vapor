@@ -551,6 +551,10 @@ protected:
 	// setAutoFillBackground(false) is called in the GLWindow constructor
 
 	void paintEvent(QPaintEvent* event);
+#ifdef	Darwin
+    bool event ( QEvent * e );
+#endif
+
 		
 	void setUpViewport(int width, int height);
 	//Methods to support drawing domain bounds, axes etc.
@@ -664,6 +668,9 @@ protected:
 	float handleProjVec[2];
 	bool isSpinning;
 	GLuint _timeStampTexid;
+
+private:
+	bool _readyToDraw;
 	
 #endif //DOXYGEN_SKIP_THIS
 	
