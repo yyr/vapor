@@ -11,7 +11,6 @@
 #include <netcdf.h>
 #include <vapor/CFuncs.h>
 #include <vapor/OptionParser.h>
-#include <vapor/WRF.h>
 #include <vapor/WeightTable.h>	
 
 #ifdef _WINDOWS 
