@@ -2211,8 +2211,8 @@ bool ProbeParams::fitToBox(const double boxExts[6]){
 		edgeDist[i] = vlength(interpt);
 	}
 	//Stretch a bit to ensure adequate coverage
-	double wid = 2.1*Max(edgeDist[0],edgeDist[2]);
-	double ht = 2.1*Max(edgeDist[1],edgeDist[3]);
+	double wid = 10.*Max(edgeDist[0],edgeDist[2]);
+	double ht = 10.*Max(edgeDist[1],edgeDist[3]);
 
 	
 	double depth = abs(exts[5]-exts[2]);
@@ -2225,7 +2225,7 @@ bool ProbeParams::fitToBox(const double boxExts[6]){
 	
 	GetBox()->SetLocalExtents(exts);
 	bool success = cropToBox(boxExts);
-	
+	//bool success = true;
 	return success;
 }
 
