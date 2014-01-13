@@ -1354,9 +1354,11 @@ int rayBoxIntersect(const float rayStart[3], const float rayDir[3],const float b
 }
 int rayBoxIntersect(const double rayStart[3], const double rayDir[3],const double boxExts[6], double results[2]){
 	//Loop over axes of cube.  Intersect faces with the ray, then test if it's inside box extents:
+	//Return at most two intersections, the max and min along the ray.
 	int numfound = 0;
+	double tempResults[6];
 	for (int axis = 0; axis < 3; axis++){
-		
+		if (numfound == 6) break;
 		//Points along ray are rayStart+t*rayDir.  
 		//To intersect face, rayStart+t*rayDir has axis coordinate equal to boxExts[axis] or boxExts[axis+3]
 		//so that t = (boxExts[axis+(0 or 3)] - rayStart[axis])/rayDir[axis];
@@ -1377,19 +1379,29 @@ int rayBoxIntersect(const double rayStart[3], const double rayDir[3],const doubl
 			}
 			if (pointOK){
 				//Found an intersection!
-				results[numfound++] = t;
-				//order the points in increasing t:
-				if (numfound == 2 && (results[1] < results[0])){
-					double temp = results[0];
-					results[0] = results[1];
-					results[1] = temp;
-				}
-				if (numfound == 2) return numfound;
+				tempResults[numfound++] = t;
+				
 			}
-			
+			if (numfound == 6) break;
 		}
 	}
-	return numfound;
+	if (numfound == 0) return 0;
+	//Find the max and min t
+	double mint = 1.e30; 
+	double maxt = -1.e30;
+
+	for (int i = 0; i<numfound; i++){
+		if (tempResults[i]< mint) {
+			mint = tempResults[i];
+		}
+		if (tempResults[i] > maxt){
+			maxt = tempResults[i];
+		}
+	}
+	results[0] = mint;
+	if (numfound == 1) return 1;
+	results[1] = maxt;
+	return 2;
 
 }
 //Convert a camera view to a quaternion, for linear interpolation of viewpoints.
