@@ -795,7 +795,7 @@ guiSetNumRefinements(int n){
 }
 
 
-//Move the region center to specified user coords, shrink it if necessary
+//Move the region center to specified local coords, shrink it if necessary
 void RegionEventRouter::
 guiSetCenter(const float* coords){
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
@@ -804,20 +804,21 @@ guiSetCenter(const float* coords){
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "move region center");
 	
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	const vector<double>&userExtents = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
+	const float* fullExtent = DataStatus::getInstance()->getLocalExtents();
+	
 	float boxmin[3], boxmax[3];
 	rParams->getLocalBox(boxmin,boxmax,timestep);
 	for (int i = 0; i< 3; i++){
 		float coord = coords[i];
-		float fullMin = userExtents[i];
-		float fullMax = userExtents[i+3];
-		if (coord < fullMin) coord = fullMin;
-		if (coord > fullMax) coord = fullMax;
+		float regMin = 0.;
+		float regMax = fullExtent[i+3]-fullExtent[i];
+		if (coord < regMin) coord = regMin;
+		if (coord > regMax) coord = regMax;
 		float regSize = boxmax[i]-boxmin[i];
-		if (coord + 0.5f*regSize > fullMax) regSize = 2.f*(fullMax - coord);
-		if (coord - 0.5f*regSize < fullMin) regSize = 2.f*(coord - fullMin);
-		boxmax[i] = coord + 0.5f*regSize - userExtents[i];
-		boxmin[i] = coord - 0.5f*regSize - userExtents[i];
+		if (coord + 0.5f*regSize > regMax) regSize = 2.f*(regMax - coord);
+		if (coord - 0.5f*regSize < regMin) regSize = 2.f*(coord - regMin);
+		boxmax[i] = coord + 0.5f*regSize;
+		boxmin[i] = coord - 0.5f*regSize;
 	}
 	rParams->setLocalBox(boxmin, boxmax, timestep);
 	PanelCommand::captureEnd(cmd, rParams);
