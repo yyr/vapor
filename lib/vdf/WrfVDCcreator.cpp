@@ -78,7 +78,7 @@ void Wrf2vdf::GetTimeMap(
 	//
 	// Get user times from .vdf
 	//
-	vector <float> ncdftimes;
+	vector <double> ncdftimes;
 	for (int i=0; i<wrfData->GetNumTimeSteps(); i++) { 
 		ncdftimes.push_back(wrfData->GetTSUserTime(i));
 	}
@@ -86,7 +86,7 @@ void Wrf2vdf::GetTimeMap(
 	//
 	// Get user times from netCDF files
 	//
-	vector <float> vdctimes;
+	vector <double> vdctimes;
 	for (int i=0; i<vdfio->GetNumTimeSteps(); i++) { 
 		vdctimes.push_back(vdfio->GetTSUserTime(i));
 	}
@@ -98,11 +98,11 @@ void Wrf2vdf::GetTimeMap(
 	//
 	// Cross-reference ncdf and vdc times
 	//
-	float ncdftime; 
+	double ncdftime; 
 	for (int i=startts; i<numts+startts && i<wrfData->GetNumTimeSteps(); i++) {
 		ncdftime = ncdftimes[i];
 
-		vector <float>::iterator itr = find(
+		vector <double>::iterator itr = find(
 			vdctimes.begin(), vdctimes.end(), ncdftime
 		);
 
