@@ -102,6 +102,15 @@ void Wrf2vdf::GetTimeMap(
 	for (int i=startts; i<numts+startts && i<wrfData->GetNumTimeSteps(); i++) {
 		ncdftime = ncdftimes[i];
 
+		for (int j=0; j<vdctimes.size(); j++) {
+			if (fabs((ncdftime - vdctimes[j]) / ncdftime) < 1e-10) {
+				timemap[j] = i;
+				break;
+			}
+		}
+
+#ifdef	DEAD
+			
 		vector <double>::iterator itr = find(
 			vdctimes.begin(), vdctimes.end(), ncdftime
 		);
@@ -109,6 +118,7 @@ void Wrf2vdf::GetTimeMap(
 		if (itr != vdctimes.end()) {
 			timemap[itr-vdctimes.begin()] = i;
 		}
+#endif
 	}
 }
 	
