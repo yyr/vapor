@@ -248,6 +248,7 @@
     <ClCompile Include="..\..\..\lib\vdf\NetCDFCFCollection.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\NetCDFCollection.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\NetCDFSimple.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\Proj4API.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\RegularGrid.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\SignificanceMap.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\SphericalGrid.cpp" />
@@ -305,6 +306,7 @@
     <ClInclude Include="..\..\..\include\vapor\NCBuf.h" />
     <ClInclude Include="..\..\..\include\vapor\NetCDFCFCollection.h" />
     <ClInclude Include="..\..\..\include\vapor\NetCDFCollection.h" />
+    <ClInclude Include="..\..\..\include\vapor\Proj4API.h" />
     <ClInclude Include="..\..\..\include\vapor\RegularGrid.h" />
     <ClInclude Include="..\..\..\include\vapor\SphericalGrid.h" />
     <ClInclude Include="..\..\..\include\vapor\StretchedGrid.h" />
