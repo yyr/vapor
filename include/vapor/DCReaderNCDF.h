@@ -104,6 +104,12 @@ public:
 	return(_ncdfC->VariableExists(ts, varname));
  }
 
+  virtual void GetLatLonExtents(
+    size_t ts, double lon_exts[2], double lat_exts[2]
+ ) const {
+	lon_exts[0] = lon_exts[1] = lat_exts[0] = lat_exts[1] = 0.0;
+ }
+
 
 private:
  std::vector <size_t> _dims;

@@ -8,10 +8,10 @@
 
 #include <vector>
 #include <cassert>
-#include "proj_api.h"
 #include <vapor/DCReader.h>
 #include <vapor/NetCDFCollection.h>
 #include <vapor/common.h>
+#include <vapor/Proj4API.h>
 
 #ifdef WIN32
 #pragma warning(disable : 4251)
@@ -142,6 +142,15 @@ public:
 	_timeBias = 978307200.0;  // Make consistent with legacy code
  }
 
+ virtual void GetLatLonExtents(
+    size_t ts, double lon_exts[2], double lat_exts[2]
+ ) const {
+	double dummy[4];
+	(void) _GetLatLonExtentsCorners(
+		_ncdfc, ts, lon_exts, lat_exts, dummy, dummy
+	);
+ }
+
 
 private:
 
@@ -190,14 +199,15 @@ private:
  NetCDFCollection *_ncdfc;
  float *_sliceBuffer;	// buffer for reading data
  int _ovr_fd;
- projPJ _srcProjDef;
- projPJ _dstProjDef;
  string _projString;
+ Proj4API _proj4API;
  int _mapProj;
  float _dx;
  float _dy;
  float _cen_lat;
  float _cen_lon;
+ float _pole_lat;
+ float _pole_lon;
  float _grav;
  float _days_per_year;
  float _radius;	// planet radius for PlanetWRF
@@ -221,12 +231,15 @@ private:
  int _InitTime(NetCDFCollection *ncdfc);
  int _InitVars(NetCDFCollection *ncdfc);
 
- int _GetHorizExtents(size_t ts, double lon_exts[2], double lat_exts[2]) const; 
- int _GetHorizExtentsRot(
-	size_t ts, double lon_exts[2], double lat_exts[2]
+ int _GetVerticalExtents(
+	NetCDFCollection *ncdfc, size_t ts, double height[2]
  ) const; 
 
-
+ int _GetLatLonExtentsCorners(
+    NetCDFCollection *ncdfc,
+    size_t ts, double lon_exts[2], double lat_exts[2],
+    double lon_corners[4], double lat_corners[4]
+ ) const;
 
 };
 

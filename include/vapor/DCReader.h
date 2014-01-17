@@ -124,6 +124,24 @@ public:
 	return((find(v.begin(), v.end(), varname)!=v.end())&&ts<GetNumTimeSteps());
  }
 
+ //! Return the Longitude and Latitude extents of the grid
+ //!
+ //! This method returns the longitude extents (west-most and east-most)
+ //! points, and the latitude extents (south-most and north-most) in degrees.
+ //!
+ //! If the time step \p ts is invalid, or if for any reason the extents
+ //! can't be calculated, both lat and lon extents will be set to zero.
+ //! 
+ //! \param[in] timestep Time step of the grid
+ //! \param[out] lon_exts A two-element array containing the west-most, and
+ //! east-most points, in that order. Moreover, lon[0] <= lon[1]
+ //! \param[out] lat_exts A two-element array containing the south-most, and
+ //! north-most points, in that order. Moreover, lat[0] <= lat[1]
+ //!
+ virtual void GetLatLonExtents(
+    size_t ts, double lon_exts[2], double lat_exts[2]
+ ) const = 0;
+
  virtual std::vector <string> GetVariables2DExcluded() const = 0;
  virtual std::vector <string> GetVariables3DExcluded() const = 0;
 
