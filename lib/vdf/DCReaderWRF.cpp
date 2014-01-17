@@ -8,6 +8,7 @@
 #include <iterator>
 #include <cassert>
 #include <stdio.h>
+#include <vapor/GeoUtil.h>
 #include <vapor/DCReaderWRF.h>
 #include <vapor/UDUnitsClass.h>
 
@@ -32,8 +33,6 @@ DCReaderWRF::DCReaderWRF(const vector <string> &files) {
 	_ncdfc = NULL;
 	_sliceBuffer = NULL;
 	_ovr_fd = -1;
-	_srcProjDef = NULL;
-	_dstProjDef = NULL;
 	_mapProj = 0;
 	_projString.clear();
 	_elev = NULL;
@@ -62,18 +61,10 @@ DCReaderWRF::DCReaderWRF(const vector <string> &files) {
 	}
 
 	// Get required and optional global attributes 
-	// Initializes members: _dx, _dy, _cen_lat, _cen_lon, _grav,
-	// _days_per_year, _radius, _p2si
+	// Initializes members: _dx, _dy, _cen_lat, _cen_lon, _pole_lat,
+	// _pole_lon, _grav, _days_per_year, _radius, _p2si
 	//
 	rc = _InitAtts(ncdfc);
-	if (rc< 0) {
-		return;
-	}
-
-	// Set up map projection transforms
-	// Initializes members: _projString, _srcProjDef, _dstProjDef, _mapProj
-	//
-	rc = _InitProjection(ncdfc, _radius);
 	if (rc< 0) {
 		return;
 	}
@@ -85,6 +76,14 @@ DCReaderWRF::DCReaderWRF(const vector <string> &files) {
 	rc = _InitDimensions(ncdfc);
 	if (rc< 0) {
 		SetErrMsg("No valid dimensions");
+		return;
+	}
+
+	// Set up map projection transforms
+	// Initializes members: _projString, _proj4API, _mapProj
+	//
+	rc = _InitProjection(ncdfc, _radius);
+	if (rc< 0) {
 		return;
 	}
 
@@ -120,130 +119,70 @@ DCReaderWRF::DCReaderWRF(const vector <string> &files) {
 	sort(_vars2dExcluded.begin(), _vars2dExcluded.end());
 }
 
-int DCReaderWRF::_GetHorizExtents(
-	size_t ts, double lon_exts[2], double lat_exts[2]
+int DCReaderWRF::_GetLatLonExtentsCorners(
+	NetCDFCollection *ncdfc,
+	size_t ts, double lon_exts[2], double lat_exts[2],
+	double lon_corners[], double lat_corners[]
 ) const {
 	for (int i=0; i<2; i++) {
 		lon_exts[i] = 0.0;
 		lat_exts[i] = 0.0;
 	}
 	
-	int fd = _ncdfc->OpenRead(ts,"XLONG");
+	int fd = ncdfc->OpenRead(ts,"XLONG");
 	if (fd<0) {
 		SetErrMsg("Can't read XLONG variable");
-		_ncdfc->Close(fd);
+		ncdfc->Close(fd);
 		return(-1);
 	}
 
-	int rc = _ncdfc->ReadSlice(_sliceBuffer, fd);
+	int rc = ncdfc->ReadSlice(_sliceBuffer, fd);
 	if (rc<0) {
 		SetErrMsg("Can't read XLONG variable");
-		_ncdfc->Close(fd);
+		ncdfc->Close(fd);
 		return(-1);
 	}
-	_ncdfc->Close(fd);
+	ncdfc->Close(fd);
 
-	lon_exts[0] = _sliceBuffer[0];
-	lon_exts[1] = _sliceBuffer[_dims[0]*_dims[1]-1];
+	// corners, starting from lower left and going clockwise
+	lon_corners[0] = _sliceBuffer[0];
+	lon_corners[1] = _sliceBuffer[_dims[0] * (_dims[1]-1)];
+	lon_corners[2] = _sliceBuffer[(_dims[0] * _dims[1]) -1];
+	lon_corners[3] = _sliceBuffer[(_dims[0]-1)];
 
-	fd = _ncdfc->OpenRead(ts,"XLAT");
+	float l0, l1;
+	GeoUtil::LonExtents( _sliceBuffer, _dims[0], _dims[1], l0, l1);
+	lon_exts[0] = l0;
+	lon_exts[1] = l1;
+
+	fd = ncdfc->OpenRead(ts,"XLAT");
 	if (fd<0) {
 		SetErrMsg("Can't read XLAT variable");
-		_ncdfc->Close(fd);
+		ncdfc->Close(fd);
 		return(-1);
 	}
 
-	rc = _ncdfc->ReadSlice(_sliceBuffer, fd);
+	rc = ncdfc->ReadSlice(_sliceBuffer, fd);
 	if (rc<0) {
 		SetErrMsg("Can't read XLAT variable");
-		_ncdfc->Close(fd);
+		ncdfc->Close(fd);
 		return(-1);
 	}
-	_ncdfc->Close(fd);
+	ncdfc->Close(fd);
 
-	lat_exts[0] = _sliceBuffer[0];
-	lat_exts[1] = _sliceBuffer[_dims[0]*_dims[1]-1];
+	// corners, starting from lower left and going clockwise
+	lat_corners[0] = _sliceBuffer[0];
+	lat_corners[1] = _sliceBuffer[_dims[0] * (_dims[1]-1)];
+	lat_corners[2] = _sliceBuffer[(_dims[0] * _dims[1]) -1];
+	lat_corners[3] = _sliceBuffer[(_dims[0]-1)];
 
-	// Convert to radians
-	//
-	for (int i=0; i<2; i++) {
-		lon_exts[i] *= M_PI / 180.0;
-		lat_exts[i] *= M_PI / 180.0;
-	}
-
-	//
-	// Perform projection
-	//
-	if (_radius == 0.0) {
-		rc = pj_transform(
-			_srcProjDef, _dstProjDef, 2,1, lon_exts, lat_exts, NULL
-		);
-		if (rc>=1) {
-			SetErrMsg(
-				"Error transforming extents : %s",
-				pj_strerrno(*(pj_get_errno_ref()))
-			);
-			return(-1);
-		}
-	}
-	else {
-		// Hack for Plan
-		//
-		for (int i=0; i<2; i++) {
-			lon_exts[i] *= _radius;
-			lat_exts[i] *= _radius;
-		}
-	}
+	GeoUtil::LatExtents(_sliceBuffer, _dims[0], _dims[1], l0, l1);
+	lat_exts[0] = l0;
+	lat_exts[1] = l1;
 
 	return(0);
 }
 
-int DCReaderWRF::_GetHorizExtentsRot(
-	size_t ts, double lon_exts[2], double lat_exts[2]
-) const {
-	for (int i=0; i<2; i++) {
-		lon_exts[i] = 0.0;
-		lat_exts[i] = 0.0;
-	}
-	
-	double grid_center[2] = {
-		_cen_lon * M_PI / 180.0,
-		_cen_lat * M_PI / 180.0
-	};
-	
-
-	// inverse project CEN_LAT/CEN_LON, that gives grid center 
-	// in computational grid.
-	//
-	int rc = pj_transform(
-		_srcProjDef, _dstProjDef, 1,1, grid_center, grid_center+1, NULL
-	);
-	if (rc>=1) {
-		SetErrMsg(
-			"Error transforming extents : %s",
-			pj_strerrno(*(pj_get_errno_ref()))
-		);
-		return(-1);
-	}
-	grid_center[0] *= 180.0 / M_PI;
-	grid_center[1] *= 180.0 / M_PI;
-
-	// Convert grid center (currently in degrees from (-180, -90) 
-	// to (180,90)) to meters from origin at equator
-	//
-     grid_center[0] = grid_center[0]*111177.;
-     grid_center[1] = grid_center[1]*111177.;
-
-
-    // Use grid size to calculate extents
-	//
-	lon_exts[0] = grid_center[0]-0.5*(_dims[0]-1)*_dx;
-    lon_exts[1] = grid_center[1]-0.5*(_dims[1]-1)*_dy;
-    lat_exts[0] = grid_center[0]+0.5*(_dims[0]-1)*_dx;
-    lat_exts[1] = grid_center[1]+0.5*(_dims[1]-1)*_dy;
-
-	return(0);
-}
 
 
 vector <double> DCReaderWRF::GetExtents(size_t ts) const {
@@ -255,22 +194,85 @@ vector <double> DCReaderWRF::GetExtents(size_t ts) const {
 	extents.push_back(1.0);
 	extents.push_back(1.0);
 	
+	double height[2];
+	int rc = _GetVerticalExtents(_ncdfc, ts, height);
+	if (rc<0) return(extents);	// No error status. Sigh :-(
+
+	extents[2] = height[0];
+	extents[5] = height[1];
+
+	if (! _projString.empty()) {
+		//
+		// Now get lat-lon coords of grid corners. 
+		// We assume these get mapped to corners in the projection
+		// into cartographic space. This assumption is only valid
+		// with currently supported projections (MAP_PROJ=0,1,2,3,6);
+		//
+		double lon_exts[2]; // order: ll, ur
+		double lat_exts[2]; // order: ll, ur
+		double lon_corners[4];	// order clockwise starting lower left
+		double lat_corners[4];
+		rc = _GetLatLonExtentsCorners(
+			_ncdfc, ts, lon_exts, lat_exts, lon_corners, lat_corners
+		);
+		if (rc<0) return(extents);	// No error status. Sigh :-(
+
+		//
+		// Transform lat-lon to cartographic coordinates (performed in place)
+		//
+		rc = _proj4API.Transform(lon_corners, lat_corners, 4);
+		if (rc<0) {
+			SetErrMsg("Proj4API::Transform()");
+			return(extents);
+		}
+		double lonmin = lon_corners[0];
+		double lonmax = lon_corners[0];
+		double latmin = lat_corners[0];
+		double latmax = lat_corners[0];
+		for (int i=0; i<4; i++) {
+			if (lon_corners[i] < lonmin) lonmin = lon_corners[i];
+			if (lat_corners[i] < latmin) latmin = lat_corners[i];
+			if (lon_corners[i] > lonmax) lonmax = lon_corners[i];
+			if (lat_corners[i] > latmax) latmax = lat_corners[i];
+		}
+
+		extents[0] = lonmin;
+		extents[1] = latmin;
+		extents[3] = lonmax;
+		extents[4] = latmax;
+	}
+	else {
+		// Idealized case. No geographic coordinates, no projection
+		//
+		extents[0] = 0.0;
+		extents[1] = 0.0;
+		extents[3] = (_dims[0] - 1) * _dx;
+		extents[4] = (_dims[1] - 1) * _dy;
+	}
+
+	return(extents);
+}
+
+int DCReaderWRF::_GetVerticalExtents(
+	NetCDFCollection *ncdfc, size_t ts, double height[2]
+) const {
+	height[0] = height[1] = 0.0;
 
 	//
 	// Get vertical extents
 	//
-	int fd = _ncdfc->OpenRead(ts,"ELEVATION");
+	int fd = ncdfc->OpenRead(ts,"ELEVATION");
 	if (fd<0) {
 		SetErrMsg("Can't compute ELEVATION variable");
-		return(extents);	// No error status. Sigh :-(
+		return(-1);	
 	}
 
 	// Read bottom slice and look for minimum
 	//
-	int rc = _ncdfc->ReadSlice(_sliceBuffer, fd);
+	int rc = ncdfc->ReadSlice(_sliceBuffer, fd);
 	if (rc<0) {
 		SetErrMsg("Can't compute ELEVATION variable");
-		return(extents);	// No error status. Sigh :-(
+		return(-1);
 	}
 	float min = _sliceBuffer[0];
 	for (size_t i = 0; i < _dims[0]*_dims[1]; i++) {
@@ -279,49 +281,31 @@ vector <double> DCReaderWRF::GetExtents(size_t ts) const {
 
 	// Read top slice (skipping over inbetween slices) and look for maximum
 	//
-	_ncdfc->SeekSlice(0, 2, fd);
+	ncdfc->SeekSlice(0, 2, fd);
 	if (rc<0) {
 		SetErrMsg("Can't compute ELEVATION variable");
-		return(extents);	// No error status. Sigh :-(
+		return(-1);
 	}
 
-	rc = _ncdfc->ReadSlice(_sliceBuffer, fd);
+	rc = ncdfc->ReadSlice(_sliceBuffer, fd);
 	if (rc<0) {
 		SetErrMsg("Can't compute ELEVATION variable");
-		return(extents);	// No error status. Sigh :-(
+		return(-1);
 	}
-	_ncdfc->Close(fd);
+	ncdfc->Close(fd);
 
 	float max = _sliceBuffer[0];
 	for (size_t i = 0; i < _dims[0]*_dims[1]; i++) {
 		if (_sliceBuffer[i]>max) max = _sliceBuffer[i];
 	}
-	extents[2] = min;
-	extents[5] = max;
 
-	//
-	// Now get horizontal extents
-	//
-	double lon_exts[2]; // order: ll, ur
-	double lat_exts[2]; // order: ll, ur
-
-	if (_mapProj == 6) {	//cassini or rotated lat/lon
-		rc = _GetHorizExtentsRot(ts, lon_exts, lat_exts);
-	}
-	else {
-		rc = _GetHorizExtents(ts, lon_exts, lat_exts);
-	}
-	if (rc<0) {
-		return(extents);	// No error status. Sigh :-(
-	}
-
-	extents[0] = lon_exts[0];
-	extents[1] = lat_exts[0];
-	extents[3] = lon_exts[1];
-	extents[4] = lat_exts[1];
-
-	return(extents);
+	height[0] = min;
+	height[1] = max;
+	return(0);
 }
+
+	
+
 
 
 
@@ -349,6 +333,8 @@ int DCReaderWRF::_InitAtts(
 	_dy = -1.0;
 	_cen_lat = 0.0;
 	_cen_lon = 0.0;
+	_pole_lat = 90.0;
+	_pole_lon = 0.0;
 	_grav = 9.81;
 	_days_per_year = 0;
 	_radius = 0.0;
@@ -383,6 +369,14 @@ int DCReaderWRF::_InitAtts(
 		return(-1);
 	}
 	_cen_lon = dvalues[0];
+
+	ncdfc->GetAtt("", "POLE_LAT", dvalues);
+	if (dvalues.size() != 1) _pole_lat = 90.0;
+	else _pole_lat = dvalues[0];
+
+	ncdfc->GetAtt("", "POLE_LON", dvalues);
+	if (dvalues.size() != 1) _pole_lon = 0.0;
+	else _pole_lon = dvalues[0];
 
 	//
 	// "PlanetWRF" attributes
@@ -421,8 +415,6 @@ int DCReaderWRF::_InitProjection(
 	NetCDFCollection *ncdfc, float radius
 ) {
 	_projString.clear();
-	_srcProjDef = NULL;
-	_dstProjDef = NULL;
 	_mapProj = 0;
 
 
@@ -438,11 +430,32 @@ int DCReaderWRF::_InitProjection(
 	_mapProj = ivalues[0];
 
 	vector <double> dvalues;
-	switch (_mapProj){
-		case 0 : //Lat Lon
-			_projString = "+proj=latlong";
-			_projString += " +ellps=sphere";
+	switch (_mapProj) {
+		case 0 : {//Lat Lon
+			double lon[2], lat[2];
+			double dummy[4];
+			(void) _GetLatLonExtentsCorners(ncdfc, 0, lon, lat, dummy, dummy);
 
+			if ((lon[0]-lon[1]) == 0.0 || (lat[0]-lat[1]) == 0.0) {
+
+				// Idealized case. No projection
+				//
+				_projString.clear();
+			}
+			else {
+
+				// Compute center lat and lon. May be able to just
+				// get this from WRF CEN_LON and CEN_LAT attributes, but
+				// not sure if it's reliable
+				//
+				double lon_0 = (lon[0] + lon[1]) / 2.0;
+				double lat_0 = (lat[0] + lat[1]) / 2.0;
+				ostringstream oss;
+				oss << " +lon_0=" << lon_0 << " +lat_0=" << lat_0;
+				_projString = "+proj=eqc +ellps=WGS84" + oss.str();
+			}
+
+		}
 		break;
 		case 1: { //Lambert
 			ncdfc->GetAtt("", "STAND_LON", dvalues);
@@ -483,7 +496,6 @@ int DCReaderWRF::_InitProjection(
 			oss << (double)lat2;
 			_projString += oss.str();
 
-			_projString += " +ellps=sphere";
 		break;
 		}
 
@@ -525,7 +537,6 @@ int DCReaderWRF::_InitProjection(
 			oss << (double)lon0;
 			_projString += oss.str();
 
-			_projString += " +ellps=sphere";
 		break;
 		}
 
@@ -558,54 +569,67 @@ int DCReaderWRF::_InitProjection(
 			oss << (double)latts;
 			_projString += oss.str();
 
-			_projString += " +ellps=sphere";
 		break;
 		}
 
-		case(6): { //cassini or rotated lat/lon  
+		case(6): { // lat-long, possibly rotated, possibly cassini
 			
-			ncdfc->GetAtt("", "POLE_LAT", dvalues);
-			if (dvalues.size() != 1) {
-				SetErrMsg("Error reading required attribute : POLE_LAT");
-				return(-1);
+			// See if this is a regular cylindrical equidistant projection
+			// with the pole in the default location
+			//
+			if (_pole_lat == 90.0 && _pole_lon == 0.0) {
+
+				// Compute center lat and lon. May be able to just
+				// get this from WRF CEN_LON and CEN_LAT attributes, but
+				// not sure if it's reliable
+				//
+				double lon[2], lat[2];
+				double dummy[4];
+				(void) _GetLatLonExtentsCorners(
+					ncdfc, 0, lon, lat, dummy, dummy
+				);
+				double lon_0 = (lon[0] + lon[1]) / 2.0;
+				double lat_0 = (lat[0] + lat[1]) / 2.0;
+				ostringstream oss;
+				oss << " +lon_0=" << lon_0 << " +lat_0=" << lat_0;
+				_projString = "+proj=eqc +ellps=WGS84" + oss.str();
 			}
-			float latp = dvalues[0];
+			else {
 
-			ncdfc->GetAtt("", "POLE_LON", dvalues);
-			if (dvalues.size() != 1) {
-				SetErrMsg("Error reading required attribute : POLE_LON");
-				return(-1);
+				//
+				// Assume arbitrary pole displacement. Probably should 
+				// check for cassini projection (transverse cylindrical)
+				// but general rotated cyl. equidist. projection should work
+				//
+				ncdfc->GetAtt("", "STAND_LON", dvalues);
+				if (dvalues.size() != 1) {
+					SetErrMsg("Error reading required attribute : STAND_LON");
+					return(-1);
+				}
+				float lon0 = dvalues[0];
+
+				_projString = "+proj=ob_tran";
+				_projString += " +o_proj=eqc";
+				_projString += " +to_meter=0.0174532925199";
+
+				_projString += " +o_lat_p=";
+				oss.str(empty);
+				oss << (double) _pole_lat;
+				_projString += oss.str();
+				_projString += "d"; //degrees, not radians
+
+				_projString += " +o_lon_p=";
+				oss.str(empty);
+				oss << (double)(180.-_pole_lon);
+				_projString += oss.str();
+				_projString += "d"; //degrees, not radians
+
+				_projString += " +lon_0=";
+				oss.str(empty);
+				oss << (double)(-lon0);
+				_projString += oss.str();
+				_projString += "d"; //degrees, not radians
 			}
-			float lonp = dvalues[0];
-
-			ncdfc->GetAtt("", "STAND_LON", dvalues);
-			if (dvalues.size() != 1) {
-				SetErrMsg("Error reading required attribute : STAND_LON");
-				return(-1);
-			}
-			float lon0 = dvalues[0];
-
-			_projString = "+proj=ob_tran";
-			_projString += " +o_proj=latlong";
-
-			_projString += " +o_lat_p=";
-			oss.str(empty);
-			oss << (double)latp;
-			_projString += oss.str();
-			_projString += "d"; //degrees, not radians
-
-			_projString += " +o_lon_p=";
-			oss.str(empty);
-			oss << (double)(180.-lonp);
-			_projString += oss.str();
-			_projString += "d"; //degrees, not radians
-
-			_projString += " +lon_0=";
-			oss.str(empty);
-			oss << (double)(-lon0);
-			_projString += oss.str();
-			_projString += "d"; //degrees, not radians
-			_projString += " +ellps=sphere";
 			
 			break;
 		}
@@ -616,40 +640,28 @@ int DCReaderWRF::_InitProjection(
 
 	}
 
-	string latLongProjString = "+proj=latlong";
+	if (_projString.empty()) return(0);
 
 	//
-	// We set up a different proj4 conversion string for 
-	// PlanetWRF data, but later on we don't actually us it :-(. 
+	// PlanetWRF data if radius is not zero
 	//
 	if (radius > 0) {	// planetWRf (not on earth)
+		_projString += " +ellps=sphere";
 		stringstream ss;
 		ss << radius;
-		latLongProjString += " +a=" + ss.str() + " +es=0";
+		_projString += " +a=" + ss.str() + " +es=0";
 	}
 	else {
-		latLongProjString += " +ellps=sphere";
+		_projString += " +ellps=WGS84";
 	}
 
-
-
-	
-	_srcProjDef = pj_init_plus(latLongProjString.c_str());
-	if (! _srcProjDef) {
-		SetErrMsg(
-			"Error in creating map reprojection string : %s",
-			pj_strerrno(*(pj_get_errno_ref()))
-		);
-		return(-1);
-	}
-
-	_dstProjDef = pj_init_plus(_projString.c_str());
-	if (! _srcProjDef) {
-		SetErrMsg(
-			"Invalid geo-referencing with proj string %s: %s",
-			_projString.c_str(), pj_strerrno(*(pj_get_errno_ref()))
-		);
-		pj_free(_srcProjDef);
+	//
+	// Set up projection transforms to/from geographic and cartographic
+	// coordinates
+	//
+	int rc = _proj4API.Initialize("", _projString);
+	if (rc < 0) {
+		SetErrMsg("Proj4API::Initalize(, %s)", _projString.c_str());
 		return(-1);
 	}
 
@@ -794,9 +806,6 @@ DCReaderWRF::~DCReaderWRF() {
 	if (_elev) delete _elev;
 	if (_sliceBuffer) delete [] _sliceBuffer;
 
-	if (_srcProjDef) pj_free(_srcProjDef);
-	if (_dstProjDef) pj_free(_dstProjDef);
-
 	if (_ncdfc) delete _ncdfc;
 }
 
@@ -850,7 +859,6 @@ int DCReaderWRF::CloseVariable() {
 	_ovr_fd = -1;
 	return(rc);
 }
-
 
 int DCReaderWRF::_InitVars(NetCDFCollection *ncdfc) 
 {

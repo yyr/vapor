@@ -407,6 +407,11 @@ int	wrfvdfcreate::launchVdfCreate(int argc, char **argv) {
 			cout << extptr[i] << " ";
 		}
 		cout << endl;
+		double lon[2], lat[2];
+		wrfData->GetLatLonExtents(0, lon, lat);
+		cout << "\tMin Longitude and Latitude : " <<lon[0]<< " " <<lat[0]<< endl;
+		cout << "\tMax Longitude and Latitude : " <<lon[1]<< " " <<lat[1]<< endl;
+
 		
 	} // End if quiet.
 

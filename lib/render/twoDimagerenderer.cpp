@@ -27,12 +27,12 @@
 #include "glwindow.h"
 
 #include <vapor/errorcodes.h>
+#include <vapor/Proj4API.h>
 #include <qgl.h>
 #include <qcolor.h>
 #include <qapplication.h>
 #include <qcursor.h>
 #include "renderer.h"
-#include "proj_api.h"
 
 using namespace VAPoR;
 
@@ -313,27 +313,24 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	
 	if (tParams->isGeoreferenced()) {
 		//Set up proj.4:
-		projPJ dst_proj;
-		projPJ src_proj; 
+
+		Proj4API proj4API;
+
+		int rc = proj4API.Initialize(
+			tParams->getImageProjectionString(), 
+			DataStatus::getProjectionString()
+		);
+		if (rc < 0) {
+			MyBase::SetErrMsg(
+				VAPOR_ERROR_GEOREFERENCE, "Invalid Proj string in data : %s",
+				DataStatus::getProjectionString().c_str()
+			);
+			return false;
+		}
 		
-		src_proj = pj_init_plus(tParams->getImageProjectionString().c_str());
-		dst_proj = pj_init_plus(DataStatus::getProjectionString().c_str());
-		bool doProj = (src_proj != 0 && dst_proj != 0);
-		if (!doProj) return false;
-
-
-		//If a projection string is latlon, proj uses coordinates in Radians!
-		bool radSrc = pj_is_latlong(src_proj)||(string::npos != tParams->getImageProjectionString().find("ob_tran"));
-		bool rotlatlonDst = (string::npos != DataStatus::getProjectionString().find("ob_tran"));
-		bool radDst = pj_is_latlong(dst_proj)||rotlatlonDst;
-
-		lambertOrMercator = pj_is_latlong(src_proj) && ((string::npos != DataStatus::getProjectionString().find("=merc")) ||
+		lambertOrMercator = ((string::npos != DataStatus::getProjectionString().find("=merc")) ||
 			(string::npos != DataStatus::getProjectionString().find("lcc")));
 
-
-
-		static const double RAD2DEG = 180./M_PI;
-		static const double DEG2RAD = M_PI/180.0;
 
 		//Use a line buffer to hold 3d coordinates for transforming
 		double* elevVertLine = new double[3*maxx];
@@ -353,19 +350,14 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 				
 			}
 			
-			//apply proj4 to transform the line.  If source is in degrees, convert to radians:
-			if (radSrc)
-				for(int i = 0; i< maxx; i++) {
-					elevVertLine[3*i] *= DEG2RAD;
-					elevVertLine[3*i+1] *= DEG2RAD;
-				}
-			pj_transform(src_proj,dst_proj,maxx,3, elevVertLine,elevVertLine+1, 0);
-			//If the scene is latlon or rotlatlon, convert to degrees, then to meters:
-			if (radDst) 
-				for(int i = 0; i< maxx; i++) {
-					elevVertLine[3*i] *= (RAD2DEG*111177.);
-					elevVertLine[3*i+1] *= (RAD2DEG*111177.);
-				}
+			//apply proj4 to transform the points(in place):
+			rc = proj4API.Transform(elevVertLine, elevVertLine+1, maxx, 3);
+			if (rc<0){
+				MyBase::SetErrMsg(
+					VAPOR_ERROR_TWO_D, "Error in coordinate projection"
+				);
+				return false;
+			}
 			
 			//Copy the result back to elevVert. 
 			//Translate by local offset

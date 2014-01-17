@@ -694,11 +694,16 @@ int MetadataVDC::Write(const string &path, int relative_path) {
 
 	ofstream fileout;
 	fileout.open(path.c_str());
-	if (! fileout) {
-		SetErrMsg("Can't open file \"%s\" for writing", path.c_str());
+	if (! fileout.good()) {
+		SetErrMsg("Can't open file \"%s\" for writing : %M", path.c_str());
 		return(-1);
 	}
 	fileout << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>" << endl;
+	if (! fileout.good()) {
+		SetErrMsg("Error writing file \"%s\" : %M ", path.c_str());
+		return(-1);
+	}
+
 	fileout << *_rootnode;
 	return(0);
 }

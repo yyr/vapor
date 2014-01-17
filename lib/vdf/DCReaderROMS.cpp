@@ -7,7 +7,9 @@
 #include <iterator>
 #include <cassert>
 
+#include <vapor/GeoUtil.h>
 #include <vapor/DCReaderROMS.h>
+#include <vapor/Proj4API.h>
 #ifdef WIN32
 #pragma warning(disable : 4251)
 #endif
@@ -21,6 +23,7 @@ DCReaderROMS::DCReaderROMS(const vector <string> &files) {
 	_latExts[0] = _latExts[1] = 0.0;
 	_lonExts[0] = _lonExts[1] = 0.0;
 	_vertCoordinates.clear();
+	_cartesianExtents.clear();
 	_vars3d.clear();
 	_vars2dXY.clear();
 	_vars3dExcluded.clear();
@@ -105,6 +108,12 @@ DCReaderROMS::DCReaderROMS(const vector <string> &files) {
 	if (llb._latbuf) delete [] llb._latbuf;
 	if (llb._lonbuf) delete [] llb._lonbuf;
 
+	rc = _InitCartographicExtents(
+		GetMapProjection(), _lonExts, _latExts, _vertCoordinates, 
+		_cartesianExtents
+	);
+	if (rc<0) return;
+
 	//
 	// Compute the two derived variables: angleRAD and latDEG
 	//
@@ -125,27 +134,16 @@ DCReaderROMS::DCReaderROMS(const vector <string> &files) {
 	sort(_vars2dExcluded.begin(), _vars2dExcluded.end());
 }
 
-vector <double> DCReaderROMS::GetExtents(size_t ) const {
-	vector <double> cartesianExtents(6);
+string DCReaderROMS::GetMapProjection() const {
 
-	
-	// 
-	// Convert horizontal extents expressed in lat-lon to Cartesian
-	// coordinates in whatever units the vertical coordinate is 
-	// expressed in. Multiply lat-lon by 111177.0 gives  meters
-	// at the equator. 
-	//
-	cartesianExtents[0] = _lonExts[0] * 111177.0;
-	cartesianExtents[1] = _latExts[0] * 111177.0;
-	cartesianExtents[2] = _vertCoordinates[0];
+	double lon_0 = (_lonExts[0] + _lonExts[1]) / 2.0;
+	double lat_0 = (_latExts[0] + _latExts[1]) / 2.0;
+	ostringstream oss;
+	oss << " +lon_0=" << lon_0 << " +lat_0=" << lat_0;
+	string projstring = "+proj=eqc +ellps=WGS84" + oss.str();
 
-	cartesianExtents[3] = _lonExts[1] * 111177.0;
-	cartesianExtents[4] = _latExts[1] * 111177.0;
-	cartesianExtents[5] = _vertCoordinates[_vertCoordinates.size()-1];
-	return(cartesianExtents);
+	return(projstring);
 }
-
-
 
 vector <size_t> DCReaderROMS::_GetSpatialDims(
 	NetCDFCFCollection *ncdfc, string varname
@@ -733,6 +731,41 @@ int DCReaderROMS::_InitCoordVars(NetCDFCFCollection *ncdfc)
 	return(0);
 }
 
+int DCReaderROMS::_InitCartographicExtents(
+    string mapProj,
+    const double lonExts[2],
+    const double latExts[2],
+    const std::vector <double> vertCoordinates,
+    std::vector <double> &extents
+) const {
+	extents.clear();
+
+	Proj4API proj4API;
+
+	int rc = proj4API.Initialize("", mapProj);
+	if (rc<0) {
+		SetErrMsg("Invalid map projection : %s", mapProj.c_str());
+		return(-1);
+	}
+
+	double x[] = {lonExts[0], lonExts[1]};
+	double y[] = {latExts[0], latExts[1]};
+
+	rc = proj4API.Transform(x,y,2,1);
+	if (rc < 0) {
+		SetErrMsg("Invalid map projection : %s", mapProj.c_str());
+		return(-1);
+	}
+	extents.push_back(x[0]);
+	extents.push_back(y[0]);
+	extents.push_back(vertCoordinates[0]);
+	extents.push_back(x[1]);
+	extents.push_back(y[1]);
+	extents.push_back(vertCoordinates[vertCoordinates.size()-1]);
+
+	return(0);
+}
+
 int DCReaderROMS::_initLatLonBuf(
 	NetCDFCFCollection *ncdfc, string latvar, string lonvar, 
 	DCReaderROMS::latLonBuf &llb
@@ -827,6 +860,16 @@ int DCReaderROMS::_initLatLonBuf(
 		}
 	}
 
+	GeoUtil::LonExtents(
+		llb._lonbuf, llb._nx, llb._ny, llb._lonexts[0], llb._lonexts[1]
+	);
+	GeoUtil::LatExtents(
+		llb._latbuf, llb._nx, llb._ny, llb._latexts[0], llb._latexts[1]
+	);
+
+	return(0);
+
+#ifdef	DEAD
 
 	//
 	// Get lat extents.  Really only need to check data on boundary, 
@@ -883,7 +926,9 @@ int DCReaderROMS::_initLatLonBuf(
 		llb._lonexts[0] -= 360.0;
 		llb._lonexts[1] -= 360.0;
 	}
+
 	return(0);
+#endif
 }
 
 void DCReaderROMS::_getRotationVariables(

@@ -8,7 +8,9 @@
 #include <cassert>
 #include <vector>
 
+#include <vapor/GeoUtil.h>
 #include <vapor/DCReaderMOM.h>
+#include <vapor/Proj4API.h>
 #ifdef WIN32
 #pragma warning(disable : 4251)
 #endif
@@ -22,6 +24,7 @@ DCReaderMOM::DCReaderMOM(const vector <string> &files) {
 	_latExts[0] = _latExts[1] = 0.0;
 	_lonExts[0] = _lonExts[1] = 0.0;
 	_vertCoordinates.clear();
+	_cartesianExtents.clear();
 	_vars3d.clear();
 	_vars2dXY.clear();
 	_vars3dExcluded.clear();
@@ -142,6 +145,12 @@ DCReaderMOM::DCReaderMOM(const vector <string> &files) {
 		if (llb._lonbuf) delete [] llb._lonbuf;
 	}
 
+	rc = _InitCartographicExtents(
+		GetMapProjection(), _lonExts, _latExts, _vertCoordinates,
+		_cartesianExtents
+	);
+	if (rc<0) return;
+
 	//
 	// Compute the two derived variables: angleRAD and latDEG
 	//
@@ -162,27 +171,15 @@ DCReaderMOM::DCReaderMOM(const vector <string> &files) {
 	sort(_vars2dExcluded.begin(), _vars2dExcluded.end());
 }
 
-vector <double> DCReaderMOM::GetExtents(size_t ) const {
-	vector <double> cartesianExtents(6);
+string DCReaderMOM::GetMapProjection() const {
+	double lon_0 = (_lonExts[0] + _lonExts[1]) / 2.0;
+	double lat_0 = (_latExts[0] + _latExts[1]) / 2.0;
+	ostringstream oss;
+	oss << " +lon_0=" << lon_0 << " +lat_0=" << lat_0;
+	string projstring = "+proj=eqc +ellps=WGS84" + oss.str();
 
-	
-	// 
-	// Convert horizontal extents expressed in lat-lon to Cartesian
-	// coordinates in whatever units the vertical coordinate is 
-	// expressed in. Multiply lat-lon by 111177.0 gives  meters
-	// at the equator. 
-	//
-	cartesianExtents[0] = _lonExts[0] * 111177.0;
-	cartesianExtents[1] = _latExts[0] * 111177.0;
-	cartesianExtents[2] = _vertCoordinates[0];
-
-	cartesianExtents[3] = _lonExts[1] * 111177.0;
-	cartesianExtents[4] = _latExts[1] * 111177.0;
-	cartesianExtents[5] = _vertCoordinates[_vertCoordinates.size()-1];
-	return(cartesianExtents);
+    return(projstring);
 }
-
-
 
 vector <size_t> DCReaderMOM::_GetSpatialDims(
 	NetCDFCFCollection *ncdfc, string varname
@@ -453,7 +450,6 @@ int DCReaderMOM::OpenVariableRead(
 }
 
 int DCReaderMOM::ReadSlice(float *slice) {
-	if (_ovr_fd < 0) return (-1);
 
 	if (_ovr_slice >= _ovr_nz) {
 		return(0); // EOF
@@ -476,6 +472,7 @@ int DCReaderMOM::ReadSlice(float *slice) {
 		_ovr_slice++;
 		return(1);
 	}
+	if (_ovr_fd < 0) return (-1);
 
 	if (_GetSpatialDims(_ncdfc, _ovr_varname).size() < 2) {
 		SetErrMsg("Invalid operation");
@@ -517,7 +514,6 @@ int DCReaderMOM::Read(float *data) {
 }
 
 int DCReaderMOM::CloseVariable() {
-	if (_ovr_fd < 0) return(0);
 
 	bool derived = IsVariableDerived(_ovr_varname);
 	_ovr_weight_tbl = NULL;
@@ -526,6 +522,7 @@ int DCReaderMOM::CloseVariable() {
 
 	if (derived) return(0);
 
+	if (_ovr_fd < 0) return(0);
 	int rc = _ncdfc->Close(_ovr_fd);
 	_ovr_fd = -1;
 	return(rc);
@@ -746,6 +743,41 @@ int DCReaderMOM::_InitCoordVars(NetCDFCFCollection *ncdfc)
 	return(0);
 }
 
+int DCReaderMOM::_InitCartographicExtents(
+    string mapProj,
+    const double lonExts[2],
+    const double latExts[2],
+    const std::vector <double> vertCoordinates,
+    std::vector <double> &extents
+) const {
+	extents.clear();
+
+	Proj4API proj4API;
+
+	int rc = proj4API.Initialize("", mapProj);
+	if (rc<0) {
+		SetErrMsg("Invalid map projection : %s", mapProj.c_str());
+		return(-1);
+	}
+
+	double x[] = {lonExts[0], lonExts[1]};
+	double y[] = {latExts[0], latExts[1]};
+
+	rc = proj4API.Transform(x,y,2,1);
+	if (rc < 0) {
+		SetErrMsg("Invalid map projection : %s", mapProj.c_str());
+		return(-1);
+	}
+	extents.push_back(x[0]);
+	extents.push_back(y[0]);
+	extents.push_back(vertCoordinates[0]);
+	extents.push_back(x[1]);
+	extents.push_back(y[1]);
+	extents.push_back(vertCoordinates[vertCoordinates.size()-1]);
+
+	return(0);
+}
+
 void DCReaderMOM::_encodeLatLon(string latcv,string loncv, string &key) const {
 	key = latcv + " " + loncv;	// white space delmited string
 }
@@ -857,6 +889,17 @@ int DCReaderMOM::_initLatLonBuf(
 		}
 	}
 
+	GeoUtil::LonExtents(
+		llb._lonbuf, llb._nx, llb._ny, llb._lonexts[0], llb._lonexts[1]
+	);
+	GeoUtil::LatExtents(
+		llb._latbuf, llb._nx, llb._ny, llb._latexts[0], llb._latexts[1]
+	);
+
+	return(0);
+
+#ifdef	DEAD
+
 	//
 	// Get lat extents.  Really only need to check data on boundary, 
 	// but we're lazy. N.B. doesn't handle case where data cross either pole.
@@ -922,6 +965,8 @@ int DCReaderMOM::_initLatLonBuf(
 		llb._lonexts[1] = llb._lonexts[0] + 360.0;
 	}
 	return(0);
+#endif
+
 }
 
 void DCReaderMOM::_getRotationVariables(

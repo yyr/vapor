@@ -110,6 +110,10 @@ void vdfcreate::writeToScreen(DCReader *DCdata, MetadataVDC *file) {
             cout << extptr[i] << " ";
         }
         cout << endl;
+		double lon[2], lat[2];
+		DCdata->GetLatLonExtents(0, lon, lat);
+		cout << "\tMin Longitude and Latitude : " <<lon[0]<< " " <<lat[0]<< endl;
+		cout << "\tMax Longitude and Latitude : " <<lon[1]<< " " <<lat[1]<< endl;
 
     }
 }
@@ -201,10 +205,7 @@ MetadataVDC *vdfcreate::CreateMetadataVDC(
 	    }
 	}
 
-	//
-	// Map projection is always lat-lon
-	//
-	file->SetMapProjection("+proj=latlon +ellps=sphere");
+	file->SetMapProjection(DCdata->GetMapProjection());
 
 	return(file);
 }

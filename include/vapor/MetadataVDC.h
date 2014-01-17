@@ -7,6 +7,7 @@
 #define	_MetadataVDC_h_
 
 #include <stack>
+#include <string>
 #include <expat.h>
 #include <vapor/MyBase.h>
 #include <vapor/common.h>
@@ -701,7 +702,17 @@ public:
  //! \sa SetMapProjection()
  //
  virtual string GetMapProjection() const {
-	return(_rootnode->GetElementString(_mapProjectionTag));
+	//
+	// Backwards compatibility hack to support equirectangular
+	// projection strings incorrectly set to latlong
+	//
+	string mapproj = _rootnode->GetElementString(_mapProjectionTag);
+	string s = "proj=latlong";
+	std::string::size_type n;
+	if ((n = mapproj.find(s)) != std::string::npos) {
+		mapproj.replace(n, s.length(), "proj=eqc");
+	}
+	return(mapproj);
  };
 
 

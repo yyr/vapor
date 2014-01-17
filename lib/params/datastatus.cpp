@@ -32,7 +32,7 @@
 #include <qapplication.h>
 #include <qcursor.h>
 #include <qcolor.h>
-#include <proj_api.h>
+#include <vapor/Proj4API.h>
 
 #include <vapor/ImpExp.h>
 #include <vapor/MyBase.h>
@@ -735,40 +735,20 @@ void DataStatus::getLocalExtentsCartesian(float myExtents[6]) {
 //result is in user coordinates.
 bool DataStatus::convertFromLonLat(double coords[2], int npoints){
 	//Set up proj.4 to convert from LatLon to VDC coords
+
 	if (getProjectionString().size() == 0) return false;
-	projPJ vapor_proj = pj_init_plus(getProjectionString().c_str());
-	if (!vapor_proj) return false;
-	projPJ latlon_proj = pj_latlong_from_proj( vapor_proj); 
-	if (!latlon_proj) return false;
-	
-	if (!pj_is_latlong(vapor_proj)){ //if data is already latlong, bypass following:
-		
-		static const double DEG2RAD = 3.1415926545/180.;
-		//source point is in degrees, convert to radians:
-		for (int i = 0; i<npoints*2; i++) coords[i] *= DEG2RAD;
 
-		int rc = pj_transform(latlon_proj,vapor_proj,npoints,2, coords,coords+1, 0);
+	Proj4API proj4API;
+	int rc = proj4API.Initialize("", getProjectionString());
+	if (rc<0) return (false);
 
-		if (rc){
-			MyBase::SetErrMsg(VAPOR_WARNING, "Error in coordinate projection: \n%s",
-				pj_strerrno(rc));
-			pj_free(vapor_proj);
-			pj_free(latlon_proj);
-			return false;
-		}
-		//convert radians to degrees if the vapor projection is rotated lat-lon
-		if (!string::npos == getProjectionString().find("ob_tran")){
-			static const double RAD2DEG = 180./3.1415926545;
-			//dest point is in radians, convert to degrees:
-			for (int i = 0; i<npoints*2; i++) coords[i] *= RAD2DEG;
-		}
-	}
+	rc = proj4API.Transform(coords, coords+1, npoints, 2);
+	if (rc<0) return(false);
 	
-	pj_free(vapor_proj);
-	pj_free(latlon_proj);
 	return true;
 	
 }
+
 bool DataStatus::convertLocalFromLonLat(int timestep, double coords[2], int npoints){
 	DataMgr* dataMgr = getInstance()->getDataMgr();
 	if (!dataMgr) return false;
@@ -797,36 +777,18 @@ bool DataStatus::convertToLonLat(double coords[2], int npoints){
 
 	//Set up proj.4 to convert to latlon
 	if (getProjectionString().size() == 0) return false;
-	projPJ vapor_proj = pj_init_plus(getProjectionString().c_str());
-	projPJ latlon_proj = 0;
-	if (vapor_proj) latlon_proj = pj_latlong_from_proj( vapor_proj); 
-	if (!latlon_proj) {
-		MyBase::SetErrMsg(VAPOR_ERROR_GEOREFERENCE, "Georeferencing error.  Georeferencing will be disabled; \n Projection string = \n%s",
-				getProjectionString().c_str());
-		projString.clear();
-		return false;
-	}
-	bool vaporRad = pj_is_latlong(vapor_proj)||(string::npos != getProjectionString().find("ob_tran"));
 
-	static const double RAD2DEG = 180./3.1415926545;
-	static const double DEG2RAD = 3.1415926545/180.;
-	if (vaporRad) //If vapor coord system is lat lon or rotated latlon then must convert meters to degrees to radians
-		for (int i = 0; i<2*npoints; i++) coords[i]*=(DEG2RAD/111177.);
-	
-	int rc = pj_transform(vapor_proj,latlon_proj,npoints,2, coords,coords+1, 0);
+	Proj4API proj4API;
+	int rc = proj4API.Initialize(getProjectionString(), "");
+	if (rc<0) return (false);
 
-	if (rc){
-		MyBase::SetErrMsg(VAPOR_WARNING, "Error in coordinate projection: \n%s",
-			pj_strerrno(rc));
-		return false;
-	}
-	 //results are in radians, convert to degrees
-	for (int i = 0; i<npoints*2; i++) coords[i] *= RAD2DEG;
-
+	rc = proj4API.Transform(coords, coords+1, npoints, 2);
+	if (rc<0) return(false);
 
 	return true;
 	
 }
+
 //Derived var support
 //Obtain the id for a given output variable, return -1 if it does not exist
 //More or less the same as the method on DataMgr, but valid even if there is not DataMgr

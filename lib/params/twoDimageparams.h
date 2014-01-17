@@ -97,31 +97,27 @@ public:
 	
 	const unsigned char* calcTwoDDataTexture(int timestep, int &wid, int &ht);
 
-	//Read texture image from tif (or kml).
-	const unsigned char* readTextureImage(int timestep, int* wid, int* ht,
-		float imgExtents[4]);
 
 	//Whenever the 2D image filename changes or the session changes,
 	//we need to reread the file and reset the image extents.
 	void setImagesDirty();
 	
-	//Go over domain, find min,max lonlatexts at a timestep
-	bool getLonLatExts(size_t timestep, float lonlatexts[4]) ;
 	
-	unsigned char* extractSubtexture(unsigned char* texture, float lonlatexts[4], int* wid2, int* ht2, int lev);
-
 	//Override default, allow manip to go outside of data:
 	virtual bool isDomainConstrained() {return false;}
 
 	// Return the image extents in the current displayed image
+	// coordinate system: PCS, *image* space
+	//
 	float * getCurrentTwoDImageExtents(){
 		return _imageExtents;
 	}
+	std::string getImageProjectionString() {return _projDefinitionString;}
+
 	
-	std::string& getImageProjectionString() {return projDefinitionString;}
-	void setImageProjectionString(const char* str){projDefinitionString = str;}
-	//Determine the corners of the image in user coordinates
-	//Only available when the renderer is enabled.
+	// Determine the corners of the image in PCS coordinates, user space
+	// Only available when the renderer is enabled.
+	//
 	bool getImageCorners(double cors[8]);
 	int getImagePlacement(){return imagePlacement;}
 	void setImagePlacement(int val){ imagePlacement = val;}
@@ -150,9 +146,6 @@ protected:
 	
 	int fidelityLevel;
 	bool ignoreFidelity;
-	int getImageNum(int timestep){
-		return imageNums[timestep];
-	}
 	void setupImageNums(TIFF* tif);
 
 	//Cache of twoD textures, one per timestep.
@@ -164,7 +157,7 @@ protected:
 	
 	float _imageExtents[4]; //(4 floats for each time step), only for georeferenced images
 
-	int* imageNums;
+	std::vector <int> _imageNums;
 	
 	bool useGeoreferencing;
 	bool cropImage;
@@ -172,19 +165,69 @@ protected:
 	float opacityMultiplier;
 	string imageFileName;
 	int imagePlacement;
-	std::string projDefinitionString;
 	bool singleImage;  //indicates there is only one image for all timesteps
 	bool transparentAlpha;
 
 private:
 	int _timestep;
-	float _lonlatexts[4];
+	double _lonlatexts[4];
+	double _boxExtents[6];
 	const unsigned char *_texBuf;
+	std::string _projDefinitionString;
 
 	bool twoDIsDirty(int timestep) ;
-	bool isGeoTIFF(TIFF *tif) const;
-	bool _geotiffImage;
+
+	string _getProjectionFromGTIF(TIFF *tif) const;
+
+	int _getImageNum(size_t timestep) {
+		if (timestep >= _imageNums.size()) return(0); 
+		return _imageNums[timestep];
+	}
 	
+	//Read texture image from tif (or kml).
+	// 
+	const unsigned char* _readTextureImage(
+		size_t timestep, int &width, int &height, float imgExtents[4]
+	);
+
+	//
+	// Helper function for _readTextureImage. Reads a TIFF or GEOTIFF 
+	// image
+	//
+	uint32* _readTiffImage(
+		TIFF *tif, size_t timestep, int &width, int &height
+	);
+
+	// Attempt to crop the texture to the smallest rectangle
+	// that covers the data space. Only possible if image is
+	// a global, cylindrical-equidistant projection. _extractSubtexture()
+	// modifies with, height, and pcsExtents if successful, otherwise
+	// they are unchanged.
+	//
+	// pcsExtentsImage and subPCSExtentsImage are in PCS coordinate, image
+	// space. 
+	//
+	uint32 *_extractSubtexture(
+		uint32 *texture, string proj4StringImage, int width, int height,
+		const double geoExtentsData[4], const double pcsExtentsImage[4], 
+		const double geoCornersImage[8], 
+		string &subProj4StringImage, int &subWidth, int &subHeight, 
+		double subPCSExtentsImage[4]
+	) const; 
+
+	//
+	// Get the extents of a GEOTiff image. 
+	// pcsExtents are in PCS coordinates, image space
+	// geoCorners are in geographic (lat-long) coordinates
+	//
+	int _getGTIFExtents(
+		TIFF *tif, string proj4String, int width, int height,
+		double pcsExtents[4], double geoCorners[8], string &proj4StringNew
+	) const;
+
+	// Compute estimate of extents of data domain in lat-lon coordinates
+	//
+	bool _getLonLatExts(size_t timestep, double lonlatexts[4]) ;
 };
 };
 #endif //TWODIMAGEPARAMS_H 
