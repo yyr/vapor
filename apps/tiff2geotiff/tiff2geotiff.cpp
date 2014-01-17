@@ -328,7 +328,7 @@ static void InstallGeoTIFF(TIFF *out)
 		if (pos >= 0){
 			char* newString = new char[strlen(proj4_string)+15];
 			strcpy(newString, proj4_string);
-			strcat(newString, " +ellps=sphere");
+			strcat(newString, " +ellps=WGS84");
 			
 			p4string = newString;
 		}
@@ -421,7 +421,7 @@ static int applyCorners(float lonlat[4], float relPos[4], TIFF* out){
 		} else {
 			//Must convert to radians:
 			const double DEG2RAD = 3.141592653589793/180.;
-			const char* latLongProjString = "+proj=latlong +ellps=sphere";
+			const char* latLongProjString = "+proj=latlong +ellps=WGS84";
 			projPJ latlon_p = pj_init_plus(latLongProjString);
 			//convert to radians...
 			for (int j = 0; j<4; j++) dbextents[j] = lonlat[j]*DEG2RAD;
@@ -451,8 +451,8 @@ static int applyCorners(float lonlat[4], float relPos[4], TIFF* out){
 		newDBExtents[1] = (dbextents[1]*relPos[3] - dbextents[3]*relPos[1])/(relPos[3]-relPos[1]);
 		newDBExtents[3] = newDBExtents[1] + (dbextents[3]-dbextents[1])/(relPos[3]-relPos[1]);
 		// calculate scale and model tie point
-		modelPixelScale[0] = (newDBExtents[2]-newDBExtents[0])/((double)currentImageWidth-1.);
-		modelPixelScale[1] = (newDBExtents[3]-newDBExtents[1])/((double)currentImageHeight-1.);
+		modelPixelScale[0] = (newDBExtents[2]-newDBExtents[0])/((double)currentImageWidth-1.0);
+		modelPixelScale[1] = (newDBExtents[3]-newDBExtents[1])/((double)currentImageHeight-1.0);
 
 		tiePoint[3] = newDBExtents[0];
 		//Following is just dbextents[1] + dbextents[3]-dbextents[1] = dbextents[3].

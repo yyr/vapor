@@ -547,6 +547,37 @@ int GTIFSetFromProj4_WRF( GTIF *gtif, const char *proj4 )
         GTIFKeySet(gtif, ProjFalseOriginNorthingGeoKey, TYPE_DOUBLE, 1,
                    OSR_GDV( papszNV, "y_0", 0.0 ) );
     }
+    else if( EQUAL(value,"eqc") )
+    {
+		GTIFKeySet(gtif, GTModelTypeGeoKey, TYPE_SHORT, 1,
+                   ModelTypeProjected);
+
+        GTIFKeySet(gtif, ProjectedCSTypeGeoKey, TYPE_SHORT, 1,
+                   KvUserDefined );
+
+        GTIFKeySet(gtif, ProjectionGeoKey, TYPE_SHORT, 1,
+                   KvUserDefined );
+
+        GTIFKeySet(gtif, ProjCoordTransGeoKey, TYPE_SHORT, 1,
+                   CT_Equirectangular );
+
+        GTIFKeySet(gtif, ProjCenterLatGeoKey, TYPE_DOUBLE, 1,
+                   OSR_GDV( papszNV, "lat_0", 0.0 ) );
+
+        GTIFKeySet(gtif, ProjCenterLongGeoKey, TYPE_DOUBLE, 1,
+                   OSR_GDV( papszNV, "lon_0", 0.0 ) );
+
+        if( OSR_GDV( papszNV, "lat_0", 0.0 ) != OSR_GDV( papszNV, "lat_ts", 0.0 ) )	{
+			GTIFKeySet(gtif, ProjStdParallel1GeoKey, TYPE_DOUBLE, 1,
+                   OSR_GDV( papszNV, "lat_ts", 0.0 ) );
+	}
+        GTIFKeySet(gtif, ProjFalseEastingGeoKey, TYPE_DOUBLE, 1,
+                   OSR_GDV( papszNV, "x_0", 0.0 ) );
+
+        GTIFKeySet(gtif, ProjFalseNorthingGeoKey, TYPE_DOUBLE, 1,
+                   OSR_GDV( papszNV, "y_0", 0.0 ) );
+
+    }
 
 #ifdef notdef
     else if( EQUAL(value,"bonne") )
