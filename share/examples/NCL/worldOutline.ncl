@@ -45,8 +45,7 @@ begin
 
  ;
  ; Select the map projection. This must match the "+proj" option we
- ; use later when we call tiff2geotif. Note, an NCL CylindricalEquidistant
- ; projection is a "latlong" projection in tiff2geotiff speak
+ ; use later when we call tiff2geotif. 
  ;
  mpres@mpProjection = "CylindricalEquidistant"
  mpres@mpLimitMode = "LatLon"
@@ -97,7 +96,7 @@ begin
  ; Now insert the projection string into the tiff image. Note, the 
  ; coordinates specified here should match those specified above
  ;
- cmd = "tiff2geotiff -4 +proj=latlong -n'-179.99 -89.99 179.99 89.99' temp.tif worldOutline.tif"
+ cmd = "tiff2geotiff -4 +proj=eqc -n'-179.99 -89.99 179.99 89.99' temp.tif worldOutline.tif"
 
  system(cmd)
 

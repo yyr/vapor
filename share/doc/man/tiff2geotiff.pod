@@ -31,12 +31,14 @@ doing the tiff to geotiff conversion needed by VAPOR.
 
 =item -4 E<lt>"proj string"E<gt>
 
-This option specifies a map projection using a PROJ4 projection string.  This
-string must be enclosed in quotes, and consists of several keyword/value pairs 
-of the form "+key=value".  The full set of PROJ4 key/value pairs can be found at the 
-PROJ4 wiki http://trac.osgeo.org/proj/wiki . For example, a longitude/latitude projection on
-a spherical earth is specified as "+proj=latlong +ellps=sphere".  B<tiff2geotiff> 
-supports Lambert conformal conic, Mercator, Longitude/Latitude, and polar stereographic projections.
+This option specifies a map projection using a PROJ4 projection
+string.  This string must be enclosed in quotes, and consists of
+several keyword/value pairs of the form "+key=value".  The full set
+of PROJ4 key/value pairs can be found at the PROJ4 wiki
+http://trac.osgeo.org/proj/wiki . For example, a Cylindrical Equidistant 
+projection on a spherical earth is specified as "+proj=eqc
++ellps=WGS84".  B<tiff2geotiff> supports Lambert conformal conic,
+Mercator, Longitude/Latitude, and polar stereographic projections.
 
 =item -m E<lt>date/time-position_filenameE<gt> 
 
@@ -96,12 +98,14 @@ Print a usage statement and then exit.
 
 The command 
 
-C<tiff2geotiff -4 "+proj=latlong +ellps=sphere" -n "0 -60 90 -30" infile.tif outfile.gtif>
+C<tiff2geotiff -4 "+proj=eqc +ellps=WGS84" -n "0 -60 90 -30" infile.tif outfile.gtif>
 
-will produce an output geotiff file outfile.gtif that will have the same images as infile.tif, but will in addition be geo-referenced to use a long/lat map projection, and will
-map the images to the rectangle with lon/lat corners at (0,-60) and (90,-30).
+will produce an output geotiff file outfile.gtif that will have the
+same images as infile.tif, but will in addition be geo-referenced
+to use a Cylindrical Equidistant map projection, and will map the images to the
+rectangle with lon/lat corners at (0,-60) and (90,-30).
 
-C<tiff2geotiff -4 "+proj=lcc +lon_0=-30 +lat_1=40 +lat2=60 +ellps=sphere" -m datetimecoordfile.txt infile.tif outfile.gtif>
+C<tiff2geotiff -4 "+proj=lcc +lon_0=-30 +lat_1=40 +lat2=60 +ellps=WGS84" -m datetimecoordfile.txt infile.tif outfile.gtif>
 
 will produce an output geotiff file outfile.gtif that will contain the same image or images as infile.tif, 
 but will in addition be geo-referenced to use a Lambert conformal conic map projection.  

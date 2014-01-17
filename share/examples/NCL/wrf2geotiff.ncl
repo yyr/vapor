@@ -122,14 +122,14 @@ begin
         lat0 = " +lat_0=" + wrfFile@MOAD_CEN_LAT
         lat1 = " +lat_1=" + wrfFile@TRUELAT1
         lat2 = " +lat_2=" + wrfFile@TRUELAT2
-        projStr = " +proj=lcc +ellps=sphere" + lon0 + lat0 + lat1 + lat2
+        projStr = " +proj=lcc +ellps=WGS84" + lon0 + lat0 + lat1 + lat2
         return projStr
     end if
 
     if (proj .eq. 3) then  ; Mercator
         latTs = " +lat_ts=" + wrfFile@TRUELAT1
         lon0 = " +lon_0=" + wrfFile@STAND_LON
-        projStr = " +proj=merc +ellps=sphere" + lon0 + latTs
+        projStr = " +proj=merc +ellps=WGS84" + lon0 + latTs
         return projStr
     end if
 
@@ -141,7 +141,7 @@ begin
        end if
        stdLon = " +lon_0=" + wrfFile@STAND_LON
        trueLat = " +lat_ts=" + wrfFile@TRUELAT1
-       projStr = " +proj=stere +ellps=sphere" + stdLon + northSouth + trueLat
+       projStr = " +proj=stere +ellps=WGS84" + stdLon + northSouth + trueLat
        return projStr
     end if
 
@@ -154,7 +154,7 @@ begin
        poleLat = " +o_lat_p=50"
        poleLon = " +o_lon_p=180"
        lon0 = " +lon_0=" + wrfFile@STAND_LON
-       projStr = " +proj=ob_tran +ellps=sphere +o_proj=cass " +  poleLon + poleLat + lon0
+       projStr = " +proj=ob_tran +ellps=WGS84 +o_proj=cass " +  poleLon + poleLat + lon0
        return projStr
     end if
 
