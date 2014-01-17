@@ -244,7 +244,6 @@
     <ClCompile Include="..\..\..\lib\vdf\Metadata.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\MetadataSpherical.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\MetadataVDC.cpp" />
-    <ClCompile Include="..\..\..\lib\vdf\MetadataWRF.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\NCBuf.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\NetCDFCFCollection.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\NetCDFCollection.cpp" />
@@ -276,8 +275,6 @@
     <ClCompile Include="..\..\..\lib\vdf\WaveletBlock3DWriter.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\WaveletBlockIOBase.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\WeightTable.cpp" />
-    <ClCompile Include="..\..\..\lib\vdf\WRF.cpp" />
-    <ClCompile Include="..\..\..\lib\vdf\WRFReader.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\WrfVDCcreator.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\WrfVDFcreator.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\XmlNode.cpp" />
@@ -305,7 +302,6 @@
     <ClInclude Include="..\..\..\include\vapor\Lifting1D.h" />
     <ClInclude Include="..\..\..\include\vapor\Metadata.h" />
     <ClInclude Include="..\..\..\include\vapor\MetadataVDC.h" />
-    <ClInclude Include="..\..\..\include\vapor\MetadataWRF.h" />
     <ClInclude Include="..\..\..\include\vapor\NCBuf.h" />
     <ClInclude Include="..\..\..\include\vapor\NetCDFCFCollection.h" />
     <ClInclude Include="..\..\..\include\vapor\NetCDFCollection.h" />
@@ -328,7 +324,6 @@
     <ClInclude Include="..\..\..\include\vapor\WaveletBlock3DWriter.h" />
     <ClInclude Include="..\..\..\include\vapor\WaveletBlockIOBase.h" />
     <ClInclude Include="..\..\..\include\vapor\WeightTable.h" />
-    <ClInclude Include="..\..\..\include\vapor\WRF.h" />
     <ClInclude Include="..\..\..\include\vapor\XmlNode.h" />
     <ClInclude Include="..\..\..\lib\vdf\WrfVDCcreator.h" />
     <ClInclude Include="..\..\..\lib\vdf\WrfVDFcreator.h" />

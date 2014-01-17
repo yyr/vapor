@@ -1923,24 +1923,18 @@ void ProbeParams::projToPlane(float vecField[3], float invRotMtrx[9], float* U, 
 	*U = projVec[0]*ibfvXScale;
 	*V = projVec[1]*ibfvYScale;
 }
-
-//Clip the probe to the specified box extents
-//Return false (and make no change) if the probe rectangle does not have a positive (rectangular)
-//intersection in the box.
-
-bool ProbeParams::cropToBox(const double bxExts[6]){
-	//1. Transform the four probe corners to local region 
+//Find a point that lies in the probe plane and in a box, if the probe intersects a face of the box.
+//Return false if there is no such intersection 
+bool ProbeParams::intersectProbeBox(double boxExts[6],double intersectPoint[3],double probeCoords[2]){
+	//Transform the four probe corners to local region 
 	double transformMatrix[12];
 	double cor[4][3]; //probe corners in local user coords
 	double pcorn[3] = {0.,0.,0.}; //local probe corner coordinates
 	
-	double boxExts[6];
-	//shrink box slightly, otherwise errors occur with highly stretched domains.
-	for (int i = 0; i<3; i++){
-		boxExts[i] = bxExts[i]+(bxExts[i+3]-bxExts[i])*1.e-4;
-		boxExts[i+3] = bxExts[i+3]-(bxExts[i+3]-bxExts[i])*1.e-4;
-	}
+	
 	buildLocalCoordTransform(transformMatrix, 0.f, -1);
+	
+	
 	bool cornerInFace[4][6];
 	for (int i = 0; i<4; i++){
 		//make pcorn rotate counter-clockwise around probe 
@@ -2079,41 +2073,266 @@ bool ProbeParams::cropToBox(const double bxExts[6]){
 			//OK, entire probe is inside this face
 		}
 	} //finished with all 6 faces.
-	//Use minx, miny, maxx, maxy to recalculate probe extents.
+	//Use minx, miny, maxx, maxy to find a rectangle in probe and box
 	
-	//3.  Resulting probe extents are intersection of all limits found
+	//3.  rectangle defined as intersection of all limits found
+	// probeCoords uses middle:
+	probeCoords[0] = 0.5*(minx+maxx);
+	probeCoords[1] = 0.5*(miny+maxy);
 	// convert minx, miny, maxx, maxy to interpolate between 0 and 1 (instead of -1 and +1)
 	maxx = 0.5*(maxx+1.);
 	maxy = 0.5*(maxy+1.);
 	minx = 0.5*(minx+1.);
 	miny = 0.5*(miny+1.);
-	//Determine center of probe (in world coords) by bilinearly interpolating from corners using minx, maxx, miny,maxy
-	double pcenter[3];
+	//Determine center of intersection (in world coords) by bilinearly interpolating from corners using minx, maxx, miny,maxy,
+	//then taking average.
+	
 	double newCor[4][3];
 	for (int k = 0; k<3; k++){
 		newCor[0][k] = ((1.-minx)*cor[0][k] + minx*cor[1][k])*(1.-miny) +
 			miny*((1.-minx)*cor[3][k] + minx*cor[2][k]);
 		newCor[1][k] = ((1.-maxx)*cor[0][k] + maxx*cor[1][k])*(1.-miny) +
-			miny*((1.-maxx)*cor[1][k] + maxx*cor[2][k]);
+			miny*((1.-maxx)*cor[3][k] + maxx*cor[2][k]);
 		newCor[2][k] = ((1.-maxx)*cor[0][k] + maxx*cor[1][k])*(1.-maxy) +
 			maxy*((1.-maxx)*cor[3][k] + maxx*cor[2][k]);
 		newCor[3][k] = ((1.-minx)*cor[0][k] + minx*cor[1][k])*(1.-maxy) +
 			maxy*((1.-minx)*cor[3][k] + minx*cor[2][k]);
-		pcenter[k] = 0.25*(newCor[0][k]+newCor[1][k]+newCor[2][k]+newCor[3][k]);
+		intersectPoint[k] = 0.25*(newCor[0][k]+newCor[1][k]+newCor[2][k]+newCor[3][k]);
 	}
-	//The x-size and y-size of probe is determined by maxx-minx and maxy-miny times the original x-size, ysize.
-	double ht = vdist(cor[1],cor[2])*(maxy-miny);
-	double wid = vdist(cor[0],cor[1])*(maxx-minx);
+	return true;
+}
+//Clip the probe to the specified box extents
+//Return false (and make no change) if the probe rectangle does not have a positive (rectangular)
+//intersection in the box.
+
+bool ProbeParams::cropToBox(const double bxExts[6]){
+	//0.  Initially need a startPoint that is in the box and on the probe center plane.
+	//1.  Check if probe center works.  If not call intersectProbeBox() to get another startPoint (on middle plane) inside box.
+	//2.  Using the new startPoint, construct x-direction line.  Find its first two intersections (+ and -) with box.  Reset the start point to be the
+	//		middle of the resulting line segment.
+	//3.  Construct the y-direction line from the new startPoint.  Again find first + and - intersection points.
+	//4.  Take 4 diagonals of x- and y- direction lines, find first box intersection (or corner if box intersection is after corner.
+	//5.  find largest rectangle inside four diagonal points.  Use this as the new probe.
+
+	//Transform the four probe corners to local region 
+	double transformMatrix[12];
+	double prCenter[3]; // original probe center in world coords
+	double startPoint[3];
+	double pmid[3] = {0.,0.,0.};
+	double pxp[3] = {1.,0.,0.};
+	double pyp[3] = {0.,1.,0.};
+	double psize[2];
+	double prbexts[4]; //probe extents relative to startPoint, in the 2 probe axis directions.
+	double probeCoords[2] = {0.,0.};
+	double pendx[3], pendy[3];
+	
 	double exts[6];
 	GetBox()->GetLocalExtents(exts);
-	double depth = abs(exts[5]-exts[2]);
-	exts[0] = pcenter[0] - 0.5*wid;
-	exts[3] = pcenter[0] + 0.5*wid;
-	exts[1] = pcenter[1] - 0.5*ht;
-	exts[4] = pcenter[1] + 0.5*ht;
-	exts[2] = pcenter[2] - 0.5*depth;
-	exts[5] = pcenter[2] + 0.5*depth;
+	
+	double boxExts[6];
+	//shrink box slightly, otherwise errors occur with highly stretched domains.
+	for (int i = 0; i<3; i++){
+		boxExts[i] = bxExts[i]+(bxExts[i+3]-bxExts[i])*1.e-4;
+		boxExts[i+3] = bxExts[i+3]-(bxExts[i+3]-bxExts[i])*1.e-4;
+	}
+	buildLocalCoordTransform(transformMatrix, 0.f, -1);
+	//initially set startPoint to probe center:
+	vtransform(pmid,transformMatrix,startPoint);
+	vcopy(startPoint,prCenter);
+	//Determine probe size in world coords.
+	vtransform(pxp,transformMatrix,pendx);
+	vtransform(pyp,transformMatrix,pendy);
+	vsub(pendx,startPoint,pendx);
+	vsub(pendy,startPoint,pendy);
+	psize[0] = vlength(pendx);
+	psize[1] = vlength(pendy);
+	prbexts[2] = vlength(pendx);
+	prbexts[3] = vlength(pendy);
+	prbexts[0] = -prbexts[2];
+	prbexts[1] = -prbexts[3];
+	
+	//Get direction vectors for rotated probe
+	double rotMatrix[9];
+	const vector<double>& angles = GetBox()->GetAngles();
+	getRotationMatrix((float)(angles[0]*M_PI/180.), (float)(angles[1]*M_PI/180.), (float)(angles[2]*M_PI/180.), rotMatrix);
+	//determine the probe x- and y- direction vectors
+	double vecx[3] = { 1., 0.,0.};
+	double vecy[3] = { 0., 1.,0.};
+	//Direction vectors:
+	double dir[4][3];
+	//Intersection parameters
+	double result[4][2];
+	double edgeDist[4]; //distances from start point to probe edges
+
+	//Construct 2 rays in x-axis directions
+	vtransform3(vecx, rotMatrix, dir[0]);
+	vtransform3(vecy, rotMatrix, dir[1]);
+	vnormal(dir[0]);
+	vnormal(dir[1]);
+	
+	//also negate:
+	vmult(dir[0], -1.f, dir[2]);
+	vmult(dir[1], -1.f, dir[3]);
+
+
+	
+	//Test:  is startPoint inside box?
+	bool pointInBox = true;
+	for (int i = 0; i<3; i++){
+		if (startPoint[i] < boxExts[i]) {pointInBox = false; break;}
+		if (startPoint[i] > boxExts[i+3]) {pointInBox = false; break;}
+	}
+	if (!pointInBox){
+		pointInBox = intersectProbeBox(boxExts,startPoint,probeCoords);
+		if (!pointInBox) return false;
+		//Modify prbexts to have probe exts relative to new value of startPoint
+		//probeCoords values are along the dir[0] and dir[1] directions, with a value of +1 indicating the probe x-width
+		//Thus the startPoint in world coords is
+		// prCenter + psize[0]*probeCoords[0]*dir[0] + psize[1]*probeCoords[1]*dir[1]
+		// and the probe extents are similarly translated:
+		prbexts[0] = prbexts[0] - probeCoords[0]*psize[0];
+		prbexts[2] = prbexts[2] - probeCoords[0]*psize[0];
+		prbexts[1] = prbexts[1] - probeCoords[1]*psize[1];
+		prbexts[3] = prbexts[3] - probeCoords[1]*psize[1];
+	}
+	
+	//Shoot rays in axis directions from startPoint.
+	
+	//Intersect each line with the box, get the nearest intersections
+	int numpts;
+	for (int i = 0; i<4; i+=2){
+		numpts = rayBoxIntersect(startPoint,dir[i], boxExts,result[i]);
+		//Each ray should have two intersection points with the box
+		if (numpts < 2 || result[i][1] < 0.0) return false; 
+	
+		//find the distance from the start point to the second intersection point
+		double interpt[3];
+		//calculate the intersection point
+		for (int j = 0; j<3; j++){
+			interpt[j] = result[i][1]*dir[i][j] + startPoint[j];
+		}
+		//find the distances from the intersection points to starting point
+		for (int j = 0; j<3; j++){
+			interpt[j] = interpt[j] - startPoint[j];
+		}
+		edgeDist[i] = vlength(interpt);
+		//shorten the distance if it exceeds the probe extent in that direction
+		if (i==0 && edgeDist[i] > prbexts[2]) edgeDist[i] = prbexts[2];
+		if (i==2 && edgeDist[i] > -prbexts[0]) edgeDist[i] = -prbexts[0];
+		
+	}
+	//Find the midpoint of the line connecting the x intersections
+	double midDist = edgeDist[0]-edgeDist[2];
+	//Move startPoint  to the center
+	for (int i = 0; i<3; i++){
+		startPoint[i] = startPoint[i] +dir[0][i]*midDist*0.5;
+	}
+	//Modify edgeDist so that the new startPoint is the center. 
+	edgeDist[0] = edgeDist[2] = 0.5*(edgeDist[0]+edgeDist[2]);
+
+	//Now shoot rays in the y directions
+	for (int i = 1; i<4; i+=2){
+		numpts = rayBoxIntersect(startPoint,dir[i], boxExts,result[i]);
+		//Each ray should have two intersection points with the box
+		if (numpts < 2 || result[i][1] < 0.0) return false; 
+	
+		//find the distance from the start point to the second intersection point
+		double interpt[3];
+		//calculate the intersection point
+		for (int j = 0; j<3; j++){
+			interpt[j] = result[i][1]*dir[i][j] + startPoint[j];
+		}
+		//find the distances from the intersection points to starting point
+		for (int j = 0; j<3; j++){
+			interpt[j] = interpt[j] - startPoint[j];
+		}
+		edgeDist[i] = vlength(interpt);
+		//Shorten the distance if it exceeds the probe
+		if (i==1 && edgeDist[i] > prbexts[3]) edgeDist[i] = prbexts[3];
+		if (i==3 && edgeDist[i] > -prbexts[1]) edgeDist[i] = -prbexts[1];
+	}
+
+	//Now shoot rays in the diagonal directions from startPoint.
+	//First determine the diagonal directions and the distances to the diagonal corners
+	double diagDirs[4][3];
+	double diagDist[4];
+	for (int j = 0; j<4; j++){
+		//Determine vector from startPoint to corner:
+		for (int i = 0; i<3; i++){
+			diagDirs[j][i] = edgeDist[j]*dir[j][i]+edgeDist[(j+1)%4]*dir[(j+1)%4][i];
+		}
+		diagDist[j] = vlength(diagDirs[j]);
+		vnormal(diagDirs[j]);
+	}
+	//Now shoot rays in the diagonal directions
+	double diagInterDist[4];
+	double diagInterPt[4][3];
+	double component[4][2]; //components of the resulting diagonals along probe x and y axes
+	for (int i = 0; i<4; i++){
+		numpts = rayBoxIntersect(startPoint,diagDirs[i], bxExts,result[i]);
+		//Each ray should have two intersection points with the box
+		if (numpts < 2 || result[i][1] < 0.0) return false; 
+		//and result[i][1] is the distance along diagonal i to intersection 1
+	
+		//find the distance from the start point to the second intersection point
+		//calculate the intersection point
+		for (int j = 0; j<3; j++){
+			diagInterPt[i][j] = result[i][1]*diagDirs[i][j] + startPoint[j];
+		}
+		
+		//find the distances from the intersection points to starting point
+		double interVec[3];
+		for (int j = 0; j<3; j++){
+			interVec[j] = diagInterPt[i][j] - startPoint[j];
+		}
+		diagInterDist[i] = vlength(interVec);
+		//Make sure the diagonal distance does not exceed the distance to the corner
+		double shrinkFactor = 1.;
+		if (diagInterDist[i]>diagDist[i]) {
+
+			shrinkFactor = diagDist[i]/diagInterDist[i];
+		}
+		//project in probe directions to get components:
+		component[i][0] = vdot(dir[0],diagDirs[i])*result[i][1]*shrinkFactor;
+		component[i][1] = vdot(dir[1],diagDirs[i])*result[i][1]*shrinkFactor;
+		
+	}
+	
+	
+	//Find the x,y extents (relative to startPoint):
+	double pExts[4];
+	//maxx must be the smaller of the two x displacements:
+	pExts[2] = Min(component[3][0],component[0][0]);//maxx
+	pExts[0] = Max(component[1][0],component[2][0]);//minx
+	pExts[1] = Max(component[2][1],component[3][1]);//miny
+	pExts[3] = Min(component[0][1],component[1][1]);//maxy
+
+	double wid = pExts[2]-pExts[0];
+	double ht = pExts[3]-pExts[1];
+
+	//New probe center is translated from startPoint by average of extents:
+	//add dir[0]*(pexts[2]+pexts[0])*.5 to move probe x coordinate, similarly for y:
+	//Use dir[] to hold the resulting displacements.
+	double probeCenter[3];
+	vcopy(startPoint,probeCenter);
+	vmult(dir[0],0.5*(pExts[0]+pExts[2]),dir[0]);
+	vmult(dir[1],0.5*(pExts[1]+pExts[3]),dir[1]);
+	vadd(startPoint,dir[0],probeCenter);
+	vadd(probeCenter,dir[1],probeCenter);
+
+	double depth = exts[5]-exts[2];
+	//apply these as offsets to startPoint, to get probe local extents.
+	//Don't change the z extents.
+
+	exts[0] = probeCenter[0]-wid*0.5;
+	exts[1] =  probeCenter[1]-ht*0.5;
+	exts[3] =  probeCenter[0]+wid*0.5;
+	exts[4] = probeCenter[1]+ht*0.5;
+	exts[2] = probeCenter[2]-depth*0.5;
+	exts[5] = probeCenter[2]+depth*0.5;
+
 	GetBox()->SetLocalExtents(exts);
+	
 	return true;
 }
 
@@ -2154,52 +2373,36 @@ bool ProbeParams::fitToBox(const double boxExts[6]){
 			startPoint[j] += interceptPoints[i][j]*(1.f/(double)numintercept);
 		}
 	}
-	/*
-	//Expand the probe so that it will exceed the box extents in all dimensions
-	//Find the largest box extent
+
 	
-	double maxrad = 0.;
-	for (int i = 0; i<3; i++) maxrad += (boxExts[i+3]-boxExts[i]);
+	//Expand the probe so that it will exceed the box extents in all dimensions
+	//Begin with the startPoint and intersect horizontal rays with the far edges of the box.
 
-	vector <double> pExts = GetBox()->GetLocalExtents();
-
-	for (int i = 0; i<2; i++){
-		pExts[i] = pExts[i] - maxrad;
-		pExts[i+3] = pExts[i+3] + maxrad;
-	}
-	GetBox()->SetLocalExtents(pExts);
-
-	cropToBox(boxExts);
-	return true;
-	*/
-	//find a smaller rectangle that fits in box.  Take 4 probe-axis-aligned rays
-	//from the startPoint.  Find the distance to box of each.  Take 0.7 times shortest distance.
-
-	double transformMatrix[12];
-	double cor[4][3], cor2[4][3];
 	double probeCenter[3];
-	buildLocalCoordTransform(transformMatrix, 0., -1);
+	double exts[6];
+	GetBox()->GetLocalExtents(exts);
+	for (int i = 0; i<3; i++)
+		probeCenter[i] = 0.5*(exts[i]+exts[i+3]);
+
 	double rotMatrix[9];
 	const vector<double>& angles = GetBox()->GetAngles();
 	getRotationMatrix((float)(angles[0]*M_PI/180.), (float)(angles[1]*M_PI/180.), (float)(angles[2]*M_PI/180.), rotMatrix);
 
-
 	//determine the probe x- and y- direction vectors
 	double vecx[3] = { 1., 0.,0.};
 	double vecy[3] = { 0., 1.,0.};
-	double vmid[3] = { 0.,0.,0.};
 	
 	//Direction vectors:
 	double dir[4][3];
 	//Intersection parameters
 	double result[4][2];
-	//Construct two rays starting at the probe corner whose parameter interval (0,1) maps to the y - extents 
-	vtransform(vmid, transformMatrix, probeCenter);
+	double edgeDist[4]; //distances from center to probe edges
+
+	//Construct 4 rays in axis directions
+	
 	vtransform3(vecx, rotMatrix, dir[0]);
 	vtransform3(vecy, rotMatrix, dir[1]);
 
-	vsub(dir[0], vmid, dir[0]);
-	vsub(dir[1], vmid, dir[1]);
 	vnormal(dir[0]);
 	vnormal(dir[1]);
 	//also negate:
@@ -2210,103 +2413,27 @@ bool ProbeParams::fitToBox(const double boxExts[6]){
 	int numpts;
 	for (int i = 0; i<4; i++){
 		numpts = rayBoxIntersect(startPoint,dir[i], modBoxExts,result[i]);
+		//Each ray should have two intersection points with the box
 		if (numpts < 2 || result[i][1] < 0.f) return false; 
 	}
-	
-	//Find the closest intersection:
-	double mindist = 1.e30;
+	//Use the distance from the probe center to the second intersection point as the new probe size
 	for (int i = 0; i<4; i++){
-		double distvec[3];
+		double interpt[3];
+		//calculate the intersection point
 		for (int j = 0; j<3; j++){
-			distvec[j] = result[i][1]*dir[i][j];
+			interpt[j] = result[i][1]*dir[i][j] + startPoint[j];
 		}
-		double dist = vlength(distvec);
-		if (dist<mindist) mindist = dist;
+		//find the distance from the intersection point to the probe center
+		for (int j = 0; j<3; j++){
+			interpt[j] = interpt[j] - probeCenter[j];
+		}
+		edgeDist[i] = vlength(interpt);
 	}
-	//Now know corners of square that fits.  Obtained by going diagonally from startPoint
-	for (int i = 0; i< 4; i++){
-		//start with cor[i] pointing diagonally 
-		vadd(dir[i],dir[(i+1)%4], cor[i]);
-		//force the corner to be distance mindist*.7 from startpoint, so it's guaranteed
-		//to be inside the diamond
-		double len = vlength(cor[i]);
-		vmult(cor[i], mindist/len, cor[i]);
-		vadd(startPoint, cor[i], cor[i]);
-	}
+	//Stretch a bit to ensure adequate coverage
+	double wid = 2.1*Max(edgeDist[0],edgeDist[2]);
+	double ht = 2.1*Max(edgeDist[1],edgeDist[3]);
 
 	
-	//Intersect top and bottom of the square with the box, get two horizontal intervals, take their
-	//intersection.  
-	numpts = rayBoxIntersect(cor[1],dir[0], modBoxExts,result[0]);
-	assert(numpts >= 2);
-	numpts = rayBoxIntersect(cor[2],dir[0], modBoxExts,result[1]);
-	assert(numpts >= 2);
-
-	float leftEdge = Max(result[0][0],result[1][0]);
-	float rightEdge = Min(result[0][1],result[1][1]);
-
-	//Nudge slightly, so we aren't right on edge--
-	leftEdge *= 0.9999;
-	rightEdge *= 0.9999;
-
-	//assert (leftEdge <= 0.03f && rightEdge >= 0.97*vdist(cor[0],cor[1]));
-	//Right edge should be bigger than dist(cor0,cor1)
-	//top left:
-	vmult(dir[0],leftEdge, cor2[1]);
-	vadd(cor2[1],cor[1],cor2[1]);
-	//Top right:
-	vmult(dir[0],rightEdge, cor2[0]);
-	vadd(cor2[0],cor[1],cor2[0]);
-	//bot left:
-	vmult(dir[0],leftEdge, cor2[2]);
-	vadd(cor2[2],cor[2],cor2[2]);
-	//bot right:
-	vmult(dir[0],rightEdge, cor2[3]);
-	vadd(cor2[3],cor[2],cor2[3]);
-	
-
-	//Similar to the above, extend the left and right sides to go up and down:
-
-	
-	numpts = rayBoxIntersect(cor2[2],dir[1], modBoxExts,result[0]);
-	assert(numpts >= 2);
-	numpts = rayBoxIntersect(cor2[3],dir[1], modBoxExts,result[1]);
-	assert(numpts >= 2);
-
-	float botEdge = Max(result[0][0],result[1][0]);
-	float topEdge = Min(result[0][1],result[1][1]);
-	
-	//assert(botEdge <= 0.03f && topEdge >= 0.97*vdist(cor2[2],cor2[1]));
-	//put new corners back in cor array:
-	//bot left:
-	vmult(dir[1],botEdge, cor[2]);
-	vadd(cor[2],cor2[2],cor[2]);
-	//bot right:
-	vmult(dir[1],botEdge, cor[3]);
-	vadd(cor[3],cor2[3],cor[3]);
-	//top right
-	vmult(dir[1],topEdge, cor[0]);
-	vadd(cor[0],cor2[3],cor[0]);
-	//top left
-	vmult(dir[1],topEdge, cor[1]);
-	vadd(cor[1],cor2[2],cor[1]);
-
-	//Now cor should be the final rectangle corners.
-	//  Make the probe center be their average:
-	vzero(probeCenter);
-	for (int i = 0; i< 4; i++){
-		vadd(probeCenter, cor[i],probeCenter);
-	}
-	vmult(probeCenter, 0.25, probeCenter);
-
-	//find the width and height of the probe:
-	
-	double ht = vdist(cor[1],cor[2]);
-
-	double wid = vdist(cor[0],cor[1]);
-
-	double exts[6];
-	GetBox()->GetLocalExtents(exts);
 	double depth = abs(exts[5]-exts[2]);
 	exts[0] = probeCenter[0] - 0.5f*wid;
 	exts[3] = probeCenter[0] + 0.5f*wid;
@@ -2314,8 +2441,11 @@ bool ProbeParams::fitToBox(const double boxExts[6]){
 	exts[4] = probeCenter[1] + 0.5f*ht;
 	exts[2] = probeCenter[2] - 0.5f*depth;
 	exts[5] = probeCenter[2] + 0.5f*depth;
+	
 	GetBox()->SetLocalExtents(exts);
-	return true;
+	bool success = cropToBox(boxExts);
+	//bool success = true;
+	return success;
 }
 
 //Calculate up to six intersections of box edges with probe plane, return the number found.

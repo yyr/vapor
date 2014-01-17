@@ -216,7 +216,10 @@ endRendering(int vizNum){
 		if (hasEvents) {
 			app->processEvents();
 		}
+		//Must lock, so multiple threads can't advance the time step
+		animationMutex.lock();
 		if (aParams->checkLastFrame()){
+			animationMutex.unlock();
 			//At the end of animation, update the front tab and
 			//the animation toolbar.
 			TabManager* tmgr = MainForm::getTabManager();
@@ -224,7 +227,8 @@ endRendering(int vizNum){
 			eRouter->updateTab();
 			//Set the pause button:
 			MainForm::getInstance()->setPause();
-		}
+		} else animationMutex.unlock();
+
 		VizWinMgr::getInstance()->getAnimationRouter()->updateTab();
 		MainForm::getInstance()->setCurrentTimestep(VizWinMgr::getActiveAnimationParams()->getCurrentTimestep());
 	}

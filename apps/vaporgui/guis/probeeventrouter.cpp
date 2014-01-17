@@ -2938,123 +2938,20 @@ setProbeToExtents(const double extents[6], ProbeParams* pParams){
 	//First try to fit to extents.  If we fail, then move probe to fit 
 	bool success = pParams->fitToBox(extents);
 	if (success) return;
-	//  Construct transformation for a probe that maps to region, as follows:
-	//a.  get current rotation matrix
-	double rotMatrix[9];
-	getRotationMatrix(pParams->getTheta()*M_PI/180., pParams->getPhi()*M_PI/180., pParams->getPsi()*M_PI/180., rotMatrix);
 
-	//Calculate directions of probe mapped into user space, so we can determine
-	//closest axes or rotated probe
-	const double unitVec[3][3] = {{1.,0.,0.},{0.,1.,0.},{0.,0.,1.}};
-	double mappedDirs[3][3];
-	for (int i = 0; i< 3; i++)
-		vtransform3(unitVec[i], rotMatrix, mappedDirs[i]);
-
-	//b.  Find nearest axis-aligned rotation  to current rotation, 
-	//by finding unit vectors closest to probe axes:
-	int align[3] = {-1,-1,-1};
+	//Move the probe so that it is centered in the extents:
+	double pExts[6];
+	pParams->GetBox()->GetLocalExtents(pExts);
 	
-	for (int probeDim = 0; probeDim< 3; probeDim++){
-		//see which axis is closest to the probe axis in user space
-		double maxAlign = -1.f;
-		int alignDir = -1;
-		for (int axis = 0; axis < 3; axis++){
-			double axisAlignment = vdot(unitVec[axis],mappedDirs[probeDim]);
-			if (abs(axisAlignment) > maxAlign){
-				//Don't pick max it it's already taken:
-				if (!((probeDim > 0 && axis == align[0]) ||
-						(probeDim > 1 && axis == align[1]))){
-					maxAlign = abs(axisAlignment);
-					alignDir = axis;
-				}
-			}
-		}
-		align[probeDim] = alignDir;
-	}
-
-	//c.  Find scale S and translation T that takes [-1,1]cube to region extents
-	double newScale[3], newCenter[3];
-	double boxmin[3],boxmax[3];
-		//get box in local coords
-	pParams->getLocalBox(boxmin,boxmax,-1);
-	for (int i = 0; i< 3; i++){
-		//d.  permute diagonal entries in S based on value of align 
-		
-		int forTrans = align[i];
-		newScale[i] = extents[forTrans+3]-extents[forTrans];
-		//Initialize center where it already is:
-		newCenter[i] = (boxmin[i]+boxmax[i])*0.5;
-	}
-
-	//If the probe is not planar, we are done. 
-	if (pParams->isPlanar())
-		newScale[2] = 0.;	
-
-	//Now use these values to modify probe size (but not rotation)
-	float probeMin[3],probeMax[3];
-	for (int i = 0; i< 3; i++){
-		probeMin[i] = newCenter[i]-0.5*newScale[i];
-		probeMax[i] = newCenter[i]+0.5*newScale[i];
-	}
-	pParams->setLocalBox(probeMin, probeMax, -1);
-	
-	//For each axis of probe, (except z-axis of planar probe)
-	//See how far the end of the axis is from the probe boundary.  Adjust the 
-	//scaling in that dimension appropriately:
-	float transformMatrix[12];
-	//Set up to transform from probe (coords [-1,1]) into volume:
-	pParams->buildLocalCoordTransform(transformMatrix, 0.f, -1);
-	for (int i = 0; i< 3; i++){
-		
-		if(i != 2 || ! pParams->isPlanar()) {
-			vtransform(unitVec[i], transformMatrix, mappedDirs[i]);
-			//look at each coord of mappedDirs, compare it to extents:
-			float maxRatio = -1.f;
-			for(int k = 0; k<3; k++){
-				float fullRatio = 2.f*abs(mappedDirs[i][k]-newCenter[k])/(extents[k+3]-extents[k]);
-				if (fullRatio > maxRatio) maxRatio = fullRatio;
-			}
-			//Now stretch it to maxRatio
-			newScale[i] /= maxRatio;
-			probeMin[i] = newCenter[i]-0.5f*newScale[i];
-			probeMax[i] = newCenter[i]+0.5f*newScale[i];
-		}
-		
-	}
-	
-	pParams->setLocalBox(probeMin, probeMax, -1);
-	//Check to make sure the transformed probe is no bigger than the region.  If
-	//it is bigger, scale it down appropriately.
-	float regMin[3],regMax[3];
-	pParams->getLocalContainingRegion(regMin,regMax,false);
-	
-	float maxRatio = 1.f;
-	
-	for (int i = 0; i< 3; i++){
-		if ((extents[i+3] - extents[i] ) <= 0.f ) continue;
-		float sizeRatio = (regMax[i] - regMin[i])/(extents[i+3] - extents[i]);
-		if (sizeRatio > maxRatio) maxRatio = sizeRatio;
-	}
-	if (maxRatio != 1.f){
-		for (int i = 0; i< 3; i++){
-			
-			newScale[i] = newScale[i]/maxRatio;
-			probeMin[i] = newCenter[i]-0.5f*newScale[i];
-			probeMax[i] = newCenter[i]+0.5f*newScale[i];
-		}
-		pParams->setLocalBox(probeMin, probeMax, -1);
-	}
-	//Check to see if it should be centered better:
-	pParams->getLocalContainingRegion(regMin,regMax,false);
 	for (int i = 0; i<3; i++){
-		if (regMax[i] > extents[i+3])
-			newCenter[i] -= (regMax[i] - extents[i+3]);
-		if (regMin[i] < extents[i])
-			newCenter[i] += (extents[i]-regMin[i]);
-		probeMin[i] = newCenter[i]-0.5f*newScale[i];
-		probeMax[i] = newCenter[i]+0.5f*newScale[i];
+		double psize = pExts[i+3]-pExts[i];
+		pExts[i] = 0.5*(extents[i]+extents[i+3] - psize);
+		pExts[i+3] = 0.5*(extents[i]+extents[i+3] + psize);
 	}
-	pParams->setLocalBox(probeMin, probeMax, -1);
+	pParams->GetBox()->SetLocalExtents(pExts);
+	success = pParams->fitToBox(extents);
+	assert(success);
+	
 	return;
 }
 //Angle conversions (in degrees)

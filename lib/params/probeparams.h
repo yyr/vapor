@@ -329,6 +329,7 @@ protected:
 	void getBoundingBox(size_t timestep, double boxMin[3], double boxMax[3]);
 	//Get the rotated box sides in the unit cube, based on current angles:
 	void getRotatedBoxDims(float boxdims[3]);
+	bool intersectProbeBox(double boxexts[6], double pointFound[3], double probeCoords[2]);
 
 	float currentDatarange[2];
 	
