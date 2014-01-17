@@ -90,7 +90,7 @@ run(){
 	//Outer loop continues until animationCancelled is set
 	while (1){
 		if (animationCancelled) break;
-		int currentTime = myAnimationController->myClock->elapsed();
+		int currentTime = myAnimationController->getElapsedMillisec();
 
 		int timeToRecheck = 1000;
 		int numActive = 0;

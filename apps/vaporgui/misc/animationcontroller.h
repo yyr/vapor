@@ -189,6 +189,8 @@ protected:
 	void setGlobal(int viznum){statusFlag[viznum] = (animationStatus)(statusFlag[viznum]|shared);}
 	void setLocal(int viznum) {statusFlag[viznum] = (animationStatus)(statusFlag[viznum]&(~shared));}
 	void setOverdue(int viznum) {statusFlag[viznum] = (animationStatus)(statusFlag[viznum]|overdue);}
+	//Fix for Qt clock roll-overs.
+	size_t getElapsedMillisec();
 
 	//Method to be called to set change bits, with mutex already locked:
 	void setChangeBitsLocked(int viznum);
@@ -206,6 +208,8 @@ protected:
 	QTime* myClock;
 	SharedControllerThread* mySharedController;
 	UnsharedControllerThread* myUnsharedController;
+	size_t lastClockMillisec;
+	int numClockRollovers;
 	
 
 };

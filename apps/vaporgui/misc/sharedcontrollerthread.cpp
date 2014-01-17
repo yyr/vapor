@@ -111,7 +111,7 @@ run(){
 	//
 	while (1){
 		if (animationCancelled) break;
-		int currentTime = myAnimationController->myClock->elapsed();
+		int currentTime = myAnimationController->getElapsedMillisec();
 		int frameWaitTime = 100000000;
 		//Loop over active, global visualizers:
 		int minSharedTimeToFinish = 100000000;
@@ -159,7 +159,7 @@ run(){
 #endif
 			myWaitCondition->wait(&myAnimationController->animationMutex,finishTime);
 			
-			int timeSinceStart = myAnimationController->myClock->elapsed()-currentTime;
+			int timeSinceStart = myAnimationController->getElapsedMillisec()-currentTime;
 			finishTime = minSharedTimeToFinish - timeSinceStart;
 			
 		}
@@ -224,7 +224,7 @@ run(){
 			//update the number of "sleeping" renderers
 			//Don't do this more than MAXVIZWINS times
 			assert(tries <MAXVIZWINS-1);
-			currentTime = myAnimationController->myClock->elapsed();
+			currentTime = myAnimationController->getElapsedMillisec();
 			//Is the missing visualizer more than a second late?
 			//Don't wait longer!
 			if(myAnimationController->getTimeToFinish(missingViz, currentTime)< 
@@ -306,7 +306,7 @@ run(){
 		//If the change is from local to global and the localglobalchange bit is set,
 		//then set the global bit.
 		int timeToRecheck = 1000;
-		currentTime = myAnimationController->myClock->elapsed();
+		currentTime = myAnimationController->getElapsedMillisec();
 		bool frameAdvanced = false;
 		for (viznum = 0; viznum<MAXVIZWINS; viznum++){
 			if (myAnimationController->isActive(viznum)&&myAnimationController->isShared(viznum)){

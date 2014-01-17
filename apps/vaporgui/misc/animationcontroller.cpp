@@ -61,6 +61,8 @@ void AnimationController::
 restart(){
 	
 	myClock->start();
+	numClockRollovers = 0;
+	lastClockMillisec = (size_t)myClock->elapsed();
 	animationMutex.lock();
 	//Initialize the status bits
 	for (int viznum = 0; viznum<MAXVIZWINS; viznum++) {
@@ -241,6 +243,18 @@ endRendering(int vizNum){
 	}
 }
 
-
+//Replacement for QTime::elapsed(), avoids 24 hour rollover
+//
+size_t AnimationController::getElapsedMillisec(){
+	size_t elapsedClockMillisec = (size_t)myClock->elapsed();
+	if (elapsedClockMillisec < lastClockMillisec){
+		//Clock has rolled over.  Add 1 to numClockRollovers until we get a positive time change
+		while(numClockRollovers*86400000ULL + elapsedClockMillisec < lastClockMillisec) {
+			numClockRollovers++;
+		}
+	}
+	lastClockMillisec = elapsedClockMillisec;
+	return(86400000ULL*numClockRollovers+elapsedClockMillisec);
+}
 
 
