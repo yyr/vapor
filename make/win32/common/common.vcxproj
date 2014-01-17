@@ -139,7 +139,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR);../../../lib/common;../../../include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../lib/common;../../../include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;ENABLE_THREADS;NDEBUG;_WINDOWS;_USRDLL;COMMON_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader>
@@ -198,6 +198,7 @@
     <ClCompile Include="..\..\..\lib\common\CFuncs.cpp" />
     <ClCompile Include="..\..\..\lib\common\common.cpp" />
     <ClCompile Include="..\..\..\lib\common\EasyThreads.cpp" />
+    <ClCompile Include="..\..\..\lib\common\GeoUtil.cpp" />
     <ClCompile Include="..\..\..\lib\common\GetAppPath.cpp" />
     <ClCompile Include="..\..\..\lib\common\MyBase.cpp" />
     <ClCompile Include="..\..\..\lib\common\OptionParser.cpp" />
@@ -211,6 +212,7 @@
     <ClInclude Include="..\..\..\include\vapor\EasyThreads.h" />
     <ClInclude Include="..\..\..\include\vapor\errorcodes.h" />
     <ClInclude Include="..\..\..\include\vapor\ExtensionClasses.h" />
+    <ClInclude Include="..\..\..\include\vapor\GeoUtil.h" />
     <ClInclude Include="..\..\..\include\vapor\GetAppPath.h" />
     <ClInclude Include="..\..\..\include\vapor\MyBase.h" />
     <ClInclude Include="..\..\..\include\vapor\OptionParser.h" />

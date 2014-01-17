@@ -18,7 +18,7 @@ namespace VAPoR {
 //!
 //! \author John Clyne
 //!
-class VDF_API GeoUtil : public VetsUtil::MyBase {
+class COMMON_API GeoUtil : public VetsUtil::MyBase {
 public:
 
 

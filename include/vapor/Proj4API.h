@@ -14,7 +14,7 @@ namespace VAPoR {
 //! This class provides a convience wrapper for the proj4 Cartographic
 //! Projections Library http://trac.osgeo.org/proj/
 //!
-class COMMON_API Proj4API : public VetsUtil::MyBase {
+class VDF_API Proj4API : public VetsUtil::MyBase {
 
 public:
 
