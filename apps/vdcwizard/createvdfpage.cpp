@@ -69,6 +69,11 @@ void CreateVdfPage::on_showCommandButton_clicked() {
 	commandLine->show();
 }
 
+void CreateVdfPage::on_advanceOptionButton_clicked() {
+	vdfAdvancedOpts->showExtents();
+	vdfAdvancedOpts->show();
+}
+
 // Check all loaded variables
 void CreateVdfPage::on_selectAllButton_clicked() {
     for (int i=0; i<varList.size(); i++) {

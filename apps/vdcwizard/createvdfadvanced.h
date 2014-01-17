@@ -37,6 +37,7 @@ class CreateVdfAdvanced : public QDialog, public Ui_Page3adv
 
 public:
     explicit CreateVdfAdvanced(DataHolder *DH, QWidget *parent = 0);
+	void showExtents();
     DataHolder *dataHolder;
     QString CRList;
     QString SBFactor;

@@ -39,13 +39,16 @@ class DataHolder
 public:
     DataHolder();
 	
-	void purgeObjects();
-	
-	bool ncdfFilesChanged;
-	bool vdfSettingsChanged;
-	bool vdcSettingsChanged;
-	vector<const char*> getErrors();
-	void clearErrors();
+    void purgeObjects();
+    void getExtents(); 
+   
+    double latExtents[2];
+	double lonExtents[2];	
+    bool ncdfFilesChanged;
+    bool vdfSettingsChanged;
+    bool vdcSettingsChanged;
+    vector<const char*> getErrors();
+    void clearErrors();
     int createReader();
 
     // File selection set functions
@@ -62,12 +65,12 @@ public:
     void setVDFSBFactor(string sbFactor) { VDFSBFactor = sbFactor; }
     void setVDFPeriodicity(string periodicity) { VDFPeriodicity = periodicity; }
 
-    void setVDFDisplayedVars(vector<string> selectedVars);// { VDFDisplayedVars = selectedVars; }
-    void setVDFSelectedVars(vector<string> selectedVars);// { VDFSelectedVars = selectedVars; }
-    void addVDFDisplayedVar(string var);// { VDFDisplayedVars.push_back(var); }
-    void addVDFSelectedVar(string var);// { VDFSelectedVars.push_back(var); }
+    void setVDFDisplayedVars(vector<string> selectedVars);
+    void setVDFSelectedVars(vector<string> selectedVars);
+    void addVDFDisplayedVar(string var);
+    void addVDFSelectedVar(string var);
     void deleteVDFSelectedVar(string var);
-    void clearVDFSelectedVars();// { VDFSelectedVars.clear(); }
+    void clearVDFSelectedVars();
 
     // Populate data setter fucntions
     void setPDVDFfile(string vdfFile) { PDinputVDFfile = vdfFile; }
@@ -85,15 +88,15 @@ public:
     string getVDFnumTS() const { return VDFnumTS; }
     string getVDFStartTime() const { return VDFstartTime; }
     string getCreateVDFcmd();
-	vector<string> getVDFSelectedVars() const { return VDFSelectedVars; }
+    vector<string> getVDFSelectedVars() const { return VDFSelectedVars; }
 
     // Get functions used by Populate Data
     vector<string> getPDDisplayedVars() { return PDDisplayedVars; }
-	vector<string> getPDSelectedVars() { return PDSelectedVars; }
+    vector<string> getPDSelectedVars() { return PDSelectedVars; }
     string getPDinputVDFfile() const { return PDinputVDFfile; }
     string getPDnumTS() const { return PDnumTS; }
     string getPDStartTime() const { return PDstartTime; }
-	string getPopDataCmd();
+    string getPopDataCmd();
 
     // Get functions (used by createVDF and Populate Data)
     vector<string> getNcdfVars() const { return ncdfVars; }
@@ -106,7 +109,7 @@ public:
     void findPopDataVars();
     int VDFCreate();
     int run2VDFcomplete();
-	int run2VDFincremental(string start, string var);
+    int run2VDFincremental(string start, string var);
     // Error Message setter/getter
     void setErrorMessage(string err) { errorMsg = err; }
     string getErrorMessage() { return errorMsg; }
