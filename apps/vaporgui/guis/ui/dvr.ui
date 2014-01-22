@@ -1121,7 +1121,8 @@ the color control point, or vice-versa,
 depending on which button is clicked.</string>
               </property>
               <property name="text">
-               <string>Bind Color-&gt;Opac</string>
+               <string>Bind Color
+to Opacity</string>
               </property>
              </widget>
             </item>
@@ -1157,7 +1158,8 @@ the color control point, or vice-versa,
 depending on which button is clicked.</string>
               </property>
               <property name="text">
-               <string>Bind Opac-&gt;Color</string>
+               <string>Bind Opacity
+to Color</string>
               </property>
              </widget>
             </item>
