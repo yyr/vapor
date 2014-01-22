@@ -371,7 +371,7 @@ p, li { white-space: pre-wrap; }
                     </size>
                    </property>
                    <property name="text">
-                    <string>Variables are:</string>
+                    <string>Vars are:</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
@@ -829,7 +829,7 @@ p, li { white-space: pre-wrap; }
                  <item>
                   <widget class="QLabel" name="label_9">
                    <property name="text">
-                    <string>Dimension  X:</string>
+                    <string>Dim  X:</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
@@ -952,7 +952,7 @@ p, li { white-space: pre-wrap; }
                     <string>When the data includes a 2D variable named &quot;HGT&quot;, the vectors can be displaced vertically according to the values of HGT.  This is useful if HGT is the terrain height variable.</string>
                    </property>
                    <property name="text">
-                    <string>Offset position by terrain</string>
+                    <string>Offset by terrain</string>
                    </property>
                   </widget>
                  </item>

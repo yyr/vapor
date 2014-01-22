@@ -1682,6 +1682,12 @@ share the same region settings.</string>
            <layout class="QGridLayout" name="gLayout">
             <item row="0" column="0">
              <widget class="QLabel" name="textLabel8">
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="maximumSize">
                <size>
                 <width>30</width>
@@ -1742,6 +1748,12 @@ share the same region settings.</string>
              <layout class="QVBoxLayout" name="verticalLayout_2">
               <item>
                <widget class="QLabel" name="textLabel6_2_2">
+                <property name="minimumSize">
+                 <size>
+                  <width>30</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>30</width>
@@ -2529,6 +2541,12 @@ share the same region settings.</string>
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>30</width>
+                  <height>0</height>
+                 </size>
                 </property>
                 <property name="maximumSize">
                  <size>

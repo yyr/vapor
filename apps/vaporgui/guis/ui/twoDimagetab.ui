@@ -514,7 +514,7 @@ p, li { white-space: pre-wrap; }
                  <string>In data mode, the orientation indicates the planar alignment of the selected variable(s).  In image mode, the orientation can be selected.  Only horizontal (X-Y) oriented images can make use of georeferencing.</string>
                 </property>
                 <property name="text">
-                 <string>Orientation:</string>
+                 <string>Orient:</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>

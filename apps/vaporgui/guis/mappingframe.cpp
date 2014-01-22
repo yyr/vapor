@@ -1305,6 +1305,7 @@ void MappingFrame::addAxisLabel(int x, int y, const QString &text)
 {
 	
 	int xpos = x - text.length()*3;
+	if (xpos < 0) xpos = 0;
 	QPoint* pos = new QPoint(xpos,y+5);
 	_axisTextPos.push_back(pos);
 	_axisTexts.push_back(text);
