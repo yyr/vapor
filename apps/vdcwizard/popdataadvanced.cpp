@@ -31,8 +31,11 @@ PopDataAdvanced::PopDataAdvanced(DataHolder *DH, QWidget *parent) :
 {
     dataHolder = DH;
     setupUi(this);
-	refinementLevelSpinner->hide();
-	label_23->hide();
+    refinementLevelSpinner->hide();
+    label_23->hide();
+
+    //dataHolder->getExtents();
+    //latExtents->setText(dataHolder->latExtents[0]
 }
 
 void PopDataAdvanced::on_restoreDefaultButton_clicked(){

@@ -51,14 +51,32 @@ void DataHolder::clearErrors() { errors.clear(); }
 
 DataHolder::DataHolder(){
 	MyBase::SetErrMsgCB(ErrMsgCBHandler);
-    VDFstartTime = "0";//setVDFstartTime("0");
-	PDstartTime = "0";//setPDstartTime("0");
+	VDFstartTime = "0";
+	PDstartTime = "0";
 
 	ncdfFilesChanged = true;
 	vdfSettingsChanged = true;
 	vdcSettingsChanged = true;
 }
 
+void DataHolder::getExtents(){
+	reader->GetLatLonExtents(0,lonExtents,latExtents);
+	for (size_t i=1;i<atoi(VDFnumTS.c_str());i++){
+		double lonBuffer[2];
+		double latBuffer[2];
+		reader->GetLatLonExtents(i,lonBuffer,latBuffer);
+		
+		//cout << latBuffer[0] << " " << latBuffer[1] << " " << lonBuffer[0] << " " << lonBuffer[1] << endl;
+	
+		if (latBuffer[0]<latExtents[0]) latExtents[0]=latBuffer[0];
+		if (latBuffer[1]>latExtents[1]) latExtents[1]=latBuffer[1];
+		if (lonBuffer[0]<lonExtents[0]) lonExtents[0]=lonBuffer[0];
+		if (lonBuffer[1]>lonExtents[1]) lonExtents[1]=lonBuffer[1];
+	}
+
+	//cout << latExtents << " " << lonExtents << endl;	
+	//cout << latExtents[0] << " " << latExtents[1] << " " << lonExtents[0] << " " << lonExtents[1] << endl;
+}
 
 void DataHolder::setVDFstartTime(string startTime) {
 	VDFstartTime = startTime;
