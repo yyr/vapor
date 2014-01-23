@@ -625,8 +625,8 @@ probe volume.</string>
              <widget class="QComboBox" name="variableCombo">
               <property name="font">
                <font>
-                <family>Arial</family>
-                <pointsize>6</pointsize>
+                <family>MS Shell Dlg 2</family>
+                <pointsize>8</pointsize>
                </font>
               </property>
               <property name="focusPolicy">
