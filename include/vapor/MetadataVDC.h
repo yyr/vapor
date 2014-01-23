@@ -707,7 +707,7 @@ public:
 	// projection strings incorrectly set to latlong
 	//
 	string mapproj = _rootnode->GetElementString(_mapProjectionTag);
-	string s = "proj=latlong";
+	string s = "proj=latlon";
 	std::string::size_type n;
 	if ((n = mapproj.find(s)) != std::string::npos) {
 		mapproj.replace(n, s.length(), "proj=eqc");

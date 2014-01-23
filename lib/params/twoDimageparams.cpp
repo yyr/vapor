@@ -1301,8 +1301,8 @@ uint32 *TwoDImageParams::_extractSubtexture(
 	if (std::string::npos == subProj4StringImage.find("proj=eqc")) {
 		return(NULL);
 	}
-	if (! (geoCornersImage[0] < -179.0 && geoCornersImage[4] > 179.0 &&
-		geoCornersImage[1] < -89 && geoCornersImage[5] > 89)) {
+	if (! (geoCornersImage[0] <= -179.0 && geoCornersImage[4] >= 179.0 &&
+		geoCornersImage[1] <= -89 && geoCornersImage[5] >= 89)) {
 
 		return (NULL);
 	}
