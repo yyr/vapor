@@ -45,7 +45,7 @@
     </rect>
    </property>
    <property name="toolTip">
-    <string>Internal storage blocking factor expressed in grid points (NXxNYxNZ).  Default: 64x64x64.</string>
+    <string>Internal storage blocking factor expressed in grid points (NXxNYxNZ).  Default: 64x64x64.  Recommended to be a power of 2.</string>
    </property>
    <property name="minimum">
     <number>1</number>
@@ -67,7 +67,7 @@
     </rect>
    </property>
    <property name="toolTip">
-    <string>Internal storage blocking factor expressed in grid points (NXxNYxNZ).  Default: 64x64x64.</string>
+    <string>Internal storage blocking factor expressed in grid points (NXxNYxNZ).  Default: 64x64x64.    Recommended to be a power of 2.</string>
    </property>
    <property name="minimum">
     <number>1</number>
@@ -170,7 +170,7 @@ p, li { white-space: pre-wrap; }
     </rect>
    </property>
    <property name="toolTip">
-    <string>Internal storage blocking factor expressed in grid points (NXxNYxNZ).  Default: 64x64x64.</string>
+    <string>Internal storage blocking factor expressed in grid points (NXxNYxNZ).  Default: 64x64x64.    Recommended to be a power of 2.</string>
    </property>
    <property name="minimum">
     <number>1</number>
