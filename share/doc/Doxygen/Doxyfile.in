@@ -402,19 +402,17 @@ WARN_LOGFILE           =
 
 INPUT                  = 	TOP_OF_TREE/lib/common \
 				TOP_OF_TREE/lib/vdf \
+				TOP_OF_TREE/include/vapor/ControlExecutive.h \
 				TOP_OF_TREE/lib/params/ParamsBase.h \
 				TOP_OF_TREE/lib/params/ParamNode.h \
 				TOP_OF_TREE/lib/params/params.h \
 				TOP_OF_TREE/lib/params/datastatus.h \
-				TOP_OF_TREE/lib/params/mapperfunction.h \
-				TOP_OF_TREE/lib/params/MapperFunctionBase.h \
-				TOP_OF_TREE/lib/params/transferfunction.h \ 
 				TOP_OF_TREE/lib/params/viewpointparams.h \ 
 				TOP_OF_TREE/lib/params/regionparams.h \ 
 				TOP_OF_TREE/lib/params/animationparams.h \ 
 				TOP_OF_TREE/lib/params/Box.h \ 
 				TOP_OF_TREE/lib/render/renderer.h \ 
-				TOP_OF_TREE/lib/render/glwindow.h \ 
+				TOP_OF_TREE/lib/render/visualizer.h \ 
 				TOP_OF_TREE/apps/vaporgui/main/vizwinmgr.h \ 
 				TOP_OF_TREE/apps/vaporgui/guis/eventrouter.h  
 

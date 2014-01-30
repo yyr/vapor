@@ -116,30 +116,13 @@ public:
 	//!
 	int SetModelViewMatrix(int viz, const double* mtx);
 
-	//! Create a new renderer
-	//!
-	//! This method creates a new renderer, capable of rendering into 
-	//! the visualizer associated with \p viz.  Note:  This method is not
-	//! necessary and is being eliminated.  A renderer can be created at the time
-	//! that ActivateRender() is called
-	//!
-	//! \param[in] viz A visualizer handle returned by NewVisualizer(). 
-	//! \param[in] type The type of renderer to be created. Supported types
-	//! include "dvr", "iso", "flow", etc.
-	//! \param[in] p An instance of a RenderParams class, of same type, that is associated with the renderer
-	//!
-	//! \return instance The instance index of the new renderer
-	//! is returned. A negative int is returned on failure
-	//!
-	//! \sa NewVisualizer(), ActivateRender()
-	//
-	int NewRenderer(int viz, std::string type, RenderParams* p){return -1;}
-
 	//! Activate or Deactivate a renderer
 	//!
-	//! This method marks a renderer as active or inactive. An active 
-	//! renderer will render when the Paint method is called. An inactive
-	//! rendender will perform no rendering.
+	//! To activate a renderer, a new Renderer instance is created, associate
+	//! with the RenderParams instance indicated by viz, type, and instance.
+	//! This renderer instance is inserted in the queue of active renderers for the visualizer.
+	//! To deactivate a renderer, the associated Renderer instance is removed
+	//! from the queue of active renderers in the Visualizer, and then deleted.
 	//! 
 	//! \param[in] viz The visualizer where the renderer is 
 	//! \param[in] type The type of renderer.
@@ -237,6 +220,8 @@ public:
 
 	//! Save the current session state to a file
 	//!
+	//! \note Not yet implemented
+	//!
 	//! This method saves all current session state information 
 	//! to the file specified by path \p file. All session state information
 	//! is stored in Params objects and their derivatives
@@ -250,6 +235,8 @@ public:
 	int SaveSession(string file);
 
 	//!	Restore the session state from a session state file
+	//!
+	//! \note Not yet implemented
 	//!
 	//! This method sets the session state based on the contents of the
 	//! session file specified by \p file. It also has the side effect
@@ -299,6 +286,8 @@ public:
 
 	//! Draw 2D text on the screen
 	//!
+	//! \note Not yet implemented
+	//!
 	//! This method provides a simple interface for rendering text on
 	//! the screen. No text will actually be rendered until after Paint()
 	//! is called. Text rendering will occur after all active renderers
@@ -316,6 +305,8 @@ public:
 	int DrawText(int viz, int x, int y, string font, int size, string text);
 
 	//! Make a new Params object
+	//!
+	//! \note Not yet implemented
 	//!
 	//! Makes a new Params class object that the UI can use to manage
 	//! UI-specific state information (e.g. the currently active tab). 
@@ -335,6 +326,8 @@ public:
 	Params *NewParams(string name, int viz);
 
 	//! Undo the last session state change
+	//!
+	//! \note Not yet implemented
 	//!
 	//! Restores the state of the session to what it was prior to the
 	//! last change made via a Params object, or prior to the last call
@@ -357,6 +350,8 @@ public:
 
 	//! Redo the next session state change
 	//!
+	//! \note Not yet implemented
+	//!
 	//! Restores the state of the session to what it was before the
 	//! last change made via Undo,Redo() can
 	//! be called repeatedly to undo multiple state changes. 
@@ -377,6 +372,9 @@ public:
 
 	//! Initiate a new entry in the Undo/Redo queue.  The changes that occur
 	//! between StartCommand() and EndCommand() result in an entry in the Undo/Redo queue.
+	//!
+	//! \note Not yet implemented
+	//!
 	//! By default, single state changes in a Params object will insert entries in the queue.
 	//! This method and the following  EndCommand()  enable the user to combine multiple state changes into a single queue entry.
 	//! Single state changes do not get inserted into the command queue between a StartCommand() and an EndCommand().
@@ -394,6 +392,9 @@ public:
 
 	//! Complete a new entry in the Undo/Redo queue.  All state changes that occur in a Params instance
 	//! between StartCommand() and EndCommand() result in a single entry in the Undo/Redo queue.
+	//!
+	//! \note Not yet implemented
+	//!
 	//! \sa StartCommand
 	//! \param[in] Params* p Pointer to the params that has changed
 	//! \return int rc is zero if successful.  Otherwise state of p is returned to what is was
@@ -404,6 +405,9 @@ public:
 
 	//! Identify the changes in the undo/Redo queue
 	//! Returns the text associated with a change in the undo/redo queue.
+	//!
+	//! \note Not yet implemented
+	//!
 	//! \param[in] int num indicates the position of the command relative to the current state of the queue
 	//! The most recent entry added corresponds to num = 0
 	//! Negative values of num correspond with entries that can be redone.
@@ -413,6 +417,8 @@ public:
 	string& GetCommandText(int n);
 
 	//! Capture the next rendered image to a file
+	//!
+	//! \note Not yet implemented
 	//!
 	//! When this method is called, the next time Paint() is called for 
 	//! the specified visualizer, the rendered image 
@@ -427,6 +433,9 @@ public:
 
 	//! Specify an error handler that the ControlExecutive will use
 	//! to notify of asynchronous error conditions that arise.
+	//!
+	//! \note Not yet implemented
+	//!
 	//! The ErrorHandler class will have methods for
 	//! Setting, clearing error state, which will support 
 	//! A string description and a numerical error code.
@@ -437,6 +446,9 @@ public:
 	//! Verify that a Params instance is in a valid state
 	//! Used to handle synchronous error checking,
 	//! E.g. checking user input parameters.
+	//!
+	//! \note Not yet implemented
+	//!
 	//! \param[in] p pointer to Params instance being checked
 	//! \return status nonzero indicates error
 	int ValidateParams(Params* p);

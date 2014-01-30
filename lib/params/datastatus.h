@@ -62,13 +62,7 @@ public:
 	const float* getLocalExtents() { return extents; }
 	const float* getFullSizes() {return fullSizes;}
 	const float* getFullStretchedSizes() {return fullStretchedSizes;}
-	float getMaxSide(){return Max(fullSizes[0],Max(fullSizes[1],fullSizes[2]));}
-	float getMaxStretchedSide(){return Max(fullStretchedSizes[0],Max(fullStretchedSizes[1],fullStretchedSizes[2]));}
 
-
-	//! Return the extents of the data in user coordinates multiplied by current stretch factors.
-	//! \retval float[6] stretched extents array
-	const float* getStretchedExtents() { return stretchedExtents; }
 
 	//! Returns the minimum time step for which there is any data.
 	//! \retval size_t value of smallest time step
@@ -91,9 +85,6 @@ public:
 	//! \retval int number of refinement levels
 	int getNumTransforms() {return numTransforms;}
 
-	//! Indicates the number of levels of detail in the VDC.
-	//! \retval int number of LOD's
-	int getNumLODs() { return numLODs;}
 
 	int getNumVariables3D() {return dataMgr->GetVariables3D().size();}
 	int getNumVariables2DXY() {return dataMgr->GetVariables2DXY().size();}
@@ -106,7 +97,7 @@ public:
 	int getVarNum2D(string vname);
 	float getDefaultDataMax(string vname);
 	float getDefaultDataMin(string vname);
-	int getDataRange(string vname, size_t timestep, float range[2]);
+	
 	void mapBoxToVox(Box* box, int refLevel, int lod, int timestep, size_t voxExts[6]);
 
 	float getVoxelSize(int numrefinements, int dir){
@@ -141,15 +132,7 @@ public:
 	}
 	static size_t getCacheMB() {return cacheMB;}
 	
-
 	const float* getStretchFactors() {return stretchFactors;}
-	void applyStretch(const vector<double>& before, float after[3]){
-		for (int i = 0; i<3; i++) after[i] = before[i]*stretchFactors[i];
-	}
-	void applyStretch(const float before[3], float after[3]){
-		for (int i = 0; i<3; i++) after[i] = before[i]*stretchFactors[i];
-	}
-	
 	
 private:
 	
@@ -174,14 +157,9 @@ private:
 	float stretchFactors[3];
 	float fullSizes[3];
 	float fullStretchedSizes[3];
-
-	
-	
-	
 	//Cache size in megabytes
 	static size_t cacheMB;
 	
-
 #endif //DOXYGEN_SKIP_THIS
 };
 
