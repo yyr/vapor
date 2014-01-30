@@ -32,7 +32,7 @@ begin
      
     ; make sure we're dealing with postscript...
     class = NhlClassName(wks)
-    if (class.ne."psWorkstationClass") then
+    if (class.ne."psWorkstationClass".and.class.ne."documentWorkstationClass") then
          print("wrf2geotiff_open(): Workstation type not PS")
          print("wrf2geotiff processes will fail")
          return False
@@ -44,9 +44,9 @@ begin
 
     tcVar = True
     tcVar@numPlots = 0
-    if (class.eq."pdfWorkstationClass") then
+    if (class.eq."documentWorkstationClass") then
         getvalues wks
-            "wkPDFFileName":  filename
+            "wkFileName":  filename
         end getvalues
     else
         getvalues wks
