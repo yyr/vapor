@@ -440,7 +440,7 @@ setArrowEnabled(bool val, int instance){
 	
 	ArrowParams* dParams = (ArrowParams*)(Params::GetParamsInstance(ArrowParams::_arrowParamsTag, activeViz, instance));
 	//Make sure this is a change:
-	if (dParams->isEnabled() == val ) return;
+	if (dParams->IsEnabled() == val ) return;
 	//If we are enabling, also make this the current instance:
 	if (val) {
 		performGuiChangeInstance(instance);
@@ -717,10 +717,10 @@ guiSetEnabled(bool value, int instance, bool undoredo){
 	//Ignore spurious clicks.
 	ArrowParams* dParams = (ArrowParams*)(Params::GetParamsInstance(ArrowParams::_arrowParamsTag, winnum, instance));
 	
-	if (value == dParams->isEnabled()) return;
+	if (value == dParams->IsEnabled()) return;
 	confirmText(false);
 	
-	dParams->setEnabled(value);
+	dParams->SetEnabled(value);
 	
 	//Make the change in enablement occur in the rendering window, 
 	// Local/Global is not changing.
@@ -800,13 +800,13 @@ updateRenderer(RenderParams* rParams, bool prevEnabled,int instance, bool newWin
 	
 	ArrowParams* dParams = (ArrowParams*)rParams;
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
-	int winnum = dParams->getVizNum();
+	int winnum = dParams->GetVizNum();
 	
 	if (newWindow) {
 		prevEnabled = false;
 	}
 	
-	bool nowEnabled = rParams->isEnabled();
+	bool nowEnabled = rParams->IsEnabled();
 	if (prevEnabled == nowEnabled) return;
 
 	VizWin* viz = 0;

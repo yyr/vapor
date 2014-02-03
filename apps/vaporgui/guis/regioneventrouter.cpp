@@ -223,7 +223,7 @@ void RegionEventRouter::updateTab(){
 	fullSizeYLabel->setText(QString::number(fullUsrExts[4]-fullUsrExts[1], 'g',4));
 	fullSizeZLabel->setText(QString::number(fullUsrExts[5]-fullUsrExts[2], 'g',4));
 
-	if (rParams->isLocal())
+	if (rParams->IsLocal())
 		LocalGlobal->setCurrentIndex(1);
 	else 
 		LocalGlobal->setCurrentIndex(0);

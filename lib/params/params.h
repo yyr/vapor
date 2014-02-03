@@ -62,8 +62,8 @@ Params(
  );
 //! Deprecated constructor, needed for built-in classes that do not have associated XML node:
 Params(int winNum, const string& name) : ParamsBase(name) {
-	vizNum = winNum;
-	if(winNum < 0) local = false; else local = true;
+	SetVizNum(winNum);
+	if(winNum < 0) SetLocal(false); else SetLocal( true);
 	
 	previousClass = 0;
 }
@@ -129,7 +129,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \retval Pointer to specified Params instance
 	static Params* GetCurrentParamsInstance(int pType, int winnum){
 		Params* p = GetParamsInstance(pType, winnum, -1);
-		if (p->isLocal()) return p;
+		if (p->IsLocal()) return p;
 		return GetDefaultParams(pType);
 	}
 	
@@ -282,23 +282,25 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	
 //! Identify the visualizer associated with this instance.
 //! With global pr default Params this is -1 
-	virtual int getVizNum() {return vizNum;}
+	virtual int GetVizNum() {return (int)(GetRootNode()->GetElementLong(_VisualizerNumTag))[0];}
 
 //! Specify whether a [non-render]params is local or global. 
 //! \param[in] lg boolean is true if is local 
-	virtual void setLocal(bool lg){ if (lg) {
-		local = true;
-	}
-		else local = false;
+	virtual void SetLocal(bool lg){
+		GetRootNode()->SetElementLong(_LocalTag,(long)lg);
 	}
 
 //! Indicate whether a Params is local or not.
 //! \retval is true if local
-	bool isLocal() {return local;}
+	bool IsLocal() {
+		return (GetRootNode()->GetElementLong(_LocalTag)[0] != 0);
+	}
 	
 //! Specify the visualizer index of a Params instance.
 //! \param[in]  vnum is the integer visualizer number
-	virtual void setVizNum(int vnum){vizNum = vnum;}
+	virtual void SetVizNum(int vnum){
+		GetRootNode()->SetElementLong(_VisualizerNumTag,(long)vnum);
+	}
 	
 //! Virtual method to set up the Params to deal with new metadata.
 //! When a new metadata is read, all params are notified.
@@ -336,13 +338,10 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	static const string _VariableNamesTag;
 	static const string _VisualizerNumTag;
 	static const string _VariablesTag;
+	static const string _LocalTag;
 	
 protected:
-	bool local;
-	
-	//Keep track of which window number corresp to this.  -1 for global or default parameters.
-	//
-	int vizNum;
+
 	
 	//Params instances are vectors of Params*, one per instance, indexed by paramsBaseType, winNum
 	static map<pair<int,int>,vector<Params*> > paramsInstances;
@@ -372,13 +371,14 @@ public:
 	RenderParams(XmlNode *parent, const string &name, int winnum); 
 	
 		
-	//! Indicate if the renderer is enabled
-	//! \retval true if enabled
-	bool isEnabled(){return enabled;}
-
-	//! Set renderer to be enabled
-	//! \param[in] value true if enabled
-	virtual void setEnabled(bool value) {enabled = value; stopFlag = false;}
+	virtual bool IsEnabled(){
+		int enabled = GetRootNode()->GetElementLong(_EnabledTag)[0];
+		return (enabled != 0);
+	}
+	virtual void SetEnabled(bool val){
+		long lval = (long)val;
+		GetRootNode()->SetElementLong(_EnabledTag,lval);
+	}
 
 	//! Pure virtual method indicates if a particular variable name is currently used by the renderer.
 	//! \param[in] varname name of the variable
@@ -434,28 +434,16 @@ public:
 #ifndef DOXYGEN_SKIP_THIS
 	//Following methods are deprecated, used by some built-in renderparams classes
 	
-	
-	
 	virtual ~RenderParams(){
 	}
 	
 	virtual Params* deepCopy(ParamNode* nd = 0);
 	virtual bool isRenderParams() {return true;}
-
-	//following does nothing for renderParams
-	virtual void setLocal(bool ){ assert(0);}
-
 	
 	void initializeBypassFlags();
 	
 protected:
-	
-	// The enabled flag is only used by renderer params
-	//
-	bool enabled;
-	bool stopFlag;  //Indicates if user asked to stop (only with flow calc now)
-	
-
+	static const string _EnabledTag;
 	vector<int> bypassFlags;
 #endif //DOXYGEN_SKIP_THIS
 };
@@ -472,6 +460,8 @@ class DummyParams : public Params {
 	virtual int GetCompressionLevel() {return 0;}
 	
 	virtual void SetCompressionLevel(int){}
+
+	
 	
 	virtual bool reinit(bool){return false;}
 	

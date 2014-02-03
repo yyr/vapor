@@ -47,6 +47,8 @@ const string Params::_VariablesTag = "Variables";
 const string Params::_RefinementLevelTag = "RefinementLevel";
 const string Params::_CompressionLevelTag = "CompressionLevel";
 const string Params::_VariableNamesTag = "VariableNames";
+const string Params::_LocalTag = "Local";
+const string RenderParams::_EnabledTag = "Enabled";
 
 std::map<pair<int,int>,vector<Params*> > Params::paramsInstances;
 std::map<pair<int,int>, int> Params::currentParamsInstance;
@@ -58,8 +60,8 @@ std::vector<Params*> Params::dummyParamsInstances;
 Params::Params(
 	XmlNode *parent, const string &name, int winNum
 	): ParamsBase(parent,name) {
-	vizNum = winNum;
-	if(winNum < 0) local = false; else local = true;
+	SetVizNum(winNum);
+	if(winNum < 0) SetLocal(false); else SetLocal(true);;
 	
 }
 
@@ -69,8 +71,7 @@ Params::~Params() {
 }
 
 RenderParams::RenderParams(XmlNode *parent, const string &name, int winnum):Params(parent, name, winnum){
-	local = true;
-	enabled = false;
+	SetLocal(true);
 }
 const std::string& Params::paramName(Params::ParamsBaseType type){
 	return GetDefaultParams(type)->getShortName();
@@ -121,7 +122,7 @@ Params* Params::GetParamsInstance(int pType, int winnum, int instance){
 	if (instance < 0) instance = currentParamsInstance[make_pair(pType,winnum)];
 	if (instance >= paramsInstances[make_pair(pType, winnum)].size()) {
 		Params* p = GetDefaultParams(pType)->deepCopy();
-		p->setVizNum(winnum);
+		p->SetVizNum(winnum);
 		AppendParamsInstance(pType,winnum,p);
 		return p;
 	}
@@ -166,7 +167,7 @@ bool Params::IsRenderingEnabled(int winnum){
 		for (int inst = 0; inst < GetNumParamsInstances(i,winnum); inst++){
 			Params* p = GetParamsInstance(i,winnum, inst);
 			if (!(p->isRenderParams())) break;
-			if (((RenderParams*)p)->isEnabled()) return true;
+			if (((RenderParams*)p)->IsEnabled()) return true;
 		}
 	}
 	return false;
@@ -175,14 +176,12 @@ bool Params::IsRenderingEnabled(int winnum){
 Params::Params(const Params& p) :
 	ParamsBase(p)
 {
-	local = p.local;
-	vizNum = p.vizNum;
+
 }
 Params* Params::deepCopy(ParamNode* ){
 	//Start with default copy  
 	Params* newParams = CreateDefaultParams(GetParamsBaseTypeId());
-	newParams->local = isLocal();
-	newParams->setVizNum(getVizNum());
+	
 	// Need to clone the xmlnode; 
 	ParamNode* rootNode = GetRootNode();
 	if (rootNode) {
@@ -198,8 +197,7 @@ Params* RenderParams::deepCopy(ParamNode* nd){
 	Params* newParams = Params::deepCopy(nd);
 	
 	RenderParams* renParams = dynamic_cast<RenderParams*>(newParams);
-	renParams->enabled = enabled;
-	renParams->stopFlag = stopFlag;
+	
 	renParams->bypassFlags = bypassFlags;
 	return renParams;
 }

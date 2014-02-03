@@ -14,6 +14,7 @@
 #include "viewpointparams.h"
 #include "vapor/ExtensionClasses.h"
 #include "vapor/DataMgrFactory.h"
+#include "command.h"
 
 using namespace VAPoR;
 ControlExecutive* ControlExecutive::controlExecutive = 0;
@@ -135,7 +136,7 @@ int ControlExecutive::ActivateRender(int viz, string type, int instance, bool on
 	if (numInsts < instance) return -1;
 	RenderParams* p = (RenderParams*)Params::GetParamsInstance(type,viz,instance);
 	//p should already have its state set to enabled if we are activating it here
-	if (!p->isEnabled()){ //we should deactivate it here
+	if (!p->IsEnabled()){ //we should deactivate it here
 		if (on) return -2; //should not be activating it
 		GetVisualizer(viz)->removeRenderer(p);
 		return 0;
@@ -325,47 +326,6 @@ int ControlExecutive::DrawText(int viz, int x, int y, string font, int size, str
 	//
 Params * ControlExecutive::NewParams(string name, int viz){return 0;}
 
-	//! Undo the last session state change
-	//!
-	//! Restores the state of the session to what it was prior to the
-	//! last change made via a Params object, or prior to the last call
-	//! to Undo() or Redo(), whichever happened last. I.e. Undo() can
-	//! be called repeatedly to undo multiple state changes. 
-	//!
-	//! State changes do not trigger rendering. It is the UI's responsibility
-	//! to call Paint() after Undo(), and to make any UI internal changes
-	//! necessary to reflect the new state. The Params object that was
-	//! modified will have appropriate
-	//! flags set to indicate the state that has changed.
-	//! \param[out] instance specifies the instance index of the Params instance that is being undone
-	//! \param[out] viz indicates the visualizer associated with the Undo
-	//! \param[out] type indicates the type of the Params
-    //!
-	//! \return Params* ptr A pointer to the Params object that reflects the change.  Pointer is null if there is nothing to undo.
-	//! \sa Redo()
-	//!
-Params* ControlExecutive::Undo(int* instance, int *viz, string& type){return 0;}
-
-	//! Redo the next session state change
-	//!
-	//! Restores the state of the session to what it was before the
-	//! last change made via Undo,Redo() can
-	//! be called repeatedly to undo multiple state changes. 
-	//!
-	//! State changes do not trigger rendering. It is the UI's responsibility
-	//! to call Paint() after Redo(), and to make any UI internal changes
-	//! necessary to reflect the new state. The Params object that was
-	//! modified will have appropriate
-	//! flags set to indicate the state that has changed.
-	//! \param[out] instance specifies the instance index of the Params instance that is being redone
-	//! \param[out] viz indicates the visualizer associated with the Redo
-	//! \param[out] type indicates the type of the Params
-    //!
-	//! \return Params* ptr A pointer to the Params object that reflects the change.  Pointer is null if there is nothing to Redo
-	//! \sa UnDo()
-	//
-Params* ControlExecutive::Redo(int* instance, int *viz, string& type){return 0;}
-
 	//! Initiate a new entry in the Undo/Redo queue.  The changes that occur
 	//! between StartCommand() and EndCommand() result in an entry in the Undo/Redo queue.
 	//! By default, single state changes in a Params object will insert entries in the queue.
@@ -401,7 +361,11 @@ int ControlExecutive::EndCommand(Params* p){return 0;}
 	//! The null string is returned if there is no entry corresponding to n. 
 	//! \return descriptive text \p string associated with the specified command.
 	//
-string& ControlExecutive::GetCommandText(int n){return * (new string(""));}
+string& ControlExecutive::GetCommandText(int n){
+	Command* cmd = Command::CurrentCommand(n);
+	if (!cmd) return *(new string(""));
+	return cmd->getDescription();
+}
 
 	//! Capture the next rendered image to a file
 	//!
@@ -466,9 +430,16 @@ reinitializeParams(bool doOverride){
 				p->reinit(doOverride);
 				if (!p->isRenderParams()) break;
 				RenderParams* rParams = (RenderParams*)p;
-				rParams->setEnabled(false);
+				rParams->SetEnabled(false);
 			}
 		}
 		GetVisualizer(i)->removeAllRenderers();
 	}
+}
+
+Params* ControlExecutive::Undo(string& type,int* instance, int *viz ){
+		return Command::BackupQueue(type, instance, viz);
+}
+Params* ControlExecutive::Redo(string& type,int* instance, int *viz ){
+		return Command::AdvanceQueue(type, instance, viz);
 }

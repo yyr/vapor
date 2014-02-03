@@ -175,14 +175,14 @@ void ArrowParams::restart() {
 	
 	SetRefinementLevel(0);
 	SetCompressionLevel(0);
-	SetVisualizerNum(vizNum);
+	SetVizNum(0);
 	SetFieldVariableName(0, "xvar");
 	SetFieldVariableName(1, "yvar");
 	SetFieldVariableName(2, "0");
 	SetVariables3D(true);
 	SetHeightVariableName("HGT");
 	
-	setEnabled(false);
+	SetEnabled(false);
 	const float default_color[3] = {1.0, 0.0, 0.0};
 	SetConstantColor(default_color);
 	SetVectorScale(1.0);
@@ -299,17 +299,7 @@ void ArrowParams::SetCompressionLevel(int level){
 	 GetRootNode()->SetElementLong(_CompressionLevelTag,valvec);
 	 setAllBypass(false);
  }
-
- void ArrowParams::SetVisualizerNum(int viznum){
-	vector<long> valvec(1,(long)viznum);
-	GetRootNode()->SetElementLong(_VisualizerNumTag,valvec);
-	vizNum = viznum;
- }
- int ArrowParams::GetVisualizerNum(){
-	const vector<long> visnum(1,0);
-	vector<long> valvec = GetRootNode()->GetElementLong(_VisualizerNumTag,visnum);
-	return (int)valvec[0];
- }
+ 
 void ArrowParams::SetFieldVariableName(int i, const string& varName){
 	vector <string> svec;
 	vector <string> defaultName(1,"0");

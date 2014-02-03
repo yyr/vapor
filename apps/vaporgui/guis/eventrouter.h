@@ -171,7 +171,7 @@ public:
 		
 		Params* localParams = VizWinMgr::getInstance()->getCorrespondingLocalParams(p);
 		
-		localParams->setLocal(lg);
+		localParams->SetLocal(lg);
 		
 		updateTab();
 	}

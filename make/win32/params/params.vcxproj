@@ -208,6 +208,7 @@
     <ClCompile Include="..\..\..\lib\params\animationparams.cpp" />
     <ClCompile Include="..\..\..\lib\params\arrowparams.cpp" />
     <ClCompile Include="..\..\..\lib\params\Box.cpp" />
+    <ClCompile Include="..\..\..\lib\params\command.cpp" />
     <ClCompile Include="..\..\..\lib\params\datastatus.cpp" />
     <ClCompile Include="..\..\..\lib\params\glutil.cpp" />
     <ClCompile Include="..\..\..\lib\params\ParamNode.cpp" />
@@ -223,6 +224,7 @@
     <ClInclude Include="..\..\..\lib\params\arrowparams.h" />
     <ClInclude Include="..\..\..\lib\params\Box.h" />
     <ClInclude Include="..\..\..\include\vapor\errorcodes.h" />
+    <ClInclude Include="..\..\..\lib\params\command.h" />
     <ClInclude Include="..\..\..\lib\params\datastatus.h" />
     <ClInclude Include="..\..\..\lib\params\glutil.h" />
     <ClInclude Include="..\..\..\include\vapor\ParamNode.h" />

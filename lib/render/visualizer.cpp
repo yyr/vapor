@@ -1001,7 +1001,7 @@ void Visualizer::removeDisabledRenderers(){
 		bool retry = false;
 		for (int i = 0; i< renderer.size(); i++){
 			RenderParams* rParams = renderer[i]->getRenderParams();
-			if (!rParams->isEnabled()) {
+			if (!rParams->IsEnabled()) {
 				removeRenderer(rParams);
 				retry = true;
 				break;

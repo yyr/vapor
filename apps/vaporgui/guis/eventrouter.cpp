@@ -46,8 +46,8 @@ void EventRouter::copyRendererInstance(int toWindow, RenderParams* rp){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	//Clone this params
 	RenderParams* newP = (RenderParams*)rp->deepCopy();
-	newP->setVizNum(toWindow);
-	newP->setEnabled(false);
+	newP->SetVizNum(toWindow);
+	newP->SetEnabled(false);
 	vizMgr->appendInstance(toWindow, newP);
 	//update tab is only needed up update the instanceTable when we are copying in the same viz
 	updateTab ();
@@ -63,8 +63,8 @@ void EventRouter::newRendererInstance(int winnum){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	//Clone default params
 	RenderParams* newP = dynamic_cast<RenderParams*>(vizMgr->getGlobalParams(myParamsBaseType)->deepCopy());
-	newP->setVizNum(winnum);
-	newP->setEnabled(false);
+	newP->SetVizNum(winnum);
+	newP->SetEnabled(false);
 	vizMgr->appendInstance(winnum, newP);
 	updateTab ();
 }
@@ -74,8 +74,8 @@ void EventRouter::removeRendererInstance(int winnum, int instance){
 	//make sure it's disabled
 	RenderParams* rp = (RenderParams*)(vizMgr->getParams(winnum, myParamsBaseType, instance));
 	//disable it first if necessary:
-	if (rp->isEnabled()){
-		rp->setEnabled(false);
+	if (rp->IsEnabled()){
+		rp->SetEnabled(false);
 		updateRenderer(rp, true, instance, false);
 	}
 	vizMgr->removeInstance(winnum, instance, myParamsBaseType);

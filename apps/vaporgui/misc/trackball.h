@@ -79,7 +79,7 @@ public:
 	void	TrackballReset ();
 	
 	void	MouseOnTrackball ( int eventType, Qt::MouseButton thisButton, int xcrd, int ycrd, unsigned width, unsigned height);
-	bool	isLocal() {return local;}
+	bool	IsLocal() {return local;}
 	//Initialize the trackball, provide viewer position, direction, upvector,
 	//and the center of rotation (all in trackball coordinate space)
 	void	setFromFrame(double* posvec, double* dirvec, double* upvec, double* centerRot,

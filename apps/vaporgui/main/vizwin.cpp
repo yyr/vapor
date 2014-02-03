@@ -222,7 +222,7 @@ changeCoords(float *vpos, float* vdir, float* upvec) {
  */
 void VizWin::
 setValuesFromGui(ViewpointParams* vpparams){
-	if (!vpparams->isLocal()){
+	if (!vpparams->IsLocal()){
 		assert(myWinMgr->getViewpointParams(myWindowNum) == vpparams);
 	}
 	Viewpoint* vp = vpparams->getCurrentViewpoint();

@@ -8,7 +8,7 @@ FILES = \
 	params regionparams arrowparams \
 	viewpoint  \
 	animationparams	viewpointparams ParamsBase Box \
-	ParamNode
+	ParamNode command
 	
 HEADER_FILES = ParamsBase ParamNode
 	

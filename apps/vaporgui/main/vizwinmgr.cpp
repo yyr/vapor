@@ -309,12 +309,12 @@ createDefaultParams(int winnum){
 		Params* q = Params::GetDefaultParams(i);
 		//if (!q->isRenderParams()) continue;
 		Params* p = q->deepCopy();
-		p->setVizNum(winnum);
+		p->SetVizNum(winnum);
 		//Check for strange error:
 		assert( Params::GetNumParamsInstances(i,winnum) == 0);
 		Params::AppendParamsInstance(i,winnum,p);
 		Params::SetCurrentParamsInstanceIndex(i,winnum,0);
-		if (!p->isRenderParams())p->setLocal(false);
+		if (!p->isRenderParams())p->SetLocal(false);
 		else if(DataStatus::getInstance()->getDataMgr()){
 			EventRouter* eRouter = getEventRouter(i);
 			eRouter->setEditorDirty((RenderParams*)p);
@@ -411,7 +411,7 @@ setActiveViz(int vizNum){
 		//Tell the Visualizers who is active
 		Visualizer::setActiveWinNum(vizNum);
 		//Determine if the active viz is sharing the region
-		Visualizer::setRegionShareFlag(!getRegionParams(vizNum)->isLocal());
+		Visualizer::setRegionShareFlag(!getRegionParams(vizNum)->IsLocal());
 
 		tabManager->show();
 		//Add to history if this is not during initial creation.
@@ -513,33 +513,33 @@ alignView(int axis)
 
 //Trigger a re-render of the windows that share a region params
 void VizWinMgr::refreshRegion(RegionParams* rParams){
-	int vizNum = rParams->getVizNum();
+	int vizNum = rParams->GetVizNum();
 	if (vizNum >= 0){
 		VizWindow[activeViz]->updateGL();
 	}
 	//Is another viz using these region params?
-	if (rParams->isLocal()) return;
+	if (rParams->IsLocal()) return;
 	for (int i = 0; i< VizWindow.size(); i++){
 		if (!VizWindow[i]) continue;
 		RegionParams* rgParams = (RegionParams*)Params::GetParamsInstance(Params::_regionParamsTag,i);
-		if  ( (i != vizNum)  &&((!rgParams)||!rgParams->isLocal())){
+		if  ( (i != vizNum)  &&((!rgParams)||!rgParams->IsLocal())){
 			VizWindow[i]->updateGL();
 		}
 	}
 }
 //Trigger a re-render of the windows that share a viewpoint params
 void VizWinMgr::refreshViewpoint(ViewpointParams* vParams){
-	int vizNum = vParams->getVizNum();
+	int vizNum = vParams->GetVizNum();
 	if (vizNum >= 0){
 		VizWindow[activeViz]->updateGL();
 	}
 	//Is another viz using these viewpoint params?
-	if (vParams->isLocal()) return;
+	if (vParams->IsLocal()) return;
 	for (int i = 0; i< VizWindow.size(); i++){
 		if (!VizWindow[i]) continue;
 		ViewpointParams* vpParams = (ViewpointParams*)Params::GetParamsInstance(Params::_viewpointParamsTag,i);
 		if  ( (i != vizNum)  &&
-				((!vpParams)||!vpParams->isLocal())
+				((!vpParams)||!vpParams->IsLocal())
 			){
 			VizWindow[i]->updateGL();
 		}
@@ -559,16 +559,16 @@ void VizWinMgr::refreshViewpoint(ViewpointParams* vParams){
 //
 void VizWinMgr::
 resetViews(ViewpointParams* vp){
-	int vizNum = vp->getVizNum();
+	int vizNum = vp->GetVizNum();
 	if (vizNum>=0) {
 		Visualizer* glw = VizWindow[vizNum]->getVisualizer();
 		if(glw) glw->resetView(vp);
 	}
-	if(vp->isLocal()) return;
+	if(vp->IsLocal()) return;
 	for (int i = 0; i< VizWindow.size(); i++){
 		if (!VizWindow[i]) continue;
 		Params* vpParams = (ViewpointParams*)Params::GetParamsInstance(Params::_viewpointParamsTag, i);
-		if  ( (i != vizNum)  && ((!vpParams)||!vpParams->isLocal())){
+		if  ( (i != vizNum)  && ((!vpParams)||!vpParams->IsLocal())){
 			Visualizer* glw = VizWindow[i]->getVisualizer();
 			if(glw) glw->resetView(vp);
 		}
@@ -594,7 +594,7 @@ setAnimationLocalGlobal(int val){
 		if (!getRealAnimationParams(activeViz)){
 			//create a new parameter panel, copied from global
 			Params::AppendParamsInstance(Params::_animationParamsTag, activeViz, (AnimationParams*)getGlobalAnimationParams()->deepCopy());
-			getRealAnimationParams(activeViz)->setVizNum(activeViz);
+			getRealAnimationParams(activeViz)->SetVizNum(activeViz);
 			getAnimationRouter()->confirmText(true);
 			
 			//No need to refresh anything, since the new parameters are same as old! 
@@ -635,7 +635,7 @@ setVpLocalGlobal(int val){
 		if (!vpParams){
 			//create a new parameter panel, copied from global
 			vpParams = (ViewpointParams*)Params::GetDefaultParams(Params::_viewpointParamsTag)->deepCopy();
-			vpParams->setVizNum(activeViz);
+			vpParams->SetVizNum(activeViz);
 			getViewpointRouter()->guiSetLocal(vpParams,true);
 			//No need to refresh anything, since the new parameters are same as old! 
 		} else { //need to revert to existing local settings:
@@ -672,7 +672,7 @@ setRgLocalGlobal(int val){
 		if (!getRealRegionParams(activeViz)){
 			//create a new parameter panel, copied from global
 			Params::AppendParamsInstance(Params::_regionParamsTag, activeViz, (RegionParams*)getGlobalRegionParams()->deepCopy());
-			getRealRegionParams(activeViz)->setVizNum(activeViz);
+			getRealRegionParams(activeViz)->SetVizNum(activeViz);
 			getRegionRouter()->guiSetLocal(getRealRegionParams(activeViz),true);
 			//No need to refresh anything, since the new parameters are same as old! 
 		} else { //need to revert to existing local settings:
@@ -691,7 +691,7 @@ setRgLocalGlobal(int val){
 	//in region mode, refresh the global windows and this one
 	if (Visualizer::getCurrentMouseMode() == Visualizer::regionMode){
 		for (int i = 0; i<VizWindow.size(); i++){
-			if(VizWindow[i] && (!getRegionParams(i)->isLocal()|| (i == activeViz)))
+			if(VizWindow[i] && (!getRegionParams(i)->IsLocal()|| (i == activeViz)))
 				VizWindow[i]->updateGL();
 		}
 	}
@@ -720,7 +720,7 @@ Params* VizWinMgr::
 getApplicableParams(Params::ParamsBaseType typId){
 	if(activeViz < 0) return getGlobalParams(typId);
 	Params* p = Params::GetParamsInstance(typId,activeViz,-1);
-	if (p->isRenderParams() || p->isLocal()) return p;
+	if (p->isRenderParams() || p->IsLocal()) return p;
 	return Params::GetDefaultParams(typId);
 }
 EventRouter* VizWinMgr::
@@ -740,7 +740,7 @@ initViews(){
 	for (int i = 0; i< VizWindow.size(); i++){
 		if (VizWindow[i]) {
 			ViewpointParams* vpParams = (ViewpointParams*)Params::GetParamsInstance(Params::_viewpointParamsTag,i);
-			if (vpParams->isLocal()){
+			if (vpParams->IsLocal()){
 				VizWindow[i]->setValuesFromGui(vpParams);
 			}
 			else VizWindow[i]->setValuesFromGui(getGlobalVPParams());
@@ -803,10 +803,10 @@ reinitializeParams(bool doOverride){
 				p->reinit(doOverride);
 				if (!p->isRenderParams()) break;
 				RenderParams* rParams = (RenderParams*)p;
-				p->setVizNum(i);  //needed because of iso bug in 2.0.0
+				p->SetVizNum(i);  //needed because of iso bug in 2.0.0
 				//turn off rendering
-				rParams->setEnabled(false);
-				eRouter->updateRenderer(rParams, rParams->isEnabled(), inst, false);
+				rParams->SetEnabled(false);
+				eRouter->updateRenderer(rParams, rParams->IsEnabled(), inst, false);
 			}
 		}
 		
@@ -966,7 +966,7 @@ Params* VizWinMgr::getParams(int winnum, Params::ParamsBaseType pType, int insta
 	Params* p =  Params::GetParamsInstance(pType,winnum, instance);
 	if (!p || p->isRenderParams()) return p;
 	if (winnum < 0) return Params::GetDefaultParams(pType);
-	if (p->isLocal()) return p;
+	if (p->IsLocal()) return p;
 	return Params::GetDefaultParams(pType);
 }
 int VizWinMgr::getNumInstances(int winnum, Params::ParamsBaseType pType){
@@ -1033,8 +1033,8 @@ getRegionRouter() {
 }
 
 void VizWinMgr::forceRender(RenderParams* rp, bool always){
-	if (!always && !rp->isEnabled()) return;
-	int viznum = rp->getVizNum();
+	if (!always && !rp->IsEnabled()) return;
+	int viznum = rp->GetVizNum();
 	if (viznum < 0) return;
 	VizWindow[viznum]->reallyUpdate();
 }

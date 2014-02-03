@@ -335,7 +335,7 @@ void AnimationEventRouter::updateTab(){
 	} else {
 		replayButton->setChecked(false);
 	}
-	if (aParams->isLocal())
+	if (aParams->IsLocal())
 		LocalGlobal->setCurrentIndex(1);
 	else 
 		LocalGlobal->setCurrentIndex(0);

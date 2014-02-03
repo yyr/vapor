@@ -87,7 +87,7 @@ void InstanceTable::rebuild(EventRouter* myRouter){
 	for (int r = 0; r<numInsts; r++){
 		
 		RenderParams* rParams = (RenderParams*)vizMgr->getParams(winnum,renderBaseType,r);
-		bool isEnabled = rParams->isEnabled();
+		bool isEnabled = rParams->IsEnabled();
 		if (!item(r,0)) {  //need to create new items..
 
 			QString instanceName = QString(" Instance: ") + QString::number(r+1) + " ";

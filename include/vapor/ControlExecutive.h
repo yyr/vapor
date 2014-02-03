@@ -31,7 +31,6 @@ public:
 		if (!controlExecutive) controlExecutive = new ControlExecutive();
 		return controlExecutive;
 	}
-		
 
 	//! Create a new visualizer
 	//!
@@ -326,9 +325,6 @@ public:
 	Params *NewParams(string name, int viz);
 
 	//! Undo the last session state change
-	//!
-	//! \note Not yet implemented
-	//!
 	//! Restores the state of the session to what it was prior to the
 	//! last change made via a Params object, or prior to the last call
 	//! to Undo() or Redo(), whichever happened last. I.e. Undo() can
@@ -336,9 +332,8 @@ public:
 	//!
 	//! State changes do not trigger rendering. It is the UI's responsibility
 	//! to call Paint() after Undo(), and to make any UI internal changes
-	//! necessary to reflect the new state. The Params object that was
-	//! modified will have appropriate
-	//! flags set to indicate the state that has changed.
+	//! necessary to reflect the new state. It is also the responsibility of
+	//! the UI to set any change flags associated with the change in Params state.
 	//! \param[out] instance specifies the instance index of the Params instance that is being undone
 	//! \param[out] viz indicates the visualizer associated with the Undo
 	//! \param[out] type indicates the type of the Params
@@ -346,21 +341,17 @@ public:
 	//! \return Params* ptr A pointer to the Params object that reflects the change.  Pointer is null if there is nothing to undo.
 	//! \sa Redo()
 	//!
-	Params* Undo(int* instance, int *viz, string& type);
+	Params* Undo(string& type,int* instance, int *viz );
 
 	//! Redo the next session state change
-	//!
-	//! \note Not yet implemented
-	//!
 	//! Restores the state of the session to what it was before the
 	//! last change made via Undo,Redo() can
 	//! be called repeatedly to undo multiple state changes. 
 	//!
 	//! State changes do not trigger rendering. It is the UI's responsibility
 	//! to call Paint() after Redo(), and to make any UI internal changes
-	//! necessary to reflect the new state. The Params object that was
-	//! modified will have appropriate
-	//! flags set to indicate the state that has changed.
+	//! necessary to reflect the new state.  It is also the responsibility of
+	//! the UI to set any change flags associated with the change in Params state.
 	//! \param[out] instance specifies the instance index of the Params instance that is being redone
 	//! \param[out] viz indicates the visualizer associated with the Redo
 	//! \param[out] type indicates the type of the Params
@@ -368,7 +359,7 @@ public:
 	//! \return Params* ptr A pointer to the Params object that reflects the change.  Pointer is null if there is nothing to Redo
 	//! \sa UnDo()
 	//
-	Params* Redo(int* instance, int *viz, string& type);
+	Params* Redo(string& type,int* instance, int *viz);
 
 	//! Initiate a new entry in the Undo/Redo queue.  The changes that occur
 	//! between StartCommand() and EndCommand() result in an entry in the Undo/Redo queue.
@@ -405,9 +396,6 @@ public:
 
 	//! Identify the changes in the undo/Redo queue
 	//! Returns the text associated with a change in the undo/redo queue.
-	//!
-	//! \note Not yet implemented
-	//!
 	//! \param[in] int num indicates the position of the command relative to the current state of the queue
 	//! The most recent entry added corresponds to num = 0
 	//! Negative values of num correspond with entries that can be redone.

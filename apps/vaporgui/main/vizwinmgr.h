@@ -262,7 +262,7 @@ public:
 	ViewpointParams* getRealVPParams(int win) {
 		if (!VizWindow[win]) return 0;
 		Params* p = Params::GetParamsInstance(Params::_viewpointParamsTag,win,-1);
-		if (p->isLocal()) return (ViewpointParams*)p;
+		if (p->IsLocal()) return (ViewpointParams*)p;
 		return (ViewpointParams*)Params::GetDefaultParams(Params::_viewpointParamsTag);
 	}
 	//Trackball* getGlobalTrackball() {return globalTrackball;}
@@ -397,13 +397,13 @@ protected:
 	RegionParams* getRealRegionParams(int win) {
 		if (!VizWindow[win]) return 0;
 		Params* p = Params::GetParamsInstance(Params::_regionParamsTag,win,-1);
-		if (p->isLocal()) return (RegionParams*)p;
+		if (p->IsLocal()) return (RegionParams*)p;
 		return (RegionParams*)Params::GetDefaultParams(Params::_regionParamsTag);
 	}
 	AnimationParams* getRealAnimationParams(int win) {
 		if (!VizWindow[win]) return 0;
 		Params* p = Params::GetParamsInstance(Params::_animationParamsTag,win,-1);
-		if (p->isLocal()) return (AnimationParams*)p;
+		if (p->IsLocal()) return (AnimationParams*)p;
 		return (AnimationParams*)Params::GetDefaultParams(Params::_animationParamsTag);
 	}
 	ViewpointParams* getGlobalVPParams(){return (ViewpointParams*)(Params::GetDefaultParams(Params::_viewpointParamsTag));}

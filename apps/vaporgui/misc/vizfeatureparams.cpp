@@ -499,7 +499,7 @@ applyToViz(int vizNum){
 		
 			//Rescale the keyframes of animation params,
 			
-			if (!vpp->isLocal()) {
+			if (!vpp->IsLocal()) {
 				if(firstSharedVp) continue;
 				else firstSharedVp = true;
 			}

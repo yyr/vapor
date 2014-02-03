@@ -110,8 +110,7 @@ public:
 	}
 	void SetConstantColor(const float rgb[3]);
 	const float *GetConstantColor();
-	void SetVisualizerNum(int viznum);
-	int GetVisualizerNum();
+	
 	void SetFieldVariableName(int i, const string& varName);
 	const string& GetFieldVariableName(int i);
 	void SetHeightVariableName(const string& varName);

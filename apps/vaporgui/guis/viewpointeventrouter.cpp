@@ -271,7 +271,7 @@ void ViewpointEventRouter::updateTab(){
 	QString strng;
 	
 	
-	if (vpParams->isLocal())
+	if (vpParams->IsLocal())
 		LocalGlobal->setCurrentIndex(1);
 	else 
 		LocalGlobal->setCurrentIndex(0);
@@ -661,7 +661,7 @@ captureMouseDown(int button){
 void ViewpointEventRouter::
 updateRenderer(ViewpointParams* vpParams, bool prevEnabled,  int /*instance*/, bool newWindow){
 	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
-	bool local = vpParams->isLocal();
+	bool local = vpParams->IsLocal();
 	//Always set the values in the active viz.  This amounts to stuffing
 	//the new values into the trackball.
 	//If the settings are global, then
@@ -686,7 +686,7 @@ updateRenderer(ViewpointParams* vpParams, bool prevEnabled,  int /*instance*/, b
 			if (i == myVizMgr->getActiveViz()) continue;
 			if( viz == myVizMgr->getVizWin(i)){
 				//Bypass normal access to vpParams!
-				if(!(myVizMgr->getRealVPParams(i)) || !(myVizMgr->getRealVPParams(i)->isLocal())){
+				if(!(myVizMgr->getRealVPParams(i)) || !(myVizMgr->getRealVPParams(i)->IsLocal())){
 					viz->updateGL();
 				}
 			}
