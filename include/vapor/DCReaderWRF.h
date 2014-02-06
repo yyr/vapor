@@ -133,7 +133,7 @@ public:
 
  virtual int Read(float *data);
 
- virtual bool VariableExists(size_t ts, string varname) const {
+ virtual bool VariableExists(size_t ts, string varname, int i0=0, int i1=0) const {
     return(_ncdfc->VariableExists(ts, varname));
  }
 

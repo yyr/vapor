@@ -100,7 +100,7 @@ public:
 
  NetCDFCollection *GetNetCDFCollection() const {return (_ncdfC); };
 
- virtual bool VariableExists(size_t ts, string varname) const {
+ virtual bool VariableExists(size_t ts, string varname, int i0=0, int i1=0) const {
 	return(_ncdfC->VariableExists(ts, varname));
  }
 

@@ -506,6 +506,7 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 				SetErrMsg(
 					"Variable \"%s\"does not exist!", variables[v].c_str()
 				); 
+				MyBase::SetErrCode(0); 	// must clear error code
 				continue;
 			}
 
