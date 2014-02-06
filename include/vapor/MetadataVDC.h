@@ -432,12 +432,7 @@ public:
  //! \copydoc Metadata::GetExtents()
  //!
  //
- vector<double> GetExtents(size_t ts = 0) const {
-	CHK_TS_OPT(ts, _rootnode->GetElementDouble(_extentsTag))
-	vector <double> extents = _rootnode->GetChild(ts)->GetElementDouble(_extentsTag);
-	if (extents.size() == 6) return(extents);
-	else return (_rootnode->GetElementDouble(_extentsTag));
- }
+ vector<double> GetExtents(size_t ts = 0) const; 
 
  //! Return true if \p value is a valid coordinate extent definition
  //!
@@ -701,20 +696,7 @@ public:
  //!
  //! \sa SetMapProjection()
  //
- virtual string GetMapProjection() const {
-	//
-	// Backwards compatibility hack to support equirectangular
-	// projection strings incorrectly set to latlong
-	//
-	string mapproj = _rootnode->GetElementString(_mapProjectionTag);
-	string s = "proj=latlon";
-	std::string::size_type n;
-	if ((n = mapproj.find(s)) != std::string::npos) {
-		mapproj.replace(n, s.length(), "proj=eqc");
-	}
-	return(mapproj);
- };
-
+ virtual string GetMapProjection() const;
 
  //! Set the time of a time step in user-defined coordinates.
  //!
@@ -1409,6 +1391,8 @@ private:
  vector <string> _variableUserDLTags;	// variable long tags
  vector <string> _variableUserDDTags;
  vector <string> _variableUserDSTags;
+
+ string _newMapProjection;
 
  int _init();
  int _init1(
