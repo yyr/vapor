@@ -33,6 +33,7 @@
 #include "mainform.h"
 #include "command.h"
 #include "messagereporter.h"
+#include "qmessagebox.h"
 #include <QMdiArea>
 #include <qapplication.h>
 #include <qcursor.h>
@@ -1303,6 +1304,10 @@ const string& Session::getPreferencesFile(){
 			prefFile = string(tmp)+"/examples/.vapor_prefs";
 			return prefFile;
 		}
+	}
+	if (!prefPath){
+		QMessageBox::warning(MainForm::getInstance(),"No preferences directory","Error: Directory for preferences files must be specified");
+		return (* new string());
 	}
 	prefFile = string(prefPath)+"/.vapor_prefs";
 	return prefFile;
