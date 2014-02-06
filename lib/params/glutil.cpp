@@ -1357,6 +1357,8 @@ int rayBoxIntersect(const double rayStart[3], const double rayDir[3],const doubl
 	//Return at most two intersections, the max and min along the ray.
 	int numfound = 0;
 	double tempResults[6];
+	double epsilons[3];  //Error tolerance is size/10^6
+	for (int i = 0; i<3; i++) epsilons[i] = (boxExts[i+3]-boxExts[i])*1.e-6;
 	for (int axis = 0; axis < 3; axis++){
 		if (numfound == 6) break;
 		//Points along ray are rayStart+t*rayDir.  
@@ -1374,8 +1376,8 @@ int rayBoxIntersect(const double rayStart[3], const double rayDir[3],const doubl
 			bool pointOK = true;
 			for (int otherCoord = 0; otherCoord < 3; otherCoord++){
 				if (otherCoord == axis) continue;
-				if (intersectPoint[otherCoord] < boxExts[otherCoord]) {pointOK = false; break;}
-				if (intersectPoint[otherCoord] > boxExts[otherCoord+3]) {pointOK = false; break;}
+				if (intersectPoint[otherCoord] < boxExts[otherCoord]-epsilons[otherCoord]) {pointOK = false; break;}
+				if (intersectPoint[otherCoord] > boxExts[otherCoord+3]+epsilons[otherCoord]) {pointOK = false; break;}
 			}
 			if (pointOK){
 				//Found an intersection!
