@@ -421,6 +421,8 @@ MetadataVDC::MetadataVDC(const string &metafile) {
     // projection strings incorrectly set to latlong
     //
     string mapproj = _rootnode->GetElementString(_mapProjectionTag);
+	if (mapproj.empty()) return;	// no map projection
+
 	string eqcproj = "+proj=eqc +ellps=sphere";
 
 	Proj4API proj4API;
