@@ -2050,7 +2050,8 @@ bool UserPreferences::loadDefault(){
 	struct STAT64 statbuf;
 
 	string prefFile = Session::getInstance()->getPreferencesFile();
-	if (STAT64(prefFile.c_str(), &statbuf) >= 0) gotFile = true;
+
+	if (prefFile.size() != 0 && STAT64(prefFile.c_str(), &statbuf) >= 0) gotFile = true;
 	
 	if (gotFile){ 
 		bool ok = loadPreferences(prefFile.c_str());
