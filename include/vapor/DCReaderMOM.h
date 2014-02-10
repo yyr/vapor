@@ -47,15 +47,15 @@ public:
     return(_vertCoordinates);
  };
 
- virtual std::vector <double> GetExtents(size_t ts = 0) const;
+ virtual std::vector <double> GetExtents(size_t ts = 0) const {
+	return(_cartesianExtents);
+ }
 
  long GetNumTimeSteps() const {
 	return(_ncdfc->GetNumTimeSteps());
  }
 
- virtual string GetMapProjection() const {
-	return("+proj=latlon +ellps=sphere");
- };
+ virtual string GetMapProjection() const;
 
  virtual std::vector <string> GetVariables3D() const {
     return(_vars3d);
@@ -129,7 +129,7 @@ public:
 
  virtual int Read(float *data);
 
- virtual bool VariableExists(size_t ts, string varname) const {
+ virtual bool VariableExists(size_t ts, string varname, int i0=0, int i1=0) const {
 	if (IsVariableDerived(varname)) return (true);
     return(_ncdfc->VariableExists(ts, varname));
  }
@@ -138,11 +138,19 @@ public:
 	return(find(_varsDerived.begin(), _varsDerived.end(), varname) != _varsDerived.end());
  }
 
+ virtual void GetLatLonExtents(
+    size_t ts, double lon_exts[2], double lat_exts[2]
+ ) const {
+	lon_exts[0] = _lonExts[0]; lon_exts[1] = _lonExts[1];
+	lat_exts[0] = _latExts[0]; lat_exts[1] = _latExts[1];
+ }
+
 private:
  std::vector <size_t> _dims;
  double _latExts[2];
  double _lonExts[2];
  std::vector <double> _vertCoordinates;
+ std::vector <double> _cartesianExtents;
  std::vector <string> _vars3d;
  std::vector <string> _vars2dXY;
  std::vector <string> _vars3dExcluded;
@@ -161,7 +169,10 @@ private:
  WeightTable *_ovr_weight_tbl;
  string _ovr_varname;
  size_t _ovr_slice;
+ size_t _ovr_nz;
+ int _ovr_fd;
  float _defaultMV;
+ bool _reverseRead;
 
  class latLonBuf {
  public:
@@ -187,7 +198,7 @@ private:
 	float *_angleRADBuf, float *_latDEGBuf
  ) const;
 
- std::vector <size_t> _GetDims(
+ std::vector <size_t> _GetSpatialDims(
     NetCDFCFCollection *ncdfc, string varname
  ) const;
 
@@ -211,6 +222,19 @@ private:
     vector <string> &vars3d,
     vector <string> &vars2dxy
  );
+
+ //
+ // Convert horizontal extents expressed in lat-lon to Cartesian
+ // coordinates in whatever units the vertical coordinate is
+ // expressed in. 
+ //
+ int _InitCartographicExtents(
+	string mapProj, 
+	const double lonExts[2],
+	const double latExts[2],
+	const std::vector <double> vertCoordinates,
+	std::vector <double> &extents
+ ) const;
 
  float *_get_2d_var(NetCDFCFCollection *ncdfc, size_t ts, string name) const;
  float *_get_1d_var(NetCDFCFCollection *ncdfc, size_t ts, string name) const;

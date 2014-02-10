@@ -400,8 +400,9 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT        = 	TOP_OF_TREE/lib/common \
-			TOP_OF_TREE/lib/vdf \
+INPUT        = 	TOP_OF_TREE/include/vapor/VDCNetCDF.h \
+			TOP_OF_TREE/include/vapor/VDC.h \
+			TOP_OF_TREE/include/vapor/ControlExecutive.h \
 			TOP_OF_TREE/include/vapor/ControlExecutive.h \
 			TOP_OF_TREE/lib/params/ParamsBase.h \
 			TOP_OF_TREE/lib/params/ParamNode.h \

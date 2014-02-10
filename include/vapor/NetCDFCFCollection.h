@@ -12,6 +12,7 @@
 
 #include <sstream>
 #include <vapor/MyBase.h>
+#include <vapor/UDUnitsClass.h>
 #include <vapor/NetCDFCollection.h>
 
 union ut_unit;
@@ -33,7 +34,6 @@ namespace VAPoR {
 
 class VDF_API NetCDFCFCollection : public NetCDFCollection {
 public:
- class UDUnits;
  
  NetCDFCFCollection();
  virtual ~NetCDFCFCollection();
@@ -54,6 +54,7 @@ public:
  //! It is a one- dimensional variable with the same name as its
  //! dimension [e.g., time(time)], and it is defined as a numeric data
  //! type with values that are ordered monotonically. Missing values are
+ //! not allowed in coordinate variables."
  //!
  //! \retval true if \p var is a coordinate variable, false otherwise
  //
@@ -174,90 +175,34 @@ public:
  
  //! Return a list of data variables with a given rank
  //!
- //!
- //! Returns a list of data variables having a spatial dimension rank
- //! of \p ndim. If the named variable is explicitly time varying, the
+ //! Returns a list of data variables having a dimension rank
+ //! of \p ndim. If \p spatial is true only the data variable's spatial
+ //! dimension rank is examined.
+ //! Thus if \p spatial is true, and the named variable is explicitly
+ //! time varying, the
  //! time-varying dimension is not counted. For example, if a variable
  //! named 'v' is defined with 4 dimensions in the netCDF file, and the
- //! slowest varying is time , then the variable 'v' would be returned by a
- //! query with ndim==3.
+ //! slowest varying dimension name matches a named dimension
+ //! specified in Initialize()
+ //! by \p time_dimnames, then the variable 'v' would be returned by a
+ //! query with ndim==3 and spatial==true.
  //!
  //! Names of variables that are coordinate or auxiliary coordinate 
  //! variables are not returned, nor are variables that are missing
  //! coordinate variables.
  //!
  //! \param[in] ndim Rank of spatial dimensions
+ //! \param[in] spatial Only compare spatial dimensions against \p ndim
  //!
  //! \sa NetCDFCollection::GetVariableNames()
  //
- virtual std::vector <string> GetDataVariableNames(int ndim) const;
-
- //! Returns true if the named variable is present in the data collection
- //! 
- //! This method returns true if the variable named by \p varname is 
- //! contained in the data collection. The variable may be present
- //! inside of a netCDF file, or may be a variable derived the the
- //! NetCDFCFCollection class. In the latter case all native variables
- //! used to construct \p varname must also be present.
- //!
- //! \param[in] varname A variable name
- //!
- //! \retval bool Returns true if \p varname is contained any one of the
- //! netCDF files used to instantiate the class, or if \p varname is a
- //! derived variable.
- //!
- virtual bool VariableExists(string varname) const {
-	//
-	// Should be checking dependencies for derived variable!
-	//
-	if (NetCDFCFCollection::IsDerivedVar(varname)) return (true);
-	return (NetCDFCollection::VariableExists(varname));
- }
-
- //! Returns true if the named variable is present in the data collection
- //! at the given time step.
- //! 
- //! This method returns true if the variable named by \p varname is 
- //! contained in the data collection and defined for time step \p ts.
- //! The variable may be present
- //! inside of a netCDF file, or may be a variable derived the the
- //! NetCDFCFCollection class. In the latter case all native variables
- //! used to construct \p varname must also be present.
- //!
- //! \param[in] ts an integer offset indicating the time step
- //! \param[in] varname A variable name
- //!
- //! \retval bool Returns true if \p varname is contained any one of the
- //! netCDF files used to instantiate the class, or if \p varname is a
- //! derived variable.
- //!
- virtual bool VariableExists(size_t ts, string varname) const {
-	//
-	// Should be checking dependencies for derived variable!
-	//
-	if (NetCDFCFCollection::IsDerivedVar(varname)) return (true);
-	return (NetCDFCollection::VariableExists(ts, varname));
- }
-
-
- //! Returns true if the named variable is a derived variable.
- //! 
- //! This method returns true if the variable named by \p varname is 
- //! derived from other variables in the data collection.
- //!
- //! \param[in] varname A variable name
- //!
- //! \retval bool Returns true if \p varname is a derived variable.
- //!
- virtual bool IsDerivedVar(string varname) const {
-   return(_derivedVarsMap.find(varname) != _derivedVarsMap.end());
- }
+ virtual std::vector <string> GetDataVariableNames(int ndim, bool spatial)const;
 
  //!
- //! Return unordered list of coordinate or auxliary coordinate
+ //! Return ordered list of coordinate or auxliary coordinate
  //! variables for the named variable.
  //!
- //! This method returns in \p cvars an unordered list of all of the
+ //! This method returns in \p cvars an ordered list of all of the
  //! spatio-temporal coordinate or auxliary coordinate variables 
  //! associated with the variable named by \p var. See Chapter 5 of
  //! the CF 1.X spec. for more detail, summarized here:
@@ -358,26 +303,6 @@ public:
  //!
  virtual int OpenRead(size_t ts, string varname);
 
- //! \copydoc NetCDFCollection::ReadSlice()
- //!
- virtual int ReadSlice(float *data);
-
- //! \copydoc NetCDFCollection::Read()
- //!
- virtual int Read(float *data);
-
- //! \copydoc NetCDFCollection::Close()
- //!
- virtual int Close();
-
- //! \copydoc NetCDFCollection::GetVariableNames()
- //!
- virtual std::vector <string> GetVariableNames(int ndim) const;
-
- //! \copydoc NetCDFCollection::GetDims()
- //!
- virtual std::vector <size_t>  GetDims(string varname) const;
-
  //! Return true if the named variable is a dimensionless vertical
  //! coordinate variable.
  //!
@@ -433,102 +358,31 @@ public:
     std::ostream &o, const NetCDFCFCollection &ncdfc
  );
 
- class UDUnits {
- public:
-  UDUnits();
-  ~UDUnits();
-  int Initialize();
-  
-  bool IsPressureUnit(string unitstr) const;
-  bool IsTimeUnit(string unitstr) const;
-  bool IsLatUnit(string unitstr) const;
-  bool IsLonUnit(string unitstr) const;
-  bool IsLengthUnit(string unitstr) const;
-  bool AreUnitsConvertible(const ut_unit *unit, string unitstr) const;
-  bool Convert(
-    const string from,
-    const string to,
-    const float *src,
-    float *dst,
-    size_t n
-  ) const;
-  void DecodeTime(
-	double seconds, int* year, int* month, int* day,
-	int* hour, int* minute, int* second
-  ) const;
-
-  string GetErrMsg() const;
-
- private:
-  std::map <int, std::string> _statmsg;
-  int _status;
-  ut_unit *_pressureUnit;
-  ut_unit *_timeUnit;
-  ut_unit *_latUnit;
-  ut_unit *_lonUnit;
-  ut_unit *_lengthUnit;
-  ut_system *_unitSystem;
- };
-
 private:
- class DerivedVar {
- public:
-  DerivedVar(
-	NetCDFCFCollection *ncdfcf, 
-	const std::map <string, string> &formula_map, string units
-  ) {
-	_ncdfcf = ncdfcf;
-	_formula_map = formula_map;
-	_units = units;
-  };
-  virtual ~DerivedVar() {};
-  virtual int Open(size_t ts) = 0;
-  virtual int ReadSlice(float *slice) = 0;
-  virtual int Read(float *buf) = 0;
-  virtual void Close() {};
-  virtual bool TimeVarying() const = 0;
-  virtual std::vector <size_t>  GetDims() const = 0;
- protected:
-  NetCDFCFCollection *_ncdfcf;
-  std::map <string, string> _formula_map;
-  string _units;
- };
 
- class DerivedVar_ocean_s_coordinate_g1 : public DerivedVar {
- private:
-  std::vector <size_t> _dims;
-  size_t _slice_num;
-  float *_s;
-  float *_C;
-  float *_eta;
-  float *_depth;
-  float _depth_c;
-  string _svar;
-  string _Cvar;
-  string _etavar;
-  string _depthvar;
-  string _depth_cvar;
-  bool _is_open;
-  bool _ok;
-
+ class DerivedVar_ocean_s_coordinate_g1 : public NetCDFCollection::DerivedVar {
  public:
   DerivedVar_ocean_s_coordinate_g1(
 	NetCDFCFCollection *ncdfcf, 
-	const std::map <string, string> &formula_map, string units
+	const std::map <string, string> &formula_map
   );
   virtual ~DerivedVar_ocean_s_coordinate_g1();
 
   virtual int Open(size_t ts);
-  virtual int ReadSlice(float *slice);
-  virtual int Read(float *buf);
-  virtual void Close() {_is_open = false; };
+  virtual int ReadSlice(float *slice, int);
+  virtual int Read(float *buf, int);
+  virtual int SeekSlice(int offset, int whence, int fd);
+  virtual int Close(int) {_is_open = false; return(0); };
   virtual bool TimeVarying() const {return(false); };
-  virtual std::vector <size_t>  GetDims() const { return(_dims); }
- };
+  virtual std::vector <size_t>  GetSpatialDims() const { return(_dims); }
+  virtual std::vector <string>  GetSpatialDimNames() const { return(_dimnames); }
+  virtual size_t  GetTimeDim() const { return(0); }
+  virtual string  GetTimeDimName() const { return(""); };
+  virtual bool GetMissingValue(double &mv) const {mv=0.0; return(false); }
 
- class DerivedVar_ocean_s_coordinate_g2 : public DerivedVar {
  private:
   std::vector <size_t> _dims;
+  std::vector <string> _dimnames;
   size_t _slice_num;
   float *_s;
   float *_C;
@@ -542,34 +396,57 @@ private:
   string _depth_cvar;
   bool _is_open;
   bool _ok;
+ };
+
+ class DerivedVar_ocean_s_coordinate_g2 : public NetCDFCollection::DerivedVar {
 
  public:
   DerivedVar_ocean_s_coordinate_g2(
 	NetCDFCFCollection *ncdfcf, 
-	const std::map <string, string> &formula_map, string units
+	const std::map <string, string> &formula_map
   );
   virtual ~DerivedVar_ocean_s_coordinate_g2();
 
   virtual int Open(size_t ts);
-  virtual int ReadSlice(float *slice);
-  virtual int Read(float *buf);
-  virtual void Close() {_is_open = false; };
+  virtual int ReadSlice(float *slice, int);
+  virtual int Read(float *buf, int);
+  virtual int SeekSlice(int offset, int whence, int fd);
+  virtual int Close(int) {_is_open = false; return(0); };
   virtual bool TimeVarying() const {return(false); };
-  virtual std::vector <size_t>  GetDims() const { return(_dims); }
+  virtual std::vector <size_t>  GetSpatialDims() const { return(_dims); }
+  virtual std::vector <string>  GetSpatialDimNames() const { return(_dimnames); }
+  virtual size_t  GetTimeDim() const { return(0); }
+  virtual string  GetTimeDimName() const { return(""); };
+  virtual bool GetMissingValue(double &mv) const {mv=0.0; return(false); }
+
+ private:
+  std::vector <size_t> _dims;
+  std::vector <string> _dimnames;
+  size_t _slice_num;
+  float *_s;
+  float *_C;
+  float *_eta;
+  float *_depth;
+  float _depth_c;
+  string _svar;
+  string _Cvar;
+  string _etavar;
+  string _depthvar;
+  string _depth_cvar;
+  bool _is_open;
+  bool _ok;
  };
 
 
 
 
+ std::map <string, DerivedVar *> _derivedVarsMap;
  std::vector <std::string> _coordinateVars;
  std::vector <std::string> _auxCoordinateVars;
  std::vector <std::string> _lonCoordVars;
  std::vector <std::string> _latCoordVars;
  std::vector <std::string> _vertCoordVars;
  std::vector <std::string> _timeCoordVars;
-
- std::map <string, DerivedVar *> _derivedVarsMap;
- DerivedVar * _derivedVar; // if current opened variable is derived this is it
 
  UDUnits	*_udunit;
 

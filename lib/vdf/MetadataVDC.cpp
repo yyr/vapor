@@ -33,6 +33,7 @@
 #include <vapor/XmlNode.h>
 #include <vapor/CFuncs.h>
 #include <vapor/errorcodes.h>
+#include <vapor/Proj4API.h>
 
 using namespace VAPoR;
 using namespace VetsUtil;
@@ -99,9 +100,11 @@ void vector_delete (vector <string> &vec, const string &value) {
 }
 
 //
-// Delete any duplicate entries from 'vec'.
+// Delete any duplicate entries from 'vec', and sort it.
 //
 void vector_unique (vector <string> &vec) {
+
+	sort(vec.begin(), vec.end());
 
 	vector <string> tmpvec;
 	vector<string>::iterator itr1;
@@ -386,6 +389,7 @@ MetadataVDC::MetadataVDC(const string &metafile) {
 
 	ifstream is;
 	_rootnode = NULL;
+	_newMapProjection.clear();
 
 	is.open(metafile.c_str());
 	if (! is) {
@@ -411,7 +415,55 @@ MetadataVDC::MetadataVDC(const string &metafile) {
 	ExpatParseMgr* parseMgr = new ExpatParseMgr(this);
 	parseMgr->parse(is);
 	delete parseMgr;
-	
+
+    //
+    // Backwards compatibility hack to support equirectangular
+    // projection strings incorrectly set to latlong
+    //
+    string mapproj = _rootnode->GetElementString(_mapProjectionTag);
+	if (mapproj.empty()) return;	// no map projection
+
+	string eqcproj = "+proj=eqc +ellps=sphere";
+
+	Proj4API proj4API;
+
+    (void) proj4API.Initialize(eqcproj, mapproj);
+
+	// If the string stored in the .vdf file is a cartographic projection
+	// (not lat-lon) we're done. 
+	//
+	if (! proj4API.IsLatLonDst()) return;
+
+	//
+	// Projection string stored in .vdf file is lat-lon. Need to use
+	// the Projection Coordinate System (PCS) extents to find
+	// lat-lon extents, then we can build a correct projection string
+	// for cylindrical equidistant (equirectangular) projection
+	//
+
+	// Get PCS extents from file
+	//
+	vector <double> extents = MetadataVDC::GetExtents(0);
+	double lonext[2], latext[2];
+	lonext[0] = extents[0];
+	lonext[1] = extents[3];
+	latext[0] = extents[1];
+	latext[1] = extents[4];
+
+	// Convert PCS to geographic (lat-lon) coordinates
+	//
+	proj4API.Transform(lonext, latext, 2, 1);
+	if (lonext[0] > lonext[1]) lonext[0] -= 360.0;
+
+	//
+	// Build equirectangular projection string
+	//
+	double lon_0 = (lonext[0] + lonext[1]) / 2.0;
+	double lat_0 = (latext[0] + latext[1]) / 2.0;
+	ostringstream oss;
+	oss << " +lon_0=" << lon_0 << " +lat_0=" << lat_0;
+	_newMapProjection = "+proj=eqc +ellps=WGS84" + oss.str();
+
 }
 
 MetadataVDC::MetadataVDC(const MetadataVDC &node)
@@ -692,11 +744,16 @@ int MetadataVDC::Write(const string &path, int relative_path) {
 
 	ofstream fileout;
 	fileout.open(path.c_str());
-	if (! fileout) {
-		SetErrMsg("Can't open file \"%s\" for writing", path.c_str());
+	if (! fileout.good()) {
+		SetErrMsg("Can't open file \"%s\" for writing : %M", path.c_str());
 		return(-1);
 	}
 	fileout << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>" << endl;
+	if (! fileout.good()) {
+		SetErrMsg("Error writing file \"%s\" : %M ", path.c_str());
+		return(-1);
+	}
+
 	fileout << *_rootnode;
 	return(0);
 }
@@ -741,6 +798,52 @@ int MetadataVDC::SetExtents(const vector<double> &value) {
 
 	_rootnode->SetElementDouble(_extentsTag, value);
 	return(0);
+}
+
+vector<double> MetadataVDC::GetExtents(size_t ts ) const {
+    CHK_TS_OPT(ts, _rootnode->GetElementDouble(_extentsTag))
+    vector <double> extents = _rootnode->GetChild(ts)->GetElementDouble(_extentsTag);
+    if (extents.size() != 6) {
+		extents = _rootnode->GetElementDouble(_extentsTag);
+	}
+
+	
+	//
+	// if _newMapProjection is empty we're done. Return extents
+	//
+	if (_newMapProjection.empty()) return (extents);
+
+	// if _newMapProjection is not empty the projection string stored
+	// in the file was incorrectly set to lat-lon (pre vapor 2.3.0),
+	// and the extents in Projection Coordinate System are incorrect.
+	// Need to correct PCS extents
+	//
+	string eqcproj = "+proj=eqc +ellps=sphere";
+
+
+	// Set up transfor to convert from PCS with origin at the prime
+	// meridian, to PCS with origin at center of domain
+	//
+	Proj4API proj4API;
+    (void) proj4API.Initialize(eqcproj, _newMapProjection);
+
+	double lonext[2], latext[2];
+	lonext[0] = extents[0];
+	lonext[1] = extents[3];
+	latext[0] = extents[1];
+	latext[1] = extents[4];
+
+	// Convert PCS to PCS 
+	//
+	proj4API.Transform(lonext, latext, 2, 1);
+
+	extents[0] = lonext[0];
+	extents[3] = lonext[1];
+	extents[1] = latext[0];
+	extents[4] = latext[1];
+
+	return(extents);
+
 }
 
 int MetadataVDC::IsValidExtents(const vector<double> &value) const {
@@ -915,6 +1018,7 @@ int MetadataVDC::_SetVariableNames(
 	// Maintain compatability with pre-version 4 translators 
 	//
 	vector <string> v = GetVariableNames();
+	sort (v.begin(), v.end());
 	_rootnode->SetElementStringVec(_varNamesTag,v);
 
 	return(0);
@@ -966,6 +1070,13 @@ int MetadataVDC::SetVariables2DYZ(const vector <string> &value) {
 	delete_tags.push_back(_vars2DXZTag);
 
 	return(_SetVariableNames(_vars2DYZTag, delete_tags, value));
+}
+
+string MetadataVDC::GetMapProjection() const {
+
+	if (! _newMapProjection.empty()) return (_newMapProjection);
+
+	return(_rootnode->GetElementString(_mapProjectionTag));
 }
 
 int MetadataVDC::SetCoordinateVariables(const vector <string> &value) {

@@ -78,14 +78,22 @@ public:
  //! advanced.
  //
  static const string &GetDateString() {
-	_dateString.assign("Tue Oct 22 15:45:55 MDT 2013"); return(_dateString);
+	_dateString.assign("Mon Feb  3 16:05:26 MST 2014"); return(_dateString);
  }
+
+ //! Parse a version string into it's component major, minor,
+ //! and minorminor numbers
+ //
+ static void Parse(
+    std::string ver, int &major, int &minor, int &minorminor, string &rc
+ );
+
  static int Compare(int major, int minor, int minorminor) ;
  static int Compare(std::string ver1, std::string ver2);
 
 private:
- static const int _majorVersion = 3;
- static const int _minorVersion = 0;
+ static const int _majorVersion = 2;
+ static const int _minorVersion = 3;
  static const int _minorMinorVersion = 0;
  static string _formatString;
  static string _dateString;

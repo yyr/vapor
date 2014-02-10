@@ -1,16 +1,11 @@
-//
-//      $Id$
-//
-
-#ifndef	_DataMgrWRF_h_
-#define	_DataMgrWRF_h_
-
-
 #include <vector>
 #include <string>
-#include <vapor/WRFReader.h>
+#include <vapor/DCReaderWRF.h>
 #include <vapor/DataMgr.h>
 #include <vapor/common.h>
+
+#ifndef	_DataMgrWRF
+#define	_DataMgrWRF
 
 namespace VAPoR {
 
@@ -22,17 +17,12 @@ namespace VAPoR {
 //! \date    $Date$
 //!
 //
-class VDF_API DataMgrWRF : public DataMgr, WRFReader {
+class VDF_API DataMgrWRF : public DataMgr, DCReaderWRF {
 
 public:
 
  DataMgrWRF(
 	const vector <string> &files,
-	size_t mem_size
- );
-
- DataMgrWRF(
-	const MetadataWRF &metadata,
 	size_t mem_size
  );
 
@@ -46,62 +36,64 @@ protected:
  //	Metadata methods
  //
 
- virtual void   _GetDim(size_t dim[3], int reflevel) const {
-	return(WRFReader::GetDim(dim, reflevel));
+ virtual void   _GetDim(size_t dim[3], int ) const {
+	return(DCReaderWRF::GetGridDim(dim));
  };
 
  virtual void _GetBlockSize(size_t bs[3], int reflevel) const {
-	return(DataMgrWRF::_GetDim(bs, -1));
+	return(DCReaderWRF::GetGridDim(bs));
  }
 
  virtual int _GetNumTransforms() const {
 	return(0);
  };
 
- virtual string _GetGridType() const { return("layered"); };
+ virtual string _GetGridType() const { 
+	return(DCReaderWRF::GetGridType());
+ }
 
  virtual vector<double> _GetExtents(size_t ts) const {
-	return(WRFReader::GetExtents(ts));
+	return(DCReaderWRF::GetExtents(ts));
  };
 
  virtual long _GetNumTimeSteps() const {
-	return(WRFReader::GetNumTimeSteps());
+	return(DCReaderWRF::GetNumTimeSteps());
  };
 
  virtual string _GetMapProjection() const {
-	return(WRFReader::GetMapProjection());
+	return(DCReaderWRF::GetMapProjection());
  };
 
  virtual vector <string> _GetVariables3D() const {
-	return(WRFReader::GetVariables3D());
+	return(DCReaderWRF::GetVariables3D());
  };
 
  virtual vector <string> _GetVariables2DXY() const {
-	return(WRFReader::GetVariables2DXY());
+	return(DCReaderWRF::GetVariables2DXY());
  };
 
  virtual vector <string> _GetVariables2DXZ() const {
-	return(WRFReader::GetVariables2DXZ());
+	return(DCReaderWRF::GetVariables2DXZ());
  };
 
  virtual vector <string> _GetVariables2DYZ() const {
-	return(WRFReader::GetVariables2DYZ());
+	return(DCReaderWRF::GetVariables2DYZ());
  };
 
  virtual vector<long> _GetPeriodicBoundary() const {
-	return(WRFReader::GetPeriodicBoundary());
+	return(DCReaderWRF::GetPeriodicBoundary());
  };
 
  virtual vector<long> _GetGridPermutation() const {
-	return(WRFReader::GetGridPermutation());
+	return(DCReaderWRF::GetGridPermutation());
  };
 
  virtual double _GetTSUserTime(size_t ts) const {
-	return(WRFReader::GetTSUserTime(ts));
+	return(DCReaderWRF::GetTSUserTime(ts));
  };
 
  virtual void _GetTSUserTimeStamp(size_t ts, string &s) const {
-    WRFReader::GetTSUserTimeStamp(ts,s);
+    DCReaderWRF::GetTSUserTimeStamp(ts,s);
  }
 
  virtual int _VariableExists(
@@ -110,7 +102,7 @@ protected:
 	int reflevel = 0,
 	int lod  = 0
  ) const {
-	return (WRFReader::VariableExists(ts,varname));
+	return (DCReaderWRF::VariableExists(ts,varname));
  };
 
 
@@ -120,7 +112,7 @@ protected:
     int,
     int
  ) {
-	return(WRFReader::OpenVariableRead(timestep, varname));
+	return(DCReaderWRF::OpenVariableRead(timestep, varname));
  };
 
  virtual const float *_GetDataRange() const {
@@ -128,21 +120,26 @@ protected:
  }
 
  virtual void _GetValidRegion(
-    size_t min[3], size_t max[3], int reflevel
+    size_t min[3], size_t max[3], int 
  ) const {
-	size_t dim[3]; WRFReader::GetDim(dim, reflevel);
+	size_t dim[3]; DCReaderWRF::GetGridDim(dim);
 	min[0] = min[1] = min[2] = 0;
 	max[0] = dim[0]-1; max[1] = dim[1]-1; max[2] = dim[2]-1;
  };
 
+ virtual bool _GetMissingValue(string varname, float &value) const {
+    return(DCReaderWRF::GetMissingValue(varname, value));
+ };
+
+
  virtual int    _BlockReadRegion(
     const size_t *, const size_t *, float *region
  ) {
-	return(WRFReader::ReadVariable(region));
+	return(DCReaderWRF::Read(region));
  };
 
  virtual int    _CloseVariable() {
-	return (WRFReader::CloseVariable());
+	return (DCReaderWRF::CloseVariable());
  };
 
 };

@@ -251,6 +251,8 @@ protected:
 	
 	virtual void setCurrentParamNode(ParamNode* pn){ _currentParamNode=pn;}
 	
+	
+	
 	static map<string,int> classIdFromTagMap;
 	static map<int,string> tagFromClassIdMap;
 	static map<int,BaseCreateFcn> createDefaultFcnMap;

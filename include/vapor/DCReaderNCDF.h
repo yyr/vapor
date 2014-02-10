@@ -100,8 +100,14 @@ public:
 
  NetCDFCollection *GetNetCDFCollection() const {return (_ncdfC); };
 
- virtual bool VariableExists(size_t ts, string varname) const {
+ virtual bool VariableExists(size_t ts, string varname, int i0=0, int i1=0) const {
 	return(_ncdfC->VariableExists(ts, varname));
+ }
+
+  virtual void GetLatLonExtents(
+    size_t ts, double lon_exts[2], double lat_exts[2]
+ ) const {
+	lon_exts[0] = lon_exts[1] = lat_exts[0] = lat_exts[1] = 0.0;
  }
 
 
@@ -113,6 +119,7 @@ private:
  std::vector <string> _vars2dXZ;
  std::vector <string> _vars2dYZ;
  std::vector <string> _vars2dExcluded;
+ int _ovr_fd;
 
  NetCDFCollection *_ncdfC;
 
@@ -120,7 +127,7 @@ private:
  // Get dimensions for variable, varname, flipping the order to be consistent
  // with the VDC library
  //
- vector <size_t> _GetDims(string varname) const;
+ vector <size_t> _GetSpatialDims(string varname) const;
 
   
 

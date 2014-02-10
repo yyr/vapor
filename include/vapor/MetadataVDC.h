@@ -7,6 +7,7 @@
 #define	_MetadataVDC_h_
 
 #include <stack>
+#include <string>
 #include <expat.h>
 #include <vapor/MyBase.h>
 #include <vapor/common.h>
@@ -431,12 +432,7 @@ public:
  //! \copydoc Metadata::GetExtents()
  //!
  //
- vector<double> GetExtents(size_t ts = 0) const {
-	CHK_TS_OPT(ts, _rootnode->GetElementDouble(_extentsTag))
-	vector <double> extents = _rootnode->GetChild(ts)->GetElementDouble(_extentsTag);
-	if (extents.size() == 6) return(extents);
-	else return (_rootnode->GetElementDouble(_extentsTag));
- }
+ vector<double> GetExtents(size_t ts = 0) const; 
 
  //! Return true if \p value is a valid coordinate extent definition
  //!
@@ -700,10 +696,7 @@ public:
  //!
  //! \sa SetMapProjection()
  //
- virtual string GetMapProjection() const {
-	return(_rootnode->GetElementString(_mapProjectionTag));
- };
-
+ virtual string GetMapProjection() const;
 
  //! Set the time of a time step in user-defined coordinates.
  //!
@@ -1398,6 +1391,8 @@ private:
  vector <string> _variableUserDLTags;	// variable long tags
  vector <string> _variableUserDDTags;
  vector <string> _variableUserDSTags;
+
+ string _newMapProjection;
 
  int _init();
  int _init1(
