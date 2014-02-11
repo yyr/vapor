@@ -239,10 +239,6 @@
       <Project>{29c8ac86-3d4b-4081-9d20-0770b10c4d30}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\flow\flow.vcxproj">
-      <Project>{9410e1ba-cc62-46bf-b19d-69473eddce03}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
