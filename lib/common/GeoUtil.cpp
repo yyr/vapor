@@ -6,6 +6,18 @@ using namespace VAPoR;
 
 namespace {
 
+
+template <class T>
+void _minmax(
+	const T *a, int n, int stride, T &min, T &max
+) {
+	min = max = a[0];
+
+	for (int i=0; i<n; i++) {
+		if (a[i*stride] < min) min = a[i*stride];
+		if (a[i*stride] > max) max = a[i*stride];
+	}
+}
 //
 // Shift 1D array of longitudes, if needed, such adjacent values
 // do not span 360/0 or -180/180. Shift is performed by adding or 
@@ -209,18 +221,6 @@ void _LatExtentsTemplate(
 	if (latnorth > 90.0) latnorth = 90.0;
 }
 
-
-template <class T>
-void _minmax(
-	const T *a, int n, int stride, T &min, T &max
-) {
-	min = max = a[0];
-
-	for (int i=0; i<n; i++) {
-		if (a[i*stride] < min) min = a[i*stride];
-		if (a[i*stride] > max) max = a[i*stride];
-	}
-}
 
 };
 
