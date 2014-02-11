@@ -95,10 +95,6 @@ public:
 
 private:
 
- static void _minmax(
-	const float *a, int n, int stride, float &min, float &max
- );
-
 };
 };
 
