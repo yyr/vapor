@@ -411,6 +411,7 @@ INPUT        = 	TOP_OF_TREE/include/vapor/VDCNetCDF.h \
 			TOP_OF_TREE/lib/params/regionparams.h \ 
 			TOP_OF_TREE/lib/params/animationparams.h \ 
 			TOP_OF_TREE/lib/params/Box.h \
+			TOP_OF_TREE/lib/params/command.h \
 			TOP_OF_TREE/apps/vaporgui/guis/eventrouter.h  
 
 # If the value of the INPUT tag contains directories, you can use the 
