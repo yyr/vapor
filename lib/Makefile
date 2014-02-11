@@ -6,7 +6,7 @@ include $(TOP)/make/config/prebase.mk
 SUBDIRS = common vdf
 
 ifeq ($(BUILD_GUI), 1)
-SUBDIRS += flow params render
+SUBDIRS += params render
 endif
 
 
