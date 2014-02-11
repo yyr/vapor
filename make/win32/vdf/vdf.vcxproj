@@ -233,6 +233,7 @@
     <ClCompile Include="..\..\..\lib\vdf\DCReaderMOM.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\DCReaderNCDF.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\DCReaderROMS.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\DCReaderWRF.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\ExpatParseMgr.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\ImpExp.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\LayeredGrid.cpp" />
@@ -247,11 +248,13 @@
     <ClCompile Include="..\..\..\lib\vdf\NetCDFCFCollection.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\NetCDFCollection.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\NetCDFSimple.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\Proj4API.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\RegularGrid.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\SignificanceMap.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\SphericalGrid.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\StretchedGrid.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\Transpose.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\UDUnitsClass.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\VDCFactory.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\vdf.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\VDFIOBase.cpp" />

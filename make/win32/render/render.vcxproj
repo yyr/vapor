@@ -241,10 +241,6 @@
       <Project>{29c8ac86-3d4b-4081-9d20-0770b10c4d30}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\flow\flow.vcxproj">
-      <Project>{9410e1ba-cc62-46bf-b19d-69473eddce03}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
     <ProjectReference Include="..\vdf\vdf.vcxproj">
       <Project>{91c4e098-bc79-4784-94b7-c96b3548682d}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

@@ -1,6 +1,9 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{58F96DD4-77D9-415C-9484-95BD1A6CD6EE}"
+	ProjectSection(SolutionItems) = preProject
+		..\flow\flow.vcxproj = ..\flow\flow.vcxproj
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vaporgui", "..\vaporgui\vaporgui.vcxproj", "{2A421CB7-58B3-3747-A570-E36BF03CEA3F}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -23,8 +26,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vdf", "..\vdf\vdf.vcxproj",
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "common", "common.vcxproj", "{29C8AC86-3D4B-4081-9D20-0770B10C4D30}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "flow", "..\flow\flow.vcxproj", "{9410E1BA-CC62-46BF-B19D-69473EDDCE03}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "params", "..\params\params.vcxproj", "{E8FB619B-48D3-4B7E-B3F0-88939299995A}"
 EndProject
@@ -138,14 +139,6 @@ Global
 		{29C8AC86-3D4B-4081-9D20-0770B10C4D30}.Release|Win32.Build.0 = Release|Win32
 		{29C8AC86-3D4B-4081-9D20-0770B10C4D30}.Release|x64.ActiveCfg = Release|x64
 		{29C8AC86-3D4B-4081-9D20-0770B10C4D30}.Release|x64.Build.0 = Release|x64
-		{9410E1BA-CC62-46BF-B19D-69473EDDCE03}.Debug|Win32.ActiveCfg = Debug|Win32
-		{9410E1BA-CC62-46BF-B19D-69473EDDCE03}.Debug|Win32.Build.0 = Debug|Win32
-		{9410E1BA-CC62-46BF-B19D-69473EDDCE03}.Debug|x64.ActiveCfg = Debug|x64
-		{9410E1BA-CC62-46BF-B19D-69473EDDCE03}.Debug|x64.Build.0 = Debug|x64
-		{9410E1BA-CC62-46BF-B19D-69473EDDCE03}.Release|Win32.ActiveCfg = Release|Win32
-		{9410E1BA-CC62-46BF-B19D-69473EDDCE03}.Release|Win32.Build.0 = Release|Win32
-		{9410E1BA-CC62-46BF-B19D-69473EDDCE03}.Release|x64.ActiveCfg = Release|x64
-		{9410E1BA-CC62-46BF-B19D-69473EDDCE03}.Release|x64.Build.0 = Release|x64
 		{E8FB619B-48D3-4B7E-B3F0-88939299995A}.Debug|Win32.ActiveCfg = Debug|Win32
 		{E8FB619B-48D3-4B7E-B3F0-88939299995A}.Debug|Win32.Build.0 = Debug|Win32
 		{E8FB619B-48D3-4B7E-B3F0-88939299995A}.Debug|x64.ActiveCfg = Debug|x64
