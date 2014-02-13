@@ -26,6 +26,7 @@
 #include "params.h"
 #include <vapor/common.h>
 #include "viewpointparams.h"
+#include "command.h"
 
 
 namespace VAPoR {
@@ -57,8 +58,17 @@ public:
 	}
 	//! Set the current data timestep being used
 	//! \param long current time step
-	void setCurrentTimestep(long ts) {
+	//! \retval int 0 if successful
+	int setCurrentTimestep(long ts) {
+		Command* cmd = 0;
+		int rc = 0;
+		if (ts < DataStatus::getInstance()->getMinTimestep()) {ts = DataStatus::getInstance()->getMinTimestep(); rc = -1;}
+		if (ts > DataStatus::getInstance()->getMaxTimestep()) { ts = DataStatus::getInstance()->getMaxTimestep(); rc = -1;}
+		if (Command::isRecording())
+			cmd = Command::captureStart(this,"Change time step");
 		GetRootNode()->SetElementLong(_currentTimestepTag,ts);
+		if (cmd) Command::captureEnd(cmd,this);
+		return rc;
 	}
 
 	//! Identify the starting time step currently set in the UI.
@@ -68,8 +78,17 @@ public:
 	}
 	//! set the starting time step
 	//! \param int starting timestep
-	void setStartTimestep(int val) {
+	//! \retval int 0 if successful
+	int setStartTimestep(int val) {
+		Command* cmd = 0;
+		int rc = 0;
+		if (val < DataStatus::getInstance()->getMinTimestep()) {val = DataStatus::getInstance()->getMinTimestep(); rc = -1;}
+		if (val > DataStatus::getInstance()->getMaxTimestep()) {val = DataStatus::getInstance()->getMaxTimestep(); rc = -1;}
+		if (Command::isRecording())
+			cmd = Command::captureStart(this,"Change start timestep");
 		GetRootNode()->SetElementLong(_startTimestepTag,val);
+		if (cmd) Command::captureEnd(cmd,this);
+		return rc;
 	}
 
 	//! Identify the ending time step used during playback
@@ -79,8 +98,19 @@ public:
 	}
 	//! set the ending time step 
 	//! \param int ending timestep
-	void setEndTimestep(int val) {
+	//! \retval int 0 if success
+	int setEndTimestep(int val) {
+		int rc = 0;
+		if (val > DataStatus::getInstance()->getMaxTimestep() || val < DataStatus::getInstance()->getMinTimestep()) {
+			val = DataStatus::getInstance()->getMaxTimestep(); 
+			rc = -1;
+		}
+		Command* cmd = 0;
+		if (Command::isRecording())
+			cmd = Command::captureStart(this,"Change end timestep");
 		GetRootNode()->SetElementLong(_endTimestepTag,val);
+		if (cmd) Command::captureEnd(cmd,this);
+		return rc;
 	}
 
 	//! Identify the minimum time step (bound on setting start/end) 
@@ -90,8 +120,19 @@ public:
 	}
 	//! Set the minimum time step (bound on setting start/end) 
 	//! \param int minimum timestep
-	void setMinTimestep(int val) {
+	//! \retval int 0 if successful
+	int setMinTimestep(int val) {
+		int rc = 0;
+		Command* cmd = 0;
+		if (val < DataStatus::getInstance()->getMinTimestep() || val > DataStatus::getInstance()->getMaxTimestep()){
+			val = DataStatus::getInstance()->getMinTimestep();
+			rc = -1;
+		}
+		if (Command::isRecording())
+			cmd = Command::captureStart(this,"Set min timestep");
 		GetRootNode()->SetElementLong(_minTimestepTag,val);
+		if (cmd) Command::captureEnd(cmd,this);
+		return rc;
 	}
 	//! Identify the maximum time step
 	//! \retval int maximum timestep
@@ -101,10 +142,99 @@ public:
 
 	//! Set the maximum time step
 	//! \param int maximum timestep
-	void setMaxTimestep(int val) {
+	//! \retval int 0 if successful
+	int setMaxTimestep(int val) {
+		int rc = 0;
+		if (val < DataStatus::getInstance()->getMinTimestep() || val > DataStatus::getInstance()->getMaxTimestep()){
+			DataStatus::getInstance()->getMaxTimestep();
+			rc = -1;
+		}
+		Command* cmd = 0;
+		if (Command::isRecording())
+			cmd = Command::captureStart(this,"Set max timestep");
 		GetRootNode()->SetElementLong(_maxTimestepTag,val);
+		if (cmd) Command::captureEnd(cmd,this);
+		return rc;
 	}
 
+	//! Get the current play direction (-1,0,1)
+	//! \retval int 0 play direction
+	int getPlayDirection() {
+		return GetRootNode()->GetElementLong(_playDirectionTag)[0];
+	}
+
+	//! Set the play direction
+	//! \param int play direction
+	//! \retval int 0 if successful
+	int setPlayDirection(int val) {
+		Command* cmd = 0;
+		int rc = 0;
+		if (val < -1 ) {val = -1; rc = -1;}
+		if (val > 1 ) {val = 1; rc = -1;}
+		if (Command::isRecording())
+			cmd = Command::captureStart(this,"Set play direction");
+		GetRootNode()->SetElementLong(_playDirectionTag,val);
+		if (cmd) Command::captureEnd(cmd,this);
+		return rc;
+	}
+	//! Get the maximum frame step size
+	//! \retval int current frame step size.
+	int getFrameStepSize() {
+		return GetRootNode()->GetElementLong(_stepSizeTag)[0];
+	}
+	//! Set the frame step size
+	//! \param int val step size
+	//! \retval int 0 if successful
+	int setFrameStepSize(int val) {
+		int numframes = DataStatus::getInstance()->getMaxTimestep()-DataStatus::getInstance()->getMinTimestep();
+		int rc = 0;
+		if (val <= 0 || val >= numframes ) {
+			val = 1;
+			rc = -1;
+		}
+
+		Command* cmd = 0;
+		if (Command::isRecording())
+			cmd = Command::captureStart(this,"Set frame stepsize");
+		GetRootNode()->SetElementLong(_stepSizeTag,val);
+		if (cmd) Command::captureEnd(cmd,this);
+		return rc;
+	}
+	//! Determine max frames per second
+	//! \retval double max frames per second
+	double getMaxFrameRate() {
+		return GetRootNode()->GetElementDouble(_maxRateTag)[0];
+	}
+	//! Set max frames per second
+	//! \param double fps
+	//! \retval int 0 if successful
+	int setMaxFrameRate(double rate) {
+		int rc = 0;
+		if (rate <= 0. || rate > 1000.){ rate = 0.1; rc = -1;}
+		Command* cmd = 0;
+		if (Command::isRecording())
+			cmd = Command::captureStart(this,"Set max frame rate");
+		GetRootNode()->SetElementDouble(_maxRateTag,rate);
+		if (cmd) Command::captureEnd(cmd,this);
+		return rc;
+	}
+	//! Determine if repeat play is on
+	//! \retval bool true if repeating
+	bool isRepeating() {
+		return (GetRootNode()->GetElementLong(_repeatTag)[0] != 0);
+	}
+	//! Set the whether repeat play is on
+	//! \param bool repeat is on if true
+	//! \retval int 0 if successful
+	int setRepeating(bool onOff){
+		Command* cmd = 0;
+		if (Command::isRecording())
+			cmd = Command::captureStart(this,"Enable repeat play");
+		GetRootNode()->SetElementLong(_repeatTag,(long)onOff);
+		if (cmd) Command::captureEnd(cmd,this);
+		return 0;
+	}
+	
 #ifndef DOXYGEN_SKIP_THIS
 
 	//The rest is not part of the public API
@@ -119,36 +249,7 @@ public:
 
 	int getMinTimeToRender() {return ((int)(1000.f/getMaxFrameRate()) );}
 	
-	int getPlayDirection() {
-		return GetRootNode()->GetElementLong(_playDirectionTag)[0];
-	}
-	void setPlayDirection(int val) {
-		GetRootNode()->SetElementLong(_playDirectionTag,val);
-	}
-	int getFrameStepSize() {
-		return GetRootNode()->GetElementLong(_stepSizeTag)[0];
-	}
-	void setFrameStepSize(int val) {
-		GetRootNode()->SetElementLong(_stepSizeTag,val);
-	}
-	double getMaxFrameRate() {
-		return GetRootNode()->GetElementDouble(_maxRateTag)[0];
-	}
-	void setMaxFrameRate(double rate) {
-		GetRootNode()->SetElementDouble(_maxRateTag,rate);
-	}
 
-	bool isRepeating() {
-		return (GetRootNode()->GetElementLong(_repeatTag)[0] != 0);
-	}
-	void setRepeating(bool onOff){
-		GetRootNode()->SetElementLong(_repeatTag,(long)onOff);
-	}
-	
-
-	static double getDefaultMaxFPS() {return defaultMaxFPS;}
-	
-	static void setDefaultMaxFPS(double val) {defaultMaxFPS = val;}
 
 	//When rendering is finished, renderer calls this.  Returns true no change (if the change bit
 	//needs to be set. 
@@ -171,9 +272,6 @@ protected:
 	static const string _maxTimestepTag;
 	static const string _playDirectionTag;
 	static const string _currentTimestepTag;
-	
-	static double defaultMaxFPS;
-
 	
 
 #endif /* DOXYGEN_SKIP_THIS */

@@ -1,9 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{58F96DD4-77D9-415C-9484-95BD1A6CD6EE}"
-	ProjectSection(SolutionItems) = preProject
-		..\flow\flow.vcxproj = ..\flow\flow.vcxproj
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vaporgui", "..\vaporgui\vaporgui.vcxproj", "{2A421CB7-58B3-3747-A570-E36BF03CEA3F}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -72,6 +69,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ncdfvdfcreate", "..\ncdfvdf
 		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
 		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "flow", "..\flow\flow.vcxproj", "{9410E1BA-CC62-46BF-B19D-69473EDDCE03}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -274,6 +273,14 @@ Global
 		{78EA5265-8F42-4DF3-997A-7EB0453216FA}.Release|Win32.Build.0 = Release|Win32
 		{78EA5265-8F42-4DF3-997A-7EB0453216FA}.Release|x64.ActiveCfg = Release|x64
 		{78EA5265-8F42-4DF3-997A-7EB0453216FA}.Release|x64.Build.0 = Release|x64
+		{9410E1BA-CC62-46BF-B19D-69473EDDCE03}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9410E1BA-CC62-46BF-B19D-69473EDDCE03}.Debug|Win32.Build.0 = Debug|Win32
+		{9410E1BA-CC62-46BF-B19D-69473EDDCE03}.Debug|x64.ActiveCfg = Debug|x64
+		{9410E1BA-CC62-46BF-B19D-69473EDDCE03}.Debug|x64.Build.0 = Debug|x64
+		{9410E1BA-CC62-46BF-B19D-69473EDDCE03}.Release|Win32.ActiveCfg = Release|Win32
+		{9410E1BA-CC62-46BF-B19D-69473EDDCE03}.Release|Win32.Build.0 = Release|Win32
+		{9410E1BA-CC62-46BF-B19D-69473EDDCE03}.Release|x64.ActiveCfg = Release|x64
+		{9410E1BA-CC62-46BF-B19D-69473EDDCE03}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

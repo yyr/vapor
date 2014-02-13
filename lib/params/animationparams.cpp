@@ -50,8 +50,6 @@ const string AnimationParams::_minTimestepTag = "MinTimestep";
 const string AnimationParams::_maxTimestepTag = "MaxTimestep";
 const string AnimationParams::_playDirectionTag = "PlayDirection";
 
-double AnimationParams::defaultMaxFPS = 10.f;
-
 AnimationParams::AnimationParams(XmlNode* parent, int winnum): Params( parent, Params::_animationParamsTag, winnum){
 	restart();
 }
@@ -67,7 +65,6 @@ restart(){
 	// set everything to default state:
 	setPlayDirection (0);
 	setRepeating (false);
-	setMaxFrameRate(defaultMaxFPS);
 	setFrameStepSize(1);
 	setStartTimestep(0);
 	setEndTimestep (100);
@@ -76,10 +73,11 @@ restart(){
 	setMinTimestep(0);
 	
 	setCurrentTimestep (0);
+	setMaxFrameRate(0.1);
 	
 }
 void AnimationParams::setDefaultPrefs(){
-	defaultMaxFPS = 10.f;
+
 }
 //Respond to change in Metadata
 //
@@ -110,10 +108,9 @@ reinit(bool doOverride){
 	if (doOverride){
 		setStartTimestep(mints);
 		setEndTimestep(maxts);
-		
+		int bar = getEndTimestep();
 		setCurrentTimestep(mints);
-		setMaxFrameRate(defaultMaxFPS);
-		
+		bar = getEndTimestep();
 	} else {
 		
 		if (getStartTimestep() > maxts) setStartTimestep(maxts);
@@ -127,7 +124,7 @@ reinit(bool doOverride){
 	
 	// set pause state
 	setPlayDirection(0);
-	
+	int foo = getEndTimestep();
 	
 	return true;
 }

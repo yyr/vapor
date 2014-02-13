@@ -4,6 +4,8 @@
 
 #include "vapor/ParamNode.h"
 #include "params.h"
+#include "command.h"
+#include "datastatus.h"
 
 namespace VAPoR {
 
@@ -25,16 +27,7 @@ public:
 		return box;
 	}
 
-	//! Obtain the current compression level.
-	//!
-	//! Pure virtual method required of render params
-	//! \retval level index into the set of available compression ratios
-	virtual int GetCompressionLevel();
-	//! Set the current compression level.
-	//!
-	//! Pure virtual method required of render params
-	//
-	virtual void SetCompressionLevel(int val);
+	
 	//! Reinitialize the object for a new dataset.
 	//!
 	//! Pure virtual method required of Params
@@ -63,25 +56,58 @@ public:
 		GetBox()->GetLocalExtents(exts);
 	}
 	
-	void SetRakeLocalExtents(const vector<double>&exts){
-		GetBox()->SetLocalExtents(exts);
+	int SetRakeLocalExtents(const vector<double>&exts){
+		Command* cmd = 0;
+		int rc = 0;
+		vector<double> xexts;
+		for (int i = 0; i<6; i++){
+			xexts.push_back(exts[i]);
+			if (xexts[i] < 0.){ xexts[i] = 0.; rc = -1;}
+			if (xexts[i] > 10000.){ xexts[i] = 10000.; rc = -1;}
+			if (i>=3 && xexts[i-3] >= xexts[i]){ xexts[i-3] = xexts[i]; rc = -1;}
+		}
+		if (Command::isRecording())
+			cmd = Command::captureStart(this,"Set barb rake extents");
+		GetBox()->SetLocalExtents(xexts);
 		setAllBypass(false);
+		if(cmd)Command::captureEnd(cmd,this);
+		return rc;
 	}
 	const vector<long>& GetRakeGrid(){
 		const vector<long> defaultGrid(3,1);
 		return (GetRootNode()->GetElementLong(_rakeGridTag,defaultGrid));
 	}
-	void SetRakeGrid(const int grid[3]){
+	int SetRakeGrid(const int grid[3]){
+		int rc = 0;
 		vector<long> griddims;
-		for (int i = 0; i<3; i++) griddims.push_back((long)grid[i]);
+		for (int i = 0; i<3; i++){
+			griddims.push_back((long)grid[i]);
+			if (griddims[i] < 1) {griddims[i] = 1; rc= -1;}
+			if (griddims[i] > 10000) {griddims[i] = 10000; rc= -1;}
+		}
+		
+		Command* cmd = 0;
+		if (Command::isRecording())
+			cmd = Command::captureStart(this,"Set barb grid");
+		
 		GetRootNode()->SetElementLong(_rakeGridTag,griddims);
+		if(cmd)Command::captureEnd(cmd,this);
+		return 0;
 	}
 	float GetLineThickness(){
 		const vector<double> one(1,1.);
+		
 		return ((float)GetRootNode()->GetElementDouble(_lineThicknessTag,one)[0]);
 	}
-	void SetLineThickness(double val){
+	int SetLineThickness(double val){
+		int rc = 0;
+		if (val <= 0. || val > 100.) {val = 1.; rc = -1;}
+		Command* cmd = 0;
+		if (Command::isRecording())
+			cmd = Command::captureStart(this,"Set barb thickness");
 		GetRootNode()->SetElementDouble(_lineThicknessTag, val);
+		if(cmd)Command::captureEnd(cmd,this);
+		return rc;
 	}
 
 	//Specify a scale factor for vector length.  (1 is scene diameter)/100
@@ -89,55 +115,88 @@ public:
 		const vector<double>defaultScale(1,1.);
 		return ((float)GetRootNode()->GetElementDouble(_vectorScaleTag,defaultScale)[0]);
 	}
-	void SetVectorScale(double val){
+	int SetVectorScale(double val){
+		int rc = 0;
+		if (val <= 0. || val > 1.e30){
+			val = 0.01; 
+			rc = -1;
+		}
+		Command* cmd = 0;
+		if (Command::isRecording())
+			cmd = Command::captureStart(this,"Set barb scale");
 		GetRootNode()->SetElementDouble(_vectorScaleTag, val);
+		if(cmd)Command::captureEnd(cmd,this);
+		return rc;
 	}
-	void SetRefinementLevel(int level){
-		GetRootNode()->SetElementLong(_RefinementLevelTag, level);
-		setAllBypass(false);
-	}
-	int GetRefinementLevel(){
-		const vector<long>defaultRefinement(1,0);
-		return (GetRootNode()->GetElementLong(_RefinementLevelTag,defaultRefinement)[0]);
-	}
+	
 	bool IsTerrainMapped(){
 		const vector<long>off(1,0);
 		return ((bool)GetRootNode()->GetElementLong(_terrainMapTag,off)[0]);
 	}
-	void SetTerrainMapped(bool val) {
+	int SetTerrainMapped(bool val) {
+		Command* cmd = 0;
+		if (Command::isRecording())
+			cmd = Command::captureStart(this,"Set barb terrain-mapping");
 		GetRootNode()->SetElementLong(_terrainMapTag, (val ? 1:0));
 		setAllBypass(false);
+		if(cmd)Command::captureEnd(cmd,this);
+		return 0;
 	}
-	void SetConstantColor(const float rgb[3]);
+	int SetConstantColor(const float rgb[3]);
 	const float *GetConstantColor();
 	
-	void SetFieldVariableName(int i, const string& varName);
+	int SetFieldVariableName(int i, const string& varName);
 	const string& GetFieldVariableName(int i);
-	void SetHeightVariableName(const string& varName);
+	int SetHeightVariableName(const string& varName);
 	const string& GetHeightVariableName();
 
-	void SetVariables3D(bool val) {
+	int SetVariables3D(bool val) {
+		Command* cmd = 0;
+		if (Command::isRecording())
+			cmd = Command::captureStart(this,"Set barb var dimensions");
 		GetRootNode()->SetElementLong(_variableDimensionTag,(val ? 3:2));
 		setAllBypass(false);
+		if(cmd)Command::captureEnd(cmd,this);
+		return 0;
 	}
 	bool VariablesAre3D() {
 		const vector<long>three(1,3);
 		return (GetRootNode()->GetElementLong(_variableDimensionTag,three)[0] == 3);
 	}
-	void AlignGridToData(bool val) {
+	int AlignGridToData(bool val) {
+		Command* cmd = 0;
+		if (Command::isRecording())
+			cmd = Command::captureStart(this,"Set barb grid alignment");
 		GetRootNode()->SetElementLong(_alignGridTag,(val ? 1:0));
 		setAllBypass(false);
+		if(cmd)Command::captureEnd(cmd,this);
+		return 0;
 	}
 	bool IsAlignedToData() {
 		const vector<long> notAligned(1,0);
 		return ((bool)GetRootNode()->GetElementLong(_alignGridTag,notAligned)[0]);
 	}
 	const vector<long> GetGridAlignStrides(){
+		
 		const vector<long> defaultStrides(3,10);
 		return GetRootNode()->GetElementLong(_alignGridStridesTag,defaultStrides);
 	}
-	void SetGridAlignStrides(const vector<long>& strides){
-		GetRootNode()->SetElementLong(_alignGridStridesTag, strides);
+	int SetGridAlignStrides(const vector<long>& strides){
+		Command* cmd = 0;
+		int rc = 0;
+		vector<long> xstrides;
+		for (int i = 0; i<2; i++){
+			xstrides.push_back(strides[i]);
+			if (xstrides[i] <= 0){
+				xstrides[i] = 1;
+				rc = -1;
+			}
+		}
+		if (Command::isRecording())
+			cmd = Command::captureStart(this,"Set barb grid strides");
+		GetRootNode()->SetElementLong(_alignGridStridesTag, xstrides);
+		if(cmd)Command::captureEnd(cmd,this);
+		return rc;
 	}
 	//Utility function to find rake when it is aligned to data:
 	void calcDataAlignment(double rakeExts[6], int rakeGrid[3], size_t timestep);

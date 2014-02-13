@@ -85,7 +85,9 @@ public:
 	//! \retval int number of refinement levels
 	int getNumTransforms() {return numTransforms;}
 
-
+	//! Indicates the number of compression levels in the VDC.
+	//! \retval int number ofcompressionlevels
+	int getNumLODs() {return numLODs;}
 	int getNumVariables3D() {return dataMgr->GetVariables3D().size();}
 	int getNumVariables2DXY() {return dataMgr->GetVariables2DXY().size();}
 	 

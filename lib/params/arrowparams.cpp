@@ -274,12 +274,16 @@ void ArrowParams::calcDataAlignment(double rakeExts[6], int rakeGrid[3],size_t t
 
 
 
-void ArrowParams::SetConstantColor(const float rgb[3]) {
-	vector <double> valvec(3,0);
+int ArrowParams::SetConstantColor(const float rgb[3]) {
+	vector <double> valvec;
+	int rc = 0;
 	for (int i=0; i<3; i++) {
-		valvec[i] = rgb[i];
+		valvec.push_back(rgb[i]);
+		if (valvec[i] < 0.) {valvec[i] = 0.; rc = -1;}
+		if (valvec[i] > 1.) {valvec[i] = 1.; rc = -1;}
 	}
 	GetRootNode()->SetElementDouble(_constantColorTag, valvec);
+	return rc;
 }
 
 const float *ArrowParams::GetConstantColor() {
@@ -289,18 +293,9 @@ const float *ArrowParams::GetConstantColor() {
 	return(_constcolorbuf);
 }
 
-int ArrowParams::GetCompressionLevel(){
-	const vector<long> defaultLevel(1,2);
-	vector<long> valvec = GetRootNode()->GetElementLong(_CompressionLevelTag,defaultLevel);
-	return (int)valvec[0];
- }
-void ArrowParams::SetCompressionLevel(int level){
-	 vector<long> valvec(1,(long)level);
-	 GetRootNode()->SetElementLong(_CompressionLevelTag,valvec);
-	 setAllBypass(false);
- }
+
  
-void ArrowParams::SetFieldVariableName(int i, const string& varName){
+int ArrowParams::SetFieldVariableName(int i, const string& varName){
 	vector <string> svec;
 	vector <string> defaultName(1,"0");
 	GetRootNode()->GetElementStringVec(_VariableNamesTag, svec,defaultName);
@@ -309,10 +304,16 @@ void ArrowParams::SetFieldVariableName(int i, const string& varName){
 	svec[i] = varName;
 	GetRootNode()->SetElementStringVec(_VariableNamesTag, svec);
 	setAllBypass(false);
+	return 0;
 }
-void ArrowParams::SetHeightVariableName(const string& varName){
+int ArrowParams::SetHeightVariableName(const string& varName){
+	Command* cmd = 0;
+	if (Command::isRecording())
+		cmd = Command::captureStart(this,"Set barb rake extents");
 	GetRootNode()->SetElementString(_heightVariableNameTag, varName);
+	if (cmd) Command::captureEnd(cmd, this);
 	setAllBypass(false);
+	return 0;
 }
 const string& ArrowParams::GetHeightVariableName(){
 	return GetRootNode()->GetElementString(_heightVariableNameTag, "HGT");

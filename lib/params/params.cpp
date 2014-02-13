@@ -38,7 +38,7 @@
 
 using namespace VAPoR;
 
-
+#include "command.h"
 const string Params::_regionParamsTag = "RegionPanelParameters";
 const string Params::_animationParamsTag = "AnimationPanelParameters";
 const string Params::_viewpointParamsTag = "ViewpointPanelParameters";
@@ -49,6 +49,7 @@ const string Params::_CompressionLevelTag = "CompressionLevel";
 const string Params::_VariableNamesTag = "VariableNames";
 const string Params::_LocalTag = "Local";
 const string RenderParams::_EnabledTag = "Enabled";
+const string Params::_InstanceTag = "Instance";
 
 std::map<pair<int,int>,vector<Params*> > Params::paramsInstances;
 std::map<pair<int,int>, int> Params::currentParamsInstance;
@@ -61,8 +62,8 @@ Params::Params(
 	XmlNode *parent, const string &name, int winNum
 	): ParamsBase(parent,name) {
 	SetVizNum(winNum);
-	if(winNum < 0) SetLocal(false); else SetLocal(true);;
-	
+	if(winNum < 0) SetLocal(false); else SetLocal(true);
+	SetInstanceIndex(-1);
 }
 
 
@@ -214,3 +215,42 @@ void Params::clearDummyParamsInstances(){
 	dummyParamsInstances.clear();
 }
 
+int RenderParams::GetCompressionLevel(){
+	const vector<long> defaultLevel(1,2);
+	vector<long> valvec = GetRootNode()->GetElementLong(_CompressionLevelTag,defaultLevel);
+	return (int)valvec[0];
+ }
+int RenderParams::SetCompressionLevel(int level){
+	 Command* cmd = 0;
+	 int maxlod = DataStatus::getInstance()->getNumLODs();
+	 if (level < 0 || level >maxlod ) return -1;
+	 if (Command::isRecording())
+		cmd = Command::captureStart(this,"Set compression level");
+	 vector<long> valvec(1,(long)level);
+	 GetRootNode()->SetElementLong(_CompressionLevelTag,valvec);
+	 setAllBypass(false);
+	 return 0;
+}
+int RenderParams::SetRefinementLevel(int level){
+		Command* cmd = 0;
+		int maxref = DataStatus::getInstance()->getNumTransforms();
+		if (level < 0 || level > maxref) return -1;
+		if (Command::isRecording())
+			cmd = Command::captureStart(this,"Set refinement level");
+		GetRootNode()->SetElementLong(_RefinementLevelTag, level);
+		setAllBypass(false);
+		if(cmd)Command::captureEnd(cmd,this);
+		return 0;
+}
+int RenderParams::GetRefinementLevel(){
+		const vector<long>defaultRefinement(1,0);
+		return (GetRootNode()->GetElementLong(_RefinementLevelTag,defaultRefinement)[0]);
+}
+int Params::SetInstanceIndex(int indx){
+	GetRootNode()->SetElementLong(_InstanceTag, indx);
+	return 0;
+}
+int Params::GetInstanceIndex(){
+	const vector<long>defaultInstance(1,1);
+	return (GetRootNode()->GetElementLong(_InstanceTag,defaultInstance)[0]);
+}

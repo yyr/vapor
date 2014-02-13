@@ -78,8 +78,21 @@ Params(int winNum, const string& name) : ParamsBase(name) {
  	virtual ~Params();
 
 //! Pure virtual method specifying short name e.g. to display on the associated tab.
+//! This is not the tag!
 //! \retval string name to identify associated tab
+//! \sa GetName
 	 virtual const std::string& getShortName()=0;
+
+//! virtual method indicates instance index, only used with RenderParams
+//! \retval integer instance index
+//!
+	virtual int GetInstanceIndex();
+//! Virtual method sets current instance index
+//! Not saved for undo/redo
+//! \param[in] val  instance index
+//! \retval integer 0 if successful
+//!
+	virtual int SetInstanceIndex(int val);
 
 //! Static method that identifies the instance that is current in the identified window.
 //! \param[in] pType ParamsBase is the typeID of the params class
@@ -200,6 +213,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \param[in] winnum index of specified visualizer window
 //! \param[in] p pointer to Params instance being appended 
 	static void AppendParamsInstance(int pType, int winnum, Params* p){
+		p->SetInstanceIndex(paramsInstances.size()+1);
 		paramsInstances[make_pair(pType,winnum)].push_back(p);
 	}
 
@@ -339,6 +353,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	static const string _VisualizerNumTag;
 	static const string _VariablesTag;
 	static const string _LocalTag;
+	static const string _InstanceTag;
 	
 protected:
 
@@ -387,19 +402,20 @@ public:
 	//! Pure virtual method sets current number of refinements of this Params.
 	//! \param[in] int refinements
 	//!
-	virtual void SetRefinementLevel(int numrefinements)=0;
+	virtual int SetRefinementLevel(int numrefinements);
 	//! Pure virtual method indicates current number of refinements of this Params.
 	//! \retval integer number of refinements
 	//!
-	virtual int GetRefinementLevel()=0;
+	virtual int GetRefinementLevel();
 	//! Pure virtual method indicates current Compression level.
 	//! \retval integer compression level, 0 is most compressed
 	//!
-	virtual int GetCompressionLevel()=0;
+	virtual int GetCompressionLevel();
 	//! Pure virtual method sets current Compression level.
 	//! \param[in] val  compression level, 0 is most compressed
 	//!
-	virtual void SetCompressionLevel(int val)=0;
+	virtual int SetCompressionLevel(int val);
+	
 
 	//! Bypass flag is used to indicate a renderer should
 	//! not render until its state is changed.
@@ -444,6 +460,7 @@ public:
 	
 protected:
 	static const string _EnabledTag;
+	
 	vector<int> bypassFlags;
 #endif //DOXYGEN_SKIP_THIS
 };
@@ -459,7 +476,8 @@ class DummyParams : public Params {
 
 	virtual int GetCompressionLevel() {return 0;}
 	
-	virtual void SetCompressionLevel(int){}
+	virtual int SetCompressionLevel(int){return 0;}
+	virtual int SetRefinementLevel(int){return 0;}
 
 	
 	

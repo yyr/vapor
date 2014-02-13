@@ -28,13 +28,14 @@ int Command::endQueuePos = 0;
 int Command::currentQueuePos = 0;
 int Command::recordingCount = 0;
 
-Command::Command(Params* prevParams, const char* descr, const string& pTag, int inst, int wnum){
+Command::Command(Params* prevParams, const char* descr){
 	prevRoot = prevParams->GetRootNode()->deepCopy();
 	description = string(descr);
-	tag = pTag;
-	instance = inst;
-	winnum = wnum;
+	tag = prevParams->GetName();
+	instance = prevParams->GetInstanceIndex();
+	winnum = prevParams->GetVizNum();
 	nextRoot = 0;
+	prevRoot = 0;
 }
 
 Params* Command::unDo(string& ptag, int* inst, int* viznum){

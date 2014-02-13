@@ -35,7 +35,7 @@ class Params;
 //
 class PARAMS_API Command {
 public:
-	Command(Params*, const char* descr, const string& tg, int, int);
+	Command(Params*, const char* descr);
 	virtual ~Command( ) {
 		delete prevRoot;
 		if (nextRoot) delete nextRoot;
@@ -69,12 +69,12 @@ public:
 	//! \param [in] prevParams points to previous Params instance
 	//! \param [in] desc Textual description of the change
 	//! \param [in] typeTag The XML tag associated with the type of Params being changed
-	//! \param [in] prevInst The instance index, if it's a RenderParams change
 	//! \param [in] winnum The visualizer number (or -1 if global)
+	//! \param [in] prevInst The instance index, if it's a RenderParams change
 	//! \return cmd A new command initialized with prevParams.
 	//! \sa captureEnd
-	static Command* captureStart(Params* prevParams,  const char* desc, string typeTag, int prevInst = -1, int winnum = -1){
-		Command* cmd = new Command(prevParams, desc, typeTag, prevInst, winnum);
+	static Command* captureStart(Params* prevParams,  const char* desc){
+		Command* cmd = new Command(prevParams, desc);
 		return cmd;
 	}
 	//! Static method used to capture the next Params state (after the state change)
