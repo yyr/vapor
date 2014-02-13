@@ -240,62 +240,41 @@ public:
   //! unit measure for the variable. An empty string indicates that the
   //! variable is unitless.
   //! \param[in] type The external storage type for variable data
-  //! \param[in] compressed A boolean indicating whether the variable's
-  //! storage is compressed
-  //! \param[in] bs An ordered three-element array specifying the storage 
+  //! \param[in] bs An ordered array specifying the storage 
   //! blocking
-  //! factor for the variable. If the variable has less than 3 spatial
+  //! factor for the variable. Results are undefined if the rank of 
+  //! of \p bs does not match that of \p dimensions.
   //! dimensions only the needed elements of \p bs are accessed
   //! \param[in] wname The wavelet family name for compressed variables
   //! \param[in] wmode The wavelet bounary handling mode for compressed
   //! variables.
   //! \param[in] cratios Specifies a vector of compression factors for
-  //! compressed variable definitions. 
-  //! \param[in] max_ts_per_file Specifies the maximum number of timesteps 
-  //! that can be stored in a single file for subsequent variable definitions
-  //! \param[in] periodic An ordered three-element array of booleans 
+  //! compressed variable definitions. If empty, the variable is not 
+  //! compressed
+  //! \param[in] periodic An ordered array of booleans 
   //! specifying the
   //! spatial boundary periodicity.
+  //! Results are undefined if the rank of 
+  //! of \p periodic does not match that of \p dimensions.
   //!
   VarBase(
 	string name, vector <VDC::Dimension> dimensions,
-	string units, XType type, bool compressed,
-	size_t bs[3], string wname, string wmode, vector <size_t> cratios,
-	size_t max_ts_per_file, bool periodic[3]
+	string units, XType type, 
+	vector <size_t> bs, string wname, string wmode, vector <size_t> cratios,
+	vector <bool> periodic
   ) :
 	_name(name),
 	_dimensions(dimensions),
 	_units(units),
 	_type(type),
-	_compressed(compressed),
 	_wname(wname),
 	_wmode(wmode),
-	_cratios(cratios), 
-	_max_ts_per_file(max_ts_per_file)
+	_cratios(cratios),
+	_bs(bs),
+	_periodic(periodic)
   {
-	_bs[0] = bs[0]; _bs[1] = bs[1]; _bs[2] = bs[2];
-	_periodic[0] = periodic[0];
-	_periodic[1] = periodic[1];
-	_periodic[2] = periodic[2];
   };
 
-  VarBase(const VarBase &v) {
-	*this = v;
-	// handle raw pointers
-	_bs[0] = v._bs[0]; _bs[1] = v._bs[1]; _bs[2] = v._bs[2];
-	_periodic[0] = v._periodic[0];
-	_periodic[1] = v._periodic[1];
-	_periodic[2] = v._periodic[2];
-  }
-  VarBase &operator=(const VarBase &v) {
-	*this = v;
-	// handle raw pointers
-	_bs[0] = v._bs[0]; _bs[1] = v._bs[1]; _bs[2] = v._bs[2];
-	_periodic[0] = v._periodic[0];
-	_periodic[1] = v._periodic[1];
-	_periodic[2] = v._periodic[2];
-	return (*this);
-  }
   virtual ~VarBase() {};
 
   //! Get variable name
@@ -321,13 +300,12 @@ public:
 
   //! Access variable's compression flag
   //
-  bool GetCompressed() const {return (_compressed); };
-  void SetCompressed(bool compressed) {_compressed = compressed; };
+  bool GetCompressed() const {return (_cratios.size() > 1); };
 
   //! Access variable's block size
   //
-  const size_t *GetBS() const {return (_bs); };
-  void SetBS(size_t bs[3]) {_bs[0]=bs[0]; _bs[1]=bs[1]; _bs[2]=bs[2];};
+  vector <size_t> GetBS() const {return (_bs); };
+  void SetBS(vector <size_t> bs) {_bs = bs; };
 
   //! Access variable's wavelet family name
   //
@@ -346,12 +324,8 @@ public:
 
   //! Access variable bounary periodic 
   //
-  const bool *GetPeriodic() const {return (_periodic); };
-  void SetPeriodic(bool periodic[3]) {
-	_periodic[0]=periodic[0];
-	_periodic[1]=periodic[1];
-	_periodic[2]=periodic[2];
-  };
+  vector <bool> GetPeriodic() const {return (_periodic); };
+  void SetPeriodic(vector <bool> periodic) { _periodic = periodic; };
 
   //! Access variable attributes
   //
@@ -373,13 +347,11 @@ public:
   vector <VDC::Dimension> _dimensions;
   string _units;
   XType _type;
-  bool _compressed;
   string _wname;
   string _wmode;
   vector <size_t> _cratios;
-  size_t _max_ts_per_file;
-  size_t _bs[3];
-  bool _periodic[3];
+  vector <size_t> _bs;
+  vector <bool> _periodic;
   std::map <string, Attribute> _atts;
  };
 
@@ -398,8 +370,8 @@ public:
   //!
   //! \copydetails VarBase(string name, vector <VDC::Dimension> dimensions,
   //!  string units, XType type, bool compressed,
-  //!  size_t bs[3], string wname, string wmode, vector <size_t> cratios,
-  //!  size_t max_ts_per_file, bool periodic[3])
+  //!  vector <size_t> bs, string wname, string wmode, vector <size_t> cratios,
+  //!  vector <bool> periodic)
   //!
   //! \param[in] axis an int in the range 0..3 indicating the coordinate
   //! axis, one of X, Y, Z, or T, respectively
@@ -408,14 +380,14 @@ public:
   //
   CoordVar(
 	string name, vector <VDC::Dimension> dimensions,
-	string units, XType type, bool compressed,
-	size_t bs[3], string wname, string wmode, vector <size_t> cratios,
-	size_t max_ts_per_file, bool periodic[3], int axis, bool uniform
+	string units, XType type, 
+	vector <size_t> bs, string wname, string wmode, vector <size_t> cratios,
+	vector <bool> periodic, int axis, bool uniform
   ) :
 	VarBase(
-		name, dimensions, units, type, compressed, bs, 
+		name, dimensions, units, type, bs, 
 		wname, wmode, cratios,
-		max_ts_per_file, periodic
+		periodic
 	),
 	_axis(axis),
 	_uniform(uniform)
@@ -454,9 +426,9 @@ public:
   //! Construct Data variable definition with missing values
   //!
   //! \copydetails VarBase(string name, vector <VDC::Dimension> dimensions,
-  //!  string units, XType type, bool compressed,
-  //!  size_t bs[3], string wname, string wmode, vector <size_t> cratios,
-  //!  size_t max_ts_per_file, bool periodic[3])
+  //!  string units, XType type, 
+  //!  vector <size_t> bs, string wname, string wmode, vector <size_t> cratios,
+  //!  vector <bool> periodic)
   //!
   //! \param[in] coordvars Names of coordinate variables associated 
   //! with this variables dimensions
@@ -464,16 +436,14 @@ public:
   //!
   DataVar(
 	string name, vector <VDC::Dimension> dimensions,
-	string units, XType type, bool compressed,
-	size_t bs[3], string wname, string wmode, vector <size_t> cratios,
-	size_t max_ts_per_file,
-	bool periodic[3], vector <string> coordvars, 
+	string units, XType type, 
+	vector <size_t> bs, string wname, string wmode, vector <size_t> cratios,
+	vector <bool> periodic, vector <string> coordvars, 
 	double missing_value
   ) :
 	VarBase(
-		name, dimensions, units, type, compressed, 
-		bs, wname, wmode, cratios,
-		max_ts_per_file, periodic
+		name, dimensions, units, type, 
+		bs, wname, wmode, cratios, periodic
 	),
 	_coordvars(coordvars),
 	_has_missing(true),
@@ -483,24 +453,22 @@ public:
   //! Construct Data variable definition without missing values
   //!
   //! \copydetails VarBase(string name, vector <VDC::Dimension> dimensions,
-  //!  string units, XType type, bool compressed,
-  //!  size_t bs[3], string wname, string wmode, vector <size_t> cratios,
-  //!  size_t max_ts_per_file, bool periodic[3])
+  //!  string units, XType type, 
+  //!  vector <size_t> bs, string wname, string wmode, vector <size_t> cratios,
+  //!  vector <bool> periodic)
   //!
   //! \param[in] coordvars Names of coordinate variables associated 
   //! with this variables dimensions
   //!
   DataVar(
 	string name, vector <VDC::Dimension> dimensions,
-	string units, XType type, bool compressed,
-	size_t bs[3], string wname, string wmode, vector <size_t> cratios,
-	size_t max_ts_per_file,
-	bool periodic[3], vector <string> coordvars
+	string units, XType type, 
+	vector <size_t> bs, string wname, string wmode, vector <size_t> cratios,
+	vector <bool> periodic, vector <string> coordvars
   ) :
 	VarBase(
-		name, dimensions, units, type, compressed, 
-		bs, wname, wmode, cratios,
-		max_ts_per_file, periodic
+		name, dimensions, units, type, 
+		bs, wname, wmode, cratios, periodic
 	),
 	_coordvars(coordvars),
 	_has_missing(false),
@@ -634,7 +602,7 @@ public:
  //! \sa DefineDataVar(), DefineCoordVar(), VDC()
  //
  int SetCompressionBlock(
-	const size_t bs[3], string wname, string wmode,
+	vector <size_t> bs, string wname, string wmode,
 	vector <size_t> cratios
  );
  
@@ -643,7 +611,7 @@ public:
  //! \sa SetCompressionBlock()
  //
  void GetCompressionBlock(
-	size_t bs[3], string &wname, string &wmode,
+	vector <size_t> &bs, string &wname, string &wmode,
 	vector <size_t> &cratios
  ) const;
 
@@ -658,17 +626,16 @@ public:
  //!
  //! \retval status A negative int is returned on error
  //!
- void SetPeriodicBoundary(const bool periodic[3]) {
-	for (int i=0; i<3; i++) _periodic[i] = periodic[i];
+ void SetPeriodicBoundary(vector <bool> periodic) {
+	_periodic = periodic;
+	for (int i=_periodic.size(); i<3; i++) _periodic.push_back(false);
  }
 
  //! Retrieve current boundary periodic settings
  //!
  //! \sa SetPeriodicBoundary()
  //
- void GetPeriodicBoundary(bool periodic[3]) const {
-	for (int i=0; i<3; i++) periodic[i] = _periodic[i];
- }
+ vector <bool> GetPeriodicBoundary() const { return(_periodic); };
 
  //! Define a dimension in the VDC
  //!
@@ -995,6 +962,7 @@ public:
  //!
  bool GetDataVar( string varname, VDC::DataVar &datavar) const;
 
+
  //! Return a list of names for all of the defined data variables.
  //!
  //! Returns a list of names for all data variables defined 
@@ -1037,24 +1005,6 @@ public:
  //! \sa DefineCoordVar()
  //
  virtual std::vector <string> GetCoordVarNames(int ndim, bool spatial) const;
-
- //! Set the maximum number of time steps per file for subsequent 
- //! variable definitions
- //!
- //! This method sets the maximum number of timesteps that can be stored
- //! in a single file for subsequent variable definitions of 2D and 3D
- //! variables. For 1D variables the option is ignored.
- //!
- //! \param[in] numts Number of time steps. A valid of 0 indicates that all
- //! time steps can be stored in a single file.
- //!
- //! The default value of \p numts is 1
- //!
- //! \note Coordinate variables associated with the time axis may ignore this
- //! option.
- //
- void SetMaxTSPerFile(size_t numts) {_max_ts_per_file = numts; };
-
 
  //! Return a boolean indicating whether a variable is time varying
  //!
@@ -1244,9 +1194,9 @@ public:
  //! \retval status A negative int is returned if \p varname or 
  //! \p ts are invalid, or if the class object is in define mode.
  //!
- int GetPath(
+ virtual int GetPath(
 	string varname, size_t ts, int lod, string &path, size_t &file_ts
- ) const;
+ ) const = 0;
 
  //! Open the named variable for reading
  //!
@@ -1544,15 +1494,12 @@ protected:
  string _master_path;
  AccessMode _mode;
  bool _defineMode;
- size_t _bs[3];
+ std::vector <size_t> _bs;
  string _wname;
  string _wmode;
  std::vector <size_t> _cratios;
- size_t _max_ts_per_file;
- bool _periodic[3];
+ vector <bool> _periodic;
  VAPoR::UDUnits _udunits;
- size_t _max_mf_array;	// maximum allowable array size (# elements) in 
-						// the master file
 
  std::map <string, Dimension> _dimsMap;
  std::map <string, Attribute> _atts;
@@ -1560,7 +1507,7 @@ protected:
  std::map <string, DataVar> _dataVars;
 
  bool _ValidCompressBlock(
-    const size_t bs[3], string wname, string wmode,
+    vector <size_t> bs, string wname, string wmode,
     vector <size_t> cratios
  ) const;
 

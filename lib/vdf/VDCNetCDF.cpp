@@ -16,26 +16,131 @@ using namespace VAPoR;
         return(-1); \
     }
 
-VDCNetCDF::VDCNetCDF() : VDC() {
-	_ncid = -1;
+VDCNetCDF::VDCNetCDF(
+	size_t master_threshold, size_t variable_threshold
+) : VDC() {
+
 	_dimidMap.clear();
+	_master_threshold = master_threshold;
+	_variable_threshold = variable_threshold;
 }
 
 int VDCNetCDF::Initialize(string path, AccessMode mode) {
-	_ncid = -1;
 	return(VDC::Initialize(path, mode));
+}
+
+//
+// Figure out where variable lives. This algorithm will most likely
+// change.
+//
+int VDCNetCDF::GetPath(
+	string varname, size_t ts, int lod, string &path, size_t &file_ts
+) const {
+	path.clear();
+	file_ts = 0;
+	if (! VDC::IsTimeVarying(varname)) {
+		ts = 0;	// Could be anything if data aren't time varying;
+	}
+
+	// Really??
+	//
+	if (_defineMode) {
+		SetErrMsg("Operation not permitted in define mode");
+		return(-1);
+	}
+	const VarBase *varbase;
+	VDC::DataVar dvar;
+	VDC::CoordVar cvar;
+
+	if (VDC::IsDataVar(varname)) {
+		(void) VDC::GetDataVar(varname, dvar);
+		varbase = &dvar;
+	}
+	else if (VDC::IsCoordVar(varname)) {
+		(void) VDC::GetCoordVar(varname, cvar);
+		varbase = &cvar;
+	}
+	else {
+		SetErrMsg("Undefined variable name : %s", varname.c_str());
+		return(-1);
+	}
+
+	size_t nelements = 1;
+	size_t ngridpoints = 1;
+	for (int i=0; i<varbase->GetDimensions().size(); i++) {
+		nelements *= varbase->GetDimensions()[i].GetLength(); 
+		if (varbase->GetDimensions()[i].GetAxis() != 3) {
+			ngridpoints *= varbase->GetDimensions()[i].GetLength();
+		}
+	}
+
+	if (nelements < _master_threshold &&  ! varbase->GetCompressed()) {
+		path = _master_path;
+		file_ts = ts;
+		return(0);
+	}
+
+	path = _master_path;
+	path.erase(path.rfind(".nc"));
+	path += "_data";
+
+	path += "/";
+
+	if (dynamic_cast<const VDC::DataVar *>(varbase)) {
+		path += "data";
+		path += "/";
+	}
+	else {
+		path += "coordinates";
+		path += "/";
+	}
+
+	path += varname;
+	path += ".";
+
+	if (VDC::IsTimeVarying(varname)) { 
+		int idx;
+		ostringstream oss;
+		size_t numts = VDC::GetNumTimeSteps(varname);
+		assert(numts>0);
+		size_t max_ts_per_file = _variable_threshold / ngridpoints;
+		if (max_ts_per_file == 0) {
+			idx = ts;
+			file_ts = ts;
+		}
+		else {
+		 	idx = ts / max_ts_per_file;;
+			file_ts = ts % max_ts_per_file;
+		}
+		int width = (int) log10((double) numts-1) + 1;
+		if (width < 4) width = 4;
+		oss.width(width); oss.fill('0'); oss << idx;	
+
+		path += oss.str();
+	}
+
+	path += ".";
+	path += "nc";
+	if (varbase->GetCompressed()) {
+		if (lod<0) lod = varbase->GetCRatios().size()-1;
+		ostringstream oss;
+		oss << lod;
+		path += oss.str();
+	}
+	
+	return(0);
 }
 
 
 int VDCNetCDF::_WriteMasterMeta() {
 	const size_t NC_CHUNKSIZEHINT = 4*1024*1024;
 
-	_ncid = -1;
 	_dimidMap.clear();
 
+	int dummy;
     size_t chsz = NC_CHUNKSIZEHINT;
-    int rc = nc__create(_master_path.c_str(), NC_64BIT_OFFSET, 0, &chsz, &_ncid);
-	MY_NC_ERR(rc, _master_path, "nc__create()");
+    int rc = _netcdf.Create(_master_path, NC_64BIT_OFFSET, 0, chsz, dummy);
+	if (rc<0) return(-1);
 
 
 	map <string, Dimension>::const_iterator itr;
@@ -43,37 +148,42 @@ int VDCNetCDF::_WriteMasterMeta() {
 		const Dimension &dimension = itr->second;
 		int dimid;
 
-		rc = nc_def_dim(
-			_ncid, dimension.GetName().c_str(), dimension.GetLength(), &dimid
+		rc = _netcdf.DefDim(
+			dimension.GetName(), dimension.GetLength(), dimid
 		);
-		MY_NC_ERR(rc, _master_path, "nc_def_dim()");
+		if (rc<0) return(-1);
 		_dimidMap[dimension.GetName()] = dimid;
 	}
 	
 
-	rc = _PutAtt(_master_path, "", "VDC.Version", 1);
+	rc = _netcdf.PutAtt("", "VDC.Version", 1);
 	if (rc<0) return(rc);
 
-	rc = _PutAtt(_master_path, "", "VDC.BlockSize", _bs, 3);
+	rc = _netcdf.PutAtt("", "VDC.BlockSize", _bs);
 	if (rc<0) return(rc);
 
-	rc = _PutAtt(_master_path, "", "VDC.WaveName", _wname);
+	rc = _netcdf.PutAtt("", "VDC.WaveName", _wname);
 	if (rc<0) return(rc);
 
-	rc = _PutAtt(_master_path, "", "VDC.WaveMode", _wmode);
+	rc = _netcdf.PutAtt("", "VDC.WaveMode", _wmode);
 	if (rc<0) return(rc);
 
-	rc = _PutAtt(_master_path, "", "VDC.CompressionRatios", _cratios);
+	rc = _netcdf.PutAtt("", "VDC.CompressionRatios", _cratios);
 	if (rc<0) return(rc);
 
-	rc = _PutAtt(_master_path, "", "VDC.MaxTSPerFile", _max_ts_per_file);
+	rc = _netcdf.PutAtt("", "VDC.MasterThreshold", _master_threshold);
 	if (rc<0) return(rc);
 
-	int periodic[] = {_periodic[0], _periodic[1], _periodic[2]};
-	rc = _PutAtt(_master_path, "", "VDC.Periodic", periodic, 3);
+	rc = _netcdf.PutAtt("", "VDC.VariableThreshold",_variable_threshold);
 	if (rc<0) return(rc);
 
-	rc = _PutAtt(_master_path, "", "VDC.MaxMFArray", _max_mf_array);
+	vector <int> periodic;
+	for (int i=0; i<_periodic.size(); i++) {
+		periodic.push_back((int) _periodic[i]);
+	}
+	rc = _netcdf.PutAtt("", "VDC.Periodic", periodic);
+	if (rc<0) return(rc);
+
 	if (rc<0) return(rc);
 
 
@@ -89,10 +199,10 @@ int VDCNetCDF::_WriteMasterMeta() {
 	rc = _WriteMasterDataVars();
 	if (rc<0) return(rc);
 
-	rc = nc_enddef(_ncid);
+	rc = _netcdf.Enddef();
 	MY_NC_ERR(rc, _master_path, "nc_enddef()");
 
-	rc = nc_close(_ncid);
+	rc = _netcdf.Close();
 	MY_NC_ERR(rc, _master_path, "nc_close()");
 
 	return(0);
@@ -111,7 +221,7 @@ int VDCNetCDF::_WriteMasterDimensions() {
 		s+= " ";
 	}
 	string tag = "VDC.DimensionNames";
-	int rc = _PutAtt(_master_path, "", tag, s);
+	int rc = _netcdf.PutAtt("", tag, s);
 	if (rc<0) return(rc);
 
 	
@@ -119,11 +229,11 @@ int VDCNetCDF::_WriteMasterDimensions() {
 		const Dimension &dimension = itr->second;
 
 		tag = "VDC.Dimension." + dimension.GetName() + ".Length";
-		rc = _PutAtt(_master_path, "", tag, dimension.GetLength());
+		rc = _netcdf.PutAtt("", tag, dimension.GetLength());
 		if (rc<0) return(rc);
 
 		tag = "VDC.Dimension." + dimension.GetName() + ".Axis";
-		rc = _PutAtt(_master_path, "", tag, dimension.GetAxis());
+		rc = _netcdf.PutAtt("", tag, dimension.GetAxis());
 		if (rc<0) return(rc);
 		
 	}
@@ -141,7 +251,7 @@ int VDCNetCDF::_WriteMasterAttributes (
 		s+= " ";
 	}
 	string tag = prefix + ".AttributeNames";
-	int rc = _PutAtt(_master_path, "", tag, s);
+	int rc = _netcdf.PutAtt("", tag, s);
 	if (rc<0) return(rc);
 
 	
@@ -149,7 +259,7 @@ int VDCNetCDF::_WriteMasterAttributes (
 		const Attribute &attr = itr->second;
 
 		tag = prefix + ".Attribute." + attr.GetName() + ".XType";
-		rc = _PutAtt(_master_path, "", tag, attr.GetXType());
+		rc = _netcdf.PutAtt("", tag, attr.GetXType());
 		if (rc<0) return(rc);
 
 		tag = prefix + ".Attribute." + attr.GetName() + ".Values";
@@ -158,7 +268,7 @@ int VDCNetCDF::_WriteMasterAttributes (
 			case DOUBLE: {
 				vector <double> values;
 				attr.GetValues(values);
-				rc = _PutAtt(_master_path, "", tag, values);
+				rc = _netcdf.PutAtt("", tag, values);
 				if (rc<0) return(rc);
 			break;
 			}
@@ -166,14 +276,14 @@ int VDCNetCDF::_WriteMasterAttributes (
 			case INT64: {
 				vector <int> values;
 				attr.GetValues(values);
-				rc = _PutAtt(_master_path, "", tag, values);
+				rc = _netcdf.PutAtt("", tag, values);
 				if (rc<0) return(rc);
 			break;
 			}
 			case TEXT: {
 				string values;
 				attr.GetValues(values);
-				rc = _PutAtt(_master_path, "", tag, values);
+				rc = _netcdf.PutAtt("", tag, values);
 				if (rc<0) return(rc);
 			break;
 			}
@@ -207,41 +317,42 @@ int VDCNetCDF::_WriteMasterVarBase(string prefix, const VarBase &var) {
 		s+= " ";
 	}
 
-	int rc = _PutAtt(_master_path, "", tag, s);
+	int rc = _netcdf.PutAtt("", tag, s);
 	if (rc<0) return(rc);
 
 	tag = prefix + "." + var.GetName() + ".Units";
-	rc = _PutAtt(_master_path, "", tag, var.GetUnits());
+	rc = _netcdf.PutAtt("", tag, var.GetUnits());
 	if (rc<0) return(rc);
 
 	tag = prefix + "." + var.GetName() + ".XType";
-	rc = _PutAtt(_master_path, "", tag, (int) var.GetXType());
+	rc = _netcdf.PutAtt("", tag, (int) var.GetXType());
 	if (rc<0) return(rc);
 
 	tag = prefix + "." + var.GetName() + ".Compressed";
-	rc = _PutAtt(_master_path, "", tag, (int) var.GetCompressed());
+	rc = _netcdf.PutAtt("", tag, (int) var.GetCompressed());
 	if (rc<0) return(rc);
 
 	tag = prefix + "." + var.GetName() + ".BlockSize";
-	rc = _PutAtt(_master_path, "", tag, var.GetBS(), 3);
+	rc = _netcdf.PutAtt("", tag, var.GetBS());
 	if (rc<0) return(rc);
 
 	tag = prefix + "." + var.GetName() + ".WaveName";
-	rc = _PutAtt(_master_path, "", tag, var.GetWName());
+	rc = _netcdf.PutAtt("", tag, var.GetWName());
 	if (rc<0) return(rc);
 
 	tag = prefix + "." + var.GetName() + ".WaveMode";
-	rc = _PutAtt(_master_path, "", tag, var.GetWMode());
+	rc = _netcdf.PutAtt("", tag, var.GetWMode());
 	if (rc<0) return(rc);
 
 	tag = prefix + "." + var.GetName() + ".CompressionRatios";
-	rc = _PutAtt(_master_path, "", tag, var.GetCRatios());
+	rc = _netcdf.PutAtt("", tag, var.GetCRatios());
 	if (rc<0) return(rc);
 
 	tag = prefix + "." + var.GetName() + ".Periodic";
-	const bool *ptr = var.GetPeriodic();
-	int iperiodic[] = {ptr[0], ptr[1], ptr[2]};
-	rc = _PutAtt(_master_path, "", tag, iperiodic, 3);
+	vector <bool> periodic = var.GetPeriodic();
+	vector <int> iperiodic;
+	for (int i=0; i<periodic.size(); i++) iperiodic.push_back(periodic[i]);
+	rc = _netcdf.PutAtt("", tag, iperiodic);
 	if (rc<0) return(rc);
 	
 	prefix += "." + var.GetName();
@@ -258,7 +369,7 @@ int VDCNetCDF::_WriteMasterCoordVars() {
 	}
 
 	string tag = "VDC.CoordVarNames";
-	int rc = _PutAtt(_master_path, "", tag, s);
+	int rc = _netcdf.PutAtt("", tag, s);
 	if (rc<0) return(rc);
 
 
@@ -267,11 +378,11 @@ int VDCNetCDF::_WriteMasterCoordVars() {
 		const CoordVar &cvar = itr->second;
 
 		tag = prefix + "." + cvar.GetName() + ".Axis";
-		int rc = _PutAtt(_master_path, "", tag, cvar.GetAxis());
+		int rc = _netcdf.PutAtt("", tag, cvar.GetAxis());
 		if (rc<0) return(rc);
 
 		tag = prefix + "." + cvar.GetName() + ".Uniform";
-		rc = _PutAtt(_master_path, "", tag, (int) cvar.GetUniform());
+		rc = _netcdf.PutAtt("", tag, (int) cvar.GetUniform());
 		if (rc<0) return(rc);
 
 		rc = _WriteMasterVarBase(prefix, cvar);
@@ -290,7 +401,7 @@ int VDCNetCDF::_WriteMasterDataVars() {
 	}
 
 	string tag = "VDC.DataVarNames";
-	int rc = _PutAtt(_master_path, "", tag, s);
+	int rc = _netcdf.PutAtt("", tag, s);
 	if (rc<0) return(rc);
 
 
@@ -299,15 +410,15 @@ int VDCNetCDF::_WriteMasterDataVars() {
 		const DataVar &var = itr->second;
 
 		tag = prefix + "." + var.GetName() + ".CoordVars";
-		int rc = _PutAtt(_master_path, "", tag, var.GetCoordvars());
+		int rc = _netcdf.PutAtt("", tag, var.GetCoordvars());
 		if (rc<0) return(rc);
 
 		tag = prefix + "." + var.GetName() + ".HasMissing";
-		rc = _PutAtt(_master_path, "", tag, (int) var.GetHasMissing());
+		rc = _netcdf.PutAtt("", tag, (int) var.GetHasMissing());
 		if (rc<0) return(rc);
 
 		tag = prefix + "." + var.GetName() + ".MissingValue";
-		rc = _PutAtt(_master_path, "", tag, (int) var.GetMissingValue());
+		rc = _netcdf.PutAtt("", tag, (int) var.GetMissingValue());
 		if (rc<0) return(rc);
 
 		rc = _WriteMasterVarBase(prefix, var);
@@ -315,373 +426,4 @@ int VDCNetCDF::_WriteMasterDataVars() {
 	}
 	return(0);
 
-}
-
-	
-//
-// PutAtt - Integer
-//
-int VDCNetCDF::_PutAtt(
-	string path, string varname, string attname, int value
-) {
-	return(_PutAtt(path, varname, attname, &value, 1));
-}
-
-int VDCNetCDF::_PutAtt(
-	string path, string varname, string attname, vector <int> values
-) {
-	size_t n = values.size();
-	int *buf = new int[n];
-	for (size_t i=0; i<n; i++) buf[i] = values[i];
-
-	int rc = _PutAtt(path, varname, attname, buf, n);
-	delete [] buf;
-
-	return(rc);
-}
-
-int VDCNetCDF::_PutAtt(
-	string path, string varname, string attname, const int values[], size_t n
-) {
-    int varid;
-	int ncid;
-    int rc = _GetVarID(path, varname, ncid, varid);
-    if (rc<0) return(-1);
-
-    rc = nc_put_att_int(ncid,varid,attname.c_str(),NC_INT, n, values);
-	MY_NC_ERR(rc, path, "nc_put_att_int");
-
-	return(0);
-}
-
-//
-// GetAtt - Integer
-//
-int VDCNetCDF::_GetAtt(
-	string path, string varname, string attname, int &value
-) const {
-	return(_GetAtt(path, varname, attname, &value, 1));
-}
-
-int VDCNetCDF::_GetAtt(
-	string path, string varname, string attname, vector <int> &values
-) const {
-	values.clear();
-
-    int varid;
-	int ncid;
-    int rc = _GetVarID(path, varname, ncid, varid);
-    if (rc<0) return(-1);
-
-	size_t n;
-	nc_inq_attlen(ncid, varid, attname.c_str(), &n);
-	MY_NC_ERR(rc, path, "nc_inq_attlen");
-
-	int *buf = new int[n];
-
-	rc = _GetAtt(path, varname, attname, buf, n);
-
-	for (int i=0; i<n; i++) {
-		values.push_back(buf[i]);
-	}
-	delete [] buf;
-
-	return(rc);
-}
-
-int VDCNetCDF::_GetAtt(
-	string path, string varname, string attname, int values[], size_t n
-) const {
-    int varid;
-	int ncid;
-    int rc = _GetVarID(path, varname, ncid, varid);
-    if (rc<0) return(-1);
-
-	size_t len;
-	nc_inq_attlen(ncid, varid, attname.c_str(), &len);
-	MY_NC_ERR(rc, path, "nc_inq_attlen");
-
-	int *buf = new int[len];
-
-    rc = nc_get_att_int(ncid,varid,attname.c_str(),buf);
-	if (rc != NC_NOERR) delete [] buf;
-	MY_NC_ERR(rc, path, "nc_get_att_int");
-
-	for (size_t i=0; i < len && i < n; i++) {
-		values[i] = buf[i];
-	}
-	delete [] buf;
-
-	return(0);
-}
-
-//
-// PutAtt - size_t
-//
-int VDCNetCDF::_PutAtt(
-	string path, string varname, string attname, size_t value
-) {
-	return(_PutAtt(path, varname, attname, &value, 1));
-}
-
-int VDCNetCDF::_PutAtt(
-	string path, string varname, string attname, vector <size_t> values
-) {
-	vector <int> ivalues;
-	for (size_t i=0; i<values.size(); i++) ivalues.push_back(values[i]);
-
-	return(_PutAtt(path, varname, attname, ivalues));
-}
-
-int VDCNetCDF::_PutAtt(
-	string path, string varname, string attname, 
-	const size_t values[], size_t n
-) {
-	vector <int> ivalues;
-
-	for (size_t i=0; i<n; i++) ivalues.push_back(values[i]);
-
-	return(_PutAtt(path, varname, attname, ivalues));
-}
-
-//
-// GetAtt - size_t
-//
-int VDCNetCDF::_GetAtt(
-	string path, string varname, string attname, size_t &value
-) const {
-	return(_GetAtt(path, varname, attname, &value, 1));
-}
-
-int VDCNetCDF::_GetAtt(
-	string path, string varname, string attname, vector <size_t> &values
-) const {
-	values.clear();
-
-	vector <int> ivalues;
-	int rc = _GetAtt(path, varname, attname, ivalues);
-	for (int i=0; i<ivalues.size(); i++) values.push_back(ivalues[i]);
-	return(rc);
-
-}
-
-int VDCNetCDF::_GetAtt(
-	string path, string varname, string attname, size_t values[], size_t n
-) const {
-
-	vector <int> ivalues;
-	int rc = _GetAtt(path, varname, attname, ivalues);
-	for (int i=0; i<ivalues.size() && i<n; i++) values[i] = ivalues[i];
-
-	return(rc);
-}
-
-//
-// PutAtt - Double
-//
-
-int VDCNetCDF::_PutAtt(
-	string path, string varname, string attname, double value
-) {
-	return(_PutAtt(path, varname, attname, &value, 1));
-}
-
-int VDCNetCDF::_PutAtt(
-	string path, string varname, string attname, vector <double> values
-) {
-	size_t n = values.size();
-	double *buf = new double[n];
-	for (size_t i=0; i<n; i++) buf[i] = values[i];
-
-	int rc = _PutAtt(path, varname, attname, buf, n);
-	delete [] buf;
-
-	return(rc);
-}
-
-int VDCNetCDF::_PutAtt(
-	string path, string varname, string attname, const double values[], size_t n
-) {
-    int varid;
-	int ncid;
-    int rc = _GetVarID(path, varname, ncid, varid);
-    if (rc<0) return(-1);
-
-    rc = nc_put_att_double(ncid,varid,attname.c_str(),NC_DOUBLE, n, values);
-	MY_NC_ERR(rc, path, "nc_put_att_double");
-
-	return(0);
-}
-
-//
-// GetAtt - Double
-//
-int VDCNetCDF::_GetAtt(
-	string path, string varname, string attname, double &value
-) const {
-	return(_GetAtt(path, varname, attname, &value, 1));
-}
-
-int VDCNetCDF::_GetAtt(
-	string path, string varname, string attname, vector <double> &values
-) const {
-	values.clear();
-
-    int varid;
-	int ncid;
-    int rc = _GetVarID(path, varname, ncid, varid);
-    if (rc<0) return(-1);
-
-	size_t n;
-	nc_inq_attlen(ncid, varid, attname.c_str(), &n);
-	MY_NC_ERR(rc, path, "nc_inq_attlen");
-
-	double *buf = new double[n];
-
-	rc = _GetAtt(path, varname, attname, buf, n);
-
-	for (int i=0; i<n; i++) {
-		values.push_back(buf[i]);
-	}
-	delete [] buf;
-
-	return(rc);
-}
-
-int VDCNetCDF::_GetAtt(
-	string path, string varname, string attname, double values[], size_t n
-) const {
-    int varid;
-	int ncid;
-    int rc = _GetVarID(path, varname, ncid, varid);
-    if (rc<0) return(-1);
-
-	size_t len;
-	nc_inq_attlen(ncid, varid, attname.c_str(), &len);
-	MY_NC_ERR(rc, path, "nc_inq_attlen");
-
-	double *buf = new double[len];
-
-    rc = nc_get_att_double(ncid,varid,attname.c_str(),buf);
-	if (rc != NC_NOERR) delete [] buf;
-	MY_NC_ERR(rc, path, "nc_get_att_double");
-
-	for (size_t i=0; i < len && i < n; i++) {
-		values[i] = buf[i];
-	}
-	delete [] buf;
-
-	return(0);
-}
-
-//
-// PutAtt - String
-//
-
-int VDCNetCDF::_PutAtt(
-	string path, string varname, string attname, string value
-) {
-
-	size_t n = value.length();
-	char *buf = new char[n + 1];
-	strcpy(buf, value.c_str());
-	int rc = _PutAtt(path, varname, attname, buf, n);
-	delete [] buf;
-	return(rc);
-}
-int VDCNetCDF::_PutAtt(
-	string path, string varname, string attname, vector <string> values
-) {
-	string s;
-	for (int i=0; i<values.size(); i++) {
-		s += values[i];
-		s += " ";
-	}
-	return(_PutAtt(path, varname, attname, s));
-}
-
-int VDCNetCDF::_PutAtt(
-	string path, string varname, string attname, const char values[], size_t n
-) {
-    int varid;
-	int ncid;
-    int rc = _GetVarID(path, varname, ncid, varid);
-    if (rc<0) return(-1);
-
-    rc = nc_put_att_text(ncid,varid,attname.c_str(), n, values);
-	MY_NC_ERR(rc, path, "nc_put_att_text");
-
-	return(0);
-}
-
-//
-// GetAtt - String
-//
-int VDCNetCDF::_GetAtt(
-	string path, string varname, string attname, string &value
-) const {
-	value.clear();
-
-    int varid;
-	int ncid;
-    int rc = _GetVarID(path, varname, ncid, varid);
-    if (rc<0) return(-1);
-
-	size_t n;
-	nc_inq_attlen(ncid, varid, attname.c_str(), &n);
-	MY_NC_ERR(rc, path, "nc_inq_attlen");
-
-	char *buf = new char[n+1];
-
-	rc = _GetAtt(path, varname, attname, buf, n);
-	value = buf;
-
-	delete [] buf;
-
-	return(rc);
-}
-
-int VDCNetCDF::_GetAtt(
-	string path, string varname, string attname, char values[], size_t n
-) const {
-    int varid;
-	int ncid;
-    int rc = _GetVarID(path, varname, ncid, varid);
-    if (rc<0) return(-1);
-
-	size_t len;
-	nc_inq_attlen(ncid, varid, attname.c_str(), &len);
-	MY_NC_ERR(rc, path, "nc_inq_attlen");
-
-	char *buf = new char[len+1];
-
-    rc = nc_get_att_text(ncid,varid,attname.c_str(),buf);
-	if (rc != NC_NOERR) delete [] buf;
-	MY_NC_ERR(rc, path, "nc_get_att_text");
-
-	size_t i;
-	for (i=0; i < len && i < n; i++) {
-		values[i] = buf[i];
-	}
-	values[i] = '\0';
-	delete [] buf;
-
-	return(0);
-}
-
-int VDCNetCDF::_GetVarID(
-	string path, string varname, int &ncid, int &varid 
-) const {
-	if (path.compare(_master_path) != 0) {
-		SetErrMsg("Not implemented!!!");
-		return(-1);
-	}
-	if (! varname.empty()) {
-		SetErrMsg("Not implemented!!!");
-		return(-1);
-	}
-	ncid = _ncid;
-	varid = NC_GLOBAL;
-
-	return(0);
 }

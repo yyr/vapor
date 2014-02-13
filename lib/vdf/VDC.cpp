@@ -10,7 +10,8 @@ VDC::VDC() {
 	_mode = R;
 	_defineMode = false;
 
-	for (int i=0; i<3; i++) _bs[i] = 64;
+	_bs.clear();
+	for (int i=0; i<3; i++) _bs.push_back(64);
 
 	_wname = "bior3.3";
 	_wmode = "symh";
@@ -21,10 +22,8 @@ VDC::VDC() {
 	_cratios.push_back(10);
 	_cratios.push_back(1);
 
-	_max_ts_per_file = 1;
-	_max_mf_array = 1000000;
-
-	for (int i=0; i<3; i++) _periodic[i] = false;
+	_periodic.clear();
+	for (int i=0; i<3; i++) _periodic.push_back(false);
 
 	_coordVars.clear();
 	_dataVars.clear();
@@ -55,7 +54,7 @@ int VDC::Initialize(string path, AccessMode mode)
 }
 
 int VDC::SetCompressionBlock(
-    const size_t bs[3], string wname, string wmode,
+    vector <size_t> bs, string wname, string wmode,
     vector <size_t> cratios
 ) {
 	
@@ -63,7 +62,9 @@ int VDC::SetCompressionBlock(
 		return(-1);
 	}
 
-	for (int i=0; i<3; i++) _bs[i] = bs[i];
+	_bs = bs;
+	for (int i = _bs.size(); i<3; i++) _bs.push_back(64);
+
 	_wname = wname;
 	_wmode = wmode;
 	_cratios = cratios;
@@ -72,10 +73,10 @@ int VDC::SetCompressionBlock(
 }
 
 void VDC::GetCompressionBlock(
-    size_t bs[3], string &wname, string &wmode,
+    vector <size_t> &bs, string &wname, string &wmode,
     vector <size_t> &cratios
 ) const {
-	for (int i=0; i<3; i++) bs[i] = _bs[i];
+	bs = _bs;
 	wname = _wname;
 	wmode = _wmode;
 	cratios = _cratios;
@@ -193,10 +194,11 @@ int VDC::DefineCoordVar(
 		dimensions.push_back(dimension);
 	}
 		
-	size_t max_ts_per_file = dimnames.size() == 1 ? 1 : _max_ts_per_file;
+	vector <size_t> cratios;
+	if (compressed) cratios = _cratios;
 	CoordVar coordvar(
-		varname, dimensions, units, type, compressed, _bs, _wname, 
-		_wmode, _cratios, max_ts_per_file, _periodic, axis, false
+		varname, dimensions, units, type, _bs, _wname, 
+		_wmode, cratios, _periodic, axis, false
 	);
 
 	// _coordVars contains a table of all the coordinate variables
@@ -235,9 +237,11 @@ int VDC::DefineCoordVarUniform(
 	assert(! dimension.GetName().empty());
 	dimensions.push_back(dimension);
 
+	vector <size_t> cratios;
+	if (compressed) cratios = _cratios;
 	CoordVar coordvar(
-		varname, dimensions, units, type, compressed, _bs, _wname, 
-		_wmode, _cratios, 1, _periodic, axis, true
+		varname, dimensions, units, type, _bs, _wname, 
+		_wmode, cratios, _periodic, axis, true
 	);
 
 	_coordVars[varname] = coordvar;
@@ -271,7 +275,6 @@ bool VDC::GetCoordVar(
 bool VDC::GetCoordVar(string varname, VDC::CoordVar &cvar) const {
 
 	map <string, CoordVar>::const_iterator itr = _coordVars.find(varname);
-
 	if (itr == _coordVars.end()) return(false);
 
 	cvar = itr->second;
@@ -311,10 +314,11 @@ int VDC::DefineDataVar(
 		dimensions.push_back(dimension);
 	}
 
-	size_t max_ts_per_file = dimnames.size() == 1 ? 1 : _max_ts_per_file;
+	vector <size_t> cratios;
+	if (compressed) cratios = _cratios;
 	DataVar datavar(
-		varname, dimensions, units, type, compressed, _bs, _wname, 
-		_wmode, _cratios, max_ts_per_file, _periodic, coordvars
+		varname, dimensions, units, type, _bs, _wname, 
+		_wmode, cratios, _periodic, coordvars
 	);
 
 	_dataVars[varname] = datavar;
@@ -356,10 +360,11 @@ int VDC::DefineDataVar(
 		dimensions.push_back(dimension);
 	}
 
-	size_t max_ts_per_file = dimnames.size() == 1 ? 1 : _max_ts_per_file;	
+	vector <size_t> cratios;
+	if (compressed) cratios = _cratios;
 	DataVar datavar(
-		varname, dimensions, units, type, compressed, _bs, _wname, 
-		_wmode, _cratios, max_ts_per_file, _periodic, coordvars, 
+		varname, dimensions, units, type, _bs, _wname, 
+		_wmode, cratios, _periodic, coordvars, 
 		missing_value
 	);
 
@@ -824,120 +829,6 @@ int VDC::EndDefine() {
 }
 
 
-//
-// Figure out where variable lives. This algorithm will most likely
-// change.
-//
-int VDC::GetPath(
-	string varname, size_t ts, int lod, string &path, size_t &file_ts
-) const {
-	path.clear();
-	file_ts = 0;
-	if (! VDC::IsTimeVarying(varname)) {
-		ts = 0;	// Could be anything if data aren't time varying;
-	}
-
-	if (_defineMode) {
-		SetErrMsg("Operation not permitted in define mode");
-		return(-1);
-	}
-	const VarBase *varbase;
-	VDC::DataVar dvar;
-	VDC::CoordVar cvar;
-
-	if (VDC::IsDataVar(varname)) {
-		(void) VDC::GetDataVar(varname, dvar);
-		varbase = &dvar;
-	}
-	else if (VDC::IsCoordVar(varname)) {
-		(void) VDC::GetCoordVar(varname, cvar);
-		varbase = &cvar;
-	}
-	else {
-		SetErrMsg("Undefined variable name : %s", varname.c_str());
-		return(-1);
-	}
-
-	// 1D variables always go in the master file
-	//
-	if (varbase->GetDimensions().size()  <= 1) {
-		path = _master_path;
-		file_ts = ts;
-		return(0);
-	}
-
-	size_t nelements = 1;
-	for (int i=0; i<varbase->GetDimensions().size(); i++) {
-		nelements *= varbase->GetDimensions()[i].GetLength(); 
-	}
-
-	//
-	// If the array is "small" and not compressed it will be stored
-	// in the master file
-	//
-	if (nelements < _max_mf_array && ! varbase->GetCompressed()) {
-		path = _master_path;
-		file_ts = ts;
-		return(0);
-	}
-
-
-	path = _master_path;
-	path.erase(path.rfind(".nc"));
-	path += "_data";
-
-	path += "/";
-
-	if (dynamic_cast<const VDC::DataVar *>(varbase)) {
-		path += "data";
-		path += "/";
-	}
-	else {
-		path += "coordinates";
-		path += "/";
-	}
-
-	path += varname;
-	path += ".";
-
-	if (VDC::IsTimeVarying(varname)) { 
-		int idx0, idx1;
-		ostringstream oss;
-		size_t numts = VDC::GetNumTimeSteps(varname);
-		assert(numts>0);
-		if (_max_ts_per_file == 0) {
-			idx0 = 0;
-			idx1 = VDC::GetNumTimeSteps(varname) - 1;
-			file_ts = ts;
-		}
-		else {
-		 	idx0 = (ts / _max_ts_per_file) * _max_ts_per_file;
-			idx1 = idx0 + _max_ts_per_file - 1;
-			if (idx1 >= numts) {
-				idx1 = numts-1;
-			}
-			file_ts = ts % _max_ts_per_file;
-		}
-		int width = (int) log10((double) numts-1) + 1;
-		oss.width(width); oss.fill('0'); oss << idx0;	
-		oss.width(0); oss << "-";
-		oss.width(width); oss.fill('0'); oss << idx1;	
-
-		path += oss.str();
-	}
-
-	path += ".";
-	path += "nc";
-	if (varbase->GetCompressed()) {
-		if (lod<0) lod = varbase->GetCRatios().size()-1;
-		ostringstream oss;
-		oss << lod;
-		path += oss.str();
-	}
-	
-	return(0);
-}
-
 int VDC::OpenVariableRead(size_t ts, string varname, int reflevel, int lod)
 {
 	cout << "not implemented";
@@ -1245,10 +1136,10 @@ void VDC::Attribute::GetValues(
 
 
 bool VDC::_ValidCompressBlock(
-    const size_t bs[3], string wname, string wmode,
+    vector <size_t> bs, string wname, string wmode,
     vector <size_t> cratios
 ) const {
-	for (int i=0; i<3; i++) {
+	for (int i=0; i<bs.size(); i++) {
 		if (bs[i] < 1) {
 			SetErrMsg("All block dimensions must be of length one or more");
 			return(false);
@@ -1542,7 +1433,7 @@ std::ostream &operator<<(std::ostream &o, const VDC::VarBase &var) {
 	}
 	o << "   Units: " << var._units << endl;
 	o << "   XType: " << var._type << endl;
-	o << "   Compressed: " << var._compressed << endl;
+	o << "   Compressed: " << (var._cratios.size() > 0) << endl;
 	o << "   WName: " << var._wname << endl;
 	o << "   WMode: " << var._wmode << endl;
 	o << "   CRatios: ";
@@ -1550,14 +1441,13 @@ std::ostream &operator<<(std::ostream &o, const VDC::VarBase &var) {
 		o << var._cratios[i] << " ";
 	}
 	o << endl;
-	o << "   MaxTSPerFile: " << var._max_ts_per_file << endl;
 	o << "   Block Size: ";
-	for (int i=0; i<3; i++) {
+	for (int i=0; i<var._bs.size(); i++) {
 		o << var._bs[i] << " ";
 	}
 	o << endl;
 	o << "   Periodic: ";
-	for (int i=0; i<3; i++) {
+	for (int i=0; i<var._periodic.size(); i++) {
 		o << var._periodic[i] << " ";
 	}
 	o << endl;
@@ -1605,7 +1495,7 @@ std::ostream &operator<<(std::ostream &o, const VDC &vdc) {
 	o << " AccessMode: " << vdc._mode << endl;
 	o << " DefineMode: " << vdc._defineMode << endl;
 	o << " Block Size: ";
-	for (int i=0; i<3; i++) {
+	for (int i=0; i<vdc._bs.size(); i++) {
 		o << vdc._bs[i] << " ";
 	}
 	o << endl;
@@ -1616,9 +1506,8 @@ std::ostream &operator<<(std::ostream &o, const VDC &vdc) {
 		o << vdc._cratios[i] << " ";
 	}
 	o << endl;
-	o << " MaxTSPerFile: " << vdc._max_ts_per_file << endl;
 	o << " Periodic: ";
-	for (int i=0; i<3; i++) {
+	for (int i=0; i<vdc._periodic.size(); i++) {
 		o << vdc._periodic[i] << " ";
 	}
 	o << endl;

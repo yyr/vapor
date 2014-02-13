@@ -15,6 +15,7 @@ apps/vaporgui/guis/ui/twoDimagetab.h
 apps/vaporgui/guis/ui/vizfeatures.h
 apps/vaporgui/guis/ui/viztab.h
 apps/vaporgui/moc/
+lib/common/GeoUtil.h
 lib/common/Base64.h
 lib/common/CFuncs.h
 lib/common/EasyThreads.h
@@ -37,6 +38,16 @@ lib/params/ParamsBase.h
 lib/params/TransferFunctionLite.h
 lib/params/tfinterpolator.h
 lib/render/moc/
+lib/vdf/Copy2VDF.h
+lib/vdf/DCReaderWRF.h
+lib/vdf/NetCDFCpp.h
+lib/vdf/Proj4API.h
+lib/vdf/UDUnitsClass.h
+lib/vdf/VDC.h
+lib/vdf/VDCNetCDF.h
+lib/vdf/WrfVDCcreator.h
+lib/vdf/WrfVDFcreator.h
+lib/vdf/vdfcreate.h
 lib/vdf/AMRData.h
 lib/vdf/AMRIO.h
 lib/vdf/AMRTree.h
@@ -99,3 +110,4 @@ lib/vdf/WeightTable.h
 lib/vdf/XmlNode.h
 share/doc/Doxygen/Doxyfile
 site.mk
+targets/

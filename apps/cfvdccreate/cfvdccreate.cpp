@@ -100,6 +100,23 @@ void print_vdc_var(
 	cout << "		MissingValue: " << missing_value << endl;
 }
 
+void print_path(const VDC &vdc, const VDC::VarBase *var) {
+
+	int numts = vdc.GetNumTimeSteps(var->GetName());
+	assert (numts >=0);
+	if (numts == 0) numts = 1;	// Not time varying
+	for (int ts=0; ts<numts; ts++) {
+		int n = var->GetCRatios().size();
+		if (n==0) n = 1;
+		for (int lod=0; lod<n; lod++) {
+			string  path;
+			size_t file_ts;
+			vdc.GetPath(var->GetName(), ts, lod, path, file_ts);
+			cout << "		Path: " << path << endl;
+		}
+	}
+}
+
 //
 // Generate a list of variable names to copy from NetCDF to VDC
 //
@@ -401,11 +418,8 @@ int	main(int argc, char **argv) {
 	vector <string> vars3d;
 	get_var_names(cf, opt.vars, vars1d, vars2d, vars3d);
 
-	vdc.SetMaxTSPerFile(0);	// unlimited time steps per file
 	define_data_variables(cf, vdc, vars1d, false);
 	define_data_variables(cf, vdc, vars2d, true);
-
-	vdc.SetMaxTSPerFile(1);	// only one time step per file for 3d
 	define_data_variables(cf, vdc, vars3d, true);
 
 	vdc.EndDefine();
@@ -446,6 +460,9 @@ int	main(int argc, char **argv) {
 			print_vdc_cvar(
 				cvars[i], dimnames, units, axis,  type, compressed, uniform
 			);
+			VDC::CoordVar cvar;
+			vdc.GetCoordVar(cvars[i], cvar);
+			print_path(vdc, &cvar);
 			cout << endl;
 			print_attributes(vdc, cvars[i], "		");
 		}
@@ -467,6 +484,9 @@ int	main(int argc, char **argv) {
 				vars[i], dimnames, cvars, units, type,  compressed, 
 				has_missing, missing_value
 			);
+			VDC::DataVar dvar;
+			vdc.GetDataVar(vars[i], dvar);
+			print_path(vdc, &dvar);
 			cout << endl;
 			print_attributes(vdc, vars[i], "		");
 		}
