@@ -26,7 +26,7 @@ Command* Command::commandQueue[MAX_HISTORY] = {MAX_HISTORY*0};
 int Command::startQueuePos = 0;
 int Command::endQueuePos = 0;
 int Command::currentQueuePos = 0;
-int Command::recordingCount = 0;
+int Command::recordingCount = 1;  //Start with command queueing blocked.
 
 Command::Command(Params* prevParams, const char* descr){
 	prevRoot = prevParams->GetRootNode()->deepCopy();
@@ -35,29 +35,21 @@ Command::Command(Params* prevParams, const char* descr){
 	instance = prevParams->GetInstanceIndex();
 	winnum = prevParams->GetVizNum();
 	nextRoot = 0;
-	prevRoot = 0;
 }
 
-Params* Command::unDo(string& ptag, int* inst, int* viznum){
+Params* Command::unDo(){
 	//Find the Params instance, substitute the previous root param node
 	Command* cmd = CurrentUndoCommand();
 	if (!cmd) return 0;
 	Params* p = Params::GetParamsInstance(cmd->tag, cmd->winnum, cmd->instance);
-	ptag = cmd->tag;
-	if(inst) *inst = cmd->instance;
-	if(viznum) *viznum = cmd->winnum;
 	p->SetRootParamNode(cmd->prevRoot->deepCopy());
 	return p;
 }
-Params* Command::reDo(string& ptag, int* inst, int* viznum){
+Params* Command::reDo(){
 	//Find the Params instance, substitute the next root param node
 	Command* cmd = CurrentRedoCommand();
 	if (!cmd) return 0;
-
 	Params* p = Params::GetParamsInstance(cmd->tag, cmd->winnum, cmd->instance);
-	ptag = cmd->tag;
-	if(inst) *inst = cmd->instance;
-	if(viznum) *viznum = cmd->winnum;
 	p->SetRootParamNode(cmd->nextRoot->deepCopy());
 	return p;
 	
@@ -96,21 +88,26 @@ int Command::AddToHistory(Command* cmd, bool ignoreBlocking){
 	commandQueue[endQueuePos%MAX_HISTORY] = cmd;
 	return 0;
 }
-Params* Command::BackupQueue(string& ptag, int* inst, int* viznum){
+Params* Command::BackupQueue(){
 	//Make sure we can do it!
 	//
 	if(currentQueuePos <= startQueuePos) return 0;
-	Params* p = commandQueue[currentQueuePos%MAX_HISTORY]->unDo(ptag, inst, viznum);
+	Command* cmd = CurrentUndoCommand();
+	if (!cmd) return 0;
+	Params* p = cmd->unDo();
 	currentQueuePos--;
 	return p;
 }
-Params* Command::AdvanceQueue(string& ptag, int* inst, int* viznum){
+Params* Command::AdvanceQueue(){
 	//Make sure we can do it:
 	//
 	if(currentQueuePos >= endQueuePos) return 0;
 	//perform the next command
 	//
-	Params* p = commandQueue[(++currentQueuePos)%MAX_HISTORY]->reDo(ptag, inst, viznum);
+	Command* cmd = CurrentRedoCommand();
+	if (!cmd) return 0;
+	Params* p = cmd->reDo();
+	currentQueuePos++;
 	return p;
 }
 void Command::resetCommandQueue(){

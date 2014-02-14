@@ -213,7 +213,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \param[in] winnum index of specified visualizer window
 //! \param[in] p pointer to Params instance being appended 
 	static void AppendParamsInstance(int pType, int winnum, Params* p){
-		p->SetInstanceIndex(paramsInstances.size()+1);
+		p->SetInstanceIndex(paramsInstances[make_pair(pType,winnum)].size());
 		paramsInstances[make_pair(pType,winnum)].push_back(p);
 	}
 

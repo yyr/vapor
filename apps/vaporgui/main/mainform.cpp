@@ -418,8 +418,8 @@ void MainForm::createActions(){
 	newPythonAction = new QAction(this);
 	editPythonStartupAction = new QAction(this);
 	
-	editUndoAction->setEnabled(false);
-	editRedoAction->setEnabled(false);
+	editUndoAction->setEnabled(true);
+	editRedoAction->setEnabled(true);
     
 	whatsThisAction = QWhatsThis::createAction(this);
 
@@ -655,11 +655,11 @@ void MainForm::fileExit()
 }
 
 void MainForm::undo(){
-	
+	ControlExecutive::getInstance()->Undo();
 }
 
 void MainForm::redo(){
-	
+	ControlExecutive::getInstance()->Redo();
 }
 
 
@@ -834,7 +834,18 @@ void MainForm::setNavigate(bool on)
 
 void MainForm::setupEditMenu(){
 	
-
+	QString undoText("Undo ");
+	QString redoText("Redo ");
+	ControlExecutive* ce = ControlExecutive::getInstance();
+	//If it's not active, just set default text:
+	if (editUndoAction->isEnabled() && ce->GetCurrentCommand(0)) {
+		undoText += ce->GetCommandText(0).c_str();
+	}
+	if (editRedoAction->isEnabled() && ce->GetCurrentCommand(-1)) {
+		redoText +=  ce->GetCommandText(-1).c_str();
+	}
+	editUndoAction->setText( undoText );
+	editRedoAction->setText( redoText );
 }
 //Enable or disable the View menu options:
 void MainForm::initCaptureMenu(){

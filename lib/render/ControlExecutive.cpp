@@ -175,6 +175,9 @@ int ControlExecutive::ActivateRender(int viz, string type, int instance, bool on
 	//! 
 	//
 Params* ControlExecutive::GetParams(int viz, string type, int instance){
+	Params* p = Params::GetParamsInstance(type,viz,instance);
+	int inst = p->GetInstanceIndex();
+	if (instance >= 0) assert (inst == instance);
 	return Params::GetParamsInstance(type,viz,instance);
 }
 //! Specify the Params instance for a particular visualizer, instance index, and Params type
@@ -286,6 +289,7 @@ const DataMgr *ControlExecutive::LoadData(vector <string> files, bool dflt){
 	dataMgr = DataMgrFactory::New(files, cacheMB);
 	DataStatus::getInstance()->reset(dataMgr,cacheMB);
 	reinitializeParams(dflt);
+	if(!Command::isRecording()) Command::unblockRecording();
 	return dataMgr;
 }
 
@@ -437,9 +441,13 @@ reinitializeParams(bool doOverride){
 	}
 }
 
-Params* ControlExecutive::Undo(string& type,int* instance, int *viz ){
-		return Command::BackupQueue(type, instance, viz);
+Params* ControlExecutive::Undo( ){
+		return Command::BackupQueue();
 }
-Params* ControlExecutive::Redo(string& type,int* instance, int *viz ){
-		return Command::AdvanceQueue(type, instance, viz);
+Params* ControlExecutive::Redo(){
+		return Command::AdvanceQueue();
+}
+
+Command* ControlExecutive::GetCurrentCommand(int offset) {
+	return Command::CurrentCommand(offset);
 }

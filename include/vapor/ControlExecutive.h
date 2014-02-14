@@ -8,11 +8,13 @@ namespace VAPoR {
 
 #include "common.h"
 
+
 class Visualizer;
 class Params;
 class RenderParams;
 class DataMgr;
 class ErrorHandler;
+class Command;
 
 //! \class ControlExecutive
 //!
@@ -334,14 +336,11 @@ public:
 	//! to call Paint() after Undo(), and to make any UI internal changes
 	//! necessary to reflect the new state. It is also the responsibility of
 	//! the UI to set any change flags associated with the change in Params state.
-	//! \param[out] instance specifies the instance index of the Params instance that is being undone
-	//! \param[out] viz indicates the visualizer associated with the Undo
-	//! \param[out] type indicates the type of the Params
     //!
 	//! \return Params* ptr A pointer to the Params object that reflects the change.  Pointer is null if there is nothing to undo.
 	//! \sa Redo()
 	//!
-	Params* Undo(string& type,int* instance, int *viz );
+	Params* Undo();
 
 	//! Redo the next session state change
 	//! Restores the state of the session to what it was before the
@@ -352,14 +351,11 @@ public:
 	//! to call Paint() after Redo(), and to make any UI internal changes
 	//! necessary to reflect the new state.  It is also the responsibility of
 	//! the UI to set any change flags associated with the change in Params state.
-	//! \param[out] instance specifies the instance index of the Params instance that is being redone
-	//! \param[out] viz indicates the visualizer associated with the Redo
-	//! \param[out] type indicates the type of the Params
     //!
 	//! \return Params* ptr A pointer to the Params object that reflects the change.  Pointer is null if there is nothing to Redo
 	//! \sa UnDo()
 	//
-	Params* Redo(string& type,int* instance, int *viz);
+	Params* Redo();
 
 	//! Initiate a new entry in the Undo/Redo queue.  The changes that occur
 	//! between StartCommand() and EndCommand() result in an entry in the Undo/Redo queue.
@@ -403,6 +399,14 @@ public:
 	//! \return descriptive text \p string associated with the specified command.
 	//
 	string& GetCommandText(int n);
+
+	//! Obtain a Command from the Command queue.
+	//! Offset parameter enables retrieval of any entry in queue.  
+	//! Offset = 0 for last issued command, offset = -1 for next command to Redo
+	//! \param [in] int offset from the end of the queue (last executed command)
+	//! \return Command* is specified command instance, NULL if nothing there.
+
+	Command* GetCurrentCommand(int offset); 
 
 	//! Capture the next rendered image to a file
 	//!

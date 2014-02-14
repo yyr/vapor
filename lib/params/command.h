@@ -43,19 +43,13 @@ public:
 		tag.clear();
 	}
 	//! Static method moves the command queue forward, returns the next Params state
-	//! \param [out] string ptag the tag associated with the resulting (next) Params instance
-	//! \param [out] int inst The instance index of the next Params, if it is a RenderParams
-	//! \param [out] int viznum The visualizer index associated with the next Params, or -1 if it's global.
 	//! \return Params* pointer to the next Params instance
 	//!
-	static Params* reDo(string& ptag, int* inst, int* viznum);
+	static Params* reDo();
 	//! Static method moves the command queue back, returns the previous Params state
-	//! \param [out] string ptag the tag associated with the resulting (previous) Params instance
-	//! \param [out] int inst The instance index of the previous Params, if it is a RenderParams
-	//! \param [out] int viznum The visualizer index associated with the previous Params, or -1 if it's global.
 	//! \return Params* pointer to the previous Params instance
 	//!
-	static Params* unDo(string& ptag, int* inst, int* viznum);
+	static Params* unDo();
 	//! Specify the description of a command
 	//! \param [in] char* description
 	void setDescription(const char* str){
@@ -96,19 +90,13 @@ public:
 
 	//! Static method to go back one position (i.e. undo) in the queue.
 	//! Returns the params instance that now is current
-	//! \param [out] ptag Tag associated with Params in new current Command
-	//! \param [out] inst int* pointer to instance number of Params instance if RenderParams
-	//! \param [out] viznum int* pointer to visualizer index (or -1 if this is global)
 	//! \return Params instance that is newly current, null if nothing left to backup.
-	static Params* BackupQueue(string& ptag, int* inst, int* viznum);
+	static Params* BackupQueue();
 
 	//! Static method to go forward one position (i.e. redo) in the queue.
 	//! Returns the params instance that now is current
-	//! \param [out] ptag Tag associated with Params in new current Command
-	//! \param [out] inst int* pointer to instance number of Params instance if RenderParams
-	//! \param [out] viznum int* pointer to visualizer index (or -1 if this is global)
 	//! \return Params instance that is newly current, null if we are at end of queue
-	static Params* AdvanceQueue(string& ptag, int* inst, int* viznum);
+	static Params* AdvanceQueue();
 
 	//! Static method to put command queue in initial state.
 	static void resetCommandQueue();

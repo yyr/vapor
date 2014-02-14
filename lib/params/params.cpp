@@ -63,7 +63,7 @@ Params::Params(
 	): ParamsBase(parent,name) {
 	SetVizNum(winNum);
 	if(winNum < 0) SetLocal(false); else SetLocal(true);
-	SetInstanceIndex(-1);
+	SetInstanceIndex(0);
 }
 
 
@@ -122,21 +122,27 @@ Params* Params::GetParamsInstance(int pType, int winnum, int instance){
 	if (winnum < 0) return defaultParamsInstance[pType];
 	if (instance < 0) instance = currentParamsInstance[make_pair(pType,winnum)];
 	if (instance >= paramsInstances[make_pair(pType, winnum)].size()) {
+		instance = paramsInstances[make_pair(pType, winnum)].size();
 		Params* p = GetDefaultParams(pType)->deepCopy();
 		p->SetVizNum(winnum);
 		AppendParamsInstance(pType,winnum,p);
+		assert(p->GetInstanceIndex() == instance);
 		return p;
 	}
-	return paramsInstances[make_pair(pType, winnum)][instance];
+	Params*p = paramsInstances[make_pair(pType, winnum)][instance];
+	assert(p->GetInstanceIndex() == instance);
+	return p;
 }
 
 void Params::RemoveParamsInstance(int pType, int winnum, int instance){
 	vector<Params*>& instVec = paramsInstances[make_pair(pType,winnum)];
 	Params* p = instVec.at(instance);
+	assert(p->GetInstanceIndex() == instance);
 	int currInst = currentParamsInstance[make_pair(pType,winnum)];
 	if (currInst > instance) currentParamsInstance[make_pair(pType,winnum)] = currInst - 1;
 	instVec.erase(instVec.begin()+instance);
 	if (currInst >= (int) instVec.size()) currentParamsInstance[make_pair(pType,winnum)]--;
+	for (int i = instance; i<instVec.size(); i++) instVec[i]->SetInstanceIndex(i);
 	delete p;
 }
 map <int, vector<Params*> >* Params::cloneAllParamsInstances(int winnum){

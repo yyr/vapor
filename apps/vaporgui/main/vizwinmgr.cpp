@@ -313,6 +313,7 @@ createDefaultParams(int winnum){
 		//Check for strange error:
 		assert( Params::GetNumParamsInstances(i,winnum) == 0);
 		Params::AppendParamsInstance(i,winnum,p);
+		int inst = p->GetInstanceIndex();
 		Params::SetCurrentParamsInstanceIndex(i,winnum,0);
 		if (!p->isRenderParams())p->SetLocal(false);
 		else if(DataStatus::getInstance()->getDataMgr()){
