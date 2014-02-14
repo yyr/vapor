@@ -60,14 +60,11 @@ public:
 	//! \param long current time step
 	//! \retval int 0 if successful
 	int setCurrentTimestep(long ts) {
-		Command* cmd = 0;
 		int rc = 0;
 		if (ts < DataStatus::getInstance()->getMinTimestep()) {ts = DataStatus::getInstance()->getMinTimestep(); rc = -1;}
 		if (ts > DataStatus::getInstance()->getMaxTimestep()) { ts = DataStatus::getInstance()->getMaxTimestep(); rc = -1;}
-		if (Command::isRecording())
-			cmd = Command::captureStart(this,"Change time step");
-		GetRootNode()->SetElementLong(_currentTimestepTag,ts);
-		if (cmd) Command::captureEnd(cmd,this);
+		CaptureChangeLong(_currentTimestepTag,"Set timestep",ts);
+			
 		return rc;
 	}
 
@@ -80,14 +77,10 @@ public:
 	//! \param int starting timestep
 	//! \retval int 0 if successful
 	int setStartTimestep(int val) {
-		Command* cmd = 0;
 		int rc = 0;
 		if (val < DataStatus::getInstance()->getMinTimestep()) {val = DataStatus::getInstance()->getMinTimestep(); rc = -1;}
 		if (val > DataStatus::getInstance()->getMaxTimestep()) {val = DataStatus::getInstance()->getMaxTimestep(); rc = -1;}
-		if (Command::isRecording())
-			cmd = Command::captureStart(this,"Change start timestep");
-		GetRootNode()->SetElementLong(_startTimestepTag,val);
-		if (cmd) Command::captureEnd(cmd,this);
+		CaptureChangeLong(_startTimestepTag,"Set start timestep",val);
 		return rc;
 	}
 
@@ -105,11 +98,7 @@ public:
 			val = DataStatus::getInstance()->getMaxTimestep(); 
 			rc = -1;
 		}
-		Command* cmd = 0;
-		if (Command::isRecording())
-			cmd = Command::captureStart(this,"Change end timestep");
-		GetRootNode()->SetElementLong(_endTimestepTag,val);
-		if (cmd) Command::captureEnd(cmd,this);
+		CaptureChangeLong(_endTimestepTag,"Set end timestep",val);
 		return rc;
 	}
 
@@ -123,15 +112,11 @@ public:
 	//! \retval int 0 if successful
 	int setMinTimestep(int val) {
 		int rc = 0;
-		Command* cmd = 0;
 		if (val < DataStatus::getInstance()->getMinTimestep() || val > DataStatus::getInstance()->getMaxTimestep()){
 			val = DataStatus::getInstance()->getMinTimestep();
 			rc = -1;
 		}
-		if (Command::isRecording())
-			cmd = Command::captureStart(this,"Set min timestep");
-		GetRootNode()->SetElementLong(_minTimestepTag,val);
-		if (cmd) Command::captureEnd(cmd,this);
+		CaptureChangeLong(_minTimestepTag,"Set min timestep",val);
 		return rc;
 	}
 	//! Identify the maximum time step
@@ -149,11 +134,7 @@ public:
 			DataStatus::getInstance()->getMaxTimestep();
 			rc = -1;
 		}
-		Command* cmd = 0;
-		if (Command::isRecording())
-			cmd = Command::captureStart(this,"Set max timestep");
-		GetRootNode()->SetElementLong(_maxTimestepTag,val);
-		if (cmd) Command::captureEnd(cmd,this);
+		CaptureChangeLong(_maxTimestepTag,"Set max timestep",val);
 		return rc;
 	}
 
@@ -167,14 +148,11 @@ public:
 	//! \param int play direction
 	//! \retval int 0 if successful
 	int setPlayDirection(int val) {
-		Command* cmd = 0;
+	
 		int rc = 0;
 		if (val < -1 ) {val = -1; rc = -1;}
 		if (val > 1 ) {val = 1; rc = -1;}
-		if (Command::isRecording())
-			cmd = Command::captureStart(this,"Set play direction");
-		GetRootNode()->SetElementLong(_playDirectionTag,val);
-		if (cmd) Command::captureEnd(cmd,this);
+		CaptureChangeLong(_playDirectionTag,"Set play direction",val);
 		return rc;
 	}
 	//! Get the maximum frame step size
@@ -192,12 +170,7 @@ public:
 			val = 1;
 			rc = -1;
 		}
-
-		Command* cmd = 0;
-		if (Command::isRecording())
-			cmd = Command::captureStart(this,"Set frame stepsize");
-		GetRootNode()->SetElementLong(_stepSizeTag,val);
-		if (cmd) Command::captureEnd(cmd,this);
+		CaptureChangeLong(_stepSizeTag,"Set frame stepsize",val);
 		return rc;
 	}
 	//! Determine max frames per second
@@ -211,11 +184,7 @@ public:
 	int setMaxFrameRate(double rate) {
 		int rc = 0;
 		if (rate <= 0. || rate > 1000.){ rate = 0.1; rc = -1;}
-		Command* cmd = 0;
-		if (Command::isRecording())
-			cmd = Command::captureStart(this,"Set max frame rate");
-		GetRootNode()->SetElementDouble(_maxRateTag,rate);
-		if (cmd) Command::captureEnd(cmd,this);
+		CaptureChangeDouble(_maxRateTag,"Set max frame rate",rate);
 		return rc;
 	}
 	//! Determine if repeat play is on
@@ -227,11 +196,8 @@ public:
 	//! \param bool repeat is on if true
 	//! \retval int 0 if successful
 	int setRepeating(bool onOff){
-		Command* cmd = 0;
-		if (Command::isRecording())
-			cmd = Command::captureStart(this,"Enable repeat play");
-		GetRootNode()->SetElementLong(_repeatTag,(long)onOff);
-		if (cmd) Command::captureEnd(cmd,this);
+	
+		CaptureChangeLong(_repeatTag,"enable repeat play",(long)onOff);
 		return 0;
 	}
 	

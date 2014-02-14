@@ -57,24 +57,17 @@ public:
 	}
 	
 	int SetRakeLocalExtents(const vector<double>&exts){
-		Command* cmd = 0;
 		int rc = 0;
 		vector<double> xexts;
-		const vector<double>& pexts = GetRakeLocalExtents();
-		bool changed = false;
 		for (int i = 0; i<6; i++){
 			xexts.push_back(exts[i]);
 			if (xexts[i] < 0.){ xexts[i] = 0.; rc = -1;}
 			if (xexts[i] > 10000.){ xexts[i] = 10000.; rc = -1;}
 			if (i>=3 && xexts[i-3] >= xexts[i]){ xexts[i-3] = xexts[i]; rc = -1;}
-			if (xexts[i] != pexts[i]) changed = true;
 		}
-		if (!changed) return 0;
-		if (Command::isRecording())
-			cmd = Command::captureStart(this,"Set barb rake extents");
+		Command* cmd = CaptureStart("Set barb rake extents");
 		GetBox()->SetLocalExtents(xexts);
-		setAllBypass(false);
-		if(cmd)Command::captureEnd(cmd,this);
+		if(cmd) CaptureEnd(cmd);
 		return rc;
 	}
 	const vector<long>& GetRakeGrid(){
@@ -84,22 +77,14 @@ public:
 	int SetRakeGrid(const int grid[3]){
 		int rc = 0;
 		vector<long> griddims;
-		const vector<long>& prevGridDims = GetRakeGrid();
 		bool changed = false;
 		for (int i = 0; i<3; i++){
 			griddims.push_back((long)grid[i]);
 			if (griddims[i] < 1) {griddims[i] = 1; rc= -1;}
 			if (griddims[i] > 10000) {griddims[i] = 10000; rc= -1;}
-			if (griddims[i] != prevGridDims[i]) changed = true;
 		}
-		if(!changed) return rc;
-		Command* cmd = 0;
-		if (Command::isRecording())
-			cmd = Command::captureStart(this,"Set barb grid");
-		
-		GetRootNode()->SetElementLong(_rakeGridTag,griddims);
-		if(cmd)Command::captureEnd(cmd,this);
-		return 0;
+		CaptureChangeLong(_rakeGridTag,"Set barb grid", griddims);
+		return rc;
 	}
 	float GetLineThickness(){
 		const vector<double> one(1,1.);
@@ -109,13 +94,7 @@ public:
 	int SetLineThickness(double val){
 		int rc = 0;
 		if (val <= 0. || val > 100.) {val = 1.; rc = -1;}
-		Command* cmd = 0;
-		if (Command::isRecording()){
-			if(GetRootNode()->GetElementDouble(_lineThicknessTag)[0] == val) return rc;
-			cmd = Command::captureStart(this,"Set barb thickness");
-		}
-		GetRootNode()->SetElementDouble(_lineThicknessTag, val);
-		if(cmd)Command::captureEnd(cmd,this);
+		CaptureChangeDouble(_lineThicknessTag,"Set barb thickness",val);
 		return rc;
 	}
 
@@ -130,13 +109,7 @@ public:
 			val = 0.01; 
 			rc = -1;
 		}
-		Command* cmd = 0;
-		if (Command::isRecording()){
-			if(GetRootNode()->GetElementDouble(_vectorScaleTag)[0] == val) return rc;
-			cmd = Command::captureStart(this,"Set barb scale");
-		}
-		GetRootNode()->SetElementDouble(_vectorScaleTag, val);
-		if(cmd)Command::captureEnd(cmd,this);
+		CaptureChangeDouble(_vectorScaleTag, "set barb scale", val);
 		return rc;
 	}
 	
@@ -145,15 +118,9 @@ public:
 		return ((bool)GetRootNode()->GetElementLong(_terrainMapTag,off)[0]);
 	}
 	int SetTerrainMapped(bool val) {
-		Command* cmd = 0;
-		if (IsTerrainMapped() == val) return 0;
-		if (Command::isRecording()){
-			cmd = Command::captureStart(this,"Set barb terrain-mapping");
-		}
-		GetRootNode()->SetElementLong(_terrainMapTag, (val ? 1:0));
+		int rc = CaptureChangeLong(_terrainMapTag, "Set barb terrain-mapping", (long)val);
 		setAllBypass(false);
-		if(cmd)Command::captureEnd(cmd,this);
-		return 0;
+		return rc;
 	}
 	int SetConstantColor(const float rgb[3]);
 	const float *GetConstantColor();

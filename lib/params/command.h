@@ -37,7 +37,6 @@ class PARAMS_API Command {
 public:
 	Command(Params*, const char* descr);
 	virtual ~Command( ) {
-		delete prevRoot;
 		if (nextRoot) delete nextRoot;
 		if (prevRoot) delete prevRoot;
 		tag.clear();

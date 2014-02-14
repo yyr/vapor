@@ -43,6 +43,7 @@ class DummyParams;
 class ViewpointParams;
 class RegionParams;
 class DataMgr;
+class Command;
 
 //! \class Params
 //! \brief A pure virtual class for managing parameters used in visualization
@@ -93,6 +94,51 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \retval integer 0 if successful
 //!
 	virtual int SetInstanceIndex(int val);
+
+//! Method for making a change in the value(s) associated with a tag
+//! \param [in] string tag
+//! \param [in] long value
+//! \retval int zero if successful
+	virtual int CaptureChangeLong(string tag, const char* description, long value);
+
+//! Method for making a change in the value(s) associated with a tag
+//! \param [in] string tag
+//! \param [in] vector<long> value
+//! \retval int zero if successful
+	virtual int CaptureChangeLong(string tag, const char* description, const vector<long>& value);
+
+//! Method for making a change in the value(s) associated with a tag
+//! \param [in] string tag
+//! \param [in] double value
+//! \retval int zero if successful
+	virtual int CaptureChangeDouble(string tag, const char* description, double value);
+
+//! Method for making a change in the value(s) associated with a tag
+//! \param [in] string tag
+//! \param [in] vector<double> value
+//! \retval int zero if successful
+	virtual int CaptureChangeDouble(string tag, const char* description, const vector<double>& value);
+
+//! Method for making a change in the value(s) associated with a tag
+//! \param [in] string tag
+//! \param [in] string value
+//! \retval int zero if successful
+	virtual int CaptureChangeString(string tag, const char* description, const string& value);
+
+//! Method for making a change in the value(s) associated with a tag
+//! \param [in] string tag
+//! \param [in] vector<string> value
+//! \retval int zero if successful
+	virtual int CaptureChangeStringVec(string tag, const char* description, const vector<string>& value);
+
+//! Start a set of changes to this params
+//! \param [in] char* description
+//! \retval int zero if successful
+	virtual Command* CaptureStart(const char* description);
+
+//! End a set of changes to this params
+//! \retval int zero if successful
+	virtual void CaptureEnd(Command* cmd);
 
 //! Static method that identifies the instance that is current in the identified window.
 //! \param[in] pType ParamsBase is the typeID of the params class

@@ -146,6 +146,7 @@ void ArrowEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
 	
+	Command* cmd = aParams->CaptureStart("barbs text edit");
 	
 	bool changed = false;
 	QString strn;
@@ -190,7 +191,11 @@ void ArrowEventRouter::confirmText(bool /*render*/){
 	}
 	
 	guiSetTextChanged(false);
-	
+	if (changed){
+		if (cmd){
+			aParams->CaptureEnd(cmd);
+		}
+	} else if (cmd) delete cmd;
 	if (changed) updateTab();
 	VizWinMgr::getInstance()->forceRender(aParams);	
 	
