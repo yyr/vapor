@@ -180,6 +180,7 @@ public:
 	
 	//Reset viewpoint when new session is started:
 	virtual bool reinit(bool doOverride);
+	virtual void Validate(bool useDefault){ reinit(useDefault);}
 	virtual void restart();
 	
 	static void setDefaultPrefs();

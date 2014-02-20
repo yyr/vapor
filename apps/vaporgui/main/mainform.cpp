@@ -655,11 +655,15 @@ void MainForm::fileExit()
 }
 
 void MainForm::undo(){
-	ControlExecutive::getInstance()->Undo();
+	Params* p = ControlExecutive::getInstance()->Undo();
+	tabWidget->getFrontEventRouter()->updateTab();
+	VizWinMgr::getInstance()->forceRender(p,true);
 }
 
 void MainForm::redo(){
-	ControlExecutive::getInstance()->Redo();
+	Params* p = ControlExecutive::getInstance()->Redo();
+	tabWidget->getFrontEventRouter()->updateTab();
+	VizWinMgr::getInstance()->forceRender(p,true);
 }
 
 

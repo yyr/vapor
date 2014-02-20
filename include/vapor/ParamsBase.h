@@ -34,6 +34,7 @@ using namespace VetsUtil;
 
 namespace VAPoR{
 
+class Params;
 //
 //! \class ParamsBase
 //! \brief Nodes with state in Xml tree representation
@@ -156,6 +157,55 @@ void SetFlagDirty(const string& flag);
 //!
 
 const string& GetName() {return _paramsBaseName;}
+
+//! Method for making a Set to value(s) associated with a tag and capturing to a Params instance
+//! \param [in] string tag
+//! \param [char*] description
+//! \param [in] long value
+//! \param [in] Params* instance that contains the change; usually p = (Params*)this.
+//! \retval int zero if successful
+	virtual int CaptureSetLong(string tag, const char* description, long value, Params* p);
+
+//! Method for making a Set to value(s) associated with a tag and capturing to a Params instance
+//! \param [in] string tag
+//! \param [in] char* description
+//! \param [in] vector<long> value
+//! \param [in] Params* instance that contains the change; usually p = (Params*)this.
+//! \retval int zero if successful
+	virtual int CaptureSetLong(string tag, const char* description, const vector<long>& value, Params* p);
+
+//! Method for making a Set to value(s) associated with a tag and capturing to a Params instance
+//! \param [in] string tag
+//! \param [in] char* description
+//! \param [in] double value
+//! \param [in] Params* instance that contains the change; usually p = (Params*)this.
+//! \retval int zero if successful
+	virtual int CaptureSetDouble(string tag, const char* description, double value, Params* p);
+
+//! Method for making a Set to value(s) associated with a tag and capturing to a Params instance
+//! \param [in] string tag
+//! \param [in] char* description
+//! \param [in] vector<double> value
+//! \param [in] Params* instance that contains the change; usually p = (Params*)this.
+//! \retval int zero if successful
+	virtual int CaptureSetDouble(string tag, const char* description, const vector<double>& value, Params* p);
+
+//! Method for making a Set to value(s) associated with a tag and capturing to a Params instance
+//! \param [in] string tag
+//! \param [in] char* description
+//! \param [in] string value
+//! \param [in] Params* instance that contains the change; usually p = (Params*)this.
+//! \retval int zero if successful
+	virtual int CaptureSetString(string tag, const char* description, const string& value, Params* p);
+
+//! Method for making a Set to value(s) associated with a tag and capturing to a Params instance
+//! \param [in] string tag
+//! \param [in] char* description
+//! \param [in] vector<string> value
+//! \param [in] Params* instance that contains the change; usually p = (Params*)this.
+//! \retval int zero if successful
+	virtual int CaptureSetStringVec(string tag, const char* description, const vector<string>& value, Params* p);
+
 //!	
 //! Method for obtaining the type Id associated with a ParamsBase instance
 //! \retval int ParamsBase TypeID for ParamsBase instance 

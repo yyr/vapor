@@ -89,6 +89,7 @@ public:
 	
 	// Reinitialize due to new Session:
 	bool reinit(bool doOverride);
+	virtual void Validate(bool useDefault){ reinit(useDefault);}
 	virtual void restart();
 	
 	//Methods to set the region max and min from a float value.

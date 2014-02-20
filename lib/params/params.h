@@ -45,6 +45,11 @@ class RegionParams;
 class DataMgr;
 class Command;
 
+enum ValidationMode {
+		NO_CHECK,
+		CHECK,
+		CHECK_AND_FIX
+	};
 //! \class Params
 //! \brief A pure virtual class for managing parameters used in visualization
 //! \author Alan Norton
@@ -95,48 +100,66 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //!
 	virtual int SetInstanceIndex(int val);
 
+//! Pure virtual method for validation of all settings
+//! Sets everything to default if default is true
+//! param[in] bool default 
+	virtual void Validate(bool setdefault)=0;
+
 //! Method for making a change in the value(s) associated with a tag
 //! \param [in] string tag
 //! \param [in] long value
+//! \param [in] char* description
 //! \retval int zero if successful
-	virtual int CaptureChangeLong(string tag, const char* description, long value);
+	virtual int CaptureSetLong(string tag, const char* description, long value)
+		{return ParamsBase::CaptureSetLong(tag,description,value, this);}
 
 //! Method for making a change in the value(s) associated with a tag
 //! \param [in] string tag
+//! \param [in] char* description
 //! \param [in] vector<long> value
 //! \retval int zero if successful
-	virtual int CaptureChangeLong(string tag, const char* description, const vector<long>& value);
+	virtual int CaptureSetLong(string tag, const char* description, const vector<long>& value)
+		{return ParamsBase::CaptureSetLong(tag, description, value, this);}
 
 //! Method for making a change in the value(s) associated with a tag
 //! \param [in] string tag
+//! \param [in] char* description
 //! \param [in] double value
 //! \retval int zero if successful
-	virtual int CaptureChangeDouble(string tag, const char* description, double value);
+	virtual int CaptureSetDouble(string tag, const char* description, double value)
+		{return ParamsBase::CaptureSetDouble(tag,description,value,this);}
 
 //! Method for making a change in the value(s) associated with a tag
 //! \param [in] string tag
+//! \param [in] char* description
 //! \param [in] vector<double> value
 //! \retval int zero if successful
-	virtual int CaptureChangeDouble(string tag, const char* description, const vector<double>& value);
+	virtual int CaptureSetDouble(string tag, const char* description, const vector<double>& value)
+		{return ParamsBase::CaptureSetDouble(tag,description,value,this);}
+
 
 //! Method for making a change in the value(s) associated with a tag
 //! \param [in] string tag
+//! \param [in] char* description
 //! \param [in] string value
 //! \retval int zero if successful
-	virtual int CaptureChangeString(string tag, const char* description, const string& value);
+	virtual int CaptureSetString(string tag, const char* description, const string& value)
+		{return ParamsBase::CaptureSetString(tag,description,value,this);}
 
-//! Method for making a change in the value(s) associated with a tag
+//! Method for capturing a set of the value(s) associated with a tag
 //! \param [in] string tag
+//! \param [in] char* description
 //! \param [in] vector<string> value
 //! \retval int zero if successful
-	virtual int CaptureChangeStringVec(string tag, const char* description, const vector<string>& value);
+	virtual int CaptureSetStringVec(string tag, const char* description, const vector<string>& value)
+		{return ParamsBase::CaptureSetStringVec(tag, description, value, this);}
 
-//! Start a set of changes to this params
+//! Initiate a set of changes to this params
 //! \param [in] char* description
 //! \retval int zero if successful
 	virtual Command* CaptureStart(const char* description);
 
-//! End a set of changes to this params
+//! Finalize a set of changes to this params, put result in Command queue
 //! \retval int zero if successful
 	virtual void CaptureEnd(Command* cmd);
 
@@ -340,6 +363,20 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! Pure virtual method, sets a Params instance to its default state
 	virtual void restart() = 0;
 	
+//! Sets the current validation mode of this Params instance. Possible Values are:
+//! NO_CHECK indicates that SetValues will not check values for validity
+//! CHECK indicates that SetValues will check for validity, and, if invalid, no setting occurs, with -1 return code
+//! CHECK_AND_FIX indicates that SetValues will check for validity 
+//! and will modify the value to a valid value, returning -1 if the value needed to be modified.
+//! If it is not possible to set a valid value, the return code is -2 and no change occurs.
+//! The ValidationMode does not change unless this method is invoked.
+//! \param[in] ValidationMode v specifies the current validation mode.
+	void SetValidationMode(ValidationMode v) {currentValidationMode = v;}
+
+//! Obtain the current ValidationMode
+//! \returns ValidationMode obtains the current ValidationMode.
+	ValidationMode GetValidationMode() {return currentValidationMode;}
+
 //! Identify the visualizer associated with this instance.
 //! With global pr default Params this is -1 
 	virtual int GetVizNum() {return (int)(GetRootNode()->GetElementLong(_VisualizerNumTag))[0];}
@@ -403,7 +440,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	
 protected:
 
-	
+	ValidationMode currentValidationMode;
 	//Params instances are vectors of Params*, one per instance, indexed by paramsBaseType, winNum
 	static map<pair<int,int>,vector<Params*> > paramsInstances;
 	//CurrentRenderParams indexed by paramsBaseType, winNum
@@ -528,6 +565,7 @@ class DummyParams : public Params {
 	
 	
 	virtual bool reinit(bool){return false;}
+	virtual void Validate(bool) {return;}
 	
 	virtual bool usingVariable(const std::string& ){
 		return false;

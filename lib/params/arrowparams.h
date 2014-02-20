@@ -34,7 +34,7 @@ public:
 	//!
 	virtual bool reinit(bool override);
 
-	
+	virtual void Validate(bool useDefault){ reinit(useDefault);}
 	virtual bool IsOpaque() {return true;}
 	//!
 	//! Determine if the specified variable is being used
@@ -65,9 +65,8 @@ public:
 			if (xexts[i] > 10000.){ xexts[i] = 10000.; rc = -1;}
 			if (i>=3 && xexts[i-3] >= xexts[i]){ xexts[i-3] = xexts[i]; rc = -1;}
 		}
-		Command* cmd = CaptureStart("Set barb rake extents");
-		GetBox()->SetLocalExtents(xexts);
-		if(cmd) CaptureEnd(cmd);
+	
+		GetBox()->CaptureSetDouble(Box::_extentsTag,"Set Barb Rake extents", xexts, this);
 		return rc;
 	}
 	const vector<long>& GetRakeGrid(){
@@ -77,13 +76,12 @@ public:
 	int SetRakeGrid(const int grid[3]){
 		int rc = 0;
 		vector<long> griddims;
-		bool changed = false;
 		for (int i = 0; i<3; i++){
 			griddims.push_back((long)grid[i]);
 			if (griddims[i] < 1) {griddims[i] = 1; rc= -1;}
 			if (griddims[i] > 10000) {griddims[i] = 10000; rc= -1;}
 		}
-		CaptureChangeLong(_rakeGridTag,"Set barb grid", griddims);
+		CaptureSetLong(_rakeGridTag,"Set barb grid", griddims);
 		return rc;
 	}
 	float GetLineThickness(){
@@ -94,7 +92,7 @@ public:
 	int SetLineThickness(double val){
 		int rc = 0;
 		if (val <= 0. || val > 100.) {val = 1.; rc = -1;}
-		CaptureChangeDouble(_lineThicknessTag,"Set barb thickness",val);
+		CaptureSetDouble(_lineThicknessTag,"Set barb thickness",val);
 		return rc;
 	}
 
@@ -109,7 +107,7 @@ public:
 			val = 0.01; 
 			rc = -1;
 		}
-		CaptureChangeDouble(_vectorScaleTag, "set barb scale", val);
+		CaptureSetDouble(_vectorScaleTag, "set barb scale", val);
 		return rc;
 	}
 	
@@ -118,7 +116,7 @@ public:
 		return ((bool)GetRootNode()->GetElementLong(_terrainMapTag,off)[0]);
 	}
 	int SetTerrainMapped(bool val) {
-		int rc = CaptureChangeLong(_terrainMapTag, "Set barb terrain-mapping", (long)val);
+		int rc = CaptureSetLong(_terrainMapTag, "Set barb terrain-mapping", (long)val);
 		setAllBypass(false);
 		return rc;
 	}
@@ -132,12 +130,8 @@ public:
 
 	int SetVariables3D(bool val) {
 		if (val == VariablesAre3D()) return 0;
-		Command* cmd = 0;
-		if (Command::isRecording())
-			cmd = Command::captureStart(this,"Set barb var dimensions");
-		GetRootNode()->SetElementLong(_variableDimensionTag,(val ? 3:2));
+		CaptureSetLong(_variableDimensionTag,"Set barb var dimensions",(long)(val ? 3:2));
 		setAllBypass(false);
-		if(cmd)Command::captureEnd(cmd,this);
 		return 0;
 	}
 	bool VariablesAre3D() {
@@ -146,12 +140,7 @@ public:
 	}
 	int AlignGridToData(bool val) {
 		if (IsAlignedToData() == val) return 0;
-		Command* cmd = 0;
-		if (Command::isRecording())
-			cmd = Command::captureStart(this,"Set barb grid alignment");
-		GetRootNode()->SetElementLong(_alignGridTag,(val ? 1:0));
-		setAllBypass(false);
-		if(cmd)Command::captureEnd(cmd,this);
+		CaptureSetLong(_alignGridTag, "Set barb grid alignment",(val ? 1:0));
 		return 0;
 	}
 	bool IsAlignedToData() {
@@ -164,7 +153,6 @@ public:
 		return GetRootNode()->GetElementLong(_alignGridStridesTag,defaultStrides);
 	}
 	int SetGridAlignStrides(const vector<long>& strides){
-		Command* cmd = 0;
 		int rc = 0;
 		vector<long> xstrides;
 		const vector<long>& pstrides = GetGridAlignStrides();
@@ -178,10 +166,7 @@ public:
 			if (xstrides[i] != pstrides[i]) changed = true;
 		}
 		if (!changed) return rc;
-		if (Command::isRecording())
-			cmd = Command::captureStart(this,"Set barb grid strides");
-		GetRootNode()->SetElementLong(_alignGridStridesTag, xstrides);
-		if(cmd)Command::captureEnd(cmd,this);
+		CaptureSetLong(_alignGridStridesTag, "Set barb grid strides", xstrides);
 		return rc;
 	}
 	//Utility function to find rake when it is aligned to data:

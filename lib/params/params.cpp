@@ -64,6 +64,7 @@ Params::Params(
 	SetVizNum(winNum);
 	if(winNum < 0) SetLocal(false); else SetLocal(true);
 	SetInstanceIndex(0);
+	SetValidationMode(CHECK_AND_FIX);
 }
 
 
@@ -99,60 +100,6 @@ void Params::BailOut(const char *errstr, const char *fname, int lineno)
 	SetErrMsg(VAPOR_FATAL,"Fatal error: %s",(const char*)errorMessage.c_str());
 	//MessageReporter::fatalMsg(errorMessage);
     exit(-1);
-}
-
-
-int Params::CaptureChangeLong(string tag, const char* description, long value){
-	Command* cmd = 0;
-	if (Command::isRecording())
-		cmd = Command::captureStart(this, description);
-	int rc = GetRootNode()->SetElementLong(tag,value);
-	if (cmd) Command::captureEnd(cmd, this);
-	return rc;
-}
-
-int Params::CaptureChangeLong(string tag, const char* description, const vector<long>& value){
-	Command* cmd = 0;
-	if (Command::isRecording())
-		cmd = Command::captureStart(this, description);
-	int rc = GetRootNode()->SetElementLong(tag,value);
-	if (cmd) Command::captureEnd(cmd, this);
-	return rc;
-}
-int Params::CaptureChangeDouble(string tag, const char* description, double value){
-	Command* cmd = 0;
-	if (Command::isRecording())
-		cmd = Command::captureStart(this, description);
-	int rc = GetRootNode()->SetElementDouble(tag,value);
-	if (cmd) Command::captureEnd(cmd, this);
-	return rc;
-}
-int Params::CaptureChangeDouble(string tag, const char* description, const vector<double>& value){
-	Command* cmd = 0;
-	if (Command::isRecording())
-		cmd = Command::captureStart(this, description);
-	int rc = GetRootNode()->SetElementDouble(tag,value);
-	if (cmd) Command::captureEnd(cmd, this);
-	return rc;
-}
-
-int Params::CaptureChangeString(string tag, const char* description, const string& value){
-	Command* cmd = 0;
-	if (Command::isRecording())
-		cmd = Command::captureStart(this, description);
-	int rc = GetRootNode()->SetElementString(tag,value);
-	if (cmd) Command::captureEnd(cmd, this);
-	return rc;
-}
-
-
-int Params::CaptureChangeStringVec(string tag,const  char* description, const vector<string>& value){
-	Command* cmd = 0;
-	if (Command::isRecording())
-		cmd = Command::captureStart(this, description);
-	int rc = GetRootNode()->SetElementStringVec(tag,value);
-	if (cmd) Command::captureEnd(cmd, this);
-	return rc;
 }
 
 Command* Params::CaptureStart(const char* description){

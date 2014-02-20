@@ -61,10 +61,14 @@ public:
 	//! \retval int 0 if successful
 	int setCurrentTimestep(long ts) {
 		int rc = 0;
-		if (ts < DataStatus::getInstance()->getMinTimestep()) {ts = DataStatus::getInstance()->getMinTimestep(); rc = -1;}
-		if (ts > DataStatus::getInstance()->getMaxTimestep()) { ts = DataStatus::getInstance()->getMaxTimestep(); rc = -1;}
-		CaptureChangeLong(_currentTimestepTag,"Set timestep",ts);
+		if (currentValidationMode != NO_CHECK){
+			if (ts < DataStatus::getInstance()->getMinTimestep()) {ts = DataStatus::getInstance()->getMinTimestep(); rc = -1;}
+			if (ts > DataStatus::getInstance()->getMaxTimestep()) { ts = DataStatus::getInstance()->getMaxTimestep(); rc = -1;}
+			if (currentValidationMode == CHECK && rc != 0) return rc;
+		}
 			
+		int rc2 = CaptureSetLong(_currentTimestepTag,"Set timestep",ts);
+		if (rc2) return rc2;
 		return rc;
 	}
 
@@ -76,11 +80,15 @@ public:
 	//! set the starting time step
 	//! \param int starting timestep
 	//! \retval int 0 if successful
-	int setStartTimestep(int val) {
+	int setStartTimestep(int ts) {
 		int rc = 0;
-		if (val < DataStatus::getInstance()->getMinTimestep()) {val = DataStatus::getInstance()->getMinTimestep(); rc = -1;}
-		if (val > DataStatus::getInstance()->getMaxTimestep()) {val = DataStatus::getInstance()->getMaxTimestep(); rc = -1;}
-		CaptureChangeLong(_startTimestepTag,"Set start timestep",val);
+		if (currentValidationMode != NO_CHECK){
+			if (ts < DataStatus::getInstance()->getMinTimestep()) {ts = DataStatus::getInstance()->getMinTimestep(); rc = -1;}
+			if (ts > DataStatus::getInstance()->getMaxTimestep()) { ts = DataStatus::getInstance()->getMaxTimestep(); rc = -1;}
+			if (currentValidationMode == CHECK && rc != 0) return rc;
+		}
+		int rc2 = CaptureSetLong(_startTimestepTag,"Set start timestep",ts);
+		if (rc2) return rc2;
 		return rc;
 	}
 
@@ -94,11 +102,15 @@ public:
 	//! \retval int 0 if success
 	int setEndTimestep(int val) {
 		int rc = 0;
-		if (val > DataStatus::getInstance()->getMaxTimestep() || val < DataStatus::getInstance()->getMinTimestep()) {
-			val = DataStatus::getInstance()->getMaxTimestep(); 
-			rc = -1;
+		if (currentValidationMode != NO_CHECK){
+			if (val > DataStatus::getInstance()->getMaxTimestep() || val < DataStatus::getInstance()->getMinTimestep()) {
+				val = DataStatus::getInstance()->getMaxTimestep(); 
+				rc = -1;
+			} 
+			if (currentValidationMode == CHECK && (rc != 0))return rc;
 		}
-		CaptureChangeLong(_endTimestepTag,"Set end timestep",val);
+		int rc2 = CaptureSetLong(_endTimestepTag,"Set end timestep",val);
+		if (rc2) return rc2;
 		return rc;
 	}
 
@@ -112,11 +124,15 @@ public:
 	//! \retval int 0 if successful
 	int setMinTimestep(int val) {
 		int rc = 0;
-		if (val < DataStatus::getInstance()->getMinTimestep() || val > DataStatus::getInstance()->getMaxTimestep()){
-			val = DataStatus::getInstance()->getMinTimestep();
-			rc = -1;
+		if (currentValidationMode != NO_CHECK){
+			if (val < DataStatus::getInstance()->getMinTimestep() || val > DataStatus::getInstance()->getMaxTimestep()){
+				val = DataStatus::getInstance()->getMinTimestep();
+				rc = -1;
+			}
+			if (currentValidationMode == CHECK && rc != 0) return rc;
 		}
-		CaptureChangeLong(_minTimestepTag,"Set min timestep",val);
+		int rc2 = CaptureSetLong(_minTimestepTag,"Set min timestep",val);
+		if (!rc2) return rc2;
 		return rc;
 	}
 	//! Identify the maximum time step
@@ -130,11 +146,15 @@ public:
 	//! \retval int 0 if successful
 	int setMaxTimestep(int val) {
 		int rc = 0;
-		if (val < DataStatus::getInstance()->getMinTimestep() || val > DataStatus::getInstance()->getMaxTimestep()){
-			DataStatus::getInstance()->getMaxTimestep();
-			rc = -1;
+		if (currentValidationMode != NO_CHECK){
+			if (val < DataStatus::getInstance()->getMinTimestep() || val > DataStatus::getInstance()->getMaxTimestep()){
+				DataStatus::getInstance()->getMaxTimestep();
+				rc = -1;
+			}
+			if (currentValidationMode == CHECK && rc != 0) return rc;
 		}
-		CaptureChangeLong(_maxTimestepTag,"Set max timestep",val);
+		int rc2 = CaptureSetLong(_maxTimestepTag,"Set max timestep",val);
+		if (!rc2) return rc2;
 		return rc;
 	}
 
@@ -150,9 +170,13 @@ public:
 	int setPlayDirection(int val) {
 	
 		int rc = 0;
-		if (val < -1 ) {val = -1; rc = -1;}
-		if (val > 1 ) {val = 1; rc = -1;}
-		CaptureChangeLong(_playDirectionTag,"Set play direction",val);
+		if (currentValidationMode != NO_CHECK){
+			if (val < -1 ) {val = -1; rc = -1;}
+			if (val > 1 ) {val = 1; rc = -1;}
+			if (currentValidationMode == CHECK && rc != 0) return rc;
+		}
+		int rc2 = CaptureSetLong(_playDirectionTag,"Set play direction",val);
+		if (rc2) return rc2;
 		return rc;
 	}
 	//! Get the maximum frame step size
@@ -164,13 +188,17 @@ public:
 	//! \param int val step size
 	//! \retval int 0 if successful
 	int setFrameStepSize(int val) {
-		int numframes = DataStatus::getInstance()->getMaxTimestep()-DataStatus::getInstance()->getMinTimestep();
 		int rc = 0;
-		if (val <= 0 || val >= numframes ) {
-			val = 1;
-			rc = -1;
+		if (currentValidationMode != NO_CHECK){
+			int numframes = DataStatus::getInstance()->getMaxTimestep()-DataStatus::getInstance()->getMinTimestep();
+			if (val <= 0 || val >= numframes ) {
+				val = 1;
+				rc = -1;
+			}
+			if (currentValidationMode == CHECK && rc != 0) return rc;
 		}
-		CaptureChangeLong(_stepSizeTag,"Set frame stepsize",val);
+		int rc2 = CaptureSetLong(_stepSizeTag,"Set frame stepsize",val);
+		if (!rc2) return rc2;
 		return rc;
 	}
 	//! Determine max frames per second
@@ -183,8 +211,12 @@ public:
 	//! \retval int 0 if successful
 	int setMaxFrameRate(double rate) {
 		int rc = 0;
-		if (rate <= 0. || rate > 1000.){ rate = 0.1; rc = -1;}
-		CaptureChangeDouble(_maxRateTag,"Set max frame rate",rate);
+		if (currentValidationMode != NO_CHECK){
+			if (rate <= 0. || rate > 1000.){ rate = 0.1; rc = -1;}
+			if (currentValidationMode == CHECK && rc) return rc;
+		}
+		int rc2 = CaptureSetDouble(_maxRateTag,"Set max frame rate",rate);
+		if (!rc2) return rc2;
 		return rc;
 	}
 	//! Determine if repeat play is on
@@ -196,9 +228,7 @@ public:
 	//! \param bool repeat is on if true
 	//! \retval int 0 if successful
 	int setRepeating(bool onOff){
-	
-		CaptureChangeLong(_repeatTag,"enable repeat play",(long)onOff);
-		return 0;
+		return CaptureSetLong(_repeatTag,"enable repeat play",(long)onOff);
 	}
 	
 #ifndef DOXYGEN_SKIP_THIS
@@ -210,6 +240,7 @@ public:
 	virtual void restart();
 	static void setDefaultPrefs();
 	virtual bool reinit(bool doOverride);
+	virtual void Validate(bool setdefault);
 
 	bool isPlaying() {return (getPlayDirection() != 0);}
 

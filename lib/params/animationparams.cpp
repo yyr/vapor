@@ -62,6 +62,7 @@ AnimationParams::~AnimationParams(){
 //
 void AnimationParams::
 restart(){
+	SetValidationMode(NO_CHECK);
 	// set everything to default state:
 	setPlayDirection (0);
 	setRepeating (false);
@@ -74,17 +75,19 @@ restart(){
 	
 	setCurrentTimestep (0);
 	setMaxFrameRate(0.1);
+	SetValidationMode(CHECK_AND_FIX);
 	
 }
 void AnimationParams::setDefaultPrefs(){
 
 }
-//Respond to change in Metadata
-//
-bool AnimationParams::
-reinit(bool doOverride){
-	
-	
+void AnimationParams::Validate(bool useDefault){
+	//Command capturing should be disabled
+	assert(!Command::isRecording());
+	//Do not fix invalid settings
+	//Save previous validation mode:
+	ValidationMode prevMode = GetValidationMode();
+	SetValidationMode(NO_CHECK);
 	setMaxTimestep(DataStatus::getInstance()->getDataMgr()->GetNumTimeSteps()-1);
 	setMinTimestep(0);
 	//Narrow the range to the actual data limits:
@@ -105,7 +108,7 @@ reinit(bool doOverride){
 	
 	if(i >= mints) maxts = i;
 	//force start & end to be consistent:
-	if (doOverride){
+	if (useDefault){
 		setStartTimestep(mints);
 		setEndTimestep(maxts);
 		int bar = getEndTimestep();
@@ -124,8 +127,14 @@ reinit(bool doOverride){
 	
 	// set pause state
 	setPlayDirection(0);
-	int foo = getEndTimestep();
+	SetValidationMode(prevMode);
 	
+}
+//Respond to change in Metadata
+//
+bool AnimationParams::
+reinit(bool doOverride){
+	Validate(doOverride);
 	return true;
 }
 

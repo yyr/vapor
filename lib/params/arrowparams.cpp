@@ -282,7 +282,7 @@ int ArrowParams::SetConstantColor(const float rgb[3]) {
 		if (valvec[i] < 0.) {valvec[i] = 0.; rc = -1;}
 		if (valvec[i] > 1.) {valvec[i] = 1.; rc = -1;}
 	}
-	CaptureChangeDouble(_constantColorTag,"Change barb color",valvec);
+	CaptureSetDouble(_constantColorTag,"Change barb color",valvec);
 	return rc;
 }
 
@@ -300,12 +300,12 @@ int ArrowParams::SetFieldVariableName(int i, const string& varName){
 	if(svec.size() <= i) 
 		for (int j = svec.size(); j<=i; j++) svec.push_back("0");
 	svec[i] = varName;
-	CaptureChangeStringVec(_VariableNamesTag,"set barb field name",svec);
+	CaptureSetStringVec(_VariableNamesTag,"set barb field name",svec);
 	setAllBypass(false);
 	return 0;
 }
 int ArrowParams::SetHeightVariableName(const string& varName){
-	CaptureChangeString(_heightVariableNameTag,"Set barb rake extents",varName);
+	CaptureSetString(_heightVariableNameTag,"Set barb rake extents",varName);
 	return 0;
 }
 const string& ArrowParams::GetHeightVariableName(){

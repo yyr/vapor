@@ -27,6 +27,7 @@
 #include <vapor/ParamNode.h>
 #include <vapor/ParamsBase.h>
 #include "params.h"
+#include "command.h"
 
 using namespace VAPoR;
 std::map<string,int> ParamsBase::classIdFromTagMap;
@@ -273,7 +274,59 @@ void ParamsBase::SetFlagDirty(const string& flag)
 {
 	_rootParamNode->SetFlagDirty(flag);
 }
-	
+
+int ParamsBase::CaptureSetLong(string tag, const char* description, long value, Params* p){
+	Command* cmd = 0;
+	if (Command::isRecording())
+		cmd = Command::captureStart(p, description);
+	int rc = GetRootNode()->SetElementLong(tag,value);
+	if (cmd) Command::captureEnd(cmd, p);
+	return rc;
+}
+
+int ParamsBase::CaptureSetLong(string tag, const char* description, const vector<long>& value, Params* p){
+	Command* cmd = 0;
+	if (Command::isRecording())
+		cmd = Command::captureStart(p, description);
+	int rc = GetRootNode()->SetElementLong(tag,value);
+	if (cmd) Command::captureEnd(cmd, p);
+	return rc;
+}
+int ParamsBase::CaptureSetDouble(string tag, const char* description, double value, Params* p){
+	Command* cmd = 0;
+	if (Command::isRecording())
+		cmd = Command::captureStart(p, description);
+	int rc = GetRootNode()->SetElementDouble(tag,value);
+	if (cmd) Command::captureEnd(cmd, p);
+	return rc;
+}
+int ParamsBase::CaptureSetDouble(string tag, const char* description, const vector<double>& value, Params* p){
+	Command* cmd = 0;
+	if (Command::isRecording())
+		cmd = Command::captureStart(p, description);
+	int rc = GetRootNode()->SetElementDouble(tag,value);
+	if (cmd) Command::captureEnd(cmd, p);
+	return rc;
+}
+
+int ParamsBase::CaptureSetString(string tag, const char* description, const string& value, Params* p){
+	Command* cmd = 0;
+	if (Command::isRecording())
+		cmd = Command::captureStart(p, description);
+	int rc = GetRootNode()->SetElementString(tag,value);
+	if (cmd) Command::captureEnd(cmd, p);
+	return rc;
+}
+
+
+int ParamsBase::CaptureSetStringVec(string tag,const  char* description, const vector<string>& value, Params* p){
+	Command* cmd = 0;
+	if (Command::isRecording())
+		cmd = Command::captureStart(p, description);
+	int rc = GetRootNode()->SetElementStringVec(tag,value);
+	if (cmd) Command::captureEnd(cmd, p);
+	return rc;
+}
 
 int ParamsBase::RegisterParamsBaseClass(const string& tag, BaseCreateFcn fcn, bool isParams){
 	// See if tag is registered already 

@@ -313,7 +313,6 @@ createDefaultParams(int winnum){
 		//Check for strange error:
 		assert( Params::GetNumParamsInstances(i,winnum) == 0);
 		Params::AppendParamsInstance(i,winnum,p);
-		int inst = p->GetInstanceIndex();
 		Params::SetCurrentParamsInstanceIndex(i,winnum,0);
 		if (!p->isRenderParams())p->SetLocal(false);
 		else if(DataStatus::getInstance()->getDataMgr()){
@@ -1033,9 +1032,16 @@ getRegionRouter() {
 	return (RegionEventRouter*)getEventRouter(Params::_regionParamsTag);
 }
 
-void VizWinMgr::forceRender(RenderParams* rp, bool always){
-	if (!always && !rp->IsEnabled()) return;
-	int viznum = rp->GetVizNum();
-	if (viznum < 0) return;
-	VizWindow[viznum]->reallyUpdate();
+void VizWinMgr::forceRender(Params* p, bool always){
+	if (p->isRenderParams()){
+		RenderParams* rp = (RenderParams*)p;
+		if (!always && !rp->IsEnabled()) return;
+		int viznum = rp->GetVizNum();
+		if (viznum < 0) return;
+		VizWindow[viznum]->reallyUpdate();
+	} else { //force all windows to update
+		for (int viznum = 0; viznum<getNumVisualizers(); viznum++){
+			VizWindow[viznum]->reallyUpdate();
+		}
+	}
 }

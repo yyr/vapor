@@ -81,12 +81,12 @@ public:
 	static Params* getActiveParams(const std::string& tag){
 		return (Params::GetParamsInstance(tag, getInstance()->activeViz));
 	}
-	
-	//! Method that requests a re-rendering for the renderer associated with a particular RenderParams instance.
+	//! If the params indicated is not RenderParams, all visualizer windows are refreshed.  If it's a RenderParams,
+	//! requests a re-rendering for the renderer associated with that particular RenderParams instance.
 	//! The renderer must be enabled or this will have no effect unless the optional 'always' parameter is true.
 	//! \param[in] RenderParams* pointer to RenderParams instance that is associated with the rendering requested.
 	//! \param[in] bool always indicates that rerender will occur even if the params is disabled.
-	void forceRender(RenderParams* rp, bool always=false);
+	void forceRender(Params* p, bool always=false);
 	
 	
 	//! Static method obtains the EventRouter instance associated with a particular Params type.  There is a unique EventRouter
