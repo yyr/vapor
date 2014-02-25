@@ -72,23 +72,23 @@ public:
 	}
 	//! Specify the local extents.  If time step is -1, then set the generic extents.
 	//! Otherwise set the extents for a specific timestep.
-	//! param[in] extents vector<double>& Six doubles that will be new extents
-	//! param[in] Params* params that owns this box
-	//! param[in] timestep int Specified time step, or -1 for generic times
+	//! \param[in] extents vector<double>& Six doubles that will be new extents
+	//! \param[in] Params* params that owns this box
+	//! \param[in] timestep int Specified time step, or -1 for generic times
 	//! \retval int zero if successful.
 	int SetLocalExtents(const vector<double>& extents, Params* p, int timestep = -1);
 	//! Specify the local extents as a double array.  If time step is -1, then set the generic extents.
 	//! Otherwise set the extents for a specific timestep.
-	//! param[in] double extents[6] 6 doubles that will be new extents
-	//! param[in] Params* params that owns this box
-	//! param[in] int timestep specified time step, or -1 for generic times
+	//! \param[in] double extents[6] 6 doubles that will be new extents
+	//! \param[in] Params* params that owns this box
+	//! \param[in] int timestep specified time step, or -1 for generic times
 	//! \retval int zero if successful.
 	int SetLocalExtents(const double extents[6], Params* p, int timestep = -1);
 	//! Specify the local extents as a float array.  If time step is -1, then set the generic extents.
 	//! Otherwise set the extents for a specific timestep.
-	//! param[in] float extents[6]
-	//! param[in] Params* params that owns this box
-	//! param[in] int timestep specified time step, or -1 for generic times
+	//! \param[in] float extents[6]
+	//! \param[in] Params* params that owns this box
+	//! \param[in] int timestep specified time step, or -1 for generic times
 	//! \retval int zero if successful.
 	int SetLocalExtents(const float extents[6], Params* p, int timestep = -1);
 	
@@ -121,7 +121,7 @@ public:
 	}
 	//! Set the angles from a double array
 	//! \param [in] ang double[3] array of three doubles for theta, phi, psi
-	//! param[in] Params* params that owns this box
+	//! \param[in] Params* params that owns this box
 	//! \retval int zero on success
 	int SetAngles(const double angles[3], Params* p){
 		vector<double> ang;
@@ -130,7 +130,7 @@ public:
 	}
 	//! Set the angles from a float array
 	//! \param [in] angles float[3] array of three floats for theta, phi, psi
-	//! param[in] Params* params that owns this box
+	//! \param[in] Params* params that owns this box
 	//! \retval int zero on success
 	int SetAngles(const float angles[3], Params* p){
 		vector<double> angl;
@@ -139,7 +139,7 @@ public:
 	}
 	//! Set the three orientation angles (theta, phi, psi) from a vector of doubles
 	//! \param[in] vals const vector<double>& vector of length 3 of angles.
-	//! param[in] Params* params that owns this box
+	//! \param[in] Params* params that owns this box
 	void SetAngles(const vector<double>& vals, Params* p){
 		CaptureSetDouble(_anglesTag, "Change box angles",vals, p);
 	}
@@ -157,7 +157,7 @@ public:
 	//! The first one should be negative, marking the default extents.
 	//! Subsequent times are nonnegative integers indicating times for nondefault extents.
 	//! This vector should be the same size as the extents vector.
-	//! param[in] Params* params that owns this box
+	//! \param[in] Params* params that owns this box
 	//! \param [in] const vector<long>& vector of times
 	void SetTimes(const vector<long>& times, Params* p) { 
 		CaptureSetLong(Box::_timesTag, "Change box times",times, p);
@@ -165,7 +165,7 @@ public:
 
 	//! Trim both the times and extents vectors to same length.
 	//! Default is to length 1
-	//! param[in] Params* params that owns this box
+	//! \param[in] Params* params that owns this box
 	//! \param[in] numTimes int resulting length of times and extentss.
 	void Trim(Params* p,int numTimes = 1){
 		if (numTimes > GetTimes().size()) return;

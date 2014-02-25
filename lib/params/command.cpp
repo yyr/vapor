@@ -120,5 +120,6 @@ void Command::resetCommandQueue(){
 	currentQueuePos = 0;
 	startQueuePos = 0;
 	endQueuePos = 0;
+	recordingCount = 0;  //start recording.
 }
 

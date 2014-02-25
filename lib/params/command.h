@@ -15,6 +15,7 @@
 //	Date:		October 2004
 //
 //
+
 #ifndef COMMAND_H
 #define COMMAND_H
 
@@ -31,8 +32,10 @@ class Params;
 //! performing UnDo, ReDo, etc.
 //! The parent Command class supports a queue of Params changes; each entry has a
 //! clone of the previous and next Params instance associated with a change.
-//! subclasses could support additional state changes, if needed.
-//
+//! \author Alan Norton
+//! \version 3.0
+//! \date    Feb 25, 2014
+
 class PARAMS_API Command {
 public:
 	Command(Params*, const char* descr);

@@ -162,7 +162,7 @@ Validate(bool doOverride){
 	}
 	
 	if (doOverride) {
-		const float col[3] = {1.f, 0.f, 0.f};
+		const double col[3] = {1.f, 0.f, 0.f};
 		SetConstantColor(col);
 		SetTerrainMapped(false);
 		SetVectorScale(calcDefaultScale());
@@ -183,7 +183,7 @@ void ArrowParams::restart() {
 	SetHeightVariableName("HGT");
 	
 	SetEnabled(false);
-	const float default_color[3] = {1.0, 0.0, 0.0};
+	const double default_color[3] = {1.0, 0.0, 0.0};
 	SetConstantColor(default_color);
 	SetVectorScale(1.0);
 	SetTerrainMapped(false);
@@ -274,19 +274,22 @@ void ArrowParams::calcDataAlignment(double rakeExts[6], int rakeGrid[3],size_t t
 
 
 
-int ArrowParams::SetConstantColor(const float rgb[3]) {
+int ArrowParams::SetConstantColor(const double rgb[3]) {
 	vector <double> valvec;
 	int rc = 0;
-	for (int i=0; i<3; i++) {
-		valvec.push_back(rgb[i]);
-		if (valvec[i] < 0.) {valvec[i] = 0.; rc = -1;}
-		if (valvec[i] > 1.) {valvec[i] = 1.; rc = -1;}
+	if (!NO_CHECK){
+		for (int i=0; i<3; i++) {
+			valvec.push_back(rgb[i]);
+			if (valvec[i] < 0.) {valvec[i] = 0.; rc = -1;}
+			if (valvec[i] > 1.) {valvec[i] = 1.; rc = -1;}
+		}
+		if (CHECK && rc) return rc;
 	}
-	CaptureSetDouble(_constantColorTag,"Change barb color",valvec);
-	return rc;
+	int rc2 = CaptureSetDouble(_constantColorTag,"Change barb color",valvec);
+	if(rc) return rc; else return rc2;
 }
 
-const float *ArrowParams::GetConstantColor() {
+const double *ArrowParams::GetConstantColor() {
 	const vector<double> white (3,1.);
 	vector <double> valvec = GetRootNode()->GetElementDouble(_constantColorTag, white);
 	for (int i=0; i<3; i++) _constcolorbuf[i] = valvec[i];
@@ -310,8 +313,7 @@ int ArrowParams::SetFieldVariableName(int i, const string& varName){
 	return rc;
 }
 int ArrowParams::SetHeightVariableName(const string& varName){
-	CaptureSetString(_heightVariableNameTag,"Set barb rake extents",varName);
-	return 0;
+	return CaptureSetString(_heightVariableNameTag,"Set barb rake extents",varName);
 }
 const string& ArrowParams::GetHeightVariableName(){
 	return GetRootNode()->GetElementString(_heightVariableNameTag, "HGT");
@@ -343,4 +345,71 @@ double ArrowParams::calcDefaultScale(){
 	double maxVecVal = Max(maxvarvals[0],Max(maxvarvals[1],maxvarvals[2]));
 	if (maxVecVal == 0.) return(maxVecLength);
 	else return(maxVecLength/maxVecVal);
+}
+int ArrowParams::SetRakeLocalExtents(const vector<double>&exts){
+	int rc = 0;
+	vector<double> xexts;
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+		
+	if (dataMgr && !NO_CHECK) {
+		vector<double>& fullExts = dataMgr->GetExtents();
+		vector<double>sizes;
+		for (int i = 0; i<3; i++) sizes.push_back(fullExts[i+3]-fullExts[i]);
+		for (int i = 0; i<6; i++){
+			xexts.push_back(exts[i]-fullExts[i%3]);
+			if (xexts[i] < 0.){ xexts[i] = 0.; rc = -1;}
+			if (xexts[i] > sizes[i%3]){ xexts[i] = sizes[i%3]; rc = -1;}
+			if (i>=3 && xexts[i-3] >= xexts[i]){ xexts[i-3] = xexts[i]; rc = -1;}
+		}
+	}
+	if (CHECK && rc) return rc;
+	int rc2 = GetBox()->CaptureSetDouble(Box::_extentsTag,"Set Barb Rake extents", xexts, this);
+	if (rc) return rc; else return rc2;
+}
+
+int ArrowParams::SetRakeGrid(const int grid[3]){
+	int rc = 0;
+	vector<long> griddims;
+	if (!NO_CHECK){
+		for (int i = 0; i<3; i++){
+			griddims.push_back((long)grid[i]);
+			if (griddims[i] < 1) {griddims[i] = 1; rc= -1;}
+			if (griddims[i] > 10000) {griddims[i] = 10000; rc= -1;}
+		}
+		if (CHECK && rc) return rc;
+	}
+	int rc2 = CaptureSetLong(_rakeGridTag,"Set barb grid", griddims);
+	if (rc) return rc; else return rc2;
+}
+int ArrowParams::SetVectorScale(double val){
+	int rc = 0;
+	if (!NO_CHECK) {
+		if (val <= 0. || val > 1.e30){
+			val = 0.01; 
+			rc = -1;
+		}
+		if (CHECK && rc) return rc;
+	}
+	int rc2 = CaptureSetDouble(_vectorScaleTag, "set barb scale", val);
+	if(rc) return rc; else return rc2;
+}
+int ArrowParams::SetGridAlignStrides(const vector<long>& strides){
+	int rc = 0;
+	vector<long> xstrides;
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	if (dataMgr && !NO_CHECK){
+		size_t dims[3];
+		dataMgr->GetDim(dims, -1);
+		for (int i = 0; i<2; i++){
+			xstrides.push_back(strides[i]);
+			if (xstrides[i] <= 0){
+				xstrides[i] = 1;
+				rc = -1;
+			}
+			if (xstrides[i] > dims[i]){xstrides[i] = dims[i]; rc = -1;}
+		}
+		if (CHECK && rc) return rc;
+	}
+	int rc2 = CaptureSetLong(_alignGridStridesTag, "Set barb grid strides", xstrides);
+	if(rc) return rc; else return rc2;
 }

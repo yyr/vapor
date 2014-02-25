@@ -725,6 +725,14 @@ void MainForm::loadData()
 			vector<string> files;
 			files.push_back(filename.toStdString());
 			dmgr = ControlExecutive::getInstance()->LoadData(files,true);
+			// Reinitialize all tabs
+			//
+			if (dmgr){
+				for (int pType = 1; pType <= Params::GetNumParamsClasses(); pType++){
+					EventRouter* eRouter = VizWinMgr::getInstance()->getEventRouter(pType);
+					eRouter->reinitTab(false);
+				}
+			}
 		}
 		else {
 			QMessageBox::information(this,"Load Data Error","Unable to read metadata file ");
@@ -812,6 +820,14 @@ void MainForm::defaultLoadData()
 			vector<string> files;
 			files.push_back(filename.toStdString());
 			dmgr = ControlExecutive::getInstance()->LoadData(files,false);
+			// Reinitialize all tabs
+			//
+			if (dmgr){
+				for (int pType = 1; pType <= Params::GetNumParamsClasses(); pType++){
+					EventRouter* eRouter = VizWinMgr::getInstance()->getEventRouter(pType);
+					eRouter->reinitTab(true);
+				}
+			}
 		}
 		else {
 			QMessageBox::information(this,"Load Data Error","Unable to read metadata file ");

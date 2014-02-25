@@ -38,8 +38,8 @@ class ParamNode;
 //! \class AnimationParams
 //! \brief A class that specifies parameters used in animation 
 //! \author Alan Norton
-//! \version $Revision$
-//! \date    $Date$
+//! \version 3.0
+//! \date    February 2014
 //! When this class is local, it controls the time-steps in one visualizer.
 //! The global (shared) AnimationParams controls the animation in any number of visualizers.
 class PARAMS_API AnimationParams : public Params {

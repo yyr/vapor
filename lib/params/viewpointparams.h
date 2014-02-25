@@ -104,22 +104,22 @@ public:
 		return getCurrentViewpoint()->setCameraPosLocal(val, this);
 	}
 	
-	void setViewDir(int i, double val) { getCurrentViewpoint()->setViewDir(i,val, this);}
-	void setViewDir(const vector<double>& val) {getCurrentViewpoint()->setViewDir(val, this);}
+	int setViewDir(int i, double val) {return getCurrentViewpoint()->setViewDir(i,val, this);}
+	int setViewDir(const vector<double>& val) {return getCurrentViewpoint()->setViewDir(val, this);}
 	
-	void setUpVec(int i, double val) { getCurrentViewpoint()->setUpVec(i,val,this);}
-	void setUpVec(const vector<double>& val) {getCurrentViewpoint()->setUpVec(val,this);}
+	int setUpVec(int i, double val) { return getCurrentViewpoint()->setUpVec(i,val,this);}
+	int setUpVec(const vector<double>& val) {return getCurrentViewpoint()->setUpVec(val,this);}
 	
-	void setNumLights(int nlights) {
-		GetRootNode()->SetElementLong(_numLightsTag,nlights);
+	int setNumLights(int nlights) {
+		return CaptureSetLong(_numLightsTag,"Set number of lights", nlights);
 	}
 	double getLightDirection(int lightNum, int dir){
 		return GetRootNode()->GetElementDouble(_lightDirectionsTag)[dir+3*lightNum];
 	}
-	void setLightDirection(int lightNum, int dir, double val){
+	int setLightDirection(int lightNum, int dir, double val){
 		vector<double> ldirs = vector<double>(GetRootNode()->GetElementDouble(_lightDirectionsTag));
 		ldirs[dir+3*lightNum] = val;
-		CaptureSetDouble(_lightDirectionsTag,"Set light direction",ldirs);
+		return CaptureSetDouble(_lightDirectionsTag,"Set light direction",ldirs);
 	}
 	double getDiffuseCoeff(int lightNum) {
 		vector<double> defaultDiffCoeff;
@@ -136,43 +136,45 @@ public:
 		vector<double> defaultAmbient(defaultAmbientCoeff,1);
 		return GetRootNode()->GetElementDouble(_ambientCoeffTag,defaultAmbient)[0];
 	}
-	void setDiffuseCoeff(int lightNum, double val) {
+	int setDiffuseCoeff(int lightNum, double val) {
 		vector<double>diffCoeff(GetRootNode()->GetElementDouble(_diffuseCoeffTag));
 		diffCoeff[lightNum]=val;
-		CaptureSetDouble(_diffuseCoeffTag,"Set diffuse coefficient",diffCoeff);
+		return CaptureSetDouble(_diffuseCoeffTag,"Set diffuse coefficient",diffCoeff);
 	}
-	void setSpecularCoeff(int lightNum, double val) {
+	int setSpecularCoeff(int lightNum, double val) {
 		vector<double>specCoeff(GetRootNode()->GetElementDouble(_specularCoeffTag));
 		specCoeff[lightNum]=val;
-		CaptureSetDouble(_specularCoeffTag,"Set specular coefficient",specCoeff);
+		return CaptureSetDouble(_specularCoeffTag,"Set specular coefficient",specCoeff);
 	}
-	void setExponent(double val) {
-		CaptureSetDouble(_specularExpTag, "Set specular lighting",val);
+	int setExponent(double val) {
+		return CaptureSetDouble(_specularExpTag, "Set specular lighting",val);
 	}
-	void setAmbientCoeff(double val) {
-		CaptureSetDouble(_ambientCoeffTag,"Set ambient lighting",val);
+	int setAmbientCoeff(double val) {
+		return CaptureSetDouble(_ambientCoeffTag,"Set ambient lighting",val);
 	}
 	
-	void setCurrentViewpoint(Viewpoint* newVP){
+	int setCurrentViewpoint(Viewpoint* newVP){
 		Command* cmd = CaptureStart("set current viewpoint");
 		ParamNode* pNode = GetRootNode()->GetNode(_currentViewTag);
 		if (pNode) GetRootNode()->DeleteNode(_currentViewTag);
-		GetRootNode()->AddRegisteredNode(_currentViewTag, newVP->GetRootNode(),newVP);
+		int rc = GetRootNode()->AddRegisteredNode(_currentViewTag, newVP->GetRootNode(),newVP);
 		if (cmd) CaptureEnd(cmd);
+		return rc;
 	}
 	
-	void setHomeViewpoint(Viewpoint* newVP){
+	int setHomeViewpoint(Viewpoint* newVP){
 		Command* cmd = CaptureStart("set home viewpoint");
 		ParamNode* pNode = GetRootNode()->GetNode(_homeViewTag);
 		if (pNode) GetRootNode()->DeleteNode(_homeViewTag);
-		GetRootNode()->AddRegisteredNode(_homeViewTag, newVP->GetRootNode(),newVP);
+		int rc = GetRootNode()->AddRegisteredNode(_homeViewTag, newVP->GetRootNode(),newVP);
 		if (cmd) CaptureEnd(cmd);
+		return rc;
 	}
 	
 	double getRotationCenterLocal(int i){ return getCurrentViewpoint()->getRotationCenterLocal(i);}
 	
-	void setRotationCenterLocal(const vector<double>& vec){
-		getCurrentViewpoint()->setRotationCenterLocal(vec,this);
+	int setRotationCenterLocal(const vector<double>& vec){
+		return getCurrentViewpoint()->setRotationCenterLocal(vec,this);
 	}
 	void centerFullRegion(int timestep);
 #ifndef DOXYGEN_SKIP_THIS

@@ -290,8 +290,9 @@ const DataMgr *ControlExecutive::LoadData(vector <string> files, bool dflt){
 	if (!dataMgr) return dataMgr;
 	bool hasData = DataStatus::getInstance()->reset(dataMgr,cacheMB);
 	if (!hasData) return 0;
+	Command::blockCapture();
 	reinitializeParams(dflt);
-	if(!Command::isRecording()) Command::unblockCapture();
+	Command::resetCommandQueue();
 	return dataMgr;
 }
 

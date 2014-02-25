@@ -148,6 +148,8 @@ void ArrowEventRouter::confirmText(bool /*render*/){
 	
 	Command* cmd = aParams->CaptureStart("barbs text edit");
 	Command::blockCapture();
+	ValidationMode formerMode = aParams->GetValidationMode();
+	aParams->SetValidationMode(NO_CHECK);
 	QString strn;
 	//Get all text values from gui, apply to params
 	int gridsize[3];
@@ -179,6 +181,7 @@ void ArrowEventRouter::confirmText(bool /*render*/){
 	
 	guiSetTextChanged(false);
 	aParams->Validate(false);
+	aParams->SetValidationMode(formerMode);
 	Command::unblockCapture();
 	aParams->CaptureEnd(cmd);
 	
@@ -193,8 +196,6 @@ captureMouseDown(int){
 	//If text has changed, will ignore it-- don't call confirmText()!
 	//
 	guiSetTextChanged(false);
-	
-	
 	
 }
 void ArrowEventRouter::
@@ -315,7 +316,7 @@ guiSetXVarNum(int vnum){
 		else 
 			aParams->SetFieldVariableName(0,DataStatus::getInstance()->getDataMgr()->GetVariables2DXY()[vnum-1]);
 	} else aParams->SetFieldVariableName(0,"0");
-	
+	updateTab();
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
 void ArrowEventRouter::
@@ -332,7 +333,7 @@ guiSetYVarNum(int vnum){
 		else 
 			aParams->SetFieldVariableName(1,DataStatus::getInstance()->getDataMgr()->GetVariables2DXY()[vnum-1]);
 	} else aParams->SetFieldVariableName(1,"0");
-	
+	updateTab();
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
 void ArrowEventRouter::
@@ -347,7 +348,7 @@ guiSetZVarNum(int vnum){
 		else 
 			aParams->SetFieldVariableName(2,DataStatus::getInstance()->getDataMgr()->GetVariables2DXY()[vnum-1]);
 	} else aParams->SetFieldVariableName(2,"0");
-	
+	updateTab();
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
 void ArrowEventRouter::
@@ -383,9 +384,9 @@ guiSelectColor(){
 	
 	qreal rgb[3];
 	newColor.getRgbF(rgb,rgb+1,rgb+2);
-	float rgbf[3];
-	for (int i = 0; i<3; i++) rgbf[i] = (float)rgb[i];
-	aParams->SetConstantColor(rgbf);
+	double rgbd[3];
+	for (int i = 0; i<3; i++) rgbd[i] = rgb[i];
+	aParams->SetConstantColor(rgbd);
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
 void ArrowEventRouter::
@@ -505,7 +506,7 @@ void ArrowEventRouter::updateTab(){
 
 	
 	//Set the constant color box
-	const float* clr = arrowParams->GetConstantColor();
+	const double* clr = arrowParams->GetConstantColor();
 	QColor newColor;
 	newColor.setRgbF((qreal)clr[0],(qreal)clr[1],(qreal)clr[2]);
 	QPalette pal(colorBox->palette());

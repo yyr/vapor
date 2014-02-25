@@ -301,12 +301,14 @@ void ArrowRenderer::performRendering(
 	
 	ViewpointParams* vpParams =  myVisualizer->getActiveViewpointParams();
 	int nLights = vpParams->getNumLights();
+	float fcolor[3];
+	for (int i = 0; i<3; i++) fcolor[i] = (float)aParams->GetConstantColor()[i];
 	if (nLights == 0) {
 		glDisable(GL_LIGHTING);
 	}
 	else {
 		glShadeModel(GL_SMOOTH);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, aParams->GetConstantColor());
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,fcolor);
 		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, vpParams->getExponent());
 		//All the geometry will get a white specular color:
 		float specColor[4];
@@ -316,7 +318,7 @@ void ArrowRenderer::performRendering(
 		glEnable(GL_LIGHTING);
 		glEnable(GL_COLOR_MATERIAL);
 	}
-	glColor3fv(aParams->GetConstantColor());
+	glColor3fv(fcolor);
 	
 	//Loop through the points in the rake grid, find the field vector at each grid point.
 	//Render an arrow at each point.
