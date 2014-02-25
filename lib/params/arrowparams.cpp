@@ -329,7 +329,6 @@ const string& ArrowParams::GetFieldVariableName(int i){
 double ArrowParams::calcDefaultScale(){
 	string varname;
 	double maxvarvals[3];
-	bool is3D = VariablesAre3D();
 	DataStatus* ds = DataStatus::getInstance();
 	const float* stretch = ds->getStretchFactors();
 	for (int i = 0; i<3; i++){
@@ -352,7 +351,7 @@ int ArrowParams::SetRakeLocalExtents(const vector<double>&exts){
 	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
 		
 	if (dataMgr && !NO_CHECK) {
-		vector<double>& fullExts = dataMgr->GetExtents();
+		const vector<double>& fullExts = dataMgr->GetExtents();
 		vector<double>sizes;
 		for (int i = 0; i<3; i++) sizes.push_back(fullExts[i+3]-fullExts[i]);
 		for (int i = 0; i<6; i++){
