@@ -239,7 +239,6 @@ public:
 
 	virtual void restart();
 	static void setDefaultPrefs();
-	virtual bool reinit(bool doOverride);
 	virtual void Validate(bool setdefault);
 
 	bool isPlaying() {return (getPlayDirection() != 0);}

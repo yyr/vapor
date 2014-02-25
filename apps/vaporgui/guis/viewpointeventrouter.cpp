@@ -161,58 +161,19 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	ViewpointParams* vParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
-	
-	
+	Command* cmd = Command::captureStart(vParams,"viewpoint text change");
+	Command::blockCapture();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	Viewpoint* currentViewpoint = vParams->getCurrentViewpoint();
 	const vector<double>& tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
 	
 		
-	currentViewpoint->setCameraPosLocal(0, camPos0->text().toFloat()-tvExts[0]);
-	currentViewpoint->setCameraPosLocal(1, camPos1->text().toFloat()-tvExts[1]);
-	currentViewpoint->setRotationCenterLocal(0,rotCenter0->text().toFloat()-tvExts[0]);
-	currentViewpoint->setRotationCenterLocal(1,rotCenter1->text().toFloat()-tvExts[1]);
+	currentViewpoint->setCameraPosLocal(0, camPos0->text().toFloat()-tvExts[0],vParams);
+	currentViewpoint->setCameraPosLocal(1, camPos1->text().toFloat()-tvExts[1],vParams);
+	currentViewpoint->setRotationCenterLocal(0,rotCenter0->text().toFloat()-tvExts[0],vParams);
+	currentViewpoint->setRotationCenterLocal(1,rotCenter1->text().toFloat()-tvExts[1],vParams);
 	
 	
-	//Did numLights change?
-	int nLights = numLights->text().toInt();
-	
-	//make sure it's a valid number:
-	bool changed = false;
-	if (nLights < 0 ){
-		nLights = 0; changed = true;
-	}
-	if (nLights > 3){
-		nLights = 3; changed = true;
-	}
-	if (changed) {
-		numLights->setText(QString::number(nLights));
-	}
-	if (nLights != vParams->getNumLights()){
-		changed = true;
-		vParams->setNumLights(nLights);
-		bool lightOn;
-		lightOn = (nLights > 0);
-		lightPos00->setEnabled(lightOn);
-		lightPos01->setEnabled(lightOn);
-		lightPos02->setEnabled(lightOn);
-		lightSpec0->setEnabled(lightOn);
-		lightDiff0->setEnabled(lightOn);
-		shininessEdit->setEnabled(lightOn);
-		ambientEdit->setEnabled(lightOn);
-		lightOn = (nLights > 1);
-		lightPos10->setEnabled(lightOn);
-		lightPos11->setEnabled(lightOn);
-		lightPos12->setEnabled(lightOn);
-		lightSpec1->setEnabled(lightOn);
-		lightDiff1->setEnabled(lightOn);
-		lightOn = (nLights > 2);
-		lightPos20->setEnabled(lightOn);
-		lightPos21->setEnabled(lightOn);
-		lightPos22->setEnabled(lightOn);
-		lightSpec2->setEnabled(lightOn);
-		lightDiff2->setEnabled(lightOn);
-	}
 	//Get the light directions from the gui:
 	vParams->setLightDirection(0,0,lightPos00->text().toFloat());
 	vParams->setLightDirection(0,1,lightPos01->text().toFloat());
@@ -239,7 +200,7 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 	vParams->setExponent(shininessEdit->text().toInt());
 	
 
-	currentViewpoint->setCameraPosLocal(2, camPos2->text().toFloat()-tvExts[2]);
+	currentViewpoint->setCameraPosLocal(2, camPos2->text().toFloat()-tvExts[2],vParams);
 	vParams->setViewDir(0, viewDir0->text().toFloat());
 	vParams->setViewDir(1, viewDir1->text().toFloat());
 	vParams->setViewDir(2, viewDir2->text().toFloat());
@@ -247,13 +208,17 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 	vParams->setUpVec(1, upVec1->text().toFloat());
 	vParams->setUpVec(2, upVec2->text().toFloat());
 	
-	currentViewpoint->setRotationCenterLocal(2,rotCenter2->text().toFloat()-tvExts[2]);
+	currentViewpoint->setRotationCenterLocal(2,rotCenter2->text().toFloat()-tvExts[2],vParams);
 	
-	
+	vParams->Validate(false);
+	Command::unblockCapture();
+	if (cmd) Command::captureEnd(cmd, vParams);
+
 	updateRenderer(vParams,false, -1, false);
+
 	guiSetTextChanged(false);
 
-	if (changed) updateTab();
+	updateTab();
 	
 }
 void ViewpointEventRouter::
@@ -403,14 +368,16 @@ guiCenterSubRegion(RegionParams* rParams){
 	//calculate the camera position: center - 2*viewDir*maxSide;
 	//Position the camera 2.5*maxSide units away from the center, aimed
 	//at the center
-	
+	Command* cmd = vpParams->CaptureStart("Center viewpoint on subregion");
+	Command::blockCapture();
 	for (int i = 0; i<3; i++){
 
 		float camPosCrd = rParams->getLocalRegionCenter(i,timestep) -(2.5*maxProj*viewDir[i]/stretch[i]);
-		currentViewpoint->setCameraPosLocal(i, camPosCrd);
-		currentViewpoint->setRotationCenterLocal(i,rParams->getLocalRegionCenter(i, timestep));
+		currentViewpoint->setCameraPosLocal(i, camPosCrd,vpParams);
+		currentViewpoint->setRotationCenterLocal(i,rParams->getLocalRegionCenter(i, timestep),vpParams);
 
 	}
+	if(cmd) vpParams->CaptureEnd(cmd);
 	
 	//modify near/far distance as needed:
 	VizWinMgr::getInstance()->resetViews(vpParams);
@@ -495,7 +462,8 @@ guiAlignView(int axis){
 	}
 	
 	
-	
+	Command* cmd = vpParams->CaptureStart("axis-align view");
+	Command::blockCapture();
 	//Determine distance from center to camera, in stretched coordinates
 	double scampos[3], srotctr[3], dvpos[3];
 	currentViewpoint->getStretchedCamPosLocal(scampos);
@@ -504,17 +472,18 @@ guiAlignView(int axis){
 	vsub(scampos,srotctr,dvpos);
 	float viewDist = vlength(dvpos);
 	//Keep the view center as is, make view direction vdir 
-	currentViewpoint->setViewDir(vdir);
+	currentViewpoint->setViewDir(vdir,vpParams);
 	//Make the up vector +Y, or +X
-	currentViewpoint->setUpVec(up);
+	currentViewpoint->setUpVec(up,vpParams);
 	//Position the camera the same distance from the center but down the -axis direction
 	for (int i = 0; i<3; i++){
 		vdir[i] = vdir[i]*viewDist;
 		dvpos[i] = srotctr[i] - vdir[i];
 	}
 	
-	currentViewpoint->setStretchedCamPosLocal(dvpos);
-	
+	currentViewpoint->setStretchedCamPosLocal(dvpos,vpParams);
+	Command::unblockCapture();
+	if (cmd) vpParams->CaptureEnd(cmd);
 	updateTab();
 	updateRenderer(vpParams,false,-1,false);
 	
@@ -541,13 +510,16 @@ guiSetCenter(const double* coords){
 	
 	vnormal(vdir);
 	vector<double>vvdir;
+	Command* cmd = vpParams->CaptureStart("re-center view");
+	Command::blockCapture();
 	for (int i = 0; i<3; i++) vvdir.push_back(vdir[i]);
-	currentViewpoint->setViewDir(vvdir);
+	currentViewpoint->setViewDir(vvdir,vpParams);
 	
 	for (int i = 0; i<3; i++){
-		currentViewpoint->setRotationCenterLocal(i,coords[i]);
+		currentViewpoint->setRotationCenterLocal(i,coords[i],vpParams);
 	}
-	
+	Command::unblockCapture();
+	if (cmd) vpParams->CaptureEnd(cmd);
 	updateTab();
 	updateRenderer(vpParams,false, -1, false);
 	

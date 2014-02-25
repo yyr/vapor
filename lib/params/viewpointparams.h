@@ -84,11 +84,6 @@ public:
 	//! by user translation.
 	//! \retval float[3] Rotation center coordinates
 	const vector<double>& getRotationCenterLocal(){return getCurrentViewpoint()->getRotationCenterLocal();}
-
-#ifndef DOXYGEN_SKIP_THIS
-	static ParamsBase* CreateDefaultInstance() {return new ViewpointParams(0,-1);}
-	const std::string& getShortName() {return _shortName;}
-	
 	//Note that all calls to get camera pos and get rot center return values
 	//in local coordinates, not in lat/lon.  When the viewpoint params is in
 	//latlon mode, it is necessary to perform convertLocalFromLonLat and convertLocalToLonLat
@@ -101,16 +96,19 @@ public:
 	//must be converted to latlon values.
 	
 	double getCameraPosLocal(int coord) {return getCurrentViewpoint()->getCameraPosLocal()[coord];}
-	
-	void setCameraPosLocal(const vector<double>& val,int timestep ) {
-		getCurrentViewpoint()->setCameraPosLocal(val);
+	//! Set the camera position in local coordinates at a specified time
+	//! \param[in] vector<double>& coordinates to be set
+	//! \param[in] int timestep to be used
+	//! \retval int 0 if successful
+	int setCameraPosLocal(const vector<double>& val,int timestep ) {
+		return getCurrentViewpoint()->setCameraPosLocal(val, this);
 	}
 	
-	void setViewDir(int i, double val) { getCurrentViewpoint()->setViewDir(i,val);}
-	void setViewDir(const vector<double>& val) {getCurrentViewpoint()->setViewDir(val);}
+	void setViewDir(int i, double val) { getCurrentViewpoint()->setViewDir(i,val, this);}
+	void setViewDir(const vector<double>& val) {getCurrentViewpoint()->setViewDir(val, this);}
 	
-	void setUpVec(int i, double val) { getCurrentViewpoint()->setUpVec(i,val);}
-	void setUpVec(const vector<double>& val) {getCurrentViewpoint()->setUpVec(val);}
+	void setUpVec(int i, double val) { getCurrentViewpoint()->setUpVec(i,val,this);}
+	void setUpVec(const vector<double>& val) {getCurrentViewpoint()->setUpVec(val,this);}
 	
 	void setNumLights(int nlights) {
 		GetRootNode()->SetElementLong(_numLightsTag,nlights);
@@ -121,7 +119,7 @@ public:
 	void setLightDirection(int lightNum, int dir, double val){
 		vector<double> ldirs = vector<double>(GetRootNode()->GetElementDouble(_lightDirectionsTag));
 		ldirs[dir+3*lightNum] = val;
-		GetRootNode()->SetElementDouble(_lightDirectionsTag,ldirs);
+		CaptureSetDouble(_lightDirectionsTag,"Set light direction",ldirs);
 	}
 	double getDiffuseCoeff(int lightNum) {
 		vector<double> defaultDiffCoeff;
@@ -141,46 +139,54 @@ public:
 	void setDiffuseCoeff(int lightNum, double val) {
 		vector<double>diffCoeff(GetRootNode()->GetElementDouble(_diffuseCoeffTag));
 		diffCoeff[lightNum]=val;
-		GetRootNode()->SetElementDouble(_diffuseCoeffTag,diffCoeff);
+		CaptureSetDouble(_diffuseCoeffTag,"Set diffuse coefficient",diffCoeff);
 	}
 	void setSpecularCoeff(int lightNum, double val) {
 		vector<double>specCoeff(GetRootNode()->GetElementDouble(_specularCoeffTag));
 		specCoeff[lightNum]=val;
-		GetRootNode()->SetElementDouble(_specularCoeffTag,specCoeff);
+		CaptureSetDouble(_specularCoeffTag,"Set specular coefficient",specCoeff);
 	}
 	void setExponent(double val) {
-		GetRootNode()->SetElementDouble(_specularExpTag,val);
+		CaptureSetDouble(_specularExpTag, "Set specular lighting",val);
 	}
 	void setAmbientCoeff(double val) {
-		GetRootNode()->SetElementDouble(_ambientCoeffTag,val);
+		CaptureSetDouble(_ambientCoeffTag,"Set ambient lighting",val);
 	}
 	
 	void setCurrentViewpoint(Viewpoint* newVP){
+		Command* cmd = CaptureStart("set current viewpoint");
 		ParamNode* pNode = GetRootNode()->GetNode(_currentViewTag);
 		if (pNode) GetRootNode()->DeleteNode(_currentViewTag);
 		GetRootNode()->AddRegisteredNode(_currentViewTag, newVP->GetRootNode(),newVP);
+		if (cmd) CaptureEnd(cmd);
 	}
 	
 	void setHomeViewpoint(Viewpoint* newVP){
+		Command* cmd = CaptureStart("set home viewpoint");
 		ParamNode* pNode = GetRootNode()->GetNode(_homeViewTag);
 		if (pNode) GetRootNode()->DeleteNode(_homeViewTag);
 		GetRootNode()->AddRegisteredNode(_homeViewTag, newVP->GetRootNode(),newVP);
+		if (cmd) CaptureEnd(cmd);
 	}
 	
 	double getRotationCenterLocal(int i){ return getCurrentViewpoint()->getRotationCenterLocal(i);}
 	
 	void setRotationCenterLocal(const vector<double>& vec){
-		getCurrentViewpoint()->setRotationCenterLocal(vec);
+		getCurrentViewpoint()->setRotationCenterLocal(vec,this);
 	}
 	void centerFullRegion(int timestep);
+#ifndef DOXYGEN_SKIP_THIS
+	static ParamsBase* CreateDefaultInstance() {return new ViewpointParams(0,-1);}
+	const std::string& getShortName() {return _shortName;}
+	
+	
 	void rescale(double scaleFac[3], int timestep);
 
 	//determine far and near distance to region based on current viewpoint
 	void getFarNearDist(float* boxFar, float* boxNear);
 	
-	//Reset viewpoint when new session is started:
-	virtual bool reinit(bool doOverride);
-	virtual void Validate(bool useDefault){ reinit(useDefault);}
+	
+	virtual void Validate(bool useDefault);
 	virtual void restart();
 	
 	static void setDefaultPrefs();

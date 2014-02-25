@@ -28,13 +28,8 @@ public:
 	}
 
 	
-	//! Reinitialize the object for a new dataset.
-	//!
-	//! Pure virtual method required of Params
-	//!
-	virtual bool reinit(bool override);
 
-	virtual void Validate(bool useDefault){ reinit(useDefault);}
+	virtual void Validate(bool useDefault);
 	virtual bool IsOpaque() {return true;}
 	//!
 	//! Determine if the specified variable is being used
@@ -122,7 +117,10 @@ public:
 	}
 	int SetConstantColor(const float rgb[3]);
 	const float *GetConstantColor();
-	
+	//! Set a field variable name, and also recalculate default vector scale
+	//! \param[in] int coordinate
+	//! \param[in] string variable name (or "0")
+	//! \retval 0 if OK
 	int SetFieldVariableName(int i, const string& varName);
 	const string& GetFieldVariableName(int i);
 	int SetHeightVariableName(const string& varName);

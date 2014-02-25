@@ -70,13 +70,13 @@ restart(){
 	vector<double> regexts;
 	for (int i = 0; i<3; i++) regexts.push_back(0.);
 	for (int i = 0; i<3; i++) regexts.push_back(1.);
-	GetBox()->SetLocalExtents(regexts);
+	GetBox()->SetLocalExtents(regexts,this);
 	
 }
 //Reinitialize region settings, session has changed
 //Need to force the regionMin, regionMax to be OK.
-bool RegionParams::
-reinit(bool doOverride){
+void RegionParams::
+Validate(bool doOverride){
 	int i;
 	
 	const float* extents = DataStatus::getInstance()->getLocalExtents();
@@ -88,8 +88,8 @@ reinit(bool doOverride){
 			exts.push_back( extents[i+3]-extents[i]);
 		}
 		clearRegionsMap();
-		GetBox()->SetLocalExtents(exts);
-		GetBox()->Trim();
+		GetBox()->SetLocalExtents(exts,this);
+		GetBox()->Trim(this);
 	} else {
 		//ensure all the local time-extents to be valid
 		const vector<long>& times = GetBox()->GetTimes();
@@ -113,46 +113,54 @@ reinit(bool doOverride){
 			}
 			exts.clear();
 			for (int j = 0; j< 6; j++) exts.push_back(regionExtents[j]);
-			GetBox()->SetLocalExtents(exts,currTime);
+			GetBox()->SetLocalExtents(exts,this,currTime);
 		}	
 	}
 	
-	return true;	
+	return;	
 }
 
-void RegionParams::setLocalRegionMin(int coord, float minval, int timestep, bool checkMax){
+int RegionParams::SetLocalRegionMin(int coord, double minval, int timestep){
 	DataStatus* ds = DataStatus::getInstance();
-	const float* fullSizes;
-	if (ds && ds->getDataMgr()){
-		fullSizes = ds->getFullSizes();
-		if (minval < 0.) minval = 0.;
+	DataMgr* dataMgr = ds->getDataMgr();
+	int rc = 0;
+	if (dataMgr){
+		const vector<double>& fullSizes = dataMgr->GetExtents((size_t)timestep);
+		if (minval < 0.) {minval = 0.; rc = -1;}
 		if (minval > fullSizes[coord]) minval = fullSizes[coord];
 	}
 	double exts[6];
 	GetBox()->GetLocalExtents(exts, timestep);
-	if (checkMax) {if (minval > exts[coord+3]) minval = exts[coord+3];}
+	if (!NO_CHECK && minval > exts[coord+3]){
+		if (CHECK_AND_FIX) {minval = exts[coord+3]; rc = -1;}
+		else return -1;
+	}
 	exts[coord] = minval;
-	GetBox()->SetLocalExtents(exts,timestep);
+	GetBox()->SetLocalExtents(exts, this,timestep);
+	return rc;
 }
-void RegionParams::setLocalRegionMax(int coord, float maxval, int timestep, bool checkMin){
+int RegionParams::SetLocalRegionMax(int coord, double maxval, int timestep){
 	DataStatus* ds = DataStatus::getInstance();
-	const float* fullSizes;
-	if (ds && ds->getDataMgr()){
-		fullSizes = ds->getFullSizes();
-		if (maxval < 0.) maxval = 0.;
-		if (maxval > fullSizes[coord]) maxval = fullSizes[coord];
+	DataMgr* dataMgr = ds->getDataMgr();
+	int rc = 0;
+	if (dataMgr){
+		const vector<double>& fullSizes = dataMgr->GetExtents((size_t)timestep);
+		if (maxval < 0.) {maxval = 0.; rc = -1;}
+		if (maxval > fullSizes[coord]){ maxval = fullSizes[coord]; rc = -1;}
 	}
 	double exts[6];
 	GetBox()->GetLocalExtents(exts, timestep);
-	
-	if (checkMin){if (maxval < exts[coord]) maxval = exts[coord];}
+	if (!NO_CHECK && maxval < exts[coord]){
+		if (CHECK_AND_FIX) maxval = exts[coord];
+		else return -1;
+	}
 	exts[coord+3] = maxval;
-	GetBox()->SetLocalExtents(exts, timestep);
+	GetBox()->SetLocalExtents(exts, this,timestep);
+	return rc;
 }
 
-
 void RegionParams::clearRegionsMap(){
-	GetBox()->Trim();
+	GetBox()->Trim(this);
 }
 bool RegionParams::insertTime(int timestep){
 	if (timestep<0) return false;

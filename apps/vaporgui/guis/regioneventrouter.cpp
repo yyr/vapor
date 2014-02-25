@@ -312,8 +312,8 @@ textToSlider(RegionParams* rp, int coord, float newCenter, float newSize){
 	}
 	//Now convert back to local extents, put them into the params:
 	float localCenter = newCenter-userExtents[coord];
-	rp->setLocalRegionMin(coord, localCenter - newSize*0.5f,timestep,false); 
-	rp->setLocalRegionMax(coord,localCenter + newSize*0.5f,timestep,false); 
+	rp->SetLocalRegionMin(coord, localCenter - newSize*0.5f,timestep); 
+	rp->SetLocalRegionMax(coord,localCenter + newSize*0.5f,timestep); 
 	//Put the user coords into the sliders:
 	int sliderSize = (int)(0.5f+ 256.f*newSize/(regMax - regMin));
 	int sliderCenter = (int)(0.5f+ 256.f*(newCenter - regMin)/(regMax - regMin));
@@ -400,8 +400,8 @@ sliderToText(RegionParams* rp, int coord, int slideCenter, int slideSize){
 	}
 	//Convert back to local to put into region params
 	float localCenter = newCenter - userExtents[coord];
-	rp->setLocalRegionMin(coord,localCenter - newSize*0.5f,timestep,false); 
-	rp->setLocalRegionMax(coord,localCenter + newSize*0.5f,timestep,false); 
+	rp->SetLocalRegionMin(coord,localCenter - newSize*0.5f,timestep); 
+	rp->SetLocalRegionMax(coord,localCenter + newSize*0.5f,timestep); 
 	
 	int newSliderCenter = (int)(0.5f+ 256.f*(newCenter - regMin)/(regMax - regMin));
 	//Always need to change text.  Possibly also change slider if it was moved
@@ -462,7 +462,7 @@ guiSetCenter(const double* coords){
 		boxexts[i+3] = coord + 0.5f*regSize - userExtents[i];
 		boxexts[i] = coord - 0.5f*regSize - userExtents[i];
 	}
-	rParams->GetBox()->SetLocalExtents(boxexts, timestep);
+	rParams->GetBox()->SetLocalExtents(boxexts, rParams, timestep);
 	
 }
 //Following are set when slider is released:
@@ -538,7 +538,7 @@ guiSetMaxSize(){
 		boxexts[i] = 0.;
 		boxexts[i+3]= fullDataExtents[i+3]-fullDataExtents[i];
 	}
-	rParams->GetBox()->SetLocalExtents(boxexts, timestep);
+	rParams->GetBox()->SetLocalExtents(boxexts, rParams,timestep);
 	
 	updateTab();
 	
@@ -660,7 +660,7 @@ guiLoadRegionExtents(){
 		rParams->insertTime(ts);
 		double dbexts[6];
 		for (int i = 0; i<6; i++)dbexts[i] = exts[i];
-		rParams->GetBox()->SetLocalExtents(dbexts,ts);
+		rParams->GetBox()->SetLocalExtents(dbexts, rParams,ts);
 
 	}
 	if (numregions == 0) {

@@ -399,13 +399,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 		GetRootNode()->SetElementLong(_VisualizerNumTag,(long)vnum);
 	}
 	
-//! Virtual method to set up the Params to deal with new metadata.
-//! When a new metadata is read, all params are notified.
-//! If the params have state that depends on the metadata (e.g. region size,
-//! variable, etc., they should implement reinit() to respond.
-//! Default does nothing.
-//
-	virtual bool reinit(bool) {return false;}
+
 //! Virtual method to return the Box associated with a Params class.
 //! By default returns NULL.
 //! All params classes that use a box to define data extents should reimplement this method.
@@ -562,9 +556,6 @@ class DummyParams : public Params {
 	virtual int SetCompressionLevel(int){return 0;}
 	virtual int SetRefinementLevel(int){return 0;}
 
-	
-	
-	virtual bool reinit(bool){return false;}
 	virtual void Validate(bool) {return;}
 	
 	virtual bool usingVariable(const std::string& ){

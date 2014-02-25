@@ -287,9 +287,11 @@ int ControlExecutive::RestoreSession(string file){return 0;}
 const DataMgr *ControlExecutive::LoadData(vector <string> files, bool dflt){
 	int cacheMB = 2000;
 	dataMgr = DataMgrFactory::New(files, cacheMB);
-	DataStatus::getInstance()->reset(dataMgr,cacheMB);
+	if (!dataMgr) return dataMgr;
+	bool hasData = DataStatus::getInstance()->reset(dataMgr,cacheMB);
+	if (!hasData) return 0;
 	reinitializeParams(dflt);
-	if(!Command::isRecording()) Command::unblockRecording();
+	if(!Command::isRecording()) Command::unblockCapture();
 	return dataMgr;
 }
 
@@ -420,7 +422,7 @@ reinitializeParams(bool doOverride){
 	// Default render params should override; non render don't necessarily:
 	for (int i = 1; i<= Params::GetNumParamsClasses(); i++){
 		Params* p = Params::GetDefaultParams(i);
-		p->reinit(true);
+		p->Validate(true);
 	}
 
 	
@@ -431,7 +433,7 @@ reinitializeParams(bool doOverride){
 		for (int pType = 1; pType <= Params::GetNumParamsClasses(); pType++){
 			for (int inst = 0; inst < Params::GetNumParamsInstances(pType, i); inst++){
 				Params* p = Params::GetParamsInstance(pType,i,inst);
-				p->reinit(doOverride);
+				p->Validate(doOverride);
 				if (!p->isRenderParams()) break;
 				RenderParams* rParams = (RenderParams*)p;
 				rParams->SetEnabled(false);

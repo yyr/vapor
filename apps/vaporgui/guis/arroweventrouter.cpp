@@ -147,18 +147,14 @@ void ArrowEventRouter::confirmText(bool /*render*/){
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
 	
 	Command* cmd = aParams->CaptureStart("barbs text edit");
-	
-	bool changed = false;
+	Command::blockCapture();
 	QString strn;
 	//Get all text values from gui, apply to params
 	int gridsize[3];
 	gridsize[0] = xDimEdit->text().toInt();
 	gridsize[1] = yDimEdit->text().toInt();
 	gridsize[2] = zDimEdit->text().toInt();
-	for (int i = 0; i<3; i++){
-		if (gridsize[i] < 1) { changed = true; gridsize[i] = 1;}
-		if (gridsize[i] > 2000) {changed = true; gridsize[i] = 2000;}
-	}
+	
 	aParams->SetRakeGrid(gridsize);
 	
 	//Check if the strides have changed; if so will need to updateTab.
@@ -171,32 +167,22 @@ void ArrowEventRouter::confirmText(bool /*render*/){
 			strides.push_back( xstride);
 			strides.push_back( ystride);
 			aParams->SetGridAlignStrides(strides);
-			changed = true;
 		}
 	}
 
 	float thickness = thicknessEdit->text().toFloat();
-	if (thickness < 0.f) {changed = true; thickness = 0.f;}
-	if (thickness > 1000.f) {changed = true; thickness = 1000.f;}
 	aParams->SetLineThickness((double)thickness);
 
 	double scale = scaleEdit->text().toDouble();
-	if (scale != aParams->GetVectorScale()){
-		aParams->SetVectorScale(scale);
-		double defaultScale = aParams->calcDefaultScale();
-		int sliderPos = (int)(0.5+log10(scale/defaultScale));
-		if (sliderPos < -100) sliderPos = -100;
-		if (sliderPos > 100) sliderPos = 100;
-		barbLengthSlider->setValue(sliderPos);
-	}
+	
+	aParams->SetVectorScale(scale);
 	
 	guiSetTextChanged(false);
-	if (changed){
-		if (cmd){
-			aParams->CaptureEnd(cmd);
-		}
-	} else if (cmd) delete cmd;
-	if (changed) updateTab();
+	aParams->Validate(false);
+	Command::unblockCapture();
+	aParams->CaptureEnd(cmd);
+	
+	updateTab();
 	VizWinMgr::getInstance()->forceRender(aParams);	
 	
 }
@@ -329,7 +315,6 @@ guiSetXVarNum(int vnum){
 		else 
 			aParams->SetFieldVariableName(0,DataStatus::getInstance()->getDataMgr()->GetVariables2DXY()[vnum-1]);
 	} else aParams->SetFieldVariableName(0,"0");
-	aParams->SetVectorScale(aParams->calcDefaultScale());
 	
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
@@ -347,7 +332,6 @@ guiSetYVarNum(int vnum){
 		else 
 			aParams->SetFieldVariableName(1,DataStatus::getInstance()->getDataMgr()->GetVariables2DXY()[vnum-1]);
 	} else aParams->SetFieldVariableName(1,"0");
-	aParams->SetVectorScale(aParams->calcDefaultScale());
 	
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
@@ -363,8 +347,6 @@ guiSetZVarNum(int vnum){
 		else 
 			aParams->SetFieldVariableName(2,DataStatus::getInstance()->getDataMgr()->GetVariables2DXY()[vnum-1]);
 	} else aParams->SetFieldVariableName(2,"0");
-	aParams->SetVectorScale(aParams->calcDefaultScale());
-	updateTab();
 	
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
@@ -404,7 +386,7 @@ guiSelectColor(){
 	float rgbf[3];
 	for (int i = 0; i<3; i++) rgbf[i] = (float)rgb[i];
 	aParams->SetConstantColor(rgbf);
-	
+	VizWinMgr::getInstance()->forceRender(aParams);	
 }
 void ArrowEventRouter::
 guiChangeExtents(){
@@ -419,10 +401,10 @@ guiChangeExtents(){
 	//convert newExts (in user coords) to local extents, by subtracting time-varying extents origin 
 	const vector<double>& tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
 	for (int i = 0; i<6; i++) newExts[i] -= tvExts[i%3];
-	bx->SetLocalExtents(newExts);
+	bx->SetLocalExtents(newExts,aParams);
 	
 	updateTab();
-	VizWinMgr::getInstance()->forceRender(aParams,Visualizer::getCurrentMouseMode() == Visualizer::barbMode);
+	VizWinMgr::getInstance()->forceRender(aParams);	
 }
 void ArrowEventRouter::
 guiAlignToData(bool doAlign){
@@ -460,9 +442,6 @@ setArrowEnabled(bool val, int instance){
 void ArrowEventRouter::updateTab(){
 	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
 	
-	if (!isEnabled()) return;
-	
-
 	//Set up the instance table:
 	DataStatus* ds = DataStatus::getInstance();
 	if (ds->getDataMgr()) instanceTable->setEnabled(true);
@@ -661,8 +640,6 @@ guiSetCompRatio(int num){
 	ArrowParams* dParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
 	if (num == dParams->GetCompressionLevel()) return;
 	
-	
-	
 	dParams->SetCompressionLevel(num);
 	lodCombo->setCurrentIndex(num);
 	
@@ -706,9 +683,7 @@ guiSetNumRefinements(int num){
 	//make sure we are changing it
 	ArrowParams* dParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
 	if (num == dParams->GetRefinementLevel()) return;
-	
-	
-		
+
 	dParams->SetRefinementLevel(num);
 	refinementCombo->setCurrentIndex(num);
 	boxSliderFrame->setNumRefinements(num);
@@ -752,7 +727,7 @@ guiFitToData(){
 	newExtents.push_back(fullSizes[1]);
 	newExtents.push_back(fullSizes[2]);
 	
-	box->SetLocalExtents(newExtents);
+	box->SetLocalExtents(newExtents,aParams);
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double>& currExts =DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
 	boxSliderFrame->setBoxExtents(currExts);

@@ -717,24 +717,22 @@ void MainForm::loadData()
 		"Choose the Metadata File to load into current session",
 		"",
 		"Vapor Metadata Files (*.vdf)");
-	if (filename == QString::null){
-		//Try again.  Probably invalid Metadata file
-		filename = QFileDialog::getOpenFileName(this,
-		"Choose the Metadata File to load into current session",
-		"MetadataFile.vdf",
-		"Vapor Metadata Files (*.vdf)");
-	}
+	
 	if(filename != QString::null){
 		QFileInfo fInfo(filename);
+		const DataMgr* dmgr=0;
 		if (fInfo.isReadable() && fInfo.isFile()){
 			vector<string> files;
 			files.push_back(filename.toStdString());
-			ControlExecutive::getInstance()->LoadData(files,true);
+			dmgr = ControlExecutive::getInstance()->LoadData(files,true);
 		}
-		else QMessageBox::information(this,"Load Data Error","Unable to read metadata file ");
-		return;
+		else {
+			QMessageBox::information(this,"Load Data Error","Unable to read metadata file ");
+			return;
+		}
+		if (dmgr) return;
 	}
-	else QMessageBox::information(this,"Load Data Error","Unable to read metadata file ");
+	QMessageBox::information(this,"Load Data Error","Invalid VDC");
 
 }
 
@@ -797,22 +795,31 @@ void MainForm::importDefaultWRFData()
 //
 void MainForm::defaultLoadData()
 {
-	/*
 	//This launches a panel that enables the
     //user to choose input data files, then to
 	//create a datamanager using those files
-    //or metafiles.  
+    //with default settings
+	
 	QString filename = QFileDialog::getOpenFileName(this,
-		"Choose the Metadata File to load into new session",
-		Session::getInstance()->getMetadataFile().c_str(),
+		"Choose the Metadata File to load into default session",
+		"",
 		"Vapor Metadata Files (*.vdf)");
+	
 	if(filename != QString::null){
-		vector<string> files;
-		Session::getInstance()->resetMetadata(files, false, false);
-		files.push_back(filename.toStdString());
-		Session::getInstance()->resetMetadata(files, false, false);
+		QFileInfo fInfo(filename);
+		const DataMgr* dmgr=0;
+		if (fInfo.isReadable() && fInfo.isFile()){
+			vector<string> files;
+			files.push_back(filename.toStdString());
+			dmgr = ControlExecutive::getInstance()->LoadData(files,false);
+		}
+		else {
+			QMessageBox::information(this,"Load Data Error","Unable to read metadata file ");
+			return;
+		}
+		if (dmgr) return;
 	}
-	*/
+	QMessageBox::information(this,"Load Data Error","Invalid VDC");
 }
 void MainForm::newSession()
 {

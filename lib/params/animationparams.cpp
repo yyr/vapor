@@ -130,13 +130,7 @@ void AnimationParams::Validate(bool useDefault){
 	SetValidationMode(prevMode);
 	
 }
-//Respond to change in Metadata
-//
-bool AnimationParams::
-reinit(bool doOverride){
-	Validate(doOverride);
-	return true;
-}
+
 
 //Following method called when a frame has been rendered, to update the currentFrame, in
 //preparation for next rendering.

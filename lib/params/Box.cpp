@@ -78,7 +78,7 @@ int Box::GetLocalExtents(float extents[6], int timestep){
 	return 0;
 }
 
-int Box::SetLocalExtents(const vector<double>& extents, int timestep){
+int Box::SetLocalExtents(const vector<double>& extents, Params*p, int timestep){
 	const vector<double> defaultExtents(6,0.);
 	const vector<long> defaultTimes(1,0);
 	const vector<double>& curExts = GetRootNode()->GetElementDouble(_extentsTag,defaultExtents);
@@ -103,17 +103,17 @@ int Box::SetLocalExtents(const vector<double>& extents, int timestep){
 	for (int i = 0; i<6; i++)
 		copyExtents[i+index*6] = extents[i];
 
-	return GetRootNode()->SetElementDouble(_extentsTag, copyExtents);	
+	return CaptureSetDouble(_extentsTag, "Set box extents",copyExtents,p);	
 }
-int Box::SetLocalExtents(const double extents[6], int timestep){
+int Box::SetLocalExtents(const double extents[6],Params*p, int timestep){
 	vector<double> exts;
 	for (int i = 0; i<6; i++) exts.push_back(extents[i]);
-	return SetLocalExtents(exts, timestep);
+	return SetLocalExtents(exts, p, timestep);
 }
-int Box::SetLocalExtents(const float extents[6], int timestep){
+int Box::SetLocalExtents(const float extents[6], Params*p, int timestep){
 	vector<double> exts;
 	for (int i = 0; i<6; i++) exts.push_back((double)extents[i]);
-	return SetLocalExtents(exts, timestep);
+	return SetLocalExtents(exts, p, timestep);
 }
 
 int Box::GetUserExtents(double extents[6], size_t timestep){

@@ -782,25 +782,25 @@ reinitializeParams(bool doOverride){
 	// Default render params should override; non render don't necessarily:
 	for (int i = 1; i<= Params::GetNumParamsClasses(); i++){
 		Params* p = Params::GetDefaultParams(i);
-		if (p->isRenderParams())p->reinit(true);
+		if (p->isRenderParams())p->Validate(true);
 	}
 
 	
 	//NOTE that the vpparams need to be initialized after
 	//the global region params, since they use its settings..
 	//
-	getGlobalVPParams()->reinit(doOverride);
+	getGlobalVPParams()->Validate(doOverride);
 	
 	for (int i = 0; i< VizWindow.size(); i++){
 		if (!VizWindow[i]) continue;
-		if(getRealVPParams(i) && (getRealVPParams(i)!= getGlobalVPParams())) getRealVPParams(i)->reinit(doOverride);
-		if(getRealRegionParams(i)) getRealRegionParams(i)->reinit(doOverride);
+		if(getRealVPParams(i) && (getRealVPParams(i)!= getGlobalVPParams())) getRealVPParams(i)->Validate(doOverride);
+		if(getRealRegionParams(i)) getRealRegionParams(i)->Validate(doOverride);
 		//Reinitialize all the render params for each window
 		for (int pType = 1; pType <= Params::GetNumParamsClasses(); pType++){
 			EventRouter* eRouter = getEventRouter(pType);
 			for (int inst = 0; inst < Params::GetNumParamsInstances(pType, i); inst++){
 				Params* p = Params::GetParamsInstance(pType,i,inst);
-				p->reinit(doOverride);
+				p->Validate(doOverride);
 				if (!p->isRenderParams()) break;
 				RenderParams* rParams = (RenderParams*)p;
 				p->SetVizNum(i);  //needed because of iso bug in 2.0.0
@@ -810,7 +810,7 @@ reinitializeParams(bool doOverride){
 			}
 		}
 		
-		if(getRealAnimationParams(i) && getRealAnimationParams(i)!= getGlobalAnimationParams()) getRealAnimationParams(i)->reinit(doOverride);
+		if(getRealAnimationParams(i) && getRealAnimationParams(i)!= getGlobalAnimationParams()) getRealAnimationParams(i)->Validate(doOverride);
 		//setup near/far
 		if (getRealVPParams(i)) VizWindow[i]->getVisualizer()->resetView(getViewpointParams(i));
 		if(!doOverride && VizWindow[i]) VizWindow[i]->getVisualizer()->removeAllRenderers();
@@ -825,7 +825,7 @@ reinitializeParams(bool doOverride){
 	}
 	//Note that animation params must reinitialize after viewpoint params 
 	//in order to get starting viewpoint for animation control.
-	getGlobalAnimationParams()->reinit(doOverride);
+	getGlobalAnimationParams()->Validate(doOverride);
 }
 //Update params and tabs to be aware of change of active variables
 //Similar to above, but don't turn off existing renderers, DataMgr has
@@ -835,31 +835,31 @@ reinitializeVariables(){
 	// Default render params do not override
 	for (int i = 1; i<= Params::GetNumParamsClasses(); i++){
 		Params* p = Params::GetDefaultParams(i);
-		if (p->isRenderParams())p->reinit(false);
+		if (p->isRenderParams())p->Validate(false);
 	}
 	
-	getGlobalRegionParams()->reinit(false);
+	getGlobalRegionParams()->Validate(false);
 	getRegionRouter()->reinitTab(false);
 
 	//NOTE that the vpparams need to be initialized after
 	//the global region params, since they use its settings..
 	//
-	getGlobalVPParams()->reinit(false);
+	getGlobalVPParams()->Validate(false);
 	
 	for (int i = 0; i< VizWindow.size(); i++){
 		if (!VizWindow[i]) continue;
-		if(getRealVPParams(i)) getRealVPParams(i)->reinit(false);
-		if(getRealRegionParams(i)) getRealRegionParams(i)->reinit(false);
+		if(getRealVPParams(i)) getRealVPParams(i)->Validate(false);
+		if(getRealRegionParams(i)) getRealRegionParams(i)->Validate(false);
 		//Reinitialize all the render params, but not the event routers
 		for (int pType = 1; pType <= Params::GetNumParamsClasses(); pType++){
 			for (int inst = 0; inst < Params::GetNumParamsInstances(pType, i); inst++){
 				Params* p = Params::GetParamsInstance(pType,i,inst);
 				if (!p->isRenderParams()) break;
 				RenderParams* rParams = (RenderParams*)p;
-				rParams->reinit(false);
+				rParams->Validate(false);
 			}
 		}
-		if(getRealAnimationParams(i)) getRealAnimationParams(i)->reinit(false);
+		if(getRealAnimationParams(i)) getRealAnimationParams(i)->Validate(false);
 	}
 
     //
@@ -869,7 +869,7 @@ reinitializeVariables(){
 		EventRouter* eRouter = getEventRouter(pType);
 		eRouter->reinitTab(false);
 	}
-	getGlobalAnimationParams()->reinit(false);
+	getGlobalAnimationParams()->Validate(false);
 }
 //Force all renderers to re-obtain render data
 void VizWinMgr::refreshRenderData(){

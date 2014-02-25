@@ -123,12 +123,14 @@ reset(DataMgr* dm, size_t cachesize){
 	//go through the variables and timesteps, determine min and max times for any data to exist.
 	int mints = -1;
 	int maxts = -1;
+	bool someDataOverall = false;
 	const vector<string>& vnames =  dataMgr->GetVariableNames();
 	for (int i = 0; i< numTimesteps; i++){
 		for (int j = 0; j< vnames.size(); j++){
 			const char* vname = vnames[j].c_str();
 			if (dataMgr->VariableExists((size_t)i,vname)) {
 				mints = i;
+				someDataOverall = true;
 				break;
 			}
 		}
@@ -140,6 +142,7 @@ reset(DataMgr* dm, size_t cachesize){
 			const char* vname = vnames[j].c_str();
 			if (dataMgr->VariableExists((size_t)i,vname)) {
 				maxts = i;
+				someDataOverall = true;
 				break;
 			}
 		}
@@ -147,7 +150,7 @@ reset(DataMgr* dm, size_t cachesize){
 	}
 	
 	
-	bool someDataOverall = false;
+	
 	
 	
     if (mints == -1) mints = 0;
@@ -158,7 +161,7 @@ reset(DataMgr* dm, size_t cachesize){
 	minTimeStep = (size_t)mints;
 	maxTimeStep = (size_t)maxts;
 	
-	return true;
+	return someDataOverall;
 }
 
 

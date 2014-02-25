@@ -73,21 +73,24 @@ public:
 	//! Specify the local extents.  If time step is -1, then set the generic extents.
 	//! Otherwise set the extents for a specific timestep.
 	//! param[in] extents vector<double>& Six doubles that will be new extents
+	//! param[in] Params* params that owns this box
 	//! param[in] timestep int Specified time step, or -1 for generic times
 	//! \retval int zero if successful.
-	int SetLocalExtents(const vector<double>& extents, int timestep = -1);
+	int SetLocalExtents(const vector<double>& extents, Params* p, int timestep = -1);
 	//! Specify the local extents as a double array.  If time step is -1, then set the generic extents.
 	//! Otherwise set the extents for a specific timestep.
-	//! param[in] double extents6] 6 doubles that will be new extents
+	//! param[in] double extents[6] 6 doubles that will be new extents
+	//! param[in] Params* params that owns this box
 	//! param[in] int timestep specified time step, or -1 for generic times
 	//! \retval int zero if successful.
-	int SetLocalExtents(const double extents[6], int timestep = -1);
+	int SetLocalExtents(const double extents[6], Params* p, int timestep = -1);
 	//! Specify the local extents as a float array.  If time step is -1, then set the generic extents.
 	//! Otherwise set the extents for a specific timestep.
 	//! param[in] float extents[6]
+	//! param[in] Params* params that owns this box
 	//! param[in] int timestep specified time step, or -1 for generic times
 	//! \retval int zero if successful.
-	int SetLocalExtents(const float extents[6], int timestep = -1);
+	int SetLocalExtents(const float extents[6], Params* p, int timestep = -1);
 	
 	//! Get the three orientation angles (theta, phi, psi)
 	//! Defaults to empty vector if no angles are set.
@@ -118,24 +121,27 @@ public:
 	}
 	//! Set the angles from a double array
 	//! \param [in] ang double[3] array of three doubles for theta, phi, psi
+	//! param[in] Params* params that owns this box
 	//! \retval int zero on success
-	int SetAngles(const double angles[3]){
+	int SetAngles(const double angles[3], Params* p){
 		vector<double> ang;
 		for (int i = 0; i<3;i++) ang.push_back(angles[i]);
-		return GetRootNode()->SetElementDouble(_anglesTag, ang);
+		return CaptureSetDouble(_anglesTag, "change box angles",ang,p);
 	}
 	//! Set the angles from a float array
 	//! \param [in] angles float[3] array of three floats for theta, phi, psi
+	//! param[in] Params* params that owns this box
 	//! \retval int zero on success
-	int SetAngles(const float angles[3]){
+	int SetAngles(const float angles[3], Params* p){
 		vector<double> angl;
 		for (int i = 0; i<3;i++) angl.push_back((double)angles[i]);
-		return GetRootNode()->SetElementDouble(_anglesTag, angl);
+		return CaptureSetDouble(_anglesTag, "change box angles",angl,p);
 	}
 	//! Set the three orientation angles (theta, phi, psi) from a vector of doubles
 	//! \param[in] vals const vector<double>& vector of length 3 of angles.
-	void SetAngles(const vector<double>& vals){
-		GetRootNode()->SetElementDouble(_anglesTag, vals);
+	//! param[in] Params* params that owns this box
+	void SetAngles(const vector<double>& vals, Params* p){
+		CaptureSetDouble(_anglesTag, "Change box angles",vals, p);
 	}
 	//! Get the time(s) as a long vector.
 	//! The first one should be negative, marking the default extents.
@@ -151,12 +157,17 @@ public:
 	//! The first one should be negative, marking the default extents.
 	//! Subsequent times are nonnegative integers indicating times for nondefault extents.
 	//! This vector should be the same size as the extents vector.
-	//! \param [out] const vector<long>& vector of times
-	void SetTimes(const vector<long>& times) { GetRootNode()->SetElementLong(Box::_timesTag, times);}
+	//! param[in] Params* params that owns this box
+	//! \param [in] const vector<long>& vector of times
+	void SetTimes(const vector<long>& times, Params* p) { 
+		CaptureSetLong(Box::_timesTag, "Change box times",times, p);
+	}
+
 	//! Trim both the times and extents vectors to same length.
 	//! Default is to length 1
+	//! param[in] Params* params that owns this box
 	//! \param[in] numTimes int resulting length of times and extentss.
-	void Trim(int numTimes = 1){
+	void Trim(Params* p,int numTimes = 1){
 		if (numTimes > GetTimes().size()) return;
 		vector<long> times = GetTimes();
 		times.resize(numTimes);
@@ -164,7 +175,7 @@ public:
 		vector<double> exts; 
 		vector<double>defaultExts(6,0.);
 		exts = GetRootNode()->GetElementDouble(Box::_extentsTag,defaultExts);
-		GetRootNode()->SetElementDouble(Box::_extentsTag, exts);
+		CaptureSetDouble(Box::_extentsTag, "Trim box extents",exts, p);
 	}
 	static const string _boxTag;
 	static const string _anglesTag;

@@ -38,13 +38,13 @@ ArrowParams::~ArrowParams() {
 //
 // For each new variable in the metadata create a variable child node, and build the
 // associated isoControl and transfer function nodes.
-bool ArrowParams::
-reinit(bool doOverride){
+void ArrowParams::
+Validate(bool doOverride){
 
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
 	int totNumVariables = ds->getNumVariables2DXY()+ds->getNumVariables3D();
-	if (totNumVariables <= 0) return false;
+	if (totNumVariables <= 0) return;
 	bool is3D = VariablesAre3D();
 	int numVariables;
 	if (is3D) numVariables = ds->getNumVariables3D();
@@ -168,7 +168,7 @@ reinit(bool doOverride){
 		SetVectorScale(calcDefaultScale());
 	}
 	initializeBypassFlags();
-	return true;
+	return;
 }
 //Set everything to default values
 void ArrowParams::restart() {
@@ -300,9 +300,14 @@ int ArrowParams::SetFieldVariableName(int i, const string& varName){
 	if(svec.size() <= i) 
 		for (int j = svec.size(); j<=i; j++) svec.push_back("0");
 	svec[i] = varName;
-	CaptureSetStringVec(_VariableNamesTag,"set barb field name",svec);
+	//Capture the change to variable name and to scale
+	Command* cmd = CaptureStart("set barb field name");
+	int rc = GetRootNode()->SetElementStringVec(_VariableNamesTag,svec);
+	if (!rc && svec.size() == 3) rc = GetRootNode()->SetElementDouble(_vectorScaleTag,calcDefaultScale());
+	if (rc && cmd) {delete cmd; return rc;}
+	if (cmd) CaptureEnd(cmd);
 	setAllBypass(false);
-	return 0;
+	return rc;
 }
 int ArrowParams::SetHeightVariableName(const string& varName){
 	CaptureSetString(_heightVariableNameTag,"Set barb rake extents",varName);
@@ -327,7 +332,7 @@ double ArrowParams::calcDefaultScale(){
 	const float* stretch = ds->getStretchFactors();
 	for (int i = 0; i<3; i++){
 		varname = GetFieldVariableName(i);
-		if (varname == "0") maxvarvals[i] = 0.;
+		if (varname == "0" || !ds->getDataMgr()) maxvarvals[i] = 0.;
 		else {
 			maxvarvals[i] = Max(abs(ds->getDefaultDataMax(varname)),abs(ds->getDefaultDataMin(varname)));
 		}

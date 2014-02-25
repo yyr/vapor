@@ -36,6 +36,7 @@
 #include "datastatus.h"
 #include "regionparams.h"
 #include "vapor/Version.h"
+#include "command.h"
 
 
 double VAPoR::ViewpointParams::defaultUpVec[3] = {0.f, 1.f, 0.f};
@@ -128,8 +129,8 @@ void ViewpointParams::setDefaultPrefs(){
 //If we can override, set to default for current region.
 //Note that this should be called after the region is init'ed
 //
-bool ViewpointParams::
-reinit(bool doOverride){
+void ViewpointParams::
+Validate(bool doOverride){
 	
 	setCoordTrans();
 	if (doOverride){
@@ -137,7 +138,7 @@ reinit(bool doOverride){
 		restart();
 		
 	} 
-	return true;
+	return;
 }
 //Rescale viewing parameters when the scene is rescaled by factor
 void ViewpointParams::
@@ -154,7 +155,7 @@ rescale (double scaleFac[3], int timestep){
 		vtemp[i] /= scaleFac[i];
 		vtemp2.push_back(vtemp[i]+vctr[i]);
 	}
-	vp->setCameraPosLocal(vtemp2);
+	vp->setCameraPosLocal(vtemp2,this);
 	//Do same for home viewpoint
 	const vector<double>& vpsh = vp->getCameraPosLocal();
 	const vector<double>& vctrh = vp->getRotationCenterLocal();
@@ -165,7 +166,7 @@ rescale (double scaleFac[3], int timestep){
 		vtemp2[i] = vtemp[i] + vctrh[i];
 	}
 
-	vph->setCameraPosLocal(vtemp2);
+	vph->setCameraPosLocal(vtemp2,this);
 	
 }
 
@@ -261,11 +262,15 @@ centerFullRegion(int timestep){
 	double viewDir[3];
 	for (int j = 0; j<3; j++) viewDir[j] = currentViewpoint->getViewDir()[j];
 	vnormal(viewDir);
+	Command* cmd = Command::captureStart(this,"Center view on region");
+	Command::blockCapture();
 	for (int i = 0; i<3; i++){
 		float dataCenter = 0.5f*(fullExtent[i+3]-fullExtent[i]);
 		float camPosCrd = dataCenter -2.5*maxSide*viewDir[i]/stretch[i];
-		currentViewpoint->setCameraPosLocal(i, camPosCrd);
-		currentViewpoint->setRotationCenterLocal(i, dataCenter);
+		currentViewpoint->setCameraPosLocal(i, camPosCrd,this);
+		currentViewpoint->setRotationCenterLocal(i, dataCenter,this);
 	}
+	Command::unblockCapture();
+	if (cmd) Command::captureEnd(cmd,this);
 	
 }

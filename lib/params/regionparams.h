@@ -57,11 +57,8 @@ public:
 
 	//! Destructor
 	~RegionParams();
-	
-#ifndef DOXYGEN_SKIP_THIS
-
-	static ParamsBase* CreateDefaultInstance() {return new RegionParams(0, -1);}
-	const std::string& getShortName() {return _shortName;}
+	//! Method to obtain the current Box defining the region extents
+	//! \retval Box* current Box.
 	virtual Box* GetBox() {
 		ParamNode* pNode = GetRootNode()->GetNode(Box::_boxTag);
 		if (pNode) return (Box*)pNode->GetParamsBase();
@@ -69,34 +66,66 @@ public:
 		GetRootNode()->AddNode(Box::_boxTag, box->GetRootNode());
 		return box;
 	}
-	float getLocalRegionMin(int coord, int timestep){ 
+	//! Method to validate all values in a RegionParams instance
+	//! \param[in] bool default indicates whether or not to set to default values associated with the current DataMgr
+	//! \sa DataMgr
+	virtual void Validate(bool useDefault);
+	//! Method to initialize a new RegionParams instance
+	virtual void restart();
+	//! Get the minimum extent of the Box, in local coordinates
+	//! \param[in] int coord 0,1,2 for x,y,z
+	//! \param[in] int timestep indicates the current timestep, used only with time-varying extents.
+	//! \retval double is minimum value of specified coordinate.
+	double getLocalRegionMin(int coord, int timestep){ 
 		double exts[6];
 		GetBox()->GetLocalExtents(exts, timestep);
 		return exts[coord];
 	}
-	float getLocalRegionMax(int coord, int timestep){ 
+	//! Get the maximum extent of the Box, in local coordinates
+	//! \param[in] int coord 0,1,2 for x,y,z
+	//! \param[in] int timestep indicates the current timestep, used only with time-varying extents.
+	//! \retval double is minimum value of specified coordinate.
+	double getLocalRegionMax(int coord, int timestep){ 
 		double exts[6];
 		GetBox()->GetLocalExtents(exts, timestep);
 		return exts[coord+3];
 	}
+	//! Get the extents extent of the Box, in local coordinates
+	//! \param[out] double[6] extents
+	//! \param[in] int timestep indicates the current timestep, used only with time-varying extents.
+	
 	void getLocalRegionExtents(double exts[6],int timestep){
 		GetBox()->GetLocalExtents(exts,timestep);
 		return;
 	}
-	float getLocalRegionCenter(int indx, int timestep) {
-		return (0.5f*(getLocalRegionMin(indx,timestep)+getLocalRegionMax(indx,timestep)));
+	//! Get a center coordinate of the Box, in local coordinates
+	//! \param[in] int coord 0,1,2 for x,y,z
+	//! \param[in] int timestep indicates the current timestep, used only with time-varying extents.
+	//! \retval double value of center for specified coordinate.
+	double getLocalRegionCenter(int indx, int timestep) {
+		return (0.5*(getLocalRegionMin(indx,timestep)+getLocalRegionMax(indx,timestep)));
 	}
-	
-	// Reinitialize due to new Session:
-	bool reinit(bool doOverride);
-	virtual void Validate(bool useDefault){ reinit(useDefault);}
-	virtual void restart();
-	
 	//Methods to set the region max and min from a float value.
 	//public so accessible from router
 	//
-	void setLocalRegionMin(int coord, float minval, int timestep, bool checkMax=true);
-	void setLocalRegionMax(int coord, float maxval, int timestep, bool checkMin=true);
+	//! Set the minimum value of a box coordinate
+	//! \param [in] int coordinate (0,1,2 for x,y,z)
+	//! \param [in] double value to be set
+	//! \param [in] int timestep indicates the current timestep, used only with time-varying extents
+	//! \retval int is 0 for success
+	int SetLocalRegionMin(int coord, double minval, int timestep);
+	//! Set the maximum value of a box coordinate
+	//! \param [in] int coordinate (0,1,2 for x,y,z)
+	//! \param [in] double value to be set
+	//! \param [in] int timestep indicates the current timestep, used only with time-varying extents
+	//! \retval int is 0 for success
+	int SetLocalRegionMax(int coord, double maxval, int timestep);
+#ifndef DOXYGEN_SKIP_THIS
+
+	static ParamsBase* CreateDefaultInstance() {return new RegionParams(0, -1);}
+	const std::string& getShortName() {return _shortName;}
+	
+	
 	
 	const vector<double>& GetAllExtents(){ return GetBox()->GetRootNode()->GetElementDouble(Box::_extentsTag);}
 	const vector<long>& GetTimes(){ return GetBox()->GetRootNode()->GetElementLong(Box::_timesTag);}

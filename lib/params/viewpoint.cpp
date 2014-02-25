@@ -46,7 +46,7 @@ const string Viewpoint::_rotCenterTag = "RotationCenter";
 
 
 //Force the rotation center to lie in the center of the view.
-void Viewpoint::alignCenter(){
+void Viewpoint::alignCenter(Params* p){
 	double viewDirection[3];
 	const vector <double>& vdir = getViewDir();
 	const vector<double>& rotationCenter = getRotationCenterLocal();
@@ -73,5 +73,5 @@ void Viewpoint::alignCenter(){
 		rctr[i] = temp[i]+cameraPosition[i];
 		rotCtrLocal.push_back(rctr[i]);
 	}
-	setRotationCenterLocal(rotCtrLocal);
+	setRotationCenterLocal(rotCtrLocal,p);
 }

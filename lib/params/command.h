@@ -100,20 +100,20 @@ public:
 	//! Static method to put command queue in initial state.
 	static void resetCommandQueue();
 	
-	//Anytime someone wants to stop inserting into the commandQueue, they call blockRecording,
+	//Anytime someone wants to stop inserting into the commandQueue, they call blockCapture,
 	//then unblock when they are done.  No recording happens until all blockers has stopped
 	//blocking it.
 	//
 	//! static method to stop inserting commands into the queue.
-	//! subsequent commands do not get inserted until unblockRecording() is called
-	//sa unblockRecording, isRecording
-	static void blockRecording() {recordingCount++;}
+	//! subsequent commands do not get inserted until unblockCapture() is called
+	//sa unblockCapture, isRecording
+	static void blockCapture() {recordingCount++;}
 	//! static method to resume inserting commands into the queue.
-	//! Should be called after blockRecording
-	//sa blockRecording, isRecording
-	static void unblockRecording() {recordingCount--;}
+	//! Should be called after blockCapture
+	//sa blockCapture, isRecording
+	static void unblockCapture() {recordingCount--;}
 	//! static method to tell if commands are being inserted in the queue
-	//sa blockRecording, unblockRecording
+	//sa blockCapture, unblockCapture
 	// \return bool indicates whether or not recording is enabled.
 	static bool isRecording() {return (recordingCount == 0);}
 	//! static method retrieves a command from the queue,
