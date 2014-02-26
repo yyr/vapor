@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 #include <vapor/MyBase.h>
+#include "command.h"
 #include "datastatus.h"
 #include "assert.h"
 #include "Box.h"
@@ -138,4 +139,16 @@ int Box::GetUserExtents(float extents[6], size_t timestep){
 		extents[i] += tvExts[i%3];
 	}
 	return 0;
+}
+void Box::Trim(Params* p,int numTimes){
+		if (numTimes > GetTimes().size()) return;
+		Command* cmd = Command::captureStart(p, "Trim box extents");
+		vector<long> times = GetTimes();
+		times.resize(numTimes);
+		GetRootNode()->SetElementLong(Box::_timesTag,times);
+		vector<double> exts; 
+		vector<double>defaultExts(6,0.);
+		exts = GetRootNode()->GetElementDouble(Box::_extentsTag,defaultExts);
+		GetRootNode()->SetElementDouble(_extentsTag, exts);
+		Command::captureEnd(cmd, p);
 }

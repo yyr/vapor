@@ -22,7 +22,9 @@
 #define BOX_H
 
 namespace VAPoR {
+
 #include <vapor/ParamsBase.h>
+
 //! \class Box
 //! \brief 3D or 2D box with options for orientation angles and extents changing in time.  
 //! Intended to be used in any Params class
@@ -167,22 +169,14 @@ public:
 	//! Default is to length 1
 	//! \param[in] Params* params that owns this box
 	//! \param[in] numTimes int resulting length of times and extentss.
-	void Trim(Params* p,int numTimes = 1){
-		if (numTimes > GetTimes().size()) return;
-		vector<long> times = GetTimes();
-		times.resize(numTimes);
-		GetRootNode()->SetElementLong(Box::_timesTag,times);
-		vector<double> exts; 
-		vector<double>defaultExts(6,0.);
-		exts = GetRootNode()->GetElementDouble(Box::_extentsTag,defaultExts);
-		CaptureSetDouble(Box::_extentsTag, "Trim box extents",exts, p);
-	}
+	void Trim(Params* p,int numTimes = 1);
+#ifndef DOXYGEN_SKIP_THIS
 	static const string _boxTag;
 	static const string _anglesTag;
 	static const string _extentsTag;
 	static const string _timesTag;
 
-	
+#endif //DOXYGEN_SKIP_THIS	
 };
 };
 #endif

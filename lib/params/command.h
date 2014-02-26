@@ -44,14 +44,7 @@ public:
 		if (prevRoot) delete prevRoot;
 		tag.clear();
 	}
-	//! Static method moves the command queue forward, returns the next Params state
-	//! \return Params* pointer to the next Params instance
-	//!
-	static Params* reDo();
-	//! Static method moves the command queue back, returns the previous Params state
-	//! \return Params* pointer to the previous Params instance
-	//!
-	static Params* unDo();
+	
 	//! Specify the description of a command
 	//! \param [in] char* description
 	void setDescription(const char* str){
@@ -79,6 +72,7 @@ public:
 	//! \param [in] nextParams points to next Params instance
 	//! \sa captureStart
 	static void captureEnd(Command* pCom, Params *nextParams){
+		if (!pCom) return;
 		pCom->nextRoot = nextParams->GetRootNode()->deepCopy();
 		AddToHistory(pCom);
 	}
@@ -128,10 +122,18 @@ public:
 		while (posn < 0) posn += MAX_HISTORY;
 		return commandQueue[posn%MAX_HISTORY];
 	}
+#ifndef DOXYGEN_SKIP_THIS
 protected:
 	static Command* CurrentUndoCommand() {return CurrentCommand(0);}
 	static Command* CurrentRedoCommand() {return CurrentCommand(-1);}
-	
+	//! Static method moves the command queue forward, returns the next Params state
+	//! \return Params* pointer to the next Params instance
+	//!
+	static Params* reDo();
+	//! Static method moves the command queue back, returns the previous Params state
+	//! \return Params* pointer to the previous Params instance
+	//!
+	static Params* unDo();
 	string description;
 	ParamNode* prevRoot;
 	ParamNode* nextRoot;
@@ -144,6 +146,7 @@ protected:
 	static int endQueuePos;
 	static int startQueuePos;
 	static int recordingCount;
+#endif //DOXYGEN_SKIP_THIS
 };
 	
 };

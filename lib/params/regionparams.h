@@ -39,8 +39,8 @@ class ParamNode;
 //! \class RegionParams
 //! \brief A class for describing a 3D axis-aligned region in user space.
 //! \author Alan Norton
-//! \version $Revision$
-//! \date    $Date$
+//! \version 3.0
+//! \date    February 2014
 //! The RegionParams class controls the extents of a 3D box of data for visualization.
 //! The DVR, Isosurface and Flow renderers use only the data specified by the current RegionParams.
 //! There is a global RegionParams, that 

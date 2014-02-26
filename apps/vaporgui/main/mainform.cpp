@@ -655,13 +655,19 @@ void MainForm::fileExit()
 }
 
 void MainForm::undo(){
-	Params* p = ControlExecutive::getInstance()->Undo();
+	ControlExecutive* ce = ControlExecutive::getInstance();
+	//If it's not active, just set default text:
+	if (!ce->GetCurrentCommand(0)) return; 
+	Params* p = ce->Undo();
 	tabWidget->getFrontEventRouter()->updateTab();
 	VizWinMgr::getInstance()->forceRender(p,true);
 }
 
 void MainForm::redo(){
-	Params* p = ControlExecutive::getInstance()->Redo();
+	ControlExecutive* ce = ControlExecutive::getInstance();
+	//If it's not active, just set default text:
+	if (!ce->GetCurrentCommand(-1)) return; 
+	Params* p = ce->Redo();
 	tabWidget->getFrontEventRouter()->updateTab();
 	VizWinMgr::getInstance()->forceRender(p,true);
 }

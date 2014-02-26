@@ -188,6 +188,7 @@ public:
 	//! \param[in] vector<long> vector of 2 strides.
 	//! \retval int 0 if successful
 	int SetGridAlignStrides(const vector<long>& strides);
+#ifndef DOXYGEN_SKIP_THIS
 	//Utility function to find rake when it is aligned to data:
 	void calcDataAlignment(double rakeExts[6], int rakeGrid[3], size_t timestep);
 	//Utility function to recalculate vector scale factor
@@ -208,6 +209,7 @@ static const string _alignGridStridesTag;
 static const string _heightVariableNameTag;
 double _constcolorbuf[4];
 
+#endif //DOXYGEN_SKIP_THIS
 
 }; //End of Class ArrowParams
 };

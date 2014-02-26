@@ -44,7 +44,11 @@ class ViewpointParams;
 class RegionParams;
 class DataMgr;
 class Command;
-
+//! The ValidationMode enum is used to determine the level of validation that occurs during SetValue methods.
+//! \sa SetValidationMode, GetValidationMode, DataMgr
+//! NO_CHECK does not perform any validation.
+//! CHECK test values for validity (using current DataMgr) and returns -1 if value is not valid
+//! CHECK_AND_FIX tests for validity and sets the nearest valid value, returning -1 if value not valid.
 enum ValidationMode {
 		NO_CHECK,
 		CHECK,
@@ -450,8 +454,8 @@ protected:
 //! \class RenderParams
 //! \brief A Params subclass for managing parameters used by Renderers
 //! \author Alan Norton
-//! \version $Revision$
-//! \date    $Date$
+//! \version 3.0
+//! \date    February 2014
 //!
 class PARAMS_API RenderParams : public Params {
 public: 
@@ -462,11 +466,14 @@ public:
 //! \param[in] winNum  integer visualizer num, -1 for global or default params
 	RenderParams(XmlNode *parent, const string &name, int winnum); 
 	
-		
+	//! Determine if this params has been enabled for rendering
+	//! \retval bool true if enabled
 	virtual bool IsEnabled(){
 		int enabled = GetRootNode()->GetElementLong(_EnabledTag)[0];
 		return (enabled != 0);
 	}
+	//! Enable or disable this params for rendering
+	//! \param[in] bool true to enable, false to disable.
 	virtual void SetEnabled(bool val){
 		long lval = (long)val;
 		GetRootNode()->SetElementLong(_EnabledTag,lval);

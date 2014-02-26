@@ -219,7 +219,7 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 	guiSetTextChanged(false);
 
 	updateTab();
-	
+	VizWinMgr::getInstance()->forceRender(vParams);
 }
 void ViewpointEventRouter::
 viewpointReturnPressed(void){

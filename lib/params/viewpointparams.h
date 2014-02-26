@@ -33,12 +33,12 @@ class ParamNode;
 //! \class ViewpointParams
 //! \brief A class for describing the viewpoint and lights
 //! \author Alan Norton
-//! \version $Revision$
-//! \date    $Date$
+//! \version 3.0
+//! \date    February 2014
 //! This class provides methods for determining the viewpoint
 //! and the direction of lights.  If it is shared, all windows can
 //! use the same viewpoint and lights.  Local viewpoints are
-//! just applicable to one window.
+//! just applicable in one visualizer.
 class PARAMS_API ViewpointParams : public Params {
 	
 public: 
@@ -103,56 +103,161 @@ public:
 	int setCameraPosLocal(const vector<double>& val,int timestep ) {
 		return getCurrentViewpoint()->setCameraPosLocal(val, this);
 	}
-	
-	int setViewDir(int i, double val) {return getCurrentViewpoint()->setViewDir(i,val, this);}
+	//! Set a component of viewer direction in the current viewpoint
+	//! \param[in] int coordinate (0,1,2)
+	//! \param[in] double value to be set
+	//! \retval int 0 on success
+	int setViewDir(int coord, double val) {return getCurrentViewpoint()->setViewDir(coord,val, this);}
+	//! Set the viewer direction in the current viewpoint
+	//! \param[in] vector<double> direction vector to be set
+	//! \retval int 0 on success
 	int setViewDir(const vector<double>& val) {return getCurrentViewpoint()->setViewDir(val, this);}
-	
+	//! Set a component of upward direction vector in the current viewpoint
+	//! \param[in] int coordinate (0,1,2)
+	//! \param[in] double value to be set
+	//! \retval int 0 on success
 	int setUpVec(int i, double val) { return getCurrentViewpoint()->setUpVec(i,val,this);}
+	//! Set upward direction vector in the current viewpoint
+	//! \param[in] vector<double> value to be set
+	//! \retval int 0 on success
 	int setUpVec(const vector<double>& val) {return getCurrentViewpoint()->setUpVec(val,this);}
-	
-	int setNumLights(int nlights) {
-		return CaptureSetLong(_numLightsTag,"Set number of lights", nlights);
+	//! Obtain a coordinate of the current rotation center
+	//! \param[in] coordinate
+	//! \retval double component of rotation center
+	double getRotationCenterLocal(int coord){ return getCurrentViewpoint()->getRotationCenterLocal(coord);}
+	//! Specify the location of the rotation center in local coordinates.
+	//! \param[in] vector<double> position
+	//! \retval 0 on success
+	int setRotationCenterLocal(const vector<double>& vec){
+		return getCurrentViewpoint()->setRotationCenterLocal(vec,this);
 	}
+	//! Set the number of directional light sources
+	//! \param[in] int number of lights (0,1,2,3)
+	//! \retval 0 on success
+	int setNumLights(int nlights) {
+		int rc=0;
+		if (currentValidationMode != NO_CHECK){
+			if (nlights < 0){nlights = 0; rc = -1;}
+			if (nlights > 3){nlights = 3; rc = -1;}
+			if (currentValidationMode == CHECK && rc) return rc;
+		}
+
+		int rc2 = CaptureSetLong(_numLightsTag,"Set number of lights", nlights);
+		if (rc) return rc; else return rc2;
+	}
+	//! get one component of a light direction vector
+	//! \param[in] int lightNum identifies which light source
+	//! \param[in] int dir coordinate of direction vector
+	//! \retval double requested component of light direction vector
 	double getLightDirection(int lightNum, int dir){
 		return GetRootNode()->GetElementDouble(_lightDirectionsTag)[dir+3*lightNum];
 	}
+	//! Set one component of a light direction vector
+	//! \param[in] int lightNum identifies which light source
+	//! \param[in] int dir coordinate of direction vector
+	//! \param[in] double value to be set
+	//! \retval int 0 on success
 	int setLightDirection(int lightNum, int dir, double val){
+		int rc = 0;
+		if (currentValidationMode != NO_CHECK){
+			if (lightNum < 0) {lightNum = 0; rc = -1;}
+			if (lightNum >2 ) {lightNum = 2; rc = -1;}
+			if (dir < 0) {dir = 0; rc = -1;}
+			if (dir >2 ) {dir = 2; rc = -1;}
+			if (currentValidationMode == CHECK && rc) return rc;
+		}
 		vector<double> ldirs = vector<double>(GetRootNode()->GetElementDouble(_lightDirectionsTag));
 		ldirs[dir+3*lightNum] = val;
-		return CaptureSetDouble(_lightDirectionsTag,"Set light direction",ldirs);
+		int rc2 =  CaptureSetDouble(_lightDirectionsTag,"Set light direction",ldirs);
+		if (rc) return rc; else return rc2;
 	}
+	//! Optain the diffuse lighting coefficient of a light source
+	//! \param[in] int light number (0..2)
+	//! \retval double diffuse coefficient
 	double getDiffuseCoeff(int lightNum) {
 		vector<double> defaultDiffCoeff;
 		for (int i = 0; i<3; i++) defaultDiffCoeff.push_back(defaultDiffuseCoeff[i]);
 		return GetRootNode()->GetElementDouble(_diffuseCoeffTag,defaultDiffCoeff)[lightNum];
 	}
+	//! Optain the specular lighting coefficient of a light source
+	//! \param[in] int light number (0..2)
+	//! \retval double specular coefficient
 	double getSpecularCoeff(int lightNum) {
 		vector<double> defaultSpecCoeff;
 		for (int i = 0; i<3; i++) defaultSpecCoeff.push_back(defaultSpecularCoeff[i]);
 		return GetRootNode()->GetElementDouble(_specularCoeffTag,defaultSpecCoeff)[lightNum];
 	}
-	
+	//! Optain the ambient lighting coefficient of the lights
+	//! \retval double ambient coefficient
 	double getAmbientCoeff() {
 		vector<double> defaultAmbient(defaultAmbientCoeff,1);
 		return GetRootNode()->GetElementDouble(_ambientCoeffTag,defaultAmbient)[0];
 	}
+	//! Set the diffuse lighting coefficient of a light source
+	//! \param[in] int light number (0..2)
+	//! \param[in] double diffuse coefficent
+	//! \retval int 0 if successful
 	int setDiffuseCoeff(int lightNum, double val) {
+		int rc = 0;
+		if (currentValidationMode != NO_CHECK){
+			if (lightNum < 0){lightNum = 0; rc = -1;}
+			if (lightNum >2){lightNum = 2; rc = -1;}
+			if (val < 0.) {val = 0.; rc = -1;}
+			if (val >1.) {val = 1.; rc = -1;}
+			if (currentValidationMode == CHECK && rc) return rc;
+		}
 		vector<double>diffCoeff(GetRootNode()->GetElementDouble(_diffuseCoeffTag));
 		diffCoeff[lightNum]=val;
-		return CaptureSetDouble(_diffuseCoeffTag,"Set diffuse coefficient",diffCoeff);
+		int rc2 = CaptureSetDouble(_diffuseCoeffTag,"Set diffuse coefficient",diffCoeff);
+		if (rc) return rc; else return rc2;
 	}
+	//! Set the specular lighting coefficient of a light source
+	//! \param[in] int light number (0..2)
+	//! \param[in] double specular coefficent
+	//! \retval int 0 if successful
 	int setSpecularCoeff(int lightNum, double val) {
+		int rc = 0;
+		if (currentValidationMode != NO_CHECK){
+			if (lightNum < 0){lightNum = 0; rc = -1;}
+			if (lightNum >2){lightNum = 2; rc = -1;}
+			if (val < 0.) {val = 0.; rc = -1;}
+			if (val >1.) {val = 1.; rc = -1;}
+			if (currentValidationMode == CHECK && rc) return rc;
+		}
 		vector<double>specCoeff(GetRootNode()->GetElementDouble(_specularCoeffTag));
 		specCoeff[lightNum]=val;
-		return CaptureSetDouble(_specularCoeffTag,"Set specular coefficient",specCoeff);
+		int rc2 =  CaptureSetDouble(_specularCoeffTag,"Set specular coefficient",specCoeff);
+		if (rc) return rc; else return rc2;
 	}
+	//! Set the specular lighting exponent of light sources
+	//! \param[in] double specular exponent
+	//! \retval int 0 if successful
 	int setExponent(double val) {
-		return CaptureSetDouble(_specularExpTag, "Set specular lighting",val);
+		int rc = 0;
+		if (currentValidationMode != NO_CHECK){
+			if (val < 0.) {val = 0.; rc = -1;}
+			if (currentValidationMode == CHECK && rc) return rc;
+		}
+		int rc2 =   CaptureSetDouble(_specularExpTag, "Set specular lighting",val);
+		if (rc) return rc; else return rc2;
 	}
+	//! Set the ambient lighting coefficient
+	//! \param[in] double ambient coefficient
+	//! \retval int 0 if successful
 	int setAmbientCoeff(double val) {
-		return CaptureSetDouble(_ambientCoeffTag,"Set ambient lighting",val);
+		int rc = 0;
+		if (currentValidationMode != NO_CHECK){
+			if (val < 0.) {val = 0.; rc = -1;}
+			if (val > 1.) {val = 1.; rc = -1;}
+			if (currentValidationMode == CHECK && rc) return rc;
+		}
+		int rc2 =   CaptureSetDouble(_ambientCoeffTag,"Set ambient lighting",val);
+		if (rc) return rc; else return rc2;
 	}
-	
+	//! Set the current viewpoint
+	//! \param[in] Viewpoint* viewpoint to be set
+	//! \retval int 0 if successful
+	//! \sa Viewpoint
 	int setCurrentViewpoint(Viewpoint* newVP){
 		Command* cmd = CaptureStart("set current viewpoint");
 		ParamNode* pNode = GetRootNode()->GetNode(_currentViewTag);
@@ -161,7 +266,10 @@ public:
 		if (cmd) CaptureEnd(cmd);
 		return rc;
 	}
-	
+	//! Set the home viewpoint
+	//! \param[in] Viewpoint* home viewpoint to be set
+	//! \retval int 0 if successful
+	//! \sa Viewpoint
 	int setHomeViewpoint(Viewpoint* newVP){
 		Command* cmd = CaptureStart("set home viewpoint");
 		ParamNode* pNode = GetRootNode()->GetNode(_homeViewTag);
@@ -170,12 +278,10 @@ public:
 		if (cmd) CaptureEnd(cmd);
 		return rc;
 	}
-	
-	double getRotationCenterLocal(int i){ return getCurrentViewpoint()->getRotationCenterLocal(i);}
-	
-	int setRotationCenterLocal(const vector<double>& vec){
-		return getCurrentViewpoint()->setRotationCenterLocal(vec,this);
-	}
+	//! Center the viewpoint so as to view the full region at a timestep
+	//! Modifies the camera position and the rotation center, maintaining the current
+	//! camera direction and distance from center.
+	//! param[in] int timestep
 	void centerFullRegion(int timestep);
 #ifndef DOXYGEN_SKIP_THIS
 	static ParamsBase* CreateDefaultInstance() {return new ViewpointParams(0,-1);}
