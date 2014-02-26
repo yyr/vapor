@@ -304,11 +304,11 @@ int ArrowParams::SetFieldVariableName(int i, const string& varName){
 		for (int j = svec.size(); j<=i; j++) svec.push_back("0");
 	svec[i] = varName;
 	//Capture the change to variable name and to scale
-	Command* cmd = CaptureStart("set barb field name");
+	Command* cmd = Command::captureStart(this,"set barb field name");
 	int rc = GetRootNode()->SetElementStringVec(_VariableNamesTag,svec);
 	if (!rc && svec.size() == 3) rc = GetRootNode()->SetElementDouble(_vectorScaleTag,calcDefaultScale());
 	if (rc && cmd) {delete cmd; return rc;}
-	if (cmd) CaptureEnd(cmd);
+	if (cmd) Command::captureEnd(cmd,this);
 	setAllBypass(false);
 	return rc;
 }

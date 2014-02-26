@@ -200,7 +200,7 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 	guiSetTextChanged(false);
 	AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
 	
-	Command* cmd = aParams->CaptureStart("animation text edit");
+	Command* cmd = Command::captureStart(aParams,"animation text edit");
 	Command::blockCapture();
 	bool frameChanged = false;
 	

@@ -43,7 +43,7 @@
 #include <fstream>
 #include <sstream>
 #include <stdio.h>
-
+#include "command.h"
 #include "params.h"
 using namespace VAPoR;
 
@@ -368,7 +368,7 @@ guiCenterSubRegion(RegionParams* rParams){
 	//calculate the camera position: center - 2*viewDir*maxSide;
 	//Position the camera 2.5*maxSide units away from the center, aimed
 	//at the center
-	Command* cmd = vpParams->CaptureStart("Center viewpoint on subregion");
+	Command* cmd = Command::captureStart(vpParams,"Center viewpoint on subregion");
 	Command::blockCapture();
 	for (int i = 0; i<3; i++){
 
@@ -377,7 +377,7 @@ guiCenterSubRegion(RegionParams* rParams){
 		currentViewpoint->setRotationCenterLocal(i,rParams->getLocalRegionCenter(i, timestep),vpParams);
 
 	}
-	if(cmd) vpParams->CaptureEnd(cmd);
+	if(cmd) Command::captureEnd(cmd,vpParams);
 	
 	//modify near/far distance as needed:
 	VizWinMgr::getInstance()->resetViews(vpParams);
@@ -462,7 +462,7 @@ guiAlignView(int axis){
 	}
 	
 	
-	Command* cmd = vpParams->CaptureStart("axis-align view");
+	Command* cmd = Command::captureStart(vpParams,"axis-align view");
 	Command::blockCapture();
 	//Determine distance from center to camera, in stretched coordinates
 	double scampos[3], srotctr[3], dvpos[3];
@@ -483,7 +483,7 @@ guiAlignView(int axis){
 	
 	currentViewpoint->setStretchedCamPosLocal(dvpos,vpParams);
 	Command::unblockCapture();
-	if (cmd) vpParams->CaptureEnd(cmd);
+	if (cmd) Command::captureEnd(cmd,vpParams);
 	updateTab();
 	updateRenderer(vpParams,false,-1,false);
 	
@@ -510,7 +510,7 @@ guiSetCenter(const double* coords){
 	
 	vnormal(vdir);
 	vector<double>vvdir;
-	Command* cmd = vpParams->CaptureStart("re-center view");
+	Command* cmd = Command::captureStart(vpParams,"re-center view");
 	Command::blockCapture();
 	for (int i = 0; i<3; i++) vvdir.push_back(vdir[i]);
 	currentViewpoint->setViewDir(vvdir,vpParams);
@@ -519,7 +519,7 @@ guiSetCenter(const double* coords){
 		currentViewpoint->setRotationCenterLocal(i,coords[i],vpParams);
 	}
 	Command::unblockCapture();
-	if (cmd) vpParams->CaptureEnd(cmd);
+	if (cmd) Command::captureEnd(cmd,vpParams);
 	updateTab();
 	updateRenderer(vpParams,false, -1, false);
 	

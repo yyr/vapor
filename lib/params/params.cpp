@@ -102,16 +102,6 @@ void Params::BailOut(const char *errstr, const char *fname, int lineno)
     exit(-1);
 }
 
-Command* Params::CaptureStart(const char* description){
-	if (!Command::isRecording()) return 0;
-	Command* cmd = Command::captureStart(this, description);
-	return (cmd);
-}
-
-void Params::CaptureEnd(Command* cmd){
-	Command::captureEnd(cmd, this);
-}
-
 //Following methods adapted from ParamsBase.cpp
 void RenderParams::initializeBypassFlags(){
 	bypassFlags.clear();

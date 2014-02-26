@@ -127,17 +127,18 @@ int RegionParams::SetLocalRegionMin(int coord, double minval, int timestep){
 	if (dataMgr){
 		const vector<double>& fullSizes = dataMgr->GetExtents((size_t)timestep);
 		if (minval < 0.) {minval = 0.; rc = -1;}
-		if (minval > fullSizes[coord]) minval = fullSizes[coord];
+		if (minval > (fullSizes[coord+3]-fullSizes[coord])) {minval = (fullSizes[coord+3]-fullSizes[coord]); rc = -1;}
 	}
+	if (rc && GetValidationMode()== CHECK) return rc;
 	double exts[6];
 	GetBox()->GetLocalExtents(exts, timestep);
-	if (!NO_CHECK && minval > exts[coord+3]){
-		if (CHECK_AND_FIX) {minval = exts[coord+3]; rc = -1;}
+	if (GetValidationMode() != NO_CHECK && minval > exts[coord+3]){
+		if (GetValidationMode() == CHECK_AND_FIX) {minval = exts[coord+3]; rc = -1;}
 		else return -1;
 	}
 	exts[coord] = minval;
-	GetBox()->SetLocalExtents(exts, this,timestep);
-	return rc;
+	int rc2 = GetBox()->SetLocalExtents(exts, this,timestep);
+	if(rc)return rc; else return rc2;
 }
 int RegionParams::SetLocalRegionMax(int coord, double maxval, int timestep){
 	DataStatus* ds = DataStatus::getInstance();
@@ -146,17 +147,18 @@ int RegionParams::SetLocalRegionMax(int coord, double maxval, int timestep){
 	if (dataMgr){
 		const vector<double>& fullSizes = dataMgr->GetExtents((size_t)timestep);
 		if (maxval < 0.) {maxval = 0.; rc = -1;}
-		if (maxval > fullSizes[coord]){ maxval = fullSizes[coord]; rc = -1;}
+		if (maxval > (fullSizes[coord+3]-fullSizes[coord])){ maxval = (fullSizes[coord+3]-fullSizes[coord]); rc = -1;}
 	}
+	if (rc && GetValidationMode()== CHECK) return rc;
 	double exts[6];
 	GetBox()->GetLocalExtents(exts, timestep);
-	if (!NO_CHECK && maxval < exts[coord]){
-		if (CHECK_AND_FIX) maxval = exts[coord];
+	if (GetValidationMode()!=NO_CHECK && maxval < exts[coord]){
+		if (GetValidationMode() == CHECK_AND_FIX) maxval = exts[coord];
 		else return -1;
 	}
 	exts[coord+3] = maxval;
-	GetBox()->SetLocalExtents(exts, this,timestep);
-	return rc;
+	int rc2 = GetBox()->SetLocalExtents(exts, this,timestep);
+	if(rc) return rc; else return rc2;
 }
 
 void RegionParams::clearRegionsMap(){

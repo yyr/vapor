@@ -333,33 +333,6 @@ int ControlExecutive::DrawText(int viz, int x, int y, string font, int size, str
 	//
 Params * ControlExecutive::NewParams(string name, int viz){return 0;}
 
-	//! Initiate a new entry in the Undo/Redo queue.  The changes that occur
-	//! between StartCommand() and EndCommand() result in an entry in the Undo/Redo queue.
-	//! By default, single state changes in a Params object will insert entries in the queue.
-	//! This method and the following  EndCommand()  enable the user to combine multiple state changes into a single queue entry.
-	//! Single state changes do not get inserted into the command queue between a StartCommand() and an EndCommand().
-	//! Note that these calls must be serialized:  The first EndCommand() issued after a
-	//! StartCommand(), with the same Params* pointer p, will complete the entry.
-	//! If another StartCommand() occurs, or if the EndCommand is for a different Params*,
-	//! then the StartCommand() will have no effect.
-	//! \note Changes to a Params instance that occur but *not* between StartCommand() and EndCommand() will automatically
-	//! result in a new entry in the Command queue (unless they are in error).
-	//! \param[in] Params* p Pointer to the params that is changing
-	//! \param[in] string text describes what is changing.
-	//! \sa EndCommand()
-	//
-void ControlExecutive::StartCommand(Params* p, string text){}
-
-	//! Complete a new entry in the Undo/Redo queue.  All state changes that occur in a Params instance
-	//! between StartCommand() and EndCommand() result in a single entry in the Undo/Redo queue.
-	//! \sa StartCommand
-	//! \param[in] Params* p Pointer to the params that has changed
-	//! \return int rc is zero if successful.  Otherwise state of p is returned to what is was
-	//! when StartCommand was called
-	//! \sa StartCommand()
-	//
-int ControlExecutive::EndCommand(Params* p){return 0;}
-
 	//! Identify the changes in the undo/Redo queue
 	//! Returns the text associated with a change in the undo/redo queue.
 	//! \param[in] int num indicates the position of the command relative to the current state of the queue

@@ -158,15 +158,6 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	virtual int CaptureSetStringVec(string tag, const char* description, const vector<string>& value)
 		{return ParamsBase::CaptureSetStringVec(tag, description, value, this);}
 
-//! Initiate a set of changes to this params
-//! \param [in] char* description
-//! \retval int zero if successful
-	virtual Command* CaptureStart(const char* description);
-
-//! Finalize a set of changes to this params, put result in Command queue
-//! \retval int zero if successful
-	virtual void CaptureEnd(Command* cmd);
-
 //! Static method that identifies the instance that is current in the identified window.
 //! \param[in] pType ParamsBase is the typeID of the params class
 //! \param[in] winnum index of identified window

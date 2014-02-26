@@ -63,6 +63,7 @@ public:
 	//! \return cmd A new command initialized with prevParams.
 	//! \sa captureEnd
 	static Command* captureStart(Params* prevParams,  const char* desc){
+		if (!isRecording()) return 0;
 		Command* cmd = new Command(prevParams, desc);
 		return cmd;
 	}

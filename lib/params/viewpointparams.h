@@ -22,6 +22,7 @@
 
 #include "params.h"
 #include "viewpoint.h"
+#include "command.h"
 
 class VizTab;
 
@@ -259,11 +260,11 @@ public:
 	//! \retval int 0 if successful
 	//! \sa Viewpoint
 	int setCurrentViewpoint(Viewpoint* newVP){
-		Command* cmd = CaptureStart("set current viewpoint");
+		Command* cmd = Command::captureStart(this,"set current viewpoint");
 		ParamNode* pNode = GetRootNode()->GetNode(_currentViewTag);
 		if (pNode) GetRootNode()->DeleteNode(_currentViewTag);
 		int rc = GetRootNode()->AddRegisteredNode(_currentViewTag, newVP->GetRootNode(),newVP);
-		if (cmd) CaptureEnd(cmd);
+		if (cmd) Command::captureEnd(cmd,this);
 		return rc;
 	}
 	//! Set the home viewpoint
@@ -271,11 +272,11 @@ public:
 	//! \retval int 0 if successful
 	//! \sa Viewpoint
 	int setHomeViewpoint(Viewpoint* newVP){
-		Command* cmd = CaptureStart("set home viewpoint");
+		Command* cmd = Command::captureStart(this, "set home viewpoint");
 		ParamNode* pNode = GetRootNode()->GetNode(_homeViewTag);
 		if (pNode) GetRootNode()->DeleteNode(_homeViewTag);
 		int rc = GetRootNode()->AddRegisteredNode(_homeViewTag, newVP->GetRootNode(),newVP);
-		if (cmd) CaptureEnd(cmd);
+		if (cmd) Command::captureEnd(cmd,this);
 		return rc;
 	}
 	//! Center the viewpoint so as to view the full region at a timestep

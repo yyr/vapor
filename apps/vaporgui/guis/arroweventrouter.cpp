@@ -146,7 +146,7 @@ void ArrowEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
 	
-	Command* cmd = aParams->CaptureStart("barbs text edit");
+	Command* cmd = Command::captureStart(aParams,"barbs text edit");
 	Command::blockCapture();
 	ValidationMode formerMode = aParams->GetValidationMode();
 	aParams->SetValidationMode(NO_CHECK);
@@ -183,7 +183,7 @@ void ArrowEventRouter::confirmText(bool /*render*/){
 	aParams->Validate(false);
 	aParams->SetValidationMode(formerMode);
 	Command::unblockCapture();
-	aParams->CaptureEnd(cmd);
+	Command::captureEnd(cmd,aParams);
 	
 	updateTab();
 	VizWinMgr::getInstance()->forceRender(aParams);	

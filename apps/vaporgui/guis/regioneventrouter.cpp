@@ -132,7 +132,10 @@ setRegionTabTextChanged(const QString& ){
 void RegionEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	
+	Command* cmd = Command::captureStart(rParams,"region text edit");
+	Command::blockCapture();
+	ValidationMode formerMode = rParams->GetValidationMode();
+	rParams->SetValidationMode(NO_CHECK);
 	float centerPos[3], regSize[3];
 	centerPos[0] = xCntrEdit->text().toFloat();
 	centerPos[1] = yCntrEdit->text().toFloat();
@@ -145,13 +148,14 @@ void RegionEventRouter::confirmText(bool /*render*/){
 	for (int i = 0; i<3; i++)
 		textToSlider(rParams,i,centerPos[i],regSize[i]);
 
-	
-	updateTab();
-	
-	
-	//Cancel any response to events generated in this method:
-	//
 	guiSetTextChanged(false);
+	rParams->Validate(false);
+	rParams->SetValidationMode(formerMode);
+	Command::unblockCapture();
+	Command::captureEnd(cmd,rParams);
+	guiSetTextChanged(false);
+	
+	VizWinMgr::getInstance()->forceRender(rParams);
 	
 	
 }
@@ -181,6 +185,7 @@ void RegionEventRouter::updateTab(){
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
+	Command::blockCapture();
 	double regLocalExts[6], regUsrExts[6];
 	rParams->GetBox()->GetLocalExtents(regLocalExts, timestep);
 	//Get the full domain extents in user coordinates
@@ -238,6 +243,7 @@ void RegionEventRouter::updateTab(){
 	
 	VizWinMgr::getInstance()->getTabManager()->update();
 	setIgnoreBoxSliderEvents(false);
+	Command::unblockCapture();
 }
 
 
