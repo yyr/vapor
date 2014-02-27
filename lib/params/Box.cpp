@@ -142,7 +142,7 @@ int Box::GetUserExtents(float extents[6], size_t timestep){
 }
 void Box::Trim(Params* p,int numTimes){
 		if (numTimes > GetTimes().size()) return;
-		Command* cmd = Command::captureStart(p, "Trim box extents");
+		Command* cmd = Command::CaptureStart(p, "Trim box extents");
 		vector<long> times = GetTimes();
 		times.resize(numTimes);
 		GetRootNode()->SetElementLong(Box::_timesTag,times);
@@ -150,5 +150,5 @@ void Box::Trim(Params* p,int numTimes){
 		vector<double>defaultExts(6,0.);
 		exts = GetRootNode()->GetElementDouble(Box::_extentsTag,defaultExts);
 		GetRootNode()->SetElementDouble(_extentsTag, exts);
-		Command::captureEnd(cmd, p);
+		Command::CaptureEnd(cmd, p);
 }

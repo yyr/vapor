@@ -62,17 +62,14 @@ public:
 	
 
 	//Methods to make sliders and text valid and consistent for region:
-	void textToSlider(RegionParams*, int coord, float center, float size);
+	//If doSet is false, no setvalue is issued to the Params.
+	void textToSlider(RegionParams*, int coord, float center, float size, bool doSet);
 	void sliderToText(RegionParams*, int coord, int center, int size);
 	//Start to slide a region face.  Need to save direction vector
 	//
 	virtual void captureMouseDown(int button);
 	//When the mouse goes up, save the face displacement into the region.
 	void captureMouseUp();
-	
-	//Methods to make sliders and text valid and consistent for region:
-	void textToSlider(int coord, float center, float size);
-	void sliderToText(int coord, int center, int size);
 	
 	virtual void reinitTab(bool doOverride);
 

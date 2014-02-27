@@ -131,13 +131,17 @@ void ViewpointParams::setDefaultPrefs(){
 //
 void ViewpointParams::
 Validate(bool doOverride){
-	
+	//Command capturing should be disabled
+	assert(!Command::isRecording());
+	ValidationMode savedMode = GetValidationMode();
+	SetValidationMode(NO_CHECK);
 	setCoordTrans();
 	if (doOverride){
 		//set to defaults:
 		restart();
 		
 	} 
+	SetValidationMode(savedMode);
 	return;
 }
 //Rescale viewing parameters when the scene is rescaled by factor
@@ -262,15 +266,15 @@ centerFullRegion(int timestep){
 	double viewDir[3];
 	for (int j = 0; j<3; j++) viewDir[j] = currentViewpoint->getViewDir()[j];
 	vnormal(viewDir);
-	Command* cmd = Command::captureStart(this,"Center view on region");
-	Command::blockCapture();
+	Command* cmd = Command::CaptureStart(this,"Center view on region");
+	
 	for (int i = 0; i<3; i++){
 		float dataCenter = 0.5f*(fullExtent[i+3]-fullExtent[i]);
 		float camPosCrd = dataCenter -2.5*maxSide*viewDir[i]/stretch[i];
 		currentViewpoint->setCameraPosLocal(i, camPosCrd,this);
 		currentViewpoint->setRotationCenterLocal(i, dataCenter,this);
 	}
-	Command::unblockCapture();
-	if (cmd) Command::captureEnd(cmd,this);
+	
+	Command::CaptureEnd(cmd,this);
 	
 }

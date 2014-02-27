@@ -228,25 +228,28 @@ int RenderParams::GetCompressionLevel(){
 	return (int)valvec[0];
  }
 int RenderParams::SetCompressionLevel(int level){
-	 Command* cmd = 0;
+
 	 int maxlod = DataStatus::getInstance()->getNumLODs();
-	 if (level < 0 || level >maxlod ) return -1;
-	 if (Command::isRecording())
-		cmd = Command::captureStart(this,"Set compression level");
+	 int rc = 0;
+	 if (GetValidationMode()!= NO_CHECK){
+		 if (level < 0) {level = 0; rc = -1;}
+		 if (level > maxlod) {level = maxlod; rc = -1;}
+		 if (rc&&GetValidationMode() == CHECK) return rc;
+	 }
 	 vector<long> valvec(1,(long)level);
-	 GetRootNode()->SetElementLong(_CompressionLevelTag,valvec);
+	 int rc2 = CaptureSetLong(_CompressionLevelTag,"Set compression level",valvec);
 	 setAllBypass(false);
-	 return 0;
+	 if (rc) return rc; else return rc2;
 }
 int RenderParams::SetRefinementLevel(int level){
 		Command* cmd = 0;
 		int maxref = DataStatus::getInstance()->getNumTransforms();
 		if (level < 0 || level > maxref) return -1;
 		if (Command::isRecording())
-			cmd = Command::captureStart(this,"Set refinement level");
+			cmd = Command::CaptureStart(this,"Set refinement level");
 		GetRootNode()->SetElementLong(_RefinementLevelTag, level);
 		setAllBypass(false);
-		if(cmd)Command::captureEnd(cmd,this);
+		Command::CaptureEnd(cmd,this);
 		return 0;
 }
 int RenderParams::GetRefinementLevel(){

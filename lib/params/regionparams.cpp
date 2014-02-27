@@ -35,6 +35,7 @@
 #include <sstream>
 
 #include "params.h"
+#include "command.h"
 #include <vapor/DataMgr.h>
 #include <vapor/XmlNode.h>
 #include <vapor/ParamNode.h>
@@ -77,6 +78,10 @@ restart(){
 //Need to force the regionMin, regionMax to be OK.
 void RegionParams::
 Validate(bool doOverride){
+	//Command capturing should be disabled
+	assert(!Command::isRecording());
+	ValidationMode savedMode = GetValidationMode();
+	SetValidationMode(NO_CHECK);
 	int i;
 	
 	const float* extents = DataStatus::getInstance()->getLocalExtents();
@@ -116,8 +121,9 @@ Validate(bool doOverride){
 			GetBox()->SetLocalExtents(exts,this,currTime);
 		}	
 	}
-	
+	SetValidationMode(savedMode);
 	return;	
+	
 }
 
 int RegionParams::SetLocalRegionMin(int coord, double minval, int timestep){

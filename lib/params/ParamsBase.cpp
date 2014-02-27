@@ -278,43 +278,43 @@ void ParamsBase::SetFlagDirty(const string& flag)
 int ParamsBase::CaptureSetLong(string tag, const char* description, long value, Params* p){
 	Command* cmd = 0;
 	if (Command::isRecording()&&p)
-		cmd = Command::captureStart(p, description);
+		cmd = Command::CaptureStart(p, description);
 	int rc = GetRootNode()->SetElementLong(tag,value);
-	if (cmd) Command::captureEnd(cmd, p);
+	if (cmd) Command::CaptureEnd(cmd, p);
 	return rc;
 }
 
 int ParamsBase::CaptureSetLong(string tag, const char* description, const vector<long>& value, Params* p){
 	Command* cmd = 0;
 	if (Command::isRecording()&& p)
-		cmd = Command::captureStart(p, description);
+		cmd = Command::CaptureStart(p, description);
 	int rc = GetRootNode()->SetElementLong(tag,value);
-	if (cmd) Command::captureEnd(cmd, p);
+	if (cmd) Command::CaptureEnd(cmd, p);
 	return rc;
 }
 int ParamsBase::CaptureSetDouble(string tag, const char* description, double value, Params* p){
 	Command* cmd = 0;
 	if (Command::isRecording()&& p)
-		cmd = Command::captureStart(p, description);
+		cmd = Command::CaptureStart(p, description);
 	int rc = GetRootNode()->SetElementDouble(tag,value);
-	if (cmd) Command::captureEnd(cmd, p);
+	if (cmd) Command::CaptureEnd(cmd, p);
 	return rc;
 }
 int ParamsBase::CaptureSetDouble(string tag, const char* description, const vector<double>& value, Params* p){
 	Command* cmd = 0;
 	if (Command::isRecording() && p)
-		cmd = Command::captureStart(p, description);
+		cmd = Command::CaptureStart(p, description);
 	int rc = GetRootNode()->SetElementDouble(tag,value);
-	if (cmd) Command::captureEnd(cmd, p);
+	if (cmd) Command::CaptureEnd(cmd, p);
 	return rc;
 }
 
 int ParamsBase::CaptureSetString(string tag, const char* description, const string& value, Params* p){
 	Command* cmd = 0;
 	if (Command::isRecording()&&p)
-		cmd = Command::captureStart(p, description);
+		cmd = Command::CaptureStart(p, description);
 	int rc = GetRootNode()->SetElementString(tag,value);
-	if (cmd) Command::captureEnd(cmd, p);
+	if (cmd) Command::CaptureEnd(cmd, p);
 	return rc;
 }
 
@@ -322,9 +322,9 @@ int ParamsBase::CaptureSetString(string tag, const char* description, const stri
 int ParamsBase::CaptureSetStringVec(string tag,const  char* description, const vector<string>& value, Params* p){
 	Command* cmd = 0;
 	if (Command::isRecording()&&p)
-		cmd = Command::captureStart(p, description);
+		cmd = Command::CaptureStart(p, description);
 	int rc = GetRootNode()->SetElementStringVec(tag,value);
-	if (cmd) Command::captureEnd(cmd, p);
+	if (cmd) Command::CaptureEnd(cmd, p);
 	return rc;
 }
 

@@ -200,8 +200,7 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 	guiSetTextChanged(false);
 	AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
 	
-	Command* cmd = Command::captureStart(aParams,"animation text edit");
-	Command::blockCapture();
+	Command* cmd = Command::CaptureStart(aParams,"animation text edit");
 	bool frameChanged = false;
 	
 	QString strn;
@@ -258,8 +257,7 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 	aParams->setMaxFrameRate(maxFrameRate);
 	
 	aParams->Validate(false);
-	Command::unblockCapture();
-	Command::captureEnd(cmd,aParams);
+	Command::CaptureEnd(cmd,aParams);
 	
 	updateTab();
 	guiSetTextChanged(false);

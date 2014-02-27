@@ -61,29 +61,26 @@ public:
 	//! \param [in] winnum The visualizer number (or -1 if global)
 	//! \param [in] prevInst The instance index, if it's a RenderParams change
 	//! \return cmd A new command initialized with prevParams.
-	//! \sa captureEnd
-	static Command* captureStart(Params* prevParams,  const char* desc){
+	//! \sa CaptureEnd
+	static Command* CaptureStart(Params* prevParams,  const char* desc){
 		if (!isRecording()) return 0;
 		Command* cmd = new Command(prevParams, desc);
+		blockCapture();
 		return cmd;
 	}
 	//! Static method used to capture the next Params state (after the state change)
 	//! and then to insert the command into the command queue
-	//! \param [in] Command A Command instance, previously initialized by captureStart
+	//! \param [in] Command A Command instance, previously initialized by CaptureStart
 	//! \param [in] nextParams points to next Params instance
-	//! \sa captureStart
-	static void captureEnd(Command* pCom, Params *nextParams){
+	//! \sa CaptureStart
+	static void CaptureEnd(Command* pCom, Params *nextParams){
 		if (!pCom) return;
 		pCom->nextRoot = nextParams->GetRootNode()->deepCopy();
+		unblockCapture();
 		AddToHistory(pCom);
 	}
 
-	//! Static method used to insert a Command instance into the Command queue
-	//! \param [in] Command Command instance
-	//! \param [in] ignoreBlocking If true, will insert into the queue even when blocking is enabled.
-	//! \return integer zero indicates success.
-	//! \sa captureStart, captureEnd
-	static int AddToHistory(Command* cmd, bool ignoreBlocking = false);
+	
 
 	//! Static method to go back one position (i.e. undo) in the queue.
 	//! Returns the params instance that now is current
@@ -98,18 +95,7 @@ public:
 	//! Static method to put command queue in initial state.
 	static void resetCommandQueue();
 	
-	//Anytime someone wants to stop inserting into the commandQueue, they call blockCapture,
-	//then unblock when they are done.  No recording happens until all blockers has stopped
-	//blocking it.
-	//
-	//! static method to stop inserting commands into the queue.
-	//! subsequent commands do not get inserted until unblockCapture() is called
-	//sa unblockCapture, isRecording
-	static void blockCapture() {recordingCount++;}
-	//! static method to resume inserting commands into the queue.
-	//! Should be called after blockCapture
-	//sa blockCapture, isRecording
-	static void unblockCapture() {recordingCount--;}
+	
 	//! static method to tell if commands are being inserted in the queue
 	//sa blockCapture, unblockCapture
 	// \return bool indicates whether or not recording is enabled.
@@ -124,7 +110,25 @@ public:
 		return commandQueue[posn%MAX_HISTORY];
 	}
 #ifndef DOXYGEN_SKIP_THIS
+	//Anytime it is necessary to stop inserting into the commandQueue, call blockCapture,
+	//then unblock when they are done.  No recording happens until all blockers has stopped
+	//blocking it.   This is not currently regarded as part of the public API.
+	//
+	//! static method to stop inserting commands into the queue.
+	//! subsequent commands do not get inserted until unblockCapture() is called
+	//sa unblockCapture, isRecording
+	static void blockCapture() {recordingCount++;}
+	//! static method to resume inserting commands into the queue.
+	//! Should be called after blockCapture
+	//sa blockCapture, isRecording
+	static void unblockCapture() {recordingCount--; assert(recordingCount>=0);}
 protected:
+	//! Static method used to insert a Command instance into the Command queue
+	//! \param [in] Command Command instance
+	//! \param [in] ignoreBlocking If true, will insert into the queue even when blocking is enabled.
+	//! \return integer zero indicates success.
+	//! \sa CaptureStart, CaptureEnd
+	static int AddToHistory(Command* cmd, bool ignoreBlocking = false);
 	static Command* CurrentUndoCommand() {return CurrentCommand(0);}
 	static Command* CurrentRedoCommand() {return CurrentCommand(-1);}
 	//! Static method moves the command queue forward, returns the next Params state

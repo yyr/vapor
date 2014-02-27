@@ -40,7 +40,10 @@ ArrowParams::~ArrowParams() {
 // associated isoControl and transfer function nodes.
 void ArrowParams::
 Validate(bool doOverride){
-
+	//Command capturing should be disabled
+	assert(!Command::isRecording());
+	ValidationMode savedMode = GetValidationMode();
+	SetValidationMode(NO_CHECK);
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
 	int totNumVariables = ds->getNumVariables2DXY()+ds->getNumVariables3D();
@@ -168,6 +171,7 @@ Validate(bool doOverride){
 		SetVectorScale(calcDefaultScale());
 	}
 	initializeBypassFlags();
+	SetValidationMode(savedMode);
 	return;
 }
 //Set everything to default values
@@ -300,17 +304,17 @@ int ArrowParams::SetFieldVariableName(int i, const string& varName){
 	vector <string> svec;
 	vector <string> defaultName(1,"0");
 	GetRootNode()->GetElementStringVec(_VariableNamesTag, svec,defaultName);
-	if(svec.size() <= i) 
-		for (int j = svec.size(); j<=i; j++) svec.push_back("0");
+	if(svec.size() < 3) 
+		for (int j = svec.size(); j<3; j++) svec.push_back("0");  //fill extra spaces with "0"
 	svec[i] = varName;
 	//Capture the change to variable name and to scale
-	Command* cmd = Command::captureStart(this,"set barb field name");
+	Command* cmd = Command::CaptureStart(this,"set barb field name");
 	int rc = GetRootNode()->SetElementStringVec(_VariableNamesTag,svec);
-	if (!rc && svec.size() == 3) rc = GetRootNode()->SetElementDouble(_vectorScaleTag,calcDefaultScale());
-	if (rc && cmd) {delete cmd; return rc;}
-	if (cmd) Command::captureEnd(cmd,this);
+	if (!rc) rc = GetRootNode()->SetElementDouble(_vectorScaleTag,calcDefaultScale());
+	Command::CaptureEnd(cmd,this);
+	if (rc) return rc;
 	setAllBypass(false);
-	return rc;
+	return 0;
 }
 int ArrowParams::SetHeightVariableName(const string& varName){
 	return CaptureSetString(_heightVariableNameTag,"Set barb rake extents",varName);

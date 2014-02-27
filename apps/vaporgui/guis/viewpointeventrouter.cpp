@@ -161,8 +161,7 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	ViewpointParams* vParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
-	Command* cmd = Command::captureStart(vParams,"viewpoint text change");
-	Command::blockCapture();
+	Command* cmd = Command::CaptureStart(vParams,"viewpoint text change");
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	Viewpoint* currentViewpoint = vParams->getCurrentViewpoint();
 	const vector<double>& tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
@@ -211,8 +210,7 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 	currentViewpoint->setRotationCenterLocal(2,rotCenter2->text().toFloat()-tvExts[2],vParams);
 	
 	vParams->Validate(false);
-	Command::unblockCapture();
-	if (cmd) Command::captureEnd(cmd, vParams);
+	Command::CaptureEnd(cmd, vParams);
 
 	updateRenderer(vParams,false, -1, false);
 
@@ -368,8 +366,8 @@ guiCenterSubRegion(RegionParams* rParams){
 	//calculate the camera position: center - 2*viewDir*maxSide;
 	//Position the camera 2.5*maxSide units away from the center, aimed
 	//at the center
-	Command* cmd = Command::captureStart(vpParams,"Center viewpoint on subregion");
-	Command::blockCapture();
+	Command* cmd = Command::CaptureStart(vpParams,"Center viewpoint on subregion");
+
 	for (int i = 0; i<3; i++){
 
 		float camPosCrd = rParams->getLocalRegionCenter(i,timestep) -(2.5*maxProj*viewDir[i]/stretch[i]);
@@ -377,7 +375,7 @@ guiCenterSubRegion(RegionParams* rParams){
 		currentViewpoint->setRotationCenterLocal(i,rParams->getLocalRegionCenter(i, timestep),vpParams);
 
 	}
-	if(cmd) Command::captureEnd(cmd,vpParams);
+	Command::CaptureEnd(cmd,vpParams);
 	
 	//modify near/far distance as needed:
 	VizWinMgr::getInstance()->resetViews(vpParams);
@@ -462,8 +460,8 @@ guiAlignView(int axis){
 	}
 	
 	
-	Command* cmd = Command::captureStart(vpParams,"axis-align view");
-	Command::blockCapture();
+	Command* cmd = Command::CaptureStart(vpParams,"axis-align view");
+	
 	//Determine distance from center to camera, in stretched coordinates
 	double scampos[3], srotctr[3], dvpos[3];
 	currentViewpoint->getStretchedCamPosLocal(scampos);
@@ -482,8 +480,7 @@ guiAlignView(int axis){
 	}
 	
 	currentViewpoint->setStretchedCamPosLocal(dvpos,vpParams);
-	Command::unblockCapture();
-	if (cmd) Command::captureEnd(cmd,vpParams);
+	Command::CaptureEnd(cmd,vpParams);
 	updateTab();
 	updateRenderer(vpParams,false,-1,false);
 	
@@ -510,16 +507,15 @@ guiSetCenter(const double* coords){
 	
 	vnormal(vdir);
 	vector<double>vvdir;
-	Command* cmd = Command::captureStart(vpParams,"re-center view");
-	Command::blockCapture();
+	Command* cmd = Command::CaptureStart(vpParams,"re-center view");
 	for (int i = 0; i<3; i++) vvdir.push_back(vdir[i]);
 	currentViewpoint->setViewDir(vvdir,vpParams);
 	
 	for (int i = 0; i<3; i++){
 		currentViewpoint->setRotationCenterLocal(i,coords[i],vpParams);
 	}
-	Command::unblockCapture();
-	if (cmd) Command::captureEnd(cmd,vpParams);
+
+	Command::CaptureEnd(cmd,vpParams);
 	updateTab();
 	updateRenderer(vpParams,false, -1, false);
 	

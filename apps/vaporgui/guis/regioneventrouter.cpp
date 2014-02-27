@@ -132,8 +132,7 @@ setRegionTabTextChanged(const QString& ){
 void RegionEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	Command* cmd = Command::captureStart(rParams,"region text edit");
-	Command::blockCapture();
+	Command* cmd = Command::CaptureStart(rParams,"region text edit");
 	ValidationMode formerMode = rParams->GetValidationMode();
 	rParams->SetValidationMode(NO_CHECK);
 	float centerPos[3], regSize[3];
@@ -146,13 +145,12 @@ void RegionEventRouter::confirmText(bool /*render*/){
 
 	
 	for (int i = 0; i<3; i++)
-		textToSlider(rParams,i,centerPos[i],regSize[i]);
+		textToSlider(rParams,i,centerPos[i],regSize[i],true);
 
 	guiSetTextChanged(false);
 	rParams->Validate(false);
 	rParams->SetValidationMode(formerMode);
-	Command::unblockCapture();
-	Command::captureEnd(cmd,rParams);
+	Command::CaptureEnd(cmd,rParams);
 	guiSetTextChanged(false);
 	
 	VizWinMgr::getInstance()->forceRender(rParams);
@@ -185,7 +183,7 @@ void RegionEventRouter::updateTab(){
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	Command::blockCapture();
+	
 	double regLocalExts[6], regUsrExts[6];
 	rParams->GetBox()->GetLocalExtents(regLocalExts, timestep);
 	//Get the full domain extents in user coordinates
@@ -208,7 +206,7 @@ void RegionEventRouter::updateTab(){
 	
 	for (int i = 0; i< 3; i++){
 		textToSlider(rParams, i, (regUsrExts[i]+regUsrExts[i+3])*0.5f,
-			regUsrExts[i+3]-regUsrExts[i]);
+			regUsrExts[i+3]-regUsrExts[i],false);
 	}
 	setIgnoreBoxSliderEvents(true);
 	xSizeEdit->setText(QString::number(regUsrExts[3]-regUsrExts[0],'g', 4));
@@ -243,7 +241,7 @@ void RegionEventRouter::updateTab(){
 	
 	VizWinMgr::getInstance()->getTabManager()->update();
 	setIgnoreBoxSliderEvents(false);
-	Command::unblockCapture();
+	
 }
 
 
@@ -272,10 +270,10 @@ void RegionEventRouter::relabel()
   }
 }
 
-//Set slider position, based on text change. 
+//Set slider position, based on text change.  
 //
 void RegionEventRouter::
-textToSlider(RegionParams* rp, int coord, float newCenter, float newSize){
+textToSlider(RegionParams* rp, int coord, float newCenter, float newSize, bool doSet){
 	setIgnoreBoxSliderEvents(true);
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	//force the size to be no greater than the max possible.
@@ -318,8 +316,10 @@ textToSlider(RegionParams* rp, int coord, float newCenter, float newSize){
 	}
 	//Now convert back to local extents, put them into the params:
 	float localCenter = newCenter-userExtents[coord];
-	rp->SetLocalRegionMin(coord, localCenter - newSize*0.5f,timestep); 
-	rp->SetLocalRegionMax(coord,localCenter + newSize*0.5f,timestep); 
+	if (doSet){
+		rp->SetLocalRegionMin(coord, localCenter - newSize*0.5f,timestep); 
+		rp->SetLocalRegionMax(coord,localCenter + newSize*0.5f,timestep);
+	}
 	//Put the user coords into the sliders:
 	int sliderSize = (int)(0.5f+ 256.f*newSize/(regMax - regMin));
 	int sliderCenter = (int)(0.5f+ 256.f*(newCenter - regMin)/(regMax - regMin));
@@ -406,8 +406,10 @@ sliderToText(RegionParams* rp, int coord, int slideCenter, int slideSize){
 	}
 	//Convert back to local to put into region params
 	float localCenter = newCenter - userExtents[coord];
+	Command* cmd = Command::CaptureStart(rp, "Region slider move");
 	rp->SetLocalRegionMin(coord,localCenter - newSize*0.5f,timestep); 
 	rp->SetLocalRegionMax(coord,localCenter + newSize*0.5f,timestep); 
+	Command::CaptureEnd(cmd,rp);
 	
 	int newSliderCenter = (int)(0.5f+ 256.f*(newCenter - regMin)/(regMax - regMin));
 	//Always need to change text.  Possibly also change slider if it was moved
