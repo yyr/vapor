@@ -104,7 +104,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! This will capture the state of the Params before the value is set, 
 //! then issue the SetValue, then Validate(), and finally capture the state of
 //! the Params after the Validate()
-//! sa Validate()
+//! \sa Validate()
 //! \param [in] string tag
 //! \param [in] long value
 //! \param [in] char* description
@@ -116,7 +116,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! This will capture the state of the Params before the value is set, 
 //! then issue the SetValue, then Validate(), and finally capture the state of
 //! the Params after the Validate()
-//! sa Validate()
+//! \sa Validate()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] vector<long> value
@@ -128,7 +128,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! This will capture the state of the Params before the value is set, 
 //! then issue the SetValue, then Validate(), and finally capture the state of
 //! the Params after the Validate()
-//! sa Validate()
+//! \sa Validate()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] double value
@@ -140,7 +140,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! This will capture the state of the Params before the value is set, 
 //! then issue the SetValue, then Validate(), and finally capture the state of
 //! the Params after the Validate()
-//! sa Validate()
+//! \sa Validate()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] vector<double> value
@@ -153,7 +153,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! This will capture the state of the Params before the value is set, 
 //! then issue the SetValue, then Validate(), and finally capture the state of
 //! the Params after the Validate()
-//! sa Validate()
+//! \sa Validate()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] string value
@@ -165,7 +165,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! This will capture the state of the Params before the value is set, 
 //! then issue the SetValue, then Validate(), and finally capture the state of
 //! the Params after the Validate()
-//! sa Validate()
+//! \sa Validate()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] vector<string> value
