@@ -18,7 +18,7 @@ class Command;
 
 //! \class ControlExecutive
 //!
-//!	Provides API for VAPOR visualizer User Interface (UI)
+//! \brief Provides API for VAPOR visualizer User Interfaces (UIs)
 //
 
 class RENDER_API ControlExecutive {
