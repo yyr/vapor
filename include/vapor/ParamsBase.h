@@ -158,7 +158,11 @@ void SetFlagDirty(const string& flag);
 
 const string& GetName() {return _paramsBaseName;}
 
-//! Method for making a Set to value(s) associated with a tag and capturing to a Params instance
+//! Method for making a Set to long value(s) associated with a tag and capturing to a Params instance
+//! This will capture the state of the Params before the value is set, 
+//! then issue the SetValue, then Validate(), and finally capture the state of
+//! the Params after the Validate()
+//! sa Validate()
 //! \param [in] string tag
 //! \param [char*] description
 //! \param [in] long value
@@ -166,7 +170,11 @@ const string& GetName() {return _paramsBaseName;}
 //! \retval int zero if successful
 	virtual int CaptureSetLong(string tag, const char* description, long value, Params* p);
 
-//! Method for making a Set to value(s) associated with a tag and capturing to a Params instance
+//! Method for making a Set to long value(s) associated with a tag and capturing to a Params instance
+//! This will capture the state of the Params before the value is set, 
+//! then issue the SetValue, then Validate(), and finally capture the state of
+//! the Params after the Validate()
+//! sa Validate()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] vector<long> value
@@ -174,35 +182,51 @@ const string& GetName() {return _paramsBaseName;}
 //! \retval int zero if successful
 	virtual int CaptureSetLong(string tag, const char* description, const vector<long>& value, Params* p);
 
-//! Method for making a Set to value(s) associated with a tag and capturing to a Params instance
+//! Method for making a Set to double value(s) associated with a tag and capturing to a Params instance
+//! This will capture the state of the Params before the value is set, 
+//! then issue the SetValue, then Validate(), and finally capture the state of
+//! the Params after the Validate()
+//! sa Validate()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] double value
-//! \param [in] Params* instance that contains the change; usually p = (Params*)this.
+//! \param [in] Params* instance that contains the change; usually p is the invoker of this method
 //! \retval int zero if successful
 	virtual int CaptureSetDouble(string tag, const char* description, double value, Params* p);
 
-//! Method for making a Set to value(s) associated with a tag and capturing to a Params instance
+//! Method for making a Set to double value(s) associated with a tag and capturing to a Params instance
+//! This will capture the state of the Params before the value is set, 
+//! then issue the SetValue, then Validate(), and finally capture the state of
+//! the Params after the Validate()
+//! sa Validate()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] vector<double> value
-//! \param [in] Params* instance that contains the change; usually p = (Params*)this.
+//! \param [in] Params* instance that contains the change; usually p is the invoker of this method
 //! \retval int zero if successful
 	virtual int CaptureSetDouble(string tag, const char* description, const vector<double>& value, Params* p);
 
-//! Method for making a Set to value(s) associated with a tag and capturing to a Params instance
+//! Method for making a Set of string value(s) associated with a tag and capturing to a Params instance
+//! This will capture the state of the Params before the value is set, 
+//! then issue the SetValue, then Validate(), and finally capture the state of
+//! the Params after the Validate()
+//! sa Validate()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] string value
-//! \param [in] Params* instance that contains the change; usually p = (Params*)this.
+//! \param [in] Params* instance that contains the change; usually p is the invoker
 //! \retval int zero if successful
 	virtual int CaptureSetString(string tag, const char* description, const string& value, Params* p);
 
-//! Method for making a Set to value(s) associated with a tag and capturing to a Params instance
+//! Method for making a Set of string value(s) associated with a tag and capturing to a Params instance
+//! This will capture the state of the Params before the value is set, 
+//! then issue the SetValue, then Validate(), and finally capture the state of
+//! the Params after the Validate()
+//! sa Params::Validate()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] vector<string> value
-//! \param [in] Params* instance that contains the change; usually p = (Params*)this.
+//! \param [in] Params* instance that contains the change; usually p is the invoker
 //! \retval int zero if successful
 	virtual int CaptureSetStringVec(string tag, const char* description, const vector<string>& value, Params* p);
 

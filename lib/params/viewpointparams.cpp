@@ -133,15 +133,14 @@ void ViewpointParams::
 Validate(bool doOverride){
 	//Command capturing should be disabled
 	assert(!Command::isRecording());
-	ValidationMode savedMode = GetValidationMode();
-	SetValidationMode(NO_CHECK);
+	
 	setCoordTrans();
 	if (doOverride){
 		//set to defaults:
 		restart();
 		
 	} 
-	SetValidationMode(savedMode);
+	
 	return;
 }
 //Rescale viewing parameters when the scene is rescaled by factor

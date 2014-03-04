@@ -64,7 +64,6 @@ Params::Params(
 	SetVizNum(winNum);
 	if(winNum < 0) SetLocal(false); else SetLocal(true);
 	SetInstanceIndex(0);
-	SetValidationMode(CHECK_AND_FIX);
 }
 
 
@@ -228,18 +227,10 @@ int RenderParams::GetCompressionLevel(){
 	return (int)valvec[0];
  }
 int RenderParams::SetCompressionLevel(int level){
-
-	 int maxlod = DataStatus::getInstance()->getNumLODs();
-	 int rc = 0;
-	 if (GetValidationMode()!= NO_CHECK){
-		 if (level < 0) {level = 0; rc = -1;}
-		 if (level > maxlod) {level = maxlod; rc = -1;}
-		 if (rc&&GetValidationMode() == CHECK) return rc;
-	 }
 	 vector<long> valvec(1,(long)level);
-	 int rc2 = CaptureSetLong(_CompressionLevelTag,"Set compression level",valvec);
+	 int rc = CaptureSetLong(_CompressionLevelTag,"Set compression level",valvec);
 	 setAllBypass(false);
-	 if (rc) return rc; else return rc2;
+	 return rc;
 }
 int RenderParams::SetRefinementLevel(int level){
 		Command* cmd = 0;

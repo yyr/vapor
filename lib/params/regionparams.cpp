@@ -80,8 +80,7 @@ void RegionParams::
 Validate(bool doOverride){
 	//Command capturing should be disabled
 	assert(!Command::isRecording());
-	ValidationMode savedMode = GetValidationMode();
-	SetValidationMode(NO_CHECK);
+	
 	int i;
 	
 	const float* extents = DataStatus::getInstance()->getLocalExtents();
@@ -121,7 +120,7 @@ Validate(bool doOverride){
 			GetBox()->SetLocalExtents(exts,this,currTime);
 		}	
 	}
-	SetValidationMode(savedMode);
+	
 	return;	
 	
 }
@@ -130,41 +129,18 @@ int RegionParams::SetLocalRegionMin(int coord, double minval, int timestep){
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
 	int rc = 0;
-	if (dataMgr){
-		const vector<double>& fullSizes = dataMgr->GetExtents((size_t)timestep);
-		if (minval < 0.) {minval = 0.; rc = -1;}
-		if (minval > (fullSizes[coord+3]-fullSizes[coord])) {minval = (fullSizes[coord+3]-fullSizes[coord]); rc = -1;}
-	}
-	if (rc && GetValidationMode()== CHECK) return rc;
+	
 	double exts[6];
 	GetBox()->GetLocalExtents(exts, timestep);
-	if (GetValidationMode() != NO_CHECK && minval > exts[coord+3]){
-		if (GetValidationMode() == CHECK_AND_FIX) {minval = exts[coord+3]; rc = -1;}
-		else return -1;
-	}
 	exts[coord] = minval;
-	int rc2 = GetBox()->SetLocalExtents(exts, this,timestep);
-	if(rc)return rc; else return rc2;
+	return GetBox()->SetLocalExtents(exts, this,timestep);
 }
 int RegionParams::SetLocalRegionMax(int coord, double maxval, int timestep){
-	DataStatus* ds = DataStatus::getInstance();
-	DataMgr* dataMgr = ds->getDataMgr();
-	int rc = 0;
-	if (dataMgr){
-		const vector<double>& fullSizes = dataMgr->GetExtents((size_t)timestep);
-		if (maxval < 0.) {maxval = 0.; rc = -1;}
-		if (maxval > (fullSizes[coord+3]-fullSizes[coord])){ maxval = (fullSizes[coord+3]-fullSizes[coord]); rc = -1;}
-	}
-	if (rc && GetValidationMode()== CHECK) return rc;
 	double exts[6];
 	GetBox()->GetLocalExtents(exts, timestep);
-	if (GetValidationMode()!=NO_CHECK && maxval < exts[coord]){
-		if (GetValidationMode() == CHECK_AND_FIX) maxval = exts[coord];
-		else return -1;
-	}
 	exts[coord+3] = maxval;
-	int rc2 = GetBox()->SetLocalExtents(exts, this,timestep);
-	if(rc) return rc; else return rc2;
+	return GetBox()->SetLocalExtents(exts, this,timestep);
+
 }
 
 void RegionParams::clearRegionsMap(){

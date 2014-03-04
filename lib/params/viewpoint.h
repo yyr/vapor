@@ -51,16 +51,9 @@ public:
 	//! \param[in] Param* the Params instance that is requesting this setvalue
 	//! \retval int 0 if successful
 	int setCameraPosLocal(int coord, double val, Params* p) {
-		int rc = 0;
-		if (p && p->GetValidationMode() != NO_CHECK){
-			if (coord < 0) {coord = 0; rc = -1;}
-			if (coord > 2) {coord = 2; rc = -1;}
-			if (rc && p->GetValidationMode() == CHECK) return rc;
-		}
 		vector<double> campos= vector<double>(getCameraPosLocal());
 		campos[coord] = val;
-		int rc2 = CaptureSetDouble(_camPosTag, "Set camera position",campos,p);
-		if (rc) return rc; else return rc2;
+		return CaptureSetDouble(_camPosTag, "Set camera position",campos,p);
 	}
 	//! Specify the camera position (in local coordinates)
 	//! \param[in] vector<double> new position
@@ -83,31 +76,17 @@ public:
 	//! \param[in] double value of new coordinate
 	//! \param[in] Param* the Params instance that is requesting this setvalue
 	//! \retval int 0 if successful
-	int setViewDir(int coord, double val, Params* p) {
-		int rc = 0;
-		if (p && p->GetValidationMode() != NO_CHECK){
-			if (coord < 0) {coord = 0; rc = -1;}
-			if (coord > 2) {coord = 2; rc = -1;}
-			if (rc && p->GetValidationMode() == CHECK) return rc;
-		}
+	int setViewDir(int coord, double val, Params* p) {	
 		vector<double> vdir = vector<double>(getViewDir());
 		(vdir)[coord] = val;
-		int rc2 =  CaptureSetDouble(_viewDirTag,"Set view direction", vdir,p);
-		if (rc) return rc; else return rc2;
+		return CaptureSetDouble(_viewDirTag,"Set view direction", vdir,p);
 	}
 	//! Specify a component of the camera direction vector
 	//! \param[in] const vector<double>& direction vector
 	//! \param[in] Param* the Params instance that is requesting this setvalue
 	//! \retval int 0 if successful
 	int setViewDir(const vector<double>&val, Params*p) {
-		int rc = 0;
-		vector<double> val2 = val;
-		if ((p&& p->GetValidationMode() != NO_CHECK) && (val[0] == val[1] && val[1] == val[2] && val[2] == 0.)){
-			if (p->GetValidationMode() == CHECK) return -1;
-			else {val2[2] = -1.; rc = -1;}
-		}
-		int rc2 =  CaptureSetDouble(_viewDirTag, "Set view direction", val2,p);
-		if (rc) return rc; else return rc2;
+		return CaptureSetDouble(_viewDirTag, "Set view direction", val,p);
 	}
 	//! Obtain view up-vector
 	//! \retval const vector<double>& direction vector
@@ -124,16 +103,10 @@ public:
 	//! \param[in] Param* the Params instance that is requesting this setvalue
 	//! \retval int 0 if successful
 	int setUpVec(int coord, double val, Params* p) {
-		int rc = 0;
-		if (p && p->GetValidationMode() != NO_CHECK){
-			if (coord < 0) {coord = 0; rc = -1;}
-			if (coord > 2) {coord = 2; rc = -1;}
-			if (rc && p->GetValidationMode() == CHECK) return rc;
-		}
+		
 		vector<double> vdir = vector<double>(getUpVec());
 		vdir[coord] = val;
-		int rc2 =  CaptureSetDouble(_upVecTag, "Set up vector", vdir,p);
-		if (rc) return rc; else return rc2;
+		return  CaptureSetDouble(_upVecTag, "Set up vector", vdir,p);
 	}
 	//! Specify a component of the view upward direction vector
 	//! \param[in] int coordinate index
@@ -141,14 +114,7 @@ public:
 	//! \param[in] Param* the Params instance that is requesting this setvalue
 	//! \retval int 0 if successful
 	int setUpVec(const vector<double>&val, Params*p) {
-		int rc = 0;
-		vector<double> val2 = val;
-		if (p && p->GetValidationMode() != NO_CHECK &&  (val[0] == val[1] && val[1] == val[2] && val[2] == 0.)){
-			if (p->GetValidationMode() == CHECK) return -1;
-			else {val2[1] = 1.; rc = -1;}
-		}
-		int rc2 =  CaptureSetDouble(_upVecTag, "Set up vector", val2,p);
-		if (rc) return rc; else return rc2;
+		return  CaptureSetDouble(_upVecTag, "Set up vector", val,p);
 	}
 	//! Obtain rotation center
 	//! \retval vector<double>& rotation center coordinates
@@ -164,17 +130,10 @@ public:
 	//! \param[in] double rotation center local coordinate
 	//! \param[in] Param* the Params instance that is requesting this setvalue
 	//! \retval int 0 if successful
-	int setRotationCenterLocal(int coord, double val, Params* p) {
-		int rc = 0;
-		if (p && p->GetValidationMode() != NO_CHECK){
-			if (coord < 0) {coord = 0; rc = -1;}
-			if (coord >2) {coord = 2; rc = -1;}
-			if (rc && p->GetValidationMode() == CHECK) return rc;
-		}
+	int setRotationCenterLocal(int coord, double val, Params* p) {	
 		vector<double> vdir(getRotationCenterLocal());
 		vdir[coord] = val;
-		int rc2 =  CaptureSetDouble(_rotCenterTag, "Set rotation center", vdir,p);
-		if(rc) return rc; else return rc2;
+		return  CaptureSetDouble(_rotCenterTag, "Set rotation center", vdir,p);
 	}
 	//! Specify rotation center in local coordinates
 	//! \param[in] vector<double>& rotation center in local coordinates

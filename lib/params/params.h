@@ -44,16 +44,7 @@ class ViewpointParams;
 class RegionParams;
 class DataMgr;
 class Command;
-//! The ValidationMode enum is used to determine the level of validation that occurs during SetValue methods.
-//! \sa SetValidationMode, GetValidationMode, DataMgr
-//! NO_CHECK does not perform any validation.
-//! CHECK test values for validity (using current DataMgr) and returns -1 if value is not valid
-//! CHECK_AND_FIX tests for validity and sets the nearest valid value, returning -1 if value not valid.
-enum ValidationMode {
-		NO_CHECK,
-		CHECK,
-		CHECK_AND_FIX
-	};
+
 //! \class Params
 //! \brief A pure virtual class for managing parameters used in visualization
 //! \author Alan Norton
@@ -109,7 +100,11 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! param[in] bool default 
 	virtual void Validate(bool setdefault)=0;
 
-//! Method for making a change in the value(s) associated with a tag
+//! Method for making a change in the single long value(s) associated with a tag
+//! This will capture the state of the Params before the value is set, 
+//! then issue the SetValue, then Validate(), and finally capture the state of
+//! the Params after the Validate()
+//! sa Validate()
 //! \param [in] string tag
 //! \param [in] long value
 //! \param [in] char* description
@@ -117,7 +112,11 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	virtual int CaptureSetLong(string tag, const char* description, long value)
 		{return ParamsBase::CaptureSetLong(tag,description,value, this);}
 
-//! Method for making a change in the value(s) associated with a tag
+//! Method for making a change in the long value(s) associated with a tag
+//! This will capture the state of the Params before the value is set, 
+//! then issue the SetValue, then Validate(), and finally capture the state of
+//! the Params after the Validate()
+//! sa Validate()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] vector<long> value
@@ -125,7 +124,11 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	virtual int CaptureSetLong(string tag, const char* description, const vector<long>& value)
 		{return ParamsBase::CaptureSetLong(tag, description, value, this);}
 
-//! Method for making a change in the value(s) associated with a tag
+//! Method for making a change in the double value(s) associated with a tag
+//! This will capture the state of the Params before the value is set, 
+//! then issue the SetValue, then Validate(), and finally capture the state of
+//! the Params after the Validate()
+//! sa Validate()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] double value
@@ -133,7 +136,11 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	virtual int CaptureSetDouble(string tag, const char* description, double value)
 		{return ParamsBase::CaptureSetDouble(tag,description,value,this);}
 
-//! Method for making a change in the value(s) associated with a tag
+//! Method for making a change in the double value(s) associated with a tag
+//! This will capture the state of the Params before the value is set, 
+//! then issue the SetValue, then Validate(), and finally capture the state of
+//! the Params after the Validate()
+//! sa Validate()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] vector<double> value
@@ -142,7 +149,11 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 		{return ParamsBase::CaptureSetDouble(tag,description,value,this);}
 
 
-//! Method for making a change in the value(s) associated with a tag
+//! Method for making a set in the string value(s) associated with a tag
+//! This will capture the state of the Params before the value is set, 
+//! then issue the SetValue, then Validate(), and finally capture the state of
+//! the Params after the Validate()
+//! sa Validate()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] string value
@@ -150,7 +161,11 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	virtual int CaptureSetString(string tag, const char* description, const string& value)
 		{return ParamsBase::CaptureSetString(tag,description,value,this);}
 
-//! Method for capturing a set of the value(s) associated with a tag
+//! Method for capturing a set of the string value(s) associated with a tag
+//! This will capture the state of the Params before the value is set, 
+//! then issue the SetValue, then Validate(), and finally capture the state of
+//! the Params after the Validate()
+//! sa Validate()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] vector<string> value
@@ -358,19 +373,6 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! Pure virtual method, sets a Params instance to its default state
 	virtual void restart() = 0;
 	
-//! Sets the current validation mode of this Params instance. Possible Values are:
-//! NO_CHECK indicates that SetValues will not check values for validity
-//! CHECK indicates that SetValues will check for validity, and, if invalid, no setting occurs, with -1 return code
-//! CHECK_AND_FIX indicates that SetValues will check for validity 
-//! and will modify the value to a valid value, returning -1 if the value needed to be modified.
-//! If it is not possible to set a valid value, the return code is -2 and no change occurs.
-//! The ValidationMode does not change unless this method is invoked.
-//! \param[in] ValidationMode v specifies the current validation mode.
-	void SetValidationMode(ValidationMode v) {currentValidationMode = v;}
-
-//! Obtain the current ValidationMode
-//! \returns ValidationMode obtains the current ValidationMode.
-	ValidationMode GetValidationMode() {return currentValidationMode;}
 
 //! Identify the visualizer associated with this instance.
 //! With global pr default Params this is -1 
@@ -429,7 +431,6 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	
 protected:
 
-	ValidationMode currentValidationMode;
 	//Params instances are vectors of Params*, one per instance, indexed by paramsBaseType, winNum
 	static map<pair<int,int>,vector<Params*> > paramsInstances;
 	//CurrentRenderParams indexed by paramsBaseType, winNum
@@ -467,7 +468,7 @@ public:
 	//! \param[in] bool true to enable, false to disable.
 	virtual void SetEnabled(bool val){
 		long lval = (long)val;
-		GetRootNode()->SetElementLong(_EnabledTag,lval);
+		CaptureSetLong(_EnabledTag,"enable or disable renderer",lval);
 	}
 
 	//! Pure virtual method indicates if a particular variable name is currently used by the renderer.

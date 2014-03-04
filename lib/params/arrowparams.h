@@ -86,13 +86,8 @@ public:
 	//! \param[in] double thickness
 	//! \retval int 0 if success
 	int SetLineThickness(double val){
-		int rc = 0;
-		if (!NO_CHECK){
-			if (val <= 0. || val > 100.) {val = 1.; rc = -1;}
-			if (CHECK && rc) return rc;
-		}
-		int rc2 = CaptureSetDouble(_lineThicknessTag,"Set barb thickness",val);
-		if (rc) return rc; else return rc2;
+		
+		return CaptureSetDouble(_lineThicknessTag,"Set barb thickness",val);
 	}
 	//! Get the scale factor for vector length. 1.0 is (scene diameter)/100.
 	//! \retval double scale factor

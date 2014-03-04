@@ -136,15 +136,7 @@ public:
 	//! \param[in] int number of lights (0,1,2,3)
 	//! \retval 0 on success
 	int setNumLights(int nlights) {
-		int rc=0;
-		if (currentValidationMode != NO_CHECK){
-			if (nlights < 0){nlights = 0; rc = -1;}
-			if (nlights > 3){nlights = 3; rc = -1;}
-			if (currentValidationMode == CHECK && rc) return rc;
-		}
-
-		int rc2 = CaptureSetLong(_numLightsTag,"Set number of lights", nlights);
-		if (rc) return rc; else return rc2;
+		return CaptureSetLong(_numLightsTag,"Set number of lights", nlights);
 	}
 	//! get one component of a light direction vector
 	//! \param[in] int lightNum identifies which light source
@@ -159,18 +151,10 @@ public:
 	//! \param[in] double value to be set
 	//! \retval int 0 on success
 	int setLightDirection(int lightNum, int dir, double val){
-		int rc = 0;
-		if (currentValidationMode != NO_CHECK){
-			if (lightNum < 0) {lightNum = 0; rc = -1;}
-			if (lightNum >2 ) {lightNum = 2; rc = -1;}
-			if (dir < 0) {dir = 0; rc = -1;}
-			if (dir >2 ) {dir = 2; rc = -1;}
-			if (currentValidationMode == CHECK && rc) return rc;
-		}
+		
 		vector<double> ldirs = vector<double>(GetRootNode()->GetElementDouble(_lightDirectionsTag));
 		ldirs[dir+3*lightNum] = val;
-		int rc2 =  CaptureSetDouble(_lightDirectionsTag,"Set light direction",ldirs);
-		if (rc) return rc; else return rc2;
+		return  CaptureSetDouble(_lightDirectionsTag,"Set light direction",ldirs);
 	}
 	//! Optain the diffuse lighting coefficient of a light source
 	//! \param[in] int light number (0..2)
@@ -199,61 +183,32 @@ public:
 	//! \param[in] double diffuse coefficent
 	//! \retval int 0 if successful
 	int setDiffuseCoeff(int lightNum, double val) {
-		int rc = 0;
-		if (currentValidationMode != NO_CHECK){
-			if (lightNum < 0){lightNum = 0; rc = -1;}
-			if (lightNum >2){lightNum = 2; rc = -1;}
-			if (val < 0.) {val = 0.; rc = -1;}
-			if (val >1.) {val = 1.; rc = -1;}
-			if (currentValidationMode == CHECK && rc) return rc;
-		}
+		
 		vector<double>diffCoeff(GetRootNode()->GetElementDouble(_diffuseCoeffTag));
 		diffCoeff[lightNum]=val;
-		int rc2 = CaptureSetDouble(_diffuseCoeffTag,"Set diffuse coefficient",diffCoeff);
-		if (rc) return rc; else return rc2;
+		return CaptureSetDouble(_diffuseCoeffTag,"Set diffuse coefficient",diffCoeff);
 	}
 	//! Set the specular lighting coefficient of a light source
 	//! \param[in] int light number (0..2)
 	//! \param[in] double specular coefficent
 	//! \retval int 0 if successful
 	int setSpecularCoeff(int lightNum, double val) {
-		int rc = 0;
-		if (currentValidationMode != NO_CHECK){
-			if (lightNum < 0){lightNum = 0; rc = -1;}
-			if (lightNum >2){lightNum = 2; rc = -1;}
-			if (val < 0.) {val = 0.; rc = -1;}
-			if (val >1.) {val = 1.; rc = -1;}
-			if (currentValidationMode == CHECK && rc) return rc;
-		}
+		
 		vector<double>specCoeff(GetRootNode()->GetElementDouble(_specularCoeffTag));
 		specCoeff[lightNum]=val;
-		int rc2 =  CaptureSetDouble(_specularCoeffTag,"Set specular coefficient",specCoeff);
-		if (rc) return rc; else return rc2;
+		return  CaptureSetDouble(_specularCoeffTag,"Set specular coefficient",specCoeff);
 	}
 	//! Set the specular lighting exponent of light sources
 	//! \param[in] double specular exponent
 	//! \retval int 0 if successful
 	int setExponent(double val) {
-		int rc = 0;
-		if (currentValidationMode != NO_CHECK){
-			if (val < 0.) {val = 0.; rc = -1;}
-			if (currentValidationMode == CHECK && rc) return rc;
-		}
-		int rc2 =   CaptureSetDouble(_specularExpTag, "Set specular lighting",val);
-		if (rc) return rc; else return rc2;
+		return CaptureSetDouble(_specularExpTag, "Set specular lighting",val);
 	}
 	//! Set the ambient lighting coefficient
 	//! \param[in] double ambient coefficient
 	//! \retval int 0 if successful
 	int setAmbientCoeff(double val) {
-		int rc = 0;
-		if (currentValidationMode != NO_CHECK){
-			if (val < 0.) {val = 0.; rc = -1;}
-			if (val > 1.) {val = 1.; rc = -1;}
-			if (currentValidationMode == CHECK && rc) return rc;
-		}
-		int rc2 =   CaptureSetDouble(_ambientCoeffTag,"Set ambient lighting",val);
-		if (rc) return rc; else return rc2;
+		return   CaptureSetDouble(_ambientCoeffTag,"Set ambient lighting",val);
 	}
 	//! Set the current viewpoint
 	//! \param[in] Viewpoint* viewpoint to be set

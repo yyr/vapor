@@ -280,8 +280,13 @@ int ParamsBase::CaptureSetLong(string tag, const char* description, long value, 
 	if (Command::isRecording()&&p)
 		cmd = Command::CaptureStart(p, description);
 	int rc = GetRootNode()->SetElementLong(tag,value);
+	if (rc){
+		if (cmd) delete cmd;
+		return rc;
+	}
+	if (p&&cmd) p->Validate(false);
 	if (cmd) Command::CaptureEnd(cmd, p);
-	return rc;
+	return 0;
 }
 
 int ParamsBase::CaptureSetLong(string tag, const char* description, const vector<long>& value, Params* p){
@@ -289,6 +294,11 @@ int ParamsBase::CaptureSetLong(string tag, const char* description, const vector
 	if (Command::isRecording()&& p)
 		cmd = Command::CaptureStart(p, description);
 	int rc = GetRootNode()->SetElementLong(tag,value);
+	if (rc){
+		if (cmd) delete cmd;
+		return rc;
+	}
+	if (p&&cmd) p->Validate(false);
 	if (cmd) Command::CaptureEnd(cmd, p);
 	return rc;
 }
@@ -297,6 +307,11 @@ int ParamsBase::CaptureSetDouble(string tag, const char* description, double val
 	if (Command::isRecording()&& p)
 		cmd = Command::CaptureStart(p, description);
 	int rc = GetRootNode()->SetElementDouble(tag,value);
+	if (rc){
+		if (cmd) delete cmd;
+		return rc;
+	}
+	if (p&&cmd) p->Validate(false);
 	if (cmd) Command::CaptureEnd(cmd, p);
 	return rc;
 }
@@ -305,6 +320,11 @@ int ParamsBase::CaptureSetDouble(string tag, const char* description, const vect
 	if (Command::isRecording() && p)
 		cmd = Command::CaptureStart(p, description);
 	int rc = GetRootNode()->SetElementDouble(tag,value);
+	if (rc){
+		if (cmd) delete cmd;
+		return rc;
+	}
+	if (p&&cmd) p->Validate(false);
 	if (cmd) Command::CaptureEnd(cmd, p);
 	return rc;
 }
@@ -314,6 +334,11 @@ int ParamsBase::CaptureSetString(string tag, const char* description, const stri
 	if (Command::isRecording()&&p)
 		cmd = Command::CaptureStart(p, description);
 	int rc = GetRootNode()->SetElementString(tag,value);
+	if (rc){
+		if (cmd) delete cmd;
+		return rc;
+	}
+	if (p&&cmd) p->Validate(false);
 	if (cmd) Command::CaptureEnd(cmd, p);
 	return rc;
 }
@@ -324,6 +349,7 @@ int ParamsBase::CaptureSetStringVec(string tag,const  char* description, const v
 	if (Command::isRecording()&&p)
 		cmd = Command::CaptureStart(p, description);
 	int rc = GetRootNode()->SetElementStringVec(tag,value);
+	if (p&&cmd) p->Validate(false);
 	if (cmd) Command::CaptureEnd(cmd, p);
 	return rc;
 }

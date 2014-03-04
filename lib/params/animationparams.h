@@ -60,15 +60,7 @@ public:
 	//! \param long current time step
 	//! \retval int 0 if successful
 	int setCurrentTimestep(long ts) {
-		int rc = 0;
-		if (currentValidationMode != NO_CHECK){
-			if (ts < DataStatus::getInstance()->getMinTimestep()) {ts = DataStatus::getInstance()->getMinTimestep(); rc = -1;}
-			if (ts > DataStatus::getInstance()->getMaxTimestep()) { ts = DataStatus::getInstance()->getMaxTimestep(); rc = -1;}
-			if (currentValidationMode == CHECK && rc != 0) return rc;
-		}
-			
-		int rc2 = CaptureSetLong(_currentTimestepTag,"Set timestep",ts);
-		if (rc2) return rc2;
+		int rc = CaptureSetLong(_currentTimestepTag,"Set timestep",ts);
 		return rc;
 	}
 
@@ -81,14 +73,7 @@ public:
 	//! \param int starting timestep
 	//! \retval int 0 if successful
 	int setStartTimestep(int ts) {
-		int rc = 0;
-		if (currentValidationMode != NO_CHECK){
-			if (ts < DataStatus::getInstance()->getMinTimestep()) {ts = DataStatus::getInstance()->getMinTimestep(); rc = -1;}
-			if (ts > DataStatus::getInstance()->getMaxTimestep()) { ts = DataStatus::getInstance()->getMaxTimestep(); rc = -1;}
-			if (currentValidationMode == CHECK && rc != 0) return rc;
-		}
-		int rc2 = CaptureSetLong(_startTimestepTag,"Set start timestep",ts);
-		if (rc2) return rc2;
+		int rc= CaptureSetLong(_startTimestepTag,"Set start timestep",ts);
 		return rc;
 	}
 
@@ -101,17 +86,8 @@ public:
 	//! \param int ending timestep
 	//! \retval int 0 if success
 	int setEndTimestep(int val) {
-		int rc = 0;
-		if (currentValidationMode != NO_CHECK){
-			if (val > DataStatus::getInstance()->getMaxTimestep() || val < DataStatus::getInstance()->getMinTimestep()) {
-				val = DataStatus::getInstance()->getMaxTimestep(); 
-				rc = -1;
-			} 
-			if (currentValidationMode == CHECK && (rc != 0))return rc;
-		}
-		int rc2 = CaptureSetLong(_endTimestepTag,"Set end timestep",val);
-		if (rc2) return rc2;
-		return rc;
+		
+		return CaptureSetLong(_endTimestepTag,"Set end timestep",val);
 	}
 
 	//! Identify the minimum time step (bound on setting start/end) 
@@ -123,17 +99,8 @@ public:
 	//! \param int minimum timestep
 	//! \retval int 0 if successful
 	int setMinTimestep(int val) {
-		int rc = 0;
-		if (currentValidationMode != NO_CHECK){
-			if (val < DataStatus::getInstance()->getMinTimestep() || val > DataStatus::getInstance()->getMaxTimestep()){
-				val = DataStatus::getInstance()->getMinTimestep();
-				rc = -1;
-			}
-			if (currentValidationMode == CHECK && rc != 0) return rc;
-		}
-		int rc2 = CaptureSetLong(_minTimestepTag,"Set min timestep",val);
-		if (!rc2) return rc2;
-		return rc;
+		
+		return CaptureSetLong(_minTimestepTag,"Set min timestep",val);
 	}
 	//! Identify the maximum time step
 	//! \retval int maximum timestep
@@ -145,17 +112,7 @@ public:
 	//! \param int maximum timestep
 	//! \retval int 0 if successful
 	int setMaxTimestep(int val) {
-		int rc = 0;
-		if (currentValidationMode != NO_CHECK){
-			if (val < DataStatus::getInstance()->getMinTimestep() || val > DataStatus::getInstance()->getMaxTimestep()){
-				DataStatus::getInstance()->getMaxTimestep();
-				rc = -1;
-			}
-			if (currentValidationMode == CHECK && rc != 0) return rc;
-		}
-		int rc2 = CaptureSetLong(_maxTimestepTag,"Set max timestep",val);
-		if (!rc2) return rc2;
-		return rc;
+		return CaptureSetLong(_maxTimestepTag,"Set max timestep",val);
 	}
 
 	//! Get the current play direction (-1,0,1)
@@ -168,16 +125,7 @@ public:
 	//! \param int play direction
 	//! \retval int 0 if successful
 	int setPlayDirection(int val) {
-	
-		int rc = 0;
-		if (currentValidationMode != NO_CHECK){
-			if (val < -1 ) {val = -1; rc = -1;}
-			if (val > 1 ) {val = 1; rc = -1;}
-			if (currentValidationMode == CHECK && rc != 0) return rc;
-		}
-		int rc2 = CaptureSetLong(_playDirectionTag,"Set play direction",val);
-		if (rc2) return rc2;
-		return rc;
+		return CaptureSetLong(_playDirectionTag,"Set play direction",val);
 	}
 	//! Get the maximum frame step size
 	//! \retval int current frame step size.
@@ -188,18 +136,8 @@ public:
 	//! \param int val step size
 	//! \retval int 0 if successful
 	int setFrameStepSize(int val) {
-		int rc = 0;
-		if (currentValidationMode != NO_CHECK){
-			int numframes = DataStatus::getInstance()->getMaxTimestep()-DataStatus::getInstance()->getMinTimestep();
-			if (val <= 0 || val >= numframes ) {
-				val = 1;
-				rc = -1;
-			}
-			if (currentValidationMode == CHECK && rc != 0) return rc;
-		}
-		int rc2 = CaptureSetLong(_stepSizeTag,"Set frame stepsize",val);
-		if (!rc2) return rc2;
-		return rc;
+		return CaptureSetLong(_stepSizeTag,"Set frame stepsize",val);
+
 	}
 	//! Determine max frames per second
 	//! \retval double max frames per second
@@ -210,14 +148,7 @@ public:
 	//! \param double fps
 	//! \retval int 0 if successful
 	int setMaxFrameRate(double rate) {
-		int rc = 0;
-		if (currentValidationMode != NO_CHECK){
-			if (rate <= 0. || rate > 1000.){ rate = 0.1; rc = -1;}
-			if (currentValidationMode == CHECK && rc) return rc;
-		}
-		int rc2 = CaptureSetDouble(_maxRateTag,"Set max frame rate",rate);
-		if (!rc2) return rc2;
-		return rc;
+		return CaptureSetDouble(_maxRateTag,"Set max frame rate",rate);
 	}
 	//! Determine if repeat play is on
 	//! \retval bool true if repeating

@@ -147,8 +147,8 @@ void ArrowEventRouter::confirmText(bool /*render*/){
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
 	
 	Command* cmd = Command::CaptureStart(aParams,"barbs text edit");
-	ValidationMode formerMode = aParams->GetValidationMode();
-	aParams->SetValidationMode(NO_CHECK);
+	
+	
 	QString strn;
 	//Get all text values from gui, apply to params
 	int gridsize[3];
@@ -180,7 +180,6 @@ void ArrowEventRouter::confirmText(bool /*render*/){
 	
 	guiSetTextChanged(false);
 	aParams->Validate(false);
-	aParams->SetValidationMode(formerMode);
 	Command::CaptureEnd(cmd,aParams);
 	
 	updateTab();

@@ -447,8 +447,6 @@ void AnimationEventRouter::guiSetPlay(int direction){
 	AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
 	switch (direction) {
 		case -1:
-			
-			
 			stepForwardButton->setEnabled(false);
 			stepReverseButton->setEnabled(false);
 			
@@ -471,8 +469,6 @@ void AnimationEventRouter::guiSetPlay(int direction){
 	}
 	
 	aParams->setPlayDirection(direction);
-	
-
 	updateTab();
 	
 	if (direction == 0){ //refresh front tab image on stop play ...
@@ -491,7 +487,6 @@ guiJumpToBegin(){
 	currentTimestepEdit->setText(QString::number(aParams->getCurrentTimestep()));
 	MainForm::getInstance()->setCurrentTimestep(aParams->getCurrentTimestep());
 	setSliders(aParams);
-	
 	guiSetTextChanged(false);
 	update();
 	

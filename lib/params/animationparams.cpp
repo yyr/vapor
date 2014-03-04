@@ -62,7 +62,7 @@ AnimationParams::~AnimationParams(){
 //
 void AnimationParams::
 restart(){
-	SetValidationMode(NO_CHECK);
+	
 	// set everything to default state:
 	setPlayDirection (0);
 	setRepeating (false);
@@ -75,7 +75,6 @@ restart(){
 	
 	setCurrentTimestep (0);
 	setMaxFrameRate(0.1);
-	SetValidationMode(CHECK_AND_FIX);
 	
 }
 void AnimationParams::setDefaultPrefs(){
@@ -84,16 +83,14 @@ void AnimationParams::setDefaultPrefs(){
 void AnimationParams::Validate(bool useDefault){
 	//Command capturing should be disabled
 	assert(!Command::isRecording());
-	//Do not fix invalid settings
-	//Save previous validation mode:
-	ValidationMode prevMode = GetValidationMode();
-	SetValidationMode(NO_CHECK);
-	setMaxTimestep(DataStatus::getInstance()->getDataMgr()->GetNumTimeSteps()-1);
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	if (!dataMgr) return;
+	setMaxTimestep(dataMgr->GetNumTimeSteps()-1);
 	setMinTimestep(0);
 	//Narrow the range to the actual data limits:
 	//Find the first framenum with data:
 	int mints = 0;
-	int maxts = DataStatus::getInstance()->getDataMgr()->GetNumTimeSteps()-1;
+	int maxts = dataMgr->GetNumTimeSteps()-1;
 	int i;
 	for (i = mints; i<= maxts; i++){
 		
@@ -127,7 +124,6 @@ void AnimationParams::Validate(bool useDefault){
 	
 	// set pause state
 	setPlayDirection(0);
-	SetValidationMode(prevMode);
 	
 }
 

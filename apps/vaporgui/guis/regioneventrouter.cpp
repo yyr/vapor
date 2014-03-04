@@ -133,8 +133,7 @@ void RegionEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	Command* cmd = Command::CaptureStart(rParams,"region text edit");
-	ValidationMode formerMode = rParams->GetValidationMode();
-	rParams->SetValidationMode(NO_CHECK);
+	
 	float centerPos[3], regSize[3];
 	centerPos[0] = xCntrEdit->text().toFloat();
 	centerPos[1] = yCntrEdit->text().toFloat();
@@ -149,7 +148,7 @@ void RegionEventRouter::confirmText(bool /*render*/){
 
 	guiSetTextChanged(false);
 	rParams->Validate(false);
-	rParams->SetValidationMode(formerMode);
+	
 	Command::CaptureEnd(cmd,rParams);
 	guiSetTextChanged(false);
 	
