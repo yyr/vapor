@@ -12,13 +12,7 @@ endif
 
 MAKEFILE_INCLUDE_DIRS +=  -I../main -I../misc -I../../../lib/params -I../../../lib/render
 
-ifeq ($(ARCH),Darwin)
-
-MAKEFILE_INCLUDE_DIRS += -I/System/Library/Frameworks/OpenGL.framework/Headers 
-MAKEFILE_INCLUDE_DIRS += -I/System/Library/Frameworks/AGL.framework/Headers
-
-endif   
-
+MAKEFILE_INCLUDE_DIRS += -I$(addprefix $(QTDIR)/include/, QtOpenGL)
 
 VPATH = ../misc ../main ui
 
