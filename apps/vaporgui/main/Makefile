@@ -12,13 +12,6 @@ MAKEFILE_INCLUDE_DIRS += -I../guis -I../misc -I.. -I../../../lib/params -I../../
 MAKEFILE_INCLUDE_DIRS += -I$(addprefix $(QTDIR)/include/, QtOpenGL)
 
 
-ifeq ($(ARCH),Darwin)
-
-MAKEFILE_INCLUDE_DIRS += -I/System/Library/Frameworks/OpenGL.framework/Headers 
-MAKEFILE_INCLUDE_DIRS += -I/System/Library/Frameworks/AGL.framework/Headers
-
-endif
-
 ifneq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += -DPYTHONVERSION=\"$(PYTHONVERSION)\"
 MAKEFILE_CXXFLAGS += -DPYTHONDIR=\"$(PYTHONDIR)\"

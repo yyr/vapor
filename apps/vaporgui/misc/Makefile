@@ -18,13 +18,6 @@ MAKEFILE_CXXFLAGS += -DABS_TOP=\"$(ABS_TOP)\"
 MAKEFILE_CXXFLAGS += -DQTDIR=\"$(QTDIR)\"
 
 
-ifeq ($(ARCH),Darwin)
-
-MAKEFILE_INCLUDE_DIRS += -I/System/Library/Frameworks/OpenGL.framework/Headers 
-MAKEFILE_INCLUDE_DIRS += -I/System/Library/Frameworks/AGL.framework/Headers
-
-endif
-
 VPATH = ../guis ../main
 
 MOC_DIR = ../moc
