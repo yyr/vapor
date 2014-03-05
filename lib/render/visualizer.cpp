@@ -42,7 +42,7 @@
 #include <vapor/jpegapi.h>
 #include <vapor/common.h>
 #ifdef Darwin
-#include <gl.h>
+#include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
 #endif
