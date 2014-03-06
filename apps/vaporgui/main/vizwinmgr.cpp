@@ -1032,7 +1032,7 @@ getRegionRouter() {
 	return (RegionEventRouter*)getEventRouter(Params::_regionParamsTag);
 }
 
-void VizWinMgr::forceRender(Params* p, bool always){
+void VizWinMgr::forceRender(const Params* p, bool always){
 	if (p->isRenderParams()){
 		RenderParams* rp = (RenderParams*)p;
 		if (!always && !rp->IsEnabled()) return;

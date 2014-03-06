@@ -121,7 +121,7 @@ public:
 
 	//! Determine the current color (in r,g,b)
 	//! \retval const double rgb[3];
-	const double *GetConstantColor();
+	const vector<double>& GetConstantColor();
 
 	//! Set a field variable name, and also recalculate default vector scale
 	//! \param[in] int coordinate
@@ -174,7 +174,7 @@ public:
 	//! Determine the strides used in horizontal grid-alignment
 	//! Stride is the number of data grid cells between rake grid.
 	//! \retval vector<long> 2-vector of strides
-	const vector<long> GetGridAlignStrides(){
+	const vector<long>& GetGridAlignStrides(){
 		const vector<long> defaultStrides(3,10);
 		return GetRootNode()->GetElementLong(_alignGridStridesTag,defaultStrides);
 	}

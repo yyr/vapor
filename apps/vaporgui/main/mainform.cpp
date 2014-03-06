@@ -657,8 +657,8 @@ void MainForm::fileExit()
 void MainForm::undo(){
 	ControlExecutive* ce = ControlExecutive::getInstance();
 	//If it's not active, just set default text:
-	if (!ce->GetCurrentCommand(0)) return; 
-	Params* p = ce->Undo();
+	if (!ce->CommandExists(0)) return; 
+	const Params* p = ce->Undo();
 	tabWidget->getFrontEventRouter()->updateTab();
 	VizWinMgr::getInstance()->forceRender(p,true);
 }
@@ -666,8 +666,8 @@ void MainForm::undo(){
 void MainForm::redo(){
 	ControlExecutive* ce = ControlExecutive::getInstance();
 	//If it's not active, just set default text:
-	if (!ce->GetCurrentCommand(-1)) return; 
-	Params* p = ce->Redo();
+	if (!ce->CommandExists(-1)) return; 
+	const Params* p = ce->Redo();
 	tabWidget->getFrontEventRouter()->updateTab();
 	VizWinMgr::getInstance()->forceRender(p,true);
 }
@@ -871,10 +871,10 @@ void MainForm::setupEditMenu(){
 	QString redoText("Redo ");
 	ControlExecutive* ce = ControlExecutive::getInstance();
 	//If it's not active, just set default text:
-	if (editUndoAction->isEnabled() && ce->GetCurrentCommand(0)) {
+	if (editUndoAction->isEnabled() && ce->CommandExists(0)) {
 		undoText += ce->GetCommandText(0).c_str();
 	}
-	if (editRedoAction->isEnabled() && ce->GetCurrentCommand(-1)) {
+	if (editRedoAction->isEnabled() && ce->CommandExists(-1)) {
 		redoText +=  ce->GetCommandText(-1).c_str();
 	}
 	editUndoAction->setText( undoText );

@@ -285,11 +285,11 @@ int ArrowParams::SetConstantColor(const double rgb[3]) {
 	return CaptureSetDouble(_constantColorTag,"Change barb color",valvec);
 }
 
-const double *ArrowParams::GetConstantColor() {
+const vector<double>& ArrowParams::GetConstantColor() {
 	const vector<double> white (3,1.);
-	vector <double> valvec = GetRootNode()->GetElementDouble(_constantColorTag, white);
-	for (int i=0; i<3; i++) _constcolorbuf[i] = valvec[i];
-	return(_constcolorbuf);
+	const vector <double>& valvec = GetRootNode()->GetElementDouble(_constantColorTag, white);
+	
+	return(valvec);
 }
 
 int ArrowParams::SetFieldVariableName(int i, const string& varName){

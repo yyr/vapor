@@ -336,11 +336,13 @@ public:
 	//! to call Paint() after Undo(), and to make any UI internal changes
 	//! necessary to reflect the new state. It is also the responsibility of
 	//! the UI to set any change flags associated with the change in Params state.
+	//! The returned const Params* pointer should be used by the GUI to determine which renderer(s)
+	//! must be refreshed
     //!
 	//! \return Params* ptr A pointer to the Params object that reflects the change.  Pointer is null if there is nothing to undo.
 	//! \sa Redo()
 	//!
-	Params* Undo();
+	const Params* Undo();
 
 	//! Redo the next session state change
 	//! Restores the state of the session to what it was before the
@@ -351,21 +353,25 @@ public:
 	//! to call Paint() after Redo(), and to make any UI internal changes
 	//! necessary to reflect the new state.  It is also the responsibility of
 	//! the UI to set any change flags associated with the change in Params state.
+	//! The returned Params* pointer should be used by the GUI to determine which renderer(s)
+	//! must be refreshed
     //!
 	//! \return Params* ptr A pointer to the Params object that reflects the change.  Pointer is null if there is nothing to Redo
 	//! \sa UnDo()
 	//
-	Params* Redo();
+	const Params* Redo();
 
 	string& GetCommandText(int n);
 
-	//! Obtain a Command from the Command queue.
-	//! Offset parameter enables retrieval of any entry in queue.  
+	//! Indicates whether or not there exists a Command at the specified offset 
+	//! from the latest Command which was issued, can be e.g. used to tell whether or not
+	//! undo or redo is possible.
+	//! Offset parameter indicates position in Command queue,
 	//! Offset = 0 for last issued command, offset = -1 for next command to Redo
 	//! \param [in] int offset from the end of the queue (last executed command)
-	//! \return Command* is specified command instance, NULL if nothing there.
+	//! \return bool is true if there is a command.
 
-	Command* GetCurrentCommand(int offset); 
+	bool CommandExists(int offset); 
 
 	//! Capture the next rendered image to a file
 	//!

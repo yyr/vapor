@@ -417,13 +417,13 @@ reinitializeParams(bool doOverride){
 	}
 }
 
-Params* ControlExecutive::Undo( ){
+const Params* ControlExecutive::Undo( ){
 		return Command::BackupQueue();
 }
-Params* ControlExecutive::Redo(){
+const Params* ControlExecutive::Redo(){
 		return Command::AdvanceQueue();
 }
 
-Command* ControlExecutive::GetCurrentCommand(int offset) {
-	return Command::CurrentCommand(offset);
+bool ControlExecutive::CommandExists(int offset) {
+	return (Command::CurrentCommand(offset) != 0);
 }

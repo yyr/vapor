@@ -39,16 +39,21 @@ class Params;
 //! \class ParamsBase
 //! \brief Nodes with state in Xml tree representation
 //! \author John Clyne
-//! \version $Revision$
-//! \date    $Date$
+//! \version 3.0
+//! \date    March 2014
 //!
 //! This is abstract parent of Params and related classes with state 
 //! kept in an xml node.  Used with the ParamNode class to support
 //! user-defined Params classes as well as other classes such as
 //! the TransferFunction class.
 //! 
-//! Users can extend ParamsBase classes to include arbitrary
-//! child (sub) nodes, by support parsing of such nodes. 
+//! Implementers of VAPOR extensions may find it useful to implement
+//! classes that are contained in Params classes, and whose XML
+//! representation will then be a subtree of the root ParamNode of the Params class.
+//! These classes should be derived from ParamsBase, but are in most aspects similar
+//! to Params classes.  Examples of ParamsBase classes include TransferFunction, 
+//! Box, and Viewpoint.
+//! \sa Box, Viewpoint, TransferFunction
 //!
 
 class XmlNode;

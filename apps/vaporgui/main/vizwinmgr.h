@@ -86,7 +86,7 @@ public:
 	//! The renderer must be enabled or this will have no effect unless the optional 'always' parameter is true.
 	//! \param[in] RenderParams* pointer to RenderParams instance that is associated with the rendering requested.
 	//! \param[in] bool always indicates that rerender will occur even if the params is disabled.
-	void forceRender(Params* p, bool always=false);
+	void forceRender(const Params* p, bool always=false);
 	
 	
 	//! Static method obtains the EventRouter instance associated with a particular Params type.  There is a unique EventRouter

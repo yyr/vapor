@@ -48,6 +48,7 @@ class ParamNode;
 //! a local RegionParams for each window, that users can select whenever there are multiple windows.
 //! When local settings are used, they only affect one currently active visualizer.
 //! The RegionParams class also has several methods that are useful in setting up data requests from the DataMgr.
+//!
 class PARAMS_API RegionParams : public Params {
 	
 public: 

@@ -501,9 +501,8 @@ void ArrowEventRouter::updateTab(){
 	if (hNum <0) hNum = 0;
 	heightCombo->setCurrentIndex(hNum);
 
-	
 	//Set the constant color box
-	const double* clr = arrowParams->GetConstantColor();
+	const vector<double>& clr = arrowParams->GetConstantColor();
 	QColor newColor;
 	newColor.setRgbF((qreal)clr[0],(qreal)clr[1],(qreal)clr[2]);
 	QPalette pal(colorBox->palette());
