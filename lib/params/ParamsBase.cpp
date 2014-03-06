@@ -241,7 +241,6 @@ ParamNode *ParamsBase::Pop() {
 }
 
 
-
 const map <string, string> &ParamsBase::GetAttributes() {
 	return(_currentParamNode->Attrs());
 }
@@ -270,10 +269,7 @@ void ParamsBase::Clear() {
 	if(parent) parent->AddChild(_rootParamNode);
 
 }
-void ParamsBase::SetFlagDirty(const string& flag)
-{
-	_rootParamNode->SetFlagDirty(flag);
-}
+
 
 int ParamsBase::CaptureSetLong(string tag, const char* description, long value, Params* p){
 	Command* cmd = 0;

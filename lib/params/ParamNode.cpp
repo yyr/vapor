@@ -115,20 +115,7 @@ int ParamNode::SetElementLong(
 	//
 	int rc = XmlNode::SetElementLong(tag, values);
 
-	if(rc) return rc;
-	// see if a dirty flag is registered for this tag. If not
-	// do nothing.
-	//
-	map <string, vector <DirtyFlag *> >::iterator p =  _dirtyFlags.find(tag);
-	if (p != _dirtyFlags.end()) { 
-
-		vector <DirtyFlag *> &dirtyflags = p->second;
-		for(int i=0; i<dirtyflags.size(); i++) {
-			DirtyFlag *df = dirtyflags[i];
-			df->Set();
-		}
-	}
-	return(0);
+	return rc;
 }
 	
 int ParamNode::SetElementLong(
@@ -154,20 +141,9 @@ int ParamNode::SetElementDouble(
 
 	int rc = XmlNode::SetElementDouble(tag, values);
 
-	if(rc) return rc;
-	// see if a dirty flag watcher is registered for this tag. If not
-	// do nothing.
-	//
-	map <string, vector <DirtyFlag *> >::iterator p =  _dirtyFlags.find(tag);
-	if (p != _dirtyFlags.end()) { 
+	return rc;
+	
 
-		vector <DirtyFlag *> &dirtyflags = p->second;
-		for(int i=0; i<dirtyflags.size(); i++) {
-			DirtyFlag *df = dirtyflags[i];
-			df->Set();
-		}
-	}
-	return(0);
 }
 	
 int ParamNode::SetElementString(
@@ -175,20 +151,8 @@ int ParamNode::SetElementString(
 ){ 
 
 	int rc = XmlNode::SetElementString(tag, str);
-	if(rc) return rc;
-	// see if a dirty flag watcher is registered for this tag. If not
-	// do nothing.
-	//
-	map <string, vector <DirtyFlag *> >::iterator p =  _dirtyFlags.find(tag);
-	if (p != _dirtyFlags.end()) { 
-
-		vector <DirtyFlag *> &dirtyflags = p->second;
-		for(int i=0; i<dirtyflags.size(); i++) {
-			DirtyFlag *df = dirtyflags[i];
-			df->Set();
-		}
-	}
-	return(0);
+	return rc;
+	
 }
 int ParamNode::SetElementLong(
 	const vector<string> &tagpath, const vector<long> &values
@@ -204,20 +168,8 @@ int ParamNode::SetElementLong(
 	//
 	int rc = currNode->SetElementLong(tag, values);
 
-	if(rc) return rc;
-	// see if a dirty flag is registered for this tag. If not
-	// do nothing.
-	//
-	map <string, vector <DirtyFlag *> >::iterator p =  _dirtyFlags.find(tag);
-	if (p != _dirtyFlags.end()) { 
-
-		vector <DirtyFlag *> &dirtyflags = p->second;
-		for(int i=0; i<dirtyflags.size(); i++) {
-			DirtyFlag *df = dirtyflags[i];
-			df->Set();
-		}
-	}
-	return(0);
+	return rc;
+	
 }
 	
 int ParamNode::SetElementDouble(
@@ -235,20 +187,8 @@ int ParamNode::SetElementDouble(
 	//
 	int rc = currNode->SetElementDouble(tag, values);
 
-	if(rc) return rc;
-	// see if a dirty flag watcher is registered for this tag. If not
-	// do nothing.
-	//
-	map <string, vector <DirtyFlag *> >::iterator p =  _dirtyFlags.find(tag);
-	if (p != _dirtyFlags.end()) { 
-
-		vector <DirtyFlag *> &dirtyflags = p->second;
-		for(int i=0; i<dirtyflags.size(); i++) {
-			DirtyFlag *df = dirtyflags[i];
-			df->Set();
-		}
-	}
-	return(0);
+	return rc;
+	
 }
 	
 int ParamNode::SetElementStringVec(
@@ -265,20 +205,8 @@ int ParamNode::SetElementStringVec(
 	// Store element at the last node:
 	//
 	int rc = currNode->SetElementStringVec(tag, str);
-	if(rc) return rc;
-	// see if a dirty flag watcher is registered for this tag. If not
-	// do nothing.
-	//
-	map <string, vector <DirtyFlag *> >::iterator p =  _dirtyFlags.find(tag);
-	if (p != _dirtyFlags.end()) { 
-
-		vector <DirtyFlag *> &dirtyflags = p->second;
-		for(int i=0; i<dirtyflags.size(); i++) {
-			DirtyFlag *df = dirtyflags[i];
-			df->Set();
-		}
-	}
-	return(0);
+	return rc;
+	
 }
 
 int ParamNode::SetElementStringVec(
@@ -286,58 +214,10 @@ int ParamNode::SetElementStringVec(
 ){ 
 
 	int rc = XmlNode::SetElementStringVec(tag, str);
-	if(rc) return rc;
-	// see if a dirty flag watcher is registered for this tag. If not
-	// do nothing.
-	//
-	map <string, vector <DirtyFlag *> >::iterator p =  _dirtyFlags.find(tag);
-	if (p != _dirtyFlags.end()) { 
-
-		vector <DirtyFlag *> &dirtyflags = p->second;
-		for(int i=0; i<dirtyflags.size(); i++) {
-			DirtyFlag *df = dirtyflags[i];
-			df->Set();
-		}
-	}
-	return(0);
+	return rc;
+	
 }
 
-int ParamNode::SetFlagDirty(const string &tag){
-	// see if a dirty flag watcher is registered for this tag. If not
-	// do nothing.
-	//
-	map <string, vector <DirtyFlag *> >::iterator p =  _dirtyFlags.find(tag);
-	if (p != _dirtyFlags.end()) { 
-
-		vector <DirtyFlag *> &dirtyflags = p->second;
-		for(int i=0; i<dirtyflags.size(); i++) {
-			DirtyFlag *df = dirtyflags[i];
-			df->Set();
-		}
-		return 0;
-	}
-	return -1;
-}
-int ParamNode::SetFlagDirty(const vector<string> &tagpath){
-	//Iterate through tags, finding associated node, stop one short
-	ParamNode* currNode = this;
-	for (int i = 0; i< tagpath.size()-1; i++){
-		currNode = currNode->GetNode(tagpath[i]);
-		if (!currNode) return -1;
-	}
-	string tag = tagpath[tagpath.size()-1];
-	map <string, vector <DirtyFlag *> >::iterator p =  currNode->_dirtyFlags.find(tag);
-	if (p != currNode->_dirtyFlags.end()) { 
-
-		vector <DirtyFlag *> &dirtyflags = p->second;
-		for(int i=0; i<dirtyflags.size(); i++) {
-			DirtyFlag *df = dirtyflags[i];
-			df->Set();
-		}
-		return 0;
-	}
-	return -1;
-}
 
 int ParamNode::AddNode(const string& tag, ParamNode* child) {
 	if (HasChild(tag)) {
@@ -439,125 +319,7 @@ ParamNode* ParamNode::GetNode(const vector<string>& tagpath){
 
 }
 	
-int ParamNode::RegisterDirtyFlag(
-	const string &tag, ParamNode::DirtyFlag *df
-) {
-	map <string, vector <DirtyFlag *> >::iterator p =  _dirtyFlags.find(tag);
 
-	if (p != _dirtyFlags.end()) { 
-
-		vector <DirtyFlag *> &dirtyflags = p->second;
-
-		// Make sure flag doesn't already exist;
-		// It's OK to register it twice.
-		for(int i=0; i<dirtyflags.size(); i++) {
-			if (dirtyflags[i] == df) return 0;
-		}
-		dirtyflags.push_back(df);
-	}
-	else {
-		vector <DirtyFlag *> dirtyflags;
-		dirtyflags.push_back(df);
-		_dirtyFlags[tag] = dirtyflags;
-	}
-	return 0;
-}
-
-int ParamNode::RegisterDirtyFlag(
-	const vector<string> &tagpath, ParamNode::DirtyFlag *df
-) {
-	//Iterate through tags, finding associated node, stop one short
-	ParamNode* currNode = this;
-	for (int i = 0; i< tagpath.size()-1; i++){
-		currNode = currNode->GetNode(tagpath[i]);
-		if (!currNode) return -1;
-	}
-	string tag = tagpath[tagpath.size()-1];
-
-	map <string, vector <DirtyFlag *> >::iterator p =  currNode->_dirtyFlags.find(tag);
-
-	if (p != currNode->_dirtyFlags.end()) { 
-
-		vector <DirtyFlag *> &dirtyflags = p->second;
-
-		// Make sure flag doesn't already exist;
-		for(int i=0; i<dirtyflags.size(); i++) {
-			if (dirtyflags[i] == df) return 0;
-		}
-		dirtyflags.push_back(df);
-	}
-	else {
-		vector <DirtyFlag *> dirtyflags;
-		dirtyflags.push_back(df);
-		currNode->_dirtyFlags[tag] = dirtyflags;
-	}
-	return 0;
-}
-
-
-int ParamNode::UnRegisterDirtyFlag(
-	const string &tag, const ParamNode::DirtyFlag *df
-) {
-	map <string, vector <DirtyFlag *> >::iterator p =  _dirtyFlags.find(tag);
-
-	if (p == _dirtyFlags.end()) return -1;
-
-
-	vector <DirtyFlag *> &dirtyflags = p->second;
-
-	// Find the dirty flag if it exists
-	//
-	for(int i=0; i<dirtyflags.size(); i++) {
-		if (dirtyflags[i] == df) {
-			dirtyflags.erase(dirtyflags.begin() + i);
-			return 0;
-		}
-	}
-	return -1;
-}
-
-int ParamNode::UnRegisterDirtyFlag(
-	const vector<string> &tagpath, const ParamNode::DirtyFlag *df
-) {
-	//Iterate through tags, finding associated node, stop one short
-	ParamNode* currNode = this;
-	for (int i = 0; i< tagpath.size()-1; i++){
-		currNode = currNode->GetNode(tagpath[i]);
-		if (!currNode) return -1;
-	}
-	string tag = tagpath[tagpath.size()-1];
-	map <string, vector <DirtyFlag *> >::iterator p =  currNode->_dirtyFlags.find(tag);
-
-	if (p == currNode->_dirtyFlags.end()) return -1;
-
-
-	vector <DirtyFlag *> &dirtyflags = p->second;
-
-	// Find the dirty flag if it exists
-	//
-	for(int i=0; i<dirtyflags.size(); i++) {
-		if (dirtyflags[i] == df) {
-			dirtyflags.erase(dirtyflags.begin() + i);
-			return 0;
-		}
-	}
-	return -1;
-}
-
-void ParamNode::SetAllFlags(bool dirty){
-	map <string, vector <DirtyFlag *> >::iterator p =  _dirtyFlags.begin();
-	
-	while (p != _dirtyFlags.end()){
-
-		vector <DirtyFlag *> &dirtyflags = p->second;
-		for(int i=0; i<dirtyflags.size(); i++) {
-			if (dirty) dirtyflags[i]->Set();
-			else dirtyflags[i]->Clear();
-		}
-		p++;
-	}
-
-}
 const vector<long> &ParamNode::GetElementLong(const vector<string> &tagpath, const vector<long>& defaultVal) {
 
 	//Iterate through tags, finding associated node
