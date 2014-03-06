@@ -60,35 +60,47 @@ class Command;
 //! all changes in state occurring during the VAPOR application can be represented as a change in the
 //! state of a Params instance.  The state of each Params instance is automatically saved and restored
 //! with the VAPOR Session file, using the XML representation.
-//! \sa Command
+//! \par
 //! In the VAPOR GUI, each tab corresponds to a Params subclass, and the renderer tabs correspond to
 //! subclasses of RenderParams, a subclass of Params.
 //! In addition, other Params subclasses can be used to represent other aspects of the state of the VAPOR application,
 //! so that Undo and Redo supports such state changes.
+//! \sa Command, ParamsBase, ParamNode, RenderParams
 //!
 //! Instructions for VAPOR Params implementers:
+//!
 //! Implementers of VAPOR Params classes should implement a Params class with all of the state described by its ParamNode root.
+//! \par 
 //! If the Params class corresponds to a renderer, the Params class should be derived from RenderParams.
+//! \par 
 //! The implementer should also provide Get and Set methods for all of the parameters in the new Params class.
+//! \par 
 //! The Get methods can directly access the corresponding ParamNode methods that retrieve data from the XML tree.
+//! \par 
 //! The Set methods should invoke the methods Params::CaptureSetLong(), Params::CaptureSetDouble(), Params::CaptureSetString(),
 //! and Params::CaptureSetStringVec(), so that changes in the Params state will automatically be captured in the
 //! Undo/Redo queue, and so that values that are set are confirmed to be valid based on the current DataMgr.
+//! \par 
 //! Params implementers must also implement the various pure virtual methods described below.
 //!
 //! Instructions for VAPOR application implementers:
+//! \par 
 //! Application code (such as scripting and GUI applications) must be aware of the various Params instances that
 //! are in use.  Methods for accessing these instances are provided as static methods on Params described below.  These
 //! methods allow retrieval of Params instances based on the type of Params, the visualizer that it is associated with,
 //! and the instance index of RenderParams.
 //!
 //! Terminology:
+//! \par 
 //! Type:  Each Params subclass has a unique string type, that also serves as the XML tag associated with the Params
+//! \par 
 //! Instance index:  Each RenderParams has an instance index, allowing control of multiple RenderParams instances in
 //! the same rendering.
+//! \par 
 //! Visualizer:  A visualizer is an OpenGL rendering window.  These are numbered by positive integers.  Each RenderParams
 //! instance is associated with a particular visualizer.  Params instances that are not RenderParams can apply in one
 //! or more visualizer.
+//! \par 
 //! Current Instance:  When there are multiple instances of a RenderParams, one of them is the "Current Instance".
 //! The current instance determines the values that are displayed in the GUI, and is also used as the
 //! default instance when referenced by another Params instance.

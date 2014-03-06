@@ -32,12 +32,13 @@ class RegionParams;
 class XmlNode;
 class ParamNode;
 //! \class ViewpointParams
-//! \brief A class for describing the viewpoint and lights
+//! \brief A class for describing the viewpoint and lights in a 3D VAPOR scene
 //! \author Alan Norton
 //! \version 3.0
 //! \date    February 2014
-//! This class provides methods for determining the viewpoint
-//! and the direction of lights.  If it is shared, all windows can
+//! \par
+//! This class describes the state of viewpoints and 
+//! and the properties of light sources.  If the ViewpointParams is shared (i.e. not local), all windows can
 //! use the same viewpoint and lights.  Local viewpoints are
 //! just applicable in one visualizer.
 class PARAMS_API ViewpointParams : public Params {

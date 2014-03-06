@@ -32,9 +32,9 @@ namespace VAPoR {
 //! \version 3.0
 //! \date    March 2014
 //!
-//! The Box class supports various rectangular boxes used in VAPOR to specify extents and also used in Manipulators.
+//! The Box class supports various rectangular boxes, possibly rotated,  used in VAPOR to specify extents and also used in Manipulators.
 //! Each Box is based on coordinates in "local extents", i.e. coordinates relative to the full extents of the
-//! VDC data at the current times step.  To convert to user coordinates requires translating the local box 
+//! VDC data at the current time step.  To convert to user coordinates requires translating the local box 
 //! extents by the user coordinates of the minimum x, y, and z user coordinates of the VDC.
 //! 
 //! 
