@@ -26,7 +26,7 @@
 #include "viewpointparams.h"
 #include "animationparams.h"
 #ifdef Darwin
-#include <gl.h>
+#include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
 #endif
