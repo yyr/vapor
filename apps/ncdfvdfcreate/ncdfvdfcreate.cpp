@@ -268,32 +268,50 @@ MetadataVDC *CreateMetadataVDC(
 
 	string gridtype = file->GetGridType();
 
-	if (gridtype.compare("layered")) {
+	if (gridtype.compare("layered")==0) {
 		vector <string> vec;
 		vec.push_back("NONE");
 		vec.push_back("NONE");
 		vec.push_back(opt.zcoordvar);
 		file->SetCoordinateVariables(vec);
 	}
-	else if (gridtype.compare("stretched")) {
+	else if (gridtype.compare("stretched")==0) {
 		NetCDFCollection *ncdfc = ncdfData->GetNetCDFCollection();
 		for(size_t ts = 0; ts < ncdfData->GetNumTimeSteps(); ts++) {
 			vector <double> coords;
-			if (! opt.xcoordvar.compare("NONE")) {
+			if (! (opt.xcoordvar.compare("NONE")==0)) {
 				GetCoordinates(ncdfc, ts, opt.xcoordvar, dims[0], coords);
-				int rc = file->SetTSXCoords(ts, coords);
-				if (rc<0) exit(1);
 			}
-			if (! opt.ycoordvar.compare("NONE")) {
-				GetCoordinates(ncdfc, ts, opt.ycoordvar, dims[1], coords);
-				int rc = file->SetTSYCoords(ts, coords);
-				if (rc<0) exit(1);
+			else {
+				// Ugh. Stupid hack to fix bug #1007. The VDCFactory
+				// object parses the -{x,y,z}coords option and sets 
+				// the coordinates, but only for the first time step.
+				// Need to grab coordinates from ts=0, and set the rest of
+				// the time steps
+				//
+				coords = file->GetTSXCoords(0);
 			}
-			if (! opt.zcoordvar.compare("NONE")) {
-				GetCoordinates(ncdfc, ts, opt.zcoordvar, dims[2], coords);
-				int rc = file->SetTSYCoords(ts, coords);
-				if (rc<0) exit(1);
+			int rc = file->SetTSXCoords(ts, coords);
+			if (rc<0) exit(1);
+
+			if (! (opt.ycoordvar.compare("NONE")==0)) {
+				GetCoordinates(ncdfc, ts, opt.ycoordvar, dims[0], coords);
 			}
+			else {
+				coords = file->GetTSYCoords(0);
+			}
+			rc = file->SetTSYCoords(ts, coords);
+			if (rc<0) exit(1);
+
+			if (! (opt.zcoordvar.compare("NONE")==0)) {
+				GetCoordinates(ncdfc, ts, opt.zcoordvar, dims[0], coords);
+			}
+			else {
+				coords = file->GetTSZCoords(0);
+			}
+			rc = file->SetTSZCoords(ts, coords);
+			if (rc<0) exit(1);
+
 		}
 	}
 
