@@ -23,8 +23,8 @@
 
 #include <GL/glew.h>
 #ifdef Darwin
-#include <gl.h>
-#include <glu.h>
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
 #else
 #include <GL/gl.h>
 #include <GL/glu.h>

@@ -40,12 +40,9 @@ MAKEFILE_INCLUDE_DIRS += -I$(addprefix $(QTDIR)/include/, QtOpenGL)
 
 ifeq ($(ARCH),Darwin)
 
-MAKEFILE_INCLUDE_DIRS += -I/System/Library/Frameworks/OpenGL.framework/Headers 
-MAKEFILE_INCLUDE_DIRS += -I/System/Library/Frameworks/AGL.framework/Headers
 
 MAKEFILE_LDFLAGS += -framework CoreFoundation -framework CoreServices 
 MAKEFILE_LDFLAGS += -framework Cocoa -framework AppKit -framework 
-:w
 MAKEFILE_LDFLAGS += ApplicationServices -framework OpenGL -framework AGL
 MAKEFILE_LDFLAGS += -u _PyMac_Error 
 
