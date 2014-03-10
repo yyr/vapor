@@ -123,6 +123,9 @@
     <ClCompile Include="..\..\..\lib\params\GeoTileMercator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\lib\params\isolineparams.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\lib\params\animate.h">
@@ -234,6 +237,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\lib\params\GeoTileMercator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lib\params\isolineparams.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

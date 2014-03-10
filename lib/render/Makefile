@@ -11,7 +11,7 @@ FILES = \
 	DVRBase DVRDebug \
 	glwindow renderer twoDrenderer \
 	twoDimagerenderer twoDdatarenderer \
-	manip proberenderer\
+	manip proberenderer isolinerenderer \
 	arrowrenderer \
 	trackball flowrenderer \
 	VolumeRenderer BBox ShaderProgram TextureBrick \

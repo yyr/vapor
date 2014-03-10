@@ -2712,7 +2712,7 @@ adjustBoxSize(ProbeParams* pParams){
 void ProbeEventRouter::resetTextureSize(ProbeParams* probeParams){
 	//setup the texture:
 	float voxDims[2];
-	probeParams->getProbeVoxelExtents(voxDims);
+	probeParams->getRotatedVoxelExtents(voxDims);
 	probeTextureFrame->setTextureSize(voxDims[0],voxDims[1]);
 }
 

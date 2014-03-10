@@ -6,6 +6,7 @@ GUI_FILES := \
 	regioneventrouter viewpointeventrouter probeeventrouter \
 	arroweventrouter \
 	isoeventrouter probeframe glprobewindow \
+	isolineeventrouter isolineframe glisolinewindow \
 	twoDeventrouter twoDdataeventrouter twoDimageeventrouter \
 	twodframe gltwoDwindow \
 	DomainWidget GLWidget OpacityWidget \
@@ -28,7 +29,8 @@ GUI_QT_HEADERS := \
 	qtthumbwheel userpreferences \
 	mappingframe ColorbarWidget \
 	ModelEventRouter \
-        TransformListModel TransformWidget TransformDelegate
+        TransformListModel TransformWidget TransformDelegate \
+	isolineeventrouter isolineframe 
 
 
 

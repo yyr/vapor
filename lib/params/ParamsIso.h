@@ -79,36 +79,6 @@ public:
  //!
  const std::string& getShortName() {return _shortName;}
  
- //! Obtain the current compression level.
- //!
- //! Pure virtual method required of render params
- //! \retval level index into the set of available compression ratios
- virtual int GetCompressionLevel();
- //! Set the current fidelity level.
- //! \param [in] float fidelity
- //! Pure virtual method required of render params
- //
- virtual void SetFidelityLevel(int val);
- //! Obtain whether fidelity is ignored
- //!
- //! Pure virtual method required of render params
- //! \retval val bool specified if it is ignored
- virtual bool GetIgnoreFidelity();
- //! Set current ignoring of fidelity
- //! \param [in] bool
- //! Pure virtual method required of render params
- //
- virtual void SetIgnoreFidelity(bool val);
- //! Obtain the current fidelity level.
- //!
- //! Pure virtual method required of render params
- //! \retval level float between 0 and 1
- virtual int GetFidelityLevel();
- //! Set the current compression level.
- //!
- //! Pure virtual method required of render params
- //
- virtual void SetCompressionLevel(int val);
  //! Reinitialize the object for a new dataset.
  //!
  //! Pure virtual method required of Params
@@ -265,15 +235,11 @@ float getMaxIsoEditBound() {
  void SetSelectedPoint(const float pnt[3]);
  const vector<double>& GetSelectedPoint();
 
- virtual void SetRefinementLevel(int level);
- virtual int GetRefinementLevel();
  void RegisterRefinementDirtyFlag(ParamNode::DirtyFlag *df);
  void UnRegisterRefinementDirtyFlag(ParamNode::DirtyFlag *df);
  void RegisterCompressionDirtyFlag(ParamNode::DirtyFlag *df);
  void UnRegisterCompressionDirtyFlag(ParamNode::DirtyFlag *df);
 
- void SetVisualizerNum(int viznum);
- int GetVisualizerNum();
  //For backwards compatibility:  Keep visnum synchronized with xml rep
  virtual int getVizNum() {return GetVisualizerNum();}
  virtual void setVizNum(int vnum){SetVisualizerNum(vnum);}

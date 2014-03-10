@@ -157,7 +157,8 @@ public:
 		twoDDataMode=4,
 		twoDImageMode=5,
 		rakeMode=2,
-		barbMode=6
+		barbMode=6,
+		isolineMode=7
 	};
 
 	//Reset the GL perspective, so that the near and far clipping planes are wide enough

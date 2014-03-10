@@ -265,8 +265,8 @@ mousePressEvent(QMouseEvent* e){
 		TranslateStretchManip* manip = myGLWindow->getManip(Params::GetTagFromType(t));
 		manip->setParams(rParams);
 		int manipType = GLWindow::getModeManipType(mode);
-		if(manipType != 3) rParams->calcStretchedBoxExtentsInCube(boxExtents, timestep);
-		else rParams->calcContainingStretchedBoxExtentsInCube(boxExtents);
+		if(manipType != 3) rParams->calcStretchedBoxExtentsInCube(boxExtents, timestep); //non-rotated manip
+		else rParams->calcContainingStretchedBoxExtentsInCube(boxExtents,true);//rotated
 		int handleNum = manip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
 
 		if (handleNum >= 0 && myGLWindow->startHandleSlide(screenCoords, handleNum,rParams)){

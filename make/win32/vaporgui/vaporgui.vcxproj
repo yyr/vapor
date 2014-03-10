@@ -267,6 +267,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\apps\vaporgui\guis\glisolinewindow.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\guis\isolineeventrouter.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\guis\isolineframe.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\misc\animationcontroller.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\animationeventrouter.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\arroweventrouter.cpp" />
@@ -333,6 +336,8 @@
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_helpwindow.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_instancetable.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isoeventrouter.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isolineeventrouter.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isolineframe.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_loadtfdialog.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_mainform.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_mappingframe.cpp" />
@@ -362,6 +367,20 @@
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_vizwinmgr.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\isolineeventrouter.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isolineeventrouter.h -o ..\..\..\apps\vaporgui\moc\moc_isolineeventrouter.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing isolineeventrouter.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\moc\moc_isolineeventrouter.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <ClInclude Include="..\..\..\apps\vaporgui\guis\glisolinewindow.h" />
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\isolineframe.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isolineframe.h -o ..\..\..\apps\vaporgui\moc\moc_isolineframe.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing isolineframe.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\moc\moc_isolineframe.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\isolinetab.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\misc\animationcontroller.h" />
     <CustomBuild Include="..\..\..\apps\vaporgui\misc\vcheckgui.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\misc\vcheckgui.h -o ..\..\..\apps\vaporgui\moc\moc_vcheckgui.cpp</Command>
@@ -1659,6 +1678,15 @@
       <Project>{91c4e098-bc79-4784-94b7-c96b3548682d}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\isolinetab.ui">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe "..\..\..\apps\vaporgui\guis\ui\isolinetab.ui" -o "..\..\..\apps\vaporgui\guis\ui\isolinetab.h"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Uic%27ing isolinetab.ui...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\guis\ui\isolinetab.h;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

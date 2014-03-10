@@ -219,6 +219,7 @@
     <ClCompile Include="..\..\..\lib\params\GeoTileMercator.cpp" />
     <ClCompile Include="..\..\..\lib\params\glutil.cpp" />
     <ClCompile Include="..\..\..\lib\params\histo.cpp" />
+    <ClCompile Include="..\..\..\lib\params\isolineparams.cpp" />
     <ClCompile Include="..\..\..\lib\params\mapperfunction.cpp" />
     <ClCompile Include="..\..\..\lib\params\MapperFunctionBase.cpp" />
     <ClCompile Include="..\..\..\lib\params\ModelParams.cpp" />
@@ -261,6 +262,7 @@
     <ClInclude Include="..\..\..\lib\params\GetAppPath.h" />
     <ClInclude Include="..\..\..\lib\params\glutil.h" />
     <ClInclude Include="..\..\..\lib\params\histo.h" />
+    <ClInclude Include="..\..\..\lib\params\isolineparams.h" />
     <ClInclude Include="..\..\..\lib\params\mapperfunction.h" />
     <ClInclude Include="..\..\..\include\vapor\MapperFunctionBase.h" />
     <ClInclude Include="..\..\..\lib\params\ModelParams.h" />

@@ -306,6 +306,21 @@
     <ClCompile Include="..\..\..\apps\vaporgui\misc\versionchecker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\apps\vaporgui\guis\isolineeventrouter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isolineeventrouter.cpp">
+      <Filter>Generated MOC Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vaporgui\guis\isolineframe.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vaporgui\guis\glisolinewindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isolineframe.cpp">
+      <Filter>Generated MOC Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\apps\vaporgui\misc\animationcontroller.h">
@@ -388,6 +403,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\viztab.h">
       <Filter>Generated Form Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\isolinetab.h">
+      <Filter>Generated Form Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\apps\vaporgui\guis\glisolinewindow.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -560,6 +581,15 @@
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\misc\versionchecker.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\isolinetab.ui">
+      <Filter>Forms</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\isolineeventrouter.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\isolineframe.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>

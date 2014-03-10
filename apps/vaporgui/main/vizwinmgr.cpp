@@ -82,6 +82,7 @@
 #include "twoDimageeventrouter.h"
 #include "twoDdataeventrouter.h"
 #include "floweventrouter.h"
+#include "isolineeventrouter.h"
 #include "panelcommand.h"
 #include "eventrouter.h"
 #include "VolumeRenderer.h"
@@ -196,6 +197,8 @@ createAllDefaultParams() {
 	InstallTab(Params::_viewpointParamsTag, ViewpointEventRouter::CreateTab);
 	ParamsBase::RegisterParamsBaseClass(Params::_regionParamsTag, RegionParams::CreateDefaultInstance, true);
 	InstallTab(Params::_regionParamsTag, RegionEventRouter::CreateTab);
+	ParamsBase::RegisterParamsBaseClass(IsolineParams::_isolineParamsTag, IsolineParams::CreateDefaultInstance, true);
+	InstallTab(IsolineParams::_isolineParamsTag, IsolineEventRouter::CreateTab);
 	ParamsBase::RegisterParamsBaseClass(Params::_twoDDataParamsTag, TwoDDataParams::CreateDefaultInstance, true);
 	//For backwards compatibility; the tag changed in vapor 1.5
 	ParamsBase::ReregisterParamsBaseClass(Params::_twoDParamsTag, Params::_twoDDataParamsTag, true);
@@ -783,6 +786,16 @@ refreshProbe(ProbeParams* pParams){
 		vizWin[activeViz]->updateGL();
 	} else assert(0);
 }
+//Force the window that uses a probe params to rerender
+//(possibly with new data)
+void VizWinMgr::
+refreshIsoline(IsolineParams* pParams){
+	if (!pParams->isEnabled()) return;
+	int vizNum = pParams->getVizNum();
+	if (vizNum >= 0){
+		vizWin[activeViz]->updateGL();
+	} else assert(0);
+}
 //Force the window that uses a TwoDImage params to rerender
 //(possibly with new data)
 void VizWinMgr::
@@ -1046,6 +1059,10 @@ getRegionParams(int winNum){
 ProbeParams* VizWinMgr::
 getProbeParams(int winNum, int instance){
 	return (ProbeParams*)Params::GetParamsInstance(Params::_probeParamsTag,winNum,instance);
+}
+IsolineParams* VizWinMgr::
+getIsolineParams(int winNum, int instance){
+	return (IsolineParams*)Params::GetParamsInstance(IsolineParams::_isolineParamsTag,winNum,instance);
 }
 //For a renderer, there should exist a local version.
 TwoDImageParams* VizWinMgr::
@@ -2062,6 +2079,7 @@ void VizWinMgr::RegisterMouseModes(){
 	RegisterMouseMode(Params::_probeParamsTag,3,"Probe", probe);
 	RegisterMouseMode(Params::_twoDDataParamsTag,2,"2D Data", twoDData);
 	RegisterMouseMode(Params::_twoDImageParamsTag,2, "Image",twoDImage);
+	RegisterMouseMode(IsolineParams::_isolineParamsTag,3,"Isoline", probe);
 	InstallExtensionMouseModes();
 }
 int VizWinMgr::RegisterMouseMode(const std::string paramsTag, int manipType,  const char* name, const char* const xpmIcon[]){

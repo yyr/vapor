@@ -322,6 +322,8 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \param[in]  vnum is the integer visualizer number
 	virtual void setVizNum(int vnum){vizNum = vnum;}
 	
+	virtual void SetVisualizerNum(int viznum);
+	virtual int GetVisualizerNum();
 //! Virtual method to set up the Params to deal with new metadata.
 //! When a new metadata is read, all params are notified.
 //! If the params have state that depends on the metadata (e.g. region size,
@@ -342,13 +344,16 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	virtual int getOrientation() { assert(0); return -1;}
 
 
-//! Virtual method that must be re-implemented for rotated boxes, such as with ProbeParams.
+//! Virtual method supports rotated boxes such as probe
 //! Specifies an axis-aligned box containing the rotated box.
 //! By default it just finds the box extents.
 //! Caller must supply extents array, which gets its values filled in.
 //! \param[out] float[6] Extents of rotated box
-	virtual void calcContainingStretchedBoxExtentsInCube(float extents[6]) 
-		{calcStretchedBoxExtentsInCube(extents, -1);}
+	virtual void calcContainingStretchedBoxExtentsInCube(float extents[6], bool rotated = false) 
+		{if (!rotated) calcStretchedBoxExtentsInCube(extents, -1);
+		else calcRotatedStretchedBoxExtentsInCube(extents);}
+
+	void calcRotatedStretchedBoxExtentsInCube(float extents[6]);
 
 //! This virtual method specifies that the box associated with this Params is constrained to stay within data extents.
 //! Override this method to allow the manipulator to move the box outside of the data extents.
@@ -569,38 +574,38 @@ public:
 	//! \param[in] varname name of the variable
 	//!
 	virtual bool usingVariable(const std::string& varname) = 0;
-	//! Pure virtual method sets current number of refinements of this Params.
-	//! \param[in] int refinements
-	//!
-	virtual void SetRefinementLevel(int numrefinements)=0;
-	//! Pure virtual method indicates current number of refinements of this Params.
-	//! \retval integer number of refinements
-	//!
-	virtual int GetRefinementLevel()=0;
-	//! Pure virtual method indicates current Compression level.
+	virtual void SetRefinementLevel(int level){
+		GetRootNode()->SetElementLong(_RefinementLevelTag, level);
+		setAllBypass(false);
+	}
+	virtual int GetRefinementLevel(){
+		const vector<long>defaultRefinement(1,0);
+		return (GetRootNode()->GetElementLong(_RefinementLevelTag,defaultRefinement)[0]);
+	}
+	//! virtual method indicates current Compression level.
 	//! \retval integer compression level, 0 is most compressed
 	//!
-	virtual int GetCompressionLevel()=0;
-	//! Pure virtual method indicates current fidelity level
+	virtual int GetCompressionLevel();
+	//! virtual method indicates current fidelity level
 	//! \retval float between 0 and 1
 	//!
-	virtual int GetFidelityLevel()=0;
-	//! Pure virtual method sets current fidelity level
+	virtual int GetFidelityLevel();
+	//! virtual method sets current fidelity level
 	//! \param[in] float level
 	//!
-	virtual void SetFidelityLevel(int level)=0;
-	//! Pure virtual method indicates fidelity is ignored
+	virtual void SetFidelityLevel(int level);
+	//! virtual method indicates fidelity is ignored
 	//! \retval bool
 	//!
-	virtual bool GetIgnoreFidelity()=0;
-	//! Pure virtual method sets whether fidelity is ignored
+	virtual bool GetIgnoreFidelity();
+	//! virtual method sets whether fidelity is ignored
 	//! \param[in] bool 
 	//!
-	virtual void SetIgnoreFidelity(bool val)=0;
-	//! Pure virtual method sets current Compression level.
+	virtual void SetIgnoreFidelity(bool val);
+	//! virtual method sets current Compression level.
 	//! \param[in] val  compression level, 0 is most compressed
 	//!
-	virtual void SetCompressionLevel(int val)=0;
+	virtual void SetCompressionLevel(int val);
 
 	//! virtual method used only by params that support selecting points in 3D space, 
 	//! and displaying those points with a 3D cursor.
@@ -695,7 +700,7 @@ public:
 	//following does nothing for renderParams
 	virtual void setLocal(bool ){ assert(0);}
 
-	virtual int getSessionVarNum(){assert(0); return -1;}
+	virtual int getSessionVarNum(){assert(0); return -1;}  //needed for transfer functions
 	virtual float GetHistoStretch() { assert(0); return 1.f;}
 	virtual bool getEditMode() {assert(0); return true;}
 	virtual const float* getCurrentDatarange(){assert(0); return(0);}
@@ -750,8 +755,16 @@ public:
 	int getBypassValue(int i) {return bypassFlags[i];} //only used for debugging
 	
 	void initializeBypassFlags();
-	
-	
+	//Used only by params with rotated boxes:
+	bool cropToBox(const double boxExts[6]);
+	bool intersectRotatedBox(double boxexts[6], double pointFound[3], double probeCoords[2]);
+	bool fitToBox(const double boxExts[6]);
+	int interceptBox(const double boxExts[6], double intercept[6][3]);
+	//change box dimensions after a rotation so that it appears to be the same size:
+	void rotateAndRenormalizeBox(int axis, float rotVal);
+	//Obtain region that contains rotated box
+	void getLocalContainingRegion(float regMin[3], float regMax[3]);
+	void getRotatedVoxelExtents(float voxdims[2]);
 
 protected:
 	

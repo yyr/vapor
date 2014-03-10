@@ -126,7 +126,7 @@ public:
 
 	virtual Box* GetBox(){return myBox;}
 	//Get the bounding extents of twoD, in cube coords
-	virtual void calcContainingStretchedBoxExtentsInCube(float* extents);
+	virtual void calcContainingStretchedBoxExtentsInCube(float* extents, bool rotated = false);
 	
 	virtual int GetRefinementLevel() {return numRefinements;}
 	

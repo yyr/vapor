@@ -76,8 +76,8 @@ TwoDParams::~TwoDParams(){
 
 
 //Find the smallest stretched extents containing the twoD, 
-//Similar to above, but using stretched extents
-void TwoDParams::calcContainingStretchedBoxExtentsInCube(float* bigBoxExtents){
+//Similar to above, but using stretched extents.  not rotated
+void TwoDParams::calcContainingStretchedBoxExtentsInCube(float* bigBoxExtents, bool ){
 	if(!DataStatus::getInstance()) return;
 	//Determine the smallest axis-aligned cube that contains the twoD.  This is
 	//obtained by mapping all 8 corners into the space.

@@ -190,9 +190,7 @@ public:
 	void setHistoStretch(float factor){histoStretchFactor = factor;}
 	virtual float GetHistoStretch(){return histoStretchFactor;}
 
-	bool cropToBox(const double boxExts[6]);
-	bool fitToBox(const double boxExts[6]);
-	int interceptBox(const double boxExts[6], double intercept[6][3]);
+	
 	
 	void setProbeTexture(unsigned char* tex, int timestep, int textureType){ 
 		unsigned char** textureArray = (textureType == 0) ? probeDataTextures : probeIBFVTextures;
@@ -212,17 +210,12 @@ public:
 		if( texType == 0) return probeDataTextures[timestep];
 		else return probeIBFVTextures[timestep];
 	}
-	void getProbeVoxelExtents(float voxdims[2]);
 	
 	
 	bool isPlanar() {return planar;}
 	void setPlanar(bool val) {planar = val;}
 	virtual Box* GetBox() {return myBox;}
 	
-	//Get the bounding extents of probe, in cube coords
-	virtual void calcContainingStretchedBoxExtentsInCube(float* extents);
-	//change box dimensions after a rotation so that it appears to be the same size:
-	void rotateAndRenormalizeBox(int axis, float rotVal);
 	virtual int GetRefinementLevel() {return numRefinements;}
 	virtual void hookupTF(TransferFunction* t, int index);
 	virtual bool IsOpaque();
@@ -244,12 +237,7 @@ public:
 	int getFirstVarNum() {return firstVarNum;}
 	void setNumVariablesSelected(int numselected){numVariablesSelected = numselected;}
 	int getNumVariablesSelected() {return numVariablesSelected;}
-	//Get the bounding box of data that is actually on disk.  return false if empty
-	bool getAvailableBoundingBox(size_t timestep, size_t boxMin[3], size_t boxMax[3], int numRefs, int lod);
-	//Obtain the smallest region (in local coords) that contains the probe, and fits within the full data volume.
-	//If inDomain is false, then don't require to fit within full data volume.
-	void getLocalContainingRegion(float regMin[3], float regMax[3], bool inDomain = true);
-
+	
 	int getProbeType() {return probeType;}
 	void setProbeType(int val) {probeType = val;}
 	//IBFV parameters:
@@ -323,14 +311,6 @@ protected:
 	void refreshCtab();
 			
 	//Utility functions for building texture and histogram
-	
-	//Find smallest containing cube in integer coords, 
-	//that will contain image of probe
-	void getBoundingBox(size_t timestep, double boxMin[3], double boxMax[3]);
-	//Get the rotated box sides in the unit cube, based on current angles:
-	void getRotatedBoxDims(float boxdims[3]);
-	bool intersectProbeBox(double boxexts[6], double pointFound[3], double probeCoords[2]);
-
 	float currentDatarange[2];
 	
 	bool editMode;
