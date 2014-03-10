@@ -2114,7 +2114,7 @@ showHideImage(){
 void IsolineEventRouter::paintEvent(QPaintEvent* ev){
 	
 		
-		//First show the texture frame, next time through, show the tf frame
+		//First show the texture frame, 
 		//Other order doesn't work.
 		if(!texShown ){
 #if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
@@ -2126,14 +2126,6 @@ void IsolineEventRouter::paintEvent(QPaintEvent* ev){
 			isolineImageFrame->updateGeometry();
 			QWidget::paintEvent(ev);
 			return;
-		} 
-		if (!opacityMapShown){
-#if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
-			QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
-			sArea->ensureWidgetVisible(tfFrame);
-			opacityMapShown = true;
-#endif
-			transferFunctionFrame->show();
 		} 
 		QWidget::paintEvent(ev);
 		return;
