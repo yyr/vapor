@@ -57,7 +57,7 @@ public:
 	//! \retval int number of lights (0,1,2, or 3)
 	int getNumLights() { 
 		vector<long> defNumLights(defaultNumLights,1);
-		return (GetRootNode()->GetElementLong(_numLightsTag,defNumLights)[0]);
+		return (GetValueLong(_numLightsTag,defNumLights));
 	}
 	
 	//! Obtain the current specular exponent.
@@ -66,7 +66,7 @@ public:
 	//! \retval float Specular exponent
 	double getExponent() {
 		vector<double> defSpecExp(defaultSpecularExp,1);
-		return (GetRootNode()->GetElementDouble(_specularExpTag,defSpecExp)[0]);
+		return (GetValueDouble(_specularExpTag,defSpecExp));
 	}
 
 	//! This method gives the current camera position in world coordinates.
@@ -137,14 +137,14 @@ public:
 	//! \param[in] int number of lights (0,1,2,3)
 	//! \retval 0 on success
 	int setNumLights(int nlights) {
-		return CaptureSetLong(_numLightsTag,"Set number of lights", nlights);
+		return SetValueLong(_numLightsTag,"Set number of lights", nlights);
 	}
 	//! get one component of a light direction vector
 	//! \param[in] int lightNum identifies which light source
 	//! \param[in] int dir coordinate of direction vector
 	//! \retval double requested component of light direction vector
 	double getLightDirection(int lightNum, int dir){
-		return GetRootNode()->GetElementDouble(_lightDirectionsTag)[dir+3*lightNum];
+		return GetValueDoubleVec(_lightDirectionsTag)[dir+3*lightNum];
 	}
 	//! Set one component of a light direction vector
 	//! \param[in] int lightNum identifies which light source
@@ -153,9 +153,9 @@ public:
 	//! \retval int 0 on success
 	int setLightDirection(int lightNum, int dir, double val){
 		
-		vector<double> ldirs = vector<double>(GetRootNode()->GetElementDouble(_lightDirectionsTag));
+		vector<double> ldirs = vector<double>(GetValueDouble(_lightDirectionsTag));
 		ldirs[dir+3*lightNum] = val;
-		return  CaptureSetDouble(_lightDirectionsTag,"Set light direction",ldirs);
+		return  SetValueDouble(_lightDirectionsTag,"Set light direction",ldirs);
 	}
 	//! Optain the diffuse lighting coefficient of a light source
 	//! \param[in] int light number (0..2)
@@ -163,7 +163,7 @@ public:
 	double getDiffuseCoeff(int lightNum) {
 		vector<double> defaultDiffCoeff;
 		for (int i = 0; i<3; i++) defaultDiffCoeff.push_back(defaultDiffuseCoeff[i]);
-		return GetRootNode()->GetElementDouble(_diffuseCoeffTag,defaultDiffCoeff)[lightNum];
+		return GetValueDoubleVec(_diffuseCoeffTag,defaultDiffCoeff)[lightNum];
 	}
 	//! Optain the specular lighting coefficient of a light source
 	//! \param[in] int light number (0..2)
@@ -171,13 +171,13 @@ public:
 	double getSpecularCoeff(int lightNum) {
 		vector<double> defaultSpecCoeff;
 		for (int i = 0; i<3; i++) defaultSpecCoeff.push_back(defaultSpecularCoeff[i]);
-		return GetRootNode()->GetElementDouble(_specularCoeffTag,defaultSpecCoeff)[lightNum];
+		return GetValueDoubleVec(_specularCoeffTag,defaultSpecCoeff)[lightNum];
 	}
 	//! Optain the ambient lighting coefficient of the lights
 	//! \retval double ambient coefficient
 	double getAmbientCoeff() {
 		vector<double> defaultAmbient(defaultAmbientCoeff,1);
-		return GetRootNode()->GetElementDouble(_ambientCoeffTag,defaultAmbient)[0];
+		return GetValueDouble(_ambientCoeffTag,defaultAmbient);
 	}
 	//! Set the diffuse lighting coefficient of a light source
 	//! \param[in] int light number (0..2)
@@ -185,9 +185,9 @@ public:
 	//! \retval int 0 if successful
 	int setDiffuseCoeff(int lightNum, double val) {
 		
-		vector<double>diffCoeff(GetRootNode()->GetElementDouble(_diffuseCoeffTag));
+		vector<double>diffCoeff(GetValueDouble(_diffuseCoeffTag));
 		diffCoeff[lightNum]=val;
-		return CaptureSetDouble(_diffuseCoeffTag,"Set diffuse coefficient",diffCoeff);
+		return SetValueDouble(_diffuseCoeffTag,"Set diffuse coefficient",diffCoeff);
 	}
 	//! Set the specular lighting coefficient of a light source
 	//! \param[in] int light number (0..2)
@@ -195,21 +195,21 @@ public:
 	//! \retval int 0 if successful
 	int setSpecularCoeff(int lightNum, double val) {
 		
-		vector<double>specCoeff(GetRootNode()->GetElementDouble(_specularCoeffTag));
+		vector<double>specCoeff(GetValueDouble(_specularCoeffTag));
 		specCoeff[lightNum]=val;
-		return  CaptureSetDouble(_specularCoeffTag,"Set specular coefficient",specCoeff);
+		return  SetValueDouble(_specularCoeffTag,"Set specular coefficient",specCoeff);
 	}
 	//! Set the specular lighting exponent of light sources
 	//! \param[in] double specular exponent
 	//! \retval int 0 if successful
 	int setExponent(double val) {
-		return CaptureSetDouble(_specularExpTag, "Set specular lighting",val);
+		return SetValueDouble(_specularExpTag, "Set specular lighting",val);
 	}
 	//! Set the ambient lighting coefficient
 	//! \param[in] double ambient coefficient
 	//! \retval int 0 if successful
 	int setAmbientCoeff(double val) {
-		return   CaptureSetDouble(_ambientCoeffTag,"Set ambient lighting",val);
+		return   SetValueDouble(_ambientCoeffTag,"Set ambient lighting",val);
 	}
 	//! Set the current viewpoint
 	//! \param[in] Viewpoint* viewpoint to be set

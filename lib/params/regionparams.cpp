@@ -157,14 +157,17 @@ bool RegionParams::insertTime(int timestep){
 		}
 	}
 	if (index != 0) return false;
+	Command* cmd = Command::CaptureStart(this, "Insert time in region list");
 	const vector<double>& extents = GetAllExtents();
 	vector<long> copyTimes = vector<long>(times);
 	vector<double>copyExts = vector<double>(extents);
 	copyTimes.push_back(timestep);
 	//Set the new extents to default extents:
 	for (int i = 0; i<6; i++) copyExts.push_back(extents[i]);
-	GetBox()->GetRootNode()->SetElementLong(Box::_timesTag, copyTimes);
-	GetBox()->GetRootNode()->SetElementDouble(Box::_extentsTag, copyExts);
+	GetBox()->SetValueLong(Box::_timesTag, "",copyTimes, this);
+	GetBox()->SetValueDouble(Box::_extentsTag,"", copyExts, this);
+	Validate(false);
+	Command::CaptureEnd(cmd,this);
 	return true;
 }
 bool RegionParams::removeTime(int timestep){

@@ -39,7 +39,7 @@ public:
 	//! \retval const vector<double>& camera position
 	const vector<double>& getCameraPosLocal() {
 		
-		return ( GetRootNode()->GetElementDouble(_camPosTag));
+		return ( GetValueDoubleVec(_camPosTag));
 	}
 	//! Determine one local coordinate of current camera position
 	//! \param[in] integer coordinate
@@ -53,19 +53,19 @@ public:
 	int setCameraPosLocal(int coord, double val, Params* p) {
 		vector<double> campos= vector<double>(getCameraPosLocal());
 		campos[coord] = val;
-		return CaptureSetDouble(_camPosTag, "Set camera position",campos,p);
+		return SetValueDouble(_camPosTag, "Set camera position",campos,p);
 	}
 	//! Specify the camera position (in local coordinates)
 	//! \param[in] vector<double> new position
 	//! \param[in] Param* the Params instance that is requesting this setvalue
 	//! \retval int 0 if successful
 	int setCameraPosLocal(const vector<double>&val, Params* p) {
-		return CaptureSetDouble(_camPosTag, "Set camera position", val,p);
+		return SetValueDouble(_camPosTag, "Set camera position", val,p);
 	}
 	//! Obtain the view direction vector
 	//! \retval const vector<double> direction vector
 	const vector<double>& getViewDir() {	
-		return ( GetRootNode()->GetElementDouble(_viewDirTag));
+		return ( GetValueDoubleVec(_viewDirTag));
 	}
 	//! Obtain a component of the view direction vector
 	//! \param[in] int coordinate
@@ -79,19 +79,19 @@ public:
 	int setViewDir(int coord, double val, Params* p) {	
 		vector<double> vdir = vector<double>(getViewDir());
 		(vdir)[coord] = val;
-		return CaptureSetDouble(_viewDirTag,"Set view direction", vdir,p);
+		return SetValueDouble(_viewDirTag,"Set view direction", vdir,p);
 	}
 	//! Specify a component of the camera direction vector
 	//! \param[in] const vector<double>& direction vector
 	//! \param[in] Param* the Params instance that is requesting this setvalue
 	//! \retval int 0 if successful
 	int setViewDir(const vector<double>&val, Params*p) {
-		return CaptureSetDouble(_viewDirTag, "Set view direction", val,p);
+		return SetValueDouble(_viewDirTag, "Set view direction", val,p);
 	}
 	//! Obtain view up-vector
 	//! \retval const vector<double>& direction vector
 	const vector<double>& getUpVec() {
-		return ( GetRootNode()->GetElementDouble(_upVecTag));
+		return ( GetValueDoubleVec(_upVecTag));
 	}
 	//! Obtain a component of the view up vector
 	//! \param[in] int coordinate
@@ -106,7 +106,7 @@ public:
 		
 		vector<double> vdir = vector<double>(getUpVec());
 		vdir[coord] = val;
-		return  CaptureSetDouble(_upVecTag, "Set up vector", vdir,p);
+		return  SetValueDouble(_upVecTag, "Set up vector", vdir,p);
 	}
 	//! Specify a component of the view upward direction vector
 	//! \param[in] int coordinate index
@@ -114,12 +114,12 @@ public:
 	//! \param[in] Param* the Params instance that is requesting this setvalue
 	//! \retval int 0 if successful
 	int setUpVec(const vector<double>&val, Params*p) {
-		return  CaptureSetDouble(_upVecTag, "Set up vector", val,p);
+		return  SetValueDouble(_upVecTag, "Set up vector", val,p);
 	}
 	//! Obtain rotation center
 	//! \retval vector<double>& rotation center coordinates
 	const vector<double>& getRotationCenterLocal() {
-		return ( GetRootNode()->GetElementDouble(_rotCenterTag));
+		return ( GetValueDoubleVec(_rotCenterTag));
 	}
 	//! Obtain one local coordinate of rotation center
 	//! \param[in] integer coordinate
@@ -133,14 +133,14 @@ public:
 	int setRotationCenterLocal(int coord, double val, Params* p) {	
 		vector<double> vdir(getRotationCenterLocal());
 		vdir[coord] = val;
-		return  CaptureSetDouble(_rotCenterTag, "Set rotation center", vdir,p);
+		return  SetValueDouble(_rotCenterTag, "Set rotation center", vdir,p);
 	}
 	//! Specify rotation center in local coordinates
 	//! \param[in] vector<double>& rotation center in local coordinates
 	//! \param[in] Param* the Params instance that is requesting this setvalue
 	//! \retval int 0 if successful
 	int setRotationCenterLocal(const vector<double>&val, Params* p) {
-		return CaptureSetDouble(_rotCenterTag, "Set rotation center", val, p);
+		return SetValueDouble(_rotCenterTag, "Set rotation center", val, p);
 	}
 	//! Force the rotation center to be aligned with view direction
 	//! \param[in] Params* p The Params instance that is requesting this 

@@ -69,7 +69,7 @@ public:
 	//! \retval vector<long>& grid
 	const vector<long>& GetRakeGrid(){
 		const vector<long> defaultGrid(3,1);
-		return (GetRootNode()->GetElementLong(_rakeGridTag,defaultGrid));
+		return (GetValueLongVec(_rakeGridTag,defaultGrid));
 	}
 	//! Specify the rake grid
 	//! \param[in] const int grid[3] Dimensions of grid.
@@ -80,20 +80,20 @@ public:
 	//! \retval double line thickness
 	double GetLineThickness(){
 		const vector<double> one(1,1.);
-		return (GetRootNode()->GetElementDouble(_lineThicknessTag,one)[0]);
+		return (GetValueDouble(_lineThicknessTag,one));
 	}
 	//! Set the line thickness
 	//! \param[in] double thickness
 	//! \retval int 0 if success
 	int SetLineThickness(double val){
 		
-		return CaptureSetDouble(_lineThicknessTag,"Set barb thickness",val);
+		return SetValueDouble(_lineThicknessTag,"Set barb thickness",val);
 	}
 	//! Get the scale factor for vector length. 1.0 is (scene diameter)/100.
 	//! \retval double scale factor
 	double GetVectorScale(){
 		const vector<double>defaultScale(1,1.);
-		return ((float)GetRootNode()->GetElementDouble(_vectorScaleTag,defaultScale)[0]);
+		return ((float)GetValueDouble(_vectorScaleTag,defaultScale));
 	}
 	//! Set the scale factor for vector length
 	//! \param[in] double scale factor
@@ -104,13 +104,13 @@ public:
 	//! \retval bool true if terrain mapping is used
 	bool IsTerrainMapped(){
 		const vector<long>off(1,0);
-		return ((bool)GetRootNode()->GetElementLong(_terrainMapTag,off)[0]);
+		return ((bool)GetValueLong(_terrainMapTag,off));
 	}
 	//! Set terrain mapping off or on
 	//! \param[in] bool true if terrain mapping used
 	//! \retval int 0 if successful
 	int SetTerrainMapped(bool val) {
-		int rc = CaptureSetLong(_terrainMapTag, "Set barb terrain-mapping", (long)val);
+		int rc = SetValueLong(_terrainMapTag, "Set barb terrain-mapping", (long)val);
 		setAllBypass(false);
 		return rc;
 	}
@@ -148,7 +148,7 @@ public:
 	//! \retval true if successful;
 	int SetVariables3D(bool val) {
 		if (val == VariablesAre3D()) return 0;
-		int rc = CaptureSetLong(_variableDimensionTag,"Set barb var dimensions",(long)(val ? 3:2));
+		int rc = SetValueLong(_variableDimensionTag,"Set barb var dimensions",(long)(val ? 3:2));
 		setAllBypass(false);
 		return rc;
 	}
@@ -156,27 +156,27 @@ public:
 	//! \retval bool true if 3D, false if 2D
 	bool VariablesAre3D() {
 		const vector<long>three(1,3);
-		return (GetRootNode()->GetElementLong(_variableDimensionTag,three)[0] == 3);
+		return (GetValueLong(_variableDimensionTag,three) == 3);
 	}
 	//! Specify that the rake grid is aligned to the data grid
 	//! \param[in] bool true if grid is data-aligned
 	//! \retval bool true if successful
 	int AlignGridToData(bool val) {
 		if (IsAlignedToData() == val) return 0;
-		return CaptureSetLong(_alignGridTag, "Set barb grid alignment",(val ? 1:0));
+		return SetValueLong(_alignGridTag, "Set barb grid alignment",(val ? 1:0));
 	}
 	//! Determine if rake grid is aligned to data grid
 	//! \retval bool true if aligned.
 	bool IsAlignedToData() {
 		const vector<long> notAligned(1,0);
-		return ((bool)GetRootNode()->GetElementLong(_alignGridTag,notAligned)[0]);
+		return ((bool)GetValueLong(_alignGridTag,notAligned));
 	}
 	//! Determine the strides used in horizontal grid-alignment
 	//! Stride is the number of data grid cells between rake grid.
 	//! \retval vector<long> 2-vector of strides
 	const vector<long>& GetGridAlignStrides(){
 		const vector<long> defaultStrides(3,10);
-		return GetRootNode()->GetElementLong(_alignGridStridesTag,defaultStrides);
+		return GetValueLongVec(_alignGridStridesTag,defaultStrides);
 	}
 	//! Specify the strides used in horizontal grid-alignment
 	//! Stride is the number of data grid cells between rake grid.

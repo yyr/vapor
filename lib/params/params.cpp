@@ -223,35 +223,32 @@ void Params::clearDummyParamsInstances(){
 
 int RenderParams::GetCompressionLevel(){
 	const vector<long> defaultLevel(1,2);
-	vector<long> valvec = GetRootNode()->GetElementLong(_CompressionLevelTag,defaultLevel);
-	return (int)valvec[0];
+	return GetValueLong(_CompressionLevelTag,defaultLevel);
  }
 int RenderParams::SetCompressionLevel(int level){
 	 vector<long> valvec(1,(long)level);
-	 int rc = CaptureSetLong(_CompressionLevelTag,"Set compression level",valvec);
+	 int rc = SetValueLong(_CompressionLevelTag,"Set compression level",valvec);
 	 setAllBypass(false);
 	 return rc;
 }
 int RenderParams::SetRefinementLevel(int level){
-		Command* cmd = 0;
+		
 		int maxref = DataStatus::getInstance()->getNumTransforms();
 		if (level < 0 || level > maxref) return -1;
-		if (Command::isRecording())
-			cmd = Command::CaptureStart(this,"Set refinement level");
-		GetRootNode()->SetElementLong(_RefinementLevelTag, level);
+		SetValueLong(_RefinementLevelTag, "Set refinement level",level);
 		setAllBypass(false);
-		Command::CaptureEnd(cmd,this);
 		return 0;
 }
 int RenderParams::GetRefinementLevel(){
 		const vector<long>defaultRefinement(1,0);
-		return (GetRootNode()->GetElementLong(_RefinementLevelTag,defaultRefinement)[0]);
+		return (GetValueLong(_RefinementLevelTag,defaultRefinement));
 }
 int Params::SetInstanceIndex(int indx){
+	//Not a user-level setting; no undo support
 	GetRootNode()->SetElementLong(_InstanceTag, indx);
 	return 0;
 }
 int Params::GetInstanceIndex(){
 	const vector<long>defaultInstance(1,1);
-	return (GetRootNode()->GetElementLong(_InstanceTag,defaultInstance)[0]);
+	return (GetValueLong(_InstanceTag,defaultInstance));
 }

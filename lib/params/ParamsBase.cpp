@@ -35,6 +35,9 @@ std::map<int,string> ParamsBase::tagFromClassIdMap;
 std::map<int,ParamsBase::BaseCreateFcn> ParamsBase::createDefaultFcnMap;
 std::vector<ParamsBase*> ParamsBase::dummyParamsBaseInstances;
 const std::string ParamsBase::_emptyString;
+const vector<string> ParamsBase::_emptyStringVec;
+const vector<long> ParamsBase::_emptyLongVec;
+const vector<double> ParamsBase::_emptyDoubleVec;
 
 int ParamsBase::numParamsClasses = 0;
 int ParamsBase::numEmbedClasses = 0;
@@ -271,7 +274,7 @@ void ParamsBase::Clear() {
 }
 
 
-int ParamsBase::CaptureSetLong(string tag, const char* description, long value, Params* p){
+int ParamsBase::SetValueLong(string tag, const char* description, long value, Params* p){
 	Command* cmd = 0;
 	if (Command::isRecording()&&p)
 		cmd = Command::CaptureStart(p, description);
@@ -285,7 +288,7 @@ int ParamsBase::CaptureSetLong(string tag, const char* description, long value, 
 	return 0;
 }
 
-int ParamsBase::CaptureSetLong(string tag, const char* description, const vector<long>& value, Params* p){
+int ParamsBase::SetValueLong(string tag, const char* description, const vector<long>& value, Params* p){
 	Command* cmd = 0;
 	if (Command::isRecording()&& p)
 		cmd = Command::CaptureStart(p, description);
@@ -298,7 +301,7 @@ int ParamsBase::CaptureSetLong(string tag, const char* description, const vector
 	if (cmd) Command::CaptureEnd(cmd, p);
 	return rc;
 }
-int ParamsBase::CaptureSetDouble(string tag, const char* description, double value, Params* p){
+int ParamsBase::SetValueDouble(string tag, const char* description, double value, Params* p){
 	Command* cmd = 0;
 	if (Command::isRecording()&& p)
 		cmd = Command::CaptureStart(p, description);
@@ -311,7 +314,7 @@ int ParamsBase::CaptureSetDouble(string tag, const char* description, double val
 	if (cmd) Command::CaptureEnd(cmd, p);
 	return rc;
 }
-int ParamsBase::CaptureSetDouble(string tag, const char* description, const vector<double>& value, Params* p){
+int ParamsBase::SetValueDouble(string tag, const char* description, const vector<double>& value, Params* p){
 	Command* cmd = 0;
 	if (Command::isRecording() && p)
 		cmd = Command::CaptureStart(p, description);
@@ -325,7 +328,7 @@ int ParamsBase::CaptureSetDouble(string tag, const char* description, const vect
 	return rc;
 }
 
-int ParamsBase::CaptureSetString(string tag, const char* description, const string& value, Params* p){
+int ParamsBase::SetValueString(string tag, const char* description, const string& value, Params* p){
 	Command* cmd = 0;
 	if (Command::isRecording()&&p)
 		cmd = Command::CaptureStart(p, description);
@@ -340,7 +343,7 @@ int ParamsBase::CaptureSetString(string tag, const char* description, const stri
 }
 
 
-int ParamsBase::CaptureSetStringVec(string tag,const  char* description, const vector<string>& value, Params* p){
+int ParamsBase::SetValueStringVec(string tag,const  char* description, const vector<string>& value, Params* p){
 	Command* cmd = 0;
 	if (Command::isRecording()&&p)
 		cmd = Command::CaptureStart(p, description);

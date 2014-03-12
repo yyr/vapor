@@ -162,6 +162,67 @@ void SetFlagDirty(const string& flag);
 //!
 
 const string& GetName() {return _paramsBaseName;}
+ //!
+ //! Obtain a single value of type long associated with a tag
+ //! Optionally provide a vector of longs whose first element is the default value
+ //! if the value has not been assigned.
+ //! \param[in] tag XML tag associated with the desired long parameter
+ //! \param[in] defaultVal (optional) const vector<long> to be assigned if specified element does not exist.
+ //! \retval long current value associated with the named parameter
+ //!
+virtual long GetValueLong(const string& tag, const vector<long>& defaultVal = _emptyLongVec)
+	{return GetRootNode()->GetElementLong(tag, defaultVal)[0];}
+ //!
+ //! Obtain a single value of type double associated with a tag
+ //! Optionally provide a vector of doubles whose first element is the default value
+ //! if the value has not been assigned.
+ //! \param[in] tag XML tag associated with the desired long parameter
+ //! \param[in] defaultVal (optional) const vector<double> to be assigned if specified element does not exist.
+ //! \retval long current value associated with the named parameter
+ //!
+virtual double GetValueDouble(const string& tag,const vector<double>& defaultVal = _emptyDoubleVec)
+	{return GetRootNode()->GetElementDouble(tag,defaultVal)[0];}
+ //!
+ //! Obtain a single value of type std::string associated with a tag
+ //! Optionally provide a string which will be the default value
+ //! if the value has not been assigned.
+ //! \param[in] tag XML tag associated with the desired string parameter
+ //! \param[in] defaultVal (optional) string to be assigned if specified element does not exist.
+ //! \retval const string& current value associated with the named parameter
+ //!
+virtual const string& GetValueString(const string& tag, const string& defaultVal = _emptyString)
+	{return GetRootNode()->GetElementString(tag, defaultVal);}
+ //!
+ //! Obtain a vector of values of type long associated with a tag
+ //! Optionally provide a vector of longs which is the default value
+ //! if the value has not been assigned.
+ //! \param[in] tag XML tag associated with the desired long parameter
+ //! \param[in] defaultVal (optional) vector<long> to be assigned if specified element does not exist.
+ //! \retval const vector<long>& current value associated with the named parameter
+ //!
+virtual const vector<long>& GetValueLongVec(const string& tag,const vector<long>& defaultVal = _emptyLongVec)
+	{return GetRootNode()->GetElementLong(tag, defaultVal);}
+ //!
+ //! Obtain a vector of values of type double associated with a tag
+ //! Optionally provide a vector of doubles which is the default value
+ //! if the value has not been assigned.
+ //! \param[in] tag XML tag associated with the desired double parameter
+ //! \param[in] defaultVal (optional) vector<double>& to be assigned if specified element does not exist.
+ //! \retval const vector<double>& current value associated with the named parameter
+ //!
+virtual const vector<double>& GetValueDoubleVec(const string& tag, const vector<double>& defaultVal = _emptyDoubleVec)
+	{return GetRootNode()->GetElementDouble(tag, defaultVal);}
+ //!
+ //! Obtain a vector of values of type string associated with a tag
+ //! Optionally provide a vector of string which is the default value
+ //! if the value has not been assigned.
+ //! \param[in] tag XML tag associated with the desired double parameter
+ //! \param[out] vector<string>& vec string vector to which the strings will be assigned.
+ //! \param[in] defaultVal (optional) vector<double>& to be assigned if specified element does not exist.
+ //!
+virtual void GetValueStringVec(const string& tag, vector<string>& vec, const vector<string>& defaultVal = _emptyStringVec)
+	{GetRootNode()->GetElementStringVec(tag, vec, defaultVal);}
+
 
 //! Method for making a Set to long value(s) associated with a tag and capturing to a Params instance
 //! This will capture the state of the Params before the value is set, 
@@ -173,7 +234,7 @@ const string& GetName() {return _paramsBaseName;}
 //! \param [in] long value
 //! \param [in] Params* instance that contains the change; usually p = (Params*)this.
 //! \retval int zero if successful
-	virtual int CaptureSetLong(string tag, const char* description, long value, Params* p);
+	virtual int SetValueLong(string tag, const char* description, long value, Params* p);
 
 //! Method for making a Set to long value(s) associated with a tag and capturing to a Params instance
 //! This will capture the state of the Params before the value is set, 
@@ -185,7 +246,7 @@ const string& GetName() {return _paramsBaseName;}
 //! \param [in] vector<long> value
 //! \param [in] Params* instance that contains the change; usually p = (Params*)this.
 //! \retval int zero if successful
-	virtual int CaptureSetLong(string tag, const char* description, const vector<long>& value, Params* p);
+	virtual int SetValueLong(string tag, const char* description, const vector<long>& value, Params* p);
 
 //! Method for making a Set to double value(s) associated with a tag and capturing to a Params instance
 //! This will capture the state of the Params before the value is set, 
@@ -197,7 +258,7 @@ const string& GetName() {return _paramsBaseName;}
 //! \param [in] double value
 //! \param [in] Params* instance that contains the change; usually p is the invoker of this method
 //! \retval int zero if successful
-	virtual int CaptureSetDouble(string tag, const char* description, double value, Params* p);
+	virtual int SetValueDouble(string tag, const char* description, double value, Params* p);
 
 //! Method for making a Set to double value(s) associated with a tag and capturing to a Params instance
 //! This will capture the state of the Params before the value is set, 
@@ -209,7 +270,7 @@ const string& GetName() {return _paramsBaseName;}
 //! \param [in] vector<double> value
 //! \param [in] Params* instance that contains the change; usually p is the invoker of this method
 //! \retval int zero if successful
-	virtual int CaptureSetDouble(string tag, const char* description, const vector<double>& value, Params* p);
+	virtual int SetValueDouble(string tag, const char* description, const vector<double>& value, Params* p);
 
 //! Method for making a Set of string value(s) associated with a tag and capturing to a Params instance
 //! This will capture the state of the Params before the value is set, 
@@ -221,7 +282,7 @@ const string& GetName() {return _paramsBaseName;}
 //! \param [in] string value
 //! \param [in] Params* instance that contains the change; usually p is the invoker
 //! \retval int zero if successful
-	virtual int CaptureSetString(string tag, const char* description, const string& value, Params* p);
+	virtual int SetValueString(string tag, const char* description, const string& value, Params* p);
 
 //! Method for making a Set of string value(s) associated with a tag and capturing to a Params instance
 //! This will capture the state of the Params before the value is set, 
@@ -233,7 +294,7 @@ const string& GetName() {return _paramsBaseName;}
 //! \param [in] vector<string> value
 //! \param [in] Params* instance that contains the change; usually p is the invoker
 //! \retval int zero if successful
-	virtual int CaptureSetStringVec(string tag, const char* description, const vector<string>& value, Params* p);
+	virtual int SetValueStringVec(string tag, const char* description, const vector<string>& value, Params* p);
 
 //!	
 //! Method for obtaining the type Id associated with a ParamsBase instance
@@ -326,6 +387,9 @@ private:
 protected:
 	static vector<ParamsBase*> dummyParamsBaseInstances;
 	static const string _emptyString;
+	static const vector<string> _emptyStringVec;
+	static const vector<double> _emptyDoubleVec;
+	static const vector<long> _emptyLongVec;
 	virtual ParamNode *getCurrentParamNode() {return _currentParamNode;}
 	
 	virtual void setCurrentParamNode(ParamNode* pn){ _currentParamNode=pn;}

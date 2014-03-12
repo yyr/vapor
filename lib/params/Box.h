@@ -76,7 +76,7 @@ public:
 	//! \param[out] extents const vector<double>& returned extents
 	const vector<double>&  GetLocalExtents() {
 		const vector<double> localExtents(6,0.);
-		return GetRootNode()->GetElementDouble(_extentsTag,localExtents);
+		return GetValueDoubleVec(_extentsTag,localExtents);
 	}
 	//! Specify the local extents.  If time step is -1, then set the generic extents.
 	//! Otherwise set the extents for a specific timestep.
@@ -105,14 +105,14 @@ public:
 	//! \retval const vector<double> vector of length 3 of angles.
 	const vector<double>& GetAngles(){
 		const vector<double> defaultAngles(3,0.);
-		return GetRootNode()->GetElementDouble(Box::_anglesTag,defaultAngles);
+		return GetValueDoubleVec(Box::_anglesTag,defaultAngles);
 	}
 	//! Get the angles as a double array
 	//! \param [out] double angles[3] array of three doubles for theta, phi, psi
 	//! \retval int zero if successful
 	int GetAngles(double ang[3]){
 		const vector<double> defaultAngles(3,0.);
-		const vector<double>& angles = GetRootNode()->GetElementDouble(Box::_anglesTag,defaultAngles);
+		const vector<double>& angles = GetValueDoubleVec(Box::_anglesTag,defaultAngles);
 		if (angles.size() != 3) return -1;
 		for (int i = 0; i<3;i++) ang[i]=angles[i];
 		return 0;
@@ -122,7 +122,7 @@ public:
 	//! \retval zero if successful
 	int GetAngles(float ang[3]){
 		const vector<double> defaultAngles(3,0.);
-		const vector<double>& angles = GetRootNode()->GetElementDouble(Box::_anglesTag,defaultAngles);
+		const vector<double>& angles = GetValueDoubleVec(Box::_anglesTag,defaultAngles);
 		if (angles.size() != 3) return -1;
 		for (int i = 0; i<3;i++) ang[i]=(float)angles[i];
 		return 0;
@@ -134,7 +134,7 @@ public:
 	int SetAngles(const double angles[3], Params* p){
 		vector<double> ang;
 		for (int i = 0; i<3;i++) ang.push_back(angles[i]);
-		return CaptureSetDouble(_anglesTag, "change box angles",ang,p);
+		return SetValueDouble(_anglesTag, "change box angles",ang,p);
 	}
 	//! Set the angles from a float array
 	//! \param [in] angles float[3] array of three floats for theta, phi, psi
@@ -143,13 +143,13 @@ public:
 	int SetAngles(const float angles[3], Params* p){
 		vector<double> angl;
 		for (int i = 0; i<3;i++) angl.push_back((double)angles[i]);
-		return CaptureSetDouble(_anglesTag, "change box angles",angl,p);
+		return SetValueDouble(_anglesTag, "change box angles",angl,p);
 	}
 	//! Set the three orientation angles (theta, phi, psi) from a vector of doubles
 	//! \param[in] vals const vector<double>& vector of length 3 of angles.
 	//! \param[in] Params* params that owns this box
 	void SetAngles(const vector<double>& vals, Params* p){
-		CaptureSetDouble(_anglesTag, "Change box angles",vals, p);
+		SetValueDouble(_anglesTag, "Change box angles",vals, p);
 	}
 	//! Get the time(s) as a long vector.
 	//! The first one should be negative, marking the default extents.
@@ -159,7 +159,7 @@ public:
 	//! \retval vector<long>& vector of longs
 	const vector<long>& GetTimes() { 
 		const vector<long> defaultTimes(1,0);
-		return( GetRootNode()->GetElementLong(Box::_timesTag,defaultTimes));
+		return( GetValueLongVec(Box::_timesTag,defaultTimes));
 	}
 	//! Set the time(s) as a long vector.
 	//! The first one should be negative, marking the default extents.
@@ -168,7 +168,7 @@ public:
 	//! \param[in] Params* params that owns this box
 	//! \param [in] const vector<long>& vector of times
 	void SetTimes(const vector<long>& times, Params* p) { 
-		CaptureSetLong(Box::_timesTag, "Change box times",times, p);
+		SetValueLong(Box::_timesTag, "Change box times",times, p);
 	}
 
 	//! Trim both the times and extents vectors to same length.

@@ -282,12 +282,12 @@ int ArrowParams::SetConstantColor(const double rgb[3]) {
 	for (int i=0; i<3; i++) {
 		valvec.push_back(rgb[i]);
 	}
-	return CaptureSetDouble(_constantColorTag,"Change barb color",valvec);
+	return SetValueDouble(_constantColorTag,"Change barb color",valvec);
 }
 
 const vector<double>& ArrowParams::GetConstantColor() {
 	const vector<double> white (3,1.);
-	const vector <double>& valvec = GetRootNode()->GetElementDouble(_constantColorTag, white);
+	const vector <double>& valvec = GetValueDoubleVec(_constantColorTag, white);
 	
 	return(valvec);
 }
@@ -295,30 +295,30 @@ const vector<double>& ArrowParams::GetConstantColor() {
 int ArrowParams::SetFieldVariableName(int i, const string& varName){
 	vector <string> svec;
 	vector <string> defaultName(1,"0");
-	GetRootNode()->GetElementStringVec(_VariableNamesTag, svec,defaultName);
+	GetValueStringVec(_VariableNamesTag, svec,defaultName);
 	if(svec.size() < 3) 
 		for (int j = svec.size(); j<3; j++) svec.push_back("0");  //fill extra spaces with "0"
 	svec[i] = varName;
 	//Capture the change to variable name and to scale
 	Command* cmd = Command::CaptureStart(this,"set barb field name");
-	int rc = GetRootNode()->SetElementStringVec(_VariableNamesTag,svec);
-	if (!rc) rc = GetRootNode()->SetElementDouble(_vectorScaleTag,calcDefaultScale());
+	int rc = SetValueStringVec(_VariableNamesTag,"",svec);
+	if (!rc) rc = SetValueDouble(_vectorScaleTag,"",calcDefaultScale());
 	Command::CaptureEnd(cmd,this);
 	if (rc) return rc;
 	setAllBypass(false);
 	return 0;
 }
 int ArrowParams::SetHeightVariableName(const string& varName){
-	return CaptureSetString(_heightVariableNameTag,"Set barb rake extents",varName);
+	return SetValueString(_heightVariableNameTag,"Set barb rake extents",varName);
 }
 const string& ArrowParams::GetHeightVariableName(){
-	return GetRootNode()->GetElementString(_heightVariableNameTag, "HGT");
+	return GetValueString(_heightVariableNameTag, "HGT");
 }
 const string& ArrowParams::GetFieldVariableName(int i){
 	vector <string> defaultName(3,"0");
 	static string retval;
 	vector <string> svec;
-	GetRootNode()->GetElementStringVec(_VariableNamesTag, svec, defaultName);
+	GetValueStringVec(_VariableNamesTag, svec, defaultName);
 	retval=svec[i];
 	return retval;
 }
@@ -342,7 +342,7 @@ double ArrowParams::calcDefaultScale(){
 	else return(maxVecLength/maxVecVal);
 }
 int ArrowParams::SetRakeLocalExtents(const vector<double>&exts){
-	return GetBox()->CaptureSetDouble(Box::_extentsTag,"Set Barb Rake extents", exts, this);
+	return GetBox()->SetValueDouble(Box::_extentsTag,"Set Barb Rake extents", exts, this);
 	
 }
 
@@ -351,12 +351,12 @@ int ArrowParams::SetRakeGrid(const int grid[3]){
 	for (int i = 0; i<3; i++){
 		griddims.push_back((long)grid[i]);
 	}
-	return CaptureSetLong(_rakeGridTag,"Set barb grid", griddims);
+	return SetValueLong(_rakeGridTag,"Set barb grid", griddims);
 }
 int ArrowParams::SetVectorScale(double val){
 	int rc = 0;
-	return CaptureSetDouble(_vectorScaleTag, "set barb scale", val);
+	return SetValueDouble(_vectorScaleTag, "set barb scale", val);
 }
 int ArrowParams::SetGridAlignStrides(const vector<long>& strides){
-	return CaptureSetLong(_alignGridStridesTag, "Set barb grid strides", strides);
+	return SetValueLong(_alignGridStridesTag, "Set barb grid strides", strides);
 }

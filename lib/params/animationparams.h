@@ -54,112 +54,112 @@ public:
 	//! Identify the current data timestep being used
 	//! \retval long current time step
 	long getCurrentTimestep() {
-		return GetRootNode()->GetElementLong(_currentTimestepTag)[0];
+		return GetValueLong(_currentTimestepTag);
 	}
 	//! Set the current data timestep being used
 	//! \param long current time step
 	//! \retval int 0 if successful
 	int setCurrentTimestep(long ts) {
-		int rc = CaptureSetLong(_currentTimestepTag,"Set timestep",ts);
+		int rc = SetValueLong(_currentTimestepTag,"Set timestep",ts);
 		return rc;
 	}
 
 	//! Identify the starting time step currently set in the UI.
 	//! \retval int starting frame number.
 	int getStartTimestep() {
-		return GetRootNode()->GetElementLong(_startTimestepTag)[0];
+		return GetValueLong(_startTimestepTag);
 	}
 	//! set the starting time step
 	//! \param int starting timestep
 	//! \retval int 0 if successful
 	int setStartTimestep(int ts) {
-		int rc= CaptureSetLong(_startTimestepTag,"Set start timestep",ts);
+		int rc= SetValueLong(_startTimestepTag,"Set start timestep",ts);
 		return rc;
 	}
 
 	//! Identify the ending time step used during playback
 	//! \retval int ending timestep
 	int getEndTimestep() {
-		return GetRootNode()->GetElementLong(_endTimestepTag)[0];
+		return GetValueLong(_endTimestepTag);
 	}
 	//! set the ending time step 
 	//! \param int ending timestep
 	//! \retval int 0 if success
 	int setEndTimestep(int val) {
 		
-		return CaptureSetLong(_endTimestepTag,"Set end timestep",val);
+		return SetValueLong(_endTimestepTag,"Set end timestep",val);
 	}
 
 	//! Identify the minimum time step (bound on setting start/end) 
 	//! \retval int minimum frame number.
 	int getMinTimestep() {
-		return GetRootNode()->GetElementLong(_minTimestepTag)[0];
+		return GetValueLong(_minTimestepTag);
 	}
 	//! Set the minimum time step (bound on setting start/end) 
 	//! \param int minimum timestep
 	//! \retval int 0 if successful
 	int setMinTimestep(int val) {
 		
-		return CaptureSetLong(_minTimestepTag,"Set min timestep",val);
+		return SetValueLong(_minTimestepTag,"Set min timestep",val);
 	}
 	//! Identify the maximum time step
 	//! \retval int maximum timestep
 	int getMaxTimestep() {
-		return GetRootNode()->GetElementLong(_maxTimestepTag)[0];
+		return GetValueLong(_maxTimestepTag);
 	}
 
 	//! Set the maximum time step
 	//! \param int maximum timestep
 	//! \retval int 0 if successful
 	int setMaxTimestep(int val) {
-		return CaptureSetLong(_maxTimestepTag,"Set max timestep",val);
+		return SetValueLong(_maxTimestepTag,"Set max timestep",val);
 	}
 
 	//! Get the current play direction (-1,0,1)
 	//! \retval int 0 play direction
 	int getPlayDirection() {
-		return GetRootNode()->GetElementLong(_playDirectionTag)[0];
+		return GetValueLong(_playDirectionTag);
 	}
 
 	//! Set the play direction
 	//! \param int play direction
 	//! \retval int 0 if successful
 	int setPlayDirection(int val) {
-		return CaptureSetLong(_playDirectionTag,"Set play direction",val);
+		return SetValueLong(_playDirectionTag,"Set play direction",val);
 	}
 	//! Get the maximum frame step size
 	//! \retval int current frame step size.
 	int getFrameStepSize() {
-		return GetRootNode()->GetElementLong(_stepSizeTag)[0];
+		return GetValueLong(_stepSizeTag);
 	}
 	//! Set the frame step size
 	//! \param int val step size
 	//! \retval int 0 if successful
 	int setFrameStepSize(int val) {
-		return CaptureSetLong(_stepSizeTag,"Set frame stepsize",val);
+		return SetValueLong(_stepSizeTag,"Set frame stepsize",val);
 
 	}
 	//! Determine max frames per second
 	//! \retval double max frames per second
 	double getMaxFrameRate() {
-		return GetRootNode()->GetElementDouble(_maxRateTag)[0];
+		return GetValueDouble(_maxRateTag);
 	}
 	//! Set max frames per second
 	//! \param double fps
 	//! \retval int 0 if successful
 	int setMaxFrameRate(double rate) {
-		return CaptureSetDouble(_maxRateTag,"Set max frame rate",rate);
+		return SetValueDouble(_maxRateTag,"Set max frame rate",rate);
 	}
 	//! Determine if repeat play is on
 	//! \retval bool true if repeating
 	bool isRepeating() {
-		return (GetRootNode()->GetElementLong(_repeatTag)[0] != 0);
+		return (GetValueLong(_repeatTag) != 0);
 	}
 	//! Set the whether repeat play is on
 	//! \param bool repeat is on if true
 	//! \retval int 0 if successful
 	int setRepeating(bool onOff){
-		return CaptureSetLong(_repeatTag,"enable repeat play",(long)onOff);
+		return SetValueLong(_repeatTag,"enable repeat play",(long)onOff);
 	}
 	
 #ifndef DOXYGEN_SKIP_THIS

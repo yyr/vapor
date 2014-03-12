@@ -54,8 +54,8 @@ Box::Box(): ParamsBase(0, Box::_boxTag) {
 int Box::GetLocalExtents(double extents[6], int timestep){
 	const vector<double> defaultExtents(6,0.);
 	const vector<long> defaultTimes(1,0);
-	const vector<double>& exts = GetRootNode()->GetElementDouble(Box::_extentsTag,defaultExtents);
-	const vector<long>& times = GetRootNode()->GetElementLong(Box::_timesTag,defaultTimes);
+	const vector<double>& exts = GetValueDoubleVec(Box::_extentsTag,defaultExtents);
+	const vector<long>& times = GetValueLongVec(Box::_timesTag,defaultTimes);
 	//If there are times, look for a match.  The first time should be -1
 	for (int i = 1; i<times.size(); i++){
 		if (times[i] != timestep) continue;
@@ -82,7 +82,7 @@ int Box::GetLocalExtents(float extents[6], int timestep){
 int Box::SetLocalExtents(const vector<double>& extents, Params*p, int timestep){
 	const vector<double> defaultExtents(6,0.);
 	const vector<long> defaultTimes(1,0);
-	const vector<double>& curExts = GetRootNode()->GetElementDouble(_extentsTag,defaultExtents);
+	const vector<double>& curExts = GetValueDoubleVec(_extentsTag,defaultExtents);
 	//If setting default and there are no nondefault extents, 
 	//Or if the time is not in the list,
 	//just replace default extents
@@ -90,7 +90,7 @@ int Box::SetLocalExtents(const vector<double>& extents, Params*p, int timestep){
 	
 	if ((timestep < 0) || (curExts.size()>6)) {
 		//Check for specified timestep
-		const vector<long>& times = GetRootNode()->GetElementLong(_timesTag,defaultTimes);
+		const vector<long>& times = GetValueLongVec(_timesTag,defaultTimes);
 		for (int i = 1; i<times.size(); i++){
 			if (times[i] == timestep) {
 				index = i;
@@ -104,7 +104,7 @@ int Box::SetLocalExtents(const vector<double>& extents, Params*p, int timestep){
 	for (int i = 0; i<6; i++)
 		copyExtents[i+index*6] = extents[i];
 
-	return CaptureSetDouble(_extentsTag, "Set box extents",copyExtents,p);	
+	return SetValueDouble(_extentsTag, "Set box extents",copyExtents,p);	
 }
 int Box::SetLocalExtents(const double extents[6],Params*p, int timestep){
 	vector<double> exts;
@@ -145,10 +145,10 @@ void Box::Trim(Params* p,int numTimes){
 		Command* cmd = Command::CaptureStart(p, "Trim box extents");
 		vector<long> times = GetTimes();
 		times.resize(numTimes);
-		GetRootNode()->SetElementLong(Box::_timesTag,times);
+		SetValueLong(Box::_timesTag,"",times, p);
 		vector<double> exts; 
 		vector<double>defaultExts(6,0.);
-		exts = GetRootNode()->GetElementDouble(Box::_extentsTag,defaultExts);
-		GetRootNode()->SetElementDouble(_extentsTag, exts);
+		exts = GetValueDoubleVec(Box::_extentsTag,defaultExts);
+		SetValueDouble(_extentsTag, "", exts,p);
 		Command::CaptureEnd(cmd, p);
 }

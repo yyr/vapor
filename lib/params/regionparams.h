@@ -128,8 +128,8 @@ public:
 	
 	
 	
-	const vector<double>& GetAllExtents(){ return GetBox()->GetRootNode()->GetElementDouble(Box::_extentsTag);}
-	const vector<long>& GetTimes(){ return GetBox()->GetRootNode()->GetElementLong(Box::_timesTag);}
+	const vector<double>& GetAllExtents(){ return GetBox()->GetValueDoubleVec(Box::_extentsTag);}
+	const vector<long>& GetTimes(){ return GetBox()->GetValueLongVec(Box::_timesTag);}
 	void clearRegionsMap();
 	bool extentsAreVarying(){ return GetBox()->GetTimes().size()>1;}
 	//Insert a time in the list.  Return false if it's already there

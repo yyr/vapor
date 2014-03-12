@@ -77,8 +77,8 @@ class Command;
 //! \par 
 //! The Get methods can directly access the corresponding ParamNode methods that retrieve data from the XML tree.
 //! \par 
-//! The Set methods should invoke the methods Params::CaptureSetLong(), Params::CaptureSetDouble(), Params::CaptureSetString(),
-//! and Params::CaptureSetStringVec(), so that changes in the Params state will automatically be captured in the
+//! The Set methods should invoke the methods Params::SetValueLong(), Params::SetValueDouble(), Params::SetValueString(),
+//! and Params::SetValueStringVec(), so that changes in the Params state will automatically be captured in the
 //! Undo/Redo queue, and so that values that are set are confirmed to be valid based on the current DataMgr.
 //! \par 
 //! Params implementers must also implement the various pure virtual methods described below.
@@ -383,22 +383,24 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	
 //! Identify the visualizer associated with this instance.
 //! With global pr default Params this is -1 
-	virtual int GetVizNum() {return (int)(GetRootNode()->GetElementLong(_VisualizerNumTag))[0];}
+	virtual int GetVizNum() {return (int)(GetValueLong(_VisualizerNumTag));}
 
 //! Specify whether a [non-render]params is local or global. 
 //! \param[in] lg boolean is true if is local 
-	virtual void SetLocal(bool lg){
-		GetRootNode()->SetElementLong(_LocalTag,(long)lg);
+	virtual int SetLocal(bool lg){
+		return SetValueLong(_LocalTag,"set local or global",(long)lg);
 	}
 
 //! Indicate whether a Params is local or not.  Only used by non-render params
 //! \retval is true if local
 	virtual bool IsLocal() {
-		return (GetRootNode()->GetElementLong(_LocalTag)[0] != 0);
+		return (GetValueLong(_LocalTag) != 0);
 	}
 	
 //! Specify the visualizer index of a Params instance.
+//! Not covered by undo/redo; not a user-level setting
 //! \param[in]  vnum is the integer visualizer number
+//! 
 	virtual void SetVizNum(int vnum){
 		GetRootNode()->SetElementLong(_VisualizerNumTag,(long)vnum);
 	}
@@ -439,7 +441,8 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	static const string _InstanceTag;
 	
 protected:
-	//! Method for making a change in the single long value(s) associated with a tag
+
+//! Method for making a change in the single long value(s) associated with a tag
 //! This will capture the state of the Params before the value is set, 
 //! then issue the SetValue, then Validate(), and finally capture the state of
 //! the Params after the Validate()
@@ -448,8 +451,8 @@ protected:
 //! \param [in] long value
 //! \param [in] char* description
 //! \retval int zero if successful
-	virtual int CaptureSetLong(string tag, const char* description, long value)
-		{return ParamsBase::CaptureSetLong(tag,description,value, this);}
+	virtual int SetValueLong(string tag, const char* description, long value)
+		{return ParamsBase::SetValueLong(tag,description,value, this);}
 
 //! Method for making a change in the long value(s) associated with a tag
 //! This will capture the state of the Params before the value is set, 
@@ -460,8 +463,8 @@ protected:
 //! \param [in] char* description
 //! \param [in] vector<long> value
 //! \retval int zero if successful
-	virtual int CaptureSetLong(string tag, const char* description, const vector<long>& value)
-		{return ParamsBase::CaptureSetLong(tag, description, value, this);}
+	virtual int SetValueLong(string tag, const char* description, const vector<long>& value)
+		{return ParamsBase::SetValueLong(tag, description, value, this);}
 
 //! Method for making a change in the double value(s) associated with a tag
 //! This will capture the state of the Params before the value is set, 
@@ -472,8 +475,8 @@ protected:
 //! \param [in] char* description
 //! \param [in] double value
 //! \retval int zero if successful
-	virtual int CaptureSetDouble(string tag, const char* description, double value)
-		{return ParamsBase::CaptureSetDouble(tag,description,value,this);}
+	virtual int SetValueDouble(string tag, const char* description, double value)
+		{return ParamsBase::SetValueDouble(tag,description,value,this);}
 
 //! Method for making a change in the double value(s) associated with a tag
 //! This will capture the state of the Params before the value is set, 
@@ -484,8 +487,8 @@ protected:
 //! \param [in] char* description
 //! \param [in] vector<double> value
 //! \retval int zero if successful
-	virtual int CaptureSetDouble(string tag, const char* description, const vector<double>& value)
-		{return ParamsBase::CaptureSetDouble(tag,description,value,this);}
+	virtual int SetValueDouble(string tag, const char* description, const vector<double>& value)
+		{return ParamsBase::SetValueDouble(tag,description,value,this);}
 
 
 //! Method for making a set in the string value(s) associated with a tag
@@ -497,8 +500,8 @@ protected:
 //! \param [in] char* description
 //! \param [in] string value
 //! \retval int zero if successful
-	virtual int CaptureSetString(string tag, const char* description, const string& value)
-		{return ParamsBase::CaptureSetString(tag,description,value,this);}
+	virtual int SetValueString(string tag, const char* description, const string& value)
+		{return ParamsBase::SetValueString(tag,description,value,this);}
 
 //! Method for capturing a set of the string value(s) associated with a tag
 //! This will capture the state of the Params before the value is set, 
@@ -509,8 +512,8 @@ protected:
 //! \param [in] char* description
 //! \param [in] vector<string> value
 //! \retval int zero if successful
-	virtual int CaptureSetStringVec(string tag, const char* description, const vector<string>& value)
-		{return ParamsBase::CaptureSetStringVec(tag, description, value, this);}
+	virtual int SetValueStringVec(string tag, const char* description, const vector<string>& value)
+		{return ParamsBase::SetValueStringVec(tag, description, value, this);}
 
 	//Params instances are vectors of Params*, one per instance, indexed by paramsBaseType, winNum
 	static map<pair<int,int>,vector<Params*> > paramsInstances;
@@ -542,14 +545,14 @@ public:
 	//! Determine if this params has been enabled for rendering
 	//! \retval bool true if enabled
 	virtual bool IsEnabled(){
-		int enabled = GetRootNode()->GetElementLong(_EnabledTag)[0];
+		int enabled = GetValueLong(_EnabledTag);
 		return (enabled != 0);
 	}
 	//! Enable or disable this params for rendering
 	//! \param[in] bool true to enable, false to disable.
 	virtual void SetEnabled(bool val){
 		long lval = (long)val;
-		CaptureSetLong(_EnabledTag,"enable or disable renderer",lval);
+		SetValueLong(_EnabledTag,"enable or disable renderer",lval);
 	}
 
 	//! Pure virtual method indicates if a particular variable name is currently used by the renderer.
@@ -606,8 +609,9 @@ public:
 
 #ifndef DOXYGEN_SKIP_THIS
 
-	void SetLocal(bool lg){
+	int SetLocal(bool lg){
 		assert(lg);
+		return false;
 	}
 
 	bool IsLocal() {

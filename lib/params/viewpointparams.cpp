@@ -101,9 +101,9 @@ restart(){
 		diffCoeffs.push_back(defaultDiffuseCoeff[i]);
 		specCoeffs.push_back(defaultSpecularCoeff[i]);
 	}
-	GetRootNode()->SetElementDouble(_lightDirectionsTag,ldirs);
-	GetRootNode()->SetElementDouble(_diffuseCoeffTag,diffCoeffs);
-	GetRootNode()->SetElementDouble(_specularCoeffTag,specCoeffs);
+	SetValueDouble(_lightDirectionsTag,"",ldirs);
+	SetValueDouble(_diffuseCoeffTag,"",diffCoeffs);
+	SetValueDouble(_specularCoeffTag,"",specCoeffs);
 	setExponent(defaultSpecularExp);
 	setAmbientCoeff(defaultAmbientCoeff);
 	
