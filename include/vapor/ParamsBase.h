@@ -224,8 +224,8 @@ virtual void GetValueStringVec(const string& tag, vector<string>& vec, const vec
 	{GetRootNode()->GetElementStringVec(tag, vec, defaultVal);}
 
 
-//! Method for making a Set of a single long value associated with a tag and capturing to a Params instance
-//! This will capture the state of the Params before the value is set, 
+//! Method for setting a single long value associated with a tag.
+//! This will capture the state of the Params argument before the value is set, 
 //! then set the values, then Validate(), and finally capture the state of
 //! the Params after the Validate()
 //! sa Validate()
@@ -236,8 +236,8 @@ virtual void GetValueStringVec(const string& tag, vector<string>& vec, const vec
 //! \retval int zero if successful
 	virtual int SetValueLong(string tag, const char* description, long value, Params* p);
 
-//! Method for making a Set of long values associated with a tag and capturing to a Params instance
-//! This will capture the state of the Params before the value is set, 
+//! Method for setting long values associated with a tag. 
+//! This will capture the state of the Params argument before the value is set, 
 //! then set the values, then Validate(), and finally capture the state of
 //! the Params after the Validate()
 //! sa Validate()
@@ -248,8 +248,8 @@ virtual void GetValueStringVec(const string& tag, vector<string>& vec, const vec
 //! \retval int zero if successful
 	virtual int SetValueLong(string tag, const char* description, const vector<long>& value, Params* p);
 
-//! Method for making a Set of a single double value associated with a tag and capturing to a Params instance
-//! This will capture the state of the Params before the value is set, 
+//! Method for setting a single double value associated with a tag.
+//! This will capture the state of the Params argument before the value is set, 
 //! then set the values, then Validate(), and finally capture the state of
 //! the Params after the Validate()
 //! sa Validate()
@@ -260,8 +260,8 @@ virtual void GetValueStringVec(const string& tag, vector<string>& vec, const vec
 //! \retval int zero if successful
 	virtual int SetValueDouble(string tag, const char* description, double value, Params* p);
 
-//! Method for making a Set of double values associated with a tag and capturing to a Params instance
-//! This will capture the state of the Params before the value is set, 
+//! Method for making a Set of double values associated with a tag.
+//! This will capture the state of the Params argument before the value is set, 
 //! then set the values, then Validate(), and finally capture the state of
 //! the Params after the Validate()
 //! sa Validate()
@@ -272,8 +272,8 @@ virtual void GetValueStringVec(const string& tag, vector<string>& vec, const vec
 //! \retval int zero if successful
 	virtual int SetValueDouble(string tag, const char* description, const vector<double>& value, Params* p);
 
-//! Method for making a Set of a single string value associated with a tag and capturing to a Params instance
-//! This will capture the state of the Params before the value is set, 
+//! Method for making a Set of a single string value associated with a tag.
+//! This will capture the state of the Params argument before the value is set, 
 //! then set the value, then Validate(), and finally capture the state of
 //! the Params after the Validate()
 //! sa Validate()
@@ -284,8 +284,8 @@ virtual void GetValueStringVec(const string& tag, vector<string>& vec, const vec
 //! \retval int zero if successful
 	virtual int SetValueString(string tag, const char* description, const string& value, Params* p);
 
-//! Method for making a Set of string values associated with a tag and capturing to a Params instance
-//! This will capture the state of the Params before the value is set, 
+//! Method for making a Set of string values associated with a tag.
+//! This will capture the state of the Params argument before the value is set, 
 //! then set the values, then Validate(), and finally capture the state of
 //! the Params after the Validate()
 //! sa Params::Validate()

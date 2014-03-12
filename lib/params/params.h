@@ -482,7 +482,7 @@ protected:
 //! Method for setting double values associated with a tag.
 //! This will capture the state of the Params before the values are set, 
 //! then set the value(s), then Validate(), and finally capture the state of
-//! the Params after the Validate()
+//! the Params after the Validate().
 //! \sa Validate(), ParamsBase::GetValueDoubleVec()
 //! \param [in] string tag
 //! \param [in] char* description
