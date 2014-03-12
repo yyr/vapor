@@ -163,70 +163,70 @@ void SetFlagDirty(const string& flag);
 
 const string& GetName() {return _paramsBaseName;}
  //!
- //! Obtain a single value of type long associated with a tag
- //! Optionally provide a vector of longs whose first element is the default value
+ //! Obtain a single value of type long associated with a tag.
+ //! Optionally specify a vector of longs whose first element is the default value
  //! if the value has not been assigned.
  //! \param[in] tag XML tag associated with the desired long parameter
  //! \param[in] defaultVal (optional) const vector<long> to be assigned if specified element does not exist.
- //! \retval long current value associated with the named parameter
+ //! \retval long value associated with the named parameter
  //!
 virtual long GetValueLong(const string& tag, const vector<long>& defaultVal = _emptyLongVec)
 	{return GetRootNode()->GetElementLong(tag, defaultVal)[0];}
  //!
- //! Obtain a single value of type double associated with a tag
- //! Optionally provide a vector of doubles whose first element is the default value
+ //! Obtain a single value of type double associated with a tag.
+ //! Optionally specify a vector of doubles whose first element is the default value
  //! if the value has not been assigned.
  //! \param[in] tag XML tag associated with the desired long parameter
  //! \param[in] defaultVal (optional) const vector<double> to be assigned if specified element does not exist.
- //! \retval long current value associated with the named parameter
+ //! \retval long value associated with the named parameter
  //!
 virtual double GetValueDouble(const string& tag,const vector<double>& defaultVal = _emptyDoubleVec)
 	{return GetRootNode()->GetElementDouble(tag,defaultVal)[0];}
  //!
- //! Obtain a single value of type std::string associated with a tag
- //! Optionally provide a string which will be the default value
+ //! Obtain a single value of type std::string associated with a tag.
+ //! Optionally specify a string which will be the default value
  //! if the value has not been assigned.
  //! \param[in] tag XML tag associated with the desired string parameter
- //! \param[in] defaultVal (optional) string to be assigned if specified element does not exist.
- //! \retval const string& current value associated with the named parameter
+ //! \param[in] defaultVal (optional) const string to be assigned if specified element does not exist.
+ //! \retval const string& value associated with the named parameter
  //!
 virtual const string& GetValueString(const string& tag, const string& defaultVal = _emptyString)
 	{return GetRootNode()->GetElementString(tag, defaultVal);}
  //!
- //! Obtain a vector of values of type long associated with a tag
- //! Optionally provide a vector of longs which is the default value
+ //! Obtain a vector of values of type long associated with a tag.
+ //! Optionally specify a vector of longs as the default value
  //! if the value has not been assigned.
  //! \param[in] tag XML tag associated with the desired long parameter
- //! \param[in] defaultVal (optional) vector<long> to be assigned if specified element does not exist.
- //! \retval const vector<long>& current value associated with the named parameter
+ //! \param[in] defaultVal (optional) const vector<long> to be assigned if specified element does not exist.
+ //! \retval const vector<long>& value associated with the named parameter
  //!
 virtual const vector<long>& GetValueLongVec(const string& tag,const vector<long>& defaultVal = _emptyLongVec)
 	{return GetRootNode()->GetElementLong(tag, defaultVal);}
  //!
- //! Obtain a vector of values of type double associated with a tag
- //! Optionally provide a vector of doubles which is the default value
+ //! Obtain a vector of values of type double associated with a tag.
+ //! Optionally specify a vector of doubles which is the default value
  //! if the value has not been assigned.
  //! \param[in] tag XML tag associated with the desired double parameter
- //! \param[in] defaultVal (optional) vector<double>& to be assigned if specified element does not exist.
- //! \retval const vector<double>& current value associated with the named parameter
+ //! \param[in] defaultVal (optional) const vector<double>& to be assigned if specified element does not exist.
+ //! \retval const vector<double>& value associated with the named parameter
  //!
 virtual const vector<double>& GetValueDoubleVec(const string& tag, const vector<double>& defaultVal = _emptyDoubleVec)
 	{return GetRootNode()->GetElementDouble(tag, defaultVal);}
  //!
- //! Obtain a vector of values of type string associated with a tag
- //! Optionally provide a vector of string which is the default value
+ //! Obtain a vector of values of type string associated with a tag.
+ //! Optionally specify a vector of string which is the default value
  //! if the value has not been assigned.
  //! \param[in] tag XML tag associated with the desired double parameter
  //! \param[out] vector<string>& vec string vector to which the strings will be assigned.
- //! \param[in] defaultVal (optional) vector<double>& to be assigned if specified element does not exist.
+ //! \param[in] defaultVal (optional) const vector<double>& to be assigned if specified element does not exist.
  //!
 virtual void GetValueStringVec(const string& tag, vector<string>& vec, const vector<string>& defaultVal = _emptyStringVec)
 	{GetRootNode()->GetElementStringVec(tag, vec, defaultVal);}
 
 
-//! Method for making a Set to long value(s) associated with a tag and capturing to a Params instance
+//! Method for making a Set of a single long value associated with a tag and capturing to a Params instance
 //! This will capture the state of the Params before the value is set, 
-//! then issue the SetValue, then Validate(), and finally capture the state of
+//! then set the values, then Validate(), and finally capture the state of
 //! the Params after the Validate()
 //! sa Validate()
 //! \param [in] string tag
@@ -236,9 +236,9 @@ virtual void GetValueStringVec(const string& tag, vector<string>& vec, const vec
 //! \retval int zero if successful
 	virtual int SetValueLong(string tag, const char* description, long value, Params* p);
 
-//! Method for making a Set to long value(s) associated with a tag and capturing to a Params instance
+//! Method for making a Set of long values associated with a tag and capturing to a Params instance
 //! This will capture the state of the Params before the value is set, 
-//! then issue the SetValue, then Validate(), and finally capture the state of
+//! then set the values, then Validate(), and finally capture the state of
 //! the Params after the Validate()
 //! sa Validate()
 //! \param [in] string tag
@@ -248,9 +248,9 @@ virtual void GetValueStringVec(const string& tag, vector<string>& vec, const vec
 //! \retval int zero if successful
 	virtual int SetValueLong(string tag, const char* description, const vector<long>& value, Params* p);
 
-//! Method for making a Set to double value(s) associated with a tag and capturing to a Params instance
+//! Method for making a Set of a single double value associated with a tag and capturing to a Params instance
 //! This will capture the state of the Params before the value is set, 
-//! then issue the SetValue, then Validate(), and finally capture the state of
+//! then set the values, then Validate(), and finally capture the state of
 //! the Params after the Validate()
 //! sa Validate()
 //! \param [in] string tag
@@ -260,9 +260,9 @@ virtual void GetValueStringVec(const string& tag, vector<string>& vec, const vec
 //! \retval int zero if successful
 	virtual int SetValueDouble(string tag, const char* description, double value, Params* p);
 
-//! Method for making a Set to double value(s) associated with a tag and capturing to a Params instance
+//! Method for making a Set of double values associated with a tag and capturing to a Params instance
 //! This will capture the state of the Params before the value is set, 
-//! then issue the SetValue, then Validate(), and finally capture the state of
+//! then set the values, then Validate(), and finally capture the state of
 //! the Params after the Validate()
 //! sa Validate()
 //! \param [in] string tag
@@ -272,9 +272,9 @@ virtual void GetValueStringVec(const string& tag, vector<string>& vec, const vec
 //! \retval int zero if successful
 	virtual int SetValueDouble(string tag, const char* description, const vector<double>& value, Params* p);
 
-//! Method for making a Set of string value(s) associated with a tag and capturing to a Params instance
+//! Method for making a Set of a single string value associated with a tag and capturing to a Params instance
 //! This will capture the state of the Params before the value is set, 
-//! then issue the SetValue, then Validate(), and finally capture the state of
+//! then set the value, then Validate(), and finally capture the state of
 //! the Params after the Validate()
 //! sa Validate()
 //! \param [in] string tag
@@ -284,9 +284,9 @@ virtual void GetValueStringVec(const string& tag, vector<string>& vec, const vec
 //! \retval int zero if successful
 	virtual int SetValueString(string tag, const char* description, const string& value, Params* p);
 
-//! Method for making a Set of string value(s) associated with a tag and capturing to a Params instance
+//! Method for making a Set of string values associated with a tag and capturing to a Params instance
 //! This will capture the state of the Params before the value is set, 
-//! then issue the SetValue, then Validate(), and finally capture the state of
+//! then set the values, then Validate(), and finally capture the state of
 //! the Params after the Validate()
 //! sa Params::Validate()
 //! \param [in] string tag

@@ -440,13 +440,14 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	static const string _LocalTag;
 	static const string _InstanceTag;
 	
+#endif
 protected:
 
-//! Method for making a change in the single long value(s) associated with a tag
+//! Method for setting a single long value associated with a tag.
 //! This will capture the state of the Params before the value is set, 
-//! then issue the SetValue, then Validate(), and finally capture the state of
+//! then set the value(s), then Validate(), and finally capture the state of
 //! the Params after the Validate()
-//! \sa Validate()
+//! \sa Validate(), ParamsBase::GetValueLong()
 //! \param [in] string tag
 //! \param [in] long value
 //! \param [in] char* description
@@ -454,11 +455,11 @@ protected:
 	virtual int SetValueLong(string tag, const char* description, long value)
 		{return ParamsBase::SetValueLong(tag,description,value, this);}
 
-//! Method for making a change in the long value(s) associated with a tag
+//! Method for setting long values associated with a tag.
 //! This will capture the state of the Params before the value is set, 
-//! then issue the SetValue, then Validate(), and finally capture the state of
+//! then set the value(s), then Validate(), and finally capture the state of
 //! the Params after the Validate()
-//! \sa Validate()
+//! \sa Validate(), ParamsBase::GetValueLongVec()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] vector<long> value
@@ -466,11 +467,11 @@ protected:
 	virtual int SetValueLong(string tag, const char* description, const vector<long>& value)
 		{return ParamsBase::SetValueLong(tag, description, value, this);}
 
-//! Method for making a change in the double value(s) associated with a tag
+//! Method for setting a single double value associated with a tag.
 //! This will capture the state of the Params before the value is set, 
-//! then issue the SetValue, then Validate(), and finally capture the state of
+//! then set the value(s), then Validate(), and finally capture the state of
 //! the Params after the Validate()
-//! \sa Validate()
+//! \sa Validate(), ParamsBase::GetValueDouble()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] double value
@@ -478,11 +479,11 @@ protected:
 	virtual int SetValueDouble(string tag, const char* description, double value)
 		{return ParamsBase::SetValueDouble(tag,description,value,this);}
 
-//! Method for making a change in the double value(s) associated with a tag
-//! This will capture the state of the Params before the value is set, 
-//! then issue the SetValue, then Validate(), and finally capture the state of
+//! Method for setting double values associated with a tag.
+//! This will capture the state of the Params before the values are set, 
+//! then set the value(s), then Validate(), and finally capture the state of
 //! the Params after the Validate()
-//! \sa Validate()
+//! \sa Validate(), ParamsBase::GetValueDoubleVec()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] vector<double> value
@@ -491,11 +492,11 @@ protected:
 		{return ParamsBase::SetValueDouble(tag,description,value,this);}
 
 
-//! Method for making a set in the string value(s) associated with a tag
+//! Method for setting a single string value associated with a tag.
 //! This will capture the state of the Params before the value is set, 
-//! then issue the SetValue, then Validate(), and finally capture the state of
+//! then set the value, then Validate(), and finally capture the state of
 //! the Params after the Validate()
-//! \sa Validate()
+//! \sa Validate(), ParamsBase::GetValueString()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] string value
@@ -503,10 +504,10 @@ protected:
 	virtual int SetValueString(string tag, const char* description, const string& value)
 		{return ParamsBase::SetValueString(tag,description,value,this);}
 
-//! Method for capturing a set of the string value(s) associated with a tag
-//! This will capture the state of the Params before the value is set, 
-//! then issue the SetValue, then Validate(), and finally capture the state of
-//! the Params after the Validate()
+//! Method for setting string values associated with a tag.
+//! This will capture the state of the Params before the values are set, 
+//! then set the value(s), then Validate(), and finally capture the state of
+//! the Params after the Validate(), ParamsBase::GetValueStringVec()
 //! \sa Validate()
 //! \param [in] string tag
 //! \param [in] char* description
@@ -515,6 +516,7 @@ protected:
 	virtual int SetValueStringVec(string tag, const char* description, const vector<string>& value)
 		{return ParamsBase::SetValueStringVec(tag, description, value, this);}
 
+#ifndef DOXYGEN_SKIP_THIS
 	//Params instances are vectors of Params*, one per instance, indexed by paramsBaseType, winNum
 	static map<pair<int,int>,vector<Params*> > paramsInstances;
 	//CurrentRenderParams indexed by paramsBaseType, winNum
