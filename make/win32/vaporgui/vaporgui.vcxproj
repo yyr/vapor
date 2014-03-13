@@ -372,6 +372,18 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing isolineeventrouter.h...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\moc\moc_isolineeventrouter.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vaporgui\moc\moc_isolineeventrouter.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vaporgui\moc\moc_isolineeventrouter.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\moc\moc_isolineeventrouter.cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing isolineeventrouter.h...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing isolineeventrouter.h...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing isolineeventrouter.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isolineeventrouter.h -o ..\..\..\apps\vaporgui\moc\moc_isolineeventrouter.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isolineeventrouter.h -o ..\..\..\apps\vaporgui\moc\moc_isolineeventrouter.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isolineeventrouter.h -o ..\..\..\apps\vaporgui\moc\moc_isolineeventrouter.cpp</Command>
     </CustomBuild>
     <ClInclude Include="..\..\..\apps\vaporgui\guis\glisolinewindow.h" />
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\isolineframe.h">
@@ -379,6 +391,18 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing isolineframe.h...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\moc\moc_isolineframe.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isolineframe.h -o ..\..\..\apps\vaporgui\moc\moc_isolineframe.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isolineframe.h -o ..\..\..\apps\vaporgui\moc\moc_isolineframe.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isolineframe.h -o ..\..\..\apps\vaporgui\moc\moc_isolineframe.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing isolineframe.h...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing isolineframe.h...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing isolineframe.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vaporgui\moc\moc_isolineframe.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vaporgui\moc\moc_isolineframe.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\moc\moc_isolineframe.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\isolinetab.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\misc\animationcontroller.h" />
@@ -1686,6 +1710,18 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Uic%27ing isolinetab.ui...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\guis\ui\isolinetab.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\uic.exe "..\..\..\apps\vaporgui\guis\ui\isolinetab.ui" -o "..\..\..\apps\vaporgui\guis\ui\isolinetab.h"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe "..\..\..\apps\vaporgui\guis\ui\isolinetab.ui" -o "..\..\..\apps\vaporgui\guis\ui\isolinetab.h"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe "..\..\..\apps\vaporgui\guis\ui\isolinetab.ui" -o "..\..\..\apps\vaporgui\guis\ui\isolinetab.h"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Uic%27ing isolinetab.ui...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Uic%27ing isolinetab.ui...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Uic%27ing isolinetab.ui...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vaporgui\guis\ui\isolinetab.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vaporgui\guis\ui\isolinetab.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\guis\ui\isolinetab.h;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
