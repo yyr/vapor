@@ -149,16 +149,7 @@ void Params::calcStretchedBoxExtentsInCube(float extents[6], int timestep){
 		extents[i+3] = (boxMax[i]*stretchFactors[i])/maxSize;
 	}
 }
-void Params::localToStretchedCoordinatesInCube(const float localCoords[3], float cubeCoords[3]){
-	
-	const float* fullSizes = DataStatus::getInstance()->getFullStretchedSizes();
-	const float* stretchFactors = DataStatus::getInstance()->getStretchFactors();
-	float maxSize = Max(Max(fullSizes[0],fullSizes[1]),fullSizes[2]);
-	for (int i = 0; i<3; i++)
-		cubeCoords[i] = (localCoords[i]*stretchFactors[i])/maxSize;
-	return;
-		
-}
+
 //For params subclasses that have a box, do the same in (unstretched) world coords
 void Params::calcBoxExtents(float* extents, int timestep){
 	

@@ -490,7 +490,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	void getStretchedBox(float boxmin[3], float boxmax[3], int timestep);
 	//Determine the box extents in the unit cube.
 	void calcStretchedBoxExtentsInCube(float extents[6], int timestep);
-	void localToStretchedCoordinatesInCube(const float localCoords[3], float cubeCoords[3]);
+
 	void calcStretchedBoxExtents(float* extents, int timestep);
 	void calcBoxExtents(float* extents, int timestep);
 	//Calculate the box in local coords, using any theta or phi

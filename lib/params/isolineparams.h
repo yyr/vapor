@@ -90,6 +90,9 @@ public:
 		const vector<long>three(1,3);
 		return (GetRootNode()->GetElementLong(_variableDimensionTag,three)[0] == 3);
 	}
+	int getNumIsovalues(){
+		return GetIsovalues().size();
+	}
 	const vector<double>& GetIsovalues(){
 		return (GetRootNode()->GetElementDouble(_isovaluesTag));
 	}

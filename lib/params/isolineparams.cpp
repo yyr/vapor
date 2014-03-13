@@ -113,10 +113,12 @@ reinit(bool doOverride){
 	
 	const float* extents = ds->getLocalExtents();
 	vector<double>newExtents(3,0.);
+	
 	if (doOverride) {
 		for (int i = 0; i<3; i++){
 			newExtents.push_back((double)( extents[i+3]-extents[i]));
 		}
+		newExtents[2] = newExtents[5] = extents[5]*0.5;
 		
 	} else {
 		double newExts[6];
@@ -131,6 +133,7 @@ reinit(bool doOverride){
 		}
 		newExtents.clear();
 		for (int i = 0; i<6; i++) newExtents.push_back(newExts[i]);
+		newExtents[5] = newExtents[2];
 	}
 	SetLocalExtents(newExtents);
 
@@ -138,6 +141,28 @@ reinit(bool doOverride){
 		const float col[3] = {1.f, 0.f, 0.f};
 		SetConstantColor(col);
 	}
+	//Set up the isovalues
+	if (doOverride || getNumIsovalues()<1){
+		vector<double>ivals;
+		ivals.push_back(0.);
+		SetIsovalues(ivals);
+	} else {
+		const vector<double>& ivals = GetIsovalues();
+		vector<double> newIvals;
+		if (ivals[0] >= ivals[ivals.size()-1])
+			newIvals.push_back(ivals[0]);
+		else {
+			
+			for (int i = 0; i< ivals.size(); i++){
+				if (i == 0 || i == ivals.size()-1) newIvals.push_back(ivals[i]);
+				else newIvals.push_back(ivals[0] + ((float)i/(float)(ivals.size()-1))*(ivals[ivals.size()-1]-ivals[0]));
+			}
+		}
+		SetIsovalues(newIvals);
+	}
+	if (doOverride) SetLineThickness(1.0);
+	else if (GetLineThickness() < 1.0 || GetLineThickness() > 100.) SetLineThickness(1.0);
+
 	initializeBypassFlags();
 	return true;
 }

@@ -47,11 +47,25 @@ public:
 	virtual void setAllDataDirty() {}
 	
 protected:
-	GLuint _isolineTexid;
-	GLuint _framebufferid;
-	static GLint _storedBuffer;
-	std::string instanceName();		
-	
+	//for each timestep,there is a pair consisting of the isovalue index and a vector of 
+	//4 floats (x1,y1,x2,y2) specifying
+	//the two endpoints of an isoline segment that crosses a cell 
+	std::map<pair<int,int>,vector<float*>> lineCache;
+	std::map<int,bool> cacheValidFlags;
+	vector<float*>& getLineSegments(int timestep, int isoindex){
+		pair<int,int> indexpair = make_pair(timestep,isoindex);
+		return lineCache[indexpair];
+	}
+	bool cacheIsValid(int timestep) {return cacheValidFlags[timestep];}
+	bool buildLineCache(int timestep);
+	void invalidateLineCache(int timestep);
+	void setupCache();
+	void performRendering(int timestep);
+	//Find code for edges based on isoline crossings
+	int edgeCode(int i, int j, int gridx, float isoval, float* dataVals); 
+	void addLineSegment(int timestep, int isoIndex, float x1, float y1, float x2, float y2);
+	int numIsovalsInCache() {return numIsovalsCached;}
+	int numIsovalsCached;
 };
 };
 

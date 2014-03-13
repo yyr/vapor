@@ -153,6 +153,10 @@ IsolineEventRouter::hookUpTab()
 	connect (psiEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (xSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (ySizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (minIsoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (maxIsoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (countIsoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (isolineWidthEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	
 	connect (fidelityDefaultButton, SIGNAL(clicked()), this, SLOT(guiSetFidelityDefault()));
 
@@ -164,6 +168,10 @@ IsolineEventRouter::hookUpTab()
 	connect (thetaEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (phiEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (psiEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (minIsoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (maxIsoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (countIsoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (isolineWidthEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	
 	connect (regionCenterButton, SIGNAL(clicked()), this, SLOT(isolineCenterRegion()));
 	connect (viewCenterButton, SIGNAL(clicked()), this, SLOT(isolineCenterView()));
@@ -322,6 +330,10 @@ void IsolineEventRouter::updateTab(){
 		maxGridYLabel->setText(QString::number(gridExts[4]));
 		maxGridZLabel->setText(QString::number(gridExts[5]));
 	}
+	vector<double>ivalues = isolineParams->GetIsovalues();
+	minIsoEdit->setText(QString::number(ivalues[0]));
+	maxIsoEdit->setText(QString::number(ivalues[ivalues.size()-1]));
+	countIsoEdit->setText(QString::number(ivalues.size()));
 	//Provide latlon box extents if available:
 	if (DataStatus::getProjectionString().size() == 0){
 		minMaxLonLatFrame->hide();
@@ -438,6 +450,30 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	isolineParams->setTheta(thetaVal);
 	isolineParams->setPhi(phiVal);
 	isolineParams->setPsi(psiVal);
+
+	vector<double>ivalues;
+	
+	double maxIso = (double)maxIsoEdit->text().toDouble();
+	double minIso = (double)minIsoEdit->text().toDouble();
+	ivalues.push_back(minIso);
+	int numIsos = countIsoEdit->text().toInt();
+	if (numIsos < 1) numIsos = 1;
+	if (maxIso <= minIso) {
+		maxIso = minIso;
+		numIsos = 1;
+	}
+	for (int i = 1; i<numIsos; i++){
+		ivalues.push_back(minIso + (maxIso - minIso)*(float)i/(float)(numIsos-1));
+	}
+
+	minIsoEdit->setText(QString::number(ivalues[0]));
+	maxIsoEdit->setText(QString::number(ivalues[ivalues.size()-1]));
+	countIsoEdit->setText(QString::number(ivalues.size()));
+	isolineParams->SetIsovalues(ivalues);
+
+	double thickness = isolineWidthEdit->text().toDouble();
+	if (thickness <= 0. || thickness > 100.) thickness = 1.0;
+	isolineParams->SetLineThickness(thickness);
 
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 

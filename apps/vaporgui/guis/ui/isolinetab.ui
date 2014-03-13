@@ -3250,7 +3250,7 @@ change the selection in the isoline</string>
             <item>
              <widget class="QLabel" name="textLabel1_9">
               <property name="text">
-               <string>Isoline color, opacity value:</string>
+               <string>Isoline color, width:</string>
               </property>
               <property name="wordWrap">
                <bool>false</bool>
@@ -3376,7 +3376,7 @@ change the selection in the isoline</string>
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="isolineOpacityEdit">
+             <widget class="QLineEdit" name="isolineWidthEdit">
               <property name="minimumSize">
                <size>
                 <width>50</width>
