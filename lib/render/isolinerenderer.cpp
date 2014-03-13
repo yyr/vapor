@@ -414,6 +414,6 @@ void IsolineRenderer::addLineSegment(int timestep, int isoIndex, float x1, float
 	float* floatvec = new float[4];
 	floatvec[0] = x1; floatvec[1]=y1; floatvec[2]=x2; floatvec[3] = y2;
 	pair<int,int> indexpair = make_pair(timestep,isoIndex);
-	vector<float*> isoPoints = lineCache[indexpair];
-	isoPoints.push_back(floatvec);
+	lineCache[indexpair].push_back(floatvec);
+	
 }

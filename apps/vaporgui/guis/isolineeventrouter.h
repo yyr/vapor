@@ -158,6 +158,7 @@ protected slots:
 	void setIsolineYSize();
 	void setIsolineEnabled(bool on, int instance);
 	
+	void setIsolineColor();
 	void guiSetNumRefinements(int numtrans);
 	void guiSetCompRatio(int num);
 	void setIsolineTabTextChanged(const QString& qs);
@@ -172,6 +173,7 @@ protected:
 	static const char* webHelpText[];
 	static const char* webHelpURL[];
 	void setIsolineToExtents(const double* extents, IsolineParams* pparams);
+	void guiSetIsolineColor(QColor& newColor);
 	void mapCursor();
 	void updateBoundsText(RenderParams*);
 	//Convert rotation about axis between actual and viewed in stretched coords:

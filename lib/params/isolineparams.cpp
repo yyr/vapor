@@ -177,7 +177,8 @@ void IsolineParams::restart() {
 	SetVariableName("isovar");
 	SetVariables3D(true);
 	selectPoint[0]=selectPoint[1]=selectPoint[2]=0.f;
-	vector<double>zeros(0.);
+	vector<double>zeros;
+	zeros.push_back(0.);
 	SetIsovalues(zeros);
 	zeros.push_back(0.);
 	SetCursorCoords(zeros);

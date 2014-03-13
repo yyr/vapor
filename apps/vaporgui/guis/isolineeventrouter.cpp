@@ -216,6 +216,7 @@ IsolineEventRouter::hookUpTab()
 	connect (showHideLayoutButton, SIGNAL(pressed()), this, SLOT(showHideLayout()));
 	connect (showHideImageButton, SIGNAL(pressed()), this, SLOT(showHideImage()));
 	connect (showHideAppearanceButton, SIGNAL(pressed()), this, SLOT(showHideAppearance()));
+	connect (isolineColorButton, SIGNAL(clicked()), this, SLOT(setIsolineColor()));
 }
 //Insert values from params into tab panel
 //
@@ -334,6 +335,8 @@ void IsolineEventRouter::updateTab(){
 	minIsoEdit->setText(QString::number(ivalues[0]));
 	maxIsoEdit->setText(QString::number(ivalues[ivalues.size()-1]));
 	countIsoEdit->setText(QString::number(ivalues.size()));
+
+	isolineWidthEdit->setText(QString::number(isolineParams->GetLineThickness()));
 	//Provide latlon box extents if available:
 	if (DataStatus::getProjectionString().size() == 0){
 		minMaxLonLatFrame->hide();
@@ -1152,10 +1155,8 @@ guiSetEnabled(bool value, int instance, bool undoredo){
 	//Make the change in enablement occur in the rendering window, 
 	// Local/Global is not changing.
 	updateRenderer(pParams,!value, false);
-	setDatarangeDirty(pParams);
 	
-
-	isolineImageFrame->update();
+	//isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams);
 	//and refresh the gui
 	updateTab();
@@ -2243,4 +2244,31 @@ void IsolineEventRouter::resetImageSize(IsolineParams* iParams){
 	float voxDims[2];
 	iParams->getRotatedVoxelExtents(voxDims);
 	isolineImageFrame->setTextureSize(voxDims[0],voxDims[1]);
+}
+/*
+ * Respond to user clicking the color button
+ */
+void IsolineEventRouter::
+setIsolineColor(){
+	QPalette pal(isolineColorEdit->palette());
+	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Base), this);
+	if (!newColor.isValid()) return;
+	pal.setColor(QPalette::Base, newColor);
+	isolineColorEdit->setPalette(pal);
+	//Set parameter value of the appropriate parameter set:
+	guiSetIsolineColor(newColor);
+}
+
+void IsolineEventRouter::
+guiSetIsolineColor(QColor& newColor){
+	confirmText(false);
+	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getActiveParams(IsolineParams::_isolineParamsTag);
+	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "set isoline color");
+	float clr[3];
+	clr[0]=(newColor.red()/256.);
+	clr[1]=(newColor.green()/256.);
+	clr[2]=(newColor.blue()/256.);
+	iParams->SetConstantColor(clr);
+	PanelCommand::captureEnd(cmd, iParams);
+	VizWinMgr::getInstance()->forceRender(iParams);	
 }

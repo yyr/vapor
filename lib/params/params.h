@@ -431,15 +431,15 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	}
 	
 	float getPhi() {
-		if (GetBox()->GetAngles().size() == 0) return 0.f;
+		if (GetBox()->GetAngles().size() < 2) return 0.f;
 		return((float)GetBox()->GetAngles()[1]);
 	}
 	float getTheta() {
-		if (GetBox()->GetAngles().size() == 0) return 0.f;
+		if (GetBox()->GetAngles().size() < 1) return 0.f;
 		return((float)GetBox()->GetAngles()[0]);
 	}
 	float getPsi() {
-		if (GetBox()->GetAngles().size() == 0) return 0.f;
+		if (GetBox()->GetAngles().size() < 3) return 0.f;
 		return((float)GetBox()->GetAngles()[2]);
 	}
 
