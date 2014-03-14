@@ -45,7 +45,8 @@ public:
     virtual void		paintGL();
 
 	virtual void setAllDataDirty() {}
-	
+	void invalidateLineCache(int timestep);
+	void invalidateLineCache();
 protected:
 	//for each timestep,there is a pair consisting of the isovalue index and a vector of 
 	//4 floats (x1,y1,x2,y2) specifying
@@ -56,16 +57,29 @@ protected:
 		pair<int,int> indexpair = make_pair(timestep,isoindex);
 		return lineCache[indexpair];
 	}
+	//Interpolate the isovalue on the grid line from (i,j) to (i,j+1)
+	float interp_j(int i, int j, float isoval, float* dataVals){
+		return ( -1. + 2.*(double)(j)/((double)gridSize-1.) //y coordinate at (i,j)
+		+ 2./(double)(gridSize -1.)  //y grid spacing
+		*(isoval - dataVals[i+gridSize*j])/(dataVals[i+gridSize*(j+1)]-dataVals[i+gridSize*j])); //ratio: 1 is iso at top, 0 if iso at bottom
+	}
+	//Interpolate the isovalue on the grid line from (i,j) to (i+1,j)
+	float interp_i(int i, int j, float isoval, float* dataVals){
+		return (-1. + 2.*(double)(i)/((double)gridSize-1.) //x coordinate at (i,j)
+		+ 2./(double)(gridSize -1.)  //x grid spacing
+		*(isoval - dataVals[i+gridSize*j])/(dataVals[i+1+gridSize*(j)]-dataVals[i+gridSize*j])); //ratio: 1 is iso at right, 0 if iso at left
+	}
 	bool cacheIsValid(int timestep) {return cacheValidFlags[timestep];}
 	bool buildLineCache(int timestep);
-	void invalidateLineCache(int timestep);
+	
 	void setupCache();
 	void performRendering(int timestep);
 	//Find code for edges based on isoline crossings
-	int edgeCode(int i, int j, int gridx, float isoval, float* dataVals); 
+	int edgeCode(int i, int j, float isoval, float* dataVals); 
 	void addLineSegment(int timestep, int isoIndex, float x1, float y1, float x2, float y2);
 	int numIsovalsInCache() {return numIsovalsCached;}
 	int numIsovalsCached;
+	int gridSize;
 };
 };
 

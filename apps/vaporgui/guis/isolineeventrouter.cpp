@@ -40,7 +40,7 @@
 #include <qapplication.h>
 #include <qcursor.h>
 #include <qtooltip.h>
-//#include "isolinerenderer.h"
+#include "isolinerenderer.h"
 #include "regionparams.h"
 #include "mainform.h"
 #include "vizwinmgr.h"
@@ -509,7 +509,7 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	yCenterSlider->setValue((int)(256.f*boxCenter[1]/fullSizes[1]));
 	zCenterSlider->setValue((int)(256.f*boxCenter[2]/fullSizes[2]));
 	resetImageSize(isolineParams);
-	//isolineImageFrame->setTextureSize(voxDims[0],voxDims[1]);
+	
 	setIsolineDirty(isolineParams);
 	
 	isolineImageFrame->update();
@@ -1217,7 +1217,7 @@ guiChangeVariable(int varnum){
 	PanelCommand::captureEnd(cmd, pParams);
 	//Need to update the selected point for the new variables
 	updateTab();
-	
+	setIsolineDirty(pParams);	
 	isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams);
 }
@@ -1228,7 +1228,7 @@ guiSetXCenter(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide isoline X center");
 	setXCenter(pParams,sliderval);
 	PanelCommand::captureEnd(cmd, pParams);
-	
+	setIsolineDirty(pParams);	
 	isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::isolineMode);
 	
@@ -1240,7 +1240,7 @@ guiSetYCenter(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide isoline Y center");
 	setYCenter(pParams,sliderval);
 	PanelCommand::captureEnd(cmd, pParams);
-	
+	setIsolineDirty(pParams);
 	isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::isolineMode);
 	
@@ -1252,7 +1252,7 @@ guiSetZCenter(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide isoline Z center");
 	setZCenter(pParams,sliderval);
 	PanelCommand::captureEnd(cmd, pParams);
-	
+	setIsolineDirty(pParams);
 	isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::isolineMode);
 
@@ -1265,9 +1265,9 @@ guiSetXSize(int sliderval){
 	setXSize(pParams,sliderval);
 	
 	PanelCommand::captureEnd(cmd, pParams);
-	//setup the texture:
-	resetImageSize(pParams);
 	
+	resetImageSize(pParams);
+	setIsolineDirty(pParams);
 	isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::isolineMode);
 
@@ -1281,7 +1281,7 @@ guiSetYSize(int sliderval){
 	
 	PanelCommand::captureEnd(cmd, pParams);
 	resetImageSize(pParams);
-	
+	setIsolineDirty(pParams);
 	isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::isolineMode);
 
@@ -2271,4 +2271,9 @@ guiSetIsolineColor(QColor& newColor){
 	iParams->SetConstantColor(clr);
 	PanelCommand::captureEnd(cmd, iParams);
 	VizWinMgr::getInstance()->forceRender(iParams);	
+}
+void IsolineEventRouter::invalidateRenderer(IsolineParams* iParams)
+{
+	IsolineRenderer* iRender = (IsolineRenderer*)VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->getRenderer(iParams);
+	if (iRender) iRender->invalidateLineCache();
 }

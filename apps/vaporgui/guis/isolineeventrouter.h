@@ -106,8 +106,8 @@ public:
 	void guiEndCursorMove();
 	void guiCopyRegionToIsoline();
 	
-	void setIsolineDirty(IsolineParams* pParams){
-		//purge isoline cache
+	void setIsolineDirty(IsolineParams* iParams){
+		invalidateRenderer(iParams);
 	}
 
 
@@ -179,6 +179,8 @@ protected:
 	//Convert rotation about axis between actual and viewed in stretched coords:
 	double convertRotStretchedToActual(int axis, double angle);
 	void resetImageSize(IsolineParams* iParams);
+	void invalidateRenderer(IsolineParams* iParams);
+
 	
 	//fix Isoline box to fit in domain:
 	void adjustBoxSize(IsolineParams*);

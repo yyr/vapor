@@ -16,9 +16,7 @@
 //
 //	Description:	Implementation of the isolinerenderer class
 //
-//Temporary values for testing:
-#define GRIDX 10
-#define GRIDY 10
+
 #include "glutil.h"	// Must be included first!!!
 #include "params.h"
 #include "isolinerenderer.h"
@@ -185,7 +183,14 @@ bool IsolineRenderer::buildLineCache(int timestep){
 		return false;
 	}
 	isolineGrid->SetInterpolationOrder(1);
-	float dataVals[GRIDX*GRIDY];
+	//Determine resolution of grid to use.  
+	size_t min_dim[3],max_dim[3];
+	dataMgr->GetEnclosingRegion((size_t)timestep, extents, extents+3, min_dim, max_dim, actualRefLevel,lod);
+	// Choose the grid sizes to both equal the largest number
+	//of integer extents.
+	gridSize = Max(max_dim[2]-min_dim[2],Max(max_dim[1]-min_dim[1],max_dim[0]-min_dim[0]));
+	float* dataVals = new float[gridSize*gridSize];
+	
 	//Set up to transform from probe into volume:
 	double transformMatrix[12];
 	double planeCoords[3], dataCoords[3];
@@ -210,11 +215,11 @@ bool IsolineRenderer::buildLineCache(int timestep){
 	//Loop over grid, finding data values at each grid corner.
 	//Missing value is also valid.
 	float mv = isolineGrid->GetMissingValue();
-	for (int i = 0; i<GRIDX; i++){
-		planeCoords[0] = -1. + 2.*(double)i/(GRIDX-1.);
-		for (int j = 0; j<GRIDY; j++){
-			dataVals[i+j*GRIDX] = mv;  
-			planeCoords[1] = -1. + 2.*(double)j/(GRIDY-1.);
+	for (int i = 0; i<gridSize; i++){
+		planeCoords[0] = -1. + 2.*(double)i/(gridSize-1.);
+		for (int j = 0; j<gridSize; j++){
+			dataVals[i+j*gridSize] = mv;  
+			planeCoords[1] = -1. + 2.*(double)j/(gridSize-1.);
 			vtransform(planeCoords, transformMatrix, dataCoords);
 			//find the coords that the texture maps to
 			bool dataOK = true;
@@ -223,7 +228,7 @@ bool IsolineRenderer::buildLineCache(int timestep){
 				dataCoords[k] += userExts[k]; //Convert to user coordinates.
 			}
 			if(dataOK) { //find the coordinate in the data array
-				dataVals[i+j*GRIDX] = isolineGrid->GetValue(dataCoords[0],dataCoords[1],dataCoords[2]);
+				dataVals[i+j*gridSize] = isolineGrid->GetValue(dataCoords[0],dataCoords[1],dataCoords[2]);
 			}
 		}
 	}
@@ -234,84 +239,90 @@ bool IsolineRenderer::buildLineCache(int timestep){
 		float isoval = (float)isovals[iso];
 		int cellCase;
 		float x1,y1,x2,y2;  //coordinates of intersection points
+
 		//loop over cells (identified by lower-left vertices
-		for (int i = 0; i<GRIDX-1; i++){
-			for (int j = 0; j<GRIDY-1; j++){
+		for (int i = 0; i<gridSize-1; i++){
+			for (int j = 0; j<gridSize-1; j++){
 				//Determine which case is associated with cell cornered at i,j
-				if ((dataVals[i+j*GRIDX] == mv) || (dataVals[i+1+j*GRIDX] == mv) ||
-					(dataVals[i+(j+1)*GRIDX] == mv) || (dataVals[i+1+(j+1)*GRIDX] == mv)) cellCase = 0;
+				if ((dataVals[i+j*gridSize] == mv) || (dataVals[i+1+j*gridSize] == mv) ||
+					(dataVals[i+(j+1)*gridSize] == mv) || (dataVals[i+1+(j+1)*gridSize] == mv)) cellCase = 0;
 				else
-					cellCase = edgeCode(i,j, GRIDX, isoval, dataVals);
+					cellCase = edgeCode(i,j, isoval, dataVals);
 			
 				//Note the vertices are numbered counterclockwise starting with 0 at (i,j)
 				switch (cellCase) {
 					case(0): //no lines
 						break;
-					case(1): //lines intersect between vertices 0-1 and vertices 1-2
-						y1 = -1. + 2.*(double)j/(GRIDY-1.);
-						x2 = -1. + 2.*(double)(i+1)/(GRIDX-1.);
-						x1 = (dataVals[i+j*GRIDX]-isoval)/(dataVals[i+j*GRIDX]-dataVals[i+1+j*GRIDX]);
-						y2 = (dataVals[i+1+(j+1)*GRIDX]-isoval)/(dataVals[i+1+(j+1)*GRIDX]-dataVals[i+1+j*GRIDX]);
-						addLineSegment(timestep,iso,x1,y1,x2,y2);
-						break;
-					case(2): //lines intersect 1-2 and 2-3
-						y2 = -1. + 2.*(double)(j+1)/(GRIDY-1.);
-						x1 = -1. + 2.*(double)(i+1)/(GRIDX-1.);
-						x2 = (dataVals[i+1+(j+1)*GRIDX]-isoval)/(dataVals[i+1+(j+1)*GRIDX]-dataVals[i+(j+1)*GRIDX]);
-						y1 = (dataVals[i+1+(j+1)*GRIDX]-isoval)/(dataVals[i+1+(j+1)*GRIDX]-dataVals[i+1+j*GRIDX]);
-						addLineSegment(timestep,iso,x1,y1,x2,y2);
-						break;
-					case(3): //lines intersect 2-3 and 0-3
-						y1 = -1. + 2.*(double)(j+1)/(GRIDY-1.);
-						x2 = -1. + 2.*(double)(i)/(GRIDX-1.);
-						x1 = (dataVals[i+1+(j+1)*GRIDX]-isoval)/(dataVals[i+1+(j+1)*GRIDX]-dataVals[i+(j+1)*GRIDX]);
-						y2 = (dataVals[i+(j+1)*GRIDX]-isoval)/(dataVals[i+(j+1)*GRIDX]-dataVals[i+j*GRIDX]);
-						addLineSegment(timestep,iso,x1,y1,x2,y2);
-						break;
-					case(4): //lines intersect 0-3 and 0-1
-						y2 = -1. + 2.*(double)(j)/(GRIDY-1.);
-						x1 = -1. + 2.*(double)(i)/(GRIDX-1.);
-						x2 = (dataVals[i+1+(j)*GRIDX]-isoval)/(dataVals[i+1+(j)*GRIDX]-dataVals[i+(j)*GRIDX]);
-						y1 = (dataVals[i+(j+1)*GRIDX]-isoval)/(dataVals[i+(j+1)*GRIDX]-dataVals[i+j*GRIDX]);
-						addLineSegment(timestep,iso,x1,y1,x2,y2);
-						break;
-					case(5): //lines intersect 0-1 and 2-3
-						y2 = -1. + 2.*(double)(j+1)/(GRIDY-1.);
-						y1 = -1. + 2.*(double)(j)/(GRIDY-1.);
-						x1 = (dataVals[i+j*GRIDX]-isoval)/(dataVals[i+j*GRIDX]-dataVals[i+1+j*GRIDX]);
-						x2 = (dataVals[i+1+(j+1)*GRIDX]-isoval)/(dataVals[i+1+(j+1)*GRIDX]-dataVals[i+(j+1)*GRIDX]);
-						addLineSegment(timestep,iso,x1,y1,x2,y2);
-						break;
-					case(6): //line intersect 1-2 and 0-3
-						x1 = -1. + 2.*(double)(i+1)/(GRIDX-1.);
-						x2 = -1. + 2.*(double)(i)/(GRIDX-1.);
-						y1 = (dataVals[i+1+(j+1)*GRIDX]-isoval)/(dataVals[i+1+(j+1)*GRIDX]-dataVals[i+1+j*GRIDX]);
-						y2 = (dataVals[i+(j+1)*GRIDX]-isoval)/(dataVals[i+(j+1)*GRIDX]-dataVals[i+j*GRIDX]);
-						addLineSegment(timestep,iso,x1,y1,x2,y2);
-						break;
-					case(7): //both cases 1 and 3
-						y1 = -1. + 2.*(double)j/(GRIDY-1.);
-						x2 = -1. + 2.*(double)(i+1)/(GRIDX-1.);
-						x1 = (dataVals[i+j*GRIDX]-isoval)/(dataVals[i+j*GRIDX]-dataVals[i+1+j*GRIDX]);
-						y2 = (dataVals[i+1+(j+1)*GRIDX]-isoval)/(dataVals[i+1+(j+1)*GRIDX]-dataVals[i+1+j*GRIDX]);
-						addLineSegment(timestep,iso,x1,y1,x2,y2);
-						y1 = -1. + 2.*(double)(j+1)/(GRIDY-1.);
-						x2 = -1. + 2.*(double)(i)/(GRIDX-1.);
-						x1 = (dataVals[i+1+(j+1)*GRIDX]-isoval)/(dataVals[i+1+(j+1)*GRIDX]-dataVals[i+(j+1)*GRIDX]);
-						y2 = (dataVals[i+(j+1)*GRIDX]-isoval)/(dataVals[i+(j+1)*GRIDX]-dataVals[i+j*GRIDX]);
-						addLineSegment(timestep,iso,x1,y1,x2,y2);
-						break;
-					case(8):  //both cases 2 and 4:
-						y2 = -1. + 2.*(double)(j+1)/(GRIDY-1.);
-						x1 = -1. + 2.*(double)(i+1)/(GRIDX-1.);
-						x2 = (dataVals[i+1+(j+1)*GRIDX]-isoval)/(dataVals[i+1+(j+1)*GRIDX]-dataVals[i+(j+1)*GRIDX]);
-						y1 = (dataVals[i+1+(j+1)*GRIDX]-isoval)/(dataVals[i+1+(j+1)*GRIDX]-dataVals[i+1+j*GRIDX]);
-						addLineSegment(timestep,iso,x1,y1,x2,y2);
+					case(1): //lines intersect 0-3 [point 1] and 0-1 [point 2]
+						y2 = -1. + 2.*(double)(j)/(gridSize-1.);
+						x1 = -1. + 2.*(double)(i)/(gridSize-1.);
 						
-						y2 = -1. + 2.*(double)(j)/(GRIDY-1.);
-						x1 = -1. + 2.*(double)(i)/(GRIDX-1.);
-						x2 = (dataVals[i+1+(j)*GRIDX]-isoval)/(dataVals[i+1+(j)*GRIDX]-dataVals[i+(j)*GRIDX]);
-						y1 = (dataVals[i+(j+1)*GRIDX]-isoval)/(dataVals[i+(j+1)*GRIDX]-dataVals[i+j*GRIDX]);
+						x2 = interp_i(i,j,isoval, dataVals);
+						y1 = interp_j(i,j,isoval, dataVals);
+						addLineSegment(timestep,iso,x1,y1,x2,y2);
+						break;
+					case(2): //lines intersect between vertices 0-1 [1] and vertices 1-2 [2]
+						y1 = -1. + 2.*(double)j/(gridSize-1.);
+						x2 = -1. + 2.*(double)(i+1)/(gridSize-1.);
+						x1 = interp_i(i,j,isoval,dataVals);
+						y2 = interp_j(i+1,j,isoval,dataVals);
+						addLineSegment(timestep,iso,x1,y1,x2,y2);
+						break;
+					case(3): //lines intersect 1-2 [1] and 2-3 [2]
+						y2 = -1. + 2.*(double)(j+1)/(gridSize-1.);
+						x1 = -1. + 2.*(double)(i+1)/(gridSize-1.);
+						x2 = interp_i(i,j+1,isoval,dataVals);
+						y1 = interp_j(i+1,j,isoval,dataVals);
+						addLineSegment(timestep,iso,x1,y1,x2,y2);
+						break;
+					case(4): //lines intersect 2-3 [1] and 0-3 [2]
+						y1 = -1. + 2.*(double)(j+1)/(gridSize-1.);
+						x2 = -1. + 2.*(double)(i)/(gridSize-1.);
+						x1 = interp_i(i,j+1,isoval,dataVals);
+						y2 = interp_j(i,j,isoval,dataVals);
+						addLineSegment(timestep,iso,x1,y1,x2,y2);
+						break;
+					
+					case(5): //lines intersect 0-1 [1] and 2-3 [2]
+						y2 = -1. + 2.*(double)(j+1)/(gridSize-1.);
+						y1 = -1. + 2.*(double)(j)/(gridSize-1.);
+						x1 = interp_i(i,j,isoval,dataVals);
+						x2 = interp_i(i,j+1,isoval,dataVals);
+						addLineSegment(timestep,iso,x1,y1,x2,y2);
+						break;
+					case(6): //line intersect 1-2 [1] and 0-3 [2]
+						x1 = -1. + 2.*(double)(i+1)/(gridSize-1.);
+						x2 = -1. + 2.*(double)(i)/(gridSize-1.);
+						y1 = interp_j(i+1,j,isoval,dataVals);
+						y2 = interp_j(i,j,isoval,dataVals);
+						addLineSegment(timestep,iso,x1,y1,x2,y2);
+						break;
+					case(7): //both cases 2 and 4
+						//lines intersect between vertices 0-1 [1] and vertices 1-2 [2]
+						y1 = -1. + 2.*(double)j/(gridSize-1.);
+						x2 = -1. + 2.*(double)(i+1)/(gridSize-1.);
+						x1 = interp_i(i,j,isoval,dataVals);
+						y2 = interp_j(i+1,j,isoval,dataVals);
+						addLineSegment(timestep,iso,x1,y1,x2,y2);
+						//lines intersect 2-3 [1] and 0-3 [2]
+						y1 = -1. + 2.*(double)(j+1)/(gridSize-1.);
+						x2 = -1. + 2.*(double)(i)/(gridSize-1.);
+						x1 = interp_i(i,j+1,isoval,dataVals);
+						y2 = interp_j(i,j,isoval,dataVals);
+						addLineSegment(timestep,iso,x1,y1,x2,y2);
+						break;
+					case(8):  //both cases 1 and 3
+						//lines intersect 0-3 [point 1] and 0-1 [point 2]
+						y2 = -1. + 2.*(double)(j)/(gridSize-1.);
+						x1 = -1. + 2.*(double)(i)/(gridSize-1.);
+						x2 = interp_i(i,j,isoval, dataVals);
+						y1 = interp_j(i,j,isoval, dataVals);
+						addLineSegment(timestep,iso,x1,y1,x2,y2);
+						//lines intersect 1-2 [1] and 2-3 [2]
+						y2 = -1. + 2.*(double)(j+1)/(gridSize-1.);
+						x1 = -1. + 2.*(double)(i+1)/(gridSize-1.);
+						x2 = interp_i(i,j+1,isoval,dataVals);
+						y1 = interp_j(i+1,j,isoval,dataVals);
 						addLineSegment(timestep,iso,x1,y1,x2,y2);
 						break;
 					default:
@@ -322,21 +333,27 @@ bool IsolineRenderer::buildLineCache(int timestep){
 	} //for iso...		
 	numIsovalsCached = isovals.size();
 	cacheValidFlags[timestep] = true;
+	delete dataVals;
 	return true;
 }
 void IsolineRenderer::invalidateLineCache(int timestep){
 	int numisovals = numIsovalsInCache();
 	for (int iso = 0; iso<numisovals; iso++){
 		pair<int,int> indexpair = make_pair(timestep,iso);
-		vector<float*> isoPoints = lineCache[indexpair];
-		for (int i = 0; i<isoPoints.size(); i++){
-			delete isoPoints[i];
+		for (int i = 0; i< lineCache[indexpair].size(); i++){
+			delete lineCache[indexpair][i];
 		}
-		isoPoints.clear();
+		lineCache[indexpair].clear();
 	}
 	cacheValidFlags[timestep]=false;
 }
-
+void IsolineRenderer::invalidateLineCache(){
+	DataStatus* ds = DataStatus::getInstance();
+	IsolineParams* iParams = (IsolineParams*)getRenderParams();
+	for (int ts = ds->getMinTimestep(); ts <= ds->getMaxTimestep(); ts++)
+		invalidateLineCache(ts);
+	numIsovalsCached = 0;
+}
 //setupCache must be called whenever a new renderer is created, and whenever the number of isovalues changes.
 void IsolineRenderer::setupCache(){
 	DataStatus* ds = DataStatus::getInstance();
@@ -352,56 +369,56 @@ void IsolineRenderer::setupCache(){
 }
 //Classify a cell to one of 9 possibilities:
 //0: no crossing
-//1,2,3,4 : cross at 1 corner
-//5,6: cross opposite edges (0-1, 2-3, and 1-2, 0-3)
-//7,8: cross all 4 corners, center agrees or disagrees with starting vertex.
+//1,2,3,4 : cross at 1 corner (vertices 0,1,2,3 respectively)
+//5,6: cross opposite edges (between vertices 0-1 & 2-3 for 5, and between  1-2 & 0-3 for 6.
+//7,8: cross all 4 corners, center agrees or disagrees with vertex 0
 //All but 7 & 8 come from a lookup of 8 inputs (4 vertices, each above or below isovalue)
 //Note that none of the vertices should have missing value
-int IsolineRenderer::edgeCode(int i, int j, int gridx, float isoval, float* dataVals){
+int IsolineRenderer::edgeCode(int i, int j, float isoval, float* dataVals){
 	// intersection code is 1 if it intersects the first edge, 
 	// 2 for the second edge, 4 for the third, 8 for the fourth.
 	// resulting combinations include 1+2, 1+4, 1+8, 2+4, 2+8, 4+8, 1+2+4+8 = 3,5,6,9,10,12,15.
-	// These remap as follows: 3->1; 5->5; 6->2; 9->3; 10->6; 12->4; 15-> 7 or 8
+	// These remap as follows: 3->2; 5->5; 6->3; 9->1; 10->6; 12->4; 15-> 7 or 8
 	int intersectionCode = 0;
 	//check for crossing between (i,j) and (i+1,j)
-	if((dataVals[i+gridx*j] < isoval &&  dataVals[i+1+gridx*j] > isoval) ||
-			(dataVals[i+gridx*j] > isoval &&  dataVals[i+1+gridx*j] < isoval)) intersectionCode+=1;
+	if((dataVals[i+gridSize*j] < isoval &&  dataVals[i+1+gridSize*j] > isoval) ||
+			(dataVals[i+gridSize*j] > isoval &&  dataVals[i+1+gridSize*j] < isoval)) intersectionCode+=1;
 	//check for crossing between (i+1,j+1) and (i+1,j)
-	if((dataVals[i+1+gridx*j] < isoval &&  dataVals[i+1+gridx*(j+1)] > isoval) ||
-			(dataVals[i+1+gridx*j] > isoval &&  dataVals[i+1+gridx*(j+1)] < isoval)) intersectionCode+=2;
+	if((dataVals[i+1+gridSize*j] < isoval &&  dataVals[i+1+gridSize*(j+1)] > isoval) ||
+			(dataVals[i+1+gridSize*j] > isoval &&  dataVals[i+1+gridSize*(j+1)] < isoval)) intersectionCode+=2;
 	//check for crossing between (i,j+1) and (i+1,j+1)
-	if((dataVals[i+gridx*(j+1)] < isoval &&  dataVals[i+1+gridx*(j+1)] > isoval) ||
-			(dataVals[i+gridx*(j+1)] > isoval &&  dataVals[i+1+gridx*(j+1)] < isoval)) intersectionCode+=4;
+	if((dataVals[i+gridSize*(j+1)] < isoval &&  dataVals[i+1+gridSize*(j+1)] > isoval) ||
+			(dataVals[i+gridSize*(j+1)] > isoval &&  dataVals[i+1+gridSize*(j+1)] < isoval)) intersectionCode+=4;
 	//check for crossing between (i,j+1) and (i,j)
-	if((dataVals[i+gridx*j] < isoval &&  dataVals[i+gridx*(j+1)] > isoval) ||
-			(dataVals[i+gridx*j] > isoval &&  dataVals[i+gridx*(j+1)] < isoval)) intersectionCode+=8;
+	if((dataVals[i+gridSize*j] < isoval &&  dataVals[i+gridSize*(j+1)] > isoval) ||
+			(dataVals[i+gridSize*j] > isoval &&  dataVals[i+gridSize*(j+1)] < isoval)) intersectionCode+=8;
 	
 	int ecode;
 	float avgvalue;
-	// Remap intersectionCode to ecode: 0->0, 3->1; 5->5; 6->2; 9->3; 10->6; 12->4; 15-> 7 or 8
+	// Remap intersectionCode to ecode: 0->0, 3->2; 5->5; 6->3; 9->1; 10->6; 12->4; 15-> 7 or 8
 	switch(intersectionCode){
 		case(0):
 			ecode = 0; break;
 		case(3):
-			ecode = 1; break;
+			ecode = 2; break;
 		case(5):
 			ecode = 5; break;
 		case(6): 
-			ecode = 2; break;
-		case(9):
 			ecode = 3; break;
+		case(9):
+			ecode = 1; break;
 		case(10):
 			ecode = 6; break;
 		case(12):
 			ecode = 4; break;
 		case(15):  //disambiguate 7 and 8, based on whether or not average is on same side of isovalue as (i,j) vertex.
 				//average is used as best approximation of value at center of cell.
-			avgvalue = 0.25*(dataVals[i+gridx*j]+dataVals[i+gridx*(j+1)]+dataVals[i+1+gridx*(j+1)]+ dataVals[i+1+gridx*j]);
-			if( ((dataVals[i+gridx*j] < isoval) && (avgvalue < isoval)) ||
-				((dataVals[i+gridx*j] > isoval) && (avgvalue > isoval)) ) {
-					//average agrees with (i,j), so use segments that connect 0-1 and 1-2 edge as well as 2-3 and 3-0
+			avgvalue = 0.25*(dataVals[i+gridSize*j]+dataVals[i+gridSize*(j+1)]+dataVals[i+1+gridSize*(j+1)]+ dataVals[i+1+gridSize*j]);
+			if( ((dataVals[i+gridSize*j] < isoval) && (avgvalue < isoval)) ||
+				((dataVals[i+gridSize*j] > isoval) && (avgvalue > isoval)) ) {
+					//average agrees with (i,j), so use segments that connect 0-1 and 1-2 edge [case 2] as well as 2-3 and 3-0 [case 4]
 				ecode = 7;
-			} else //use segments that connect edges 1-2 and 2-3 as well as 3-0 and 0-1
+			} else //use segments that connect edges 1-2 and 2-3 as well as 3-0 and 0-1 [case 1 and case 3]
 				ecode = 8;
 			break;
 		default:
