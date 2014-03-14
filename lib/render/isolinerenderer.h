@@ -47,6 +47,9 @@ public:
 	virtual void setAllDataDirty() {}
 	void invalidateLineCache(int timestep);
 	void invalidateLineCache();
+	bool cacheIsValid(int timestep) {return cacheValidFlags[timestep];}
+	bool buildLineCache(int timestep);
+	const std::map<pair<int,int>,vector<float*> >&  GetLineCache() {return lineCache;}
 protected:
 	//for each timestep,there is a pair consisting of the isovalue index and a vector of 
 	//4 floats (x1,y1,x2,y2) specifying
@@ -69,8 +72,7 @@ protected:
 		+ 2./(double)(gridSize -1.)  //x grid spacing
 		*(isoval - dataVals[i+gridSize*j])/(dataVals[i+1+gridSize*(j)]-dataVals[i+gridSize*j])); //ratio: 1 is iso at right, 0 if iso at left
 	}
-	bool cacheIsValid(int timestep) {return cacheValidFlags[timestep];}
-	bool buildLineCache(int timestep);
+	
 	
 	void setupCache();
 	void performRendering(int timestep);

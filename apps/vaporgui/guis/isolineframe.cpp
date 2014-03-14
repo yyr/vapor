@@ -63,11 +63,7 @@ IsolineFrame::~IsolineFrame() {
 
 void IsolineFrame::paintEvent(QPaintEvent* ){
 	
-	//if (!glIsolineWindow){ //should never happen?
-		
-	//	return;
-	//}
-	//Defer to the glIsolineWindow (do a GL draw)
+	
 	if (GLWindow::isRendering()) return;
 	glIsolineWindow->updateGL();
 }

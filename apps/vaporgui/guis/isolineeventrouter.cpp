@@ -2243,7 +2243,7 @@ void IsolineEventRouter::resetImageSize(IsolineParams* iParams){
 	//setup the texture:
 	float voxDims[2];
 	iParams->getRotatedVoxelExtents(voxDims);
-	isolineImageFrame->setTextureSize(voxDims[0],voxDims[1]);
+	isolineImageFrame->setImageSize(voxDims[0],voxDims[1]);
 }
 /*
  * Respond to user clicking the color button

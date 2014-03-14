@@ -12,7 +12,7 @@
 //			National Center for Atmospheric Research
 //			PO 3000, Boulder, Colorado
 //
-//	Date:		November 2005
+//	Date:		March 2014
 //
 //	Description:	Defines the IsolineFrame class.  This provides
 //		a frame in which the glisolinewindow sits
@@ -45,20 +45,13 @@ public:
 	IsolineFrame( QWidget * parent = 0, Qt::WFlags f = 0 );
 	~IsolineFrame();
 	void setGLWindow(VAPoR::GLIsolineWindow* w){glIsolineWindow = w;}
-	void setTextureSize(float h, float v){
-		glIsolineWindow->setTextureSize(h,v);
+	void setImageSize(float h, float v){
+		glIsolineWindow->setImageSize(h,v);
 	}
-	void setAnimatingTexture(bool val){
-		glIsolineWindow->setAnimatingTexture(val);
-	}
-	void advanceAnimatingFrame(){
-		glIsolineWindow->advanceAnimatingFrame();
-	}
+	
 	void setParams(IsolineParams* p) {isolineParams = p;}
 	IsolineParams* getParams() {return isolineParams;}
-	void setCaptureName(QString& name){glIsolineWindow->setCaptureName(name);}
-	void setCapturing(bool doCapture){glIsolineWindow->setCapturing(doCapture);}
-	void setCaptureNum(int num) {glIsolineWindow->setCaptureNum(num);}
+	
 	GLIsolineWindow* getGLWindow(){ return glIsolineWindow;}
 
 	

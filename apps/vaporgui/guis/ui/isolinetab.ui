@@ -381,6 +381,11 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QComboBox" name="lodCombo">
+                <property name="font">
+                 <font>
+                  <pointsize>10</pointsize>
+                 </font>
+                </property>
                 <property name="focusPolicy">
                  <enum>Qt::ClickFocus</enum>
                 </property>
@@ -444,6 +449,11 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QComboBox" name="refinementCombo">
+                <property name="font">
+                 <font>
+                  <pointsize>10</pointsize>
+                 </font>
+                </property>
                 <property name="focusPolicy">
                  <enum>Qt::ClickFocus</enum>
                 </property>
@@ -610,7 +620,7 @@ p, li { white-space: pre-wrap; }
               <property name="font">
                <font>
                 <family>MS Shell Dlg 2</family>
-                <pointsize>8</pointsize>
+                <pointsize>10</pointsize>
                </font>
               </property>
               <property name="focusPolicy">
@@ -3584,14 +3594,14 @@ change the selection in the isoline</string>
    <header>../../guis/instancetable.h</header>
   </customwidget>
   <customwidget>
-   <class>IsolineFrame</class>
-   <extends>QWidget</extends>
-   <header>../isolineframe.h</header>
-  </customwidget>
-  <customwidget>
    <class>QtThumbWheel</class>
    <extends>QWidget</extends>
    <header>../../guis/qtthumbwheel.h</header>
+  </customwidget>
+  <customwidget>
+   <class>IsolineFrame</class>
+   <extends>QWidget</extends>
+   <header>../isolineframe.h</header>
   </customwidget>
  </customwidgets>
  <includes>

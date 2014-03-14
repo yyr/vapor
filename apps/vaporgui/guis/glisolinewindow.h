@@ -31,7 +31,7 @@
 #endif
 
 #include <qgl.h>
-//Added by qt3to4:
+
 #include <QPaintEvent>
 #include "glwindow.h"
 #define CURSOR_COLOR 1.f,1.f,1.f
@@ -49,14 +49,9 @@ public:
     GLIsolineWindow( QGLFormat& fmt , QWidget* parent, const char* name, IsolineFrame*  );
     ~GLIsolineWindow();
 	
-	void setTextureSize(float horiz, float vert);
+	void setImageSize(float horiz, float vert);
 	void mapPixelToIsolineCoords(int ix, int iy, float* x, float* y);
-	void setAnimatingTexture(bool val){animatingTexture = val; animatingFrameNum = 0;animationStarting=true;}
-	void advanceAnimatingFrame(){animatingFrameNum++;}
-	void setCaptureName(QString& name){captureName = name;}
-	void setCapturing(bool doCapture){capturing = doCapture;}
-	void setCaptureNum(int num) {captureNum = num;}
-
+	
 	bool isRendering() {return rendering;}
 
 
@@ -72,27 +67,19 @@ protected:
 	void paintEvent(QPaintEvent* event){
 		if (!GLWindow::isRendering()) QGLWidget::paintEvent(event);
 	}
+	void performRendering(int timestep, const std::map<pair<int,int>,vector<float*> >&  lineCache);
 	void mousePressEvent( QMouseEvent * );
 	void mouseReleaseEvent( QMouseEvent * );
     void mouseMoveEvent( QMouseEvent * );
 
-	bool getPixelData(int minx, int miny, int sizex, int sizey,unsigned char* pixData);
 	void doFrameCapture();
 
 	//Size of isoline in world coords.
 	//This rectange will do its best to fill the isoline space.
-	float horizTexSize, vertTexSize;
+	float horizImgSize, vertImgSize;
 	float rectLeft, rectTop;
 	IsolineFrame* isolineFrame;
-	bool animatingTexture;
-	int animatingFrameNum;
-	bool animationStarting;
-	int patternListNum;
-	int currentAnimationTimestep;
-	int captureNum;
-	QString captureName;
-	bool capturing;
-	GLuint _isolineTexid, _fbid, _fbTexid;
+
 	bool rendering;
 	
 private: 
