@@ -157,6 +157,9 @@ IsolineEventRouter::hookUpTab()
 	connect (maxIsoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (countIsoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (isolineWidthEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (panelLineWidthEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (textSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (panelTextSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	
 	connect (fidelityDefaultButton, SIGNAL(clicked()), this, SLOT(guiSetFidelityDefault()));
 
@@ -172,6 +175,9 @@ IsolineEventRouter::hookUpTab()
 	connect (maxIsoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (countIsoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (isolineWidthEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (panelLineWidthEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (textSizeEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (panelTextSizeEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	
 	connect (regionCenterButton, SIGNAL(clicked()), this, SLOT(isolineCenterRegion()));
 	connect (viewCenterButton, SIGNAL(clicked()), this, SLOT(isolineCenterView()));
@@ -194,6 +200,7 @@ IsolineEventRouter::hookUpTab()
 	connect (zThumbWheel, SIGNAL(wheelPressed()), this, SLOT(pressZWheel()));
 	
 	connect (attachSeedCheckbox,SIGNAL(toggled(bool)),this, SLOT(isolineAttachSeed(bool)));
+	connect (dimensionCombo,SIGNAL(activated(int)), this, SLOT(guiSetDimension(int)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
 	connect (lodCombo,SIGNAL(activated(int)), this, SLOT(guiSetCompRatio(int)));
 	connect (rotate90Combo,SIGNAL(activated(int)), this, SLOT(guiRotate90(int)));
@@ -216,7 +223,11 @@ IsolineEventRouter::hookUpTab()
 	connect (showHideLayoutButton, SIGNAL(pressed()), this, SLOT(showHideLayout()));
 	connect (showHideImageButton, SIGNAL(pressed()), this, SLOT(showHideImage()));
 	connect (showHideAppearanceButton, SIGNAL(pressed()), this, SLOT(showHideAppearance()));
-	connect (isolineColorButton, SIGNAL(clicked()), this, SLOT(setIsolineColor()));
+	connect (isolineColorButton, SIGNAL(clicked()), this, SLOT(guiSetIsolineColor()));
+	connect (textColorButton, SIGNAL(clicked()), this, SLOT(guiSetTextColor()));
+	connect (isolinePanelColorButton, SIGNAL(clicked()), this, SLOT(guiSetPanelIsolineColor()));
+	connect (isolinePanelBackgroundColorButton, SIGNAL(clicked()), this, SLOT(guiSetPanelBackgroundColor()));
+	connect (textPanelColorButton, SIGNAL(clicked()), this, SLOT(guiSetPanelTextColor()));
 }
 //Insert values from params into tab panel
 //
@@ -229,7 +240,7 @@ void IsolineEventRouter::updateTab(){
 
 	DataStatus* ds = DataStatus::getInstance();
 
-	if (ds->getDataMgr() && ds->dataIsPresent3D() ) instanceTable->setEnabled(true);
+	if (ds->getDataMgr() && (ds->dataIsPresent2D() ||ds->dataIsPresent3D())) instanceTable->setEnabled(true);
 	else return;
 	instanceTable->rebuild(this);
 	
@@ -273,6 +284,8 @@ void IsolineEventRouter::updateTab(){
 
 	guiSetTextChanged(false);
 	
+	//Setup render window size:
+	resetImageSize(isolineParams);
 	//setup the size sliders 
 	adjustBoxSize(isolineParams);
 	if (!DataStatus::getInstance()->getDataMgr()) {
@@ -337,6 +350,30 @@ void IsolineEventRouter::updateTab(){
 	countIsoEdit->setText(QString::number(ivalues.size()));
 
 	isolineWidthEdit->setText(QString::number(isolineParams->GetLineThickness()));
+	panelLineWidthEdit->setText(QString::number(isolineParams->GetPanelLineThickness()));
+	textSizeEdit->setText(QString::number(isolineParams->GetTextSize()));
+	panelTextSizeEdit->setText(QString::number(isolineParams->GetPanelTextSize()));
+	//set color buttons
+	QPalette pal;
+	QColor clr = QColor((int)(255*isolineParams->GetIsolineColor()[0]),(int)(255*isolineParams->GetIsolineColor()[1]),(int)(255*isolineParams->GetIsolineColor()[2]));
+	pal.setColor(QPalette::Base, clr);
+	isolineColorEdit->setPalette(pal);
+	const vector<double>&pColor = isolineParams->GetPanelLineColor();
+	clr = QColor((int)(255*pColor[0]),(int)(255*pColor[1]),(int)(255*pColor[2]));
+	pal.setColor(QPalette::Base, clr);
+	isolinePanelColorEdit->setPalette(pal);
+	const vector<double>&bColor = isolineParams->GetPanelBackgroundColor();
+	clr = QColor((int)(255*bColor[0]),(int)(255*bColor[1]),(int)(255*bColor[2]));
+	pal.setColor(QPalette::Base, clr);
+	isolinePanelBackgroundColorEdit->setPalette(pal);
+	const vector<double>&tColor = isolineParams->GetTextColor();
+	clr = QColor((int)(255*tColor[0]),(int)(255*tColor[1]),(int)(255*tColor[2]));
+	pal.setColor(QPalette::Base, clr);
+	textColorEdit->setPalette(pal);
+	const vector<double>&ptColor = isolineParams->GetPanelTextColor();
+	clr = QColor((int)(255*ptColor[0]),(int)(255*ptColor[1]),(int)(255*ptColor[2]));
+	pal.setColor(QPalette::Base, clr);
+	textPanelColorEdit->setPalette(pal);
 	//Provide latlon box extents if available:
 	if (DataStatus::getProjectionString().size() == 0){
 		minMaxLonLatFrame->hide();
@@ -402,7 +439,10 @@ void IsolineEventRouter::updateTab(){
 	//Turn off combo message-listening
 	ignoreComboChanges = true;
 	variableCombo->setCurrentIndex(sesVarNum);
+	int dim = isolineParams->VariablesAre3D() ? 3 : 2;
+	dimensionCombo->setCurrentIndex(dim-2);
 	ignoreComboChanges = false;
+	
 
 
 	isolineImageFrame->setParams(isolineParams);
@@ -477,6 +517,15 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	double thickness = isolineWidthEdit->text().toDouble();
 	if (thickness <= 0. || thickness > 100.) thickness = 1.0;
 	isolineParams->SetLineThickness(thickness);
+	thickness = panelLineWidthEdit->text().toDouble();
+	if (thickness <= 0. || thickness > 100.) thickness = 1.0;
+	isolineParams->SetPanelLineThickness(thickness);
+	double textsize = textSizeEdit->text().toDouble();
+	if (textsize <= 0. || textsize > 100.) textsize = 10.0;
+	isolineParams->SetTextSize(textsize);
+	textsize = panelTextSizeEdit->text().toDouble();
+	if (textsize <= 0. || textsize > 100.) textsize = 10.0;
+	isolineParams->SetPanelTextSize(textsize);
 
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 
@@ -1029,6 +1078,7 @@ reinitTab(bool doOverride){
 	//Set the names in the variable listbox
 	ignoreComboChanges = true;
 	variableCombo->clear();
+
 	for (int i = 0; i< DataStatus::getInstance()->getNumActiveVariables3D(); i++){
 		const std::string& s = DataStatus::getInstance()->getActiveVarName3D(i);
 		const QString& text = QString(s.c_str());
@@ -1067,8 +1117,25 @@ reinitTab(bool doOverride){
 		numHistograms = 0;
 	}
 	
-	
 	IsolineParams* dParams = (IsolineParams*)VizWinMgr::getActiveParams(IsolineParams::_isolineParamsTag);
+	//Set the names in the variable listbox
+	ignoreComboChanges = true;
+	variableCombo->clear();
+	if (dParams->VariablesAre3D()){
+		for (int i = 0; i< DataStatus::getInstance()->getNumActiveVariables3D(); i++){
+			const std::string& s = DataStatus::getInstance()->getActiveVarName3D(i);
+			const QString& text = QString(s.c_str());
+		
+			variableCombo->insertItem(i,text);
+		}
+	} else {
+		for (int i = 0; i< DataStatus::getInstance()->getNumActiveVariables2D(); i++){
+			const std::string& s = DataStatus::getInstance()->getActiveVarName2D(i);
+			const QString& text = QString(s.c_str());
+			variableCombo->insertItem(i,text);
+		}
+	}
+	ignoreComboChanges = false;
 	setupFidelity(3, fidelityLayout,fidelityBox, dParams, doOverride);
 	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 	updateTab();
@@ -1167,12 +1234,12 @@ guiSetEnabled(bool value, int instance, bool undoredo){
 //Make the probe center at selectedPoint.  Shrink size if necessary.
 //Reset sliders and text as appropriate.  Equivalent to typing in the values
 void IsolineEventRouter::guiCenterProbe(){
-	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Center Probe at Selected Point");
-	const float* selectedPoint = pParams->getSelectedPointLocal();
+	//confirmText(false);
+	//ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	//PanelCommand* cmd = PanelCommand::captureStart(pParams, "Center Probe at Selected Point");
+	/*const float* selectedPoint = pParams->getSelectedPointLocal();
 	float isolineMin[3],isolineMax[3];
-	/*pParams->getLocalBox(isolineMin,isolineMax,-1);
+	pParams->getLocalBox(isolineMin,isolineMax,-1);
 	for (int i = 0; i<3; i++)
 		textToSlider(pParams,i,selectedPoint[i], isolineMax[i]-isolineMin[i]);
 	PanelCommand::captureEnd(cmd, pParams);
@@ -2246,21 +2313,16 @@ void IsolineEventRouter::resetImageSize(IsolineParams* iParams){
 	isolineImageFrame->setImageSize(voxDims[0],voxDims[1]);
 }
 /*
- * Respond to user clicking the color button
+ * Respond to user clicking a color button
  */
 void IsolineEventRouter::
-setIsolineColor(){
+guiSetIsolineColor(){
 	QPalette pal(isolineColorEdit->palette());
 	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Base), this);
 	if (!newColor.isValid()) return;
 	pal.setColor(QPalette::Base, newColor);
 	isolineColorEdit->setPalette(pal);
 	//Set parameter value of the appropriate parameter set:
-	guiSetIsolineColor(newColor);
-}
-
-void IsolineEventRouter::
-guiSetIsolineColor(QColor& newColor){
 	confirmText(false);
 	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getActiveParams(IsolineParams::_isolineParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "set isoline color");
@@ -2268,9 +2330,111 @@ guiSetIsolineColor(QColor& newColor){
 	clr[0]=(newColor.red()/256.);
 	clr[1]=(newColor.green()/256.);
 	clr[2]=(newColor.blue()/256.);
-	iParams->SetConstantColor(clr);
+	iParams->SetIsolineColor(clr);
 	PanelCommand::captureEnd(cmd, iParams);
-	VizWinMgr::getInstance()->forceRender(iParams);	
+}
+
+
+void IsolineEventRouter::guiSetTextColor(){
+	QPalette pal(isolineColorEdit->palette());
+	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Base), this);
+	if (!newColor.isValid()) return;
+	pal.setColor(QPalette::Base, newColor);
+	textColorEdit->setPalette(pal);
+	//Set parameter value of the appropriate parameter set:
+	confirmText(false);
+	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getActiveParams(IsolineParams::_isolineParamsTag);
+	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "set text color");
+	float clr[3];
+	clr[0]=(newColor.red()/256.);
+	clr[1]=(newColor.green()/256.);
+	clr[2]=(newColor.blue()/256.);
+	iParams->SetTextColor(clr);
+	PanelCommand::captureEnd(cmd, iParams);
+}
+void IsolineEventRouter::guiSetPanelIsolineColor(){
+	QPalette pal(isolineColorEdit->palette());
+	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Base), this);
+	if (!newColor.isValid()) return;
+	pal.setColor(QPalette::Base, newColor);
+	isolinePanelColorEdit->setPalette(pal);
+	//Set parameter value of the appropriate parameter set:
+	confirmText(false);
+	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getActiveParams(IsolineParams::_isolineParamsTag);
+	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "set isoline color in panel");
+	float clr[3];
+	clr[0]=(newColor.red()/256.);
+	clr[1]=(newColor.green()/256.);
+	clr[2]=(newColor.blue()/256.);
+	iParams->SetPanelLineColor(clr);
+	PanelCommand::captureEnd(cmd, iParams);
+	updateTab();
+}
+void IsolineEventRouter::guiSetPanelBackgroundColor(){
+	QPalette pal(isolineColorEdit->palette());
+	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Base), this);
+	if (!newColor.isValid()) return;
+	pal.setColor(QPalette::Base, newColor);
+	isolinePanelBackgroundColorEdit->setPalette(pal);
+	//Set parameter value of the appropriate parameter set:
+	confirmText(false);
+	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getActiveParams(IsolineParams::_isolineParamsTag);
+	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "set panel background color");
+	float clr[3];
+	clr[0]=(newColor.red()/256.);
+	clr[1]=(newColor.green()/256.);
+	clr[2]=(newColor.blue()/256.);
+	iParams->SetPanelBackgroundColor(clr);
+	PanelCommand::captureEnd(cmd, iParams);
+	updateTab();
+}
+void IsolineEventRouter::guiSetPanelTextColor(){
+	QPalette pal(isolineColorEdit->palette());
+	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Base), this);
+	if (!newColor.isValid()) return;
+	pal.setColor(QPalette::Base, newColor);
+	textPanelColorEdit->setPalette(pal);
+	//Set parameter value of the appropriate parameter set:
+	confirmText(false);
+	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getActiveParams(IsolineParams::_isolineParamsTag);
+	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "set panel text color");
+	float clr[3];
+	clr[0]=(newColor.red()/256.);
+	clr[1]=(newColor.green()/256.);
+	clr[2]=(newColor.blue()/256.);
+	iParams->SetPanelTextColor(clr);
+	PanelCommand::captureEnd(cmd, iParams);
+	updateTab();
+}
+void IsolineEventRouter::guiSetDimension(int dim){
+	
+	confirmText(false);
+	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getActiveParams(IsolineParams::_isolineParamsTag);
+	int curdim = iParams->VariablesAre3D() ? 1 : 0 ;
+	if (curdim == dim) return;
+	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "set isoline variable dimension");
+	
+	//the combo is either 0 or 1 for dimension 2 or 3.
+	iParams->SetVariables3D(dim == 1);
+	//Put the appropriate variable names into the combo
+	//Set the names in the variable listbox
+	ignoreComboChanges = true;
+	variableCombo->clear();
+	if (dim == 1){ //dim = 1 for 3D vars
+		for (int i = 0; i< DataStatus::getInstance()->getNumActiveVariables3D(); i++){
+			const std::string& s = DataStatus::getInstance()->getActiveVarName3D(i);
+			const QString& text = QString(s.c_str());
+			variableCombo->insertItem(i,text);
+		}
+	} else {
+		for (int i = 0; i< DataStatus::getInstance()->getNumActiveVariables2D(); i++){
+			const std::string& s = DataStatus::getInstance()->getActiveVarName2D(i);
+			const QString& text = QString(s.c_str());
+			variableCombo->insertItem(i,text);
+		}
+	}
+	ignoreComboChanges = false;
+	PanelCommand::captureEnd(cmd, iParams);
 }
 void IsolineEventRouter::invalidateRenderer(IsolineParams* iParams)
 {

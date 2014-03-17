@@ -34,8 +34,8 @@
 
 #include <QPaintEvent>
 #include "glwindow.h"
-#define CURSOR_COLOR 1.f,1.f,1.f
-#define CURSOR_SIZE 0.05f
+#define ISOL_CURSOR_COLOR 0.f,0.f,0.f
+#define ISOL_CURSOR_SIZE 0.05f
 class IsolineFrame;
 
 

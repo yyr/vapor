@@ -93,26 +93,12 @@ void IsolineRenderer::performRendering(int timestep){
 	myGLWindow->TransformToUnitBox();
 	IsolineParams* iParams = (IsolineParams*)getRenderParams();
 	//Set up lighting and color
-	const vector<double>& dcolors = iParams->GetConstantColor();
+	const vector<double>& dcolors = iParams->GetIsolineColor();
 	float fcolors[3];
 	for (int i = 0; i<3; i++) fcolors[i] = (float)dcolors[i];
-	ViewpointParams* vpParams =  myGLWindow->getActiveViewpointParams();
-	int nLights = vpParams->getNumLights();
-	if (nLights == 0) {
-		glDisable(GL_LIGHTING);
-	}
-	else {
-		glShadeModel(GL_SMOOTH);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, fcolors);
-		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, vpParams->getExponent());
-		//All the geometry will get a white specular color:
-		float specColor[4];
-		specColor[0]=specColor[1]=specColor[2]=0.8f;
-		specColor[3] = 1.f;
-		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specColor);
-		glEnable(GL_LIGHTING);
-		glEnable(GL_COLOR_MATERIAL);
-	}
+	
+	glDisable(GL_LIGHTING);
+	
 	glColor3fv(fcolors);
 	glLineWidth(iParams->GetLineThickness());
 	//Need to convert the iso-box coordinates to user coordinates, then to unit box coords.

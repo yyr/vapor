@@ -19,11 +19,19 @@ public:
 	virtual void restart();
 	
 	virtual Box* GetBox() {
-		ParamNode* pNode = GetRootNode()->GetNode(Box::_boxTag);
-		if (pNode) return (Box*)pNode->GetParamsBase();
-		Box* box = new Box();
-		GetRootNode()->AddNode(Box::_boxTag, box->GetRootNode());
-		return box;
+		if (VariablesAre3D()){
+			ParamNode* pNode = GetRootNode()->GetNode(IsolineParams::_3DBoxTag);
+			if (pNode) return (Box*)pNode->GetParamsBase();
+			Box* box = new Box();
+			GetRootNode()->AddNode(IsolineParams::_3DBoxTag, box->GetRootNode());
+			return box;
+		} else {
+			ParamNode* pNode = GetRootNode()->GetNode(IsolineParams::_2DBoxTag);
+			if (pNode) return (Box*)pNode->GetParamsBase();
+			Box* box = new Box();
+			GetRootNode()->AddNode(IsolineParams::_2DBoxTag, box->GetRootNode());
+			return box;
+		}
 	}
 
 	
@@ -75,9 +83,38 @@ public:
 	void SetLineThickness(double val){
 		GetRootNode()->SetElementDouble(_lineThicknessTag, val);
 	}
+	float GetPanelLineThickness(){
+		const vector<double> one(1,1.);
+		return ((float)GetRootNode()->GetElementDouble(_panelLineThicknessTag,one)[0]);
+	}
+	void SetPanelLineThickness(double val){
+		GetRootNode()->SetElementDouble(_panelLineThicknessTag, val);
+	}
+	float GetTextSize(){
+		const vector<double> one(1,1.);
+		return ((float)GetRootNode()->GetElementDouble(_textSizeTag,one)[0]);
+	}
+	void SetTextSize(double val){
+		GetRootNode()->SetElementDouble(_textSizeTag, val);
+	}
+	float GetPanelTextSize(){
+		const vector<double> one(1,1.);
+		return ((float)GetRootNode()->GetElementDouble(_panelTextSizeTag,one)[0]);
+	}
+	void SetPanelTextSize(double val){
+		GetRootNode()->SetElementDouble(_panelTextSizeTag, val);
+	}
+	void SetIsolineColor(const float rgb[3]);
+	void SetTextColor(const float rgb[3]);
+	void SetPanelLineColor(const float rgb[3]);
+	void SetPanelBackgroundColor(const float rgb[3]);
+	void SetPanelTextColor(const float rgb[3]);
 
-	void SetConstantColor(const float rgb[3]);
-	const vector<double>& GetConstantColor();
+	const vector<double>& GetIsolineColor();
+	const vector<double>& GetTextColor();
+	const vector<double>& GetPanelLineColor();
+	const vector<double>& GetPanelTextColor();
+	const vector<double>& GetPanelBackgroundColor();
 	
 	void SetVariableName(const string& varName);
 	const string& GetVariableName();
@@ -136,12 +173,21 @@ public:
 
 protected:
 	static const string _shortName;
-	static const string _constantColorTag;
+	static const string _isolineColorTag;
+	static const string _textColorTag;
+	static const string _panelLineColorTag;
+	static const string _panelBackgroundColorTag;
+	static const string _panelTextColorTag;
 	static const string _isolineExtentsTag;
 	static const string _lineThicknessTag;
+	static const string _panelLineThicknessTag;
+	static const string _textSizeTag;
+	static const string _panelTextSizeTag;
 	static const string _variableDimensionTag;
 	static const string _cursorCoordsTag;
 	static const string _isovaluesTag;
+	static const string _2DBoxTag;
+	static const string _3DBoxTag;
 
 	float selectPoint[3];
 	

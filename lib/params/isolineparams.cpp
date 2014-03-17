@@ -9,12 +9,22 @@ using namespace VetsUtil;
 using namespace VAPoR;
 const string IsolineParams::_shortName = "Isolines";
 const string IsolineParams::_isolineParamsTag = "IsolineParams";
-const string IsolineParams::_constantColorTag = "ConstantColor";
+
+const string IsolineParams::_isolineColorTag= "IsolineColor";
+const string IsolineParams::_textColorTag= "TextColor";
+const string IsolineParams::_panelLineColorTag= "PanelLineColor";
+const string IsolineParams::_panelBackgroundColorTag= "PanelBackgroundColor";
+const string IsolineParams::_panelTextColorTag= "PanelTextColor";
 const string IsolineParams::_isolineExtentsTag = "IsolineExtents";
 const string IsolineParams::_lineThicknessTag = "LineThickness";
+const string IsolineParams::_panelLineThicknessTag = "PanelLineThickness";
+const string IsolineParams::_textSizeTag = "TextSize";
+const string IsolineParams::_panelTextSizeTag = "PanelTextSize";
 const string IsolineParams::_variableDimensionTag = "VariableDimension";
 const string IsolineParams::_cursorCoordsTag = "CursorCoords";
 const string IsolineParams::_isovaluesTag = "Isovalues";
+const string IsolineParams::_2DBoxTag = "2DBox";
+const string IsolineParams::_3DBoxTag = "3DBox";
 
 namespace {
 	const string IsolineName = "IsolineParams";
@@ -137,9 +147,14 @@ reinit(bool doOverride){
 	}
 	SetLocalExtents(newExtents);
 
-	if (doOverride) {
-		const float col[3] = {1.f, 0.f, 0.f};
-		SetConstantColor(col);
+	if (doOverride) { //set default colors
+		const float white_color[3] = {1.0, 1.0, 1.0};
+		const float black_color[3] = {.0, .0, .0};
+		SetPanelLineColor(black_color);
+		SetPanelTextColor(black_color);
+		SetTextColor(white_color);
+		SetPanelBackgroundColor(white_color);
+		SetIsolineColor(white_color);
 	}
 	//Set up the isovalues
 	if (doOverride || getNumIsovalues()<1){
@@ -186,8 +201,13 @@ void IsolineParams::restart() {
 
 	
 	setEnabled(false);
-	const float default_color[3] = {1.0, 0.0, 0.0};
-	SetConstantColor(default_color);
+	const float white_color[3] = {1.0, 1.0, 1.0};
+	const float black_color[3] = {.0, .0, .0};
+	SetPanelLineColor(black_color);
+	SetPanelTextColor(black_color);
+	SetTextColor(white_color);
+	SetPanelBackgroundColor(white_color);
+	SetIsolineColor(white_color);
 
 	SetLineThickness(1.0);
 	
@@ -225,17 +245,66 @@ float IsolineParams::getCameraDistance(ViewpointParams* vpp, RegionParams* , int
 }
 
 
-void IsolineParams::SetConstantColor(const float rgb[3]) {
+void IsolineParams::SetIsolineColor(const float rgb[3]) {
 	vector <double> valvec(3,0);
 	for (int i=0; i<3; i++) {
 		valvec[i] = rgb[i];
 	}
-	GetRootNode()->SetElementDouble(_constantColorTag, valvec);
+	GetRootNode()->SetElementDouble(_isolineColorTag, valvec);
+}
+void SetIsolineColor(const float rgb[3]);
+void IsolineParams::SetTextColor(const float rgb[3]){
+	vector <double> valvec(3,0);
+	for (int i=0; i<3; i++) {
+		valvec[i] = rgb[i];
+	}
+	GetRootNode()->SetElementDouble(_textColorTag, valvec);
+}
+void IsolineParams::SetPanelLineColor(const float rgb[3]){
+	vector <double> valvec(3,0);
+	for (int i=0; i<3; i++) {
+		valvec[i] = rgb[i];
+	}
+	GetRootNode()->SetElementDouble(_panelLineColorTag, valvec);
+}
+void IsolineParams::SetPanelBackgroundColor(const float rgb[3]){
+	vector <double> valvec(3,0);
+	for (int i=0; i<3; i++) {
+		valvec[i] = rgb[i];
+	}
+	GetRootNode()->SetElementDouble(_panelBackgroundColorTag, valvec);
+}
+void IsolineParams::SetPanelTextColor(const float rgb[3]){
+	vector <double> valvec(3,0);
+	for (int i=0; i<3; i++) {
+		valvec[i] = rgb[i];
+	}
+	GetRootNode()->SetElementDouble(_panelTextColorTag, valvec);
 }
 
-const vector<double>& IsolineParams::GetConstantColor() {
+const vector<double>& IsolineParams::GetIsolineColor() {
 	const vector<double> white (3,1.);
-	const vector<double>& valvec = GetRootNode()->GetElementDouble(_constantColorTag, white);
+	const vector<double>& valvec = GetRootNode()->GetElementDouble(_isolineColorTag, white);
+	return(valvec);
+}
+const vector<double>& IsolineParams::GetTextColor() {
+	const vector<double> white (3,1.);
+	const vector<double>& valvec = GetRootNode()->GetElementDouble(_textColorTag, white);
+	return(valvec);
+}
+const vector<double>& IsolineParams::GetPanelLineColor() {
+	const vector<double> white (3,1.);
+	const vector<double>& valvec = GetRootNode()->GetElementDouble(_panelLineColorTag, white);
+	return(valvec);
+}
+const vector<double>& IsolineParams::GetPanelBackgroundColor() {
+	const vector<double> white (3,1.);
+	const vector<double>& valvec = GetRootNode()->GetElementDouble(_panelBackgroundColorTag, white);
+	return(valvec);
+}
+const vector<double>& IsolineParams::GetPanelTextColor() {
+	const vector<double> white (3,1.);
+	const vector<double>& valvec = GetRootNode()->GetElementDouble(_panelTextColorTag, white);
 	return(valvec);
 }
 const string& IsolineParams::GetVariableName(){

@@ -135,11 +135,16 @@ void GLIsolineWindow::_resizeGL() {
 	glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
 
 	glMatrixMode(GL_MODELVIEW);
-	qglClearColor(palette().color(QPalette::Window));
 	
+	const QColor& wincolor = palette().color(QPalette::Window);
+	float wcolor[3];
+	wcolor[0] = (float)(wincolor.red())/255.;
+	wcolor[1] = (float)(wincolor.green())/255.;
+	wcolor[2] = (float)(wincolor.blue())/255.;
+	glClearColor(wcolor[0],wcolor[1],wcolor[2],1.f);
 
 	//Calculate the lower-left and upper right positions for the 
-	//texture to be mapped
+	//image to be mapped
 	float winAspect = (float)_winHeight/(float)_winWidth;
 	float imgAspect = vertImgSize/horizImgSize;
 	if (imgAspect > 1.f) imgAspect = 1.f;//Never taller than square
@@ -182,8 +187,7 @@ void GLIsolineWindow::paintGL()
 
 	printOpenGLErrorMsg("GLIsolineWindow");
 	_resizeGL();
-	 glClearColor(.5,.5,.5,0.); 
-	 glClear(GL_COLOR_BUFFER_BIT);
+	
 	//If there is a valid cache in the renderer, use it to draw in the tab.
 	IsolineParams* iParams = isolineFrame->getParams();
 	if (!iParams) {rendering = false; return;}
@@ -191,9 +195,37 @@ void GLIsolineWindow::paintGL()
 	if (!iRender) {rendering = false; return;}
 	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentTimestep();
 	if (!iRender->cacheIsValid(timestep)) {rendering = false; return;}
-
+	
+	
+	glClear(GL_COLOR_BUFFER_BIT);
+	const vector<double>& dcolors = iParams->GetPanelBackgroundColor();
+	glColor3f((float)dcolors[0],(float)dcolors[1],(float)dcolors[2]); 
+	//Paint a rectangle behind the lines
+	glBegin(GL_QUADS);
+	glVertex2f(rectLeft,-rectTop);
+	glVertex2f(rectLeft, rectTop);
+	glVertex2f(-rectLeft,rectTop);
+	glVertex2f(-rectLeft, -rectTop);
+	glEnd();
 	const std::map<pair<int,int>,vector<float*> >&  lineCache = iRender->GetLineCache();
 	performRendering(timestep, lineCache);
+
+	//Now draw the crosshairs
+	if (iParams){
+		
+		const vector<double>& crosshair = iParams->GetCursorCoords();
+	
+		float crossX = -crosshair[0]*rectLeft;
+		float crossY = crosshair[1]*rectTop;
+		glColor3f(ISOL_CURSOR_COLOR);
+		glLineWidth(2.f);
+		glBegin(GL_LINES);
+		glVertex2f(crossX-ISOL_CURSOR_SIZE, crossY);
+		glVertex2f(crossX+ISOL_CURSOR_SIZE, crossY);
+		glVertex2f(crossX, crossY-ISOL_CURSOR_SIZE);
+		glVertex2f(crossX, crossY+ISOL_CURSOR_SIZE);
+		glEnd();
+	}
 	printOpenGLErrorMsg("GLIsolineWindow");
 	rendering = false;
 }
@@ -202,17 +234,17 @@ void GLIsolineWindow::performRendering(int timestep, const std::map<pair<int,int
 
 	IsolineParams* iParams = isolineFrame->getParams();
 	//Set up lighting and color
-	const vector<double>& dcolors = iParams->GetConstantColor();
+	const vector<double>& dcolors = iParams->GetPanelLineColor();
 	float fcolors[3];
 	for (int i = 0; i<3; i++) fcolors[i] = (float)dcolors[i];
 
-	
 	glColor3fv(fcolors);
-	glLineWidth(iParams->GetLineThickness());
+	glLineWidth(iParams->GetPanelLineThickness());
 	
 	float pointa[3],pointb[3]; //points in cache
 	pointa[2]=pointb[2] = 0.;
 
+	//points in cache go from -1 to 1 in both dimensions.  They need to be rescaled to go between rectLeft, -rectTop to -rectLeft,rectTop
 	glBegin(GL_LINES);
 	
 	for(int iso = 0; iso< iParams->getNumIsovalues(); iso++){
@@ -221,10 +253,10 @@ void GLIsolineWindow::performRendering(int timestep, const std::map<pair<int,int
 		int numlines = lineVec.size();
 		for (int linenum = 0; linenum < numlines; linenum++){
 			const float* points = lineVec[linenum];
-			pointa[0] = points[0];
-			pointa[1] = points[1];
-			pointb[0] = points[2];
-			pointb[1] = points[3];
+			pointa[0] = points[0]*rectLeft;
+			pointa[1] = points[1]*rectTop;
+			pointb[0] = points[2]*rectLeft;
+			pointb[1] = points[3]*rectTop;
 			glVertex3fv(pointa);
 			glVertex3fv(pointb);
 		}
