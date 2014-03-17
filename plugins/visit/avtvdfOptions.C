@@ -73,7 +73,7 @@ GetvdfReadOptions(void)
     rv->SetInt("Cache size [MB]", 1000);
 
 	// Resapmling factor for WRF (layered) data, which is passed to VDF Data Manager
-    rv->SetDouble("Layered data resampling factor", 4.0);
+//    rv->SetDouble("Layered data resampling factor", 4.0);
 
 	// Weather or not to report each VDC Block as it's own domain
     rv->SetBool("MultiDomain", false);
