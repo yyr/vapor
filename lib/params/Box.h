@@ -183,7 +183,6 @@ public:
 	static const string _anglesTag;
 	static const string _extentsTag;
 	static const string _timesTag;
-	int foo;
 #endif //DOXYGEN_SKIP_THIS	
 };
 };
