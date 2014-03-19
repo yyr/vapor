@@ -485,7 +485,7 @@ class DummyParamsBase : public ParamsBase {
 	public:
 		DummyParamsBase(XmlNode *parent, const string &name) :
 		  ParamsBase(parent, name) {}
-		ParamsBase* DummyParamsBase::deepCopy(ParamNode* nd = 0);
+		ParamsBase* deepCopy(ParamNode* nd = 0);
 	virtual ~DummyParamsBase(){}
 };
 #endif //DOXYGEN_SKIP_THIS
