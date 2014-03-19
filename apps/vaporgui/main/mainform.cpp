@@ -651,6 +651,7 @@ void MainForm::fileSaveAs()
 
 void MainForm::fileExit()
 {
+	delete ControlExecutive::getInstance();
 	close();
 }
 

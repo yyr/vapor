@@ -43,7 +43,9 @@ class PARAMS_API Box : public ParamsBase {
 public:
 	
 	Box();
+	virtual ~Box() {}
 	static ParamsBase* CreateDefaultInstance() {return new Box();}
+	virtual ParamsBase* Box::deepCopy(ParamNode* newRoot);
 	
 	//! Get the box user extents as a double array at a specified time step >= 0
 	//! \param[out] extents[6] double Returned extents
@@ -181,7 +183,7 @@ public:
 	static const string _anglesTag;
 	static const string _extentsTag;
 	static const string _timesTag;
-
+	int foo;
 #endif //DOXYGEN_SKIP_THIS	
 };
 };

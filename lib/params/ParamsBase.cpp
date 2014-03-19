@@ -58,7 +58,7 @@ ParamsBase::ParamsBase(
 
 
 ParamsBase::~ParamsBase() {
-	
+	//Do not delete root; the root deletes this
 	_rootParamNode = NULL;
 	_currentParamNode = NULL;
 }
@@ -417,12 +417,7 @@ const string& ParamsBase::GetTagFromType(ParamsBaseType t){
 	return getTagIter->second;
 }
 
-ParamsBase* ParamsBase::deepCopy(ParamNode* newRoot) {
-	ParamsBase* base = new ParamsBase(*this);
-	base->SetRootParamNode(newRoot);
-	if(newRoot) newRoot->SetParamsBase(base);
-	return base;
-}
+
 ParamsBase* ParamsBase::CreateDummyParamsBase(const std::string tag){
 	return ((ParamsBase*)(new DummyParamsBase(0,tag)));
 }
@@ -442,4 +437,10 @@ ParamsBase* ParamsBase::CreateDefaultParamsBase(const string&tag){
 	}
 	ParamsBase *p = (createDefaultFcnMap[GetTypeFromTag(tag)])();
 	return p;
+}
+ParamsBase* DummyParamsBase::deepCopy(ParamNode* newRoot) {
+	ParamsBase* base = new DummyParamsBase(*this);
+	base->SetRootParamNode(newRoot);
+	if(newRoot) newRoot->SetParamsBase(base);
+	return base;
 }

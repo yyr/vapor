@@ -155,8 +155,10 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! It is important that implementers of Params classes write this method so that
 //! it checks the values of all parameters in the Params instance, ensuring that they
 //! are consistent with the current DataMgr
-//! When the "default" argument is true, this method sets all parameters to the default values
+//! When the "default" argument is true, this method must all parameters to their default values
 //! associated with the current Data Manager.
+//! When the "default" argument is false, the method should change only those parameters that are
+//! inconsistent with the current Data Manager, setting them to values that are consistent.
 //! \param[in] bool default 
 //! \sa DataMgr
 	virtual void Validate(bool setdefault)=0;
@@ -577,7 +579,10 @@ public:
 	//! \param[in] val  compression level, 0 is most compressed
 	//!
 	virtual int SetCompressionLevel(int val);
-	
+	//! Pure virtual method indicates whether or not the object will render as opaque.
+	//! Important to support multiple transparent (nonoverlapping) objects in the scene
+	//! \retval bool true if all geometry is opaque.
+	virtual bool IsOpaque() = 0;
 
 	//! Bypass flag is used to indicate a renderer should
 	//! not render until its state is changed.

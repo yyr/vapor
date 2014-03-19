@@ -18,6 +18,7 @@
 //
 #include "command.h"
 #include "params.h"
+#include "arrowparams.h"
 
 using namespace VAPoR;
 
@@ -42,6 +43,13 @@ Params* Command::unDo(){
 	Command* cmd = CurrentUndoCommand();
 	if (!cmd) return 0;
 	Params* p = Params::GetParamsInstance(cmd->tag, cmd->winnum, cmd->instance);
+	ArrowParams* ap = dynamic_cast<ArrowParams*>(p);
+	ParamNode* r = p->GetRootNode();
+	if (r){
+		//detach from its parent Params...
+		r->SetParamsBase(0);
+		delete r;
+	}
 	p->SetRootParamNode(cmd->prevRoot->deepCopy());
 	return p;
 }
@@ -50,6 +58,12 @@ Params* Command::reDo(){
 	Command* cmd = CurrentRedoCommand();
 	if (!cmd) return 0;
 	Params* p = Params::GetParamsInstance(cmd->tag, cmd->winnum, cmd->instance);
+	ParamNode* r = p->GetRootNode();
+	if (r){
+		//detach from its parent Params...
+		r->SetParamsBase(0);
+		delete r;
+	}
 	p->SetRootParamNode(cmd->nextRoot->deepCopy());
 	return p;
 	

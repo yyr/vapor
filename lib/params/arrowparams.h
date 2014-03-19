@@ -28,9 +28,8 @@ public:
 	virtual Box* GetBox() {
 		ParamNode* pNode = GetRootNode()->GetNode(Box::_boxTag);
 		if (pNode) return (Box*)pNode->GetParamsBase();
-		Box* box = new Box();
-		GetRootNode()->AddNode(Box::_boxTag, box->GetRootNode());
-		return box;
+		else assert(0);
+		return 0;
 	}
 
 	//! Validate current settings
@@ -52,7 +51,7 @@ public:
 	//Get/Set methods based on XML representation
 	//! Determine the local extents of the rake
 	//! \retval vector<double>& local extents
-	const vector<double>& GetRakeLocalExtents(){
+	const vector<double> GetRakeLocalExtents(){
 		return (GetBox()->GetLocalExtents());
 	}
 	//! Determine the local extents of the rake
@@ -67,7 +66,7 @@ public:
 		
 	//! Determine the size of the rake grid
 	//! \retval vector<long>& grid
-	const vector<long>& GetRakeGrid(){
+	const vector<long> GetRakeGrid(){
 		const vector<long> defaultGrid(3,1);
 		return (GetValueLongVec(_rakeGridTag,defaultGrid));
 	}
@@ -121,7 +120,7 @@ public:
 
 	//! Determine the current color (in r,g,b)
 	//! \retval const double rgb[3];
-	const vector<double>& GetConstantColor();
+	const vector<double> GetConstantColor();
 
 	//! Set a field variable name, and also recalculate default vector scale
 	//! \param[in] int coordinate
@@ -174,7 +173,7 @@ public:
 	//! Determine the strides used in horizontal grid-alignment
 	//! Stride is the number of data grid cells between rake grid.
 	//! \retval vector<long> 2-vector of strides
-	const vector<long>& GetGridAlignStrides(){
+	const vector<long> GetGridAlignStrides(){
 		const vector<long> defaultStrides(3,10);
 		return GetValueLongVec(_alignGridStridesTag,defaultStrides);
 	}
@@ -183,14 +182,25 @@ public:
 	//! \param[in] vector<long> vector of 2 strides.
 	//! \retval int 0 if successful
 	int SetGridAlignStrides(const vector<long>& strides);
-#ifndef DOXYGEN_SKIP_THIS
-	//Utility function to find rake when it is aligned to data:
-	void calcDataAlignment(double rakeExts[6], int rakeGrid[3], size_t timestep);
-	//Utility function to recalculate vector scale factor
+	//! Determine the rake extents when it is aligned to data.
+	//! This is needed during rendering.
+	//! \param[out] double rakeExtents[6] Resulting rake extents
+	//! \param[out] int rakeGrid[3] Size of the resulting rake grid
+	//! \param[in] size_t timestep 
+	//!
+	void calcDataAlignment(double rakeExts[6],int rakeGrid[3], size_t timestep);
+	//! Utility function to calculate default vector scale factor,
+	//! based on currently selected vector fields.
+	//! Used in gui setup 
+	//! \retval double scale factor
 	double calcDefaultScale();
-	
+#ifndef DOXYGEN_SKIP_THIS
 	static const string _arrowParamsTag;
 
+protected:
+	
+	
+	
 protected:
 static const string _shortName;
 static const string _constantColorTag;

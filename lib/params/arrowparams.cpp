@@ -285,7 +285,7 @@ int ArrowParams::SetConstantColor(const double rgb[3]) {
 	return SetValueDouble(_constantColorTag,"Change barb color",valvec);
 }
 
-const vector<double>& ArrowParams::GetConstantColor() {
+const vector<double> ArrowParams::GetConstantColor() {
 	const vector<double> white (3,1.);
 	const vector <double>& valvec = GetValueDoubleVec(_constantColorTag, white);
 	

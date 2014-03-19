@@ -27,6 +27,7 @@ public:
 	//!
 	//! \note what, if any, arguments are needed?
 	ControlExecutive();
+	~ControlExecutive();
 
 	//! Obtain the singleton ControlExecutive object
 	static ControlExecutive* getInstance(){
@@ -305,27 +306,6 @@ public:
 	//
 	int DrawText(int viz, int x, int y, string font, int size, string text);
 
-	//! Make a new Params object
-	//!
-	//! \note Not yet implemented
-	//!
-	//! Makes a new Params class object that the UI can use to manage
-	//! UI-specific state information (e.g. the currently active tab). 
-	//! Any parameter information stored in the created Params object
-	//! will be saved or restored when SaveSession() and RestoreSession()
-	//! are respectively called. The Undo and Redo methods will also 
-	//! act upon the created Params object
-	//!
-	//! \param[in] name A unique string name for the new params object
-	//! \param[in] viz A visualizer id, when the params is specific to a visualizer.
-	//!
-	//! \return ptr A pointer to a new Params object is returned on 
-	//! success.  A NULL pointer is returned on failure. 
-	//!
-	//! \sa Undo(), Redo(), RestoreSession(), SaveSession()
-	//
-	Params *NewParams(string name, int viz);
-
 	//! Undo the last session state change
 	//! Restores the state of the session to what it was prior to the
 	//! last change made via a Params object, or prior to the last call
@@ -415,6 +395,8 @@ public:
 		void createAllDefaultParams();
 		//! when loading new data, reinitialize all the Params instances
 		void reinitializeParams(bool doOverride);
+		//! delete all the Params instances and clean out the Undo/Redo queue e.g. before a session change
+		void destroyParams();
 		vector<Visualizer*> visualizers;
 		DataMgr* dataMgr;
 		static ControlExecutive* controlExecutive;

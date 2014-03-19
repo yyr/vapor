@@ -32,7 +32,7 @@ public:
 		setCameraPosLocal(campos,0);
 		setRotationCenterLocal(rotctr,0);
 	}
-	
+	virtual ParamsBase* Viewpoint::deepCopy(ParamNode* newRoot);
 	virtual ~Viewpoint(){}
 	static ParamsBase* CreateDefaultInstance() {return new Viewpoint();}
 	//! Identify current camera position in local coordinates

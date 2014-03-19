@@ -51,6 +51,13 @@ Box::Box(): ParamsBase(0, Box::_boxTag) {
 	GetRootNode()->SetElementDouble(_anglesTag,angles);
 	GetRootNode()->Attrs()[_typeAttr] = ParamNode::_paramsBaseAttr;
 }
+
+ParamsBase* Box::deepCopy(ParamNode* newRoot) {
+	Box* base = new Box(*this);
+	base->SetRootParamNode(newRoot);
+	if(newRoot) newRoot->SetParamsBase(base);
+	return base;
+}
 int Box::GetLocalExtents(double extents[6], int timestep){
 	const vector<double> defaultExtents(6,0.);
 	const vector<long> defaultTimes(1,0);

@@ -25,6 +25,7 @@
 #include <vapor/errorcodes.h>
 #include <vapor/ParamNode.h>
 #include <vapor/ParamsBase.h>
+#include "Box.h"
 
 using namespace VAPoR;
 using namespace VetsUtil;
@@ -102,7 +103,7 @@ ParamNode* ParamNode::NodeCopy()
 	return newNode;
 }
 ParamNode::~ParamNode() {
-	if (_paramsBase) 
+	if (_paramsBase)
 		delete _paramsBase;
 }
 

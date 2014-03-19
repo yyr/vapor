@@ -83,14 +83,15 @@ virtual ~ParamsBase();
 
  //! Make a copy of a ParamBase that optionally uses specified 
  //! clone of the ParamNode as its root node.  If the root
- //! is null, the copy ignores any ParamNodes.  The default implementation
- //! is sufficient for ParamsBase classes that are built from
- //! a ParamNode hierarchy.
+ //! is null, the copy ignores any ParamNodes.  
+ //! Derived classes must clone themselves, and then reassign
+ //! newRoot to the clone root node, and also call SetParamsBase()
+ //! on the new root to set its ParamsBase node to this. 
  //!
  //! \param[in] newRoot Root of cloned ParamsBase instance
  //! \retval instance Pointer to cloned instance
  //
- virtual ParamsBase* deepCopy(ParamNode* newRoot = 0);
+ virtual ParamsBase* deepCopy(ParamNode* newRoot = 0) = 0;
  
  //! Set the parent node of the XmlNode tree.
  //!
@@ -484,6 +485,7 @@ class DummyParamsBase : public ParamsBase {
 	public:
 		DummyParamsBase(XmlNode *parent, const string &name) :
 		  ParamsBase(parent, name) {}
+		ParamsBase* DummyParamsBase::deepCopy(ParamNode* nd = 0);
 	virtual ~DummyParamsBase(){}
 };
 #endif //DOXYGEN_SKIP_THIS

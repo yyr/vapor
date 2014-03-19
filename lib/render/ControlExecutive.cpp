@@ -22,6 +22,10 @@ ControlExecutive* ControlExecutive::controlExecutive = 0;
 ControlExecutive::ControlExecutive(){
 	createAllDefaultParams();
 }
+ControlExecutive::~ControlExecutive(){
+	destroyParams();
+	Command::resetCommandQueue();
+}
 
 	//! Create a new visualizer
 	//!
@@ -314,25 +318,6 @@ const DataMgr *ControlExecutive::LoadData(vector <string> files, bool dflt){
 	//
 int ControlExecutive::DrawText(int viz, int x, int y, string font, int size, string text){return 0;}
 
-	//! Make a new Params object
-	//!
-	//! Makes a new Params class object that the UI can use to manage
-	//! UI-specific state information (e.g. the currently active tab). 
-	//! Any parameter information stored in the created Params object
-	//! will be saved or restored when SaveSession() and RestoreSession()
-	//! are respectively called. The Undo and Redo methods will also 
-	//! act upon the created Params object
-	//!
-	//! \param[in] name A unique string name for the new params object
-	//! \param[in] viz A visualizer id, when the params is specific to a visualizer.
-	//!
-	//! \return ptr A pointer to a new Params object is returned on 
-	//! success.  A NULL pointer is returned on failure. 
-	//!
-	//! \sa Undo(), Redo(), RestoreSession(), SaveSession()
-	//
-Params * ControlExecutive::NewParams(string name, int viz){return 0;}
-
 	//! Identify the changes in the undo/Redo queue
 	//! Returns the text associated with a change in the undo/redo queue.
 	//! \param[in] int num indicates the position of the command relative to the current state of the queue
@@ -426,4 +411,16 @@ const Params* ControlExecutive::Redo(){
 
 bool ControlExecutive::CommandExists(int offset) {
 	return (Command::CurrentCommand(offset) != 0);
+}
+void ControlExecutive::destroyParams(){
+	for (int i = 0; i< GetNumVisualizers(); i++){
+		if (!GetVisualizer(i)) continue;
+		for (int pType = 1; pType <= Params::GetNumParamsClasses(); pType++){
+			for (int inst = 0; inst < Params::GetNumParamsInstances(pType, i); inst++){
+				Params* p = Params::GetParamsInstance(pType,i,inst);
+				delete p;
+			}
+		}
+		GetVisualizer(i)->removeAllRenderers();
+	}
 }
