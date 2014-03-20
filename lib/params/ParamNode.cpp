@@ -104,6 +104,8 @@ ParamNode* ParamNode::NodeCopy()
 }
 ParamNode::~ParamNode() {
 	if (_paramsBase){
+		//Prevent infinite loop, since the ParamsBase 
+		//destructor would delete its root node.
 		_paramsBase->SetRootParamNode(0);
 		delete _paramsBase;
 	}

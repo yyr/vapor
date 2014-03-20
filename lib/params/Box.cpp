@@ -46,10 +46,11 @@ Box::Box(): ParamsBase(0, Box::_boxTag) {
 	angles.push_back(0.);
 	angles.push_back(0.);
 	angles.push_back(0.);
-	GetRootNode()->SetElementDouble(_extentsTag,extents);
-	GetRootNode()->SetElementLong(_timesTag,times);
-	GetRootNode()->SetElementDouble(_anglesTag,angles);
-	GetRootNode()->Attrs()[_typeAttr] = ParamNode::_paramsBaseAttr;
+	//Provide initial values in XML node
+	SetValueDouble(_extentsTag,"",extents,0);
+	SetValueLong(_timesTag,"",times,0);
+	SetValueDouble(_anglesTag,"",angles,0);
+	
 }
 
 ParamsBase* Box::deepCopy(ParamNode* newRoot) {

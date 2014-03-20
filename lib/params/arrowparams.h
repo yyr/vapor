@@ -22,6 +22,9 @@ public:
 	}
 	const std::string& getShortName() {return _shortName;}
 	virtual ~ArrowParams();
+	//! Note that a box is created in the restart() method, and added as
+	//! a child node to the root ParamNode.  The Box instance will be 
+	//! deleted whenever the ArrowParams is deleted.
 	virtual void restart();
 	//! Method to retrieve the Box describing the rake extents
 	//! \retval Box*
