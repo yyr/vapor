@@ -45,7 +45,7 @@ public:
 	Box();
 	virtual ~Box() {}
 	static ParamsBase* CreateDefaultInstance() {return new Box();}
-	virtual ParamsBase* Box::deepCopy(ParamNode* newRoot);
+	virtual ParamsBase* deepCopy(ParamNode* newRoot);
 	
 	//! Get the box user extents as a double array at a specified time step >= 0
 	//! \param[out] extents[6] double Returned extents
