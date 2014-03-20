@@ -88,9 +88,7 @@ void IsolineRenderer::paintGL()
 	
 }
 void IsolineRenderer::performRendering(int timestep){
-//Perform setup of OpenGL transform matrix.  This transforms the full stretched domain into the unit box
-	//by scaling and translating.
-	myGLWindow->TransformToUnitBox();
+	
 	IsolineParams* iParams = (IsolineParams*)getRenderParams();
 	//Set up lighting and color
 	const vector<double>& dcolors = iParams->GetIsolineColor();
@@ -107,7 +105,7 @@ void IsolineRenderer::performRendering(int timestep){
 	float pointa[3],pointb[3]; //points in cache
 	float point1[3],point2[3]; //points in local box
 	pointa[2]=pointb[2] = 0.;
-
+	
 	glBegin(GL_LINES);
 	
 	for(int iso = 0; iso< iParams->getNumIsovalues(); iso++){

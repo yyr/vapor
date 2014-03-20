@@ -91,6 +91,7 @@
 #include <vapor/XmlNode.h>
 #include <vapor/ExpatParseMgr.h>
 #include <vapor/ParamNode.h>
+#include "images/isoline.xpm"
 #include "images/probe.xpm"
 #include "images/twoDData.xpm"
 #include "images/twoDImage.xpm"
@@ -2079,7 +2080,7 @@ void VizWinMgr::RegisterMouseModes(){
 	RegisterMouseMode(Params::_probeParamsTag,3,"Probe", probe);
 	RegisterMouseMode(Params::_twoDDataParamsTag,2,"2D Data", twoDData);
 	RegisterMouseMode(Params::_twoDImageParamsTag,2, "Image",twoDImage);
-	RegisterMouseMode(IsolineParams::_isolineParamsTag,3,"Isoline", probe);
+	RegisterMouseMode(IsolineParams::_isolineParamsTag,3,"Isoline", isoline);
 	InstallExtensionMouseModes();
 }
 int VizWinMgr::RegisterMouseMode(const std::string paramsTag, int manipType,  const char* name, const char* const xpmIcon[]){

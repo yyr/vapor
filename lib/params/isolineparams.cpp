@@ -221,11 +221,14 @@ void IsolineParams::restart() {
 		exts.push_back(1.);
 		gridsize[i] = 10;
 	}
-	if (!GetRootNode()->HasChild(Box::_boxTag)){
-		Box* myBox = new Box();
-		ParamNode* boxNode = myBox->GetRootNode();
-		GetRootNode()->AddRegisteredNode(Box::_boxTag,boxNode,myBox);
-	}
+	//Create box nodes
+	Box* myBox2 = new Box();
+	ParamNode* boxNode2 = myBox2->GetRootNode();
+	GetRootNode()->AddRegisteredNode(IsolineParams::_2DBoxTag,boxNode2,myBox2);
+	Box* myBox3 = new Box();
+	ParamNode* boxNode3 = myBox3->GetRootNode();
+	GetRootNode()->AddRegisteredNode(IsolineParams::_3DBoxTag,boxNode3,myBox3);
+	
 	
 	//Don't set the Box values until after it has been registered:
 	SetLocalExtents(exts);

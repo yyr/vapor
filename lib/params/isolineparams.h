@@ -22,15 +22,13 @@ public:
 		if (VariablesAre3D()){
 			ParamNode* pNode = GetRootNode()->GetNode(IsolineParams::_3DBoxTag);
 			if (pNode) return (Box*)pNode->GetParamsBase();
-			Box* box = new Box();
-			GetRootNode()->AddNode(IsolineParams::_3DBoxTag, box->GetRootNode());
-			return box;
+			else assert(0);
+			return 0;
 		} else {
 			ParamNode* pNode = GetRootNode()->GetNode(IsolineParams::_2DBoxTag);
 			if (pNode) return (Box*)pNode->GetParamsBase();
-			Box* box = new Box();
-			GetRootNode()->AddNode(IsolineParams::_2DBoxTag, box->GetRootNode());
-			return box;
+			else assert(0);
+			return 0;
 		}
 	}
 
