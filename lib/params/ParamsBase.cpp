@@ -58,7 +58,8 @@ ParamsBase::ParamsBase(
 
 
 ParamsBase::~ParamsBase() {
-	//Do not delete root; the root deletes this
+	//Go ahead and delete its root, if it exists
+	if (_rootParamNode) delete _rootParamNode;
 	_rootParamNode = NULL;
 	_currentParamNode = NULL;
 }

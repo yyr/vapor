@@ -43,7 +43,6 @@ Params* Command::unDo(){
 	Command* cmd = CurrentUndoCommand();
 	if (!cmd) return 0;
 	Params* p = Params::GetParamsInstance(cmd->tag, cmd->winnum, cmd->instance);
-	ArrowParams* ap = dynamic_cast<ArrowParams*>(p);
 	ParamNode* r = p->GetRootNode();
 	if (r){
 		//detach from its parent Params...

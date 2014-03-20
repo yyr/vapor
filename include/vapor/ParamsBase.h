@@ -78,7 +78,7 @@ ParamsBase(const string& name) {
 }
 //! Copy constructor.  
 ParamsBase(const ParamsBase &pbase);
-
+//! destructor..destroys the xml tree based at the root node.
 virtual ~ParamsBase();
 
  //! Make a copy of a ParamBase that optionally uses specified 

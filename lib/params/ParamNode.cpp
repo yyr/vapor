@@ -103,8 +103,10 @@ ParamNode* ParamNode::NodeCopy()
 	return newNode;
 }
 ParamNode::~ParamNode() {
-	if (_paramsBase)
+	if (_paramsBase){
+		_paramsBase->SetRootParamNode(0);
 		delete _paramsBase;
+	}
 }
 
 
