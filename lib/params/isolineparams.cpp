@@ -23,8 +23,8 @@ const string IsolineParams::_panelTextSizeTag = "PanelTextSize";
 const string IsolineParams::_variableDimensionTag = "VariableDimension";
 const string IsolineParams::_cursorCoordsTag = "CursorCoords";
 const string IsolineParams::_isovaluesTag = "Isovalues";
-const string IsolineParams::_2DBoxTag = "2DBox";
-const string IsolineParams::_3DBoxTag = "3DBox";
+const string IsolineParams::_2DBoxTag = "Box2D";
+const string IsolineParams::_3DBoxTag = "Box3D";
 
 namespace {
 	const string IsolineName = "IsolineParams";
@@ -52,6 +52,10 @@ reinit(bool doOverride){
 	
 	int totNumVariables = ds->getNumSessionVariables()+ ds->getNumSessionVariables2D();
 	if (totNumVariables <= 0) return false;
+	if (doOverride){//make it 3D if there are any 3D variables
+		if (ds->getNumSessionVariables()>0) SetVariables3D(true);
+		else SetVariables3D(false);
+	}
 	bool is3D = VariablesAre3D();
 	int numVariables;
 	if (is3D) numVariables = ds->getNumSessionVariables();
@@ -122,30 +126,37 @@ reinit(bool doOverride){
 	}
 	
 	const float* extents = ds->getLocalExtents();
-	vector<double>newExtents(3,0.);
+	//Must set (or correct) extents for both 2D and 3D boxes
+	for (int dim = 2; dim<4; dim++){
+		if (dim == 2) SetVariables3D(false);
+		else SetVariables3D(true);
+		vector<double>newExtents(3,0.);
 	
-	if (doOverride) {
-		for (int i = 0; i<3; i++){
-			newExtents.push_back((double)( extents[i+3]-extents[i]));
-		}
-		newExtents[2] = newExtents[5] = extents[5]*0.5;
-		
-	} else {
-		double newExts[6];
-		GetLocalExtents(newExts);
-		
-		for (int i = 0; i<3; i++){
-			if (i != 2){
-				newExts[i] = Max(newExts[i], 0.);
-				newExts[i+3] = Min(newExts[i+3], (double)(extents[i+3]-extents[i]));
+		if (doOverride) {
+			for (int i = 0; i<3; i++){
+				newExtents.push_back((double)( extents[i+3]-extents[i]));
 			}
-			if (newExts[i] > newExts[i+3]) newExts[i+3] = newExts[i];
+			newExtents[2] = newExtents[5] = extents[5]*0.5;
+		
+		} else {
+			double newExts[6];
+			GetLocalExtents(newExts);
+		
+			for (int i = 0; i<3; i++){
+				if (i != 2){
+					newExts[i] = Max(newExts[i], 0.);
+					newExts[i+3] = Min(newExts[i+3], (double)(extents[i+3]-extents[i]));
+				}
+				if (newExts[i] > newExts[i+3]) newExts[i+3] = newExts[i];
+			}
+			newExtents.clear();
+			for (int i = 0; i<6; i++) newExtents.push_back(newExts[i]);
+			newExtents[5] = newExtents[2];
 		}
-		newExtents.clear();
-		for (int i = 0; i<6; i++) newExtents.push_back(newExts[i]);
-		newExtents[5] = newExtents[2];
+		SetLocalExtents(newExtents);
 	}
-	SetLocalExtents(newExtents);
+	//Set dimensionality back to what it was before...
+	SetVariables3D(is3D);
 
 	if (doOverride) { //set default colors
 		const float white_color[3] = {1.0, 1.0, 1.0};
@@ -167,7 +178,6 @@ reinit(bool doOverride){
 		if (ivals[0] >= ivals[ivals.size()-1])
 			newIvals.push_back(ivals[0]);
 		else {
-			
 			for (int i = 0; i< ivals.size(); i++){
 				if (i == 0 || i == ivals.size()-1) newIvals.push_back(ivals[i]);
 				else newIvals.push_back(ivals[0] + ((float)i/(float)(ivals.size()-1))*(ivals[ivals.size()-1]-ivals[0]));
@@ -175,8 +185,11 @@ reinit(bool doOverride){
 		}
 		SetIsovalues(newIvals);
 	}
-	if (doOverride) SetLineThickness(1.0);
-	else if (GetLineThickness() < 1.0 || GetLineThickness() > 100.) SetLineThickness(1.0);
+	if (doOverride){ SetLineThickness(1.0); SetPanelLineThickness(1.0);}
+	else {
+		if (GetLineThickness() < 1.0 || GetLineThickness() > 100.) SetLineThickness(1.0);
+		if (GetPanelLineThickness() < 1.0 || GetPanelLineThickness() > 100.) SetPanelLineThickness(1.0);
+	}
 
 	initializeBypassFlags();
 	return true;
@@ -190,7 +203,7 @@ void IsolineParams::restart() {
 	SetIgnoreFidelity(false);
 	SetVisualizerNum(vizNum);
 	SetVariableName("isovar");
-	SetVariables3D(true);
+	SetVariables3D(false);
 	selectPoint[0]=selectPoint[1]=selectPoint[2]=0.f;
 	vector<double>zeros;
 	zeros.push_back(0.);
@@ -211,7 +224,6 @@ void IsolineParams::restart() {
 
 	SetLineThickness(1.0);
 	
-	int gridsize[3];
 	vector<double> exts;
 	exts.push_back(-1.);
 	exts.push_back(-1.);
@@ -219,25 +231,30 @@ void IsolineParams::restart() {
 	
 	for (int i = 0; i<3; i++){
 		exts.push_back(1.);
-		gridsize[i] = 10;
 	}
-	//Create box nodes
-	Box* myBox2 = new Box();
-	ParamNode* boxNode2 = myBox2->GetRootNode();
-	GetRootNode()->AddRegisteredNode(IsolineParams::_2DBoxTag,boxNode2,myBox2);
-	Box* myBox3 = new Box();
-	ParamNode* boxNode3 = myBox3->GetRootNode();
-	GetRootNode()->AddRegisteredNode(IsolineParams::_3DBoxTag,boxNode3,myBox3);
-	
+	//Create box nodes if they don't already exist
+	if (!GetRootNode()->HasChild(IsolineParams::_2DBoxTag)){
+		Box* myBox2 = new Box();
+		ParamNode* boxNode2 = myBox2->GetRootNode();
+		ParamNode* child2D = new ParamNode(IsolineParams::_2DBoxTag,1);
+		GetRootNode()->AddChild(child2D);
+		child2D->AddRegisteredNode(Box::_boxTag,boxNode2,myBox2);
+	}
+	if (!GetRootNode()->HasChild(IsolineParams::_3DBoxTag)){
+		Box* myBox3 = new Box();
+		ParamNode* boxNode3 = myBox3->GetRootNode();
+		ParamNode* child3D = new ParamNode(IsolineParams::_3DBoxTag,1);
+		GetRootNode()->AddChild(child3D);
+		child3D->AddRegisteredNode(Box::_boxTag,boxNode3,myBox3);
+	}
 	
 	//Don't set the Box values until after it has been registered:
 	SetLocalExtents(exts);
+	SetVariables3D(true);
+	SetLocalExtents(exts);
 	GetBox()->SetAngles(zeros);
 	
-	
 }
-
-
 
 float IsolineParams::getCameraDistance(ViewpointParams* vpp, RegionParams* , int ){
 	//Determine the box that contains the isolines

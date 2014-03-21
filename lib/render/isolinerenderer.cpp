@@ -154,12 +154,16 @@ bool IsolineRenderer::buildLineCache(int timestep){
 	RegularGrid* isolineGrid;
 	vector<string>varname;
 	varname.push_back(iParams->GetVariableName());
+
 	double extents[6];
-	float boxmin[3],boxmax[3];
-	iParams->getLocalContainingRegion(boxmin, boxmax);
-	for (int i = 0; i<3; i++){
-		extents[i] = boxmin[i]+userExts[i];
-		extents[i+3] = boxmax[i]+userExts[i];
+	float boxexts[6];
+
+	bool is3D = iParams->VariablesAre3D();
+	if (is3D) iParams->getLocalContainingRegion(boxexts, boxexts+3);
+	else iParams->GetBox()->GetLocalExtents(boxexts);
+
+	for (int i = 0; i<6; i++){
+		extents[i] = boxexts[i]+userExts[i%3];
 	}
 	
 	int rc = iParams->getGrids( (size_t)timestep, varname, extents, &actualRefLevel, &lod, &isolineGrid);
@@ -174,13 +178,18 @@ bool IsolineRenderer::buildLineCache(int timestep){
 	//of integer extents.
 	gridSize = Max(max_dim[2]-min_dim[2],Max(max_dim[1]-min_dim[1],max_dim[0]-min_dim[0]));
 	float* dataVals = new float[gridSize*gridSize];
-	
-	//Set up to transform from probe into volume:
+	//Set up to transform from isoline plane into volume:
+	float a[2],b[2],constValue[2];
+	int mapDims[3];
 	double transformMatrix[12];
+
+	if(is3D)iParams->buildLocalCoordTransform(transformMatrix, 0.f, -1);
+	else iParams->buildLocal2DTransform(2, a,b,constValue,mapDims);
+	
 	double planeCoords[3], dataCoords[3];
 	planeCoords[2] = 0.;
 
-	iParams->buildLocalCoordTransform(transformMatrix, 0.f, -1);
+	
 
 	//Get the data dimensions (at this resolution):
 	int dataSize[3];
@@ -204,7 +213,13 @@ bool IsolineRenderer::buildLineCache(int timestep){
 		for (int j = 0; j<gridSize; j++){
 			dataVals[i+j*gridSize] = mv;  
 			planeCoords[1] = -1. + 2.*(double)j/(gridSize-1.);
-			vtransform(planeCoords, transformMatrix, dataCoords);
+			if (is3D) vtransform(planeCoords, transformMatrix, dataCoords);
+			else {
+				//2D transform is a*x + b
+				dataCoords[0] = a[0]*planeCoords[0] + b[0];
+				dataCoords[1] = a[1]*planeCoords[1] + b[1];
+				dataCoords[2] = 0.;
+			}
 			//find the coords that the texture maps to
 			bool dataOK = true;
 			for (int k = 0; k< 3; k++){
@@ -365,17 +380,17 @@ int IsolineRenderer::edgeCode(int i, int j, float isoval, float* dataVals){
 	// These remap as follows: 3->2; 5->5; 6->3; 9->1; 10->6; 12->4; 15-> 7 or 8
 	int intersectionCode = 0;
 	//check for crossing between (i,j) and (i+1,j)
-	if((dataVals[i+gridSize*j] < isoval &&  dataVals[i+1+gridSize*j] > isoval) ||
-			(dataVals[i+gridSize*j] > isoval &&  dataVals[i+1+gridSize*j] < isoval)) intersectionCode+=1;
+	if((dataVals[i+gridSize*j] < isoval &&  dataVals[i+1+gridSize*j] >= isoval) ||
+			(dataVals[i+gridSize*j] >= isoval &&  dataVals[i+1+gridSize*j] < isoval)) intersectionCode+=1;
 	//check for crossing between (i+1,j+1) and (i+1,j)
-	if((dataVals[i+1+gridSize*j] < isoval &&  dataVals[i+1+gridSize*(j+1)] > isoval) ||
-			(dataVals[i+1+gridSize*j] > isoval &&  dataVals[i+1+gridSize*(j+1)] < isoval)) intersectionCode+=2;
+	if((dataVals[i+1+gridSize*j] < isoval &&  dataVals[i+1+gridSize*(j+1)] >= isoval) ||
+			(dataVals[i+1+gridSize*j] >= isoval &&  dataVals[i+1+gridSize*(j+1)] < isoval)) intersectionCode+=2;
 	//check for crossing between (i,j+1) and (i+1,j+1)
-	if((dataVals[i+gridSize*(j+1)] < isoval &&  dataVals[i+1+gridSize*(j+1)] > isoval) ||
-			(dataVals[i+gridSize*(j+1)] > isoval &&  dataVals[i+1+gridSize*(j+1)] < isoval)) intersectionCode+=4;
+	if((dataVals[i+gridSize*(j+1)] < isoval &&  dataVals[i+1+gridSize*(j+1)] >= isoval) ||
+			(dataVals[i+gridSize*(j+1)] >= isoval &&  dataVals[i+1+gridSize*(j+1)] < isoval)) intersectionCode+=4;
 	//check for crossing between (i,j+1) and (i,j)
-	if((dataVals[i+gridSize*j] < isoval &&  dataVals[i+gridSize*(j+1)] > isoval) ||
-			(dataVals[i+gridSize*j] > isoval &&  dataVals[i+gridSize*(j+1)] < isoval)) intersectionCode+=8;
+	if((dataVals[i+gridSize*j] < isoval &&  dataVals[i+gridSize*(j+1)] >= isoval) ||
+			(dataVals[i+gridSize*j] >= isoval &&  dataVals[i+gridSize*(j+1)] < isoval)) intersectionCode+=8;
 	
 	int ecode;
 	float avgvalue;

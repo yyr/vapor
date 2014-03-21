@@ -942,7 +942,7 @@ calcTwoDDataTexture(int ts, int &texWidth, int &texHeight){
 	//Set up to transform from twoD into volume:
 	float constValue[2];
 	int mapDims[3];
-	buildLocal2DTransform(a,b,constValue,mapDims);
+	buildLocal2DTransform(orientation, a,b,constValue,mapDims);
 
 	//Get the data dimensions (at this resolution):
 	int dataSize[3];

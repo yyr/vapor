@@ -1414,128 +1414,7 @@ same as the X, Y, and Z axes.</string>
                     </layout>
                    </item>
                    <item>
-                    <layout class="QHBoxLayout">
-                     <item>
-                      <widget class="QLabel" name="textLabel3_12_3_2">
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-                         <horstretch>0</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
-                       </property>
-                       <property name="text">
-                        <string>Zp</string>
-                       </property>
-                       <property name="wordWrap">
-                        <bool>false</bool>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QSlider" name="zSizeSlider">
-                       <property name="enabled">
-                        <bool>false</bool>
-                       </property>
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                         <horstretch>0</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
-                       </property>
-                       <property name="minimumSize">
-                        <size>
-                         <width>80</width>
-                         <height>0</height>
-                        </size>
-                       </property>
-                       <property name="toolTip">
-                        <string>Isoline plane z size is always 0</string>
-                       </property>
-                       <property name="whatsThis">
-                        <string>Manipulate the size of the isoline
-with these sliders and/or text boxes.
-You can &quot;nudge&quot; the isoline size 
-by two volume cells (at the current
-refinement level) in any dimension,
-by clicking on the bar of a slider to
-the left or right of the slider handle.
-The Xp, Yp, and Zp sizes refer to 
-the isoline sizes before it is 
-mapped into the data volume.  
-The Xp and Yp axes are the (x,y) 
-coordinates in the cross-section 
-view (below).
-If there is a nonzero rotation, the Xp,
-Yp, and Zp axes will not be the
-same as the X, Y, and Z axes.</string>
-                       </property>
-                       <property name="minimum">
-                        <number>0</number>
-                       </property>
-                       <property name="maximum">
-                        <number>256</number>
-                       </property>
-                       <property name="pageStep">
-                        <number>1</number>
-                       </property>
-                       <property name="value">
-                        <number>100</number>
-                       </property>
-                       <property name="orientation">
-                        <enum>Qt::Horizontal</enum>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLineEdit" name="zSizeEdit">
-                       <property name="enabled">
-                        <bool>false</bool>
-                       </property>
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-                         <horstretch>0</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
-                       </property>
-                       <property name="maximumSize">
-                        <size>
-                         <width>100</width>
-                         <height>25</height>
-                        </size>
-                       </property>
-                       <property name="toolTip">
-                        <string>Isoline plane z-size is always 0</string>
-                       </property>
-                       <property name="whatsThis">
-                        <string>Manipulate the size of the isoline
-with these sliders and/or text boxes.
-You can &quot;nudge&quot; the isoline size 
-by two volume cells (at the current
-refinement level) in any dimension,
-by clicking on the bar of a slider to
-the left or right of the slider handle.
-The Xp, Yp, and Zp sizes refer to 
-the isoline sizes before it is 
-mapped into the data volume.  
-The Xp and Yp axes are the (x,y) 
-coordinates in the cross-section 
-view (below).
-If there is a nonzero rotation, the Xp,
-Yp, and Zp axes will not be the
-same as the X, Y, and Z axes.</string>
-                       </property>
-                       <property name="text">
-                        <string>0.0</string>
-                       </property>
-                       <property name="maxLength">
-                        <number>200</number>
-                       </property>
-                       <property name="alignment">
-                        <set>Qt::AlignHCenter</set>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
+                    <layout class="QHBoxLayout"/>
                    </item>
                   </layout>
                  </item>
@@ -2086,413 +1965,425 @@ same as the X, Y, and Z axes.</string>
                 </spacer>
                </item>
                <item>
-                <layout class="QHBoxLayout">
-                 <item>
-                  <layout class="QVBoxLayout">
-                   <item>
-                    <widget class="QLabel" name="textLabel3_2">
-                     <property name="whatsThis">
-                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                     </property>
-                     <property name="text">
-                      <string>Orientation Angles</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignCenter</set>
-                     </property>
-                     <property name="wordWrap">
-                      <bool>false</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <layout class="QGridLayout">
-                     <item row="1" column="0">
-                      <widget class="QLineEdit" name="thetaEdit">
-                       <property name="maximumSize">
-                        <size>
-                         <width>50</width>
-                         <height>32767</height>
-                        </size>
-                       </property>
-                       <property name="toolTip">
-                        <string>theta (rotation angle from +X axis)of isoline plane normal vector</string>
-                       </property>
-                       <property name="whatsThis">
-                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                       </property>
-                       <property name="text">
-                        <string>0</string>
-                       </property>
-                       <property name="alignment">
-                        <set>Qt::AlignHCenter</set>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="1" column="2">
-                      <widget class="QLineEdit" name="psiEdit">
-                       <property name="maximumSize">
-                        <size>
-                         <width>50</width>
-                         <height>32767</height>
-                        </size>
-                       </property>
-                       <property name="toolTip">
-                        <string>Psi angle (Rotation around axis determined by phi, theta)</string>
-                       </property>
-                       <property name="whatsThis">
-                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                       </property>
-                       <property name="text">
-                        <string>90</string>
-                       </property>
-                       <property name="alignment">
-                        <set>Qt::AlignHCenter</set>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="0" column="0">
-                      <widget class="QLabel" name="textLabel12">
-                       <property name="whatsThis">
-                        <string>The orientation of the isoline is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the isoline.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &quot;Axis-Align&quot; selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  &quot;90 deg rotate&quot; selector rotates the isoline 90 degrees about the selected axis.</string>
-                       </property>
-                       <property name="text">
-                        <string>Theta</string>
-                       </property>
-                       <property name="alignment">
-                        <set>Qt::AlignCenter</set>
-                       </property>
-                       <property name="wordWrap">
-                        <bool>true</bool>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="1" column="1">
-                      <widget class="QLineEdit" name="phiEdit">
-                       <property name="maximumSize">
-                        <size>
-                         <width>50</width>
-                         <height>32767</height>
-                        </size>
-                       </property>
-                       <property name="toolTip">
-                        <string>Phi angle (angle from +Z) of isoline plane normal vector</string>
-                       </property>
-                       <property name="whatsThis">
-                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                       </property>
-                       <property name="text">
-                        <string>90</string>
-                       </property>
-                       <property name="alignment">
-                        <set>Qt::AlignHCenter</set>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="0" column="2">
-                      <widget class="QLabel" name="textLabel1_6">
-                       <property name="whatsThis">
-                        <string>The orientation of the isoline is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the isoline.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &quot;Axis-Align&quot; selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  &quot;90 deg rotate&quot; selector rotates the isoline 90 degrees about the selected axis.</string>
-                       </property>
-                       <property name="text">
-                        <string>Psi</string>
-                       </property>
-                       <property name="alignment">
-                        <set>Qt::AlignCenter</set>
-                       </property>
-                       <property name="wordWrap">
-                        <bool>false</bool>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="0" column="1">
-                      <widget class="QLabel" name="textLabel12_2">
-                       <property name="whatsThis">
-                        <string>The orientation of the isoline is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the isoline.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &quot;Axis-Align&quot; selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  &quot;90 deg rotate&quot; selector rotates the isoline 90 degrees about the selected axis.</string>
-                       </property>
-                       <property name="text">
-                        <string>Phi</string>
-                       </property>
-                       <property name="alignment">
-                        <set>Qt::AlignCenter</set>
-                       </property>
-                       <property name="wordWrap">
-                        <bool>true</bool>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </item>
-                   <item>
-                    <layout class="QHBoxLayout">
-                     <item>
-                      <widget class="QComboBox" name="axisAlignCombo">
-                       <property name="maximumSize">
-                        <size>
-                         <width>100</width>
-                         <height>32767</height>
-                        </size>
-                       </property>
-                       <property name="font">
-                        <font>
-                         <pointsize>9</pointsize>
-                        </font>
-                       </property>
-                       <property name="toolTip">
-                        <string>Align isoline plane with a coordinate axis</string>
-                       </property>
-                       <property name="whatsThis">
-                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                       </property>
-                       <item>
-                        <property name="text">
-                         <string>Axis Align</string>
+                <widget class="QFrame" name="orientationFrame">
+                 <property name="frameShape">
+                  <enum>QFrame::StyledPanel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_4">
+                  <item>
+                   <layout class="QHBoxLayout" name="orientationLayout_2">
+                    <item>
+                     <layout class="QVBoxLayout" name="_2">
+                      <item>
+                       <widget class="QLabel" name="textLabel3_3">
+                        <property name="whatsThis">
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
-                       </item>
-                       <item>
                         <property name="text">
-                         <string>Nearest Axis</string>
+                         <string>Orientation Angles</string>
                         </property>
-                       </item>
-                       <item>
+                        <property name="alignment">
+                         <set>Qt::AlignCenter</set>
+                        </property>
+                        <property name="wordWrap">
+                         <bool>false</bool>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <layout class="QGridLayout" name="_3">
+                        <item row="1" column="0">
+                         <widget class="QLineEdit" name="thetaEdit">
+                          <property name="maximumSize">
+                           <size>
+                            <width>50</width>
+                            <height>32767</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>theta (rotation angle from +X axis)of isoline plane normal vector</string>
+                          </property>
+                          <property name="whatsThis">
+                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                          </property>
+                          <property name="text">
+                           <string>0</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignHCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="1" column="2">
+                         <widget class="QLineEdit" name="psiEdit">
+                          <property name="maximumSize">
+                           <size>
+                            <width>50</width>
+                            <height>32767</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>Psi angle (Rotation around axis determined by phi, theta)</string>
+                          </property>
+                          <property name="whatsThis">
+                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                          </property>
+                          <property name="text">
+                           <string>90</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignHCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="0" column="0">
+                         <widget class="QLabel" name="textLabel12_3">
+                          <property name="whatsThis">
+                           <string>The orientation of the isoline is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the isoline.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &quot;Axis-Align&quot; selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  &quot;90 deg rotate&quot; selector rotates the isoline 90 degrees about the selected axis.</string>
+                          </property>
+                          <property name="text">
+                           <string>Theta</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignCenter</set>
+                          </property>
+                          <property name="wordWrap">
+                           <bool>true</bool>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="1" column="1">
+                         <widget class="QLineEdit" name="phiEdit">
+                          <property name="maximumSize">
+                           <size>
+                            <width>50</width>
+                            <height>32767</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>Phi angle (angle from +Z) of isoline plane normal vector</string>
+                          </property>
+                          <property name="whatsThis">
+                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                          </property>
+                          <property name="text">
+                           <string>90</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignHCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="0" column="2">
+                         <widget class="QLabel" name="textLabel1_7">
+                          <property name="whatsThis">
+                           <string>The orientation of the isoline is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the isoline.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &quot;Axis-Align&quot; selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  &quot;90 deg rotate&quot; selector rotates the isoline 90 degrees about the selected axis.</string>
+                          </property>
+                          <property name="text">
+                           <string>Psi</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignCenter</set>
+                          </property>
+                          <property name="wordWrap">
+                           <bool>false</bool>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="0" column="1">
+                         <widget class="QLabel" name="textLabel12_4">
+                          <property name="whatsThis">
+                           <string>The orientation of the isoline is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the isoline.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &quot;Axis-Align&quot; selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  &quot;90 deg rotate&quot; selector rotates the isoline 90 degrees about the selected axis.</string>
+                          </property>
+                          <property name="text">
+                           <string>Phi</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignCenter</set>
+                          </property>
+                          <property name="wordWrap">
+                           <bool>true</bool>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </item>
+                      <item>
+                       <layout class="QHBoxLayout" name="_4">
+                        <item>
+                         <widget class="QComboBox" name="axisAlignCombo">
+                          <property name="maximumSize">
+                           <size>
+                            <width>100</width>
+                            <height>32767</height>
+                           </size>
+                          </property>
+                          <property name="font">
+                           <font>
+                            <pointsize>9</pointsize>
+                           </font>
+                          </property>
+                          <property name="toolTip">
+                           <string>Align isoline plane with a coordinate axis</string>
+                          </property>
+                          <property name="whatsThis">
+                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                          </property>
+                          <item>
+                           <property name="text">
+                            <string>Axis Align</string>
+                           </property>
+                          </item>
+                          <item>
+                           <property name="text">
+                            <string>Nearest Axis</string>
+                           </property>
+                          </item>
+                          <item>
+                           <property name="text">
+                            <string>+ X</string>
+                           </property>
+                          </item>
+                          <item>
+                           <property name="text">
+                            <string>+ Y</string>
+                           </property>
+                          </item>
+                          <item>
+                           <property name="text">
+                            <string>+ Z</string>
+                           </property>
+                          </item>
+                          <item>
+                           <property name="text">
+                            <string>- X</string>
+                           </property>
+                          </item>
+                          <item>
+                           <property name="text">
+                            <string>- Y</string>
+                           </property>
+                          </item>
+                          <item>
+                           <property name="text">
+                            <string>- Z</string>
+                           </property>
+                          </item>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QComboBox" name="rotate90Combo">
+                          <property name="maximumSize">
+                           <size>
+                            <width>100</width>
+                            <height>32767</height>
+                           </size>
+                          </property>
+                          <property name="font">
+                           <font>
+                            <pointsize>9</pointsize>
+                           </font>
+                          </property>
+                          <property name="toolTip">
+                           <string>Rotate isoline plane 90 degrees about its center using selected axis direction</string>
+                          </property>
+                          <property name="whatsThis">
+                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                          </property>
+                          <item>
+                           <property name="text">
+                            <string>90 deg rotate</string>
+                           </property>
+                          </item>
+                          <item>
+                           <property name="text">
+                            <string>+ X</string>
+                           </property>
+                          </item>
+                          <item>
+                           <property name="text">
+                            <string>+ Y</string>
+                           </property>
+                          </item>
+                          <item>
+                           <property name="text">
+                            <string>+ Z</string>
+                           </property>
+                          </item>
+                          <item>
+                           <property name="text">
+                            <string>- X</string>
+                           </property>
+                          </item>
+                          <item>
+                           <property name="text">
+                            <string>- Y</string>
+                           </property>
+                          </item>
+                          <item>
+                           <property name="text">
+                            <string>- Z</string>
+                           </property>
+                          </item>
+                         </widget>
+                        </item>
+                       </layout>
+                      </item>
+                     </layout>
+                    </item>
+                    <item>
+                     <layout class="QVBoxLayout" name="_9">
+                      <item>
+                       <widget class="QLabel" name="textLabel2_3">
+                        <property name="whatsThis">
+                         <string>The orientation of the isoline is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the isoline.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &quot;Axis-Align&quot; selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  &quot;90 deg rotate&quot; selector rotates the isoline 90 degrees about the selected axis.</string>
+                        </property>
                         <property name="text">
-                         <string>+ X</string>
+                         <string>Rotate about axes</string>
                         </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>+ Y</string>
+                        <property name="alignment">
+                         <set>Qt::AlignCenter</set>
                         </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>+ Z</string>
+                        <property name="wordWrap">
+                         <bool>false</bool>
                         </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>- X</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>- Y</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>- Z</string>
-                        </property>
-                       </item>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QComboBox" name="rotate90Combo">
-                       <property name="maximumSize">
-                        <size>
-                         <width>100</width>
-                         <height>32767</height>
-                        </size>
-                       </property>
-                       <property name="font">
-                        <font>
-                         <pointsize>9</pointsize>
-                        </font>
-                       </property>
-                       <property name="toolTip">
-                        <string>Rotate isoline plane 90 degrees about its center using selected axis direction</string>
-                       </property>
-                       <property name="whatsThis">
-                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                       </property>
-                       <item>
-                        <property name="text">
-                         <string>90 deg rotate</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>+ X</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>+ Y</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>+ Z</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>- X</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>- Y</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>- Z</string>
-                        </property>
-                       </item>
-                      </widget>
-                     </item>
-                    </layout>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QVBoxLayout">
-                   <item>
-                    <widget class="QLabel" name="textLabel2">
-                     <property name="whatsThis">
-                      <string>The orientation of the isoline is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the isoline.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &quot;Axis-Align&quot; selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  &quot;90 deg rotate&quot; selector rotates the isoline 90 degrees about the selected axis.</string>
-                     </property>
-                     <property name="text">
-                      <string>Rotate about axes</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignCenter</set>
-                     </property>
-                     <property name="wordWrap">
-                      <bool>false</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <layout class="QHBoxLayout">
-                     <item>
-                      <widget class="QLabel" name="textLabel1_5">
-                       <property name="minimumSize">
-                        <size>
-                         <width>20</width>
-                         <height>0</height>
-                        </size>
-                       </property>
-                       <property name="whatsThis">
-                        <string>The orientation of the isoline is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the isoline.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &quot;Axis-Align&quot; selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  &quot;90 deg rotate&quot; selector rotates the isoline 90 degrees about the selected axis.</string>
-                       </property>
-                       <property name="text">
-                        <string>X:</string>
-                       </property>
-                       <property name="alignment">
-                        <set>Qt::AlignCenter</set>
-                       </property>
-                       <property name="wordWrap">
-                        <bool>false</bool>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QtThumbWheel" name="xThumbWheel" native="true">
-                       <property name="minimumSize">
-                        <size>
-                         <width>140</width>
-                         <height>20</height>
-                        </size>
-                       </property>
-                       <property name="toolTip">
-                        <string>Rotate About X-Axis</string>
-                       </property>
-                       <property name="whatsThis">
-                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </item>
-                   <item>
-                    <layout class="QHBoxLayout">
-                     <item>
-                      <widget class="QLabel" name="textLabel1_5_2">
-                       <property name="minimumSize">
-                        <size>
-                         <width>20</width>
-                         <height>0</height>
-                        </size>
-                       </property>
-                       <property name="whatsThis">
-                        <string>The orientation of the isoline is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the isoline.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &quot;Axis-Align&quot; selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  &quot;90 deg rotate&quot; selector rotates the isoline 90 degrees about the selected axis.</string>
-                       </property>
-                       <property name="text">
-                        <string>Y:</string>
-                       </property>
-                       <property name="alignment">
-                        <set>Qt::AlignCenter</set>
-                       </property>
-                       <property name="wordWrap">
-                        <bool>false</bool>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QtThumbWheel" name="yThumbWheel" native="true">
-                       <property name="minimumSize">
-                        <size>
-                         <width>140</width>
-                         <height>20</height>
-                        </size>
-                       </property>
-                       <property name="toolTip">
-                        <string>Rotate about Y-Axis</string>
-                       </property>
-                       <property name="whatsThis">
-                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </item>
-                   <item>
-                    <layout class="QHBoxLayout">
-                     <item>
-                      <widget class="QLabel" name="textLabel1_5_2_2">
-                       <property name="minimumSize">
-                        <size>
-                         <width>20</width>
-                         <height>0</height>
-                        </size>
-                       </property>
-                       <property name="whatsThis">
-                        <string>The orientation of the isoline is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the isoline.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &quot;Axis-Align&quot; selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  &quot;90 deg rotate&quot; selector rotates the isoline 90 degrees about the selected axis.</string>
-                       </property>
-                       <property name="text">
-                        <string>Z:</string>
-                       </property>
-                       <property name="alignment">
-                        <set>Qt::AlignCenter</set>
-                       </property>
-                       <property name="wordWrap">
-                        <bool>false</bool>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QtThumbWheel" name="zThumbWheel" native="true">
-                       <property name="minimumSize">
-                        <size>
-                         <width>140</width>
-                         <height>20</height>
-                        </size>
-                       </property>
-                       <property name="toolTip">
-                        <string>Rotate about Z-axis</string>
-                       </property>
-                       <property name="whatsThis">
-                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </item>
-                  </layout>
-                 </item>
-                </layout>
+                       </widget>
+                      </item>
+                      <item>
+                       <layout class="QHBoxLayout" name="_10">
+                        <item>
+                         <widget class="QLabel" name="textLabel1_8">
+                          <property name="minimumSize">
+                           <size>
+                            <width>20</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="whatsThis">
+                           <string>The orientation of the isoline is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the isoline.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &quot;Axis-Align&quot; selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  &quot;90 deg rotate&quot; selector rotates the isoline 90 degrees about the selected axis.</string>
+                          </property>
+                          <property name="text">
+                           <string>X:</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignCenter</set>
+                          </property>
+                          <property name="wordWrap">
+                           <bool>false</bool>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QtThumbWheel" name="xThumbWheel" native="true">
+                          <property name="minimumSize">
+                           <size>
+                            <width>140</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>Rotate About X-Axis</string>
+                          </property>
+                          <property name="whatsThis">
+                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </item>
+                      <item>
+                       <layout class="QHBoxLayout" name="_11">
+                        <item>
+                         <widget class="QLabel" name="textLabel1_5_3">
+                          <property name="minimumSize">
+                           <size>
+                            <width>20</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="whatsThis">
+                           <string>The orientation of the isoline is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the isoline.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &quot;Axis-Align&quot; selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  &quot;90 deg rotate&quot; selector rotates the isoline 90 degrees about the selected axis.</string>
+                          </property>
+                          <property name="text">
+                           <string>Y:</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignCenter</set>
+                          </property>
+                          <property name="wordWrap">
+                           <bool>false</bool>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QtThumbWheel" name="yThumbWheel" native="true">
+                          <property name="minimumSize">
+                           <size>
+                            <width>140</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>Rotate about Y-Axis</string>
+                          </property>
+                          <property name="whatsThis">
+                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </item>
+                      <item>
+                       <layout class="QHBoxLayout" name="_12">
+                        <item>
+                         <widget class="QLabel" name="textLabel1_5_2_3">
+                          <property name="minimumSize">
+                           <size>
+                            <width>20</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="whatsThis">
+                           <string>The orientation of the isoline is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the isoline.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &quot;Axis-Align&quot; selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  &quot;90 deg rotate&quot; selector rotates the isoline 90 degrees about the selected axis.</string>
+                          </property>
+                          <property name="text">
+                           <string>Z:</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignCenter</set>
+                          </property>
+                          <property name="wordWrap">
+                           <bool>false</bool>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QtThumbWheel" name="zThumbWheel" native="true">
+                          <property name="minimumSize">
+                           <size>
+                            <width>140</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>Rotate about Z-axis</string>
+                          </property>
+                          <property name="whatsThis">
+                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </item>
+                     </layout>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </widget>
                </item>
                <item>
                 <spacer name="spacer57_2">
@@ -3654,7 +3545,7 @@ Domain</string>
              </font>
             </property>
             <property name="text">
-             <string>Appearance of Isolines in Panel:</string>
+             <string>Appearance of Isolines in Tab Panel:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>

@@ -21,12 +21,16 @@ public:
 	virtual Box* GetBox() {
 		if (VariablesAre3D()){
 			ParamNode* pNode = GetRootNode()->GetNode(IsolineParams::_3DBoxTag);
-			if (pNode) return (Box*)pNode->GetParamsBase();
+			if (pNode) {
+				return (Box*)pNode->GetNode(Box::_boxTag)->GetParamsBase();
+			}
 			else assert(0);
 			return 0;
 		} else {
 			ParamNode* pNode = GetRootNode()->GetNode(IsolineParams::_2DBoxTag);
-			if (pNode) return (Box*)pNode->GetParamsBase();
+			if (pNode) {
+				return (Box*)pNode->GetNode(Box::_boxTag)->GetParamsBase();
+			}
 			else assert(0);
 			return 0;
 		}

@@ -2020,7 +2020,7 @@ void TwoDDataEventRouter::mapCursor(){
 	float twoDCoord[3];
 	float a[2],b[2],constVal[2];
 	int mapDims[3];
-	tParams->buildLocal2DTransform(a,b,constVal,mapDims);
+	tParams->buildLocal2DTransform(tParams->getOrientation(),a,b,constVal,mapDims);
 	const float* cursorCoords = tParams->getCursorCoords();
 	//If using flat plane, the cursor sits in the z=0 plane of the twoD box coord system.
 

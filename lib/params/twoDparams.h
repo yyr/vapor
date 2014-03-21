@@ -141,9 +141,7 @@ public:
 	void setMappedToTerrain(bool val) {mapToTerrain = val;}
 	//override parent version for 2D box corners:
 	virtual void calcBoxCorners(float corners[8][3], float extraThickness, int timestep=-1, float rotation = 0.f, int axis = -1);
-	//Construct transform of form (x,y)-> a[0]x+b[0],a[1]y+b[1],
-	//Mapping [-1,1]X[-1,1] into local 3D volume coordinates.
-	void buildLocal2DTransform(float a[2],float b[2], float* constVal, int mappedDims[3]);
+	
 protected:
 	
 	static const string _geometryTag;

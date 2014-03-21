@@ -325,6 +325,31 @@ buildLocalCoordTransform(double transformMatrix[12], double extraThickness, int 
 	transformMatrix[11] = .5f*(boxMax[2]+boxMin[2]);
 	
 }
+	//Construct transform of form (x,y)-> a[0]x+b[0],a[1]y+b[1],
+	//Mapping [-1,1]X[-1,1] into 3D volume, in local coordinates.
+    //Also determine the first and second coords that are used in 
+    //the transform and the constant value
+    //mappedDims[0] and mappedDims[1] are the dimensions that are
+    //varying in the 3D volume.  mappedDims[2] is constant.
+    //constVal are the constant values that are used, for top and bottom of
+    //box (only different if terrain mapped)
+	//dataOrientation is 0,1,or 2 for plane normal to x, y, or z
+void Params::buildLocal2DTransform(int dataOrientation, float a[2],float b[2],float constVal[2], int mappedDims[3]){
+	
+	mappedDims[2] = dataOrientation;
+	mappedDims[0] = (dataOrientation == 0) ? 1 : 0;  // x or y
+	mappedDims[1] = (dataOrientation < 2) ? 2 : 1; // z or y
+	const vector<double>& exts = GetBox()->GetLocalExtents();
+	constVal[0] = exts[dataOrientation];
+	constVal[1] = exts[dataOrientation+3];
+	//constant terms go to middle
+	b[0] = 0.5*(exts[mappedDims[0]]+exts[3+mappedDims[0]]);
+	b[1] = 0.5*(exts[mappedDims[1]]+exts[3+mappedDims[1]]);
+	//linear terms send -1,1 to box min,max
+	a[0] = b[0] - exts[mappedDims[0]];
+	a[1] = b[1] - exts[mappedDims[1]];
+
+}
 
 //static method to measure how far point is from cube.
 //Needed for histogram testing

@@ -425,7 +425,11 @@ void IsolineEventRouter::updateTab(){
 		}
 	}
 	attachSeedCheckbox->setChecked(seedAttached);
-	int sesVarNum = ds->getSessionVariableNum3D(isolineParams->GetVariableName());
+	int sesVarNum;
+	if (isolineParams->VariablesAre3D())
+		sesVarNum = ds->getSessionVariableNum3D(isolineParams->GetVariableName());
+	else 
+		sesVarNum = ds->getSessionVariableNum2D(isolineParams->GetVariableName());
 	
 	float val = 0.;
 	if (isolineParams->isEnabled())
@@ -447,7 +451,11 @@ void IsolineEventRouter::updateTab(){
 
 	isolineImageFrame->setParams(isolineParams);
 	isolineImageFrame->update();
-	if (showLayout) layoutFrame->show();
+	if (showLayout) {
+		layoutFrame->show();
+		if (dim == 3) orientationFrame->show();
+		else orientationFrame->hide();
+	}
 	else layoutFrame->hide();
 	if (showAppearance) appearanceFrame->show();
 	else appearanceFrame->hide();
@@ -476,23 +484,24 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	IsolineParams* isolineParams = VizWinMgr::getActiveIsolineParams();
 	PanelCommand* cmd = PanelCommand::captureStart(isolineParams, "edit Isoline text");
 	QString strn;
-	
-	float thetaVal = thetaEdit->text().toFloat();
-	while (thetaVal > 180.f) thetaVal -= 360.f;
-	while (thetaVal < -180.f) thetaVal += 360.f;
-	thetaEdit->setText(QString::number(thetaVal,'f',1));
-	float phiVal = phiEdit->text().toFloat();
-	while (phiVal > 180.f) phiVal -= 180.f;
-	while (phiVal < 0.f) phiVal += 180.f;
-	phiEdit->setText(QString::number(phiVal,'f',1));
-	float psiVal = psiEdit->text().toFloat();
-	while (psiVal > 180.f) psiVal -= 360.f;
-	while (psiVal < -180.f) psiVal += 360.f;
-	psiEdit->setText(QString::number(psiVal,'f',1));
+	if (isolineParams->VariablesAre3D()){
+		float thetaVal = thetaEdit->text().toFloat();
+		while (thetaVal > 180.f) thetaVal -= 360.f;
+		while (thetaVal < -180.f) thetaVal += 360.f;
+		thetaEdit->setText(QString::number(thetaVal,'f',1));
+		float phiVal = phiEdit->text().toFloat();
+		while (phiVal > 180.f) phiVal -= 180.f;
+		while (phiVal < 0.f) phiVal += 180.f;
+		phiEdit->setText(QString::number(phiVal,'f',1));
+		float psiVal = psiEdit->text().toFloat();
+		while (psiVal > 180.f) psiVal -= 360.f;
+		while (psiVal < -180.f) psiVal += 360.f;
+		psiEdit->setText(QString::number(psiVal,'f',1));
 
-	isolineParams->setTheta(thetaVal);
-	isolineParams->setPhi(phiVal);
-	isolineParams->setPsi(psiVal);
+		isolineParams->setTheta(thetaVal);
+		isolineParams->setPhi(phiVal);
+		isolineParams->setPsi(psiVal);
+	}
 
 	vector<double>ivalues;
 	
@@ -505,12 +514,13 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 		maxIso = minIso;
 		numIsos = 1;
 	}
+	//Set intermediate isovalues based on end points
 	for (int i = 1; i<numIsos; i++){
 		ivalues.push_back(minIso + (maxIso - minIso)*(float)i/(float)(numIsos-1));
 	}
 
-	minIsoEdit->setText(QString::number(ivalues[0]));
-	maxIsoEdit->setText(QString::number(ivalues[ivalues.size()-1]));
+	minIsoEdit->setText(QString::number(minIso));
+	maxIsoEdit->setText(QString::number(maxIso));
 	countIsoEdit->setText(QString::number(ivalues.size()));
 	isolineParams->SetIsovalues(ivalues);
 
@@ -535,7 +545,7 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	float boxSize[3], boxmin[3], boxmax[3], boxCenter[3];
 	boxSize[0] = xSizeEdit->text().toFloat();
 	boxSize[1] = ySizeEdit->text().toFloat();
-	boxSize[2] = zSizeEdit->text().toFloat();
+	boxSize[2] =0.;
 	for (int i = 0; i<3; i++){
 		if (boxSize[i] < 0.f) boxSize[i] = 0.f;
 	}
@@ -545,8 +555,7 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	boxCenter[2] = zCenterEdit->text().toFloat()- userExts[2];
 	const float* fullSizes = DataStatus::getInstance()->getFullSizes();
 	for (int i = 0; i<3;i++){
-		//No longer constrain the box to have center in the domain:
-		
+		//Don't constrain the box to have center in the domain:
 		boxmin[i] = boxCenter[i] - 0.5f*boxSize[i];
 		boxmax[i] = boxCenter[i] + 0.5f*boxSize[i];
 	}
@@ -1079,12 +1088,6 @@ reinitTab(bool doOverride){
 	ignoreComboChanges = true;
 	variableCombo->clear();
 
-	for (int i = 0; i< DataStatus::getInstance()->getNumActiveVariables3D(); i++){
-		const std::string& s = DataStatus::getInstance()->getActiveVarName3D(i);
-		const QString& text = QString(s.c_str());
-		
-		variableCombo->insertItem(i,text);
-	}
 	ignoreComboChanges = false;
 
 	seedAttached = false;
@@ -1272,14 +1275,22 @@ void IsolineEventRouter::
 guiChangeVariable(int varnum){
 	//Don't react if the combo is being reset programmatically:
 	if (ignoreComboChanges) return;
-	if (!DataStatus::getInstance()->dataIsPresent3D()) return;
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	confirmText(false);
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "change isoline-selected variable");
 	
 	int activeVar = variableCombo->currentIndex();
-	const string& varname = DataStatus::getActiveVarName3D(activeVar);
-	pParams->SetVariableName(varname);
+
+	if (pParams->VariablesAre3D()){
+		const string& varname = DataStatus::getActiveVarName3D(activeVar);
+		pParams->SetVariableName(varname);
+	}
+	else {
+		const string& varname = DataStatus::getActiveVarName2D(activeVar);
+		pParams->SetVariableName(varname);
+	}
+	
 	
 	PanelCommand::captureEnd(cmd, pParams);
 	//Need to update the selected point for the new variables
@@ -1444,7 +1455,6 @@ sliderToText(IsolineParams* pParams, int coord, int slideCenter, int slideSize){
 			selectedYLabel->setText(QString::number(selectCoord));
 			break;
 		case 2:
-			zSizeEdit->setText(QString::number(newSize,'g',7));
 			zCenterEdit->setText(QString::number(newCenter,'g',7));
 			selectedZLabel->setText(QString::number(selectCoord));
 			break;
@@ -1515,7 +1525,7 @@ setYCenter(IsolineParams* pParams,int sliderval){
 }
 void IsolineEventRouter::
 setZCenter(IsolineParams* pParams,int sliderval){
-	sliderToText(pParams,2, sliderval, zSizeSlider->value());
+	sliderToText(pParams,2, sliderval, 0);
 	setIsolineDirty(pParams);
 }
 //Min and Max are center -+ size/2
@@ -1591,11 +1601,21 @@ calcCurrentValue(IsolineParams* pParams, const float point[3], int* , int ){
 	
 	int numRefinements = pParams->GetRefinementLevel();
 	int lod = pParams->GetCompressionLevel();
-	int sesVarNum = DataStatus::getSessionVariableNum3D(pParams->GetVariableName());
-	
-	if (ds->useLowerAccuracy()){
-		lod = Min(ds->maxLODPresent3D(sesVarNum, timeStep), lod);
+	int sesVarNum;
+	if (pParams->VariablesAre3D()){
+		sesVarNum= DataStatus::getSessionVariableNum3D(pParams->GetVariableName());
+		if (ds->useLowerAccuracy()){
+			lod = Min(ds->maxLODPresent3D(sesVarNum, timeStep), lod);
+		}
 	}
+	else {
+		sesVarNum= DataStatus::getSessionVariableNum2D(pParams->GetVariableName());
+		if (ds->useLowerAccuracy()){
+			lod = Min(ds->maxLODPresent2D(sesVarNum, timeStep), lod);
+		}
+	}
+
+	
 	if (lod < 0) return OUT_OF_BOUNDS;
 	//Find the region that contains the point
 	size_t coordMin[3], coordMax[3];
@@ -1675,8 +1695,7 @@ void IsolineEventRouter::captureImage() {
 	//
 	
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	int imgSize[2];
+
 	float voxDims[3];
 	pParams->getRotatedVoxelExtents(voxDims);
 	
@@ -1712,8 +1731,6 @@ void IsolineEventRouter::captureImage() {
 				isolineTex[k+3*(i+wid*j)] = buf[k+4*(i+wid*(ht-j-1))];
 		}
 	}
-		
-
 	
 	//Now open the jpeg file:
 	FILE* jpegFile = fopen((const char*)filename.toAscii(), "wb");
@@ -1752,7 +1769,7 @@ void IsolineEventRouter::guiNudgeXSize(int val) {
 	confirmText(false);
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
 	
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge isoline X size");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "nudge isoline X size");
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
@@ -2033,15 +2050,13 @@ adjustBoxSize(IsolineParams* pParams){
 	//Set the size sliders appropriately:
 	xSizeEdit->setText(QString::number(boxmax[0]-boxmin[0]));
 	ySizeEdit->setText(QString::number(boxmax[1]-boxmin[1]));
-	zSizeEdit->setText(QString::number(boxmax[2]-boxmin[2]));
+	
 	//Cancel any response to text events generated in this method, to prevent
 	//the sliders from triggering text change
 	//
 	guiSetTextChanged(false);
 	xSizeSlider->setValue((int)(256.f*(boxmax[0]-boxmin[0])/(maxBoxSize[0])));
 	ySizeSlider->setValue((int)(256.f*(boxmax[1]-boxmin[1])/(maxBoxSize[1])));
-	zSizeSlider->setValue((int)(256.f*(boxmax[2]-boxmin[2])/(maxBoxSize[2])));
-	
 	
 }
 
@@ -2412,29 +2427,47 @@ void IsolineEventRouter::guiSetDimension(int dim){
 	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getActiveParams(IsolineParams::_isolineParamsTag);
 	int curdim = iParams->VariablesAre3D() ? 1 : 0 ;
 	if (curdim == dim) return;
+	//Don't allow setting of dimension of there aren't any variables in the proposed dimension:
+	if (dim == 1 && DataStatus::getInstance()->getNumActiveVariables3D()==0){
+		dimensionCombo->setCurrentIndex(0);
+		return;
+	}
+	if (dim == 0 && DataStatus::getInstance()->getNumActiveVariables2D()==0){
+		dimensionCombo->setCurrentIndex(1);
+		return;
+	}
 	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "set isoline variable dimension");
 	
 	//the combo is either 0 or 1 for dimension 2 or 3.
 	iParams->SetVariables3D(dim == 1);
 	//Put the appropriate variable names into the combo
-	//Set the names in the variable listbox
+	//Set the names in the variable listbox.
+	//Set the current variable name to be the first variable
 	ignoreComboChanges = true;
 	variableCombo->clear();
 	if (dim == 1){ //dim = 1 for 3D vars
 		for (int i = 0; i< DataStatus::getInstance()->getNumActiveVariables3D(); i++){
 			const std::string& s = DataStatus::getInstance()->getActiveVarName3D(i);
+			if (i == 0) iParams->SetVariableName(s);
 			const QString& text = QString(s.c_str());
 			variableCombo->insertItem(i,text);
 		}
 	} else {
 		for (int i = 0; i< DataStatus::getInstance()->getNumActiveVariables2D(); i++){
 			const std::string& s = DataStatus::getInstance()->getActiveVarName2D(i);
+			if (i == 0) iParams->SetVariableName(s);
 			const QString& text = QString(s.c_str());
 			variableCombo->insertItem(i,text);
 		}
 	}
+	if (showLayout) {
+		if (dim == 1) orientationFrame->show();
+		else orientationFrame->hide();
+	}
 	ignoreComboChanges = false;
 	PanelCommand::captureEnd(cmd, iParams);
+	setIsolineDirty(iParams);
+
 }
 void IsolineEventRouter::invalidateRenderer(IsolineParams* iParams)
 {
