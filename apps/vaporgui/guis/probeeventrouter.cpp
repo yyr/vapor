@@ -2172,7 +2172,7 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	}
 	Histo* histo = histogramList[firstVarNum];
 	histo->reset(256,currentDatarange[0],currentDatarange[1]);
-	pParams->calcProbeHistogram(timeStep, histo);
+	pParams->calcSliceHistogram(timeStep, histo);
 }
 
 	

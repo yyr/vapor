@@ -65,7 +65,7 @@ class TransferFunction;
 class ViewpointParams;
 class RegionParams;
 class DataMgr;
-
+class Histo;
 //! \class Params
 //! \brief A pure virtual class for managing parameters used in visualization
 //! \author Alan Norton
@@ -768,6 +768,10 @@ public:
 	//Obtain region that contains rotated box
 	void getLocalContainingRegion(float regMin[3], float regMax[3]);
 	void getRotatedVoxelExtents(float voxdims[2]);
+	//Calculate a histogram of a slice of 3d variables
+	void calcSliceHistogram(int ts, Histo* histo);
+	//Used for rendering texture of variable. Default is linear:
+	virtual int getInterpolationOrder() {return 1;}
 
 protected:
 	

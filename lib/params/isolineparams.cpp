@@ -9,7 +9,7 @@ using namespace VetsUtil;
 using namespace VAPoR;
 const string IsolineParams::_shortName = "Isolines";
 const string IsolineParams::_isolineParamsTag = "IsolineParams";
-
+const string IsolineParams::_IsoControlTag = "IsoControl";
 const string IsolineParams::_isolineColorTag= "IsolineColor";
 const string IsolineParams::_textColorTag= "TextColor";
 const string IsolineParams::_panelLineColorTag= "PanelLineColor";
@@ -22,9 +22,11 @@ const string IsolineParams::_textSizeTag = "TextSize";
 const string IsolineParams::_panelTextSizeTag = "PanelTextSize";
 const string IsolineParams::_variableDimensionTag = "VariableDimension";
 const string IsolineParams::_cursorCoordsTag = "CursorCoords";
-const string IsolineParams::_isovaluesTag = "Isovalues";
 const string IsolineParams::_2DBoxTag = "Box2D";
 const string IsolineParams::_3DBoxTag = "Box3D";
+const string IsolineParams::_editBoundsTag = "EditBounds";
+const string IsolineParams::_histoScaleTag = "HistoScale";
+const string IsolineParams::_histoBoundsTag = "HistoBounds";
 
 namespace {
 	const string IsolineName = "IsolineParams";
@@ -43,8 +45,6 @@ IsolineParams::~IsolineParams() {
 
 //Initialize for new metadata.  Keep old transfer functions
 //
-// For each new variable in the metadata create a variable child node, and build the
-// associated isoControl and transfer function nodes.
 bool IsolineParams::
 reinit(bool doOverride){
 
@@ -204,15 +204,26 @@ void IsolineParams::restart() {
 	SetVisualizerNum(vizNum);
 	SetVariableName("isovar");
 	SetVariables3D(false);
+	//Create the isocontrol node.  Just one here, but it contains the histo bounds and isovalues
+
+	if (!GetRootNode()->HasChild(IsolineParams::_IsoControlTag)){
+		IsoControl* iControl = (IsoControl*)IsoControl::CreateDefaultInstance();
+		GetRootNode()->AddRegisteredNode(_IsoControlTag,iControl->GetRootNode(),iControl);
+	}
 	selectPoint[0]=selectPoint[1]=selectPoint[2]=0.f;
 	vector<double>zeros;
 	zeros.push_back(0.);
 	SetIsovalues(zeros);
 	zeros.push_back(0.);
 	SetCursorCoords(zeros);
+	float bnds[2] = {0.,1.};
+	SetHistoBounds(bnds);
+	SetHistoStretch(1.);
 	zeros.push_back(0.);
 
-	
+	setMinEditBound(0.);
+	setMaxEditBound(1.);
+
 	setEnabled(false);
 	const float white_color[3] = {1.0, 1.0, 1.0};
 	const float black_color[3] = {.0, .0, .0};
@@ -332,4 +343,11 @@ const string& IsolineParams::GetVariableName(){
 }
 void IsolineParams::SetVariableName(const string& varname){
 	 GetRootNode()->SetElementString(_VariableNameTag,varname);
+}
+int IsolineParams::getSessionVarNum(){
+	DataStatus* ds = DataStatus::getInstance();
+	if (VariablesAre3D())
+		return ds->getSessionVariableNum3D(GetVariableName());
+	else 
+		return ds->getSessionVariableNum2D(GetVariableName());
 }

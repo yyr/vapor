@@ -56,6 +56,7 @@ public:
 	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1, bool reEnable = false);
 
 	virtual void refreshTab();
+	virtual void setEditorDirty(RenderParams*);
 	
 	void sliderToText(IsolineParams* pParams, int coord, int slideCenter, int slideSize);
 
@@ -112,6 +113,9 @@ public:
 
 
 protected slots:
+	void setIsolineEditMode(bool);
+	void setIsolineNavigateMode(bool);
+	void refreshHisto();
 	void guiSetFidelity(int buttonID);
 	void guiSetFidelityDefault();
 	void guiNudgeXSize(int);
@@ -173,6 +177,11 @@ protected slots:
 	void guiSetPanelBackgroundColor();
 	void guiSetPanelTextColor();
 	void guiSetDimension(int);
+	void guiSetAligned();
+	void guiStartChangeIsoSelection(QString);
+	void guiEndChangeIsoSelection();
+	void guiFitToData();
+	void guiFitIsovalsToHisto();
 	
 	
 protected:
@@ -185,7 +194,8 @@ protected:
 	double convertRotStretchedToActual(int axis, double angle);
 	void resetImageSize(IsolineParams* iParams);
 	void invalidateRenderer(IsolineParams* iParams);
-
+	void updateHistoBounds(RenderParams*);
+	virtual void refreshHistogram(RenderParams* p, int, const float[2]);
 	
 	//fix Isoline box to fit in domain:
 	void adjustBoxSize(IsolineParams*);
@@ -209,6 +219,8 @@ protected:
 	float startRotateViewAngle;
 	bool renormalizedRotate;
 	bool showImage, showAppearance, showLayout;
+	bool editMode;
+	double prevIsoMax,prevIsoMin;  //
 	
 };
 

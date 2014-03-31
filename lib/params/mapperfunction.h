@@ -99,8 +99,10 @@ public:
 	}
 	static ParamsBase* CreateDefaultInstance(){return new IsoControl();}
 	virtual ~IsoControl();
-	void setIsoValue(double val){isoValue = val;}
-	double getIsoValue(){return isoValue;}
+	void setIsoValue(double val){isoValues[0] = val;}
+	double getIsoValue(){return isoValues[0];}
+	void setIsoValues(const vector<double>& vals){isoValues = vals;}
+	const vector<double>& getIsoValues(){return isoValues;}
 	
 	virtual ParamNode* buildNode();
 	void setMinHistoValue(float val){setMinOpacMapValue(val);}
@@ -117,7 +119,7 @@ protected:
 	static const string _rightHistoBoundAttr;
 	static const string _leftHistoBoundTag;
 	static const string _rightHistoBoundTag;
-	double isoValue;
+	vector<double> isoValues;
 };
 };
 #endif //MAPPERFUNCTION_H

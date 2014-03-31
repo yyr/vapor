@@ -5,6 +5,7 @@
 #include "vapor/ParamNode.h"
 #include "params.h"
 #include "datastatus.h"
+#include "mapperfunction.h"
 
 namespace VAPoR {
 
@@ -132,11 +133,14 @@ public:
 	int getNumIsovalues(){
 		return GetIsovalues().size();
 	}
+	IsoControl* GetIsoControl(){
+		return (IsoControl*)(GetRootNode()->GetNode(_IsoControlTag)->GetParamsBase());
+	}
 	const vector<double>& GetIsovalues(){
-		return (GetRootNode()->GetElementDouble(_isovaluesTag));
+		return (GetIsoControl()->getIsoValues());
 	}
 	void SetIsovalues(const vector<double>& values){
-		GetRootNode()->SetElementDouble(_isovaluesTag,values);
+		GetIsoControl()->setIsoValues(values);
 	}
 	const vector<double>& GetCursorCoords(){
 		return (GetRootNode()->GetElementDouble(_cursorCoordsTag));
@@ -144,6 +148,54 @@ public:
 	void SetCursorCoords(const vector<double>& coords){
 		GetRootNode()->SetElementDouble(_cursorCoordsTag,coords);
 	}
+	double getMinEditBound(){
+		return GetRootNode()->GetElementDouble(_editBoundsTag)[0];
+	}
+	double getMaxEditBound(){
+		return GetRootNode()->GetElementDouble(_editBoundsTag)[1];
+	}
+	void setMinEditBound(double val){
+		vector<double>vals = GetRootNode()->GetElementDouble(_editBoundsTag);
+		if (vals.size()<1) vals.push_back(val);
+		vals[0]=val;
+		GetRootNode()->SetElementDouble(_editBoundsTag,vals);
+	}
+	void setMaxEditBound(double val){
+		vector<double>vals = GetRootNode()->GetElementDouble(_editBoundsTag);
+		while (vals.size()<2) vals.push_back(val);
+		vals[1]=val;
+		GetRootNode()->SetElementDouble(_editBoundsTag,vals);
+	}
+	void SetHistoStretch(float factor){
+		GetRootNode()->SetElementDouble(_histoScaleTag,(double)factor);
+	}
+	float GetHistoStretch(){
+		return GetRootNode()->GetElementDouble(_histoScaleTag)[0];
+	}
+	void SetHistoBounds(const float bnds[2]){
+		IsoControl* isoContr = GetIsoControl();
+		if(!isoContr) return;
+		if(isoContr->getMinHistoValue() == bnds[0] &&
+			isoContr->getMaxHistoValue() == bnds[1]) return;
+		isoContr->setMinHistoValue(bnds[0]);
+		isoContr->setMaxHistoValue(bnds[1]);
+		setAllBypass(false);
+	}
+	void GetHistoBounds(float bounds[2]){
+		 if (!GetIsoControl()){
+			 bounds[0] = 0.f;
+			 bounds[1] = 1.f;
+		 } else {
+			bounds[0]=GetIsoControl()->getMinHistoValue();
+			bounds[1]=GetIsoControl()->getMaxHistoValue();
+		 }
+	 }
+	//Following required of render params classes that have a histogram: 
+	 virtual const float* getCurrentDatarange(){
+		 GetHistoBounds(_histoBounds);
+		 return _histoBounds;
+	 }
+	virtual int getSessionVarNum();
 	
 	//Override default, allow probe manip to go outside of data:
 	virtual bool isDomainConstrained() {return false;}
@@ -187,11 +239,15 @@ protected:
 	static const string _panelTextSizeTag;
 	static const string _variableDimensionTag;
 	static const string _cursorCoordsTag;
-	static const string _isovaluesTag;
 	static const string _2DBoxTag;
 	static const string _3DBoxTag;
+	static const string _editBoundsTag;
+	static const string _histoScaleTag;
+	static const string _histoBoundsTag;
+	static const string _IsoControlTag;
 
 	float selectPoint[3];
+	float _histoBounds[2];
 	
 }; //End of Class IsolineParams
 };

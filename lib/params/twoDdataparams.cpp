@@ -913,7 +913,7 @@ calcTwoDDataTexture(int ts, int &texWidth, int &texHeight){
 		texHeight = _textureSizes[1];
 		return(_texBuf); 
 	}
-	if (_texBuf) delete [] _texBuf;
+	if (_texBuf){ delete [] _texBuf; _texBuf = 0;}
 
 	
 	//Get the first variable name

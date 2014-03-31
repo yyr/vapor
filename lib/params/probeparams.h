@@ -203,8 +203,6 @@ public:
 		if (textureType == 0) probeDataTextures = textureArray; else probeIBFVTextures = textureArray;
 	}
 	unsigned char* calcProbeDataTexture(int timestep, int wid, int ht);
-	void calcProbeHistogram(int timestep, Histo* histo);
-	
 	
 	unsigned char* getCurrentProbeTexture(int timestep, int texType) {
 		if( texType == 0) return probeDataTextures[timestep];
@@ -268,6 +266,10 @@ public:
 	bool linearInterpTex() {return linearInterp;}
 	void setLinearInterp(bool interp){linearInterp = interp;}
 	void setIBFVColorMerged(bool val) {mergeColor = val;}
+
+	virtual int getInterpolationOrder(){
+		return ( linearInterpTex() ? 1 : 0);
+	}
 	
 	virtual bool GetIgnoreFidelity() {return ignoreFidelity;}
 	virtual void SetIgnoreFidelity(bool val){ignoreFidelity = val;}

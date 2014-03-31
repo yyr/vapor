@@ -260,14 +260,72 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 	dataMgr->UnlockGrid(rg);
 	
 }
+//Obtain a 2D histogram for the current selected variables.
 
+void EventRouter::
+refresh2DHistogram(RenderParams* tParams, int sesVarNum, const float drange[2]){
+	
+	int firstVarNum = tParams->getSessionVarNum();
+	const float* currentDatarange = tParams->getCurrentDatarange();
+	DataStatus* ds = DataStatus::getInstance();
+	DataMgr* dataMgr = ds->getDataMgr();
+	if (!dataMgr) return;
+	size_t timeStep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	if(tParams->doBypass(timeStep)) return;
+	int numVariables = ds->getNumSessionVariables2D();
+	if (numVariables <= 0) return;
+	if (!histogramList){
+		histogramList = new Histo*[numVariables];
+		numHistograms = numVariables;
+		for (int i = 0; i<numVariables; i++)
+			histogramList[i] = 0;
+	}
+	if (!histogramList[firstVarNum]){
+		histogramList[firstVarNum] = new Histo(256,currentDatarange[0],currentDatarange[1]);
+	}
+	Histo* histo = histogramList[firstVarNum];
+	histo->reset(256,currentDatarange[0],currentDatarange[1]);
+	
+
+	RegularGrid* histoGrid;
+	int actualRefLevel = tParams->GetRefinementLevel();
+	int lod = tParams->GetCompressionLevel();
+	vector<string>varnames;
+	varnames.push_back(ds->getVariableName2D(firstVarNum));
+	double exts[6];
+	tParams->GetBox()->GetLocalExtents(exts);
+	const vector<double>& userExts = dataMgr->GetExtents(timeStep);
+	for (int i = 0; i<3; i++){
+		exts[i]+=userExts[i];
+		exts[i+3]+=userExts[i];
+	}
+	int rc = Params::getGrids( timeStep, varnames, exts, &actualRefLevel, &lod, &histoGrid);
+	
+	if(!rc) return;
+
+	histoGrid->SetInterpolationOrder(0);	
+	
+	float v;
+	RegularGrid *rg_const = (RegularGrid *) histoGrid;   
+	RegularGrid::Iterator itr;
+	
+	for (itr = rg_const->begin(); itr!=rg_const->end(); ++itr) {
+		v = *itr;
+		if (v == histoGrid->GetMissingValue()) continue;
+		histo->addToBin(v);
+	}
+	
+	delete histoGrid;
+
+}
 //Obtain the current valid histogram.  if mustGet is false, don't build a new one.
 //Boolean flag is only used by isoeventrouter version
 Histo* EventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool){
-	
-	int numVariables = DataStatus::getInstance()->getNumSessionVariables();
+	DataStatus* ds = DataStatus::getInstance();
+
+	int numVariables = Max(ds->getNumSessionVariables(),ds->getNumSessionVariables2D());
 	int varNum = renParams->getSessionVarNum();
-	if (varNum >= numVariables || varNum < 0) return 0;
+	if (varNum < 0) return 0;
 	if (varNum >= numHistograms || !histogramList){
 		if (!mustGet) return 0;
 		histogramList = new Histo*[numVariables];

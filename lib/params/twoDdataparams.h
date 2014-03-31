@@ -156,7 +156,9 @@ public:
 	
 	const unsigned char* calcTwoDDataTexture(int timestep, int &wid, int &ht);
 
-	
+	virtual int getInterpolationOrder(){
+		return ( linearInterpTex() ? 1 : 0);
+	}
 	virtual void hookupTF(TransferFunction* t, int index);
 	float getOpacityScale(); 
 	void setOpacityScale(float val); 

@@ -60,6 +60,7 @@
 #include <vapor/jpegapi.h>
 #include <vapor/XmlNode.h>
 #include "vapor/GetAppPath.h"
+#include "vapor/errorcodes.h"
 #include "tabmanager.h"
 #include "isolineparams.h"
 #include "isolinerenderer.h"
@@ -101,6 +102,10 @@ IsolineEventRouter::IsolineEventRouter(QWidget* parent): QWidget(parent), Ui_Iso
 	setupUi(this);
 	myParamsBaseType = Params::GetTypeFromTag(IsolineParams::_isolineParamsTag);
 	myWebHelpActions = makeWebHelpActions(webHelpText,webHelpURL);
+	isoSelectionFrame->setOpacityMapping(true);
+	isoSelectionFrame->setColorMapping(false);
+	isoSelectionFrame->setIsoSlider(false);
+	isoSelectionFrame->setIsolineSliders(true);
 	fidelityButtons = 0;
 	savedCommand = 0;
 	ignoreComboChanges = false;
@@ -109,12 +114,13 @@ IsolineEventRouter::IsolineEventRouter(QWidget* parent): QWidget(parent), Ui_Iso
 	showAppearance = true;
 	showLayout = false;
 	showImage = true;
+	editMode = true;
 	lastXSizeSlider = 256;
 	lastYSizeSlider = 256;
 	lastXCenterSlider = 128;
 	lastYCenterSlider = 128;
 	lastZCenterSlider = 128;
-
+	isoSelectionFrame->setIsolineSliders(true);
 	
 	for (int i = 0; i<3; i++)maxBoxSize[i] = 1.f;
 	MessageReporter::infoMsg("IsolineEventRouter::IsolineEventRouter()");
@@ -123,6 +129,7 @@ IsolineEventRouter::IsolineEventRouter(QWidget* parent): QWidget(parent), Ui_Iso
 	opacityMapShown = false;
 	texShown = false;
 	isolineImageFrame->hide();
+	isoSelectionFrame->hide();
 #endif
 	
 }
@@ -160,8 +167,12 @@ IsolineEventRouter::hookUpTab()
 	connect (panelLineWidthEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (textSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (panelTextSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	
+	connect (histoScaleEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (leftHistoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (rightHistoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (fidelityDefaultButton, SIGNAL(clicked()), this, SLOT(guiSetFidelityDefault()));
+	connect (fitDataButton, SIGNAL(clicked()), this, SLOT(guiFitToData()));
+	connect (fitIsovalsButton, SIGNAL(clicked()), this, SLOT(guiFitIsovalsToHisto()));
 
 	connect (xCenterEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (yCenterEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
@@ -178,7 +189,10 @@ IsolineEventRouter::hookUpTab()
 	connect (panelLineWidthEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (textSizeEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (panelTextSizeEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	
+	connect (leftHistoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (rightHistoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (histoScaleEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+
 	connect (regionCenterButton, SIGNAL(clicked()), this, SLOT(isolineCenterRegion()));
 	connect (viewCenterButton, SIGNAL(clicked()), this, SLOT(isolineCenterView()));
 	connect (rakeCenterButton, SIGNAL(clicked()), this, SLOT(isolineCenterRake()));
@@ -189,6 +203,7 @@ IsolineEventRouter::hookUpTab()
 	connect (fitDomainButton, SIGNAL(clicked()), this, SLOT(guiFitDomain()));
 	connect (cropRegionButton, SIGNAL(clicked()), this, SLOT(guiCropToRegion()));
 	connect (cropDomainButton, SIGNAL(clicked()), this, SLOT(guiCropToDomain()));
+
 	connect (xThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateXWheel(int)));
 	connect (yThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateYWheel(int)));
 	connect (zThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateZWheel(int)));
@@ -228,6 +243,20 @@ IsolineEventRouter::hookUpTab()
 	connect (isolinePanelColorButton, SIGNAL(clicked()), this, SLOT(guiSetPanelIsolineColor()));
 	connect (isolinePanelBackgroundColorButton, SIGNAL(clicked()), this, SLOT(guiSetPanelBackgroundColor()));
 	connect (textPanelColorButton, SIGNAL(clicked()), this, SLOT(guiSetPanelTextColor()));
+	connect(newHistoButton, SIGNAL(clicked()), this, SLOT(refreshHisto()));
+	connect(editButton, SIGNAL(toggled(bool)), this, SLOT(setIsolineEditMode(bool)));
+	connect(navigateButton, SIGNAL(toggled(bool)), this, SLOT(setIsolineNavigateMode(bool)));
+
+	// isoSelectionFrame controls:
+	connect(editButton, SIGNAL(toggled(bool)), 
+            isoSelectionFrame, SLOT(setEditMode(bool)));
+	connect(alignButton, SIGNAL(clicked()), this, SLOT(guiSetAligned()));
+	connect(alignButton, SIGNAL(clicked()),
+            isoSelectionFrame, SLOT(fitToView()));
+    connect(isoSelectionFrame, SIGNAL(startChange(QString)), 
+            this, SLOT(guiStartChangeIsoSelection(QString)));
+    connect(isoSelectionFrame, SIGNAL(endChange()),
+            this, SLOT(guiEndChangeIsoSelection()));
 }
 //Insert values from params into tab panel
 //
@@ -245,6 +274,7 @@ void IsolineEventRouter::updateTab(){
 	instanceTable->rebuild(this);
 	
 	IsolineParams* isolineParams = VizWinMgr::getActiveIsolineParams();
+	isoSelectionFrame->setIsolineSliders(isolineParams->GetIsovalues());
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	size_t timestep = (size_t)vizMgr->getActiveAnimationParams()->getCurrentTimestep();
 	int winnum = vizMgr->getActiveViz();
@@ -345,9 +375,21 @@ void IsolineEventRouter::updateTab(){
 		maxGridZLabel->setText(QString::number(gridExts[5]));
 	}
 	vector<double>ivalues = isolineParams->GetIsovalues();
-	minIsoEdit->setText(QString::number(ivalues[0]));
-	maxIsoEdit->setText(QString::number(ivalues[ivalues.size()-1]));
+	//find min and max
+	double isoMax = -1.e30, isoMin = 1.e30;
+	for (int i = 0; i<ivalues.size(); i++){
+		if (isoMax<ivalues[i]) isoMax = ivalues[i];
+		if (isoMin>ivalues[i]) isoMin = ivalues[i];
+	}
+	minIsoEdit->setText(QString::number(isoMin));
+	maxIsoEdit->setText(QString::number(isoMax));
 	countIsoEdit->setText(QString::number(ivalues.size()));
+	float histoBounds[2];
+	isolineParams->GetHistoBounds(histoBounds);
+	leftHistoEdit->setText(QString::number(histoBounds[0]));
+	rightHistoEdit->setText(QString::number(histoBounds[1]));
+	histoScaleEdit->setText(QString::number(isolineParams->GetHistoStretch()));
+	
 
 	isolineWidthEdit->setText(QString::number(isolineParams->GetLineThickness()));
 	panelLineWidthEdit->setText(QString::number(isolineParams->GetPanelLineThickness()));
@@ -426,10 +468,16 @@ void IsolineEventRouter::updateTab(){
 	}
 	attachSeedCheckbox->setChecked(seedAttached);
 	int sesVarNum;
-	if (isolineParams->VariablesAre3D())
+	if (isolineParams->VariablesAre3D()){
 		sesVarNum = ds->getSessionVariableNum3D(isolineParams->GetVariableName());
-	else 
+		minDataBound->setText(QString::number(ds->getDataMin3D(sesVarNum,timestep)));
+		maxDataBound->setText(QString::number(ds->getDataMax3D(sesVarNum,timestep)));
+	}
+	else {
 		sesVarNum = ds->getSessionVariableNum2D(isolineParams->GetVariableName());
+		minDataBound->setText(QString::number(ds->getDataMin2D(sesVarNum,timestep)));
+		maxDataBound->setText(QString::number(ds->getDataMax2D(sesVarNum,timestep)));
+	}
 	
 	float val = 0.;
 	if (isolineParams->isEnabled())
@@ -446,8 +494,13 @@ void IsolineEventRouter::updateTab(){
 	int dim = isolineParams->VariablesAre3D() ? 3 : 2;
 	dimensionCombo->setCurrentIndex(dim-2);
 	ignoreComboChanges = false;
-	
-
+	if(isolineParams->GetIsoControl()){
+		isolineParams->GetIsoControl()->setParams(isolineParams);
+		isoSelectionFrame->setMapperFunction(isolineParams->GetIsoControl());
+	}
+    isoSelectionFrame->setVariableName(isolineParams->GetVariableName());
+	updateHistoBounds(isolineParams);
+	isoSelectionFrame->updateParams();
 
 	isolineImageFrame->setParams(isolineParams);
 	isolineImageFrame->update();
@@ -462,7 +515,7 @@ void IsolineEventRouter::updateTab(){
 	if (showImage) imageFrame->show();
 	else imageFrame->hide();
 	adjustSize();
-	update();
+	
 	vizMgr->getTabManager()->update();
 	
 	guiSetTextChanged(false);
@@ -507,22 +560,57 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	
 	double maxIso = (double)maxIsoEdit->text().toDouble();
 	double minIso = (double)minIsoEdit->text().toDouble();
-	ivalues.push_back(minIso);
+	double prevMinIso = 1.e30, prevMaxIso = -1.e30;
+	const vector<double>& prevIsoVals = isolineParams->GetIsovalues(); 
+	for (int i = 0; i<prevIsoVals.size(); i++){
+		if (prevIsoVals[i]<prevMinIso) prevMinIso = prevIsoVals[i];
+		if (prevIsoVals[i]>prevMaxIso) prevMaxIso = prevIsoVals[i];
+	}
 	int numIsos = countIsoEdit->text().toInt();
 	if (numIsos < 1) numIsos = 1;
-	if (maxIso <= minIso) {
+	if (maxIso < minIso) {
 		maxIso = minIso;
 		numIsos = 1;
 	}
-	//Set intermediate isovalues based on end points
-	for (int i = 1; i<numIsos; i++){
-		ivalues.push_back(minIso + (maxIso - minIso)*(float)i/(float)(numIsos-1));
+	if (maxIso > minIso && numIsos == 1){
+		numIsos = 2;
 	}
-
+	if (maxIso == minIso && numIsos > 1) {
+		numIsos = 2;
+		maxIso = minIso + 1.e-10;
+	}
+	ivalues.push_back(minIso);
+	//Did numIso's change?  If so set intermediate values based on end points.
+	if (numIsos != isolineParams->getNumIsovalues()){
+		//Set intermediate isovalues based on end points
+		
+		for (int i = 1; i<numIsos; i++){
+			ivalues.push_back(minIso + (maxIso - minIso)*(float)i/(float)(numIsos-1));
+		}
+		isolineParams->SetIsovalues(ivalues);
+	// rescale isovalues to use new interval
+	} else if ((minIso != prevMinIso || maxIso != prevMaxIso) && numIsos > 1){
+		ivalues.clear();
+		for (int i = 0; i< numIsos; i++){
+			double frac = (prevIsoVals[i]-prevMinIso)/(prevMaxIso-prevMinIso);
+			ivalues.push_back(minIso+frac*(maxIso-minIso));
+		}
+		isolineParams->SetIsovalues(ivalues);
+	}
 	minIsoEdit->setText(QString::number(minIso));
 	maxIsoEdit->setText(QString::number(maxIso));
 	countIsoEdit->setText(QString::number(ivalues.size()));
-	isolineParams->SetIsovalues(ivalues);
+
+	isolineParams->SetHistoStretch(histoScaleEdit->text().toDouble());
+	float bnds[2];
+	bnds[0] = leftHistoEdit->text().toFloat();
+	bnds[1] = rightHistoEdit->text().toFloat();
+	if (bnds[0] >= bnds[1]){
+		bnds[0] = minIso - 0.1*(maxIso-minIso);
+		bnds[1] = maxIso + 0.1*(maxIso-minIso);
+	}
+	isolineParams->SetHistoBounds(bnds);
+	
 
 	double thickness = isolineWidthEdit->text().toDouble();
 	if (thickness <= 0. || thickness > 100.) thickness = 1.0;
@@ -577,6 +665,7 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	//
 	guiSetTextChanged(false);
 	PanelCommand::captureEnd(cmd, isolineParams);
+	updateTab();
 }
 
 
@@ -1291,7 +1380,7 @@ guiChangeVariable(int varnum){
 		pParams->SetVariableName(varname);
 	}
 	
-	
+	updateHistoBounds(pParams);
 	PanelCommand::captureEnd(cmd, pParams);
 	//Need to update the selected point for the new variables
 	updateTab();
@@ -2473,4 +2562,256 @@ void IsolineEventRouter::invalidateRenderer(IsolineParams* iParams)
 {
 	IsolineRenderer* iRender = (IsolineRenderer*)VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->getRenderer(iParams);
 	if (iRender) iRender->invalidateLineCache();
+}
+
+void IsolineEventRouter::
+setIsolineEditMode(bool mode){
+	navigateButton->setChecked(!mode);
+	editMode = mode;
+}
+void IsolineEventRouter::
+setIsolineNavigateMode(bool mode){
+	editButton->setChecked(!mode);
+	editMode = !mode;
+}
+void IsolineEventRouter::
+refreshHisto(){
+	VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
+	if (!vizWin) return;
+	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
+	if (iParams->doBypass(VizWinMgr::getActiveAnimationParams()->getCurrentTimestep())){
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Unable to refresh histogram");
+		return;
+	}
+	
+	DataMgr* dataManager = Session::getInstance()->getDataMgr();
+	if (dataManager) {
+		float bnds[2];
+		iParams->GetHistoBounds(bnds);
+		refreshHistogram(iParams,iParams->getSessionVarNum(),bnds);
+	}
+	setEditorDirty(iParams);
+}
+void IsolineEventRouter::guiSetAligned(){
+	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(iParams, "fit iso selection window to view");
+	setEditorDirty(iParams);
+	update();
+	PanelCommand::captureEnd(cmd, iParams);
+}
+void IsolineEventRouter::
+guiStartChangeIsoSelection(QString qstr){
+	//If text has changed, and enter not pressed, will ignore it-- don't call confirmText()!
+	guiSetTextChanged(false);
+	//If another command is in process, don't disturb it:
+	if (savedCommand) return;
+	//Save the previous isovalue max and min
+	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
+	const vector<double>& ivalues = iParams->GetIsovalues();
+	prevIsoMin = 1.e30, prevIsoMax = -1.e30;
+	for (int i = 0; i<ivalues.size(); i++){
+		if (prevIsoMin > ivalues[i]) prevIsoMin = ivalues[i];
+		if (prevIsoMax < ivalues[i]) prevIsoMax = ivalues[i]; 
+	}
+    savedCommand = PanelCommand::captureStart(iParams, qstr.toLatin1());
+}
+//This will set dirty bits and undo/redo changes to histo bounds and eventually iso value
+void IsolineEventRouter::
+guiEndChangeIsoSelection(){
+	if (!savedCommand) return;
+	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
+	float bnds[2];
+	iParams->GetHistoBounds(bnds);
+	//see if it's necessary to Change min/max isovalue settings and hange histo bounds.
+	const vector<double>& ivalues = iParams->GetIsovalues();
+	double minIso = 1.e30, maxIso = -1.e30;
+	
+	for (int i = 0; i<ivalues.size(); i++){
+		if (minIso > ivalues[i]) minIso = ivalues[i];
+		if (maxIso < ivalues[i]) maxIso = ivalues[i]; 
+	}
+	if (minIso != prevIsoMin || maxIso != prevIsoMax){
+		//If the new values are not inside the histo bounds, respecify the bounds
+		float newHistoBounds[2];
+		if (minIso <= bnds[0] || maxIso >= bnds[1]){
+			newHistoBounds[0]=maxIso - 1.1*(maxIso-minIso);
+			newHistoBounds[1]=minIso + 1.1*(maxIso-minIso);
+			iParams->SetHistoBounds(newHistoBounds);
+		}
+	}
+	
+
+	PanelCommand::captureEnd(savedCommand,iParams);
+	
+	savedCommand = 0;
+	updateTab();
+	//force redraw with changed isovalues
+	setIsolineDirty(iParams);
+	VizWinMgr::getInstance()->forceRender(iParams,GLWindow::getCurrentMouseMode() == GLWindow::isolineMode);
+}
+//Set isoControl editor dirty.
+void IsolineEventRouter::
+setEditorDirty(RenderParams* p){
+	IsolineParams* ip = (IsolineParams*)p;
+	if(!ip) ip = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
+    isoSelectionFrame->setMapperFunction(ip->GetIsoControl());
+	isoSelectionFrame->setVariableName(ip->GetVariableName());
+	isoSelectionFrame->setIsoValue(ip->GetIsovalues()[0]);
+    isoSelectionFrame->updateParams();
+	
+    Session *session = Session::getInstance();
+
+	if (session->getNumSessionVariables()){
+		
+		const std::string& varname = ip->GetVariableName();
+		isoSelectionFrame->setVariableName(varname);
+	} else {
+		isoSelectionFrame->setVariableName("N/A");
+	}
+	if(ip) {
+		
+	}
+	isoSelectionFrame->update();
+	
+}
+/*
+ * Method to be invoked after the user has changed a variable
+ * Make the labels consistent with the new left/right data limits, but
+ * don't trigger a new undo/redo event
+ */
+void IsolineEventRouter::
+updateHistoBounds(RenderParams* params){
+	QString strn;
+	IsolineParams* iParams = (IsolineParams*)params;
+	//Find out what timestep is current:
+	int viznum = iParams->getVizNum();
+	if (viznum < 0) return;
+	int currentTimeStep = VizWinMgr::getInstance()->getAnimationParams(viznum)->getCurrentTimestep();
+	DataStatus* ds = DataStatus::getInstance();
+	int varnum;
+	float minval, maxval;
+	if (iParams->VariablesAre3D()){
+		varnum = ds->getActiveVarNum3D(iParams->GetVariableName());
+		if (iParams->isEnabled()){
+			minval = ds->getDataMin3D(varnum, currentTimeStep);
+			maxval = ds->getDataMax3D(varnum, currentTimeStep);
+		} else {
+			minval = ds->getDefaultDataMin3D(varnum);
+			maxval = ds->getDefaultDataMax3D(varnum);
+		}
+
+	} else {
+		varnum = ds->getActiveVarNum2D(iParams->GetVariableName());
+		if (iParams->isEnabled()){
+			minval = ds->getDataMin2D(varnum, currentTimeStep);
+			maxval = ds->getDataMax2D(varnum, currentTimeStep);
+		} else {
+			minval = ds->getDefaultDataMin2D(varnum);
+			maxval = ds->getDefaultDataMax2D(varnum);
+		}
+	}
+	minDataBound->setText(strn.setNum(minval));
+	maxDataBound->setText(strn.setNum(maxval));
+	
+}
+
+//Obtain a new histogram for the current selected variables.
+//Save it at the position associated with firstVarNum
+void IsolineEventRouter::
+refreshHistogram(RenderParams* p, int sesvarnum, const float drange[2]){
+	IsolineParams* pParams = (IsolineParams*)p;
+	bool is3D = pParams->VariablesAre3D();
+	if (!is3D) {
+		refresh2DHistogram(p,sesvarnum,drange);
+		return;
+	}
+	int firstVarNum = pParams->getSessionVarNum();
+	const float* currentDatarange = pParams->getCurrentDatarange();
+	DataStatus* ds = DataStatus::getInstance();
+	DataMgr* dataMgr = ds->getDataMgr();
+	if (!dataMgr) return;
+	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
+	int numVariables;
+	if (is3D) numVariables = ds->getNumSessionVariables();
+	else numVariables = ds->getNumSessionVariables2D();
+
+	if(pParams->doBypass(timeStep)) return;
+	if (!histogramList){
+		histogramList = new Histo*[numVariables];
+		numHistograms = numVariables;
+		for (int i = 0; i<numVariables; i++)
+			histogramList[i] = 0;
+	}
+	if (!histogramList[firstVarNum]){
+		histogramList[firstVarNum] = new Histo(256,currentDatarange[0],currentDatarange[1]);
+	}
+	Histo* histo = histogramList[firstVarNum];
+	histo->reset(256,currentDatarange[0],currentDatarange[1]);
+	pParams->calcSliceHistogram(timeStep, histo);
+}
+void IsolineEventRouter::guiFitToData(){
+	
+	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return;
+	confirmText(false);
+	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
+	PanelCommand* cmd = PanelCommand::captureStart(iParams, "fit histo bounds to data");
+	//Get bounds from DataStatus:
+	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
+	bool is3D = iParams->VariablesAre3D();
+
+	int sesvarnum = iParams->getSessionVarNum(); 
+
+	 
+	float minval, maxval;
+	if (is3D){
+		minval = ds->getDataMin3D(sesvarnum, ts);
+		maxval = ds->getDataMax3D(sesvarnum, ts);
+	} else {
+		minval = ds->getDataMin2D(sesvarnum, ts);
+		maxval = ds->getDataMax2D(sesvarnum, ts);
+	}
+	
+	if (minval > maxval){ //no data
+		maxval = 1.f;
+		minval = 0.f;
+	}
+	
+	iParams->GetIsoControl()->setMinHistoValue(minval);
+	iParams->GetIsoControl()->setMaxHistoValue(maxval);
+	PanelCommand::captureEnd(cmd, iParams);
+	updateTab();
+	
+}
+//Fit the isovals into current histo window.
+void IsolineEventRouter::guiFitIsovalsToHisto(){
+	confirmText(false);
+	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
+	PanelCommand* cmd = PanelCommand::captureStart(iParams, "fit isovalues to histo bounds");
+	float bounds[2];
+	iParams->GetHistoBounds(bounds);
+	const vector<double>& isovals = iParams->GetIsovalues();
+	vector<double> newIsovals;
+	if (isovals.size()==1){
+		double newval = (bounds[0]+bounds[1])*0.5;
+		newIsovals.push_back(newval);
+	} else {
+		//find min and max
+		double isoMax = -1.e30, isoMin = 1.e30;
+		for (int i = 0; i<isovals.size(); i++){
+			if (isoMax<isovals[i]) isoMax = isovals[i];
+			if (isoMin>isovals[i]) isoMin = isovals[i];
+		}
+		//Now rearrange proportionately to fit in center 90% of bounds
+		float min90 = bounds[0]+0.05*(bounds[1]-bounds[0]);
+		float max90 = bounds[0]+0.95*(bounds[1]-bounds[0]);
+		for (int i = 0; i<isovals.size(); i++){
+			double newIsoval = min90 + (max90-min90)*(isovals[i]-isoMin)/(isoMax-isoMin);
+			newIsovals.push_back(newIsoval);
+		}
+	}
+	iParams->SetIsovalues(newIsovals);
+	PanelCommand::captureEnd(cmd, iParams);
+	updateTab();
 }

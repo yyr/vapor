@@ -204,6 +204,7 @@ public:
 
 	virtual Histo* getHistogram(RenderParams*, bool mustGet, bool isIsoWin = false);
 	virtual void refreshHistogram(RenderParams* , int sesVarNum, const float drange[2]);
+	virtual void refresh2DHistogram(RenderParams* , int sesVarNum, const float drange[2]);
 
 	//For render params, setEditorDirty uses the current instance if Params
 	//arg is null

@@ -66,11 +66,13 @@ MappingFrame::MappingFrame(QWidget* parent, const char* )
     _opacityMappingEnabled(false),
     _colorMappingEnabled(false),
 	_isoSliderEnabled(false),
+	_isolineSlidersEnabled(false),
     _variableName(""),
     _domainSlider(new DomainWidget(this)),
 	_isoSlider(new IsoSlider(this)),
     _colorbarWidget(new ColorbarWidget(this, NULL)),
     _lastSelected(NULL),
+	_lastSelectedIndex(-1),
     _texid(0),
     _texture(NULL),
     _updateTexture(true),
@@ -117,6 +119,7 @@ MappingFrame::MappingFrame(QWidget* parent, const char* )
 //----------------------------------------------------------------------------
 MappingFrame::~MappingFrame()
 {
+	for (int i = 0; i<_isolineSliders.size(); i++) delete _isolineSliders[i];
   makeCurrent();
 
   //
@@ -293,6 +296,14 @@ void MappingFrame::updateParams()
     {
 	   _isoVal = ((ParamsIso*)params)->GetIsoValue();
 	   _isoSlider->setIsoValue(xDataToWorld(_isoVal));
+	}
+	else if (_isolineSlidersEnabled){
+		//Synchronize sliders with isovalues
+		const vector<double>& isovals = ((IsolineParams*)params)->GetIsovalues();
+		setIsolineSliders(isovals);
+		for (int i = 0; i<isovals.size(); i++){
+			_isolineSliders[i]->setIsoValue(xDataToWorld((float)isovals[i]));
+		}
 	}
 
     _domainSlider->setDomain(xDataToWorld(getMinDomainBound()), 
@@ -875,6 +886,7 @@ void MappingFrame::paintGL()
   //
   drawDomainSlider();
   if(_isoSliderEnabled) drawIsoSlider();
+  if(_isolineSlidersEnabled) drawIsolineSliders();
   
   //
   // Draw Domain Variable Name.  Cannot be performed in drawDomainSlider, because
@@ -923,7 +935,7 @@ void MappingFrame::paintGL()
   //
   // If the MappingFrame widget is disabled, gray it out. 
   //
-  if (!isEnabled() && !_isoSliderEnabled)
+  if (!isEnabled() && !_isoSliderEnabled  &&!_isolineSlidersEnabled)
   {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1093,6 +1105,20 @@ void MappingFrame::drawIsoSlider()
 	glPopName();
 }
 //----------------------------------------------------------------------------
+// Draw all the isoline sliders
+//----------------------------------------------------------------------------
+void MappingFrame::drawIsolineSliders()
+{
+	for (int i = 0; i<_isolineSliders.size(); i++){
+		int sliderName = (int)(ISO_WIDGET) + i + 1;
+		glPushName(sliderName);
+  
+		_isolineSliders[i]->paintGL();
+  
+		glPopName();
+	}
+}
+//----------------------------------------------------------------------------
 // Draw the colorbar
 //----------------------------------------------------------------------------
 void MappingFrame::drawColorbar()
@@ -1117,7 +1143,7 @@ void MappingFrame::updateTexture()
 	  float stretch;
 	  if (_isoSliderEnabled)
 		 stretch = ((ParamsIso*)(_mapper->getParams()))->GetIsoHistoStretch();
-	  else 
+	  else //includes isolineparams...
 		 stretch = _mapper->getParams()->GetHistoStretch();
 	 
 
@@ -1264,6 +1290,13 @@ void MappingFrame::updateAxisLabels()
 	  x = int(xWorldToView(isoval));
 	  addAxisLabel(x,y,QString("%1").arg(xWorldToData(isoval)));
   }
+  if (_isolineSlidersEnabled){
+	  for (int i = 0; i<_isolineSliders.size(); i++){
+		  float isoval = (_isolineSliders[i]->minValue() + _isolineSliders[i]->maxValue())*0.5;
+		  x = int(xWorldToView(isoval));
+		  addAxisLabel(x,y,QString("%1").arg(xWorldToData(isoval)));
+	  }
+  }
 
 
   //
@@ -1357,6 +1390,7 @@ void MappingFrame::select(int x, int y, Qt::KeyboardModifiers state)
   drawOpacityWidgets();
   drawDomainSlider();
   if(_isoSliderEnabled) drawIsoSlider();
+  if(_isolineSlidersEnabled) drawIsolineSliders();
   drawColorbar();
 
   //
@@ -1395,6 +1429,7 @@ void MappingFrame::select(int hits, GLuint *selectionBuffer, Qt::KeyboardModifie
   int offset = 0;
   int hitOffset = 0;
   int maxCount = 0;
+  _lastSelectedIndex = -1;
 
   //
   // Find the hit with the maximum count
@@ -1430,6 +1465,13 @@ void MappingFrame::select(int hits, GLuint *selectionBuffer, Qt::KeyboardModifie
     deselectWidgets();
 
     _lastSelected = _isoSlider;
+  }
+   else if ((int)selectionBuffer[hitOffset+3] > (int)ISO_WIDGET)  //must have selected one of the isoline widgets
+  {
+    deselectWidgets();
+	int selectedIndex = (int)selectionBuffer[hitOffset+3] - (int)ISO_WIDGET - 1;
+    _lastSelected = _isolineSliders[selectedIndex];
+	_lastSelectedIndex = selectedIndex;
   }
   else if (selectionBuffer[hitOffset+3] == COLORBAR_WIDGET)
   {
@@ -1479,6 +1521,7 @@ void MappingFrame::deselectWidgets()
   {
     _lastSelected->deselect();
     _lastSelected = NULL;
+	_lastSelectedIndex = -1;
   }
 
   set<GLWidget*>::iterator iter;
@@ -1640,7 +1683,11 @@ void MappingFrame::mousePressEvent(QMouseEvent *event)
 		{
 		  emit startChange("Iso slider move");
 		}
-		else 
+		else if (dynamic_cast<IsoSlider*>(_lastSelected)) //check if an isolineSlider was picked...
+		{
+		  emit startChange("Isoline slider move");
+		}
+		else
 		{
           emit startChange("Opacity map edit");
         }
@@ -1672,6 +1719,10 @@ void MappingFrame::mouseReleaseEvent(QMouseEvent *event)
 	else if (_lastSelected == _isoSlider)
     {
 	  setIsoSlider();
+	}
+	else if (dynamic_cast<IsoSlider*>(_lastSelected)  && _lastSelectedIndex >= 0) //check if an isolineSlider was picked...
+	{
+	  setIsolineSlider(_lastSelectedIndex);
 	}
     else if (_lastSelected)
     {
@@ -1706,7 +1757,7 @@ void MappingFrame::mouseDoubleClickEvent(QMouseEvent* /* event*/)
 void MappingFrame::mouseMoveEvent(QMouseEvent* event)
 {
 	if (event->buttons()== Qt::NoButton){
-		if (_isoSliderEnabled) return;
+		if (_isoSliderEnabled ||_isolineSlidersEnabled) return;
 		if (!DataStatus::trackMouse()) return;
 		QToolTip::showText(event->globalPos(), tipText(event->pos()));
 		return;
@@ -1970,6 +2021,9 @@ float MappingFrame::getMinEditBound()
 	if (_isoSliderEnabled){
 		return ((ParamsIso*)params)->getMinIsoEditBound();
 	}
+	else if (_isolineSlidersEnabled){
+		return ((IsolineParams*)params)->getMinEditBound();
+	}
     else if (_opacityMappingEnabled)
     {
       return params->getMinOpacEditBound(_mapper->getOpacVarNum());
@@ -1994,6 +2048,9 @@ float MappingFrame::getMaxEditBound()
     assert(params);
 	if (_isoSliderEnabled){
 		return ((ParamsIso*)params)->getMaxIsoEditBound();
+	}
+	else if (_isolineSlidersEnabled){
+		return ((IsolineParams*)params)->getMaxEditBound();
 	}
     else if (_opacityMappingEnabled)
     {
@@ -2021,6 +2078,9 @@ void MappingFrame::setMinEditBound(float val)
 	if (_isoSliderEnabled){
 		((ParamsIso*)params)->setMinIsoEditBound(val);
 	}
+	else if (_isolineSlidersEnabled){
+		((IsolineParams*)params)->setMinEditBound(val);
+	}
     else if (_opacityMappingEnabled)
     {
       params->setMinOpacEditBound(val, _mapper->getOpacVarNum());
@@ -2043,6 +2103,9 @@ void MappingFrame::setMaxEditBound(float val)
     assert(params);
 	if (_isoSliderEnabled){
 		((ParamsIso*)params)->setMaxIsoEditBound(val);
+	}
+	else if (_isolineSlidersEnabled){
+		((IsolineParams*)params)->setMaxEditBound(val);
 	}
     else if (_opacityMappingEnabled)
     {
@@ -2384,7 +2447,7 @@ void MappingFrame::setDomain()
     emit endChange();
 
     RenderParams *params = _mapper->getParams();
-    VizWinMgr::getEventRouter(params->GetParamsBaseTypeId())->updateMapBounds(params);
+    if(!_isoSliderEnabled && !_isolineSlidersEnabled) VizWinMgr::getEventRouter(params->GetParamsBaseTypeId())->updateMapBounds(params);
 	
     updateGL();
   }
@@ -2415,7 +2478,28 @@ void MappingFrame::setIsoSlider()
   updateGL();
   
 }
+//----------------------------------------------------------------------------
+// Deal with isoline slider movement
+//----------------------------------------------------------------------------
+void MappingFrame::setIsolineSlider(int index)
+{
+  if (!_mapper) return;
+  IsoSlider* iSlider = _isolineSliders[index];
+  float min = xWorldToData(iSlider->minValue());
+  float max = xWorldToData(iSlider->maxValue());
+  
+  emit startChange("Slide Isoline value slider");
+  RenderParams *params = _mapper->getParams();
+  IsolineParams* iParams = (IsolineParams*)params;
+  vector<double> isovals = iParams->GetIsovalues();
+  isovals[index] = (0.5*(max+min));
+  iParams->SetIsovalues(isovals);
+  
+  emit endChange();
 
+  updateGL();
+  
+}
 void MappingFrame::paintEvent(QPaintEvent* event)
 {
 	  if (!GLWindow::isRendering()) QGLWidget::paintEvent(event);
@@ -2444,3 +2528,18 @@ void MappingFrame::updateGL(){
 	return;
 }
 
+void MappingFrame::setIsolineSliders(const vector<double>& sliderVals){
+	//delete unused sliders
+	if (sliderVals.size() < _isolineSliders.size()){
+		for (int i = sliderVals.size(); i< _isolineSliders.size();i++) delete _isolineSliders[i];
+		_isolineSliders.resize(sliderVals.size());
+	} else if (sliderVals.size() > _isolineSliders.size()){
+		//create new ones:
+		for (int i = _isolineSliders.size(); i<sliderVals.size(); i++)
+			_isolineSliders.push_back(new IsoSlider(this));
+	}
+	//set the isovalues
+	for (int i = 0; i< _isolineSliders.size(); i++){ 
+		_isolineSliders[i]->setIsoValue(xDataToWorld(sliderVals[i]));
+	}
+}
