@@ -427,9 +427,9 @@ void display(void)
     //path.Draw(pathdata4, 2); //single-segment
     //path.Draw(pathdata5, 6); //kink testing
     //path.Draw(pathdata6, SPIRAL_SZ); //autospiral
-    //if(pathdata7) path.Draw(pathdata7, pd7sz / 3);
+    if(pathdata7) path.Draw(pathdata7, pd7sz / 3);
     //glTranslatef(0.f, 0.f, -3.f);
-    coneTest(conedir, 1, 1.f);
+    //coneTest(conedir, 1, 1.f);
     //drawCube();
 
     glutSwapBuffers();
