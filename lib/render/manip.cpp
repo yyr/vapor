@@ -878,7 +878,7 @@ void TranslateRotateManip::render(){
 	//Calculate the box extents, and the viewer position, in the unit cube,
 	//With any rotation applied:
 	
-	myParams->calcContainingStretchedBoxExtentsInCube(extents);
+	myParams->calcContainingStretchedBoxExtentsInCube(extents, true);
 	ViewpointParams* myViewpointParams = myGLWin->getActiveViewpointParams();
 	ViewpointParams::localToStretchedCube(myViewpointParams->getCameraPosLocal(), camVec);
 

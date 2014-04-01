@@ -283,6 +283,12 @@ MetadataVDC *CreateMetadataVDC(
 				GetCoordinates(ncdfc, ts, opt.xcoordvar, dims[0], coords);
 			}
 			else {
+				// Ugh. Stupid hack to fix bug #1007. The VDCFactory
+				// object parses the -{x,y,z}coords option and sets 
+				// the coordinates, but only for the first time step.
+				// Need to grab coordinates from ts=0, and set the rest of
+				// the time steps
+				//
 				coords = file->GetTSXCoords(0);
 			}
 			int rc = file->SetTSXCoords(ts, coords);

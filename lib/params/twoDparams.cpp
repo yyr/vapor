@@ -76,8 +76,8 @@ TwoDParams::~TwoDParams(){
 
 
 //Find the smallest stretched extents containing the twoD, 
-//Similar to above, but using stretched extents
-void TwoDParams::calcContainingStretchedBoxExtentsInCube(float* bigBoxExtents){
+//Similar to above, but using stretched extents.  not rotated
+void TwoDParams::calcContainingStretchedBoxExtentsInCube(float* bigBoxExtents, bool ){
 	if(!DataStatus::getInstance()) return;
 	//Determine the smallest axis-aligned cube that contains the twoD.  This is
 	//obtained by mapping all 8 corners into the space.
@@ -116,31 +116,7 @@ void TwoDParams::calcContainingStretchedBoxExtentsInCube(float* bigBoxExtents){
 	return;
 }
 
-	//Construct transform of form (x,y)-> a[0]x+b[0],a[1]y+b[1],
-	//Mapping [-1,1]X[-1,1] into 3D volume, in local coordinates.
-    //Also determine the first and second coords that are used in 
-    //the transform and the constant value
-    //mappedDims[0] and mappedDims[1] are the dimensions that are
-    //varying in the 3D volume.  mappedDims[2] is constant.
-    //constVal are the constant values that are used, for top and bottom of
-    //box (only different if terrain mapped)
-void TwoDParams::buildLocal2DTransform(float a[2],float b[2],float constVal[2], int mappedDims[3]){
-	//Find out orientation:
-	int dataOrientation = orientation;
-	mappedDims[2] = dataOrientation;
-	mappedDims[0] = (dataOrientation == 0) ? 1 : 0;  // x or y
-	mappedDims[1] = (dataOrientation < 2) ? 2 : 1; // z or y
-	const vector<double>& exts = GetBox()->GetLocalExtents();
-	constVal[0] = exts[dataOrientation];
-	constVal[1] = exts[dataOrientation+3];
-	//constant terms go to middle
-	b[0] = 0.5*(exts[mappedDims[0]]+exts[3+mappedDims[0]]);
-	b[1] = 0.5*(exts[mappedDims[1]]+exts[3+mappedDims[1]]);
-	//linear terms send -1,1 to box min,max
-	a[0] = b[0] - exts[mappedDims[0]];
-	a[1] = b[1] - exts[mappedDims[1]];
-
-}
+	
 //Following overrides version in Param for 2D
 //Does not support rotation or thickness
 void TwoDParams::
@@ -148,7 +124,7 @@ calcBoxCorners(float corners[8][3], float, int, float, int ){
 	
 	float a[2],b[2],constValue[2];
 	int mapDims[3];
-	buildLocal2DTransform(a,b,constValue,mapDims);
+	buildLocal2DTransform(orientation, a,b,constValue,mapDims);
 	float boxCoord[3];
 	//Return the corners of the box (in world space)
 	//Go counter-clockwise around the back, then around the front

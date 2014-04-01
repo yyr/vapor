@@ -2172,7 +2172,7 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	}
 	Histo* histo = histogramList[firstVarNum];
 	histo->reset(256,currentDatarange[0],currentDatarange[1]);
-	pParams->calcProbeHistogram(timeStep, histo);
+	pParams->calcSliceHistogram(timeStep, histo);
 }
 
 	
@@ -2712,7 +2712,7 @@ adjustBoxSize(ProbeParams* pParams){
 void ProbeEventRouter::resetTextureSize(ProbeParams* probeParams){
 	//setup the texture:
 	float voxDims[2];
-	probeParams->getProbeVoxelExtents(voxDims);
+	probeParams->getRotatedVoxelExtents(voxDims);
 	probeTextureFrame->setTextureSize(voxDims[0],voxDims[1]);
 }
 

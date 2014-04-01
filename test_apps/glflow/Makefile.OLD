@@ -1,0 +1,23 @@
+
+#@echo -e '\e[33mLINKING \e[96m$@\e[m \e[33mFROM \e[94m$^\e[1;31m'
+CFLAGS =-g
+
+main: main.o glflow.o
+	@echo -e '\e[33mLINKING \e[96m$@\e[m \e[33mFROM \e[94m$^\e[1;31m'
+	@g++ $(CFLAGS) $^ -lGL -lGLU -lglut -o $@
+	@echo -e -n "\e[m"
+
+main.o: main.cpp
+	@echo -e '\e[33mCOMPILING \e[96m$@\e[m \e[33mFROM \e[94m$^\e[1;31m'
+	@g++ $(CFLAGS) -c $^ -o $@
+	@echo -e -n "\e[m"
+
+glflow.o: glflow.cpp
+	@echo -e '\e[33mCOMPILING \e[96m$@\e[m \e[33mFROM \e[94m$^\e[1;31m'
+	@g++ $(CFLAGS) -c $< -o $@
+	@echo -e -n "\e[m"
+
+clean:
+	@rm -fv *~ *.o main
+
+

@@ -337,42 +337,7 @@ const float *ArrowParams::GetConstantColor() {
 	return(_constcolorbuf);
 }
 
-int ArrowParams::GetCompressionLevel(){
-	const vector<long> defaultLevel(1,2);
-	vector<long> valvec = GetRootNode()->GetElementLong(_CompressionLevelTag,defaultLevel);
-	return (int)valvec[0];
- }
-void ArrowParams::SetCompressionLevel(int level){
-	 vector<long> valvec(1,(long)level);
-	 GetRootNode()->SetElementLong(_CompressionLevelTag,valvec);
-	 setAllBypass(false);
- }
-int ArrowParams::GetFidelityLevel(){
-	vector<long> valvec = GetRootNode()->GetElementLong(_FidelityLevelTag);
-	return (int)valvec[0];
- }
-void ArrowParams::SetFidelityLevel(int level){
-	 vector<long> valvec(1,(long)level);
-	 GetRootNode()->SetElementLong(_FidelityLevelTag,valvec);
- }
-bool ArrowParams::GetIgnoreFidelity(){
-	vector<long> valvec = GetRootNode()->GetElementLong(_IgnoreFidelityTag);
-	return (bool)valvec[0];
- }
-void ArrowParams::SetIgnoreFidelity(bool val){
-	 vector<long> valvec(1,(long)val);
-	 GetRootNode()->SetElementLong(_IgnoreFidelityTag,valvec);
- }
- void ArrowParams::SetVisualizerNum(int viznum){
-	vector<long> valvec(1,(long)viznum);
-	GetRootNode()->SetElementLong(_VisualizerNumTag,valvec);
-	vizNum = viznum;
- }
- int ArrowParams::GetVisualizerNum(){
-	const vector<long> visnum(1,0);
-	vector<long> valvec = GetRootNode()->GetElementLong(_VisualizerNumTag,visnum);
-	return (int)valvec[0];
- }
+
 void ArrowParams::SetFieldVariableName(int i, const string& varName){
 	vector <string> svec;
 	vector <string> defaultName(1,"0");

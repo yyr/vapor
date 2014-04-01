@@ -44,7 +44,6 @@ Renderer::Renderer( GLWindow* glw, RenderParams* rp, string name)
 	initialized = false;
 	clutDirtyBit = false;
 	
-	
 	rp->initializeBypassFlags();
 }
 

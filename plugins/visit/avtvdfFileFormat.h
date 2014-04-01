@@ -47,13 +47,13 @@
 #include <avtDataSelection.h>
 #include <avtMeshMetaData.h>
 
+#include <ostream>
 #include <vector>
 #include <map>
 
-#include "vapor/DataMgr.h"
-#include "vapor/VDFIOBase.h"
-#include "vapor/WaveletBlockIOBase.h"
-#include "vapor/WaveletBlock3DRegionReader.h"
+#include "vapor/MetadataVDC.h"
+#include "vapor/DataMgrWC.h"
+#include "vapor/DataMgrWB.h"
 
 
 class DBOptionsAttributes;
@@ -99,15 +99,17 @@ class avtvdfFileFormat : public avtMTMDFileFormat
     virtual vtkDataArray *GetVar(int, int, const char *);
     virtual vtkDataArray *GetVectorVar(int, int, const char *);
 
-  protected:
 
 	// structure used to pass info about ghost boundaries (padding)
-	typedef struct datasize_t {
-		size_t     real[3]; //dimensions of actual voxel data
-		size_t   padded[3]; //dimensions of data with padding
-		size_t frontPad[3]; //padding before real data
-		size_t  backPad[3]; //padding after real data
+	class datasize_t {
+	public:
+		size_t min[3]; // min grid coordinate in voxels
+		size_t max[3]; // min grid coordinate in voxels
+		size_t dim[3]; // dimension of grid coordinate in voxels
+		friend std::ostream &operator<<(std::ostream &o, const datasize_t &ds);
 	};
+  protected:
+
 
 	bool      isLayered, // weather or not the VDF contains layered a dataset
 	          multiDom;  // weather or not we expose multiple domains to VisIt
@@ -120,7 +122,6 @@ class avtvdfFileFormat : public avtMTMDFileFormat
 	          levelsYZ;  // Highest refinement level 2D YZ mesh needed  
 
 	VAPoR::MetadataVDC      *vdc_md; // determines type of datamanger is needed
-	VAPoR::WaveletBlockIOBase     *vdfiobase; // determines type of datamanger is needed
 	VAPoR::DataMgr       *data_mgr; // Pointer to subclass 
 
 	// relate var name to dimensional type (3D,XY,XZ,YZ)
@@ -129,6 +130,8 @@ class avtvdfFileFormat : public avtMTMDFileFormat
 	// relate var name to refinement level 
 	map <string, int>     refLevel; 
 
+	int _lod;
+
 	// Hold names of all vars in dataset, per type
 	vector <string>       Names3D, xyNames, xzNames, yzNames, 
 	                      meshNames;
@@ -136,13 +139,14 @@ class avtvdfFileFormat : public avtMTMDFileFormat
     virtual void PopulateDatabaseMetaData(avtDatabaseMetaData *, int);
 	bool         CanCacheVariable(const char *var) { return false; };
 
-    void         getVoxelsInBlock(size_t*, size_t*, size_t*, size_t*);
-    void         getCoordsFromIndex(size_t*, size_t*, int);
-    void         getDatasizeFromCoords(datasize_t*, size_t*, size_t*,
-	                  size_t*, size_t*);
+    void         getCoordsFromIndex(size_t*, const size_t*, int);
+    void         getDatasizeFromCoords(
+                   datasize_t*, const size_t*, const size_t*, int
+                 );
 	char        *cleanVarname(const char *);
     void         getVarDims(string, size_t*, size_t*);
     inline void  getVarDims(int, size_t*, size_t*);
+    void         getBlockSize(size_t bs[3], int reflevel);
 };
 
 

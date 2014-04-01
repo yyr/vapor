@@ -682,7 +682,7 @@ refreshTwoDHisto(){
 	}
 	DataMgr* dataManager = Session::getInstance()->getDataMgr();
 	if (dataManager) {
-		refreshHistogram(pParams,pParams->getSessionVarNum(), pParams->getCurrentDatarange());
+		refresh2DHistogram(pParams,pParams->getSessionVarNum(), pParams->getCurrentDatarange());
 	}
 	setEditorDirty();
 }
@@ -1982,31 +1982,6 @@ QString TwoDDataEventRouter::getMappedVariableNames(int* numvars){
 	}
 	return names;
 }
-//Obtain the current valid histogram.  if mustGet is false, don't build a new one.
-//Boolean flag is only used by isoeventrouter version
-Histo* TwoDDataEventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool){
-	
-	int numVariables = DataStatus::getInstance()->getNumSessionVariables2D();
-	int varNum = renParams->getSessionVarNum();
-	if (varNum >= numVariables || varNum < 0) return 0;
-	if (varNum >= numHistograms || !histogramList){
-		if (!mustGet) return 0;
-		histogramList = new Histo*[numVariables];
-		for (int i = 0; i<numVariables; i++)
-			histogramList[i] = 0;
-		numHistograms = numVariables;
-	}
-	
-	const float* currentDatarange = renParams->getCurrentDatarange();
-	if (histogramList[varNum]) return histogramList[varNum];
-	
-	if (!mustGet) return 0;
-	histogramList[varNum] = new Histo(256,currentDatarange[0],currentDatarange[1]);
-	
-	refreshHistogram(renParams,renParams->getSessionVarNum(), currentDatarange);
-	return histogramList[varNum];
-	
-}
 
 // Map the cursor coords into local coordinates space,
 // refreshing the selected point.  CursorCoords go from -1 to 1
@@ -2020,7 +1995,7 @@ void TwoDDataEventRouter::mapCursor(){
 	float twoDCoord[3];
 	float a[2],b[2],constVal[2];
 	int mapDims[3];
-	tParams->buildLocal2DTransform(a,b,constVal,mapDims);
+	tParams->buildLocal2DTransform(tParams->getOrientation(),a,b,constVal,mapDims);
 	const float* cursorCoords = tParams->getCursorCoords();
 	//If using flat plane, the cursor sits in the z=0 plane of the twoD box coord system.
 
@@ -2206,62 +2181,7 @@ void TwoDDataEventRouter::paintEvent(QPaintEvent* ev){
 }
 #endif
 
-//Obtain a new histogram for the current selected variables.
-//Save it at the position associated with firstVarNum
-void TwoDDataEventRouter::
-refreshHistogram(RenderParams* p, int, const float[2]){
-	TwoDDataParams* tParams = (TwoDDataParams*)p;
-	int firstVarNum = tParams->getFirstVarNum();
-	const float* currentDatarange = tParams->getCurrentDatarange();
-	DataStatus* ds = DataStatus::getInstance();
-	DataMgr* dataMgr = ds->getDataMgr();
-	if (!dataMgr) return;
-	size_t timeStep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	if(tParams->doBypass(timeStep)) return;
-	if (!histogramList){
-		histogramList = new Histo*[numVariables];
-		numHistograms = numVariables;
-		for (int i = 0; i<numVariables; i++)
-			histogramList[i] = 0;
-	}
-	if (!histogramList[firstVarNum]){
-		histogramList[firstVarNum] = new Histo(256,currentDatarange[0],currentDatarange[1]);
-	}
-	Histo* histo = histogramList[firstVarNum];
-	histo->reset(256,currentDatarange[0],currentDatarange[1]);
-	
 
-	RegularGrid* histoGrid;
-	int actualRefLevel = tParams->GetRefinementLevel();
-	int lod = tParams->GetCompressionLevel();
-	vector<string>varnames;
-	varnames.push_back(ds->getVariableName2D(firstVarNum));
-	double exts[6];
-	tParams->GetBox()->GetLocalExtents(exts);
-	const vector<double>& userExts = dataMgr->GetExtents(timeStep);
-	for (int i = 0; i<3; i++){
-		exts[i]+=userExts[i];
-		exts[i+3]+=userExts[i];
-	}
-	int rc = Params::getGrids( timeStep, varnames, exts, &actualRefLevel, &lod, &histoGrid);
-	
-	if(!rc) return;
-
-	histoGrid->SetInterpolationOrder(0);	
-	
-	float v;
-	RegularGrid *rg_const = (RegularGrid *) histoGrid;   
-	RegularGrid::Iterator itr;
-	
-	for (itr = rg_const->begin(); itr!=rg_const->end(); ++itr) {
-		v = *itr;
-		if (v == histoGrid->GetMissingValue()) continue;
-		histo->addToBin(v);
-	}
-	
-	delete histoGrid;
-
-}
 //Occurs when user clicks a fidelity radio button
 void TwoDDataEventRouter::guiSetFidelity(int buttonID){
 	// Recalculate LOD and refinement based on current slider value and/or current text value

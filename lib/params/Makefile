@@ -11,7 +11,7 @@ FILES = \
 	tfinterpolator transferfunction viewpoint twoDparams \
 	twoDimageparams twoDdataparams \
 	animationparams	viewpointparams ParamsBase Box \
-	arrowparams animate\
+	arrowparams isolineparams animate \
 	Colormap OpacityMap ParamNode ParamsIso ColorMapBase \
 	MapperFunctionBase OpacityMapBase TransferFunctionLite \
 	GeoTile GeoTileEquirectangular GeoTileMercator \

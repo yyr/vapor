@@ -214,6 +214,7 @@
     <ClCompile Include="..\..\..\lib\render\flowrenderer.cpp" />
     <ClCompile Include="..\..\..\lib\render\GLModelNode.cpp" />
     <ClCompile Include="..\..\..\lib\render\glwindow.cpp" />
+    <ClCompile Include="..\..\..\lib\render\isolinerenderer.cpp" />
     <ClCompile Include="..\..\..\lib\render\isorenderer.cpp" />
     <ClCompile Include="..\..\..\lib\render\jfilewrite.cpp" />
     <ClCompile Include="..\..\..\lib\render\manip.cpp" />
@@ -254,6 +255,7 @@
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Outputs)</Outputs>
     </CustomBuild>
+    <ClInclude Include="..\..\..\lib\render\isolinerenderer.h" />
     <ClInclude Include="..\..\..\lib\render\isorenderer.h" />
     <ClInclude Include="..\..\..\include\vapor\jpegapi.h" />
     <ClInclude Include="..\..\..\lib\render\manip.h" />

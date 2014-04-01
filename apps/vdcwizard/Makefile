@@ -17,9 +17,6 @@ MAKEFILE_LDFLAGS += -framework ApplicationServices -framework AGL
 MAKEFILE_LDFLAGS += -F$(QTDIR)/lib -framework QtCore -framework QtGui
 endif
 
-MAKEFILE_INCLUDE_DIRS += $(addprefix $(QTDIR)/include/, Qt QtCore QtGui)
-
-
 HEADERS = \
 popdataadvanced \
 populatedatapage \

@@ -25,36 +25,7 @@ public:
 		return box;
 	}
 
-	//! Obtain the current compression level.
-	//!
-	//! Pure virtual method required of render params
-	//! \retval level index into the set of available compression ratios
-	virtual int GetCompressionLevel();
-	//! Set the current compression level.
-	//!
-	//! Pure virtual method required of render params
-	//
-	virtual void SetCompressionLevel(int val);
-	 //! Set the current fidelity level.
-	 //! \param [in] float fidelity
-	 //! Pure virtual method required of render params
-	 //
-	 virtual void SetFidelityLevel(int val);
-	 //! Obtain whether fidelity is ignored
-	 //!
-	 //! Pure virtual method required of render params
-	 //! \retval val bool specified if it is ignored
-	 virtual bool GetIgnoreFidelity();
-	 //! Set current ignoring of fidelity
-	 //! \param [in] bool
-	 //! Pure virtual method required of render params
-	 //
-	 virtual void SetIgnoreFidelity(bool val);
-	 //! Obtain the current fidelity level.
-	 //!
-	 //! Pure virtual method required of render params
-	 //! \retval level float between 0 and 1
-	 virtual int GetFidelityLevel();
+	
 	//! Reinitialize the object for a new dataset.
 	//!
 	//! Pure virtual method required of Params
@@ -116,14 +87,7 @@ public:
 	void SetVectorScale(double val){
 		GetRootNode()->SetElementDouble(_vectorScaleTag, val);
 	}
-	void SetRefinementLevel(int level){
-		GetRootNode()->SetElementLong(_RefinementLevelTag, level);
-		setAllBypass(false);
-	}
-	int GetRefinementLevel(){
-		const vector<long>defaultRefinement(1,0);
-		return (GetRootNode()->GetElementLong(_RefinementLevelTag,defaultRefinement)[0]);
-	}
+	
 	bool IsTerrainMapped(){
 		const vector<long>off(1,0);
 		return (GetRootNode()->GetElementLong(_terrainMapTag,off)[0]);
@@ -134,8 +98,7 @@ public:
 	}
 	void SetConstantColor(const float rgb[3]);
 	const float *GetConstantColor();
-	void SetVisualizerNum(int viznum);
-	int GetVisualizerNum();
+	
 	void SetFieldVariableName(int i, const string& varName);
 	const string& GetFieldVariableName(int i);
 	void SetHeightVariableName(const string& varName);

@@ -226,7 +226,8 @@ IsoControl::IsoControl() :
 		_opacityMaps[i] = NULL;
     }
     _opacityMaps.clear();
-	isoValue = 0.;
+	isoValues.clear();
+	isoValues.push_back(0.);
 	if (_colormap) delete _colormap;
 	_colormap = 0;
 }
@@ -246,7 +247,8 @@ IsoControl::IsoControl(RenderParams* p, int nBits) :
     }
     _opacityMaps.clear();
 
-	isoValue = 0.;
+	isoValues.clear();
+	isoValues.push_back(0.);
 	// Now recreate color map with the appropriate type
 	//
     //_colormap = new Colormap(this);
@@ -271,7 +273,7 @@ IsoControl::IsoControl(const IsoControl &mapper) :
 
     _opacityMaps.clear();
 
-	isoValue = mapper.isoValue;
+	isoValues = mapper.isoValues;
 	// Now recreate color map with the appropriate type
 	//
 	//const Colormap &cmap =  (const Colormap &) (*(mapper._colormap));
@@ -380,7 +382,7 @@ bool IsoControl::elementEndHandler(ExpatParseMgr* pm, int depth ,
 		return ok;
 	} else if (StrCmpNoCase(tag, ParamsIso::_IsoValueTag) == 0) {		
 		vector<double> isoval = pm->getDoubleData();
-		isoValue = isoval[0];
+		isoValues = isoval;
 		return true;
 	} else if (StrCmpNoCase(tag, _leftHistoBoundTag) == 0) {		
 		vector<double> histval = pm->getDoubleData();
@@ -416,9 +418,6 @@ ParamNode* IsoControl::buildNode()
 	mainNode->SetElementDouble(_rightHistoBoundTag, (double) getMaxOpacMapValue());
 	
 	//add an isovalue node:
-	vector<double> isoval;
-	isoval.clear();
-	isoval.push_back(isoValue);
-	mainNode->SetElementDouble(ParamsIso::_IsoValueTag, isoval);
+	mainNode->SetElementDouble(ParamsIso::_IsoValueTag, isoValues);
 	return mainNode;
 }

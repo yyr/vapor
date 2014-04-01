@@ -105,6 +105,11 @@ public:
   void setIsoSlider(bool flag) {_isoSliderEnabled = flag;}
   bool isoSliderEnabled() const { return _isoSliderEnabled; }
 
+  void setIsolineSliders(bool flag) {_isolineSlidersEnabled = flag;}
+  bool isolineSlidersEnabled() const { return _isolineSlidersEnabled; }
+
+  void setIsolineSliders(const vector<double>& slidervals);
+
   void setVariableName(std::string name);
 
   void setIsoValue(float val){_isoVal = val;}
@@ -185,6 +190,7 @@ protected:
   void drawOpacityWidgets();
   void drawDomainSlider();
   void drawIsoSlider();
+  void drawIsolineSliders();
   void drawColorbar();
 
   void updateTexture();
@@ -241,6 +247,7 @@ protected slots:
 
   void setDomain();
   void setIsoSlider();
+  void setIsolineSlider(int sliderIndex);
 
 private:
 
@@ -252,6 +259,10 @@ private:
   bool            _opacityMappingEnabled;
   bool            _colorMappingEnabled;
   bool			  _isoSliderEnabled;
+  bool			  _isolineSlidersEnabled;
+  vector<IsoSlider*> _isolineSliders;
+  int			_lastSelectedIndex;
+
 
   std::string     _variableName;
 

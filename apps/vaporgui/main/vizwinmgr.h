@@ -33,6 +33,7 @@ class QTimer;
 #include "regionparams.h"
 #include "probeparams.h"
 #include "flowparams.h"
+#include "isolineparams.h"
 
 #include "dvrparams.h"
 #include "animationparams.h"
@@ -219,6 +220,8 @@ public:
 	static DvrParams* getActiveDvrParams(){
 		return((DvrParams*)Params::GetParamsInstance(Params::_dvrParamsTag,getInstance()->activeViz,-1));
 	}
+	static IsolineParams* getActiveIsolineParams(){
+		return ((IsolineParams*)Params::GetParamsInstance(IsolineParams::_isolineParamsTag,getInstance()->activeViz,-1));}
 	static ProbeParams* getActiveProbeParams(){
 		return ((ProbeParams*)Params::GetParamsInstance(Params::_probeParamsTag,getInstance()->activeViz,-1));}
 	static TwoDDataParams* getActiveTwoDDataParams(){
@@ -293,6 +296,7 @@ public:
 		return Params::GetParamsInstance(Params::GetTypeFromTag(Params::_dvrParamsTag),winnum, instance);
 	}
 	ProbeParams* getProbeParams(int winNum, int instance = -1);
+	IsolineParams* getIsolineParams(int winNum, int instance = -1);
 	TwoDDataParams* getTwoDDataParams(int winNum, int instance = -1);
 	TwoDImageParams* getTwoDImageParams(int winNum, int instance = -1);
 	
@@ -383,6 +387,7 @@ public:
 	void refreshViewpoint(ViewpointParams* vParams);
 	void refreshRegion(RegionParams* rParams);
 	void refreshProbe(ProbeParams* pParams);
+	void refreshIsoline(IsolineParams* pParams);
 	void refreshTwoDData(TwoDDataParams* pParams);
 	void refreshTwoDImage(TwoDImageParams* pParams);
 	

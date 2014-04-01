@@ -40,6 +40,7 @@
 //                            avtvdfFileFormat.C                           //
 // ************************************************************************* //
 
+#include <cstdio>
 #include <avtvdfFileFormat.h>
 #include <avtGhostData.h>
 #include <avtLogicalSelection.h>
@@ -58,11 +59,6 @@
 #include <DBOptionsAttributes.h>
 #include <Expression.h>
 #include <string>
-
-#include <vapor/MyBase.h>
-#include <vapor/WaveletBlock3DRegionReader.h>
-#include <vapor/DataMgrWB.h>
-#include <vapor/DataMgrLayered.h>
 
 #include <snprintf.h> //used by VisIt for Windows workaround 
 
@@ -84,44 +80,40 @@ void err_callback(const char *msg, int n) { printf("err{%d}: %s\n",n,msg); }
 avtvdfFileFormat::avtvdfFileFormat(const char *filename, 
 	DBOptionsAttributes *readOpts) : avtMTMDFileFormat(filename)
 {
+cerr << "avtvdfFileFormat::avtvdfFileFormat() " << filename << endl;
 	size_t maxts;
 	int buffer_size = readOpts->GetInt("Cache size [MB]");
-	double heightMult_layered = readOpts->GetDouble(
-		"Layered data resampling factor");
 	multiDom = readOpts->GetBool("MultiDomain");
 
-	if (heightMult_layered <= 0.f || buffer_size <= 0)
+	if (buffer_size <= 0) {
 		EXCEPTION1(InvalidDBTypeException, "Invalid Option, must be >0."); 
+	}
 
 	vdc_md = new VAPoR::MetadataVDC(string(filename));
-	vdfiobase = new VAPoR::WaveletBlock3DRegionReader(string(filename));
 	if (vdc_md == NULL) printf ("NULL VDC!\n");
 
 	// instantiate the correct data manager sub-type.
-	isLayered = (vdc_md->GetGridType().compare("layered") == 0);
-	if (isLayered) {
-		VAPoR::DataMgrLayered *dmLayered_inst = new VAPoR::DataMgrLayered(string(filename),
-			buffer_size );
-		data_mgr = dmLayered_inst;
-	} else {
-		VAPoR::DataMgrWB *dmWB_inst = new VAPoR::DataMgrWB(*vdc_md, buffer_size );
-		data_mgr = dmWB_inst;
+	if (vdc_md->GetVDCType() == 1) {
+		data_mgr = new DataMgrWB(*vdc_md, buffer_size);
 	}
+	else {
+		data_mgr = new DataMgrWC(*vdc_md, buffer_size);
+	}
+//DataMgr::SetDiagMsgFilePtr(stderr);
+		
 	if (data_mgr == NULL) printf("NULL Datamanager!\n");
 
-//	MyBase::SetErrMsgCB(err_callback);
-//	MyBase::SetDiagMsgCB(debug_callback);
-
-	num_levels = vdc_md->GetNumTransforms() + 1; 
-	maxts = vdc_md->GetNumTimeSteps(),
+	num_levels = data_mgr->GetNumTransforms() + 1; 
+	maxts = data_mgr->GetNumTimeSteps(),
 	tsteps = new int[maxts];
 	ntsteps = 0;
+	_lod = 0;
 
 	levels3D = levelsXY = levelsXZ = levelsYZ = -1;
-	Names3D = (vector<string>) (vdc_md->GetVariables3D());
-	xyNames = (vector<string>) (vdc_md->GetVariables2DXY());
-	xzNames = (vector<string>) (vdc_md->GetVariables2DXZ());
-	yzNames = (vector<string>) (vdc_md->GetVariables2DYZ());
+	Names3D = (vector<string>) (data_mgr->GetVariables3D());
+	xyNames = (vector<string>) (data_mgr->GetVariables2DXY());
+	xzNames = (vector<string>) (data_mgr->GetVariables2DXZ());
+	yzNames = (vector<string>) (data_mgr->GetVariables2DYZ());
 
 	// search through all possible variables, refinement levels, 
 	//   and timesteps to eliminate timesteps with no valid data, and 
@@ -133,7 +125,7 @@ avtvdfFileFormat::avtvdfFileFormat(const char *filename,
 		for (int l=0; l<num_levels; l++) {
 
 			for (int n=0; n<Names3D.size(); n++){
-				if (vdfiobase->VariableExists((size_t)t, Names3D[n].c_str(), l) !=0) {
+				if (data_mgr->VariableExists((size_t)t, Names3D[n].c_str(), l, _lod) !=0) {
 					varTypes[Names3D[n]] = 0;
 					levels3D = (l > levels3D)? l: levels3D;
 					refLevel[Names3D[n]] = levels3D;
@@ -141,7 +133,7 @@ avtvdfFileFormat::avtvdfFileFormat(const char *filename,
 				}
 			}
 			for (int n=0; n<xyNames.size(); n++){
-				if (vdfiobase->VariableExists((size_t)t, xyNames[n].c_str(), l) !=0) {
+				if (data_mgr->VariableExists((size_t)t, xyNames[n].c_str(), l, _lod) !=0) {
 					varTypes[xyNames[n]] = 1;
 					levelsXY = (l > levelsXY)? l: levelsXY;
 					refLevel[xyNames[n]] = levelsXY;
@@ -149,7 +141,7 @@ avtvdfFileFormat::avtvdfFileFormat(const char *filename,
 				}
 			}
 			for (int n=0; n<xzNames.size(); n++){
-				if (vdfiobase->VariableExists((size_t)t, xzNames[n].c_str(), l) !=0) {
+				if (data_mgr->VariableExists((size_t)t, xzNames[n].c_str(), l, _lod) !=0) {
 					varTypes[xzNames[n]] = 2;
 					levelsXZ = (l > levelsXZ)? l: levelsXZ;
 					refLevel[xzNames[n]] = levelsXZ;
@@ -157,7 +149,7 @@ avtvdfFileFormat::avtvdfFileFormat(const char *filename,
 				}
 			}
 			for (int n=0; n<yzNames.size(); n++){
-				if (vdfiobase->VariableExists((size_t)t, yzNames[n].c_str(), l) !=0) {
+				if (data_mgr->VariableExists((size_t)t, yzNames[n].c_str(), l, _lod) !=0) {
 					varTypes[yzNames[n]] = 3;
 					levelsYZ = (l > levelsYZ)? l: levelsYZ;
 					refLevel[yzNames[n]] = levelsYZ;
@@ -176,6 +168,8 @@ avtvdfFileFormat::avtvdfFileFormat(const char *filename,
 	if (ntsteps == 0 || data_mgr == NULL)
 		EXCEPTION1(InvalidDBTypeException, "No valid data."); 
 
+
+cerr << "avtvdfFileFormat::avtvdfFileFormat() exit " << endl;
 }
 
 // ****************************************************************************
@@ -189,9 +183,8 @@ avtvdfFileFormat::avtvdfFileFormat(const char *filename,
 avtvdfFileFormat::~avtvdfFileFormat()
 {
 	// clean up memory
-	delete   data_mgr; 
-	delete   vdfiobase; 
-	delete   vdc_md; 
+	if (data_mgr) delete   data_mgr; 
+	if (vdc_md) delete   vdc_md; 
 	delete[] tsteps;
 }
 
@@ -233,7 +226,7 @@ void
 avtvdfFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md, int timeState)
 {
 	//clear any old error messages before we start
-	vdfiobase->SetErrCode(0);
+	data_mgr->SetErrCode(0);
 
 	size_t ldim[3], bdim[num_levels][3];
 	char refNames[num_levels][20];
@@ -249,14 +242,15 @@ avtvdfFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md, int timeStat
          XZMname[num_levels][50], 
          YZMname[num_levels][50];
 	// meshes describe the positions of datapoints in 3D space, add one for
-	// each type of Vapor data variable and refinement level, for which at
-	// least one valid variable exists to use it.
+	//   each type of Vapor data variable and refinement level, for which at
+	//   least one valid variable exists to use it.
 
 	for (int j=0; j<=levels3D; j++) {
 		SNPRINTF(Mname3D[j], 50, "3D_%s", refNames[j]);
 		AddMeshToMetaData(md, Mname3D[j], AVT_RECTILINEAR_MESH, extents, 
 			multiDom? bdim[j][0]*bdim[j][1]*bdim[j][2]: 1, 0,3,3);
-		md->SetContainsGhostZones(string(Mname3D[j]),AVT_CREATED_GHOSTS);
+//		md->SetContainsGhostZones(string(Mname3D[j]),AVT_CREATED_GHOSTS);
+md->SetContainsGhostZones(string(Mname3D[j]),AVT_NO_GHOSTS);
 		md->SetContainsOriginalCells(string(Mname3D[j]),true);
 		refLevel[Mname3D[j]] = j;
 	}
@@ -284,14 +278,14 @@ avtvdfFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md, int timeStat
 
 	char vname[100];
 	// create a visit variable for each valid refinement level for each
-	// valid Vapor variable. Name it <MeshType>/XxYxZ/<Vapor variable name>
-	// the '/' char tells visit to create a submenu.  Attach to the correct 
-	// mesh based on dimensional type and refinement level 
+	//   valid Vapor variable. Name it <MeshType>/XxYxZ/<Vapor variable name>
+	//   the '/' char tells visit to create a submenu.  Attach to the correct 
+	//   mesh based on dimensional type and refinement level 
 
 	for (int i=0; i<Names3D.size(); i++) {
 		for (int l=0; l<=refLevel[Names3D[i]]; l++) {
 			SNPRINTF(vname, 100, "3D/%s/%s", refNames[l], Names3D[i].c_str());
-			AddScalarVarToMetaData(md, vname, Mname3D[l], AVT_ZONECENT);
+			AddScalarVarToMetaData(md, vname, Mname3D[l], AVT_NODECENT);
 			varTypes[vname] = 0;
 			refLevel[vname] = l;
 		}
@@ -299,7 +293,7 @@ avtvdfFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md, int timeStat
 	for (int i=0; i<xyNames.size(); i++) {
 		for (int l=0; l<=refLevel[xyNames[i]]; l++) {
 			SNPRINTF(vname, 100, "2D/%s/%s", refNames[l], xyNames[i].c_str());
-			AddScalarVarToMetaData(md, vname, XYMname[l], AVT_ZONECENT);
+			AddScalarVarToMetaData(md, vname, XYMname[l], AVT_NODECENT);
 			varTypes[vname] = 1;
 			refLevel[vname] = l;
 		}
@@ -307,7 +301,7 @@ avtvdfFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md, int timeStat
 	for (int i=0; i<xzNames.size(); i++) {
 		for (int l=0; l<=refLevel[xzNames[i]]; l++) {
 			SNPRINTF(vname, 100, "2D/%s/%s", refNames[l], xzNames[i].c_str());
-			AddScalarVarToMetaData(md, vname, XZMname[l], AVT_ZONECENT);
+			AddScalarVarToMetaData(md, vname, XZMname[l], AVT_NODECENT);
 			varTypes[vname] = 2;
 			refLevel[vname] = l;
 		}
@@ -315,7 +309,7 @@ avtvdfFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md, int timeStat
 	for (int i=0; i<yzNames.size(); i++) {
 		for (int l=0; l<=refLevel[yzNames[i]]; l++) {
 			SNPRINTF(vname, 100, "2D/%s/%s", refNames[l], yzNames[i].c_str());
-			AddScalarVarToMetaData(md, vname, YZMname[l], AVT_ZONECENT);
+			AddScalarVarToMetaData(md, vname, YZMname[l], AVT_NODECENT);
 			varTypes[vname] = 3;
 			refLevel[vname] = l;
 		}
@@ -349,59 +343,72 @@ avtvdfFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md, int timeStat
 vtkDataSet *
 avtvdfFileFormat::GetMesh(int timestate, int domain, const char *meshname)
 {
+cerr << "avtvdfFileFormat::GetMesh() " << timestate << " " << domain << " " << string(meshname) << endl;
 	//clear any old error messages before we start
-	vdfiobase->SetErrCode(0);
+	data_mgr->SetErrCode(0);
 
 	// Build the 3D mesh, and refactor appropriately for 2D meshes 
-	size_t dims_st[3], bdims[3];
-	const size_t *block_size = vdc_md->GetBlockSize();
-	int dim_start[3];
+	datasize_t ds;
+	size_t dims[3], bdims[3], bcoords[3];
 
-	getVarDims(string(meshname), dims_st, bdims);
+	getVarDims(string(meshname), dims, bdims);
 
-	size_t coordsB[3], dims_real[3];
-	if (multiDom){
-		getCoordsFromIndex(coordsB, bdims, domain);
-		getVoxelsInBlock(dims_real, dims_st, bdims, coordsB);
-		for (int i=0; i<3; i++) {
-			dims_real[i] ++;
-			dim_start[i] = (block_size[i])*(coordsB[i])-(coordsB[i]==0?0:1);
-		}
-	} 
+	// figure out which data we need to request from data_mgr 
+	if (multiDom) {
+		getCoordsFromIndex(bcoords, bdims, domain);
+		getDatasizeFromCoords(
+			&ds, dims, bcoords, refLevel[meshname]
+		);
+	}
 	else {
 		for (int i=0; i<3; i++) {
-			dim_start[i] = 0;
-			dims_real[i] = dims_st[i] + 1;
+			ds.min[i] = 0;
+			ds.max[i] = dims[i]-1;
+			ds.dim[i] = dims[i];
 		}
 	}
-
-	const vector<double> glExtents = vdc_md->GetExtents(),
-	      tsExtents = vdc_md->GetTSExtents((size_t)tsteps[timestate]),
-	      uExtents = tsExtents.empty()? glExtents: tsExtents;
-
-	// find user delta value for each dimension 
-	float dx = ((float)uExtents[3] - (float)uExtents[0])/(float)dims_st[0], 
-	      dy = ((float)uExtents[4] - (float)uExtents[1])/(float)dims_st[1],
-	      dz = ((float)uExtents[5] - (float)uExtents[2])/(float)dims_st[2];
 
 	// these arrays map data coords to user coords 
 	vtkFloatArray *coordsX = vtkFloatArray::New();
 	vtkFloatArray *coordsY = vtkFloatArray::New();
 	vtkFloatArray *coordsZ = vtkFloatArray::New();
 
-	coordsX->SetNumberOfTuples(dims_real[0]);
-	coordsY->SetNumberOfTuples(dims_real[1]);
-	coordsZ->SetNumberOfTuples(dims_real[2]);
+	coordsX->SetNumberOfTuples(ds.dim[0]);
+	coordsY->SetNumberOfTuples(ds.dim[1]);
+	coordsZ->SetNumberOfTuples(ds.dim[2]);
+
+	int reflevel = refLevel[meshname];
 
 	// compute user coords for each data coord 
-	for (int i=(dim_start[0]), j=0; j<dims_real[0]; i++, j++) { 
-		coordsX->SetValue(j, (float)i*dx + uExtents[0]);
+	//
+	for (int i=(ds.min[0]), j=0; i<=ds.max[0]; i++, j++) { 
+		size_t ijk[] = {i,0,0};
+		double xyz[3];
+		data_mgr->MapVoxToUser((size_t)tsteps[timestate], ijk,xyz, reflevel);
+cerr << "MapVoxToUser(ts, ijk,xyz, reflevel) : " 
+<< (size_t)tsteps[timestate] << " "
+<< ijk[0] << " " 
+<< ijk[1] << " " 
+<< ijk[2] << " " 
+<< xyz[0] << " " 
+<< xyz[1] << " " 
+<< xyz[2] << " " 
+<< reflevel << " " 
+<< endl;
+
+		coordsX->SetValue(j, xyz[0]);
 	}
-	for (int i=(dim_start[1]), j=0; j<dims_real[1]; i++, j++) { 
-		coordsY->SetValue(j, (float)i*dy + uExtents[1]);
+	for (int i=(ds.min[1]), j=0; i<=ds.max[1]; i++, j++) { 
+		size_t ijk[] = {0,i,0};
+		double xyz[3];
+		data_mgr->MapVoxToUser((size_t)tsteps[timestate], ijk,xyz, reflevel);
+		coordsY->SetValue(j, xyz[1]);
 	}
-	for (int i=(dim_start[2]), j=0; j<dims_real[2]; i++, j++) { 
-		coordsZ->SetValue(j, (float)i*dz + uExtents[2]);
+	for (int i=(ds.min[2]), j=0; i<=ds.max[2]; i++, j++) { 
+		size_t ijk[] = {0,0,i};
+		double xyz[3];
+		data_mgr->MapVoxToUser((size_t)tsteps[timestate], ijk,xyz, reflevel);
+		coordsZ->SetValue(j, xyz[2]);
 	}
 
 	// adjust array dimensions if var is only 2D 
@@ -409,17 +416,17 @@ avtvdfFileFormat::GetMesh(int timestate, int domain, const char *meshname)
 		//already done!
 
 	} else if (!strncmp(meshname, "XY", 2)) {
-		dims_real[2] = 1;
+		ds.dim[2] = 1;
 		coordsZ->SetNumberOfTuples(1);
 		coordsZ->SetValue(0, 0.f);
 
 	} else if (!strncmp(meshname, "XZ", 2)) {
-		dims_real[1] = 1;
+		ds.dim[1] = 1;
 		coordsY->SetNumberOfTuples(1);
 		coordsY->SetValue(0, 0.f);
 
 	} else if (!strncmp(meshname, "YZ", 2)) {
-		dims_real[0] = 1;
+		ds.dim[0] = 1;
 		coordsX->SetNumberOfTuples(1);
 		coordsX->SetValue(0, 0.f);
 
@@ -431,10 +438,12 @@ avtvdfFileFormat::GetMesh(int timestate, int domain, const char *meshname)
 
 	// apply coordinate maps and return rgrid
 	vtkRectilinearGrid *rgrid = vtkRectilinearGrid::New();
-	rgrid->SetDimensions(dims_real[0], dims_real[1], dims_real[2]);
+	rgrid->SetDimensions(ds.dim[0], ds.dim[1], ds.dim[2]);
 	rgrid->SetXCoordinates(coordsX);
 	rgrid->SetYCoordinates(coordsY);
 	rgrid->SetZCoordinates(coordsZ);
+
+#ifdef	DEAD	// No more ghost zones!
 
 	if (multiDom) { //only add ghost data for multi-domain
 		// Now that you have your mesh, figure out which cells need 
@@ -444,8 +453,8 @@ avtvdfFileFormat::GetMesh(int timestate, int domain, const char *meshname)
 		// Now that we have the blanks array, create avtGhostZones. 
 		unsigned char realVal = 0, ghost = 0; 
 		size_t cell[3], cellMax[3]; 
-		for(int i=0; i<3; i++) cellMax[i] = dims_real[i]-1;
-		avtGhostData::AddGhostZoneType(ghost, DUPLICATED_ZONE_INTERNAL_TO_PROBLEM); 
+		for(int i=0; i<3; i++) cellMax[i] = ds.dim[i]-1;
+//		avtGhostData::AddGhostZoneType(ghost, DUPLICATED_NODE_INTERNAL_TO_PROBLEM); 
 
 		vtkUnsignedCharArray *ghostCells = vtkUnsignedCharArray::New(); 
 		ghostCells->SetName("avtGhostZones"); 
@@ -454,12 +463,12 @@ avtvdfFileFormat::GetMesh(int timestate, int domain, const char *meshname)
 		for(int i = 0; i < nCells; ++i) 
 		{ 
 			getCoordsFromIndex(cell, cellMax, i);
-			bool isGhost = ((cell[0] == 0) && (coordsB[0] != 0)) || 
-				 ((cell[0] == cellMax[0]-1) && (coordsB[0] != bdims[0]-1 )) ||  
-				 ((cell[1] == 0) && (coordsB[1] != 0)) || 
-				 ((cell[1] == cellMax[1]-1) && (coordsB[1] != bdims[1]-1 )) ||  
-				 ((cell[2] == 0) && (coordsB[2] != 0)) || 
-				 ((cell[2] == cellMax[2]-1) && (coordsB[2] != bdims[2]-1 )); 
+			bool isGhost = ((cell[0] == 0) && (bcoords[0] != 0)) || 
+				 ((cell[0] == cellMax[0]-1) && (bcoords[0] != bdims[0]-1 )) ||  
+				 ((cell[1] == 0) && (bcoords[1] != 0)) || 
+				 ((cell[1] == cellMax[1]-1) && (bcoords[1] != bdims[1]-1 )) ||  
+				 ((cell[2] == 0) && (bcoords[2] != 0)) || 
+				 ((cell[2] == cellMax[2]-1) && (bcoords[2] != bdims[2]-1 )); 
 
 			if (isGhost) {
 				ghostCells->InsertNextValue(ghost);
@@ -471,12 +480,15 @@ avtvdfFileFormat::GetMesh(int timestate, int domain, const char *meshname)
 		rgrid->SetUpdateGhostLevel(0); 
 		ghostCells->Delete();
 
-		// Clean up 
-		coordsX->Delete();
-		coordsY->Delete();
-		coordsZ->Delete();
 	}
+#endif
 
+	// Clean up 
+	coordsX->Delete();
+	coordsY->Delete();
+	coordsZ->Delete();
+
+cerr << "avtvdfFileFormat::GetMesh() exit " << endl;
 	return rgrid;
 }
 
@@ -505,20 +517,17 @@ avtvdfFileFormat::GetMesh(int timestate, int domain, const char *meshname)
 vtkDataArray *
 avtvdfFileFormat::GetVar(int timestate_in, int domain, const char *varname)
 {
+cerr << "avtvdfFileFormat::GetVar() " << timestate_in << " " << domain << " " << string(varname) << endl;
 	//clear any old error messages before we start
-	vdfiobase->SetErrCode(0);
+	data_mgr->SetErrCode(0);
 
 	// Get actual timestep/varname used in vdf 
 	string varstring(varname);
 	char *varname_clean = cleanVarname(varname);
 	size_t timestate = (size_t) tsteps[timestate_in];
 
-	// Need to add lod value for GetRegion call for VAPOR 2.0.2 api.
-	// Setting the value to zero, not sure if correct.
-	int lod = 0; 
-
 	// Verifty that data for this var at this time and refinement exists 
-	if (!vdfiobase->VariableExists(timestate, varname_clean, refLevel[varstring])) { 
+    if (!data_mgr->VariableExists(timestate, varname_clean, refLevel[varstring],_lod)) { 
 		stringstream mesg;
 		mesg << "Data for " << varname_clean << " does not exist in timestep " 
 		     << timestate << " at refinement level " << refLevel[varstring] << "].";
@@ -528,34 +537,25 @@ avtvdfFileFormat::GetVar(int timestate_in, int domain, const char *varname)
 
 	// Get blocksize and data bounds to calculate padding 
 	datasize_t ds;
-	size_t dmin[3], dmax[3], bdims[3], udims[3];
-	const size_t *bmsize = vdc_md->GetBlockSize();
-	getVarDims(varstring, udims, bdims);
+	size_t bdims[3], dims[3];
+	size_t bcoords[3];
+	getVarDims(varstring, dims, bdims);
 
 	// figure out which data we need to request from data_mgr 
 	if (multiDom) {
-		getCoordsFromIndex(dmin, bdims, domain);
-		getDatasizeFromCoords(&ds, udims, bdims, dmin, dmax);
+		getCoordsFromIndex(bcoords, bdims, domain);
+		getDatasizeFromCoords(
+			&ds, dims, bcoords, refLevel[varstring]
+		);
 	}
 	else {
 		for (int i=0; i<3; i++) {
-			dmin[i] = 0;
-			dmax[i]=bdims[i]-1;
-
-			ds.frontPad[i] = 0;
-			ds.padded[i] = bmsize[i]*bdims[i];
-			ds.backPad[i] = ds.padded[i] - udims[i];
-			ds.real[i] = ds.padded[i] - ds.backPad[i];
+			ds.min[i] = 0;
+			ds.max[i] = dims[i]-1;
+			ds.dim[i] = dims[i];
 		}
-	} // else
-
-	// get pointer to actual data (may be padded), thow execption on error
-	float *data_floats = data_mgr->GetRegion(timestate, varname_clean, 
-		refLevel[varstring], lod, dmin, dmax);
-
-	if (data_floats == NULL) { 
-		EXCEPTION1(InvalidVariableException, "Data manager returned NULL pointer.");
 	}
+
 
 	// set up extents for return vector based on data type
 	int which_dim;
@@ -569,31 +569,49 @@ avtvdfFileFormat::GetVar(int timestate_in, int domain, const char *varname)
 			break;
 	}
 	if (which_dim != -1) {
-		ds.frontPad[which_dim] = 0;
-		ds.backPad[which_dim] = 0;
-		ds.padded[which_dim] = 1;
-		ds.real[which_dim] = 1;
+		ds.min[which_dim] = 0;
+		ds.max[which_dim] = 0;
+		ds.dim[which_dim] = 1;
+	}
+
+	cerr << ds << endl;
+
+	// get pointer to actual data (may be padded), thow execption on error
+
+	RegularGrid *rg = data_mgr->GetGrid(
+		timestate, varname_clean, refLevel[varstring], _lod, 
+		ds.min, ds.max, false
+	);
+cerr << "GetGrid(ts, varname, reflevel, lod, min, max) : " 
+<< timestate << " "
+<< varname << " "
+<< refLevel[varstring] << " "
+<< _lod << " "
+<< ds.min[0] << " " 
+<< ds.min[1] << " " 
+<< ds.min[2] << " " 
+<< ds.max[0] << " " 
+<< ds.max[1] << " " 
+<< ds.max[2] << " " 
+<< endl;
+
+    if (rg == NULL) { 
+		EXCEPTION1(InvalidVariableException, "Data manager returned NULL pointer.");
 	}
 
 	// create return vector, filling with only valid data 
-	int idx = 0, numdata = ds.real[0] * ds.real[1] * ds.real[2];
+	int idx = 0, numdata = ds.dim[0] * ds.dim[1] * ds.dim[2];
 	vtkFloatArray *rv = vtkFloatArray::New();
 	rv->SetNumberOfValues(numdata);
 
-	for (int z=ds.frontPad[2]; z< (ds.padded[2] - ds.backPad[2]); z++) {
-		for (int y=ds.frontPad[1]; y< (ds.padded[1] - ds.backPad[1]); y++) {
-			for (int x=ds.frontPad[0]; x< (ds.padded[0] - ds.backPad[0]); x++) {
-
-				rv->SetValue(idx, data_floats[ z*ds.padded[1]*ds.padded[0] + 
-				                               y*ds.padded[0] + 
-					                           x ]);
-
-				idx++;
-			}
-		}
+	RegularGrid::Iterator itr;
+	for (itr = rg->begin(); itr!=rg->end(); ++itr) {
+		rv->SetValue(idx, *itr);
+		idx++;
 	}
 
-	delete varname_clean;
+	delete [] varname_clean;
+cerr << "avtvdfFileFormat::GetVar() exit " << endl;
 	return rv;
 }
 
@@ -685,48 +703,6 @@ avtvdfFileFormat::GetCycles(vector<int> &cycles)
 }
 
 
-// ********************************************************
-// Method: avtvdfFileFormat::getVoxelsInBlock 
-//
-// Purpose: 
-//   Given a certian data block, return the dimensions (in voxels) of that
-//   block. Need to repeat the data on forward block edges, only if that block
-//   is adjcent to another block (i.e. not the end of the dataset), therefore
-//   add one voxel to dimension if this block is not an end-block.
-//
-// Arguments:
-//   udims: 3-element array of total valid data dimensions (voxels)
-//	 bdims: 3-element array of total blocks in data
-//	 dmin : 3-element array of current block coords
-//	 numel: 3-element array to place results in
-//
-// Returns: nothing
-//   numel is filled.
-//
-// Note:
-//   The original functionality of this method has been integrated into
-//   getDatasizeFromCoords(), so this method simply calls that it,
-//   returning the appropriate component. This is done for consistancy. 
-//
-// Programmer: dlagreca -- generated by xml2avt
-// Creation:   Thu Feb 11 14:12:30 PST 2010
-//
-// Modifications:
-//
-// ********************************************************
-
-void 
-avtvdfFileFormat::getVoxelsInBlock(size_t *numel, size_t *udims, 
-	size_t *bdims, size_t* coord) 
-{
-
-	size_t mn[3]={coord[0], coord[1], coord[2]}, mx[3];
-	datasize_t dss;
-	getDatasizeFromCoords(&dss, udims, bdims, mn, mx);
-	for (int i=0; i<3; i++) numel[i] = dss.real[i];
-
-}
-
 
 // ********************************************************
 // Method: avtvdfFileFormat::getCoordsFromIndex
@@ -735,12 +711,12 @@ avtvdfFileFormat::getVoxelsInBlock(size_t *numel, size_t *udims,
 //   Given a block index in a dataset, find the 'x,y,z' coordinates of said block 
 //
 // Arguments:
-//   coords: 3-element array containing the x,y,z coordinates of the block at index
 //   bdims: total block dimensions of dataset
 //   index: index of block in the dataset
 //
 // Returns: nothing
-//   coors is filled.
+//   coords: 3-element array containing the x,y,z coordinates of 
+//   the block at index
 //
 // Programmer: dlagreca -- generated by xml2avt
 // Creation:   Thu Feb 11 14:12:30 PST 2010
@@ -750,20 +726,21 @@ avtvdfFileFormat::getVoxelsInBlock(size_t *numel, size_t *udims,
 // ********************************************************
 
 void 
-avtvdfFileFormat::getCoordsFromIndex(size_t *coords, size_t* bdims, int index)
-{
+avtvdfFileFormat::getCoordsFromIndex(
+	size_t *bcoords, const size_t* bdims, int index
+) {
 
-	coords[2] = index/(bdims[0] * bdims[1]);
-	index -= coords[2] * (bdims[0] * bdims[1]);
-	coords[1] = index/bdims[0];
-	index -= coords[1] * bdims[0];
-	coords[0] = index;
+	bcoords[2] = index/(bdims[0] * bdims[1]);
+	index -= bcoords[2] * (bdims[0] * bdims[1]);
+	bcoords[1] = index/bdims[0];
+	index -= bcoords[1] * bdims[0];
+	bcoords[0] = index;
 
 }
 
 
 // ********************************************************
-// Method: avtvdfFileFormat::getDataSizeFromCoords
+// Method: avtvdfFileFormat::getDatasizeFromCoords
 //
 // Purpose: 
 //   given the coordinates of a block, return the nuber of elements in each dimension
@@ -772,10 +749,8 @@ avtvdfFileFormat::getCoordsFromIndex(size_t *coords, size_t* bdims, int index)
 //
 // Arguments:
 //   datasize: return structure for padding information 
-//   udims : 3-element array of total blocks in data
-//   bdims : 3-element array of total blocks in data
-//   dmin  : 3-element array of starting data block coords
-//   dmax  : 3-element array of ending data block coords
+//   dims: 3-element array of total valid data dimensions (voxels)
+//   bcoords: 3-element array block coordinates
 //
 // Returns: nothing
 //   datasize is filled.
@@ -788,44 +763,22 @@ avtvdfFileFormat::getCoordsFromIndex(size_t *coords, size_t* bdims, int index)
 // ********************************************************
 
 void 
-avtvdfFileFormat::getDatasizeFromCoords(datasize_t *datasize, 
-     size_t *udims, size_t *bdims, size_t *dmin, size_t* dmax) 
-{
-	const size_t *bmsize = vdc_md->GetBlockSize();
+avtvdfFileFormat::getDatasizeFromCoords(
+	datasize_t *ds, const size_t *dims, const size_t *bcoords, 
+	int reflevel
+) {
+	size_t block_size[3];
+	getBlockSize(block_size, reflevel);
 
 	for (int i=0; i<3; i++) {
-		dmax[i] = dmin[i];
-		if (dmin[i] == bdims[i]-1) { //last block
-			int p = bdims[i]*bmsize[i] - udims[i];
-			if (dmin[i] > 0) {		//other blocks before it
-				dmin[i]--;
-				datasize->padded[i]   = bmsize[i]*2;
-				datasize->frontPad[i] = bmsize[i]-1;
-				datasize->backPad[i]  = p;
+		ds->min[i] = bcoords[i] * block_size[i];
+		ds->max[i] = ds->min[i] + block_size[i] - 1;
 
-			} else {				//only one block in this dim
-				datasize->padded[i]   = bmsize[i];
-				datasize->frontPad[i] = 0;
-				datasize->backPad[i]  = p;
-			}
-
-		} else if (dmin[i] == 0) {
-			dmax[i]++;
-			datasize->padded[i]   = bmsize[i]*2;
-			datasize->frontPad[i] = 0;
-			datasize->backPad[i]  = bmsize[i]-1;
-
-		} else {
-			dmax[i]++;
-			dmin[i]--;
-			datasize->padded[i]   = bmsize[i]*3;
-			datasize->frontPad[i] = bmsize[i]-1;
-			datasize->backPad[i]  = bmsize[i]-1; 
+		if (ds->max[i] > dims[i]) {	// boundary block
+			ds->max[i] = dims[i] - 1;
 		}
-		datasize->real[i] = datasize->padded[i] - datasize->backPad[i]
-			- datasize->frontPad[i];
+		ds->dim[i] = ds->max[i] - ds->min[i] + 1;
 	}
-
 }
 
 
@@ -872,7 +825,7 @@ avtvdfFileFormat::cleanVarname(const char *varname)
 // Method: avtvdfFileFormat::getVarDims
 //
 // Purpose: 
-//   This function will fill the two arrays passed in (udims and bdims) with 
+//   This function will fill the two arrays passed in (dims and bdims) with 
 //   the size of data at the specified refinement level in voxels, and blocks,
 //   respectively. If the first arguement is a string, its refinement level
 //   is first decided based on the refLevel map produced in the ctor.
@@ -881,11 +834,11 @@ avtvdfFileFormat::cleanVarname(const char *varname)
 //	 level: refinement level to retrieve blocksize for. 
 //   - OR -
 //   varstring: index into refLevel map to choose refinement level.
-//   udims: 3-element array of total valid data dimensions (voxels)
+//   dims: 3-element array of total valid data dimensions (voxels)
 //	 bdims: 3-element array of total blocks in data
 //
 // Returns: nothing
-//   udims and bdims are filled.
+//   dims and bdims are filled.
 //
 // Programmer: dlagreca -- generated by xml2avt
 // Creation:   Thu Feb 11 14:12:30 PST 2010
@@ -895,16 +848,52 @@ avtvdfFileFormat::cleanVarname(const char *varname)
 // ********************************************************
 
 inline void 
-avtvdfFileFormat::getVarDims(string varstring, size_t *udims, size_t *bdims) 
+avtvdfFileFormat::getVarDims(string varstring, size_t *dims, size_t *bdims) 
 {
-	getVarDims(refLevel[varstring], udims, bdims);
+cerr << "avtvdfFileFormat::getVarDims() " << varstring << endl;
+	getVarDims(refLevel[varstring], dims, bdims);
+cerr << "avtvdfFileFormat::getVarDims() exit : " << dims[0] << " " << dims[1] << " " << dims[2] << " " << bdims[0] << " " << bdims[1] << " " << bdims[2] << endl;
 }
 
 void 
-avtvdfFileFormat::getVarDims(int level, size_t *udims, size_t *bdims) 
+avtvdfFileFormat::getVarDims(int level, size_t *dims, size_t *bdims) 
 {
-	vdfiobase->GetDim(udims, level);
-	vdfiobase->GetDimBlk(bdims, level);
+cerr << "avtvdfFileFormat::getVarDims() " << level << endl;
+	data_mgr->GetDim(dims, level);
+
+	size_t block_size[3];
+	getBlockSize(block_size, level);
+
+    for (int i=0; i<3; i++) {
+        bdims[i] = (size_t) ceil ((double) dims[i] / (double) block_size[i]);
+    }
+cerr << "avtvdfFileFormat::getVarDims() exit : " << dims[0] << " " << dims[1] << " " << dims[2] << " " << bdims[0] << " " << bdims[1] << " " << bdims[2] << endl;
+}
+
+// ********************************************************
+// Method: avtvdfFileFormat::getBlockSize
+//
+// Purpose: 
+//	Return the I/O basic block size . If multiDom is true this method
+//  returns the prefered I/O size. Otherwise the dimensions of the 
+//	variable are simply returned.
+//
+// Arguments:
+//
+// Returns: nothing
+//   bs is filed
+void         
+avtvdfFileFormat::getBlockSize(size_t bs[3], int reflevel) {
+	if (multiDom) {
+		size_t dim[3];
+		data_mgr->GetDim(dim, reflevel);
+		vdc_md->GetBlockSize(bs, -1);
+		bs[0] = dim[0];
+		bs[1] = dim[1];
+	}
+	else {
+		data_mgr->GetDim(bs, reflevel);
+	}
 }
 
 
@@ -941,10 +930,13 @@ avtvdfFileFormat::GetAuxiliaryData(const char *var,
 		//printf("Returning spatial extents for %s @ %d in domain %d, ", var, timestate, domain);
 		size_t dims[3], bdims[3], bcoords[3];
 		float delta[3];
-		const size_t *bsize = vdc_md->GetBlockSize();
-		const vector<double> glExt = vdc_md->GetExtents(),
-			  tsExt = vdc_md->GetTSExtents((size_t)tsteps[timestate]),
-			  uExt = tsExt.empty()? glExt: tsExt;
+
+		size_t block_size[3];
+		getBlockSize(block_size, refLevel[string(var)]);
+
+		const vector<double> uExt = data_mgr->GetExtents(
+			(size_t)tsteps[timestate]
+		);
 
 		// Read the number of domains for the mesh. 
 		// Read the spatial extents for each domain of the 
@@ -969,8 +961,8 @@ avtvdfFileFormat::GetAuxiliaryData(const char *var,
 			//Spatial dims go from (block_start)*(voxels/block)*(units/voxel) 
 			//  to (block_start + 1)*(voxels/block)*(units/voxel)
 			for (int i=0; i<3; i++) {
-				spatialextents[(6*curDom) + 2*i] = (float)(bcoords[i]*bsize[i])*delta[i];
-				spatialextents[(6*curDom) + 2*i+1] = (float)((bcoords[i]+1)*bsize[i])*delta[i];
+				spatialextents[(6*curDom) + 2*i] = (float)(bcoords[i]*block_size[i])*delta[i];
+				spatialextents[(6*curDom) + 2*i+1] = (float)((bcoords[i]+1)*block_size[i])*delta[i];
 			}
 		}
 
@@ -991,4 +983,11 @@ avtvdfFileFormat::GetAuxiliaryData(const char *var,
 	} 
 
 	return retval;
+}
+
+std::ostream &operator<<(std::ostream &o, const avtvdfFileFormat::datasize_t &ds) {
+	o << "dataset_t " << endl;
+	o << " min " << ds.min[0] << " " << ds.min[1] << " " << ds.min[2] << endl; 
+	o << " max " << ds.max[0] << " " << ds.max[1] << " " << ds.max[2] << endl; 
+	o << " dim " << ds.dim[0] << " " << ds.dim[1] << " " << ds.dim[2] << endl; 
 }

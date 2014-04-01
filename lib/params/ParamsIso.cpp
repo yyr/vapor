@@ -546,59 +546,22 @@ void ParamsIso::UnRegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
 	 return GetRootNode()->GetElementDouble(_SelectedPointTag);
  }
 
- void ParamsIso::SetRefinementLevel(int level){
-	 vector<long> valvec(1,(long)level);
-	 GetRootNode()->SetElementLong(_RefinementLevelTag,valvec);
- }
-int ParamsIso::GetRefinementLevel(){
-	vector<long> valvec = GetRootNode()->GetElementLong(_RefinementLevelTag);
-	return (int)valvec[0];
- }
+
 void ParamsIso::RegisterRefinementDirtyFlag(ParamNode::DirtyFlag *df){
 	GetRootNode()->RegisterDirtyFlag(_RefinementLevelTag, df);
 }
 void ParamsIso::UnRegisterRefinementDirtyFlag(ParamNode::DirtyFlag *df){
 	GetRootNode()->UnRegisterDirtyFlag(_RefinementLevelTag, df);
 }
-int ParamsIso::GetCompressionLevel(){
-	vector<long> valvec = GetRootNode()->GetElementLong(_CompressionLevelTag);
-	return (int)valvec[0];
- }
-void ParamsIso::SetCompressionLevel(int level){
-	 vector<long> valvec(1,(long)level);
-	 GetRootNode()->SetElementLong(_CompressionLevelTag,valvec);
- }
-int ParamsIso::GetFidelityLevel(){
-	vector<long> valvec = GetRootNode()->GetElementLong(_FidelityLevelTag);
-	return (int)valvec[0];
- }
-void ParamsIso::SetFidelityLevel(int level){
-	 vector<long> valvec(1,(long)level);
-	 GetRootNode()->SetElementLong(_FidelityLevelTag,valvec);
- }
-bool ParamsIso::GetIgnoreFidelity(){
-	vector<long> valvec = GetRootNode()->GetElementLong(_IgnoreFidelityTag);
-	return (bool)valvec[0];
- }
-void ParamsIso::SetIgnoreFidelity(bool val){
-	 vector<long> valvec(1,(long)val);
-	 GetRootNode()->SetElementLong(_IgnoreFidelityTag,valvec);
- }
+
+
 void ParamsIso::RegisterCompressionDirtyFlag(ParamNode::DirtyFlag *df){
 	GetRootNode()->RegisterDirtyFlag(_CompressionLevelTag, df);
 }
 void ParamsIso::UnRegisterCompressionDirtyFlag(ParamNode::DirtyFlag *df){
 	GetRootNode()->UnRegisterDirtyFlag(_CompressionLevelTag, df);
 }
- void ParamsIso::SetVisualizerNum(int viznum){
-	vector<long> valvec(1,(long)viznum);
-	GetRootNode()->SetElementLong(_VisualizerNumTag,valvec);
-	vizNum = viznum;
- }
- int ParamsIso::GetVisualizerNum(){
-	vector<long> valvec = GetRootNode()->GetElementLong(_VisualizerNumTag);
-	return (int)valvec[0];
- }
+
  int ParamsIso::GetNumBits(){
 	vector<long> valvec = GetRootNode()->GetElementLong(_NumBitsTag);
 	if (valvec.size() == 0){
