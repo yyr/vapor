@@ -227,7 +227,7 @@ IsolineEventRouter::hookUpTab()
 	connect (ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineYSize()));
 
 	connect (captureButton, SIGNAL(clicked()), this, SLOT(captureImage()));
-	
+	connect (copyToProbeButton, SIGNAL(clicked()), this, SLOT(copyToProbeOr2D()));
 
 	connect (instanceTable, SIGNAL(changeCurrentInstance(int)), this, SLOT(guiChangeInstance(int)));
 	connect (copyCombo, SIGNAL(activated(int)), this, SLOT(guiCopyInstanceTo(int)));
@@ -472,11 +472,15 @@ void IsolineEventRouter::updateTab(){
 		sesVarNum = ds->getSessionVariableNum3D(isolineParams->GetVariableName());
 		minDataBound->setText(QString::number(ds->getDataMin3D(sesVarNum,timestep)));
 		maxDataBound->setText(QString::number(ds->getDataMax3D(sesVarNum,timestep)));
+		copyToProbeButton->setText("Copy to Probe");
+		copyToProbeButton->setToolTip("Click to make the current active Probe display these isolines as a color contour plot");
 	}
 	else {
 		sesVarNum = ds->getSessionVariableNum2D(isolineParams->GetVariableName());
 		minDataBound->setText(QString::number(ds->getDataMin2D(sesVarNum,timestep)));
 		maxDataBound->setText(QString::number(ds->getDataMax2D(sesVarNum,timestep)));
+		copyToProbeButton->setText("Copy to 2D");
+		copyToProbeButton->setToolTip("Click to make the current active 2D Data display these isolines as a color contour plot");
 	}
 	
 	float val = 0.;
@@ -2343,17 +2347,17 @@ void IsolineEventRouter::paintEvent(QPaintEvent* ev){
 QSize IsolineEventRouter::sizeHint() const {
 	IsolineParams* pParams = (IsolineParams*) VizWinMgr::getActiveIsolineParams();
 	if (!pParams) return QSize(460,1500);
-	int vertsize = 230;//basic panel plus instance panel 
+	int vertsize = 720;//basic panel plus instance panel 
 	//add showAppearance button, showLayout button, showLayout button, frames
 	vertsize += 150;
 	if (showLayout) {
-		vertsize += 544;
-		if(DataStatus::getProjectionString().size() == 0) vertsize -= 56;  //no lat long
+		vertsize += 467;
+		//no lat long
 	}
 	if (showImage){
-		vertsize += 687;
+		vertsize += 567;
 	}
-	if (showAppearance) vertsize += 445;  //Add in appearance panel 
+	if (showAppearance) vertsize += 200;  //Add in appearance panel 
 	//Mac and Linux have gui elements fatter than windows by about 10%
 #ifndef WIN32
 	vertsize = (int)(1.1*vertsize);
@@ -2541,6 +2545,8 @@ void IsolineEventRouter::guiSetDimension(int dim){
 			const QString& text = QString(s.c_str());
 			variableCombo->insertItem(i,text);
 		}
+		copyToProbeButton->setText("Copy to Probe");
+		copyToProbeButton->setToolTip("Click to make the current active Probe display these isolines as a color contour plot");
 	} else {
 		for (int i = 0; i< DataStatus::getInstance()->getNumActiveVariables2D(); i++){
 			const std::string& s = DataStatus::getInstance()->getActiveVarName2D(i);
@@ -2548,6 +2554,8 @@ void IsolineEventRouter::guiSetDimension(int dim){
 			const QString& text = QString(s.c_str());
 			variableCombo->insertItem(i,text);
 		}
+		copyToProbeButton->setText("Copy to 2D");
+		copyToProbeButton->setToolTip("Click to make the current active 2D Data display these isolines as a color contour plot");
 	}
 	if (showLayout) {
 		if (dim == 1) orientationFrame->show();
@@ -2814,4 +2822,10 @@ void IsolineEventRouter::guiFitIsovalsToHisto(){
 	iParams->SetIsovalues(newIsovals);
 	PanelCommand::captureEnd(cmd, iParams);
 	updateTab();
+}
+void IsolineEventRouter::copyToProbeOr2D(){
+}
+void IsolineEventRouter::guiCopyToProbe(){
+}
+void IsolineEventRouter::guiCopyTo2D(){
 }

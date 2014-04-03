@@ -144,7 +144,8 @@ protected slots:
 	void guiNewInstance();
 	void guiDeleteInstance();
 	void guiAxisAlign(int);
-	
+
+	void copyToProbeOr2D();
 	void guiCopyInstanceTo(int toViz);
 	//Slots for Isoline panel:
 	void isolineCenterRegion();
@@ -182,6 +183,8 @@ protected slots:
 	void guiEndChangeIsoSelection();
 	void guiFitToData();
 	void guiFitIsovalsToHisto();
+	void guiCopyToProbe();
+	void guiCopyTo2D();
 	
 	
 protected:
