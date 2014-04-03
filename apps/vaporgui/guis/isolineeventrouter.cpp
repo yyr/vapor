@@ -1367,19 +1367,25 @@ guiChangeVariable(int varnum){
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	confirmText(false);
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
+	DataStatus* ds = DataStatus::getInstance();
+	int ts = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentTimestep();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "change isoline-selected variable");
 	
 	int activeVar = variableCombo->currentIndex();
-
+	float minval, maxval;
 	if (pParams->VariablesAre3D()){
 		const string& varname = DataStatus::getActiveVarName3D(activeVar);
+		minval = ds->getDataMin3D(activeVar,ts);
+		maxval = ds->getDataMax3D(activeVar,ts);
 		pParams->SetVariableName(varname);
 	}
 	else {
 		const string& varname = DataStatus::getActiveVarName2D(activeVar);
+		minval = ds->getDataMin2D(activeVar,ts);
+		maxval = ds->getDataMax2D(activeVar,ts);
 		pParams->SetVariableName(varname);
 	}
-	
+	pParams->spaceIsovals(minval+0.05*(maxval - minval), minval+0.95*(maxval - minval));
 	updateHistoBounds(pParams);
 	PanelCommand::captureEnd(cmd, pParams);
 	//Need to update the selected point for the new variables

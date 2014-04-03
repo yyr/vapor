@@ -222,6 +222,8 @@ public:
 		const vector<double>& exts = GetBox()->GetLocalExtents();
 		return (float)(exts[4]-exts[1]);
 	}
+	//Space the isovalues to specified interval
+	void spaceIsovals(float minval, float maxval);
 	
 	static const string _isolineParamsTag;
 
