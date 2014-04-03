@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>450</width>
-    <height>2060</height>
+    <height>1956</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -564,15 +564,9 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QComboBox" name="dimensionCombo">
-                <property name="minimumSize">
-                 <size>
-                  <width>50</width>
-                  <height>0</height>
-                 </size>
-                </property>
                 <property name="maximumSize">
                  <size>
-                  <width>500</width>
+                  <width>40</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1054,9 +1048,9 @@ specified range.</string>
              </layout>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="_17">
+             <layout class="QHBoxLayout" name="_19">
               <item>
-               <spacer name="horizontalSpacer_2">
+               <spacer name="horizontalSpacer_8">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
@@ -1079,7 +1073,7 @@ specified range.</string>
                </widget>
               </item>
               <item>
-               <spacer name="horizontalSpacer_3">
+               <spacer name="horizontalSpacer_20">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
@@ -1102,7 +1096,56 @@ specified range.</string>
                </widget>
               </item>
               <item>
-               <spacer name="spacer28_3">
+               <spacer name="spacer29_4">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Expanding</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>31</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="_20">
+              <item>
+               <spacer name="horizontalSpacer_21">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="copyToProbeButton">
+                <property name="minimumSize">
+                 <size>
+                  <width>98</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>Move the isovalues to fit in histo bounds</string>
+                </property>
+                <property name="text">
+                 <string>Copy To Probe</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="spacer28_5">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
@@ -1118,7 +1161,7 @@ specified range.</string>
                </spacer>
               </item>
               <item>
-               <widget class="QLabel" name="textLabel1_9">
+               <widget class="QLabel" name="textLabel1_17">
                 <property name="whatsThis">
                  <string>The Histo scaling factor rescales the displayed histogram linearly by that factor.  Use the right mouse in the opacity window to choose nonlinear scaling options.</string>
                 </property>
@@ -1153,7 +1196,7 @@ specified range.</string>
                </widget>
               </item>
               <item>
-               <spacer name="spacer29_2">
+               <spacer name="spacer29_5">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
@@ -3760,7 +3803,7 @@ Domain</string>
                <bool>true</bool>
               </property>
               <property name="toolTip">
-               <string>Color of isolines in 3D scene</string>
+               <string>Clisk to specify color used in constant map</string>
               </property>
               <property name="inputMask">
                <string notr="true"/>
@@ -3930,7 +3973,7 @@ Domain</string>
                <bool>true</bool>
               </property>
               <property name="toolTip">
-               <string>text color of isoline annotation in scene</string>
+               <string>Clisk to specify color used in constant map</string>
               </property>
               <property name="inputMask">
                <string notr="true"/>
@@ -4023,7 +4066,7 @@ Domain</string>
             <item>
              <widget class="QLabel" name="textLabel1_15">
               <property name="text">
-               <string>Color, background, width:</string>
+               <string>Color, background color, width:</string>
               </property>
               <property name="wordWrap">
                <bool>false</bool>
@@ -4032,12 +4075,6 @@ Domain</string>
             </item>
             <item>
              <widget class="QPushButton" name="isolinePanelColorButton">
-              <property name="minimumSize">
-               <size>
-                <width>55</width>
-                <height>0</height>
-               </size>
-              </property>
               <property name="maximumSize">
                <size>
                 <width>50</width>
@@ -4150,7 +4187,7 @@ Domain</string>
                <bool>true</bool>
               </property>
               <property name="toolTip">
-               <string> color of isolines in tab</string>
+               <string>Clisk to specify color used in constant map</string>
               </property>
               <property name="inputMask">
                <string notr="true"/>
@@ -4191,12 +4228,6 @@ Domain</string>
             </item>
             <item>
              <widget class="QPushButton" name="isolinePanelBackgroundColorButton">
-              <property name="minimumSize">
-               <size>
-                <width>55</width>
-                <height>0</height>
-               </size>
-              </property>
               <property name="maximumSize">
                <size>
                 <width>50</width>
@@ -4293,7 +4324,7 @@ Domain</string>
                <bool>true</bool>
               </property>
               <property name="toolTip">
-               <string>background color behind isolines in tab</string>
+               <string>Clisk to specify color used in constant map</string>
               </property>
               <property name="inputMask">
                <string notr="true"/>
@@ -4460,7 +4491,7 @@ Domain</string>
                <bool>true</bool>
               </property>
               <property name="toolTip">
-               <string>color of text annotation in tab</string>
+               <string>Clisk to specify color used in constant map</string>
               </property>
               <property name="inputMask">
                <string notr="true"/>
