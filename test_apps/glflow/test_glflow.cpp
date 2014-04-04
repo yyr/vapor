@@ -392,15 +392,15 @@ static inline void drawCone(const float* v, const float* n, int q)
         int nsz = rsz * 2;
         glBegin(GL_TRIANGLES);
         int vi = 3;
-        for(int i = 0; i < nsz && vi < sz; i+=6)
+        for(int i = 0; i < nsz && vi <= sz; i+=6)
         {
             //two-step to the next triangle
-            glNormal3fv(n + i);
-            glVertex3fv(v + vi);
-            glNormal3fv(n + i + 3);
+            glNormal3fv(n + (i % nsz));
+            glVertex3fv(v + (vi % sz));
+            glNormal3fv(n + ((i + 3) % nsz));
             glVertex3fv(v);
-            glNormal3fv(n + i + 6);
-            glVertex3fv(v + vi + 3);
+            glNormal3fv(n + ((i + 6) % nsz));
+            glVertex3fv(v + ((vi + 3) % sz));
             vi += 3;
         }
         glEnd();
