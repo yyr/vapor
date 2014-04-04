@@ -5,6 +5,9 @@
 #include <cmath>
 #include "vec.h"
 
+#include <vapor/OptionParser.h>
+using namespace VetsUtil;
+
 //possible conventions for the vector system I've created...
 //suffix-ify means that the function outputs the something-ified version of
 //its input, possibly with respect to other inputs.
@@ -15,6 +18,32 @@
 //all vector and vector-array outputs will be returned by last pointer argument
 //all single-primitive outputs will be given by return value
 //
+
+struct {
+    char* datafile;
+    char* colorfile;
+    char* mode;
+    int quality;
+    float radius;
+    int stride;
+    float ratio;
+    float length;
+    int r;
+    int g;
+    int b;
+} opt;
+
+OptionParser::Option_T	get_options[] = {
+	{"data", VetsUtil::CvtToString, &opt.datafile, sizeof(opt.datafile)},
+	{"colors", VetsUtil::CvtToString, &opt.colorfile, sizeof(opt.colorfile)},
+	{"mode", VetsUtil::CvtToString, &opt.mode, sizeof(opt.mode)},
+	{"radius", VetsUtil::CvtToFloat, &opt.radius, sizeof(opt.radius)},
+	{"quality", VetsUtil::CvtToInt, &opt.quality, sizeof(opt.quality)},
+	{"stride", VetsUtil::CvtToInt, &opt.stride, sizeof(opt.stride)},
+	{"ratio", VetsUtil::CvtToFloat, &opt.ratio, sizeof(opt.ratio)},
+	{"length", VetsUtil::CvtToFloat, &opt.length, sizeof(opt.length)},
+	{NULL}
+};
 
 static int nfloats(char* filename)
 {
@@ -72,17 +101,17 @@ void mousemove(int x, int y)
     glutPostRedisplay();
 }
 
-float distance = 5.f;
+float v_distance = 5.f;
 void mouse(int button, int state, int x, int y)
 {
     if(state == GLUT_UP) return;
     switch(button)
     {
         case 3:
-            distance = distance - 0.5f;
+            v_distance = v_distance - 0.5f;
             break;
         case 4:
-            distance = distance + 0.5f;
+            v_distance = v_distance + 0.5f;
             break;
         default:
             break;
@@ -411,7 +440,7 @@ void display(void)
     glLoadIdentity();
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
-    glTranslatef(0.f, 0.f, -distance);
+    glTranslatef(0.f, 0.f, -v_distance);
     //if(!paused) rot += (float)frameTime;
     //glRotatef((float) rot * 0.1f, 1.f, 1.f, 1.f);
     glRotatef((float) ry, 1.f, 0.f, 0.f);
@@ -427,9 +456,9 @@ void display(void)
     //path.Draw(pathdata4, 2); //single-segment
     //path.Draw(pathdata5, 6); //kink testing
     //path.Draw(pathdata6, SPIRAL_SZ); //autospiral
-    if(pathdata7) path.Draw(pathdata7, pd7sz / 3);
+    //if(pathdata7) path.Draw(pathdata7, pd7sz / 3);
     //glTranslatef(0.f, 0.f, -3.f);
-    //coneTest(conedir, 1, 1.f);
+    coneTest(conedir, 2, 1.f);
     //drawCube();
 
     glutSwapBuffers();
