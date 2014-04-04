@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>450</width>
-    <height>1881</height>
+    <height>1956</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -1048,9 +1048,9 @@ specified range.</string>
              </layout>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="_17">
+             <layout class="QHBoxLayout" name="_19">
               <item>
-               <spacer name="horizontalSpacer_2">
+               <spacer name="horizontalSpacer_8">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
@@ -1073,7 +1073,7 @@ specified range.</string>
                </widget>
               </item>
               <item>
-               <spacer name="horizontalSpacer_3">
+               <spacer name="horizontalSpacer_20">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
@@ -1096,7 +1096,56 @@ specified range.</string>
                </widget>
               </item>
               <item>
-               <spacer name="spacer28_3">
+               <spacer name="spacer29_4">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Expanding</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>31</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="_20">
+              <item>
+               <spacer name="horizontalSpacer_21">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="copyToProbeButton">
+                <property name="minimumSize">
+                 <size>
+                  <width>98</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>Move the isovalues to fit in histo bounds</string>
+                </property>
+                <property name="text">
+                 <string>Copy To Probe</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="spacer28_5">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
@@ -1112,7 +1161,7 @@ specified range.</string>
                </spacer>
               </item>
               <item>
-               <widget class="QLabel" name="textLabel1_9">
+               <widget class="QLabel" name="textLabel1_17">
                 <property name="whatsThis">
                  <string>The Histo scaling factor rescales the displayed histogram linearly by that factor.  Use the right mouse in the opacity window to choose nonlinear scaling options.</string>
                 </property>
@@ -1147,7 +1196,7 @@ specified range.</string>
                </widget>
               </item>
               <item>
-               <spacer name="spacer29_2">
+               <spacer name="spacer29_5">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
