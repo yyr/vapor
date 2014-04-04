@@ -46,8 +46,12 @@
 #ifndef	TRACKBALL_H
 #define	TRACKBALL_H
 
-
+#ifdef DARWIN
+#include <OpenGL/gl.h>
+#else
 #include <GL/gl.h>
+#endif
+
 #include <vector>
 #include <vapor/common.h>
 

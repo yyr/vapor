@@ -132,7 +132,7 @@ void Params::SetChanged(bool val){
 		return;
 	}
 	//Find all instances that are sharing this
-	std::map<pair<int,int>,vector<Params*>>::iterator it;
+	std::map<pair<int,int>,vector<Params*> >::iterator it;
 	for (int viz = 0; ; viz++){
 		it = paramsInstances.find(make_pair(GetParamsBaseTypeId(),viz));
 		if (it == paramsInstances.end()) break;
