@@ -116,7 +116,32 @@ void RenderParams::setAllBypass(bool val){
 		bypassFlags[i] = ival;
 }
 
+bool Params::HasChanged(int viz){
+	if (IsLocal()) return changeBit;
+	//Find the instance associated with viz:
+	assert(viz >= 0);
+	Params* localParams = Params::GetParamsInstance(GetParamsBaseTypeId(),viz);
+	return localParams->changeBit;
+}
 
+void Params::SetChanged(bool val){
+	//If it's shared, need to set the change bits for all the
+	//different windows that are using 
+	if (IsLocal()) {
+		changeBit = val;
+		return;
+	}
+	//Find all instances that are sharing this
+	std::map<pair<int,int>,vector<Params*>>::iterator it;
+	for (int viz = 0; ; viz++){
+		it = paramsInstances.find(make_pair(GetParamsBaseTypeId(),viz));
+		if (it == paramsInstances.end()) break;
+		Params* p = (it->second)[0]; //get the first (only) instance of the params
+		if (p->IsLocal()) continue;
+		p->changeBit = val;
+	}
+	return;
+}
 
 Params* Params::GetParamsInstance(int pType, int winnum, int instance){
 	if (winnum < 0) return defaultParamsInstance[pType];

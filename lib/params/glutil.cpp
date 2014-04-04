@@ -91,6 +91,14 @@ void vscale(double *v, double s)
     v[1] *= s;
     v[2] *= s;
 }
+void vscale(vector<double>v, double s)
+{
+    /* Scale the vector v in all directions by s.
+     */
+    v[0] *= s;
+    v[1] *= s;
+    v[2] *= s;
+}
 // Scale, putting result in another vector
 //
 void vmult(const float *v, float s, float *w) {
@@ -853,6 +861,15 @@ makeTransMatrix(double *trans, double* mtrx){
 	mtrx[15] = 1.;
 	for (int i = 0; i<3; i++) mtrx[i+12] = (double)trans[i];
 }
+void
+makeTransMatrix(const std::vector<double>& trans, double* mtrx){
+	for (int i = 0; i<12; i++) mtrx[i] = 0.;
+	mtrx[0] = 1.;
+	mtrx[5] = 1.;
+	mtrx[10] = 1.;
+	mtrx[15] = 1.;
+	for (int i = 0; i<3; i++) mtrx[i+12] = trans[i];
+}
 /*
  * make a modelview matrix from viewer position, direction, and up vector
  * Vectors must be nonzero
@@ -909,6 +926,62 @@ makeModelviewMatrix(float* vpos, float* vdir, float* upvec, float* mtrx){
  */
 void
 makeModelviewMatrixD(double* vpos, double* vdir, double* upvec, double* mtrx){
+	double vtemp[3];
+	double left[3] = {-1.f, 0.f, 0.f};
+	double ydir[3] = {0.f, 1.f, 0.f};
+	double right[3];
+	double dupvec[3], dvdir[3],dvpos[3];
+	for (int i = 0; i<3; i++){
+		dupvec[i] = upvec[i];
+		dvdir[i] = vdir[i];
+		dvpos[i] = vpos[i];
+	}
+
+	//Normalize the vectors:
+	vnormal(dupvec);
+	vnormal(dvdir);
+	//Force the up vector to be orthogonal to viewDir
+	vcopy(dvdir, vtemp);
+	vscale(vtemp, vdot(dvdir, dupvec));
+	//Subtract the component of up in the viewdir direction
+	vsub(dupvec, vtemp, dupvec);
+	//Make sure it's still valid
+	if (vdot(dupvec,dupvec) == 0.f) {
+		//First try up = viewdir x left
+		vcross(dvdir, left, dupvec);
+		if (vdot (dupvec, dupvec) == 0.f) {
+			//try viewdir x ydir
+			vcross(dvdir, ydir, dupvec);
+		}
+	}
+	vnormal(dupvec);
+	//calculate "right" vector:
+	vcross(dvdir, dupvec, right);
+	//Construct matrix:
+	double minv[16];
+	//Fill in bottom row:
+	minv[3] = 0.;
+	minv[7] = 0.;
+	minv[11] = 0.;
+	minv[15] = 1.;
+	//copy in first 3 elements of columns
+	vcopy(right, minv);
+	vcopy(dupvec, minv+4);
+	//third col is neg of viewdir
+	
+	vcopy(dvdir, minv + 8);
+	vscale(minv+8, -1.);
+	vcopy(dvpos, minv+ 12);
+	int rc = minvert(minv, mtrx);
+	if(!rc) assert(rc);//Only catch this in debug mode
+}
+/*
+ * make a modelview matrix from viewer position, direction, and up vector
+ * Vectors must be nonzero
+ * side-effect:  will alter input values if not valid.
+ */
+void
+makeModelviewMatrixD(const std::vector<double>& vpos, const std::vector<double>& vdir, const std::vector<double>& upvec, double* mtrx){
 	double vtemp[3];
 	double left[3] = {-1.f, 0.f, 0.f};
 	double ydir[3] = {0.f, 1.f, 0.f};

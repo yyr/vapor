@@ -108,6 +108,7 @@ Params* Command::BackupQueue(){
 	Command* cmd = CurrentUndoCommand();
 	if (!cmd) return 0;
 	Params* p = cmd->unDo();
+	p->SetChanged(true);
 	currentQueuePos--;
 	return p;
 }
@@ -120,6 +121,7 @@ Params* Command::AdvanceQueue(){
 	Command* cmd = CurrentRedoCommand();
 	if (!cmd) return 0;
 	Params* p = cmd->reDo();
+	p->SetChanged(true);
 	currentQueuePos++;
 	return p;
 }

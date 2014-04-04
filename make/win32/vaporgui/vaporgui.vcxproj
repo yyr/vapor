@@ -278,7 +278,6 @@
     <ClCompile Include="..\..\..\apps\vaporgui\main\tabmanager.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\viewpointeventrouter.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\main\vizwinmgr.cpp" />
-    <ClCompile Include="..\..\..\apps\vaporgui\misc\trackball.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\misc\vizfeatureparams.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\vizselectcombo.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\main\vizwin.cpp" />
@@ -296,7 +295,6 @@
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_vizwinmgr.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\apps\vaporgui\misc\trackball.h" />
     <CustomBuild Include="..\..\..\apps\vaporgui\main\mainform.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\main\mainform.h -o ..\..\..\apps\vaporgui\moc\moc_mainform.cpp</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing mainform.h...</Message>

@@ -77,7 +77,6 @@
 
 
 #include "glutil.h"	// Must be included first!!!
-#include <qgl.h>
 #include "trackball.h" 
 #include <math.h>
 using namespace VAPoR;
@@ -287,7 +286,7 @@ void Trackball::TrackballCopyTo(Trackball *dst)
  * thisButton is Qt:LeftButton, RightButton, or MidButton
  */
 
-void Trackball::MouseOnTrackball(int eventNum, Qt::MouseButton thisButton, int xcrd, int ycrd, unsigned width, unsigned height)
+void Trackball::MouseOnTrackball(int eventNum, int thisButton, int xcrd, int ycrd, unsigned width, unsigned height)
 {
     /* Alter a Trackball structure given  mouse event.
      *   This routine *assumes* button 1 rotates, button 2 pans,
@@ -298,7 +297,7 @@ void Trackball::MouseOnTrackball(int eventNum, Qt::MouseButton thisButton, int x
      * tball		: trackball to modify
      */
     double	x, y;
-	static Qt::MouseButton	button;
+	static int	button;
 	//Ignore time: Qt doesn't provide time with events (may need to revisit this later????)
     //static Time	downTime;
 
@@ -318,13 +317,13 @@ void Trackball::MouseOnTrackball(int eventNum, Qt::MouseButton thisButton, int x
 		x = ScalePoint(xcrd, 0, width);
 		y = ScalePoint(ycrd, height, -((long) height));
 		switch (button) {
-			case Qt::LeftButton :
+			case 1 ://left button
 				TrackballRotate( x, y);
 				break;
-			case Qt::MidButton :
+			case 2 : //middle button
 				TrackballPan( x, y);
 				break;
-			case Qt::RightButton :
+			case 3 : //right button
 				TrackballZoom( x, y);
 				break;
 			default:
@@ -334,7 +333,7 @@ void Trackball::MouseOnTrackball(int eventNum, Qt::MouseButton thisButton, int x
 		break;
 	
 	  case 2: //ButtonRelease:
-		button = Qt::LeftButton;
+		button = 1;//left
 	//	if (event->xbutton.time - downTime > 250)
 		//??? if (event->xbutton.time - downTime > 100)
 		//???	TrackballStopSpinning(tball);
@@ -344,7 +343,7 @@ void Trackball::MouseOnTrackball(int eventNum, Qt::MouseButton thisButton, int x
 // Set the quaternion and translation from a viewer frame
 // Also happens to construct modelview matrix, but we don't use its translation
 void Trackball::
-setFromFrame(double* posvec, double* dirvec, double* upvec, double* centerRot, bool persp){
+setFromFrame(const std::vector<double>& posvec, const std::vector<double>& dirvec, const std::vector<double>& upvec, const std::vector<double>& centerRot, bool persp){
 	//First construct the rotation matrix:
 	double mtrx1[16];
 	double trnsMtrx[16];
@@ -372,6 +371,3 @@ setFromFrame(double* posvec, double* dirvec, double* upvec, double* centerRot, b
 	for (int i = 0; i<3; i++) trans[i] = (double)mtrx[i+12];
 	
 }
-
-
-

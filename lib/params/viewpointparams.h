@@ -73,6 +73,29 @@ public:
 	//! \retval float[3] camera position
 	const vector<double>& getCameraPosLocal() {return getCurrentViewpoint()->getCameraPosLocal();}
 
+	//! Obtain stretched camera position
+	//! \param[out] 3-vector of stretched coordinates
+	void getStretchedCamPosLocal(double* vec){
+		getCurrentViewpoint()->getStretchedCamPosLocal(vec);
+	}
+	//! Specify camera position in stretched local coordinates
+	//! \param[in] double[3] camera position in stretched local coordinates
+	//! \param[in] Param* the Params instance that is requesting this setvalue
+	//! \retval int 0 if successful
+	int setStretchedCamPosLocal(const double* vec){
+		return getCurrentViewpoint()->setStretchedCamPosLocal(vec,this);
+	}
+	//! Obtain rotation center in stretched coordinate
+	//! \param[out] double[3] Position of rotation center in stretched coordinates.
+	void getStretchedRotCtrLocal(double* vec){
+		getCurrentViewpoint()->getStretchedRotCtrLocal(vec);
+	}
+	//! Specify rotation center in stretched local coordinates
+	//! \param[in] double[3] rotation center in stretched local coordinates
+	//! \retval int 0 if successful
+	int setStretchedRotCtrLocal(const double* vec){
+		return getCurrentViewpoint()->setStretchedRotCtrLocal(vec,this);
+	}
 	//! This method gives the direction vector of the viewer, pointing from the camera into the scene.
 	//! \retval float[3] view direction
 	const vector<double>& getViewDir() {return getCurrentViewpoint()->getViewDir();}
@@ -86,6 +109,13 @@ public:
 	//! by user translation.
 	//! \retval float[3] Rotation center coordinates
 	const vector<double>& getRotationCenterLocal(){return getCurrentViewpoint()->getRotationCenterLocal();}
+
+	//! Set the current viewpoint to be the home viewpoint
+	void setCurrentVPToHome(){
+		Viewpoint* currentViewpoint = getCurrentViewpoint();
+		setHomeViewpoint(new Viewpoint(*currentViewpoint));
+	}
+
 	//Note that all calls to get camera pos and get rot center return values
 	//in local coordinates, not in lat/lon.  When the viewpoint params is in
 	//latlon mode, it is necessary to perform convertLocalFromLonLat and convertLocalToLonLat
@@ -103,34 +133,49 @@ public:
 	//! \param[in] int timestep to be used
 	//! \retval int 0 if successful
 	int setCameraPosLocal(const vector<double>& val,int timestep ) {
+		SetChanged(true);
 		return getCurrentViewpoint()->setCameraPosLocal(val, this);
 	}
 	//! Set a component of viewer direction in the current viewpoint
 	//! \param[in] int coordinate (0,1,2)
 	//! \param[in] double value to be set
 	//! \retval int 0 on success
-	int setViewDir(int coord, double val) {return getCurrentViewpoint()->setViewDir(coord,val, this);}
+	int setViewDir(int coord, double val) {
+		SetChanged(true);
+		return getCurrentViewpoint()->setViewDir(coord,val, this);
+	}
 	//! Set the viewer direction in the current viewpoint
 	//! \param[in] vector<double> direction vector to be set
 	//! \retval int 0 on success
-	int setViewDir(const vector<double>& val) {return getCurrentViewpoint()->setViewDir(val, this);}
+	int setViewDir(const vector<double>& val) {
+		SetChanged(true);
+		return getCurrentViewpoint()->setViewDir(val, this);
+	}
 	//! Set a component of upward direction vector in the current viewpoint
 	//! \param[in] int coordinate (0,1,2)
 	//! \param[in] double value to be set
 	//! \retval int 0 on success
-	int setUpVec(int i, double val) { return getCurrentViewpoint()->setUpVec(i,val,this);}
+	int setUpVec(int i, double val) { 
+		SetChanged(true);
+		return getCurrentViewpoint()->setUpVec(i,val,this);
+	}
 	//! Set upward direction vector in the current viewpoint
 	//! \param[in] vector<double> value to be set
 	//! \retval int 0 on success
-	int setUpVec(const vector<double>& val) {return getCurrentViewpoint()->setUpVec(val,this);}
+	int setUpVec(const vector<double>& val) {
+		SetChanged(true);
+		return getCurrentViewpoint()->setUpVec(val,this);
+	}
 	//! Obtain a coordinate of the current rotation center
 	//! \param[in] coordinate
 	//! \retval double component of rotation center
 	double getRotationCenterLocal(int coord){ return getCurrentViewpoint()->getRotationCenterLocal(coord);}
+
 	//! Specify the location of the rotation center in local coordinates.
 	//! \param[in] vector<double> position
 	//! \retval 0 on success
 	int setRotationCenterLocal(const vector<double>& vec){
+		SetChanged(true);
 		return getCurrentViewpoint()->setRotationCenterLocal(vec,this);
 	}
 	//! Set the number of directional light sources
@@ -153,7 +198,7 @@ public:
 	//! \retval int 0 on success
 	int setLightDirection(int lightNum, int dir, double val){
 		
-		vector<double> ldirs = vector<double>(GetValueDouble(_lightDirectionsTag));
+		vector<double> ldirs = GetValueDoubleVec(_lightDirectionsTag);
 		ldirs[dir+3*lightNum] = val;
 		return  SetValueDouble(_lightDirectionsTag,"Set light direction",ldirs);
 	}
@@ -185,7 +230,7 @@ public:
 	//! \retval int 0 if successful
 	int setDiffuseCoeff(int lightNum, double val) {
 		
-		vector<double>diffCoeff(GetValueDouble(_diffuseCoeffTag));
+		vector<double>diffCoeff = GetValueDoubleVec(_diffuseCoeffTag);
 		diffCoeff[lightNum]=val;
 		return SetValueDouble(_diffuseCoeffTag,"Set diffuse coefficient",diffCoeff);
 	}
@@ -195,7 +240,7 @@ public:
 	//! \retval int 0 if successful
 	int setSpecularCoeff(int lightNum, double val) {
 		
-		vector<double>specCoeff(GetValueDouble(_specularCoeffTag));
+		vector<double>specCoeff= GetValueDoubleVec(_specularCoeffTag);
 		specCoeff[lightNum]=val;
 		return  SetValueDouble(_specularCoeffTag,"Set specular coefficient",specCoeff);
 	}
@@ -221,6 +266,7 @@ public:
 		if (pNode) GetRootNode()->DeleteNode(_currentViewTag);
 		int rc = GetRootNode()->AddRegisteredNode(_currentViewTag, newVP->GetRootNode(),newVP);
 		Command::CaptureEnd(cmd,this);
+		SetChanged(true);
 		return rc;
 	}
 	//! Set the home viewpoint
@@ -240,6 +286,7 @@ public:
 	//! camera direction and distance from center.
 	//! param[in] int timestep
 	void centerFullRegion(int timestep);
+
 #ifndef DOXYGEN_SKIP_THIS
 	static ParamsBase* CreateDefaultInstance() {return new ViewpointParams(0,-1);}
 	const std::string& getShortName() {return _shortName;}
@@ -299,13 +346,7 @@ public:
 	static void setDefaultAmbientCoeff(double val){ defaultAmbientCoeff = val;}
 	static void setDefaultSpecularExp(double val){ defaultSpecularExp = val;}
 	static void setDefaultNumLights(int val){ defaultNumLights = val;}
-	virtual Viewpoint* getCurrentViewpoint() {
-		ParamNode* pNode = GetRootNode()->GetNode(_currentViewTag);
-		if (pNode) return (Viewpoint*)pNode->GetParamsBase();
-		Viewpoint* vp = new Viewpoint();
-		GetRootNode()->AddNode(_currentViewTag, vp->GetRootNode());
-		return vp;
-	}
+	
 	virtual Viewpoint* getHomeViewpoint() {
 		ParamNode* pNode = GetRootNode()->GetNode(_homeViewTag);
 		if (pNode) return (Viewpoint*)pNode->GetParamsBase();
@@ -326,8 +367,15 @@ protected:
 	static const string _specularExpTag;
 	static const string _ambientCoeffTag;
 	static const string _numLightsTag;
-	
-	
+
+	//Following is protected so that other classes must set values via the parent ViewpointParams class
+	virtual Viewpoint* getCurrentViewpoint() {
+		ParamNode* pNode = GetRootNode()->GetNode(_currentViewTag);
+		if (pNode) return (Viewpoint*)pNode->GetParamsBase();
+		Viewpoint* vp = new Viewpoint();
+		GetRootNode()->AddNode(_currentViewTag, vp->GetRootNode());
+		return vp;
+	}
 	//defaults:
 	static double defaultViewDir[3];
 	static double defaultUpVec[3];

@@ -147,7 +147,7 @@ public:
 	void alignCenter(Params* p);
 	//Routines that deal with stretched coordinates:
 	//! Obtain rotation center in stretched coordinate
-	//! \retval double[3] Position of rotation center in stretched coordinates.
+	//! \param[out] double[3] Position of rotation center in stretched coordinates.
 	void getStretchedRotCtrLocal(double* vec){
 		const float* stretch = DataStatus::getInstance()->getStretchFactors();
 		const vector<double>& rvec = getRotationCenterLocal();
@@ -180,10 +180,13 @@ public:
 		for (int i = 0; i<3; i++) cpos[i] = cpos[i]/stretch[i];
 		return setCameraPosLocal(cpos, p);
 	}
+	
+	
 #ifndef DOXYGEN_SKIP_THIS
 	
 	static const string _viewpointTag;
 protected:
+		
 	static const string _camPosTag;
 	static const string _viewDirTag;
 	static const string _upVecTag;

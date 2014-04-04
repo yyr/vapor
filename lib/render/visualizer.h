@@ -37,6 +37,7 @@ class ViewpointParams;
 class RegionParams;
 class AnimationParams;
 class Renderer;
+class Trackball;
 
 //! \class Visualizer
 //! \brief A class for performing OpenGL rendering in VAPOR GUI Window
@@ -110,6 +111,27 @@ public:
 	//! Method to initialize GL rendering.  Must  be called from a GL context.
 	void	initializeGL();
 
+	//! Obtain the current trackball (either shared or local) based on current viewpoint params
+	Trackball* GetTrackball();
+
+	//! Set/clear a flag indicating that the trackball has changed the viewpoint.
+	//! This implies that the new viewpoint needs to be saved at render time.
+	//! \param[in] bool flag indicating whether the values have changed
+	void SetTrackballCoordsChanged(bool val){
+		tBallChanged = val;
+	}
+	//! Set/clear a flag indicating that the viewpoint has changed since last render
+	//! This implies that the trackball needs to use the new viewpoint.
+	//! \param[in] bool flag indicating whether the viewpoint has changed.
+	void SetViewpointChanged(bool val){
+		vpChanged = val;
+	}
+	//! Static method to set flags when a shared viewpoint has changed.
+	//! Results in all the visualizers that share the viewpoint getting their 
+	//! vpChanged flag being set.
+	
+	static void SetSharedViewpointChanged();
+
 	//Following QT 4 guidance (see bubbles example), opengl painting is performed
 	//in paintEvent(), so that we can paint nice text over the window.
 	// Visualizer::paintGL() is not implemented.
@@ -146,20 +168,6 @@ public:
 	//inside the doubled region, region, make the near clipping plane 1% of the region size.
 
 	void resetView(ViewpointParams* vpParams);
-	
-	//Test if the screen projection of a 3D quad encloses a point on the screen.
-	//The 4 corners of the quad must be specified in counter-clockwise order
-	//as viewed from the outside (pickable side) of the quad.  Should be moved to Manip.cpp
-	//
-	bool pointIsOnQuad(float cor1[3],float cor2[3],float cor3[3],float cor4[3], float pickPt[2]);
-
-	//Determine if a point is over (and not inside) a box, specified by 8 3-D coords.
-	//the first four corners are the counter-clockwise (from outside) vertices of one face,
-	//the last four are the corresponding back vertices, clockwise from outside
-	//Returns index of face (0..5), or -1 if not on Box
-	//This is used by Manips, should be moved there.
-	//
-	int pointIsOnBox(float corners[8][3], float pickPt[2]);
 
 	//Project a 3D point (in cube coord system) to window coords.
 	//Return true if in front of camera.  Used by pointIsOnQuad, as well as in building Axis labels.
@@ -279,12 +287,7 @@ public:
 	static OGLVendorType GetVendor();
 	void clearRendererBypass(Params::ParamsBaseType t);
 	
-	void setValuesFromGui(ViewpointParams* vpparams);
-	
 	bool isControlled;
-	
-	void renderScene(float extents[6], float minFull[3], float maxFull[3], int timeStep);
-	void regPaintEvent();
 	
 	
 	double* getModelViewMatrix();
@@ -293,7 +296,11 @@ public:
 	
 protected:
 	
-	
+	static Trackball* globalTrackball;
+	Trackball* localTrackball;
+	bool tBallChanged;
+	//Save the current GL modelview matrix in the viewpoint params
+	void saveGLMatrix(int timestep, ViewpointParams*);
 	//Mouse Mode tables.  Static since independent of window:
 	static vector<ParamsBase::ParamsBaseType> paramsFromMode;
 	static vector<int> manipFromMode;
@@ -332,33 +339,15 @@ protected:
 	
 	std::map<RenderParams*,Renderer*> rendererMapping;
 
-	float tcoord[2];
-	
-	float* setTexCrd(int i, int j);
-    
-	void setMatrixFromFrame(double* posvec, double* dirvec, double* upvec, double* centerRot, double mvmtx[16]);
 	void setUpViewport(int width, int height);
 	//Methods to support drawing domain bounds, axes etc.
 	//Draw the region bounds and frame it in full domain.
 	//Arguments are in unit cube coordinates
 	void renderDomainFrame(const float* extents,const double* minFull,const double* maxFull);
 	
-	void drawSubregionBounds(float* extents);
-	void drawAxisArrows(float* extents);
-	void drawAxisTics(int tstep);
-	void drawAxisLabels(int tstep);
-	void buildAxisLabels(int tstep);
-	
 	void placeLights();
 	
-	//Helper functions for drawing region bounds:
-	static float* cornerPoint(float* extents, int faceNum);
-	// Faces of the cube are numbered 0..5 based on view from pos z axis:
-	// back, front, bottom, top, left, right
-	static bool faceIsVisible(float* extents, float* viewerCoords, int faceNum);
-
 	float regionFrameColorFlt[3];
-	float subregionFrameColorFlt[3];
 	
 	//Set the following to force a call to resizeGL at the next call to
 	//updateGL.
@@ -393,6 +382,9 @@ protected:
 	float mouseDownPoint[2];
 	// unit vector in direction of handle
 	float handleProjVec[2];
+
+	//flag indicating change to viewpoint
+	bool vpChanged;
 
 	
 #endif //DOXYGEN_SKIP_THIS

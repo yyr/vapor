@@ -49,6 +49,7 @@
 //#include <QGLWidget>
 #include <math.h>
 #include <vapor/common.h>
+#include <vector>
 
 /* These vector and quaternion macros complement similar
  * routines.
@@ -88,10 +89,13 @@ PARAMS_API void	computeGradientData(
 );
 PARAMS_API void	makeModelviewMatrix(float* vpos, float* vdir, float* upvec, float* matrix);
 PARAMS_API void	makeModelviewMatrixD(double* vpos, double* vdir, double* upvec, double* matrix);
+PARAMS_API void	makeModelviewMatrixD(const std::vector<double>& vpos, const std::vector<double>& vdir, const std::vector<double>& upvec, double* matrix);
 PARAMS_API void	makeTransMatrix(float* transVec, float* matrix);
 PARAMS_API void	makeTransMatrix(double* transVec, double* matrix);
+PARAMS_API void	makeTransMatrix(const std::vector<double>& transVec, double* matrix);
 PARAMS_API void	vscale (float *v, float s);
 PARAMS_API void	vscale (double *v, double s);
+PARAMS_API void	vscale (std::vector<double> v, double s);
 PARAMS_API void	vmult(const float *v, float s, float *w); 
 PARAMS_API void	vmult(const double *v, double s, double *w); 
 PARAMS_API void	vhalf (const float *v1, const float *v2, float *half);
@@ -168,16 +172,20 @@ inline double vdot(const double* a, const double* b)
 	{return (a[0]*b[0]+a[1]*b[1]+a[2]*b[2]);}
 inline float vlength(const float*a) {return sqrt(vdot(a,a));}
 inline double vlength(const double*a) {return sqrt(vdot(a,a));}
+inline double vlength(const std::vector<double>a) {return sqrt(a[0]*a[0]+a[1]*a[1]+a[2]*a[2]);}
 inline float vdist(const float* a, const float*b) {
 	return (sqrt((a[0]-b[0])*(a[0]-b[0])+(a[1]-b[1])*(a[1]-b[1])+(a[2]-b[2])*(a[2]-b[2]))); }
 inline void vnormal(float *a) {vscale(a, 1/vlength(a));}
 inline void vnormal(double *a) {vscale(a, 1/vlength(a));}
+inline void vnormal(std::vector<double>a) {vscale(a,1./vlength(a));}
 inline void vcopy(const float* a, float* b) {b[0] = a[0], b[1] = a[1], b[2] = a[2];}
 inline void vcopy(const double* a, double* b) {b[0] = a[0], b[1] = a[1], b[2] = a[2];}
 inline void vsub(const float* a, const float* b, float* c)
 	{c[0] = a[0]-b[0], c[1] = a[1]-b[1], c[2] = a[2]-b[2];}
 inline void vsub(const double* a, const double* b, double* c)
 	{c[0] = a[0]-b[0], c[1] = a[1]-b[1], c[2] = a[2]-b[2];}
+inline void vsub(const std::vector<double>& a, const std::vector<double>& b, std::vector<double> c)
+	{c.clear();c.push_back(a[0]-b[0]), c.push_back( a[1]-b[1]); c.push_back( a[2]-b[2]);}
 inline void vadd(const float* a, const float* b, float* c)
 	{c[0] = a[0]+b[0], c[1] = a[1]+b[1], c[2] = a[2]+b[2];}
 inline void vadd(const double* a, const double* b, double* c)

@@ -71,8 +71,6 @@ public:
 		return (myWindowNum == myWinMgr->getActiveViz());
 	}
 
-	//Following method is called when user has navigated
-	void changeCoords(float *vpos, float* vdir, float* upvec);
 
 	//Call this when the gui values need to update the visualizer:
 	void setValuesFromGui(ViewpointParams* vparams);
@@ -88,13 +86,7 @@ public:
 	}
 	bool mouseIsDown() {return mouseDownHere;}
 
-	static bool preRenderSetup(int viznum, bool newCoords){
-		if (newCoords) {
-			VizWinMgr::getInstance()->getVizWin(viznum)->changeViewerFrame();
-		}
-		//return AnimationController::getInstance()->beginRendering(viznum);
-		return true;
-	}
+	
 	static bool endRender(int viznum, bool isControlled){
 		//if(isControlled) AnimationController::getInstance()->endRendering(viznum);
 		return VizWinMgr::getInstance()->getVizWin(viznum)->mouseIsDown();
@@ -111,9 +103,6 @@ protected:
 	
 	Visualizer* myVisualizer;
 
-	//Method that gets the coord frame from GL, 
-	//causes an update of the viewpoint params
-	void	changeViewerFrame();
 	
 	//Indicate whether using global or local viewpoint:
 	bool globalVP;

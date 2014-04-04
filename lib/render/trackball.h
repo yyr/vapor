@@ -47,9 +47,8 @@
 #define	TRACKBALL_H
 
 
-//#include <GL/gl.h>
-#include <qthread.h>
-#include <qgl.h>
+#include <GL/gl.h>
+#include <vector>
 #include <vapor/common.h>
 
 /* These vector and quaternion macros complement similar
@@ -62,7 +61,7 @@
  */
 namespace VAPoR {
 class GLWindow;
-class Trackball {
+class RENDER_API Trackball {
 public:
 	Trackball();
 	void	TrackballSetMatrix ();
@@ -77,17 +76,17 @@ public:
 	void	TrackballCopyTo (Trackball *dst);
 	void    TrackballSetTo(double scale, double rvec[3], double radians, double trans[3]);
 	void	TrackballReset ();
-	
-	void	MouseOnTrackball ( int eventType, Qt::MouseButton thisButton, int xcrd, int ycrd, unsigned width, unsigned height);
+	//Note:  button is 1,2,3 for left, middle, right
+	void	MouseOnTrackball ( int eventType, int thisButton, int xcrd, int ycrd, unsigned width, unsigned height);
 	bool	IsLocal() {return local;}
 	//Initialize the trackball, provide viewer position, direction, upvector,
 	//and the center of rotation (all in trackball coordinate space)
-	void	setFromFrame(double* posvec, double* dirvec, double* upvec, double* centerRot,
+	void	setFromFrame(const std::vector<double>& posvec, const std::vector<double>& dirvec, const std::vector<double>& upvec, const std::vector<double>& centerRot,
 				bool perspective);
 	
 	
 private:
-	void	setCenter(double newCenter[3]){
+	void	setCenter(const std::vector<double>& newCenter){
 		center[0]=newCenter[0];center[1]=newCenter[1];center[2]=newCenter[2];}
 	// flag indicating whether this is a local or global tball
 	bool local;

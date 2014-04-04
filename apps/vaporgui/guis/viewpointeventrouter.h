@@ -34,6 +34,7 @@ namespace VAPoR {
 
 class ViewpointParams;
 class XmlNode;
+class Command;
 
 class ViewpointEventRouter : public QWidget, public Ui_VizTab, public EventRouter {
 
@@ -61,8 +62,6 @@ public:
 	virtual void captureMouseUp();
 	//When the spin is ended, it replaces captureMouseUp:
 	void endSpin();
-	void navigate (ViewpointParams* vpParams, float* posn, float* viewDir, float* upVec);
-
 	
 	//Methods to handle home viewpoint
 	void setHomeViewpoint();
@@ -81,7 +80,7 @@ public:
 protected:
 	float lastCamPos[3];
 	bool panChanged;
-
+	Command* savedCommand;
 	
 protected slots:
 	

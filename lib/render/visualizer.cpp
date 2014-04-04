@@ -27,6 +27,7 @@
 #include "viewpointparams.h"
 #include "regionparams.h"
 #include "animationparams.h"
+#include "trackball.h"
 
 #include "datastatus.h"
 #include <vapor/MyBase.h>
@@ -41,6 +42,7 @@
 #include "assert.h"
 #include <vapor/jpegapi.h>
 #include <vapor/common.h>
+#include "vapor/ControlExecutive.h"
 #ifdef Darwin
 #include <OpenGL/gl.h>
 #else
@@ -54,6 +56,7 @@ bool Visualizer::defaultTerrainEnabled = false;
 
 bool Visualizer::defaultAxisArrowsEnabled = false;
 bool Visualizer::nowPainting = false;
+Trackball* Visualizer::globalTrackball = 0;
 
 /* note: 
  * GL_ENUMS used by depth peeling for attaching the color buffers, currently 16 named points exist
@@ -71,7 +74,9 @@ Visualizer::Visualizer(int windowNum )
 	
 	MyBase::SetDiagMsg("Visualizer::Visualizer() begin");
 	
-
+	for (int i = 0; i<3; i++){
+		regionFrameColorFlt[i] = 1.;
+	}
 	winNum = windowNum;
 	rendererMapping.clear();
 	assert(rendererMapping.size() == 0);
@@ -87,10 +92,9 @@ Visualizer::Visualizer(int windowNum )
 	renderType.clear();
 	renderOrder.clear();
 	renderer.clear();
-	for (int i = 0; i<3; i++){
-		regionFrameColorFlt[i] = 1.;
-		subregionFrameColorFlt[i] = .5;
-	}
+	
+	Trackball* localTrackball = new Trackball();
+	if (!globalTrackball) globalTrackball = new Trackball();
     MyBase::SetDiagMsg("Visualizer::Visualizer() end");
 }
 
@@ -217,14 +221,8 @@ void Visualizer::setUpViewport(int width,int height){
 	
 	GLfloat w = (float) width / (float) height;
 		
-	
-	//qWarning("setting near, far dist: %f %f", nearDist, farDist);
-	//gluPerspective(45., w, nearDist, farDist );
 	gluPerspective(45., w, 0.1f, 512.f );
-	//gluPerspective(45., w, 1.0, 5. );
-	//save the current value...
-	//glGetDoublev(GL_PROJECTION_MATRIX, projectionMatrix);
-		
+	
 	glMatrixMode(GL_MODELVIEW);
 	printOpenGLError();
 	
@@ -247,8 +245,7 @@ int Visualizer::paintEvent(bool force)
 		//check if any params changed. If not, return -1;
 	}
 	
-	double mvmatrix[16];
-	double vdir[3], vpos[3], upvec[3];
+	
 	MyBase::SetDiagMsg("Visualizer::paintGL()");
 	//Following is needed in case undo/redo leaves a disabled renderer in the renderer list, so it can be deleted.
 	removeDisabledRenderers();
@@ -260,17 +257,19 @@ int Visualizer::paintEvent(bool force)
 		return 0;
 	}
 
-	//Get the ModelView matrix from the viewpoint params:
+	//Get the ModelView matrix from the viewpoint params, if it has changed...
 	ViewpointParams* vpParams = getActiveViewpointParams();
-	Viewpoint* vp = vpParams->getCurrentViewpoint();
-	for (int i = 0; i<3; i++){
-		vdir[i] = vp->getViewDir()[i];
-		upvec[i] = vp->getUpVec()[i];
-		vpos[i] = vp->getCameraPosLocal()[i];
+	if (vpParams->HasChanged(winNum)){
+		
+		
+		const vector<double>& vdir = vpParams->getViewDir();
+		const vector<double>& upvec = vpParams->getUpVec();
+		const vector<double>& vpos = vpParams->getCameraPosLocal();
+		const vector<double>& cntr = vpParams->getRotationCenterLocal();
+		//makeModelviewMatrixD(vpos, vdir, upvec,mvmatrix);
+		GetTrackball()->setFromFrame(vpos,vdir,upvec,cntr,true);
 	}
-	makeModelviewMatrixD(vpos, vdir, upvec,mvmatrix);
-    glLoadIdentity();
-    //glTranslatef(0.0, 0.0, -5.0);
+	
 	
 	float extents[6] = {0.f,0.f,0.f,1.f,1.f,1.f};
 	float minFull[3] = {0.f,0.f,0.f};
@@ -307,12 +306,22 @@ int Visualizer::paintEvent(bool force)
 	glPushMatrix();
 	glLoadIdentity();
 	
+	//Use the trackball to set the Modelview matrix:
+	GetTrackball()->TrackballSetMatrix();
+
+	//Save the GL matrix in the viewpoint params, if the mouse is moving:
+	if(tBallChanged){
+		saveGLMatrix(timeStep, vpParams);
+	}
+	//Reset the flags 
+	tBallChanged = false;
+	vpParams->SetChanged(false);
 
 	//Lights are positioned relative to the view direction, do this before the modelView matrix is changed
 	placeLights();
 
 	//Set the GL modelview matrix, based on the Trackball state.
-	glLoadMatrixd(mvmatrix);
+	//glLoadMatrixd(mvmatrix);
 	
 	//make sure to capture whenever the time step or frame index changes
 	if (timeStep != previousTimeStep) {
@@ -367,7 +376,6 @@ int Visualizer::paintEvent(bool force)
 
 	glPopMatrix();
 	glFlush();
-
 	
 	//Turn off the nowPainting flag (probably could be deleted)
 	nowPainting = false;
@@ -486,46 +494,6 @@ bool Visualizer::pixelToVector(float winCoords[2], const float camPos[3], float 
 	}
 	return success;
 }
-//Test if the screen projection of a 3D quad encloses a point on the screen.
-//The 4 corners of the quad must be specified in counter-clockwise order
-//as viewed from the outside (pickable side) of the quad.  
-//Window coords are as in OpenGL (0 at bottom of window)
-//
-bool Visualizer::
-pointIsOnQuad(float cor1[3], float cor2[3], float cor3[3], float cor4[3], float pickPt[2])
-{
-	float winCoord1[2];
-	float winCoord2[2];
-	float winCoord3[2];
-	float winCoord4[2];
-	if(!projectPointToWin(cor1, winCoord1)) return false;
-	if (!projectPointToWin(cor2, winCoord2)) return false;
-	if (pointOnRight(winCoord1, winCoord2, pickPt)) return false;
-	if (!projectPointToWin(cor3, winCoord3)) return false;
-	if (pointOnRight(winCoord2, winCoord3, pickPt)) return false;
-	if (!projectPointToWin(cor4, winCoord4)) return false;
-	if (pointOnRight(winCoord3, winCoord4, pickPt)) return false;
-	if (pointOnRight(winCoord4, winCoord1, pickPt)) return false;
-	return true;
-}
-//Test whether the pickPt is over (and outside) the box (as specified by 8 points)
-int Visualizer::
-pointIsOnBox(float corners[8][3], float pickPt[2]){
-	//front (-Z)
-	if (pointIsOnQuad(corners[0],corners[1],corners[3],corners[2],pickPt)) return 2;
-	//back (+Z)
-	if (pointIsOnQuad(corners[4],corners[6],corners[7],corners[5],pickPt)) return 3;
-	//right (+X)
-	if (pointIsOnQuad(corners[1],corners[5],corners[7],corners[3],pickPt)) return 5;
-	//left (-X)
-	if (pointIsOnQuad(corners[0],corners[2],corners[6],corners[4],pickPt)) return 0;
-	//top (+Y)
-	if (pointIsOnQuad(corners[2],corners[3],corners[7],corners[6],pickPt)) return 4;
-	//bottom (-Y)
-	if (pointIsOnQuad(corners[0],corners[4],corners[5],corners[1],pickPt)) return 1;
-	return -1;
-}
-
 
 //Routine to obtain gl matrix from viewpointparams
 GLdouble* Visualizer:: 
@@ -630,37 +598,6 @@ void Visualizer::renderDomainFrame(const float* extents, const double* minFull, 
 	
 	glEnd();//GL_LINES
 }
-
-float* Visualizer::cornerPoint(float* extents, int faceNum){
-	if(faceNum&1) return extents+3;
-	else return extents;
-}
-bool Visualizer::faceIsVisible(float* extents, float* viewerCoords, int faceNum){
-	float temp[3];
-	//Calc vector from a corner to the viewer.  Face is visible if
-	//the outward normal to the face points in same direction as this vector.
-	vsub (viewerCoords, cornerPoint(extents, faceNum), temp);
-	switch (faceNum) { //visible if temp points in direction of outward normal:
-		case (0): //norm is 0,0,-1
-			return (temp[2]<0.f);
-		case (1):
-			return (temp[2]>0.f);
-		case (2): //norm is 0,-1,0
-			return (temp[1]<0.f);
-		case (3):
-			return (temp[1]>0.f);
-		case (4): //norm is -1,0,0
-			return (temp[0]<0.f);
-		case (5):
-			return (temp[0]>0.f);
-		default: 
-			assert(0);
-			return false;
-	}
-}
-
-
-
 
 
 /*
@@ -973,27 +910,6 @@ Visualizer::OGLVendorType Visualizer::GetVendor()
 }
 
 
-
-
-void Visualizer::
-setValuesFromGui(ViewpointParams* vpparams){
-	
-	//Same as the version in vizwin, but doesn't force redraw.
-	Viewpoint* vp = vpparams->getCurrentViewpoint();
-	double transCameraPos[3];
-	double cubeCoords[3];
-	double vdir[3],upv[3];
-	for (int i = 0; i<3; i++) {
-		vdir[i] = vp->getViewDir()[i];
-		upv[i] = vp->getUpVec()[i];
-	}
-	
-	double mtx[16];
-	setMatrixFromFrame(transCameraPos, vdir, upv, cubeCoords,mtx);
-	vpparams->setModelViewMatrix(mtx);
-	
-}
-
 void Visualizer::removeDisabledRenderers(){
 	//Repeat until we don't find any renderers to disable:
 	
@@ -1026,23 +942,46 @@ int Visualizer::AddMouseMode(const std::string paramsTag, int manipType, const c
 	return (mode);
 }
 
-// Set the quaternion and translation from a viewer frame
-// Also happens to construct modelview matrix, but we don't use its translation
-void Visualizer::
-setMatrixFromFrame(double* posvec, double* dirvec, double* upvec, double* centerRot, double mvmtrx[16]){
-	//First construct the rotation matrix:
-	double mtrx1[16];
-	double trnsMtrx[16];
-	double mtrx[16];
-	makeTransMatrix(centerRot, trnsMtrx);
-	makeModelviewMatrixD(posvec, dirvec, upvec, mtrx);
+
+Trackball* Visualizer::GetTrackball(){
+	if (getActiveViewpointParams()->IsLocal()) return localTrackball;
+	else return globalTrackball;
+}
+
+void Visualizer::saveGLMatrix(int timestep, ViewpointParams* vpParams){
+	//First save the GL matrix
+
+	GLdouble modelViewMtx[16];
+	double minv[16];
+	glGetDoublev(GL_MODELVIEW_MATRIX, modelViewMtx);
+	//save the matrix (needed for picking):
+	vpParams->setModelViewMatrix(modelViewMtx);
+
+	//Invert it:
+	int rc = minvert(modelViewMtx, minv);
+	if(!rc) assert(rc);
+
+	vscale(minv+8, -1.0);
 	
-	//Translate on both sides by translation
-	//first on left,
-	mmult(trnsMtrx, mtrx, mtrx1);
-	//then on right by negative:
-	trnsMtrx[12] = -trnsMtrx[12];
-	trnsMtrx[13] = -trnsMtrx[13];
-	trnsMtrx[14] = -trnsMtrx[14];
-	mmult(mtrx1,trnsMtrx, mvmtrx);
+	//Note: We need to convert from GL (stretched) user coord system to local coordinates for vpos here!
+
+	vector<double> vposn, vup, vdir;
+	for (int i = 0; i<3; i++) {
+		vposn.push_back(minv[12+i]); //position vector is minv[12..14]
+		vup.push_back(minv[4+i]); //up vector is minv[4..6]
+		vdir.push_back(minv[8+i]); //view direction is minv[8..10]
+	}
+	vpParams->setCameraPosLocal(vposn, timestep);
+	vpParams->setUpVec(vup);
+	vpParams->setViewDir(vdir);
+	
+}
+//Static method to set changed bits on all visualizers that are using shared viewpoints
+void Visualizer::SetSharedViewpointChanged(){
+	ControlExecutive* ce = ControlExecutive::getInstance();
+	for (int i = 0; i<ce->GetNumVisualizers(); i++){
+		Visualizer* viz = ce->GetVisualizer(i);
+		if (viz->getActiveViewpointParams()->IsLocal()) continue;
+		viz->SetViewpointChanged(true);
+	}
 }
