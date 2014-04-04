@@ -64,6 +64,7 @@ Params::Params(
 	SetVizNum(winNum);
 	if(winNum < 0) SetLocal(false); else SetLocal(true);
 	SetInstanceIndex(0);
+	changeBit = true;
 }
 
 
