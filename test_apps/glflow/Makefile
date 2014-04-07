@@ -13,8 +13,9 @@ endif
 ifeq ($(ARCH),Darwin)
 MAKEFILE_LDFLAGS += -framework OpenGL -framework GLUT
 else
-LIBRARIES += $(GLU_LIB) $(OGL_LIB) glut
+LIBRARIES += $(GLU_LIB) $(OGL_LIB) glut common
 endif
 
 
 include ${TOP}/make/config/base.mk
+
