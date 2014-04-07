@@ -165,6 +165,12 @@ public:
 	
 	void setVariableSelected(int sessionVarNum, bool value){
 		variableSelected[sessionVarNum] = value;
+		if (value){
+			for (int i = 0; i<variableSelected.size(); i++){
+				if (i!=sessionVarNum) variableSelected[i] = false;
+			}
+			firstVarNum = sessionVarNum;
+		}
 	}
 	bool variableIsSelected(int index) {
 		if (index >= (int)variableSelected.size()) return false;

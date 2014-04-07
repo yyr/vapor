@@ -68,6 +68,7 @@
 #include "regioneventrouter.h"
 #include "viewpointeventrouter.h"
 #include "eventrouter.h"
+#include "vapor/ColorMapBase.h"
 
 using namespace VAPoR;
 const float IsolineEventRouter::thumbSpeedFactor = 0.0005f;  //rotates ~45 degrees at full thumbwheel width
@@ -2830,8 +2831,99 @@ void IsolineEventRouter::guiFitIsovalsToHisto(){
 	updateTab();
 }
 void IsolineEventRouter::copyToProbeOr2D(){
+	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
+	if (iParams->VariablesAre3D()) guiCopyToProbe();
+	else guiCopyTo2D();
 }
 void IsolineEventRouter::guiCopyToProbe(){
+	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
+	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_probeParamsTag);
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Copy isoline setup to Probe");
+	//Copy the Box
+	const vector<double>& exts = iParams->GetBox()->GetLocalExtents();
+	const vector<double>& angles = iParams->GetBox()->GetAngles();
+	pParams->GetBox()->SetAngles(angles);
+	pParams->GetBox()->SetLocalExtents(exts);
+	//set the variable:
+	const std::string& varname = iParams->GetVariableName();
+	int sesvarnum = DataStatus::getInstance()->getSessionVariableNum3D(varname);
+	pParams->setVariableSelected(sesvarnum,true);
+	//Modify the TransferFunction
+	TransferFunction* tf = pParams->GetTransFunc();
+	
+	convertIsovalsToColors(tf);
+	pParams->setProbeDirty();
+	PanelCommand::captureEnd(cmd,pParams);
 }
 void IsolineEventRouter::guiCopyTo2D(){
+	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
+	TwoDDataParams* pParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_twoDDataParamsTag);
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Copy isoline setup to 2D Data");
+	//Copy the Box
+	const vector<double>& exts = iParams->GetBox()->GetLocalExtents();
+	pParams->GetBox()->SetLocalExtents(exts);
+	const std::string& varname = iParams->GetVariableName();
+	int sesvarnum = DataStatus::getInstance()->getSessionVariableNum2D(varname);
+	pParams->setVariableSelected(sesvarnum,true);
+	//Modify the TransferFunction
+	TransferFunction* tf = pParams->GetTransFunc();
+	convertIsovalsToColors(tf);
+	pParams->setTwoDDirty();
+	PanelCommand::captureEnd(cmd,pParams);
+}
+void IsolineEventRouter::convertIsovalsToColors(TransferFunction* tf){
+	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
+	vector<double> isovals = iParams->GetIsovalues();//copy the isovalues from the params
+	ColorMapBase* cmap = tf->getColormap();
+	std::sort(isovals.begin(),isovals.end());
+
+	//Determine the minimum and maximum values for the color map
+	float minMapValue = isovals[0]-1.;
+	float maxMapValue = isovals[0]+1.;
+	if (isovals.size() > 1) {
+		minMapValue = isovals[0] - 0.5*(isovals[1]-isovals[0]);
+		maxMapValue = isovals[isovals.size()-1] + 0.5*(isovals[isovals.size()-1]-isovals[isovals.size()-2]);
+	}
+	tf->setMinMapValue(minMapValue);
+	tf->setMaxMapValue(maxMapValue);
+	
+	//For each intermediate isovalue, determine 1/2 the minimum distance to left and right neighbor
+	vector<float> leftMidPosn;
+	leftMidPosn.push_back(minMapValue);  //first is simply minMapValue
+	for (int i = 1; i<isovals.size()-1; i++){
+		float mindist = 0.5*Min(isovals[i]-isovals[i-1], isovals[i+1]-isovals[i]);
+		leftMidPosn.push_back(isovals[i]-mindist);
+	}
+	if(isovals.size()>1) leftMidPosn.push_back(isovals[isovals.size()-1]-(maxMapValue - isovals[isovals.size()-1]));
+	leftMidPosn.push_back(maxMapValue);//last is maxMapValue, to right of all the positions.
+	//Save the colors at the midpoints
+	vector<ColorMapBase::Color*> leftMidColors;
+	leftMidColors.push_back(new ColorMapBase::Color(cmap->controlPointColor(0)));
+	for (int i = 1; i<isovals.size(); i++){
+		float midPoint = 0.5*(isovals[i-1]+(isovals[i-1]-leftMidPosn[i-1])+leftMidPosn[i]);
+		ColorMapBase::Color* mdColor = new ColorMapBase::Color(cmap->color(midPoint));
+		leftMidColors.push_back(mdColor);
+	}
+	int ncolors = cmap->numControlPoints();
+	leftMidColors.push_back(new ColorMapBase::Color(cmap->controlPointColor(ncolors-1)));
+	//Now delete all the color control points:
+	for (int i = 0; i<ncolors; i++) cmap->deleteControlPoint(0);
+	//Insert a color control point at min
+	cmap->addControlPointAt(minMapValue,*leftMidColors[0]);
+	//Insert a color control point at each leftmidpoint
+	for (int i = 1; i<isovals.size(); i++){
+		cmap->addControlPointAt(leftMidPosn[i],*leftMidColors[i]);
+		//Insert another one of same color if the two intermediate points between isovals[i-1] and isovals[i] are not close
+		if ( (leftMidPosn[i] - (isovals[i-1]+isovals[i-1]-leftMidPosn[i-1])) > (maxMapValue - minMapValue)/512.){
+			float otherPoint = (isovals[i-1]+isovals[i-1]-leftMidPosn[i-1]);
+			cmap->addControlPointAt(otherPoint,*leftMidColors[i]);
+		}
+	}
+	//Insert the last color
+	cmap->addControlPointAt(maxMapValue, *leftMidColors[leftMidColors.size()-1]);
+	//
+	//Delete all the colors:
+	for (int i = 0; i<leftMidColors.size(); i++) delete leftMidColors[i];
+	//Make the color map discrete
+	tf->setColorInterpType(TFInterpolator::discrete);
 }

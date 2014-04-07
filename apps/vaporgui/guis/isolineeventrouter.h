@@ -191,6 +191,8 @@ protected:
 	static const char* webHelpText[];
 	static const char* webHelpURL[];
 	void setIsolineToExtents(const double* extents, IsolineParams* pparams);
+	//Modify the colormap so that isovalues occur at discrete color changes:
+	void convertIsovalsToColors(TransferFunction* tf);
 	void mapCursor();
 	void updateBoundsText(RenderParams*);
 	//Convert rotation about axis between actual and viewed in stretched coords:

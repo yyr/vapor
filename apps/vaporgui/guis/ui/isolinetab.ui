@@ -564,6 +564,12 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QComboBox" name="dimensionCombo">
+                <property name="minimumSize">
+                 <size>
+                  <width>50</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>40</width>
@@ -4075,6 +4081,12 @@ Domain</string>
             </item>
             <item>
              <widget class="QPushButton" name="isolinePanelColorButton">
+              <property name="minimumSize">
+               <size>
+                <width>55</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="maximumSize">
                <size>
                 <width>50</width>
@@ -4228,6 +4240,12 @@ Domain</string>
             </item>
             <item>
              <widget class="QPushButton" name="isolinePanelBackgroundColorButton">
+              <property name="minimumSize">
+               <size>
+                <width>55</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="maximumSize">
                <size>
                 <width>50</width>
