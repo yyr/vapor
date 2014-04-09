@@ -2878,8 +2878,11 @@ void IsolineEventRouter::convertIsovalsToColors(TransferFunction* tf){
 	std::sort(isovals.begin(),isovals.end());
 
 	//Determine the minimum and maximum values for the color map
-	float minMapValue = isovals[0]-1.;
-	float maxMapValue = isovals[0]+1.;
+	//initially start with an interval about the first isovalue in case there is only one isovalue
+	float bnds[2];
+	iParams->GetHistoBounds(bnds);
+	float minMapValue = isovals[0]-(bnds[1]-bnds[0]);
+	float maxMapValue = isovals[0]+(bnds[1]-bnds[0]);
 	if (isovals.size() > 1) {
 		minMapValue = isovals[0] - 0.5*(isovals[1]-isovals[0]);
 		maxMapValue = isovals[isovals.size()-1] + 0.5*(isovals[isovals.size()-1]-isovals[isovals.size()-2]);

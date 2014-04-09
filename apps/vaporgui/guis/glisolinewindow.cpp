@@ -262,6 +262,24 @@ void GLIsolineWindow::performRendering(int timestep, const std::map<pair<int,int
 		}
 	}
 	glEnd();
+	glPointSize(0.7*iParams->GetPanelLineThickness());
+	glBegin(GL_POINTS);
+	
+	for(int iso = 0; iso< iParams->getNumIsovalues(); iso++){
+		pair<int,int> mapPair = make_pair(timestep, iso);
+		const vector<float*>& lineVec = lineCache.at(mapPair);
+		int numlines = lineVec.size();
+		for (int linenum = 0; linenum < numlines; linenum++){
+			const float* points = lineVec[linenum];
+			pointa[0] = points[0]*rectLeft;
+			pointa[1] = points[1]*rectTop;
+			pointb[0] = points[2]*rectLeft;
+			pointb[1] = points[3]*rectTop;
+			glVertex3fv(pointa);
+			glVertex3fv(pointb);
+		}
+	}
+	glEnd();
 
 }
 //
