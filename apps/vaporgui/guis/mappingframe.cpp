@@ -1272,7 +1272,7 @@ void MappingFrame::updateAxisLabels()
   {
     float mind = _domainSlider->minValue();
     float maxd = _domainSlider->maxValue();
-    
+   
     x = (int)xWorldToView(mind);
     addAxisLabel(x, y, QString("%1").arg(xWorldToData(mind)));
     
@@ -1294,7 +1294,7 @@ void MappingFrame::updateAxisLabels()
 	  for (int i = 0; i<_isolineSliders.size(); i++){
 		  float isoval = (_isolineSliders[i]->minValue() + _isolineSliders[i]->maxValue())*0.5;
 		  x = int(xWorldToView(isoval));
-		  addAxisLabel(x,y,QString("%1").arg(xWorldToData(isoval)));
+		  addAxisLabel(x,y-13,QString("%1").arg(xWorldToData(isoval)));
 	  }
   }
 
@@ -1552,7 +1552,7 @@ int MappingFrame::totalFixedHeight()
   {
     total += 2 * _opacityGap;
   }
-
+ 
   return total;
 }
 
@@ -1597,6 +1597,8 @@ void MappingFrame::resize()
   //
   float unitPerPixel = 1.0 / (float)(height()-totalFixedHeight());
 
+  //Provide extra space at bottom for 2 rows of annotation with isolines.
+  if (_isolineSlidersEnabled) _axisRegionHeight = 30;
   //
   // Determine the new y extents
   //

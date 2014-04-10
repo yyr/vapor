@@ -239,11 +239,7 @@ IsolineEventRouter::hookUpTab()
 	connect (showHideLayoutButton, SIGNAL(pressed()), this, SLOT(showHideLayout()));
 	connect (showHideImageButton, SIGNAL(pressed()), this, SLOT(showHideImage()));
 	connect (showHideAppearanceButton, SIGNAL(pressed()), this, SLOT(showHideAppearance()));
-	connect (isolineColorButton, SIGNAL(clicked()), this, SLOT(guiSetIsolineColor()));
-	connect (textColorButton, SIGNAL(clicked()), this, SLOT(guiSetTextColor()));
-	connect (isolinePanelColorButton, SIGNAL(clicked()), this, SLOT(guiSetPanelIsolineColor()));
 	connect (isolinePanelBackgroundColorButton, SIGNAL(clicked()), this, SLOT(guiSetPanelBackgroundColor()));
-	connect (textPanelColorButton, SIGNAL(clicked()), this, SLOT(guiSetPanelTextColor()));
 	connect(newHistoButton, SIGNAL(clicked()), this, SLOT(refreshHisto()));
 	connect(editButton, SIGNAL(toggled(bool)), this, SLOT(setIsolineEditMode(bool)));
 	connect(navigateButton, SIGNAL(toggled(bool)), this, SLOT(setIsolineNavigateMode(bool)));
@@ -398,25 +394,11 @@ void IsolineEventRouter::updateTab(){
 	panelTextSizeEdit->setText(QString::number(isolineParams->GetPanelTextSize()));
 	//set color buttons
 	QPalette pal;
-	QColor clr = QColor((int)(255*isolineParams->GetIsolineColor()[0]),(int)(255*isolineParams->GetIsolineColor()[1]),(int)(255*isolineParams->GetIsolineColor()[2]));
-	pal.setColor(QPalette::Base, clr);
-	isolineColorEdit->setPalette(pal);
-	const vector<double>&pColor = isolineParams->GetPanelLineColor();
-	clr = QColor((int)(255*pColor[0]),(int)(255*pColor[1]),(int)(255*pColor[2]));
-	pal.setColor(QPalette::Base, clr);
-	isolinePanelColorEdit->setPalette(pal);
 	const vector<double>&bColor = isolineParams->GetPanelBackgroundColor();
-	clr = QColor((int)(255*bColor[0]),(int)(255*bColor[1]),(int)(255*bColor[2]));
+	QColor clr = QColor((int)(255*bColor[0]),(int)(255*bColor[1]),(int)(255*bColor[2]));
 	pal.setColor(QPalette::Base, clr);
 	isolinePanelBackgroundColorEdit->setPalette(pal);
-	const vector<double>&tColor = isolineParams->GetTextColor();
-	clr = QColor((int)(255*tColor[0]),(int)(255*tColor[1]),(int)(255*tColor[2]));
-	pal.setColor(QPalette::Base, clr);
-	textColorEdit->setPalette(pal);
-	const vector<double>&ptColor = isolineParams->GetPanelTextColor();
-	clr = QColor((int)(255*ptColor[0]),(int)(255*ptColor[1]),(int)(255*ptColor[2]));
-	pal.setColor(QPalette::Base, clr);
-	textPanelColorEdit->setPalette(pal);
+	
 	//Provide latlon box extents if available:
 	if (DataStatus::getProjectionString().size() == 0){
 		minMaxLonLatFrame->hide();
@@ -567,10 +549,12 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	double minIso = (double)minIsoEdit->text().toDouble();
 	double prevMinIso = 1.e30, prevMaxIso = -1.e30;
 	const vector<double>& prevIsoVals = isolineParams->GetIsovalues(); 
+	//Determine previous min/max of isovalues
 	for (int i = 0; i<prevIsoVals.size(); i++){
 		if (prevIsoVals[i]<prevMinIso) prevMinIso = prevIsoVals[i];
 		if (prevIsoVals[i]>prevMaxIso) prevMaxIso = prevIsoVals[i];
 	}
+	
 	int numIsos = countIsoEdit->text().toInt();
 	if (numIsos < 1) numIsos = 1;
 	if (maxIso < minIso) {
@@ -578,11 +562,22 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 		numIsos = 1;
 	}
 	if (maxIso > minIso && numIsos == 1){
-		numIsos = 2;
+		maxIso = minIso = 0.5*(maxIso+minIso);
 	}
+	float bnds[2];
+	bnds[0] = leftHistoEdit->text().toFloat();
+	bnds[1] = rightHistoEdit->text().toFloat();
+	if (bnds[0] >= bnds[1]){
+		bnds[0] = minIso - 0.1*(maxIso-minIso);
+		bnds[1] = maxIso + 0.1*(maxIso-minIso);
+	}
+	isolineParams->SetHistoBounds(bnds);
+	//If the number of isovalues is changing from 1 to a value >1, and if the
+	//min and max are the same, then expand the min/max interval by .5 times the 
+	//histo interval.
 	if (maxIso == minIso && numIsos > 1) {
-		numIsos = 2;
-		maxIso = minIso + 1.e-10;
+		minIso = maxIso - 0.25*(bnds[1]-bnds[0]);
+		maxIso = maxIso + 0.25*(bnds[1]-bnds[0]);
 	}
 	ivalues.push_back(minIso);
 	//Did numIso's change?  If so set intermediate values based on end points.
@@ -607,16 +602,7 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	countIsoEdit->setText(QString::number(ivalues.size()));
 
 	isolineParams->SetHistoStretch(histoScaleEdit->text().toDouble());
-	float bnds[2];
-	bnds[0] = leftHistoEdit->text().toFloat();
-	bnds[1] = rightHistoEdit->text().toFloat();
-	if (bnds[0] >= bnds[1]){
-		bnds[0] = minIso - 0.1*(maxIso-minIso);
-		bnds[1] = maxIso + 0.1*(maxIso-minIso);
-	}
-	isolineParams->SetHistoBounds(bnds);
 	
-
 	double thickness = isolineWidthEdit->text().toDouble();
 	if (thickness <= 0. || thickness > 100.) thickness = 1.0;
 	isolineParams->SetLineThickness(thickness);
@@ -2430,63 +2416,10 @@ void IsolineEventRouter::resetImageSize(IsolineParams* iParams){
 /*
  * Respond to user clicking a color button
  */
-void IsolineEventRouter::
-guiSetIsolineColor(){
-	QPalette pal(isolineColorEdit->palette());
-	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Base), this);
-	if (!newColor.isValid()) return;
-	pal.setColor(QPalette::Base, newColor);
-	isolineColorEdit->setPalette(pal);
-	//Set parameter value of the appropriate parameter set:
-	confirmText(false);
-	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getActiveParams(IsolineParams::_isolineParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "set isoline color");
-	float clr[3];
-	clr[0]=(newColor.red()/256.);
-	clr[1]=(newColor.green()/256.);
-	clr[2]=(newColor.blue()/256.);
-	iParams->SetIsolineColor(clr);
-	PanelCommand::captureEnd(cmd, iParams);
-}
 
 
-void IsolineEventRouter::guiSetTextColor(){
-	QPalette pal(isolineColorEdit->palette());
-	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Base), this);
-	if (!newColor.isValid()) return;
-	pal.setColor(QPalette::Base, newColor);
-	textColorEdit->setPalette(pal);
-	//Set parameter value of the appropriate parameter set:
-	confirmText(false);
-	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getActiveParams(IsolineParams::_isolineParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "set text color");
-	float clr[3];
-	clr[0]=(newColor.red()/256.);
-	clr[1]=(newColor.green()/256.);
-	clr[2]=(newColor.blue()/256.);
-	iParams->SetTextColor(clr);
-	PanelCommand::captureEnd(cmd, iParams);
-}
-void IsolineEventRouter::guiSetPanelIsolineColor(){
-	QPalette pal(isolineColorEdit->palette());
-	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Base), this);
-	if (!newColor.isValid()) return;
-	pal.setColor(QPalette::Base, newColor);
-	isolinePanelColorEdit->setPalette(pal);
-	//Set parameter value of the appropriate parameter set:
-	confirmText(false);
-	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getActiveParams(IsolineParams::_isolineParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "set isoline color in panel");
-	float clr[3];
-	clr[0]=(newColor.red()/256.);
-	clr[1]=(newColor.green()/256.);
-	clr[2]=(newColor.blue()/256.);
-	iParams->SetPanelLineColor(clr);
-	PanelCommand::captureEnd(cmd, iParams);
-	updateTab();
-}
 void IsolineEventRouter::guiSetPanelBackgroundColor(){
-	QPalette pal(isolineColorEdit->palette());
+	QPalette pal(isolinePanelBackgroundColorEdit->palette());
 	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Base), this);
 	if (!newColor.isValid()) return;
 	pal.setColor(QPalette::Base, newColor);
@@ -2503,24 +2436,7 @@ void IsolineEventRouter::guiSetPanelBackgroundColor(){
 	PanelCommand::captureEnd(cmd, iParams);
 	updateTab();
 }
-void IsolineEventRouter::guiSetPanelTextColor(){
-	QPalette pal(isolineColorEdit->palette());
-	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Base), this);
-	if (!newColor.isValid()) return;
-	pal.setColor(QPalette::Base, newColor);
-	textPanelColorEdit->setPalette(pal);
-	//Set parameter value of the appropriate parameter set:
-	confirmText(false);
-	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getActiveParams(IsolineParams::_isolineParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "set panel text color");
-	float clr[3];
-	clr[0]=(newColor.red()/256.);
-	clr[1]=(newColor.green()/256.);
-	clr[2]=(newColor.blue()/256.);
-	iParams->SetPanelTextColor(clr);
-	PanelCommand::captureEnd(cmd, iParams);
-	updateTab();
-}
+
 void IsolineEventRouter::guiSetDimension(int dim){
 	
 	confirmText(false);

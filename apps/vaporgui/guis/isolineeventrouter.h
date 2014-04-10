@@ -163,7 +163,6 @@ protected slots:
 	void setIsolineYSize();
 	void setIsolineEnabled(bool on, int instance);
 	
-	
 	void guiSetNumRefinements(int numtrans);
 	void guiSetCompRatio(int num);
 	void setIsolineTabTextChanged(const QString& qs);
@@ -172,11 +171,7 @@ protected slots:
 	void showHideAppearance();
 	void showHideLayout();
 	void showHideImage();
-	void guiSetIsolineColor();
-	void guiSetTextColor();
-	void guiSetPanelIsolineColor();
 	void guiSetPanelBackgroundColor();
-	void guiSetPanelTextColor();
 	void guiSetDimension(int);
 	void guiSetAligned();
 	void guiStartChangeIsoSelection(QString);

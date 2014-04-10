@@ -233,14 +233,13 @@ void GLIsolineWindow::paintGL()
 void GLIsolineWindow::performRendering(int timestep, const std::map<pair<int,int>,vector<float*> >&  lineCache){
 
 	IsolineParams* iParams = isolineFrame->getParams();
-	//Set up lighting and color
-	const vector<double>& dcolors = iParams->GetPanelLineColor();
-	float fcolors[3];
-	for (int i = 0; i<3; i++) fcolors[i] = (float)dcolors[i];
+	
+	float fcolors[3] = {1.f,1.f,1.f};
 
 	glColor3fv(fcolors);
 	glLineWidth(iParams->GetPanelLineThickness());
-	
+	glEnable(GL_LINE_SMOOTH);
+	glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
 	float pointa[3],pointb[3]; //points in cache
 	pointa[2]=pointb[2] = 0.;
 
@@ -262,25 +261,7 @@ void GLIsolineWindow::performRendering(int timestep, const std::map<pair<int,int
 		}
 	}
 	glEnd();
-	glPointSize(0.7*iParams->GetPanelLineThickness());
-	glBegin(GL_POINTS);
 	
-	for(int iso = 0; iso< iParams->getNumIsovalues(); iso++){
-		pair<int,int> mapPair = make_pair(timestep, iso);
-		const vector<float*>& lineVec = lineCache.at(mapPair);
-		int numlines = lineVec.size();
-		for (int linenum = 0; linenum < numlines; linenum++){
-			const float* points = lineVec[linenum];
-			pointa[0] = points[0]*rectLeft;
-			pointa[1] = points[1]*rectTop;
-			pointb[0] = points[2]*rectLeft;
-			pointb[1] = points[3]*rectTop;
-			glVertex3fv(pointa);
-			glVertex3fv(pointb);
-		}
-	}
-	glEnd();
-
 }
 //
 //  Set up the OpenGL rendering state, and define display list

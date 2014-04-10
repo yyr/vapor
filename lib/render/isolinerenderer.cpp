@@ -91,12 +91,11 @@ void IsolineRenderer::performRendering(int timestep){
 	
 	IsolineParams* iParams = (IsolineParams*)getRenderParams();
 	//Set up lighting and color
-	const vector<double>& dcolors = iParams->GetIsolineColor();
-	float fcolors[3];
-	for (int i = 0; i<3; i++) fcolors[i] = (float)dcolors[i];
+	float fcolors[3] = {1.f,1.f,1.f};
 	
 	glDisable(GL_LIGHTING);
-	
+	glEnable(GL_LINE_SMOOTH);
+	glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
 	glColor3fv(fcolors);
 	glLineWidth(iParams->GetLineThickness());
 	//Need to convert the iso-box coordinates to user coordinates, then to unit box coords.
@@ -125,26 +124,7 @@ void IsolineRenderer::performRendering(int timestep){
 		}
 	}
 	glEnd();
-	glPointSize(0.7*iParams->GetLineThickness());
-	glBegin(GL_POINTS);
-	for(int iso = 0; iso< iParams->getNumIsovalues(); iso++){
-		pair<int,int> mapPair = make_pair(timestep, iso);
-		vector<float*> lines = lineCache[mapPair];
-		for (int linenum = 0; linenum < lines.size(); linenum++){
-			pointa[0] = lines[linenum][0];
-			pointa[1] = lines[linenum][1];
-			pointb[0] = lines[linenum][2];
-			pointb[1] = lines[linenum][3];
-			vtransform(pointa,transformMatrix,point1);
-			vtransform(pointb,transformMatrix,point2);
-			ViewpointParams::localToStretchedCube(point1,point1);
-			ViewpointParams::localToStretchedCube(point2,point2);
-			glVertex3fv(point1);
-			glVertex3fv(point2);
-		}
-	}
-	glEnd();
-
+	
 }
 /*
   Set up the OpenGL rendering state, 

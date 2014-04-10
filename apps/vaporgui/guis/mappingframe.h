@@ -316,7 +316,7 @@ private:
   const int _domainBarHeight;
   const int _domainLabelHeight;
   const int _domainHeight;
-  const int _axisRegionHeight;
+  int _axisRegionHeight;
   const int _opacityGap;
   const int _bottomGap;
 

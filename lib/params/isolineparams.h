@@ -107,16 +107,9 @@ public:
 	void SetPanelTextSize(double val){
 		GetRootNode()->SetElementDouble(_panelTextSizeTag, val);
 	}
-	void SetIsolineColor(const float rgb[3]);
-	void SetTextColor(const float rgb[3]);
-	void SetPanelLineColor(const float rgb[3]);
+	
 	void SetPanelBackgroundColor(const float rgb[3]);
-	void SetPanelTextColor(const float rgb[3]);
 
-	const vector<double>& GetIsolineColor();
-	const vector<double>& GetTextColor();
-	const vector<double>& GetPanelLineColor();
-	const vector<double>& GetPanelTextColor();
 	const vector<double>& GetPanelBackgroundColor();
 	
 	void SetVariableName(const string& varName);
@@ -229,11 +222,7 @@ public:
 
 protected:
 	static const string _shortName;
-	static const string _isolineColorTag;
-	static const string _textColorTag;
-	static const string _panelLineColorTag;
 	static const string _panelBackgroundColorTag;
-	static const string _panelTextColorTag;
 	static const string _isolineExtentsTag;
 	static const string _lineThicknessTag;
 	static const string _panelLineThicknessTag;
