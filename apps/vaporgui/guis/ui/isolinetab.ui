@@ -3674,6 +3674,11 @@ Domain</string>
      </item>
      <item>
       <widget class="QFrame" name="appearanceFrame">
+       <property name="font">
+        <font>
+         <family>Arial</family>
+        </font>
+       </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
        </property>
@@ -3687,6 +3692,7 @@ Domain</string>
            <widget class="QLabel" name="label_6">
             <property name="font">
              <font>
+              <family>Arial</family>
               <pointsize>10</pointsize>
              </font>
             </property>
@@ -3715,6 +3721,11 @@ Domain</string>
             </item>
             <item>
              <widget class="QLabel" name="textLabel1_12">
+              <property name="font">
+               <font>
+                <family>Arial</family>
+               </font>
+              </property>
               <property name="text">
                <string>Isoline width:</string>
               </property>
@@ -3921,13 +3932,13 @@ Domain</string>
              <widget class="QPushButton" name="isolinePanelBackgroundColorButton">
               <property name="minimumSize">
                <size>
-                <width>55</width>
+                <width>70</width>
                 <height>0</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
-                <width>50</width>
+                <width>80</width>
                 <height>16777215</height>
                </size>
               </property>
@@ -3943,7 +3954,7 @@ Domain</string>
              <widget class="QLineEdit" name="isolinePanelBackgroundColorEdit">
               <property name="minimumSize">
                <size>
-                <width>15</width>
+                <width>25</width>
                 <height>0</height>
                </size>
               </property>
