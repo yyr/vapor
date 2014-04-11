@@ -70,8 +70,8 @@ public:
 	}
 
 	//! This method gives the current camera position in world coordinates.
-	//! \retval vector<double>& camera position
-	const vector<double>& getCameraPosLocal() {return getCurrentViewpoint()->getCameraPosLocal();}
+	//! \retval vector<double> camera position
+	const vector<double> getCameraPosLocal() {return getCurrentViewpoint()->getCameraPosLocal();}
 
 	//! Obtain stretched camera position in local coordinates
 	//! \param[out] 3-vector of stretched local coordinates
@@ -96,18 +96,18 @@ public:
 		return getCurrentViewpoint()->setStretchedRotCtrLocal(vec,this);
 	}
 	//! This method gives the direction vector of the viewer, pointing from the camera into the scene.
-	//! \retval vector<double>& view direction
-	const vector<double>& getViewDir() {return getCurrentViewpoint()->getViewDir();}
+	//! \retval vector<double> view direction
+	const vector<double> getViewDir() {return getCurrentViewpoint()->getViewDir();}
 
 	//! Method that specifies the upward-pointing vector of the current viewpoint.
-	//! \retval vector<double>& up vector
-	const vector<double>& getUpVec() {return getCurrentViewpoint()->getUpVec();}
+	//! \retval vector<double> up vector
+	const vector<double> getUpVec() {return getCurrentViewpoint()->getUpVec();}
 
 	//! Method returns the position used as the center for rotation.
 	//! Usually this is in the center of the view, but it can be changed
 	//! by user translation.
-	//! \retval vector<double>& Rotation center coordinates
-	const vector<double>& getRotationCenterLocal(){return getCurrentViewpoint()->getRotationCenterLocal();}
+	//! \retval vector<double> Rotation center coordinates
+	const vector<double> getRotationCenterLocal(){return getCurrentViewpoint()->getRotationCenterLocal();}
 
 	//! Set the current viewpoint to be the home viewpoint
 	void setCurrentVPToHome(){

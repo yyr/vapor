@@ -325,7 +325,7 @@ ParamNode* ParamNode::GetNode(const vector<string>& tagpath){
 }
 	
 
-const vector<long> &ParamNode::GetElementLong(const vector<string> &tagpath, const vector<long>& defaultVal) {
+const vector<long> ParamNode::GetElementLong(const vector<string> &tagpath, const vector<long>& defaultVal) {
 
 	//Iterate through tags, finding associated node
 	ParamNode* currNode = this;
@@ -354,7 +354,7 @@ const vector<long> &ParamNode::GetElementLong(const vector<string> &tagpath, con
 
 	return(p->second);
 }
-const vector<double> &ParamNode::GetElementDouble(const vector<string> &tagpath, const vector<double>& defaultVal) {
+const vector<double> ParamNode::GetElementDouble(const vector<string> &tagpath, const vector<double>& defaultVal) {
 	//Iterate through tags, finding associated node
 	ParamNode* currNode = this;
 	for (int i = 0; i< tagpath.size()-1; i++){
@@ -382,12 +382,12 @@ const vector<double> &ParamNode::GetElementDouble(const vector<string> &tagpath,
 	
 	return(p->second);
 }
-const vector<double> &ParamNode::GetElementDouble(const string &tag, const vector<double>& defaultVal) {
+const vector<double> ParamNode::GetElementDouble(const string &tag, const vector<double>& defaultVal) {
 	if (HasElementDouble(tag)) return XmlNode::GetElementDouble(tag);
 	SetElementDouble(tag,defaultVal);
 	return defaultVal;
 }
-const vector<long> &ParamNode::GetElementLong(const string &tag, const vector<long>& defaultVal) {
+const vector<long> ParamNode::GetElementLong(const string &tag, const vector<long>& defaultVal) {
 	if (HasElementLong(tag)) return XmlNode::GetElementLong(tag);
 	SetElementLong(tag,defaultVal);
 	return defaultVal;

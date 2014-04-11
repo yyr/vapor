@@ -39,8 +39,8 @@ public:
 	//! \retval ParamsBase* pointer to a default Params instance
 	static ParamsBase* CreateDefaultInstance() {return new Viewpoint();}
 	//! Identify current camera position in local coordinates
-	//! \retval const vector<double>& camera position
-	const vector<double>& getCameraPosLocal() {
+	//! \retval const vector<double> camera position
+	const vector<double> getCameraPosLocal() {
 		
 		return ( GetValueDoubleVec(_camPosTag));
 	}
@@ -67,7 +67,7 @@ public:
 	}
 	//! Obtain the view direction vector
 	//! \retval const vector<double> direction vector
-	const vector<double>& getViewDir() {	
+	const vector<double> getViewDir() {	
 		return ( GetValueDoubleVec(_viewDirTag));
 	}
 	//! Obtain a component of the view direction vector
@@ -92,8 +92,8 @@ public:
 		return SetValueDouble(_viewDirTag, "Set view direction", val,p);
 	}
 	//! Obtain view up-vector
-	//! \retval const vector<double>& direction vector
-	const vector<double>& getUpVec() {
+	//! \retval const vector<double> direction vector
+	const vector<double> getUpVec() {
 		return ( GetValueDoubleVec(_upVecTag));
 	}
 	//! Obtain a component of the view up vector
@@ -121,7 +121,7 @@ public:
 	}
 	//! Obtain rotation center in local coordinates
 	//! \retval vector<double>& rotation center local coordinates
-	const vector<double>& getRotationCenterLocal() {
+	const vector<double> getRotationCenterLocal() {
 		return ( GetValueDoubleVec(_rotCenterTag));
 	}
 	//! Obtain one local coordinate of rotation center
@@ -154,7 +154,7 @@ public:
 	//! \param[out] double[3] Position of rotation center in stretched coordinates.
 	void getStretchedRotCtrLocal(double* vec){
 		const float* stretch = DataStatus::getInstance()->getStretchFactors();
-		const vector<double>& rvec = getRotationCenterLocal();
+		const vector<double> rvec = getRotationCenterLocal();
 		for (int i = 0; i<3; i++) vec[i] = stretch[i]*rvec[i];
 	}
 	//! Specify rotation center in stretched local coordinates
@@ -171,7 +171,7 @@ public:
 	//! \param[out] double[3] camera position in stretched local coordinates
 	void getStretchedCamPosLocal(double* vec){
 		const float* stretch = DataStatus::getInstance()->getStretchFactors();
-		const vector<double>& cpos = getCameraPosLocal();
+		const vector<double> cpos = getCameraPosLocal();
 		for (int i = 0; i<3; i++) vec[i] = stretch[i]*cpos[i];
 	}
 	//! Specify camera position in stretched local coordinates

@@ -147,8 +147,8 @@ rescale (double scaleFac[3], int timestep){
 	double vtemp[3];
 	Viewpoint* vp = getCurrentViewpoint();
 	Viewpoint* vph = getHomeViewpoint();
-	const vector<double>& vps = vp->getCameraPosLocal();
-	const vector<double>& vctr = vp->getRotationCenterLocal();
+	const vector<double> vps = vp->getCameraPosLocal();
+	const vector<double> vctr = vp->getRotationCenterLocal();
 	vector<double> vtemp2;
 	//Want to move the camera in or out, based on scaling in directions orthogonal to view dir.
 	for (int i = 0; i<3; i++){
@@ -158,8 +158,8 @@ rescale (double scaleFac[3], int timestep){
 	}
 	vp->setCameraPosLocal(vtemp2,this);
 	//Do same for home viewpoint
-	const vector<double>& vpsh = vp->getCameraPosLocal();
-	const vector<double>& vctrh = vp->getRotationCenterLocal();
+	const vector<double> vpsh = vp->getCameraPosLocal();
+	const vector<double> vctrh = vp->getRotationCenterLocal();
 	
 	for (int i = 0; i<3; i++){
 		vtemp[i] = vpsh[i]-vctrh[i];

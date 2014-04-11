@@ -131,8 +131,8 @@ public:
 	const std::string getShortName() {return _shortName;}
 	
 	//! Provide a vector of the times, useful for time-varying extents
-	//! \retval const vector<long>& vector of times.
-	const vector<long>& GetTimes(){ return GetBox()->GetValueLongVec(Box::_timesTag);}
+	//! \retval const vector<long> vector of times.
+	const vector<long> GetTimes(){ return GetBox()->GetValueLongVec(Box::_timesTag);}
 	
 	//! Indicate whether or not the extents vary over time
 	//! bool true if extents are time-varying.
@@ -150,8 +150,8 @@ public:
 
 	//! Provide a vector of all the extents for all times
 	//! returns 6 doubles for each time step.
-	//! \retval const vector<double>& vector of extents. 
-	const vector<double>& GetAllExtents(){ return GetBox()->GetValueDoubleVec(Box::_extentsTag);}
+	//! \retval const vector<double> vector of extents. 
+	const vector<double> GetAllExtents(){ return GetBox()->GetValueDoubleVec(Box::_extentsTag);}
 #ifndef DOXYGEN_SKIP_THIS
 protected:
 	static const string _shortName;

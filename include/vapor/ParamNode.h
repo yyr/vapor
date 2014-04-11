@@ -149,7 +149,7 @@ public:
  //! \param[in] defaultVal (optional) default vector<double> to be assigned if specified element does not exist
  //! \retval vector Vector of doubles associated with the named element
  //!
- virtual const vector<double> &GetElementDouble(const vector<string> &tagpath, const vector<double>& defaultVal = XmlNode::_emptyDoubleVec );
+ virtual const vector<double> GetElementDouble(const vector<string> &tagpath, const vector<double>& defaultVal = XmlNode::_emptyDoubleVec );
 
  //! Get an Xml element's data of type double
  //!
@@ -163,7 +163,7 @@ public:
  //! \param[in] defaultVal (optional) default vector<double> to be assigned if specified element does not exist
  //! \retval vector Vector of doubles associated with the named element
  //!
- virtual const vector<double> &GetElementDouble(const string &tag, const vector<double>& defaultVal = XmlNode::_emptyDoubleVec); 
+ virtual const vector<double> GetElementDouble(const string &tag, const vector<double>& defaultVal = XmlNode::_emptyDoubleVec); 
  
  int SetElementLong(
 	const string &tag, const vector<long> &values
@@ -211,7 +211,7 @@ public:
  //! \param[in] defaultVal (optional) vector<long> to be assigned if specified element does not exist.
  //! \retval vector<long> vector of longs associated with the named elemented
  //!
- virtual const vector<long> &GetElementLong(const vector<string> &tagpath, const vector<long>& defaultVal = XmlNode::_emptyLongVec);
+ virtual const vector<long> GetElementLong(const vector<string> &tagpath, const vector<long>& defaultVal = XmlNode::_emptyLongVec);
  //! Get an Xml element's data of type long
  //!
  //! Return the character data associated with the Xml element
@@ -224,7 +224,7 @@ public:
  //! \param[in] defaultVal (optional) Vector of longs that will be set if specified element does not exist
  //! \retval vector Vector of longs associated with the named elemented
  //!
- virtual const vector<long> &GetElementLong(const string &tag, const vector<long>& defaultVal= XmlNode::_emptyLongVec);
+ virtual const vector<long> GetElementLong(const string &tag, const vector<long>& defaultVal= XmlNode::_emptyLongVec);
 
 
  //! Set a single ParamNode parameter of type string

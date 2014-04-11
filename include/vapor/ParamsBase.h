@@ -201,7 +201,7 @@ virtual const string GetValueString(const string& tag, const string& defaultVal 
  //! \param[in] defaultVal (optional) const vector<long> to be assigned if specified element does not exist.
  //! \retval const vector<long>& value associated with the named parameter
  //!
-virtual const vector<long>& GetValueLongVec(const string& tag,const vector<long>& defaultVal = _emptyLongVec)
+virtual const vector<long> GetValueLongVec(const string& tag,const vector<long>& defaultVal = _emptyLongVec)
 	{return GetRootNode()->GetElementLong(tag, defaultVal);}
  //!
  //! Obtain a vector of values of type double associated with a tag.
@@ -209,9 +209,9 @@ virtual const vector<long>& GetValueLongVec(const string& tag,const vector<long>
  //! if the value has not been assigned.
  //! \param[in] tag XML tag associated with the desired double parameter
  //! \param[in] defaultVal (optional) const vector<double>& to be assigned if specified element does not exist.
- //! \retval const vector<double>& value associated with the named parameter
+ //! \retval const vector<double> value associated with the named parameter
  //!
-virtual const vector<double>& GetValueDoubleVec(const string& tag, const vector<double>& defaultVal = _emptyDoubleVec)
+virtual const vector<double> GetValueDoubleVec(const string& tag, const vector<double>& defaultVal = _emptyDoubleVec)
 	{return GetRootNode()->GetElementDouble(tag, defaultVal);}
  //!
  //! Obtain a vector of values of type string associated with a tag.

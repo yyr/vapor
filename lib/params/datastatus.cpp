@@ -124,7 +124,7 @@ reset(DataMgr* dm, size_t cachesize){
 	int mints = -1;
 	int maxts = -1;
 	bool someDataOverall = false;
-	const vector<string>& vnames =  dataMgr->GetVariableNames();
+	const vector<string> vnames =  dataMgr->GetVariableNames();
 	for (int i = 0; i< numTimesteps; i++){
 		for (int j = 0; j< vnames.size(); j++){
 			const char* vname = vnames[j].c_str();

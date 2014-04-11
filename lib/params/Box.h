@@ -78,7 +78,7 @@ public:
 	//! \sa GetTimes()
 	//!
 	//! \param[out] extents const vector<double>& returned extents
-	const vector<double>&  GetLocalExtents() {
+	const vector<double>  GetLocalExtents() {
 		const vector<double> localExtents(6,0.);
 		return GetValueDoubleVec(_extentsTag,localExtents);
 	}
@@ -107,7 +107,7 @@ public:
 	//! Get the three orientation angles (theta, phi, psi)
 	//! Defaults to empty vector if no angles are set.
 	//! \retval const vector<double> vector of length 3 of angles.
-	const vector<double>& GetAngles(){
+	const vector<double> GetAngles(){
 		const vector<double> defaultAngles(3,0.);
 		return GetValueDoubleVec(Box::_anglesTag,defaultAngles);
 	}
@@ -116,7 +116,7 @@ public:
 	//! \retval int zero if successful
 	int GetAngles(double ang[3]){
 		const vector<double> defaultAngles(3,0.);
-		const vector<double>& angles = GetValueDoubleVec(Box::_anglesTag,defaultAngles);
+		const vector<double> angles = GetValueDoubleVec(Box::_anglesTag,defaultAngles);
 		if (angles.size() != 3) return -1;
 		for (int i = 0; i<3;i++) ang[i]=angles[i];
 		return 0;
@@ -126,7 +126,7 @@ public:
 	//! \retval zero if successful
 	int GetAngles(float ang[3]){
 		const vector<double> defaultAngles(3,0.);
-		const vector<double>& angles = GetValueDoubleVec(Box::_anglesTag,defaultAngles);
+		const vector<double> angles = GetValueDoubleVec(Box::_anglesTag,defaultAngles);
 		if (angles.size() != 3) return -1;
 		for (int i = 0; i<3;i++) ang[i]=(float)angles[i];
 		return 0;
@@ -161,7 +161,7 @@ public:
 	//! Number of times should be 1/6 of the number of extents values
 	//! \sa GetExtents()
 	//! \retval vector<long>& vector of longs
-	const vector<long>& GetTimes() { 
+	const vector<long> GetTimes() { 
 		const vector<long> defaultTimes(1,0);
 		return( GetValueLongVec(Box::_timesTag,defaultTimes));
 	}

@@ -57,7 +57,7 @@ public:
 
 	//Get/Set methods based on XML representation
 	//! Determine the local extents of the rake
-	//! \retval vector<double>& local extents
+	//! \retval vector<double> local extents
 	const vector<double> GetRakeLocalExtents(){
 		return (GetBox()->GetLocalExtents());
 	}
@@ -72,7 +72,7 @@ public:
 	int SetRakeLocalExtents(const vector<double>&exts);
 		
 	//! Determine the size of the rake grid
-	//! \retval vector<long>& grid
+	//! \retval vector<long> grid
 	const vector<long> GetRakeGrid(){
 		const vector<long> defaultGrid(3,1);
 		return (GetValueLongVec(_rakeGridTag,defaultGrid));
