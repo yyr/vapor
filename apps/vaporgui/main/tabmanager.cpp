@@ -204,18 +204,20 @@ void TabManager::orderTabs(){
 	//find how many tabs are used:
 	int numTabs = 0;
 	for (int i = 0; i< tabOrdering.size(); i++) if (tabOrdering[i] > 0) numTabs++;
-	//Make sure the tabOrdering is valid.  It needs to have a place for all paramsBaseTypes
-	if (tabOrdering.size() < Params::GetNumParamsClasses()){
-		for (int i = tabOrdering.size(); i< Params::GetNumParamsClasses(); i++)
+	//Make sure the tabOrdering is valid.  It needs to have a place for all paramsBaseTypes except UndoRedo params
+	int numTabClasses = Params::GetNumParamsClasses()-Params::GetNumUndoRedoParamsClasses();
+	if (tabOrdering.size() < numTabClasses){
+		for (int i = tabOrdering.size(); i< numTabClasses; i++){
 			tabOrdering.push_back(++numTabs);
-	} else if (tabOrdering.size() > Params::GetNumParamsClasses()){
+		}
+	} else if (tabOrdering.size() > numTabClasses){
 		//If the ordering is too large, revert to the default
 		tabOrdering.clear();
-		for (int i = 1; i<= Params::GetNumParamsClasses(); i++)
+		for (int i = 1; i<= numTabClasses; i++)
 			tabOrdering.push_back(i);
 		numTabs = tabOrdering.size();
 	}
-	assert(tabOrdering.size() == Params::GetNumParamsClasses());
+	assert(tabOrdering.size() == numTabClasses);
 	//Now construct a list of all the ParamsBaseTypes that are used, in the order they are used:
 	usedTypes.clear();
 	//Go through the tabOrdering, looking in order for each tab position > 0
@@ -234,7 +236,7 @@ void TabManager::orderTabs(){
 		if(!found) {//bad ordering.  Revert to default:
 			tabOrdering.clear();
 			usedTypes.clear();
-			for (int i = 1; i<= Params::GetNumParamsClasses(); i++){
+			for (int i = 1; i<= numTabClasses; i++){
 				tabOrdering.push_back(i);
 				usedTypes.push_back(i);
 			}

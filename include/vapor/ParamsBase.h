@@ -367,6 +367,12 @@ static ParamsBase* CreateDefaultParamsBase(const string&tag);
 //!
 	static int GetNumParamsClasses() {return numParamsClasses;}
 //!
+//! Static method to determine how many of the UndoRedo Params classes are registered, ie.
+//! the number of Global params that are not associated with a tab.
+//! \retval count Number of UndoRedo Params classes
+//!
+	static int GetNumUndoRedoParamsClasses() {return numUndoRedoParamsClasses;}
+//!
 //! Static method to determine if a ParamsBase class is a Params class
 //! \param[in] tag XML tag associated with ParamsBase class
 //! \retval status True if the specified class is a Params class
@@ -404,6 +410,7 @@ protected:
 	string _paramsBaseName;
 	int _parseDepth;
 	static int numParamsClasses;
+	static int numUndoRedoParamsClasses;
 	static int numEmbedClasses;
 
 

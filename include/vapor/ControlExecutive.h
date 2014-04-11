@@ -8,13 +8,13 @@ namespace VAPoR {
 
 #include "common.h"
 
-
 class Visualizer;
 class Params;
 class RenderParams;
 class DataMgr;
 class ErrorHandler;
 class Command;
+
 
 //! \class ControlExecutive
 //!

@@ -211,6 +211,7 @@
     <ClCompile Include="..\..\..\lib\params\command.cpp" />
     <ClCompile Include="..\..\..\lib\params\datastatus.cpp" />
     <ClCompile Include="..\..\..\lib\params\glutil.cpp" />
+    <ClCompile Include="..\..\..\lib\params\mousemodeparams.cpp" />
     <ClCompile Include="..\..\..\lib\params\ParamNode.cpp" />
     <ClCompile Include="..\..\..\lib\params\params.cpp" />
     <ClCompile Include="..\..\..\lib\params\ParamsBase.cpp" />
@@ -228,6 +229,7 @@
     <ClInclude Include="..\..\..\lib\params\datastatus.h" />
     <ClInclude Include="..\..\..\lib\params\glutil.h" />
     <ClInclude Include="..\..\..\include\vapor\ParamNode.h" />
+    <ClInclude Include="..\..\..\lib\params\mousemodeparams.h" />
     <ClInclude Include="..\..\..\lib\params\params.h" />
     <ClInclude Include="..\..\..\include\vapor\ParamsBase.h" />
     <ClInclude Include="..\..\..\lib\params\regionparams.h" />

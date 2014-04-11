@@ -55,6 +55,7 @@
 #include "mainform.h"
 #include "viewpointparams.h"
 #include "regionparams.h"
+#include "mousemodeparams.h"
 #include "viztab.h"
 #include "tabmanager.h"
 #include "params.h"
@@ -155,7 +156,6 @@ VizWinMgr::VizWinMgr()
 	
 	ActivationOrder.clear();
 	
-	setSelectionMode(Visualizer::navigateMode);
 }
 //Create the global params and the default renderer params:
 void VizWinMgr::
@@ -224,7 +224,7 @@ vizAboutToDisappear(int i)  {
 	
 	if(activeViz >= 0) setActiveViz(activeViz);
 	
-	for (int j = 1; j<= Params::GetNumParamsClasses(); j++){
+	for (int j = 1; j<= Params::GetNumParamsClasses()-Params::GetNumUndoRedoParamsClasses(); j++){
 		for (int k = Params::GetNumParamsInstances(j,i)-1; k >=0; k--){
 			getEventRouter(j)->cleanParams(Params::GetParamsInstance(j,i,k));
 			Params::RemoveParamsInstance(j,i,k);
@@ -418,7 +418,7 @@ setActiveViz(int vizNum){
 		
 		//Need to cause a redraw in all windows if we are not in navigate mode,
 		//So that the manips will change where they are drawn:
-		if (Visualizer::getCurrentMouseMode() != Visualizer::navigateMode){
+		if (MouseModeParams::getCurrentMouseMode() != MouseModeParams::navigateMode){
 			for (int i = 0; i< VizWindow.size(); i++){
 				if (VizWindow[i]) VizWindow[i]->updateGL();
 			}
@@ -431,7 +431,7 @@ setActiveViz(int vizNum){
 void VizWinMgr::
 updateActiveParams(){
 	if (activeViz < 0 ||!getVizWin(activeViz)) return;
-	for (int i = 1; i<= Params::GetNumParamsClasses(); i++){
+	for (int i = 1; i<= Params::GetNumParamsClasses()-Params::GetNumUndoRedoParamsClasses(); i++){
 		getEventRouter(i)->updateTab();
 	}
 }
@@ -689,7 +689,7 @@ setRgLocalGlobal(int val){
 	Visualizer::setRegionShareFlag(val == 0);
 	
 	//in region mode, refresh the global windows and this one
-	if (Visualizer::getCurrentMouseMode() == Visualizer::regionMode){
+	if (MouseModeParams::getCurrentMouseMode() == MouseModeParams::regionMode){
 		for (int i = 0; i<VizWindow.size(); i++){
 			if(VizWindow[i] && (!getRegionParams(i)->IsLocal()|| (i == activeViz)))
 				VizWindow[i]->updateGL();
@@ -796,7 +796,7 @@ reinitializeParams(bool doOverride){
 		if(getRealVPParams(i) && (getRealVPParams(i)!= getGlobalVPParams())) getRealVPParams(i)->Validate(doOverride);
 		if(getRealRegionParams(i)) getRealRegionParams(i)->Validate(doOverride);
 		//Reinitialize all the render params for each window
-		for (int pType = 1; pType <= Params::GetNumParamsClasses(); pType++){
+		for (int pType = 1; pType <= Params::GetNumParamsClasses()-Params::GetNumUndoRedoParamsClasses(); pType++){
 			EventRouter* eRouter = getEventRouter(pType);
 			for (int inst = 0; inst < Params::GetNumParamsInstances(pType, i); inst++){
 				Params* p = Params::GetParamsInstance(pType,i,inst);
@@ -819,7 +819,7 @@ reinitializeParams(bool doOverride){
     //
     // Reinitialize all tabs
     //
-	for (int pType = 1; pType <= Params::GetNumParamsClasses(); pType++){
+	for (int pType = 1; pType <= Params::GetNumParamsClasses()-Params::GetNumUndoRedoParamsClasses(); pType++){
 		EventRouter* eRouter = getEventRouter(pType);
 		eRouter->reinitTab(doOverride);
 	}
@@ -865,7 +865,7 @@ reinitializeVariables(){
     //
     // Reinitialize tabs
     //
-	for (int pType = 1; pType <= Params::GetNumParamsClasses(); pType++){
+	for (int pType = 1; pType <= Params::GetNumParamsClasses()-Params::GetNumUndoRedoParamsClasses(); pType++){
 		EventRouter* eRouter = getEventRouter(pType);
 		eRouter->reinitTab(false);
 	}
@@ -923,20 +923,6 @@ void VizWinMgr::disableAllRenderers(){
 		viz->removeAllRenderers();
 	}
 }
-	
-void VizWinMgr::
-setSelectionMode( int m){ 
-	Visualizer::setCurrentMouseMode(m);
-	//Update all visualizers:
-	for (int i = 0; i<VizWindow.size(); i++){
-		if(VizWindow[i]) VizWindow[i]->updateGL();
-	}
-}
-
-
-
-
-
 
 void VizWinMgr::setCurrentInstanceIndex(int winnum, int inst, Params::ParamsBaseType t){
 	Params::SetCurrentParamsInstanceIndex(t,winnum,inst);
@@ -980,33 +966,6 @@ Params::ParamsBaseType VizWinMgr::RegisterEventRouter(const std::string tag, Eve
 	eventRouterMap.insert(pair<int,EventRouter*>(t,router));
 	return t;
 }
-void VizWinMgr::RegisterMouseModes(){
-	RegisterMouseMode(Params::_viewpointParamsTag,0,"Navigation", wheel );
-	RegisterMouseMode(Params::_regionParamsTag,1, "Region",cube );
-	//RegisterMouseMode(Params::_flowParamsTag,1, "Flow rake",rake );
-	//RegisterMouseMode(Params::_probeParamsTag,3,"Probe", probe);
-	//RegisterMouseMode(Params::_twoDDataParamsTag,2,"2D Data", twoDData);
-	//RegisterMouseMode(Params::_twoDImageParamsTag,2, "Image",twoDImage);
-
-	//RegisterExtensionMouseModes:
-	//For each class that has a manipulator associated with it, insert the method
-	//VizWinMgr::RegisterMouseMode(tag, modeType, manip name, xpm (pixmap) )
-	
-	RegisterMouseMode(ArrowParams::_arrowParamsTag,1, "Barb rake", arrowrake );
-	
-}
-int VizWinMgr::RegisterMouseMode(const std::string paramsTag, int manipType,  const char* name, const char* const xpmIcon[]){
-	QIcon icon;
-	if (xpmIcon){
-		QPixmap qp = QPixmap(xpmIcon);
-		icon = QIcon(qp);
-	}
-	int newMode; 
-	QString qname(name);
-	newMode =  MainForm::getInstance()->addMode(qname,icon);
-	Visualizer::AddMouseMode(paramsTag, manipType, name);
-	return newMode;
-}
 void VizWinMgr::InstallTab(const std::string tag, EventRouterCreateFcn fcn){
 
 	EventRouter* eRouter = fcn();
@@ -1017,7 +976,7 @@ void VizWinMgr::InstallTab(const std::string tag, EventRouterCreateFcn fcn){
 	
 	tabManager->addWidget(tabWidget, typ);
 	
-	
+
 }
 AnimationEventRouter* VizWinMgr::
 getAnimationRouter() {

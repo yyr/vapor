@@ -44,6 +44,7 @@
 #include "viztab.h"
 #include "regiontab.h"
 #include "viewpointparams.h"
+#include "mousemodeparams.h"
 #include "regionparams.h"
 
 #include "viewpoint.h"
@@ -142,7 +143,7 @@ mousePressEvent(QMouseEvent* e){
 	//possibly navigate after other activities
 	bool doNavigate = true;
 	
-	int mode = Visualizer::getCurrentMouseMode();
+	int mode = MouseModeParams::getCurrentMouseMode();
 	if (mode > 0 && buttonNum > 0) {  //Not navigation mode:
 		/*
 		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
@@ -257,7 +258,7 @@ mouseReleaseEvent(QMouseEvent*e){
 	if((buttonNum == 1) && ((e->modifiers() & (Qt::ControlModifier|Qt::MetaModifier))))
 			buttonNum = 0;
 	//TranslateStretchManip* myManip;
-	int mode = Visualizer::getCurrentMouseMode();
+	int mode = MouseModeParams::getCurrentMouseMode();
 	if (mode > 0) {
 		/*
 		ParamsBase::ParamsBaseType t = Visualizer::getModeParamType(mode);
@@ -355,7 +356,7 @@ mouseMoveEvent(QMouseEvent* e){
 
 	mouseCoords[0] = (float) e->x();
 	mouseCoords[1] = (float) height()-e->y();
-	int mode = Visualizer::getCurrentMouseMode();
+	int mode = MouseModeParams::getCurrentMouseMode();
 //	ParamsBase::ParamsBaseType t = Visualizer::getModeParamType(mode);
 	if (mode > 0){
 		/*

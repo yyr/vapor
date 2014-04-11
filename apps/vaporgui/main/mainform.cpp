@@ -735,7 +735,7 @@ void MainForm::loadData()
 			// Reinitialize all tabs
 			//
 			if (dmgr){
-				for (int pType = 1; pType <= Params::GetNumParamsClasses(); pType++){
+				for (int pType = 1; pType <= Params::GetNumParamsClasses()-Params::GetNumUndoRedoParamsClasses(); pType++){
 					EventRouter* eRouter = VizWinMgr::getInstance()->getEventRouter(pType);
 					eRouter->reinitTab(false);
 				}
@@ -830,7 +830,7 @@ void MainForm::defaultLoadData()
 			// Reinitialize all tabs
 			//
 			if (dmgr){
-				for (int pType = 1; pType <= Params::GetNumParamsClasses(); pType++){
+				for (int pType = 1; pType <= Params::GetNumParamsClasses()-Params::GetNumUndoRedoParamsClasses(); pType++){
 					EventRouter* eRouter = VizWinMgr::getInstance()->getEventRouter(pType);
 					eRouter->reinitTab(true);
 				}

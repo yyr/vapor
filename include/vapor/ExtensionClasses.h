@@ -7,7 +7,8 @@
 #include "../lib/params/arrowparams.h"
 #include "../lib/params/viewpoint.h"
 #include "../lib/params/Box.h"
-#include "../apps/vaporgui/images/arrowrake.xpm"
+#include "../lib/params/MouseModeParams.h"
+#include "../../apps/vaporgui/images/arrowrake.xpm"
 
 
 namespace VAPoR {
@@ -16,6 +17,8 @@ namespace VAPoR {
 	static void InstallExtensions(){
            ParamsBase::RegisterParamsBaseClass(ArrowParams::_arrowParamsTag, ArrowParams::CreateDefaultInstance, true);
 	}
-	
+	static void InstallExtensionMouseModes(){
+		MouseModeParams::RegisterMouseMode(ArrowParams::_arrowParamsTag,1, "Barb rake", arrowrake );
+	}
 };
 

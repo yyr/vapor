@@ -63,11 +63,6 @@ Trackball* Visualizer::globalTrackball = 0;
  */
 GLenum attach_points[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6, GL_COLOR_ATTACHMENT7, GL_COLOR_ATTACHMENT8, GL_COLOR_ATTACHMENT9, GL_COLOR_ATTACHMENT10, GL_COLOR_ATTACHMENT11, GL_COLOR_ATTACHMENT12, GL_COLOR_ATTACHMENT13, GL_COLOR_ATTACHMENT14, GL_COLOR_ATTACHMENT15};
 
-int Visualizer::currentMouseMode = Visualizer::navigateMode;
-vector<int> Visualizer::manipFromMode;
-vector<string> Visualizer::modeName;
-map<ParamsBase::ParamsBaseType, int> Visualizer::modeFromParams;
-vector<ParamsBase::ParamsBaseType> Visualizer::paramsFromMode;
 int Visualizer::jpegQuality = 100;
 Visualizer::Visualizer(int windowNum )
 {
@@ -928,19 +923,6 @@ void Visualizer::removeDisabledRenderers(){
 }
 		
 		
-int Visualizer::AddMouseMode(const std::string paramsTag, int manipType, const char* name){
-	
-	ParamsBase::ParamsBaseType pType = ParamsBase::GetTypeFromTag(paramsTag);
-	paramsFromMode.push_back(pType);
-	manipFromMode.push_back(manipType);
-	modeName.push_back(std::string(name));
-	int mode = (int)modeName.size()-1;
-	//Setup reverse mapping
-	modeFromParams[pType] = mode;
-	assert(mode == (int)paramsFromMode.size()-1);
-	assert(manipFromMode.size() == mode+1);
-	return (mode);
-}
 
 
 Trackball* Visualizer::GetTrackball(){

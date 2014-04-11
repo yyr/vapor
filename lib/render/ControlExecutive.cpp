@@ -12,6 +12,7 @@
 #include "animationparams.h"
 #include "regionparams.h"
 #include "viewpointparams.h"
+#include "mousemodeparams.h"
 #include "vapor/ExtensionClasses.h"
 #include "vapor/DataMgrFactory.h"
 #include "command.h"
@@ -375,6 +376,9 @@ createAllDefaultParams() {
 	ParamsBase::RegisterParamsBaseClass(Params::_animationParamsTag, AnimationParams::CreateDefaultInstance, true);
 	ParamsBase::RegisterParamsBaseClass(Params::_viewpointParamsTag, ViewpointParams::CreateDefaultInstance, true);
 	ParamsBase::RegisterParamsBaseClass(Params::_regionParamsTag, RegionParams::CreateDefaultInstance, true);
+	//Note that UndoRedo Params must be registered after other params
+	ParamsBase::RegisterParamsBaseClass(MouseModeParams::_mouseModeParamsTag,MouseModeParams::CreateDefaultInstance, true);
+	MouseModeParams::RegisterMouseModes();
 }
 void ControlExecutive::
 reinitializeParams(bool doOverride){

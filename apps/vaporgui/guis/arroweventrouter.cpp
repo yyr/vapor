@@ -38,6 +38,7 @@
 #include <vapor/XmlNode.h>
 #include "tabmanager.h"
 #include "arrowparams.h"
+#include "mousemodeparams.h"
 #include "arrowrenderer.h"
 #include "arroweventrouter.h"
 #include "eventrouter.h"
@@ -728,8 +729,8 @@ guiFitToData(){
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double>& currExts =DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
 	boxSliderFrame->setBoxExtents(currExts);
-
-	VizWinMgr::getInstance()->forceRender(aParams,Visualizer::getCurrentMouseMode() == Visualizer::barbMode);
+	MouseModeParams::mouseModeType t = MouseModeParams::getCurrentMouseMode();
+	VizWinMgr::getInstance()->forceRender(aParams,t == MouseModeParams::barbMode);
 }
 
 void ArrowEventRouter::

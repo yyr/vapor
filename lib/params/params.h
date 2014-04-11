@@ -392,6 +392,14 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \retval returns true if it is a RenderParams
 	virtual bool isRenderParams() const {return false;}
 
+//! Virtual method indicating whether a Params is "UndoRedo", i.e. a Params
+//! class that is only used to support Undo/Redo.  The UndoRedo Params classes
+//! have only one instance.  UndoRedo params are not associated with Tabs in the GUI.
+//! Default returns false.
+//! Useful for application developers.
+//! \retval returns true if it is UndoRedo
+	virtual bool isUndoRedoParams() const {return false;}
+
 //! Pure virtual method, sets a Params instance to its default state
 //! Params implementers should assign values to all elements in the Params class in this method.
 	virtual void restart() = 0;

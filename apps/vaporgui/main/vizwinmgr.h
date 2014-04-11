@@ -163,14 +163,6 @@ public:
 		return getApplicableParams(ParamsBase::GetTypeFromTag(tag));
 	}
 
-	
-
-	//! Static method that enables use of a manipulator with a Mouse Mode. 
-	//! \param[in] const std::string Tag associated with Params class that owns the manipulator
-	//! \param[in] int Manipulator type.  Valid types are 1 (3d axis aligned), 2 (2D) and 3 (3D Rotated)
-	//! \param[in] const char* Name of the mouse mode that will be displayed in GUI
-	//! \param[in] const char* const xpmIcon[] An xpm bitmap that will be displayed in the GUI, defaults to no icon.
-	static int RegisterMouseMode(const std::string paramsTag, int manipType, const char* name, const char* const xpmIcon[]=0);
 
 #ifndef DOXYGEN_SKIP_THIS
 	//Following methods are not usually needed for extensibility:
@@ -192,7 +184,7 @@ public:
 	}
 	void createAllDefaultTabs();
 	void InstallExtensionTabs();
-	void RegisterMouseModes();
+	
     
     //Respond to end:
     void closeEvent();
@@ -257,7 +249,6 @@ public:
 		return getLocalParams(p->GetParamsBaseTypeId());
 	}
 	
-	void setSelectionMode( int mode);
 	//Direct access to actual params object:
 	ViewpointParams* getRealVPParams(int win) {
 		if (!VizWindow[win]) return 0;
