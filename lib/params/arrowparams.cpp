@@ -311,10 +311,10 @@ int ArrowParams::SetFieldVariableName(int i, const string& varName){
 int ArrowParams::SetHeightVariableName(const string& varName){
 	return SetValueString(_heightVariableNameTag,"Set barb rake extents",varName);
 }
-const string& ArrowParams::GetHeightVariableName(){
+const string ArrowParams::GetHeightVariableName(){
 	return GetValueString(_heightVariableNameTag, "HGT");
 }
-const string& ArrowParams::GetFieldVariableName(int i){
+const string ArrowParams::GetFieldVariableName(int i){
 	vector <string> defaultName(3,"0");
 	static string retval;
 	vector <string> svec;

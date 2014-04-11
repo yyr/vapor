@@ -161,22 +161,27 @@ public:
 	int setRepeating(bool onOff){
 		return SetValueLong(_repeatTag,"enable repeat play",(long)onOff);
 	}
+	//! Required method to create params in default state with no data.
+	//! \retval ParamsBase* created default instance
+	static ParamsBase* CreateDefaultInstance() {return new AnimationParams(0,-1);}
+	//! Pure virtual method on Params. Provide a short name suitable for use in the GUI
+	//! \retval string name
+	const std::string getShortName() {return _shortName;}
+
+	//! Put a params instance into default state with no data.
+	virtual void restart();
+	//! Determine the shortest time (in milliseconds) for a render
+	//! \retval int minimum render time.
+	int getMinTimeToRender() {return ((int)(1000.f/getMaxFrameRate()) );}
+	//! Make state valid, either to defaults, or to values consistent with data
+	//! \param in bool setDefault true if values are set to default.
+	virtual void Validate(bool setdefault);
 	
 #ifndef DOXYGEN_SKIP_THIS
 
-	//The rest is not part of the public API
-	static ParamsBase* CreateDefaultInstance() {return new AnimationParams(0,-1);}
-	const std::string& getShortName() {return _shortName;}
-
-	virtual void restart();
-	static void setDefaultPrefs();
-	virtual void Validate(bool setdefault);
-
-	bool isPlaying() {return (getPlayDirection() != 0);}
-
-	int getMinTimeToRender() {return ((int)(1000.f/getMaxFrameRate()) );}
+	//The following are not durrently part of the public API
 	
-
+	static void setDefaultPrefs();
 
 	//When rendering is finished, renderer calls this.  Returns true no change (if the change bit
 	//needs to be set. 

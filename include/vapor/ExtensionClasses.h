@@ -17,6 +17,7 @@ namespace VAPoR {
 	static void InstallExtensions(){
            ParamsBase::RegisterParamsBaseClass(ArrowParams::_arrowParamsTag, ArrowParams::CreateDefaultInstance, true);
 	}
+	//For each extension Params that uses a mouse mode, include a call to RegisterMouseMode in the following:
 	static void InstallExtensionMouseModes(){
 		MouseModeParams::RegisterMouseMode(ArrowParams::_arrowParamsTag,1, "Barb rake", arrowrake );
 	}

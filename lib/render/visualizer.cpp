@@ -495,7 +495,7 @@ GLdouble* Visualizer::
 getModelViewMatrix() {
 	return (GLdouble*)getActiveViewpointParams()->getModelViewMatrix();
 }
-//Routine to set gl matrix in viewpointparams
+//Routine to put gl matrix in viewpointparams
 void Visualizer:: 
 setModelViewMatrix(const double mtx[16]) {
 	getActiveViewpointParams()->setModelViewMatrix(mtx);

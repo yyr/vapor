@@ -44,6 +44,8 @@ public:
 	
 	Box();
 	virtual ~Box() {}
+	//! Required static method for extensibility:
+	//! \retval ParamsBase* pointer to a default Params instance
 	static ParamsBase* CreateDefaultInstance() {return new Box();}
 	virtual ParamsBase* deepCopy(ParamNode* newRoot);
 	

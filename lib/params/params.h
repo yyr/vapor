@@ -137,7 +137,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! This is not the tag!
 //! \retval string name to identify associated tab
 //! \sa GetName
-	 virtual const std::string& getShortName()=0;
+	 virtual const std::string getShortName()=0;
 
 //! virtual method indicates instance index, only used with RenderParams
 //! Implementers need not implement this method.
@@ -400,12 +400,12 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \retval returns true if it is UndoRedo
 	virtual bool isUndoRedoParams() const {return false;}
 
-//! Pure virtual method, sets a Params instance to its default state
-//! Params implementers should assign values to all elements in the Params class in this method.
+//! Pure virtual method, sets a Params instance to its default state, without any data present.
+//! Params implementers should assign valid values to all elements in the Params class in this method.
 	virtual void restart() = 0;
 	
 //! Identify the visualizer associated with this instance.
-//! With global pr default Params this is -1 
+//! With global or default Params this is -1 
 	virtual int GetVizNum() {return (int)(GetValueLong(_VisualizerNumTag));}
 
 //! Specify whether a [non-render]params is local or global. 
@@ -450,7 +450,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	static void addDummyParamsInstance(Params*const & p ) {dummyParamsInstances.push_back(p);}
 
 	static void clearDummyParamsInstances();
-	static const std::string& paramName(ParamsBaseType t);
+	static const std::string paramName(ParamsBaseType t);
 	
 	static const string _regionParamsTag;
 	static const string _viewpointParamsTag;
@@ -471,6 +471,7 @@ protected:
 //! then set the value(s), then Validate(), and finally capture the state of
 //! the Params after the Validate()
 //! \sa Validate(), ParamsBase::GetValueLong()
+//! Returns 0 if successful, -1 if the value cannot be set
 //! \param [in] string tag
 //! \param [in] long value
 //! \param [in] char* description
@@ -482,6 +483,7 @@ protected:
 //! This will capture the state of the Params before the value is set, 
 //! then set the value(s), then Validate(), and finally capture the state of
 //! the Params after the Validate()
+//! Returns 0 if successful, -1 if the value cannot be set
 //! \sa Validate(), ParamsBase::GetValueLongVec()
 //! \param [in] string tag
 //! \param [in] char* description
@@ -494,6 +496,7 @@ protected:
 //! This will capture the state of the Params before the value is set, 
 //! then set the value(s), then Validate(), and finally capture the state of
 //! the Params after the Validate()
+//! Returns 0 if successful, -1 if the value cannot be set
 //! \sa Validate(), ParamsBase::GetValueDouble()
 //! \param [in] string tag
 //! \param [in] char* description
@@ -506,6 +509,7 @@ protected:
 //! This will capture the state of the Params before the values are set, 
 //! then set the value(s), then Validate(), and finally capture the state of
 //! the Params after the Validate().
+//! Returns 0 if successful, -1 if the value cannot be set
 //! \sa Validate(), ParamsBase::GetValueDoubleVec()
 //! \param [in] string tag
 //! \param [in] char* description
@@ -519,6 +523,7 @@ protected:
 //! This will capture the state of the Params before the value is set, 
 //! then set the value, then Validate(), and finally capture the state of
 //! the Params after the Validate()
+//! Returns 0 if successful, -1 if the value cannot be set
 //! \sa Validate(), ParamsBase::GetValueString()
 //! \param [in] string tag
 //! \param [in] char* description
@@ -530,8 +535,9 @@ protected:
 //! Method for setting string values associated with a tag.
 //! This will capture the state of the Params before the values are set, 
 //! then set the value(s), then Validate(), and finally capture the state of
-//! the Params after the Validate(), ParamsBase::GetValueStringVec()
-//! \sa Validate()
+//! the Params after the Validate()
+//! returns 0 if successful, -1 if the value cannot be set.
+//! \sa Validate(), ParamsBase::GetValueStringVec()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] vector<string> value
@@ -684,7 +690,7 @@ class DummyParams : public Params {
 	virtual bool usingVariable(const std::string& ){
 		return false;
 	}
-	const std::string &getShortName(){return myTag;}
+	const std::string getShortName(){return myTag;}
 
 	std::string myTag;
 

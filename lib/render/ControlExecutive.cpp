@@ -327,7 +327,7 @@ int ControlExecutive::DrawText(int viz, int x, int y, string font, int size, str
 	//! The null string is returned if there is no entry corresponding to n. 
 	//! \return descriptive text \p string associated with the specified command.
 	//
-string& ControlExecutive::GetCommandText(int n){
+string ControlExecutive::GetCommandText(int n){
 	Command* cmd = Command::CurrentCommand(n);
 	if (!cmd) return *(new string(""));
 	return cmd->getDescription();

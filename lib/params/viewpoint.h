@@ -33,7 +33,10 @@ public:
 		setRotationCenterLocal(rotctr,0);
 	}
 	virtual ParamsBase* deepCopy(ParamNode* newRoot);
+	//! Destructor
 	virtual ~Viewpoint(){}
+	//! Required static method (for extensibility):
+	//! \retval ParamsBase* pointer to a default Params instance
 	static ParamsBase* CreateDefaultInstance() {return new Viewpoint();}
 	//! Identify current camera position in local coordinates
 	//! \retval const vector<double>& camera position
@@ -112,12 +115,12 @@ public:
 	//! \param[in] int coordinate index
 	//! \param[in] double direction vector component
 	//! \param[in] Param* the Params instance that is requesting this setvalue
-	//! \retval int 0 if successful
+	//! \retval int 0 if successful, otherwise -1
 	int setUpVec(const vector<double>&val, Params*p) {
 		return  SetValueDouble(_upVecTag, "Set up vector", val,p);
 	}
-	//! Obtain rotation center
-	//! \retval vector<double>& rotation center coordinates
+	//! Obtain rotation center in local coordinates
+	//! \retval vector<double>& rotation center local coordinates
 	const vector<double>& getRotationCenterLocal() {
 		return ( GetValueDoubleVec(_rotCenterTag));
 	}
@@ -145,6 +148,7 @@ public:
 	//! Force the rotation center to be aligned with view direction
 	//! \param[in] Params* p The Params instance that is requesting this 
 	void alignCenter(Params* p);
+
 	//Routines that deal with stretched coordinates:
 	//! Obtain rotation center in stretched coordinate
 	//! \param[out] double[3] Position of rotation center in stretched coordinates.

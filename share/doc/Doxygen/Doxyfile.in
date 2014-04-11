@@ -407,6 +407,7 @@ INPUT        = 	TOP_OF_TREE/include/vapor/VDCNetCDF.h \
 			TOP_OF_TREE/lib/params/ParamsBase.h \
 			TOP_OF_TREE/lib/params/ParamNode.h \
 			TOP_OF_TREE/lib/params/params.h \
+			TOP_OF_TREE/lib/params/mousemodeparams.h \
 			TOP_OF_TREE/lib/params/viewpointparams.h \ 
 			TOP_OF_TREE/lib/params/viewpoint.h \ 
 			TOP_OF_TREE/lib/params/regionparams.h \ 

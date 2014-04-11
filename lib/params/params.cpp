@@ -75,7 +75,7 @@ Params::~Params() {
 RenderParams::RenderParams(XmlNode *parent, const string &name, int winnum):Params(parent, name, winnum){
 	SetLocal(true);
 }
-const std::string& Params::paramName(Params::ParamsBaseType type){
+const std::string Params::paramName(Params::ParamsBaseType type){
 	return GetDefaultParams(type)->getShortName();
 }
 

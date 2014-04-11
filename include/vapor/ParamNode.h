@@ -299,7 +299,7 @@ public:
  //! \param[in] defaultVal (optional) string to be assigned if specified element does not exist.
  //! \retval string The string associated with the named element
  //!
- virtual const string &GetElementString(const string &tag, const string& defaultVal = XmlNode::_emptyString); 
+ virtual const string GetElementString(const string &tag, const string& defaultVal = XmlNode::_emptyString); 
  
  //! Get an element's data of type string
  //!
@@ -313,7 +313,7 @@ public:
  //! \param[in] defaultVal (optional) string to be assigned if specified element does not exist.
  //! \retval string The string associated with the named element
  //!
- virtual const string &GetElementString(const vector<string> &tagpath, const string& defaultVal = XmlNode::_emptyString );
+ virtual const string GetElementString(const vector<string> &tagpath, const string& defaultVal = XmlNode::_emptyString );
  
  //! Get an element's data of type string vector using a path to node
  //!

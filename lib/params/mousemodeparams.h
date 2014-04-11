@@ -72,12 +72,7 @@ public:
 		barbMode=6,
 		isolineMode=7
 	};
-	int SetCurrentMouseMode(int mode){
-		return SetValueLong(_mouseModeTag, "Set mouse mode",(long)mode);
-	}
-	mouseModeType GetCurrentMouseMode(){
-		return (mouseModeType)GetValueLong(_mouseModeTag);
-	}
+	
 	
 	//Static methods for controlling mouse modes
 	//! Method to register a mouse mode.  Called during startup.
@@ -118,30 +113,43 @@ public:
 	//! This is the text that is displayed in the mouse mode selector.
 	//! \param[in] int Mouse Mode
 	//! \retval const string& Name associated with mode
-	static const string& getModeName(int index) {return modeName[index];}
+	static const string getModeName(int index) {return modeName[index];}
 
 	//! Static method called at startup to register all the built-in mouse modes,
 	//! by calling RegisterMouseMode() for each built-in mode.
 	//! Also calls InstallExtensionMouseModes() to register extension modes.
 	static void RegisterMouseModes();
 
+	//! Static method indicates the current mouse mode
+	//! \retval mouseModeType current mouse mode
 	static mouseModeType  getCurrentMouseMode(){
 		return ((MouseModeParams*)Params::GetParamsInstance(_mouseModeParamsTag))->GetCurrentMouseMode();
 	}
+	//! Static method sets the current mouse mode
+	//! \param[in] mouseModeType t current mouse mode
 	static void setCurrentMouseMode(mouseModeType t){
 		((MouseModeParams*)Params::GetParamsInstance(_mouseModeParamsTag))->SetCurrentMouseMode(t);
 	}
 
-
-	
+	//! Required static method (for extensibility):
+	//! \retval ParamsBase* pointer to a default Params instance
+	static ParamsBase* CreateDefaultInstance() {return new MouseModeParams(0, -1);}
+	//! Pure virtual method on Params. Provide a short name suitable for use in the GUI
+	//! \retval string name
+	const std::string getShortName() {return _shortName;}
 
 #ifndef DOXYGEN_SKIP_THIS
-
-	static ParamsBase* CreateDefaultInstance() {return new MouseModeParams(0, -1);}
-	const std::string& getShortName() {return _shortName;}
+	
 	static const string _mouseModeParamsTag;
 
 protected:
+	//! Set/get methods are not public.
+	int SetCurrentMouseMode(int mode){
+		return SetValueLong(_mouseModeTag, "Set mouse mode",(long)mode);
+	}
+	mouseModeType GetCurrentMouseMode(){
+		return (mouseModeType)GetValueLong(_mouseModeTag);
+	}
 	static const string _shortName;
 	static const string _mouseModeTag;
 	//Mouse Mode tables.  Static

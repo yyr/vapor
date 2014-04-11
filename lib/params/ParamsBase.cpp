@@ -417,7 +417,7 @@ ParamsBase::ParamsBaseType ParamsBase::GetTypeFromTag(const string&tag){
 	if (getIdIter == classIdFromTagMap.end()) return 0;
 	return (ParamsBaseType)(getIdIter->second);
 }
-const string& ParamsBase::GetTagFromType(ParamsBaseType t){
+const string ParamsBase::GetTagFromType(ParamsBaseType t){
 	map <int,string> :: const_iterator getTagIter;
     getTagIter = tagFromClassIdMap.find(t);
 	if (getTagIter == tagFromClassIdMap.end()) return _emptyString;

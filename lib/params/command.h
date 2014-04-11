@@ -61,7 +61,7 @@ public:
 	}
 	//! Get the description associated with this command instance
 	//! \return string Description text identifying the state change of this command.
-	string& getDescription(){return description;}
+	string getDescription(){return description;}
 
 	//! Static method used to capture the previous Params state (before the state change)
 	//! \param [in] prevParams points to previous Params instance

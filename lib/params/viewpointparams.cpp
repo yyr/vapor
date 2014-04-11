@@ -107,7 +107,6 @@ restart(){
 	setExponent(defaultSpecularExp);
 	setAmbientCoeff(defaultAmbientCoeff);
 	
-	setCoordTrans();
 	
 }
 void ViewpointParams::setDefaultPrefs(){
@@ -134,7 +133,6 @@ Validate(bool doOverride){
 	//Command capturing should be disabled
 	assert(!Command::isRecording());
 	
-	setCoordTrans();
 	if (doOverride){
 		//set to defaults:
 		restart();
@@ -173,23 +171,6 @@ rescale (double scaleFac[3], int timestep){
 	
 }
 
-
-void ViewpointParams::
-setCoordTrans(){
-	const float* strSizes = DataStatus::getInstance()->getFullStretchedSizes();
-	
-}
-
-
-
-//Rotate a vector based on current modelview matrix transpose.  Use to rotate vector in world coords to
-//Camera coord system.
-void  ViewpointParams::transform3Vector(const float vec[3], float resvec[3])
-{
-	resvec[0] = modelViewMatrix[0]*vec[0] + modelViewMatrix[1]*vec[1] + modelViewMatrix[2]*vec[2];
-	resvec[1] = modelViewMatrix[4]*vec[0] + modelViewMatrix[5]*vec[1] + modelViewMatrix[6]*vec[2];
-	resvec[2] = modelViewMatrix[8]*vec[0] + modelViewMatrix[9]*vec[1] + modelViewMatrix[10]*vec[2];
-}
 //  First project all 8 box corners to the center line of the camera view, finding the furthest and
 //  nearest projection in front of the camera.  The furthest distance is used as the far distance.
 //  If some point projects behind the camera, then either the camera is inside the box, or a corner of the

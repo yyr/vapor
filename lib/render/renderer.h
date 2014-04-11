@@ -109,7 +109,7 @@ public:
 	virtual void setAllDataDirty() = 0;
 
 #ifndef DOXYGEN_SKIP_THIS
-	const string& getMyName() const {return(_myName);};
+	const string getMyName() const {return(_myName);};
 	
 	Visualizer* myVisualizer;
 	

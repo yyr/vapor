@@ -341,7 +341,7 @@ public:
 	//
 	const Params* Redo();
 
-	string& GetCommandText(int n);
+	string GetCommandText(int n);
 
 	//! Indicates whether or not there exists a Command at the specified offset 
 	//! from the latest Command which was issued, can be e.g. used to tell whether or not

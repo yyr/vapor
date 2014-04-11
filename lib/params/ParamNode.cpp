@@ -392,7 +392,7 @@ const vector<long> &ParamNode::GetElementLong(const string &tag, const vector<lo
 	SetElementLong(tag,defaultVal);
 	return defaultVal;
 }
-const string &ParamNode::GetElementString(const string &tag, const string& defaultVal){
+const string ParamNode::GetElementString(const string &tag, const string& defaultVal){
 	if (!HasElementString(tag)) 
 		SetElementString(tag,defaultVal);
 	return XmlNode::GetElementString(tag);
@@ -438,7 +438,7 @@ void ParamNode::GetElementStringVec(const string &tag, vector <string> &vec, con
 	string s = currNode->GetElementString(tag);
 	StrToWordVec(s, vec);
 }
-const string& ParamNode::GetElementString(const vector<string> &tagpath, const string& defaultVal) {
+const string ParamNode::GetElementString(const vector<string> &tagpath, const string& defaultVal) {
 	//Iterate through tags, finding associated node
 	ParamNode* currNode = this;
 	for (int i = 0; i< tagpath.size()-1; i++){
