@@ -75,8 +75,8 @@ public:
 	int SetCurrentMouseMode(int mode){
 		return SetValueLong(_mouseModeTag, "Set mouse mode",(long)mode);
 	}
-	MouseModeParams::mouseModeType GetCurrentMouseMode(){
-		return (MouseModeParams::mouseModeType)GetValueLong(_mouseModeTag);
+	mouseModeType GetCurrentMouseMode(){
+		return (mouseModeType)GetValueLong(_mouseModeTag);
 	}
 	
 	//Static methods for controlling mouse modes
@@ -123,12 +123,12 @@ public:
 	//! Static method called at startup to register all the built-in mouse modes,
 	//! by calling RegisterMouseMode() for each built-in mode.
 	//! Also calls InstallExtensionMouseModes() to register extension modes.
-	static void MouseModeParams::RegisterMouseModes();
+	static void RegisterMouseModes();
 
-	static MouseModeParams::mouseModeType  MouseModeParams::getCurrentMouseMode(){
+	static mouseModeType  getCurrentMouseMode(){
 		return ((MouseModeParams*)Params::GetParamsInstance(_mouseModeParamsTag))->GetCurrentMouseMode();
 	}
-	static void MouseModeParams::setCurrentMouseMode(MouseModeParams::mouseModeType t){
+	static void setCurrentMouseMode(mouseModeType t){
 		((MouseModeParams*)Params::GetParamsInstance(_mouseModeParamsTag))->SetCurrentMouseMode(t);
 	}
 
