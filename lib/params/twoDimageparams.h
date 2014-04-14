@@ -67,6 +67,7 @@ public:
 	virtual MapperFunction* GetMapperFunc(){return 0;}
 	//we need to check for alpha channel
 	virtual bool IsOpaque() {return (opacityMultiplier >= 0.99f && !transparentAlpha);}
+	virtual bool isPlanar() {return true;}
 	//Variables specific to images:
 	bool isGeoreferenced() {return useGeoreferencing;}
 	void setGeoreferenced(bool val){useGeoreferencing = val;}

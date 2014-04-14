@@ -72,8 +72,6 @@ protected:
 	int selectedHandle;
 };
 
-//Subclass that handles translation manip.  Works 
-//with ProbeParams
 //Subclass that handles both translation and stretch .  Works 
 //with RegionParams and FlowParams (rake).
 //When you slide a handle with the right mouse it stretches the region

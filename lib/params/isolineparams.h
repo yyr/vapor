@@ -207,6 +207,7 @@ public:
 		GetBox()->SetLocalExtents(exts);
 	}
 	
+	virtual bool isPlanar() {return true;}
 	float getRealImageWidth() {
 		const vector<double>& exts = GetBox()->GetLocalExtents();
 		return (float)(exts[3]-exts[0]);

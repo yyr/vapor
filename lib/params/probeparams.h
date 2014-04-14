@@ -210,7 +210,7 @@ public:
 	}
 	
 	
-	bool isPlanar() {return planar;}
+	virtual bool isPlanar() {return planar;}
 	void setPlanar(bool val) {planar = val;}
 	virtual Box* GetBox() {return myBox;}
 	

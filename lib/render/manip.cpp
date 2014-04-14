@@ -15,14 +15,13 @@
 //	Date:		November 2005
 //
 //	Description:	Implements the Manip class and some of its subclasses
-//TOGO:
-//#include "vizwinmgr.h"
-//#include "probeeventrouter.h"
+
+
 
 #include "glutil.h"	// Must be included first!!!
 #include "manip.h"
 #include "params.h"
-#include "probeparams.h"
+
 #include "viewpointparams.h"
 #include "animationparams.h"
 #include "glwindow.h"
@@ -1004,8 +1003,7 @@ float TranslateRotateManip::constrainStretch(float currentDist){
 	int axis1 = (selectedHandle < 3) ? (2 - selectedHandle):(selectedHandle -3);
 	//Don't drag the z-axis if it's planar:
 	if (axis2 == 2){
-		ProbeParams* pParams = (ProbeParams*) myParams;
-		if (pParams->isPlanar()) {
+		if (myParams->isPlanar()) {
 			delete myPermuter;
 			return 0.f;
 		}

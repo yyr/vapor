@@ -505,6 +505,10 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	//Mapping [-1,1]X[-1,1] into local 3D volume coordinates.
 	void buildLocal2DTransform(int dataOrientation, float a[2],float b[2], float* constVal, int mappedDims[3]);
 
+	//Method indicates if the geometry is contstrained to fit in a plane (e.g. for manips)
+	//Default is false;
+	virtual bool isPlanar() {return false;}
+
 	//Helper function for testing distances,
 	//testing whether a point is inside or outside of cube 
 	//Return is positive if point is outside.  Arguments are outward pointing

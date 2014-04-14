@@ -142,7 +142,7 @@ public:
 	//determine the texture size appropriately for either ibfv or data twoD, return value in sz.
 	void adjustTextureSize(int sz[2]);
 	
-	
+	virtual bool isPlanar() {return true;}
 	//Implement virtual function to deal with new session:
 	bool reinit(bool doOverride);
 	virtual void restart();
