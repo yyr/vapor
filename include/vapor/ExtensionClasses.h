@@ -7,7 +7,7 @@
 #include "../lib/params/arrowparams.h"
 #include "../lib/params/viewpoint.h"
 #include "../lib/params/Box.h"
-#include "../lib/params/MouseModeParams.h"
+#include "../lib/params/mousemodeparams.h"
 #include "../../apps/vaporgui/images/arrowrake.xpm"
 
 
