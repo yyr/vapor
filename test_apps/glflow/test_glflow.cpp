@@ -503,7 +503,7 @@ int main(int argc, char** argv)
 	}
     if(strcmp(opt.datafile, ""))
     {
-        pd7sz = nfloats(argv[1]);
+        pd7sz = nfloats(opt.datafile);
         pathdata7 = new float[pd7sz];
         getfloats(argv[1], pathdata7, pd7sz);
     }
