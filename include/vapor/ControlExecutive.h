@@ -106,7 +106,17 @@ public:
 	//!
 	int Paint(int viz, bool force=false);
 
-	
+	//! Specify the current ModelViewMatrix
+	//!
+	//! Tells the control executive that the specified matrix will be used
+	//! at the next time Paint is called on the specified visualizer.
+	//!
+	//! \param[in] viz A visualizer handle returned by NewVisualizer()
+	//!	\param[in] matrix Specifies a float array of 16 values representing the
+	//! new ModelView matrix.
+	//!
+	//!
+	int SetModelViewMatrix(int viz, const double* mtx);
 
 	//! Activate or Deactivate a renderer
 	//!
@@ -127,7 +137,72 @@ public:
 	//
 	int ActivateRender(int viz, std::string type, int instance, bool on);
 
-	
+	//! Get a pointer to the existing parameter state information 
+	//!
+	//! This method returns a pointer to a Params class object 
+	//! that manages all of the state information for 
+	//! the Params instance identified by \p (viz,type,instance). The object pointer returned
+	//! is used to both query parameter information as well as change
+	//! parameter information. 
+	//!
+	//! \param[in] viz A visualizer handle returned by NewVisualizer(). 
+	//! \param[in] type The type of the Params (e.g. flow, probe)
+	//! This is the same as the type of Renderer for a RenderParams.
+	//! \param[in] instance Instance index, ignored for non-Render params.  Use -1 for the current active instance.
+	//!
+	//! \return ptr A pointer to the Params object of the specified type that is
+	//! currently associated with the specified visualizer (and of the specified instance, if
+	//! this Params is a RenderParams.)
+	//!
+	//! \note Currently the Params API includes a mechanism for a renderer to
+	//! register its interest in a changed parameter, and to be notified when
+	//! that parameter changes.  We may also add API to 
+	//! the Params class to register
+	//! interest in change of *any* parameter if that proves to be useful.
+	//! 
+	//
+	Params* GetParams(int viz, string type, int instance);
+
+	//! Specify the Params instance for a particular visualizer, instance index, and Params type
+	//! This can be used to replace the current Params instance using a new Params pointer.
+	//! This should not be used to install a Params instance where one did not exist already; Use
+	//! NewParams for that purpose
+	//!
+	//! \param[in] viz A visualizer handle returned by NewVisualizer().  Specify -1 if the Params is global. 
+	//! \param[in] type The type of the Params (e.g. flow, probe)
+	//! \param[in] Params* The pointer to the Params instance being installed.
+	//! This is the same as the type of Renderer for a RenderParams.
+	//! \param[in] instance Instance index, ignored for non-Render params.  Use -1 for the current active instance.
+	//!
+	//! \return int is zero if successful
+	//!
+	//
+	int SetParams(int viz, string type, int instance, Params* p);
+
+	//! Delete a RenderParams instance for a particular visualizer, instance index, and Params type
+	//! The specified instance must previously have been de-activated.
+	//! There must exist more than one instance or this will fail.
+	//! All existing Params instances in the same visualizer and with larger instance index will have their
+	//! instance index reduced by one (so as to avoid gaps in instance numbering).
+	//!
+	//! \param[in] viz A visualizer handle returned by NewVisualizer(). 
+	//! \param[in] type The type of the RenderParams (e.g. flow, probe)
+	//! \param[in] instance Instance index to be removed.  Use -1 for the current active instance.
+	//!
+	//! \return int is zero if successful
+	//!
+	//! \sa ActivateRender
+	//
+	int RemoveParams(int viz, string type, int instance);
+
+	//! Determine how many instances of a given renderer type are present
+	//! in a visualizer.  Necessary for setting up a UI.
+	//! \param[in] viz A visualizer handle returned by NewVisualizer()
+	//! \param[in] type The type of the RenderParams or Renderer 
+	//! \return number of instances 
+	//!
+
+	int GetNumParamsInstances(int viz, string type);
 
 	//! Determine how many visualizer windows are present
 	//! \return number of visualizers 

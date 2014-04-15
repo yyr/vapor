@@ -114,6 +114,22 @@ int ControlExecutive::Paint(int viz, bool force){
 	return v->paintEvent(force);
 }
 
+	//! Specify the current ModelViewMatrix
+	//!
+	//! Tells the control executive that the specified matrix will be used
+	//! the next time Paint() is called on the specified visualizer.
+	//!
+	//! \param[in] viz A visualizer handle returned by NewVisualizer()
+	//!	\param[in] matrix Specifies a float array of 16 values representing the
+	//! new ModelView matrix.
+	//!
+	//!
+int ControlExecutive::SetModelViewMatrix(int viz, const double* mtx){
+	Visualizer* v = visualizers[viz];
+	v->setModelViewMatrix(mtx);
+	return 0;
+}
+
 	//! Activate or Deactivate a renderer
 	//!
 	//!
@@ -139,7 +155,78 @@ int ControlExecutive::ActivateRender(int viz, string type, int instance, bool on
 	else return -1;//not on!
 }
 
-	
+	//! Get a pointer to the existing parameter state information 
+	//!
+	//! This method returns a pointer to a Params class object 
+	//! that manages all of the state information for 
+	//! the Params instance identified by \p (viz,type,instance). The object pointer returned
+	//! is used to both query parameter information as well as change
+	//! parameter information. 
+	//!
+	//! \param[in] viz A visualizer handle returned by NewVisualizer().  Use -1 for the current active visualizer. 
+	//! \param[in] type The type of the Params (e.g. flow, probe)
+	//! This is the same as the type of Renderer for a RenderParams.
+	//! \param[in] instance Instance index, ignored for non-Render params.  Use -1 for the current active instance.
+	//!
+	//! \return ptr A pointer to the Params object of the specified type that is
+	//! currently associated with the specified visualizer (and of the specified instance, if
+	//! this Params is a RenderParams.)
+	//!
+	//! \note Currently the Params API includes a mechanism for a renderer to
+	//! register its interest in a changed parameter, and to be notified when
+	//! that parameter changes.  We may also add API to 
+	//! the Params class to register
+	//! interest in change of *any* parameter if that proves to be useful.
+	//! 
+	//
+Params* ControlExecutive::GetParams(int viz, string type, int instance){
+	Params* p = Params::GetParamsInstance(type,viz,instance);
+	int inst = p->GetInstanceIndex();
+	if (instance >= 0) assert (inst == instance);
+	return Params::GetParamsInstance(type,viz,instance);
+}
+//! Specify the Params instance for a particular visualizer, instance index, and Params type
+	//! This can be used to replace the current Params instance using a new Params pointer.
+	//! When used to install a Params instance the instance index must be equal to the number of instances.
+	//!
+	//! \param[in] viz A visualizer handle returned by NewVisualizer().
+	//! \param[in] type The type of the Params (e.g. flow, probe)
+	//! \param[in] Params* The pointer to the Params instance being installed.
+	//! This is the same as the type of Renderer for a RenderParams.
+	//! \param[in] instance Instance index, ignored for non-Render params.  Use -1 for the current active instance.
+	//!
+	//! \return int is zero if successful
+	//!
+	//! 
+	//
+int SetParams(int viz, string type, int instance, Params* p){
+	if (viz == -1) { //Global or default params.  Ignore instance.
+		Params::SetDefaultParams(type,p);
+		return 0;
+	}
+	if (instance == -1) { //Current instance
+		instance = Params::GetCurrentParamsInstanceIndex(type,viz);
+	}
+	if (instance == Params::GetNumParamsInstances(type, viz)){
+		Params::AppendParamsInstance(type, viz, p);
+		return 0;
+	}
+	if (instance < 0 || instance >= Params::GetNumParamsInstances(type, viz) )
+		return -1;
+	vector<Params*>& paramsvec = Params::GetAllParamsInstances(type, viz);
+	paramsvec[instance] = p;
+	return 0;
+}
+	//! Determine how many instances of a given renderer type are present
+	//! in a visualizer.  Necessary for setting up a UI.
+	//! \param[in] viz A visualizer handle returned by NewVisualizer()
+	//! \param[in] type The type of the RenderParams or Renderer 
+	//! \return number of instances 
+	//!
+
+int ControlExecutive::GetNumParamsInstances(int viz, string type){
+	return Params::GetNumParamsInstances(type,viz);
+}
 
 	//! Save the current session state to a file
 	//!
