@@ -101,3 +101,4 @@ lib/vdf/WeightTable.h
 lib/vdf/XmlNode.h
 share/doc/Doxygen/Doxyfile
 site.mk
+*~

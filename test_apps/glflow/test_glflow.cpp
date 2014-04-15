@@ -4,6 +4,9 @@
 #include "glflow.h"
 #include <cmath>
 #include "vec.h"
+#include <iostream>
+#include <cstring>
+using namespace std;
 
 #include <vapor/OptionParser.h>
 using namespace VetsUtil;
@@ -28,12 +31,24 @@ struct {
     int stride;
     float ratio;
     float length;
-    int r;
-    int g;
-    int b;
+    bool help;
 } opt;
 
-OptionParser::Option_T	get_options[] = {
+OptionParser::OptDescRec_T set_options[] = {
+	{"help", 0, "", "Print this message and exit"},
+	{"data", 1, "", "A test data source"},
+	{"colors", 1, "", "A test color source"},
+	{"mode", 1, "tubes", "Render mode: tubes | arrows | lines"},
+	{"radius", 1, "1.0", "Radius multiplier of rendered shapes"},
+	{"quality", 1, "0", "Number of subdivisions of rendered shapes"},
+	{"stride", 1, "1", "Traverse how many vertices between rendering?"},
+	{"ratio", 1, "1.0", "Ratio of arrow to tube radius"},
+	{"length", 1, "1.0", "Arrow cone length"},
+	{NULL}
+};
+
+OptionParser::Option_T get_options[] = {
+    {"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"data", VetsUtil::CvtToString, &opt.datafile, sizeof(opt.datafile)},
 	{"colors", VetsUtil::CvtToString, &opt.colorfile, sizeof(opt.colorfile)},
 	{"mode", VetsUtil::CvtToString, &opt.mode, sizeof(opt.mode)},
@@ -311,26 +326,26 @@ void init(void)
     hog = GLHedgeHogger();
     const GLHedgeHogger::Params* hparams = hog.GetParams();
     GLHedgeHogger::Params hcopy = *hparams;
-    hcopy.radius = .5f;
-    hcopy.quality = 1;
+    hcopy.radius = opt.radius;
+    hcopy.quality = opt.quality;
     hcopy.baseColor[0] = .5f;
     hcopy.baseColor[1] = .5f;
     hcopy.baseColor[2] = .5f;
     hcopy.baseColor[3] = 1.f;
-    hcopy.stride = 1;
+    hcopy.stride = opt.stride;
 
     hog.SetParams(&hcopy);
     
     path = GLPathRenderer();
     const GLPathRenderer::Params* pparams = path.GetParams();
     GLPathRenderer::Params pcopy = *pparams;
-    pcopy.radius = 0.5f;
-    pcopy.quality = 3;
+    pcopy.radius = opt.radius;
+    pcopy.quality = opt.quality;
     pcopy.baseColor[0] = 1.f;
     pcopy.baseColor[1] = 0.f;
     pcopy.baseColor[2] = 0.f;
     pcopy.baseColor[3] = 1.f;
-    pcopy.stride = 1;
+    pcopy.stride = opt.stride;
     
     path.SetParams(&pcopy);
     
@@ -392,7 +407,7 @@ static inline void drawCone(const float* v, const float* n, int q)
         int nsz = rsz * 2;
         glBegin(GL_TRIANGLES);
         int vi = 3;
-        for(int i = 0; i < nsz && vi <= sz; i+=6)
+        for(int i = 0; i <= nsz && vi <= sz; i+=6)
         {
             //two-step to the next triangle
             glNormal3fv(n + (i % nsz));
@@ -455,10 +470,10 @@ void display(void)
     //path.Draw(pathdata3, 3); //straight, dual-segment
     //path.Draw(pathdata4, 2); //single-segment
     //path.Draw(pathdata5, 6); //kink testing
-    //path.Draw(pathdata6, SPIRAL_SZ); //autospiral
-    //if(pathdata7) path.Draw(pathdata7, pd7sz / 3);
+    if(pathdata7) path.Draw(pathdata7, pd7sz / 3);
+    else path.Draw(pathdata6, SPIRAL_SZ); //autospiral
     //glTranslatef(0.f, 0.f, -3.f);
-    coneTest(conedir, 2, 1.f);
+    //coneTest(conedir, opt.quality, opt.radius);
     //drawCube();
 
     glutSwapBuffers();
@@ -468,12 +483,31 @@ int main(int argc, char** argv)
 {
     scrw = 800;
     scrh = 600;
-    if(argc > 1)
+    
+    OptionParser op;
+    if(op.AppendOptions(set_options) < 0)
+    {
+        fprintf(stderr, "ERR: %s\n", op.GetErrMsg());
+        exit(EXIT_FAILURE);
+    }
+    if(op.ParseOptions(&argc, argv, get_options) < 0)
+    {
+        fprintf(stderr, "ERR: %s\n", op.GetErrMsg());
+        exit(EXIT_FAILURE);
+    }
+	if (opt.help)
+	{
+		cerr << "Usage: test_glflow [options]" << endl;
+		op.PrintOptionHelp(stderr);
+		exit(EXIT_FAILURE);
+	}
+    if(strcmp(opt.datafile, ""))
     {
         pd7sz = nfloats(argv[1]);
         pathdata7 = new float[pd7sz];
         getfloats(argv[1], pathdata7, pd7sz);
     }
+    
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
     glutInitWindowSize(scrw, scrh);
@@ -536,7 +570,7 @@ static void drawBox(GLfloat size, GLenum type)
         glEnd();
     }
 }
- 
+
 void my_glutSolidCube(GLdouble size)
 {
   drawBox(size, GL_QUADS);
