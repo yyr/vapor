@@ -107,6 +107,9 @@ public:
 		modeCombo->addItem(icon, text);
 		return (modeCombo->count()-1);
 	}
+	//! Insert all the mouse modes into the modeCombo.
+	void addMouseModes();
+	
 	void setMouseMode(int newMode) {modeCombo->setCurrentIndex(newMode);}
 	void showCitationReminder();
 	

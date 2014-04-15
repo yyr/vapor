@@ -201,7 +201,17 @@ void vtransform(const double *v, GLfloat mat[12], double *vt)
 	vcopy(t, vt);
 }
 	
-
+void vtransform(const double *v, GLdouble mat[12], double *vt)
+{
+	/* Vector transform in software...
+	*/
+	double	t[3];
+		
+	t[0] = v[0]*mat[0] + v[1]*mat[1] + v[2]*mat[2] + mat[3];
+	t[1] = v[0]*mat[4] + v[1]*mat[5] + v[2]*mat[6] + mat[7];
+	t[2] = v[0]*mat[8] + v[1]*mat[9] + v[2]*mat[10] + mat[11];
+	vcopy(t, vt);
+}
 void vtransform4(const float *v, GLfloat *mat, float *vt)
 {
     /* Homogeneous coordinates.
@@ -1312,7 +1322,7 @@ size_t nextPowerOf2(size_t n)
 
 //Some routines to handle 3x3 rotation matrices, represented as 9 floats, 
 //where the column index increments faster 
-void mmult33(const float* m1, const float* m2, float* result){
+void mmult33(const double* m1, const double* m2, double* result){
 	for (int row = 0; row < 3; row++){
 		for (int col = 0; col < 3; col++) {
 			result[row*3 + col] = (m1[row*3]  * m2[col] + 
@@ -1323,7 +1333,7 @@ void mmult33(const float* m1, const float* m2, float* result){
 }
 
 //Same as above, but use the transpose (i.e. inverse for rotations) on the left
-void mmultt33(const float* m1Trans, const float* m2, float* result){
+void mmultt33(const double* m1Trans, const double* m2, double* result){
 for (int row = 0; row < 3; row++){
 		for (int col = 0; col < 3; col++) {
 			result[row*3 + col] = (m1Trans[row]  * m2[col] + 
@@ -1336,15 +1346,15 @@ for (int row = 0; row < 3; row++){
 //find the rotation matrix that first rotates in (x,y) by psi, then takes the vector (0,0,1) 
 //to the vector with direction (theta,phi) by rotating by phi in the (x,z) plane and then
 //rotating in the (x,y)plane by theta.
-void getRotationMatrix(float theta, float phi, float psi, float* matrix){
+void getRotationMatrix(double theta, double phi, double psi, double* matrix){
 	//do the theta-phi rotation first:
-	float mtrx1[9], mtrx2[9];
-	float cosTheta = cos(theta);
-	float sinTheta = sin(theta);
-	float cosPhi = cos(phi);
-	float sinPhi = sin(phi);
-	float cosPsi = cos(psi);
-	float sinPsi = sin(psi);
+	double mtrx1[9], mtrx2[9];
+	double cosTheta = cos(theta);
+	double sinTheta = sin(theta);
+	double cosPhi = cos(phi);
+	double sinPhi = sin(phi);
+	double cosPsi = cos(psi);
+	double sinPsi = sin(psi);
 	//specify mtrx1 as an (X,Z) rotation by -phi, followed by an (X,Y) rotation by theta:
 	mtrx1[0] = cosTheta*cosPhi;
 	mtrx1[1] = -sinTheta;
@@ -1371,7 +1381,7 @@ void getRotationMatrix(float theta, float phi, float psi, float* matrix){
 }
 
 //Determine a rotation matrix about an axis:
-PARAMS_API void getAxisRotation(int axis, float rotation, float* matrix){
+PARAMS_API void getAxisRotation(int axis, double rotation, double* matrix){
 	for (int col = 0; col < 3; col++){
 		for (int row = 0; row < 3; row++) {
 			if (row == axis && col == axis) matrix[col+row*3] = 1.f;
@@ -1389,12 +1399,12 @@ PARAMS_API void getAxisRotation(int axis, float rotation, float* matrix){
 //the rotation matrix rotates about the z-axis by psi,
 //then takes the z-axis to the unit vector with spherical
 //coordinates theta and phi.
-void getRotAngles(float* theta, float* phi, float* psi, const float* matrix){
+void getRotAngles(double* theta, double* phi, double* psi, const double* matrix){
 	//First find phi and theta by looking at matrix applied to 0,0,1:
-	float vec[3];
-	float tempPhi, tempTheta;
-	float tempPsi = 0.f;
-	float tMatrix1[9], tMatrix2[9];
+	double vec[3];
+	double tempPhi, tempTheta;
+	double tempPsi = 0.;
+	double tMatrix1[9], tMatrix2[9];
 	vec[0] = matrix[2];
 	vec[1] = matrix[5];
 	vec[2] = matrix[8];
@@ -1402,8 +1412,8 @@ void getRotAngles(float* theta, float* phi, float* psi, const float* matrix){
 	tempPhi = acos(vec[2]); //unique angle between 0 and pi
 	//now project vec[0], vec[1] to x,y plane:
 
-	float normsq = (vec[0]*vec[0]+vec[1]*vec[1]);
-	if (normsq == 0.f) tempTheta = 0.f;
+	double normsq = (vec[0]*vec[0]+vec[1]*vec[1]);
+	if (normsq == 0.) tempTheta = 0.;
 	else {
 		tempTheta = acos(vec[0]/sqrt(normsq));
 		//If sin(theta)<0 then theta is negative:

@@ -86,7 +86,14 @@ int Box::GetLocalExtents(float extents[6], int timestep){
 	for (int i = 0; i<6; i++) extents[i] = exts[i];
 	return 0;
 }
-
+int Box::GetStretchedLocalExtents(double extents[6], int timestep){
+	double exts[6];
+	int rc = GetLocalExtents(exts, timestep);
+	if (rc) return rc;
+	const double *stretch = DataStatus::getInstance()->getStretchFactors();
+	for (int i = 0; i<6; i++) extents[i] = exts[i]*stretch[i%3];
+	return 0;
+}
 int Box::SetLocalExtents(const vector<double>& extents, Params*p, int timestep){
 	const vector<double> defaultExtents(6,0.);
 	const vector<long> defaultTimes(1,0);
@@ -124,7 +131,12 @@ int Box::SetLocalExtents(const float extents[6], Params*p, int timestep){
 	for (int i = 0; i<6; i++) exts.push_back((double)extents[i]);
 	return SetLocalExtents(exts, p, timestep);
 }
-
+int Box::SetStretchedLocalExtents(const double extents[6], Params*p, int timestep){
+	vector<double> exts;
+	const double* stretch = DataStatus::getInstance()->getStretchFactors();
+	for (int i = 0; i<6; i++) exts.push_back((double)(extents[i]/stretch[i%3]));
+	return SetLocalExtents(exts, p, timestep);
+}
 int Box::GetUserExtents(double extents[6], size_t timestep){
 	int rc = GetLocalExtents(extents, (int)timestep);
 	if (rc) return rc;

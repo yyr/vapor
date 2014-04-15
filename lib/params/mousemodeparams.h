@@ -122,15 +122,22 @@ public:
 
 	//! Static method indicates the current mouse mode
 	//! \retval mouseModeType current mouse mode
-	static mouseModeType  getCurrentMouseMode(){
-		return ((MouseModeParams*)Params::GetParamsInstance(_mouseModeParamsTag))->GetCurrentMouseMode();
+	static mouseModeType  GetCurrentMouseMode(){
+		return ((MouseModeParams*)Params::GetParamsInstance(_mouseModeParamsTag))->getCurrentMouseMode();
 	}
 	//! Static method sets the current mouse mode
 	//! \param[in] mouseModeType t current mouse mode
-	static void setCurrentMouseMode(mouseModeType t){
-		((MouseModeParams*)Params::GetParamsInstance(_mouseModeParamsTag))->SetCurrentMouseMode(t);
+	static void SetCurrentMouseMode(mouseModeType t){
+		((MouseModeParams*)Params::GetParamsInstance(_mouseModeParamsTag))->setCurrentMouseMode(t);
 	}
-
+	//! Static method indicates how many mouse modes are available.
+	static int getNumMouseModes(){
+		return modeName.size();
+	}
+	//! Static method identifies pixmap icon for each mode
+	static const char* const * GetIcon(int modeIndex){
+		return modeXPMIcon[modeIndex];
+	}
 	//! Required static method (for extensibility):
 	//! \retval ParamsBase* pointer to a default Params instance
 	static ParamsBase* CreateDefaultInstance() {return new MouseModeParams(0, -1);}
@@ -143,11 +150,11 @@ public:
 	static const string _mouseModeParamsTag;
 
 protected:
-	//! Set/get methods are not public.
-	int SetCurrentMouseMode(int mode){
+	//! non-static Set/get methods are not public.
+	int setCurrentMouseMode(int mode){
 		return SetValueLong(_mouseModeTag, "Set mouse mode",(long)mode);
 	}
-	mouseModeType GetCurrentMouseMode(){
+	mouseModeType getCurrentMouseMode(){
 		return (mouseModeType)GetValueLong(_mouseModeTag);
 	}
 	static const string _shortName;

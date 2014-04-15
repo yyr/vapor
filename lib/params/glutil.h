@@ -105,6 +105,7 @@ PARAMS_API void	vreflect (const float *in, const float *mirror, float *out);
 PARAMS_API void	vtransform (const float *v, GLfloat *mat, float *vt);
 PARAMS_API void	vtransform (const float *v, GLfloat *mat, double *vt);
 PARAMS_API void	vtransform (const double *v, GLfloat *mat, double *vt);
+PARAMS_API void	vtransform (const double *v, GLdouble *mat, double *vt);
 PARAMS_API void	vtransform4 (const float *v, GLfloat *mat, float *vt);
 PARAMS_API void	vtransform3 (const float *v, float *mat, float *vt);
 PARAMS_API void	vtransform3t (const float *v, float *mat, float *vt);
@@ -118,22 +119,22 @@ PARAMS_API int	minvert (GLdouble *mat, GLdouble *result);
 
 //Some routines to handle 3x3 rotation matrices, represented as 9 floats, 
 //where the column index increments faster (like in 4x4 case
-PARAMS_API void	mmult33(const float* m1, const float* m2, float* result);
+PARAMS_API void	mmult33(const double* m1, const double* m2, double* result);
 
 //Same as above, but use the transpose (i.e. inverse for rotations) on the left
-PARAMS_API void	mmultt33(const float* m1Trans, const float* m2, float* result);
+PARAMS_API void	mmultt33(const double* m1Trans, const double* m2, double* result);
 
 //Determine a rotation matrix from (theta, phi, psi) (radians), that is, 
 //find the rotation matrix that first rotates in (x,y) by psi, then takes the vector (0,0,1) 
 //to the vector with direction (theta,phi) by rotating by phi in the (x,z) plane and then
 //rotating in the (x,y)plane by theta.
-PARAMS_API void	getRotationMatrix(float theta, float phi, float psi, float* matrix);
+PARAMS_API void	getRotationMatrix(double theta, double phi, double psi, double* matrix);
 
 //Determine a rotation matrix about an axis:
-PARAMS_API void getAxisRotation(int axis, float rotation, float* matrix);
+PARAMS_API void getAxisRotation(int axis, double rotation, double* matrix);
 
 //Determine the psi, phi, theta from a rotation matrix:
-PARAMS_API void getRotAngles(float* theta, float* phi, float* psi, const float* matrix);
+PARAMS_API void getRotAngles(double* theta, double* phi, double* psi, const double* matrix);
 PARAMS_API int rayBoxIntersect(const float rayStart[3], const float rayDir[3],const float boxExts[6], float results[2]);
 
 PARAMS_API void	qnormal (float *q);
@@ -164,8 +165,8 @@ PARAMS_API void imagQuat2View(const float q[3], float vdir[3],float upvec[3]);
 PARAMS_API void views2ImagQuats(float vdir1[3],float upvec1[3],float vdir2[3],float upvec2[3], float q1[3],float q2[3]);
 
 
-inline void vset(float* a, const float x, const float y, const float z){a[0] = x, a[1] = y, a[2] = z;}
-inline void vset(double* a, const double x, const double y, const double z){a[0] = x, a[1] = y, a[2] = z;}
+inline void vset(float* a, const float x, const float y, const float z){a[0] = x; a[1] = y; a[2] = z;}
+inline void vset(double* a, const double x, const double y, const double z){a[0] = x; a[1] = y; a[2] = z;}
 inline float vdot(const float* a, const float* b)
 	{return (a[0]*b[0]+a[1]*b[1]+a[2]*b[2]);}
 inline double vdot(const double* a, const double* b)
@@ -178,28 +179,30 @@ inline float vdist(const float* a, const float*b) {
 inline void vnormal(float *a) {vscale(a, 1/vlength(a));}
 inline void vnormal(double *a) {vscale(a, 1/vlength(a));}
 inline void vnormal(std::vector<double>a) {vscale(a,1./vlength(a));}
-inline void vcopy(const float* a, float* b) {b[0] = a[0], b[1] = a[1], b[2] = a[2];}
-inline void vcopy(const double* a, double* b) {b[0] = a[0], b[1] = a[1], b[2] = a[2];}
+inline void vcopy(const float* a, float* b) {b[0] = a[0]; b[1] = a[1]; b[2] = a[2];}
+inline void vcopy(const double* a, double* b) {b[0] = a[0]; b[1] = a[1]; b[2] = a[2];}
 inline void vsub(const float* a, const float* b, float* c)
-	{c[0] = a[0]-b[0], c[1] = a[1]-b[1], c[2] = a[2]-b[2];}
+	{c[0] = a[0]-b[0]; c[1] = a[1]-b[1]; c[2] = a[2]-b[2];}
 inline void vsub(const double* a, const double* b, double* c)
-	{c[0] = a[0]-b[0], c[1] = a[1]-b[1], c[2] = a[2]-b[2];}
-inline void vsub(const std::vector<double>& a, const std::vector<double>& b, std::vector<double> c)
-	{c.clear();c.push_back(a[0]-b[0]), c.push_back( a[1]-b[1]); c.push_back( a[2]-b[2]);}
+	{c[0] = a[0]-b[0]; c[1] = a[1]-b[1]; c[2] = a[2]-b[2];}
+inline void vsub(const double* a, const std::vector<double> b, double* c)
+	{c[0] = a[0]-b[0]; c[1] = a[1]-b[1]; c[2] = a[2]-b[2];}
+inline void vsub(const std::vector<double>& a, const std::vector<double>& b, double* c)
+	{c[0] = a[0]-b[0]; c[1] = a[1]-b[1]; c[2] = a[2]-b[2];}
 inline void vadd(const float* a, const float* b, float* c)
-	{c[0] = a[0]+b[0], c[1] = a[1]+b[1], c[2] = a[2]+b[2];}
+	{c[0] = a[0]+b[0]; c[1] = a[1]+b[1]; c[2] = a[2]+b[2];}
 inline void vadd(const double* a, const double* b, double* c)
-	{c[0] = a[0]+b[0], c[1] = a[1]+b[1], c[2] = a[2]+b[2];}
+	{c[0] = a[0]+b[0]; c[1] = a[1]+b[1]; c[2] = a[2]+b[2];}
 inline void vzero(float *a) {a[0] = a[1] = a[2] = 0.f;}
 inline void vzero(double *a) {a[0] = a[1] = a[2] = 0.;}
 inline void qset(float* a,  float x,  float y,  float z,  float w)
-	{a[0] = x, a[1] = y, a[2] = z, a[3] = w;}
+	{a[0] = x; a[1] = y; a[2] = z; a[3] = w;}
 inline void qcopy(const float*a, float* b)	
-	{b[0] = a[0], b[1] = a[1], b[2] = a[2], b[3] = a[3];}
+	{b[0] = a[0]; b[1] = a[1]; b[2] = a[2]; b[3] = a[3];}
 inline void qcopy(const double*a, double* b)	
-	{b[0] = a[0], b[1] = a[1], b[2] = a[2], b[3] = a[3];}
-inline void qzero(float* a)	{a[0] = a[1] = a[2] = 0, a[3] = 1;}
-inline void qzero(double* a)	{a[0] = a[1] = a[2] = 0., a[3] = 1.;}
+	{b[0] = a[0]; b[1] = a[1]; b[2] = a[2]; b[3] = a[3];}
+inline void qzero(float* a)	{a[0] = a[1] = a[2] = 0; a[3] = 1;}
+inline void qzero(double* a)	{a[0] = a[1] = a[2] = 0.; a[3] = 1.;}
 inline void qadd(const float* a,const float* b,float* c)	
 	{vadd(a,b,c), c[3]=a[3]+b[3];}
 inline float qlength(const float q[4]){

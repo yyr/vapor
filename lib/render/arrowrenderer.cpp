@@ -93,10 +93,10 @@ void ArrowRenderer::paintGL(){
 	//
 	size_t dim[3];
 	dataMgr->GetDim(dim, -1);
-	const float* fullSizes = ds->getFullSizes();
+	const double* fullSizes = ds->getFullSizes();
 	float maxVoxSize = 0.f;
 	for (int i = 0; i<2; i++){
-		float voxSide = (fullSizes[i])/(dim[i]);
+		double voxSide = (fullSizes[i])/(dim[i]);
 		if (voxSide > maxVoxSize) maxVoxSize = voxSide;
 	}
 	if (maxVoxSize == 0.f) maxVoxSize = 1.f;
@@ -295,7 +295,7 @@ void ArrowRenderer::performRendering(
 
 	//Then obtain stretch factors to use for coordinate mapping
 	//Don't apply a glScale to stretch the scene, because that would distort the arrow shape
-	const float* scales = DataStatus::getInstance()->getStretchFactors();
+	const double* scales = DataStatus::getInstance()->getStretchFactors();
 	
 	//Set up lighting and color
 	

@@ -29,7 +29,7 @@
 #include <vapor/MyBase.h>
 #include <vapor/common.h>
 #include "datastatus.h"
-
+#include "mousemodeparams.h"
 namespace VAPoR {
 typedef bool (*renderCBFcn)(int winnum, bool newCoords);
 
@@ -38,6 +38,7 @@ class RegionParams;
 class AnimationParams;
 class Renderer;
 class Trackball;
+class TranslateStretchManip;
 
 //! \class Visualizer
 //! \brief A class for performing OpenGL rendering in VAPOR GUI Window
@@ -125,18 +126,31 @@ public:
 
 	void resetView(ViewpointParams* vpParams);
 
-	//Project a 3D point (in cube coord system) to window coords.
-	//Return true if in front of camera.  Used by pointIsOnQuad, as well as in building Axis labels.
+	//! Project a 3D point (in cube coord system) to window coords.
+	//! Return true if in front of camera.  Used by pointIsOnQuad, as well as in building Axis labels.
 	//
-	bool projectPointToWin(float cubeCoords[3], float winCoords[2]);
+	bool projectPointToWin(double cubeCoords[3], float winCoords[2]);
 
-	// Project the current mouse coordinates to a line in screen space.
-	// The line starts at the mouseDownPosition, and points in the
-	// direction resulting from projecting to the screen the axis 
-	// associated with the dragHandle.  Returns false on error.
-	// Invoked during mouseMoveEvent, uses values of mouseDownPoint, handleProjVec, mouseDownHere
+	//! Project the current mouse coordinates to a line in screen space.
+	//! The line starts at the mouseDownPosition, and points in the
+	//! direction resulting from projecting to the screen the axis 
+	//! associated with the dragHandle.  Returns false on error.
+	//! Invoked during mouseMoveEvent, uses values of mouseDownPoint, handleProjVec, mouseDownHere
 
 	bool projectPointToLine(float mouseCoords[2], float projCoords[2]);
+	//Test if the screen projection of a 3D quad encloses a point on the screen.
+	//The 4 corners of the quad must be specified in counter-clockwise order
+	//as viewed from the outside (pickable side) of the quad.  
+	//
+	bool pointIsOnQuad(double cor1[3],double cor2[3],double cor3[3],double cor4[3], float pickPt[2]);
+
+	//Determine if a point is over (and not inside) a box, specified by 8 3-D coords.
+	//the first four corners are the counter-clockwise (from outside) vertices of one face,
+	//the last four are the corresponding back vertices, clockwise from outside
+	//Returns index of face (0..5), or -1 if not on Box
+	//
+	int pointIsOnBox(double corners[8][3], float pickPt[2]);
+
 
 	//Params argument is the params that owns the manip
 	bool startHandleSlide(float mouseCoords[2], int handleNum, Params* p);
@@ -144,12 +158,12 @@ public:
 	//Determine a unit direction vector associated with a pixel.  Uses OpenGL screencoords
 	// I.e. y = 0 at bottom.  Returns false on failure.  Used during mouseMoveEvent.
 	//
-	bool pixelToVector(float winCoords[2], const float cameraPos[3], float dirVec[3]);
+	bool pixelToVector(float winCoords[2], const vector<double> cameraPos, double dirVec[3]);
 
 	//Get the current image in the front buffer;
 	bool getPixelData(unsigned char* data);
 
-	void draw3DCursor(const float position[3]);
+	void draw3DCursor(const double position[3]);
 
 	//Following needed for manip rendering:
 	bool mouseIsDown() {return mouseDownHere;}
@@ -177,7 +191,10 @@ public:
 	//that only one DVR is active.
 	RenderParams* findARenderer(Params::ParamsBaseType renderertype);
 	
-	
+	TranslateStretchManip* getManip(const std::string& paramTag){
+		int mode = MouseModeParams::getModeFromParams(ParamsBase::GetTypeFromTag(paramTag));
+		return manipHolder[mode];
+	}
 	//The Visualizer keeps a copy of the params that are currently associated with the current
 	//instance.  This needs to change during:
 	//  -loading session
@@ -193,7 +210,7 @@ public:
 	bool unmapRenderer(RenderParams* rp);
 	
 	//Determine the approximate size of a pixel in terms of viewer coordinates.
-	float getPixelSize();
+	double getPixelSize();
 	
 	//Routine is called at the end of rendering.  If capture is 1 or 2, it converts image
 	//to jpeg and saves file.  If it ever encounters an error, it turns off capture.
@@ -250,9 +267,11 @@ protected:
 	bool tBallChanged;
 	//Save the current GL modelview matrix in the viewpoint params
 	void saveGLMatrix(int timestep, ViewpointParams*);
+
+	
 	
 	//There's a separate manipholder for each window
-	//vector<TranslateStretchManip*> manipHolder;
+	vector<TranslateStretchManip*> manipHolder;
 
 	//Container for sorting renderer list:
 	class RenderListElt {
@@ -285,7 +304,7 @@ protected:
 	//Methods to support drawing domain bounds, axes etc.
 	//Draw the region bounds and frame it in full domain.
 	//Arguments are in unit cube coordinates
-	void renderDomainFrame(const float* extents,const double* minFull,const double* maxFull);
+	void renderDomainFrame(const double* extents,const double* minFull,const double* maxFull);
 	
 	void placeLights();
 	

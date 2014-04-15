@@ -70,6 +70,7 @@
 #include "animationparams.h"
 #include "assert.h"
 #include "vizfeatureparams.h"
+#include "mousemodeparams.h"
 #include "vapor/ControlExecutive.h"
 
 #include <vapor/DataMgrWB.h>
@@ -162,8 +163,6 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	tabWidget->setMinimumWidth(100);
     tabWidget->setMinimumHeight(500);
 	
-	
-	
 	tabDockWindow->setWidget(tabWidget);
 	//Create the Control executive before the VizWinMgr.
 	ControlExecutive::getInstance();
@@ -174,6 +173,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	
 	createToolBars();	
 	
+	addMouseModes();
     (void)statusBar();
     Main_Form->adjustSize();
     languageChange();
@@ -862,7 +862,21 @@ void MainForm::launchVisualizer()
  */
 void MainForm::setNavigate(bool on)
 {
+if (!on) return;
 	
+	//Only do something if this is an actual change of mode
+	if (MouseModeParams::GetCurrentMouseMode() != MouseModeParams::navigateMode){
+		
+		MouseModeParams::SetCurrentMouseMode(MouseModeParams::navigateMode);
+		modeCombo->setCurrentIndex(0);
+		
+		if(modeStatusWidget) {
+			statusBar()->removeWidget(modeStatusWidget);
+			delete modeStatusWidget;
+		}
+		modeStatusWidget = new QLabel("Navigation Mode:  Use left mouse to rotate or spin-animate, right to zoom, middle to translate",this);
+		statusBar()->addWidget(modeStatusWidget,2);
+	}	
 }
 
 
@@ -983,10 +997,35 @@ void MainForm::showTab(const std::string& tag){
 	eRouter->updateTab();
 }
 void MainForm::modeChange(int newmode){
+	if (newmode == 0) {
+		navigationAction->setChecked(true);
+		return;
+	}
 	
+	navigationAction->setChecked(false);
+	showTab(Params::GetTagFromType(MouseModeParams::getModeParamType(newmode)));
+
+	MouseModeParams::SetCurrentMouseMode((MouseModeParams::mouseModeType)newmode);
+	
+	if(modeStatusWidget) {
+		statusBar()->removeWidget(modeStatusWidget);
+		delete modeStatusWidget;
+	}
+
+	modeStatusWidget = new QLabel(QString::fromStdString(MouseModeParams::getModeName(newmode))+" Mode: To modify box in scene, grab handle with left mouse to translate, right mouse to stretch",this); 
+	statusBar()->addWidget(modeStatusWidget,2);
 	
 }
 void MainForm::showCitationReminder(){
 	
 
+}
+void MainForm::addMouseModes(){
+	for (int i = 0; i<MouseModeParams::getNumMouseModes(); i++){
+		QString text = QString::fromStdString(MouseModeParams::getModeName(i));
+		const char* const * xpmIcon = MouseModeParams::GetIcon(i);
+		QPixmap qp = QPixmap(xpmIcon);
+		QIcon icon = QIcon(qp);
+		addMode(text,icon);
+	}
 }

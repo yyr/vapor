@@ -176,6 +176,12 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \sa DataMgr
 	virtual void Validate(bool setdefault)=0;
 
+//! Virtual method indicates that the geometry of this Params instance fits within a plane.
+//! Needed for Probe, Isolines, to prevent invalid manip stretching.
+//! Default returns false; must reimplement if the geometry is constrained to a plane.
+//! \retval bool returns true if geometry is constrained to a plane.
+	virtual bool IsPlanar() {return false;}
+
 
 //! Static method that identifies the instance that is current in the identified window.
 //! Useful for application developers.
@@ -436,11 +442,33 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \retval Box* returns pointer to the Box associated with this Params.
 	virtual Box* GetBox() {return 0;}
 
+//! Virtual method supports rotated boxes such as probe
+//! Specifies an axis-aligned box containing the rotated box.
+//! By default it just finds the box extents.
+//! Caller must supply extents array, which gets its values filled in.
+//! \param[out] float[6] Extents of containing box
+	virtual void calcContainingStretchedBoxExtents(double extents[6], bool rotated = false) 
+		{if (!rotated) GetBox()->GetStretchedLocalExtents(extents,-1);
+		else calcRotatedStretchedBoxExtents(extents);}
+
+//! If the box is rotated, this method calculated the minimal axis-aligned extents
+//! containing all 8 corners of the box.
+//! \param[out] double extents[6] is smallest extents containing the box.
+	void calcRotatedStretchedBoxExtents(double extents[6]);
+
+//! The orientation is used only with 2D Box Manipulators, and must be implemented for Params supporting such manipulators.  
+//! Valid values are 0,1,2 for being orthog to X,Y,Z-axes.
+//! Default is -1 (invalid)
+//! \retval int orientation direction (0,1,2)
+	virtual int getOrientation() { assert(0); return -1;}
 	//Following methods, while public, are not part of extensibility API
 	
 #ifndef DOXYGEN_SKIP_THIS
 	
 	//Not part of public API
+	void calcLocalBoxCorners(double corners[8][3], float extraThickness, int timestep, double rotation = 0., int axis = -1);
+	void buildLocalCoordTransform(double transformMatrix[12], double extraThickness, int timestep, double rotation, int axis);
+	void convertThetaPhiPsi(double *newTheta, double* newPhi, double* newPsi, int axis, double rotation);
 	virtual Params* deepCopy(ParamNode* nd = 0);
 	static Params* CreateDummyParams(std::string tag);
 	static void	BailOut (const char *errstr, const char *fname, int lineno);

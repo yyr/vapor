@@ -153,7 +153,7 @@ public:
 	//! Obtain rotation center in stretched coordinate
 	//! \param[out] double[3] Position of rotation center in stretched coordinates.
 	void getStretchedRotCtrLocal(double* vec){
-		const float* stretch = DataStatus::getInstance()->getStretchFactors();
+		const double* stretch = DataStatus::getInstance()->getStretchFactors();
 		const vector<double> rvec = getRotationCenterLocal();
 		for (int i = 0; i<3; i++) vec[i] = stretch[i]*rvec[i];
 	}
@@ -162,7 +162,7 @@ public:
 	//! \param[in] Param* the Params instance that is requesting this setvalue
 	//! \retval int 0 if successful
 	int setStretchedRotCtrLocal(const double* vec, Params* p){
-		const float* stretch = DataStatus::getInstance()->getStretchFactors();
+		const double* stretch = DataStatus::getInstance()->getStretchFactors();
 		vector<double> rotCtr(getRotationCenterLocal());
 		for (int i = 0; i<3; i++) rotCtr[i] = rotCtr[i]/stretch[i];
 		return setRotationCenterLocal(rotCtr, p);
@@ -170,7 +170,7 @@ public:
 	//! obtain camera position in stretched local coordinates
 	//! \param[out] double[3] camera position in stretched local coordinates
 	void getStretchedCamPosLocal(double* vec){
-		const float* stretch = DataStatus::getInstance()->getStretchFactors();
+		const double* stretch = DataStatus::getInstance()->getStretchFactors();
 		const vector<double> cpos = getCameraPosLocal();
 		for (int i = 0; i<3; i++) vec[i] = stretch[i]*cpos[i];
 	}
@@ -179,7 +179,7 @@ public:
 	//! \param[in] Param* the Params instance that is requesting this setvalue
 	//! \retval int 0 if successful
 	int setStretchedCamPosLocal(const double* vec, Params* p){
-		const float* stretch = DataStatus::getInstance()->getStretchFactors();
+		const double* stretch = DataStatus::getInstance()->getStretchFactors();
 		vector<double> cpos(getCameraPosLocal());
 		for (int i = 0; i<3; i++) cpos[i] = cpos[i]/stretch[i];
 		return setCameraPosLocal(cpos, p);

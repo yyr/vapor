@@ -512,7 +512,7 @@ void ArrowEventRouter::updateTab(){
 	colorBox->setPalette(pal);
 	
 	//Set the rake extents
-	const float* fullSizes = ds->getFullSizes();
+	const double* fullSizes = ds->getFullSizes();
 	double fullUsrExts[6];
 	for (int i = 0; i<3; i++) {
 		fullUsrExts[i] = 0.;
@@ -714,7 +714,7 @@ guiFitToData(){
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	
 		
-	const float* fullSizes = DataStatus::getInstance()->getFullSizes();
+	const double* fullSizes = DataStatus::getInstance()->getFullSizes();
 	Box* box = aParams->GetBox();
 	const vector<double> boxExts = box->GetLocalExtents();
 	vector<double> newExtents;
@@ -729,7 +729,7 @@ guiFitToData(){
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double>& currExts =DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
 	boxSliderFrame->setBoxExtents(currExts);
-	MouseModeParams::mouseModeType t = MouseModeParams::getCurrentMouseMode();
+	MouseModeParams::mouseModeType t = MouseModeParams::GetCurrentMouseMode();
 	VizWinMgr::getInstance()->forceRender(aParams,t == MouseModeParams::barbMode);
 }
 

@@ -418,7 +418,7 @@ setActiveViz(int vizNum){
 		
 		//Need to cause a redraw in all windows if we are not in navigate mode,
 		//So that the manips will change where they are drawn:
-		if (MouseModeParams::getCurrentMouseMode() != MouseModeParams::navigateMode){
+		if (MouseModeParams::GetCurrentMouseMode() != MouseModeParams::navigateMode){
 			for (int i = 0; i< VizWindow.size(); i++){
 				if (VizWindow[i]) VizWindow[i]->updateGL();
 			}
@@ -689,7 +689,7 @@ setRgLocalGlobal(int val){
 	Visualizer::setRegionShareFlag(val == 0);
 	
 	//in region mode, refresh the global windows and this one
-	if (MouseModeParams::getCurrentMouseMode() == MouseModeParams::regionMode){
+	if (MouseModeParams::GetCurrentMouseMode() == MouseModeParams::regionMode){
 		for (int i = 0; i<VizWindow.size(); i++){
 			if(VizWindow[i] && (!getRegionParams(i)->IsLocal()|| (i == activeViz)))
 				VizWindow[i]->updateGL();

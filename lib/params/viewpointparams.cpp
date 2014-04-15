@@ -179,19 +179,19 @@ rescale (double scaleFac[3], int timestep){
 void ViewpointParams::
 getFarNearDist(float* boxFar, float* boxNear){
 	//First check full box
-	float extents[6];
+	double extents[6];
 	double wrk[3], cor[3], boxcor[3], cmpos[3];
 	double camPosBox[3],dvdir[3];
 	double maxProj = -1.e30;
 	double minProj = 1.e30; 
 
-	const float* exts = DataStatus::getInstance()->getLocalExtents();
+	const double* exts = DataStatus::getInstance()->getLocalExtents();
 	//convert to local extents??
 	for (int i = 0; i<6; i++) extents[i] = exts[i]-exts[i%3];
 
 	//Convert camera position and corners to stretched  coordinates
 	for (int i = 0; i<3; i++) cmpos[i] = (double)getCameraPosLocal()[i];
-	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	const double* stretch = DataStatus::getInstance()->getStretchFactors();
 	for (int i = 0; i<3; i++) camPosBox[i] = cmpos[i]*stretch[i];
 	
 	
@@ -231,16 +231,16 @@ getFarNearDist(float* boxFar, float* boxNear){
 void ViewpointParams::
 centerFullRegion(int timestep){
 	//Find the largest of the dimensions of the current region:
-	const float* fullExtent = DataStatus::getInstance()->getLocalExtents();
+	const double* fullExtent = DataStatus::getInstance()->getLocalExtents();
 
-	float maxSide = Max(fullExtent[5]-fullExtent[2], 
+	double maxSide = Max(fullExtent[5]-fullExtent[2], 
 		Max(fullExtent[4]-fullExtent[1],
 		fullExtent[3]-fullExtent[0]));
 	//calculate the camera position: center - 2.5*viewDir*maxSide;
 	//Position the camera 2.5*maxSide units away from the center, aimed
 	//at the center.
 	//But divide it by stretch factors
-	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	const double* stretch = DataStatus::getInstance()->getStretchFactors();
 	Viewpoint* currentViewpoint = getCurrentViewpoint();
 	//Make sure the viewDir is normalized:
 	double viewDir[3];

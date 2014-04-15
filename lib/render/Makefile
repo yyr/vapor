@@ -6,7 +6,7 @@ LIBRARY = render
 
 FILES = \
 	visualizer renderer trackball\
-	arrowrenderer \
+	arrowrenderer manip \
 	ControlExecutive \
 	jfilewrite
 

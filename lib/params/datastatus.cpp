@@ -99,9 +99,12 @@ reset(DataMgr* dm, size_t cachesize){
 	if (!dm) return false;
 	std::vector<double> mdExtents = dataMgr->GetExtents(0);
 	for (int i = 0; i< 3; i++) {
-		extents[i+3] = (float)(mdExtents[i+3]-mdExtents[i]);
+		extents[i+3] = (mdExtents[i+3]-mdExtents[i]);
 		extents[i] = 0.;
-		fullSizes[i] = (float)(mdExtents[i+3] - mdExtents[i]);
+		fullSizes[i] = (mdExtents[i+3] - mdExtents[i]);
+		fullStretchedSizes[i] = fullSizes[i]*stretchFactors[i];
+		stretchedExtents[i] = extents[i]*stretchFactors[i];
+		stretchedExtents[i+3] = extents[i+3]*stretchFactors[i];
 	}
 
 	

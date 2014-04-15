@@ -342,7 +342,7 @@ guiCenterSubRegion(RegionParams* rParams){
 	vnormal(viewDir);
 	float regionSideVector[3], compVec[3], projvec[3];
 	float maxProj = -1.f;
-	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	const double* stretch = DataStatus::getInstance()->getStretchFactors();
 	double regExts[6];
 	rParams->GetBox()->GetLocalExtents(regExts,timestep);
 	for (int i = 0; i< 3; i++){
@@ -498,7 +498,7 @@ guiSetCenter(const double* coords){
 	double vdir[3];
 	vector<double> nvdir;
 	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
-	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	const double* stretch = DataStatus::getInstance()->getStretchFactors();
 
 
 	//Determine the new viewDir in stretched world coords

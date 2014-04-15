@@ -28,7 +28,8 @@
 #include "regionparams.h"
 #include "animationparams.h"
 #include "trackball.h"
-
+#include "mousemodeparams.h"
+#include "manip.h"
 #include "datastatus.h"
 #include <vapor/MyBase.h>
 #include <vapor/errorcodes.h>
@@ -90,6 +91,19 @@ Visualizer::Visualizer(int windowNum )
 	
 	Trackball* localTrackball = new Trackball();
 	if (!globalTrackball) globalTrackball = new Trackball();
+
+	//Create Manips for every mode except 0
+	manipHolder.push_back(0);
+	for (int i = 1; i< MouseModeParams::getNumMouseModes(); i++){
+		int manipType = MouseModeParams::getModeManipType(i);
+		if (manipType==1 || manipType == 2){
+			TranslateStretchManip* manip = new TranslateStretchManip(this,0);
+			manipHolder.push_back(manip);
+		} else if (manipType==3){
+			TranslateRotateManip* manip = new TranslateRotateManip(this, 0);
+			manipHolder.push_back(manip);
+		} else assert(0);
+	}
     MyBase::SetDiagMsg("Visualizer::Visualizer() end");
 }
 
@@ -123,18 +137,29 @@ void Visualizer::setDefaultPrefs(){
 
 void Visualizer::resizeGL( int wid, int ht )
 {
-  glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glViewport(0, 0, wid, ht);
-    gluPerspective(45., (float)wid / (float)ht, 0.1f, 512.f);
-    glMatrixMode(GL_MODELVIEW);
-  return;
-  setUpViewport(wid, ht);
-  height = ht;
-  width = wid;
-  nowPainting = false;
-  needsResize = false;
-
+	
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glViewport(0, 0, wid, ht);
+	//Save the current value...
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	
+	
+	gluPerspective(45., (float)wid / (float)ht, 0.1f, 512.f);
+	glGetDoublev(GL_PROJECTION_MATRIX, projectionMatrix);
+	glMatrixMode(GL_MODELVIEW);
+	
+	GLsizei myheight =  (GLsizei)height;
+    GLsizei mywidth = (GLsizei) width;
+	
+	
+	height = ht;
+	width = wid;
+	return;
+	setUpViewport(wid, ht);
+	nowPainting = false;
+	needsResize = false;
+	return;
 
  
 #ifdef DEBUG
@@ -143,8 +168,7 @@ void Visualizer::resizeGL( int wid, int ht )
 #endif
     
    
-    GLsizei myheight =  (GLsizei)height;
-    GLsizei mywidth = (GLsizei) width;
+  
 	
    
 
@@ -152,7 +176,7 @@ void Visualizer::resizeGL( int wid, int ht )
     printOpenGLError();
     cout << "resizeGL created textures" << endl;
 #endif
-  
+  /*
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE); //no compare mode for depth texture
@@ -167,7 +191,7 @@ void Visualizer::resizeGL( int wid, int ht )
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_NEVER);
     glTexParameteri( GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_LUMINANCE );
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, mywidth, myheight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-
+	*/
 #ifdef DEBUG
     printOpenGLError();
     cout << "resizeGL textures complete" << endl;
@@ -204,7 +228,7 @@ void Visualizer::resizeGL( int wid, int ht )
     printOpenGLError();
 
 }
-void Visualizer::setUpViewport(int width,int height){
+void Visualizer::setUpViewport(int wid,int ht){
    
 	glViewport( 0, 0, (GLint)width, (GLint)height );
 	//Save the current value...
@@ -214,9 +238,10 @@ void Visualizer::setUpViewport(int width,int height){
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	
-	GLfloat w = (float) width / (float) height;
+	GLfloat w = (float) wid / (float) ht;
 		
 	gluPerspective(45., w, 0.1f, 512.f );
+	glGetDoublev(GL_PROJECTION_MATRIX, projectionMatrix);
 	
 	glMatrixMode(GL_MODELVIEW);
 	printOpenGLError();
@@ -266,9 +291,9 @@ int Visualizer::paintEvent(bool force)
 	}
 	
 	
-	float extents[6] = {0.f,0.f,0.f,1.f,1.f,1.f};
-	float minFull[3] = {0.f,0.f,0.f};
-	float maxFull[3] = {1.f,1.f,1.f};
+	double extents[6] = {0.f,0.f,0.f,1.f,1.f,1.f};
+	double minFull[3] = {0.f,0.f,0.f};
+	double maxFull[3] = {1.f,1.f,1.f};
     
 	nowPainting = true;
 	
@@ -325,7 +350,8 @@ int Visualizer::paintEvent(bool force)
 	RegionParams* rParams = getActiveRegionParams();
 	double subExts[6];
 	rParams->getLocalRegionExtents(subExts, timeStep);
-	renderDomainFrame(dataStatus->getLocalExtents(), subExts, subExts+3);
+	const double* strExts = dataStatus->getStretchedLocalExtents();
+	renderDomainFrame(subExts, strExts, strExts+3);
 	
 	//Make the depth buffer writable
 	glDepthMask(GL_TRUE);
@@ -334,6 +360,35 @@ int Visualizer::paintEvent(bool force)
 	//Prepare for alpha values:
 	glEnable (GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	//render the region manipulator, if in region mode, and active visualizer, or region shared
+	//with active visualizer.  Possibly redundant???
+	if(MouseModeParams::GetCurrentMouseMode() == MouseModeParams::regionMode) { 
+		if( (windowIsActive() || 
+			(!getActiveRegionParams()->IsLocal() && activeWinSharesRegion()))){
+				TranslateStretchManip* regionManip = getManip(Params::_regionParamsTag);
+				regionManip->setParams(getActiveRegionParams());
+				regionManip->render();
+		} 
+	}
+	//Render other manips, if we are in appropriate mode:
+	//Note: Other manips don't have shared and local to deal with:
+	else if ((MouseModeParams::GetCurrentMouseMode() != MouseModeParams::navigateMode) && windowIsActive()){
+		int mode = MouseModeParams::GetCurrentMouseMode();
+		ParamsBase::ParamsBaseType t = MouseModeParams::getModeParamType(mode);
+		TranslateStretchManip* manip = manipHolder[mode];
+		RenderParams* p = (RenderParams*)Params::GetCurrentParamsInstance(t,winNum);
+		manip->setParams(p);
+		manip->render();
+		int manipType = MouseModeParams::getModeManipType(mode);
+		//For various manips with window, render 3D cursor too
+		if (manipType > 1) {
+	//		const double *localPoint = p->getSelectedPointLocal();
+			
+	//		draw3DCursor(localPoint);
+		}
+	}
+	
 
 	//Now we are ready for all the different renderers to proceed.
 	//Sort them;  If they are opaque, they go first.  If not opaque, they
@@ -452,7 +507,7 @@ void Visualizer::initializeGL()
 //resulting screen coords returned in 2nd argument.  Note that
 //OpenGL coords are 0 at bottom of window!
 //
-bool Visualizer::projectPointToWin(float cubeCoords[3], float winCoords[2]){
+bool Visualizer::projectPointToWin(double cubeCoords[3], float winCoords[2]){
 	double depth;
 	GLdouble wCoords[2];
 	GLdouble cbCoords[3];
@@ -470,17 +525,17 @@ bool Visualizer::projectPointToWin(float cubeCoords[3], float winCoords[2]){
 //from the camera associated with the screen coords.  Note screen coords
 //are OpenGL style
 //
-bool Visualizer::pixelToVector(float winCoords[2], const float camPos[3], float dirVec[3]){
+bool Visualizer::pixelToVector(float winCoords[2], const vector<double> camPos, double dirVec[3]){
 	GLdouble pt[3];
-	float v[3];
+	double v[3];
 	//Obtain the coords of a point in view:
 	bool success = (0 != gluUnProject((GLdouble)winCoords[0],(GLdouble)winCoords[1],(GLdouble)1.0, getModelViewMatrix(),
 		getProjectionMatrix(), getViewport(),pt, pt+1, pt+2));
 	if (success){
-		//Convert point to float
-		v[0] = (float)pt[0];
-		v[1] = (float)pt[1];
-		v[2] = (float)pt[2];
+		//Convert point to double
+		v[0] = (double)pt[0];
+		v[1] = (double)pt[1];
+		v[2] = (double)pt[2];
 		//transform position to world coords
 		//ViewpointParams::localFromStretchedCube(v,dirVec);
 		//Subtract viewer coords to get a direction vector:
@@ -489,7 +544,45 @@ bool Visualizer::pixelToVector(float winCoords[2], const float camPos[3], float 
 	}
 	return success;
 }
-
+//Test if the screen projection of a 3D quad encloses a point on the screen.
+//The 4 corners of the quad must be specified in counter-clockwise order
+//as viewed from the outside (pickable side) of the quad.  
+//Window coords are as in OpenGL (0 at bottom of window)
+//
+bool Visualizer::
+pointIsOnQuad(double cor1[3], double cor2[3], double cor3[3], double cor4[3], float pickPt[2])
+{
+	float winCoord1[2];
+	float winCoord2[2];
+	float winCoord3[2];
+	float winCoord4[2];
+	if(!projectPointToWin(cor1, winCoord1)) return false;
+	if (!projectPointToWin(cor2, winCoord2)) return false;
+	if (pointOnRight(winCoord1, winCoord2, pickPt)) return false;
+	if (!projectPointToWin(cor3, winCoord3)) return false;
+	if (pointOnRight(winCoord2, winCoord3, pickPt)) return false;
+	if (!projectPointToWin(cor4, winCoord4)) return false;
+	if (pointOnRight(winCoord3, winCoord4, pickPt)) return false;
+	if (pointOnRight(winCoord4, winCoord1, pickPt)) return false;
+	return true;
+}
+//Test whether the pickPt is over (and outside) the box (as specified by 8 points)
+int Visualizer::
+pointIsOnBox(double corners[8][3], float pickPt[2]){
+	//front (-Z)
+	if (pointIsOnQuad(corners[0],corners[1],corners[3],corners[2],pickPt)) return 2;
+	//back (+Z)
+	if (pointIsOnQuad(corners[4],corners[6],corners[7],corners[5],pickPt)) return 3;
+	//right (+X)
+	if (pointIsOnQuad(corners[1],corners[5],corners[7],corners[3],pickPt)) return 5;
+	//left (-X)
+	if (pointIsOnQuad(corners[0],corners[2],corners[6],corners[4],pickPt)) return 0;
+	//top (+Y)
+	if (pointIsOnQuad(corners[2],corners[3],corners[7],corners[6],pickPt)) return 4;
+	//bottom (-Y)
+	if (pointIsOnQuad(corners[0],corners[4],corners[5],corners[1],pickPt)) return 1;
+	return -1;
+}
 //Routine to obtain gl matrix from viewpointparams
 GLdouble* Visualizer:: 
 getModelViewMatrix() {
@@ -503,17 +596,17 @@ setModelViewMatrix(const double mtx[16]) {
 //Issue OpenGL commands to draw a grid of lines of the full domain.
 //Grid resolution is up to 2x2x2
 //
-void Visualizer::renderDomainFrame(const float* extents, const double* minFull, const double* maxFull){
+void Visualizer::renderDomainFrame(const double* extents, const double* minFull, const double* maxFull){
 	int i; 
 	int numLines[3];
-	float regionSize, fullSize[3], modMin[3],modMax[3];
+	double regionSize, fullSize[3], modMin[3],modMax[3];
 	
 	//Instead:  either have 2 or 1 lines in each dimension.  2 if the size is < 1/3
 	for (i = 0; i<3; i++){
 		regionSize = extents[i+3]-extents[i];
 		//Stretch size by 1%
 		fullSize[i] = (maxFull[i] - minFull[i])*1.01;
-		float mid = 0.5f*(maxFull[i]+minFull[i]);
+		double mid = 0.5f*(maxFull[i]+minFull[i]);
 		modMin[i] = mid - 0.5f*fullSize[i];
 		modMax[i] = mid + 0.5f*fullSize[i];
 		if (regionSize < fullSize[i]*.3) numLines[i] = 2;
@@ -837,15 +930,16 @@ bool Visualizer::startHandleSlide(float mouseCoords[2], int handleNum, Params* m
 	mouseDownPoint[1] = mouseCoords[1];
 	//Get the cube coords of the rotation center:
 	
-	float boxCtr[3]; 
+	double boxCtr[3]; 
 	float winCoords[2] = {0.f,0.f};
 	float dispCoords[2];
 	
 	if (handleNum > 2) handleNum = handleNum-3;
 	else handleNum = 2 - handleNum;
-	float boxExtents[6];
+	double boxExtents[6];
 	int timestep = getActiveAnimationParams()->getCurrentTimestep();
-	//manipParams->calcStretchedBoxExtentsInCube(boxExtents, timestep);
+	manipParams->GetBox()->GetStretchedLocalExtents(boxExtents, timestep);
+	
 	for (int i = 0; i<3; i++){boxCtr[i] = (boxExtents[i] + boxExtents[i+3])*0.5f;}
 	// project the boxCtr and one more point, to get a direction vector
 	
@@ -966,4 +1060,19 @@ void Visualizer::SetSharedViewpointChanged(){
 		if (viz->getActiveViewpointParams()->IsLocal()) continue;
 		viz->SetViewpointChanged(true);
 	}
+}
+double Visualizer::getPixelSize(){
+	double temp[3];
+	//Window height is subtended by viewing angle (45 degrees),
+	//at viewer distance (dist from camera to view center)
+	ViewpointParams* vpParams = getActiveViewpointParams();
+	vsub(vpParams->getRotationCenterLocal(),vpParams->getCameraPosLocal(),temp);
+	//Apply stretch factor:
+	const double* stretch = DataStatus::getInstance()->getStretchFactors();
+	for (int i = 0; i<3; i++) temp[i] = stretch[i]*temp[i];
+	float distToScene = vlength(temp);
+	//tan(45 deg *0.5) is ratio between half-height and dist to scene
+	double halfHeight = tan(M_PI*0.125)* distToScene;
+	return (2.f*halfHeight/(double)height); 
+	
 }

@@ -63,7 +63,7 @@ MouseModeParams::~MouseModeParams(){
 void MouseModeParams::
 restart(){
 	//Set to navigation mode
-	SetCurrentMouseMode(navigateMode);
+	setCurrentMouseMode(navigateMode);
 }
 //Reinitialize settings, session has changed
 

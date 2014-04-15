@@ -186,7 +186,7 @@ void RegionEventRouter::updateTab(){
 	double regLocalExts[6], regUsrExts[6];
 	rParams->GetBox()->GetLocalExtents(regLocalExts, timestep);
 	//Get the full domain extents in user coordinates
-	const float* fullExtents = DataStatus::getInstance()->getLocalExtents();
+	const double* fullExtents = DataStatus::getInstance()->getLocalExtents();
 	double fullUsrExts[6];
 	for (int i = 0; i<3; i++) {
 		fullUsrExts[i] = 0.;
@@ -538,9 +538,9 @@ guiSetMaxSize(){
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	
-	const float* fullDataExtents = DataStatus::getInstance()->getLocalExtents();
+	const double* fullDataExtents = DataStatus::getInstance()->getLocalExtents();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	float boxexts[6];
+	double boxexts[6];
 	for (int i = 0; i<3; i++){
 		boxexts[i] = 0.;
 		boxexts[i+3]= fullDataExtents[i+3]-fullDataExtents[i];
@@ -636,7 +636,7 @@ guiLoadRegionExtents(){
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	
 
-	const float* fullExtents = DataStatus::getInstance()->getLocalExtents();
+	const double* fullExtents = DataStatus::getInstance()->getLocalExtents();
 	//Read the file
 
 	int numregions = 0;

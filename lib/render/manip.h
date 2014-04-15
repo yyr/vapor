@@ -25,12 +25,12 @@
 #include <vapor/common.h>
 namespace VAPoR {
 
-class GLWindow;
+class Visualizer;
 class Params;
 class RENDER_API Manip {
 
 public:
-	Manip(GLWindow* win) {myGLWin = win;}
+	Manip(Visualizer* win) {myVis = win;}
 	virtual ~Manip(){}
 	virtual void render()= 0;
 	//The manip gets its dimensions from the Params.
@@ -50,7 +50,7 @@ public:
 	Params* getParams() {return myParams;}
 	void setParams(Params* p) {myParams = p;}
 	// Determine which handle (if any) is under mouse 
-	virtual int mouseIsOverHandle(float screenCoords[2], float* boxExtents, int* faceNum) = 0;
+	virtual int mouseIsOverHandle(float screenCoords[2], double* boxExtents, int* faceNum) = 0;
 	virtual void mouseRelease(float screenCoords[2]) = 0;
 	virtual int draggingHandle() = 0;
 	
@@ -58,17 +58,17 @@ protected:
 	static const float faceSelectionColor[4];
 	static const float unselectedFaceColor[4];
 	int mouseDownPosition[2];
-	float mouseDownIntersect[3];
+	double mouseDownIntersect[3];
 	
 	//void getBoxVertices(float vertices[8][3]);
 	Params* myParams;
-	GLWindow* myGLWin;
+	Visualizer* myVis;
 	
 	//general utility function for drawing axis-aligned cubes.
 	//Should be in cube coords
-	void drawCubeFaces(float* extents, bool isSelected);
+	void drawCubeFaces(double* extents, bool isSelected);
 	
-	float dragDistance;
+	double dragDistance;
 	int selectedHandle;
 };
 
@@ -79,18 +79,18 @@ protected:
 //When you slide a handle with the right mouse it stretches the region
 class RENDER_API TranslateStretchManip : public Manip {
 public:
-	TranslateStretchManip(GLWindow* win, Params*p); 
+	TranslateStretchManip(Visualizer* win, Params*p); 
 	virtual ~TranslateStretchManip(){}
 	virtual void render();
 	
 	
 	//Identify the handle and face if the mouse is over handle:
-	int mouseIsOverHandle(float screenCoords[2], float* boxExtents, int* faceNum);
+	int mouseIsOverHandle(float screenCoords[2], double* boxExtents, int* faceNum);
 	
 	virtual void mouseRelease(float screenCoords[2]);
 	virtual int draggingHandle() {return selectedHandle;}
-	virtual void captureMouseDown(int handleNum, int faceNum, float* camPos, float* dirVec, int buttonNum);
-	virtual void slideHandle(int handleNum, float movedRay[3], bool constrain = true);
+	virtual void captureMouseDown(int handleNum, int faceNum, const std::vector<double>& camPos, double* dirVec, int buttonNum);
+	virtual void slideHandle(int handleNum, double movedRay[3], bool constrain = true);
 	
 
 protected:
@@ -98,27 +98,27 @@ protected:
 	//Draw all the faces of the Box, apply translations and rotations 
 	//according to current drag state.  doesn't take into account rotation and mid-plane
 	virtual void drawBoxFaces();
-	void drawHandleConnector(int handleNum, float* handleExtents, float* extents);
+	void drawHandleConnector(int handleNum, double* handleExtents, double* extents);
 
 	
 	//Utility to determine the point in 3D where the mouse was clicked.
 	//FaceNum assumes coord-plane-aligned cubic handles.
 	//faceNum = handleNum for region and flow params
 	//Intersection is performed in world coords
-	bool rayHandleIntersect(float ray[3], float cameraPos[3], int handleNum, int faceNum, float intersect[3]);
-	void makeHandleExtents(int handleNum, float* handleExtents, int octant, float* extents);
-	void makeHandleExtentsInCube(int handleNum, float* handleExtents, int octant, float* extents);
+	bool rayHandleIntersect(double ray[3], const std::vector<double>& cameraPos, int handleNum, int faceNum, double intersect[3]);
+	void makeHandleExtents(int handleNum, double* handleExtents, int octant, double* extents);
+	void makeHandleExtentsInCube(int handleNum, double* handleExtents, int octant, double* extents);
 	
-	void drawCubeFaces(float* handleExtents, bool isSelected);
+	void drawCubeFaces(double* handleExtents, bool isSelected);
 	
-	int makeHandleFaces(int handleNum, float handle[8][3], int octant, float* boxExtents);
+	int makeHandleFaces(int handleNum, double handle[8][3], int octant, double* boxExtents);
 
 	bool isStretching;
-	float handleSizeInCube;
+	double handleSizeInCube;
 	float subregionFrameColor[3];
-	float initialSelectionRay[3];
+	double initialSelectionRay[3];
 	//Following only used by rotating manip subclasses:
-	float tempRotation;
+	double tempRotation;
 	int tempRotAxis;
 	
 };
@@ -126,23 +126,23 @@ protected:
 //the full domain bounds.
 class RENDER_API TranslateRotateManip : public TranslateStretchManip {
 public:
-	TranslateRotateManip(GLWindow* w, Params* p);
+	TranslateRotateManip(Visualizer* w, Params* p);
 	virtual ~TranslateRotateManip(){}
 	virtual void render();
-	virtual void slideHandle(int handleNum, float movedRay[3], bool constrain = true);
+	virtual void slideHandle(int handleNum, double movedRay[3], bool constrain = true);
 	virtual void mouseRelease(float screenCoords[2]);
 	//While dragging the thumbwheel call this.
 	//When drag is over, set rot to 0.f
-	void setTempRotation(float rot, int axis) {
+	void setTempRotation(double rot, int axis) {
 		tempRotation = rot; tempRotAxis = axis;
 	}
 protected:
 	virtual void drawBoxFaces();
-	float constrainStretch(float currentDist);
+	double constrainStretch(double currentDist);
 	//utility class for handling permutations resulting from rotations of mult of 90 degrees:
 	class Permuter {
 	public:
-		Permuter(float theta, float phi, float psi);
+		Permuter(double theta, double phi, double psi);
 		int permute(int i);
 	private:
 		int thetaRot; 
