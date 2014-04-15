@@ -505,7 +505,7 @@ int main(int argc, char** argv)
     {
         pd7sz = nfloats(opt.datafile);
         pathdata7 = new float[pd7sz];
-        getfloats(argv[1], pathdata7, pd7sz);
+        getfloats(opt.datafile, pathdata7, pd7sz);
     }
     
     glutInit(&argc, argv);
