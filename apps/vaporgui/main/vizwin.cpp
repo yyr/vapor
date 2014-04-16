@@ -344,15 +344,7 @@ mouseMoveEvent(QMouseEvent* e){
 	if (!mouseIsDown()) return;
 	Trackball* myTrackball = myVisualizer->GetTrackball();
 	bool doNavigate = true;
-	int buttonNum = 0;
-	if ((e->buttons() & Qt::LeftButton) &&  (e->buttons() & Qt::RightButton))
-		;//do nothing
-	else if (e->button()== Qt::LeftButton) buttonNum = 1;
-	else if (e->button() == Qt::RightButton) buttonNum = 3;
-	else if (e->button() == Qt::MidButton) buttonNum = 2;
-	//If ctrl + left button is pressed, only respond in navigation mode
-	if((buttonNum == 1) && ((e->modifiers() & (Qt::ControlModifier|Qt::MetaModifier))))
-			buttonNum = 0;
+	
 	//Respond based on what activity we are tracking
 	//Need to tell the appropriate params about the change,
 	//And it should refresh the panel
@@ -393,7 +385,9 @@ mouseMoveEvent(QMouseEvent* e){
 	}
 	if(doNavigate){
 		QPoint deltaPoint = e->globalPos() - mouseDownPosition;
-		myTrackball->MouseOnTrackball(1, buttonNum, e->x(), e->y(), width(), height());
+		//Note:  the button is remembered by the trackball here.
+		//e->button() is always Qt::NoButton on mouse move events.
+		myTrackball->MouseOnTrackball(1, 0, e->x(), e->y(), width(), height());
 		//Note that the coords have changed in the trackball:
 		myVisualizer->SetTrackballCoordsChanged(true);
 		

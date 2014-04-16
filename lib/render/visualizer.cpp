@@ -527,20 +527,16 @@ bool Visualizer::projectPointToWin(double cubeCoords[3], float winCoords[2]){
 //
 bool Visualizer::pixelToVector(float winCoords[2], const vector<double> camPos, double dirVec[3]){
 	GLdouble pt[3];
-	double v[3];
 	//Obtain the coords of a point in view:
 	bool success = (0 != gluUnProject((GLdouble)winCoords[0],(GLdouble)winCoords[1],(GLdouble)1.0, getModelViewMatrix(),
 		getProjectionMatrix(), getViewport(),pt, pt+1, pt+2));
 	if (success){
-		//Convert point to double
-		v[0] = (double)pt[0];
-		v[1] = (double)pt[1];
-		v[2] = (double)pt[2];
-		//transform position to world coords
+		//transform position to world coords not needed, but need to unstretch(?)
+		const double* stretch = DataStatus::getInstance()->getStretchFactors();
+		for (int i = 0; i<3; i++) dirVec[i] = pt[i]/stretch[i];
 		//ViewpointParams::localFromStretchedCube(v,dirVec);
 		//Subtract viewer coords to get a direction vector:
 		vsub(dirVec, camPos, dirVec);
-		
 	}
 	return success;
 }
