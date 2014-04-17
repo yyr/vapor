@@ -10,10 +10,12 @@ namespace VAPoR {
 
 class Visualizer;
 class Params;
+class ParamsBase;
 class RenderParams;
 class DataMgr;
 class ErrorHandler;
 class Command;
+
 
 
 //! \class ControlExecutive
@@ -106,17 +108,6 @@ public:
 	//!
 	int Paint(int viz, bool force=false);
 
-	//! Specify the current ModelViewMatrix
-	//!
-	//! Tells the control executive that the specified matrix will be used
-	//! at the next time Paint is called on the specified visualizer.
-	//!
-	//! \param[in] viz A visualizer handle returned by NewVisualizer()
-	//!	\param[in] matrix Specifies a float array of 16 values representing the
-	//! new ModelView matrix.
-	//!
-	//!
-	int SetModelViewMatrix(int viz, const double* mtx);
 
 	//! Activate or Deactivate a renderer
 	//!
@@ -145,7 +136,8 @@ public:
 	//! is used to both query parameter information as well as change
 	//! parameter information. 
 	//!
-	//! \param[in] viz A visualizer handle returned by NewVisualizer(). 
+	//! \param[in] viz A visualizer handle returned by NewVisualizer().  If this is -1, then
+	//! the global or default params is returned.
 	//! \param[in] type The type of the Params (e.g. flow, probe)
 	//! This is the same as the type of Renderer for a RenderParams.
 	//! \param[in] instance Instance index, ignored for non-Render params.  Use -1 for the current active instance.
@@ -195,6 +187,22 @@ public:
 	//
 	int RemoveParams(int viz, string type, int instance);
 
+	//! Add a new Params instance to the set of instances for a particular
+	//! visualizer and type.  
+	//! \param[in] viz A valid visualizer handle
+	//! \param[in] type The type of the Params instance
+	//! \param[in] p The instance to be added.
+	//! \retval zero if successful.
+	int AddParams(int viz, string type, Params* p);
+
+	//! Determine the instance index associated with a particular RenderParams instance
+	//! in a specified visualizer
+	//! Returns -1 if it is not found
+	//! \param[in] viz The visualizer index.
+	//! \param[in] p The RenderParams whose index is sought
+	//! \return instance index, or -1 if it is not found.
+	int FindInstanceIndex(int viz, RenderParams* p);
+
 	//! Determine how many instances of a given renderer type are present
 	//! in a visualizer.  Necessary for setting up a UI.
 	//! \param[in] viz A visualizer handle returned by NewVisualizer()
@@ -203,6 +211,75 @@ public:
 	//!
 
 	int GetNumParamsInstances(int viz, string type);
+
+	//! Determine how many different Params classes are available.
+	//! These include the Params classes associated with tabs in the GUI
+	//! as well as those that are just used for Undo/Redo
+	//! \sa GetNumTabParamsClasses();
+	//! \return number of classes
+	//!
+
+	int GetNumParamsClasses();
+
+	//! Determine how many different Params classes are available
+	//! to be associated with tabs in the GUI.
+	//! Does not include Params classes that are used just for Undo/Redo
+	//! \sa GetNumParamsClasses();
+	//! \return number of classes
+	//!
+
+	int GetNumTabParamsClasses();
+
+	//! Determine the short name associated with a Params type
+	//! \param[in] tag of the params type
+	//! \return short name, e.g. for tab
+	const std::string GetShortName(string& typetag);
+
+	//! Specify that a particular instance of a RenderParams is current
+	//! \param[in] viz A valid visualizer handle
+	//! \param[in] type The type of RenderParams
+	//! \param[in] instance The instance index that will become current.
+	//! \return zero if successful.
+	//!
+	int SetCurrentRenderParamsInstance(int viz, string type, int instance);
+
+	//! Identify the current instance of a RenderParams 
+	//! \param[in] viz A valid visualizer handle
+	//! \param[in] type The type of RenderParams
+	//! \return The instance index that is current in this visualizer
+	//!
+	int GetCurrentRenderParamsInstance(int viz, string type);
+
+	//! Convert a ParamsBase typeId to a tag
+	//! \param[in] typeId ParamsBaseTypeId to be converted.
+	//! \retval tag XML tag associated with the ParamsBase Type
+	//! \sa ParamsBase::ParamsBaseTypeId
+	string GetTagFromType(int typeId);
+
+	//! Convert a tag to a typeId
+	//! \param[in] tag XML tag to be converted
+	//! \retval typeId ParamsBaseTypeId associated with the tag
+	//! \sa ParamsBase::ParamsBaseTypeId
+	int GetTypeFromTag(std::string type);
+
+	//! Obtain the Params instance that is currently active in the specified visualizer
+	//! \param[in] viz A valid visualizer handle
+	//! \param[in] type The type of Params
+	//! \retval The current active Params, or NULL if invalid.
+	Params* GetCurrentParams(int viz, string type);
+
+	//! Obtain the Params instance that is currently active in the active visualizer
+	//! \param[in] type The type of Params
+	//! \retval The current active Params, or NULL if invalid.
+	Params* GetActiveParams(string type){
+		return GetCurrentParams(activeViz,type);
+	}
+
+	//! Method that returns the default Params instance of a particular type.
+	//! With non-render params this is the global Params instance.
+	//! \param[in] type tag associated with the params
+	//! \retval Pointer to specified Params instance
+	Params* GetDefaultParams(string type);
 
 	//! Determine how many visualizer windows are present
 	//! \return number of visualizers 
@@ -219,6 +296,18 @@ public:
 	Visualizer* GetVisualizer(int viz){
 		return visualizers[viz];
 	}
+
+	//! Identify the active visualizer number
+	//! When using a GUI this is the index of the selected visualizer
+	//! and is established by calling SetActiveViz()
+	//! \return index of the current active visualizer
+	int GetActiveVizIndex(){ return activeViz;}
+
+	//! Set the active visualizer
+	//! GUI uses this method whenever user clicks on a window.
+	//! \sa GetActiveVizIndex();
+	//! \param[in] index of the current active visualizer
+	void SetActiveVizIndex(int index){ activeViz=index;}
 
 	//! Save the current session state to a file
 	//!
@@ -400,6 +489,7 @@ public:
 		vector<Visualizer*> visualizers;
 		DataMgr* dataMgr;
 		static ControlExecutive* controlExecutive;
+		int activeViz;
 };
 };
 #endif //ControlExecutive_h

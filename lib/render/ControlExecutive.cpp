@@ -22,6 +22,7 @@ ControlExecutive* ControlExecutive::controlExecutive = 0;
 
 ControlExecutive::ControlExecutive(){
 	createAllDefaultParams();
+	activeViz = 0;
 }
 ControlExecutive::~ControlExecutive(){
 	destroyParams();
@@ -114,22 +115,6 @@ int ControlExecutive::Paint(int viz, bool force){
 	return v->paintEvent(force);
 }
 
-	//! Specify the current ModelViewMatrix
-	//!
-	//! Tells the control executive that the specified matrix will be used
-	//! the next time Paint() is called on the specified visualizer.
-	//!
-	//! \param[in] viz A visualizer handle returned by NewVisualizer()
-	//!	\param[in] matrix Specifies a float array of 16 values representing the
-	//! new ModelView matrix.
-	//!
-	//!
-int ControlExecutive::SetModelViewMatrix(int viz, const double* mtx){
-	Visualizer* v = visualizers[viz];
-	v->setModelViewMatrix(mtx);
-	return 0;
-}
-
 	//! Activate or Deactivate a renderer
 	//!
 	//!
@@ -155,50 +140,65 @@ int ControlExecutive::ActivateRender(int viz, string type, int instance, bool on
 	else return -1;//not on!
 }
 
-	//! Get a pointer to the existing parameter state information 
-	//!
-	//! This method returns a pointer to a Params class object 
-	//! that manages all of the state information for 
-	//! the Params instance identified by \p (viz,type,instance). The object pointer returned
-	//! is used to both query parameter information as well as change
-	//! parameter information. 
-	//!
-	//! \param[in] viz A visualizer handle returned by NewVisualizer().  Use -1 for the current active visualizer. 
-	//! \param[in] type The type of the Params (e.g. flow, probe)
-	//! This is the same as the type of Renderer for a RenderParams.
-	//! \param[in] instance Instance index, ignored for non-Render params.  Use -1 for the current active instance.
-	//!
-	//! \return ptr A pointer to the Params object of the specified type that is
-	//! currently associated with the specified visualizer (and of the specified instance, if
-	//! this Params is a RenderParams.)
-	//!
-	//! \note Currently the Params API includes a mechanism for a renderer to
-	//! register its interest in a changed parameter, and to be notified when
-	//! that parameter changes.  We may also add API to 
-	//! the Params class to register
-	//! interest in change of *any* parameter if that proves to be useful.
-	//! 
-	//
+	
 Params* ControlExecutive::GetParams(int viz, string type, int instance){
 	Params* p = Params::GetParamsInstance(type,viz,instance);
 	int inst = p->GetInstanceIndex();
 	if (instance >= 0) assert (inst == instance);
 	return Params::GetParamsInstance(type,viz,instance);
 }
-//! Specify the Params instance for a particular visualizer, instance index, and Params type
-	//! This can be used to replace the current Params instance using a new Params pointer.
-	//! When used to install a Params instance the instance index must be equal to the number of instances.
-	//!
-	//! \param[in] viz A visualizer handle returned by NewVisualizer().
-	//! \param[in] type The type of the Params (e.g. flow, probe)
-	//! \param[in] Params* The pointer to the Params instance being installed.
-	//! This is the same as the type of Renderer for a RenderParams.
-	//! \param[in] instance Instance index, ignored for non-Render params.  Use -1 for the current active instance.
-	//!
-	//! \return int is zero if successful
-	//!
-	//! 
-	//
+int ControlExecutive::SetCurrentRenderParamsInstance(int viz, string typetag, int instance){
+	if (viz < 0 || viz >= visualizers.size()) return -1;
+	if (instance < 0 || instance >= GetNumParamsInstances(viz,typetag)) return -1;
+	int ptype = Params::GetTypeFromTag(typetag);
+	if (ptype <= 0) return -1;
+	Params::SetCurrentParamsInstanceIndex(ptype,viz,instance);
+	return 0;
+}
+int ControlExecutive::GetCurrentRenderParamsInstance(int viz, string typetag){
+	if (viz < 0 || viz >= visualizers.size()) return -1;
+	int ptype = Params::GetTypeFromTag(typetag);
+	if (ptype <= 0) return -1;
+	return Params::GetCurrentParamsInstanceIndex(ptype,viz);
+}
+
+Params* ControlExecutive::GetCurrentParams(int viz, string typetag){
+	if (viz < 0 || viz >= visualizers.size()) return 0;
+	int ptype = Params::GetTypeFromTag(typetag);
+	if (ptype <= 0) return 0;
+	return Params::GetCurrentParamsInstance(ptype,viz);
+}
+int ControlExecutive::AddParams(int viz, string type, Params* p){
+	if (viz < 0 || viz >= visualizers.size()) return -1;
+	int ptype = Params::GetTypeFromTag(type);
+	if (ptype <= 0) return -1;
+	Params::AppendParamsInstance(ptype,viz,p);
+	return 0;
+}
+int ControlExecutive::RemoveParams(int viz, string type, int instance){
+	if (viz < 0 || viz >= visualizers.size()) return -1;
+	int ptype = Params::GetTypeFromTag(type);
+	if (ptype <= 0) return -1;
+	Params::RemoveParamsInstance(ptype,viz,instance);
+	return 0;
+}
+int ControlExecutive::FindInstanceIndex(int viz, RenderParams* p){
+	if (viz < 0 || viz >= visualizers.size()) return -1;
+	ParamsBase::ParamsBaseType t = p->GetParamsBaseTypeId();
+	for (int i = 0; i< Params::GetNumParamsInstances(t,viz); i++){
+		if (p == Params::GetParamsInstance(t,viz,i)) return i;
+	}
+	return -1;
+}
+ParamsBase::ParamsBaseType ControlExecutive::GetTypeFromTag(string tag){
+	return ParamsBase::GetTypeFromTag(tag);
+}
+std::string ControlExecutive::GetTagFromType(ParamsBase::ParamsBaseType t){
+	return ParamsBase::GetTagFromType(t);
+}
+Params* ControlExecutive::GetDefaultParams(string type){
+		return Params::GetDefaultParams(type);
+}
 int SetParams(int viz, string type, int instance, Params* p){
 	if (viz == -1) { //Global or default params.  Ignore instance.
 		Params::SetDefaultParams(type,p);
@@ -427,4 +427,14 @@ void ControlExecutive::destroyParams(){
 		}
 		GetVisualizer(i)->removeAllRenderers();
 	}
+}
+int ControlExecutive::GetNumParamsClasses(){
+	return ParamsBase::GetNumParamsClasses();
+}
+int ControlExecutive::GetNumTabParamsClasses(){
+	return (ParamsBase::GetNumParamsClasses() - ParamsBase::GetNumUndoRedoParamsClasses());
+}
+const std::string ControlExecutive::GetShortName(string& typetag){
+	Params::ParamsBaseType ptype = Params::GetTypeFromTag(typetag);
+	return Params::paramName(ptype);
 }

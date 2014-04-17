@@ -32,6 +32,7 @@
 #include "animationeventrouter.h"
 #include "vizselectcombo.h"
 #include "mainform.h"
+#include "vapor/ControlExecutive.h"
 
 using namespace VAPoR;
 vector<long> TabManager::tabOrdering;
@@ -62,7 +63,9 @@ int TabManager::insertWidget(QWidget* wid, Params::ParamsBaseType widBaseType, b
 	QScrollArea* myScrollArea = new QScrollArea(this);
 	//myScrollview->resizeContents(500, 1000);
 	//myScrollview->setResizePolicy(QScrollView::Manual);
-	insertTab(-1, myScrollArea, QString::fromStdString(Params::paramName(widBaseType)));
+	ControlExecutive* ce = ControlExecutive::getInstance();
+	string tag = ce->GetTagFromType(widBaseType);
+	insertTab(-1, myScrollArea, QString::fromStdString(ce->GetShortName(tag)));
 	//connect(myScrollArea, SIGNAL(verticalSliderReleased()), this, SLOT(tabScrolled()));
 	//myScrollview->addChild(wid);
 	myScrollArea->setWidget(wid);

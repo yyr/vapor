@@ -152,9 +152,10 @@ mousePressEvent(QMouseEvent* e){
 		double boxExtents[6];
 		ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
 		ParamsBase::ParamsBaseType t = MouseModeParams::getModeParamType(mode);
-		
-		Params* rParams = VizWinMgr::getInstance()->getParams(myWindowNum,t);
-		TranslateStretchManip* manip = myVisualizer->getManip(Params::GetTagFromType(t));
+		ControlExecutive* ce = ControlExecutive::getInstance();
+		string tag = ce->GetTagFromType(t);
+		Params* rParams = ce->GetCurrentParams(myWindowNum, tag);
+		TranslateStretchManip* manip = myVisualizer->getManip(tag);
 		manip->setParams(rParams);
 		int manipType = MouseModeParams::getModeManipType(mode);
 		if(manipType != 3) rParams->GetBox()->GetStretchedLocalExtents(boxExtents, timestep); //non-rotated manip

@@ -286,15 +286,10 @@ int Visualizer::paintEvent(bool force)
 		const vector<double>& upvec = vpParams->getUpVec();
 		const vector<double>& vpos = vpParams->getCameraPosLocal();
 		const vector<double>& cntr = vpParams->getRotationCenterLocal();
-		//makeModelviewMatrixD(vpos, vdir, upvec,mvmatrix);
+		
 		GetTrackball()->setFromFrame(vpos,vdir,upvec,cntr,true);
 	}
 	
-	
-	double extents[6] = {0.f,0.f,0.f,1.f,1.f,1.f};
-	double minFull[3] = {0.f,0.f,0.f};
-	double maxFull[3] = {1.f,1.f,1.f};
-    
 	nowPainting = true;
 	
 	//Paint background
@@ -377,7 +372,9 @@ int Visualizer::paintEvent(bool force)
 		int mode = MouseModeParams::GetCurrentMouseMode();
 		ParamsBase::ParamsBaseType t = MouseModeParams::getModeParamType(mode);
 		TranslateStretchManip* manip = manipHolder[mode];
-		RenderParams* p = (RenderParams*)Params::GetCurrentParamsInstance(t,winNum);
+		ControlExecutive* ce = ControlExecutive::getInstance();
+		string tag = ce->GetTagFromType(t);
+		RenderParams* p = (RenderParams*)ControlExecutive::getInstance()->GetCurrentParams(winNum,tag);
 		manip->setParams(p);
 		manip->render();
 		int manipType = MouseModeParams::getModeManipType(mode);
@@ -392,7 +389,7 @@ int Visualizer::paintEvent(bool force)
 
 	//Now we are ready for all the different renderers to proceed.
 	//Sort them;  If they are opaque, they go first.  If not opaque, they
-	//are sorted back to front.  This only works if all the geometry of a renderer is ordered by
+	//are sorted back to front.  This only works if all the geometry of a renderer is ordered by 
 	//a simple depth test.
 
 	printOpenGLError();
@@ -1071,4 +1068,15 @@ double Visualizer::getPixelSize(){
 	double halfHeight = tan(M_PI*0.125)* distToScene;
 	return (2.f*halfHeight/(double)height); 
 	
+}
+ViewpointParams* Visualizer::getActiveViewpointParams() {
+	return (ViewpointParams*)ControlExecutive::getInstance()->GetCurrentParams(winNum,Params::_viewpointParamsTag);
+}
+
+RegionParams* Visualizer::getActiveRegionParams() {
+	return (RegionParams*)ControlExecutive::getInstance()->GetCurrentParams(winNum,Params::_regionParamsTag);
+}
+
+AnimationParams* Visualizer::getActiveAnimationParams() {
+	return (AnimationParams*)ControlExecutive::getInstance()->GetCurrentParams(winNum,Params::_animationParamsTag);
 }

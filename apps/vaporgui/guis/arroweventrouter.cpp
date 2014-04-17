@@ -50,7 +50,7 @@ using namespace VAPoR;
 
 ArrowEventRouter::ArrowEventRouter(QWidget* parent): QWidget(parent), Ui_Arrow(), EventRouter(){
         setupUi(this);
-	myParamsBaseType = Params::GetTypeFromTag(ArrowParams::_arrowParamsTag);
+	myParamsBaseType = ControlExecutive::getInstance()->GetTypeFromTag(ArrowParams::_arrowParamsTag);
 
 	showAppearance = false;
 	showLayout = false;
@@ -145,8 +145,7 @@ setArrowTextChanged(const QString& ){
 }
 void ArrowEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
-	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
-	
+	ArrowParams* aParams = (ArrowParams*)ControlExecutive::getInstance()->GetActiveParams(ArrowParams::_arrowParamsTag);
 	Command* cmd = Command::CaptureStart(aParams,"barbs text edit");
 	
 	
@@ -198,12 +197,13 @@ captureMouseDown(int){
 }
 void ArrowEventRouter::
 captureMouseUp(){
+	ControlExecutive* ce = ControlExecutive::getInstance();
 	VizWinMgr* vwm = VizWinMgr::getInstance();
-	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
+	int viznum = vwm->getActiveViz();
+	ArrowParams* aParams = (ArrowParams*)ce->GetCurrentParams(viznum,ArrowParams::_arrowParamsTag);
 	//Update the tab if it's in front:
 	if(MainForm::getTabManager()->isFrontTab(this)) {
-		int viznum = vwm->getActiveViz();
-		if (viznum >= 0 && (aParams == vwm->getParams(viznum, ParamsBase::GetTypeFromTag(ArrowParams::_arrowParamsTag))))
+		if (viznum >= 0)
 			updateTab();
 	}
 	
@@ -219,7 +219,7 @@ arrowReturnPressed(void){
 void ArrowEventRouter::
 guiSetVariableDims(int is3D){
 	confirmText(true);
-	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
+	ArrowParams* aParams = (ArrowParams*)ControlExecutive::getInstance()->GetActiveParams(ArrowParams::_arrowParamsTag);
 	if (aParams->VariablesAre3D() == (is3D == 1)) return;
 	
 	aParams->SetVariables3D(is3D == 1);
@@ -305,7 +305,7 @@ void ArrowEventRouter::
 guiSetXVarNum(int vnum){
 	confirmText(true);
 	
-	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
+	ArrowParams* aParams = (ArrowParams*)ControlExecutive::getInstance()->GetActiveParams(ArrowParams::_arrowParamsTag);
 	bool is3D = aParams->VariablesAre3D();
 	
 	if (vnum > 0){
@@ -321,7 +321,7 @@ void ArrowEventRouter::
 guiSetYVarNum(int vnum){
 	
 	confirmText(true);
-	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
+	ArrowParams* aParams = (ArrowParams*)ControlExecutive::getInstance()->GetActiveParams(ArrowParams::_arrowParamsTag);
 	bool is3D = aParams->VariablesAre3D();
 	
 	
@@ -338,7 +338,7 @@ void ArrowEventRouter::
 guiSetZVarNum(int vnum){
 	
 	confirmText(true);
-	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
+	ArrowParams* aParams = (ArrowParams*)ControlExecutive::getInstance()->GetActiveParams(ArrowParams::_arrowParamsTag);
 	bool is3D = aParams->VariablesAre3D();
 	if (vnum > 0){
 		if (is3D)
@@ -353,7 +353,7 @@ void ArrowEventRouter::
 guiSetHeightVarNum(int vnum){
 	
 	confirmText(true);
-	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
+	ArrowParams* aParams = (ArrowParams*)ControlExecutive::getInstance()->GetActiveParams(ArrowParams::_arrowParamsTag);
 	
 	aParams->SetHeightVariableName(DataStatus::getInstance()->getDataMgr()->GetVariables2DXY()[vnum-1]);
 	updateTab();
@@ -364,8 +364,7 @@ guiSetHeightVarNum(int vnum){
 void ArrowEventRouter::
 guiToggleTerrainAlign(bool isOn){
 	confirmText(true);
-	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
-	
+	ArrowParams* aParams = (ArrowParams*)ControlExecutive::getInstance()->GetActiveParams(ArrowParams::_arrowParamsTag);
 	aParams->SetTerrainMapped(isOn);
 	
 	VizWinMgr::getInstance()->forceRender(aParams);	
@@ -378,8 +377,7 @@ guiSelectColor(){
 	if (!newColor.isValid()) return;
 	pal.setColor(QPalette::Base, newColor);
 	colorBox->setPalette(pal);
-	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
-	
+	ArrowParams* aParams = (ArrowParams*)ControlExecutive::getInstance()->GetActiveParams(ArrowParams::_arrowParamsTag);
 	qreal rgb[3];
 	newColor.getRgbF(rgb,rgb+1,rgb+2);
 	double rgbd[3];
@@ -391,8 +389,7 @@ void ArrowEventRouter::
 guiChangeExtents(){
 	confirmText(true);
 	if (!DataStatus::getInstance()->getDataMgr()) return;
-	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
-	
+	ArrowParams* aParams = (ArrowParams*)ControlExecutive::getInstance()->GetActiveParams(ArrowParams::_arrowParamsTag);
 	double newExts[6];
 	boxSliderFrame->getBoxExtents(newExts);
 	Box* bx = aParams->GetBox();
@@ -408,8 +405,7 @@ guiChangeExtents(){
 void ArrowEventRouter::
 guiAlignToData(bool doAlign){
 	confirmText(true);
-	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
-
+	ArrowParams* aParams = (ArrowParams*)ControlExecutive::getInstance()->GetActiveParams(ArrowParams::_arrowParamsTag);
 	aParams->AlignGridToData(doAlign);
 	xStrideEdit->setEnabled(doAlign);
 	yStrideEdit->setEnabled(doAlign);
@@ -424,7 +420,7 @@ setArrowEnabled(bool val, int instance){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int activeViz = vizMgr->getActiveViz();
 	
-	ArrowParams* dParams = (ArrowParams*)(Params::GetParamsInstance(ArrowParams::_arrowParamsTag, activeViz, instance));
+	ArrowParams* dParams = (ArrowParams*)(ControlExecutive::getInstance()->GetParams(activeViz,ArrowParams::_arrowParamsTag, activeViz));
 	//Make sure this is a change:
 	if (dParams->IsEnabled() == val ) return;
 	//If we are enabling, also make this the current instance:
@@ -447,7 +443,7 @@ void ArrowEventRouter::updateTab(){
 	else instanceTable->setEnabled(false);
 	instanceTable->rebuild(this);
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	ArrowParams* arrowParams = (ArrowParams*) VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
+	ArrowParams* arrowParams = (ArrowParams*)ControlExecutive::getInstance()->GetActiveParams(ArrowParams::_arrowParamsTag);
 	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	int winnum = vizMgr->getActiveViz();
 	int numViz = vizMgr->getNumVisualizers();
@@ -464,7 +460,8 @@ void ArrowEventRouter::updateTab(){
 			}
 		}
 	}
-	deleteInstanceButton->setEnabled(vizMgr->getNumInstances(winnum, Params::GetTypeFromTag(ArrowParams::_arrowParamsTag)) > 1);
+	int numInst = ControlExecutive::getInstance()->GetNumParamsInstances(winnum,ArrowParams::_arrowParamsTag);
+	deleteInstanceButton->setEnabled(numInst > 1);
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	//Set up refinements and LOD combos:
 	int numRefs = arrowParams->GetRefinementLevel();
@@ -635,7 +632,7 @@ void ArrowEventRouter::
 guiSetCompRatio(int num){
 	confirmText(false);
 	//make sure we are changing it
-	ArrowParams* dParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
+	ArrowParams* dParams = (ArrowParams*)ControlExecutive::getInstance()->GetActiveParams(ArrowParams::_arrowParamsTag);
 	if (num == dParams->GetCompressionLevel()) return;
 	
 	dParams->SetCompressionLevel(num);
@@ -647,7 +644,7 @@ void ArrowEventRouter::
 guiMoveScaleSlider(int sliderval){
 	//just update the 
 	confirmText(false);
-	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
+	ArrowParams* aParams = (ArrowParams*)ControlExecutive::getInstance()->GetActiveParams(ArrowParams::_arrowParamsTag);
 	double defaultScale = aParams->calcDefaultScale();
 	// find the new length as 10**(sliderVal)*defaultLength
 	// note that the slider goes from -100 to +100
@@ -661,7 +658,7 @@ void ArrowEventRouter::
 guiReleaseScaleSlider(){
 	confirmText(false);
 	int sliderval = barbLengthSlider->value();
-	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
+	ArrowParams* aParams = (ArrowParams*)ControlExecutive::getInstance()->GetActiveParams(ArrowParams::_arrowParamsTag);
 	
 	
 	double defaultScale = aParams->calcDefaultScale();
@@ -679,7 +676,7 @@ void ArrowEventRouter::
 guiSetNumRefinements(int num){
 	confirmText(false);
 	//make sure we are changing it
-	ArrowParams* dParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
+	ArrowParams* dParams = (ArrowParams*)ControlExecutive::getInstance()->GetActiveParams(ArrowParams::_arrowParamsTag);
 	if (num == dParams->GetRefinementLevel()) return;
 
 	dParams->SetRefinementLevel(num);
@@ -693,7 +690,7 @@ guiSetEnabled(bool value, int instance, bool undoredo){
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	int winnum = vizWinMgr->getActiveViz();
 	//Ignore spurious clicks.
-	ArrowParams* dParams = (ArrowParams*)(Params::GetParamsInstance(ArrowParams::_arrowParamsTag, winnum, instance));
+	ArrowParams* dParams = (ArrowParams*)(ControlExecutive::getInstance()->GetParams(winnum,ArrowParams::_arrowParamsTag, instance));
 	
 	if (value == dParams->IsEnabled()) return;
 	confirmText(false);
@@ -710,7 +707,7 @@ guiSetEnabled(bool value, int instance, bool undoredo){
 }
 void ArrowEventRouter::
 guiFitToData(){
-	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
+	ArrowParams* aParams =(ArrowParams*)ControlExecutive::getInstance()->GetActiveParams(ArrowParams::_arrowParamsTag);
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	
 		
@@ -744,7 +741,7 @@ showHideAppearance(){
 	}
 	//Following HACK is needed to convince Qt to remove the extra space in the tab:
 	updateTab();
-	VizWinMgr::getInstance()->getTabManager()->toggleFrontTabs(Params::GetTypeFromTag(ArrowParams::_arrowParamsTag));
+	VizWinMgr::getInstance()->getTabManager()->toggleFrontTabs(ControlExecutive::getInstance()->GetTypeFromTag(ArrowParams::_arrowParamsTag));
 	updateTab();
 
 }
@@ -760,7 +757,7 @@ showHideLayout(){
 	}
 	//Following HACK is needed to convince Qt to remove the extra space in the tab:
 	updateTab();
-	VizWinMgr::getInstance()->getTabManager()->toggleFrontTabs(Params::GetTypeFromTag(ArrowParams::_arrowParamsTag));
+	VizWinMgr::getInstance()->getTabManager()->toggleFrontTabs(ControlExecutive::getInstance()->GetTypeFromTag(ArrowParams::_arrowParamsTag));
 	updateTab();
 }
 

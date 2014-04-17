@@ -30,6 +30,7 @@
 #include <vapor/common.h>
 #include "datastatus.h"
 #include "mousemodeparams.h"
+
 namespace VAPoR {
 typedef bool (*renderCBFcn)(int winnum, bool newCoords);
 
@@ -59,23 +60,14 @@ public:
 	
 	//! Method that returns the ViewpointParams that is active in this window.
 	//! \retval ViewpointParams* current active ViewpointParams
-	ViewpointParams* getActiveViewpointParams() {
-		return (ViewpointParams*)Params::GetCurrentParamsInstance(Params::GetTypeFromTag(Params::_viewpointParamsTag),winNum);
-	}
-
+	ViewpointParams* getActiveViewpointParams();
 	//! Method that returns the RegionParams that is active in this window.
 	//! \retval RegionParams* current active RegionParams
-	RegionParams* getActiveRegionParams() {
-		return (RegionParams*)Params::GetCurrentParamsInstance(Params::GetTypeFromTag(Params::_regionParamsTag),winNum);
-	}
+	RegionParams* getActiveRegionParams(); 
 
 	//! Method that returns the AnimationParams that is active in this window.
 	//! \retval AnimationParams* current active AnimationParams
-	AnimationParams* getActiveAnimationParams() {
-		return (AnimationParams*)Params::GetCurrentParamsInstance(Params::GetTypeFromTag(Params::_animationParamsTag),winNum);
-	}
-
-
+	AnimationParams* getActiveAnimationParams();
 	
 	//! Method to initialize GL rendering.  Must  be called from a GL context.
 	void	initializeGL();

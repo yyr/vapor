@@ -57,7 +57,7 @@
 #include "tabmanager.h"
 
 #include "regioneventrouter.h"
-
+#include "vapor/ControlExecutive.h"
 #include "eventrouter.h"
 
 
@@ -66,7 +66,7 @@ using namespace VAPoR;
 
 RegionEventRouter::RegionEventRouter(QWidget* parent ): QWidget(parent), Ui_RegionTab(), EventRouter() {
 	setupUi(this);
-	myParamsBaseType = Params::GetTypeFromTag(Params::_regionParamsTag);
+	myParamsBaseType = ControlExecutive::getInstance()->GetTypeFromTag(Params::_regionParamsTag);
 	
 	setIgnoreBoxSliderEvents(false);
 }
@@ -131,7 +131,8 @@ setRegionTabTextChanged(const QString& ){
 }
 void RegionEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
+	RegionParams* rParams = (RegionParams*)ControlExecutive::getInstance()->GetActiveParams(Params::_regionParamsTag);
+	
 	Command* cmd = Command::CaptureStart(rParams,"region text edit");
 	
 	float centerPos[3], regSize[3];
@@ -447,7 +448,7 @@ sliderToText(RegionParams* rp, int coord, int slideCenter, int slideSize){
 //Move the region center to specified user coords, shrink it if necessary
 void RegionEventRouter::
 guiSetCenter(const double* coords){
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
+	RegionParams* rParams = (RegionParams*)ControlExecutive::getInstance()->GetActiveParams(Params::_regionParamsTag);
 
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	
@@ -477,8 +478,7 @@ void RegionEventRouter::
 guiSetXCenter(int sliderval){
 	if(ignoreBoxSliderEvents)return;
 	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	
+	RegionParams* rParams = (RegionParams*)ControlExecutive::getInstance()->GetActiveParams(Params::_regionParamsTag);
 	
 	sliderToText(rParams, 0, sliderval, xSizeSlider->value());
 	
@@ -489,8 +489,7 @@ void RegionEventRouter::
 guiSetYCenter(int sliderval){
 	if(ignoreBoxSliderEvents)return;
 	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	
+	RegionParams* rParams = (RegionParams*)ControlExecutive::getInstance()->GetActiveParams(Params::_regionParamsTag);
 	sliderToText(rParams, 1, sliderval, ySizeSlider->value());
 	
 }
@@ -499,8 +498,7 @@ void RegionEventRouter::
 guiSetZCenter(int sliderval){
 	if(ignoreBoxSliderEvents)return;
 	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	
+	RegionParams* rParams = (RegionParams*)ControlExecutive::getInstance()->GetActiveParams(Params::_regionParamsTag);
 	sliderToText(rParams, 2, sliderval, zSizeSlider->value());
 	
 }
@@ -509,8 +507,7 @@ void RegionEventRouter::
 guiSetXSize(int sliderval){
 	if(ignoreBoxSliderEvents)return;
 	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	
+	RegionParams* rParams = (RegionParams*)ControlExecutive::getInstance()->GetActiveParams(Params::_regionParamsTag);
 	sliderToText(rParams, 0, xCenterSlider->value(),sliderval);
 	
 }
@@ -518,8 +515,7 @@ void RegionEventRouter::
 guiSetYSize(int sliderval){
 	if(ignoreBoxSliderEvents)return;
 	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	
+	RegionParams* rParams = (RegionParams*)ControlExecutive::getInstance()->GetActiveParams(Params::_regionParamsTag);
 	sliderToText(rParams, 1, yCenterSlider->value(),sliderval);
 	
 }
@@ -527,8 +523,7 @@ void RegionEventRouter::
 guiSetZSize(int sliderval){
 	if(ignoreBoxSliderEvents)return;
 	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	
+	RegionParams* rParams = (RegionParams*)ControlExecutive::getInstance()->GetActiveParams(Params::_regionParamsTag);
 	sliderToText(rParams, 2, zCenterSlider->value(),sliderval);
 	
 }
@@ -536,8 +531,7 @@ guiSetZSize(int sliderval){
 void RegionEventRouter::
 guiSetMaxSize(){
 	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	
+	RegionParams* rParams = (RegionParams*)ControlExecutive::getInstance()->GetActiveParams(Params::_regionParamsTag);
 	const double* fullDataExtents = DataStatus::getInstance()->getLocalExtents();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	double boxexts[6];
@@ -590,7 +584,7 @@ void RegionEventRouter::
 captureMouseDown(int){
 	//If text has changed, will ignore it-- don't call confirmText()!
 	//
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
+	RegionParams* rParams = (RegionParams*)ControlExecutive::getInstance()->GetActiveParams(Params::_regionParamsTag);
 	guiSetTextChanged(false);
 	
 	
@@ -600,8 +594,7 @@ captureMouseDown(int){
 void RegionEventRouter::
 captureMouseUp(){
 	//Update the tab:
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	
+	RegionParams* rParams = (RegionParams*)ControlExecutive::getInstance()->GetActiveParams(Params::_regionParamsTag);
 	updateTab();
 	
 	
@@ -633,8 +626,7 @@ guiLoadRegionExtents(){
 		return;
 	}
 	//File is OK, save the state in command queue
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	
+	RegionParams* rParams = (RegionParams*)ControlExecutive::getInstance()->GetActiveParams(Params::_regionParamsTag);
 
 	const double* fullExtents = DataStatus::getInstance()->getLocalExtents();
 	//Read the file
@@ -690,8 +682,7 @@ saveRegionExtents(){
 	//region extents.   
 	//Timesteps that have not been modified do not get saved.
 	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-
+	RegionParams* rParams = (RegionParams*)ControlExecutive::getInstance()->GetActiveParams(Params::_regionParamsTag);
 	
 	//Are there any extents to write?
 	if (!rParams->extentsAreVarying()) {
@@ -734,7 +725,7 @@ saveRegionExtents(){
 void RegionEventRouter::
 guiAdjustExtents(){
 	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
+	RegionParams* rParams = (RegionParams*)ControlExecutive::getInstance()->GetActiveParams(Params::_regionParamsTag);
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	
 	

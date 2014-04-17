@@ -735,7 +735,8 @@ void MainForm::loadData()
 			// Reinitialize all tabs
 			//
 			if (dmgr){
-				for (int pType = 1; pType <= Params::GetNumParamsClasses()-Params::GetNumUndoRedoParamsClasses(); pType++){
+				int numParamsTabs = ControlExecutive::getInstance()->GetNumTabParamsClasses();
+				for (int pType = 1; pType <= numParamsTabs; pType++){
 					EventRouter* eRouter = VizWinMgr::getInstance()->getEventRouter(pType);
 					eRouter->reinitTab(false);
 				}
@@ -830,7 +831,8 @@ void MainForm::defaultLoadData()
 			// Reinitialize all tabs
 			//
 			if (dmgr){
-				for (int pType = 1; pType <= Params::GetNumParamsClasses()-Params::GetNumUndoRedoParamsClasses(); pType++){
+				int numParamsTabs = ControlExecutive::getInstance()->GetNumTabParamsClasses();
+				for (int pType = 1; pType <= numParamsTabs; pType++){
 					EventRouter* eRouter = VizWinMgr::getInstance()->getEventRouter(pType);
 					eRouter->reinitTab(true);
 				}
@@ -991,7 +993,7 @@ void MainForm::paintEvent(QPaintEvent* e){
 	
 }
 void MainForm::showTab(const std::string& tag){
-	ParamsBase::ParamsBaseType t = Params::GetTypeFromTag(tag);
+	ParamsBase::ParamsBaseType t = ControlExecutive::getInstance()->GetTypeFromTag(tag);
 	tabWidget->moveToFront(t);
 	EventRouter* eRouter = VizWinMgr::getEventRouter(tag);
 	eRouter->updateTab();
@@ -1003,7 +1005,7 @@ void MainForm::modeChange(int newmode){
 	}
 	
 	navigationAction->setChecked(false);
-	showTab(Params::GetTagFromType(MouseModeParams::getModeParamType(newmode)));
+	showTab(ControlExecutive::getInstance()->GetTagFromType(MouseModeParams::getModeParamType(newmode)));
 
 	MouseModeParams::SetCurrentMouseMode((MouseModeParams::mouseModeType)newmode);
 	

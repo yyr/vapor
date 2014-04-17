@@ -78,7 +78,7 @@ QT_USE_NAMESPACE
 AnimationEventRouter::AnimationEventRouter(QWidget* parent) : QWidget(parent,0), Ui_AnimationTab(), EventRouter() {
 	setupUi(this);	
 	currentKeyIndex = 0;
-	myParamsBaseType = Params::GetTypeFromTag(Params::_animationParamsTag);
+	myParamsBaseType = ControlExecutive::getInstance()->GetTypeFromTag(Params::_animationParamsTag);
 	
 	dontUpdate = false;
 	QPixmap* playForwardIcon = new QPixmap(playforward);
