@@ -165,7 +165,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	
 	tabDockWindow->setWidget(tabWidget);
 	//Create the Control executive before the VizWinMgr.
-	ControlExecutive::getInstance();
+	ControlExec::getInstance();
 	
 	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
 	myVizMgr->createAllDefaultTabs();
@@ -651,12 +651,12 @@ void MainForm::fileSaveAs()
 
 void MainForm::fileExit()
 {
-	delete ControlExecutive::getInstance();
+	delete ControlExec::getInstance();
 	close();
 }
 
 void MainForm::undo(){
-	ControlExecutive* ce = ControlExecutive::getInstance();
+	ControlExec* ce = ControlExec::getInstance();
 	//If it's not active, just set default text:
 	if (!ce->CommandExists(0)) return; 
 	const Params* p = ce->Undo();
@@ -665,7 +665,7 @@ void MainForm::undo(){
 }
 
 void MainForm::redo(){
-	ControlExecutive* ce = ControlExecutive::getInstance();
+	ControlExec* ce = ControlExec::getInstance();
 	//If it's not active, just set default text:
 	if (!ce->CommandExists(-1)) return; 
 	const Params* p = ce->Redo();
@@ -731,11 +731,11 @@ void MainForm::loadData()
 		if (fInfo.isReadable() && fInfo.isFile()){
 			vector<string> files;
 			files.push_back(filename.toStdString());
-			dmgr = ControlExecutive::getInstance()->LoadData(files,true);
+			dmgr = ControlExec::getInstance()->LoadData(files,true);
 			// Reinitialize all tabs
 			//
 			if (dmgr){
-				int numParamsTabs = ControlExecutive::getInstance()->GetNumTabParamsClasses();
+				int numParamsTabs = ControlExec::GetNumTabParamsClasses();
 				for (int pType = 1; pType <= numParamsTabs; pType++){
 					EventRouter* eRouter = VizWinMgr::getInstance()->getEventRouter(pType);
 					eRouter->reinitTab(false);
@@ -827,11 +827,11 @@ void MainForm::defaultLoadData()
 		if (fInfo.isReadable() && fInfo.isFile()){
 			vector<string> files;
 			files.push_back(filename.toStdString());
-			dmgr = ControlExecutive::getInstance()->LoadData(files,false);
+			dmgr = ControlExec::getInstance()->LoadData(files,false);
 			// Reinitialize all tabs
 			//
 			if (dmgr){
-				int numParamsTabs = ControlExecutive::getInstance()->GetNumTabParamsClasses();
+				int numParamsTabs = ControlExec::GetNumTabParamsClasses();
 				for (int pType = 1; pType <= numParamsTabs; pType++){
 					EventRouter* eRouter = VizWinMgr::getInstance()->getEventRouter(pType);
 					eRouter->reinitTab(true);
@@ -886,7 +886,7 @@ void MainForm::setupEditMenu(){
 	
 	QString undoText("Undo ");
 	QString redoText("Redo ");
-	ControlExecutive* ce = ControlExecutive::getInstance();
+	ControlExec* ce = ControlExec::getInstance();
 	//If it's not active, just set default text:
 	if (editUndoAction->isEnabled() && ce->CommandExists(0)) {
 		undoText += ce->GetCommandText(0).c_str();
@@ -993,7 +993,7 @@ void MainForm::paintEvent(QPaintEvent* e){
 	
 }
 void MainForm::showTab(const std::string& tag){
-	ParamsBase::ParamsBaseType t = ControlExecutive::getInstance()->GetTypeFromTag(tag);
+	ParamsBase::ParamsBaseType t = ControlExec::GetTypeFromTag(tag);
 	tabWidget->moveToFront(t);
 	EventRouter* eRouter = VizWinMgr::getEventRouter(tag);
 	eRouter->updateTab();
@@ -1005,7 +1005,7 @@ void MainForm::modeChange(int newmode){
 	}
 	
 	navigationAction->setChecked(false);
-	showTab(ControlExecutive::getInstance()->GetTagFromType(MouseModeParams::getModeParamType(newmode)));
+	showTab(ControlExec::GetTagFromType(MouseModeParams::getModeParamType(newmode)));
 
 	MouseModeParams::SetCurrentMouseMode((MouseModeParams::mouseModeType)newmode);
 	

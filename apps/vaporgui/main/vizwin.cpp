@@ -72,7 +72,7 @@ VizWin::VizWin( MainForm* parent, const QString& name, Qt::WFlags fl, VizWinMgr*
 	setAttribute(Qt::WA_DeleteOnClose);
     myWindowNum = winNum;
 	setWindowIcon(QPixmap(vapor_icon___));
-	myVisualizer = ControlExecutive::getInstance()->GetVisualizer(myWindowNum);
+	myVisualizer = ControlExec::GetVisualizer(myWindowNum);
 	myParent = parent;
 	myName = name;
 	setAutoBufferSwap(false);
@@ -105,14 +105,14 @@ void VizWin::windowActivationChange(bool ){
 // React to a user-change in window size/position (or possibly max/min)
 // Either the window is minimized, maximized, restored, or just resized.
 void VizWin::resizeGL(int width, int height){
-	ControlExecutive* ce = ControlExecutive::getInstance();
-	ce->ResizeViz(myWindowNum, width, height);
+	
+	ControlExec::ResizeViz(myWindowNum, width, height);
 	reallyUpdate();
 	return;
 }
 void VizWin::initializeGL(){
-	ControlExecutive* ce = ControlExecutive::getInstance();
-	ce->InitializeViz(myWindowNum, width(),height());
+	
+	ControlExec::InitializeViz(myWindowNum, width(),height());
 	return;
 	
 }
@@ -152,9 +152,9 @@ mousePressEvent(QMouseEvent* e){
 		double boxExtents[6];
 		ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
 		ParamsBase::ParamsBaseType t = MouseModeParams::getModeParamType(mode);
-		ControlExecutive* ce = ControlExecutive::getInstance();
-		string tag = ce->GetTagFromType(t);
-		Params* rParams = ce->GetCurrentParams(myWindowNum, tag);
+		
+		string tag = ControlExec::GetTagFromType(t);
+		Params* rParams = ControlExec::GetCurrentParams(myWindowNum, tag);
 		TranslateStretchManip* manip = myVisualizer->getManip(tag);
 		manip->setParams(rParams);
 		int manipType = MouseModeParams::getModeManipType(mode);
@@ -477,17 +477,16 @@ setGlobalViewpoint(bool setGlobal){
 
 
 void VizWin::paintGL(){
-	ControlExecutive* ce = ControlExecutive::getInstance();
 	//only paint if necessary
-	int rc = ce->Paint(myWindowNum, false);
+	int rc = ControlExec::Paint(myWindowNum, false);
 	if (!rc) swapBuffers();
 	return;
 	
 }
 void VizWin::reallyUpdate(){
 	makeCurrent();
-	ControlExecutive* ce = ControlExecutive::getInstance();
-	ce->Paint(myWindowNum, true);
+	
+	ControlExec::Paint(myWindowNum, true);
 	swapBuffers();
 	return;
 

@@ -223,12 +223,12 @@ vizAboutToDisappear(int i)  {
 	if(activeViz >= 0) {
 		setActiveViz(activeViz);
 	}
-	ControlExecutive* ce = ControlExecutive::getInstance();
-	for (int j = 1; j<= ce->GetNumTabParamsClasses(); j++){
-		string tag = ce->GetTagFromType(j);
-		for (int k = ce->GetNumParamsInstances(i,tag)-1; k>=0; k--){
-			getEventRouter(j)->cleanParams(ce->GetParams(i,tag,k));
-			ce->RemoveParams(i,tag,k);
+	
+	for (int j = 1; j<= ControlExec::GetNumTabParamsClasses(); j++){
+		string tag = ControlExec::GetTagFromType(j);
+		for (int k = ControlExec::GetNumParamsInstances(i,tag)-1; k>=0; k--){
+			getEventRouter(j)->cleanParams(ControlExec::GetParams(i,tag,k));
+			ControlExec::RemoveParams(i,tag,k);
 		}
 	}
 
@@ -252,7 +252,7 @@ vizAboutToDisappear(int i)  {
 int VizWinMgr::
 launchVisualizer()
 {
-	ControlExecutive* ce = ControlExecutive::getInstance();
+	ControlExec* ce = ControlExec::getInstance();
 	int useWindowNum = ce->NewVisualizer();
 	
 	numVizWins++;
@@ -305,20 +305,20 @@ launchVisualizer()
  */
 void VizWinMgr::
 createDefaultParams(int winnum){
-	ControlExecutive* ce = ControlExecutive::getInstance();
-	for (int i = 1; i<= ce->GetNumParamsClasses(); i++){
-		string tag = ce->GetTagFromType(i);
-		Params* q = ce->GetDefaultParams(tag);
+	
+	for (int i = 1; i<= ControlExec::GetNumParamsClasses(); i++){
+		string tag = ControlExec::GetTagFromType(i);
+		Params* q = ControlExec::GetDefaultParams(tag);
 		
 		Params* p = q->deepCopy();
 		p->SetVizNum(winnum);
 		//Check for strange error:
-		assert( ce->GetNumParamsInstances(winnum,tag) == 0);
-		ce->AddParams(winnum,tag,p);
+		assert( ControlExec::GetNumParamsInstances(winnum,tag) == 0);
+		ControlExec::AddParams(winnum,tag,p);
 		
 		if (!p->isRenderParams())p->SetLocal(false);
 		else {
-			ce->SetCurrentRenderParamsInstance(winnum,tag,0);
+			ControlExec::SetCurrentRenderParamsInstance(winnum,tag,0);
 			if(DataStatus::getInstance()->getDataMgr()){
 				EventRouter* eRouter = getEventRouter(i);
 				eRouter->setEditorDirty((RenderParams*)p);
@@ -401,7 +401,7 @@ setVizWinName(int winNum, QString& qs) {
  **********************************************************************/
 void VizWinMgr::
 setActiveViz(int vizNum){
-	ControlExecutive::getInstance()->SetActiveVizIndex(vizNum);
+	ControlExec::SetActiveVizIndex(vizNum);
 	if (getActiveViz() != vizNum){
 		
 		emit(activateViz(vizNum));
@@ -437,7 +437,7 @@ void VizWinMgr::
 updateActiveParams(){
 	int activeViz = getActiveViz();
 	if (activeViz < 0 ||!getVizWin(activeViz)) return;
-	int numTabParams = ControlExecutive::getInstance()->GetNumTabParamsClasses();
+	int numTabParams = ControlExec::GetNumTabParamsClasses();
 	for (int i = 1; i<= numTabParams; i++){
 		getEventRouter(i)->updateTab();
 	}
@@ -531,7 +531,7 @@ void VizWinMgr::refreshRegion(RegionParams* rParams){
 	if (rParams->IsLocal()) return;
 	for (int i = 0; i< VizWindow.size(); i++){
 		if (!VizWindow[i]) continue;
-		RegionParams* rgParams = (RegionParams*)ControlExecutive::getInstance()->GetParams(i,Params::_regionParamsTag,-1);
+		RegionParams* rgParams = (RegionParams*)ControlExec::GetParams(i,Params::_regionParamsTag,-1);
 		if  ( (i != vizNum)  &&((!rgParams)||!rgParams->IsLocal())){
 			VizWindow[i]->updateGL();
 		}
@@ -548,7 +548,7 @@ void VizWinMgr::refreshViewpoint(ViewpointParams* vParams){
 	if (vParams->IsLocal()) return;
 	for (int i = 0; i< VizWindow.size(); i++){
 		if (!VizWindow[i]) continue;
-		ViewpointParams* vpParams = (ViewpointParams*)ControlExecutive::getInstance()->GetParams(i,Params::_viewpointParamsTag,-1);
+		ViewpointParams* vpParams = (ViewpointParams*)ControlExec::GetParams(i,Params::_viewpointParamsTag,-1);
 		if  ( (i != vizNum)  &&
 				((!vpParams)||!vpParams->IsLocal())
 			){
@@ -578,7 +578,7 @@ resetViews(ViewpointParams* vp){
 	if(vp->IsLocal()) return;
 	for (int i = 0; i< VizWindow.size(); i++){
 		if (!VizWindow[i]) continue;
-		Params* vpParams = (ViewpointParams*)ControlExecutive::getInstance()->GetParams(i,Params::_viewpointParamsTag, -1);
+		Params* vpParams = (ViewpointParams*)ControlExec::GetParams(i,Params::_viewpointParamsTag, -1);
 		if  ( (i != vizNum)  && ((!vpParams)||!vpParams->IsLocal())){
 			Visualizer* glw = VizWindow[i]->getVisualizer();
 			if(glw) glw->resetView(vp);
@@ -626,22 +626,22 @@ setVpLocalGlobal(int val){
 	//Switch local and global Trackball as appropriate
 	//If changes  to global, just revert to global panel.
 	//If changes to local, may need to create a new local panel
-	ControlExecutive* ce = ControlExecutive::getInstance();
+	
 	if (val == 0){//toGlobal.  
 		//First set the global status, 
 		//then put  values in tab based on global settings.
 		//Note that updateDialog will trigger events changing values
 		//on the current dialog
-		getViewpointRouter()->guiSetLocal((ViewpointParams*)ce->GetParams(activeViz,Params::_viewpointParamsTag,-1),false);
+		getViewpointRouter()->guiSetLocal((ViewpointParams*)ControlExec::GetParams(activeViz,Params::_viewpointParamsTag,-1),false);
 		getViewpointRouter()->updateTab();
 	
 		VizWindow[activeViz]->setGlobalViewpoint(true);
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
-		ViewpointParams* vpParams = (ViewpointParams*)ce->GetParams(activeViz,Params::_viewpointParamsTag, -1);
+		ViewpointParams* vpParams = (ViewpointParams*)ControlExec::GetParams(activeViz,Params::_viewpointParamsTag, -1);
 		if (!vpParams){
 			//create a new parameter panel, copied from global
-			vpParams = (ViewpointParams*)ce->GetDefaultParams(Params::_viewpointParamsTag)->deepCopy();
+			vpParams = (ViewpointParams*)ControlExec::GetDefaultParams(Params::_viewpointParamsTag)->deepCopy();
 			vpParams->SetVizNum(activeViz);
 			getViewpointRouter()->guiSetLocal(vpParams,true);
 			//No need to refresh anything, since the new parameters are same as old! 
@@ -715,7 +715,7 @@ void VizWinMgr::
 initViews(){
 	for (int i = 0; i< VizWindow.size(); i++){
 		if (VizWindow[i]) {
-			ViewpointParams* vpParams = (ViewpointParams*)ControlExecutive::getInstance()->GetCurrentParams(i,Params::_viewpointParamsTag);
+			ViewpointParams* vpParams = (ViewpointParams*)ControlExec::GetCurrentParams(i,Params::_viewpointParamsTag);
 			if (vpParams->IsLocal()){
 				VizWindow[i]->setValuesFromGui(vpParams);
 			}
@@ -726,10 +726,10 @@ initViews(){
 
 //Force all renderers to re-obtain render data
 void VizWinMgr::refreshRenderData(){
-	ControlExecutive* ce = ControlExecutive::getInstance();
-	for (int i = 0; i<ce->GetNumVisualizers(); i++){
 	
-		Visualizer* viz= ce->GetVisualizer(i);
+	for (int i = 0; i<ControlExec::GetNumVisualizers(); i++){
+	
+		Visualizer* viz= ControlExec::GetVisualizer(i);
 		for (int j = 0; j< viz->getNumRenderers(); j++){
 			Renderer* ren = viz->getRenderer(j);
 			ren->setAllDataDirty();
@@ -741,9 +741,9 @@ void VizWinMgr::refreshRenderData(){
 //
 //Disable all renderers that use specified variables
 void VizWinMgr::disableRenderers(const vector<string>& vars2D, const vector<string>& vars3D){
-	ControlExecutive* ce = ControlExecutive::getInstance();
-	for (int i = 0; i<ce->GetNumVisualizers(); i++){
-		Visualizer* viz = ce->GetVisualizer(i);
+	
+	for (int i = 0; i<ControlExec::GetNumVisualizers(); i++){
+		Visualizer* viz = ControlExec::GetVisualizer(i);
 		int numRens = viz->getNumRenderers();
 		for (int j = numRens-1; j >= 0; j--){
 			Renderer* ren = viz->getRenderer(j);
@@ -751,7 +751,7 @@ void VizWinMgr::disableRenderers(const vector<string>& vars2D, const vector<stri
 			for (int k = 0; k<vars2D.size(); k++){
 				if(rParams->usingVariable(vars2D[k])){
 					Params::ParamsBaseType t = rParams->GetParamsBaseTypeId();
-					int instance = ce->FindInstanceIndex(i, rParams);
+					int instance = ControlExec::FindInstanceIndex(i, rParams);
 					EventRouter* er = getEventRouter(t);
 					er->guiSetEnabled(false,instance, false);
 				}
@@ -759,7 +759,7 @@ void VizWinMgr::disableRenderers(const vector<string>& vars2D, const vector<stri
 			for (int k = 0; k<vars3D.size(); k++){
 				if(rParams->usingVariable(vars3D[k])){
 					Params::ParamsBaseType t = rParams->GetParamsBaseTypeId();
-					int instance = ce->FindInstanceIndex(i, rParams);
+					int instance = ControlExec::FindInstanceIndex(i, rParams);
 					EventRouter* er = getEventRouter(t);
 					er->guiSetEnabled(false,instance, false);
 				}
@@ -769,17 +769,17 @@ void VizWinMgr::disableRenderers(const vector<string>& vars2D, const vector<stri
 }
 //Disable all renderers 
 void VizWinMgr::disableAllRenderers(){
-	ControlExecutive* ce = ControlExecutive::getInstance();
-	int numViz = ce->GetNumVisualizers();
+	
+	int numViz = ControlExec::GetNumVisualizers();
 	for (int i = 0; i<numViz; i++){
-		Visualizer* viz = ce->GetVisualizer(i);
+		Visualizer* viz = ControlExec::GetVisualizer(i);
 		viz->removeAllRenderers();
 	}
 }
 
 	
 Params::ParamsBaseType VizWinMgr::RegisterEventRouter(const std::string tag, EventRouter* router){
-	Params::ParamsBaseType t = ControlExecutive::getInstance()->GetTypeFromTag(tag);
+	Params::ParamsBaseType t = ControlExec::GetTypeFromTag(tag);
 	if (t <= 0) return 0;
 	eventRouterMap.insert(pair<int,EventRouter*>(t,router));
 	return t;
@@ -824,22 +824,22 @@ void VizWinMgr::forceRender(const Params* p, bool always){
 }
 
 int VizWinMgr::getActiveViz() {
-	return ControlExecutive::getInstance()->GetActiveVizIndex();
+	return ControlExec::GetActiveVizIndex();
 }
 ViewpointParams* VizWinMgr::getViewpointParams(int winNum){
-	return (ViewpointParams*)ControlExecutive::getInstance()->GetCurrentParams(winNum,Params::_viewpointParamsTag);
+	return (ViewpointParams*)ControlExec::GetCurrentParams(winNum,Params::_viewpointParamsTag);
 }
 RegionParams*  VizWinMgr::getRegionParams(int winNum){
-	return (RegionParams*)ControlExecutive::getInstance()->GetCurrentParams(winNum,Params::_regionParamsTag);
+	return (RegionParams*)ControlExec::GetCurrentParams(winNum,Params::_regionParamsTag);
 }
 AnimationParams*  VizWinMgr::getAnimationParams(int winNum){
-	return (AnimationParams*)ControlExecutive::getInstance()->GetCurrentParams(winNum,Params::_animationParamsTag);
+	return (AnimationParams*)ControlExec::GetCurrentParams(winNum,Params::_animationParamsTag);
 }
 
-ViewpointParams* VizWinMgr::getGlobalVPParams(){return (ViewpointParams*)(ControlExecutive::getInstance()->GetDefaultParams(Params::_viewpointParamsTag));}
+ViewpointParams* VizWinMgr::getGlobalVPParams(){return (ViewpointParams*)(ControlExec::GetDefaultParams(Params::_viewpointParamsTag));}
 RegionParams* VizWinMgr::getGlobalRegionParams(){
-	return (RegionParams*)(ControlExecutive::getInstance()->GetDefaultParams(Params::_regionParamsTag));
+	return (RegionParams*)(ControlExec::GetDefaultParams(Params::_regionParamsTag));
 }
 AnimationParams* VizWinMgr::getGlobalAnimationParams(){
-	return (AnimationParams*)(ControlExecutive::getInstance()->GetDefaultParams(Params::_animationParamsTag));
+	return (AnimationParams*)(ControlExec::GetDefaultParams(Params::_animationParamsTag));
 }

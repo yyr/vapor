@@ -50,7 +50,7 @@ using namespace VAPoR;
 
 ViewpointEventRouter::ViewpointEventRouter(QWidget* parent ): QWidget(parent), Ui_VizTab(), EventRouter(){
 	setupUi(this);
-	myParamsBaseType = ControlExecutive::getInstance()->GetTypeFromTag(Params::_viewpointParamsTag);
+	myParamsBaseType = ControlExec::GetTypeFromTag(Params::_viewpointParamsTag);
 	
 	panChanged = false;
 	savedCommand = 0;
@@ -162,7 +162,7 @@ setVtabTextChanged(const QString& ){
 void ViewpointEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
 	if (!DataStatus::getInstance()->getDataMgr()) return;
-	ViewpointParams* vParams = (ViewpointParams*)ControlExecutive::getInstance()->GetActiveParams(Params::_viewpointParamsTag);
+	ViewpointParams* vParams = (ViewpointParams*)ControlExec::GetActiveParams(Params::_viewpointParamsTag);
 	
 	Command* cmd = Command::CaptureStart(vParams,"viewpoint text change");
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
@@ -334,7 +334,7 @@ void ViewpointEventRouter::
 guiCenterSubRegion(RegionParams* rParams){
 	
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	ViewpointParams* vpParams = (ViewpointParams*)ControlExecutive::getInstance()->GetActiveParams(Params::_viewpointParamsTag);
+	ViewpointParams* vpParams = (ViewpointParams*)ControlExec::GetActiveParams(Params::_viewpointParamsTag);
 	//Find the largest of the dimensions of the current region, projected orthogonal to view
 	//direction:
 	//Make sure the viewDir is normalized:
@@ -395,7 +395,7 @@ guiCenterSubRegion(RegionParams* rParams){
 void ViewpointEventRouter::
 guiCenterFullRegion(RegionParams* rParams){
 	
-	ViewpointParams* vpParams = (ViewpointParams*)ControlExecutive::getInstance()->GetActiveParams(Params::_viewpointParamsTag);
+	ViewpointParams* vpParams = (ViewpointParams*)ControlExec::GetActiveParams(Params::_viewpointParamsTag);
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	vpParams->centerFullRegion(timestep);
 	//modify near/far distance as needed:
@@ -416,7 +416,7 @@ guiAlignView(int axis){
 	
 	vector<double>vdir(3,0.);
 	vector<double>up(3,0.);
-	ViewpointParams* vpParams = (ViewpointParams*)ControlExecutive::getInstance()->GetActiveParams(Params::_viewpointParamsTag);
+	ViewpointParams* vpParams = (ViewpointParams*)ControlExec::GetActiveParams(Params::_viewpointParamsTag);
 	if (axis == 1) {  //Special case to align to closest axis.
 		//determine the closest view direction and up vector to the current viewpoint.
 		//Check the dot product with all axes
@@ -496,7 +496,7 @@ void ViewpointEventRouter::
 guiSetCenter(const double* coords){
 	double vdir[3];
 	vector<double> nvdir;
-	ViewpointParams* vpParams = (ViewpointParams*)ControlExecutive::getInstance()->GetActiveParams(Params::_viewpointParamsTag);
+	ViewpointParams* vpParams = (ViewpointParams*)ControlExec::GetActiveParams(Params::_viewpointParamsTag);
 	const double* stretch = DataStatus::getInstance()->getStretchFactors();
 
 
@@ -528,7 +528,7 @@ guiSetCenter(const double* coords){
 
 void ViewpointEventRouter::
 setHomeViewpoint(){
-	ViewpointParams* vpParams = (ViewpointParams*)ControlExecutive::getInstance()->GetActiveParams(Params::_viewpointParamsTag);
+	ViewpointParams* vpParams = (ViewpointParams*)ControlExec::GetActiveParams(Params::_viewpointParamsTag);
 	vpParams->setCurrentVPToHome();
 	updateTab();
 	updateRenderer(vpParams,false,-1,false);
@@ -536,7 +536,7 @@ setHomeViewpoint(){
 }
 void ViewpointEventRouter::
 useHomeViewpoint(){
-	ViewpointParams* vpParams = (ViewpointParams*)ControlExecutive::getInstance()->GetActiveParams(Params::_viewpointParamsTag);
+	ViewpointParams* vpParams = (ViewpointParams*)ControlExec::GetActiveParams(Params::_viewpointParamsTag);
 	
 	Viewpoint* homeViewpoint = vpParams->getHomeViewpoint();
 	vpParams->setCurrentViewpoint(new Viewpoint(*homeViewpoint));
@@ -598,7 +598,7 @@ void ViewpointEventRouter::
 captureMouseDown(int button){
 	//If text has changed, will ignore it-- don't call confirmText()!
 	//
-	ViewpointParams* vpParams = (ViewpointParams*)ControlExecutive::getInstance()->GetActiveParams(Params::_viewpointParamsTag);
+	ViewpointParams* vpParams = (ViewpointParams*)ControlExec::GetActiveParams(Params::_viewpointParamsTag);
 	guiSetTextChanged(false);
 	
 	if (savedCommand) delete savedCommand;

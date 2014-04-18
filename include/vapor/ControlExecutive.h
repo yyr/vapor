@@ -1,5 +1,5 @@
 
-#ifndef ControlExecutive_h
+#ifndef ControlExec_h
 
 #include <string>
 #include <vector>
@@ -18,22 +18,22 @@ class Command;
 
 
 
-//! \class ControlExecutive
+//! \class ControlExec
 //!
 //! \brief Provides API for VAPOR visualizer User Interfaces (UIs)
 //
 
-class RENDER_API ControlExecutive {
+class RENDER_API ControlExec {
 public:
 	//! Initialize the control executive
 	//!
 	//! \note what, if any, arguments are needed?
-	ControlExecutive();
-	~ControlExecutive();
+	ControlExec();
+	~ControlExec();
 
-	//! Obtain the singleton ControlExecutive object
-	static ControlExecutive* getInstance(){
-		if (!controlExecutive) controlExecutive = new ControlExecutive();
+	//! Obtain the singleton ControlExec object
+	static ControlExec* getInstance(){
+		if (!controlExecutive) controlExecutive = new ControlExec();
 		return controlExecutive;
 	}
 
@@ -55,12 +55,12 @@ public:
 	//! by UI. For example, who calls swapbuffers?
 	//!
 	//! \note Since the UI is responsible for setting up the graphics 
-	//! contexts we may need a method that allows the ControlExecutive 
+	//! contexts we may need a method that allows the ControlExec 
 	//! to provide
 	//! hints about what kind of graphics context is needed 
 	//! (e.g. double buffering)
 	//
-	int NewVisualizer(/*oglinfo_c oglinfo*/);
+	static int NewVisualizer(/*oglinfo_c oglinfo*/);
 
 	//! Perform OpenGL initialization of specified visualizer
 	//!
@@ -72,7 +72,7 @@ public:
 	//! The UI should make the OGL context associated with \p viz
 	//! current prior to calling this method.
 	//
-	void InitializeViz(int viz, int width, int height);
+	static void InitializeViz(int viz, int width, int height);
 
 	//! Notify the control executive that a drawing object has
 	//! changed size.
@@ -86,7 +86,7 @@ public:
 	//! The UI should make the OGL context associated with \p viz
 	//! current prior to calling this method.
 	//
-	void ResizeViz(int viz, int width, int height);
+	static void ResizeViz(int viz, int width, int height);
 
 	//! Render the contents of a drawable
 	//!
@@ -106,7 +106,7 @@ public:
 	//! \return rc is 0 if actual painting occurred, -1 if not.
 	//!
 	//!
-	int Paint(int viz, bool force=false);
+	static int Paint(int viz, bool force=false);
 
 
 	//! Activate or Deactivate a renderer
@@ -126,7 +126,7 @@ public:
 	//! \return status A negative int is returned on failure, indicating that
 	//! the renderer cannot be activated
 	//
-	int ActivateRender(int viz, std::string type, int instance, bool on);
+	static int ActivateRender(int viz, std::string type, int instance, bool on);
 
 	//! Get a pointer to the existing parameter state information 
 	//!
@@ -153,7 +153,7 @@ public:
 	//! interest in change of *any* parameter if that proves to be useful.
 	//! 
 	//
-	Params* GetParams(int viz, string type, int instance);
+	static Params* GetParams(int viz, string type, int instance);
 
 	//! Specify the Params instance for a particular visualizer, instance index, and Params type
 	//! This can be used to replace the current Params instance using a new Params pointer.
@@ -169,7 +169,7 @@ public:
 	//! \return int is zero if successful
 	//!
 	//
-	int SetParams(int viz, string type, int instance, Params* p);
+	static int SetParams(int viz, string type, int instance, Params* p);
 
 	//! Delete a RenderParams instance for a particular visualizer, instance index, and Params type
 	//! The specified instance must previously have been de-activated.
@@ -185,7 +185,7 @@ public:
 	//!
 	//! \sa ActivateRender
 	//
-	int RemoveParams(int viz, string type, int instance);
+	static int RemoveParams(int viz, string type, int instance);
 
 	//! Add a new Params instance to the set of instances for a particular
 	//! visualizer and type.  
@@ -193,7 +193,7 @@ public:
 	//! \param[in] type The type of the Params instance
 	//! \param[in] p The instance to be added.
 	//! \retval zero if successful.
-	int AddParams(int viz, string type, Params* p);
+	static int AddParams(int viz, string type, Params* p);
 
 	//! Determine the instance index associated with a particular RenderParams instance
 	//! in a specified visualizer
@@ -201,7 +201,7 @@ public:
 	//! \param[in] viz The visualizer index.
 	//! \param[in] p The RenderParams whose index is sought
 	//! \return instance index, or -1 if it is not found.
-	int FindInstanceIndex(int viz, RenderParams* p);
+	static int FindInstanceIndex(int viz, RenderParams* p);
 
 	//! Determine how many instances of a given renderer type are present
 	//! in a visualizer.  Necessary for setting up a UI.
@@ -210,7 +210,7 @@ public:
 	//! \return number of instances 
 	//!
 
-	int GetNumParamsInstances(int viz, string type);
+	static int GetNumParamsInstances(int viz, string type);
 
 	//! Determine how many different Params classes are available.
 	//! These include the Params classes associated with tabs in the GUI
@@ -219,7 +219,7 @@ public:
 	//! \return number of classes
 	//!
 
-	int GetNumParamsClasses();
+	static int GetNumParamsClasses();
 
 	//! Determine how many different Params classes are available
 	//! to be associated with tabs in the GUI.
@@ -228,12 +228,12 @@ public:
 	//! \return number of classes
 	//!
 
-	int GetNumTabParamsClasses();
+	static int GetNumTabParamsClasses();
 
 	//! Determine the short name associated with a Params type
 	//! \param[in] tag of the params type
 	//! \return short name, e.g. for tab
-	const std::string GetShortName(string& typetag);
+	static const std::string GetShortName(string& typetag);
 
 	//! Specify that a particular instance of a RenderParams is current
 	//! \param[in] viz A valid visualizer handle
@@ -241,38 +241,38 @@ public:
 	//! \param[in] instance The instance index that will become current.
 	//! \return zero if successful.
 	//!
-	int SetCurrentRenderParamsInstance(int viz, string type, int instance);
+	static int SetCurrentRenderParamsInstance(int viz, string type, int instance);
 
 	//! Identify the current instance of a RenderParams 
 	//! \param[in] viz A valid visualizer handle
 	//! \param[in] type The type of RenderParams
 	//! \return The instance index that is current in this visualizer
 	//!
-	int GetCurrentRenderParamsInstance(int viz, string type);
+	static int GetCurrentRenderParamsInstance(int viz, string type);
 
 	//! Convert a ParamsBase typeId to a tag
 	//! \param[in] typeId ParamsBaseTypeId to be converted.
 	//! \retval tag XML tag associated with the ParamsBase Type
 	//! \sa ParamsBase::ParamsBaseTypeId
-	string GetTagFromType(int typeId);
+	static const string GetTagFromType(int typeId);
 
 	//! Convert a tag to a typeId
 	//! \param[in] tag XML tag to be converted
 	//! \retval typeId ParamsBaseTypeId associated with the tag
 	//! \sa ParamsBase::ParamsBaseTypeId
-	int GetTypeFromTag(std::string type);
+	static int GetTypeFromTag(const std::string type);
 
 	//! Obtain the Params instance that is currently active in the specified visualizer
 	//! \param[in] viz A valid visualizer handle
 	//! \param[in] type The type of Params
 	//! \retval The current active Params, or NULL if invalid.
-	Params* GetCurrentParams(int viz, string type);
+	static Params* GetCurrentParams(int viz, string type);
 
 	//! Obtain the Params instance that is currently active in the active visualizer
 	//! If no visualizer is active it returns the default params.
 	//! \param[in] type The type of Params
 	//! \retval The current active Params, or NULL if invalid.
-	Params* GetActiveParams(string type){
+	static Params* GetActiveParams(string type){
 		return GetCurrentParams(activeViz,type);
 	}
 
@@ -280,13 +280,13 @@ public:
 	//! With non-render params this is the global Params instance.
 	//! \param[in] type tag associated with the params
 	//! \retval Pointer to specified Params instance
-	Params* GetDefaultParams(string type);
+	static Params* GetDefaultParams(string type);
 
 	//! Determine how many visualizer windows are present
 	//! \return number of visualizers 
 	//!
 
-	int GetNumVisualizers(){
+	static int GetNumVisualizers(){
 		return (int)visualizers.size();
 	}
 	//! obtain an existing visualizer
@@ -294,7 +294,7 @@ public:
 	//! \return pointer to specified visualizer 
 	//!
 
-	Visualizer* GetVisualizer(int viz){
+	static Visualizer* GetVisualizer(int viz){
 		return visualizers[viz];
 	}
 
@@ -302,13 +302,13 @@ public:
 	//! When using a GUI this is the index of the selected visualizer
 	//! and is established by calling SetActiveViz()
 	//! \return index of the current active visualizer
-	int GetActiveVizIndex(){ return activeViz;}
+	static int GetActiveVizIndex(){return activeViz;}
 
 	//! Set the active visualizer
 	//! GUI uses this method whenever user clicks on a window.
 	//! \sa GetActiveVizIndex();
 	//! \param[in] index of the current active visualizer
-	void SetActiveVizIndex(int index){ activeViz=index;}
+	static void SetActiveVizIndex(int index){ activeViz=index;}
 
 	//! Save the current session state to a file
 	//!
@@ -324,7 +324,7 @@ public:
 	//!
 	//! \sa RestoreSession()
 	//
-	int SaveSession(string file);
+	static int SaveSession(string file);
 
 	//!	Restore the session state from a session state file
 	//!
@@ -345,7 +345,7 @@ public:
 	//! \sa LoadData(), GetRenderParams(), etc.
 	//! \sa SaveSession()
 	//
-	int RestoreSession(string file);
+	static int RestoreSession(string file);
 
 	//! Load a data set into the current session
 	//!
@@ -394,7 +394,7 @@ public:
 	//! \param[in] size Font size in points
 	//! \param[in] text The text to render
 	//
-	int DrawText(int viz, int x, int y, string font, int size, string text);
+	static int DrawText(int viz, int x, int y, string font, int size, string text);
 
 	//! Undo the last session state change
 	//! Restores the state of the session to what it was prior to the
@@ -456,9 +456,9 @@ public:
 	//! If this is called concurrently with a call to Paint(), the
 	//! image will not be captured until that rendering completes
 	//! and another Paint() is initiated.
-	int EnableCapture(string filename, int viz);
+	static int EnableCapture(string filename, int viz);
 
-	//! Specify an error handler that the ControlExecutive will use
+	//! Specify an error handler that the ControlExec will use
 	//! to notify of asynchronous error conditions that arise.
 	//!
 	//! \note Not yet implemented
@@ -468,7 +468,7 @@ public:
 	//! A string description and a numerical error code.
 	//! Only one ErrorHandler can be set.
 	//! If none is set, no errors will be reported to the UI.
-	int SetErrorHandler(ErrorHandler* handler);
+	static int SetErrorHandler(ErrorHandler* handler);
 
 	//! Verify that a Params instance is in a valid state
 	//! Used to handle synchronous error checking,
@@ -478,7 +478,7 @@ public:
 	//!
 	//! \param[in] p pointer to Params instance being checked
 	//! \return status nonzero indicates error
-	int ValidateParams(Params* p);
+	static int ValidateParams(Params* p);
 
 	private:
 		//! At startup, create the initial Params instances:
@@ -487,10 +487,10 @@ public:
 		void reinitializeParams(bool doOverride);
 		//! delete all the Params instances and clean out the Undo/Redo queue e.g. before a session change
 		void destroyParams();
-		vector<Visualizer*> visualizers;
+		static vector<Visualizer*> visualizers;
 		DataMgr* dataMgr;
-		static ControlExecutive* controlExecutive;
-		int activeViz;
+		static ControlExec* controlExecutive;
+		static int activeViz;
 };
 };
-#endif //ControlExecutive_h
+#endif //ControlExec_h

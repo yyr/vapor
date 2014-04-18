@@ -71,19 +71,19 @@ void InstanceTable::rebuild(EventRouter* myRouter){
 	
 	int numInsts = 1;
 	//All instance info is in CE
-	ControlExecutive* ce = ControlExecutive::getInstance();
-	int winnum = ce->GetActiveVizIndex();
+	
+	int winnum = ControlExec::GetActiveVizIndex();
 	if (winnum < 0) return;
 	VAPoR::Params::ParamsBaseType renderBaseType = myRouter->getParamsBaseType();
-	string type = ce->GetTagFromType(renderBaseType);
-	numInsts = ce->GetNumParamsInstances(winnum,type);
+	string type = ControlExec::GetTagFromType(renderBaseType);
+	numInsts = ControlExec::GetNumParamsInstances(winnum,type);
 
 	//create items as needed
 	//Also insert labels in first column
 	if(rowCount() != numInsts) setRowCount(numInsts);
 	
 	for (int r = 0; r<numInsts; r++){
-		RenderParams* rParams = (RenderParams*)ce->GetParams(winnum,type,r);
+		RenderParams* rParams = (RenderParams*)ControlExec::GetParams(winnum,type,r);
 		bool isEnabled = rParams->IsEnabled();
 		if (!item(r,0)) {  //need to create new items..
 
@@ -104,8 +104,8 @@ void InstanceTable::rebuild(EventRouter* myRouter){
 		}
 		
 	}
-	if(selectedInstance != ce->GetCurrentRenderParamsInstance(winnum,type)){
-		selectedInstance = ce->GetCurrentRenderParamsInstance(winnum,type);
+	if(selectedInstance != ControlExec::GetCurrentRenderParamsInstance(winnum,type)){
+		selectedInstance = ControlExec::GetCurrentRenderParamsInstance(winnum,type);
 		selectRow(selectedInstance);
 	}
 	

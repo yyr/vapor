@@ -2,7 +2,7 @@
 //All such extension classes must be derived from ParamsBase
 //These can include Params classes, as well as components such as TransferFunctions
 //
-//The InstallExtension method installs the extension classes and  (invoked by ControlExecutive).
+//The InstallExtension method installs the extension classes and  (invoked by ControlExec).
 
 #include "../lib/params/arrowparams.h"
 #include "../lib/params/viewpoint.h"

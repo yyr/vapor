@@ -1,6 +1,6 @@
-//-- ControlExecutive.cpp ----------------------------------------------------------------
+//-- ControlExec.cpp ----------------------------------------------------------------
 //
-// Implementation of ControlExecutive methods
+// Implementation of ControlExec methods
 //----------------------------------------------------------------------------
 
 #include "vapor/ControlExecutive.h"
@@ -18,13 +18,14 @@
 #include "command.h"
 
 using namespace VAPoR;
-ControlExecutive* ControlExecutive::controlExecutive = 0;
+ControlExec* ControlExec::controlExecutive = 0;
+std::vector<Visualizer*> ControlExec::visualizers;
+int ControlExec::activeViz = -1;
 
-ControlExecutive::ControlExecutive(){
+ControlExec::ControlExec(){
 	createAllDefaultParams();
-	activeViz = 0;
 }
-ControlExecutive::~ControlExecutive(){
+ControlExec::~ControlExec(){
 	destroyParams();
 	Command::resetCommandQueue();
 }
@@ -47,12 +48,12 @@ ControlExecutive::~ControlExecutive(){
 	//! by UI. For example, who calls swapbuffers?
 	//!
 	//! \note Since the UI is responsible for setting up the graphics 
-	//! contexts we may need a method that allows the ControlExecutive 
+	//! contexts we may need a method that allows the ControlExec 
 	//! to provide
 	//! hints about what kind of graphics context is needed 
 	//! (e.g. double buffering)
 	//
-int ControlExecutive::NewVisualizer(){
+int ControlExec::NewVisualizer(){
 	int numviz = visualizers.size();
 	Visualizer* viz = new Visualizer(numviz);
 	visualizers.push_back(viz);
@@ -70,7 +71,7 @@ int ControlExecutive::NewVisualizer(){
 	//! current prior to calling this method.
 	//
 
-void ControlExecutive::InitializeViz(int viz, int width, int height){
+void ControlExec::InitializeViz(int viz, int width, int height){
 	Visualizer* v = visualizers[viz];
 	v->initializeGL();
 }
@@ -87,7 +88,7 @@ void ControlExecutive::InitializeViz(int viz, int width, int height){
 	//! The UI should make the OGL context associated with \p viz
 	//! current prior to calling this method.
 	//
-void ControlExecutive::ResizeViz(int viz, int width, int height){
+void ControlExec::ResizeViz(int viz, int width, int height){
 	Visualizer* v = visualizers[viz];
 	v->resizeGL(width, height);
 }
@@ -109,7 +110,7 @@ void ControlExecutive::ResizeViz(int viz, int width, int height){
 	//! on this visualizer have changed state.
 	//!
 	//!
-int ControlExecutive::Paint(int viz, bool force){
+int ControlExec::Paint(int viz, bool force){
 	Visualizer* v = visualizers[viz];
 	if (!v) return -1;
 	return v->paintEvent(force);
@@ -121,7 +122,7 @@ int ControlExecutive::Paint(int viz, bool force){
 	//! \return status A negative int is returned on failure, indicating that
 	//! the renderer cannot be (de)activated
 	//
-int ControlExecutive::ActivateRender(int viz, string type, int instance, bool on){
+int ControlExec::ActivateRender(int viz, string type, int instance, bool on){
 	int numInsts = Params::GetNumParamsInstances(type,viz);
 	if (numInsts < instance) return -1;
 	RenderParams* p = (RenderParams*)Params::GetParamsInstance(type,viz,instance);
@@ -141,13 +142,13 @@ int ControlExecutive::ActivateRender(int viz, string type, int instance, bool on
 }
 
 	
-Params* ControlExecutive::GetParams(int viz, string type, int instance){
+Params* ControlExec::GetParams(int viz, string type, int instance){
 	Params* p = Params::GetParamsInstance(type,viz,instance);
 	int inst = p->GetInstanceIndex();
 	if (instance >= 0) assert (inst == instance);
 	return Params::GetParamsInstance(type,viz,instance);
 }
-int ControlExecutive::SetCurrentRenderParamsInstance(int viz, string typetag, int instance){
+int ControlExec::SetCurrentRenderParamsInstance(int viz, string typetag, int instance){
 	if (viz < 0 || viz >= visualizers.size()) return -1;
 	if (instance < 0 || instance >= GetNumParamsInstances(viz,typetag)) return -1;
 	int ptype = Params::GetTypeFromTag(typetag);
@@ -155,34 +156,34 @@ int ControlExecutive::SetCurrentRenderParamsInstance(int viz, string typetag, in
 	Params::SetCurrentParamsInstanceIndex(ptype,viz,instance);
 	return 0;
 }
-int ControlExecutive::GetCurrentRenderParamsInstance(int viz, string typetag){
+int ControlExec::GetCurrentRenderParamsInstance(int viz, string typetag){
 	if (viz < 0 || viz >= visualizers.size()) return -1;
 	int ptype = Params::GetTypeFromTag(typetag);
 	if (ptype <= 0) return -1;
 	return Params::GetCurrentParamsInstanceIndex(ptype,viz);
 }
 
-Params* ControlExecutive::GetCurrentParams(int viz, string typetag){
+Params* ControlExec::GetCurrentParams(int viz, string typetag){
 	
 	int ptype = Params::GetTypeFromTag(typetag);
 	if (ptype <= 0) return 0;
 	return Params::GetCurrentParamsInstance(ptype,viz);
 }
-int ControlExecutive::AddParams(int viz, string type, Params* p){
+int ControlExec::AddParams(int viz, string type, Params* p){
 	if (viz < 0 || viz >= visualizers.size()) return -1;
 	int ptype = Params::GetTypeFromTag(type);
 	if (ptype <= 0) return -1;
 	Params::AppendParamsInstance(ptype,viz,p);
 	return 0;
 }
-int ControlExecutive::RemoveParams(int viz, string type, int instance){
+int ControlExec::RemoveParams(int viz, string type, int instance){
 	if (viz < 0 || viz >= visualizers.size()) return -1;
 	int ptype = Params::GetTypeFromTag(type);
 	if (ptype <= 0) return -1;
 	Params::RemoveParamsInstance(ptype,viz,instance);
 	return 0;
 }
-int ControlExecutive::FindInstanceIndex(int viz, RenderParams* p){
+int ControlExec::FindInstanceIndex(int viz, RenderParams* p){
 	if (viz < 0 || viz >= visualizers.size()) return -1;
 	ParamsBase::ParamsBaseType t = p->GetParamsBaseTypeId();
 	for (int i = 0; i< Params::GetNumParamsInstances(t,viz); i++){
@@ -190,13 +191,13 @@ int ControlExecutive::FindInstanceIndex(int viz, RenderParams* p){
 	}
 	return -1;
 }
-ParamsBase::ParamsBaseType ControlExecutive::GetTypeFromTag(string tag){
+ParamsBase::ParamsBaseType ControlExec::GetTypeFromTag(const string tag){
 	return ParamsBase::GetTypeFromTag(tag);
 }
-std::string ControlExecutive::GetTagFromType(ParamsBase::ParamsBaseType t){
+const std::string ControlExec::GetTagFromType(ParamsBase::ParamsBaseType t){
 	return ParamsBase::GetTagFromType(t);
 }
-Params* ControlExecutive::GetDefaultParams(string type){
+Params* ControlExec::GetDefaultParams(string type){
 		return Params::GetDefaultParams(type);
 }
 int SetParams(int viz, string type, int instance, Params* p){
@@ -224,7 +225,7 @@ int SetParams(int viz, string type, int instance, Params* p){
 	//! \return number of instances 
 	//!
 
-int ControlExecutive::GetNumParamsInstances(int viz, string type){
+int ControlExec::GetNumParamsInstances(int viz, string type){
 	return Params::GetNumParamsInstances(type,viz);
 }
 
@@ -240,7 +241,7 @@ int ControlExecutive::GetNumParamsInstances(int viz, string type){
 	//!
 	//! \sa RestoreSession()
 	//
-int ControlExecutive::SaveSession(string file){return 0;}
+int ControlExec::SaveSession(string file){return 0;}
 
 	//!	Restore the session state from a session state file
 	//!
@@ -259,7 +260,7 @@ int ControlExecutive::SaveSession(string file){return 0;}
 	//! \sa LoadData(), GetRenderParams(), etc.
 	//! \sa SaveSession()
 	//
-int ControlExecutive::RestoreSession(string file){return 0;}
+int ControlExec::RestoreSession(string file){return 0;}
 
 	//! Load a data set into the current session
 	//!
@@ -289,7 +290,7 @@ int ControlExecutive::RestoreSession(string file){return 0;}
 	//! \note (AN) It would be much better to incorporate the DataStatus methods into
 	//! the DataMgr class, rather than keeping them separate.
 	//
-const DataMgr *ControlExecutive::LoadData(vector <string> files, bool dflt){
+const DataMgr *ControlExec::LoadData(vector <string> files, bool dflt){
 	int cacheMB = 2000;
 	dataMgr = DataMgrFactory::New(files, cacheMB);
 	if (!dataMgr) return dataMgr;
@@ -317,7 +318,7 @@ const DataMgr *ControlExecutive::LoadData(vector <string> files, bool dflt){
 	//! \param[in] size Font size in points
 	//! \param[in] text The text to render
 	//
-int ControlExecutive::DrawText(int viz, int x, int y, string font, int size, string text){return 0;}
+int ControlExec::DrawText(int viz, int x, int y, string font, int size, string text){return 0;}
 
 	//! Identify the changes in the undo/Redo queue
 	//! Returns the text associated with a change in the undo/redo queue.
@@ -327,7 +328,7 @@ int ControlExecutive::DrawText(int viz, int x, int y, string font, int size, str
 	//! The null string is returned if there is no entry corresponding to n. 
 	//! \return descriptive text \p string associated with the specified command.
 	//
-string ControlExecutive::GetCommandText(int n){
+string ControlExec::GetCommandText(int n){
 	Command* cmd = Command::CurrentCommand(n);
 	if (!cmd) return *(new string(""));
 	return cmd->getDescription();
@@ -344,26 +345,26 @@ string ControlExecutive::GetCommandText(int n){
 	//! If this is called concurrently with a call to Paint(), the
 	//! image will not be captured until that rendering completes
 	//! and another Paint() is initiated.
-	int ControlExecutive::EnableCapture(string filename, int viz){return 0;}
+	int ControlExec::EnableCapture(string filename, int viz){return 0;}
 
-	//! Specify an error handler that the ControlExecutive will use
+	//! Specify an error handler that the ControlExec will use
 	//! to notify of asynchronous error conditions that arise.
 	//! The ErrorHandler class will have methods for
 	//! Setting, clearing error state, which will support 
 	//! A string description and a numerical error code.
 	//! Only one ErrorHandler can be set.
 	//! If none is set, no errors will be reported to the UI.
-int ControlExecutive::SetErrorHandler(ErrorHandler* handler){return 0;}
+int ControlExec::SetErrorHandler(ErrorHandler* handler){return 0;}
 
 	//! Verify that a Params instance is in a valid state
 	//! Used to handle synchronous error checking,
 	//! E.g. checking user input parameters.
 	//! \param[in] p pointer to Params instance being checked
 	//! \return status nonzero indicates error
-int ControlExecutive::ValidateParams(Params* p){return 0;}
+int ControlExec::ValidateParams(Params* p){return 0;}
 
 //Create the global params and the default renderer params:
-void ControlExecutive::
+void ControlExec::
 createAllDefaultParams() {
 
 	//Install Extension Classes:
@@ -380,7 +381,7 @@ createAllDefaultParams() {
 	ParamsBase::RegisterParamsBaseClass(MouseModeParams::_mouseModeParamsTag,MouseModeParams::CreateDefaultInstance, true);
 	MouseModeParams::RegisterMouseModes();
 }
-void ControlExecutive::
+void ControlExec::
 reinitializeParams(bool doOverride){
 	// Default render params should override; non render don't necessarily:
 	for (int i = 1; i<= Params::GetNumParamsClasses(); i++){
@@ -406,17 +407,17 @@ reinitializeParams(bool doOverride){
 	}
 }
 
-const Params* ControlExecutive::Undo( ){
+const Params* ControlExec::Undo( ){
 		return Command::BackupQueue();
 }
-const Params* ControlExecutive::Redo(){
+const Params* ControlExec::Redo(){
 		return Command::AdvanceQueue();
 }
 
-bool ControlExecutive::CommandExists(int offset) {
+bool ControlExec::CommandExists(int offset) {
 	return (Command::CurrentCommand(offset) != 0);
 }
-void ControlExecutive::destroyParams(){
+void ControlExec::destroyParams(){
 	for (int i = 0; i< GetNumVisualizers(); i++){
 		if (!GetVisualizer(i)) continue;
 		for (int pType = 1; pType <= Params::GetNumParamsClasses(); pType++){
@@ -428,13 +429,13 @@ void ControlExecutive::destroyParams(){
 		GetVisualizer(i)->removeAllRenderers();
 	}
 }
-int ControlExecutive::GetNumParamsClasses(){
+int ControlExec::GetNumParamsClasses(){
 	return ParamsBase::GetNumParamsClasses();
 }
-int ControlExecutive::GetNumTabParamsClasses(){
+int ControlExec::GetNumTabParamsClasses(){
 	return (ParamsBase::GetNumParamsClasses() - ParamsBase::GetNumUndoRedoParamsClasses());
 }
-const std::string ControlExecutive::GetShortName(string& typetag){
+const std::string ControlExec::GetShortName(string& typetag){
 	Params::ParamsBaseType ptype = Params::GetTypeFromTag(typetag);
 	return Params::paramName(ptype);
 }

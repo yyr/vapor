@@ -372,9 +372,9 @@ int Visualizer::paintEvent(bool force)
 		int mode = MouseModeParams::GetCurrentMouseMode();
 		ParamsBase::ParamsBaseType t = MouseModeParams::getModeParamType(mode);
 		TranslateStretchManip* manip = manipHolder[mode];
-		ControlExecutive* ce = ControlExecutive::getInstance();
-		string tag = ce->GetTagFromType(t);
-		RenderParams* p = (RenderParams*)ControlExecutive::getInstance()->GetCurrentParams(winNum,tag);
+		ControlExec* ce = ControlExec::getInstance();
+		string tag = ControlExec::GetTagFromType(t);
+		RenderParams* p = (RenderParams*)ControlExec::getInstance()->GetCurrentParams(winNum,tag);
 		manip->setParams(p);
 		manip->render();
 		int manipType = MouseModeParams::getModeManipType(mode);
@@ -1047,9 +1047,9 @@ void Visualizer::saveGLMatrix(int timestep, ViewpointParams* vpParams){
 }
 //Static method to set changed bits on all visualizers that are using shared viewpoints
 void Visualizer::SetSharedViewpointChanged(){
-	ControlExecutive* ce = ControlExecutive::getInstance();
-	for (int i = 0; i<ce->GetNumVisualizers(); i++){
-		Visualizer* viz = ce->GetVisualizer(i);
+	ControlExec* ce = ControlExec::getInstance();
+	for (int i = 0; i<ControlExec::GetNumVisualizers(); i++){
+		Visualizer* viz = ControlExec::GetVisualizer(i);
 		if (viz->getActiveViewpointParams()->IsLocal()) continue;
 		viz->SetViewpointChanged(true);
 	}
@@ -1070,13 +1070,13 @@ double Visualizer::getPixelSize(){
 	
 }
 ViewpointParams* Visualizer::getActiveViewpointParams() {
-	return (ViewpointParams*)ControlExecutive::getInstance()->GetCurrentParams(winNum,Params::_viewpointParamsTag);
+	return (ViewpointParams*)ControlExec::getInstance()->GetCurrentParams(winNum,Params::_viewpointParamsTag);
 }
 
 RegionParams* Visualizer::getActiveRegionParams() {
-	return (RegionParams*)ControlExecutive::getInstance()->GetCurrentParams(winNum,Params::_regionParamsTag);
+	return (RegionParams*)ControlExec::getInstance()->GetCurrentParams(winNum,Params::_regionParamsTag);
 }
 
 AnimationParams* Visualizer::getActiveAnimationParams() {
-	return (AnimationParams*)ControlExecutive::getInstance()->GetCurrentParams(winNum,Params::_animationParamsTag);
+	return (AnimationParams*)ControlExec::getInstance()->GetCurrentParams(winNum,Params::_animationParamsTag);
 }
