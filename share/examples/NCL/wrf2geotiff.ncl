@@ -48,6 +48,12 @@ begin
         getvalues wks
             "wkFileName":  filename
         end getvalues
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        ; These next 3 lines address Jira ticket Ncl-1948:
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        if (str_get_cols(filename, -3, -1).ne.".ps") then
+            filename = filename + ".ps"
+        end if
     else
         getvalues wks
             "wkPSFileName":  filename
@@ -216,8 +222,8 @@ begin
 
   orient = 0
   class = NhlClassName(wks)
-  if((class.eq."psWorkstationClass").or. \
-     (class.eq."pdfWorkstationClass")) then
+  if((class.eq."psWorkstationClass").or.(class.eq."pdfWorkstationClass") \
+          .or.(class.eq."documentWorkstationClass")) then
 
        getvalues wks
           "wkDeviceLowerX" : dc(0)
