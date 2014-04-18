@@ -269,6 +269,7 @@ public:
 	Params* GetCurrentParams(int viz, string type);
 
 	//! Obtain the Params instance that is currently active in the active visualizer
+	//! If no visualizer is active it returns the default params.
 	//! \param[in] type The type of Params
 	//! \retval The current active Params, or NULL if invalid.
 	Params* GetActiveParams(string type){

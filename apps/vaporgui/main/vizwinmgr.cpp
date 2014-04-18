@@ -599,26 +599,19 @@ setAnimationLocalGlobal(int val){
 		//then put  values in tab based on global settings.
 		//Note that updateDialog will trigger events changing values
 		//on the current dialog
-		if(getRealAnimationParams(activeViz))getAnimationRouter()->guiSetLocal(getRealAnimationParams(activeViz),false);
+		getAnimationRouter()->guiSetLocal(getAnimationParams(activeViz),false);
 		getAnimationRouter()->updateTab();
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
-		if (!getRealAnimationParams(activeViz)){
-			//create a new parameter panel, copied from global
-			ControlExecutive::getInstance()->AddParams(activeViz,Params::_animationParamsTag,  (AnimationParams*)getGlobalAnimationParams()->deepCopy());
-			getRealAnimationParams(activeViz)->SetVizNum(activeViz);
-			getAnimationRouter()->confirmText(true);
+		 //need to revert to existing local settings:
+		getAnimationRouter()->guiSetLocal(getAnimationParams(activeViz),true);
+		getAnimationRouter()->updateTab();
 			
-			//No need to refresh anything, since the new parameters are same as old! 
-		} else { //need to revert to existing local settings:
-			getAnimationRouter()->guiSetLocal(getRealAnimationParams(activeViz),true);
-			getAnimationRouter()->updateTab();
-			
-		}
-		
-		//and then refresh the panel:
-		tabManager->show();
 	}
+		
+	//and then refresh the panel:
+	tabManager->show();
+	
 }
 
 /*****************************************************************************
@@ -684,21 +677,14 @@ setRgLocalGlobal(int val){
 		getRegionRouter()->updateTab();
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
-		if (!getRealRegionParams(activeViz)){
-			//create a new parameter panel, copied from global
-			ControlExecutive::getInstance()->AddParams(activeViz,Params::_regionParamsTag,(RegionParams*)getGlobalRegionParams()->deepCopy());
-			getRealRegionParams(activeViz)->SetVizNum(activeViz);
-			getRegionRouter()->guiSetLocal(getRealRegionParams(activeViz),true);
-			//No need to refresh anything, since the new parameters are same as old! 
-		} else { //need to revert to existing local settings:
-			getRegionRouter()->guiSetLocal(getRegionParams(activeViz),true);
-			getRegionRouter()->updateTab();
+		 //need to revert to existing local settings:
+		getRegionRouter()->guiSetLocal(getRegionParams(activeViz),true);
+		getRegionRouter()->updateTab();
 			
-			//and then refresh the panel:
-			tabManager->show();
-		}
-
+		//and then refresh the panel:
+		tabManager->show();
 	}
+
 	//Specify if the active viz is sharing the region
 	
 	Visualizer::setRegionShareFlag(val == 0);
@@ -841,36 +827,15 @@ int VizWinMgr::getActiveViz() {
 	return ControlExecutive::getInstance()->GetActiveVizIndex();
 }
 ViewpointParams* VizWinMgr::getViewpointParams(int winNum){
-	return (ViewpointParams*)ControlExecutive::getInstance()->GetParams(winNum,Params::_viewpointParamsTag,-1);
+	return (ViewpointParams*)ControlExecutive::getInstance()->GetCurrentParams(winNum,Params::_viewpointParamsTag);
 }
 RegionParams*  VizWinMgr::getRegionParams(int winNum){
-	return (RegionParams*)ControlExecutive::getInstance()->GetParams(winNum,Params::_regionParamsTag,-1);
+	return (RegionParams*)ControlExecutive::getInstance()->GetCurrentParams(winNum,Params::_regionParamsTag);
 }
 AnimationParams*  VizWinMgr::getAnimationParams(int winNum){
-	return (AnimationParams*)ControlExecutive::getInstance()->GetParams(winNum,Params::_animationParamsTag,-1);
+	return (AnimationParams*)ControlExecutive::getInstance()->GetCurrentParams(winNum,Params::_animationParamsTag);
 }
-RegionParams* VizWinMgr::getRealRegionParams(int win) {
-	if (!VizWindow[win]) return 0;
-	ControlExecutive* ce = ControlExecutive::getInstance();
-	Params* p = ce->GetParams(win, Params::_regionParamsTag, -1);
-	if (p->IsLocal()) return (RegionParams*)p;
-	return (RegionParams*)ce->GetDefaultParams(Params::_regionParamsTag);
-}
-AnimationParams* VizWinMgr::getRealAnimationParams(int win) {
-	if (!VizWindow[win]) return 0;
-	ControlExecutive* ce = ControlExecutive::getInstance();
-	Params* p = ce->GetParams(win, Params::_animationParamsTag, -1);
-	if (p->IsLocal()) return (AnimationParams*)p;
-	return (AnimationParams*)ce->GetDefaultParams(Params::_animationParamsTag);
-}
-//Direct access to actual params object:
-ViewpointParams* VizWinMgr::getRealVPParams(int win) {
-	if (!VizWindow[win]) return 0;
-	ControlExecutive* ce = ControlExecutive::getInstance();
-	Params* p = ce->GetParams(win, Params::_viewpointParamsTag, -1);
-	if (p->IsLocal()) return (ViewpointParams*)p;
-	return (ViewpointParams*)ce->GetDefaultParams(Params::_viewpointParamsTag);
-}
+
 ViewpointParams* VizWinMgr::getGlobalVPParams(){return (ViewpointParams*)(ControlExecutive::getInstance()->GetDefaultParams(Params::_viewpointParamsTag));}
 RegionParams* VizWinMgr::getGlobalRegionParams(){
 	return (RegionParams*)(ControlExecutive::getInstance()->GetDefaultParams(Params::_regionParamsTag));

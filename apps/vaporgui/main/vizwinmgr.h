@@ -198,10 +198,7 @@ public:
 	void setInteractiveNavigating(int level);
 	
 	void stopFlowIntegration();
-	RegionParams* getRealRegionParams(int win);
-	AnimationParams* getRealAnimationParams(int win) ;
-	//Direct access to actual params object:
-	ViewpointParams* getRealVPParams(int win);
+	
 
 public slots:
 	//arrange the viz windows:

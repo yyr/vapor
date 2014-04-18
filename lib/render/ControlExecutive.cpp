@@ -163,7 +163,7 @@ int ControlExecutive::GetCurrentRenderParamsInstance(int viz, string typetag){
 }
 
 Params* ControlExecutive::GetCurrentParams(int viz, string typetag){
-	if (viz < 0 || viz >= visualizers.size()) return 0;
+	
 	int ptype = Params::GetTypeFromTag(typetag);
 	if (ptype <= 0) return 0;
 	return Params::GetCurrentParamsInstance(ptype,viz);

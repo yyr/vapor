@@ -640,7 +640,7 @@ updateRenderer(ViewpointParams* vpParams, bool prevEnabled,  int /*instance*/, b
 			if (i == myVizMgr->getActiveViz()) continue;
 			if( viz == myVizMgr->getVizWin(i)){
 				//Bypass normal access to vpParams!
-				if(!(myVizMgr->getRealVPParams(i)) || !(myVizMgr->getRealVPParams(i)->IsLocal())){
+				if(!(myVizMgr->getViewpointParams(i)) || !(myVizMgr->getViewpointParams(i)->IsLocal())){
 					viz->updateGL();
 				}
 			}
