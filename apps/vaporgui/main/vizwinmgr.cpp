@@ -275,7 +275,7 @@ launchVisualizer()
 	VizMdiWin[useWindowNum]=qsbw;
 	//VizMdiWin[useWindowNum]=MainForm::getInstance()->getMDIArea()->addSubWindow(VizWindow[useWindowNum]);
 	VizWindow[useWindowNum]->setWindowNum(useWindowNum);
-	//VizWindow[useWindowNum]->setFocusPolicy(Qt::ClickFocus);
+	VizWindow[useWindowNum]->setFocusPolicy(Qt::ClickFocus);
 
 
 	setActiveViz(useWindowNum);

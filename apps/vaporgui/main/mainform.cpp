@@ -853,7 +853,9 @@ void MainForm::newSession()
 }
 void MainForm::launchVisualizer()
 {
+	Command::blockCapture();
 	VizWinMgr::getInstance()->launchVisualizer();
+	Command::unblockCapture();
 		
 }
 

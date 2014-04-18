@@ -131,7 +131,7 @@ protected:
 	virtual void mousePressEvent(QMouseEvent*);
 	virtual void mouseReleaseEvent(QMouseEvent*);
 	virtual void mouseMoveEvent(QMouseEvent*);
-	//virtual void focusInEvent(QFocusEvent* e);
+	virtual void focusInEvent(QFocusEvent* e);
     virtual void closeEvent(QCloseEvent*);
     virtual void hideEvent(QHideEvent*);
     virtual void windowActivationChange(bool oldActive);

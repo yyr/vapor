@@ -97,6 +97,15 @@ void VizWin::closeEvent(QCloseEvent* e){
 /******************************************************
  * React when focus is on window:
  ******************************************************/
+void VizWin::
+focusInEvent(QFocusEvent* e){
+	//Test for hidden here, since a vanishing window can get this event.
+	if (e->gotFocus() && !isHidden()){
+		if (myWinMgr->getActiveViz() != myWindowNum ){
+			myWinMgr->setActiveViz(myWindowNum);
+		}
+	}
+}
 
 // React to a user-change in window activation:
 void VizWin::windowActivationChange(bool ){
