@@ -600,12 +600,12 @@ setAnimationLocalGlobal(int val){
 		//then put  values in tab based on global settings.
 		//Note that updateDialog will trigger events changing values
 		//on the current dialog
-		getAnimationRouter()->guiSetLocal(getAnimationParams(activeViz),false);
+		getAnimationRouter()->guiSetLocal((AnimationParams*)ControlExec::GetParams(activeViz,Params::_animationParamsTag,-1),false);
 		getAnimationRouter()->updateTab();
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
 		 //need to revert to existing local settings:
-		getAnimationRouter()->guiSetLocal(getAnimationParams(activeViz),true);
+		getAnimationRouter()->guiSetLocal((AnimationParams*)ControlExec::GetParams(activeViz,Params::_animationParamsTag,-1),true);
 		getAnimationRouter()->updateTab();
 			
 	}
@@ -674,12 +674,12 @@ setRgLocalGlobal(int val){
 		//then put  values in tab based on global settings.
 		//Note that updateDialog will trigger events changing values
 		//on the current dialog
-		getRegionRouter()->guiSetLocal(getRegionParams(activeViz),false);
+		getRegionRouter()->guiSetLocal((RegionParams*)ControlExec::GetParams(activeViz,Params::_regionParamsTag,-1),false);
 		getRegionRouter()->updateTab();
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
 		 //need to revert to existing local settings:
-		getRegionRouter()->guiSetLocal(getRegionParams(activeViz),true);
+		getRegionRouter()->guiSetLocal((RegionParams*)ControlExec::GetParams(activeViz,Params::_regionParamsTag,-1),true);
 		getRegionRouter()->updateTab();
 			
 		//and then refresh the panel:

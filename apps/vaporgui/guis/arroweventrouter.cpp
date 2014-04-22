@@ -420,7 +420,7 @@ setArrowEnabled(bool val, int instance){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int activeViz = vizMgr->getActiveViz();
 	
-	ArrowParams* dParams = (ArrowParams*)(ControlExec::GetParams(activeViz,ArrowParams::_arrowParamsTag, activeViz));
+	ArrowParams* dParams = (ArrowParams*)(ControlExec::GetParams(activeViz,ArrowParams::_arrowParamsTag, -1));
 	//Make sure this is a change:
 	if (dParams->IsEnabled() == val ) return;
 	//If we are enabling, also make this the current instance:
