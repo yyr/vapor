@@ -140,6 +140,11 @@ void EventRouter::performGuiCopyInstanceToViz(int towin){
 void EventRouter::guiSetLocal(Params* p, bool lg){
 	if (textChangedFlag) confirmText(false);
 	p->SetLocal(lg);
+	if (lg) p->SetChanged(true);
+	else {//set the global change bit:
+		Params* glParams = ControlExec::GetDefaultParams(ControlExec::GetTagFromType(p->GetParamsBaseTypeId()));
+		glParams->SetChanged(true);
+	}
 	updateTab();
 }
 

@@ -252,8 +252,8 @@ vizAboutToDisappear(int i)  {
 int VizWinMgr::
 launchVisualizer()
 {
-	ControlExec* ce = ControlExec::getInstance();
-	int useWindowNum = ce->NewVisualizer();
+	
+	int useWindowNum = ControlExec::NewVisualizer();
 	
 	numVizWins++;
 	
@@ -276,6 +276,7 @@ launchVisualizer()
 	//VizMdiWin[useWindowNum]=MainForm::getInstance()->getMDIArea()->addSubWindow(VizWindow[useWindowNum]);
 	VizWindow[useWindowNum]->setWindowNum(useWindowNum);
 	VizWindow[useWindowNum]->setFocusPolicy(Qt::ClickFocus);
+	VizWindow[useWindowNum]->setWindowTitle(VizName[useWindowNum]);
 
 
 	setActiveViz(useWindowNum);
@@ -401,9 +402,9 @@ setVizWinName(int winNum, QString& qs) {
  **********************************************************************/
 void VizWinMgr::
 setActiveViz(int vizNum){
-	ControlExec::SetActiveVizIndex(vizNum);
+	
 	if (getActiveViz() != vizNum){
-		
+		ControlExec::SetActiveVizIndex(vizNum);
 		emit(activateViz(vizNum));
 		
 		ActivationOrder[vizNum]= (++activationCount);

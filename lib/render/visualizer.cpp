@@ -89,7 +89,7 @@ Visualizer::Visualizer(int windowNum )
 	renderOrder.clear();
 	renderer.clear();
 	
-	Trackball* localTrackball = new Trackball();
+	localTrackball = new Trackball();
 	if (!globalTrackball) globalTrackball = new Trackball();
 
 	//Create Manips for every mode except 0
@@ -105,6 +105,7 @@ Visualizer::Visualizer(int windowNum )
 		} else assert(0);
 	}
     MyBase::SetDiagMsg("Visualizer::Visualizer() end");
+
 }
 
 
@@ -1013,7 +1014,8 @@ void Visualizer::removeDisabledRenderers(){
 
 
 Trackball* Visualizer::GetTrackball(){
-	if (getActiveViewpointParams()->IsLocal()) return localTrackball;
+	if (getActiveViewpointParams()->IsLocal()) 
+		return localTrackball;
 	else return globalTrackball;
 }
 

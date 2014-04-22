@@ -77,6 +77,7 @@ VizWin::VizWin( MainForm* parent, const QString& name, Qt::WFlags fl, VizWinMgr*
 	myName = name;
 	setAutoBufferSwap(false);
 	spinTimer = 0;
+	myWinMgr = myMgr;
 	return;
 	
 	
@@ -101,6 +102,7 @@ void VizWin::
 focusInEvent(QFocusEvent* e){
 	//Test for hidden here, since a vanishing window can get this event.
 	if (e->gotFocus() && !isHidden()){
+	
 		if (myWinMgr->getActiveViz() != myWindowNum ){
 			myWinMgr->setActiveViz(myWindowNum);
 		}
@@ -487,7 +489,10 @@ setGlobalViewpoint(bool setGlobal){
 
 void VizWin::paintGL(){
 	//only paint if necessary
+	//Note that makeCurrent is needed when here we have multiple windows.
+	makeCurrent();
 	int rc = ControlExec::Paint(myWindowNum, false);
+	
 	if (!rc) swapBuffers();
 	return;
 	
