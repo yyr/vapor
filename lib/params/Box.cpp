@@ -50,7 +50,6 @@ Box::Box(): ParamsBase(0, Box::_boxTag) {
 	SetValueDouble(_extentsTag,"",extents,0);
 	SetValueLong(_timesTag,"",times,0);
 	SetValueDouble(_anglesTag,"",angles,0);
-	
 }
 
 ParamsBase* Box::deepCopy(ParamNode* newRoot) {

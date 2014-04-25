@@ -62,7 +62,9 @@ Params::Params(
 	XmlNode *parent, const string &name, int winNum
 	): ParamsBase(parent,name) {
 	SetVizNum(winNum);
-	if(winNum < 0) SetLocal(false); else SetLocal(true);
+	//Avoid command queue use in constructor:
+	if(winNum < 0) GetRootNode()->SetElementLong(_LocalTag,0);
+	else GetRootNode()->SetElementLong(_LocalTag,1);
 	SetInstanceIndex(0);
 	changeBit = true;
 }
@@ -224,6 +226,12 @@ Params* Params::deepCopy(ParamNode* ){
 	
 	newParams->setCurrentParamNode(newParams->GetRootNode());
 	return newParams;
+}
+Params* Params::CreateDefaultParams(int pType){
+	Command::blockCapture();
+	Params*p = (Params*)(createDefaultFcnMap[pType])();
+	Command::unblockCapture();
+	return p;
 }
 Params* RenderParams::deepCopy(ParamNode* nd){
 	//Start with default copy  

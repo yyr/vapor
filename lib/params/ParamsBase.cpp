@@ -55,13 +55,16 @@ ParamsBase::ParamsBase(
 	if(parent) parent->AddChild(_rootParamNode);
 	_paramsBaseName = name;
 	_parseDepth = 0;
-	_rootParamNode->Attrs()[_typeAttr] = ParamNode::_paramsBaseAttr;
+
 }
 
 
 ParamsBase::~ParamsBase() {
 	//Go ahead and delete its root, if it exists
-	if (_rootParamNode) delete _rootParamNode;
+	if (_rootParamNode) {
+		_rootParamNode->SetParamsBase(0);
+		delete _rootParamNode;
+	}
 	_rootParamNode = NULL;
 	_currentParamNode = NULL;
 }

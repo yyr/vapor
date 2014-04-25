@@ -253,7 +253,7 @@ protected:
 	VizSelectCombo* windowSelector;
 	QLabel* modeStatusWidget;
 	Vcr* vcrPanel;
-	
+	bool sessionIsDefault;  //Indicates that current session is default
 
 protected slots:
 	void modeChange(int);

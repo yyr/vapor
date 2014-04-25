@@ -574,6 +574,7 @@ reinitTab(bool doOverride){
 	}
 	if (VizWinMgr::getInstance()->getNumVisualizers() > 1) LocalGlobal->setEnabled(true);
 	else LocalGlobal->setEnabled(false);
+	
 }
 
 

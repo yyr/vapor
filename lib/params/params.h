@@ -282,10 +282,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! Useful for application developers.
 //! \param[in] pType ParamsBase TypeId of the params class
 //! \retval Pointer to new default Params instance
-	static Params* CreateDefaultParams(int pType){
-		Params*p = (Params*)(createDefaultFcnMap[pType])();
-		return p;
-	}
+	static Params* CreateDefaultParams(int pType);
 	
 		
 //! Static method that tells how many instances of a Params class

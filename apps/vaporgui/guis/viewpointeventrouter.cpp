@@ -590,6 +590,7 @@ void ViewpointEventRouter::
 reinitTab(bool doOverride){
 	if (VizWinMgr::getInstance()->getNumVisualizers() > 1) LocalGlobal->setEnabled(true);
 	else LocalGlobal->setEnabled(false);
+	savedCommand=0;
 }
 
 //Save undo/redo state when user grabs a rake handle

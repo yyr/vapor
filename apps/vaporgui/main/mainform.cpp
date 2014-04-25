@@ -185,7 +185,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	//Create one initial visualizer:
 	myVizMgr->launchVisualizer();
 
-	
+	sessionIsDefault = true;
 	
     show();
 	
@@ -628,23 +628,82 @@ void MainForm::languageChange()
    
 }
 
-
+//Open session file
 void MainForm::fileOpen()
+
 {
 
+	//This launches a panel that enables the
+    //user to choose input session save files, then to
+	//load that session
 	
+	QString fn = "VaporSaved.vss";
+	QString qfilename = QFileDialog::getOpenFileName(this, 
+		"Choose a VAPOR session file to restore a session",
+		fn,
+		"Vapor Session Save Files (*.vss)");
+	if(qfilename.length() == 0) return;
+		
+	//Force the name to end with .vss
+	if (!qfilename.endsWith(".vss")){
+		qfilename += ".vss";
+	}
+	string filename = qfilename.toStdString();
+	ControlExec::getInstance()->RestoreSession(filename);
+	sessionIsDefault = false;
+	//Now need to set up visualizer(s)
 }
 
 
 void MainForm::fileSave()
 {
+	DataMgr *dataMgr = DataStatus::getInstance()->getDataMgr();
+
+	//This directly saves the session to the current session save file.
+    	//It does not prompt the user unless there is an error
+	if (! dataMgr) {
+		//MessageReporter::warningMsg( "There is no current metadata.  \nSession state cannot be saved");
+		return;
+	}
 	
+   	QString filename = QFileDialog::getSaveFileName(this,
+		"Choose the filename to save the current session",
+		".",
+		"Vapor Session Files (*.vss)");
+	
+	string s = filename.toStdString();
+	
+	
+	
+	if (!ControlExec::getInstance()->SaveSession(s)){//Report error if can't save to file
+		//MessageReporter::errorMsg("Failed to write session file: \n%s", s.c_str());
+		return;
+	}
 }
 
 
 void MainForm::fileSaveAs()
 {
+	const DataMgr *dataMgr = ControlExec::GetDataMgr();
+
+	if (! dataMgr) {
+		//MessageReporter::warningMsg( "There is no current metadata.  \nSession state cannot be saved");
+		return;
+	}
 	
+   	QString filename = QFileDialog::getSaveFileName(this,
+		"Choose the filename to save the current session",
+		".",
+		"Vapor Session Files (*.vss)");
+	
+	string s = filename.toStdString();
+	
+	
+	
+	if (!ControlExec::getInstance()->SaveSession(s)){//Report error if can't save to file
+		//MessageReporter::errorMsg("Failed to write session file: \n%s", s.c_str());
+		return;
+	}
 }
 
 
@@ -712,6 +771,7 @@ void MainForm::savePrefs(){
 	
 }
 //Load data into current session
+//If current session is at default then same as loadDefaultData
 //
 void MainForm::loadData()
 {
@@ -731,15 +791,17 @@ void MainForm::loadData()
 		if (fInfo.isReadable() && fInfo.isFile()){
 			vector<string> files;
 			files.push_back(filename.toStdString());
-			dmgr = ControlExec::getInstance()->LoadData(files,true);
+			dmgr = ControlExec::getInstance()->LoadData(files,sessionIsDefault);
 			// Reinitialize all tabs
 			//
 			if (dmgr){
+				sessionIsDefault=false;
 				int numParamsTabs = ControlExec::GetNumTabParamsClasses();
 				for (int pType = 1; pType <= numParamsTabs; pType++){
 					EventRouter* eRouter = VizWinMgr::getInstance()->getEventRouter(pType);
 					eRouter->reinitTab(false);
 				}
+
 			}
 		}
 		else {
@@ -827,10 +889,11 @@ void MainForm::defaultLoadData()
 		if (fInfo.isReadable() && fInfo.isFile()){
 			vector<string> files;
 			files.push_back(filename.toStdString());
-			dmgr = ControlExec::getInstance()->LoadData(files,false);
+			dmgr = ControlExec::getInstance()->LoadData(files,true);
 			// Reinitialize all tabs
 			//
 			if (dmgr){
+				sessionIsDefault = false;
 				int numParamsTabs = ControlExec::GetNumTabParamsClasses();
 				for (int pType = 1; pType <= numParamsTabs; pType++){
 					EventRouter* eRouter = VizWinMgr::getInstance()->getEventRouter(pType);

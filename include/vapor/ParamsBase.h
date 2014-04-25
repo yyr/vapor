@@ -172,7 +172,9 @@ const string GetName() {return _paramsBaseName;}
  //! \retval long value associated with the named parameter
  //!
 virtual long GetValueLong(const string& tag, const vector<long>& defaultVal = _emptyLongVec)
-	{return GetRootNode()->GetElementLong(tag, defaultVal)[0];}
+	{
+		return GetRootNode()->GetElementLong(tag, defaultVal)[0];
+	}
  //!
  //! Obtain a single value of type double associated with a tag.
  //! Optionally specify a vector of doubles whose first element is the default value

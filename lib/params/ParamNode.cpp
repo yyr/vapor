@@ -261,7 +261,7 @@ int ParamNode::AddRegisteredNode(const string& tag, ParamNode* child, ParamsBase
 	child->SetParamsBase(associate);
 	associate->SetRootParamNode(child);
 	child->Tag() = tag;
-	map <string, string> attrs = child->Attrs();
+	map <string, string>& attrs = child->Attrs();
 	attrs[_typeAttr] = _paramsBaseAttr;
 	return(0);
 }
@@ -283,7 +283,7 @@ int ParamNode::AddRegisteredNode(const vector<string>& tagpath, ParamNode* child
 	child->SetParamsBase(associate);
 	associate->SetRootParamNode(child);
 	child->Tag() = tag;
-	map <string, string> attrs = child->Attrs();
+	map <string, string>& attrs = child->Attrs();
 	attrs[_typeAttr] = _paramsBaseAttr;
 	return(0);
 }

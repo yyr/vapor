@@ -597,7 +597,7 @@ reinitTab(bool doOverride){
 	}
 	else setEnabled(false);
 	int i;
-	
+
 
 	//Set up the refinement combo:
 	const DataMgr *dataMgr = ds->getDataMgr();
@@ -792,7 +792,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled,int instance, bool newWin
 	//cases to consider:
 	//1.  unchanged disabled renderer; do nothing.
 	//  enabled renderer, just refresh:
-	ControlExec* ce = ControlExec::getInstance();
+	
 	if (prevEnabled == nowEnabled) {
 		if (!prevEnabled) return;
 		vizWinMgr->forceRender(rParams, false);
@@ -800,7 +800,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled,int instance, bool newWin
 	}
 	
 	if (nowEnabled && !prevEnabled ){//For case 2.:  create a renderer in the active window:
-		int rc = ce->ActivateRender(winnum,ArrowParams::_arrowParamsTag,instance,true);
+		int rc = ControlExec::ActivateRender(winnum,ArrowParams::_arrowParamsTag,instance,true);
 		
 		//force the renderer to refresh 
 		if (!rc) vizWinMgr->forceRender(rParams, true);
@@ -809,7 +809,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled,int instance, bool newWin
 	}
 	
 	assert(prevEnabled && !nowEnabled); //case 6, disable 
-	int rc = ce->ActivateRender(winnum,ArrowParams::_arrowParamsTag,instance,false);
+	int rc = ControlExec::ActivateRender(winnum,ArrowParams::_arrowParamsTag,instance,false);
 	if (!rc) vizWinMgr->forceRender(rParams, true);
 
 	return;

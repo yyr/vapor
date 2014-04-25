@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <vapor/ExpatParseMgr.h>
 using namespace std;
 namespace VAPoR {
 
@@ -15,6 +16,7 @@ class RenderParams;
 class DataMgr;
 class ErrorHandler;
 class Command;
+class ParamNode;
 
 
 
@@ -23,7 +25,7 @@ class Command;
 //! \brief Provides API for VAPOR visualizer User Interfaces (UIs)
 //
 
-class RENDER_API ControlExec {
+class RENDER_API ControlExec : public ParsedXml {
 public:
 	//! Initialize the control executive
 	//!
@@ -324,7 +326,7 @@ public:
 	//!
 	//! \sa RestoreSession()
 	//
-	static int SaveSession(string file);
+	int SaveSession(string file);
 
 	//!	Restore the session state from a session state file
 	//!
@@ -345,7 +347,7 @@ public:
 	//! \sa LoadData(), GetRenderParams(), etc.
 	//! \sa SaveSession()
 	//
-	static int RestoreSession(string file);
+	int RestoreSession(string file);
 
 	//! Load a data set into the current session
 	//!
@@ -374,7 +376,12 @@ public:
 	//! \note (AN) It would be much better to incorporate the DataStatus methods into
 	//! the DataMgr class, rather than keeping them separate.
 	//
-	const DataMgr *LoadData(vector <string> files, bool deflt = true);
+	static const DataMgr *LoadData(vector <string> files, bool deflt = true);
+
+	//! Obtain a pointer to the current DataMgr
+	//! Returns NULL if it does not exist.
+	//! \retVal dataMgr
+	static const DataMgr* GetDataMgr(){ return dataMgr;};
 
 	//! Draw 2D text on the screen
 	//!
@@ -481,16 +488,28 @@ public:
 	static int ValidateParams(Params* p);
 
 	private:
+		static const string _VAPORVersionAttr;
+		static const string _sessionTag;
+		static const string _globalParamsTag;
+		static const string _vizNumAttr;
+		static const string _visualizerTag;
+		static const string _visualizersTag;
+		bool elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag);
+		bool elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char **attrs);
+		ParamNode* buildNode();
 		//! At startup, create the initial Params instances:
 		void createAllDefaultParams();
 		//! when loading new data, reinitialize all the Params instances
-		void reinitializeParams(bool doOverride);
+		static void reinitializeParams(bool doOverride);
 		//! delete all the Params instances and clean out the Undo/Redo queue e.g. before a session change
 		void destroyParams();
 		static vector<Visualizer*> visualizers;
-		DataMgr* dataMgr;
+		static DataMgr* dataMgr;
 		static ControlExec* controlExecutive;
 		static int activeViz;
+		Params* tempParsedParams;
+		int parsingVizNum;
+		vector<int> parsingInstance;
 };
 };
 #endif //ControlExec_h

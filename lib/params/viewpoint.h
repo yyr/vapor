@@ -31,6 +31,7 @@ public:
 		setViewDir(vdir,0);
 		setCameraPosLocal(campos,0);
 		setRotationCenterLocal(rotctr,0);
+		
 	}
 	virtual ParamsBase* deepCopy(ParamNode* newRoot);
 	//! Destructor

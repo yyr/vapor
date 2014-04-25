@@ -76,17 +76,20 @@ ViewpointParams::~ViewpointParams(){
 //(this is starting state)
 void ViewpointParams::
 restart(){
-	//Make sure we have current and home viewpoints
-	if (!GetRootNode()->HasChild(_currentViewTag)){
-		Viewpoint* vp = new Viewpoint();
-		ParamNode* vpNode = vp->GetRootNode();
-		GetRootNode()->AddRegisteredNode(_currentViewTag,vpNode,vp);
-	}
-	if (!GetRootNode()->HasChild(_homeViewTag)){
-		Viewpoint* vp = new Viewpoint();
-		ParamNode* vpNode = vp->GetRootNode();
-		GetRootNode()->AddRegisteredNode(_homeViewTag,vpNode,vp);
-	}
+	//Recreate current/home viewpoints
+	if (GetRootNode()->HasChild(_currentViewTag))
+		GetRootNode()->DeleteChild(_currentViewTag);
+	if (GetRootNode()->HasChild(_homeViewTag))
+		GetRootNode()->DeleteChild(_homeViewTag);
+	
+	Viewpoint* vp = new Viewpoint();
+	ParamNode* vpNode = vp->GetRootNode();
+	GetRootNode()->AddRegisteredNode(_currentViewTag,vpNode,vp);
+	
+	vp = new Viewpoint();
+	vpNode = vp->GetRootNode();
+	GetRootNode()->AddRegisteredNode(_homeViewTag,vpNode,vp);
+
 	centerFullRegion(0);
 	setNumLights(defaultNumLights);
 	vector<double> ldirs;
