@@ -325,9 +325,12 @@ int Visualizer::paintEvent(bool force)
 	//Use the trackball to set the Modelview matrix:
 	GetTrackball()->TrackballSetMatrix();
 
-	//Save the GL matrix in the viewpoint params, if the mouse is moving:
+	//Save the GL matrix in the viewpoint params, if the mouse is moving.
+	//Don't put this in the command queue.
 	if(tBallChanged){
+		Command::blockCapture();
 		saveGLMatrix(timeStep, vpParams);
+		Command::unblockCapture();
 	}
 	//Reset the flags 
 	tBallChanged = false;

@@ -568,7 +568,7 @@ captureMouseUp(){
 	updateTab();
 	
 	if (savedCommand) Command::CaptureEnd(savedCommand,vpParams);
-	//DON't Set region  dirty
+	savedCommand=0;
 	
 	//Just rerender:
 	VizWinMgr::getInstance()->refreshViewpoint(vpParams);
