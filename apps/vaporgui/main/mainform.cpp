@@ -186,7 +186,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	myVizMgr->launchVisualizer();
 
 	sessionIsDefault = true;
-	
+	setUpdatesEnabled(true);
     show();
 	
 
@@ -208,6 +208,7 @@ void MainForm::createToolBars(){
 	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
     // mouse mode toolbar:
     modeToolBar = addToolBar("Mouse Modes"); 
+	modeToolBar->setParent(this);
 	modeToolBar->addWidget(new QLabel(" Modes: "));
 	QString qws = QString("The mouse modes are used to enable various manipulation tools ")+
 		"that can be used to control the location and position of objects in "+
@@ -218,7 +219,7 @@ void MainForm::createToolBars(){
 	//add mode buttons, left to right:
 	modeToolBar->addAction(navigationAction);
 	
-	modeCombo = new QComboBox(this);
+	modeCombo = new QComboBox(modeToolBar);
 	modeCombo->setToolTip("Select the mouse mode to use in the visualizer");
 	
 	modeToolBar->addWidget(modeCombo);
@@ -651,7 +652,8 @@ void MainForm::fileOpen()
 	string filename = qfilename.toStdString();
 	ControlExec::getInstance()->RestoreSession(filename);
 	sessionIsDefault = false;
-	//Now need to set up visualizer(s)
+	updateWidgets();
+	//Now need to set up visualizer(s)?
 }
 
 
@@ -808,6 +810,8 @@ void MainForm::loadData()
 			QMessageBox::information(this,"Load Data Error","Unable to read metadata file ");
 			return;
 		}
+		
+		update();
 		if (dmgr) return;
 	}
 	QMessageBox::information(this,"Load Data Error","Invalid VDC");
@@ -905,6 +909,7 @@ void MainForm::defaultLoadData()
 			QMessageBox::information(this,"Load Data Error","Unable to read metadata file ");
 			return;
 		}
+		update();
 		if (dmgr) return;
 	}
 	QMessageBox::information(this,"Load Data Error","Invalid VDC");
@@ -1054,7 +1059,17 @@ void MainForm::enableKeyframing(bool ison){
 	QPalette pal(timeStepEdit->palette());
 	timeStepEdit->setEnabled(!ison);
 }
-void MainForm::paintEvent(QPaintEvent* e){
+//void MainForm::paintEvent(QPaintEvent* e){
+//	
+//}
+void MainForm::updateWidgets(){
+	//Get the current mode setting from MouseModeParams
+	MouseModeParams::mouseModeType t = MouseModeParams::GetCurrentMouseMode();
+	
+	modeCombo->setCurrentIndex(t);
+	
+	if (t != 0) navigationAction->setChecked(false);
+	else navigationAction->setChecked(true);
 	
 }
 void MainForm::showTab(const std::string& tag){

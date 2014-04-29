@@ -218,6 +218,7 @@
     <ClCompile Include="..\..\..\lib\params\regionparams.cpp" />
     <ClCompile Include="..\..\..\lib\params\viewpoint.cpp" />
     <ClCompile Include="..\..\..\lib\params\viewpointparams.cpp" />
+    <ClCompile Include="..\..\..\lib\params\vizwinparams.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\vapor\ExtensionClasses.h" />
@@ -235,6 +236,7 @@
     <ClInclude Include="..\..\..\lib\params\regionparams.h" />
     <ClInclude Include="..\..\..\lib\params\viewpoint.h" />
     <ClInclude Include="..\..\..\lib\params\viewpointparams.h" />
+    <ClInclude Include="..\..\..\lib\params\vizwinparams.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\common\common.vcxproj">

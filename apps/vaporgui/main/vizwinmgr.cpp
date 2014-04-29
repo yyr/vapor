@@ -92,48 +92,6 @@ VizWinMgr* VizWinMgr::theVizWinMgr = 0;
 std::map<ParamsBase::ParamsBaseType, EventRouter*> VizWinMgr::eventRouterMap;
 
 
-const string VizWinMgr::_visualizersTag = "Visualizers";
-const string VizWinMgr::_vizWinTag = "VizWindow";
-const string VizWinMgr::_vizWinNameAttr = "WindowName";
-const string VizWinMgr::_vizBgColorAttr = "BackgroundColor";
-const string VizWinMgr::_vizTimeAnnotColorAttr = "TimeAnnotationColor";
-const string VizWinMgr::_vizTimeAnnotTypeAttr = "TimeAnnotationType";
-const string VizWinMgr::_vizTimeAnnotCoordsAttr = "TimeAnnotationCoords";
-const string VizWinMgr::_vizTimeAnnotTextSizeAttr = "TimeAnnotationTextSize";
-const string VizWinMgr::_vizColorbarBackgroundColorAttr = "ColorbarBackgroundColor";
-const string VizWinMgr::_vizRegionColorAttr = "RegionFrameColor";
-const string VizWinMgr::_vizSubregionColorAttr = "SubregionFrameColor";
-const string VizWinMgr::_vizAxisPositionAttr = "AxisPosition";
-const string VizWinMgr::_vizAxisOriginAttr = "AxisOriginPosition";
-const string VizWinMgr::_vizMinTicAttr = "MinTicPositions";
-const string VizWinMgr::_vizMaxTicAttr = "MaxTicPositions";
-const string VizWinMgr::_vizTicLengthAttr = "AxisTicLengths";
-const string VizWinMgr::_vizTicDirAttr = "TicDirections";
-const string VizWinMgr::_vizNumTicsAttr = "NumTicMarks";
-const string VizWinMgr::_vizAxisColorAttr = "AxisAnnotationColor";
-const string VizWinMgr::_vizTicWidthAttr = "TicWidth";
-const string VizWinMgr::_vizLabelHeightAttr = "AxisLabelHeight";
-const string VizWinMgr::_vizLabelDigitsAttr = "AxisLabelDigits";
-const string VizWinMgr::_vizColorbarFontsizeAttr = "ColorbarFontsize";
-const string VizWinMgr::_vizColorbarDigitsAttr = "ColorbarDigits";
-const string VizWinMgr::_vizColorbarLLPositionAttr = "ColorbarLLPosition";
-const string VizWinMgr::_vizColorbarURPositionAttr = "ColorbarURPosition";
-const string VizWinMgr::_vizColorbarNumTicsAttr = "ColorbarNumTics";
-const string VizWinMgr::_vizAxisArrowsEnabledAttr = "AxesEnabled";
-const string VizWinMgr::_vizAxisAnnotationEnabledAttr = "AxisAnnotationEnabled";
-const string VizWinMgr::_vizColorbarEnabledAttr = "ColorbarEnabled";
-const string VizWinMgr::_vizColorbarParamsNameAttr = "ColorbarParamsTag";
-const string VizWinMgr::_vizElevGridEnabledAttr = "ElevGridRenderingEnabled";
-const string VizWinMgr::_vizElevGridTexturedAttr = "ElevGridTextured";
-const string VizWinMgr::_vizElevGridColorAttr = "ElevGridColor";
-const string VizWinMgr::_vizElevGridRefinementAttr = "ElevGridRefinement";
-const string VizWinMgr::_vizRegionFrameEnabledAttr = "RegionFrameEnabled";
-const string VizWinMgr::_vizSubregionFrameEnabledAttr = "SubregionFrameEnabled";
-const string VizWinMgr::_visualizerNumAttr = "VisualizerNum";
-const string  VizWinMgr::_vizElevGridInvertedAttr = "ElevGridInverted";
-const string  VizWinMgr::_vizElevGridDisplacementAttr = "ElevGridDisplacement";
-const string  VizWinMgr::_vizElevGridRotationAttr = "ElevGridRotation";
-const string  VizWinMgr::_vizElevGridTextureNameAttr = "ElevGridTextureFilename";
 
 
 /******************************************************************
@@ -402,7 +360,7 @@ setVizWinName(int winNum, QString& qs) {
  **********************************************************************/
 void VizWinMgr::
 setActiveViz(int vizNum){
-	
+	if (vizNum < 0) return;
 	if (getActiveViz() != vizNum){
 		ControlExec::SetActiveVizIndex(vizNum);
 		emit(activateViz(vizNum));

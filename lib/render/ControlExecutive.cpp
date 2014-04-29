@@ -13,6 +13,7 @@
 #include "regionparams.h"
 #include "viewpointparams.h"
 #include "mousemodeparams.h"
+#include "vizwinparams.h"
 #include "vapor/ExtensionClasses.h"
 #include "vapor/DataMgrFactory.h"
 #include "vapor/ParamNode.h"
@@ -21,11 +22,10 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-
+#include "vizwinparams.h"
 using namespace VAPoR;
 ControlExec* ControlExec::controlExecutive = 0;
-std::vector<Visualizer*> ControlExec::visualizers;
-int ControlExec::activeViz = -1;
+std::map <int,Visualizer*> ControlExec::visualizers;
 DataMgr* ControlExec::dataMgr = 0;
 const string ControlExec::_sessionTag = "VaporSession";
 const string ControlExec::_VAPORVersionAttr = "VaporVersion";
@@ -42,34 +42,20 @@ ControlExec::~ControlExec(){
 	Command::resetCommandQueue();
 }
 
-	//! Create a new visualizer
-	//!
-	//! This method creates a new visualizer. A visualizer is a drawable
-	//! OpenGL object (e.g. window or pbuffer). The caller is responsible
-	//! for establishing an OpenGL drawable object and making its context
-	//! current before calling NewVisualizer(). 
-	//!
-	//! \param[in] oglinfo Contains any information needed by the 
-	//! control executive to start drawing in the drawable (perhaps no
-	//! information is needed). TBD
-	//!
-	//! \return viz Upon success an integer identifier for the visualizer
-	//! is returned. A negative int is returned on failure
-	//!
-	//! \note Need to establish what OpenGL state mgt, if any, is performed
-	//! by UI. For example, who calls swapbuffers?
-	//!
-	//! \note Since the UI is responsible for setting up the graphics 
-	//! contexts we may need a method that allows the ControlExec 
-	//! to provide
-	//! hints about what kind of graphics context is needed 
-	//! (e.g. double buffering)
-	//
+
 int ControlExec::NewVisualizer(){
+	std::map<int, Visualizer*>::iterator it;
 	int numviz = visualizers.size();
-	Visualizer* viz = new Visualizer(numviz);
-	visualizers.push_back(viz);
-	return numviz;
+	//Find the first unused index
+	for (int indx = 0; indx <= visualizers.size(); indx++){
+		it = visualizers.find(indx);
+		if (it == visualizers.end()){
+			Visualizer* viz = new Visualizer(indx);
+			visualizers[indx] = viz;
+			return indx;
+		}
+	}
+	return -1;
 }
 
 	//! Perform OpenGL initialization of specified visualizer
@@ -84,7 +70,7 @@ int ControlExec::NewVisualizer(){
 	//
 
 void ControlExec::InitializeViz(int viz, int width, int height){
-	Visualizer* v = visualizers[viz];
+	Visualizer* v = GetVisualizer(viz);
 	v->initializeGL();
 }
 
@@ -101,7 +87,7 @@ void ControlExec::InitializeViz(int viz, int width, int height){
 	//! current prior to calling this method.
 	//
 void ControlExec::ResizeViz(int viz, int width, int height){
-	Visualizer* v = visualizers[viz];
+	Visualizer* v = GetVisualizer(viz);
 	v->resizeGL(width, height);
 }
 
@@ -123,7 +109,7 @@ void ControlExec::ResizeViz(int viz, int width, int height){
 	//!
 	//!
 int ControlExec::Paint(int viz, bool force){
-	Visualizer* v = visualizers[viz];
+	Visualizer* v = GetVisualizer(viz);
 	if (!v) return -1;
 	return v->paintEvent(force);
 }
@@ -153,7 +139,6 @@ int ControlExec::ActivateRender(int viz, string type, int instance, bool on){
 	else return -1;//not on!
 }
 
-	
 Params* ControlExec::GetParams(int viz, string type, int instance){
 	Params* p = Params::GetParamsInstance(type,viz,instance);
 	int inst = p->GetInstanceIndex();
@@ -161,7 +146,7 @@ Params* ControlExec::GetParams(int viz, string type, int instance){
 	return Params::GetParamsInstance(type,viz,instance);
 }
 int ControlExec::SetCurrentRenderParamsInstance(int viz, string typetag, int instance){
-	if (viz < 0 || viz >= visualizers.size()) return -1;
+	if (0 == GetVisualizer(viz)) return -1;
 	if (instance < 0 || instance >= GetNumParamsInstances(viz,typetag)) return -1;
 	int ptype = Params::GetTypeFromTag(typetag);
 	if (ptype <= 0) return -1;
@@ -169,7 +154,7 @@ int ControlExec::SetCurrentRenderParamsInstance(int viz, string typetag, int ins
 	return 0;
 }
 int ControlExec::GetCurrentRenderParamsInstance(int viz, string typetag){
-	if (viz < 0 || viz >= visualizers.size()) return -1;
+	if (0 == GetVisualizer(viz)) return -1;
 	int ptype = Params::GetTypeFromTag(typetag);
 	if (ptype <= 0) return -1;
 	return Params::GetCurrentParamsInstanceIndex(ptype,viz);
@@ -182,21 +167,21 @@ Params* ControlExec::GetCurrentParams(int viz, string typetag){
 	return Params::GetCurrentParamsInstance(ptype,viz);
 }
 int ControlExec::AddParams(int viz, string type, Params* p){
-	if (viz < 0 || viz >= visualizers.size()) return -1;
+	if (0 == GetVisualizer(viz)) return -1;
 	int ptype = Params::GetTypeFromTag(type);
 	if (ptype <= 0) return -1;
 	Params::AppendParamsInstance(ptype,viz,p);
 	return 0;
 }
 int ControlExec::RemoveParams(int viz, string type, int instance){
-	if (viz < 0 || viz >= visualizers.size()) return -1;
+	if (0 == GetVisualizer(viz)) return -1;
 	int ptype = Params::GetTypeFromTag(type);
 	if (ptype <= 0) return -1;
 	Params::RemoveParamsInstance(ptype,viz,instance);
 	return 0;
 }
 int ControlExec::FindInstanceIndex(int viz, RenderParams* p){
-	if (viz < 0 || viz >= visualizers.size()) return -1;
+	if (0 == GetVisualizer(viz)) return -1;
 	ParamsBase::ParamsBaseType t = p->GetParamsBaseTypeId();
 	for (int i = 0; i< Params::GetNumParamsInstances(t,viz); i++){
 		if (p == Params::GetParamsInstance(t,viz,i)) return i;
@@ -332,6 +317,7 @@ createAllDefaultParams() {
 	ParamsBase::RegisterParamsBaseClass(Params::_regionParamsTag, RegionParams::CreateDefaultInstance, true);
 	//Note that UndoRedo Params must be registered after other params
 	ParamsBase::RegisterParamsBaseClass(MouseModeParams::_mouseModeParamsTag,MouseModeParams::CreateDefaultInstance, true);
+	ParamsBase::RegisterParamsBaseClass(VizWinParams::_vizWinParamsTag,VizWinParams::CreateDefaultInstance, true);
 	MouseModeParams::RegisterMouseModes();
 }
 void ControlExec::
@@ -344,14 +330,15 @@ reinitializeParams(bool doOverride){
 		p->SetChanged(true);
 	}
 
-	
-	for (int i = 0; i< GetNumVisualizers(); i++){
-		if (!GetVisualizer(i)) continue;
+	std::map<int,Visualizer*>::iterator it;
+	for (it = visualizers.begin(); it != visualizers.end(); it++){
+
+		int viz = it->first;
 	
 		//Reinitialize all the render params for each window
 		for (int pType = 1; pType <= Params::GetNumParamsClasses(); pType++){
-			for (int inst = 0; inst < Params::GetNumParamsInstances(pType, i); inst++){
-				Params* p = Params::GetParamsInstance(pType,i,inst);
+			for (int inst = 0; inst < Params::GetNumParamsInstances(pType, viz); inst++){
+				Params* p = Params::GetParamsInstance(pType,viz,inst);
 				p->Validate(doOverride);
 				if (!p->isRenderParams()) break;
 				RenderParams* rParams = (RenderParams*)p;
@@ -359,7 +346,7 @@ reinitializeParams(bool doOverride){
 				rParams->SetChanged(true);
 			}
 		}
-		GetVisualizer(i)->removeAllRenderers();
+		(it->second)->removeAllRenderers();
 	}
 }
 
@@ -374,15 +361,16 @@ bool ControlExec::CommandExists(int offset) {
 	return (Command::CurrentCommand(offset) != 0);
 }
 void ControlExec::destroyParams(){
-	for (int i = 0; i< GetNumVisualizers(); i++){
-		if (!GetVisualizer(i)) continue;
+	std::map<int,Visualizer*>::iterator it;
+	for (it = visualizers.begin(); it != visualizers.end(); it++){
+		int viz = it->first;
 		for (int pType = 1; pType <= Params::GetNumParamsClasses(); pType++){
-			for (int inst = 0; inst < Params::GetNumParamsInstances(pType, i); inst++){
-				Params* p = Params::GetParamsInstance(pType,i,inst);
+			for (int inst = 0; inst < Params::GetNumParamsInstances(pType, viz); inst++){
+				Params* p = Params::GetParamsInstance(pType,viz,inst);
 				delete p;
 			}
 		}
-		GetVisualizer(i)->removeAllRenderers();
+		(it->second)->removeAllRenderers();
 	}
 }
 int ControlExec::GetNumParamsClasses(){
@@ -590,8 +578,10 @@ buildNode() {
 	attrs.clear();
 	ParamNode* allVisNode = new ParamNode(_visualizersTag,attrs,GetNumVisualizers() );
 	mainNode->AddChild(allVisNode);
-	//Create a child for each visualizer:
-	for (int viz = 0; viz<GetNumVisualizers(); viz++){
+	std::map<int,Visualizer*>::iterator it;
+	for (it = visualizers.begin(); it != visualizers.end(); it++){
+		int viz = it->first;
+		//Create a child for each visualizer:
 		attrs.clear();
 		oss.str(empty);
 		oss << " " << viz;
@@ -610,4 +600,20 @@ buildNode() {
 		}
 	}
 	return mainNode;
+}
+int ControlExec::GetActiveVizIndex(){
+	return VizWinParams::GetCurrentVizWin();
+}
+int ControlExec::SetActiveVizIndex(int index){ 
+	return VizWinParams::SetCurrentVizWin(index);
+}
+int ControlExec::RemoveVisualizer(int viz){
+	std::map<int, Visualizer*>::iterator it;
+	it = visualizers.find(viz);
+	if (it == visualizers.end()) return -1;
+	delete visualizers[viz];
+	visualizers.erase(it);
+	int num = Params::DeleteVisualizer(viz);
+	if (num == 0) return -1;
+	return 0;
 }

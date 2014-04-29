@@ -348,7 +348,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 		instances.insert(instances.begin()+posn, dp);
 	}
 
-//! Static method that produces a list of all the Params instances 
+//! Static method that produces a list of all the Params instances of a type
 //! for a particular visualizer.
 //! Useful for application developers.
 //! \param[in] pType ParamsBase TypeId of the params class.
@@ -357,6 +357,12 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	static vector<Params*>& GetAllParamsInstances(int pType, int winnum){
 		return paramsInstances[make_pair(pType,winnum)];
 	}
+
+//! Static method that deletes all the Params instances for a particular visualizer
+//! of any type.
+//! \param[in] viznum window number associated with the visualizer
+//! \retval number of Params instances that were deleted.
+	static int DeleteVisualizer(int viznum);
 
 //! Static method that produces a list of all the Params instances 
 //! for a particular visualizer,

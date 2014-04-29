@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <vapor/ExpatParseMgr.h>
 using namespace std;
 namespace VAPoR {
@@ -63,6 +64,12 @@ public:
 	//! (e.g. double buffering)
 	//
 	static int NewVisualizer(/*oglinfo_c oglinfo*/);
+
+	//! Delete an existing visualizer
+	//! \param[in] viz handle to existing visualizer returned by NewVisualizer
+	//! \retval int 0 if successful;
+	static int RemoveVisualizer(int viz);
+
 
 	//! Perform OpenGL initialization of specified visualizer
 	//!
@@ -275,7 +282,7 @@ public:
 	//! \param[in] type The type of Params
 	//! \retval The current active Params, or NULL if invalid.
 	static Params* GetActiveParams(string type){
-		return GetCurrentParams(activeViz,type);
+		return GetCurrentParams(GetActiveVizIndex(),type);
 	}
 
 	//! Method that returns the default Params instance of a particular type.
@@ -297,6 +304,9 @@ public:
 	//!
 
 	static Visualizer* GetVisualizer(int viz){
+		std::map<int, Visualizer*>::iterator it;
+		it = visualizers.find(viz);
+		if (it == visualizers.end()) return 0;
 		return visualizers[viz];
 	}
 
@@ -304,13 +314,14 @@ public:
 	//! When using a GUI this is the index of the selected visualizer
 	//! and is established by calling SetActiveViz()
 	//! \return index of the current active visualizer
-	static int GetActiveVizIndex(){return activeViz;}
+	static int GetActiveVizIndex();
 
 	//! Set the active visualizer
 	//! GUI uses this method whenever user clicks on a window.
 	//! \sa GetActiveVizIndex();
 	//! \param[in] index of the current active visualizer
-	static void SetActiveVizIndex(int index){ activeViz=index;}
+	//! \return 0 if successful
+	static int SetActiveVizIndex(int index);
 
 	//! Save the current session state to a file
 	//!
@@ -503,10 +514,10 @@ public:
 		static void reinitializeParams(bool doOverride);
 		//! delete all the Params instances and clean out the Undo/Redo queue e.g. before a session change
 		void destroyParams();
-		static vector<Visualizer*> visualizers;
+		static std::map<int,Visualizer*> visualizers;
 		static DataMgr* dataMgr;
 		static ControlExec* controlExecutive;
-		static int activeViz;
+		
 		Params* tempParsedParams;
 		int parsingVizNum;
 		vector<int> parsingInstance;

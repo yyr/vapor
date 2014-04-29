@@ -243,7 +243,10 @@ public slots:
 
 
 protected:
-	virtual void paintEvent(QPaintEvent* e);
+	//virtual void paintEvent(QPaintEvent* e);
+	//Set the various widgets in the main window consistent with latest
+	//params settings:
+	void updateWidgets();
 	static MainForm* theMainForm;
 	
 	QMdiArea* myMDIArea;

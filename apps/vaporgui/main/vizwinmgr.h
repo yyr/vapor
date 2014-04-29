@@ -192,8 +192,6 @@ public:
 	//Make each window use its viewpoint params
 	void initViews();
 	
-	//this tag needs to be visible in session class
-	static const string _visualizersTag;
 	
 	void setInteractiveNavigating(int level);
 	
@@ -233,47 +231,7 @@ signals:
 
 	
 protected:
-	static const string _vizTimeAnnotColorAttr;
-	static const string _vizTimeAnnotTextSizeAttr;
-	static const string _vizTimeAnnotTypeAttr;
-	static const string _vizTimeAnnotCoordsAttr;
-	static const string _vizElevGridEnabledAttr;
-	static const string _vizElevGridColorAttr;
-	static const string _vizElevGridRefinementAttr;
-	static const string _vizWinTag;
-	static const string _vizWinNameAttr;
-	static const string _vizBgColorAttr;
-	static const string _vizRegionColorAttr;
-	static const string _vizSubregionColorAttr;
-	static const string _vizColorbarBackgroundColorAttr;
-	static const string _vizAxisPositionAttr;
-	static const string _vizAxisOriginAttr;
-	static const string _vizAxisAnnotationEnabledAttr;
-	static const string _vizMinTicAttr;
-	static const string _vizMaxTicAttr;
-	static const string _vizTicLengthAttr;
-	static const string _vizTicDirAttr;
-	static const string _vizNumTicsAttr;
-	static const string _vizAxisColorAttr;
-	static const string _vizTicWidthAttr;
-	static const string _vizLabelHeightAttr;
-	static const string _vizLabelDigitsAttr;
-	static const string _vizColorbarDigitsAttr;
-	static const string _vizColorbarFontsizeAttr;
-	static const string _vizColorbarLLPositionAttr;
-	static const string _vizColorbarURPositionAttr;
-	static const string _vizColorbarNumTicsAttr;
-	static const string _vizAxisArrowsEnabledAttr;
-	static const string _vizColorbarEnabledAttr;
-	static const string _vizColorbarParamsNameAttr;
-	static const string _vizRegionFrameEnabledAttr;
-	static const string _vizSubregionFrameEnabledAttr;
-	static const string _visualizerNumAttr;
-	static const string _vizElevGridDisplacementAttr;
-	static const string _vizElevGridInvertedAttr;
-	static const string _vizElevGridRotationAttr;
-	static const string _vizElevGridTexturedAttr;
-	static const string _vizElevGridTextureNameAttr;
+	
 
 	
 	
@@ -306,13 +264,11 @@ protected:
 		}
 		return mj;
 	}
-	//Trackball* globalTrackball;
+	
 
     MainForm* myMainWindow;
     static TabManager* tabManager;
    
-	vector<int> parsingInstance;
-	int parsingVizNum, parsingDvrInstance, parsingIsoInstance,parsingFlowInstance, parsingProbeInstance,parsingTwoDDataInstance,parsingTwoDImageInstance;
 	
     QMdiArea* myMDIArea;
 	
