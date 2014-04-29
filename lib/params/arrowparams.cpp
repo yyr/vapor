@@ -115,7 +115,7 @@ Validate(bool doOverride){
 	//Set the vector length so that the max arrow is 10% of the larger of the x or y size of scene
 	//Check the rake extents.  If doOverride is true, set the extents to the bottom of the data domain. If not, 
 	//shrink the extents to fit inside the domain.
-	const float* extents = ds->getLocalExtents();
+	const double* extents = ds->getLocalExtents();
 	vector<double>newExtents(3,0.);
 	if (doOverride) {
 		for (int i = 0; i<3; i++){
@@ -287,7 +287,7 @@ int ArrowParams::SetConstantColor(const double rgb[3]) {
 
 const vector<double> ArrowParams::GetConstantColor() {
 	const vector<double> white (3,1.);
-	const vector <double>& valvec = GetValueDoubleVec(_constantColorTag, white);
+	const vector <double> valvec = GetValueDoubleVec(_constantColorTag, white);
 	
 	return(valvec);
 }
@@ -311,10 +311,10 @@ int ArrowParams::SetFieldVariableName(int i, const string& varName){
 int ArrowParams::SetHeightVariableName(const string& varName){
 	return SetValueString(_heightVariableNameTag,"Set barb rake extents",varName);
 }
-const string& ArrowParams::GetHeightVariableName(){
+const string ArrowParams::GetHeightVariableName(){
 	return GetValueString(_heightVariableNameTag, "HGT");
 }
-const string& ArrowParams::GetFieldVariableName(int i){
+const string ArrowParams::GetFieldVariableName(int i){
 	vector <string> defaultName(3,"0");
 	static string retval;
 	vector <string> svec;
@@ -326,7 +326,7 @@ double ArrowParams::calcDefaultScale(){
 	string varname;
 	double maxvarvals[3];
 	DataStatus* ds = DataStatus::getInstance();
-	const float* stretch = ds->getStretchFactors();
+	const double* stretch = ds->getStretchFactors();
 	for (int i = 0; i<3; i++){
 		varname = GetFieldVariableName(i);
 		if (varname == "0" || !ds->getDataMgr()) maxvarvals[i] = 0.;
@@ -335,7 +335,7 @@ double ArrowParams::calcDefaultScale(){
 		}
 	}
 	for (int i = 0; i<3; i++) maxvarvals[i] *= stretch[i];
-	const float* extents = DataStatus::getInstance()->getLocalExtents();
+	const double* extents = DataStatus::getInstance()->getLocalExtents();
 	double maxVecLength = (double)Max(extents[3]-extents[0],extents[4]-extents[1])*0.1;
 	double maxVecVal = Max(maxvarvals[0],Max(maxvarvals[1],maxvarvals[2]));
 	if (maxVecVal == 0.) return(maxVecLength);

@@ -5,8 +5,8 @@ include ${TOP}/make/config/prebase.mk
 LIBRARY = params
 FILES = \
 	datastatus glutil \
-	params regionparams arrowparams \
-	viewpoint  \
+	params regionparams arrowparams mousemodeparams \
+	viewpoint  vizwinparams \
 	animationparams	viewpointparams ParamsBase Box \
 	ParamNode command
 	

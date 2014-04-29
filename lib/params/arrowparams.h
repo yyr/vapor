@@ -17,10 +17,14 @@ namespace VAPoR {
 class PARAMS_API ArrowParams : public RenderParams {
 public:
 	ArrowParams(XmlNode *parent, int winnum);
+//! Required static method for extensibility:
+//! \retval ParamsBase* pointer to a default Params instance
 	static ParamsBase* CreateDefaultInstance() {
 		return new ArrowParams(0, -1);
 	}
-	const std::string& getShortName() {return _shortName;}
+	//! Pure virtual method on Params. Provide a short name suitable for use in the GUI
+	//! \retval string name
+	const std::string getShortName() {return _shortName;}
 	virtual ~ArrowParams();
 	//! Note that a box is created in the restart() method, and added as
 	//! a child node to the root ParamNode.  The Box instance will be 
@@ -53,7 +57,7 @@ public:
 
 	//Get/Set methods based on XML representation
 	//! Determine the local extents of the rake
-	//! \retval vector<double>& local extents
+	//! \retval vector<double> local extents
 	const vector<double> GetRakeLocalExtents(){
 		return (GetBox()->GetLocalExtents());
 	}
@@ -68,7 +72,7 @@ public:
 	int SetRakeLocalExtents(const vector<double>&exts);
 		
 	//! Determine the size of the rake grid
-	//! \retval vector<long>& grid
+	//! \retval vector<long> grid
 	const vector<long> GetRakeGrid(){
 		const vector<long> defaultGrid(3,1);
 		return (GetValueLongVec(_rakeGridTag,defaultGrid));
@@ -133,8 +137,8 @@ public:
 
 	//! Determine a field variable name
 	//! \param[in] int coordinate
-	//! \retval const string& variable name
-	const string& GetFieldVariableName(int i);
+	//! \retval const string variable name
+	const string GetFieldVariableName(int i);
 
 	//! Specify the variable being used for height
 	//! \param[in] const string& variable name
@@ -143,7 +147,7 @@ public:
 
 	//! Determine variable name being used for height
 	//! \retval const string& variable name
-	const string& GetHeightVariableName();
+	const string GetHeightVariableName();
 
 	//! Specify whether 3D or 2D field variables are being used
 	//! \param[in] bool true if 3D, false if 2D.

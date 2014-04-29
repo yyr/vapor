@@ -59,9 +59,10 @@ public:
 	//! Obtain the full extents of the data in user coordinates.
 	//! Values in this array are in the order: minx, miny, minz, maxx, maxy, maxz.
 	//! \retval const float[6] extents array
-	const float* getLocalExtents() { return extents; }
-	const float* getFullSizes() {return fullSizes;}
-	const float* getFullStretchedSizes() {return fullStretchedSizes;}
+	const double* getLocalExtents() { return extents; }
+	const double* getFullSizes() {return fullSizes;}
+	const double* getFullStretchedSizes() {return fullStretchedSizes;}
+	const double* getStretchedLocalExtents() {return stretchedExtents;}
 
 
 	//! Returns the minimum time step for which there is any data.
@@ -113,7 +114,27 @@ public:
 	//! \retval DataMgr* pointer to current Data Manager
 	DataMgr* getDataMgr() {return dataMgr;}
 
-	
+	// Utility methods for dealing with extents and stretching
+
+	//! Return the current scene stretch factors
+	//! \retval const float* current stretch factors
+	const double* getStretchFactors() {return stretchFactors;}
+
+	//! Stretch a 3-vector
+	//! \param[in/out] vector<double> coords[3]
+	void stretchCoords(vector<double> coords){
+		for (int i = 0; i<3; i++) coords[i] = coords[i]*stretchFactors[i];
+	}
+	//! Stretch a 3-vector
+	//! \param[in/out] float coords[3]
+	void stretchCoords(double coords[3]){
+		for (int i = 0; i<3; i++) coords[i] = coords[i]*stretchFactors[i];
+	}
+	//! Find the max domain extent in stretched coords
+	//! \retval float maximum stretched extent
+	float getMaxStretchedSize(){
+		return (Max(fullStretchedSizes[0],Max(fullStretchedSizes[1],fullStretchedSizes[2])));
+	}
 	
 #ifndef DOXYGEN_SKIP_THIS
 	DataStatus();
@@ -124,7 +145,7 @@ public:
 	bool reset(DataMgr* dm, size_t cachesize);
 	
 	//Update based on current stretch factor:
-	void stretchExtents(float factor[3]){
+	void stretchExtents(double factor[3]){
 		for (int i = 0; i< 3; i++) {
 			stretchedExtents[i] = extents[i]*factor[i];
 			stretchedExtents[i+3] = extents[i+3]*factor[i];
@@ -134,7 +155,7 @@ public:
 	}
 	static size_t getCacheMB() {return cacheMB;}
 	
-	const float* getStretchFactors() {return stretchFactors;}
+	
 	
 private:
 	
@@ -154,11 +175,11 @@ private:
 
 	size_t fullDataSize[3];
 	
-	float extents[6];
-	float stretchedExtents[6];
-	float stretchFactors[3];
-	float fullSizes[3];
-	float fullStretchedSizes[3];
+	double extents[6];
+	double stretchedExtents[6];
+	double stretchFactors[3];
+	double fullSizes[3];
+	double fullStretchedSizes[3];
 	//Cache size in megabytes
 	static size_t cacheMB;
 	

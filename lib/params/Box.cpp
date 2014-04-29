@@ -50,7 +50,6 @@ Box::Box(): ParamsBase(0, Box::_boxTag) {
 	SetValueDouble(_extentsTag,"",extents,0);
 	SetValueLong(_timesTag,"",times,0);
 	SetValueDouble(_anglesTag,"",angles,0);
-	
 }
 
 ParamsBase* Box::deepCopy(ParamNode* newRoot) {
@@ -62,8 +61,8 @@ ParamsBase* Box::deepCopy(ParamNode* newRoot) {
 int Box::GetLocalExtents(double extents[6], int timestep){
 	const vector<double> defaultExtents(6,0.);
 	const vector<long> defaultTimes(1,0);
-	const vector<double>& exts = GetValueDoubleVec(Box::_extentsTag,defaultExtents);
-	const vector<long>& times = GetValueLongVec(Box::_timesTag,defaultTimes);
+	const vector<double> exts = GetValueDoubleVec(Box::_extentsTag,defaultExtents);
+	const vector<long> times = GetValueLongVec(Box::_timesTag,defaultTimes);
 	//If there are times, look for a match.  The first time should be -1
 	for (int i = 1; i<times.size(); i++){
 		if (times[i] != timestep) continue;
@@ -86,11 +85,18 @@ int Box::GetLocalExtents(float extents[6], int timestep){
 	for (int i = 0; i<6; i++) extents[i] = exts[i];
 	return 0;
 }
-
+int Box::GetStretchedLocalExtents(double extents[6], int timestep){
+	double exts[6];
+	int rc = GetLocalExtents(exts, timestep);
+	if (rc) return rc;
+	const double *stretch = DataStatus::getInstance()->getStretchFactors();
+	for (int i = 0; i<6; i++) extents[i] = exts[i]*stretch[i%3];
+	return 0;
+}
 int Box::SetLocalExtents(const vector<double>& extents, Params*p, int timestep){
 	const vector<double> defaultExtents(6,0.);
 	const vector<long> defaultTimes(1,0);
-	const vector<double>& curExts = GetValueDoubleVec(_extentsTag,defaultExtents);
+	const vector<double> curExts = GetValueDoubleVec(_extentsTag,defaultExtents);
 	//If setting default and there are no nondefault extents, 
 	//Or if the time is not in the list,
 	//just replace default extents
@@ -98,7 +104,7 @@ int Box::SetLocalExtents(const vector<double>& extents, Params*p, int timestep){
 	
 	if ((timestep < 0) || (curExts.size()>6)) {
 		//Check for specified timestep
-		const vector<long>& times = GetValueLongVec(_timesTag,defaultTimes);
+		const vector<long> times = GetValueLongVec(_timesTag,defaultTimes);
 		for (int i = 1; i<times.size(); i++){
 			if (times[i] == timestep) {
 				index = i;
@@ -124,12 +130,17 @@ int Box::SetLocalExtents(const float extents[6], Params*p, int timestep){
 	for (int i = 0; i<6; i++) exts.push_back((double)extents[i]);
 	return SetLocalExtents(exts, p, timestep);
 }
-
+int Box::SetStretchedLocalExtents(const double extents[6], Params*p, int timestep){
+	vector<double> exts;
+	const double* stretch = DataStatus::getInstance()->getStretchFactors();
+	for (int i = 0; i<6; i++) exts.push_back((double)(extents[i]/stretch[i%3]));
+	return SetLocalExtents(exts, p, timestep);
+}
 int Box::GetUserExtents(double extents[6], size_t timestep){
 	int rc = GetLocalExtents(extents, (int)timestep);
 	if (rc) return rc;
 	if (!DataStatus::getInstance()->getDataMgr()) return -1;
-	const vector<double>&tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents(timestep);
+	const vector<double>tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents(timestep);
 	//Time-varying extents are just used to get an offset that varies in time.
 	for (int i = 0; i<6; i++){
 		extents[i] += tvExts[i%3];
@@ -141,7 +152,7 @@ int Box::GetUserExtents(float extents[6], size_t timestep){
 	int rc = GetLocalExtents(extents, (int)timestep);
 	if (rc) return rc;
 	if (!DataStatus::getInstance()->getDataMgr()) return -1;
-	const vector<double>&tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents(timestep);
+	const vector<double>tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents(timestep);
 	//Time-varying extents are just used to get an offset that varies in time.
 	for (int i = 0; i<6; i++){
 		extents[i] += tvExts[i%3];

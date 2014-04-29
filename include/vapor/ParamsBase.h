@@ -162,7 +162,7 @@ void SetFlagDirty(const string& flag);
 //! Method for obtaining the name and/or tag associated with the instance
 //!
 
-const string& GetName() {return _paramsBaseName;}
+const string GetName() {return _paramsBaseName;}
  //!
  //! Obtain a single value of type long associated with a tag.
  //! Optionally specify a vector of longs whose first element is the default value
@@ -172,7 +172,9 @@ const string& GetName() {return _paramsBaseName;}
  //! \retval long value associated with the named parameter
  //!
 virtual long GetValueLong(const string& tag, const vector<long>& defaultVal = _emptyLongVec)
-	{return GetRootNode()->GetElementLong(tag, defaultVal)[0];}
+	{
+		return GetRootNode()->GetElementLong(tag, defaultVal)[0];
+	}
  //!
  //! Obtain a single value of type double associated with a tag.
  //! Optionally specify a vector of doubles whose first element is the default value
@@ -189,9 +191,9 @@ virtual double GetValueDouble(const string& tag,const vector<double>& defaultVal
  //! if the value has not been assigned.
  //! \param[in] tag XML tag associated with the desired string parameter
  //! \param[in] defaultVal (optional) const string to be assigned if specified element does not exist.
- //! \retval const string& value associated with the named parameter
+ //! \retval const string value associated with the named parameter
  //!
-virtual const string& GetValueString(const string& tag, const string& defaultVal = _emptyString)
+virtual const string GetValueString(const string& tag, const string& defaultVal = _emptyString)
 	{return GetRootNode()->GetElementString(tag, defaultVal);}
  //!
  //! Obtain a vector of values of type long associated with a tag.
@@ -201,7 +203,7 @@ virtual const string& GetValueString(const string& tag, const string& defaultVal
  //! \param[in] defaultVal (optional) const vector<long> to be assigned if specified element does not exist.
  //! \retval const vector<long>& value associated with the named parameter
  //!
-virtual const vector<long>& GetValueLongVec(const string& tag,const vector<long>& defaultVal = _emptyLongVec)
+virtual const vector<long> GetValueLongVec(const string& tag,const vector<long>& defaultVal = _emptyLongVec)
 	{return GetRootNode()->GetElementLong(tag, defaultVal);}
  //!
  //! Obtain a vector of values of type double associated with a tag.
@@ -209,9 +211,9 @@ virtual const vector<long>& GetValueLongVec(const string& tag,const vector<long>
  //! if the value has not been assigned.
  //! \param[in] tag XML tag associated with the desired double parameter
  //! \param[in] defaultVal (optional) const vector<double>& to be assigned if specified element does not exist.
- //! \retval const vector<double>& value associated with the named parameter
+ //! \retval const vector<double> value associated with the named parameter
  //!
-virtual const vector<double>& GetValueDoubleVec(const string& tag, const vector<double>& defaultVal = _emptyDoubleVec)
+virtual const vector<double> GetValueDoubleVec(const string& tag, const vector<double>& defaultVal = _emptyDoubleVec)
 	{return GetRootNode()->GetElementDouble(tag, defaultVal);}
  //!
  //! Obtain a vector of values of type string associated with a tag.
@@ -227,74 +229,80 @@ virtual void GetValueStringVec(const string& tag, vector<string>& vec, const vec
 
 //! Method for setting a single long value associated with a tag.
 //! This will capture the state of the Params argument before the value is set, 
-//! then set the values, then Validate(), and finally capture the state of
-//! the Params after the Validate()
-//! sa Validate()
+//! then set the values, then Validate(), and captures the state of
+//! the Params after the Validate() in the Undo/Redo queue
+//! Returns 0 if successful, -1 if the value cannot be set
+//! \sa Validate()
 //! \param [in] string tag
 //! \param [char*] description
 //! \param [in] long value
 //! \param [in] Params* instance that contains the change; usually p = (Params*)this.
-//! \retval int zero if successful
+//! \retval int zero if successful, -1 if not
 	virtual int SetValueLong(string tag, const char* description, long value, Params* p);
 
 //! Method for setting long values associated with a tag. 
 //! This will capture the state of the Params argument before the value is set, 
 //! then set the values, then Validate(), and finally capture the state of
 //! the Params after the Validate()
-//! sa Validate()
+//! Returns 0 if successful, -1 if the value cannot be set
+//! \sa Validate()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] vector<long> value
 //! \param [in] Params* instance that contains the change; usually p = (Params*)this.
-//! \retval int zero if successful
+//! \retval int zero if successful, -1 if not
 	virtual int SetValueLong(string tag, const char* description, const vector<long>& value, Params* p);
 
 //! Method for setting a single double value associated with a tag.
 //! This will capture the state of the Params argument before the value is set, 
 //! then set the values, then Validate(), and finally capture the state of
 //! the Params after the Validate()
-//! sa Validate()
+//! Returns 0 if successful, -1 if the value cannot be set
+//! \sa Validate()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] double value
 //! \param [in] Params* instance that contains the change; usually p is the invoker of this method
-//! \retval int zero if successful
+//! \retval int zero if successful -1 if not
 	virtual int SetValueDouble(string tag, const char* description, double value, Params* p);
 
 //! Method for making a Set of double values associated with a tag.
 //! This will capture the state of the Params argument before the value is set, 
 //! then set the values, then Validate(), and finally capture the state of
 //! the Params after the Validate()
-//! sa Validate()
+//! Returns 0 if successful, -1 if the value cannot be set
+//! \sa Validate()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] vector<double> value
 //! \param [in] Params* instance that contains the change; usually p is the invoker of this method
-//! \retval int zero if successful
+//! \retval int zero if successful, -1 if not
 	virtual int SetValueDouble(string tag, const char* description, const vector<double>& value, Params* p);
 
 //! Method for making a Set of a single string value associated with a tag.
 //! This will capture the state of the Params argument before the value is set, 
 //! then set the value, then Validate(), and finally capture the state of
 //! the Params after the Validate()
-//! sa Validate()
+//! Returns 0 if successful, -1 if the value cannot be set
+//! \sa Validate()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] string value
 //! \param [in] Params* instance that contains the change; usually p is the invoker
-//! \retval int zero if successful
+//! \retval int zero if successful, -1 if not
 	virtual int SetValueString(string tag, const char* description, const string& value, Params* p);
 
 //! Method for making a Set of string values associated with a tag.
 //! This will capture the state of the Params argument before the value is set, 
 //! then set the values, then Validate(), and finally capture the state of
 //! the Params after the Validate()
-//! sa Params::Validate()
+//! Returns 0 if successful, -1 if the value cannot be set
+//! \sa Params::Validate()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] vector<string> value
 //! \param [in] Params* instance that contains the change; usually p is the invoker
-//! \retval int zero if successful
+//! \retval int zero if successful, -1 if not
 	virtual int SetValueStringVec(string tag, const char* description, const vector<string>& value, Params* p);
 
 //!	
@@ -314,7 +322,7 @@ static ParamsBaseType GetTypeFromTag(const string&tag);
 //! Static method for converting a ParamsBase typeID to a Tag
 //! \retval string Tag (Name) associated with ParamsBase TypeID
 //!
-static const string& GetTagFromType(ParamsBaseType t);
+static const string GetTagFromType(ParamsBaseType t);
 
 //!
 //! Static method for constructing a default instance of a ParamsBase 
@@ -367,6 +375,12 @@ static ParamsBase* CreateDefaultParamsBase(const string&tag);
 //!
 	static int GetNumParamsClasses() {return numParamsClasses;}
 //!
+//! Static method to determine how many of the UndoRedo Params classes are registered, ie.
+//! the number of Global params that are not associated with a tab.
+//! \retval count Number of UndoRedo Params classes
+//!
+	static int GetNumUndoRedoParamsClasses() {return numUndoRedoParamsClasses;}
+//!
 //! Static method to determine if a ParamsBase class is a Params class
 //! \param[in] tag XML tag associated with ParamsBase class
 //! \retval status True if the specified class is a Params class
@@ -404,6 +418,7 @@ protected:
 	string _paramsBaseName;
 	int _parseDepth;
 	static int numParamsClasses;
+	static int numUndoRedoParamsClasses;
 	static int numEmbedClasses;
 
 

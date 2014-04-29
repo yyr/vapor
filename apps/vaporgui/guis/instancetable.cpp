@@ -28,6 +28,7 @@
 #include <QTableWidget>
 #include <QHeaderView>
 #include <QString>
+#include "vapor/ControlExecutive.h"
 
 
 using namespace VAPoR;
@@ -69,24 +70,20 @@ InstanceTable::~InstanceTable(){
 void InstanceTable::rebuild(EventRouter* myRouter){
 	
 	int numInsts = 1;
-	//All instance info is in VizWinMgr.
+	//All instance info is in CE
 	
+	int winnum = ControlExec::GetActiveVizIndex();
+	if (winnum < 0) return;
 	VAPoR::Params::ParamsBaseType renderBaseType = myRouter->getParamsBaseType();
-	VAPoR::VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	int winnum = vizMgr->getActiveViz();
+	string type = ControlExec::GetTagFromType(renderBaseType);
+	numInsts = ControlExec::GetNumParamsInstances(winnum,type);
 
-	if (winnum >= 0) 
-		numInsts = vizMgr->getNumInstances(winnum,renderBaseType);
-	assert(numInsts > 0);
-	
-	
 	//create items as needed
 	//Also insert labels in first column
 	if(rowCount() != numInsts) setRowCount(numInsts);
 	
 	for (int r = 0; r<numInsts; r++){
-		
-		RenderParams* rParams = (RenderParams*)vizMgr->getParams(winnum,renderBaseType,r);
+		RenderParams* rParams = (RenderParams*)ControlExec::GetParams(winnum,type,r);
 		bool isEnabled = rParams->IsEnabled();
 		if (!item(r,0)) {  //need to create new items..
 
@@ -107,8 +104,8 @@ void InstanceTable::rebuild(EventRouter* myRouter){
 		}
 		
 	}
-	if(selectedInstance != vizMgr->getCurrentInstanceIndex(winnum, renderBaseType)){
-		selectedInstance = vizMgr->getCurrentInstanceIndex(winnum, renderBaseType);
+	if(selectedInstance != ControlExec::GetCurrentRenderParamsInstance(winnum,type)){
+		selectedInstance = ControlExec::GetCurrentRenderParamsInstance(winnum,type);
 		selectRow(selectedInstance);
 	}
 	

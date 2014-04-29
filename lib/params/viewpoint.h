@@ -31,13 +31,17 @@ public:
 		setViewDir(vdir,0);
 		setCameraPosLocal(campos,0);
 		setRotationCenterLocal(rotctr,0);
+		
 	}
 	virtual ParamsBase* deepCopy(ParamNode* newRoot);
+	//! Destructor
 	virtual ~Viewpoint(){}
+	//! Required static method (for extensibility):
+	//! \retval ParamsBase* pointer to a default Params instance
 	static ParamsBase* CreateDefaultInstance() {return new Viewpoint();}
 	//! Identify current camera position in local coordinates
-	//! \retval const vector<double>& camera position
-	const vector<double>& getCameraPosLocal() {
+	//! \retval const vector<double> camera position
+	const vector<double> getCameraPosLocal() {
 		
 		return ( GetValueDoubleVec(_camPosTag));
 	}
@@ -64,7 +68,7 @@ public:
 	}
 	//! Obtain the view direction vector
 	//! \retval const vector<double> direction vector
-	const vector<double>& getViewDir() {	
+	const vector<double> getViewDir() {	
 		return ( GetValueDoubleVec(_viewDirTag));
 	}
 	//! Obtain a component of the view direction vector
@@ -89,8 +93,8 @@ public:
 		return SetValueDouble(_viewDirTag, "Set view direction", val,p);
 	}
 	//! Obtain view up-vector
-	//! \retval const vector<double>& direction vector
-	const vector<double>& getUpVec() {
+	//! \retval const vector<double> direction vector
+	const vector<double> getUpVec() {
 		return ( GetValueDoubleVec(_upVecTag));
 	}
 	//! Obtain a component of the view up vector
@@ -112,13 +116,13 @@ public:
 	//! \param[in] int coordinate index
 	//! \param[in] double direction vector component
 	//! \param[in] Param* the Params instance that is requesting this setvalue
-	//! \retval int 0 if successful
+	//! \retval int 0 if successful, otherwise -1
 	int setUpVec(const vector<double>&val, Params*p) {
 		return  SetValueDouble(_upVecTag, "Set up vector", val,p);
 	}
-	//! Obtain rotation center
-	//! \retval vector<double>& rotation center coordinates
-	const vector<double>& getRotationCenterLocal() {
+	//! Obtain rotation center in local coordinates
+	//! \retval vector<double>& rotation center local coordinates
+	const vector<double> getRotationCenterLocal() {
 		return ( GetValueDoubleVec(_rotCenterTag));
 	}
 	//! Obtain one local coordinate of rotation center
@@ -145,12 +149,13 @@ public:
 	//! Force the rotation center to be aligned with view direction
 	//! \param[in] Params* p The Params instance that is requesting this 
 	void alignCenter(Params* p);
+
 	//Routines that deal with stretched coordinates:
 	//! Obtain rotation center in stretched coordinate
 	//! \param[out] double[3] Position of rotation center in stretched coordinates.
 	void getStretchedRotCtrLocal(double* vec){
-		const float* stretch = DataStatus::getInstance()->getStretchFactors();
-		const vector<double>& rvec = getRotationCenterLocal();
+		const double* stretch = DataStatus::getInstance()->getStretchFactors();
+		const vector<double> rvec = getRotationCenterLocal();
 		for (int i = 0; i<3; i++) vec[i] = stretch[i]*rvec[i];
 	}
 	//! Specify rotation center in stretched local coordinates
@@ -158,7 +163,7 @@ public:
 	//! \param[in] Param* the Params instance that is requesting this setvalue
 	//! \retval int 0 if successful
 	int setStretchedRotCtrLocal(const double* vec, Params* p){
-		const float* stretch = DataStatus::getInstance()->getStretchFactors();
+		const double* stretch = DataStatus::getInstance()->getStretchFactors();
 		vector<double> rotCtr(getRotationCenterLocal());
 		for (int i = 0; i<3; i++) rotCtr[i] = rotCtr[i]/stretch[i];
 		return setRotationCenterLocal(rotCtr, p);
@@ -166,8 +171,8 @@ public:
 	//! obtain camera position in stretched local coordinates
 	//! \param[out] double[3] camera position in stretched local coordinates
 	void getStretchedCamPosLocal(double* vec){
-		const float* stretch = DataStatus::getInstance()->getStretchFactors();
-		const vector<double>& cpos = getCameraPosLocal();
+		const double* stretch = DataStatus::getInstance()->getStretchFactors();
+		const vector<double> cpos = getCameraPosLocal();
 		for (int i = 0; i<3; i++) vec[i] = stretch[i]*cpos[i];
 	}
 	//! Specify camera position in stretched local coordinates
@@ -175,7 +180,7 @@ public:
 	//! \param[in] Param* the Params instance that is requesting this setvalue
 	//! \retval int 0 if successful
 	int setStretchedCamPosLocal(const double* vec, Params* p){
-		const float* stretch = DataStatus::getInstance()->getStretchFactors();
+		const double* stretch = DataStatus::getInstance()->getStretchFactors();
 		vector<double> cpos(getCameraPosLocal());
 		for (int i = 0; i<3; i++) cpos[i] = cpos[i]/stretch[i];
 		return setCameraPosLocal(cpos, p);

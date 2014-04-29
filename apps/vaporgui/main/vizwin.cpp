@@ -38,12 +38,14 @@
 #include <QMouseEvent>
 #include <QCloseEvent>
 #include "visualizer.h"
+#include "manip.h"
 #include "vapor/ControlExecutive.h"
 #include <qdesktopwidget.h>
 #include "tabmanager.h"
 #include "viztab.h"
 #include "regiontab.h"
 #include "viewpointparams.h"
+#include "mousemodeparams.h"
 #include "regionparams.h"
 
 #include "viewpoint.h"
@@ -70,11 +72,12 @@ VizWin::VizWin( MainForm* parent, const QString& name, Qt::WFlags fl, VizWinMgr*
 	setAttribute(Qt::WA_DeleteOnClose);
     myWindowNum = winNum;
 	setWindowIcon(QPixmap(vapor_icon___));
-	myVisualizer = ControlExecutive::getInstance()->GetVisualizer(myWindowNum);
+	myVisualizer = ControlExec::GetVisualizer(myWindowNum);
 	myParent = parent;
 	myName = name;
 	setAutoBufferSwap(false);
 	spinTimer = 0;
+	myWinMgr = myMgr;
 	return;
 	
 	
@@ -95,6 +98,16 @@ void VizWin::closeEvent(QCloseEvent* e){
 /******************************************************
  * React when focus is on window:
  ******************************************************/
+void VizWin::
+focusInEvent(QFocusEvent* e){
+	//Test for hidden here, since a vanishing window can get this event.
+	if (e->gotFocus() && !isHidden()){
+	
+		if (myWinMgr->getActiveViz() != myWindowNum ){
+			myWinMgr->setActiveViz(myWindowNum);
+		}
+	}
+}
 
 // React to a user-change in window activation:
 void VizWin::windowActivationChange(bool ){
@@ -103,14 +116,14 @@ void VizWin::windowActivationChange(bool ){
 // React to a user-change in window size/position (or possibly max/min)
 // Either the window is minimized, maximized, restored, or just resized.
 void VizWin::resizeGL(int width, int height){
-	ControlExecutive* ce = ControlExecutive::getInstance();
-	ce->ResizeViz(myWindowNum, width, height);
+	
+	ControlExec::ResizeViz(myWindowNum, width, height);
 	reallyUpdate();
 	return;
 }
 void VizWin::initializeGL(){
-	ControlExecutive* ce = ControlExecutive::getInstance();
-	ce->InitializeViz(myWindowNum, width(),height());
+	
+	ControlExec::InitializeViz(myWindowNum, width(),height());
 	return;
 	
 }
@@ -142,21 +155,22 @@ mousePressEvent(QMouseEvent* e){
 	//possibly navigate after other activities
 	bool doNavigate = true;
 	
-	int mode = Visualizer::getCurrentMouseMode();
+	int mode = MouseModeParams::GetCurrentMouseMode();
 	if (mode > 0 && buttonNum > 0) {  //Not navigation mode:
-		/*
+		
 		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 		int faceNum;
-		float boxExtents[6];
+		double boxExtents[6];
 		ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
-		ParamsBase::ParamsBaseType t = GLWindow::getModeParamType(mode);
+		ParamsBase::ParamsBaseType t = MouseModeParams::getModeParamType(mode);
 		
-		Params* rParams = VizWinMgr::getInstance()->getParams(myWindowNum,t);
-		TranslateStretchManip* manip = myVisualizer->getManip(Params::GetTagFromType(t));
+		string tag = ControlExec::GetTagFromType(t);
+		Params* rParams = ControlExec::GetCurrentParams(myWindowNum, tag);
+		TranslateStretchManip* manip = myVisualizer->getManip(tag);
 		manip->setParams(rParams);
-		int manipType = Visualizer::getModeManipType(mode);
-		if(manipType != 3) rParams->calcStretchedBoxExtentsInCube(boxExtents, timestep); //non-rotated manip
-		else rParams->calcContainingStretchedBoxExtentsInCube(boxExtents,true);//rotated
+		int manipType = MouseModeParams::getModeManipType(mode);
+		if(manipType != 3) rParams->GetBox()->GetStretchedLocalExtents(boxExtents, timestep); //non-rotated manip
+		else rParams->calcContainingStretchedBoxExtents(boxExtents,true);//rotated
 		int handleNum = manip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
 
 		if (handleNum >= 0 && myVisualizer->startHandleSlide(screenCoords, handleNum,rParams)){
@@ -180,19 +194,22 @@ mousePressEvent(QMouseEvent* e){
 						bool doStretch = true;
 						//check if the rotation angle is approx a multiple of 90 degrees:
 						int tolerance = 20;
-						int thet = (int)(fabs(rParams->getTheta())+0.5f);
-						int ph = (int)(fabs(rParams->getPhi())+ 0.5f);
-						int ps = (int)(fabs(rParams->getPsi())+ 0.5f);
+						const vector<double>angles = rParams->GetBox()->GetAngles();
+						int thet = (int)(fabs(angles[0])+0.5f);
+						int ph = (int)(fabs(angles[1])+ 0.5f);
+						int ps = (int)(fabs(angles[2])+ 0.5f);
 						//Make sure that these are within tolerance of a multiple of 90
 						if (abs(((thet+45)/90)*90 -thet) > tolerance) doStretch = false;
 						if (abs(((ps+45)/90)*90 -ps) > tolerance) doStretch = false;
 						if (abs(((ph+45)/90)*90 -ph) > tolerance) doStretch = false;
 						
 						if (!doStretch) {
+							/*
 							MessageReporter::warningMsg("Manipulator is not axis-aligned.\n%s %s %s",
 								"To stretch or shrink,\n",
 								"You must use the size\n",
 								"(sliders or text) in the tab.");
+								*/
 							OK = false;
 						}
 					}
@@ -201,7 +218,7 @@ mousePressEvent(QMouseEvent* e){
 			}//end switch
 			if (OK) {
 				doNavigate = false;
-				float dirVec[3];
+				double dirVec[3];
 				//Find the direction vector of the camera (Local coords)
 				myVisualizer->pixelToVector(screenCoords, 
 					vParams->getCameraPosLocal(), dirVec);
@@ -213,7 +230,7 @@ mousePressEvent(QMouseEvent* e){
 				
 			} //otherwise, fall through to navigation mode
 			
-		} */
+		} 
 		//Set up for spin animation
 	} else if (mode == 0 && buttonNum == 1){ //Navigation mode, prepare for spin
 		// doNavigate is true;
@@ -257,11 +274,11 @@ mouseReleaseEvent(QMouseEvent*e){
 	if((buttonNum == 1) && ((e->modifiers() & (Qt::ControlModifier|Qt::MetaModifier))))
 			buttonNum = 0;
 	//TranslateStretchManip* myManip;
-	int mode = Visualizer::getCurrentMouseMode();
+	int mode = MouseModeParams::GetCurrentMouseMode();
 	if (mode > 0) {
-		/*
-		ParamsBase::ParamsBaseType t = Visualizer::getModeParamType(mode);
-		myManip = myVisualizer->getManip(Params::GetTagFromType(t));
+	
+		ParamsBase::ParamsBaseType t = MouseModeParams::getModeParamType(mode);
+		TranslateStretchManip* myManip = myVisualizer->getManip(Params::GetTagFromType(t));
 		//Check if the seed bounds were moved
 		if (myManip->draggingHandle() >= 0){
 			float screenCoords[2];
@@ -276,7 +293,7 @@ mouseReleaseEvent(QMouseEvent*e){
 		} else {//otherwise fall through to navigate mode
 			doNavigate = true;
 		}
-		*/
+		
 	} else {//In true navigation mode
 		doNavigate = true;
 		navMode = true;
@@ -339,40 +356,33 @@ mouseMoveEvent(QMouseEvent* e){
 	if (!mouseIsDown()) return;
 	Trackball* myTrackball = myVisualizer->GetTrackball();
 	bool doNavigate = true;
-	int buttonNum = 0;
-	if ((e->buttons() & Qt::LeftButton) &&  (e->buttons() & Qt::RightButton))
-		;//do nothing
-	else if (e->button()== Qt::LeftButton) buttonNum = 1;
-	else if (e->button() == Qt::RightButton) buttonNum = 3;
-	else if (e->button() == Qt::MidButton) buttonNum = 2;
-	//If ctrl + left button is pressed, only respond in navigation mode
-	if((buttonNum == 1) && ((e->modifiers() & (Qt::ControlModifier|Qt::MetaModifier))))
-			buttonNum = 0;
+	
 	//Respond based on what activity we are tracking
 	//Need to tell the appropriate params about the change,
 	//And it should refresh the panel
 	float mouseCoords[2];
-
+	float projMouseCoords[2];
 	mouseCoords[0] = (float) e->x();
 	mouseCoords[1] = (float) height()-e->y();
-	int mode = Visualizer::getCurrentMouseMode();
-//	ParamsBase::ParamsBaseType t = Visualizer::getModeParamType(mode);
+	int mode = MouseModeParams::GetCurrentMouseMode();
+	ParamsBase::ParamsBaseType t = MouseModeParams::getModeParamType(mode);
 	if (mode > 0){
-		/*
+		
 		TranslateStretchManip* manip = myVisualizer->getManip(Params::GetTagFromType(t));
-		bool constrain = manip->getParams()->isDomainConstrained();
+		//bool constrain = manip->getParams()->isDomainConstrained();
+		bool constrain = true;
 		ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
 		int handleNum = manip->draggingHandle();
 		//check first to see if we are dragging face
 		if (handleNum >= 0){
 			if (myVisualizer->projectPointToLine(mouseCoords,projMouseCoords)) {
-				float dirVec[3];
+				double dirVec[3];
 				myVisualizer->pixelToVector(projMouseCoords, vParams->getCameraPosLocal(), dirVec);
 				//qWarning("Sliding handle %d, direction %f %f %f", handleNum, dirVec[0],dirVec[1],dirVec[2]);
 				manip->slideHandle(handleNum, dirVec,constrain);
 				doNavigate = false;
 			}
-		}*/
+		}
 	} else if (spinTimer) { //Navigate mode, handle spin animation
 		moveCount++;
 		if (moveCount > 0){//find distance from last move event...
@@ -387,7 +397,9 @@ mouseMoveEvent(QMouseEvent* e){
 	}
 	if(doNavigate){
 		QPoint deltaPoint = e->globalPos() - mouseDownPosition;
-		myTrackball->MouseOnTrackball(1, buttonNum, e->x(), e->y(), width(), height());
+		//Note:  the button is remembered by the trackball here.
+		//e->button() is always Qt::NoButton on mouse move events.
+		myTrackball->MouseOnTrackball(1, 0, e->x(), e->y(), width(), height());
 		//Note that the coords have changed in the trackball:
 		myVisualizer->SetTrackballCoordsChanged(true);
 		
@@ -476,17 +488,19 @@ setGlobalViewpoint(bool setGlobal){
 
 
 void VizWin::paintGL(){
-	ControlExecutive* ce = ControlExecutive::getInstance();
 	//only paint if necessary
-	int rc = ce->Paint(myWindowNum, false);
+	//Note that makeCurrent is needed when here we have multiple windows.
+	makeCurrent();
+	int rc = ControlExec::Paint(myWindowNum, false);
+	
 	if (!rc) swapBuffers();
 	return;
 	
 }
 void VizWin::reallyUpdate(){
 	makeCurrent();
-	ControlExecutive* ce = ControlExecutive::getInstance();
-	ce->Paint(myWindowNum, true);
+	
+	ControlExec::Paint(myWindowNum, true);
 	swapBuffers();
 	return;
 

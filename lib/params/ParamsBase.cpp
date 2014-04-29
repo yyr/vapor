@@ -40,6 +40,7 @@ const vector<long> ParamsBase::_emptyLongVec;
 const vector<double> ParamsBase::_emptyDoubleVec;
 
 int ParamsBase::numParamsClasses = 0;
+int ParamsBase::numUndoRedoParamsClasses = 0;
 int ParamsBase::numEmbedClasses = 0;
 ParamsBase::ParamsBase(
 	XmlNode *parent, const string &name
@@ -54,13 +55,16 @@ ParamsBase::ParamsBase(
 	if(parent) parent->AddChild(_rootParamNode);
 	_paramsBaseName = name;
 	_parseDepth = 0;
-	_rootParamNode->Attrs()[_typeAttr] = ParamNode::_paramsBaseAttr;
+
 }
 
 
 ParamsBase::~ParamsBase() {
 	//Go ahead and delete its root, if it exists
-	if (_rootParamNode) delete _rootParamNode;
+	if (_rootParamNode) {
+		_rootParamNode->SetParamsBase(0);
+		delete _rootParamNode;
+	}
 	_rootParamNode = NULL;
 	_currentParamNode = NULL;
 }
@@ -382,7 +386,11 @@ int ParamsBase::RegisterParamsBaseClass(const string& tag, BaseCreateFcn fcn, bo
 	createDefaultFcnMap.insert(pair<int, BaseCreateFcn>(newIndex, fcn));
 	if(isParams) numParamsClasses = newIndex;
 	else numEmbedClasses = -newIndex;
-	if (isParams) Params::SetDefaultParams(newIndex, Params::CreateDefaultParams(newIndex));
+	if (isParams){
+		Params* p = Params::CreateDefaultParams(newIndex);
+		Params::SetDefaultParams(newIndex, p);
+		if (p->isUndoRedoParams()) numUndoRedoParamsClasses++;
+	}
 	return newIndex;
 
 }
@@ -412,7 +420,7 @@ ParamsBase::ParamsBaseType ParamsBase::GetTypeFromTag(const string&tag){
 	if (getIdIter == classIdFromTagMap.end()) return 0;
 	return (ParamsBaseType)(getIdIter->second);
 }
-const string& ParamsBase::GetTagFromType(ParamsBaseType t){
+const string ParamsBase::GetTagFromType(ParamsBaseType t){
 	map <int,string> :: const_iterator getTagIter;
     getTagIter = tagFromClassIdMap.find(t);
 	if (getTagIter == tagFromClassIdMap.end()) return _emptyString;

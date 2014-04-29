@@ -24,7 +24,7 @@
 
 #include "eventrouter.h"
 #include "params.h"
-
+#include "vapor/ControlExecutive.h"
 #include <qapplication.h>
 #include <qcursor.h>
 #include <qmessagebox.h>
@@ -43,55 +43,59 @@ using namespace VAPoR;
 
 //Copy the specified renderer to the last instance in specified window:
 void EventRouter::copyRendererInstance(int toWindow, RenderParams* rp){
-	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	
+	string type = ControlExec::GetTagFromType(myParamsBaseType);
 	//Clone this params
 	RenderParams* newP = (RenderParams*)rp->deepCopy();
 	newP->SetVizNum(toWindow);
 	newP->SetEnabled(false);
-	vizMgr->appendInstance(toWindow, newP);
+	ControlExec::AddParams(toWindow,type,newP);
 	//update tab is only needed up update the instanceTable when we are copying in the same viz
 	updateTab ();
 }
 void EventRouter::changeRendererInstance(int winnum, int newCurrentInst){
-	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	assert(newCurrentInst >= 0 && newCurrentInst < vizMgr->getNumInstances(winnum, myParamsBaseType));
-	vizMgr->setCurrentInstanceIndex(winnum, newCurrentInst, myParamsBaseType);
+	
+	string type = ControlExec::GetTagFromType(myParamsBaseType);
+	assert(newCurrentInst >= 0 && newCurrentInst < ControlExec::GetNumParamsInstances(winnum, type));
+	ControlExec::SetCurrentRenderParamsInstance(winnum,type,newCurrentInst);
 	updateTab();
 }
 //Put a default instance of specified renderer as the last instance:
 void EventRouter::newRendererInstance(int winnum){
-	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	//Clone default params
-	RenderParams* newP = dynamic_cast<RenderParams*>(vizMgr->getGlobalParams(myParamsBaseType)->deepCopy());
+	
+	string type = ControlExec::GetTagFromType(myParamsBaseType);
+	RenderParams* newP = dynamic_cast<RenderParams*>(ControlExec::GetDefaultParams(type)->deepCopy());
 	newP->SetVizNum(winnum);
 	newP->SetEnabled(false);
-	vizMgr->appendInstance(winnum, newP);
+	ControlExec::AddParams(winnum,type,newP);
 	updateTab ();
 }
 void EventRouter::removeRendererInstance(int winnum, int instance){
-	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	assert( vizMgr->getNumInstances(winnum, myParamsBaseType) > 1);
+	
+	string type = ControlExec::GetTagFromType(myParamsBaseType);
+	assert( ControlExec::GetNumParamsInstances(winnum, type) > 1);
 	//make sure it's disabled
-	RenderParams* rp = (RenderParams*)(vizMgr->getParams(winnum, myParamsBaseType, instance));
+	RenderParams* rp = (RenderParams*)(ControlExec::GetParams(winnum, type, instance));
 	//disable it first if necessary:
 	if (rp->IsEnabled()){
 		rp->SetEnabled(false);
 		updateRenderer(rp, true, instance, false);
 	}
-	vizMgr->removeInstance(winnum, instance, myParamsBaseType);
+	ControlExec::RemoveParams(winnum, type, instance);
 	updateTab();
 }
 void EventRouter::performGuiChangeInstance(int newCurrent, bool undoredo){
-	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	int winnum = vizMgr->getActiveViz();
+	
+	
+	int winnum = ControlExec::GetActiveVizIndex();
 	if (winnum < 0) return;
-	int instance = vizMgr->getCurrentInstanceIndex(winnum,myParamsBaseType);
+	string type = ControlExec::GetTagFromType(myParamsBaseType);
+	int instance = ControlExec::GetCurrentRenderParamsInstance(winnum,type);
 	if (instance == newCurrent) return;
 	
 	changeRendererInstance(winnum, newCurrent);
-	
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	VizWin* vw = vizMgr->getVizWin(winnum);
-	
 	vw->updateGL();
 }
 void EventRouter::performGuiNewInstance(){
@@ -101,34 +105,46 @@ void EventRouter::performGuiNewInstance(){
 	newRendererInstance(winnum);
 }
 void EventRouter::performGuiDeleteInstance(){
-	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	int winnum = vizMgr->getActiveViz();
-	int instance = vizMgr->getCurrentInstanceIndex(winnum, myParamsBaseType);
 	
+	int winnum = ControlExec::GetActiveVizIndex();
+	if (winnum < 0) return;
+	string type = ControlExec::GetTagFromType(myParamsBaseType);
+	int instance = ControlExec::GetCurrentRenderParamsInstance(winnum,type);
 	removeRendererInstance(winnum, instance);
 	
-	VizWin* vw = vizMgr->getVizWin(winnum);
+	VizWin* vw = VizWinMgr::getInstance()->getVizWin(winnum);
 	vw->updateGL();
 }
 void EventRouter::performGuiCopyInstance(){
 	
-	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	int winnum = vizMgr->getActiveViz();
-	Params* rParams = vizMgr->getParams(winnum,myParamsBaseType);
-
+	
+	int winnum = ControlExec::GetActiveVizIndex();
+	if (winnum < 0) return;
+	string type = ControlExec::GetTagFromType(myParamsBaseType);
+	Params* rParams = ControlExec::GetCurrentParams(winnum,type);
 	
 	copyRendererInstance(winnum, (RenderParams*)rParams);
 }
 //Copy current instance to another visualizer
 void EventRouter::performGuiCopyInstanceToViz(int towin){
 	
-	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	int winnum = vizMgr->getActiveViz();
-	Params* rParams = vizMgr->getParams(winnum,myParamsBaseType);
+	int winnum = ControlExec::GetActiveVizIndex();
+	if (winnum < 0) return;
+	string type = ControlExec::GetTagFromType(myParamsBaseType);
+	Params* rParams = ControlExec::GetCurrentParams(winnum,type);
 	
 	copyRendererInstance(towin, (RenderParams*)rParams);
 	//put the copy-source in the command
 	
 }
-
+void EventRouter::guiSetLocal(Params* p, bool lg){
+	if (textChangedFlag) confirmText(false);
+	p->SetLocal(lg);
+	if (lg) p->SetChanged(true);
+	else {//set the global change bit:
+		Params* glParams = ControlExec::GetDefaultParams(ControlExec::GetTagFromType(p->GetParamsBaseTypeId()));
+		glParams->SetChanged(true);
+	}
+	updateTab();
+}
 

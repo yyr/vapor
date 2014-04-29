@@ -44,6 +44,8 @@ public:
 	
 	Box();
 	virtual ~Box() {}
+	//! Required static method for extensibility:
+	//! \retval ParamsBase* pointer to a default Params instance
 	static ParamsBase* CreateDefaultInstance() {return new Box();}
 	virtual ParamsBase* deepCopy(ParamNode* newRoot);
 	
@@ -71,12 +73,18 @@ public:
 	//! \param[in] timestep int Specific time step being retrieved, or -1 for generic time steps
 	//! \retcode int zero if successful.
 	int GetLocalExtents(float extents[6], int timestep = -1);
+	//! Get the stretched local box extents as a float array.  If timestep is >= 0, then get it just
+	//! for the specified timestep
+	//! \param[out] extents[6] float Returned extents
+	//! \param[in] timestep int Specific time step being retrieved, or -1 for generic time steps
+	//! \retcode int zero if successful.
+	int GetStretchedLocalExtents(double extents[6], int timestep = -1);
 	//! Get the local box extents as a vector.  First 6 values are default; additional
 	//! values are associated with non-default regions
 	//! \sa GetTimes()
 	//!
 	//! \param[out] extents const vector<double>& returned extents
-	const vector<double>&  GetLocalExtents() {
+	const vector<double>  GetLocalExtents() {
 		const vector<double> localExtents(6,0.);
 		return GetValueDoubleVec(_extentsTag,localExtents);
 	}
@@ -101,11 +109,18 @@ public:
 	//! \param[in] int timestep specified time step, or -1 for generic times
 	//! \retval int zero if successful.
 	int SetLocalExtents(const float extents[6], Params* p, int timestep = -1);
-	
+	//! Specify the stretched local extents as a float array.  If time step is -1, then set the generic extents.
+	//! Otherwise set the extents for a specific timestep.
+	//! \param[in] float extents[6]
+	//! \param[in] Params* params that owns this box
+	//! \param[in] int timestep specified time step, or -1 for generic times
+	//! \retval int zero if successful.
+	int SetStretchedLocalExtents(const double extents[6], Params* p, int timestep = -1);
+
 	//! Get the three orientation angles (theta, phi, psi)
 	//! Defaults to empty vector if no angles are set.
 	//! \retval const vector<double> vector of length 3 of angles.
-	const vector<double>& GetAngles(){
+	const vector<double> GetAngles(){
 		const vector<double> defaultAngles(3,0.);
 		return GetValueDoubleVec(Box::_anglesTag,defaultAngles);
 	}
@@ -114,7 +129,7 @@ public:
 	//! \retval int zero if successful
 	int GetAngles(double ang[3]){
 		const vector<double> defaultAngles(3,0.);
-		const vector<double>& angles = GetValueDoubleVec(Box::_anglesTag,defaultAngles);
+		const vector<double> angles = GetValueDoubleVec(Box::_anglesTag,defaultAngles);
 		if (angles.size() != 3) return -1;
 		for (int i = 0; i<3;i++) ang[i]=angles[i];
 		return 0;
@@ -124,7 +139,7 @@ public:
 	//! \retval zero if successful
 	int GetAngles(float ang[3]){
 		const vector<double> defaultAngles(3,0.);
-		const vector<double>& angles = GetValueDoubleVec(Box::_anglesTag,defaultAngles);
+		const vector<double> angles = GetValueDoubleVec(Box::_anglesTag,defaultAngles);
 		if (angles.size() != 3) return -1;
 		for (int i = 0; i<3;i++) ang[i]=(float)angles[i];
 		return 0;
@@ -159,7 +174,7 @@ public:
 	//! Number of times should be 1/6 of the number of extents values
 	//! \sa GetExtents()
 	//! \retval vector<long>& vector of longs
-	const vector<long>& GetTimes() { 
+	const vector<long> GetTimes() { 
 		const vector<long> defaultTimes(1,0);
 		return( GetValueLongVec(Box::_timesTag,defaultTimes));
 	}

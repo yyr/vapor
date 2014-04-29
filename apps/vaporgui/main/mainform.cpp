@@ -70,6 +70,7 @@
 #include "animationparams.h"
 #include "assert.h"
 #include "vizfeatureparams.h"
+#include "mousemodeparams.h"
 #include "vapor/ControlExecutive.h"
 
 #include <vapor/DataMgrWB.h>
@@ -162,11 +163,9 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	tabWidget->setMinimumWidth(100);
     tabWidget->setMinimumHeight(500);
 	
-	
-	
 	tabDockWindow->setWidget(tabWidget);
 	//Create the Control executive before the VizWinMgr.
-	ControlExecutive::getInstance();
+	ControlExec::getInstance();
 	
 	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
 	myVizMgr->createAllDefaultTabs();
@@ -174,6 +173,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	
 	createToolBars();	
 	
+	addMouseModes();
     (void)statusBar();
     Main_Form->adjustSize();
     languageChange();
@@ -185,8 +185,8 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	//Create one initial visualizer:
 	myVizMgr->launchVisualizer();
 
-	
-	
+	sessionIsDefault = true;
+	setUpdatesEnabled(true);
     show();
 	
 
@@ -208,6 +208,7 @@ void MainForm::createToolBars(){
 	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
     // mouse mode toolbar:
     modeToolBar = addToolBar("Mouse Modes"); 
+	modeToolBar->setParent(this);
 	modeToolBar->addWidget(new QLabel(" Modes: "));
 	QString qws = QString("The mouse modes are used to enable various manipulation tools ")+
 		"that can be used to control the location and position of objects in "+
@@ -218,7 +219,7 @@ void MainForm::createToolBars(){
 	//add mode buttons, left to right:
 	modeToolBar->addAction(navigationAction);
 	
-	modeCombo = new QComboBox(this);
+	modeCombo = new QComboBox(modeToolBar);
 	modeCombo->setToolTip("Select the mouse mode to use in the visualizer");
 	
 	modeToolBar->addWidget(modeCombo);
@@ -628,35 +629,95 @@ void MainForm::languageChange()
    
 }
 
-
+//Open session file
 void MainForm::fileOpen()
+
 {
 
+	//This launches a panel that enables the
+    //user to choose input session save files, then to
+	//load that session
 	
+	QString fn = "VaporSaved.vss";
+	QString qfilename = QFileDialog::getOpenFileName(this, 
+		"Choose a VAPOR session file to restore a session",
+		fn,
+		"Vapor Session Save Files (*.vss)");
+	if(qfilename.length() == 0) return;
+		
+	//Force the name to end with .vss
+	if (!qfilename.endsWith(".vss")){
+		qfilename += ".vss";
+	}
+	string filename = qfilename.toStdString();
+	ControlExec::getInstance()->RestoreSession(filename);
+	sessionIsDefault = false;
+	updateWidgets();
+	//Now need to set up visualizer(s)?
 }
 
 
 void MainForm::fileSave()
 {
+	DataMgr *dataMgr = DataStatus::getInstance()->getDataMgr();
+
+	//This directly saves the session to the current session save file.
+    	//It does not prompt the user unless there is an error
+	if (! dataMgr) {
+		//MessageReporter::warningMsg( "There is no current metadata.  \nSession state cannot be saved");
+		return;
+	}
 	
+   	QString filename = QFileDialog::getSaveFileName(this,
+		"Choose the filename to save the current session",
+		".",
+		"Vapor Session Files (*.vss)");
+	
+	string s = filename.toStdString();
+	
+	
+	
+	if (!ControlExec::getInstance()->SaveSession(s)){//Report error if can't save to file
+		//MessageReporter::errorMsg("Failed to write session file: \n%s", s.c_str());
+		return;
+	}
 }
 
 
 void MainForm::fileSaveAs()
 {
+	const DataMgr *dataMgr = ControlExec::GetDataMgr();
+
+	if (! dataMgr) {
+		//MessageReporter::warningMsg( "There is no current metadata.  \nSession state cannot be saved");
+		return;
+	}
 	
+   	QString filename = QFileDialog::getSaveFileName(this,
+		"Choose the filename to save the current session",
+		".",
+		"Vapor Session Files (*.vss)");
+	
+	string s = filename.toStdString();
+	
+	
+	
+	if (!ControlExec::getInstance()->SaveSession(s)){//Report error if can't save to file
+		//MessageReporter::errorMsg("Failed to write session file: \n%s", s.c_str());
+		return;
+	}
 }
 
 
 
 void MainForm::fileExit()
 {
-	delete ControlExecutive::getInstance();
+	delete ControlExec::getInstance();
 	close();
 }
 
 void MainForm::undo(){
-	ControlExecutive* ce = ControlExecutive::getInstance();
+	ControlExec* ce = ControlExec::getInstance();
 	//If it's not active, just set default text:
 	if (!ce->CommandExists(0)) return; 
 	const Params* p = ce->Undo();
@@ -665,7 +726,7 @@ void MainForm::undo(){
 }
 
 void MainForm::redo(){
-	ControlExecutive* ce = ControlExecutive::getInstance();
+	ControlExec* ce = ControlExec::getInstance();
 	//If it's not active, just set default text:
 	if (!ce->CommandExists(-1)) return; 
 	const Params* p = ce->Redo();
@@ -712,6 +773,7 @@ void MainForm::savePrefs(){
 	
 }
 //Load data into current session
+//If current session is at default then same as loadDefaultData
 //
 void MainForm::loadData()
 {
@@ -731,20 +793,25 @@ void MainForm::loadData()
 		if (fInfo.isReadable() && fInfo.isFile()){
 			vector<string> files;
 			files.push_back(filename.toStdString());
-			dmgr = ControlExecutive::getInstance()->LoadData(files,true);
+			dmgr = ControlExec::getInstance()->LoadData(files,sessionIsDefault);
 			// Reinitialize all tabs
 			//
 			if (dmgr){
-				for (int pType = 1; pType <= Params::GetNumParamsClasses(); pType++){
+				sessionIsDefault=false;
+				int numParamsTabs = ControlExec::GetNumTabParamsClasses();
+				for (int pType = 1; pType <= numParamsTabs; pType++){
 					EventRouter* eRouter = VizWinMgr::getInstance()->getEventRouter(pType);
 					eRouter->reinitTab(false);
 				}
+
 			}
 		}
 		else {
 			QMessageBox::information(this,"Load Data Error","Unable to read metadata file ");
 			return;
 		}
+		
+		update();
 		if (dmgr) return;
 	}
 	QMessageBox::information(this,"Load Data Error","Invalid VDC");
@@ -826,11 +893,13 @@ void MainForm::defaultLoadData()
 		if (fInfo.isReadable() && fInfo.isFile()){
 			vector<string> files;
 			files.push_back(filename.toStdString());
-			dmgr = ControlExecutive::getInstance()->LoadData(files,false);
+			dmgr = ControlExec::getInstance()->LoadData(files,true);
 			// Reinitialize all tabs
 			//
 			if (dmgr){
-				for (int pType = 1; pType <= Params::GetNumParamsClasses(); pType++){
+				sessionIsDefault = false;
+				int numParamsTabs = ControlExec::GetNumTabParamsClasses();
+				for (int pType = 1; pType <= numParamsTabs; pType++){
 					EventRouter* eRouter = VizWinMgr::getInstance()->getEventRouter(pType);
 					eRouter->reinitTab(true);
 				}
@@ -840,6 +909,7 @@ void MainForm::defaultLoadData()
 			QMessageBox::information(this,"Load Data Error","Unable to read metadata file ");
 			return;
 		}
+		update();
 		if (dmgr) return;
 	}
 	QMessageBox::information(this,"Load Data Error","Invalid VDC");
@@ -851,7 +921,9 @@ void MainForm::newSession()
 }
 void MainForm::launchVisualizer()
 {
+	Command::blockCapture();
 	VizWinMgr::getInstance()->launchVisualizer();
+	Command::unblockCapture();
 		
 }
 
@@ -862,7 +934,21 @@ void MainForm::launchVisualizer()
  */
 void MainForm::setNavigate(bool on)
 {
+if (!on) return;
 	
+	//Only do something if this is an actual change of mode
+	if (MouseModeParams::GetCurrentMouseMode() != MouseModeParams::navigateMode){
+		
+		MouseModeParams::SetCurrentMouseMode(MouseModeParams::navigateMode);
+		modeCombo->setCurrentIndex(0);
+		
+		if(modeStatusWidget) {
+			statusBar()->removeWidget(modeStatusWidget);
+			delete modeStatusWidget;
+		}
+		modeStatusWidget = new QLabel("Navigation Mode:  Use left mouse to rotate or spin-animate, right to zoom, middle to translate",this);
+		statusBar()->addWidget(modeStatusWidget,2);
+	}	
 }
 
 
@@ -870,7 +956,7 @@ void MainForm::setupEditMenu(){
 	
 	QString undoText("Undo ");
 	QString redoText("Redo ");
-	ControlExecutive* ce = ControlExecutive::getInstance();
+	ControlExec* ce = ControlExec::getInstance();
 	//If it's not active, just set default text:
 	if (editUndoAction->isEnabled() && ce->CommandExists(0)) {
 		undoText += ce->GetCommandText(0).c_str();
@@ -973,20 +1059,55 @@ void MainForm::enableKeyframing(bool ison){
 	QPalette pal(timeStepEdit->palette());
 	timeStepEdit->setEnabled(!ison);
 }
-void MainForm::paintEvent(QPaintEvent* e){
+//void MainForm::paintEvent(QPaintEvent* e){
+//	
+//}
+void MainForm::updateWidgets(){
+	//Get the current mode setting from MouseModeParams
+	MouseModeParams::mouseModeType t = MouseModeParams::GetCurrentMouseMode();
+	
+	modeCombo->setCurrentIndex(t);
+	
+	if (t != 0) navigationAction->setChecked(false);
+	else navigationAction->setChecked(true);
 	
 }
 void MainForm::showTab(const std::string& tag){
-	ParamsBase::ParamsBaseType t = Params::GetTypeFromTag(tag);
+	ParamsBase::ParamsBaseType t = ControlExec::GetTypeFromTag(tag);
 	tabWidget->moveToFront(t);
 	EventRouter* eRouter = VizWinMgr::getEventRouter(tag);
 	eRouter->updateTab();
 }
 void MainForm::modeChange(int newmode){
+	if (newmode == 0) {
+		navigationAction->setChecked(true);
+		return;
+	}
 	
+	navigationAction->setChecked(false);
+	showTab(ControlExec::GetTagFromType(MouseModeParams::getModeParamType(newmode)));
+
+	MouseModeParams::SetCurrentMouseMode((MouseModeParams::mouseModeType)newmode);
+	
+	if(modeStatusWidget) {
+		statusBar()->removeWidget(modeStatusWidget);
+		delete modeStatusWidget;
+	}
+
+	modeStatusWidget = new QLabel(QString::fromStdString(MouseModeParams::getModeName(newmode))+" Mode: To modify box in scene, grab handle with left mouse to translate, right mouse to stretch",this); 
+	statusBar()->addWidget(modeStatusWidget,2);
 	
 }
 void MainForm::showCitationReminder(){
 	
 
+}
+void MainForm::addMouseModes(){
+	for (int i = 0; i<MouseModeParams::getNumMouseModes(); i++){
+		QString text = QString::fromStdString(MouseModeParams::getModeName(i));
+		const char* const * xpmIcon = MouseModeParams::GetIcon(i);
+		QPixmap qp = QPixmap(xpmIcon);
+		QIcon icon = QIcon(qp);
+		addMode(text,icon);
+	}
 }

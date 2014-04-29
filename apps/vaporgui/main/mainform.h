@@ -107,6 +107,9 @@ public:
 		modeCombo->addItem(icon, text);
 		return (modeCombo->count()-1);
 	}
+	//! Insert all the mouse modes into the modeCombo.
+	void addMouseModes();
+	
 	void setMouseMode(int newMode) {modeCombo->setCurrentIndex(newMode);}
 	void showCitationReminder();
 	
@@ -240,7 +243,10 @@ public slots:
 
 
 protected:
-	virtual void paintEvent(QPaintEvent* e);
+	//virtual void paintEvent(QPaintEvent* e);
+	//Set the various widgets in the main window consistent with latest
+	//params settings:
+	void updateWidgets();
 	static MainForm* theMainForm;
 	
 	QMdiArea* myMDIArea;
@@ -250,7 +256,7 @@ protected:
 	VizSelectCombo* windowSelector;
 	QLabel* modeStatusWidget;
 	Vcr* vcrPanel;
-	
+	bool sessionIsDefault;  //Indicates that current session is default
 
 protected slots:
 	void modeChange(int);

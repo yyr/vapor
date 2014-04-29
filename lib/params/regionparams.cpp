@@ -83,7 +83,7 @@ Validate(bool doOverride){
 	
 	int i;
 	
-	const float* extents = DataStatus::getInstance()->getLocalExtents();
+	const double* extents = DataStatus::getInstance()->getLocalExtents();
 	
 	double regionExtents[6];
 	vector<double> exts(3,0.0);

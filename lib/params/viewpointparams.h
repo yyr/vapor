@@ -70,23 +70,22 @@ public:
 	}
 
 	//! This method gives the current camera position in world coordinates.
-	//! \retval float[3] camera position
-	const vector<double>& getCameraPosLocal() {return getCurrentViewpoint()->getCameraPosLocal();}
+	//! \retval vector<double> camera position
+	const vector<double> getCameraPosLocal() {return getCurrentViewpoint()->getCameraPosLocal();}
 
-	//! Obtain stretched camera position
-	//! \param[out] 3-vector of stretched coordinates
+	//! Obtain stretched camera position in local coordinates
+	//! \param[out] 3-vector of stretched local coordinates
 	void getStretchedCamPosLocal(double* vec){
 		getCurrentViewpoint()->getStretchedCamPosLocal(vec);
 	}
 	//! Specify camera position in stretched local coordinates
 	//! \param[in] double[3] camera position in stretched local coordinates
-	//! \param[in] Param* the Params instance that is requesting this setvalue
 	//! \retval int 0 if successful
 	int setStretchedCamPosLocal(const double* vec){
 		return getCurrentViewpoint()->setStretchedCamPosLocal(vec,this);
 	}
-	//! Obtain rotation center in stretched coordinate
-	//! \param[out] double[3] Position of rotation center in stretched coordinates.
+	//! Obtain rotation center in stretched local coordinates
+	//! \param[out] double[3] Position of rotation center in stretched local coordinates.
 	void getStretchedRotCtrLocal(double* vec){
 		getCurrentViewpoint()->getStretchedRotCtrLocal(vec);
 	}
@@ -97,18 +96,18 @@ public:
 		return getCurrentViewpoint()->setStretchedRotCtrLocal(vec,this);
 	}
 	//! This method gives the direction vector of the viewer, pointing from the camera into the scene.
-	//! \retval float[3] view direction
-	const vector<double>& getViewDir() {return getCurrentViewpoint()->getViewDir();}
+	//! \retval vector<double> view direction
+	const vector<double> getViewDir() {return getCurrentViewpoint()->getViewDir();}
 
 	//! Method that specifies the upward-pointing vector of the current viewpoint.
-	//! \retval float[3] up vector
-	const vector<double>& getUpVec() {return getCurrentViewpoint()->getUpVec();}
+	//! \retval vector<double> up vector
+	const vector<double> getUpVec() {return getCurrentViewpoint()->getUpVec();}
 
 	//! Method returns the position used as the center for rotation.
 	//! Usually this is in the center of the view, but it can be changed
 	//! by user translation.
-	//! \retval float[3] Rotation center coordinates
-	const vector<double>& getRotationCenterLocal(){return getCurrentViewpoint()->getRotationCenterLocal();}
+	//! \retval vector<double> Rotation center coordinates
+	const vector<double> getRotationCenterLocal(){return getCurrentViewpoint()->getRotationCenterLocal();}
 
 	//! Set the current viewpoint to be the home viewpoint
 	void setCurrentVPToHome(){
@@ -116,18 +115,11 @@ public:
 		setHomeViewpoint(new Viewpoint(*currentViewpoint));
 	}
 
-	//Note that all calls to get camera pos and get rot center return values
-	//in local coordinates, not in lat/lon.  When the viewpoint params is in
-	//latlon mode, it is necessary to perform convertLocalFromLonLat and convertLocalToLonLat
-	//to keep the local coords current with latlons.  This conversion must occur whenever
-	//the coordinates change (from the gui or the manip), 
-	//and when the time step changes, whenever
-	//there is a change between latlon and local mode, and whenever a new
-	//data set is loaded
-	//When setCameraPos or setRotCenter is called in latlon mode, the new local values
-	//must be converted to latlon values.
-	
+	//! Obtain one coordinate of the camera position in local coords
+	//! \param[in] coord (0,1,2)
+	//! \retval value of the camera position coordinate
 	double getCameraPosLocal(int coord) {return getCurrentViewpoint()->getCameraPosLocal()[coord];}
+
 	//! Set the camera position in local coordinates at a specified time
 	//! \param[in] vector<double>& coordinates to be set
 	//! \param[in] int timestep to be used
@@ -244,7 +236,7 @@ public:
 		specCoeff[lightNum]=val;
 		return  SetValueDouble(_specularCoeffTag,"Set specular coefficient",specCoeff);
 	}
-	//! Set the specular lighting exponent of light sources
+	//! Set the specular lighting exponent of all light sources
 	//! \param[in] double specular exponent
 	//! \retval int 0 if successful
 	int setExponent(double val) {
@@ -256,7 +248,7 @@ public:
 	int setAmbientCoeff(double val) {
 		return   SetValueDouble(_ambientCoeffTag,"Set ambient lighting",val);
 	}
-	//! Set the current viewpoint
+	//! Set the current viewpoint to another viewpoint
 	//! \param[in] Viewpoint* viewpoint to be set
 	//! \retval int 0 if successful
 	//! \sa Viewpoint
@@ -287,39 +279,64 @@ public:
 	//! param[in] int timestep
 	void centerFullRegion(int timestep);
 
-#ifndef DOXYGEN_SKIP_THIS
+
+	//! Required static method (for extensibility):
+	//! \retval ParamsBase* pointer to a default Params instance
 	static ParamsBase* CreateDefaultInstance() {return new ViewpointParams(0,-1);}
-	const std::string& getShortName() {return _shortName;}
+	//! Pure virtual method on Params. Provide a short name suitable for use in the GUI
+	//! \retval string name
+	const std::string getShortName() {return _shortName;}
 	
-	
+	//! Rescale viewing parameters, e.g. when the scene stretch factors change
+	//! \param[in] double scaleFac[3] scale factors to be applied.
+	//! \param[in] int timestep to be rescaled
 	void rescale(double scaleFac[3], int timestep);
 
-	//determine far and near distance to region based on current viewpoint
+	//! determine far and near distance to region based on current viewpoint
+	//! \param[out] float* boxFar far distance to box
+	//! \param[out] float* boxNear near distance to box
 	void getFarNearDist(float* boxFar, float* boxNear);
 	
-	
+	//! Virtual method to check that values in Params are valid, and
+	//! forces them either to valid or default values.
 	virtual void Validate(bool useDefault);
+
+	//! Put a ViewpointParams into default state in the absence of data
 	virtual void restart();
 	
-	static void setDefaultPrefs();
-	
-	static void setCoordTrans();
-	
-	//Maintain the OpenGL Model Matrices
-	
+	//! Get the current OpenGL ModelView Matrix (4x4)
+	//! Needed for picking
+	//! \retval const double matrix[16]
 	const double* getModelViewMatrix() {return modelViewMatrix;}
+	//! Get the current OpenGL Projection Matrix (4x4)
+	//! Needed for calculating ray interections in scene
+	//! \retval const double matrix[16]
 	const double* getProjectionMatrix() {return projectionMatrix;}
-
-	//Rotate a 3-vector based on current modelview matrix
-	void transform3Vector(const float vec[3], float resvec[3]);
-	
+	//! Set the current OpenGL Projection Matrix
+	//! Needed for ray-casting
+	//! \param[in] double matrix[16]
+	void setProjectionMatrix(const double* mtx){
+		for (int i = 0; i<16; i++) projectionMatrix[i] = mtx[i];
+	}
+	//! Set the current OpenGL ModelView Matrix
+	//! Needed for picking
+	//! \param[in] double matrix[16]
 	void setModelViewMatrix(const double* mtx){
 		for (int i = 0; i<16; i++) modelViewMatrix[i] = mtx[i];
 	}
-	void setProjectionMatrix(double* mtx){
-		for (int i = 0; i<16; i++) projectionMatrix[i] = mtx[i];
+
+	//! Obtain the current home viewpoint
+	//! \sa Viewpoint
+	//! \retval Viewpoint* current home viewpoint.
+	virtual Viewpoint* getHomeViewpoint() {
+		ParamNode* pNode = GetRootNode()->GetNode(_homeViewTag);
+		if (pNode) return (Viewpoint*)pNode->GetParamsBase();
+		Viewpoint* vp = new Viewpoint();
+		GetRootNode()->AddNode(_homeViewTag, vp->GetRootNode());
+		return vp;
 	}
-	
+	#ifndef DOXYGEN_SKIP_THIS
+	static void setDefaultPrefs();
 	static const double* getDefaultViewDir(){return defaultViewDir;}
 	static const double* getDefaultUpVec(){return defaultUpVec;}
 	static const double* getDefaultLightDirection(int lightNum){return defaultLightDirection[lightNum];}
@@ -346,15 +363,6 @@ public:
 	static void setDefaultAmbientCoeff(double val){ defaultAmbientCoeff = val;}
 	static void setDefaultSpecularExp(double val){ defaultSpecularExp = val;}
 	static void setDefaultNumLights(int val){ defaultNumLights = val;}
-	
-	virtual Viewpoint* getHomeViewpoint() {
-		ParamNode* pNode = GetRootNode()->GetNode(_homeViewTag);
-		if (pNode) return (Viewpoint*)pNode->GetParamsBase();
-		Viewpoint* vp = new Viewpoint();
-		GetRootNode()->AddNode(_homeViewTag, vp->GetRootNode());
-		return vp;
-	}
-
 
 protected:
 
@@ -368,7 +376,7 @@ protected:
 	static const string _ambientCoeffTag;
 	static const string _numLightsTag;
 
-	//Following is protected so that other classes must set values via the parent ViewpointParams class
+	//Following is protected so that other classes must obtain viewpoint via the parent ViewpointParams class
 	virtual Viewpoint* getCurrentViewpoint() {
 		ParamNode* pNode = GetRootNode()->GetNode(_currentViewTag);
 		if (pNode) return (Viewpoint*)pNode->GetParamsBase();

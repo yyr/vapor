@@ -462,13 +462,13 @@ applyToViz(int vizNum){
 	
 	
 	bool stretchChanged = false;
-	float oldStretch[3];
+	double oldStretch[3];
 	double ratio[3] = { 1.f, 1.f, 1.f };
 	for (i = 0; i<3; i++) oldStretch[i] = ds->getStretchFactors()[i];
 	
-	float minStretch = 1.e30f;
+	double minStretch = 1.e30;
 	for (i= 0; i<3; i++){
-		if (stretch[i] <= 0.f) stretch[i] = 1.f;
+		if (stretch[i] <= 0.) stretch[i] = 1.;
 		if (stretch[i] < minStretch) minStretch = stretch[i];
 	}
 	//Normalize so minimum stretch is 1
@@ -505,7 +505,6 @@ applyToViz(int vizNum){
 			}
 			vpp->rescale(ratio, timestep);
 			
-			vpp->setCoordTrans();
 			win->setValuesFromGui(vpp);
 			vizMgr->resetViews(vpp);
 			

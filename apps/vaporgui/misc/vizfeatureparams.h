@@ -141,7 +141,7 @@ protected:
 	QColor tempTimeAnnotColor;
 	QColor tempAxisAnnotationColor;
 
-	float stretch[3];
+	double stretch[3];
 	
 	std::vector<int> rendererTypeLookup;
 	

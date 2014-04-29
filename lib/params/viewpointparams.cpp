@@ -76,17 +76,20 @@ ViewpointParams::~ViewpointParams(){
 //(this is starting state)
 void ViewpointParams::
 restart(){
-	//Make sure we have current and home viewpoints
-	if (!GetRootNode()->HasChild(_currentViewTag)){
-		Viewpoint* vp = new Viewpoint();
-		ParamNode* vpNode = vp->GetRootNode();
-		GetRootNode()->AddRegisteredNode(_currentViewTag,vpNode,vp);
-	}
-	if (!GetRootNode()->HasChild(_homeViewTag)){
-		Viewpoint* vp = new Viewpoint();
-		ParamNode* vpNode = vp->GetRootNode();
-		GetRootNode()->AddRegisteredNode(_homeViewTag,vpNode,vp);
-	}
+	//Recreate current/home viewpoints
+	if (GetRootNode()->HasChild(_currentViewTag))
+		GetRootNode()->DeleteChild(_currentViewTag);
+	if (GetRootNode()->HasChild(_homeViewTag))
+		GetRootNode()->DeleteChild(_homeViewTag);
+	
+	Viewpoint* vp = new Viewpoint();
+	ParamNode* vpNode = vp->GetRootNode();
+	GetRootNode()->AddRegisteredNode(_currentViewTag,vpNode,vp);
+	
+	vp = new Viewpoint();
+	vpNode = vp->GetRootNode();
+	GetRootNode()->AddRegisteredNode(_homeViewTag,vpNode,vp);
+
 	centerFullRegion(0);
 	setNumLights(defaultNumLights);
 	vector<double> ldirs;
@@ -107,7 +110,6 @@ restart(){
 	setExponent(defaultSpecularExp);
 	setAmbientCoeff(defaultAmbientCoeff);
 	
-	setCoordTrans();
 	
 }
 void ViewpointParams::setDefaultPrefs(){
@@ -134,7 +136,6 @@ Validate(bool doOverride){
 	//Command capturing should be disabled
 	assert(!Command::isRecording());
 	
-	setCoordTrans();
 	if (doOverride){
 		//set to defaults:
 		restart();
@@ -149,8 +150,8 @@ rescale (double scaleFac[3], int timestep){
 	double vtemp[3];
 	Viewpoint* vp = getCurrentViewpoint();
 	Viewpoint* vph = getHomeViewpoint();
-	const vector<double>& vps = vp->getCameraPosLocal();
-	const vector<double>& vctr = vp->getRotationCenterLocal();
+	const vector<double> vps = vp->getCameraPosLocal();
+	const vector<double> vctr = vp->getRotationCenterLocal();
 	vector<double> vtemp2;
 	//Want to move the camera in or out, based on scaling in directions orthogonal to view dir.
 	for (int i = 0; i<3; i++){
@@ -160,8 +161,8 @@ rescale (double scaleFac[3], int timestep){
 	}
 	vp->setCameraPosLocal(vtemp2,this);
 	//Do same for home viewpoint
-	const vector<double>& vpsh = vp->getCameraPosLocal();
-	const vector<double>& vctrh = vp->getRotationCenterLocal();
+	const vector<double> vpsh = vp->getCameraPosLocal();
+	const vector<double> vctrh = vp->getRotationCenterLocal();
 	
 	for (int i = 0; i<3; i++){
 		vtemp[i] = vpsh[i]-vctrh[i];
@@ -173,23 +174,6 @@ rescale (double scaleFac[3], int timestep){
 	
 }
 
-
-void ViewpointParams::
-setCoordTrans(){
-	const float* strSizes = DataStatus::getInstance()->getFullStretchedSizes();
-	
-}
-
-
-
-//Rotate a vector based on current modelview matrix transpose.  Use to rotate vector in world coords to
-//Camera coord system.
-void  ViewpointParams::transform3Vector(const float vec[3], float resvec[3])
-{
-	resvec[0] = modelViewMatrix[0]*vec[0] + modelViewMatrix[1]*vec[1] + modelViewMatrix[2]*vec[2];
-	resvec[1] = modelViewMatrix[4]*vec[0] + modelViewMatrix[5]*vec[1] + modelViewMatrix[6]*vec[2];
-	resvec[2] = modelViewMatrix[8]*vec[0] + modelViewMatrix[9]*vec[1] + modelViewMatrix[10]*vec[2];
-}
 //  First project all 8 box corners to the center line of the camera view, finding the furthest and
 //  nearest projection in front of the camera.  The furthest distance is used as the far distance.
 //  If some point projects behind the camera, then either the camera is inside the box, or a corner of the
@@ -198,19 +182,19 @@ void  ViewpointParams::transform3Vector(const float vec[3], float resvec[3])
 void ViewpointParams::
 getFarNearDist(float* boxFar, float* boxNear){
 	//First check full box
-	float extents[6];
+	double extents[6];
 	double wrk[3], cor[3], boxcor[3], cmpos[3];
 	double camPosBox[3],dvdir[3];
 	double maxProj = -1.e30;
 	double minProj = 1.e30; 
 
-	const float* exts = DataStatus::getInstance()->getLocalExtents();
+	const double* exts = DataStatus::getInstance()->getLocalExtents();
 	//convert to local extents??
 	for (int i = 0; i<6; i++) extents[i] = exts[i]-exts[i%3];
 
 	//Convert camera position and corners to stretched  coordinates
 	for (int i = 0; i<3; i++) cmpos[i] = (double)getCameraPosLocal()[i];
-	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	const double* stretch = DataStatus::getInstance()->getStretchFactors();
 	for (int i = 0; i<3; i++) camPosBox[i] = cmpos[i]*stretch[i];
 	
 	
@@ -250,16 +234,16 @@ getFarNearDist(float* boxFar, float* boxNear){
 void ViewpointParams::
 centerFullRegion(int timestep){
 	//Find the largest of the dimensions of the current region:
-	const float* fullExtent = DataStatus::getInstance()->getLocalExtents();
+	const double* fullExtent = DataStatus::getInstance()->getLocalExtents();
 
-	float maxSide = Max(fullExtent[5]-fullExtent[2], 
+	double maxSide = Max(fullExtent[5]-fullExtent[2], 
 		Max(fullExtent[4]-fullExtent[1],
 		fullExtent[3]-fullExtent[0]));
 	//calculate the camera position: center - 2.5*viewDir*maxSide;
 	//Position the camera 2.5*maxSide units away from the center, aimed
 	//at the center.
 	//But divide it by stretch factors
-	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	const double* stretch = DataStatus::getInstance()->getStretchFactors();
 	Viewpoint* currentViewpoint = getCurrentViewpoint();
 	//Make sure the viewDir is normalized:
 	double viewDir[3];

@@ -34,6 +34,7 @@
 #include <qmessagebox.h>
 #include "viewpointeventrouter.h"
 #include "viewpointparams.h"
+#include "vapor/ControlExecutive.h"
 #include "viztab.h"
 #include "tabmanager.h"
 #include "mainform.h"
@@ -49,7 +50,7 @@ using namespace VAPoR;
 
 ViewpointEventRouter::ViewpointEventRouter(QWidget* parent ): QWidget(parent), Ui_VizTab(), EventRouter(){
 	setupUi(this);
-	myParamsBaseType = Params::GetTypeFromTag(Params::_viewpointParamsTag);
+	myParamsBaseType = ControlExec::GetTypeFromTag(Params::_viewpointParamsTag);
 	
 	panChanged = false;
 	savedCommand = 0;
@@ -161,7 +162,8 @@ setVtabTextChanged(const QString& ){
 void ViewpointEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
 	if (!DataStatus::getInstance()->getDataMgr()) return;
-	ViewpointParams* vParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
+	ViewpointParams* vParams = (ViewpointParams*)ControlExec::GetActiveParams(Params::_viewpointParamsTag);
+	
 	Command* cmd = Command::CaptureStart(vParams,"viewpoint text change");
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	
@@ -332,8 +334,7 @@ void ViewpointEventRouter::
 guiCenterSubRegion(RegionParams* rParams){
 	
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
-	
+	ViewpointParams* vpParams = (ViewpointParams*)ControlExec::GetActiveParams(Params::_viewpointParamsTag);
 	//Find the largest of the dimensions of the current region, projected orthogonal to view
 	//direction:
 	//Make sure the viewDir is normalized:
@@ -342,7 +343,7 @@ guiCenterSubRegion(RegionParams* rParams){
 	vnormal(viewDir);
 	float regionSideVector[3], compVec[3], projvec[3];
 	float maxProj = -1.f;
-	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	const double* stretch = DataStatus::getInstance()->getStretchFactors();
 	double regExts[6];
 	rParams->GetBox()->GetLocalExtents(regExts,timestep);
 	for (int i = 0; i< 3; i++){
@@ -394,8 +395,7 @@ guiCenterSubRegion(RegionParams* rParams){
 void ViewpointEventRouter::
 guiCenterFullRegion(RegionParams* rParams){
 	
-	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
-	
+	ViewpointParams* vpParams = (ViewpointParams*)ControlExec::GetActiveParams(Params::_viewpointParamsTag);
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	vpParams->centerFullRegion(timestep);
 	//modify near/far distance as needed:
@@ -416,8 +416,7 @@ guiAlignView(int axis){
 	
 	vector<double>vdir(3,0.);
 	vector<double>up(3,0.);
-	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
-
+	ViewpointParams* vpParams = (ViewpointParams*)ControlExec::GetActiveParams(Params::_viewpointParamsTag);
 	if (axis == 1) {  //Special case to align to closest axis.
 		//determine the closest view direction and up vector to the current viewpoint.
 		//Check the dot product with all axes
@@ -497,8 +496,8 @@ void ViewpointEventRouter::
 guiSetCenter(const double* coords){
 	double vdir[3];
 	vector<double> nvdir;
-	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
-	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	ViewpointParams* vpParams = (ViewpointParams*)ControlExec::GetActiveParams(Params::_viewpointParamsTag);
+	const double* stretch = DataStatus::getInstance()->getStretchFactors();
 
 
 	//Determine the new viewDir in stretched world coords
@@ -529,7 +528,7 @@ guiSetCenter(const double* coords){
 
 void ViewpointEventRouter::
 setHomeViewpoint(){
-	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
+	ViewpointParams* vpParams = (ViewpointParams*)ControlExec::GetActiveParams(Params::_viewpointParamsTag);
 	vpParams->setCurrentVPToHome();
 	updateTab();
 	updateRenderer(vpParams,false,-1,false);
@@ -537,8 +536,7 @@ setHomeViewpoint(){
 }
 void ViewpointEventRouter::
 useHomeViewpoint(){
-	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
-
+	ViewpointParams* vpParams = (ViewpointParams*)ControlExec::GetActiveParams(Params::_viewpointParamsTag);
 	
 	Viewpoint* homeViewpoint = vpParams->getHomeViewpoint();
 	vpParams->setCurrentViewpoint(new Viewpoint(*homeViewpoint));
@@ -570,7 +568,7 @@ captureMouseUp(){
 	updateTab();
 	
 	if (savedCommand) Command::CaptureEnd(savedCommand,vpParams);
-	//DON't Set region  dirty
+	savedCommand=0;
 	
 	//Just rerender:
 	VizWinMgr::getInstance()->refreshViewpoint(vpParams);
@@ -592,6 +590,7 @@ void ViewpointEventRouter::
 reinitTab(bool doOverride){
 	if (VizWinMgr::getInstance()->getNumVisualizers() > 1) LocalGlobal->setEnabled(true);
 	else LocalGlobal->setEnabled(false);
+	savedCommand=0;
 }
 
 //Save undo/redo state when user grabs a rake handle
@@ -600,7 +599,7 @@ void ViewpointEventRouter::
 captureMouseDown(int button){
 	//If text has changed, will ignore it-- don't call confirmText()!
 	//
-	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
+	ViewpointParams* vpParams = (ViewpointParams*)ControlExec::GetActiveParams(Params::_viewpointParamsTag);
 	guiSetTextChanged(false);
 	
 	if (savedCommand) delete savedCommand;
@@ -642,7 +641,7 @@ updateRenderer(ViewpointParams* vpParams, bool prevEnabled,  int /*instance*/, b
 			if (i == myVizMgr->getActiveViz()) continue;
 			if( viz == myVizMgr->getVizWin(i)){
 				//Bypass normal access to vpParams!
-				if(!(myVizMgr->getRealVPParams(i)) || !(myVizMgr->getRealVPParams(i)->IsLocal())){
+				if(!(myVizMgr->getViewpointParams(i)) || !(myVizMgr->getViewpointParams(i)->IsLocal())){
 					viz->updateGL();
 				}
 			}

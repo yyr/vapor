@@ -137,7 +137,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! This is not the tag!
 //! \retval string name to identify associated tab
 //! \sa GetName
-	 virtual const std::string& getShortName()=0;
+	 virtual const std::string getShortName()=0;
 
 //! virtual method indicates instance index, only used with RenderParams
 //! Implementers need not implement this method.
@@ -175,6 +175,12 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \param[in] bool default 
 //! \sa DataMgr
 	virtual void Validate(bool setdefault)=0;
+
+//! Virtual method indicates that the geometry of this Params instance fits within a plane.
+//! Needed for Probe, Isolines, to prevent invalid manip stretching.
+//! Default returns false; must reimplement if the geometry is constrained to a plane.
+//! \retval bool returns true if geometry is constrained to a plane.
+	virtual bool IsPlanar() {return false;}
 
 
 //! Static method that identifies the instance that is current in the identified window.
@@ -276,10 +282,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! Useful for application developers.
 //! \param[in] pType ParamsBase TypeId of the params class
 //! \retval Pointer to new default Params instance
-	static Params* CreateDefaultParams(int pType){
-		Params*p = (Params*)(createDefaultFcnMap[pType])();
-		return p;
-	}
+	static Params* CreateDefaultParams(int pType);
 	
 		
 //! Static method that tells how many instances of a Params class
@@ -345,7 +348,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 		instances.insert(instances.begin()+posn, dp);
 	}
 
-//! Static method that produces a list of all the Params instances 
+//! Static method that produces a list of all the Params instances of a type
 //! for a particular visualizer.
 //! Useful for application developers.
 //! \param[in] pType ParamsBase TypeId of the params class.
@@ -354,6 +357,12 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	static vector<Params*>& GetAllParamsInstances(int pType, int winnum){
 		return paramsInstances[make_pair(pType,winnum)];
 	}
+
+//! Static method that deletes all the Params instances for a particular visualizer
+//! of any type.
+//! \param[in] viznum window number associated with the visualizer
+//! \retval number of Params instances that were deleted.
+	static int DeleteVisualizer(int viznum);
 
 //! Static method that produces a list of all the Params instances 
 //! for a particular visualizer,
@@ -392,12 +401,20 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \retval returns true if it is a RenderParams
 	virtual bool isRenderParams() const {return false;}
 
-//! Pure virtual method, sets a Params instance to its default state
-//! Params implementers should assign values to all elements in the Params class in this method.
+//! Virtual method indicating whether a Params is "UndoRedo", i.e. a Params
+//! class that is only used to support Undo/Redo.  The UndoRedo Params classes
+//! have only one instance.  UndoRedo params are not associated with Tabs in the GUI.
+//! Default returns false.
+//! Useful for application developers.
+//! \retval returns true if it is UndoRedo
+	virtual bool isUndoRedoParams() const {return false;}
+
+//! Pure virtual method, sets a Params instance to its default state, without any data present.
+//! Params implementers should assign valid values to all elements in the Params class in this method.
 	virtual void restart() = 0;
 	
 //! Identify the visualizer associated with this instance.
-//! With global pr default Params this is -1 
+//! With global or default Params this is -1 
 	virtual int GetVizNum() {return (int)(GetValueLong(_VisualizerNumTag));}
 
 //! Specify whether a [non-render]params is local or global. 
@@ -428,11 +445,33 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \retval Box* returns pointer to the Box associated with this Params.
 	virtual Box* GetBox() {return 0;}
 
+//! Virtual method supports rotated boxes such as probe
+//! Specifies an axis-aligned box containing the rotated box.
+//! By default it just finds the box extents.
+//! Caller must supply extents array, which gets its values filled in.
+//! \param[out] float[6] Extents of containing box
+	virtual void calcContainingStretchedBoxExtents(double extents[6], bool rotated = false) 
+		{if (!rotated) GetBox()->GetStretchedLocalExtents(extents,-1);
+		else calcRotatedStretchedBoxExtents(extents);}
+
+//! If the box is rotated, this method calculated the minimal axis-aligned extents
+//! containing all 8 corners of the box.
+//! \param[out] double extents[6] is smallest extents containing the box.
+	void calcRotatedStretchedBoxExtents(double extents[6]);
+
+//! The orientation is used only with 2D Box Manipulators, and must be implemented for Params supporting such manipulators.  
+//! Valid values are 0,1,2 for being orthog to X,Y,Z-axes.
+//! Default is -1 (invalid)
+//! \retval int orientation direction (0,1,2)
+	virtual int getOrientation() { assert(0); return -1;}
 	//Following methods, while public, are not part of extensibility API
 	
 #ifndef DOXYGEN_SKIP_THIS
 	
 	//Not part of public API
+	void calcLocalBoxCorners(double corners[8][3], float extraThickness, int timestep, double rotation = 0., int axis = -1);
+	void buildLocalCoordTransform(double transformMatrix[12], double extraThickness, int timestep, double rotation, int axis);
+	void convertThetaPhiPsi(double *newTheta, double* newPhi, double* newPsi, int axis, double rotation);
 	virtual Params* deepCopy(ParamNode* nd = 0);
 	static Params* CreateDummyParams(std::string tag);
 	static void	BailOut (const char *errstr, const char *fname, int lineno);
@@ -442,7 +481,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	static void addDummyParamsInstance(Params*const & p ) {dummyParamsInstances.push_back(p);}
 
 	static void clearDummyParamsInstances();
-	static const std::string& paramName(ParamsBaseType t);
+	static const std::string paramName(ParamsBaseType t);
 	
 	static const string _regionParamsTag;
 	static const string _viewpointParamsTag;
@@ -463,6 +502,7 @@ protected:
 //! then set the value(s), then Validate(), and finally capture the state of
 //! the Params after the Validate()
 //! \sa Validate(), ParamsBase::GetValueLong()
+//! Returns 0 if successful, -1 if the value cannot be set
 //! \param [in] string tag
 //! \param [in] long value
 //! \param [in] char* description
@@ -474,6 +514,7 @@ protected:
 //! This will capture the state of the Params before the value is set, 
 //! then set the value(s), then Validate(), and finally capture the state of
 //! the Params after the Validate()
+//! Returns 0 if successful, -1 if the value cannot be set
 //! \sa Validate(), ParamsBase::GetValueLongVec()
 //! \param [in] string tag
 //! \param [in] char* description
@@ -486,6 +527,7 @@ protected:
 //! This will capture the state of the Params before the value is set, 
 //! then set the value(s), then Validate(), and finally capture the state of
 //! the Params after the Validate()
+//! Returns 0 if successful, -1 if the value cannot be set
 //! \sa Validate(), ParamsBase::GetValueDouble()
 //! \param [in] string tag
 //! \param [in] char* description
@@ -498,6 +540,7 @@ protected:
 //! This will capture the state of the Params before the values are set, 
 //! then set the value(s), then Validate(), and finally capture the state of
 //! the Params after the Validate().
+//! Returns 0 if successful, -1 if the value cannot be set
 //! \sa Validate(), ParamsBase::GetValueDoubleVec()
 //! \param [in] string tag
 //! \param [in] char* description
@@ -511,6 +554,7 @@ protected:
 //! This will capture the state of the Params before the value is set, 
 //! then set the value, then Validate(), and finally capture the state of
 //! the Params after the Validate()
+//! Returns 0 if successful, -1 if the value cannot be set
 //! \sa Validate(), ParamsBase::GetValueString()
 //! \param [in] string tag
 //! \param [in] char* description
@@ -522,8 +566,9 @@ protected:
 //! Method for setting string values associated with a tag.
 //! This will capture the state of the Params before the values are set, 
 //! then set the value(s), then Validate(), and finally capture the state of
-//! the Params after the Validate(), ParamsBase::GetValueStringVec()
-//! \sa Validate()
+//! the Params after the Validate()
+//! returns 0 if successful, -1 if the value cannot be set.
+//! \sa Validate(), ParamsBase::GetValueStringVec()
 //! \param [in] string tag
 //! \param [in] char* description
 //! \param [in] vector<string> value
@@ -676,7 +721,7 @@ class DummyParams : public Params {
 	virtual bool usingVariable(const std::string& ){
 		return false;
 	}
-	const std::string &getShortName(){return myTag;}
+	const std::string getShortName(){return myTag;}
 
 	std::string myTag;
 

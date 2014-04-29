@@ -121,24 +121,42 @@ public:
 	//! \param [in] int timestep indicates the current timestep, used only with time-varying extents
 	//! \retval int is 0 for success
 	int SetLocalRegionMax(int coord, double maxval, int timestep);
-#ifndef DOXYGEN_SKIP_THIS
 
+	//! Required static method for extensibility:
+	//! \retval ParamsBase* pointer to a default Params instance
 	static ParamsBase* CreateDefaultInstance() {return new RegionParams(0, -1);}
-	const std::string& getShortName() {return _shortName;}
+
+	//! Pure virtual method on Params. Provide a short name suitable for use in the GUI
+	//! \retval string name
+	const std::string getShortName() {return _shortName;}
 	
+	//! Provide a vector of the times, useful for time-varying extents
+	//! \retval const vector<long> vector of times.
+	const vector<long> GetTimes(){ return GetBox()->GetValueLongVec(Box::_timesTag);}
 	
-	
-	const vector<double>& GetAllExtents(){ return GetBox()->GetValueDoubleVec(Box::_extentsTag);}
-	const vector<long>& GetTimes(){ return GetBox()->GetValueLongVec(Box::_timesTag);}
-	void clearRegionsMap();
+	//! Indicate whether or not the extents vary over time
+	//! bool true if extents are time-varying.
 	bool extentsAreVarying(){ return GetBox()->GetTimes().size()>1;}
-	//Insert a time in the list.  Return false if it's already there
+
+	//! Insert a specific time in the list of time-varying extents.  Return false if it's already there
+	//! \param[in] timestep to be inserted
+	//! \retval true if the time was not already in the list.
 	bool insertTime(int timestep);
-	//Remove a time from the time-varying timesteps.  Return false if unsuccessful
+
+	//! Remove a time from the time-varying timesteps.  Return false if unsuccessful
+	//! \param[in] timestep to be removed
+	//! \retval false if the time was not already in the list.
 	bool removeTime(int timestep);
 
+	//! Provide a vector of all the extents for all times
+	//! returns 6 doubles for each time step.
+	//! \retval const vector<double> vector of extents. 
+	const vector<double> GetAllExtents(){ return GetBox()->GetValueDoubleVec(Box::_extentsTag);}
+#ifndef DOXYGEN_SKIP_THIS
 protected:
 	static const string _shortName;
+	
+	void clearRegionsMap();
 	
 #endif //DOXYGEN_SKIP_THIS
 };

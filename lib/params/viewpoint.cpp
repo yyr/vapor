@@ -59,7 +59,7 @@ void Viewpoint::alignCenter(Params* p){
 	for (int i = 0; i<3; i++) viewDirection[i] = vdir[i];
 	vnormal(viewDirection);
 	double rctr[3], cmps[3], temp[3];
-	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	const double* stretch = DataStatus::getInstance()->getStretchFactors();
 	//stretch rotCenter and campos
 	for (int i = 0; i<3; i++){
 		rctr[i] = rotationCenter[i]* stretch[i];

@@ -165,16 +165,7 @@ public:
 	//Default just clones the params:
 	virtual Params* deepCopy(Params* p) {return (p->deepCopy());}
 	
-	virtual void guiSetLocal(Params* p, bool lg){
-		if (textChangedFlag) confirmText(false);
-	
-		
-		Params* localParams = VizWinMgr::getInstance()->getCorrespondingLocalParams(p);
-		
-		localParams->SetLocal(lg);
-		
-		updateTab();
-	}
+	virtual void guiSetLocal(Params* p, bool lg);
 	
 	//Methods to support maintaining a list of histograms
 	//in each router (at least those with a TFE)

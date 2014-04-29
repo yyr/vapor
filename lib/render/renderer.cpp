@@ -65,7 +65,7 @@ void Renderer::enableClippingPlanes(const double extents[6]){
     //cerr << "transforming everything to unit box coords :-(\n";
    // myVisualizer->TransformToUnitBox();
 
-    const float* scales = DataStatus::getInstance()->getStretchFactors();
+    const double* scales = DataStatus::getInstance()->getStretchFactors();
     glScalef(scales[0], scales[1], scales[2]);
 
 	GLdouble x0Plane[] = {1., 0., 0., 0.};
@@ -130,7 +130,7 @@ void Renderer::disableFullClippingPlanes(){
 	GLdouble leftPlane[] = {1., 0., 0., 0.001};//x = -.001
 	GLdouble botPlane[] = {0., 1., 0., 0.001};//y = -.001
 	
-	const float* sizes = DataStatus::getInstance()->getFullStretchedSizes();
+	const double* sizes = DataStatus::getInstance()->getFullStretchedSizes();
 	topPlane[3] = sizes[1]*1.001;
 	rightPlane[3] = sizes[0]*1.001;
 	
