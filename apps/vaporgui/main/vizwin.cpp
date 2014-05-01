@@ -93,7 +93,7 @@ void VizWin::closeEvent(QCloseEvent* e){
 	//Tell the winmgr that we are closing:
     myWinMgr->vizAboutToDisappear(myWindowNum);
 	QWidget::closeEvent(e);
-	delete myVisualizer;
+
 }
 /******************************************************
  * React when focus is on window:

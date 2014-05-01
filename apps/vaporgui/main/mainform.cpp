@@ -71,6 +71,7 @@
 #include "assert.h"
 #include "vizfeatureparams.h"
 #include "mousemodeparams.h"
+#include "vizwinparams.h"
 #include "vapor/ControlExecutive.h"
 
 #include <vapor/DataMgrWB.h>
@@ -650,7 +651,16 @@ void MainForm::fileOpen()
 		qfilename += ".vss";
 	}
 	string filename = qfilename.toStdString();
+
+	// Clear out the current session:
+	ControlExec::SetToDefault();
+	VizWinMgr::getInstance()->SetToDefaults();
+
 	ControlExec::getInstance()->RestoreSession(filename);
+
+	//Need to use vizwinparams and set up all windows after the first...
+	int numViz = VizWinParams::GetNumVizWins();
+	for (int i = 1; i<numViz; i++) VizWinMgr::getInstance()->attachVisualizer();
 	sessionIsDefault = false;
 	updateWidgets();
 	//Now need to set up visualizer(s)?
@@ -914,11 +924,13 @@ void MainForm::defaultLoadData()
 	}
 	QMessageBox::information(this,"Load Data Error","Invalid VDC");
 }
-void MainForm::newSession()
-{
-	
-	
+void MainForm::newSession(){
+	ControlExec::SetToDefault();
+	VizWinMgr::getInstance()->SetToDefaults();
+	VizWinMgr::getInstance()->refreshRenderData();
 }
+	
+	
 void MainForm::launchVisualizer()
 {
 	Command::blockCapture();

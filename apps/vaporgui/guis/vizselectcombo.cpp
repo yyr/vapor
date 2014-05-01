@@ -86,9 +86,11 @@ removeWindow(int windowNum){
 		if (winNums[i] == windowNum) break;
 	}
 	assert(i < count()-1);
+	
 	removeItem(i);
-	//Now count() has already been reduced by one
-	assert(winNums.size() == count());
+
+	//Now count() has been reduced by one
+	assert(winNums.size() == count()+1);
 	for (int j = i; j<count(); j++){
 		winNums[j] = winNums[j+1];
 	}

@@ -32,6 +32,7 @@
 
 #include <vector>
 #include <map>
+#include <algorithm>
 #include <vapor/common.h>
 #include "params.h"
 #include <vapor/MyBase.h>
@@ -112,14 +113,7 @@ public:
 		if (winnum < 0) return -1;
 		return ((VizWinParams*)Params::GetParamsInstance(_vizWinParamsTag))->getWindowHeights()[winnum];
 	}
-	//! Static method identifies the name of the specified visualizer
-	//! \param[in] winnum is the visualizer index.
-	//! \retval name of window, or null string if visualizer does not exists
-	string GetVisualizerName(int viznum){
-		int winnum = mapVizToWin(viznum);
-		if (winnum < 0) return ParamsBase::_emptyString;
-		return ((VizWinParams*)Params::GetParamsInstance(_vizWinParamsTag))->getWindowNames()[winnum];
-	}
+	
 	//! Static method sets the width of the specified visualizer
 	//! \param[in] viznum is the visualizer index.
 	//! \param[in] width is window width
@@ -144,6 +138,7 @@ public:
 	}
 
 	//! Static method specifies the name of the specified visualizer
+	//! Note that names with embedded underscores will have these characters converted to blanks.
 	//! \param[in] winnum is the visualizer index.
 	//! \retval 0 if successful
 	static int SetVizName(int viznum, string name){
@@ -225,7 +220,7 @@ protected:
 	}
 
 	int setWindowHeights(const vector<long>& heights){
-		return SetValueLong(_windowWidthsTag, "Set window heights",heights);
+		return SetValueLong(_windowHeightsTag, "Set window heights",heights);
 	}
 	vector<long> getVisualizerNums(){
 		return GetValueLongVec(_visualizerNumsTag);
@@ -236,10 +231,19 @@ protected:
 	vector<string> getWindowNames(){
 		std::vector<string> names;
 		GetValueStringVec(_windowNamesTag,names);
+		//convert "_" to " ":
+		for (int i = 0; i<names.size(); i++){
+			std::replace(names[i].begin(),names[i].end(),'_',' ');
+		}
 		return names;
 	}
 	int setWindowNames(const vector<string> names){
-		return SetValueStringVec(_windowNamesTag," Set visualizer names", names);
+		//Replace blanks with underscores
+		vector<string> namemod = names;
+		for (int i = 0; i<namemod.size(); i++){
+			std::replace(namemod[i].begin(),namemod[i].end(),' ','_');
+		}
+		return SetValueStringVec(_windowNamesTag," Set visualizer names", namemod);
 	}
 	
 #endif //DOXYGEN_SKIP_THIS

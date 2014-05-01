@@ -100,9 +100,16 @@ int VizWinParams::AddVizWin(const std::string name, int viznum, int width, int h
 	vector<long> widths = p->getWindowWidths();
 	vector<long> heights = p->getWindowHeights();
 	vector<string>winnames = p->getWindowNames();
+	Command* cmd = Command::CaptureStart(p,"Add new visualizer");
 	widths.push_back(width);
 	heights.push_back(height);
 	winnames.push_back(name);
+	
+	p->setVisualizerNums(viznums);
+	p->setWindowHeights(heights);
+	p->setWindowWidths(widths);
+	p->setWindowNames(winnames);
+	Command::CaptureEnd(cmd, p);
 	return 0;
 }
 

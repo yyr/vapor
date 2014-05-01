@@ -19,6 +19,7 @@
 
 #include "vizfeatureparams.h"
 #include "vizwin.h"
+#include "vizwinparams.h"
 #include "vizfeatures.h"
 #include "mainform.h"
 #include "datastatus.h"
@@ -514,7 +515,7 @@ applyToViz(int vizNum){
 	
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	VizWin* vizWin = vizWinMgr->getVizWin(vizNum);
-	vizWinMgr->setVizWinName(vizNum, vizName);
+	VizWinParams::SetVizName(vizNum, vizName.toStdString());
 	
 	
 	vizWin->updateGL();

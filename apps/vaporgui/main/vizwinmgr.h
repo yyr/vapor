@@ -103,6 +103,8 @@ public:
 		return getEventRouter(ParamsBase::GetTypeFromTag(tag));
 	}
 
+	//! Reset the GUI to its default state, either due to New Session, or in preparation for loading a session file.
+	void SetToDefaults();
 
 #ifndef DOXYGEN_SKIP_THIS
 	//Following methods are not usually needed for extensibility:
@@ -131,26 +133,31 @@ public:
     
     //method to launch a viz window, returns vizNum
     int launchVisualizer();
+	 //method to launch a viz window, params already exist
+    int attachVisualizer();
     
-	
     int getNumVisualizers(); 
     TabManager* getTabManager() { return tabManager;}
     
 	//activeViz is -1 if none is active, otherwise is no. of active viz win.
 	int getActiveViz(); 
+
 	VizWin* getActiveVisualizer() {
 		int activeViz = getActiveViz();
 		assert(activeViz >= 0);
+		//Use an iterator so we don't insert if the viz is not there
+		std::map<int, VizWin*>::iterator it;
+		it = VizWindow.find(activeViz);
+		if (it == VizWindow.end()) return 0;
 		return VizWindow[activeViz];
-		
 	}
+
 	//Method that is called when a window is made active:
 	void setActiveViz(int vizNum); 
 	//Obtain the parameters that currently apply in specified window:
 	ViewpointParams* getViewpointParams(int winNum);
 	RegionParams* getRegionParams(int winNum);
 	AnimationParams* getAnimationParams(int winNum);
-	
 	RegionEventRouter* getRegionRouter();
 	AnimationEventRouter* getAnimationRouter(); 
 	ViewpointEventRouter* getViewpointRouter();
@@ -160,12 +167,7 @@ public:
 	
 	//set/get Data describing window states
 	VizWin* getVizWin(int i) {return VizWindow[i];}
-	int maxVizWins(){return VizWindow.size();}
 	
-	void setVizWinName(int winNum, QString& qs);
-	QString& getVizWinName(int winNum) {return VizName[winNum];}
-	
-	void replaceGlobalParams(Params* p, ParamsBase::ParamsBaseType t);
 	void createDefaultParams(int winnum);
 	
 	//Force all renderers to re-obtain render data
@@ -177,9 +179,6 @@ public:
 	void disableAllRenderers();
 	//Following methods notify all params that are associated with a
 	//specific window.
-	//Set the dirty bits in all the visualizers that use a
-	//region parameter setting
-	//
 	
 	void refreshViewpoint(ViewpointParams* vParams);
 	void refreshRegion(RegionParams* rParams);
@@ -191,10 +190,7 @@ public:
 	
 	//Make each window use its viewpoint params
 	void initViews();
-	
-	
 	void setInteractiveNavigating(int level);
-	
 	void stopFlowIntegration();
 	
 
@@ -214,26 +210,20 @@ public slots:
 	void viewRegion();
 	void alignView(int axis);
 	//The vizWinMgr has to dispatch signals from gui's to the appropriate parameter panels
-	
 	void setVpLocalGlobal(int val);
 	void setRgLocalGlobal(int val);
 	void setAnimationLocalGlobal(int val);
 	
 signals:
 	//Turn on/off multiple viz options:
-
 	void enableMultiViz(bool onOff);
 	//Respond to user setting the vizselectorcombo:
 	void newViz(QString&, int);
 	void removeViz(int);
 	void activateViz(int);
 	void changeName(QString&, int);
-
 	
 protected:
-	
-
-	
 	
 	ViewpointParams* getGlobalVPParams();
 	RegionParams* getGlobalRegionParams();
@@ -242,22 +232,23 @@ protected:
 	static Params::ParamsBaseType RegisterEventRouter(const std::string tag, EventRouter* router);
 	static std::map<ParamsBase::ParamsBaseType, EventRouter*> eventRouterMap;
 	
-
 	static VizWinMgr* theVizWinMgr;
 	VizWinMgr ();
 	
-   
 	std::map<int, VizWin*> VizWindow;
 	std::map<int,QMdiSubWindow*> VizMdiWin;
-	std::map<int,QString> VizName;
 	std::map<int,int> ActivationOrder;
 	
 	//Remember the activation order:
 	int activationCount;
 	int getLastActive(){
 		int mx = -1; int mj = -1;
-		for (int j = 0; j< VizWindow.size(); j++){
-			if (VizWindow[j] && ActivationOrder[j]>mx){ 
+		//Use an iterator
+		std::map<int, VizWin*>::iterator it;
+		for (it = VizWindow.begin(); it != VizWindow.end(); it++){
+			VizWin* win = it->second;
+			int j = it->first;
+			if (win && ActivationOrder[j]>mx){ 
 				mx = ActivationOrder[j];
 				mj = j;
 			}
@@ -269,10 +260,8 @@ protected:
     MainForm* myMainWindow;
     static TabManager* tabManager;
    
-	
     QMdiArea* myMDIArea;
 	
-	int numVizWins;
 	bool spinAnimate;
 
 #endif //DOXYGEN_SKIP_THIS

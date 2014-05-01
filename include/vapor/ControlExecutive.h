@@ -488,6 +488,13 @@ public:
 	//! If none is set, no errors will be reported to the UI.
 	static int SetErrorHandler(ErrorHandler* handler);
 
+	//! Set the ControlExec to a default state:
+	//! Remove all visualizers and Params instances
+	//! Create default params
+	//! restart the command queue
+	//! Delete the DataMgr.
+	static void SetToDefault();
+
 	//! Verify that a Params instance is in a valid state
 	//! Used to handle synchronous error checking,
 	//! E.g. checking user input parameters.

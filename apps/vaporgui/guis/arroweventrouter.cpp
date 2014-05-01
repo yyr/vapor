@@ -39,6 +39,7 @@
 #include "tabmanager.h"
 #include "arrowparams.h"
 #include "mousemodeparams.h"
+#include "vizwinparams.h"
 #include "arrowrenderer.h"
 #include "arroweventrouter.h"
 #include "eventrouter.h"
@@ -454,7 +455,7 @@ void ArrowEventRouter::updateTab(){
 		copyCount.clear();
 		for (int i = 0; i<vizMgr->getNumVisualizers(); i++){
 			if (vizMgr->getVizWin(i) && winnum != i){
-				copyCombo->addItem(vizMgr->getVizWinName(i));
+				copyCombo->addItem(QString::fromStdString(VizWinParams::GetVizName(i)));
 				//Remember the viznum corresponding to a combo item:
 				copyCount.push_back(i);
 			}

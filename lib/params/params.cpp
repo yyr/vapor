@@ -426,15 +426,20 @@ void Params::calcRotatedStretchedBoxExtents(double* bigBoxExtents){
 	return;
 }
 int Params::DeleteVisualizer(int viz){
-	std::map<pair<int,int>,vector<Params*> >::iterator it;
+
+	std::map<pair<int,int>,vector<Params*> >::iterator it = paramsInstances.begin();
 	int num = 0;
-	for (it == paramsInstances.begin(); it != paramsInstances.end(); it++){
+	while (it != paramsInstances.end()){
 		pair<int,int> pr = it->first;
 		if (pr.second == viz){ //delete all params associated with the visualizer
+			std::map<pair<int,int>,vector<Params*> >::iterator eraseIt = it;
 			vector<Params*> pvec = it->second;
 			for (int i = 0; i<pvec.size(); i++) {delete pvec[i]; num++;}
-			paramsInstances.erase(it);
-			
+			++it;
+			paramsInstances.erase(eraseIt);
+		} else
+		{
+			++it;
 		}
 	}
 	return num;

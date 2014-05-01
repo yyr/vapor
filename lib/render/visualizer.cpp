@@ -120,10 +120,14 @@ Visualizer::~Visualizer()
 	for (int i = 0; i< renderer.size(); i++){
 		delete renderer[i];
 	}
-	
+	renderType.clear();
+	renderOrder.clear();
+	renderer.clear();
+	rendererMapping.clear();
+	manipHolder.clear();
 	
 	nowPainting = false;
-	
+	delete localTrackball;
 }
 
 void Visualizer::setDefaultPrefs(){

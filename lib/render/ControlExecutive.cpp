@@ -47,15 +47,19 @@ int ControlExec::NewVisualizer(){
 	std::map<int, Visualizer*>::iterator it;
 	int numviz = visualizers.size();
 	//Find the first unused index
+	int vizIndex = -1;
 	for (int indx = 0; indx <= visualizers.size(); indx++){
 		it = visualizers.find(indx);
 		if (it == visualizers.end()){
 			Visualizer* viz = new Visualizer(indx);
 			visualizers[indx] = viz;
-			return indx;
+			vizIndex = indx;
+			break;
 		}
 	}
-	return -1;
+	//Save to VizWinParams with default settings
+	if (vizIndex >= 0) VizWinParams::AddVizWin("Visualizer",vizIndex, 400,400);
+	return vizIndex;
 }
 
 	//! Perform OpenGL initialization of specified visualizer
@@ -395,9 +399,12 @@ int ControlExec::RestoreSession(string filename)
 	if (!is){//Report error if you can't open the file
 		return -1;
 	}
+	
+	
 	ExpatParseMgr* parseMgr = new ExpatParseMgr(this);
 	parseMgr->parse(is);
 	delete parseMgr;
+	
 	return 0;
 }
 
@@ -616,4 +623,28 @@ int ControlExec::RemoveVisualizer(int viz){
 	int num = Params::DeleteVisualizer(viz);
 	if (num == 0) return -1;
 	return 0;
+}
+
+//! Set the ControlExec to a default state:
+
+void ControlExec::SetToDefault(){
+	//Delete the DataMgr
+	if (dataMgr) delete dataMgr;
+	dataMgr = 0;
+	//! Remove all visualizers and Params instances
+	std::map<int, Visualizer*>::iterator it = visualizers.begin();
+	while (it != visualizers.end()){
+		//Copy the one that will be removed:
+		std::map<int, Visualizer*>::iterator it2 = it;
+		++it;
+		RemoveVisualizer(it2->first);
+	}
+	delete DataStatus::getInstance();
+	//Set all the default params back to default state:
+	for( int ptype = 1; ptype<= ParamsBase::GetNumParamsClasses(); ptype++){
+		Params* p = Params::CreateDefaultParams(ptype);
+		Params::SetDefaultParams(ptype, p);
+	}
+	Command::resetCommandQueue();
+	
 }

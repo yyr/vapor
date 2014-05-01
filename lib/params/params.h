@@ -568,6 +568,7 @@ protected:
 //! then set the value(s), then Validate(), and finally capture the state of
 //! the Params after the Validate()
 //! returns 0 if successful, -1 if the value cannot be set.
+//! \note strings in string vectors must be non-blank, non-empty, and must not have embedded blank characters.
 //! \sa Validate(), ParamsBase::GetValueStringVec()
 //! \param [in] string tag
 //! \param [in] char* description
