@@ -291,7 +291,7 @@ void MainForm::createToolBars(){
 	vizToolBar->addWidget(interactiveRefinementSpin);
 }
 void MainForm::hookupSignals() {
-   
+	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
 	connect(modeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT( modeChange(int)));
 	connect( fileNew_SessionAction, SIGNAL( triggered() ), this, SLOT( newSession() ) );
 	connect( fileOpenAction, SIGNAL( triggered() ), this, SLOT( fileOpen() ) );
@@ -323,7 +323,8 @@ void MainForm::hookupSignals() {
 
 	//Toolbar actions:
 	connect (navigationAction, SIGNAL(toggled(bool)), this, SLOT(setNavigate(bool)));
-	
+	connect (tileAction, SIGNAL(triggered()), myVizMgr, SLOT(fitSpace()));
+	connect (cascadeAction, SIGNAL(triggered()), myVizMgr, SLOT(cascade()));
 	connect (interactiveRefinementSpin, SIGNAL(valueChanged(int)), this, SLOT(setInteractiveRefLevel(int)));
 	connect (playForwardAction, SIGNAL(triggered()), this, SLOT(playForward()));
 	connect (playBackwardAction, SIGNAL(triggered()), this, SLOT(playBackward()));
@@ -901,6 +902,10 @@ void MainForm::defaultLoadData()
 		QFileInfo fInfo(filename);
 		const DataMgr* dmgr=0;
 		if (fInfo.isReadable() && fInfo.isFile()){
+			//Set state to default:
+			ControlExec::SetToDefault();
+			VizWinMgr::getInstance()->SetToDefaults();
+			
 			vector<string> files;
 			files.push_back(filename.toStdString());
 			dmgr = ControlExec::getInstance()->LoadData(files,true);

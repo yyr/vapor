@@ -25,6 +25,7 @@
 #include <vapor/XmlNode.h>
 #include <vapor/ExpatParseMgr.h>
 #include <vapor/ParamNode.h>
+#include <map>
 
 #include "assert.h"
 #include <vapor/common.h>
@@ -291,9 +292,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \param[in] pType ParamsBase TypeId of the params class
 //! \param[in] winnum index of specified visualizer window
 //! \retval number of instances that exist 
-	static int GetNumParamsInstances(int pType, int winnum){
-		return paramsInstances[make_pair(pType, winnum)].size();
-	}
+	static int GetNumParamsInstances(int pType, int winnum);
 
 //! Static method that tells how many instances of a Params class
 //! exist for a particular visualizer.
@@ -355,6 +354,8 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \param[in] winnum index of specified visualizer window.
 //! \retval vector of the Params pointers associated with the window .
 	static vector<Params*>& GetAllParamsInstances(int pType, int winnum){
+		map< pair<int,int>, vector<Params*> >::const_iterator it = paramsInstances.find(make_pair(pType,winnum));
+		if (it == paramsInstances.end()) return (*new vector<Params*>);
 		return paramsInstances[make_pair(pType,winnum)];
 	}
 

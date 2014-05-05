@@ -149,6 +149,8 @@ void Params::SetChanged(bool val){
 Params* Params::GetParamsInstance(int pType, int winnum, int instance){
 	if (winnum < 0) return defaultParamsInstance[pType];
 	if (instance < 0) instance = currentParamsInstance[make_pair(pType,winnum)];
+	map< pair<int,int>,vector<Params*>>::const_iterator it = paramsInstances.find(make_pair(pType,winnum));
+	if (it == paramsInstances.end()) return 0;  //return null if no instances exist.
 	if (instance >= paramsInstances[make_pair(pType, winnum)].size()) {
 		instance = paramsInstances[make_pair(pType, winnum)].size();
 		Params* p = GetDefaultParams(pType)->deepCopy();
@@ -163,6 +165,12 @@ Params* Params::GetParamsInstance(int pType, int winnum, int instance){
 }
 
 void Params::RemoveParamsInstance(int pType, int winnum, int instance){
+	//Make sure the specified instance exists
+	map<pair<int,int>,vector<Params*> >::const_iterator it = paramsInstances.find(make_pair(pType,winnum));
+	if (it == paramsInstances.end()){
+		assert(0);
+		return;
+	}
 	vector<Params*>& instVec = paramsInstances[make_pair(pType,winnum)];
 	Params* p = instVec.at(instance);
 	assert(p->GetInstanceIndex() == instance);
@@ -443,4 +451,9 @@ int Params::DeleteVisualizer(int viz){
 		}
 	}
 	return num;
+}
+ int Params::GetNumParamsInstances(int pType, int winnum){
+	std::map<pair<int,int>,vector<Params*> >::iterator it = paramsInstances.find(std::make_pair(pType,winnum));
+	if (it == paramsInstances.end()) return 0;
+	return paramsInstances[make_pair(pType, winnum)].size();
 }

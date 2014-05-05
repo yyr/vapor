@@ -101,7 +101,7 @@ VizWinMgr::VizWinMgr()
 	myMainWindow = MainForm::getInstance();
     myMDIArea = myMainWindow->getMDIArea();
 	tabManager = MainForm::getTabManager();
-   
+    activationCount = 0;
 	setActiveViz(-1);
    
 	VizWindow.clear();
@@ -183,7 +183,7 @@ vizAboutToDisappear(int i)  {
 		else {
 			//Make sure it is OK
 			it = VizWindow.find(newActive);
-			if (it != VizWindow.end()) setActiveViz(-1);
+			if (it == VizWindow.end()) setActiveViz(-1);
 			else setActiveViz(newActive);
 		}
 	}
@@ -197,8 +197,10 @@ vizAboutToDisappear(int i)  {
 			ControlExec::RemoveParams(i,tag,k);
 		}
 	}
+	//Remove the visualizer
+	ControlExec::RemoveVisualizer(i);
 
-
+	//Remove the visualizer from the vizSelectCombo
 	emit (removeViz(i));
 	
 	//When the number is reduced to 1, disable multiviz options.
@@ -454,6 +456,7 @@ void VizWinMgr::
 killViz(int viznum){
 
 	assert(VizWindow[viznum]);
+	VizWindow[viznum]->setEnabled(false);
 	MainForm::getInstance()->getMDIArea()->removeSubWindow(VizMdiWin[viznum]);
 	VizWindow[viznum]->close();
 }
@@ -818,13 +821,14 @@ getRegionRouter() {
 void VizWinMgr::forceRender(const Params* p, bool always){
 	if (p->isRenderParams()){
 		RenderParams* rp = (RenderParams*)p;
-		if (!always && !rp->IsEnabled()) return;
+		if (!always || !rp->IsEnabled()) return;
 		int viznum = rp->GetVizNum();
 		if (viznum < 0) return;
 		VizWindow[viznum]->reallyUpdate();
 	} else { //force all windows to update
-		for (int viznum = 0; viznum<getNumVisualizers(); viznum++){
-			VizWindow[viznum]->reallyUpdate();
+		map<int, VizWin*>::const_iterator it;
+		for (it = VizWindow.begin(); it != VizWindow.end(); it++){
+			(it->second)->reallyUpdate();
 		}
 	}
 }

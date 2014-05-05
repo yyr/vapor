@@ -118,7 +118,7 @@ public:
 	//! \param[in] viznum is the visualizer index.
 	//! \param[in] width is window width
 	//! \retval 0 if successful
-	int SetWindowWidth(int viznum, int width){
+	static int SetWindowWidth(int viznum, int width){
 		int winnum = mapVizToWin(viznum);
 		if (winnum < 0) return -1;
 		std::vector<long> widths =  ((VizWinParams*)Params::GetParamsInstance(_vizWinParamsTag))->getWindowWidths();
@@ -129,7 +129,7 @@ public:
 	//! \param[in] viznum is the visualizer index.
 	//! \param[in] width is window width
 	//! \retval 0 if successful
-	int SetWindowHeight(int viznum, int height){
+	static int SetWindowHeight(int viznum, int height){
 		int winnum = mapVizToWin(viznum);
 		if (winnum < 0) return -1;
 		vector<long>heights =  ((VizWinParams*)Params::GetParamsInstance(_vizWinParamsTag))->getWindowHeights();

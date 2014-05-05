@@ -166,6 +166,7 @@ public:
 	void updateActiveParams();
 	
 	//set/get Data describing window states
+	//Obtain the vizWin associated with a visualizer
 	VizWin* getVizWin(int i) {return VizWindow[i];}
 	
 	void createDefaultParams(int winnum);
@@ -235,25 +236,36 @@ protected:
 	static VizWinMgr* theVizWinMgr;
 	VizWinMgr ();
 	
+	//Map visualizer id to vizwin
 	std::map<int, VizWin*> VizWindow;
 	std::map<int,QMdiSubWindow*> VizMdiWin;
+	//Activation order is a history of all the active visualizer indices.
+	//It is a mapping from visualizer indices to the activation order.
+	//When a visualizer is closed, the most recently active visualizer is re-activated.
 	std::map<int,int> ActivationOrder;
 	
 	//Remember the activation order:
 	int activationCount;
+	//Find the previous active visualizer, by looking at the last one
+	//that corresponds to a valid visualizer
 	int getLastActive(){
-		int mx = -1; int mj = -1;
-		//Use an iterator
-		std::map<int, VizWin*>::iterator it;
-		for (it = VizWindow.begin(); it != VizWindow.end(); it++){
-			VizWin* win = it->second;
-			int j = it->first;
-			if (win && ActivationOrder[j]>mx){ 
-				mx = ActivationOrder[j];
-				mj = j;
+		int lastActivation = -1; int prevActiveVis = -1;
+		//Use an iterator to loop over activation orders
+		std::map<int, int>::iterator it;
+		std::map<int, VizWin*>::iterator it2;
+		for (it = ActivationOrder.begin(); it != ActivationOrder.end(); it++){
+			int order = it->second;
+			int vis = it->first;
+			//Check if vis is a valid visualizer
+			it2 = VizWindow.find(vis);
+			if (it2 == VizWindow.end()) continue;
+			
+			if (order >lastActivation){ 
+				lastActivation = order;
+				prevActiveVis = vis;
 			}
 		}
-		return mj;
+		return prevActiveVis;
 	}
 	
 

@@ -501,13 +501,13 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 				}
 				parsingInstance[typeId]++;
 				Params* parsingParams;
-				if (parsingInstance[typeId] > 0){
-					//only renderParams can have more than one instance
+				if (parsingInstance[typeId] > 0 || parsingVizNum > 0){
 					parsingParams = Params::CreateDefaultParams(typeId);
-					assert(parsingParams->isRenderParams());
+					//only renderParams can have more than one instance
+					assert(parsingParams->isRenderParams() || parsingVizNum > 0);
 					Params::AppendParamsInstance(typeId,parsingVizNum, parsingParams);
 				} else {
-					//There already exists one instance:
+					//There already exists an instance if this is visualizer 0 and we are parsing the first instance
 					parsingParams = Params::GetParamsInstance(typeId,parsingVizNum, 0);
 				}
 				assert(Params::GetNumParamsInstances(typeId,parsingVizNum) == (parsingInstance[typeId] + 1));
@@ -620,6 +620,7 @@ int ControlExec::RemoveVisualizer(int viz){
 	if (it == visualizers.end()) return -1;
 	delete visualizers[viz];
 	visualizers.erase(it);
+	VizWinParams::RemoveVizWin(viz);
 	int num = Params::DeleteVisualizer(viz);
 	if (num == 0) return -1;
 	return 0;
