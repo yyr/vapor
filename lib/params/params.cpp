@@ -149,7 +149,7 @@ void Params::SetChanged(bool val){
 Params* Params::GetParamsInstance(int pType, int winnum, int instance){
 	if (winnum < 0) return defaultParamsInstance[pType];
 	if (instance < 0) instance = currentParamsInstance[make_pair(pType,winnum)];
-	map< pair<int,int>,vector<Params*>>::const_iterator it = paramsInstances.find(make_pair(pType,winnum));
+	map< pair<int,int>,vector<Params*> >::const_iterator it = paramsInstances.find(make_pair(pType,winnum));
 	if (it == paramsInstances.end()) return 0;  //return null if no instances exist.
 	if (instance >= paramsInstances[make_pair(pType, winnum)].size()) {
 		instance = paramsInstances[make_pair(pType, winnum)].size();
