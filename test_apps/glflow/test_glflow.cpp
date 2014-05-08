@@ -1,6 +1,6 @@
 #include "glinc.h"
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 #include "glflow.h"
 #include <cmath>
 #include "vec.h"
@@ -88,50 +88,93 @@ static int getfloats(char* filename, float* buff, int max)
 static void drawCube();
 int scrw, scrh, midx, midy, dx, dy, rx, ry;
 double fov = 90.0;
-static void reshape(int w, int h)
+float v_distance = 5.f;
+
+//glfw window event callbacks
+void windowSize(GLFWwindow* window, int width, int height)
 {
-    glViewport(0, 0, (GLsizei)w, (GLsizei)h);
+    glViewport(0, 0, (GLsizei)width, (GLsizei)height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(fov, (double)scrw/(double)scrh, 0.1, 100.0);
     glMatrixMode(GL_MODELVIEW);
-    scrw = w;
-    scrh = h;
-    midx = w / 2;
-    midy = h / 2;
-    glutPostRedisplay();
-}
-void mousemove(int x, int y)
-{
-    dx = x - midx;
-    dy = y - midy;
-    rx += dx;
-    ry += dy;
-    if(ry > 90) ry = 90;
-    if(ry < -90) ry = -90;
-    if(rx > 180) rx -= 360;
-    if(rx < -180) rx += 360;
-    
-    glutWarpPointer(midx, midy);
-    glutPostRedisplay();
+    scrw = width;
+    scrh = height;
+    midx = width / 2;
+    midy = height / 2;
 }
 
-float v_distance = 5.f;
-void mouse(int button, int state, int x, int y)
+const int NEUTRAL = 0;
+const int ROTATING = 1;
+const int PANNING = 2;
+const int ZOOMING = 3;
+int mode = 0;
+
+//glfw input callbacks
+void cursorPos(GLFWwindow* window, double xpos, double ypos)
 {
-    if(state == GLUT_UP) return;
+    switch(mode)
+    {
+        case NEUTRAL:
+            break;
+        case ROTATING:
+            dx = xpos - midx;
+            dy = ypos - midy;
+            rx += dx;
+            ry += dy;
+            if(ry > 90) ry = 90;
+            if(ry < -90) ry = -90;
+            if(rx > 180) rx -= 360;
+            if(rx < -180) rx += 360;
+            glfwSetCursorPos(window, midx, midy);
+            break;
+        case PANNING:
+            break;
+        case ZOOMING:
+            dx = xpos - midx;
+            dy = ypos - midy;
+            v_distance += (dy / 10.0);
+            glfwSetCursorPos(window, midx, midy);
+            break;
+    }
+}
+
+//no keybinds defined yet
+void keyboard(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    
+}
+
+//use mouse button 1 to rotate, 2 to pan, middle to zoom
+void mouseButton(GLFWwindow* window, int button, int action, int mods)
+{
     switch(button)
     {
-        case 3:
-            v_distance = v_distance - 0.5f;
+        case GLFW_MOUSE_BUTTON_LEFT:
+            if(action == GLFW_PRESS){if(mode == NEUTRAL) mode = ROTATING;}
+            else{if(mode == ROTATING) mode = NEUTRAL;}
             break;
-        case 4:
-            v_distance = v_distance + 0.5f;
+        case GLFW_MOUSE_BUTTON_RIGHT:
+            if(action == GLFW_PRESS){if(mode == NEUTRAL) mode = PANNING;}
+            else{if(mode == PANNING) mode = NEUTRAL;}
+            break;
+        case GLFW_MOUSE_BUTTON_MIDDLE:
+            if(action == GLFW_PRESS){if(mode == NEUTRAL) mode = ZOOMING;}
+            else{if(mode == ZOOMING) mode = NEUTRAL;}
             break;
         default:
             break;
     }
-    glutPostRedisplay();
+}
+
+//use scroll to zoom (in case no three-button mouse)
+void mouseScroll(GLFWwindow* window, double xoffset, double yoffset)
+{
+    v_distance -= yoffset;
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(fov, (double)scrw/(double)scrh, 0.1, 100.0);
+    glMatrixMode(GL_MODELVIEW);
 }
 
 GLfloat mat_specular[] = {0.f, 0.f, 0.f, 0.f};
@@ -165,6 +208,7 @@ float hogdata[54] =
      1.f, -.5f, 1.f,
      1.f, .5f,  1.f,
 };
+
 float hogdata2[6] =
 {
     0.f, -1.f, 0.f,
@@ -231,7 +275,7 @@ GLHedgeHogger hog;
 GLPathRenderer path;
 
 float rot = 0.f;
-int lastTime = 0;
+double lastTime = 0.0;
 
 bool paused = false;
 
@@ -508,8 +552,9 @@ inline void coneTest(const float* b, int q, float r)
 
 void display(void)
 {
-    int newTime = glutGet(GLUT_ELAPSED_TIME);
-    int frameTime = newTime - lastTime;
+    //in case we need dt or elapsed time
+    double newTime = glfwGetTime();
+    double frameTime = newTime - lastTime;
     lastTime = newTime;
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -538,13 +583,15 @@ void display(void)
     //coneTest(conedir, opt.quality, opt.radius);
     //drawCube();
 
-    glutSwapBuffers();
+    //glutSwapBuffers();
 }
 
 int main(int argc, char** argv)
 {
     scrw = 800;
     scrh = 600;
+    midx = 400;
+    midy = 300;
     
     OptionParser op;
     if(op.AppendOptions(set_options) < 0)
@@ -569,7 +616,33 @@ int main(int argc, char** argv)
         pathdata7 = new float[pd7sz];
         getfloats(opt.datafile, pathdata7, pd7sz);
     }
+
+    if(!glfwInit()) exit(EXIT_FAILURE);
+    GLFWwindow* window = glfwCreateWindow(scrw, scrh, "test_glflow", NULL, NULL);
+    glfwMakeContextCurrent(window);
+    glfwSetWindowSizeCallback(window, &windowSize);
+    glfwSetKeyCallback(window, &keyboard);
+    glfwSetMouseButtonCallback(window, &mouseButton);
+    glfwSetCursorPosCallback(window, &cursorPos);
+    glfwSetScrollCallback(window, &mouseScroll);
     
+    glfwSetTime(0.0);
+    
+    init();
+    while(!glfwWindowShouldClose(window))
+    {
+        display();
+        
+        glfwWaitEvents(); //blocks until something happens
+        glfwSwapBuffers(window);
+    }
+    
+    glfwDestroyWindow(window);
+    glfwTerminate();
+    exit(EXIT_SUCCESS);
+}
+
+/*
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
     glutInitWindowSize(scrw, scrh);
@@ -582,9 +655,7 @@ int main(int argc, char** argv)
     glutMotionFunc(mousemove);
     glutMouseFunc(mouse);
     glutMainLoop();
-    
-    exit(EXIT_SUCCESS);
-}
+*/
 
 static void drawBox(GLfloat size, GLenum type)
 {
@@ -690,3 +761,4 @@ static void drawCube()
 }
 
 // "I've half a mind to join a club and beat you over the head with it"
+
