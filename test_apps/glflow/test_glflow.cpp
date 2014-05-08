@@ -151,15 +151,18 @@ void mouseButton(GLFWwindow* window, int button, int action, int mods)
     switch(button)
     {
         case GLFW_MOUSE_BUTTON_LEFT:
-            if(action == GLFW_PRESS){if(mode == NEUTRAL) mode = ROTATING;}
+            if(action == GLFW_PRESS){if(mode == NEUTRAL) mode = ROTATING;
+                                        glfwSetCursorPos(window, midx, midy);}
             else{if(mode == ROTATING) mode = NEUTRAL;}
             break;
         case GLFW_MOUSE_BUTTON_RIGHT:
-            if(action == GLFW_PRESS){if(mode == NEUTRAL) mode = PANNING;}
+            if(action == GLFW_PRESS){if(mode == NEUTRAL) mode = PANNING;
+                                        glfwSetCursorPos(window, midx, midy);}
             else{if(mode == PANNING) mode = NEUTRAL;}
             break;
         case GLFW_MOUSE_BUTTON_MIDDLE:
-            if(action == GLFW_PRESS){if(mode == NEUTRAL) mode = ZOOMING;}
+            if(action == GLFW_PRESS){if(mode == NEUTRAL) mode = ZOOMING;
+                                        glfwSetCursorPos(window, midx, midy);}
             else{if(mode == ZOOMING) mode = NEUTRAL;}
             break;
         default:
