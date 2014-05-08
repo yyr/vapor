@@ -106,40 +106,6 @@ static inline void drawRing(const float* n, int d, float r)
     glEnd();
 }
 
-static inline void drawCone(const float* v, const float* n, int q)
-{
-    int sz = (3 << (2 + q)) + 3;
-    glBegin(GL_TRIANGLE_FAN);
-        glNormal3fv(n + 3);
-        glVertex3fv(v);
-        if(n)
-        {
-            for(int i = 3; i < sz; i+=3)
-            {
-                glNormal3fv(n + i);
-                glVertex3fv(v + i);
-            }
-        }
-        else
-        {
-            for(int i = 3; i < sz; i+=3)
-                glVertex3fv(v + i);
-        }
-    glEnd();
-}
-
-inline void coneTest(const float* b, int q, float r)
-{
-    float* v = new float[coneSize(0)];
-    float* n = new float[coneSize(0)];
-    
-    mkcone(b, r, q, v, n);
-    drawCone(v, n, q);
-    
-    delete[] v;
-    delete[] n;
-}
-
 static inline void drawTube(const float* o, int d, int noffset = 0)
 {
     //2 rings of 4 << d vertices, each with 3 floats
@@ -464,7 +430,6 @@ const GLPathRenderer::Params *GLPathRenderer::GetParams() const
     return &prp;
 }
 
-//TODO: REWRITE
 static inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
 {
     if(n < 2) return NULL;
@@ -529,13 +494,13 @@ static inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
 static bool printed = false;
 void GLPathRenderer::Draw(const float *v, int n) const
 {
-    float* rings = prTubes(v, n, prp);
+    float* rings = prTubes(v, (n / prp.stride), prp);
     int rsize = (4 << prp.quality) * 3;
     //int total = ((n << (2 + prp.quality)) * 3) - rsize;
-    int total = rsize * n;
+    int total = rsize * (n / prp.stride);
     //glColor4fv(prp.baseColor);
     glMaterialfv(GL_FRONT, GL_DIFFUSE, prp.baseColor);
-    for(int i = 0; i < total - rsize; i += rsize * prp.stride)
+    for(int i = 0; i < total - rsize; i += rsize)
         drawTube(rings + i, prp.quality, total);
         
     /*
