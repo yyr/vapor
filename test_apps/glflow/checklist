@@ -1,4 +1,5 @@
  - switch to GLFW
  - mouse *button* controls for zoom, pan
  - complete support for arguments
+ - profiling
 
