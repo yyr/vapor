@@ -494,13 +494,13 @@ int	main(int argc, char **argv) {
 	}
 
 	if (opt.help) {
-		cerr << "Usage: " << ProgName << " [options] metafile datafile" << endl;
+		cerr << "Usage: " << ProgName << " [options] vdfFile outputFile" << endl;
 		op.PrintOptionHelp(stderr);
 		exit(0);
 	}
 
 	if (argc != 3) {
-		cerr << "Usage: " << ProgName << " [options] metafile datafile" << endl;
+		cerr << "Usage: " << ProgName << " [options] vdfFile dataFile" << endl;
 		op.PrintOptionHelp(stderr);
 		exit(1);
 	}

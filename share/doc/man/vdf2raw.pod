@@ -17,7 +17,7 @@ B<vdf2raw> [options] I<vdffile> I<datafile>
 
 B<vdf2raw> extracts a field variable from the VDC associated with the
 VDF file I<vdffile>, performs and inverse translation on the data,
-and stores the results in the file indicated by I<vdffile>.
+and stores the results in the file indicated by I<datafile>.
 The data are written as a contiguous array of unformatted binary
 floating point values. The X dimension varies fastest, followed by Y, then Z.
 Data are written at 32 bit precision in the native format of the 
