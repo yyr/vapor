@@ -86,7 +86,8 @@ static int getfloats(char* filename, float* buff, int max)
     return total;
 }
 static void drawCube();
-int scrw, scrh, midx, midy, dx, dy, rx, ry;
+int scrw, scrh, midx, midy;
+double dx, dy, rx, ry;
 double fov = 90.0;
 float v_distance = 5.f;
 
@@ -118,10 +119,10 @@ void cursorPos(GLFWwindow* window, double xpos, double ypos)
         case NEUTRAL:
             break;
         case ROTATING:
-            dx = xpos - midx;
-            dy = ypos - midy;
-            rx += dx;
-            ry += dy;
+            dx = xpos - (double)midx;
+            dy = ypos - (double)midy;
+            rx += dx / 4.0;
+            ry += dy / 4.0;
             if(ry > 90) ry = 90;
             if(ry < -90) ry = -90;
             if(rx > 180) rx -= 360;
@@ -133,7 +134,7 @@ void cursorPos(GLFWwindow* window, double xpos, double ypos)
         case ZOOMING:
             dx = xpos - midx;
             dy = ypos - midy;
-            v_distance += (dy / 10.0);
+            v_distance += dy / 10.0;
             glfwSetCursorPos(window, midx, midy);
             break;
     }
