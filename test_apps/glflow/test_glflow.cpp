@@ -134,7 +134,7 @@ void cursorPos(GLFWwindow* window, double xpos, double ypos)
         case ZOOMING:
             dx = xpos - midx;
             dy = ypos - midy;
-            v_distance += dy / 10.0;
+            v_distance += dy / 20.0;
             glfwSetCursorPos(window, midx, midy);
             break;
     }
