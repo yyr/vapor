@@ -162,6 +162,11 @@ public:
 	static int GetNumVizWins(){
 		return ((VizWinParams*)Params::GetParamsInstance(_vizWinParamsTag))->getVisualizerNums().size();
 	}
+	//! Static method returns a vector of visualizer indices
+	//! indicating the visualizer numbers being used in this session
+	static vector<long> GetVisualizerNums(){
+		return ((VizWinParams*)Params::GetParamsInstance(_vizWinParamsTag))->getVisualizerNums();
+	}
 	
 	//! Required static method (for extensibility):
 	//! \retval ParamsBase* pointer to a default Params instance

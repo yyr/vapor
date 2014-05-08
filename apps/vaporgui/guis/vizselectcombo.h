@@ -33,6 +33,9 @@ class VizSelectCombo : public QComboBox{
 public:
 	VizSelectCombo(MainForm* parent, QToolBar* tBar, VizWinMgr* mgr);
 	void makeConsistent(int activeVizNum);
+	// Remove a window from the combobox
+public slots:
+	void removeWindow(int windowNum);
 protected:
 	//Lookup window num associated with slot
 	vector<int> winNums;
@@ -44,8 +47,7 @@ protected slots:
 	// Add a new window to the combobox
 	// Use number to maintain order.
 	void addWindow(QString& windowName, int windowNum);
-	// Remove a window from the combobox
-	void removeWindow(int windowNum);
+	
 	void setWindowActive(int winNum);
 	//When window name is changed, call this:
 	void setWindowName(QString& newName, int windowNum);

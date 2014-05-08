@@ -47,9 +47,8 @@ public:
 	//! for establishing an OpenGL drawable object and making its context
 	//! current before calling NewVisualizer(). 
 	//!
-	//! \param[in] oglinfo Contains any information needed by the 
-	//! control executive to start drawing in the drawable (perhaps no
-	//! information is needed). TBD
+	//! \param[in] viznum Specifies the proposed handle for the new visualizer.
+	//! The default viznum is -1, meaning that NewVisualizer will assign an unused value.
 	//!
 	//! \return viz Upon success an integer identifier for the visualizer
 	//! is returned. A negative int is returned on failure
@@ -63,7 +62,7 @@ public:
 	//! hints about what kind of graphics context is needed 
 	//! (e.g. double buffering)
 	//
-	static int NewVisualizer(/*oglinfo_c oglinfo*/);
+	static int NewVisualizer(int vizNum = -1);
 
 	//! Delete an existing visualizer
 	//! \param[in] viz handle to existing visualizer returned by NewVisualizer
@@ -244,13 +243,13 @@ public:
 	//! \return short name, e.g. for tab
 	static const std::string GetShortName(string& typetag);
 
-	//! Specify that a particular instance of a RenderParams is current
+	//! Specify that a particular instance of a Params is current
 	//! \param[in] viz A valid visualizer handle
 	//! \param[in] type The type of RenderParams
 	//! \param[in] instance The instance index that will become current.
 	//! \return zero if successful.
 	//!
-	static int SetCurrentRenderParamsInstance(int viz, string type, int instance);
+	static int SetCurrentParamsInstance(int viz, string type, int instance);
 
 	//! Identify the current instance of a RenderParams 
 	//! \param[in] viz A valid visualizer handle

@@ -57,7 +57,7 @@ void EventRouter::changeRendererInstance(int winnum, int newCurrentInst){
 	
 	string type = ControlExec::GetTagFromType(myParamsBaseType);
 	assert(newCurrentInst >= 0 && newCurrentInst < ControlExec::GetNumParamsInstances(winnum, type));
-	ControlExec::SetCurrentRenderParamsInstance(winnum,type,newCurrentInst);
+	ControlExec::SetCurrentParamsInstance(winnum,type,newCurrentInst);
 	updateTab();
 }
 //Put a default instance of specified renderer as the last instance:

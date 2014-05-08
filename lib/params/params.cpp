@@ -26,6 +26,7 @@
 #include "assert.h"
 #include "params.h"
 #include "datastatus.h"
+#include "vizwinparams.h"
 #include <vapor/ParamNode.h>
 #include <vapor/DataMgr.h>
 #include <vapor/RegularGrid.h>
@@ -136,9 +137,11 @@ void Params::SetChanged(bool val){
 	}
 	//Find all instances that are sharing this
 	std::map<pair<int,int>,vector<Params*> >::iterator it;
-	for (int viz = 0; ; viz++){
+	vector<long> viznums = VizWinParams::GetVisualizerNums();
+	for (int i = 0; i<viznums.size(); i++){
+		int viz = viznums[i];
 		it = paramsInstances.find(make_pair(GetParamsBaseTypeId(),viz));
-		if (it == paramsInstances.end()) break;
+		if (it == paramsInstances.end()) continue;
 		Params* p = (it->second)[0]; //get the first (only) instance of the params
 		if (p->IsLocal()) continue;
 		p->changeBit = val;
@@ -148,17 +151,13 @@ void Params::SetChanged(bool val){
 
 Params* Params::GetParamsInstance(int pType, int winnum, int instance){
 	if (winnum < 0) return defaultParamsInstance[pType];
-	if (instance < 0) instance = currentParamsInstance[make_pair(pType,winnum)];
+	if (instance < 0) instance = (int) currentParamsInstance[make_pair(pType,winnum)];
+	assert(instance >= 0);
 	map< pair<int,int>,vector<Params*> >::const_iterator it = paramsInstances.find(make_pair(pType,winnum));
 	if (it == paramsInstances.end()) return 0;  //return null if no instances exist.
-	if (instance >= paramsInstances[make_pair(pType, winnum)].size()) {
-		instance = paramsInstances[make_pair(pType, winnum)].size();
-		Params* p = GetDefaultParams(pType)->deepCopy();
-		p->SetVizNum(winnum);
-		AppendParamsInstance(pType,winnum,p);
-		assert(p->GetInstanceIndex() == instance);
-		return p;
-	}
+	
+	assert(instance < (int) (paramsInstances[make_pair(pType, winnum)].size()));
+	
 	Params*p = paramsInstances[make_pair(pType, winnum)][instance];
 	assert(p->GetInstanceIndex() == instance);
 	return p;
@@ -180,6 +179,8 @@ void Params::RemoveParamsInstance(int pType, int winnum, int instance){
 	if (currInst >= (int) instVec.size()) currentParamsInstance[make_pair(pType,winnum)]--;
 	for (int i = instance; i<instVec.size(); i++) instVec[i]->SetInstanceIndex(i);
 	delete p;
+	if (instVec.size() == 0) 
+		paramsInstances.erase(it);
 }
 map <int, vector<Params*> >* Params::cloneAllParamsInstances(int winnum){
 	map<int, vector<Params*> >* winParamsMap = new map<int, vector<Params*> >;

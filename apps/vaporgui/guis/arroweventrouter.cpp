@@ -446,18 +446,21 @@ void ArrowEventRouter::updateTab(){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	ArrowParams* arrowParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
 	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
+	//Find all the visualizers other than the one we are using
 	int winnum = vizMgr->getActiveViz();
-	int numViz = vizMgr->getNumVisualizers();
+	vector<long> viznums = VizWinParams::GetVisualizerNums();
 	copyCombo->clear();
 	copyCombo->addItem("Duplicate In:");
 	copyCombo->addItem("This visualizer");
-	if (numViz > 1) {
+		
+	if (viznums.size() > 1) {
 		copyCount.clear();
-		for (int i = 0; i<vizMgr->getNumVisualizers(); i++){
-			if (vizMgr->getVizWin(i) && winnum != i){
-				copyCombo->addItem(QString::fromStdString(VizWinParams::GetVizName(i)));
+		for (int i = 0; i< viznums.size(); i++){
+			int vizwin = viznums[i];
+			if (winnum != vizwin){
+				copyCombo->addItem(QString::fromStdString(VizWinParams::GetVizName(vizwin)));
 				//Remember the viznum corresponding to a combo item:
-				copyCount.push_back(i);
+				copyCount.push_back(vizwin);
 			}
 		}
 	}

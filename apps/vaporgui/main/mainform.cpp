@@ -659,12 +659,16 @@ void MainForm::fileOpen()
 
 	ControlExec::getInstance()->RestoreSession(filename);
 
-	//Need to use vizwinparams and set up all windows after the first...
+	//Need to use vizwinparams and set up all windows ...
 	int numViz = VizWinParams::GetNumVizWins();
-	for (int i = 1; i<numViz; i++) VizWinMgr::getInstance()->attachVisualizer();
+	vector<long>viznums = VizWinParams::GetVisualizerNums();
+	for (int i = 0; i<numViz; i++) {
+		int viznum = viznums[i];
+		VizWinMgr::getInstance()->attachVisualizer(viznum);
+	}
 	sessionIsDefault = false;
 	updateWidgets();
-	//Now need to set up visualizer(s)?
+	
 }
 
 
@@ -905,7 +909,7 @@ void MainForm::defaultLoadData()
 			//Set state to default:
 			ControlExec::SetToDefault();
 			VizWinMgr::getInstance()->SetToDefaults();
-			
+			VizWinMgr::getInstance()->launchVisualizer();
 			vector<string> files;
 			files.push_back(filename.toStdString());
 			dmgr = ControlExec::getInstance()->LoadData(files,true);
@@ -932,6 +936,7 @@ void MainForm::defaultLoadData()
 void MainForm::newSession(){
 	ControlExec::SetToDefault();
 	VizWinMgr::getInstance()->SetToDefaults();
+	VizWinMgr::getInstance()->launchVisualizer();
 	VizWinMgr::getInstance()->refreshRenderData();
 }
 	

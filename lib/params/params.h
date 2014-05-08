@@ -203,7 +203,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	}
 	 
 //! Static method that specifies the instance that is current in the identified window.
-//! Useful for application developers.
+//! For non-Render Params, the current instance should always be 0;
 //! \param[in] pType ParamsBase TypeId of the params class
 //! \param[in] winnum index of identified window
 //! \param[in] instance index of instance to be made current
@@ -314,6 +314,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	static void AppendParamsInstance(int pType, int winnum, Params* p){
 		p->SetInstanceIndex(paramsInstances[make_pair(pType,winnum)].size());
 		paramsInstances[make_pair(pType,winnum)].push_back(p);
+		if (pType == 3) assert (paramsInstances[make_pair(pType,winnum)].size() <= 1);
 	}
 
 //! Static method that appends a new instance to the list of existing 

@@ -43,23 +43,38 @@ ControlExec::~ControlExec(){
 }
 
 
-int ControlExec::NewVisualizer(){
+int ControlExec::NewVisualizer(int viznum){
 	std::map<int, Visualizer*>::iterator it;
 	int numviz = visualizers.size();
-	//Find the first unused index
-	int vizIndex = -1;
-	for (int indx = 0; indx <= visualizers.size(); indx++){
-		it = visualizers.find(indx);
-		if (it == visualizers.end()){
-			Visualizer* viz = new Visualizer(indx);
-			visualizers[indx] = viz;
-			vizIndex = indx;
-			break;
+	bool addVis = false;  //Indicate whether a new visualizer must be added to the VizWinParams
+	//if viznum is nonnegative, see if the index is already used.
+	if (viznum >= 0) {
+		it = visualizers.find(viznum);
+		if (it != visualizers.end()) viznum = -1;  //It's used; need to find another index!
+		else { //viznum is OK
+			Visualizer* viz = new Visualizer(viznum);
+			visualizers[viznum] = viz;
 		}
 	}
+	//if viznum < 0, Find the first unused index
+	if (viznum < 0){
+		int vizIndex = -1;
+		for (int indx = 0; indx <= visualizers.size(); indx++){
+			it = visualizers.find(indx);
+			if (it == visualizers.end()){
+				Visualizer* viz = new Visualizer(indx);
+				visualizers[indx] = viz;
+				vizIndex = indx;
+				break;
+			}
+		}
+		viznum = vizIndex;
+		if (viznum >= 0) addVis = true;
+	}
+
 	//Save to VizWinParams with default settings
-	if (vizIndex >= 0) VizWinParams::AddVizWin("Visualizer",vizIndex, 400,400);
-	return vizIndex;
+	if (addVis) VizWinParams::AddVizWin("Visualizer",viznum, 400,400);
+	return viznum;
 }
 
 	//! Perform OpenGL initialization of specified visualizer
@@ -149,7 +164,7 @@ Params* ControlExec::GetParams(int viz, string type, int instance){
 	if (instance >= 0) assert (inst == instance);
 	return Params::GetParamsInstance(type,viz,instance);
 }
-int ControlExec::SetCurrentRenderParamsInstance(int viz, string typetag, int instance){
+int ControlExec::SetCurrentParamsInstance(int viz, string typetag, int instance){
 	if (0 == GetVisualizer(viz)) return -1;
 	if (instance < 0 || instance >= GetNumParamsInstances(viz,typetag)) return -1;
 	int ptype = Params::GetTypeFromTag(typetag);
@@ -404,7 +419,17 @@ int ControlExec::RestoreSession(string filename)
 	ExpatParseMgr* parseMgr = new ExpatParseMgr(this);
 	parseMgr->parse(is);
 	delete parseMgr;
+
+	//Now create new visualizers all viz windows 
 	
+	int numViz = VizWinParams::GetNumVizWins();
+	vector<long> sessionVizIndices = VizWinParams::GetVisualizerNums();
+	
+	for (int i = 0; i<numViz; i++){
+		int newVizIndex = NewVisualizer(sessionVizIndices[i]);
+		assert (newVizIndex == sessionVizIndices[i]);
+	}
+
 	return 0;
 }
 
@@ -501,15 +526,12 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 				}
 				parsingInstance[typeId]++;
 				Params* parsingParams;
-				if (parsingInstance[typeId] > 0 || parsingVizNum > 0){
-					parsingParams = Params::CreateDefaultParams(typeId);
-					//only renderParams can have more than one instance
-					assert(parsingParams->isRenderParams() || parsingVizNum > 0);
-					Params::AppendParamsInstance(typeId,parsingVizNum, parsingParams);
-				} else {
-					//There already exists an instance if this is visualizer 0 and we are parsing the first instance
-					parsingParams = Params::GetParamsInstance(typeId,parsingVizNum, 0);
-				}
+				
+				parsingParams = Params::CreateDefaultParams(typeId);
+				//only renderParams can have more than one instance
+				assert(parsingParams->isRenderParams() || parsingInstance[typeId] == 0);
+				Params::AppendParamsInstance(typeId,parsingVizNum, parsingParams);
+				
 				assert(Params::GetNumParamsInstances(typeId,parsingVizNum) == (parsingInstance[typeId] + 1));
 			
 				pm->pushClassStack(parsingParams);

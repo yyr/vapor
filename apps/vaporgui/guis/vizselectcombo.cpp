@@ -65,7 +65,6 @@ addWindow(QString& windowName, int windowNum){
 	insertItem(i,windowName);
 	//Move the corresponding numbering up.
 	//Note that count has now (already) increased by 1.
-	//Put -100 at end:
 	winNums.push_back(-100);
 	for (int j = count()-1; j> i; j--){
 		winNums[j] = winNums[j-1];

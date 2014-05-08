@@ -133,8 +133,10 @@ public:
     
     //method to launch a viz window, returns vizNum
     int launchVisualizer();
-	 //method to launch a viz window, params already exist
-    int attachVisualizer();
+	//! method to launch a viz window, params already exist.
+	//! Associated with a specified visualizer
+	//! \param[in] useViznum specifies the visualizer number that is to be attached
+    int attachVisualizer(int useViznum);
     
     int getNumVisualizers(); 
     TabManager* getTabManager() { return tabManager;}
