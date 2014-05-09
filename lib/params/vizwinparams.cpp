@@ -86,12 +86,11 @@ int VizWinParams::AddVizWin(const std::string name, int viznum, int width, int h
 	else { //find the first unused index before maxviz (there is one!)
 		for (int i = 0; i<maxviz; i++){
 			//see if i is used
+			int iused = false;
 			for (int j = 0; j<viznums.size(); j++){
-				if (viznums[j]==i) continue;
-				newviz = i;
-				break;
+				if (viznums[j]==i) { iused = true; break;}
 			}
-			if (newviz >= 0) break;
+			if (!iused) {newviz = i; break;}
 		}
 		assert(newviz >= 0);
 	}
