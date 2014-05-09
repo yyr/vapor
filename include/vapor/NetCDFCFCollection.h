@@ -438,7 +438,71 @@ private:
  };
 
 
+class DerivedVar_AHSPC : public NetCDFCollection::DerivedVar {
 
+public:
+  DerivedVar_AHSPC(
+    NetCDFCFCollection *ncdfcf, 
+    const std::map <string, string> &formula_map
+  );  
+  virtual ~DerivedVar_AHSPC();
+  virtual float GetMax() { return _max; }
+  virtual float GetMin() { return _min; }
+  virtual void SetMax(float val) { _max = val; }
+  virtual void SetMin(float val) { _min = val; }
+  virtual int Open(size_t ts);
+  virtual int ReadSlice(float *slice, int);
+  virtual int Read(float *buf, int);
+  virtual int CalculateElevation(float *buf, int);
+  virtual int SeekSlice(int offset, int whence, int fd);
+  virtual int Close(int) {_is_open = false; return(0); };
+  virtual bool TimeVarying() const {return(false); };
+  virtual std::vector <size_t>  GetSpatialDims() const { return(_dims); }
+  virtual std::vector <string>  GetSpatialDimNames() const { return(_dimnames); }
+  virtual size_t  GetTimeDim() const { return(0); }
+  virtual string  GetTimeDimName() const { return(""); };
+  virtual bool GetMissingValue(double &mv) const {mv=0.0; return(false); }
+  virtual int DCZ2(float* _PS1,   float*   _PHIS1, 
+                   float** _TV2, int NL, 
+                   float  _P0,   float** _HYBA,  float** _HYBB,
+                   int    _KLEV, int     _MLON,  int _MLON2, //float** _PMLN,
+                   float** _HYPDLN, float** _HYALPH, float** _PTERM,
+                   float** _ZSLICE);
+
+ private:
+  std::vector <size_t> _dims;
+  std::vector <string> _dimnames;
+  size_t _slice_num;
+  float *_PS;
+  float *_PHIS;
+  float *_TV;
+  float _P0;
+  float *_HYAM;
+  float *_HYBM;
+  float *_HYAI;
+  float *_HYBI;
+  float *_Z3;
+  bool _is_open;
+  bool _ok;
+  float _min;
+  float _max;
+
+  // 14 inputs to DCZ2()
+  //float *_PS
+  //float *_PHIS;
+  //float *_TV;
+  //float _HPRB;
+  //float **_HYBA;
+  //float *_HYBB;
+  int KMAX;
+  int IDIM;
+  int IMAX;
+  //float *_PMLN;
+  //float *_HYPDLN;
+  //float *_HYALPH;
+  //float *_PTERM;
+  //float *_Z2;
+ };
 
  std::map <string, DerivedVar *> _derivedVarsMap;
  std::vector <std::string> _coordinateVars;
