@@ -87,7 +87,7 @@ static int getfloats(char* filename, float* buff, int max)
 }
 static void drawCube();
 int scrw, scrh, midx, midy;
-double dx, dy, rx, ry;
+double px, py, rx, ry;
 double fov = 90.0;
 float v_distance = 5.f;
 
@@ -103,6 +103,7 @@ void windowSize(GLFWwindow* window, int width, int height)
     scrh = height;
     midx = width / 2;
     midy = height / 2;
+    glfwGetCursorPos(window, &px, &py);
 }
 
 const int NEUTRAL = 0;
@@ -111,29 +112,44 @@ const int PANNING = 2;
 const int ZOOMING = 3;
 int mode = 0;
 
+int dbgcounter = 0;
+
 //glfw input callbacks
 void cursorPos(GLFWwindow* window, double xpos, double ypos)
 {
+    //printf("cursor moved! %d\n", dbgcounter++);
+    double dx, dy;
     switch(mode)
     {
         case NEUTRAL:
             break;
         case ROTATING:
+#ifdef Darwin
+            dx = xpos - px;
+            dy = ypos - py;
+            glfwGetCursorPos(window, &px, &py);
+#else
             dx = xpos - (double)midx;
             dy = ypos - (double)midy;
+            glfwSetCursorPos(window, midx, midy);
+#endif
             rx += dx / 4.0;
             ry += dy / 4.0;
             if(ry > 90.0) ry = 90.0;
             if(ry < -90.0) ry = -90.0;
             if(rx > 180.0) rx -= 360.0;
             if(rx < -180.0) rx += 360.0;
-            glfwSetCursorPos(window, midx, midy);
             break;
         case PANNING:
             break;
         case ZOOMING:
+#ifdef Darwin
+            dx = xpos - px;
+            dy = ypos - py;
+#else
             dx = xpos - midx;
             dy = ypos - midy;
+#endif
             v_distance += dy / 20.0;
             if(v_distance < 0.0) v_distance = 0.0;
             glfwSetCursorPos(window, midx, midy);
@@ -171,7 +187,11 @@ void mouseButton(GLFWwindow* window, int button, int action, int mods)
         if(mode == NEUTRAL)
         {
             mode = altmode;
+#ifdef Darwin
+            glfwGetCursorPos(window, &px, &py);
+#else
             glfwSetCursorPos(window, midx, midy);
+#endif
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
         }
     }
@@ -195,6 +215,8 @@ void mouseScroll(GLFWwindow* window, double xoffset, double yoffset)
     gluPerspective(fov, (double)scrw/(double)scrh, 0.1, 100.0);
     glMatrixMode(GL_MODELVIEW);
 }
+
+void cursorEnter(GLFWwindow* window, int entered){mode = NEUTRAL;}
 
 GLfloat mat_specular[] = {0.f, 0.f, 0.f, 0.f};
 GLfloat mat_shininess[] = {30.f};
@@ -644,6 +666,7 @@ int main(int argc, char** argv)
     glfwSetMouseButtonCallback(window, &mouseButton);
     glfwSetCursorPosCallback(window, &cursorPos);
     glfwSetScrollCallback(window, &mouseScroll);
+    glfwSetCursorEnterCallback(window, &cursorEnter);
     
     glfwSetTime(0.0);
     
