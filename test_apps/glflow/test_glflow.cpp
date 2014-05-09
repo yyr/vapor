@@ -149,10 +149,10 @@ void cursorPos(GLFWwindow* window, double xpos, double ypos)
 #else
             dx = xpos - midx;
             dy = ypos - midy;
+            glfwSetCursorPos(window, midx, midy);
 #endif
             v_distance += dy / 20.0;
             if(v_distance < 0.0) v_distance = 0.0;
-            glfwSetCursorPos(window, midx, midy);
             break;
     }
 }
