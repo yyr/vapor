@@ -106,40 +106,6 @@ static inline void drawRing(const float* n, int d, float r)
     glEnd();
 }
 
-static inline void drawCone(const float* v, const float* n, int q)
-{
-    int sz = (3 << (2 + q)) + 3;
-    glBegin(GL_TRIANGLE_FAN);
-        glNormal3fv(n + 3);
-        glVertex3fv(v);
-        if(n)
-        {
-            for(int i = 3; i < sz; i+=3)
-            {
-                glNormal3fv(n + i);
-                glVertex3fv(v + i);
-            }
-        }
-        else
-        {
-            for(int i = 3; i < sz; i+=3)
-                glVertex3fv(v + i);
-        }
-    glEnd();
-}
-
-inline void coneTest(const float* b, int q, float r)
-{
-    float* v = new float[coneSize(0)];
-    float* n = new float[coneSize(0)];
-    
-    mkcone(b, r, q, v, n);
-    drawCone(v, n, q);
-    
-    delete[] v;
-    delete[] n;
-}
-
 static inline void drawTube(const float* o, int d, int noffset = 0)
 {
     //2 rings of 4 << d vertices, each with 3 floats
@@ -464,7 +430,6 @@ const GLPathRenderer::Params *GLPathRenderer::GetParams() const
     return &prp;
 }
 
-//TODO: REWRITE
 static inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
 {
     if(n < 2) return NULL;
@@ -476,7 +441,7 @@ static inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
     float* nm = r + rsize; //normals
     int vsize = n * 3;
     int vlast = vsize - 3;
-    int step = rnsize * p.stride;
+    int step = rnsize;
     int rlast = rsize - step;
     //the first ring, which we will not iterate over
     //because we need adjacent vectors to calculate direction
@@ -496,7 +461,7 @@ static inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
     for(int itr = step; itr < rlast; itr += step)
     {
         //get the current direction and pass it forward
-        sub(v + itv + 3, v + itv, r + itr + step);
+        sub(v + itv + (3 * p.stride), v + itv, r + itr + step);
         //correct if rather large direction
         //calculated using current and previous direction
         //previous direction was passed forward by previous iteration
@@ -510,11 +475,11 @@ static inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
             norm(r + i, r + rsize + i);
             add(v + itv, r + i, r + i);
         }
-        itv += 3;
+        itv += 3 * p.stride;
         rprev = itr;
     }
     
-    //the last ring, calculated afterward to avoid being overwritten by loop
+    //the last ring, calculated afterward to avoid overstepping bounds in loop
     sub(v + vlast, v + vlast - 3, r + rlast);
     mkring(r + rlast, p.quality, p.radius, r + rlast, nm + rlast, nm + rprev);
     for(int i = rlast; i < rsize; i+=3)
@@ -529,13 +494,14 @@ static inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
 static bool printed = false;
 void GLPathRenderer::Draw(const float *v, int n) const
 {
+    n = n / prp.stride;
     float* rings = prTubes(v, n, prp);
     int rsize = (4 << prp.quality) * 3;
     //int total = ((n << (2 + prp.quality)) * 3) - rsize;
     int total = rsize * n;
     //glColor4fv(prp.baseColor);
     glMaterialfv(GL_FRONT, GL_DIFFUSE, prp.baseColor);
-    for(int i = 0; i < total - rsize; i += rsize * prp.stride)
+    for(int i = 0; i < total - rsize; i += rsize)
         drawTube(rings + i, prp.quality, total);
         
     /*

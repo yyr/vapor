@@ -1,9 +1,12 @@
 #include "glinc.h"
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 #include "glflow.h"
 #include <cmath>
 #include "vec.h"
+#include <iostream>
+#include <cstring>
+using namespace std;
 
 #include <vapor/OptionParser.h>
 using namespace VetsUtil;
@@ -28,12 +31,24 @@ struct {
     int stride;
     float ratio;
     float length;
-    int r;
-    int g;
-    int b;
+    bool help;
 } opt;
 
-OptionParser::Option_T	get_options[] = {
+OptionParser::OptDescRec_T set_options[] = {
+	{"help", 0, "", "Print this message and exit"},
+	{"data", 1, "", "A test data source"},
+	{"colors", 1, "", "A test color source"},
+	{"mode", 1, "tubes", "Render mode: tubes | arrows | lines"},
+	{"radius", 1, "1.0", "Radius multiplier of rendered shapes"},
+	{"quality", 1, "0", "Number of subdivisions of rendered shapes"},
+	{"stride", 1, "1", "Traverse how many vertices between rendering?"},
+	{"ratio", 1, "1.0", "Ratio of arrow to tube radius"},
+	{"length", 1, "1.0", "Arrow cone length"},
+	{NULL}
+};
+
+OptionParser::Option_T get_options[] = {
+    {"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"data", VetsUtil::CvtToString, &opt.datafile, sizeof(opt.datafile)},
 	{"colors", VetsUtil::CvtToString, &opt.colorfile, sizeof(opt.colorfile)},
 	{"mode", VetsUtil::CvtToString, &opt.mode, sizeof(opt.mode)},
@@ -71,52 +86,114 @@ static int getfloats(char* filename, float* buff, int max)
     return total;
 }
 static void drawCube();
-int scrw, scrh, midx, midy, dx, dy, rx, ry;
+int scrw, scrh, midx, midy;
+double dx, dy, rx, ry;
 double fov = 90.0;
-static void reshape(int w, int h)
+float v_distance = 5.f;
+
+//glfw window event callbacks
+void windowSize(GLFWwindow* window, int width, int height)
 {
-    glViewport(0, 0, (GLsizei)w, (GLsizei)h);
+    glViewport(0, 0, (GLsizei)width, (GLsizei)height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(fov, (double)scrw/(double)scrh, 0.1, 100.0);
     glMatrixMode(GL_MODELVIEW);
-    scrw = w;
-    scrh = h;
-    midx = w / 2;
-    midy = h / 2;
-    glutPostRedisplay();
-}
-void mousemove(int x, int y)
-{
-    dx = x - midx;
-    dy = y - midy;
-    rx += dx;
-    ry += dy;
-    if(ry > 90) ry = 90;
-    if(ry < -90) ry = -90;
-    if(rx > 180) rx -= 360;
-    if(rx < -180) rx += 360;
-    
-    glutWarpPointer(midx, midy);
-    glutPostRedisplay();
+    scrw = width;
+    scrh = height;
+    midx = width / 2;
+    midy = height / 2;
 }
 
-float v_distance = 5.f;
-void mouse(int button, int state, int x, int y)
+const int NEUTRAL = 0;
+const int ROTATING = 1;
+const int PANNING = 2;
+const int ZOOMING = 3;
+int mode = 0;
+
+//glfw input callbacks
+void cursorPos(GLFWwindow* window, double xpos, double ypos)
 {
-    if(state == GLUT_UP) return;
+    switch(mode)
+    {
+        case NEUTRAL:
+            break;
+        case ROTATING:
+            dx = xpos - (double)midx;
+            dy = ypos - (double)midy;
+            rx += dx / 4.0;
+            ry += dy / 4.0;
+            if(ry > 90.0) ry = 90.0;
+            if(ry < -90.0) ry = -90.0;
+            if(rx > 180.0) rx -= 360.0;
+            if(rx < -180.0) rx += 360.0;
+            glfwSetCursorPos(window, midx, midy);
+            break;
+        case PANNING:
+            break;
+        case ZOOMING:
+            dx = xpos - midx;
+            dy = ypos - midy;
+            v_distance += dy / 20.0;
+            if(v_distance < 0.0) v_distance = 0.0;
+            glfwSetCursorPos(window, midx, midy);
+            break;
+    }
+}
+
+//no keybinds defined yet
+void keyboard(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    
+}
+
+//use mouse button 1 to rotate, 2 to pan, middle to zoom
+void mouseButton(GLFWwindow* window, int button, int action, int mods)
+{
+    int altmode;
     switch(button)
     {
-        case 3:
-            v_distance = v_distance - 0.5f;
+        case GLFW_MOUSE_BUTTON_LEFT:
+            altmode = ROTATING;
             break;
-        case 4:
-            v_distance = v_distance + 0.5f;
+        case GLFW_MOUSE_BUTTON_RIGHT:
+            altmode = PANNING;
+            break;
+        case GLFW_MOUSE_BUTTON_MIDDLE:
+            altmode = ZOOMING;
             break;
         default:
             break;
     }
-    glutPostRedisplay();
+    
+    if(action == GLFW_PRESS)
+    {
+        if(mode == NEUTRAL)
+        {
+            mode = altmode;
+            glfwSetCursorPos(window, midx, midy);
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        }
+    }
+    else
+    {
+        if(mode == altmode)
+        {
+            mode = NEUTRAL;
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
+    }
+}
+
+//use scroll to zoom (in case no three-button mouse)
+void mouseScroll(GLFWwindow* window, double xoffset, double yoffset)
+{
+    v_distance -= yoffset;
+    if(v_distance < 0.0) v_distance = 0.0;
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(fov, (double)scrw/(double)scrh, 0.1, 100.0);
+    glMatrixMode(GL_MODELVIEW);
 }
 
 GLfloat mat_specular[] = {0.f, 0.f, 0.f, 0.f};
@@ -126,7 +203,7 @@ GLfloat light_position[] = {0.f, 0.f, 0.f, 1.f};
 GLfloat white_light[] = {1.f, 1.f, 1.f, 1.f};
 GLfloat spot_direction[] = {0.f, 0.f, -1.f, 0.f};
 GLfloat lmodel_ambient[] = {0.1f, 0.1f, 0.1f, 1.f};
-GLfloat conedir[] = {0.f, -1.f, 0.f};
+
 float hogdata[54] = 
 {
     -1.f, -.5f, -1.f,
@@ -150,6 +227,7 @@ float hogdata[54] =
      1.f, -.5f, 1.f,
      1.f, .5f,  1.f,
 };
+
 float hogdata2[6] =
 {
     0.f, -1.f, 0.f,
@@ -210,11 +288,13 @@ float pathdata6[SPIRAL_TSZ]; //autogenerated spiral
 float* pathdata7 = NULL; //loaded file
 int pd7sz = 0; //size in floats of file
 
+GLfloat conedir[] = {0.f, -1.f, 0.f};
+
 GLHedgeHogger hog;
 GLPathRenderer path;
 
 float rot = 0.f;
-int lastTime = 0;
+double lastTime = 0.0;
 
 bool paused = false;
 
@@ -252,7 +332,7 @@ inline void mkring(const float* d, int n, float r, float* o, float* on = NULL, f
     //interval = nv >> (1 + i)
     //this for loop subdivides the ring n times, each time doubling #vertices
     //printf("n = %d\nnv = %d\n", n, nv);
-    for(int i = nv >> 2; i > 1; i = i >> 1)
+    for(int i = nv >> 2; i >= 1; i = i >> 1)
     {
         //io2 is the index of the first element we need to set.
         //every additional index is offset from the previous by i
@@ -266,7 +346,7 @@ inline void mkring(const float* d, int n, float r, float* o, float* on = NULL, f
             int prev = (curr - io2t3) % (nv * 3);
             //get an average of the two adjacent directions
             add(o + next, o + prev, o + curr);
-            //normalize
+            //normalize and scale
             if(on)
             {
                 norm(o + curr, on + curr);
@@ -305,32 +385,32 @@ void init(void)
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(fov, (double)scrw/(double)scrh, 0.1, 100.0);
+    gluPerspective(fov, (double)scrw/(double)scrh, 0.1, 500.0);
     glMatrixMode(GL_MODELVIEW);
 
     hog = GLHedgeHogger();
     const GLHedgeHogger::Params* hparams = hog.GetParams();
     GLHedgeHogger::Params hcopy = *hparams;
-    hcopy.radius = .5f;
-    hcopy.quality = 1;
+    hcopy.radius = opt.radius;
+    hcopy.quality = opt.quality;
     hcopy.baseColor[0] = .5f;
     hcopy.baseColor[1] = .5f;
     hcopy.baseColor[2] = .5f;
     hcopy.baseColor[3] = 1.f;
-    hcopy.stride = 1;
+    hcopy.stride = opt.stride;
 
     hog.SetParams(&hcopy);
     
     path = GLPathRenderer();
     const GLPathRenderer::Params* pparams = path.GetParams();
     GLPathRenderer::Params pcopy = *pparams;
-    pcopy.radius = 0.5f;
-    pcopy.quality = 3;
+    pcopy.radius = opt.radius;
+    pcopy.quality = opt.quality;
     pcopy.baseColor[0] = 1.f;
     pcopy.baseColor[1] = 0.f;
     pcopy.baseColor[2] = 0.f;
     pcopy.baseColor[3] = 1.f;
-    pcopy.stride = 1;
+    pcopy.stride = opt.stride;
     
     path.SetParams(&pcopy);
     
@@ -350,70 +430,130 @@ static inline int coneSize(int q){return ringSize(q) + 3;}
 
 static inline void mkcone(const float* dir, float r, int q, float* o, float* on = NULL)
 {
-    printf("Starting MKCone\n");
+    //put our zero-vector (the tip) in the first vector of the vertex array
     mov(z3, o);
     int rsize = ringSize(q);
     int sz = rsize + 3;
     int nsz = rsize * 2;
+    //fill out the rest of the vertex array with radial vectors
     mkring(dir, q, r, o + 3);
     int ni = 0;
+    //for each vector
     for(int i = 3; i < sz && ni < nsz; i+=3)
     {
+        //place its normal in the correct location in the normal array
         if(on) norm(o + i, on + ni);
+        //subtract the forward-vector of the cone to finalize
         sub(o + i, dir, o + i);
+        //get correct location in normal array for next normal
         ni += 6;
     }
     if(on)
     {
-        //correct normals, get intermediates
+        //correct normals, get intermediates for tip normals
+        //orthogonalize the first normal with respect to the first radial vertex
         ortho(on, o + 3, on);
         norm(on, on);
         int vi = 6;
-        for(int i = 6; i < nsz && vi < sz; i+=6)
+        int i = 6;
+        float mid[3];
+        add(o + 3, o + sz - 3, mid); //something to orthogonalize against
+        add(on, on + nsz - 6, on + nsz - 3); //something to orthogonalize
+        ortho(on + nsz - 3, mid, on + nsz - 3); //orthogonalization
+        norm(on + nsz - 3, on + nsz - 3);
+        for(; i < nsz && vi < sz; i+=6)
         {
-            ortho(on + i, o + vi, on + i);
+            //printf("ni = %d/%d\nvi = %d/%d\n", i, nsz, vi, sz);
+            add(o + vi, o + vi - 3, mid);
             add(on + i, on + i - 6, on + i - 3);
+            ortho(on + i - 3, mid, on + i - 3);
+            ortho(on + i, o + vi, on + i);
             norm(on + i - 3, on + i - 3);
             norm(on + i, on + i);
+            
             vi += 3;
         }
+        //this is a really, really approximate solution for the missing normal
+        //add(on, on + i - 6, on + i - 3);
+        //norm(on + i - 3, on + i - 3);
     }
-    printf("Exiting MKCone\n");
 }
+
+float testcolors[24] = 
+{
+    1.f, 0.f, 0.f, 1.f,
+    0.f, 1.f, 0.f, 1.f,
+    0.f, 0.f, 1.f, 1.f,
+    1.f, 1.f, 0.f, 1.f,
+    0.f, 1.f, 1.f, 1.f,
+    1.f, 0.f, 1.f, 1.f
+};
 
 static inline void drawCone(const float* v, const float* n, int q)
 {
-    printf("Starting DrawCone\n");
     GLint oldmodel;
     if(n)
     {
         int rsz = ringSize(q);
         int sz = rsz + 3;
         int nsz = rsz * 2;
-        glBegin(GL_TRIANGLES);
         int vi = 3;
-        for(int i = 0; i < nsz && vi <= sz; i+=6)
+        int i = 0;
+        int ci = 0; //color-index for debug-coloring
+        //printf("NEW CONE, sz = %d, nsz = %d\n", sz, nsz);
+        glBegin(GL_TRIANGLES);
+        for(; i < nsz - 6 && vi < sz - 3; i+=6)
         {
             //two-step to the next triangle
+            //glMaterialfv(GL_FRONT, GL_DIFFUSE, testcolors + ci);
             glNormal3fv(n + (i % nsz));
             glVertex3fv(v + (vi % sz));
             glNormal3fv(n + ((i + 3) % nsz));
             glVertex3fv(v);
             glNormal3fv(n + ((i + 6) % nsz));
             glVertex3fv(v + ((vi + 3) % sz));
+            /*
+            printf("N %d %d %d\n", i % nsz, (i + 3) % nsz, (i + 6) % nsz);
+            printvec(n + (i % nsz));
+            printvec(n + ((i + 3) % nsz));
+            printvec(n + ((i + 6) % nsz));
+            printf("F %d %d %d\n", vi % sz, 0, (vi + 3) % sz);
+            printvec(v + (vi % sz));
+            printvec(v);
+            printvec(v + (vi + 3) % sz);
+            */
             vi += 3;
+            ci = (ci + 4) % 24;
         }
+        //do the last face, needs special handling, as it loops around
+        //glMaterialfv(GL_FRONT, GL_DIFFUSE, testcolors + ci);
+        glNormal3fv(n + (i % nsz));
+        glVertex3fv(v + (vi % sz));
+        glNormal3fv(n + ((i + 3) % nsz));
+        glVertex3fv(v);
+        glNormal3fv(n + ((i + 6) % nsz));
+        glVertex3fv(v + 3);
         glEnd();
+        /*
+        printf("N %d %d %d\n", i % nsz, (i + 3) % nsz, (i + 6) % nsz);
+        printvec(n + (i % nsz));
+        printvec(n + ((i + 3) % nsz));
+        printvec(n + ((i + 6) % nsz));
+        printf("F %d %d %d\n", vi % sz, 0, 3);
+        printvec(v + (vi % sz));
+        printvec(v);
+        printvec(v + 3);
+        */
     }
     else
     {
+        //complete this once normals repaired
         int sz = coneSize(q);
         glBegin(GL_TRIANGLE_FAN);
         for(int i = 0; i < sz; i+=3)
             glVertex3fv(v + i);
         glEnd();
     }
-    printf("Exiting DrawCone\n");
 }
 
 inline void coneTest(const float* b, int q, float r)
@@ -431,8 +571,9 @@ inline void coneTest(const float* b, int q, float r)
 
 void display(void)
 {
-    int newTime = glutGet(GLUT_ELAPSED_TIME);
-    int frameTime = newTime - lastTime;
+    //in case we need dt or elapsed time
+    double newTime = glfwGetTime();
+    double frameTime = newTime - lastTime;
     lastTime = newTime;
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -455,25 +596,72 @@ void display(void)
     //path.Draw(pathdata3, 3); //straight, dual-segment
     //path.Draw(pathdata4, 2); //single-segment
     //path.Draw(pathdata5, 6); //kink testing
-    //path.Draw(pathdata6, SPIRAL_SZ); //autospiral
-    //if(pathdata7) path.Draw(pathdata7, pd7sz / 3);
+    if(pathdata7) path.Draw(pathdata7, pd7sz / 3);
+    else path.Draw(pathdata6, SPIRAL_SZ); //autospiral
     //glTranslatef(0.f, 0.f, -3.f);
-    coneTest(conedir, 2, 1.f);
+    //coneTest(conedir, opt.quality, opt.radius);
     //drawCube();
 
-    glutSwapBuffers();
+    //glutSwapBuffers();
 }
 
 int main(int argc, char** argv)
 {
     scrw = 800;
     scrh = 600;
-    if(argc > 1)
+    midx = 400;
+    midy = 300;
+    
+    OptionParser op;
+    if(op.AppendOptions(set_options) < 0)
     {
-        pd7sz = nfloats(argv[1]);
-        pathdata7 = new float[pd7sz];
-        getfloats(argv[1], pathdata7, pd7sz);
+        fprintf(stderr, "ERR: %s\n", op.GetErrMsg());
+        exit(EXIT_FAILURE);
     }
+    if(op.ParseOptions(&argc, argv, get_options) < 0)
+    {
+        fprintf(stderr, "ERR: %s\n", op.GetErrMsg());
+        exit(EXIT_FAILURE);
+    }
+	if (opt.help)
+	{
+		cerr << "Usage: test_glflow [options]" << endl;
+		op.PrintOptionHelp(stderr);
+		exit(EXIT_FAILURE);
+	}
+    if(strcmp(opt.datafile, ""))
+    {
+        pd7sz = nfloats(opt.datafile);
+        pathdata7 = new float[pd7sz];
+        getfloats(opt.datafile, pathdata7, pd7sz);
+    }
+
+    if(!glfwInit()) exit(EXIT_FAILURE);
+    GLFWwindow* window = glfwCreateWindow(scrw, scrh, "test_glflow", NULL, NULL);
+    glfwMakeContextCurrent(window);
+    glfwSetWindowSizeCallback(window, &windowSize);
+    glfwSetKeyCallback(window, &keyboard);
+    glfwSetMouseButtonCallback(window, &mouseButton);
+    glfwSetCursorPosCallback(window, &cursorPos);
+    glfwSetScrollCallback(window, &mouseScroll);
+    
+    glfwSetTime(0.0);
+    
+    init();
+    while(!glfwWindowShouldClose(window))
+    {
+        display();
+        
+        glfwWaitEvents(); //blocks until something happens
+        glfwSwapBuffers(window);
+    }
+    
+    glfwDestroyWindow(window);
+    glfwTerminate();
+    exit(EXIT_SUCCESS);
+}
+
+/*
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
     glutInitWindowSize(scrw, scrh);
@@ -486,9 +674,7 @@ int main(int argc, char** argv)
     glutMotionFunc(mousemove);
     glutMouseFunc(mouse);
     glutMainLoop();
-    
-    exit(EXIT_SUCCESS);
-}
+*/
 
 static void drawBox(GLfloat size, GLenum type)
 {
@@ -536,7 +722,7 @@ static void drawBox(GLfloat size, GLenum type)
         glEnd();
     }
 }
- 
+
 void my_glutSolidCube(GLdouble size)
 {
   drawBox(size, GL_QUADS);
@@ -592,4 +778,6 @@ static void drawCube()
         glVertex3f(0.5f, -0.5f, -0.5f);
     glEnd();
 }
+
+// "I've half a mind to join a club and beat you over the head with it"
 
