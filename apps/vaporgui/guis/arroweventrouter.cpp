@@ -455,6 +455,9 @@ void ArrowEventRouter::updateTab(){
 		
 	if (viznums.size() > 1) {
 		copyCount.clear();
+		//The first two entries should not be referenced
+		copyCount.push_back(-1);
+		copyCount.push_back(-1);
 		for (int i = 0; i< viznums.size(); i++){
 			int vizwin = viznums[i];
 			if (winnum != vizwin){

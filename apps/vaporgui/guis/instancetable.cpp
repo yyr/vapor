@@ -80,6 +80,7 @@ void InstanceTable::rebuild(EventRouter* myRouter){
 
 	//create items as needed
 	//Also insert labels in first column
+	if (rowCount() > numInsts) selectRow(0);  //avoid crash if selected row is too high
 	if(rowCount() != numInsts) setRowCount(numInsts);
 	
 	for (int r = 0; r<numInsts; r++){
