@@ -165,7 +165,7 @@ Params* Params::GetParamsInstance(int pType, int winnum, int instance){
 
 void Params::RemoveParamsInstance(int pType, int winnum, int instance){
 	//Make sure the specified instance exists
-	map<pair<int,int>,vector<Params*> >::const_iterator it = paramsInstances.find(make_pair(pType,winnum));
+	map<pair<int,int>,vector<Params*> >::iterator it = paramsInstances.find(make_pair(pType,winnum));
 	if (it == paramsInstances.end()){
 		assert(0);
 		return;
