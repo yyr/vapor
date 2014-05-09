@@ -123,10 +123,10 @@ void cursorPos(GLFWwindow* window, double xpos, double ypos)
             dy = ypos - (double)midy;
             rx += dx / 4.0;
             ry += dy / 4.0;
-            if(ry > 90) ry = 90;
-            if(ry < -90) ry = -90;
-            if(rx > 180) rx -= 360;
-            if(rx < -180) rx += 360;
+            if(ry > 90.0) ry = 90.0;
+            if(ry < -90.0) ry = -90.0;
+            if(rx > 180.0) rx -= 360.0;
+            if(rx < -180.0) rx += 360.0;
             glfwSetCursorPos(window, midx, midy);
             break;
         case PANNING:
@@ -135,6 +135,7 @@ void cursorPos(GLFWwindow* window, double xpos, double ypos)
             dx = xpos - midx;
             dy = ypos - midy;
             v_distance += dy / 20.0;
+            if(v_distance < 0.0) v_distance = 0.0;
             glfwSetCursorPos(window, midx, midy);
             break;
     }
@@ -149,25 +150,38 @@ void keyboard(GLFWwindow* window, int key, int scancode, int action, int mods)
 //use mouse button 1 to rotate, 2 to pan, middle to zoom
 void mouseButton(GLFWwindow* window, int button, int action, int mods)
 {
+    int altmode;
     switch(button)
     {
         case GLFW_MOUSE_BUTTON_LEFT:
-            if(action == GLFW_PRESS){if(mode == NEUTRAL) mode = ROTATING;
-                                        glfwSetCursorPos(window, midx, midy);}
-            else{if(mode == ROTATING) mode = NEUTRAL;}
+            altmode = ROTATING;
             break;
         case GLFW_MOUSE_BUTTON_RIGHT:
-            if(action == GLFW_PRESS){if(mode == NEUTRAL) mode = PANNING;
-                                        glfwSetCursorPos(window, midx, midy);}
-            else{if(mode == PANNING) mode = NEUTRAL;}
+            altmode = PANNING;
             break;
         case GLFW_MOUSE_BUTTON_MIDDLE:
-            if(action == GLFW_PRESS){if(mode == NEUTRAL) mode = ZOOMING;
-                                        glfwSetCursorPos(window, midx, midy);}
-            else{if(mode == ZOOMING) mode = NEUTRAL;}
+            altmode = ZOOMING;
             break;
         default:
             break;
+    }
+    
+    if(action == GLFW_PRESS)
+    {
+        if(mode == NEUTRAL)
+        {
+            mode = altmode;
+            glfwSetCursorPos(window, midx, midy);
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        }
+    }
+    else
+    {
+        if(mode == altmode)
+        {
+            mode = NEUTRAL;
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
     }
 }
 
@@ -175,6 +189,7 @@ void mouseButton(GLFWwindow* window, int button, int action, int mods)
 void mouseScroll(GLFWwindow* window, double xoffset, double yoffset)
 {
     v_distance -= yoffset;
+    if(v_distance < 0.0) v_distance = 0.0;
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(fov, (double)scrw/(double)scrh, 0.1, 100.0);
@@ -370,7 +385,7 @@ void init(void)
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(fov, (double)scrw/(double)scrh, 0.1, 100.0);
+    gluPerspective(fov, (double)scrw/(double)scrh, 0.1, 500.0);
     glMatrixMode(GL_MODELVIEW);
 
     hog = GLHedgeHogger();

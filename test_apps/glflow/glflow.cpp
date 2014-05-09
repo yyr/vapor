@@ -441,7 +441,7 @@ static inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
     float* nm = r + rsize; //normals
     int vsize = n * 3;
     int vlast = vsize - 3;
-    int step = rnsize * p.stride;
+    int step = rnsize;
     int rlast = rsize - step;
     //the first ring, which we will not iterate over
     //because we need adjacent vectors to calculate direction
@@ -461,7 +461,7 @@ static inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
     for(int itr = step; itr < rlast; itr += step)
     {
         //get the current direction and pass it forward
-        sub(v + itv + 3, v + itv, r + itr + step);
+        sub(v + itv + (3 * p.stride), v + itv, r + itr + step);
         //correct if rather large direction
         //calculated using current and previous direction
         //previous direction was passed forward by previous iteration
@@ -475,11 +475,11 @@ static inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
             norm(r + i, r + rsize + i);
             add(v + itv, r + i, r + i);
         }
-        itv += 3;
+        itv += 3 * p.stride;
         rprev = itr;
     }
     
-    //the last ring, calculated afterward to avoid being overwritten by loop
+    //the last ring, calculated afterward to avoid overstepping bounds in loop
     sub(v + vlast, v + vlast - 3, r + rlast);
     mkring(r + rlast, p.quality, p.radius, r + rlast, nm + rlast, nm + rprev);
     for(int i = rlast; i < rsize; i+=3)
@@ -494,10 +494,11 @@ static inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
 static bool printed = false;
 void GLPathRenderer::Draw(const float *v, int n) const
 {
-    float* rings = prTubes(v, (n / prp.stride), prp);
+    n = n / prp.stride;
+    float* rings = prTubes(v, n, prp);
     int rsize = (4 << prp.quality) * 3;
     //int total = ((n << (2 + prp.quality)) * 3) - rsize;
-    int total = rsize * (n / prp.stride);
+    int total = rsize * n;
     //glColor4fv(prp.baseColor);
     glMaterialfv(GL_FRONT, GL_DIFFUSE, prp.baseColor);
     for(int i = 0; i < total - rsize; i += rsize)
