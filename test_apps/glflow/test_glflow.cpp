@@ -216,7 +216,20 @@ void mouseScroll(GLFWwindow* window, double xoffset, double yoffset)
     glMatrixMode(GL_MODELVIEW);
 }
 
-void cursorEnter(GLFWwindow* window, int entered){mode = NEUTRAL;}
+void cursorEnter(GLFWwindow* window, int entered)
+{
+#ifdef Darwin
+    if(entered == GL_FALSE && mode != NEUTRAL)
+    {
+        glfwSetCursorPos(window, midx, midy);
+        px = midx;
+        py = midy;
+    }
+    else mode = NEUTRAL;
+#else
+    mode = NEUTRAL;
+#endif
+}
 
 GLfloat mat_specular[] = {0.f, 0.f, 0.f, 0.f};
 GLfloat mat_shininess[] = {30.f};
