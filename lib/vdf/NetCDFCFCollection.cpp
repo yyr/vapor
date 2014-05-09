@@ -1449,8 +1449,8 @@ int NetCDFCFCollection::DerivedVar_AHSPC::Open(size_t) {
         } 
 
         _is_open = true;
-        return(0);
     }
+	return(0);
 }
 
 int NetCDFCFCollection::DerivedVar_AHSPC::Read(float *buf, int){
