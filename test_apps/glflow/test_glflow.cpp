@@ -86,6 +86,7 @@ static int getfloats(char* filename, float* buff, int max)
     return total;
 }
 static void drawCube();
+bool manual = false;
 int scrw, scrh, midx, midy;
 double px, py, rx, ry;
 double fov = 90.0;
@@ -127,7 +128,8 @@ void cursorPos(GLFWwindow* window, double xpos, double ypos)
 #ifdef Darwin
             dx = xpos - px;
             dy = ypos - py;
-            glfwGetCursorPos(window, &px, &py);
+            px = xpos;
+            py = ypos;
 #else
             dx = xpos - (double)midx;
             dy = ypos - (double)midy;
@@ -146,6 +148,8 @@ void cursorPos(GLFWwindow* window, double xpos, double ypos)
 #ifdef Darwin
             dx = xpos - px;
             dy = ypos - py;
+            px = xpos;
+            py = ypos;
 #else
             dx = xpos - midx;
             dy = ypos - midy;
@@ -191,8 +195,8 @@ void mouseButton(GLFWwindow* window, int button, int action, int mods)
             glfwGetCursorPos(window, &px, &py);
 #else
             glfwSetCursorPos(window, midx, midy);
-#endif
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+#endif
         }
     }
     else
@@ -200,7 +204,9 @@ void mouseButton(GLFWwindow* window, int button, int action, int mods)
         if(mode == altmode)
         {
             mode = NEUTRAL;
+#ifndef Darwin
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+#endif
         }
     }
 }
@@ -219,13 +225,16 @@ void mouseScroll(GLFWwindow* window, double xoffset, double yoffset)
 void cursorEnter(GLFWwindow* window, int entered)
 {
 #ifdef Darwin
-    if(entered == GL_FALSE && mode != NEUTRAL)
+    if(mode != NEUTRAL)
     {
-        glfwSetCursorPos(window, midx, midy);
-        px = midx;
-        py = midy;
+        if(entered == GL_FALSE)
+        {
+            px = midx;
+            py = midy;
+            glfwSetCursorPos(window, px, py);
+        }
+        else glfwGetCursorPos(window, &px, &py);
     }
-    else mode = NEUTRAL;
 #else
     mode = NEUTRAL;
 #endif
@@ -680,6 +689,7 @@ int main(int argc, char** argv)
     glfwSetCursorPosCallback(window, &cursorPos);
     glfwSetScrollCallback(window, &mouseScroll);
     glfwSetCursorEnterCallback(window, &cursorEnter);
+    glfwGetWindowSize(window, &scrw, &scrh);
     
     glfwSetTime(0.0);
     
