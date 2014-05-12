@@ -224,20 +224,7 @@ void mouseScroll(GLFWwindow* window, double xoffset, double yoffset)
 
 void cursorEnter(GLFWwindow* window, int entered)
 {
-#ifdef Darwin
-    if(mode != NEUTRAL)
-    {
-        if(entered == GL_FALSE)
-        {
-            px = midx;
-            py = midy;
-            glfwSetCursorPos(window, px, py);
-        }
-        else glfwGetCursorPos(window, &px, &py);
-    }
-#else
     mode = NEUTRAL;
-#endif
 }
 
 GLfloat mat_specular[] = {0.f, 0.f, 0.f, 0.f};
@@ -683,12 +670,14 @@ int main(int argc, char** argv)
     if(!glfwInit()) exit(EXIT_FAILURE);
     GLFWwindow* window = glfwCreateWindow(scrw, scrh, "test_glflow", NULL, NULL);
     glfwMakeContextCurrent(window);
+    
     glfwSetWindowSizeCallback(window, &windowSize);
     glfwSetKeyCallback(window, &keyboard);
     glfwSetMouseButtonCallback(window, &mouseButton);
     glfwSetCursorPosCallback(window, &cursorPos);
     glfwSetScrollCallback(window, &mouseScroll);
     glfwSetCursorEnterCallback(window, &cursorEnter);
+    
     glfwGetWindowSize(window, &scrw, &scrh);
     
     glfwSetTime(0.0);
