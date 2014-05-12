@@ -462,46 +462,33 @@ public:
   virtual size_t  GetTimeDim() const { return(0); }
   virtual string  GetTimeDimName() const { return(""); };
   virtual bool GetMissingValue(double &mv) const {mv=0.0; return(false); }
-  virtual int DCZ2(float* _PS1,   float*   _PHIS1, 
-                   float** _TV2, int NL, 
-                   float  _P0,   float** _HYBA,  float** _HYBB,
-                   int    _KLEV, int     _MLON,  int _MLON2, //float** _PMLN,
-                   float** _HYPDLN, float** _HYALPH, float** _PTERM,
-                   float** _ZSLICE);
+  virtual int DCZ2(float*  PS1,    float*  PHIS1, 
+                   float** TV2,    int     NL, 
+                   float   P0,     float** HYBA,   float** HYBB,
+                   int     KLEV,   int     MLON,   int     MLON2,
+                   float** HYPDLN, float** HYALPH, float** PTERM,
+                   float** ZSLICE);
 
  private:
   std::vector <size_t> _dims;
   std::vector <string> _dimnames;
   size_t _slice_num;
-  float *_PS;
-  float *_PHIS;
-  float *_TV;
-  float _P0;
-  float *_HYAM;
-  float *_HYBM;
-  float *_HYAI;
-  float *_HYBI;
+  float *PS;
+  float *PHIS;
+  float *TV;
+  float P0;
+  float *HYAM;
+  float *HYBM;
+  float *HYAI;
+  float *HYBI;
   float *_Z3;
   bool _is_open;
   bool _ok;
   float _min;
   float _max;
-
-  // 14 inputs to DCZ2()
-  //float *_PS
-  //float *_PHIS;
-  //float *_TV;
-  //float _HPRB;
-  //float **_HYBA;
-  //float *_HYBB;
   int KMAX;
   int IDIM;
   int IMAX;
-  //float *_PMLN;
-  //float *_HYPDLN;
-  //float *_HYALPH;
-  //float *_PTERM;
-  //float *_Z2;
  };
 
  std::map <string, DerivedVar *> _derivedVarsMap;

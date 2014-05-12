@@ -1256,14 +1256,14 @@ NetCDFCFCollection::DerivedVar_AHSPC::DerivedVar_AHSPC(
     _dims.resize(3);
     _dimnames.resize(3);
 
-    _PS = NULL;             //Current surface pressure
-    _PHIS = NULL;           //Surface Geopotential Height
-    _TV = NULL;             //Virtual Temperature
-    _P0 = NULL;             //Pressure constant set by model code
-    _HYAM = NULL;           //HYAM
-    _HYBM = NULL;           //HYBM
-    _HYAI = NULL;           //HYAI
-    _HYBI = NULL;           //HYBI
+    PS = NULL;             //Current surface pressure
+    PHIS = NULL;           //Surface Geopotential Height
+    TV = NULL;             //Virtual Temperature
+    P0 = NULL;             //Pressure constant set by model code
+    HYAM = NULL;           //HYAM
+    HYBM = NULL;           //HYBM
+    HYAI = NULL;           //HYAI
+    HYBI = NULL;           //HYBI
     _Z3 = NULL;
 
     _is_open = false;
@@ -1271,7 +1271,8 @@ NetCDFCFCollection::DerivedVar_AHSPC::DerivedVar_AHSPC(
 
     vector <size_t> dims_tmp;
     vector <string> dimnames_tmp;
-    // Get dimension size of our vertical coordinate variable
+    
+	// Get dimension size of our vertical coordinate variable
     if (_ncdfc->VariableExists("lev" )) {
         dims_tmp = _ncdfc->GetSpatialDims("lev");
         dimnames_tmp = _ncdfc->GetSpatialDimNames("lev");
@@ -1301,30 +1302,30 @@ NetCDFCFCollection::DerivedVar_AHSPC::DerivedVar_AHSPC(
     // If Z3 exists, use it.  Otherwise we will derive Z2.
     if (_ncdfc->VariableExists("Z3")) _Z3 = new float[_dims[0] * _dims[1] * _dims[2]];
     else {
-        _HYAI   = new float[_dims[0]+1];
-        _HYBI   = new float[_dims[0]+1];
-        _HYAM   = new float[_dims[0]];
-        _HYBM   = new float[_dims[0]];
-        _PS     = new float[_dims[1] * _dims[2]];
-        _PHIS   = new float[_dims[1] * _dims[2]];
-        _TV     = new float[_dims[0] * _dims[1] * _dims[2]];
+        HYAI   = new float[_dims[0]+1];
+        HYBI   = new float[_dims[0]+1];
+        HYAM   = new float[_dims[0]];
+        HYBM   = new float[_dims[0]];
+        PS     = new float[_dims[1] * _dims[2]];
+        PHIS   = new float[_dims[1] * _dims[2]];
+        TV     = new float[_dims[0] * _dims[1] * _dims[2]];
         _Z3     = new float[_dims[0] * _dims[1] * _dims[2]];
     }
 }
 
 NetCDFCFCollection::DerivedVar_AHSPC::~DerivedVar_AHSPC() {
-    if (_Z3) delete [] _Z3;
-    if (_HYAI) delete [] _HYAI;
-    if (_HYBI) delete [] _HYBI;
-    if (_HYAM) delete [] _HYAM;
-    if (_HYBM) delete [] _HYBM;
-    if (_PS) delete [] _PS;
-    if (_PHIS) delete [] _PHIS;
-    if (_TV) delete [] _TV;
+    if (_Z3)  delete [] _Z3;
+    if (HYAI) delete [] HYAI;
+    if (HYBI) delete [] HYBI;
+    if (HYAM) delete [] HYAM;
+    if (HYBM) delete [] HYBM;
+    if (PS)   delete [] PS;
+    if (PHIS) delete [] PHIS;
+    if (TV)   delete [] TV;
 }
 
 
-int NetCDFCFCollection::DerivedVar_AHSPC::Open(size_t) {
+int NetCDFCFCollection::DerivedVar_AHSPC::Open(size_t ts) {
 
 	if (_is_open) return(0);    // Only open first time step
     if (! _ok) {
@@ -1343,7 +1344,7 @@ int NetCDFCFCollection::DerivedVar_AHSPC::Open(size_t) {
 
     // If Z3 exists, populate it, otherwise we derive Z2.
     if (_ncdfc->VariableExists("Z3")) {
-        int fd = _ncdfc->OpenRead(0, "Z3"); if (fd<0) return(-1);
+        int fd = _ncdfc->OpenRead(ts, "Z3"); if (fd<0) return(-1);
         rc = _ncdfc->Read(_Z3, fd); if (rc<0) return(-1);
         rc = _ncdfc->Close(fd); if (rc<0) return(-1);
         if (_ncdfc->GetMissingValue("Z3", mv)) {
@@ -1354,90 +1355,90 @@ int NetCDFCFCollection::DerivedVar_AHSPC::Open(size_t) {
     }
     else {
         // PS - Surface Pressure
-        int fd = _ncdfc->OpenRead(0, "PS"); if (fd<0) return(-1);
-        rc = _ncdfc->Read(_PS, fd); if (rc<0) return(-1);
+        int fd = _ncdfc->OpenRead(ts, "PS"); if (fd<0) return(-1);
+        rc = _ncdfc->Read(PS, fd); if (rc<0) return(-1);
         rc = _ncdfc->Close(fd); if (rc<0) return(-1);
         if (_ncdfc->GetMissingValue("PS", mv)) {   // zero out any mv
             for (int i=0; i<nx*ny; i++) {
-                if (_PS[i] == mv) _PS[i] = 0.0;
+                if (PS[i] == mv) PS[i] = 0.0;
             }
         }
 
         // PHIS - Surface Geopotential Height
         if (_ncdfc->VariableExists("PHIS")){	
-			fd = _ncdfc->OpenRead(0, "PHIS");
+			fd = _ncdfc->OpenRead(ts, "PHIS");
 			if (fd<0) {
             	for (size_t i=0; i<nx*ny; i++) {
-                	_PHIS[i] = 0.0;
+                	PHIS[i] = 0.0;
         		}
         	}
         
-            rc = _ncdfc->Read(_PHIS, fd); if (rc<0) return(-1);
+            rc = _ncdfc->Read(PHIS, fd); if (rc<0) return(-1);
             rc = _ncdfc->Close(fd); if (rc<0) return(-1);
             if (_ncdfc->GetMissingValue("PHIS", mv)) {   // zero out any mv
                 for (int i=0; i<nx*ny; i++) {
-                    if (_PHIS[i] == mv) _PHIS[i] = 0.0;
+                    if (PHIS[i] == mv) PHIS[i] = 0.0;
                 }
             }
 		}	
 		else{
 			for (size_t i=0; i<nx*ny; i++) {
-                _PHIS[i] = 0.0; 
+                PHIS[i] = 0.0; 
             }   
         }
 
         // T - Temperature (Virtual)
-        fd = _ncdfc->OpenRead(0, "T"); if (fd<0) return(-1);
-        rc = _ncdfc->Read(_TV, fd); if (rc<0) return(-1);
+        fd = _ncdfc->OpenRead(ts, "T"); if (fd<0) return(-1);
+        rc = _ncdfc->Read(TV, fd); if (rc<0) return(-1);
         rc = _ncdfc->Close(fd); if (rc<0) return(-1);
         if (_ncdfc->GetMissingValue("T", mv)) {   // zero out any mv
             for (int i=0; i<nx*ny; i++) {
-                if (_TV[i] == mv) _TV[i] = 0.0;
+                if (TV[i] == mv) TV[i] = 0.0;
             }
         }
 
         // P0 - CAM pressure constant
-        fd = _ncdfc->OpenRead(0,"P0"); if (fd<0) return(-1);
-        rc = _ncdfc->Read(&_P0, fd); if (rc<0) return(-1);
+        fd = _ncdfc->OpenRead(ts,"P0"); if (fd<0) return(-1);
+        rc = _ncdfc->Read(&P0, fd); if (rc<0) return(-1);
         rc = _ncdfc->Close(fd); if (rc<0) return(-1);
 
         // HYAM - Hybrid A midpoint coefficients
-        fd = _ncdfc->OpenRead(0, "hyam"); if (fd<0) return(-1);
-        rc = _ncdfc->Read(_HYAM, fd); if (rc<0) return(-1);
+        fd = _ncdfc->OpenRead(ts, "hyam"); if (fd<0) return(-1);
+        rc = _ncdfc->Read(HYAM, fd); if (rc<0) return(-1);
         rc = _ncdfc->Close(fd); if (rc<0) return(-1);
         if (_ncdfc->GetMissingValue("hyam", mv)) {
             for (int i=0; i<nz; i++) {
-                if (_HYAM[i] == mv) _HYAM[i] = 0.0;
+                if (HYAM[i] == mv) HYAM[i] = 0.0;
             }
         }
 
         // HYBM - Hybrid B midpoint coefficients
-        fd = _ncdfc->OpenRead(0, "hybm"); if (fd<0) return(-1);
-        rc = _ncdfc->Read(_HYBM, fd); if (rc<0) return(-1);
+        fd = _ncdfc->OpenRead(ts, "hybm"); if (fd<0) return(-1);
+        rc = _ncdfc->Read(HYBM, fd); if (rc<0) return(-1);
         rc = _ncdfc->Close(fd); if (rc<0) return(-1);
         if (_ncdfc->GetMissingValue("hybm", mv)) {
             for (int i=0; i<nz; i++) {
-                if (_HYBM[i] == mv) _HYBM[i] = 0.0;
+                if (HYBM[i] == mv) HYBM[i] = 0.0;
             }
         }
 
         // HYAI - Hybrid A interface coefficients
-        fd = _ncdfc->OpenRead(0, "hyai"); if (fd<0) return(-1);
-        rc = _ncdfc->Read(_HYAI, fd); if (rc<0) return(-1);
+        fd = _ncdfc->OpenRead(ts, "hyai"); if (fd<0) return(-1);
+        rc = _ncdfc->Read(HYAI, fd); if (rc<0) return(-1);
         rc = _ncdfc->Close(fd); if (rc<0) return(-1);
         if (_ncdfc->GetMissingValue("hyai", mv)) {
             for (int i=0; i<nz; i++) {
-                if (_HYAI[i] == mv) _HYAI[i] = 0.0;
+                if (HYAI[i] == mv) HYAI[i] = 0.0;
             }
         }
 
         // HYBI - Hybrid B interface coefficients
-        fd = _ncdfc->OpenRead(0, "hybi"); if (fd<0) return(-1);
-        rc = _ncdfc->Read(_HYBI, fd); if (rc<0) return(-1);
+        fd = _ncdfc->OpenRead(ts, "hybi"); if (fd<0) return(-1);
+        rc = _ncdfc->Read(HYBI, fd); if (rc<0) return(-1);
         rc = _ncdfc->Close(fd); if (rc<0) return(-1);
         if (_ncdfc->GetMissingValue("hybi", mv)) {
                 for (int i=0; i<nz; i++) {
-                if (_HYBI[i] == mv) _HYBI[i] = 0.0;
+                if (HYBI[i] == mv) HYBI[i] = 0.0;
             }
         }
 
@@ -1465,84 +1466,84 @@ int NetCDFCFCollection::DerivedVar_AHSPC::CalculateElevation(
     // height.  This reimplementation does the same.
     // Variables have been named the same for reference.
 
-    size_t _MLON   = _dims[2];
-    size_t _NLAT   = _dims[1];
-    size_t _KLEV   = _dims[0];
+    size_t MLON   = _dims[2];
+    size_t NLAT   = _dims[1];
+    size_t KLEV   = _dims[0];
 
-    float _PS1[_MLON];
-    float _PHIS1[_MLON];
+    float PS1[MLON];
+    float PHIS1[MLON];
 
     // Initialize 2D scratch arrays
-    float **_HYBA = new float*[2];
-    float **_HYBB = new float*[2];
+    float **HYBA = new float*[2];
+    float **HYBB = new float*[2];
     for (size_t i=0; i<2; i++) {
-        _HYBA[i] = new float[_dims[0]+1];
-        _HYBB[i] = new float[_dims[0]+1];
+        HYBA[i] = new float[_dims[0]+1];
+        HYBB[i] = new float[_dims[0]+1];
     }
 
-    float **_HYPDLN = new float*[_dims[2]];
-    float **_HYALPH = new float*[_dims[2]];
-    float **_PTERM  = new float*[_dims[2]];
-    float **_TV2    = new float*[_dims[2]];
+    float **HYPDLN = new float*[_dims[2]];
+    float **HYALPH = new float*[_dims[2]];
+    float **PTERM  = new float*[_dims[2]];
+    float **TV2    = new float*[_dims[2]];
     float **ZSLICE  = new float*[_dims[2]];
     for (size_t i=0; i<_dims[2]; i++) {
-        _HYPDLN[i] = new float[_dims[0]+1];
-        _HYALPH[i] = new float[_dims[0]];
-        _PTERM[i]  = new float[_dims[0]];
-        _TV2[i]    = new float[_dims[0]];
+        HYPDLN[i] = new float[_dims[0]+1];
+        HYALPH[i] = new float[_dims[0]];
+        PTERM[i]  = new float[_dims[0]];
+        TV2[i]    = new float[_dims[0]];
         ZSLICE[i]     = new float[_dims[0]];
     }
 
     // Feed hyai, hyam, hybi, and hybm into two arrays,
     // HYBA and HYBB, as required by the cz conversion
     // algorithm (cz2ccm_dp.f:61)
-    for (size_t KL=0; KL<_KLEV+1; KL++) {
-        _HYBA[0][KL] = _HYAI[_KLEV-KL];
-		_HYBB[0][KL] = _HYBI[_KLEV-KL];
+    for (size_t KL=0; KL<KLEV+1; KL++) {
+        HYBA[0][KL] = HYAI[KLEV-KL];
+		HYBB[0][KL] = HYBI[KLEV-KL];
 	}
 	// (cz2ccm_dp.f:71)
-	for (size_t KL=0; KL<_KLEV; KL++) {
-        _HYBA[1][KL+1] = _HYAM[_KLEV-KL];
-        _HYBB[1][KL+1] = _HYBM[_KLEV-KL];
+	for (size_t KL=0; KL<KLEV; KL++) {
+        HYBA[1][KL+1] = HYAM[KLEV-KL];
+        HYBB[1][KL+1] = HYBM[KLEV-KL];
     }
-    _HYBA[1][0] = 0;
-    _HYBB[1][0] = 0;
+    HYBA[1][0] = 0;
+    HYBB[1][0] = 0;
 
     // Calculate elevation, one vertical slice at a time
     // (cz2ccm_dp.f:78)
 
 	float min = 999999;
 	float max = -999999;
-    for (int NL=0; NL<_NLAT; NL++) {
-        for (int J=0; J<_KLEV; J++) {
-            for (int I=0; I<_MLON; I++) {
+    for (int NL=0; NL<NLAT; NL++) {
+        for (int J=0; J<KLEV; J++) {
+            for (int I=0; I<MLON; I++) {
                              //Volume              //2D Slice    //Point
-                int tIndex = (_NLAT * _MLON * J) + (_MLON * NL) + (I);
-                int pIndex =                       (_MLON * NL) + (I);
+                int tIndex = (NLAT * MLON * J) + (MLON * NL) + (I);
+                int pIndex =                       (MLON * NL) + (I);
 
                 // Create a 2D slice of temperature, 
                 // and 1D slices of PS, and PHIS
                 // Slices are divided along the latitude (Y) domain
-                _TV2[I][J] = _TV[tIndex];
-                _PS1[I]    = _PS[pIndex];
-                _PHIS1[I]   = _PHIS[pIndex];
+                TV2[I][J] = TV[tIndex];
+                PS1[I]    = PS[pIndex];
+                PHIS1[I]  = PHIS[pIndex];
             }
         }
 
         int rc = NetCDFCFCollection::DerivedVar_AHSPC::DCZ2(
-                      _PS1,    // surface pressure
-                      _PHIS1,  // surface height
-                      _TV2,    // latitudinal temperature slice
-                      NL,      // latitude index
-                      _P0,     // pressure constant (aka HPRB)
-                      _HYBA,   // composite array of interface/midpoint constants
-                      _HYBB,   // composite array of interface/midpoint constants
-                      _KLEV,   // number of vertical layers, same as KMAX
-                      _MLON,   // number of longitudes
-                      _MLON,   // number of longitudes (redundant at cz2ccm_dp.f:86)
-                      _HYPDLN, // scratch array
-                      _HYALPH, // scratch array
-                      _PTERM,  // scratch array
+                      PS1,    // surface pressure
+                      PHIS1,  // surface height
+                      TV2,    // latitudinal temperature slice
+                      NL,     // latitude index
+                      P0,     // pressure constant (aka HPRB)
+                      HYBA,   // composite array of interface/midpoint constants
+                      HYBB,   // composite array of interface/midpoint constants
+                      KLEV,   // number of vertical layers, same as KMAX
+                      MLON,   // number of longitudes
+                      MLON,   // number of longitudes (redundant at cz2ccm_dp.f:86)
+                      HYPDLN, // scratch array
+                      HYALPH, // scratch array
+                      PTERM,  // scratch array
                       ZSLICE); // calculated geopotential height
 
 		if (rc>0) {
@@ -1550,9 +1551,9 @@ int NetCDFCFCollection::DerivedVar_AHSPC::CalculateElevation(
 			return(-1);
 		}
 
-        for (int J=0; J<_KLEV; J++) {
-			for (int I=0; I<_MLON; I++) {
-                int zIndex = (_NLAT * _MLON * J) + (_MLON * NL) + (I);
+        for (int J=0; J<KLEV; J++) {
+			for (int I=0; I<MLON; I++) {
+                int zIndex = (NLAT * MLON * J) + (MLON * NL) + (I);
 				 _Z3[zIndex] = ZSLICE[I][J];
 				if (_Z3[zIndex] > max) max = _Z3[zIndex];
 				if (_Z3[zIndex] < min) min = _Z3[zIndex];
@@ -1563,32 +1564,32 @@ int NetCDFCFCollection::DerivedVar_AHSPC::CalculateElevation(
     return(0);
 }
 
-int NetCDFCFCollection::DerivedVar_AHSPC::DCZ2(float*  _PS1,
-                                               float*  _PHIS1,
-                                               float** _TV2,
+int NetCDFCFCollection::DerivedVar_AHSPC::DCZ2(float*  PS1,
+                                               float*  PHIS1,
+                                               float** TV2,
                                                int      NL,
-                                               float   _P0,
-                                               float** _HYBA,
-                                               float** _HYBB,
+                                               float   P0,
+                                               float** HYBA,
+                                               float** HYBB,
                                                int     KMAX,    // same as KLEV 
                                                int     IDIM,    // same as MLON
                                                int     IMAX,    // same as MLON
-                                               float** _HYPDLN,
-                                               float** _HYALPH,
-                                               float** _PTERM,
+                                               float** HYPDLN,
+                                               float** HYALPH,
+                                               float** PTERM,
                                                float** ZSLICE){
     // compute midpoint pressure levels (pmln)
     // cz2ccm_dp.f::222
     float PMLN[IDIM][KMAX+1];  //seg fault
     for (int I=0; I<IMAX; I++) {
-        PMLN[I][0] = log( _P0*_HYBA[1][KMAX-1] + _PS1[I]*_HYBB[0][KMAX-1]);
-        PMLN[I][KMAX]    = log( _P0*_HYBA[1][0]    + _PS1[I]*_HYBB[0][0]);
+        PMLN[I][0] = log( P0*HYBA[1][KMAX-1] + PS1[I]*HYBB[0][KMAX-1]);
+        PMLN[I][KMAX]    = log( P0*HYBA[1][0]    + PS1[I]*HYBB[0][0]);
     }
 
     //for (size_t K=209; K>-1; K--){
 	for (size_t K=1; K<KMAX+1; K++){	
     	for (size_t I=0; I<IMAX; I++){
-            float arg = _P0*_HYBA[1][K] + _PS1[I]*_HYBB[0][K];//?
+            float arg = P0*HYBA[1][K] + PS1[I]*HYBB[0][K];//?
 			if (arg > 0) PMLN[I][KMAX-K] = log(arg);
             else PMLN[I][KMAX-K] = 0;
         }
@@ -1603,7 +1604,7 @@ int NetCDFCFCollection::DerivedVar_AHSPC::DCZ2(float*  _PS1,
     for (size_t K=1; K<KMAX-1;K++){
         for (size_t I=0;I<IMAX;I++){
             float vpd = PMLN[I][K+1] - PMLN[I][K-1];    // vertical pressure difference between layers
-            _PTERM[I][K] = RBYG * _TV2[I][K] * .5 * vpd;
+            PTERM[I][K] = RBYG * TV2[I][K] * .5 * vpd;
         }
     }
 
@@ -1611,15 +1612,15 @@ int NetCDFCFCollection::DerivedVar_AHSPC::DCZ2(float*  _PS1,
     for (size_t K=0; K<KMAX-1; K++){
         for (size_t I=0; I<IMAX; I++){
             float vpd = PMLN[I][K+1] - PMLN[I][K];          // vertical pressure difference between layers
-            ZSLICE[I][K] = _PHIS1[I]/G0 + RBYG*_TV2[I][K]*.5*vpd;
+            ZSLICE[I][K] = PHIS1[I]/G0 + RBYG*TV2[I][K]*.5*vpd;
         }
     }    
 
     // Eq 3.a.109.5, cz2ccm_dp.f:272
 	int K = KMAX-1;
     for (size_t I=0; I<IMAX; I++){
-		float a = _PHIS1[I]/G0;
-		float b = RBYG * _TV2[I][K] * (log(_PS1[I]*_HYBB[0][0]) - PMLN[I][K]);//-1]);
+		float a = PHIS1[I]/G0;
+		float b = RBYG * TV2[I][K] * (log(PS1[I]*HYBB[0][0]) - PMLN[I][K]);//-1]);
         ZSLICE[I][KMAX-1] = a + b;
     }    
 
@@ -1628,7 +1629,7 @@ int NetCDFCFCollection::DerivedVar_AHSPC::DCZ2(float*  _PS1,
         int L = KMAX-1;
         for (size_t I=0; I<IMAX; I++){
             float a = ZSLICE[I][K];
-			float b = RBYG * _TV2[I][L] * (log(_PS1[I]*_HYBB[0][0]) - .5*(PMLN[I][L-1] + PMLN[I][L]));
+			float b = RBYG * TV2[I][L] * (log(PS1[I]*HYBB[0][0]) - .5*(PMLN[I][L-1] + PMLN[I][L]));
 
 			ZSLICE[I][K] = a + b;
         }    
@@ -1637,7 +1638,7 @@ int NetCDFCFCollection::DerivedVar_AHSPC::DCZ2(float*  _PS1,
     for (size_t K=0; K<KMAX-2; K++) {
         for (size_t L=K+1; L<KMAX-1; L++) {
             for (size_t I=0; I<IMAX; I++) {
-                ZSLICE[I][K] = ZSLICE[I][K] + _PTERM[I][L];
+                ZSLICE[I][K] = ZSLICE[I][K] + PTERM[I][L];
             }    
         }    
     }    
