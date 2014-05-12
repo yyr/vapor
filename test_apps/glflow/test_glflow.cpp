@@ -224,20 +224,7 @@ void mouseScroll(GLFWwindow* window, double xoffset, double yoffset)
 
 void cursorEnter(GLFWwindow* window, int entered)
 {
-#ifdef Darwin
-    if(mode != NEUTRAL)
-    {
-        if(entered == GL_FALSE)
-        {
-            px = midx;
-            py = midy;
-            glfwSetCursorPos(window, px, py);
-        }
-        else glfwGetCursorPos(window, &px, &py);
-    }
-#else
     mode = NEUTRAL;
-#endif
 }
 
 GLfloat mat_specular[] = {0.f, 0.f, 0.f, 0.f};
