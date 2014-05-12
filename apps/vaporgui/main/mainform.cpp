@@ -666,6 +666,7 @@ void MainForm::fileOpen()
 		int viznum = viznums[i];
 		VizWinMgr::getInstance()->attachVisualizer(viznum);
 	}
+	Visualizer::setActiveWinNum(VizWinParams::GetCurrentVizWin());
 	sessionIsDefault = false;
 	updateWidgets();
 	
@@ -928,6 +929,7 @@ void MainForm::defaultLoadData()
 			QMessageBox::information(this,"Load Data Error","Unable to read metadata file ");
 			return;
 		}
+		updateWidgets();
 		update();
 		if (dmgr) return;
 	}
@@ -938,6 +940,7 @@ void MainForm::newSession(){
 	VizWinMgr::getInstance()->SetToDefaults();
 	VizWinMgr::getInstance()->launchVisualizer();
 	VizWinMgr::getInstance()->refreshRenderData();
+	sessionIsDefault = true;
 }
 	
 	

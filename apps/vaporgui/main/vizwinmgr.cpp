@@ -527,7 +527,6 @@ void VizWinMgr::refreshRegion(RegionParams* rParams){
 	if (rParams->IsLocal()) return;
 	map<int,VizWin*>::iterator it;
 	for (it = VizWindow.begin(); it != VizWindow.end(); it++){
-		(it->second)->resize(400,400);
 		int i = it->first;
 		RegionParams* rgParams = (RegionParams*)ControlExec::GetParams(i,Params::_regionParamsTag,-1);
 		if  ( (i != vizNum)  &&((!rgParams)||!rgParams->IsLocal())){
