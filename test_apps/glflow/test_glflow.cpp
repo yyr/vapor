@@ -92,6 +92,9 @@ double px, py, rx, ry;
 double fov = 90.0;
 float v_distance = 5.f;
 
+void init();
+void display();
+
 //glfw window event callbacks
 void windowSize(GLFWwindow* window, int width, int height)
 {
@@ -105,6 +108,13 @@ void windowSize(GLFWwindow* window, int width, int height)
     midx = width / 2;
     midy = height / 2;
     glfwGetCursorPos(window, &px, &py);
+}
+
+void windowRefresh(GLFWwindow* window)
+{
+#ifndef Darwin //avoid spurious redrawing
+    display();
+#endif
 }
 
 const int NEUTRAL = 0;
@@ -672,6 +682,8 @@ int main(int argc, char** argv)
     glfwMakeContextCurrent(window);
     
     glfwSetWindowSizeCallback(window, &windowSize);
+    glfwSetFramebufferSizeCallback(window, &windowSize);
+    glfwSetWindowRefreshCallback(window, &windowRefresh);
     glfwSetKeyCallback(window, &keyboard);
     glfwSetMouseButtonCallback(window, &mouseButton);
     glfwSetCursorPosCallback(window, &cursorPos);
