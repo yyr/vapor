@@ -248,6 +248,8 @@ static inline void drawTube(const float* a, const float* b, int d, float r)
 GLFlowRenderer::GLFlowRenderer()
 {
     p = GLFlowRenderer::Params();
+    changed = false;
+    prevdata = 0;
 }
 
 GLFlowRenderer::~GLFlowRenderer()
@@ -303,6 +305,7 @@ bool GLFlowRenderer::SetParams(const GLFlowRenderer::Params *params)
     p.arrowRatio = params->arrowRatio;
     p.stride = params->stride;
     p.quality = params->quality;
+    changed = true;
     return true;
 }
 
@@ -339,6 +342,7 @@ bool GLHedgeHogger::SetParams(const GLHedgeHogger::Params *params)
     if(params->length < 0.f) return false;
     bool success = ((GLFlowRenderer*)this)->SetParams(params);
     if(success) hhp = *params;
+    changed = true;
     return success;
 }
 
@@ -377,19 +381,21 @@ static inline float* hhTubes(const float* v, int n, GLHedgeHogger::Params p)
     return r; //let them eat cake
 }
 
-void GLHedgeHogger::Draw(const float *v, int n) const
+void GLHedgeHogger::Draw(const float *v, int n)
 {
-    float* rings = hhTubes(v, n, hhp);
+    if(changed || v != prevdata)
+    {
+        if(prevdata != 0) delete[] prevdata;
+        prevdata = hhTubes(v, n, hhp);
+    }
     int tsize = (8 << p.quality) * 3;
     int total = (n << (3 + p.quality)) * 3;
-    //glColor4fv(hhp.baseColor);
     glMaterialfv(GL_FRONT, GL_DIFFUSE, hhp.baseColor);
     for(int i = 0; i < total; i += tsize * hhp.stride)
-        drawTube(rings + i, p.quality, total);
-    delete[] rings; //later I'll come back and fix this so it caches
+        drawTube(prevdata + i, p.quality, total);
 }
 
-void GLHedgeHogger::Draw(const float *vectors, const float *rgba, int n) const
+void GLHedgeHogger::Draw(const float *vectors, const float *rgba, int n)
 {
 
 }
@@ -422,6 +428,7 @@ bool GLPathRenderer::SetParams(const GLPathRenderer::Params *params)
     if(params->arrowstride < 1) return false;
     bool success = ((GLFlowRenderer*)this)->SetParams(params);
     if(success) prp = *params;
+    changed = true;
     return success;
 }
 
@@ -492,40 +499,24 @@ static inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
 }
 
 static bool printed = false;
-void GLPathRenderer::Draw(const float *v, int n) const
+void GLPathRenderer::Draw(const float *v, int n)
 {
     n = n / prp.stride;
-    float* rings = prTubes(v, n, prp);
+    if(changed || prevdata != v)
+    {
+        if(prevdata != 0) delete[] prevdata;
+        prevdata = prTubes(v, n, prp);
+    }
     int rsize = (4 << prp.quality) * 3;
     //int total = ((n << (2 + prp.quality)) * 3) - rsize;
     int total = rsize * n;
     //glColor4fv(prp.baseColor);
     glMaterialfv(GL_FRONT, GL_DIFFUSE, prp.baseColor);
     for(int i = 0; i < total - rsize; i += rsize)
-        drawTube(rings + i, prp.quality, total);
-        
-    /*
-    if(!printed)
-    {
-        printed = true;
-        int mid = total;
-        int end = mid << 1;
-        for(int i = 0; i < mid; i+=3)
-        {
-            printf("(%5f, %5f, %5f)\n", rings[i], rings[i + 1], rings[i + 2]);
-        }
-        printf("\n");
-        for(int i = mid; i < end; i+=3)
-        {
-            printf("(%5f, %5f, %5f)\n", rings[i], rings[i + 1], rings[i + 2]);
-        }
-    }
-    */
-    
-    delete[] rings;
+        drawTube(prevdata + i, prp.quality, total);
 }
 
-void GLPathRenderer::Draw(const float *vectors, const float *rgba, int n) const
+void GLPathRenderer::Draw(const float *vectors, const float *rgba, int n)
 {
 
 }

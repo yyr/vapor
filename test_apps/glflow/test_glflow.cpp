@@ -670,12 +670,14 @@ int main(int argc, char** argv)
     if(!glfwInit()) exit(EXIT_FAILURE);
     GLFWwindow* window = glfwCreateWindow(scrw, scrh, "test_glflow", NULL, NULL);
     glfwMakeContextCurrent(window);
+    
     glfwSetWindowSizeCallback(window, &windowSize);
     glfwSetKeyCallback(window, &keyboard);
     glfwSetMouseButtonCallback(window, &mouseButton);
     glfwSetCursorPosCallback(window, &cursorPos);
     glfwSetScrollCallback(window, &mouseScroll);
     glfwSetCursorEnterCallback(window, &cursorEnter);
+    
     glfwGetWindowSize(window, &scrw, &scrh);
     
     glfwSetTime(0.0);

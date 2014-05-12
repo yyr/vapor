@@ -54,14 +54,16 @@ public:
     virtual const Params *GetParams() const;
     
     ///The meaning of X depends on the FlowRenderer subclass
-    virtual void Draw(const float *X, int n) const = 0;
+    virtual void Draw(const float *X, int n) = 0;
     ///rgba is coloring options, but can also have different
     ///structure depending on FlowRenderer subclass
     ///rgba format: repeated (r, g, b, a) where each is between 0 and 1
-    virtual void Draw(const float *X, const float *rgba, int n) const = 0;
+    virtual void Draw(const float *X, const float *rgba, int n) = 0;
     
 protected:
     Params p;
+    bool changed;
+    float* prevdata;
 };
 
 ///used to draw hedgehog plots
@@ -89,9 +91,9 @@ public:
     ///    where (x, y, z) is the position of the vector,
     ///    and (dx, dy, dz) is the un-normalized direction
     ///n: the number of vectors in 'vectors'
-    void Draw(const float *vectors, int n) const;
+    void Draw(const float *vectors, int n);
     ///rgba: one (r, g, b, a) for each vector in 'vectors'
-    void Draw(const float *vectors, const float *rgba, int n) const;
+    void Draw(const float *vectors, const float *rgba, int n);
     
 protected:
     Params hhp;
@@ -120,8 +122,8 @@ public:
     
     ///points: repeated (x, y, z) where each is a point in the path
     ///rgba: repeated (r, g, b, a), with one color for each point
-    void Draw(const float *points, int n) const;
-    void Draw(const float *points, const float *rgba, int n) const;
+    void Draw(const float *points, int n);
+    void Draw(const float *points, const float *rgba, int n);
     
 protected:
     Params prp;
