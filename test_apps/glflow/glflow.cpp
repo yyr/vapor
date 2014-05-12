@@ -480,12 +480,12 @@ static inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
     }
     
     //the last ring, calculated afterward to avoid overstepping bounds in loop
-    sub(v + vlast, v + vlast - 3, r + rlast);
+    sub(v + itv, v + itv - 3, r + rlast);
     mkring(r + rlast, p.quality, p.radius, r + rlast, nm + rlast, nm + rprev);
     for(int i = rlast; i < rsize; i+=3)
     {
         norm(r + i, r + rsize + i);
-        add(v + vlast, r + i, r + i);
+        add(v + itv, r + i, r + i);
     }
 
     return r;
