@@ -473,6 +473,8 @@ public:
   std::vector <size_t> _dims;
   std::vector <string> _dimnames;
   size_t _slice_num;
+  float *PS1;
+  float *PHIS1;
   float *PS;
   float *PHIS;
   float *TV;

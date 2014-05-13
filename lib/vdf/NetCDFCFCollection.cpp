@@ -1348,7 +1348,7 @@ int NetCDFCFCollection::DerivedVar_AHSPC::Open(size_t ts) {
         rc = _ncdfc->Read(_Z3, fd); if (rc<0) return(-1);
         rc = _ncdfc->Close(fd); if (rc<0) return(-1);
         if (_ncdfc->GetMissingValue("Z3", mv)) {
-            for (int i=0; i<nx*ny*nz; i++) {
+            for (size_t i=0; i<nx*ny*nz; i++) {
                 if (_Z3[i] == mv) _Z3[i] = 0.0;
             }
         }
@@ -1359,7 +1359,7 @@ int NetCDFCFCollection::DerivedVar_AHSPC::Open(size_t ts) {
         rc = _ncdfc->Read(PS, fd); if (rc<0) return(-1);
         rc = _ncdfc->Close(fd); if (rc<0) return(-1);
         if (_ncdfc->GetMissingValue("PS", mv)) {   // zero out any mv
-            for (int i=0; i<nx*ny; i++) {
+            for (size_t i=0; i<nx*ny; i++) {
                 if (PS[i] == mv) PS[i] = 0.0;
             }
         }
@@ -1376,7 +1376,7 @@ int NetCDFCFCollection::DerivedVar_AHSPC::Open(size_t ts) {
             rc = _ncdfc->Read(PHIS, fd); if (rc<0) return(-1);
             rc = _ncdfc->Close(fd); if (rc<0) return(-1);
             if (_ncdfc->GetMissingValue("PHIS", mv)) {   // zero out any mv
-                for (int i=0; i<nx*ny; i++) {
+                for (size_t i=0; i<nx*ny; i++) {
                     if (PHIS[i] == mv) PHIS[i] = 0.0;
                 }
             }
@@ -1392,7 +1392,7 @@ int NetCDFCFCollection::DerivedVar_AHSPC::Open(size_t ts) {
         rc = _ncdfc->Read(TV, fd); if (rc<0) return(-1);
         rc = _ncdfc->Close(fd); if (rc<0) return(-1);
         if (_ncdfc->GetMissingValue("T", mv)) {   // zero out any mv
-            for (int i=0; i<nx*ny; i++) {
+            for (size_t i=0; i<nx*ny; i++) {
                 if (TV[i] == mv) TV[i] = 0.0;
             }
         }
@@ -1407,7 +1407,7 @@ int NetCDFCFCollection::DerivedVar_AHSPC::Open(size_t ts) {
         rc = _ncdfc->Read(HYAM, fd); if (rc<0) return(-1);
         rc = _ncdfc->Close(fd); if (rc<0) return(-1);
         if (_ncdfc->GetMissingValue("hyam", mv)) {
-            for (int i=0; i<nz; i++) {
+            for (size_t i=0; i<nz; i++) {
                 if (HYAM[i] == mv) HYAM[i] = 0.0;
             }
         }
@@ -1417,7 +1417,7 @@ int NetCDFCFCollection::DerivedVar_AHSPC::Open(size_t ts) {
         rc = _ncdfc->Read(HYBM, fd); if (rc<0) return(-1);
         rc = _ncdfc->Close(fd); if (rc<0) return(-1);
         if (_ncdfc->GetMissingValue("hybm", mv)) {
-            for (int i=0; i<nz; i++) {
+            for (size_t i=0; i<nz; i++) {
                 if (HYBM[i] == mv) HYBM[i] = 0.0;
             }
         }
@@ -1427,7 +1427,7 @@ int NetCDFCFCollection::DerivedVar_AHSPC::Open(size_t ts) {
         rc = _ncdfc->Read(HYAI, fd); if (rc<0) return(-1);
         rc = _ncdfc->Close(fd); if (rc<0) return(-1);
         if (_ncdfc->GetMissingValue("hyai", mv)) {
-            for (int i=0; i<nz; i++) {
+            for (size_t i=0; i<nz; i++) {
                 if (HYAI[i] == mv) HYAI[i] = 0.0;
             }
         }
@@ -1437,7 +1437,7 @@ int NetCDFCFCollection::DerivedVar_AHSPC::Open(size_t ts) {
         rc = _ncdfc->Read(HYBI, fd); if (rc<0) return(-1);
         rc = _ncdfc->Close(fd); if (rc<0) return(-1);
         if (_ncdfc->GetMissingValue("hybi", mv)) {
-                for (int i=0; i<nz; i++) {
+                for (size_t i=0; i<nz; i++) {
                 if (HYBI[i] == mv) HYBI[i] = 0.0;
             }
         }
@@ -1470,8 +1470,8 @@ int NetCDFCFCollection::DerivedVar_AHSPC::CalculateElevation(
     size_t NLAT   = _dims[1];
     size_t KLEV   = _dims[0];
 
-    float PS1[MLON];
-    float PHIS1[MLON];
+	PS1   = new float[MLON];
+	PHIS1 = new float[MLON];
 
     // Initialize 2D scratch arrays
     float **HYBA = new float*[2];
@@ -1514,12 +1514,12 @@ int NetCDFCFCollection::DerivedVar_AHSPC::CalculateElevation(
 
 	float min = 999999;
 	float max = -999999;
-    for (int NL=0; NL<NLAT; NL++) {
-        for (int J=0; J<KLEV; J++) {
-            for (int I=0; I<MLON; I++) {
+    for (size_t NL=0; NL<NLAT; NL++) {
+        for (size_t J=0; J<KLEV; J++) {
+            for (size_t I=0; I<MLON; I++) {
                              //Volume              //2D Slice    //Point
-                int tIndex = (NLAT * MLON * J) + (MLON * NL) + (I);
-                int pIndex =                       (MLON * NL) + (I);
+                size_t tIndex = (NLAT * MLON * J) + (MLON * NL) + (I);
+                size_t pIndex =                     (MLON * NL) + (I);
 
                 // Create a 2D slice of temperature, 
                 // and 1D slices of PS, and PHIS
@@ -1580,8 +1580,12 @@ int NetCDFCFCollection::DerivedVar_AHSPC::DCZ2(float*  PS1,
                                                float** ZSLICE){
     // compute midpoint pressure levels (pmln)
     // cz2ccm_dp.f::222
-    float PMLN[IDIM][KMAX+1];  //seg fault
-    for (int I=0; I<IMAX; I++) {
+    float** PMLN = new float*[IDIM];
+	for (size_t i=0; i<KMAX+1; i++){
+		PMLN[i] = new float[KMAX+1];
+	}
+    
+	for (size_t I=0; I<IMAX; I++) {
         PMLN[I][0] = log( P0*HYBA[1][KMAX-1] + PS1[I]*HYBB[0][KMAX-1]);
         PMLN[I][KMAX]    = log( P0*HYBA[1][0]    + PS1[I]*HYBB[0][0]);
     }
@@ -1617,7 +1621,7 @@ int NetCDFCFCollection::DerivedVar_AHSPC::DCZ2(float*  PS1,
     }    
 
     // Eq 3.a.109.5, cz2ccm_dp.f:272
-	int K = KMAX-1;
+	size_t K = KMAX-1;
     for (size_t I=0; I<IMAX; I++){
 		float a = PHIS1[I]/G0;
 		float b = RBYG * TV2[I][K] * (log(PS1[I]*HYBB[0][0]) - PMLN[I][K]);//-1]);
@@ -1626,7 +1630,7 @@ int NetCDFCFCollection::DerivedVar_AHSPC::DCZ2(float*  PS1,
 
     // Eq 3.a.109.4, cz2ccm_dp.f:282
     for (size_t K=0; K<KMAX-1; K++){
-        int L = KMAX-1;
+        size_t L = KMAX-1;
         for (size_t I=0; I<IMAX; I++){
             float a = ZSLICE[I][K];
 			float b = RBYG * TV2[I][L] * (log(PS1[I]*HYBB[0][0]) - .5*(PMLN[I][L-1] + PMLN[I][L]));
