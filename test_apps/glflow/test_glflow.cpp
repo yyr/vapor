@@ -6,7 +6,9 @@
 #include "vec.h"
 #include <iostream>
 #include <cstring>
+#ifndef WIN32
 #include <sys/time.h>
+#endif
 using namespace std;
 
 #include <vapor/OptionParser.h>
@@ -613,8 +615,10 @@ inline void coneTest(const float* b, int q, float r)
     delete[] v;
 }
 
+#ifndef WIN32
 double mean = 0.0;
 unsigned long long count = 0;
+#endif
 
 void display(void)
 {
@@ -636,8 +640,10 @@ void display(void)
 
     //glColor4f(1.f, 0.f, 0.f, 0.f);
 
+#ifndef WIN32
     timespec ts1;
     clock_gettime(CLOCK_REALTIME, &ts1);
+#endif
     //hog.Draw(hogdata2, 1); //single tube
     //hog.Draw(hogdata, 9); //regular array
     //path.Draw(pathdata, 11); //spiral
@@ -650,6 +656,7 @@ void display(void)
     //glTranslatef(0.f, 0.f, -3.f);
     //coneTest(conedir, opt.quality, opt.radius);
     //drawCube();
+#ifndef WIN32
     timespec ts2;
     clock_gettime(CLOCK_REALTIME, &ts2);
     long int elapsed = ts2.tv_nsec - ts1.tv_nsec;
@@ -664,6 +671,7 @@ void display(void)
     //printf("Diff is %f nanoseconds\n", toAdd);
     if(toAdd > -100000.0 && toAdd < 100000.0) mean += toAdd;
     printf("Mean is %f nanoseconds\n", mean);
+#endif
 }
 
 int main(int argc, char** argv)
