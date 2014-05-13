@@ -6,6 +6,9 @@
 #include "vec.h"
 #include <iostream>
 #include <cstring>
+#ifndef WIN32
+#include <sys/time.h>
+#endif
 using namespace std;
 
 #include <vapor/OptionParser.h>
@@ -234,7 +237,9 @@ void mouseScroll(GLFWwindow* window, double xoffset, double yoffset)
 
 void cursorEnter(GLFWwindow* window, int entered)
 {
+#ifndef Darwin
     mode = NEUTRAL;
+#endif
 }
 
 GLfloat mat_specular[] = {0.f, 0.f, 0.f, 0.f};
@@ -610,6 +615,11 @@ inline void coneTest(const float* b, int q, float r)
     delete[] v;
 }
 
+#ifndef WIN32
+double mean = 0.0;
+unsigned long long count = 0;
+#endif
+
 void display(void)
 {
     //in case we need dt or elapsed time
@@ -630,6 +640,10 @@ void display(void)
 
     //glColor4f(1.f, 0.f, 0.f, 0.f);
 
+#ifndef WIN32
+    timespec ts1;
+    clock_gettime(CLOCK_REALTIME, &ts1);
+#endif
     //hog.Draw(hogdata2, 1); //single tube
     //hog.Draw(hogdata, 9); //regular array
     //path.Draw(pathdata, 11); //spiral
@@ -642,8 +656,22 @@ void display(void)
     //glTranslatef(0.f, 0.f, -3.f);
     //coneTest(conedir, opt.quality, opt.radius);
     //drawCube();
-
-    //glutSwapBuffers();
+#ifndef WIN32
+    timespec ts2;
+    clock_gettime(CLOCK_REALTIME, &ts2);
+    long int elapsed = ts2.tv_nsec - ts1.tv_nsec;
+    printf("Drawing took %d nanoseconds\n", elapsed);
+    if(count + 1 > count) count++;
+    else
+    {
+        count = 0;
+        mean = 0;
+    }
+    double toAdd = (1.0 / (double)count) * ((double)elapsed - mean);
+    //printf("Diff is %f nanoseconds\n", toAdd);
+    if(toAdd > -100000.0 && toAdd < 100000.0) mean += toAdd;
+    printf("Mean is %f nanoseconds\n", mean);
+#endif
 }
 
 int main(int argc, char** argv)
@@ -827,4 +855,21 @@ static void drawCube()
 }
 
 // "I've half a mind to join a club and beat you over the head with it"
+//
+// silly, geeky names for characters
+//   Tars Cuffs
+//   Tars Xeffs
+//   Remmie Slastar
+//   Apta Geita
+//   Resynic Rivap
+//   Sesh Usaathost
+//   Hashdt Binush
+//   Listilde Edstop
+//   Borj Dumpen
+//   Lis Blokkus
+//   Lis Pcidi
+//   G'Debus
+//   Sudot
+//   Gecci
+//   
 
