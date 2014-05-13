@@ -35,6 +35,7 @@ struct {
     float ratio;
     float length;
     bool help;
+    int prof;
 } opt;
 
 OptionParser::OptDescRec_T set_options[] = {
@@ -47,6 +48,7 @@ OptionParser::OptDescRec_T set_options[] = {
 	{"stride", 1, "1", "Traverse how many vertices between rendering?"},
 	{"ratio", 1, "1.0", "Ratio of arrow to tube radius"},
 	{"length", 1, "1.0", "Arrow cone length"},
+	{"profile", 1, "-1", "Profile, how many iterations?"},
 	{NULL}
 };
 
@@ -60,6 +62,7 @@ OptionParser::Option_T get_options[] = {
 	{"stride", VetsUtil::CvtToInt, &opt.stride, sizeof(opt.stride)},
 	{"ratio", VetsUtil::CvtToFloat, &opt.ratio, sizeof(opt.ratio)},
 	{"length", VetsUtil::CvtToFloat, &opt.length, sizeof(opt.length)},
+	{"profile", VetsUtil::CvtToInt, &opt.prof, sizeof(opt.prof)},
 	{NULL}
 };
 
@@ -96,7 +99,7 @@ double fov = 90.0;
 float v_distance = 5.f;
 
 void init();
-void display();
+void display(long int* profout = 0);
 
 //glfw window event callbacks
 void windowSize(GLFWwindow* window, int width, int height)
@@ -615,12 +618,7 @@ inline void coneTest(const float* b, int q, float r)
     delete[] v;
 }
 
-#ifndef WIN32
-double mean = 0.0;
-unsigned long long count = 0;
-#endif
-
-void display(void)
+void display(long int* profout)
 {
     //in case we need dt or elapsed time
     double newTime = glfwGetTime();
@@ -640,10 +638,8 @@ void display(void)
 
     //glColor4f(1.f, 0.f, 0.f, 0.f);
 
-#ifndef WIN32
     timespec ts1;
     clock_gettime(CLOCK_REALTIME, &ts1);
-#endif
     //hog.Draw(hogdata2, 1); //single tube
     //hog.Draw(hogdata, 9); //regular array
     //path.Draw(pathdata, 11); //spiral
@@ -656,22 +652,9 @@ void display(void)
     //glTranslatef(0.f, 0.f, -3.f);
     //coneTest(conedir, opt.quality, opt.radius);
     //drawCube();
-#ifndef WIN32
     timespec ts2;
     clock_gettime(CLOCK_REALTIME, &ts2);
-    long int elapsed = ts2.tv_nsec - ts1.tv_nsec;
-    printf("Drawing took %d nanoseconds\n", elapsed);
-    if(count + 1 > count) count++;
-    else
-    {
-        count = 0;
-        mean = 0;
-    }
-    double toAdd = (1.0 / (double)count) * ((double)elapsed - mean);
-    //printf("Diff is %f nanoseconds\n", toAdd);
-    if(toAdd > -100000.0 && toAdd < 100000.0) mean += toAdd;
-    printf("Mean is %f nanoseconds\n", mean);
-#endif
+    if(profout) *profout = ts2.tv_nsec - ts1.tv_nsec;
 }
 
 int main(int argc, char** argv)
@@ -723,12 +706,32 @@ int main(int argc, char** argv)
     glfwSetTime(0.0);
     
     init();
-    while(!glfwWindowShouldClose(window))
+    if(opt.prof < 0)
     {
-        display();
-        
-        glfwWaitEvents(); //blocks until something happens
-        glfwSwapBuffers(window);
+        while(!glfwWindowShouldClose(window))
+        {
+            display();
+            
+            glfwWaitEvents(); //blocks until something happens
+            glfwSwapBuffers(window);
+        }
+    }
+    else
+    {
+        printf("PROFILING. USE CONTROLS AS NORMAL.\n");
+        double mean = 0.0;
+        for(int i = 1; i <= opt.prof; i++)
+        {
+            long int elapsed; 
+            display(&elapsed);
+            double toAdd = (1.0 / (double)i) * ((double)elapsed - mean);
+            //printf("Diff is %f nanoseconds\n", toAdd);
+            if(toAdd > -1000000.0 && toAdd < 1000000.0) mean += toAdd;
+            
+            glfwPollEvents();
+            glfwSwapBuffers(window);
+        }
+        printf("Mean draw time is %f nanoseconds\n", mean);
     }
     
     glfwDestroyWindow(window);
