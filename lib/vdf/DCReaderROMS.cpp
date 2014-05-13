@@ -416,10 +416,6 @@ int DCReaderROMS::ReadSlice(float *slice) {
 		return(-1);
 	}
 
-	if (_ovr_varname.compare("ELEVATION") != 0) {
-		int goTo = _dims[2]-_ovr_slice-1;
-		_ncdfc->SeekSlice(goTo, 0, _ovr_fd);
-	}
 	int rc = _ncdfc->ReadSlice(_sliceBuffer, _ovr_fd);
 	if (rc<1) return(rc);
 
