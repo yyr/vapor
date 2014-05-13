@@ -43,6 +43,7 @@ DCReaderROMS::DCReaderROMS(const vector <string> &files) {
 	_defaultMV = 1e37;
 	_angleRADBuf = NULL;
 	_latDEGBuf = NULL;
+	_dataReversed = 0;
 
 	NetCDFCFCollection *ncdfc = new NetCDFCFCollection();
 	int rc = ncdfc->Initialize(files);
@@ -168,6 +169,17 @@ int DCReaderROMS::_InitVerticalCoordinates(
 ) {
 
 	vertCoords.clear();
+
+	// Determine whether the data is read top-to-bottom (as in CAM)
+	// or bottom-to-top, by checking the standard formula of the vert coordinate
+	NetCDFSimple::Variable varinfo;
+	//(void) NetCDFCollection::GetVariableInfo(cvars[0],varinfo);
+	ncdfc->GetVariableInfo(cvars[0],varinfo);
+	string standard_name;
+	varinfo.GetAtt("standard_name", standard_name);
+	if (standard_name.compare("atmosphere_hybrid_sigma_pressure_coordinate") == 0){
+		_dataReversed = 1;
+	}
 
 	if (cvars.size() == 0) { 	// No vertical dimension
 		vertCoords.push_back(0.0);
@@ -414,6 +426,14 @@ int DCReaderROMS::ReadSlice(float *slice) {
 	if (_GetSpatialDims(_ncdfc, _ovr_varname).size() < 2) {
 		SetErrMsg("Invalid operation");
 		return(-1);
+	}
+
+	// If data is reversed, read in reversed order (duh)
+	// ELEVATION is already fed in reverse order w.r.t CAM,
+	// so don't seek for ELEVATION
+	if ((_dataReversed==1) && (_ovr_varname.compare("ELEVATION")!=0)) {
+		int goTo = _dims[2]-_ovr_slice-1;
+		_ncdfc->SeekSlice(goTo, 0, _ovr_fd);
 	}
 
 	int rc = _ncdfc->ReadSlice(_sliceBuffer, _ovr_fd);
