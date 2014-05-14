@@ -96,7 +96,7 @@ bool manual = false;
 int scrw, scrh, midx, midy;
 double px, py, rx, ry;
 double fov = 90.0;
-float v_distance = 5.f;
+float v_distance = 20.f;
 
 void init();
 void display(long int* profout = 0);
@@ -652,6 +652,7 @@ void display(long int* profout)
     //glTranslatef(0.f, 0.f, -3.f);
     //coneTest(conedir, opt.quality, opt.radius);
     //drawCube();
+    glFlush();
     timespec ts2;
     clock_gettime(CLOCK_REALTIME, &ts2);
     if(profout) *profout = ts2.tv_nsec - ts1.tv_nsec;
@@ -692,14 +693,17 @@ int main(int argc, char** argv)
     GLFWwindow* window = glfwCreateWindow(scrw, scrh, "test_glflow", NULL, NULL);
     glfwMakeContextCurrent(window);
     
-    glfwSetWindowSizeCallback(window, &windowSize);
-    glfwSetFramebufferSizeCallback(window, &windowSize);
-    glfwSetWindowRefreshCallback(window, &windowRefresh);
-    glfwSetKeyCallback(window, &keyboard);
-    glfwSetMouseButtonCallback(window, &mouseButton);
-    glfwSetCursorPosCallback(window, &cursorPos);
-    glfwSetScrollCallback(window, &mouseScroll);
-    glfwSetCursorEnterCallback(window, &cursorEnter);
+    if(opt.prof < 0)
+    {
+        glfwSetWindowSizeCallback(window, &windowSize);
+        glfwSetFramebufferSizeCallback(window, &windowSize);
+        glfwSetWindowRefreshCallback(window, &windowRefresh);
+        glfwSetKeyCallback(window, &keyboard);
+        glfwSetMouseButtonCallback(window, &mouseButton);
+        glfwSetCursorPosCallback(window, &cursorPos);
+        glfwSetScrollCallback(window, &mouseScroll);
+        glfwSetCursorEnterCallback(window, &cursorEnter);
+    }
     
     glfwGetWindowSize(window, &scrw, &scrh);
     
@@ -718,17 +722,22 @@ int main(int argc, char** argv)
     }
     else
     {
-        printf("PROFILING. USE CONTROLS AS NORMAL.\n");
+        printf("PROFILING. CONTROLS ARE DISABLED.\n");
         double mean = 0.0;
         for(int i = 1; i <= opt.prof; i++)
         {
+            double currtime = (double)i / 60.0;
+            rx = 30.0 * cos(1.1 * currtime);
+            ry = 30.0 * sin(1.5 * currtime);
+            v_distance = 20.0 + (10.0 * sin(0.8 * currtime));
+        
             long int elapsed; 
             display(&elapsed);
             double toAdd = (1.0 / (double)i) * ((double)elapsed - mean);
             //printf("Diff is %f nanoseconds\n", toAdd);
             if(toAdd > -1000000.0 && toAdd < 1000000.0) mean += toAdd;
             
-            glfwPollEvents();
+            glfwPollEvents(); //non-blocking
             glfwSwapBuffers(window);
         }
         printf("Mean draw time is %f nanoseconds\n", mean);
