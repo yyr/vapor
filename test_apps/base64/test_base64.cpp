@@ -24,7 +24,7 @@ int	main(int argc, char **argv) {
 
 	cout << str;
 
-	int	n;
+	size_t	n;
 	if (base64.Decode(str, (unsigned char *) outbuf, &n) < 0) {
 		cerr << "Base64::Decode() : " << Base64::GetErrMsg() << endl;
 		exit(1);
