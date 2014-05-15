@@ -6,9 +6,9 @@ LIBRARY = params
 FILES = \
 	datastatus glutil \
 	params regionparams arrowparams mousemodeparams \
-	viewpoint  vizwinparams \
+	viewpoint  vizwinparams instanceparams \
 	animationparams	viewpointparams ParamsBase Box \
-	ParamNode command
+	ParamNode command undoredohelp 
 	
 HEADER_FILES = ParamsBase ParamNode
 	

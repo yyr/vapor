@@ -32,6 +32,7 @@
 
 using namespace VAPoR;
 #include "vizwinparams.h"
+#include "instanceparams.h"
 
 
 const std::string VizWinParams::_shortName = "VizWin";
@@ -108,6 +109,7 @@ int VizWinParams::AddVizWin(const std::string name, int viznum, int width, int h
 	p->setWindowHeights(heights);
 	p->setWindowWidths(widths);
 	p->setWindowNames(winnames);
+	InstanceParams::AddVizWin(newviz);
 	Command::CaptureEnd(cmd, p);
 	return 0;
 }
@@ -133,6 +135,7 @@ int VizWinParams::RemoveVizWin(int viz){
 	p->setWindowWidths(widths);
 	p->setWindowNames(winnames);
 	p->setVisualizerNums(viznums);
+	InstanceParams::RemoveVizWin(viz);
 	return 0;
 }
 

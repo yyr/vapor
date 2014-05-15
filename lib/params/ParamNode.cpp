@@ -291,8 +291,7 @@ int ParamNode::DeleteNode(const string &tag){
 		ParamNode* pNode = GetNode(tag);
 		if (!pNode) return -1;
 		pNode->DeleteAll();
-		delete pNode;
-		return 0;
+		return DeleteChild(tag);
  }
 int ParamNode::DeleteNode(const vector<string> &tagpath){
 		ParamNode* pNode = GetNode(tagpath);

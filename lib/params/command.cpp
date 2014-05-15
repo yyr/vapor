@@ -19,6 +19,7 @@
 #include "command.h"
 #include "params.h"
 #include "arrowparams.h"
+#include "undoredohelp.h"
 
 using namespace VAPoR;
 
@@ -30,11 +31,14 @@ int Command::currentQueuePos = 0;
 int Command::recordingCount = 1;  //Start with command queueing blocked.
 
 Command::Command(Params* prevParams, const char* descr){
-	prevRoot = prevParams->GetRootNode()->deepCopy();
+	if (!prevParams) prevRoot = 0;
+	else prevRoot = prevParams->GetRootNode()->deepCopy();
 	description = string(descr);
-	tag = prevParams->GetName();
-	instance = prevParams->GetInstanceIndex();
-	winnum = prevParams->GetVizNum();
+	if (prevParams) {
+		tag = prevParams->GetName();
+		instance = prevParams->GetInstanceIndex();
+		winnum = prevParams->GetVizNum();
+	}
 	nextRoot = 0;
 }
 
@@ -49,6 +53,7 @@ Params* Command::unDo(){
 		r->SetParamsBase(0);
 		delete r;
 	}
+	cmd->applyHelpers();
 	p->SetRootParamNode(cmd->prevRoot->deepCopy());
 	return p;
 }
@@ -138,3 +143,34 @@ void Command::resetCommandQueue(){
 	recordingCount = 0;  //start recording.
 }
 
+Params* Command::CopyNextParams(){
+	if (!nextRoot) return 0;
+	Params* p = Params::GetParamsInstance(tag,winnum,instance)->deepCopy();
+	ParamNode* r = p->GetRootNode();
+	if (r){
+		//detach from its parent Params...
+		r->SetParamsBase(0);
+		delete r;
+	}
+	p->SetRootParamNode(nextRoot->deepCopy());
+	return p;
+}
+Params* Command::CopyPreviousParams(){
+	if (!prevRoot) return 0;
+	Params* p = Params::GetParamsInstance(tag,winnum,instance)->deepCopy();
+	ParamNode* r = p->GetRootNode();
+	if (r){
+		//detach from its parent Params...
+		r->SetParamsBase(0);
+		delete r;
+	}
+	p->SetRootParamNode(prevRoot->deepCopy());
+	return p;
+}
+void Command::applyHelpers(){
+	vector<UndoRedoHelp*> helperqueue = UndoRedoHelp::GetUndoRedoHelpQueue();
+	//Go through the queue, stop if an UndoRedo returns true
+	for (int i = 0; i<helperqueue.size(); i++){
+		if (helperqueue[i]->UndoRedo(CopyPreviousParams(),CopyNextParams())) return;
+	}
+}
