@@ -4,6 +4,7 @@
 #include <netcdf.h>
 #include <vapor/NetCDFCpp.h>
 #include <vapor/Compressor.h>
+#include <vapor/EasyThreads.h>
 
 #ifndef	_WASP_H_
 #define	_WASP_H_
@@ -50,10 +51,10 @@ namespace VAPoR {
 //! compression  ratios.
 //!
 //
-class WASP : public VetsUtil::NetCDFCpp {
+class WASP : public VAPoR::NetCDFCpp {
 public:
- WASP();
- ~WASP();
+ WASP(int nthreads = 0);
+ virtual ~WASP();
 
  //! Create a new NetCDF data set with support for WASP conventions
  //!
@@ -71,10 +72,10 @@ public:
  //!
  //! \sa NetCDFCpp::Create()
  //
- int Create(
+ virtual int Create(
 	string path, int cmode, size_t initialsz,
     size_t &bufrsizehintp, string wname, 
-	int ncratios, bool multifile
+	vector <size_t> bs, int ncratios, bool multifile
  );
 
  //! Open an existing NetCDF file
@@ -84,7 +85,14 @@ public:
  //!
  //! \sa NetCDFCpp::Open()
  //
- int Open(string path, int mode);
+ virtual int Open(string path, int mode);
+
+ virtual int SetFill(int fillmode, int &old_modep);
+
+ virtual int EndDef() const; 
+
+ virtual int Close();
+
 
 
  //! Return the dimension lengths associated with a variable.
@@ -101,8 +109,12 @@ public:
  //!
  //! \sa NetCDFCpp::InqVarDims()
  //
- int InqVarDimslens(
+ virtual int InqVarDimlens(
 	string name, vector <size_t> &dims, int level
+ ) const;
+
+ virtual int InqVarDims(
+    string name, vector <string> &dimnames, vector <size_t> &dims
  ) const;
 
  //! Define a new compressed variable
@@ -126,7 +138,7 @@ public:
  //!
  //! \sa NetCDFCpp::DefVar()
  //
- int DefVar(
+ virtual int DefVar(
     string name, int xtype, vector <string> dimnames, vector <size_t> cratios
  );
 
@@ -144,10 +156,19 @@ public:
  //!
  //! \sa NetCDFCpp::DefVar()
  //!
- int DefVar(
+ virtual int DefVar(
 	string name, int xtype, vector <string> dimnames, vector <size_t> cratios,
 	double missing_value
  );
+
+ virtual int DefVar(
+    string name, int xtype, vector <string> dimnames
+ ) {
+	return(NetCDFCpp::DefVar(name, xtype, dimnames)); 
+ };
+
+ int DefDim(string name, size_t len) const;
+
 
  //! Inquire whether a named variable is compressed
  //!
@@ -155,7 +176,7 @@ public:
  //! \param[out] compressed A boolean return value indicating whether
  //! variable \p name is compressed
  //
- int InqVarCompressed(
+ virtual int InqVarCompressed(
     string varname, bool &compressed
  ) const;
 
@@ -171,7 +192,7 @@ public:
  //! transformation. See VAPoR::WaveFiltBior.
  //! \param[out] Maximum possible compression ratio
  //!
- int GetMaxCRatio(
+ virtual int GetMaxCRatio(
     vector <size_t> bs, string wname, size_t &cratio
  ) const;
 
@@ -193,7 +214,7 @@ public:
  //!
  //! \sa PutVara()
  //
- int OpenVarWrite(string name, int lod);
+ virtual int OpenVarWrite(string name, int lod);
 
  //! Prepare a variable for reading 
  //!
@@ -215,7 +236,7 @@ public:
  //!
  //! \sa GetVara()
  //
- int OpenVarRead(string name, int lod, int level);
+ virtual int OpenVarRead(string name, int lod, int level);
 
  //! Close the currently opened variable
  //!
@@ -225,7 +246,7 @@ public:
  //! is a no-op.
  //
  //!
- int CloseVar();
+ virtual int CloseVar();
 
  //! Write an array of values to the currently opened variable
  //!
@@ -249,7 +270,7 @@ public:
  //!
  //! \sa OpenVarWrite();
  //
- int PutVara(
+ virtual int PutVara(
 	vector <size_t> start, vector <size_t> count, const float *data
  );
 
@@ -275,7 +296,7 @@ public:
  //!
  //! \sa OpenVarWrite();
  //
- int GetVara(
+ virtual int GetVara(
 	vector <size_t> start, vector <size_t> count, float *data
  );
 
@@ -286,47 +307,52 @@ public:
  static string AttNameMultifile() {return("WASP.Multifile");}
  static string AttNameCompressed() {return("WASP.Compressed");}
  static string AttNameDimNames() {return("WASP.DimNames");}
+ static string AttNameMissingValue() {return("WASP.MissingValue");}
 
 
 private:
 
- //
- // Helper class for hyperslab indexing arithmetic 
- //
- class vectorinc {
+ class smartbuf {
  public:
-  // start and count define hyperslab coordinates
-  // dims define overall dimensions of array
-  // inc is the increment step to be added to start 
-  //
-  vectorinc(
-	vector <size_t> start, vector <size_t> count,
-	vector <size_t> dims, vector <size_t> inc
-  );
-
-  // Compute next starting coordinates by adding inc to previous
-  // starting coordinates. As a convenience return the linear offset
-  // of the new starting coordinates coordinates.
-  //
-  bool next(vector <size_t> &newstart, size_t &offset);
-
+  smartbuf() { _buf = NULL; _buf_sz = 0;};
+  smartbuf(size_t size) {
+		_buf = new unsigned char[size]; _buf_sz = size;
+  };
+  ~smartbuf() {if (_buf) delete [] _buf;};
+  void *alloc(size_t size);
  private:
-  vector <size_t> _start;
-  vector <size_t> _count;
-  vector <size_t> _end;	// ending coordinates (start + count)
-  vector <size_t> _dims;
-  vector <size_t> _next;
-  vector <size_t> _inc;
+  unsigned char *_buf;
+  size_t _buf_sz;
  };
+
+ VetsUtil::EasyThreads *_et;
+ int _nthreads;
+ vector <NetCDFCpp> _ncdfcs;
+ vector <NetCDFCpp *> _ncdfcptrs;	// pointers into _ncdfcs;
+ bool _compressionMode; // Compressed data ?
+ string _wname; // Name of wavelet used for compression
+ vector <size_t> _bs;   // Compression block dimensions
+ int _ncratios; // Number of compression levels
+ smartbuf _blockbuf;    // Dynamic storage for blocks
+ smartbuf _coeffbuf;    // Dynamic storage wavelet coefficients
+ smartbuf _sigbuf;  // Dynamic storage encoded signficance maps
+
+ bool _open;    // compressed variable open for reading or writing?
+ vector <size_t> _open_bs;  // block size of opened variable
+ vector <size_t> _open_cratios; // compression ratios of opened variable
+ vector <size_t> _open_udims;   // uncompressed dims of opened variable
+ vector <size_t> _open_dims;    // compressed dims of opened variable
+ int _open_lod; // level-of-detail of opened variable
+ int _open_level;   // grid refinement level of opened variable
+ bool _open_write;  // opened variable open for writing?
+ size_t _open_slice_count;  // current slice number of opened variable
+ string _open_varname;  // name of opened variable
+ vector <Compressor *> _open_compressors;  // Compressor for opened variable
+
 
 
 
  std::vector <string> mkmultipaths(string path, int n) const;
-
- int _Create(
-	string path, int cmode, size_t initialsz,
-    size_t &bufrsizehintp, int &ncid
- );
 
  int _GetCompressedDims(
     vector <string> dimnames,
@@ -338,26 +364,7 @@ private:
     vector <size_t> &encoded_dims
  ) const;
 
- int _DefVar(
-    int ncid, string name, nc_type xtype, vector <string> dimnames
- );
- int _InqVarid(int ncid, string varname, int &varid ) const; 
-
  int _InqDimlen(string name, size_t &len) const;
-
- int _InqVarDimsCompressed(
-	string name, vector <string> &dimnames, vector <size_t> &dims
- ) const;
-
- int _PutVara(
-	int ncid, string varname,
-	vector <size_t> start, vector <size_t> count, const void *data
- );
-
- int _GetVara(
-	int ncid, string varname,
-	vector <size_t> start, vector <size_t> count, void *data
- );
 
  void _get_encoding_vectors(
     vector <size_t> bs, vector <size_t> cratios, int xtype,
@@ -390,57 +397,8 @@ private:
     int level,
     vector <size_t> &dims_level,
     vector <size_t> &bs_level
- );
-
- void _Block(
-    vector <size_t> dims,
-    vector <size_t> start,
-    vector <size_t> bs, 
-	string mode, 
-	const float *data, float *block,
-    float &min, float &max
- ) const; 
-
- void _UnBlock(
-	vector <size_t> dims,
-	vector <size_t> start,
-	vector <size_t> bs,
-	float *data, const float *block
  ) const;
 
- int _DecomposeBlock(
-	Compressor *cmp,
-	const float *block,
-	vector <size_t> ncoeffs,
-    vector <size_t> encoded_dims,
-	float *coeffs,
-	unsigned char *maps
- ) const; 
-
- int _ReconstructBlock(
-	Compressor *cmp,
-	float *block,
-	vector <size_t> ncoeffs,
-	vector <size_t> encoded_dims,
-	const float *coeffs,
-	const unsigned char *maps,
-	int level
- ) const;
-
- int _StoreBlock(
-    string varname,
-	vector <size_t> bcoords,
-	vector <size_t> ncoeffs,
-	vector <size_t> encoded_dims,
-	const float *coeffs,
-	unsigned char *maps
- );
-
- int _FetchBlock(
-	string varname, vector <size_t> bcoords,
-	vector <size_t> ncoeffs, vector <size_t> encoded_dims,
-	float *coeffs, unsigned char *maps
- );
 
 
 };

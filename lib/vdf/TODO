@@ -1,57 +1,25 @@
-Document!!!!!
 
-
-VDC2
+WASP
 ----
 
-HIGH
+# git-test vapor_3_0
+#
+#
 
-Currently no verification that .vdf file agrees with what is
-in .ncdf files
+Support for masks
 
-User Documentation
+done - Parallel transforms
 
-MEDIUM
+Support Min/Max & clamp in decompression
 
-construtor without metadata
+done - GetVara support non-block-aligned coords 
 
-vdfcreate should automatically compute compression ratios based on bs and
-wavelet 
+Order I/O
 
-Constructor when not metafile is available.
+VDCNetCDF
+--------
 
-IDL interface
-
-LOW
-
-Add VDC2 support to Layered data reader
-
-
-WaveCodeIO/Compressor need to be able to handle volumes with extreme aspect
-ratios  (e.g. a volume 1000x1000x4 will not be compressible with because the 
-4 dimension will limit the 3d transform).
-
-Get rid of MetadataSpherical specialization (or figure out how add
-support to it for vdc2)
-
-
-
-Test:
- + odd and non-symmetric block size
- + Read vdc1 file
- + writing and reading regions with wholes (incomplete regions)
- + verify reading/writing subregions
-
-Alan:
-
-+ VariableExist and GetRegion has lod parameter
-+ block size varies with level
-+ killed many reference return types
-+ Changes to SetVariableNames (deprecated), impact on scripts
-+ GetVDCType()
-
-
-Doc:
-
-+ Compression ratios specified apply to 3D data. 2D compression ratios
-are derived from 3D (see WaveCodeIO constructor)
+Refinement level should be supported for uncompressed variables to
+handle uncompressed coordinate variables.  Reading a coordinate
+variable (that was not compressed) should do the appropriate averaging
+based on the wavelet (symatric vs asymetric)

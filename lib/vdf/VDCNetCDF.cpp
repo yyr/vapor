@@ -20,7 +20,6 @@ VDCNetCDF::VDCNetCDF(
 	size_t master_threshold, size_t variable_threshold
 ) : VDC() {
 
-	_dimidMap.clear();
 	_master_threshold = master_threshold;
 	_variable_threshold = variable_threshold;
 }
@@ -135,53 +134,51 @@ int VDCNetCDF::GetPath(
 int VDCNetCDF::_WriteMasterMeta() {
 	const size_t NC_CHUNKSIZEHINT = 4*1024*1024;
 
-	_dimidMap.clear();
-
-	int dummy;
     size_t chsz = NC_CHUNKSIZEHINT;
-    int rc = _netcdf.Create(_master_path, NC_64BIT_OFFSET, 0, chsz, dummy);
+    int rc = _wasp.Create(
+		_master_path, NC_64BIT_OFFSET, 0, chsz,
+		_wname, _bs, _cratios.size(), true
+	);
 	if (rc<0) return(-1);
 
 
 	map <string, Dimension>::const_iterator itr;
 	for (itr = _dimsMap.begin(); itr != _dimsMap.end(); ++itr) {
 		const Dimension &dimension = itr->second;
-		int dimid;
 
-		rc = _netcdf.DefDim(
-			dimension.GetName(), dimension.GetLength(), dimid
+		rc = _wasp.DefDim(
+			dimension.GetName(), dimension.GetLength()
 		);
 		if (rc<0) return(-1);
-		_dimidMap[dimension.GetName()] = dimid;
 	}
 	
 
-	rc = _netcdf.PutAtt("", "VDC.Version", 1);
+	rc = _wasp.PutAtt("", "VDC.Version", 1);
 	if (rc<0) return(rc);
 
-	rc = _netcdf.PutAtt("", "VDC.BlockSize", _bs);
+	rc = _wasp.PutAtt("", "VDC.BlockSize", _bs);
 	if (rc<0) return(rc);
 
-	rc = _netcdf.PutAtt("", "VDC.WaveName", _wname);
+	rc = _wasp.PutAtt("", "VDC.WaveName", _wname);
 	if (rc<0) return(rc);
 
-	rc = _netcdf.PutAtt("", "VDC.WaveMode", _wmode);
+	rc = _wasp.PutAtt("", "VDC.WaveMode", _wmode);
 	if (rc<0) return(rc);
 
-	rc = _netcdf.PutAtt("", "VDC.CompressionRatios", _cratios);
+	rc = _wasp.PutAtt("", "VDC.CompressionRatios", _cratios);
 	if (rc<0) return(rc);
 
-	rc = _netcdf.PutAtt("", "VDC.MasterThreshold", _master_threshold);
+	rc = _wasp.PutAtt("", "VDC.MasterThreshold", _master_threshold);
 	if (rc<0) return(rc);
 
-	rc = _netcdf.PutAtt("", "VDC.VariableThreshold",_variable_threshold);
+	rc = _wasp.PutAtt("", "VDC.VariableThreshold",_variable_threshold);
 	if (rc<0) return(rc);
 
 	vector <int> periodic;
 	for (int i=0; i<_periodic.size(); i++) {
 		periodic.push_back((int) _periodic[i]);
 	}
-	rc = _netcdf.PutAtt("", "VDC.Periodic", periodic);
+	rc = _wasp.PutAtt("", "VDC.Periodic", periodic);
 	if (rc<0) return(rc);
 
 	if (rc<0) return(rc);
@@ -193,16 +190,16 @@ int VDCNetCDF::_WriteMasterMeta() {
 	rc = _WriteMasterAttributes();
 	if (rc<0) return(rc);
 
-	rc = _WriteMasterCoordVars();
+	rc = _WriteMasterCoordVarsDefs();
 	if (rc<0) return(rc);
 
-	rc = _WriteMasterDataVars();
+	rc = _WriteMasterDataVarsDefs();
 	if (rc<0) return(rc);
 
-	rc = _netcdf.Enddef();
+	rc = _wasp.EndDef();
 	MY_NC_ERR(rc, _master_path, "nc_enddef()");
 
-	rc = _netcdf.Close();
+	rc = _wasp.Close();
 	MY_NC_ERR(rc, _master_path, "nc_close()");
 
 	return(0);
@@ -221,7 +218,7 @@ int VDCNetCDF::_WriteMasterDimensions() {
 		s+= " ";
 	}
 	string tag = "VDC.DimensionNames";
-	int rc = _netcdf.PutAtt("", tag, s);
+	int rc = _wasp.PutAtt("", tag, s);
 	if (rc<0) return(rc);
 
 	
@@ -229,11 +226,11 @@ int VDCNetCDF::_WriteMasterDimensions() {
 		const Dimension &dimension = itr->second;
 
 		tag = "VDC.Dimension." + dimension.GetName() + ".Length";
-		rc = _netcdf.PutAtt("", tag, dimension.GetLength());
+		rc = _wasp.PutAtt("", tag, dimension.GetLength());
 		if (rc<0) return(rc);
 
 		tag = "VDC.Dimension." + dimension.GetName() + ".Axis";
-		rc = _netcdf.PutAtt("", tag, dimension.GetAxis());
+		rc = _wasp.PutAtt("", tag, dimension.GetAxis());
 		if (rc<0) return(rc);
 		
 	}
@@ -251,7 +248,7 @@ int VDCNetCDF::_WriteMasterAttributes (
 		s+= " ";
 	}
 	string tag = prefix + ".AttributeNames";
-	int rc = _netcdf.PutAtt("", tag, s);
+	int rc = _wasp.PutAtt("", tag, s);
 	if (rc<0) return(rc);
 
 	
@@ -259,7 +256,7 @@ int VDCNetCDF::_WriteMasterAttributes (
 		const Attribute &attr = itr->second;
 
 		tag = prefix + ".Attribute." + attr.GetName() + ".XType";
-		rc = _netcdf.PutAtt("", tag, attr.GetXType());
+		rc = _wasp.PutAtt("", tag, attr.GetXType());
 		if (rc<0) return(rc);
 
 		tag = prefix + ".Attribute." + attr.GetName() + ".Values";
@@ -268,7 +265,7 @@ int VDCNetCDF::_WriteMasterAttributes (
 			case DOUBLE: {
 				vector <double> values;
 				attr.GetValues(values);
-				rc = _netcdf.PutAtt("", tag, values);
+				rc = _wasp.PutAtt("", tag, values);
 				if (rc<0) return(rc);
 			break;
 			}
@@ -276,14 +273,14 @@ int VDCNetCDF::_WriteMasterAttributes (
 			case INT64: {
 				vector <int> values;
 				attr.GetValues(values);
-				rc = _netcdf.PutAtt("", tag, values);
+				rc = _wasp.PutAtt("", tag, values);
 				if (rc<0) return(rc);
 			break;
 			}
 			case TEXT: {
 				string values;
 				attr.GetValues(values);
-				rc = _netcdf.PutAtt("", tag, values);
+				rc = _wasp.PutAtt("", tag, values);
 				if (rc<0) return(rc);
 			break;
 			}
@@ -305,7 +302,7 @@ int VDCNetCDF::_WriteMasterAttributes () {
 	return (_WriteMasterAttributes(prefix, _atts));
 }
 
-int VDCNetCDF::_WriteMasterVarBase(string prefix, const VarBase &var) {
+int VDCNetCDF::_WriteMasterVarBaseDefs(string prefix, const VarBase &var) {
 	
 	string tag;
 
@@ -317,42 +314,42 @@ int VDCNetCDF::_WriteMasterVarBase(string prefix, const VarBase &var) {
 		s+= " ";
 	}
 
-	int rc = _netcdf.PutAtt("", tag, s);
+	int rc = _wasp.PutAtt("", tag, s);
 	if (rc<0) return(rc);
 
 	tag = prefix + "." + var.GetName() + ".Units";
-	rc = _netcdf.PutAtt("", tag, var.GetUnits());
+	rc = _wasp.PutAtt("", tag, var.GetUnits());
 	if (rc<0) return(rc);
 
 	tag = prefix + "." + var.GetName() + ".XType";
-	rc = _netcdf.PutAtt("", tag, (int) var.GetXType());
+	rc = _wasp.PutAtt("", tag, (int) var.GetXType());
 	if (rc<0) return(rc);
 
 	tag = prefix + "." + var.GetName() + ".Compressed";
-	rc = _netcdf.PutAtt("", tag, (int) var.GetCompressed());
+	rc = _wasp.PutAtt("", tag, (int) var.GetCompressed());
 	if (rc<0) return(rc);
 
 	tag = prefix + "." + var.GetName() + ".BlockSize";
-	rc = _netcdf.PutAtt("", tag, var.GetBS());
+	rc = _wasp.PutAtt("", tag, var.GetBS());
 	if (rc<0) return(rc);
 
 	tag = prefix + "." + var.GetName() + ".WaveName";
-	rc = _netcdf.PutAtt("", tag, var.GetWName());
+	rc = _wasp.PutAtt("", tag, var.GetWName());
 	if (rc<0) return(rc);
 
 	tag = prefix + "." + var.GetName() + ".WaveMode";
-	rc = _netcdf.PutAtt("", tag, var.GetWMode());
+	rc = _wasp.PutAtt("", tag, var.GetWMode());
 	if (rc<0) return(rc);
 
 	tag = prefix + "." + var.GetName() + ".CompressionRatios";
-	rc = _netcdf.PutAtt("", tag, var.GetCRatios());
+	rc = _wasp.PutAtt("", tag, var.GetCRatios());
 	if (rc<0) return(rc);
 
 	tag = prefix + "." + var.GetName() + ".Periodic";
 	vector <bool> periodic = var.GetPeriodic();
 	vector <int> iperiodic;
 	for (int i=0; i<periodic.size(); i++) iperiodic.push_back(periodic[i]);
-	rc = _netcdf.PutAtt("", tag, iperiodic);
+	rc = _wasp.PutAtt("", tag, iperiodic);
 	if (rc<0) return(rc);
 	
 	prefix += "." + var.GetName();
@@ -360,7 +357,7 @@ int VDCNetCDF::_WriteMasterVarBase(string prefix, const VarBase &var) {
 		
 }
 
-int VDCNetCDF::_WriteMasterCoordVars() {
+int VDCNetCDF::_WriteMasterCoordVarsDefs() {
 	map <string, CoordVar>::const_iterator itr;
 	string s;
 	for (itr = _coordVars.begin(); itr != _coordVars.end(); ++itr) {
@@ -369,7 +366,7 @@ int VDCNetCDF::_WriteMasterCoordVars() {
 	}
 
 	string tag = "VDC.CoordVarNames";
-	int rc = _netcdf.PutAtt("", tag, s);
+	int rc = _wasp.PutAtt("", tag, s);
 	if (rc<0) return(rc);
 
 
@@ -378,21 +375,21 @@ int VDCNetCDF::_WriteMasterCoordVars() {
 		const CoordVar &cvar = itr->second;
 
 		tag = prefix + "." + cvar.GetName() + ".Axis";
-		int rc = _netcdf.PutAtt("", tag, cvar.GetAxis());
+		int rc = _wasp.PutAtt("", tag, cvar.GetAxis());
 		if (rc<0) return(rc);
 
 		tag = prefix + "." + cvar.GetName() + ".Uniform";
-		rc = _netcdf.PutAtt("", tag, (int) cvar.GetUniform());
+		rc = _wasp.PutAtt("", tag, (int) cvar.GetUniform());
 		if (rc<0) return(rc);
 
-		rc = _WriteMasterVarBase(prefix, cvar);
+		rc = _WriteMasterVarBaseDefs(prefix, cvar);
 		if (rc<0) return(rc);
 	}
 	return(0);
 
 }
 
-int VDCNetCDF::_WriteMasterDataVars() {
+int VDCNetCDF::_WriteMasterDataVarsDefs() {
 	map <string, DataVar>::const_iterator itr;
 	string s;
 	for (itr = _dataVars.begin(); itr != _dataVars.end(); ++itr) {
@@ -401,7 +398,7 @@ int VDCNetCDF::_WriteMasterDataVars() {
 	}
 
 	string tag = "VDC.DataVarNames";
-	int rc = _netcdf.PutAtt("", tag, s);
+	int rc = _wasp.PutAtt("", tag, s);
 	if (rc<0) return(rc);
 
 
@@ -410,18 +407,18 @@ int VDCNetCDF::_WriteMasterDataVars() {
 		const DataVar &var = itr->second;
 
 		tag = prefix + "." + var.GetName() + ".CoordVars";
-		int rc = _netcdf.PutAtt("", tag, var.GetCoordvars());
+		int rc = _wasp.PutAtt("", tag, var.GetCoordvars());
 		if (rc<0) return(rc);
 
 		tag = prefix + "." + var.GetName() + ".HasMissing";
-		rc = _netcdf.PutAtt("", tag, (int) var.GetHasMissing());
+		rc = _wasp.PutAtt("", tag, (int) var.GetHasMissing());
 		if (rc<0) return(rc);
 
 		tag = prefix + "." + var.GetName() + ".MissingValue";
-		rc = _netcdf.PutAtt("", tag, (int) var.GetMissingValue());
+		rc = _wasp.PutAtt("", tag, (int) var.GetMissingValue());
 		if (rc<0) return(rc);
 
-		rc = _WriteMasterVarBase(prefix, var);
+		rc = _WriteMasterVarBaseDefs(prefix, var);
 		if (rc<0) return(rc);
 	}
 	return(0);

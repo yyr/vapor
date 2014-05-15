@@ -501,6 +501,20 @@ MatWaveDwt::MatWaveDwt(
 	_dwt3dBuf2 = NULL;
 } 
 
+MatWaveDwt::MatWaveDwt(const string &wname ) : MatWaveBase(wname) {
+
+	_dwt1dBufSize = 0;
+	_dwt1dBuf = NULL;
+
+	_dwt2dBufSize = 0;
+	_dwt2dBuf = NULL;
+
+	_dwt3dBuf1Size = 0;
+	_dwt3dBuf1 = NULL;
+	_dwt3dBuf2Size = 0;
+	_dwt3dBuf2 = NULL;
+} 
+
 MatWaveDwt::~MatWaveDwt() {
 	if (_dwt1dBuf) delete [] _dwt1dBuf;
 

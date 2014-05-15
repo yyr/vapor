@@ -2,7 +2,7 @@
 #include <map>
 #include <iostream>
 #include "vapor/VDC.h"
-#include "vapor/NetCDFCpp.h"
+#include "vapor/WASP.h"
 
 #ifndef	_VDCNetCDF_H_
 #define	_VDCNetCDF_H_
@@ -78,8 +78,7 @@ protected:
  virtual int _ReadMasterMeta();
 
 private:
- NetCDFCpp _netcdf;
- map <string, int> _dimidMap;
+ WASP _wasp;
  size_t _master_threshold;
  size_t _variable_threshold;
 
@@ -88,9 +87,9 @@ private:
 	string prefix, const map <string, Attribute> atts
  ); 
  int _WriteMasterAttributes ();
- int _WriteMasterVarBase(string prefix, const VarBase &var); 
- int _WriteMasterCoordVars(); 
- int _WriteMasterDataVars(); 
+ int _WriteMasterVarBaseDefs(string prefix, const VarBase &var); 
+ int _WriteMasterCoordVarsDefs(); 
+ int _WriteMasterDataVarsDefs(); 
 
 	
  //

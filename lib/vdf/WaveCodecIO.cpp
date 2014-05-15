@@ -188,13 +188,9 @@ int WaveCodecIO::_WaveCodecIO(int nthreads) {
 	// One collection of sigmaps for each thread, each collection contains
 	// a signficance map for each compression level
 	//
-	_sigmapsThread.resize(_nthreads, NULL);
+	_sigmapsThread.resize(_nthreads);
 	for (int t=0; t<_nthreads; t++) {
-		_sigmaps = new SignificanceMap* [_cratios.size()];
-		for (int i=0; i<_cratios.size(); i++) {
-			_sigmaps[i] = new SignificanceMap();
-		}
-		_sigmapsThread[t] = _sigmaps;
+		_sigmapsThread[t].resize(_cratios.size());
 	}
 	const size_t *bs =  VDFIOBase::GetBlockSize();
 
@@ -272,12 +268,6 @@ WaveCodecIO(const vector <string> &files);
 #endif
 
 WaveCodecIO::~WaveCodecIO() {
-	if (_sigmaps) {
-		for (int i =0; i<_cratios.size(); i++) {
-			delete _sigmaps[i];
-		}
-		delete [] _sigmaps;
-	}
 	if (_cvector) delete [] _cvector;
 	if (_svector) delete [] _svector;
 	if (_compressor3D) delete _compressor3D;
@@ -300,12 +290,6 @@ WaveCodecIO::~WaveCodecIO() {
 		if (_compressorThread2DXZ[t]) delete _compressorThread2DXZ[t];
 		if (_compressorThread2DYZ[t]) delete _compressorThread2DYZ[t];
 		if (_blockThread[t]) delete [] _blockThread[t];
-		if (_sigmapsThread[t]) {
-			for (int i =0; i<_cratios.size(); i++) {
-				delete _sigmapsThread[t][i];
-			}
-			delete [] _sigmapsThread[t];
-		}
 	}
 	if (_rw_thread_objs) delete [] _rw_thread_objs;
 }
@@ -391,6 +375,7 @@ int WaveCodecIO::OpenVariableRead(
 	// Clamp the range of the reconstructed values to the range of the
 	// original data values
 	//
+#ifdef	DEAD
 	for (int t=0; t<_nthreads; t++) {
 		_compressorThread[t]->ClampMinOnOff() = true;
 		_compressorThread[t]->ClampMaxOnOff() = true;
@@ -398,6 +383,8 @@ int WaveCodecIO::OpenVariableRead(
 		_compressorThread[t]->ClampMin() = _dataRange[0];
 		_compressorThread[t]->ClampMax() = _dataRange[1];
 	}
+#endif
+cerr << "CLAMPING DISABLED\n";
 
 	return(0);
 }
@@ -1188,7 +1175,7 @@ void WaveCodecIO::ReadWriteThreadObj::BlockWriteRegionThread() {
 		int rc = 0;
 		rc = _wc->_compressorThread[_id]->Decompose(
 			blockptr, _wc->_cvectorThread[_id], _wc->_ncoeffs, 
-			_wc->_sigmapsThread[_id], _wc->_ncoeffs.size()
+			_wc->_sigmapsThread[_id]
 		); 
 		_wc->_xformMPI += (MPI_Wtime() - starttime);
 		if (_id==0) _wc->_XFormTimerStop();
@@ -1899,7 +1886,7 @@ int WaveCodecIO::_SetupCompressor() {
 		vector <size_t> sigdims;
 		_compressor->GetSigMapShape(sigdims);
 		for (int t=0; t<_nthreads; t++) {
-			_sigmapsThread[t][i]->Reshape(sigdims);
+			_sigmapsThread[t][i].Reshape(sigdims);
 		}
 		
 	}
@@ -2249,7 +2236,7 @@ int WaveCodecIO::_OpenVarWrite(
 			_sigmapsizes.push_back(0);
 		}
 		else {
-			size_t sms = _sigmaps[j]->GetMapSize(_ncoeffs[j]);
+			size_t sms = _sigmapsThread[0][j].GetMapSize(_ncoeffs[j]);
 			_sigmapsizes.push_back((sms+(NC_FLOAT_SZ-1)) / NC_FLOAT_SZ);
 		}
 #ifdef PNETCDF
@@ -2497,9 +2484,9 @@ int WaveCodecIO::ReadWriteThreadObj::_WriteBlock(
 		const unsigned char *map;
 
 #ifdef PNETCDF
-		_wc->_sigmapsThread[_id][j]->GetMap(&map, (size_t *)&maplen);
+		_wc->_sigmapsThread[_id][j].GetMap(&map, (size_t *)&maplen);
 #else
-		_wc->_sigmapsThread[_id][j]->GetMap(&map, &maplen);
+		_wc->_sigmapsThread[_id][j].GetMap(&map, &maplen);
 #endif
 //		assert(maplen == _wc->_sigmapsizes[j]);
 
@@ -2765,7 +2752,7 @@ void WaveCodecIO::ReadWriteThreadObj::BlockReadRegionThread(
 			if (_id==0) _wc->_XFormTimerStart();
 			int rc = _wc->_compressorThread[_id]->Reconstruct(
 				_wc->_cvectorThread[_id], blockptr, _wc->_sigmapsThread[_id], 
-				_wc->_lod+1, _wc->_reflevel
+				_wc->_reflevel
 			); 
 			if (rc<0) {
 				_wc->_threadStatus = -1;
@@ -2801,7 +2788,7 @@ void WaveCodecIO::ReadWriteThreadObj::BlockReadRegionThread(
 			if (_id==0) _wc->_XFormTimerStart();
 			int rc = _wc->_compressorThread[_id]->Reconstruct(
 				_wc->_cvectorThread[_id], blockptr, _wc->_sigmapsThread[_id], 
-				_wc->_lod+1, _wc->_reflevel
+				_wc->_reflevel
 			); 
 			if (rc<0) {
 				_wc->_threadStatus = -1;
@@ -2836,6 +2823,9 @@ int WaveCodecIO::ReadWriteThreadObj::_FetchBlock(
 	_wc->_ReadTimerStart();
 
 
+	for (int j=0; j<_wc->_sigmapsThread[_id].size(); j++) {
+		_wc->_sigmapsThread[_id][j].Clear();
+	}
 	for(int j=0; j<=_wc->_lod; j++) {
 #ifdef PNETCDF
 		MPI_Offset start[] = {0,0,0,0};
@@ -2916,7 +2906,7 @@ int WaveCodecIO::ReadWriteThreadObj::_FetchBlock(
 
 			NC_ERR_READ(rc, _wc->_ncpaths[j]);
 
-			rc = _wc->_sigmapsThread[_id][j]->SetMap(svectorptr);
+			rc = _wc->_sigmapsThread[_id][j].SetMap(svectorptr);
 			if (rc<0) {
 				SetErrMsg("Error reading data");
 				return (-1);
@@ -2927,12 +2917,12 @@ int WaveCodecIO::ReadWriteThreadObj::_FetchBlock(
 			// Reconstruct the last signficiance map from all the previous
 			// ones.
 			//
-			_wc->_sigmapsThread[_id][j]->Clear();
+			_wc->_sigmapsThread[_id][j].Clear();
 			for (int i=0; i<j; i++) {
-				_wc->_sigmapsThread[_id][j]->Append(*_wc->_sigmapsThread[_id][i]);
+				_wc->_sigmapsThread[_id][j].Append(_wc->_sigmapsThread[_id][i]);
 			}
-			_wc->_sigmapsThread[_id][j]->Sort();
-			_wc->_sigmapsThread[_id][j]->Invert();
+			_wc->_sigmapsThread[_id][j].Sort();
+			_wc->_sigmapsThread[_id][j].Invert();
 		}
 
 	}
