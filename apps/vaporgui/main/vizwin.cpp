@@ -46,6 +46,7 @@
 #include "regiontab.h"
 #include "viewpointparams.h"
 #include "mousemodeparams.h"
+#include "vizwinparams.h"
 #include "regionparams.h"
 
 #include "viewpoint.h"
@@ -93,7 +94,7 @@ void VizWin::closeEvent(QCloseEvent* e){
 	//Tell the winmgr that we are closing:
     myWinMgr->vizAboutToDisappear(myWindowNum);
 	QWidget::closeEvent(e);
-	delete myVisualizer;
+
 }
 /******************************************************
  * React when focus is on window:
@@ -118,6 +119,8 @@ void VizWin::windowActivationChange(bool ){
 void VizWin::resizeGL(int width, int height){
 	
 	ControlExec::ResizeViz(myWindowNum, width, height);
+	VizWinParams::SetWindowHeight(myWindowNum, height);
+	VizWinParams::SetWindowWidth(myWindowNum, width);
 	reallyUpdate();
 	return;
 }

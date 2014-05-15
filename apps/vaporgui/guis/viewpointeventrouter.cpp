@@ -637,14 +637,14 @@ updateRenderer(ViewpointParams* vpParams, bool prevEnabled,  int /*instance*/, b
 		//That is the case if the window is non-null, and if the corresponding
 		//vpparms is either null or set to Global
 		//
-		for (int i = 0; i< myVizMgr->getNumVisualizers(); i++){
-			if (i == myVizMgr->getActiveViz()) continue;
-			if( viz == myVizMgr->getVizWin(i)){
-				//Bypass normal access to vpParams!
-				if(!(myVizMgr->getViewpointParams(i)) || !(myVizMgr->getViewpointParams(i)->IsLocal())){
-					viz->updateGL();
-				}
+		for (int i = 0; i< ControlExec::GetNumVisualizers(); i++){
+			if (i == ControlExec::GetActiveVizIndex()) continue;
+			
+			//Bypass normal access to vpParams!
+			if(!(myVizMgr->getViewpointParams(i)) || !(myVizMgr->getViewpointParams(i)->IsLocal())){
+				viz->updateGL();
 			}
+			
 		}
 	}
 }

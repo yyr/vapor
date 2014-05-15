@@ -25,6 +25,7 @@
 #include <vapor/XmlNode.h>
 #include <vapor/ExpatParseMgr.h>
 #include <vapor/ParamNode.h>
+#include <map>
 
 #include "assert.h"
 #include <vapor/common.h>
@@ -202,7 +203,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	}
 	 
 //! Static method that specifies the instance that is current in the identified window.
-//! Useful for application developers.
+//! For non-Render Params, the current instance should always be 0;
 //! \param[in] pType ParamsBase TypeId of the params class
 //! \param[in] winnum index of identified window
 //! \param[in] instance index of instance to be made current
@@ -291,9 +292,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \param[in] pType ParamsBase TypeId of the params class
 //! \param[in] winnum index of specified visualizer window
 //! \retval number of instances that exist 
-	static int GetNumParamsInstances(int pType, int winnum){
-		return paramsInstances[make_pair(pType, winnum)].size();
-	}
+	static int GetNumParamsInstances(int pType, int winnum);
 
 //! Static method that tells how many instances of a Params class
 //! exist for a particular visualizer.
@@ -315,6 +314,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	static void AppendParamsInstance(int pType, int winnum, Params* p){
 		p->SetInstanceIndex(paramsInstances[make_pair(pType,winnum)].size());
 		paramsInstances[make_pair(pType,winnum)].push_back(p);
+		if (pType == 3) assert (paramsInstances[make_pair(pType,winnum)].size() <= 1);
 	}
 
 //! Static method that appends a new instance to the list of existing 
@@ -355,6 +355,8 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \param[in] winnum index of specified visualizer window.
 //! \retval vector of the Params pointers associated with the window .
 	static vector<Params*>& GetAllParamsInstances(int pType, int winnum){
+		map< pair<int,int>, vector<Params*> >::const_iterator it = paramsInstances.find(make_pair(pType,winnum));
+		if (it == paramsInstances.end()) return (*new vector<Params*>);
 		return paramsInstances[make_pair(pType,winnum)];
 	}
 
@@ -568,6 +570,7 @@ protected:
 //! then set the value(s), then Validate(), and finally capture the state of
 //! the Params after the Validate()
 //! returns 0 if successful, -1 if the value cannot be set.
+//! \note strings in string vectors must be non-blank, non-empty, and must not have embedded blank characters.
 //! \sa Validate(), ParamsBase::GetValueStringVec()
 //! \param [in] string tag
 //! \param [in] char* description

@@ -107,6 +107,10 @@ public:
 
 	void resizeGL( int w, int h );
 
+	//! Identify the visualizer index associated with this visualizer
+	//! \retval visualizer index;
+	int getWindowNum() {return winNum;}
+
 #ifndef DOXYGEN_SKIP_THIS
 	 Visualizer( int winnum);
     ~Visualizer();
@@ -219,7 +223,7 @@ public:
 	static void setDefaultShowTerrain(bool val){defaultTerrainEnabled = val;}
 	
 	static void setDefaultPrefs();
-	int getWindowNum() {return winNum;}
+	
 	
 	//Static methods so that the vizwinmgr can tell the Visualizer about
 	//current active visualizer, and about region sharing

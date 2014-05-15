@@ -39,6 +39,7 @@
 #include "tabmanager.h"
 #include "arrowparams.h"
 #include "mousemodeparams.h"
+#include "vizwinparams.h"
 #include "arrowrenderer.h"
 #include "arroweventrouter.h"
 #include "eventrouter.h"
@@ -420,7 +421,7 @@ setArrowEnabled(bool val, int instance){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int activeViz = vizMgr->getActiveViz();
 	
-	ArrowParams* dParams = (ArrowParams*)(ControlExec::GetParams(activeViz,ArrowParams::_arrowParamsTag, -1));
+	ArrowParams* dParams = (ArrowParams*)(ControlExec::GetParams(activeViz,ArrowParams::_arrowParamsTag, instance));
 	//Make sure this is a change:
 	if (dParams->IsEnabled() == val ) return;
 	//If we are enabling, also make this the current instance:
@@ -445,18 +446,24 @@ void ArrowEventRouter::updateTab(){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	ArrowParams* arrowParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
 	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
+	//Find all the visualizers other than the one we are using
 	int winnum = vizMgr->getActiveViz();
-	int numViz = vizMgr->getNumVisualizers();
+	vector<long> viznums = VizWinParams::GetVisualizerNums();
 	copyCombo->clear();
 	copyCombo->addItem("Duplicate In:");
 	copyCombo->addItem("This visualizer");
-	if (numViz > 1) {
+		
+	if (viznums.size() > 1) {
 		copyCount.clear();
-		for (int i = 0; i<vizMgr->getNumVisualizers(); i++){
-			if (vizMgr->getVizWin(i) && winnum != i){
-				copyCombo->addItem(vizMgr->getVizWinName(i));
+		//The first two entries should not be referenced
+		copyCount.push_back(-1);
+		copyCount.push_back(-1);
+		for (int i = 0; i< viznums.size(); i++){
+			int vizwin = viznums[i];
+			if (winnum != vizwin){
+				copyCombo->addItem(QString::fromStdString(VizWinParams::GetVizName(vizwin)));
 				//Remember the viznum corresponding to a combo item:
-				copyCount.push_back(i);
+				copyCount.push_back(vizwin);
 			}
 		}
 	}

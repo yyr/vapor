@@ -71,6 +71,7 @@
 #include "assert.h"
 #include "vizfeatureparams.h"
 #include "mousemodeparams.h"
+#include "vizwinparams.h"
 #include "vapor/ControlExecutive.h"
 
 #include <vapor/DataMgrWB.h>
@@ -290,7 +291,7 @@ void MainForm::createToolBars(){
 	vizToolBar->addWidget(interactiveRefinementSpin);
 }
 void MainForm::hookupSignals() {
-   
+	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
 	connect(modeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT( modeChange(int)));
 	connect( fileNew_SessionAction, SIGNAL( triggered() ), this, SLOT( newSession() ) );
 	connect( fileOpenAction, SIGNAL( triggered() ), this, SLOT( fileOpen() ) );
@@ -322,7 +323,8 @@ void MainForm::hookupSignals() {
 
 	//Toolbar actions:
 	connect (navigationAction, SIGNAL(toggled(bool)), this, SLOT(setNavigate(bool)));
-	
+	connect (tileAction, SIGNAL(triggered()), myVizMgr, SLOT(fitSpace()));
+	connect (cascadeAction, SIGNAL(triggered()), myVizMgr, SLOT(cascade()));
 	connect (interactiveRefinementSpin, SIGNAL(valueChanged(int)), this, SLOT(setInteractiveRefLevel(int)));
 	connect (playForwardAction, SIGNAL(triggered()), this, SLOT(playForward()));
 	connect (playBackwardAction, SIGNAL(triggered()), this, SLOT(playBackward()));
@@ -650,10 +652,24 @@ void MainForm::fileOpen()
 		qfilename += ".vss";
 	}
 	string filename = qfilename.toStdString();
+
+	// Clear out the current session:
+	ControlExec::SetToDefault();
+	VizWinMgr::getInstance()->SetToDefaults();
+
 	ControlExec::getInstance()->RestoreSession(filename);
+
+	//Need to use vizwinparams and set up all windows ...
+	int numViz = VizWinParams::GetNumVizWins();
+	vector<long>viznums = VizWinParams::GetVisualizerNums();
+	for (int i = 0; i<numViz; i++) {
+		int viznum = viznums[i];
+		VizWinMgr::getInstance()->attachVisualizer(viznum);
+	}
+	Visualizer::setActiveWinNum(VizWinParams::GetCurrentVizWin());
 	sessionIsDefault = false;
 	updateWidgets();
-	//Now need to set up visualizer(s)?
+	
 }
 
 
@@ -891,6 +907,10 @@ void MainForm::defaultLoadData()
 		QFileInfo fInfo(filename);
 		const DataMgr* dmgr=0;
 		if (fInfo.isReadable() && fInfo.isFile()){
+			//Set state to default:
+			ControlExec::SetToDefault();
+			VizWinMgr::getInstance()->SetToDefaults();
+			VizWinMgr::getInstance()->launchVisualizer();
 			vector<string> files;
 			files.push_back(filename.toStdString());
 			dmgr = ControlExec::getInstance()->LoadData(files,true);
@@ -909,16 +929,21 @@ void MainForm::defaultLoadData()
 			QMessageBox::information(this,"Load Data Error","Unable to read metadata file ");
 			return;
 		}
+		updateWidgets();
 		update();
 		if (dmgr) return;
 	}
 	QMessageBox::information(this,"Load Data Error","Invalid VDC");
 }
-void MainForm::newSession()
-{
-	
-	
+void MainForm::newSession(){
+	ControlExec::SetToDefault();
+	VizWinMgr::getInstance()->SetToDefaults();
+	VizWinMgr::getInstance()->launchVisualizer();
+	VizWinMgr::getInstance()->refreshRenderData();
+	sessionIsDefault = true;
 }
+	
+	
 void MainForm::launchVisualizer()
 {
 	Command::blockCapture();

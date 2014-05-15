@@ -43,12 +43,16 @@ TranslateStretchManip::TranslateStretchManip(Visualizer* win, Params* p) : Manip
 	subregionFrameColor[0]= 1.f;
 	subregionFrameColor[1]= 0.f;
 	subregionFrameColor[2]= 0.f;
-
 	setParams(p);
 	selectedHandle = -1;
 	isStretching = false;
 	tempRotation = 0.f;
 	tempRotAxis = -1;
+	handleSizeInCube = 1.;
+	initialSelectionRay[0] = 0.;
+	initialSelectionRay[1] = 0.;
+	initialSelectionRay[2] = 0.;
+	
 }
 
 // Determine if the mouse is over any of the six handles.
