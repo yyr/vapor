@@ -10,10 +10,9 @@
 using namespace VAPoR;
 using namespace std;
 
-Compressor::Compressor(
-	vector <size_t> dims, const string &wavename, 
-	const string &mode
-) : MatWaveWavedec(wavename, mode) {
+void Compressor::_Compressor(
+	vector <size_t> dims
+) {
 
     if (MatWaveWavedec::GetErrCode() != 0) return;
 
@@ -114,6 +113,25 @@ Compressor::Compressor(
 	}
 	_indexvec.reserve(_CLen);
 
+}
+
+Compressor::Compressor(
+	vector <size_t> dims, const string &wavename, 
+	const string &mode
+) : MatWaveWavedec(wavename, mode) {
+
+    if (MatWaveWavedec::GetErrCode() != 0) return;
+
+	_Compressor(dims);
+}
+
+Compressor::Compressor(
+	vector <size_t> dims, const string &wavename
+) : MatWaveWavedec(wavename) {
+
+    if (MatWaveWavedec::GetErrCode() != 0) return;
+
+	_Compressor(dims);
 }
 
 Compressor::~Compressor() {
@@ -373,14 +391,13 @@ int decompose_template(
 	T *C,
 	size_t clen,
 	size_t *L,
-	SignificanceMap **sigmaps,
-	int n,
+	vector <SignificanceMap> &sigmaps,
 	const vector <size_t> &dims,
 	size_t nlevels,
 	vector <void *> indexvec,
 	bool my_compare(const void *, const void *)
 ) {
-	if (n != dst_arr_lens.size()) {
+	if (sigmaps.size() != dst_arr_lens.size()) {
 		Compressor::SetErrMsg("Invalid parameter");
 		return(-1);
 	}
@@ -426,10 +443,10 @@ int decompose_template(
 		return(-1);
 	} 
 
-	for (int i=0; i<n; i++) {
-		rc = sigmaps[i]->Reshape(clen);
+	for (int i=0; i<sigmaps.size(); i++) {
+		rc = sigmaps[i].Reshape(clen);
 		if (rc<0) return(-1);
-		sigmaps[i]->Clear();
+		sigmaps[i].Clear();
 	}
 
 	// Data has been transformed. Now we need to sort it and find
@@ -442,7 +459,7 @@ int decompose_template(
 		// If numkeep>0, copy approximation coeffs. verbatim
 		//
 		for (size_t idx = 0; idx<numkeep; idx++) {
-			rc = sigmaps[0]->Set(idx);
+			rc = sigmaps[0].Set(idx);
 			if (rc<0) return(-1);
 			dst_arr[idx] = C[idx];
 		}
@@ -467,7 +484,7 @@ int decompose_template(
 		for (int i = 0; i<my_dst_arr_lens[j]; i++, idx++) {
 			const T *cptr =  (T *) indexvec[idx];
 			dst_arr[i] = *cptr;
-			sigmaps[j]->Set(cptr - C);
+			sigmaps[j].Set(cptr - C);
 		}
 		dst_arr += my_dst_arr_lens[j];
 	}
@@ -486,8 +503,7 @@ int reconstruct_template(
 	const size_t *L,
 	int nlevels,
 	int l,
-	SignificanceMap **sigmaps,
-	int n,
+	vector <SignificanceMap> &sigmaps,
 	const vector <size_t> &dims
 ) {
 	if ((dims.size() < 1)  || (dims.size() > 3)) {
@@ -501,14 +517,13 @@ int reconstruct_template(
 
 	size_t count = 0;
 	size_t idx;
-	for (int j=0; j<n; j++) {
-		SignificanceMap *sigmap = sigmaps[j];
-		sigmap->GetNextEntryRestart();
+	for (int j=0; j<sigmaps.size(); j++) {
+		sigmaps[j].GetNextEntryRestart();
 
-		size_t nsig = sigmap->GetNumSignificant();
+		size_t nsig = sigmaps[j].GetNumSignificant();
 		for(size_t i=0; i<nsig; i++) {
 
-			if (! sigmap->GetNextEntry(&idx)) {
+			if (! sigmaps[j].GetNextEntry(&idx)) {
 				Compressor::SetErrMsg("Invalid significance map");
 				return(-1);
 			}
@@ -558,43 +573,43 @@ int reconstruct_template(
 
 int Compressor::Decompose( 
 	const float *src_arr, float *dst_arr, const vector <size_t> &dst_arr_lens,
-	SignificanceMap **sigmaps, int n
+	vector <SignificanceMap> &sigmaps
 ) {
 	return decompose_template(
 		this, src_arr, dst_arr, dst_arr_lens, (float *) _C, _CLen,
-		_L, sigmaps, n, _dims, _nlevels, _indexvec, my_compare_f
+		_L, sigmaps, _dims, _nlevels, _indexvec, my_compare_f
 	);
 }
 
 int Compressor::Decompose( 
 	const double *src_arr, double *dst_arr, const vector <size_t> &dst_arr_lens,
-	SignificanceMap **sigmaps, int n
+	vector <SignificanceMap> &sigmaps
 ) {
 	return decompose_template(
 		this, src_arr, dst_arr, dst_arr_lens, (double *) _C, _CLen,
-		_L, sigmaps, n, _dims, _nlevels, _indexvec, my_compare_d
+		_L, sigmaps, _dims, _nlevels, _indexvec, my_compare_d
 	);
 }
 
 int Compressor::Reconstruct(
 	const float *src_arr, float *dst_arr, 
-	SignificanceMap **sigmaps, int n, int l
+	vector <SignificanceMap> &sigmaps, int l
 ) {
 	if (l==-1) l = GetNumLevels();
 	return reconstruct_template(
 		this, src_arr, dst_arr, (float *) _C, _CLen, _L, _nlevels, l, sigmaps, 
-		n, _dims
+		_dims
 	);
 }
 
 int Compressor::Reconstruct(
 	const double *src_arr, double *dst_arr, 
-	SignificanceMap **sigmaps, int n, int l
+	vector <SignificanceMap> &sigmaps, int l
 ) {
 	if (l==-1) l = GetNumLevels();
 	return reconstruct_template(
 		this, src_arr, dst_arr, (double *) _C, _CLen, _L, _nlevels, l, sigmaps, 
-		n, _dims
+		_dims
 	);
 }
  

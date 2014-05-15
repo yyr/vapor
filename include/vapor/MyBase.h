@@ -241,7 +241,7 @@ public:
  //! 
  //! \param[in] enable Boolean flag to enable or disable error reporting
  //!
- bool EnableErrMsg(bool enable) {
+ static bool EnableErrMsg(bool enable) {
 	bool prev = Enabled; Enabled = enable; return (prev);
  };
 
