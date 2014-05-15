@@ -12,7 +12,13 @@ MatWaveWavedec::MatWaveWavedec(
 ) : MatWaveDwt(wname, mode) {
 
     if (MatWaveDwt::GetErrCode() != 0) return;
+} 
 
+MatWaveWavedec::MatWaveWavedec(
+	const string &wname
+) : MatWaveDwt(wname) {
+
+    if (MatWaveDwt::GetErrCode() != 0) return;
 } 
 
 MatWaveWavedec::~MatWaveWavedec() {

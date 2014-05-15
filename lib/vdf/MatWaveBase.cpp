@@ -10,10 +10,51 @@
 using namespace VAPoR;
 
 MatWaveBase::MatWaveBase(const string &wname, const string &mode) {
+	_wf = NULL;
+	_mode = PER;
+	_wname = wname;
+
 	_wf = _create_wf(wname);
 	if (! _wf) return;
 
 	if (dwtmode(mode) < 0) {
+		return;	// nothing to do
+	};
+
+	_InvalidFloatAbort = false;
+}
+
+MatWaveBase::MatWaveBase(const string &wname) {
+	_wf = NULL;
+	_mode = PER;
+	_wname = wname;
+
+	_wf = _create_wf(wname);
+	if (! _wf) return;
+
+	string wmode;
+	if ((_wname.compare("bior1.1") == 0) ||
+		(_wname.compare("bior1.3") == 0) ||
+		(_wname.compare("bior1.5") == 0) ||
+		(_wname.compare("bior3.3") == 0) ||
+		(_wname.compare("bior3.5") == 0) ||
+		(_wname.compare("bior3.7") == 0) ||
+		(_wname.compare("bior3.9") == 0)) {
+
+		wmode = "symh";
+	}
+	else if ((_wname.compare("bior2.2") == 0) ||
+		(_wname.compare("bior2.4") == 0) ||
+		(_wname.compare("bior2.6") == 0) ||
+		(_wname.compare("bior2.8") == 0) ||
+		(_wname.compare("bior4.4") == 0)) {
+
+		wmode = "symw";
+	}
+	else {
+		wmode = "sp0";
+	}
+	if (dwtmode(wmode) < 0) {
 		return;	// nothing to do
 	};
 
@@ -79,9 +120,9 @@ size_t MatWaveBase::detaillength(size_t sigInLen) const {
 		return((size_t)ceil(((double)(sigInLen))/2.0));
 	}
 	else if (_wf->issymmetric()) {
-		if (
-			(_mode == MatWaveBase::SYMW && (filterLen % 2)) ||
-			(_mode == MatWaveBase::SYMH && (! (filterLen % 2)))
+	if (
+		(_mode == MatWaveBase::SYMW && (filterLen % 2)) ||
+		(_mode == MatWaveBase::SYMH && (! (filterLen % 2)))
 		)  {
 			if (sigInLen % 2) {
 				return((sigInLen-1) / 2);
