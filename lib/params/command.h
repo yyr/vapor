@@ -26,6 +26,7 @@
 
 namespace VAPoR{
 class Params;
+class UndoRedoHelper;
 //! \class Command
 //!
 //! \brief Provides support for maintaining a queue of recently issued commands,
@@ -84,7 +85,14 @@ public:
 	//! \sa CaptureStart
 	static void CaptureEnd(Command* pCom, Params *nextParams){
 		if (!pCom) return;
-		pCom->nextRoot = nextParams->GetRootNode()->deepCopy();
+		if (nextParams){
+			pCom->nextRoot = nextParams->GetRootNode()->deepCopy();
+			if (!pCom->prevRoot){ //If the first Params was null, get the tag, etc. from the next params:
+				pCom->tag = nextParams->GetName();
+				pCom->instance = nextParams->GetInstanceIndex();
+				pCom->winnum = nextParams->GetVizNum();
+			}
+		}
 		unblockCapture();
 		AddToHistory(pCom);
 	}
@@ -118,6 +126,16 @@ public:
 		while (posn < 0) posn += MAX_HISTORY;
 		return commandQueue[posn%MAX_HISTORY];
 	}
+	//! Obtain a copy of the next params in the queue
+	//! Useful if additional processing is needed during Undo or Redo
+	//! Note that the returned Params copy should be deleted after it is used
+	//! \retval Params* that was "next" in the command
+	Params* CopyNextParams();
+	//! Obtain a copy of the previous params in the queue
+	//! Useful if additional processing is needed during Undo or Redo
+	//! Note that the returned Params copy should be deleted after it is used
+	//! \retval Params* that was "previous" in the command
+	Params* CopyPreviousParams();
 #ifndef DOXYGEN_SKIP_THIS
 	//Anytime it is necessary to stop inserting into the commandQueue, call blockCapture,
 	//then unblock when they are done.  No recording happens until all blockers has stopped
@@ -132,6 +150,7 @@ public:
 	//sa blockCapture, isRecording
 	static void unblockCapture() {recordingCount--; assert(recordingCount>=0);}
 protected:
+	void applyHelpers();
 	//! Static method used to insert a Command instance into the Command queue
 	//! \param [in] Command Command instance
 	//! \param [in] ignoreBlocking If true, will insert into the queue even when blocking is enabled.

@@ -33,7 +33,6 @@
 #include <vapor/DataMgr.h>
 #include <vapor/errorcodes.h>
 #include "vapor/GetAppPath.h"
-
 #include <vector>
 #include <iostream>
 #include <fstream>
@@ -49,7 +48,8 @@ void EventRouter::copyRendererInstance(int toWindow, RenderParams* rp){
 	RenderParams* newP = (RenderParams*)rp->deepCopy();
 	newP->SetVizNum(toWindow);
 	newP->SetEnabled(false);
-	ControlExec::AddParams(toWindow,type,newP);
+	int rc = ControlExec::AddParams(toWindow,type,newP);
+	assert (!rc);
 	//update tab is only needed up update the instanceTable when we are copying in the same viz
 	updateTab ();
 }
@@ -57,7 +57,8 @@ void EventRouter::changeRendererInstance(int winnum, int newCurrentInst){
 	
 	string type = ControlExec::GetTagFromType(myParamsBaseType);
 	assert(newCurrentInst >= 0 && newCurrentInst < ControlExec::GetNumParamsInstances(winnum, type));
-	ControlExec::SetCurrentParamsInstance(winnum,type,newCurrentInst);
+	int rc = ControlExec::SetCurrentParamsInstance(winnum,type,newCurrentInst);
+	assert (!rc);
 	updateTab();
 }
 //Put a default instance of specified renderer as the last instance:
@@ -67,7 +68,8 @@ void EventRouter::newRendererInstance(int winnum){
 	RenderParams* newP = dynamic_cast<RenderParams*>(ControlExec::GetDefaultParams(type)->deepCopy());
 	newP->SetVizNum(winnum);
 	newP->SetEnabled(false);
-	ControlExec::AddParams(winnum,type,newP);
+	int rc = ControlExec::AddParams(winnum,type,newP);
+	assert (!rc);
 	updateTab ();
 }
 void EventRouter::removeRendererInstance(int winnum, int instance){
@@ -81,7 +83,8 @@ void EventRouter::removeRendererInstance(int winnum, int instance){
 		rp->SetEnabled(false);
 		updateRenderer(rp, true, instance, false);
 	}
-	ControlExec::RemoveParams(winnum, type, instance);
+	int rc = ControlExec::RemoveParams(winnum, type, instance);
+	assert (!rc);
 	updateTab();
 }
 void EventRouter::performGuiChangeInstance(int newCurrent, bool undoredo){

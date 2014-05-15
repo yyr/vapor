@@ -211,11 +211,13 @@
     <ClCompile Include="..\..\..\lib\params\command.cpp" />
     <ClCompile Include="..\..\..\lib\params\datastatus.cpp" />
     <ClCompile Include="..\..\..\lib\params\glutil.cpp" />
+    <ClCompile Include="..\..\..\lib\params\instanceparams.cpp" />
     <ClCompile Include="..\..\..\lib\params\mousemodeparams.cpp" />
     <ClCompile Include="..\..\..\lib\params\ParamNode.cpp" />
     <ClCompile Include="..\..\..\lib\params\params.cpp" />
     <ClCompile Include="..\..\..\lib\params\ParamsBase.cpp" />
     <ClCompile Include="..\..\..\lib\params\regionparams.cpp" />
+    <ClCompile Include="..\..\..\lib\params\undoredohelp.cpp" />
     <ClCompile Include="..\..\..\lib\params\viewpoint.cpp" />
     <ClCompile Include="..\..\..\lib\params\viewpointparams.cpp" />
     <ClCompile Include="..\..\..\lib\params\vizwinparams.cpp" />
@@ -230,10 +232,12 @@
     <ClInclude Include="..\..\..\lib\params\datastatus.h" />
     <ClInclude Include="..\..\..\lib\params\glutil.h" />
     <ClInclude Include="..\..\..\include\vapor\ParamNode.h" />
+    <ClInclude Include="..\..\..\lib\params\instanceparams.h" />
     <ClInclude Include="..\..\..\lib\params\mousemodeparams.h" />
     <ClInclude Include="..\..\..\lib\params\params.h" />
     <ClInclude Include="..\..\..\include\vapor\ParamsBase.h" />
     <ClInclude Include="..\..\..\lib\params\regionparams.h" />
+    <ClInclude Include="..\..\..\lib\params\undoredohelp.h" />
     <ClInclude Include="..\..\..\lib\params\viewpoint.h" />
     <ClInclude Include="..\..\..\lib\params\viewpointparams.h" />
     <ClInclude Include="..\..\..\lib\params\vizwinparams.h" />

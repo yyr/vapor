@@ -162,7 +162,7 @@ void SetFlagDirty(const string& flag);
 //! Method for obtaining the name and/or tag associated with the instance
 //!
 
-const string GetName() {return _paramsBaseName;}
+const string GetName() const {return _paramsBaseName;}
  //!
  //! Obtain a single value of type long associated with a tag.
  //! Optionally specify a vector of longs whose first element is the default value

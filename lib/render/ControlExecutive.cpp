@@ -14,6 +14,7 @@
 #include "viewpointparams.h"
 #include "mousemodeparams.h"
 #include "vizwinparams.h"
+#include "instanceparams.h"
 #include "vapor/ExtensionClasses.h"
 #include "vapor/DataMgrFactory.h"
 #include "vapor/ParamNode.h"
@@ -23,6 +24,7 @@
 #include <fstream>
 #include <sstream>
 #include "vizwinparams.h"
+#include "undoredohelp.h"
 using namespace VAPoR;
 ControlExec* ControlExec::controlExecutive = 0;
 std::map <int,Visualizer*> ControlExec::visualizers;
@@ -169,8 +171,12 @@ int ControlExec::SetCurrentParamsInstance(int viz, string typetag, int instance)
 	if (instance < 0 || instance >= GetNumParamsInstances(viz,typetag)) return -1;
 	int ptype = Params::GetTypeFromTag(typetag);
 	if (ptype <= 0) return -1;
+	int rc = 0;
 	Params::SetCurrentParamsInstanceIndex(ptype,viz,instance);
-	return 0;
+	if (GetDefaultParams(typetag)->isRenderParams()){
+		rc = InstanceParams::SetCurrentInstance(typetag,viz,instance);
+	}
+	return rc;
 }
 int ControlExec::GetCurrentRenderParamsInstance(int viz, string typetag){
 	if (0 == GetVisualizer(viz)) return -1;
@@ -190,6 +196,10 @@ int ControlExec::AddParams(int viz, string type, Params* p){
 	int ptype = Params::GetTypeFromTag(type);
 	if (ptype <= 0) return -1;
 	Params::AppendParamsInstance(ptype,viz,p);
+	if (p->isRenderParams()) {
+		int rc = InstanceParams::AddInstance(type, viz, p);
+		return rc;
+	}
 	return 0;
 }
 int ControlExec::RemoveParams(int viz, string type, int instance){
@@ -197,7 +207,8 @@ int ControlExec::RemoveParams(int viz, string type, int instance){
 	int ptype = Params::GetTypeFromTag(type);
 	if (ptype <= 0) return -1;
 	Params::RemoveParamsInstance(ptype,viz,instance);
-	return 0;
+	int rc = InstanceParams::RemoveInstance(type, viz, instance);
+	return rc;
 }
 int ControlExec::FindInstanceIndex(int viz, RenderParams* p){
 	if (0 == GetVisualizer(viz)) return -1;
@@ -337,7 +348,13 @@ createAllDefaultParams() {
 	//Note that UndoRedo Params must be registered after other params
 	ParamsBase::RegisterParamsBaseClass(MouseModeParams::_mouseModeParamsTag,MouseModeParams::CreateDefaultInstance, true);
 	ParamsBase::RegisterParamsBaseClass(VizWinParams::_vizWinParamsTag,VizWinParams::CreateDefaultInstance, true);
+	ParamsBase::RegisterParamsBaseClass(InstanceParams::_instanceParamsTag,InstanceParams::CreateDefaultInstance, true);
 	MouseModeParams::RegisterMouseModes();
+	UndoRedoHelp::ResetUndoRedoHelpQueue();
+	//Register UndoRedo Helpers for the Render and Params libs here.
+	//Gui may seperately need to register other helpers if helper alter gui state.
+	//UndoRedoInstanceHelp* helper = new UndoRedoInstanceHelp();
+	//UndoRedoHelp::AddUndoRedoHelp(helper);
 }
 void ControlExec::
 reinitializeParams(bool doOverride){
@@ -364,6 +381,11 @@ reinitializeParams(bool doOverride){
 				rParams->SetEnabled(false);
 				rParams->SetChanged(true);
 			}
+			//Set the active instances for renderParams
+			Params* q = Params::GetDefaultParams(pType);
+			if (!q->isRenderParams()) continue;
+			int currentInstance = InstanceParams::GetCurrentInstance(GetTagFromType(pType),viz);
+			Params::SetCurrentParamsInstanceIndex(pType, viz, currentInstance);
 		}
 		(it->second)->removeAllRenderers();
 	}
@@ -415,11 +437,11 @@ int ControlExec::RestoreSession(string filename)
 		return -1;
 	}
 	
-	
+	assert(MyBase::GetErrCode()==0);
 	ExpatParseMgr* parseMgr = new ExpatParseMgr(this);
 	parseMgr->parse(is);
 	delete parseMgr;
-
+	assert(MyBase::GetErrCode()==0);
 	//Now create new visualizers all viz windows 
 	
 	int numViz = VizWinParams::GetNumVizWins();
