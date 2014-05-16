@@ -1,0 +1,68 @@
+#!/usr/bin/lua
+
+--[[
+npaths
+{
+x1 y1 z1
+x2 y2 z2
+...
+}
+{
+x1 y1 z1
+x2 y2 z2
+...
+}
+--]]
+
+local appname = "gendata"
+local usage = appname.." [filename] [npaths] [pathlength]"
+
+local filename = "testdata"
+local npaths = 1
+local pathlength = 20
+
+if #arg >= 1 then filename = arg[1]
+else print("using \""..filename.."\" as default filename...") end
+
+if filename == "--help" or filename == "-h" then
+    print(usage)
+    return 0
+end
+
+if #arg >= 2 then npaths = math.floor(tonumber(arg[2]))
+else print("using "..npaths.." as default npaths...") end
+
+if #arg >= 3 then pathlength = math.floor(tonumber(arg[3]))
+else print("using "..pathlength.." as default pathlength...") end
+
+local h, err, errno = io.open(filename, "w")
+
+if h == nil then
+    print("failed to open "..filename..": "..err)
+    return -1
+end
+
+h:write(npaths.."\n")
+
+math.randomseed(os.time())
+
+for i=1,npaths do
+    h:write("{\n")
+    local pos = {(10 * math.random()) - 5, (10 * math.random()) - 5, (10 * math.random()) - 5}
+    local dir = {(2 * math.random()) - 1, (2 * math.random()) - 1, (2 * math.random()) - 1}
+    for j=1,pathlength do
+        h:write(pos[1].." "..pos[2].." "..pos[3].."\n")
+        
+        pos[1] = pos[1] + dir[1]
+        pos[2] = pos[2] + dir[2]
+        pos[3] = pos[3] + dir[3]
+        local dirdiff = {math.random() - 0.5, math.random() - 0.5, math.random() - 0.5}
+        dir[1] = dir[1] + dirdiff[1]
+        dir[2] = dir[2] + dirdiff[2]
+        dir[3] = dir[3] + dirdiff[3]
+    end
+    h:write("}\n");
+end
+h:close()
+
+

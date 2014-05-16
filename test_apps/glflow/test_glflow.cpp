@@ -66,6 +66,46 @@ OptionParser::Option_T get_options[] = {
 	{NULL}
 };
 
+/*
+npaths
+{
+x1 y1 z1
+x2 y2 z2
+...
+}
+{
+x1 y1 z1
+x2 y2 z2
+...
+}
+*/
+
+static int getPaths(char* filename, float*** paths)
+{
+    FILE* file = fopen(filename, "r");
+    
+    if(!file)
+    {
+        printf("failed to open %s\n", filename);
+        return 0;
+    }
+    
+    int npaths = 0;
+    int found = fscanf(file, "%d", &npaths);
+    if(!found) return 0;
+    
+    *paths = new float*[npaths];
+    for(int i = 0; i < npaths; i++) (*paths)[i] = 0;
+    bool reading = false;
+    int pathidx = 0;
+    
+    while(true)
+    {
+        
+    }
+}
+
+/*
 static int nfloats(char* filename)
 {
     FILE* file = fopen(filename, "r");
@@ -91,6 +131,7 @@ static int getfloats(char* filename, float* buff, int max)
     
     return total;
 }
+*/
 static void drawCube();
 bool manual = false;
 int scrw, scrh, midx, midy;
@@ -684,9 +725,12 @@ int main(int argc, char** argv)
 	}
     if(strcmp(opt.datafile, ""))
     {
+        //LOAD DATA FROM FILE IF APPLICABLE
+        /*
         pd7sz = nfloats(opt.datafile);
         pathdata7 = new float[pd7sz];
         getfloats(opt.datafile, pathdata7, pd7sz);
+        */
     }
 
     if(!glfwInit()) exit(EXIT_FAILURE);
