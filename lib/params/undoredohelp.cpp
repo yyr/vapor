@@ -19,6 +19,7 @@
 #include "undoredohelp.h"
 #include "params.h"
 #include "vapor/ParamsBase.h"
+#include "instanceparams.h"
 
 #include "assert.h"
 
@@ -27,26 +28,40 @@ using namespace VAPoR;
 //Statics
 vector<UndoRedoHelp*> UndoRedoHelp::undoRedoHelpQueue;
 
-bool UndoRedoInstanceHelp::UndoRedo(Params* beforeP, Params* afterP){
-	if (beforeP && afterP) return false; //At least one must be null.
-	if (!afterP){ //Need to undo the deletion of beforeP, or redo the creation of beforeP
-		assert(beforeP->isRenderParams());
-		int instance = beforeP->GetInstanceIndex();
-		assert(instance >=0);
-		int viz = beforeP->GetVizNum();
-		assert(viz >= 0);
-		string tag = beforeP->GetName();
-		Params::ParamsBaseType t = ParamsBase::GetTypeFromTag(tag);
-		Params::InsertParamsInstance(t, viz, instance, beforeP->deepCopy());
-	} else { // afterP is non-null. Need to redo the deletion of beforeP or undo the creation of beforeP
-		assert(afterP->isRenderParams());
-		int instance = afterP->GetInstanceIndex();
-		assert(instance >=0);
-		int viz = afterP->GetVizNum();
-		assert(viz >= 0);
-		string tag = afterP->GetName();
-		Params::ParamsBaseType t = ParamsBase::GetTypeFromTag(tag);
-		Params::RemoveParamsInstance(t, viz, instance);
+bool UndoRedoInstanceHelp::UndoRedo(bool isUndo, Params* beforeP, Params* afterP){
+	//This only handles InstanceParams
+	if (beforeP->GetParamsBaseTypeId() != Params::GetTypeFromTag(InstanceParams::_instanceParamsTag)) return false;
+	if (afterP->GetParamsBaseTypeId() != Params::GetTypeFromTag(InstanceParams::_instanceParamsTag)) return false;
+	//Check for an add or remove, by enumerating all the instances 
+	InstanceParams* p1 = (InstanceParams*)beforeP;
+	InstanceParams* p2 = (InstanceParams*)afterP;
+	ParamNode* pnode = p1->getChangingParamNode();
+	if(!pnode) pnode = p2->getChangingParamNode();
+	if(!pnode) return true; //It's not an add or remove change
+	string tag;
+	int instance, viz;
+	int changeType = InstanceParams::instanceDiff(p1, p2, tag, &instance, &viz);
+	if (changeType == 0 ) return true;
+	ParamsBase::ParamsBaseType pType = ParamsBase::GetTypeFromTag(tag);
+	//ChangeType is 1 if p1 has the changed instance, 2 if p2 has the changed instance.
+	//addInstance has changeType 2, removeInstance has changeType 1.
+	//OK, make the undo or redo requested:
+	//To Undo an addInstance or redo a removeInstance need to remove the specified instance
+	if ((isUndo && (changeType == 2))||(!isUndo &&(changeType == 1))){
+		Params::RemoveParamsInstance(pType, viz, instance);
+		return true;
 	}
-	return true;
+	//To Redo an addInstance, or Undo a removeInstance, need to insert the specified instance.
+	if ((!isUndo && (changeType == 2))||(isUndo &&(changeType == 1))){
+		Params* p = Params::CreateDefaultParams(pType);
+		ParamNode* pn = p->GetRootNode();
+		p->SetRootParamNode(pnode);
+		pn->SetParamsBase(0);
+		delete pn;
+		Params::InsertParamsInstance(pType, viz, instance, p);
+		return true;
+	}
+	//We should never get here...
+	assert(0);
+	return false;
 }

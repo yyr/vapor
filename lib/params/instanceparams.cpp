@@ -39,7 +39,7 @@ using namespace VAPoR;
 const std::string InstanceParams::_shortName = "Instances";
 const string InstanceParams::_instanceParamsTag = "InstanceParams";
 const string InstanceParams::_visualizersTag = "Visualizers";
-const string InstanceParams::_paramNodeTag = "ParamNode";
+const string InstanceParams::_paramNodeTag = "InstanceParamNode";
 const string InstanceParams::_currentInstanceTag = "CurrentInstance";
 const string InstanceParams::_numInstancesTag = "NumInstances";
 
@@ -77,7 +77,7 @@ Validate(bool doOverride){
 int InstanceParams::AddInstance(const std::string name, int viznum, Params* p){ 
 	
 	InstanceParams* ip = (InstanceParams*)Params::GetParamsInstance(_instanceParamsTag);
-	Command* cmd = Command::CaptureStart(p, "Add new renderer instance");
+	Command* cmd = Command::CaptureStart(ip, "Add new renderer instance");
 	
 	//set the params child to p's root.
 	ParamNode* paramsNode = p->GetRootNode()->deepCopy();
@@ -94,7 +94,7 @@ int InstanceParams::AddInstance(const std::string name, int viznum, Params* p){
 	int prevNumInstances = renderNode->GetElementLong(_numInstancesTag)[0];
 	renderNode->SetElementLong(_numInstancesTag,prevNumInstances+1);
 	
-	Command::CaptureEnd(cmd, p);
+	Command::CaptureEnd(cmd, ip);
 	return 0;
 }
 int InstanceParams::getCurrentInstance(const std::string name, int viznum){ 
@@ -208,5 +208,45 @@ int InstanceParams::RemoveVizWin(int viznum){
 		return -1;
 	}
 	vizNodes->DeleteNode(strm.str());
+	return 0;
+}
+ParamNode* InstanceParams::getChangingParamNode(){
+	if(GetRootNode()->HasChild(_paramNodeTag)) return GetRootNode()->GetNode(_paramNodeTag);
+	else return 0;
+}
+//Static method finds the first instance that differs between two InstanceParams.  This is
+//The instance that is being added or deleted.
+//Returns 0 if no instance change is found.  Returns 1 if the changed instance is in p1, 2 if it's in p2
+int InstanceParams::instanceDiff(InstanceParams* p1, InstanceParams* p2, string& tag, int* instance, int* viz){
+	//Iterate through child viz nodes
+	
+	ParamNode* vizNodes1 = p1->GetRootNode()->GetNode(_visualizersTag);
+	ParamNode* vizNodes2 = p2->GetRootNode()->GetNode(_visualizersTag);
+	for (int i = 0; i< vizNodes1->GetNumChildren(); i++){
+		ParamNode* vizNode1 = vizNodes1->GetChild(i);
+		string viztag = vizNode1->Tag();
+		ParamNode* vizNode2 = vizNodes2->GetNode(viztag);
+		int vizNum = std::stoi(viztag.substr(3,4)); //remove "Viz" from tag
+		//Iterate through child nodes:
+		for (int j = 0; j< vizNode1->GetNumChildren(); j++){
+			ParamNode* rparamNode1 = vizNode1->GetChild(j);
+			ParamNode* rparamNode2 = vizNode2->GetChild(j);
+			int numInst1 = rparamNode1->GetElementLong(_numInstancesTag)[0];
+			int numInst2 = rparamNode2->GetElementLong(_numInstancesTag)[0];
+			if (numInst1 != numInst2){
+				tag = rparamNode1->Tag();
+				*viz = vizNum;
+				int rc;
+				if (numInst1 < numInst2) {//Add instance, the new instance is the last one
+					*instance = numInst2-1;
+					rc = 2;
+				} else { //Remove instance, the current instance is being removed...
+					*instance = rparamNode1->GetElementLong(_currentInstanceTag)[0];
+					rc = 1;
+				}
+				return rc;
+			}
+		}
+	}
 	return 0;
 }

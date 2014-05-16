@@ -43,9 +43,13 @@ Command::Command(Params* prevParams, const char* descr){
 }
 
 Params* Command::unDo(){
+	
 	//Find the Params instance, substitute the previous root param node
 	Command* cmd = CurrentUndoCommand();
 	if (!cmd) return 0;
+	//Make copies of previous and next Params
+	Params* prevParams = cmd->CopyPreviousParams();
+	Params* nextParams = cmd->CopyNextParams();
 	Params* p = Params::GetParamsInstance(cmd->tag, cmd->winnum, cmd->instance);
 	ParamNode* r = p->GetRootNode();
 	if (r){
@@ -53,14 +57,17 @@ Params* Command::unDo(){
 		r->SetParamsBase(0);
 		delete r;
 	}
-	cmd->applyHelpers();
 	p->SetRootParamNode(cmd->prevRoot->deepCopy());
+	cmd->applyHelpers(true, prevParams, nextParams);
 	return p;
 }
 Params* Command::reDo(){
 	//Find the Params instance, substitute the next root param node
 	Command* cmd = CurrentRedoCommand();
 	if (!cmd) return 0;
+	//Make copies of previous and next Params
+	Params* prevParams = cmd->CopyPreviousParams();
+	Params* nextParams = cmd->CopyNextParams();
 	Params* p = Params::GetParamsInstance(cmd->tag, cmd->winnum, cmd->instance);
 	ParamNode* r = p->GetRootNode();
 	if (r){
@@ -68,7 +75,9 @@ Params* Command::reDo(){
 		r->SetParamsBase(0);
 		delete r;
 	}
+	
 	p->SetRootParamNode(cmd->nextRoot->deepCopy());
+	cmd->applyHelpers(false, prevParams, nextParams);
 	return p;
 	
 }
@@ -167,10 +176,10 @@ Params* Command::CopyPreviousParams(){
 	p->SetRootParamNode(prevRoot->deepCopy());
 	return p;
 }
-void Command::applyHelpers(){
+void Command::applyHelpers(bool isUndo, Params* prev, Params* next){
 	vector<UndoRedoHelp*> helperqueue = UndoRedoHelp::GetUndoRedoHelpQueue();
 	//Go through the queue, stop if an UndoRedo returns true
 	for (int i = 0; i<helperqueue.size(); i++){
-		if (helperqueue[i]->UndoRedo(CopyPreviousParams(),CopyNextParams())) return;
+		if (helperqueue[i]->UndoRedo(isUndo, prev,next)) return;
 	}
 }

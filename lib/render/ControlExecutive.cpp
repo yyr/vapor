@@ -206,8 +206,9 @@ int ControlExec::RemoveParams(int viz, string type, int instance){
 	if (0 == GetVisualizer(viz)) return -1;
 	int ptype = Params::GetTypeFromTag(type);
 	if (ptype <= 0) return -1;
-	Params::RemoveParamsInstance(ptype,viz,instance);
+	//Must update the instance params before performing the actual removal...
 	int rc = InstanceParams::RemoveInstance(type, viz, instance);
+	Params::RemoveParamsInstance(ptype,viz,instance);
 	return rc;
 }
 int ControlExec::FindInstanceIndex(int viz, RenderParams* p){
@@ -353,8 +354,8 @@ createAllDefaultParams() {
 	UndoRedoHelp::ResetUndoRedoHelpQueue();
 	//Register UndoRedo Helpers for the Render and Params libs here.
 	//Gui may seperately need to register other helpers if helper alter gui state.
-	//UndoRedoInstanceHelp* helper = new UndoRedoInstanceHelp();
-	//UndoRedoHelp::AddUndoRedoHelp(helper);
+	UndoRedoInstanceHelp* helper = new UndoRedoInstanceHelp();
+	UndoRedoHelp::AddUndoRedoHelp(helper);
 }
 void ControlExec::
 reinitializeParams(bool doOverride){

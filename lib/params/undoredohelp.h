@@ -49,7 +49,12 @@ public:
 	//! the subclass does not perform the specified Undo/Redo,
 	//! then it returns false.  Otherwise it performs any necessary
 	//! help functions.
-	virtual bool UndoRedo(Params* before, Params* after) = 0;
+	//! \sa Command
+	//! \param[in] isUndo set true for Undo, false for Redo
+	//! \param[in] before This is the previous Params* in the Command being undone or redone
+	//! \param[in] after This is the next Params* in the Command
+	//! \retval true if this method handled the Undo or Redo; false if not.
+	virtual bool UndoRedo(bool isUndo, Params* before, Params* after) = 0;
 
 	//! Static method to put undoredohelp queue in initial and final (empty) state.
 	//! Possibly unnecessary?
@@ -80,7 +85,7 @@ protected:
 };
 //! \class UndoRedoInstanceHelp
 //! \brief Subclass of UndoRedoHelp that handles Undo and Redo of
-//! Params instance creation and deletion.  Instance creation and deletion events
+//! InstanceParams creation and deletion.  Instance creation and deletion events
 //! are identified by (1) Either the before or after instance is NULL. and
 //! (2) the nonnull Params instance must be RenderParams.
 //!
@@ -88,7 +93,7 @@ class PARAMS_API UndoRedoInstanceHelp: public UndoRedoHelp {
 public:
 	UndoRedoInstanceHelp() {}
 
-	bool UndoRedo(Params* before, Params* after);
+	bool UndoRedo(bool isUndo, Params* before, Params* after);
 };
 	
 };

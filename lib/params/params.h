@@ -346,6 +346,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	static void InsertParamsInstance(int pType, int winnum, int posn, Params* dp){
 		vector<Params*>& instances = paramsInstances[make_pair(pType,winnum)];
 		instances.insert(instances.begin()+posn, dp);
+		dp->SetInstanceIndex(posn);
 	}
 
 //! Static method that produces a list of all the Params instances of a type

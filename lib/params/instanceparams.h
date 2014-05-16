@@ -125,6 +125,12 @@ public:
 	//! Pure virtual method on Params. Provide a short name suitable for use in the GUI
 	//! \retval string name
 	const std::string getShortName() {return _shortName;}
+	//Obtain the ParamNode associated with this instanceParams (in the event of add or remove instance)
+	ParamNode* getChangingParamNode();
+	//Utility function that finds the first instance that differs between two InstanceParams.  This is
+	//The instance that is being added or deleted.
+	//Returns 0 if no instance change is found.  Returns 1 if the changed instance is in p1, 2 if it's in p2
+	static int instanceDiff(InstanceParams* p1, InstanceParams* p2, string& tag, int* instance, int* viz);
 
 #ifndef DOXYGEN_SKIP_THIS
 	
@@ -143,6 +149,8 @@ protected:
 	int getCurrentInstance(std::string tag, int viz);
 	
 	int getNumInstances(std::string tag, int viz);
+	
+	
 	
 	
 #endif //DOXYGEN_SKIP_THIS

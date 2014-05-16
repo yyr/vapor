@@ -150,7 +150,7 @@ public:
 	//sa blockCapture, isRecording
 	static void unblockCapture() {recordingCount--; assert(recordingCount>=0);}
 protected:
-	void applyHelpers();
+	void applyHelpers(bool isUndo, Params* prev, Params* next);
 	//! Static method used to insert a Command instance into the Command queue
 	//! \param [in] Command Command instance
 	//! \param [in] ignoreBlocking If true, will insert into the queue even when blocking is enabled.
