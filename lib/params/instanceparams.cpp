@@ -226,7 +226,7 @@ int InstanceParams::instanceDiff(InstanceParams* p1, InstanceParams* p2, string&
 		ParamNode* vizNode1 = vizNodes1->GetChild(i);
 		string viztag = vizNode1->Tag();
 		ParamNode* vizNode2 = vizNodes2->GetNode(viztag);
-		int vizNum = std::stoi(viztag.substr(3,4)); //remove "Viz" from tag
+		int vizNum = atoi(viztag.substr(3,4).c_str()); //remove "Viz" from tag
 		//Iterate through child nodes:
 		for (int j = 0; j< vizNode1->GetNumChildren(); j++){
 			ParamNode* rparamNode1 = vizNode1->GetChild(j);
