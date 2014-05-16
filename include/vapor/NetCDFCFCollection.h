@@ -438,7 +438,60 @@ private:
  };
 
 
+class DerivedVar_AHSPC : public NetCDFCollection::DerivedVar {
 
+public:
+  DerivedVar_AHSPC(
+    NetCDFCFCollection *ncdfcf, 
+    const std::map <string, string> &formula_map
+  );  
+  virtual ~DerivedVar_AHSPC();
+  virtual float GetMax() { return _max; }
+  virtual float GetMin() { return _min; }
+  virtual void SetMax(float val) { _max = val; }
+  virtual void SetMin(float val) { _min = val; }
+  virtual int Open(size_t ts);
+  virtual int ReadSlice(float *slice, int);
+  virtual int Read(float *buf, int);
+  virtual int CalculateElevation(float *buf, int);
+  virtual int SeekSlice(int offset, int whence, int fd);
+  virtual int Close(int) {_is_open = false; return(0); };
+  virtual bool TimeVarying() const {return(false); };
+  virtual std::vector <size_t>  GetSpatialDims() const { return(_dims); }
+  virtual std::vector <string>  GetSpatialDimNames() const { return(_dimnames); }
+  virtual size_t  GetTimeDim() const { return(0); }
+  virtual string  GetTimeDimName() const { return(""); };
+  virtual bool GetMissingValue(double &mv) const {mv=0.0; return(false); }
+  virtual int DCZ2(float*  PS1,    float*  PHIS1, 
+                   float** TV2,    int     NL, 
+                   float   P0,     float** HYBA,   float** HYBB,
+                   int     KLEV,   int     MLON,   int     MLON2,
+                   float** HYPDLN, float** HYALPH, float** PTERM,
+                   float** ZSLICE);
+
+ private:
+  std::vector <size_t> _dims;
+  std::vector <string> _dimnames;
+  size_t _slice_num;
+  float *PS1;
+  float *PHIS1;
+  float *PS;
+  float *PHIS;
+  float *TV;
+  float P0;
+  float *HYAM;
+  float *HYBM;
+  float *HYAI;
+  float *HYBI;
+  float *_Z3;
+  bool _is_open;
+  bool _ok;
+  float _min;
+  float _max;
+  int KMAX;
+  int IDIM;
+  int IMAX;
+ };
 
  std::map <string, DerivedVar *> _derivedVarsMap;
  std::vector <std::string> _coordinateVars;
