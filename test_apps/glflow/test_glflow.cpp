@@ -80,9 +80,10 @@ x2 y2 z2
 }
 */
 
-static int getPaths(char* filename, float*** paths)
+static float** getPaths(char* filename)
 {
     FILE* file = fopen(filename, "r");
+    float** paths;
     
     if(!file)
     {
@@ -94,15 +95,23 @@ static int getPaths(char* filename, float*** paths)
     int found = fscanf(file, "%d", &npaths);
     if(!found) return 0;
     
-    *paths = new float*[npaths];
-    for(int i = 0; i < npaths; i++) (*paths)[i] = 0;
-    bool reading = false;
-    int pathidx = 0;
+    paths = new float*[npaths];
+    for(int i = 0; i < npaths; i++) paths[i] = 0;
     
-    while(true)
+    for(int i = 0; i < npaths; i++)
     {
+        while(fgetc(file) != '{');
+        long int pos = ftell(file);
+        float buf[3];
+        int count = 0;
+        while(fscanf(file, "%f %f %f", buf, buf + 1, buf + 2) == 3) count++;
+        fseek(file, pos, SEEK_SET);
+        paths[i] = new float[count];
+        
         
     }
+    
+    return paths;
 }
 
 /*
