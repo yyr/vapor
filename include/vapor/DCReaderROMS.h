@@ -174,6 +174,7 @@ private:
  size_t _ovr_slice;
  int _ovr_fd;
  float _defaultMV;
+ size_t _dataReversed;
 
  class latLonBuf {
  public:
