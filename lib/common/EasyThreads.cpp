@@ -197,6 +197,17 @@ int	EasyThreads::ParRun(
 	void *(*start)(void *),
 	void **arg
 ) {
+	vector <void *> argvec;
+	for (int i=0; i<nthreads_c; i++) argvec.push_back(arg[i]);
+
+	return(EasyThreads::ParRun(start, argvec));
+
+}
+
+int	EasyThreads::ParRun(
+	void *(*start)(void *),
+	std::vector <void *> argvec
+) {
 #ifdef ENABLE_THREADS
 
 #ifndef WIN32
@@ -205,7 +216,7 @@ int	EasyThreads::ParRun(
 	int	status = 0;
 
 	for(i=0; i<nthreads_c; i++) {
-		rc = pthread_create(&threads_c[i], &attr_c, start, arg[i]);
+		rc = pthread_create(&threads_c[i], &attr_c, start, argvec[i]);
 		if (rc < 0) {
 			SetErrMsg("pthread_create() : %s", strerror(errno));
 			return(-1);
@@ -229,7 +240,7 @@ int	EasyThreads::ParRun(
 		//parse the arguments into a package for the runner
 		void** info = new void*[4]; //TODO: Move to stack
 		info[0] = (void*)start;
-		info[1] = arg[i];
+		info[1] = argvec[i];
 		info[2] = (void*)mutices_c;
 		info[3] = (void*)nthreads_c;
         //launch the runners
