@@ -521,6 +521,7 @@ static inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
     itn = 0; //used to iterate through normals section
     while(itw < rsizec)
     {
+        //TODO: fix cone length
         mkcone(cones + itw, p.radius * p.arrowRatio,
                p.quality, cones + itw, nmcone + itn);
         for(int i = 0; i < cosize; i++)
@@ -569,6 +570,7 @@ void GLHedgeHogger::Draw(const float *v, int n)
             int rsizec = narrows * cosize; //size of cone section
             int nsizet = rsizet; //size of tube norm section
             int nsizec = narrows * rnsize * 2; //size of cone norm section
+            float* cones = prevdata + rsizet + nsizet;
             
             //code re-use from drawing for tubes! :D
             int tsize = (8 << p.quality) * 3;
@@ -577,7 +579,12 @@ void GLHedgeHogger::Draw(const float *v, int n)
             for(int i = 0; i < total; i += tsize * hhp.stride)
                 drawTube(prevdata + i, p.quality, total);
             
-            
+            int itn = 0;
+            for(int i = 0; i < rsizec; i += cosize)
+            {
+                drawCone(cones + i, cones + rsizec + itn, p.quality);
+                itn += rnsize * 2;
+            }
         }
         case Point:
         {
