@@ -4,10 +4,10 @@ include ${TOP}/make/config/prebase.mk
 
 LIBRARY = common
 FILES = MyBase OptionParser EasyThreads CFuncs Base64 Version PVTime \
-	GetAppPath GeoUtil
+	GetAppPath GeoUtil utils
 
 HEADER_FILES = MyBase OptionParser EasyThreads CFuncs Base64 Version PVTime \
-	GetAppPath GeoUtil errorcodes common
+	GetAppPath GeoUtil utils errorcodes common
 
 
 ifneq ($(ARCH),WIN32)
