@@ -46,9 +46,10 @@ void EventRouter::copyRendererInstance(int toWindow, RenderParams* rp){
 	string type = ControlExec::GetTagFromType(myParamsBaseType);
 	//Clone this params
 	RenderParams* newP = (RenderParams*)rp->deepCopy();
+	
+	int rc = ControlExec::AddParams(toWindow,type,newP);
 	newP->SetVizNum(toWindow);
 	newP->SetEnabled(false);
-	int rc = ControlExec::AddParams(toWindow,type,newP);
 	assert (!rc);
 	//update tab is only needed up update the instanceTable when we are copying in the same viz
 	updateTab ();
@@ -66,9 +67,10 @@ void EventRouter::newRendererInstance(int winnum){
 	
 	string type = ControlExec::GetTagFromType(myParamsBaseType);
 	RenderParams* newP = dynamic_cast<RenderParams*>(ControlExec::GetDefaultParams(type)->deepCopy());
+	
+	int rc = ControlExec::AddParams(winnum,type,newP);
 	newP->SetVizNum(winnum);
 	newP->SetEnabled(false);
-	int rc = ControlExec::AddParams(winnum,type,newP);
 	assert (!rc);
 	updateTab ();
 }

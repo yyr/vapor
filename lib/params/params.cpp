@@ -50,7 +50,6 @@ const string Params::_CompressionLevelTag = "CompressionLevel";
 const string Params::_VariableNamesTag = "VariableNames";
 const string Params::_LocalTag = "Local";
 const string RenderParams::_EnabledTag = "Enabled";
-const string Params::_InstanceTag = "Instance";
 
 std::map<pair<int,int>,vector<Params*> > Params::paramsInstances;
 std::map<pair<int,int>, int> Params::currentParamsInstance;
@@ -66,7 +65,6 @@ Params::Params(
 	//Avoid command queue use in constructor:
 	if(winNum < 0) GetRootNode()->SetElementLong(_LocalTag,0);
 	else GetRootNode()->SetElementLong(_LocalTag,1);
-	SetInstanceIndex(0);
 	changeBit = true;
 }
 
@@ -177,7 +175,6 @@ void Params::RemoveParamsInstance(int pType, int winnum, int instance){
 	if (currInst > instance) currentParamsInstance[make_pair(pType,winnum)] = currInst - 1;
 	instVec.erase(instVec.begin()+instance);
 	if (currInst >= (int) instVec.size()) currentParamsInstance[make_pair(pType,winnum)]--;
-	for (int i = instance; i<instVec.size(); i++) instVec[i]->SetInstanceIndex(i);
 	delete p;
 	if (instVec.size() == 0) 
 		paramsInstances.erase(it);
@@ -286,14 +283,14 @@ int RenderParams::GetRefinementLevel(){
 		const vector<long>defaultRefinement(1,0);
 		return (GetValueLong(_RefinementLevelTag,defaultRefinement));
 }
-int Params::SetInstanceIndex(int indx){
-	//Not a user-level setting; no undo support
-	GetRootNode()->SetElementLong(_InstanceTag, indx);
-	return 0;
-}
+
 int Params::GetInstanceIndex(){
-	const vector<long>defaultInstance(1,1);
-	return (GetValueLong(_InstanceTag,defaultInstance));
+	vector<Params*> instances = GetAllParamsInstances(GetParamsBaseTypeId(), GetVizNum());
+	for (int i = 0; i<instances.size(); i++){
+		if (this == instances[i]) return i;
+	}
+	assert(0);
+	return -1;
 }
 //Following calculates box corners in user space.  Does not use
 //stretching.

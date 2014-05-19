@@ -37,11 +37,21 @@ bool UndoRedoInstanceHelp::UndoRedo(bool isUndo, Params* beforeP, Params* afterP
 	InstanceParams* p2 = (InstanceParams*)afterP;
 	ParamNode* pnode = p1->getChangingParamNode();
 	if(!pnode) pnode = p2->getChangingParamNode();
-	if(!pnode) return true; //It's not an add or remove change
-	string tag;
 	int instance, viz;
+	string tag;
 	int changeType = InstanceParams::instanceDiff(p1, p2, tag, &instance, &viz);
-	if (changeType == 0 ) return true;
+	if(changeType == 3) { //It's not an add or remove change; Just need to set the current instance
+		//Note that we obtain the viznum from the instanceDiff traversal, not from the GetVizNum method.
+		if (isUndo) {
+			instance = p1->getCurrentInstance(tag, viz);
+		}
+		else {
+			instance = p2->getCurrentInstance(tag, viz);
+		}
+		Params::SetCurrentParamsInstanceIndex(Params::GetTypeFromTag(tag), viz, instance);
+		return true;
+	}
+	assert(changeType != 0);
 	ParamsBase::ParamsBaseType pType = ParamsBase::GetTypeFromTag(tag);
 	//ChangeType is 1 if p1 has the changed instance, 2 if p2 has the changed instance.
 	//addInstance has changeType 2, removeInstance has changeType 1.

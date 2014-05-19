@@ -36,7 +36,9 @@ Command::Command(Params* prevParams, const char* descr){
 	description = string(descr);
 	if (prevParams) {
 		tag = prevParams->GetName();
-		instance = prevParams->GetInstanceIndex();
+		if (prevParams->isRenderParams())
+			instance = prevParams->GetInstanceIndex();
+		else instance = -1;
 		winnum = prevParams->GetVizNum();
 	}
 	nextRoot = 0;

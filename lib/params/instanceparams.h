@@ -140,13 +140,13 @@ public:
 	static const string _numInstancesTag;
 	static const string _currentInstanceTag;
 	static const string _paramNodeTag;
-
+	int getCurrentInstance(std::string tag, int viz);
 protected:
 	
 	//! following non-static Set/get methods are not public.
 	int addVizWin(int viznum);
 	int setCurrentInstance(std::string tag, int viz, int instance);
-	int getCurrentInstance(std::string tag, int viz);
+	
 	
 	int getNumInstances(std::string tag, int viz);
 	

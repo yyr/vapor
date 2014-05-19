@@ -162,8 +162,7 @@ int ControlExec::ActivateRender(int viz, string type, int instance, bool on){
 
 Params* ControlExec::GetParams(int viz, string type, int instance){
 	Params* p = Params::GetParamsInstance(type,viz,instance);
-	int inst = p->GetInstanceIndex();
-	if (instance >= 0) assert (inst == instance);
+	if (instance >= 0) assert (p->GetInstanceIndex() == instance);
 	return Params::GetParamsInstance(type,viz,instance);
 }
 int ControlExec::SetCurrentParamsInstance(int viz, string typetag, int instance){
@@ -172,10 +171,10 @@ int ControlExec::SetCurrentParamsInstance(int viz, string typetag, int instance)
 	int ptype = Params::GetTypeFromTag(typetag);
 	if (ptype <= 0) return -1;
 	int rc = 0;
-	Params::SetCurrentParamsInstanceIndex(ptype,viz,instance);
+	
 	if (GetDefaultParams(typetag)->isRenderParams()){
 		rc = InstanceParams::SetCurrentInstance(typetag,viz,instance);
-	}
+	} else Params::SetCurrentParamsInstanceIndex(ptype,viz,instance);
 	return rc;
 }
 int ControlExec::GetCurrentRenderParamsInstance(int viz, string typetag){
@@ -559,7 +558,6 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 			
 				pm->pushClassStack(parsingParams);
 				parsingParams->elementStartHandler(pm, depth, tag, attrs);
-				int inst = parsingParams->GetInstanceIndex();
 				tempParsedParams = parsingParams;
 				return true;
 			}
@@ -595,7 +593,6 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 		case(3):
 			// finished with params instance parsing
 			if (Params::IsParamsTag(tag)){
-				int inst = tempParsedParams->GetInstanceIndex();
 				return true;
 			}
 			return false;

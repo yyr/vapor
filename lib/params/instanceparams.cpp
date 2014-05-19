@@ -127,6 +127,7 @@ int InstanceParams::setCurrentInstance(const std::string name, int viznum, int i
 	ParamNode* vizNode = vizNodes->GetNode(strm.str());
 	ParamNode* renderNode = vizNode->GetNode(name);
 	int rc = renderNode->SetElementLong(_currentInstanceTag, instance);
+	if (!rc) Params::SetCurrentParamsInstanceIndex(GetTypeFromTag(name),viznum, instance);
 	if (!rc) Command::CaptureEnd(cmd, this);
 	else delete cmd;
 	return rc;
@@ -158,7 +159,7 @@ int InstanceParams::RemoveInstance(const std::string name, int viznum, int insta
 		
 	renderNode->SetElementLong(_numInstancesTag,prevNumInstances-1);
 	renderNode->SetElementLong(_currentInstanceTag,currentInstance);
-
+	Params::SetCurrentParamsInstanceIndex(GetTypeFromTag(name),viznum, currentInstance);
 	Command::CaptureEnd(cmd, ip);
 	return 0;
 }
@@ -215,8 +216,9 @@ ParamNode* InstanceParams::getChangingParamNode(){
 	else return 0;
 }
 //Static method finds the first instance that differs between two InstanceParams.  This is
-//The instance that is being added or deleted.
+//The instance that is being added or deleted, or the instance that is changing
 //Returns 0 if no instance change is found.  Returns 1 if the changed instance is in p1, 2 if it's in p2
+//Returns 3 if the current instance changes but not the number of instances
 int InstanceParams::instanceDiff(InstanceParams* p1, InstanceParams* p2, string& tag, int* instance, int* viz){
 	//Iterate through child viz nodes
 	
@@ -233,6 +235,9 @@ int InstanceParams::instanceDiff(InstanceParams* p1, InstanceParams* p2, string&
 			ParamNode* rparamNode2 = vizNode2->GetChild(j);
 			int numInst1 = rparamNode1->GetElementLong(_numInstancesTag)[0];
 			int numInst2 = rparamNode2->GetElementLong(_numInstancesTag)[0];
+			int curInst1 = rparamNode1->GetElementLong(_currentInstanceTag)[0];
+			int curInst2 = rparamNode2->GetElementLong(_currentInstanceTag)[0];
+			
 			if (numInst1 != numInst2){
 				tag = rparamNode1->Tag();
 				*viz = vizNum;
@@ -245,6 +250,12 @@ int InstanceParams::instanceDiff(InstanceParams* p1, InstanceParams* p2, string&
 					rc = 1;
 				}
 				return rc;
+			}
+			if (curInst1 != curInst2){
+				tag = rparamNode1->Tag();
+				*viz = vizNum;
+				*instance = -1; //Just indicates it's changing
+				return 3;
 			}
 		}
 	}
