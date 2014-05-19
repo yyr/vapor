@@ -68,28 +68,6 @@ inline void mkring(const float* d, int n, float r, float* o, float* on = NULL, f
     }
 }
 
-static inline void mkcone(const float* back, float r, int q, float* o, float* on = NULL)
-{
-    o[0] = 0;
-    o[1] = 1;
-    o[2] = 2;
-    int rsize = 3 << (2 + q);
-    int total = rsize + 3;
-    mkring(back, q, r, o + 3);
-    if(on)
-    {
-        //make normals and shift vertices in the same loop
-        for(int i = 3; i < total; i+=3)
-        {
-            cross(back, o + i, on + i);
-            add(o + i, back, o + i);
-            cross(on + i, o + i, on + i);
-        }
-    }
-    //just shift the vertices into place
-    else for(int i = 3; i < total; i+=3) add(o + i, back, o + i);
-}
-
 static inline void drawRing(const float* n, int d, float r)
 {
     //the initial 4 vertices, doubled once for every subdivision,
@@ -243,6 +221,124 @@ static inline void drawTube(const float* a, const float* b, int d, float r)
     drawTube(o, d);
 }
 
+static inline void mkcone(const float* dir, float r, int q, float* o, float* on = NULL)
+{
+    //put our zero-vector (the tip) in the first vector of the vertex array
+    mov(z3, o);
+    int rsize = ringSize(q);
+    int sz = rsize + 3;
+    int nsz = rsize * 2;
+    //fill out the rest of the vertex array with radial vectors
+    mkring(dir, q, r, o + 3);
+    int ni = 0;
+    //for each vector
+    for(int i = 3; i < sz && ni < nsz; i+=3)
+    {
+        //place its normal in the correct location in the normal array
+        if(on) norm(o + i, on + ni);
+        //subtract the forward-vector of the cone to finalize
+        sub(o + i, dir, o + i);
+        //get correct location in normal array for next normal
+        ni += 6;
+    }
+    if(on)
+    {
+        //correct normals, get intermediates for tip normals
+        //orthogonalize the first normal with respect to the first radial vertex
+        ortho(on, o + 3, on);
+        norm(on, on);
+        int vi = 6;
+        int i = 6;
+        float mid[3];
+        add(o + 3, o + sz - 3, mid); //something to orthogonalize against
+        add(on, on + nsz - 6, on + nsz - 3); //something to orthogonalize
+        ortho(on + nsz - 3, mid, on + nsz - 3); //orthogonalization
+        norm(on + nsz - 3, on + nsz - 3);
+        for(; i < nsz && vi < sz; i+=6)
+        {
+            //printf("ni = %d/%d\nvi = %d/%d\n", i, nsz, vi, sz);
+            add(o + vi, o + vi - 3, mid);
+            add(on + i, on + i - 6, on + i - 3);
+            ortho(on + i - 3, mid, on + i - 3);
+            ortho(on + i, o + vi, on + i);
+            norm(on + i - 3, on + i - 3);
+            norm(on + i, on + i);
+            
+            vi += 3;
+        }
+        //this is a really, really approximate solution for the missing normal
+        //add(on, on + i - 6, on + i - 3);
+        //norm(on + i - 3, on + i - 3);
+    }
+}
+
+static inline void drawCone(const float* v, const float* n, int q)
+{
+    GLint oldmodel;
+    if(n)
+    {
+        int rsz = ringSize(q);
+        int sz = rsz + 3;
+        int nsz = rsz * 2;
+        int vi = 3;
+        int i = 0;
+        int ci = 0; //color-index for debug-coloring
+        //printf("NEW CONE, sz = %d, nsz = %d\n", sz, nsz);
+        glBegin(GL_TRIANGLES);
+        for(; i < nsz - 6 && vi < sz - 3; i+=6)
+        {
+            //two-step to the next triangle
+            //glMaterialfv(GL_FRONT, GL_DIFFUSE, testcolors + ci);
+            glNormal3fv(n + (i % nsz));
+            glVertex3fv(v + (vi % sz));
+            glNormal3fv(n + ((i + 3) % nsz));
+            glVertex3fv(v);
+            glNormal3fv(n + ((i + 6) % nsz));
+            glVertex3fv(v + ((vi + 3) % sz));
+            /*
+            printf("N %d %d %d\n", i % nsz, (i + 3) % nsz, (i + 6) % nsz);
+            printvec(n + (i % nsz));
+            printvec(n + ((i + 3) % nsz));
+            printvec(n + ((i + 6) % nsz));
+            printf("F %d %d %d\n", vi % sz, 0, (vi + 3) % sz);
+            printvec(v + (vi % sz));
+            printvec(v);
+            printvec(v + (vi + 3) % sz);
+            */
+            vi += 3;
+            ci = (ci + 4) % 24;
+        }
+        //do the last face, needs special handling, as it loops around
+        //glMaterialfv(GL_FRONT, GL_DIFFUSE, testcolors + ci);
+        glNormal3fv(n + (i % nsz));
+        glVertex3fv(v + (vi % sz));
+        glNormal3fv(n + ((i + 3) % nsz));
+        glVertex3fv(v);
+        glNormal3fv(n + ((i + 6) % nsz));
+        glVertex3fv(v + 3);
+        glEnd();
+        /*
+        printf("N %d %d %d\n", i % nsz, (i + 3) % nsz, (i + 6) % nsz);
+        printvec(n + (i % nsz));
+        printvec(n + ((i + 3) % nsz));
+        printvec(n + ((i + 6) % nsz));
+        printf("F %d %d %d\n", vi % sz, 0, 3);
+        printvec(v + (vi % sz));
+        printvec(v);
+        printvec(v + 3);
+        */
+    }
+    else
+    {
+        //complete this once normals repaired
+        int sz = coneSize(q);
+        glBegin(GL_TRIANGLE_FAN);
+        for(int i = 0; i < sz; i+=3)
+            glVertex3fv(v + i);
+        glEnd();
+    }
+}
+
 
 
 GLFlowRenderer::GLFlowRenderer()
@@ -259,7 +355,7 @@ GLFlowRenderer::~GLFlowRenderer()
 
 GLFlowRenderer::Params::Params()
 {
-    style = GLFlowRenderer::Arrow;
+    style = Arrow;
     extents[0] = -100.f;
     extents[1] = 100.f;
     extents[2] = -100.f;
@@ -381,18 +477,113 @@ static inline float* hhTubes(const float* v, int n, GLHedgeHogger::Params p)
     return r; //let them eat cake
 }
 
+static inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
+{
+    int rnverts = 4 << p.quality; //vertices in a ring
+    int tuverts = rnverts * 2; //vertices in a tube
+    int coverts = rnverts + 1; //vertices in a cone
+    int rnsize = 3 * rnverts; //floats in a ring
+    int tusize = rnsize * 2; //floats in a tube
+    int cosize = coverts * 3; //floats in a cone
+    int narrows = n / p.stride; //number of tubes
+    int rsizet = narrows * tusize; //size of tube section
+    int rsizec = narrows * cosize; //size of cone section
+    int nsizet = rsizet; //size of tube norm section
+    int nsizec = narrows * rnsize * 2; //size of cone norm section
+    float* result = new float[rsizet + nsizet + rsizec + nsizec]; //result
+    float* tubes = result; //location of tube vertices
+    float* nmtube = tubes + rsizet; //location of tube normals
+    float* cones = result + 2 * rsizet; //location of cone vertices
+    float* nmcone = cones + rsizec; //location of cone normals
+    float coneRadius = p.radius * p.arrowRatio;
+    //tubes | tube norms | cones | cone norms
+    int itr = 0; //used to read input positions
+    int itw = 0; //used to write tube data
+    int itn = 0; //used to copy deltas to cone section
+    //code re-use from hhTubes! :D
+    while(itw < rsizet)
+    {
+        sub(v + itr + 3, v + itr, tubes + itw);
+        neg(tubes + itw, cones + itn); //copy deltas to cone section
+        mkring(tubes + itw, p.quality, p.radius, tubes + itw, nmtube + itw);
+        for(int i = itw; i < itw + rnsize; i += 3)
+        {
+            mov(nmtube + i, nmtube + i + rnsize);
+            add(v + itr + 3, tubes + i, tubes + i + rnsize);
+            add(v + itr, tubes + i, tubes + i);
+        }
+        itr += 6 * p.stride;
+        itw += tusize;
+        itn += cosize;
+    }
+    itr = 3; //used to read input positions
+    itw = 0; //used to write cones
+    itn = 0; //used to iterate through normals section
+    while(itw < rsizec)
+    {
+        mkcone(cones + itw, p.radius * p.arrowRatio,
+               p.quality, cones + itw, nmcone + itn);
+        for(int i = 0; i < cosize; i++)
+        {
+            add(cones + itw + i, v + itr + i, cones + itw + i);
+        }
+        itr += 6 * p.stride;
+        itw += cosize;
+    }
+    return result;
+}
+
 void GLHedgeHogger::Draw(const float *v, int n)
 {
-    if(changed || v != prevdata)
+    switch(p.style)
     {
-        if(prevdata != 0) delete[] prevdata;
-        prevdata = hhTubes(v, n, hhp);
+        case Tube:
+        {
+            if(changed || v != prevdata)
+            {
+                if(prevdata != 0) delete[] prevdata;
+                prevdata = hhTubes(v, n, hhp);
+            }
+            int tsize = (8 << p.quality) * 3;
+            int total = (n << (3 + p.quality)) * 3;
+            glMaterialfv(GL_FRONT, GL_DIFFUSE, hhp.baseColor);
+            for(int i = 0; i < total; i += tsize * hhp.stride)
+                drawTube(prevdata + i, p.quality, total);
+        }
+        case Arrow:
+        {
+            if(changed || v != prevdata)
+            {
+                if(prevdata != 0) delete[] prevdata;
+                prevdata = hhArrows(v, n, hhp);
+            }
+            //drawCone(const float* v, const float* n, int q)
+            int rnverts = 4 << p.quality; //vertices in a ring
+            int tuverts = rnverts * 2; //vertices in a tube
+            int coverts = rnverts + 1; //vertices in a cone
+            int rnsize = 3 * rnverts; //floats in a ring
+            int tusize = rnsize * 2; //floats in a tube
+            int cosize = coverts * 3; //floats in a cone
+            int narrows = n / p.stride; //number of tubes
+            int rsizet = narrows * tusize; //size of tube section
+            int rsizec = narrows * cosize; //size of cone section
+            int nsizet = rsizet; //size of tube norm section
+            int nsizec = narrows * rnsize * 2; //size of cone norm section
+            
+            //code re-use from drawing for tubes! :D
+            int tsize = (8 << p.quality) * 3;
+            int total = (n << (3 + p.quality)) * 3;
+            glMaterialfv(GL_FRONT, GL_DIFFUSE, hhp.baseColor);
+            for(int i = 0; i < total; i += tsize * hhp.stride)
+                drawTube(prevdata + i, p.quality, total);
+            
+            
+        }
+        case Point:
+        {
+        
+        }
     }
-    int tsize = (8 << p.quality) * 3;
-    int total = (n << (3 + p.quality)) * 3;
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, hhp.baseColor);
-    for(int i = 0; i < total; i += tsize * hhp.stride)
-        drawTube(prevdata + i, p.quality, total);
 }
 
 void GLHedgeHogger::Draw(const float *vectors, const float *rgba, int n)
@@ -405,6 +596,7 @@ void GLHedgeHogger::Draw(const float *vectors, const float *rgba, int n)
 GLPathRenderer::GLPathRenderer() : GLFlowRenderer()
 {
     prp = GLPathRenderer::Params();
+    p.style = Tube;
 }
 
 GLPathRenderer::~GLPathRenderer()
@@ -501,19 +693,33 @@ static inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
 static bool printed = false;
 void GLPathRenderer::Draw(const float *v, int n)
 {
-    n = n / prp.stride;
-    if(changed || prevdata != v)
+    switch(p.style)
     {
-        if(prevdata != 0) delete[] prevdata;
-        prevdata = prTubes(v, n, prp);
+        case Tube:
+        {
+            n = n / prp.stride;
+            if(changed || prevdata != v)
+            {
+                if(prevdata != 0) delete[] prevdata;
+                prevdata = prTubes(v, n, prp);
+            }
+            int rsize = (4 << prp.quality) * 3;
+            //int total = ((n << (2 + prp.quality)) * 3) - rsize;
+            int total = rsize * n;
+            //glColor4fv(prp.baseColor);
+            glMaterialfv(GL_FRONT, GL_DIFFUSE, prp.baseColor);
+            for(int i = 0; i < total - rsize; i += rsize)
+            drawTube(prevdata + i, prp.quality, total);
+        }
+        case Arrow:
+        {
+        
+        }
+        case Point:
+        {
+        
+        }
     }
-    int rsize = (4 << prp.quality) * 3;
-    //int total = ((n << (2 + prp.quality)) * 3) - rsize;
-    int total = rsize * n;
-    //glColor4fv(prp.baseColor);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, prp.baseColor);
-    for(int i = 0; i < total - rsize; i += rsize)
-        drawTube(prevdata + i, prp.quality, total);
 }
 
 void GLPathRenderer::Draw(const float *vectors, const float *rgba, int n)

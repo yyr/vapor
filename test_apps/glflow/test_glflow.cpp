@@ -41,6 +41,7 @@ struct {
 OptionParser::OptDescRec_T set_options[] = {
 	{"help", 0, "", "Print this message and exit"},
 	{"data", 1, "", "A test data source"},
+	{"color", 3, "1.0 0.0 0.0", "The base color"},
 	{"colors", 1, "", "A test color source"},
 	{"mode", 1, "tubes", "Render mode: tubes | arrows | lines"},
 	{"radius", 1, "1.0", "Radius multiplier of rendered shapes"},
@@ -66,22 +67,22 @@ OptionParser::Option_T get_options[] = {
 	{NULL}
 };
 
-/*
-npaths
-{
-x1 y1 z1
-x2 y2 z2
-...
-}
-{
-x1 y1 z1
-x2 y2 z2
-...
-}
-*/
-
 static float** getPaths(char* filename, int* size, int** sizes)
 {
+    /*
+    npaths
+    {
+    x1 y1 z1
+    x2 y2 z2
+    ...
+    }
+    {
+    x1 y1 z1
+    x2 y2 z2
+    ...
+    }
+    */
+    
     FILE* file = fopen(filename, "r");
     float** paths;
     
@@ -121,33 +122,6 @@ static float** getPaths(char* filename, int* size, int** sizes)
     return paths;
 }
 
-/*
-static int nfloats(char* filename)
-{
-    FILE* file = fopen(filename, "r");
-    if(!file) return 0;
-    int size;
-    fscanf(file, "%u\n", &size);
-    fclose(file);
-    return size;
-}
-static int getfloats(char* filename, float* buff, int max)
-{
-    FILE* file = fopen(filename, "r");
-    int size;
-    fscanf(file, "%u\n", &size);
-    int total = 0;
-    for(int i = 0; i < size; i++)
-    {
-        int diff = fscanf(file, "%f", buff + i);
-        if(diff == 0) break;
-        total += diff;
-    }
-    fclose(file);
-    
-    return total;
-}
-*/
 static void drawCube();
 bool manual = false;
 int scrw, scrh, midx, midy;
@@ -164,7 +138,7 @@ void windowSize(GLFWwindow* window, int width, int height)
     glViewport(0, 0, (GLsizei)width, (GLsizei)height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(fov, (double)scrw/(double)scrh, 0.1, 100.0);
+    gluPerspective(fov, (double)scrw/(double)scrh, 0.1, 1000.0);
     glMatrixMode(GL_MODELVIEW);
     scrw = width;
     scrh = height;
@@ -291,7 +265,7 @@ void mouseScroll(GLFWwindow* window, double xoffset, double yoffset)
     if(v_distance < 0.0) v_distance = 0.0;
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(fov, (double)scrw/(double)scrh, 0.1, 100.0);
+    gluPerspective(fov, (double)scrw/(double)scrh, 0.1, 1000.0);
     glMatrixMode(GL_MODELVIEW);
 }
 
@@ -747,15 +721,7 @@ int main(int argc, char** argv)
 		exit(EXIT_FAILURE);
 	}
     if(strcmp(opt.datafile, ""))
-    {
-        //LOAD DATA FROM FILE IF APPLICABLE
         pathdata7 = getPaths("testdata", &pd7sz, &pd7szs);
-        /*
-        pd7sz = nfloats(opt.datafile);
-        pathdata7 = new float[pd7sz];
-        getfloats(opt.datafile, pathdata7, pd7sz);
-        */
-    }
 
     if(!glfwInit()) exit(EXIT_FAILURE);
     GLFWwindow* window = glfwCreateWindow(scrw, scrh, "test_glflow", NULL, NULL);

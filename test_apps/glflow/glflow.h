@@ -14,7 +14,6 @@ public:
     virtual ~GLFlowRenderer();
 
     ///some shape types that flow renderers can draw
-    //ADDED RIBBON SHAPE! :D
     enum Style{Point, Arrow, Tube};
 
     ///used to parameterize FlowRenderers
@@ -35,7 +34,7 @@ public:
         float baseColor[4];
         ///the multiplier for the radius of the shapes
         float radius;
-        ///the size ratio of an arrow's head's radius
+        ///the ratio of an arrow's head's radius
         ///to that of the arrow itself
         ///a larger value results in larger arrowheads
         ///also scales the length of the arrowhead
