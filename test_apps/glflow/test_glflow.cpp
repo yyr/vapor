@@ -12,6 +12,7 @@
 using namespace std;
 
 #include <vapor/OptionParser.h>
+#include <vapor/CFuncs.h>
 using namespace VetsUtil;
 
 //possible conventions for the vector system I've created...
@@ -41,13 +42,12 @@ struct {
 OptionParser::OptDescRec_T set_options[] = {
 	{"help", 0, "", "Print this message and exit"},
 	{"data", 1, "", "A test data source"},
-	{"color", 3, "1.0 0.0 0.0", "The base color"},
 	{"colors", 1, "", "A test color source"},
 	{"mode", 1, "tubes", "Render mode: tubes | arrows | lines"},
 	{"radius", 1, "1.0", "Radius multiplier of rendered shapes"},
 	{"quality", 1, "0", "Number of subdivisions of rendered shapes"},
 	{"stride", 1, "1", "Traverse how many vertices between rendering?"},
-	{"ratio", 1, "1.0", "Ratio of arrow to tube radius"},
+	{"ratio", 1, "1.3", "Ratio of arrow to tube radius"},
 	{"length", 1, "1.0", "Arrow cone length"},
 	{"profile", 1, "-1", "Profile, how many iterations?"},
 	{NULL}
@@ -130,7 +130,7 @@ double fov = 90.0;
 float v_distance = 20.f;
 
 void init();
-void display(long int* profout = 0);
+void display(double* profout = 0);
 
 //glfw window event callbacks
 void windowSize(GLFWwindow* window, int width, int height)
@@ -480,6 +480,7 @@ void init(void)
     hcopy.baseColor[3] = 1.f;
     hcopy.stride = opt.stride;
     hcopy.style = GLFlowRenderer::Arrow;
+    hcopy.arrowRatio = opt.ratio;
 
     hog.SetParams(&hcopy);
     
@@ -493,6 +494,7 @@ void init(void)
     pcopy.baseColor[2] = 0.7f;
     pcopy.baseColor[3] = 1.f;
     pcopy.stride = opt.stride;
+    pcopy.arrowRatio = opt.ratio;
     
     path.SetParams(&pcopy);
     
@@ -651,7 +653,7 @@ inline void coneTest(const float* b, int q, float r)
     delete[] v;
 }
 
-void display(long int* profout)
+void display(double* profout)
 {
     //in case we need dt or elapsed time
     double newTime = glfwGetTime();
@@ -671,30 +673,29 @@ void display(long int* profout)
 
     //glColor4f(1.f, 0.f, 0.f, 0.f);
 
-    timespec ts1;
-    clock_gettime(CLOCK_REALTIME, &ts1);
-    //hog.Draw(hogdata2, 1); //single tube
+    double t1;
+    t1 = GetTime();
+    hog.Draw(hogdata2, 1); //single tube
     //hog.Draw(hogdata, 9); //regular array
     //path.Draw(pathdata, 11); //spiral
     //path.Draw(pathdata2, 3); //90 degree, dual-segment
     //path.Draw(pathdata3, 3); //straight, dual-segment
     //path.Draw(pathdata4, 2); //single-segment
     //path.Draw(pathdata5, 6); //kink testing
-    if(pathdata7)
-    {
-        for(int i = 0; i < pd7sz; i++)
-        {
-            path.Draw(pathdata7[i], pd7szs[i]);
-        }
-    }
-    else path.Draw(pathdata6, SPIRAL_SZ); //autospiral
+    //if(pathdata7)
+    //{
+    //    for(int i = 0; i < pd7sz; i++)
+    //    {
+    //        path.Draw(pathdata7[i], pd7szs[i]);
+    //    }
+    //}
+    //else path.Draw(pathdata6, SPIRAL_SZ); //autospiral
     //glTranslatef(0.f, 0.f, -3.f);
     //coneTest(conedir, opt.quality, opt.radius);
     //drawCube();
     glFlush();
-    timespec ts2;
-    clock_gettime(CLOCK_REALTIME, &ts2);
-    if(profout) *profout = ts2.tv_nsec - ts1.tv_nsec;
+    double t2 = GetTime();
+    if(profout) *profout = t2 - t1;
 }
 
 int main(int argc, char** argv)
@@ -766,9 +767,9 @@ int main(int argc, char** argv)
             ry = 30.0 * sin(1.5 * currtime);
             v_distance = 20.0 + (10.0 * sin(0.8 * currtime));
         
-            long int elapsed; 
+            double elapsed; 
             display(&elapsed);
-            double toAdd = (1.0 / (double)i) * ((double)elapsed - mean);
+            double toAdd = (1.0 / (double)i) * (elapsed - mean);
             //printf("Diff is %f nanoseconds\n", toAdd);
             if(toAdd > -1000000.0 && toAdd < 1000000.0) mean += toAdd;
             

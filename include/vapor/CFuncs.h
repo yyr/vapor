@@ -50,7 +50,7 @@ COMMON_API string Basename(const string &path);
 //!
 COMMON_API char   *Dirname(const char *pathname, char *directory);
 COMMON_API string Dirname(const string &path);
-
+COMMON_API double GetTime();
 
 };
 

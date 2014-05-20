@@ -85,6 +85,7 @@ VDFIOBase::VDFIOBase(
 VDFIOBase::~VDFIOBase() {
 }
 
+/*
 double VDFIOBase::GetTime() const {
 	double t;
 #ifdef WIN32 //Windows does not have a nanosecond time function...
@@ -121,6 +122,7 @@ double VDFIOBase::GetTime() const {
 	
 	return(t);
 }
+*/
 
 //
 // initializes members:

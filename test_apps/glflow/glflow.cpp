@@ -504,8 +504,7 @@ static inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
     while(itw < rsizet)
     {
         sub(v + itr + 3, v + itr, tubes + itw);
-        resize(tubes + itw, -2.f * coneRadius, cones + itn);
-        neg(tubes + itw, cones + itn); //copy deltas to cone section
+        resize(tubes + itw, -2.f * coneRadius, cones + itn); //flip and resize
         mkring(tubes + itw, p.quality, p.radius, tubes + itw, nmtube + itw);
         for(int i = itw; i < itw + rnsize; i += 3)
         {
