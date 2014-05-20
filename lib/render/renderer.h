@@ -115,7 +115,7 @@ public:
 	//! \param[in] instance indicates the RenderParams instance that is enabled or disabled
 	//! \param[in] beforeP is a copy of the InstanceParams at the start of the Command
 	//! \param[in] afterP is a copy of the InstanceParams at the end of the Command 
-	static void Renderer::UndoRedo(bool isUndo, int instance, Params* beforeP, Params* afterP);
+	static void UndoRedo(bool isUndo, int instance, Params* beforeP, Params* afterP);
 
 
 #ifndef DOXYGEN_SKIP_THIS
