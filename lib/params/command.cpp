@@ -19,7 +19,6 @@
 #include "command.h"
 #include "params.h"
 #include "arrowparams.h"
-#include "undoredohelp.h"
 
 using namespace VAPoR;
 
@@ -30,7 +29,7 @@ int Command::endQueuePos = 0;
 int Command::currentQueuePos = 0;
 int Command::recordingCount = 1;  //Start with command queueing blocked.
 
-Command::Command(Params* prevParams, const char* descr){
+Command::Command(Params* prevParams, const char* descr, UndoRedoHelpCB_T fcn){
 	if (!prevParams) prevRoot = 0;
 	else prevRoot = prevParams->GetRootNode()->deepCopy();
 	description = string(descr);
@@ -42,6 +41,7 @@ Command::Command(Params* prevParams, const char* descr){
 		winnum = prevParams->GetVizNum();
 	}
 	nextRoot = 0;
+	undoRedoHelper = fcn;
 }
 
 Params* Command::unDo(){
@@ -60,7 +60,10 @@ Params* Command::unDo(){
 		delete r;
 	}
 	p->SetRootParamNode(cmd->prevRoot->deepCopy());
-	cmd->applyHelpers(true, prevParams, nextParams);
+	//cmd->applyHelpers(true, cmd->instance, prevParams, nextParams);
+	if (cmd->undoRedoHelper){
+		cmd->undoRedoHelper(true, cmd->instance, prevParams, nextParams);
+	}
 	return p;
 }
 Params* Command::reDo(){
@@ -79,7 +82,10 @@ Params* Command::reDo(){
 	}
 	
 	p->SetRootParamNode(cmd->nextRoot->deepCopy());
-	cmd->applyHelpers(false, prevParams, nextParams);
+	//cmd->applyHelpers(false, cmd->instance, prevParams, nextParams);
+	if (cmd->undoRedoHelper){
+		cmd->undoRedoHelper(false, cmd->instance, prevParams, nextParams);
+	}
 	return p;
 	
 }
@@ -177,11 +183,4 @@ Params* Command::CopyPreviousParams(){
 	}
 	p->SetRootParamNode(prevRoot->deepCopy());
 	return p;
-}
-void Command::applyHelpers(bool isUndo, Params* prev, Params* next){
-	vector<UndoRedoHelp*> helperqueue = UndoRedoHelp::GetUndoRedoHelpQueue();
-	//Go through the queue, stop if an UndoRedo returns true
-	for (int i = 0; i<helperqueue.size(); i++){
-		if (helperqueue[i]->UndoRedo(isUndo, prev,next)) return;
-	}
 }

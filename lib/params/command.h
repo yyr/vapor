@@ -26,7 +26,7 @@
 
 namespace VAPoR{
 class Params;
-class UndoRedoHelper;
+
 //! \class Command
 //!
 //! \brief Provides support for maintaining a queue of recently issued commands,
@@ -45,10 +45,13 @@ class UndoRedoHelper;
 //! so is it only necessary to directly use Command::CaptureStart() and CaptureEnd() when more than one state change occurs
 //! in a single entry of the Undo/Redo queue.
 //!
-
+//! Typedef for callback functions that help during Undo and Redo
+typedef void (*UndoRedoHelpCB_T) (bool isUndo, int instance, VAPoR::Params* beforeP, VAPoR::Params* afterP);
 class PARAMS_API Command {
-public:
-	Command(Params*, const char* descr);
+	public:
+	
+
+	Command(Params*, const char* descr, UndoRedoHelpCB_T helper = 0);
 	virtual ~Command( ) {
 		if (nextRoot) delete nextRoot;
 		if (prevRoot) delete prevRoot;
@@ -72,9 +75,9 @@ public:
 	//! \param [in] prevInst The instance index, if it's a RenderParams change
 	//! \return cmd A new command initialized with prevParams.
 	//! \sa CaptureEnd
-	static Command* CaptureStart(Params* prevParams,  const char* desc){
+	static Command* CaptureStart(Params* prevParams,  const char* desc,  UndoRedoHelpCB_T helper = 0){
 		if (!isRecording()) return 0;
-		Command* cmd = new Command(prevParams, desc);
+		Command* cmd = new Command(prevParams, desc, helper);
 		blockCapture();
 		return cmd;
 	}
@@ -150,7 +153,8 @@ public:
 	//sa blockCapture, isRecording
 	static void unblockCapture() {recordingCount--; assert(recordingCount>=0);}
 protected:
-	void applyHelpers(bool isUndo, Params* prev, Params* next);
+	UndoRedoHelpCB_T undoRedoHelper;
+	void applyHelpers(bool isUndo, int instance, Params* prev, Params* next);
 	//! Static method used to insert a Command instance into the Command queue
 	//! \param [in] Command Command instance
 	//! \param [in] ignoreBlocking If true, will insert into the queue even when blocking is enabled.

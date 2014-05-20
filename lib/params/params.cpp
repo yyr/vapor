@@ -450,6 +450,12 @@ int Params::DeleteVisualizer(int viz){
 	}
 	return num;
 }
+void RenderParams::SetEnabled(bool val){
+	long lval = (long)val;
+	Command::blockCapture();
+	SetValueLong(_EnabledTag,"enable/disable renderer",lval);
+	Command::unblockCapture();
+}
  int Params::GetNumParamsInstances(int pType, int winnum){
 	std::map<pair<int,int>,vector<Params*> >::iterator it = paramsInstances.find(std::make_pair(pType,winnum));
 	if (it == paramsInstances.end()) return 0;

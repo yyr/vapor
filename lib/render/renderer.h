@@ -108,6 +108,16 @@ public:
 	//! no state or cache is retained between renderings.
 	virtual void setAllDataDirty() = 0;
 
+	//! Static method invoked during Undo and Redo of Renderer enable or disable.
+	//! This function must be passed in Command::CaptureStart for enable and disable rendering.
+	//! \sa UndoRedoHelpCB_T
+	//! \param[in] isUndo indicates whether an Undo or Redo is being performed
+	//! \param[in] instance indicates the RenderParams instance that is enabled or disabled
+	//! \param[in] beforeP is a copy of the InstanceParams at the start of the Command
+	//! \param[in] afterP is a copy of the InstanceParams at the end of the Command 
+	static void Renderer::UndoRedo(bool isUndo, int instance, Params* beforeP, Params* afterP);
+
+
 #ifndef DOXYGEN_SKIP_THIS
 	const string getMyName() const {return(_myName);};
 	

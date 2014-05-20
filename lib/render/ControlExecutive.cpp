@@ -24,7 +24,7 @@
 #include <fstream>
 #include <sstream>
 #include "vizwinparams.h"
-#include "undoredohelp.h"
+
 using namespace VAPoR;
 ControlExec* ControlExec::controlExecutive = 0;
 std::map <int,Visualizer*> ControlExec::visualizers;
@@ -350,11 +350,7 @@ createAllDefaultParams() {
 	ParamsBase::RegisterParamsBaseClass(VizWinParams::_vizWinParamsTag,VizWinParams::CreateDefaultInstance, true);
 	ParamsBase::RegisterParamsBaseClass(InstanceParams::_instanceParamsTag,InstanceParams::CreateDefaultInstance, true);
 	MouseModeParams::RegisterMouseModes();
-	UndoRedoHelp::ResetUndoRedoHelpQueue();
-	//Register UndoRedo Helpers for the Render and Params libs here.
-	//Gui may seperately need to register other helpers if helper alter gui state.
-	UndoRedoInstanceHelp* helper = new UndoRedoInstanceHelp();
-	UndoRedoHelp::AddUndoRedoHelp(helper);
+	
 }
 void ControlExec::
 reinitializeParams(bool doOverride){

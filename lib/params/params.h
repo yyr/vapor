@@ -610,11 +610,11 @@ public:
 		return (enabled != 0);
 	}
 	//! Enable or disable this params for rendering
+	//! This should be executed between start and end capture
+	//! which provides the appropriate undo/redo support
+	//! Accordingly this will not make an entry in the undo/redo queue.
 	//! \param[in] bool true to enable, false to disable.
-	virtual void SetEnabled(bool val){
-		long lval = (long)val;
-		SetValueLong(_EnabledTag,"enable or disable renderer",lval);
-	}
+	virtual void SetEnabled(bool val);
 
 	//! Pure virtual method indicates if a particular variable name is currently used by the renderer.
 	//! \param[in] varname name of the variable

@@ -94,6 +94,16 @@ public:
 	static int AddVizWin(int viznum){
 		return (((InstanceParams*)Params::GetParamsInstance(_instanceParamsTag))->addVizWin(viznum));
 	}
+	//! Static method invoked during Undo and Redo of Instance params
+	//! This performs undo and redo of creation and destruction of Params instances,
+	//! as well as resetting of the current instance.
+	//! This function must be passed in Command::CaptureStart
+	//! \sa UndoRedoHelpCB_T
+	//! \param[in] isUndo indicates whether an Undo or Redo is being performed
+	//! \param[in] instance is not used for this Params
+	//! \param[in] beforeP is a copy of the InstanceParams at the start of the Command
+	//! \param[in] afterP is a copy of the InstanceParams at the end of the Command 
+	static void InstanceParams::UndoRedo(bool isUndo, int /*instance*/, Params* beforeP, Params* afterP);
 
 	//! Static method that should be called whenever a visualizer is deleted
 	//! This must agree with the VizWinParams state, so InstanceParams::RemoveVizWin()

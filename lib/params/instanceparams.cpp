@@ -35,6 +35,7 @@
 
 using namespace VAPoR;
 #include "instanceparams.h"
+#include "command.h"
 
 const std::string InstanceParams::_shortName = "Instances";
 const string InstanceParams::_instanceParamsTag = "InstanceParams";
@@ -77,7 +78,7 @@ Validate(bool doOverride){
 int InstanceParams::AddInstance(const std::string name, int viznum, Params* p){ 
 	
 	InstanceParams* ip = (InstanceParams*)Params::GetParamsInstance(_instanceParamsTag);
-	Command* cmd = Command::CaptureStart(ip, "Add new renderer instance");
+	Command* cmd = Command::CaptureStart(ip, "Add new renderer instance", InstanceParams::UndoRedo);
 	
 	//set the params child to p's root.
 	ParamNode* paramsNode = p->GetRootNode()->deepCopy();
@@ -112,7 +113,7 @@ int InstanceParams::getCurrentInstance(const std::string name, int viznum){
 }
 int InstanceParams::setCurrentInstance(const std::string name, int viznum, int instance){ 
 	
-	Command* cmd = Command::CaptureStart(this, "set current instance");
+	Command* cmd = Command::CaptureStart(this, "set current instance",InstanceParams::UndoRedo);
 	
 	//Need to find the specified visualizer node, 
 	//Then find the renderer child node associated with the name (create if it does not exist)
@@ -135,7 +136,7 @@ int InstanceParams::setCurrentInstance(const std::string name, int viznum, int i
 int InstanceParams::RemoveInstance(const std::string name, int viznum, int instance){
 	
 	InstanceParams* ip = (InstanceParams*)Params::GetParamsInstance(_instanceParamsTag);
-	Command* cmd = Command::CaptureStart(ip, "Remove renderer instance");
+	Command* cmd = Command::CaptureStart(ip, "Remove renderer instance",InstanceParams::UndoRedo);
 	Params* p = Params::GetParamsInstance(name, viznum, instance);
 	
 	//set the params child to p's root.
@@ -260,4 +261,53 @@ int InstanceParams::instanceDiff(InstanceParams* p1, InstanceParams* p2, string&
 		}
 	}
 	return 0;
+}
+
+void InstanceParams::UndoRedo(bool isUndo, int /*instance*/, Params* beforeP, Params* afterP){
+	//This only handles InstanceParams
+	assert (beforeP->GetParamsBaseTypeId() == Params::GetTypeFromTag(InstanceParams::_instanceParamsTag));
+	assert (afterP->GetParamsBaseTypeId() == Params::GetTypeFromTag(InstanceParams::_instanceParamsTag));
+	//Check for an add or remove, by enumerating all the instances 
+	InstanceParams* p1 = (InstanceParams*)beforeP;
+	InstanceParams* p2 = (InstanceParams*)afterP;
+	ParamNode* pnode = p1->getChangingParamNode();
+	if(!pnode) pnode = p2->getChangingParamNode();
+	//The correct instance to use is NOT the one passed as an argument to this method...
+	int instance, viz;
+	string tag;
+	int changeType = InstanceParams::instanceDiff(p1, p2, tag, &instance, &viz);
+	if(changeType == 3) { //It's not an add or remove change; Just need to set the current instance
+		//Note that we obtain the viznum from the instanceDiff traversal, not from the GetVizNum method.
+		if (isUndo) {
+			instance = p1->getCurrentInstance(tag, viz);
+		}
+		else {
+			instance = p2->getCurrentInstance(tag, viz);
+		}
+		Params::SetCurrentParamsInstanceIndex(Params::GetTypeFromTag(tag), viz, instance);
+		return;
+	}
+	assert(changeType != 0);
+	ParamsBase::ParamsBaseType pType = ParamsBase::GetTypeFromTag(tag);
+	//ChangeType is 1 if p1 has the changed instance, 2 if p2 has the changed instance.
+	//addInstance has changeType 2, removeInstance has changeType 1.
+	//OK, make the undo or redo requested:
+	//To Undo an addInstance or redo a removeInstance need to remove the specified instance
+	if ((isUndo && (changeType == 2))||(!isUndo &&(changeType == 1))){
+		Params::RemoveParamsInstance(pType, viz, instance);
+		return;
+	}
+	//To Redo an addInstance, or Undo a removeInstance, need to insert the specified instance.
+	if ((!isUndo && (changeType == 2))||(isUndo &&(changeType == 1))){
+		Params* p = Params::CreateDefaultParams(pType);
+		ParamNode* pn = p->GetRootNode();
+		p->SetRootParamNode(pnode);
+		pn->SetParamsBase(0);
+		delete pn;
+		Params::InsertParamsInstance(pType, viz, instance, p);
+		return;
+	}
+	//We should never get here...
+	assert(0);
+	return;
 }
