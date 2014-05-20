@@ -674,20 +674,20 @@ void display(long int* profout)
     timespec ts1;
     clock_gettime(CLOCK_REALTIME, &ts1);
     //hog.Draw(hogdata2, 1); //single tube
-    hog.Draw(hogdata, 9); //regular array
+    //hog.Draw(hogdata, 9); //regular array
     //path.Draw(pathdata, 11); //spiral
     //path.Draw(pathdata2, 3); //90 degree, dual-segment
     //path.Draw(pathdata3, 3); //straight, dual-segment
     //path.Draw(pathdata4, 2); //single-segment
     //path.Draw(pathdata5, 6); //kink testing
-    //if(pathdata7)
-    //{
-    //    for(int i = 0; i < pd7sz; i++)
-    //    {
-    //        path.Draw(pathdata7[i], pd7szs[i]);
-    //    }
-    //}
-    //else path.Draw(pathdata6, SPIRAL_SZ); //autospiral
+    if(pathdata7)
+    {
+        for(int i = 0; i < pd7sz; i++)
+        {
+            path.Draw(pathdata7[i], pd7szs[i]);
+        }
+    }
+    else path.Draw(pathdata6, SPIRAL_SZ); //autospiral
     //glTranslatef(0.f, 0.f, -3.f);
     //coneTest(conedir, opt.quality, opt.radius);
     //drawCube();
