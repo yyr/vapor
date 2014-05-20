@@ -129,6 +129,9 @@ double px, py, rx, ry;
 double fov = 90.0;
 float v_distance = 20.f;
 
+double near_plane = 0.1;
+double far_plane = 1000.0;
+
 void init();
 void display(double* profout = 0);
 
@@ -138,7 +141,7 @@ void windowSize(GLFWwindow* window, int width, int height)
     glViewport(0, 0, (GLsizei)width, (GLsizei)height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(fov, (double)scrw/(double)scrh, 0.1, 1000.0);
+    gluPerspective(fov, (double)scrw/(double)scrh, near_plane, far_plane);
     glMatrixMode(GL_MODELVIEW);
     scrw = width;
     scrh = height;
@@ -265,7 +268,7 @@ void mouseScroll(GLFWwindow* window, double xoffset, double yoffset)
     if(v_distance < 0.0) v_distance = 0.0;
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(fov, (double)scrw/(double)scrh, 0.1, 1000.0);
+    gluPerspective(fov, (double)scrw/(double)scrh, near_plane, far_plane);
     glMatrixMode(GL_MODELVIEW);
 }
 
@@ -466,7 +469,7 @@ void init(void)
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(fov, (double)scrw/(double)scrh, 0.1, 1000.0);
+    gluPerspective(fov, (double)scrw/(double)scrh, near_plane, far_plane);
     glMatrixMode(GL_MODELVIEW);
 
     hog = GLHedgeHogger();
@@ -776,7 +779,7 @@ int main(int argc, char** argv)
             glfwPollEvents(); //non-blocking
             glfwSwapBuffers(window);
         }
-        printf("Mean draw time is %f nanoseconds\n", mean);
+        printf("Mean draw time is %f seconds\n", mean);
     }
     
     glfwDestroyWindow(window);

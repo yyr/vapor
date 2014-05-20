@@ -550,8 +550,10 @@ void GLHedgeHogger::Draw(const float *v, int n)
             for(int i = 0; i < total; i += tsize * hhp.stride)
                 drawTube(prevdata + i, p.quality, total);
         }
+        break;
         case Arrow:
         {
+            printf("reached arrow drawing section!\n");
             if(changed || v != prevdata)
             {
                 if(prevdata != 0) delete[] prevdata;
@@ -585,6 +587,7 @@ void GLHedgeHogger::Draw(const float *v, int n)
                 itn += rnsize * 2;
             }
         }
+        break;
         case Point:
         {
         
@@ -717,14 +720,17 @@ void GLPathRenderer::Draw(const float *v, int n)
             for(int i = 0; i < total - rsize; i += rsize)
             drawTube(prevdata + i, prp.quality, total);
         }
+        break;
         case Arrow:
         {
         
         }
+        break;
         case Point:
         {
         
         }
+        break;
     }
 }
 
