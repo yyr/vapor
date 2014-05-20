@@ -504,6 +504,7 @@ static inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
     while(itw < rsizet)
     {
         sub(v + itr + 3, v + itr, tubes + itw);
+        resize(tubes + itw, -2.f * coneRadius, cones + itn);
         neg(tubes + itw, cones + itn); //copy deltas to cone section
         mkring(tubes + itw, p.quality, p.radius, tubes + itw, nmtube + itw);
         for(int i = itw; i < itw + rnsize; i += 3)
@@ -521,7 +522,6 @@ static inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
     itn = 0; //used to iterate through normals section
     while(itw < rsizec)
     {
-        //TODO: fix cone length
         mkcone(cones + itw, p.radius * p.arrowRatio,
                p.quality, cones + itw, nmcone + itn);
         for(int i = 0; i < cosize; i++)
@@ -536,7 +536,7 @@ static inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
 
 void GLHedgeHogger::Draw(const float *v, int n)
 {
-    switch(p.style)
+    switch(hhp.style)
     {
         case Tube:
         {
