@@ -184,8 +184,9 @@ void ArrowParams::restart() {
 	SetFieldVariableName(2, "0");
 	SetVariables3D(true);
 	SetHeightVariableName("HGT");
-	
+	Command::blockCapture();
 	SetEnabled(false);
+	Command::unblockCapture();
 	const double default_color[3] = {1.0, 0.0, 0.0};
 	SetConstantColor(default_color);
 	SetVectorScale(1.0);

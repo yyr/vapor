@@ -80,7 +80,7 @@ void	process_volume(
 
 	vdfio->GetDim(dim, opt.level);
 
-	t0 = vdfio->GetTime();
+	t0 = GetTime();
 	*timer = *write_timer = 0.0;
 
 	size_t dim3d[3] = {0,0,0};
@@ -118,19 +118,19 @@ void	process_volume(
 			exit(1);
 		} 
 
-		t1 = vdfio->GetTime();
+		t1 = GetTime();
 		if (fwrite(buf, sizeof(*buf), size, fp) != size) {
 			MyBase::SetErrMsg("Could not write to output file : %M");
 			exit(1);
 		}
-		*write_timer += vdfio->GetTime() - t1;
+		*write_timer += GetTime() - t1;
 	}
 
 	if (! opt.quiet) {
 		fprintf(stdout, "Wrote %dx%dx%d volume\n", (int) dim3d[0],(int) dim3d[1],(int) dim3d[2]);
 	}
 
-	*timer = vdfio->GetTime() - t0;
+	*timer = GetTime() - t0;
 	*xform_timer = vdfio->GetXFormTimer();
 	*read_timer = vdfio->GetReadTimer();
 
@@ -150,7 +150,7 @@ void	process_region(
 
 	vdfio->GetDim(dim, opt.level);
 
-	t0 = vdfio->GetTime();
+	t0 = GetTime();
 	*timer = *write_timer = 0.0;
 
 	size_t dim3d[3] = {0,0,0};
@@ -207,18 +207,18 @@ void	process_region(
 		exit(1);
 	} 
 
-	t1 = vdfio->GetTime();
+	t1 = GetTime();
 	if (fwrite(buf, sizeof(*buf), size, fp) != size) {
 		MyBase::SetErrMsg("Could not write to output file : %M");
 		exit(1);
 	}
-	*write_timer += vdfio->GetTime() - t1;
+	*write_timer += GetTime() - t1;
 
 	if (! opt.quiet) {
 		fprintf(stdout, "Wrote %dx%dx%d volume\n", (int) dim3d[0],(int) dim3d[1],(int) dim3d[2]);
 	}
 
-	*timer = vdfio->GetTime() - t0;
+	*timer = GetTime() - t0;
 	*xform_timer = vdfio->GetXFormTimer();
 	*read_timer = vdfio->GetReadTimer();
 

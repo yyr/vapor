@@ -25,6 +25,7 @@
 #include "regionparams.h"
 #include "viewpointparams.h"
 #include "animationparams.h"
+#include "vapor/ControlExecutive.h"
 #ifdef Darwin
 #include <OpenGL/gl.h>
 #else
@@ -166,4 +167,18 @@ void Renderer::enableRegionClippingPlanes() {
 
 void Renderer::disableRegionClippingPlanes(){
 	Renderer::disableFullClippingPlanes();
+}
+void Renderer::UndoRedo(bool isUndo, int instance, Params* beforeP, Params* afterP){
+	//This only handles RenderParams
+	assert (beforeP->isRenderParams());
+	assert (afterP->isRenderParams());
+	RenderParams* rbefore = (RenderParams*)beforeP;
+	RenderParams* rafter = (RenderParams*)afterP;
+	//and only a change of enablement
+	if (rbefore->IsEnabled() == rafter->IsEnabled()) return;
+	//Undo an enable, or redo a disable
+	bool doEnable = ((rafter->IsEnabled() && !isUndo) || (rbefore->IsEnabled() && isUndo));
+	
+	ControlExec::ActivateRender(beforeP->GetVizNum(),Params::GetTagFromType(beforeP->GetParamsBaseTypeId()),instance,doEnable);
+	return;
 }

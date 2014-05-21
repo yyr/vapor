@@ -142,15 +142,12 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 
 //! virtual method indicates instance index, only used with RenderParams
 //! Implementers need not implement this method.
+//! Should only be used if the Params instance has been installed
+//! by AppendParamsInstance() or InsertParamsInstance()
+//! Returns -1 if the Params instance is not installed.
 //! \retval integer instance index
 //!
 	virtual int GetInstanceIndex();
-//! Virtual method sets current instance index
-//! Implementers need not implement this method.
-//! \param[in] val  instance index
-//! \retval integer 0 if successful
-//!
-	virtual int SetInstanceIndex(int val);
 
 //! Method indicates that a params instance has changed, e.g. during Undo/Redo
 //! Must be cleared after all users of the instance have checked it.
@@ -312,7 +309,6 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \param[in] winnum index of specified visualizer window
 //! \param[in] p pointer to Params instance being appended 
 	static void AppendParamsInstance(int pType, int winnum, Params* p){
-		p->SetInstanceIndex(paramsInstances[make_pair(pType,winnum)].size());
 		paramsInstances[make_pair(pType,winnum)].push_back(p);
 		if (pType == 3) assert (paramsInstances[make_pair(pType,winnum)].size() <= 1);
 	}
@@ -494,7 +490,6 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	static const string _VisualizerNumTag;
 	static const string _VariablesTag;
 	static const string _LocalTag;
-	static const string _InstanceTag;
 	
 #endif
 protected:
@@ -615,11 +610,11 @@ public:
 		return (enabled != 0);
 	}
 	//! Enable or disable this params for rendering
+	//! This should be executed between start and end capture
+	//! which provides the appropriate undo/redo support
+	//! Accordingly this will not make an entry in the undo/redo queue.
 	//! \param[in] bool true to enable, false to disable.
-	virtual void SetEnabled(bool val){
-		long lval = (long)val;
-		SetValueLong(_EnabledTag,"enable or disable renderer",lval);
-	}
+	virtual void SetEnabled(bool val);
 
 	//! Pure virtual method indicates if a particular variable name is currently used by the renderer.
 	//! \param[in] varname name of the variable

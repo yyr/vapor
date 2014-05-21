@@ -24,7 +24,7 @@
 #include <fstream>
 #include <sstream>
 #include "vizwinparams.h"
-#include "undoredohelp.h"
+
 using namespace VAPoR;
 ControlExec* ControlExec::controlExecutive = 0;
 std::map <int,Visualizer*> ControlExec::visualizers;
@@ -162,8 +162,7 @@ int ControlExec::ActivateRender(int viz, string type, int instance, bool on){
 
 Params* ControlExec::GetParams(int viz, string type, int instance){
 	Params* p = Params::GetParamsInstance(type,viz,instance);
-	int inst = p->GetInstanceIndex();
-	if (instance >= 0) assert (inst == instance);
+	if (instance >= 0) assert (p->GetInstanceIndex() == instance);
 	return Params::GetParamsInstance(type,viz,instance);
 }
 int ControlExec::SetCurrentParamsInstance(int viz, string typetag, int instance){
@@ -172,10 +171,10 @@ int ControlExec::SetCurrentParamsInstance(int viz, string typetag, int instance)
 	int ptype = Params::GetTypeFromTag(typetag);
 	if (ptype <= 0) return -1;
 	int rc = 0;
-	Params::SetCurrentParamsInstanceIndex(ptype,viz,instance);
+	
 	if (GetDefaultParams(typetag)->isRenderParams()){
 		rc = InstanceParams::SetCurrentInstance(typetag,viz,instance);
-	}
+	} else Params::SetCurrentParamsInstanceIndex(ptype,viz,instance);
 	return rc;
 }
 int ControlExec::GetCurrentRenderParamsInstance(int viz, string typetag){
@@ -206,8 +205,9 @@ int ControlExec::RemoveParams(int viz, string type, int instance){
 	if (0 == GetVisualizer(viz)) return -1;
 	int ptype = Params::GetTypeFromTag(type);
 	if (ptype <= 0) return -1;
-	Params::RemoveParamsInstance(ptype,viz,instance);
+	//Must update the instance params before performing the actual removal...
 	int rc = InstanceParams::RemoveInstance(type, viz, instance);
+	Params::RemoveParamsInstance(ptype,viz,instance);
 	return rc;
 }
 int ControlExec::FindInstanceIndex(int viz, RenderParams* p){
@@ -350,11 +350,7 @@ createAllDefaultParams() {
 	ParamsBase::RegisterParamsBaseClass(VizWinParams::_vizWinParamsTag,VizWinParams::CreateDefaultInstance, true);
 	ParamsBase::RegisterParamsBaseClass(InstanceParams::_instanceParamsTag,InstanceParams::CreateDefaultInstance, true);
 	MouseModeParams::RegisterMouseModes();
-	UndoRedoHelp::ResetUndoRedoHelpQueue();
-	//Register UndoRedo Helpers for the Render and Params libs here.
-	//Gui may seperately need to register other helpers if helper alter gui state.
-	//UndoRedoInstanceHelp* helper = new UndoRedoInstanceHelp();
-	//UndoRedoHelp::AddUndoRedoHelp(helper);
+	
 }
 void ControlExec::
 reinitializeParams(bool doOverride){
@@ -558,7 +554,6 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 			
 				pm->pushClassStack(parsingParams);
 				parsingParams->elementStartHandler(pm, depth, tag, attrs);
-				int inst = parsingParams->GetInstanceIndex();
 				tempParsedParams = parsingParams;
 				return true;
 			}
@@ -594,7 +589,6 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 		case(3):
 			// finished with params instance parsing
 			if (Params::IsParamsTag(tag)){
-				int inst = tempParsedParams->GetInstanceIndex();
 				return true;
 			}
 			return false;

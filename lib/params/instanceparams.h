@@ -94,6 +94,16 @@ public:
 	static int AddVizWin(int viznum){
 		return (((InstanceParams*)Params::GetParamsInstance(_instanceParamsTag))->addVizWin(viznum));
 	}
+	//! Static method invoked during Undo and Redo of Instance params
+	//! This performs undo and redo of creation and destruction of Params instances,
+	//! as well as resetting of the current instance.
+	//! This function must be passed in Command::CaptureStart
+	//! \sa UndoRedoHelpCB_T
+	//! \param[in] isUndo indicates whether an Undo or Redo is being performed
+	//! \param[in] instance is not used for this Params
+	//! \param[in] beforeP is a copy of the InstanceParams at the start of the Command
+	//! \param[in] afterP is a copy of the InstanceParams at the end of the Command 
+	static void UndoRedo(bool isUndo, int /*instance*/, Params* beforeP, Params* afterP);
 
 	//! Static method that should be called whenever a visualizer is deleted
 	//! This must agree with the VizWinParams state, so InstanceParams::RemoveVizWin()
@@ -125,6 +135,12 @@ public:
 	//! Pure virtual method on Params. Provide a short name suitable for use in the GUI
 	//! \retval string name
 	const std::string getShortName() {return _shortName;}
+	//Obtain the ParamNode associated with this instanceParams (in the event of add or remove instance)
+	ParamNode* getChangingParamNode();
+	//Utility function that finds the first instance that differs between two InstanceParams.  This is
+	//The instance that is being added or deleted.
+	//Returns 0 if no instance change is found.  Returns 1 if the changed instance is in p1, 2 if it's in p2
+	static int instanceDiff(InstanceParams* p1, InstanceParams* p2, string& tag, int* instance, int* viz);
 
 #ifndef DOXYGEN_SKIP_THIS
 	
@@ -134,15 +150,17 @@ public:
 	static const string _numInstancesTag;
 	static const string _currentInstanceTag;
 	static const string _paramNodeTag;
-
+	int getCurrentInstance(std::string tag, int viz);
 protected:
 	
 	//! following non-static Set/get methods are not public.
 	int addVizWin(int viznum);
 	int setCurrentInstance(std::string tag, int viz, int instance);
-	int getCurrentInstance(std::string tag, int viz);
+	
 	
 	int getNumInstances(std::string tag, int viz);
+	
+	
 	
 	
 #endif //DOXYGEN_SKIP_THIS

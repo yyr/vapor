@@ -701,9 +701,12 @@ guiSetEnabled(bool value, int instance, bool undoredo){
 	
 	if (value == dParams->IsEnabled()) return;
 	confirmText(false);
-	
+	string commandText;
+	if (value) commandText = "enable rendering";
+	else commandText = "disable rendering";
+	Command* cmd = Command::CaptureStart(dParams, commandText.c_str(), Renderer::UndoRedo);
 	dParams->SetEnabled(value);
-	
+	Command::CaptureEnd(cmd,dParams);
 	//Make the change in enablement occur in the rendering window, 
 	// Local/Global is not changing.
 	updateRenderer(dParams,!value,instance, false);

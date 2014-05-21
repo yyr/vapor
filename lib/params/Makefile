@@ -8,7 +8,7 @@ FILES = \
 	params regionparams arrowparams mousemodeparams \
 	viewpoint  vizwinparams instanceparams \
 	animationparams	viewpointparams ParamsBase Box \
-	ParamNode command undoredohelp 
+	ParamNode command  
 	
 HEADER_FILES = ParamsBase ParamNode
 	

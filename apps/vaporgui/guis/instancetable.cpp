@@ -77,10 +77,11 @@ void InstanceTable::rebuild(EventRouter* myRouter){
 	VAPoR::Params::ParamsBaseType renderBaseType = myRouter->getParamsBaseType();
 	string type = ControlExec::GetTagFromType(renderBaseType);
 	numInsts = ControlExec::GetNumParamsInstances(winnum,type);
-
+	int currInst = ControlExec::GetCurrentRenderParamsInstance(winnum, type);
+	assert(currInst >= 0 && currInst < numInsts);
 	//create items as needed
 	//Also insert labels in first column
-	if (rowCount() > numInsts) selectRow(0);  //avoid crash if selected row is too high
+	if (rowCount() > numInsts) selectRow(currInst);  //avoid crash if selected row is too high
 	if(rowCount() != numInsts) setRowCount(numInsts);
 	
 	for (int r = 0; r<numInsts; r++){
