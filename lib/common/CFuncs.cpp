@@ -6,6 +6,10 @@
 #include <cerrno>
 #include <vapor/CFuncs.h>
 
+#ifdef  Darwin
+#include <mach/mach_time.h>
+#endif
+
 #include <iostream>
 #ifdef WIN32
 #pragma warning( disable : 4996 )
@@ -88,8 +92,7 @@ char   *VetsUtil::Dirname(const char *pathname, char *directory)
 	return (directory);
 }
 
-
-double VetsUtil::GetTime() {
+double VetsUtil::GetTime(){
 	double t;
 #ifdef WIN32 //Windows does not have a nanosecond time function...
 	SYSTEMTIME sTime;
