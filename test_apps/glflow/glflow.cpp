@@ -553,7 +553,6 @@ void GLHedgeHogger::Draw(const float *v, int n)
         break;
         case Arrow:
         {
-            printf("reached arrow drawing section!\n");
             if(changed || v != prevdata)
             {
                 if(prevdata != 0) delete[] prevdata;
