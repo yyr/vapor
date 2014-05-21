@@ -52,7 +52,6 @@ COMMON_API char   *Dirname(const char *pathname, char *directory);
 COMMON_API string Dirname(const string &path);
 COMMON_API double GetTime();
 
-
 };
 
 #endif	// _CFuncs_h_
