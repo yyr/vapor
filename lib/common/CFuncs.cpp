@@ -89,7 +89,7 @@ char   *VetsUtil::Dirname(const char *pathname, char *directory)
 }
 
 
-double GetTime() {
+double VetsUtil::GetTime() {
 	double t;
 #ifdef WIN32 //Windows does not have a nanosecond time function...
 	SYSTEMTIME sTime;
