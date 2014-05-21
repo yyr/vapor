@@ -507,7 +507,7 @@ static inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
     while(itw < rsizet)
     {
         sub(v + itr + 3, v + itr, tubes + itw);
-        resize(tubes + itw, -2.f * coneRadius, cones + itn); //flip and resize
+        resize(tubes + itw, coneRadius, cones + itn); //flip and resize
         mkring(tubes + itw, p.quality, p.radius, tubes + itw, nmtube + itw);
         for(int i = itw; i < itw + rnsize; i += 3)
         {
@@ -519,7 +519,7 @@ static inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
         itw += tusize;
         itn += cosize;
     }
-    itr = 0; //used to read input positions
+    itr = 3; //used to read input positions
     itw = 0; //used to write cones
     itn = 0; //used to iterate through normals section
     while(itw < rsizec)
@@ -528,7 +528,7 @@ static inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
                p.quality, cones + itw, nmcone + itn);
         for(int i = 0; i < cosize; i++)
         {
-            add(cones + itw + i, v + itr + i, cones + itw + i);
+            add(cones + itw + i, v + itr + (i % 3), cones + itw + i);
         }
         itr += 6 * p.stride;
         itw += cosize;
