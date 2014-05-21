@@ -153,7 +153,7 @@ int main(int argc, char **argv) {
 		int rc;
 		size_t ts;
 
-		double t0 = amrio.GetTime();
+		double t0 = GetTime();
 
 		flashfile = argv[arg]; // Path to raw data file
 
@@ -232,7 +232,7 @@ int main(int argc, char **argv) {
 		if (! opt.quiet) {
 			cout << "	Processing tree (" << total_blocks << " total blocks)\n";
 		}
-		double t1 = amrio.GetTime();
+		double t1 = GetTime();
 
 		AMRTree tree(
 			bdim_sz, (int (*)[15]) gids, (const float (*)[3][2]) bboxes, 
@@ -242,7 +242,7 @@ int main(int argc, char **argv) {
 			cerr << ProgName << " : " << AMRData::GetErrMsg() << endl; 
 			exit(1);
 		}
-		read_timer += amrio.GetTime() - t1;
+		read_timer += GetTime() - t1;
 
 		//
 		// Open a tree for writing at the indicated time step
@@ -295,7 +295,7 @@ int main(int argc, char **argv) {
 
 		for (int i=0; i<varnames.size(); i++) {
 
-			double t1 = amrio.GetTime();
+			double t1 = GetTime();
 
 			if (! opt.quiet) {
 				cout << "	Processing variable " << varnames[i] << endl;
@@ -342,7 +342,7 @@ int main(int argc, char **argv) {
 				);
 			}
 
-			read_timer += amrio.GetTime() - t1;
+			read_timer += GetTime() - t1;
 
 
 			//
@@ -379,7 +379,7 @@ int main(int argc, char **argv) {
 				exit(1);
 			}
 		}
-		timer += amrio.GetTime() - t0;
+		timer += GetTime() - t0;
 
 		hdffile.Close();
 			

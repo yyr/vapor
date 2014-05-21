@@ -33,6 +33,7 @@
 #include <vapor/WaveletBlock3DBufWriter.h>
 #include <vapor/WaveletBlock3DRegionWriter.h>
 #include <vapor/WaveCodecIO.h>
+#include <vapor/CFuncs.h>
 #ifdef WIN32
 #include "windows.h"
 #endif
@@ -174,7 +175,7 @@ int read_next_slice(
 		}
 	}
 
-	t0 = vdfio->GetTime();
+	t0 = GetTime();
 
 	int rc = fread(readbuffer, element_sz, read_sz, fp);
 	if (rc != read_sz) {
@@ -186,7 +187,7 @@ int read_next_slice(
 		return(-1);
 	}
 
-	*read_timer += vdfio->GetTime() - t0;
+	*read_timer += GetTime() - t0;
 
 	// Swap bytes in place if needed
 	//
@@ -562,7 +563,7 @@ int	main(int argc, char **argv) {
 	}
 
 
-	double t0 = vdfio->GetTime();
+	double t0 = GetTime();
 
 	if (min[0] == min[1] && min[1] == min[2] && min[2] == max[0] &&
 		max[0] == max[1]  && max[1] == max[2] && max[2] == (size_t) -1 &&
@@ -581,7 +582,7 @@ int	main(int argc, char **argv) {
 	}
 
 
-	timer = vdfio->GetTime() - t0;
+	timer = GetTime() - t0;
 
 	if (! opt.quiet) {
 		const float *range = vdfio->GetDataRange();
