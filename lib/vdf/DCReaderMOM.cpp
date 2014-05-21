@@ -195,7 +195,7 @@ int DCReaderMOM::_InitVerticalCoordinates(
 	vector <double> &vertCoords
 ) {
 	vertCoords.clear();
-	float scaleFactor = 1.0;
+	double scaleFactor = 1.0;
 
 	//
 	// Handle case if there is no vertical coordinate variable
@@ -238,12 +238,12 @@ int DCReaderMOM::_InitVerticalCoordinates(
 	int rc = ncdfc->GetVarUnits(cvar, from);
 	if (rc<0) return(-1);
 
-	float unkown_unit = 1.0;
+	double unkown_unit = 1.0;
 
 	const UDUnits *udunit = ncdfc->GetUDUnits();
 	if (udunit->IsPressureUnit(from)) {
 		string to = "dbars";
-		float p;
+		double p;
 		if (! udunit->Convert(from, to, &unkown_unit, &p, 1)) {
 			return(-1);
 		}
@@ -340,12 +340,12 @@ double DCReaderMOM::GetTSUserTime(size_t ts) const {
 	// Convert time from whatever is used in the file to seconds
 	//
 	string from;
-	float from_time = time_d;
+	double from_time = time_d;
 	int rc = _ncdfc->GetVarUnits(_timeCV, from);
 	if (rc<0) return(from_time);
 
 	string to = "seconds";
-	float to_time;
+	double to_time;
 
 	rc = _ncdfc->Convert(from, to, &from_time, &to_time, 1);
 	if (rc<0) return(from_time);

@@ -310,12 +310,12 @@ double DCReaderROMS::GetTSUserTime(size_t ts) const {
 	// Convert time from whatever is used in the file to seconds
 	//
 	string from;
-	float from_time = time_d;
+	double from_time = time_d;
 	int rc = _ncdfc->GetVarUnits(_timeCV, from);
 	if (rc<0) return(from_time);
 
 	string to = "seconds";
-	float to_time;
+	double to_time;
 
 	rc = _ncdfc->Convert(from, to, &from_time, &to_time, 1);
 	if (rc<0) return(from_time);

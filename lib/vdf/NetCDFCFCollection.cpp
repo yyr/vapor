@@ -394,7 +394,7 @@ int NetCDFCFCollection::GetVarUnits(string var, string &units) const {
 }
 
 int NetCDFCFCollection::Convert(
-    const string from, const string to, const float *src, float *dst, size_t n
+    const string from, const string to, const double *src, double *dst, size_t n
 ) const {
 	bool status = _udunit->Convert(from, to, src, dst, n);
 

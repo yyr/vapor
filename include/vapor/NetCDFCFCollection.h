@@ -275,8 +275,8 @@ public:
  virtual int Convert(
 	const string from,
 	const string to,
-	const float *src,
-	float *dst,
+	const double *src,
+	double *dst,
 	size_t n
  ) const;
 
