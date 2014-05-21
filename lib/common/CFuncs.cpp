@@ -6,6 +6,10 @@
 #include <cerrno>
 #include <vapor/CFuncs.h>
 
+#ifdef  Darwin
+#include <mach/mach_time.h>
+#endif
+
 #include <iostream>
 #ifdef WIN32
 #pragma warning( disable : 4996 )

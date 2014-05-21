@@ -15,10 +15,6 @@
 #include <time.h>
 #include <netcdf.h>
 
-#ifdef	Darwin
-#include <mach/mach_time.h>
-#endif
-
 #include <vapor/VDFIOBase.h>
 #include <vapor/MyBase.h>
 
