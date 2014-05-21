@@ -223,13 +223,15 @@ static inline void drawTube(const float* a, const float* b, int d, float r)
 
 static inline void mkcone(const float* dir, float r, int q, float* o, float* on = NULL)
 {
+    float d[3];
+    mov(dir, d);
     //put our zero-vector (the tip) in the first vector of the vertex array
     mov(z3, o);
     int rsize = ringSize(q);
     int sz = rsize + 3;
     int nsz = rsize * 2;
     //fill out the rest of the vertex array with radial vectors
-    mkring(dir, q, r, o + 3);
+    mkring(d, q, r, o + 3);
     int ni = 0;
     //for each vector
     for(int i = 3; i < sz && ni < nsz; i+=3)
@@ -237,7 +239,7 @@ static inline void mkcone(const float* dir, float r, int q, float* o, float* on 
         //place its normal in the correct location in the normal array
         if(on) norm(o + i, on + ni);
         //subtract the forward-vector of the cone to finalize
-        sub(o + i, dir, o + i);
+        sub(o + i, d, o + i);
         //get correct location in normal array for next normal
         ni += 6;
     }
@@ -490,7 +492,8 @@ static inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
     int rsizec = narrows * cosize; //size of cone section
     int nsizet = rsizet; //size of tube norm section
     int nsizec = narrows * rnsize * 2; //size of cone norm section
-    float* result = new float[rsizet + nsizet + rsizec + nsizec]; //result
+    int total = rsizet + nsizet + rsizec + nsizec;
+    float* result = new float[total]; //result
     float* tubes = result; //location of tube vertices
     float* nmtube = tubes + rsizet; //location of tube normals
     float* cones = result + 2 * rsizet; //location of cone vertices
@@ -516,7 +519,7 @@ static inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
         itw += tusize;
         itn += cosize;
     }
-    itr = 3; //used to read input positions
+    itr = 0; //used to read input positions
     itw = 0; //used to write cones
     itn = 0; //used to iterate through normals section
     while(itw < rsizec)
