@@ -378,7 +378,6 @@ GLHedgeHogger hog;
 GLPathRenderer path;
 
 float rot = 0.f;
-double lastTime = 0.0;
 
 bool paused = false;
 
@@ -658,11 +657,6 @@ inline void coneTest(const float* b, int q, float r)
 
 void display(double* profout)
 {
-    //in case we need dt or elapsed time
-    double newTime = glfwGetTime();
-    double frameTime = newTime - lastTime;
-    lastTime = newTime;
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glLoadIdentity();
@@ -746,8 +740,6 @@ int main(int argc, char** argv)
     
     glfwGetWindowSize(window, &scrw, &scrh);
     
-    glfwSetTime(0.0);
-    
     init();
     if(opt.prof < 0)
     {
@@ -760,8 +752,9 @@ int main(int argc, char** argv)
     }
     else
     {
-        printf("PROFILING. CONTROLS ARE DISABLED.\n");
+        printf("PROFILING...\n[ CONTROLS ARE DISABLED ]\n");
         double mean = 0.0;
+        glfwSetTime(0.0);
         for(int i = 1; i <= opt.prof; i++)
         {
             double currtime = (double)i / 60.0;
@@ -769,7 +762,7 @@ int main(int argc, char** argv)
             ry = 30.0 * sin(1.5 * currtime);
             v_distance = 300.0 + (100.0 * sin(0.8 * currtime));
         
-            double elapsed; 
+            double elapsed;
             display(&elapsed);
             double toAdd = (1.0 / (double)i) * (elapsed - mean);
             //printf("Diff is %f nanoseconds\n", toAdd);
@@ -778,7 +771,9 @@ int main(int argc, char** argv)
             glfwPollEvents(); //non-blocking
             glfwSwapBuffers(window);
         }
+        double total = glfwGetTime();
         printf("Mean draw time is %f seconds\n", mean);
+        printf("Total execution time is %f seconds\n", total);
     }
     
     glfwDestroyWindow(window);
