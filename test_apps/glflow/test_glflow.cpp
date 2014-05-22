@@ -679,20 +679,20 @@ void display(double* profout)
     double t1;
     t1 = GetTime();
     //hog.Draw(hogdata2, 1); //single tube
-    hog.Draw(hogdata, 9); //regular array
+    //hog.Draw(hogdata, 9); //regular array
     //path.Draw(pathdata, 11); //spiral
     //path.Draw(pathdata2, 3); //90 degree, dual-segment
     //path.Draw(pathdata3, 3); //straight, dual-segment
     //path.Draw(pathdata4, 2); //single-segment
     //path.Draw(pathdata5, 6); //kink testing
-    //if(pathdata7)
-    //{
-    //    for(int i = 0; i < pd7sz; i++)
-    //    {
-    //        path.Draw(pathdata7[i], pd7szs[i]);
-    //    }
-    //}
-    //else path.Draw(pathdata6, SPIRAL_SZ); //autospiral
+    if(pathdata7)
+    {
+        for(int i = 0; i < pd7sz; i++)
+        {
+            path.Draw(pathdata7[i], pd7szs[i]);
+        }
+    }
+    else path.Draw(pathdata6, SPIRAL_SZ); //autospiral
     //glTranslatef(0.f, 0.f, -3.f);
     //coneTest(conedir, opt.quality, opt.radius);
     //drawCube();
@@ -767,7 +767,7 @@ int main(int argc, char** argv)
             double currtime = (double)i / 60.0;
             rx = 30.0 * cos(1.1 * currtime);
             ry = 30.0 * sin(1.5 * currtime);
-            v_distance = 20.0 + (10.0 * sin(0.8 * currtime));
+            v_distance = 300.0 + (100.0 * sin(0.8 * currtime));
         
             double elapsed; 
             display(&elapsed);

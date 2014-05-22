@@ -707,6 +707,23 @@ static inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
     return r;
 }
 
+static void prArrows(const float* v, int n, GLPathRenderer::Params p)
+{
+    int rnverts = 4 << p.quality; //vertices in a ring
+    int tuverts = rnverts * 2; //vertices in a tube
+    int coverts = rnverts + 1; //vertices in a cone
+    int rnsize = 3 * rnverts; //floats in a ring
+    int tusize = rnsize * 2; //floats in a tube
+    int cosize = coverts * 3; //floats in a cone
+    int ntubes = n / p.stride;
+    int narrows = ntubes;// / p.arrowStride; //number of tubes
+    int rsizet = narrows * tusize; //size of tube section
+    int rsizec = narrows * cosize; //size of cone section
+    int nsizet = rsizet; //size of tube norm section
+    int nsizec = narrows * rnsize * 2; //size of cone norm section
+    int total = rsizet + nsizet + rsizec + nsizec;
+}
+
 static bool printed = false;
 void GLPathRenderer::Draw(const float *v, int n)
 {
