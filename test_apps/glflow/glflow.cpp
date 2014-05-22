@@ -504,15 +504,20 @@ static inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
     int itw = 0; //used to write tube data
     int itn = 0; //used to copy deltas to cone section
     //code re-use from hhTubes! :D
+    float buf[3]; //used to keep endpoint of tube
+    //endpoint of tube must be before endpoint of cone
     while(itw < rsizet)
     {
         sub(v + itr + 3, v + itr, tubes + itw);
+        float m = mag(tubes + itw); //total length of arrow
+        resize(tubes + itw, m - p.radius, buf); //reducing tube section length
+        add(buf, v + itr, buf); //placing tube endpoint
         resize(tubes + itw, coneRadius, cones + itn); //flip and resize
         mkring(tubes + itw, p.quality, p.radius, tubes + itw, nmtube + itw);
         for(int i = itw; i < itw + rnsize; i += 3)
         {
             mov(nmtube + i, nmtube + i + rnsize);
-            add(v + itr + 3, tubes + i, tubes + i + rnsize);
+            add(buf, tubes + i, tubes + i + rnsize);
             add(v + itr, tubes + i, tubes + i);
         }
         itr += 6 * p.stride;
@@ -526,12 +531,13 @@ static inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
     {
         mkcone(cones + itw, p.radius * p.arrowRatio,
                p.quality, cones + itw, nmcone + itn);
-        for(int i = 0; i < cosize; i++)
+        for(int i = 0; i < cosize; i += 3)
         {
-            add(cones + itw + i, v + itr + (i % 3), cones + itw + i);
+            add(cones + itw + i, v + itr, cones + itw + i);
         }
         itr += 6 * p.stride;
         itw += cosize;
+        itn += tusize; //tusize is also size of norms for cone
     }
     return result;
 }
