@@ -29,7 +29,7 @@ using namespace VetsUtil;
 struct {
     char* datafile;
     char* colorfile;
-    char* mode;
+    char* style;
     int quality;
     float radius;
     int stride;
@@ -43,7 +43,7 @@ OptionParser::OptDescRec_T set_options[] = {
 	{"help", 0, "", "Print this message and exit"},
 	{"data", 1, "", "A test data source"},
 	{"colors", 1, "", "A test color source"},
-	{"mode", 1, "tubes", "Render mode: tubes | arrows | lines"},
+	{"style", 1, "tube", "Render mode: tubes | arrows | lines"},
 	{"radius", 1, "1.0", "Radius multiplier of rendered shapes"},
 	{"quality", 1, "0", "Number of subdivisions of rendered shapes"},
 	{"stride", 1, "1", "Traverse how many vertices between rendering?"},
@@ -57,7 +57,7 @@ OptionParser::Option_T get_options[] = {
     {"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"data", VetsUtil::CvtToString, &opt.datafile, sizeof(opt.datafile)},
 	{"colors", VetsUtil::CvtToString, &opt.colorfile, sizeof(opt.colorfile)},
-	{"mode", VetsUtil::CvtToString, &opt.mode, sizeof(opt.mode)},
+	{"style", VetsUtil::CvtToString, &opt.style, sizeof(opt.style)},
 	{"radius", VetsUtil::CvtToFloat, &opt.radius, sizeof(opt.radius)},
 	{"quality", VetsUtil::CvtToInt, &opt.quality, sizeof(opt.quality)},
 	{"stride", VetsUtil::CvtToInt, &opt.stride, sizeof(opt.stride)},
@@ -378,7 +378,6 @@ GLHedgeHogger hog;
 GLPathRenderer path;
 
 float rot = 0.f;
-double lastTime = 0.0;
 
 bool paused = false;
 
@@ -658,11 +657,6 @@ inline void coneTest(const float* b, int q, float r)
 
 void display(double* profout)
 {
-    //in case we need dt or elapsed time
-    double newTime = glfwGetTime();
-    double frameTime = newTime - lastTime;
-    lastTime = newTime;
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glLoadIdentity();
@@ -746,31 +740,29 @@ int main(int argc, char** argv)
     
     glfwGetWindowSize(window, &scrw, &scrh);
     
-    glfwSetTime(0.0);
-    
     init();
     if(opt.prof < 0)
     {
         while(!glfwWindowShouldClose(window))
         {
             display();
-            
-            glfwWaitEvents(); //blocks until something happens
             glfwSwapBuffers(window);
+            glfwWaitEvents(); //blocks until something happens
         }
     }
     else
     {
-        printf("PROFILING. CONTROLS ARE DISABLED.\n");
+        printf("PROFILING...\n[ CONTROLS ARE DISABLED ]\n");
         double mean = 0.0;
+        glfwSetTime(0.0);
         for(int i = 1; i <= opt.prof; i++)
         {
             double currtime = (double)i / 60.0;
             rx = 30.0 * cos(1.1 * currtime);
             ry = 30.0 * sin(1.5 * currtime);
-            v_distance = 20.0 + (10.0 * sin(0.8 * currtime));
+            v_distance = 300.0 + (100.0 * sin(0.8 * currtime));
         
-            double elapsed; 
+            double elapsed;
             display(&elapsed);
             double toAdd = (1.0 / (double)i) * (elapsed - mean);
             //printf("Diff is %f nanoseconds\n", toAdd);
@@ -779,7 +771,9 @@ int main(int argc, char** argv)
             glfwPollEvents(); //non-blocking
             glfwSwapBuffers(window);
         }
+        double total = glfwGetTime();
         printf("Mean draw time is %f seconds\n", mean);
+        printf("Total execution time is %f seconds\n", total);
     }
     
     glfwDestroyWindow(window);

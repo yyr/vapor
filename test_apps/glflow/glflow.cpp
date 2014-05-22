@@ -223,13 +223,15 @@ static inline void drawTube(const float* a, const float* b, int d, float r)
 
 static inline void mkcone(const float* dir, float r, int q, float* o, float* on = NULL)
 {
+    float d[3];
+    mov(dir, d);
     //put our zero-vector (the tip) in the first vector of the vertex array
     mov(z3, o);
     int rsize = ringSize(q);
     int sz = rsize + 3;
     int nsz = rsize * 2;
     //fill out the rest of the vertex array with radial vectors
-    mkring(dir, q, r, o + 3);
+    mkring(d, q, r, o + 3);
     int ni = 0;
     //for each vector
     for(int i = 3; i < sz && ni < nsz; i+=3)
@@ -237,7 +239,7 @@ static inline void mkcone(const float* dir, float r, int q, float* o, float* on 
         //place its normal in the correct location in the normal array
         if(on) norm(o + i, on + ni);
         //subtract the forward-vector of the cone to finalize
-        sub(o + i, dir, o + i);
+        sub(o + i, d, o + i);
         //get correct location in normal array for next normal
         ni += 6;
     }
@@ -490,7 +492,8 @@ static inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
     int rsizec = narrows * cosize; //size of cone section
     int nsizet = rsizet; //size of tube norm section
     int nsizec = narrows * rnsize * 2; //size of cone norm section
-    float* result = new float[rsizet + nsizet + rsizec + nsizec]; //result
+    int total = rsizet + nsizet + rsizec + nsizec;
+    float* result = new float[total]; //result
     float* tubes = result; //location of tube vertices
     float* nmtube = tubes + rsizet; //location of tube normals
     float* cones = result + 2 * rsizet; //location of cone vertices
@@ -501,15 +504,20 @@ static inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
     int itw = 0; //used to write tube data
     int itn = 0; //used to copy deltas to cone section
     //code re-use from hhTubes! :D
+    float buf[3]; //used to keep endpoint of tube
+    //endpoint of tube must be before endpoint of cone
     while(itw < rsizet)
     {
         sub(v + itr + 3, v + itr, tubes + itw);
-        resize(tubes + itw, -2.f * coneRadius, cones + itn); //flip and resize
+        float m = mag(tubes + itw); //total length of arrow
+        resize(tubes + itw, m - p.radius, buf); //reducing tube section length
+        add(buf, v + itr, buf); //placing tube endpoint
+        resize(tubes + itw, coneRadius, cones + itn); //flip and resize
         mkring(tubes + itw, p.quality, p.radius, tubes + itw, nmtube + itw);
         for(int i = itw; i < itw + rnsize; i += 3)
         {
             mov(nmtube + i, nmtube + i + rnsize);
-            add(v + itr + 3, tubes + i, tubes + i + rnsize);
+            add(buf, tubes + i, tubes + i + rnsize);
             add(v + itr, tubes + i, tubes + i);
         }
         itr += 6 * p.stride;
@@ -523,12 +531,13 @@ static inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
     {
         mkcone(cones + itw, p.radius * p.arrowRatio,
                p.quality, cones + itw, nmcone + itn);
-        for(int i = 0; i < cosize; i++)
+        for(int i = 0; i < cosize; i += 3)
         {
-            add(cones + itw + i, v + itr + i, cones + itw + i);
+            add(cones + itw + i, v + itr, cones + itw + i);
         }
         itr += 6 * p.stride;
         itw += cosize;
+        itn += tusize; //tusize is also size of norms for cone
     }
     return result;
 }
@@ -553,7 +562,6 @@ void GLHedgeHogger::Draw(const float *v, int n)
         break;
         case Arrow:
         {
-            printf("reached arrow drawing section!\n");
             if(changed || v != prevdata)
             {
                 if(prevdata != 0) delete[] prevdata;
@@ -697,6 +705,23 @@ static inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
     }
 
     return r;
+}
+
+static void prArrows(const float* v, int n, GLPathRenderer::Params p)
+{
+    int rnverts = 4 << p.quality; //vertices in a ring
+    int tuverts = rnverts * 2; //vertices in a tube
+    int coverts = rnverts + 1; //vertices in a cone
+    int rnsize = 3 * rnverts; //floats in a ring
+    int tusize = rnsize * 2; //floats in a tube
+    int cosize = coverts * 3; //floats in a cone
+    int ntubes = n / p.stride;
+    int narrows = ntubes;// / p.arrowStride; //number of tubes
+    int rsizet = narrows * tusize; //size of tube section
+    int rsizec = narrows * cosize; //size of cone section
+    int nsizet = rsizet; //size of tube norm section
+    int nsizec = narrows * rnsize * 2; //size of cone norm section
+    int total = rsizet + nsizet + rsizec + nsizec;
 }
 
 static bool printed = false;
