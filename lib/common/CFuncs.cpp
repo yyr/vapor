@@ -12,6 +12,8 @@
 
 #include <iostream>
 #ifdef WIN32
+#include "windows.h"
+#include "Winbase.h"
 #pragma warning( disable : 4996 )
 #endif
 
