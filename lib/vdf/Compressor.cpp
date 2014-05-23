@@ -22,7 +22,15 @@ void Compressor::_Compressor(
 	}
 
 	_dims.clear();
+	_nlevels = 0;
 	_indexvec.clear();
+	_nx = 1;
+	_ny = 1;
+	_nz = 1;
+	_C = NULL; 
+	_CLen = 0;
+	_L = NULL;
+	_LLen = 0;
 	_keepapp = true;
     _clamp_min_flag = false;
     _clamp_max_flag = false;
@@ -30,7 +38,6 @@ void Compressor::_Compressor(
     _clamp_min = 0.0;
     _clamp_max = 1.0;
     _epsilon = 0.0;
-
 
 	for (int i=0; i<dims.size(); i++) {
 		_dims.push_back(dims[i]);
