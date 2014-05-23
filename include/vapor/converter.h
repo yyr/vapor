@@ -28,7 +28,7 @@ typedef union cv_converter	cv_converter;
  * RETURNS:
  *	The trivial converter.
  */
-cv_converter*
+UDUNITS2_API cv_converter*
 cv_get_trivial(void);
 
 /*
@@ -38,7 +38,7 @@ cv_get_trivial(void);
  * RETURNS:
  *	The reciprocal converter.
  */
-cv_converter*
+UDUNITS2_API cv_converter*
 cv_get_inverse(void);
 
 /*
@@ -48,7 +48,7 @@ cv_get_inverse(void);
  * RETURNS:
  *	The scaling converter.
  */
-cv_converter*
+UDUNITS2_API cv_converter*
 cv_get_scale(
     const double	slope);
 
@@ -62,7 +62,7 @@ cv_get_scale(
  *	NULL	Necessary memory couldn't be allocated.
  *	else	A converter that adds the given number to values.
  */
-cv_converter*
+UDUNITS2_API cv_converter*
 cv_get_offset(
     const double	intercept);
 
@@ -77,7 +77,7 @@ cv_get_offset(
  *	NULL	Necessary memory couldn't be allocated.
  *	else	A Galilean converter corresponding to the inputs.
  */
-cv_converter*
+UDUNITS2_API cv_converter*
 cv_get_galilean(
     const double	slope,
     const double	intercept);
@@ -94,7 +94,7 @@ cv_get_galilean(
  *			memory couldn't be allocated.
  *	else		A logarithmic converter corresponding to the inputs.
  */
-cv_converter*
+UDUNITS2_API cv_converter*
 cv_get_log(
     const double	base);
 
@@ -110,7 +110,7 @@ cv_get_log(
  *			allocated.
  *	else		An exponential converter corresponding to the inputs.
  */
-cv_converter*
+UDUNITS2_API cv_converter*
 cv_get_pow(
     const double	base);
 
@@ -128,7 +128,7 @@ cv_get_pow(
  *              converter, then the returned converter will be the other input
  *              converter.
  */
-cv_converter*
+UDUNITS2_API cv_converter*
 cv_combine(
     cv_converter* const	first,
     cv_converter* const	second);
@@ -150,7 +150,7 @@ cv_free(
  * RETURNS:
  *	The converted value.
  */
-float
+UDUNITS2_API float
 cv_convert_float(
     const cv_converter*	converter,
     const float		value);
@@ -163,7 +163,7 @@ cv_convert_float(
  * RETURNS:
  *	The converted value.
  */
-double
+UDUNITS2_API double
 cv_convert_double(
     const cv_converter*	converter,
     const double	value);
@@ -199,7 +199,7 @@ cv_convert_floats(
  *	NULL	"out" is NULL.
  *	else	A pointer to the output array.
  */
-double*
+UDUNITS2_API double*
 cv_convert_doubles(
     const cv_converter*	converter,
     const double* const	in,
@@ -218,7 +218,7 @@ cv_convert_doubles(
  *	<0	An error was encountered.
  *	else	The number of bytes formatted excluding the terminating null.
  */
-int
+UDUNITS2_API int 
 cv_get_expression(
     const cv_converter* const	conv,
     char* const			buf,
