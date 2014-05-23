@@ -811,62 +811,6 @@ VDFIOBase::BitMask& VDFIOBase::BitMask::operator=(const BitMask &bm) {
 }
 
 
-int    VAPoR::MkDirHier(const string &dir) {
-
-    stack <string> dirs;
-
-    string::size_type idx;
-    string s = dir;
-
-	dirs.push(s);
-    while ((idx = s.find_last_of("/")) != string::npos) {
-        s = s.substr(0, idx);
-		if (! s.empty()) dirs.push(s);
-    }
-
-    while (! dirs.empty()) {
-        s = dirs.top();
-		dirs.pop();
-#ifndef WIN32
-        if ((mkdir(s.c_str(), 0777) < 0) && dirs.empty() && errno != EEXIST) {
-			MyBase::SetErrMsg("mkdir(%s) : %M", s.c_str());
-            return(-1);
-        }
-#else 
-		//Windows version of mkdir:
-		//If it succeeds, return value is nonzero
-		if (!CreateDirectory(( LPCSTR)s.c_str(), 0)){
-			DWORD dw = GetLastError();
-			if (dw != 183){ //183 means file already exists
-				MyBase::SetErrMsg("mkdir(%s) : %M", s.c_str());
-				return(-1);
-			}
-		}
-#endif
-    }
-    return(0);
-}
-
-void    VAPoR::DirName(const string &path, string &dir) {
-	
-	string::size_type idx = path.find_last_of('/');
-#ifdef WIN32
-	if (idx == string::npos)
-		idx = path.find_last_of('\\');
-#endif
-	if (idx == string::npos) {
-#ifdef WIN32
-		dir.assign(".\\");
-#else
-		dir.assign("./");
-#endif
-	}
-	else {
-		dir = path.substr(0, idx+1);
-	}
-}
-
-
 void VDFIOBase::_UnpackCoord(
 	VarType_T vtype, const size_t src[3], size_t dst[3], size_t fill
 ) {
