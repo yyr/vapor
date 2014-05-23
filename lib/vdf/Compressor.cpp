@@ -127,6 +127,9 @@ Compressor::Compressor(
 	const string &mode
 ) : MatWaveWavedec(wavename, mode) {
 
+	_CLen = 0;
+	_LLen = 0;
+
     if (MatWaveWavedec::GetErrCode() != 0) return;
 
 	_Compressor(dims);
@@ -135,6 +138,9 @@ Compressor::Compressor(
 Compressor::Compressor(
 	vector <size_t> dims, const string &wavename
 ) : MatWaveWavedec(wavename) {
+
+	_CLen = 0;
+	_LLen = 0;
 
     if (MatWaveWavedec::GetErrCode() != 0) return;
 
