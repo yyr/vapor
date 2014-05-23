@@ -39,17 +39,10 @@ public:
 	virtual void updateTab();
 	
 	virtual void guiSetEnabled(bool value, int instance, bool undoredo = true);
-	
-
-	virtual void updateRenderer(RenderParams* dParams, bool prevEnabled, int instance, bool newWindow);
 	virtual void reinitTab(bool doOverride);
 
 	virtual void captureMouseUp();
 	virtual void captureMouseDown(int button);
-	
-	//Following needed if tab has embedded opengl frames
-	//virtual void refreshTab(){}
-
 
 protected slots:
 

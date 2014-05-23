@@ -22,11 +22,7 @@
 #define EVENTROUTER_H
 #include "assert.h"
 #include "params.h"
-
 #include "vizwin.h"
-
-
-
 #include <qobject.h>
 class QWidget;
 
@@ -56,7 +52,7 @@ public:
 	//! Must include connections that send signals when any QTextEdit box is changed and when enter is pressed.
 	virtual void hookUpTab() = 0;
 
-	//! Pure virtual method to set the values of all the gui elements in the tab based on current params state.
+	//! Pure virtual method to set the values of all the gui elements into the tab based on current params state.
 	//! This is invoked whenever the user changes the tab or whenever the values in the tab need to be refreshed.
 	virtual void updateTab() = 0;
 
@@ -72,19 +68,18 @@ public:
 	//! Method to change the current instance index, and perform associated undo/redo capture.
 	//! Child classes can use this to respond to instance selection in the instance selector.
 	//! \param[in] int newCurrent specifies new current index
-	//! \param[in] bool undoredo specifies whether or not the event will be put on the undo/redo queue.
-	virtual void performGuiChangeInstance(int newCurrent, bool undoredo=true);
+	virtual void performGuiChangeInstance(int newCurrent);
 
 	//! Method to create a new instance, and perform associated undo/redo capture.
-	//! Child classes can use this to respond to clicks on the "new" instance button.
+	//! Child classes should use this to respond to clicks on the "new" instance button.
 	virtual void performGuiNewInstance();
 
 	//! Method to delete the current instance, and perform associated undo/redo capture.
-	//! Child classes can use this to respond to clicks on the "delete" instance selector.
+	//! Child classes should use this to respond to clicks on the "delete" instance selector.
 	virtual void performGuiDeleteInstance();
 
 	//! Method to make a copy of the current instance with the same visualizer, and perform associated undo/redo capture.
-	//! Child classes can use this to respond to user requests to copy instance to current visualizer.
+	//! Child classes should use this method to respond to user requests to copy instance to current visualizer.
 	virtual void performGuiCopyInstance();
 
 	//! Method to make a copy of the current instance into another visualizer, and perform associated undo/redo capture.
@@ -119,22 +114,90 @@ public:
 
 	//! Method for classes that capture mouse event events (i.e. have manipulators)
 	//! This must be reimplemented to respond when the mouse is released.
+	//! The mouse release event is received by the VizWin instance, which then calls
+	//! captureMouseUp() for the EventRouter that is associated with the current mouse mode.
 	virtual void captureMouseUp() {assert(0);}
 
 	//! Method for classes that capture mouse event events (i.e. have manipulators)
-	//! This must be reimplemented to respond when the mouse is pressed
+	//! This must be reimplemented to respond appropriately when the mouse is pressed.
+	//! The mouse press event is received by the VizWin instance, which then calls
+	//! captureMouseDown() for the EventRouter that is associated with the current mouse mode.
 	virtual void captureMouseDown(int mouseNum) {assert(0);}
 
-#ifndef DOXYGEN_SKIP_THIS
+	//! Constructor
 	EventRouter() {
 		textChangedFlag = 0;
-		
-		
 		isoShown = colorMapShown = opacityMapShown = texShown = false;
 	}
+	//! virtual destructor
 	virtual ~EventRouter() {
-		
 	}
+	
+	//! Obtain the ParamsBaseType associated with the Params of this EventRouter.
+	//! \retval ParamsBase::ParamsBaseType
+	Params::ParamsBaseType getParamsBaseType() {return myParamsBaseType;}
+	
+	//! Make the tab refresh after a scrolling operation.
+	//! Helpful on windows only, and only some tabs
+	virtual void refreshTab() {}
+
+	//! Virtual method to enable or disable rendering when turned on or off by a gui tab.
+	//! Only useful if the tab corresponds to a renderer.
+	//! \param[in] rp RenderParams instance to be enabled/disabled
+	//! \param[in] wasEnabled indicates if rendering was previously disabled
+	//! \param[in] instance index being enabled
+	//! \param[in] newVis indicates if the rendering is being enabled in a new visualizer.
+	virtual void updateRenderer(RenderParams* rp, bool wasEnabled, int instance, bool newVis);
+	
+	#ifndef DOXYGEN_SKIP_THIS
+	//make sure the params cleanly detaches from gui, to
+	//handle possible connections from editors, frames, etc.
+	virtual void cleanParams(Params*) {}
+	
+	//! Virtual method supports loading a transfer function from the session, for 
+	//! tabs that have transfer functions.
+	virtual void sessionLoadTF(QString* ) {assert(0);}
+
+	virtual void guiSetLocal(Params* p, bool lg);
+	
+	//For render params, setEditorDirty uses the current instance if Params
+	//arg is null
+	virtual void setEditorDirty(RenderParams*){}
+	virtual void updateMapBounds(RenderParams*) {assert (0);}
+	virtual void updateClut(RenderParams*){assert(0);}
+
+	//Methods supporting loading/saving transfer functions in tabs with transfer functions
+	//! Launch a dialog to save the current transfer function to session or file.
+	//! \param[in] rParams RenderParams instance associated with the transfer function
+	void saveTF(RenderParams* rParams);
+	//! Launch a dialog to save the current transfer function to file.
+	//! \param[in] rParams RenderParams instance associated with the transfer function
+	void fileSaveTF(RenderParams* rParams);
+	//! Launch a dialog to enable user to load an installed transfer function.
+	//! \param[in] rParams RenderParams instance associated with the transfer function
+	//! \param[in] varnum session variable number of the variable associated with the TF.
+	void loadInstalledTF(RenderParams* rParams, int varnum);
+	//! Launch a dialog to enable user to load a transfer function from session or file.
+	//! \param[in] rParams RenderParams instance associated with the transfer function
+	//! \param[in] varnum session variable number of the variable associated with the TF.
+	void loadTF(RenderParams* rParams, int varnum);
+	//! Launch a dialog to enable user to load a transfer function from file.
+	//! \param[in] rParams RenderParams instance associated with the transfer function
+	//! \param[in] varnum session variable number of the variable associated with the TF.
+	//! \param[in] startPath file path for the dialog to initially present to user
+	//! \param[in] savePath indicates whether or not the resulting path should be saved to user preferences.
+	void fileLoadTF(RenderParams* rParams, int varnum, const char* startPath, bool savePath);
+
+	//! variables used to workaround Darwin bug, indicate whether or not
+	//! various gui images have displayed yet.
+	bool isoShown, colorMapShown, opacityMapShown, texShown;
+
+public slots:
+
+	virtual void guiStartChangeMapFcn(QString) { assert(0); }
+	virtual void guiEndChangeMapFcn() { assert(0); }
+	
+protected:
 	//Methods to change instances (for undo/redo).
 	//Only used by renderer params
 	//Insert an instance (where there was none).
@@ -146,66 +209,12 @@ public:
 	void copyRendererInstance(int toWinnum, RenderParams* rParams);
 	void changeRendererInstance(int winnum, int newInstance);
 	
-	Params::ParamsBaseType getParamsBaseType() {return myParamsBaseType;}
-	
-	//Make the tab refresh after a scrolling operation.
-	//Helpful on windows only, and only some tabs
-	virtual void refreshTab() {}
-
-	//UpdateRenderer ignores renderParams argument and uses the
-	//params associated with the instance if it is nonnegative
-	virtual void updateRenderer(RenderParams* , bool /*wasEnabled*/, int /*instance*/, bool /*newWindow*/){assert(0);}
-	
-	//make sure the params cleanly detaches from gui, to
-	//handle possible connections from editors, frames, etc.
-	virtual void cleanParams(Params*) {}
-	
-	virtual void sessionLoadTF(QString* ) {assert(0);}
-	//Clone the params and any other related classes.
-	//Default just clones the params:
-	virtual Params* deepCopy(Params* p) {return (p->deepCopy());}
-	
-	virtual void guiSetLocal(Params* p, bool lg);
-	
-	//Methods to support maintaining a list of histograms
-	//in each router (at least those with a TFE)
-
-	
-
-	//For render params, setEditorDirty uses the current instance if Params
-	//arg is null
-	virtual void setEditorDirty(RenderParams*){}
-	virtual void updateMapBounds(RenderParams*) {assert (0);}
-	virtual void updateClut(RenderParams*){assert(0);}
-
-	
-
-//Methods for loading/saving transfer functions:
-void saveTF(RenderParams* rParams);
-void fileSaveTF(RenderParams* rParams);
-void loadInstalledTF(RenderParams* rParams, int varnum);
-void loadTF(RenderParams* rParams, int varnum);
-
-void fileLoadTF(RenderParams* rParams, int varnum, const char* startPath, bool savePath);
-	//Workaround Darwin/Qt bug.  Note these are public:
-	bool isoShown, colorMapShown, opacityMapShown, texShown;
-
-public slots:
-
-	virtual void guiStartChangeMapFcn(QString) { assert(0); }
-	virtual void guiEndChangeMapFcn() { assert(0); }
-	
-	
-protected:
 	//for subclasses with a box:
 	void setIgnoreBoxSliderEvents(bool val) {ignoreBoxSliderEvents = val;}
 	bool ignoreBoxSliderEvents;
-	//for subclasses with a datarange:
-	virtual void setDatarangeDirty(RenderParams* ) {assert(0);}
+
 	//Routers with histograms keep an array, one for each variable,
 	// or variable combination
-	
-	
 	//There is one tabbed panel for each class of Params
 	
 	Params::ParamsBaseType myParamsBaseType;

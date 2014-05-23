@@ -574,15 +574,12 @@ void AnimationEventRouter::guiToggleReplay(bool replay){
 	update();
 	
 }
+
 //Set change bits when global/local change occurs, so that the animation
 //controller will change the local/global status at the end of the next rendering.
 void AnimationEventRouter::guiSetLocal(Params* p, bool lg){
-	
 	EventRouter::guiSetLocal(p,lg);
-	
 	int viznum = VizWinMgr::getInstance()->getActiveViz();
-		
-	
 	VizWin* viz = VizWinMgr::getInstance()->getVizWin(viznum);
 	viz->updateGL();
 }

@@ -917,8 +917,7 @@ void MainForm::defaultLoadData()
 			//
 			if (dmgr){
 				sessionIsDefault = false;
-				int numParamsTabs = ControlExec::GetNumTabParamsClasses();
-				for (int pType = 1; pType <= numParamsTabs; pType++){
+				for (int pType = Params::GetNumBasicParamsClasses()+1; pType <= Params::GetNumParamsClasses(); pType++){
 					EventRouter* eRouter = VizWinMgr::getInstance()->getEventRouter(pType);
 					eRouter->reinitTab(true);
 				}
