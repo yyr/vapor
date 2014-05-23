@@ -59,7 +59,6 @@ InstanceParams::~InstanceParams(){
 void InstanceParams::
 restart(){
 	GetRootNode()->DeleteAll();
-	addVizWin(0);
 }
 //Reinitialize settings, session has changed
 
@@ -169,7 +168,6 @@ int InstanceParams::addVizWin(int viznum){
 	
 	//Need to find the specified visualizer node.   If it already exists, then quit.
 	//Then find the renderer child node associated with the name (create if it does not exist)
-	//Then increment the number of instances for that tag.
 	ParamNode* vizNodes = GetRootNode()->GetNode(_visualizersTag);
 	if (!vizNodes) {
 		vizNodes = new ParamNode(_visualizersTag,1);
@@ -190,7 +188,7 @@ int InstanceParams::addVizWin(int viznum){
 		if (!p->isRenderParams()) continue;
 		string tag = Params::GetTagFromType(t);
 		ParamNode* renderNode = new ParamNode(tag);
-		renderNode->SetElementLong(_numInstancesTag,1);
+		renderNode->SetElementLong(_numInstancesTag,0);
 		renderNode->SetElementLong(_currentInstanceTag,0);
 		int rc = vizNode->AddNode(tag,renderNode);
 		if (rc) return rc;

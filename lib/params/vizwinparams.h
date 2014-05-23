@@ -67,7 +67,7 @@ public:
 	virtual void restart();
 	//! The vizwin params are just for UndoRedo and sessions (i.e., do they not show up as tabs in the GUI)
 	//! \retval always returns true for this class.
-	virtual bool isUndoRedoParams() const {return true;}
+	virtual bool isBasicParams() const {return true;}
 
 	//! Static method used to add a new Viz Win to the list of viz windows
 	//! If the specified visualizer already exists returns -1.
@@ -86,7 +86,7 @@ public:
 	static int RemoveVizWin(int viz);
 
 	//! Static method identifies the current visualizer
-	//! \retval VizWinType current mouse mode
+	//! \retval visualizer index
 	static int  GetCurrentVizWin(){
 		return ((VizWinParams*)Params::GetParamsInstance(_vizWinParamsTag))->getCurrentVizWin();
 	}
@@ -174,6 +174,18 @@ public:
 	//! Pure virtual method on Params. Provide a short name suitable for use in the GUI
 	//! \retval string name
 	const std::string getShortName() {return _shortName;}
+	//! Method returns a vector of visualizer indices
+	//! indicating the visualizer numbers being used in the session
+	//! associated with this current VizWinParams instance
+	vector<long> getVisualizerNums(){
+		return GetValueLongVec(_visualizerNumsTag);
+	}
+	//! Non-static method identifies the current visualizer.  
+	//! Only needed for Undo/Redo
+	//! \retval visualizer index
+	int getCurrentVizWin(){
+		return GetValueLong(_currentWindowTag);
+	}
 
 #ifndef DOXYGEN_SKIP_THIS
 	
@@ -211,9 +223,7 @@ protected:
 	int setCurrentVizWin(int viz){
 		return SetValueLong(_currentWindowTag, "Set current viz win",(long)viz);
 	}
-	int getCurrentVizWin(){
-		return GetValueLong(_currentWindowTag);
-	}
+	
 	vector<long> getWindowWidths(){
 		return GetValueLongVec(_windowWidthsTag);
 	}
@@ -227,9 +237,7 @@ protected:
 	int setWindowHeights(const vector<long>& heights){
 		return SetValueLong(_windowHeightsTag, "Set window heights",heights);
 	}
-	vector<long> getVisualizerNums(){
-		return GetValueLongVec(_visualizerNumsTag);
-	}
+	
 	int setVisualizerNums(const vector<long>& viznums){
 		return SetValueLong(_visualizerNumsTag,"Set visualizer numbers",viznums);
 	}

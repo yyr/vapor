@@ -814,8 +814,7 @@ void MainForm::loadData()
 			//
 			if (dmgr){
 				sessionIsDefault=false;
-				int numParamsTabs = ControlExec::GetNumTabParamsClasses();
-				for (int pType = 1; pType <= numParamsTabs; pType++){
+				for (int pType = 1+ControlExec::GetNumBasicParamsClasses(); pType <= ControlExec::GetNumParamsClasses(); pType++){
 					EventRouter* eRouter = VizWinMgr::getInstance()->getEventRouter(pType);
 					eRouter->reinitTab(false);
 				}
@@ -946,9 +945,8 @@ void MainForm::newSession(){
 	
 void MainForm::launchVisualizer()
 {
-	Command::blockCapture();
+	
 	VizWinMgr::getInstance()->launchVisualizer();
-	Command::unblockCapture();
 		
 }
 

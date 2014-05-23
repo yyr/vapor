@@ -71,9 +71,8 @@ int ControlExec::NewVisualizer(int viznum){
 			}
 		}
 		viznum = vizIndex;
-		if (viznum >= 0) addVis = true;
 	}
-
+	if (viznum >= 0) addVis = true;
 	//Save to VizWinParams with default settings
 	if (addVis) VizWinParams::AddVizWin("Visualizer",viznum, 400,400);
 	return viznum;
@@ -206,6 +205,8 @@ int ControlExec::RemoveParams(int viz, string type, int instance){
 	int ptype = Params::GetTypeFromTag(type);
 	if (ptype <= 0) return -1;
 	//Must update the instance params before performing the actual removal...
+	Params* p = ControlExec::GetDefaultParams(type);
+	if (!p->isRenderParams()) return 0; //Instance params only exist for RenderParms
 	int rc = InstanceParams::RemoveInstance(type, viz, instance);
 	Params::RemoveParamsInstance(ptype,viz,instance);
 	return rc;
@@ -335,6 +336,10 @@ int ControlExec::ValidateParams(Params* p){return 0;}
 void ControlExec::
 createAllDefaultParams() {
 
+	//Note that Basic Params must be registered after other params??
+	ParamsBase::RegisterParamsBaseClass(MouseModeParams::_mouseModeParamsTag,MouseModeParams::CreateDefaultInstance, true);
+	ParamsBase::RegisterParamsBaseClass(VizWinParams::_vizWinParamsTag,VizWinParams::CreateDefaultInstance, true);
+	ParamsBase::RegisterParamsBaseClass(InstanceParams::_instanceParamsTag,InstanceParams::CreateDefaultInstance, true);
 	//Install Extension Classes:
 	InstallExtensions();
 
@@ -345,10 +350,7 @@ createAllDefaultParams() {
 	ParamsBase::RegisterParamsBaseClass(Params::_animationParamsTag, AnimationParams::CreateDefaultInstance, true);
 	ParamsBase::RegisterParamsBaseClass(Params::_viewpointParamsTag, ViewpointParams::CreateDefaultInstance, true);
 	ParamsBase::RegisterParamsBaseClass(Params::_regionParamsTag, RegionParams::CreateDefaultInstance, true);
-	//Note that UndoRedo Params must be registered after other params
-	ParamsBase::RegisterParamsBaseClass(MouseModeParams::_mouseModeParamsTag,MouseModeParams::CreateDefaultInstance, true);
-	ParamsBase::RegisterParamsBaseClass(VizWinParams::_vizWinParamsTag,VizWinParams::CreateDefaultInstance, true);
-	ParamsBase::RegisterParamsBaseClass(InstanceParams::_instanceParamsTag,InstanceParams::CreateDefaultInstance, true);
+	
 	MouseModeParams::RegisterMouseModes();
 	
 }
@@ -388,10 +390,16 @@ reinitializeParams(bool doOverride){
 }
 
 const Params* ControlExec::Undo( ){
-		return Command::BackupQueue();
+	Command::blockCapture();
+	Params* p= Command::BackupQueue();
+	Command::unblockCapture();
+	return p;
 }
 const Params* ControlExec::Redo(){
-		return Command::AdvanceQueue();
+	Command::blockCapture();
+	Params* p= Command::AdvanceQueue();
+	Command::unblockCapture();
+	return p;
 }
 
 bool ControlExec::CommandExists(int offset) {
@@ -410,11 +418,14 @@ void ControlExec::destroyParams(){
 		(it->second)->removeAllRenderers();
 	}
 }
+int ControlExec::GetNumBasicParamsClasses(){
+	return ParamsBase::GetNumBasicParamsClasses();
+}
 int ControlExec::GetNumParamsClasses(){
 	return ParamsBase::GetNumParamsClasses();
 }
 int ControlExec::GetNumTabParamsClasses(){
-	return (ParamsBase::GetNumParamsClasses() - ParamsBase::GetNumUndoRedoParamsClasses());
+	return (ParamsBase::GetNumParamsClasses() - ParamsBase::GetNumBasicParamsClasses());
 }
 const std::string ControlExec::GetShortName(string& typetag){
 	Params::ParamsBaseType ptype = Params::GetTypeFromTag(typetag);
@@ -638,7 +649,7 @@ buildNode() {
 			string tag = GetTagFromType(j+1);
 			for (int inst = 0; inst< GetNumParamsInstances(viz,tag); inst++){
 				Params* p = GetParams(viz,tag,inst);
-				if (p->isUndoRedoParams()) continue;
+				if (p->isBasicParams()) continue;
 				ParamNode* pNode = p->buildNode();
 				if (pNode) vizNode->AddChild(pNode);
 			}

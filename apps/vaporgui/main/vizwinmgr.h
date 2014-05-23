@@ -106,6 +106,16 @@ public:
 	//! Reset the GUI to its default state, either due to New Session, or in preparation for loading a session file.
 	void SetToDefaults();
 
+	//! Static helper method invoked during Undo and Redo visualizer creation and destruction, as well
+	//! setting the current viz window.
+	//! This function must be passed in Command::CaptureStart()
+	//! \sa UndoRedoHelpCB_T
+	//! \param[in] isUndo indicates whether an Undo or Redo is being performed
+	//! \param[in] instance is not used here
+	//! \param[in] beforeP is a copy of the VizWinParams* at the start of the Command
+	//! \param[in] afterP is a copy of the VizWinParams* at the end of the Command 
+	static void UndoRedo(bool isUndo, int /*instance*/, Params* beforeP, Params* afterP);
+
 #ifndef DOXYGEN_SKIP_THIS
 	//Following methods are not usually needed for extensibility:
 	~VizWinMgr();
@@ -133,6 +143,9 @@ public:
     
     //method to launch a viz window, returns vizNum
     int launchVisualizer();
+	//method to add a specific viz window, associated with a specific visualizer:
+	int addVisualizer(int viznum);
+	void removeVisualizer(int viznum);
 	//! method to launch a viz window, params already exist.
 	//! Associated with a specified visualizer
 	//! \param[in] useViznum specifies the visualizer number that is to be attached

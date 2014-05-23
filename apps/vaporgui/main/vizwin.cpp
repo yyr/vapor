@@ -91,9 +91,12 @@ VizWin::~VizWin()
 	 if (spinTimer) delete spinTimer;
 }
 void VizWin::closeEvent(QCloseEvent* e){
+	//Catch this in the undo/redo queue
+	Command* cmd = Command::CaptureStart(ControlExec::GetCurrentParams(-1, VizWinParams::_vizWinParamsTag),"Delete Visualizer", VizWinMgr::UndoRedo);
 	//Tell the winmgr that we are closing:
     myWinMgr->vizAboutToDisappear(myWindowNum);
 	QWidget::closeEvent(e);
+	Command::CaptureEnd(cmd, ControlExec::GetCurrentParams(-1, VizWinParams::_vizWinParamsTag));
 
 }
 /******************************************************

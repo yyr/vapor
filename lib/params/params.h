@@ -405,7 +405,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! Default returns false.
 //! Useful for application developers.
 //! \retval returns true if it is UndoRedo
-	virtual bool isUndoRedoParams() const {return false;}
+	virtual bool isBasicParams() const {return false;}
 
 //! Pure virtual method, sets a Params instance to its default state, without any data present.
 //! Params implementers should assign valid values to all elements in the Params class in this method.

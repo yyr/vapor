@@ -40,7 +40,7 @@ const vector<long> ParamsBase::_emptyLongVec;
 const vector<double> ParamsBase::_emptyDoubleVec;
 
 int ParamsBase::numParamsClasses = 0;
-int ParamsBase::numUndoRedoParamsClasses = 0;
+int ParamsBase::numBasicParamsClasses = 0;
 int ParamsBase::numEmbedClasses = 0;
 ParamsBase::ParamsBase(
 	XmlNode *parent, const string &name
@@ -389,7 +389,7 @@ int ParamsBase::RegisterParamsBaseClass(const string& tag, BaseCreateFcn fcn, bo
 	if (isParams){
 		Params* p = Params::CreateDefaultParams(newIndex);
 		Params::SetDefaultParams(newIndex, p);
-		if (p->isUndoRedoParams()) numUndoRedoParamsClasses++;
+		if (p->isBasicParams()) numBasicParamsClasses++;
 	}
 	return newIndex;
 
