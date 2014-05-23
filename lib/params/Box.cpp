@@ -161,7 +161,7 @@ int Box::GetUserExtents(float extents[6], size_t timestep){
 }
 void Box::Trim(Params* p,int numTimes){
 		if (numTimes > GetTimes().size()) return;
-		Command* cmd = Command::CaptureStart(p, "Trim box extents");
+		//Not a user-accessible change, do not put in command queue.
 		vector<long> times = GetTimes();
 		times.resize(numTimes);
 		SetValueLong(Box::_timesTag,"",times, p);
@@ -169,5 +169,4 @@ void Box::Trim(Params* p,int numTimes){
 		vector<double>defaultExts(6,0.);
 		exts = GetValueDoubleVec(Box::_extentsTag,defaultExts);
 		SetValueDouble(_extentsTag, "", exts,p);
-		Command::CaptureEnd(cmd, p);
 }

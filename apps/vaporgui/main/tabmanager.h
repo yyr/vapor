@@ -27,6 +27,7 @@
 namespace VAPoR {
 
 class MainForm;
+class ControlExec;
 //Total number of different widgets that can go into tabs
 //
 
@@ -66,10 +67,7 @@ class TabManager : public QTabWidget{
 		//Mainform must set the session before can handle any history changes.
 		//
 		//Determine if a widget is the current front tab
-		bool isFrontTab(QWidget* wid){
-			int widtype = usedTypes[currentFrontPage];
-			return (wid == widgets[widtype-1]);
-		}
+		bool isFrontTab(QWidget* wid);
 
 		EventRouter* getFrontEventRouter() { 
 			return VizWinMgr::getInstance()->getEventRouter(usedTypes[currentFrontPage]);

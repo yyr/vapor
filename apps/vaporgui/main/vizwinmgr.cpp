@@ -191,7 +191,7 @@ vizAboutToDisappear(int i)  {
 	
 	
 	//Delete all the params associated with the visualizer
-	for (int j = 1; j<= ControlExec::GetNumTabParamsClasses(); j++){
+	for (int j = 1+ControlExec::GetNumBasicParamsClasses(); j<= ControlExec::GetNumParamsClasses(); j++){
 		string tag = ControlExec::GetTagFromType(j);
 		for (int k = ControlExec::GetNumParamsInstances(i,tag)-1; k>=0; k--){
 			getEventRouter(j)->cleanParams(ControlExec::GetParams(i,tag,k));
@@ -218,6 +218,7 @@ int VizWinMgr::
 launchVisualizer()
 {
 	
+	Command* cmd = Command::CaptureStart(ControlExec::GetCurrentParams(-1,VizWinParams::_vizWinParamsTag), "launch Visualizer", VizWinMgr::UndoRedo);
 	int useWindowNum = ControlExec::NewVisualizer();
 	
 	createDefaultParams(useWindowNum);
@@ -264,7 +265,7 @@ launchVisualizer()
 	if (numWins > 1){
 		emit enableMultiViz(true);
 	}
-
+	Command::CaptureEnd(cmd,ControlExec::GetCurrentParams(-1,VizWinParams::_vizWinParamsTag));
 	return useWindowNum;
 }
 //When a new session is opened, visualizers are created to use the params from the session.
@@ -396,6 +397,7 @@ void VizWinMgr::
 setActiveViz(int vizNum){
 	if (vizNum < 0) return;
 	if (getActiveViz() != vizNum){
+		Command* cmd = Command::CaptureStart(ControlExec::GetActiveParams(VizWinParams::_vizWinParamsTag),"Change current active visualizer",VizWinMgr::UndoRedo);
 		ControlExec::SetActiveVizIndex(vizNum);
 		emit(activateViz(vizNum));
 		
@@ -422,7 +424,7 @@ setActiveViz(int vizNum){
 				(it->second)->updateGL();
 			}
 		}
-
+		Command::CaptureEnd(cmd,ControlExec::GetActiveParams(VizWinParams::_vizWinParamsTag));
 	}
 }
 //Method to cause all the params to update their tab panels for the active
@@ -431,8 +433,7 @@ void VizWinMgr::
 updateActiveParams(){
 	int activeViz = getActiveViz();
 	if (activeViz < 0 ||!getVizWin(activeViz)) return;
-	int numTabParams = ControlExec::GetNumTabParamsClasses();
-	for (int i = 1; i<= numTabParams; i++){
+	for (int i = ControlExec::GetNumBasicParamsClasses()+1; i<= ControlExec::GetNumParamsClasses(); i++){
 		getEventRouter(i)->updateTab();
 	}
 }
@@ -861,4 +862,146 @@ void VizWinMgr::SetToDefaults(){
 	}
 	VizMdiWin.clear();
 	VizWindow.clear();
+}
+void VizWinMgr::UndoRedo(bool isUndo, int /*instance*/, Params* beforeP, Params* afterP){
+	//Determine if this is a creation or destruction of a visualizer
+	VizWinParams* vizwinBefore = (VizWinParams*)beforeP;
+	VizWinParams* vizwinAfter = (VizWinParams*)afterP;
+	vector<long> beforeNums = vizwinBefore->getVisualizerNums();
+	vector<long> afterNums = vizwinAfter->getVisualizerNums();
+	if (beforeNums.size() != afterNums.size()){
+		int createdNum = -1, destroyedNum = -1;
+
+		//find which one was created or destroyed
+		if (beforeNums.size()<afterNums.size()){ //look for an afterNum that was not in beforeNum
+			for (int i = 0; i<afterNums.size(); i++){
+				bool match = false;
+				for (int j = 0; j<beforeNums.size(); j++){
+					if (beforeNums[j] == afterNums[i]) {match = true; break;}
+				}
+				if (!match) { //We did not find a match to afterNums[i];
+					createdNum = afterNums[i];
+					break;
+				}
+			}
+		} else { //look for a before num that is not in after nums
+			for (int i = 0; i<beforeNums.size(); i++){
+				bool match = false;
+				for (int j = 0; j<afterNums.size(); j++){
+					if (beforeNums[i] == afterNums[j]) {match = true; break;}
+				}
+				if (!match) { //We did not find a match to beforeNums[i];
+					destroyedNum = beforeNums[i];
+					break;
+				}
+			}
+		}
+		//We should have found either a visualizer creation or destruction
+		assert(createdNum >= 0 || destroyedNum >= 0);
+		if ((isUndo && createdNum >=0) || (!isUndo && destroyedNum >=0)){
+			//Need to undo a creation or redo a destruction; i.e. need to remove a visualizer
+			int loseVizNum;
+			if (isUndo) loseVizNum = createdNum; else loseVizNum = destroyedNum;
+			VizWinMgr* vizMgr = VizWinMgr::getInstance();
+			vizMgr->removeVisualizer(loseVizNum);
+			return;
+		} else { //Need to add a visualizer
+			int newVizNum;
+			if (isUndo) newVizNum = destroyedNum; else newVizNum = createdNum;
+
+			int useWindowNum = ControlExec::NewVisualizer(newVizNum);
+			VizWinMgr* vizMgr = VizWinMgr::getInstance();
+			vizMgr->addVisualizer(useWindowNum);
+			return;
+		}
+	} else {  //deal with change of current visualizer
+		
+		int prevWin = vizwinBefore->getCurrentVizWin();
+		int nextWin = vizwinAfter->getCurrentVizWin();
+		int newCurrentWin;
+		if (prevWin != nextWin){
+			if (isUndo) newCurrentWin = prevWin;
+			else newCurrentWin = nextWin;
+			VizWinMgr* vizMgr = VizWinMgr::getInstance();
+			vizMgr->emit activateViz(newCurrentWin);
+			vizMgr->VizWindow[newCurrentWin]->setFocus();
+			
+		
+			vizMgr->ActivationOrder[newCurrentWin]= (++vizMgr->activationCount);
+			//Determine if the local viewpoint dialog applies, update the tab dialog
+			//appropriately
+			vizMgr->updateActiveParams();
+			//Set the animation toolbar to the correct frame number:
+			int currentTS = getActiveAnimationParams()->getCurrentTimestep();
+			MainForm::getInstance()->setCurrentTimestep(currentTS);
+			//Tell the Visualizers who is active
+			Visualizer::setActiveWinNum(newCurrentWin);
+			//Determine if the active viz is sharing the region
+			Visualizer::setRegionShareFlag(!vizMgr->getRegionParams(newCurrentWin)->IsLocal());
+
+			vizMgr->tabManager->show();
+		
+		
+			//Need to cause a redraw in all windows if we are not in navigate mode,
+			//So that the manips will change where they are drawn:
+			if (MouseModeParams::GetCurrentMouseMode() != MouseModeParams::navigateMode){
+				map<int,VizWin*>::iterator it;
+				for (it = vizMgr->VizWindow.begin(); it !=  vizMgr->VizWindow.end(); it++){
+					(it->second)->updateGL();
+				}
+			}
+		}
+	}
+}
+int VizWinMgr::addVisualizer(int useWindowNum){
+	createDefaultParams(useWindowNum);
+		
+    QPoint* topLeft = new QPoint(0,0);
+    QSize* minSize = new QSize(400, 400);
+    QRect* newRect = new QRect (*topLeft, *minSize);
+
+    //Don't record events generated by window activation here: 
+	std::stringstream out;
+	out << useWindowNum;
+	string win = out.str();
+	
+    string vizname = string("Visualizer No. ") +win;
+	QString qvizname = QString::fromStdString(vizname);
+	VizWinParams::SetVizName(useWindowNum, vizname);
+	//notify the window selector:
+	emit (newViz(qvizname, useWindowNum));
+	
+	VizWindow[useWindowNum] = new VizWin (MainForm::getInstance(), qvizname, 0, this, newRect, useWindowNum);
+	
+	QMdiSubWindow* qsbw = MainForm::getInstance()->getMDIArea()->addSubWindow(VizWindow[useWindowNum]);
+	VizMdiWin[useWindowNum]=qsbw;
+	
+	VizWindow[useWindowNum]->setWindowNum(useWindowNum);
+	VizWindow[useWindowNum]->setFocusPolicy(Qt::ClickFocus);
+	VizWindow[useWindowNum]->setWindowTitle(qvizname);
+
+
+	setActiveViz(useWindowNum);
+
+	VizWindow[useWindowNum]->showMaximized();
+	
+	int numWins = VizWinParams::GetNumVizWins();
+	//Tile if more than one visualizer:
+	if(numWins > 1) fitSpace();
+
+	//Set non-renderer tabbed panels to use global parameters:
+	
+	emit activateViz(useWindowNum);
+	VizWindow[useWindowNum]->show();
+
+	//When we go from 1 to 2 windows, need to enable multiple viz panels and signals.
+	if (numWins > 1){
+		emit enableMultiViz(true);
+	}
+
+	return useWindowNum;
+}
+void VizWinMgr::removeVisualizer(int viznum){
+	killViz(viznum);
+	fitSpace();
 }

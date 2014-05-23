@@ -75,32 +75,22 @@ Validate(bool doOverride){
 int VizWinParams::AddVizWin(const std::string name, int viznum, int width, int height){ 
 	
 	VizWinParams* p = (VizWinParams*)Params::GetParamsInstance(_vizWinParamsTag);
+	Command* cmd = Command::CaptureStart(p,"Add new visualizer");
 	vector<long> viznums= p->getVisualizerNums();
-	int minviz = 1000, maxviz = -1;
+	InstanceParams::AddVizWin(viznum);
+	//If this index is already in use, do nothing!
 	for (int i = 0; i<viznums.size(); i++){
-		if (viznums[i] < minviz) minviz = viznums[i];
-		if (viznums[i] > maxviz) maxviz = viznums[i];
-	}
-	int newviz = -1;
-	if (minviz > 0) newviz = 0;
-	else if (maxviz == viznums.size()-1) newviz = viznums.size();
-	else { //find the first unused index before maxviz (there is one!)
-		for (int i = 0; i<maxviz; i++){
-			//see if i is used
-			int iused = false;
-			for (int j = 0; j<viznums.size(); j++){
-				if (viznums[j]==i) { iused = true; break;}
-			}
-			if (!iused) {newviz = i; break;}
+		if (viznums[i] == viznum ) {
+			return 0;
 		}
-		assert(newviz >= 0);
 	}
+	
 	// add the new element at the end of the arrays:
-	viznums.push_back(newviz);
+	viznums.push_back(viznum);
 	vector<long> widths = p->getWindowWidths();
 	vector<long> heights = p->getWindowHeights();
 	vector<string>winnames = p->getWindowNames();
-	Command* cmd = Command::CaptureStart(p,"Add new visualizer");
+	
 	widths.push_back(width);
 	heights.push_back(height);
 	winnames.push_back(name);
@@ -109,7 +99,7 @@ int VizWinParams::AddVizWin(const std::string name, int viznum, int width, int h
 	p->setWindowHeights(heights);
 	p->setWindowWidths(widths);
 	p->setWindowNames(winnames);
-	InstanceParams::AddVizWin(newviz);
+	
 	Command::CaptureEnd(cmd, p);
 	return 0;
 }

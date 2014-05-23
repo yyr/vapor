@@ -65,7 +65,7 @@ public:
 	virtual void restart();
 	//! The vizwin params are just for UndoRedo and sessions (i.e., do they not show up as tabs in the GUI)
 	//! \retval always returns true for this class.
-	virtual bool isUndoRedoParams() const {return true;}
+	virtual bool isBasicParams() const {return true;}
 
 	//! Static method used to add a instance to the list of instances for a visualizer
 	//! On error returns -1.
@@ -142,6 +142,7 @@ public:
 	//Returns 0 if no instance change is found.  Returns 1 if the changed instance is in p1, 2 if it's in p2
 	static int instanceDiff(InstanceParams* p1, InstanceParams* p2, string& tag, int* instance, int* viz);
 
+
 #ifndef DOXYGEN_SKIP_THIS
 	
 	static const string _instanceParamsTag;
@@ -153,6 +154,7 @@ public:
 	int getCurrentInstance(std::string tag, int viz);
 protected:
 	
+	void setToDefault();
 	//! following non-static Set/get methods are not public.
 	int addVizWin(int viznum);
 	int setCurrentInstance(std::string tag, int viz, int instance);

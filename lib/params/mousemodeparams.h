@@ -58,7 +58,7 @@ public:
 	virtual void restart();
 	//! The mouse mode params are just for UndoRedo (i.e., do not show up as tabs in the GUI)
 	//! \retval always returns true for this class.
-	virtual bool isUndoRedoParams() const {return true;}
+	virtual bool isBasicParams() const {return true;}
 
 	//Enum describes various mouse modes:
 	enum mouseModeType {

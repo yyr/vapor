@@ -136,16 +136,16 @@ void TabManager::toggleFrontTabs(Params::ParamsBaseType currentType){
 	//find any tab that is not associated with current type
 	int i;
 	for (i = 0; i<tabOrdering.size(); i++){
-		if ((i+1) == currentType) continue;
+		if ((i+1+Params::GetNumBasicParamsClasses()) == currentType) continue;
 		if (tabOrdering[i]> 0) break;
 	}
 	if (i >= tabOrdering.size()) return;
 	//move tab i to front, but dont trigger an undo event
 	
 	moveToFront(i+1);
-	EventRouter* eRouter = VizWinMgr::getInstance()->getEventRouter(i+1);
+	EventRouter* eRouter = VizWinMgr::getInstance()->getEventRouter(i+1+Params::GetNumBasicParamsClasses());
 	eRouter->updateTab();
-	moveToFront(currentType);
+	moveToFront(currentType-Params::GetNumBasicParamsClasses());
 	eRouter = VizWinMgr::getInstance()->getEventRouter(currentType);
 	eRouter->updateTab();
 	
@@ -208,7 +208,7 @@ void TabManager::orderTabs(){
 	int numTabs = 0;
 	for (int i = 0; i< tabOrdering.size(); i++) if (tabOrdering[i] > 0) numTabs++;
 	//Make sure the tabOrdering is valid.  It needs to have a place for all paramsBaseTypes except UndoRedo params
-	int numTabClasses = Params::GetNumParamsClasses()-Params::GetNumUndoRedoParamsClasses();
+	int numTabClasses = ControlExec::GetNumParamsClasses()-ControlExec::GetNumBasicParamsClasses();
 	if (tabOrdering.size() < numTabClasses){
 		for (int i = tabOrdering.size(); i< numTabClasses; i++){
 			tabOrdering.push_back(++numTabs);
@@ -224,13 +224,13 @@ void TabManager::orderTabs(){
 	//Now construct a list of all the ParamsBaseTypes that are used, in the order they are used:
 	usedTypes.clear();
 	//Go through the tabOrdering, looking in order for each tab position > 0
-	//For each tab position, the corresponding type is the offset where it occurs +1
+	//For each tab position, the corresponding type is the offset where it occurs plus the number of BasicParams types, plus 1.
 	int nextIndex = 1;
 	while (nextIndex <= numTabs) {
 		bool found = false;
 		for (int i = 0; i < tabOrdering.size(); i++){
 			if (tabOrdering[i] == nextIndex){
-				usedTypes.push_back(i+1);
+				usedTypes.push_back(i+ControlExec::GetNumBasicParamsClasses()+1);
 				nextIndex++;
 				found = true;
 				break;
@@ -266,4 +266,8 @@ void TabManager::orderTabs(){
 	
 	setEnabled(true);
 	update();
+}
+bool TabManager::isFrontTab(QWidget* wid){
+	int widtype = usedTypes[currentFrontPage];
+	return (wid == widgets[widtype-1-ControlExec::GetNumBasicParamsClasses()]);
 }

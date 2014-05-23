@@ -220,9 +220,16 @@ public:
 
 	static int GetNumParamsInstances(int viz, string type);
 
+	//! Determine how many Basic Params classes are available.
+	//! These include just the Params that are not associated with tabs.
+	//! \sa GetNumTabParamsClasses();
+	//! \return number of classes
+	//!
+
+	static int GetNumBasicParamsClasses();
 	//! Determine how many different Params classes are available.
 	//! These include the Params classes associated with tabs in the GUI
-	//! as well as those that are just used for Undo/Redo
+	//! as well as the Basic Params classes
 	//! \sa GetNumTabParamsClasses();
 	//! \return number of classes
 	//!
