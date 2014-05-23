@@ -5,6 +5,7 @@
 #include <vapor/NetCDFCpp.h>
 #include <vapor/Compressor.h>
 #include <vapor/EasyThreads.h>
+#include <vapor/utils.h>
 
 #ifndef	_WASP_H_
 #define	_WASP_H_
@@ -273,6 +274,7 @@ public:
  virtual int PutVara(
 	vector <size_t> start, vector <size_t> count, const float *data
  );
+ virtual int PutVar(const float *data);
 
  //! Read an array of values from the currently opened variable
  //!
@@ -299,6 +301,7 @@ public:
  virtual int GetVara(
 	vector <size_t> start, vector <size_t> count, float *data
  );
+ virtual int GetVar(float *data);
 
  static string AttNameWavelet() {return("WASP.Wavelet");}
  static string AttNameBlockSize() {return("WASP.BlockSize");}
@@ -312,19 +315,6 @@ public:
 
 private:
 
- class smartbuf {
- public:
-  smartbuf() { _buf = NULL; _buf_sz = 0;};
-  smartbuf(size_t size) {
-		_buf = new unsigned char[size]; _buf_sz = size;
-  };
-  ~smartbuf() {if (_buf) delete [] _buf;};
-  void *alloc(size_t size);
- private:
-  unsigned char *_buf;
-  size_t _buf_sz;
- };
-
  VetsUtil::EasyThreads *_et;
  int _nthreads;
  vector <NetCDFCpp> _ncdfcs;
@@ -333,9 +323,9 @@ private:
  string _wname; // Name of wavelet used for compression
  vector <size_t> _bs;   // Compression block dimensions
  int _ncratios; // Number of compression levels
- smartbuf _blockbuf;    // Dynamic storage for blocks
- smartbuf _coeffbuf;    // Dynamic storage wavelet coefficients
- smartbuf _sigbuf;  // Dynamic storage encoded signficance maps
+ VetsUtil::SmartBuf _blockbuf;    // Dynamic storage for blocks
+ VetsUtil::SmartBuf _coeffbuf;    // Dynamic storage wavelet coefficients
+ VetsUtil::SmartBuf _sigbuf;  // Dynamic storage encoded signficance maps
 
  bool _open;    // compressed variable open for reading or writing?
  vector <size_t> _open_bs;  // block size of opened variable
@@ -345,7 +335,6 @@ private:
  int _open_lod; // level-of-detail of opened variable
  int _open_level;   // grid refinement level of opened variable
  bool _open_write;  // opened variable open for writing?
- size_t _open_slice_count;  // current slice number of opened variable
  string _open_varname;  // name of opened variable
  vector <Compressor *> _open_compressors;  // Compressor for opened variable
 
@@ -398,8 +387,6 @@ private:
     vector <size_t> &dims_level,
     vector <size_t> &bs_level
  ) const;
-
-
 
 };
 

@@ -172,6 +172,9 @@ public:
   Attribute(string name, XType type, const vector <int> &values);
   Attribute(string name, XType type, const vector <long> &values);
   Attribute(string name, XType type, const string &values);
+  Attribute(string name, XType type) {
+	_name = name; _type = type; _values.clear(); 
+  };
   virtual ~Attribute() {};
 
   //! Get variable name
@@ -243,7 +246,7 @@ public:
   //! \param[in] bs An ordered array specifying the storage 
   //! blocking
   //! factor for the variable. Results are undefined if the rank of 
-  //! of \p bs does not match that of \p dimensions.
+  //! of \p bs does not match that of \p dimensions spatial dimensions.
   //! dimensions only the needed elements of \p bs are accessed
   //! \param[in] wname The wavelet family name for compressed variables
   //! \param[in] wmode The wavelet bounary handling mode for compressed
@@ -280,6 +283,7 @@ public:
   //! Get variable name
   //
   string GetName() const {return (_name); };
+  void SetName(string name) {_name = name; };
 
   //! Access variable's dimension names
   //
@@ -1190,12 +1194,16 @@ public:
  //! time step \p ts.
  //! \param[out] file_ts Temporal offset of variable \p varname in file
  //! \p path.
+ //! \param[out] max_ts Maximum number of time steps stored in 
+ //! \p path 
  //!
  //! \retval status A negative int is returned if \p varname or 
  //! \p ts are invalid, or if the class object is in define mode.
  //!
  virtual int GetPath(
-	string varname, size_t ts, int lod, string &path, size_t &file_ts
+	string varname, size_t ts, string &path, size_t &file_ts,
+	size_t &max_ts
+
  ) const = 0;
 
  //! Open the named variable for reading
@@ -1239,13 +1247,9 @@ public:
  //! \retval status Returns a non-negative value on success
  //!
  //!
- int OpenVariableRead(size_t ts, string varname, int reflevel=0, int lod=-1);
-
- //! Close the currently opened read variable
- //!
- //! Close the handle for variable opened with OpenVariableRead()
- //!
- int CloseVariableRead();
+ virtual int OpenVariableRead(
+	size_t ts, string varname, int reflevel=0, int lod=-1
+ ) = 0;
 
  //! Open the named variable for writing
  //!
@@ -1281,13 +1285,16 @@ public:
  //! \retval status Returns a non-negative value on success
  //!
  //
- int OpenVariableWrite(size_t ts, string varname, int lod=-1);
+ virtual int OpenVariableWrite(size_t ts, string varname, int lod=-1) = 0;
 
- //! Close the currently opened write variable
+ //! Close the currently opened variable
  //!
- //! Close the handle for variable opened with OpenVariableWrite()
+ //! Close the handle for variable opened with OpenVariableWrite(),
+ //! or OpenVariableRead()
  //!
- int CloseVariableWrite();
+ //! \sa OpenVariableWrite(), OpenVariableRead()
+ //
+ virtual int CloseVariable() = 0;
 
 
  //! Write all spatial values to the currently opened variable
@@ -1303,7 +1310,7 @@ public:
  //!
  //! \sa OpenVariableWrite()
  //
- int Write(const float *region);
+ virtual int Write(const float *region) = 0;
 
  //! Write a single slice of data to the currently opened variable
  //!
@@ -1324,7 +1331,7 @@ public:
  //!
  //! \sa OpenVariableWrite()
  //!
- int WriteSlice(const float *slice);
+ virtual int WriteSlice(const float *slice) = 0;
 
  //! Read all spatial values of the currently opened variable
  //!
@@ -1342,7 +1349,7 @@ public:
  //!
  //! \sa OpenVariableWrite()
  //
- int Read(float *region);
+ int virtual Read(float *region) = 0;
 
  //! Read a single slice of data from the currently opened variable
  //!
@@ -1367,7 +1374,7 @@ public:
  //!
  //! \sa OpenVariableWrite()
  //!
- int ReadSlice(float *slice);
+ virtual int ReadSlice(float *slice) = 0;
 
  //! Read in and return a subregion from the currently opened
  //! variable
@@ -1394,7 +1401,7 @@ public:
  //
  virtual int ReadRegion(
     const size_t min[3], const size_t max[3], float *region
- );
+ ) = 0;
  
 
  //! Write an entire variable in one call
