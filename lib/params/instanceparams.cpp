@@ -35,6 +35,7 @@
 
 using namespace VAPoR;
 #include "instanceparams.h"
+#include "vizwinparams.h"
 #include "command.h"
 
 const std::string InstanceParams::_shortName = "Instances";
@@ -69,7 +70,9 @@ Validate(bool doOverride){
 	
 	if (doOverride){
 		GetRootNode()->DeleteAll();
-		addVizWin(0);
+		vector<long>viznums = VizWinParams::GetVisualizerNums();
+		for (int i = 0;i<viznums.size(); i++)
+			addVizWin(i);
 	}
 	return;	
 	

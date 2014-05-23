@@ -64,15 +64,6 @@ class VizWinMgr : public QObject
 {
 	Q_OBJECT
 
-    enum 
-    {
-      PREAMBLE,
-      RENDER,
-      TEMPORAL,
-      TFEDIT,
-      DONE
-    };
-
 public:
 	
 	

@@ -67,12 +67,15 @@ class PARAMS_API Command {
 	//! \return string Description text identifying the state change of this command.
 	string getDescription(){return description;}
 
-	//! Static method used to capture the previous Params state (before the state change)
+	//! Static method used to capture the previous Params state (before the state change).
+	//! It returns a Command instance that is not yet inserted in the command queue.
+	//! Command::CaptureEnd() must be invoked to complete the Command instance.
+	//! \note If the returned command is abandoned without calling CaptureEnd(), then
+	//! the command should be deleted.
 	//! \param [in] prevParams points to previous Params instance
 	//! \param [in] desc Textual description of the change
-	//! \param [in] typeTag The XML tag associated with the type of Params being changed
-	//! \param [in] winnum The visualizer number (or -1 if global)
-	//! \param [in] prevInst The instance index, if it's a RenderParams change
+	//! \param [in] helper optional argument specifying a helper function (UndoRedoHelpCB_T) that
+	//!	is invoked during Undo and Redo.
 	//! \return cmd A new command initialized with prevParams.
 	//! \sa CaptureEnd
 	static Command* CaptureStart(Params* prevParams,  const char* desc,  UndoRedoHelpCB_T helper = 0){

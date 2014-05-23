@@ -773,56 +773,5 @@ showHideLayout(){
 
 
 
-/* Handle the change of status associated with change of enablement 
- 
- * If the window is new, (i.e. we are just creating a new window, use 
- * prevEnabled = false
- 
- */
-void ArrowEventRouter::
-updateRenderer(RenderParams* rParams, bool prevEnabled,int instance, bool newWindow){
-	
-	
-	ArrowParams* dParams = (ArrowParams*)rParams;
-	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
-	int winnum = dParams->GetVizNum();
-	
-	if (newWindow) {
-		prevEnabled = false;
-	}
-	
-	bool nowEnabled = rParams->IsEnabled();
-	if (prevEnabled == nowEnabled) return;
-
-	VizWin* viz = 0;
-	if(winnum >= 0){//Find the viz that this applies to:
-		viz = vizWinMgr->getVizWin(winnum);
-	} 
-	
-	//cases to consider:
-	//1.  unchanged disabled renderer; do nothing.
-	//  enabled renderer, just refresh:
-	
-	if (prevEnabled == nowEnabled) {
-		if (!prevEnabled) return;
-		vizWinMgr->forceRender(rParams, false);
-		return;
-	}
-	
-	if (nowEnabled && !prevEnabled ){//For case 2.:  create a renderer in the active window:
-		int rc = ControlExec::ActivateRender(winnum,ArrowParams::_arrowParamsTag,instance,true);
-		
-		//force the renderer to refresh 
-		if (!rc) vizWinMgr->forceRender(rParams, true);
-	
-		return;
-	}
-	
-	assert(prevEnabled && !nowEnabled); //case 6, disable 
-	int rc = ControlExec::ActivateRender(winnum,ArrowParams::_arrowParamsTag,instance,false);
-	if (!rc) vizWinMgr->forceRender(rParams, true);
-
-	return;
-}
 
 
