@@ -72,7 +72,7 @@ Validate(bool doOverride){
 		GetRootNode()->DeleteAll();
 		vector<long>viznums = VizWinParams::GetVisualizerNums();
 		for (int i = 0;i<viznums.size(); i++)
-			addVizWin(i);
+			addVizWin(viznums[i]);
 	}
 	return;	
 	
