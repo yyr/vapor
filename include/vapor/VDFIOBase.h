@@ -85,8 +85,6 @@ public:
  //!
  double	GetXFormTimer() const { return(_xform_timer_acc); };
 
- //double GetTime() const;
-
  virtual int OpenVariableRead(
     size_t timestep, const char *varname, int reflevel=0, int lod=0
  ) {_varname = varname; return(0); };
@@ -278,10 +276,6 @@ private:
  void _downsample(const BitMask &bm0, BitMask &bm1, int l0, int l1) const;
 
 };
-
-
- int	MkDirHier(const string &dir);
- void	DirName(const string &path, string &dir);
 
 }
 
