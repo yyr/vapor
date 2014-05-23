@@ -476,8 +476,8 @@ int WaveCodecIO::OpenVariableWrite(
 		return (-1);
 	}
 
-	DirName(basename, dir);
-	if (MkDirHier(dir) < 0) {
+	VetsUtil::DirName(basename, dir);
+	if (VetsUtil::MkDirHier(dir) < 0) {
 		_isOpen = false;
 		return(-1);
 	}

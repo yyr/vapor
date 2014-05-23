@@ -277,10 +277,6 @@ private:
 
 };
 
-
- int	MkDirHier(const string &dir);
- void	DirName(const string &path, string &dir);
-
 }
 
 #endif	//	
