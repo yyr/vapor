@@ -375,7 +375,6 @@ int WaveCodecIO::OpenVariableRead(
 	// Clamp the range of the reconstructed values to the range of the
 	// original data values
 	//
-#ifdef	DEAD
 	for (int t=0; t<_nthreads; t++) {
 		_compressorThread[t]->ClampMinOnOff() = true;
 		_compressorThread[t]->ClampMaxOnOff() = true;
@@ -383,8 +382,6 @@ int WaveCodecIO::OpenVariableRead(
 		_compressorThread[t]->ClampMin() = _dataRange[0];
 		_compressorThread[t]->ClampMax() = _dataRange[1];
 	}
-#endif
-cerr << "CLAMPING DISABLED\n";
 
 	return(0);
 }

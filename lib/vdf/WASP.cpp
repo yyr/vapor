@@ -1031,7 +1031,6 @@ WASP::WASP(int nthreads) {
 	_open_lod = 0;
 	_open_level = 0;
 	_open_write = false;
-	_open_slice_count = 0;
 	_open_varname.clear();
 
 	_et = NULL;
@@ -1455,7 +1454,10 @@ int WASP::_InqDimlen(string name, size_t &len) const {
 	bool enabled = MyBase::EnableErrMsg(false);
 
 	int rc = WASP::InqDimlen(name, len);
-	if (rc == NC_EBADDIM) rc = 0;
+	if (rc == NC_EBADDIM) {
+		WASP::SetErrCode(0);
+		rc = 0;
+	}
 
 	(void) MyBase::EnableErrMsg(enabled);
 
@@ -1528,11 +1530,26 @@ int WASP::OpenVarWrite(string name, int lod) {
 		int rc = CloseVar();
 		if (rc < 0) return (rc);
 	}
-
+	_open_bs.clear();
+	_open_cratios.clear();
+	_open_udims.clear();
+	_open_dims.clear();
+	_open_lod = 0;
+	_open_level = 0;
+	_open_write = false;
+	_open_varname.clear();
 	_open = false;
 
 	int rc = _get_compression_params(name, bs, cratios, udims, dims, wname);
 	if (rc<0) return(rc);
+
+	if (cratios.size() == 0) {	// not a compressed variable
+		_open_dims = _open_udims = udims;
+		_open_varname = name;
+		_open_write = true;
+		_open = true;
+		return(0);
+	}
 
 	if (lod < 0)  lod = cratios.size() - 1;
 
@@ -1554,7 +1571,6 @@ int WASP::OpenVarWrite(string name, int lod) {
 	_open_lod = lod;
 	_open_level = 0;
 	_open_write = true;
-	_open_slice_count = 0;
 	_open_varname = name;
 	_open = true;
 
@@ -1578,10 +1594,26 @@ int WASP::OpenVarRead(string name, int lod, int level) {
 		if (rc < 0) return (rc);
 	}
 
+	_open_bs.clear();
+	_open_cratios.clear();
+	_open_udims.clear();
+	_open_dims.clear();
+	_open_lod = 0;
+	_open_level = 0;
+	_open_write = false;
+	_open_varname.clear();
 	_open = false;
 
 	int rc = _get_compression_params(name, bs, cratios, udims, dims, wname);
 	if (rc<0) return(rc);
+
+	if (cratios.size() == 0) {	// not a compressed variable
+		_open_dims = _open_udims = udims;
+		_open_varname = name;
+		_open_write = false;
+		_open = true;
+		return(0);
+	}
 
 	if (lod < 0)  lod = cratios.size() - 1;
 
@@ -1612,7 +1644,6 @@ int WASP::OpenVarRead(string name, int lod, int level) {
 	_open_lod = lod;
 	_open_level = level;
 	_open_write = false;
-	_open_slice_count = 0;
 	_open_varname = name;
 	_open = true;
 
@@ -1694,10 +1725,6 @@ bool WASP::_validate_get_vara_compressed(
 }
 	
 
-
-	
-
-
 int WASP::PutVara(
     vector <size_t> start, vector <size_t> count, const float *data
 ) {
@@ -1736,17 +1763,17 @@ int WASP::PutVara(
 	}
 
 	size_t block_size = vproduct(_open_bs);
-	float *block = (float *) _blockbuf.alloc(
+	float *block = (float *) _blockbuf.Alloc(
 		block_size * _nthreads *sizeof(float)
 	);
 
 	size_t coeffs_size = vsum(ncoeffs);
-	float *coeffs = (float *) _coeffbuf.alloc(
+	float *coeffs = (float *) _coeffbuf.Alloc(
 		coeffs_size * _nthreads * sizeof(float)
 	);
 
 	size_t maps_size = vsum(encoded_dims) - vsum(ncoeffs);  
-	unsigned char *maps = (unsigned char*) _sigbuf.alloc(
+	unsigned char *maps = (unsigned char*) _sigbuf.Alloc(
 		maps_size * _nthreads * sizeof (float)
 	);
 
@@ -1770,6 +1797,19 @@ int WASP::PutVara(
 
 	return(((thread_state *) (argvec[0]))->_status);
 
+}
+
+int WASP::PutVar(const float *data) {
+
+	if (! _open || ! _open_write) {
+		SetErrMsg("Invalid state");
+        return(-1);
+	}
+
+	vector <size_t> count = _open_udims; 
+    vector <size_t> start(count.size(), 0); 
+
+	return(WASP::PutVara(start, count, data));
 }
 
 int WASP::GetVara(
@@ -1821,17 +1861,17 @@ int WASP::GetVara(
 	}
 
 	size_t block_size = vproduct(_open_bs);
-	float *block = (float *) _blockbuf.alloc(
+	float *block = (float *) _blockbuf.Alloc(
 		block_size * _nthreads *sizeof(float)
 	);
 
 	size_t coeffs_size = vsum(ncoeffs);
-	float *coeffs = (float *) _coeffbuf.alloc(
+	float *coeffs = (float *) _coeffbuf.Alloc(
 		coeffs_size * _nthreads * sizeof(float)
 	);
 
 	size_t maps_size = vsum(encoded_dims) - vsum(ncoeffs);  
-	unsigned char *maps = (unsigned char*) _sigbuf.alloc(
+	unsigned char *maps = (unsigned char*) _sigbuf.Alloc(
 		maps_size * _nthreads * sizeof (float)
 	);
 
@@ -1854,6 +1894,19 @@ int WASP::GetVara(
 	}
 
 	return(((thread_state *) (argvec[0]))->_status);
+}
+
+int WASP::GetVar(float *data) {
+
+	if (! _open || ! _open_write) {
+		SetErrMsg("Invalid state");
+        return(-1);
+	}
+
+	vector <size_t> count = _open_udims; 
+    vector <size_t> start(count.size(), 0); 
+
+	return(WASP::GetVara(start, count, data));
 }
 
 
@@ -2001,7 +2054,7 @@ void WASP::_get_encoding_vectors(
 			encoded_dims.push_back(n+s);
 		}
 		else {
-			assert (naccum = ntotal);
+			assert (naccum == ntotal);
 
 			// Special case. Don't need to explicitly store sigmap
 			//
@@ -2053,15 +2106,25 @@ int WASP::_get_compression_params(
 	udims.clear();
 	dims.clear();
 
-	int rc = GetAtt("", AttNameBlockSize(), bs);
+	bool compressed = false;
+	int rc = InqVarCompressed(name, compressed);
 	if (rc<0) return(rc);
 
-	rc = GetAtt(name, AttNameCRatios(), cratios);
-	if (rc<0) return(rc);
+	if (compressed) {
 
-	if (! _validate_cratios(cratios)) {
-		SetErrMsg("Invalid cratios specification");
-		return(-1);
+		int rc = GetAtt("", AttNameBlockSize(), bs);
+		if (rc<0) return(rc);
+
+		rc = GetAtt(name, AttNameCRatios(), cratios);
+		if (rc<0) return(rc);
+
+		if (! _validate_cratios(cratios)) {
+			SetErrMsg("Invalid cratios specification");
+			return(-1);
+		}
+
+		rc = GetAtt("", AttNameWavelet(), wname);
+		if (rc<0) return(rc);
 	}
 
 	vector <string> udimnames;
@@ -2072,21 +2135,7 @@ int WASP::_get_compression_params(
 	rc = NetCDFCpp::InqVarDims(name, dimnames, dims);
 	if (rc<0) return(rc);
 
-	rc = GetAtt("", AttNameWavelet(), wname);
-	if (rc<0) return(rc);
 	
 	return(0);
 
-}
-
-
-
-void *WASP::smartbuf::alloc(size_t size) {
-	if (size <= _buf_sz) return(_buf);
-
-	if (_buf) delete [] _buf; 
-
-	_buf = new unsigned char [size];
-	_buf_sz = size;
-	return(_buf);
 }

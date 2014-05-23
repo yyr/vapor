@@ -583,6 +583,21 @@ size_t NetCDFCpp::SizeOf(nc_type xtype) const {
 	}
 }
 
+bool NetCDFCpp::ValidFile(string path) {
+
+	bool valid = false;
+	
+	int ncid;
+    int rc = nc_open(path.c_str(), 0, &ncid);
+	if (rc == NC_NOERR) {
+		valid = true;
+		nc_close(ncid);
+	}
+	return(valid);
+}
+
+
+
 
 int NetCDFCpp::PutVara(
 	string varname,
@@ -607,6 +622,18 @@ int NetCDFCpp::PutVara(
 	return(rc);
 }
 
+int NetCDFCpp::PutVar(string varname, const void *data) {
+
+    int varid;
+    int rc = NetCDFCpp::InqVarid(varname, varid);
+    if (rc<0) return(rc);
+
+	rc = nc_put_var(_ncid, varid, data);
+	MY_NC_ERR(rc, _path, "nc_put_var()");
+
+	return(rc);
+}
+
 int NetCDFCpp::GetVara(
 	string varname,
 	vector <size_t> start, vector <size_t> count, void *data
@@ -626,6 +653,18 @@ int NetCDFCpp::GetVara(
 	}
 	rc = nc_get_vara(_ncid, varid, mystart, mycount, data);
 	MY_NC_ERR(rc, _path, "nc_get_vara()");
+
+	return(rc);
+}
+
+int NetCDFCpp::GetVar(string varname, void *data) {
+
+    int varid;
+    int rc = NetCDFCpp::InqVarid(varname, varid);
+    if (rc<0) return(rc);
+
+	rc = nc_get_var(_ncid, varid, data);
+	MY_NC_ERR(rc, _path, "nc_get_var()");
 
 	return(rc);
 }

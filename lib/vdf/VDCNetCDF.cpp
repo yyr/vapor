@@ -2,29 +2,168 @@
 #include <sstream>
 #include <map>
 #include <vector>
+#include <sys/stat.h>
 #include <netcdf.h>
 #include "vapor/VDCNetCDF.h"
+#include "vapor/CFuncs.h"
 
 using namespace VAPoR;
+using namespace VetsUtil;
 
-#define MY_NC_ERR(rc, path, func) \
-    if (rc != NC_NOERR) { \
-        SetErrMsg( \
-            "Error accessing netCDF file \"%s\", %s : %s",  \
-            path.c_str(), func, nc_strerror(rc) \
-        ); \
-        return(-1); \
-    }
+namespace {
 
-VDCNetCDF::VDCNetCDF(
-	size_t master_threshold, size_t variable_threshold
-) : VDC() {
-
-	_master_threshold = master_threshold;
-	_variable_threshold = variable_threshold;
+int vdc_xtype2ncdf_xtype(VDC::XType v_xtype) {
+	int n_xtype;
+	switch(v_xtype) {
+	case VDC::FLOAT:
+		n_xtype = NC_FLOAT;
+		break;
+	case VDC::DOUBLE:
+		n_xtype = NC_DOUBLE;
+		break;
+	case VDC::INT32:
+		n_xtype = NC_INT;
+		break;
+	case VDC::INT64:
+		n_xtype = NC_INT64;
+		break;
+	case VDC::TEXT:
+		n_xtype = NC_CHAR;
+		break;
+	default:
+		n_xtype = NC_NAT;
+		break;
+	}
+	return(n_xtype);
 }
 
-int VDCNetCDF::Initialize(string path, AccessMode mode) {
+VDC::XType ncdf_xtype2vdc_xtype(int n_xtype) {
+
+	VDC::XType v_xtype;
+	switch(n_xtype) {
+	case NC_FLOAT:
+		v_xtype = VDC::FLOAT;
+		break;
+	case NC_DOUBLE:
+		v_xtype = VDC::DOUBLE;
+		break;
+	case NC_INT:
+		v_xtype = VDC::INT32;
+		break;
+	case NC_INT64:
+		v_xtype = VDC::INT64;
+		break;
+	case NC_CHAR:
+	case NC_STRING:
+		v_xtype = VDC::TEXT;
+		break;
+	default:
+		v_xtype = VDC::INVALID;
+		break;
+	}
+	return(v_xtype);
+}
+
+void parse_dims(
+	const vector <VDC::Dimension> &dimensions, 
+	vector <size_t> &sdims, size_t &numts, bool &time_varying
+) {
+	sdims.clear();
+	numts = 0;
+	time_varying = false;
+
+	assert(dimensions.size() >= 1 && dimensions.size() <= 4);
+
+	vector <VDC::Dimension> sdimensions = dimensions;
+	if (sdimensions[sdimensions.size()-1].GetAxis() == 3) { // time varying
+		sdimensions.pop_back();	// remove time varying dimension
+		numts = sdimensions[sdimensions.size()-1].GetLength();
+		time_varying = true;
+	}
+
+	for (int i=0; i<sdimensions.size(); i++) {
+		sdims.push_back(sdimensions[i].GetLength());
+	}
+
+}
+
+void ws_info(
+	const vector <size_t> &sdims, const vector <size_t> &bs,
+	size_t &slice_size, size_t &slices_per_slab, size_t &num_slices
+) {
+	assert(sdims.size() >= 2 && sdims.size() <= 3);
+	assert(bs.size() == sdims.size());
+
+	slice_size = sdims[0] * sdims[1];
+	if (sdims.size() > 2) {
+		slices_per_slab = bs[2];
+		num_slices = sdims[2];
+	}
+	else {
+		slices_per_slab = 1;
+		num_slices = 1;
+	}
+}
+
+// Compute NetCDF start and coord vectors. N.B. order of coordinates is
+// reversed from VDC
+//
+void ws_ncdfcoords(
+	size_t ts, bool time_varying, size_t slice_num, 
+	const vector <size_t> &sdims, const vector <size_t> &bs,
+	vector <size_t> &start, vector <size_t> &count
+) {
+	start.clear();
+	count.clear();
+
+	assert(sdims.size() >= 2 && sdims.size() <= 3);
+	assert(bs.size() == sdims.size());
+
+	if (time_varying) {
+		start.push_back(ts);
+		count.push_back(1);
+	}
+
+	if (sdims.size() > 2) {
+		start.push_back(slice_num);
+		count.push_back(bs[2]);
+	}
+	start.push_back(0);
+	count.push_back(sdims[1]);
+
+	start.push_back(0);
+	count.push_back(sdims[0]);
+}
+
+};
+
+VDCNetCDF::VDCNetCDF(
+	int nthreads, size_t master_threshold, size_t variable_threshold
+) : VDC() {
+
+	_nthreads = nthreads;
+	_master_threshold = master_threshold;
+	_variable_threshold = variable_threshold;
+	_chunksizehint =  0;
+	_master = new NetCDFCpp();
+	_open_file = NULL;
+	_open_var = NULL;
+	_open_slice_num = 0;
+	_slice_buffer = NULL;
+	_version = 1;
+}
+
+
+VDCNetCDF::~VDCNetCDF() {
+	if (_master) delete _master;
+	if (_open_file) delete _open_file;
+	if (_open_var) delete _open_var;
+}
+
+
+int VDCNetCDF::Initialize(string path, AccessMode mode, size_t chunksizehint) {
+	_chunksizehint =  chunksizehint;
+	
 	return(VDC::Initialize(path, mode));
 }
 
@@ -33,20 +172,17 @@ int VDCNetCDF::Initialize(string path, AccessMode mode) {
 // change.
 //
 int VDCNetCDF::GetPath(
-	string varname, size_t ts, int lod, string &path, size_t &file_ts
+	string varname, size_t ts, string &path, size_t &file_ts,
+	size_t &max_ts
 ) const {
 	path.clear();
 	file_ts = 0;
+	max_ts = 0;
+
 	if (! VDC::IsTimeVarying(varname)) {
 		ts = 0;	// Could be anything if data aren't time varying;
 	}
 
-	// Really??
-	//
-	if (_defineMode) {
-		SetErrMsg("Operation not permitted in define mode");
-		return(-1);
-	}
 	const VarBase *varbase;
 	VDC::DataVar dvar;
 	VDC::CoordVar cvar;
@@ -97,19 +233,20 @@ int VDCNetCDF::GetPath(
 	path += varname;
 	path += ".";
 
-	if (VDC::IsTimeVarying(varname)) { 
+	if (VDC::IsTimeVarying(varname)) {
 		int idx;
 		ostringstream oss;
 		size_t numts = VDC::GetNumTimeSteps(varname);
 		assert(numts>0);
-		size_t max_ts_per_file = _variable_threshold / ngridpoints;
-		if (max_ts_per_file == 0) {
+		max_ts = _variable_threshold / ngridpoints;
+		if (max_ts == 0) {
 			idx = ts;
 			file_ts = ts;
+			max_ts = 1;
 		}
 		else {
-		 	idx = ts / max_ts_per_file;;
-			file_ts = ts % max_ts_per_file;
+		 	idx = ts / max_ts;;
+			file_ts = ts % max_ts;
 		}
 		int width = (int) log10((double) numts-1) + 1;
 		if (width < 4) width = 4;
@@ -120,67 +257,317 @@ int VDCNetCDF::GetPath(
 
 	path += ".";
 	path += "nc";
-	if (varbase->GetCompressed()) {
-		if (lod<0) lod = varbase->GetCRatios().size()-1;
-		ostringstream oss;
-		oss << lod;
-		path += oss.str();
-	}
 	
 	return(0);
 }
 
+int VDCNetCDF::OpenVariableRead(
+    size_t ts, string varname, int reflevel, int lod
+) {return(-1); }
+
+int VDCNetCDF::OpenVariableWrite(size_t ts, string varname, int lod) {
+
+	CloseVariable();
+	_open_file = NULL; 
+	_open_var = NULL;
+	_open_slice_num = 0; 
+	_open_ts = 0;
+	_open_file_ts = 0;
+	_open_varname.clear();
+
+    VDC::DataVar dvar;
+    VDC::CoordVar cvar;
+
+    if (VDC::IsDataVar(varname)) {
+        (void) VDC::GetDataVar(varname, dvar);
+        _open_var = new VDC::DataVar(dvar);
+    }
+    else if (VDC::IsCoordVar(varname)) {
+        (void) VDC::GetCoordVar(varname, cvar);
+        _open_var = new VDC::CoordVar(cvar);
+    }
+    else {
+        SetErrMsg("Undefined variable name : %s", varname.c_str());
+        return(-1);
+    }
+
+	string path;
+	size_t file_ts;
+	size_t max_ts;
+	int rc = GetPath(varname, ts, path, file_ts, max_ts);
+	if (rc<0) return(-1);
+
+	vector <VDC::Dimension> dims = _open_var->GetDimensions();
+	
+	if (_open_var->GetCompressed()) {
+		WASP *wasp = new WASP(_nthreads);
+		if (wasp->ValidFile(path)) {
+			rc = wasp->Open(path, NC_WRITE);
+		}
+		else {
+			string dir;
+			DirName(path, dir);
+			rc = MkDirHier(dir);
+			if (rc<0) return(-1);
+
+			size_t chsz = _chunksizehint;
+			rc = wasp->Create(
+				path, NC_WRITE, 0, chsz, _open_var->GetWName(),
+				_open_var->GetBS(), _open_var->GetCRatios().size(), true
+			);
+			if (rc<0) return(-1);
+
+			vector <string> dimnames;
+			for (int i=0; i<dims.size(); i++) {
+				size_t len = dims[i].GetAxis() == 3 ? max_ts : dims[i].GetLength();
+				rc = wasp->DefDim(dims[i].GetName(), len);
+				if (rc<0) return(-1);
+
+				dimnames.push_back(dims[i].GetName());
+			}
+			reverse(dimnames.begin(), dimnames.end());	// NetCDF order
+
+			rc = wasp->DefVar(
+				varname, vdc_xtype2ncdf_xtype(_open_var->GetXType()), 
+				dimnames, _open_var->GetCRatios()
+			);
+			if (rc<0) return(-1);
+
+			rc = wasp->EndDef();
+			if (rc<0) return(-1);
+
+		}
+		rc = wasp->OpenVarWrite(varname, lod);
+		if (rc<0) return(-1);
+
+		_open_file = wasp;
+	}
+	else {
+		NetCDFCpp *ncdf = new NetCDFCpp();
+		if (ncdf->ValidFile(path)) {
+			rc = ncdf->Open(path, NC_WRITE);
+		}
+		else {
+			string dir;
+			DirName(path, dir);
+			rc = MkDirHier(dir);
+			if (rc<0) return(-1);
+
+			size_t chsz = _chunksizehint;
+			rc = ncdf->Create(path, NC_WRITE, 0, chsz);
+			if (rc<0) return(-1);
+
+			vector <string> dimnames;
+			for (int i=0; i<dims.size(); i++) {
+				size_t len = dims[i].GetAxis() == 3 ? max_ts : dims[i].GetLength();
+
+				rc = ncdf->DefDim(dims[i].GetName(), len);
+				if (rc<0) return(-1);
+
+				dimnames.push_back(dims[i].GetName());
+			}
+			reverse(dimnames.begin(), dimnames.end());	// NetCDF order
+
+			rc = ncdf->DefVar(
+				varname, vdc_xtype2ncdf_xtype(_open_var->GetXType()), dimnames
+			);
+			if (rc<0) return(-1);
+
+			rc = ncdf->EndDef();
+			if (rc<0) return(-1);
+
+		}
+		_open_file = ncdf;
+	}
+
+	_open_slice_num = 0; 
+	_open_ts = ts;
+	_open_file_ts = file_ts;
+	_open_varname = varname;
+    return(0);
+}
+
+int VDCNetCDF::CloseVariable() {
+	WASP *wasp = dynamic_cast<WASP *>(_open_file);
+
+	if (wasp) {
+		wasp->CloseVar();
+	}
+	if (_open_file) {
+		delete _open_file;
+		_open_file = NULL;
+	}
+	if (_open_var) {
+		delete _open_var;
+		_open_var = NULL;
+	}
+	_open_slice_num = 0;
+	return(0);
+}
+
+int VDCNetCDF::Write(const float *data) {
+	if (! _open_file) {
+		SetErrMsg("No variable open for writing");
+		return(-1);
+	}
+
+	vector <size_t> sdims;
+	size_t numts;
+	bool time_varying;
+	parse_dims(_open_var->GetDimensions(), sdims, numts, time_varying);
+	assert(sdims.size() >= 2 && sdims.size() <= 3);
+
+	vector <size_t> start;
+	vector <size_t> count;
+	ws_ncdfcoords(_open_file_ts, time_varying, 0, sdims, sdims, start,count);
+
+	WASP *wasp = dynamic_cast<WASP *> (_open_file);
+	if (wasp) {
+		return(wasp->PutVara(start, count, data));
+	}
+	else {
+		return(_open_file->PutVara(_open_varname, start, count, data));
+	}
+}
+
+int VDCNetCDF::_WriteSlice(WASP *file, const float *slice) {
+	vector <size_t> sdims;
+	size_t numts;
+	bool time_varying;
+	parse_dims(_open_var->GetDimensions(), sdims, numts, time_varying);
+	assert(sdims.size() >= 2 && sdims.size() <= 3);
+	
+	vector <size_t> bs = _open_var->GetBS();
+
+	size_t slice_size, slices_per_slab, num_slices;
+	ws_info(sdims, bs, slice_size, slices_per_slab, num_slices);
+
+	if (_open_slice_num == 0) {
+
+		_slice_buffer = (float *) _sb_slice_buffer.Alloc(
+			slice_size * slices_per_slab * sizeof (*slice)
+		);
+	}
+
+	size_t offset = (_open_slice_num  % slices_per_slab) * slice_size;
+
+	memcpy(_slice_buffer + offset, slice, slice_size*sizeof(*slice));
+	_open_slice_num++;
+
+	if (
+		((_open_slice_num % slices_per_slab) == 0) ||
+		_open_slice_num == num_slices
+	) {
+		vector <size_t> start;
+		vector <size_t> count;
+
+		ws_ncdfcoords(
+			_open_file_ts, time_varying, _open_slice_num - slices_per_slab, 
+			sdims, bs, start, count
+		);
+		int rc = file->PutVara(start, count, _slice_buffer);
+		return(rc);
+	}
+	return(0);
+}
+
+int VDCNetCDF::_WriteSlice(NetCDFCpp *file, const float *slice) {
+	vector <size_t> sdims;
+	size_t numts;
+	bool time_varying;
+	parse_dims(_open_var->GetDimensions(), sdims, numts, time_varying);
+	assert(sdims.size() >= 2 && sdims.size() <= 3);
+	
+	vector <size_t> bs;
+	bs.push_back(sdims[0]);
+	bs.push_back(sdims[1]);
+	bs.push_back(1);
+
+	size_t slice_size, slices_per_slab, num_slices;
+
+	ws_info(sdims, bs, slice_size, slices_per_slab, num_slices);
+
+	vector <size_t> start;
+	vector <size_t> count;
+
+	ws_ncdfcoords(
+		_open_file_ts, time_varying, _open_slice_num, sdims, bs, start, count
+	);
+	_open_slice_num++;
+
+	int rc = file->PutVara(_open_varname, start, count, slice);
+	return(rc);
+}
+
+
+int VDCNetCDF::WriteSlice(const float *slice) {
+	if (! _open_file) {
+		SetErrMsg("No variable open for writing");
+		return(-1);
+	}
+
+	if (_open_var->GetCompressed()) {
+		return(_WriteSlice( (WASP *) _open_file, slice));
+	}
+	else {
+		return(_WriteSlice( (NetCDFCpp *) _open_file, slice));
+	}
+}
+
+int VDCNetCDF::Read(float *region) {return(-1); }
+
+int VDCNetCDF::ReadSlice(float *slice) {return(-1); }
+    
+int VDCNetCDF::ReadRegion(
+    const size_t min[3], const size_t max[3], float *region
+ ) {return(-1); }     
+    
 
 int VDCNetCDF::_WriteMasterMeta() {
-	const size_t NC_CHUNKSIZEHINT = 4*1024*1024;
 
-    size_t chsz = NC_CHUNKSIZEHINT;
-    int rc = _wasp.Create(
-		_master_path, NC_64BIT_OFFSET, 0, chsz,
-		_wname, _bs, _cratios.size(), true
-	);
+	size_t chsz = _chunksizehint;
+    int rc = _master->Create(_master_path, NC_64BIT_OFFSET, 0, chsz);
 	if (rc<0) return(-1);
+cout << "Handle AccessMode\n";
 
 
 	map <string, Dimension>::const_iterator itr;
 	for (itr = _dimsMap.begin(); itr != _dimsMap.end(); ++itr) {
 		const Dimension &dimension = itr->second;
 
-		rc = _wasp.DefDim(
+		rc = _master->DefDim(
 			dimension.GetName(), dimension.GetLength()
 		);
 		if (rc<0) return(-1);
 	}
 	
 
-	rc = _wasp.PutAtt("", "VDC.Version", 1);
+	rc = _master->PutAtt("", "VDC.Version", _version);
 	if (rc<0) return(rc);
 
-	rc = _wasp.PutAtt("", "VDC.BlockSize", _bs);
+	rc = _master->PutAtt("", "VDC.BlockSize", _bs);
 	if (rc<0) return(rc);
 
-	rc = _wasp.PutAtt("", "VDC.WaveName", _wname);
+	rc = _master->PutAtt("", "VDC.WaveName", _wname);
 	if (rc<0) return(rc);
 
-	rc = _wasp.PutAtt("", "VDC.WaveMode", _wmode);
+	rc = _master->PutAtt("", "VDC.WaveMode", _wmode);
 	if (rc<0) return(rc);
 
-	rc = _wasp.PutAtt("", "VDC.CompressionRatios", _cratios);
+	rc = _master->PutAtt("", "VDC.CompressionRatios", _cratios);
 	if (rc<0) return(rc);
 
-	rc = _wasp.PutAtt("", "VDC.MasterThreshold", _master_threshold);
+	rc = _master->PutAtt("", "VDC.MasterThreshold", _master_threshold);
 	if (rc<0) return(rc);
 
-	rc = _wasp.PutAtt("", "VDC.VariableThreshold",_variable_threshold);
+	rc = _master->PutAtt("", "VDC.VariableThreshold",_variable_threshold);
 	if (rc<0) return(rc);
 
 	vector <int> periodic;
 	for (int i=0; i<_periodic.size(); i++) {
 		periodic.push_back((int) _periodic[i]);
 	}
-	rc = _wasp.PutAtt("", "VDC.Periodic", periodic);
-	if (rc<0) return(rc);
-
+	rc = _master->PutAtt("", "VDC.Periodic", periodic);
 	if (rc<0) return(rc);
 
 
@@ -196,17 +583,311 @@ int VDCNetCDF::_WriteMasterMeta() {
 	rc = _WriteMasterDataVarsDefs();
 	if (rc<0) return(rc);
 
-	rc = _wasp.EndDef();
-	MY_NC_ERR(rc, _master_path, "nc_enddef()");
+	rc = _master->EndDef();
+	if (rc<0) return(rc);
 
-	rc = _wasp.Close();
-	MY_NC_ERR(rc, _master_path, "nc_close()");
+	rc = _master->Close();
+	if (rc<0) return(rc);
 
 	return(0);
 }
 
 int VDCNetCDF::_ReadMasterMeta() {
-	return(-1);
+
+    int rc = _master->Open(_master_path, 0);
+	if (rc<0) return(-1);
+
+	rc = _master->GetAtt("", "VDC.Version", _version);
+	if (rc<0) return(rc);
+
+	rc = _master->GetAtt("", "VDC.BlockSize", _bs);
+	if (rc<0) return(rc);
+
+	rc = _master->GetAtt("", "VDC.WaveName", _wname);
+	if (rc<0) return(rc);
+
+	rc = _master->GetAtt("", "VDC.WaveMode", _wmode);
+	if (rc<0) return(rc);
+
+	rc = _master->GetAtt("", "VDC.CompressionRatios", _cratios);
+	if (rc<0) return(rc);
+
+	rc = _master->GetAtt("", "VDC.MasterThreshold", _master_threshold);
+	if (rc<0) return(rc);
+
+	rc = _master->GetAtt("", "VDC.VariableThreshold",_variable_threshold);
+	if (rc<0) return(rc);
+
+	vector <int> periodic;
+	rc = _master->GetAtt("", "VDC.Periodic", periodic);
+
+	_periodic.clear();
+	for (int i=0; i<periodic.size(); i++) {
+		_periodic.push_back((bool) periodic[i]);
+	}
+	if (rc<0) return(rc);
+
+	rc = _ReadMasterDimensions();
+	if (rc<0) return(rc);
+
+	rc = _ReadMasterAttributes();
+	if (rc<0) return(rc);
+
+	rc = _ReadMasterCoordVarsDefs();
+	if (rc<0) return(rc);
+
+	rc = _ReadMasterDataVarsDefs();
+	if (rc<0) return(rc);
+
+	return(0);
+}
+
+int VDCNetCDF::_ReadMasterDimensions() {
+
+	_dimsMap.clear();
+
+	string tag = "VDC.DimensionNames";
+	vector <string> dimnames;
+	int rc = _master->GetAtt("", tag, dimnames);
+	if (rc<0) return(rc);
+	
+	for (int i=0; i<dimnames.size(); i++) {
+
+		tag = "VDC.Dimension." + dimnames[i] + ".Length";
+		int length;
+		rc = _master->GetAtt("", tag, length);
+		if (rc<0) return(rc);
+
+		tag = "VDC.Dimension." + dimnames[i] + ".Axis";
+		int axis;
+		rc = _master->GetAtt("", tag, axis);
+		if (rc<0) return(rc);
+
+		VDC::Dimension dimension(dimnames[i], (size_t) length, (size_t) axis);
+
+		_dimsMap[dimnames[i]] = dimension;
+		
+	}
+	return(0);
+}
+
+int VDCNetCDF::_ReadMasterAttributes (
+	string prefix, map <string, Attribute> &atts
+) {
+	atts.clear();
+	
+	string tag = prefix + ".AttributeNames";
+	vector <string> attnames;
+	int rc = _master->GetAtt("", tag, attnames);
+	if (rc<0) return(rc);
+
+	
+	for (int i=0; i<attnames.size(); i++) {
+
+		tag = prefix + ".Attribute." + attnames[i] + ".XType";
+		VDC::XType xtype;
+		rc = _master->GetAtt("", tag, (int &) xtype);
+		if (rc<0) return(rc);
+
+		tag = prefix + ".Attribute." + attnames[i] + ".Values";
+		switch (xtype) {
+			case FLOAT:
+			case DOUBLE: {
+				vector <double> values;
+				rc = _master->GetAtt("", tag, values);
+				if (rc<0) return(rc);
+				VDC::Attribute attr(attnames[i], xtype, values);
+				atts[attnames[i]] = attr;
+				
+			break;
+			}
+			case INT32:
+			case INT64: {
+				vector <int> values;
+				rc = _master->GetAtt("", tag, values);
+				if (rc<0) return(rc);
+				VDC::Attribute attr(attnames[i], xtype, values);
+				atts[attnames[i]] = attr;
+			break;
+			}
+			case TEXT: {
+				string values;
+				rc = _master->GetAtt("", tag, values);
+				if (rc<0) return(rc);
+				VDC::Attribute attr(attnames[i], xtype, values);
+				atts[attnames[i]] = attr;
+			break;
+			}
+			default:
+				SetErrMsg("Invalid attribute xtype : %d", xtype);
+				return(-1);
+			break;
+		}
+	}
+	return(0);
+}
+
+int VDCNetCDF::_ReadMasterAttributes () {
+
+	string prefix = "VDC";
+	return (_ReadMasterAttributes(prefix, _atts));
+}
+
+int VDCNetCDF::_ReadMasterVarBaseDefs(string prefix, VarBase &var) {
+	
+	string tag;
+
+	tag = prefix + "." + var.GetName() + ".DimensionNames";
+	vector <string> dimnames;
+	int rc = _master->GetAtt("", tag, dimnames);
+	if (rc<0) return(rc);
+
+	vector <VDC::Dimension> dimensions;
+	for (int i=0; i<dimnames.size(); i++) {
+		std::map <string, Dimension>::iterator itr = _dimsMap.find(dimnames[i]);
+		if (itr == _dimsMap.end()) {
+            SetErrMsg("Dimension name %s not defined", dimnames[i].c_str());
+			return(-1);
+		}
+		dimensions.push_back(itr->second);
+	}
+	var.SetDimensions(dimensions);
+
+	tag = prefix + "." + var.GetName() + ".Units";
+	string units;
+	rc = _master->GetAtt("", tag, units);
+	if (rc<0) return(rc);
+	var.SetUnits(units);
+
+	tag = prefix + "." + var.GetName() + ".XType";
+	int xtype;
+	rc = _master->GetAtt("", tag, xtype);
+	if (rc<0) return(rc);
+	var.SetXType((VAPoR::VDC::XType) xtype);
+
+	tag = prefix + "." + var.GetName() + ".Periodic";
+	vector <int> iperiodic;
+	rc = _master->GetAtt("", tag, iperiodic);
+	vector <bool> periodic;
+	for (int i=0; i<iperiodic.size(); i++) periodic.push_back(iperiodic[i]);
+	if (rc<0) return(rc);
+	var.SetPeriodic(periodic);
+
+	tag = prefix + "." + var.GetName() + ".Compressed";
+	int compressed;
+	rc = _master->GetAtt("", tag, compressed);
+	if (rc<0) return(rc);
+
+	if (compressed) { 
+		tag = prefix + "." + var.GetName() + ".BlockSize";
+		vector <size_t> bs;
+		rc = _master->GetAtt("", tag, bs);
+		if (rc<0) return(rc);
+		var.SetBS(bs);
+
+		tag = prefix + "." + var.GetName() + ".WaveName";
+		string wname;
+		rc = _master->GetAtt("", tag, wname);
+		if (rc<0) return(rc);
+		var.SetWName(wname);
+
+		tag = prefix + "." + var.GetName() + ".WaveMode";
+		string wmode;
+		rc = _master->GetAtt("", tag, wmode);
+		if (rc<0) return(rc);
+		var.SetWMode(wmode);
+
+		tag = prefix + "." + var.GetName() + ".CompressionRatios";
+		vector <size_t> cratios;
+		rc = _master->GetAtt("", tag, cratios);
+		if (rc<0) return(rc);
+		var.SetCRatios(cratios);
+	}
+
+	
+	prefix += "." + var.GetName();
+	map <string, Attribute> atts;
+	rc = _ReadMasterAttributes(prefix, atts);
+	if (rc<0) return(rc);
+
+	var.SetAttributes(atts);
+	return(0);
+}
+
+int VDCNetCDF::_ReadMasterCoordVarsDefs() {
+	_coordVars.clear();
+
+	string tag = "VDC.CoordVarNames";
+	vector <string> varnames;
+	int rc = _master->GetAtt("", tag, varnames);
+	if (rc<0) return(rc);
+
+
+	string prefix = "VDC.CoordVar";
+	for (int i=0; i<varnames.size(); i++) {
+		CoordVar cvar;
+		cvar.SetName(varnames[i]);
+
+		tag = prefix + "." + cvar.GetName() + ".Axis";
+		int axis;
+		int rc = _master->GetAtt("", tag, axis);
+		if (rc<0) return(rc);
+		cvar.SetAxis(axis);
+
+		tag = prefix + "." + cvar.GetName() + ".Uniform";
+		int uniform;
+		rc = _master->GetAtt("", tag, uniform);
+		if (rc<0) return(rc);
+		cvar.SetUniform(uniform);
+
+		rc = _ReadMasterVarBaseDefs(prefix, cvar);
+		if (rc<0) return(rc);
+
+		_coordVars[varnames[i]] = cvar;
+	}
+	return(0);
+}
+
+int VDCNetCDF::_ReadMasterDataVarsDefs() {
+
+	string tag = "VDC.DataVarNames";
+	vector <string> varnames;
+	int rc = _master->GetAtt("", tag, varnames);
+	if (rc<0) return(rc);
+
+
+	string prefix = "VDC.DataVar";
+	for (int i=0; i<varnames.size(); i++) {
+		DataVar var;
+		var.SetName(varnames[i]);
+
+		tag = prefix + "." + var.GetName() + ".CoordVars";
+		vector <string> coordvars;
+		int rc = _master->GetAtt("", tag, coordvars);
+		if (rc<0) return(rc);
+		var.SetCoordvars(coordvars);
+
+		tag = prefix + "." + var.GetName() + ".HasMissing";
+		int has_missing;
+		rc = _master->GetAtt("", tag, has_missing);
+		if (rc<0) return(rc);
+		var.SetHasMissing(has_missing);
+
+		if (has_missing) {
+			tag = prefix + "." + var.GetName() + ".MissingValue";
+			double missing_value;
+			rc = _master->GetAtt("", tag, missing_value);
+			if (rc<0) return(rc);
+			var.SetMissingValue(missing_value);
+		}
+
+		rc = _ReadMasterVarBaseDefs(prefix, var);
+		if (rc<0) return(rc);
+
+		_dataVars[varnames[i]] = var;
+	}
+	return(0);
+
 }
 
 
@@ -218,7 +899,7 @@ int VDCNetCDF::_WriteMasterDimensions() {
 		s+= " ";
 	}
 	string tag = "VDC.DimensionNames";
-	int rc = _wasp.PutAtt("", tag, s);
+	int rc = _master->PutAtt("", tag, s);
 	if (rc<0) return(rc);
 
 	
@@ -226,11 +907,11 @@ int VDCNetCDF::_WriteMasterDimensions() {
 		const Dimension &dimension = itr->second;
 
 		tag = "VDC.Dimension." + dimension.GetName() + ".Length";
-		rc = _wasp.PutAtt("", tag, dimension.GetLength());
+		rc = _master->PutAtt("", tag, dimension.GetLength());
 		if (rc<0) return(rc);
 
 		tag = "VDC.Dimension." + dimension.GetName() + ".Axis";
-		rc = _wasp.PutAtt("", tag, dimension.GetAxis());
+		rc = _master->PutAtt("", tag, dimension.GetAxis());
 		if (rc<0) return(rc);
 		
 	}
@@ -238,7 +919,7 @@ int VDCNetCDF::_WriteMasterDimensions() {
 }
 
 int VDCNetCDF::_WriteMasterAttributes (
-	string prefix, const map <string, Attribute> atts
+	string prefix, const map <string, Attribute> &atts
 ) {
 
 	map <string, Attribute>::const_iterator itr;
@@ -248,7 +929,7 @@ int VDCNetCDF::_WriteMasterAttributes (
 		s+= " ";
 	}
 	string tag = prefix + ".AttributeNames";
-	int rc = _wasp.PutAtt("", tag, s);
+	int rc = _master->PutAtt("", tag, s);
 	if (rc<0) return(rc);
 
 	
@@ -256,7 +937,7 @@ int VDCNetCDF::_WriteMasterAttributes (
 		const Attribute &attr = itr->second;
 
 		tag = prefix + ".Attribute." + attr.GetName() + ".XType";
-		rc = _wasp.PutAtt("", tag, attr.GetXType());
+		rc = _master->PutAtt("", tag, attr.GetXType());
 		if (rc<0) return(rc);
 
 		tag = prefix + ".Attribute." + attr.GetName() + ".Values";
@@ -265,7 +946,7 @@ int VDCNetCDF::_WriteMasterAttributes (
 			case DOUBLE: {
 				vector <double> values;
 				attr.GetValues(values);
-				rc = _wasp.PutAtt("", tag, values);
+				rc = _master->PutAtt("", tag, values);
 				if (rc<0) return(rc);
 			break;
 			}
@@ -273,14 +954,14 @@ int VDCNetCDF::_WriteMasterAttributes (
 			case INT64: {
 				vector <int> values;
 				attr.GetValues(values);
-				rc = _wasp.PutAtt("", tag, values);
+				rc = _master->PutAtt("", tag, values);
 				if (rc<0) return(rc);
 			break;
 			}
 			case TEXT: {
 				string values;
 				attr.GetValues(values);
-				rc = _wasp.PutAtt("", tag, values);
+				rc = _master->PutAtt("", tag, values);
 				if (rc<0) return(rc);
 			break;
 			}
@@ -314,43 +995,46 @@ int VDCNetCDF::_WriteMasterVarBaseDefs(string prefix, const VarBase &var) {
 		s+= " ";
 	}
 
-	int rc = _wasp.PutAtt("", tag, s);
+	int rc = _master->PutAtt("", tag, s);
 	if (rc<0) return(rc);
 
 	tag = prefix + "." + var.GetName() + ".Units";
-	rc = _wasp.PutAtt("", tag, var.GetUnits());
+	rc = _master->PutAtt("", tag, var.GetUnits());
 	if (rc<0) return(rc);
 
 	tag = prefix + "." + var.GetName() + ".XType";
-	rc = _wasp.PutAtt("", tag, (int) var.GetXType());
-	if (rc<0) return(rc);
-
-	tag = prefix + "." + var.GetName() + ".Compressed";
-	rc = _wasp.PutAtt("", tag, (int) var.GetCompressed());
-	if (rc<0) return(rc);
-
-	tag = prefix + "." + var.GetName() + ".BlockSize";
-	rc = _wasp.PutAtt("", tag, var.GetBS());
-	if (rc<0) return(rc);
-
-	tag = prefix + "." + var.GetName() + ".WaveName";
-	rc = _wasp.PutAtt("", tag, var.GetWName());
-	if (rc<0) return(rc);
-
-	tag = prefix + "." + var.GetName() + ".WaveMode";
-	rc = _wasp.PutAtt("", tag, var.GetWMode());
-	if (rc<0) return(rc);
-
-	tag = prefix + "." + var.GetName() + ".CompressionRatios";
-	rc = _wasp.PutAtt("", tag, var.GetCRatios());
+	rc = _master->PutAtt("", tag, (int) var.GetXType());
 	if (rc<0) return(rc);
 
 	tag = prefix + "." + var.GetName() + ".Periodic";
 	vector <bool> periodic = var.GetPeriodic();
 	vector <int> iperiodic;
 	for (int i=0; i<periodic.size(); i++) iperiodic.push_back(periodic[i]);
-	rc = _wasp.PutAtt("", tag, iperiodic);
+	rc = _master->PutAtt("", tag, iperiodic);
 	if (rc<0) return(rc);
+
+	tag = prefix + "." + var.GetName() + ".Compressed";
+	rc = _master->PutAtt("", tag, (int) var.GetCompressed());
+	if (rc<0) return(rc);
+
+	if (var.GetCompressed()) { 
+		tag = prefix + "." + var.GetName() + ".BlockSize";
+		rc = _master->PutAtt("", tag, var.GetBS());
+		if (rc<0) return(rc);
+
+		tag = prefix + "." + var.GetName() + ".WaveName";
+		rc = _master->PutAtt("", tag, var.GetWName());
+		if (rc<0) return(rc);
+
+		tag = prefix + "." + var.GetName() + ".WaveMode";
+		rc = _master->PutAtt("", tag, var.GetWMode());
+		if (rc<0) return(rc);
+
+		tag = prefix + "." + var.GetName() + ".CompressionRatios";
+		rc = _master->PutAtt("", tag, var.GetCRatios());
+		if (rc<0) return(rc);
+	}
+
 	
 	prefix += "." + var.GetName();
 	return (_WriteMasterAttributes(prefix, var.GetAttributes()));
@@ -366,7 +1050,7 @@ int VDCNetCDF::_WriteMasterCoordVarsDefs() {
 	}
 
 	string tag = "VDC.CoordVarNames";
-	int rc = _wasp.PutAtt("", tag, s);
+	int rc = _master->PutAtt("", tag, s);
 	if (rc<0) return(rc);
 
 
@@ -375,11 +1059,11 @@ int VDCNetCDF::_WriteMasterCoordVarsDefs() {
 		const CoordVar &cvar = itr->second;
 
 		tag = prefix + "." + cvar.GetName() + ".Axis";
-		int rc = _wasp.PutAtt("", tag, cvar.GetAxis());
+		int rc = _master->PutAtt("", tag, cvar.GetAxis());
 		if (rc<0) return(rc);
 
 		tag = prefix + "." + cvar.GetName() + ".Uniform";
-		rc = _wasp.PutAtt("", tag, (int) cvar.GetUniform());
+		rc = _master->PutAtt("", tag, (int) cvar.GetUniform());
 		if (rc<0) return(rc);
 
 		rc = _WriteMasterVarBaseDefs(prefix, cvar);
@@ -398,7 +1082,7 @@ int VDCNetCDF::_WriteMasterDataVarsDefs() {
 	}
 
 	string tag = "VDC.DataVarNames";
-	int rc = _wasp.PutAtt("", tag, s);
+	int rc = _master->PutAtt("", tag, s);
 	if (rc<0) return(rc);
 
 
@@ -407,16 +1091,18 @@ int VDCNetCDF::_WriteMasterDataVarsDefs() {
 		const DataVar &var = itr->second;
 
 		tag = prefix + "." + var.GetName() + ".CoordVars";
-		int rc = _wasp.PutAtt("", tag, var.GetCoordvars());
+		int rc = _master->PutAtt("", tag, var.GetCoordvars());
 		if (rc<0) return(rc);
 
 		tag = prefix + "." + var.GetName() + ".HasMissing";
-		rc = _wasp.PutAtt("", tag, (int) var.GetHasMissing());
+		rc = _master->PutAtt("", tag, (int) var.GetHasMissing());
 		if (rc<0) return(rc);
 
-		tag = prefix + "." + var.GetName() + ".MissingValue";
-		rc = _wasp.PutAtt("", tag, (int) var.GetMissingValue());
-		if (rc<0) return(rc);
+		if (var.GetHasMissing()) {
+			tag = prefix + "." + var.GetName() + ".MissingValue";
+			rc = _master->PutAtt("", tag, var.GetMissingValue());
+			if (rc<0) return(rc);
+		}
 
 		rc = _WriteMasterVarBaseDefs(prefix, var);
 		if (rc<0) return(rc);
