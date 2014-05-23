@@ -20,7 +20,6 @@ int main(int argc, char **argv) {
 
 	VDCNetCDF	vdc;
 	vdc.Initialize(vdc_master, VDC::W);
-	vdc.SetMaxTSPerFile(10);
 
 	//
 	// Define dimension names and implicity define 1d coord vars
