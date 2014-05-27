@@ -163,15 +163,24 @@ public:
 	string varname,
 	vector <size_t> start, vector <size_t> count, const void *data
  );
+ virtual int PutVar(string varname, const void *data);
 
  virtual int GetVara(
 	string varname,
 	vector <size_t> start, vector <size_t> count, void *data
  );
+ virtual int GetVar(string varname, void *data);
 
  //! Return the size in bytes of a NetCDF external data type
  //!
  size_t SizeOf(int nctype) const;
+
+ //! Return true if file exists and is a valid NetCDF file
+ //!
+ //! Returns true if both the file specified by \p path exists, and
+ //! it can be opened with nc_open(). 
+ //!
+ virtual bool ValidFile(string path);
 
 private:
 

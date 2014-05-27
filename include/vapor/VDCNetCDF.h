@@ -31,10 +31,11 @@ public:
  //! for appending or reading.
  //
  VDCNetCDF(
+	int numthreads = 0,
 	size_t master_theshold=10*1024*1024, 
 	size_t variable_threshold=100*1024*1024
  );
- virtual ~VDCNetCDF() {}
+ virtual ~VDCNetCDF();
 
  //! \copydoc VDC::GetPath()
  //!
@@ -53,13 +54,16 @@ public:
  //! \sa VDCNetCDF::VDCNetCDF(), GetMasterThreshold(), GetVariableThreshold()
  //!
  virtual int GetPath(
-    string varname, size_t ts, int lod, string &path, size_t &file_ts
+    string varname, size_t ts, string &path, size_t &file_ts,
+	size_t &max_ts
  ) const;
 
  //! Initialize the VDCNetCDF class
  //!
+ //! \param[in] chunksizehint : NetCDF chunk size hint.  A value of
+ //! zero results in NC_SIZEHINT_DEFAULT being used.
  //
- virtual int Initialize(string path, AccessMode mode);
+ virtual int Initialize(string path, AccessMode mode, size_t chunksizehint = 0);
 
  //! Return the master file size threshold
  //!
@@ -73,23 +77,70 @@ public:
  //
  size_t GetVariableThreshold() const {return _variable_threshold; };
 
+ int OpenVariableRead(
+    size_t ts, string varname, int reflevel=0, int lod=-1
+ );
+ int CloseVariable();
+
+
+ int OpenVariableWrite(size_t ts, string varname, int lod=-1);
+
+ int Write(const float *region);
+
+ int WriteSlice(const float *slice);
+
+ int Read(float *region);
+
+ int ReadSlice(float *slice);
+
+ int ReadRegion(
+    const size_t min[3], const size_t max[3], float *region
+ );
+
+
+
+
 protected:
  virtual int _WriteMasterMeta();
  virtual int _ReadMasterMeta();
 
 private:
- WASP _wasp;
+ int _version;
+ NetCDFCpp *_master;	// Master NetCDF file
+ NetCDFCpp *_open_file;	// Currently opened data file
+ VarBase *_open_var;
+ size_t _open_slice_num; // index of current slice for WriteSlice, ReadSlice
+ size_t _open_ts;	// global time step of current open variable
+ size_t _open_file_ts;	// local (within file) time step of current open var
+ string _open_varname;	// name of current open variable
+ 
+ VetsUtil::SmartBuf _sb_slice_buffer;
+ float *_slice_buffer;
+ 
+ size_t _chunksizehint;	// NetCDF chunk size hint for file creates
  size_t _master_threshold;
  size_t _variable_threshold;
+ int _nthreads;
 
  int _WriteMasterDimensions();
  int _WriteMasterAttributes (
-	string prefix, const map <string, Attribute> atts
+	string prefix, const map <string, Attribute> &atts
  ); 
  int _WriteMasterAttributes ();
  int _WriteMasterVarBaseDefs(string prefix, const VarBase &var); 
  int _WriteMasterCoordVarsDefs(); 
  int _WriteMasterDataVarsDefs(); 
+ int _WriteSlice(WASP *file, const float *slice);
+ int _WriteSlice(NetCDFCpp *file, const float *slice);
+
+ int _ReadMasterDimensions();
+ int _ReadMasterAttributes (
+	string prefix, map <string, Attribute> &atts
+ ); 
+ int _ReadMasterAttributes ();
+ int _ReadMasterVarBaseDefs(string prefix, VarBase &var); 
+ int _ReadMasterCoordVarsDefs(); 
+ int _ReadMasterDataVarsDefs(); 
 
 	
  //

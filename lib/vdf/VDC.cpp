@@ -50,6 +50,10 @@ int VDC::Initialize(string path, AccessMode mode)
 		);
 		return(-1);
 	}
+
+	if (mode == R || mode == A) {
+		return(_ReadMasterMeta());
+	}
 	return(0);
 }
 
@@ -193,11 +197,24 @@ int VDC::DefineCoordVar(
 		assert(! dimension.GetName().empty()); 
 		dimensions.push_back(dimension);
 	}
+
+	// Num spatial dimensions
+	//
+	size_t nsdim = dimensions[dimensions.size()-1].GetAxis() == 3 ?
+		dimensions.size()-1 : dimensions.size();
+
+	// Determine block size
+	//
+	vector <size_t> bs;
+	for (int i=0; i<nsdim; i++) {
+		if (compressed) bs.push_back(_bs[i]);
+		else bs.push_back(dimensions[i].GetLength());
+	}
 		
 	vector <size_t> cratios;
 	if (compressed) cratios = _cratios;
 	CoordVar coordvar(
-		varname, dimensions, units, type, _bs, _wname, 
+		varname, dimensions, units, type, bs, _wname, 
 		_wmode, cratios, _periodic, axis, false
 	);
 
@@ -237,10 +254,23 @@ int VDC::DefineCoordVarUniform(
 	assert(! dimension.GetName().empty());
 	dimensions.push_back(dimension);
 
+	// Num spatial dimensions
+	//
+	size_t nsdim = dimensions[dimensions.size()-1].GetAxis() == 3 ?
+		dimensions.size()-1 : dimensions.size();
+
+	// Determine block size
+	//
+	vector <size_t> bs;
+	for (int i=0; i<nsdim; i++) {
+		if (compressed) bs.push_back(_bs[i]);
+		else bs.push_back(dimensions[i].GetLength());
+	}
+
 	vector <size_t> cratios;
 	if (compressed) cratios = _cratios;
 	CoordVar coordvar(
-		varname, dimensions, units, type, _bs, _wname, 
+		varname, dimensions, units, type, bs, _wname, 
 		_wmode, cratios, _periodic, axis, true
 	);
 
@@ -314,10 +344,23 @@ int VDC::DefineDataVar(
 		dimensions.push_back(dimension);
 	}
 
+	// Num spatial dimensions
+	//
+	size_t nsdim = dimensions[dimensions.size()-1].GetAxis() == 3 ?
+		dimensions.size()-1 : dimensions.size();
+
+	// Determine block size
+	//
+	vector <size_t> bs;
+	for (int i=0; i<nsdim; i++) {
+		if (compressed) bs.push_back(_bs[i]);
+		else bs.push_back(dimensions[i].GetLength());
+	}
+
 	vector <size_t> cratios;
 	if (compressed) cratios = _cratios;
 	DataVar datavar(
-		varname, dimensions, units, type, _bs, _wname, 
+		varname, dimensions, units, type, bs, _wname, 
 		_wmode, cratios, _periodic, coordvars
 	);
 
@@ -360,10 +403,23 @@ int VDC::DefineDataVar(
 		dimensions.push_back(dimension);
 	}
 
+	// Num spatial dimensions
+	//
+	size_t nsdim = dimensions[dimensions.size()-1].GetAxis() == 3 ?
+		dimensions.size()-1 : dimensions.size();
+
+	// Determine block size
+	//
+	vector <size_t> bs;
+	for (int i=0; i<nsdim; i++) {
+		if (compressed) bs.push_back(_bs[i]);
+		else bs.push_back(dimensions[i].GetLength());
+	}
+
 	vector <size_t> cratios;
 	if (compressed) cratios = _cratios;
 	DataVar datavar(
-		varname, dimensions, units, type, _bs, _wname, 
+		varname, dimensions, units, type, bs, _wname, 
 		_wmode, cratios, _periodic, coordvars, 
 		missing_value
 	);
@@ -829,73 +885,6 @@ int VDC::EndDefine() {
 }
 
 
-int VDC::OpenVariableRead(size_t ts, string varname, int reflevel, int lod)
-{
-	cout << "not implemented";
-	return(0);
-}
-
-int VDC::OpenVariableWrite(size_t ts, string varname, int lod) {
-	cout << "not implemented";
-	return(0);
-}
-
-int VDC::Write(const float *region) {
-	cout << "not implemented";
-	return(0);
-}
-
-int VDC::WriteSlice(const float *slice) {
-	cout << "not implemented";
-	return(0);
-}
-
-int VDC::Read(float *region) {
-	cout << "not implemented";
-	return(0);
-}
-int VDC::ReadSlice(float *slice) {
-	cout << "not implemented";
-	return(0);
-}
-int VDC::ReadRegion(
-    const size_t min[3], const size_t max[3], float *region
-) {
-	cout << "not implemented";
-	return(0);
-}
-
-int VDC::CloseVariableWrite() {
-	cout << "not implemented";
-	return(0);
-}
-
-int VDC::CloseVariableRead() {
-	cout << "not implemented";
-	return(0);
-}
-
-int VDC::PutVar(string varname, const float *data) {
-	cout << "not implemented";
-	return(0);
-}
- 
-int VDC::PutVar(size_t ts, string varname, const float *data) {
-	cout << "not implemented";
-	return(0);
-}
-
-int VDC::GetVar(string varname, float *data) {
-	cout << "not implemented";
-	return(0);
-}
-
-int VDC::GetVar(size_t ts, string varname, float *data) {
-	cout << "not implemented";
-	return(0);
-}
-
-
 VDC::Attribute::Attribute(
 	string name, XType type, const vector <float> &values
 ) {
@@ -1202,6 +1191,11 @@ bool VDC::_ValidDefineCoordVar(
 	string units, int axis, XType type, bool compressed
 ) const {
 
+	if (dimnames.size() > 4) {
+		SetErrMsg("Invalid number of dimensions");
+		return(false);
+	}
+
 	for (int i=0; i<dimnames.size(); i++) {
 		if (_dimsMap.find(dimnames[i]) == _dimsMap.end()) {
 			SetErrMsg("Dimension \"%s\" not defined", dimnames[i].c_str());
@@ -1269,6 +1263,11 @@ bool VDC::_ValidDefineDataVar(
 	string varname, vector <string> dimnames, vector <string> coordvars,
 	string units, XType type, bool compressed
 ) const {
+
+	if (dimnames.size() > 4) {
+		SetErrMsg("Invalid number of dimensions");
+		return(false);
+	}
 
 	if (dimnames.size() != coordvars.size()) {
 		SetErrMsg("Number of dimensions and coordinate vars don't match");
