@@ -57,7 +57,7 @@ public:
 	
 	//Following methods are set from gui, have undo/redo support:
 	//
-	void guiSetCenter(const double * coords);
+	void setCenter(const double * coords);
 	
 	
 
@@ -75,19 +75,19 @@ public:
 
 	
 protected slots:
-	void guiLoadRegionExtents();
+	void loadRegionExtents();
 	void saveRegionExtents();
-	void guiAdjustExtents();
+	void adjustExtents();
 	void setRegionTabTextChanged(const QString& qs);
 	void regionReturnPressed();
-	void guiSetMaxSize();
+	void setMaxSize();
 	
-	void guiSetXCenter(int n);
-	void guiSetXSize(int n);
-	void guiSetYCenter(int n);
-	void guiSetYSize(int n);
-	void guiSetZCenter(int n);
-	void guiSetZSize(int n);
+	void setXCenter(int n);
+	void setXSize(int n);
+	void setYCenter(int n);
+	void setYSize(int n);
+	void setZCenter(int n);
+	void setZSize(int n);
 	void copyRegionToRake();
 	void copyRakeToRegion();
 	void copyProbeToRegion();

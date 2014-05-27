@@ -14,16 +14,7 @@
 //
 //	Date:		October 2013
 //
-//! \class VizWin
-//! \brief A QGLWidget that supports display based on GL methods invoked in a Visualizer
-//! \author Alan Norton
-//! \version 3.0
-//! \date    October 2013
-//!	The VizWin class is a QGLWidget that supports the rendering by the VAPOR Visualizer class.
-//! The standard rendering methods (resize, initialize, paint) are passed to the Visualizer.
-//! In addition this is the class that responds to mouse events, resulting in scene navigation 
-//! or manipulator changes.
-//! 
+
 //
 
 #ifndef VIZWIN_H
@@ -46,6 +37,16 @@ class VizWinMgr;
 class Visualizer;
 class Viewpoint;
 
+//! \class VizWin
+//! \brief A QGLWidget that supports display based on GL methods invoked in a Visualizer
+//! \author Alan Norton
+//! \version 3.0
+//! \date    October 2013
+//!	The VizWin class is a QGLWidget that supports the rendering by the VAPOR Visualizer class.
+//! The standard rendering methods (resize, initialize, paint) are passed to the Visualizer.
+//! In addition this is the class that responds to mouse events, resulting in scene navigation 
+//! or manipulator changes.
+//! 
 class VizWin : public QGLWidget
 {
     Q_OBJECT

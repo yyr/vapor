@@ -59,10 +59,10 @@ public:
 	virtual void reinitTab(bool doOverride);
 	//Following are set by gui, result in save history state, 
 	//plus notification to animation controller
-	void guiSetPlay(int direction);
+	void setPlay(int direction);
 	virtual void guiSetLocal(Params* p, bool lg);
-	void guiToggleReplay(bool replay);
-	void guiSetTimestep(int framenum);
+	void toggleReplay(bool replay);
+	void setTimestep(int framenum);
 
 public slots:
 	void animationPauseClick();
@@ -77,13 +77,13 @@ protected:
 	void setSliders (AnimationParams* a);
 
 	void refreshFrontTab();
-	void guiJumpToBegin();
-	void guiJumpToEnd();
+	void jumpToBegin();
+	void jumpToEnd();
 	
-	void guiSingleStep(bool forward);
+	void singleStep(bool forward);
 	//Need to do more than EventROuter::guiSetLocal():
 	
-	void guiUpdateTimestepList(const char* descr);
+	void updateTimestepList(const char* descr);
 
 	void populateTimestepTable();
 	//Point to actions on main window:
@@ -95,8 +95,8 @@ protected:
 	int currentKeyIndex;
 	
 protected slots:
-	void guiSetPosition(int sliderposition);
-	void guiSetFrameStep(int sliderposition);
+	void setPosition(int sliderposition);
+	void setFrameStep(int sliderposition);
 	void setAtabTextChanged(const QString& qs);
 	void setEndFrameTextChanged(const QString& qs);
 	void animationReturnPressed();

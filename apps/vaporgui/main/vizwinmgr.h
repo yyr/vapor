@@ -68,14 +68,12 @@ class VizWinMgr : public QObject
 
 public:
 	
-	
 	//! If the params indicated is not RenderParams, all visualizer windows are refreshed.  If it's a RenderParams,
 	//! requests a re-rendering for the renderer associated with that particular RenderParams instance.
 	//! The renderer must be enabled or this will have no effect unless the optional 'always' parameter is true.
 	//! \param[in] RenderParams* pointer to RenderParams instance that is associated with the rendering requested.
 	//! \param[in] bool always indicates that rerender will occur even if the params is disabled.
 	void forceRender(const Params* p, bool always=false);
-	
 	
 	//! Static method obtains the EventRouter instance associated with a particular Params type.  There is a unique EventRouter
 	//! subclass associated with each tab, and a unique instance of that subclass.

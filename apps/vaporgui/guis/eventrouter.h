@@ -214,10 +214,6 @@ public:
 	//! \param[in] savePath indicates whether or not the resulting path should be saved to user preferences.
 	void fileLoadTF(RenderParams* rParams, int varnum, const char* startPath, bool savePath);
 
-	//! variables used to workaround Darwin bug, indicate whether or not
-	//! various widgets in the tab have yet been displayed.
-	bool isoShown, colorMapShown, opacityMapShown, texShown;
-
 public slots:
 	//! Slot that is connected to the transfer function frame, indicating the beginning of changes
 	//! to the transfer function.  Must be implemented and connected in tabs with a transfer function editor.
@@ -257,6 +253,9 @@ protected:
 	
 
 #ifndef DOXYGEN_SKIP_THIS
+	//! variables used to workaround Darwin bug, indicate whether or not
+	//! various widgets in the tab have yet been displayed.
+	bool isoShown, colorMapShown, opacityMapShown, texShown;
 	Params::ParamsBaseType myParamsBaseType;
 	bool textChangedFlag;
 	bool ignoreBoxSliderEvents;

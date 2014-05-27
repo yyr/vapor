@@ -120,19 +120,19 @@ ArrowEventRouter::hookUpTab()
 /*********************************************************************************
  * Slots associated with ArrowTab:
  *********************************************************************************/
-void ArrowEventRouter::guiChangeInstance(int newCurrent){
+void ArrowEventRouter::changeInstance(int newCurrent){
 	performGuiChangeInstance(newCurrent);
 }
 
 	
-void ArrowEventRouter::guiNewInstance(){
+void ArrowEventRouter::newInstance(){
 	performGuiNewInstance();
 }
-void ArrowEventRouter::guiDeleteInstance(){
+void ArrowEventRouter::deleteInstance(){
 	performGuiDeleteInstance();
 }
 
-void ArrowEventRouter::guiCopyInstanceTo(int toViz){
+void ArrowEventRouter::copyInstanceTo(int toViz){
 	if (toViz == 0) return; 
 	if (toViz == 1) {performGuiCopyInstance(); return;}
 	int viznum = copyCount[toViz];
@@ -218,7 +218,7 @@ arrowReturnPressed(void){
 	confirmText(true);
 }
 void ArrowEventRouter::
-guiSetVariableDims(int is3D){
+setVariableDims(int is3D){
 	confirmText(true);
 	ArrowParams* aParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
 	if (aParams->VariablesAre3D() == (is3D == 1)) return;
@@ -303,7 +303,7 @@ populateVariableCombos(bool is3D){
 
 
 void ArrowEventRouter::
-guiSetXVarNum(int vnum){
+setXVarNum(int vnum){
 	confirmText(true);
 	
 	ArrowParams* aParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
@@ -319,7 +319,7 @@ guiSetXVarNum(int vnum){
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
 void ArrowEventRouter::
-guiSetYVarNum(int vnum){
+setYVarNum(int vnum){
 	
 	confirmText(true);
 	ArrowParams* aParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
@@ -336,7 +336,7 @@ guiSetYVarNum(int vnum){
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
 void ArrowEventRouter::
-guiSetZVarNum(int vnum){
+setZVarNum(int vnum){
 	
 	confirmText(true);
 	ArrowParams* aParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
@@ -351,7 +351,7 @@ guiSetZVarNum(int vnum){
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
 void ArrowEventRouter::
-guiSetHeightVarNum(int vnum){
+setHeightVarNum(int vnum){
 	
 	confirmText(true);
 	ArrowParams* aParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
@@ -363,7 +363,7 @@ guiSetHeightVarNum(int vnum){
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
 void ArrowEventRouter::
-guiToggleTerrainAlign(bool isOn){
+toggleTerrainAlign(bool isOn){
 	confirmText(true);
 	ArrowParams* aParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
 	aParams->SetTerrainMapped(isOn);
@@ -371,7 +371,7 @@ guiToggleTerrainAlign(bool isOn){
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
 void ArrowEventRouter::
-guiSelectColor(){
+selectColor(){
 	confirmText(true);
 	QPalette pal(colorBox->palette());
 	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Base), this);
@@ -387,7 +387,7 @@ guiSelectColor(){
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
 void ArrowEventRouter::
-guiChangeExtents(){
+changeExtents(){
 	confirmText(true);
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	ArrowParams* aParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
@@ -404,7 +404,7 @@ guiChangeExtents(){
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
 void ArrowEventRouter::
-guiAlignToData(bool doAlign){
+alignToData(bool doAlign){
 	confirmText(true);
 	ArrowParams* aParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
 	aParams->AlignGridToData(doAlign);
@@ -636,7 +636,7 @@ reinitTab(bool doOverride){
 }
 
 void ArrowEventRouter::
-guiSetCompRatio(int num){
+setCompRatio(int num){
 	confirmText(false);
 	//make sure we are changing it
 	ArrowParams* dParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
@@ -648,7 +648,7 @@ guiSetCompRatio(int num){
 	VizWinMgr::getInstance()->forceRender(dParams);
 }
 void ArrowEventRouter::
-guiMoveScaleSlider(int sliderval){
+moveScaleSlider(int sliderval){
 	//just update the 
 	confirmText(false);
 	ArrowParams* aParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
@@ -662,7 +662,7 @@ guiMoveScaleSlider(int sliderval){
 	
 }
 void ArrowEventRouter::
-guiReleaseScaleSlider(){
+releaseScaleSlider(){
 	confirmText(false);
 	int sliderval = barbLengthSlider->value();
 	ArrowParams* aParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
@@ -680,7 +680,7 @@ guiReleaseScaleSlider(){
 }
 
 void ArrowEventRouter::
-guiSetNumRefinements(int num){
+setNumRefinements(int num){
 	confirmText(false);
 	//make sure we are changing it
 	ArrowParams* dParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
@@ -716,7 +716,7 @@ guiSetEnabled(bool value, int instance, bool undoredo){
 	
 }
 void ArrowEventRouter::
-guiFitToData(){
+fitToData(){
 	ArrowParams* aParams =(ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	

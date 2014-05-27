@@ -96,15 +96,15 @@ RegionEventRouter::hookUpTab()
 	connect (ySizeEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
 	connect (zSizeEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
 	
-	connect (xCenterSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetXCenter(int)));
-	connect (yCenterSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetYCenter(int)));
-	connect (zCenterSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetZCenter(int)));
+	connect (xCenterSlider, SIGNAL(valueChanged(int)), this, SLOT (setXCenter(int)));
+	connect (yCenterSlider, SIGNAL(valueChanged(int)), this, SLOT (setYCenter(int)));
+	connect (zCenterSlider, SIGNAL(valueChanged(int)), this, SLOT (setZCenter(int)));
 	
-	connect (xSizeSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetXSize(int)));
-	connect (ySizeSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetYSize(int)));
-	connect (zSizeSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetZSize(int)));
+	connect (xSizeSlider, SIGNAL(valueChanged(int)), this, SLOT (setXSize(int)));
+	connect (ySizeSlider, SIGNAL(valueChanged(int)), this, SLOT (setYSize(int)));
+	connect (zSizeSlider, SIGNAL(valueChanged(int)), this, SLOT (setZSize(int)));
 	
-	connect (setFullRegionButton, SIGNAL(clicked()), this, SLOT (guiSetMaxSize()));
+	connect (setFullRegionButton, SIGNAL(clicked()), this, SLOT (setMaxSize()));
 	connect (regionToRakeButton, SIGNAL(clicked()), this, SLOT(copyRegionToRake()));
 	connect (regionToProbeButton, SIGNAL(clicked()), this, SLOT(copyRegionToProbe()));
 	connect (rakeToRegionButton, SIGNAL(clicked()), this, SLOT(copyRakeToRegion()));
@@ -113,9 +113,9 @@ RegionEventRouter::hookUpTab()
 	connect (loadRegionsButton, SIGNAL(clicked()), this, SLOT(guiLoadRegionExtents()));
 	connect (saveRegionsButton, SIGNAL(clicked()), this, SLOT(saveRegionExtents()));
 	connect (adjustExtentsButton, SIGNAL(clicked()), this, SLOT(guiAdjustExtents()));
-	connect (refinementCombo, SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
-	connect (variableCombo, SIGNAL(activated(int)), this, SLOT(guiSetVarNum(int)));
-	connect (timestepSpin, SIGNAL(valueChanged(int)), this, SLOT(guiSetTimeStep(int)));
+	connect (refinementCombo, SIGNAL(activated(int)), this, SLOT(setNumRefinements(int)));
+	connect (variableCombo, SIGNAL(activated(int)), this, SLOT(setVarNum(int)));
+	connect (timestepSpin, SIGNAL(valueChanged(int)), this, SLOT(setTimeStep(int)));
 
 	connect (LocalGlobal, SIGNAL (activated (int)), VizWinMgr::getInstance(), SLOT (setRgLocalGlobal(int)));
 	connect (VizWinMgr::getInstance(), SIGNAL(enableMultiViz(bool)), LocalGlobal, SLOT(setEnabled(bool)));
@@ -447,7 +447,7 @@ sliderToText(RegionParams* rp, int coord, int slideCenter, int slideSize){
 
 //Move the region center to specified user coords, shrink it if necessary
 void RegionEventRouter::
-guiSetCenter(const double* coords){
+setCenter(const double* coords){
 	RegionParams* rParams = (RegionParams*)ControlExec::GetActiveParams(Params::_regionParamsTag);
 
 	if (!DataStatus::getInstance()->getDataMgr()) return;
@@ -475,7 +475,7 @@ guiSetCenter(const double* coords){
 }
 //Following are set when slider is released:
 void RegionEventRouter::
-guiSetXCenter(int sliderval){
+setXCenter(int sliderval){
 	if(doIgnoreBoxSliderEvents())return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)ControlExec::GetActiveParams(Params::_regionParamsTag);
@@ -486,7 +486,7 @@ guiSetXCenter(int sliderval){
 }
 //Following are set when slider is released:
 void RegionEventRouter::
-guiSetYCenter(int sliderval){
+setYCenter(int sliderval){
 	if(doIgnoreBoxSliderEvents())return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)ControlExec::GetActiveParams(Params::_regionParamsTag);
@@ -495,7 +495,7 @@ guiSetYCenter(int sliderval){
 }
 //Following are set when slider is released:
 void RegionEventRouter::
-guiSetZCenter(int sliderval){
+setZCenter(int sliderval){
 	if(doIgnoreBoxSliderEvents())return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)ControlExec::GetActiveParams(Params::_regionParamsTag);
@@ -504,7 +504,7 @@ guiSetZCenter(int sliderval){
 }
 
 void RegionEventRouter::
-guiSetXSize(int sliderval){
+setXSize(int sliderval){
 	if(doIgnoreBoxSliderEvents())return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)ControlExec::GetActiveParams(Params::_regionParamsTag);
@@ -512,7 +512,7 @@ guiSetXSize(int sliderval){
 	
 }
 void RegionEventRouter::
-guiSetYSize(int sliderval){
+setYSize(int sliderval){
 	if(doIgnoreBoxSliderEvents())return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)ControlExec::GetActiveParams(Params::_regionParamsTag);
@@ -520,7 +520,7 @@ guiSetYSize(int sliderval){
 	
 }
 void RegionEventRouter::
-guiSetZSize(int sliderval){
+setZSize(int sliderval){
 	if(doIgnoreBoxSliderEvents())return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)ControlExec::GetActiveParams(Params::_regionParamsTag);
@@ -529,7 +529,7 @@ guiSetZSize(int sliderval){
 }
 
 void RegionEventRouter::
-guiSetMaxSize(){
+setMaxSize(){
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)ControlExec::GetActiveParams(Params::_regionParamsTag);
 	const double* fullDataExtents = DataStatus::getInstance()->getLocalExtents();
@@ -605,7 +605,7 @@ captureMouseUp(){
 }
 
 void RegionEventRouter::
-guiLoadRegionExtents(){
+loadRegionExtents(){
 	//load a list of
 	//region extents.   The previous default box is used if the
 	//list does not specify the extents at a timestep.
@@ -724,7 +724,7 @@ saveRegionExtents(){
 	fclose(regionFile);
 }
 void RegionEventRouter::
-guiAdjustExtents(){
+adjustExtents(){
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)ControlExec::GetActiveParams(Params::_regionParamsTag);
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();

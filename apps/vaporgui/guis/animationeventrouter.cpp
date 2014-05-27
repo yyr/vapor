@@ -148,13 +148,13 @@ AnimationEventRouter::hookUpTab()
 	connect (timestepRateEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
 	
 
-	connect (frameStepSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetFrameStep(int)));
-	connect (animationSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetPosition(int)));
-	connect (timestepSampleCheckbox, SIGNAL(toggled(bool)), this, SLOT(guiToggleTimestepSample(bool)));
+	connect (frameStepSlider, SIGNAL(valueChanged(int)), this, SLOT (setFrameStep(int)));
+	connect (animationSlider, SIGNAL(valueChanged(int)), this, SLOT (setPosition(int)));
+	connect (timestepSampleCheckbox, SIGNAL(toggled(bool)), this, SLOT(toggleTimestepSample(bool)));
 	connect (timestepSampleTable, SIGNAL(cellChanged(int,int)), this, SLOT(timestepChanged(int,int)));
 	connect (addSampleButton,SIGNAL(clicked()), this, SLOT(addSample()));
 	connect (deleteSampleButton,SIGNAL(clicked()), this, SLOT(deleteSample()));
-	connect (rebuildButton, SIGNAL(clicked()), this, SLOT(guiRebuildList()));
+	connect (rebuildButton, SIGNAL(clicked()), this, SLOT(rebuildList()));
 	
 	//Button clicking for toggle buttons:
 	connect(pauseButton, SIGNAL(clicked()), this, SLOT(animationPauseClick()));
@@ -169,7 +169,7 @@ AnimationEventRouter::hookUpTab()
 
 	
 
-	connect (keyIndexSpin, SIGNAL(valueChanged(int)),this, SLOT(guiChangeKeyIndex(int)));
+	connect (keyIndexSpin, SIGNAL(valueChanged(int)),this, SLOT(changeKeyIndex(int)));
 	
 	
 
@@ -391,7 +391,7 @@ animationPauseClick(){
 	mainPlayBackwardAction->setChecked(false);
 	mainPauseAction->setChecked(true);
 	pauseButton->setChecked(true);
-	guiSetPlay(0);
+	setPlay(0);
 }
 void AnimationEventRouter::
 animationPlayReverseClick(){
@@ -402,7 +402,7 @@ animationPlayReverseClick(){
 		mainPlayBackwardAction->setChecked(true);
 		pauseButton->setChecked(true);
 		mainPauseAction->setChecked(false);
-		guiSetPlay(-1);
+		setPlay(-1);
 	}
 }
 void AnimationEventRouter::
@@ -414,34 +414,34 @@ animationPlayForwardClick(){
 	mainPlayBackwardAction->setChecked(false);
 	mainPauseAction->setChecked(false);
 	pauseButton->setChecked(false);
-	guiSetPlay(1);
+	setPlay(1);
 	
 }
 void AnimationEventRouter::
 animationReplayClick(){
-	guiToggleReplay(replayButton->isChecked());
+	toggleReplay(replayButton->isChecked());
 }
 void AnimationEventRouter::
 animationToBeginClick(){
-	guiJumpToBegin();
+	jumpToBegin();
 }
 void AnimationEventRouter::
 animationToEndClick(){
-	guiJumpToEnd();
+	jumpToEnd();
 }
 void AnimationEventRouter::
 animationStepForwardClick(){
-	guiSingleStep(true);
+	singleStep(true);
 }
 void AnimationEventRouter::
 animationStepReverseClick(){
-	guiSingleStep(false);
+	singleStep(false);
 }
 
 //Following are set by gui, result in save history state.
 //Whenever play is pressed, it wakes up the animation controller.
 
-void AnimationEventRouter::guiSetPlay(int direction){
+void AnimationEventRouter::setPlay(int direction){
 	confirmText(false);
 	
 	AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
@@ -477,7 +477,7 @@ void AnimationEventRouter::guiSetPlay(int direction){
 	
 }
 void AnimationEventRouter::
-guiJumpToBegin(){
+jumpToBegin(){
 	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
 	
@@ -493,7 +493,7 @@ guiJumpToBegin(){
 	refreshFrontTab();
 }
 void AnimationEventRouter::
-guiJumpToEnd(){
+jumpToEnd(){
 	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
 	
@@ -512,7 +512,7 @@ guiJumpToEnd(){
 
 
 //Respond to release of frame position slider:
-void AnimationEventRouter::guiSetPosition(int position){
+void AnimationEventRouter::setPosition(int position){
 	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
 	
@@ -548,7 +548,7 @@ void AnimationEventRouter::guiSetPosition(int position){
 	refreshFrontTab();
 }
 //Respond to release of stepsize slider.  Max range of slider is end - start
-void AnimationEventRouter::guiSetFrameStep(int stepsize){
+void AnimationEventRouter::setFrameStep(int stepsize){
 	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
 	
@@ -565,7 +565,7 @@ void AnimationEventRouter::guiSetFrameStep(int stepsize){
 	
 	
 }
-void AnimationEventRouter::guiToggleReplay(bool replay){
+void AnimationEventRouter::toggleReplay(bool replay){
 	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
 	
@@ -584,7 +584,7 @@ void AnimationEventRouter::guiSetLocal(Params* p, bool lg){
 	viz->updateGL();
 }
 
-void AnimationEventRouter::guiSingleStep(bool forward){
+void AnimationEventRouter::singleStep(bool forward){
 	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
 	
@@ -628,7 +628,7 @@ setSliders(AnimationParams* aParams){
 
 
 
-void AnimationEventRouter::guiSetTimestep(int framenum){
+void AnimationEventRouter::setTimestep(int framenum){
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	
 	aParams->setCurrentTimestep(framenum);

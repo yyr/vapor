@@ -46,32 +46,32 @@ public:
 
 protected slots:
 
-	void guiChangeInstance(int);
-	void guiNewInstance();
-	void guiDeleteInstance();
+	void changeInstance(int);
+	void newInstance();
+	void deleteInstance();
 	
-	void guiCopyInstanceTo(int toViz);
+	void copyInstanceTo(int toViz);
 		
-	void guiSetNumRefinements(int num);
-	void guiSetCompRatio(int num);
+	void setNumRefinements(int num);
+	void setCompRatio(int num);
 	
 	void setArrowTextChanged(const QString& qs);
 	void arrowReturnPressed();
 	void setArrowEnabled(bool on, int instance);
-	void guiSetXVarNum(int);
-	void guiSetYVarNum(int);
-	void guiSetZVarNum(int);
-	void guiSetHeightVarNum(int);
-	void guiMoveScaleSlider(int);
-	void guiReleaseScaleSlider();
-	void guiToggleTerrainAlign(bool);
-	void guiSelectColor();
-	void guiChangeExtents();
+	void setXVarNum(int);
+	void setYVarNum(int);
+	void setZVarNum(int);
+	void setHeightVarNum(int);
+	void moveScaleSlider(int);
+	void releaseScaleSlider();
+	void toggleTerrainAlign(bool);
+	void selectColor();
+	void changeExtents();
 	void showHideLayout();
 	void showHideAppearance();
-	void guiFitToData();
-	void guiSetVariableDims(int);
-	void guiAlignToData(bool);
+	void fitToData();
+	void setVariableDims(int);
+	void alignToData(bool);
 
 
 	
