@@ -110,7 +110,7 @@ public:
         void operator=(Params params);
         ///indicates how many strides should be taken
         ///between arrowheads
-        int arrowstride;
+        int arrowStride;
     };
 
     GLPathRenderer();

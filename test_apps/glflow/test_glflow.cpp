@@ -24,7 +24,6 @@ using namespace VetsUtil;
 //z-suffix means that the function operates using zero-vector or matrix
 //all vector and vector-array outputs will be returned by last pointer argument
 //all single-primitive outputs will be given by return value
-//
 
 struct {
     char* datafile;
@@ -33,6 +32,7 @@ struct {
     int quality;
     float radius;
     int stride;
+    int arrowstride;
     float ratio;
     float length;
     bool help;
@@ -47,6 +47,7 @@ OptionParser::OptDescRec_T set_options[] = {
 	{"radius", 1, "1.0", "Radius multiplier of rendered shapes"},
 	{"quality", 1, "0", "Number of subdivisions of rendered shapes"},
 	{"stride", 1, "1", "Traverse how many vertices between rendering?"},
+	{"arrowstride", 1, "1", "How much to spread out arrowheads?"},
 	{"ratio", 1, "1.3", "Ratio of arrow to tube radius"},
 	{"length", 1, "1.0", "Arrow cone length"},
 	{"profile", 1, "-1", "Profile, how many iterations?"},
@@ -61,11 +62,21 @@ OptionParser::Option_T get_options[] = {
 	{"radius", VetsUtil::CvtToFloat, &opt.radius, sizeof(opt.radius)},
 	{"quality", VetsUtil::CvtToInt, &opt.quality, sizeof(opt.quality)},
 	{"stride", VetsUtil::CvtToInt, &opt.stride, sizeof(opt.stride)},
+	{"arrowstride", VetsUtil::CvtToInt, &opt.arrowstride, sizeof(opt.arrowstride)},
 	{"ratio", VetsUtil::CvtToFloat, &opt.ratio, sizeof(opt.ratio)},
 	{"length", VetsUtil::CvtToFloat, &opt.length, sizeof(opt.length)},
 	{"profile", VetsUtil::CvtToInt, &opt.prof, sizeof(opt.prof)},
 	{NULL}
 };
+
+GLFlowRenderer::Style getStyle(char* instyle)
+{
+    if(!strcmp(instyle, "point") || !strcmp(instyle, "points"))
+        return GLFlowRenderer::Point;
+    else if(!strcmp(instyle, "tube") || !strcmp(instyle, "tubes"))
+        return GLFlowRenderer::Tube;
+    else return GLFlowRenderer::Arrow;
+}
 
 static float** getPaths(char* filename, int* size, int** sizes)
 {
@@ -470,6 +481,8 @@ void init(void)
     glLoadIdentity();
     gluPerspective(fov, (double)scrw/(double)scrh, near_plane, far_plane);
     glMatrixMode(GL_MODELVIEW);
+    
+    GLFlowRenderer::Style style = getStyle(opt.style);
 
     hog = GLHedgeHogger();
     const GLHedgeHogger::Params* hparams = hog.GetParams();
@@ -481,7 +494,7 @@ void init(void)
     hcopy.baseColor[2] = .5f;
     hcopy.baseColor[3] = 1.f;
     hcopy.stride = opt.stride;
-    hcopy.style = GLFlowRenderer::Arrow;
+    hcopy.style = style;
     hcopy.arrowRatio = opt.ratio;
 
     hog.SetParams(&hcopy);
@@ -491,12 +504,14 @@ void init(void)
     GLPathRenderer::Params pcopy = *pparams;
     pcopy.radius = opt.radius;
     pcopy.quality = opt.quality;
-    pcopy.baseColor[0] = 0.f;
-    pcopy.baseColor[1] = 0.7f;
-    pcopy.baseColor[2] = 0.7f;
+    pcopy.baseColor[0] = 0.9f;
+    pcopy.baseColor[1] = 0.9f;
+    pcopy.baseColor[2] = 0.0f;
     pcopy.baseColor[3] = 1.f;
     pcopy.stride = opt.stride;
+    pcopy.style = style;
     pcopy.arrowRatio = opt.ratio;
+    pcopy.arrowStride = opt.arrowstride;
     
     path.SetParams(&pcopy);
     
