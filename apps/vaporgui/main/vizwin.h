@@ -14,46 +14,37 @@
 //
 //	Date:		October 2013
 //
-//	Description:	Defines the VizWin class
-//		This is a QGL widget for OpenGL rendering
-//		Supports mouse event reporting
-//		The GL rendering calls are performed by the associated Visualizer class in the render lib
+//! \class VizWin
+//! \brief A QGLWidget that supports display based on GL methods invoked in a Visualizer
+//! \author Alan Norton
+//! \version 3.0
+//! \date    October 2013
+//!	The VizWin class is a QGLWidget that supports the rendering by the VAPOR Visualizer class.
+//! The standard rendering methods (resize, initialize, paint) are passed to the Visualizer.
+//! In addition this is the class that responds to mouse events, resulting in scene navigation 
+//! or manipulator changes.
+//! 
 //
 
 #ifndef VIZWIN_H
 #define VIZWIN_H
 
-
-#include <qvariant.h>
-#include <qcolor.h>
-#include <QCloseEvent>
-#include <QWheelEvent>
-#include <QResizeEvent>
-#include <QFocusEvent>
-#include <QMouseEvent>
-#include <QHideEvent>
 #include <QGLWidget>
-
 #include "vizwinmgr.h"
-
-class QSpacerItem;
-class QAction;
-class QResizeEvent;
-class QHideEvent;
-class QRect;
-
 #include "visualizer.h"
+#include <QWheelEvent>
+
+class QCloseEvent;
+class QRect;
+class QMouseEvent;
+class QFocusEvent;
 
 namespace VAPoR {
 
 class MainForm;
 class VizWinMgr;
 class Visualizer;
-class Renderer;
-class FlowRenderer;
 class Viewpoint;
-
-
 
 class VizWin : public QGLWidget
 {
@@ -62,67 +53,32 @@ class VizWin : public QGLWidget
 public:
     VizWin(MainForm* parent ,  const QString& name, Qt::WFlags fl , VizWinMgr*  myMgr, QRect* location , int winNum);
     ~VizWin();
-	
-	void setWindowNum(int num) {
-		myWindowNum = num;
+	//! Specify the index of this window, which is also the Visualizer index as produced by ControlExec::NewVisualizer().
+	//! \param[in] visIndex visualizer index.
+	void setWindowNum(int visIndex) {
+		myWindowNum = visIndex;
 	}
+	//! Identify the visualizer index
+	//! \retval visualizer index.
 	int getWindowNum() {return myWindowNum;}
-	bool isActiveWin(){
-		return (myWindowNum == myWinMgr->getActiveViz());
-	}
-
-
-	//Call this when the gui values need to update the visualizer:
-	void setValuesFromGui(ViewpointParams* vparams);
-
-	//Tell this visualizer to use global or local viewpoint:
-	void setGlobalViewpoint(bool);
 	
+	//! Obtain the visualizer instance that corresponds to this VizWin
+	//! \retval Visualizer instance that is embedded in this VizWin
 	Visualizer* getVisualizer() {return myVisualizer;}
 	
-	void setMouseDown(bool downUp) {
-		mouseDownHere = downUp;
-		myVisualizer->setMouseDown(downUp);
-	}
-	bool mouseIsDown() {return mouseDownHere;}
-
-	
-	static bool endRender(int viznum, bool isControlled){
-		//if(isControlled) AnimationController::getInstance()->endRendering(viznum);
-		return VizWinMgr::getInstance()->getVizWin(viznum)->mouseIsDown();
-	}
-
-	void paintGL();
+	//! Force the window to update, even if nothing has changed.
 	void reallyUpdate();
-		
-protected:
-	int xRot,yRot,zRot;
-    MainForm* myParent;
-    int myWindowNum;
-    VizWinMgr* myWinMgr;
-	
-	Visualizer* myVisualizer;
 
-	
-	//Indicate whether using global or local viewpoint:
-	bool globalVP;
-	
-	
+#ifndef DOXYGEN_SKIP_THIS
 public slots:
-    
-    virtual void helpIndex();
-    virtual void helpContents();
-    virtual void helpAbout();
 	virtual void setFocus();
 
-protected:
+private:
 	virtual QSize minimumSizeHint() const 
 		{return QSize(400,400);}
-	QString myName;
+	
 	QPoint mouseDownPosition;
 	bool mouseDownHere;
-
-
     //Event handling
 	//Virtual overrides:
 	virtual void wheelEvent(QWheelEvent* e){
@@ -133,11 +89,20 @@ protected:
 	virtual void mouseMoveEvent(QMouseEvent*);
 	virtual void focusInEvent(QFocusEvent* e);
     virtual void closeEvent(QCloseEvent*);
-    virtual void hideEvent(QHideEvent*);
-    virtual void windowActivationChange(bool oldActive);
+   
     virtual void resizeGL(int width, int height);
 	virtual void initializeGL();
-    bool isReallyMaximized();
+	void paintGL();
+	void setMouseDown(bool downUp) {
+		mouseDownHere = downUp;
+		myVisualizer->setMouseDown(downUp);
+	}
+	bool mouseIsDown() {return mouseDownHere;}
+
+	
+    int myWindowNum;
+    VizWinMgr* myWinMgr;
+	Visualizer* myVisualizer;
 	//Variables to control spin animation: 
 	QTime* spinTimer;
 	int elapsedTime; //Time since mouse press event in navigation mode
@@ -146,11 +111,7 @@ protected:
 	int moveDist;  //Distance between last two mouse move events
 	int latestMoveTime; //most recent time of move
 	int olderMoveTime; //time of move before the latest
-		
-protected slots:
-    virtual void languageChange();
-    
-
+#endif //DOXYGEN_SKIP_THIS
 };
 };
 

@@ -63,9 +63,16 @@ class Command;
 //! with the VAPOR Session file, using the XML representation.
 //! \par
 //! In the VAPOR GUI, each tab corresponds to a Params subclass, and the renderer tabs correspond to
-//! subclasses of RenderParams, a subclass of Params.
-//! In addition, other Params subclasses can be used to represent other aspects of the state of the VAPOR application,
-//! so that Undo and Redo supports such state changes.
+//! subclasses of RenderParams, a subclass of Params.  Several Params classes (BasicParams) have a unique
+//! instance and are not associated with tabs in the GUI.  The BasicParams classes are used for
+//! Undo/Redo and for saving/restoring session state.
+//! At run time there is a collection of Params instances that describe the full state of the application.
+//! These Params instances can be retrieved using GetParamsInstance() and GetDefaultParams().
+//! There is one default instance of each Params class.  This instance is initially in the default state
+//! after data is loaded, but can be modified later.  There is in addition one instance of Region, Animation, and Viewpoint
+//! params for each Visualizer, that represents the state of the local params for that visualizer.  There are
+//! in addition one or more instances of each RenderParams Class for each visualizer, depending on how many
+//! instances have been created.
 //! \sa Command, ParamsBase, ParamNode, RenderParams
 //!
 //! Instructions for VAPOR Params implementers:

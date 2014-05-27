@@ -15,24 +15,10 @@
 //
 //	Description:	Implements the VizWin class
 //		This is the QGLWidget that performs OpenGL rendering (using associated Visualizer)
-//		Supports mouse event reporting
+//		Plus supports mouse event reporting
 //
 #include "glutil.h"	// Must be included first!!!
 #include "vizwin.h"
-#include <qdatetime.h>
-#include <qvariant.h>
-#include <qlayout.h>
-#include <qtooltip.h>
-#include <qaction.h>
-#include <qmenubar.h>
-#include <qimage.h>
-#include <qpixmap.h>
-#include <qpushbutton.h>
-#include <qslider.h>
-#include <qmessagebox.h>
-#include <qapplication.h>
-#include <qnamespace.h>
-#include <QHideEvent>
 #include <QResizeEvent>
 #include <QFocusEvent>
 #include <QMouseEvent>
@@ -40,24 +26,17 @@
 #include "visualizer.h"
 #include "manip.h"
 #include "vapor/ControlExecutive.h"
-#include <qdesktopwidget.h>
 #include "tabmanager.h"
 #include "viztab.h"
-#include "regiontab.h"
 #include "viewpointparams.h"
 #include "mousemodeparams.h"
 #include "vizwinparams.h"
-#include "regionparams.h"
-
 #include "viewpoint.h"
-
-#include "regioneventrouter.h"
+#include "qdatetime.h"
 #include "viewpointeventrouter.h"
 #include "trackball.h"
-#include "animationeventrouter.h"
 #include "mainform.h"
 #include "assert.h"
-#include <vapor/jpegapi.h>
 #include "images/vapor-icon-32.xpm"
 
 using namespace VAPoR;
@@ -74,14 +53,11 @@ VizWin::VizWin( MainForm* parent, const QString& name, Qt::WFlags fl, VizWinMgr*
     myWindowNum = winNum;
 	setWindowIcon(QPixmap(vapor_icon___));
 	myVisualizer = ControlExec::GetVisualizer(myWindowNum);
-	myParent = parent;
-	myName = name;
+	
 	setAutoBufferSwap(false);
 	spinTimer = 0;
 	myWinMgr = myMgr;
 	return;
-	
-	
 }
 /*
  *  Destroys the object and frees any allocated resources
@@ -97,7 +73,6 @@ void VizWin::closeEvent(QCloseEvent* e){
     myWinMgr->vizAboutToDisappear(myWindowNum);
 	QWidget::closeEvent(e);
 	Command::CaptureEnd(cmd, ControlExec::GetCurrentParams(-1, VizWinParams::_vizWinParamsTag));
-
 }
 /******************************************************
  * React when focus is on window:
@@ -113,10 +88,7 @@ focusInEvent(QFocusEvent* e){
 	}
 }
 
-// React to a user-change in window activation:
-void VizWin::windowActivationChange(bool ){
-	
-}
+
 // React to a user-change in window size/position (or possibly max/min)
 // Either the window is minimized, maximized, restored, or just resized.
 void VizWin::resizeGL(int width, int height){
@@ -128,14 +100,9 @@ void VizWin::resizeGL(int width, int height){
 	return;
 }
 void VizWin::initializeGL(){
-	
 	ControlExec::InitializeViz(myWindowNum, width(),height());
-	return;
-	
 }
-void VizWin::hideEvent(QHideEvent* ){
 
-}
 /* If the user presses the mouse on the active viz window,
  * We record the position of the click.
  */
@@ -311,7 +278,7 @@ mouseReleaseEvent(QMouseEvent*e){
 		//If it's a right mouse being released, must update near/far distances:
 		if (e->button() == Qt::RightButton){
 //			myWinMgr->resetViews(
-	//			myWinMgr->getViewpointParams(myWindowNum));
+//			myWinMgr->getViewpointParams(myWindowNum));
 		}
 		//Decide whether or not to start a spin animation
 		
@@ -414,43 +381,6 @@ mouseMoveEvent(QMouseEvent* e){
 	return;
 }
 
-
-/*
- *  Sets the strings of the subwidgets using the current
- *  language.
- */
-void VizWin::languageChange()
-{
-    setWindowTitle(myName);
-   
-}
-
-void VizWin::helpIndex()
-{
-    //qWarning( "VizWin::helpIndex(): Not implemented yet" );
-}
-
-void VizWin::helpContents()
-{
-    //qWarning( "VizWin::helpContents(): Not implemented yet" );
-}
-
-void VizWin::helpAbout()
-{
-    //qWarning( "VizWin::helpAbout(): Not implemented yet" );
-}
-
-//Due to X11 probs need to check again.  Compare this window with the available space.
-bool VizWin::isReallyMaximized() {
-    if (isMaximized() ) return true;
-	QWidget* thisCentralWidget = (MainForm::getInstance())->centralWidget();
-    QSize mySize = frameSize();
-    QSize spaceSize = thisCentralWidget->size();
-    //qWarning(" space is %d by %d, frame is %d by %d ", spaceSize.width(), spaceSize.height(), mySize.width(), mySize.height());
-    if ((mySize.width() > 0.95*spaceSize.width()) && (mySize.height() > 0.95*spaceSize.height()) )return true;
-    return false;
-        
-}
 	
 void VizWin::setFocus(){
     //qWarning("Setting Focus in win %d", myWindowNum);
@@ -458,39 +388,6 @@ void VizWin::setFocus(){
 	QWidget::setFocus();
 }
 
-/* 
- * Get viewpoint info from GUI
- * Note:  if the current settings are global, this should be using global params
- */
-void VizWin::
-setValuesFromGui(ViewpointParams* vpparams){
-	if (!vpparams->IsLocal()){
-		assert(myWinMgr->getViewpointParams(myWindowNum) == vpparams);
-	}
-	float transCameraPos[3];
-	float cubeCoords[3];
-	//Must transform from world coords to unit cube coords for trackball.
-	//ViewpointParams::localToStretchedCube(vpparams->getCameraPosLocal(), transCameraPos);
-	//ViewpointParams::localToStretchedCube(vpparams->getRotationCenterLocal(), cubeCoords);
-//	myTrackball->setFromFrame(transCameraPos, vp->getViewDir(), vp->getUpVec(), cubeCoords, vp->hasPerspective());
-	
-}
-/*
- *  Switch Tball when change to local or global viewpoint
- */
-void VizWin::
-setGlobalViewpoint(bool setGlobal){
-	if (!setGlobal){
-//		myTrackball = localTrackball;
-		globalVP = false;
-	} else {
-//		myTrackball = myWinMgr->getGlobalTrackball();
-		globalVP = true;
-	}
-//	myVisualizer->myTBall = myTrackball;
-	ViewpointParams* vpparms = myWinMgr->getViewpointParams(myWindowNum);
-	setValuesFromGui(vpparms);
-}
 
 
 void VizWin::paintGL(){
@@ -505,7 +402,6 @@ void VizWin::paintGL(){
 }
 void VizWin::reallyUpdate(){
 	makeCurrent();
-	
 	ControlExec::Paint(myWindowNum, true);
 	swapBuffers();
 	return;

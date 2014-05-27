@@ -81,7 +81,7 @@ protected:
 	void guiJumpToEnd();
 	
 	void guiSingleStep(bool forward);
-	//Need to do more than Params::guiSetLocal():
+	//Need to do more than EventROuter::guiSetLocal():
 	
 	void guiUpdateTimestepList(const char* descr);
 

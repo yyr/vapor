@@ -57,8 +57,10 @@ typedef EventRouter* (EventRouterCreateFcn)();
 //! \version $Revision$
 //! \date    $Date$
 //!	This class manages the VAPOR visualizers.
-//!	Its main function is to keep track of what visualizers are active
-//!	and what EventRouter and Params instances are associated with each visualizer.
+//!	It provides various methods relating the active visualizers and the
+//! corresponding EventRouter and Params classes.
+//! Methods are also provided for setting up the Qt OpenGL context of a QGLWidget and
+//! associating the corresponding Visualizer instance.
 //
 class VizWinMgr : public QObject
 {
@@ -107,47 +109,74 @@ public:
 	//! \param[in] afterP is a copy of the VizWinParams* at the end of the Command 
 	static void UndoRedo(bool isUndo, int /*instance*/, Params* beforeP, Params* afterP);
 
-#ifndef DOXYGEN_SKIP_THIS
-	//Following methods are not usually needed for extensibility:
-	~VizWinMgr();
-	static VizWinMgr* getInstance() {
-		if (!theVizWinMgr)
-			theVizWinMgr = new VizWinMgr();
-		return theVizWinMgr;
-	}
-	
+	//! Obtain the active region params.  This is the RegionParams instance that is
+	//! applicable in the current active Visualizer.
+	//! \retval RegionParams* is the current active RegionParams instance
 	static RegionParams* getActiveRegionParams(){
 		return (getInstance()->getRegionParams(getInstance()->getActiveViz()));
 	}
+	//! Obtain the active viewpoint params.  This is the ViewpointParams instance that is
+	//! applicable in the current active Visualizer.
+	//! \retval ViewpointParams* is the current active ViewpointParams instance
 	static ViewpointParams* getActiveVPParams(){
 		return (getInstance()->getViewpointParams(getInstance()->getActiveViz()));
 	}
+	//! Obtain the active animation params.  This is the AnimationParams instance that is
+	//! applicable in the current active Visualizer.
+	//! \retval AnimationParams* is the current active AnimationParams instance
 	static AnimationParams* getActiveAnimationParams(){
 		return (getInstance()->getAnimationParams(getInstance()->getActiveViz()));
 	}
+
+	//! Method setting up the tabs in their default state.
+	//! This is invoked once at the time vaporgui is started.
+	//! \note Currently there is no provision for installing extension tabs
 	void createAllDefaultTabs();
-	void InstallExtensionTabs();
     
-    //Respond to end:
-    void closeEvent();
+	//! Method that responds to user destruction of a visualizer.
+	//! Relevant params, renderers, etc. are removed.
     void vizAboutToDisappear(int i); 
     
-    //method to launch a viz window, returns vizNum
+    //! Method launches a new visualizer, sets up appropriate
+	//! Params etc.  It returns the visualizer index as
+	//! returned by ControlExec::NewVisualizer()
+	//! \retval visualizer index
     int launchVisualizer();
-	//method to add a specific viz window, associated with a specific visualizer:
+
+	//! Method that sets up a particular visualizer when the 
+	//! visualizer index and Visualizer index is already known,
+	//! as when performing Undo of visualizer destruction.
+	//! \param[in] visualizer index
+	//! \retval visualizer index
 	int addVisualizer(int viznum);
+
+	//! Method to delete a visualizer under program control, e.g. if
+	//! the user performs Undo after creating a visualizer
+	//! \param[in] viznum Visualizer index.
 	void removeVisualizer(int viznum);
-	//! method to launch a viz window, params already exist.
-	//! Associated with a specified visualizer
+
+	//! method to launch a viz window, when the associated params already exist,
+	//! associated with a specified visualizer.
+	//! Useful when a new session is opened.
 	//! \param[in] useViznum specifies the visualizer number that is to be attached
+	//! \retval visualizer index that was attached.
     int attachVisualizer(int useViznum);
     
+	//! Determine the total number of visualizers.
+	//! \retval number of visualizers.
     int getNumVisualizers(); 
+
+	//! Return the current Tab Manager.
+	//! This is useful for querying the front tab
+	//! and other aspects of the tab widget.
     TabManager* getTabManager() { return tabManager;}
     
-	//activeViz is -1 if none is active, otherwise is no. of active viz win.
+	//! Obtain the index of the current active (i.e. selected) visualizer
+	//! \retval index of active visualizer
 	int getActiveViz(); 
 
+	//! Obtain the VizWin object associated with the current active visualizer.
+	//! \retval VizWin* current active VizWin object
 	VizWin* getActiveVisualizer() {
 		int activeViz = getActiveViz();
 		assert(activeViz >= 0);
@@ -157,70 +186,133 @@ public:
 		if (it == VizWindow.end()) return 0;
 		return VizWindow[activeViz];
 	}
-
-	//Method that is called when a window is made active:
+	//! Set a Visualizer to be the active (selected) Visualizer
+	//! \param[in] vizNum index of Visualizer to be activated.
 	void setActiveViz(int vizNum); 
-	//Obtain the parameters that currently apply in specified window:
+
+	//! Obtain the ViewpointParams that are applicable in a particular Visualizer
+	//! \param[in] winNum Visualizer index
+	//! \retval ViewpointParams* Params instance that is applicable.
 	ViewpointParams* getViewpointParams(int winNum);
+
+	//! Obtain the RegionParams that are applicable in a particular Visualizer
+	//! \param[in] winNum Visualizer index
+	//! \retval RegionParams* Params instance that is applicable.
 	RegionParams* getRegionParams(int winNum);
+
+	//! Obtain the AnimationParams that are applicable in a particular Visualizer
+	//! \param[in] winNum Visualizer index
+	//! \retval AnimationParams* Params instance that is applicable.
 	AnimationParams* getAnimationParams(int winNum);
+
+	//! Obtain the (unique) RegionEventRouter in the GUI
+	//! \retval RegionEventRouter* 
 	RegionEventRouter* getRegionRouter();
-	AnimationEventRouter* getAnimationRouter(); 
+
+	//! Obtain the (unique) AnimationEventRouter in the GUI
+	//! \retval AnimationEventRouter* 
+	AnimationEventRouter* getAnimationRouter();
+
+	//! Obtain the (unique) ViewpointEventRouter in the GUI
+	//! \retval ViewpointEventRouter* 
 	ViewpointEventRouter* getViewpointRouter();
 
-	//Make all the params for the current window update their tabs:
+	//! Force all the EventRouters to update based on the
+	//! state of the Params for the active window.
 	void updateActiveParams();
 	
-	//set/get Data describing window states
-	//Obtain the vizWin associated with a visualizer
+	//! Obtain the VizWin associated with a visualizer index
+	//! \param[in] visualizer index
+	//! \retval VizWin* associated VizWin object
 	VizWin* getVizWin(int i) {return VizWindow[i];}
 	
+	//! Create all the default params for a specific visualizer
+	//! \param[in] winnum Visualizer index
 	void createDefaultParams(int winnum);
 	
-	//Force all renderers to re-obtain render data
+	//! Force all renderers to re-obtain their data, 
+	//! for example when a new session is opened.
 	void refreshRenderData();
-	//
-	//Disable all renderers that use specified variables
+
+	
+	//! Disable all renderers that use a specified set of variables.
+	//! Useful for example when a Python script is updated.
+	//! \param[in] vars2D vector of 2D variable names
+	//! \param[in] vars3D vector of 3D variable names
 	void disableRenderers(const vector<string>& vars2D, const vector<string>& vars3D);
-	//Disable all renderers 
+
+	//! Disable all enabled renderers 
 	void disableAllRenderers();
+
 	//Following methods notify all params that are associated with a
 	//specific window.
-	
+	//! Force re-render in all Visualizers that use a specific ViewpointParams instance
+	//! \param[in] vParams ViewpointParams instance
 	void refreshViewpoint(ViewpointParams* vParams);
+
+	//! Force re-render in all Visualizers that use a specific RegionParams instance
+	//! \param[in] rParams RegionParams instance
 	void refreshRegion(RegionParams* rParams);
 	
-	//Reset the near/far distances for all the windows that
-	//share a viewpoint, based on region in specified regionparams
-	//
+	//! Reset the near/far distances for all the windows that
+	//! share a viewpoint
+	//! \param[in] vp ViewpointParams* 
 	void resetViews(ViewpointParams* vp);
 	
-	//Make each window use its viewpoint params
-	void initViews();
-	void setInteractiveNavigating(int level);
-	void stopFlowIntegration();
+	~VizWinMgr();
+
+	//! Obtain the (unique) VizWinMgr instance
+	//! \retval VizWinMgr*
+	static VizWinMgr* getInstance() {
+		if (!theVizWinMgr)
+			theVizWinMgr = new VizWinMgr();
+		return theVizWinMgr;
+	}
 	
 
 public slots:
-	//arrange the viz windows:
+	//! Arrange the Visualizers in a cascading sequence
     void cascade();
-    void coverRight();
+
+	//! Arrange the visualizers to tile the available space.
     void fitSpace();
-	//Slots to handle home viewpoint (dispatch to proper panel)
+
+	//! Change viewpoint to the current home viewpoint
 	void home();
+
+	//! Set the current home viewpoint based on current viewpoint
 	void sethome();
-	//Slot that responds when user requests to activate a window:
+
+	//! Respond to user request to activate a window:
 	void winActivated(int);
+
+	//! Close the VizWin associated with a Visualizer index
 	void killViz(int viznum);
 	//Slots that set viewpoint:
+
+	//! Move camera in or out to make entire volume visible
 	void viewAll();
+
+	//! Move camera in or out to make current region visible
 	void viewRegion();
+
+	//! Align the camera to a specified axis
+	//! param[in] axis 1,2, or 3.
 	void alignView(int axis);
-	//The vizWinMgr has to dispatch signals from gui's to the appropriate parameter panels
+
+	//! Set the current active visualizer to use local or global viewpoint
+	//! \param[in] val is 0 for global, 1 for local.
 	void setVpLocalGlobal(int val);
+
+	//! Set the current active Visualizer to use local or global Region settings
+	//! \param[in] val is 0 for global, 1 for local.
 	void setRgLocalGlobal(int val);
+
+	//! Set the current active Visualizer to use local or global Animation settings
+	//! \param[in] val is 0 for global, 1 for local.
 	void setAnimationLocalGlobal(int val);
 	
+#ifndef DOXYGEN_SKIP_THIS
 signals:
 	//Turn on/off multiple viz options:
 	void enableMultiViz(bool onOff);
@@ -230,17 +322,13 @@ signals:
 	void activateViz(int);
 	void changeName(QString&, int);
 	
-protected:
+private:
 	
-	ViewpointParams* getGlobalVPParams();
-	RegionParams* getGlobalRegionParams();
-	AnimationParams* getGlobalAnimationParams();
-
 	static Params::ParamsBaseType RegisterEventRouter(const std::string tag, EventRouter* router);
 	static std::map<ParamsBase::ParamsBaseType, EventRouter*> eventRouterMap;
 	
 	static VizWinMgr* theVizWinMgr;
-	VizWinMgr ();
+	VizWinMgr();
 	
 	//Map visualizer id to vizwin
 	std::map<int, VizWin*> VizWindow;
@@ -283,8 +371,6 @@ protected:
 	bool spinAnimate;
 
 #endif //DOXYGEN_SKIP_THIS
-	
-
 	
 };
 };

@@ -625,12 +625,6 @@ updateRenderer(ViewpointParams* vpParams, bool prevEnabled,  int /*instance*/, b
 	//
 	VizWin* viz = myVizMgr->getActiveVisualizer();
 	
-	//If this panel is associated with the active visualizer, stuff the values
-	//into that viz:
-	if (viz) {
-		if (local) viz->setValuesFromGui(vpParams);
-		else viz->setValuesFromGui(myVizMgr->getViewpointParams(viz->getWindowNum()));
-	}
 	
 	if (!local){
 		//Find all the viz windows that are using global settings.

@@ -506,7 +506,6 @@ applyToViz(int vizNum){
 			}
 			vpp->rescale(ratio, timestep);
 			
-			win->setValuesFromGui(vpp);
 			vizMgr->resetViews(vpp);
 			
 		}

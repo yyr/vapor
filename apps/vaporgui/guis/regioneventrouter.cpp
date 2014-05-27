@@ -476,7 +476,7 @@ guiSetCenter(const double* coords){
 //Following are set when slider is released:
 void RegionEventRouter::
 guiSetXCenter(int sliderval){
-	if(ignoreBoxSliderEvents)return;
+	if(doIgnoreBoxSliderEvents())return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)ControlExec::GetActiveParams(Params::_regionParamsTag);
 	
@@ -487,7 +487,7 @@ guiSetXCenter(int sliderval){
 //Following are set when slider is released:
 void RegionEventRouter::
 guiSetYCenter(int sliderval){
-	if(ignoreBoxSliderEvents)return;
+	if(doIgnoreBoxSliderEvents())return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)ControlExec::GetActiveParams(Params::_regionParamsTag);
 	sliderToText(rParams, 1, sliderval, ySizeSlider->value());
@@ -496,7 +496,7 @@ guiSetYCenter(int sliderval){
 //Following are set when slider is released:
 void RegionEventRouter::
 guiSetZCenter(int sliderval){
-	if(ignoreBoxSliderEvents)return;
+	if(doIgnoreBoxSliderEvents())return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)ControlExec::GetActiveParams(Params::_regionParamsTag);
 	sliderToText(rParams, 2, sliderval, zSizeSlider->value());
@@ -505,7 +505,7 @@ guiSetZCenter(int sliderval){
 
 void RegionEventRouter::
 guiSetXSize(int sliderval){
-	if(ignoreBoxSliderEvents)return;
+	if(doIgnoreBoxSliderEvents())return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)ControlExec::GetActiveParams(Params::_regionParamsTag);
 	sliderToText(rParams, 0, xCenterSlider->value(),sliderval);
@@ -513,7 +513,7 @@ guiSetXSize(int sliderval){
 }
 void RegionEventRouter::
 guiSetYSize(int sliderval){
-	if(ignoreBoxSliderEvents)return;
+	if(doIgnoreBoxSliderEvents())return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)ControlExec::GetActiveParams(Params::_regionParamsTag);
 	sliderToText(rParams, 1, yCenterSlider->value(),sliderval);
@@ -521,7 +521,7 @@ guiSetYSize(int sliderval){
 }
 void RegionEventRouter::
 guiSetZSize(int sliderval){
-	if(ignoreBoxSliderEvents)return;
+	if(doIgnoreBoxSliderEvents())return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)ControlExec::GetActiveParams(Params::_regionParamsTag);
 	sliderToText(rParams, 2, zCenterSlider->value(),sliderval);

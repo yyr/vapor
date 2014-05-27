@@ -44,8 +44,8 @@ class TranslateStretchManip;
 //! \class Visualizer
 //! \brief A class for performing OpenGL rendering in VAPOR GUI Window
 //! \author Alan Norton
-//! \version $Revision$
-//! \date    $Date$
+//! \version 3.0
+//! \date    October 2013
 //!
 //! 
 //! The Visualizer class is an OpenGL rendering window.  There is one instance for 

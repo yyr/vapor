@@ -347,14 +347,7 @@ createDefaultParams(int winnum){
 	
 }
 
-void VizWinMgr::
-closeEvent()
-{
-	map<int,VizWin*>::iterator it;
-	for (it = VizWindow.begin(); it != VizWindow.end(); it++){
-		(it->second)->close();
-	}
-}
+
 
 
 /**************************************************************
@@ -367,13 +360,6 @@ VizWinMgr::cascade(){
 	map<int,VizWin*>::iterator it;
 	for (it = VizWindow.begin(); it != VizWindow.end(); it++){
 		(it->second)->resize(400,400);
-	}
-}
-void 
-VizWinMgr::coverRight(){
-	map<int,VizWin*>::iterator it;
-	for (it = VizWindow.begin(); it != VizWindow.end(); it++){
-		(it->second)->showMaximized();
 	}
 }
 
@@ -635,7 +621,6 @@ setVpLocalGlobal(int val){
 		getViewpointRouter()->guiSetLocal((ViewpointParams*)ControlExec::GetParams(activeViz,Params::_viewpointParamsTag,-1),false);
 		getViewpointRouter()->updateTab();
 	
-		VizWindow[activeViz]->setGlobalViewpoint(true);
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
 		ViewpointParams* vpParams = (ViewpointParams*)ControlExec::GetParams(activeViz,Params::_viewpointParamsTag, -1);
@@ -652,7 +637,6 @@ setVpLocalGlobal(int val){
 			//and then refresh the panel:
 			tabManager->show();
 		}
-		VizWindow[activeViz]->setGlobalViewpoint(false);
 	}
 }
 
@@ -713,18 +697,7 @@ getEventRouter(Params::ParamsBaseType typeId){
 }
 
 
-void VizWinMgr::
-initViews(){
-	map<int,VizWin*>::iterator it;
-	for (it = VizWindow.begin(); it != VizWindow.end(); it++){
-		int i = it->first;
-		ViewpointParams* vpParams = (ViewpointParams*)ControlExec::GetCurrentParams(i,Params::_viewpointParamsTag);
-		if (vpParams->IsLocal()){
-			VizWindow[i]->setValuesFromGui(vpParams);
-		}
-		else VizWindow[i]->setValuesFromGui(getGlobalVPParams());
-	}
-}
+
 
 //Force all renderers to re-obtain render data
 void VizWinMgr::refreshRenderData(){
@@ -840,13 +813,6 @@ AnimationParams*  VizWinMgr::getAnimationParams(int winNum){
 	return (AnimationParams*)ControlExec::GetCurrentParams(winNum,Params::_animationParamsTag);
 }
 
-ViewpointParams* VizWinMgr::getGlobalVPParams(){return (ViewpointParams*)(ControlExec::GetDefaultParams(Params::_viewpointParamsTag));}
-RegionParams* VizWinMgr::getGlobalRegionParams(){
-	return (RegionParams*)(ControlExec::GetDefaultParams(Params::_regionParamsTag));
-}
-AnimationParams* VizWinMgr::getGlobalAnimationParams(){
-	return (AnimationParams*)(ControlExec::GetDefaultParams(Params::_animationParamsTag));
-}
 void VizWinMgr::SetToDefaults(){
 	//Clear out the vizselectcombo
 	//remove all vizwins
