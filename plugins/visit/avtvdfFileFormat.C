@@ -990,4 +990,5 @@ std::ostream &operator<<(std::ostream &o, const avtvdfFileFormat::datasize_t &ds
 	o << " min " << ds.min[0] << " " << ds.min[1] << " " << ds.min[2] << endl; 
 	o << " max " << ds.max[0] << " " << ds.max[1] << " " << ds.max[2] << endl; 
 	o << " dim " << ds.dim[0] << " " << ds.dim[1] << " " << ds.dim[2] << endl; 
+	return(o);
 }
