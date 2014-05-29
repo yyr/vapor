@@ -7,12 +7,17 @@
 #include <vapor/EasyThreads.h>
 #include <vapor/utils.h>
 
+//!
+//! \defgroup Public VAPOR Developer API
+//!
+
 #ifndef	_WASP_H_
 #define	_WASP_H_
 
 namespace VAPoR {
 
 //! \class WASP
+//! \ingroup Public
 //!
 //! Implements WASP compression conventions for NetCDF
 //!

@@ -10,6 +10,7 @@
 namespace VAPoR {
 
 //! \class NetCDFCpp
+//! \ingroup Public
 //!
 //! Defines simple C++ wrapper for NetCDF
 //!
@@ -171,6 +172,13 @@ public:
  );
  virtual int GetVar(string varname, void *data);
 
+
+
+//! @name Internal
+//! Internal methods not intended for general use
+//!
+///@{
+
  //! Return the size in bytes of a NetCDF external data type
  //!
  size_t SizeOf(int nctype) const;
@@ -181,6 +189,7 @@ public:
  //! it can be opened with nc_open(). 
  //!
  virtual bool ValidFile(string path);
+///@}
 
 private:
 
