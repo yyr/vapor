@@ -108,6 +108,7 @@ private:
  int _version;
  NetCDFCpp *_master;	// Master NetCDF file
  NetCDFCpp *_open_file;	// Currently opened data file
+ bool _open_write;	// opened for writing?
  VarBase *_open_var;
  size_t _open_slice_num; // index of current slice for WriteSlice, ReadSlice
  size_t _open_ts;	// global time step of current open variable

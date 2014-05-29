@@ -149,6 +149,7 @@ VDCNetCDF::VDCNetCDF(
 	_open_file = NULL;
 	_open_var = NULL;
 	_open_slice_num = 0;
+	_open_write = false;
 	_slice_buffer = NULL;
 	_version = 1;
 }
@@ -231,7 +232,6 @@ int VDCNetCDF::GetPath(
 	}
 
 	path += varname;
-	path += ".";
 
 	if (VDC::IsTimeVarying(varname)) {
 		int idx;
@@ -252,6 +252,7 @@ int VDCNetCDF::GetPath(
 		if (width < 4) width = 4;
 		oss.width(width); oss.fill('0'); oss << idx;	
 
+		path += ".";
 		path += oss.str();
 	}
 
@@ -262,13 +263,70 @@ int VDCNetCDF::GetPath(
 }
 
 int VDCNetCDF::OpenVariableRead(
-    size_t ts, string varname, int reflevel, int lod
-) {return(-1); }
+    size_t ts, string varname, int level, int lod
+) {
+
+	CloseVariable();
+	_open_file = NULL; 
+	_open_write = false;
+	_open_var = NULL;
+	_open_slice_num = 0; 
+	_open_ts = 0;
+	_open_file_ts = 0;
+	_open_varname.clear();
+
+    VDC::DataVar dvar;
+    VDC::CoordVar cvar;
+
+    if (VDC::IsDataVar(varname)) {
+        (void) VDC::GetDataVar(varname, dvar);
+        _open_var = new VDC::DataVar(dvar);
+    }
+    else if (VDC::IsCoordVar(varname)) {
+        (void) VDC::GetCoordVar(varname, cvar);
+        _open_var = new VDC::CoordVar(cvar);
+    }
+    else {
+        SetErrMsg("Undefined variable name : %s", varname.c_str());
+        return(-1);
+    }
+
+	string path;
+	size_t file_ts;
+	size_t max_ts;
+	int rc = GetPath(varname, ts, path, file_ts, max_ts);
+	if (rc<0) return(-1);
+
+	vector <VDC::Dimension> dims = _open_var->GetDimensions();
+	
+	if (_open_var->GetCompressed()) {
+		WASP *wasp = new WASP(_nthreads);
+		rc = wasp->Open(path, NC_WRITE);
+		if (rc<0) return(-1);
+		_open_file = wasp;
+
+		rc = wasp->OpenVarRead(varname, lod, level);
+		if (rc<0) return(-1);
+	}
+	else {
+		NetCDFCpp *ncdf = new NetCDFCpp();
+		rc = ncdf->Open(path, NC_WRITE);
+		if (rc<0) return(-1);
+		_open_file = ncdf;
+	}
+
+	_open_slice_num = 0; 
+	_open_ts = ts;
+	_open_file_ts = file_ts;
+	_open_varname = varname;
+    return(0);
+}
 
 int VDCNetCDF::OpenVariableWrite(size_t ts, string varname, int lod) {
 
 	CloseVariable();
 	_open_file = NULL; 
+	_open_write = true;
 	_open_var = NULL;
 	_open_slice_num = 0; 
 	_open_ts = 0;
@@ -312,7 +370,8 @@ int VDCNetCDF::OpenVariableWrite(size_t ts, string varname, int lod) {
 
 			size_t chsz = _chunksizehint;
 			rc = wasp->Create(
-				path, NC_WRITE, 0, chsz, _open_var->GetWName(),
+				path, NC_WRITE | NC_64BIT_OFFSET, 0, chsz, 
+				_open_var->GetWName(),
 				_open_var->GetBS(), _open_var->GetCRatios().size(), true
 			);
 			if (rc<0) return(-1);
@@ -354,7 +413,7 @@ int VDCNetCDF::OpenVariableWrite(size_t ts, string varname, int lod) {
 			if (rc<0) return(-1);
 
 			size_t chsz = _chunksizehint;
-			rc = ncdf->Create(path, NC_WRITE, 0, chsz);
+			rc = ncdf->Create(path, NC_WRITE | NC_64BIT_OFFSET, 0, chsz);
 			if (rc<0) return(-1);
 
 			vector <string> dimnames;
@@ -394,6 +453,7 @@ int VDCNetCDF::CloseVariable() {
 		wasp->CloseVar();
 	}
 	if (_open_file) {
+		_open_file->Close();
 		delete _open_file;
 		_open_file = NULL;
 	}
@@ -406,7 +466,7 @@ int VDCNetCDF::CloseVariable() {
 }
 
 int VDCNetCDF::Write(const float *data) {
-	if (! _open_file) {
+	if (! _open_file ||  ! _open_write) {
 		SetErrMsg("No variable open for writing");
 		return(-1);
 	}
@@ -501,7 +561,7 @@ int VDCNetCDF::_WriteSlice(NetCDFCpp *file, const float *slice) {
 
 
 int VDCNetCDF::WriteSlice(const float *slice) {
-	if (! _open_file) {
+	if (! _open_file ||  ! _open_write) {
 		SetErrMsg("No variable open for writing");
 		return(-1);
 	}
@@ -514,7 +574,30 @@ int VDCNetCDF::WriteSlice(const float *slice) {
 	}
 }
 
-int VDCNetCDF::Read(float *region) {return(-1); }
+int VDCNetCDF::Read(float *data) {
+	if (! _open_file ||  _open_write) {
+		SetErrMsg("No variable open for reading");
+		return(-1);
+	}
+
+	vector <size_t> sdims;
+	size_t numts;
+	bool time_varying;
+	parse_dims(_open_var->GetDimensions(), sdims, numts, time_varying);
+	assert(sdims.size() >= 2 && sdims.size() <= 3);
+
+	vector <size_t> start;
+	vector <size_t> count;
+	ws_ncdfcoords(_open_file_ts, time_varying, 0, sdims, sdims, start,count);
+
+	WASP *wasp = dynamic_cast<WASP *> (_open_file);
+	if (wasp) {
+		return(wasp->GetVara(start, count, data));
+	}
+	else {
+		return(_open_file->GetVara(_open_varname, start, count, data));
+	}
+}
 
 int VDCNetCDF::ReadSlice(float *slice) {return(-1); }
     

@@ -130,7 +130,7 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
-	rc = vdc.OpenVariableWrite(opt.ts, opt.varname, -1);
+	rc = vdc.OpenVariableWrite(opt.ts, opt.varname, opt.lod);
 	if (rc<0) exit(1);
 
 	rc = vdc.Write(data);
@@ -141,7 +141,3 @@ int	main(int argc, char **argv) {
 	
 	exit(0);
 }
-	
-
-
-

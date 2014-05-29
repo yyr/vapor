@@ -20,15 +20,18 @@ void block_align(
 	const vector <size_t> &start, const vector <size_t> &count,
 	const vector <size_t> &bs, vector <size_t> &astart, vector <size_t> &acount
 ) {
-	astart.clear();
-	acount.clear();
+	astart = start;
+	acount = count;
 
 	assert(start.size() == count.size());
-	assert(start.size() == bs.size());
+	assert(bs.size() <= start.size());
 
-	for (int i=0; i<start.size(); i++) {
-		astart.push_back(start[i] / bs[i] * bs[i]);
-		acount.push_back(count[i] + start[i] - astart[i]);
+	for (int i0=bs.size()-1, i1 = astart.size()-1; i0>=0 && i1>=0; i0--,i1--) {
+		size_t stop = astart[i1] + acount[i1] - 1;
+		astart[i1] = (astart[i1] / bs[i0] * bs[i0]);
+
+		stop = (stop / bs[i0]) * bs[i0] + (bs[i0] - 1);
+		acount[i1] = stop - astart[i1] + 1;
 	}
 }
 
@@ -247,11 +250,11 @@ void _to_block_coords(
 
 	size_t factor = 1;
 	size_t offset = 0;
-	for (int i=bcoords.size()-1; i>=0; i--) {
-		offset += factor * (bcoords[i] % bs[i]);
-		factor *= bs[i];
+	for (int i0=bs.size()-1, i1 = bcoords.size()-1; i0>=0 && i1>=0; i0--,i1--) {
+		offset += factor * (bcoords[i1] % bs[i0]);
+		factor *= bs[i0];
 
-		bcoords[i] /= bs[i];
+		bcoords[i1] /= bs[i0];
 	}
 
 	bcoords.push_back(offset);	// offset from start of block
@@ -450,6 +453,21 @@ void _Block(
 	// Only 1D, 2D, and 3D blocks handled
 	//
 	assert(bs.size() >=1 && bs.size() <= 3);
+	assert(bs.size() <= dims.size());
+	assert(dims.size() == start.size());
+	assert(dims.size() == origin.size());
+
+	size_t offset = _linearize(start, dims) - _linearize(origin, dims);
+	data += offset;
+
+	// Deal with rank of bs less than data rank
+	//
+	while (dims.size() > bs.size()) {
+		origin.erase(origin.begin());
+		dims.erase(dims.begin());
+		start.erase(start.begin());
+	}
+
 	int rank = bs.size();
 
 	// dimensions of volume
@@ -466,12 +484,14 @@ void _Block(
 
 	// starting coordinates within 'data'
 	//
+#ifdef	DEAD
 	size_t x0 = (rank >= 1 && start[rank-1] > origin[rank-1]) ?
 		start[rank-1] - origin[rank-1] : 0; 
 	size_t y0 = (rank >= 2 && start[rank-2] > origin[rank-2]) ?
 		start[rank-2] - origin[rank-2] : 0;
 	size_t z0 = (rank >= 3 && start[rank-3] > origin[rank-3]) ?
 		start[rank-3] - origin[rank-3] : 0; 
+#endif
 
 
 	// starting and stop coordinates within block, handling boundary cases
@@ -511,12 +531,12 @@ void _Block(
 	bool ybdry = rank >= 2 && start[rank-2] + nby > ny;
 	bool zbdry = rank >= 3 && start[rank-3] + nbz > nz;
 
-	min = data[nx*ny*z0 + nx*y0 + x0];
-	max = data[nx*ny*z0 + nx*y0 + x0];
+	min = data[0];
+	max = data[0];
 	for (size_t z = zstart, zz=0; z<zstop; z++,zz++) {
 	for (size_t y = ystart, yy=0; y<ystop; y++,yy++) {
 	for (size_t x = xstart, xx=0; x<xstop; x++,xx++) {
-		float v = data[nx*ny*(z0+zz) + nx*(y0+yy) + (x0+xx)];
+		float v = data[nx*ny*zz + nx*yy + xx];
 
 		if (v < min) min = v;
 		if (v > max) max = v;
@@ -669,7 +689,7 @@ int _DecomposeBlock(
 	
 ) {
 
-	vector <SignificanceMap> sigmaps(4);
+	vector <SignificanceMap> sigmaps(ncoeffs.size());
 
 	int rc = cmp->Decompose(block, coeffs, ncoeffs, sigmaps);
 	if (rc<0) return(-1);
@@ -780,6 +800,8 @@ int _StoreBlock(
 		int rc = ncdfcptrs[i]->NetCDFCpp::PutVara(
 			varname, start, count, (const void *) coeffs
 		);
+
+
 		if (rc<0) return(rc);
 
 		coeffs += ncoeffs[i];
@@ -1991,7 +2013,12 @@ vector <string> WASP::mkmultipaths(string path, int n) const {
 
 	for (int i=0; i<n; i++) {
 		ostringstream oss;
-		oss << basename << ".nc" << i;
+		if (i != 0) {
+			oss << basename << ".nc" << i;
+		}
+		else {
+			oss << basename << ".nc";
+		}
 		paths.push_back(oss.str());
 	}
 	return(paths);
