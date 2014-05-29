@@ -178,6 +178,11 @@ void ModelRenderer::paintGL()
    {
       for (int clone=0; clone<scene->nClones(timestep); clone++)
       {
+		 vector<double> color = scene->Color(timestep, clone);
+		 //Only use the color if it has 3 values
+		 if (color.size() == 3){
+			 glColor3d(color[0],color[1],color[2]);
+		 } else glColor3fv(constColor);
          Matrix3d matrix(params->GetTransformation());
 
          matrix *= Matrix3d(scene->transform(timestep, clone));

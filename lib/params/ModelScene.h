@@ -39,6 +39,7 @@ class PARAMS_API ModelScene : public ParsedXml
 
    int nClones(unsigned int timestep) const;
    const Transform3d* transform(unsigned int timestep, unsigned int clone=0) const;
+   const vector<double> Color(unsigned int timestep, unsigned int clone=0) const;
    const string&      modelFile(unsigned int timestep) const;
 
    ParamNode* buildNode();
@@ -66,6 +67,8 @@ class PARAMS_API ModelScene : public ParsedXml
       //
       int                nClones() const;
       const Transform3d* transform(unsigned int clone=0) const;
+
+	  const vector<double> color(unsigned int clone=0) const;
 
       //
       // The (optional) model file for this timestep

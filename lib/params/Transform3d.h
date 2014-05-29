@@ -209,6 +209,46 @@ class PARAMS_API Transform3d : public ParamsBase
       static const string _tag;
    };
    
+    //----------------------------------------------------------------------------
+   //
+   //----------------------------------------------------------------------------
+   class PARAMS_API Color : public TransformBase
+   {
+   public:
+      Color(double r = 1.0, double g = 1.0, double b = 1.0);
+      
+      virtual ~Color() {}
+      
+      virtual TransformBase* clone();
+
+      virtual QString label() { return QString("Color %1 %2 %3").arg(r()).arg(g()).arg(b()); }
+
+      void  r(double rp) { _color[0] = rp; }
+      double r() const   { return _color[0]; }
+      
+      void  g(double gp) { _color[1] = gp; }
+      double g() const   { return _color[1]; }
+      
+      void  b(double bp) { _color[2] = bp; }
+      double b() const   { return _color[2]; }
+      
+      ParamNode* buildNode();
+      
+      static string xmlTag() { return _tag; }
+      
+      virtual bool elementStartHandler(ExpatParseMgr*, int, std::string&, 
+                                       const char **attribs);
+      virtual bool elementEndHandler(ExpatParseMgr*, int depth, std::string &tag);
+
+	  const vector<double> getColor() {return _color;}
+      
+   protected:
+
+      std::vector<double> _color;
+      
+      static const string _tag;
+   };
+   
    
    //----------------------------------------------------------------------------
    //
