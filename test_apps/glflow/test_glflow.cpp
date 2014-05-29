@@ -225,7 +225,10 @@ void cursorPos(GLFWwindow* window, double xpos, double ypos)
 //no keybinds defined yet
 void keyboard(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    
+    if(action == GLFW_PRESS && key == GLFW_KEY_ESCAPE)
+    {
+        glfwSetWindowShouldClose(window, true);
+    }
 }
 
 //use mouse button 1 to rotate, 2 to pan, middle to zoom
@@ -489,9 +492,9 @@ void init(void)
     GLHedgeHogger::Params hcopy = *hparams;
     hcopy.radius = opt.radius;
     hcopy.quality = opt.quality;
-    hcopy.baseColor[0] = .5f;
-    hcopy.baseColor[1] = .5f;
-    hcopy.baseColor[2] = .5f;
+    hcopy.baseColor[0] = 0.5f;
+    hcopy.baseColor[1] = 0.5f;
+    hcopy.baseColor[2] = 0.5f;
     hcopy.baseColor[3] = 1.f;
     hcopy.stride = opt.stride;
     hcopy.style = style;
@@ -692,16 +695,16 @@ void display(double* profout)
     //path.Draw(pathdata, 11); //spiral
     //path.Draw(pathdata2, 3); //90 degree, dual-segment
     //path.Draw(pathdata3, 3); //straight, dual-segment
-    //path.Draw(pathdata4, 2); //single-segment
+    path.Draw(pathdata4, 2); //single-segment
     //path.Draw(pathdata5, 6); //kink testing
-    if(pathdata7)
-    {
-        for(int i = 0; i < pd7sz; i++)
-        {
-            path.Draw(pathdata7[i], pd7szs[i]);
-        }
-    }
-    else path.Draw(pathdata6, SPIRAL_SZ); //autospiral
+    //if(pathdata7)
+    //{
+    //    for(int i = 0; i < pd7sz; i++)
+    //    {
+    //        path.Draw(pathdata7[i], pd7szs[i]);
+    //    }
+    //}
+    //else path.Draw(pathdata6, SPIRAL_SZ); //autospiral
     //glTranslatef(0.f, 0.f, -3.f);
     //coneTest(conedir, opt.quality, opt.radius);
     //drawCube();

@@ -818,7 +818,9 @@ static float* prArrows(const float* v, int n, GLPathRenderer::Params p)
     int rnsize = 3 * rnverts; //floats in a ring
     int tusize = rnsize * 2; //floats in a tube, floats in a cone's norms
     int cosize = coverts * 3; //floats in a cone
-    int nrings = n / p.stride; //number of rings in tubes
+    //number of rings in tubes
+    //int nrings = (n / p.stride) + (n / (p.stride * p.arrowStride));
+    int nrings = ((p.arrowStride + 1) * n) / (p.stride * p.arrowStride);
     int ncones = nrings / p.arrowStride; //number of cones
     //there is an extra ring for every arrow, to prevent tubes from
     //clipping through their cones
@@ -838,31 +840,32 @@ static float* prArrows(const float* v, int n, GLPathRenderer::Params p)
     //build a series of rings from the given vectors
     int vsize = n * 3;
     int vlast = vsize - 3;
-    int step = rnsize;
-    int rlast = rsizet - step;
+    int rlast = rsizet - rnsize;
     //the first ring, which we will not iterate over
     //because we need adjacent vectors to calculate direction
     //for the other rings, whereas this just points in the direction
     //of the endpoint vector
-    sub(v + 3, v, result + step);
-    mkring(result + step, p.quality, p.radius, result, nmtube);
-    for(int i = 0; i < step; i+=3)
+    sub(v + 3, v, result + rnsize);
+    mkring(result + rnsize, p.quality, p.radius, result, nmtube);
+    for(int i = 0; i < rnsize; i+=3)
     {
         norm(result + i, result + rsizet + i);
         add(v, result + i, result + i);
     }
 
+    int interval = 3 * (p.stride * p.arrowStride);
+    int stridesize = 3 * p.stride;
     int itv = 3;
     int rprev = 0;
     //start at idx = 1, continue until second-to-last
-    for(int itr = step; itr < rlast; itr += step)
+    for(int itr = rnsize; itr < rlast; itr += rnsize)
     {
         //get the current direction and pass it forward
-        sub(v + itv + (3 * p.stride), v + itv, result + itr + step);
+        sub(v + itv + stridesize, v + itv, result + itr + rnsize);
         //correct if rather large direction
         //calculated using current and previous direction
         //previous direction was passed forward by previous iteration
-        add(result + itr, result + itr + step, result + itr);
+        add(result + itr, result + itr + rnsize, result + itr);
         norm(result + itr, result + itr);
         //make a ring, in-place
         mkring(result + itr, p.quality, p.radius, result + itr, nmtube + itr, nmtube + rprev);
@@ -872,17 +875,38 @@ static float* prArrows(const float* v, int n, GLPathRenderer::Params p)
             norm(result + i, result + rsizet + i);
             add(v + itv, result + i, result + i);
         }
-        itv += 3 * p.stride;
+        itv += stridesize;
         rprev = itr;
+        //continue if no need to place an arrow here
+        if(itv % interval) continue;
+        float m = mag(result + itr);
+        //normalize the forwarded direction, sending it forward
+        mul(result + itr, (m - p.radius) / m, result + itr + rnsize);
+        //copy and multiply the normal to correct length for use
+        mov(result + itr + rnsize, result + itr);
+        //make a new ring for the tube
+        mkring(result + itr, p.quality, p.radius, result + itr, nmtube + itr, nmtube + rprev);
+        itv += stridesize;
+        rprev = itr;
+        itr += rnsize;
     }
     
     //the last ring, calculated afterward to avoid overstepping bounds in loop
     sub(v + itv, v + itv - 3, result + rlast);
     mkring(result + rlast, p.quality, p.radius, result + rlast, nmtube + rlast, nmtube + rprev);
-    for(int i = rlast; i < rsizet; i+=3)
+    for(int i = rlast; i < rsizet; i += 3)
     {
         norm(result + i, result + rsizet + i);
         add(v + itv, result + i, result + i);
+    }
+    //continue if no need to place an arrow here
+    if(!(itv % interval))
+    {
+        float m = mag(result + rlast);
+        //normalize the forwarded direction
+        mul(result + rlast, (m - p.radius) / m, result + rlast);
+        //make a new ring for the tube
+        mkring(result + rlast, p.quality, p.radius, result + rlast, nmtube + rlast, nmtube + rprev);
     }
     
     //now make some cones! :D
@@ -927,34 +951,14 @@ void GLPathRenderer::Draw(const float *v, int n)
         }
         break;
         case Arrow:
-        {   
-            n = n / prp.stride;
-            if(changed || prevdata != v)
-            {
-                if(prevdata != 0) delete[] prevdata;
-                prevdata = prArrows(v, n, prp);
-            }
-            int rsize = (4 << prp.quality) * 3;
-            //int total = ((n << (2 + prp.quality)) * 3) - rsize;
-            int total = rsize * n;
-            //glColor4fv(prp.baseColor);
-            glMaterialfv(GL_FRONT, GL_DIFFUSE, prp.baseColor);
-            for(int i = 0; i < total - rsize; i += rsize)
-                drawTube(prevdata + i, prp.quality, total);
-        /*
-            n = n / prp.stride;
-            if(changed || prevdata != v)
-            {
-                if(prevdata != 0) delete[] prevdata;
-                prevdata = prArrows(v, n, prp);
-            }
-            int rnverts = 4 << p.quality; //vertices in a ring
+        {
+            int rnverts = 4 << prp.quality; //vertices in a ring
             int tuverts = rnverts * 2; //vertices in a tube
             int coverts = rnverts + 1; //vertices in a cone
             int rnsize = 3 * rnverts; //floats in a ring
             int tusize = rnsize * 2; //floats in a tube, or a cone's norms
             int cosize = coverts * 3; //floats in a cone
-            int nrings = n / p.stride; //number of rings in tubes
+            int nrings = n / prp.stride; //number of rings in tubes
             int ncones = nrings / prp.arrowStride; //number of cones
             //there is an extra ring for every arrow, to prevent tubes from
             //clipping through their cones
@@ -963,10 +967,37 @@ void GLPathRenderer::Draw(const float *v, int n)
             int nsizet = rsizet; //size of tube norm section
             int nsizec = ncones * tusize; //size of cone norm section
             int total = rsizet + nsizet + rsizec + nsizec;
-            float* tubes = prevdata;
-            float* nmtube = tubes + rsizet;
-            float* cones = nmtube + nsizet;
-            float* nmcone = cones + rsizec;
+            
+            if(changed || prevdata != v)
+            {
+                if(prevdata != 0) delete[] prevdata;
+                prevdata = prArrows(v, nrings, prp);
+            }
+            float* tubes = prevdata; //location of tube vertices
+            float* nmtube = tubes + rsizet; //location of tube normals
+            float* cones = nmtube + nsizet; //location of cone vertices
+            float* nmcone = cones + rsizec; //location of cone normals
+            
+            //glColor4fv(prp.baseColor);
+            glMaterialfv(GL_FRONT, GL_DIFFUSE, prp.baseColor);
+            int count = 0;
+            int itc = 0;
+            int itn = 0;
+            for(int itr = 0; itr < rsizet - rnsize; itr += rnsize)
+            {
+                if(count % prp.arrowStride)
+                    drawTube(prevdata + itr, prp.quality, rsizet);
+                else
+                {
+                    drawTube(prevdata + itr, nmtube + itr, prp.quality);
+                    drawCone(cones + itc, nmcone + itn, prp.quality);
+                    itc += cosize;
+                    itn += tusize;
+                    itr += rnsize;
+                }
+                count++;
+            }
+        /*
             int count = 0;
             int itc = 0; //cone iterator
             int itn = 0; //normal iterator
@@ -985,7 +1016,7 @@ void GLPathRenderer::Draw(const float *v, int n)
                 }
                 count++;
             }
-            */
+        */
         }
         break;
         case Point:
