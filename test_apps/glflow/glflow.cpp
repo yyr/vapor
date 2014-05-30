@@ -855,6 +855,12 @@ static float* prArrows(const float* v, int n, GLPathRenderer::Params p)
 
     int itv = 3;
     int rprev = 0;
+    if(p.arrowStride == 1)
+    {
+        //make an additional ring
+        //make an arrow, increment the arrow pointer
+    }
+    
     //start at idx = 1, continue until second-to-last
     for(int itr = step; itr < rlast; itr += step)
     {
@@ -875,6 +881,11 @@ static float* prArrows(const float* v, int n, GLPathRenderer::Params p)
         }
         itv += 3 * p.stride;
         rprev = itr;
+        
+        //if(something % p.arrowStride == p.arrowStride - 1)
+        //{
+        //
+        //}
     }
     
     //the last ring, calculated afterward to avoid overstepping bounds in loop
@@ -885,6 +896,10 @@ static float* prArrows(const float* v, int n, GLPathRenderer::Params p)
         norm(r + i, r + rsize + i);
         add(v + itv, r + i, r + i);
     }
+    //if(something % p.arrowStride == p.arrowStride - 1)
+    //{
+    //
+    //}
 
     return r;
 }
