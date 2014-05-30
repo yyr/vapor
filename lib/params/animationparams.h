@@ -36,6 +36,7 @@ class XmlNode;
 class ParamNode;
 
 //! \class AnimationParams
+//! \ingroup Public
 //! \brief A class that specifies parameters used in animation 
 //! \author Alan Norton
 //! \version 3.0
@@ -45,11 +46,6 @@ class ParamNode;
 class PARAMS_API AnimationParams : public Params {
 	
 public: 
-	//! Constructor
-	//! \param[in] int winnum The number of the visualizer, or -1 for a global AnimationParams
-	AnimationParams(XmlNode* parent, int winnum);
-	//! Destructor
-	~AnimationParams();
 
 	//! Identify the current data timestep being used
 	//! \retval long current time step
@@ -127,17 +123,16 @@ public:
 	int setPlayDirection(int val) {
 		return SetValueLong(_playDirectionTag,"Set play direction",val);
 	}
-	//! Get the maximum frame step size
+	//! Get the maximum frame step size for skipping
 	//! \retval int current frame step size.
 	int getFrameStepSize() {
 		return GetValueLong(_stepSizeTag);
 	}
-	//! Set the frame step size
+	//! Set the frame step size (for skipping)
 	//! \param int val step size
 	//! \retval int 0 if successful
 	int setFrameStepSize(int val) {
 		return SetValueLong(_stepSizeTag,"Set frame stepsize",val);
-
 	}
 	//! Determine max frames per second
 	//! \retval double max frames per second
@@ -161,32 +156,42 @@ public:
 	int setRepeating(bool onOff){
 		return SetValueLong(_repeatTag,"enable repeat play",(long)onOff);
 	}
-	//! Required method to create params in default state with no data.
-	//! \retval ParamsBase* created default instance
-	static ParamsBase* CreateDefaultInstance() {return new AnimationParams(0,-1);}
-	//! Pure virtual method on Params. Provide a short name suitable for use in the GUI
-	//! \retval string name
-	const std::string getShortName() {return _shortName;}
-
-	//! Put a params instance into default state with no data.
-	virtual void restart();
+	
 	//! Determine the shortest time (in milliseconds) for a render
 	//! \retval int minimum render time.
 	int getMinTimeToRender() {return ((int)(1000.f/getMaxFrameRate()) );}
-	//! Make state valid, either to defaults, or to values consistent with data
+//! @name Internal
+//! Internal methods not intended for general use
+//!
+///@{
+
+	//! Constructor
+	//! \param[in] int winnum The number of the visualizer, or -1 for a global AnimationParams
+	AnimationParams(XmlNode* parent, int winnum);
+	//! Destructor
+	~AnimationParams();
+
+///}@
+
+	//The following are not part of the public API
+#ifndef DOXYGEN_SKIP_THIS
+	//! Make state valid, either setting to defaults, or to values consistent with data
 	//! \param in bool setDefault true if values are set to default.
 	virtual void Validate(bool setdefault);
-	
-#ifndef DOXYGEN_SKIP_THIS
-
-	//The following are not durrently part of the public API
-	
-	static void setDefaultPrefs();
+	//! Put a params instance into default state with no data.
+	virtual void restart();
+	//! Pure virtual method on Params. Provide a short name suitable for use in the GUI
+	//! \retval string name
+	const std::string getShortName() {return _shortName;}
+	//! Required method to create params in default state with no data.
+	//! \retval ParamsBase* created default instance
+	static ParamsBase* CreateDefaultInstance() {return new AnimationParams(0,-1);}
 
 	//When rendering is finished, renderer calls this.  Returns true no change (if the change bit
 	//needs to be set. 
 	//It advances the currentFrame to the next one
 	bool advanceFrame();
+
 	//set to pause if last frame is done, return true if done.
 	bool checkLastFrame();
 	int getNextFrame(int dir); //Determine the next frame in the specified direction

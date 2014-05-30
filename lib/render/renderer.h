@@ -34,6 +34,7 @@ class DataMgr;
 class Metadata;
 
 //! \class Renderer
+//! \ingroup Public
 //! \brief A class that performs rendering in a Visualizer
 //! \author Alan Norton
 //! \version $Revision$
@@ -108,29 +109,52 @@ public:
 	//! no state or cache is retained between renderings.
 	virtual void setAllDataDirty() = 0;
 
+	//! @name Internal
+	//! Internal methods not intended for general use
+	//!
+	///@{
+
 	//! Static method invoked during Undo and Redo of Renderer enable or disable.
 	//! This function must be passed in Command::CaptureStart for enable and disable rendering.
+	//! It causes the Undo and Redo operations on enable/disable renderer to actually create
+	//! or destroy the renderer.
 	//! \sa UndoRedoHelpCB_T
 	//! \param[in] isUndo indicates whether an Undo or Redo is being performed
 	//! \param[in] instance indicates the RenderParams instance that is enabled or disabled
 	//! \param[in] beforeP is a copy of the InstanceParams at the start of the Command
 	//! \param[in] afterP is a copy of the InstanceParams at the end of the Command 
 	static void UndoRedo(bool isUndo, int instance, Params* beforeP, Params* afterP);
+	
 
-
-#ifndef DOXYGEN_SKIP_THIS
+	//! Identify the name of the current renderer (for error messages)
+	//! \retval name (i.e. tag) of renderer
 	const string getMyName() const {return(_myName);};
 	
-	Visualizer* myVisualizer;
+	///@}
 	
 
 protected:
+	//! Enable specified clipping planes during the GL rendering
+	//! Must be invoked during paintGL()
+	//! \sa disableClippingPlanes
+	//! \param[in] extents Specifies the extents of the clipping bounds
 	void enableClippingPlanes(const double extents[6]);
+	//! Enable clipping planes associated with the full 3D data domain
+	//! \sa disableClippingPlanes
 	void enableFullClippingPlanes();
+	//! Enable clipping planes associated with the current RegionParams extents
+	//! \sa disableClippingPlanes
 	void enableRegionClippingPlanes();
+	//! Enable clipping planes associated with the current TwoDDataParams extents
+	//! \sa disableClippingPlanes
 	void enable2DClippingPlanes();
-	void disableFullClippingPlanes();
-	void disableRegionClippingPlanes();
+	//! Disable the clipping planes that were previously enabled during
+	//! enableClippingPlanes(), enableFullClippingPlanes(), enableRegionClippingPlanes, or enable2DClippingPlanes()
+	void disableClippingPlanes();
+	
+
+#ifndef DOXYGEN_SKIP_THIS
+	Visualizer* myVisualizer;
 	RenderParams* currentRenderParams;
 	bool initialized;
 	

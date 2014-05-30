@@ -28,7 +28,7 @@ namespace VAPoR{
 class Params;
 
 //! \class Command
-//!
+//! \ingroup Public
 //! \brief Provides support for maintaining a queue of recently issued commands,
 //! performing UnDo, ReDo, etc.
 //! The parent Command class supports a queue of Params changes; each entry has a
@@ -50,7 +50,9 @@ typedef void (*UndoRedoHelpCB_T) (bool isUndo, int instance, VAPoR::Params* befo
 class PARAMS_API Command {
 	public:
 	
-
+	//! @name Internal
+	//! Internal methods not intended for general use
+	///@{
 	Command(Params*, const char* descr, UndoRedoHelpCB_T helper = 0);
 	virtual ~Command( ) {
 		if (nextRoot) delete nextRoot;
@@ -58,6 +60,34 @@ class PARAMS_API Command {
 		tag.clear();
 	}
 	
+	//! Static method to go back one position (i.e. undo) in the queue.
+	//! Returns the params instance that now is current
+	//! \return Params instance that is newly current, null if nothing left to backup.
+	static Params* BackupQueue();
+
+	//! Static method to go forward one position (i.e. redo) in the queue.
+	//! Returns the params instance that now is current
+	//! \return Params instance that is newly current, null if we are at end of queue
+	static Params* AdvanceQueue();
+
+	//! Static method to put command queue in initial state.
+	static void resetCommandQueue();
+	
+	
+	//! static method to tell if commands are being inserted in the queue
+	//sa blockCapture, unblockCapture
+	// \return bool indicates whether or not recording is enabled.
+	static bool isRecording() {return (recordingCount == 0);}
+	//! static method retrieves a command from the queue,
+	//! with index relative to the last executed command.
+	//! \param [in] offset position relative to last command, positive offsets were executed earlier.
+	//! \return Command* pointer to specified command, null if invalid.
+	static Command* CurrentCommand(int offset) {
+		int posn = currentQueuePos - offset;
+		while (posn < 0) posn += MAX_HISTORY;
+		return commandQueue[posn%MAX_HISTORY];
+	}
+	///@}
 	//! Specify the description of a command
 	//! \param [in] char* description
 	void setDescription(const char* str){
@@ -104,34 +134,6 @@ class PARAMS_API Command {
 	}
 
 	
-
-	//! Static method to go back one position (i.e. undo) in the queue.
-	//! Returns the params instance that now is current
-	//! \return Params instance that is newly current, null if nothing left to backup.
-	static Params* BackupQueue();
-
-	//! Static method to go forward one position (i.e. redo) in the queue.
-	//! Returns the params instance that now is current
-	//! \return Params instance that is newly current, null if we are at end of queue
-	static Params* AdvanceQueue();
-
-	//! Static method to put command queue in initial state.
-	static void resetCommandQueue();
-	
-	
-	//! static method to tell if commands are being inserted in the queue
-	//sa blockCapture, unblockCapture
-	// \return bool indicates whether or not recording is enabled.
-	static bool isRecording() {return (recordingCount == 0);}
-	//! static method retrieves a command from the queue,
-	//! with index relative to the last executed command.
-	//! \param [in] offset position relative to last command, positive offsets were executed earlier.
-	//! \return Command* pointer to specified command, null if invalid.
-	static Command* CurrentCommand(int offset) {
-		int posn = currentQueuePos - offset;
-		while (posn < 0) posn += MAX_HISTORY;
-		return commandQueue[posn%MAX_HISTORY];
-	}
 	//! Obtain a copy of the next params in the queue
 	//! Useful if additional processing is needed during Undo or Redo
 	//! Note that the returned Params copy should be deleted after it is used

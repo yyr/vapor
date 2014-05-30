@@ -22,7 +22,7 @@ class ParamNode;
 
 
 //! \class ControlExec
-//!
+//! \ingroup Public
 //! \brief Provides API for VAPOR visualizer User Interfaces (UIs)
 //
 

@@ -26,6 +26,7 @@ namespace VAPoR {
 #include <vapor/ParamsBase.h>
 
 //! \class Box
+//! \ingroup Public
 //! \brief 3D or 2D box with options for orientation angles and extents changing in time.  
 //! Intended to be used in any Params class
 //! \author Alan Norton
@@ -44,11 +45,8 @@ public:
 	
 	Box();
 	virtual ~Box() {}
-	//! Required static method for extensibility:
-	//! \retval ParamsBase* pointer to a default Params instance
-	static ParamsBase* CreateDefaultInstance() {return new Box();}
-	virtual ParamsBase* deepCopy(ParamNode* newRoot);
-	
+
+
 	//! Get the box user extents as a double array at a specified time step >= 0
 	//! \param[out] extents[6] double Returned extents
 	//! \param[in] timestep size_t Specific time step being retrieved
@@ -193,6 +191,18 @@ public:
 	//! \param[in] Params* params that owns this box
 	//! \param[in] numTimes int resulting length of times and extentss.
 	void Trim(Params* p,int numTimes = 1);
+
+	//! @name Internal
+	//! Internal methods not intended for general use
+	///@{
+
+	//! Required static method for extensibility:
+	//! \retval ParamsBase* pointer to a default Params instance
+	static ParamsBase* CreateDefaultInstance() {return new Box();}
+	virtual ParamsBase* deepCopy(ParamNode* newRoot);
+
+	///@}
+
 #ifndef DOXYGEN_SKIP_THIS
 	static const string _boxTag;
 	static const string _anglesTag;

@@ -77,9 +77,7 @@ restart(){
 	setMaxFrameRate(0.1);
 	
 }
-void AnimationParams::setDefaultPrefs(){
 
-}
 void AnimationParams::Validate(bool useDefault){
 	//Command capturing should be disabled
 	assert(!Command::isRecording());

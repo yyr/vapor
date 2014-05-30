@@ -44,6 +44,7 @@ namespace VAPoR {
 
 
 //! \class VizWinParams
+//! \ingroup Public
 //! \brief A class for describing the vizualization windows in use in VAPOR
 //! \author Alan Norton
 //! \version 3.0
@@ -53,21 +54,6 @@ class PARAMS_API VizWinParams : public Params {
 	
 public: 
 
-	//! \param[in] int winnum The window number, -1 since it's global
-	VizWinParams(XmlNode* parent, int winnum);
-
-	//! Destructor
-	virtual ~VizWinParams();
-	
-	//! Method to validate all values in a VizWinParams instance
-	//! \param[in] bool default indicates whether or not to set to default values associated with the current DataMgr
-	//! \sa DataMgr
-	virtual void Validate(bool useDefault);
-	//! Method to initialize a new VizWinParams instance
-	virtual void restart();
-	//! The vizwin params are just for UndoRedo and sessions (i.e., do they not show up as tabs in the GUI)
-	//! \retval always returns true for this class.
-	virtual bool isBasicParams() const {return true;}
 
 	//! Static method used to add a new Viz Win to the list of viz windows
 	//! If the specified visualizer already exists returns -1.
@@ -168,6 +154,28 @@ public:
 		return ((VizWinParams*)Params::GetParamsInstance(_vizWinParamsTag))->getVisualizerNums();
 	}
 	
+	//! @name Internal
+	//! Internal methods not intended for general use
+	///@{
+
+ 	//! constructor
+	//! \param[in] parent Root ParamNode
+	//! \param[in] int winnum The window number, -1 since it's global
+	VizWinParams(XmlNode* parent, int winnum);
+
+	//! Destructor
+	virtual ~VizWinParams();
+	
+	//! Method to validate all values in a VizWinParams instance
+	//! \param[in] bool default indicates whether or not to set to default values associated with the current DataMgr
+	//! \sa DataMgr
+	virtual void Validate(bool useDefault);
+	//! Method to initialize a new VizWinParams instance
+	virtual void restart();
+	//! The vizwin params are just for UndoRedo and sessions (i.e., do they not show up as tabs in the GUI)
+	//! \retval always returns true for this class.
+	virtual bool isBasicParams() const {return true;}
+
 	//! Required static method (for extensibility):
 	//! \retval ParamsBase* pointer to a default Params instance
 	static ParamsBase* CreateDefaultInstance() {return new VizWinParams(0, -1);}
@@ -186,6 +194,8 @@ public:
 	int getCurrentVizWin(){
 		return GetValueLong(_currentWindowTag);
 	}
+
+///@}
 
 #ifndef DOXYGEN_SKIP_THIS
 	

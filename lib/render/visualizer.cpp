@@ -130,12 +130,7 @@ Visualizer::~Visualizer()
 	delete localTrackball;
 }
 
-void Visualizer::setDefaultPrefs(){
-	defaultTerrainEnabled = false;
-	
-	defaultAxisArrowsEnabled = false;
-	jpegQuality = 100;
-}
+
 //
 //  Set up the OpenGL view port, matrix mode, etc.
 //

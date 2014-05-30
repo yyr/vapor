@@ -116,7 +116,7 @@ void Renderer::enableFullClippingPlanes() {
 	enableClippingPlanes(extents);
 }
 	
-void Renderer::disableFullClippingPlanes(){
+void Renderer::disableClippingPlanes(){
 	glDisable(GL_CLIP_PLANE0);
 	glDisable(GL_CLIP_PLANE1);
 	glDisable(GL_CLIP_PLANE2);
@@ -165,9 +165,7 @@ void Renderer::enableRegionClippingPlanes() {
 	enableClippingPlanes(regExts);
 }
 
-void Renderer::disableRegionClippingPlanes(){
-	Renderer::disableFullClippingPlanes();
-}
+
 void Renderer::UndoRedo(bool isUndo, int instance, Params* beforeP, Params* afterP){
 	//This only handles RenderParams
 	assert (beforeP->isRenderParams());

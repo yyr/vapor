@@ -9,10 +9,15 @@ namespace VAPoR {
 class XmlNode;
 class ParamNode;
 //! \class Viewpoint
+//! \ingroup Public
 //! \brief class that indicates location and direction of view
 //! \author Alan Norton
 //! \version 3.0
 //! \date February 2014
+//! \par
+//! This class contains all the parameters associated with viewpoint, including
+//! camera position, direction, and rotation center.  Most of its methods
+//! should be accessed through the ViewpointParams class.
 
 class PARAMS_API Viewpoint : public ParamsBase {
 	
@@ -33,9 +38,14 @@ public:
 		setRotationCenterLocal(rotctr,0);
 		
 	}
-	virtual ParamsBase* deepCopy(ParamNode* newRoot);
+	
 	//! Destructor
 	virtual ~Viewpoint(){}
+
+//! @name Internal
+//! Internal methods not intended for general use
+///@{
+	virtual ParamsBase* deepCopy(ParamNode* newRoot);
 	//! Required static method (for extensibility):
 	//! \retval ParamsBase* pointer to a default Params instance
 	static ParamsBase* CreateDefaultInstance() {return new Viewpoint();}
@@ -186,7 +196,7 @@ public:
 		return setCameraPosLocal(cpos, p);
 	}
 	
-	
+///@}
 #ifndef DOXYGEN_SKIP_THIS
 	
 	static const string _viewpointTag;

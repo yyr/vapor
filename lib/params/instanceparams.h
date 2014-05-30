@@ -42,6 +42,7 @@ namespace VAPoR {
 
 
 //! \class InstanceParams
+//! \ingroup Public
 //! \brief A class for describing the renderer instances in use in VAPOR
 //! \author Alan Norton
 //! \version 3.0
@@ -51,21 +52,6 @@ class PARAMS_API InstanceParams : public Params {
 	
 public: 
 
-	//! \param[in] int winnum The window number, -1 since it's global
-	InstanceParams(XmlNode* parent, int winnum);
-
-	//! Destructor
-	virtual ~InstanceParams();
-	
-	//! Method to validate all values in a InstanceParams instance
-	//! \param[in] bool default indicates whether or not to set to default values associated with the current DataMgr
-	//! \sa DataMgr
-	virtual void Validate(bool useDefault);
-	//! Method to initialize a new InstanceParams instance
-	virtual void restart();
-	//! The vizwin params are just for UndoRedo and sessions (i.e., do they not show up as tabs in the GUI)
-	//! \retval always returns true for this class.
-	virtual bool isBasicParams() const {return true;}
 
 	//! Static method used to add a instance to the list of instances for a visualizer
 	//! On error returns -1.
@@ -84,6 +70,43 @@ public:
 	//! \retval int indicates 0 if successful
 	static int RemoveInstance(const std::string tag, int viz, int instance);
 
+	//! Static method identifies the current instance for a renderer and visualizer 
+	//! \param[in] tag renderParams Tag associated with the instance
+	//! \param[in] index is visualizer index associated with the instance
+	//! \retval -1 if error, otherwise returns the current instance index
+	static int  GetCurrentInstance(const std::string tag, int viz){
+		return ((InstanceParams*)Params::GetParamsInstance(_instanceParamsTag))->getCurrentInstance(tag, viz);
+	}
+	//! Static method makes an instance current
+	//! \param[in] tag renderParams Tag associated with the instance
+	//! \param[in] index is visualizer index associated with the instance
+	//! \param[in] int current instance
+	//! \retval 0 if successful.
+	static int SetCurrentInstance(const std::string tag, int viz, int instance){
+		return ((InstanceParams*)Params::GetParamsInstance(_instanceParamsTag))->setCurrentInstance(tag, viz, instance);
+	}
+	
+
+//! @name Internal
+//! Internal methods not intended for general use
+///@{
+
+	//! Constructor
+	//! \param[in] int winnum The window number, -1 since it's global
+	InstanceParams(XmlNode* parent, int winnum);
+
+	//! Destructor
+	virtual ~InstanceParams();
+	
+	//! Method to validate all values in a InstanceParams instance
+	//! \param[in] bool default indicates whether or not to set to default values associated with the current DataMgr
+	//! \sa DataMgr
+	virtual void Validate(bool useDefault);
+	//! Method to initialize a new InstanceParams instance
+	virtual void restart();
+	//! The vizwin params are just for UndoRedo and sessions (i.e., do they not show up as tabs in the GUI)
+	//! \retval always returns true for this class.
+	virtual bool isBasicParams() const {return true;}
 	//! Static method that should be called whenever a new visualizer is created
 	//! This must agree with the VizWinParams state, so InstanceParams::AddVizWin()
 	//! is invoked by VizWinParams::AddVizWin()
@@ -111,23 +134,6 @@ public:
 	//! \param[in] viznum Visualizer index.
 	//! \retval 0 if successful.
 	static int RemoveVizWin(int viznum);
-
-	//! Static method identifies the current instance for a renderer and visualizer 
-	//! \param[in] tag renderParams Tag associated with the instance
-	//! \param[in] index is visualizer index associated with the instance
-	//! \retval -1 if error, otherwise returns the current instance index
-	static int  GetCurrentInstance(const std::string tag, int viz){
-		return ((InstanceParams*)Params::GetParamsInstance(_instanceParamsTag))->getCurrentInstance(tag, viz);
-	}
-	//! Static method makes an instance current
-	//! \param[in] tag renderParams Tag associated with the instance
-	//! \param[in] index is visualizer index associated with the instance
-	//! \param[in] int current instance
-	//! \retval 0 if successful.
-	static int SetCurrentInstance(const std::string tag, int viz, int instance){
-		return ((InstanceParams*)Params::GetParamsInstance(_instanceParamsTag))->setCurrentInstance(tag, viz, instance);
-	}
-	
 	
 	//! Required static method (for extensibility):
 	//! \retval ParamsBase* pointer to a default Params instance
@@ -141,7 +147,7 @@ public:
 	//The instance that is being added or deleted.
 	//Returns 0 if no instance change is found.  Returns 1 if the changed instance is in p1, 2 if it's in p2
 	static int instanceDiff(InstanceParams* p1, InstanceParams* p2, string& tag, int* instance, int* viz);
-
+	///@}
 
 #ifndef DOXYGEN_SKIP_THIS
 	

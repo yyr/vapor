@@ -37,6 +37,7 @@ namespace VAPoR{
 class Params;
 //
 //! \class ParamsBase
+//! \ingroup Public
 //! \brief Nodes with state in Xml tree representation
 //! \author John Clyne
 //! \version 3.0
@@ -92,7 +93,9 @@ virtual ~ParamsBase();
  //! \retval instance Pointer to cloned instance
  //
  virtual ParamsBase* deepCopy(ParamNode* newRoot = 0) = 0;
- 
+//! @name Internal
+//! Internal methods not intended for general use
+///@{
  //! Set the parent node of the XmlNode tree.
  //!
  //! Sets a new parent node for the XmlNode tree parameter 
@@ -137,13 +140,6 @@ virtual ~ParamsBase();
  //
  virtual bool elementEndHandler(ExpatParseMgr* pm, int depth, string& tag);
 
- //! Return the top (root) of the parameter node tree
- //!
- //! This method returns the top node in the parameter node tree
- //!
-
-ParamNode *GetRootNode() { return(_rootParamNode); }
-
 //!	
 //! Method to build an xml node from state.
 //! This only needs to be implemented if the state of the ParamsBase
@@ -152,6 +148,15 @@ ParamNode *GetRootNode() { return(_rootParamNode); }
 //!
 
 virtual ParamNode* buildNode(); 
+
+ ///@}
+
+ //! Return the top (root) of the parameter node tree
+ //!
+ //! This method returns the top node in the parameter node tree
+ //!
+
+ParamNode *GetRootNode() { return(_rootParamNode); }
 
 //!	
 //! Method for manual setting of node flags
@@ -392,7 +397,7 @@ static ParamsBase* CreateDefaultParamsBase(const string&tag);
 	static void addDummyParamsBaseInstance(ParamsBase*const & pb ) {dummyParamsBaseInstances.push_back(pb);}
 
 	static void clearDummyParamsBaseInstances();
-#endif
+
 private:
 	//These should be accessed by subclasses through get() and set() methods
 	ParamNode *_currentParamNode;
@@ -492,7 +497,7 @@ protected:
  //
  void Clear();
 };
-#ifndef DOXYGEN_SKIP_THIS
+
 //The DummyParamsBase is simply holding the parse information for
 //A paramsBase extension class that is not present. This can only occur
 //as a ParamsBase node inside a DummyParams node

@@ -42,6 +42,7 @@ class Trackball;
 class TranslateStretchManip;
 
 //! \class Visualizer
+//! \ingroup Public
 //! \brief A class for performing OpenGL rendering in VAPOR GUI Window
 //! \author Alan Norton
 //! \version 3.0
@@ -222,9 +223,7 @@ public:
 	
 	static void setDefaultShowTerrain(bool val){defaultTerrainEnabled = val;}
 	
-	static void setDefaultPrefs();
-	
-	
+
 	//Static methods so that the vizwinmgr can tell the Visualizer about
 	//current active visualizer, and about region sharing
 	static int getActiveWinNum() { return activeWindowNum;}

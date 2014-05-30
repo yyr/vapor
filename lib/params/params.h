@@ -48,6 +48,7 @@ class DataMgr;
 class Command;
 
 //! \class Params
+//! \ingroup Public
 //! \brief A pure virtual class for managing parameters used in visualization
 //! 
 //! \author Alan Norton
@@ -117,6 +118,10 @@ class Command;
 class PARAMS_API Params : public MyBase, public ParamsBase {
 	
 public: 
+//! @name Internal
+//! Internal methods not intended for general use
+///@{
+
 //! Standard Params constructor
 //! \param[in] parent  XmlNode corresponding to this Params class instance
 //! \param[in] name  std::string name, can be the tag
@@ -131,21 +136,6 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	
 	previousClass = 0;
 }
-	
-//! Default copy constructor
-	Params(const Params& p);
-//! Destroy object
-//!
-//! \note This destructor does not delete child XmlNodes created
-//! as children of the \p parent constructor parameter.
-//!
- 	virtual ~Params();
-
-//! Pure virtual method specifying short name e.g. to display on the associated tab.
-//! This is not the tag!
-//! \retval string name to identify associated tab
-//! \sa GetName
-	 virtual const std::string getShortName()=0;
 
 //! virtual method indicates instance index, only used with RenderParams
 //! Implementers need not implement this method.
@@ -155,38 +145,6 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \retval integer instance index
 //!
 	virtual int GetInstanceIndex();
-
-//! Method indicates that a params instance has changed, e.g. during Undo/Redo
-//! Must be cleared after all users of the instance have checked it.
-//! Setting on a shared params results in it being set for all the different
-//! visualizers that share it;
-//! \param[in] val indicates that a change has occurred
-	void SetChanged(bool val);
-
-//! method to test if there has been a change.
-//! checks the bit associated with the visualizer.
-//! \param[in] viz index of visualizer, only needed for shared params
-//! \retval bool true if changed
-	bool HasChanged(int viz = -1);
-
-//! Pure virtual method for validation of all settings
-//! It is important that implementers of Params classes write this method so that
-//! it checks the values of all parameters in the Params instance, ensuring that they
-//! are consistent with the current DataMgr
-//! When the "default" argument is true, this method must all parameters to their default values
-//! associated with the current Data Manager.
-//! When the "default" argument is false, the method should change only those parameters that are
-//! inconsistent with the current Data Manager, setting them to values that are consistent.
-//! \param[in] bool default 
-//! \sa DataMgr
-	virtual void Validate(bool setdefault)=0;
-
-//! Virtual method indicates that the geometry of this Params instance fits within a plane.
-//! Needed for Probe, Isolines, to prevent invalid manip stretching.
-//! Default returns false; must reimplement if the geometry is constrained to a plane.
-//! \retval bool returns true if geometry is constrained to a plane.
-	virtual bool IsPlanar() {return false;}
-
 
 //! Static method that identifies the instance that is current in the identified window.
 //! Useful for application developers.
@@ -394,6 +352,62 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \retval std::vector of default Params pointers associated with the window, indexed by ParamsBase TypeIDs 
 	static vector <Params*>* cloneAllDefaultParams();
 
+//! Specify the visualizer index of a Params instance.
+//! Not covered by undo/redo; not a user-level setting
+//! \param[in]  vnum is the integer visualizer number
+//! 
+	virtual void SetVizNum(int vnum){
+		GetRootNode()->SetElementLong(_VisualizerNumTag,(long)vnum);
+	}
+///@}
+
+
+//! Default copy constructor
+	Params(const Params& p);
+//! Destroy object
+//!
+//! \note This destructor does not delete child XmlNodes created
+//! as children of the \p parent constructor parameter.
+//!
+ 	virtual ~Params();
+
+//! Pure virtual method specifying short name e.g. to display on the associated tab.
+//! This is not the tag!
+//! \retval string name to identify associated tab
+//! \sa GetName
+	 virtual const std::string getShortName()=0;
+
+//! Method indicates that a params instance has changed, e.g. during Undo/Redo
+//! Must be cleared after all users of the instance have checked it.
+//! Setting on a shared params results in it being set for all the different
+//! visualizers that share it;
+//! \param[in] val indicates that a change has occurred
+	void SetChanged(bool val);
+
+//! method to test if there has been a change.
+//! checks the bit associated with the visualizer.
+//! \param[in] viz index of visualizer, only needed for shared params
+//! \retval bool true if changed
+	bool HasChanged(int viz = -1);
+
+//! Pure virtual method for validation of all settings
+//! It is important that implementers of Params classes write this method so that
+//! it checks the values of all parameters in the Params instance, ensuring that they
+//! are consistent with the current DataMgr
+//! When the "default" argument is true, this method must all parameters to their default values
+//! associated with the current Data Manager.
+//! When the "default" argument is false, the method should change only those parameters that are
+//! inconsistent with the current Data Manager, setting them to values that are consistent.
+//! \param[in] bool default 
+//! \sa DataMgr
+	virtual void Validate(bool setdefault)=0;
+
+//! Virtual method indicates that the geometry of this Params instance fits within a plane.
+//! Needed for Probe, Isolines, to prevent invalid manip stretching.
+//! Default returns false; must reimplement if the geometry is constrained to a plane.
+//! \retval bool returns true if geometry is constrained to a plane.
+	virtual bool IsPlanar() {return false;}
+
 //! Static method that tells whether or not any renderer is enabled in a visualizer. 
 //! Useful for application developers.
 //! \param[in] winnum index of specified visualizer window
@@ -406,9 +420,9 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \retval returns true if it is a RenderParams
 	virtual bool isRenderParams() const {return false;}
 
-//! Virtual method indicating whether a Params is "UndoRedo", i.e. a Params
-//! class that is only used to support Undo/Redo.  The UndoRedo Params classes
-//! have only one instance.  UndoRedo params are not associated with Tabs in the GUI.
+//! Virtual method indicating whether a Params is "Basic", i.e. a Params
+//! class that has only one instance, used only for Undo/redo and sessions.  
+//! Basic params are not associated with Tabs in the GUI.
 //! Default returns false.
 //! Useful for application developers.
 //! \retval returns true if it is UndoRedo
@@ -419,7 +433,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	virtual void restart() = 0;
 	
 //! Identify the visualizer associated with this instance.
-//! With global or default Params this is -1 
+//! With global or default or Basic Params this is -1 
 	virtual int GetVizNum() {return (int)(GetValueLong(_VisualizerNumTag));}
 
 //! Specify whether a [non-render]params is local or global. 
@@ -434,15 +448,6 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 		return (GetValueLong(_LocalTag) != 0);
 	}
 	
-//! Specify the visualizer index of a Params instance.
-//! Not covered by undo/redo; not a user-level setting
-//! \param[in]  vnum is the integer visualizer number
-//! 
-	virtual void SetVizNum(int vnum){
-		GetRootNode()->SetElementLong(_VisualizerNumTag,(long)vnum);
-	}
-	
-
 //! Virtual method to return the Box associated with a Params class.
 //! By default returns NULL.
 //! All params classes that use a box to define data extents should reimplement this method.
@@ -596,6 +601,7 @@ protected:
 };
 
 //! \class RenderParams
+//! \ingroup Public
 //! \brief A Params subclass for managing parameters used by Renderers
 //! \author Alan Norton
 //! \version 3.0
@@ -603,13 +609,17 @@ protected:
 //!
 class PARAMS_API RenderParams : public Params {
 public: 
-	
+//! @name Internal
+//! Internal methods not intended for general use
+///@{
+
 //! Standard RenderParams constructor.
 //! \param[in] parent  XmlNode corresponding to this Params class instance
 //! \param[in] name  std::string name, can be the tag
 //! \param[in] winNum  integer visualizer num, -1 for global or default params
 	RenderParams(XmlNode *parent, const string &name, int winnum); 
-	
+///@}
+
 	//! Determine if this params has been enabled for rendering
 	//! \retval bool true if enabled
 	virtual bool IsEnabled(){

@@ -31,6 +31,7 @@
 
 namespace VAPoR {
 //! \class DataStatus
+//! \ingroup Public
 //! \brief A class for describing the currently loaded dataset
 //! \author Alan Norton
 //! \version $Revision$
@@ -56,12 +57,21 @@ public:
 		return theDataStatus;
 	}
 
-	//! Obtain the full extents of the data in user coordinates.
+	//! Obtain the full extents of the current data in local coordinates.
 	//! Values in this array are in the order: minx, miny, minz, maxx, maxy, maxz.
-	//! \retval const float[6] extents array
+	//! \retval const double[6] extents array
 	const double* getLocalExtents() { return extents; }
+	//! Obtain the full extents of the current data in user coordinates.
+	//! Values in this array are in the order: minx, miny, minz, maxx, maxy, maxz.
+	//! \retval const double[6] extents array
 	const double* getFullSizes() {return fullSizes;}
+	//! Obtain the full extents of the current data in stretched user coordinates.
+	//! Values in this array are in the order: minx, miny, minz, maxx, maxy, maxz.
+	//! \retval const double[6] extents array
 	const double* getFullStretchedSizes() {return fullStretchedSizes;}
+	//! Obtain the full extents of the current data in stretched local coordinates.
+	//! Values in this array are in the order: minx, miny, minz, maxx, maxy, maxz.
+	//! \retval const double[6] extents array
 	const double* getStretchedLocalExtents() {return stretchedExtents;}
 
 
@@ -76,6 +86,7 @@ public:
 	//! Indicates whether any variable exists at a particular timestep.
 	//! \param[in] int timestep Time step
 	//! \retval true if the data exists
+	//! \note Currently always returns true
 	bool dataIsPresent(int timestep) {return true;}
 
 	//! Indicates the number of time steps in the current VDC.
@@ -89,11 +100,9 @@ public:
 	//! Indicates the number of compression levels in the VDC.
 	//! \retval int number ofcompressionlevels
 	int getNumLODs() {return numLODs;}
-	int getNumVariables3D() {return dataMgr->GetVariables3D().size();}
-	int getNumVariables2DXY() {return dataMgr->GetVariables2DXY().size();}
 	 
-	int getNumActiveVariables3D() {return getNumVariables3D();}
-	int getNumActiveVariables2D() {return getNumVariables2DXY();}
+	int getNumActiveVariables3D() {return dataMgr->GetVariables3D().size();}
+	int getNumActiveVariables2D() {return dataMgr->GetVariables2DXY().size();}
 	int getActiveVarNum3D(string vname) {return getVarNum3D(vname);}
 	int getActiveVarNum2D(string vname) {return getVarNum2D(vname);}
 	int getVarNum3D(string vname);

@@ -32,6 +32,7 @@ class RegionParams;
 class XmlNode;
 class ParamNode;
 //! \class ViewpointParams
+//! \ingroup Public
 //! \brief A class for describing the viewpoint and lights in a 3D VAPOR scene
 //! \author Alan Norton
 //! \version 3.0
@@ -44,12 +45,60 @@ class ParamNode;
 class PARAMS_API ViewpointParams : public Params {
 	
 public: 
+//! @name Internal
+//! Internal methods not intended for general use
+///@{
 	//! Constructor
 	//! \param[in] int window num, indicates the visualizer number, or -1 for a shared ViewpointParams
 	ViewpointParams(XmlNode* parent, int winnum);
 	//! Destructor
 	virtual ~ViewpointParams();
+		//! Required static method (for extensibility):
+	//! \retval ParamsBase* pointer to a default Params instance
+	static ParamsBase* CreateDefaultInstance() {return new ViewpointParams(0,-1);}
+	//! Pure virtual method on Params. Provide a short name suitable for use in the GUI
+	//! \retval string name
+	const std::string getShortName() {return _shortName;}
 	
+	//! Rescale viewing parameters, e.g. when the scene stretch factors change
+	//! \param[in] double scaleFac[3] scale factors to be applied.
+	//! \param[in] int timestep to be rescaled
+	void rescale(double scaleFac[3], int timestep);
+
+	//! determine far and near distance to region based on current viewpoint
+	//! \param[out] float* boxFar far distance to box
+	//! \param[out] float* boxNear near distance to box
+	void getFarNearDist(float* boxFar, float* boxNear);
+	
+	//! Virtual method to check that values in Params are valid, and
+	//! forces them either to valid or default values.
+	virtual void Validate(bool useDefault);
+
+	//! Put a ViewpointParams into default state in the absence of data
+	virtual void restart();
+	
+	//! Get the current OpenGL ModelView Matrix (4x4)
+	//! Needed for picking
+	//! \retval const double matrix[16]
+	const double* getModelViewMatrix() {return modelViewMatrix;}
+	//! Get the current OpenGL Projection Matrix (4x4)
+	//! Needed for calculating ray interections in scene
+	//! \retval const double matrix[16]
+	const double* getProjectionMatrix() {return projectionMatrix;}
+	//! Set the current OpenGL Projection Matrix
+	//! Needed for ray-casting
+	//! \param[in] double matrix[16]
+	void setProjectionMatrix(const double* mtx){
+		for (int i = 0; i<16; i++) projectionMatrix[i] = mtx[i];
+	}
+	//! Set the current OpenGL ModelView Matrix
+	//! Needed for picking
+	//! \param[in] double matrix[16]
+	void setModelViewMatrix(const double* mtx){
+		for (int i = 0; i<16; i++) modelViewMatrix[i] = mtx[i];
+	}
+
+///@}
 
 	//! This method tells how many lights are specified and whether
 	//! lighting is on or not (i.e. if there are more than 0 lights).
@@ -280,51 +329,6 @@ public:
 	void centerFullRegion(int timestep);
 
 
-	//! Required static method (for extensibility):
-	//! \retval ParamsBase* pointer to a default Params instance
-	static ParamsBase* CreateDefaultInstance() {return new ViewpointParams(0,-1);}
-	//! Pure virtual method on Params. Provide a short name suitable for use in the GUI
-	//! \retval string name
-	const std::string getShortName() {return _shortName;}
-	
-	//! Rescale viewing parameters, e.g. when the scene stretch factors change
-	//! \param[in] double scaleFac[3] scale factors to be applied.
-	//! \param[in] int timestep to be rescaled
-	void rescale(double scaleFac[3], int timestep);
-
-	//! determine far and near distance to region based on current viewpoint
-	//! \param[out] float* boxFar far distance to box
-	//! \param[out] float* boxNear near distance to box
-	void getFarNearDist(float* boxFar, float* boxNear);
-	
-	//! Virtual method to check that values in Params are valid, and
-	//! forces them either to valid or default values.
-	virtual void Validate(bool useDefault);
-
-	//! Put a ViewpointParams into default state in the absence of data
-	virtual void restart();
-	
-	//! Get the current OpenGL ModelView Matrix (4x4)
-	//! Needed for picking
-	//! \retval const double matrix[16]
-	const double* getModelViewMatrix() {return modelViewMatrix;}
-	//! Get the current OpenGL Projection Matrix (4x4)
-	//! Needed for calculating ray interections in scene
-	//! \retval const double matrix[16]
-	const double* getProjectionMatrix() {return projectionMatrix;}
-	//! Set the current OpenGL Projection Matrix
-	//! Needed for ray-casting
-	//! \param[in] double matrix[16]
-	void setProjectionMatrix(const double* mtx){
-		for (int i = 0; i<16; i++) projectionMatrix[i] = mtx[i];
-	}
-	//! Set the current OpenGL ModelView Matrix
-	//! Needed for picking
-	//! \param[in] double matrix[16]
-	void setModelViewMatrix(const double* mtx){
-		for (int i = 0; i<16; i++) modelViewMatrix[i] = mtx[i];
-	}
-
 	//! Obtain the current home viewpoint
 	//! \sa Viewpoint
 	//! \retval Viewpoint* current home viewpoint.
@@ -336,7 +340,7 @@ public:
 		return vp;
 	}
 	#ifndef DOXYGEN_SKIP_THIS
-	static void setDefaultPrefs();
+	
 	static const double* getDefaultViewDir(){return defaultViewDir;}
 	static const double* getDefaultUpVec(){return defaultUpVec;}
 	static const double* getDefaultLightDirection(int lightNum){return defaultLightDirection[lightNum];}

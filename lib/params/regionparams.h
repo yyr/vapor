@@ -37,6 +37,7 @@ class ViewpointParams;
 class XmlNode;
 class ParamNode;
 //! \class RegionParams
+//! \ingroup Public
 //! \brief A class for describing a 3D axis-aligned region in user space.
 //! \author Alan Norton
 //! \version 3.0
@@ -52,12 +53,29 @@ class ParamNode;
 class PARAMS_API RegionParams : public Params {
 	
 public: 
-
+	//! @name Internal
+	//! Internal methods not intended for general use
+	///@{
 	//! \param[in] int winnum The window number, or -1 for a global RegionParams
 	RegionParams(XmlNode* parent, int winnum);
 
 	//! Destructor
 	~RegionParams();
+	//! Method to validate all values in a RegionParams instance
+	//! \param[in] bool default indicates whether or not to set to default values associated with the current DataMgr
+	//! \sa DataMgr
+	virtual void Validate(bool useDefault);
+	//! Method to initialize a new RegionParams instance
+	virtual void restart();
+	//! Required static method for extensibility:
+	//! \retval ParamsBase* pointer to a default Params instance
+	static ParamsBase* CreateDefaultInstance() {return new RegionParams(0, -1);}
+
+	//! Pure virtual method on Params. Provide a short name suitable for use in the GUI
+	//! \retval string name
+	const std::string getShortName() {return _shortName;}
+	
+	///@}
 	//! Method to obtain the current Box defining the region extents
 	//! \retval Box* current Box.
 	virtual Box* GetBox() {
@@ -67,12 +85,7 @@ public:
 		GetRootNode()->AddNode(Box::_boxTag, box->GetRootNode());
 		return box;
 	}
-	//! Method to validate all values in a RegionParams instance
-	//! \param[in] bool default indicates whether or not to set to default values associated with the current DataMgr
-	//! \sa DataMgr
-	virtual void Validate(bool useDefault);
-	//! Method to initialize a new RegionParams instance
-	virtual void restart();
+	
 	//! Get the minimum extent of the Box, in local coordinates
 	//! \param[in] int coord 0,1,2 for x,y,z
 	//! \param[in] int timestep indicates the current timestep, used only with time-varying extents.
@@ -122,20 +135,13 @@ public:
 	//! \retval int is 0 for success
 	int SetLocalRegionMax(int coord, double maxval, int timestep);
 
-	//! Required static method for extensibility:
-	//! \retval ParamsBase* pointer to a default Params instance
-	static ParamsBase* CreateDefaultInstance() {return new RegionParams(0, -1);}
-
-	//! Pure virtual method on Params. Provide a short name suitable for use in the GUI
-	//! \retval string name
-	const std::string getShortName() {return _shortName;}
 	
 	//! Provide a vector of the times, useful for time-varying extents
 	//! \retval const vector<long> vector of times.
 	const vector<long> GetTimes(){ return GetBox()->GetValueLongVec(Box::_timesTag);}
 	
 	//! Indicate whether or not the extents vary over time
-	//! bool true if extents are time-varying.
+	//! \retval bool return true if extents are time-varying.
 	bool extentsAreVarying(){ return GetBox()->GetTimes().size()>1;}
 
 	//! Insert a specific time in the list of time-varying extents.  Return false if it's already there

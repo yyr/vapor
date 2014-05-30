@@ -35,6 +35,7 @@ namespace VAPoR {
 
 
 //! \class MouseModeParams
+//! \ingroup Public
 //! \brief A class for describing mouse modes in use in VAPOR
 //! \author Alan Norton
 //! \version 3.0
@@ -43,7 +44,11 @@ namespace VAPoR {
 class PARAMS_API MouseModeParams : public Params {
 	
 public: 
+//! @name Internal
+//! Internal methods not intended for general use
+///@{
 
+	//! Constructor
 	//! \param[in] int winnum The window number, -1 since it's global
 	MouseModeParams(XmlNode* parent, int winnum);
 
@@ -60,7 +65,7 @@ public:
 	//! \retval always returns true for this class.
 	virtual bool isBasicParams() const {return true;}
 
-	//Enum describes various mouse modes:
+	//Enum describes various built-in mouse modes:
 	enum mouseModeType {
 		unknownMode=1000,
 		navigateMode=0,
@@ -72,8 +77,18 @@ public:
 		barbMode=6,
 		isolineMode=7
 	};
-	
-	
+	//! Static method identifies pixmap icon for each mode
+	static const char* const * GetIcon(int modeIndex){
+		return modeXPMIcon[modeIndex];
+	}
+	//! Required static method (for extensibility):
+	//! \retval ParamsBase* pointer to a default Params instance
+	static ParamsBase* CreateDefaultInstance() {return new MouseModeParams(0, -1);}
+	//! Pure virtual method on Params. Provide a short name suitable for use in the GUI
+	//! \retval string name
+	const std::string getShortName() {return _shortName;}
+	///@}
+
 	//Static methods for controlling mouse modes
 	//! Method to register a mouse mode.  Called during startup.
 	//! \param[in] tag Params tag associated with this mouse mode
@@ -134,16 +149,7 @@ public:
 	static int getNumMouseModes(){
 		return modeName.size();
 	}
-	//! Static method identifies pixmap icon for each mode
-	static const char* const * GetIcon(int modeIndex){
-		return modeXPMIcon[modeIndex];
-	}
-	//! Required static method (for extensibility):
-	//! \retval ParamsBase* pointer to a default Params instance
-	static ParamsBase* CreateDefaultInstance() {return new MouseModeParams(0, -1);}
-	//! Pure virtual method on Params. Provide a short name suitable for use in the GUI
-	//! \retval string name
-	const std::string getShortName() {return _shortName;}
+	
 
 #ifndef DOXYGEN_SKIP_THIS
 	

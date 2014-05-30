@@ -46,12 +46,12 @@ Validate(bool doOverride){
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return;
-	int totNumVariables = ds->getNumVariables2DXY()+ds->getNumVariables3D();
+	int totNumVariables = dataMgr->GetVariables2DXY().size()+dataMgr->GetVariables3D().size();
 	if (totNumVariables <= 0) return;
 	bool is3D = VariablesAre3D();
 	int numVariables;
-	if (is3D) numVariables = ds->getNumVariables3D();
-	else numVariables = ds->getNumVariables2DXY();
+	if (is3D) numVariables = dataMgr->GetVariables3D().size();
+	else numVariables = dataMgr->GetVariables2DXY().size();
 	
 	//Set up the numRefinements. 
 	int maxNumRefinements = ds->getNumTransforms();

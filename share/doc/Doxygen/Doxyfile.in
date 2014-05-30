@@ -418,6 +418,8 @@ INPUT        = 	TOP_OF_TREE/include/vapor/VDCNetCDF.h \
 			TOP_OF_TREE/lib/params/arrowparams.h \ 
 			TOP_OF_TREE/lib/params/Box.h \
 			TOP_OF_TREE/lib/params/command.h \
+			TOP_OF_TREE/lib/render/renderer.h \
+			TOP_OF_TREE/lib/render/visualizer.h \
 			TOP_OF_TREE/apps/vaporgui/main/vizwinmgr.h \  
 			TOP_OF_TREE/apps/vaporgui/main/vizwin.h \  
 			TOP_OF_TREE/apps/vaporgui/guis/eventrouter.h  

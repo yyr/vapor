@@ -112,20 +112,7 @@ restart(){
 	
 	
 }
-void ViewpointParams::setDefaultPrefs(){
-	for (int i = 0; i<3; i++){
-		defaultUpVec[i] = (i == 1) ? 1.f : 0.f;
-		defaultViewDir[i]  = (i == 2) ? -1.f : 0.f;
-		defaultLightDirection[0][i] = (i == 2) ? 1.f : 0.f;
-		defaultLightDirection[1][i] = (i == 1) ? 1.f : 0.f;
-		defaultLightDirection[2][i] = (i == 0) ? 1.f : 0.f;
-		defaultDiffuseCoeff[i] = 0.8f;
-		defaultSpecularCoeff[i] = 0.3f;
-	}
-	defaultAmbientCoeff = 0.1f;
-	defaultSpecularExp = 20.f;
-	defaultNumLights = 2;
-}
+
 //Reinitialize viewpoint settings, when metadata changes.
 //Really not much to do!
 //If we can override, set to default for current region.

@@ -16,7 +16,8 @@ namespace VAPoR {
 
 class ParamsBase;
 //
-//! \class ParamNode  
+//! \class ParamNode 
+//! \ingroup Public
 //! \brief An Xml tree
 //! \author John Clyne
 //! \version $Revision$
@@ -28,6 +29,10 @@ class ParamsBase;
 //!
 class PARAMS_API ParamNode : public XmlNode {
 public:
+
+//! @name Internal
+//! Internal methods not intended for general use
+///@{
 
  //! Constructor for the ParamNode class.
  //!
@@ -91,6 +96,8 @@ public:
  virtual ~ParamNode();
 
 	
+ ///@}
+
  //! Set a single ParamNode parameter of type double
  //!
  //! This method defines and sets a parameter of type double. The
@@ -495,7 +502,7 @@ public:
  //! \sa SetParamsBase()
  //
 ParamsBase* GetParamsBase() {return _paramsBase;}
-
+#ifndef DOXYGEN_SKIP_THIS
 static const string _paramsBaseAttr;
 static const string _paramNodeAttr;
 
@@ -507,6 +514,7 @@ protected:
  vector<double>doublevec;
 
  ParamsBase* _paramsBase;
+#endif //DOXYGEN_SKIP_THIS
 };
 
 };
