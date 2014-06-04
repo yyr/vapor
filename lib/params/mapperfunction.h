@@ -105,8 +105,14 @@ public:
 	const vector<double>& getIsoValues(){return isoValues;}
 	
 	virtual ParamNode* buildNode();
-	void setMinHistoValue(float val){setMinOpacMapValue(val);}
-	void setMaxHistoValue(float val){setMaxOpacMapValue(val);}
+	void setMinHistoValue(float val){
+		setMinOpacMapValue(val);
+		setMinColorMapValue(val);
+	}
+	void setMaxHistoValue(float val){
+		setMaxOpacMapValue(val);
+		setMaxColorMapValue(val);
+	}
 	float getMinHistoValue() {return getMinOpacMapValue();}
 	float getMaxHistoValue() {return getMaxOpacMapValue();}
 	

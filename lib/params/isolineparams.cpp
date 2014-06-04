@@ -4,6 +4,7 @@
 #include "vapor/Version.h"
 #include "glutil.h"
 #include <string>
+#include "transferfunction.h"
 
 using namespace VetsUtil;
 using namespace VAPoR;
@@ -196,11 +197,14 @@ void IsolineParams::restart() {
 	SetVisualizerNum(vizNum);
 	SetVariableName("isovar");
 	SetVariables3D(false);
-	//Create the isocontrol node.  Just one here, but it contains the histo bounds and isovalues
+	//Create the isocontrol.  Just one here, but it contains the histo bounds and isovalues and colors
+	//The transferFunction and Isocontrol share the map/histo bounds and the edit bounds.
 
 	if (!GetRootNode()->HasChild(IsolineParams::_IsoControlTag)){
 		IsoControl* iControl = (IsoControl*)IsoControl::CreateDefaultInstance();
 		GetRootNode()->AddRegisteredNode(_IsoControlTag,iControl->GetRootNode(),iControl);
+		iControl->setMinColorMapValue(0.);
+		iControl->setMaxColorMapValue(1.);
 	}
 	selectPoint[0]=selectPoint[1]=selectPoint[2]=0.f;
 	vector<double>zeros;
@@ -215,7 +219,7 @@ void IsolineParams::restart() {
 
 	setMinEditBound(0.);
 	setMaxEditBound(1.);
-
+	
 	setEnabled(false);
 	const float white_color[3] = {1.0, 1.0, 1.0};
 	const float black_color[3] = {.0, .0, .0};
@@ -307,4 +311,56 @@ void IsolineParams::spaceIsovals(float minval, float maxval){
 		}
 		SetIsovalues(newIsos);
 	}
+}
+//Hook up the colors from a transfer function 
+//
+void IsolineParams::
+hookupTF(TransferFunction* tf, int ){
+	//We want to keep the existing IsoControl,
+	//but replace its color control points.
+	IsoControl *isoctl = GetIsoControl();
+	VColormap* icmap = isoctl->getColormap();
+	VColormap* vcm = tf->getColormap();
+	icmap->clear();
+	
+	//Determine normalized values
+	float minval = vcm->minValue();
+	float maxval = vcm->maxValue();
+	for (int i = 0; i< vcm->numControlPoints(); i++){
+		float normval = (vcm->controlPointValue(i) - minval)/(maxval - minval);
+		icmap->addNormControlPoint(normval,vcm->controlPointColor(i));
+	}
+}
+
+MapperFunction* IsolineParams::GetMapperFunc(){
+	//Convert it to a transfer function so it can be saved as such.
+	//Start with a default TransferFunction, replace its colormap with
+	//The one from the 
+	TransferFunction* tf = new TransferFunction(this,8);
+	
+	//Set it opaque
+	tf->setOpaque();
+	IsoControl *isoctl = GetIsoControl();
+	VColormap* icmap = isoctl->getColormap();
+	//Remove the colors from the TF
+	VColormap* tfcm = tf->getColormap();
+	tfcm->clear();
+	
+	tf->setMinMapValue(isoctl->getMinHistoValue());
+	tf->setMaxMapValue(isoctl->getMaxHistoValue());
+	//Determine normalized values
+	float minval = icmap->minValue();
+	float maxval = icmap->maxValue();
+	//Add the control points from the IsoControl
+	for (int i = 0; i< icmap->numControlPoints(); i++){
+		float normval = (icmap->controlPointValue(i) - minval)/(maxval - minval);
+		tfcm->addNormControlPoint(normval,icmap->controlPointColor(i));
+	}
+	return (MapperFunction*) tf;
+}
+void IsolineParams::getLineColor(int isoNum, float lineColor[3]){
+	float isoval = (float)GetIsovalues()[isoNum];
+	VColormap* cmap = GetIsoControl()->getColormap();
+	ColorMapBase::Color clr = cmap->color(isoval);
+	clr.toRGB(lineColor);
 }

@@ -234,9 +234,6 @@ void GLIsolineWindow::performRendering(int timestep, const std::map<pair<int,int
 
 	IsolineParams* iParams = isolineFrame->getParams();
 	
-	float fcolors[3] = {1.f,1.f,1.f};
-
-	glColor3fv(fcolors);
 	glLineWidth(iParams->GetPanelLineThickness());
 	glEnable(GL_LINE_SMOOTH);
 	glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
@@ -247,6 +244,9 @@ void GLIsolineWindow::performRendering(int timestep, const std::map<pair<int,int
 	glBegin(GL_LINES);
 	
 	for(int iso = 0; iso< iParams->getNumIsovalues(); iso++){
+		float lineColor[3];
+		iParams->getLineColor(iso,lineColor);
+		glColor3fv(lineColor);
 		pair<int,int> mapPair = make_pair(timestep, iso);
 		const vector<float*>& lineVec = lineCache.at(mapPair);
 		int numlines = lineVec.size();

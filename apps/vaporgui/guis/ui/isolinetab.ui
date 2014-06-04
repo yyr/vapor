@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>450</width>
-    <height>2087</height>
+    <height>2160</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -1118,6 +1118,128 @@ specified range.</string>
                 <property name="sizeHint" stdset="0">
                  <size>
                   <width>31</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="_17">
+              <item>
+               <spacer name="spacer45">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Expanding</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>16</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="loadButton">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>200</width>
+                  <height>32767</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>Load transfer function from file or session</string>
+                </property>
+                <property name="text">
+                 <string>Load TF</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="spacer160">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Expanding</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>31</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="loadInstalledButton">
+                <property name="minimumSize">
+                 <size>
+                  <width>150</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>Load Transfer Function from directory of pre-installed transfer functions</string>
+                </property>
+                <property name="text">
+                 <string>Load Installed TF</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="spacer30">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Expanding</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>16</width>
+                  <height>21</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="saveButton">
+                <property name="maximumSize">
+                 <size>
+                  <width>200</width>
+                  <height>32767</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>Save this transfer function to a file or session</string>
+                </property>
+                <property name="text">
+                 <string>Save TF</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="spacer46">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Expanding</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>23</width>
                   <height>20</height>
                  </size>
                 </property>
@@ -4246,9 +4368,9 @@ Domain</string>
    <header>../../guis/instancetable.h</header>
   </customwidget>
   <customwidget>
-   <class>QtThumbWheel</class>
+   <class>MappingFrame</class>
    <extends>QWidget</extends>
-   <header>../../guis/qtthumbwheel.h</header>
+   <header>mappingframe.h</header>
   </customwidget>
   <customwidget>
    <class>IsolineFrame</class>
@@ -4256,9 +4378,9 @@ Domain</string>
    <header>../isolineframe.h</header>
   </customwidget>
   <customwidget>
-   <class>MappingFrame</class>
+   <class>QtThumbWheel</class>
    <extends>QWidget</extends>
-   <header>mappingframe.h</header>
+   <header>../../guis/qtthumbwheel.h</header>
   </customwidget>
  </customwidgets>
  <includes>

@@ -104,7 +104,7 @@ IsolineEventRouter::IsolineEventRouter(QWidget* parent): QWidget(parent), Ui_Iso
 	myParamsBaseType = Params::GetTypeFromTag(IsolineParams::_isolineParamsTag);
 	myWebHelpActions = makeWebHelpActions(webHelpText,webHelpURL);
 	isoSelectionFrame->setOpacityMapping(true);
-	isoSelectionFrame->setColorMapping(false);
+	isoSelectionFrame->setColorMapping(true);
 	isoSelectionFrame->setIsoSlider(false);
 	isoSelectionFrame->setIsolineSliders(true);
 	fidelityButtons = 0;
@@ -194,6 +194,9 @@ IsolineEventRouter::hookUpTab()
 	connect (rightHistoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (histoScaleEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 
+	connect (loadButton, SIGNAL(clicked()), this, SLOT(isolineLoadTF()));
+	connect (loadInstalledButton, SIGNAL(clicked()), this, SLOT(isolineLoadInstalledTF()));
+	connect (saveButton, SIGNAL(clicked()), this, SLOT(isolineSaveTF()));
 	connect (regionCenterButton, SIGNAL(clicked()), this, SLOT(isolineCenterRegion()));
 	connect (viewCenterButton, SIGNAL(clicked()), this, SLOT(isolineCenterView()));
 	connect (rakeCenterButton, SIGNAL(clicked()), this, SLOT(isolineCenterRake()));
@@ -481,14 +484,17 @@ void IsolineEventRouter::updateTab(){
 	int dim = isolineParams->VariablesAre3D() ? 3 : 2;
 	dimensionCombo->setCurrentIndex(dim-2);
 	ignoreComboChanges = false;
+	
 	if(isolineParams->GetIsoControl()){
 		isolineParams->GetIsoControl()->setParams(isolineParams);
 		isoSelectionFrame->setMapperFunction(isolineParams->GetIsoControl());
 	}
+	
     isoSelectionFrame->setVariableName(isolineParams->GetVariableName());
 	updateHistoBounds(isolineParams);
+	
 	isoSelectionFrame->updateParams();
-
+	
 	isolineImageFrame->setParams(isolineParams);
 	isolineImageFrame->update();
 	if (showLayout) {
@@ -507,7 +513,7 @@ void IsolineEventRouter::updateTab(){
 	
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
-	
+
 	setIgnoreBoxSliderEvents(false);
 	
 }
@@ -2551,6 +2557,7 @@ guiStartChangeIsoSelection(QString qstr){
 void IsolineEventRouter::
 guiEndChangeIsoSelection(){
 	if (!savedCommand) return;
+	
 	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
 	float bnds[2];
 	iParams->GetHistoBounds(bnds);
@@ -2562,6 +2569,7 @@ guiEndChangeIsoSelection(){
 		if (minIso > ivalues[i]) minIso = ivalues[i];
 		if (maxIso < ivalues[i]) maxIso = ivalues[i]; 
 	}
+
 	if (minIso != prevIsoMin || maxIso != prevIsoMax){
 		//If the new values are not inside the histo bounds, respecify the bounds
 		float newHistoBounds[2];
@@ -2572,16 +2580,15 @@ guiEndChangeIsoSelection(){
 		}
 	}
 	
-
-	PanelCommand::captureEnd(savedCommand,iParams);
 	
+	PanelCommand::captureEnd(savedCommand,iParams);
 	savedCommand = 0;
-	updateTab();
+	
 	//force redraw with changed isovalues
 	setIsolineDirty(iParams);
 	VizWinMgr::getInstance()->forceRender(iParams,GLWindow::getCurrentMouseMode() == GLWindow::isolineMode);
 }
-//Set isoControl editor dirty.
+//Set isoControl editor  dirty.
 void IsolineEventRouter::
 setEditorDirty(RenderParams* p){
 	IsolineParams* ip = (IsolineParams*)p;
@@ -2597,6 +2604,7 @@ setEditorDirty(RenderParams* p){
 		
 		const std::string& varname = ip->GetVariableName();
 		isoSelectionFrame->setVariableName(varname);
+		
 	} else {
 		isoSelectionFrame->setVariableName("N/A");
 	}
@@ -2826,7 +2834,7 @@ void IsolineEventRouter::convertIsovalsToColors(TransferFunction* tf){
 	int ncolors = cmap->numControlPoints();
 	leftMidColors.push_back(new ColorMapBase::Color(cmap->controlPointColor(ncolors-1)));
 	//Now delete all the color control points:
-	for (int i = 0; i<ncolors; i++) cmap->deleteControlPoint(0);
+	cmap->clear();
 	//Insert a color control point at min
 	cmap->addControlPointAt(minMapValue,*leftMidColors[0]);
 	//Insert a color control point at each leftmidpoint
@@ -2845,4 +2853,75 @@ void IsolineEventRouter::convertIsovalsToColors(TransferFunction* tf){
 	for (int i = 0; i<leftMidColors.size(); i++) delete leftMidColors[i];
 	//Make the color map discrete
 	tf->setColorInterpType(TFInterpolator::discrete);
+}
+/*
+ * Method to be invoked after the user has moved the right or left bounds
+ * (e.g. From the MapEditor. ) 
+ * Make the textboxes consistent with the new left/right bounds, but
+ * don't trigger a new undo/redo event
+ */
+void IsolineEventRouter::
+updateMapBounds(RenderParams* params){
+	IsolineParams* iParams = (IsolineParams*)params;
+	QString strn;
+	IsoControl* mpFunc = (IsoControl*)iParams->GetIsoControl();
+	if (mpFunc){
+		leftHistoEdit->setText(strn.setNum(mpFunc->getMinColorMapValue(),'g',4));
+		rightHistoEdit->setText(strn.setNum(mpFunc->getMaxColorMapValue(),'g',4));
+	} 
+	setEditorDirty(iParams);
+
+}
+//Respond to user click on save/load TF.  This launches the intermediate
+//dialog, then sends the result to the DVR params
+void IsolineEventRouter::
+isolineSaveTF(void){
+	IsolineParams* dParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
+	saveTF(dParams);
+}
+
+void IsolineEventRouter::
+isolineLoadInstalledTF(){
+	IsolineParams* dParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
+	IsoControl* tf = dParams->GetIsoControl();
+	if (!tf) return;
+	float minb = tf->getMinColorMapValue();
+	float maxb = tf->getMaxColorMapValue();
+	if (minb >= maxb){ minb = 0.0; maxb = 1.0;}
+	loadInstalledTF(dParams,0);
+	tf = dParams->GetIsoControl();
+	tf->setMinHistoValue(minb);
+	tf->setMaxHistoValue(maxb);
+	setEditorDirty(dParams);
+	VizWinMgr::getInstance()->setClutDirty(dParams);
+}
+void IsolineEventRouter::
+isolineLoadTF(void){
+	//If there are no TF's currently in Session, just launch file load dialog.
+	IsolineParams* dParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
+	loadTF(dParams,dParams->getSessionVarNum());
+	VizWinMgr::getInstance()->setClutDirty(dParams);
+}
+//Respond to user request to load/save TF
+//Assumes name is valid
+//
+void IsolineEventRouter::
+sessionLoadTF(QString* name){
+	IsolineParams* dParams = VizWinMgr::getActiveIsolineParams();
+	
+	confirmText(false);
+	
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Load Transfer Function from Session");
+	
+	//Get the transfer function from the session:
+	
+	std::string s(name->toStdString());
+	TransferFunction* tf = Session::getInstance()->getTF(&s);
+	assert(tf);
+	int varNum = dParams->getSessionVarNum();
+	dParams->hookupTF(tf, varNum);
+	PanelCommand::captureEnd(cmd, dParams);
+	setEditorDirty(dParams);
+	
+	VizWinMgr::getInstance()->setClutDirty(dParams);
 }
