@@ -4,7 +4,7 @@ GUI_FILES := \
 	vizselectcombo seedlisteditor instancetable \
 	animationeventrouter dvreventrouter floweventrouter \
 	regioneventrouter viewpointeventrouter probeeventrouter \
-	arroweventrouter isolineeditor\
+	arroweventrouter isovalueeditor\
 	isoeventrouter probeframe glprobewindow \
 	isolineeventrouter isolineframe glisolinewindow \
 	twoDeventrouter twoDdataeventrouter twoDimageeventrouter \
