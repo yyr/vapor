@@ -18,7 +18,7 @@ GUI_FILES := \
 
 GUI_QT_HEADERS := \
 	colorpickerframe loadtfdialog  \
-	boxsliderframe isolineeditor \
+	boxsliderframe isovalueeditor \
 	savetfdialog vizselectcombo \
 	probeframe seedlisteditor instancetable \
 	twodframe twoDimageeventrouter twoDdataeventrouter \
