@@ -246,6 +246,7 @@ IsolineEventRouter::hookUpTab()
 	connect(newHistoButton, SIGNAL(clicked()), this, SLOT(refreshHisto()));
 	connect(editButton, SIGNAL(toggled(bool)), this, SLOT(setIsolineEditMode(bool)));
 	connect(navigateButton, SIGNAL(toggled(bool)), this, SLOT(setIsolineNavigateMode(bool)));
+	connect(editIsovaluesButton, SIGNAL(clicked()), this, SLOT(guiEditIsovalues()));
 
 	// isoSelectionFrame controls:
 	connect(editButton, SIGNAL(toggled(bool)), 
@@ -2924,4 +2925,14 @@ sessionLoadTF(QString* name){
 	setEditorDirty(dParams);
 	
 	VizWinMgr::getInstance()->setClutDirty(dParams);
+}
+//Launch an editor on the isovalues
+void IsolineEventRouter::guiEditIsovalues(){
+	IsolineParams* iParams = VizWinMgr::getActiveIsolineParams();
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(iParams, "Edit Isovalues");
+	
+
+	PanelCommand::captureEnd(cmd, iParams);
+	updateTab();
 }

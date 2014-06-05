@@ -270,6 +270,7 @@
     <ClCompile Include="..\..\..\apps\vaporgui\guis\glisolinewindow.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\isolineeventrouter.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\isolineframe.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\guis\isovalueeditor.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\misc\animationcontroller.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\animationeventrouter.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\arroweventrouter.cpp" />
@@ -338,6 +339,7 @@
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isoeventrouter.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isolineeventrouter.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isolineframe.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isovalueeditor.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_loadtfdialog.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_mainform.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_mappingframe.cpp" />
@@ -402,6 +404,12 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\moc\moc_isolineframe.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\isovalueeditor.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isovalueeditor.h -o ..\..\..\apps\vaporgui\moc\moc_isovalueeditor.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing isovalueeditor.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\moc\moc_isovalueeditor.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\isolinetab.h" />

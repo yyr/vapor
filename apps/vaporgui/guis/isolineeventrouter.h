@@ -117,6 +117,7 @@ public:
 
 
 protected slots:
+	void guiEditIsovalues();
 	void isolineLoadTF();
 	void isolineLoadInstalledTF();
 	void isolineSaveTF();
