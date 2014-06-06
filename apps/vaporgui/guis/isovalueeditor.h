@@ -34,26 +34,24 @@ class IsovalueEditor: public QDialog
 {
     Q_OBJECT
 public:
-    IsovalueEditor( int numSeeds, IsolineParams*, 
+    IsovalueEditor( int numIsovals, IsolineParams*, 
 		 QWidget *parent = 0);
     ~IsovalueEditor() {}
 
 public slots:
-    void addSeed();
-    void deleteSeed();
+    void addIso();
+    void deleteIso();
     void valueChanged( int row, int col );
 	
 protected slots:
 	void accept();
-	void clearTable();
 
 protected:
     QTableWidget *table;
-    QPushButton *addSeedButton;
+    QPushButton *addIsoButton;
 	QPushButton *deleteButton;
     QPushButton *okButton;
     QPushButton *quitButton;
-	QPushButton *clearButton;
 
 protected:
     QDialogButtonBox *buttonBox;

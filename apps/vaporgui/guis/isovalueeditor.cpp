@@ -14,56 +14,49 @@
 
 using namespace VAPoR;
 
-IsovalueEditor::IsovalueEditor( int numSeeds, IsolineParams* fp,
+IsovalueEditor::IsovalueEditor( int numVals, IsolineParams* fp,
 			  QWidget* parent)
     : QDialog( parent )
 
 {
 	myIsolineParams = fp;
 	table = new QTableWidget(this);
-	table->setColumnCount(5);
+	table->setColumnCount(2);
 	
-	table->setRowCount(numSeeds);
-	
+	table->setRowCount(numVals);
 
     table->setHorizontalHeaderLabels(QStringList() << tr("Index")
 		<< tr("Isovalue"));
     table->verticalHeader()->setVisible(false);
-    table->resize(150, 50);
+    table->resize(100, 200);
 	vector<double> isovals = myIsolineParams->GetIsovalues();
-	for (int i = 0; i<numSeeds; i++){
+	for (int i = 0; i<numVals; i++){
 		QTableWidgetItem *indexItem = new QTableWidgetItem(QString::number(i));
 		indexItem->setFlags(Qt::NoItemFlags);  //not editable
-		QTableWidgetItem *xCoordItem = new QTableWidgetItem(QString::number(isovals[i],'g',7));
+		QTableWidgetItem *isovalItem = new QTableWidgetItem(QString::number(isovals[i],'g',9));
 	
-		
-		
 		table->setItem(i, 0, indexItem);
-        table->setItem(i, 1, xCoordItem);
+        table->setItem(i, 1, isovalItem);
 		
 	}
 
-    
     table->resizeColumnToContents(0);
     table->horizontalHeader()->setStretchLastSection(true);
 
-	addSeedButton = new QPushButton(tr("Add Seed"));
-	deleteButton = new QPushButton(tr("Delete Seed"));
-	clearButton = new QPushButton(tr("Clear Table"));
+	addIsoButton = new QPushButton(tr("Add Isovalue"));
+	deleteButton = new QPushButton(tr("Delete Isovalue"));
     quitButton = new QPushButton(tr("Cancel"));
 	okButton = new QPushButton(tr("OK"));
 
     buttonBox = new QDialogButtonBox(this);
-    buttonBox->addButton(addSeedButton, QDialogButtonBox::ActionRole);
+    buttonBox->addButton(addIsoButton, QDialogButtonBox::ActionRole);
 	buttonBox->addButton(deleteButton, QDialogButtonBox::ActionRole);
-	buttonBox->addButton(clearButton, QDialogButtonBox::ActionRole);
 	buttonBox->addButton(okButton, QDialogButtonBox::AcceptRole);
     buttonBox->addButton(quitButton, QDialogButtonBox::RejectRole);
 
     connect(quitButton, SIGNAL(pressed()), this, SLOT(close()));
-    connect(clearButton, SIGNAL(pressed()), this, SLOT(clearTable()));
-	connect(addSeedButton, SIGNAL(pressed()), this, SLOT(addSeed()));
-    connect(deleteButton, SIGNAL(pressed()), this, SLOT(deleteSeed()));
+	connect(addIsoButton, SIGNAL(pressed()), this, SLOT(addIso()));
+    connect(deleteButton, SIGNAL(pressed()), this, SLOT(deleteIso()));
     connect(okButton, SIGNAL(pressed()), this, SLOT(accept()));
     connect( table, SIGNAL( cellChanged(int,int) ),this, SLOT( valueChanged(int,int) ) );
 
@@ -74,9 +67,9 @@ IsovalueEditor::IsovalueEditor( int numSeeds, IsolineParams* fp,
     setLayout(mainLayout);
 
 
-    setWindowTitle(tr("Edit Seed Point List"));
+    setWindowTitle(tr("Edit Isovalue List"));
     
-    resize( 180, 220 );
+    resize( 100, 200 );
 	table->setSelectionBehavior(QAbstractItemView::SelectRows);
 	table->setSelectionMode(QAbstractItemView::SingleSelection);
   
@@ -92,26 +85,22 @@ void IsovalueEditor::valueChanged( int row, int col )
 	bool ok;
 	QTableWidgetItem* item = table->item(row,col);
 	double d = item->text().toDouble( &ok );
-    if ( col <  4 && col > 0) {
-		
-		if (!ok) item->setText("0.0");
+    if (col != 1) return;
+    if (!ok) {
+		item->setText("0.0");
 	}
-	else { // col is 4; If not a valid timestep, make it "*"
-		if ( ok && d >= 0.0) item->setText(QString( "%1" ).arg(d, 0, 'g', 4 ) );
-		else item->setText(QString(" * "));
-	}
+	
 	changed = true;
 }
 
 //Add another row.  Insert it after a selected row, if there is one:
-void IsovalueEditor::addSeed()
+void IsovalueEditor::addIso()
 {
 	int insertPosn = 0;
 	if (table->rowCount()>0) insertPosn = 1+table->currentRow();
 	QTableWidgetItem *indexItem = new QTableWidgetItem(QString::number(insertPosn));
 	indexItem->setFlags(Qt::NoItemFlags);  //not editable
 	QTableWidgetItem *xCoordItem = new QTableWidgetItem(QString::number(0.0));
-	
 	
 	table->insertRow(insertPosn);
 	table->setItem(insertPosn, 0, indexItem);
@@ -125,9 +114,10 @@ void IsovalueEditor::addSeed()
 	changed = true;
     
 }
-//Remove the selected seed
-void IsovalueEditor::deleteSeed()
+//Remove the selected iso
+void IsovalueEditor::deleteIso()
 {
+	if (table->rowCount() < 2) return;
 	int curRow = table->currentRow();
 	if (curRow<0) return;
 	table->removeRow(curRow);
@@ -144,25 +134,18 @@ void IsovalueEditor::accept()
 	//Note: we will lose precision by copying values back and forth
 	if (changed) {
 		vector<double> isovals = myIsolineParams->GetIsovalues();
-		
-		for (int i = 0; i<table->rowCount(); i++){
-			
-			Point4 pt4;
-			pt4.set1Val(0, table->item(i,1)->text().toFloat());
-			pt4.set1Val(1, table->item(i,2)->text().toFloat());
-			pt4.set1Val(2, table->item(i,3)->text().toFloat());
-			bool ok;
-			float tstep = table->item(i,4)->text().toFloat(&ok);
-			if (!ok) tstep = -1.f;
-			pt4.set1Val(3,tstep);
-			
+		if (table->rowCount() < isovals.size()){
+			int numToDelete = isovals.size()-table->rowCount();
+			for (int i = 0; i<numToDelete; i++) isovals.pop_back();
 		}
+		for (int i = 0; i<table->rowCount(); i++){
+			double isoval = table->item(i,1)->text().toDouble();
+			if (i < isovals.size()) isovals[i] = isoval;
+			else if (i >= isovals.size()) isovals.push_back(isoval);
+		}
+		myIsolineParams->SetIsovalues(isovals);
 	}
+	
 	QDialog::accept();
 }
 
-void IsovalueEditor::clearTable() {
-	table->clearContents();
-	table->setRowCount(0);
-	changed = true;
-}

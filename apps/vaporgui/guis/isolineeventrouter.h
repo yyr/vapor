@@ -175,7 +175,7 @@ protected slots:
 	void guiSetCompRatio(int num);
 	void setIsolineTabTextChanged(const QString& qs);
 	void isolineReturnPressed();
-	void captureImage();
+	
 	void showHideAppearance();
 	void showHideLayout();
 	void showHideImage();

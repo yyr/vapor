@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>450</width>
-    <height>2160</height>
+    <height>2195</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -3727,71 +3727,6 @@ Domain</string>
                          <string>Probe </string>
                         </property>
                        </widget>
-                      </item>
-                     </layout>
-                    </item>
-                    <item>
-                     <spacer name="spacer59">
-                      <property name="orientation">
-                       <enum>Qt::Vertical</enum>
-                      </property>
-                      <property name="sizeType">
-                       <enum>QSizePolicy::Expanding</enum>
-                      </property>
-                      <property name="sizeHint" stdset="0">
-                       <size>
-                        <width>20</width>
-                        <height>20</height>
-                       </size>
-                      </property>
-                     </spacer>
-                    </item>
-                    <item>
-                     <layout class="QHBoxLayout">
-                      <item>
-                       <spacer name="spacer57">
-                        <property name="orientation">
-                         <enum>Qt::Horizontal</enum>
-                        </property>
-                        <property name="sizeType">
-                         <enum>QSizePolicy::Expanding</enum>
-                        </property>
-                        <property name="sizeHint" stdset="0">
-                         <size>
-                          <width>41</width>
-                          <height>20</height>
-                         </size>
-                        </property>
-                       </spacer>
-                      </item>
-                      <item>
-                       <widget class="QPushButton" name="captureButton">
-                        <property name="toolTip">
-                         <string>Click to write current isoline image to jpeg file</string>
-                        </property>
-                        <property name="whatsThis">
-                         <string>When the &quot;Capture image to file&quot; button is clicked, the current cross-section view is captured to a jpeg image file, of size sufficient to display the data at the selected refinement level.  Flow images will not necessarily be captured at the correct aspect ratio.</string>
-                        </property>
-                        <property name="text">
-                         <string>Capture Current Isoline Image</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <spacer name="spacer100">
-                        <property name="orientation">
-                         <enum>Qt::Horizontal</enum>
-                        </property>
-                        <property name="sizeType">
-                         <enum>QSizePolicy::Expanding</enum>
-                        </property>
-                        <property name="sizeHint" stdset="0">
-                         <size>
-                          <width>41</width>
-                          <height>20</height>
-                         </size>
-                        </property>
-                       </spacer>
                       </item>
                      </layout>
                     </item>

@@ -41,6 +41,7 @@
 #include <qcursor.h>
 #include <qtooltip.h>
 #include "isolinerenderer.h"
+#include "isovalueeditor.h"
 #include "regionparams.h"
 #include "mainform.h"
 #include "vizwinmgr.h"
@@ -230,7 +231,6 @@ IsolineEventRouter::hookUpTab()
 	connect (xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineXSize()));
 	connect (ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineYSize()));
 
-	connect (captureButton, SIGNAL(clicked()), this, SLOT(captureImage()));
 	connect (copyToProbeButton, SIGNAL(clicked()), this, SLOT(copyToProbeOr2D()));
 
 	connect (instanceTable, SIGNAL(changeCurrentInstance(int)), this, SLOT(guiChangeInstance(int)));
@@ -1762,91 +1762,6 @@ makeCurrent(Params* prevParams, Params* nextParams, bool newWin, int instance,bo
 	VizWinMgr::getInstance()->forceRender(pParams);
 }
 
-//Capture just one image
-//Launch a file save dialog to specify the names
-//Then put jpeg in it.
-//
-void IsolineEventRouter::captureImage() {
-	MainForm::getInstance()->showCitationReminder();
-	QString filename = QFileDialog::getSaveFileName(this,
-		"Specify image capture Jpeg file name",
-		Session::getInstance()->getJpegDirectory().c_str(),
-		"Jpeg Images (*.jpg)");
-	if(filename == QString("")) return;
-	
-	//Extract the path, and the root name, from the returned string.
-	QFileInfo* fileInfo = new QFileInfo(filename);
-	
-	if (fileInfo->exists()){
-		int rc = QMessageBox::warning(0, "File Exists", QString("OK to replace existing jpeg file?\n %1 ").arg(filename), QMessageBox::Ok, 
-			QMessageBox::No);
-		if (rc != QMessageBox::Ok) return;
-	}
-	//Save the path for future captures
-	Session::getInstance()->setJpegDirectory((const char*)fileInfo->absolutePath().toAscii());
-	if (!filename.endsWith(".jpg")) filename += ".jpg";
-	//
-	
-	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
-
-	float voxDims[3];
-	pParams->getRotatedVoxelExtents(voxDims);
-	
-	int wid = (int) voxDims[0];
-	int ht = (int)voxDims[1];
-	unsigned char* isolineTex;
-	unsigned char* buf;
-	 
-		//Determine the image size.  Start with the texture dimensions in 
-		// the scene, then increase x or y to make the aspect ratio match the
-		// aspect ratio in the scene
-		float aspRatio = pParams->getRealImageHeight()/pParams->getRealImageWidth();
-	
-		//Make sure the image is at least 256x256
-		if (wid < 256) wid = 256;
-		if (ht < 256) ht = 256;
-		float imAspect = (float)ht/(float)wid;
-		if (imAspect > aspRatio){
-			//want ht/wid = asp, but ht/wid > asp; make wid larger:
-			wid = (int)(0.5f+ (imAspect/aspRatio)*(float)wid);
-		} else { //Make ht larger:
-			ht = (int) (0.5f + (aspRatio/imAspect)*(float)ht);
-		}
-		//Construct the isoline image of the desired dimensions:
-		//buf = pParams->calcIsolineImage(timestep,wid,ht);
-
-	//Construct an RGB image from this.  Ignore alpha.
-	//invert top and bottom while removing alpha component
-	isolineTex = new unsigned char[3*wid*ht];
-	for (int j = 0; j<ht; j++){
-		for (int i = 0; i< wid; i++){
-			for (int k = 0; k<3; k++)
-				isolineTex[k+3*(i+wid*j)] = buf[k+4*(i+wid*(ht-j-1))];
-		}
-	}
-	
-	//Now open the jpeg file:
-	FILE* jpegFile = fopen((const char*)filename.toAscii(), "wb");
-	if (!jpegFile) {
-		MessageReporter::errorMsg("Image Capture Error: Error opening \noutput Jpeg file: \n%s",(const char*)filename.toAscii());
-		return;
-	}
-	//Now call the Jpeg library to compress and write the file
-	//
-	int quality = GLWindow::getJpegQuality();
-	int rc = write_JPEG_file(jpegFile, wid, ht, isolineTex, quality);
-	delete [] isolineTex;
-	if (rc){
-		//Error!
-		MessageReporter::errorMsg("Image Capture Error; \nError writing jpeg file \n%s",
-			(const char*)filename.toAscii());
-		delete [] buf;
-		return;
-	}
-	//Provide a message stating the capture in effect.
-	MessageReporter::infoMsg("Image is captured to %s",
-			(const char*)filename.toAscii());
-}
 
 void IsolineEventRouter::guiNudgeXSize(int val) {
 	
@@ -2535,8 +2450,8 @@ void IsolineEventRouter::guiSetAligned(){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "fit iso selection window to view");
 	setEditorDirty(iParams);
-	update();
 	PanelCommand::captureEnd(cmd, iParams);
+	updateTab();
 }
 void IsolineEventRouter::
 guiStartChangeIsoSelection(QString qstr){
@@ -2584,7 +2499,7 @@ guiEndChangeIsoSelection(){
 	
 	PanelCommand::captureEnd(savedCommand,iParams);
 	savedCommand = 0;
-	
+	updateTab();
 	//force redraw with changed isovalues
 	setIsolineDirty(iParams);
 	VizWinMgr::getInstance()->forceRender(iParams,GLWindow::getCurrentMouseMode() == GLWindow::isolineMode);
@@ -2932,7 +2847,16 @@ void IsolineEventRouter::guiEditIsovalues(){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "Edit Isovalues");
 	
-
+	IsovalueEditor sle(iParams->getNumIsovalues(), iParams);
+	if (!sle.exec()){
+		delete cmd;
+		return;
+	}
+	vector<double>isovals = iParams->GetIsovalues();
+	std::sort(isovals.begin(),isovals.end());
+	iParams->SetIsovalues(isovals);
 	PanelCommand::captureEnd(cmd, iParams);
+	setIsolineDirty(iParams);
+	VizWinMgr::getInstance()->forceRender(iParams,GLWindow::getCurrentMouseMode() == GLWindow::isolineMode);
 	updateTab();
 }
