@@ -43,7 +43,7 @@ OptionParser::OptDescRec_T set_options[] = {
 	{"help", 0, "", "Print this message and exit"},
 	{"data", 1, "", "A test data source"},
 	{"colors", 1, "", "A test color source"},
-	{"style", 1, "tube", "Render mode: tubes | arrows | lines"},
+	{"style", 1, "tube", "Render mode: tube(s) | arrow(s) | line(s)"},
 	{"radius", 1, "1.0", "Radius multiplier of rendered shapes"},
 	{"quality", 1, "0", "Number of subdivisions of rendered shapes"},
 	{"stride", 1, "1", "Traverse how many vertices between rendering?"},
@@ -692,19 +692,18 @@ void display(double* profout)
     t1 = GetTime();
     //hog.Draw(hogdata2, 1); //single tube
     //hog.Draw(hogdata, 9); //regular array
-    //path.Draw(pathdata, 11); //spiral
     //path.Draw(pathdata2, 3); //90 degree, dual-segment
     //path.Draw(pathdata3, 3); //straight, dual-segment
-    path.Draw(pathdata4, 2); //single-segment
+    //path.Draw(pathdata4, 2); //single-segment
     //path.Draw(pathdata5, 6); //kink testing
-    //if(pathdata7)
-    //{
-    //    for(int i = 0; i < pd7sz; i++)
-    //    {
-    //        path.Draw(pathdata7[i], pd7szs[i]);
-    //    }
-    //}
-    //else path.Draw(pathdata6, SPIRAL_SZ); //autospiral
+    if(pathdata7)
+    {
+        for(int i = 0; i < pd7sz; i++)
+        {
+            path.Draw(pathdata7[i], pd7szs[i]);
+        }
+    }
+    else path.Draw(pathdata6, SPIRAL_SZ); //autospiral
     //glTranslatef(0.f, 0.f, -3.f);
     //coneTest(conedir, opt.quality, opt.radius);
     //drawCube();

@@ -821,9 +821,10 @@ static float* prArrows(const float* v, int n, GLPathRenderer::Params p)
     int cosize = coverts * 3; //floats in a cone
     //number of rings in tubes
     //int nrings = (n / p.stride) + (n / (p.stride * p.arrowStride));
-    int nrings = ((p.arrowStride + 1) * n) / (p.stride * p.arrowStride);
+    int nrings = (((p.arrowStride + 1) * n) / (p.stride * p.arrowStride)) - 1;
     int ncones = nrings / p.arrowStride; //number of cones
     float coneRadius = p.radius * p.arrowRatio;
+    int arrowOffset = p.arrowStride - 1;
     //there is an extra ring for every arrow, to prevent tubes from
     //clipping through their cones
     int rsizet = nrings * rnsize; //size of tube section
@@ -831,77 +832,156 @@ static float* prArrows(const float* v, int n, GLPathRenderer::Params p)
     int nsizet = rsizet; //size of tube norm section
     int nsizec = ncones * tusize; //size of cone norm section
     int total = rsizet + nsizet + rsizec + nsizec;
-    float* r = new float[total];
-    //EVERYTHING UP TO HERE IS FULLY-FORMED
+    float* result = new float[total];
+    float* tubes = result;
+    float* nmtube = tubes + rsizet;
+    float* cones = nmtube + nsizet;
+    float* nmcone = cones + rsizec;
     
     //build a series of rings from the given vectors
-    int rsize = rnsize * n; //size of the rings-array
-    float* nm = r + rsize; //normals
+    //int rsize = rnsize * nrings; //size of the rings-array
+    //float* nm = result + rsize; //normals
     int vsize = n * 3;
     int vlast = vsize - 3;
     int step = rnsize;
-    int rlast = rsize - step;
+    int rlast = rsizet - step;
+    int twostep = 2 * step;
     //the first ring, which we will not iterate over
     //because we need adjacent vectors to calculate direction
     //for the other rings, whereas this just points in the direction
     //of the endpoint vector
-    sub(v + 3, v, r + step);
-    mkring(r + step, p.quality, p.radius, r, nm);
+    sub(v + 3, v, tubes + step);
+    mkring(tubes + step, p.quality, p.radius, tubes, nmtube);
     for(int i = 0; i < step; i+=3)
     {
-        norm(r + i, r + rsize + i);
-        add(v, r + i, r + i);
+        norm(tubes + i, nmtube + i);
+        add(v, tubes + i, tubes + i);
     }
 
-    int itv = 3;
+    int itr = step; //ring iterator
+    int itv = 0; //input iterator
+    int itc = 0; //cone iterator
+    int itn = 0; //cone-normal iterator
     int rprev = 0;
     if(p.arrowStride == 1)
     {
-        //make an additional ring
-        //make an arrow, increment the arrow pointer
+        //get position for additional ring
+        float m = mag(tubes + itr);
+        mov(tubes + itr, tubes + itr + step);
+        div(tubes + itr, m, tubes + itr);
+        mul(tubes + itr, coneRadius, cones);
+        mul(tubes + itr, m - p.radius, cones + 6);
+        add(v + itv, cones + 6, cones + 3);
+        mkring(tubes + itr, p.quality, p.radius, tubes + itr, nmtube + itr);
+        for(int i = 0; i < rnsize; i += 3)
+        {
+            add(cones + 3, tubes + itr + i, tubes + itr + i);
+        }
+        //mul(cones + itc, coneRadius, cones + itc);
+        mkcone(cones, coneRadius, p.quality, cones, nmcone);
+        for(int i = 0 ; i < cosize; i += 3)
+        {
+            add(cones + i, v + itv + 3, cones + i);
+        }
+        rprev = itr;
+        itr += step;
+        itc += cosize;
+        itn += tusize;
     }
+    itv += 3 * p.stride;
     
+    int count = 1;
     //start at idx = 1, continue until second-to-last
-    for(int itr = step; itr < rlast; itr += step)
+    while(itr < rlast)
     {
         //get the current direction and pass it forward
-        sub(v + itv + (3 * p.stride), v + itv, r + itr + step);
+        sub(v + itv + (3 * p.stride), v + itv, result + itr + step);
         //correct if rather large direction
         //calculated using current and previous direction
         //previous direction was passed forward by previous iteration
-        add(r + itr, r + itr + step, r + itr);
-        norm(r + itr, r + itr);
+        add(result + itr, result + itr + step, result + itr);
+        norm(result + itr, result + itr);
         //make a ring, in-place
-        mkring(r + itr, p.quality, p.radius, r + itr, nm + itr, nm + rprev);
+        mkring(result + itr, p.quality, p.radius, result + itr, nmtube + itr, nmtube + rprev);
         //shift the ring into position, set normals
         for(int i = itr; i < itr + rnsize; i += 3)
         {
-            norm(r + i, r + rsize + i);
-            add(v + itv, r + i, r + i);
+            norm(result + i, result + rsizet + i);
+            add(v + itv, result + i, result + i);
+        }
+        rprev = itr;
+        itr += step;
+        
+        if(count % p.arrowStride == arrowOffset)
+        {
+            //get position for additional ring
+            float m = mag(tubes + itr);
+            mov(tubes + itr, tubes + itr + step);
+            div(tubes + itr, m, tubes + itr);
+            mul(tubes + itr, coneRadius, cones + itc);
+            mul(tubes + itr, m - p.radius, cones + itc + 6);
+            add(v + itv, cones + itc + 6, cones + itc + 3);
+            mkring(tubes + itr, p.quality, p.radius, tubes + itr, nmtube + itr);
+            for(int i = 0; i < rnsize; i += 3)
+            {
+                add(cones + itc + 3, tubes + itr + i, tubes + itr + i);
+            }
+            //mul(cones + itc, coneRadius, cones + itc);
+            mkcone(cones + itc, coneRadius, p.quality, cones + itc, nmcone + itn);
+            for(int i = 0 ; i < cosize; i += 3)
+            {
+                add(cones + itc + i, v + itv + 3, cones + itc + i);
+            }
+            rprev = itr;
+            itr += step;
+            itc += cosize;
+            itn += tusize;
         }
         itv += 3 * p.stride;
-        rprev = itr;
-        
-        //if(something % p.arrowStride == p.arrowStride - 1)
-        //{
-        //
-        //}
+        count++;
     }
     
-    //the last ring, calculated afterward to avoid overstepping bounds in loop
-    sub(v + itv, v + itv - 3, r + rlast);
-    mkring(r + rlast, p.quality, p.radius, r + rlast, nm + rlast, nm + rprev);
-    for(int i = rlast; i < rsize; i+=3)
+    /*
+    if(nrings > 2)
     {
-        norm(r + i, r + rsize + i);
-        add(v + itv, r + i, r + i);
+        //the last ring, calculated afterward to avoid overstepping bounds in loop
+        sub(v + itv, v + itv - 3, result + rlast);
+        mkring(result + rlast, p.quality, p.radius, result + rlast, nmtube + rlast, nmtube + rprev);
+        for(int i = rlast; i < rsizet; i+=3)
+        {
+            norm(result + i, result + rsizet + i); 
+            add(v + itv, result + i, result + i);
+        }
+        rprev = itr;
+        itr += step;
+        if(count % p.arrowStride == arrowOffset)
+        {
+            //get position for additional ring
+            float m = mag(tubes + itr);
+            mov(tubes + itr, tubes + itr + step);
+            div(tubes + itr, m, tubes + itr);
+            mul(tubes + itr, m - p.radius, cones + itc);
+            add(v + itv, tubes + itr, cones + itc + 3);
+            mkring(tubes + itr, p.quality, p.radius, tubes + itr, nmtube + itr);
+            for(int i = 0; i < rnsize; i += 3)
+            {
+                add(cones + itc + 3, tubes + itr + i, tubes + itr + i);
+            }
+            mul(cones + itc, coneRadius, cones + itc);
+            mkcone(cones + itc, coneRadius, p.quality, cones + itc, nmcone + itn);
+            for(int i = 0 ; i < cosize; i += 3)
+            {
+                add(cones + itc + i, v + itv, cones + itc + i);
+            }
+            rprev = itr;
+            itr += step;
+            itc += cosize;
+            itn += tusize;
+        }
     }
-    //if(something % p.arrowStride == p.arrowStride - 1)
-    //{
-    //
-    //}
+    */
 
-    return r;
+    return result;
 }
 
 static bool printed = false;
@@ -928,19 +1008,54 @@ void GLPathRenderer::Draw(const float *v, int n)
         break;
         case Arrow:
         {
-            n = n / prp.stride;
+            int rnverts = 4 << p.quality; //vertices in a ring
+            int tuverts = rnverts * 2; //vertices in a tube
+            int coverts = rnverts + 1; //vertices in a cone
+            int rnsize = 3 * rnverts; //floats in a ring
+            int tusize = rnsize * 2; //floats in a tube, floats in a cone's
+            int cosize = coverts * 3; //floats in a cone
+            int nrings = (((prp.arrowStride + 1) * n) / (prp.stride * prp.arrowStride)) - 1;
+            int ncones = nrings / prp.arrowStride; //number of cones
+            float coneRadius = prp.radius * prp.arrowRatio;
+            //there is an extra ring for every arrow, to prevent tubes from
+            //clipping through their cones
+            int rsizet = nrings * rnsize; //size of tube section
+            int rsizec = ncones * cosize; //size of cone section
+            int nsizet = rsizet; //size of tube norm section
+            int nsizec = ncones * tusize; //size of cone norm section
+            int total = rsizet + nsizet + rsizec + nsizec;
+            //n = n / prp.stride;
             if(changed || prevdata != v)
             {
                 if(prevdata != 0) delete[] prevdata;
-                prevdata = prArrows(v, n, prp);
+                prevdata = prArrows(v, n / prp.stride, prp);
             }
+            float* cones = prevdata + rsizet + nsizet;
+            float* nmcone = cones + rsizec;
             int rsize = (4 << prp.quality) * 3;
             //int total = ((n << (2 + prp.quality)) * 3) - rsize;
-            int total = rsize * n;
+            //TO REVERSE CURRENT FAILURE, "NRINGS" -> "N"
+            //int total = rnsize * nrings;
             //glColor4fv(prp.baseColor);
+            int arrowOffset = prp.arrowStride - 1;
+            int count = 0;
+            int itc = 0;
+            int itn = 0;
             glMaterialfv(GL_FRONT, GL_DIFFUSE, prp.baseColor);
-            for(int i = 0; i < total - rsize; i += rsize)
-                drawTube(prevdata + i, prp.quality, total);
+            for(int i = 0; i < nsizet - rnsize; i += rnsize)
+            {
+                drawTube(prevdata + i, prp.quality, rsizet);
+                if(count % prp.arrowStride != arrowOffset)
+                {
+                    count++;
+                    continue;
+                }
+                //increment counter, draw arrowhead!
+                drawCone(cones + itc, nmcone + itn, prp.quality);
+                i += rnsize;
+                itc += cosize;
+                itn += tusize;
+            }
         }
         break;
         case Point:
