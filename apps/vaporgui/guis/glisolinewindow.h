@@ -72,8 +72,6 @@ protected:
 	void mouseReleaseEvent( QMouseEvent * );
     void mouseMoveEvent( QMouseEvent * );
 
-	void doFrameCapture();
-
 	//Size of isoline in world coords.
 	//This rectange will do its best to fill the isoline space.
 	float horizImgSize, vertImgSize;

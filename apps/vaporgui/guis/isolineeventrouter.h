@@ -56,6 +56,7 @@ public:
 	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1, bool reEnable = false);
 
 	virtual void refreshTab();
+	
 	virtual void setEditorDirty(RenderParams*);
 	
 	void sliderToText(IsolineParams* pParams, int coord, int slideCenter, int slideSize);
@@ -64,9 +65,12 @@ public:
 	virtual void captureMouseDown(int button);
 	virtual void captureMouseUp();
 	virtual QSize sizeHint() const;
+	virtual void updateMapBounds(RenderParams* rParams);
 #ifdef Darwin
 	void paintEvent(QPaintEvent*);
 #endif
+	void sessionLoadTF(QString* name);
+	virtual void setDatarangeDirty(RenderParams* ){}
 	void textToSlider(IsolineParams* pParams, int coord, float newCenter, float newSize);
 	void setZCenter(IsolineParams* pParams,int sliderval);
 	void setYCenter(IsolineParams* pParams,int sliderval);
@@ -113,6 +117,10 @@ public:
 
 
 protected slots:
+	void guiEditIsovalues();
+	void isolineLoadTF();
+	void isolineLoadInstalledTF();
+	void isolineSaveTF();
 	void setIsolineEditMode(bool);
 	void setIsolineNavigateMode(bool);
 	void refreshHisto();
@@ -167,7 +175,7 @@ protected slots:
 	void guiSetCompRatio(int num);
 	void setIsolineTabTextChanged(const QString& qs);
 	void isolineReturnPressed();
-	void captureImage();
+	
 	void showHideAppearance();
 	void showHideLayout();
 	void showHideImage();

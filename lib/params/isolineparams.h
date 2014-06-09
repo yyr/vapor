@@ -6,6 +6,7 @@
 #include "params.h"
 #include "datastatus.h"
 #include "mapperfunction.h"
+#include "transferfunction.h"
 
 namespace VAPoR {
 
@@ -111,6 +112,8 @@ public:
 	void SetPanelBackgroundColor(const float rgb[3]);
 
 	const vector<double>& GetPanelBackgroundColor();
+
+	void getLineColor(int isoNum, float lineColor[3]);
 	
 	void SetVariableName(const string& varName);
 	const string& GetVariableName();
@@ -129,6 +132,8 @@ public:
 	IsoControl* GetIsoControl(){
 		return (IsoControl*)(GetRootNode()->GetNode(_IsoControlTag)->GetParamsBase());
 	}
+	virtual MapperFunction* GetMapperFunc();
+	virtual bool UsesMapperFunction() {return true;}
 	const vector<double>& GetIsovalues(){
 		return (GetIsoControl()->getIsoValues());
 	}
@@ -140,6 +145,19 @@ public:
 	}
 	void SetCursorCoords(const vector<double>& coords){
 		GetRootNode()->SetElementDouble(_cursorCoordsTag,coords);
+	}
+	//The color map and the iso control share the same edit bounds.
+	virtual float getMinColorEditBound(int) {
+		return (float)getMinEditBound();
+	}
+	virtual float getMaxColorEditBound(int ) {
+		return (float)getMaxEditBound();
+	}
+	virtual void setMinColorEditBound(float val, int) {
+		setMinEditBound((double)val);
+	}
+	virtual void setMaxColorEditBound(float val, int ) {
+		setMaxEditBound((double)val);
 	}
 	double getMinEditBound(){
 		return GetRootNode()->GetElementDouble(_editBoundsTag)[0];
@@ -172,6 +190,8 @@ public:
 			isoContr->getMaxHistoValue() == bnds[1]) return;
 		isoContr->setMinHistoValue(bnds[0]);
 		isoContr->setMaxHistoValue(bnds[1]);
+		isoContr->setMinColorMapValue(bnds[0]);
+		isoContr->setMaxColorMapValue(bnds[1]);
 		setAllBypass(false);
 	}
 	void GetHistoBounds(float bounds[2]){
@@ -189,7 +209,7 @@ public:
 		 return _histoBounds;
 	 }
 	virtual int getSessionVarNum();
-	
+	virtual void hookupTF(TransferFunction* , int );
 	//Override default, allow probe manip to go outside of data:
 	virtual bool isDomainConstrained() {return false;}
 	float getLocalBoxMin(int i) {return (float)GetBox()->GetLocalExtents()[i];}

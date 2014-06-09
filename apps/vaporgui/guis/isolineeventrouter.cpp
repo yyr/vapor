@@ -41,6 +41,7 @@
 #include <qcursor.h>
 #include <qtooltip.h>
 #include "isolinerenderer.h"
+#include "isovalueeditor.h"
 #include "regionparams.h"
 #include "mainform.h"
 #include "vizwinmgr.h"
@@ -104,7 +105,7 @@ IsolineEventRouter::IsolineEventRouter(QWidget* parent): QWidget(parent), Ui_Iso
 	myParamsBaseType = Params::GetTypeFromTag(IsolineParams::_isolineParamsTag);
 	myWebHelpActions = makeWebHelpActions(webHelpText,webHelpURL);
 	isoSelectionFrame->setOpacityMapping(true);
-	isoSelectionFrame->setColorMapping(false);
+	isoSelectionFrame->setColorMapping(true);
 	isoSelectionFrame->setIsoSlider(false);
 	isoSelectionFrame->setIsolineSliders(true);
 	fidelityButtons = 0;
@@ -194,6 +195,9 @@ IsolineEventRouter::hookUpTab()
 	connect (rightHistoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (histoScaleEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 
+	connect (loadButton, SIGNAL(clicked()), this, SLOT(isolineLoadTF()));
+	connect (loadInstalledButton, SIGNAL(clicked()), this, SLOT(isolineLoadInstalledTF()));
+	connect (saveButton, SIGNAL(clicked()), this, SLOT(isolineSaveTF()));
 	connect (regionCenterButton, SIGNAL(clicked()), this, SLOT(isolineCenterRegion()));
 	connect (viewCenterButton, SIGNAL(clicked()), this, SLOT(isolineCenterView()));
 	connect (rakeCenterButton, SIGNAL(clicked()), this, SLOT(isolineCenterRake()));
@@ -227,7 +231,6 @@ IsolineEventRouter::hookUpTab()
 	connect (xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineXSize()));
 	connect (ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineYSize()));
 
-	connect (captureButton, SIGNAL(clicked()), this, SLOT(captureImage()));
 	connect (copyToProbeButton, SIGNAL(clicked()), this, SLOT(copyToProbeOr2D()));
 
 	connect (instanceTable, SIGNAL(changeCurrentInstance(int)), this, SLOT(guiChangeInstance(int)));
@@ -243,6 +246,7 @@ IsolineEventRouter::hookUpTab()
 	connect(newHistoButton, SIGNAL(clicked()), this, SLOT(refreshHisto()));
 	connect(editButton, SIGNAL(toggled(bool)), this, SLOT(setIsolineEditMode(bool)));
 	connect(navigateButton, SIGNAL(toggled(bool)), this, SLOT(setIsolineNavigateMode(bool)));
+	connect(editIsovaluesButton, SIGNAL(clicked()), this, SLOT(guiEditIsovalues()));
 
 	// isoSelectionFrame controls:
 	connect(editButton, SIGNAL(toggled(bool)), 
@@ -481,14 +485,17 @@ void IsolineEventRouter::updateTab(){
 	int dim = isolineParams->VariablesAre3D() ? 3 : 2;
 	dimensionCombo->setCurrentIndex(dim-2);
 	ignoreComboChanges = false;
+	
 	if(isolineParams->GetIsoControl()){
 		isolineParams->GetIsoControl()->setParams(isolineParams);
 		isoSelectionFrame->setMapperFunction(isolineParams->GetIsoControl());
 	}
+	
     isoSelectionFrame->setVariableName(isolineParams->GetVariableName());
 	updateHistoBounds(isolineParams);
+	
 	isoSelectionFrame->updateParams();
-
+	
 	isolineImageFrame->setParams(isolineParams);
 	isolineImageFrame->update();
 	if (showLayout) {
@@ -507,7 +514,7 @@ void IsolineEventRouter::updateTab(){
 	
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
-	
+
 	setIgnoreBoxSliderEvents(false);
 	
 }
@@ -1755,91 +1762,6 @@ makeCurrent(Params* prevParams, Params* nextParams, bool newWin, int instance,bo
 	VizWinMgr::getInstance()->forceRender(pParams);
 }
 
-//Capture just one image
-//Launch a file save dialog to specify the names
-//Then put jpeg in it.
-//
-void IsolineEventRouter::captureImage() {
-	MainForm::getInstance()->showCitationReminder();
-	QString filename = QFileDialog::getSaveFileName(this,
-		"Specify image capture Jpeg file name",
-		Session::getInstance()->getJpegDirectory().c_str(),
-		"Jpeg Images (*.jpg)");
-	if(filename == QString("")) return;
-	
-	//Extract the path, and the root name, from the returned string.
-	QFileInfo* fileInfo = new QFileInfo(filename);
-	
-	if (fileInfo->exists()){
-		int rc = QMessageBox::warning(0, "File Exists", QString("OK to replace existing jpeg file?\n %1 ").arg(filename), QMessageBox::Ok, 
-			QMessageBox::No);
-		if (rc != QMessageBox::Ok) return;
-	}
-	//Save the path for future captures
-	Session::getInstance()->setJpegDirectory((const char*)fileInfo->absolutePath().toAscii());
-	if (!filename.endsWith(".jpg")) filename += ".jpg";
-	//
-	
-	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
-
-	float voxDims[3];
-	pParams->getRotatedVoxelExtents(voxDims);
-	
-	int wid = (int) voxDims[0];
-	int ht = (int)voxDims[1];
-	unsigned char* isolineTex;
-	unsigned char* buf;
-	 
-		//Determine the image size.  Start with the texture dimensions in 
-		// the scene, then increase x or y to make the aspect ratio match the
-		// aspect ratio in the scene
-		float aspRatio = pParams->getRealImageHeight()/pParams->getRealImageWidth();
-	
-		//Make sure the image is at least 256x256
-		if (wid < 256) wid = 256;
-		if (ht < 256) ht = 256;
-		float imAspect = (float)ht/(float)wid;
-		if (imAspect > aspRatio){
-			//want ht/wid = asp, but ht/wid > asp; make wid larger:
-			wid = (int)(0.5f+ (imAspect/aspRatio)*(float)wid);
-		} else { //Make ht larger:
-			ht = (int) (0.5f + (aspRatio/imAspect)*(float)ht);
-		}
-		//Construct the isoline image of the desired dimensions:
-		//buf = pParams->calcIsolineImage(timestep,wid,ht);
-
-	//Construct an RGB image from this.  Ignore alpha.
-	//invert top and bottom while removing alpha component
-	isolineTex = new unsigned char[3*wid*ht];
-	for (int j = 0; j<ht; j++){
-		for (int i = 0; i< wid; i++){
-			for (int k = 0; k<3; k++)
-				isolineTex[k+3*(i+wid*j)] = buf[k+4*(i+wid*(ht-j-1))];
-		}
-	}
-	
-	//Now open the jpeg file:
-	FILE* jpegFile = fopen((const char*)filename.toAscii(), "wb");
-	if (!jpegFile) {
-		MessageReporter::errorMsg("Image Capture Error: Error opening \noutput Jpeg file: \n%s",(const char*)filename.toAscii());
-		return;
-	}
-	//Now call the Jpeg library to compress and write the file
-	//
-	int quality = GLWindow::getJpegQuality();
-	int rc = write_JPEG_file(jpegFile, wid, ht, isolineTex, quality);
-	delete [] isolineTex;
-	if (rc){
-		//Error!
-		MessageReporter::errorMsg("Image Capture Error; \nError writing jpeg file \n%s",
-			(const char*)filename.toAscii());
-		delete [] buf;
-		return;
-	}
-	//Provide a message stating the capture in effect.
-	MessageReporter::infoMsg("Image is captured to %s",
-			(const char*)filename.toAscii());
-}
 
 void IsolineEventRouter::guiNudgeXSize(int val) {
 	
@@ -2528,8 +2450,8 @@ void IsolineEventRouter::guiSetAligned(){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "fit iso selection window to view");
 	setEditorDirty(iParams);
-	update();
 	PanelCommand::captureEnd(cmd, iParams);
+	updateTab();
 }
 void IsolineEventRouter::
 guiStartChangeIsoSelection(QString qstr){
@@ -2551,6 +2473,7 @@ guiStartChangeIsoSelection(QString qstr){
 void IsolineEventRouter::
 guiEndChangeIsoSelection(){
 	if (!savedCommand) return;
+	
 	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
 	float bnds[2];
 	iParams->GetHistoBounds(bnds);
@@ -2562,6 +2485,7 @@ guiEndChangeIsoSelection(){
 		if (minIso > ivalues[i]) minIso = ivalues[i];
 		if (maxIso < ivalues[i]) maxIso = ivalues[i]; 
 	}
+
 	if (minIso != prevIsoMin || maxIso != prevIsoMax){
 		//If the new values are not inside the histo bounds, respecify the bounds
 		float newHistoBounds[2];
@@ -2572,16 +2496,15 @@ guiEndChangeIsoSelection(){
 		}
 	}
 	
-
-	PanelCommand::captureEnd(savedCommand,iParams);
 	
+	PanelCommand::captureEnd(savedCommand,iParams);
 	savedCommand = 0;
 	updateTab();
 	//force redraw with changed isovalues
 	setIsolineDirty(iParams);
 	VizWinMgr::getInstance()->forceRender(iParams,GLWindow::getCurrentMouseMode() == GLWindow::isolineMode);
 }
-//Set isoControl editor dirty.
+//Set isoControl editor  dirty.
 void IsolineEventRouter::
 setEditorDirty(RenderParams* p){
 	IsolineParams* ip = (IsolineParams*)p;
@@ -2597,6 +2520,7 @@ setEditorDirty(RenderParams* p){
 		
 		const std::string& varname = ip->GetVariableName();
 		isoSelectionFrame->setVariableName(varname);
+		
 	} else {
 		isoSelectionFrame->setVariableName("N/A");
 	}
@@ -2826,7 +2750,7 @@ void IsolineEventRouter::convertIsovalsToColors(TransferFunction* tf){
 	int ncolors = cmap->numControlPoints();
 	leftMidColors.push_back(new ColorMapBase::Color(cmap->controlPointColor(ncolors-1)));
 	//Now delete all the color control points:
-	for (int i = 0; i<ncolors; i++) cmap->deleteControlPoint(0);
+	cmap->clear();
 	//Insert a color control point at min
 	cmap->addControlPointAt(minMapValue,*leftMidColors[0]);
 	//Insert a color control point at each leftmidpoint
@@ -2845,4 +2769,94 @@ void IsolineEventRouter::convertIsovalsToColors(TransferFunction* tf){
 	for (int i = 0; i<leftMidColors.size(); i++) delete leftMidColors[i];
 	//Make the color map discrete
 	tf->setColorInterpType(TFInterpolator::discrete);
+}
+/*
+ * Method to be invoked after the user has moved the right or left bounds
+ * (e.g. From the MapEditor. ) 
+ * Make the textboxes consistent with the new left/right bounds, but
+ * don't trigger a new undo/redo event
+ */
+void IsolineEventRouter::
+updateMapBounds(RenderParams* params){
+	IsolineParams* iParams = (IsolineParams*)params;
+	QString strn;
+	IsoControl* mpFunc = (IsoControl*)iParams->GetIsoControl();
+	if (mpFunc){
+		leftHistoEdit->setText(strn.setNum(mpFunc->getMinColorMapValue(),'g',4));
+		rightHistoEdit->setText(strn.setNum(mpFunc->getMaxColorMapValue(),'g',4));
+	} 
+	setEditorDirty(iParams);
+
+}
+//Respond to user click on save/load TF.  This launches the intermediate
+//dialog, then sends the result to the DVR params
+void IsolineEventRouter::
+isolineSaveTF(void){
+	IsolineParams* dParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
+	saveTF(dParams);
+}
+
+void IsolineEventRouter::
+isolineLoadInstalledTF(){
+	IsolineParams* dParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
+	IsoControl* tf = dParams->GetIsoControl();
+	if (!tf) return;
+	float minb = tf->getMinColorMapValue();
+	float maxb = tf->getMaxColorMapValue();
+	if (minb >= maxb){ minb = 0.0; maxb = 1.0;}
+	loadInstalledTF(dParams,0);
+	tf = dParams->GetIsoControl();
+	tf->setMinHistoValue(minb);
+	tf->setMaxHistoValue(maxb);
+	setEditorDirty(dParams);
+	VizWinMgr::getInstance()->setClutDirty(dParams);
+}
+void IsolineEventRouter::
+isolineLoadTF(void){
+	//If there are no TF's currently in Session, just launch file load dialog.
+	IsolineParams* dParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
+	loadTF(dParams,dParams->getSessionVarNum());
+	VizWinMgr::getInstance()->setClutDirty(dParams);
+}
+//Respond to user request to load/save TF
+//Assumes name is valid
+//
+void IsolineEventRouter::
+sessionLoadTF(QString* name){
+	IsolineParams* dParams = VizWinMgr::getActiveIsolineParams();
+	
+	confirmText(false);
+	
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Load Transfer Function from Session");
+	
+	//Get the transfer function from the session:
+	
+	std::string s(name->toStdString());
+	TransferFunction* tf = Session::getInstance()->getTF(&s);
+	assert(tf);
+	int varNum = dParams->getSessionVarNum();
+	dParams->hookupTF(tf, varNum);
+	PanelCommand::captureEnd(cmd, dParams);
+	setEditorDirty(dParams);
+	
+	VizWinMgr::getInstance()->setClutDirty(dParams);
+}
+//Launch an editor on the isovalues
+void IsolineEventRouter::guiEditIsovalues(){
+	IsolineParams* iParams = VizWinMgr::getActiveIsolineParams();
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(iParams, "Edit Isovalues");
+	
+	IsovalueEditor sle(iParams->getNumIsovalues(), iParams);
+	if (!sle.exec()){
+		delete cmd;
+		return;
+	}
+	vector<double>isovals = iParams->GetIsovalues();
+	std::sort(isovals.begin(),isovals.end());
+	iParams->SetIsovalues(isovals);
+	PanelCommand::captureEnd(cmd, iParams);
+	setIsolineDirty(iParams);
+	VizWinMgr::getInstance()->forceRender(iParams,GLWindow::getCurrentMouseMode() == GLWindow::isolineMode);
+	updateTab();
 }

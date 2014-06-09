@@ -4,7 +4,7 @@ GUI_FILES := \
 	vizselectcombo seedlisteditor instancetable \
 	animationeventrouter dvreventrouter floweventrouter \
 	regioneventrouter viewpointeventrouter probeeventrouter \
-	arroweventrouter \
+	arroweventrouter isovalueeditor\
 	isoeventrouter probeframe glprobewindow \
 	isolineeventrouter isolineframe glisolinewindow \
 	twoDeventrouter twoDdataeventrouter twoDimageeventrouter \
@@ -18,7 +18,7 @@ GUI_FILES := \
 
 GUI_QT_HEADERS := \
 	colorpickerframe loadtfdialog  \
-	boxsliderframe \
+	boxsliderframe isovalueeditor \
 	savetfdialog vizselectcombo \
 	probeframe seedlisteditor instancetable \
 	twodframe twoDimageeventrouter twoDdataeventrouter \

@@ -228,8 +228,7 @@ IsoControl::IsoControl() :
     _opacityMaps.clear();
 	isoValues.clear();
 	isoValues.push_back(0.);
-	if (_colormap) delete _colormap;
-	_colormap = 0;
+
 }
 
 //----------------------------------------------------------------------------
@@ -238,9 +237,7 @@ IsoControl::IsoControl() :
 IsoControl::IsoControl(RenderParams* p, int nBits) :
   MapperFunction(p,nBits)
 {
-	// Delete ColorMapBase and OpacityMapBase created by parent class
-	if (_colormap) delete _colormap;	
-
+	
 	for (int i=0; i<_opacityMaps.size(); i++) {
 		delete _opacityMaps[i];
 		_opacityMaps[i] = NULL;
@@ -249,10 +246,6 @@ IsoControl::IsoControl(RenderParams* p, int nBits) :
 
 	isoValues.clear();
 	isoValues.push_back(0.);
-	// Now recreate color map with the appropriate type
-	//
-    //_colormap = new Colormap(this);
-	_colormap = 0;
 
 }
 
@@ -262,8 +255,8 @@ IsoControl::IsoControl(RenderParams* p, int nBits) :
 IsoControl::IsoControl(const IsoControl &mapper) :
   MapperFunction(mapper)
 {
-	// Delete ColorMapBase and OpacityMapBase created by parent class
-	if (_colormap) delete _colormap;	
+	// Delete OpacityMapBase created by parent class
+	
 
 	for (int i=0; i<_opacityMaps.size(); i++) 
     {
@@ -274,11 +267,7 @@ IsoControl::IsoControl(const IsoControl &mapper) :
     _opacityMaps.clear();
 
 	isoValues = mapper.isoValues;
-	// Now recreate color map with the appropriate type
-	//
-	//const Colormap &cmap =  (const Colormap &) (*(mapper._colormap));
-	//_colormap = new Colormap(cmap, this);
-	_colormap = 0;
+	
 
 }
 
@@ -357,6 +346,13 @@ bool IsoControl::elementStartHandler(ExpatParseMgr* pm,
 		state->data_type = value;
 		return true;  
 	}
+	//Or a color map:
+	else if (StrCmpNoCase(tagString, ColorMapBase::xmlTag()) == 0) 
+	{
+		pm->pushClassStack(_colormap);
+		return _colormap->elementStartHandler(pm, depth, tagString, attrs);
+	}
+	
 	else {
 		pm->skipElement(tagString, depth);
 		return true;
@@ -387,12 +383,16 @@ bool IsoControl::elementEndHandler(ExpatParseMgr* pm, int depth ,
 	} else if (StrCmpNoCase(tag, _leftHistoBoundTag) == 0) {		
 		vector<double> histval = pm->getDoubleData();
 		setMinOpacMapValue(histval[0]);
+		setMinColorMapValue(histval[0]);
 		return true;
 	} else if (StrCmpNoCase(tag, _rightHistoBoundTag) == 0) {		
 		vector<double> histval = pm->getDoubleData();
 		setMaxOpacMapValue(histval[0]);
+		setMaxColorMapValue(histval[0]);
 		return true;
-	} else return false;
+	} else if (StrCmpNoCase(tag, ColorMapBase::xmlTag()) == 0) return true;
+		
+	else return false;
 }
 
 //----------------------------------------------------------------------------
@@ -419,5 +419,8 @@ ParamNode* IsoControl::buildNode()
 	
 	//add an isovalue node:
 	mainNode->SetElementDouble(ParamsIso::_IsoValueTag, isoValues);
+	//Add colormap node..
+	if (_colormap)
+		mainNode->XmlNode::AddChild(_colormap->buildNode());
 	return mainNode;
 }

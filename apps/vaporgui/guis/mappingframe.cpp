@@ -510,9 +510,9 @@ void MappingFrame::fitToView()
   setMaxEditBound(_maxValue);
   
   _domainSlider->setDomain(xDataToWorld(_minValue), xDataToWorld(_maxValue));
-  
-  emit endChange();
   if(_colorbarWidget) _colorbarWidget->setDirty();
+  emit endChange();
+  
   updateGL();
 }
 

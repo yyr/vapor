@@ -90,13 +90,13 @@ void IsolineRenderer::paintGL()
 void IsolineRenderer::performRendering(int timestep){
 	
 	IsolineParams* iParams = (IsolineParams*)getRenderParams();
-	//Set up lighting and color
-	float fcolors[3] = {1.f,1.f,1.f};
+	//Set up lighting 
+	
 	
 	glDisable(GL_LIGHTING);
 	glEnable(GL_LINE_SMOOTH);
 	glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
-	glColor3fv(fcolors);
+	
 	glLineWidth(iParams->GetLineThickness());
 	//Need to convert the iso-box coordinates to user coordinates, then to unit box coords.
 	float transformMatrix[12];
@@ -108,6 +108,9 @@ void IsolineRenderer::performRendering(int timestep){
 	glBegin(GL_LINES);
 	
 	for(int iso = 0; iso< iParams->getNumIsovalues(); iso++){
+		float lineColor[3];
+		iParams->getLineColor(iso,lineColor);
+		glColor3fv(lineColor);
 		pair<int,int> mapPair = make_pair(timestep, iso);
 		vector<float*> lines = lineCache[mapPair];
 		for (int linenum = 0; linenum < lines.size(); linenum++){

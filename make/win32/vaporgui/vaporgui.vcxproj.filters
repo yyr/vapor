@@ -321,6 +321,12 @@
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isolineframe.cpp">
       <Filter>Generated MOC Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\apps\vaporgui\guis\isovalueeditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isovalueeditor.cpp">
+      <Filter>Generated MOC Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\apps\vaporgui\misc\animationcontroller.h">
@@ -590,6 +596,9 @@
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\isolineframe.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\isovalueeditor.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>

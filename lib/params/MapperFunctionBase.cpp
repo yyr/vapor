@@ -78,6 +78,7 @@ MapperFunctionBase::MapperFunctionBase(const string& name) :
     _colormap = NULL;
 
     _compType = ADDITION;
+	numEntries = 256;
 }
 
 //----------------------------------------------------------------------------
