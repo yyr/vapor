@@ -3,5 +3,8 @@
  + complete support for arguments
  + profiling
  + hedgehogger arrow rendering
- ~ pathrenderer arrow rendering
+ + pathrenderer arrow rendering
+ ~ restructuring API
+ - pathrenderer arrows: stride, arrowStride
+ 
 
