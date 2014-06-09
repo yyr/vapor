@@ -300,12 +300,14 @@
     <ClInclude Include="..\..\..\include\vapor\NCBuf.h" />
     <ClInclude Include="..\..\..\include\vapor\NetCDFCFCollection.h" />
     <ClInclude Include="..\..\..\include\vapor\NetCDFCollection.h" />
+    <ClInclude Include="..\..\..\include\vapor\NetCDFCpp.h" />
     <ClInclude Include="..\..\..\include\vapor\RegularGrid.h" />
     <ClInclude Include="..\..\..\include\vapor\SphericalGrid.h" />
     <ClInclude Include="..\..\..\include\vapor\StretchedGrid.h" />
     <ClInclude Include="..\..\..\include\vapor\Transpose.h" />
     <ClInclude Include="..\..\..\include\vapor\VDCFactory.h" />
     <ClInclude Include="..\..\..\include\vapor\VDFIOBase.h" />
+    <ClInclude Include="..\..\..\include\vapor\WASP.h" />
     <ClInclude Include="..\..\..\include\vapor\WaveletBlock1D.h" />
     <ClInclude Include="..\..\..\include\vapor\WaveletBlock2D.h" />
     <ClInclude Include="..\..\..\include\vapor\WaveletBlock3D.h" />
