@@ -449,7 +449,11 @@ GLFlowRenderer::GLFlowRenderer()
 {
     p = GLFlowRenderer::Params();
     changed = false;
-    prevdata = 0;
+    prevdata = NULL;
+    
+    output = NULL;
+    osizes = NULL;
+    ocount = 0;
 }
 
 GLFlowRenderer::~GLFlowRenderer()
@@ -520,6 +524,9 @@ const GLFlowRenderer::Params *GLFlowRenderer::GetParams() const
 GLHedgeHogger::GLHedgeHogger() : GLFlowRenderer()
 {
     hhp = GLHedgeHogger::Params();
+    output = NULL;
+    osizes = NULL;
+    ocount = 0;
 }
 
 GLHedgeHogger::~GLHedgeHogger()
@@ -645,6 +652,92 @@ static inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
     return result;
 }
 
+static inline void hhDrawTubes(const float* v, int n, GLHedgeHogger::Params hhp)
+{
+    int tsize = (8 << hhp.quality) * 3;
+    int total = (n << (3 + hhp.quality)) * 3;
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, hhp.baseColor);
+    for(int i = 0; i < total; i += tsize * hhp.stride)
+        drawTube(v + i, hhp.quality, total);
+}
+
+static inline void hhDrawArrows(const float* v, int n, GLHedgeHogger::Params hhp)
+{
+    //drawCone(const float* v, const float* n, int q)
+    int rnverts = 4 << hhp.quality; //vertices in a ring
+    int tuverts = rnverts * 2; //vertices in a tube
+    int coverts = rnverts + 1; //vertices in a cone
+    int rnsize = 3 * rnverts; //floats in a ring
+    int tusize = rnsize * 2; //floats in a tube
+    int cosize = coverts * 3; //floats in a cone
+    int narrows = n / hhp.stride; //number of tubes
+    int rsizet = narrows * tusize; //size of tube section
+    int rsizec = narrows * cosize; //size of cone section
+    int nsizet = rsizet; //size of tube norm section
+    int nsizec = narrows * rnsize * 2; //size of cone norm section
+    const float* cones = v + rsizet + nsizet;
+    
+    //code re-use from drawing for tubes! :D
+    int tsize = (8 << hhp.quality) * 3;
+    int total = (n << (3 + hhp.quality)) * 3;
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, hhp.baseColor);
+    for(int i = 0; i < total; i += tsize * hhp.stride)
+        drawTube(v + i, hhp.quality, total);
+    
+    int itn = 0;
+    for(int i = 0; i < rsizec; i += cosize)
+    {
+        drawCone(cones + i, cones + rsizec + itn, hhp.quality);
+        itn += rnsize * 2;
+    }
+}
+
+static inline void hhDraw(const float* v, int n, GLHedgeHogger::Params hhp)
+{
+    switch(hhp.style)
+    {
+        case GLFlowRenderer::Tube:
+            hhDrawTubes(v, n, hhp);
+            break;
+        case GLFlowRenderer::Arrow:
+            hhDrawArrows(v, n, hhp);
+            break;
+        default:
+            //print an error message?
+            break;
+    }
+}
+
+void GLHedgeHogger::Draw(const float** v, const int* sizes, int count)
+{
+    float* (*funcptr)(const float*, int, GLHedgeHogger::Params) = hhp.style == Tube ? hhTubes : hhp.style == Arrow ? hhArrows : NULL;
+    if(changed || v != prevdata)
+    {
+        if(output)
+        {
+            for(int i = 0; i < ocount; i++)
+            {
+                if(output[i]) delete[] output[i];
+            }
+            delete[] output;
+            delete[] osizes;
+        }
+        ocount = count;
+        output = new float*[ocount];
+        osizes = new int[ocount];
+        for(int i = 0; i < ocount; i++)
+        {
+            osizes[i] = sizes[i];
+            output[i] = funcptr(v[i], sizes[i], hhp);
+        }
+    }
+    for(int i = 0; i < ocount; i++)
+        hhDraw(output[i], osizes[i], hhp);
+    prevdata = v;
+}
+//*/
+
+/*
 void GLHedgeHogger::Draw(const float *v, int n)
 {
     switch(hhp.style)
@@ -705,13 +798,7 @@ void GLHedgeHogger::Draw(const float *v, int n)
         }
     }
 }
-
-void GLHedgeHogger::Draw(const float *vectors, const float *rgba, int n)
-{
-
-}
-
-
+//*/
 
 GLPathRenderer::GLPathRenderer() : GLFlowRenderer()
 {
@@ -912,7 +999,7 @@ static float* prArrows(const float* v, int n, GLPathRenderer::Params p)
         rprev = itr;
         itr += step;
         
-        if(count % p.arrowStride == arrowOffset)
+        if(count % p.arrowStride == arrowOffset || itr == rlast)
         {
             //get position for additional ring
             float m = mag(tubes + itr);
@@ -940,51 +1027,112 @@ static float* prArrows(const float* v, int n, GLPathRenderer::Params p)
         itv += 3 * p.stride;
         count++;
     }
-    
-    /*
-    if(nrings > 2)
-    {
-        //the last ring, calculated afterward to avoid overstepping bounds in loop
-        sub(v + itv, v + itv - 3, result + rlast);
-        mkring(result + rlast, p.quality, p.radius, result + rlast, nmtube + rlast, nmtube + rprev);
-        for(int i = rlast; i < rsizet; i+=3)
-        {
-            norm(result + i, result + rsizet + i); 
-            add(v + itv, result + i, result + i);
-        }
-        rprev = itr;
-        itr += step;
-        if(count % p.arrowStride == arrowOffset)
-        {
-            //get position for additional ring
-            float m = mag(tubes + itr);
-            mov(tubes + itr, tubes + itr + step);
-            div(tubes + itr, m, tubes + itr);
-            mul(tubes + itr, m - p.radius, cones + itc);
-            add(v + itv, tubes + itr, cones + itc + 3);
-            mkring(tubes + itr, p.quality, p.radius, tubes + itr, nmtube + itr);
-            for(int i = 0; i < rnsize; i += 3)
-            {
-                add(cones + itc + 3, tubes + itr + i, tubes + itr + i);
-            }
-            mul(cones + itc, coneRadius, cones + itc);
-            mkcone(cones + itc, coneRadius, p.quality, cones + itc, nmcone + itn);
-            for(int i = 0 ; i < cosize; i += 3)
-            {
-                add(cones + itc + i, v + itv, cones + itc + i);
-            }
-            rprev = itr;
-            itr += step;
-            itc += cosize;
-            itn += tusize;
-        }
-    }
-    */
 
     return result;
 }
 
-static bool printed = false;
+static inline void prDrawTubes(const float* v, int n, GLPathRenderer::Params prp)
+{
+    int rsize = (4 << prp.quality) * 3;
+    //int total = ((n << (2 + prp.quality)) * 3) - rsize;
+    int total = rsize * n;
+    //glColor4fv(prp.baseColor);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, prp.baseColor);
+    for(int i = 0; i < total - rsize; i += rsize)
+        drawTube(v + i, prp.quality, total);
+}
+
+static inline void prDrawArrows(const float* v, int n, GLPathRenderer::Params prp)
+{
+    int rnverts = 4 << prp.quality; //vertices in a ring
+    int tuverts = rnverts * 2; //vertices in a tube
+    int coverts = rnverts + 1; //vertices in a cone
+    int rnsize = 3 * rnverts; //floats in a ring
+    int tusize = rnsize * 2; //floats in a tube, floats in a cone's
+    int cosize = coverts * 3; //floats in a cone
+    int nrings = (((prp.arrowStride + 1) * n) / (prp.stride * prp.arrowStride)) - 1;
+    int ncones = nrings / prp.arrowStride; //number of cones
+    float coneRadius = prp.radius * prp.arrowRatio;
+    //there is an extra ring for every arrow, to prevent tubes from
+    //clipping through their cones
+    int rsizet = nrings * rnsize; //size of tube section
+    int rsizec = ncones * cosize; //size of cone section
+    int nsizet = rsizet; //size of tube norm section
+    int nsizec = ncones * tusize; //size of cone norm section
+    int total = rsizet + nsizet + rsizec + nsizec;
+    const float* cones = v + rsizet + nsizet;
+    const float* nmcone = cones + rsizec;
+    int rsize = (4 << prp.quality) * 3;
+    //int total = ((n << (2 + prp.quality)) * 3) - rsize;
+    //TO REVERSE CURRENT FAILURE, "NRINGS" -> "N"
+    //int total = rnsize * nrings;
+    //glColor4fv(prp.baseColor);
+    int arrowOffset = prp.arrowStride - 1;
+    int count = 0;
+    int itc = 0;
+    int itn = 0;
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, prp.baseColor);
+    for(int i = 0; i < nsizet - rnsize; i += rnsize)
+    {
+        drawTube(v + i, prp.quality, rsizet);
+        if(count % prp.arrowStride != arrowOffset)
+        {
+            count++;
+            continue;
+        }
+        //increment counter, draw arrowhead!
+        drawCone(cones + itc, nmcone + itn, prp.quality);
+        i += rnsize;
+        itc += cosize;
+        itn += tusize;
+    }
+}
+
+static inline void prDraw(const float* v, int n, GLPathRenderer::Params prp)
+{
+    switch(prp.style)
+    {
+        case GLFlowRenderer::Tube:
+            prDrawTubes(v, n, prp);
+            break;
+        case GLFlowRenderer::Arrow:
+            prDrawArrows(v, n, prp);
+            break;
+        default:
+            //print an error message?
+            break;
+    }
+}
+
+void GLPathRenderer::Draw(const float **v, const int *sizes, int count)
+{
+    float* (*funcptr)(const float*, int, GLPathRenderer::Params) = prp.style == Tube ? prTubes : prp.style == Arrow ? prArrows : NULL;
+    if(changed || v != prevdata)
+    {
+        if(output)
+        {
+            for(int i = 0; i < ocount; i++)
+            {
+                if(output[i]) delete[] output[i];
+            }
+            delete[] output;
+            delete[] osizes;
+        }
+        ocount = count;
+        output = new float*[ocount];
+        osizes = new int[ocount];
+        for(int i = 0; i < ocount; i++)
+        {
+            osizes[i] = sizes[i] / prp.stride;
+            output[i] = funcptr(v[i], sizes[i], prp);
+        }
+    }
+    for(int i = 0; i < ocount; i++)
+        prDraw(output[i], osizes[i], prp);
+    prevdata = v;
+}
+
+/*
 void GLPathRenderer::Draw(const float *v, int n)
 {
     switch(prp.style)
@@ -1065,10 +1213,5 @@ void GLPathRenderer::Draw(const float *v, int n)
         break;
     }
 }
-
-void GLPathRenderer::Draw(const float *vectors, const float *rgba, int n)
-{
-
-}
-
+//*/
 

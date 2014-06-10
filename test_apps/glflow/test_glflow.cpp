@@ -690,20 +690,22 @@ void display(double* profout)
 
     double t1;
     t1 = GetTime();
+    const int s = 9;
+    const int s2 = SPIRAL_SZ;
+    const float* thedata = (const float*)hogdata;
+    const float* themoar = (const float*)pathdata6;
+    const float** evenmoar = (const float**)pathdata7;
     //hog.Draw(hogdata2, 1); //single tube
-    //hog.Draw(hogdata, 9); //regular array
+    //hog.Draw(&thedata, &s, 1); //regular array
     //path.Draw(pathdata2, 3); //90 degree, dual-segment
     //path.Draw(pathdata3, 3); //straight, dual-segment
     //path.Draw(pathdata4, 2); //single-segment
     //path.Draw(pathdata5, 6); //kink testing
     if(pathdata7)
     {
-        for(int i = 0; i < pd7sz; i++)
-        {
-            path.Draw(pathdata7[i], pd7szs[i]);
-        }
+        path.Draw(evenmoar, pd7szs, pd7sz);
     }
-    else path.Draw(pathdata6, SPIRAL_SZ); //autospiral
+    else path.Draw(&themoar, &s2, 1); //autospiral
     //glTranslatef(0.f, 0.f, -3.f);
     //coneTest(conedir, opt.quality, opt.radius);
     //drawCube();
