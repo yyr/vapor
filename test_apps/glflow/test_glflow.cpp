@@ -48,7 +48,7 @@ OptionParser::OptDescRec_T set_options[] = {
 	{"quality", 1, "0", "Number of subdivisions of rendered shapes"},
 	{"stride", 1, "1", "Traverse how many vertices between rendering?"},
 	{"arrowstride", 1, "1", "How much to spread out arrowheads?"},
-	{"ratio", 1, "1.3", "Ratio of arrow to tube radius"},
+	{"ratio", 1, "2", "Ratio of arrow to tube radius"},
 	{"length", 1, "1.0", "Arrow cone length"},
 	{"profile", 1, "-1", "Profile, how many iterations?"},
 	{NULL}
@@ -673,6 +673,12 @@ inline void coneTest(const float* b, int q, float r)
     delete[] v;
 }
 
+const int s = 9;
+const int s2 = SPIRAL_SZ;
+const float* thedata;
+const float* themoar;
+const float** evenmoar;
+
 void display(double* profout)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -692,19 +698,13 @@ void display(double* profout)
     t1 = GetTime();
     const int s = 9;
     const int s2 = SPIRAL_SZ;
-    const float* thedata = (const float*)hogdata;
-    const float* themoar = (const float*)pathdata6;
-    const float** evenmoar = (const float**)pathdata7;
     //hog.Draw(hogdata2, 1); //single tube
     //hog.Draw(&thedata, &s, 1); //regular array
     //path.Draw(pathdata2, 3); //90 degree, dual-segment
     //path.Draw(pathdata3, 3); //straight, dual-segment
     //path.Draw(pathdata4, 2); //single-segment
     //path.Draw(pathdata5, 6); //kink testing
-    if(pathdata7)
-    {
-        path.Draw(evenmoar, pd7szs, pd7sz);
-    }
+    if(pathdata7) path.Draw(evenmoar, pd7szs, pd7sz);
     else path.Draw(&themoar, &s2, 1); //autospiral
     //glTranslatef(0.f, 0.f, -3.f);
     //coneTest(conedir, opt.quality, opt.radius);
@@ -758,6 +758,10 @@ int main(int argc, char** argv)
     }
     
     glfwGetWindowSize(window, &scrw, &scrh);
+    
+    thedata = (const float*)hogdata;
+    themoar = (const float*)pathdata6;
+    evenmoar = (const float**)pathdata7;
     
     init();
     if(opt.prof < 0)
