@@ -33,8 +33,11 @@ class QWidget;
 
 namespace VAPoR{
 
-
+//!
+//! \defgroup Public VAPOR Developer API
+//!
 //! \class EventRouter
+//! \ingroup Public
 //! \brief A pure virtual class specifying the common properties of all the parameter tabs in the VAPOR GUI
 //! \author Alan Norton
 //! \version 3.0
@@ -86,7 +89,6 @@ public:
 	//! Default does nothing.
 	virtual void updateUrgentTabState() {return;}
 
-	
 	//! Method to change the current instance index, and perform associated undo/redo capture.
 	//! Child classes should use this to respond to instance selection in the instance selector.
 	//! \param[in] int newCurrent specifies new current index
@@ -133,14 +135,7 @@ public:
 	//! captureMouseDown() for the EventRouter that is associated with the current mouse mode.
 	virtual void captureMouseDown(int mouseNum) {assert(0);}
 
-	//! Constructor
-	EventRouter() {
-		textChangedFlag = 0;
-		isoShown = colorMapShown = opacityMapShown = texShown = false;
-	}
-	//! virtual destructor
-	virtual ~EventRouter() {
-	}
+	
 	
 	//! Indicate the ParamsBaseType associated with the Params of this EventRouter.
 	//! \retval ParamsBase::ParamsBaseType

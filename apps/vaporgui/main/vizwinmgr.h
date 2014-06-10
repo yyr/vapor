@@ -320,7 +320,7 @@ public slots:
 	//! Set the current active Visualizer to use local or global Animation settings
 	//! \param[in] val is 0 for global, 1 for local.
 	void setAnimationLocalGlobal(int val);
-	
+///@}
 #ifndef DOXYGEN_SKIP_THIS
 signals:
 	//Turn on/off multiple viz options:

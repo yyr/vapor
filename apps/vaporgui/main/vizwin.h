@@ -31,13 +31,16 @@ class QMouseEvent;
 class QFocusEvent;
 
 namespace VAPoR {
-
+//!
+//! \defgroup Public VAPOR Developer API
+//!
 class MainForm;
 class VizWinMgr;
 class Visualizer;
 class Viewpoint;
 
 //! \class VizWin
+//! \ingroup Public
 //! \brief A QGLWidget that supports display based on GL methods invoked in a Visualizer
 //! \author Alan Norton
 //! \version 3.0
@@ -52,8 +55,7 @@ class VizWin : public QGLWidget
     Q_OBJECT
    
 public:
-    VizWin(MainForm* parent ,  const QString& name, Qt::WFlags fl , VizWinMgr*  myMgr, QRect* location , int winNum);
-    ~VizWin();
+
 	//! Specify the index of this window, which is also the Visualizer index as produced by ControlExec::NewVisualizer().
 	//! \param[in] visIndex visualizer index.
 	void setWindowNum(int visIndex) {
@@ -69,7 +71,13 @@ public:
 	
 	//! Force the window to update, even if nothing has changed.
 	void reallyUpdate();
-
+//! @name Internal
+//! Internal methods not intended for general use
+//!
+///@{
+	VizWin(MainForm* parent ,  const QString& name, Qt::WFlags fl , VizWinMgr*  myMgr, QRect* location , int winNum);
+    ~VizWin();
+///@}
 #ifndef DOXYGEN_SKIP_THIS
 public slots:
 	virtual void setFocus();
