@@ -1066,10 +1066,6 @@ static inline void prDrawArrows(const float* v, int n, GLPathRenderer::Params pr
     const float* cones = v + rsizet + nsizet;
     const float* nmcone = cones + rsizec;
     int rsize = (4 << prp.quality) * 3;
-    //int total = ((n << (2 + prp.quality)) * 3) - rsize;
-    //TO REVERSE CURRENT FAILURE, "NRINGS" -> "N"
-    //int total = rnsize * nrings;
-    //glColor4fv(prp.baseColor);
     int arrowOffset = prp.arrowStride - 1;
     int count = 0;
     int itc = 0;
@@ -1078,17 +1074,17 @@ static inline void prDrawArrows(const float* v, int n, GLPathRenderer::Params pr
     for(int i = 0; i < nsizet - rnsize; i += rnsize)
     {
         drawTube(v + i, prp.quality, rsizet);
-        if(count % prp.arrowStride != arrowOffset)
+        if(count % prp.arrowStride == arrowOffset)
         {
-            count++;
-            continue;
+            //increment counter, draw arrowhead!
+            drawCone(cones + itc, nmcone + itn, prp.quality);
+            i += rnsize;
+            itc += cosize;
+            itn += tusize;
         }
-        //increment counter, draw arrowhead!
-        drawCone(cones + itc, nmcone + itn, prp.quality);
-        i += rnsize;
-        itc += cosize;
-        itn += tusize;
+        count++;
     }
+    drawCone(cones + itc, nmcone + itn, prp.quality);
 }
 
 static inline void prDraw(const float* v, int n, GLPathRenderer::Params prp)
