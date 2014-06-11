@@ -838,6 +838,7 @@ const GLPathRenderer::Params *GLPathRenderer::GetParams() const
 
 static inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
 {
+    n = n / p.stride;
     if(n < 2) return NULL;
     //build a series of rings from the given vectors
     int rnverts = 4 << p.quality; //vertices in a ring
@@ -934,11 +935,12 @@ static float* prArrows(const float* v, int n, GLPathRenderer::Params p)
     int step = rnsize;
     int rlast = rsizet - step;
     int twostep = 2 * step;
+    int stride = 3 * p.stride;
     //the first ring, which we will not iterate over
     //because we need adjacent vectors to calculate direction
     //for the other rings, whereas this just points in the direction
     //of the endpoint vector
-    sub(v + 3, v, tubes + step);
+    sub(v + stride, v, tubes + step);
     mkring(tubes + step, p.quality, p.radius, tubes, nmtube);
     for(int i = 0; i < step; i+=3)
     {
@@ -969,21 +971,21 @@ static float* prArrows(const float* v, int n, GLPathRenderer::Params p)
         mkcone(cones, coneRadius, p.quality, cones, nmcone);
         for(int i = 0 ; i < cosize; i += 3)
         {
-            add(cones + i, v + itv + 3, cones + i);
+            add(cones + i, v + itv + stride, cones + i);
         }
         rprev = itr;
         itr += step;
         itc += cosize;
         itn += tusize;
     }
-    itv += 3 * p.stride;
+    itv += stride;
     
     int count = 1;
     //start at idx = 1, continue until second-to-last
     while(itr < rlast)
     {
         //get the current direction and pass it forward
-        sub(v + itv + (3 * p.stride), v + itv, result + itr + step);
+        sub(v + itv + stride, v + itv, result + itr + step);
         //correct if rather large direction
         //calculated using current and previous direction
         //previous direction was passed forward by previous iteration
@@ -1018,14 +1020,14 @@ static float* prArrows(const float* v, int n, GLPathRenderer::Params p)
             mkcone(cones + itc, coneRadius, p.quality, cones + itc, nmcone + itn);
             for(int i = 0 ; i < cosize; i += 3)
             {
-                add(cones + itc + i, v + itv + 3, cones + itc + i);
+                add(cones + itc + i, v + itv + stride, cones + itc + i);
             }
             rprev = itr;
             itr += step;
             itc += cosize;
             itn += tusize;
         }
-        itv += 3 * p.stride;
+        itv += stride;
         count++;
     }
 
@@ -1094,7 +1096,7 @@ static inline void prDraw(const float* v, int n, GLPathRenderer::Params prp)
     switch(prp.style)
     {
         case GLFlowRenderer::Tube:
-            prDrawTubes(v, n, prp);
+            prDrawTubes(v, n / prp.stride, prp);
             break;
         case GLFlowRenderer::Arrow:
             prDrawArrows(v, n, prp);
@@ -1124,7 +1126,7 @@ void GLPathRenderer::Draw(const float **v, const int *sizes, int count)
         osizes = new int[ocount];
         for(int i = 0; i < ocount; i++)
         {
-            osizes[i] = sizes[i] / prp.stride;
+            osizes[i] = sizes[i];
             output[i] = funcptr(v[i], osizes[i], prp);
         }
     }
