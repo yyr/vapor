@@ -849,11 +849,12 @@ static inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
     int vlast = vsize - 3;
     int step = rnsize;
     int rlast = rsize - step;
+    int stride = 3 * p.stride;
     //the first ring, which we will not iterate over
     //because we need adjacent vectors to calculate direction
     //for the other rings, whereas this just points in the direction
     //of the endpoint vector
-    sub(v + 3, v, r + step);
+    sub(v + stride, v, r + step);
     mkring(r + step, p.quality, p.radius, r, nm);
     for(int i = 0; i < step; i+=3)
     {
@@ -861,13 +862,13 @@ static inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
         add(v, r + i, r + i);
     }
 
-    int itv = 3;
+    int itv = stride;
     int rprev = 0;
     //start at idx = 1, continue until second-to-last
     for(int itr = step; itr < rlast; itr += step)
     {
         //get the current direction and pass it forward
-        sub(v + itv + (3 * p.stride), v + itv, r + itr + step);
+        sub(v + itv + stride, v + itv, r + itr + step);
         //correct if rather large direction
         //calculated using current and previous direction
         //previous direction was passed forward by previous iteration
@@ -881,7 +882,7 @@ static inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
             norm(r + i, r + rsize + i);
             add(v + itv, r + i, r + i);
         }
-        itv += 3 * p.stride;
+        itv += stride;
         rprev = itr;
     }
     
@@ -1124,7 +1125,7 @@ void GLPathRenderer::Draw(const float **v, const int *sizes, int count)
         for(int i = 0; i < ocount; i++)
         {
             osizes[i] = sizes[i] / prp.stride;
-            output[i] = funcptr(v[i], sizes[i], prp);
+            output[i] = funcptr(v[i], osizes[i], prp);
         }
     }
     for(int i = 0; i < ocount; i++)
