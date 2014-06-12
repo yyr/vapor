@@ -67,6 +67,7 @@ protected:
     const float** prevdata;
     
     float** output;
+    float** colors;
     int* osizes;
     int ocount;
 };
@@ -99,7 +100,7 @@ public:
     void Draw(const float **vecs, const int *sizes, int count);
     //void Draw(const float *vectors, int n);
     ///rgba: one (r, g, b, a) for each vector in 'vectors'
-    void Draw(const float **vecs, const float **rgba, const int *sizes, int count){}
+    void Draw(const float **vecs, const float **rgba, const int *sizes, int count);
     //void Draw(const float *vectors, const float *rgba, int n);
     
 protected:
@@ -131,7 +132,7 @@ public:
     ///rgba: repeated (r, g, b, a), with one color for each point
     void Draw(const float **pts, const int *sizes, int count);
     //void Draw(const float *points, int n);
-    void Draw(const float **pts, const float **rgba, const int *sizes, int count){}
+    void Draw(const float **pts, const float **rgba, const int *sizes, int count);
     //void Draw(const float *points, const float *rgba, int n);
     
 protected:

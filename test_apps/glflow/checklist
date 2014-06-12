@@ -5,6 +5,7 @@
  + hedgehogger arrow rendering
  + pathrenderer arrow rendering
  + restructuring API
- ~ pathrenderer arrows: stride, arrowStride
+ + pathrenderer arrows: stride, arrowStride
+ ~ confirm full functionality in HedgeHogger
  
 
