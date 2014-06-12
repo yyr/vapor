@@ -870,6 +870,29 @@
               </property>
              </spacer>
             </item>
+            <item>
+             <spacer name="horizontalSpacer_7">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="latLonCheckbox">
+              <property name="toolTip">
+               <string>Check to use longitude and latitude on x and y axes</string>
+              </property>
+              <property name="text">
+               <string>Use Lat/Lon</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
           <item>

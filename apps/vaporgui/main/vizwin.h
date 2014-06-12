@@ -121,10 +121,10 @@ public:
 	bool regionFrameIsEnabled() {return myGLWindow->regionFrameIsEnabled();}
 	bool subregionFrameIsEnabled() {return myGLWindow->subregionFrameIsEnabled();}
 	float getAxisArrowCoord(int i){return myGLWindow->getAxisArrowCoord(i);}
-	float getAxisOriginCoord(int i){return myGLWindow->getAxisOriginCoord(i);}
-	float getMinTic(int i){return myGLWindow->getMinTic(i);}
-	float getMaxTic(int i){return myGLWindow->getMaxTic(i);}
-	float getTicLength(int i){return myGLWindow->getTicLength(i);}
+	double getAxisOriginCoord(int i){return myGLWindow->getAxisOriginCoord(i);}
+	double getMinTic(int i){return myGLWindow->getMinTic(i);}
+	double getMaxTic(int i){return myGLWindow->getMaxTic(i);}
+	double getTicLength(int i){return myGLWindow->getTicLength(i);}
 	int getNumTics(int i){return myGLWindow->getNumTics(i);}
 	int getTicDir(int i){return myGLWindow->getTicDir(i);}
 	int getLabelHeight(){return myGLWindow->getLabelHeight();}
@@ -176,6 +176,8 @@ public:
 			extents[i+3] = getMaxTic(i);
 		}
 	}
+	bool useLatLonAnnotation() {return myGLWindow->useLatLonAnnotation();}
+	void setLatLonAnnotation(bool val) {myGLWindow->setLatLonAnnotation(val);}
 	
 	void setColorbarLLCoord(int i, float crd) {myGLWindow->setColorbarLLCoord( i,  crd);;}
 	void setColorbarURCoord(int i, float crd) {myGLWindow->setColorbarURCoord( i,  crd);}

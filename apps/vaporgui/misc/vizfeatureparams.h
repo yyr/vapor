@@ -77,6 +77,7 @@ signals:
 	void doneWithIt();
 
 protected slots:
+	void toggleLatLon(bool val);
 	void visualizerSelected(int comboIndex);
 	void panelChanged();
 	void rendererChanged(int);
@@ -112,14 +113,14 @@ protected:
 	QString vizName;
 	bool showBar;
 	bool showAxisArrows;
-	
+	bool useLatLon;
 	bool showAxisAnnotation;
 	bool enableSpin;
 	int timeAnnotType;//0,1,2 
 
 	float axisArrowCoords[3];
-	float axisOriginCoords[3];
-	float minTic[3],maxTic[3],ticLength[3];
+	double axisOriginCoords[3];
+	double minTic[3],maxTic[3],ticLength[3];
 	int numTics[3],ticDir[3];
 	int labelHeight, labelDigits;
 	int timeAnnotTextSize;

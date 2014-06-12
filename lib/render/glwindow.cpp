@@ -112,6 +112,7 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 	colorbarDirty = true;
 	timeAnnotDirty = true;
 	axisLabelsDirty = true;
+	latLonAnnot = false;
 	for (int axis=0; axis < 3; axis++) axisLabels[axis].clear();
 	colorbarParamsTypeId = Params::GetTypeFromTag(Params::_dvrParamsTag);
 	mouseDownHere = false;
@@ -133,11 +134,11 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 	colorbarEnabled = false;
 	for (int i = 0; i<3; i++){
 	    axisArrowCoord[i] = 0.f;
-		axisOriginCoord[i] = 0.f;
+		axisOriginCoord[i] = 0.;
 		numTics[i] = 6;
-		ticLength[i] = 0.05f;
-		minTic[i] = 0.f;
-		maxTic[i] = 1.f;
+		ticLength[i] = 0.05;
+		minTic[i] = 0.;
+		maxTic[i] = 1.;
 		ticDir[i] = 0;
 		axisLabelNums[i] = 0;
 	}
@@ -1419,8 +1420,6 @@ void GLWindow::initializeGL()
 		GLEW_ARB_shader_objects ? "ok" : "missing"
 	);
 
-
-
 	//VizWinMgr::getInstance()->getDvrRouter()->initTypes();
     qglClearColor(getBackgroundColor()); 		// Let OpenGL clear to black
 	//Initialize existing renderers:
@@ -1445,26 +1444,18 @@ void GLWindow::initializeGL()
 //resulting screen coords returned in 2nd argument.  Note that
 //OpenGL coords are 0 at bottom of window!
 //
-bool GLWindow::projectPointToWin(float cubeCoords[3], float winCoords[2]){
+bool GLWindow::projectPointToWin(double cubeCoords[3], double winCoords[2]){
 	double depth;
 	GLdouble wCoords[2];
 	GLdouble cbCoords[3];
 	for (int i = 0; i< 3; i++)
 		cbCoords[i] = (double) cubeCoords[i];
-	//double* mmtrx = getModelMatrix(); 
-	//double* pmtrx = getProjectionMatrix();
-	//double mMtrx[16], pMtrx[16];
-	//for (int q = 0; q<16; q++){
-	//	mMtrx[q]=mmtrx[q];
-	//	pMtrx[q]=pmtrx[q];
-	//}
-	//int* vprt = getViewport();
-
+	
 	bool success = gluProject(cbCoords[0],cbCoords[1],cbCoords[2], getModelMatrix(),
 		getProjectionMatrix(), getViewport(), wCoords, (wCoords+1),(GLdouble*)(&depth));
 	if (!success) return false;
-	winCoords[0] = (float)wCoords[0];
-	winCoords[1] = (float)wCoords[1];
+	winCoords[0] = wCoords[0];
+	winCoords[1] = wCoords[1];
 	return (depth > 0.0);
 }
 //Convert a screen coord to a direction vector, representing the direction
@@ -1848,8 +1839,9 @@ void GLWindow::buildAxisLabels(int timestep){
 	
 	
 
-	float lorigin[3], lticMin[3], lticMax[3];
-	float origin[3], ticMin[3], ticMax[3];
+	double lorigin[3], lticMin[3], lticMax[3];
+	double ticMin[3], ticMax[3];
+	double origin[3];
 	//Convert user to local by subtracting extent min.
 	const vector<double>& exts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
 	for (int i = 0; i<3; i++){
@@ -1862,8 +1854,8 @@ void GLWindow::buildAxisLabels(int timestep){
 	//corners of a box that's projected to axes.
 	ViewpointParams::localToStretchedCube(lticMin, ticMin);
 	ViewpointParams::localToStretchedCube(lticMax, ticMax);
-	float pointOnAxis[3];
-	float winCoords[2];
+	double pointOnAxis[3];
+	double winCoords[2];
 	
 	for (int axis = 0; axis < 3; axis++){
 		
@@ -1919,8 +1911,36 @@ void GLWindow::buildAxisLabels(int timestep){
 	axisLabelsDirty = false;
 }
 void GLWindow::drawAxisLabels(int timestep) {
-	float origin[3], ticMin[3], ticMax[3];
-	float lorigin[3], lticMin[3], lticMax[3];
+	//Modify minTic, maxTic, ticLength, axisOriginCoord to user coords
+	//if using latLon
+	double minTicA[3],maxTicA[3],ticLengthA[3], axisOriginCoordA[3];
+	double ticLengthFactor[3] = {1.,1.,1.};
+	for (int i = 0; i<3; i++){
+		minTicA[i] = minTic[i];
+		maxTicA[i] = maxTic[i];
+		ticLengthA[i] = ticLength[i];
+		axisOriginCoordA[i] = axisOriginCoord[i];
+	}
+	if (useLatLonAnnotation()){
+		for (int j = 0; j<3; j++){
+			//Determine ticLength as a fraction of maxTic-minTic along the direction in which the tic is pointed
+			//Ignore tics that point in the z direction
+			if (ticDir[j] == 2) continue;
+			double den = (maxTic[ticDir[j]]- minTic[ticDir[j]]);
+			if (den > 0.) ticLengthFactor[j] = ticLength[j]/den;
+		}
+		DataStatus::convertFromLonLat(minTicA);
+		DataStatus::convertFromLonLat(maxTicA);
+		DataStatus::convertFromLonLat(axisOriginCoordA);
+		//Adjust ticLength to be in user coords
+		for (int j = 0; j<3; j++){
+			if (ticDir[j] == 2) continue;
+			double dst = (maxTicA[ticDir[j]]- minTicA[ticDir[j]]);
+			ticLengthA[j] = dst*ticLengthFactor[j];
+		}
+	}
+	double origin[3], ticMin[3], ticMax[3];
+	double lorigin[3], lticMin[3], lticMax[3];
 	if (labelHeight <= 0) return;
 	if (axisLabelsDirty) buildAxisLabels(timestep);
 	
@@ -1928,9 +1948,9 @@ void GLWindow::drawAxisLabels(int timestep) {
 	//Convert user to local by subtracting extent min.
 	const vector<double>& exts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
 	for (int i = 0; i<3; i++){
-		lorigin[i] = axisOriginCoord[i] - exts[i];
-		lticMin[i] = minTic[i] - exts[i];
-		lticMax[i] = maxTic[i] - exts[i];
+		lorigin[i] = axisOriginCoordA[i] - exts[i];
+		lticMin[i] = minTicA[i] - exts[i];
+		lticMax[i] = maxTicA[i] - exts[i];
 	}
 	ViewpointParams::localToStretchedCube(lorigin, origin);
 	//minTic and maxTic can be regarded as points in world space, defining
@@ -1938,8 +1958,8 @@ void GLWindow::drawAxisLabels(int timestep) {
 	ViewpointParams::localToStretchedCube(lticMin, ticMin);
 	ViewpointParams::localToStretchedCube(lticMax, ticMax);
 	
-	float pointOnAxis[3];
-	float winCoords[2] = {0.f,0.f};
+	double pointOnAxis[3];
+	double winCoords[2] = {0.,0.};
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glDepthFunc(GL_ALWAYS);
     glEnable( GL_TEXTURE_2D );
@@ -1948,7 +1968,6 @@ void GLWindow::drawAxisLabels(int timestep) {
 			vcopy(origin, pointOnAxis);
 			for (int i = 0; i< numTics[axis]; i++){
 				pointOnAxis[axis] = ticMin[axis] + (float)i* (ticMax[axis] - ticMin[axis])/(float)(numTics[axis]-1);
-				float labelValue = minTic[axis] + (float)i* (maxTic[axis] - minTic[axis])/(float)(numTics[axis]-1);
 				projectPointToWin(pointOnAxis, winCoords);
 				int x = (int)(winCoords[0]+2*ticWidth);
 				int y = (int)(height()-winCoords[1]+2*ticWidth);
@@ -1960,22 +1979,22 @@ void GLWindow::drawAxisLabels(int timestep) {
 	
 				int txtWidth = axisLabels[axis][i].width();
 				int txtHeight = axisLabels[axis][i].height();
-				float fltTxtWidth = (float)txtWidth/(float)width();
-				float fltTxtHeight = (float)txtHeight/(float)height();
+				double dblTxtWidth = (double)txtWidth/(double)width();
+				double dblTxtHeight = (double)txtHeight/(double)height();
 				//create a textured polygon appropriately positioned in the scene. 
 				glTexImage2D(GL_TEXTURE_2D, 0, 3, txtWidth, txtHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE,
 					axisLabels[axis][i].bits());
 	
-				float llx = 2.*(float)x/(float)width() -1.;
-				float lly = 1. - 2.*(float)y/(float)height();
-				float urx = llx+2.*fltTxtWidth;
-				float ury = lly+2.*fltTxtHeight;
+				double llx = 2.*(double)x/(double)width() -1.;
+				double lly = 1. - 2.*(double)y/(double)height();
+				double urx = llx+2.*dblTxtWidth;
+				double ury = lly+2.*dblTxtHeight;
 				glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 				glBegin(GL_QUADS);
-				glTexCoord2f(0.0f, 0.0f); glVertex3f(llx, lly, 0.0f);
-				glTexCoord2f(0.0f, 1.0f); glVertex3f(llx, ury, 0.0f);
-				glTexCoord2f(1.0f, 1.0f); glVertex3f(urx, ury, 0.0f);
-				glTexCoord2f(1.0f, 0.0f); glVertex3f(urx, lly, 0.0f);
+				glTexCoord2f(0.0f, 0.0f); glVertex3d(llx, lly, 0.0f);
+				glTexCoord2f(0.0f, 1.0f); glVertex3d(llx, ury, 0.0f);
+				glTexCoord2f(1.0f, 1.0f); glVertex3d(urx, ury, 0.0f);
+				glTexCoord2f(1.0f, 0.0f); glVertex3d(urx, lly, 0.0f);
 				glEnd();
 	
 			}
@@ -1989,15 +2008,45 @@ void GLWindow::drawAxisLabels(int timestep) {
 
 
 void GLWindow::drawAxisTics(int timestep){
-	float origin[3], ticMin[3], ticMax[3], ticLen[3];
-	float lorigin[3], lticMin[3], lticMax[3];
+	
+	//Modify minTic, maxTic, ticLength, axisOriginCoord to user coords
+	//if using latLon
+	double minTicA[3],maxTicA[3],ticLengthA[3], axisOriginCoordA[3];
+	double ticLengthFactor[3] = {1.,1.,1.};
+	for (int i = 0; i<3; i++){
+		minTicA[i] = minTic[i];
+		maxTicA[i] = maxTic[i];
+		ticLengthA[i] = ticLength[i];
+		axisOriginCoordA[i] = axisOriginCoord[i];
+	}
+	if (useLatLonAnnotation()){
+		for (int j = 0; j<3; j++){
+			//Determine ticLength as a fraction of maxTic-minTic along the direction in which the tic is pointed
+			//Ignore tics that point in the z direction
+			if (ticDir[j] == 2) continue;
+			double den = (maxTic[ticDir[j]]- minTic[ticDir[j]]);
+			if (den > 0.) ticLengthFactor[j] = ticLength[j]/den;
+		}
+	
+		DataStatus::convertFromLonLat(minTicA);
+		DataStatus::convertFromLonLat(maxTicA);
+		DataStatus::convertFromLonLat(axisOriginCoordA);
+		//Adjust ticLength to be in user coords
+		for (int j = 0; j<3; j++){
+			if (ticDir[j] == 2) continue;
+			double dst = (maxTicA[ticDir[j]]- minTicA[ticDir[j]]);
+			ticLengthA[j] = dst*ticLengthFactor[j];
+		}
+	}
+	double origin[3], ticMin[3], ticMax[3], ticLen[3];
+	double lorigin[3], lticMin[3], lticMax[3];
 	//Convert user to local by subtracting extent min.
 	
 	const vector<double>& exts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
 	for (int i = 0; i<3; i++){
-		lorigin[i] = axisOriginCoord[i] - exts[i];
-		lticMin[i] = minTic[i] - exts[i];
-		lticMax[i] = maxTic[i] - exts[i];
+		lorigin[i] = axisOriginCoordA[i] - exts[i];
+		lticMin[i] = minTicA[i] - exts[i];
+		lticMax[i] = maxTicA[i] - exts[i];
 	}
 	ViewpointParams::localToStretchedCube(lorigin, origin);
 	//minTic and maxTic can be regarded as points in world space, defining
@@ -2009,7 +2058,7 @@ void GLWindow::drawAxisTics(int timestep){
 	float maxStretchedCubeSide = ViewpointParams::getMaxStretchedCubeSide();
 	for (int i = 0; i<3; i++){
 		int j = ticDir[i];
-		ticLen[i] = ticLength[i]*stretch[j]/maxStretchedCubeSide;
+		ticLen[i] = ticLengthA[i]*stretch[j]/maxStretchedCubeSide;
 	}
 	
 	glDisable(GL_LIGHTING);
@@ -2019,14 +2068,14 @@ void GLWindow::drawAxisTics(int timestep){
 	glLineWidth(ticWidth);
 	//Draw lines on x-axis:
 	glBegin(GL_LINES);
-	glVertex3f(ticMin[0],origin[1],origin[2]);
-	glVertex3f(ticMax[0],origin[1],origin[2]);
-	glVertex3f(origin[0],ticMin[1],origin[2]);
-	glVertex3f(origin[0],ticMax[1],origin[2]);
-	glVertex3f(origin[0],origin[1],ticMin[2]);
-	glVertex3f(origin[0],origin[1],ticMax[2]);
-	float pointOnAxis[3];
-	float ticVec[3], drawPosn[3];
+	glVertex3d(ticMin[0],origin[1],origin[2]);
+	glVertex3d(ticMax[0],origin[1],origin[2]);
+	glVertex3d(origin[0],ticMin[1],origin[2]);
+	glVertex3d(origin[0],ticMax[1],origin[2]);
+	glVertex3d(origin[0],origin[1],ticMin[2]);
+	glVertex3d(origin[0],origin[1],ticMax[2]);
+	double pointOnAxis[3];
+	double ticVec[3], drawPosn[3];
 	//Now draw tic marks for x:
 	if (numTics[0] > 1 && ticLength[0] > 0.f){
 		pointOnAxis[1] = origin[1];
@@ -2037,9 +2086,9 @@ void GLWindow::drawAxisTics(int timestep){
 		for (int i = 0; i< numTics[0]; i++){
 			pointOnAxis[0] = ticMin[0] + (float)i* (ticMax[0] - ticMin[0])/(float)(numTics[0]-1);
 			vsub(pointOnAxis, ticVec, drawPosn);
-			glVertex3fv(drawPosn);
+			glVertex3dv(drawPosn);
 			vadd(pointOnAxis, ticVec, drawPosn);
-			glVertex3fv(drawPosn);
+			glVertex3dv(drawPosn);
 		}
 	}
 	//Now draw tic marks for y:
@@ -2052,9 +2101,9 @@ void GLWindow::drawAxisTics(int timestep){
 		for (int i = 0; i< numTics[1]; i++){
 			pointOnAxis[1] = ticMin[1] + (float)i* (ticMax[1] - ticMin[1])/(float)(numTics[1]-1);
 			vsub(pointOnAxis, ticVec, drawPosn);
-			glVertex3fv(drawPosn);
+			glVertex3dv(drawPosn);
 			vadd(pointOnAxis, ticVec, drawPosn);
-			glVertex3fv(drawPosn);
+			glVertex3dv(drawPosn);
 		}
 	}
 	//Now draw tic marks for z:
@@ -2067,9 +2116,9 @@ void GLWindow::drawAxisTics(int timestep){
 		for (int i = 0; i< numTics[2]; i++){
 			pointOnAxis[2] = ticMin[2] + (float)i* (ticMax[2] - ticMin[2])/(float)(numTics[2]-1);
 			vsub(pointOnAxis, ticVec, drawPosn);
-			glVertex3fv(drawPosn);
+			glVertex3dv(drawPosn);
 			vadd(pointOnAxis, ticVec, drawPosn);
-			glVertex3fv(drawPosn);
+			glVertex3dv(drawPosn);
 		}
 	}
 	glEnd();
