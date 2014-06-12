@@ -241,10 +241,10 @@ void mouseButton(GLFWwindow* window, int button, int action, int mods)
             altmode = ROTATING;
             break;
         case GLFW_MOUSE_BUTTON_RIGHT:
-            altmode = PANNING;
+            altmode = ZOOMING;
             break;
         case GLFW_MOUSE_BUTTON_MIDDLE:
-            altmode = ZOOMING;
+            altmode = PANNING;
             break;
         default:
             break;
