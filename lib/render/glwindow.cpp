@@ -1915,6 +1915,8 @@ void GLWindow::drawAxisLabels(int timestep) {
 	//if using latLon
 	double minTicA[3],maxTicA[3],ticLengthA[3], axisOriginCoordA[3];
 	double ticLengthFactor[3] = {1.,1.,1.};
+	double xmin[2],ymin[2],xmax[2],ymax[2];
+	//set values based on current settings (user or latlon)
 	for (int i = 0; i<3; i++){
 		minTicA[i] = minTic[i];
 		maxTicA[i] = maxTic[i];
@@ -1922,6 +1924,7 @@ void GLWindow::drawAxisLabels(int timestep) {
 		axisOriginCoordA[i] = axisOriginCoord[i];
 	}
 	if (useLatLonAnnotation()){
+		//Convert lat/lon to user
 		for (int j = 0; j<3; j++){
 			//Determine ticLength as a fraction of maxTic-minTic along the direction in which the tic is pointed
 			//Ignore tics that point in the z direction
@@ -1929,8 +1932,24 @@ void GLWindow::drawAxisLabels(int timestep) {
 			double den = (maxTic[ticDir[j]]- minTic[ticDir[j]]);
 			if (den > 0.) ticLengthFactor[j] = ticLength[j]/den;
 		}
-		DataStatus::convertFromLonLat(minTicA);
-		DataStatus::convertFromLonLat(maxTicA);
+		//convert user coords  at axis annotation ends from lat/lon to user
+		xmin[0] = minTicA[0];
+		xmin[1] = axisOriginCoordA[1];
+		xmax[0] = maxTicA[0];
+		xmax[1] = axisOriginCoordA[1];
+		ymin[1] = minTicA[1];
+		ymin[0] = axisOriginCoordA[0];
+		ymax[1] = maxTicA[1];
+		ymax[0] = axisOriginCoordA[0];
+		DataStatus::convertFromLonLat(xmin);
+		DataStatus::convertFromLonLat(ymin);
+		DataStatus::convertFromLonLat(xmax);
+		DataStatus::convertFromLonLat(ymax);
+		//Now use the user min and max to set the axis ends
+		minTicA[0] = xmin[0];
+		maxTicA[0] = xmax[0];
+		minTicA[1] = ymin[1];
+		maxTicA[1] = ymax[1];
 		DataStatus::convertFromLonLat(axisOriginCoordA);
 		//Adjust ticLength to be in user coords
 		for (int j = 0; j<3; j++){
@@ -2020,6 +2039,7 @@ void GLWindow::drawAxisTics(int timestep){
 		axisOriginCoordA[i] = axisOriginCoord[i];
 	}
 	if (useLatLonAnnotation()){
+		double xmin[2],xmax[2],ymin[2],ymax[2];
 		for (int j = 0; j<3; j++){
 			//Determine ticLength as a fraction of maxTic-minTic along the direction in which the tic is pointed
 			//Ignore tics that point in the z direction
@@ -2027,9 +2047,24 @@ void GLWindow::drawAxisTics(int timestep){
 			double den = (maxTic[ticDir[j]]- minTic[ticDir[j]]);
 			if (den > 0.) ticLengthFactor[j] = ticLength[j]/den;
 		}
-	
-		DataStatus::convertFromLonLat(minTicA);
-		DataStatus::convertFromLonLat(maxTicA);
+		//convert user coords  at axis annotation ends from lat/lon to user
+		xmin[0] = minTicA[0];
+		xmin[1] = axisOriginCoordA[1];
+		xmax[0] = maxTicA[0];
+		xmax[1] = axisOriginCoordA[1];
+		ymin[1] = minTicA[1];
+		ymin[0] = axisOriginCoordA[0];
+		ymax[1] = maxTicA[1];
+		ymax[0] = axisOriginCoordA[0];
+		DataStatus::convertFromLonLat(xmin);
+		DataStatus::convertFromLonLat(ymin);
+		DataStatus::convertFromLonLat(xmax);
+		DataStatus::convertFromLonLat(ymax);
+		//Now use the user min and max to set the axis ends
+		minTicA[0] = xmin[0];
+		maxTicA[0] = xmax[0];
+		minTicA[1] = ymin[1];
+		maxTicA[1] = ymax[1];
 		DataStatus::convertFromLonLat(axisOriginCoordA);
 		//Adjust ticLength to be in user coords
 		for (int j = 0; j<3; j++){

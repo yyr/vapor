@@ -886,10 +886,14 @@
             <item>
              <widget class="QCheckBox" name="latLonCheckbox">
               <property name="toolTip">
-               <string>Check to use longitude and latitude on x and y axes</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check to use longitude and latitude units on x and y axes&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When the data is georeferenced, this check box sets axis annotation to be in latitude and longitude units. The axis origin, as well as min and max x/y tics and tic size are all expressed in latitude and longitude units.  Note that latitude and longitude values are not accurate if the data grid is not precisely situated on latitude and longitude lines.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
-               <string>Use Lat/Lon</string>
+               <string>Annotate
+with Lat/Lon</string>
               </property>
              </widget>
             </item>
@@ -1423,7 +1427,7 @@
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Length of tic marks in user coordinates on this axis</string>
+                 <string>Length of tic marks in user coordinates or latitude/longitude on this axis</string>
                 </property>
                 <property name="text">
                  <string>20</string>
@@ -1448,7 +1452,7 @@
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Length of tic marks in user coordinates on this axis</string>
+                 <string>Length of tic marks in user coordinates or latitude/longitude on this axis</string>
                 </property>
                 <property name="text">
                  <string>20</string>
@@ -1473,7 +1477,7 @@
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Length of tic marks in user coordinates on this axis</string>
+                 <string>Length of tic marks in user coordinates or latitude/longitude on this axis</string>
                 </property>
                 <property name="text">
                  <string>20</string>

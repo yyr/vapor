@@ -766,6 +766,7 @@ void VizFeatureParams::
 toggleLatLon(bool on){
 	if (useLatLon == on) return; // no change
 	double ticLengthFactor[3] = {1.,1.,1.};
+	double xmin[2],xmax[2],ymin[2],ymax[2];
 	for (int j = 0; j<3; j++){
 		//Determine ticLength as a fraction of maxTic-minTic along the direction in which the tic is pointed
 		//Ignore tics that point in the z direction
@@ -773,11 +774,26 @@ toggleLatLon(bool on){
 		double den = (maxTic[ticDir[j]]- minTic[ticDir[j]]);
 		if (den > 0.) ticLengthFactor[j] = ticLength[j]/den;
 	}
-	
 	if (on) {
-		//convert user coords to lat lon
-		DataStatus::convertToLonLat(minTic);
-		DataStatus::convertToLonLat(maxTic);
+		//convert user coords  at axis annotation ends to lat lon
+		xmin[0] = minTic[0];
+		xmin[1] = axisOriginCoords[1];
+		xmax[0] = maxTic[0];
+		xmax[1] = axisOriginCoords[1];
+		ymin[1] = minTic[1];
+		ymin[0] = axisOriginCoords[0];
+		ymax[1] = maxTic[1];
+		ymax[0] = axisOriginCoords[0];
+		DataStatus::convertToLonLat(xmin);
+		DataStatus::convertToLonLat(ymin);
+		DataStatus::convertToLonLat(xmax);
+		DataStatus::convertToLonLat(ymax);
+		//Now use the latitude and longitude min and max to set the axis ends
+		minTic[0] = xmin[0];
+		maxTic[0] = xmax[0];
+		minTic[1] = ymin[1];
+		maxTic[1] = ymax[1];
+		
 		DataStatus::convertToLonLat(axisOriginCoords);
 		//Adjust ticLength to be in user coords
 		for (int j = 0; j<3; j++){
@@ -786,9 +802,26 @@ toggleLatLon(bool on){
 			ticLength[j] = dst*ticLengthFactor[j];
 		}
 	} else {
-		//convert lat lon to user
-		DataStatus::convertFromLonLat(minTic);
-		DataStatus::convertFromLonLat(maxTic);
+		
+		//convert user coords  at axis annotation ends from lat/lon to user
+		xmin[0] = minTic[0];
+		xmin[1] = axisOriginCoords[1];
+		xmax[0] = maxTic[0];
+		xmax[1] = axisOriginCoords[1];
+		ymin[1] = minTic[1];
+		ymin[0] = axisOriginCoords[0];
+		ymax[1] = maxTic[1];
+		ymax[0] = axisOriginCoords[0];
+		DataStatus::convertFromLonLat(xmin);
+		DataStatus::convertFromLonLat(ymin);
+		DataStatus::convertFromLonLat(xmax);
+		DataStatus::convertFromLonLat(ymax);
+		//Now use the user min and max to set the axis ends
+		minTic[0] = xmin[0];
+		maxTic[0] = xmax[0];
+		minTic[1] = ymin[1];
+		maxTic[1] = ymax[1];
+		
 		DataStatus::convertFromLonLat(axisOriginCoords);
 		//Adjust ticLength to be in user coords
 		for (int j = 0; j<3; j++){
@@ -797,5 +830,18 @@ toggleLatLon(bool on){
 			ticLength[j] = dst*ticLengthFactor[j];
 		}
 	}
+	//Set new values into dialog
+	vizFeatureDlg->axisOriginXEdit->setText(QString::number(axisOriginCoords[0]));
+	vizFeatureDlg->axisOriginYEdit->setText(QString::number(axisOriginCoords[1]));
+	vizFeatureDlg->axisOriginZEdit->setText(QString::number(axisOriginCoords[2]));
+	vizFeatureDlg->xMinTicEdit->setText(QString::number(minTic[0]));
+	vizFeatureDlg->yMinTicEdit->setText(QString::number(minTic[1]));
+	vizFeatureDlg->zMinTicEdit->setText(QString::number(minTic[2]));
+	vizFeatureDlg->xMaxTicEdit->setText(QString::number(maxTic[0]));
+	vizFeatureDlg->yMaxTicEdit->setText(QString::number(maxTic[1]));
+	vizFeatureDlg->zMaxTicEdit->setText(QString::number(maxTic[2]));
+	vizFeatureDlg->xTicSizeEdit->setText(QString::number(ticLength[0]));
+	vizFeatureDlg->yTicSizeEdit->setText(QString::number(ticLength[1]));
+	vizFeatureDlg->zTicSizeEdit->setText(QString::number(ticLength[2]));
 	dialogChanged = true;
 }
