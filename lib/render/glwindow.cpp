@@ -1924,8 +1924,7 @@ void GLWindow::drawAxisLabels(int timestep) {
 	//Modify minTic, maxTic, ticLength, axisOriginCoord to user coords
 	//if using latLon
 	double minTicA[3],maxTicA[3],ticLengthA[3], axisOriginCoordA[3];
-	double ticLengthFactor[3] = {1.,1.,1.};
-	double xmin[2],ymin[2],xmax[2],ymax[2];
+	
 	//set axis annotation in user coordinates, if it's in lat/lon
 	for (int i = 0; i<3; i++){ //copy values to temporary _A variables
 		minTicA[i] = minTic[i];
