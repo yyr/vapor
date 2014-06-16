@@ -1837,17 +1837,27 @@ renderTimeStamp(bool dorebuild){
 void GLWindow::buildAxisLabels(int timestep){
 	//Set up the painter and font metrics
 	
-	
-
 	double lorigin[3], lticMin[3], lticMax[3];
 	double ticMin[3], ticMax[3];
 	double origin[3];
 	//Convert user to local by subtracting extent min.
+	//Local must be user local coords (not lat lon)
 	const vector<double>& exts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
+	double axOrigin[3],mnTic[3],mxTic[3],tcLen[3];
+	if (useLatLonAnnotation()){
+		ConvertAxes(false,ticDir,minTic,maxTic,axisOriginCoord,ticLength,mnTic,mxTic,axOrigin,tcLen);
+	} else {
+		for (int i = 0; i<3; i++){ //copy values to temporary _A variables
+			mnTic[i] = minTic[i];
+			mxTic[i] = maxTic[i];
+			tcLen[i] = ticLength[i];
+			axOrigin[i] = axisOriginCoord[i];
+		}
+	}
 	for (int i = 0; i<3; i++){
-		lorigin[i] = axisOriginCoord[i] - exts[i];
-		lticMin[i] = minTic[i] - exts[i];
-		lticMax[i] = maxTic[i] - exts[i];
+		lorigin[i] = axOrigin[i] - exts[i];
+		lticMin[i] = mnTic[i] - exts[i];
+		lticMax[i] = mxTic[i] - exts[i];
 	}
 	ViewpointParams::localToStretchedCube(lorigin, origin);
 	//minTic and maxTic can be regarded as points in world space, defining
@@ -1916,53 +1926,27 @@ void GLWindow::drawAxisLabels(int timestep) {
 	double minTicA[3],maxTicA[3],ticLengthA[3], axisOriginCoordA[3];
 	double ticLengthFactor[3] = {1.,1.,1.};
 	double xmin[2],ymin[2],xmax[2],ymax[2];
-	//set values based on current settings (user or latlon)
-	for (int i = 0; i<3; i++){
+	//set axis annotation in user coordinates, if it's in lat/lon
+	for (int i = 0; i<3; i++){ //copy values to temporary _A variables
 		minTicA[i] = minTic[i];
 		maxTicA[i] = maxTic[i];
 		ticLengthA[i] = ticLength[i];
 		axisOriginCoordA[i] = axisOriginCoord[i];
 	}
 	if (useLatLonAnnotation()){
-		//Convert lat/lon to user
-		for (int j = 0; j<3; j++){
-			//Determine ticLength as a fraction of maxTic-minTic along the direction in which the tic is pointed
-			//Ignore tics that point in the z direction
-			if (ticDir[j] == 2) continue;
-			double den = (maxTic[ticDir[j]]- minTic[ticDir[j]]);
-			if (den > 0.) ticLengthFactor[j] = ticLength[j]/den;
-		}
-		//convert user coords  at axis annotation ends from lat/lon to user
-		xmin[0] = minTicA[0];
-		xmin[1] = axisOriginCoordA[1];
-		xmax[0] = maxTicA[0];
-		xmax[1] = axisOriginCoordA[1];
-		ymin[1] = minTicA[1];
-		ymin[0] = axisOriginCoordA[0];
-		ymax[1] = maxTicA[1];
-		ymax[0] = axisOriginCoordA[0];
-		DataStatus::convertFromLonLat(xmin);
-		DataStatus::convertFromLonLat(ymin);
-		DataStatus::convertFromLonLat(xmax);
-		DataStatus::convertFromLonLat(ymax);
-		//Now use the user min and max to set the axis ends
-		minTicA[0] = xmin[0];
-		maxTicA[0] = xmax[0];
-		minTicA[1] = ymin[1];
-		maxTicA[1] = ymax[1];
-		DataStatus::convertFromLonLat(axisOriginCoordA);
-		//Adjust ticLength to be in user coords
-		for (int j = 0; j<3; j++){
-			if (ticDir[j] == 2) continue;
-			double dst = (maxTicA[ticDir[j]]- minTicA[ticDir[j]]);
-			ticLengthA[j] = dst*ticLengthFactor[j];
+		ConvertAxes(false,ticDir,minTic,maxTic,axisOriginCoord,ticLength,minTicA,maxTicA,axisOriginCoordA,ticLengthA);
+	} else {
+		for (int i = 0; i<3; i++){ //copy values to temporary _A variables
+			minTicA[i] = minTic[i];
+			maxTicA[i] = maxTic[i];
+			ticLengthA[i] = ticLength[i];
+			axisOriginCoordA[i] = axisOriginCoord[i];
 		}
 	}
 	double origin[3], ticMin[3], ticMax[3];
 	double lorigin[3], lticMin[3], lticMax[3];
 	if (labelHeight <= 0) return;
 	if (axisLabelsDirty) buildAxisLabels(timestep);
-	
 	
 	//Convert user to local by subtracting extent min.
 	const vector<double>& exts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
@@ -2029,50 +2013,19 @@ void GLWindow::drawAxisLabels(int timestep) {
 void GLWindow::drawAxisTics(int timestep){
 	
 	//Modify minTic, maxTic, ticLength, axisOriginCoord to user coords
-	//if using latLon
+	//if using latLon, convert annotation axes to user coords
 	double minTicA[3],maxTicA[3],ticLengthA[3], axisOriginCoordA[3];
-	double ticLengthFactor[3] = {1.,1.,1.};
-	for (int i = 0; i<3; i++){
-		minTicA[i] = minTic[i];
-		maxTicA[i] = maxTic[i];
-		ticLengthA[i] = ticLength[i];
-		axisOriginCoordA[i] = axisOriginCoord[i];
-	}
 	if (useLatLonAnnotation()){
-		double xmin[2],xmax[2],ymin[2],ymax[2];
-		for (int j = 0; j<3; j++){
-			//Determine ticLength as a fraction of maxTic-minTic along the direction in which the tic is pointed
-			//Ignore tics that point in the z direction
-			if (ticDir[j] == 2) continue;
-			double den = (maxTic[ticDir[j]]- minTic[ticDir[j]]);
-			if (den > 0.) ticLengthFactor[j] = ticLength[j]/den;
-		}
-		//convert user coords  at axis annotation ends from lat/lon to user
-		xmin[0] = minTicA[0];
-		xmin[1] = axisOriginCoordA[1];
-		xmax[0] = maxTicA[0];
-		xmax[1] = axisOriginCoordA[1];
-		ymin[1] = minTicA[1];
-		ymin[0] = axisOriginCoordA[0];
-		ymax[1] = maxTicA[1];
-		ymax[0] = axisOriginCoordA[0];
-		DataStatus::convertFromLonLat(xmin);
-		DataStatus::convertFromLonLat(ymin);
-		DataStatus::convertFromLonLat(xmax);
-		DataStatus::convertFromLonLat(ymax);
-		//Now use the user min and max to set the axis ends
-		minTicA[0] = xmin[0];
-		maxTicA[0] = xmax[0];
-		minTicA[1] = ymin[1];
-		maxTicA[1] = ymax[1];
-		DataStatus::convertFromLonLat(axisOriginCoordA);
-		//Adjust ticLength to be in user coords
-		for (int j = 0; j<3; j++){
-			if (ticDir[j] == 2) continue;
-			double dst = (maxTicA[ticDir[j]]- minTicA[ticDir[j]]);
-			ticLengthA[j] = dst*ticLengthFactor[j];
+		ConvertAxes(false,ticDir,minTic,maxTic,axisOriginCoord,ticLength,minTicA,maxTicA,axisOriginCoordA,ticLengthA);
+	} else {
+		for (int i = 0; i<3; i++){ //copy values to temporary _A variables
+			minTicA[i] = minTic[i];
+			maxTicA[i] = maxTic[i];
+			ticLengthA[i] = ticLength[i];
+			axisOriginCoordA[i] = axisOriginCoord[i];
 		}
 	}
+	
 	double origin[3], ticMin[3], ticMax[3], ticLen[3];
 	double lorigin[3], lticMin[3], lticMax[3];
 	//Convert user to local by subtracting extent min.
@@ -2800,6 +2753,67 @@ void GLWindow::TransformToUnitBox(){
 	float transVec[3];
 	for (int i = 0; i<3; i++) transVec[i] = fullUsrExts[i]*scales[i];
 	glTranslatef(-transVec[0],-transVec[1], -transVec[2]);
+}
+
+void GLWindow::ConvertAxes(bool toLatLon, const int ticDirs[3], const double fromMinTic[3], const double fromMaxTic[3], const double fromOrigin[3], const double fromTicLength[3],
+		double toMinTic[3],double toMaxTic[3], double toOrigin[3], double toTicLength[3]){
+	double ticLengthFactor[3], xmin[2],ymin[2],xmax[2],ymax[2];
+	//Copy the z coordinates.
+	toMinTic[2]=fromMinTic[2];
+	toMaxTic[2] = fromMaxTic[2];
+	toTicLength[2] = fromTicLength[2];
+	//Put inputs into xmin, xmax, ymin, ymax
+	xmin[0] = fromMinTic[0];
+	xmin[1] = fromOrigin[1];
+	xmax[0] = fromMaxTic[0];
+	xmax[1] = fromOrigin[1];
+	ymin[1] = fromMinTic[1];
+	ymin[0] = fromOrigin[0];
+	ymax[1] = fromMaxTic[1];
+	ymax[0] = fromOrigin[0];
+	for (int j = 0; j<3; j++){
+		toOrigin[j] = fromOrigin[j];  //copy the origin coords
+		//Determine ticLength as a fraction of maxTic-minTic along the direction in which the tic is pointed
+		//Ignore tics that point in the z direction
+		if (ticDirs[j] == 2) continue;
+		double den = (fromMaxTic[ticDirs[j]]- fromMinTic[ticDirs[j]]);
+		if (den > 0.) ticLengthFactor[j] = fromTicLength[j]/den;
+		else ticLengthFactor[j] = 1.;
+		
+	}
+	if (toLatLon){
+		//convert user coords  at axis annotation ends to lat lon
+		
+		DataStatus::convertToLonLat(xmin);
+		DataStatus::convertToLonLat(ymin);
+		DataStatus::convertToLonLat(xmax);
+		DataStatus::convertToLonLat(ymax);
+		DataStatus::convertToLonLat(toOrigin);
+		
+	} else {
+		//Convert lat/lon to user
+		//convert user coords at axis annotation ends from lat/lon to user
+		
+		DataStatus::convertFromLonLat(xmin);
+		DataStatus::convertFromLonLat(ymin);
+		DataStatus::convertFromLonLat(xmax);
+		DataStatus::convertFromLonLat(ymax);
+		DataStatus::convertFromLonLat(toOrigin);
+		
+	}
+	//Set min/max tic from xmin,xmax,ymin,ymax
+	// Only set min and max on each axis.
+	toMinTic[0] = xmin[0];
+	toMaxTic[0] = xmax[0];
+	toMinTic[1] = ymin[1];
+	toMaxTic[1] = ymax[1];
+	//Adjust ticLength to be in user coords
+	for (int j = 0; j<3; j++){
+		if (ticDirs[j] == 2) continue;
+		double dst = (toMaxTic[ticDirs[j]]- toMinTic[ticDirs[j]]);
+		toTicLength[j] = dst*ticLengthFactor[j];
+	}
+	
 }
 
 #ifdef	Darwin

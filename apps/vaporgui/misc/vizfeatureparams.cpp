@@ -170,10 +170,12 @@ void VizFeatureParams::launch(){
 			if (timeStamp.length() > 10) numTimeTypes = 2;
 	}
 	vizFeatureDlg->timeCombo->setMaxCount(numTimeTypes+1);
-	if (DataStatus::getInstance()->getProjectionString() == ""){
+	//latlon annotation is not supported with no map projection, or with polar stereo projection:
+	if ((DataStatus::getInstance()->getProjectionString() == "") || (DataStatus::getInstance()->getProjectionString().find("+proj=stere") != string::npos))
+	{
 		vizFeatureDlg->latLonCheckbox->setEnabled(false);
 		vizFeatureDlg->latLonCheckbox->setChecked(false);
-	}
+	} 
 	else {
 		vizFeatureDlg->latLonCheckbox->setEnabled(true);
 	}
@@ -765,71 +767,13 @@ reloadShaders(){
 void VizFeatureParams::
 toggleLatLon(bool on){
 	if (useLatLon == on) return; // no change
-	double ticLengthFactor[3] = {1.,1.,1.};
-	double xmin[2],xmax[2],ymin[2],ymax[2];
-	for (int j = 0; j<3; j++){
-		//Determine ticLength as a fraction of maxTic-minTic along the direction in which the tic is pointed
-		//Ignore tics that point in the z direction
-		if (ticDir[j] == 2) continue;
-		double den = (maxTic[ticDir[j]]- minTic[ticDir[j]]);
-		if (den > 0.) ticLengthFactor[j] = ticLength[j]/den;
-	}
-	if (on) {
-		//convert user coords  at axis annotation ends to lat lon
-		xmin[0] = minTic[0];
-		xmin[1] = axisOriginCoords[1];
-		xmax[0] = maxTic[0];
-		xmax[1] = axisOriginCoords[1];
-		ymin[1] = minTic[1];
-		ymin[0] = axisOriginCoords[0];
-		ymax[1] = maxTic[1];
-		ymax[0] = axisOriginCoords[0];
-		DataStatus::convertToLonLat(xmin);
-		DataStatus::convertToLonLat(ymin);
-		DataStatus::convertToLonLat(xmax);
-		DataStatus::convertToLonLat(ymax);
-		//Now use the latitude and longitude min and max to set the axis ends
-		minTic[0] = xmin[0];
-		maxTic[0] = xmax[0];
-		minTic[1] = ymin[1];
-		maxTic[1] = ymax[1];
-		
-		DataStatus::convertToLonLat(axisOriginCoords);
-		//Adjust ticLength to be in user coords
-		for (int j = 0; j<3; j++){
-			if (ticDir[j] == 2) continue;
-			double dst = (maxTic[ticDir[j]]- minTic[ticDir[j]]);
-			ticLength[j] = dst*ticLengthFactor[j];
-		}
-	} else {
-		
-		//convert user coords  at axis annotation ends from lat/lon to user
-		xmin[0] = minTic[0];
-		xmin[1] = axisOriginCoords[1];
-		xmax[0] = maxTic[0];
-		xmax[1] = axisOriginCoords[1];
-		ymin[1] = minTic[1];
-		ymin[0] = axisOriginCoords[0];
-		ymax[1] = maxTic[1];
-		ymax[0] = axisOriginCoords[0];
-		DataStatus::convertFromLonLat(xmin);
-		DataStatus::convertFromLonLat(ymin);
-		DataStatus::convertFromLonLat(xmax);
-		DataStatus::convertFromLonLat(ymax);
-		//Now use the user min and max to set the axis ends
-		minTic[0] = xmin[0];
-		maxTic[0] = xmax[0];
-		minTic[1] = ymin[1];
-		maxTic[1] = ymax[1];
-		
-		DataStatus::convertFromLonLat(axisOriginCoords);
-		//Adjust ticLength to be in user coords
-		for (int j = 0; j<3; j++){
-			if (ticDir[j] == 2) continue;
-			double dst = (maxTic[ticDir[j]]- minTic[ticDir[j]]);
-			ticLength[j] = dst*ticLengthFactor[j];
+	if (on) { //Issue warning if using rotated lat lon
+		if(DataStatus::getInstance()->getProjectionString().find("+proj=ob_tran") != string::npos) {
+			MessageReporter::warningMsg("Note that Rotated Lat/Lon will not display axis annotation correctly when rotation is nonzero");
 		}
 	}
+	GLWindow::ConvertAxes(on,ticDir,minTic,maxTic,axisOriginCoords,ticLength,minTic,maxTic,axisOriginCoords,ticLength);
+	
 	//Set new values into dialog
 	vizFeatureDlg->axisOriginXEdit->setText(QString::number(axisOriginCoords[0]));
 	vizFeatureDlg->axisOriginYEdit->setText(QString::number(axisOriginCoords[1]));
@@ -843,5 +787,6 @@ toggleLatLon(bool on){
 	vizFeatureDlg->xTicSizeEdit->setText(QString::number(ticLength[0]));
 	vizFeatureDlg->yTicSizeEdit->setText(QString::number(ticLength[1]));
 	vizFeatureDlg->zTicSizeEdit->setText(QString::number(ticLength[2]));
+	useLatLon = on;
 	dialogChanged = true;
 }

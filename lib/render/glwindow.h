@@ -137,6 +137,21 @@ public:
 	//! \retval int Resulting mouse mode
 	static int AddMouseMode(const std::string paramsTag, int manipType, const char* name);
 
+	//! Static method to convert axis coordinates between user and lat-lon
+	//! It is OK for outputs to equal corresponding inputs.
+	//! \param[in] toLatLon indicates whether conversion is to LatLon (true) or to user (false)
+	//! \param[in] ticDirs are directions of tics on each axis.
+	//! \param[in] fromMinTic is a 3-vector indicating minimum tic coordinates being mapped.
+	//! \param[in] fromMaxTic is a 3-vector indicating maximum tic coordinates being mapped.
+	//! \param[in] fromOrigin is a 3-vector indicating origin coordinates being mapped.
+	//! \param[in] fromTicLength is a 3-vector indicating tic lengths before conversion
+	//! \param[out] toMinTic is result 3-vector of minimum tic coordinates 
+	//! \param[out] toMaxTic is result 3-vector of maximum tic coordinates
+	//! \param[out] toOrigin is result 3-vector of origin coordinates
+	//! \param[out] toTicLength is a 3-vector indicating tic lengths after conversion
+	static void ConvertAxes(bool toLatLon, const int ticDirs[3], const double fromMinTic[3], const double fromMaxTic[3], const double fromOrigin[3], const double fromTicLength[3],
+		double toMinTic[3],double toMaxTic[3], double toOrigin[3], double toTicLength[3]);
+
 
 
 #ifndef DOXYGEN_SKIP_THIS
