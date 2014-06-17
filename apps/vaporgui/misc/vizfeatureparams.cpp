@@ -104,7 +104,7 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	colorbarRendererTypeId = vfParams.colorbarRendererTypeId;
 	colorbarFontsize = vfParams.colorbarFontsize;
 	
-
+	useLatLon = vfParams.useLatLon;
 	timeAnnotCoords[0] = vfParams.timeAnnotCoords[0];
 	timeAnnotCoords[1] = vfParams.timeAnnotCoords[1];
 	timeAnnotColor = vfParams.timeAnnotColor;
@@ -170,6 +170,15 @@ void VizFeatureParams::launch(){
 			if (timeStamp.length() > 10) numTimeTypes = 2;
 	}
 	vizFeatureDlg->timeCombo->setMaxCount(numTimeTypes+1);
+	//latlon annotation is not supported with no map projection, or with polar stereo projection:
+	if ((DataStatus::getInstance()->getProjectionString() == "") || (DataStatus::getInstance()->getProjectionString().find("+proj=stere") != string::npos))
+	{
+		vizFeatureDlg->latLonCheckbox->setEnabled(false);
+		vizFeatureDlg->latLonCheckbox->setChecked(false);
+	} 
+	else {
+		vizFeatureDlg->latLonCheckbox->setEnabled(true);
+	}
 	
 	//Do connections.  
 	connect(vizFeatureDlg->currentNameCombo, SIGNAL(activated(int)), this, SLOT(visualizerSelected(int)));
@@ -210,6 +219,7 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->axisOriginYEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->axisOriginZEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->axisOriginXEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->latLonCheckbox, SIGNAL(toggled(bool)), this, SLOT(toggleLatLon(bool)));
 	connect (vizFeatureDlg->xTicOrientCombo, SIGNAL(activated(int)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->yTicOrientCombo, SIGNAL(activated(int)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->zTicOrientCombo, SIGNAL(activated(int)), this, SLOT(panelChanged()));
@@ -356,9 +366,11 @@ setDialog(){
 
 	//Handle axis annotation parameters.
 	showAxisAnnotation = vizWin->axisAnnotationIsEnabled();
-
+	
 	vizFeatureDlg->axisAnnotationCheckbox->setChecked(showAxisAnnotation);
 	//axis annotation setup:
+	useLatLon = vizWin->useLatLonAnnotation();
+	vizFeatureDlg->latLonCheckbox->setChecked(useLatLon);
 	for (i = 0; i<3; i++) axisOriginCoords[i] = vizWin->getAxisOriginCoord(i);
 	vizFeatureDlg->axisOriginXEdit->setText(QString::number(axisOriginCoords[0]));
 	vizFeatureDlg->axisOriginYEdit->setText(QString::number(axisOriginCoords[1]));
@@ -492,27 +504,28 @@ copyFromDialog(){
 	axisArrowCoords[0] = vizFeatureDlg->axisXEdit->text().toFloat();
 	axisArrowCoords[1] = vizFeatureDlg->axisYEdit->text().toFloat();
 	axisArrowCoords[2] = vizFeatureDlg->axisZEdit->text().toFloat();
-	axisOriginCoords[0] = vizFeatureDlg->axisOriginXEdit->text().toFloat();
-	axisOriginCoords[1] = vizFeatureDlg->axisOriginYEdit->text().toFloat();
-	axisOriginCoords[2] = vizFeatureDlg->axisOriginZEdit->text().toFloat();
-	minTic[0] = vizFeatureDlg->xMinTicEdit->text().toFloat();
-	minTic[1] = vizFeatureDlg->yMinTicEdit->text().toFloat();
-	minTic[2] = vizFeatureDlg->zMinTicEdit->text().toFloat();
-	maxTic[0] = vizFeatureDlg->xMaxTicEdit->text().toFloat();
-	maxTic[1] = vizFeatureDlg->yMaxTicEdit->text().toFloat();
-	maxTic[2] = vizFeatureDlg->zMaxTicEdit->text().toFloat();
+	axisOriginCoords[0] = vizFeatureDlg->axisOriginXEdit->text().toDouble();
+	axisOriginCoords[1] = vizFeatureDlg->axisOriginYEdit->text().toDouble();
+	axisOriginCoords[2] = vizFeatureDlg->axisOriginZEdit->text().toDouble();
+	minTic[0] = vizFeatureDlg->xMinTicEdit->text().toDouble();
+	minTic[1] = vizFeatureDlg->yMinTicEdit->text().toDouble();
+	minTic[2] = vizFeatureDlg->zMinTicEdit->text().toDouble();
+	maxTic[0] = vizFeatureDlg->xMaxTicEdit->text().toDouble();
+	maxTic[1] = vizFeatureDlg->yMaxTicEdit->text().toDouble();
+	maxTic[2] = vizFeatureDlg->zMaxTicEdit->text().toDouble();
 	numTics[0] = vizFeatureDlg->xNumTicsEdit->text().toInt();
 	numTics[1] = vizFeatureDlg->yNumTicsEdit->text().toInt();
 	numTics[2] = vizFeatureDlg->zNumTicsEdit->text().toInt();
-	ticLength[0] = vizFeatureDlg->xTicSizeEdit->text().toFloat();
-	ticLength[1] = vizFeatureDlg->yTicSizeEdit->text().toFloat();
-	ticLength[2] = vizFeatureDlg->zTicSizeEdit->text().toFloat();
+	ticLength[0] = vizFeatureDlg->xTicSizeEdit->text().toDouble();
+	ticLength[1] = vizFeatureDlg->yTicSizeEdit->text().toDouble();
+	ticLength[2] = vizFeatureDlg->zTicSizeEdit->text().toDouble();
 	ticDir[0] = vizFeatureDlg->xTicOrientCombo->currentIndex()+1;
 	ticDir[1] = vizFeatureDlg->yTicOrientCombo->currentIndex()*2;
 	ticDir[2] = vizFeatureDlg->zTicOrientCombo->currentIndex();
 	labelHeight = vizFeatureDlg->labelHeightEdit->text().toInt();
 	labelDigits = vizFeatureDlg->labelDigitsEdit->text().toInt();
 	ticWidth = vizFeatureDlg->ticWidthEdit->text().toFloat();
+	useLatLon = vizFeatureDlg->latLonCheckbox->isChecked();
 
 	axisAnnotationColor = tempAxisAnnotationColor;
 
@@ -649,6 +662,7 @@ applyToViz(int vizNum){
 		vizWin->setNumTics(i, numTics[i]);
 		vizWin->setTicLength(i, ticLength[i]);
 		vizWin->setTicDir(i, ticDir[i]);
+		vizWin->setLatLonAnnotation(useLatLon);
 	}
 	vizWin->setAxisColor(axisAnnotationColor);
 	vizWin->setTicWidth(ticWidth);
@@ -708,6 +722,7 @@ getVizNum(int comboIndex){
 	assert(0);
 	return -1;
 }
+
 // Response to a click on axisAnnotation checkbox:
 void VizFeatureParams::annotationChanged(){
 	if (vizFeatureDlg->axisAnnotationCheckbox->isChecked()){
@@ -747,4 +762,31 @@ reloadShaders(){
 	if (!rc) MessageReporter::errorMsg("Error reloading shaders\n%s",
 		"Note that all applicable renderers must be disabled when reloading shaders.");
 
+}
+//When the latLon is toggled, change coords to/from lat-lon
+void VizFeatureParams::
+toggleLatLon(bool on){
+	if (useLatLon == on) return; // no change
+	if (on) { //Issue warning if using rotated lat lon
+		if(DataStatus::getInstance()->getProjectionString().find("+proj=ob_tran") != string::npos) {
+			MessageReporter::warningMsg("Note that Rotated Lat/Lon will not display axis annotation correctly when rotation is nonzero");
+		}
+	}
+	GLWindow::ConvertAxes(on,ticDir,minTic,maxTic,axisOriginCoords,ticLength,minTic,maxTic,axisOriginCoords,ticLength);
+	
+	//Set new values into dialog
+	vizFeatureDlg->axisOriginXEdit->setText(QString::number(axisOriginCoords[0]));
+	vizFeatureDlg->axisOriginYEdit->setText(QString::number(axisOriginCoords[1]));
+	vizFeatureDlg->axisOriginZEdit->setText(QString::number(axisOriginCoords[2]));
+	vizFeatureDlg->xMinTicEdit->setText(QString::number(minTic[0]));
+	vizFeatureDlg->yMinTicEdit->setText(QString::number(minTic[1]));
+	vizFeatureDlg->zMinTicEdit->setText(QString::number(minTic[2]));
+	vizFeatureDlg->xMaxTicEdit->setText(QString::number(maxTic[0]));
+	vizFeatureDlg->yMaxTicEdit->setText(QString::number(maxTic[1]));
+	vizFeatureDlg->zMaxTicEdit->setText(QString::number(maxTic[2]));
+	vizFeatureDlg->xTicSizeEdit->setText(QString::number(ticLength[0]));
+	vizFeatureDlg->yTicSizeEdit->setText(QString::number(ticLength[1]));
+	vizFeatureDlg->zTicSizeEdit->setText(QString::number(ticLength[2]));
+	useLatLon = on;
+	dialogChanged = true;
 }

@@ -484,6 +484,7 @@ signals:
 
 	
 protected:
+	static const string _vizUseLatLonAttr;
 	static const string _vizTimeAnnotColorAttr;
 	static const string _vizTimeAnnotTextSizeAttr;
 	static const string _vizTimeAnnotTypeAttr;

@@ -137,6 +137,21 @@ public:
 	//! \retval int Resulting mouse mode
 	static int AddMouseMode(const std::string paramsTag, int manipType, const char* name);
 
+	//! Static method to convert axis coordinates between user and lat-lon
+	//! It is OK for outputs to equal corresponding inputs.
+	//! \param[in] toLatLon indicates whether conversion is to LatLon (true) or to user (false)
+	//! \param[in] ticDirs are directions of tics on each axis.
+	//! \param[in] fromMinTic is a 3-vector indicating minimum tic coordinates being mapped.
+	//! \param[in] fromMaxTic is a 3-vector indicating maximum tic coordinates being mapped.
+	//! \param[in] fromOrigin is a 3-vector indicating origin coordinates being mapped.
+	//! \param[in] fromTicLength is a 3-vector indicating tic lengths before conversion
+	//! \param[out] toMinTic is result 3-vector of minimum tic coordinates 
+	//! \param[out] toMaxTic is result 3-vector of maximum tic coordinates
+	//! \param[out] toOrigin is result 3-vector of origin coordinates
+	//! \param[out] toTicLength is a 3-vector indicating tic lengths after conversion
+	static void ConvertAxes(bool toLatLon, const int ticDirs[3], const double fromMinTic[3], const double fromMaxTic[3], const double fromOrigin[3], const double fromTicLength[3],
+		double toMinTic[3],double toMaxTic[3], double toOrigin[3], double toTicLength[3]);
+
 
 
 #ifndef DOXYGEN_SKIP_THIS
@@ -184,7 +199,14 @@ public:
 	//Project a 3D point (in cube coord system) to window coords.
 	//Return true if in front of camera
 	//
-	bool projectPointToWin(float cubeCoords[3], float winCoords[2]);
+	bool projectPointToWin(float cubeCoords[3], float winCoords[2]){
+		double cCoords[3], wCoords[2];
+		for (int i = 0; i<3; i++) cCoords[i] = cubeCoords[i];
+		bool rc = projectPointToWin(cCoords,wCoords);
+		winCoords[0]=wCoords[0];winCoords[1]=wCoords[1];
+		return rc;
+	}
+	bool projectPointToWin(double cubeCoords[3], double winCoords[2]);
 
 	// Project the current mouse coordinates to a line in screen space.
 	// The line starts at the mouseDownPosition, and points in the
@@ -211,6 +233,8 @@ public:
 	void buildTimeStampImage();
 	
 	//Get/set methods for vizfeatures
+	bool useLatLonAnnotation() {return latLonAnnot;}
+	void setLatLonAnnotation(bool val){ latLonAnnot = val;}
 	QColor getBackgroundColor() {return DataStatus::getInstance()->getBackgroundColor();}
 	QColor getRegionFrameColor() {return DataStatus::getInstance()->getRegionFrameColor();}
 	QColor getSubregionFrameColor() {return DataStatus::getInstance()->getSubregionFrameColor();}
@@ -223,10 +247,10 @@ public:
 	bool regionFrameIsEnabled() {return DataStatus::getInstance()->regionFrameIsEnabled();}
 	bool subregionFrameIsEnabled() {return DataStatus::getInstance()->subregionFrameIsEnabled();}
 	float getAxisArrowCoord(int i){return axisArrowCoord[i];}
-	float getAxisOriginCoord(int i){return axisOriginCoord[i];}
-	float getMinTic(int i){return minTic[i];}
-	float getMaxTic(int i){return maxTic[i];}
-	float getTicLength(int i){return ticLength[i];}
+	double getAxisOriginCoord(int i){return axisOriginCoord[i];}
+	double getMinTic(int i){return minTic[i];}
+	double getMaxTic(int i){return maxTic[i];}
+	double getTicLength(int i){return ticLength[i];}
 	int getNumTics(int i){return numTics[i];}
 	int getTicDir(int i){return ticDir[i];}
 	int getLabelHeight() {return labelHeight;}
@@ -263,12 +287,12 @@ public:
 	void enableSubregionFrame(bool enable) {DataStatus::getInstance()->enableSubregionFrame(enable);}
 	
 	void setAxisArrowCoord(int i, float val){axisArrowCoord[i] = val;}
-	void setAxisOriginCoord(int i, float val){axisOriginCoord[i] = val;}
+	void setAxisOriginCoord(int i, double val){axisOriginCoord[i] = val;}
 	void setNumTics(int i, int val) {numTics[i] = val;}
 	void setTicDir(int i, int val) {ticDir[i] = val;}
-	void setMinTic(int i, float val) {minTic[i] = val;}
-	void setMaxTic(int i, float val) {maxTic[i] = val;}
-	void setTicLength(int i, float val) {ticLength[i] = val;}
+	void setMinTic(int i, double val) {minTic[i] = val;}
+	void setMaxTic(int i, double val) {maxTic[i] = val;}
+	void setTicLength(int i, double val) {ticLength[i] = val;}
 	void setLabelHeight(int h){labelHeight = h;}
 	void setLabelDigits(int d) {labelDigits = d;}
 	void setTicWidth(float w) {ticWidth = w;}
@@ -626,10 +650,10 @@ protected:
 	int colorbarFontsize;
 	bool colorbarEnabled;
 	float axisArrowCoord[3];
-	float axisOriginCoord[3];
-	float minTic[3];
-	float maxTic[3];
-	float ticLength[3];
+	double axisOriginCoord[3];
+	double minTic[3];
+	double maxTic[3];
+	double ticLength[3];
 	int ticDir[3];
 	int numTics[3];
 	int labelHeight, labelDigits;
@@ -643,7 +667,7 @@ protected:
 	bool colorbarDirty;
 	bool timeAnnotDirty;
 	bool mouseDownHere;
-
+	bool latLonAnnot;
 
 
 	renderCBFcn preRenderCB;

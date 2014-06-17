@@ -122,6 +122,7 @@ const string VizWinMgr::_vizMinTicAttr = "MinTicPositions";
 const string VizWinMgr::_vizMaxTicAttr = "MaxTicPositions";
 const string VizWinMgr::_vizTicLengthAttr = "AxisTicLengths";
 const string VizWinMgr::_vizTicDirAttr = "TicDirections";
+const string VizWinMgr::_vizUseLatLonAttr = "UseLatLonAnnotation";
 const string VizWinMgr::_vizNumTicsAttr = "NumTicMarks";
 const string VizWinMgr::_vizAxisColorAttr = "AxisAnnotationColor";
 const string VizWinMgr::_vizTicWidthAttr = "TicWidth";
@@ -1424,28 +1425,33 @@ ParamNode* VizWinMgr::buildNode() {
 			attrs[_vizAxisAnnotationEnabledAttr] = oss.str();
 
 			oss.str(empty);
-			oss << (float)vizWin[i]->getAxisOriginCoord(0) << " "
-				<< (float)vizWin[i]->getAxisOriginCoord(1) << " "
-				<< (float)vizWin[i]->getAxisOriginCoord(2);
+			oss << (double)vizWin[i]->getAxisOriginCoord(0) << " "
+				<< (double)vizWin[i]->getAxisOriginCoord(1) << " "
+				<< (double)vizWin[i]->getAxisOriginCoord(2);
 			attrs[_vizAxisOriginAttr] = oss.str();
 
 			oss.str(empty);
-			oss << (float)vizWin[i]->getMinTic(0) << " "
-				<< (float)vizWin[i]->getMinTic(1) << " "
-				<< (float)vizWin[i]->getMinTic(2);
+			oss << (double)vizWin[i]->getMinTic(0) << " "
+				<< (double)vizWin[i]->getMinTic(1) << " "
+				<< (double)vizWin[i]->getMinTic(2);
 			attrs[_vizMinTicAttr] = oss.str();
 
 			oss.str(empty);
-			oss << (float)vizWin[i]->getMaxTic(0) << " "
-				<< (float)vizWin[i]->getMaxTic(1) << " "
-				<< (float)vizWin[i]->getMaxTic(2);
+			oss << (double)vizWin[i]->getMaxTic(0) << " "
+				<< (double)vizWin[i]->getMaxTic(1) << " "
+				<< (double)vizWin[i]->getMaxTic(2);
 			attrs[_vizMaxTicAttr] = oss.str();
 
 			oss.str(empty);
-			oss << (float)vizWin[i]->getTicLength(0) << " "
-				<< (float)vizWin[i]->getTicLength(1) << " "
-				<< (float)vizWin[i]->getTicLength(2);
+			oss << (double)vizWin[i]->getTicLength(0) << " "
+				<< (double)vizWin[i]->getTicLength(1) << " "
+				<< (double)vizWin[i]->getTicLength(2);
 			attrs[_vizTicLengthAttr] = oss.str();
+
+			oss.str(empty);
+			if (vizWin[i]->useLatLonAnnotation()) oss << "true";
+				else oss << "false";
+			attrs[_vizUseLatLonAttr] = oss.str();
 
 			oss.str(empty);
 			oss << (long)vizWin[i]->getNumTics(0) << " "
@@ -1557,8 +1563,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		float winTimeAnnotCoords[2] = {0.1f, 0.1f};
 		int winTimeAnnotTextSize = 10;
 		int winTimeAnnotType = 0;
-		float axisPos[3], axisOriginPos[3];
-		float minTic[3], maxTic[3], ticLength[3];
+		float axisPos[3]; 
+		double minTic[3], maxTic[3], ticLength[3], axisOriginPos[3];
 		int numTics[3], ticDir[3];
 		axisPos[0]=axisPos[1]=axisPos[2]=0.f;
 		minTic[0] = minTic[1] = minTic[2] = 0.f;
@@ -1567,6 +1573,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		ticDir[0] = 1; ticDir[1] = 0; ticDir[2] = 0;
 		ticLength[0] = ticLength[1] = ticLength[2] = 0.05f;
 		axisOriginPos[0]=axisOriginPos[1]=axisOriginPos[2]=0.f;
+		bool useLatLonAnnot = false;
 		QColor axisColor(Qt::white);
 		int labelHeight = 10;
 		int labelDigits = 4;
@@ -1678,6 +1685,10 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 			else if (StrCmpNoCase(attr, _vizTicWidthAttr) == 0) {
 				ist >> ticWidth;
 			}
+			else if (StrCmpNoCase(attr, _vizUseLatLonAttr) == 0) {
+				if (value == "true") useLatLonAnnot = true; 
+				else useLatLonAnnot = false; 
+			}
 			else if (StrCmpNoCase(attr, _vizAxisColorAttr) == 0) {
 				int r,g,b;
 				ist >> r; ist>>g; ist>>b;
@@ -1763,6 +1774,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		vizWin[parsingVizNum]->setLabelDigits(labelDigits);
 		vizWin[parsingVizNum]->setTicWidth(ticWidth);
 		vizWin[parsingVizNum]->setAxisColor(axisColor);
+		vizWin[parsingVizNum]->setLatLonAnnotation(useLatLonAnnot);
 		vizWin[parsingVizNum]->setColorbarLLCoord(0, colorbarLLPos[0]);
 		vizWin[parsingVizNum]->setColorbarLLCoord(1, colorbarLLPos[1]);
 		vizWin[parsingVizNum]->setColorbarURCoord(0, colorbarURPos[0]);
