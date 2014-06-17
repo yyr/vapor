@@ -51,7 +51,9 @@ for i=1,npaths do
     local pos = {(10 * math.random()) - 5, (10 * math.random()) - 5, (10 * math.random()) - 5}
     local dir = {(2 * math.random()) - 1, (2 * math.random()) - 1, (2 * math.random()) - 1}
     for j=1,pathlength do
-        h:write(pos[1].." "..pos[2].." "..pos[3].."\n")
+        h:write(pos[1].." "..pos[2].." "..pos[3].." "..
+            math.random().." "..math.random().." "..
+            math.random().." "..math.random().."\n")
         
         pos[1] = pos[1] + dir[1]
         pos[2] = pos[2] + dir[2]
