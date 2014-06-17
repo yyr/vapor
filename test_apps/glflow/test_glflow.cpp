@@ -26,7 +26,8 @@ using namespace VetsUtil;
 //all vector and vector-array outputs will be returned by last pointer argument
 //all single-primitive outputs will be given by return value
 
-struct {
+struct TestOptions
+{
     char* datafile;
     char* colorfile;
     char* style;
@@ -190,12 +191,9 @@ const int PANNING = 2;
 const int ZOOMING = 3;
 int mode = 0;
 
-int dbgcounter = 0;
-
 //glfw input callbacks
 void cursorPos(GLFWwindow* window, double xpos, double ypos)
 {
-    //printf("cursor moved! %d\n", dbgcounter++);
     double dx, dy;
     switch(mode)
     {
@@ -462,7 +460,6 @@ inline void mkring(const float* d, int n, float r, float* o, float* on = NULL, f
     //first = interval >> 1
     //interval = nv >> (1 + i)
     //this for loop subdivides the ring n times, each time doubling #vertices
-    //printf("n = %d\nnv = %d\n", n, nv);
     for(int i = nv >> 2; i >= 1; i = i >> 1)
     {
         //io2 is the index of the first element we need to set.
@@ -470,9 +467,8 @@ inline void mkring(const float* d, int n, float r, float* o, float* on = NULL, f
         int io2 = i >> 1;
         int io2t3 = io2 * 3;
         int it3 = i * 3;
-        for(int c = io2; c < nv; c += i)
+        for(int curr = io2 * 3; curr < nv * 3; curr += it3)
         {
-            int curr = c * 3;
             int next = (curr + io2t3) % (nv * 3);
             int prev = (curr - io2t3) % (nv * 3);
             //get an average of the two adjacent directions
@@ -607,7 +603,7 @@ void display(double* profout)
 
     double t1;
     t1 = GetTime();
-    const int s = 9;
+    //const int s = 9;
     const int s2 = SPIRAL_SZ;
     //hog.Draw(hogdata2, 1); //single tube
     //hog.Draw(&thedata, &thecolors, &s, 1); //regular array
@@ -617,7 +613,6 @@ void display(double* profout)
     //path.Draw(pathdata5, 6); //kink testing
     if(pathdata7) path.Draw(evenmoar, moarcolors, pd7szs, pd7sz);
     else path.Draw(&themoar, &themcolors, &s2, 1); //autospiral
-    //path.Draw(&themoar, &themcolors, &s2, 1); //autospiral
     //use -radius 3.1355 at high quality for awesome autospiralness
     //glTranslatef(0.f, 0.f, -3.f);
     //coneTest(conedir, opt.quality, opt.radius);
@@ -720,21 +715,6 @@ int main(int argc, char** argv)
     exit(EXIT_SUCCESS);
 }
 
-/*
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
-    glutInitWindowSize(scrw, scrh);
-    glutInitWindowPosition(100, 100);
-    glutCreateWindow(argv[0]);
-    init();
-    glutDisplayFunc(display);
-    //glutIdleFunc(display);
-    glutReshapeFunc(reshape);
-    glutMotionFunc(mousemove);
-    glutMouseFunc(mouse);
-    glutMainLoop();
-*/
-
 static void drawBox(GLfloat size, GLenum type)
 {
     static GLfloat n[6][3] =
@@ -785,57 +765,6 @@ static void drawBox(GLfloat size, GLenum type)
 void my_glutSolidCube(GLdouble size)
 {
   drawBox(size, GL_QUADS);
-}
-
-static void drawCube()
-{
-    //glutSolidCube(1.f);
-    //my_glutSolidCube(1.0);
-    // Render a cube
-    glBegin( GL_QUADS );
-        // Front face
-        glNormal3f(0.f, 0.f, -1.f);
-        glVertex3f(0.5f, 0.5f, -0.5f);
-        glVertex3f(0.5f, -0.5f, -0.5f);
-        glVertex3f(-0.5f, -0.5f, -0.5f);
-        glVertex3f(-0.5f, 0.5f, -0.5f);
-    //glEnd();
-    //glBegin( GL_QUADS );
-        // Front face
-        glNormal3f(0.f, 0.f, 1.f);
-        glVertex3f(0.5f, -0.5f, 0.5f);
-        glVertex3f(0.5f, 0.5f, 0.5f);
-        glVertex3f(-0.5f, 0.5f, 0.5f);
-        glVertex3f(-0.5f, -0.5f, 0.5f);
-    //glEnd();
-    //glBegin( GL_QUADS );
-        glNormal3f(0.f, -1.f, 0.f);
-        glVertex3f(0.5f, -0.5f, -0.5f);
-        glVertex3f(0.5f, -0.5f, 0.5f);
-        glVertex3f(-0.5f, -0.5f, 0.5f);
-        glVertex3f(-0.5f, -0.5f, -0.5f);
-    //glEnd();
-    //glBegin( GL_QUADS );
-        glNormal3f(0.f, 1.f, 0.f);
-        glVertex3f(0.5f, 0.5f, -0.5f);
-        glVertex3f(-0.5f, 0.5f, -0.5f);
-        glVertex3f(-0.5f, 0.5f, 0.5f);
-        glVertex3f(0.5f, 0.5f, 0.5f);
-    //glEnd();
-    //glBegin( GL_QUADS );
-        glNormal3f(-1.f, 0.f, 0.f);
-        glVertex3f(-0.5f, 0.5f, 0.5f);
-        glVertex3f(-0.5f, 0.5f, -0.5f);
-        glVertex3f(-0.5f, -0.5f, -0.5f);
-        glVertex3f(-0.5f, -0.5f, 0.5f);
-    //glEnd();
-    //glBegin( GL_QUADS );
-        glNormal3f(1.f, 0.f, 0.f);
-        glVertex3f(0.5f, 0.5f, -0.5f);
-        glVertex3f(0.5f, 0.5f, 0.5f);
-        glVertex3f(0.5f, -0.5f, 0.5f);
-        glVertex3f(0.5f, -0.5f, -0.5f);
-    glEnd();
 }
 
 // "I've half a mind to join a club and beat you over the head with it"

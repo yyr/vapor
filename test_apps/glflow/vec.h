@@ -6,7 +6,8 @@ static float i3[3] = {1.f, 0.f, 0.f};
 static float j3[3] = {0.f, 1.f, 0.f};
 static float k3[3] = {0.f, 0.f, 1.f};
 static float z3[3] = {0.f, 0.f, 0.f};
-static float* c3[4] = {i3, j3, k3, z3};
+//uncomment this if you want fancy stuff
+//static float* c3[4] = {i3, j3, k3, z3};
 
 //move a into b
 static inline void mov(const float* a, float* b)

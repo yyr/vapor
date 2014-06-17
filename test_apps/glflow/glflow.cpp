@@ -360,7 +360,6 @@ static inline void mkcone(const float* dir, float r, int q, float* o, float* on 
 //draws a cone whose normals have been placed in n, vertices in v
 static inline void drawCone(const float* v, const float* n, int q, float* color = 0)
 {
-    GLint oldmodel;
     if(n)
     {
         int rsz = ringSize(q);
@@ -573,7 +572,6 @@ static inline float* hhTubes(const float* v, int n, GLHedgeHogger::Params p)
 {
     //build a series of rings from the given vectors
     int rnverts = 4 << p.quality; //vertices in a ring
-    int tuverts = rnverts * 2; //vertices in a tube
     int rnsize = 3 * rnverts; //floats in a ring
     int tusize = rnsize * 2; //floats in a tube
     int rsize = tusize * n; //size of the rings-array
@@ -607,7 +605,6 @@ static inline float* hhTubesC(const float* v, const float* ci, float** co, int n
     //I will fix this later...
     //build a series of rings from the given vectors
     int rnverts = 4 << p.quality; //vertices in a ring
-    int tuverts = rnverts * 2; //vertices in a tube
     int rnsize = 3 * rnverts; //floats in a ring
     int tusize = rnsize * 2; //floats in a tube
     int rsize = tusize * n; //size of the rings-array
@@ -649,7 +646,6 @@ static inline float* hhTubesC(const float* v, const float* ci, float** co, int n
 static inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
 {
     int rnverts = 4 << p.quality; //vertices in a ring
-    int tuverts = rnverts * 2; //vertices in a tube
     int coverts = rnverts + 1; //vertices in a cone
     int rnsize = 3 * rnverts; //floats in a ring
     int tusize = rnsize * 2; //floats in a tube
@@ -714,7 +710,6 @@ static inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
 static inline float* hhArrowsC(const float* v, const float* ci, float** co, int n, GLHedgeHogger::Params p)
 {
     int rnverts = 4 << p.quality; //vertices in a ring
-    int tuverts = rnverts * 2; //vertices in a tube
     int coverts = rnverts + 1; //vertices in a cone
     int rnsize = 3 * rnverts; //floats in a ring
     int tusize = rnsize * 2; //floats in a tube
@@ -816,7 +811,6 @@ static inline void hhDrawArrows(const float* v, int n, GLHedgeHogger::Params hhp
 {
     //drawCone(const float* v, const float* n, int q)
     int rnverts = 4 << hhp.quality; //vertices in a ring
-    int tuverts = rnverts * 2; //vertices in a tube
     int coverts = rnverts + 1; //vertices in a cone
     int rnsize = 3 * rnverts; //floats in a ring
     int tusize = rnsize * 2; //floats in a tube
@@ -825,7 +819,6 @@ static inline void hhDrawArrows(const float* v, int n, GLHedgeHogger::Params hhp
     int rsizet = narrows * tusize; //size of tube section
     int rsizec = narrows * cosize; //size of cone section
     int nsizet = rsizet; //size of tube norm section
-    int nsizec = narrows * rnsize * 2; //size of cone norm section
     const float* cones = v + rsizet + nsizet;
     
     //code re-use from drawing for tubes! :D
@@ -848,7 +841,6 @@ static inline void hhDrawArrowsC(const float* v, float* c, int n, GLHedgeHogger:
 {
     //drawCone(const float* v, const float* n, int q)
     int rnverts = 4 << hhp.quality; //vertices in a ring
-    int tuverts = rnverts * 2; //vertices in a tube
     int coverts = rnverts + 1; //vertices in a cone
     int rnsize = 3 * rnverts; //floats in a ring
     int tusize = rnsize * 2; //floats in a tube
@@ -857,7 +849,6 @@ static inline void hhDrawArrowsC(const float* v, float* c, int n, GLHedgeHogger:
     int rsizet = narrows * tusize; //size of tube section
     int rsizec = narrows * cosize; //size of cone section
     int nsizet = rsizet; //size of tube norm section
-    int nsizec = narrows * rnsize * 2; //size of cone norm section
     const float* cones = v + rsizet + nsizet;
     
     //code re-use from drawing for tubes! :D
@@ -1066,8 +1057,6 @@ static inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
     int rsize = rnsize * n; //size of the rings-array
     float* r = new float[rsize * 2]; //rings-array
     float* nm = r + rsize; //normals
-    int vsize = n * 3;
-    int vlast = vsize - 3;
     int step = rnsize;
     int rlast = rsize - step;
     int stride = 3 * p.stride;
@@ -1132,8 +1121,6 @@ static inline float* prTubesC(const float* v, const float* ci, float** co, int n
     float* c = new float[4 * n];
     *co = c;
     float* nm = r + rsize; //normals
-    int vsize = n * 3;
-    int vlast = vsize - 3;
     int step = rnsize;
     int rlast = rsize - step;
     int stride = 3 * p.stride;
@@ -1209,7 +1196,6 @@ static float* prArrows(const float* v, int n, GLPathRenderer::Params p)
 {
     if(n < 2) return NULL;
     int rnverts = 4 << p.quality; //vertices in a ring
-    int tuverts = rnverts * 2; //vertices in a tube
     int coverts = rnverts + 1; //vertices in a cone
     int rnsize = 3 * rnverts; //floats in a ring
     int tusize = rnsize * 2; //floats in a tube, floats in a cone's norms
@@ -1236,11 +1222,8 @@ static float* prArrows(const float* v, int n, GLPathRenderer::Params p)
     //build a series of rings from the given vectors
     //int rsize = rnsize * nrings; //size of the rings-array
     //float* nm = result + rsize; //normals
-    int vsize = n * 3;
-    int vlast = vsize - 3;
     int step = rnsize;
     int rlast = rsizet - step;
-    int twostep = 2 * step;
     int stride = 3 * p.stride;
     //the first ring, which we will not iterate over
     //because we need adjacent vectors to calculate direction
@@ -1345,7 +1328,6 @@ static inline float* prArrowsC(const float* v, const float* ci, float** co, int 
 {
     if(n < 2) return NULL;
     int rnverts = 4 << p.quality; //vertices in a ring
-    int tuverts = rnverts * 2; //vertices in a tube
     int coverts = rnverts + 1; //vertices in a cone
     int rnsize = 3 * rnverts; //floats in a ring
     int tusize = rnsize * 2; //floats in a tube, floats in a cone's norms
@@ -1374,11 +1356,8 @@ static inline float* prArrowsC(const float* v, const float* ci, float** co, int 
     //build a series of rings from the given vectors
     //int rsize = rnsize * nrings; //size of the rings-array
     //float* nm = result + rsize; //normals
-    int vsize = n * 3;
-    int vlast = vsize - 3;
     int step = rnsize;
     int rlast = rsizet - step;
-    int twostep = 2 * step;
     int stride = 3 * p.stride;
     int clast = (4 * n) - 4;
     //the first ring, which we will not iterate over
@@ -1530,24 +1509,19 @@ static inline void prDrawTubesC(const float* v, float* c, int n, GLPathRenderer:
 static inline void prDrawArrows(const float* v, int n, GLPathRenderer::Params prp)
 {
     int rnverts = 4 << prp.quality; //vertices in a ring
-    int tuverts = rnverts * 2; //vertices in a tube
     int coverts = rnverts + 1; //vertices in a cone
     int rnsize = 3 * rnverts; //floats in a ring
     int tusize = rnsize * 2; //floats in a tube, floats in a cone's
     int cosize = coverts * 3; //floats in a cone
     int nrings = (((prp.arrowStride + 1) * n) / (prp.stride * prp.arrowStride)) - 1;
     int ncones = nrings / prp.arrowStride; //number of cones
-    float coneRadius = prp.radius * prp.arrowRatio;
     //there is an extra ring for every arrow, to prevent tubes from
     //clipping through their cones
     int rsizet = nrings * rnsize; //size of tube section
     int rsizec = ncones * cosize; //size of cone section
     int nsizet = rsizet; //size of tube norm section
-    int nsizec = ncones * tusize; //size of cone norm section
-    int total = rsizet + nsizet + rsizec + nsizec;
     const float* cones = v + rsizet + nsizet;
     const float* nmcone = cones + rsizec;
-    int rsize = (4 << prp.quality) * 3;
     int arrowOffset = prp.arrowStride - 1;
     int count = 0;
     int itc = 0;
@@ -1573,24 +1547,19 @@ static inline void prDrawArrows(const float* v, int n, GLPathRenderer::Params pr
 static inline void prDrawArrowsC(const float* v, float* c, int n, GLPathRenderer::Params prp)
 {
     int rnverts = 4 << prp.quality; //vertices in a ring
-    int tuverts = rnverts * 2; //vertices in a tube
     int coverts = rnverts + 1; //vertices in a cone
     int rnsize = 3 * rnverts; //floats in a ring
     int tusize = rnsize * 2; //floats in a tube, floats in a cone's
     int cosize = coverts * 3; //floats in a cone
     int nrings = (((prp.arrowStride + 1) * n) / (prp.stride * prp.arrowStride)) - 1;
     int ncones = nrings / prp.arrowStride; //number of cones
-    float coneRadius = prp.radius * prp.arrowRatio;
     //there is an extra ring for every arrow, to prevent tubes from
     //clipping through their cones
     int rsizet = nrings * rnsize; //size of tube section
     int rsizec = ncones * cosize; //size of cone section
     int nsizet = rsizet; //size of tube norm section
-    int nsizec = ncones * tusize; //size of cone norm section
-    int total = rsizet + nsizet + rsizec + nsizec;
     const float* cones = v + rsizet + nsizet;
     const float* nmcone = cones + rsizec;
-    int rsize = (4 << prp.quality) * 3;
     int arrowOffset = prp.arrowStride - 1;
     int count = 0;
     int itc = 0; //cone iterator
