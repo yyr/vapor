@@ -254,7 +254,7 @@ elif [ "${map}" = "UScounties" ] ; then
     else
         wmsLayer="ATLAS_STATES"
     fi
-    wmsLayer="ATLAS_COUNTIES_2000,"${wmsLayer}
+    wmsLayer="ATLAS_COUNTIES_2001,"${wmsLayer}
     host="http://imsref.cr.usgs.gov:80/wmsconnector/com.esri.wms.Esrimap/USGS_EDC_National_Atlas"
     imageFormat="image/png"
     depth="-depth 8"
