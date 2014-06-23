@@ -529,6 +529,7 @@ void init(void)
     hcopy._stride = opt.stride;
     hcopy._style = style;
     hcopy._arrowRatio = opt.ratio;
+    hcopy._length = opt.length;
 
     hog.SetParams(&hcopy);
     
@@ -606,13 +607,13 @@ void display(double* profout)
     //const int s = 9;
     const int s2 = SPIRAL_SZ;
     //hog.Draw(hogdata2, 1); //single tube
-    //hog.Draw(&thedata, &thecolors, &s, 1); //regular array
+    hog.Draw(&thedata, &thecolors, &s, 1); //regular array
     //path.Draw(pathdata2, 3); //90 degree, dual-segment
     //path.Draw(pathdata3, 3); //straight, dual-segment
     //path.Draw(pathdata4, 2); //single-segment
     //path.Draw(pathdata5, 6); //kink testing
-    if(pathdata7) path.Draw(evenmoar, moarcolors, pd7szs, pd7sz);
-    else path.Draw(&themoar, &themcolors, &s2, 1); //autospiral
+    //if(pathdata7) path.Draw(evenmoar, moarcolors, pd7szs, pd7sz);
+    //else path.Draw(&themoar, &themcolors, &s2, 1); //autospiral
     //use -radius 3.1355 at high quality for awesome autospiralness
     //glTranslatef(0.f, 0.f, -3.f);
     //coneTest(conedir, opt.quality, opt.radius);
