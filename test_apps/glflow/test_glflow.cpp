@@ -520,31 +520,31 @@ void init(void)
     hog = GLHedgeHogger();
     const GLHedgeHogger::Params* hparams = hog.GetParams();
     GLHedgeHogger::Params hcopy = *hparams;
-    hcopy.radius = opt.radius;
-    hcopy.quality = opt.quality;
-    hcopy.baseColor[0] = 0.5f;
-    hcopy.baseColor[1] = 0.5f;
-    hcopy.baseColor[2] = 0.5f;
-    hcopy.baseColor[3] = 1.f;
-    hcopy.stride = opt.stride;
-    hcopy.style = style;
-    hcopy.arrowRatio = opt.ratio;
+    hcopy._radius = opt.radius;
+    hcopy._quality = opt.quality;
+    hcopy._baseColor[0] = 0.5f;
+    hcopy._baseColor[1] = 0.5f;
+    hcopy._baseColor[2] = 0.5f;
+    hcopy._baseColor[3] = 1.f;
+    hcopy._stride = opt.stride;
+    hcopy._style = style;
+    hcopy._arrowRatio = opt.ratio;
 
     hog.SetParams(&hcopy);
     
     path = GLPathRenderer();
     const GLPathRenderer::Params* pparams = path.GetParams();
     GLPathRenderer::Params pcopy = *pparams;
-    pcopy.radius = opt.radius;
-    pcopy.quality = opt.quality;
-    pcopy.baseColor[0] = 0.9f;
-    pcopy.baseColor[1] = 0.9f;
-    pcopy.baseColor[2] = 0.0f;
-    pcopy.baseColor[3] = 1.f;
-    pcopy.stride = opt.stride;
-    pcopy.style = style;
-    pcopy.arrowRatio = opt.ratio;
-    pcopy.arrowStride = opt.arrowstride;
+    pcopy._radius = opt.radius;
+    pcopy._quality = opt.quality;
+    pcopy._baseColor[0] = 0.9f;
+    pcopy._baseColor[1] = 0.9f;
+    pcopy._baseColor[2] = 0.0f;
+    pcopy._baseColor[3] = 1.f;
+    pcopy._stride = opt.stride;
+    pcopy._style = style;
+    pcopy._arrowRatio = opt.ratio;
+    pcopy._arrowStride = opt.arrowstride;
     
     path.SetParams(&pcopy);
     
