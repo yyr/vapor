@@ -433,7 +433,11 @@ GLFlowRenderer::GLFlowRenderer()
 {
     _p = GLFlowRenderer::Params();
     _changed = false;
-    _prevdata = NULL;
+    
+    _copydata = NULL;
+    _copycolor = NULL;
+    _copysizes = NULL;
+    _copycount = 0;
     
     _output = NULL;
     _osizes = NULL;
@@ -443,7 +447,30 @@ GLFlowRenderer::GLFlowRenderer()
 
 GLFlowRenderer::~GLFlowRenderer()
 {
-    if(_prevdata) _prevdata = NULL;
+    if(_copydata)
+    {
+        for(int i = 0; i < _copycount; i++)
+        {
+            delete[] _copydata[i];
+        }
+        delete[] _copydata;
+        _copydata = NULL;
+    }
+    if(_copycolor)
+    {
+        for(int i = 0; i < _copycount; i++)
+        {
+            delete[] _copycolor[i];
+        }
+        delete[] _copycolor;
+        _copycolor = NULL;
+    }
+    if(_copysizes)
+    {
+        delete[] _copysizes;
+        _copysizes = NULL;
+    }
+    if(_copycount) _copycount = 0;
     if(_osizes)
     {
         delete[] _osizes;
@@ -467,7 +494,6 @@ GLFlowRenderer::~GLFlowRenderer()
 }
 
 //default values for basic params variables
-//NOTE: extents currently does nothing
 GLFlowRenderer::Params::Params()
 {
     _style = Tube;
@@ -568,7 +594,6 @@ GLHedgeHogger::~GLHedgeHogger()
         _copysizes = NULL;
     }
     if(_copycount) _copycount = 0;
-    if(_prevdata) _prevdata = NULL;
     if(_osizes)
     {
         delete[] _osizes;
@@ -1011,15 +1036,22 @@ bool GLHedgeHogger::SetData(const float **vecs, const int *sizes, int count)
     }
     if(_copycount) _copycount = 0;
     
-    _copydata = new float*[count];
-    _copysizes = new int[count];
-    for(int i = 0; i < count; i++)
+    _copycount = count;
+    _copydata = new float*[_copycount];
+    _copysizes = new int[_copycount];
+    for(int i = 0; i < _copycount; i++)
     {
         _copysizes[i] = sizes[i];
-        _copydata[i] = new float[_copysizes[i]];
-        for(int j = 0; j < _copysizes[i]; j++)
+        int datasz = _copysizes[i] * 6;
+        _copydata[i] = new float[datasz];
+        for(int j = 0; j < datasz; j+=6)
         {
-            _copydata[i][j] = vecs[i][j];
+            _copydata[i][j    ] = vecs[i][j    ];
+            _copydata[i][j + 1] = vecs[i][j + 1];
+            _copydata[i][j + 2] = vecs[i][j + 2];
+            _copydata[i][j + 3] = vecs[i][j + 3];
+            _copydata[i][j + 4] = vecs[i][j + 4];
+            _copydata[i][j + 5] = vecs[i][j + 5];
         }
     }
     _changed = true;
@@ -1054,18 +1086,31 @@ bool GLHedgeHogger::SetData(const float **vecs, const float **rgba, const int *s
     }
     if(_copycount) _copycount = 0;
     
-    _copydata = new float*[count];
-    _copycolor = new float*[count];
-    _copysizes = new int[count];
-    for(int i = 0; i < count; i++)
+    _copycount = count;
+    _copydata = new float*[_copycount];
+    _copycolor = new float*[_copycount];
+    _copysizes = new int[_copycount];
+    for(int i = 0; i < _copycount; i++)
     {
         _copysizes[i] = sizes[i];
-        _copydata[i] = new float[_copysizes[i]];
-        _copycolor[i] = new float[_copysizes[i]];
-        for(int j = 0; j < _copysizes[i]; j++)
+        int datasz = _copysizes[i] * 6;
+        int colorsz = _copysizes[i] * 4;
+        _copydata[i] = new float[datasz];
+        _copycolor[i] = new float[colorsz];
+        int jc = 0;
+        for(int j = 0; j < _copysizes[i]; j+=6)
         {
-            _copydata[i][j] = vecs[i][j];
-            _copycolor[i][j] = rgba[i][j];
+            _copydata[i][j    ] = vecs[i][j    ];
+            _copydata[i][j + 1] = vecs[i][j + 1];
+            _copydata[i][j + 2] = vecs[i][j + 2];
+            _copydata[i][j + 3] = vecs[i][j + 3];
+            _copydata[i][j + 4] = vecs[i][j + 4];
+            _copydata[i][j + 5] = vecs[i][j + 5];
+            _copycolor[i][j    ] = rgba[i][j    ];
+            _copycolor[i][j + 1] = rgba[i][j + 1];
+            _copycolor[i][j + 2] = rgba[i][j + 2];
+            _copycolor[i][j + 3] = rgba[i][j + 3];
+            jc += 4;
         }
     }
     _changed = true;
@@ -1074,84 +1119,85 @@ bool GLHedgeHogger::SetData(const float **vecs, const float **rgba, const int *s
 }
 
 //draws provided data. generates geometry if necessary
-void GLHedgeHogger::Draw(const float** v, const int* sizes, int count)
+void GLHedgeHogger::Draw()
 {
-    float* (*funcptr)(const float*, int, GLHedgeHogger::Params) = _hhp._style == Tube ? hhTubes : _hhp._style == Arrow ? hhArrows : NULL;
-    if(_changed || v != _prevdata)
+    if(_copycolor)
     {
-        if(_osizes)
+        if(_changed)
         {
-            delete[] _osizes;
-            _osizes = NULL;
-        }
-        if(_output)
-        {
+            float* (*funcptr)(const float*, const float*, float**, int, GLHedgeHogger::Params) = _hhp._style == Tube ? hhTubesC : _hhp._style == Arrow ? hhArrowsC : NULL;
+            if(_osizes)
+            {
+                delete[] _osizes;
+                _osizes = NULL;
+            }
+            if(_output)
+            {
+                for(int i = 0; i < _ocount; i++)
+                    delete[] _output[i];
+                delete[] _output;
+                _output = NULL;
+            }
+            if(_colors)
+            {
+                for(int i = 0; i < _ocount; i++)
+                    delete[] _colors[i];
+                delete[] _colors;
+                _colors = NULL;
+            }
+            if(_ocount) _ocount = 0;
+            _ocount = _copycount;
+            _output = new float*[_ocount];
+            _osizes = new int[_ocount];
+            _colors = new float*[_ocount];
             for(int i = 0; i < _ocount; i++)
-                delete[] _output[i];
-            delete[] _output;
-            _output = NULL;
+            {
+                _osizes[i] = _copysizes[i];
+                _output[i] = funcptr(_copydata[i], _copycolor[i], &_colors[i], _osizes[i], _hhp);
+            }
+            _changed = false;
         }
-        if(_colors)
-        {
-            for(int i = 0; i < _ocount; i++)
-                delete[] _colors[i];
-            delete[] _colors;
-            _colors = NULL;
-        }
-        if(_ocount) _ocount = 0;
-        _ocount = count;
-        _output = new float*[_ocount];
-        _osizes = new int[_ocount];
         for(int i = 0; i < _ocount; i++)
-        {
-            _osizes[i] = sizes[i];
-            _output[i] = funcptr(v[i], _osizes[i], _hhp);
-        }
+            hhDrawC(_output[i], _colors[i], _osizes[i], _hhp);
     }
-    for(int i = 0; i < _ocount; i++)
-        hhDraw(_output[i], _osizes[i], _hhp);
-    _prevdata = v;
-}
-
-//draws provided data, with color. generates geometry if necessary
-void GLHedgeHogger::Draw(const float **v, const float **rgba, const int *sizes, int count)
-{
-    float* (*funcptr)(const float*, const float*, float**, int, GLHedgeHogger::Params) = _hhp._style == Tube ? hhTubesC : _hhp._style == Arrow ? hhArrowsC : NULL;
-    if(_changed || v != _prevdata || !_colors)
+    else
     {
-        if(_osizes)
+        if(_changed)
         {
-            delete[] _osizes;
-            _osizes = NULL;
-        }
-        if(_output)
-        {
+            float* (*funcptr)(const float*, int, GLHedgeHogger::Params) = _hhp._style == Tube ? hhTubes : _hhp._style == Arrow ? hhArrows : NULL;
+            if(_osizes)
+            {
+                delete[] _osizes;
+                _osizes = NULL;
+            }
+            if(_output)
+            {
+                for(int i = 0; i < _ocount; i++)
+                    delete[] _output[i];
+                delete[] _output;
+                _output = NULL;
+            }
+            if(_colors)
+            {
+                for(int i = 0; i < _ocount; i++)
+                    delete[] _colors[i];
+                delete[] _colors;
+                _colors = NULL;
+            }
+            if(_ocount) _ocount = 0;
+            _ocount = _copycount;
+            _output = new float*[_ocount];
+            _osizes = new int[_ocount];
             for(int i = 0; i < _ocount; i++)
-                delete[] _output[i];
-            delete[] _output;
-            _output = NULL;
+            {
+                _osizes[i] = _copysizes[i];
+                _output[i] = funcptr(_copydata[i], _osizes[i], _hhp);
+            }
+            _changed = false;
         }
-        if(_colors)
-        {
-            for(int i = 0; i < _ocount; i++)
-                delete[] _colors[i];
-            delete[] _colors;
-            _colors = NULL;
-        }
-        if(_ocount) _ocount = 0;
-        _ocount = count;
-        _output = new float*[_ocount];
-        _osizes = new int[_ocount];
-        _colors = new float*[_ocount];
         for(int i = 0; i < _ocount; i++)
-        {
-            _osizes[i] = sizes[i];
-            _output[i] = funcptr(v[i], rgba[i], &_colors[i], _osizes[i], _hhp);
-        }
+            hhDraw(_output[i], _osizes[i], _hhp);
     }
-    for(int i = 0; i < _ocount; i++)
-        hhDrawC(_output[i], _colors[i], _osizes[i], _hhp);
-    _prevdata = v;
 }
 
 GLPathRenderer::GLPathRenderer() : GLFlowRenderer()
@@ -1185,7 +1231,6 @@ GLPathRenderer::~GLPathRenderer()
         _copysizes = NULL;
     }
     if(_copycount) _copycount = 0;
-    if(_prevdata) _prevdata = NULL;
     if(_osizes)
     {
         delete[] _osizes;
@@ -1849,15 +1894,19 @@ bool GLPathRenderer::SetData(const float **pts, const int *sizes, int count)
     }
     if(_copycount) _copycount = 0;
     
-    _copydata = new float*[count];
-    _copysizes = new int[count];
-    for(int i = 0; i < count; i++)
+    _copycount = count;
+    _copydata = new float*[_copycount];
+    _copysizes = new int[_copycount];
+    for(int i = 0; i < _copycount; i++)
     {
         _copysizes[i] = sizes[i];
-        _copydata[i] = new float[_copysizes[i]];
-        for(int j = 0; j < _copysizes[i]; j++)
+        int datasz = _copysizes[i] * 3;
+        _copydata[i] = new float[datasz];
+        for(int j = 0; j < datasz; j += 3)
         {
-            _copydata[i][j] = pts[i][j];
+            _copydata[i][j    ] = pts[i][j    ];
+            _copydata[i][j + 1] = pts[i][j + 1];
+            _copydata[i][j + 2] = pts[i][j + 2];
         }
     }
     _changed = true;
@@ -1892,18 +1941,28 @@ bool GLPathRenderer::SetData(const float **pts, const float **rgba, const int *s
     }
     if(_copycount) _copycount = 0;
     
-    _copydata = new float*[count];
-    _copycolor = new float*[count];
-    _copysizes = new int[count];
-    for(int i = 0; i < count; i++)
+    _copycount = count;
+    _copydata = new float*[_copycount];
+    _copycolor = new float*[_copycount];
+    _copysizes = new int[_copycount];
+    for(int i = 0; i < _copycount; i++)
     {
         _copysizes[i] = sizes[i];
-        _copydata[i] = new float[_copysizes[i]];
-        _copycolor[i] = new float[_copysizes[i]];
-        for(int j = 0; j < _copysizes[i]; j++)
+        int datasz = _copysizes[i] * 3;
+        int colorsz = _copysizes[i] * 4;
+        _copydata[i] = new float[datasz];
+        _copycolor[i] = new float[colorsz];
+        int jc = 0;
+        for(int j = 0; j < datasz; j += 3)
         {
-            _copydata[i][j] = pts[i][j];
-            _copycolor[i][j] = rgba[i][j];
+            _copydata[i][j    ] = pts[i][j    ];
+            _copydata[i][j + 1] = pts[i][j + 1];
+            _copydata[i][j + 2] = pts[i][j + 2];
+            _copycolor[i][j    ] = rgba[i][j    ];
+            _copycolor[i][j + 1] = rgba[i][j + 1];
+            _copycolor[i][j + 2] = rgba[i][j + 2];
+            _copycolor[i][j + 3] = rgba[i][j + 3];
+            jc += 4;
         }
     }
     _changed = true;
@@ -1911,72 +1970,92 @@ bool GLPathRenderer::SetData(const float **pts, const float **rgba, const int *s
     return false;
 }
 
-//builds and caches geometry if necessary, draws cached geometry
-void GLPathRenderer::Draw(const float **v, const int *sizes, int count)
+//builds geometry if necessary, draws geometry
+void GLPathRenderer::Draw()
 {
-    float* (*funcptr)(const float*, int, GLPathRenderer::Params) = _prp._style == Tube ? prTubes : _prp._style == Arrow ? prArrows : NULL;
-    if(_changed || v != _prevdata)
+    if(_copycolor)
     {
-        if(_output)
+        if(_changed)
         {
+            float* (*funcptr)(const float*, const float*, float**, int, GLPathRenderer::Params) = _prp._style == Tube ? prTubesC : _prp._style == Arrow ? prArrowsC : NULL;
+            if(_osizes)
+            {
+                delete[] _osizes;
+                _osizes = NULL;
+            }
+            if(_output)
+            {
+                for(int i = 0; i < _ocount; i++)
+                    delete[] _output[i];
+                delete[] _output;
+                _output = NULL;
+            }
+            if(_colors)
+            {
+                for(int i = 0; i < _ocount; i++)
+                    delete[] _colors[i];
+                delete[] _colors;
+                _colors = NULL;
+            }
+            if(_ocount) _ocount = 0;
+            
+            _ocount = _copycount;
+            _output = new float*[_ocount];
+            _colors = new float*[_ocount];
+            _osizes = new int[_ocount];
             for(int i = 0; i < _ocount; i++)
             {
-                if(_output[i]) delete[] _output[i];
+                _osizes[i] = _copysizes[i];
+                int csize = _osizes[i] * 4;
+                _output[i] = funcptr(_copydata[i], _copycolor[i], _colors + i, _osizes[i], _prp);
             }
-            delete[] _output;
-            delete[] _osizes;
-            delete[] _colors;
+            _changed = false;
         }
-        _ocount = count;
-        _output = new float*[_ocount];
-        _colors = new float*[_ocount];
-        _osizes = new int[_ocount];
-        for(int i = 0; i < _ocount; i++)
-        {
-            _osizes[i] = sizes[i];
-            _output[i] = funcptr(v[i], _osizes[i], _prp);
-        }
+        if(_copycolor)
+            for(int i = 0; i < _ocount; i++)
+                prDrawC(_output[i], _colors[i], _osizes[i], _prp);
     }
-    for(int i = 0; i < _ocount; i++)
-        prDraw(_output[i], _osizes[i], _prp);
-    _prevdata = v;
-}
-
-//builds and caches geometry if necessary, draws cached geometry
-void GLPathRenderer::Draw(const float **v, const float **rgba, const int *sizes, int count)
-{
-    float* (*funcptr)(const float*, const float*, float**, int, GLPathRenderer::Params) = _prp._style == Tube ? prTubesC : _prp._style == Arrow ? prArrowsC : NULL;
-    if(_changed || v != _prevdata)
+    else
     {
-        if(_output)
+        if(_changed)
         {
+            float* (*funcptr)(const float*, int, GLPathRenderer::Params) = _prp._style == Tube ? prTubes : _prp._style == Arrow ? prArrows : NULL;
+            if(_osizes)
+            {
+                delete[] _osizes;
+                _osizes = NULL;
+            }
+            if(_output)
+            {
+                for(int i = 0; i < _ocount; i++)
+                    delete[] _output[i];
+                delete[] _output;
+                _output = NULL;
+            }
+            if(_colors)
+            {
+                for(int i = 0; i < _ocount; i++)
+                    delete[] _colors[i];
+                delete[] _colors;
+                _colors = NULL;
+            }
+            if(_ocount) _ocount = 0;
+            
+            _ocount = _copycount;
+            _output = new float*[_ocount];
+            _colors = new float*[_ocount];
+            _osizes = new int[_ocount];
             for(int i = 0; i < _ocount; i++)
             {
-                if(_output[i]) delete[] _output[i];
-                if(_colors[i]) delete[] _colors[i];
+                _osizes[i] = _copysizes[i];
+                //HEISENBUG IS COMING FROM THIS LINE!!!!!!!!!!!!!!!!!
+                //it would appear that both non-coloring funcs cause it
+                _output[i] = funcptr(_copydata[i], _osizes[i], _prp);
             }
-            delete[] _output;
-            delete[] _colors;
-            delete[] _osizes;
+            _changed = false;
         }
-        _ocount = count;
-        _output = new float*[_ocount];
-        _colors = new float*[_ocount];
-        _osizes = new int[_ocount];
         for(int i = 0; i < _ocount; i++)
-        {
-            _osizes[i] = sizes[i];
-            int csize = _osizes[i] * 4;
-            _colors[i] = new float[csize];
-            for(int j = 0; j < csize; j++)
-            {
-                _colors[i][j] = rgba[i][j];
-            }
-            _output[i] = funcptr(v[i], rgba[i], _colors + i, _osizes[i], _prp);
-        }
+            prDraw(_output[i], _osizes[i], _prp);
     }
-    for(int i = 0; i < _ocount; i++)
-        prDrawC(_output[i], _colors[i], _osizes[i], _prp);
-    _prevdata = v;
 }
 

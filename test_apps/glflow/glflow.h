@@ -56,18 +56,16 @@ public:
     virtual bool SetData(const float **X, const float **rgba, const int *sizes, int count) = 0;
     
     ///The meaning of X depends on the FlowRenderer subclass
-    virtual void Draw(const float **X, const int* sizes, int count) = 0;
+    //virtual void Draw(const float **X, const int* sizes, int count) = 0;
     ///rgba is coloring options, but can also have different
     ///structure depending on FlowRenderer subclass
     ///rgba format: repeated (r, g, b, a) where each is between 0 and 1
-    virtual void Draw(const float **X, const float **rgba, const int* sizes, int count) = 0;
-    //virtual void Draw();
+    //virtual void Draw(const float **X, const float **rgba, const int* sizes, int count) = 0;
+    virtual void Draw() = 0;
     
 protected:
     Params _p;
     bool _changed;
-    
-    const float** _prevdata;
     
     float** _copydata;
     float** _copycolor;
@@ -108,10 +106,10 @@ public:
     ///    where (x, y, z) is the position of the vector,
     ///    and (dx, dy, dz) is the un-normalized direction
     ///n: the number of vectors in 'vectors'
-    void Draw(const float **vecs, const int *sizes, int count);
+    //void Draw(const float **vecs, const int *sizes, int count);
     ///rgba: one (r, g, b, a) for each vector in 'vectors'
-    void Draw(const float **vecs, const float **rgba, const int *sizes, int count);
-    //void Draw();
+    //void Draw(const float **vecs, const float **rgba, const int *sizes, int count);
+    void Draw();
     
 protected:
     Params _hhp;
@@ -142,9 +140,9 @@ public:
     
     ///points: repeated (x, y, z) where each is a point in the path
     ///rgba: repeated (r, g, b, a), with one color for each point
-    void Draw(const float **pts, const int *sizes, int count);
-    void Draw(const float **pts, const float **rgba, const int *sizes, int count);
-    //void Draw();
+    //void Draw(const float **pts, const int *sizes, int count);
+    //void Draw(const float **pts, const float **rgba, const int *sizes, int count);
+    void Draw();
     
 protected:
     Params _prp;
