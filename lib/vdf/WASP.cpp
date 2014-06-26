@@ -58,6 +58,19 @@ size_t _linearize(
 	return(offset);
 }
 
+// vector subtraction. Return a - b
+//
+vector <size_t> vector_sub(const vector <size_t> &a, const vector <size_t> &b) {
+	assert(a.size() == b.size());
+
+	vector <size_t> c;
+	for (int i=0; i<a.size(); i++) {
+		assert(a[i]>=b[i]);
+		c.push_back(a[i]-b[i]);
+	}
+	return(c);
+}
+
  //
  // Helper class for NetCDF style hyperslab indexing arithmetic 
  //
@@ -241,7 +254,7 @@ int thread_state::_status = 0;
 // assuming a block size of 'bs'. Handles case where 
 // rank(bs) < rank(vcoords)
 //
-void _to_block_coords(
+void to_block_coords(
 	vector <size_t> vcoords,
 	vector <size_t> bs,
 	vector <size_t> &bcoords
@@ -439,7 +452,6 @@ vector <size_t> vdiff(vector <size_t> a, vector <size_t> b) {
 // min, max : range of data values within block
 //
 void _Block(
-	vector <size_t> origin,
 	vector <size_t> dims, 
 	vector <size_t> start,
 	vector <size_t> bs, 
@@ -455,15 +467,13 @@ void _Block(
 	assert(bs.size() >=1 && bs.size() <= 3);
 	assert(bs.size() <= dims.size());
 	assert(dims.size() == start.size());
-	assert(dims.size() == origin.size());
 
-	size_t offset = _linearize(start, dims) - _linearize(origin, dims);
+	size_t offset = _linearize(start, dims);
 	data += offset;
 
 	// Deal with rank of bs less than data rank
 	//
 	while (dims.size() > bs.size()) {
-		origin.erase(origin.begin());
 		dims.erase(dims.begin());
 		start.erase(start.begin());
 	}
@@ -482,45 +492,22 @@ void _Block(
 	size_t nby = rank >= 2 ? bs[rank-2] : 1;
 	size_t nbz = rank >= 3 ? bs[rank-3] : 1;
 
-	// starting coordinates within 'data'
-	//
-#ifdef	DEAD
-	size_t x0 = (rank >= 1 && start[rank-1] > origin[rank-1]) ?
-		start[rank-1] - origin[rank-1] : 0; 
-	size_t y0 = (rank >= 2 && start[rank-2] > origin[rank-2]) ?
-		start[rank-2] - origin[rank-2] : 0;
-	size_t z0 = (rank >= 3 && start[rank-3] > origin[rank-3]) ?
-		start[rank-3] - origin[rank-3] : 0; 
-#endif
-
-
-	// starting and stop coordinates within block, handling boundary cases
+	// stopping coordinates within block, handling boundary cases
 	// for non-block-aligned regions
 	//
-	size_t xstart = 0;
-	size_t ystart = 0;
-	size_t zstart = 0;
-
-	if (rank>=1 && (origin[rank-1] > start[rank-1]))    // non-aligned boundary
-		xstart = origin[rank-1] - start[rank-1];
-	if (rank>=2 && (origin[rank-2] > start[rank-2]))    // non-aligned boundary
-		ystart = origin[rank-2] - start[rank-2];
-	if (rank>=3 && (origin[rank-3] > start[rank-3]))    // non-aligned boundary
-		zstart = origin[rank-3] - start[rank-3];
-
 
 	size_t xstop = nbx;
 	size_t ystop = nby;
 	size_t zstop = nbz;
 
-	if (rank>=1 && (start[rank-1] + nbx) > (origin[rank-1] + dims[rank-1])) {
-		xstop = origin[rank-1] + dims[rank-1] - start[rank-1];
+	if (rank>=1 && (start[rank-1] + nbx) > dims[rank-1]) {
+		xstop = (start[rank-1] + nbx) - dims[rank-1];
 	}
-	if (rank>=2 && (start[rank-2] + nby) > (origin[rank-2] + dims[rank-2])) {
-		ystop = origin[rank-2] + dims[rank-2] - start[rank-2];
+	if (rank>=2 && (start[rank-2] + nby) > dims[rank-2]) {
+		ystop = (start[rank-2] + nby) - dims[rank-2];
 	}
-	if (rank>=3 && (start[rank-3] + nbz) > (origin[rank-3] + dims[rank-3])) {
-		zstop = origin[rank-3] + dims[rank-3] - start[rank-3];
+	if (rank>=3 && (start[rank-3] + nbz) > dims[rank-3]) {
+		zstop = (start[rank-3] + nbz) - dims[rank-3];
 	}
 
 	//
@@ -533,10 +520,10 @@ void _Block(
 
 	min = data[0];
 	max = data[0];
-	for (size_t z = zstart, zz=0; z<zstop; z++,zz++) {
-	for (size_t y = ystart, yy=0; y<ystop; y++,yy++) {
-	for (size_t x = xstart, xx=0; x<xstop; x++,xx++) {
-		float v = data[nx*ny*zz + nx*yy + xx];
+	for (size_t z = 0; z<zstop; z++) {
+	for (size_t y = 0; y<ystop; y++) {
+	for (size_t x = 0; x<xstop; x++) {
+		float v = data[nx*ny*z + nx*y + x];
 
 		if (v < min) min = v;
 		if (v > max) max = v;
@@ -727,7 +714,7 @@ int _ReconstructBlock(
 	
 ) {
 
-	vector <SignificanceMap> sigmaps(4);
+	vector <SignificanceMap> sigmaps(ncoeffs.size());
 
 	const unsigned char *mapptr = maps;
 	bool reconstruct_map = false;
@@ -923,39 +910,31 @@ int _FetchBlock(
 void *_RunWriteThread(void *arg) {
 	thread_state &s = *(thread_state *) arg;
 
-	// Align start and count coordinates to block boundaries to
-	// facilitate blocking
-	//
-	vector <size_t> aligned_start;
-	vector <size_t> aligned_count;
-	block_align(s._start, s._count, s._bs, aligned_start, aligned_count);
-
-	vectorinc vec(aligned_start, aligned_count, s._udims, s._bs);
+	vectorinc vec(s._start, s._count, s._udims, s._bs);
 
 	s._status = 0;
 
 	int n = vec.num();
 	for (int i=s._id; i<n; i += s._et->GetNumThreads()) {
 
-		size_t offset;
-		vector <size_t> start;
-
 		// Get starting coordinates of i'th block
 		//
+		size_t offset;
+		vector <size_t> start;
 		vec.ith(i, start, offset);
 
-		// Convert from voxel to block coordinates
+		// Transform coordinates from global to the region-of-interest
 		//
-		vector <size_t> bcoords;
-		_to_block_coords(start, s._bs, bcoords);
+		vector <size_t> roi_start = vector_sub(start, s._start);
 
 		//
 		// Extract the block with coordinates 'start' from the 
-		// array, 's._data'
+		// array, 's._data'. 
 		//
 		float min, max;
 		_Block(
-			s._start, s._count, start, s._bs, s._compressors[s._id]->dwtmode(),
+			s._count, roi_start, s._bs, 
+			s._compressors[s._id]->dwtmode(),
 			s._data, s._block, min, max
 		);
 
@@ -967,6 +946,11 @@ void *_RunWriteThread(void *arg) {
 			s._status = -1;
 			break;
 		}
+
+		// Convert from voxel to block coordinates
+		//
+		vector <size_t> bcoords;
+		to_block_coords(start, s._bs, bcoords);
 
 		s._et->MutexLock();
 			rc = _StoreBlock(
@@ -1007,7 +991,7 @@ void *_RunReadThread(void *arg) {
 		vec.ith(i, start, offset);
 		
 		vector <size_t> bcoords;
-		_to_block_coords(start, s._bs, bcoords);
+		to_block_coords(start, s._bs, bcoords);
 
 		s._et->MutexLock();
 			int rc = _FetchBlock(
@@ -1027,7 +1011,12 @@ void *_RunReadThread(void *arg) {
             break;
         }
 
-		_UnBlock(s._start, s._count, start, s._bs, s._data, s._block);
+		// Transform coordinates from global to the region-of-interest
+		//
+		vector <size_t> roi_start = vector_sub(start, aligned_start);
+		vector <size_t> roi_origin = vector_sub(s._start, aligned_start);
+
+		_UnBlock(roi_origin, s._count, roi_start, s._bs, s._data, s._block);
 
 	}
 	return(NULL);

@@ -865,6 +865,38 @@ VDC::XType VDC::GetAttType(
 	return(INVALID);
 }
 
+bool VDC::ParseDimensions(
+    const vector <VDC::Dimension> &dimensions,
+    vector <size_t> &sdims, size_t &numts
+) {
+	sdims.clear();
+	numts = 0;
+
+	//
+	// Make sure dimensions vector is valid
+	//
+	if (! (dimensions.size() >= 1 && dimensions.size() <= 4)) return(false);
+
+	int axis = -1;
+	for (int i=0; i<dimensions.size(); i++) {
+		if (dimensions[i].GetAxis() <= axis) {
+			return(false);
+		}
+		axis = dimensions[i].GetAxis();
+	}
+
+	vector <VDC::Dimension> sdimensions = dimensions;
+	if (sdimensions[sdimensions.size()-1].GetAxis() == 3) { // time varying
+		numts = sdimensions[sdimensions.size()-1].GetLength();
+		sdimensions.pop_back();	// remove time varying dimension
+	}
+
+	for (int i=0; i<sdimensions.size(); i++) {
+		sdims.push_back(sdimensions[i].GetLength());
+	}
+	return(true);
+}
+
 int VDC::EndDefine() {
 	if (! _defineMode) return(0); 
 
