@@ -142,6 +142,8 @@ private:
  int _ReadMasterVarBaseDefs(string prefix, VarBase &var); 
  int _ReadMasterCoordVarsDefs(); 
  int _ReadMasterDataVarsDefs(); 
+ int _ReadSlice(WASP *file, float *slice);
+ int _ReadSlice(NetCDFCpp *file, float *slice);
 
 	
  //

@@ -237,7 +237,7 @@ public:
   //! Constructor 
   //!
   //! \param[in] name The variable's name
-  //! \param[in] dimensions A vector specifying the variable's spatial 
+  //! \param[in] dimensions An ordered vector specifying the variable's spatial 
   //! and/or temporal dimensions
   //! \param[in] units A string recognized by Udunits-2 specifying the
   //! unit measure for the variable. An empty string indicates that the
@@ -1157,6 +1157,27 @@ public:
  //!
  XType GetAttType(string varname, string attname) const;
 
+ //! Parse a vector of VDC::Dimensions into space and time dimensions
+ //!
+ //! This is a convenience utility that parses an ordered 
+ //! vector of Dimensions into a vector of spatial lenghts, and
+ //! the number of time steps (if time varying). The dimension
+ //! vector axis must be ordered: X, Y, Z, T
+ //!
+ //! \param[in] dimensions An ordered vector of dimensions
+ //! \param[out] sdims Ordered vector of dimension lengths
+ //! extracted from \p dimensions
+ //! \param[out] numts The number of time steps if \p dimensions
+ //! contains a time dimension, otherwise \p numts will be zero
+ //! 
+ //! \retval status A value of true is returned if the \p dimensions
+ //! contains a correctly sized and ordered vector of dimensions
+ //
+ static bool ParseDimensions(
+	const vector <VDC::Dimension> &dimensions,
+	vector <size_t> &sdims, size_t &numts
+ );
+
  //!
  //! When the open mode \b mode is \b A or \b W this method signals the 
  //! class object that metadata defintions have been completed and it 
@@ -1423,7 +1444,7 @@ public:
  //!
  //! \sa GetVar()
  //
- int PutVar(string varname, const float *data);
+ int PutVar(string varname, const float *data) {return(-1); }
  
  //! Write a variable at single time step
  //!
@@ -1446,7 +1467,7 @@ public:
  //!
  //! \sa GetVar()
  //
- int PutVar(size_t ts, string varname, const float *data);
+ int PutVar(size_t ts, string varname, const float *data) {return(-1); }
 
  //! Read an entire variable in one call
  //!
@@ -1468,7 +1489,7 @@ public:
  //!
  //! \sa PutVar()
  //
- int GetVar(string varname, float *data);
+ int GetVar(string varname, float *data) {return(-1); }
 
  //! Read an entire variable at a given time step in one call
  //!
@@ -1493,7 +1514,8 @@ public:
  //!
  //! \sa PutVar()
  //
- int GetVar(size_t ts, string varname, float *data);
+ int GetVar(size_t ts, string varname, float *data) {return(-1); }
+
 
  friend std::ostream &operator<<(std::ostream &o, const VDC &vdc);
 
