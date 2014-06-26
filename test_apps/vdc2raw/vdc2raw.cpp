@@ -2,7 +2,9 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <cstdio>
 #include <cerrno>
+#include <cassert>
 
 #include <vapor/CFuncs.h>
 #include <vapor/OptionParser.h>
@@ -12,47 +14,53 @@ using namespace VetsUtil;
 using namespace VAPoR;
 
 
-//
-//	Command line argument stuff
-//
 struct opt_t {
+	int	ts;
 	string varname;
 	string type;
-	int lod;
-	int nthreads;
-	int ts;
-	OptionParser::Boolean_T	swapbytes;
-	OptionParser::Boolean_T	debug;
+	int	level;
+	int	lod;
+	int	nthreads;
 	OptionParser::Boolean_T	help;
+	OptionParser::Boolean_T	debug;
+	OptionParser::Boolean_T	quiet;
+	OptionParser::IntRange_T xregion;
+	OptionParser::IntRange_T yregion;
+	OptionParser::IntRange_T zregion;
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
+	{"ts",		1, 	"0","Timestep of data file starting from 0"},
 	{"varname",	1, 	"var1",	"Name of variable"},
-	{"type",	1, 	"float32",	"Primitive type of input data"},
-	{"lod",	1, 	"-1",	"Compression levels saved. 0 => coarsest, 1 => "
-		"next refinement, etc. -1 => all levels defined by the netcdf file"},
-	{"nthreads",	1, 	"0",	"Specify number of execution threads "
-		"0 => use number of cores"},
-	{"ts",	1, 	"0",	"Specify time step offset"},
-    {"swapbytes",   0,  "", "Swap bytes in data as they are read from disk"}, 
-	{"debug",	0,	"",	"Enable diagnostic"},
+	{"type",    1,  "float32",  "Primitive type of output data"},
+	{"level",1, "-1","Multiresolution refinement level. Zero implies coarsest resolution"},
+	{"lod",1, "-1","Compression level of detail. Zero implies coarsest approximation"},
+	{"nthreads",1, "0","Number of execution threads (0=># processors)"},
 	{"help",	0,	"",	"Print this message and exit"},
+	{"debug",	0,	"",	"Enable debugging"},
+	{"quiet",	0,	"",	"Operate quietly"},
+	{"xregion", 1, "-1:-1", "X dimension subregion bounds (min:max)"},
+	{"yregion", 1, "-1:-1", "Y dimension subregion bounds (min:max)"},
+	{"zregion", 1, "-1:-1", "Z dimension subregion bounds (min:max)"},
 	{NULL}
 };
 
 
 OptionParser::Option_T	get_options[] = {
+	{"ts", VetsUtil::CvtToInt, &opt.ts, sizeof(opt.ts)},
 	{"varname", VetsUtil::CvtToCPPStr, &opt.varname, sizeof(opt.varname)},
 	{"type", VetsUtil::CvtToCPPStr, &opt.type, sizeof(opt.type)},
+	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
 	{"lod", VetsUtil::CvtToInt, &opt.lod, sizeof(opt.lod)},
 	{"nthreads", VetsUtil::CvtToInt, &opt.nthreads, sizeof(opt.nthreads)},
-	{"ts", VetsUtil::CvtToInt, &opt.ts, sizeof(opt.ts)},
-	{"swapbytes", VetsUtil::CvtToBoolean, &opt.swapbytes, sizeof(opt.swapbytes)},
-	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
+	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
+	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
+	{"xregion", VetsUtil::CvtToIntRange, &opt.xregion, sizeof(opt.xregion)},
+	{"yregion", VetsUtil::CvtToIntRange, &opt.yregion, sizeof(opt.yregion)},
+	{"zregion", VetsUtil::CvtToIntRange, &opt.zregion, sizeof(opt.zregion)},
 	{NULL}
 };
-
 
 size_t size_of_type(string type) {
 	if (type.compare("float32") == 0) return(4);
@@ -60,32 +68,12 @@ size_t size_of_type(string type) {
 	if (type.compare("int8") == 0) return(1);
 	return(1);
 }
-		
-void    swapbytes(
-	void *vptr,
-	int size,
-	int	n
-) {
-	unsigned char   *ucptr = (unsigned char *) vptr;
-	unsigned char   uc;
-	int             i,j;
 
-	for (j=0; j<n; j++) {
-		for (i=0; i<size/2; i++) {
-			uc = ucptr[i];
-			ucptr[i] = ucptr[size-i-1];
-			ucptr[size-i-1] = uc;
-		}
-		ucptr += size;
-	}
-}
-
-int read_data(
+int write_data(
 	FILE	*fp, 
 	string type,	// element type
-	bool swap,
 	size_t n,
-	float *slice
+	const float *slice
 ) {
 
 	static SmartBuf smart_buf;
@@ -93,40 +81,31 @@ int read_data(
 	size_t element_sz = size_of_type(type);
 	unsigned char *buffer = (unsigned char *) smart_buf.Alloc(n * element_sz);
 	
-	int rc = fread(buffer, element_sz, n, fp);
-	if (rc != n) {
-		if (rc<0) { 
-			MyBase::SetErrMsg("Error reading input file : %M");
-		} else {
-			MyBase::SetErrMsg("Short read on input file");
-		}
-		return(-1);
-	}
 
-	// Swap bytes in place if needed
-	//
-	if (swap) {
-		swapbytes(buffer, element_sz, n); 
-	}
-
-	float *dptr = slice;
+	const float *sptr = slice;
 	if (type.compare("float32")) {
-		float *sptr = (float *) buffer;
+		float *dptr = (float *) buffer;
 		for (size_t i=0; i<n; i++) {
 			*dptr++ = (float) *sptr++;
 		}
 	}
 	else if (type.compare("float64")) {
-		double *sptr = (double *) buffer;
+		double *dptr = (double *) buffer;
 		for (size_t i=0; i<n; i++) {
-			*dptr++ = (float) *sptr++;
+			*dptr++ = (double) *sptr++;
 		}
 	}
 	else if (type.compare("int8")) {
-		char *sptr = (char *) buffer;
+		char *dptr = (char *) buffer;
 		for (size_t i=0; i<n; i++) {
-			*dptr++ = (float) *sptr++;
+			*dptr++ = (char) *sptr++;
 		}
+	}
+
+	int rc = fwrite(buffer, element_sz, n, fp);
+	if (rc != n) {
+		MyBase::SetErrMsg("Error writing output file : %M");
+		return(-1);
 	}
 
 	return(0);
@@ -134,54 +113,55 @@ int read_data(
 
 const char	*ProgName;
 
-	
 int	main(int argc, char **argv) {
 
 	OptionParser op;
 
-
+	ProgName = Basename(argv[0]);
 	MyBase::SetErrMsgFilePtr(stderr);
 
-	//
-	// Parse command line arguments
-	//
-	ProgName = Basename(argv[0]);
-
 	if (op.AppendOptions(set_opts) < 0) {
+		cerr << ProgName << " : " << op.GetErrMsg();
 		exit(1);
 	}
 
 	if (op.ParseOptions(&argc, argv, get_options) < 0) {
+		cerr << ProgName << " : " << op.GetErrMsg();
 		exit(1);
 	}
 
 	if (opt.help) {
-		cerr << "Usage: " << ProgName << " [options] netcdffile datafile" << endl;
+		cerr << "Usage: " << ProgName << " [options] vdcmaster datafile" << endl;
 		op.PrintOptionHelp(stderr);
 		exit(0);
 	}
 
 	if (argc != 3) {
-		cerr << "Usage: " << ProgName << " [options] netcdffile datafile" << endl;
+		cerr << "Usage: " << ProgName << " [options] vdcmaster datafile" << endl;
 		op.PrintOptionHelp(stderr);
 		exit(1);
 	}
 
-	string master = argv[1];	// Path to VDC master file
-	string datafile = argv[2];	// Path to raw data file 
+	string vdcmaster = argv[1];
+	string datafile = argv[2];
 
-    if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
+	FILE *fp = fopen(datafile.c_str(), "w");
+	if (! fp) {
+		MyBase::SetErrMsg("Could not open file \"%s\" : %M", datafile.c_str());
+		exit(1);
+	}
 
-	VDCNetCDF   vdc(opt.nthreads);
+	VDCNetCDF vdc(opt.nthreads);
 
-	int rc = vdc.Initialize(master, VDC::A, 4*1024*1024);
+	int rc = vdc.Initialize(vdcmaster, VDC::R, 4*1024*1024);
+	if (rc<0) exit(1);
 
 	VDC::DataVar dvar;
 	VDC::CoordVar cvar;
 	VDC::VarBase *vptr;
 	if (vdc.GetDataVar(opt.varname, dvar)) {
 		vptr = &dvar;
-	} 
+	}
 	else if (vdc.GetCoordVar(opt.varname, cvar)) {
 		vptr = &cvar;
 	}
@@ -189,6 +169,9 @@ int	main(int argc, char **argv) {
 		MyBase::SetErrMsg("Invalid variable name: %s", opt.varname.c_str());
 		exit(1);
 	}
+
+
+	cout << "-level not supported!!!!!\n";
 
 	vector <size_t> sdims;
 	size_t numts;
@@ -207,22 +190,17 @@ int	main(int argc, char **argv) {
 
 	float *slice = new float[nelements];
 
-	FILE *fp = fopen(datafile.c_str(), "r");
-	if (! fp) {
-		MyBase::SetErrMsg("fopen(%s) : %M", datafile.c_str());
-		exit(1);
-	}
-
-	rc = vdc.OpenVariableWrite(opt.ts, opt.varname, opt.lod);
+	//
+	rc = vdc.OpenVariableRead(opt.ts, opt.varname, opt.level, opt.lod);
 	if (rc<0) exit(1);
 
-	size_t nz = sdims.size() > 2 ? sdims[2] : 1;
+    size_t nz = sdims.size() > 2 ? sdims[2] : 1;
 
 	for (size_t i=0; i<nz; i++) {
-		int rc = read_data(fp, opt.type, opt.swapbytes, nelements, slice);
+		rc = vdc.ReadSlice(slice);
 		if (rc<0) exit(1);
 
-		rc = vdc.WriteSlice(slice);
+		int rc = write_data(fp, opt.type, nelements, slice);
 		if (rc<0) exit(1);
 	}
 
@@ -230,6 +208,10 @@ int	main(int argc, char **argv) {
 	if (rc<0) exit(1);
 
 	fclose(fp);
-	
+
 	exit(0);
 }
+	
+
+
+
