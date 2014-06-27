@@ -17,7 +17,7 @@ namespace VAPoR {
 class ParamsBase;
 //
 //! \class ParamNode 
-//! \ingroup Public
+//! \ingroup Public_Params
 //! \brief An Xml tree
 //! \author John Clyne
 //! \version $Revision$

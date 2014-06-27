@@ -26,7 +26,7 @@ namespace VAPoR {
 #include <vapor/ParamsBase.h>
 
 //! \class Box
-//! \ingroup Public
+//! \ingroup Public_Params
 //! \brief 3D or 2D box with options for orientation angles and extents changing in time.  
 //! Intended to be used in any Params class
 //! \author Alan Norton

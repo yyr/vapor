@@ -42,7 +42,7 @@ namespace VAPoR {
 
 
 //! \class InstanceParams
-//! \ingroup Public
+//! \ingroup Public_Params
 //! \brief A class for describing the renderer instances in use in VAPOR
 //! \author Alan Norton
 //! \version 3.0

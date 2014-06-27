@@ -32,7 +32,7 @@ class QFocusEvent;
 
 namespace VAPoR {
 //!
-//! \defgroup Public VAPOR Developer API
+//! \defgroup Public_GUI VAPOR GUI Developer API
 //!
 class MainForm;
 class VizWinMgr;
@@ -40,7 +40,7 @@ class Visualizer;
 class Viewpoint;
 
 //! \class VizWin
-//! \ingroup Public
+//! \ingroup Public_GUI
 //! \brief A QGLWidget that supports display based on GL methods invoked in a Visualizer
 //! \author Alan Norton
 //! \version 3.0

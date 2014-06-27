@@ -42,7 +42,7 @@ class Trackball;
 class TranslateStretchManip;
 
 //! \class Visualizer
-//! \ingroup Public
+//! \ingroup Public_Render
 //! \brief A class for performing OpenGL rendering in VAPOR GUI Window
 //! \author Alan Norton
 //! \version 3.0

@@ -28,7 +28,7 @@ namespace VAPoR{
 class Params;
 
 //! \class Command
-//! \ingroup Public
+//! \ingroup Public_Params
 //! \brief Provides support for maintaining a queue of recently issued commands,
 //! performing UnDo, ReDo, etc.
 //! The parent Command class supports a queue of Params changes; each entry has a

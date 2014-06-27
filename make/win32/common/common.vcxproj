@@ -203,6 +203,7 @@
     <ClCompile Include="..\..\..\lib\common\MyBase.cpp" />
     <ClCompile Include="..\..\..\lib\common\OptionParser.cpp" />
     <ClCompile Include="..\..\..\lib\common\PVTime.cpp" />
+    <ClCompile Include="..\..\..\lib\common\utils.cpp" />
     <ClCompile Include="..\..\..\lib\common\Version.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -216,6 +217,7 @@
     <ClInclude Include="..\..\..\include\vapor\MyBase.h" />
     <ClInclude Include="..\..\..\include\vapor\OptionParser.h" />
     <ClInclude Include="..\..\..\include\vapor\PVTime.h" />
+    <ClInclude Include="..\..\..\include\vapor\utils.h" />
     <ClInclude Include="..\..\..\include\vapor\Version.h" />
   </ItemGroup>
   <ItemGroup>

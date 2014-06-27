@@ -36,7 +36,7 @@ class XmlNode;
 class ParamNode;
 
 //! \class AnimationParams
-//! \ingroup Public
+//! \ingroup Public_Params
 //! \brief A class that specifies parameters used in animation 
 //! \author Alan Norton
 //! \version 3.0

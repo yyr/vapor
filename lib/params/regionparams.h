@@ -37,7 +37,7 @@ class ViewpointParams;
 class XmlNode;
 class ParamNode;
 //! \class RegionParams
-//! \ingroup Public
+//! \ingroup Public_Params
 //! \brief A class for describing a 3D axis-aligned region in user space.
 //! \author Alan Norton
 //! \version 3.0

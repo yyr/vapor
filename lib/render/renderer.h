@@ -34,7 +34,7 @@ class DataMgr;
 class Metadata;
 
 //! \class Renderer
-//! \ingroup Public
+//! \ingroup Public_Render
 //! \brief A class that performs rendering in a Visualizer
 //! \author Alan Norton
 //! \version $Revision$

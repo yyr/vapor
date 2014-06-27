@@ -474,11 +474,11 @@ int VDCNetCDF::Write(const float *data) {
 	vector <size_t> start;
 	vector <size_t> count;
 
-	vector <size_t> min(sdims.size(), 0);
-	vector <size_t> max = sdims;
-	for (int i=0; i<max.size(); i++) max[i] -= 1;
+	vector <size_t> mins(sdims.size(), 0);
+	vector <size_t> maxs = sdims;
+	for (int i=0; i<maxs.size(); i++) maxs[i] -= 1;
 
-	vdc_2_ncdfcoords(_open_file_ts, (bool) numts, min, max, start, count);
+	vdc_2_ncdfcoords(_open_file_ts, (bool) numts, mins, maxs, start, count);
 
 	WASP *wasp = dynamic_cast<WASP *> (_open_file);
 	if (wasp) {
@@ -519,28 +519,28 @@ int VDCNetCDF::_WriteSlice(WASP *file, const float *slice) {
 		//
 		// Min and max extents of entire volume
 		//
-		vector <size_t> min(sdims.size(), 0);
-		vector <size_t> max = sdims;
-		for (int i=0; i<max.size(); i++) max[i] -= 1;
+		vector <size_t> mins(sdims.size(), 0);
+		vector <size_t> maxs = sdims;
+		for (int i=0; i<maxs.size(); i++) maxs[i] -= 1;
 
 
-		if (max.size() > 2) {
-			min[min.size()-1] = _open_slice_num - bs[bs.size()-1];
-			max[max.size()-1] = _open_slice_num - 1;
+		if (maxs.size() > 2) {
+			mins[mins.size()-1] = _open_slice_num - bs[bs.size()-1];
+			maxs[maxs.size()-1] = _open_slice_num - 1;
 		}
 		else {
-			min[min.size()-1] = 0;
-			max[max.size()-1] = 0;
+			mins[mins.size()-1] = 0;
+			maxs[maxs.size()-1] = 0;
 		}
 
-		if (max[max.size()-1] >= num_slices) max[max.size()-1] = num_slices-1;
+		if (maxs[maxs.size()-1] >= num_slices) maxs[maxs.size()-1] = num_slices-1;
 
 		//
 		// Map from VDC to NetCDF coordinates
 		//
 		vector <size_t> start;
 		vector <size_t> count;
-		vdc_2_ncdfcoords(_open_file_ts, (bool) numts, min, max, start, count);
+		vdc_2_ncdfcoords(_open_file_ts, (bool) numts, mins, maxs, start, count);
 
 		int rc = file->PutVara(start, count, _slice_buffer);
 		return(rc);
@@ -557,12 +557,12 @@ int VDCNetCDF::_WriteSlice(NetCDFCpp *file, const float *slice) {
 	//
 	// Min and max extents of entire volume
 	//
-    vector <size_t> min(sdims.size(), 0);
-    vector <size_t> max = sdims;
-    for (int i=0; i<max.size(); i++) max[i] -= 1;
+    vector <size_t> mins(sdims.size(), 0);
+    vector <size_t> maxs = sdims;
+    for (int i=0; i<maxs.size(); i++) maxs[i] -= 1;
 
-	min[min.size()-1] = _open_slice_num;
-	max[max.size()-1] = _open_slice_num;
+	mins[mins.size()-1] = _open_slice_num;
+	maxs[maxs.size()-1] = _open_slice_num;
 	_open_slice_num++;
 
 	//
@@ -570,7 +570,7 @@ int VDCNetCDF::_WriteSlice(NetCDFCpp *file, const float *slice) {
 	//
 	vector <size_t> start;
 	vector <size_t> count;
-	vdc_2_ncdfcoords(_open_file_ts, (bool) numts, min, max, start, count);
+	vdc_2_ncdfcoords(_open_file_ts, (bool) numts, mins, maxs, start, count);
 
 	int rc = file->PutVara(_open_varname, start, count, slice);
 	return(rc);
@@ -605,11 +605,11 @@ int VDCNetCDF::Read(float *data) {
 	vector <size_t> start;
 	vector <size_t> count;
 
-	vector <size_t> min(sdims.size(), 0);
-	vector <size_t> max = sdims;
-	for (int i=0; i<max.size(); i++) max[i] -= 1;
+	vector <size_t> mins(sdims.size(), 0);
+	vector <size_t> maxs = sdims;
+	for (int i=0; i<maxs.size(); i++) maxs[i] -= 1;
 
-	vdc_2_ncdfcoords( _open_file_ts, (bool) numts, min, max, start, count);
+	vdc_2_ncdfcoords( _open_file_ts, (bool) numts, mins, maxs, start, count);
 
 	WASP *wasp = dynamic_cast<WASP *> (_open_file);
 	if (wasp) {
@@ -645,27 +645,27 @@ int VDCNetCDF::_ReadSlice(WASP *file, float *slice) {
 		//
 		// Min and max extents of entire volume
 		//
-		vector <size_t> min(sdims.size(), 0);
-		vector <size_t> max = sdims;
-		for (int i=0; i<max.size(); i++) max[i] -= 1;
+		vector <size_t> mins(sdims.size(), 0);
+		vector <size_t> maxs = sdims;
+		for (int i=0; i<maxs.size(); i++) maxs[i] -= 1;
 
-		if (max.size() > 2) {
-			min[min.size()-1] = _open_slice_num;
-			max[max.size()-1] = _open_slice_num +bs[bs.size()-1] - 1;
+		if (maxs.size() > 2) {
+			mins[mins.size()-1] = _open_slice_num;
+			maxs[maxs.size()-1] = _open_slice_num +bs[bs.size()-1] - 1;
 		}
 		else {
-			min[min.size()-1] = 0;
-			max[max.size()-1] = 0;
+			mins[mins.size()-1] = 0;
+			maxs[maxs.size()-1] = 0;
 		}
 
-		if (max[max.size()-1] >= num_slices) max[max.size()-1] = num_slices-1;
+		if (maxs[maxs.size()-1] >= num_slices) maxs[maxs.size()-1] = num_slices-1;
 
 		//
 		// Map from VDC to NetCDF coordinates
 		//
 		vector <size_t> start;
 		vector <size_t> count;
-		vdc_2_ncdfcoords(_open_file_ts, (bool) numts, min, max, start, count);
+		vdc_2_ncdfcoords(_open_file_ts, (bool) numts, mins, maxs, start, count);
 
 		int rc = file->GetVara(start, count, _slice_buffer);
 		return(rc);
@@ -687,12 +687,12 @@ int VDCNetCDF::_ReadSlice(NetCDFCpp *file, float *slice) {
 	//
 	// Min and max extents of entire volume
 	//
-    vector <size_t> min(sdims.size(), 0);
-    vector <size_t> max = sdims;
-    for (int i=0; i<max.size(); i++) max[i] -= 1;
+    vector <size_t> mins(sdims.size(), 0);
+    vector <size_t> maxs = sdims;
+    for (int i=0; i<maxs.size(); i++) maxs[i] -= 1;
 
-	min[min.size()-1] = _open_slice_num;
-	max[max.size()-1] = _open_slice_num;
+	mins[mins.size()-1] = _open_slice_num;
+	maxs[maxs.size()-1] = _open_slice_num;
 	_open_slice_num++;
 
 	//
@@ -700,7 +700,7 @@ int VDCNetCDF::_ReadSlice(NetCDFCpp *file, float *slice) {
 	//
 	vector <size_t> start;
 	vector <size_t> count;
-	vdc_2_ncdfcoords(_open_file_ts, (bool) numts, min, max, start, count);
+	vdc_2_ncdfcoords(_open_file_ts, (bool) numts, mins, maxs, start, count);
 
 	int rc = file->GetVara(_open_varname, start, count, slice);
 	return(rc);

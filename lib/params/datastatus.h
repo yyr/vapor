@@ -31,7 +31,7 @@
 
 namespace VAPoR {
 //! \class DataStatus
-//! \ingroup Public
+//! \ingroup Public_Params
 //! \brief A class for describing the currently loaded dataset
 //! \author Alan Norton
 //! \version $Revision$

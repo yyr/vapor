@@ -246,6 +246,7 @@
     <ClCompile Include="..\..\..\lib\vdf\NCBuf.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\NetCDFCFCollection.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\NetCDFCollection.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\NetCDFCpp.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\NetCDFSimple.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\Proj4API.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\RegularGrid.cpp" />
@@ -254,9 +255,12 @@
     <ClCompile Include="..\..\..\lib\vdf\StretchedGrid.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\Transpose.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\UDUnitsClass.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\VDC.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\VDCFactory.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\VDCNetCDF.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\vdf.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\VDFIOBase.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\WASP.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\WaveCodecIO.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\WaveFiltBase.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\WaveFiltBior.cpp" />
@@ -305,7 +309,9 @@
     <ClInclude Include="..\..\..\include\vapor\SphericalGrid.h" />
     <ClInclude Include="..\..\..\include\vapor\StretchedGrid.h" />
     <ClInclude Include="..\..\..\include\vapor\Transpose.h" />
+    <ClInclude Include="..\..\..\include\vapor\VDC.h" />
     <ClInclude Include="..\..\..\include\vapor\VDCFactory.h" />
+    <ClInclude Include="..\..\..\include\vapor\VDCNetCDF.h" />
     <ClInclude Include="..\..\..\include\vapor\VDFIOBase.h" />
     <ClInclude Include="..\..\..\include\vapor\WASP.h" />
     <ClInclude Include="..\..\..\include\vapor\WaveletBlock1D.h" />
