@@ -168,7 +168,7 @@ IsolineEventRouter::hookUpTab()
 	connect (isolineWidthEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (panelLineWidthEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (textSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (panelTextSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (densityEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (histoScaleEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (leftHistoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (rightHistoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
@@ -190,7 +190,7 @@ IsolineEventRouter::hookUpTab()
 	connect (isolineWidthEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (panelLineWidthEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (textSizeEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (panelTextSizeEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (densityEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (leftHistoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (rightHistoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (histoScaleEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
@@ -395,7 +395,7 @@ void IsolineEventRouter::updateTab(){
 	isolineWidthEdit->setText(QString::number(isolineParams->GetLineThickness()));
 	panelLineWidthEdit->setText(QString::number(isolineParams->GetPanelLineThickness()));
 	textSizeEdit->setText(QString::number(isolineParams->GetTextSize()));
-	panelTextSizeEdit->setText(QString::number(isolineParams->GetPanelTextSize()));
+	densityEdit->setText(QString::number(isolineParams->GetTextDensity()));
 	//set color buttons
 	QPalette pal;
 	const vector<double>&bColor = isolineParams->GetPanelBackgroundColor();
@@ -619,9 +619,9 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	double textsize = textSizeEdit->text().toDouble();
 	if (textsize <= 0. || textsize > 100.) textsize = 10.0;
 	isolineParams->SetTextSize(textsize);
-	textsize = panelTextSizeEdit->text().toDouble();
-	if (textsize <= 0. || textsize > 100.) textsize = 10.0;
-	isolineParams->SetPanelTextSize(textsize);
+	double textDensity = densityEdit->text().toDouble();
+	if (textDensity <= 0. || textDensity > 1.) textDensity = 0.0;
+	isolineParams->SetTextDensity(textDensity);
 
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 

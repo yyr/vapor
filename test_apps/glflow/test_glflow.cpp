@@ -484,6 +484,15 @@ inline void mkring(const float* d, int n, float r, float* o, float* on = NULL, f
     }
 }
 
+const int s = 9;
+const int s2 = SPIRAL_SZ;
+const float* thedata;
+const float* thecolors;
+const float* themoar;
+const float** evenmoar;
+const float** moarcolors;
+const float* themcolors;
+
 void init(void)
 {
     glClearColor(0.1f, 0.1f, 0.1f, 1.f);
@@ -520,31 +529,32 @@ void init(void)
     hog = GLHedgeHogger();
     const GLHedgeHogger::Params* hparams = hog.GetParams();
     GLHedgeHogger::Params hcopy = *hparams;
-    hcopy.radius = opt.radius;
-    hcopy.quality = opt.quality;
-    hcopy.baseColor[0] = 0.5f;
-    hcopy.baseColor[1] = 0.5f;
-    hcopy.baseColor[2] = 0.5f;
-    hcopy.baseColor[3] = 1.f;
-    hcopy.stride = opt.stride;
-    hcopy.style = style;
-    hcopy.arrowRatio = opt.ratio;
+    hcopy._radius = opt.radius;
+    hcopy._quality = opt.quality;
+    hcopy._baseColor[0] = 0.5f;
+    hcopy._baseColor[1] = 0.5f;
+    hcopy._baseColor[2] = 0.5f;
+    hcopy._baseColor[3] = 1.f;
+    hcopy._stride = opt.stride;
+    hcopy._style = style;
+    hcopy._arrowRatio = opt.ratio;
+    hcopy._length = opt.length;
 
     hog.SetParams(&hcopy);
     
     path = GLPathRenderer();
     const GLPathRenderer::Params* pparams = path.GetParams();
     GLPathRenderer::Params pcopy = *pparams;
-    pcopy.radius = opt.radius;
-    pcopy.quality = opt.quality;
-    pcopy.baseColor[0] = 0.9f;
-    pcopy.baseColor[1] = 0.9f;
-    pcopy.baseColor[2] = 0.0f;
-    pcopy.baseColor[3] = 1.f;
-    pcopy.stride = opt.stride;
-    pcopy.style = style;
-    pcopy.arrowRatio = opt.ratio;
-    pcopy.arrowStride = opt.arrowstride;
+    pcopy._radius = opt.radius;
+    pcopy._quality = opt.quality;
+    pcopy._baseColor[0] = 0.9f;
+    pcopy._baseColor[1] = 0.9f;
+    pcopy._baseColor[2] = 0.0f;
+    pcopy._baseColor[3] = 1.f;
+    pcopy._stride = opt.stride;
+    pcopy._style = style;
+    pcopy._arrowRatio = opt.ratio;
+    pcopy._arrowStride = opt.arrowstride;
     
     path.SetParams(&pcopy);
     
@@ -561,6 +571,15 @@ void init(void)
     {
         pathcolor6[i] = (float)(rand() % 1000000) / 1000000.f;
     }
+    
+    //hog.SetData(hogdata2, 1); //single tube
+    hog.SetData(&thedata, &thecolors, &s, 1); //regular array
+    //path.SetData(pathdata2, 3); //90 degree, dual-segment
+    //path.SetData(pathdata3, 3); //straight, dual-segment
+    //path.SetData(pathdata4, 2); //single-segment
+    //path.SetData(pathdata5, 6); //kink testing
+    if(pathdata7) path.SetData(evenmoar, moarcolors, pd7szs, pd7sz);
+    else path.SetData(&themoar, &themcolors, &s2, 1); //autospiral
 }
 
 static inline int ringSize(int q){return 3 << (2 + q);}
@@ -576,15 +595,6 @@ float testcolors[24] =
     0.f, 1.f, 1.f, 1.f,
     1.f, 0.f, 1.f, 1.f
 };
-
-const int s = 9;
-const int s2 = SPIRAL_SZ;
-const float* thedata;
-const float* thecolors;
-const float* themoar;
-const float** evenmoar;
-const float** moarcolors;
-const float* themcolors;
 
 void display(double* profout)
 {
@@ -603,16 +613,8 @@ void display(double* profout)
 
     double t1;
     t1 = GetTime();
-    //const int s = 9;
-    const int s2 = SPIRAL_SZ;
-    //hog.Draw(hogdata2, 1); //single tube
-    //hog.Draw(&thedata, &thecolors, &s, 1); //regular array
-    //path.Draw(pathdata2, 3); //90 degree, dual-segment
-    //path.Draw(pathdata3, 3); //straight, dual-segment
-    //path.Draw(pathdata4, 2); //single-segment
-    //path.Draw(pathdata5, 6); //kink testing
-    if(pathdata7) path.Draw(evenmoar, moarcolors, pd7szs, pd7sz);
-    else path.Draw(&themoar, &themcolors, &s2, 1); //autospiral
+    //hog.Draw();
+    path.Draw();
     //use -radius 3.1355 at high quality for awesome autospiralness
     //glTranslatef(0.f, 0.f, -3.f);
     //coneTest(conedir, opt.quality, opt.radius);
@@ -712,7 +714,7 @@ int main(int argc, char** argv)
     
     glfwDestroyWindow(window);
     glfwTerminate();
-    exit(EXIT_SUCCESS);
+    return 0;
 }
 
 static void drawBox(GLfloat size, GLenum type)

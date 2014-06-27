@@ -237,10 +237,17 @@ bool IsolineRenderer::buildLineCache(int timestep){
 	//when there is an isoline crossing, a line segment is saved in the cache, defined by the two endpoints.
 	const vector<double>& isovals = iParams->GetIsovalues();
 	for (int iso = 0; iso < isovals.size(); iso++){
+
+		//Clear out temporary caches for this isovalue:
+		
+		edgeSeg.clear(); //map an edge to one segment
+		edgeEdge1.clear(); //map an edge to one adjacent edge;
+		edgeEdge2.clear(); //map an edge to other adjacent edge;
+
 		float isoval = (float)isovals[iso];
 		int cellCase;
 		float x1,y1,x2,y2;  //coordinates of intersection points
-
+		int segIndex;
 		//loop over cells (identified by lower-left vertices
 		for (int i = 0; i<gridSize-1; i++){
 			for (int j = 0; j<gridSize-1; j++){
@@ -255,82 +262,141 @@ bool IsolineRenderer::buildLineCache(int timestep){
 					case(0): //no lines
 						break;
 					case(1): //lines intersect 0-3 [point 1] and 0-1 [point 2]
+						{
 						y2 = -1. + 2.*(double)(j)/(gridSize-1.);
 						x1 = -1. + 2.*(double)(i)/(gridSize-1.);
 						
 						x2 = interp_i(i,j,isoval, dataVals);
 						y1 = interp_j(i,j,isoval, dataVals);
-						addLineSegment(timestep,iso,x1,y1,x2,y2);
+						//line segment connects horizontal edge i,j with vertical edge (i,j)
+						pair<int,int> edge1 = make_pair(i,j);
+						pair<int,int> edge2 = make_pair(-i-1,-j-1);
+						segIndex = addLineSegment(timestep,iso,x1,y1,x2,y2);
+						addEdges(segIndex,edge1,edge2);
+						}
 						break;
 					case(2): //lines intersect between vertices 0-1 [1] and vertices 1-2 [2]
+						{
 						y1 = -1. + 2.*(double)j/(gridSize-1.);
 						x2 = -1. + 2.*(double)(i+1)/(gridSize-1.);
 						x1 = interp_i(i,j,isoval,dataVals);
 						y2 = interp_j(i+1,j,isoval,dataVals);
-						addLineSegment(timestep,iso,x1,y1,x2,y2);
+						//line segment connects horizontal edge i,j with vertical edge (i+1,j)
+						pair<int,int> edge1 = make_pair(i,j);
+						pair<int,int> edge2 = make_pair(-i-2,-j-1);
+						segIndex = addLineSegment(timestep,iso,x1,y1,x2,y2);
+						addEdges(segIndex,edge1,edge2);
+						}
 						break;
 					case(3): //lines intersect 1-2 [1] and 2-3 [2]
+						{
 						y2 = -1. + 2.*(double)(j+1)/(gridSize-1.);
 						x1 = -1. + 2.*(double)(i+1)/(gridSize-1.);
 						x2 = interp_i(i,j+1,isoval,dataVals);
 						y1 = interp_j(i+1,j,isoval,dataVals);
-						addLineSegment(timestep,iso,x1,y1,x2,y2);
+						//line segment connects horizontal edge i,j+1 with vertical edge (i+1,j)
+						pair<int,int> edge1 = make_pair(i,j+1);
+						pair<int,int> edge2 = make_pair(-i-2,-j-1);
+						segIndex = addLineSegment(timestep,iso,x1,y1,x2,y2);
+						addEdges(segIndex,edge1,edge2);
+						}
 						break;
 					case(4): //lines intersect 2-3 [1] and 0-3 [2]
+						{
 						y1 = -1. + 2.*(double)(j+1)/(gridSize-1.);
 						x2 = -1. + 2.*(double)(i)/(gridSize-1.);
 						x1 = interp_i(i,j+1,isoval,dataVals);
 						y2 = interp_j(i,j,isoval,dataVals);
-						addLineSegment(timestep,iso,x1,y1,x2,y2);
+						//line segment connects horizontal edge i,j+1 with vertical edge (i,j)
+						pair<int,int> edge1 = make_pair(i,j+1);
+						pair<int,int> edge2 = make_pair(-i-1,-j-1);
+						segIndex = addLineSegment(timestep,iso,x1,y1,x2,y2);
+						addEdges(segIndex,edge1,edge2);
+						}
 						break;
 					
 					case(5): //lines intersect 0-1 [1] and 2-3 [2]
+						{
 						y2 = -1. + 2.*(double)(j+1)/(gridSize-1.);
 						y1 = -1. + 2.*(double)(j)/(gridSize-1.);
 						x1 = interp_i(i,j,isoval,dataVals);
 						x2 = interp_i(i,j+1,isoval,dataVals);
-						addLineSegment(timestep,iso,x1,y1,x2,y2);
+						//line segment connects horizontal edge i,j with horizontal edge (i,j+1)
+						pair<int,int> edge1 = make_pair(i,j);
+						pair<int,int> edge2 = make_pair(i,j+1);
+						segIndex = addLineSegment(timestep,iso,x1,y1,x2,y2);
+						addEdges(segIndex,edge1,edge2);
+						}
 						break;
 					case(6): //line intersect 1-2 [1] and 0-3 [2]
+						{
 						x1 = -1. + 2.*(double)(i+1)/(gridSize-1.);
 						x2 = -1. + 2.*(double)(i)/(gridSize-1.);
 						y1 = interp_j(i+1,j,isoval,dataVals);
 						y2 = interp_j(i,j,isoval,dataVals);
-						addLineSegment(timestep,iso,x1,y1,x2,y2);
+						//line segment connects vertical edge i+1,j with vertical edge (i,j)
+						pair<int,int> edge1 = make_pair(-i-2,-j-1);
+						pair<int,int> edge2 = make_pair(-i-1,-j-1);
+						segIndex = addLineSegment(timestep,iso,x1,y1,x2,y2);
+						addEdges(segIndex,edge1,edge2);
+						}
 						break;
 					case(7): //both cases 2 and 4
 						//lines intersect between vertices 0-1 [1] and vertices 1-2 [2]
+						{
 						y1 = -1. + 2.*(double)j/(gridSize-1.);
 						x2 = -1. + 2.*(double)(i+1)/(gridSize-1.);
 						x1 = interp_i(i,j,isoval,dataVals);
 						y2 = interp_j(i+1,j,isoval,dataVals);
-						addLineSegment(timestep,iso,x1,y1,x2,y2);
+						//line segment connects horizontal edge i,j with vertical edge (i+1,j)
+						pair<int,int> edge1 = make_pair(i,j);
+						pair<int,int> edge2 = make_pair(-i-2,-j-1);
+						segIndex = addLineSegment(timestep,iso,x1,y1,x2,y2);
+						addEdges(segIndex,edge1,edge2);
 						//lines intersect 2-3 [1] and 0-3 [2]
 						y1 = -1. + 2.*(double)(j+1)/(gridSize-1.);
 						x2 = -1. + 2.*(double)(i)/(gridSize-1.);
 						x1 = interp_i(i,j+1,isoval,dataVals);
 						y2 = interp_j(i,j,isoval,dataVals);
-						addLineSegment(timestep,iso,x1,y1,x2,y2);
+						//line segment connects horizontal edge i,j+1 with vertical edge (i,j)
+						pair<int,int> edge3 = make_pair(i,j+1);
+						pair<int,int> edge4 = make_pair(-i-1,-j-1);
+						segIndex = addLineSegment(timestep,iso,x1,y1,x2,y2);
+						addEdges(segIndex,edge3,edge4);
+						}
 						break;
 					case(8):  //both cases 1 and 3
 						//lines intersect 0-3 [point 1] and 0-1 [point 2]
+						{
 						y2 = -1. + 2.*(double)(j)/(gridSize-1.);
 						x1 = -1. + 2.*(double)(i)/(gridSize-1.);
 						x2 = interp_i(i,j,isoval, dataVals);
 						y1 = interp_j(i,j,isoval, dataVals);
-						addLineSegment(timestep,iso,x1,y1,x2,y2);
+						//line segment connects horizontal edge i,j with vertical edge (i,j)
+						pair<int,int> edge1 = make_pair(i,j);
+						pair<int,int> edge2 = make_pair(-i-1,-j-1);
+						segIndex = addLineSegment(timestep,iso,x1,y1,x2,y2);
+						addEdges(segIndex,edge1,edge2);
 						//lines intersect 1-2 [1] and 2-3 [2]
 						y2 = -1. + 2.*(double)(j+1)/(gridSize-1.);
 						x1 = -1. + 2.*(double)(i+1)/(gridSize-1.);
 						x2 = interp_i(i,j+1,isoval,dataVals);
 						y1 = interp_j(i+1,j,isoval,dataVals);
-						addLineSegment(timestep,iso,x1,y1,x2,y2);
+						//line segment connects horizontal edge i,j+1 with vertical edge (i+1,j)
+						pair<int,int> edge3 = make_pair(i,j+1);
+						pair<int,int> edge4 = make_pair(-i-2,-j-1);
+						segIndex = addLineSegment(timestep,iso,x1,y1,x2,y2);
+						addEdges(segIndex,edge3,edge4);
+						}
 						break;
 					default:
 						assert(0);
 				}
 			} //for j
 		} //for i
+
+		//Now traverse the edges to determine the isolines in order
+		traverseCurves(iso, timestep);
 	} //for iso...		
 	numIsovalsCached = isovals.size();
 	cacheValidFlags[timestep] = true;
@@ -428,10 +494,163 @@ int IsolineRenderer::edgeCode(int i, int j, float isoval, float* dataVals){
 	}
 	return ecode;
 }
-void IsolineRenderer::addLineSegment(int timestep, int isoIndex, float x1, float y1, float x2, float y2){
+int IsolineRenderer::addLineSegment(int timestep, int isoIndex, float x1, float y1, float x2, float y2){
 	float* floatvec = new float[4];
 	floatvec[0] = x1; floatvec[1]=y1; floatvec[2]=x2; floatvec[3] = y2;
 	pair<int,int> indexpair = make_pair(timestep,isoIndex);
 	lineCache[indexpair].push_back(floatvec);
+	return (lineCache[indexpair].size()-1);
 	
+}
+	//recall temporary mappings
+	//std::map< pair<int,int>, int> edgeSeg; //map an edge to one segment
+	//std::map<pair<int,int>,pair<int,int> > edgeEdge1; //map an edge to one adjacent edge;
+	//std::map<pair<int,int>,pair<int,int> > edgeEdge2; //map an edge to other adjacent edge;
+	//std::map<pair<int,int>, bool> markerBit;  //indicate whether or not an edge has been visited during traversal
+
+//Whenever a segment is added, construct associated edge->edge mappings (both directions) 
+//and a mapping of the first edge to the segment.  The bidirectional edge mappings are used
+//to enable traversal of the isoline in segment order.  The edge->segment mapping is used to
+//determine the coordinates to place the annotation while traversing the isoline.
+void IsolineRenderer::addEdges(int segIndex, pair<int,int> edge1, pair<int,int> edge2) {
+	
+	std::map<pair<int,int>, pair<int,int> >::iterator edgeEdgeIter;
+	
+	//Set mapping of first edge to segment:
+	edgeSeg[edge1] = segIndex;
+	//Set marker bits for both edges:
+	markerBit[edge1] = false;
+	markerBit[edge2] = false;
+	//Create the edge1->edge2 mapping:
+	//See if edge1->?? mapping is in first map:
+	edgeEdgeIter = edgeEdge1.find(edge1);
+	if (edgeEdgeIter == edgeEdge1.end()){
+		//Not found; insert it:
+		edgeEdge1[edge1] = edge2;
+	} else {
+		//check:  It should not be in the second map yet
+		edgeEdgeIter = edgeEdge2.find(edge1);
+		assert(edgeEdgeIter == edgeEdge2.end());
+		edgeEdge2[edge1] = edge2;
+	}
+	//Now create the edge2->edge1 mapping
+	edgeEdgeIter = edgeEdge1.find(edge2);
+	if (edgeEdgeIter == edgeEdge1.end()){
+		//Not found; insert it:
+		edgeEdge1[edge2] = edge1;
+	} else {
+		//check:  It should not be in the second map yet
+		edgeEdgeIter = edgeEdge2.find(edge2);
+		assert(edgeEdgeIter == edgeEdge2.end());
+		edgeEdge2[edge2] = edge1;
+	}
+	
+}
+//Use the edge-edge mappings to traverse all the isolines
+void IsolineRenderer::traverseCurves(int iso, int timestep){
+	//Initialize counters:
+	int numComponents = 0;
+	int maxLength = -1;
+	int minLength = 100000000;
+	int totLength = 0;
+	int currentLength;  //length of current component
+	//Repeat the following until no more edges are found:
+	//Find an unmarked edge.  Mark it.
+	std::map<pair<int,int>, pair<int,int> >::iterator edgeEdgeIter;
+	std::map<pair<int,int>, pair<int,int> >::iterator edgeEdgeTestIter;
+	std::map<pair<int,int>, pair<int,int> >::iterator edgeEdgeTestIter2;
+	
+	//Iterate looking for unmarked edge in first mapping.  Note that all edges must appear in both mappings
+	for (edgeEdgeIter = edgeEdge1.begin(); edgeEdgeIter != edgeEdge1.end(); edgeEdgeIter++){
+		pair<int,int> startingEdge = edgeEdgeIter->first;
+		if (markerBit[startingEdge]) continue;  //already marked; keep looking
+		//OK, found an unmarked edge
+		markerBit[startingEdge] = true; //Mark it
+		currentLength = 0;
+		bool firstDirection = true;
+		//Make sure there is a second direction possible
+		edgeEdgeTestIter = edgeEdge2.find(startingEdge);
+		if (edgeEdgeTestIter == edgeEdge2.end()) firstDirection = false;
+
+		pair<int,int> currentEdge = startingEdge;
+		//Obtain next edges in both directions:
+		//Repeat until cannot go further:
+		while(1){
+			//Check an adjacent edge.  If it's not marked, make it the current edge, repeat
+			//make sure current edge is in at least one mapping
+			
+			edgeEdgeTestIter = edgeEdge1.find(currentEdge);
+			if(edgeEdgeTestIter == edgeEdge1.end()){
+				edgeEdgeTestIter = edgeEdge2.find(currentEdge);
+				if (edgeEdgeTestIter == edgeEdge2.end()){
+					//this means currentEdge goes nowhere (in either mapping)
+					//See if we can go the other direction from the start (note this code is replicated below...)
+					if (firstDirection){
+						firstDirection = false;
+						//Try other direction at start 		
+						currentEdge = edgeEdge2[startingEdge];
+						if (!markerBit[currentEdge]) {
+							currentLength++;
+							continue; //continue our traversal with the new currentEdge
+						}
+					}
+					//Otherwise we are all done with this isoline; collect some stats
+					if (currentLength == 0) break;
+					numComponents++;
+					totLength += currentLength;
+					if (currentLength > maxLength) maxLength = currentLength;
+					if (currentLength < minLength) minLength = currentLength;
+					break;  //exit while(1) loop
+				}
+			} 
+			//set nextEdge to the connected edge we found
+			pair<int,int> nextEdge = edgeEdgeTestIter->second;
+			if (!markerBit[nextEdge]){
+				currentEdge = nextEdge;
+				currentLength++;
+				markerBit[currentEdge] = true; //mark it...
+				continue;
+			} else {
+				//it's marked false.  Need to consider other direction:
+				edgeEdgeTestIter = edgeEdge2.find(currentEdge);
+				
+				if ((edgeEdgeTestIter == edgeEdge2.end()) || (markerBit[edgeEdgeTestIter->second])){
+					//Both ends are marked (or there is no other end) so
+					//we are at (one) end of isoline
+					//See if we can go the other direction from the start (this is replication of above code!)
+					if (firstDirection){
+						firstDirection = false;
+						//Try other direction at start 		
+						currentEdge = edgeEdge2[startingEdge];
+						if (!markerBit[currentEdge]) {
+							currentLength++;
+							continue; //continue our traversal with the new currentEdge
+						}
+					}
+					//Otherwise we are all done with this isoline; collect some stats
+					if (currentLength == 0) break;
+					numComponents++;
+					totLength += currentLength;
+					if (currentLength > maxLength) maxLength = currentLength;
+					if (currentLength < minLength) minLength = currentLength;
+					break;  //exit while(1) loop
+				} else {
+					//Not marked; continue with nextEdge:
+					currentEdge = edgeEdgeTestIter->second;
+					currentLength++;
+					markerBit[currentEdge] = true;
+					continue;
+				}
+			}
+		}
+	}
+	//Done with traversals.  check if every edge has been marked
+	for (edgeEdgeIter = edgeEdge1.begin(); edgeEdgeIter != edgeEdge1.end(); edgeEdgeIter++){
+		pair<int,int> thisEdge = edgeEdgeIter->first;
+		assert (markerBit[thisEdge]) ;
+	}
+	for (edgeEdgeIter = edgeEdge2.begin(); edgeEdgeIter != edgeEdge2.end(); edgeEdgeIter++){
+		pair<int,int> thisEdge = edgeEdgeIter->first;
+		assert (markerBit[thisEdge]) ;
+	}
 }

@@ -10,7 +10,7 @@ static float z3[3] = {0.f, 0.f, 0.f};
 //static float* c3[4] = {i3, j3, k3, z3};
 
 //move a into b
-static inline void mov(const float* a, float* b)
+inline void mov(const float* a, float* b)
 {
     b[0] = a[0];
     b[1] = a[1];
@@ -18,7 +18,7 @@ static inline void mov(const float* a, float* b)
 }
 
 //multiply a by f
-static inline void mul(const float* a, float f, float* r)
+inline void mul(const float* a, float f, float* r)
 {
     r[0] = a[0] * f;
     r[1] = a[1] * f;
@@ -26,7 +26,7 @@ static inline void mul(const float* a, float f, float* r)
 }
 
 //negate a
-static inline void neg(const float* a, float* r)
+inline void neg(const float* a, float* r)
 {
     r[0] = -a[0];
     r[1] = -a[1];
@@ -34,21 +34,37 @@ static inline void neg(const float* a, float* r)
 }
 
 //divide a by d
-static inline void div(const float* a, float d, float* r)
+inline void div(const float* a, float d, float* r)
 {
+    if(d == 0.f)
+    {
+        fprintf(stderr, "DIV: DIVIDING BY ZERO\n");
+        r[0] = 0.f;
+        r[1] = 0.f;
+        r[2] = 0.f;
+        return;
+    }
     r[0] = a[0] / d;
     r[1] = a[1] / d;
     r[2] = a[2] / d;
 }
 
 //should be faster than normal div, but less stable
-static inline void fdiv(const float* a, float d, float* r)
+inline void fdiv(const float* a, float d, float* r)
 {
+    if(d == 0.f)
+    {
+        fprintf(stderr, "FDIV: DIVIDING BY ZERO\n");
+        r[0] = 0.f;
+        r[1] = 0.f;
+        r[2] = 0.f;
+        return;
+    }
     mul(a, 1.f / d, r);
 }
 
 //add a to b
-static inline void add(const float* a, const float* b, float* r)
+inline void add(const float* a, const float* b, float* r)
 {
     r[0] = a[0] + b[0];
     r[1] = a[1] + b[1];
@@ -108,7 +124,16 @@ inline bool isperp(const float* a, const float* b)
 //get normal of a
 inline void norm(const float* a, float* r)
 {
-    div(a, mag(a), r);
+    float m = mag(a);
+    if(m == 0.f)
+    {
+        fprintf(stderr, "NORM: DIVIDING BY ZERO\n");
+        r[0] = 0.f;
+        r[1] = 0.f;
+        r[2] = 0.f;
+        return;
+    }
+    div(a, m, r);
 }
 
 //get faster normal, less stable, of a
@@ -120,7 +145,16 @@ inline void fnorm(const float* a, float* r)
 //set the size of the given vector (shouldn't affect direction)
 inline void resize(const float* a, float newmag, float* r)
 {
-    mul(a, newmag / mag(a), r);
+    float m = mag(a);
+    if(m == 0.f)
+    {
+        fprintf(stderr, "RESIZE: DIVIDING BY ZERO\n");
+        r[0] = 0.f;
+        r[1] = 0.f;
+        r[2] = 0.f;
+        return;
+    }
+    mul(a, newmag / m, r);
 }
 
 //set r to the cross product a x b
@@ -136,17 +170,31 @@ inline void printvec(const float* a)
     printf("(%10f,%10f,%10f)\n", a[0], a[1], a[2]);
 }
 
-//return values can be like processor arithmetic flags
 //project a onto b, return in r
 inline void proj(const float* a, const float* b, float* r)
 {
-    mul(b, dot(a, b) / mag2(b), r);
+    float m = mag2(b);
+    if(m == 0.f)
+    {
+        fprintf(stderr, "PROJ: DIVIDING BY ZERO\n");
+        r[0] = 0.f;
+        r[1] = 0.f;
+        r[2] = 0.f;
+        return;
+    }
+    mul(b, dot(a, b) / m, r);
 }
 
 //get cos of angle between two vectors
 inline float cos(const float* a, const float* b)
 {
-    return dot(a, b) / (mag(a) * mag(b));
+    float m = mag(a) * mag(b);
+    if(m == 0.f)
+    {
+        fprintf(stderr, "COS: DIVIDING BY ZERO\n");
+        return 0.f;
+    }
+    return dot(a, b) / m;
 }
 
 //orthogonalize a with respect to b, return in r

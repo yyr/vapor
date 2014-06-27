@@ -101,12 +101,12 @@ public:
 	void SetTextSize(double val){
 		GetRootNode()->SetElementDouble(_textSizeTag, val);
 	}
-	float GetPanelTextSize(){
+	float GetTextDensity(){
 		const vector<double> one(1,1.);
-		return ((float)GetRootNode()->GetElementDouble(_panelTextSizeTag,one)[0]);
+		return ((float)GetRootNode()->GetElementDouble(_textDensityTag,one)[0]);
 	}
-	void SetPanelTextSize(double val){
-		GetRootNode()->SetElementDouble(_panelTextSizeTag, val);
+	void SetTextDensity(double val){
+		GetRootNode()->SetElementDouble(_textDensityTag, val);
 	}
 	
 	void SetPanelBackgroundColor(const float rgb[3]);
@@ -248,7 +248,7 @@ protected:
 	static const string _lineThicknessTag;
 	static const string _panelLineThicknessTag;
 	static const string _textSizeTag;
-	static const string _panelTextSizeTag;
+	static const string _textDensityTag;
 	static const string _variableDimensionTag;
 	static const string _cursorCoordsTag;
 	static const string _2DBoxTag;
