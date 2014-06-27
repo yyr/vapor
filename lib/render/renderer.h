@@ -27,6 +27,10 @@
 #include "params.h"
 #include "visualizer.h"
 
+//!
+//! \defgroup Public_Render VAPOR Render Developer API
+//!
+
 using namespace VetsUtil;
 
 namespace VAPoR {
