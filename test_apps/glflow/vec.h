@@ -42,6 +42,7 @@ inline void div(const float* a, float d, float* r)
         r[0] = 0.f;
         r[1] = 0.f;
         r[2] = 0.f;
+        return;
     }
     r[0] = a[0] / d;
     r[1] = a[1] / d;
@@ -57,6 +58,7 @@ inline void fdiv(const float* a, float d, float* r)
         r[0] = 0.f;
         r[1] = 0.f;
         r[2] = 0.f;
+        return;
     }
     mul(a, 1.f / d, r);
 }
@@ -122,7 +124,16 @@ inline bool isperp(const float* a, const float* b)
 //get normal of a
 inline void norm(const float* a, float* r)
 {
-    div(a, mag(a), r);
+    float m = mag(a);
+    if(m == 0.f)
+    {
+        fprintf(stderr, "NORM: DIVIDING BY ZERO\n");
+        r[0] = 0.f;
+        r[1] = 0.f;
+        r[2] = 0.f;
+        return;
+    }
+    div(a, m, r);
 }
 
 //get faster normal, less stable, of a
@@ -141,6 +152,7 @@ inline void resize(const float* a, float newmag, float* r)
         r[0] = 0.f;
         r[1] = 0.f;
         r[2] = 0.f;
+        return;
     }
     mul(a, newmag / m, r);
 }
@@ -168,6 +180,7 @@ inline void proj(const float* a, const float* b, float* r)
         r[0] = 0.f;
         r[1] = 0.f;
         r[2] = 0.f;
+        return;
     }
     mul(b, dot(a, b) / m, r);
 }

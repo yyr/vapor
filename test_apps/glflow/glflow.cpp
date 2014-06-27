@@ -411,6 +411,16 @@ inline void drawCone(const float* v, const float* n, int q, float* color = 0)
     }
 }
 
+float minwidth(float extents[6])
+{
+    float mindiff = extents[1] - extents[0];
+    float other = extents[3] - extents[2];
+    if(mindiff > other) mindiff = other;
+    other = extents[5] - extents[4];
+    if(mindiff > other) mindiff = other;
+    return mindiff;
+}
+
 }
 // END ANONYMOUS NAMESPACE ////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -423,7 +433,11 @@ GLFlowRenderer::GLFlowRenderer()
 {
     _p = GLFlowRenderer::Params();
     _changed = false;
-    _prevdata = NULL;
+    
+    _copydata = NULL;
+    _copycolor = NULL;
+    _copysizes = NULL;
+    _copycount = 0;
     
     _output = NULL;
     _osizes = NULL;
@@ -433,7 +447,30 @@ GLFlowRenderer::GLFlowRenderer()
 
 GLFlowRenderer::~GLFlowRenderer()
 {
-    if(_prevdata) _prevdata = NULL;
+    if(_copydata)
+    {
+        for(int i = 0; i < _copycount; i++)
+        {
+            delete[] _copydata[i];
+        }
+        delete[] _copydata;
+        _copydata = NULL;
+    }
+    if(_copycolor)
+    {
+        for(int i = 0; i < _copycount; i++)
+        {
+            delete[] _copycolor[i];
+        }
+        delete[] _copycolor;
+        _copycolor = NULL;
+    }
+    if(_copysizes)
+    {
+        delete[] _copysizes;
+        _copysizes = NULL;
+    }
+    if(_copycount) _copycount = 0;
     if(_osizes)
     {
         delete[] _osizes;
@@ -457,7 +494,6 @@ GLFlowRenderer::~GLFlowRenderer()
 }
 
 //default values for basic params variables
-//NOTE: extents currently does nothing
 GLFlowRenderer::Params::Params()
 {
     _style = Tube;
@@ -475,6 +511,11 @@ GLFlowRenderer::Params::Params()
     _arrowRatio = 1.4f;
     _stride = 1;
     _quality = 0;
+}
+
+float GLFlowRenderer::Params::GetDefaultRadius()
+{
+    return minwidth(_extents) / 1000.f;
 }
 
 //assignment operator creates deep copy
@@ -529,7 +570,30 @@ GLHedgeHogger::GLHedgeHogger() : GLFlowRenderer()
 //identical to parent class destructor
 GLHedgeHogger::~GLHedgeHogger()
 {
-    if(_prevdata) _prevdata = NULL;
+    if(_copydata)
+    {
+        for(int i = 0; i < _copycount; i++)
+        {
+            delete[] _copydata[i];
+        }
+        delete[] _copydata;
+        _copydata = NULL;
+    }
+    if(_copycolor)
+    {
+        for(int i = 0; i < _copycount; i++)
+        {
+            delete[] _copycolor[i];
+        }
+        delete[] _copycolor;
+        _copycolor = NULL;
+    }
+    if(_copysizes)
+    {
+        delete[] _copysizes;
+        _copysizes = NULL;
+    }
+    if(_copycount) _copycount = 0;
     if(_osizes)
     {
         delete[] _osizes;
@@ -555,6 +619,11 @@ GLHedgeHogger::~GLHedgeHogger()
 GLHedgeHogger::Params::Params() : GLFlowRenderer::Params()
 {
     _length = 1.f;
+}
+
+float GLHedgeHogger::Params::GetDefaultLength()
+{
+    return minwidth(_extents) / 100.f;
 }
 
 void GLHedgeHogger::Params::operator=(GLHedgeHogger::Params params)
@@ -588,23 +657,28 @@ namespace
 inline float* hhTubes(const float* v, int n, GLHedgeHogger::Params p)
 {
     //build a series of rings from the given vectors
+    float buf[3];
     int rnverts = 4 << p._quality; //vertices in a ring
     int rnsize = 3 * rnverts; //floats in a ring
     int tusize = rnsize * 2; //floats in a tube
-    int rsize = tusize * n; //size of the rings-array
+    int rsize = tusize * n; //size of the rings-array verts section
+    float radius = p._radius * p.GetDefaultRadius();
     float* r = new float[rsize * 2]; //rings-array
-    float* nm = r + rsize; //normals
+    float* nm = r + rsize; //normals section
     
     int itv = 0;
     int itr = 0;
     while(itr < rsize)
     {
         sub(v + itv + 3, v + itv, r + itr);
-        mkring(r + itr, p._quality, p._radius, r + itr, nm + itr);
+        mul(r + itr, p._length, buf);
+        add(buf, v + itv, buf);
+        mkring(r + itr, p._quality, radius, r + itr, nm + itr);
         for(int i = itr; i < itr + rnsize; i += 3)
         {
             mov(nm + i, nm + i + rnsize);
-            add(v + itv + 3, r + i, r + i + rnsize);
+            add(buf, r + i, r + i + rnsize);
+            //add(v + itv + 3, r + i, r + i + rnsize);
             add(v + itv, r + i, r + i);
         }
         itv += 6 * p._stride;
@@ -621,10 +695,12 @@ inline float* hhTubesC(const float* v, const float* ci, float** co, int n, GLHed
     //NOTE: n has already been divided by p.stride
     //I will fix this later...
     //build a series of rings from the given vectors
+    float buf[3];
     int rnverts = 4 << p._quality; //vertices in a ring
     int rnsize = 3 * rnverts; //floats in a ring
     int tusize = rnsize * 2; //floats in a tube
     int rsize = tusize * n; //size of the rings-array
+    float radius = p._radius * p.GetDefaultRadius();
     float* r = new float[rsize * 2]; //rings-array AND norms-array
     float* c = new float[4 * n];
     *co = c;
@@ -637,11 +713,14 @@ inline float* hhTubesC(const float* v, const float* ci, float** co, int n, GLHed
     while(itr < rsize)
     {
         sub(v + itv + 3, v + itv, r + itr);
-        mkring(r + itr, p._quality, p._radius, r + itr, nm + itr);
+        mul(r + itr, p._length, buf);
+        add(buf, v + itv, buf);
+        mkring(r + itr, p._quality, radius, r + itr, nm + itr);
         for(int i = itr; i < itr + rnsize; i += 3)
         {
             mov(nm + i, nm + i + rnsize);
-            add(v + itv + 3, r + i, r + i + rnsize);
+            add(buf, r + i, r + i + rnsize);
+            //add(v + itv + 3, r + i, r + i + rnsize);
             add(v + itv, r + i, r + i);
         }
         
@@ -668,6 +747,7 @@ inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
     int tusize = rnsize * 2; //floats in a tube
     int cosize = coverts * 3; //floats in a cone
     int narrows = n / p._stride; //number of tubes
+    float radius = p._radius * p.GetDefaultRadius();
     int rsizet = narrows * tusize; //size of tube section
     int rsizec = narrows * cosize; //size of cone section
     int nsizet = rsizet; //size of tube norm section
@@ -678,7 +758,7 @@ inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
     float* nmtube = tubes + rsizet; //location of tube normals
     float* cones = result + 2 * rsizet; //location of cone vertices
     float* nmcone = cones + rsizec; //location of cone normals
-    float coneRadius = p._radius * p._arrowRatio;
+    float coneRadius = radius * p._arrowRatio;
     //tubes | tube norms | cones | cone norms
     int itr = 0; //used to read input positions
     int itw = 0; //used to write tube data
@@ -690,10 +770,10 @@ inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
     {
         sub(v + itr + 3, v + itr, tubes + itw);
         float m = mag(tubes + itw); //total length of arrow
-        resize(tubes + itw, m - p._radius, buf); //reducing tube section length
+        resize(tubes + itw, m - radius, buf); //reducing tube section length
         add(buf, v + itr, buf); //placing tube endpoint
         resize(tubes + itw, coneRadius, cones + itn); //flip and resize
-        mkring(tubes + itw, p._quality, p._radius, tubes + itw, nmtube + itw);
+        mkring(tubes + itw, p._quality, radius, tubes + itw, nmtube + itw);
         for(int i = itw; i < itw + rnsize; i += 3)
         {
             mov(nmtube + i, nmtube + i + rnsize);
@@ -709,7 +789,7 @@ inline float* hhArrows(const float* v, int n, GLHedgeHogger::Params p)
     itn = 0; //used to iterate through normals section
     while(itw < rsizec)
     {
-        mkcone(cones + itw, p._radius * p._arrowRatio,
+        mkcone(cones + itw, radius * p._arrowRatio,
                p._quality, cones + itw, nmcone + itn);
         for(int i = 0; i < cosize; i += 3)
         {
@@ -731,6 +811,7 @@ inline float* hhArrowsC(const float* v, const float* ci, float** co, int n, GLHe
     int rnsize = 3 * rnverts; //floats in a ring
     int tusize = rnsize * 2; //floats in a tube
     int cosize = coverts * 3; //floats in a cone
+    float radius = p._radius * p.GetDefaultRadius();
     int narrows = n / p._stride; //number of tubes
     int rsizet = narrows * tusize; //size of tube section
     int rsizec = narrows * cosize; //size of cone section
@@ -742,7 +823,7 @@ inline float* hhArrowsC(const float* v, const float* ci, float** co, int n, GLHe
     float* nmtube = tubes + rsizet; //location of tube normals
     float* cones = result + 2 * rsizet; //location of cone vertices
     float* nmcone = cones + rsizec; //location of cone normals
-    float coneRadius = p._radius * p._arrowRatio;
+    float coneRadius = radius * p._arrowRatio;
     float* c = new float[4 * n];
     *co = c;
     //tubes | tube norms | cones | cone norms
@@ -758,10 +839,10 @@ inline float* hhArrowsC(const float* v, const float* ci, float** co, int n, GLHe
     {
         sub(v + itr + 3, v + itr, tubes + itw);
         float m = mag(tubes + itw); //total length of arrow
-        resize(tubes + itw, m - p._radius, buf); //reducing tube section length
+        resize(tubes + itw, m - radius, buf); //reducing tube section length
         add(buf, v + itr, buf); //placing tube endpoint
         resize(tubes + itw, coneRadius, cones + itn); //flip and resize
-        mkring(tubes + itw, p._quality, p._radius, tubes + itw, nmtube + itw);
+        mkring(tubes + itw, p._quality, radius, tubes + itw, nmtube + itw);
         for(int i = itw; i < itw + rnsize; i += 3)
         {
             mov(nmtube + i, nmtube + i + rnsize);
@@ -785,7 +866,7 @@ inline float* hhArrowsC(const float* v, const float* ci, float** co, int n, GLHe
     itn = 0; //used to iterate through normals section
     while(itw < rsizec)
     {
-        mkcone(cones + itw, p._radius * p._arrowRatio,
+        mkcone(cones + itw, radius * p._arrowRatio,
                p._quality, cones + itw, nmcone + itn);
         for(int i = 0; i < cosize; i += 3)
         {
@@ -928,87 +1009,195 @@ inline void hhDrawC(const float* v, float* c, int n, GLHedgeHogger::Params hhp)
 // END ANONYMOUS NAMESPACE ////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-
-
-//draws provided data. generates geometry if necessary
-void GLHedgeHogger::Draw(const float** v, const int* sizes, int count)
+bool GLHedgeHogger::SetData(const float **vecs, const int *sizes, int count)
 {
-    float* (*funcptr)(const float*, int, GLHedgeHogger::Params) = _hhp._style == Tube ? hhTubes : _hhp._style == Arrow ? hhArrows : NULL;
-    if(_changed || v != _prevdata)
+    if(_copydata)
     {
-        if(_osizes)
+        for(int i = 0; i < _copycount; i++)
         {
-            delete[] _osizes;
-            _osizes = NULL;
+            delete[] _copydata[i];
         }
-        if(_output)
+        delete[] _copydata;
+        _copydata = NULL;
+    }
+    if(_copycolor)
+    {
+        for(int i = 0; i < _copycount; i++)
         {
-            for(int i = 0; i < _ocount; i++)
-                delete[] _output[i];
-            delete[] _output;
-            _output = NULL;
+            delete[] _copycolor[i];
         }
-        if(_colors)
+        delete[] _copycolor;
+        _copycolor = NULL;
+    }
+    if(_copysizes)
+    {
+        delete[] _copysizes;
+        _copysizes = NULL;
+    }
+    if(_copycount) _copycount = 0;
+    
+    _copycount = count;
+    _copydata = new float*[_copycount];
+    _copysizes = new int[_copycount];
+    for(int i = 0; i < _copycount; i++)
+    {
+        _copysizes[i] = sizes[i];
+        int datasz = _copysizes[i] * 6;
+        _copydata[i] = new float[datasz];
+        for(int j = 0; j < datasz; j+=6)
         {
-            for(int i = 0; i < _ocount; i++)
-                delete[] _colors[i];
-            delete[] _colors;
-            _colors = NULL;
-        }
-        if(_ocount) _ocount = 0;
-        _ocount = count;
-        _output = new float*[_ocount];
-        _osizes = new int[_ocount];
-        for(int i = 0; i < _ocount; i++)
-        {
-            _osizes[i] = sizes[i];
-            _output[i] = funcptr(v[i], _osizes[i], _hhp);
+            _copydata[i][j    ] = vecs[i][j    ];
+            _copydata[i][j + 1] = vecs[i][j + 1];
+            _copydata[i][j + 2] = vecs[i][j + 2];
+            _copydata[i][j + 3] = vecs[i][j + 3];
+            _copydata[i][j + 4] = vecs[i][j + 4];
+            _copydata[i][j + 5] = vecs[i][j + 5];
         }
     }
-    for(int i = 0; i < _ocount; i++)
-        hhDraw(_output[i], _osizes[i], _hhp);
-    _prevdata = v;
+    _changed = true;
+
+    return false;
 }
 
-//draws provided data, with color. generates geometry if necessary
-void GLHedgeHogger::Draw(const float **v, const float **rgba, const int *sizes, int count)
+bool GLHedgeHogger::SetData(const float **vecs, const float **rgba, const int *sizes, int count)
 {
-    float* (*funcptr)(const float*, const float*, float**, int, GLHedgeHogger::Params) = _hhp._style == Tube ? hhTubesC : _hhp._style == Arrow ? hhArrowsC : NULL;
-    if(_changed || v != _prevdata || !_colors)
+    if(_copydata)
     {
-        if(_osizes)
+        for(int i = 0; i < _copycount; i++)
         {
-            delete[] _osizes;
-            _osizes = NULL;
+            delete[] _copydata[i];
         }
-        if(_output)
+        delete[] _copydata;
+        _copydata = NULL;
+    }
+    if(_copycolor)
+    {
+        for(int i = 0; i < _copycount; i++)
         {
-            for(int i = 0; i < _ocount; i++)
-                delete[] _output[i];
-            delete[] _output;
-            _output = NULL;
+            delete[] _copycolor[i];
         }
-        if(_colors)
+        delete[] _copycolor;
+        _copycolor = NULL;
+    }
+    if(_copysizes)
+    {
+        delete[] _copysizes;
+        _copysizes = NULL;
+    }
+    if(_copycount) _copycount = 0;
+    
+    _copycount = count;
+    _copydata = new float*[_copycount];
+    _copycolor = new float*[_copycount];
+    _copysizes = new int[_copycount];
+    for(int i = 0; i < _copycount; i++)
+    {
+        _copysizes[i] = sizes[i];
+        int datasz = _copysizes[i] * 6;
+        int colorsz = _copysizes[i] * 4;
+        _copydata[i] = new float[datasz];
+        _copycolor[i] = new float[colorsz];
+        int jc = 0;
+        for(int j = 0; j < _copysizes[i]; j+=6)
         {
-            for(int i = 0; i < _ocount; i++)
-                delete[] _colors[i];
-            delete[] _colors;
-            _colors = NULL;
-        }
-        if(_ocount) _ocount = 0;
-        _ocount = count;
-        _output = new float*[_ocount];
-        _osizes = new int[_ocount];
-        _colors = new float*[_ocount];
-        for(int i = 0; i < _ocount; i++)
-        {
-            _osizes[i] = sizes[i];
-            _output[i] = funcptr(v[i], rgba[i], &_colors[i], _osizes[i], _hhp);
+            _copydata[i][j    ] = vecs[i][j    ];
+            _copydata[i][j + 1] = vecs[i][j + 1];
+            _copydata[i][j + 2] = vecs[i][j + 2];
+            _copydata[i][j + 3] = vecs[i][j + 3];
+            _copydata[i][j + 4] = vecs[i][j + 4];
+            _copydata[i][j + 5] = vecs[i][j + 5];
+            _copycolor[i][j    ] = rgba[i][j    ];
+            _copycolor[i][j + 1] = rgba[i][j + 1];
+            _copycolor[i][j + 2] = rgba[i][j + 2];
+            _copycolor[i][j + 3] = rgba[i][j + 3];
+            jc += 4;
         }
     }
-    for(int i = 0; i < _ocount; i++)
-        hhDrawC(_output[i], _colors[i], _osizes[i], _hhp);
-    _prevdata = v;
+    _changed = true;
+
+    return false;
+}
+
+//draws provided data. generates geometry if necessary
+void GLHedgeHogger::Draw()
+{
+    if(_copycolor)
+    {
+        if(_changed)
+        {
+            float* (*funcptr)(const float*, const float*, float**, int, GLHedgeHogger::Params) = _hhp._style == Tube ? hhTubesC : _hhp._style == Arrow ? hhArrowsC : NULL;
+            if(_osizes)
+            {
+                delete[] _osizes;
+                _osizes = NULL;
+            }
+            if(_output)
+            {
+                for(int i = 0; i < _ocount; i++)
+                    delete[] _output[i];
+                delete[] _output;
+                _output = NULL;
+            }
+            if(_colors)
+            {
+                for(int i = 0; i < _ocount; i++)
+                    delete[] _colors[i];
+                delete[] _colors;
+                _colors = NULL;
+            }
+            if(_ocount) _ocount = 0;
+            _ocount = _copycount;
+            _output = new float*[_ocount];
+            _osizes = new int[_ocount];
+            _colors = new float*[_ocount];
+            for(int i = 0; i < _ocount; i++)
+            {
+                _osizes[i] = _copysizes[i];
+                _output[i] = funcptr(_copydata[i], _copycolor[i], &_colors[i], _osizes[i], _hhp);
+            }
+            _changed = false;
+        }
+        for(int i = 0; i < _ocount; i++)
+            hhDrawC(_output[i], _colors[i], _osizes[i], _hhp);
+    }
+    else
+    {
+        if(_changed)
+        {
+            float* (*funcptr)(const float*, int, GLHedgeHogger::Params) = _hhp._style == Tube ? hhTubes : _hhp._style == Arrow ? hhArrows : NULL;
+            if(_osizes)
+            {
+                delete[] _osizes;
+                _osizes = NULL;
+            }
+            if(_output)
+            {
+                for(int i = 0; i < _ocount; i++)
+                    delete[] _output[i];
+                delete[] _output;
+                _output = NULL;
+            }
+            if(_colors)
+            {
+                for(int i = 0; i < _ocount; i++)
+                    delete[] _colors[i];
+                delete[] _colors;
+                _colors = NULL;
+            }
+            if(_ocount) _ocount = 0;
+            _ocount = _copycount;
+            _output = new float*[_ocount];
+            _osizes = new int[_ocount];
+            for(int i = 0; i < _ocount; i++)
+            {
+                _osizes[i] = _copysizes[i];
+                _output[i] = funcptr(_copydata[i], _osizes[i], _hhp);
+            }
+            _changed = false;
+        }
+        for(int i = 0; i < _ocount; i++)
+            hhDraw(_output[i], _osizes[i], _hhp);
+    }
 }
 
 GLPathRenderer::GLPathRenderer() : GLFlowRenderer()
@@ -1018,7 +1207,30 @@ GLPathRenderer::GLPathRenderer() : GLFlowRenderer()
 
 GLPathRenderer::~GLPathRenderer()
 {
-    if(_prevdata) _prevdata = NULL;
+    if(_copydata)
+    {
+        for(int i = 0; i < _copycount; i++)
+        {
+            delete[] _copydata[i];
+        }
+        delete[] _copydata;
+        _copydata = NULL;
+    }
+    if(_copycolor)
+    {
+        for(int i = 0; i < _copycount; i++)
+        {
+            delete[] _copycolor[i];
+        }
+        delete[] _copycolor;
+        _copycolor = NULL;
+    }
+    if(_copysizes)
+    {
+        delete[] _copysizes;
+        _copysizes = NULL;
+    }
+    if(_copycount) _copycount = 0;
     if(_osizes)
     {
         delete[] _osizes;
@@ -1084,6 +1296,7 @@ inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
     int rnverts = 4 << p._quality; //vertices in a ring
     int rnsize = 3 * rnverts; //floats in a ring
     int rsize = rnsize * n; //size of the rings-array
+    float radius = p._radius * p.GetDefaultRadius();
     float* r = new float[rsize * 2]; //rings-array
     float* nm = r + rsize; //normals
     int step = rnsize;
@@ -1094,7 +1307,7 @@ inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
     //for the other rings, whereas this just points in the direction
     //of the endpoint vector
     sub(v + stride, v, r + step);
-    mkring(r + step, p._quality, p._radius, r, nm);
+    mkring(r + step, p._quality, radius, r, nm);
     for(int i = 0; i < step; i+=3)
     {
         norm(r + i, r + rsize + i);
@@ -1114,7 +1327,7 @@ inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
         add(r + itr, r + itr + step, r + itr);
         norm(r + itr, r + itr);
         //make a ring, in-place
-        mkring(r + itr, p._quality, p._radius, r + itr, nm + itr, nm + rprev);
+        mkring(r + itr, p._quality, radius, r + itr, nm + itr, nm + rprev);
         //shift the ring into position, set normals
         for(int i = itr; i < itr + rnsize; i += 3)
         {
@@ -1127,7 +1340,7 @@ inline float* prTubes(const float* v, int n, GLPathRenderer::Params p)
     
     //the last ring, calculated afterward to avoid overstepping bounds in loop
     sub(v + itv, v + itv - 3, r + rlast);
-    mkring(r + rlast, p._quality, p._radius, r + rlast, nm + rlast, nm + rprev);
+    mkring(r + rlast, p._quality, radius, r + rlast, nm + rlast, nm + rprev);
     for(int i = rlast; i < rsize; i+=3)
     {
         norm(r + i, r + rsize + i);
@@ -1146,6 +1359,7 @@ inline float* prTubesC(const float* v, const float* ci, float** co, int n, GLPat
     int rnverts = 4 << p._quality; //vertices in a ring
     int rnsize = 3 * rnverts; //floats in a ring
     int rsize = rnsize * n; //size of the rings-array
+    float radius = p._radius * p.GetDefaultRadius();
     float* r = new float[rsize * 2]; //rings-array
     float* c = new float[4 * n];
     *co = c;
@@ -1158,7 +1372,7 @@ inline float* prTubesC(const float* v, const float* ci, float** co, int n, GLPat
     //for the other rings, whereas this just points in the direction
     //of the endpoint vector
     sub(v + stride, v, r + step);
-    mkring(r + step, p._quality, p._radius, r, nm);
+    mkring(r + step, p._quality, radius, r, nm);
     for(int i = 0; i < step; i+=3)
     {
         norm(r + i, r + rsize + i);
@@ -1184,7 +1398,7 @@ inline float* prTubesC(const float* v, const float* ci, float** co, int n, GLPat
         add(r + itr, r + itr + step, r + itr);
         norm(r + itr, r + itr);
         //make a ring, in-place
-        mkring(r + itr, p._quality, p._radius, r + itr, nm + itr, nm + rprev);
+        mkring(r + itr, p._quality, radius, r + itr, nm + itr, nm + rprev);
         //shift the ring into position, set normals
         for(int i = itr; i < itr + rnsize; i += 3)
         {
@@ -1205,7 +1419,7 @@ inline float* prTubesC(const float* v, const float* ci, float** co, int n, GLPat
     
     //the last ring, calculated afterward to avoid overstepping bounds in loop
     sub(v + itv, v + itv - 3, r + rlast);
-    mkring(r + rlast, p._quality, p._radius, r + rlast, nm + rlast, nm + rprev);
+    mkring(r + rlast, p._quality, radius, r + rlast, nm + rlast, nm + rprev);
     for(int i = rlast; i < rsize; i+=3)
     {
         norm(r + i, r + rsize + i);
@@ -1233,7 +1447,8 @@ float* prArrows(const float* v, int n, GLPathRenderer::Params p)
     //int nrings = (n / p.stride) + (n / (p.stride * p.arrowStride));
     int nrings = (((p._arrowStride + 1) * n) / (p._stride * p._arrowStride)) - 1;
     int ncones = nrings / p._arrowStride; //number of cones
-    float coneRadius = p._radius * p._arrowRatio;
+    float radius = p._radius * p.GetDefaultRadius();
+    float coneRadius = radius * p._arrowRatio;
     int arrowOffset = p._arrowStride - 1;
     //there is an extra ring for every arrow, to prevent tubes from
     //clipping through their cones
@@ -1259,7 +1474,7 @@ float* prArrows(const float* v, int n, GLPathRenderer::Params p)
     //for the other rings, whereas this just points in the direction
     //of the endpoint vector
     sub(v + stride, v, tubes + step);
-    mkring(tubes + step, p._quality, p._radius, tubes, nmtube);
+    mkring(tubes + step, p._quality, radius, tubes, nmtube);
     for(int i = 0; i < step; i+=3)
     {
         norm(tubes + i, nmtube + i);
@@ -1278,9 +1493,9 @@ float* prArrows(const float* v, int n, GLPathRenderer::Params p)
         mov(tubes + itr, tubes + itr + step);
         div(tubes + itr, m, tubes + itr);
         mul(tubes + itr, coneRadius, cones);
-        mul(tubes + itr, m - p._radius, cones + 6);
+        mul(tubes + itr, m - radius, cones + 6);
         add(v + itv, cones + 6, cones + 3);
-        mkring(tubes + itr, p._quality, p._radius, tubes + itr, nmtube + itr);
+        mkring(tubes + itr, p._quality, radius, tubes + itr, nmtube + itr);
         for(int i = 0; i < rnsize; i += 3)
         {
             add(cones + 3, tubes + itr + i, tubes + itr + i);
@@ -1310,7 +1525,7 @@ float* prArrows(const float* v, int n, GLPathRenderer::Params p)
         add(result + itr, result + itr + step, result + itr);
         norm(result + itr, result + itr);
         //make a ring, in-place
-        mkring(result + itr, p._quality, p._radius, result + itr, nmtube + itr, nmtube + rprev);
+        mkring(result + itr, p._quality, radius, result + itr, nmtube + itr, nmtube + rprev);
         //shift the ring into position, set normals
         for(int i = itr; i < itr + rnsize; i += 3)
         {
@@ -1327,9 +1542,9 @@ float* prArrows(const float* v, int n, GLPathRenderer::Params p)
             mov(tubes + itr, tubes + itr + step);
             div(tubes + itr, m, tubes + itr);
             mul(tubes + itr, coneRadius, cones + itc);
-            mul(tubes + itr, m - p._radius, cones + itc + 6);
+            mul(tubes + itr, m - radius, cones + itc + 6);
             add(v + itv, cones + itc + 6, cones + itc + 3);
-            mkring(tubes + itr, p._quality, p._radius, tubes + itr, nmtube + itr);
+            mkring(tubes + itr, p._quality, radius, tubes + itr, nmtube + itr);
             for(int i = 0; i < rnsize; i += 3)
             {
                 add(cones + itc + 3, tubes + itr + i, tubes + itr + i);
@@ -1365,7 +1580,8 @@ inline float* prArrowsC(const float* v, const float* ci, float** co, int n, GLPa
     //int nrings = (n / p.stride) + (n / (p.stride * p.arrowStride));
     int nrings = (((p._arrowStride + 1) * n) / (p._stride * p._arrowStride)) - 1;
     int ncones = nrings / p._arrowStride; //number of cones
-    float coneRadius = p._radius * p._arrowRatio;
+    float radius = p._radius * p.GetDefaultRadius();
+    float coneRadius = radius * p._arrowRatio;
     int arrowOffset = p._arrowStride - 1;
     //there is an extra ring for every arrow, to prevent tubes from
     //clipping through their cones
@@ -1394,7 +1610,7 @@ inline float* prArrowsC(const float* v, const float* ci, float** co, int n, GLPa
     //for the other rings, whereas this just points in the direction
     //of the endpoint vector
     sub(v + stride, v, tubes + step);
-    mkring(tubes + step, p._quality, p._radius, tubes, nmtube);
+    mkring(tubes + step, p._quality, radius, tubes, nmtube);
     for(int i = 0; i < step; i+=3)
     {
         norm(tubes + i, nmtube + i);
@@ -1413,9 +1629,9 @@ inline float* prArrowsC(const float* v, const float* ci, float** co, int n, GLPa
         mov(tubes + itr, tubes + itr + step);
         div(tubes + itr, m, tubes + itr);
         mul(tubes + itr, coneRadius, cones);
-        mul(tubes + itr, m - p._radius, cones + 6);
+        mul(tubes + itr, m - radius, cones + 6);
         add(v + itv, cones + 6, cones + 3);
-        mkring(tubes + itr, p._quality, p._radius, tubes + itr, nmtube + itr);
+        mkring(tubes + itr, p._quality, radius, tubes + itr, nmtube + itr);
         for(int i = 0; i < rnsize; i += 3)
         {
             add(cones + 3, tubes + itr + i, tubes + itr + i);
@@ -1452,7 +1668,7 @@ inline float* prArrowsC(const float* v, const float* ci, float** co, int n, GLPa
         add(result + itr, result + itr + step, result + itr);
         norm(result + itr, result + itr);
         //make a ring, in-place
-        mkring(result + itr, p._quality, p._radius, result + itr, nmtube + itr, nmtube + rprev);
+        mkring(result + itr, p._quality, radius, result + itr, nmtube + itr, nmtube + rprev);
         //shift the ring into position, set normals
         for(int i = itr; i < itr + rnsize; i += 3)
         {
@@ -1469,9 +1685,9 @@ inline float* prArrowsC(const float* v, const float* ci, float** co, int n, GLPa
             mov(tubes + itr, tubes + itr + step);
             div(tubes + itr, m, tubes + itr);
             mul(tubes + itr, coneRadius, cones + itc);
-            mul(tubes + itr, m - p._radius, cones + itc + 6);
+            mul(tubes + itr, m - radius, cones + itc + 6);
             add(v + itv, cones + itc + 6, cones + itc + 3);
-            mkring(tubes + itr, p._quality, p._radius, tubes + itr, nmtube + itr);
+            mkring(tubes + itr, p._quality, radius, tubes + itr, nmtube + itr);
             for(int i = 0; i < rnsize; i += 3)
             {
                 add(cones + itc + 3, tubes + itr + i, tubes + itr + i);
@@ -1651,73 +1867,195 @@ inline void prDrawC(const float* v, float* c, int n, GLPathRenderer::Params p)
 ///////////////////////////////////////////////////////////////////////////////
 
 
-
-//builds and caches geometry if necessary, draws cached geometry
-void GLPathRenderer::Draw(const float **v, const int *sizes, int count)
+bool GLPathRenderer::SetData(const float **pts, const int *sizes, int count)
 {
-    float* (*funcptr)(const float*, int, GLPathRenderer::Params) = _prp._style == Tube ? prTubes : _prp._style == Arrow ? prArrows : NULL;
-    if(_changed || v != _prevdata)
+    if(_copydata)
     {
-        if(_output)
+        for(int i = 0; i < _copycount; i++)
         {
-            for(int i = 0; i < _ocount; i++)
-            {
-                if(_output[i]) delete[] _output[i];
-            }
-            delete[] _output;
-            delete[] _osizes;
-            delete[] _colors;
+            delete[] _copydata[i];
         }
-        _ocount = count;
-        _output = new float*[_ocount];
-        _colors = new float*[_ocount];
-        _osizes = new int[_ocount];
-        for(int i = 0; i < _ocount; i++)
+        delete[] _copydata;
+        _copydata = NULL;
+    }
+    if(_copycolor)
+    {
+        for(int i = 0; i < _copycount; i++)
         {
-            _osizes[i] = sizes[i];
-            _output[i] = funcptr(v[i], _osizes[i], _prp);
+            delete[] _copycolor[i];
+        }
+        delete[] _copycolor;
+        _copycolor = NULL;
+    }
+    if(_copysizes)
+    {
+        delete[] _copysizes;
+        _copysizes = NULL;
+    }
+    if(_copycount) _copycount = 0;
+    
+    _copycount = count;
+    _copydata = new float*[_copycount];
+    _copysizes = new int[_copycount];
+    for(int i = 0; i < _copycount; i++)
+    {
+        _copysizes[i] = sizes[i];
+        int datasz = _copysizes[i] * 3;
+        _copydata[i] = new float[datasz];
+        for(int j = 0; j < datasz; j += 3)
+        {
+            _copydata[i][j    ] = pts[i][j    ];
+            _copydata[i][j + 1] = pts[i][j + 1];
+            _copydata[i][j + 2] = pts[i][j + 2];
         }
     }
-    for(int i = 0; i < _ocount; i++)
-        prDraw(_output[i], _osizes[i], _prp);
-    _prevdata = v;
+    _changed = true;
+    
+    return false;
 }
 
-//builds and caches geometry if necessary, draws cached geometry
-void GLPathRenderer::Draw(const float **v, const float **rgba, const int *sizes, int count)
+bool GLPathRenderer::SetData(const float **pts, const float **rgba, const int *sizes, int count)
 {
-    float* (*funcptr)(const float*, const float*, float**, int, GLPathRenderer::Params) = _prp._style == Tube ? prTubesC : _prp._style == Arrow ? prArrowsC : NULL;
-    if(_changed || v != _prevdata)
+    if(_copydata)
     {
-        if(_output)
+        for(int i = 0; i < _copycount; i++)
         {
-            for(int i = 0; i < _ocount; i++)
-            {
-                if(_output[i]) delete[] _output[i];
-                if(_colors[i]) delete[] _colors[i];
-            }
-            delete[] _output;
-            delete[] _colors;
-            delete[] _osizes;
+            delete[] _copydata[i];
         }
-        _ocount = count;
-        _output = new float*[_ocount];
-        _colors = new float*[_ocount];
-        _osizes = new int[_ocount];
-        for(int i = 0; i < _ocount; i++)
+        delete[] _copydata;
+        _copydata = NULL;
+    }
+    if(_copycolor)
+    {
+        for(int i = 0; i < _copycount; i++)
         {
-            _osizes[i] = sizes[i];
-            int csize = _osizes[i] * 4;
-            _colors[i] = new float[csize];
-            for(int j = 0; j < csize; j++)
-            {
-                _colors[i][j] = rgba[i][j];
-            }
-            _output[i] = funcptr(v[i], rgba[i], _colors + i, _osizes[i], _prp);
+            delete[] _copycolor[i];
+        }
+        delete[] _copycolor;
+        _copycolor = NULL;
+    }
+    if(_copysizes)
+    {
+        delete[] _copysizes;
+        _copysizes = NULL;
+    }
+    if(_copycount) _copycount = 0;
+    
+    _copycount = count;
+    _copydata = new float*[_copycount];
+    _copycolor = new float*[_copycount];
+    _copysizes = new int[_copycount];
+    for(int i = 0; i < _copycount; i++)
+    {
+        _copysizes[i] = sizes[i];
+        int datasz = _copysizes[i] * 3;
+        int colorsz = _copysizes[i] * 4;
+        _copydata[i] = new float[datasz];
+        _copycolor[i] = new float[colorsz];
+        int jc = 0;
+        for(int j = 0; j < datasz; j += 3)
+        {
+            _copydata[i][j    ] = pts[i][j    ];
+            _copydata[i][j + 1] = pts[i][j + 1];
+            _copydata[i][j + 2] = pts[i][j + 2];
+            _copycolor[i][j    ] = rgba[i][j    ];
+            _copycolor[i][j + 1] = rgba[i][j + 1];
+            _copycolor[i][j + 2] = rgba[i][j + 2];
+            _copycolor[i][j + 3] = rgba[i][j + 3];
+            jc += 4;
         }
     }
-    for(int i = 0; i < _ocount; i++)
-        prDrawC(_output[i], _colors[i], _osizes[i], _prp);
-    _prevdata = v;
+    _changed = true;
+
+    return false;
+}
+
+//builds geometry if necessary, draws geometry
+void GLPathRenderer::Draw()
+{
+    if(_copycolor)
+    {
+        if(_changed)
+        {
+            float* (*funcptr)(const float*, const float*, float**, int, GLPathRenderer::Params) = _prp._style == Tube ? prTubesC : _prp._style == Arrow ? prArrowsC : NULL;
+            if(_osizes)
+            {
+                delete[] _osizes;
+                _osizes = NULL;
+            }
+            if(_output)
+            {
+                for(int i = 0; i < _ocount; i++)
+                    delete[] _output[i];
+                delete[] _output;
+                _output = NULL;
+            }
+            if(_colors)
+            {
+                for(int i = 0; i < _ocount; i++)
+                    delete[] _colors[i];
+                delete[] _colors;
+                _colors = NULL;
+            }
+            if(_ocount) _ocount = 0;
+            
+            _ocount = _copycount;
+            _output = new float*[_ocount];
+            _colors = new float*[_ocount];
+            _osizes = new int[_ocount];
+            for(int i = 0; i < _ocount; i++)
+            {
+                _osizes[i] = _copysizes[i];
+                int csize = _osizes[i] * 4;
+                _output[i] = funcptr(_copydata[i], _copycolor[i], _colors + i, _osizes[i], _prp);
+            }
+            _changed = false;
+        }
+        if(_copycolor)
+            for(int i = 0; i < _ocount; i++)
+                prDrawC(_output[i], _colors[i], _osizes[i], _prp);
+    }
+    else
+    {
+        if(_changed)
+        {
+            float* (*funcptr)(const float*, int, GLPathRenderer::Params) = _prp._style == Tube ? prTubes : _prp._style == Arrow ? prArrows : NULL;
+            if(_osizes)
+            {
+                delete[] _osizes;
+                _osizes = NULL;
+            }
+            if(_output)
+            {
+                for(int i = 0; i < _ocount; i++)
+                    delete[] _output[i];
+                delete[] _output;
+                _output = NULL;
+            }
+            if(_colors)
+            {
+                for(int i = 0; i < _ocount; i++)
+                    delete[] _colors[i];
+                delete[] _colors;
+                _colors = NULL;
+            }
+            if(_ocount) _ocount = 0;
+            
+            _ocount = _copycount;
+            _output = new float*[_ocount];
+            _colors = new float*[_ocount];
+            _osizes = new int[_ocount];
+            for(int i = 0; i < _ocount; i++)
+            {
+                _osizes[i] = _copysizes[i];
+                //HEISENBUG IS COMING FROM THIS LINE!!!!!!!!!!!!!!!!!
+                //it would appear that both non-coloring funcs cause it
+                _output[i] = funcptr(_copydata[i], _osizes[i], _prp);
+            }
+            _changed = false;
+        }
+        for(int i = 0; i < _ocount; i++)
+            prDraw(_output[i], _osizes[i], _prp);
+    }
 }
 
