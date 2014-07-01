@@ -67,7 +67,6 @@ IsolineRenderer::~IsolineRenderer()
 
 void IsolineRenderer::paintGL()
 {
-	IsolineParams* iParams = (IsolineParams*)currentRenderParams;
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return;
@@ -396,7 +395,7 @@ bool IsolineRenderer::buildLineCache(int timestep){
 		} //for i
 
 		//Now traverse the edges to determine the isolines in order
-		traverseCurves(iso, timestep);
+		if(iParams->GetTextDensity() > 0.) traverseCurves(iso, timestep);
 	} //for iso...		
 	numIsovalsCached = isovals.size();
 	cacheValidFlags[timestep] = true;
@@ -416,7 +415,7 @@ void IsolineRenderer::invalidateLineCache(int timestep){
 }
 void IsolineRenderer::invalidateLineCache(){
 	DataStatus* ds = DataStatus::getInstance();
-	IsolineParams* iParams = (IsolineParams*)getRenderParams();
+	
 	for (int ts = ds->getMinTimestep(); ts <= ds->getMaxTimestep(); ts++)
 		invalidateLineCache(ts);
 	numIsovalsCached = 0;
@@ -546,7 +545,9 @@ void IsolineRenderer::addEdges(int segIndex, pair<int,int> edge1, pair<int,int> 
 	}
 	
 }
-//Use the edge-edge mappings to traverse all the isolines
+//Use the edge-edge mappings to traverse each isoline
+//First pass is simply to determine an endpoint and length.  
+//Second pass will write annotation
 void IsolineRenderer::traverseCurves(int iso, int timestep){
 	//Initialize counters:
 	int numComponents = 0;
@@ -554,6 +555,9 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 	int minLength = 100000000;
 	int totLength = 0;
 	int currentLength;  //length of current component
+	componentLength.clear();
+	endEdge.clear();
+
 	//Repeat the following until no more edges are found:
 	//Find an unmarked edge.  Mark it.
 	std::map<pair<int,int>, pair<int,int> >::iterator edgeEdgeIter;
@@ -591,6 +595,7 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 						currentEdge = edgeEdge2[startingEdge];
 						if (!markerBit[currentEdge]) {
 							currentLength++;
+							markerBit[currentEdge] = true;
 							continue; //continue our traversal with the new currentEdge
 						}
 					}
@@ -600,6 +605,9 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 					totLength += currentLength;
 					if (currentLength > maxLength) maxLength = currentLength;
 					if (currentLength < minLength) minLength = currentLength;
+					componentLength.push_back(currentLength);
+					endEdge.push_back(currentEdge);
+					assert(componentLength.size() == numComponents);
 					break;  //exit while(1) loop
 				}
 			} 
@@ -623,6 +631,7 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 						//Try other direction at start 		
 						currentEdge = edgeEdge2[startingEdge];
 						if (!markerBit[currentEdge]) {
+							markerBit[currentEdge] = true;
 							currentLength++;
 							continue; //continue our traversal with the new currentEdge
 						}
@@ -633,6 +642,9 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 					totLength += currentLength;
 					if (currentLength > maxLength) maxLength = currentLength;
 					if (currentLength < minLength) minLength = currentLength;
+					componentLength.push_back(currentLength);
+					endEdge.push_back(currentEdge);
+					assert(componentLength.size() == numComponents);
 					break;  //exit while(1) loop
 				} else {
 					//Not marked; continue with nextEdge:
@@ -653,4 +665,90 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 		pair<int,int> thisEdge = edgeEdgeIter->first;
 		assert (markerBit[thisEdge]) ;
 	}
+	//Now traverse each component, writing annotation at specified interval
+	//Note that all marker bits are true,so we can use markerBit[i]==false as a new marker
+	//When textDensity is 1, there is annotation at every point.  When textDensity is 0.5 (typical)
+	//there should be about A annotations in crossing the domain; i.e. annotation interval should be about 1/A times the grid size
+	//when textDensity is .5, and A is a normalization constant.  So define 
+	// annotSpace = (2-g/A) + (g/A-1)/density where g is grid length or 2*A, whichever is larger
+	//If the interval is shorter than the component and larger than 0.1 times the component, then just one annotation is generated
+	float A = 3.;
+	IsolineParams* iParams = (IsolineParams*)getRenderParams();
+	float g = (float)gridSize;
+	if (g < 2*A) g = 2*A;
+	int annotSpace = (2- g/A) + (g/A -1.f)/iParams->GetTextDensity();
+	int numAnnotations = 0;
+	for (int comp = 0; comp<numComponents; comp++){
+		int annotInterval = annotSpace;
+		pair<int,int> currentEdge = endEdge[comp];
+		markerBit[currentEdge] = false;  //Mark it
+		int length = componentLength[comp];
+		if (length < annotInterval/10) continue; //No annotation for this component
+		if (length < annotInterval) annotInterval = length;
+		//Determine the first point as a random integer between 0 and annotInterval-1;
+		assert(annotInterval>0);
+		int randDist = 1+rand()%annotInterval;
+		//Traverse along component, marking as we go.
+		//first, count until we get randDist along; after that, increment by annotInterval
+		//Obtain next edges in both directions for traversal, but no need to go back to start.
+		int advancedDist = 0;
+		int currentAdvancedDist = 0;
+		int gapInterval = randDist;
+		while(1){
+			//Check an adjacent edge.  If it's not marked, make it the current edge, repeat
+			//make sure current edge is in at least one mapping
+			
+			edgeEdgeTestIter = edgeEdge1.find(currentEdge);
+			if(edgeEdgeTestIter == edgeEdge1.end()){
+				edgeEdgeTestIter = edgeEdge2.find(currentEdge);
+				if (edgeEdgeTestIter == edgeEdge2.end()){
+					//this means currentEdge goes nowhere (in either mapping); must be at end already
+					assert(advancedDist == length);
+					break;  //exit while(1) loop
+				}
+			} 
+			//set nextEdge to the connected edge we found
+			pair<int,int> nextEdge = edgeEdgeTestIter->second;
+			if (markerBit[nextEdge]){ //not marked, so ok to continue
+				currentEdge = nextEdge;
+				advancedDist++;
+				currentAdvancedDist++;
+				markerBit[currentEdge] = false; //mark it...
+				if (currentAdvancedDist == gapInterval){
+					//display annotation here!
+					//Reset the next interval:
+					gapInterval = annotInterval;
+					currentAdvancedDist = 0;
+				}
+				continue;
+			} else {
+				//it's marked true.  Need to consider other direction:
+				edgeEdgeTestIter = edgeEdge2.find(currentEdge);
+				
+				if ((edgeEdgeTestIter == edgeEdge2.end()) || (!markerBit[edgeEdgeTestIter->second])){
+					//Both ends are marked (or there is no other end) so
+					//we are at end of isoline
+					assert(advancedDist == length);
+					break;  //exit while(1) loop
+					
+				} else {
+					//Not marked; continue with nextEdge:
+					currentEdge = edgeEdgeTestIter->second;
+					advancedDist++;
+					currentAdvancedDist++;
+					markerBit[currentEdge] = false; //mark it...
+					if (currentAdvancedDist == gapInterval){
+						//display annotation here!
+						numAnnotations++;
+						//Reset the next interval:
+						gapInterval = annotInterval;
+						currentAdvancedDist = 0;
+					}
+					continue;
+				}
+			}
+		}
+	//Done with component
+	}
+
 }
