@@ -78,7 +78,7 @@ protected:
 	std::map<pair<int,int>,pair<int,int> > edgeEdge2; //map an edge to other adjacent edge;
 	std::map<pair<int,int>, bool> markerBit;  //indicate whether or not an edge has been visited during current traversal
 	vector<int> componentLength;	//indicates the number of segments in a component.
-	vector<pair<int,int>> endEdge;  //indicates and ending edge for each component
+	vector<pair<int,int> > endEdge;  //indicates and ending edge for each component
 
 	//Whenever a segment is added, construct associated edge and segment mappings
 	void addEdges(int segIndex, pair<int,int> edge1, pair<int,int> edge2);
