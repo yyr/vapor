@@ -500,12 +500,9 @@ int VDCNetCDF::_WriteSlice(WASP *file, const float *slice) {
 	size_t slice_size, slices_per_slab, num_slices;
 	ws_info(sdims, bs, slice_size, slices_per_slab, num_slices);
 
-	if (_open_slice_num == 0) {
-
-		_slice_buffer = (float *) _sb_slice_buffer.Alloc(
-			slice_size * slices_per_slab * sizeof (*slice)
-		);
-	}
+	_slice_buffer = (float *) _sb_slice_buffer.Alloc(
+		slice_size * slices_per_slab * sizeof (*slice)
+	);
 
 	size_t offset = (_open_slice_num  % slices_per_slab) * slice_size;
 
@@ -668,7 +665,7 @@ int VDCNetCDF::_ReadSlice(WASP *file, float *slice) {
 		vdc_2_ncdfcoords(_open_file_ts, (bool) numts, min, max, start, count);
 
 		int rc = file->GetVara(start, count, _slice_buffer);
-		return(rc);
+		if (rc<0) return(rc);
 	}
 
 	size_t offset = (_open_slice_num  % slices_per_slab) * slice_size;
