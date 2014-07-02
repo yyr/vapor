@@ -35,7 +35,7 @@ namespace VAPoR {
 
 
 //! \class MouseModeParams
-//! \ingroup Public
+//! \ingroup Public_Params
 //! \brief A class for describing mouse modes in use in VAPOR
 //! \author Alan Norton
 //! \version 3.0

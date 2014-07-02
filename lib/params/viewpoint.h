@@ -9,7 +9,7 @@ namespace VAPoR {
 class XmlNode;
 class ParamNode;
 //! \class Viewpoint
-//! \ingroup Public
+//! \ingroup Public_Params
 //! \brief class that indicates location and direction of view
 //! \author Alan Norton
 //! \version 3.0

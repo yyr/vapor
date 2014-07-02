@@ -27,6 +27,10 @@
 #include "params.h"
 #include "visualizer.h"
 
+//!
+//! \defgroup Public_Render VAPOR Render Developer API
+//!
+
 using namespace VetsUtil;
 
 namespace VAPoR {
@@ -34,7 +38,7 @@ class DataMgr;
 class Metadata;
 
 //! \class Renderer
-//! \ingroup Public
+//! \ingroup Public_Render
 //! \brief A class that performs rendering in a Visualizer
 //! \author Alan Norton
 //! \version $Revision$

@@ -45,6 +45,9 @@
     <ClCompile Include="..\..\..\lib\common\GeoUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\lib\common\utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\vapor\Base64.h">
@@ -79,6 +82,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\vapor\GetAppPath.h">
       <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\vapor\utils.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

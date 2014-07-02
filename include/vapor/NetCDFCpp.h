@@ -14,7 +14,7 @@ namespace VAPoR {
 //!
 //! Defines simple C++ wrapper for NetCDF
 //!
-class NetCDFCpp : public VetsUtil::MyBase {
+class VDF_API NetCDFCpp : public VetsUtil::MyBase {
 public:
  NetCDFCpp();
  virtual ~NetCDFCpp();

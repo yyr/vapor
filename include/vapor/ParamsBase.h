@@ -37,7 +37,7 @@ namespace VAPoR{
 class Params;
 //
 //! \class ParamsBase
-//! \ingroup Public
+//! \ingroup Public_Params
 //! \brief Nodes with state in Xml tree representation
 //! \author John Clyne
 //! \version 3.0

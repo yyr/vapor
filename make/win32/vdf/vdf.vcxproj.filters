@@ -192,6 +192,18 @@
     <ClCompile Include="..\..\..\lib\vdf\UDUnitsClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\lib\vdf\VDC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lib\vdf\VDCNetCDF.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lib\vdf\WASP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lib\vdf\NetCDFCpp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\vapor\AMRData.h">
@@ -321,6 +333,12 @@
       <Filter>Source Files\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\vapor\NetCDFCpp.h">
+      <Filter>Source Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\vapor\VDC.h">
+      <Filter>Source Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\vapor\VDCNetCDF.h">
       <Filter>Source Files\Header Files</Filter>
     </ClInclude>
   </ItemGroup>

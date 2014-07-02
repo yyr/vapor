@@ -47,8 +47,12 @@ class RegionParams;
 class DataMgr;
 class Command;
 
+//!
+//! \defgroup Public_Params VAPOR Params Developer API
+//!
+
 //! \class Params
-//! \ingroup Public
+//! \ingroup Public_Params
 //! \brief A pure virtual class for managing parameters used in visualization
 //! 
 //! \author Alan Norton
@@ -601,7 +605,7 @@ protected:
 };
 
 //! \class RenderParams
-//! \ingroup Public
+//! \ingroup Public_Params
 //! \brief A Params subclass for managing parameters used by Renderers
 //! \author Alan Norton
 //! \version 3.0

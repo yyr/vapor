@@ -50,13 +50,13 @@ class AnimationEventRouter;
 class RegionEventRouter;
 class ViewpointEventRouter;
 //!
-//! \defgroup Public VAPOR Developer API
+//! \defgroup Public_GUI VAPOR GUI Developer API
 //!
 
 typedef EventRouter* (EventRouterCreateFcn)();
 
 //! \class VizWinMgr
-//! \ingroup Public
+//! \ingroup Public_GUI
 //! \brief A class for managing all visualizers
 //! \author Alan Norton
 //! \version $Revision$

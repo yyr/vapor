@@ -44,7 +44,7 @@ namespace VAPoR {
 
 
 //! \class VizWinParams
-//! \ingroup Public
+//! \ingroup Public_Params
 //! \brief A class for describing the vizualization windows in use in VAPOR
 //! \author Alan Norton
 //! \version 3.0

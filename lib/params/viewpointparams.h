@@ -32,7 +32,7 @@ class RegionParams;
 class XmlNode;
 class ParamNode;
 //! \class ViewpointParams
-//! \ingroup Public
+//! \ingroup Public_Params
 //! \brief A class for describing the viewpoint and lights in a 3D VAPOR scene
 //! \author Alan Norton
 //! \version 3.0

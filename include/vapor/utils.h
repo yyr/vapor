@@ -1,12 +1,12 @@
 
 #include <cstring>
-
+#include <vapor/common.h>
 #ifndef _VAPOR_UTILS_H_
 #define _VAPOR_UTILS_H_
 
 namespace VetsUtil {
 
-class SmartBuf {
+class COMMON_API SmartBuf {
 public:
  SmartBuf() { _buf = NULL; _buf_sz = 0;};
 
