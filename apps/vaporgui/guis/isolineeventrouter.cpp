@@ -168,7 +168,7 @@ IsolineEventRouter::hookUpTab()
 	connect (isolineWidthEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (panelLineWidthEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (textSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (panelTextSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (densityEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (histoScaleEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (leftHistoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (rightHistoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
@@ -190,7 +190,7 @@ IsolineEventRouter::hookUpTab()
 	connect (isolineWidthEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (panelLineWidthEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (textSizeEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (panelTextSizeEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (densityEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (leftHistoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (rightHistoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (histoScaleEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
@@ -230,7 +230,7 @@ IsolineEventRouter::hookUpTab()
 	connect (zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineZCenter()));
 	connect (xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineXSize()));
 	connect (ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineYSize()));
-
+	connect (densitySlider, SIGNAL(sliderReleased()), this, SLOT (guiSetIsolineDensity()));
 	connect (copyToProbeButton, SIGNAL(clicked()), this, SLOT(copyToProbeOr2D()));
 
 	connect (instanceTable, SIGNAL(changeCurrentInstance(int)), this, SLOT(guiChangeInstance(int)));
@@ -395,7 +395,12 @@ void IsolineEventRouter::updateTab(){
 	isolineWidthEdit->setText(QString::number(isolineParams->GetLineThickness()));
 	panelLineWidthEdit->setText(QString::number(isolineParams->GetPanelLineThickness()));
 	textSizeEdit->setText(QString::number(isolineParams->GetTextSize()));
-	panelTextSizeEdit->setText(QString::number(isolineParams->GetPanelTextSize()));
+	double den = isolineParams->GetTextDensity();
+	densityEdit->setText(QString::number(isolineParams->GetTextDensity()));
+	int sliderVal = den*256.;
+	int sval = densitySlider->value();
+	if (sval != sliderVal) densitySlider->setValue(sliderVal);
+
 	//set color buttons
 	QPalette pal;
 	const vector<double>&bColor = isolineParams->GetPanelBackgroundColor();
@@ -619,9 +624,13 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	double textsize = textSizeEdit->text().toDouble();
 	if (textsize <= 0. || textsize > 100.) textsize = 10.0;
 	isolineParams->SetTextSize(textsize);
-	textsize = panelTextSizeEdit->text().toDouble();
-	if (textsize <= 0. || textsize > 100.) textsize = 10.0;
-	isolineParams->SetPanelTextSize(textsize);
+	double textDensity = densityEdit->text().toDouble();
+	if (textDensity <= 0. || textDensity > 1.) textDensity = 0.0;
+	
+	isolineParams->SetTextDensity(textDensity);
+	int sliderVal = textDensity*256.;
+	int sval = densitySlider->value();
+	if (sval != sliderVal) densitySlider->setValue(sliderVal);
 
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 
@@ -2859,4 +2868,18 @@ void IsolineEventRouter::guiEditIsovalues(){
 	setIsolineDirty(iParams);
 	VizWinMgr::getInstance()->forceRender(iParams,GLWindow::getCurrentMouseMode() == GLWindow::isolineMode);
 	updateTab();
+}
+//Respond to densitySlider release
+void IsolineEventRouter::guiSetIsolineDensity(){
+	IsolineParams* iParams = VizWinMgr::getActiveIsolineParams();
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(iParams, "Move density slider");
+	int sliderVal = densitySlider->value();
+	double den = sliderVal/256.;
+	iParams->SetTextDensity(den);
+	densityEdit->setText(QString::number(den));
+	PanelCommand::captureEnd(cmd, iParams);
+	setIsolineDirty(iParams);
+	VizWinMgr::getInstance()->forceRender(iParams);
+	guiSetTextChanged(false);
 }

@@ -118,6 +118,7 @@ public:
 
 protected slots:
 	void guiEditIsovalues();
+	void guiSetIsolineDensity();
 	void isolineLoadTF();
 	void isolineLoadInstalledTF();
 	void isolineSaveTF();
