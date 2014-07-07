@@ -685,6 +685,7 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 		int length = componentLength[comp];
 		if (length < annotInterval/10) continue; //No annotation for this component
 		if (length < annotInterval) annotInterval = length;
+		
 		//Determine the first point as a random integer between 0 and annotInterval-1;
 		assert(annotInterval>0);
 		int randDist = 1+rand()%annotInterval;
@@ -715,7 +716,9 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 				currentAdvancedDist++;
 				markerBit[currentEdge] = false; //mark it...
 				if (currentAdvancedDist == gapInterval){
+					if ((length - advancedDist) < (annotInterval - randDist)) break;  //done with this component
 					//display annotation here!
+					numAnnotations++;
 					//Reset the next interval:
 					gapInterval = annotInterval;
 					currentAdvancedDist = 0;
@@ -738,6 +741,8 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 					currentAdvancedDist++;
 					markerBit[currentEdge] = false; //mark it...
 					if (currentAdvancedDist == gapInterval){
+						//check if we are close to end
+						if ((length - advancedDist) < (annotInterval - randDist)) break; //done with this component
 						//display annotation here!
 						numAnnotations++;
 						//Reset the next interval:
@@ -750,5 +755,4 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 		}
 	//Done with component
 	}
-
 }
