@@ -40,6 +40,7 @@ VAPoR::BannerGUI::BannerGUI(std::string imagefile, int maxwait, bool center, QSt
     if(!imagefile.empty())
     {
         std::vector<std::string> vec = std::vector<std::string>();
+        vec.push_back("images");
         vec.push_back(imagefile);
         QImage image(GetAppPath("VAPOR", "share", vec).c_str());
         //QImage image(imagefile.c_str());
