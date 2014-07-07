@@ -569,6 +569,7 @@ void init(void)
     srand(time(NULL));
     for(int i = 0; i < SPIRAL_CSZ; i++)
     {
+        if(!(i % 400)) srand(rand());
         pathcolor6[i] = (float)(rand() % 1000000) / 1000000.f;
     }
     
@@ -766,25 +767,25 @@ static void drawBox(GLfloat size, GLenum type)
 
 void my_glutSolidCube(GLdouble size)
 {
-  drawBox(size, GL_QUADS);
+    drawBox(size, GL_QUADS);
 }
 
-// "I've half a mind to join a club and beat you over the head with it"
+//  "I've half a mind to join a club and beat you over the head with it"
 //
-// silly, geeky names for characters
-//   Tars Cuffs
-//   Tars Xeffs
-//   Remmie Slastar
-//   Apta Geita
-//   Resynic Rivap
-//   Sesh Usaathost
-//   Hashdt Binush
-//   Listilde Edstop
-//   Borj Dumpen
-//   Lis Blokkus
-//   Lis Pcidi
-//   G'Debus
-//   Sudot
-//   Gecci
-//   
+//  silly, geeky names for characters
+//    Tars Cuffs
+//    Tars Xeffs
+//    Remmie Slastar
+//    Apta Geita
+//    Resynic Rivap
+//    Sesh Usaathost
+//    Hashdt Binush
+//    Listilde Edstop
+//    Borj Dumpen
+//    Lis Blokkus
+//    Lis Pcidi
+//    G'Debus
+//    Sudot
+//    Gecci
+
 
