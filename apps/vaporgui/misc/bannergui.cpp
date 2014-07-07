@@ -41,8 +41,8 @@ VAPoR::BannerGUI::BannerGUI(std::string imagefile, int maxwait, bool center, QSt
     {
         std::vector<std::string> vec = std::vector<std::string>();
         vec.push_back(imagefile);
-        //QImage image(GetAppPath("VAPOR", "images", vec).c_str());
-        QImage image(imagefile.c_str());
+        QImage image(GetAppPath("VAPOR", "images", vec).c_str());
+        //QImage image(imagefile.c_str());
         if(image.isNull())
         {
             QMessageBox::information(this, tr("VAPoR Banner"), tr("Could not load banner image.\n"));
