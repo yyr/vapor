@@ -1942,9 +1942,9 @@ bool GLPathRenderer::SetData(const float **pts, const float **rgba, const int *s
     if(_copycount) _copycount = 0;
     
     _copycount = count;
+    _copysizes = new int[_copycount];
     _copydata = new float*[_copycount];
     _copycolor = new float*[_copycount];
-    _copysizes = new int[_copycount];
     for(int i = 0; i < _copycount; i++)
     {
         _copysizes[i] = sizes[i];
@@ -1958,10 +1958,10 @@ bool GLPathRenderer::SetData(const float **pts, const float **rgba, const int *s
             _copydata[i][j    ] = pts[i][j    ];
             _copydata[i][j + 1] = pts[i][j + 1];
             _copydata[i][j + 2] = pts[i][j + 2];
-            _copycolor[i][j    ] = rgba[i][j    ];
-            _copycolor[i][j + 1] = rgba[i][j + 1];
-            _copycolor[i][j + 2] = rgba[i][j + 2];
-            _copycolor[i][j + 3] = rgba[i][j + 3];
+            _copycolor[i][jc    ] = rgba[i][jc    ];
+            _copycolor[i][jc + 1] = rgba[i][jc + 1];
+            _copycolor[i][jc + 2] = rgba[i][jc + 2];
+            _copycolor[i][jc + 3] = rgba[i][jc + 3];
             jc += 4;
         }
     }
