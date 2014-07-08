@@ -286,6 +286,7 @@
     <ClCompile Include="..\..\..\apps\vaporgui\guis\glprobewindow.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\gltwoDwindow.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\GLWidget.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\misc\bannergui.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\misc\helpwindow.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\instancetable.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\isoeventrouter.cpp" />
@@ -326,6 +327,7 @@
     <ClCompile Include="..\..\..\apps\vaporgui\main\vizwinmgr.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_animationeventrouter.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_arroweventrouter.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_bannergui.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_boxsliderframe.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_ColorbarWidget.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_colorpickerframe.cpp" />
@@ -561,6 +563,12 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\moc\moc_colorpickerframe.cpp;%(Outputs)</Outputs>
     </CustomBuild>
     <ClInclude Include="..\..\..\apps\vaporgui\main\command.h" />
+    <CustomBuild Include="..\..\..\apps\vaporgui\misc\bannergui.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\misc\bannergui.h -o ..\..\..\apps\vaporgui\moc\moc_bannergui.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">moc%27ing bannergui.h</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\moc\moc_bannergui.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
     <ClInclude Include="..\..\..\apps\vaporgui\misc\controllerthread.h" />
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\ControlPointEditor.h">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing ControlPointEditor.h...</Message>
