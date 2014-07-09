@@ -36,7 +36,7 @@ public:
                 float bgColor[4],
                 float txtColor[4],
                 QGLWidget *myWindow);
-    ~TextObject();
+    ~TextObject() {}
 
     void setText(string txt) { _text = txt; }
     void setSize(int sz) { _size = sz; }

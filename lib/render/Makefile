@@ -30,7 +30,7 @@ QT_HEADERS = \
 
 LIBRARIES += ftgl freetype  
 #MAKEFILE_INCLUDE_DIRS += -I/opt/local/include/freetype2
-#MAKEFILE_INCLUDE_DIRS += -I/glade/p/DASG/VAPOR/third-party/apps-2.3.0/Darwin_x86_64/include/freetype2
+MAKEFILE_INCLUDE_DIRS += -I/glade/p/DASG/VAPOR/third-party/apps-2.3.0/Darwin_x86_64/include/freetype2
 
 ifeq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += -D"RENDER_EXPORTS"
