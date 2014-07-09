@@ -37,13 +37,13 @@ inline void mkring(const float* d, int n, float r, float* o, float* on = NULL, f
     int i2 = 6 << n;
     int i3 = 9 << n;
     cross(dn, o, o + i1);
-    if(on) mov(o + i1, on + i1);
+    if(on) norm(o + i1, on + i1);
     resize(o + i1, r, o + i1);
     neg(o, o + i2);
-    if(on) mov(o + i2, on + i2);
+    if(on) norm(o + i2, on + i2);
     resize(o + i2, r, o + i2);
     cross(dn, o + i2, o + i3);
-    if(on) mov(o + i3, on + i3);
+    if(on) norm(o + i3, on + i3);
     resize(o + i3, r, o + i3);
     
     //now, to subdivide the ring for awesomeness
@@ -699,12 +699,12 @@ inline float* hhTubesC(const float* v, const float* ci, float** co, int n, GLHed
     int rnverts = 4 << p._quality; //vertices in a ring
     int rnsize = 3 * rnverts; //floats in a ring
     int tusize = rnsize * 2; //floats in a tube
-    int rsize = tusize * n; //size of the rings-array
+    int rsize = tusize * n; //size of the rings-array verts section
     float radius = p._radius * p.GetDefaultRadius();
-    float* r = new float[rsize * 2]; //rings-array AND norms-array
+    float* r = new float[rsize * 2]; //rings-array
+    float* nm = r + rsize; //normals section
     float* c = new float[4 * n];
     *co = c;
-    float* nm = r + rsize; //normals
     
     int itv = 0;
     int itr = 0;
@@ -723,7 +723,6 @@ inline float* hhTubesC(const float* v, const float* ci, float** co, int n, GLHed
             //add(v + itv + 3, r + i, r + i + rnsize);
             add(v + itv, r + i, r + i);
         }
-        
         c[itco    ] = ci[itci    ];
         c[itco + 1] = ci[itci + 1];
         c[itco + 2] = ci[itci + 2];
@@ -895,11 +894,10 @@ inline void hhDrawTubesC(const float* v, float* c, int n, GLHedgeHogger::Params 
     int tsize = (8 << hhp._quality) * 3;
     int total = (n << (3 + hhp._quality)) * 3;
     int cidx = 0;
-    int itr = 0;
-    for(itr = 0; itr < total; itr += tsize * hhp._stride)
+    for(int i = 0; i < total; i += tsize * hhp._stride)
     {
         glMaterialfv(GL_FRONT, GL_DIFFUSE, c + cidx);
-        drawTube(v + itr, hhp._quality, total);
+        drawTube(v + i, hhp._quality, total);
         cidx += 4;
     }
 }
@@ -1098,7 +1096,7 @@ bool GLHedgeHogger::SetData(const float **vecs, const float **rgba, const int *s
         _copydata[i] = new float[datasz];
         _copycolor[i] = new float[colorsz];
         int jc = 0;
-        for(int j = 0; j < _copysizes[i]; j+=6)
+        for(int j = 0; j < datasz; j+=6)
         {
             _copydata[i][j    ] = vecs[i][j    ];
             _copydata[i][j + 1] = vecs[i][j + 1];
@@ -1106,10 +1104,10 @@ bool GLHedgeHogger::SetData(const float **vecs, const float **rgba, const int *s
             _copydata[i][j + 3] = vecs[i][j + 3];
             _copydata[i][j + 4] = vecs[i][j + 4];
             _copydata[i][j + 5] = vecs[i][j + 5];
-            _copycolor[i][j    ] = rgba[i][j    ];
-            _copycolor[i][j + 1] = rgba[i][j + 1];
-            _copycolor[i][j + 2] = rgba[i][j + 2];
-            _copycolor[i][j + 3] = rgba[i][j + 3];
+            _copycolor[i][jc    ] = rgba[i][jc    ];
+            _copycolor[i][jc + 1] = rgba[i][jc + 1];
+            _copycolor[i][jc + 2] = rgba[i][jc + 2];
+            _copycolor[i][jc + 3] = rgba[i][jc + 3];
             jc += 4;
         }
     }
