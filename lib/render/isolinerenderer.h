@@ -55,7 +55,36 @@ protected:
 	//4 floats (x1,y1,x2,y2) specifying
 	//the two endpoints of an isoline segment that crosses a cell 
 	std::map<pair<int,int>,vector<float*> > lineCache;
+	
+	// cache valid flags indicate validity of cache at each time step.
 	std::map<int,bool> cacheValidFlags;
+	//Each edge is represented as a pair (int, int).  Horizontal edges have both ints positive; vertical have both negative.
+	//Vertical edges connecting grid vertices (i,j) and (i,j+1) are represented by the pair (-i, -j-1) (-i <=0; -j-1 < 0)
+	//Horizontal edges connecting grid vertices (i,j) and (i+1,j) are represented by the pair (i+1,j) (i+1 > 0, j>=0)
+	//
+	
+	// lineCache maps pair<int,int>->vector<float[4]> maps a pair (timestep,isovalueIndex) to a vector of segment endpoints, with one segment for each line in the isoline
+	//For each segment in the lineCache, there are 5 temporary mappings:
+	// prevEdge maps segments to edges.  Each segment is identified by (timestep, isoval, segmentIndex), corresponding edge is pair(int,int)
+	// nextEdge is the same; map(int,int,int)->pair(int,int)
+	// plus prevSegment maps prevEdge to segment; i.e. map (timestep, isoval, (int,int))-> segmentIndex
+	// similarly nextSegment maps nextEdge to segment; i.e. map (timestep, isoval, (int,int))-> segmentIndex
+	// plus forwardEdge maps (timestep,isoval,edge)-> edge
+	// and backwardEdge maps (timestep,isoval,edge)-> edge
+	
+	std::map< pair<int,int>, int> edgeSeg; //map an edge to a segment, to find 3d coords where edge is located
+	
+	std::map<pair<int,int>,pair<int,int> > edgeEdge1; //map an edge to one adjacent edge;
+	std::map<pair<int,int>,pair<int,int> > edgeEdge2; //map an edge to other adjacent edge;
+	std::map<pair<int,int>, bool> markerBit;  //indicate whether or not an edge has been visited during current traversal
+	vector<int> componentLength;	//indicates the number of segments in a component.
+	vector<pair<int,int> > endEdge;  //indicates and ending edge for each component
+
+	//Whenever a segment is added, construct associated edge and segment mappings
+	void addEdges(int segIndex, pair<int,int> edge1, pair<int,int> edge2);
+	//traverse the curves defined by the latest edge->edge mappings
+	void traverseCurves(int iso, int timestep);
+	
 	vector<float*>& getLineSegments(int timestep, int isoindex){
 		pair<int,int> indexpair = make_pair(timestep,isoindex);
 		return lineCache[indexpair];
@@ -78,7 +107,8 @@ protected:
 	void performRendering(int timestep);
 	//Find code for edges based on isoline crossings
 	int edgeCode(int i, int j, float isoval, float* dataVals); 
-	void addLineSegment(int timestep, int isoIndex, float x1, float y1, float x2, float y2);
+	//insert a line segment, return index in the associated vector that was added.
+	int addLineSegment(int timestep, int isoIndex, float x1, float y1, float x2, float y2);
 	int numIsovalsInCache() {return numIsovalsCached;}
 	int numIsovalsCached;
 	int gridSize;

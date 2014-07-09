@@ -84,7 +84,7 @@ void IsovalueEditor::valueChanged( int row, int col )
 {
 	bool ok;
 	QTableWidgetItem* item = table->item(row,col);
-	double d = item->text().toDouble( &ok );
+	item->text().toDouble( &ok );
     if (col != 1) return;
     if (!ok) {
 		item->setText("0.0");

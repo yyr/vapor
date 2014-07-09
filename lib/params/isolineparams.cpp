@@ -16,7 +16,7 @@ const string IsolineParams::_isolineExtentsTag = "IsolineExtents";
 const string IsolineParams::_lineThicknessTag = "LineThickness";
 const string IsolineParams::_panelLineThicknessTag = "PanelLineThickness";
 const string IsolineParams::_textSizeTag = "TextSize";
-const string IsolineParams::_panelTextSizeTag = "PanelTextSize";
+const string IsolineParams::_textDensityTag = "TextDensity";
 const string IsolineParams::_variableDimensionTag = "VariableDimension";
 const string IsolineParams::_cursorCoordsTag = "CursorCoords";
 const string IsolineParams::_2DBoxTag = "Box2D";
@@ -256,6 +256,8 @@ void IsolineParams::restart() {
 	SetLocalExtents(exts);
 	SetVariables3D(true);
 	SetLocalExtents(exts);
+	SetTextSize(10.);
+	SetTextDensity(0.);
 	GetBox()->SetAngles(zeros);
 	
 }

@@ -5,7 +5,8 @@ MISC_FILES := \
 	vizfeatureparams \
 	pythonedit \
 	versionchecker \
-	vcheckgui
+	vcheckgui \
+	bannergui
 
 
 MISC_QT_HEADERS := \
@@ -13,6 +14,7 @@ MISC_QT_HEADERS := \
 	vizfeatureparams\
 	pythonedit \
 	vcheckgui \
-	versionchecker
+	versionchecker \
+	bannergui
  
 
