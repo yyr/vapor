@@ -531,9 +531,9 @@ void init(void)
     GLHedgeHogger::Params hcopy = *hparams;
     hcopy._radius = opt.radius;
     hcopy._quality = opt.quality;
-    hcopy._baseColor[0] = 0.5f;
-    hcopy._baseColor[1] = 0.5f;
-    hcopy._baseColor[2] = 0.5f;
+    hcopy._baseColor[0] = 0.9f;
+    hcopy._baseColor[1] = 0.9f;
+    hcopy._baseColor[2] = 0.0f;
     hcopy._baseColor[3] = 1.f;
     hcopy._stride = opt.stride;
     hcopy._style = style;
