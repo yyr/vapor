@@ -37,13 +37,13 @@ inline void mkring(const float* d, int n, float r, float* o, float* on = NULL, f
     int i2 = 6 << n;
     int i3 = 9 << n;
     cross(dn, o, o + i1);
-    if(on) mov(o + i1, on + i1);
+    if(on) norm(o + i1, on + i1);
     resize(o + i1, r, o + i1);
     neg(o, o + i2);
-    if(on) mov(o + i2, on + i2);
+    if(on) norm(o + i2, on + i2);
     resize(o + i2, r, o + i2);
     cross(dn, o + i2, o + i3);
-    if(on) mov(o + i3, on + i3);
+    if(on) norm(o + i3, on + i3);
     resize(o + i3, r, o + i3);
     
     //now, to subdivide the ring for awesomeness
