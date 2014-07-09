@@ -603,6 +603,22 @@ protected:
 	static vector<Params*> dummyParamsInstances;
 #endif //DOXYGEN_SKIP_THIS
 };
+//! \class BasicParams
+//! \ingroup Public_Params
+//! \brief A Params subclass Params classes with one unique instance
+//! \author Alan Norton
+//! \version 3.0
+//! \date    July 2014
+//!
+class PARAMS_API BasicParams : public Params {
+public:
+//! @name Internal
+//! Internal methods not intended for general use
+///@{
+	BasicParams(XmlNode *parent, const string &name) : Params(parent, name, -1) {}
+	virtual bool isBasicParams() const {return true;}
+};
+///@}
 
 //! \class RenderParams
 //! \ingroup Public_Params

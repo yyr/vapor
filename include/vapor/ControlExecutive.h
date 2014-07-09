@@ -238,7 +238,7 @@ public:
 
 	//! Determine how many different Params classes are available
 	//! to be associated with tabs in the GUI.
-	//! Does not include Params classes that are used just for Undo/Redo
+	//! Does not include BasicParams classes 
 	//! \sa GetNumParamsClasses();
 	//! \return number of classes
 	//!

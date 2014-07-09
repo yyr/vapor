@@ -50,7 +50,7 @@ namespace VAPoR {
 //! \version 3.0
 //! \date    April 2014
 //!
-class PARAMS_API VizWinParams : public Params {
+class PARAMS_API VizWinParams : public BasicParams {
 	
 public: 
 
@@ -172,10 +172,7 @@ public:
 	virtual void Validate(bool useDefault);
 	//! Method to initialize a new VizWinParams instance
 	virtual void restart();
-	//! The vizwin params are just for UndoRedo and sessions (i.e., do they not show up as tabs in the GUI)
-	//! \retval always returns true for this class.
-	virtual bool isBasicParams() const {return true;}
-
+	
 	//! Required static method (for extensibility):
 	//! \retval ParamsBase* pointer to a default Params instance
 	static ParamsBase* CreateDefaultInstance() {return new VizWinParams(0, -1);}

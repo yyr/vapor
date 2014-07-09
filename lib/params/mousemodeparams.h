@@ -41,7 +41,7 @@ namespace VAPoR {
 //! \version 3.0
 //! \date    April 2014
 //!
-class PARAMS_API MouseModeParams : public Params {
+class PARAMS_API MouseModeParams : public BasicParams {
 	
 public: 
 //! @name Internal
@@ -61,9 +61,7 @@ public:
 	virtual void Validate(bool useDefault);
 	//! Method to initialize a new MouseModeParams instance
 	virtual void restart();
-	//! The mouse mode params are just for UndoRedo (i.e., do not show up as tabs in the GUI)
-	//! \retval always returns true for this class.
-	virtual bool isBasicParams() const {return true;}
+	
 
 	//Enum describes various built-in mouse modes:
 	enum mouseModeType {
