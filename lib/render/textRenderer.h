@@ -23,10 +23,10 @@
 #include <vapor/common.h>
 #include <QGLWidget>
 
-class FTPixmapFont;
+class RENDER_API FTPixmapFont;
 //class GLWindow;
 
-class TextObject {
+class RENDER_API TextObject {
 public:
     TextObject( string inFont,
                 string inText,
@@ -36,7 +36,7 @@ public:
                 float bgColor[4],
                 float txtColor[4],
                 QGLWidget *myWindow);
-    ~TextObject() {}
+    ~TextObject();
 
     void setText(string txt) { _text = txt; }
     void setSize(int sz) { _size = sz; }
@@ -84,7 +84,7 @@ private:
                                      // type 3 - text drawn within the scene
 };
 
-class TextWriter {
+class RENDER_API TextWriter {
 public:
     TextWriter( string fontFile, 
                 int fontSize,

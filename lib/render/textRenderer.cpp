@@ -95,6 +95,12 @@ TextObject::TextObject( string inFont,
     _myWindow = myGivenWindow;
 }
 
+TextObject::~TextObject() {
+	delete _pixmap;
+	//glDeleteTextures(1,&_fboTexture);
+	//glDeleteBuffers(1,&_fbo);
+}
+
 void TextObject::initFrameBufferTexture(void) {
     glGenTextures(1, &_fboTexture);
     glBindTexture(GL_TEXTURE_2D, _fboTexture);
