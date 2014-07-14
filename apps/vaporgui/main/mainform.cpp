@@ -82,7 +82,6 @@
 #include "regionparams.h"
 #include "dvrparams.h"
 #include "pythonpipeline.h"
-#include "bannergui.h"
 
 #include "animationparams.h"
 #include "probeparams.h"
@@ -977,7 +976,8 @@ void MainForm::helpAbout()
 	QMessageBox::information(this, "Information about VAPOR",(const char*)versionInfo.toAscii());
 */
     std::string banner_file_name = "vapor_banner.png";
-    BannerGUI* banner = new BannerGUI(banner_file_name, -1, true, "THIS IS AN AWESOME PIECE OF TEXT!! :D\nI WILL PUT A BUNCH OF NEWLINES IN,\nJUST TO SEE WHAT THE BEHAVIOR IS!!", "http://www.example.com");
+    if(banner) delete banner;
+    banner = new BannerGUI(banner_file_name, -1, true, "THIS IS AN AWESOME PIECE OF TEXT!! :D\nI WILL PUT A BUNCH OF NEWLINES IN,\nJUST TO SEE WHAT THE BEHAVIOR IS!!", "http://www.example.com");
 }
 void MainForm::batchSetup(){
     //Here we provide panel to setup batch runs
