@@ -48,7 +48,7 @@ namespace VAPoR {
 //! \version 3.0
 //! \date    May 2014
 //!
-class PARAMS_API InstanceParams : public Params {
+class PARAMS_API InstanceParams : public BasicParams {
 	
 public: 
 
@@ -104,9 +104,7 @@ public:
 	virtual void Validate(bool useDefault);
 	//! Method to initialize a new InstanceParams instance
 	virtual void restart();
-	//! The vizwin params are just for UndoRedo and sessions (i.e., do they not show up as tabs in the GUI)
-	//! \retval always returns true for this class.
-	virtual bool isBasicParams() const {return true;}
+	
 	//! Static method that should be called whenever a new visualizer is created
 	//! This must agree with the VizWinParams state, so InstanceParams::AddVizWin()
 	//! is invoked by VizWinParams::AddVizWin()

@@ -45,7 +45,7 @@ const string VizWinParams::_visualizerNumsTag = "VisualizerNums";
 const string VizWinParams::_emptyString = "";
 
 
-VizWinParams::VizWinParams(XmlNode* parent, int winnum): Params(parent, VizWinParams::_vizWinParamsTag, winnum){
+VizWinParams::VizWinParams(XmlNode* parent, int winnum): BasicParams(parent, VizWinParams::_vizWinParamsTag){
 	restart();
 }
 

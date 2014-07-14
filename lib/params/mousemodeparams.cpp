@@ -50,7 +50,7 @@ map<ParamsBase::ParamsBaseType, int> MouseModeParams::modeFromParams;
 vector<string>MouseModeParams::modeName;
 map<int,const char* const *> MouseModeParams::modeXPMIcon;
 
-MouseModeParams::MouseModeParams(XmlNode* parent, int winnum): Params(parent, MouseModeParams::_mouseModeParamsTag, winnum){
+MouseModeParams::MouseModeParams(XmlNode* parent, int winnum): BasicParams(parent, MouseModeParams::_mouseModeParamsTag){
 	restart();
 }
 

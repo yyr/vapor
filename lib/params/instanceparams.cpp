@@ -47,7 +47,7 @@ const string InstanceParams::_numInstancesTag = "NumInstances";
 
 
 
-InstanceParams::InstanceParams(XmlNode* parent, int winnum): Params(parent, InstanceParams::_instanceParamsTag, winnum){
+InstanceParams::InstanceParams(XmlNode* parent, int winnum): BasicParams(parent, InstanceParams::_instanceParamsTag){
 	restart();
 }
 
