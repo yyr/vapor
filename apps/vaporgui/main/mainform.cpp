@@ -966,18 +966,22 @@ void MainForm::helpContents()
 
 void MainForm::helpAbout()
 {
-/*
-	QString versionInfo(QString("Visualization and Analysis Platform for atmospheric, Oceanic and solar Research\n") + 
-		QString("Developed at the National Center for Atmospheric Research (NCAR), Boulder, Colorado 80305, U.S.A.\nWeb site: http://www.vapor.ucar.edu\n")+
-		QString("Contact: vapor@ucar.edu\n")+
-		QString("Version: ")+
-		Version::GetVersionString().c_str());
-
-	QMessageBox::information(this, "Information about VAPOR",(const char*)versionInfo.toAscii());
-*/
     std::string banner_file_name = "vapor_banner.png";
     if(banner) delete banner;
-    banner = new BannerGUI(banner_file_name, -1, true, "THIS IS AN AWESOME PIECE OF TEXT!! :D\nI WILL PUT A BUNCH OF NEWLINES IN,\nJUST TO SEE WHAT THE BEHAVIOR IS!!", "http://www.example.com");
+	std::string banner_text = 
+		"Visualization and Analysis Platform for atmospheric, Oceanic and "
+		"solar Research.\n\n"
+        "Developed by the National Center for Atmospheric Research's (NCAR) \n"
+        "Computational and Information Systems Lab. \n\n"
+		"Boulder, Colorado 80305, U.S.A.\n"
+		"Web site: http://www.vapor.ucar.edu\n"
+        "Contact: vapor@ucar.edu\n"
+        "Version: " + string(Version::GetVersionString().c_str());
+
+        banner = new BannerGUI(
+		banner_file_name, -1, true, banner_text.c_str(), 
+		"http://www.vapor.ucar.edu"
+	);
 }
 void MainForm::batchSetup(){
     //Here we provide panel to setup batch runs

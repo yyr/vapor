@@ -23,6 +23,8 @@
 #endif
 #include <vapor/GetAppPath.h>
 
+#include "textRenderer.h"
+
 #include "glwindow.h"
 #include "trackball.h"
 #include "renderer.h"
