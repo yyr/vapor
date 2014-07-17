@@ -22,6 +22,7 @@
 #include "params.h"
 #include "glwindow.h"
 #include "textRenderer.h"
+#include "viewpointparams.h"
 
 using namespace VAPoR;
 //struct GLWindow;        // just to retrieve window size
@@ -95,9 +96,16 @@ TextObject::TextObject( string inFont,
     _fboTexture   = 0;
 
 	if (inType == 1){
-		_3Dcoords[0] = _coords[0];
-		_3Dcoords[1] = _coords[1];
-		_3Dcoords[2] = _coords[2];
+		//Convert user to local/stretched coordinates in cube
+		DataStatus* ds = DataStatus::getInstance();
+		const vector<double>& fullUsrExts = ds->getDataMgr()->GetExtents();
+		float sceneScaleFactor = 1./ViewpointParams::getMaxStretchedCubeSide();
+		const float* scales = ds->getStretchFactors();
+		for (int i = 0; i<3; i++){ 
+			_3Dcoords[i] = _coords[i] - fullUsrExts[i];
+			_3Dcoords[i] *= sceneScaleFactor;
+			_3Dcoords[i] *= scales[i];
+		}
 	}
 
 	cout << "creating text object" << endl;
