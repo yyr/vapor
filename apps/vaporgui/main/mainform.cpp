@@ -165,7 +165,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
     myMDIArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     setCentralWidget(myMDIArea);
 
-    
+    banner = NULL;
 	
    
    
