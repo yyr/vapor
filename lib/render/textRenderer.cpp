@@ -32,18 +32,19 @@ TextWriter::TextWriter( string fontFile,
                         float bgColor[4],
                         int type,
                         QGLWidget *myGivenWindow) {
-    _font = fontFile;
-    _size = fontSize;
-    _type = type;
+
+    _font 		 = fontFile;
+    _size 		 = fontSize;
+    _type 		 = type;
     _txtColor[0] = txtColor[0];
     _txtColor[1] = txtColor[1];
     _txtColor[2] = txtColor[2];
     _txtColor[3] = txtColor[3];
-    _bgColor[0] = bgColor[0];
-    _bgColor[1] = bgColor[1];
-    _bgColor[2] = bgColor[2];
-    _bgColor[3] = bgColor[3];
-    _myWindow = myGivenWindow;
+    _bgColor[0]  = bgColor[0];
+    _bgColor[1]  = bgColor[1];
+    _bgColor[2]  = bgColor[2];
+    _bgColor[3]  = bgColor[3];
+    _myWindow    = myGivenWindow;
 }
 
 int TextWriter::addText(string text, float coords[3]) {
@@ -59,9 +60,6 @@ void TextWriter::drawText() {
 }
 
 TextWriter::~TextWriter() {
-    //for (size_t i=0; i<TextObjects->size(); i++){
-    //  delete TextObjects->at(i);
-    //}
     for (size_t i=0; i<TextObjects.size(); i++){
         delete TextObjects[i];
     }
@@ -76,33 +74,52 @@ TextObject::TextObject( string inFont,
                         float txtColor[4],
                         QGLWidget *myGivenWindow) {
 
-    _pixmap = new FTPixmapFont(inFont.c_str());
-    _text = inText;
-    _size = inSize;
-    _type = inType;
-    _font = inFont;
-    _coords[0] = inCoords[0];
-    _coords[1] = inCoords[1];
-    _coords[2] = inCoords[2];
-    _bgColor[0] = bgColor[0];
-    _bgColor[1] = bgColor[1];
-    _bgColor[2] = bgColor[2];
-    _bgColor[3] = bgColor[3];
-    _txtColor[0] = txtColor[0];
-    _txtColor[1] = txtColor[1];
-    _txtColor[2] = txtColor[2];
-    _txtColor[3] = txtColor[3];
-    _myWindow = myGivenWindow;
+    _pixmap 	  = new FTPixmapFont(inFont.c_str());
+    _text 		  = inText;
+    _size 		  = inSize;
+	_type 		  = inType;
+    _font 		  = inFont;
+    _coords[0] 	  = inCoords[0];
+    _coords[1]    = inCoords[1];
+    _coords[2]    = inCoords[2];
+    _bgColor[0]   = bgColor[0];
+    _bgColor[1]   = bgColor[1];
+    _bgColor[2]   = bgColor[2];
+    _bgColor[3]   = bgColor[3];
+    _txtColor[0]  = txtColor[0];
+    _txtColor[1]  = txtColor[1];
+    _txtColor[2]  = txtColor[2];
+    _txtColor[3]  = txtColor[3];
+    _myWindow     = myGivenWindow;
+    _fbo          = 0;
+    _fboTexture   = 0;
+
+	if (inType == 1){
+		_3Dcoords[0] = _coords[0];
+		_3Dcoords[1] = _coords[1];
+		_3Dcoords[2] = _coords[2];
+	}
+
+	cout << "creating text object" << endl;
+
+	_pixmap->FaceSize(_size);
+	_myWindow->makeCurrent();
+    findBBoxSize();
+    initFrameBufferTexture();
+    initFrameBuffer();
 }
 
 TextObject::~TextObject() {
 	delete _pixmap;
-	//glDeleteTextures(1,&_fboTexture);
-	//glDeleteBuffers(1,&_fbo);
+//	glDisable(GL_TEXTURE_2D);
+	glDeleteTextures(1,&_fboTexture);
+	glDeleteBuffers(1,&_fbo);
+	cout << "deleting text object" << endl;
 }
 
 void TextObject::initFrameBufferTexture(void) {
-    glGenTextures(1, &_fboTexture);
+    //glEnable(GL_TEXTURE_2D);
+	glGenTextures(1, &_fboTexture);
     glBindTexture(GL_TEXTURE_2D, _fboTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
@@ -118,9 +135,10 @@ void TextObject::initFrameBufferTexture(void) {
 
 
 void TextObject::initFrameBuffer(void) {
-    glEnable(GL_TEXTURE_2D);
+    //glEnable(GL_TEXTURE_2D);
+    //initFrameBufferTexture();
 
-    initFrameBufferTexture();
+	//glDisable(GL_LIGHTING);
 
     glGenFramebuffersEXT(1, &_fbo);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _fbo);
@@ -158,6 +176,8 @@ void TextObject::initFrameBuffer(void) {
 
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
+	//glEnable(GL_LIGHTING);
+
     printOpenGLError();
 }
 
@@ -175,6 +195,7 @@ void TextObject::findBBoxSize() {
 }
 
 void TextObject::applyViewerMatrix() {
+	cout << "applying viewer matrixi " << _type << endl;
     if ((_type == 0) || (_type == 1)){ 
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
@@ -182,35 +203,44 @@ void TextObject::applyViewerMatrix() {
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
         glLoadIdentity();
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
+		glDisable(GL_LIGHTING);
+		glEnable(GL_TEXTURE_2D);
     }    
     if (_type == 1) { 
         float newCoords[2];
         GLWindow *castWin;
         castWin = dynamic_cast <GLWindow*> (_myWindow);
      
-        castWin->projectPointToWin(_coords, newCoords);
+        castWin->projectPointToWin(_3Dcoords, newCoords);
         _coords[0] = newCoords[0];
         _coords[1] = newCoords[1];
-    }    
+    	cout << _coords[0] << " " << _coords[1] << endl;
+	}   
 }
 
 void TextObject::removeViewerMatrix() {
     if ((_type == 0) || (_type == 1)){ 
+		glPopAttrib();
         glMatrixMode(GL_PROJECTION);
         glPopMatrix();
         glMatrixMode(GL_MODELVIEW);
         glPopMatrix();
-    }    
+    }
 }
 
 int TextObject::drawMe() {
 
-    _pixmap->FaceSize(_size);
-   
-    applyViewerMatrix();
+	//_myWindow->makeCurrent();
+	//_myWindow = window;
+    //_pixmap->FaceSize(_size);
+	//glDisable(GL_LIGHTING);   
 
-    findBBoxSize();
-    initFrameBuffer();
+	applyViewerMatrix();
+
+    //findBBoxSize();
+	//initFrameBufferTexture();
+    //initFrameBuffer();
 
     glBindTexture(GL_TEXTURE_2D, _fboTexture);  
 
@@ -232,8 +262,15 @@ int TextObject::drawMe() {
 
     glBindTexture(GL_TEXTURE_2D, 0);
 
+    //glDisable(GL_TEXTURE_2D);
+//    glDeleteTextures(1,&_fboTexture);
+//    glDeleteBuffers(1,&_fbo);
+
     removeViewerMatrix();
 
+
+
     printOpenGLError();
-    return 0;
+	//glEnable(GL_LIGHTING);
+	return 0;
 }

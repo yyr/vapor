@@ -23,8 +23,6 @@
 #endif
 #include <vapor/GetAppPath.h>
 
-#include "textRenderer.h"
-
 #include "glwindow.h"
 #include "trackball.h"
 #include "renderer.h"
@@ -58,6 +56,8 @@
 #include "VolumeRenderer.h"
 #include "spintimer.h"
 
+#include "textRenderer.h"
+
 using namespace VAPoR;
 int GLWindow::activeWindowNum = 0;
 bool GLWindow::regionShareFlag = true;
@@ -82,6 +82,16 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 : QGLWidget(fmt, parent)
 
 {
+/*    float bgc[4] = {0,0,0,255};
+    float fgc[4] = {0,255,0,255};
+    float coords[3] = {0,0,0};
+    float coords2[3] = {1,1,1};
+
+    TextWriter *writer = new TextWriter("/glade/p/DASG/pearse/Vera.ttf", 24, bgc, fgc, 1, this);
+    writer->addText("This is ggg a test",coords);
+
+    TextObject *obj = new TextObject("/glade/p/DASG/pearse/Vera.ttf","Another ggg Test",12,coords2,1,bgc,fgc,this);
+*/
 	_readyToDraw = false;
 
 	currentParams.clear();
@@ -257,7 +267,9 @@ GLWindow::~GLWindow()
 	
 	delete manager;
 	nowPainting = false;
-	
+
+	//delete writer;
+	//delete obj;	
 }
 
 void GLWindow::setDefaultPrefs(){
@@ -1283,6 +1295,29 @@ void GLWindow::regPaintEvent()
 		glPopMatrix();
 	}
 
+	// A "TextWriter" may contain many TextObjects.  This initializes a TextWriter
+    // and adds one TextObject.  All contained TextObjects share fonts, font sizes,
+    // colors, and text types (text within the scene, text outside of the scene)
+
+/*
+    float bgc[4] = {0,0,0,255};
+    float fgc[4] = {0,255,0,255};
+    float coords[3] = {0,0,0};
+    float coords2[3] = {1,1,1};
+
+    TextWriter *writer = new TextWriter("/glade/p/DASG/pearse/Vera.ttf", 24, bgc, fgc, 1, this);
+    writer->addText("This is ggg a test",coords);
+    writer->drawText(this);
+
+    TextObject *obj = new TextObject("/glade/p/DASG/pearse/Vera.ttf","Another ggg Test",12,coords2,1,bgc,fgc,this);
+    obj->drawMe(this);
+
+    delete writer;
+    delete obj;*/
+
+	myWriters[0]->drawText(); 
+	myWriters[1]->drawText();
+
 	//One colorbar may be drawn.  It is drawn at a fixed position on the final image.
 	//See if there is a renderer that has an enabled colorbar and a valid transfer function
 	RenderParams* p = dynamic_cast<RenderParams*>(getActiveParams(Params::GetTagFromType(colorbarParamsTypeId)));
@@ -1382,7 +1417,6 @@ void GLWindow::draw3DCursor(const float position[3]){
 
 void GLWindow::initializeGL()
 {
-	
 	GLenum glErr;
 	glErr = glGetError();
 	if (glErr != GL_NO_ERROR){
@@ -1439,7 +1473,8 @@ void GLWindow::initializeGL()
 #ifdef	Darwin
 	_readyToDraw = false;
 #endif
-    
+
+	makeWriter();    
 }
 
 //projectPoint returns true if point is in front of camera
@@ -2815,6 +2850,19 @@ void GLWindow::ConvertAxes(bool toLatLon, const int ticDirs[3], const double fro
 		toTicLength[j] = dst*ticLengthFactor[j];
 	}
 	
+}
+
+void GLWindow::makeWriter(){
+	float bgc[4] = {0,0,0,255};
+    float fgc[4] = {0,255,0,255};
+    float coords[3] = {100,100,100};
+    float coords2[3] = {0,0,0};
+	TextWriter *x = new TextWriter("/glade/p/DASG/pearse/Vera.ttf", 36, bgc, fgc, 0, this);
+    myWriters.push_back(x);
+	TextWriter *y = new TextWriter("/glade/p/DASG/pearse/Vera.ttf", 36, bgc, fgc, 1, this);
+	myWriters.push_back(y);
+	myWriters[0]->addText("This is our vector test",coords);
+	myWriters[1]->addText("Another text",coords2);
 }
 
 #ifdef	Darwin
