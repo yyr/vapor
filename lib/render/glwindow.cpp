@@ -86,11 +86,13 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
     float fgc[4] = {0,255,0,255};
     float coords[3] = {0,0,0};
     float coords2[3] = {1,1,1};
-
-    TextWriter *writer = new TextWriter("/glade/p/DASG/pearse/Vera.ttf", 24, bgc, fgc, 1, this);
+	vector<string> vec;
+	vec.push_back("fonts");
+	vec.push_back("Vera.ttf");
+    TextWriter *writer = new TextWriter(GetAppPath("VAPOR","share",vec).c_str(), 24, bgc, fgc, 1, this);
     writer->addText("This is ggg a test",coords);
 
-    TextObject *obj = new TextObject("/glade/p/DASG/pearse/Vera.ttf","Another ggg Test",12,coords2,1,bgc,fgc,this);
+    TextObject *obj = new TextObject(GetAppPath("VAPOR","share",vec).c_str(),"Another ggg Test",12,coords2,1,bgc,fgc,this);
 */
 	_readyToDraw = false;
 
@@ -1299,24 +1301,31 @@ void GLWindow::regPaintEvent()
     // and adds one TextObject.  All contained TextObjects share fonts, font sizes,
     // colors, and text types (text within the scene, text outside of the scene)
 
-/*
+	/*
     float bgc[4] = {0,0,0,255};
     float fgc[4] = {0,255,0,255};
-    float coords[3] = {0,0,0};
-    float coords2[3] = {1,1,1};
-
-    TextWriter *writer = new TextWriter("/glade/p/DASG/pearse/Vera.ttf", 24, bgc, fgc, 1, this);
+    float coords[3];
+	vector<double>exts = DataStatus::getInstance()->getDataMgr()->GetExtents();
+    float coords2[3]; 
+	for (int i = 0; i<3; i++){
+		coords2[i] = (exts[i]+exts[i+3])*0.5;
+		coords[i] = exts[i];
+	}
+	vector<string> vec;
+	vec.push_back("fonts");
+	vec.push_back("Vera.ttf");
+    TextWriter *writer = new TextWriter(GetAppPath("VAPOR","share",vec).c_str(), 24, bgc, fgc, 1, this);
     writer->addText("This is ggg a test",coords);
-    writer->drawText(this);
+    writer->drawText();
 
-    TextObject *obj = new TextObject("/glade/p/DASG/pearse/Vera.ttf","Another ggg Test",12,coords2,1,bgc,fgc,this);
-    obj->drawMe(this);
+    TextObject *obj = new TextObject(GetAppPath("VAPOR","share",vec).c_str(),"Another ggg Test",36,coords2,1,bgc,fgc,this);
+    obj->drawMe();
 
     delete writer;
-    delete obj;*/
-
-	myWriters[0]->drawText(); 
-	myWriters[1]->drawText();
+    delete obj;
+	*/
+	//myWriters[0]->drawText(); 
+	//myWriters[1]->drawText();
 
 	//One colorbar may be drawn.  It is drawn at a fixed position on the final image.
 	//See if there is a renderer that has an enabled colorbar and a valid transfer function
@@ -1474,7 +1483,7 @@ void GLWindow::initializeGL()
 	_readyToDraw = false;
 #endif
 
-	makeWriter();    
+	//makeWriter();    
 }
 
 //projectPoint returns true if point is in front of camera
@@ -2857,9 +2866,12 @@ void GLWindow::makeWriter(){
     float fgc[4] = {0,255,0,255};
     float coords[3] = {100,100,100};
     float coords2[3] = {0,0,0};
-	TextWriter *x = new TextWriter("/glade/p/DASG/pearse/Vera.ttf", 36, bgc, fgc, 0, this);
+	vector<string> vec;
+	vec.push_back("fonts");
+	vec.push_back("Vera.ttf");
+	TextWriter *x = new TextWriter(GetAppPath("VAPOR","share",vec).c_str(), 36, bgc, fgc, 0, this);
     myWriters.push_back(x);
-	TextWriter *y = new TextWriter("/glade/p/DASG/pearse/Vera.ttf", 36, bgc, fgc, 1, this);
+	TextWriter *y = new TextWriter(GetAppPath("VAPOR","share",vec).c_str(), 36, bgc, fgc, 1, this);
 	myWriters.push_back(y);
 	myWriters[0]->addText("This is our vector test",coords);
 	myWriters[1]->addText("Another text",coords2);
