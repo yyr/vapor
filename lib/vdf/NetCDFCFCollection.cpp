@@ -1259,7 +1259,7 @@ NetCDFCFCollection::DerivedVar_AHSPC::DerivedVar_AHSPC(
     PS = NULL;             //Current surface pressure
     PHIS = NULL;           //Surface Geopotential Height
     TV = NULL;             //Virtual Temperature
-    P0 = NULL;             //Pressure constant set by model code
+    P0 = 0;             //Pressure constant set by model code
     HYAM = NULL;           //HYAM
     HYBM = NULL;           //HYBM
     HYAI = NULL;           //HYAI
@@ -1442,7 +1442,7 @@ int NetCDFCFCollection::DerivedVar_AHSPC::Open(size_t ts) {
             }
         }
 
-        int rc = NetCDFCFCollection::DerivedVar_AHSPC::CalculateElevation(new float, 0);
+        int rc = NetCDFCFCollection::DerivedVar_AHSPC::CalculateElevation();
 
 		if (rc>0) {
             SetErrMsg("Unable to calculate vertical elevation slice");
@@ -1458,9 +1458,7 @@ int NetCDFCFCollection::DerivedVar_AHSPC::Read(float *buf, int){
 	return(0);
 }
 
-int NetCDFCFCollection::DerivedVar_AHSPC::CalculateElevation(
-    float *buf, int
-) {
+int NetCDFCFCollection::DerivedVar_AHSPC::CalculateElevation() {
     // The NCL program cz2ccm_dp.f processes vertical
     // slices of latitude when calculating geopotential
     // height.  This reimplementation does the same.
@@ -1502,18 +1500,15 @@ int NetCDFCFCollection::DerivedVar_AHSPC::CalculateElevation(
 		HYBB[0][KL] = HYBI[KLEV-KL];
 	}
 	// (cz2ccm_dp.f:71)
-	for (size_t KL=0; KL<KLEV; KL++) {
-        HYBA[1][KL+1] = HYAM[KLEV-KL];
-        HYBB[1][KL+1] = HYBM[KLEV-KL];
+    for (size_t KL=0; KL<KLEV; KL++) {
+        HYBA[1][KL+1] = HYAM[KLEV-KL-1];
+        HYBB[1][KL+1] = HYBM[KLEV-KL-1];
     }
     HYBA[1][0] = 0;
     HYBB[1][0] = 0;
 
     // Calculate elevation, one vertical slice at a time
     // (cz2ccm_dp.f:78)
-
-	float min = 999999;
-	float max = -999999;
     for (size_t NL=0; NL<NLAT; NL++) {
         for (size_t J=0; J<KLEV; J++) {
             for (size_t I=0; I<MLON; I++) {
@@ -1551,49 +1546,64 @@ int NetCDFCFCollection::DerivedVar_AHSPC::CalculateElevation(
 			return(-1);
 		}
 
+		//float min;// = _Z3[0];
+		//float max;// = _Z3[0];
         for (int J=0; J<KLEV; J++) {
 			for (int I=0; I<MLON; I++) {
                 int zIndex = (NLAT * MLON * J) + (MLON * NL) + (I);
-				 _Z3[zIndex] = ZSLICE[I][J];
-				if (_Z3[zIndex] > max) max = _Z3[zIndex];
-				if (_Z3[zIndex] < min) min = _Z3[zIndex];
+				//if (zIndex == 0){
+				//	min = ZSLICE[I][J];
+				//	max = ZSLICE[I][J];
+				//} 
+				_Z3[zIndex] = ZSLICE[I][J];
+				//if (_Z3[zIndex] > max) max = _Z3[zIndex];
+				//if (_Z3[zIndex] < min) min = _Z3[zIndex];
             }
         }
     }
 
+	if (HYPDLN) delete [] HYPDLN;
+	if (HYALPH) delete [] HYALPH;
+	if (PTERM)  delete [] PTERM;
+	if (TV2)	delete [] TV2;
+	if (ZSLICE) delete [] ZSLICE;
+	if (PS1)	delete [] PS1;
+	if (PHIS1)	delete [] PHIS1;
+	if (HYBA)	delete [] HYBA;
+	if (HYBB)	delete [] HYBB;
     return(0);
 }
 
-int NetCDFCFCollection::DerivedVar_AHSPC::DCZ2(float*  PS1,
-                                               float*  PHIS1,
-                                               float** TV2,
-                                               int      NL,
-                                               float   P0,
-                                               float** HYBA,
-                                               float** HYBB,
-                                               int     KMAX,    // same as KLEV 
-                                               int     IDIM,    // same as MLON
-                                               int     IMAX,    // same as MLON
-                                               float** HYPDLN,
-                                               float** HYALPH,
-                                               float** PTERM,
-                                               float** ZSLICE){
+int NetCDFCFCollection::DerivedVar_AHSPC::DCZ2(const float*  PS1,
+                                               const float*  PHIS1,
+                                                     float** TV2,     // cannot make const...
+                                               const int      NL,
+                                               const float   P0,
+                                                     float** HYBA,    // cannot make const...
+                                                     float** HYBB,    // cannot make const...
+                                               const int     KMAX,    // same as KLEV 
+                                               const int     IDIM,    // same as MLON
+                                               const int     IMAX,    // same as MLON
+                                                     float** HYPDLN,  // cannot make const...
+                                                     float** HYALPH,  // cannot make const...
+                                                     float** PTERM,
+                                                     float** ZSLICE){
     // compute midpoint pressure levels (pmln)
     // cz2ccm_dp.f::222
-    float** PMLN = new float*[IDIM];
-	for (size_t i=0; i<KMAX+1; i++){
+    //float PMLN[IDIM][KMAX+1];
+	float** PMLN = new float*[IDIM];
+	for(size_t i=0; i<IDIM; i++){
 		PMLN[i] = new float[KMAX+1];
 	}
-    
 	for (size_t I=0; I<IMAX; I++) {
         PMLN[I][0] = log( P0*HYBA[1][KMAX-1] + PS1[I]*HYBB[0][KMAX-1]);
         PMLN[I][KMAX]    = log( P0*HYBA[1][0]    + PS1[I]*HYBB[0][0]);
     }
 
-    //for (size_t K=209; K>-1; K--){
-	for (size_t K=1; K<KMAX+1; K++){	
-    	for (size_t I=0; I<IMAX; I++){
-            float arg = P0*HYBA[1][K] + PS1[I]*HYBB[0][K];//?
+    for (size_t I=0; I<IMAX; I++){
+	for (size_t K=1; K<KMAX+1; K++){
+	//for (size_t I=0; I<IMAX; I++){    
+		    float arg = P0*HYBA[1][K] + PS1[I]*HYBB[0][K];//?
 			if (arg > 0) PMLN[I][KMAX-K] = log(arg);
             else PMLN[I][KMAX-K] = 0;
         }
@@ -1647,7 +1657,13 @@ int NetCDFCFCollection::DerivedVar_AHSPC::DCZ2(float*  PS1,
         }    
     }    
     
-    return(0);
+    if (PMLN) {
+		for (size_t i=0; i<IDIM; i++){
+			delete [] PMLN[i];
+		}
+		delete [] PMLN;
+	}
+	return(0);
 }
 
 int NetCDFCFCollection::DerivedVar_AHSPC::ReadSlice(

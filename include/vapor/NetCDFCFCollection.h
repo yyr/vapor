@@ -453,7 +453,7 @@ public:
   virtual int Open(size_t ts);
   virtual int ReadSlice(float *slice, int);
   virtual int Read(float *buf, int);
-  virtual int CalculateElevation(float *buf, int);
+  virtual int CalculateElevation();
   virtual int SeekSlice(int offset, int whence, int fd);
   virtual int Close(int) {_is_open = false; return(0); };
   virtual bool TimeVarying() const {return(false); };
@@ -462,11 +462,11 @@ public:
   virtual size_t  GetTimeDim() const { return(0); }
   virtual string  GetTimeDimName() const { return(""); };
   virtual bool GetMissingValue(double &mv) const {mv=0.0; return(false); }
-  virtual int DCZ2(float*  PS1,    float*  PHIS1, 
-                   float** TV2,    int     NL, 
-                   float   P0,     float** HYBA,   float** HYBB,
-                   int     KLEV,   int     MLON,   int     MLON2,
-                   float** HYPDLN, float** HYALPH, float** PTERM,
+  virtual int DCZ2(const float*  PS1,    const float*  PHIS1, 
+                         float** TV2,    const int     NL, 
+                   const float   P0,           float** HYBA,         float** HYBB,
+                   const int     KLEV,   const int     MLON,   const int     MLON2,
+                         float** HYPDLN,       float** HYALPH, float** PTERM,
                    float** ZSLICE);
 
  private:
