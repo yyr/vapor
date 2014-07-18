@@ -5,7 +5,7 @@
 
 To use a FlowRenderer...\n
 1) Construct it\n
-2) Provide it with appropriate Params (some subclasses have their own Params)\n
+2) Provide it with appropriate Params (some subclasses have their own Params classes)\n
 3) Call "Draw" from a valid OpenGL context\n
 */
 class GLFlowRenderer {
@@ -22,6 +22,7 @@ public:
         Params();
         
         virtual void operator=(Params params);
+        virtual float GetDefaultRadius();
         ///general appearance options
         ///the type of shape to draw
         Style _style;
@@ -51,20 +52,25 @@ public:
     ///Does some sanity checks on the incoming params, nothing more
     virtual bool SetParams(const Params *params);
     virtual const Params *GetParams() const;
+    virtual bool SetData(const float **X, const int *sizes, int count) = 0;
+    virtual bool SetData(const float **X, const float **rgba, const int *sizes, int count) = 0;
     
     ///The meaning of X depends on the FlowRenderer subclass
-    virtual void Draw(const float **X, const int* sizes, int count) = 0;
-    //virtual void Draw(const float *X, int n) = 0;
+    //virtual void Draw(const float **X, const int* sizes, int count) = 0;
     ///rgba is coloring options, but can also have different
     ///structure depending on FlowRenderer subclass
     ///rgba format: repeated (r, g, b, a) where each is between 0 and 1
-    virtual void Draw(const float **X, const float **rgba, const int* sizes, int count) = 0;
-    //virtual void Draw(const float *X, const float *rgba, int n) = 0;
+    //virtual void Draw(const float **X, const float **rgba, const int* sizes, int count) = 0;
+    virtual void Draw() = 0;
     
 protected:
     Params _p;
     bool _changed;
-    const float** _prevdata;
+    
+    float** _copydata;
+    float** _copycolor;
+    int* _copysizes;
+    int _copycount;
     
     float** _output;
     float** _colors;
@@ -82,6 +88,7 @@ public:
         Params();
         
         void operator=(Params params);
+        float GetDefaultLength();
         ///A multiplier for vector lengths
         ///larger values result in longer vectors
         float _length;
@@ -92,16 +99,17 @@ public:
 
     bool SetParams(const Params *params);
     const GLHedgeHogger::Params *GetParams() const;
+    bool SetData(const float **vecs, const int *sizes, int count);
+    bool SetData(const float **vecs, const float **rgba, const int *sizes, int count);
     
     ///vectors: repeated (x, y, z, dx, dy, dz),
     ///    where (x, y, z) is the position of the vector,
     ///    and (dx, dy, dz) is the un-normalized direction
     ///n: the number of vectors in 'vectors'
-    void Draw(const float **vecs, const int *sizes, int count);
-    //void Draw(const float *vectors, int n);
+    //void Draw(const float **vecs, const int *sizes, int count);
     ///rgba: one (r, g, b, a) for each vector in 'vectors'
-    void Draw(const float **vecs, const float **rgba, const int *sizes, int count);
-    //void Draw(const float *vectors, const float *rgba, int n);
+    //void Draw(const float **vecs, const float **rgba, const int *sizes, int count);
+    void Draw();
     
 protected:
     Params _hhp;
@@ -127,13 +135,14 @@ public:
     
     bool SetParams(const Params *params);
     const GLPathRenderer::Params *GetParams() const;
+    bool SetData(const float **pts, const int *sizes, int count);
+    bool SetData(const float **pts, const float **rgba, const int *sizes, int count);
     
     ///points: repeated (x, y, z) where each is a point in the path
     ///rgba: repeated (r, g, b, a), with one color for each point
-    void Draw(const float **pts, const int *sizes, int count);
-    //void Draw(const float *points, int n);
-    void Draw(const float **pts, const float **rgba, const int *sizes, int count);
-    //void Draw(const float *points, const float *rgba, int n);
+    //void Draw(const float **pts, const int *sizes, int count);
+    //void Draw(const float **pts, const float **rgba, const int *sizes, int count);
+    void Draw();
     
 protected:
     Params _prp;

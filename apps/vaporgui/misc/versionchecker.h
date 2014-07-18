@@ -35,7 +35,7 @@ class VersionChecker : QObject
 public:
 	VersionChecker();
 	//letting C++ generate automatic destructor
-	//since this class has no special members
+	//since this class has no specially-allocated members
 
 	//sends a network request for the given url. the target file should have a version number "x.y.z"
 	//the reply is handled by on_version_reply. if appropriate, on_version_reply will notify the user.

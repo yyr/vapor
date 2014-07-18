@@ -484,6 +484,15 @@ inline void mkring(const float* d, int n, float r, float* o, float* on = NULL, f
     }
 }
 
+const int s = 9;
+const int s2 = SPIRAL_SZ;
+const float* thedata;
+const float* thecolors;
+const float* themoar;
+const float** evenmoar;
+const float** moarcolors;
+const float* themcolors;
+
 void init(void)
 {
     glClearColor(0.1f, 0.1f, 0.1f, 1.f);
@@ -522,13 +531,14 @@ void init(void)
     GLHedgeHogger::Params hcopy = *hparams;
     hcopy._radius = opt.radius;
     hcopy._quality = opt.quality;
-    hcopy._baseColor[0] = 0.5f;
-    hcopy._baseColor[1] = 0.5f;
-    hcopy._baseColor[2] = 0.5f;
+    hcopy._baseColor[0] = 0.9f;
+    hcopy._baseColor[1] = 0.9f;
+    hcopy._baseColor[2] = 0.0f;
     hcopy._baseColor[3] = 1.f;
     hcopy._stride = opt.stride;
     hcopy._style = style;
     hcopy._arrowRatio = opt.ratio;
+    hcopy._length = opt.length;
 
     hog.SetParams(&hcopy);
     
@@ -559,8 +569,18 @@ void init(void)
     srand(time(NULL));
     for(int i = 0; i < SPIRAL_CSZ; i++)
     {
+        if(!(i % 400)) srand(rand());
         pathcolor6[i] = (float)(rand() % 1000000) / 1000000.f;
     }
+    
+    //hog.SetData(hogdata2, 1); //single tube
+    hog.SetData(&thedata, &thecolors, &s, 1); //regular array
+    //path.SetData(pathdata2, 3); //90 degree, dual-segment
+    //path.SetData(pathdata3, 3); //straight, dual-segment
+    //path.SetData(pathdata4, 2); //single-segment
+    //path.SetData(pathdata5, 6); //kink testing
+    if(pathdata7) path.SetData(evenmoar, moarcolors, pd7szs, pd7sz);
+    else path.SetData(&themoar, &themcolors, &s2, 1); //autospiral
 }
 
 static inline int ringSize(int q){return 3 << (2 + q);}
@@ -576,15 +596,6 @@ float testcolors[24] =
     0.f, 1.f, 1.f, 1.f,
     1.f, 0.f, 1.f, 1.f
 };
-
-const int s = 9;
-const int s2 = SPIRAL_SZ;
-const float* thedata;
-const float* thecolors;
-const float* themoar;
-const float** evenmoar;
-const float** moarcolors;
-const float* themcolors;
 
 void display(double* profout)
 {
@@ -603,16 +614,8 @@ void display(double* profout)
 
     double t1;
     t1 = GetTime();
-    //const int s = 9;
-    const int s2 = SPIRAL_SZ;
-    //hog.Draw(hogdata2, 1); //single tube
-    //hog.Draw(&thedata, &thecolors, &s, 1); //regular array
-    //path.Draw(pathdata2, 3); //90 degree, dual-segment
-    //path.Draw(pathdata3, 3); //straight, dual-segment
-    //path.Draw(pathdata4, 2); //single-segment
-    //path.Draw(pathdata5, 6); //kink testing
-    if(pathdata7) path.Draw(evenmoar, moarcolors, pd7szs, pd7sz);
-    else path.Draw(&themoar, &themcolors, &s2, 1); //autospiral
+    //hog.Draw();
+    path.Draw();
     //use -radius 3.1355 at high quality for awesome autospiralness
     //glTranslatef(0.f, 0.f, -3.f);
     //coneTest(conedir, opt.quality, opt.radius);
@@ -712,7 +715,7 @@ int main(int argc, char** argv)
     
     glfwDestroyWindow(window);
     glfwTerminate();
-    exit(EXIT_SUCCESS);
+    return 0;
 }
 
 static void drawBox(GLfloat size, GLenum type)
@@ -764,25 +767,25 @@ static void drawBox(GLfloat size, GLenum type)
 
 void my_glutSolidCube(GLdouble size)
 {
-  drawBox(size, GL_QUADS);
+    drawBox(size, GL_QUADS);
 }
 
-// "I've half a mind to join a club and beat you over the head with it"
+//  "I've half a mind to join a club and beat you over the head with it"
 //
-// silly, geeky names for characters
-//   Tars Cuffs
-//   Tars Xeffs
-//   Remmie Slastar
-//   Apta Geita
-//   Resynic Rivap
-//   Sesh Usaathost
-//   Hashdt Binush
-//   Listilde Edstop
-//   Borj Dumpen
-//   Lis Blokkus
-//   Lis Pcidi
-//   G'Debus
-//   Sudot
-//   Gecci
-//   
+//  silly, geeky names for characters
+//    Tars Cuffs
+//    Tars Xeffs
+//    Remmie Slastar
+//    Apta Geita
+//    Resynic Rivap
+//    Sesh Usaathost
+//    Hashdt Binush
+//    Listilde Edstop
+//    Borj Dumpen
+//    Lis Blokkus
+//    Lis Pcidi
+//    G'Debus
+//    Sudot
+//    Gecci
+
 
