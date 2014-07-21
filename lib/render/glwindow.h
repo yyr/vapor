@@ -35,6 +35,7 @@
 #include <vapor/common.h>
 #include "datastatus.h"
 #include "ShaderMgr.h"
+
 //No more than 20 renderers in a window:
 //Eventually this may be dynamic.
 #define MAXNUMRENDERERS 20
@@ -59,6 +60,7 @@ class TranslateStretchManip;
 class TranslateRotateManip;
 class FlowRenderer;
 class VolumeRenderer;
+class TextWriter;
 
 //! \class GLWindow
 //! \brief A class for performing OpenGL rendering in a VAPOR Visualizer
@@ -76,7 +78,7 @@ class VolumeRenderer;
 class RENDER_API GLWindow : public MyBase, public QGLWidget
 {
 public:
-   
+
 	//! Method for setting window-specific dirty bits.
 	//! All the bits are defined in the params.h file, in the VAPoR namespace.
 	//! \param[in] DirtyBitType t identifies the property being set
@@ -499,6 +501,7 @@ public:
 	bool isDepthPeeling(){return depthPeeling;}
 	
 protected:
+	vector<TextWriter*> myWriters;
 	QImage glTimeStampImage;
 	SpinTimer *mySpinTimer;
 	ShaderMgr *manager;
@@ -696,7 +699,8 @@ protected:
 
 private:
 	bool _readyToDraw;
-	
+	void makeWriter();
+
 #endif //DOXYGEN_SKIP_THIS
 	
 };

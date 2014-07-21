@@ -18,15 +18,18 @@
 //               QGLWidgets
 //
 
+#ifndef TEXTRENDERER_H
+#define TEXTRENDERER_H
 #include <FTGL/ftgl.h>
 #include <vapor/MyBase.h>
 #include <vapor/common.h>
 #include <QGLWidget>
 
-class RENDER_API FTPixmapFont;
+class FTPixmapFont;
 //class GLWindow;
 
-class RENDER_API TextObject {
+namespace VAPoR {
+ class RENDER_API TextObject {
 public:
     TextObject( string inFont,
                 string inText,
@@ -54,7 +57,7 @@ public:
     float*  getBGColor() { return _bgColor; }
     float*  getCoords() { return _coords; }
 
-    int drawMe(void);
+    int drawMe();
     void findBBoxSize(void);
     void initFrameBuffer(void);
     void applyViewerMatrix(void);
@@ -77,7 +80,8 @@ private:
     float         _txtColor[4];      // text color
     float         _bgColor[4];       // background color
     float         _coords[3];        // text coordates
-    int           _type;             // in front of scene, following a point in domain, or within
+    float		  _3Dcoords[3];		 // 3D coordinates used if we draw text within the scene
+	int           _type;             // in front of scene, following a point in domain, or within
                                      // type 0 - text drawn in 2d on top of the scene
                                      // type 1 - text drawn in 2d, following a point in the scene
                                      // type 2 - text drawn within the scene, bumped up towards the 
@@ -108,3 +112,7 @@ private:
     float _txtColor[4];
     float _bgColor[4];
 };
+
+}; 		// end namespace vapor
+
+#endif  // textrenderer_h
