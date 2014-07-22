@@ -172,6 +172,7 @@ IsolineEventRouter::hookUpTab()
 	connect (histoScaleEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (leftHistoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (rightHistoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (numDigitsEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (fidelityDefaultButton, SIGNAL(clicked()), this, SLOT(guiSetFidelityDefault()));
 	connect (fitDataButton, SIGNAL(clicked()), this, SLOT(guiFitToData()));
 	connect (fitIsovalsButton, SIGNAL(clicked()), this, SLOT(guiFitIsovalsToHisto()));
@@ -194,6 +195,7 @@ IsolineEventRouter::hookUpTab()
 	connect (leftHistoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (rightHistoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (histoScaleEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (numDigitsEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 
 	connect (loadButton, SIGNAL(clicked()), this, SLOT(isolineLoadTF()));
 	connect (loadInstalledButton, SIGNAL(clicked()), this, SLOT(isolineLoadInstalledTF()));
@@ -382,6 +384,7 @@ void IsolineEventRouter::updateTab(){
 		if (isoMax<ivalues[i]) isoMax = ivalues[i];
 		if (isoMin>ivalues[i]) isoMin = ivalues[i];
 	}
+	numDigitsEdit->setText(QString::number(isolineParams->GetNumDigits()));
 	minIsoEdit->setText(QString::number(isoMin));
 	maxIsoEdit->setText(QString::number(isoMax));
 	countIsoEdit->setText(QString::number(ivalues.size()));
@@ -556,7 +559,10 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	}
 
 	vector<double>ivalues;
-	
+	int numDigits = numDigitsEdit->text().toInt();
+	if (numDigits < 2) numDigits = 2;
+	if (numDigits > 12) numDigits = 12;
+	if (numDigits != isolineParams->GetNumDigits()) isolineParams->SetNumDigits(numDigits);
 	double maxIso = (double)maxIsoEdit->text().toDouble();
 	double minIso = (double)minIsoEdit->text().toDouble();
 	double prevMinIso = 1.e30, prevMaxIso = -1.e30;

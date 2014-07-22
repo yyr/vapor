@@ -49,7 +49,7 @@
 //#include <QGLWidget>
 #include <math.h>
 #include <vapor/common.h>
-
+#include <string>
 /* These vector and quaternion macros complement similar
  * routines.
  */
@@ -229,6 +229,7 @@ int	ViewAxis (int *direction);
 void	StereoPerspective (int fovy, float aspect, float nearDist, float farDist, float converge, float eye);
 
 PARAMS_API int printOglError(const char *file, int line, const char *msg = 0);
+PARAMS_API void doubleToString(const double val, std::string& result, int digits);
 
 #define printOpenGLError() printOglError(__FILE__, __LINE__)
 #define printOpenGLErrorMsg(msg) printOglError(__FILE__, __LINE__, msg)

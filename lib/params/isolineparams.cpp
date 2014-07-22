@@ -24,6 +24,7 @@ const string IsolineParams::_3DBoxTag = "Box3D";
 const string IsolineParams::_editBoundsTag = "EditBounds";
 const string IsolineParams::_histoScaleTag = "HistoScale";
 const string IsolineParams::_histoBoundsTag = "HistoBounds";
+const string IsolineParams::_numDigitsTag = "NumDigits";
 
 namespace {
 	const string IsolineName = "IsolineParams";
@@ -65,10 +66,12 @@ reinit(bool doOverride){
 		numrefs = 0;
 		SetFidelityLevel(0);
 		SetIgnoreFidelity(false);
+		SetNumDigits(5);
 	} else {  //Try to use existing values
-		
 		if (numrefs > maxNumRefinements) numrefs = maxNumRefinements;
 		if (numrefs < 0) numrefs = 0;
+		if (GetNumDigits() < 2) SetNumDigits(2);
+		if (GetNumDigits() > 12) SetNumDigits(12);
 	}
 	SetRefinementLevel(numrefs);
 	//Make sure fidelity is valid:
@@ -189,7 +192,7 @@ reinit(bool doOverride){
 }
 //Set everything to default values
 void IsolineParams::restart() {
-	
+	SetNumDigits(5);
 	SetRefinementLevel(0);
 	SetCompressionLevel(0);
 	SetFidelityLevel(0);

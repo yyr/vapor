@@ -1566,6 +1566,12 @@ void squad(float quat1[4],float quat2[4], float s1[4],float s2[4], float t, floa
 void qconj(float quat[4], float conj[4]){
 	conj[3]=quat[3];conj[0]=-quat[0];conj[1]=-quat[1];conj[2]=-quat[2];
 }
+void doubleToString(const double d, string& s, int digits){
+	char buf[30];
+	sprintf(buf, "%-.*G", digits, d);
+	string ss(buf);
+	s = ss;
+}
 
 #define DEAD
 #ifdef	DEAD
