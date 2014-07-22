@@ -177,6 +177,12 @@ public:
 		vals[1]=val;
 		GetRootNode()->SetElementDouble(_editBoundsTag,vals);
 	}
+	void SetNumDigits(int val){
+		GetRootNode()->SetElementLong(_numDigitsTag,val);
+	}
+	int GetNumDigits(){
+		return GetRootNode()->GetElementLong(_numDigitsTag)[0];
+	}
 	void SetHistoStretch(float factor){
 		GetRootNode()->SetElementDouble(_histoScaleTag,(double)factor);
 	}
@@ -243,6 +249,7 @@ public:
 
 protected:
 	static const string _shortName;
+	static const string _numDigitsTag;
 	static const string _panelBackgroundColorTag;
 	static const string _isolineExtentsTag;
 	static const string _lineThicknessTag;

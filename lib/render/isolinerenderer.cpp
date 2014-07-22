@@ -26,6 +26,7 @@
 #include "datastatus.h"
 #include "glwindow.h"
 #include <vapor/errorcodes.h>
+#include <vapor/GetAppPath.h>
 
 #include <qgl.h>
 #include <qcolor.h>
@@ -33,6 +34,8 @@
 #include <qcursor.h>
 #include "renderer.h"
 #include <sstream>
+#include <string>
+#include "textRenderer.h"
 using namespace VAPoR;
 
 IsolineRenderer::IsolineRenderer(GLWindow* glw, IsolineParams* pParams )
@@ -40,6 +43,7 @@ IsolineRenderer::IsolineRenderer(GLWindow* glw, IsolineParams* pParams )
 {
 	numIsovalsCached = 0;
 	setupCache();
+	myTextWriters.clear();
 }
 
 
@@ -57,6 +61,9 @@ IsolineRenderer::~IsolineRenderer()
 		invalidateLineCache((int)ts);
 	}
 	lineCache.clear();
+	
+	for (int i = 0; i<myTextWriters.size(); i++) delete myTextWriters[i];
+	myTextWriters.clear();
 	
 }
 
@@ -83,6 +90,8 @@ void IsolineRenderer::paintGL()
 	//Perform OpenGL rendering of line segments
 	//
 	performRendering(timestep);
+	for (int i = 0; i<myTextWriters.size(); i++)
+		myTextWriters[i]->drawText();
 	
 	
 }
@@ -235,8 +244,26 @@ bool IsolineRenderer::buildLineCache(int timestep){
 	//Loop over each isovalue and cell, and classify the cell as to which edges are crossed by the isoline.
 	//when there is an isoline crossing, a line segment is saved in the cache, defined by the two endpoints.
 	const vector<double>& isovals = iParams->GetIsovalues();
+	if(iParams->GetTextDensity() > 0.) {
+		for (int i = 0; i<myTextWriters.size(); i++) delete myTextWriters[i];
+		myTextWriters.clear();
+	}
 	for (int iso = 0; iso < isovals.size(); iso++){
-
+		if(iParams->GetTextDensity() > 0.) { //create a textWriter to hold annotation of this isovalue
+			
+			float bgc[4] = {0,0,0,1.};
+			const QColor c = DataStatus::getInstance()->getBackgroundColor();
+			bgc[0] = c.redF();
+			bgc[1] = c.greenF();
+			bgc[2] = c.blueF();
+			float lineColor[4];
+			iParams->getLineColor(iso,lineColor);
+			lineColor[3]=1.;
+			vector<string> vec;
+			vec.push_back("fonts");
+			vec.push_back("Vera.ttf");
+			myTextWriters.push_back(new TextWriter(GetAppPath("VAPOR","share",vec).c_str(), (int)iParams->GetTextSize(), lineColor, bgc, 1, myGLWindow));
+		}
 		//Clear out temporary caches for this isovalue:
 		
 		edgeSeg.clear(); //map an edge to one segment
@@ -395,7 +422,10 @@ bool IsolineRenderer::buildLineCache(int timestep){
 		} //for i
 
 		//Now traverse the edges to determine the isolines in order
-		if(iParams->GetTextDensity() > 0.) traverseCurves(iso, timestep);
+		if(iParams->GetTextDensity() > 0.) {
+			traverseCurves(iso, timestep);
+		}
+
 	} //for iso...		
 	numIsovalsCached = isovals.size();
 	cacheValidFlags[timestep] = true;
@@ -557,7 +587,19 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 	int currentLength;  //length of current component
 	componentLength.clear();
 	endEdge.clear();
+	IsolineParams* iParams = (IsolineParams*)getRenderParams();
 
+	//string isoText = std::to_string((long double)(iParams->GetIsovalues()[iso]));
+	string isoText;
+	doubleToString((iParams->GetIsovalues()[iso]), isoText, iParams->GetNumDigits());
+	//Prepare to convert the iso-box coordinates to user coordinates, then to unit box coords.
+	float transformMatrix[12];
+	iParams->buildLocalCoordTransform(transformMatrix, 0.f, -1);
+	float pointa[3]; //point in cache
+	float point1[3]; //point in local box
+	pointa[2] = 0.;
+	
+	
 	//Repeat the following until no more edges are found:
 	//Find an unmarked edge.  Mark it.
 	std::map<pair<int,int>, pair<int,int> >::iterator edgeEdgeIter;
@@ -673,7 +715,7 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 	// annotSpace = (2-g/A) + (g/A-1)/density where g is grid length or 2*A, whichever is larger
 	//If the interval is shorter than the component and larger than 0.1 times the component, then just one annotation is generated
 	float A = 3.;
-	IsolineParams* iParams = (IsolineParams*)getRenderParams();
+	
 	float g = (float)gridSize;
 	if (g < 2*A) g = 2*A;
 	int annotSpace = (2- g/A) + (g/A -1.f)/iParams->GetTextDensity();
@@ -695,6 +737,7 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 		int advancedDist = 0;
 		int currentAdvancedDist = 0;
 		int gapInterval = randDist;
+		const vector<double>&tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents(timestep);
 		while(1){
 			//Check an adjacent edge.  If it's not marked, make it the current edge, repeat
 			//make sure current edge is in at least one mapping
@@ -717,7 +760,17 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 				markerBit[currentEdge] = false; //mark it...
 				if (currentAdvancedDist == gapInterval){
 					if ((length - advancedDist) < (annotInterval - randDist)) break;  //done with this component
+
 					//display annotation here!
+					std::pair<int,int> mapPair= make_pair(timestep, iso);
+					vector<float*> lines = lineCache[mapPair];
+					int linenum = edgeSeg[currentEdge];
+					pointa[0] = lines[linenum][0];
+					pointa[1] = lines[linenum][1];
+					vtransform(pointa,transformMatrix,point1);
+					//Convert local to user:
+					for (int i = 0; i<3; i++) point1[i] += tvExts[i];
+					myTextWriters[iso]->addText(isoText, point1);
 					numAnnotations++;
 					//Reset the next interval:
 					gapInterval = annotInterval;
@@ -744,6 +797,16 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 						//check if we are close to end
 						if ((length - advancedDist) < (annotInterval - randDist)) break; //done with this component
 						//display annotation here!
+						std::pair<int,int> mapPair= make_pair(timestep, iso);
+						vector<float*> lines = lineCache[mapPair];
+						int linenum = edgeSeg[currentEdge];
+						pointa[0] = lines[linenum][0];
+						pointa[1] = lines[linenum][1];
+						vtransform(pointa,transformMatrix,point1);
+	
+						//Convert local to user:
+						for (int i = 0; i<3; i++) point1[i] += tvExts[i];
+						myTextWriters[iso]->addText(isoText, point1);
 						numAnnotations++;
 						//Reset the next interval:
 						gapInterval = annotInterval;

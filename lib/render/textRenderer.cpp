@@ -71,8 +71,8 @@ TextObject::TextObject( string inFont,
                         int inSize,
                         float inCoords[3],
                         int inType,
-                        float bgColor[4],
                         float txtColor[4],
+						float bgColor[4],
                         QGLWidget *myGivenWindow) {
 
     _pixmap 	  = new FTPixmapFont(inFont.c_str());

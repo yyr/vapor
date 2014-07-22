@@ -36,8 +36,8 @@ public:
                 int inSize,
                 float inCoords[3],
                 int inType,
-                float bgColor[4],
                 float txtColor[4],
+				float bgColor[4],
                 QGLWidget *myWindow);
     ~TextObject();
 
@@ -92,8 +92,8 @@ class RENDER_API TextWriter {
 public:
     TextWriter( string fontFile, 
                 int fontSize,
-                float bgColor[4], 
                 float txtColor[4], 
+				float bgColor[4], 
                 int type,
                 QGLWidget *myGivenWindow);
     ~TextWriter();

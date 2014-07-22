@@ -1739,7 +1739,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 				ist >> numViz;
 			}
 
-			else return false;
+			else MessageReporter::warningMsg("Unrecognized visualizer attribute: %s",attr.c_str());
 		}
 		//Create the window:
 		parsingVizNum = launchVisualizer(-1, winName.c_str(),numViz);

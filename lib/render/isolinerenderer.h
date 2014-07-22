@@ -33,6 +33,8 @@
 #include "isolineparams.h"
 namespace VAPoR {
 
+class TextWriter;
+
 class RENDER_API IsolineRenderer : public Renderer
 {
 
@@ -79,6 +81,9 @@ protected:
 	std::map<pair<int,int>, bool> markerBit;  //indicate whether or not an edge has been visited during current traversal
 	vector<int> componentLength;	//indicates the number of segments in a component.
 	vector<pair<int,int> > endEdge;  //indicates and ending edge for each component
+
+	//TextWriter holds all annotation to be rendered
+	vector<TextWriter*> myTextWriters;
 
 	//Whenever a segment is added, construct associated edge and segment mappings
 	void addEdges(int segIndex, pair<int,int> edge1, pair<int,int> edge2);
