@@ -174,7 +174,7 @@ void TextObject::initFrameBuffer(void) {
     glWindowPos2f(0,0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     int xRenderOffset = _size/24 + 1;
-    int yRenderOffset = int yRenderOffset = -_pixmap->BBox(_text.c_str()).Lower().Y()+4;;
+    int yRenderOffset = -_pixmap->BBox(_text.c_str()).Lower().Y()+4;;
     FTPoint point;
     point.X(xRenderOffset);
     point.Y(yRenderOffset);
