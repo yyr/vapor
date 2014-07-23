@@ -545,8 +545,9 @@ void IsolineRenderer::addEdges(int segIndex, pair<int,int> edge1, pair<int,int> 
 	
 	std::map<pair<int,int>, pair<int,int> >::iterator edgeEdgeIter;
 	
-	//Set mapping of first edge to segment:
+	//Set mapping of both edges to segment:
 	edgeSeg[edge1] = segIndex;
+	edgeSeg[edge2] = segIndex;
 	//Set marker bits for both edges:
 	markerBit[edge1] = false;
 	markerBit[edge2] = false;
@@ -720,24 +721,31 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 	if (g < 2*A) g = 2*A;
 	int annotSpace = (2- g/A) + (g/A -1.f)/iParams->GetTextDensity();
 	int numAnnotations = 0;
+	markerBit.clear();
 	for (int comp = 0; comp<numComponents; comp++){
 		int annotInterval = annotSpace;
 		pair<int,int> currentEdge = endEdge[comp];
-		markerBit[currentEdge] = false;  //Mark it
+		markerBit[currentEdge] = true;  //Mark it
 		int length = componentLength[comp];
 		if (length < annotInterval/10) continue; //No annotation for this component
 		if (length < annotInterval) annotInterval = length;
-		
-		//Determine the first point as a random integer between 0 and annotInterval-1;
+		//Modify annotInterval so that it evenly divides length
+		if (annotInterval < length){
+			int frac = length/annotInterval;
+			annotInterval = length/frac;
+		}
+		//Determine the first point as halfway between 0 and annotInterval-1;
 		assert(annotInterval>0);
-		int randDist = 1+rand()%annotInterval;
+		int startDist = 1+annotInterval/2;
 		//Traverse along component, marking as we go.
-		//first, count until we get randDist along; after that, increment by annotInterval
+		//first, count until we get startDist along; after that, increment by annotInterval
 		//Obtain next edges in both directions for traversal, but no need to go back to start.
 		int advancedDist = 0;
 		int currentAdvancedDist = 0;
-		int gapInterval = randDist;
+		int gapInterval = startDist;
 		const vector<double>&tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents(timestep);
+		std::pair<int,int> mapPair= make_pair(timestep, iso);
+		vector<float*> lines = lineCache[mapPair];
 		while(1){
 			//Check an adjacent edge.  If it's not marked, make it the current edge, repeat
 			//make sure current edge is in at least one mapping
@@ -753,17 +761,14 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 			} 
 			//set nextEdge to the connected edge we found
 			pair<int,int> nextEdge = edgeEdgeTestIter->second;
-			if (markerBit[nextEdge]){ //not marked, so ok to continue
+			if (!markerBit[nextEdge]){ //not marked, so ok to continue
 				currentEdge = nextEdge;
 				advancedDist++;
 				currentAdvancedDist++;
-				markerBit[currentEdge] = false; //mark it...
+				markerBit[currentEdge] = true; //mark it...
 				if (currentAdvancedDist == gapInterval){
-					if ((length - advancedDist) < (annotInterval - randDist)) break;  //done with this component
 
 					//display annotation here!
-					std::pair<int,int> mapPair= make_pair(timestep, iso);
-					vector<float*> lines = lineCache[mapPair];
 					int linenum = edgeSeg[currentEdge];
 					pointa[0] = lines[linenum][0];
 					pointa[1] = lines[linenum][1];
@@ -781,7 +786,7 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 				//it's marked true.  Need to consider other direction:
 				edgeEdgeTestIter = edgeEdge2.find(currentEdge);
 				
-				if ((edgeEdgeTestIter == edgeEdge2.end()) || (!markerBit[edgeEdgeTestIter->second])){
+				if ((edgeEdgeTestIter == edgeEdge2.end()) || (markerBit[edgeEdgeTestIter->second])){
 					//Both ends are marked (or there is no other end) so
 					//we are at end of isoline
 					assert(advancedDist == length);
@@ -792,18 +797,14 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 					currentEdge = edgeEdgeTestIter->second;
 					advancedDist++;
 					currentAdvancedDist++;
-					markerBit[currentEdge] = false; //mark it...
+					markerBit[currentEdge] = true; //mark it...
 					if (currentAdvancedDist == gapInterval){
-						//check if we are close to end
-						if ((length - advancedDist) < (annotInterval - randDist)) break; //done with this component
+						
 						//display annotation here!
-						std::pair<int,int> mapPair= make_pair(timestep, iso);
-						vector<float*> lines = lineCache[mapPair];
 						int linenum = edgeSeg[currentEdge];
 						pointa[0] = lines[linenum][0];
 						pointa[1] = lines[linenum][1];
 						vtransform(pointa,transformMatrix,point1);
-	
 						//Convert local to user:
 						for (int i = 0; i<3; i++) point1[i] += tvExts[i];
 						myTextWriters[iso]->addText(isoText, point1);
