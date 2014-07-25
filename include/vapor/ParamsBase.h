@@ -164,11 +164,7 @@ virtual ParamNode* buildNode();
 
 ParamNode *GetRootNode() { return(_rootParamNode); }
 
-//!	
-//! Method for manual setting of node flags
-//!
 
-void SetFlagDirty(const string& flag);
 //!	
 //! Method for obtaining the name and/or tag associated with the instance
 //!

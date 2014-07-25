@@ -574,7 +574,7 @@ void ArrowEventRouter::updateTab(){
 	if (isAligned){
 		double exts[6];
 		int grdExts[3];
-		arrowParams->calcDataAlignment(exts,grdExts,(size_t)currentTimeStep);
+		arrowParams->getDataAlignment(exts,grdExts,(size_t)currentTimeStep);
 		//Display the new aligned grid extents
 		xDimEdit->setText(QString::number(grdExts[0]));
 		yDimEdit->setText(QString::number(grdExts[1]));

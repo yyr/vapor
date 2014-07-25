@@ -143,7 +143,7 @@ mousePressEvent(QMouseEvent* e){
 		manip->setParams(rParams);
 		int manipType = MouseModeParams::getModeManipType(mode);
 		if(manipType != 3) rParams->GetBox()->GetStretchedLocalExtents(boxExtents, timestep); //non-rotated manip
-		else rParams->calcContainingStretchedBoxExtents(boxExtents,true);//rotated
+		else rParams->GetBox()->calcContainingStretchedBoxExtents(boxExtents,true);//rotated
 		int handleNum = manip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
 
 		if (handleNum >= 0 && myVisualizer->startHandleSlide(screenCoords, handleNum,rParams)){

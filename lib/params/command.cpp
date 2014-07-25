@@ -19,6 +19,7 @@
 #include "command.h"
 #include "params.h"
 #include "arrowparams.h"
+#include "viewpointparams.h"
 
 using namespace VAPoR;
 
@@ -130,7 +131,8 @@ Params* Command::BackupQueue(){
 	Command* cmd = CurrentUndoCommand();
 	if (!cmd) return 0;
 	Params* p = cmd->unDo();
-	p->SetChanged(true);
+	ViewpointParams* vpp = dynamic_cast<ViewpointParams*>(p);
+	if(vpp) vpp->SetChanged(true);
 	currentQueuePos--;
 	return p;
 }
@@ -143,7 +145,8 @@ Params* Command::AdvanceQueue(){
 	Command* cmd = CurrentRedoCommand();
 	if (!cmd) return 0;
 	Params* p = cmd->reDo();
-	p->SetChanged(true);
+	ViewpointParams* vpp = dynamic_cast<ViewpointParams*>(p);
+	if(vpp) vpp->SetChanged(true);
 	currentQueuePos++;
 	return p;
 }

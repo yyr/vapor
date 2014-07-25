@@ -339,7 +339,20 @@ public:
 		GetRootNode()->AddNode(_homeViewTag, vp->GetRootNode());
 		return vp;
 	}
-	#ifndef DOXYGEN_SKIP_THIS
+//! Method indicates that a viewpointparams instance has changed, e.g. during Undo/Redo
+//! Must be cleared after all users of the instance have checked it.
+//! Setting on a shared params results in it being set for all the different
+//! visualizers that share it;
+//! \param[in] val indicates that a change has occurred
+	void SetChanged(bool val);
+
+//! method to test if there has been a change.
+//! checks the bit associated with the visualizer.
+//! \param[in] viz index of visualizer, only needed for shared params
+//! \retval bool true if changed
+	bool HasChanged(int viz = -1);
+
+#ifndef DOXYGEN_SKIP_THIS
 	
 	static const double* getDefaultViewDir(){return defaultViewDir;}
 	static const double* getDefaultUpVec(){return defaultUpVec;}
@@ -369,7 +382,7 @@ public:
 	static void setDefaultNumLights(int val){ defaultNumLights = val;}
 
 protected:
-
+	bool changeBit; //accessed via HasChanged() and SetChanged();
 	static const string _shortName;
 	static const string _currentViewTag;
 	static const string _homeViewTag;

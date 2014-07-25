@@ -195,7 +195,7 @@ public:
 	//! \param[out] int rakeGrid[3] Size of the resulting rake grid
 	//! \param[in] size_t timestep 
 	//!
-	void calcDataAlignment(double rakeExts[6],int rakeGrid[3], size_t timestep);
+	void getDataAlignment(double rakeExts[6],int rakeGrid[3], size_t timestep);
 	//! Utility function to calculate default vector scale factor,
 	//! based on currently selected vector fields.
 	//! Used in gui setup 

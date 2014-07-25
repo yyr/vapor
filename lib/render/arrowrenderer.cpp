@@ -278,7 +278,7 @@ void ArrowRenderer::performRendering(
 	// (rakeGrid[0] and rakeGrid[1]) are the grid size that fits in the data with the 
 	// prescribed strides
 	if (aParams->IsAlignedToData()){
-		aParams->calcDataAlignment(rakeExts, rakeGrid, timestep);
+		aParams->getDataAlignment(rakeExts, rakeGrid, timestep);
 		
 	} else {
 

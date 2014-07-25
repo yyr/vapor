@@ -40,6 +40,7 @@ namespace VAPoR{
 class XmlNode;
 class ParamNode;
 class DummyParams;
+class RenderParams;
 class ViewpointParams;
 class RegionParams;
 class DataMgr;
@@ -379,18 +380,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \sa GetName
 	 virtual const std::string getShortName()=0;
 
-//! Method indicates that a params instance has changed, e.g. during Undo/Redo
-//! Must be cleared after all users of the instance have checked it.
-//! Setting on a shared params results in it being set for all the different
-//! visualizers that share it;
-//! \param[in] val indicates that a change has occurred
-	void SetChanged(bool val);
 
-//! method to test if there has been a change.
-//! checks the bit associated with the visualizer.
-//! \param[in] viz index of visualizer, only needed for shared params
-//! \retval bool true if changed
-	bool HasChanged(int viz = -1);
 
 //! Pure virtual method for validation of all settings
 //! It is important that implementers of Params classes write this method so that
@@ -416,11 +406,11 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \retval True if any renderer is enabled 
 	static bool IsRenderingEnabled(int winnum);
 	
-//! Virtual method indicating whether a Params is a RenderParams instance.
+//! method indicating whether a Params is a RenderParams instance.
 //! Default returns false.
 //! Useful for application developers.
 //! \retval returns true if it is a RenderParams
-	virtual bool isRenderParams() const {return false;}
+	bool isRenderParams() const;
 
 //! Virtual method indicating whether a Params is "Basic", i.e. a Params
 //! class that has only one instance, used only for Undo/redo and sessions.  
@@ -428,7 +418,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! Default returns false.
 //! Useful for application developers.
 //! \retval returns true if it is UndoRedo
-	virtual bool isBasicParams() const {return false;}
+	bool isBasicParams() const;
 
 //! Pure virtual method, sets a Params instance to its default state, without any data present.
 //! Params implementers should assign valid values to all elements in the Params class in this method.
@@ -457,19 +447,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \retval Box* returns pointer to the Box associated with this Params.
 	virtual Box* GetBox() {return 0;}
 
-//! Virtual method supports rotated boxes such as probe
-//! Specifies an axis-aligned box containing the rotated box.
-//! By default it just finds the box extents.
-//! Caller must supply extents array, which gets its values filled in.
-//! \param[out] float[6] Extents of containing box
-	virtual void calcContainingStretchedBoxExtents(double extents[6], bool rotated = false) 
-		{if (!rotated) GetBox()->GetStretchedLocalExtents(extents,-1);
-		else calcRotatedStretchedBoxExtents(extents);}
 
-//! If the box is rotated, this method calculated the minimal axis-aligned extents
-//! containing all 8 corners of the box.
-//! \param[out] double extents[6] is smallest extents containing the box.
-	void calcRotatedStretchedBoxExtents(double extents[6]);
 
 //! The orientation is used only with 2D Box Manipulators, and must be implemented for Params supporting such manipulators.  
 //! Valid values are 0,1,2 for being orthog to X,Y,Z-axes.
@@ -480,10 +458,8 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	
 #ifndef DOXYGEN_SKIP_THIS
 	
-	//Not part of public API
-	void calcLocalBoxCorners(double corners[8][3], float extraThickness, int timestep, double rotation = 0., int axis = -1);
-	void buildLocalCoordTransform(double transformMatrix[12], double extraThickness, int timestep, double rotation, int axis);
-	void convertThetaPhiPsi(double *newTheta, double* newPhi, double* newPsi, int axis, double rotation);
+	
+	
 	virtual Params* deepCopy(ParamNode* nd = 0);
 	static Params* CreateDummyParams(std::string tag);
 	static void	BailOut (const char *errstr, const char *fname, int lineno);
@@ -589,7 +565,7 @@ protected:
 		{return ParamsBase::SetValueStringVec(tag, description, value, this);}
 
 #ifndef DOXYGEN_SKIP_THIS
-	bool changeBit; //accessed via HasChanged() and SetChanged();
+	
 	//Params instances are vectors of Params*, one per instance, indexed by paramsBaseType, winNum
 	static map<pair<int,int>,vector<Params*> > paramsInstances;
 	//CurrentRenderParams indexed by paramsBaseType, winNum
@@ -614,7 +590,6 @@ public:
 //! Internal methods not intended for general use
 ///@{
 	BasicParams(XmlNode *parent, const string &name) : Params(parent, name, -1) {}
-	virtual bool isBasicParams() const {return true;}
 };
 ///@}
 

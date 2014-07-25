@@ -200,10 +200,28 @@ public:
 	//! \retval ParamsBase* pointer to a default Params instance
 	static ParamsBase* CreateDefaultInstance() {return new Box();}
 	virtual ParamsBase* deepCopy(ParamNode* newRoot);
+	//! method supports rotated boxes such as probe
+//! Specifies an axis-aligned box containing the rotated box.
+//! By default it just finds the box extents.
+//! Caller must supply extents array, which gets its values filled in.
+//! \param[out] float[6] Extents of containing box
+	void calcContainingStretchedBoxExtents(double extents[6], bool rotated = false) 
+		{if (!rotated) GetStretchedLocalExtents(extents,-1);
+		else calcRotatedStretchedBoxExtents(extents);}
+
+//! If the box is rotated, this method calculated the minimal axis-aligned extents
+//! containing all 8 corners of the box.
+//! \param[out] double extents[6] is smallest extents containing the box.
+	void calcRotatedStretchedBoxExtents(double extents[6]);
 
 	///@}
 
 #ifndef DOXYGEN_SKIP_THIS
+	void buildLocalCoordTransform(double transformMatrix[12], double extraThickness, int timestep, double rotation, int axis);
+	void convertThetaPhiPsi(double *newTheta, double* newPhi, double* newPsi, int axis, double rotation);
+	//Not part of public API
+	void calcLocalBoxCorners(double corners[8][3], float extraThickness, int timestep, double rotation = 0., int axis = -1);
+	
 	static const string _boxTag;
 	static const string _anglesTag;
 	static const string _extentsTag;

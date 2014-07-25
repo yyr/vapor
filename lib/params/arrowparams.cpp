@@ -224,7 +224,7 @@ void ArrowParams::restart() {
 }
 //calculate rake extents when aligned to data.
 //Also determine the dimensions (size) of the grid-aligned rake
-void ArrowParams::calcDataAlignment(double rakeExts[6], int rakeGrid[3],size_t timestep){
+void ArrowParams::getDataAlignment(double rakeExts[6], int rakeGrid[3],size_t timestep){
 	//Find the first data point that fits in the rake extents:
 	//Take the rake corner, convert it to voxels
 	size_t corner[3],farCorner[3];

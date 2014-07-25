@@ -29,6 +29,7 @@
 #include <fstream>
 #include <sstream>
 #include "viewpointparams.h"
+#include "vizwinparams.h"
 #include "params.h"
 #include "viewpoint.h"
 #include <vapor/XmlNode.h>
@@ -68,8 +69,6 @@ ViewpointParams::ViewpointParams(XmlNode* parent, int winnum): Params(parent, Pa
 }
 
 ViewpointParams::~ViewpointParams(){
-	
-	
 }
 
 //Reinitialize viewpoint settings, to center view on the center of full region.
@@ -109,7 +108,7 @@ restart(){
 	SetValueDouble(_specularCoeffTag,"",specCoeffs);
 	setExponent(defaultSpecularExp);
 	setAmbientCoeff(defaultAmbientCoeff);
-	
+	changeBit = true;
 	
 }
 
@@ -247,4 +246,31 @@ centerFullRegion(int timestep){
 	
 	Command::CaptureEnd(cmd,this);
 	
+}
+void ViewpointParams::SetChanged(bool val){
+	//If it's shared, need to set the change bits for all the
+	//different windows that are using 
+	if (IsLocal()) {
+		changeBit = val;
+		return;
+	}
+	//Find all instances that are sharing this
+	std::map<pair<int,int>,vector<Params*> >::iterator it;
+	vector<long> viznums = VizWinParams::GetVisualizerNums();
+	for (int i = 0; i<viznums.size(); i++){
+		int viz = viznums[i];
+		it = Params::paramsInstances.find(make_pair(GetParamsBaseTypeId(),viz));
+		if (it == paramsInstances.end()) continue;
+		ViewpointParams* p = (ViewpointParams*) (it->second)[0]; //get the first (only) instance of the params
+		if (p->IsLocal()) continue;
+		p->changeBit = val;
+	}
+	return;
+}
+bool ViewpointParams::HasChanged(int viz){
+	if (IsLocal()) return changeBit;
+	//Find the instance associated with viz:
+	assert(viz >= 0);
+	ViewpointParams* localParams = (ViewpointParams*)Params::GetParamsInstance(Params::_viewpointParamsTag,viz);
+	return localParams->changeBit;
 }

@@ -154,7 +154,6 @@ public:
 	}
 	
 	Params* deepCopy(ParamNode* nd = 0);
-	virtual bool isRenderParams() const {return true;}
 	
 	void initializeBypassFlags();
 	
