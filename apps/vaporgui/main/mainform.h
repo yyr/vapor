@@ -34,6 +34,7 @@
 #include <QIcon>
 
 #include "params.h"
+#include "bannergui.h"
 class QApplication;
 class QSpacerItem;
 class QAction;
@@ -186,6 +187,8 @@ private:
 	QAction* stepBackAction;
 	QSpinBox* interactiveRefinementSpin;
     QDockWidget* tabDockWindow;
+    
+    BannerGUI* banner;
 	
 	
 	
