@@ -31,11 +31,15 @@
 
 
 using namespace VetsUtil;
-
 namespace VAPoR{
 
 class Params;
+
+
 //
+//!
+//! \defgroup Public_Params VAPOR Params Developer API
+//!
 //! \class ParamsBase
 //! \ingroup Public_Params
 //! \brief Nodes with state in Xml tree representation
@@ -93,9 +97,11 @@ virtual ~ParamsBase();
  //! \retval instance Pointer to cloned instance
  //
  virtual ParamsBase* deepCopy(ParamNode* newRoot = 0) = 0;
+
 //! @name Internal
 //! Internal methods not intended for general use
 ///@{
+
  //! Set the parent node of the XmlNode tree.
  //!
  //! Sets a new parent node for the XmlNode tree parameter 
@@ -391,7 +397,9 @@ static ParamsBase* CreateDefaultParamsBase(const string&tag);
 //! \retval status True if the specified class is a Params class
 //!
 	static bool IsParamsTag(const string&tag) {return (GetTypeFromTag(tag) > 0);}
+
 #ifndef DOXYGEN_SKIP_THIS
+
 	static ParamsBase* CreateDummyParamsBase(std::string tag);
 	
 	static void addDummyParamsBaseInstance(ParamsBase*const & pb ) {dummyParamsBaseInstances.push_back(pb);}
@@ -426,8 +434,11 @@ protected:
 	static int numBasicParamsClasses;
 	static int numEmbedClasses;
 
+#endif //DOXYGEN_SKIP_THIS
 
-protected:
+//! @name Internal
+//! Internal methods not intended for general use
+///@{
 
  //! Return the current node in the parameter node tree
  //!
@@ -496,7 +507,11 @@ protected:
  //! class as well as deleting any tree branches.
  //
  void Clear();
+
+///@}
 };
+
+#ifndef DOXYGEN_SKIP_THIS
 
 //The DummyParamsBase is simply holding the parse information for
 //A paramsBase extension class that is not present. This can only occur
