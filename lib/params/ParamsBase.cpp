@@ -454,3 +454,18 @@ ParamsBase* DummyParamsBase::deepCopy(ParamNode* newRoot) {
 	if(newRoot) newRoot->SetParamsBase(base);
 	return base;
 }
+ParamsBase* ParamsBase::deepCopy(ParamNode* newRoot){
+	
+	//Start with default copy  
+	ParamsBase* newParamsBase = CreateDefaultParamsBase(GetParamsBaseTypeId());
+	
+	// Need to clone the xmlnode; 
+	ParamNode* rootNode = GetRootNode();
+	if (rootNode) {
+		newParamsBase->SetRootParamNode(rootNode->deepCopy());
+		newParamsBase->GetRootNode()->SetParamsBase(newParamsBase);
+	}
+	
+	newParamsBase->setCurrentParamNode(newParamsBase->GetRootNode());
+	return newParamsBase;
+}

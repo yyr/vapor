@@ -3,7 +3,7 @@
 #define ARROWPARAMS_H
 
 #include "vapor/ParamNode.h"
-#include "params.h"
+#include "renderparams.h"
 #include "command.h"
 #include "datastatus.h"
 

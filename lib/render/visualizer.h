@@ -26,6 +26,7 @@
 #include <map>
 #include <jpeglib.h>
 #include "params.h"
+#include "renderparams.h"
 #include <vapor/MyBase.h>
 #include <vapor/common.h>
 #include "datastatus.h"

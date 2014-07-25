@@ -1,7 +1,9 @@
 
 #include "arrowparams.h"
 #include "datastatus.h"
-
+#include "vapor/ParamsBase.h"
+#include "params.h"
+#include "renderparams.h"
 
 #include <string>
 

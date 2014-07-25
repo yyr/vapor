@@ -14,7 +14,7 @@
 //
 //	Date:		October 2004
 //
-//	Description:	Implements the Params and RenderParams classes.
+//	Description:	Implements the Params, BasicParams, and DummyParams classes.
 //		These are  abstract classes for all the tabbed panel params classes.
 //		Supports functionality common to all the tabbed panel params.
 //
@@ -25,6 +25,7 @@
 #include <vapor/MyBase.h>
 #include "assert.h"
 #include "params.h"
+#include "renderparams.h"
 #include "datastatus.h"
 #include "vizwinparams.h"
 #include <vapor/ParamNode.h>
@@ -49,7 +50,6 @@ const string Params::_RefinementLevelTag = "RefinementLevel";
 const string Params::_CompressionLevelTag = "CompressionLevel";
 const string Params::_VariableNamesTag = "VariableNames";
 const string Params::_LocalTag = "Local";
-const string RenderParams::_EnabledTag = "Enabled";
 
 std::map<pair<int,int>,vector<Params*> > Params::paramsInstances;
 std::map<pair<int,int>, int> Params::currentParamsInstance;
@@ -73,9 +73,6 @@ Params::~Params() {
 	
 }
 
-RenderParams::RenderParams(XmlNode *parent, const string &name, int winnum):Params(parent, name, winnum){
-	SetLocal(true);
-}
 const std::string Params::paramName(Params::ParamsBaseType type){
 	return GetDefaultParams(type)->getShortName();
 }
@@ -103,20 +100,6 @@ void Params::BailOut(const char *errstr, const char *fname, int lineno)
     exit(-1);
 }
 
-//Following methods adapted from ParamsBase.cpp
-void RenderParams::initializeBypassFlags(){
-	bypassFlags.clear();
-	int numTimesteps = DataStatus::getInstance()->getNumTimesteps();
-	bypassFlags.resize(numTimesteps, 0);
-}
-void RenderParams::setAllBypass(bool val){ 
-	//set all bypass flags to either 0 or 2
-	//when set to 0, indicates "never bypass"
-	//when set to 2, indicates "always bypass"
-	int ival = val ? 2 : 0;
-	for (int i = 0; i<bypassFlags.size(); i++)
-		bypassFlags[i] = ival;
-}
 
 bool Params::HasChanged(int viz){
 	if (IsLocal()) return changeBit;
@@ -239,15 +222,7 @@ Params* Params::CreateDefaultParams(int pType){
 	Command::unblockCapture();
 	return p;
 }
-Params* RenderParams::deepCopy(ParamNode* nd){
-	//Start with default copy  
-	Params* newParams = Params::deepCopy(nd);
-	
-	RenderParams* renParams = dynamic_cast<RenderParams*>(newParams);
-	
-	renParams->bypassFlags = bypassFlags;
-	return renParams;
-}
+
 Params* Params::CreateDummyParams(const std::string tag){
 	return ((Params*)(new DummyParams(0,tag,0)));
 }
@@ -259,29 +234,6 @@ void Params::clearDummyParamsInstances(){
 		delete dummyParamsInstances[i];
 	}
 	dummyParamsInstances.clear();
-}
-
-int RenderParams::GetCompressionLevel(){
-	const vector<long> defaultLevel(1,2);
-	return GetValueLong(_CompressionLevelTag,defaultLevel);
- }
-int RenderParams::SetCompressionLevel(int level){
-	 vector<long> valvec(1,(long)level);
-	 int rc = SetValueLong(_CompressionLevelTag,"Set compression level",valvec);
-	 setAllBypass(false);
-	 return rc;
-}
-int RenderParams::SetRefinementLevel(int level){
-		
-		int maxref = DataStatus::getInstance()->getNumTransforms();
-		if (level < 0 || level > maxref) return -1;
-		SetValueLong(_RefinementLevelTag, "Set refinement level",level);
-		setAllBypass(false);
-		return 0;
-}
-int RenderParams::GetRefinementLevel(){
-		const vector<long>defaultRefinement(1,0);
-		return (GetValueLong(_RefinementLevelTag,defaultRefinement));
 }
 
 int Params::GetInstanceIndex(){
@@ -450,12 +402,7 @@ int Params::DeleteVisualizer(int viz){
 	}
 	return num;
 }
-void RenderParams::SetEnabled(bool val){
-	long lval = (long)val;
-	Command::blockCapture();
-	SetValueLong(_EnabledTag,"enable/disable renderer",lval);
-	Command::unblockCapture();
-}
+
  int Params::GetNumParamsInstances(int pType, int winnum){
 	std::map<pair<int,int>,vector<Params*> >::iterator it = paramsInstances.find(std::make_pair(pType,winnum));
 	if (it == paramsInstances.end()) return 0;
