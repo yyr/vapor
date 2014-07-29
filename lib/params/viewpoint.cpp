@@ -44,12 +44,7 @@ const string Viewpoint::_viewDirTag = "ViewDirection";
 const string Viewpoint::_upVecTag = "UpVector";
 const string Viewpoint::_rotCenterTag = "RotationCenter";
 
-ParamsBase* Viewpoint::deepCopy(ParamNode* newRoot) {
-	Viewpoint* base = new Viewpoint(*this);
-	base->SetRootParamNode(newRoot);
-	if(newRoot) newRoot->SetParamsBase(base);
-	return base;
-}
+
 //Force the rotation center to lie in the center of the view.
 void Viewpoint::alignCenter(Params* p){
 	double viewDirection[3];

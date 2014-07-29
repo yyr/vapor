@@ -51,7 +51,9 @@ const string AnimationParams::_maxTimestepTag = "MaxTimestep";
 const string AnimationParams::_playDirectionTag = "PlayDirection";
 
 AnimationParams::AnimationParams(XmlNode* parent, int winnum): Params( parent, Params::_animationParamsTag, winnum){
+	Command::blockCapture();
 	restart();
+	Command::unblockCapture();
 }
 AnimationParams::~AnimationParams(){
 	

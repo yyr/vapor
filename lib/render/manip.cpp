@@ -1019,7 +1019,7 @@ double TranslateRotateManip::constrainStretch(double currentDist){
 	int axis1 = (selectedHandle < 3) ? (2 - selectedHandle):(selectedHandle -3);
 	//Don't drag the z-axis if it's planar:
 	if (axis2 == 2){
-		if (myParams->IsPlanar()) {
+		if (myParams->GetBox()->IsPlanar()) {
 			delete myPermuter;
 			return 0.f;
 		}

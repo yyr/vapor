@@ -28,12 +28,14 @@ namespace {
 ArrowParams::ArrowParams(
 	XmlNode *parent, int winnum
 ) : RenderParams(parent, ArrowParams::_arrowParamsTag, winnum) {
-
+	Command::blockCapture();
 	restart();
+	Command::unblockCapture();
 }
 
 
 ArrowParams::~ArrowParams() {
+
 }
 
 //Initialize for new metadata.  Keep old transfer functions
@@ -178,9 +180,10 @@ Validate(bool doOverride){
 //Set everything to default values
 void ArrowParams::restart() {
 	
+	SetVizNum(0);
 	SetRefinementLevel(0);
 	SetCompressionLevel(0);
-	SetVizNum(0);
+	
 	SetFieldVariableName(0, "xvar");
 	SetFieldVariableName(1, "yvar");
 	SetFieldVariableName(2, "0");

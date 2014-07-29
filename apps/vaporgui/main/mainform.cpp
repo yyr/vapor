@@ -728,8 +728,10 @@ void MainForm::fileSaveAs()
 
 void MainForm::fileExit()
 {
-	delete ControlExec::getInstance();
 	close();
+}
+void MainForm::closeEvent(QCloseEvent* ){
+	delete ControlExec::getInstance();
 }
 
 void MainForm::undo(){

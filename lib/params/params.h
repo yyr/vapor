@@ -66,6 +66,15 @@ class Command;
 //! state of a Params instance.  The state of each Params instance is automatically saved and restored
 //! with the VAPOR Session file, using the XML representation.
 //! \par
+//! The Params class is derived from ParamsBase, which provides the association between a Params class and
+//! its representation as a set of (key,value) pairs.  All the parameters in a ParamsBase instance
+//! are stored in an XML tree, and can be retrieved based on the value of the associated tag (key).
+//! Params instances have additional capabilities (not found in ParamsBase instances), including the
+//! Undo/Redo support and the ability to be associated with a tab in the gui.  When it is desired to 
+//! contain a class within a Params class (such as a Transfer Function within a RenderParams) then
+//! the embedded class should be derived from ParamsBase, so that its state will be represented in the
+//! state of the containing Params instance.
+//! \par
 //! In the VAPOR GUI, each tab corresponds to a Params subclass, and the renderer tabs correspond to
 //! subclasses of RenderParams, a subclass of Params.  Several Params classes (BasicParams) have a unique
 //! instance and are not associated with tabs in the GUI.  The BasicParams classes are used for
@@ -390,15 +399,12 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! associated with the current Data Manager.
 //! When the "default" argument is false, the method should change only those parameters that are
 //! inconsistent with the current Data Manager, setting them to values that are consistent.
+//! \par
+//! The Validate method is invoked after a SetValue is issued, so that the state of the Params
+//! object should be valid even after erroneous values have been set.
 //! \param[in] bool default 
 //! \sa DataMgr
 	virtual void Validate(bool setdefault)=0;
-
-//! Virtual method indicates that the geometry of this Params instance fits within a plane.
-//! Needed for Probe, Isolines, to prevent invalid manip stretching.
-//! Default returns false; must reimplement if the geometry is constrained to a plane.
-//! \retval bool returns true if geometry is constrained to a plane.
-	virtual bool IsPlanar() {return false;}
 
 //! Static method that tells whether or not any renderer is enabled in a visualizer. 
 //! Useful for application developers.
@@ -428,7 +434,19 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! With global or default or Basic Params this is -1 
 	virtual int GetVizNum() {return (int)(GetValueLong(_VisualizerNumTag));}
 
-//! Specify whether a [non-render]params is local or global. 
+//! Specify whether a [non-render]params is local or global.  
+//! The local/global setting provides a means of controlling the sharing or 
+//! non-sharing of parameters between different visualizers.
+//! A params instance
+//! is local if it applies only to in a single visualizer.  Global params instances
+//! are applied in all other (non-local) visualizers.
+
+//! For example if there are three visualizers,
+//! Visualizer 0, 1, and 2, and suppose that the ViewpointParams associated with 
+//! Visualizer 0 is Local, while the ViewpointParams associated with Visualizers 1 and 2
+//! are both Global.  In that case the viewpoint settings for Visualizer 0 can differ
+//! from the settings in Visualizer 1 and 2.  However Visualizer 1 and 2 will share the
+//! same (global) viewpoint.
 //! \param[in] lg boolean is true if is local 
 	virtual int SetLocal(bool lg){
 		return SetValueLong(_LocalTag,"set local or global",(long)lg);
@@ -447,20 +465,13 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \retval Box* returns pointer to the Box associated with this Params.
 	virtual Box* GetBox() {return 0;}
 
-
-
-//! The orientation is used only with 2D Box Manipulators, and must be implemented for Params supporting such manipulators.  
-//! Valid values are 0,1,2 for being orthog to X,Y,Z-axes.
-//! Default is -1 (invalid)
-//! \retval int orientation direction (0,1,2)
-	virtual int getOrientation() { assert(0); return -1;}
 	//Following methods, while public, are not part of extensibility API
 	
 #ifndef DOXYGEN_SKIP_THIS
 	
 	
 	
-	virtual Params* deepCopy(ParamNode* nd = 0);
+	
 	static Params* CreateDummyParams(std::string tag);
 	static void	BailOut (const char *errstr, const char *fname, int lineno);
 

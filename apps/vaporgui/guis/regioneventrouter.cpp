@@ -106,16 +106,16 @@ RegionEventRouter::hookUpTab()
 	
 	connect (setFullRegionButton, SIGNAL(clicked()), this, SLOT (setMaxSize()));
 	connect (regionToRakeButton, SIGNAL(clicked()), this, SLOT(copyRegionToRake()));
-	connect (regionToProbeButton, SIGNAL(clicked()), this, SLOT(copyRegionToProbe()));
+	//connect (regionToProbeButton, SIGNAL(clicked()), this, SLOT(copyRegionToProbe()));
 	connect (rakeToRegionButton, SIGNAL(clicked()), this, SLOT(copyRakeToRegion()));
 	connect (probeToRegionButton, SIGNAL(clicked()), this, SLOT(copyProbeToRegion()));
 
-	connect (loadRegionsButton, SIGNAL(clicked()), this, SLOT(guiLoadRegionExtents()));
+	//connect (loadRegionsButton, SIGNAL(clicked()), this, SLOT(guiLoadRegionExtents()));
 	connect (saveRegionsButton, SIGNAL(clicked()), this, SLOT(saveRegionExtents()));
-	connect (adjustExtentsButton, SIGNAL(clicked()), this, SLOT(guiAdjustExtents()));
-	connect (refinementCombo, SIGNAL(activated(int)), this, SLOT(setNumRefinements(int)));
-	connect (variableCombo, SIGNAL(activated(int)), this, SLOT(setVarNum(int)));
-	connect (timestepSpin, SIGNAL(valueChanged(int)), this, SLOT(setTimeStep(int)));
+	//connect (adjustExtentsButton, SIGNAL(clicked()), this, SLOT(guiAdjustExtents()));
+	//connect (refinementCombo, SIGNAL(activated(int)), this, SLOT(setNumRefinements(int)));
+	//connect (variableCombo, SIGNAL(activated(int)), this, SLOT(setVarNum(int)));
+	//connect (timestepSpin, SIGNAL(valueChanged(int)), this, SLOT(setTimeStep(int)));
 
 	connect (LocalGlobal, SIGNAL (activated (int)), VizWinMgr::getInstance(), SLOT (setRgLocalGlobal(int)));
 	connect (VizWinMgr::getInstance(), SIGNAL(enableMultiViz(bool)), LocalGlobal, SLOT(setEnabled(bool)));

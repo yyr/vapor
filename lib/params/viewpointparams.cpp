@@ -65,7 +65,9 @@ const string ViewpointParams::_numLightsTag = "NumLights";
 
 ViewpointParams::ViewpointParams(XmlNode* parent, int winnum): Params(parent, Params::_viewpointParamsTag, winnum){
 	
+	Command::blockCapture();
 	restart();
+	Command::unblockCapture();
 }
 
 ViewpointParams::~ViewpointParams(){

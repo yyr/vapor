@@ -35,6 +35,8 @@ const std::string Box::_boxTag = "Box";
 const std::string Box::_anglesTag = "Angles";
 const std::string Box::_extentsTag = "Extents";
 const std::string Box::_timesTag = "Times";
+const std::string Box::_planarTag = "Planar";
+const std::string Box::_orientationTag = "Orientation";
 
 Box::Box(): ParamsBase(0, Box::_boxTag) {
 	//Initialize with default box:
@@ -51,14 +53,11 @@ Box::Box(): ParamsBase(0, Box::_boxTag) {
 	SetValueDouble(_extentsTag,"",extents,0);
 	SetValueLong(_timesTag,"",times,0);
 	SetValueDouble(_anglesTag,"",angles,0);
+	SetPlanar(true,0); //Default is not planar.
+	SetOrientation(-1,0); //Default is no orientation (3D)
 }
 
-ParamsBase* Box::deepCopy(ParamNode* newRoot) {
-	Box* base = new Box(*this);
-	base->SetRootParamNode(newRoot);
-	if(newRoot) newRoot->SetParamsBase(base);
-	return base;
-}
+
 int Box::GetLocalExtents(double extents[6], int timestep){
 	const vector<double> defaultExtents(6,0.);
 	const vector<long> defaultTimes(1,0);

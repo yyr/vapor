@@ -142,7 +142,7 @@ map <int, vector<Params*> >* Params::cloneAllParamsInstances(int winnum){
 		vector<Params*> *paramsVec = new vector<Params*>;
 		for (int j = 0; j<GetNumParamsInstances(i,winnum); j++){
 			Params* p = GetParamsInstance(i,winnum,j);
-			paramsVec->push_back(p->deepCopy(0));
+			paramsVec->push_back((Params*)(p->deepCopy(0)));
 		}
 		(*winParamsMap)[i] = *paramsVec;
 	}
@@ -155,7 +155,7 @@ vector <Params*>* Params::cloneAllDefaultParams(){
 	defaultParams->push_back(0); //don't use position 0
 	for (int i = 1; i<= GetNumParamsClasses(); i++){
 		Params* p = GetDefaultParams(i);
-		defaultParams->push_back(p->deepCopy(0));
+		defaultParams->push_back((Params*)(p->deepCopy(0)));
 	}
 	return (defaultParams);
 }
@@ -176,20 +176,7 @@ Params::Params(const Params& p) :
 {
 
 }
-Params* Params::deepCopy(ParamNode* ){
-	//Start with default copy  
-	Params* newParams = CreateDefaultParams(GetParamsBaseTypeId());
-	
-	// Need to clone the xmlnode; 
-	ParamNode* rootNode = GetRootNode();
-	if (rootNode) {
-		newParams->SetRootParamNode(rootNode->deepCopy());
-		newParams->GetRootNode()->SetParamsBase(newParams);
-	}
-	
-	newParams->setCurrentParamNode(newParams->GetRootNode());
-	return newParams;
-}
+
 Params* Params::CreateDefaultParams(int pType){
 	Command::blockCapture();
 	Params*p = (Params*)(createDefaultFcnMap[pType])();
@@ -211,6 +198,7 @@ void Params::clearDummyParamsInstances(){
 }
 
 int Params::GetInstanceIndex(){
+	int viznum = GetVizNum();
 	vector<Params*> instances = GetAllParamsInstances(GetParamsBaseTypeId(), GetVizNum());
 	for (int i = 0; i<instances.size(); i++){
 		if (this == instances[i]) return i;

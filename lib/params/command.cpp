@@ -165,7 +165,7 @@ void Command::resetCommandQueue(){
 
 Params* Command::CopyNextParams(){
 	if (!nextRoot) return 0;
-	Params* p = Params::GetParamsInstance(tag,winnum,instance)->deepCopy();
+	Params* p = (Params*)( Params::GetParamsInstance(tag,winnum,instance)->deepCopy());
 	ParamNode* r = p->GetRootNode();
 	if (r){
 		//detach from its parent Params...
@@ -177,7 +177,7 @@ Params* Command::CopyNextParams(){
 }
 Params* Command::CopyPreviousParams(){
 	if (!prevRoot) return 0;
-	Params* p = Params::GetParamsInstance(tag,winnum,instance)->deepCopy();
+	Params* p = (Params*)( Params::GetParamsInstance(tag,winnum,instance)->deepCopy());
 	ParamNode* r = p->GetRootNode();
 	if (r){
 		//detach from its parent Params...

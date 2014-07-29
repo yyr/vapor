@@ -153,7 +153,6 @@ public:
 	virtual ~RenderParams(){
 	}
 	
-	Params* deepCopy(ParamNode* nd = 0);
 	
 	void initializeBypassFlags();
 	

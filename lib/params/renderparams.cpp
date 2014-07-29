@@ -87,15 +87,7 @@ int RenderParams::GetRefinementLevel(){
 		return (GetValueLong(_RefinementLevelTag,defaultRefinement));
 }
 
-Params* RenderParams::deepCopy(ParamNode* nd){
-	//Start with default copy  
-	Params* newParams = Params::deepCopy(nd);
-	
-	RenderParams* renParams = dynamic_cast<RenderParams*>(newParams);
-	
-	renParams->bypassFlags = bypassFlags;
-	return renParams;
-}
+
 void RenderParams::SetEnabled(bool val){
 	long lval = (long)val;
 	Command::blockCapture();

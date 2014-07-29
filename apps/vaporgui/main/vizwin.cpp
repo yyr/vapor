@@ -151,13 +151,15 @@ mousePressEvent(QMouseEvent* e){
 			//With manip type 2, need to prevent right mouse slide on orthogonal handle
 			//With manip type 3, need to use orientation
 			bool OK = true;//Flag indicates whether the manip takes the mouse 
+			int orient = -1; //orientation of 2D boxes
 			switch (manipType) {
 				case 1 : //3d box manip
 					break;
 				case 2 : //2d box manip, ok if not right mouse on orthog direction
 					//Do nothing if grabbing orthog direction with right mouse:
-					if (buttonNum == 2 && ((handleNum == (rParams->getOrientation() +3))
-						|| (handleNum == (rParams->getOrientation() -2)))){
+					orient = rParams->GetBox()->GetOrientation();
+					if (buttonNum == 2 && ((handleNum == (orient +3))
+						|| (handleNum == (orient -2)))){
 							OK = false;
 					}
 					break;

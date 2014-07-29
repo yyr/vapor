@@ -448,12 +448,7 @@ ParamsBase* ParamsBase::CreateDefaultParamsBase(const string&tag){
 	ParamsBase *p = (createDefaultFcnMap[GetTypeFromTag(tag)])();
 	return p;
 }
-ParamsBase* DummyParamsBase::deepCopy(ParamNode* newRoot) {
-	ParamsBase* base = new DummyParamsBase(*this);
-	base->SetRootParamNode(newRoot);
-	if(newRoot) newRoot->SetParamsBase(base);
-	return base;
-}
+
 ParamsBase* ParamsBase::deepCopy(ParamNode* newRoot){
 	
 	//Start with default copy  
