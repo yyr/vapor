@@ -414,7 +414,7 @@ void TranslateStretchManip::render(){
 void TranslateStretchManip::drawBoxFaces(){
 	double corners[8][3];
 	int timestep = myVis->getActiveAnimationParams()->getCurrentTimestep();
-	myParams->calcLocalBoxCorners(corners, 0.f, timestep);
+	myParams->GetBox()->calcLocalBoxCorners(corners, 0.f, timestep);
 	
 	//Now the corners need to be put into the unit cube, and displaced appropriately
 	//Either displace just half the corners or do the opposite ones as well.
@@ -694,7 +694,7 @@ void TranslateRotateManip::drawBoxFaces(){
 		myPermuter = new Permuter(angles[0],angles[1],angles[2]);
 	}
 		
-	myParams->calcLocalBoxCorners(corners, 0.f, -1, tempRotation, tempRotAxis);
+	myParams->GetBox()->calcLocalBoxCorners(corners, 0.f, -1, tempRotation, tempRotAxis);
 	//Now the corners need to be put into the unit cube, and displaced appropriately
 	
 	//Either displace just half the corners (when stretching) or do the opposite ones as well.
@@ -890,7 +890,7 @@ void TranslateRotateManip::render(){
 	//Calculate the box extents, and the viewer position, in the unit cube,
 	//With any rotation applied:
 	
-	myParams->calcContainingStretchedBoxExtents(extents);
+	myParams->GetBox()->calcContainingStretchedBoxExtents(extents);
 	ViewpointParams* myViewpointParams = myVis->getActiveViewpointParams();
 	
 
@@ -1019,7 +1019,7 @@ double TranslateRotateManip::constrainStretch(double currentDist){
 	int axis1 = (selectedHandle < 3) ? (2 - selectedHandle):(selectedHandle -3);
 	//Don't drag the z-axis if it's planar:
 	if (axis2 == 2){
-		if (myParams->IsPlanar()) {
+		if (myParams->GetBox()->IsPlanar()) {
 			delete myPermuter;
 			return 0.f;
 		}

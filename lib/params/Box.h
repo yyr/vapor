@@ -192,6 +192,32 @@ public:
 	//! \param[in] numTimes int resulting length of times and extentss.
 	void Trim(Params* p,int numTimes = 1);
 
+	//! Indicate whether or not the box is constrained to be planar.  
+	//! This is true for 2D boxes and for Probe, if the probe is set
+	//! to be planar. 
+	bool IsPlanar() {return GetValueLong(Box::_planarTag) != 0;}
+
+	//! Set the value of the planar state, indicating whether or not
+	//! the box is constrained to be planar
+	//! \param[in] value bool indicates whether or be planar
+	//! \param[in] Params* params that owns this box
+	void SetPlanar(bool value, Params* p){
+		SetValueLong(Box::_planarTag, "Set box planar value", (long)value, p);
+	}
+	//! Indicate the orientation of a (2D) box
+	//! This is 0,1, or 2 based on the axis orthogonal to the box.
+	//! For 3D boxes this is -1.
+	int GetOrientation(){
+		return GetValueLong(Box::_orientationTag);
+	}
+	//! Set the value of the orientation state, indicating the axis
+	//! orthogonal to a 2D box (or -1 for 3D boxes)
+	//! \param[in] value long indicates the orientation value
+	//! \param[in] Params* params that owns this box
+	void SetOrientation(long value, Params* p){
+		SetValueLong(Box::_orientationTag, "Set box orientation", (long)value, p);
+	}
+
 	//! @name Internal
 	//! Internal methods not intended for general use
 	///@{
@@ -199,15 +225,35 @@ public:
 	//! Required static method for extensibility:
 	//! \retval ParamsBase* pointer to a default Params instance
 	static ParamsBase* CreateDefaultInstance() {return new Box();}
-	virtual ParamsBase* deepCopy(ParamNode* newRoot);
+	
+	//! method supports rotated boxes such as probe
+//! Specifies an axis-aligned box containing the rotated box.
+//! By default it just finds the box extents.
+//! Caller must supply extents array, which gets its values filled in.
+//! \param[out] float[6] Extents of containing box
+	void calcContainingStretchedBoxExtents(double extents[6], bool rotated = false) 
+		{if (!rotated) GetStretchedLocalExtents(extents,-1);
+		else calcRotatedStretchedBoxExtents(extents);}
+
+//! If the box is rotated, this method calculated the minimal axis-aligned extents
+//! containing all 8 corners of the box.
+//! \param[out] double extents[6] is smallest extents containing the box.
+	void calcRotatedStretchedBoxExtents(double extents[6]);
 
 	///@}
 
 #ifndef DOXYGEN_SKIP_THIS
+	void buildLocalCoordTransform(double transformMatrix[12], double extraThickness, int timestep, double rotation, int axis);
+	void convertThetaPhiPsi(double *newTheta, double* newPhi, double* newPsi, int axis, double rotation);
+	//Not part of public API
+	void calcLocalBoxCorners(double corners[8][3], float extraThickness, int timestep, double rotation = 0., int axis = -1);
+	
 	static const string _boxTag;
 	static const string _anglesTag;
 	static const string _extentsTag;
 	static const string _timesTag;
+	static const string _planarTag;
+	static const string _orientationTag;
 #endif //DOXYGEN_SKIP_THIS	
 };
 };

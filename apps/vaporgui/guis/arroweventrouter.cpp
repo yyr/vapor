@@ -69,12 +69,12 @@ ArrowEventRouter::hookUpTab()
 {
 	//following are needed for any renderer eventrouter:
 	
-	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
-	connect (lodCombo,SIGNAL(activated(int)), this, SLOT(guiSetCompRatio(int)));
-	connect (instanceTable, SIGNAL(changeCurrentInstance(int)), this, SLOT(guiChangeInstance(int)));
-	connect (copyCombo, SIGNAL(activated(int)), this, SLOT(guiCopyInstanceTo(int)));
-	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
-	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
+	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(setNumRefinements(int)));
+	connect (lodCombo,SIGNAL(activated(int)), this, SLOT(setCompRatio(int)));
+	connect (instanceTable, SIGNAL(changeCurrentInstance(int)), this, SLOT(changeInstance(int)));
+	connect (copyCombo, SIGNAL(activated(int)), this, SLOT(copyInstanceTo(int)));
+	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(newInstance()));
+	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(deleteInstance()));
 	connect (instanceTable, SIGNAL(enableInstance(bool,int)), this, SLOT(setArrowEnabled(bool,int)));
 	
 	//Unique connections for ArrowTab:
@@ -97,23 +97,23 @@ ArrowEventRouter::hookUpTab()
 	connect (yStrideEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
 	
 	//Connect variable combo boxes to their own slots:
-	connect (xVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetXVarNum(int)));
-	connect (yVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetYVarNum(int)));
-	connect (zVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetZVarNum(int)));
-	connect (heightCombo, SIGNAL(activated(int)),this,SLOT(guiSetHeightVarNum(int)));
-	connect (variableDimCombo, SIGNAL(activated(int)), this, SLOT(guiSetVariableDims(int)));
+	connect (xVarCombo,SIGNAL(activated(int)), this, SLOT(setXVarNum(int)));
+	connect (yVarCombo,SIGNAL(activated(int)), this, SLOT(setYVarNum(int)));
+	connect (zVarCombo,SIGNAL(activated(int)), this, SLOT(setZVarNum(int)));
+	connect (heightCombo, SIGNAL(activated(int)),this,SLOT(setHeightVarNum(int)));
+	connect (variableDimCombo, SIGNAL(activated(int)), this, SLOT(setVariableDims(int)));
 	//checkboxes
-	connect(terrainAlignCheckbox,SIGNAL(toggled(bool)), this, SLOT(guiToggleTerrainAlign(bool)));
-	connect(alignDataCheckbox,SIGNAL(toggled(bool)),this, SLOT(guiAlignToData(bool)));
+	connect(terrainAlignCheckbox,SIGNAL(toggled(bool)), this, SLOT(toggleTerrainAlign(bool)));
+	connect(alignDataCheckbox,SIGNAL(toggled(bool)),this, SLOT(alignToData(bool)));
 	//buttons:
-	connect (colorSelectButton, SIGNAL(pressed()), this, SLOT(guiSelectColor()));
-	connect (boxSliderFrame, SIGNAL(extentsChanged()), this, SLOT(guiChangeExtents()));
+	connect (colorSelectButton, SIGNAL(pressed()), this, SLOT(selectColor()));
+	connect (boxSliderFrame, SIGNAL(extentsChanged()), this, SLOT(changeExtents()));
 	connect (showHideLayoutButton, SIGNAL(pressed()), this, SLOT(showHideLayout()));
 	connect (showHideAppearanceButton, SIGNAL(pressed()), this, SLOT(showHideAppearance()));
-	connect (fitDataButton, SIGNAL(pressed()), this, SLOT(guiFitToData()));
+	connect (fitDataButton, SIGNAL(pressed()), this, SLOT(fitToData()));
 	//slider:
-	connect (barbLengthSlider, SIGNAL(sliderMoved(int)),this,SLOT(guiMoveScaleSlider(int)));
-	connect (barbLengthSlider, SIGNAL(sliderReleased()),this,SLOT(guiReleaseScaleSlider()));
+	connect (barbLengthSlider, SIGNAL(sliderMoved(int)),this,SLOT(moveScaleSlider(int)));
+	connect (barbLengthSlider, SIGNAL(sliderReleased()),this,SLOT(releaseScaleSlider()));
 
 }
 
@@ -574,7 +574,7 @@ void ArrowEventRouter::updateTab(){
 	if (isAligned){
 		double exts[6];
 		int grdExts[3];
-		arrowParams->calcDataAlignment(exts,grdExts,(size_t)currentTimeStep);
+		arrowParams->getDataAlignment(exts,grdExts,(size_t)currentTimeStep);
 		//Display the new aligned grid extents
 		xDimEdit->setText(QString::number(grdExts[0]));
 		yDimEdit->setText(QString::number(grdExts[1]));

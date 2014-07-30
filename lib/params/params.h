@@ -14,7 +14,7 @@
 //
 //	Date:		October 2004
 //
-//	Description:	Defines the Params and the RendererParams classes.
+//	Description:	Defines the Params  classes.
 //		This is an abstract class for all the tabbed panel params classes.
 //		Supports functionality common to all the tabbed panel params.
 
@@ -33,8 +33,6 @@
 #include <vapor/RegularGrid.h>
 #include "Box.h"
 
-class QWidget;
-
 using namespace VetsUtil;
 
 namespace VAPoR{
@@ -42,6 +40,7 @@ namespace VAPoR{
 class XmlNode;
 class ParamNode;
 class DummyParams;
+class RenderParams;
 class ViewpointParams;
 class RegionParams;
 class DataMgr;
@@ -66,6 +65,15 @@ class Command;
 //! all changes in state occurring during the VAPOR application can be represented as a change in the
 //! state of a Params instance.  The state of each Params instance is automatically saved and restored
 //! with the VAPOR Session file, using the XML representation.
+//! \par
+//! The Params class is derived from ParamsBase, which provides the association between a Params class and
+//! its representation as a set of (key,value) pairs.  All the parameters in a ParamsBase instance
+//! are stored in an XML tree, and can be retrieved based on the value of the associated tag (key).
+//! Params instances have additional capabilities (not found in ParamsBase instances), including the
+//! Undo/Redo support and the ability to be associated with a tab in the gui.  When it is desired to 
+//! contain a class within a Params class (such as a Transfer Function within a RenderParams) then
+//! the embedded class should be derived from ParamsBase, so that its state will be represented in the
+//! state of the containing Params instance.
 //! \par
 //! In the VAPOR GUI, each tab corresponds to a Params subclass, and the renderer tabs correspond to
 //! subclasses of RenderParams, a subclass of Params.  Several Params classes (BasicParams) have a unique
@@ -381,18 +389,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \sa GetName
 	 virtual const std::string getShortName()=0;
 
-//! Method indicates that a params instance has changed, e.g. during Undo/Redo
-//! Must be cleared after all users of the instance have checked it.
-//! Setting on a shared params results in it being set for all the different
-//! visualizers that share it;
-//! \param[in] val indicates that a change has occurred
-	void SetChanged(bool val);
 
-//! method to test if there has been a change.
-//! checks the bit associated with the visualizer.
-//! \param[in] viz index of visualizer, only needed for shared params
-//! \retval bool true if changed
-	bool HasChanged(int viz = -1);
 
 //! Pure virtual method for validation of all settings
 //! It is important that implementers of Params classes write this method so that
@@ -402,15 +399,12 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! associated with the current Data Manager.
 //! When the "default" argument is false, the method should change only those parameters that are
 //! inconsistent with the current Data Manager, setting them to values that are consistent.
+//! \par
+//! The Validate method is invoked after a SetValue is issued, so that the state of the Params
+//! object should be valid even after erroneous values have been set.
 //! \param[in] bool default 
 //! \sa DataMgr
 	virtual void Validate(bool setdefault)=0;
-
-//! Virtual method indicates that the geometry of this Params instance fits within a plane.
-//! Needed for Probe, Isolines, to prevent invalid manip stretching.
-//! Default returns false; must reimplement if the geometry is constrained to a plane.
-//! \retval bool returns true if geometry is constrained to a plane.
-	virtual bool IsPlanar() {return false;}
 
 //! Static method that tells whether or not any renderer is enabled in a visualizer. 
 //! Useful for application developers.
@@ -418,11 +412,11 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \retval True if any renderer is enabled 
 	static bool IsRenderingEnabled(int winnum);
 	
-//! Virtual method indicating whether a Params is a RenderParams instance.
+//! method indicating whether a Params is a RenderParams instance.
 //! Default returns false.
 //! Useful for application developers.
 //! \retval returns true if it is a RenderParams
-	virtual bool isRenderParams() const {return false;}
+	bool isRenderParams() const;
 
 //! Virtual method indicating whether a Params is "Basic", i.e. a Params
 //! class that has only one instance, used only for Undo/redo and sessions.  
@@ -430,7 +424,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! Default returns false.
 //! Useful for application developers.
 //! \retval returns true if it is UndoRedo
-	virtual bool isBasicParams() const {return false;}
+	bool isBasicParams() const;
 
 //! Pure virtual method, sets a Params instance to its default state, without any data present.
 //! Params implementers should assign valid values to all elements in the Params class in this method.
@@ -440,7 +434,19 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! With global or default or Basic Params this is -1 
 	virtual int GetVizNum() {return (int)(GetValueLong(_VisualizerNumTag));}
 
-//! Specify whether a [non-render]params is local or global. 
+//! Specify whether a [non-render]params is local or global.  
+//! The local/global setting provides a means of controlling the sharing or 
+//! non-sharing of parameters between different visualizers.
+//! A params instance
+//! is local if it applies only to in a single visualizer.  Global params instances
+//! are applied in all other (non-local) visualizers.
+
+//! For example if there are three visualizers,
+//! Visualizer 0, 1, and 2, and suppose that the ViewpointParams associated with 
+//! Visualizer 0 is Local, while the ViewpointParams associated with Visualizers 1 and 2
+//! are both Global.  In that case the viewpoint settings for Visualizer 0 can differ
+//! from the settings in Visualizer 1 and 2.  However Visualizer 1 and 2 will share the
+//! same (global) viewpoint.
 //! \param[in] lg boolean is true if is local 
 	virtual int SetLocal(bool lg){
 		return SetValueLong(_LocalTag,"set local or global",(long)lg);
@@ -459,34 +465,13 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \retval Box* returns pointer to the Box associated with this Params.
 	virtual Box* GetBox() {return 0;}
 
-//! Virtual method supports rotated boxes such as probe
-//! Specifies an axis-aligned box containing the rotated box.
-//! By default it just finds the box extents.
-//! Caller must supply extents array, which gets its values filled in.
-//! \param[out] float[6] Extents of containing box
-	virtual void calcContainingStretchedBoxExtents(double extents[6], bool rotated = false) 
-		{if (!rotated) GetBox()->GetStretchedLocalExtents(extents,-1);
-		else calcRotatedStretchedBoxExtents(extents);}
-
-//! If the box is rotated, this method calculated the minimal axis-aligned extents
-//! containing all 8 corners of the box.
-//! \param[out] double extents[6] is smallest extents containing the box.
-	void calcRotatedStretchedBoxExtents(double extents[6]);
-
-//! The orientation is used only with 2D Box Manipulators, and must be implemented for Params supporting such manipulators.  
-//! Valid values are 0,1,2 for being orthog to X,Y,Z-axes.
-//! Default is -1 (invalid)
-//! \retval int orientation direction (0,1,2)
-	virtual int getOrientation() { assert(0); return -1;}
 	//Following methods, while public, are not part of extensibility API
 	
 #ifndef DOXYGEN_SKIP_THIS
 	
-	//Not part of public API
-	void calcLocalBoxCorners(double corners[8][3], float extraThickness, int timestep, double rotation = 0., int axis = -1);
-	void buildLocalCoordTransform(double transformMatrix[12], double extraThickness, int timestep, double rotation, int axis);
-	void convertThetaPhiPsi(double *newTheta, double* newPhi, double* newPsi, int axis, double rotation);
-	virtual Params* deepCopy(ParamNode* nd = 0);
+	
+	
+	
 	static Params* CreateDummyParams(std::string tag);
 	static void	BailOut (const char *errstr, const char *fname, int lineno);
 
@@ -591,7 +576,7 @@ protected:
 		{return ParamsBase::SetValueStringVec(tag, description, value, this);}
 
 #ifndef DOXYGEN_SKIP_THIS
-	bool changeBit; //accessed via HasChanged() and SetChanged();
+	
 	//Params instances are vectors of Params*, one per instance, indexed by paramsBaseType, winNum
 	static map<pair<int,int>,vector<Params*> > paramsInstances;
 	//CurrentRenderParams indexed by paramsBaseType, winNum
@@ -616,123 +601,10 @@ public:
 //! Internal methods not intended for general use
 ///@{
 	BasicParams(XmlNode *parent, const string &name) : Params(parent, name, -1) {}
-	virtual bool isBasicParams() const {return true;}
 };
 ///@}
 
-//! \class RenderParams
-//! \ingroup Public_Params
-//! \brief A Params subclass for managing parameters used by Renderers
-//! \author Alan Norton
-//! \version 3.0
-//! \date    February 2014
-//!
-class PARAMS_API RenderParams : public Params {
-public: 
-//! @name Internal
-//! Internal methods not intended for general use
-///@{
 
-//! Standard RenderParams constructor.
-//! \param[in] parent  XmlNode corresponding to this Params class instance
-//! \param[in] name  std::string name, can be the tag
-//! \param[in] winNum  integer visualizer num, -1 for global or default params
-	RenderParams(XmlNode *parent, const string &name, int winnum); 
-///@}
-
-	//! Determine if this params has been enabled for rendering
-	//! \retval bool true if enabled
-	virtual bool IsEnabled(){
-		int enabled = GetValueLong(_EnabledTag);
-		return (enabled != 0);
-	}
-	//! Enable or disable this params for rendering
-	//! This should be executed between start and end capture
-	//! which provides the appropriate undo/redo support
-	//! Accordingly this will not make an entry in the undo/redo queue.
-	//! \param[in] bool true to enable, false to disable.
-	virtual void SetEnabled(bool val);
-
-	//! Pure virtual method indicates if a particular variable name is currently used by the renderer.
-	//! \param[in] varname name of the variable
-	//!
-	virtual bool usingVariable(const std::string& varname) = 0;
-	//! Pure virtual method sets current number of refinements of this Params.
-	//! \param[in] int refinements
-	//!
-	virtual int SetRefinementLevel(int numrefinements);
-	//! Pure virtual method indicates current number of refinements of this Params.
-	//! \retval integer number of refinements
-	//!
-	virtual int GetRefinementLevel();
-	//! Pure virtual method indicates current Compression level.
-	//! \retval integer compression level, 0 is most compressed
-	//!
-	virtual int GetCompressionLevel();
-	//! Pure virtual method sets current Compression level.
-	//! \param[in] val  compression level, 0 is most compressed
-	//!
-	virtual int SetCompressionLevel(int val);
-	//! Pure virtual method indicates whether or not the object will render as opaque.
-	//! Important to support multiple transparent (nonoverlapping) objects in the scene
-	//! \retval bool true if all geometry is opaque.
-	virtual bool IsOpaque() = 0;
-
-	//! Bypass flag is used to indicate a renderer should
-	//! not render until its state is changed.
-	//! Should be called when a rendering fails in a way that might repeat.
-	//! \param[in] timestep that should be bypassed
-	void setBypass(int timestep) {bypassFlags[timestep] = 2;}
-
-	//! Partial bypass is similar to the bypass flag.  It is currently only set by DVR.
-	//! This indicates a renderer should be bypassed at
-	//! full resolution but not at interactive resolution.
-	//! \param[in] timestep that should be bypassed
-	void setPartialBypass(int timestep) {bypassFlags[timestep] = 1;}
-
-	//! SetAllBypass is set to indicate all timesteps should be bypassed.
-	//! Should be set true when a render failure is independent of timestep.
-	//! Should be set false when state changes and rendering can be reattempted.
-	//! \param[in] val indicates whether it is being turned on or off. 
-	void setAllBypass(bool val);
-
-	//! This method returns the status of the bypass flag.
-	//! \param[in] int ts Time step
-	//! \retval bool value of flag
-	bool doBypass(int ts) {return ((ts < bypassFlags.size()) && bypassFlags[ts]);}
-
-	//! This method is used in the presence of partial bypass.
-	//! Indicates that the rendering should be bypassed at all resolutions.
-	//! \param[in] int ts Time step
-	//! \retval bool value of flag
-	bool doAlwaysBypass(int ts) {return ((ts < bypassFlags.size()) && bypassFlags[ts]>1);}
-
-
-#ifndef DOXYGEN_SKIP_THIS
-
-	int SetLocal(bool lg){
-		assert(lg);
-		return false;
-	}
-
-	bool IsLocal() {
-		return true;
-	}
-	
-	virtual ~RenderParams(){
-	}
-	
-	Params* deepCopy(ParamNode* nd = 0);
-	virtual bool isRenderParams() const {return true;}
-	
-	void initializeBypassFlags();
-	
-protected:
-	static const string _EnabledTag;
-	
-	vector<int> bypassFlags;
-#endif //DOXYGEN_SKIP_THIS
-};
 #ifndef DOXYGEN_SKIP_THIS
 //Note that DummyParams are not part of the Public API
 //These provide a repository for Params state for Params classes that are not
@@ -742,15 +614,7 @@ class DummyParams : public Params {
 		DummyParams(XmlNode *parent, const std::string tag, int winnum);
 	virtual ~DummyParams(){}
 	virtual void restart(){}
-	virtual int GetRefinementLevel() {
-		return 0;
-	}
-
-	virtual int GetCompressionLevel() {return 0;}
 	
-	virtual int SetCompressionLevel(int){return 0;}
-	virtual int SetRefinementLevel(int){return 0;}
-
 	virtual void Validate(bool) {return;}
 	
 	virtual bool usingVariable(const std::string& ){

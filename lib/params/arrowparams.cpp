@@ -1,7 +1,9 @@
 
 #include "arrowparams.h"
 #include "datastatus.h"
-
+#include "vapor/ParamsBase.h"
+#include "params.h"
+#include "renderparams.h"
 
 #include <string>
 
@@ -26,12 +28,14 @@ namespace {
 ArrowParams::ArrowParams(
 	XmlNode *parent, int winnum
 ) : RenderParams(parent, ArrowParams::_arrowParamsTag, winnum) {
-
+	Command::blockCapture();
 	restart();
+	Command::unblockCapture();
 }
 
 
 ArrowParams::~ArrowParams() {
+
 }
 
 //Initialize for new metadata.  Keep old transfer functions
@@ -176,9 +180,10 @@ Validate(bool doOverride){
 //Set everything to default values
 void ArrowParams::restart() {
 	
+	SetVizNum(0);
 	SetRefinementLevel(0);
 	SetCompressionLevel(0);
-	SetVizNum(0);
+	
 	SetFieldVariableName(0, "xvar");
 	SetFieldVariableName(1, "yvar");
 	SetFieldVariableName(2, "0");
@@ -222,7 +227,7 @@ void ArrowParams::restart() {
 }
 //calculate rake extents when aligned to data.
 //Also determine the dimensions (size) of the grid-aligned rake
-void ArrowParams::calcDataAlignment(double rakeExts[6], int rakeGrid[3],size_t timestep){
+void ArrowParams::getDataAlignment(double rakeExts[6], int rakeGrid[3],size_t timestep){
 	//Find the first data point that fits in the rake extents:
 	//Take the rake corner, convert it to voxels
 	size_t corner[3],farCorner[3];

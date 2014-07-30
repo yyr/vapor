@@ -361,7 +361,8 @@ reinitializeParams(bool doOverride){
 		Params* p = Params::GetDefaultParams(i);
 		bool rparams = p->isRenderParams();
 		p->Validate(rparams||doOverride);
-		p->SetChanged(true);
+		ViewpointParams* vpp = dynamic_cast<ViewpointParams*>(p);
+		if (vpp) vpp->SetChanged(true);
 	}
 
 	std::map<int,Visualizer*>::iterator it;
@@ -377,7 +378,6 @@ reinitializeParams(bool doOverride){
 				if (!p->isRenderParams()) break;
 				RenderParams* rParams = (RenderParams*)p;
 				rParams->SetEnabled(false);
-				rParams->SetChanged(true);
 			}
 			//Set the active instances for renderParams
 			Params* q = Params::GetDefaultParams(pType);

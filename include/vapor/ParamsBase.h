@@ -51,12 +51,26 @@ class Params;
 //! kept in an xml node.  Used with the ParamNode class to support
 //! user-defined Params classes as well as other classes such as
 //! the TransferFunction class.
-//! 
+//! \par
+//! The ParamsBase class provides SetValue and GetValue methods supporting setting and retrieving
+//! values from an XML representation.  In addition, the SetValue methods can be used to support
+//! Undo and Redo when a Params object is specified as its argument.  Likewise the
+//! Params object is used to validate the SetValue() results by calling its Validate() method.
+//! \par
+//! The Params class is derived from ParamsBase, which provides the association between a Params class and
+//! its representation as a set of (key,value) pairs.  All the parameters in a ParamsBase instance
+//! are stored in an XML tree, and can be retrieved based on the value of the associated tag (key).
+//! Params instances have additional capabilities (not found in ParamsBase instances), including the
+//! Undo/Redo support and the ability to be associated with a tab in the gui.  When it is desired to 
+//! contain a class within a Params class (such as a Transfer Function within a RenderParams) then
+//! the embedded class should be derived from ParamsBase, so that its state will be represented in the
+//! state of the containing Params instance.
+//! \par
 //! Implementers of VAPOR extensions may find it useful to implement
 //! classes that are contained in Params classes, and whose XML
 //! representation will then be a subtree of the root ParamNode of the Params class.
-//! These classes should be derived from ParamsBase, but are in most aspects similar
-//! to Params classes.  Examples of ParamsBase classes include TransferFunction, 
+//! These classes should be derived from ParamsBase, and can be
+//! included in many different Params classes.  Examples of ParamsBase classes include TransferFunction, 
 //! Box, and Viewpoint.
 //! \sa Box, Viewpoint, TransferFunction
 //!
@@ -86,17 +100,7 @@ ParamsBase(const ParamsBase &pbase);
 //! destructor..destroys the xml tree based at the root node.
 virtual ~ParamsBase();
 
- //! Make a copy of a ParamBase that optionally uses specified 
- //! clone of the ParamNode as its root node.  If the root
- //! is null, the copy ignores any ParamNodes.  
- //! Derived classes must clone themselves, and then reassign
- //! newRoot to the clone root node, and also call SetParamsBase()
- //! on the new root to set its ParamsBase node to this. 
- //!
- //! \param[in] newRoot Root of cloned ParamsBase instance
- //! \retval instance Pointer to cloned instance
- //
- virtual ParamsBase* deepCopy(ParamNode* newRoot = 0) = 0;
+ 
 
 //! @name Internal
 //! Internal methods not intended for general use
@@ -164,11 +168,7 @@ virtual ParamNode* buildNode();
 
 ParamNode *GetRootNode() { return(_rootParamNode); }
 
-//!	
-//! Method for manual setting of node flags
-//!
 
-void SetFlagDirty(const string& flag);
 //!	
 //! Method for obtaining the name and/or tag associated with the instance
 //!
@@ -405,6 +405,12 @@ static ParamsBase* CreateDefaultParamsBase(const string&tag);
 	static void addDummyParamsBaseInstance(ParamsBase*const & pb ) {dummyParamsBaseInstances.push_back(pb);}
 
 	static void clearDummyParamsBaseInstances();
+	//! Make a copy of a ParamBase that optionally uses specified 
+	//! clone of the ParamNode as its root node.  
+	//!
+	//! \param[in] newRoot Root of cloned ParamsBase instance
+	//! \retval instance Pointer to cloned instance
+	ParamsBase* deepCopy(ParamNode* newRoot = 0);
 
 private:
 	//These should be accessed by subclasses through get() and set() methods
@@ -520,7 +526,7 @@ class DummyParamsBase : public ParamsBase {
 	public:
 		DummyParamsBase(XmlNode *parent, const string &name) :
 		  ParamsBase(parent, name) {}
-		ParamsBase* deepCopy(ParamNode* nd = 0);
+		
 	virtual ~DummyParamsBase(){}
 };
 #endif //DOXYGEN_SKIP_THIS

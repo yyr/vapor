@@ -328,7 +328,7 @@ createDefaultParams(int winnum){
 		string tag = ControlExec::GetTagFromType(i);
 		Params* q = ControlExec::GetDefaultParams(tag);
 		
-		Params* p = q->deepCopy();
+		Params* p = (Params*)(q->deepCopy());
 		p->SetVizNum(winnum);
 		//Check for strange error:
 		assert( ControlExec::GetNumParamsInstances(winnum,tag) == 0);
