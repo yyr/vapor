@@ -18,8 +18,12 @@
 
 #include <vector>
 #include "Matrix3d.h"
+#ifdef ASSIMP_2
 #include <assimp/assimp.hpp>
-
+#else
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#endif
 
 using namespace std;
 
