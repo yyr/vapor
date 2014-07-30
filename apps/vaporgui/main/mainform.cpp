@@ -204,7 +204,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 MainForm::~MainForm()
 {
 	if (modeStatusWidget) delete modeStatusWidget;
-   
+    if (banner) delete banner;
 	
     // no need to delete child widgets, Qt does it all for us?? (see closeEvent)
 }
