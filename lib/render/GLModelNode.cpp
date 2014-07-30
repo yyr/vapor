@@ -16,9 +16,14 @@
 #include "glutil.h"	// Must be included first!!!
 #include <QApplication>
 
+#ifdef ASSIMP_2
 #include <assimp/assimp.h>
 #include <assimp/aiScene.h>
 #include <assimp/aiPostProcess.h>
+#else
+#include <assimp/postprocess.h>
+#include <assimp/cimport.h>
+#endif
 #include <assert.h>
 #include "GLModelNode.h"
 

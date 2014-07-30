@@ -117,6 +117,10 @@ BUILD_MODELS = 1
 #
 BUILD_DOXYGEN = 0
 
+# Uncomment the line below to use assimp 2.x.
+# Default is to use assimp 3.x
+#
+# ASSIMP_2 = 1
 
 ##
 ##
