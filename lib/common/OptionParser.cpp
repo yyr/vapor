@@ -276,16 +276,7 @@ int	VetsUtil::CvtToStrVec(
 	vector <string> *vptr	= (vector <string> *) to;
 	vptr->clear();
 
-	string::size_type idx;
-
-    string s(from);
-    while (! s.empty() && (idx = s.find(":", 0)) != string::npos) {
-        vptr->push_back(s.substr(0, idx));
-        s.erase(0,idx+1);
-    }
-    if (! s.empty()) {
-        vptr->push_back(s);
-    }
+	(void) SplitString(from, ':', *vptr);
 
 	return(1);
 }
@@ -301,24 +292,40 @@ int	VetsUtil::CvtToIntVec(
 	vector <int> *vptr	= (vector <int> *) to;
 	vptr->clear();
 
-	string::size_type idx;
+    string s(from);
+	char delim;
+	if (s.find(":") != string::npos) {
+		delim = ':';
+	}
+	else {
+		delim = 'x';
+	}
+	(void) SplitString(from, delim, *vptr);
+
+	return(1);
+}
+
+//
+//	CvtToSize_tVec()
+//
+//	convert a colon delimited ascii string to vector of C++ STL size_t
+//
+int	VetsUtil::CvtToSize_tVec(
+	const char	*from,	/* the string	*/
+	void		*to
+) {
+	vector <size_t> *vptr	= (vector <size_t> *) to;
+	vptr->clear();
 
     string s(from);
-    while (! s.empty() && (idx = s.find(":", 0)) != string::npos) {
-		int val;
-		int nints = sscanf(s.substr(0,idx).c_str(),"%d",&val);
-		if (nints == 1)
-			vptr->push_back(val);
-		else vptr->push_back(0);
-        s.erase(0,idx+1);
-    }
-    if (! s.empty()) {
-        int val;
-		int nints = sscanf(s.c_str(),"%d",&val);
-		if (nints == 1)
-			vptr->push_back(val);
-		else vptr->push_back(0);
-    }
+	char delim;
+	if (s.find(":") != string::npos) {
+		delim = ':';
+	}
+	else {
+		delim = 'x';
+	}
+	(void) SplitString(from, delim, *vptr);
 
 	return(1);
 }
@@ -335,24 +342,15 @@ int	VetsUtil::CvtToFloatVec(
 	vector <float> *vptr	= (vector <float> *) to;
 	vptr->clear();
 
-	string::size_type idx;
-
     string s(from);
-    while (! s.empty() && (idx = s.find(":", 0)) != string::npos) {
-		int val;
-		int nints = sscanf(s.substr(0,idx).c_str(),"%d",&val);
-		if (nints == 1)
-			vptr->push_back(val);
-		else vptr->push_back(0);
-        s.erase(0,idx+1);
-    }
-    if (! s.empty()) {
-        float val;
-		float nints = sscanf(s.c_str(),"%f",&val);
-		if (nints == 1)
-			vptr->push_back(val);
-		else vptr->push_back(0);
-    }
+	char delim;
+	if (s.find(":") != string::npos) {
+		delim = ':';
+	}
+	else {
+		delim = 'x';
+	}
+	(void) SplitString(from, delim, *vptr);
 
 	return(1);
 }

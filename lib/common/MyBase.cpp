@@ -7,6 +7,8 @@
 #include <cctype>
 #include <string>
 #include <vector>
+#include <iostream>
+#include <sstream>
 
 #include <vapor/MyBase.h>
 #ifdef WIN32
@@ -254,6 +256,58 @@ void VetsUtil::StrToWordVec(const string &s, vector <string> &v)
 		}
 	}
 }
+
+
+std::vector<std::string> &VetsUtil::SplitString(
+	const std::string &s, char delim, std::vector<std::string> &elems
+) {
+	elems.clear();
+
+    stringstream ss(s);
+    string item;
+    while (getline(ss, item, delim)) {
+        if (!item.empty()) elems.push_back(item);
+    }
+    return elems;
+}
+
+namespace {
+
+template <class T> vector <T> &splitString(
+	const std::string &s, char delim, std::vector<T> &elems
+) {
+	elems.clear();
+	vector <string> tokens;
+	(void) VetsUtil::SplitString(s, delim, tokens);
+	for (int i=0; i<tokens.size(); i++) {
+		stringstream ss(tokens[i]);
+		T elem;
+		ss >> elem;
+		elems.push_back(elem);
+	}
+	return(elems);
+}
+
+};
+
+std::vector<size_t> &VetsUtil::SplitString(
+	const std::string &s, char delim, std::vector<size_t> &elems
+) {
+	return(splitString(s,delim,elems));
+}
+
+std::vector<int> &VetsUtil::SplitString(
+	const std::string &s, char delim, std::vector<int> &elems
+) {
+	return(splitString(s,delim,elems));
+}
+
+std::vector<float> &VetsUtil::SplitString(
+	const std::string &s, char delim, std::vector<float> &elems
+) {
+	return(splitString(s,delim,elems));
+}
+		
 
 unsigned long long VetsUtil::GetBits64(
     unsigned long long targ,
