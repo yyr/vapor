@@ -1,8 +1,10 @@
 MISC_FILES := \
-	vizfeatureparams  
+	vizfeatureparams \
+	bannergui
 	
 
 MISC_QT_HEADERS := \
-	vizfeatureparams
+	vizfeatureparams\
+	bannergui
 	 
 

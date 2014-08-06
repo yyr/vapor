@@ -142,19 +142,19 @@ AnimationEventRouter::hookUpTab()
 	connect (maxFrameRateEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
 	
 	//Animation control widgets that result in rebuilding animation
-	connect (keyTimestepEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
-	connect (numFramesEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
-	connect (speedEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
-	connect (timestepRateEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+	//connect (keyTimestepEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+	//connect (numFramesEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+	//connect (speedEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+	//connect (timestepRateEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
 	
 
 	connect (frameStepSlider, SIGNAL(valueChanged(int)), this, SLOT (setFrameStep(int)));
 	connect (animationSlider, SIGNAL(valueChanged(int)), this, SLOT (setPosition(int)));
-	connect (timestepSampleCheckbox, SIGNAL(toggled(bool)), this, SLOT(toggleTimestepSample(bool)));
-	connect (timestepSampleTable, SIGNAL(cellChanged(int,int)), this, SLOT(timestepChanged(int,int)));
-	connect (addSampleButton,SIGNAL(clicked()), this, SLOT(addSample()));
-	connect (deleteSampleButton,SIGNAL(clicked()), this, SLOT(deleteSample()));
-	connect (rebuildButton, SIGNAL(clicked()), this, SLOT(rebuildList()));
+	//connect (timestepSampleCheckbox, SIGNAL(toggled(bool)), this, SLOT(toggleTimestepSample(bool)));
+	//connect (timestepSampleTable, SIGNAL(cellChanged(int,int)), this, SLOT(timestepChanged(int,int)));
+	//connect (addSampleButton,SIGNAL(clicked()), this, SLOT(addSample()));
+	//connect (deleteSampleButton,SIGNAL(clicked()), this, SLOT(deleteSample()));
+	//connect (rebuildButton, SIGNAL(clicked()), this, SLOT(rebuildList()));
 	
 	//Button clicking for toggle buttons:
 	connect(pauseButton, SIGNAL(clicked()), this, SLOT(animationPauseClick()));
@@ -169,7 +169,7 @@ AnimationEventRouter::hookUpTab()
 
 	
 
-	connect (keyIndexSpin, SIGNAL(valueChanged(int)),this, SLOT(changeKeyIndex(int)));
+	//connect (keyIndexSpin, SIGNAL(valueChanged(int)),this, SLOT(changeKeyIndex(int)));
 	
 	
 

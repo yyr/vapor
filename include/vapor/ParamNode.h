@@ -440,7 +440,15 @@ public:
  ParamNode *GetNode(const vector<string> &tagpath);
 
  //! Return the indicated child node. 
- //!
+ //! \par
+ //! This method is useful whenever it is necessary to obtain data
+ //! from a node in the XML hierarchy that is not the root node.
+ //! For example, ParamsIso class instances are represented as XML
+ //! hierarchies with a subnode for each of the variables in the VDC.
+ //! In order to obtain the TransferFunction for one of these variables,
+ //! one can use GetNode("var") to obtain the node associated with the
+ //! variable "var", and then use GetNode(_transferFunctionTag) to obtain the
+ //! XML node associated with the TransferFunction.
  //! Return the indicated tagged child node. Return NULL if the child 
  //! does not exist.
  //! \param[in] tag Name of the child node to return

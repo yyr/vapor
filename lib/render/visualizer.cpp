@@ -24,6 +24,7 @@
 #include <vapor/GetAppPath.h>
 #include "visualizer.h"
 #include "renderer.h"
+#include "renderparams.h"
 #include "viewpointparams.h"
 #include "regionparams.h"
 #include "animationparams.h"

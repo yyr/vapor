@@ -68,8 +68,8 @@ void
 ViewpointEventRouter::hookUpTab()
 {
 	
-	connect (stereoCombo, SIGNAL (activated(int)), this, SLOT (guiSetStereoMode(int)));
-	connect (latLonCheckbox, SIGNAL (toggled(bool)), this, SLOT(guiToggleLatLon(bool)));
+	//connect (stereoCombo, SIGNAL (activated(int)), this, SLOT (guiSetStereoMode(int)));
+	//connect (latLonCheckbox, SIGNAL (toggled(bool)), this, SLOT(guiToggleLatLon(bool)));
 	connect (camPosLat, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
 	connect (camPosLon, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
 	connect (rotCenterLat, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));

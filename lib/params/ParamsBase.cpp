@@ -448,9 +448,19 @@ ParamsBase* ParamsBase::CreateDefaultParamsBase(const string&tag){
 	ParamsBase *p = (createDefaultFcnMap[GetTypeFromTag(tag)])();
 	return p;
 }
-ParamsBase* DummyParamsBase::deepCopy(ParamNode* newRoot) {
-	ParamsBase* base = new DummyParamsBase(*this);
-	base->SetRootParamNode(newRoot);
-	if(newRoot) newRoot->SetParamsBase(base);
-	return base;
+
+ParamsBase* ParamsBase::deepCopy(ParamNode* newRoot){
+	
+	//Start with default copy  
+	ParamsBase* newParamsBase = CreateDefaultParamsBase(GetParamsBaseTypeId());
+	
+	// Need to clone the xmlnode; 
+	ParamNode* rootNode = GetRootNode();
+	if (rootNode) {
+		newParamsBase->SetRootParamNode(rootNode->deepCopy());
+		newParamsBase->GetRootNode()->SetParamsBase(newParamsBase);
+	}
+	
+	newParamsBase->setCurrentParamNode(newParamsBase->GetRootNode());
+	return newParamsBase;
 }

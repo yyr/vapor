@@ -6,7 +6,7 @@ LIBRARY = params
 FILES = \
 	datastatus glutil \
 	params regionparams arrowparams mousemodeparams \
-	viewpoint  vizwinparams instanceparams \
+	renderparams viewpoint  vizwinparams instanceparams \
 	animationparams	viewpointparams ParamsBase Box \
 	ParamNode command  
 	

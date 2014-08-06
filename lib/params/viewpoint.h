@@ -45,7 +45,7 @@ public:
 //! @name Internal
 //! Internal methods not intended for general use
 ///@{
-	virtual ParamsBase* deepCopy(ParamNode* newRoot);
+	
 	//! Required static method (for extensibility):
 	//! \retval ParamsBase* pointer to a default Params instance
 	static ParamsBase* CreateDefaultInstance() {return new Viewpoint();}

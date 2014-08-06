@@ -3,7 +3,7 @@
 #define ARROWPARAMS_H
 
 #include "vapor/ParamNode.h"
-#include "params.h"
+#include "renderparams.h"
 #include "command.h"
 #include "datastatus.h"
 
@@ -72,6 +72,11 @@ public:
 	int SetRakeLocalExtents(const vector<double>&exts);
 		
 	//! Determine the size of the rake grid
+	//! Note that this Get method has a default value, which
+	//! may be needed whenever an older session file is used.
+	//! If the older session file does not assign a value to
+	//! the rake grid tag, then GetRakeGrid() will provide
+	//! a default value.
 	//! \retval vector<long> grid
 	const vector<long> GetRakeGrid(){
 		const vector<long> defaultGrid(3,1);
@@ -96,6 +101,8 @@ public:
 		return SetValueDouble(_lineThicknessTag,"Set barb thickness",val);
 	}
 	//! Get the scale factor for vector length. 1.0 is (scene diameter)/100.
+	//! A default value is provided to deal with older session files that
+	//! did not specify the scale.
 	//! \retval double scale factor
 	double GetVectorScale(){
 		const vector<double>defaultScale(1,1.);
@@ -159,6 +166,8 @@ public:
 		return rc;
 	}
 	//! Determine whether 3D field variables are being used.
+	//! Default value is provided for older session files that did not specify
+	//! variable dimension.
 	//! \retval bool true if 3D, false if 2D
 	bool VariablesAre3D() {
 		const vector<long>three(1,3);
@@ -195,7 +204,7 @@ public:
 	//! \param[out] int rakeGrid[3] Size of the resulting rake grid
 	//! \param[in] size_t timestep 
 	//!
-	void calcDataAlignment(double rakeExts[6],int rakeGrid[3], size_t timestep);
+	void getDataAlignment(double rakeExts[6],int rakeGrid[3], size_t timestep);
 	//! Utility function to calculate default vector scale factor,
 	//! based on currently selected vector fields.
 	//! Used in gui setup 

@@ -19,6 +19,7 @@
 #include "command.h"
 #include "params.h"
 #include "arrowparams.h"
+#include "viewpointparams.h"
 
 using namespace VAPoR;
 
@@ -130,7 +131,8 @@ Params* Command::BackupQueue(){
 	Command* cmd = CurrentUndoCommand();
 	if (!cmd) return 0;
 	Params* p = cmd->unDo();
-	p->SetChanged(true);
+	ViewpointParams* vpp = dynamic_cast<ViewpointParams*>(p);
+	if(vpp) vpp->SetChanged(true);
 	currentQueuePos--;
 	return p;
 }
@@ -143,7 +145,8 @@ Params* Command::AdvanceQueue(){
 	Command* cmd = CurrentRedoCommand();
 	if (!cmd) return 0;
 	Params* p = cmd->reDo();
-	p->SetChanged(true);
+	ViewpointParams* vpp = dynamic_cast<ViewpointParams*>(p);
+	if(vpp) vpp->SetChanged(true);
 	currentQueuePos++;
 	return p;
 }
@@ -162,7 +165,7 @@ void Command::resetCommandQueue(){
 
 Params* Command::CopyNextParams(){
 	if (!nextRoot) return 0;
-	Params* p = Params::GetParamsInstance(tag,winnum,instance)->deepCopy();
+	Params* p = (Params*)( Params::GetParamsInstance(tag,winnum,instance)->deepCopy());
 	ParamNode* r = p->GetRootNode();
 	if (r){
 		//detach from its parent Params...
@@ -174,7 +177,7 @@ Params* Command::CopyNextParams(){
 }
 Params* Command::CopyPreviousParams(){
 	if (!prevRoot) return 0;
-	Params* p = Params::GetParamsInstance(tag,winnum,instance)->deepCopy();
+	Params* p = (Params*)( Params::GetParamsInstance(tag,winnum,instance)->deepCopy());
 	ParamNode* r = p->GetRootNode();
 	if (r){
 		//detach from its parent Params...

@@ -23,7 +23,7 @@
 #include "mainform.h"
 #include <qfont.h>
 #include <QMessageBox>
-
+#include "bannergui.h"
 #include "vapor/GetAppPath.h"
 #ifdef WIN32
 #include "Windows.h"
@@ -170,6 +170,8 @@ int main( int argc, char ** argv ) {
 	
     mw->setWindowTitle( "VAPOR User Interface" );
     mw->show();
+    std::string banner_file_name = "vapor_banner.png";
+    BannerGUI* banner = new BannerGUI(banner_file_name, 3000);
     a.connect( &a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()) );
 	int estatus = a.exec();
 

@@ -25,7 +25,11 @@
 #include <GL/glew.h>
 
 #ifdef MODELS
+#ifdef ASSIMP_2
 #include <assimp/assimp.hpp>
+#else
+#include <assimp/Importer.hpp>
+#endif
 #endif
 
 #include "instancetable.h"

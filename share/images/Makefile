@@ -4,6 +4,7 @@ include $(TOP)/make/config/prebase.mk
 
 PFILES = $(wildcard *.tif)
 PFILES += $(wildcard *.tiff)
+PFILES += $(wildcard *.png)
 
 
 INSTALL_IMAGES_DIR = $(INSTALL_SHAREDIR)/images
