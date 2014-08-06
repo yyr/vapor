@@ -31,9 +31,6 @@ class QMouseEvent;
 class QFocusEvent;
 
 namespace VAPoR {
-//!
-//! \defgroup Public_GUI VAPOR GUI Developer API
-//!
 class MainForm;
 class VizWinMgr;
 class Visualizer;

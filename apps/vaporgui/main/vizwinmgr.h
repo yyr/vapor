@@ -49,9 +49,6 @@ class VizWin;
 class AnimationEventRouter;
 class RegionEventRouter;
 class ViewpointEventRouter;
-//!
-//! \defgroup Public_GUI VAPOR GUI Developer API
-//!
 
 typedef EventRouter* (EventRouterCreateFcn)();
 

@@ -34,8 +34,6 @@ class QWidget;
 namespace VAPoR{
 
 //!
-//! \defgroup Public_GUI VAPOR GUI Developer API
-//!
 //! \class EventRouter
 //! \ingroup Public_GUI
 //! \brief A pure virtual class specifying the common properties of all the parameter tabs in the VAPOR GUI
