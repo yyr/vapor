@@ -48,7 +48,6 @@ class DataMgr;
 class Command;
 
 //!
-//! \defgroup Public_Params VAPOR Params Developer API
 //!
 
 //! \class Params
