@@ -43,6 +43,7 @@ set rawfile = $argv[1]
 #echo raw2x_options = $raw2x_options
 #echo x2raw_options = $x2raw_options
 #echo rawfile = $rawfile
+#exit 0
 
 set vdffile = $TmpDir/${ProgName:r}_vdf.vdf
 /bin/rm -fr $vdffile
