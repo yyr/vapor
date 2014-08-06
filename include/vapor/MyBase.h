@@ -321,6 +321,22 @@ private:
  //
  COMMON_API void	StrToWordVec(const string &s, vector <string> &v);
 
+
+ std::vector<std::string> &SplitString(
+    const std::string &s, char delim, std::vector<std::string> &elems
+ ); 
+ std::vector<size_t> &SplitString(
+    const std::string &s, char delim, std::vector<size_t> &elems
+ ); 
+ std::vector<int> &SplitString(
+    const std::string &s, char delim, std::vector<int> &elems
+ ); 
+ std::vector<float> &SplitString(
+    const std::string &s, char delim, std::vector<float> &elems
+ ); 
+
+
+
  //! Retrieve a sequence of bits
  //!
  //! Extract \p n bits from \p targ starting at position

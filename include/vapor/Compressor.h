@@ -357,6 +357,16 @@ public:
  //!
  double &Epsilon() {return (_epsilon); };
 
+ static bool CompressionInfo(
+	vector <size_t> dims, const string wavename,
+	bool keepapp, size_t &nlevels, size_t &maxcratio
+ );
+
+
+ friend std::ostream &operator<<(
+    std::ostream &o, const Compressor &rhs
+ );
+
 private:
 
 	vector <size_t> _dims;	// dimensions of array
