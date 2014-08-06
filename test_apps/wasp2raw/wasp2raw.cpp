@@ -101,7 +101,8 @@ int	main(int argc, char **argv) {
 	int rc = wasp.Open(ncdffile, NC_WRITE);
 
 	vector <size_t> dims;
-	rc = wasp.InqVarDimlens(opt.varname, dims, opt.level);
+	vector <size_t> bs;
+	rc = wasp.InqVarDimlens(opt.varname, opt.level, dims, bs);
 	if (rc<0) exit(1);
 
 

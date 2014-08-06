@@ -110,19 +110,19 @@ int read_data(
 	}
 
 	float *dptr = slice;
-	if (type.compare("float32")) {
+	if (type.compare("float32")==0) {
 		float *sptr = (float *) buffer;
 		for (size_t i=0; i<n; i++) {
 			*dptr++ = (float) *sptr++;
 		}
 	}
-	else if (type.compare("float64")) {
+	else if (type.compare("float64")==0) {
 		double *sptr = (double *) buffer;
 		for (size_t i=0; i<n; i++) {
 			*dptr++ = (float) *sptr++;
 		}
 	}
-	else if (type.compare("int8")) {
+	else if (type.compare("int8")==0) {
 		char *sptr = (char *) buffer;
 		for (size_t i=0; i<n; i++) {
 			*dptr++ = (float) *sptr++;
@@ -176,23 +176,15 @@ int	main(int argc, char **argv) {
 
 	int rc = vdc.Initialize(master, VDC::A, 4*1024*1024);
 
-	VDC::DataVar dvar;
-	VDC::CoordVar cvar;
-	VDC::VarBase *vptr;
-	if (vdc.GetDataVar(opt.varname, dvar)) {
-		vptr = &dvar;
-	} 
-	else if (vdc.GetCoordVar(opt.varname, cvar)) {
-		vptr = &cvar;
-	}
-	else {
+	VDC::BaseVar var;
+	if (! vdc.GetBaseVarInfo(opt.varname, var)) {
 		MyBase::SetErrMsg("Invalid variable name: %s", opt.varname.c_str());
 		exit(1);
 	}
 
 	vector <size_t> sdims;
 	size_t numts;
-	if (! vdc.ParseDimensions(vptr->GetDimensions(), sdims, numts)) {
+	if (! vdc.ParseDimensions(var.GetDimensions(), sdims, numts)) {
 		MyBase::SetErrMsg("VDC corrupt, invalid dimensions");
 		exit(1);
 	}

@@ -24,9 +24,9 @@ struct opt_t {
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	debug;
 	OptionParser::Boolean_T	quiet;
-	OptionParser::IntRange_T xregion;
-	OptionParser::IntRange_T yregion;
-	OptionParser::IntRange_T zregion;
+	vector <int> xregion;
+	vector <int> yregion;
+	vector <int> zregion;
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
@@ -56,9 +56,9 @@ OptionParser::Option_T	get_options[] = {
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
-	{"xregion", VetsUtil::CvtToIntRange, &opt.xregion, sizeof(opt.xregion)},
-	{"yregion", VetsUtil::CvtToIntRange, &opt.yregion, sizeof(opt.yregion)},
-	{"zregion", VetsUtil::CvtToIntRange, &opt.zregion, sizeof(opt.zregion)},
+	{"xregion", VetsUtil::CvtToIntVec, &opt.xregion, sizeof(opt.xregion)},
+	{"yregion", VetsUtil::CvtToIntVec, &opt.yregion, sizeof(opt.yregion)},
+	{"zregion", VetsUtil::CvtToIntVec, &opt.zregion, sizeof(opt.zregion)},
 	{NULL}
 };
 
@@ -83,19 +83,19 @@ int write_data(
 	
 
 	const float *sptr = slice;
-	if (type.compare("float32")) {
+	if (type.compare("float32")==0) {
 		float *dptr = (float *) buffer;
 		for (size_t i=0; i<n; i++) {
 			*dptr++ = (float) *sptr++;
 		}
 	}
-	else if (type.compare("float64")) {
+	else if (type.compare("float64")==0) {
 		double *dptr = (double *) buffer;
 		for (size_t i=0; i<n; i++) {
 			*dptr++ = (double) *sptr++;
 		}
 	}
-	else if (type.compare("int8")) {
+	else if (type.compare("int8")==0) {
 		char *dptr = (char *) buffer;
 		for (size_t i=0; i<n; i++) {
 			*dptr++ = (char) *sptr++;
@@ -109,6 +109,77 @@ int write_data(
 	}
 
 	return(0);
+}
+
+
+void process_volume(
+	VDCNetCDF &vdc,
+	FILE *fp,
+	vector <size_t> dims,
+	string type
+) {
+
+	size_t nelements = dims[0];
+	if (dims.size() > 1) nelements *= dims[1];
+
+	float *slice = new float[nelements];
+
+    size_t nz = dims.size() > 2 ? dims[2] : 1;
+
+	for (size_t i=0; i<nz; i++) {
+		int rc = vdc.ReadSlice(slice);
+		if (rc<0) exit(1);
+
+		rc = write_data(fp, opt.type, nelements, slice);
+		if (rc<0) exit(1);
+	}
+	delete [] slice;
+}
+
+void process_region(
+	VDCNetCDF &vdc,
+	FILE *fp,
+	vector <size_t> dims,
+	string type,
+	const vector <int> &xregion,
+	const vector <int> &yregion,
+	const vector <int> &zregion
+) {
+	assert(dims.size() >= 1 && dims.size() <= 3); 
+	assert(xregion.size() == 2);
+	assert(yregion.size() == 2);
+	assert(zregion.size() == 2);
+
+	vector <size_t> min_bound;
+	vector <size_t> max_bound;
+
+	min_bound.push_back(xregion[0] < 0 ? 0 : xregion[0]);
+	max_bound.push_back(xregion[1] < 0 ? dims[0]-1 : xregion[1]);
+
+	if (dims.size() > 1) {
+		min_bound.push_back(yregion[0] < 0 ? 0 : yregion[0]);
+		max_bound.push_back(yregion[1] < 0 ? dims[1]-1 : yregion[1]);
+	}
+	if (dims.size() > 2) {
+		min_bound.push_back(zregion[0] < 0 ? 0 : zregion[0]);
+		max_bound.push_back(zregion[1] < 0 ? dims[2]-1 : zregion[1]);
+	}
+
+	size_t nelements = 1;
+	for (int i=0; i<dims.size(); i++) {
+		nelements *= max_bound[i] - min_bound[i] + 1;
+	}
+
+	float *region = new float[nelements];
+	
+	int rc = vdc.ReadRegion(min_bound, max_bound, region);
+	if (rc<0) exit(1);
+
+	rc = write_data(fp, opt.type, nelements, region);
+	if (rc<0) exit(1);
+
+	delete [] region;
+	
 }
 
 const char	*ProgName;
@@ -135,6 +206,11 @@ int	main(int argc, char **argv) {
 		op.PrintOptionHelp(stderr);
 		exit(0);
 	}
+	if (opt.xregion.size() != 2 || opt.yregion.size() != 2 || opt.zregion.size() != 2) {
+		cerr << "Usage: " << ProgName << " [options] vdcmaster datafile" << endl;
+		op.PrintOptionHelp(stderr);
+		exit(1);
+	}
 
 	if (argc != 3) {
 		cerr << "Usage: " << ProgName << " [options] vdcmaster datafile" << endl;
@@ -156,52 +232,37 @@ int	main(int argc, char **argv) {
 	int rc = vdc.Initialize(vdcmaster, VDC::R, 4*1024*1024);
 	if (rc<0) exit(1);
 
-	VDC::DataVar dvar;
-	VDC::CoordVar cvar;
-	VDC::VarBase *vptr;
-	if (vdc.GetDataVar(opt.varname, dvar)) {
-		vptr = &dvar;
-	}
-	else if (vdc.GetCoordVar(opt.varname, cvar)) {
-		vptr = &cvar;
-	}
-	else {
-		MyBase::SetErrMsg("Invalid variable name: %s", opt.varname.c_str());
+	vector <size_t> dims;
+	if (vdc.GetDimLensAtLevel(opt.varname, opt.level, dims) < 0) {
 		exit(1);
 	}
 
-
-	cout << "-level not supported!!!!!\n";
-
-	vector <size_t> sdims;
 	size_t numts;
-	if (! vdc.ParseDimensions(vptr->GetDimensions(), sdims, numts)) {
-		MyBase::SetErrMsg("VDC corrupt, invalid dimensions");
-		exit(1);
-	}
+	if (vdc.IsTimeVarying(opt.varname)) {
+		numts = dims[dims.size()];
+		dims.pop_back();
+	} 
 
-	if (sdims.size() < 1) {
+	if (dims.size() < 1) {
 		MyBase::SetErrMsg("Variable must be 1D, 2D or 3D");
 		exit(1);
 	}
 
-	size_t nelements = sdims[0];
-	if (sdims.size() > 1) nelements *= sdims[1];
-
-	float *slice = new float[nelements];
 
 	//
 	rc = vdc.OpenVariableRead(opt.ts, opt.varname, opt.level, opt.lod);
 	if (rc<0) exit(1);
 
-    size_t nz = sdims.size() > 2 ? sdims[2] : 1;
+	if (opt.xregion[0] == -1 && opt.xregion[1] == -1 && 
+		opt.yregion[0] == -1 && opt.yregion[1] == -1 &&
+		opt.zregion[0] == -1 && opt.zregion[1] == -1) { 
 
-	for (size_t i=0; i<nz; i++) {
-		rc = vdc.ReadSlice(slice);
-		if (rc<0) exit(1);
-
-		int rc = write_data(fp, opt.type, nelements, slice);
-		if (rc<0) exit(1);
+		process_volume(vdc, fp, dims, opt.type);
+	}
+	else {
+		process_region(
+			vdc, fp, dims, opt.type, opt.xregion, opt.yregion, opt.zregion
+		);
 	}
 
 	rc = vdc.CloseVariable();
