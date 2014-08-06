@@ -38,7 +38,6 @@ class Params;
 
 //
 //!
-//! \defgroup Public_Params VAPOR Params Developer API
 //!
 //! \class ParamsBase
 //! \ingroup Public_Params
