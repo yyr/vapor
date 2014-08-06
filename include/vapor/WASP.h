@@ -7,19 +7,20 @@
 #include <vapor/EasyThreads.h>
 #include <vapor/utils.h>
 
-//!
-//! \defgroup Public VAPOR Developer API
-//!
-
 #ifndef	_WASP_H_
 #define	_WASP_H_
 
 namespace VAPoR {
 
 //! \class WASP
-//! \ingroup Public
+//! \ingroup Public_VDC
+//! \brief Implements WASP compression conventions for NetCDF
+//! 
+//! \author John Clyne
+//! \date    July, 2014
 //!
-//! Implements WASP compression conventions for NetCDF
+//! Implements WASP compression conventions for NetCDF by extending
+//! the NetCDFCPP class.
 //!
 //! The WASP conventions establish a policy for compressing, storing,
 //! and accessing arrays of data in NetCDF. This API provides 
@@ -56,9 +57,54 @@ namespace VAPoR {
 //! parameter that indexes into an ordered vector of available
 //! compression  ratios.
 //!
+//! This class inherits from VetsUtil::MyBase. Unless otherwise documented
+//! any method that returns an integer value is returning status. A negative
+//! value indicates failure. Error messages are logged via 
+//! VetsUtil::MyBase::SetErrMsg()
+//!
+//! \param wname Name of biorthogonal wavelet to use for data 
+//! transformation. See VAPoR::WaveFiltBior.
+//!
+//! \param bs An ordered list of block dimensions that specifies the 
+//! block decomposition of the variable. The rank of \p bs may be less
+//! than that of a variable's array dimensions, in which case only 
+//! the \b n fastest varying variable dimensions will be blocked, where
+//! \b n is the rank of \p bs.
+//!
+//! \param cratios A monotonically decreasing vector of 
+//! compression ratios. Each element of \p cratios is in 
+//! the range 1 
+//! (indicating no compression) to 
+//! \b max, where \b max is the maximum compression supported by the 
+//! specified combination of block size, \p bs, and 
+//! wavelet (See InqCompressionInfo()). If the underlying NetCDF file was
+//! created with the \b numfiles parameter greater than one then the
+//! length of \p cratios must exactly match that of \b numfiles.
+//!
+//! \param lod An index into the \p cratios vector. A value of -1
+//! may be used to index the last element of \p cratios
+//! 
+//! \param level Array dimensions refinement level for compressed
+//! variables. A value of 0 indicates 
+//! the coarsest refinement level available, a value of one indicates 
+//! next coarsest, and so on. The finest resolution available is given
+//! by InqVarNumRefLevels() - 1. If \p level is less than 0 it is interpreted
+//! do indicate the finest grid resolution.
 //
 class WASP : public VAPoR::NetCDFCpp {
 public:
+
+ //! default constructor
+ //!
+ //! Construct a WASP object
+ //!
+ //! \param[in] nthreads Number of parallel execution threads 
+ //! to be run during encoding and decoding of compressed data. A value 
+ //! of 0, the default, indicates that the thread count should be 
+ //! determined by the environment in a platform-specific manner, for
+ //! example using sysconf(_SC_NPROCESSORS_ONLN) under *nix OSes. 
+ //!
+ //
  WASP(int nthreads = 0);
  virtual ~WASP();
 
@@ -68,20 +114,23 @@ public:
  //! \param[in] cmode Same as in NetCDFCpp::Create()
  //! \param[in] initialsz Same as in NetCDFCpp::Create()
  //! \param[in] bufrsizehintp Same as in NetCDFCpp::Create()
- //! \param[in] wname Name of biorthogonal wavelet to use for data 
- //! transformation. See VAPoR::WaveFiltBior.
- //! \param[in] ncratios Number of discrete progressive access refinement
- //! levels.
- //! \param[in] multifile A boolean flag indicating whether compressed
+ //! \param[in] numfiles An integer greater than or equal to one indicating 
+ //! whether compressed
  //! variables should be stored in separate files, one compression level
- //! per file.
+ //! (level of detail) per file. A value of one indicates that all 
+ //! compression levels for 
+ //! compressed variables should be stored in the single file specified by
+ //! \p path. A value greater than one results in the creation of 
+ //! \p numfile NetCDF files, each of which will contain a separate 
+ //! compression level for any compressed variables. Variables that
+ //! are not compressed will be stored in their entirety in the file
+ //! named by \p path.
  //!
  //! \sa NetCDFCpp::Create()
  //
  virtual int Create(
 	string path, int cmode, size_t initialsz,
-    size_t &bufrsizehintp, string wname, 
-	vector <size_t> bs, int ncratios, bool multifile
+    size_t &bufrsizehintp, int numfiles
  );
 
  //! Open an existing NetCDF file
@@ -93,59 +142,178 @@ public:
  //
  virtual int Open(string path, int mode);
 
+ //! \copydoc NetCDFCpp::SetFill()
+ //
  virtual int SetFill(int fillmode, int &old_modep);
 
+ //! \copydoc NetCDFCpp::EndDef()
+ //
  virtual int EndDef() const; 
 
+ //! Close an open NetCDF file
+ //!
+ //! This method closes any currently opened NetCDF files that were
+ //! opened with Create() or Open(). 
+ //!
  virtual int Close();
 
 
 
  //! Return the dimension lengths associated with a variable.
  //!
- //! Returns the dimensions of the named variable at the indicated
+ //! Returns the dimensions of the named variable at the 
  //! multi-resolution level indicated by \p level.  If the variable
  //! does not support multi-resolution (is not compressed with a 
- //! multi-resolution transform) the \p level parameter is ignored.
+ //! multi-resolution transform) the \p level parameter is ignored,
+ //! the variable's native dimensions will be returned, and the value
+ //! of \p bs will not be undefined.
  //!
  //! \param[in] name Name of NetCDF variable
+ //! \param[in] level Grid (dimension) refinement level. A value of 0 indicates 
+ //! the coarsest refinement level available, a value of one indicates 
+ //! next coarsest, and so on. The finest resolution available is given
+ //! by InqVarNumRefLevels() - 1. If \p level is less than 0 it is interpreted
+ //! do indicate the finest grid resolution.
+ //! 
  //! \param[out] dims Ordered list of variable's \p name dimension lengths
  //! at the grid hierarchy level indicated by \p level
- //! \param[in] level Grid refinement level
+ //! \param[out] bs Ordered list of block dimension lengths
+ //! at the grid hierarchy level indicated by \p level
  //!
- //! \sa NetCDFCpp::InqVarDims()
+ //! \sa NetCDFCpp::InqVarDims(), InqVarNumRefLevels(),
+ //! InqDimsAtLevel()
  //
  virtual int InqVarDimlens(
-	string name, vector <size_t> &dims, int level
+	string name, int level,  vector <size_t> &dims, vector <size_t> &bs
  ) const;
 
+ //! \copydoc NetCDFCpp::NetCDFCpp()
+ //
  virtual int InqVarDims(
     string name, vector <string> &dimnames, vector <size_t> &dims
  ) const;
+
+ //! Returns compression paramaters associated with the named variable
+ //!
+ //! This method returns various compression parameters associated
+ //! with a compressed variabled named by \p name. If the variable
+ //! \p name is not compressed the output parameters will be empty, but
+ //! no error will be generated.
+ //!
+ //! \param[in] name The variable name.
+ //! \param[out] wname The name of the wavelet used to transform the variable.
+ //! \param[out] bs An ordered list of block dimensions that specifies the 
+ //! block decomposition of the variable. 
+ //! \param[out] cratios The compression ratios available.
+ //! 
+ virtual int InqVarCompressionParams(
+    string name, string &wname, vector <size_t> &bs, vector <size_t> &cratios
+ ) const;
+
+ //! Return the dimensions of a multi-resolution grid at a specified level in
+ //! the hierarchy
+ //!
+ //! This static method calculates the coarsened dimensions of a 
+ //! grid at a specified level in a multiresolution wavelet hierarchy.
+ //! The dimensions of an array are determined by the combination of 
+ //! the multi-resolution wavelet used, specified by \p wname, the 
+ //! refinement level, \p level, in the multi-resolution hierarchy,
+ //! the rank and dimension of the decomposition block, specified by
+ //! \p bs, and the dimensions of the native (original) grid, \p dims.
+ //!
+ //! \param[in] wname wavelet name
+ //! \param[in] level Grid (dimension) refinement level. A value of 0 indicates 
+ //! the coarsest refinement level available, a value of one indicates 
+ //! next coarsest, and so on. The finest resolution available is given
+ //! by InqVarNumRefLevels() - 1. If \p level is less than 0 it is interpreted
+ //! do indicate the finest grid resolution.
+ //! \param[in] dims Dimensions of native grid
+ //! \param[in] bs Dimensions of native decomposition block. The rank of 
+ //! \p bs may be less than or equal to the rank of \p dims.
+ //! \param[out] dims_at_level Computed grid dimensions at the specified level
+ //! \param[out] bs_at_level Computed block dimensions at the specified level
+ //!
+ //! \sa VarOpenRead()
+ //
+ static int InqDimsAtLevel(
+    string wname, int level, vector <size_t> dims, vector <size_t> bs,
+    vector <size_t> &dims_at_level, vector <size_t> &bs_at_level
+ );
+
+ //! Return the number of levels available in a variable's multiresolution
+ //! hierarchy.
+ //!
+ //! Returns the depth of the multi-resolution hierarchy for the variable
+ //! specified by \p name. If the variable
+ //! does not support multi-resolution (is not compressed with a
+ //! multi-resolution transform) value of 1 is returned. 
+ //!
+ //! \param[in] name The name of the variable
+ //!
+ //! \retval depth Upon success the number of levels in hierarchy
+ //! are returned. If \p varname does not specify a known variable
+ //! a -1 is returned. 
+ //
+ virtual int InqVarNumRefLevels(string name) const;
+
+ //! Compute the number of levels in a multi-resolution hierarchy
+ //!
+ //! This static method computes and returns the depth (number of levels) in a
+ //! a multi-resolution hierarch for a given wavelet, \p wname,
+ //! and decomposition block, \p bs.
+ //! It also computes the maximum compression ratio, \p cratio, possible 
+ //! for the 
+ //! the specified combination of block size, \p bs, and wavelet, \p wname.
+ //! The maximum compression ratio is \p cratio:1.
+ //!
+ //! \param[in] wname wavelet name
+ //! \param[in] bs Dimensions of native decomposition block. The rank of 
+ //! \p bs may be less than or equal to the rank of \p dims.
+ //! \param[out] nlevels Number of levels in hierarchy
+ //! \param[out] maxcratio Maximum compression ratio
+ //!
+ //! bool status If \p bs, \p wname, or the combination there of is invalid
+ //! false is returned and the values of \p nlevels and \p maxcratio are
+ //! undefined. Upon success true is returned.
+ //! 
+ static bool InqCompressionInfo(
+	vector <size_t> bs, string wname, size_t &nlevels, size_t &maxcratio
+ ) {
+	return(Compressor::CompressionInfo(bs, wname, true, nlevels, maxcratio));
+ }
 
  //! Define a new compressed variable
  //!
  //! \param[in] name Same as NetCDFCpp::DefVar()
  //! \param[in] xtype Same as NetCDFCpp::DefVar()
  //! \param[in] dimnames Same as NetCDFCpp::DefVar()
+ //! \param[in] wname Name of biorthogonal wavelet to use for data 
+ //! transformation. See VAPoR::WaveFiltBior.
  //! \param[in] bs An ordered list of block dimensions that specifies the 
- //! block decomposition of the variable. Each element of \p bs is in the 
- //! range 1 to \b dimlen, where \b dimlen is the dimension length of the 
- //! array's associated dimension. The rank of \p bs make be equal to 
+ //! block decomposition of the variable. 
+ //! array's associated dimension. The rank of \p bs may be equal to 
  //! or less than 
  //! that of \p dimnames. In the latter case only the rank(bs) fastest
  //! varying dimensions of the variable will be blocked.
- //! \param[in] cratios A monotonically decreasing vector of length \p 
- //! of compression ratios. Each element of \p cratios is in the range 1 
+ //! The dimension(s) of \p bs[i] need not align with (be integral factors
+ //! of) the dimension lengths
+ //! associated with \p dimnames in which case boundary blocks will be
+ //! padded.
+ //! \param[in] cratios A monotonically decreasing vector of 
+ //! compression ratios. Each element of \p cratios is in 
+ //! the range 1 
  //! (indicating no compression) to 
  //! \b max, where \b max is the maximum compression supported by the 
  //! specified combination of block size, \p bs, and 
- //! wavelet (See GetMaxCRatio()).
+ //! wavelet (See InqCompressionInfo()). If the underlying NetCDF file was
+ //! created with \b numfiles parameter greater than one then the
+ //! length of \p cratios must exactly match that of \b numfiles.
  //!
- //! \sa NetCDFCpp::DefVar()
+ //! \sa NetCDFCpp::DefVar(), Create(), InqCompressionInfo()
  //
  virtual int DefVar(
-    string name, int xtype, vector <string> dimnames, vector <size_t> cratios
+    string name, int xtype, vector <string> dimnames, 
+	string wname, vector <size_t> bs, vector <size_t> cratios
  );
 
  //! Define a compressed variable with missing data values
@@ -155,7 +323,7 @@ public:
  //!
  //! \copydoc DefVar(
  //!	string name, int xtype, vector <string> dimnames, 
- //!	vector <size_t> cratios
+ //!	string wname, vector <size_t> bs, vector <size_t> cratios
  //! )
  //!
  //! \param[in] missing_value Value of missing value indicator. 
@@ -163,16 +331,21 @@ public:
  //! \sa NetCDFCpp::DefVar()
  //!
  virtual int DefVar(
-	string name, int xtype, vector <string> dimnames, vector <size_t> cratios,
+	string name, int xtype, vector <string> dimnames, 
+	string wname, vector <size_t> bs, vector <size_t> cratios,
 	double missing_value
  );
 
+ //! \copydoc NetCDFCpp::DefVar()
+ // Is this needed?
  virtual int DefVar(
     string name, int xtype, vector <string> dimnames
  ) {
 	return(NetCDFCpp::DefVar(name, xtype, dimnames)); 
  };
 
+ //! \copydoc NetCDFCpp::DefDim()
+ //
  int DefDim(string name, size_t len) const;
 
 
@@ -186,28 +359,12 @@ public:
     string varname, bool &compressed
  ) const;
 
- //! Get maximum compression ratio
- //!
- //! This method returns the maximum compression ratio, \p cratio, possible 
- //! for the 
- //! the specified combination of block size, \p bs, and wavelet, \p wname.
- //! The maximum compression ratio is \p cratio:1.
- //!
- //! \param[in] bs Compression block dimensions
- //! \param[in] wname Name of biorthogonal wavelet to use for data 
- //! transformation. See VAPoR::WaveFiltBior.
- //! \param[out] Maximum possible compression ratio
- //!
- virtual int GetMaxCRatio(
-    vector <size_t> bs, string wname, size_t &cratio
- ) const;
-
  //! Prepare a variable for writing 
  //!
  //! This method initializes the variable named by \p name for writing
  //! using the PutVara() method. If the variable is defined as compressed
  //! the \p lod parameter indicates which compression levels will be stored.
- //! Valid values for \p pod are in the range 0..max, where \p max the size
+ //! Valid values for \p lod are in the range 0..max, where \p max the size
  //! of cratios - 1.
  //!
  //! Any currently opened variable is first closed with Close()
@@ -218,17 +375,18 @@ public:
  //! \note Is \p lod needed? Since cratios can be specified on a per
  //! variable basis perhaps this is not needed?
  //!
- //! \sa PutVara()
+ //! \sa PutVara(), 
  //
  virtual int OpenVarWrite(string name, int lod);
 
  //! Prepare a variable for reading 
  //!
  //! This method initializes the variable named by \p name for reading
- //! using the GetVara() method. If the variable is defined as compressed
+ //! using the GetVara() or GetVar() methods. If the variable is 
+ //! defined as compressed
  //! the \p lod parameter indicates which compression levels will used
  //! during reconstruction of the variable.
- //! Valid values for \p pod are in the range 0..max, where \p max the size
+ //! Valid values for \p lod are in the range 0..max, where \p max the size
  //! of cratios - 1.
  //! If the transform used to compress this variable supports
  //! multiresolution then the \p level parameter indicates the 
@@ -248,7 +406,7 @@ public:
  //!
  //! If a variable is opened for writing this method will flush 
  //! all buffers to disk and perform cleanup. If opened for reading
- //! only cleanup is performed. If not variables are open this method
+ //! only cleanup is performed. If no variables are open this method
  //! is a no-op.
  //
  //!
@@ -281,40 +439,71 @@ public:
  );
  virtual int PutVar(const float *data);
 
- //! Read an array of values from the currently opened variable
+ //! Read a hyper-slab of values from the currently opened variable
  //!
- //! The currently opened variable may or may not be compressed
+ //! The currently opened variable may or may not be compressed.
  //!
  //! If a compressed variable is being read and the transform
- //! supports multi-resolution the 
+ //! supports multi-resolution the method InqVarDimlens()
+ //! should be be used to determine the dimensions of the variable
+ //! at the opened refinement level.
  //!
  //! \param[in] start A vector of size_t integers specifying the index in 
- //! the variable where the first of the data values will be written.
+ //! the variable where the first of the data values will be read.
  //! The coordinates are specified relative to the dimensions of the
  //! array at the currently opened refinement level.
- //! See NetCDFCpp::PutVara()
+ //! See NetCDFCpp::InqVarDimlens()
  //! \param[in] count  A vector of size_t integers specifying the 
- //! edge lengths along each dimension of the block of data values to 
- //! be written.
+ //! edge lengths along each dimension of the hyperslab of data values to 
+ //! be read.
  //! The coordinates are specified relative to the dimensions of the
- //! array at the currently opened refinement level.
- //! See as NetCDFCpp::PutVara()
+ //! array at the currently opened refinement level.  See NetCDFCpp::PutVara()
  //! \param[in] data Same as NetCDFCpp::PutVara()
  //!
- //! \sa OpenVarWrite();
+ //! \sa InqVarDimlens(), OpenVarRead()
  //
  virtual int GetVara(
 	vector <size_t> start, vector <size_t> count, float *data
  );
+
+ //! Read an array of values from the currently opened variable
+ //!
+ //! The currently opened variable may or may not be compressed
+ //!
+ //! The entire variable is read and copied into the array pointed to
+ //! by \p data. The caller is responsible for ensuring that
+ //! adequate space is availble in \p data.
+ //!
+ //! If a compressed variable is being read and the transform
+ //! supports multi-resolution the method InqVarDimlens()
+ //! should be be used to determine the dimensions of the variable
+ //! at the opened refinement level
+ //!
+ //! \param[in] data Same as NetCDFCpp::PutVara()
+ //!
+ //! \sa InqVarDimlens(), OpenVarRead()
+ //
  virtual int GetVar(float *data);
 
+ //! NetCDF attribute name specifying Wavelet name
  static string AttNameWavelet() {return("WASP.Wavelet");}
+
+ //! NetCDF attribute name specifying compression block dimensions 
  static string AttNameBlockSize() {return("WASP.BlockSize");}
- static string AttNameNumCRatios() {return("WASP.NumCRatios");}
+
+ //! NetCDF attribute name specifying number of compression files
+ static string AttNameNumFiles() {return("WASP.NumFiles");}
+
+ //! NetCDF attribute name specifying compression ratios
  static string AttNameCRatios() {return("WASP.CRatios");}
- static string AttNameMultifile() {return("WASP.Multifile");}
+
+ //! NetCDF attribute name specifying if compression may be present
  static string AttNameCompressed() {return("WASP.Compressed");}
+
+ //! NetCDF attribute name specifying names of uncompressed dimensions
  static string AttNameDimNames() {return("WASP.DimNames");}
+
+ //! NetCDF attribute name specifying if missing data values are present
  static string AttNameMissingValue() {return("WASP.MissingValue");}
 
 
@@ -325,14 +514,13 @@ private:
  vector <NetCDFCpp> _ncdfcs;
  vector <NetCDFCpp *> _ncdfcptrs;	// pointers into _ncdfcs;
  bool _compressionMode; // Compressed data ?
- string _wname; // Name of wavelet used for compression
- vector <size_t> _bs;   // Compression block dimensions
- int _ncratios; // Number of compression levels
+ int _numfiles; // Number of NetCDF files 
  VetsUtil::SmartBuf _blockbuf;    // Dynamic storage for blocks
  VetsUtil::SmartBuf _coeffbuf;    // Dynamic storage wavelet coefficients
  VetsUtil::SmartBuf _sigbuf;  // Dynamic storage encoded signficance maps
 
  bool _open;    // compressed variable open for reading or writing?
+ string _open_wname;  // wavelet name of opened variable
  vector <size_t> _open_bs;  // block size of opened variable
  vector <size_t> _open_cratios; // compression ratios of opened variable
  vector <size_t> _open_udims;   // uncompressed dims of opened variable
@@ -350,6 +538,8 @@ private:
 
  int _GetCompressedDims(
     vector <string> dimnames,
+    string wname,
+    vector <size_t> bs,
     vector <size_t> cratios,
 	int xtype,
     vector <string> &cdimnames,
@@ -361,14 +551,15 @@ private:
  int _InqDimlen(string name, size_t &len) const;
 
  void _get_encoding_vectors(
-    vector <size_t> bs, vector <size_t> cratios, int xtype,
+    string wname, vector <size_t> bs, vector <size_t> cratios, int xtype,
     vector <size_t> &ncoeffs, vector <size_t> &encoded_dims
  ) const;
 
- vector <size_t> _get_block_sizes(int ndims) const;
 
-
- bool _validate_cratios(vector <size_t> cratios) const;
+ bool _validate_compression_params(
+	string wname, vector <size_t> dims, 
+	vector <size_t> bs, vector <size_t> cratios
+ ) const;
 
  bool _validate_put_vara_compressed(
     vector <size_t> start, vector <size_t> count, 
@@ -385,13 +576,10 @@ private:
     vector <size_t> &udims, vector <size_t> &dims, string &wname
  ) const;
 
- int _dims_at_level(
-    vector <size_t> dims,
-    vector <size_t> bs,
-    int level,
-    vector <size_t> &dims_level,
-    vector <size_t> &bs_level
- ) const;
+ static int _dims_at_level(
+    vector <size_t> dims, vector <size_t> bs, int level,
+	string wname, vector <size_t> &dims_level, vector <size_t> &bs_level
+ ) ;
 
 };
 

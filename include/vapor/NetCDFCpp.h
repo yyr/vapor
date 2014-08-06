@@ -10,31 +10,73 @@
 namespace VAPoR {
 
 //! \class NetCDFCpp
-//! \ingroup Public
+//! \ingroup Public_VDC
+//! \brief Defines simple C++ wrapper for NetCDF
 //!
-//! Defines simple C++ wrapper for NetCDF
+//! This class provdies a simple object-oriented wrapper for the NetCDF
+//! API C language binding. In most cases the member functions provided
+//! by this class are identical or near identical to the NetCDF API 
+//! functions of the same name. Only when significant differences
+//! exist  between 
+//! the NetCDF native functions and the member functions provided 
+//! herein is anything other than brief documention provided.
 //!
+//! The ordering of dimension and coordinate parameters specified
+//! as arrays or STL vectors follows that of
+//! NetCDF: The first element is the slowest varying dimension, the
+//! second element is the next slowest, and so on. \note This ordering
+//! is the opposite of that used by the VAPoR::VDC class.
+//!
+//! One particular difference of note: the various identifiers used
+//! by NetCDF (e.g. variable id, dimesion id, etc) are not exposed by
+//! the NetCDFCpp class methods. These objects are instead referred to by
+//! their ascii string names. Moreover, as the file access methods
+//! Open() and Create() do not return a NetCDF file identifier, only a single
+//! NetCDF file may be opened at a time (multiple NetCDF files may be
+//! opened, if needed, by instantiating multiple NetCDFCpp objects).
+//!
+//! Unless otherwise noted the return value of any member function that 
+//! returns an integer may be interpreted as status. A negative value
+//! indicates an error. Upon error an error message will
+//! be logged via VetsUtil::MyBase::SetErrMsg().
+//
 class VDF_API NetCDFCpp : public VetsUtil::MyBase {
 public:
  NetCDFCpp();
  virtual ~NetCDFCpp();
+
+ //! Create a new NetCDF file
+ //!
+ //! Create an new NetCDF file named by 'path'. Any currently opened 
+ //! NetCDF files
+ //! are closed prior to attempting to create the named file
+ //
  virtual int Create(
 	string path, int cmode, size_t initialsz,
     size_t &bufrsizehintp
  );
 
+ //! Open an existing NetCDF file
+ //!
+ //! Open an existing named file. Any currently opened NetCDF files
+ //! are closed prior to attempting to open the named file
+ //
  virtual int Open(string path, int mode);
 
+ //! Define a dimension
  virtual int DefDim(string name, size_t len) const;
 
+ //! Define a variable
  virtual int DefVar(
 	string name, int xtype, vector <string> dimnames
  );
 
+ //! Learn the dimension names associated with a variable
  virtual int InqVarDims(
 	string name, vector <string> &dimnames, vector <size_t> &dims
  ) const;
 
+ //! Learn the length of a named dimension
  virtual int InqDimlen(string name, size_t &len) const;
 
 
@@ -43,6 +85,8 @@ public:
  //
  // PutAtt - Integer
  //
+
+ //! Write an integer attribute
  virtual int PutAtt(
 	string varname, string attname, int value
  ) const; 
@@ -56,6 +100,8 @@ public:
  //
  // GetAtt - Integer
  //
+
+ //! Read an integer attribute
  virtual int GetAtt(
 	string varname, string attname, int &value
  ) const;
@@ -142,42 +188,54 @@ public:
 	string varname, string attname, char values[], size_t n
  ) const; 
 
- // Tokenize string using space as delimiter
+ //! Return a text attribute as a vector of strings
+ //!
+ //! This method attempts to return the value of the named 
+ //! text attribute as a vector of words. The value of the
+ //! attribute named by \p attname is tokenized (parsed) using
+ //! white space as a delimeter. The extracted tokens are returned
+ //! in the order of occurence in the vector \p values.
  //
  virtual int GetAtt(
 	string varname, string attname, vector <string> &values
  ) const; 
 
+ //! Find the NetCDF ID of a variable
  virtual int InqVarid(string varname, int &varid ) const; 
 
+ //! Return information about a NetCDF attribute
  virtual int InqAtt(
 	string varname, string attname, nc_type &xtype, size_t &len
  ) const;
 
+ //! Set the fill value
  virtual int SetFill(int fillmode, int &old_modep);
 
+ //! End the metadata definition section 
  virtual int EndDef() const;
 
+ //! Close the currently opened file
  virtual int Close();
 
+ //! Write an array of values to a variable
  virtual int PutVara(
 	string varname,
 	vector <size_t> start, vector <size_t> count, const void *data
  );
+ //! Write an entire variable with one function call
  virtual int PutVar(string varname, const void *data);
 
+ //! Read an array of values from a variable
  virtual int GetVara(
 	string varname,
 	vector <size_t> start, vector <size_t> count, void *data
  );
+
+ //! Read an entire variable with one function call
  virtual int GetVar(string varname, void *data);
 
 
 
-//! @name Internal
-//! Internal methods not intended for general use
-//!
-///@{
 
  //! Return the size in bytes of a NetCDF external data type
  //!
@@ -189,7 +247,6 @@ public:
  //! it can be opened with nc_open(). 
  //!
  virtual bool ValidFile(string path);
-///@}
 
 private:
 

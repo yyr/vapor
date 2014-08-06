@@ -4,6 +4,7 @@
 
 using namespace VAPoR;
 
+
 VDC::VDC() {
 
 	_master_path.clear();
@@ -14,7 +15,6 @@ VDC::VDC() {
 	for (int i=0; i<3; i++) _bs.push_back(64);
 
 	_wname = "bior3.3";
-	_wmode = "symh";
 
 	_cratios.clear();
 	_cratios.push_back(500);
@@ -58,31 +58,28 @@ int VDC::Initialize(string path, AccessMode mode)
 }
 
 int VDC::SetCompressionBlock(
-    vector <size_t> bs, string wname, string wmode,
+    vector <size_t> bs, string wname,
     vector <size_t> cratios
 ) {
 	
-	if (! _ValidCompressBlock(bs, wname, wmode, cratios)) {
+	if (! _ValidCompressionBlock(bs, wname, cratios)) {
+		SetErrMsg("Invalid compression settings");
 		return(-1);
 	}
 
 	_bs = bs;
-	for (int i = _bs.size(); i<3; i++) _bs.push_back(64);
-
 	_wname = wname;
-	_wmode = wmode;
 	_cratios = cratios;
 
 	return(0);
 }
 
 void VDC::GetCompressionBlock(
-    vector <size_t> &bs, string &wname, string &wmode,
+    vector <size_t> &bs, string &wname,
     vector <size_t> &cratios
 ) const {
 	bs = _bs;
 	wname = _wname;
-	wmode = _wmode;
 	cratios = _cratios;
 }
 
@@ -124,7 +121,7 @@ int VDC::DefineDimension(string name, size_t length, int axis) {
 }
 
 bool VDC::GetDimension(
-	string name, int reflevel, size_t &length, int &axis
+	string name, size_t &length, int &axis
 ) const {
 	length = 0;
 	axis = 0;
@@ -132,26 +129,16 @@ bool VDC::GetDimension(
 	map <string, Dimension>::const_iterator itr = _dimsMap.find(name);
 	if (itr == _dimsMap.end()) return(false);
 
-	if (reflevel != -1) {
-		cout << "NOT IMPLEMENTED\n";
-		return(false);
-	}
-
 	length = itr->second.GetLength();
 	axis = itr->second.GetAxis();
 	return(true);
 }
 
-bool VDC::GetDimension(string name, int reflevel, Dimension &dimension) const {
+bool VDC::GetDimension(string name, Dimension &dimension) const {
 	dimension.Clear();
 
 	map <string, Dimension>::const_iterator itr = _dimsMap.find(name);
 	if (itr == _dimsMap.end()) return(false);
-
-	if (reflevel != -1) {
-		cout << "NOT IMPLEMENTED\n";
-		return(false);
-	}
 
 	dimension = itr->second;
 	return(true);
@@ -193,7 +180,7 @@ int VDC::DefineCoordVar(
 	vector <Dimension> dimensions;
 	for (int i=0; i<dimnames.size(); i++) {
 		Dimension dimension;
-		VDC::GetDimension(dimnames[i], -1, dimension);
+		VDC::GetDimension(dimnames[i], dimension);
 		assert(! dimension.GetName().empty()); 
 		dimensions.push_back(dimension);
 	}
@@ -215,7 +202,7 @@ int VDC::DefineCoordVar(
 	if (compressed) cratios = _cratios;
 	CoordVar coordvar(
 		varname, dimensions, units, type, bs, _wname, 
-		_wmode, cratios, _periodic, axis, false
+		cratios, _periodic, axis, false
 	);
 
 	// _coordVars contains a table of all the coordinate variables
@@ -250,7 +237,7 @@ int VDC::DefineCoordVarUniform(
 
     vector <Dimension> dimensions;
 	Dimension dimension;
-	VDC::GetDimension(dimname, -1, dimension);
+	VDC::GetDimension(dimname, dimension);
 	assert(! dimension.GetName().empty());
 	dimensions.push_back(dimension);
 
@@ -271,7 +258,7 @@ int VDC::DefineCoordVarUniform(
 	if (compressed) cratios = _cratios;
 	CoordVar coordvar(
 		varname, dimensions, units, type, bs, _wname, 
-		_wmode, cratios, _periodic, axis, true
+		cratios, _periodic, axis, true
 	);
 
 	_coordVars[varname] = coordvar;
@@ -279,7 +266,7 @@ int VDC::DefineCoordVarUniform(
 	return(0);
 }
 
-bool VDC::GetCoordVar(
+bool VDC::GetCoordVarInfo(
     string varname, vector <string> &dimnames,
     string &units, int &axis, XType &type, bool &compressed, bool &uniform
 ) const {
@@ -302,13 +289,29 @@ bool VDC::GetCoordVar(
 	return(true);
 }
 
-bool VDC::GetCoordVar(string varname, VDC::CoordVar &cvar) const {
+bool VDC::GetCoordVarInfo(string varname, VDC::CoordVar &cvar) const {
 
 	map <string, CoordVar>::const_iterator itr = _coordVars.find(varname);
 	if (itr == _coordVars.end()) return(false);
 
 	cvar = itr->second;
 	return(true);
+}
+
+bool VDC::GetBaseVarInfo(string varname, VDC::BaseVar &var) const {
+
+	map <string, CoordVar>::const_iterator itr1 = _coordVars.find(varname);
+	if (itr1 != _coordVars.end()) {
+		var = itr1->second;
+		return(true);
+	}
+
+	map <string, DataVar>::const_iterator itr2 = _dataVars.find(varname);
+	if (itr2 != _dataVars.end()) { 
+		var = itr2->second;
+		return(true);
+	}
+	return(false);
 }
 
 int VDC::DefineDataVar(
@@ -339,7 +342,7 @@ int VDC::DefineDataVar(
 	vector <Dimension> dimensions;
 	for (int i=0; i<dimnames.size(); i++) {
 		Dimension dimension;
-		VDC::GetDimension(dimnames[i], -1, dimension);
+		VDC::GetDimension(dimnames[i], dimension);
 		assert(! dimension.GetName().empty());
 		dimensions.push_back(dimension);
 	}
@@ -361,7 +364,7 @@ int VDC::DefineDataVar(
 	if (compressed) cratios = _cratios;
 	DataVar datavar(
 		varname, dimensions, units, type, bs, _wname, 
-		_wmode, cratios, _periodic, coordvars
+		cratios, _periodic, coordvars
 	);
 
 	_dataVars[varname] = datavar;
@@ -398,7 +401,7 @@ int VDC::DefineDataVar(
 	vector <Dimension> dimensions;
 	for (int i=0; i<dimnames.size(); i++) {
 		Dimension dimension;
-		VDC::GetDimension(dimnames[i], -1, dimension);
+		VDC::GetDimension(dimnames[i], dimension);
 		assert(! dimension.GetName().empty());
 		dimensions.push_back(dimension);
 	}
@@ -420,7 +423,7 @@ int VDC::DefineDataVar(
 	if (compressed) cratios = _cratios;
 	DataVar datavar(
 		varname, dimensions, units, type, bs, _wname, 
-		_wmode, cratios, _periodic, coordvars, 
+		cratios, _periodic, coordvars, 
 		missing_value
 	);
 
@@ -430,7 +433,7 @@ int VDC::DefineDataVar(
 
 }
 
-bool VDC::GetDataVar(
+bool VDC::GetDataVarInfo(
 	string varname, vector <string> &dimnames, vector <string> &coordvars,
 	string &units, XType &type, bool &compressed,
 	bool &has_missing, double &missing_value
@@ -455,7 +458,7 @@ bool VDC::GetDataVar(
 	return(true);
 }
 
-bool VDC::GetDataVar(string varname, VDC::DataVar &datavar) const {
+bool VDC::GetDataVarInfo(string varname, VDC::DataVar &datavar) const {
 
 	map <string, DataVar>::const_iterator itr = _dataVars.find(varname);
 
@@ -537,7 +540,7 @@ vector <string> VDC::GetCoordVarNames(int ndim, bool spatial) const {
 
 bool VDC::IsTimeVarying(string name) const {
 
-	const VarBase *vptr = NULL;
+	const BaseVar *vptr = NULL;
 
 	// First the coordinate variable. Could be a Coordinate or Data variable, or
 	// may not exist
@@ -569,12 +572,12 @@ bool VDC::IsCompressed(string varname) const {
 
 	if (VDC::IsDataVar(varname)) {
 		VDC::DataVar var;
-		bool ok = VDC::GetDataVar(varname, var);
+		bool ok = VDC::GetDataVarInfo(varname, var);
 		if (ok) return(var.GetCompressed());
 	}
 	else if (VDC::IsCoordVar(varname)) {
 		VDC::CoordVar cvar;
-		bool ok = VDC::GetCoordVar(varname, cvar);
+		bool ok = VDC::GetCoordVarInfo(varname, cvar);
 		if (ok) return(cvar.GetCompressed());
 	}
 	return(false);	// not found
@@ -585,20 +588,13 @@ int VDC::GetNumTimeSteps(string varname) const {
 
 	// Verify variable exists first and return error if not
 	//
-	if (VDC::IsDataVar(varname)) {
-		VDC::DataVar var;
-		(void) VDC::GetDataVar(varname, var);
-		 dimensions = var.GetDimensions();
-	}
-	else if (VDC::IsCoordVar(varname)) {
-		VDC::CoordVar cvar;
-		(void) VDC::GetCoordVar(varname, cvar);
-		 dimensions = cvar.GetDimensions();
-	}
-	else {
+	VDC::BaseVar var;
+	bool status = VDC::GetBaseVarInfo(varname, var);
+	if (! status) {
 		SetErrMsg("Undefined variable name : %s", varname.c_str());
 		return(-1);
 	}
+	 dimensions = var.GetDimensions();
 
 	if (! VDC::IsTimeVarying(varname)) return(0); 
 
@@ -613,6 +609,21 @@ int VDC::GetNumTimeSteps(string varname) const {
 	SetErrMsg("Internal error");
 	return(-1);
 }
+
+int VDC::GetNumRefLevels(string varname) const {
+
+	VDC::BaseVar var;
+	bool status = VDC::GetBaseVarInfo(varname, var);
+	if (! status) return(-1);
+
+	if (! var.GetCompressed()) return(1);
+
+	size_t nlevels, maxcratio;
+	CompressionInfo(var.GetBS(), var.GetWName(), nlevels, maxcratio);
+
+	return(nlevels);
+}
+
 
 int VDC::PutAtt(
     string varname, string attname, XType type, const vector <double> &values
@@ -1155,54 +1166,6 @@ void VDC::Attribute::GetValues(
 }
 
 
-
-bool VDC::_ValidCompressBlock(
-    vector <size_t> bs, string wname, string wmode,
-    vector <size_t> cratios
-) const {
-	for (int i=0; i<bs.size(); i++) {
-		if (bs[i] < 1) {
-			SetErrMsg("All block dimensions must be of length one or more");
-			return(false);
-		}
-	}
-
-	string valid_wmode = "invalid";
-	if ((wname.compare("bior1.1") == 0) ||
-		(wname.compare("bior1.3") == 0) ||
-		(wname.compare("bior1.5") == 0) ||
-		(wname.compare("bior3.3") == 0) ||
-		(wname.compare("bior3.5") == 0) ||
-		(wname.compare("bior3.7") == 0) ||
-		(wname.compare("bior3.9") == 0)) {
-
-		valid_wmode = "symh";
-	}
-	else if ((wname.compare("bior2.2") == 0) ||
-		(wname.compare("bior2.4") == 0) ||
-		(wname.compare("bior2.6") == 0) ||
-		(wname.compare("bior2.8") == 0) ||
-		(wname.compare("bior4.4") == 0)) {
-
-		valid_wmode = "symw";
-	}
-
-	if (wmode.compare(valid_wmode) != 0) {
-		SetErrMsg(
-			"Invalid combination of wavelet name (%s) and boundary mode(%s)",
-			wname.c_str(), wmode.c_str()
-		);
-		return(false);
-	}
-
-	cout << "Need to validate cratios against block size\n";
-
-	return(true);
-
-} 
-
-
-
 bool VDC::_ValidDefineDimension(string name, size_t length, int axis) const {
 
 	if (length < 1) {
@@ -1290,6 +1253,25 @@ bool VDC::_ValidDefineCoordVar(
 	return(true);
 }
 
+bool VDC::_ValidCompressionBlock(
+    vector <size_t> bs, string wname, 
+    vector <size_t> cratios
+) const {
+	for (int i=0; i<cratios.size(); i++) {
+		if (cratios[i] < 1) return(false);
+	}
+
+	size_t nlevels, maxcratio;
+	bool status = CompressionInfo(
+		bs, wname, nlevels, maxcratio
+	);
+	if (! status) return(false);
+	
+	for (int i=0; i<cratios.size(); i++) {
+		if (cratios[i] > maxcratio) return(false);
+	}
+	return(true);
+}
 
 bool VDC::_ValidDefineDataVar(
 	string varname, vector <string> dimnames, vector <string> coordvars,
@@ -1454,9 +1436,9 @@ std::ostream &operator<<(std::ostream &o, const VDC::Attribute &a) {
 	return(o);
 }
 
-std::ostream &operator<<(std::ostream &o, const VDC::VarBase &var) {
+std::ostream &operator<<(std::ostream &o, const VDC::BaseVar &var) {
 
-	o << "  VarBase" << endl;
+	o << "  BaseVar" << endl;
 	o << "   Name: " << var._name << endl;
 	o << "   Dimensions: " << endl;
 	for (int i=0; i<var._dimensions.size(); i++) {
@@ -1466,7 +1448,6 @@ std::ostream &operator<<(std::ostream &o, const VDC::VarBase &var) {
 	o << "   XType: " << var._type << endl;
 	o << "   Compressed: " << (var._cratios.size() > 0) << endl;
 	o << "   WName: " << var._wname << endl;
-	o << "   WMode: " << var._wmode << endl;
 	o << "   CRatios: ";
 	for (int i=0; i<var._cratios.size(); i++) {
 		o << var._cratios[i] << " ";
@@ -1497,7 +1478,7 @@ std::ostream &operator<<(std::ostream &o, const VDC::CoordVar &var) {
 	o << "   Axis: " << var._axis << endl;
 	o << "   Uniform: " << var._uniform << endl;
 
-	o << (VDC::VarBase) var;
+	o << (VDC::BaseVar) var;
 
 	return(o);
 }
@@ -1513,7 +1494,7 @@ std::ostream &operator<<(std::ostream &o, const VDC::DataVar &var) {
 	o << "   HasMissing: " << var._has_missing << endl;
 	o << "   MissingValue: " << var._missing_value << endl;
 
-	o << (VDC::VarBase) var;
+	o << (VDC::BaseVar) var;
 
 	return(o);
 }
@@ -1531,7 +1512,6 @@ std::ostream &operator<<(std::ostream &o, const VDC &vdc) {
 	}
 	o << endl;
 	o << " WName: " << vdc._wname << endl;
-	o << " WMode: " << vdc._wmode << endl;
 	o << " CRatios: ";
 	for (int i=0; i<vdc._cratios.size(); i++) {
 		o << vdc._cratios[i] << " ";

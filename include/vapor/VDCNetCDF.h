@@ -1,5 +1,6 @@
 #include <vector>
 #include <map>
+#include <algorithm>
 #include <iostream>
 #include "vapor/VDC.h"
 #include "vapor/WASP.h"
@@ -10,23 +11,38 @@
 namespace VAPoR {
 
 //! \class VDCNetCDF
+//!	\ingroup Public_VDC
+//!
+//! \brief Implements the VDC 
+//! abstract class, providing storage of VDC data 
+//! in NetCDF files.
+//!
+//! \author John Clyne
+//! \date    July, 2014
 //!
 //! Implements the VDC abstract class, providing storage of VDC data 
-//! in NetCDF files.
+//! in NetCDF files. Data (variables) are stored in multiple NetCDF files.
+//! The distribution of variables to files is described by GetPath().
 //!
 class VDCNetCDF : public VAPoR::VDC {
 public:
 
  //! Class constructor
  //!
- //! \param[in] master_theshold Variables that either compressed or whose
- //! total number of elements are larger than \p master_theshold will
+ //! \param[in] numthreads Number of parallel execution threads
+ //! to be run during encoding and decoding of compressed data. A value
+ //! of 0, the default, indicates that the thread count should be
+ //! determined by the environment in a platform-specific manner, for
+ //! example using sysconf(_SC_NPROCESSORS_ONLN) under *nix OSes.
+ //!
+ //! \param[in] master_theshold Variables that are either compressed, or whose
+ //! total number of elements are larger than \p master_theshold, will
  //! not be stored in the master file. Ignored if the file is open 
  //! for appending or reading.
  //!
  //! \param[in] variable_threshold Variables not stored in the master
  //! file and whose
- //! total number of elements are larger than \p variable_treshold 
+ //! total number of elements are larger than \p variable_threshold 
  //! will be stored with one time step per file. Ignored if the file is open 
  //! for appending or reading.
  //
@@ -36,6 +52,22 @@ public:
 	size_t variable_threshold=100*1024*1024
  );
  virtual ~VDCNetCDF();
+
+ //! Return path to the data directory
+ //!
+ //! Return the file path to the data directory associated with the 
+ //! master file named by \p path. Data files, those NetCDF files
+ //! containing coordinate and data variables, are stored in separate 
+ //! files from
+ //! the VDC master file (See VDC::Initialize()). The data files reside
+ //! under the directory returned by this command. 
+ //!
+ //! \param[in] path Path to VDC master file
+ //!
+ //! \retval dir : Path to the data directory
+ //! \sa Initialize(), GetPath(), DataDirExists()
+ //
+ static string GetDataDir(string path);
 
  //! \copydoc VDC::GetPath()
  //!
@@ -58,7 +90,24 @@ public:
 	size_t &max_ts
  ) const;
 
+ //! \copydoc VDC::GetDimLensAtLevel()
+ //
+ virtual int GetDimLensAtLevel(
+    string varname, int level, std::vector <size_t> &dims_at_level
+ ) const;
+
+ //! Return true if a data directory exists for the master file
+ //! named by \p path
+ //!
+ //! \param[in] path Path to VDC master file
+ //!
+ //! \sa Initialize(), GetPath(), GetDataDir();
+ //
+ static bool DataDirExists(string path) ;
+
+
  //! Initialize the VDCNetCDF class
+ //! \copydoc VDC::Initialize()
  //!
  //! \param[in] chunksizehint : NetCDF chunk size hint.  A value of
  //! zero results in NC_SIZEHINT_DEFAULT being used.
@@ -67,53 +116,81 @@ public:
 
  //! Return the master file size threshold
  //!
- //! \sa VDCNetCDF::VDCNetCDF(), GetMasterThreshold(), GetVariableThreshold()
+ //! \sa VDCNetCDF::VDCNetCDF(), GetVariableThreshold()
  //
  size_t GetMasterThreshold() const {return _master_threshold; };
 
  //! Return the variable size  threshold
  //!
- //! \sa VDCNetCDF::VDCNetCDF(), GetMasterThreshold(), GetVariableThreshold()
+ //! \sa VDCNetCDF::VDCNetCDF(), GetMasterThreshold()
  //
  size_t GetVariableThreshold() const {return _variable_threshold; };
 
+ //! \copydoc VDC::OpenVariableRead()
+ //
  int OpenVariableRead(
-    size_t ts, string varname, int reflevel=0, int lod=-1
+    size_t ts, string varname, int level=0, int lod=-1
  );
+
+ //! \copydoc VDC::CloseVariable()
+ //
  int CloseVariable();
 
 
+ //! \copydoc VDC::OpenVariableWrite()
+ //
  int OpenVariableWrite(size_t ts, string varname, int lod=-1);
 
+ //! \copydoc VDC::Write()
+ //
  int Write(const float *region);
 
  int WriteSlice(const float *slice);
 
+ //! \copydoc VDC::Read()
+ //
  int Read(float *region);
 
+ //! \copydoc VDC::ReadSlice()
+ //
  int ReadSlice(float *slice);
 
+ //! \copydoc VDC::ReadRegion()
+ //
  int ReadRegion(
-    const size_t min[3], const size_t max[3], float *region
+    const std::vector<size_t> &min, 
+	const std::vector<size_t> &max, float *region
  );
 
+ //! \copydoc VDC::CompressionInfo()
+ //
+ bool CompressionInfo(
+	std::vector <size_t> bs, string wname, size_t &nlevels, size_t &maxcratio
+ ) const {
+	std::reverse(bs.begin(), bs.end());	// NetCDF order
+	return(WASP::InqCompressionInfo(bs, wname, nlevels, maxcratio));
+ };
 
 
 
 protected:
+
+#ifndef	DOXYGEN_SKIP_THIS
  virtual int _WriteMasterMeta();
  virtual int _ReadMasterMeta();
+#endif
 
 private:
  int _version;
  NetCDFCpp *_master;	// Master NetCDF file
  NetCDFCpp *_open_file;	// Currently opened data file
  bool _open_write;	// opened for writing?
- VarBase *_open_var;
+ BaseVar *_open_var;
  size_t _open_slice_num; // index of current slice for WriteSlice, ReadSlice
  size_t _open_ts;	// global time step of current open variable
  size_t _open_file_ts;	// local (within file) time step of current open var
  string _open_varname;	// name of current open variable
+ int _open_level;
  
  VetsUtil::SmartBuf _sb_slice_buffer;
  float *_slice_buffer;
@@ -128,7 +205,7 @@ private:
 	string prefix, const map <string, Attribute> &atts
  ); 
  int _WriteMasterAttributes ();
- int _WriteMasterVarBaseDefs(string prefix, const VarBase &var); 
+ int _WriteMasterBaseVarDefs(string prefix, const BaseVar &var); 
  int _WriteMasterCoordVarsDefs(); 
  int _WriteMasterDataVarsDefs(); 
  int _WriteSlice(WASP *file, const float *slice);
@@ -139,118 +216,11 @@ private:
 	string prefix, map <string, Attribute> &atts
  ); 
  int _ReadMasterAttributes ();
- int _ReadMasterVarBaseDefs(string prefix, VarBase &var); 
+ int _ReadMasterBaseVarDefs(string prefix, BaseVar &var); 
  int _ReadMasterCoordVarsDefs(); 
  int _ReadMasterDataVarsDefs(); 
  int _ReadSlice(WASP *file, float *slice);
  int _ReadSlice(NetCDFCpp *file, float *slice);
-
-	
- //
- // PutAtt - Integer
- //
- int _PutAtt(
-	string path, string varname, string attname, int value
- ); 
- int _PutAtt(
-	string path, string varname, string attname, vector <int> values
- ); 
- int _PutAtt(
-	string path, string varname, string attname, const int values[], size_t n
- ); 
-
- //
- // GetAtt - Integer
- //
- int _GetAtt(
-	string path, string varname, string attname, int &value
- ) const;
- int _GetAtt(
-	string path, string varname, string attname, vector <int> &values
- ) const; 
- int _GetAtt(
-	string path, string varname, string attname, int values[], size_t n
- ) const; 
-
- //
- // PutAtt - size_t
- //
- int _PutAtt(
-	string path, string varname, string attname, size_t value
- ); 
- int _PutAtt(
-	string path, string varname, string attname, vector <size_t> values
- ); 
- int _PutAtt(
-	string path, string varname, string attname, 
-	const size_t values[], size_t n
- ); 
-
- //
- // GetAtt - size_t
- //
- int _GetAtt(
-	string path, string varname, string attname, size_t &value
- ) const; 
- int _GetAtt(
-	string path, string varname, string attname, vector <size_t> &values
- ) const; 
- int _GetAtt(
-	string path, string varname, string attname, size_t values[], size_t n
- ) const; 
-
- //
- // PutAtt - Double
- //
- int _PutAtt(
-	string path, string varname, string attname, double value
- ); 
- int _PutAtt(
-	string path, string varname, string attname, vector <double> values
- );
- int _PutAtt(
-	string path, string varname, string attname, const double values[], size_t n
- ); 
-
- //
- // GetAtt - Double
- //
- int _GetAtt(
-	string path, string varname, string attname, double &value
- ) const; 
- int _GetAtt(
-	string path, string varname, string attname, vector <double> &values
- ) const; 
- int _GetAtt(
-	string path, string varname, string attname, double values[], size_t n
- ) const; 
-
- //
- // PutAtt - String
- //
- int _PutAtt(
-	string path, string varname, string attname, string value
- ); 
- int _PutAtt(
-	string path, string varname, string attname, vector <string> values
- );
- int _PutAtt(
-	string path, string varname, string attname, const char values[], size_t n
- ); 
-
- //
- // GetAtt - String
- //
- int _GetAtt(
-	string path, string varname, string attname, string &value
- ) const; 
- int _GetAtt(
-	string path, string varname, string attname, char values[], size_t n
- ) const; 
-
- int _GetVarID(
-	string path, string varname, int &ncid, int &varid 
- ) const; 
 
 };
 };

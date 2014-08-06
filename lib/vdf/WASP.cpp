@@ -40,7 +40,7 @@ void block_align(
 // with dimensions, 'dims', to a linear offset from the origin
 // of dims
 //
-size_t _linearize(
+size_t linearize(
 	vector <size_t> coords, vector <size_t> dims
 ) {
 	size_t offset = 0;
@@ -127,7 +127,7 @@ vectorinc::vectorinc(
 
 	for (int i=0; i<start.size(); i++) {
 		_end.push_back(start[i] + count[i]);
-		assert(_end[i] <= dims[i]);
+		//assert(_end[i] <= dims[i]);
 	}
 		
 	_start = start;
@@ -180,7 +180,7 @@ void vectorinc::ith(
 		}
 	}
 
-	offset = _linearize(start, _dims);
+	offset = linearize(start, _dims);
 }
 
 bool vectorinc::next(vector <size_t> &start, size_t &offset) {
@@ -201,7 +201,7 @@ bool vectorinc::next(vector <size_t> &start, size_t &offset) {
 	}
 	start = _next;
 
-	offset = _linearize(start, _dims);
+	offset = linearize(start, _dims);
 
 	return(done);
 }
@@ -211,7 +211,7 @@ bool vectorinc::next(vector <size_t> &start, size_t &offset) {
 class thread_state {
 public:
  int _id;
- EasyThreads *_et;
+ EasyThreads *_et;	// one per thread
  string _varname;
  vector <NetCDFCpp *> _ncdfcptrs;	// one for each file
  vector <size_t> _start;
@@ -220,13 +220,13 @@ public:
  vector <size_t> _udims;
  vector <size_t> _ncoeffs;
  vector <size_t> _encoded_dims;
- vector <Compressor *> _compressors;	// one for each thread
- float *_data;
- float *_block;
- float *_coeffs;
- unsigned char *_maps;
+ vector <Compressor *> _compressors;	// one per thread
+ float *_data;	// global (shared by all threads)
+ float *_block;	// private (not shared)
+ float *_coeffs; // private (not shared)
+ unsigned char *_maps;	// private (not shared)
  int _level;
- static int _status;
+ static int _status;	// error indicator
 
  thread_state(
 	int id, EasyThreads *et, string &varname, 
@@ -258,7 +258,7 @@ void to_block_coords(
 	vector <size_t> vcoords,
 	vector <size_t> bs,
 	vector <size_t> &bcoords
-) { 
+) {
 	bcoords = vcoords;
 
 	size_t factor = 1;
@@ -278,7 +278,7 @@ void to_block_coords(
 // Pad a line using the appropriate boundary extension method
 // based on 'mode'
 //
-void _pad_line(
+void pad_line(
 	string mode,
 	float *line_start, 
 	size_t l1,	// length of valid data
@@ -392,7 +392,10 @@ void _pad_line(
 }
 
 
-void _swapbytes(void *ptr, size_t ws, size_t nelem) {
+//
+// Perform in-place byte swapping
+//
+void swapbytes(void *ptr, size_t ws, size_t nelem) {
 
 	for (size_t i = 0; i<nelem; i++) {
 		unsigned char *uptr = ((unsigned char *) ptr) + (i*ws);
@@ -443,20 +446,22 @@ vector <size_t> vdiff(vector <size_t> a, vector <size_t> b) {
 // needed based on mode value if this is a boundary block
 // Handles 1D, 2D, and 3D arrays
 //
-// dims : dimensions of array
-// start: starting coordinates of block within array (need not be block aligned)
+// data : pointer to start of array
+// dims : dimensions of array 'data'
+// start: starting coordinates of block within array 'data' (need not 
+// be block aligned)
+// block : pointer to start of block where data should be copied
 // bs : dimensions of block. May have rank <= dims, in which case only
 // fastest varying dimensions are used
-// data : pointer to start of array
-// block : pointer to start of block where data should be copied
 // min, max : range of data values within block
 //
-void _Block(
+void Block(
+	const float *data,
 	vector <size_t> dims, 
 	vector <size_t> start,
+	float *block,
 	vector <size_t> bs, 
 	string mode, 
-	const float *data, float *block,
 	float &min, float &max
 ) {
 	min = 0.0;
@@ -468,7 +473,7 @@ void _Block(
 	assert(bs.size() <= dims.size());
 	assert(dims.size() == start.size());
 
-	size_t offset = _linearize(start, dims);
+	size_t offset = linearize(start, dims);
 	data += offset;
 
 	// Deal with rank of bs less than data rank
@@ -501,13 +506,13 @@ void _Block(
 	size_t zstop = nbz;
 
 	if (rank>=1 && (start[rank-1] + nbx) > dims[rank-1]) {
-		xstop = (start[rank-1] + nbx) - dims[rank-1];
+		xstop = dims[rank-1] - start[rank-1];
 	}
 	if (rank>=2 && (start[rank-2] + nby) > dims[rank-2]) {
-		ystop = (start[rank-2] + nby) - dims[rank-2];
+		ystop = dims[rank-2] - start[rank-2];
 	}
 	if (rank>=3 && (start[rank-3] + nbz) > dims[rank-3]) {
-		zstop = (start[rank-3] + nbz) - dims[rank-3];
+		zstop = dims[rank-3] - start[rank-3];
 	}
 
 	//
@@ -540,7 +545,7 @@ void _Block(
 		for (size_t y = 0; y<nby; y++) {  
 			line_start = block + z*nby*nbx + y*nby;
 
-			_pad_line(mode, line_start, xstop, nbx, 1);
+			pad_line(mode, line_start, xstop, nbx, 1);
 		}
 		}
 	}
@@ -552,7 +557,7 @@ void _Block(
 		for (size_t x = 0; x<nbx; x++) {  
 			line_start = block + z*nby*nbx + x;
 
-			_pad_line(mode, line_start, ystop, nby, nbx);
+			pad_line(mode, line_start, ystop, nby, nbx);
 		}
 		}
 	}
@@ -564,7 +569,7 @@ void _Block(
 		for (size_t x = 0; x<nbx; x++) {  
 			line_start = block + y*nbx + x;
 
-			_pad_line(mode, line_start, zstop, nbz, nby*nbx);
+			pad_line(mode, line_start, zstop, nbz, nby*nbx);
 		}
 		}
 	}
@@ -573,26 +578,35 @@ void _Block(
 // Copy a block of blocked data into a contiguous array (unblocking
 // the data). Handles 1D, 2D, and 3D arrays
 //
+// block : pointer to start of block where data should be copied from
+// bs : dimensions of block. May have rank <= dims, in which case only
+// fastest varying dimensions are used
+// data : pointer to start of destination array
 // origin : coordinates of origin of data array
 // dims : dimensions of array
 // start: starting coordinates of block within array
-// bs : dimensions of block. May have rank <= dims, in which case only
-// fastest varying dimensions are used
-// data : pointer to start of array
-// block : pointer to start of block where data should be copied
-// min, max : range of data values within block
 //
-void _UnBlock(
-	vector <size_t> origin, 
-	vector <size_t> dims, 
-	vector <size_t> start,
+void UnBlock(
+	const float *block,
 	vector <size_t> bs, 
-	float *data, const float *block
+	float *data, 
+	vector <size_t> dims, 
+	vector <size_t> origin, 
+	vector <size_t> start
 ) {
 
 	// Only 1D, 2D, and 3D blocks handled
 	//
 	assert(bs.size() >=1 && bs.size() <= 3);
+
+	// Deal with rank of bs less than data rank
+	//
+	while (dims.size() > bs.size()) {
+		origin.erase(origin.begin());
+		dims.erase(dims.begin());
+		start.erase(start.begin());
+	}
+
 	int rank = bs.size();
 
 	// dimensions of volume
@@ -660,19 +674,21 @@ void _UnBlock(
 //
 // cmp : Compressor for wavelet transform
 // block : block of data
+// n : number of elements in 'block'
+// coeffs : storage for transformed coefficients
+// maps : storage for encoded significance maps
 // ncoeffs : vector describing partitioning of coefficients in 'coeffs'
 // encoded_dims : vector describing dimension of encoded block at
 // each compression level.
-// coeffs : storage for transformed coefficients
-// maps : storage for encoded significance maps
 //
-int _DecomposeBlock(
+int DecomposeBlock(
 	Compressor *cmp,
 	const float *block,
-	vector <size_t> ncoeffs,
-	vector <size_t> encoded_dims,
+	size_t n,
 	float *coeffs,
-	unsigned char *maps
+	unsigned char *maps,
+	vector <size_t> ncoeffs,
+	vector <size_t> encoded_dims
 	
 ) {
 
@@ -681,6 +697,9 @@ int _DecomposeBlock(
 	int rc = cmp->Decompose(block, coeffs, ncoeffs, sigmaps);
 	if (rc<0) return(-1);
 
+	//
+	// Extract signficance maps from 'sigmaps' and copy them to 'maps'
+	//
 	unsigned char *mapptr = maps;
 	for (int i=0; i<ncoeffs.size(); i++) {
 		if (encoded_dims[i] != ncoeffs[i]) {	// last map not stored
@@ -696,26 +715,31 @@ int _DecomposeBlock(
 // Apply inverse wavelet transfor to a block of data
 //
 // cmp : Compressor for wavelet transform
-// block : block of data
+// coeffs : storage for transformed coefficients
+// maps : storage for encoded significance maps
 // ncoeffs : vector describing partitioning of coefficients in 'coeffs'
 // encoded_dims : vector describing dimension of encoded block at
 // each compression level.
-// coeffs : storage for transformed coefficients
-// maps : storage for encoded significance maps
+// block : block of data
+// n : num elements in 'block'
+// level : reconstruction level in wavelet hierarchy
 //
-int _ReconstructBlock(
+int ReconstructBlock(
 	Compressor *cmp,
-	float *block,
-	vector <size_t> ncoeffs,
-	vector <size_t> encoded_dims,
 	const float *coeffs,
 	const unsigned char *maps,
-	int level
-	
+	vector <size_t> ncoeffs,
+	vector <size_t> encoded_dims,
+	float *block,
+	size_t n,
+	int level 
 ) {
 
 	vector <SignificanceMap> sigmaps(ncoeffs.size());
 
+	// 
+	// Extract encoded significance maps
+	//
 	const unsigned char *mapptr = maps;
 	bool reconstruct_map = false;
 	for (int i=0; i<ncoeffs.size(); i++) {
@@ -751,14 +775,15 @@ int _ReconstructBlock(
 // Write a single transformed & compressed block to disk
 //
 // varname : name of variable
-// bcoords : coordinates of block
+// ncdfcptrs : NetCDFCpp file points, one for each compression level
+// bcoords : coordinates of block in voxel coords relative to start of variable
 // ncoeffs : vector describing partitioning of coefficients in 'coeffs'
 // encoded_dims : vector describing dimension of encoded block at
 // each compression level.
 // coeffs : transformed coefficients for each compression level
 // maps : encoded significance maps for each compression level
 //
-int _StoreBlock(
+int StoreBlock(
 	string varname, vector <NetCDFCpp *> ncdfcptrs, vector <size_t> bcoords, 
 	vector <size_t> ncoeffs, vector <size_t> encoded_dims,
 	const float *coeffs, unsigned char *maps
@@ -810,7 +835,7 @@ int _StoreBlock(
 			// Should be checking size of external type for var
 			//
 			if (do_swapbytes) {
-				_swapbytes((void *) maps, sizeof(float), n);
+				swapbytes((void *) maps, sizeof(float), n);
 			}
 
 			// Signficance map is concatenated to the wavelet coefficients
@@ -830,6 +855,7 @@ int _StoreBlock(
 // Read a single transformed & compressed block from disk
 //
 // varname : name of variable
+// ncdfcptrs : NetCDFCpp file points, one for each compression level
 // bcoords : coordinates of block
 // ncoeffs : vector describing partitioning of coefficients in 'coeffs'
 // encoded_dims : vector describing dimension of encoded block at
@@ -837,7 +863,7 @@ int _StoreBlock(
 // coeffs : transformed coefficients for each compression level
 // maps : encoded significance maps for each compression level
 //
-int _FetchBlock(
+int FetchBlock(
 	string varname, vector <NetCDFCpp *> ncdfcptrs, vector <size_t> bcoords, 
 	vector <size_t> ncoeffs, vector <size_t> encoded_dims,
 	float *coeffs, unsigned char *maps
@@ -896,7 +922,7 @@ int _FetchBlock(
 			// Should be checking size of external type for var
 			//
 			if (do_swapbytes) {
-				_swapbytes((void *) maps, sizeof(float), n);
+				swapbytes((void *) maps, sizeof(float), n);
 			}
 
 			maps += n * sizeof(float);
@@ -905,15 +931,18 @@ int _FetchBlock(
 	return(0);
 }
 
-// Thread execution function for data writes
+// Thread execution help function for data writes
 //
-void *_RunWriteThread(void *arg) {
+void *RunWriteThread(void *arg) {
 	thread_state &s = *(thread_state *) arg;
 
 	vectorinc vec(s._start, s._count, s._udims, s._bs);
 
 	s._status = 0;
 
+	//
+	// Process blocks of data assigned to this thread
+	//
 	int n = vec.num();
 	for (int i=s._id; i<n; i += s._et->GetNumThreads()) {
 
@@ -932,15 +961,18 @@ void *_RunWriteThread(void *arg) {
 		// array, 's._data'. 
 		//
 		float min, max;
-		_Block(
-			s._count, roi_start, s._bs, 
+		Block(
+			s._data, s._count, roi_start, s._block, s._bs, 
 			s._compressors[s._id]->dwtmode(),
-			s._data, s._block, min, max
+			min, max
 		);
 
-		int rc = _DecomposeBlock(
-			s._compressors[s._id], (const float *) s._block, s._ncoeffs, 
-			s._encoded_dims, s._coeffs, s._maps
+		//
+		// Wavelet transform the current block
+		//
+		int rc = DecomposeBlock(
+			s._compressors[s._id], (const float *) s._block, vproduct(s._bs),
+			s._coeffs, s._maps, s._ncoeffs, s._encoded_dims
 		);
 		if (rc<0) {
 			s._status = -1;
@@ -952,8 +984,12 @@ void *_RunWriteThread(void *arg) {
 		vector <size_t> bcoords;
 		to_block_coords(start, s._bs, bcoords);
 
+		// Write the transformed block to disk. Need a mutex because
+		// NetCDF library is not thread safe
+		//
+		//
 		s._et->MutexLock();
-			rc = _StoreBlock(
+			rc = StoreBlock(
 				s._varname, s._ncdfcptrs, bcoords, s._ncoeffs, s._encoded_dims,
 				s._coeffs, s._maps
 			);
@@ -966,9 +1002,9 @@ void *_RunWriteThread(void *arg) {
 	return(0);
 }
 
-// Thread execution function for data writes
+// Thread execution helper function for data writes
 //
-void *_RunReadThread(void *arg) {
+void *RunReadThread(void *arg) {
 	thread_state &s = *(thread_state *) arg;
 
 
@@ -993,8 +1029,11 @@ void *_RunReadThread(void *arg) {
 		vector <size_t> bcoords;
 		to_block_coords(start, s._bs, bcoords);
 
+		// Read wavelet coefficients from disk. Need a mutex because
+		// NetCDF API is not thread safe
+		//
 		s._et->MutexLock();
-			int rc = _FetchBlock(
+			int rc = FetchBlock(
 				s._varname, s._ncdfcptrs, bcoords, s._ncoeffs, 
 				s._encoded_dims, s._coeffs, s._maps
 			);
@@ -1002,9 +1041,11 @@ void *_RunReadThread(void *arg) {
 		s._et->MutexUnlock();
 		if (s._status < 0) break;
 
-		rc = _ReconstructBlock(
-			s._compressors[s._id], s._block, s._ncoeffs, s._encoded_dims, 
-			s._coeffs, s._maps, s._level
+		// Transform from wavelet to physical space
+		//
+		rc = ReconstructBlock(
+			s._compressors[s._id], s._coeffs, s._maps, s._ncoeffs, 
+			s._encoded_dims, s._block, vproduct(s._bs), s._level
 		);
 		if (rc<0) {
 			s._status = -1;
@@ -1016,7 +1057,9 @@ void *_RunReadThread(void *arg) {
 		vector <size_t> roi_start = vector_sub(start, aligned_start);
 		vector <size_t> roi_origin = vector_sub(s._start, aligned_start);
 
-		_UnBlock(roi_origin, s._count, roi_start, s._bs, s._data, s._block);
+		// Unblock the current block into the destination array
+		//
+		UnBlock(s._block, s._bs, s._data, s._count, roi_origin, roi_start);
 
 	}
 	return(NULL);
@@ -1029,12 +1072,10 @@ WASP::WASP(int nthreads) {
 	_ncdfcptrs.clear();
 
 	_compressionMode = false;
-	_wname.clear();
-	_bs.clear();
-	_ncratios = 0;
 	_nthreads = 1;
 
 	_open = false;
+	_open_wname.clear();
 	_open_bs.clear();
 	_open_cratios.clear();
 	_open_udims.clear();
@@ -1069,36 +1110,20 @@ WASP::~WASP() {
 
 int WASP::Create(
     string path, int cmode, size_t initialsz,
-    size_t &bufrsizehintp, string wname,
-    vector <size_t> bs, int ncratios, bool multifile
+    size_t &bufrsizehintp, int numfiles
 ) {
 	int rc = WASP::Close();
 	if (rc<0) return(rc);
+
+	numfiles = numfiles > 0 ? numfiles : 1;
 
 	_ncdfcs.clear();
 	_ncdfcptrs.clear();
 	_ncdfcptrs.push_back(this);
 
-	if (ncratios < 1) {
-		SetErrMsg("Invalid cratios specification");
-		return(-1);
-	}
-
-	if (bs.size() < 1 || bs.size() > 3) {
-		SetErrMsg("Invalid block specification");
-		return(-1);
-	}
-
-	MatWaveBase mwb(wname);
-	if (! mwb.wavelet()) {
-		SetErrMsg("Invalid wname specification");
-		return(-1);
-	}
-
-	
 	vector <string> paths;
-	if (multifile) {
-		paths = mkmultipaths(path, ncratios);
+	if (numfiles > 1) {
+		paths = mkmultipaths(path, numfiles);
 	}
 	else {
 		paths.push_back(path);
@@ -1122,9 +1147,7 @@ int WASP::Create(
 		_ncdfcptrs.push_back(&(_ncdfcs[i]));
 	}
 
-	_wname = wname;
-	_bs = bs;
-	_ncratios = ncratios;
+	_numfiles = numfiles;
 	_compressionMode = true;
 
 	// Attributes describing the compressed data
@@ -1132,16 +1155,8 @@ int WASP::Create(
 	rc = PutAtt("", AttNameCompressed(), 1);
 	if (rc<0) return(rc);
 
-	rc = PutAtt("", AttNameWavelet(), wname);
-	if (rc<0) return(rc);
 
-	rc = PutAtt("", AttNameBlockSize(), bs);
-	if (rc<0) return(rc);
-
-	rc = PutAtt("", AttNameNumCRatios(), ncratios);
-	if (rc<0) return(rc);
-
-	rc = PutAtt("", AttNameMultifile(), multifile);
+	rc = PutAtt("", AttNameNumFiles(), numfiles);
 	if (rc<0) return(rc);
 
 	return(NC_NOERR);
@@ -1158,9 +1173,6 @@ int WASP::Open(
 	_ncdfcptrs.push_back(this);
 
 	_compressionMode = false;
-	_wname.clear();
-	_bs.clear();
-	_ncratios = 0;
 
     rc = NetCDFCpp::Open(path.c_str(), mode);
 	if (rc<0) return(rc);
@@ -1169,32 +1181,22 @@ int WASP::Open(
 	rc = InqVarCompressed("", compressed);
 	if (rc<0) return(-1);
 
-	bool multifile = false;
-	int ncratios = 0;
+	int numfiles = 0;
 	vector <size_t> bs;
 	string wname;
 	if (compressed) {
-		rc = GetAtt("", AttNameMultifile(), (int &) multifile);
+
+		rc = GetAtt("", AttNameNumFiles(), numfiles);
 		if (rc<0) return(rc);
 
-		rc = GetAtt("", AttNameNumCRatios(), ncratios);
-		if (rc<0) return(rc);
-
-		rc = GetAtt("", AttNameWavelet(), wname);
-		if (rc<0) return(rc);
-
-		rc = GetAtt("", AttNameBlockSize(), bs);
-		if (rc<0) return(rc);
 	}
-    _wname = wname;
-    _bs = bs;
-    _ncratios = ncratios;
+    _numfiles = numfiles;
     _compressionMode = compressed;
 	
 
     vector <string> paths;
-	if (multifile) {
-		paths = mkmultipaths(path, ncratios);
+	if (numfiles > 1) {
+		paths = mkmultipaths(path, numfiles);
 	}
 
 	for (int i=1; i<paths.size(); i++) {
@@ -1265,7 +1267,8 @@ int WASP::DefDim(string name, size_t len) const {
 }
 
 int WASP::DefVar(
-    string name, int xtype, vector <string> dimnames, vector <size_t> cratios
+    string name, int xtype, vector <string> dimnames, 
+	string wname, vector <size_t> bs, vector <size_t> cratios
 ) {
 	vector <string> cdimnames;
 	vector <size_t> cdims;
@@ -1280,8 +1283,19 @@ int WASP::DefVar(
 		return(-1);
 	}
 
-	if (! _validate_cratios(cratios)) {
-		SetErrMsg("Invalid cratios specification");
+	//
+	// Look up dimlens associated with dimnames
+	//
+	vector <size_t> dims;
+	for (int i=0; i<dimnames.size(); i++) {
+		size_t dimlen;
+		int rc = NetCDFCpp::InqDimlen(dimnames[i], dimlen);
+		if (rc<0) return(rc);
+		dims.push_back(dimlen);
+	}
+
+	if (! _validate_compression_params(wname, dims, bs, cratios)) {
+		SetErrMsg("Invalid compression specification");
 		return(-1);
 	}
 
@@ -1298,7 +1312,7 @@ int WASP::DefVar(
 	vector <string> encoded_dim_names;
 	vector <size_t> encoded_dims;
 	int rc = _GetCompressedDims(
-		dimnames, cratios, xtype, cdimnames, cdims,
+		dimnames, wname, bs, cratios, xtype, cdimnames, cdims,
 		encoded_dim_names, encoded_dims
 	);
 
@@ -1359,15 +1373,22 @@ int WASP::DefVar(
 	rc = PutAtt(name, AttNameCRatios(), cratios);
 	if (rc<0) return(rc);
 
+	rc = PutAtt(name, AttNameWavelet(), wname);
+	if (rc<0) return(rc);
+
+	rc = PutAtt(name, AttNameBlockSize(), bs);
+	if (rc<0) return(rc);
+
 	return(NC_NOERR);
 }
 
 int WASP::DefVar(
-    string name, int xtype, vector <string> dimnames, vector <size_t> cratios,
+    string name, int xtype, vector <string> dimnames, 
+	string wname, vector <size_t> bs, vector <size_t> cratios,
 	double missing_value
 ) {
 
-	int rc = WASP::DefVar(name, xtype, dimnames, cratios);
+	int rc = WASP::DefVar(name, xtype, dimnames, wname, bs, cratios);
 	if (rc<0) return(rc);
 
 	rc = PutAtt(name, AttNameMissingValue(), missing_value);
@@ -1395,66 +1416,148 @@ int WASP::InqVarDims(
 	for (int i=0; i<dimnames.size(); i++) {
 		size_t len;
 
-		rc = InqDimlen(dimnames[i], len);
+		rc = NetCDFCpp::InqDimlen(dimnames[i], len);
 		if (rc<0) return(rc);
 		dims.push_back(len);
 	}
 	return(NC_NOERR);
 }
 
-int WASP::InqVarDimlens(
-	string name, vector <size_t> &dims, int level
+int WASP::InqVarCompressionParams(
+	string name, string &wname, vector <size_t> &bs, vector <size_t> &cratios
 ) const {
+	wname.clear();
+	bs.clear();
+	cratios.clear();
 
-	vector <string> dimnames;
-	int rc = WASP::InqVarDims(name, dimnames, dims);
+	int rc = GetAtt(name, AttNameBlockSize(), bs);
 	if (rc<0) return(rc);
 
-
-	vector <size_t> bs;
-	rc = GetAtt("", AttNameBlockSize(), bs);
+	rc = GetAtt(name, AttNameCRatios(), cratios);
 	if (rc<0) return(rc);
 
-	vector <size_t> bs_level;
-	rc = _dims_at_level(dims, bs, level, dims, bs_level);
+	rc = GetAtt(name, AttNameWavelet(), wname);
 	if (rc<0) return(rc);
 
 	return(0);
 }
 
+int WASP::InqVarDimlens(
+	string name, int level, 
+	vector <size_t> &dims_at_level, vector <size_t> &bs_at_level
+) const {
+	dims_at_level.clear();
+	bs_at_level.clear();
+
+	vector <string> dimnames;
+	vector <size_t> dims;
+	int rc = WASP::InqVarDims(name, dimnames, dims);
+	if (rc<0) return(rc);
+
+	bool compressed = false;
+	rc = InqVarCompressed(_open_varname, compressed);
+	if (rc<0) return(rc);
+
+	if (! compressed) {
+		dims_at_level = dims;
+		bs_at_level = dims;
+		return(0);
+	}
+
+	vector <size_t> bs;
+	vector <size_t> cratios;
+	string wname;
+	rc = WASP::InqVarCompressionParams(name, wname, bs, cratios);
+	if (rc<0) return(rc);
+
+	rc = _dims_at_level(dims, bs, level, wname, dims_at_level, bs_at_level);
+	if (rc<0) return(rc);
+
+	return(0);
+}
+
+int WASP::InqDimsAtLevel(
+	string wname, int level, vector <size_t> dims, vector <size_t> bs,
+	vector <size_t> &dims_at_level, vector <size_t> &bs_at_level
+) {
+	dims_at_level.clear();
+	bs_at_level.clear();
+
+	int rc = _dims_at_level(dims, bs, level, wname, dims_at_level, bs_at_level);
+	if (rc<0) return(rc);
+
+	return(0);
+}
+
+int WASP::InqVarNumRefLevels(string name) const {
+
+	vector <size_t> bs;
+	vector <size_t> cratios;
+	vector <size_t> udims;
+	vector <size_t> dims;
+	string wname;
+	
+	int rc = _get_compression_params(name, bs, cratios, udims, dims, wname);
+	if (rc<0) return(rc);
+
+	if (cratios.size() == 0) return(1);	// no compression
+
+
+	vector <size_t> bs_vdc = bs;
+	reverse(bs_vdc.begin(), bs_vdc.end());	// VDC order
+
+	size_t nlevels, maxcratio;
+	(void) WASP::InqCompressionInfo(bs_vdc, wname, nlevels, maxcratio);
+
+	return (nlevels);
+}
+
+// static method to compute grid dimensions at a specified refinement level
+// 
+// dims : dimensions of native (original) grid
+// bs : dimensions of native storage brick. Rank may be less than 'dims' 
+// level : hierarchy level
+// wname : name of wavelet used in wavelet transform
+// dims_at_level : grid dimensions at given refinement level
+// bs_at_level : block dimensions dimensions at given refinement level
+//
 int WASP::_dims_at_level(
 	vector <size_t> dims,
 	vector <size_t> bs,
 	int level,
-	vector <size_t> &dims_level,
-	vector <size_t> &bs_level
-) const {
-	dims_level.clear();
-	bs_level.clear();
+	string wname,
+	vector <size_t> &dims_at_level,
+	vector <size_t> &bs_at_level
+) {
+	dims_at_level.clear();
+	bs_at_level.clear();
 
-	Compressor cmp(bs, _wname);
+	vector <size_t> bs_vdc = bs;
+	reverse(bs_vdc.begin(), bs_vdc.end());	// VDC order
+	Compressor cmp(bs_vdc, wname);
 
 	if (level < 0) level = cmp.GetNumLevels();
+    if (level > cmp.GetNumLevels()) level = cmp.GetNumLevels();
 
-    if (level > cmp.GetNumLevels()) {
-        SetErrMsg("Invalid refinement level: (%d)", level);
-        return(-1);
-    }
+	cmp.GetDimension(bs_at_level, level);
 
+	dims_at_level = dims;
 	int  ldelta = cmp.GetNumLevels() - level;
 
 	for (int i0 = bs.size()-1, i1 = dims.size()-1; i0>=0 && i1>=0; i0--,i1--) {
-		dims[i1] = dims[i1] >> ldelta;
-		if (dims[i1] == 0) dims[i1] = 1;
-	}
-	dims_level = dims;
+		size_t nblocks = dims[i1] / bs[i0];
+		size_t residual = dims[i1] - (nblocks*bs[i0]);
 
-	cmp.GetDimension(bs_level, level);
+		residual = residual >> ldelta;
+
+		dims_at_level[i1] = nblocks * bs_at_level[i0] + residual;
+
+	}
 
 	return(0);
 }
 
-// Same as WASP::InqDimlen(), but returns 0 and sets len to 0
+// Same as NetCDFCpp::InqDimlen(), but returns 0 and sets len to 0
 // if dimension 'name' does not exist
 //
 int WASP::_InqDimlen(string name, size_t &len) const {
@@ -1507,25 +1610,6 @@ int WASP::InqVarCompressed(
 }
 
 
-int WASP::GetMaxCRatio(
-    vector <size_t> bs, string wavename, size_t &cratio
-) const {
-	cratio = 1;
-
-    Compressor cmp = Compressor(bs, wavename);
-    if (Compressor::GetErrCode() != 0) return(NC_NOERR);
- 
-    // Total number of wavelet coefficients in a forward transform
-    //
-    size_t ntotal = cmp.GetNumWaveCoeffs();
- 
-    size_t mincoeff = cmp.GetMinCompression();
-    if (mincoeff == 0.0)  mincoeff = 1;
-
-	cratio = ntotal / mincoeff;
-	return(NC_NOERR);
-}
-
 int WASP::OpenVarWrite(string name, int lod) {
 	vector <size_t> bs;
 	vector <size_t> cratios;
@@ -1541,6 +1625,7 @@ int WASP::OpenVarWrite(string name, int lod) {
 		int rc = CloseVar();
 		if (rc < 0) return (rc);
 	}
+	_open_wname.clear();
 	_open_bs.clear();
 	_open_cratios.clear();
 	_open_udims.clear();
@@ -1571,10 +1656,13 @@ int WASP::OpenVarWrite(string name, int lod) {
 
 	// Create one compressor for each execution thread
 	//
+	vector <size_t> bs_vdc = bs;
+	reverse(bs_vdc.begin(), bs_vdc.end());	// VDC order
 	for (int i=0; i<_nthreads; i++) {
-		_open_compressors[i] = new Compressor(bs, wname);
+		_open_compressors[i] = new Compressor(bs_vdc, wname);
 	}
 
+	_open_wname = wname;
 	_open_bs = bs;
 	_open_cratios = cratios;
 	_open_udims = udims;
@@ -1605,6 +1693,7 @@ int WASP::OpenVarRead(string name, int lod, int level) {
 		if (rc < 0) return (rc);
 	}
 
+	_open_wname.clear();
 	_open_bs.clear();
 	_open_cratios.clear();
 	_open_udims.clear();
@@ -1633,8 +1722,10 @@ int WASP::OpenVarRead(string name, int lod, int level) {
         return(-1);
     }
 
+	vector <size_t> bs_vdc = bs;
+	reverse(bs_vdc.begin(), bs_vdc.end());	// VDC order
 	for (int i=0; i<_nthreads; i++) {
-		_open_compressors[i] = new Compressor(bs, wname);
+		_open_compressors[i] = new Compressor(bs_vdc, wname);
 	}
 
 	if (level < 0) level = _open_compressors[0]->GetNumLevels();
@@ -1648,6 +1739,7 @@ int WASP::OpenVarRead(string name, int lod, int level) {
         return(-1);
     }
 
+	_open_wname = wname;
 	_open_bs = bs;
 	_open_cratios = cratios;
 	_open_udims = udims;
@@ -1716,7 +1808,8 @@ bool WASP::_validate_put_vara_compressed(
 //
 bool WASP::_validate_get_vara_compressed(
 	vector <size_t> start, vector <size_t> count, 
-	vector <size_t> bs, vector <size_t> udims, vector <size_t> cratios
+	vector <size_t> bs, vector <size_t> udims, 
+	vector <size_t> cratios
 ) const {
 	if (start.size() != udims.size() || count.size() != udims.size()) {
         return(false);
@@ -1762,7 +1855,7 @@ int WASP::PutVara(
 	vector <size_t> ncoeffs;
 	vector <size_t> encoded_dims;
 	_get_encoding_vectors(
-		_open_bs, _open_cratios, NC_FLOAT, ncoeffs, encoded_dims
+		_open_wname, _open_bs, _open_cratios, NC_FLOAT, ncoeffs, encoded_dims
 	);
 
 	
@@ -1788,6 +1881,9 @@ int WASP::PutVara(
 		maps_size * _nthreads * sizeof (float)
 	);
 
+	//
+	// Set up thread state for parallel (threaded) execution
+	//
 	vector <void *> argvec;
 	for (int i=0; i<_nthreads; i++) {
 
@@ -1800,13 +1896,19 @@ int WASP::PutVara(
 		));
 	}
 
-	rc = _et->ParRun(_RunWriteThread, argvec);
-	if (rc < 0) {
-		SetErrMsg("Error spawning threads");
-		return(-1);
+	if (_nthreads == 1) {
+		RunWriteThread(argvec[0]);
 	}
+	else {
+		rc = _et->ParRun(RunWriteThread, argvec);
+		if (rc < 0) {
+			SetErrMsg("Error spawning threads");
+			return(-1);
+		}
+	}
+	for (int i=0; i<argvec.size(); i++) delete (thread_state *) argvec[i];
 
-	return(((thread_state *) (argvec[0]))->_status);
+	return(thread_state::_status);
 
 }
 
@@ -1839,19 +1941,12 @@ int WASP::GetVara(
 		return(NetCDFCpp::GetVara(_open_varname, start, count, data));
 	}
 
-	if (! _validate_get_vara_compressed(
-		start, count, _open_bs, _open_udims, _open_cratios)
-	) {
-		SetErrMsg("Invalid parameter");
-        return(-1);
-	}
 
 	vector <size_t> ncoeffs;
 	vector <size_t> encoded_dims;
 	_get_encoding_vectors(
-		_open_bs, _open_cratios, NC_FLOAT, ncoeffs, encoded_dims
+		_open_wname, _open_bs, _open_cratios, NC_FLOAT, ncoeffs, encoded_dims
 	);
-
 
 	// Compute the dimension and block size at the grid hierarchy
 	// level indicated by _open_level
@@ -1859,9 +1954,17 @@ int WASP::GetVara(
 	vector <size_t> dims_at_level;
 	vector <size_t> bs_at_level;
 	rc = _dims_at_level(
-		_open_udims, _open_bs, _open_level, dims_at_level, bs_at_level
+		_open_udims, _open_bs, _open_level, _open_wname, 
+		dims_at_level, bs_at_level
 	);
 	if (rc<0) return(rc);
+
+	if (! _validate_get_vara_compressed(
+		start, count, bs_at_level, dims_at_level, _open_cratios)
+	) {
+		SetErrMsg("Invalid parameter");
+        return(-1);
+	}
 
 	
 	// Handle case where not all coefficients are wanted
@@ -1871,7 +1974,8 @@ int WASP::GetVara(
 		encoded_dims.pop_back();
 	}
 
-	size_t block_size = vproduct(_open_bs);
+//	size_t block_size = vproduct(_open_bs);
+	size_t block_size = vproduct(bs_at_level);
 	float *block = (float *) _blockbuf.Alloc(
 		block_size * _nthreads *sizeof(float)
 	);
@@ -1886,6 +1990,9 @@ int WASP::GetVara(
 		maps_size * _nthreads * sizeof (float)
 	);
 
+	//
+	// Set up thread state for parallel (threaded) execution
+	//
 	vector <void *> argvec;
 	for (int i=0; i<_nthreads; i++) {
 
@@ -1898,13 +2005,20 @@ int WASP::GetVara(
 		));
 	}
 
-	rc = _et->ParRun(_RunReadThread, argvec);
-	if (rc < 0) {
-		SetErrMsg("Error spawning threads");
-		return(-1);
+	if (_nthreads == 1) {
+		RunReadThread(argvec[0]);
+	}
+	else {
+		rc = _et->ParRun(RunReadThread, argvec);
+		if (rc < 0) {
+			SetErrMsg("Error spawning threads");
+			return(-1);
+		}
 	}
 
-	return(((thread_state *) (argvec[0]))->_status);
+	for (int i=0; i<argvec.size(); i++) delete (thread_state *) argvec[i];
+
+	return(thread_state::_status);
 }
 
 int WASP::GetVar(float *data) {
@@ -1928,6 +2042,8 @@ int WASP::GetVar(float *data) {
 //
 int WASP::_GetCompressedDims(
 	vector <string> dimnames, 
+	string wname, 
+	vector <size_t> bs,
 	vector <size_t> cratios,
 	int xtype,
 	vector <string> &cdimnames, 
@@ -1946,16 +2062,10 @@ int WASP::_GetCompressedDims(
 	vector <size_t> dims;
 	for (int i=0; i<dimnames.size(); i++) {
 		size_t dimlen;
-		int rc = InqDimlen(dimnames[i], dimlen);
+		int rc = NetCDFCpp::InqDimlen(dimnames[i], dimlen);
 		if (rc<0) return(rc);
 		dims.push_back(dimlen);
 	}
-
-	//
-	// Get appropriate block sizes for given number of dimensions
-	//
-	vector <size_t> bs = _get_block_sizes(dims.size());
-	assert(dims.size() >= bs.size());
 
 	// 
 	// Compute dimensions of blocked array in terms of blocks. Not all
@@ -1978,7 +2088,7 @@ int WASP::_GetCompressedDims(
 	// coefficients. There is one coefficient dimension for each LOD
 	//
 	vector <size_t> ncoeffs;
-	_get_encoding_vectors(bs, cratios, xtype, ncoeffs, encoded_dims);
+	_get_encoding_vectors(wname, bs, cratios, xtype, ncoeffs, encoded_dims);
 
 	for (int i=0; i<encoded_dims.size(); i++) {
 		ostringstream oss;
@@ -2002,11 +2112,11 @@ vector <string> WASP::mkmultipaths(string path, int n) const {
 
 	for (int i=0; i<n; i++) {
 		ostringstream oss;
-		if (i != 0) {
-			oss << basename << ".nc" << i;
+		if (i==0) {
+			oss << basename << ".nc";
 		}
 		else {
-			oss << basename << ".nc";
+			oss << basename << ".nc" << i;
 		}
 		paths.push_back(oss.str());
 	}
@@ -2025,14 +2135,16 @@ vector <string> WASP::mkmultipaths(string path, int n) const {
 // level.  The dimension is ncoeffs + size of encoded sig map
 //
 void WASP::_get_encoding_vectors(
-	vector <size_t> bs, vector <size_t> cratios, int xtype,
+	string wname, vector <size_t> bs, vector <size_t> cratios, int xtype,
 	vector <size_t> &ncoeffs, 
 	vector <size_t> &encoded_dims
 ) const {
 	ncoeffs.clear();
 	encoded_dims.clear();
 	
-    Compressor compressor(bs, _wname);
+	vector <size_t> bs_vdc = bs;
+	reverse(bs_vdc.begin(), bs_vdc.end());	// VDC order
+    Compressor compressor(bs_vdc, wname);
 
 	// Total number of wavelet coefficients generated by a forward transform
 	//
@@ -2079,25 +2191,24 @@ void WASP::_get_encoding_vectors(
 	}
 }
 
-// Generate a block dimension vector for the given number of
-// dimensions. The rank of the returned vector will be <= to
-// ndims
+// Make sure compression params are valid:
+// 	cratios vector is monotonic with unique values, no zero
+//	wname is a valide wavelet
+//	bs supports requested compression ratios
 //
-vector <size_t> WASP::_get_block_sizes(int ndims) const {
-	if (_bs.size() <= ndims) return (_bs);
+bool WASP::_validate_compression_params(
+	string wname, vector <size_t> dims, 
+	vector <size_t> bs, vector <size_t> cratios
+) const {
 
-	vector <size_t> bs = _bs;
-	bs.erase(bs.begin(), bs.begin() + bs.size() - ndims);
-	return(bs);
-}
+	MatWaveBase mwb(wname);
+	if (! mwb.wavelet()) return(false);
 
-	
-// Make sure compression ratios vector is valid: monotonic with
-// unique values, no zero
-//
-bool WASP::_validate_cratios(vector <size_t> cratios) const {
+	if (bs.size() < 1 || bs.size() > 3) return(false);
 
-	if (cratios.size() != _ncratios) return(false);
+	if (_numfiles > 1) {
+		if (cratios.size() != _numfiles) return(false);
+	}
 	
 	// Monotonic
 	//
@@ -2108,6 +2219,19 @@ bool WASP::_validate_cratios(vector <size_t> cratios) const {
 	sort(cratios.begin(), cratios.end()); 
 	for (int i=0; i<cratios.size(); i++) {
 		if (cratios[i] == 0) return(false);
+	}
+
+	// Rank of bs must be <= ranke of dims
+	//
+	if (bs.size() > dims.size()) return(false);
+
+	size_t maxcratio;
+	size_t nlevels;
+	bool status = WASP::InqCompressionInfo(bs, wname, nlevels, maxcratio);
+	if (! status) return(false);
+
+	for (int i=0; i<cratios.size(); i++) {
+		if (cratios[i] > maxcratio) return(false);
 	}
 
 	return(true);
@@ -2126,23 +2250,6 @@ int WASP::_get_compression_params(
 	int rc = InqVarCompressed(name, compressed);
 	if (rc<0) return(rc);
 
-	if (compressed) {
-
-		int rc = GetAtt("", AttNameBlockSize(), bs);
-		if (rc<0) return(rc);
-
-		rc = GetAtt(name, AttNameCRatios(), cratios);
-		if (rc<0) return(rc);
-
-		if (! _validate_cratios(cratios)) {
-			SetErrMsg("Invalid cratios specification");
-			return(-1);
-		}
-
-		rc = GetAtt("", AttNameWavelet(), wname);
-		if (rc<0) return(rc);
-	}
-
 	vector <string> udimnames;
 	rc = WASP::InqVarDims(name, udimnames, udims);
 	if (rc<0) return(rc);
@@ -2151,7 +2258,21 @@ int WASP::_get_compression_params(
 	rc = NetCDFCpp::InqVarDims(name, dimnames, dims);
 	if (rc<0) return(rc);
 
+	if (compressed) {
+
+		rc = WASP::InqVarCompressionParams(name, wname, bs, cratios);
+		if (rc<0) return(rc);
+
+		if (! _validate_compression_params(wname, udims, bs, cratios)) {
+			SetErrMsg("Invalid cratios specification");
+			return(-1);
+		}
+
+	}
+
+
 	
 	return(0);
 
 }
+

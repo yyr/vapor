@@ -9,15 +9,25 @@
 
 namespace VAPoR {
 
-//! \class VDC
 //!
-//! Defines API for reading, writing, and appending data to a
+//! \class VDC
+//! \ingroup Public_VDC
+//!
+//! \brief Defines API for reading, writing, and appending data to a
+//! VAPOR Data Collection (Version 3)
+//!
+//! \author John Clyne
+//! \date    July, 2014
+//!
+//! This abstract class efines API for reading, writing, and 
+//! appending data to a
 //! VAPOR Data Collection (Version 3).  The VDC class is an abstract virtual
 //! class, providing a public API, but performing no actual storage 
 //! operations. Derived implementations of the VDC base class are 
 //! required to support the API.
 //!
-//! In version 3 of the VDC the metadata (.vdf) file is replaced with a 
+//! In version 3 of the VDC the metadata (.vdf) file found in VDC version 1
+//! and 2 is replaced with a 
 //! "master" file that describes the contents of the entire VDC. The master 
 //! file imposes structure on the organization of the files containing data,
 //! determining, for example, which data files contain which variables 
@@ -71,6 +81,73 @@ namespace VAPoR {
 //! 'dims' is a vector of dimensions, then dims[0] is the fastest varying
 //! dimension, dim[1] is the next fastest, and so on. This ordering is the
 //! opposite of the ordering used by NetCDF.
+//!
+//! This class inherits from VetsUtil::MyBase. Unless otherwise documented
+//! any method that returns an integer value is returning status. A negative
+//! value indicates failure. Error messages are logged via
+//! VetsUtil::MyBase::SetErrMsg(). Methods that return a boolean do
+//! not, unless otherwise documented, log an error message upon 
+//! failure (return of false).
+//!
+//! \param level 
+//! \parblock
+//! Grid refinement level for multiresolution variables. 
+//! Compressed variables in the VDC have a multi-resolution 
+//! representation: the sampling grid for multi-resolution variables
+//! is hierarchical, and the dimension lengths of adjacent levels in the
+//! hierarchy differ by a factor of two. The \p level parameter is 
+//! used to select a particular depth of the hierarchy.
+//!
+//! To provide maximum flexibility as well as compatibility with previous
+//! versions of the VDC the interpretation of \p level is somewhat 
+//! complex. Both positive and negative values may be used to specify
+//! the refinement level and have different interpretations. 
+//!
+//! For positive
+//! values of \p level, a value of \b 0 indicates the coarsest 
+//! member of the 
+//! grid hierarchy. A value of \b 1 indicates the next grid refinement 
+//! after the coarsest, and so on. Using postive values the finest level 
+//! in the hierarchy is given by GetNumRefLevels() - 1. Values of \p level
+//! that are greater than GetNumRefLevels() - 1 are treated as if they
+//! were equal to GetNumRefLevels() - 1.
+//!
+//! For negative values of \p level a value of -1 indicates the
+//! variable's native grid resolution (the finest resolution available). 
+//! A value of -2 indicates the next coarsest member in the hierarchy after 
+//! the finest, and so
+//! on. Using negative values the coarsest available level in the hierarchy is 
+//! given by negating the value returned by GetNumRefLevels(). Values of
+//! \p level that are less than the negation of GetNumRefLevels() are
+//! treated as if they were equal to the negation of the GetNumRefLevels()
+//! return value.
+//!
+//! \param cratios A monotonically decreasing vector of
+//! compression ratios. Compressed variables in the VDC are stored
+//! with a fixed, finite number of compression factors. The \p cratios
+//! vector is used to specify the available compression factors (ratios). 
+//! A compression factor of 1 indicates no compression (1:1). A value
+//! of 2 indciates two to one compression (2:1), and so on. The minimum
+//! valid value of \p cratios is \b 1. The maximum value is determined
+//! by a number of factors and can be obtained using the CompressionInfo()
+//! method.
+//!
+//! \param bs An ordered list of block dimensions that specifies the
+//! block decomposition of the variable. The rank of \p bs may be less
+//! than that of a variable's array dimensions, in which case only
+//! the \b n fastest varying variable dimensions will be blocked, where
+//! \b n is the rank of \p bs. The ordering of the dimensions in \p bs
+//! is from fastest to slowest. A block is the basic unit of compression
+//! in the VDC: variables are decomposed into blocks, and individual blocks
+//! are compressed independently.
+//!
+//! \param wname Name of wavelet used for transforming compressed 
+//! variables between wavelet and physical space. Valid values
+//! are "bior1.1", "bior1.3", "bior1.5", "bior2.2", "bior2.4",
+//! "bior2.6", "bior2.8", "bior3.1", "bior3.3", "bior3.5", "bior3.7",
+//! "bior3.9", "bior4.4"
+//!
+//! \endparblock
 //!
 class VDC : public VetsUtil::MyBase {
 public:
@@ -167,10 +244,10 @@ public:
   //! \param[in] type External representation format
   //! \param[in] values A vector specifying the attribute's values
   //
-  Attribute(string name, XType type, const vector <float> &values);
-  Attribute(string name, XType type, const vector <double> &values);
-  Attribute(string name, XType type, const vector <int> &values);
-  Attribute(string name, XType type, const vector <long> &values);
+  Attribute(string name, XType type, const std::vector <float> &values);
+  Attribute(string name, XType type, const std::vector <double> &values);
+  Attribute(string name, XType type, const std::vector <int> &values);
+  Attribute(string name, XType type, const std::vector <long> &values);
   Attribute(string name, XType type, const string &values);
   Attribute(string name, XType type) {
 	_name = name; _type = type; _values.clear(); 
@@ -190,10 +267,10 @@ public:
   //! Get the value(s) for an attribute, performing type conversion
   //! as necessary from the external storage type to the desired type
   //!
-  void GetValues(vector <float> &values) const;
-  void GetValues(vector <double> &values) const;
-  void GetValues(vector <int> &values) const;
-  void GetValues(vector <long> &values) const;
+  void GetValues(std::vector <float> &values) const;
+  void GetValues(std::vector <double> &values) const;
+  void GetValues(std::vector <int> &values) const;
+  void GetValues(std::vector <long> &values) const;
   void GetValues(string &values) const;
 
   //! Set an attribute's value(s)
@@ -201,10 +278,10 @@ public:
   //! Set the value(s) for an attribute, performing type conversion
   //! as necessary to meet the external storage type.
   //!
-  void SetValues(const vector <float> &values);
-  void SetValues(const vector <double> &values);
-  void SetValues(const vector <int> &values);
-  void SetValues(const vector <long> &values);
+  void SetValues(const std::vector <float> &values);
+  void SetValues(const std::vector <double> &values);
+  void SetValues(const std::vector <int> &values);
+  void SetValues(const std::vector <long> &values);
   void SetValues(const string &values);
 
   friend std::ostream &operator<<(std::ostream &o, const Attribute &attr);
@@ -219,20 +296,20 @@ public:
    long l;
    char c;
   };
-  vector <podunion> _values;
+  std::vector <podunion> _values;
   
  };
 
-  //! \class VarBase
+  //! \class BaseVar
   //!
   //! \brief Base class for storing variable metadata
   //
- class VarBase {
+ class BaseVar {
  public:
 
   //! Default constructor
   //!
-  VarBase() {};
+  BaseVar() {};
 
   //! Constructor 
   //!
@@ -249,8 +326,6 @@ public:
   //! of \p bs does not match that of \p dimensions spatial dimensions.
   //! dimensions only the needed elements of \p bs are accessed
   //! \param[in] wname The wavelet family name for compressed variables
-  //! \param[in] wmode The wavelet bounary handling mode for compressed
-  //! variables.
   //! \param[in] cratios Specifies a vector of compression factors for
   //! compressed variable definitions. If empty, the variable is not 
   //! compressed
@@ -260,25 +335,24 @@ public:
   //! Results are undefined if the rank of 
   //! of \p periodic does not match that of \p dimensions.
   //!
-  VarBase(
-	string name, vector <VDC::Dimension> dimensions,
+  BaseVar(
+	string name, std::vector <VDC::Dimension> dimensions,
 	string units, XType type, 
-	vector <size_t> bs, string wname, string wmode, vector <size_t> cratios,
-	vector <bool> periodic
+	std::vector <size_t> bs, string wname, 
+	std::vector <size_t> cratios, std::vector <bool> periodic
   ) :
 	_name(name),
 	_dimensions(dimensions),
 	_units(units),
 	_type(type),
 	_wname(wname),
-	_wmode(wmode),
 	_cratios(cratios),
 	_bs(bs),
 	_periodic(periodic)
   {
   };
 
-  virtual ~VarBase() {};
+  virtual ~BaseVar() {};
 
   //! Get variable name
   //
@@ -287,8 +361,8 @@ public:
 
   //! Access variable's dimension names
   //
-  vector <VDC::Dimension> GetDimensions() const {return (_dimensions); };
-  void SetDimensions(vector <VDC::Dimension> dimensions) {
+  std::vector <VDC::Dimension> GetDimensions() const {return (_dimensions); };
+  void SetDimensions(std::vector <VDC::Dimension> dimensions) {
 	_dimensions = dimensions;
   };
 
@@ -308,74 +382,61 @@ public:
 
   //! Access variable's block size
   //
-  vector <size_t> GetBS() const {return (_bs); };
-  void SetBS(vector <size_t> bs) {_bs = bs; };
+  std::vector <size_t> GetBS() const {return (_bs); };
+  void SetBS(std::vector <size_t> bs) {_bs = bs; };
 
   //! Access variable's wavelet family name
   //
   string GetWName() const {return (_wname); };
   void SetWName(string wname) {_wname = wname; };
 
-  //! Access variable's wavelet boundary handling mode
-  //
-  string GetWMode() const {return (_wmode); };
-  void SetWMode(string wmode) {_wmode = wmode; };
-
   //! Access variable's compression ratios
   //
-  vector <size_t> GetCRatios() const {return (_cratios); };
-  void SetCRatios(vector <size_t> cratios) {_cratios = cratios; };
+  std::vector <size_t> GetCRatios() const {return (_cratios); };
+  void SetCRatios(std::vector <size_t> cratios) {_cratios = cratios; };
 
   //! Access variable bounary periodic 
   //
-  vector <bool> GetPeriodic() const {return (_periodic); };
-  void SetPeriodic(vector <bool> periodic) { _periodic = periodic; };
+  std::vector <bool> GetPeriodic() const {return (_periodic); };
+  void SetPeriodic(std::vector <bool> periodic) { _periodic = periodic; };
 
   //! Access variable attributes
   //
   std::map <string, Attribute> GetAttributes() const {return (_atts); };
   void SetAttributes(std::map <string, Attribute> &atts) {_atts = atts; };
 
-  //! Get number of refinement levels
-  //! 
-  //! Returns an ordered list of the number of available refinement levels 
-  //! for each spatial dimension. For data that are not compressed
-  //! the number of refinement levels along all dimensions is 1.
-  //!
-  vector <size_t> GetRefinementLevels();
-
-  friend std::ostream &operator<<(std::ostream &o, const VarBase &var);
+  friend std::ostream &operator<<(std::ostream &o, const BaseVar &var);
   
  private:
   string _name;
-  vector <VDC::Dimension> _dimensions;
+  std::vector <VDC::Dimension> _dimensions;
   string _units;
   XType _type;
   string _wname;
-  string _wmode;
-  vector <size_t> _cratios;
+  std::vector <size_t> _cratios;
   vector <size_t> _bs;
-  vector <bool> _periodic;
+  std::vector <bool> _periodic;
   std::map <string, Attribute> _atts;
  };
 
  //! \class CoordVar
  //! \brief Coordinate variable metadata
  //
- class CoordVar : public VarBase {
+ class CoordVar : public BaseVar {
  public:
 
   //! Default Coordinate Variable metadata constructor
   //
-  CoordVar() : VarBase() {};
+  CoordVar() : BaseVar() {};
 
 
   //! Construct Data variable definition with missing values
   //!
-  //! \copydetails VarBase(string name, vector <VDC::Dimension> dimensions,
+  //! \copydetails BaseVar(string name, std::vector <VDC::Dimension> dimensions,
   //!  string units, XType type, bool compressed,
-  //!  vector <size_t> bs, string wname, string wmode, vector <size_t> cratios,
-  //!  vector <bool> periodic)
+  //!  vector <size_t> bs, string wname, 
+  //!  std::vector <size_t> cratios,
+  //!  std::vector <bool> periodic)
   //!
   //! \param[in] axis an int in the range 0..3 indicating the coordinate
   //! axis, one of X, Y, Z, or T, respectively
@@ -383,14 +444,15 @@ public:
   //! is uniformly sampled.
   //
   CoordVar(
-	string name, vector <VDC::Dimension> dimensions,
+	string name, std::vector <VDC::Dimension> dimensions,
 	string units, XType type, 
-	vector <size_t> bs, string wname, string wmode, vector <size_t> cratios,
-	vector <bool> periodic, int axis, bool uniform
+	std::vector <size_t> bs, string wname, 
+	std::vector <size_t> cratios, std::vector <bool> periodic, 
+	int axis, bool uniform
   ) :
-	VarBase(
+	BaseVar(
 		name, dimensions, units, type, bs, 
-		wname, wmode, cratios,
+		wname, cratios,
 		periodic
 	),
 	_axis(axis),
@@ -420,34 +482,36 @@ public:
  //!
  //! This class defines metadata associatd with a Data variable
  //!
- class DataVar : public VarBase {
+ class DataVar : public BaseVar {
  public:
 
   //! constructor for default Data variable definition
   //
-  DataVar() : VarBase() {};
+  DataVar() : BaseVar() {};
 
   //! Construct Data variable definition with missing values
   //!
-  //! \copydetails VarBase(string name, vector <VDC::Dimension> dimensions,
+  //! \copydetails BaseVar(string name, std::vector <VDC::Dimension> dimensions,
   //!  string units, XType type, 
-  //!  vector <size_t> bs, string wname, string wmode, vector <size_t> cratios,
-  //!  vector <bool> periodic)
+  //!  std::vector <size_t> bs, string wname,
+  //!  std::vector <size_t> cratios,
+  //!  std::vector <bool> periodic)
   //!
   //! \param[in] coordvars Names of coordinate variables associated 
   //! with this variables dimensions
   //! \param[in] missing_value  Value of the missing value indicator
   //!
   DataVar(
-	string name, vector <VDC::Dimension> dimensions,
+	string name, std::vector <VDC::Dimension> dimensions,
 	string units, XType type, 
-	vector <size_t> bs, string wname, string wmode, vector <size_t> cratios,
-	vector <bool> periodic, vector <string> coordvars, 
+	std::vector <size_t> bs, string wname,
+	std::vector <size_t> cratios,
+	std::vector <bool> periodic, std::vector <string> coordvars, 
 	double missing_value
   ) :
-	VarBase(
+	BaseVar(
 		name, dimensions, units, type, 
-		bs, wname, wmode, cratios, periodic
+		bs, wname, cratios, periodic
 	),
 	_coordvars(coordvars),
 	_has_missing(true),
@@ -456,23 +520,25 @@ public:
 
   //! Construct Data variable definition without missing values
   //!
-  //! \copydetails VarBase(string name, vector <VDC::Dimension> dimensions,
+  //! \copydetails BaseVar(string name, std::vector <VDC::Dimension> dimensions,
   //!  string units, XType type, 
-  //!  vector <size_t> bs, string wname, string wmode, vector <size_t> cratios,
+  //!  std::vector <size_t> bs, string wname,
+  //!  std::vector <size_t> cratios,
   //!  vector <bool> periodic)
   //!
   //! \param[in] coordvars Names of coordinate variables associated 
   //! with this variables dimensions
   //!
   DataVar(
-	string name, vector <VDC::Dimension> dimensions,
+	string name, std::vector <VDC::Dimension> dimensions,
 	string units, XType type, 
-	vector <size_t> bs, string wname, string wmode, vector <size_t> cratios,
-	vector <bool> periodic, vector <string> coordvars
+	std::vector <size_t> bs, string wname,
+	std::vector <size_t> cratios,
+	std::vector <bool> periodic, std::vector <string> coordvars
   ) :
-	VarBase(
+	BaseVar(
 		name, dimensions, units, type, 
-		bs, wname, wmode, cratios, periodic
+		bs, wname, cratios, periodic
 	),
 	_coordvars(coordvars),
 	_has_missing(false),
@@ -482,8 +548,8 @@ public:
 
   //! Access data variable's coordinate variable names
   //
-  vector <string> GetCoordvars() const {return (_coordvars); };
-  void SetCoordvars(vector <string> coordvars) {_coordvars = coordvars; };
+  std::vector <string> GetCoordvars() const {return (_coordvars); };
+  void SetCoordvars(std::vector <string> coordvars) {_coordvars = coordvars; };
 
   //! Access data variable's missing data flag
   //
@@ -498,7 +564,7 @@ public:
   friend std::ostream &operator<<(std::ostream &o, const DataVar &var);
 
  private:
-  vector <string> _coordvars;
+  std::vector <string> _coordvars;
   bool _has_missing;
   double _missing_value;
  };
@@ -515,7 +581,8 @@ public:
  //!
  //! Prepare a VDC for reading or writing/appending. This method prepares
  //! the master VDC file indicated by \p path for reading or writing.
- //! The method should be called before any other class methods. This method
+ //! The method should be called immediately after the constructor, 
+ //! before any other class methods. This method
  //! exists only because C++ constructors can not return error codes.
  //!
  //! \param[in] path Path name of file that contains, or will
@@ -554,19 +621,22 @@ public:
  //! definitions
  //!
  //! This method sets the storage parameters for subsequent variable
- //! definitions. \p bs is a three-element array, with the first element
+ //! definitions for compressed variables. 
+ //! \p bs is a three-element array, with the first element
  //! specifying the length of the fastest varying dimension (e.g. X) of
  //! the storage block, the
  //! second element specifies the length of the next fastest varying
  //! dimension, etc. If a variable definition defines a variable with \b n
- //! dimensions, where \b n is less than three, only the first \b n elements
- //! of \p bs will be used. For example, a 2D variable will be stored in
+ //! spatial dimensions, where \b n is less than three, only the 
+ //! first \b n elements
+ //! of \p bs will be used. For example, if the rank of \b bs is greater than
+ //! two a 2D variable will be stored in
  //! blocks having dimensions \b bs[0] x \b bs[1].
  //!
- //! Variables whose spatial dimensions are less than the coresponding 
+ //! Variables whose spatial dimension lengths are less than the coresponding 
  //! dimension of \p bs will be padded to block boundaries.
  //!
- //! \p wname and \p wmode set the wavelet family name and 
+ //! \p wname set the wavelet family name and 
  //! boundary handling mode
  //! for subsequent compressed variable definitions.
  //! Wider wavelets (those requiring
@@ -577,7 +647,6 @@ public:
  //! Recommended values for \p wname are \e bior1.1, \e bior1.3, \e bior1.5
  //! \e bior3.3, \e bior3.5, \e bior3.7, \e bior3.9, \e bior2.2, \e bior2.6,
  //! \e bior2.6, and \e bior2.8. For odd length filters (e.g. bior1.3) 
- //! \p wmode should be set to \e symh. For even (e.g. bior2.4), use \e symw
  //!
  //! Finally, \p cratios specifies a vector of compression factors for
  //! subsequent compressed variable definitions. 
@@ -590,12 +659,11 @@ public:
  //! definitions for variables that are not compressed.
  //!
  //!
- //! \param[in] bs A three-element array specifying the storage block size. All
+ //! \param[in] bs A one to three-element array specifying the storage 
+ //! block size. All
  //! elements of \p must be great than or equal to one. The default value
  //! of \p bs is (64, 64, 64).
  //! \param[in] wname A wavelet family name. The default value is "bior3.3".
- //! \param[in] wmode The wavelet boundary handling mode. The default
- //! value is "symh".
  //! \param[in] cratios A vector of compression of integer compression
  //! factors.
  //! The default compression ratio vector is: (1, 10, 100, 500)
@@ -606,18 +674,25 @@ public:
  //! \sa DefineDataVar(), DefineCoordVar(), VDC()
  //
  int SetCompressionBlock(
-	vector <size_t> bs, string wname, string wmode,
-	vector <size_t> cratios
+	std::vector <size_t> bs, string wname, std::vector <size_t> cratios
  );
  
  //! Retrieve current compression block settings.
  //!
+ //! \param[out] bs An ordered vector containing the current compression 
+ //! block dimensions.
+ //! \param[out] wname The wavelet family name. 
+ //! \param[out] cratios A vector of compression of integer compression
+ //! factors.
+ //!
  //! \sa SetCompressionBlock()
  //
  void GetCompressionBlock(
-	vector <size_t> &bs, string &wname, string &wmode,
-	vector <size_t> &cratios
+	std::vector <size_t> &bs, string &wname, 
+	std::vector <size_t> &cratios
  ) const;
+
+
 
  //! Set the boundary periodic for subsequent variable definitions
  //!
@@ -630,7 +705,7 @@ public:
  //!
  //! \retval status A negative int is returned on error
  //!
- void SetPeriodicBoundary(vector <bool> periodic) {
+ void SetPeriodicBoundary(std::vector <bool> periodic) {
 	_periodic = periodic;
 	for (int i=_periodic.size(); i<3; i++) _periodic.push_back(false);
  }
@@ -639,7 +714,7 @@ public:
  //!
  //! \sa SetPeriodicBoundary()
  //
- vector <bool> GetPeriodicBoundary() const { return(_periodic); };
+ std::vector <bool> GetPeriodicBoundary() const { return(_periodic); };
 
  //! Define a dimension in the VDC
  //!
@@ -650,7 +725,8 @@ public:
  //! greater than or equal to one. 
  //!
  //! This method also defines a 1D VDC coordinate variable with the same
- //! name as the dimension, \p dimname. The coordinate variable will 
+ //! name as the dimension, \p dimname. The implicitly defined
+ //! coordinate variable will 
  //! be defined to be unitless, have uniform sampling, an external
  //! data type of \b FLOAT, and not compressed.
  //! The units, external data type, and uniformity of this 
@@ -691,17 +767,12 @@ public:
  //! \p length and \p axis will both be set to zero, and false returned.
  //!
  //! \param[in] dimname A string specifying the name of the dimension. 
- //! \param[in] reflevel The refinement level
  //! \param[out] length The dimension length, which must be greater than zero. 
  //! \param[out] axis The axis associated with the dimension. 
  //! \retval bool If the named dimension can not be found false is returned.
- //! 
- //! \note Need to define meaning of \p reflevel. If it's kept compatible 
- //! with VDC2 then we are precluded from having varying numbers of 
- //! refinement levels along different dimensions
  //!
  bool GetDimension(
-	string dimname, int reflevel, size_t &length, int &axis
+	string dimname, size_t &length, int &axis
  ) const;
 
  //! Return a dimensions's definition
@@ -712,12 +783,11 @@ public:
  //! will be the empty string()
  //!
  //! \param[in] dimname A string specifying the name of the dimension. 
- //! \param[in] reflevel The refinement level
  //! \param[out] dimension The returned Dimension object reference
  //! \retval bool If the named dimension can not be found false is returned.
  //!
  bool GetDimension(
-	string dimname, int reflevel, VDC::Dimension &dimension
+	string dimname, VDC::Dimension &dimension
  ) const;
 
  //! Return names of all defined dimensions
@@ -727,7 +797,7 @@ public:
  //!
  //! \sa DefineDimension()
  //!
- vector <string> GetDimensionNames() const;
+ std::vector <string> GetDimensionNames() const;
 
 
  //! Define a coordinate variable
@@ -743,11 +813,11 @@ public:
  //!
  //! \param[in] varname The name of the coordinate variable. 
  //! \param[in] dimnames An ordered vector specifying the variables
- //! dimension names. The dimension names must have previously be defined
- //! with the DefineDimensions() method. 
+ //! dimension names. The dimension names must have previously been defined
+ //! with the DefineDimension() method. 
  //! \param[in] units This parameter specifies a string describing the 
  //! units of measure for the
- //! variable. The string is compatible with the udunits2 conversion
+ //! variable. The string is compatible with the Unidata udunits2 conversion
  //! package. If the quantity is unitless an empty string may be specified.
  //! \param[in] axis An integer indicating the spatial or temporal 
  //! coordinate axis. Acceptable values are \b 0 (for X or longitude), 
@@ -771,10 +841,10 @@ public:
  //!
  //! \retval status A negative int is returned on error
  //!
- //! \sa DefineDimensions(), DefineCoordVar(), SetCompressionBlock()
+ //! \sa DefineDimension(), DefineCoordVar(), SetCompressionBlock()
  //
  int DefineCoordVar(
-	string varname, vector <string> dimnames, 
+	string varname, std::vector <string> dimnames, 
 	string units, int axis, XType type, bool compressed
  );
 
@@ -794,7 +864,7 @@ public:
  //! \param[in] varname The name of the coordinate variable. 
  //! \param[in] dimname An string specifying the variable's
  //! dimension name. The dimension names must have previously be defined
- //! with the DefineDimensions() method. 
+ //! with the DefineDimension() method. 
  //! \param[in] units This parameter specifies a string describing the 
  //! units of measure for the
  //! variable. The string is compatible with the udunits2 conversion
@@ -817,7 +887,7 @@ public:
  //!
  //! \retval status A negative int is returned on error
  //!
- //! \sa DefineDimensions(), DefineCoordVar(), SetCompressionBlock()
+ //! \sa DefineDimension(), DefineCoordVar(), SetCompressionBlock()
  //
  int DefineCoordVarUniform(
 	string varname, string dimname, 
@@ -832,7 +902,7 @@ public:
  //! \p dimnames will be set to a zero-length vector, and values of all other
  //! output parameters will be undefined.
  //!
- //! \param[in] varname A string specifying the name of the dimension. 
+ //! \param[in] varname A string specifying the name of the variable. 
  //! \param[out] dimnames The ordered list of dimension names for this variable
  //! \param[out] units The variable's units string
  //! \param[out] axis The axis associated with the dimension. 
@@ -841,12 +911,13 @@ public:
  //! \param[out] uniform A boolean indicating if the variable has uniform
  //! sampling
  //! \retval bool If the named coordinate variable cannot be found false 
- //! is returned.
+ //! is returned and the values of the output parameters will be 
+ //! undefined.
  //!
  //! \sa DefineCoordVar(), DefineCoordVarUniform()
  //!
- bool GetCoordVar(
-	string varname, vector <string> &dimnames, 
+ bool GetCoordVarInfo(
+	string varname, std::vector <string> &dimnames, 
 	string &units, int &axis, XType &type, bool &compressed, bool &uniform
  ) const;
 
@@ -855,28 +926,26 @@ public:
  //! Return a reference to a VDC::CoordVar object describing 
  //! the coordinate variable named by \p varname
  //!
- //! If \p varname is not defined the NULL pointer is returned.
- //!
  //! \param[in] varname A string specifying the name of the coordinate 
  //! variable. 
  //! \param[out] coordvar A CoordVar object containing the definition
  //! of the named variable.
  //! \retval bool False is returned if the named coordinate variable does 
- //! not exist
+ //! not exist, and the contents of cvar will be undefined.
  //!
  //! \sa DefineCoordVar(), DefineCoordVarUniform(), SetCompressionBlock(),
  //! SetPeriodicBoundary()
  //!
- bool GetCoordVar(string varname, VDC::CoordVar &cvar) const;
+ bool GetCoordVarInfo(string varname, VDC::CoordVar &cvar) const;
 
  //! Define a data variable
  //!
  //! This method defines a data variable in the VDC master file
  //!
- //! \param[in] varname The name of the coordinate variable. 
+ //! \param[in] varname The name of the data variable. 
  //! \param[in] dimnames An ordered vector specifying the variables
  //! dimension names. The dimension names must have previously be defined
- //! with the DefineDimensions() method. 
+ //! with the DefineDimension() method. 
  //! \param[in] coordvars An ordered vector specifying the coordinate
  //! variable names providing the coordinates for this variable. The 
  //! dimension names must have previously been defined
@@ -898,10 +967,11 @@ public:
  //! \note When in append (\b A) mode it is an error to redefine an
  //! existing variable.
  //!
- //! \sa DefineDimensions(), DefineCoordVar(), SetCompressionBlock()
+ //! \sa DefineDimension(), DefineCoordVar(), SetCompressionBlock()
  //!
  int DefineDataVar(
-	string varname, vector <string> dimnames, vector <string> coordvars, 
+	string varname, std::vector <string> dimnames, 
+	std::vector <string> coordvars, 
 	string units, XType type, bool compressed
  );
 
@@ -912,7 +982,8 @@ public:
  //! \sa DefineDataVar()
  //!
  int DefineDataVar(
-	string varname, vector <string> dimnames, vector <string> coordvars, 
+	string varname, std::vector <string> dimnames, 
+	std::vector <string> coordvars, 
 	string units, XType type, bool compressed,
 	double missing_value
  );
@@ -921,9 +992,6 @@ public:
  //!
  //! This method returns the definition for the data 
  //! variable named by \p varname.
- //! If \p varname is not defined as a coordinate variable
- //! \p dimnames will be set to a zero-length vector, and values of all other
- //! output parameters will be undefined.
  //!
  //! \param[in] varname A string specifying the name of the dimension. 
  //! \param[out] dimnames An ordered list of dimension names for this variable
@@ -936,14 +1004,16 @@ public:
  //! \param[out] missing_value If \p has_missing is true this parameter
  //! contains the value of variable's missing value maker. If \p has_missing
  //! is false the value of \p missing_value is undefined.
- //
- //! \retval bool False is returned if the named data variable does 
- //! not exist
+ //!
+ //! \retval bool If the named data variable cannot be found false 
+ //! is returned and the values of the output parameters will be 
+ //! undefined.
  //!
  //! \sa DefineCoordVar(), DefineCoordVarUniform()
  //!
- bool GetDataVar(
-	string varname, vector <string> &dimnames, vector <string> &coordvars, 
+ bool GetDataVarInfo(
+	string varname, std::vector <string> &dimnames, 
+	std::vector <string> &coordvars, 
 	string &units, XType &type, bool &compressed,
 	bool &has_missing, double &missing_value
  ) const;
@@ -953,18 +1023,30 @@ public:
  //! Return a reference to a VDC::DataVar object describing 
  //! the data variable named by \p varname
  //!
- //! If \p varname is not defined the NULL pointer is returned.
- //!
  //! \param[in] varname A string specifying the name of the variable. 
  //! \param[out] datavar A DataVar object containing the definition
  //! of the named Data variable.
- //! \retval bool False is returned if the named Data variable does 
- //! not exist
+ //!
+ //! \retval bool If the named data variable cannot be found false 
+ //! is returned and the values of \p datavar are undefined.
  //!
  //! \sa DefineCoordVar(), DefineCoordVarUniform(), SetCompressionBlock(),
  //! SetPeriodicBoundary()
  //!
- bool GetDataVar( string varname, VDC::DataVar &datavar) const;
+ bool GetDataVarInfo( string varname, VDC::DataVar &datavar) const;
+ 
+ //! Return metadata about a data or coordinate variable
+ //!
+ //! If the variable \p varname is defined as either a 
+ //! data or coordinate variable its metadata will
+ //! be returned in \p var.
+ //!
+ //! \retval bool If the named variable cannot be found false 
+ //! is returned and the values of \p var are undefined.
+ //!
+ //! \sa GetDataVarInfo(), GetCoordVarInfo()
+ //
+ bool GetBaseVarInfo(string varname, VDC::BaseVar &var) const;
 
 
  //! Return a list of names for all of the defined data variables.
@@ -981,7 +1063,7 @@ public:
  //! dimension rank of \p ndim. If \p spatial is true, only the spatial
  //! dimension rank of the variable is compared against \p ndim
  //!
- //! \param[in] ndim Rank of spatial dimensions
+ //! \param[in] ndim Rank of dimensions for comparision
  //! \param[in] spatial Only compare spatial dimensions against \p ndim
  //!
  //! \sa DefineDataVar()
@@ -1003,7 +1085,7 @@ public:
  //! dimension rank of \p ndim. If \p spatial is true, only the spatial
  //! dimension rank of the variable is compared against \p ndim
  //!
- //! \param[in] ndim Rank of spatial dimensions
+ //! \param[in] ndim Rank of dimensions for comparision
  //! \param[in] spatial Only compare spatial dimensions against \p ndim
  //!
  //! \sa DefineCoordVar()
@@ -1032,7 +1114,7 @@ public:
  //! \retval bool Returns true if variable \p varname exists and is 
  //! compressed
  //!
- //! \sa DefineCoordVar() DefineDataVar()
+ //! \sa DefineCoordVar(), DefineDataVar(), VDC::BaseVar::GetCompressed()
  //
  bool IsCompressed(string varname) const;
 
@@ -1044,10 +1126,27 @@ public:
  //! as a variable a negative int is returned.
  //!
  //! \param[in] varname A string specifying the name of the variable. 
- //! \retval[out] count The length of the time dimension, or a negative
+ //! \retval count The length of the time dimension, or a negative
  //! int if \p varname is undefined.
  //!
  int GetNumTimeSteps(string varname) const;
+
+ //! Return the number of refinement levels for the indicated variable
+ //!
+ //! Compressed variables have a multi-resolution grid representation.
+ //! This method returns the number of levels in the hiearchy. A value
+ //! of one indicates that only the native resolution is available. 
+ //! A value of two indicates that two levels, the native plus the
+ //! next coarsest are available, and so on.
+ //!
+ //! \param[in] varname Data or coordinate variable name.
+ //!
+ //! \retval num If \p varname is unknown zero is returned. if \p varname
+ //! is not compressed (has no multi-resolution representation) one is
+ //! returned. Otherwise the total number of levels in the multi-resolution
+ //! hierarchy are returned.
+ //
+ int GetNumRefLevels(string varname) const;
 
  //! Return a boolean indicating whether a variable is a data variable 
  //!
@@ -1160,7 +1259,7 @@ public:
  //! Parse a vector of VDC::Dimensions into space and time dimensions
  //!
  //! This is a convenience utility that parses an ordered 
- //! vector of Dimensions into a vector of spatial lenghts, and
+ //! vector of Dimensions into a vector of spatial lengths, and
  //! the number of time steps (if time varying). The dimension
  //! vector axis must be ordered: X, Y, Z, T
  //!
@@ -1209,8 +1308,6 @@ public:
  //!
  //! \param[in] varname Data or coordinate variable name.
  //! \param[in] ts Integer offset relative to a variable's temporal dimension
- //! \param[in] lod Approximation level of the variable. A value of -1
- //! indicates the maximum approximation level defined for the VDC
  //! \param[out] path Path to file containing variable \p varname at 
  //! time step \p ts.
  //! \param[out] file_ts Temporal offset of variable \p varname in file
@@ -1227,33 +1324,44 @@ public:
 
  ) const = 0;
 
+ //! Return a variable's dimension lengths at a specified refinement level
+ //!
+ //! Compressed variables have a multi-resolution grid representation.
+ //! This method returns the variable's ordered dimension lengths
+ //! at the multiresolution refinement level specified by \p level.
+ //! 
+ //! If the variable named by \p varname is not compressed the variable's
+ //! native dimensions are returned.
+ //!
+ //! \param[in] varname Data or coordinate variable name.
+ //! \param[in] level Specifies a member of a multi-resolution variable's
+ //! grid hierarchy as described above.
+ //!
+ //! \retval status Zero is returned upon success, otherwise -1.
+ //!
+ //! \sa VAPoR::VDC
+ //
+ virtual int GetDimLensAtLevel(
+	string varname, int level, std::vector <size_t> &dims_at_level
+ ) const = 0;
+
+
  //! Open the named variable for reading
  //!
  //! This method prepares a data or coordinate variable, indicated by a
  //! variable name and time step pair, for subsequent read operations by
- //! methods of this class.  The number of the refinement levels
- //! parameter, \p reflevel, indicates the resolution of the volume in
- //! the multiresolution hierarchy. The valid range of values for
- //! \p reflevel is [0..n-1], where \p n is the
- //! maximum refinement level of the variable. 
- //!
- //! A value of zero indicates the
- //! coarsest resolution data, a value of \p n (or -1) indicates
- //! the
- //! finest resolution data.
- //! \note Need to change refinement level definition (0 =>native resolution)
- //! if we want to support varying refinement levels along each dimension for
- //! data such as global atm/ocean where only few vertical levels are 
- //! present.
+ //! methods of this class.  The value of the refinement levels
+ //! parameter, \p level, indicates the resolution of the volume in
+ //! the multiresolution hierarchy as described by GetDimLensAtLevel().
  //!
  //! The level-of-detail parameter, \p lod, selects
  //! the approximation level. Valid values for \p lod are integers in
  //! the range 0..n-1, where \e n is returned by 
- //! VDC::VarBase::GetCRatios().size(), or the value -1 may be used
+ //! VDC::BaseVar::GetCRatios().size(), or the value -1 may be used
  //! to select the best approximation available. 
  //!
  //! An error occurs, indicated by a negative return value, if the
- //! volume identified by the {varname, timestep, reflevel, lod} tupple
+ //! volume identified by the {varname, timestep, level, lod} tupple
  //! is not available. Note the availability of a volume can be tested
  //! with the VariableExists() method.
  //!
@@ -1261,26 +1369,22 @@ public:
  //! offset into the variable's temporal dimension. If the variable
  //! does not have a temporal dimension \p ts is ignored.
  //! \param[in] varname Name of the variable to read
- //! \param[in] reflevel Refinement level of the variable. A value of -1
- //! indicates the maximum refinment level defined for the VDC
+ //! \param[in] level Refinement level of the variable. 
  //! \param[in] lod Approximation level of the variable. A value of -1
  //! indicates the maximum approximation level defined for the VDC
  //! \retval status Returns a non-negative value on success
  //!
- //!
+ //! \sa GetNumRefLevels(), VDC::BaseVar::GetCRatios(), OpenVariableRead()
+ //
  virtual int OpenVariableRead(
-	size_t ts, string varname, int reflevel=0, int lod=-1
+	size_t ts, string varname, int level=0, int lod=0
  ) = 0;
 
  //! Open the named variable for writing
  //!
  //! This method prepares a data or coordinate variable, indicated by a
  //! variable name and time step pair, for subsequent write operations by
- //! methods of this class.  The number of the refinement levels
- //! parameter, \p reflevel, indicates the resolution of the volume in
- //! the multiresolution hierarchy. The valid range of values for
- //! \p reflevel is [0..n-1], where \p n is the
- //! maximum refinement level of the variable. 
+ //! methods of this class.  
  //!
  //! The behavior of this method is impacted somewhat by the setting
  //! of the Initialize() \b mode parameter. Coordinate or data variable 
@@ -1294,7 +1398,7 @@ public:
  //! files will be created (opened with \em nc_create(path)).
  //!
  //! An error occurs, indicated by a negative return value, if the
- //! varible identified by the {varname, timestep, reflevel, lod} tupple
+ //! varible identified by the {varname, timestep, lod} tupple
  //! is not defined. 
  //!
  //! \param[in] ts Time step of the variable to read. This is the integer
@@ -1305,6 +1409,7 @@ public:
  //! indicates the maximum approximation level defined for the VDC
  //! \retval status Returns a non-negative value on success
  //!
+ //! \sa GetNumRefLevels(), VDC::BaseVar::GetCRatios(), OpenVariableRead()
  //
  virtual int OpenVariableWrite(size_t ts, string varname, int lod=-1) = 0;
 
@@ -1322,26 +1427,28 @@ public:
  //!
  //! This method writes, and compresses as necessary, 
  //!  the contents of the array contained in 
- //! \p region to the currently opened variable. The number of values
- //! written from \p region is given by the product of the spatial 
- //! dimensions of the open variable at the refinement level specified.
+ //! \p data to the currently opened variable. The number of values
+ //! written from \p data is given by the product of the spatial 
+ //! dimensions of the open variable.
  //!
- //! \param[in] region An array of data to be written
+ //! \param[in] data An array of data to be written
  //! \retval status Returns a non-negative value on success
  //!
  //! \sa OpenVariableWrite()
  //
- virtual int Write(const float *region) = 0;
+ virtual int Write(const float *data) = 0;
 
  //! Write a single slice of data to the currently opened variable
  //!
- //! Transform and write a single slice (2D array) of data to the variable
+ //! Compress, and necessary, and write a single slice (2D array) of 
+ //! data to the variable
  //! indicated by the most recent call to OpenVariableWrite().
  //! The dimensions of a slices are NX by NY,
  //! where NX is the dimension of the array along the fastest varying
  //! spatial dimension, specified
  //! in grid points, and NY is the length of the second fastest varying
- //! dimension.
+ //! dimension at the currently opened refinement level. See 
+ //! OpenVariableWrite().
  //!
  //! This method should be called exactly NZ times for each opened variable,
  //! where NZ is the dimension of third, and slowest varying dimension.
@@ -1358,42 +1465,43 @@ public:
  //!
  //! This method reads, and decompresses as necessary, 
  //!  the contents of the currently opened variable into the array 
- //! \p region. The number of values
- //! read into \p region is given by the product of the spatial 
+ //! \p data. The number of values
+ //! read into \p data is given by the product of the spatial 
  //! dimensions of the open variable at the refinement level specified.
  //!
- //! It is the caller's responsibility to ensure \p region points
+ //! It is the caller's responsibility to ensure \p data points
  //! to adequate space.
  //!
- //! \param[out] region An array of data to be written
+ //! \param[out] data An array of data to be written
  //! \retval status Returns a non-negative value on success
  //!
- //! \sa OpenVariableWrite()
+ //! \sa OpenVariableRead()
  //
- int virtual Read(float *region) = 0;
+ int virtual Read(float *data) = 0;
 
  //! Read a single slice of data from the currently opened variable
  //!
- //! Inverse transform, as necessary, and read a single slice (2D array) of 
+ //! Decompress, as necessary, and read a single slice (2D array) of 
  //! data from the variable
  //! indicated by the most recent call to OpenVariableRead().
  //! The dimensions of a slices are NX by NY,
  //! where NX is the dimension of the array along the fastest varying
  //! spatial dimension, specified
  //! in grid points, and NY is the length of the second fastest varying
- //! dimension.
+ //! dimension at the currently opened grid refinement level. See
+ //! OpenVariableRead().
  //!
  //! This method should be called exactly NZ times for each opened variable,
  //! where NZ is the dimension of third, and slowest varying dimension.
  //! In the case of a 2D variable, NZ is 1.
  //!
- //! It is the caller's responsibility to ensure \p region points
+ //! It is the caller's responsibility to ensure \p slice points
  //! to adequate space.
  //!
  //! \param[out] slice A 2D slice of data
  //! \retval status Returns a non-negative value on success
  //!
- //! \sa OpenVariableWrite()
+ //! \sa OpenVariableRead()
  //!
  virtual int ReadSlice(float *slice) = 0;
 
@@ -1401,8 +1509,8 @@ public:
  //! variable
  //!
  //! This method reads and returns a subset of variable data.
- //! The \p min and \p max vectors whose dimensions match the
- //! spatial rank of the currently opened variable, identifying the minimum and
+ //! The \p min and \p max vectors, whose dimensions must match the
+ //! spatial rank of the currently opened variable, identify the minimum and
  //! maximum extents, in grid coordinates, of the subregion of interest. The
  //! minimum and maximum valid values of an element of \b min or \b max 
  //! are \b 0 and
@@ -1421,9 +1529,8 @@ public:
  //! \sa OpenVariableRead(), GetDimension(), GetDimensionNames()
  //
  virtual int ReadRegion(
-    const size_t min[3], const size_t max[3], float *region
+    const vector <size_t> &min, const vector <size_t> &max, float *region
  ) = 0;
- 
 
  //! Write an entire variable in one call
  //!
@@ -1431,8 +1538,8 @@ public:
  //! into a VDC.  This is the simplest interface for writing data into
  //! a VDC. If the variable is split across multiple files PutVar()
  //! ensures that the data are correctly distributed.
- //! Any variables currently opened with OpenVarWrite() are first closed.
- //! Thus variables need not be opened with OpenVarWrite() prior to
+ //! Any variables currently opened with OpenVariableWrite() are first closed.
+ //! Thus variables need not be opened with OpenVariableWrite() prior to
  //! calling PutVar();
  //!
  //! It is an error to call this method in \b define mode
@@ -1451,8 +1558,8 @@ public:
  //! This method writes a variable hyperslab consisting of the
  //! variable's entire spatial dimensions at the time step
  //! indicated by \p ts.
- //! Any variables currently opened with OpenVarWrite() are first closed.
- //! Thus variables need not be opened with OpenVarWrite() prior to
+ //! Any variables currently opened with OpenVariableWrite() are first closed.
+ //! Thus variables need not be opened with OpenVariableWrite() prior to
  //! calling PutVar();
  //!
  //! It is an error to call this method in \b define mode
@@ -1475,8 +1582,8 @@ public:
  //! from a VDC.  This is the simplest interface for reading data from
  //! a VDC. If the variable is split across multiple files GetVar()
  //! ensures that the data are correctly gathered and assembled into memory
- //! Any variables currently opened with OpenVarRead() are first closed.
- //! Thus variables need not be opened with OpenVarRead() prior to
+ //! Any variables currently opened with OpenVariableRead() are first closed.
+ //! Thus variables need not be opened with OpenVariableRead() prior to
  //! calling GetVar();
  //!
  //! It is an error to call this method in \b define mode
@@ -1497,8 +1604,8 @@ public:
  //! time step \p ts
  //! from a VDC.  This is the simplest interface for reading data from
  //! a VDC. 
- //! Any variables currently opened with OpenVarRead() are first closed.
- //! Thus variables need not be opened with OpenVarRead() prior to
+ //! Any variables currently opened with OpenVariableRead() are first closed.
+ //! Thus variables need not be opened with OpenVariableRead() prior to
  //! calling GetVar();
  //!
  //! It is an error to call this method in \b define mode
@@ -1516,6 +1623,28 @@ public:
  //
  int GetVar(size_t ts, string varname, float *data) {return(-1); }
 
+ //! This method computes and returns the depth (number of levels) in a
+ //! a multi-resolution hierarch for a given wavelet, \p wname,
+ //! and decomposition block, \p bs.
+ //! It also computes the maximum compression ratio, \p cratio, possible
+ //! for the
+ //! the specified combination of block size, \p bs, and wavelet, \p wname.
+ //! The maximum compression ratio is \p cratio:1.
+ //!
+ //! \param[in] bs Dimensions of native decomposition block. The rank of
+ //! \p bs may be less than or equal to the rank of \p dims.
+ //! \param[in] wname wavelet name
+ //! \param[out] nlevels Number of levels in hierarchy
+ //! \param[out] maxcratio Maximum compression ratio
+ //!
+ //! \retval bool If \p bs, \p wname, or the combination there of is invalid
+ //! false is returned and the values of \p nlevels and \p maxcratio are
+ //! undefined. Upon success true is returned.
+ //!
+ virtual bool CompressionInfo(
+    vector <size_t> bs, string wname, size_t &nlevels, size_t &maxcratio
+ ) const = 0; 
+
 
  friend std::ostream &operator<<(std::ostream &o, const VDC &vdc);
 
@@ -1525,7 +1654,6 @@ protected:
  bool _defineMode;
  std::vector <size_t> _bs;
  string _wname;
- string _wmode;
  std::vector <size_t> _cratios;
  vector <bool> _periodic;
  VAPoR::UDUnits _udunits;
@@ -1535,10 +1663,7 @@ protected:
  std::map <string, CoordVar> _coordVars;
  std::map <string, DataVar> _dataVars;
 
- bool _ValidCompressBlock(
-    vector <size_t> bs, string wname, string wmode,
-    vector <size_t> cratios
- ) const;
+#ifndef DOXYGEN_SKIP_THIS
 
  bool _ValidDefineDimension(string name, size_t length, int axis) const;
 
@@ -1552,8 +1677,15 @@ protected:
     string units, XType type, bool compressed
  ) const;
 
+
+ bool _ValidCompressionBlock(
+	vector <size_t> bs, string wname, vector <size_t> cratios
+ ) const;
+
  virtual int _WriteMasterMeta() = 0;
  virtual int _ReadMasterMeta() = 0;
+
+#endif
 
 };
 };

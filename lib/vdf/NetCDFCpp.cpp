@@ -9,15 +9,13 @@ using namespace VAPoR;
 
 #define MY_NC_ERR(rc, path, func) \
 	if (rc != NC_NOERR) { \
+		string msg = func; \
 		SetErrMsg( \
 			"Error accessing netCDF file \"%s\", %s : %s -- file (%s), line(%d)",  \
-			path.c_str(), func, nc_strerror(rc), __FILE__, __LINE__ \
+			path.c_str(), msg.c_str(), nc_strerror(rc), __FILE__, __LINE__ \
 		); \
 		return(rc); \
 	} 
-
-
-
 
 NetCDFCpp::NetCDFCpp() {
 	_ncid = -1;
@@ -95,7 +93,7 @@ int NetCDFCpp::DefDim(string name, size_t len) const {
 
 	int dimid;
 	int rc = nc_def_dim(_ncid, name.c_str(), len, &dimid);
-	MY_NC_ERR(rc, _path, "nc_def_dim()");
+	MY_NC_ERR(rc, _path, "nc_def_dim(" + name + ")");
 
 	return(NC_NOERR);
 }
@@ -107,7 +105,7 @@ int NetCDFCpp::DefVar(
 
 	for (int i=0; i<dimnames.size(); i++) {
 		int rc = nc_inq_dimid(_ncid, dimnames[i].c_str(), &dimids[i]);
-		MY_NC_ERR(rc, _path, "nc_inq_dim()");
+		MY_NC_ERR(rc, _path, "nc_inq_dimid(" + dimnames[i] + ")");
 	}
 		
 
@@ -115,7 +113,7 @@ int NetCDFCpp::DefVar(
     int rc = nc_def_var(
 		_ncid, name.c_str(), xtype, dimnames.size(), dimids, &varid
 	);
-	MY_NC_ERR(rc, _path, "nc_def_var()");
+	MY_NC_ERR(rc, _path, "nc_def_var("+ name +")");
 	return(NC_NOERR);
 }
 
@@ -155,11 +153,11 @@ int NetCDFCpp::InqDimlen(string name, size_t &len) const {
 
     int dimid;
     int rc = nc_inq_dimid(_ncid, name.c_str(), &dimid);
-    MY_NC_ERR(rc, _path, "nc_inq_dimid()");
+    MY_NC_ERR(rc, _path, "nc_inq_dimid(" + name +")");
 
 
     rc = nc_inq_dimlen(_ncid, dimid, &len);
-    MY_NC_ERR(rc, _path, "nc_inq_varid()");
+    MY_NC_ERR(rc, _path, "nc_inq_dimlen()");
     return(0);
 }
 
@@ -196,7 +194,7 @@ int NetCDFCpp::PutAtt(
 	if (rc<0) return(rc);
 
 	rc = nc_put_att_int(_ncid,varid,attname.c_str(),NC_INT, n, values);
-	MY_NC_ERR(rc, _path, "nc_put_att_int()");
+	MY_NC_ERR(rc, _path, "nc_put_att_int(" + attname +")");
 
 	return(NC_NOERR);
 }
@@ -221,7 +219,7 @@ int NetCDFCpp::GetAtt(
 
 	size_t n;
 	rc = nc_inq_attlen(_ncid, varid, attname.c_str(), &n);
-	MY_NC_ERR(rc, _path, "nc_inq_attlen()");
+	MY_NC_ERR(rc, _path, "nc_inq_attlen(" + attname + ")");
 
 	int *buf = new int[n];
 
@@ -244,13 +242,13 @@ int NetCDFCpp::GetAtt(
 
 	size_t len;
 	rc = nc_inq_attlen(_ncid, varid, attname.c_str(), &len);
-	MY_NC_ERR(rc, _path, "nc_inq_attlen()");
+	MY_NC_ERR(rc, _path, "nc_inq_attlen(" + attname + ")");
 
 	int *buf = new int[len];
 
     rc = nc_get_att_int(_ncid,varid,attname.c_str(),buf);
 	if (rc != NC_NOERR) delete [] buf;
-	MY_NC_ERR(rc, _path, "nc_get_att_int()");
+	MY_NC_ERR(rc, _path, "nc_get_att_int(" + attname + ")");
 
 	for (size_t i=0; i < len && i < n; i++) {
 		values[i] = buf[i];
@@ -355,7 +353,7 @@ int NetCDFCpp::PutAtt(
 	rc = nc_put_att_double(
 		_ncid ,varid,attname.c_str(),NC_DOUBLE, n, values
 	);
-	MY_NC_ERR(rc, _path, "nc_put_att_double()");
+	MY_NC_ERR(rc, _path, "nc_put_att_double(" + attname + ")");
 
 	return(NC_NOERR);
 }
@@ -380,7 +378,7 @@ int NetCDFCpp::GetAtt(
 
 	size_t n;
 	rc = nc_inq_attlen(_ncid, varid, attname.c_str(), &n);
-	MY_NC_ERR(rc, _path, "nc_inq_attlen()");
+	MY_NC_ERR(rc, _path, "nc_inq_attlen(" + attname + ")");
 
 	double *buf = new double[n];
 
@@ -403,13 +401,13 @@ int NetCDFCpp::GetAtt(
 
 	size_t len;
 	rc = nc_inq_attlen(_ncid, varid, attname.c_str(), &len);
-	MY_NC_ERR(rc, _path, "nc_inq_attlen()");
+	MY_NC_ERR(rc, _path, "nc_inq_attlen(" + attname + ")");
 
 	double *buf = new double[len];
 
     rc = nc_get_att_double(_ncid,varid,attname.c_str(),buf);
 	if (rc != NC_NOERR) delete [] buf;
-	MY_NC_ERR(rc, _path, "nc_get_att_double()");
+	MY_NC_ERR(rc, _path, "nc_get_att_double(" + attname + ")");
 
 	for (size_t i=0; i < len && i < n; i++) {
 		values[i] = buf[i];
@@ -454,7 +452,7 @@ int NetCDFCpp::PutAtt(
 	if (rc<0) return(rc);
 
 	rc = nc_put_att_text(_ncid,varid,attname.c_str(), n, values);
-	MY_NC_ERR(rc, _path, "nc_put_att_text()");
+	MY_NC_ERR(rc, _path, "nc_put_att_text(" + attname + ")");
 
 	return(NC_NOERR);
 }
@@ -473,7 +471,7 @@ int NetCDFCpp::GetAtt(
 
 	size_t n;
 	rc = nc_inq_attlen(_ncid, varid, attname.c_str(), &n);
-	MY_NC_ERR(rc, _path, "nc_inq_attlen()");
+	MY_NC_ERR(rc, _path, "nc_inq_attlen(" + attname + ")");
 
 	char *buf = new char[n+1];
 
@@ -494,13 +492,13 @@ int NetCDFCpp::GetAtt(
 
 	size_t len;
 	rc = nc_inq_attlen(_ncid, varid, attname.c_str(), &len);
-	MY_NC_ERR(rc, _path, "nc_inq_attlen()");
+	MY_NC_ERR(rc, _path, "nc_inq_attlen(" + attname + ")");
 
 	char *buf = new char[len+1];
 
     rc = nc_get_att_text(_ncid,varid,attname.c_str(),buf);
 	if (rc != NC_NOERR) delete [] buf;
-	MY_NC_ERR(rc, _path, "nc_get_att_text()");
+	MY_NC_ERR(rc, _path, "nc_get_att_text(" + attname + ")");
 
 	size_t i;
 	for (i=0; i < len && i < n; i++) {
@@ -539,7 +537,7 @@ int NetCDFCpp::InqVarid(
 	}
 	int my_varid = -1;
 	int rc = nc_inq_varid (_ncid, varname.c_str(), &my_varid);
-	MY_NC_ERR(rc, _path, "nc_inq_varid()");
+	MY_NC_ERR(rc, _path, "nc_inq_varid(" + varname + ")");
 	
 	varid = my_varid;
 
@@ -555,7 +553,7 @@ int NetCDFCpp::InqAtt(
 	if (rc<0) return(rc);
 
 	rc = nc_inq_att(_ncid, varid, attname.c_str(), &xtype, &len);
-	MY_NC_ERR(rc, _path, "nc_inq_att()");
+	MY_NC_ERR(rc, _path, "nc_inq_att(" + attname + ")");
 
 	return(NC_NOERR);
 }
