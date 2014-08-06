@@ -23,7 +23,7 @@ PROJECT_NAME           =  VAPoR
 # This could be handy for archiving the generated documentation or 
 # if some version control system is used.
 
-PROJECT_NUMBER         = 0.1
+PROJECT_NUMBER         = 3.0.0
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) 
 # base path where the generated documentation will be put. 
@@ -400,7 +400,9 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT        = 	TOP_OF_TREE/include/vapor/VDCNetCDF.h \
+INPUT        = mainpage.dox \
+			TOP_OF_TREE/include/vapor/MyBase.h \
+			TOP_OF_TREE/include/vapor/VDCNetCDF.h \
 			TOP_OF_TREE/include/vapor/VDC.h \
 			TOP_OF_TREE/include/vapor/WASP.h \
 			TOP_OF_TREE/include/vapor/NetCDFCpp.h \
@@ -837,18 +839,6 @@ GENERATE_XML           = NO
 # put in front of it. If left blank `xml' will be used as the default path.
 
 XML_OUTPUT             = xml
-
-# The XML_SCHEMA tag can be used to specify an XML schema, 
-# which can be used by a validating XML parser to check the 
-# syntax of the XML files.
-
-XML_SCHEMA             = 
-
-# The XML_DTD tag can be used to specify an XML DTD, 
-# which can be used by a validating XML parser to check the 
-# syntax of the XML files.
-
-XML_DTD                = 
 
 # If the XML_PROGRAMLISTING tag is set to YES Doxygen will 
 # dump the program listings (including syntax highlighting 
