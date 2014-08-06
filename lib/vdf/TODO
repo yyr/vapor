@@ -14,7 +14,9 @@ Support Min/Max & clamp in decompression
 
 done - GetVara support non-block-aligned coords 
 
-Order I/O
+Order threaded I/O
+
+Should 'unlimited' dimensions be supported 
 
 VDCNetCDF
 --------
@@ -23,3 +25,16 @@ Refinement level should be supported for uncompressed variables to
 handle uncompressed coordinate variables.  Reading a coordinate
 variable (that was not compressed) should do the appropriate averaging
 based on the wavelet (symatric vs asymetric)
+
+VDC
+---
+SetCompressionBlock() should not have to specify wavelet boundary mode
+
+Should the number of time dimensions be restricted to one? Either
+way needs to be tested
+
+Not sure what Uniform coordinate variables are actually doing. Their
+uniformness is not guaranteed (can be written to), 
+
+Consider moving VDC::GetNumTimeSteps() to VarBase (or doing away with it
+entirely - it's redundant).
