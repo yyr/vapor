@@ -278,11 +278,13 @@
     <ClCompile Include="..\..\..\apps\vaporgui\main\tabmanager.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\viewpointeventrouter.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\main\vizwinmgr.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\misc\bannergui.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\misc\vizfeatureparams.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\vizselectcombo.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\main\vizwin.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_animationeventrouter.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_arroweventrouter.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_bannergui.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_boxsliderframe.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_instancetable.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_mainform.cpp" />
@@ -295,6 +297,12 @@
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_vizwinmgr.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <CustomBuild Include="..\..\..\apps\vaporgui\misc\bannergui.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\misc\bannergui.h -o ..\..\..\apps\vaporgui\moc\moc_bannergui.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">moc%27ing bannergui.h</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\moc\moc_bannergui.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\main\mainform.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\main\mainform.h -o ..\..\..\apps\vaporgui\moc\moc_mainform.cpp</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing mainform.h...</Message>
