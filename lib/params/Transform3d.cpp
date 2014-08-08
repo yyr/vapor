@@ -255,6 +255,84 @@ bool Transform3d::Scale::elementEndHandler(ExpatParseMgr* pm, int depth,
    return ok;
 }
 
+//============================================================================
+// Class Color
+//============================================================================
+const string Transform3d::Color::_tag   = "Color";
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+Transform3d::Color::Color(double r, double g, double b) :
+        _color(3, 1.0)
+{
+   _color[0] = r;
+   _color[1] = g;
+   _color[2] = b;
+}
+      
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+Transform3d::TransformBase* Transform3d::Color::clone()
+{
+   return new Transform3d::Color(_color[0], _color[1], _color[2]);
+}
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------      
+ParamNode* Transform3d::Color::buildNode()
+{
+   //Construct the rotate node
+   std::map <string, string> attrs;
+   attrs.clear();
+
+   ParamNode* colorNode = new ParamNode(_tag, attrs, 0);
+
+   colorNode->SetElementDouble(_tag, _color);
+
+   return colorNode;
+}
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------      
+bool Transform3d::Color::elementStartHandler(ExpatParseMgr* pm, int depth, 
+                                             std::string& tagString, 
+                                             const char **attrs)
+{
+   ExpatStackElement *state = pm->getStateStackTop();
+
+   if (StrCmpNoCase(tagString, _tag) == 0) 
+   {
+      state->has_data  = 1;
+      state->data_type = _doubleType;
+
+      return true;
+   }
+   
+   pm->skipElement(tagString, depth);
+   return true;
+
+}
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+bool Transform3d::Color::elementEndHandler(ExpatParseMgr* pm, int depth, 
+                                           std::string &tag)
+{
+   //Check only for the transferfunction tag, ignore others.
+   if (StrCmpNoCase(tag, _tag) != 0) return true;
+     
+   _color = pm->getDoubleData();
+   
+   ParsedXml* px = pm->popClassStack();
+   bool ok = px->elementEndHandler(pm, depth, tag);
+   
+   return ok;
+}
    
    
 //============================================================================
@@ -445,7 +523,25 @@ bool Transform3d::set(const QStringList &strings)
 
          _transformations.push_back(new Scale(x,y,z));
       }
+	   else if (data[0] == "Color")
+      {
+         if (data.size() != 4) 
+         {
+            clear(); return false;
+         }
 
+         double r = data[1].toDouble(&ok[0]);
+         double g = data[2].toDouble(&ok[1]);
+         double b = data[3].toDouble(&ok[2]);
+
+         if (!ok[0] || !ok[1] || !ok[2])
+         {
+            clear();
+            return false;
+         }
+
+         _transformations.push_back(new Color(r,g,b));
+      }
       else if (data[0] == "Rotate")
       {
          if (data.size() != 5) 
@@ -571,6 +667,16 @@ bool Transform3d::elementStartHandler(ExpatParseMgr* pm, int depth,
 
       return scale->elementStartHandler(pm, depth, tagString, attrs);
    }
+    else if (StrCmpNoCase(tagString, Transform3d::Color::xmlTag()) == 0) 
+   {
+      Transform3d::Color *color = new Transform3d::Color();
+
+      _transformations.push_back(color);
+
+      pm->pushClassStack(color);
+
+      return color->elementStartHandler(pm, depth, tagString, attrs);
+   }
    else if (StrCmpNoCase(tagString, Transform3d::Matrix::xmlTag()) == 0) 
    {
       Transform3d::Matrix *matrix = new Transform3d::Matrix();
@@ -613,6 +719,10 @@ bool Transform3d::elementEndHandler(ExpatParseMgr* pm,
       return true;
    }
    else if (StrCmpNoCase(tagString, Transform3d::Scale::xmlTag()) == 0) 
+   {
+      return true;
+   }
+   else if (StrCmpNoCase(tagString, Transform3d::Color::xmlTag()) == 0) 
    {
       return true;
    }

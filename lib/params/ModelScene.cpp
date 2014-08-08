@@ -118,6 +118,21 @@ const Transform3d* ModelScene::transform(unsigned int timestep, unsigned int clo
    //
    return &_identity;   
 }
+//----------------------------------------------------------------------------
+// Get the nth color at the given timestep (ownership is retained)
+//----------------------------------------------------------------------------
+const vector<double> ModelScene::Color(unsigned int timestep, unsigned int clone) const
+{
+   //
+   // if the model timestep exists, return the color
+   //
+   if (timestep < _timesteps.size()) return _timesteps[timestep]->color(clone);
+   
+   //
+   // the model timestep does not exist, return empty vector
+   //
+   else return *(new vector<double>);
+}
 
 //----------------------------------------------------------------------------
 // Get the model file at the given timestep
@@ -321,6 +336,29 @@ const Transform3d* ModelScene::Timestep::transform(unsigned int clone) const
    return &_identity;   
 }
 
+//----------------------------------------------------------------------------
+// Get the nth color (ownership is retained)
+//----------------------------------------------------------------------------
+const vector<double> ModelScene::Timestep::color(unsigned int clone) const
+{
+   //
+   // get the nth transform, get the color from it.
+   //
+   if (clone < _transforms.size()) {
+	   Transform3d* tfrm =  _transforms[clone];
+	   vector<Transform3d::TransformBase*> tforms = tfrm->transformations();
+	   for (int i = 0; i<tforms.size(); i++){
+		   Transform3d::Color* clr = dynamic_cast<Transform3d::Color*> (tforms[i]);
+		   if (clr) return clr->getColor();
+	   }
+   }
+
+
+   //
+   // no color exists, return empty vector
+   //
+   return *(new vector<double>);
+}
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
