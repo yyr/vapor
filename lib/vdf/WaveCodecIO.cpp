@@ -378,6 +378,11 @@ int WaveCodecIO::OpenVariableRead(
 	for (int t=0; t<_nthreads; t++) {
 		_compressorThread[t]->ClampMinOnOff() = true;
 		_compressorThread[t]->ClampMaxOnOff() = true;
+#ifndef	VAPOR_3_0_COMPATIBLE
+cerr << "CLAMPING OFF\n";
+_compressorThread[t]->ClampMinOnOff() = false;
+_compressorThread[t]->ClampMaxOnOff() = false;
+#endif
 
 		_compressorThread[t]->ClampMin() = _dataRange[0];
 		_compressorThread[t]->ClampMax() = _dataRange[1];
@@ -1608,28 +1613,36 @@ int WaveCodecIO::WriteSlice(
 		for (int x = 0; x<dim_p[0]; x++) { 
 			*ptr++ = *slice++;
 		}
+#ifdef	VAPOR_2_3_COMPATIBLE
 		// Pad if necessary (noop if not)
 		//
 		_pad_line(GetBoundaryMode(), line_start, dim_p[0], nnx, 1);
+#endif
 	}
 
 	for (int x = 0; x<nnx; x++) { 
 		line_start = _sliceBuffer + (slice_count * nnx*nny + x);
 		_pad_line(GetBoundaryMode(), line_start, dim_p[1], nny, nnx);
 	}
+
 	_sliceCount++;
 
 	if (_vtype != VAR3D) {
+#ifdef	VAPOR_2_3_COMPATIBLE
 		bool pad = _pad; _pad = false;
+#endif
 
 		int rc = BlockWriteRegion(_sliceBuffer, bmin_p, bmax_p, 1);
 
+#ifdef	VAPOR_2_3_COMPATIBLE
 		_pad = pad;
+#endif
 		if (rc<0) return(rc);
 		return(0);
 	}
 
 
+#ifdef	VAPOR_2_3_COMPATIBLE
 	//
 	// Pad Z dimension if last slice
 	//
@@ -1645,13 +1658,18 @@ int WaveCodecIO::WriteSlice(
 			}
 		}
 	}
+#endif
 		
 	if (_sliceCount % bs_p[2] == 0 || _sliceCount == dim_p[2]) {
+#ifdef	VAPOR_2_3_COMPATIBLE
 		bool pad = _pad; _pad = false;
+#endif
 
 		int rc = BlockWriteRegion(_sliceBuffer, bmin_p, bmax_p, 1);
 
+#ifdef	VAPOR_2_3_COMPATIBLE
 		_pad = pad;
+#endif
 		if (rc<0) return(-1);
 	}
 	return(0);

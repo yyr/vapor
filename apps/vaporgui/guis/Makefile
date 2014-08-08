@@ -6,8 +6,8 @@ QT = 1
 COMPILE_ONLY = 1
 PROGRAM = vaporgui
 
-ifdef	VOLUMIZER_ROOT
-MAKEFILE_CXXFLAGS += -I$(VOLUMIZER_ROOT)/include
+ifeq ($(ASSIMP_2),1)
+MAKEFILE_CXXFLAGS += -DASSIMP_2
 endif
 
 MAKEFILE_INCLUDE_DIRS +=  -I../main -I../misc -I../../../lib/params -I../../../lib/render

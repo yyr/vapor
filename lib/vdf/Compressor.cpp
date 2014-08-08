@@ -689,3 +689,78 @@ size_t Compressor::GetMinCompression() const {
 	}
 	return(0);
 }
+
+bool Compressor::CompressionInfo(
+	vector <size_t> dims, const string wavename, 
+	bool keepapp, size_t &nlevels, size_t &maxcratio
+) {
+	nlevels = 0;
+	maxcratio = 0;
+
+	if (dims.size() < 1 ||dims.size() > 3) return(false);
+
+	for (int i=0; i<dims.size(); i++) {
+		if (dims[i] < 1) return(false);
+	}
+	
+    bool enabled = MyBase::EnableErrMsg(false); 
+	MatWaveWavedec mww(wavename);
+    if (MyBase::GetErrCode()) {
+        MyBase::EnableErrMsg(enabled);
+        return(false);
+    }
+    MyBase::EnableErrMsg(enabled);
+
+	size_t ncoeff = 1;
+	for (int i=0; i<dims.size(); i++) ncoeff *= dims[i];
+
+	size_t mincoeff = 1;
+	if (keepapp) {
+		size_t *L;
+		if (dims.size() == 1) {
+			nlevels = mww.wmaxlev(dims[0]);
+			L = new size_t[nlevels+2];
+			mww.computeL(dims[0], nlevels, L);
+		}
+		if (dims.size() == 2) {
+			nlevels = min(mww.wmaxlev(dims[0]), mww.wmaxlev(dims[1]));
+			L = new size_t[(6*nlevels)+4];
+			mww.computeL2(dims[0], dims[1], nlevels, L);
+		}
+		if (dims.size() == 3) {
+			nlevels = min(
+					min( mww.wmaxlev(dims[0]), mww.wmaxlev(dims[1])), 
+					mww.wmaxlev(dims[2])
+			);
+			L = new size_t[(21*nlevels)+6];
+			mww.computeL3(dims[0], dims[1], dims[2], nlevels, L);
+		}
+		delete [] L;
+	}
+	nlevels += 1;
+
+	maxcratio = ncoeff / mincoeff;
+	return(true);
+}
+
+namespace VAPoR {
+ostream &operator<<(std::ostream &o, const Compressor &rhs) {
+    o << "Compressor:" << endl;
+    o << " Dimensions:" << endl;
+    for (int i=0; i<rhs._dims.size(); i++) {
+        o << "  " << rhs._dims[i] << " ";
+    }
+	o << endl;
+	o << " Coefficients length " << rhs._CLen << endl;
+	o << " Book keeping length " << rhs._LLen << endl;
+	o << " Keep approx flag " << rhs._keepapp << endl;
+	o << " Clamp min flag " << rhs._clamp_min_flag << endl;
+	o << " Clamp max flag " << rhs._clamp_max_flag << endl;
+	o << " Clamp min " << rhs._clamp_min << endl;
+	o << " Clamp max " << rhs._clamp_max << endl;
+	o << " Epsilon flag " << rhs._epsilon_flag << endl;
+	o << " Epsilon " << rhs._epsilon << endl;
+
+	return(o);
+}
+};

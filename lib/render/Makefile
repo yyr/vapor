@@ -36,6 +36,10 @@ ifeq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += -D"RENDER_EXPORTS"
 endif
 
+ifeq ($(ASSIMP_2),1)
+MAKEFILE_CXXFLAGS += -DASSIMP_2
+endif
+
 MAKEFILE_INCLUDE_DIRS += -I$(addprefix $(QTDIR)/include/, QtOpenGL)
 
 ifeq ($(ARCH),Linux)

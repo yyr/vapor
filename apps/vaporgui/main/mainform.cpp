@@ -263,6 +263,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 MainForm::~MainForm()
 {
 	if (modeStatusWidget) delete modeStatusWidget;
+	if (banner) delete banner;
    
 	delete Session::getInstance();
 	PythonPipeLine::terminate();
