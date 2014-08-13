@@ -710,7 +710,7 @@ private:
 	void makeWriter();
 	vector<TextWriter*> myTextWriters;
 	vector<string> myTextStrings;
-	vector<vector<float*>> myTextPosns;
+	vector<vector<float*> > myTextPosns;
 	bool textIsValid;
 	
 #endif //DOXYGEN_SKIP_THIS
