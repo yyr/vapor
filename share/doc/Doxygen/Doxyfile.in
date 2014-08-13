@@ -408,7 +408,7 @@ INPUT        = mainpage.dox \
 			TOP_OF_TREE/include/vapor/WASP.h \
 			TOP_OF_TREE/include/vapor/NetCDFCpp.h \
 			TOP_OF_TREE/include/vapor/ControlExecutive.h \
-			TOP_OF_TREE/lib/params/ParamsBase.h \
+			TOP_OF_TREE/include/vapor/ParamsBase.h \
 			TOP_OF_TREE/lib/params/ParamNode.h \
 			TOP_OF_TREE/lib/params/params.h \
 			TOP_OF_TREE/lib/params/renderparams.h \
@@ -423,6 +423,7 @@ INPUT        = mainpage.dox \
 			TOP_OF_TREE/lib/params/Box.h \
 			TOP_OF_TREE/lib/params/command.h \
 			TOP_OF_TREE/lib/render/renderer.h \
+			TOP_OF_TREE/lib/render/arrowrenderer.h \
 			TOP_OF_TREE/lib/render/visualizer.h \
 			TOP_OF_TREE/apps/vaporgui/main/vizwinmgr.h \  
 			TOP_OF_TREE/apps/vaporgui/main/vizwin.h \  
