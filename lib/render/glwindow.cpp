@@ -95,6 +95,7 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
     TextObject *obj = new TextObject(GetAppPath("VAPOR","share",vec).c_str(),"Another ggg Test",12,coords2,1,bgc,fgc,this);
 */
 	_readyToDraw = false;
+	textIsValid = false;
 
 	currentParams.clear();
 	for (int i = 0; i<= Params::GetNumParamsClasses(); i++)
@@ -269,7 +270,7 @@ GLWindow::~GLWindow()
 	
 	delete manager;
 	nowPainting = false;
-
+	clearWriters();
 	//delete writer;
 	//delete obj;	
 }
@@ -1296,7 +1297,7 @@ void GLWindow::regPaintEvent()
 		glMatrixMode(GL_MODELVIEW);
 		glPopMatrix();
 	}
-
+	renderText();
 	// A "TextWriter" may contain many TextObjects.  This initializes a TextWriter
     // and adds one TextObject.  All contained TextObjects share fonts, font sizes,
     // colors, and text types (text within the scene, text outside of the scene)
@@ -2861,20 +2862,52 @@ void GLWindow::ConvertAxes(bool toLatLon, const int ticDirs[3], const double fro
 	
 }
 
-void GLWindow::makeWriter(){
-	float bgc[4] = {0,0,0,255};
-    float fgc[4] = {0,255,0,255};
-    float coords[3] = {100,100,100};
-    float coords2[3] = {0,0,0};
-	vector<string> vec;
-	vec.push_back("fonts");
-	vec.push_back("Vera.ttf");
-	TextWriter *x = new TextWriter(GetAppPath("VAPOR","share",vec).c_str(), 36, bgc, fgc, 0, this);
-    myWriters.push_back(x);
-	TextWriter *y = new TextWriter(GetAppPath("VAPOR","share",vec).c_str(), 36, bgc, fgc, 1, this);
-	myWriters.push_back(y);
-	myWriters[0]->addText("This is our vector test",coords);
-	myWriters[1]->addText("Another text",coords2);
+
+//Add a textWriter to the set of writers to be used.  Return its index.
+int GLWindow::addWriter(const char* fontPath, int textSize, float textColor[4], float bgColor[4], int type, string text){
+	myTextWriters.push_back(new TextWriter(fontPath, textSize, textColor, bgColor, type, this));
+	myTextStrings.push_back(text);
+	myTextPosns.push_back(*new vector<float*>);
+	textIsValid=false;
+	return myTextWriters.size()-1;
+}
+//Add an instance of text at specified position, using specified writer
+void GLWindow::addText(int writerNum, float posn[3]){
+	float* newPosn = new float[3];
+	for (int i = 0; i<3; i++) newPosn[i] = posn[i];
+	myTextPosns[writerNum].push_back(newPosn);
+	textIsValid=false;
+}
+//Render all the text; build textWriters if necessary.
+void GLWindow::renderText(){
+	if (myTextWriters.size() == 0) return;
+	if (!textIsValid){
+		for (int i = 0; i<myTextWriters.size(); i++){
+			TextWriter* tWriter = myTextWriters[i];
+			string str = myTextStrings[i];
+			vector<float*> txtPosns = myTextPosns[i];
+			for (int j = 0; j<txtPosns.size(); j++){
+				tWriter->addText(str, txtPosns[j]);
+			}
+		}
+		textIsValid = true;
+	}
+	for (int i = 0; i<myTextWriters.size(); i++){
+		myTextWriters[i]->drawText();
+	}
+}
+void GLWindow::clearWriters(){
+	for (int i = 0; i<myTextWriters.size(); i++){
+		delete myTextWriters[i];
+		for (int j = 0; j<myTextPosns[i].size();j++)
+			delete (myTextPosns[i])[j];
+		myTextPosns[i].clear();
+		myTextStrings[i].clear();
+		textIsValid = false;
+	}
+	myTextWriters.clear();
+	myTextStrings.clear();
+	myTextPosns.clear();
 }
 
 #ifdef	Darwin

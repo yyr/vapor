@@ -154,7 +154,12 @@ public:
 	static void ConvertAxes(bool toLatLon, const int ticDirs[3], const double fromMinTic[3], const double fromMaxTic[3], const double fromOrigin[3], const double fromTicLength[3],
 		double toMinTic[3],double toMaxTic[3], double toOrigin[3], double toTicLength[3]);
 
-
+	//Added for FTGL 
+	//Add a textWriter to the set of writers to be used.  Return its index.
+	int addWriter(const char* fontPath, int textSize, float textColor[4], float bgColor[4], int type, string text); 
+	//Add an instance of text at specified position, using specified writer
+	void addText(int writerNum, float posn[3]);
+	void clearWriters();
 
 #ifndef DOXYGEN_SKIP_THIS
 	 GLWindow( QGLFormat& fmt, QWidget* parent, int winnum);
@@ -607,6 +612,9 @@ protected:
 	// back, front, bottom, top, left, right
 	static bool faceIsVisible(float* extents, float* viewerCoords, int faceNum);
 
+	
+	//Render all the text; build textWriters if necessary.
+	void renderText();
 	float regionFrameColorFlt[3];
 	float subregionFrameColorFlt[3];
 
@@ -700,7 +708,11 @@ protected:
 private:
 	bool _readyToDraw;
 	void makeWriter();
-
+	vector<TextWriter*> myTextWriters;
+	vector<string> myTextStrings;
+	vector<vector<float*>> myTextPosns;
+	bool textIsValid;
+	
 #endif //DOXYGEN_SKIP_THIS
 	
 };

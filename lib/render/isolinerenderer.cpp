@@ -43,7 +43,7 @@ IsolineRenderer::IsolineRenderer(GLWindow* glw, IsolineParams* pParams )
 {
 	numIsovalsCached = 0;
 	setupCache();
-	myTextWriters.clear();
+	myGLWindow->clearWriters();
 }
 
 
@@ -62,8 +62,7 @@ IsolineRenderer::~IsolineRenderer()
 	}
 	lineCache.clear();
 	
-	for (int i = 0; i<myTextWriters.size(); i++) delete myTextWriters[i];
-	myTextWriters.clear();
+	myGLWindow->clearWriters();
 	
 }
 
@@ -90,8 +89,6 @@ void IsolineRenderer::paintGL()
 	//Perform OpenGL rendering of line segments
 	//
 	performRendering(timestep);
-	for (int i = 0; i<myTextWriters.size(); i++)
-		myTextWriters[i]->drawText();
 	
 	
 }
@@ -244,12 +241,12 @@ bool IsolineRenderer::buildLineCache(int timestep){
 	//Loop over each isovalue and cell, and classify the cell as to which edges are crossed by the isoline.
 	//when there is an isoline crossing, a line segment is saved in the cache, defined by the two endpoints.
 	const vector<double>& isovals = iParams->GetIsovalues();
-	if(iParams->GetTextDensity() > 0.) {
-		for (int i = 0; i<myTextWriters.size(); i++) delete myTextWriters[i];
-		myTextWriters.clear();
-	}
+	
+	//Clear the textWriters (if they exist)
+	myGLWindow->clearWriters();
+	
 	for (int iso = 0; iso < isovals.size(); iso++){
-		if(iParams->GetTextDensity() > 0.) { //create a textWriter to hold annotation of this isovalue
+		if(iParams->GetTextDensity() > 0.) { //put a textWriter in the GLWindow to hold annotation of this isovalue
 			
 			float bgc[4] = {0,0,0,1.};
 			const QColor c = DataStatus::getInstance()->getBackgroundColor();
@@ -262,7 +259,9 @@ bool IsolineRenderer::buildLineCache(int timestep){
 			vector<string> vec;
 			vec.push_back("fonts");
 			vec.push_back("Vera.ttf");
-			myTextWriters.push_back(new TextWriter(GetAppPath("VAPOR","share",vec).c_str(), (int)iParams->GetTextSize(), lineColor, bgc, 1, myGLWindow));
+			string isoText;
+			doubleToString((iParams->GetIsovalues()[iso]), isoText, iParams->GetNumDigits());
+			myGLWindow->addWriter(GetAppPath("VAPOR","share",vec).c_str(),(int)iParams->GetTextSize(),lineColor, bgc,1, isoText);
 		}
 		//Clear out temporary caches for this isovalue:
 		
@@ -775,7 +774,8 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 					vtransform(pointa,transformMatrix,point1);
 					//Convert local to user:
 					for (int i = 0; i<3; i++) point1[i] += tvExts[i];
-					myTextWriters[iso]->addText(isoText, point1);
+					
+					myGLWindow->addText(iso,point1);
 					numAnnotations++;
 					//Reset the next interval:
 					gapInterval = annotInterval;
@@ -807,7 +807,8 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 						vtransform(pointa,transformMatrix,point1);
 						//Convert local to user:
 						for (int i = 0; i<3; i++) point1[i] += tvExts[i];
-						myTextWriters[iso]->addText(isoText, point1);
+					
+						myGLWindow->addText(iso,point1);
 						numAnnotations++;
 						//Reset the next interval:
 						gapInterval = annotInterval;
