@@ -45,11 +45,6 @@ class ViewpointParams;
 class DataMgr;
 class Command;
 
-//!
-//! \defgroup Public_Params VAPOR RenderParams Developer API
-//!
-
-
 
 //! \class RenderParams
 //! \ingroup Public_Params
