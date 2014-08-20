@@ -64,11 +64,11 @@ restart(){
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds || !ds->getDataMgr()) ds = 0;
 	
-	if (!GetRootNode()->HasChild(Box::_boxTag)){
-		Box* myBox = new Box();
-		ParamNode* boxNode = myBox->GetRootNode();
-		GetRootNode()->AddRegisteredNode(Box::_boxTag,boxNode,myBox);
-	}
+	
+	Box* myBox = new Box();
+	vector<string>path;
+	path.push_back(Box::_boxTag);
+	SetParamsBase(path, myBox);
 	
 	vector<double> regexts;
 	for (int i = 0; i<3; i++) regexts.push_back(0.);

@@ -33,10 +33,9 @@ public:
 	//! Method to retrieve the Box describing the rake extents
 	//! \retval Box*
 	virtual Box* GetBox() {
-		ParamNode* pNode = GetRootNode()->GetNode(Box::_boxTag);
-		if (pNode) return (Box*)pNode->GetParamsBase();
-		else assert(0);
-		return 0;
+		vector<string>path;
+		path.push_back(Box::_boxTag);
+		return (Box*) GetParamsBase(path);
 	}
 
 	//! Validate current settings

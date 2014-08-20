@@ -381,40 +381,6 @@ public:
  //
  int AddNode(const vector<string>& tagpath, ParamNode* child);
 
- //! Add an existing node with associated registered ParamsBase class
- //!
- //! The new child node will be
- //! appended to the array of child nodes of the final node.
- //! Use of this method ensures that the ParamsBase class will use
- //! the specified child as its root node, and that the child will 
- //! have a pointer to the ParamsBase* argument as its ParamsBase object
- //!
- //! \param[in] tag is the tag that will identify the new node
- //! \param[in] child is the ParamNode object to be added as a child
- //! \param[in] associate is the ParamsBase object for which this is the root node
- //! \retval status Return 0 upon success. A negative number is returned
- //! if a sibling already exists with the same name, or if one of the
- //! specified nodes in the path sequence does not already exist
- //
- int AddRegisteredNode(const string& tag, ParamNode* child, ParamsBase* associate);
-
- //! Add an existing node with associated registered ParamsBase class
- //! Where the node is the final node in a path of ParamNode nodes.
- //!
- //! The new child node will be
- //! appended to the array of child nodes of the final node.
- //! Use of this method ensures that the ParamsBase class will use
- //! the specified child as its root node, and that the child will 
- //! have a pointer to the ParamsBase* argument as its ParamsBase object
- //!
- //! \param[in] tagPath is sequence of tags that will identify the new node
- //! \param[in] child is the ParamNode object to be added as a child
- //! \param[in] associate is the ParamsBase object for which this is the root node
- //! \retval status Return 0 upon success. A negative number is returned
- //! if a sibling already exists with the same name, or if one of the
- //! specified nodes in the path sequence does not already exist
- //
- int AddRegisteredNode(const vector<string>& tagPath, ParamNode* child, ParamsBase* associate);
 
  //! Return the indicated child node. 
  //!
