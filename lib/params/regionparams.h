@@ -79,11 +79,9 @@ public:
 	//! Method to obtain the current Box defining the region extents
 	//! \retval Box* current Box.
 	virtual Box* GetBox() {
-		ParamNode* pNode = GetRootNode()->GetNode(Box::_boxTag);
-		if (pNode) return (Box*)pNode->GetParamsBase();
-		Box* box = new Box();
-		GetRootNode()->AddNode(Box::_boxTag, box->GetRootNode());
-		return box;
+		vector<string>path;
+		path.push_back(Box::_boxTag);
+		return (Box*) GetParamsBase(path);
 	}
 	
 	//! Get the minimum extent of the Box, in local coordinates

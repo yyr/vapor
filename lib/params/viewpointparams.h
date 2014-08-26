@@ -337,11 +337,10 @@ public:
 	//! \sa Viewpoint
 	//! \retval Viewpoint* current home viewpoint.
 	virtual Viewpoint* getHomeViewpoint() {
-		ParamNode* pNode = GetRootNode()->GetNode(_homeViewTag);
-		if (pNode) return (Viewpoint*)pNode->GetParamsBase();
-		Viewpoint* vp = new Viewpoint();
-		GetRootNode()->AddNode(_homeViewTag, vp->GetRootNode());
-		return vp;
+		vector<string> path;
+		path.push_back(_homeViewTag);
+		path.push_back(Viewpoint::_viewpointTag);
+		return (Viewpoint*) GetParamsBase(path);
 	}
 //! Method indicates that a viewpointparams instance has changed, e.g. during Undo/Redo
 //! Must be cleared after all users of the instance have checked it.
@@ -403,7 +402,6 @@ protected:
 		path.push_back(_currentViewTag);
 		path.push_back(Viewpoint::_viewpointTag);
 		return (Viewpoint*)GetParamsBase(path);
-
 	}
 	//defaults:
 	static double defaultViewDir[3];
