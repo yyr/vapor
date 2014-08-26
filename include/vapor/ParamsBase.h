@@ -71,6 +71,14 @@ class Params;
 //! These classes should be derived from ParamsBase, and can be
 //! included in many different Params classes.  Examples of ParamsBase classes include TransferFunction, 
 //! Box, and Viewpoint.
+//! When using a ParamsBase class in a Params instance, instances of the ParamsBase class should be created
+//! using the ParamsBase constructor; however these instances should be installed in the Params instance
+//! using ParamsBase::SetParamsBase(), which will insert the ParamsBase node at a specified location in the
+//! Params XML hierarchy.  The ParamsBase instance can be retrieved using ParamsBase::GetParamsBase() and the
+//! ParamsBase instance can be changed using ParamsBase::SetParamsBase().  Programmers should not invoke
+//! destructors on such ParamsBase instances, as the deletion will be performed when necessary.
+//! The destructor of the ParamsBase instance
+//! is invoked whenever the Params instance is destroyed, or when the instance is replaced using ParamsBase::SetParamsBase().
 //! \sa Box, Viewpoint, TransferFunction
 //!
 
