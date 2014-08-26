@@ -106,7 +106,7 @@ int ParamsBase::SetParamsBase(const vector<string>& path, ParamsBase* pbase){
 			//Need to insert a new node
 			newNode = new ParamNode(path[i]);
 			int rc = node->AddNode(path[i],newNode);
-			if (rc) return rc;
+			if (rc) return rc;  //Error, cannot insert node
 		} 
 		node = newNode;
 	}
@@ -119,6 +119,7 @@ int ParamsBase::SetParamsBase(const vector<string>& path, ParamsBase* pbase){
 		lastNode = pbase->GetRootNode();
 		node->AddChild(lastNode);
 		lastNode->SetParamsBase(pbase);
+		lastNode->Attrs()[_typeAttr] = ParamNode::_paramsBaseAttr;
 		return 0;
 	}
 	else {
@@ -129,6 +130,7 @@ int ParamsBase::SetParamsBase(const vector<string>& path, ParamsBase* pbase){
 			node->ReplaceChild(lastNode,newNode);
 			pbase->SetRootParamNode(newNode);
 			newNode->SetParamsBase(pbase);
+			lastNode->Attrs()[_typeAttr] = ParamNode::_paramsBaseAttr;
 			return 0;
 		}
 		//It really shouldn't ever get here:  the ParamNode 
