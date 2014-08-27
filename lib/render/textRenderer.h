@@ -18,8 +18,8 @@
 //               QGLWidgets
 //
 
-#ifndef TEXTRENDERER_H
-#define TEXTRENDERER_H
+#ifndef _TextRenderer_H_
+#define _TextRenderer_H_
 #include <FTGL/ftgl.h>
 #include <vapor/MyBase.h>
 #include <vapor/common.h>
@@ -28,9 +28,21 @@
 class FTPixmapFont;
 //class GLWindow;
 
+//
+//! \class TextObject
+//! \A container class for an FTGL font and its texture for display
+//! \author Scott Pearse
+//! \version $Revision$
+//! \date    $Date$
+//!
+//! This class provides an API for displaying a single texture that
+//! contains text generated in FTGL.
+
 namespace VAPoR {
  class RENDER_API TextObject {
 public:
+
+//! 
     TextObject( string inFont,
                 string inText,
                 int inSize,
@@ -57,9 +69,13 @@ public:
     float*  getBGColor() { return _bgColor; }
     float*  getCoords() { return _coords; }
 
+//! Draw specified text
     int drawMe();
+
+//! Sets the variables \p _width and \p _height.
+//! These define the size of the texture that text will be drawn to
     void findBBoxSize(void);
-    void initFrameBuffer(void);
+    int initFrameBuffer(void);
     void applyViewerMatrix(void);
     void removeViewerMatrix();
 
@@ -115,4 +131,4 @@ private:
 
 }; 		// end namespace vapor
 
-#endif  // textrenderer_h
+#endif  // _TextRenderer_H_

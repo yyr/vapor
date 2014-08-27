@@ -23,6 +23,7 @@
 #include "glwindow.h"
 #include "textRenderer.h"
 #include "viewpointparams.h"
+#include <vapor/MyBase.h>
 
 using namespace VAPoR;
 //struct GLWindow;        // just to retrieve window size
@@ -108,8 +109,6 @@ TextObject::TextObject( string inFont,
 		}
 	}
 
-	cout << "creating text object" << endl;
-
 	_pixmap->FaceSize(_size);
 	_myWindow->makeCurrent();
     findBBoxSize();
@@ -122,7 +121,6 @@ TextObject::~TextObject() {
 //	glDisable(GL_TEXTURE_2D);
 	glDeleteTextures(1,&_fboTexture);
 	glDeleteBuffers(1,&_fbo);
-	cout << "deleting text object" << endl;
 }
 
 void TextObject::initFrameBufferTexture(void) {
@@ -138,11 +136,18 @@ void TextObject::initFrameBufferTexture(void) {
 
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    printOpenGLError();
+    //printOpenGLError();
+    GLenum glErr;
+    glErr = glGetError();
+	char* errString;
+    if (glErr != GL_NO_ERROR){
+		errString = (char*)gluErrorString(glErr);
+        MyBase::SetErrMsg(errString);
+	}
 }
 
 
-void TextObject::initFrameBuffer(void) {
+int TextObject::initFrameBuffer(void) {
     //glEnable(GL_TEXTURE_2D);
     //initFrameBufferTexture();
 
@@ -159,7 +164,7 @@ void TextObject::initFrameBuffer(void) {
     GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);  
     if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {     
         std::cout << "Couldn't create frame buffer" << std::endl;  
-        exit(0);
+        return -1;
     }
 
     // Save previous color state
@@ -186,7 +191,15 @@ void TextObject::initFrameBuffer(void) {
 
 	//glEnable(GL_LIGHTING);
 
-    printOpenGLError();
+    //printOpenGLError();
+    GLenum glErr;
+    glErr = glGetError();
+    char* errString;
+    if (glErr != GL_NO_ERROR){
+        errString = (char*)gluErrorString(glErr);
+        MyBase::SetErrMsg(errString);
+    }
+	return 0;
 }
 
 
@@ -203,7 +216,6 @@ void TextObject::findBBoxSize() {
 }
 
 void TextObject::applyViewerMatrix() {
-	cout << "applying viewer matrixi " << _type << endl;
     if ((_type == 0) || (_type == 1)){ 
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
@@ -212,7 +224,7 @@ void TextObject::applyViewerMatrix() {
         glPushMatrix();
         glLoadIdentity();
 		glPushAttrib(GL_ALL_ATTRIB_BITS);
-		glDisable(GL_LIGHTING);
+		//glDisable(GL_LIGHTING);
 		glEnable(GL_TEXTURE_2D);
     }    
     if (_type == 1) { 
@@ -223,7 +235,6 @@ void TextObject::applyViewerMatrix() {
         castWin->projectPointToWin(_3Dcoords, newCoords);
         _coords[0] = newCoords[0];
         _coords[1] = newCoords[1];
-    	cout << _coords[0] << " " << _coords[1] << endl;
 	}   
 }
 
@@ -239,16 +250,7 @@ void TextObject::removeViewerMatrix() {
 
 int TextObject::drawMe() {
 
-	//_myWindow->makeCurrent();
-	//_myWindow = window;
-    //_pixmap->FaceSize(_size);
-	//glDisable(GL_LIGHTING);   
-
 	applyViewerMatrix();
-
-    //findBBoxSize();
-	//initFrameBufferTexture();
-    //initFrameBuffer();
 
     glBindTexture(GL_TEXTURE_2D, _fboTexture);  
 
@@ -270,15 +272,14 @@ int TextObject::drawMe() {
 
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    //glDisable(GL_TEXTURE_2D);
-//    glDeleteTextures(1,&_fboTexture);
-//    glDeleteBuffers(1,&_fbo);
-
     removeViewerMatrix();
 
-
-
-    printOpenGLError();
-	//glEnable(GL_LIGHTING);
+    GLenum glErr;
+    glErr = glGetError();
+    char* errString;
+    if (glErr != GL_NO_ERROR){
+        errString = (char*) gluErrorString(glErr);
+        MyBase::SetErrMsg(errString);
+    }
 	return 0;
 }
