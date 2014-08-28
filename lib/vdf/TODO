@@ -38,3 +38,8 @@ uniformness is not guaranteed (can be written to),
 
 Consider moving VDC::GetNumTimeSteps() to VarBase (or doing away with it
 entirely - it's redundant).
+
+DataMgr
+-------
+
+Handle derived variable coordinates
