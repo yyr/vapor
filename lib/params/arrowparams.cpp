@@ -208,11 +208,11 @@ void ArrowParams::restart() {
 		exts.push_back(1.);
 		gridsize[i] = 10;
 	}
-	if (!GetRootNode()->HasChild(Box::_boxTag)){
-		Box* myBox = new Box();
-		ParamNode* boxNode = myBox->GetRootNode();
-		GetRootNode()->AddRegisteredNode(Box::_boxTag,boxNode,myBox);
-	}
+	Box* myBox = new Box();
+	vector<string>path;
+	path.push_back(Box::_boxTag);
+	SetParamsBase(path,myBox);
+	
 	
 	//Don't set the Box values until after it has been registered:
 	SetRakeLocalExtents(exts);

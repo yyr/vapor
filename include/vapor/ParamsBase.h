@@ -71,6 +71,14 @@ class Params;
 //! These classes should be derived from ParamsBase, and can be
 //! included in many different Params classes.  Examples of ParamsBase classes include TransferFunction, 
 //! Box, and Viewpoint.
+//! When using a ParamsBase class in a Params instance, instances of the ParamsBase class should be created
+//! using the ParamsBase constructor; however these instances should be installed in the Params instance
+//! using ParamsBase::SetParamsBase(), which will insert the ParamsBase node at a specified location in the
+//! Params XML hierarchy.  The ParamsBase instance can be retrieved using ParamsBase::GetParamsBase() and the
+//! ParamsBase instance can be changed using ParamsBase::SetParamsBase().  Programmers should not invoke
+//! destructors on such ParamsBase instances, as the deletion will be performed when necessary.
+//! The destructor of the ParamsBase instance
+//! is invoked whenever the Params instance is destroyed, or when the instance is replaced using ParamsBase::SetParamsBase().
 //! \sa Box, Viewpoint, TransferFunction
 //!
 
@@ -396,6 +404,27 @@ static ParamsBase* CreateDefaultParamsBase(const string&tag);
 //! \retval status True if the specified class is a Params class
 //!
 	static bool IsParamsTag(const string&tag) {return (GetTypeFromTag(tag) > 0);}
+
+//! Obtain the ParamsBase instance at specified path from this root node.
+//! \param[in] vector<string> sequence of tags to specified ParamsBase,
+//! starting at the root node of the ParamsBase (or Params) containing the 
+//! requested ParamsBase instance.
+//! \retval ParamsBase* instance at specified path, or NULL if does not exist.
+	ParamsBase* GetParamsBase(const vector<string>& path);
+
+//! Following method is to be used to specify a ParamsBase instance that
+//! will be inside a Params (or ParamsBase) instance, or to replace an existing ParamsBase instance.
+//! This is for example useful for inserting and/or replacing a Box or
+//! a Viewpoint in a Params instance.  The path from the root node as
+//! well as the ParamsBase instance must be specified.
+//! This will replace (and delete) any existing ParamsBase instance at specified path.
+//! Constructs path to specified ParamsBase if it does not already exist.
+//! \param[in] vector<string> sequence of tags to specified ParamsBase,
+//! starting at the root node of the ParamsBase (or Params) containing the 
+//! requested ParamsBase instance.
+//! \param[in] ParamsBase* pbase class instance to be set
+//! \retval 0 if successful, -1 otherwise
+	int SetParamsBase(const vector<string>& path, ParamsBase* pbase);
 
 #ifndef DOXYGEN_SKIP_THIS
 

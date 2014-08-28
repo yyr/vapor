@@ -251,42 +251,6 @@ int ParamNode::AddNode(const vector<string>& tagpath, ParamNode* child) {
 	return(0);
 }
 
-int ParamNode::AddRegisteredNode(const string& tag, ParamNode* child, ParamsBase* associate) {
-	if (HasChild(tag)) {
-		SetErrMsg(VAPOR_ERROR_PARAMS,"Child node named %s already exists", child->Tag().c_str());
-		return(-1);
-	}
-	XmlNode::AddChild(child);
-	//Make the child and the associate point to each other:
-	child->SetParamsBase(associate);
-	associate->SetRootParamNode(child);
-	child->Tag() = tag;
-	map <string, string>& attrs = child->Attrs();
-	attrs[_typeAttr] = _paramsBaseAttr;
-	return(0);
-}
-int ParamNode::AddRegisteredNode(const vector<string>& tagpath, ParamNode* child, ParamsBase* associate) {
-	//Iterate through tags, finding associated node, stop one short
-	ParamNode* currNode = this;
-	for (int i = 0; i< tagpath.size()-1; i++){
-		currNode = currNode->GetNode(tagpath[i]);
-		if (!currNode) return -1;
-	}
-	string tag = tagpath[tagpath.size()-1];
-
-	if (currNode->HasChild(tag)) {
-		SetErrMsg(VAPOR_ERROR_PARAMS,"Child node named %s already exists", tag.c_str());
-		return(-1);
-	}
-	XmlNode::AddChild(child);
-	//Make the child and the associate point to each other:
-	child->SetParamsBase(associate);
-	associate->SetRootParamNode(child);
-	child->Tag() = tag;
-	map <string, string>& attrs = child->Attrs();
-	attrs[_typeAttr] = _paramsBaseAttr;
-	return(0);
-}
 int ParamNode::DeleteNode(const string &tag){
 		ParamNode* pNode = GetNode(tag);
 		if (!pNode) return -1;

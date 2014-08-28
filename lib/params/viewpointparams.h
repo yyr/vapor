@@ -303,12 +303,14 @@ public:
 	//! \sa Viewpoint
 	int setCurrentViewpoint(Viewpoint* newVP){
 		Command* cmd = Command::CaptureStart(this,"set current viewpoint");
-		ParamNode* pNode = GetRootNode()->GetNode(_currentViewTag);
-		if (pNode) GetRootNode()->DeleteNode(_currentViewTag);
-		int rc = GetRootNode()->AddRegisteredNode(_currentViewTag, newVP->GetRootNode(),newVP);
+		vector<string> path;
+		path.push_back(_currentViewTag);
+		path.push_back(Viewpoint::_viewpointTag);
+		int rc = SetParamsBase(path,newVP);
 		Command::CaptureEnd(cmd,this);
 		SetChanged(true);
 		return rc;
+		
 	}
 	//! Set the home viewpoint
 	//! \param[in] Viewpoint* home viewpoint to be set
@@ -316,10 +318,12 @@ public:
 	//! \sa Viewpoint
 	int setHomeViewpoint(Viewpoint* newVP){
 		Command* cmd = Command::CaptureStart(this, "set home viewpoint");
-		ParamNode* pNode = GetRootNode()->GetNode(_homeViewTag);
-		if (pNode) GetRootNode()->DeleteNode(_homeViewTag);
-		int rc = GetRootNode()->AddRegisteredNode(_homeViewTag, newVP->GetRootNode(),newVP);
+		vector<string> path;
+		path.push_back(_homeViewTag);
+		path.push_back(Viewpoint::_viewpointTag);
+		int rc = SetParamsBase(path,newVP);
 		Command::CaptureEnd(cmd,this);
+		SetChanged(true);
 		return rc;
 	}
 	//! Center the viewpoint so as to view the full region at a timestep
@@ -333,11 +337,10 @@ public:
 	//! \sa Viewpoint
 	//! \retval Viewpoint* current home viewpoint.
 	virtual Viewpoint* getHomeViewpoint() {
-		ParamNode* pNode = GetRootNode()->GetNode(_homeViewTag);
-		if (pNode) return (Viewpoint*)pNode->GetParamsBase();
-		Viewpoint* vp = new Viewpoint();
-		GetRootNode()->AddNode(_homeViewTag, vp->GetRootNode());
-		return vp;
+		vector<string> path;
+		path.push_back(_homeViewTag);
+		path.push_back(Viewpoint::_viewpointTag);
+		return (Viewpoint*) GetParamsBase(path);
 	}
 //! Method indicates that a viewpointparams instance has changed, e.g. during Undo/Redo
 //! Must be cleared after all users of the instance have checked it.
@@ -393,13 +396,12 @@ protected:
 	static const string _ambientCoeffTag;
 	static const string _numLightsTag;
 
-	//Following is protected so that other classes must obtain viewpoint via the parent ViewpointParams class
+	//Following is protected 
 	virtual Viewpoint* getCurrentViewpoint() {
-		ParamNode* pNode = GetRootNode()->GetNode(_currentViewTag);
-		if (pNode) return (Viewpoint*)pNode->GetParamsBase();
-		Viewpoint* vp = new Viewpoint();
-		GetRootNode()->AddNode(_currentViewTag, vp->GetRootNode());
-		return vp;
+		vector<string> path;
+		path.push_back(_currentViewTag);
+		path.push_back(Viewpoint::_viewpointTag);
+		return (Viewpoint*)GetParamsBase(path);
 	}
 	//defaults:
 	static double defaultViewDir[3];

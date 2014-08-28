@@ -86,6 +86,62 @@ ParamsBase::ParamsBase(const ParamsBase& pBase) :
 	_parseDepth = pBase._parseDepth;
 	_paramsBaseName = pBase._paramsBaseName;
 }
+	
+ParamsBase* ParamsBase::GetParamsBase(const vector<string>& path){
+	ParamNode* node = GetRootNode();
+	if (!node) return 0;
+	for (int i = 0; i< path.size(); i++){
+		node = node->GetNode(path[i]);
+		if (!node) return 0;
+	}
+	ParamsBase* base = node->GetParamsBase();
+	return base;
+}
+int ParamsBase::SetParamsBase(const vector<string>& path, ParamsBase* pbase){
+	ParamNode* node = GetRootNode();
+	if (!node) return -1;
+	for (int i = 0; i<path.size()-1; i++){
+		ParamNode* newNode = node->GetNode(path[i]);
+		if (!newNode) {
+			//Need to insert a new node
+			newNode = new ParamNode(path[i]);
+			int rc = node->AddNode(path[i],newNode);
+			if (rc) return rc;  //Error, cannot insert node
+		} 
+		node = newNode;
+	}
+	//Finally, replace the last node in the path, if it exists
+	int len = path.size()-1;
+	string lastTag = path[len];
+	ParamNode* lastNode = node->GetNode(lastTag);
+	if (!lastNode){
+		//Need to use the pbase's root node
+		lastNode = pbase->GetRootNode();
+		node->AddChild(lastNode);
+		lastNode->SetParamsBase(pbase);
+		lastNode->Attrs()[_typeAttr] = ParamNode::_paramsBaseAttr;
+		return 0;
+	}
+	else {
+		if( lastNode->GetParamsBase()) {
+			//Delete any existing ParamsBase
+			delete lastNode->GetParamsBase();
+			ParamNode* newNode = new ParamNode(lastTag);
+			node->ReplaceChild(lastNode,newNode);
+			pbase->SetRootParamNode(newNode);
+			newNode->SetParamsBase(pbase);
+			lastNode->Attrs()[_typeAttr] = ParamNode::_paramsBaseAttr;
+			return 0;
+		}
+		//It really shouldn't ever get here:  the ParamNode 
+		//exists but does not have a ParamsBase.
+		assert(0);
+		pbase->SetRootParamNode(lastNode);
+		lastNode->SetParamsBase(pbase);
+		return 0;
+	}
+}
+
 //Default buildNode clones the ParamNodes but calls buildNode on Registered nodes
 ParamNode* ParamsBase::buildNode(){	
 	

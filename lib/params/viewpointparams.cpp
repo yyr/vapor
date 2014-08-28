@@ -84,13 +84,18 @@ restart(){
 		GetRootNode()->DeleteChild(_homeViewTag);
 	
 	Viewpoint* vp = new Viewpoint();
-	ParamNode* vpNode = vp->GetRootNode();
-	GetRootNode()->AddRegisteredNode(_currentViewTag,vpNode,vp);
+	vector<double> vpdir1 = vp->getViewDir();
+	setCurrentViewpoint(vp);
+	vector<double> vpdir = vp->getViewDir();
+	Viewpoint* currentViewpoint = getCurrentViewpoint();
 	
+	vector<double> vpdir2 = getCurrentViewpoint()->getViewDir();
 	vp = new Viewpoint();
-	vpNode = vp->GetRootNode();
-	GetRootNode()->AddRegisteredNode(_homeViewTag,vpNode,vp);
-
+	setHomeViewpoint(vp);
+	
+	double viewDir[3];
+	vector<double> vdir = currentViewpoint->getViewDir();
+	//!?
 	centerFullRegion(0);
 	setNumLights(defaultNumLights);
 	vector<double> ldirs;
@@ -235,6 +240,7 @@ centerFullRegion(int timestep){
 	Viewpoint* currentViewpoint = getCurrentViewpoint();
 	//Make sure the viewDir is normalized:
 	double viewDir[3];
+	vector<double> vdir = currentViewpoint->getViewDir();
 	for (int j = 0; j<3; j++) viewDir[j] = currentViewpoint->getViewDir()[j];
 	vnormal(viewDir);
 	Command* cmd = Command::CaptureStart(this,"Center view on region");

@@ -1110,7 +1110,7 @@ void MainForm::updateWidgets(){
 }
 void MainForm::showTab(const std::string& tag){
 	ParamsBase::ParamsBaseType t = ControlExec::GetTypeFromTag(tag);
-	tabWidget->moveToFront(t);
+	tabWidget->moveToFront(t-Params::GetNumBasicParamsClasses());
 	EventRouter* eRouter = VizWinMgr::getEventRouter(tag);
 	eRouter->updateTab();
 }
@@ -1121,6 +1121,7 @@ void MainForm::modeChange(int newmode){
 	}
 	
 	navigationAction->setChecked(false);
+	
 	showTab(ControlExec::GetTagFromType(MouseModeParams::getModeParamType(newmode)));
 
 	MouseModeParams::SetCurrentMouseMode((MouseModeParams::mouseModeType)newmode);
