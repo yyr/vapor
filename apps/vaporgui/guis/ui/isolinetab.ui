@@ -700,6 +700,12 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QLineEdit" name="minIsoEdit">
+                <property name="maximumSize">
+                 <size>
+                  <width>100</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
                 <property name="toolTip">
                  <string>Specify minimum isovalue</string>
                 </property>
@@ -723,6 +729,12 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QLineEdit" name="maxIsoEdit">
+                <property name="maximumSize">
+                 <size>
+                  <width>100</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
                 <property name="toolTip">
                  <string>Specify maximum isovalue</string>
                 </property>
