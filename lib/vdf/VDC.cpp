@@ -170,6 +170,8 @@ int VDC::DefineCoordVar(
 		} 
 	}
 
+	if (axis == 3 && units.empty()) units = "seconds"; 
+
 	if (! _ValidDefineCoordVar(varname,dimnames,units,axis,type,compressed)) {
 		return(-1);
 	}
@@ -228,6 +230,8 @@ int VDC::DefineCoordVarUniform(
 			return(-1);
 		} 
 	}
+
+	if (axis == 3 && units.empty()) units = "seconds"; 
 
 	vector <string> dimnames;
 	dimnames.push_back(dimname);
@@ -1188,6 +1192,11 @@ bool VDC::_ValidDefineCoordVar(
 
 	if (dimnames.size() > 4) {
 		SetErrMsg("Invalid number of dimensions");
+		return(false);
+	}
+
+	if (axis == 3 && dimnames.size() != 1) {
+		SetErrMsg("Time coordinate variables must have exactly one dimension");
 		return(false);
 	}
 
