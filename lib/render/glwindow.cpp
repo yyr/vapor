@@ -2057,6 +2057,8 @@ void GLWindow::drawAxisLabels(int timestep) {
 
 
 void GLWindow::drawAxisTics(int timestep){
+	// Preserve the current GL color state
+	glPushAttrib(GL_CURRENT_BIT);	
 	
 	//Modify minTic, maxTic, ticLength, axisOriginCoord to user coords
 	//if using latLon, convert annotation axes to user coords
@@ -2156,10 +2158,13 @@ void GLWindow::drawAxisTics(int timestep){
 		}
 	}
 	glEnd();
-	
+	glPopAttrib();
 }
 
 void GLWindow::drawAxisArrows(float* extents){
+	// Preserve the current GL color state
+	glPushAttrib(GL_CURRENT_BIT);
+
 	float origin[3];
 	float maxLen = -1.f;
 	for (int i = 0; i<3; i++){
@@ -2239,6 +2244,9 @@ void GLWindow::drawAxisArrows(float* extents){
 	glVertex3f(origin[0], origin[1]-.1*len, origin[2]+.8*len);
 	glVertex3f(origin[0]+.1*len, origin[1], origin[2]+.8*len);
 	glEnd();
+	
+	// Revert to previous GL color state
+	glPopAttrib();
 }
 
 /*
