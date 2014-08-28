@@ -148,8 +148,8 @@ public:
 	int getNumIsovalues(){
 		return GetIsovalues().size();
 	}
-	int IsolineParams::GetNumVariables3D();
-	int IsolineParams::GetNumVariables2D();
+	int GetNumVariables3D();
+	int GetNumVariables2D();
 	IsoControl* GetIsoControl(){
 		vector<string>path;
 		if (VariablesAre3D()) path.push_back(_Variables3DTag);
