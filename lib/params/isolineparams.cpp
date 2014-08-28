@@ -232,8 +232,8 @@ reinit(bool doOverride){
 		ParamNode* isoNode = new ParamNode(_IsoControlTag);
 		varNode->AddRegisteredNode(_IsoControlTag,isoNode,new3DIsoControls[i]);
 	}
-	assert(GetRootNode()->GetNode(_Variables2DTag)->GetNumChildren() == numVariables2D);
-	assert(GetRootNode()->GetNode(_Variables3DTag)->GetNumChildren() == numVariables3D);
+	if(numVariables2D > 0)assert(GetRootNode()->GetNode(_Variables2DTag)->GetNumChildren() == numVariables2D);
+	if (numVariables3D > 0)assert(GetRootNode()->GetNode(_Variables3DTag)->GetNumChildren() == numVariables3D);
 	
 	delete [] new2DIsoControls;
 	delete [] new3DIsoControls;

@@ -794,16 +794,6 @@ p, li { white-space: pre-wrap; }
                 </property>
                </spacer>
               </item>
-              <item>
-               <widget class="QPushButton" name="uniformButton">
-                <property name="toolTip">
-                 <string>Click to space the isovalues uniformly between minimum and maximumy</string>
-                </property>
-                <property name="text">
-                 <string>Uniform</string>
-                </property>
-               </widget>
-              </item>
              </layout>
             </item>
             <item>
@@ -1129,8 +1119,14 @@ specified range.</string>
                   <height>0</height>
                  </size>
                 </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>150</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
                 <property name="text">
-                 <string>Edit Isovalues</string>
+                 <string>Edit Isovals</string>
                 </property>
                </widget>
               </item>
@@ -1153,7 +1149,36 @@ specified range.</string>
                  <string>Move the isovalues to fit in histo bounds</string>
                 </property>
                 <property name="text">
-                 <string>Fit Isovalues</string>
+                 <string>Fit Isovals</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_25">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="uniformButton">
+                <property name="maximumSize">
+                 <size>
+                  <width>60</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>Click to space the isovalues uniformly between minimum and maximumy</string>
+                </property>
+                <property name="text">
+                 <string>Uniform</string>
                 </property>
                </widget>
               </item>
