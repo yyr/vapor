@@ -248,11 +248,51 @@ void TextObject::removeViewerMatrix() {
     }
 }
 
+int TextObject::drawMe(float coords[3]) {
+
+    applyViewerMatrix();
+
+    glBindTexture(GL_TEXTURE_2D, _fboTexture);  
+
+    cout << "drawMe " <<  coords[0] << " " << coords[1] << " " << coords[2] << endl;
+
+    float fltTxtWidth = (float)_width/(float)_myWindow->width();
+    float fltTxtHeight = (float)_height/(float)_myWindow->height();
+    float llx = 2.*coords[0]/(float)_myWindow->width() - 1.f; 
+    float lly = 2.*coords[1]/(float)_myWindow->height() - 1.f; 
+    float urx = llx+2.*fltTxtWidth;
+    float ury = lly+2.*fltTxtHeight;
+
+    glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+    
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(llx, lly, .0f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(llx, ury, .0f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(urx, ury, .0f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(urx, lly, .0f);
+    glEnd();
+
+    glBindTexture(GL_TEXTURE_2D, 0); 
+
+    removeViewerMatrix();
+
+    GLenum glErr;
+    glErr = glGetError();
+    char* errString;
+    if (glErr != GL_NO_ERROR){
+        errString = (char*) gluErrorString(glErr);
+        MyBase::SetErrMsg(errString);
+    }   
+    return 0;
+}
+
 int TextObject::drawMe() {
 
 	applyViewerMatrix();
 
     glBindTexture(GL_TEXTURE_2D, _fboTexture);  
+
+	cout << "drawMe " <<  _coords[0] << " " << _coords[1] << " " << _coords[2] << endl;
 
     float fltTxtWidth = (float)_width/(float)_myWindow->width();
     float fltTxtHeight = (float)_height/(float)_myWindow->height();

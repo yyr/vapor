@@ -61,7 +61,8 @@ public:
     void setBGColor(float r, float g, float b) { 
          _bgColor[0] = r; _bgColor[1] = g; _bgColor[2] = b; }
     void setCoords(float x, float y, float z=0.0) {
-         _coords[0] = x; _coords[1] = y; _coords[2] = z; } 
+         _coords[0] = x; _coords[1] = y; _coords[2] = z; 
+		cout << "setCoords " << _coords[0] << " " << _coords[1] << " " << _coords[2] << endl;} 
     
     string  getText() { return _text;}
     int     getSize() { return _size;}
@@ -71,6 +72,7 @@ public:
 
 //! Draw specified text
     int drawMe();
+	int drawMe(float coords[3]);
 
 //! Sets the variables \p _width and \p _height.
 //! These define the size of the texture that text will be drawn to
