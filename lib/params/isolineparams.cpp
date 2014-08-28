@@ -25,6 +25,9 @@ const string IsolineParams::_editBoundsTag = "EditBounds";
 const string IsolineParams::_histoScaleTag = "HistoScale";
 const string IsolineParams::_histoBoundsTag = "HistoBounds";
 const string IsolineParams::_numDigitsTag = "NumDigits";
+const string IsolineParams::_textEnabledTag = "TextEnabled";
+const string IsolineParams::_useSingleColorTag = "UseSingleColor";
+const string IsolineParams::_singleColorTag = "SingleColor";
 
 namespace {
 	const string IsolineName = "IsolineParams";
@@ -47,8 +50,9 @@ bool IsolineParams::
 reinit(bool doOverride){
 
 	DataStatus* ds = DataStatus::getInstance();
-	
-	int totNumVariables = ds->getNumSessionVariables()+ ds->getNumSessionVariables2D();
+	int numVariables3D = ds->getNumSessionVariables();
+	int numVariables2D = ds->getNumSessionVariables2D();
+	int totNumVariables = numVariables2D+numVariables3D;
 	if (totNumVariables <= 0) return false;
 	if (doOverride){//make it 3D if there are any 3D variables
 		if (ds->getNumSessionVariables()>0) SetVariables3D(true);
@@ -93,8 +97,155 @@ reinit(bool doOverride){
 			SetCompressionLevel(numCompressions-1);
 		}
 	}
-	//Set up the variables. If doOverride is true, just make the variable the first variable in the VDC.
-	//Otherwise try to use the current variables 
+	//Create arrays of pointers to IsoControls
+	assert(totNumVariables > 0);
+	IsoControl** new2DIsoControls = new IsoControl*[numVariables2D];
+	IsoControl** new3DIsoControls = new IsoControl*[numVariables3D];
+	//If we are overriding previous values, delete the existing isocontrols, replace with new ones.
+	//Set the histo bounds to the actual bounds in the data
+	if (doOverride){
+		for (int i = 0; i<numVariables3D; i++){
+			
+			//will need to set the iso value:
+			float dataMin = ds->getDefaultDataMin3D(i);
+			float dataMax = ds->getDefaultDataMax3D(i);
+			if (dataMin == dataMax){
+				dataMin -= 0.5f; dataMax += 0.5;
+			}
+			
+			new3DIsoControls[i] = new IsoControl(this, 8);
+			new3DIsoControls[i]->setVarNum(i);
+			new3DIsoControls[i]->setMinHistoValue(dataMin);
+			new3DIsoControls[i]->setMaxHistoValue(dataMax);
+			vector<double> isovals(1,0.5*(dataMin+dataMax)); 
+			new3DIsoControls[i]->setIsoValues(isovals);
+		}
+		for (int i = 0; i<numVariables2D; i++){
+			
+			//will need to set the iso value:
+			float dataMin = ds->getDefaultDataMin2D(i);
+			float dataMax = ds->getDefaultDataMax2D(i);
+			if (dataMin == dataMax){
+				dataMin -= 0.5f; dataMax += 0.5;
+			}
+			
+			new2DIsoControls[i] = new IsoControl(this, 8);
+			new2DIsoControls[i]->setVarNum(i);
+			new2DIsoControls[i]->setMinHistoValue(dataMin);
+			new2DIsoControls[i]->setMaxHistoValue(dataMax);
+			vector<double> isovals(1,0.5*(dataMin+dataMax)); 
+			new2DIsoControls[i]->setIsoValues(isovals);
+		}
+	} else {
+		//attempt to make use of existing isocontrols.
+		//delete any that are no longer referenced
+		
+		for (int i = 0; i<numVariables3D; i++){
+			
+			if(i<GetNumVariables3D()){ //make copy of existing ones, don't set their root nodes yet
+				float dataMin = ds->getDefaultDataMin3D(i);
+				float dataMax = ds->getDefaultDataMax3D(i);
+				string varname = ds->getVariableName3D(i);
+				if (GetIsoControl(varname,true)){	
+					new3DIsoControls[i] = (IsoControl*)GetIsoControl(varname,true)->deepCopy(0);
+				} else {
+					new3DIsoControls[i] = new IsoControl(this, 8);
+					new3DIsoControls[i]->setVarNum(i);
+					new3DIsoControls[i]->setMinHistoValue(dataMin);
+					new3DIsoControls[i]->setMaxHistoValue(dataMax);
+					vector<double> isovals(1,0.5*(dataMin+dataMax)); 
+					new3DIsoControls[i]->setIsoValues(isovals);
+				}
+				new3DIsoControls[i]->setParams(this);
+				
+			} else { //create new  isocontrols
+				
+				new3DIsoControls[i] = new IsoControl(this, 8);
+				new3DIsoControls[i]->setMinHistoValue(ds->getDefaultDataMin3D(i));
+				new3DIsoControls[i]->setMaxHistoValue(ds->getDefaultDataMax3D(i));
+				vector<double> isovals(1,0.5*(ds->getDefaultDataMin3D(i)+ds->getDefaultDataMax3D(i))); 
+				new3DIsoControls[i]->setIsoValues(isovals);
+				new3DIsoControls[i]->setVarNum(i);
+				new3DIsoControls[i]->setParams(this);
+				
+			}
+			
+		}
+		for (int i = 0; i<numVariables2D; i++){
+			
+			if(i<GetNumVariables2D()){ //make copy of existing ones, don't set their root nodes yet
+				float dataMin = ds->getDefaultDataMin2D(i);
+				float dataMax = ds->getDefaultDataMax2D(i);
+				string varname = ds->getVariableName2D(i);
+				if (GetIsoControl(varname,true)){	
+					new2DIsoControls[i] = (IsoControl*)GetIsoControl(varname,true)->deepCopy(0);
+				} else {
+					new2DIsoControls[i] = new IsoControl(this, 8);
+					new2DIsoControls[i]->setVarNum(i);
+					new2DIsoControls[i]->setMinHistoValue(dataMin);
+					new2DIsoControls[i]->setMaxHistoValue(dataMax);
+					vector<double> isovals(1,0.5*(dataMin+dataMax)); 
+					new2DIsoControls[i]->setIsoValues(isovals);
+				}
+				new2DIsoControls[i]->setParams(this);
+				
+			} else { //create new  isocontrols
+				
+				new2DIsoControls[i] = new IsoControl(this, 8);
+				new2DIsoControls[i]->setMinHistoValue(ds->getDefaultDataMin2D(i));
+				new2DIsoControls[i]->setMaxHistoValue(ds->getDefaultDataMax2D(i));
+				vector<double> isovals(1,0.5*(ds->getDefaultDataMin2D(i)+ds->getDefaultDataMax2D(i))); 
+				new2DIsoControls[i]->setIsoValues(isovals);
+				new2DIsoControls[i]->setVarNum(i);
+				new2DIsoControls[i]->setParams(this);
+				
+			}
+			
+		}
+	} //end if(doOverride)
+
+	//Delete all existing variable nodes
+	if (GetRootNode()->GetNode(_Variables3DTag)){
+		GetRootNode()->GetNode(_Variables3DTag)->DeleteAll();
+		assert(GetRootNode()->GetNode(_Variables3DTag)->GetNumChildren() == 0);
+	}
+	if (GetRootNode()->GetNode(_Variables2DTag)){
+		GetRootNode()->GetNode(_Variables2DTag)->DeleteAll();
+		assert(GetRootNode()->GetNode(_Variables2DTag)->GetNumChildren() == 0);
+	}
+	
+	//Create new variable nodes, add them to the tree
+	ParamNode* varsNode2 = GetRootNode()->GetNode(_Variables2DTag);
+	if (!varsNode2) { 
+		varsNode2 = new ParamNode(_Variables2DTag, numVariables2D);
+		GetRootNode()->AddNode(_Variables2DTag,varsNode2);
+	}
+	ParamNode* varsNode3 = GetRootNode()->GetNode(_Variables3DTag);
+	if (!varsNode3) { 
+		varsNode3 = new ParamNode(_Variables3DTag, numVariables3D);
+		GetRootNode()->AddNode(_VariablesTag,varsNode3);
+	}
+	for (int i = 0; i<numVariables3D; i++){
+		std::string& varname = ds->getVariableName3D(i);
+		ParamNode* varNode = new ParamNode(varname, 1);
+		varsNode3->AddChild(varNode);
+		ParamNode* isoNode = new ParamNode(_IsoControlTag);
+		varNode->AddRegisteredNode(_IsoControlTag,isoNode,new3DIsoControls[i]);
+	}
+	assert(GetRootNode()->GetNode(_Variables2DTag)->GetNumChildren() == numVariables2D);
+	assert(GetRootNode()->GetNode(_Variables3DTag)->GetNumChildren() == numVariables3D);
+	
+	delete [] new2DIsoControls;
+	delete [] new3DIsoControls;
+	
+	if (doOverride) {
+		SetHistoStretch(1.0);
+		float col[4] = {1.f, 1.f, 1.f, 1.f};
+	}
+	
+
+	//Set up the current variable. If doOverride is true, just make the current variable the first variable in the VDC.
+	//Otherwise try to use the current variable in the state
 	
 	if (doOverride){
 		string varname;	
@@ -163,30 +314,13 @@ reinit(bool doOverride){
 		const float black_color[3] = {.0, .0, .0};
 		SetPanelBackgroundColor(black_color);
 	}
-	//Set up the isovalues
-	if (doOverride || getNumIsovalues()<1){
-		vector<double>ivals;
-		ivals.push_back(0.);
-		SetIsovalues(ivals);
-	} else {
-		const vector<double>& ivals = GetIsovalues();
-		vector<double> newIvals;
-		if (ivals[0] >= ivals[ivals.size()-1])
-			newIvals.push_back(ivals[0]);
-		else {
-			for (int i = 0; i< ivals.size(); i++){
-				if (i == 0 || i == ivals.size()-1) newIvals.push_back(ivals[i]);
-				else newIvals.push_back(ivals[0] + ((float)i/(float)(ivals.size()-1))*(ivals[ivals.size()-1]-ivals[0]));
-			}
-		}
-		SetIsovalues(newIvals);
-	}
+	initializeBypassFlags();
+	
 	if (doOverride){ SetLineThickness(1.0); SetPanelLineThickness(1.0);}
 	else {
 		if (GetLineThickness() < 1.0 || GetLineThickness() > 100.) SetLineThickness(1.0);
 		if (GetPanelLineThickness() < 1.0 || GetPanelLineThickness() > 100.) SetPanelLineThickness(1.0);
 	}
-
 	initializeBypassFlags();
 	return true;
 }
@@ -198,17 +332,30 @@ void IsolineParams::restart() {
 	SetFidelityLevel(0);
 	SetIgnoreFidelity(false);
 	SetVisualizerNum(vizNum);
-	SetVariableName("isovar");
-	SetVariables3D(false);
-	//Create the isocontrol.  Just one here, but it contains the histo bounds and isovalues and colors
+	
+	SetVariables3D(true);
+	double clr[3] = {1.,1.,1.};
+	SetSingleColor(clr);
+	SetUseSingleColor(true);
+	//Create the isocontrol.  Just one placeholder, but it contains the histo bounds and isovalues and colors
 	//The transferFunction and Isocontrol share the map/histo bounds and the edit bounds.
-
-	if (!GetRootNode()->HasChild(IsolineParams::_IsoControlTag)){
-		IsoControl* iControl = (IsoControl*)IsoControl::CreateDefaultInstance();
-		GetRootNode()->AddRegisteredNode(_IsoControlTag,iControl->GetRootNode(),iControl);
-		iControl->setMinColorMapValue(0.);
-		iControl->setMaxColorMapValue(1.);
-	}
+	vector<string>ctlPath;
+	ctlPath.push_back(_Variables2DTag);
+	ctlPath.push_back("isovar2d");
+	ctlPath.push_back(_IsoControlTag);
+	IsoControl* iControl = (IsoControl*)IsoControl::CreateDefaultInstance();
+	iControl->setMinColorMapValue(0.);
+	iControl->setMaxColorMapValue(1.);
+	SetIsoControl("isovar2d",iControl,false);
+	ctlPath.clear();
+	ctlPath.push_back(_Variables3DTag);
+	ctlPath.push_back("isovar3d");
+	ctlPath.push_back(_IsoControlTag);
+	iControl = (IsoControl*)IsoControl::CreateDefaultInstance();
+	iControl->setMinColorMapValue(0.);
+	iControl->setMaxColorMapValue(1.);
+	SetIsoControl("isovar3d",iControl,true);
+	SetVariableName("isovar3d");
 	selectPoint[0]=selectPoint[1]=selectPoint[2]=0.f;
 	vector<double>zeros;
 	zeros.push_back(0.);
@@ -260,7 +407,8 @@ void IsolineParams::restart() {
 	SetVariables3D(true);
 	SetLocalExtents(exts);
 	SetTextSize(10.);
-	SetTextDensity(0.);
+	SetTextDensity(0.25);
+	SetTextEnabled(false);
 	GetBox()->SetAngles(zeros);
 	
 }
@@ -272,7 +420,14 @@ float IsolineParams::getCameraDistance(ViewpointParams* vpp, RegionParams* , int
 	
 	return RenderParams::getCameraDistance(vpp,dbexts);
 }
-
+int IsolineParams::GetNumVariables2D() {
+	if (!GetRootNode()->HasChild(_Variables2DTag)) return 0;
+	return(GetRootNode()->GetNode(_Variables2DTag)->GetNumChildren());
+}
+int IsolineParams::GetNumVariables3D() {
+	if (!GetRootNode()->HasChild(_Variables3DTag)) return 0;
+	return(GetRootNode()->GetNode(_Variables3DTag)->GetNumChildren());
+}
 void IsolineParams::SetPanelBackgroundColor(const float rgb[3]){
 	vector <double> valvec(3,0);
 	for (int i=0; i<3; i++) {
@@ -310,8 +465,9 @@ void IsolineParams::spaceIsovals(float minval, float maxval){
 			if (minIso > isovals[i]) minIso = isovals[i];
 			if (maxIso < isovals[i]) maxIso = isovals[i]; 
 		}
+		double delta = (maxval - minval)/(isovals.size()-1);
 		for (int i = 0; i<isovals.size(); i++){
-			double ival = minval + (maxval-minval)*(isovals[i]-minIso)/(maxIso-minIso);
+			double ival = minval + i*delta;
 			newIsos.push_back(ival);
 		}
 		SetIsovalues(newIsos);
@@ -364,8 +520,38 @@ MapperFunction* IsolineParams::GetMapperFunc(){
 	return (MapperFunction*) tf;
 }
 void IsolineParams::getLineColor(int isoNum, float lineColor[3]){
+	if (UseSingleColor()){
+		const vector<double>& clr = GetSingleColor();
+		for (int i = 0; i<3; i++) lineColor[i] = clr[i];
+		return;
+	}
 	float isoval = (float)GetIsovalues()[isoNum];
 	VColormap* cmap = GetIsoControl()->getColormap();
 	ColorMapBase::Color clr = cmap->color(isoval);
 	clr.toRGB(lineColor);
 }
+int IsolineParams::
+SetIsoControl(const string varname, IsoControl* ictl, bool is3D){
+	vector<string>path;
+	if (is3D)path.push_back(_Variables3DTag);
+	else path.push_back(_Variables2DTag);
+	path.push_back(varname);
+	path.push_back(_IsoControlTag);
+	//Make sure all child nodes exist
+	ParamNode* varsNode, *varnameNode, *isoControlNode;
+	if (!GetRootNode()->HasChild(path[0])){
+		varsNode = new ParamNode(path[0]);
+		GetRootNode()->AddNode(path[0],varsNode);
+	} else varsNode = GetRootNode()->GetNode(path[0]);
+	if (!GetRootNode()->HasChild(varname)){
+		varnameNode = new ParamNode(varname);
+		varsNode->AddNode(varname,varnameNode);
+	} else varnameNode = varsNode->GetNode(varname);
+	if (varnameNode->HasChild(_IsoControlTag)){
+		//Remove, delete it:
+		varnameNode->DeleteNode(_IsoControlTag);
+	}
+	isoControlNode = new ParamNode(_IsoControlTag);
+	return varnameNode->AddRegisteredNode(_IsoControlTag, isoControlNode, ictl);
+}
+	

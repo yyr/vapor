@@ -246,7 +246,7 @@ bool IsolineRenderer::buildLineCache(int timestep){
 	myGLWindow->clearWriters();
 	
 	for (int iso = 0; iso < isovals.size(); iso++){
-		if(iParams->GetTextDensity() > 0.) { //put a textWriter in the GLWindow to hold annotation of this isovalue
+		if(iParams->GetTextDensity() > 0. && iParams->textEnabled()) { //put a textWriter in the GLWindow to hold annotation of this isovalue
 			
 			float bgc[4] = {0,0,0,1.};
 			const QColor c = DataStatus::getInstance()->getBackgroundColor();
@@ -421,7 +421,7 @@ bool IsolineRenderer::buildLineCache(int timestep){
 		} //for i
 
 		//Now traverse the edges to determine the isolines in order
-		if(iParams->GetTextDensity() > 0.) {
+		if(iParams->GetTextDensity() > 0. && iParams->textEnabled()) {
 			traverseCurves(iso, timestep);
 		}
 

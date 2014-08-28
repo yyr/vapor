@@ -117,6 +117,10 @@ public:
 
 
 protected slots:
+
+	void guiSetSingleColor();
+	void guiSetUseSingleColor(bool val);
+	void guiSpaceIsovalues();
 	void guiEditIsovalues();
 	void guiSetIsolineDensity();
 	void isolineLoadTF();
@@ -163,6 +167,7 @@ protected slots:
 	void guiCenterProbe();
 	void isolineAddSeed();
 	void isolineAttachSeed(bool attach);
+	void guiEnableText(bool val);
 	
 	void guiChangeVariable(int);
 	void setIsolineXCenter();
@@ -195,6 +200,7 @@ protected:
 	static const char* webHelpText[];
 	static const char* webHelpURL[];
 	void setIsolineToExtents(const double* extents, IsolineParams* pparams);
+	void fitIsovalsToHisto(IsolineParams* p);
 	//Modify the colormap so that isovalues occur at discrete color changes:
 	void convertIsovalsToColors(TransferFunction* tf);
 	void mapCursor();

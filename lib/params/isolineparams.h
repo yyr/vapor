@@ -108,7 +108,26 @@ public:
 	void SetTextDensity(double val){
 		GetRootNode()->SetElementDouble(_textDensityTag, val);
 	}
-	
+	bool textEnabled() {
+		return (GetRootNode()->GetElementLong(_textEnabledTag)[0] != 0);
+	}
+	void SetTextEnabled(bool val){
+		GetRootNode()->SetElementLong(_textEnabledTag,(long)val);
+	}
+	bool UseSingleColor() {
+		return (GetRootNode()->GetElementLong(_useSingleColorTag)[0] != 0);
+	}
+	void SetUseSingleColor(bool val) {
+		GetRootNode()->SetElementLong(_useSingleColorTag, (long)val);
+	}
+	void SetSingleColor(double clr[3]){
+		vector<double> dcolors;
+		for (int i = 0; i<3; i++) dcolors.push_back(clr[i]);
+		GetRootNode()->SetElementDouble(_singleColorTag,dcolors);
+	}
+	const vector<double> GetSingleColor(){
+		return GetRootNode()->GetElementDouble(_singleColorTag);
+	}
 	void SetPanelBackgroundColor(const float rgb[3]);
 
 	const vector<double>& GetPanelBackgroundColor();
@@ -129,9 +148,26 @@ public:
 	int getNumIsovalues(){
 		return GetIsovalues().size();
 	}
+	int IsolineParams::GetNumVariables3D();
+	int IsolineParams::GetNumVariables2D();
 	IsoControl* GetIsoControl(){
-		return (IsoControl*)(GetRootNode()->GetNode(_IsoControlTag)->GetParamsBase());
+		vector<string>path;
+		if (VariablesAre3D()) path.push_back(_Variables3DTag);
+		else path.push_back(_Variables2DTag);
+		path.push_back(GetVariableName());
+		path.push_back(_IsoControlTag);
+		return (IsoControl*)(GetRootNode()->GetNode(path)->GetParamsBase());
 	}
+	IsoControl* GetIsoControl(string varname, bool is3D){
+		vector<string>path;
+		if (is3D) path.push_back(_Variables3DTag);
+		else path.push_back(_Variables2DTag);
+		path.push_back(varname);
+		path.push_back(_IsoControlTag);
+		return (IsoControl*)(GetRootNode()->GetNode(path)->GetParamsBase());
+	}
+	int SetIsoControl(const string varname, IsoControl* iControl, bool is3D);
+		
 	virtual MapperFunction* GetMapperFunc();
 	virtual bool UsesMapperFunction() {return true;}
 	const vector<double>& GetIsovalues(){
@@ -264,6 +300,9 @@ protected:
 	static const string _histoScaleTag;
 	static const string _histoBoundsTag;
 	static const string _IsoControlTag;
+	static const string _textEnabledTag;
+	static const string _useSingleColorTag;
+	static const string _singleColorTag;
 
 	float selectPoint[3];
 	float _histoBounds[2];

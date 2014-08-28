@@ -136,11 +136,8 @@ IsolineEventRouter::IsolineEventRouter(QWidget* parent): QWidget(parent), Ui_Iso
 	
 }
 
-
 IsolineEventRouter::~IsolineEventRouter(){
 	if (savedCommand) delete savedCommand;
-	
-	
 }
 /**********************************************************
  * Whenever a new Isolinetab is created it must be hooked up here
@@ -176,6 +173,8 @@ IsolineEventRouter::hookUpTab()
 	connect (fidelityDefaultButton, SIGNAL(clicked()), this, SLOT(guiSetFidelityDefault()));
 	connect (fitDataButton, SIGNAL(clicked()), this, SLOT(guiFitToData()));
 	connect (fitIsovalsButton, SIGNAL(clicked()), this, SLOT(guiFitIsovalsToHisto()));
+	connect (uniformButton, SIGNAL(clicked()),this,SLOT(guiSpaceIsovalues()));
+	connect (singleColorButton, SIGNAL(clicked()),this, SLOT(guiSetSingleColor()));
 
 	connect (xCenterEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (yCenterEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
@@ -222,6 +221,8 @@ IsolineEventRouter::hookUpTab()
 	connect (zThumbWheel, SIGNAL(wheelPressed()), this, SLOT(pressZWheel()));
 	
 	connect (attachSeedCheckbox,SIGNAL(toggled(bool)),this, SLOT(isolineAttachSeed(bool)));
+	connect (singleColorCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiSetUseSingleColor(bool)));
+	connect (textCheckbox, SIGNAL(toggled(bool)), this, SLOT(guiEnableText(bool)));
 	connect (dimensionCombo,SIGNAL(activated(int)), this, SLOT(guiSetDimension(int)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
 	connect (lodCombo,SIGNAL(activated(int)), this, SLOT(guiSetCompRatio(int)));
@@ -290,7 +291,16 @@ void IsolineEventRouter::updateTab(){
 	
 	guiSetTextChanged(false);
 
-	
+	singleColorCheckbox->setChecked(isolineParams->UseSingleColor());
+	QPalette pal(singleColorEdit->palette());
+	vector<double> clr = isolineParams->GetSingleColor();
+	QColor newColor = QColor((int)(clr[0]*255),(int)(clr[1]*255),(int)(clr[2]*255));
+	pal.setColor(QPalette::Base, newColor);
+	singleColorEdit->setPalette(pal);
+
+	textCheckbox->setChecked(isolineParams->textEnabled());
+
+
 	deleteInstanceButton->setEnabled(Params::GetNumParamsInstances(IsolineParams::_isolineParamsTag, winnum) > 1);
 	
 
@@ -405,11 +415,11 @@ void IsolineEventRouter::updateTab(){
 	if (sval != sliderVal) densitySlider->setValue(sliderVal);
 
 	//set color buttons
-	QPalette pal;
+	QPalette pal2;
 	const vector<double>&bColor = isolineParams->GetPanelBackgroundColor();
-	QColor clr = QColor((int)(255*bColor[0]),(int)(255*bColor[1]),(int)(255*bColor[2]));
-	pal.setColor(QPalette::Base, clr);
-	isolinePanelBackgroundColorEdit->setPalette(pal);
+	QColor clr2 = QColor((int)(255*bColor[0]),(int)(255*bColor[1]),(int)(255*bColor[2]));
+	pal2.setColor(QPalette::Base, clr2);
+	isolinePanelBackgroundColorEdit->setPalette(pal2);
 	
 	//Provide latlon box extents if available:
 	if (DataStatus::getProjectionString().size() == 0){
@@ -590,6 +600,8 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 		bnds[1] = maxIso + 0.1*(maxIso-minIso);
 	}
 	isolineParams->SetHistoBounds(bnds);
+	//Readjust isolines if not in interval.
+	if (bnds[0] >= minIso || bnds[1] <= maxIso) fitIsovalsToHisto(isolineParams);
 	//If the number of isovalues is changing from 1 to a value >1, and if the
 	//min and max are the same, then expand the min/max interval by .5 times the 
 	//histo interval.
@@ -1243,6 +1255,7 @@ reinitTab(bool doOverride){
 	ignoreComboChanges = false;
 	setupFidelity(3, fidelityLayout,fidelityBox, dParams, doOverride);
 	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
+	
 	updateTab();
 }
 
@@ -1398,9 +1411,11 @@ guiChangeVariable(int varnum){
 		maxval = ds->getDataMax2D(activeVar,ts);
 		pParams->SetVariableName(varname);
 	}
-	pParams->spaceIsovals(minval+0.05*(maxval - minval), minval+0.95*(maxval - minval));
+	
 	updateHistoBounds(pParams);
 	PanelCommand::captureEnd(cmd, pParams);
+	setEditorDirty(pParams);
+	isoSelectionFrame->fitToView();
 	//Need to update the selected point for the new variables
 	updateTab();
 	setIsolineDirty(pParams);	
@@ -2502,14 +2517,20 @@ guiEndChangeIsoSelection(){
 	}
 
 	if (minIso != prevIsoMin || maxIso != prevIsoMax){
-		//If the new values are not inside the histo bounds, respecify the bounds
+		//If the isovalues are new and the new values are not inside the histo bounds, respecify the bounds
 		float newHistoBounds[2];
 		if (minIso <= bnds[0] || maxIso >= bnds[1]){
 			newHistoBounds[0]=maxIso - 1.1*(maxIso-minIso);
 			newHistoBounds[1]=minIso + 1.1*(maxIso-minIso);
 			iParams->SetHistoBounds(newHistoBounds);
 		}
+	} else {
+		//If the isovalues are not inside the histo bounds, move the isovalues
+		if (minIso <= bnds[0] || maxIso >= bnds[1]){
+			fitIsovalsToHisto(iParams);
+		}
 	}
+	
 	
 	
 	PanelCommand::captureEnd(savedCommand,iParams);
@@ -2659,29 +2680,7 @@ void IsolineEventRouter::guiFitIsovalsToHisto(){
 	confirmText(false);
 	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "fit isovalues to histo bounds");
-	float bounds[2];
-	iParams->GetHistoBounds(bounds);
-	const vector<double>& isovals = iParams->GetIsovalues();
-	vector<double> newIsovals;
-	if (isovals.size()==1){
-		double newval = (bounds[0]+bounds[1])*0.5;
-		newIsovals.push_back(newval);
-	} else {
-		//find min and max
-		double isoMax = -1.e30, isoMin = 1.e30;
-		for (int i = 0; i<isovals.size(); i++){
-			if (isoMax<isovals[i]) isoMax = isovals[i];
-			if (isoMin>isovals[i]) isoMin = isovals[i];
-		}
-		//Now rearrange proportionately to fit in center 90% of bounds
-		float min90 = bounds[0]+0.05*(bounds[1]-bounds[0]);
-		float max90 = bounds[0]+0.95*(bounds[1]-bounds[0]);
-		for (int i = 0; i<isovals.size(); i++){
-			double newIsoval = min90 + (max90-min90)*(isovals[i]-isoMin)/(isoMax-isoMin);
-			newIsovals.push_back(newIsoval);
-		}
-	}
-	iParams->SetIsovalues(newIsovals);
+	fitIsovalsToHisto(iParams);
 	PanelCommand::captureEnd(cmd, iParams);
 	updateTab();
 }
@@ -2888,4 +2887,94 @@ void IsolineEventRouter::guiSetIsolineDensity(){
 	setIsolineDirty(iParams);
 	VizWinMgr::getInstance()->forceRender(iParams);
 	guiSetTextChanged(false);
+}
+void IsolineEventRouter::guiSpaceIsovalues(){
+	IsolineParams* iParams = VizWinMgr::getActiveIsolineParams();
+	const vector<double>& isoVals = iParams->GetIsovalues();
+	int numIsos = isoVals.size();
+	if (numIsos <= 1) return;
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(iParams, "Space isovalues uniformly");
+
+	double maxIso = (double)maxIsoEdit->text().toDouble();
+	double minIso = (double)minIsoEdit->text().toDouble();
+	iParams->spaceIsovals(minIso,maxIso);
+	
+	PanelCommand::captureEnd(cmd, iParams);
+	setIsolineDirty(iParams);
+	updateTab();
+	VizWinMgr::getInstance()->forceRender(iParams);
+	guiSetTextChanged(false);
+}
+void IsolineEventRouter::guiEnableText(bool val){
+	IsolineParams* iParams = VizWinMgr::getActiveIsolineParams();
+	
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(iParams, "Enable/Disable Text Annotation");
+
+	iParams->SetTextEnabled(val);
+	
+	PanelCommand::captureEnd(cmd, iParams);
+	setIsolineDirty(iParams);
+	VizWinMgr::getInstance()->forceRender(iParams);
+	guiSetTextChanged(false);
+}
+/*
+ * Respond to user clicking the color button
+ */
+void IsolineEventRouter::
+guiSetSingleColor(){
+	QPalette pal(singleColorEdit->palette());
+	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Base), this);
+	if (!newColor.isValid()) return;
+	pal.setColor(QPalette::Base, newColor);
+	singleColorEdit->setPalette(pal);
+	double rgb[3];
+	rgb[0] = (double)newColor.red()/256.;
+	rgb[1] = (double)newColor.green()/256.;
+	rgb[2] = (double)newColor.blue()/256.;
+	confirmText(false);
+	IsolineParams* iParams = VizWinMgr::getActiveIsolineParams();
+	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "set single color");
+	iParams->SetSingleColor(rgb);
+	PanelCommand::captureEnd(cmd, iParams);
+	VizWinMgr::getInstance()->forceRender(iParams);
+}
+/*
+ * Respond to user checking or unchecking the single color checkbox
+ */
+void IsolineEventRouter::
+guiSetUseSingleColor(bool val){
+	
+	confirmText(false);
+	IsolineParams* iParams = VizWinMgr::getActiveIsolineParams();
+	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "enable/disable single color");
+	iParams->SetUseSingleColor(val);
+	PanelCommand::captureEnd(cmd, iParams);
+	VizWinMgr::getInstance()->forceRender(iParams);
+}
+void IsolineEventRouter::fitIsovalsToHisto(IsolineParams* iParams){
+	float bounds[2];
+	iParams->GetHistoBounds(bounds);
+	const vector<double>& isovals = iParams->GetIsovalues();
+	vector<double> newIsovals;
+	if (isovals.size()==1){
+		double newval = (bounds[0]+bounds[1])*0.5;
+		newIsovals.push_back(newval);
+	} else {
+		//find min and max
+		double isoMax = -1.e30, isoMin = 1.e30;
+		for (int i = 0; i<isovals.size(); i++){
+			if (isoMax<isovals[i]) isoMax = isovals[i];
+			if (isoMin>isovals[i]) isoMin = isovals[i];
+		}
+		//Now rearrange proportionately to fit in center 90% of bounds
+		float min90 = bounds[0]+0.05*(bounds[1]-bounds[0]);
+		float max90 = bounds[0]+0.95*(bounds[1]-bounds[0]);
+		for (int i = 0; i<isovals.size(); i++){
+			double newIsoval = min90 + (max90-min90)*(isovals[i]-isoMin)/(isoMax-isoMin);
+			newIsovals.push_back(newIsoval);
+		}
+	}
+	iParams->SetIsovalues(newIsovals);
 }

@@ -67,6 +67,8 @@ const string Params::_VisualizerNumTag = "VisualizerNum";
 const string Params::_VariableNamesTag = "VariableNames";
 const string Params::_VariableNameTag = "VariableName";
 const string Params::_VariablesTag = "Variables";
+const string Params::_Variables2DTag = "Variables2D";
+const string Params::_Variables3DTag = "Variables3D";
 
 const string Params::_localAttr = "Local";
 const string Params::_vizNumAttr = "VisualizerNum";
