@@ -216,14 +216,14 @@ reinit(bool doOverride){
 	
 	//Create new variable nodes, add them to the tree
 	ParamNode* varsNode2 = GetRootNode()->GetNode(_Variables2DTag);
-	if (!varsNode2) { 
+	if (!varsNode2 && numVariables2D > 0) { 
 		varsNode2 = new ParamNode(_Variables2DTag, numVariables2D);
 		GetRootNode()->AddNode(_Variables2DTag,varsNode2);
 	}
 	ParamNode* varsNode3 = GetRootNode()->GetNode(_Variables3DTag);
-	if (!varsNode3) { 
+	if (!varsNode3 && numVariables3D > 0) { 
 		varsNode3 = new ParamNode(_Variables3DTag, numVariables3D);
-		GetRootNode()->AddNode(_VariablesTag,varsNode3);
+		GetRootNode()->AddNode(_Variables3DTag,varsNode3);
 	}
 	for (int i = 0; i<numVariables3D; i++){
 		std::string& varname = ds->getVariableName3D(i);
@@ -232,7 +232,14 @@ reinit(bool doOverride){
 		ParamNode* isoNode = new ParamNode(_IsoControlTag);
 		varNode->AddRegisteredNode(_IsoControlTag,isoNode,new3DIsoControls[i]);
 	}
-	if(numVariables2D > 0)assert(GetRootNode()->GetNode(_Variables2DTag)->GetNumChildren() == numVariables2D);
+	for (int i = 0; i<numVariables2D; i++){
+		std::string& varname = ds->getVariableName2D(i);
+		ParamNode* varNode = new ParamNode(varname, 1);
+		varsNode2->AddChild(varNode);
+		ParamNode* isoNode = new ParamNode(_IsoControlTag);
+		varNode->AddRegisteredNode(_IsoControlTag,isoNode,new2DIsoControls[i]);
+	}
+	if (numVariables2D > 0)assert(GetRootNode()->GetNode(_Variables2DTag)->GetNumChildren() == numVariables2D);
 	if (numVariables3D > 0)assert(GetRootNode()->GetNode(_Variables3DTag)->GetNumChildren() == numVariables3D);
 	
 	delete [] new2DIsoControls;
