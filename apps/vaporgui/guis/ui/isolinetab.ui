@@ -1115,13 +1115,13 @@ specified range.</string>
                <widget class="QPushButton" name="editIsovaluesButton">
                 <property name="minimumSize">
                  <size>
-                  <width>100</width>
+                  <width>80</width>
                   <height>0</height>
                  </size>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>150</width>
+                  <width>80</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1145,6 +1145,18 @@ specified range.</string>
               </item>
               <item>
                <widget class="QPushButton" name="fitIsovalsButton">
+                <property name="minimumSize">
+                 <size>
+                  <width>80</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>80</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
                 <property name="toolTip">
                  <string>Move the isovalues to fit in histo bounds</string>
                 </property>
@@ -1168,9 +1180,15 @@ specified range.</string>
               </item>
               <item>
                <widget class="QPushButton" name="uniformButton">
+                <property name="minimumSize">
+                 <size>
+                  <width>80</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>80</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1197,6 +1215,18 @@ specified range.</string>
               </item>
               <item>
                <widget class="QPushButton" name="fitDataButton">
+                <property name="minimumSize">
+                 <size>
+                  <width>80</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>80</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
                 <property name="toolTip">
                  <string>Click to match the histo bounds to the bounds of the current variable</string>
                 </property>
