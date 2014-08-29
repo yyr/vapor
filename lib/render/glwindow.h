@@ -60,7 +60,7 @@ class TranslateStretchManip;
 class TranslateRotateManip;
 class FlowRenderer;
 class VolumeRenderer;
-class TextWriter;
+class TextObject;
 
 //! \class GLWindow
 //! \brief A class for performing OpenGL rendering in a VAPOR Visualizer
@@ -155,11 +155,14 @@ public:
 		double toMinTic[3],double toMaxTic[3], double toOrigin[3], double toTicLength[3]);
 
 	//Added for FTGL 
-	//Add a textWriter to the set of writers to be used.  Return its index.
-	int addWriter(const char* fontPath, int textSize, float textColor[4], float bgColor[4], int type, string text); 
-	//Add an instance of text at specified position, using specified writer
-	void addText(int writerNum, float posn[3]);
-	void clearWriters();
+	//Add a textObject to the set of text to be used.  Return its index.
+	int addTextObject(Renderer*, const char* fontPath, int textSize, float textColor[4], float bgColor[4], int type, string text); 
+	//Add an instance of text at specified position, using specified object
+	void addText(Renderer*, int objectNum, float posn[3]);
+	void clearTextObjects(Renderer*);
+	//Check whether the textObjects have been built for this renderer
+	bool isTextValid(Renderer* ren) {return textValidFlag[ren];}
+	void setTextValid(Renderer* ren, bool val) {textValidFlag[ren] = val;}
 
 #ifndef DOXYGEN_SKIP_THIS
 	 GLWindow( QGLFormat& fmt, QWidget* parent, int winnum);
@@ -506,7 +509,7 @@ public:
 	bool isDepthPeeling(){return depthPeeling;}
 	
 protected:
-	vector<TextWriter*> myWriters;
+	
 	QImage glTimeStampImage;
 	SpinTimer *mySpinTimer;
 	ShaderMgr *manager;
@@ -613,12 +616,10 @@ protected:
 	static bool faceIsVisible(float* extents, float* viewerCoords, int faceNum);
 
 	
-	//Render all the text; build textWriters if necessary.
+	//Render all the text; build textobjects if necessary.
 	void renderText();
 	float regionFrameColorFlt[3];
 	float subregionFrameColorFlt[3];
-
-	
 
 	float	wCenter[3]; //World center coords
 	float	maxDim;		//Max of x, y, z size in world coords
@@ -708,10 +709,11 @@ protected:
 private:
 	bool _readyToDraw;
 	void makeWriter();
-	vector<TextWriter*> myTextWriters;
-	vector<string> myTextStrings;
-	vector<vector<float*> > myTextPosns;
-	bool textIsValid;
+	
+	map<Renderer*,vector<TextObject*> > textObjectMap;
+	map<Renderer*, bool> textValidFlag;
+	map< pair<Renderer*, int> , vector<float*>* > textCoordMap;
+	
 	
 #endif //DOXYGEN_SKIP_THIS
 	

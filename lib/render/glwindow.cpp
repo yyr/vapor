@@ -82,20 +82,9 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 : QGLWidget(fmt, parent)
 
 {
-/*    float bgc[4] = {0,0,0,255};
-    float fgc[4] = {0,255,0,255};
-    float coords[3] = {0,0,0};
-    float coords2[3] = {1,1,1};
-	vector<string> vec;
-	vec.push_back("fonts");
-	vec.push_back("Vera.ttf");
-    TextWriter *writer = new TextWriter(GetAppPath("VAPOR","share",vec).c_str(), 24, bgc, fgc, 1, this);
-    writer->addText("This is ggg a test",coords);
 
-    TextObject *obj = new TextObject(GetAppPath("VAPOR","share",vec).c_str(),"Another ggg Test",12,coords2,1,bgc,fgc,this);
-*/
 	_readyToDraw = false;
-	textIsValid = false;
+	
 
 	currentParams.clear();
 	for (int i = 0; i<= Params::GetNumParamsClasses(); i++)
@@ -265,14 +254,13 @@ GLWindow::~GLWindow()
 	makeCurrent();
 	for (int i = 0; i< getNumRenderers(); i++){
 		delete renderer[i];
+		clearTextObjects(renderer[i]);
 	}
 	setNumRenderers(0);
 	
 	delete manager;
 	nowPainting = false;
-	clearWriters();
-	//delete writer;
-	//delete obj;	
+
 }
 
 void GLWindow::setDefaultPrefs(){
@@ -1298,35 +1286,7 @@ void GLWindow::regPaintEvent()
 		glPopMatrix();
 	}
 	renderText();
-	// A "TextWriter" may contain many TextObjects.  This initializes a TextWriter
-    // and adds one TextObject.  All contained TextObjects share fonts, font sizes,
-    // colors, and text types (text within the scene, text outside of the scene)
-
-	/*
-    float bgc[4] = {0,0,0,255};
-    float fgc[4] = {0,255,0,255};
-    float coords[3];
-	vector<double>exts = DataStatus::getInstance()->getDataMgr()->GetExtents();
-    float coords2[3]; 
-	for (int i = 0; i<3; i++){
-		coords2[i] = (exts[i]+exts[i+3])*0.5;
-		coords[i] = exts[i];
-	}
-	vector<string> vec;
-	vec.push_back("fonts");
-	vec.push_back("Vera.ttf");
-    TextWriter *writer = new TextWriter(GetAppPath("VAPOR","share",vec).c_str(), 24, bgc, fgc, 1, this);
-    writer->addText("This is ggg a test",coords);
-    writer->drawText();
-
-    TextObject *obj = new TextObject(GetAppPath("VAPOR","share",vec).c_str(),"Another ggg Test",36,coords2,1,bgc,fgc,this);
-    obj->drawMe();
-
-    delete writer;
-    delete obj;
-	*/
-	//myWriters[0]->drawText(); 
-	//myWriters[1]->drawText();
+	
 
 	//One colorbar may be drawn.  It is drawn at a fixed position on the final image.
 	//See if there is a renderer that has an enabled colorbar and a valid transfer function
@@ -2871,51 +2831,78 @@ void GLWindow::ConvertAxes(bool toLatLon, const int ticDirs[3], const double fro
 }
 
 
-//Add a textWriter to the set of writers to be used.  Return its index.
-int GLWindow::addWriter(const char* fontPath, int textSize, float textColor[4], float bgColor[4], int type, string text){
-	myTextWriters.push_back(new TextWriter(fontPath, textSize, textColor, bgColor, type, this));
-	myTextStrings.push_back(text);
-	myTextPosns.push_back(*new vector<float*>);
-	textIsValid=false;
-	return myTextWriters.size()-1;
+//Add a textObject to the set of objects to be used.  Return its index.
+int GLWindow::addTextObject(Renderer* ren, const char* fontPath, int textSize, float textColor[4], float bgColor[4], int type, string text){
+	if(textObjectMap.count(ren) == 0){
+		vector<TextObject*> txtObjs = *(new vector<TextObject*>);
+		textObjectMap[ren] = txtObjs;
+	}
+	float dummyCoords[3] = {.23,.32,.25};//not used
+	textObjectMap[ren].push_back(new TextObject(fontPath,text,textSize,dummyCoords,type,textColor,bgColor,this));
+		
+	int objectIndex = textObjectMap[ren].size()-1;
+
+	pair<Renderer*, int> coordPair = make_pair(ren, objectIndex);
+	vector<float*>* coordinates = new vector<float*>;
+	textCoordMap[coordPair] = coordinates;
+	
+	return objectIndex;
 }
 //Add an instance of text at specified position, using specified writer
-void GLWindow::addText(int writerNum, float posn[3]){
+void GLWindow::addText(Renderer* ren, int objectIndex, float posn[3]){
 	float* newPosn = new float[3];
 	for (int i = 0; i<3; i++) newPosn[i] = posn[i];
-	myTextPosns[writerNum].push_back(newPosn);
-	textIsValid=false;
+	pair<Renderer*, int> coordPair = make_pair(ren, objectIndex);
+	textCoordMap[coordPair]->push_back(newPosn);
 }
-//Render all the text; build textWriters if necessary.
+//Render all the text; 
 void GLWindow::renderText(){
-	if (myTextWriters.size() == 0) return;
-	if (!textIsValid){
-		for (int i = 0; i<myTextWriters.size(); i++){
-			TextWriter* tWriter = myTextWriters[i];
-			string str = myTextStrings[i];
-			vector<float*> txtPosns = myTextPosns[i];
-			for (int j = 0; j<txtPosns.size(); j++){
-				tWriter->addText(str, txtPosns[j]);
+	//iterate over all valid text objects, paint them at specified coordinates.
+	DataStatus* ds = DataStatus::getInstance();
+	const vector<double>& fullUsrExts = ds->getDataMgr()->GetExtents();
+	map< Renderer*, vector<TextObject*> >::iterator iter;
+	for (iter = textObjectMap.begin(); iter != textObjectMap.end(); iter++){
+		Renderer* ren = iter->first;
+		vector<TextObject*> txtObjs = iter->second;
+		
+		for (int i = 0; i<txtObjs.size(); i++){
+			TextObject* txtObj = txtObjs[i];
+			pair<Renderer*, int> coordPair = make_pair(ren, i);
+			vector<float*> textCoords = *textCoordMap[coordPair];
+			for (int j = 0; j<textCoords.size(); j++){
+				float crds[3], crds2[3];
+				for (int k = 0; k<3; k++) crds[k] = (textCoords[j])[k] - fullUsrExts[k];
+				projectPointToWin(crds,crds2);
+				txtObj->drawMe(crds2);
 			}
 		}
-		textIsValid = true;
 	}
-	for (int i = 0; i<myTextWriters.size(); i++){
-		myTextWriters[i]->drawText();
-	}
+
 }
-void GLWindow::clearWriters(){
-	for (int i = 0; i<myTextWriters.size(); i++){
-		delete myTextWriters[i];
-		for (int j = 0; j<myTextPosns[i].size();j++)
-			delete (myTextPosns[i])[j];
-		myTextPosns[i].clear();
-		myTextStrings[i].clear();
-		textIsValid = false;
-	}
-	myTextWriters.clear();
-	myTextStrings.clear();
-	myTextPosns.clear();
+void GLWindow::clearTextObjects(Renderer* ren){
+	//verify that the renderer has text objects:
+	if (textObjectMap.count(ren) == 0) return;
+	
+	vector<TextObject*> txtObjs = textObjectMap[ren];
+	for (int i = 0; i<txtObjs.size(); i++){
+			//first delete the coordinates used by the text object
+			TextObject* txtObj = txtObjs[i];
+			pair<Renderer*, int> coordPair = make_pair(ren, i);
+			vector<float*> textCoords = *textCoordMap[coordPair];
+			for (int j = 0; j<textCoords.size(); j++){
+				delete textCoords[j];
+			}
+			textCoords.clear();
+			//Remove the entry from the textcoordinate map:
+			map<pair<Renderer*, int>, vector<float*>*>::iterator it2 = textCoordMap.find(coordPair);
+			textCoordMap.erase(it2);
+			//And delete the text object
+			delete txtObj;
+		}
+	txtObjs.clear();
+	//Now remove these textObjects from the mapping.
+	map<Renderer*, vector<TextObject*> >::iterator it = textObjectMap.find(ren);
+	textObjectMap.erase(it);
 }
 
 #ifdef	Darwin

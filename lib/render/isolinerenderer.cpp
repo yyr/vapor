@@ -43,7 +43,6 @@ IsolineRenderer::IsolineRenderer(GLWindow* glw, IsolineParams* pParams )
 {
 	numIsovalsCached = 0;
 	setupCache();
-	myGLWindow->clearWriters();
 }
 
 
@@ -62,7 +61,7 @@ IsolineRenderer::~IsolineRenderer()
 	}
 	lineCache.clear();
 	
-	myGLWindow->clearWriters();
+	myGLWindow->clearTextObjects(this);
 	
 }
 
@@ -242,11 +241,18 @@ bool IsolineRenderer::buildLineCache(int timestep){
 	//when there is an isoline crossing, a line segment is saved in the cache, defined by the two endpoints.
 	const vector<double>& isovals = iParams->GetIsovalues();
 	
-	//Clear the textWriters (if they exist)
-	myGLWindow->clearWriters();
-	
+	//Clear the textObjects (if they exist)
+	myGLWindow->clearTextObjects(this);
+	//Create a new textObject for each isoline:
+	float bgc[4];
+	const QColor clr = DataStatus::getInstance()->getBackgroundColor();
+	bgc[0] = (float)clr.red()/255.;
+	bgc[1] = (float)clr.green()/255.;
+	bgc[2] = (float)clr.blue()/255.;
+	bgc[3] = 1.;
+	objectNums.clear();
 	for (int iso = 0; iso < isovals.size(); iso++){
-		if(iParams->GetTextDensity() > 0. && iParams->textEnabled()) { //put a textWriter in the GLWindow to hold annotation of this isovalue
+		if(iParams->GetTextDensity() > 0. && iParams->textEnabled()) { //put a textObject in the GLWindow to hold annotation of this isovalue
 			
 			float bgc[4] = {0,0,0,1.};
 			const QColor c = DataStatus::getInstance()->getBackgroundColor();
@@ -261,7 +267,8 @@ bool IsolineRenderer::buildLineCache(int timestep){
 			vec.push_back("Vera.ttf");
 			string isoText;
 			doubleToString((iParams->GetIsovalues()[iso]), isoText, iParams->GetNumDigits());
-			myGLWindow->addWriter(GetAppPath("VAPOR","share",vec).c_str(),(int)iParams->GetTextSize(),lineColor, bgc,1, isoText);
+			int objNum = myGLWindow->addTextObject(this, GetAppPath("VAPOR","share",vec).c_str(),(int)iParams->GetTextSize(),lineColor, bgc,1, isoText);
+			objectNums[iso] = objNum;
 		}
 		//Clear out temporary caches for this isovalue:
 		
@@ -775,7 +782,7 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 					//Convert local to user:
 					for (int i = 0; i<3; i++) point1[i] += tvExts[i];
 					
-					myGLWindow->addText(iso,point1);
+					myGLWindow->addText(this, objectNums[iso],point1);
 					numAnnotations++;
 					//Reset the next interval:
 					gapInterval = annotInterval;
@@ -808,7 +815,7 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 						//Convert local to user:
 						for (int i = 0; i<3; i++) point1[i] += tvExts[i];
 					
-						myGLWindow->addText(iso,point1);
+						myGLWindow->addText(this, objectNums[iso],point1);
 						numAnnotations++;
 						//Reset the next interval:
 						gapInterval = annotInterval;

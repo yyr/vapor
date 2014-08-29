@@ -114,6 +114,7 @@ protected:
 	int numIsovalsInCache() {return numIsovalsCached;}
 	int numIsovalsCached;
 	int gridSize;
+	std::map<int,int> objectNums;
 };
 };
 
