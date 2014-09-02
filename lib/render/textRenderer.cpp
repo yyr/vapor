@@ -252,7 +252,8 @@ void TextObject::applyViewerMatrix() {
 	}   
 }
 
-float * TextObject::applyViewerMatrix(float coords[3]) {
+//float * TextObject::applyViewerMatrix(float coords[3]) {
+int TextObject::applyViewerMatrix(float coords[3]) {
     if ((_type == 0) || (_type == 1)){ 
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
@@ -274,7 +275,7 @@ float * TextObject::applyViewerMatrix(float coords[3]) {
         coords[1] = newCoords[1];
 		coords[2] = newCoords[2];
     }
-	return coords;
+	return 1;
 }
 
 void TextObject::removeViewerMatrix() {
@@ -295,13 +296,12 @@ int TextObject::drawMe(float coords[3]) {
         const vector<double>& fullUsrExts = ds->getDataMgr()->GetExtents();
         float sceneScaleFactor = 1./ViewpointParams::getMaxStretchedCubeSide();
         const float* scales = ds->getStretchFactors();
-        float crds2[3];
 		for (int i = 0; i<3; i++){ 
-            crds2[i] = coords[i] - fullUsrExts[i];
-            crds2[i] *= sceneScaleFactor;
-            crds2[i] *= scales[i];
+            coords[i] = coords[i] - fullUsrExts[i];
+            coords[i] *= sceneScaleFactor;
+            coords[i] *= scales[i];
         }  
-		coords = applyViewerMatrix(crds2);
+		applyViewerMatrix(coords);
 	}
 	else applyViewerMatrix();
 

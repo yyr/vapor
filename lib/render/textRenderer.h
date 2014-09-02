@@ -88,8 +88,9 @@ namespace VAPoR {
 
 //! Saves the current GL state and applies transformations
 //! to draw the appropriate type of text object.
-    void applyViewerMatrix(void);
-	float * applyViewerMatrix(float coords[2]);
+    void applyViewerMatrix();
+	//float * applyViewerMatrix(float coords[3]);
+	int applyViewerMatrix(float coords[3]);
 
 //! Resets the state of the GL machine to what it was before
 //! our text rendering.
