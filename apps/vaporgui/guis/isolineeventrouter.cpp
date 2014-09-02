@@ -2938,6 +2938,7 @@ guiSetSingleColor(){
 	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "set single color");
 	iParams->SetSingleColor(rgb);
 	PanelCommand::captureEnd(cmd, iParams);
+	setIsolineDirty(iParams);
 	VizWinMgr::getInstance()->forceRender(iParams);
 }
 /*
@@ -2951,6 +2952,7 @@ guiSetUseSingleColor(bool val){
 	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "enable/disable single color");
 	iParams->SetUseSingleColor(val);
 	PanelCommand::captureEnd(cmd, iParams);
+	setIsolineDirty(iParams);
 	VizWinMgr::getInstance()->forceRender(iParams);
 }
 void IsolineEventRouter::fitIsovalsToHisto(IsolineParams* iParams){
