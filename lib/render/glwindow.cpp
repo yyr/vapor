@@ -2863,6 +2863,7 @@ void GLWindow::renderText(){
 	//iterate over all valid text objects, paint them at specified coordinates.
 	DataStatus* ds = DataStatus::getInstance();
 	const vector<double>& fullUsrExts = ds->getDataMgr()->GetExtents();
+	int timestep = getActiveAnimationParams()->getCurrentTimestep();
 	map< Renderer*, vector<TextObject*> >::iterator iter;
 	for (iter = textObjectMap.begin(); iter != textObjectMap.end(); iter++){
 		Renderer* ren = iter->first;
@@ -2874,9 +2875,8 @@ void GLWindow::renderText(){
 			vector<float*> textCoords = *textCoordMap[coordPair];
 			for (int j = 0; j<textCoords.size(); j++){
 				float crds[3];
-				//for (int k = 0; k<3; k++) crds[k] = (textCoords[j])[k] - fullUsrExts[k];
 				for (int k=0; k<3; k++) crds[k] = textCoords[j][k];
-				txtObj->drawMe(crds);
+				txtObj->drawMe(crds, timestep);
 			}
 		}
 	}

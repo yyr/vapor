@@ -76,8 +76,8 @@ namespace VAPoR {
 
 //! Draw Text Object at default coordinates specified in TextObject::Initialize()
     int drawMe();
-//! Draw Text Object at specified x, y, z coordinate
-	int drawMe(float coords[3]);
+//! Draw Text Object at specified x, y, z coordinate, at specified time step
+	int drawMe(float coords[3], int timestep);
 
 //! Sets the variables \p _width and \p _height.
 //! These define the size of the texture box that text will be drawn on to
