@@ -2873,9 +2873,8 @@ void GLWindow::renderText(){
 			pair<Renderer*, int> coordPair = make_pair(ren, i);
 			vector<float*> textCoords = *textCoordMap[coordPair];
 			for (int j = 0; j<textCoords.size(); j++){
-				float crds[3], crds2[3];
+				float crds[3];
 				for (int k = 0; k<3; k++) crds[k] = (textCoords[j])[k] - fullUsrExts[k];
-				projectPointToWin(crds,crds2);
 				txtObj->drawMe(crds);
 			}
 		}
