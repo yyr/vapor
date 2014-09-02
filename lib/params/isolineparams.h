@@ -156,6 +156,7 @@ public:
 		else path.push_back(_Variables2DTag);
 		path.push_back(GetVariableName());
 		path.push_back(_IsoControlTag);
+		if (!GetRootNode()->GetNode(path)) return 0;
 		return (IsoControl*)(GetRootNode()->GetNode(path)->GetParamsBase());
 	}
 	IsoControl* GetIsoControl(string varname, bool is3D){
@@ -164,6 +165,7 @@ public:
 		else path.push_back(_Variables2DTag);
 		path.push_back(varname);
 		path.push_back(_IsoControlTag);
+		if (!GetRootNode()->GetNode(path)) return 0;
 		return (IsoControl*)(GetRootNode()->GetNode(path)->GetParamsBase());
 	}
 	int SetIsoControl(const string varname, IsoControl* iControl, bool is3D);
