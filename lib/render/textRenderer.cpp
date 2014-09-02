@@ -252,7 +252,7 @@ void TextObject::applyViewerMatrix() {
 	}   
 }
 
-float * TextObject::applyViewerMatrix(float coords[2]) {
+float * TextObject::applyViewerMatrix(float coords[3]) {
     if ((_type == 0) || (_type == 1)){ 
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
@@ -265,13 +265,14 @@ float * TextObject::applyViewerMatrix(float coords[2]) {
         glEnable(GL_TEXTURE_2D);
     }    
     if (_type == 1) { 
-        float newCoords[2];
+        float newCoords[3];
+		
         GLWindow *castWin;
         castWin = dynamic_cast <GLWindow*> (_myWindow);
-    
-        castWin->projectPointToWin(coords, newCoords);
+		castWin->projectPointToWin(coords, newCoords);
         coords[0] = newCoords[0];
         coords[1] = newCoords[1];
+		coords[2] = newCoords[2];
     }
 	return coords;
 }
@@ -288,7 +289,20 @@ void TextObject::removeViewerMatrix() {
 
 int TextObject::drawMe(float coords[3]) {
 
-	if (_type == 1) applyViewerMatrix(coords);
+	if (_type == 1) {
+        //Convert user to local/stretched coordinates in cube
+        DataStatus* ds = DataStatus::getInstance();
+        const vector<double>& fullUsrExts = ds->getDataMgr()->GetExtents();
+        float sceneScaleFactor = 1./ViewpointParams::getMaxStretchedCubeSide();
+        const float* scales = ds->getStretchFactors();
+        float crds2[3];
+		for (int i = 0; i<3; i++){ 
+            crds2[i] = coords[i] - fullUsrExts[i];
+            crds2[i] *= sceneScaleFactor;
+            crds2[i] *= scales[i];
+        }  
+		coords = applyViewerMatrix(crds2);
+	}
 	else applyViewerMatrix();
 
     glBindTexture(GL_TEXTURE_2D, _fboTexture);  
