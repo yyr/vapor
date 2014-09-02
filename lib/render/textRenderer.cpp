@@ -50,8 +50,11 @@ TextWriter::TextWriter( string fontFile,
 }
 
 int TextWriter::addText(string text, float coords[3]) {
-    TextObjects.push_back(new TextObject(_font, text, _size, coords, _type,
-                                         _txtColor,_bgColor,_myWindow));
+	TextObject *to = new TextObject();
+	to->Initialize(_font, text, _size, coords, _type,
+                  _txtColor,_bgColor,_myWindow);
+    TextObjects.push_back(to);
+                                        
     return 0;
 }
 
@@ -67,7 +70,11 @@ TextWriter::~TextWriter() {
     }
 }
 
-TextObject::TextObject( string inFont,
+TextObject::TextObject() {
+
+}
+
+int TextObject::Initialize( string inFont,
                         string inText,
                         int inSize,
                         float inCoords[3],
@@ -114,6 +121,8 @@ TextObject::TextObject( string inFont,
     findBBoxSize();
     initFrameBufferTexture();
     initFrameBuffer();
+
+	return 0;
 }
 
 TextObject::~TextObject() {
@@ -178,9 +187,14 @@ int TextObject::initFrameBuffer(void) {
     glColor4f(_txtColor[0],_txtColor[1],_txtColor[2],_txtColor[3]);
     glWindowPos2f(0,0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    int xRenderOffset = _size/24 + 1;
-    int yRenderOffset = -_pixmap->BBox(_text.c_str()).Lower().Y()+4;;
-    FTPoint point;
+    int xRenderOffset = _size/30+1;//_size/24 + 1;
+    int yRenderOffset = -_pixmap->BBox(_text.c_str()).Lower().Y()+_size/16+1; //+4
+    if (_size <= 40){
+		xRenderOffset += 1;
+		yRenderOffset += 1;
+	}
+	else xRenderOffset -= 1;
+	FTPoint point;
     point.X(xRenderOffset);
     point.Y(yRenderOffset);
     _pixmap->Render(_text.c_str(),-1,point);
@@ -238,6 +252,30 @@ void TextObject::applyViewerMatrix() {
 	}   
 }
 
+float * TextObject::applyViewerMatrix(float coords[2]) {
+    if ((_type == 0) || (_type == 1)){ 
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        glPushAttrib(GL_ALL_ATTRIB_BITS);
+        //glDisable(GL_LIGHTING);
+        glEnable(GL_TEXTURE_2D);
+    }    
+    if (_type == 1) { 
+        float newCoords[2];
+        GLWindow *castWin;
+        castWin = dynamic_cast <GLWindow*> (_myWindow);
+    
+        castWin->projectPointToWin(coords, newCoords);
+        coords[0] = newCoords[0];
+        coords[1] = newCoords[1];
+    }
+	return coords;
+}
+
 void TextObject::removeViewerMatrix() {
     if ((_type == 0) || (_type == 1)){ 
 		glPopAttrib();
@@ -250,11 +288,10 @@ void TextObject::removeViewerMatrix() {
 
 int TextObject::drawMe(float coords[3]) {
 
-    applyViewerMatrix();
+	if (_type == 1) applyViewerMatrix(coords);
+	else applyViewerMatrix();
 
     glBindTexture(GL_TEXTURE_2D, _fboTexture);  
-
-    cout << "drawMe " <<  coords[0] << " " << coords[1] << " " << coords[2] << endl;
 
     float fltTxtWidth = (float)_width/(float)_myWindow->width();
     float fltTxtHeight = (float)_height/(float)_myWindow->height();

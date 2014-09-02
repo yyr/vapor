@@ -2838,7 +2838,10 @@ int GLWindow::addTextObject(Renderer* ren, const char* fontPath, int textSize, f
 		textObjectMap[ren] = txtObjs;
 	}
 	float dummyCoords[3] = {.23,.32,.25};//not used
-	textObjectMap[ren].push_back(new TextObject(fontPath,text,textSize,dummyCoords,type,textColor,bgColor,this));
+
+	TextObject *to = new TextObject();
+	to->Initialize(fontPath,text,textSize,dummyCoords,type,textColor,bgColor,this);
+	textObjectMap[ren].push_back(to);//new TextObject(fontPath,text,textSize,dummyCoords,type,textColor,bgColor,this));
 		
 	int objectIndex = textObjectMap[ren].size()-1;
 
@@ -2873,7 +2876,7 @@ void GLWindow::renderText(){
 				float crds[3], crds2[3];
 				for (int k = 0; k<3; k++) crds[k] = (textCoords[j])[k] - fullUsrExts[k];
 				projectPointToWin(crds,crds2);
-				txtObj->drawMe(crds2);
+				txtObj->drawMe(crds);
 			}
 		}
 	}
