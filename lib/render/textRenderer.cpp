@@ -287,12 +287,12 @@ void TextObject::removeViewerMatrix() {
     }
 }
 
-int TextObject::drawMe(float coords[3]) {
+int TextObject::drawMe(float coords[3], int timestep) {
 
 	if (_type == 1) {
         //Convert user to local/stretched coordinates in cube
         DataStatus* ds = DataStatus::getInstance();
-        const vector<double>& fullUsrExts = ds->getDataMgr()->GetExtents();
+        const vector<double>& fullUsrExts = ds->getDataMgr()->GetExtents((size_t)timestep);
         float sceneScaleFactor = 1./ViewpointParams::getMaxStretchedCubeSide();
         const float* scales = ds->getStretchFactors();
         float crds2[3];
