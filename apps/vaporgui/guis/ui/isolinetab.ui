@@ -1131,41 +1131,6 @@ specified range.</string>
                </widget>
               </item>
               <item>
-               <spacer name="horizontalSpacer_20">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item>
-               <widget class="QPushButton" name="fitIsovalsButton">
-                <property name="minimumSize">
-                 <size>
-                  <width>80</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>80</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>Move the isovalues to fit in histo bounds</string>
-                </property>
-                <property name="text">
-                 <string>Fit Isovals</string>
-                </property>
-               </widget>
-              </item>
-              <item>
                <spacer name="horizontalSpacer_25">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -1193,7 +1158,7 @@ specified range.</string>
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Click to space the isovalues uniformly between minimum and maximumy</string>
+                 <string>Click to space the isovalues uniformly between minimum and maximum</string>
                 </property>
                 <property name="text">
                  <string>Uniform</string>
