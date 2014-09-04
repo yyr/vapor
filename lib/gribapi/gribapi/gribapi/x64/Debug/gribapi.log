@@ -1,0 +1,1291 @@
+﻿Build started 9/4/2014 1:43:23 PM.
+Project "C:\TEMP\gribsrc\gribapi\gribapi\gribapi.vcxproj" on node 2 (build target(s)).
+InitializeBuildStatus:
+  Creating "x64\Debug\gribapi.unsuccessfulbuild" because "AlwaysCreate" was specified.
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\x86_amd64\CL.exe /c /Zi /nologo /W3 /WX- /Od /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D GRIBAPI_EXPORTS /D _WINDLL /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"x64\Debug\\" /Fd"x64\Debug\vc100.pdb" /Gd /TC /errorReport:prompt ..\..\action.c ..\..\action_class_alias.c ..\..\action_class_assert.c ..\..\action_class_concept.c ..\..\action_class_gen.c ..\..\action_class_if.c ..\..\action_class_list.c ..\..\action_class_meta.c ..\..\action_class_modify.c ..\..\action_class_noop.c ..\..\action_class_print.c ..\..\action_class_put.c ..\..\action_class_remove.c ..\..\action_class_section.c ..\..\action_class_set.c ..\..\action_class_set_darray.c ..\..\action_class_set_iarray.c ..\..\action_class_set_missing.c ..\..\action_class_switch.c ..\..\action_class_template.c ..\..\action_class_trigger.c ..\..\action_class_variable.c ..\..\action_class_when.c ..\..\action_class_while.c ..\..\action_class_write.c ..\..\compile.c ..\..\functions.c ..\..\grib_2order_packer_simple.c ..\..\grib_accessor.c ..\..\grib_accessor_class.c ..\..\grib_accessor_class_abstract_long_vector.c ..\..\grib_accessor_class_abstract_vector.c ..\..\grib_accessor_class_array.c ..\..\grib_accessor_class_ascii.c ..\..\grib_accessor_class_assert.c ..\..\grib_accessor_class_bit.c ..\..\grib_accessor_class_bitmap.c ..\..\grib_accessor_class_bits.c ..\..\grib_accessor_class_bits_per_value.c ..\..\grib_accessor_class_box.c ..\..\grib_accessor_class_budgdate.c ..\..\grib_accessor_class_bytes.c ..\..\grib_accessor_class_change_scanning_direction.c ..\..\grib_accessor_class_codeflag.c ..\..\grib_accessor_class_codetable.c ..\..\grib_accessor_class_codetable_title.c ..\..\grib_accessor_class_codetable_units.c ..\..\grib_accessor_class_concept.c ..\..\grib_accessor_class_constant.c ..\..\grib_accessor_class_count_file.c ..\..\grib_accessor_class_count_missing.c ..\..\grib_accessor_class_count_total.c ..\..\grib_accessor_class_data_2order_packing.c ..\..\grib_accessor_class_data_2order_packing_count.c ..\..\grib_accessor_class_data_apply_bitmap.c ..\..\grib_accessor_class_data_apply_boustrophedonic.c ..\..\grib_accessor_class_data_apply_gdsnotpresent.c ..\..\grib_accessor_class_data_complex_packing.c ..\..\grib_accessor_class_data_constant_field.c ..\..\grib_accessor_class_data_dummy_field.c ..\..\grib_accessor_class_data_g1complex_packing.c ..\..\grib_accessor_class_data_g1second_order_constant_width_packing.c ..\..\grib_accessor_class_data_g1second_order_general_extended_packing.c ..\..\grib_accessor_class_data_g1second_order_general_packing.c ..\..\grib_accessor_class_data_g1second_order_row_by_row_packing.c ..\..\grib_accessor_class_data_g1secondary_bitmap.c ..\..\grib_accessor_class_data_g1shsimple_packing.c ..\..\grib_accessor_class_data_g1simple_packing.c ..\..\grib_accessor_class_data_g22order_packing.c ..\..\grib_accessor_class_data_g2complex_packing.c ..\..\grib_accessor_class_data_g2secondary_bitmap.c ..\..\grib_accessor_class_data_g2shsimple_packing.c ..\..\grib_accessor_class_data_g2simple_packing.c ..\..\grib_accessor_class_data_g2simple_packing_with_preprocessing.c ..\..\grib_accessor_class_data_jpeg2000_packing.c ..\..\grib_accessor_class_data_png_packing.c ..\..\grib_accessor_class_data_raw_packing.c ..\..\grib_accessor_class_data_secondary_bitmap.c ..\..\grib_accessor_class_data_sh_packed.c ..\..\grib_accessor_class_data_sh_unpacked.c ..\..\grib_accessor_class_data_shsimple_packing.c ..\..\grib_accessor_class_data_simple_packing.c ..\..\grib_accessor_class_data_szip_packing.c ..\..\grib_accessor_class_decimal_precision.c ..\..\grib_accessor_class_dirty.c ..\..\grib_accessor_class_divdouble.c ..\..\grib_accessor_class_double.c ..\..\grib_accessor_class_element.c ..\..\grib_accessor_class_evaluate.c ..\..\grib_accessor_class_forward.c ..\..\grib_accessor_class_from_scale_factor_scaled_value.c ..\..\grib_accessor_class_g1_half_byte_codeflag.c ..\..\grib_accessor_class_g1_increment.c ..\..\grib_accessor_class_g1_message_length.c ..\..\grib_accessor_class_g1_section4_length.c ..\..\grib_accessor_class_g1area.c ..\..\grib_accessor_class_g1bitmap.c ..\..\grib_accessor_class_g1date.c ..\..\grib_accessor_class_g1day_of_the_year_date.c ..\..\grib_accessor_class_g1end_of_interval_monthly.c ..\..\grib_accessor_class_g1fcperiod.c ..\..\grib_accessor_class_g1forecastmonth.c ..\..\grib_accessor_class_g1monthlydate.c ..\..\grib_accessor_class_g1number_of_coded_values_sh_complex.c ..\..\grib_accessor_class_g1number_of_coded_values_sh_simple.c ..\..\grib_accessor_class_g1p1p2.c ..\..\grib_accessor_class_g1param.c ..\..\grib_accessor_class_g1step_range.c ..\..\grib_accessor_class_g1verificationdate.c ..\..\grib_accessor_class_g2_chemical.c ..\..\grib_accessor_class_g2_eps.c ..\..\grib_accessor_class_g2_mars_labeling.c ..\..\grib_accessor_class_g2bitmap.c ..\..\grib_accessor_class_g2bitmap_present.c ..\..\grib_accessor_class_g2date.c ..\..\grib_accessor_class_g2end_step.c ..\..\grib_accessor_class_g2grid.c ..\..\grib_accessor_class_g2latlon.c ..\..\grib_accessor_class_g2level.c ..\..\grib_accessor_class_g2lon.c ..\..\grib_accessor_class_g2step.c ..\..\grib_accessor_class_g2step_range.c ..\..\grib_accessor_class_gds_is_present.c ..\..\grib_accessor_class_gds_not_present_bitmap.c ..\..\grib_accessor_class_gen.c ..\..\grib_accessor_class_global_gaussian.c ..\..\grib_accessor_class_gts_header.c ..\..\grib_accessor_class_headers_only.c ..\..\grib_accessor_class_ibmfloat.c ..\..\grib_accessor_class_ieeefloat.c ..\..\grib_accessor_class_ifs_param.c ..\..\grib_accessor_class_iterator.c ..\..\grib_accessor_class_julian_day.c ..\..\grib_accessor_class_ksec1expver.c ..\..\grib_accessor_class_label.c ..\..\grib_accessor_class_laplacian.c ..\..\grib_accessor_class_latitudes.c ..\..\grib_accessor_class_latlon_increment.c ..\..\grib_accessor_class_latlonvalues.c ..\..\grib_accessor_class_library_version.c ..\..\grib_accessor_class_local_definition.c ..\..\grib_accessor_class_long.c ..\..\grib_accessor_class_long_vector.c ..\..\grib_accessor_class_longitudes.c ..\..\grib_accessor_class_lookup.c ..\..\grib_accessor_class_mars_param.c ..\..\grib_accessor_class_mars_step.c ..\..\grib_accessor_class_md5.c ..\..\grib_accessor_class_message.c ..\..\grib_accessor_class_missing.c ..\..\grib_accessor_class_nearest.c ..\..\grib_accessor_class_number_of_coded_values.c ..\..\grib_accessor_class_number_of_points.c ..\..\grib_accessor_class_number_of_points_gaussian.c ..\..\grib_accessor_class_number_of_values.c ..\..\grib_accessor_class_number_of_values_data_raw_packing.c ..\..\grib_accessor_class_octect_number.c ..\..\grib_accessor_class_offset_file.c ..\..\grib_accessor_class_offset_values.c ..\..\grib_accessor_class_pad.c ..\..\grib_accessor_class_padding.c ..\..\grib_accessor_class_padto.c ..\..\grib_accessor_class_padtoeven.c ..\..\grib_accessor_class_padtomultiple.c ..\..\grib_accessor_class_position.c ..\..\grib_accessor_class_reference_value_error.c ..\..\grib_accessor_class_round.c ..\..\grib_accessor_class_scale.c ..\..\grib_accessor_class_scale_values.c ..\..\grib_accessor_class_second_order_bits_per_value.c ..\..\grib_accessor_class_section.c ..\..\grib_accessor_class_section_length.c ..\..\grib_accessor_class_section_padding.c ..\..\grib_accessor_class_section_pointer.c ..\..\grib_accessor_class_select_step_template.c ..\..\grib_accessor_class_signed.c ..\..\grib_accessor_class_signed_bits.c ..\..\grib_accessor_class_simple_packing_error.c ..\..\grib_accessor_class_size.c ..\..\grib_accessor_class_spd.c ..\..\grib_accessor_class_spectral_truncation.c ..\..\grib_accessor_class_sprintf.c ..\..\grib_accessor_class_statistics.c ..\..\grib_accessor_class_statistics_spectral.c ..\..\grib_accessor_class_step_in_units.c ..\..\grib_accessor_class_sum.c ..\..\grib_accessor_class_suppressed.c ..\..\grib_accessor_class_time.c ..\..\grib_accessor_class_times.c ..\..\grib_accessor_class_transient.c ..\..\grib_accessor_class_unsigned.c ..\..\grib_accessor_class_unsigned_bits.c ..\..\grib_accessor_class_validity_date.c ..\..\grib_accessor_class_validity_time.c ..\..\grib_accessor_class_values.c ..\..\grib_accessor_class_variable.c ..\..\grib_accessor_class_vector.c ..\..\grib_accessor_class_when.c ..\..\grib_bits.c ..\..\grib_box.c ..\..\grib_box_class.c ..\..\grib_box_class_gen.c ..\..\grib_box_class_reduced_gaussian.c ..\..\grib_box_class_regular_gaussian.c ..\..\grib_buffer.c ..\..\grib_concept.c ..\..\grib_context.c ..\..\grib_darray.c ..\..\grib_date.c ..\..\grib_dependency.c ..\..\grib_dumper.c ..\..\grib_dumper_class.c ..\..\grib_dumper_class_c_code.c ..\..\grib_dumper_class_debug.c ..\..\grib_dumper_class_default.c ..\..\grib_dumper_class_keys.c ..\..\grib_dumper_class_serialize.c ..\..\grib_dumper_class_wmo.c ..\..\grib_errors.c ..\..\grib_expression.c ..\..\grib_expression_class_accessor.c ..\..\grib_expression_class_binop.c ..\..\grib_expression_class_double.c ..\..\grib_expression_class_functor.c ..\..\grib_expression_class_long.c ..\..\grib_expression_class_string.c ..\..\grib_expression_class_string_compare.c ..\..\grib_expression_class_true.c ..\..\grib_expression_class_unop.c ..\..\grib_fieldset.c ..\..\grib_filepool.c ..\..\grib_geography.c ..\..\grib_handle.c ..\..\grib_hash_keys.c ..\..\grib_header_compute.c ..\..\grib_iarray.c ..\..\grib_ibmfloat.c ..\..\grib_ieeefloat.c ..\..\grib_index.c ..\..\grib_io.c ..\..\grib_iterator.c ..\..\grib_iterator_class.c ..\..\grib_iterator_class_gaussian.c ..\..\grib_iterator_class_gaussian_reduced.c ..\..\grib_iterator_class_gen.c ..\..\grib_iterator_class_lambert_azimuthal_equal_area.c ..\..\grib_iterator_class_lambert_conformal.c ..\..\grib_iterator_class_latlon.c ..\..\grib_iterator_class_latlon_reduced.c ..\..\grib_iterator_class_polar_stereographic.c ..\..\grib_iterator_class_regular.c ..\..\grib_itrie.c ..\..\grib_jasper_encoding.c ..\..\grib_keys_iterator.c ..\..\grib_lex.c ..\..\grib_loader_from_handle.c ..\..\grib_memory.c ..\..\grib_nearest.c ..\..\grib_nearest_class.c ..\..\grib_nearest_class_gen.c ..\..\grib_nearest_class_latlon_reduced.c ..\..\grib_nearest_class_reduced.c ..\..\grib_nearest_class_regular.c ..\..\grib_nearest_class_sh.c ..\..\grib_openjpeg_encoding.c ..\..\grib_parse_utils.c ..\..\grib_query.c ..\..\grib_rules.c ..\..\grib_scaling.c ..\..\grib_templates.c ..\..\grib_timer.c ..\..\grib_trie.c ..\..\grib_util.c ..\..\grib_value.c ..\..\grib_yacc.c
+  grib_yacc.c
+y.tab.c(481): warning C4273: 'malloc' : inconsistent dll linkage
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(600) : see previous definition of 'malloc'
+y.tab.c(488): warning C4273: 'free' : inconsistent dll linkage
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(599) : see previous definition of 'free'
+griby.y(578): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+griby.y(580): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  grib_value.c
+..\..\grib_value.c(1200): warning C4996: 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _strdup. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(238) : see declaration of 'strdup'
+..\..\grib_value.c(1206): warning C4996: 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _strdup. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(238) : see declaration of 'strdup'
+  grib_util.c
+..\..\grib_util.c(28): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_util.c(29): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_util.c(67): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_util.c(71): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_util.c(280): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
+..\..\grib_util.c(288): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(253) : see declaration of 'fscanf'
+..\..\grib_util.c(289): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(253) : see declaration of 'fscanf'
+..\..\grib_util.c(292): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(253) : see declaration of 'fscanf'
+..\..\grib_util.c(486): warning C4267: 'function' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_util.c(618): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_util.c(621): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_util.c(887): warning C4267: 'function' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_util.c(912): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
+..\..\grib_util.c(1182): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(197) : see declaration of 'strtok'
+..\..\grib_util.c(1185): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+..\..\grib_util.c(1186): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(197) : see declaration of 'strtok'
+  grib_trie.c
+  grib_timer.c
+  grib_templates.c
+..\..\grib_templates.c(51): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_templates.c(58): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
+..\..\grib_templates.c(75): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  grib_scaling.c
+..\..\grib_scaling.c(44): warning C4244: 'initializing' : conversion from 'double' to 'unsigned long', possible loss of data
+..\..\grib_scaling.c(96): warning C4244: 'initializing' : conversion from 'double' to 'unsigned long', possible loss of data
+..\..\grib_scaling.c(136): warning C4244: 'initializing' : conversion from 'double' to 'unsigned long', possible loss of data
+  grib_rules.c
+  grib_query.c
+..\..\grib_query.c(185): warning C4244: '=' : conversion from '__int64' to 'int', possible loss of data
+..\..\grib_query.c(221): warning C4244: '=' : conversion from '__int64' to 'int', possible loss of data
+  grib_parse_utils.c
+..\..\grib_parse_utils.c(77): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_parse_utils.c(91): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_parse_utils.c(96): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_parse_utils.c(113): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+..\..\grib_parse_utils.c(126): warning C4267: 'initializing' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_parse_utils.c(183): warning C4244: '=' : conversion from '__int64' to 'int', possible loss of data
+..\..\grib_parse_utils.c(184): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(188) : see declaration of 'strncpy'
+..\..\grib_parse_utils.c(190): warning C4244: '=' : conversion from '__int64' to 'int', possible loss of data
+..\..\grib_parse_utils.c(191): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(188) : see declaration of 'strncpy'
+..\..\grib_parse_utils.c(199): warning C4244: '+=' : conversion from '__int64' to 'int', possible loss of data
+..\..\grib_parse_utils.c(297): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+..\..\grib_parse_utils.c(427): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(188) : see declaration of 'strncpy'
+..\..\grib_parse_utils.c(429): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(110) : see declaration of 'strcat'
+..\..\grib_parse_utils.c(436): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
+..\..\grib_parse_utils.c(444): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  grib_openjpeg_encoding.c
+  grib_nearest_class_sh.c
+..\..\grib_nearest_class_sh.c(186): warning C4244: 'function' : conversion from 'double' to 'int', possible loss of data
+  grib_nearest_class_regular.c
+  grib_nearest_class_reduced.c
+  grib_nearest_class_latlon_reduced.c
+  grib_nearest_class_gen.c
+  grib_nearest_class.c
+  grib_nearest.c
+..\..\grib_nearest.c(97): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_nearest.c(98): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+  grib_memory.c
+  grib_loader_from_handle.c
+..\..\grib_loader_from_handle.c(145): warning C4996: 'getenv': This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(433) : see declaration of 'getenv'
+  Generating Code...
+  Compiling...
+  grib_lex.c
+lex.grib_yy.c(1388): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+gribl.l(189): warning C4996: 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _strdup. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(238) : see declaration of 'strdup'
+gribl.l(207): warning C4996: 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _strdup. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(238) : see declaration of 'strdup'
+lex.grib_yy.c(2139): warning C4267: 'initializing' : conversion from 'size_t' to 'int', possible loss of data
+lex.grib_yy.c(2152): warning C4267: 'initializing' : conversion from 'size_t' to 'int', possible loss of data
+lex.grib_yy.c(2174): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+lex.grib_yy.c(2305): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+lex.grib_yy.c(2342): warning C4244: 'initializing' : conversion from '__int64' to 'int', possible loss of data
+lex.grib_yy.c(2529): warning C4996: 'fileno': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _fileno. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(723) : see declaration of 'fileno'
+lex.grib_yy.c(2645): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+lex.grib_yy.c(2683): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+lex.grib_yy.c(2705): warning C4267: 'function' : conversion from 'size_t' to 'int', possible loss of data
+  grib_keys_iterator.c
+  grib_jasper_encoding.c
+  grib_itrie.c
+  grib_iterator_class_regular.c
+  grib_iterator_class_polar_stereographic.c
+  grib_iterator_class_latlon_reduced.c
+  grib_iterator_class_latlon.c
+  grib_iterator_class_lambert_conformal.c
+  grib_iterator_class_lambert_azimuthal_equal_area.c
+  grib_iterator_class_gen.c
+..\..\grib_iterator_class_gen.c(129): warning C4267: 'return' : conversion from 'size_t' to 'long', possible loss of data
+  grib_iterator_class_gaussian_reduced.c
+  grib_iterator_class_gaussian.c
+..\..\grib_iterator_class_gaussian.c(148): warning C4018: '>' : signed/unsigned mismatch
+  grib_iterator_class.c
+  grib_iterator.c
+  grib_io.c
+..\..\grib_io.c(157): warning C4267: '+=' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_io.c(171): warning C4267: '+=' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_io.c(216): warning C4267: '+=' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_io.c(232): warning C4267: '+=' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_io.c(254): warning C4267: '+=' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_io.c(339): warning C4267: 'function' : conversion from 'size_t' to 'off_t', possible loss of data
+..\..\grib_io.c(382): warning C4267: '+=' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_io.c(458): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_io.c(479): warning C4267: '+=' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_io.c(499): warning C4267: '+=' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_io.c(614): warning C4267: 'function' : conversion from 'size_t' to 'off_t', possible loss of data
+..\..\grib_io.c(760): warning C4267: 'initializing' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_io.c(768): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+  grib_index.c
+..\..\grib_index.c(707): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
+..\..\grib_index.c(776): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
+..\..\grib_index.c(860): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_index.c(864): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_index.c(865): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_index.c(869): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_index.c(870): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_index.c(882): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_index.c(917): warning C4996: 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _strdup. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(238) : see declaration of 'strdup'
+..\..\grib_index.c(930): warning C4996: 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _strdup. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(238) : see declaration of 'strdup'
+..\..\grib_index.c(959): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_index.c(963): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_index.c(964): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_index.c(968): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_index.c(969): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_index.c(1176): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_index.c(1208): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_index.c(1240): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_index.c(1397): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  grib_ieeefloat.c
+..\..\grib_ieeefloat.c(53): warning C4146: unary minus operator applied to unsigned type, result still unsigned
+..\..\grib_ieeefloat.c(54): warning C4146: unary minus operator applied to unsigned type, result still unsigned
+..\..\grib_ieeefloat.c(132): warning C4244: '=' : conversion from 'double' to 'unsigned long', possible loss of data
+  grib_ibmfloat.c
+..\..\grib_ibmfloat.c(38): warning C4146: unary minus operator applied to unsigned type, result still unsigned
+..\..\grib_ibmfloat.c(38): warning C4146: unary minus operator applied to unsigned type, result still unsigned
+..\..\grib_ibmfloat.c(104): warning C4244: '=' : conversion from 'double' to 'unsigned long', possible loss of data
+  grib_iarray.c
+..\..\grib_iarray.c(41): warning C4267: 'initializing' : conversion from 'size_t' to 'int', possible loss of data
+  Generating Code...
+  Compiling...
+  grib_header_compute.c
+..\..\grib_header_compute.c(156): warning C4996: 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _strdup. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(238) : see declaration of 'strdup'
+..\..\grib_header_compute.c(164): warning C4996: 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _strdup. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(238) : see declaration of 'strdup'
+..\..\grib_header_compute.c(194): warning C4996: 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _strdup. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(238) : see declaration of 'strdup'
+..\..\grib_header_compute.c(237): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(188) : see declaration of 'strncpy'
+..\..\grib_header_compute.c(239): warning C4996: 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _strdup. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(238) : see declaration of 'strdup'
+..\..\grib_header_compute.c(421): warning C4996: 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _strdup. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(238) : see declaration of 'strdup'
+..\..\grib_header_compute.c(447): warning C4996: 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _strdup. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(238) : see declaration of 'strdup'
+  grib_hash_keys.c
+../tests/keys(408): warning C4267: 'function' : conversion from 'size_t' to 'unsigned int', possible loss of data
+  grib_handle.c
+..\..\grib_handle.c(281): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
+..\..\grib_handle.c(563): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
+..\..\grib_handle.c(612): warning C4267: '=' : conversion from 'size_t' to 'off_t', possible loss of data
+..\..\grib_handle.c(739): warning C4267: '=' : conversion from 'size_t' to 'off_t', possible loss of data
+..\..\grib_handle.c(803): warning C4267: '=' : conversion from 'size_t' to 'off_t', possible loss of data
+..\..\grib_handle.c(842): warning C4267: '=' : conversion from 'size_t' to 'off_t', possible loss of data
+..\..\grib_handle.c(883): warning C4267: '=' : conversion from 'size_t' to 'off_t', possible loss of data
+..\..\grib_handle.c(1012): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_handle.c(1014): warning C4267: 'function' : conversion from 'size_t' to 'unsigned long', possible loss of data
+..\..\grib_handle.c(1100): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_handle.c(1233): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_handle.c(1280): warning C4267: 'function' : conversion from 'size_t' to 'unsigned long', possible loss of data
+  grib_geography.c
+  grib_filepool.c
+..\..\grib_filepool.c(210): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
+..\..\grib_filepool.c(212): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
+..\..\grib_filepool.c(214): warning C4996: 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _strdup. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(238) : see declaration of 'strdup'
+..\..\grib_filepool.c(340): warning C4996: 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _strdup. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(238) : see declaration of 'strdup'
+  grib_fieldset.c
+..\..\grib_fieldset.c(281): warning C4267: 'function' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_fieldset.c(368): warning C4267: 'function' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_fieldset.c(402): warning C4267: 'function' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_fieldset.c(471): warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+..\..\grib_fieldset.c(476): warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+..\..\grib_fieldset.c(480): warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+..\..\grib_fieldset.c(526): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(197) : see declaration of 'strtok'
+..\..\grib_fieldset.c(545): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(197) : see declaration of 'strtok'
+..\..\grib_fieldset.c(593): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_fieldset.c(620): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_fieldset.c(621): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_fieldset.c(665): warning C4267: 'return' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_fieldset.c(773): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+  grib_expression_class_unop.c
+..\..\grib_expression_class_unop.c(113): warning C4244: 'function' : conversion from 'double' to 'long', possible loss of data
+  grib_expression_class_true.c
+  grib_expression_class_string_compare.c
+  grib_expression_class_string.c
+  grib_expression_class_long.c
+  grib_expression_class_functor.c
+  grib_expression_class_double.c
+..\..\grib_expression_class_double.c(94): warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+  grib_expression_class_binop.c
+..\..\grib_expression_class_binop.c(130): warning C4244: 'function' : conversion from 'double' to 'long', possible loss of data
+..\..\grib_expression_class_binop.c(130): warning C4244: 'function' : conversion from 'double' to 'long', possible loss of data
+  grib_expression_class_accessor.c
+  grib_expression.c
+  grib_errors.c
+..\..\grib_errors.c(84): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  grib_dumper_class_wmo.c
+..\..\grib_dumper_class_wmo.c(363): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_dumper_class_wmo.c(444): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_dumper_class_wmo.c(509): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_dumper_class_wmo.c(543): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  grib_dumper_class_serialize.c
+..\..\grib_dumper_class_serialize.c(273): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_dumper_class_serialize.c(326): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_dumper_class_serialize.c(412): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+  grib_dumper_class_keys.c
+  Generating Code...
+  Compiling...
+  grib_dumper_class_default.c
+..\..\grib_dumper_class_default.c(494): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_dumper_class_default.c(555): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  grib_dumper_class_debug.c
+..\..\grib_dumper_class_debug.c(242): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+..\..\grib_dumper_class_debug.c(303): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_dumper_class_debug.c(379): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+  grib_dumper_class_c_code.c
+..\..\grib_dumper_class_c_code.c(176): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(110) : see declaration of 'strcat'
+..\..\grib_dumper_class_c_code.c(178): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(110) : see declaration of 'strcat'
+..\..\grib_dumper_class_c_code.c(182): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(110) : see declaration of 'strcat'
+..\..\grib_dumper_class_c_code.c(183): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(110) : see declaration of 'strcat'
+..\..\grib_dumper_class_c_code.c(319): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_dumper_class_c_code.c(322): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  grib_dumper_class.c
+  grib_dumper.c
+  grib_dependency.c
+  grib_date.c
+  grib_darray.c
+..\..\grib_darray.c(41): warning C4267: 'initializing' : conversion from 'size_t' to 'int', possible loss of data
+  grib_context.c
+..\..\grib_context.c(200): warning C4996: 'getenv': This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(433) : see declaration of 'getenv'
+..\..\grib_context.c(202): warning C4996: 'getenv': This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(433) : see declaration of 'getenv'
+..\..\grib_context.c(341): warning C4996: 'getenv': This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(433) : see declaration of 'getenv'
+..\..\grib_context.c(342): warning C4996: 'getenv': This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(433) : see declaration of 'getenv'
+..\..\grib_context.c(343): warning C4996: 'getenv': This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(433) : see declaration of 'getenv'
+..\..\grib_context.c(344): warning C4996: 'getenv': This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(433) : see declaration of 'getenv'
+..\..\grib_context.c(345): warning C4996: 'getenv': This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(433) : see declaration of 'getenv'
+..\..\grib_context.c(346): warning C4996: 'getenv': This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(433) : see declaration of 'getenv'
+..\..\grib_context.c(347): warning C4996: 'getenv': This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(433) : see declaration of 'getenv'
+..\..\grib_context.c(348): warning C4996: 'getenv': This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(433) : see declaration of 'getenv'
+..\..\grib_context.c(349): warning C4996: 'getenv': This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(433) : see declaration of 'getenv'
+..\..\grib_context.c(350): warning C4996: 'getenv': This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(433) : see declaration of 'getenv'
+..\..\grib_context.c(351): warning C4996: 'getenv': This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(433) : see declaration of 'getenv'
+..\..\grib_context.c(363): warning C4996: 'getenv': This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(433) : see declaration of 'getenv'
+..\..\grib_context.c(374): warning C4996: 'getenv': This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(433) : see declaration of 'getenv'
+..\..\grib_context.c(380): warning C4996: 'getenv': This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(433) : see declaration of 'getenv'
+..\..\grib_context.c(459): warning C4101: 'resolved' : unreferenced local variable
+..\..\grib_context.c(485): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(188) : see declaration of 'strncpy'
+..\..\grib_context.c(499): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(197) : see declaration of 'strtok'
+..\..\grib_context.c(510): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(197) : see declaration of 'strtok'
+..\..\grib_context.c(549): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_context.c(656): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+..\..\grib_context.c(696): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+..\..\grib_context.c(783): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'vsprintf'
+..\..\grib_context.c(792): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(110) : see declaration of 'strcat'
+..\..\grib_context.c(793): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(110) : see declaration of 'strcat'
+..\..\grib_context.c(793): warning C4996: 'strerror': This function or variable may be unsafe. Consider using strerror_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(157) : see declaration of 'strerror'
+..\..\grib_context.c(794): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(110) : see declaration of 'strcat'
+..\..\grib_context.c(816): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'vsprintf'
+  grib_concept.c
+  grib_buffer.c
+..\..\grib_buffer.c(220): warning C4267: 'initializing' : conversion from 'size_t' to 'long', possible loss of data
+  grib_box_class_regular_gaussian.c
+  grib_box_class_reduced_gaussian.c
+  grib_box_class_gen.c
+  grib_box_class.c
+  grib_box.c
+  grib_bits.c
+..\..\grib_bits.c(95): warning C4244: '=' : conversion from 'long' to 'unsigned short', possible loss of data
+..\..\grib_bits.c(96): warning C4244: '=' : conversion from 'unsigned short' to 'unsigned char', possible loss of data
+c:\temp\gribsrc\grib_bits_any_endian.c(110): warning C4244: '=' : conversion from 'unsigned long' to 'unsigned char', possible loss of data
+c:\temp\gribsrc\grib_bits_any_endian.c(112): warning C4244: '=' : conversion from 'unsigned long' to 'unsigned char', possible loss of data
+c:\temp\gribsrc\grib_bits_any_endian.c(125): warning C4244: '=' : conversion from 'unsigned long' to 'unsigned char', possible loss of data
+c:\temp\gribsrc\grib_bits_any_endian.c(130): warning C4244: '=' : conversion from 'unsigned long' to 'unsigned char', possible loss of data
+c:\temp\gribsrc\grib_bits_any_endian_simple.c(51): warning C4267: '+=' : conversion from 'size_t' to 'long', possible loss of data
+c:\temp\gribsrc\grib_bits_any_endian_simple.c(124): warning C4244: '=' : conversion from 'unsigned long' to 'unsigned char', possible loss of data
+c:\temp\gribsrc\grib_bits_any_endian_simple.c(154): warning C4244: '=' : conversion from 'unsigned long' to 'unsigned char', possible loss of data
+  grib_accessor_class_when.c
+  grib_accessor_class_vector.c
+  grib_accessor_class_variable.c
+..\..\grib_accessor_class_variable.c(285): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_variable.c(295): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+  Generating Code...
+  Compiling...
+  grib_accessor_class_values.c
+..\..\grib_accessor_class_values.c(218): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_validity_time.c
+  grib_accessor_class_validity_date.c
+  grib_accessor_class_unsigned_bits.c
+..\..\grib_accessor_class_unsigned_bits.c(225): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_unsigned_bits.c(274): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_unsigned.c
+..\..\grib_accessor_class_unsigned.c(233): warning C4018: '>' : signed/unsigned mismatch
+..\..\grib_accessor_class_unsigned.c(259): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_unsigned.c(337): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_transient.c
+  grib_accessor_class_times.c
+..\..\grib_accessor_class_times.c(172): warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+..\..\grib_accessor_class_times.c(202): warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+  grib_accessor_class_time.c
+..\..\grib_accessor_class_time.c(228): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  grib_accessor_class_suppressed.c
+  grib_accessor_class_sum.c
+..\..\grib_accessor_class_sum.c(210): warning C4267: 'return' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_step_in_units.c
+  grib_accessor_class_statistics_spectral.c
+  grib_accessor_class_statistics.c
+..\..\grib_accessor_class_statistics.c(196): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_accessor_class_statistics.c(230): warning C4244: '=' : conversion from 'size_t' to 'double', possible loss of data
+  grib_accessor_class_sprintf.c
+..\..\grib_accessor_class_sprintf.c(162): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_sprintf.c(189): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_sprintf.c(194): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_sprintf.c(196): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_sprintf.c(205): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_sprintf.c(214): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_sprintf.c(221): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_sprintf.c(234): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  grib_accessor_class_spectral_truncation.c
+  grib_accessor_class_spd.c
+..\..\grib_accessor_class_spd.c(222): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_spd.c(269): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_size.c
+  grib_accessor_class_simple_packing_error.c
+  grib_accessor_class_signed_bits.c
+..\..\grib_accessor_class_signed_bits.c(265): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_signed.c
+..\..\grib_accessor_class_signed.c(252): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_signed.c(284): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  Generating Code...
+  Compiling...
+  grib_accessor_class_select_step_template.c
+  grib_accessor_class_section_pointer.c
+..\..\grib_accessor_class_section_pointer.c(181): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  grib_accessor_class_section_padding.c
+..\..\grib_accessor_class_section_padding.c(184): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_section_length.c
+  grib_accessor_class_section.c
+..\..\grib_accessor_class_section.c(186): warning C4267: 'initializing' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_section.c(199): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_second_order_bits_per_value.c
+  grib_accessor_class_scale_values.c
+  grib_accessor_class_scale.c
+  grib_accessor_class_round.c
+..\..\grib_accessor_class_round.c(172): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_round.c(183): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  grib_accessor_class_reference_value_error.c
+  grib_accessor_class_position.c
+  grib_accessor_class_padtomultiple.c
+..\..\grib_accessor_class_padtomultiple.c(157): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_padtoeven.c
+..\..\grib_accessor_class_padtoeven.c(168): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_padto.c
+..\..\grib_accessor_class_padto.c(154): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_padding.c
+..\..\grib_accessor_class_padding.c(145): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_pad.c
+..\..\grib_accessor_class_pad.c(150): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_offset_values.c
+  grib_accessor_class_offset_file.c
+..\..\grib_accessor_class_offset_file.c(150): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_offset_file.c(164): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+  grib_accessor_class_octect_number.c
+  grib_accessor_class_number_of_values_data_raw_packing.c
+  Generating Code...
+  Compiling...
+  grib_accessor_class_number_of_values.c
+  grib_accessor_class_number_of_points_gaussian.c
+..\..\grib_accessor_class_number_of_points_gaussian.c(224): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+  grib_accessor_class_number_of_points.c
+  grib_accessor_class_number_of_coded_values.c
+  grib_accessor_class_nearest.c
+  grib_accessor_class_missing.c
+  grib_accessor_class_message.c
+..\..\grib_accessor_class_message.c(135): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_message.c(147): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_md5.c
+  grib_accessor_class_mars_step.c
+..\..\grib_accessor_class_mars_step.c(155): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_mars_step.c(156): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_mars_step.c(179): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+..\..\grib_accessor_class_mars_step.c(182): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+..\..\grib_accessor_class_mars_step.c(194): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  grib_accessor_class_mars_param.c
+..\..\grib_accessor_class_mars_param.c(193): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  grib_accessor_class_lookup.c
+..\..\grib_accessor_class_lookup.c(176): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  grib_accessor_class_longitudes.c
+  grib_accessor_class_long_vector.c
+  grib_accessor_class_long.c
+..\..\grib_accessor_class_long.c(148): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_long.c(150): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_long.c(164): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+  grib_accessor_class_local_definition.c
+  grib_accessor_class_library_version.c
+..\..\grib_accessor_class_library_version.c(141): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_library_version.c(145): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+  grib_accessor_class_latlonvalues.c
+  grib_accessor_class_latlon_increment.c
+..\..\grib_accessor_class_latlon_increment.c(284): warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+  grib_accessor_class_latitudes.c
+  grib_accessor_class_laplacian.c
+  Generating Code...
+  Compiling...
+  grib_accessor_class_label.c
+..\..\grib_accessor_class_label.c(152): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+  grib_accessor_class_ksec1expver.c
+..\..\grib_accessor_class_ksec1expver.c(199): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  grib_accessor_class_julian_day.c
+  grib_accessor_class_iterator.c
+  grib_accessor_class_ifs_param.c
+  grib_accessor_class_ieeefloat.c
+..\..\grib_accessor_class_ieeefloat.c(155): warning C4267: 'initializing' : conversion from 'size_t' to 'unsigned long', possible loss of data
+..\..\grib_accessor_class_ieeefloat.c(220): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_ibmfloat.c
+..\..\grib_accessor_class_ibmfloat.c(173): warning C4267: 'initializing' : conversion from 'size_t' to 'unsigned long', possible loss of data
+..\..\grib_accessor_class_ibmfloat.c(241): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_headers_only.c
+  grib_accessor_class_gts_header.c
+..\..\grib_accessor_class_gts_header.c(154): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_gts_header.c(160): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+  grib_accessor_class_global_gaussian.c
+..\..\grib_accessor_class_global_gaussian.c(295): warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+..\..\grib_accessor_class_global_gaussian.c(296): warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+  grib_accessor_class_gen.c
+..\..\grib_accessor_class_gen.c(323): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_gen.c(334): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_gen.c(436): warning C4244: 'initializing' : conversion from 'double' to 'long', possible loss of data
+  grib_accessor_class_gds_not_present_bitmap.c
+  grib_accessor_class_gds_is_present.c
+  grib_accessor_class_g2step_range.c
+..\..\grib_accessor_class_g2step_range.c(164): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_g2step_range.c(171): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_g2step_range.c(175): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_g2step_range.c(227): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  grib_accessor_class_g2step.c
+  grib_accessor_class_g2lon.c
+..\..\grib_accessor_class_g2lon.c(171): warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+  grib_accessor_class_g2level.c
+..\..\grib_accessor_class_g2level.c(195): warning C4244: 'initializing' : conversion from 'double' to 'long', possible loss of data
+  grib_accessor_class_g2latlon.c
+  grib_accessor_class_g2grid.c
+..\..\grib_accessor_class_g2grid.c(264): warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+  grib_accessor_class_g2end_step.c
+  Generating Code...
+  Compiling...
+  grib_accessor_class_g2date.c
+  grib_accessor_class_g2bitmap_present.c
+  grib_accessor_class_g2bitmap.c
+..\..\grib_accessor_class_g2bitmap.c(182): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_g2_mars_labeling.c
+  grib_accessor_class_g2_eps.c
+  grib_accessor_class_g2_chemical.c
+  grib_accessor_class_g1verificationdate.c
+  grib_accessor_class_g1step_range.c
+..\..\grib_accessor_class_g1step_range.c(258): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_g1step_range.c(312): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_g1step_range.c(330): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_g1step_range.c(339): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_g1step_range.c(345): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_g1step_range.c(357): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_g1step_range.c(361): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_g1step_range.c(448): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_g1step_range.c(605): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_g1step_range.c(613): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_g1step_range.c(622): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_g1step_range.c(625): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_g1step_range.c(627): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_g1step_range.c(639): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_g1step_range.c(642): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_g1step_range.c(644): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  grib_accessor_class_g1param.c
+  grib_accessor_class_g1p1p2.c
+  grib_accessor_class_g1number_of_coded_values_sh_simple.c
+  grib_accessor_class_g1number_of_coded_values_sh_complex.c
+  grib_accessor_class_g1monthlydate.c
+  grib_accessor_class_g1forecastmonth.c
+  grib_accessor_class_g1fcperiod.c
+..\..\grib_accessor_class_g1fcperiod.c(145): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_g1fcperiod.c(156): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+  grib_accessor_class_g1end_of_interval_monthly.c
+  grib_accessor_class_g1day_of_the_year_date.c
+..\..\grib_accessor_class_g1day_of_the_year_date.c(174): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_g1day_of_the_year_date.c(184): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+  grib_accessor_class_g1date.c
+..\..\grib_accessor_class_g1date.c(267): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+..\..\grib_accessor_class_g1date.c(271): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_g1date.c(277): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_g1date.c(288): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+  grib_accessor_class_g1bitmap.c
+..\..\grib_accessor_class_g1bitmap.c(177): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_g1area.c
+..\..\grib_accessor_class_g1area.c(223): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  Generating Code...
+  Compiling...
+  grib_accessor_class_g1_section4_length.c
+  grib_accessor_class_g1_message_length.c
+  grib_accessor_class_g1_increment.c
+..\..\grib_accessor_class_g1_increment.c(234): warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+  grib_accessor_class_g1_half_byte_codeflag.c
+  grib_accessor_class_from_scale_factor_scaled_value.c
+  grib_accessor_class_forward.c
+  grib_accessor_class_evaluate.c
+  grib_accessor_class_element.c
+  grib_accessor_class_double.c
+..\..\grib_accessor_class_double.c(145): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_double.c(147): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_double.c(161): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+  grib_accessor_class_divdouble.c
+  grib_accessor_class_dirty.c
+  grib_accessor_class_decimal_precision.c
+  grib_accessor_class_data_szip_packing.c
+  grib_accessor_class_data_simple_packing.c
+..\..\grib_accessor_class_data_simple_packing.c(269): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_data_simple_packing.c(281): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_data_shsimple_packing.c
+  grib_accessor_class_data_sh_unpacked.c
+..\..\grib_accessor_class_data_sh_unpacked.c(331): warning C4244: 'function' : conversion from 'size_t' to 'double', possible loss of data
+  grib_accessor_class_data_sh_packed.c
+..\..\grib_accessor_class_data_sh_packed.c(351): warning C4244: 'function' : conversion from 'size_t' to 'double', possible loss of data
+  grib_accessor_class_data_secondary_bitmap.c
+  grib_accessor_class_data_raw_packing.c
+..\..\grib_accessor_class_data_raw_packing.c(274): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_data_raw_packing.c(316): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_data_png_packing.c
+  Generating Code...
+  Compiling...
+  grib_accessor_class_data_jpeg2000_packing.c
+..\..\grib_accessor_class_data_jpeg2000_packing.c(188): warning C4996: 'getenv': This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(433) : see declaration of 'getenv'
+..\..\grib_accessor_class_data_jpeg2000_packing.c(196): warning C4996: 'getenv': This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(433) : see declaration of 'getenv'
+  grib_accessor_class_data_g2simple_packing_with_preprocessing.c
+..\..\grib_accessor_class_data_g2simple_packing_with_preprocessing.c(208): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_data_g2simple_packing_with_preprocessing.c(232): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_data_g2simple_packing_with_preprocessing.c(242): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_data_g2simple_packing.c
+..\..\grib_accessor_class_data_g2simple_packing.c(186): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_data_g2shsimple_packing.c
+  grib_accessor_class_data_g2secondary_bitmap.c
+..\..\grib_accessor_class_data_g2secondary_bitmap.c(188): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_data_g2secondary_bitmap.c(192): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_data_g2secondary_bitmap.c(235): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_data_g2complex_packing.c
+..\..\grib_accessor_class_data_g2complex_packing.c(183): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_data_g22order_packing.c
+..\..\grib_accessor_class_data_g22order_packing.c(267): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_data_g22order_packing.c(269): warning C4018: '>' : signed/unsigned mismatch
+..\..\grib_accessor_class_data_g22order_packing.c(270): warning C4018: '>' : signed/unsigned mismatch
+..\..\grib_accessor_class_data_g22order_packing.c(517): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_data_g1simple_packing.c
+..\..\grib_accessor_class_data_g1simple_packing.c(318): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_data_g1shsimple_packing.c
+..\..\grib_accessor_class_data_g1shsimple_packing.c(136): warning C4267: 'return' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_data_g1secondary_bitmap.c
+..\..\grib_accessor_class_data_g1secondary_bitmap.c(151): warning C4267: 'return' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_data_g1secondary_bitmap.c(192): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_data_g1secondary_bitmap.c(196): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_data_g1second_order_row_by_row_packing.c
+  grib_accessor_class_data_g1second_order_general_packing.c
+  grib_accessor_class_data_g1second_order_general_extended_packing.c
+..\..\grib_accessor_class_data_g1second_order_general_extended_packing.c(617): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_data_g1second_order_general_extended_packing.c(670): warning C4244: '=' : conversion from 'const double' to 'long', possible loss of data
+..\..\grib_accessor_class_data_g1second_order_general_extended_packing.c(930): warning C4244: 'function' : conversion from 'double' to 'unsigned long', possible loss of data
+..\..\grib_accessor_class_data_g1second_order_general_extended_packing.c(954): warning C4244: 'function' : conversion from 'double' to 'unsigned long', possible loss of data
+..\..\grib_accessor_class_data_g1second_order_general_extended_packing.c(959): warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+..\..\grib_accessor_class_data_g1second_order_general_extended_packing.c(982): warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+..\..\grib_accessor_class_data_g1second_order_general_extended_packing.c(1109): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_data_g1second_order_constant_width_packing.c
+  grib_accessor_class_data_g1complex_packing.c
+..\..\grib_accessor_class_data_g1complex_packing.c(249): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_data_dummy_field.c
+..\..\grib_accessor_class_data_dummy_field.c(220): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_data_constant_field.c
+  grib_accessor_class_data_complex_packing.c
+..\..\grib_accessor_class_data_complex_packing.c(354): warning C4244: 'function' : conversion from 'size_t' to 'double', possible loss of data
+..\..\grib_accessor_class_data_complex_packing.c(704): warning C4244: 'function' : conversion from 'size_t' to 'double', possible loss of data
+..\..\grib_accessor_class_data_complex_packing.c(815): warning C4244: 'function' : conversion from 'double' to 'unsigned long', possible loss of data
+..\..\grib_accessor_class_data_complex_packing.c(821): warning C4244: 'function' : conversion from 'double' to 'unsigned long', possible loss of data
+..\..\grib_accessor_class_data_complex_packing.c(831): warning C4244: 'function' : conversion from 'double' to 'unsigned long', possible loss of data
+..\..\grib_accessor_class_data_complex_packing.c(837): warning C4244: 'function' : conversion from 'double' to 'unsigned long', possible loss of data
+  grib_accessor_class_data_apply_gdsnotpresent.c
+  grib_accessor_class_data_apply_boustrophedonic.c
+  Generating Code...
+  Compiling...
+  grib_accessor_class_data_apply_bitmap.c
+..\..\grib_accessor_class_data_apply_bitmap.c(171): warning C4267: 'return' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_data_apply_bitmap.c(271): warning C4267: 'function' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_accessor_class_data_apply_bitmap.c(276): warning C4267: 'function' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_accessor_class_data_apply_bitmap.c(288): warning C4244: '+=' : conversion from 'double' to 'size_t', possible loss of data
+..\..\grib_accessor_class_data_apply_bitmap.c(292): warning C4267: 'function' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_accessor_class_data_apply_bitmap.c(313): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_data_apply_bitmap.c(323): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_data_2order_packing_count.c
+  grib_accessor_class_data_2order_packing.c
+..\..\grib_accessor_class_data_2order_packing.c(520): warning C4244: '=' : conversion from 'long' to 'short', possible loss of data
+..\..\grib_accessor_class_data_2order_packing.c(633): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_data_2order_packing.c(636): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_data_2order_packing.c(636): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_data_2order_packing.c(763): warning C4244: '=' : conversion from 'long' to 'short', possible loss of data
+..\..\grib_accessor_class_data_2order_packing.c(797): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_data_2order_packing.c(797): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_data_2order_packing.c(801): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_data_2order_packing.c(821): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_data_2order_packing.c(877): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_data_2order_packing.c(905): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_count_total.c
+  grib_accessor_class_count_missing.c
+  grib_accessor_class_count_file.c
+  grib_accessor_class_constant.c
+  grib_accessor_class_concept.c
+..\..\grib_accessor_class_concept.c(161): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_concept.c(229): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+  grib_accessor_class_codetable_units.c
+..\..\grib_accessor_class_codetable_units.c(178): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+..\..\grib_accessor_class_codetable_units.c(184): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_codetable_units.c(199): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+  grib_accessor_class_codetable_title.c
+..\..\grib_accessor_class_codetable_title.c(178): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+..\..\grib_accessor_class_codetable_title.c(184): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_codetable_title.c(199): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+  grib_accessor_class_codetable.c
+..\..\grib_accessor_class_codetable.c(226): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_codetable.c(235): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_codetable.c(256): warning C4267: 'function' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_codetable.c(256): warning C4244: '=' : conversion from 'double' to 'size_t', possible loss of data
+..\..\grib_accessor_class_codetable.c(282): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
+..\..\grib_accessor_class_codetable.c(448): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+..\..\grib_accessor_class_codetable.c(450): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_codetable.c(453): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(110) : see declaration of 'strcat'
+..\..\grib_accessor_class_codetable.c(454): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(110) : see declaration of 'strcat'
+..\..\grib_accessor_class_codetable.c(455): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(110) : see declaration of 'strcat'
+..\..\grib_accessor_class_codetable.c(460): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+..\..\grib_accessor_class_codetable.c(466): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+..\..\grib_accessor_class_codetable.c(469): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(110) : see declaration of 'strcat'
+..\..\grib_accessor_class_codetable.c(471): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(110) : see declaration of 'strcat'
+..\..\grib_accessor_class_codetable.c(473): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(110) : see declaration of 'strcat'
+..\..\grib_accessor_class_codetable.c(474): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(110) : see declaration of 'strcat'
+..\..\grib_accessor_class_codetable.c(477): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(110) : see declaration of 'strcat'
+..\..\grib_accessor_class_codetable.c(502): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+..\..\grib_accessor_class_codetable.c(508): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_codetable.c(523): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+  grib_accessor_class_codeflag.c
+..\..\grib_accessor_class_codeflag.c(162): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+..\..\grib_accessor_class_codeflag.c(166): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
+..\..\grib_accessor_class_codeflag.c(171): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+..\..\grib_accessor_class_codeflag.c(183): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(325) : see declaration of 'sscanf'
+..\..\grib_accessor_class_codeflag.c(198): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+..\..\grib_accessor_class_codeflag.c(209): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(110) : see declaration of 'strcat'
+..\..\grib_accessor_class_codeflag.c(210): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(110) : see declaration of 'strcat'
+  grib_accessor_class_change_scanning_direction.c
+..\..\grib_accessor_class_change_scanning_direction.c(205): warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+..\..\grib_accessor_class_change_scanning_direction.c(221): warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+  grib_accessor_class_bytes.c
+..\..\grib_accessor_class_bytes.c(162): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  grib_accessor_class_budgdate.c
+  grib_accessor_class_box.c
+  grib_accessor_class_bits_per_value.c
+  grib_accessor_class_bits.c
+  grib_accessor_class_bitmap.c
+..\..\grib_accessor_class_bitmap.c(157): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_bitmap.c(202): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\grib_accessor_class_bitmap.c(259): warning C4267: '+=' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class_bitmap.c(269): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor_class_bit.c
+  Generating Code...
+  Compiling...
+  grib_accessor_class_assert.c
+  grib_accessor_class_ascii.c
+  grib_accessor_class_array.c
+  grib_accessor_class_abstract_vector.c
+  grib_accessor_class_abstract_long_vector.c
+  grib_accessor_class.c
+..\..\grib_accessor_class.c(235): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class.c(255): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class.c(266): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+..\..\grib_accessor_class.c(275): warning C4267: '=' : conversion from 'size_t' to 'long', possible loss of data
+  grib_accessor.c
+..\..\grib_accessor.c(299): warning C4267: 'return' : conversion from 'size_t' to 'long', possible loss of data
+  grib_2order_packer_simple.c
+..\..\grib_2order_packer_simple.c(39): warning C4018: '<' : signed/unsigned mismatch
+..\..\grib_2order_packer_simple.c(40): warning C4018: '>' : signed/unsigned mismatch
+..\..\grib_2order_packer_simple.c(45): warning C4267: '=' : conversion from 'size_t' to 'unsigned long', possible loss of data
+  functions.c
+..\..\functions.c(20): warning C4244: 'return' : conversion from 'double' to 'long', possible loss of data
+  compile.c
+..\..\compile.c(68): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\compile.c(71): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\compile.c(79): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+  action_class_write.c
+..\..\action_class_write.c(81): warning C4273: '_errno' : inconsistent dll linkage
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(249) : see previous definition of '_errno'
+..\..\action_class_write.c(98): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  action_class_while.c
+..\..\action_class_while.c(151): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  action_class_when.c
+..\..\action_class_when.c(107): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\action_class_when.c(123): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+..\..\action_class_when.c(128): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+  action_class_variable.c
+  action_class_trigger.c
+..\..\action_class_trigger.c(100): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  action_class_template.c
+  action_class_switch.c
+..\..\action_class_switch.c(109): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  action_class_set_missing.c
+..\..\action_class_set_missing.c(94): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  action_class_set_iarray.c
+..\..\action_class_set_iarray.c(99): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  action_class_set_darray.c
+..\..\action_class_set_darray.c(99): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  Generating Code...
+  Compiling...
+  action_class_set.c
+..\..\action_class_set.c(102): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  action_class_section.c
+  action_class_remove.c
+  action_class_put.c
+  action_class_print.c
+..\..\action_class_print.c(99): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
+..\..\action_class_print.c(103): warning C4996: 'strerror': This function or variable may be unsafe. Consider using strerror_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(157) : see declaration of 'strerror'
+..\..\action_class_print.c(108): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\action_class_print.c(124): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
+..\..\action_class_print.c(128): warning C4996: 'strerror': This function or variable may be unsafe. Consider using strerror_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(157) : see declaration of 'strerror'
+  action_class_noop.c
+..\..\action_class_noop.c(90): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  action_class_modify.c
+  action_class_meta.c
+  action_class_list.c
+..\..\action_class_list.c(171): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+  action_class_if.c
+..\..\action_class_if.c(116): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\action_class_if.c(118): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\action_class_if.c(134): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+..\..\action_class_if.c(139): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+  action_class_gen.c
+  action_class_concept.c
+..\..\action_class_concept.c(208): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\action_class_concept.c(214): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+..\..\action_class_concept.c(218): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+  action_class_assert.c
+  action_class_alias.c
+  action.c
+  Generating Code...
+ManifestResourceCompile:
+  All outputs are up-to-date.
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"C:\TEMP\gribsrc\gribapi\x64\Debug\gribapi.dll" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"x64\Debug\gribapi.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\TEMP\gribsrc\gribapi\x64\Debug\gribapi.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\TEMP\gribsrc\gribapi\x64\Debug\gribapi.lib" /MACHINE:X64 /DLL x64\Debug\gribapi.dll.embed.manifest.res
+  x64\Debug\action.obj
+  x64\Debug\action_class_alias.obj
+  x64\Debug\action_class_assert.obj
+  x64\Debug\action_class_concept.obj
+  x64\Debug\action_class_gen.obj
+  x64\Debug\action_class_if.obj
+  x64\Debug\action_class_list.obj
+  x64\Debug\action_class_meta.obj
+  x64\Debug\action_class_modify.obj
+  x64\Debug\action_class_noop.obj
+  x64\Debug\action_class_print.obj
+  x64\Debug\action_class_put.obj
+  x64\Debug\action_class_remove.obj
+  x64\Debug\action_class_section.obj
+  x64\Debug\action_class_set.obj
+  x64\Debug\action_class_set_darray.obj
+  x64\Debug\action_class_set_iarray.obj
+  x64\Debug\action_class_set_missing.obj
+  x64\Debug\action_class_switch.obj
+  x64\Debug\action_class_template.obj
+  x64\Debug\action_class_trigger.obj
+  x64\Debug\action_class_variable.obj
+  x64\Debug\action_class_when.obj
+  x64\Debug\action_class_while.obj
+  x64\Debug\action_class_write.obj
+  x64\Debug\compile.obj
+  x64\Debug\functions.obj
+  x64\Debug\grib_2order_packer_simple.obj
+  x64\Debug\grib_accessor.obj
+  x64\Debug\grib_accessor_class.obj
+  x64\Debug\grib_accessor_class_abstract_long_vector.obj
+  x64\Debug\grib_accessor_class_abstract_vector.obj
+  x64\Debug\grib_accessor_class_array.obj
+  x64\Debug\grib_accessor_class_ascii.obj
+  x64\Debug\grib_accessor_class_assert.obj
+  x64\Debug\grib_accessor_class_bit.obj
+  x64\Debug\grib_accessor_class_bitmap.obj
+  x64\Debug\grib_accessor_class_bits.obj
+  x64\Debug\grib_accessor_class_bits_per_value.obj
+  x64\Debug\grib_accessor_class_box.obj
+  x64\Debug\grib_accessor_class_budgdate.obj
+  x64\Debug\grib_accessor_class_bytes.obj
+  x64\Debug\grib_accessor_class_change_scanning_direction.obj
+  x64\Debug\grib_accessor_class_codeflag.obj
+  x64\Debug\grib_accessor_class_codetable.obj
+  x64\Debug\grib_accessor_class_codetable_title.obj
+  x64\Debug\grib_accessor_class_codetable_units.obj
+  x64\Debug\grib_accessor_class_concept.obj
+  x64\Debug\grib_accessor_class_constant.obj
+  x64\Debug\grib_accessor_class_count_file.obj
+  x64\Debug\grib_accessor_class_count_missing.obj
+  x64\Debug\grib_accessor_class_count_total.obj
+  x64\Debug\grib_accessor_class_data_2order_packing.obj
+  x64\Debug\grib_accessor_class_data_2order_packing_count.obj
+  x64\Debug\grib_accessor_class_data_apply_bitmap.obj
+  x64\Debug\grib_accessor_class_data_apply_boustrophedonic.obj
+  x64\Debug\grib_accessor_class_data_apply_gdsnotpresent.obj
+  x64\Debug\grib_accessor_class_data_complex_packing.obj
+  x64\Debug\grib_accessor_class_data_constant_field.obj
+  x64\Debug\grib_accessor_class_data_dummy_field.obj
+  x64\Debug\grib_accessor_class_data_g1complex_packing.obj
+  x64\Debug\grib_accessor_class_data_g1secondary_bitmap.obj
+  x64\Debug\grib_accessor_class_data_g1second_order_constant_width_packing.obj
+  x64\Debug\grib_accessor_class_data_g1second_order_general_extended_packing.obj
+  x64\Debug\grib_accessor_class_data_g1second_order_general_packing.obj
+  x64\Debug\grib_accessor_class_data_g1second_order_row_by_row_packing.obj
+  x64\Debug\grib_accessor_class_data_g1shsimple_packing.obj
+  x64\Debug\grib_accessor_class_data_g1simple_packing.obj
+  x64\Debug\grib_accessor_class_data_g22order_packing.obj
+  x64\Debug\grib_accessor_class_data_g2complex_packing.obj
+  x64\Debug\grib_accessor_class_data_g2secondary_bitmap.obj
+  x64\Debug\grib_accessor_class_data_g2shsimple_packing.obj
+  x64\Debug\grib_accessor_class_data_g2simple_packing.obj
+  x64\Debug\grib_accessor_class_data_g2simple_packing_with_preprocessing.obj
+  x64\Debug\grib_accessor_class_data_jpeg2000_packing.obj
+  x64\Debug\grib_accessor_class_data_png_packing.obj
+  x64\Debug\grib_accessor_class_data_raw_packing.obj
+  x64\Debug\grib_accessor_class_data_secondary_bitmap.obj
+  x64\Debug\grib_accessor_class_data_shsimple_packing.obj
+  x64\Debug\grib_accessor_class_data_sh_packed.obj
+  x64\Debug\grib_accessor_class_data_sh_unpacked.obj
+  x64\Debug\grib_accessor_class_data_simple_packing.obj
+  x64\Debug\grib_accessor_class_data_szip_packing.obj
+  x64\Debug\grib_accessor_class_decimal_precision.obj
+  x64\Debug\grib_accessor_class_dirty.obj
+  x64\Debug\grib_accessor_class_divdouble.obj
+  x64\Debug\grib_accessor_class_double.obj
+  x64\Debug\grib_accessor_class_element.obj
+  x64\Debug\grib_accessor_class_evaluate.obj
+  x64\Debug\grib_accessor_class_forward.obj
+  x64\Debug\grib_accessor_class_from_scale_factor_scaled_value.obj
+  x64\Debug\grib_accessor_class_g1area.obj
+  x64\Debug\grib_accessor_class_g1bitmap.obj
+  x64\Debug\grib_accessor_class_g1date.obj
+  x64\Debug\grib_accessor_class_g1day_of_the_year_date.obj
+  x64\Debug\grib_accessor_class_g1end_of_interval_monthly.obj
+  x64\Debug\grib_accessor_class_g1fcperiod.obj
+  x64\Debug\grib_accessor_class_g1forecastmonth.obj
+  x64\Debug\grib_accessor_class_g1monthlydate.obj
+  x64\Debug\grib_accessor_class_g1number_of_coded_values_sh_complex.obj
+  x64\Debug\grib_accessor_class_g1number_of_coded_values_sh_simple.obj
+  x64\Debug\grib_accessor_class_g1p1p2.obj
+  x64\Debug\grib_accessor_class_g1param.obj
+  x64\Debug\grib_accessor_class_g1step_range.obj
+  x64\Debug\grib_accessor_class_g1verificationdate.obj
+  x64\Debug\grib_accessor_class_g1_half_byte_codeflag.obj
+  x64\Debug\grib_accessor_class_g1_increment.obj
+  x64\Debug\grib_accessor_class_g1_message_length.obj
+  x64\Debug\grib_accessor_class_g1_section4_length.obj
+  x64\Debug\grib_accessor_class_g2bitmap.obj
+  x64\Debug\grib_accessor_class_g2bitmap_present.obj
+  x64\Debug\grib_accessor_class_g2date.obj
+  x64\Debug\grib_accessor_class_g2end_step.obj
+  x64\Debug\grib_accessor_class_g2grid.obj
+  x64\Debug\grib_accessor_class_g2latlon.obj
+  x64\Debug\grib_accessor_class_g2level.obj
+  x64\Debug\grib_accessor_class_g2lon.obj
+  x64\Debug\grib_accessor_class_g2step.obj
+  x64\Debug\grib_accessor_class_g2step_range.obj
+  x64\Debug\grib_accessor_class_g2_chemical.obj
+  x64\Debug\grib_accessor_class_g2_eps.obj
+  x64\Debug\grib_accessor_class_g2_mars_labeling.obj
+  x64\Debug\grib_accessor_class_gds_is_present.obj
+  x64\Debug\grib_accessor_class_gds_not_present_bitmap.obj
+  x64\Debug\grib_accessor_class_gen.obj
+  x64\Debug\grib_accessor_class_global_gaussian.obj
+  x64\Debug\grib_accessor_class_gts_header.obj
+  x64\Debug\grib_accessor_class_headers_only.obj
+  x64\Debug\grib_accessor_class_ibmfloat.obj
+  x64\Debug\grib_accessor_class_ieeefloat.obj
+  x64\Debug\grib_accessor_class_ifs_param.obj
+  x64\Debug\grib_accessor_class_iterator.obj
+  x64\Debug\grib_accessor_class_julian_day.obj
+  x64\Debug\grib_accessor_class_ksec1expver.obj
+  x64\Debug\grib_accessor_class_label.obj
+  x64\Debug\grib_accessor_class_laplacian.obj
+  x64\Debug\grib_accessor_class_latitudes.obj
+  x64\Debug\grib_accessor_class_latlonvalues.obj
+  x64\Debug\grib_accessor_class_latlon_increment.obj
+  x64\Debug\grib_accessor_class_library_version.obj
+  x64\Debug\grib_accessor_class_local_definition.obj
+  x64\Debug\grib_accessor_class_long.obj
+  x64\Debug\grib_accessor_class_longitudes.obj
+  x64\Debug\grib_accessor_class_long_vector.obj
+  x64\Debug\grib_accessor_class_lookup.obj
+  x64\Debug\grib_accessor_class_mars_param.obj
+  x64\Debug\grib_accessor_class_mars_step.obj
+  x64\Debug\grib_accessor_class_md5.obj
+  x64\Debug\grib_accessor_class_message.obj
+  x64\Debug\grib_accessor_class_missing.obj
+  x64\Debug\grib_accessor_class_nearest.obj
+  x64\Debug\grib_accessor_class_number_of_coded_values.obj
+  x64\Debug\grib_accessor_class_number_of_points.obj
+  x64\Debug\grib_accessor_class_number_of_points_gaussian.obj
+  x64\Debug\grib_accessor_class_number_of_values.obj
+  x64\Debug\grib_accessor_class_number_of_values_data_raw_packing.obj
+  x64\Debug\grib_accessor_class_octect_number.obj
+  x64\Debug\grib_accessor_class_offset_file.obj
+  x64\Debug\grib_accessor_class_offset_values.obj
+  x64\Debug\grib_accessor_class_pad.obj
+  x64\Debug\grib_accessor_class_padding.obj
+  x64\Debug\grib_accessor_class_padto.obj
+  x64\Debug\grib_accessor_class_padtoeven.obj
+  x64\Debug\grib_accessor_class_padtomultiple.obj
+  x64\Debug\grib_accessor_class_position.obj
+  x64\Debug\grib_accessor_class_reference_value_error.obj
+  x64\Debug\grib_accessor_class_round.obj
+  x64\Debug\grib_accessor_class_scale.obj
+  x64\Debug\grib_accessor_class_scale_values.obj
+  x64\Debug\grib_accessor_class_second_order_bits_per_value.obj
+  x64\Debug\grib_accessor_class_section.obj
+  x64\Debug\grib_accessor_class_section_length.obj
+  x64\Debug\grib_accessor_class_section_padding.obj
+  x64\Debug\grib_accessor_class_section_pointer.obj
+  x64\Debug\grib_accessor_class_select_step_template.obj
+  x64\Debug\grib_accessor_class_signed.obj
+  x64\Debug\grib_accessor_class_signed_bits.obj
+  x64\Debug\grib_accessor_class_simple_packing_error.obj
+  x64\Debug\grib_accessor_class_size.obj
+  x64\Debug\grib_accessor_class_spd.obj
+  x64\Debug\grib_accessor_class_spectral_truncation.obj
+  x64\Debug\grib_accessor_class_sprintf.obj
+  x64\Debug\grib_accessor_class_statistics.obj
+  x64\Debug\grib_accessor_class_statistics_spectral.obj
+  x64\Debug\grib_accessor_class_step_in_units.obj
+  x64\Debug\grib_accessor_class_sum.obj
+  x64\Debug\grib_accessor_class_suppressed.obj
+  x64\Debug\grib_accessor_class_time.obj
+  x64\Debug\grib_accessor_class_times.obj
+  x64\Debug\grib_accessor_class_transient.obj
+  x64\Debug\grib_accessor_class_unsigned.obj
+  x64\Debug\grib_accessor_class_unsigned_bits.obj
+  x64\Debug\grib_accessor_class_validity_date.obj
+  x64\Debug\grib_accessor_class_validity_time.obj
+  x64\Debug\grib_accessor_class_values.obj
+  x64\Debug\grib_accessor_class_variable.obj
+  x64\Debug\grib_accessor_class_vector.obj
+  x64\Debug\grib_accessor_class_when.obj
+  x64\Debug\grib_bits.obj
+  x64\Debug\grib_box.obj
+  x64\Debug\grib_box_class.obj
+  x64\Debug\grib_box_class_gen.obj
+  x64\Debug\grib_box_class_reduced_gaussian.obj
+  x64\Debug\grib_box_class_regular_gaussian.obj
+  x64\Debug\grib_buffer.obj
+  x64\Debug\grib_concept.obj
+  x64\Debug\grib_context.obj
+  x64\Debug\grib_darray.obj
+  x64\Debug\grib_date.obj
+  x64\Debug\grib_dependency.obj
+  x64\Debug\grib_dumper.obj
+  x64\Debug\grib_dumper_class.obj
+  x64\Debug\grib_dumper_class_c_code.obj
+  x64\Debug\grib_dumper_class_debug.obj
+  x64\Debug\grib_dumper_class_default.obj
+  x64\Debug\grib_dumper_class_keys.obj
+  x64\Debug\grib_dumper_class_serialize.obj
+  x64\Debug\grib_dumper_class_wmo.obj
+  x64\Debug\grib_errors.obj
+  x64\Debug\grib_expression.obj
+  x64\Debug\grib_expression_class_accessor.obj
+  x64\Debug\grib_expression_class_binop.obj
+  x64\Debug\grib_expression_class_double.obj
+  x64\Debug\grib_expression_class_functor.obj
+  x64\Debug\grib_expression_class_long.obj
+  x64\Debug\grib_expression_class_string.obj
+  x64\Debug\grib_expression_class_string_compare.obj
+  x64\Debug\grib_expression_class_true.obj
+  x64\Debug\grib_expression_class_unop.obj
+  x64\Debug\grib_fieldset.obj
+  x64\Debug\grib_filepool.obj
+  x64\Debug\grib_gaussian_reduced.obj
+  x64\Debug\grib_geography.obj
+  x64\Debug\grib_handle.obj
+  x64\Debug\grib_hash_keys.obj
+  x64\Debug\grib_header_compute.obj
+  x64\Debug\grib_iarray.obj
+  x64\Debug\grib_ibmfloat.obj
+  x64\Debug\grib_ieeefloat.obj
+  x64\Debug\grib_index.obj
+  x64\Debug\grib_io.obj
+  x64\Debug\grib_iterator.obj
+  x64\Debug\grib_iterator_class.obj
+  x64\Debug\grib_iterator_class_gaussian.obj
+  x64\Debug\grib_iterator_class_gaussian_reduced.obj
+  x64\Debug\grib_iterator_class_gen.obj
+  x64\Debug\grib_iterator_class_lambert_azimuthal_equal_area.obj
+  x64\Debug\grib_iterator_class_lambert_conformal.obj
+  x64\Debug\grib_iterator_class_latlon.obj
+  x64\Debug\grib_iterator_class_latlon_reduced.obj
+  x64\Debug\grib_iterator_class_polar_stereographic.obj
+  x64\Debug\grib_iterator_class_regular.obj
+  x64\Debug\grib_itrie.obj
+  x64\Debug\grib_jasper_encoding.obj
+  x64\Debug\grib_keys_iterator.obj
+  x64\Debug\grib_lex.obj
+  x64\Debug\grib_loader_from_handle.obj
+  x64\Debug\grib_memory.obj
+  x64\Debug\grib_nearest.obj
+  x64\Debug\grib_nearest_class.obj
+  x64\Debug\grib_nearest_class_gen.obj
+  x64\Debug\grib_nearest_class_latlon_reduced.obj
+  x64\Debug\grib_nearest_class_reduced.obj
+  x64\Debug\grib_nearest_class_regular.obj
+  x64\Debug\grib_nearest_class_sh.obj
+  x64\Debug\grib_openjpeg_encoding.obj
+  x64\Debug\grib_parse_utils.obj
+  x64\Debug\grib_query.obj
+  x64\Debug\grib_rules.obj
+  x64\Debug\grib_scaling.obj
+  x64\Debug\grib_templates.obj
+  x64\Debug\grib_timer.obj
+  x64\Debug\grib_trie.obj
+  x64\Debug\grib_util.obj
+  x64\Debug\grib_value.obj
+  x64\Debug\grib_yacc.obj
+  x64\Debug\md5.obj
+  gribapi.vcxproj -> C:\TEMP\gribsrc\gribapi\x64\Debug\gribapi.dll
+Manifest:
+  C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /out:"x64\Debug\gribapi.dll.embed.manifest" /manifest x64\Debug\gribapi.dll.intermediate.manifest
+  All outputs are up-to-date.
+LinkEmbedManifest:
+  All outputs are up-to-date.
+  gribapi.vcxproj -> C:\TEMP\gribsrc\gribapi\x64\Debug\gribapi.dll
+FinalizeBuildStatus:
+  Deleting file "x64\Debug\gribapi.unsuccessfulbuild".
+  Touching "x64\Debug\gribapi.lastbuildstate".
+Done Building Project "C:\TEMP\gribsrc\gribapi\gribapi\gribapi.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:23.34
