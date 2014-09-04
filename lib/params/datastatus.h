@@ -64,7 +64,13 @@ public:
 	//! Values in this array are in the order: minx, miny, minz, maxx, maxy, maxz.
 	//! \retval const float[6] extents array
 	const float* getLocalExtents() { return extents; }
+	//! Obtain the full size of the data in user coordinates.
+	//! Values in this array are in the order: sizex, sizey, sizez
+	//! \retval const float[3] size array
 	const float* getFullSizes() {return fullSizes;}
+	//! Obtain the full stretched size of the data in user coordinates.
+	//! Values in this array are in the order: sizex, sizey, sizez
+	//! \retval const float[3] stretched size array
 	const float* getFullStretchedSizes() {return fullStretchedSizes;}
 
 
