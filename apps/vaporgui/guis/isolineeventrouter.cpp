@@ -172,7 +172,6 @@ IsolineEventRouter::hookUpTab()
 	connect (numDigitsEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (fidelityDefaultButton, SIGNAL(clicked()), this, SLOT(guiSetFidelityDefault()));
 	connect (fitDataButton, SIGNAL(clicked()), this, SLOT(guiFitToData()));
-	connect (fitIsovalsButton, SIGNAL(clicked()), this, SLOT(guiFitIsovalsToHisto()));
 	connect (uniformButton, SIGNAL(clicked()),this,SLOT(guiSpaceIsovalues()));
 	connect (singleColorButton, SIGNAL(clicked()),this, SLOT(guiSetSingleColor()));
 
@@ -2675,15 +2674,7 @@ void IsolineEventRouter::guiFitToData(){
 	updateTab();
 	
 }
-//Fit the isovals into current histo window.
-void IsolineEventRouter::guiFitIsovalsToHisto(){
-	confirmText(false);
-	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(iParams, "fit isovalues to histo bounds");
-	fitIsovalsToHisto(iParams);
-	PanelCommand::captureEnd(cmd, iParams);
-	updateTab();
-}
+
 void IsolineEventRouter::copyToProbeOr2D(){
 	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
 	if (iParams->VariablesAre3D()) guiCopyToProbe();

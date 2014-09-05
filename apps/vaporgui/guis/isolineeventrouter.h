@@ -191,7 +191,6 @@ protected slots:
 	void guiStartChangeIsoSelection(QString);
 	void guiEndChangeIsoSelection();
 	void guiFitToData();
-	void guiFitIsovalsToHisto();
 	void guiCopyToProbe();
 	void guiCopyTo2D();
 	
