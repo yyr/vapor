@@ -44,7 +44,7 @@
 #define HAVE_ASSERT_H 1
 
 /* Define to 1 if you have the `bzero' function. */
-#define HAVE_BZERO 1
+#define HAVE_BZERO 0
 
 /* Define to 1 if you have the <ctype.h> header file. */
 #define HAVE_CTYPE_H 1

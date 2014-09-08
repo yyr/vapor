@@ -20,7 +20,7 @@
 
 #ifndef GRIBPARSER_H
 #define GRIBPARSER_H
-#include "/Users/pearse/Downloads/grib_api-1.12.3/src/grib_api.h"
+#include "grib_api.h"
 //#include <vapor/UDUnitsClass.h>
 #include <vapor/DCReader.h>
 #include <iostream>
@@ -52,7 +52,7 @@ class UDUnits;
 	int offset;	
  };
 
- class Variable {
+ class VDF_API Variable {
     public:
      Variable();
      ~Variable();
@@ -86,7 +86,7 @@ class UDUnits;
 	 std::vector<double> _unitTimes;  
  };
 
- class DCReaderGRIB : public DCReader {
+ class VDF_API DCReaderGRIB : public DCReader {
     public:
 	 DCReaderGRIB();
 	 ~DCReaderGRIB();
@@ -203,7 +203,7 @@ class UDUnits;
 	 UDUnits *_udunit;
  };
 
- class GribParser {
+ class VDF_API GribParser {
 	public:
 	 GribParser();
 	 ~GribParser();

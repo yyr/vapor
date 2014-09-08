@@ -20,6 +20,7 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vdf", "..\vdf\vdf.vcxproj", "{91C4E098-BC79-4784-94B7-C96B3548682D}"
 	ProjectSection(ProjectDependencies) = postProject
 		{4E6A655A-0B4A-4FE7-A056-BE4A1AA52638} = {4E6A655A-0B4A-4FE7-A056-BE4A1AA52638}
+		{4E78CEB5-55C5-4BE2-A59F-B382B37F2182} = {4E78CEB5-55C5-4BE2-A59F-B382B37F2182}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "common", "common.vcxproj", "{29C8AC86-3D4B-4081-9D20-0770B10C4D30}"
@@ -75,6 +76,14 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vdcwizard", "..\vdcwizard\vdcwizard.vcxproj", "{A8DC2DCE-32AE-4332-8CF1-EB8489F28964}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gribapi", "..\gribapi\gribapi.vcxproj", "{4E78CEB5-55C5-4BE2-A59F-B382B37F2182}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gribvdfcreate", "..\gribvdfcreate\gribvdfcreate.vcxproj", "{7DDBF684-CBBC-41C3-A20B-1B34C1ED223F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4E6A655A-0B4A-4FE7-A056-BE4A1AA52638} = {4E6A655A-0B4A-4FE7-A056-BE4A1AA52638}
+		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
+		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
+		{4E78CEB5-55C5-4BE2-A59F-B382B37F2182} = {4E78CEB5-55C5-4BE2-A59F-B382B37F2182}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -300,6 +309,13 @@ Global
 		{4E78CEB5-55C5-4BE2-A59F-B382B37F2182}.Release|Win32.ActiveCfg = Release|Win32
 		{4E78CEB5-55C5-4BE2-A59F-B382B37F2182}.Release|Win32.Build.0 = Release|Win32
 		{4E78CEB5-55C5-4BE2-A59F-B382B37F2182}.Release|x64.ActiveCfg = Release|Win32
+		{7DDBF684-CBBC-41C3-A20B-1B34C1ED223F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7DDBF684-CBBC-41C3-A20B-1B34C1ED223F}.Debug|Win32.Build.0 = Debug|Win32
+		{7DDBF684-CBBC-41C3-A20B-1B34C1ED223F}.Debug|x64.ActiveCfg = Debug|x64
+		{7DDBF684-CBBC-41C3-A20B-1B34C1ED223F}.Debug|x64.Build.0 = Debug|x64
+		{7DDBF684-CBBC-41C3-A20B-1B34C1ED223F}.Release|Win32.ActiveCfg = Release|Win32
+		{7DDBF684-CBBC-41C3-A20B-1B34C1ED223F}.Release|Win32.Build.0 = Release|Win32
+		{7DDBF684-CBBC-41C3-A20B-1B34C1ED223F}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

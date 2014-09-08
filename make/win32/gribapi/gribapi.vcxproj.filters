@@ -72,6 +72,9 @@
     <ClInclude Include="..\..\..\lib\gribapi\md5.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\lib\gribapi\dirent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\lib\gribapi\action.c">

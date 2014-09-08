@@ -204,6 +204,9 @@
     <ClCompile Include="..\..\..\lib\vdf\Proj4API.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\lib\vdf\GribParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\vapor\AMRData.h">
@@ -348,6 +351,9 @@
       <Filter>Source Files\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\vapor\Proj4API.h">
+      <Filter>Source Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\vapor\GribParser.h">
       <Filter>Source Files\Header Files</Filter>
     </ClInclude>
   </ItemGroup>

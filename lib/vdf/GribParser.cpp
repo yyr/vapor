@@ -17,7 +17,8 @@
 #include <udunits2.h>
 #endif*/
 
-#include "GribParser.h"
+#include "vapor/GribParser.h"
+#define bzero(b,len) (memset((b), '\0', (len)), (void) 0)
 #ifdef WIN32
 #pragma warning(disable : 4251)
 #endif

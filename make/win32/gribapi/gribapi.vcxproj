@@ -156,6 +156,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\lib\gribapi\config.h" />
+    <ClInclude Include="..\..\..\lib\gribapi\dirent.h" />
     <ClInclude Include="..\..\..\lib\gribapi\grib_accessor_class.h" />
     <ClInclude Include="..\..\..\lib\gribapi\grib_accessor_factory.h" />
     <ClInclude Include="..\..\..\lib\gribapi\grib_api.h" />
