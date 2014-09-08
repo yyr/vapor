@@ -841,7 +841,7 @@ and move control points.</string>
               <item>
                <widget class="QPushButton" name="alignButton">
                 <property name="toolTip">
-                 <string>Align edit window with histogram bounds</string>
+                 <string>Align edit window with histogram bounds, forcing isovalues to fit in histo bounds</string>
                 </property>
                 <property name="whatsThis">
                  <string>The &quot;Fit to View&quot; button is used to make the current editing region coincide with the histogram bounds.</string>
