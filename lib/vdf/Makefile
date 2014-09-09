@@ -21,7 +21,7 @@ FILES = \
 	NetCDFCollection NetCDFCFCollection WeightTable \
 	DCReaderNCDF  DCReaderMOM DCReaderROMS VDCFactory \
 	DataMgrROMS DataMgrMOM DCReaderWRF UDUnitsClass Copy2VDF vdfcreate \
-	WrfVDCcreator WrfVDFcreator  Proj4API GribParser
+	WrfVDCcreator WrfVDFcreator  Proj4API 
 
 HEADER_FILES = \
 	BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata MetadataVDC \
@@ -41,7 +41,7 @@ HEADER_FILES = \
 	NetCDFCollection NetCDFCFCollection WeightTable \
 	DCReader DCReaderNCDF DCReaderMOM DCReaderROMS VDCFactory \
 	DataMgrROMS DataMgrMOM DCReaderWRF UDUnitsClass Copy2VDF vdfcreate \
-	WrfVDCcreator WrfVDFcreator  Proj4API GribParser
+	WrfVDCcreator WrfVDFcreator  Proj4API 
 
 #LIBRARIESS += grib_api
 
