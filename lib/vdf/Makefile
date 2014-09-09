@@ -21,7 +21,7 @@ FILES = \
 	NetCDFCollection NetCDFCFCollection WeightTable \
 	DCReaderNCDF  DCReaderMOM DCReaderROMS VDCFactory \
 	DataMgrROMS DataMgrMOM DCReaderWRF UDUnitsClass Copy2VDF vdfcreate \
-	WrfVDCcreator WrfVDFcreator  Proj4API
+	WrfVDCcreator WrfVDFcreator  Proj4API 
 
 HEADER_FILES = \
 	BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata MetadataVDC \
@@ -41,12 +41,17 @@ HEADER_FILES = \
 	NetCDFCollection NetCDFCFCollection WeightTable \
 	DCReader DCReaderNCDF DCReaderMOM DCReaderROMS VDCFactory \
 	DataMgrROMS DataMgrMOM DCReaderWRF UDUnitsClass Copy2VDF vdfcreate \
-	WrfVDCcreator WrfVDFcreator  Proj4API
+	WrfVDCcreator WrfVDFcreator  Proj4API 
 
 #LIBRARIESS += grib_api
 
 #LIB_DEFS = vdf.def
 
+
+ifeq ($(BUILD_GRIB),1)
+FILES += GribParser
+HEADER_FILES += GribParser
+endif
 
 ifeq ($(BUILD_GUI),1)
 MAKEFILE_CXXFLAGS += -D"BUILD_GUI"

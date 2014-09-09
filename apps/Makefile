@@ -6,6 +6,10 @@ SUBDIRS = vdfcreate raw2vdf vdf2raw vaporversion ncdf2vdf momvdfcreate \
 	mom2vdf wrfvdfcreate wrf2vdf vdfls vdfedit cart2wrfvdf \
 	romsvdfcreate roms2vdf ncdfvdfcreate
 
+ifeq ($(BUILD_GRIB),1)
+SUBDIRS += gribvdfcreate
+endif
+
 ifeq ($(BUILD_AMR_SUPPORT), 1)
 SUBDIRS += flashamr2vdf 
 endif
