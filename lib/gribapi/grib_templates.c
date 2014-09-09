@@ -55,7 +55,7 @@ static grib_handle* try_template(grib_context* c,const char* dir,const char* nam
   if(access(path,F_OK) == 0)
 #endif
   {
-    FILE* f = fopen(path,"r");
+    FILE* f = fopen(path,"rb");
     if(!f)
     {
       grib_context_log(c,GRIB_LOG_PERROR,"cannot open %s",path);

@@ -433,7 +433,7 @@ void grib_parser_include(const char* fname)
 		parse_file = path;
 	}
 
-	f = fopen(parse_file,"r");
+	f = fopen(parse_file,"rb");
 	/* for(i = 0; i < top ; i++) printf("   "); */
 	/* printf("PARSING %s\n",parse_file); */
 

@@ -11,6 +11,10 @@ Such as rint, ftello, fseeko, access, strcasecmp.
 realpath() was not ported (so this code will not convert symbolic links or handle .. or . in paths).
 All the above changes can be identified by searching for "_WINDOWS" in the code.
 In the flex/bison code, FLOAT was replaced with Float and BYTE was replaced with Byte, to avoid name conflicts.
-grib_api.h had all its methods prefixed with "GRIBAPI_API" so these will be experted on Windows.
+grib_api.h had all its methods prefixed with "GRIBAPI_API" so these will be exported on Windows.
+
+All fopen calls in the grib code had the mode changed from "r" to "rb".
+The directory "share/grib_api/definitions/" was copied over from the Mac installation, and the environment variable "GRIB_DEFINITION_PATH" was defined to that directory.
+
 Most but not all .c and .h files are included in the windows project, but all the files in the src subdirectory are included in this directory.
  

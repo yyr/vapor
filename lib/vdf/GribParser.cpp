@@ -113,7 +113,7 @@ int DCReaderGRIB::ReadSlice(float *_values){
 	int offset = targetVar->GetOffset(usertime,level);
 	string filename = targetVar->GetFileName(usertime,level);	
  
-    FILE* in = fopen(filename.c_str(),"r");
+    FILE* in = fopen(filename.c_str(),"rb");
     if(!in) {
         printf("ERROR: unable to open file %s\n",filename.c_str());
         return -1;
@@ -472,7 +472,7 @@ GribParser::GribParser() {
 
 int GribParser::_LoadRecord(string file, size_t index) {
     _filename = file;
-    _in = fopen(_filename.c_str(),"r");
+    _in = fopen(_filename.c_str(),"rb");
     if(!_in) {
         printf("ERROR: unable to open file %s\n",_filename.c_str());
         return -1;
@@ -538,7 +538,7 @@ int GribParser::_LoadRecord(string file, size_t index) {
 
 int GribParser::_LoadRecordKeys(string file) {
 	_filename = file;
-    _in = fopen(_filename.c_str(),"r");
+    _in = fopen(_filename.c_str(),"rb");
     if(!_in) {
         printf("ERROR: unable to open file %s\n",_filename.c_str());
         return -1;
@@ -605,7 +605,7 @@ int GribParser::_LoadRecordKeys(string file) {
 
 int GribParser::_LoadAllRecordKeys(string file) {
     _filename = file;
-    _in = fopen(_filename.c_str(),"r");
+    _in = fopen(_filename.c_str(),"rb");
     if(!_in) {
         printf("ERROR: unable to open file %s\n",_filename.c_str());
         return -1;
