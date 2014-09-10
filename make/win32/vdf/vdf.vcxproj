@@ -199,7 +199,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libexpat.lib;mpr.lib;netcdf.lib;grib_api.lib;gribapi.lib;proj_i.lib;udunits2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libexpat.lib;mpr.lib;netcdf.lib;grib_api.lib;proj_i.lib;udunits2.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>../../../targets/win64/bin/vdf.dll</OutputFile>
       <AdditionalLibraryDirectories>../../../targets/win64/bin;$(VAPOR_WIN64_RELEASE_LIB_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>msvcrtd;msvcr71d;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -339,6 +339,12 @@
     <ProjectReference Include="..\common\common.vcxproj">
       <Project>{29c8ac86-3d4b-4081-9d20-0770b10c4d30}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\gribapi\gribapi.vcxproj">
+      <Project>{4e78ceb5-55c5-4be2-a59f-b382b37f2182}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\udunits2\udunits2.vcxproj">
+      <Project>{4e6a655a-0b4a-4fe7-a056-be4a1aa52638}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
