@@ -326,6 +326,8 @@ FlowEventRouter::hookUpTab()
 	connect (showHideTimeButton, SIGNAL(pressed()), this, SLOT(showHideUnsteadyTime()));
 	connect (showHideAppearanceButton, SIGNAL(pressed()), this, SLOT(showHideAppearance()));
 	connect(colorInterpCheckbox,SIGNAL(toggled(bool)), this, SLOT(guiToggleColorInterpType(bool)));
+	connect(colorMappingFrame, SIGNAL(canBindControlPoints(bool)),
+            this, SLOT(setBindButtons(bool)));
 	dontUpdate=false;
 }
 
@@ -1508,6 +1510,7 @@ reinitTab(bool doOverride){
 	FlowParams* dParams = (FlowParams*)VizWinMgr::getActiveParams(Params::_flowParamsTag);
 	setupFidelity(3, fidelityLayout,fidelityBox, dParams, doOverride);
 	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
+	setBindButtons(false);
 	updateTab();
 	dontUpdate=false;
 }
@@ -3421,4 +3424,9 @@ void FlowEventRouter::guiSetFidelityDefault(){
 	delete postPrefs;
 	updateTab();
 	
+}
+void FlowEventRouter::setBindButtons(bool canbind)
+{
+  OpacityBindButton->setEnabled(canbind);
+  ColorBindButton->setEnabled(canbind);
 }
