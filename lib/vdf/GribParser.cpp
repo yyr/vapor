@@ -1,23 +1,31 @@
+//************************************************************************
+//                                                                       *
+//           Copyright (C)  2004                                         *
+//     University Corporation for Atmospheric Research                   *
+//           All Rights Reserved                                         *
+//                                                                       *
+//************************************************************************/
+//
+//  File:        GribParser.cpp
+//
+//  Author:      Scott Pearse
+//               National Center for Atmospheric Research
+//               PO 3000, Boulder, Colorado
+//
+//  Date:        June 2014
+//
+//  Description: TBD 
+//               
+//
+
 #include <iostream>
 #include <sstream>
 #include <iterator>
 #include <cassert>
 #include <string>
-//#include <vapor/MyBase.h>
-//#include <vapor/OptionParser.h>
-//#include <vapor/WaveCodecIO.h>
-//#include <vapor/MetadataVDC.h>
-//#include <vapor/VDCFactory.h>
-//#include <vapor/Proj4API.h>
-
-/*#include <vapor/UDUnitsClass.h>
-#ifdef _WINDOWS
-#include "vapor/udunits2.h"
-#else
-#include <udunits2.h>
-#endif*/
 
 #include "vapor/GribParser.h"
+#include "vapor/Proj4API.h"
 #define bzero(b,len) (memset((b), '\0', (len)), (void) 0)
 #ifdef WIN32
 #pragma warning(disable : 4251)
@@ -83,6 +91,7 @@ DCReaderGRIB::DCReaderGRIB() {
 	_Ni = NULL;
 	_Nj = NULL;
 	_levels.clear();
+	_cartesianExtents.clear();
 	_gribTimes.clear();
 	_vars2d.clear();
 	_vars3d.clear();
@@ -159,45 +168,64 @@ int DCReaderGRIB::ReadSlice(float *_values){
     return 1;
 }
 
-int DCReaderGRIB::InitCartographicExtents() const {
-    string mapProj;
-    double lonExts[2];
-    double latExts[2];
-    std::vector<double> vertCoordinates;
-    std::vector<double> extents;
-    //Proj4API proj4API;
+string DCReaderGRIB::GetMapProjection() const {
 
-	/*latExts[0] = records[0]["latitudeOfFirstGridPointInDegrees"];
-	latExts[1] = records[0]["latitudeOfLastGridPointInDegrees"];
-	lonExts[0] = records[0]["longitudeOfFirstGridPointInDegrees"];
-	lonExts[1] = records[0]["longitudeOfLastGridPointInDegrees"];
-    double lon_0 = (_lonExts[0] + _lonExts[1]) / 2.0;
-    double lat_0 = (_latExts[0] + _latExts[1]) / 2.0;
+    double lon_0 = (_minLon + _maxLon) / 2.0;
+    double lat_0 = (_minLat + _maxLat) / 2.0;
     ostringstream oss;
-    oss << " +lon_0=" << lon_0 << "+lat_0=" << lat_0;
+    oss << " +lon_0=" << lon_0 << " +lat_0=" << lat_0;
     string projstring = "+proj=eqc +ellps=WGS84" + oss.str();
 
-    int rc = proj4API.Initialize("", projstring);
+    return(projstring);
+}
+
+
+double DCReaderGRIB::BarometricFormula(const double pressure) const {
+    double Po = 101325;  // (kg/m3)    Mass density of air @ MSL
+    double g  = 9.81;    // (m/s2)     gravity
+    double M  = .0289;   // (kg/mol)   Molar mass of air
+    double R  = 8.31447; // (J/(mol•K) Univ. gas constant
+    double To = 288.15;  // (K)        Std. temperature of air @ MSL
+	double pressure2 = pressure * 100; // pressure in pascals
+	double height;
+
+	height = -1 * R * To * log(pressure2/Po) / (g * M);
+	return height;
+}
+
+int DCReaderGRIB::_InitCartographicExtents(string mapProj,
+                                           const std::vector<double> vertCoordinates,
+                                           std::vector<double> &extents) const {
+
+    Proj4API proj4API;
+
+    int rc = proj4API.Initialize("", mapProj);
     if (rc<0) {
         SetErrMsg("Invalid map projection : %s", mapProj.c_str());
         return(-1);
     }   
 
-    double x[] = {lonExts[0], lonExts[1]};
-    double y[] = {latExts[0], latExts[1]};
+    double x[] = {_minLon, _maxLon};
+    double y[] = {_minLat, _maxLat};
 
     rc = proj4API.Transform(x,y,2,1);
     if (rc < 0) {
         SetErrMsg("Invalid map projection : %s", mapProj.c_str());
         return(-1);
-    }   
+    }  
+	
+	double top = BarometricFormula(vertCoordinates[vertCoordinates.size()-1]);
+	double bottom = BarometricFormula(vertCoordinates[0]);
+
     extents.push_back(x[0]);
     extents.push_back(y[0]);
-    extents.push_back(vertCoordinates[0]);
+    extents.push_back(bottom);
     extents.push_back(x[1]);
     extents.push_back(y[1]);
-    extents.push_back(vertCoordinates[vertCoordinates.size()-1]);
-*/
+    extents.push_back(top);
+
+	cout << x[0] << " " << y[0] << " " << bottom << " " << x[1] << " " << y[1] << " " << top << endl;
+
     return 0;
 }
 
@@ -214,6 +242,8 @@ int DCReaderGRIB::_Initialize(std::vector<std::map<std::string, std::string> > r
 	_minLon = atof(records[0]["longitudeOfFirstGridPointInDegrees"].c_str());
 	_maxLat = atof(records[0]["latitudeOfLastGridPointInDegrees"].c_str());
 	_maxLon = atof(records[0]["longitudeOfLastGridPointInDegrees"].c_str());
+
+	if (_maxLon < 0) _maxLon += 360;
 
     for (int i=0; i<numRecords; i++) {
 		std::map<std::string, std::string> record = records[i];
@@ -294,6 +324,12 @@ int DCReaderGRIB::_Initialize(std::vector<std::map<std::string, std::string> > r
         _vars2d[iterator->first]->_SortLevels();			// Sort the levels that apply to each individual variable
     }
 	sort(_levels.begin(), _levels.end());	// Sort the levels that apply to the entire dataset
+
+	int rc = _InitCartographicExtents(GetMapProjection(),
+			  						 _levels,
+									 _cartesianExtents);
+	if (rc<0) return -1;			 
+
 	return 0;
 }
 
@@ -310,11 +346,6 @@ void DCReaderGRIB::Print3dVars() {
 
 void DCReaderGRIB::GetGridDim(size_t dim[3]) const {
 	dim[0]=_Ni; dim[1]=_Nj; dim[2]=_levels.size();
-}
-
-std::vector<double> DCReaderGRIB::GetExtents(size_t ts) const {
-	std::vector<double> dum;
-	return dum;
 }
 
 std::vector<long> DCReaderGRIB::GetPeriodicBoundary() const {
@@ -415,17 +446,12 @@ std::vector<std::string> DCReaderGRIB::GetVariables3DExcluded() const {
 
 DCReaderGRIB::~DCReaderGRIB() {
 	if (_udunit) delete _udunit;
+	_cartesianExtents.clear();
 	_levels.clear();
 	_gribTimes.clear();
 	_vars2d.clear();
 	_vars3d.clear();
 }
-
-/*std::string DCReaderGRIB::GetCoordSystemType() const {
-	string dum;
-	dum = "dum";
-	return dum;
-}*/
 
 GribParser::GribParser() {
 	_recordKeys.clear();
