@@ -21,7 +21,6 @@
 #ifndef GRIBPARSER_H
 #define GRIBPARSER_H
 #include "grib_api.h"
-//#include <vapor/UDUnitsClass.h>
 #include <vapor/DCReader.h>
 #include <iostream>
 #include <string>
@@ -35,14 +34,6 @@
 #include <udunits2.h>
 #endif
 
-//#include <vector>
-//#include <algorithm>
-//#include <vapor/Metadata.h>
-//#include <vapor/MyBase.h>
-//#include <vapor/common.h>
-
-//using namespace std;
-//using namespace VAPoR;
 namespace VAPoR {
 
 class UDUnits;
@@ -117,7 +108,6 @@ class UDUnits;
      //virtual std::string GetCoordSystemType() const;
      
 	 virtual void GetCoordinates(vector <double> &coords) {};
-     int InitCartographicExtents() const;
      Variable* Get3dVariable(string varname) {return _vars3d[varname];}
      Variable* Get2dVariable(string varname) {return _vars2d[varname];}
 	// END DCReader Functions
@@ -128,7 +118,7 @@ class UDUnits;
 	// Metadata Pure Virtual Functions
 	// virtual void   GetGridDim(size_t dim[3]) const;
  	virtual void GetBlockSize(size_t bs[3], int reflevel) const { GetGridDim(bs); }
-	virtual std::vector<double> GetExtents(size_t ts = 0) const;		// Needs implementation!
+	virtual std::vector<double> GetExtents(size_t ts = 0) const {return _cartesianExtents;}
      virtual std::vector<long> GetPeriodicBoundary() const;				// Needs implementation!
      virtual std::vector<long> GetGridPermutation() const;				// Needs implementation!
      virtual void GetTSUserTimeStamp(size_t ts, std::string &s) const;
@@ -148,7 +138,7 @@ class UDUnits;
 	 //virtual std::vector<double> GetTSZCoords(size_t ts) const {
 	 //				    	std::vector <double> empty; return(empty);};
 	 //virtual std::vector <std::string> GetVariableNames() const;
-	 //virtual std::string GetMapProjection() const {std::string empty; return (empty); };
+	 virtual std::string GetMapProjection() const;
 	 //virtual std::vector <std::string> GetCoordinateVariables() const {;
      //					std::vector <std::string> v; v.push_back("NONE");
 	 //					v.push_back("NONE"); v.push_back("ELEVATION"); return(v);}
@@ -182,6 +172,10 @@ class UDUnits;
 	 void Print3dVars();
 	 void Print2dVars();
 	 void Print1dVars();
+	 double BarometricFormula(const double pressure) const;
+	 int _InitCartographicExtents(string mapProj,
+                                  const std::vector <double> vertCoordinates,
+                                  std::vector <double> &extents) const;
 	/////
 
     private:
@@ -195,7 +189,8 @@ class UDUnits;
 	 string _openVar;
 	 int _openTS; 	
  
-     std::vector<float> _levels;
+     std::vector<double> _levels;
+	 std::vector<double> _cartesianExtents;
      std::vector<double> _gribTimes;
 	 std::map<std::string, Variable*> _vars1d;
      std::map<std::string, Variable*> _vars2d;
