@@ -109,6 +109,8 @@ public slots:
 	void setBindButtons(bool canBind);
 
 protected slots:
+	void startColorChange();
+	void endColorChange();
 	void guiSetFidelity(int buttonID);
 	void guiSetFidelityDefault();
 	void guiFitTFToData();

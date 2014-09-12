@@ -773,7 +773,7 @@ grib_index* grib_index_read(grib_context* c, const char* filename, int *err)
 
     if (!c) c=grib_context_get_default();
 
-    fh=fopen(filename,"r");
+    fh=fopen(filename,"rb");
     if (!fh) {
         grib_context* c = grib_context_get_default();
         grib_context_log(c,(GRIB_LOG_ERROR)|(GRIB_LOG_PERROR),

@@ -519,10 +519,12 @@ void ColorPickerFrame::newHsv( int h, int s, int v )
 //send mouse up/down events to params panel
 void ColorPickerFrame::mouseDownRelay()
 {
+	emit(mouseDown());
     emit(startColorChange());
 }
 //send mouse up/down events to params panel
 void ColorPickerFrame::mouseUpRelay()
 {
     emit(endColorChange());
+	emit(mouseUp());
 }

@@ -182,6 +182,8 @@ DvrEventRouter::hookUpTab()
             transferFunctionFrame, SLOT(newHsv(int,int,int)));
     connect(transferFunctionFrame, SIGNAL(canBindControlPoints(bool)),
             this, SLOT(setBindButtons(bool)));
+	connect(colorPickerFrame,SIGNAL(mouseDown()), this, SLOT(startColorChange()));
+	connect(colorPickerFrame,SIGNAL(mouseUp()), this, SLOT(endColorChange()));
 	connect (instanceTable, SIGNAL(changeCurrentInstance(int)), this, SLOT(guiChangeInstance(int)));
 	connect (copyCombo, SIGNAL(activated(int)), this, SLOT(guiCopyInstanceTo(int)));
 	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
@@ -1444,6 +1446,23 @@ void DvrEventRouter::guiSetFidelityDefault(){
 	updateTab();
 	
 }
+void DvrEventRouter::startColorChange(){
+	//If text has changed, and enter not pressed, will ignore it-- don't call confirmText()!
+	guiSetTextChanged(false);
+	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
+	//If another command is in process, don't disturb it:
+	if (savedCommand) return;
+	
+	savedCommand = PanelCommand::captureStart(dParams, "Select color for mapping");
+}
+void DvrEventRouter::endColorChange(){
+	if (!savedCommand) return;
+	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
+	PanelCommand::captureEnd(savedCommand,dParams);
+	VizWinMgr::getInstance()->setClutDirty(dParams);
+	savedCommand = 0;
+}
+
 
 //Workaround for Qt/Cocoa bug: postpone showing of OpenGL widget 
 

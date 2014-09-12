@@ -277,7 +277,7 @@ static grib_trie* init_list(const char* name) {
 	grib_context* c=grib_context_get_default();
 	full_path=grib_context_full_path(c,name);
 
-	fh=fopen(full_path,"r");
+	fh=fopen(full_path,"rb");
 	if (!fh) {
 		grib_context_log(c,GRIB_LOG_PERROR,"unable to read %s",full_path);
 		return NULL;

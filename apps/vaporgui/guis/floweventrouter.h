@@ -99,6 +99,7 @@ public slots:
 	void stopClicked();
 
 protected slots:
+	void setBindButtons(bool);
 	void guiSetFidelity(int buttonID);
 	void guiSetFidelityDefault();
 	void guiBindColorToOpac();

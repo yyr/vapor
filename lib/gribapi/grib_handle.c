@@ -560,7 +560,7 @@ grib_handle* grib_handle_new_from_nc_file(grib_context* c,const char* file,int *
 	grib_handle* h=NULL;
 	size_t len=4;
 
-	fh=fopen(file,"r");
+	fh=fopen(file,"rb");
 	if (!fh) {
 		grib_context_log(c,(GRIB_LOG_ERROR)|(GRIB_LOG_PERROR),"unable to open %s",file);
 		perror(file);

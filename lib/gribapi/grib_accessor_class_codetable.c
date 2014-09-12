@@ -279,7 +279,7 @@ static int grib_load_codetable(grib_context* c,const char* filename,
 
   grib_context_log(c,GRIB_LOG_DEBUG,"Loading code table form %s",filename);
 
-  f=fopen(filename, "r");
+  f=fopen(filename, "rb");
   if (!f) return GRIB_IO_PROBLEM;
 
   Assert(t!=NULL);

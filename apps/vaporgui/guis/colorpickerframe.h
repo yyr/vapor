@@ -236,6 +236,8 @@ signals:
     void hsvOut( int h, int s, int v );
 	void startColorChange();
 	void endColorChange();
+	void mouseUp();
+	void mouseDown();
 };
 
 #endif
