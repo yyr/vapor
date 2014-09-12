@@ -471,9 +471,10 @@ void IsolineEventRouter::updateTab(){
 		}
 	}
 	attachSeedCheckbox->setChecked(seedAttached);
-	int sesVarNum;
+	int sesVarNum, activeVarNum;
 	if (isolineParams->VariablesAre3D()){
 		sesVarNum = ds->getSessionVariableNum3D(isolineParams->GetVariableName());
+		activeVarNum = ds->getActiveVarNum3D(isolineParams->GetVariableName());
 		minDataBound->setText(QString::number(ds->getDataMin3D(sesVarNum,timestep)));
 		maxDataBound->setText(QString::number(ds->getDataMax3D(sesVarNum,timestep)));
 		copyToProbeButton->setText("Copy to Probe");
@@ -481,6 +482,7 @@ void IsolineEventRouter::updateTab(){
 	}
 	else {
 		sesVarNum = ds->getSessionVariableNum2D(isolineParams->GetVariableName());
+		activeVarNum = ds->getActiveVarNum2D(isolineParams->GetVariableName());
 		minDataBound->setText(QString::number(ds->getDataMin2D(sesVarNum,timestep)));
 		maxDataBound->setText(QString::number(ds->getDataMax2D(sesVarNum,timestep)));
 		copyToProbeButton->setText("Copy to 2D");
@@ -498,7 +500,7 @@ void IsolineEventRouter::updateTab(){
 	//Set the selection in the variable combo
 	//Turn off combo message-listening
 	ignoreComboChanges = true;
-	variableCombo->setCurrentIndex(sesVarNum);
+	variableCombo->setCurrentIndex(activeVarNum);
 	int dim = isolineParams->VariablesAre3D() ? 3 : 2;
 	dimensionCombo->setCurrentIndex(dim-2);
 	ignoreComboChanges = false;
@@ -595,6 +597,7 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	//If the number of isovalues is changing from 1 to a value >1, and if the
 	//min and max are the same, then expand the min/max interval by .5 times the 
 	//histo interval.
+	
 	int numIsos = countIsoEdit->text().toInt();
 	if (numIsos < 1) numIsos = 1;
 	if (maxIso < minIso) {
@@ -614,7 +617,7 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	if (abs(newIsoMax-prevMaxIso) > 0.005*(prevIsoMax-prevIsoMin)) isoBoundsChanged = true;
 	
 	
-	
+	bool isovaluesChanged = isoBoundsChanged;
 	if (bnds[0] >= bnds[1]){ //fix invalid settings...
 		bnds[0] = minIso - 0.1*(maxIso-minIso);
 		bnds[1] = maxIso + 0.1*(maxIso-minIso);
@@ -641,7 +644,7 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 		for (int i = 1; i<numIsos; i++){
 			ivalues.push_back(minIso + (maxIso - minIso)*(float)i/(float)(numIsos-1));
 		}
-		isolineParams->SetIsovalues(ivalues);
+		isovaluesChanged = true;
 	// rescale isovalues to use new interval
 	} else if (isoBoundsChanged && numIsos > 1){
 		ivalues.clear();
@@ -649,8 +652,9 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 			double frac = (prevIsoVals[i]-prevMinIso)/(prevMaxIso-prevMinIso);
 			ivalues.push_back(minIso+frac*(maxIso-minIso));
 		}
-		isolineParams->SetIsovalues(ivalues);
-	}
+		isovaluesChanged = true;
+	} 
+	if(isovaluesChanged) isolineParams->SetIsovalues(ivalues);
 	if (isoBoundsChanged){
 		minIsoEdit->setText(QString::number(minIso));
 		maxIsoEdit->setText(QString::number(maxIso));

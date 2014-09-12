@@ -931,6 +931,12 @@ how the histogram is scaled.</string>
              <layout class="QHBoxLayout" name="_15">
               <item>
                <widget class="QLineEdit" name="leftHistoEdit">
+                <property name="maximumSize">
+                 <size>
+                  <width>75</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
                 <property name="toolTip">
                  <string>Minimum of histogrammed domain</string>
                 </property>
@@ -996,6 +1002,12 @@ specified range.</string>
               </item>
               <item>
                <widget class="QLineEdit" name="rightHistoEdit">
+                <property name="maximumSize">
+                 <size>
+                  <width>75</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
                 <property name="toolTip">
                  <string>Maximum of histogrammed domain</string>
                 </property>
