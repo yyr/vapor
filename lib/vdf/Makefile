@@ -51,6 +51,7 @@ HEADER_FILES = \
 ifeq ($(BUILD_GRIB),1)
 FILES += GribParser
 HEADER_FILES += GribParser
+LIBRARIES += grib_api
 endif
 
 ifeq ($(BUILD_GUI),1)
