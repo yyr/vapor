@@ -1,6 +1,9 @@
 #include <vector>
+#include <list>
+#include <vapor/BlkMemMgr.h>
 #include <vapor/VDC.h>
 #include <vapor/MyBase.h>
+#include <vapor/RegularGrid.h>
 
 using namespace std;
 
@@ -25,13 +28,15 @@ using namespace std;
 //! failure (return of false).
 //
 
+namespace VAPoR {
+class PipeLine;
 
 class DataMgrV3_0 : public VetsUtil::MyBase {
 public:
 
- //! Constructor for the DataMgr class.
+ //! Constructor for the DataMgrV3_0 class.
  //!
- //! The DataMgr will attempt to cache previously read data and coordinate
+ //! The DataMgrV3_0 will attempt to cache previously read data and coordinate
  //! variables in memory. The \p mem_size specifies the requested cache
  //! size in MEGABYTES!!!
  //!
@@ -39,13 +44,13 @@ public:
  //! in MEGABYTES!!
  //!
  //
- DataMgr(size_t mem_size);
+ DataMgrV3_0(size_t mem_size);
 
- ~DataMgr();
+ virtual ~DataMgrV3_0();
 
  //! Initialize the class
  //!
- //! This method must be called to initialize the DataMgr class with
+ //! This method must be called to initialize the DataMgrV3_0 class with
  //! a list of input data files.
  //!
  //! \param[in] files A list of file paths
@@ -55,6 +60,7 @@ public:
  //!
  //
  virtual int Initialize(const vector <string> &files);
+
 
  //! Return a list of names for all of the defined data variables.
  //! 
@@ -66,7 +72,7 @@ public:
  //! \sa GetCoordVarNames()
  //!
  //! \test New in 3.0
- virtual std::vector <string> GetDataVarNames() const = 0;
+ virtual std::vector <string> GetDataVarNames() const;
 
  //! Return a list of data variables with a given dimension rank
  //!
@@ -94,7 +100,7 @@ public:
  //! \sa GetDataVarNames()
  //!
  //! \test New in 3.0
- virtual std::vector <string> GetCoordVarNames() const = 0;
+ virtual std::vector <string> GetCoordVarNames() const;
 
  //! Return a list of coordinate variables with a given dimension rank
  //!
@@ -124,7 +130,9 @@ public:
  //! "local" or "global" time steps
  //! \test New in 3.0
  //!
- void GetTimeCoordinates(vector <double> &timecoords) const;
+ void GetTimeCoordinates(vector <double> &timecoords) const {
+	timecoords = _timeCoordinates;
+ };
 
 
  //! Return a data variable's definition
@@ -136,13 +144,13 @@ public:
  //! \param[out] datavar A DataVar object containing the definition
  //! of the named Data variable.
  //!
- //! \retval status A negative int is returned on failure and an error
- //! message will be logged with MyBase::SetErrMsg()
+ //! \retval bool If true the method was successful. If false the
+ //! named variable is invalid (unknown)
  //!
  //! \sa GetCoordVarInfo()
  //!
  //! \test New in 3.0
- int GetDataVarInfo( string varname, VAPoR::VDC::DataVar &datavar) const = 0;
+ bool GetDataVarInfo( string varname, VAPoR::VDC::DataVar &datavar) const;
 
  //! Return metadata about a data or coordinate variable
  //!
@@ -150,12 +158,12 @@ public:
  //! data or coordinate variable its metadata will
  //! be returned in \p var.
  //!
- //! \retval status A negative int is returned on failure and an error
- //! message will be logged with MyBase::SetErrMsg()
+ //! \retval bool If true the method was successful. If false the
+ //! named variable is invalid (unknown)
  //!
  //! \sa GetDataVarInfo(), GetCoordVarInfo()
  //! \test New in 3.0
- int GetBaseVarInfo(string varname, VAPoR::VDC::BaseVar &var) const = 0;
+ bool GetBaseVarInfo(string varname, VAPoR::VDC::BaseVar &var) const;
 
  //! Return a coordinate variable's definition
  //!
@@ -166,13 +174,14 @@ public:
  //! variable.
  //! \param[out] coordvar A CoordVar object containing the definition
  //! of the named variable.
- //! \retval status A negative int is returned on failure and an error
- //! message will be logged with MyBase::SetErrMsg()
+ //!
+ //! \retval bool If true the method was successful. If false the
+ //! named variable is invalid (unknown)
  //!
  //! \sa GetDataVarInfo()
  //!
  //! \test New in 3.0
- int GetCoordVarInfo(string varname, VAPoR::VDC::CoordVar &cvar) const = 0;
+ bool GetCoordVarInfo(string varname, VAPoR::VDC::CoordVar &cvar) const;
 
  //! Return a boolean indicating whether a variable is time varying
  //!
@@ -230,11 +239,28 @@ public:
  //
  int GetNumRefLevels(string varname) const;
 
+ //! Return the compression ratio vector for the indicated variable
+ //!
+ //! Return the compression ratio vector for the indicated variable.
+ //! The vector returned contains an ordered list of available
+ //! compression ratios for the variable named by \p variable.
+ //! If the variable is not compressed, the \p cratios parameter will
+ //! contain a single element, one.
+ //!
+ //! \param[in] varname Data or coordinate variable name.
+ //! \param[out] cratios Ordered vector of compression ratios
+ //!
+ //! \retval status A negative int is returned on failure
+ //!
+ //! \sa VDC::BaseVar::GetCRatios();
+ //
+int GetCRatios(string varname, vector <size_t> &cratios) const;
+
  //! Read and return variable data
  //!
  //! Reads all data for the data or coordinate variable named by \p varname 
  //! for the time step, refinement level, and leve-of-detail indicated 
- //! by \p ts, \p reflevel, and \p lod, respectively.
+ //! by \p ts, \p level, and \p lod, respectively.
  //!
  //! \param[in] ts
  //! An integer offset into the time coordinate variable
@@ -243,7 +269,7 @@ public:
  //! 
  //! \param[in] varname The name of the data or coordinate variable to access
  //!
- //! \param[in] reflevel
+ //! \param[in] level
  //! \parblock
  //! To provide maximum flexibility as well as compatibility with previous
  //! versions of the VDC the interpretation of \p level is somewhat
@@ -286,8 +312,8 @@ public:
  //! when it is no longer in use.
  //!
  //! \test New in 3.0
- RegularGrid *GetVariable (
-	size_t ts, string varname, int reflevel, int lod, bool lock=false
+ VAPoR::RegularGrid *GetVariable (
+	size_t ts, string varname, int level, int lod, bool lock=false
  );
 
  //! Read and return a variable hyperslab
@@ -318,8 +344,14 @@ public:
  //! when it is no longer in use.
  //!
  //! \test New in 3.0
- RegularGrid *GetVariable (size_t ts, string varname, int reflevel, int lod, 
+ VAPoR::RegularGrid *GetVariable (
+	size_t ts, string varname, int level, int lod, 
 	vector <double> min, vector <double> max, bool lock=false
+ );
+
+ VAPoR::RegularGrid *GetVariable(
+	size_t ts, string varname, int level, int lod,
+	vector <size_t> min, vector <size_t> max, bool lock=false
  );
 
  //! Compute the coordinate extents of a variable
@@ -331,11 +363,11 @@ public:
  //! coordinates, of the smallest axis-aligned bounding box that is 
  //! guaranteed to contain
  //! the variable indicated by \p varname, and the given refinement level,
- //! \p reflevel
+ //! \p level
  //! 
  //! \test New in 3.0
  int GetVariableExtents(
-	size_t ts, string varname, int reflevel,
+	size_t ts, string varname, int level,
 	vector <double> &min , vector <double> &max
  );
 
@@ -354,7 +386,7 @@ public:
  //!
  //! \sa GetVariable()
  //
- void UnlockGrid(const RegularGrid *rg);
+ void UnlockGrid(const VAPoR::RegularGrid *rg);
 
  //! Clear the memory cache
  //!
@@ -371,16 +403,18 @@ public:
  //!
  //! \param[in] ts A valid time step between 0 and GetNumTimesteps()-1
  //! \param[in] varname A valid variable name
- //! \param[in] reflevel Refinement level requested. 
+ //! \param[in] level Refinement level requested. 
  //! \param[in] lod Compression level of detail requested. 
  //! refinement level contained in the VDC.
  //
  virtual bool VariableExists(
 	size_t ts,
-	const char *varname,
-	int reflevel = 0,
+	string varname,
+	int level = 0,
 	int lod = 0
- ) = 0;
+ );
+
+#ifdef	DEAD
 
  //!
  //! Add a pipeline stage to produce derived variables
@@ -411,6 +445,7 @@ public:
  //! PipeLine::GetName()
  //!
  void RemovePipeline(string name);
+#endif
 
  //! Return true if the named variable is the output of a pipeline
  //!
@@ -441,21 +476,354 @@ public:
  void PurgeVariable(string varname);
 
 protected: 
+
+ //! \copydoc Initialize()
+ //
+ virtual int _Initialize(const vector <string> &files) = 0;
+
+ //! \copydoc GetDataVarNames()
+ //
+ virtual std::vector <string> _GetDataVarNames() const = 0;
+ 
+ //! \copydoc GetCoordVarNames()
+ //
+ virtual std::vector <string> _GetCoordVarNames() const = 0;
+
+ //! \copydoc GetBaseVarInfo()
+ //
+ virtual bool _GetBaseVarInfo(
+	string varname, VAPoR::VDC::BaseVar &var
+ ) const = 0;
+
+ //! \copydoc GetDataVarInfo()
+ //
+ virtual bool _GetDataVarInfo(
+	string varname, VAPoR::VDC::DataVar &datavar
+ ) const = 0;
+
+ //! \copydoc GetBaseVarInfo()
+ //
+ virtual bool _GetCoordVarInfo(
+	string varname, VAPoR::VDC::CoordVar &cvar
+ ) const = 0;
+
+ //! Return a variable's dimension lengths at a specified refinement level
+ //!
+ //! Compressed variables have a multi-resolution grid representation.
+ //! This method returns the variable's ordered dimension lengths,
+ //! and block dimensions
+ //! at the multiresolution refinement level specified by \p level.
+ //!
+ //! If the variable named by \p varname is not compressed the variable's
+ //! native dimensions are returned.
+ //!
+ //! \param[in] varname Data or coordinate variable name.
+ //! \param[in] level Specifies a member of a multi-resolution variable's
+ //! grid hierarchy as described above.
+ //! \param[out] dims_at_level An ordered vector containing the variable's
+ //! dimensions at the specified refinement level
+ //! \param[out] bs_at_level An ordered vector containing the variable's
+ //! block dimensions at the specified refinement level
+ //!
+ //! \retval status Zero is returned upon success, otherwise -1.
+ //!
+ //! \sa VAPoR::VDC, VDC::BaseVar::GetBS(), VDC::BaseVar::GetDimensions()
+ //
+ virtual int _GetDimLensAtLevel(
+    string varname, int level, vector <size_t> &dims_at_level,
+    vector <size_t> &bs_at_level
+ ) const = 0;
+
+ virtual int _GetNumRefLevels(string varname) const;
+
+
+ //! \copydoc VariableExists()
+ //
+ virtual bool _VariableExists(
+	size_t ts, string,
+	int level = 0,
+	int lod = 0
+ ) const = 0;
+
  //! Read and return variable data
  //!
  //! Reads all data for the variable named by \p varname for the time
  //! step indicated by \p ts ...
  //! \test New in 3.0
- RegularGrid *_ReadVariable (
-	size_t ts, string varname, int reflevel, int lod, float *buffer
- ) = 0
+ //
+ virtual int _ReadVariableBlock (
+	size_t ts, string varname, int level, int lod, 
+	vector <size_t> bmin, vector <size_t> bmax, float *blocks
+ ) = 0;
 
- RegularGrid *_ReadVariable (
-	size_t ts, string varname, int reflevel, int lod, 
-	const size_t bmin[3], const size_t bmax[3], float *buffer
- ) = 0
-
+ //! Read and return variable data
+ //!
+ //! Reads the variable in its entirety. All time steps, etc.
+ //!
+ virtual int _ReadVariable(
+	string varname, int level, int lod, float *data
+ ) = 0;
+ 
  //! \todo Need to define
  virtual string GetMapProjection() const;
 
-}
+private:
+ class blkexts {
+ public:
+  blkexts(
+	std::vector <size_t> bs, std::vector <size_t> bdims,
+	const float *blks
+  );
+  void getexts(std::vector <size_t> blkcrds, float &min, float &max) const;
+ private:
+  std::vector <float> _mins;
+  std::vector <float> _maxs;
+  std::vector <size_t> _bdims;
+ };
+
+ //
+ // Cache for various metadata attributes 
+ //
+ class VarInfoCache  {
+ public:
+
+	//
+	//
+	void Set(
+		size_t ts, std::vector <string> varnames, int level, int lod, string key,
+		const std::vector <size_t> &values
+	);
+	void Set(
+		size_t ts, string varname, int level, int lod, string key,
+		const std::vector <size_t> &values
+	) { 
+		std::vector <string> varnames;
+		varnames.push_back(varname);
+		Set(ts, varnames, level, lod, key, values);
+	}
+
+	bool Get(
+		size_t ts, std::vector <string> varnames, int level, int lod, string key,
+		std::vector <size_t> &values
+	) const;
+
+	bool Get(
+		size_t ts, string varname, int level, int lod, string key,
+		std::vector <size_t> &values
+	) const { 
+		std::vector <string> varnames;
+		varnames.push_back(varname);
+		return Get(ts, varnames, level, lod, key, values);
+	}
+
+	void PurgeSize_t(
+		size_t ts, std::vector <string> varnames, int level, int lod, string key
+	); 
+	void PurgeSize_t(
+		size_t ts, string varname, int level, int lod, string key
+	) {
+		std::vector <string> varnames;
+		varnames.push_back(varname);
+		PurgeSize_t(ts, varnames, level, lod, key);
+	} 
+
+	void Set(
+		size_t ts, std::vector <string> varnames, int level, int lod, string key,
+		const std::vector <double> &values
+	);
+	void Set(
+		size_t ts, string varname, int level, int lod, string key,
+		const std::vector <double> &values
+	) { 
+		std::vector <string> varnames;
+		varnames.push_back(varname);
+		Set(ts, varnames, level, lod, key, values);
+	}
+
+	bool Get(
+		size_t ts, std::vector <string> varnames, int level, int lod, string key,
+		std::vector <double> &values
+	) const;
+
+	bool Get(
+		size_t ts, string varname, int level, int lod, string key,
+		std::vector <double> &values
+	) const { 
+		std::vector <string> varnames;
+		varnames.push_back(varname);
+		return Get(ts, varnames, level, lod, key, values);
+	}
+
+	void PurgeDouble(
+		size_t ts, std::vector <string> varnames, int level, int lod, string key
+	); 
+	void PurgeDouble(
+		size_t ts, string varname, int level, int lod, string key
+	) {
+		std::vector <string> varnames;
+		varnames.push_back(varname);
+		PurgeDouble(ts, varnames, level, lod, key);
+	} 
+
+	void Clear() {
+		_cacheSize_t.clear(); 
+		_cacheDouble.clear(); 
+	}
+
+
+ private:
+
+  map <string, vector <size_t> > _cacheSize_t;
+  map <string, vector <double> > _cacheDouble;
+
+  string _make_hash(
+	string key, size_t ts, vector <string> cvars, int level, int lod
+  ) const;
+
+
+
+ };
+
+ size_t _mem_size;
+ std::vector <double> _timeCoordinates;
+
+ typedef struct {
+	size_t ts;
+	string varname;
+	int level;
+	int lod;
+	vector <size_t> bmin;
+	vector <size_t> bmax;
+	int lock_counter;
+	float *blks;
+ } region_t;
+
+ // a list of all allocated regions
+ std::list <region_t> _regionsList;
+
+ VAPoR::BlkMemMgr  *_blk_mem_mgr;
+
+ vector <PipeLine *> _PipeLines;
+
+
+ VarInfoCache _varInfoCache;
+
+ int _get_coord_vars(string varname, vector <string> cvars) const;
+
+ int _DataMgrV3_0(size_t mem_size);
+ int _GetTimeCoordinates(vector <double> &timecoords);
+
+ VAPoR::RegularGrid *_make_grid_regular(
+    const VAPoR::VDC::DataVar &var,
+    const vector <size_t> &min,
+    const vector <size_t> &max,
+    const vector <size_t> &dims,
+    const vector <float *> &blkvec,
+    const vector <size_t> &bs,
+    const vector <size_t> &bmin,
+    const vector <size_t> &bmax
+ ) const;
+
+ VAPoR::RegularGrid *_make_grid(
+	const VAPoR::VDC::DataVar &var,
+	const vector <size_t> &min,
+	const vector <size_t> &max,
+	const vector <size_t> &dims,
+	const vector <float *> &blkvec,
+	const vector < vector <size_t > > &bsvec,
+	const vector < vector <size_t > > &bminvec,
+	const vector < vector <size_t > > &bmaxvec
+ ) const;
+
+ VAPoR::RegularGrid *_getVariable(
+    size_t ts,
+    string varname,
+    int level,
+    int lod,
+    bool    lock,
+    bool    dataless
+ ); 
+
+ VAPoR::RegularGrid *_getVariable(
+    size_t ts,
+    string varname,
+    int level,
+    int lod,
+    vector <size_t> min,
+    vector <size_t> max,
+    bool    lock,
+    bool    dataless
+ ); 
+
+ float   *_get_region_from_cache(
+	size_t ts,
+	string varname,
+	int level,
+	int lod,
+	const vector <size_t> &bmin,
+	const vector <size_t> &bmax,
+	bool    lock
+ );
+
+ float *_get_region_from_fs(
+	size_t ts, string varname, int level, int lod,
+	const vector <size_t> &bs, const vector <size_t> &bmin,
+	const vector <size_t> &bmax, bool lock
+ );
+
+ float *_get_region(
+	size_t ts,
+	string varname,
+	int level,
+	int lod,
+	const vector <size_t> &bs,
+	const vector <size_t> &bmin,
+	const vector <size_t> &bmax,
+	bool lock
+ );
+
+ int _get_regions(
+	size_t ts,
+	const vector <string> &varnames,
+	int level, int lod,
+	bool lock,
+	const vector < vector <size_t > > &bsvec,
+	const vector < vector <size_t> > &bminvec,
+	const vector < vector <size_t> > &bmaxvec,
+	vector <float *> &blkvec
+ ); 
+
+ void _unlock_blocks(const float *blks);
+
+ vector <string> _get_native_variables() const;
+ vector <string> _get_derived_variables() const;
+
+ float   *_alloc_region(
+	size_t ts,
+	string varname,
+	int level,
+	int lod,
+	vector <size_t> bmin,
+	vector <size_t> bmax,
+	vector <size_t> bs,
+	int element_sz,
+	bool    lock,
+	bool fill
+ ); 
+
+ void    _free_region(
+	size_t ts,
+	string varname,
+	int level,
+	int lod,
+	vector <size_t> bmin,
+	vector <size_t> bmax
+ );
+
+ bool _free_lru();
+ void _free_var(string varname);
+
+
+};
+
+};

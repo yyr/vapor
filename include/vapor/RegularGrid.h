@@ -449,6 +449,17 @@ public:
 	*x = _delta[0]; *y = _delta[1]; *z = _delta[2];
  };
 
+ //! Return the rank of the grid
+ //!
+ //! This method returns the number of dimensions, between 1 and 3,
+ //! that do not have a length of 1
+ //
+ virtual int GetRank() {
+	int rank = 0;
+	for (int i=0; i<3; i++) if (_min[i]!=_max[i]) rank++;
+	return(rank);
+ }
+
  //! Return the internal data structure containing a copy of the blocks
  //! passed in by the constructor
  //!

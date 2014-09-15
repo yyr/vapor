@@ -122,6 +122,30 @@ namespace VAPoR {
 //! treated as if they were equal to the negation of the GetNumRefLevels()
 //! return value.
 //!
+//! \param lod
+//! The level-of-detail parameter, \p lod, selects
+//! the approximation level for a compressed variable. 
+//! The \p lod parameter is similar to the \p level parameter in that it
+//! provides control over accuracy of a compressed variable. However, instead
+//! of selecting the grid resolution the \p lod parameter controls 
+//! the compression factor by indexing into the \p cratios vector (see below).
+//! As with the \p level parameter, both positive and negative values may be 
+//! used to index into \p cratios and 
+//! different interpretations. 
+//! 
+//! For positive
+//! values of \p lod, a value of \b 0 indicates the 
+//! the first element of \p cratios, a value of \b 1 indicates
+//! the second element, and so on up to the size of the 
+//! \p cratios vector (See VDC::GetCRatios()).
+//!
+//! For negative values of \p lod a value of \b -1 indexes the
+//! last element of \p cratios, a value of \b -2 indexes the 
+//! second to last element, and so on.
+//! Using negative values the first element of \p cratios - the greatest 
+//! compression rate - is indexed by negating the size of the 
+//! \p cratios vector.
+//!
 //! \param cratios A monotonically decreasing vector of
 //! compression ratios. Compressed variables in the VDC are stored
 //! with a fixed, finite number of compression factors. The \p cratios
@@ -327,7 +351,8 @@ public:
   //! dimensions only the needed elements of \p bs are accessed
   //! \param[in] wname The wavelet family name for compressed variables
   //! \param[in] cratios Specifies a vector of compression factors for
-  //! compressed variable definitions. If empty, the variable is not 
+  //! compressed variable definitions. If empty, or if cratios.size()==1 
+  //! and cratios[0]==1, the variable is not 
   //! compressed
   //! \param[in] periodic An ordered array of booleans 
   //! specifying the
@@ -350,6 +375,7 @@ public:
 	_bs(bs),
 	_periodic(periodic)
   {
+	if (_cratios.size()==0) _cratios.push_back(1);
   };
 
   virtual ~BaseVar() {};
@@ -376,9 +402,13 @@ public:
   XType GetXType() const {return (_type); };
   void SetXType(XType type) {_type = type; };
 
-  //! Access variable's compression flag
+  //! Return true if the number of avaiable compression ratios are 
+  //! not equal to one or the number is one the compression ratio
+  //! itself is not equal to one
   //
-  bool GetCompressed() const {return (_cratios.size() > 1); };
+  bool GetCompressed() const {
+	return (!( _cratios.size() == 1 && (_cratios[0] == 1))); 
+  };
 
   //! Access variable's block size
   //
@@ -393,7 +423,10 @@ public:
   //! Access variable's compression ratios
   //
   std::vector <size_t> GetCRatios() const {return (_cratios); };
-  void SetCRatios(std::vector <size_t> cratios) {_cratios = cratios; };
+  void SetCRatios(std::vector <size_t> cratios) {
+	_cratios = cratios;
+	if (_cratios.size()==0) _cratios.push_back(1);
+  };
 
   //! Access variable bounary periodic 
   //
@@ -1148,6 +1181,22 @@ public:
  //
  int GetNumRefLevels(string varname) const;
 
+ //! Return the compression ratio vector for the indicated variable
+ //!
+ //! Return the compression ratio vector for the indicated variable. 
+ //! The vector returned contains an ordered list of available 
+ //! compression ratios for the variable named by \p variable. 
+ //! If the variable is not compressed, the \p cratios parameter will
+ //! contain a single element, one.
+ //!
+ //! \param[in] varname Data or coordinate variable name.
+ //! \param[out] cratios Ordered vector of compression ratios
+ //!
+ //! \retval status A negative int is returned on failure
+ //
+int GetCRatios(string varname, vector <size_t> &cratios) const;
+
+
  //! Return a boolean indicating whether a variable is a data variable 
  //!
  //! This method returns \b true if a data variable is defined
@@ -1327,7 +1376,8 @@ public:
  //! Return a variable's dimension lengths at a specified refinement level
  //!
  //! Compressed variables have a multi-resolution grid representation.
- //! This method returns the variable's ordered dimension lengths
+ //! This method returns the variable's ordered dimension lengths, 
+ //! and block dimensions
  //! at the multiresolution refinement level specified by \p level.
  //! 
  //! If the variable named by \p varname is not compressed the variable's
@@ -1336,13 +1386,18 @@ public:
  //! \param[in] varname Data or coordinate variable name.
  //! \param[in] level Specifies a member of a multi-resolution variable's
  //! grid hierarchy as described above.
+ //! \param[out] dims_at_level An ordered vector containing the variable's 
+ //! dimensions at the specified refinement level
+ //! \param[out] bs_at_level An ordered vector containing the variable's 
+ //! block dimensions at the specified refinement level
  //!
  //! \retval status Zero is returned upon success, otherwise -1.
  //!
- //! \sa VAPoR::VDC
+ //! \sa VAPoR::VDC, VDC::BaseVar::GetBS(), VDC::BaseVar::GetDimensions()
  //
  virtual int GetDimLensAtLevel(
-	string varname, int level, std::vector <size_t> &dims_at_level
+	string varname, int level, std::vector <size_t> &dims_at_level,
+	std::vector <size_t> &bs_at_level
  ) const = 0;
 
 
@@ -1646,6 +1701,26 @@ public:
  ) const = 0; 
 
 
+ //! Returns true if indicated data volume is available
+ //!
+ //! Returns true if the variable identified by the timestep, variable
+ //! name, refinement level, and level-of-detail is present in
+ //! the data set. Returns false if
+ //! the variable is not available.
+ //!
+ //! \param[in] ts A valid time step between 0 and GetNumTimesteps()-1
+ //! \param[in] varname A valid variable name
+ //! \param[in] reflevel Refinement level requested.
+ //! \param[in] lod Compression level of detail requested.
+ //! refinement level contained in the VDC.
+ //
+ virtual bool VariableExists(
+    size_t ts,
+    string varname,
+    int reflevel = 0,
+    int lod = 0
+ ) const = 0;
+
  friend std::ostream &operator<<(std::ostream &o, const VDC &vdc);
 
 protected:
@@ -1691,6 +1766,3 @@ protected:
 };
 
 #endif
-
-//TBD
-//	coordinate systems (spherical and cartesian)

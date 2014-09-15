@@ -93,7 +93,8 @@ public:
  //! \copydoc VDC::GetDimLensAtLevel()
  //
  virtual int GetDimLensAtLevel(
-    string varname, int level, std::vector <size_t> &dims_at_level
+    string varname, int level, std::vector <size_t> &dims_at_level,
+	vector <size_t> &bs_at_level
  ) const;
 
  //! Return true if a data directory exists for the master file
@@ -170,6 +171,13 @@ public:
 	std::reverse(bs.begin(), bs.end());	// NetCDF order
 	return(WASP::InqCompressionInfo(bs, wname, nlevels, maxcratio));
  };
+
+ virtual bool VariableExists(
+    size_t ts,
+    string varname,
+    int reflevel = 0,
+    int lod = 0
+ ) const;
 
 
 

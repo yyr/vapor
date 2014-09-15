@@ -126,7 +126,7 @@ public:
  //! are not compressed will be stored in their entirety in the file
  //! named by \p path.
  //!
- //! \sa NetCDFCpp::Create()
+ //! \sa NetCDFCpp::Create(), NetCDFCpp::GetPaths()
  //
  virtual int Create(
 	string path, int cmode, size_t initialsz,
@@ -485,6 +485,25 @@ public:
  //
  virtual int GetVar(float *data);
 
+ //! Return the NetCDF file paths that would be created from a base
+ //! path.
+ //!
+ //! \param[in] path The file base name of the new NetCDF data set
+ //! \param[in] numfiles An integer greater than or equal to one indicating 
+ //! the number of files to split a variable into
+ //! \retval vector The path names generated from \p path
+ //!
+ //! \sa Create()
+ //
+ static std::vector <string> GetPaths(string path, int numfiles) {
+	if (numfiles > 1) {
+        return(mkmultipaths(path, numfiles));
+    }
+    else {
+		std::vector <string> t(1,path); return(t);
+    }
+ }
+
  //! NetCDF attribute name specifying Wavelet name
  static string AttNameWavelet() {return("WASP.Wavelet");}
 
@@ -532,10 +551,6 @@ private:
  vector <Compressor *> _open_compressors;  // Compressor for opened variable
 
 
-
-
- std::vector <string> mkmultipaths(string path, int n) const;
-
  int _GetCompressedDims(
     vector <string> dimnames,
     string wname,
@@ -580,6 +595,9 @@ private:
     vector <size_t> dims, vector <size_t> bs, int level,
 	string wname, vector <size_t> &dims_level, vector <size_t> &bs_level
  ) ;
+
+ static vector <string> mkmultipaths(string path, int n);
+
 
 };
 
