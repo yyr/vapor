@@ -618,7 +618,10 @@ int VDC::GetNumRefLevels(string varname) const {
 
 	VDC::BaseVar var;
 	bool status = VDC::GetBaseVarInfo(varname, var);
-	if (! status) return(-1);
+	if (! status) {
+		SetErrMsg("Undefined variable name : %s", varname.c_str());
+		return(-1);
+	}
 
 	if (! var.GetCompressed()) return(1);
 
@@ -626,6 +629,19 @@ int VDC::GetNumRefLevels(string varname) const {
 	CompressionInfo(var.GetBS(), var.GetWName(), nlevels, maxcratio);
 
 	return(nlevels);
+}
+
+int VDC::GetCRatios(string varname, vector <size_t> &cratios) const {
+
+	VDC::BaseVar var;
+	bool status = VDC::GetBaseVarInfo(varname, var);
+	if (! status) {
+		SetErrMsg("Undefined variable name : %s", varname.c_str());
+		return(-1);
+	}
+
+	cratios = var.GetCRatios();
+	return(0);
 }
 
 

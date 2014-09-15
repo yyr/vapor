@@ -12,6 +12,7 @@ using namespace VetsUtil;
 
 namespace {
 
+
 //
 // Map possibly unaligned hyperslab coords (start and count) 
 // into block-aligned coordinates
@@ -2100,28 +2101,6 @@ int WASP::_GetCompressedDims(
 }
 
 	
-// Generate the path names for a multipath NetCDF data set
-// containing 'n' paths.
-//
-vector <string> WASP::mkmultipaths(string path, int n) const {
-	vector <string> paths;
-
-	string basename = path;
-	size_t p = basename.rfind(".nc");
-	if (p != std::string::npos) basename = basename.substr(0, p); 
-
-	for (int i=0; i<n; i++) {
-		ostringstream oss;
-		if (i==0) {
-			oss << basename << ".nc";
-		}
-		else {
-			oss << basename << ".nc" << i;
-		}
-		paths.push_back(oss.str());
-	}
-	return(paths);
-}
 
 // For each compression level (LOD) compute the number of coefficients,
 // ncoeffs, and the dimension of array that will contain both the
@@ -2274,5 +2253,28 @@ int WASP::_get_compression_params(
 	
 	return(0);
 
+}
+
+// Generate the path names for a multipath NetCDF data set
+// containing 'n' paths.
+//
+vector <string> WASP::mkmultipaths(string path, int n) {
+	vector <string> paths;
+
+	string basename = path;
+	size_t p = basename.rfind(".nc");
+	if (p != std::string::npos) basename = basename.substr(0, p); 
+
+	for (int i=0; i<n; i++) {
+		ostringstream oss;
+		if (i==0) {
+			oss << basename << ".nc";
+		}
+		else {
+			oss << basename << ".nc" << i;
+		}
+		paths.push_back(oss.str());
+	}
+	return(paths);
 }
 

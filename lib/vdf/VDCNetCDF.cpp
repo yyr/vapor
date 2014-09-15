@@ -162,33 +162,22 @@ int VDCNetCDF::GetPath(
 		ts = 0;	// Could be anything if data aren't time varying;
 	}
 
-	const BaseVar *varbase;
-	VDC::DataVar dvar;
-	VDC::CoordVar cvar;
-
-	if (VDC::IsDataVar(varname)) {
-		(void) VDC::GetDataVarInfo(varname, dvar);
-		varbase = &dvar;
-	}
-	else if (VDC::IsCoordVar(varname)) {
-		(void) VDC::GetCoordVarInfo(varname, cvar);
-		varbase = &cvar;
-	}
-	else {
-		SetErrMsg("Undefined variable name : %s", varname.c_str());
-		return(-1);
+	VDC::BaseVar var;
+	if (! VDC::GetBaseVarInfo(varname, var))  {
+        SetErrMsg("Undefined variable name : %s", varname.c_str());
+		return(false);
 	}
 
 	size_t nelements = 1;
 	size_t ngridpoints = 1;
-	for (int i=0; i<varbase->GetDimensions().size(); i++) {
-		nelements *= varbase->GetDimensions()[i].GetLength(); 
-		if (varbase->GetDimensions()[i].GetAxis() != 3) {
-			ngridpoints *= varbase->GetDimensions()[i].GetLength();
+	for (int i=0; i<var.GetDimensions().size(); i++) {
+		nelements *= var.GetDimensions()[i].GetLength(); 
+		if (var.GetDimensions()[i].GetAxis() != 3) {
+			ngridpoints *= var.GetDimensions()[i].GetLength();
 		}
 	}
 
-	if (nelements < _master_threshold &&  ! varbase->GetCompressed()) {
+	if (nelements < _master_threshold &&  ! var.GetCompressed()) {
 		path = _master_path;
 		file_ts = ts;
 		return(0);
@@ -198,7 +187,7 @@ int VDCNetCDF::GetPath(
 
 	path += "/";
 
-	if (dynamic_cast<const VDC::DataVar *>(varbase)) {
+	if (VDC::IsDataVar(varname)) {
 		path += "data";
 		path += "/";
 	}
@@ -242,9 +231,11 @@ int VDCNetCDF::GetPath(
 }
 
 int VDCNetCDF::GetDimLensAtLevel(
-    string varname, int level, vector <size_t> &dims_at_level
+    string varname, int level, vector <size_t> &dims_at_level,
+	vector <size_t> &bs_at_level
 ) const {
 	dims_at_level.clear();
+	bs_at_level.clear();
 
 	int nlevels = VDC::GetNumRefLevels(varname);
 
@@ -270,7 +261,6 @@ int VDCNetCDF::GetDimLensAtLevel(
 	size_t numts;
 	VDC::ParseDimensions(dims, sdims, numts);
 
-	vector <size_t> bs_at_level;
 	WASP::InqDimsAtLevel(wname, level, sdims, bs, dims_at_level,bs_at_level);
 
 	// put time dimension back
@@ -306,21 +296,13 @@ int VDCNetCDF::OpenVariableRead(
 	_open_varname.clear();
 	_open_level = 0;
 
-    VDC::DataVar dvar;
-    VDC::CoordVar cvar;
-
-    if (VDC::IsDataVar(varname)) {
-        (void) VDC::GetDataVarInfo(varname, dvar);
-        _open_var = new VDC::DataVar(dvar);
-    }
-    else if (VDC::IsCoordVar(varname)) {
-        (void) VDC::GetCoordVarInfo(varname, cvar);
-        _open_var = new VDC::CoordVar(cvar);
-    }
-    else {
+	VDC::BaseVar var;
+	if (! VDC::GetBaseVarInfo(varname, var))  {
         SetErrMsg("Undefined variable name : %s", varname.c_str());
-        return(-1);
-    }
+		return(false);
+	}
+	_open_var = new VDC::BaseVar(var);
+
 
 	string path;
 	size_t file_ts;
@@ -336,6 +318,12 @@ int VDCNetCDF::OpenVariableRead(
 	if (level < 0) level = level + nlevels;
 	if (level < 0) level = 0;
 	_open_level = level;
+
+	int ncratios = var.GetCRatios().size();
+
+	if (lod > ncratios-1) lod = ncratios-1;
+	if (lod < 0) lod = lod + ncratios;
+	if (lod < 0) lod = 0;
 	
 	if (_open_var->GetCompressed()) {
 		WASP *wasp = new WASP(_nthreads);
@@ -371,21 +359,12 @@ int VDCNetCDF::OpenVariableWrite(size_t ts, string varname, int lod) {
 	_open_file_ts = 0;
 	_open_varname.clear();
 
-    VDC::DataVar dvar;
-    VDC::CoordVar cvar;
-
-    if (VDC::IsDataVar(varname)) {
-        (void) VDC::GetDataVarInfo(varname, dvar);
-        _open_var = new VDC::DataVar(dvar);
-    }
-    else if (VDC::IsCoordVar(varname)) {
-        (void) VDC::GetCoordVarInfo(varname, cvar);
-        _open_var = new VDC::CoordVar(cvar);
-    }
-    else {
+	VDC::BaseVar var;
+	if (! VDC::GetBaseVarInfo(varname, var))  {
         SetErrMsg("Undefined variable name : %s", varname.c_str());
-        return(-1);
-    }
+		return(false);
+	}
+	_open_var = new VDC::BaseVar(var);
 
 	string path;
 	size_t file_ts;
@@ -787,6 +766,45 @@ int VDCNetCDF::ReadRegion(
 		return(_open_file->GetVara(_open_varname, start, count, region));
 	}
 }     
+
+bool VDCNetCDF::VariableExists(
+    size_t ts,
+    string varname,
+    int reflevel,
+    int lod
+) const {
+
+	VDC::BaseVar var;
+	if (! VDC::GetBaseVarInfo(varname, var))  return(false);
+
+	string path;
+	size_t file_ts;
+	size_t max_ts;
+	int rc = GetPath(varname, ts, path, file_ts, max_ts);
+	if (rc<0) return(-1);
+
+	vector <string> paths;
+	if (! var.GetCompressed()) {
+		paths.push_back(path);
+	}
+	else {
+		int numfiles = var.GetCRatios().size();
+		paths = WASP::GetPaths(path, numfiles);
+	}
+
+	int ncratios = var.GetCRatios().size();
+
+	if (lod > ncratios-1) lod = ncratios-1;
+	if (lod < 0) lod = lod + ncratios;
+	if (lod < 0) lod = 0;
+
+	for (int i=0; i<=lod; i++) {
+		struct stat statbuf;
+		if (stat(path.c_str(), &statbuf) < 0) return (false);
+	}
+    return(true);
+}
+
     
 
 int VDCNetCDF::_WriteMasterMeta() {
