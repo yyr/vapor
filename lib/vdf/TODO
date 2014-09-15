@@ -16,7 +16,11 @@ done - GetVara support non-block-aligned coords
 
 Order threaded I/O
 
-Should 'unlimited' dimensions be supported 
+Should 'unlimited' dimensions be supported ?
+
+***If (cratios.size() == 1 and cratios[0] == 1) do not transform
+variable, but still block it. This facilitates use of coordinate variables
+that are not compressed with data variables that are.
 
 VDCNetCDF
 --------
@@ -28,7 +32,9 @@ based on the wavelet (symatric vs asymetric)
 
 VDC
 ---
-SetCompressionBlock() should not have to specify wavelet boundary mode
+
+***Data variables and their coordinate variables need to have the same 
+blocking. Otherwise Can't construct elevation grid. 
 
 Should the number of time dimensions be restricted to one? Either
 way needs to be tested
@@ -39,7 +45,15 @@ uniformness is not guaranteed (can be written to),
 Consider moving VDC::GetNumTimeSteps() to VarBase (or doing away with it
 entirely - it's redundant).
 
+Support block access - read blocks without unblocking
+
 DataMgr
 -------
 
 Handle derived variable coordinates
+
+error checking
+
+convert all global time steps to local
+
+level and lod both need consisten speciefication (-1, -2, -3)
