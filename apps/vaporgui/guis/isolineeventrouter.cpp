@@ -2552,7 +2552,7 @@ guiEndChangeIsoSelection(){
 		}
 	} else {
 		//If the isovalues are not inside the histo bounds, move the isovalues
-		if (minIso <= bnds[0] || maxIso >= bnds[1]){
+		if (minIso < bnds[0] || maxIso > bnds[1]){
 			fitIsovalsToHisto(iParams);
 		}
 	}
@@ -2988,11 +2988,15 @@ void IsolineEventRouter::fitIsovalsToHisto(IsolineParams* iParams){
 			if (isoMax<isovals[i]) isoMax = isovals[i];
 			if (isoMin>isovals[i]) isoMin = isovals[i];
 		}
-		//Now rearrange proportionately to fit in center 90% of bounds
-		float min90 = bounds[0]+0.05*(bounds[1]-bounds[0]);
-		float max90 = bounds[0]+0.95*(bounds[1]-bounds[0]);
+		//Now rearrange proportionately to fit in bounds
+		float newmin = bounds[0];
+		float newmax = bounds[1];
+		//Don't change bound if iso is inside
+		if (newmin < isoMin) newmin = isoMin;
+		if (newmax > isoMax) newmax = isoMax;
+		if (newmax < newmin) newmax = newmin;
 		for (int i = 0; i<isovals.size(); i++){
-			double newIsoval = min90 + (max90-min90)*(isovals[i]-isoMin)/(isoMax-isoMin);
+			double newIsoval = newmin + (newmax-newmin)*(isovals[i]-isoMin)/(isoMax-isoMin);
 			newIsovals.push_back(newIsoval);
 		}
 	}

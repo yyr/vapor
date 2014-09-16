@@ -6,7 +6,7 @@
 //                                                                       *
 //************************************************************************/
 //
-//  File:        GribParser.cpp
+//  File:        DCReaderGRIB.cpp
 //
 //  Author:      Scott Pearse
 //               National Center for Atmospheric Research
@@ -24,7 +24,7 @@
 #include <cassert>
 #include <string>
 
-#include "vapor/GribParser.h"
+#include "vapor/DCReaderGRIB.h"
 #include "vapor/Proj4API.h"
 #define bzero(b,len) (memset((b), '\0', (len)), (void) 0)
 #ifdef WIN32
