@@ -453,7 +453,7 @@ DCReaderGRIB::~DCReaderGRIB() {
 	_vars3d.clear();
 }
 
-DCReaderGRIB::DCReaderGRIB() {
+GribParser::GribParser() {
 	_recordKeys.clear();
 	_consistentKeys.clear();
 	_varyingKeys.clear();
@@ -496,7 +496,7 @@ DCReaderGRIB::DCReaderGRIB() {
     _err        = 0;
 }
 
-int DCReaderGRIB::_LoadRecord(string file, size_t index) {
+int GribParser::_LoadRecord(string file, size_t index) {
     _filename = file;
     _in = fopen(_filename.c_str(),"rb");
     if(!_in) {
@@ -562,7 +562,7 @@ int DCReaderGRIB::_LoadRecord(string file, size_t index) {
     return 0;
 }
 
-int DCReaderGRIB::_LoadRecordKeys(string file) {
+int GribParser::_LoadRecordKeys(string file) {
 	_filename = file;
     _in = fopen(_filename.c_str(),"rb");
     if(!_in) {
@@ -629,7 +629,7 @@ int DCReaderGRIB::_LoadRecordKeys(string file) {
     return 0;
 }
 
-int DCReaderGRIB::_LoadAllRecordKeys(string file) {
+int GribParser::_LoadAllRecordKeys(string file) {
     _filename = file;
     _in = fopen(_filename.c_str(),"rb");
     if(!_in) {
@@ -672,7 +672,7 @@ int DCReaderGRIB::_LoadAllRecordKeys(string file) {
 	return 0;
 }
 
-int DCReaderGRIB::_VerifyKeys() {
+int GribParser::_VerifyKeys() {
 	int numRecords = _recordKeys.size();
   
 	for (int i=0; i<numRecords; i++) {
@@ -699,7 +699,7 @@ int DCReaderGRIB::_VerifyKeys() {
 	return 0;
 }
 
-int DCReaderGRIB::_DataDump() {
+int GribParser::_DataDump() {
 	/* create new handle from a message in a file*/
 	_h = grib_handle_new_from_file(0,_in,&_err);
 	if (_h == NULL) {
@@ -732,7 +732,7 @@ int DCReaderGRIB::_DataDump() {
 	return 0;
 }
 
-int DCReaderGRIB::_InitializeDCReaderGRIB() {
+int GribParser::_InitializeDCReaderGRIB() {
 	if (!_recordKeysVerified) {				// Make sure that our set of keys
 		if (_VerifyKeys()) return 1;			// conforms to our requirements
 	}
@@ -743,6 +743,6 @@ int DCReaderGRIB::_InitializeDCReaderGRIB() {
 	return 0;
 }
 
-DCReaderGRIB::~DCReaderGRIB() {
+GribParser::~GribParser() {
 	if (_value) delete _value;
 }
