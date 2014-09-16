@@ -321,6 +321,9 @@ p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Click to set default Fidelity to current LOD and Refinement levels.  The default can optionally be saved in user preferences.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
+                <property name="whatsThis">
+                 <string>The fidelity setting controls both refinement and LOD.  Click on the &quot;Set Default Fidelity&quot; button to establish a fidelity level that is interactive on the current platform.</string>
+                </property>
                 <property name="text">
                  <string>Set Default Fidelity</string>
                 </property>
@@ -341,6 +344,9 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QGroupBox" name="fidelityBox">
+                <property name="whatsThis">
+                 <string>The fidelity setting controls both refinement and LOD.  Click on the &quot;Set Default Fidelity&quot; button to establish a fidelity level that is interactive on the current platform.</string>
+                </property>
                 <property name="title">
                  <string>low .. Fidelity .. high</string>
                 </property>
@@ -4641,14 +4647,14 @@ p, li { white-space: pre-wrap; }
    <header>mappingframe.h</header>
   </customwidget>
   <customwidget>
-   <class>ProbeFrame</class>
-   <extends>QWidget</extends>
-   <header>../probeframe.h</header>
-  </customwidget>
-  <customwidget>
    <class>QtThumbWheel</class>
    <extends>QWidget</extends>
    <header>../../guis/qtthumbwheel.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ProbeFrame</class>
+   <extends>QWidget</extends>
+   <header>../probeframe.h</header>
   </customwidget>
  </customwidgets>
  <includes>

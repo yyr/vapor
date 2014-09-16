@@ -321,6 +321,9 @@ p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Click to set default Fidelity to current LOD and Refinement levels.  The default can optionally be saved in user preferences.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
+                <property name="whatsThis">
+                 <string>The fidelity setting controls both refinement and LOD.  Click on the &quot;Set Default Fidelity&quot; button to establish a fidelity level that is interactive on the current platform.</string>
+                </property>
                 <property name="text">
                  <string>Set Default Fidelity</string>
                 </property>
@@ -341,6 +344,9 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QGroupBox" name="fidelityBox">
+                <property name="whatsThis">
+                 <string>The fidelity setting controls both refinement and LOD.  Click on the &quot;Set Default Fidelity&quot; button to establish a fidelity level that is interactive on the current platform.</string>
+                </property>
                 <property name="title">
                  <string>low .. Fidelity .. high</string>
                 </property>
@@ -709,6 +715,9 @@ p, li { white-space: pre-wrap; }
                 <property name="toolTip">
                  <string>Specify minimum isovalue</string>
                 </property>
+                <property name="whatsThis">
+                 <string>A series of evenly spaced isovalues can be specified by selecting the minimum, maximum and count.</string>
+                </property>
                 <property name="text">
                  <string>0.0</string>
                 </property>
@@ -737,6 +746,9 @@ p, li { white-space: pre-wrap; }
                 </property>
                 <property name="toolTip">
                  <string>Specify maximum isovalue</string>
+                </property>
+                <property name="whatsThis">
+                 <string>A series of evenly spaced isovalues can be specified by selecting the minimum, maximum and count.</string>
                 </property>
                 <property name="text">
                  <string>24.5</string>
@@ -772,6 +784,9 @@ p, li { white-space: pre-wrap; }
                 </property>
                 <property name="toolTip">
                  <string>Specify number of isovalues between min and max</string>
+                </property>
+                <property name="whatsThis">
+                 <string>A series of evenly spaced isovalues can be specified by selecting the minimum, maximum and count.</string>
                 </property>
                 <property name="text">
                  <string>3</string>
@@ -914,7 +929,7 @@ how the histogram is scaled.</string>
                   <string>This window displays a histogram of the variable in the specified interval, and allows you to pick the isovalue</string>
                  </property>
                  <property name="whatsThis">
-                  <string>This window displays a histogram of the current variable and allows you to position the isovalue by moving the slider at the bottom.  You can change the left and right bounds of the histogram by sliding the arrow at the top of this window.</string>
+                  <string>This window displays a histogram of the current variable and allows you to position the isovalues by moving the sliders at the bottom.  You can change the left and right bounds of the histogram by sliding the arrow at the top of this window.</string>
                  </property>
                  <property name="colorMapping" stdset="0">
                   <bool>true</bool>
@@ -941,14 +956,7 @@ how the histogram is scaled.</string>
                  <string>Minimum of histogrammed domain</string>
                 </property>
                 <property name="whatsThis">
-                 <string>The displayed data bounds are based on
-the range of data values in the first time step
-of the dataset.  These values are only a
-guide.  The TF Domain Bounds can be
-reset to any range.  Click on the &quot;histo&quot;
-button to construct, a histogram and thereby
-to determine the actual data values in the
-specified range.</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The displayed data bounds are based on&lt;/p&gt;&lt;p&gt;the range of data values in the first time step&lt;/p&gt;&lt;p&gt;of the dataset.  These values are only a&lt;/p&gt;&lt;p&gt;guide.  The histogram bounds can be&lt;/p&gt;&lt;p&gt;reset to any range.  Click on the &amp;quot;histo&amp;quot;&lt;/p&gt;&lt;p&gt;button to construct a histogram and thereby&lt;/p&gt;&lt;p&gt;to determine the actual data values in the&lt;/p&gt;&lt;p&gt;specified range. The histo bounds are&lt;/p&gt;&lt;p&gt;automatically set to include the minimum and &lt;/p&gt;&lt;p&gt;maximum isovalue.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>0.0</string>
@@ -1012,16 +1020,7 @@ specified range.</string>
                  <string>Maximum of histogrammed domain</string>
                 </property>
                 <property name="whatsThis">
-                 <string>The displayed data bounds are based on
-the range of data values in the first time step
-of the dataset.  These values are only a
-guide.  The histogram bounds can be
-reset to any range.  Click on the &quot;histo&quot;
-button to construct, a histogram and thereby
-to determine the actual data values in the
-specified range.  If you can't see the isovalue
-in the display, set it to a value between the
-left and right bounds.</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The displayed data bounds are based on&lt;/p&gt;&lt;p&gt;the range of data values in the first time step&lt;/p&gt;&lt;p&gt;of the dataset.  These values are only a&lt;/p&gt;&lt;p&gt;guide.  The histogram bounds can be&lt;/p&gt;&lt;p&gt;reset to any range.  Click on the &amp;quot;histo&amp;quot;&lt;/p&gt;&lt;p&gt;button to construct a histogram and thereby&lt;/p&gt;&lt;p&gt;to determine the actual data values in the&lt;/p&gt;&lt;p&gt;specified range. The histo bounds are&lt;/p&gt;&lt;p&gt;automatically set to include the minimum and &lt;/p&gt;&lt;p&gt;maximum isovalue.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>1.0</string>
@@ -1136,6 +1135,9 @@ specified range.</string>
                   <width>120</width>
                   <height>16777215</height>
                  </size>
+                </property>
+                <property name="toolTip">
+                 <string>Click to edit the current set of isovalues</string>
                 </property>
                 <property name="text">
                  <string>Edit Isovals</string>
@@ -1263,7 +1265,7 @@ specified range.</string>
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Load transfer function from file or session</string>
+                 <string>Load transfer function from file or session, so that its color map will apply to the isolines.</string>
                 </property>
                 <property name="text">
                  <string>Load TF</string>
@@ -1295,7 +1297,7 @@ specified range.</string>
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Load Transfer Function from directory of pre-installed transfer functions</string>
+                 <string>Load Transfer Function from directory of pre-installed transfer functions, whose color maps will be applied to the isolines</string>
                 </property>
                 <property name="text">
                  <string>Load Installed TF</string>
@@ -1327,7 +1329,7 @@ specified range.</string>
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Save this transfer function to a file or session</string>
+                 <string>Save this color map as a transfer function,  to a file or session</string>
                 </property>
                 <property name="text">
                  <string>Save TF</string>
@@ -1376,7 +1378,7 @@ specified range.</string>
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Move the isovalues to fit in histo bounds</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use the isovalues to define a discrete color map in the current Probe or 2D renderer panel, so that the current isovalues in this panel will display as color bands in that panel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>Copy To Probe</string>
@@ -3338,7 +3340,7 @@ Domain</string>
                        </size>
                       </property>
                       <property name="whatsThis">
-                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The planar view shows an image of the isolines in the plane where they are being calculated. Click on a point in this image to identify the 3D coordinates of the point.  The selected point will also be shown in the 3D scene (when in isoline mode).  The selected point can be used for centering, or for specifying flow seed points.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The planar view shows an image of the isolines in the plane where they are being calculated. Click on a point in this image to identify the 3D coordinates of the point and the value of the iso variable at the point. The selected point will also be shown in the 3D scene (when in isoline mode). The selected point can be used for centering, or for specifying flow seed points.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                       </property>
                      </widget>
                     </item>
@@ -3474,7 +3476,7 @@ Domain</string>
                     </font>
                    </property>
                    <property name="toolTip">
-                    <string>Click to specify the background color of the isoline image in this panel</string>
+                    <string>Click to specify the background color in this image panel</string>
                    </property>
                    <property name="text">
                     <string>Select</string>
@@ -3563,7 +3565,7 @@ Domain</string>
                     <bool>true</bool>
                    </property>
                    <property name="toolTip">
-                    <string>Clisk to specify color used in constant map</string>
+                    <string>this is the background color of the image view</string>
                    </property>
                    <property name="inputMask">
                     <string notr="true"/>
@@ -3606,7 +3608,7 @@ Domain</string>
                     </font>
                    </property>
                    <property name="toolTip">
-                    <string>Specify width of isolines in this panel</string>
+                    <string>Specify width of isolines in this panel in pixels</string>
                    </property>
                    <property name="text">
                     <string>1.0</string>
@@ -4050,7 +4052,7 @@ Domain</string>
                        </widget>
                       </item>
                       <item>
-                       <widget class="QPushButton" name="probeCenterButton">
+                       <widget class="QPushButton" name="isolineCenterButton">
                         <property name="toolTip">
                          <string>Click to recenter this isoline at selected point</string>
                         </property>
@@ -4058,7 +4060,7 @@ Domain</string>
                          <string>When this button is clicked, this isoline is moved so that its center becomes the selected point.</string>
                         </property>
                         <property name="text">
-                         <string>Probe </string>
+                         <string>Isoline</string>
                         </property>
                        </widget>
                       </item>
@@ -4287,6 +4289,9 @@ Domain</string>
                 <pointsize>10</pointsize>
                </font>
               </property>
+              <property name="toolTip">
+               <string>Check to use a single color for all isolines.  Un-check to use the color mapping specified in the IsoValue Selection panel above.</string>
+              </property>
               <property name="text">
                <string>Use Single Color</string>
               </property>
@@ -4311,6 +4316,9 @@ Domain</string>
                <font>
                 <pointsize>10</pointsize>
                </font>
+              </property>
+              <property name="toolTip">
+               <string>Click to select the single color to apply to all isolines.</string>
               </property>
               <property name="text">
                <string>Select</string>
@@ -4415,7 +4423,7 @@ Domain</string>
                <bool>true</bool>
               </property>
               <property name="toolTip">
-               <string>Clisk to specify color used in constant map</string>
+               <string>This is the single color applied to isolines.</string>
               </property>
               <property name="inputMask">
                <string notr="true"/>
