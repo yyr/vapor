@@ -49,8 +49,8 @@ HEADER_FILES = \
 
 
 ifeq ($(BUILD_GRIB),1)
-FILES += GribParser
-HEADER_FILES += GribParser
+FILES += DCReaderGRIB
+HEADER_FILES += DCReaderGRIB
 LIBRARIES += grib_api
 endif
 
