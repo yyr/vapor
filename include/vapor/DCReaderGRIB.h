@@ -6,7 +6,7 @@
 //                                                                       *
 //************************************************************************/
 //
-//  File:        GribParser.h
+//  File:        DCReaderGRIB.h
 //
 //  Author:      Scott Pearse
 //               National Center for Atmospheric Research
@@ -18,8 +18,8 @@
 //               
 //
 
-#ifndef GRIBPARSER_H
-#define GRIBPARSER_H
+#ifndef DCREADERGRIB_H
+#define DCREADERGRIB_H
 #include "grib_api.h"
 #include <vapor/DCReader.h>
 #include <iostream>
@@ -188,7 +188,7 @@ class UDUnits;
 	 double _maxLon;
 	 string _openVar;
 	 int _openTS; 	
- 
+
      std::vector<double> _levels;
 	 std::vector<double> _cartesianExtents;
      std::vector<double> _gribTimes;
@@ -209,6 +209,7 @@ class UDUnits;
 	 int _DataDump();					// dumps all data
      int _InitializeDCReaderGRIB();
 	 DCReaderGRIB* GetDCReaderGRIB() {return _metadata;}
+	 std::vector<std::map<std::string, std::string> > GetRecords() {return _recordKeys;}
 
 	private:
 	 int _err;
