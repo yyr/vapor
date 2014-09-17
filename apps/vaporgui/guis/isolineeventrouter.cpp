@@ -79,25 +79,22 @@ const char* IsolineEventRouter::webHelpText[] =
 	"Renderer control",
 	"Data accuracy control",
 	"Isoline basic settings",
+	"Isovalue selection",
 	"Isoline layout",
 	"Isoline image settings",
 	"Isoline appearance",
-	"Isoline orientation",
-	
 	"<>"
 };
 const char* IsolineEventRouter::webHelpURL[] =
 {
-
-	"http://www.vapor.ucar.edu/docs/vapor-gui-help/isoline-tab-data-Isoline-or-contour-plane",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/isolines",
 	"http://www.vapor.ucar.edu/docs/vapor-how-guide/renderer-instances",
 	"http://www.vapor.ucar.edu/docs/vapor-how-guide/refinement-and-lod-control",
-	"http://www.vapor.ucar.edu/docs/vapor-gui-help/Isoline-tab-data-Isoline-or-contour-plane#BasicIsolineSettings",
-	"http://www.vapor.ucar.edu/docs/vapor-gui-help/Isoline-tab-data-Isoline-or-contour-plane#IsolineLayout",
-	"http://www.vapor.ucar.edu/docs/vapor-gui-help/Isoline-tab-data-Isoline-or-contour-plane#IsolineImageSettings",
-	"http://www.vapor.ucar.edu/docs/vapor-gui-help/Isoline-tab-data-Isoline-or-contour-plane#IsolineAppearance",
-	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/orientation-Isoline",
-	
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/isolines#Basic",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/isolines#IsoSelection",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/isolines#Layout",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/isolines#Image",
+	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/isolines#Appearance"
 };
 
 IsolineEventRouter::IsolineEventRouter(QWidget* parent): QWidget(parent), Ui_IsolineTab(), EventRouter(){
@@ -201,7 +198,7 @@ IsolineEventRouter::hookUpTab()
 	connect (regionCenterButton, SIGNAL(clicked()), this, SLOT(isolineCenterRegion()));
 	connect (viewCenterButton, SIGNAL(clicked()), this, SLOT(isolineCenterView()));
 	connect (rakeCenterButton, SIGNAL(clicked()), this, SLOT(isolineCenterRake()));
-	connect (probeCenterButton, SIGNAL(clicked()), this, SLOT(guiCenterProbe()));
+	connect (isolineCenterButton, SIGNAL(clicked()), this, SLOT(guiCenterIsolines()));
 	connect (addSeedButton, SIGNAL(clicked()), this, SLOT(isolineAddSeed()));
 	connect (axisAlignCombo, SIGNAL(activated(int)), this, SLOT(guiAxisAlign(int)));
 	connect (fitRegionButton, SIGNAL(clicked()), this, SLOT(guiFitRegion()));
@@ -1379,13 +1376,13 @@ guiSetEnabled(bool value, int instance, bool undoredo){
 }
 
 
-//Make the probe center at selectedPoint.  Shrink size if necessary.
+//Make the isolines center at selectedPoint.  Shrink size if necessary.
 //Reset sliders and text as appropriate.  Equivalent to typing in the values
-void IsolineEventRouter::guiCenterProbe(){
-	//confirmText(false);
-	//ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	//PanelCommand* cmd = PanelCommand::captureStart(pParams, "Center Probe at Selected Point");
-	/*const float* selectedPoint = pParams->getSelectedPointLocal();
+void IsolineEventRouter::guiCenterIsolines(){
+	confirmText(false);
+	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Center Isolines at Selected Point");
+	const float* selectedPoint = pParams->getSelectedPointLocal();
 	float isolineMin[3],isolineMax[3];
 	pParams->getLocalBox(isolineMin,isolineMax,-1);
 	for (int i = 0; i<3; i++)
@@ -1394,8 +1391,7 @@ void IsolineEventRouter::guiCenterProbe(){
 	updateTab();
 	setIsolineDirty(pParams);
 	isolineImageFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::isolineMode);*/
-
+	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::isolineMode);
 }
 //Following method sets up (or releases) a connection to the Flow 
 void IsolineEventRouter::
