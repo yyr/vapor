@@ -27,6 +27,22 @@ void map_vox_to_blk(
     }
 }
 
+void map_blk_to_vox(
+	vector <size_t> bs, 
+	const vector <size_t> &bmin, const vector <size_t> &bmax,
+	vector <size_t> &vmin, vector <size_t> &vmax
+) {
+	assert(bs.size() == bmin.size());
+	assert(bs.size() == bmax.size());
+	vmin.clear();
+	vmax.clear();
+
+    for (int i=0; i<bs.size(); i++) {
+		vmin.push_back(bmin[i] * bs[i]);
+		vmax.push_back(bmax[i] * bs[i] + bs[i] - 1);
+    }
+}
+
 void grid_params(
 	const VDC::BaseVar &var,
 	const vector <size_t> &min,
@@ -1099,7 +1115,10 @@ float *DataMgrV3_0::_get_region_from_fs(
 	);
 	if (! blks) return(NULL);
 
-	int rc = _ReadVariableBlock(ts, varname, level, lod, bmin, bmax, blks);
+    vector <size_t> min, max;
+	map_blk_to_vox(bs, bmin, bmax, min, max);
+
+	int rc = _ReadVariableBlock(ts, varname, level, lod, min, max, blks);
     if (rc < 0) {
 		_free_region(ts,varname ,level,lod,bmin,bmax);
 		return(NULL);

@@ -767,6 +767,29 @@ int VDCNetCDF::ReadRegion(
 	}
 }     
 
+int VDCNetCDF::ReadRegionBlock(
+    const vector<size_t> &min, const vector<size_t> &max, float *region
+) {
+	vector <size_t> sdims;
+	size_t numts;
+	VDC::ParseDimensions(_open_var->GetDimensions(), sdims, numts);
+	assert(sdims.size() >= 2 && sdims.size() <= 3);
+
+	vector <size_t> start;
+	vector <size_t> count;
+	vdc_2_ncdfcoords(
+		_open_file_ts, (bool) numts, min, max, start, count
+	);
+
+	WASP *wasp = dynamic_cast<WASP *> (_open_file);
+	if (wasp) {
+		return(wasp->GetVaraBlock(start, count, region));
+	}
+	else {
+		return(_open_file->GetVara(_open_varname, start, count, region));
+	}
+}     
+
 bool VDCNetCDF::VariableExists(
     size_t ts,
     string varname,

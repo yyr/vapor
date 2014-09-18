@@ -1008,6 +1008,8 @@ void *RunWriteThread(void *arg) {
 void *RunReadThread(void *arg) {
 	thread_state &s = *(thread_state *) arg;
 
+	bool unblock = s._block != NULL;	// Need to unblock data?
+
 
 	// Align start and count coordinates to block boundaries
 	//
@@ -1042,6 +1044,20 @@ void *RunReadThread(void *arg) {
 		s._et->MutexUnlock();
 		if (s._status < 0) break;
 
+		// Transform coordinates from global to the region-of-interest
+		//
+		vector <size_t> roi_start = vector_sub(start, aligned_start);
+		vector <size_t> roi_origin = vector_sub(s._start, aligned_start);
+
+		// If we don't need to unblock we reconstruct the coefficients
+		// into the data buffer directly. Otherwise we have to reconstruct
+		// in temporary storage and then unblock
+		//
+		float *blockptr = s._block;
+		if (! unblock) {
+			blockptr = s._data + linearize(roi_start, aligned_count);
+		}
+
 		// Transform from wavelet to physical space
 		//
 		rc = ReconstructBlock(
@@ -1053,14 +1069,12 @@ void *RunReadThread(void *arg) {
             break;
         }
 
-		// Transform coordinates from global to the region-of-interest
-		//
-		vector <size_t> roi_start = vector_sub(start, aligned_start);
-		vector <size_t> roi_origin = vector_sub(s._start, aligned_start);
 
-		// Unblock the current block into the destination array
-		//
-		UnBlock(s._block, s._bs, s._data, s._count, roi_origin, roi_start);
+		if (unblock) {
+			// Unblock the current block into the destination array
+			//
+			UnBlock(s._block, s._bs, s._data, s._count, roi_origin, roi_start);
+		}
 
 	}
 	return(NULL);
@@ -1810,20 +1824,32 @@ bool WASP::_validate_put_vara_compressed(
 bool WASP::_validate_get_vara_compressed(
 	vector <size_t> start, vector <size_t> count, 
 	vector <size_t> bs, vector <size_t> udims, 
-	vector <size_t> cratios
+	vector <size_t> cratios, bool unblock
 ) const {
 	if (start.size() != udims.size() || count.size() != udims.size()) {
         return(false);
 	}
 	assert (bs.size() <= start.size());
 
-	for (int i=0; i<count.size(); i++) {
-		if (count[i] < 1 || count[i] > udims[i]) return(false);
-	}
+	if (unblock) {
+		for (int i=0; i<count.size(); i++) {
+			if (count[i] < 1 || count[i] > udims[i]) return(false);
+		}
 
-	for (int i=0; i<start.size(); i++) {
-		if (start[i] >= udims[i]) return(false);
-		if ((start[i] + count[i]) > udims[i]) return(false);
+		for (int i=0; i<start.size(); i++) {
+			if (start[i] >= udims[i]) return(false);
+			if ((start[i] + count[i]) > udims[i]) return(false);
+		}
+	}
+	else {
+		// make sure start and count are block-aligned
+		//
+		vector <size_t> astart, acount;
+		block_align(start, count, bs, astart, acount);
+		for (int i=0; i<start.size(); i++) {
+			if (start[i] != astart[i]) return(false);
+			if (count[i] != acount[i]) return(false);
+		}
 	}
 
 	return(true);
@@ -1913,6 +1939,7 @@ int WASP::PutVara(
 
 }
 
+
 int WASP::PutVar(const float *data) {
 
 	if (! _open || ! _open_write) {
@@ -1926,8 +1953,8 @@ int WASP::PutVar(const float *data) {
 	return(WASP::PutVara(start, count, data));
 }
 
-int WASP::GetVara(
-    vector <size_t> start, vector <size_t> count, float *data
+int WASP::_GetVara(
+    vector <size_t> start, vector <size_t> count, bool unblock, float *data
 ) {
 	if (! _open || _open_write) {
 		SetErrMsg("Invalid state");
@@ -1961,7 +1988,7 @@ int WASP::GetVara(
 	if (rc<0) return(rc);
 
 	if (! _validate_get_vara_compressed(
-		start, count, bs_at_level, dims_at_level, _open_cratios)
+		start, count, bs_at_level, dims_at_level, _open_cratios, unblock)
 	) {
 		SetErrMsg("Invalid parameter");
         return(-1);
@@ -1975,11 +2002,16 @@ int WASP::GetVara(
 		encoded_dims.pop_back();
 	}
 
-//	size_t block_size = vproduct(_open_bs);
+	float *blockptr = NULL;
 	size_t block_size = vproduct(bs_at_level);
-	float *block = (float *) _blockbuf.Alloc(
-		block_size * _nthreads *sizeof(float)
-	);
+	if (unblock) {
+
+		// Need space if we're unblocking data
+		//
+		blockptr = (float *) _blockbuf.Alloc(
+			block_size * _nthreads *sizeof(float)
+		);
+	}
 
 	size_t coeffs_size = vsum(ncoeffs);
 	float *coeffs = (float *) _coeffbuf.Alloc(
@@ -1997,11 +2029,15 @@ int WASP::GetVara(
 	vector <void *> argvec;
 	for (int i=0; i<_nthreads; i++) {
 
+		// Don't unblock if blockptr is NULL
+		//
+		float *blkptr = blockptr ? blockptr + i*block_size : NULL;
+
 		argvec.push_back((void *) new thread_state(
 			i, _et, _open_varname, _ncdfcptrs, start, count, bs_at_level, 
 			dims_at_level, ncoeffs,
 			encoded_dims, _open_compressors, data, 
-			block + i*block_size, coeffs + i*coeffs_size, 
+			blkptr, coeffs + i*coeffs_size, 
 			maps + i*maps_size*sizeof(float), _open_level
 		));
 	}
@@ -2020,6 +2056,20 @@ int WASP::GetVara(
 	for (int i=0; i<argvec.size(); i++) delete (thread_state *) argvec[i];
 
 	return(thread_state::_status);
+}
+
+int WASP::GetVara(
+    vector <size_t> start, vector <size_t> count, 
+	float *data
+) {
+	return(WASP::_GetVara(start, count, true, data));
+}
+
+int WASP::GetVaraBlock(
+    vector <size_t> start, vector <size_t> count, 
+	float *data
+) {
+	return(WASP::_GetVara(start, count, false, data));
 }
 
 int WASP::GetVar(float *data) {

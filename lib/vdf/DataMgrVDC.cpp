@@ -23,8 +23,17 @@ int DataMgrVDC::_Initialize(const vector <string> &files) {
 }
 
 int DataMgrVDC::_ReadVariableBlock (
-	size_t ts, string varname, int reflevel, int lod, 
-	vector <size_t> bmin, vector <size_t> bmax, float *blocks
+	size_t ts, string varname, int level, int lod, 
+	vector <size_t> min, vector <size_t> max, float *blocks
 ) {
-	return(-1);
+	int rc = _vdc.OpenVariableRead(ts, varname, level, lod);
+	if (rc<0) return(-1);
+
+	rc = _vdc.ReadRegionBlock(min, max, blocks);
+	if (rc<0) return(-1);
+
+	rc = _vdc.CloseVariable();
+	if (rc<0) return(-1);
+
+	return(0);
 }
