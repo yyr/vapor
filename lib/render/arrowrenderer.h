@@ -54,8 +54,10 @@ namespace VAPoR {
 //! Virtual method performs any OpenGL initialization, sets the initialized flag
     virtual int _initializeGL();
 
-//! Virtual method issues all the OpenGL calls to draw the arrows in user coordinates. 
-    virtual int _paintGL();
+//! Virtual method issues all the OpenGL calls to draw the arrows in user coordinates.
+//! \param[in] DataMgr* current DataMgr that owns the data being rendered.
+//! \param[in] Params* Params* that is associated with this Renderer
+    virtual int _paintGL(DataMgr* , const RenderParams*);
 
 //! Protected method that gets the required data from the DataMgr, while determining valid extents.
 //! \param[in] vector<string>& varnames Names of variables defining field
@@ -69,11 +71,14 @@ namespace VAPoR {
 	);
 
 //! Protected method that performs rendering of all arrows.
+//! \param[in] DataMgr* current DataMgr
+//! \param[in] const RenderParams* associated RenderParams
 //! \param[in] int actualRefLevel refinement level to be rendered.
 //! \param[in] float vectorScale Scale factor to be applied to arrows.
 //! \param[in] float arrowRadius Radius of arrows in voxel diameters.
 //! \param[in] RegularGrid*[4] RegularGrids used in rendering
-	void performRendering(
+//! \retval int zero if successful
+	int performRendering(DataMgr* dataMgr, const RenderParams* rParams,
 		int actualRefLevel,float vectorScale, float arrowRadius, 
 		RegularGrid *variableData[4]
 	);
@@ -83,8 +88,6 @@ namespace VAPoR {
 //! \param[in] const float endPoint[3] ending position of arrow
 //! \param[in] float radius Radius of arrow in voxels
 	void drawArrow(const float startPoint[3], const float endPoint[3], float radius);
-
-
 
   };
 };

@@ -53,38 +53,34 @@ Renderer::~Renderer()
 }
 
 
-void Renderer::initializeGL() {
+int Renderer::initializeGL() {
 	int rc = _initializeGL();
 	if (rc<0) {
-		//return(-1);
-		return;
+		return(rc);
 	}
 
 	vector <int> status;
 	bool ok = oglStatusOK(status);
 	if (! ok) {
 		SetErrMsg("OpenGL error : %s", oglGetErrMsg(status).c_str());
-		// return(-1);
+		return(-1);
 	}
-	//return(0);
-	return;
+	return(0);
 }
 
-void Renderer::paintGL() {
-	int rc = _paintGL();
+int Renderer::paintGL(DataMgr* dataMgr, const RenderParams* renderParams) {
+	int rc = _paintGL(dataMgr, renderParams);
 	if (rc<0) {
-		//return(-1);
-		return;
+		return(-1);
 	}
 
 	vector <int> status;
 	bool ok = oglStatusOK(status);
 	if (! ok) {
 		SetErrMsg("OpenGL error : %s", oglGetErrMsg(status).c_str());
-		// return(-1);
+		return(-1);
 	}
-	//return(0);
-	return;
+	return(0);
 }
 
 

@@ -62,13 +62,10 @@ int ArrowRenderer::_initializeGL(){
 	return(0);
 }
 
-int ArrowRenderer::_paintGL(){
+int ArrowRenderer::_paintGL(DataMgr* dataMgr, const RenderParams* params){
 
 	
-	ArrowParams* aParams = (ArrowParams*)currentRenderParams;
-	DataStatus* ds = DataStatus::getInstance();
-	DataMgr* dataMgr = ds->getDataMgr();
-	if (!dataMgr) return (0);
+	ArrowParams* aParams = (ArrowParams*)params;
 
 	//
 	//Set up the variable data required, while determining data extents to use in rendering
@@ -78,7 +75,7 @@ int ArrowRenderer::_paintGL(){
 	size_t voxExts[6];
 	double validExts[6];
 	int actualRefLevel = setupVariableData(varnames, varData, validExts, voxExts);
-	if (actualRefLevel < 0) return (0);
+	if (actualRefLevel < 0) return (-1);
 	//
 	//Calculate the scale factors and radius to be used in rendering the arrows:
 	//
@@ -95,7 +92,7 @@ int ArrowRenderer::_paintGL(){
 	//
 	size_t dim[3];
 	dataMgr->GetDim(dim, -1);
-	const double* fullSizes = ds->getFullSizes();
+	const double* fullSizes = DataStatus::getInstance()->getFullSizes();
 	float maxVoxSize = 0.f;
 	for (int i = 0; i<2; i++){
 		double voxSide = (fullSizes[i])/(dim[i]);
@@ -106,7 +103,8 @@ int ArrowRenderer::_paintGL(){
 	//
 	//Perform OpenGL rendering of arrows
 	//
-	performRendering(actualRefLevel, vectorLengthScale, rad, varData);
+	int rc = performRendering(dataMgr, params, actualRefLevel, vectorLengthScale, rad, varData);
+	if(rc) return rc;
 	
 	//Release the locks on the data:
 	for (int k = 0; k<4; k++){
@@ -255,15 +253,13 @@ void ArrowRenderer::drawArrow(const float startPoint[3], const float endPoint[3]
 	glEnd();
 }
 //Perform the openGL rendering:
-void ArrowRenderer::performRendering(
+int ArrowRenderer::performRendering(DataMgr* dataMgr, const RenderParams* params,
 	int actualRefLevel, float vectorLengthScale, float rad, 
 	RegularGrid *variableData[4]
 ){
 
-	ArrowParams* aParams = (ArrowParams*)currentRenderParams;
-	DataStatus* ds = DataStatus::getInstance();
-	DataMgr* dataMgr = ds->getDataMgr();
-	if (!dataMgr) return;
+	ArrowParams* aParams = (ArrowParams*)params;
+	
 	size_t timestep = (size_t)myVisualizer->getActiveAnimationParams()->getCurrentTimestep();
 	
 	const vector<double> rExtents = aParams->GetRakeLocalExtents();
@@ -405,6 +401,7 @@ void ArrowRenderer::performRendering(
 			}
 		}
 	}
+	return 0;
 }
 //Prepare data needed for rendering
 int ArrowRenderer::

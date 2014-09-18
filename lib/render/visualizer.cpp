@@ -274,7 +274,9 @@ int Visualizer::paintEvent(bool force)
 	printOpenGLError();
 	glClearColor(0.f, 0.0f, 0.0f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	if (!DataStatus::getInstance()->getDataMgr()) {
+	DataStatus *dataStatus = DataStatus::getInstance();
+	DataMgr* dataMgr = dataStatus->getDataMgr();
+	if (!dataMgr) {
 		return 0;
 	}
 
@@ -302,7 +304,7 @@ int Visualizer::paintEvent(bool force)
 	glDepthMask(GL_TRUE);
 	glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
 	
-	DataStatus *dataStatus = DataStatus::getInstance();
+	
 
 	
 	//Improve polygon antialiasing
@@ -409,7 +411,7 @@ int Visualizer::paintEvent(bool force)
 			glPushMatrix();
 			glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-			renderer[i]->paintGL();
+			renderer[i]->paintGL(dataMgr, renderer[i]->getRenderParams());
 
 			glPopAttrib();
 			glMatrixMode(GL_MODELVIEW);
