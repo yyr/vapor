@@ -163,6 +163,12 @@ public:
 	const std::vector<size_t> &max, float *region
  );
 
+ //! \copydoc VDC::ReadRegionBlock()
+ //
+ int ReadRegionBlock(
+    const vector <size_t> &min, const vector <size_t> &max, float *region
+ );
+
  //! \copydoc VDC::CompressionInfo()
  //
  bool CompressionInfo(

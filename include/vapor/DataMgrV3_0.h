@@ -534,7 +534,7 @@ protected:
     vector <size_t> &bs_at_level
  ) const = 0;
 
- virtual int _GetNumRefLevels(string varname) const;
+ virtual int _GetNumRefLevels(string varname) const = 0;
 
 
  //! \copydoc VariableExists()
@@ -553,7 +553,7 @@ protected:
  //
  virtual int _ReadVariableBlock (
 	size_t ts, string varname, int level, int lod, 
-	vector <size_t> bmin, vector <size_t> bmax, float *blocks
+	vector <size_t> min, vector <size_t> max, float *blocks
  ) = 0;
 
  //! Read and return variable data
@@ -565,7 +565,7 @@ protected:
  ) = 0;
  
  //! \todo Need to define
- virtual string GetMapProjection() const;
+ virtual string GetMapProjection() const {return(""); };
 
 private:
  class blkexts {

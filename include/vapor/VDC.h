@@ -1587,6 +1587,23 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
     const vector <size_t> &min, const vector <size_t> &max, float *region
  ) = 0;
 
+ //! Read in and return a blocked subregion from the currently opened
+ //! variable.
+ //!
+ //! This method is identical to ReadRegion() with the exceptions
+ //! that for compressed variables:
+ //!
+ //! \li The vectors \p start and \p count must be aligned
+ //! with the underlying storage block of the variable. See
+ //! VDC::SetCompressionBlock()
+ //!
+ //! \li The hyperslab copied to \p region will preserve its underlying
+ //! storage blocking (the data will not be contiguous)
+ //!
+ virtual int ReadRegionBlock(
+    const vector <size_t> &min, const vector <size_t> &max, float *region
+ ) = 0;
+
  //! Write an entire variable in one call
  //!
  //! This method writes and entire variable (all time steps, all grid points)

@@ -458,11 +458,35 @@ public:
  //! be read.
  //! The coordinates are specified relative to the dimensions of the
  //! array at the currently opened refinement level.  See NetCDFCpp::PutVara()
- //! \param[in] data Same as NetCDFCpp::PutVara()
+ //! \param[out] data Same as NetCDFCpp::PutVara()
  //!
  //! \sa InqVarDimlens(), OpenVarRead()
  //
  virtual int GetVara(
+	vector <size_t> start, vector <size_t> count, float *data
+ );
+
+ //! Read a hyper-slab of blocked values from currently opened variable
+ //!
+ //! This method is identical to GetVaraBlock() with the exceptions
+ //! that: 
+ //! \li The vectors \p start and \p count must be aligned
+ //! with the underlying storage block of the variable. See
+ //! WASP::DefVar()
+ //!
+ //! \li The hyperslab copied to \p data will preserve its underlying
+ //! storage blocking (the data will not be contiguous)
+ //!
+ //! \param[in] start A block-aligned vector of size_t integers specifying 
+ //! the index in 
+ //! the variable where the first of the data values will be read.
+ //! \param[in] count  A block-aligned vector of size_t integers specifying the 
+ //! edge lengths along each dimension of the hyperslab of data values to 
+ //! be read.
+ //!
+ //! \sa WASP::DefVar()
+ //
+ virtual int GetVaraBlock(
 	vector <size_t> start, vector <size_t> count, float *data
  );
 
@@ -583,13 +607,18 @@ private:
 
  bool _validate_get_vara_compressed(
 	vector <size_t> start, vector <size_t> count,
-	vector <size_t> bs, vector <size_t> udims, vector <size_t> cratios
+	vector <size_t> bs, vector <size_t> udims, vector <size_t> cratios,
+	bool unblock
  ) const;
 
  int _get_compression_params(
     string name, vector <size_t> &bs, vector <size_t> &cratios,
     vector <size_t> &udims, vector <size_t> &dims, string &wname
  ) const;
+
+ int _GetVara(
+    vector <size_t> start, vector <size_t> count, bool unblock, float *data
+ );
 
  static int _dims_at_level(
     vector <size_t> dims, vector <size_t> bs, int level,
