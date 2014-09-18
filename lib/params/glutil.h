@@ -242,6 +242,22 @@ void	StereoPerspective (int fovy, float aspect, float nearDist, float farDist, f
 
 PARAMS_API int printOglError(const char *file, int line, const char *msg = 0);
 
+//! Check for any OpenGL errors and return their error codes
+//!
+//! This function calls glGetError() to test for any OpenGL errors.
+//! If no errors are detected the function returns \b true. If one
+//! or more errors are detected the function returns false and stores
+//! each of the error codes in the \p status vector
+//
+PARAMS_API bool oglStatusOK(std::vector <int> &status);
+
+//! Decode OpenGL error codes and format them as a string
+//!
+//! This function takes a vector of error codes (see oglStatusOK) and
+//! produces a formatted error string from the list of codes
+//
+PARAMS_API std::string oglGetErrMsg(std::vector <int> status);
+
 #define printOpenGLError() printOglError(__FILE__, __LINE__)
 #define printOpenGLErrorMsg(msg) printOglError(__FILE__, __LINE__, msg)
 };

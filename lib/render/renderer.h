@@ -57,10 +57,10 @@ public:
 	//! Any OpenGL initialization is performed in initializeGL
 	//! It will be called from an OpenGL rendering context.
 	//! Sets initialized to true if successful.
-    virtual void	initializeGL() = 0;
+    virtual void	initializeGL();
 
 	//! All OpenGL rendering is performed in the pure virtual paintGL method.
-    virtual void		paintGL() = 0;
+    virtual void		paintGL();
 	
 	//! Whenever the Params associated with the renderer is changed, setRenderParams must be called.
 	//! This virtual method should be overridden if there are any dirty flags registered by the renderer.
@@ -134,6 +134,15 @@ public:
 	
 
 protected:
+
+	//! Pure virtual method
+	//! Any OpenGL initialization is performed in initializeGL
+	//! It will be called from an OpenGL rendering context.
+    virtual int	_initializeGL() = 0;
+
+	//! All OpenGL rendering is performed in the pure virtual paintGL method.
+    virtual int	_paintGL() = 0;
+
 	//! Enable specified clipping planes during the GL rendering
 	//! Must be invoked during paintGL()
 	//! \sa disableClippingPlanes

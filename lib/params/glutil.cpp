@@ -41,12 +41,13 @@
 //
 
 #include "glutil.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <vector>
+#include <cmath>
 #include <iostream>
-#include "assert.h"
 #include <vapor/MyBase.h>
 #include <vapor/errorcodes.h>
 
@@ -1256,6 +1257,29 @@ double det2x2(double a, double b, double c, double d)
     double ans;
     ans = a * d - b * c;
     return ans;
+}
+
+bool oglStatusOK(vector <int> &status) {
+
+	GLenum glErr;
+
+	while ((glErr = glGetError()) != GL_NO_ERROR) {
+		status.push_back((int) glErr);
+	}
+	if (status.size()) return(false);
+
+	return(true);
+}
+
+string oglGetErrMsg(vector <int> status) {
+
+	string msg;
+	for (int i=0; i<status.size(); i++) {
+		char *s = (char *) gluErrorString((GLenum) status[i]);
+		msg += (string) s;
+		msg += "\n";
+	}
+	return(msg);
 }
 
 int printOglError(const char *file, int line, const char *msg)

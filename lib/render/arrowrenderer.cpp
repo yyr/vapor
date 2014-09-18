@@ -57,16 +57,18 @@ ArrowRenderer::~ArrowRenderer()
 {
 }
 
-void ArrowRenderer::initializeGL(){
+int ArrowRenderer::_initializeGL(){
 	initialized = true;
+	return(0);
 }
 
-void ArrowRenderer::paintGL(){
+int ArrowRenderer::_paintGL(){
+
 	
 	ArrowParams* aParams = (ArrowParams*)currentRenderParams;
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
-	if (!dataMgr) return;
+	if (!dataMgr) return (0);
 
 	//
 	//Set up the variable data required, while determining data extents to use in rendering
@@ -76,7 +78,7 @@ void ArrowRenderer::paintGL(){
 	size_t voxExts[6];
 	double validExts[6];
 	int actualRefLevel = setupVariableData(varnames, varData, validExts, voxExts);
-	if (actualRefLevel < 0) return;
+	if (actualRefLevel < 0) return (0);
 	//
 	//Calculate the scale factors and radius to be used in rendering the arrows:
 	//
@@ -112,6 +114,7 @@ void ArrowRenderer::paintGL(){
 			dataMgr->UnlockGrid(varData[k]);
 			delete varData[k];
 	}
+	return(0);
 }
 
 //Issue OpenGL calls to draw a cylinder with orthogonal ends from one point to another.

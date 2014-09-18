@@ -44,17 +44,18 @@ namespace VAPoR {
 //! Destructor
     virtual ~ArrowRenderer();
 
-//! Virtual method performs any OpenGL initialization, sets the initialized flag
-    virtual void initializeGL();
-
-//! Virtual method issues all the OpenGL calls to draw the arrows in user coordinates. 
-    virtual void paintGL();
 
 //! Virtual method to force rebuilding of any caches associated with this renderer.
 //! The ArrowRender has no caches so this method does nothing.
     virtual void setAllDataDirty(){} //No need to do anything.
 
   protected:
+
+//! Virtual method performs any OpenGL initialization, sets the initialized flag
+    virtual int _initializeGL();
+
+//! Virtual method issues all the OpenGL calls to draw the arrows in user coordinates. 
+    virtual int _paintGL();
 
 //! Protected method that gets the required data from the DataMgr, while determining valid extents.
 //! \param[in] vector<string>& varnames Names of variables defining field

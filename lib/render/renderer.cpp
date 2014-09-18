@@ -53,6 +53,39 @@ Renderer::~Renderer()
 }
 
 
+void Renderer::initializeGL() {
+	int rc = _initializeGL();
+	if (rc<0) {
+		//return(-1);
+		return;
+	}
+
+	vector <int> status;
+	bool ok = oglStatusOK(status);
+	if (! ok) {
+		SetErrMsg("OpenGL error : %s", oglGetErrMsg(status).c_str());
+		// return(-1);
+	}
+	//return(0);
+	return;
+}
+
+void Renderer::paintGL() {
+	int rc = _paintGL();
+	if (rc<0) {
+		//return(-1);
+		return;
+	}
+
+	vector <int> status;
+	bool ok = oglStatusOK(status);
+	if (! ok) {
+		SetErrMsg("OpenGL error : %s", oglGetErrMsg(status).c_str());
+		// return(-1);
+	}
+	//return(0);
+	return;
+}
 
 
 void Renderer::enableClippingPlanes(const double extents[6]){
