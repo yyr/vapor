@@ -344,6 +344,7 @@ void ArrowRenderer::performRendering(
 							missing = true;
 							offset = 0.;
 						}
+						offset = offset - fullUsrExts[2];
 					}
 					point[2]=pntz+offset;
 					for (int dim = 0; dim<3; dim++){
@@ -380,6 +381,7 @@ void ArrowRenderer::performRendering(
 						if (offset == variableData[3]->GetMissingValue()) {
 							missing = true;
 						}
+						offset = offset - fullUsrExts[2];
 					}
 					point[2]=pntz+offset;
 					for (int dim = 0; dim<3; dim++){
