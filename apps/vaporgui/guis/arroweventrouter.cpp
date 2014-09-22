@@ -118,9 +118,9 @@ ArrowEventRouter::hookUpTab()
 	connect (yStrideEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
 	
 	//Connect variable combo boxes to their own slots:
-	connect (xVarCombo,SIGNAL(currentIndexChanged(int)), this, SLOT(guiSetXVarNum(int)));
-	connect (yVarCombo,SIGNAL(currentIndexChanged(int)), this, SLOT(guiSetYVarNum(int)));
-	connect (zVarCombo,SIGNAL(currentIndexChanged(int)), this, SLOT(guiSetZVarNum(int)));
+	connect (xVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetXVarNum(int)));
+	connect (yVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetYVarNum(int)));
+	connect (zVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetZVarNum(int)));
 	connect (heightCombo, SIGNAL(activated(int)),this,SLOT(guiSetHeightVarNum(int)));
 	connect (variableDimCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(guiSetVariableDims(int)));
 	//checkboxes
