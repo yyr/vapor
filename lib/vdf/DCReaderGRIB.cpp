@@ -75,7 +75,7 @@ void Variable::PrintTimes() {
 }
 
 void Variable::PrintIndex(double time, float level){
-	cout << fixed<< time << " " << level << " ";
+	cout << fixed << time << " " << level << " ";
 	cout << _indices[time][level].fileName;
 	cout << " " << _indices[time][level].offset << endl;
 }
@@ -97,6 +97,8 @@ DCReaderGRIB::DCReaderGRIB() {
 	_vars3d.clear();
 	_udunit = NULL;
 }
+
+
 
 //int DCReaderGRIB::OpenVariableRead(size_t gribTS, string gribVar) {
 int DCReaderGRIB::OpenVariableRead(size_t timestep, string varname,
@@ -121,10 +123,10 @@ int DCReaderGRIB::ReadSlice(float *_values){
 	float level = targetVar->GetLevel(_sliceNum);
 	int offset = targetVar->GetOffset(usertime,level);
 	string filename = targetVar->GetFileName(usertime,level);	
- 
+
     FILE* in = fopen(filename.c_str(),"rb");
     if(!in) {
-        printf("ERROR: unable to open file %s\n",filename.c_str());
+        printf("ReadSlice ERROR: unable to open file %s\n",filename.c_str());
         return -1;
     }
 
@@ -164,7 +166,8 @@ int DCReaderGRIB::ReadSlice(float *_values){
     //grib_handle_delete(_h);
  
     fclose(in);
-	_sliceNum++;
+	if (_sliceNum == _levels.size()-1) _sliceNum = 0;
+	else _sliceNum++;
     return 1;
 }
 
@@ -224,7 +227,7 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj,
     extents.push_back(y[1]);
     extents.push_back(top);
 
-	cout << x[0] << " " << y[0] << " " << bottom << " " << x[1] << " " << y[1] << " " << top << endl;
+	//cout << x[0] << " " << y[0] << " " << bottom << " " << x[1] << " " << y[1] << " " << top << endl;
 
     return 0;
 }
@@ -283,7 +286,6 @@ int DCReaderGRIB::_Initialize(std::vector<std::map<std::string, std::string> > r
 			
 			_vars3d[name]->_AddMessage(i);									// in the grib file)
 			_vars3d[name]->_AddIndex(time,level,file,offset);
-			//_vars3d[name]->PrintIndex(time,level);
 		}
 
 		int surface = strcmp(levelType.c_str(),"surface");
@@ -521,12 +523,14 @@ int GribParser::_LoadRecord(string file, size_t index) {
         //printf("-- Loading GRIB N. %d --\n",_grib_count);
         if(!_h) {
             printf("ERROR: Unable to create grib handle\n");
-            return 1;
+            fclose(_in);
+			return 1;
         }
 
         kiter = grib_keys_iterator_new(_h,_key_iterator_filter_flags,_name_space);
         if (!kiter) {
             printf("ERROR: Unable to create keys iterator\n");
+			fclose(_in);
             return 1;
         }
 
@@ -558,7 +562,7 @@ int GribParser::_LoadRecord(string file, size_t index) {
         grib_handle_delete(_h);
     }
 
-
+	fclose(_in);
     return 0;
 }
 
@@ -567,7 +571,7 @@ int GribParser::_LoadRecordKeys(string file) {
     _in = fopen(_filename.c_str(),"rb");
     if(!_in) {
         printf("ERROR: unable to open file %s\n",_filename.c_str());
-        return -1;
+	    return -1;
     } 
 
 	const void* msg;
@@ -591,12 +595,14 @@ int GribParser::_LoadRecordKeys(string file) {
         //printf("-- Loading GRIB N. %d --\n",_grib_count);
         if(!_h) {
             printf("ERROR: Unable to create grib handle\n");
+			fclose(_in);
             return 1;
         }   
             
         kiter = grib_keys_iterator_new(_h,_key_iterator_filter_flags,_name_space);
         if (!kiter) {
             printf("ERROR: Unable to create keys iterator\n");
+			fclose(_in);
             return 1;
         }   
 
@@ -625,7 +631,8 @@ int GribParser::_LoadRecordKeys(string file) {
         grib_keys_iterator_delete(kiter);
         grib_handle_delete(_h);
     }
-	_grib_count=0;   
+	_grib_count=0;  
+	fclose(_in); 
     return 0;
 }
 
@@ -645,12 +652,14 @@ int GribParser::_LoadAllRecordKeys(string file) {
 		//printf("-- Loading GRIB N. %d --\n",_grib_count);
 		if(!_h) {
 			printf("ERROR: Unable to create grib handle\n");
+			fclose(_in);
 			return 1;
 		}
 		
 		kiter = grib_keys_iterator_new(_h,_key_iterator_filter_flags,_name_space);
 		if (!kiter) {
 			printf("ERROR: Unable to create keys iterator\n");
+			fclose(_in);
 			return 1;
 		}
 
@@ -669,6 +678,7 @@ int GribParser::_LoadAllRecordKeys(string file) {
 		grib_keys_iterator_delete(kiter);
 		grib_handle_delete(_h);
 	}
+	fclose(_in);
 	return 0;
 }
 

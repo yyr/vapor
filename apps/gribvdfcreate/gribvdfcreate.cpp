@@ -1,7 +1,7 @@
 
 // Why can we compile if we include vapor/DCReaderROMS.h first?!
 #include <vapor/DCReaderROMS.h>
-#include <vapor/GribParser.h>
+#include <vapor/DCReaderGRIB.h>
 #include <vapor/DCReader.h>
 #include <vapor/WaveCodecIO.h>
 #include <vapor/WaveletBlock3DBufWriter.h>
@@ -225,7 +225,7 @@ int CopyVar(
         return(-1);
     }
 
-    cout << vdfio->GetDataRange()[0] << " " << vdfio->GetDataRange()[1] << endl;
+    //cout << vdfio->GetDataRange()[0] << " " << vdfio->GetDataRange()[1] << endl;
 
     size_t dim[3];
     vdfio->GetDim(dim, -1);
@@ -262,8 +262,8 @@ int CopyVar(
             if (buf[j] < min) min = buf[j];
         }
 
-        cout << min << " " << max << " ";
-        cout << vdfio->GetDataRange()[0] << " " << vdfio->GetDataRange()[1] << endl;
+        //cout << min << " " << max << " ";
+        //cout << vdfio->GetDataRange()[0] << " " << vdfio->GetDataRange()[1] << endl;
 
         rc = vdfio->WriteSlice(buf);
         if (rc<0) {
@@ -284,7 +284,7 @@ int CopyVar(
     if (buf) delete [] buf;
     //ncdfData->CloseVariable();
     vdfio->CloseVariable();
-    cout << "MyBase::GetErrCode(): " << MyBase::GetErrCode() << endl;
+    //cout << "MyBase::GetErrCode(): " << MyBase::GetErrCode() << endl;
     return(rc);
 
 }
@@ -295,13 +295,8 @@ void usage(char* prog) {
 }
 
 int main(int argc, char** argv) {
-    //int err = 0,i;
-    //double *values = NULL;
-    //double max,min,average;
-    //size_t values_len= 0;
- 
-    //FILE* in = NULL;
-    string gribfile;
+    
+	string gribfile;
 	string vdfname;
 
     GribParser *parser = new GribParser();
@@ -316,12 +311,15 @@ int main(int argc, char** argv) {
     }    
 
     parser->_VerifyKeys();
-    parser->_InitializeDCReaderGRIB();  
+    
+	// Create DCReaderGRIB with record info
+	DCReaderGRIB *DCGrib = new DCReaderGRIB();
+	DCGrib->_Initialize(parser->GetRecords());
+
 
     // Create VDF file      
-    DCReaderGRIB *metadata = parser->GetDCReaderGRIB();
     VDCFactory vdcf(1);
-    MetadataVDC *file = CreateMetadataVDC(vdcf, metadata);
+    MetadataVDC *file = CreateMetadataVDC(vdcf, DCGrib);
     file->Write(vdfname);
 
 
@@ -332,15 +330,29 @@ int main(int argc, char** argv) {
     VDFIOBase *vdfio = NULL;
     vdfio = wcwriter;
 
-    int rc = CopyVar(vdfio,
-                    metadata,
-                    0,0,"u","u",-1,-1);
+	std::vector<string> vars = DCGrib->GetVariables3D();
+	int numTs = (int) DCGrib->GetNumTimeSteps();
+    
+	int rc;
+	string var;
 
-    cout << rc << endl;
-    const float * drange = vdfio->GetDataRange();
-    cout << "data range (" << drange[0] << ", " << drange[1] << ")" << endl;
+	for (int varNum=0; varNum<vars.size(); varNum++) {
+		var = vars[varNum];
+		for(int ts=0; ts<numTs; ts++) {
+			cout << "Processing variable " << var << " at timestep " << ts << endl;
+			rc = CopyVar(vdfio,
+	    	             DCGrib,//metadata,
+	        	         ts,ts,var,var,-1,-1);//0,0,"u","u",-1,-1);
+		}
+	}
 
-    metadata->Print3dVars();
+
+    //cout << rc << endl;
+    //const float * drange = vdfio->GetDataRange();
+    //cout << "data range (" << drange[0] << ", " << drange[1] << ")" << endl;
+
+    //metadata->Print3dVars();
+	//DCGrib->Print3dVars();
 
     delete parser;
     return 0;
