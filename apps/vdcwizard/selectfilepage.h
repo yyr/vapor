@@ -64,6 +64,7 @@ private slots:
     void on_popRadioButton_clicked();
     void on_romsRadioButton_clicked();
 	void on_wrfRadioButton_clicked();
+	void on_dataTypeComboBox_currentIndexChanged(const QString &text);
 
 private:
 	int nextId() const;

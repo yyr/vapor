@@ -123,6 +123,13 @@ void SelectFilePage::on_removeFileButton_clicked() {
 	completeChanged();
 }
 
+void SelectFilePage::on_dataTypeComboBox_currentIndexChanged(const QString &text) {
+	if (text != " - -") {
+		dataHolder->setFileType(text.toStdString());
+	}
+	cout << text.toStdString() << endl;
+}
+
 void SelectFilePage::on_momRadioButton_clicked() {
     if (momRadioButton->isChecked()) dataHolder->setFileType("mom");
 	else dataHolder->setFileType("");

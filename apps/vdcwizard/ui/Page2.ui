@@ -266,6 +266,51 @@
     <bool>false</bool>
    </property>
   </widget>
+  <widget class="QComboBox" name="dataTypeComboBox">
+   <property name="geometry">
+    <rect>
+     <x>180</x>
+     <y>290</y>
+     <width>111</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <item>
+    <property name="text">
+     <string> - -</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MOM</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>POP</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>ROMS</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>WRF</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>CAM</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>GRIB</string>
+    </property>
+   </item>
+  </widget>
  </widget>
  <resources/>
  <connections/>

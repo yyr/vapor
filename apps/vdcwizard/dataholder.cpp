@@ -123,8 +123,8 @@ void DataHolder::clearVDFSelectedVars() {
 
 // Create a DCReader object and pull important data from it
 int DataHolder::createReader() {
-	if (fileType == "roms") reader = new DCReaderROMS(dataFiles);
-    else if (fileType == "wrf") reader = new DCReaderWRF(dataFiles);
+	if (fileType == "ROMS") reader = new DCReaderROMS(dataFiles);
+    else if (fileType == "WRF") reader = new DCReaderWRF(dataFiles);
 	else reader = new DCReaderMOM(dataFiles);
 	
 	if (MyBase::GetErrCode()!=0) return 1;
@@ -155,11 +155,11 @@ void DataHolder::findPopDataVars() {
 
 string DataHolder::getCreateVDFcmd() {
     vector<std::string> argv;
-    if (getFileType() == "roms") argv.push_back("romsvdfcreate");
-    else if (getFileType() == "wrf") argv.push_back("wrfvdfcreate");//Users/pears
+    if (getFileType() == "ROMS") argv.push_back("romsvdfcreate");
+    else if (getFileType() == "WRF") argv.push_back("wrfvdfcreate");//Users/pears
     else argv.push_back("momvdfcreate");
     argv.push_back("-quiet");
-    if (getFileType()=="wrf") argv.push_back("-vdc2");
+    if (getFileType()=="WRF") argv.push_back("-vdc2");
 
     if (VDFSBFactor != "") {
         argv.push_back("-bs");
@@ -207,8 +207,8 @@ string DataHolder::getCreateVDFcmd() {
 
 string DataHolder::getPopDataCmd() {
     vector<std::string> argv;
-    if (getFileType() == "roms") argv.push_back("roms2vdf");
-    else if (getFileType() == "wrf") argv.push_back("wrf2vdf");
+    if (getFileType() == "ROMS") argv.push_back("roms2vdf");
+    else if (getFileType() == "WRF") argv.push_back("wrf2vdf");
     else argv.push_back("mom2vdf");
     argv.push_back("-quiet");
 
@@ -234,7 +234,7 @@ string DataHolder::getPopDataCmd() {
     if (PDSelectedVars.size() != 0) {
         argv.push_back("-vars");
 
-		if (getFileType()!="mom"){
+		if (getFileType()!="MOM"){
 			// If ELEVATION var is already included
 			if (std::find(PDSelectedVars.begin(), PDSelectedVars.end(), "ELEVATION") == PDSelectedVars.end()) {
 				PDSelectedVars.push_back("ELEVATION");
@@ -250,7 +250,7 @@ string DataHolder::getPopDataCmd() {
         argv.push_back(stringVars);
     }
  
-    if (getFileType()=="wrf"){
+    if (getFileType()=="WRF"){
         argv.push_back(PDinputVDFfile);
     }   
 
@@ -259,7 +259,7 @@ string DataHolder::getPopDataCmd() {
         argv.push_back(dataFiles.at(i));
     }   
 
-    if (getFileType() != "wrf"){
+    if (getFileType() != "WRF"){
         argv.push_back(PDinputVDFfile);
     }   
 
@@ -283,12 +283,12 @@ string DataHolder::getPopDataCmd() {
 int DataHolder::VDFCreate() {
     int argc = 2;
     vector<std::string> argv;
-    if (getFileType() == "roms") argv.push_back("romsvdfcreate");
-    else if (getFileType() == "wrf") argv.push_back("wrfvdfcreate");//Users/pearse/VaporWinTestDir2/targets/Darwin_x86_64/bin/wrfvdfcreate");
+    if (getFileType() == "ROMS") argv.push_back("romsvdfcreate");
+    else if (getFileType() == "WRF") argv.push_back("wrfvdfcreate");//Users/pearse/VaporWinTestDir2/targets/Darwin_x86_64/bin/wrfvdfcreate");
 	else argv.push_back("momvdfcreate");
     argv.push_back("-quiet");
 	
-	if (getFileType() == "wrf")	{
+	if (getFileType() == "WRF")	{
 		argv.push_back("-vdc2");
 		argc++;
 	}
@@ -317,7 +317,7 @@ int DataHolder::VDFCreate() {
 		argv.push_back("-vars");
         argc++;
 
-        if (getFileType()!="mom"){
+        if (getFileType()!="MOM"){
             // If ELEVATION var is already included
             if (std::find(PDSelectedVars.begin(), PDSelectedVars.end(), "ELEVATION") == PDSelectedVars.end()) {
                 PDSelectedVars.push_back("ELEVATION");
@@ -351,7 +351,7 @@ int DataHolder::VDFCreate() {
     }
 	//cout << endl;
 
-	if (getFileType()=="wrf") {
+	if (getFileType()=="WRF") {
 		wrfvdfcreate launcherWrfVdfCreate;
 		int rc = launcherWrfVdfCreate.launchVdfCreate(argc,args);
 		return rc;
@@ -362,8 +362,8 @@ int DataHolder::VDFCreate() {
 int DataHolder::run2VDFcomplete() {
     int argc = 2;
     vector<std::string> argv;
-    if (getFileType() == "roms") argv.push_back("roms2vdf");
-    else if (getFileType() == "wrf") argv.push_back("wrf2vdf");
+    if (getFileType() == "ROMS") argv.push_back("roms2vdf");
+    else if (getFileType() == "WRF") argv.push_back("wrf2vdf");
 	else argv.push_back("mom2vdf");
     argv.push_back("-quiet");
 
@@ -396,7 +396,7 @@ int DataHolder::run2VDFcomplete() {
 		argv.push_back("-vars");
         argc++;
 
-        if (getFileType()!="mom"){
+        if (getFileType()!="MOM"){
             // If ELEVATION var is already included
             if (std::find(PDSelectedVars.begin(), PDSelectedVars.end(), "ELEVATION") == PDSelectedVars.end()) {
                 PDSelectedVars.push_back("ELEVATION");
@@ -432,8 +432,8 @@ int DataHolder::run2VDFcomplete() {
 int DataHolder::run2VDFincremental(string start, string var) {
     int argc = 2;
     vector<std::string> argv;
-    if (getFileType() == "roms") argv.push_back("roms2vdf");
-    else if (getFileType() == "wrf") argv.push_back("wrf2vdf");
+    if (getFileType() == "ROMS") argv.push_back("roms2vdf");
+    else if (getFileType() == "WRF") argv.push_back("wrf2vdf");
     else argv.push_back("mom2vdf");
     argv.push_back("-quiet");
 
@@ -461,26 +461,12 @@ int DataHolder::run2VDFincremental(string start, string var) {
     argv.push_back(start);
     argc+=2;
   
-    /*if (PDSelectedVars.size() != 0) {
-                argv.push_back("-vars");
-        argc++;
-
-        string stringVars;
-        for(vector<string>::iterator it = PDSelectedVars.begin();
-            it != PDSelectedVars.end(); ++it) {
-            if(it != PDSelectedVars.begin()) stringVars += ":";
-            stringVars += *it;
-        }
-        argv.push_back(stringVars);
-        argc++;
-    }*/
-    
 	argv.push_back("-vars");
 	argc++;
 	argv.push_back(var);
 	argc++;
  
-    if (getFileType()=="wrf"){
+    if (getFileType()=="WRF"){
         argv.push_back(PDinputVDFfile);
         argc++;
     }
@@ -491,7 +477,7 @@ int DataHolder::run2VDFincremental(string start, string var) {
         argc++;
     }   
 
-    if (getFileType() != "wrf"){
+    if (getFileType() != "WRF"){
     	argv.push_back(PDinputVDFfile);
     	argc++;
     }
@@ -504,7 +490,7 @@ int DataHolder::run2VDFincremental(string start, string var) {
     }   
 	//cout << endl;
 
-    if (getFileType()=="wrf") {
+    if (getFileType()=="WRF") {
 		//w2v.deleteWrfData();
 		return w2v.launchWrf2Vdf(argc,args);
     }
