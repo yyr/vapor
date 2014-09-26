@@ -41,32 +41,32 @@ using namespace std;
 
 int DCReaderGRIB::_sliceNum=0;
 
-Variable::Variable() {
+DCReaderGRIB::Variable::Variable() {
 	_messages.clear();
 	_unitTimes.clear();
 	_varTimes.clear();
 }
 
-Variable::~Variable() {
+DCReaderGRIB::Variable::~Variable() {
 }
 
-bool Variable::_Exists(double time) const {
+bool DCReaderGRIB::Variable::_Exists(double time) const {
 	//if (_unitTimes.find(time) == _unitTimes.end()) return 0;
 	if (std::find(_unitTimes.begin(), _unitTimes.end(), time)==_unitTimes.end()) return 0;
 	return 1;
 }
 
-int Variable::GetOffset(double time, float level) {
+int DCReaderGRIB::Variable::GetOffset(double time, float level) {
 	int off = _indices[time][level].offset;
 	return off;
 }
 
-string Variable::GetFileName(double time, float level) {
+string DCReaderGRIB::Variable::GetFileName(double time, float level) {
     string fname = _indices[time][level].fileName;
     return fname; 
 }
 
-void Variable::PrintTimes() {
+void DCReaderGRIB::Variable::PrintTimes() {
 	cout << "Times: [";
 	for (size_t i=0; i< _unitTimes.size(); i++) {
 		cout << fixed << _unitTimes[i] << " ";
@@ -74,20 +74,20 @@ void Variable::PrintTimes() {
 	cout << "]" << endl;
 }
 
-void Variable::PrintIndex(double time, float level){
+void DCReaderGRIB::Variable::PrintIndex(double time, float level){
 	cout << fixed << time << " " << level << " ";
 	cout << _indices[time][level].fileName;
 	cout << " " << _indices[time][level].offset << endl;
 }
 
-void Variable::_AddIndex(double time, float level, string file, int offset) {
+void DCReaderGRIB::Variable::_AddIndex(double time, float level, string file, int offset) {
 	MessageLocation location;
 	location.fileName = file;
 	location.offset = offset;
 	_indices[time][level] = location;
 }
 
-DCReaderGRIB::DCReaderGRIB() {
+DCReaderGRIB::DCReaderGRIB(const vector <string> files) {
 	_Ni = NULL;
 	_Nj = NULL;
 	_levels.clear();
@@ -96,6 +96,8 @@ DCReaderGRIB::DCReaderGRIB() {
 	_vars2d.clear();
 	_vars3d.clear();
 	_udunit = NULL;
+
+	DCReaderGRIB::_Initialize(files);
 }
 
 
@@ -118,7 +120,8 @@ int DCReaderGRIB::OpenVariableRead(size_t timestep, string varname,
 
 int DCReaderGRIB::ReadSlice(float *_values){
 
-	Variable* targetVar = Get3dVariable(_openVar);
+	//Variable* targetVar = Get3dVariable(_openVar);
+	Variable *targetVar = _vars3d[_openVar];
 	double usertime = GetTSUserTime(_openTS);
 	float level = targetVar->GetLevel(_sliceNum);
 	int offset = targetVar->GetOffset(usertime,level);
@@ -232,7 +235,13 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj,
     return 0;
 }
 
-int DCReaderGRIB::_Initialize(std::vector<std::map<std::string, std::string> > records) {
+int DCReaderGRIB::_Initialize(const vector <string> files) {
+
+	parser = new GribParser();
+	for (int i=0; i<files.size(); i++){
+		parser->_LoadRecordKeys(files[i]);
+	}
+	std::vector<std::map<std::string, std::string> > records = parser->GetRecords();
 
 	_udunit = new UDUnits();
 
@@ -455,7 +464,7 @@ DCReaderGRIB::~DCReaderGRIB() {
 	_vars3d.clear();
 }
 
-GribParser::GribParser() {
+DCReaderGRIB::GribParser::GribParser() {
 	_recordKeys.clear();
 	_consistentKeys.clear();
 	_varyingKeys.clear();
@@ -498,7 +507,7 @@ GribParser::GribParser() {
     _err        = 0;
 }
 
-int GribParser::_LoadRecord(string file, size_t index) {
+int DCReaderGRIB::GribParser::_LoadRecord(string file, size_t index) {
     _filename = file;
     _in = fopen(_filename.c_str(),"rb");
     if(!_in) {
@@ -566,11 +575,10 @@ int GribParser::_LoadRecord(string file, size_t index) {
     return 0;
 }
 
-int GribParser::_LoadRecordKeys(string file) {
-	_filename = file;
-    _in = fopen(_filename.c_str(),"rb");
+int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
+    _in = fopen(file.c_str(),"rb");
     if(!_in) {
-        printf("ERROR: unable to open file %s\n",_filename.c_str());
+        printf("ERROR: unable to open file %s\n",file.c_str());
 	    return -1;
     } 
 
@@ -636,7 +644,7 @@ int GribParser::_LoadRecordKeys(string file) {
     return 0;
 }
 
-int GribParser::_LoadAllRecordKeys(string file) {
+int DCReaderGRIB::GribParser::_LoadAllRecordKeys(string file) {
     _filename = file;
     _in = fopen(_filename.c_str(),"rb");
     if(!_in) {
@@ -682,7 +690,7 @@ int GribParser::_LoadAllRecordKeys(string file) {
 	return 0;
 }
 
-int GribParser::_VerifyKeys() {
+int DCReaderGRIB::GribParser::_VerifyKeys() {
 	int numRecords = _recordKeys.size();
   
 	for (int i=0; i<numRecords; i++) {
@@ -709,7 +717,7 @@ int GribParser::_VerifyKeys() {
 	return 0;
 }
 
-int GribParser::_DataDump() {
+int DCReaderGRIB::GribParser::_DataDump() {
 	/* create new handle from a message in a file*/
 	_h = grib_handle_new_from_file(0,_in,&_err);
 	if (_h == NULL) {
@@ -742,17 +750,6 @@ int GribParser::_DataDump() {
 	return 0;
 }
 
-int GribParser::_InitializeDCReaderGRIB() {
-	if (!_recordKeysVerified) {				// Make sure that our set of keys
-		if (_VerifyKeys()) return 1;			// conforms to our requirements
-	}
-
-	_metadata = new DCReaderGRIB();
-	_metadata->_Initialize(_recordKeys);
-	
-	return 0;
-}
-
-GribParser::~GribParser() {
+DCReaderGRIB::GribParser::~GribParser() {
 	if (_value) delete _value;
 }

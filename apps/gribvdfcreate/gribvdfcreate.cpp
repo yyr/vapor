@@ -299,22 +299,27 @@ int main(int argc, char** argv) {
 	string gribfile;
 	string vdfname;
 
-    GribParser *parser = new GribParser();
+    vector <string> files;
+    for (int i=2; i<argc; i++){
+        files.push_back(argv[i]);
+    }   
+
+    //GribParser *parser = new GribParser();
 
     if (argc<3) usage(argv[0]);
     
 	vdfname = argv[1];
 
-    for (int i=2; i<argc; i++){
-        gribfile = argv[i];
-        parser->_LoadRecordKeys(gribfile);
-    }    
+    //for (int i=2; i<argc; i++){
+    //    gribfile = argv[i];
+    //    parser->_LoadRecordKeys(gribfile);
+    //}    
 
-    parser->_VerifyKeys();
+    //parser->_VerifyKeys();
     
 	// Create DCReaderGRIB with record info
-	DCReaderGRIB *DCGrib = new DCReaderGRIB();
-	DCGrib->_Initialize(parser->GetRecords());
+	DCReaderGRIB *DCGrib = new DCReaderGRIB(files);
+	//DCGrib->_Initialize(parser->GetRecords());
 
 
     // Create VDF file      
@@ -354,7 +359,6 @@ int main(int argc, char** argv) {
     //metadata->Print3dVars();
 	//DCGrib->Print3dVars();
 
-    delete parser;
     return 0;
 
 }
