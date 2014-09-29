@@ -115,31 +115,53 @@ int DCReaderGRIB::OpenVariableRead(size_t timestep, string varname,
 
     _openVar = varname;
     _openTS = timestep;
+	Variable *targetVar = _vars3d[_openVar];
+	double usertime = GetTSUserTime(_openTS);
+    float level = targetVar->GetLevel(_sliceNum);
+    string filename = targetVar->GetFileName(usertime,level);
+
+    _inFile = fopen(filename.c_str(),"rb");
+    if(!_inFile) {
+        char err[50];
+        sprintf(err,"ReadSlice ERROR: unable to open file %s\n",filename.c_str());
+        MyBase::SetErrMsg(err);
+        return -1; 
+    }
+
+	int err;
+	h = grib_handle_new_from_file(0,_inFile,&err);
+
     return 0;
+}
+
+int DCReaderGRIB::Read(float *_values) {
+	float *ptr = _values;
+	
+	int rc;
+	while ((rc = DCReaderGRIB::ReadSlice(ptr)) > 0) {
+		ptr += _Ni * _Nj;
+	}
+	return rc;
 }
 
 int DCReaderGRIB::ReadSlice(float *_values){
 
-	//Variable* targetVar = Get3dVariable(_openVar);
 	Variable *targetVar = _vars3d[_openVar];
 	double usertime = GetTSUserTime(_openTS);
 	float level = targetVar->GetLevel(_sliceNum);
 	int offset = targetVar->GetOffset(usertime,level);
 	string filename = targetVar->GetFileName(usertime,level);	
 
-    FILE* in = fopen(filename.c_str(),"rb");
-    if(!in) {
-        printf("ReadSlice ERROR: unable to open file %s\n",filename.c_str());
-        return -1;
-    }
+    int rc = fseek(_inFile,offset,SEEK_SET);
+	if (rc != 0) MyBase::SetErrMsg("fseek error during GRIB ReadSlice");  
 
-    fseek(in,offset,SEEK_SET);
-    
 	/* create new handle from a message in a file*/
 	int err;
-    grib_handle* h = grib_handle_new_from_file(0,in,&err);
+    //grib_handle* h = grib_handle_new_from_file(0,_inFile,&err);
     if (h == NULL) {
-        printf("Error: unable to create handle from file %s\n",filename.c_str());
+		char erro[50];
+        sprintf(erro,"Error: unable to create handle from file %s\n",filename.c_str());
+        MyBase::SetErrMsg(erro);
     }   
 
     /* get the size of the _values array*/
@@ -154,21 +176,8 @@ int DCReaderGRIB::ReadSlice(float *_values){
     for(size_t i = 0; i < _values_len; i++)
 		_values[i] = (float) _dvalues[i];
 
-	//cout << _values[0] << " " << _dvalues[0] << endl;
- 
     delete [] _dvalues;
  
- 
-    //GRIB_CHECK(grib_get_double(_h,"max",&_max),0);
-    //GRIB_CHECK(grib_get_double(_h,"min",&_min),0);
-    //GRIB_CHECK(grib_get_double(_h,"average",&_average),0);
- 
-    //printf("%d _values found in %s\n",(int)_values_len,filename.c_str());
-    //printf("max=%.10e min=%.10e average=%.10e\n",_max,_min,_average);
- 
-    //grib_handle_delete(_h);
- 
-    fclose(in);
 	if (_sliceNum == _levels.size()-1) _sliceNum = 0;
 	else _sliceNum++;
     return 1;
@@ -199,9 +208,9 @@ double DCReaderGRIB::BarometricFormula(const double pressure) const {
 	return height;
 }
 
-int DCReaderGRIB::_InitCartographicExtents(string mapProj,
-                                           const std::vector<double> vertCoordinates,
-                                           std::vector<double> &extents) const {
+int DCReaderGRIB::_InitCartographicExtents(string mapProj){
+                                           //const std::vector<double> vertCoordinates,
+                                           //std::vector<double> &extents) const {
 
     Proj4API proj4API;
 
@@ -220,17 +229,15 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj,
         return(-1);
     }  
 	
-	double top = BarometricFormula(vertCoordinates[vertCoordinates.size()-1]);
-	double bottom = BarometricFormula(vertCoordinates[0]);
+	double bottom = BarometricFormula(_levels[_levels.size()-1]);
+	double top = BarometricFormula(_levels[0]);
 
-    extents.push_back(x[0]);
-    extents.push_back(y[0]);
-    extents.push_back(bottom);
-    extents.push_back(x[1]);
-    extents.push_back(y[1]);
-    extents.push_back(top);
-
-	//cout << x[0] << " " << y[0] << " " << bottom << " " << x[1] << " " << y[1] << " " << top << endl;
+    _cartographicExtents.push_back(x[0]);
+    _cartographicExtents.push_back(y[0]);
+    _cartographicExtents.push_back(bottom);
+    _cartographicExtents.push_back(x[1]);
+    _cartographicExtents.push_back(y[1]);
+    _cartographicExtents.push_back(top);
 
     return 0;
 }
@@ -250,9 +257,9 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 
 	_Ni = atoi(records[0]["Ni"].c_str());
 	_Nj = atoi(records[0]["Nj"].c_str());
-	_minLat = atof(records[0]["latitudeOfFirstGridPointInDegrees"].c_str());
+	_maxLat = atof(records[0]["latitudeOfFirstGridPointInDegrees"].c_str());
 	_minLon = atof(records[0]["longitudeOfFirstGridPointInDegrees"].c_str());
-	_maxLat = atof(records[0]["latitudeOfLastGridPointInDegrees"].c_str());
+	_minLat = atof(records[0]["latitudeOfLastGridPointInDegrees"].c_str());
 	_maxLon = atof(records[0]["longitudeOfLastGridPointInDegrees"].c_str());
 
 	if (_maxLon < 0) _maxLon += 360;
@@ -336,16 +343,13 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
     }
 	sort(_levels.begin(), _levels.end());	// Sort the levels that apply to the entire dataset
 
-	int rc = _InitCartographicExtents(GetMapProjection(),
-			  						 _levels,
-									 _cartesianExtents);
+	int rc = _InitCartographicExtents(GetMapProjection());
+			  						 //_levels,
+									 //_cartesianExtents);
 	if (rc<0) return -1;			 
 
 	return 0;
 }
-
-//int DCReaderGRIB::_dump(int ts, string var) {
-//}
 
 void DCReaderGRIB::Print3dVars() {
     typedef std::map<std::string, Variable*>::iterator it_type;
@@ -511,12 +515,15 @@ int DCReaderGRIB::GribParser::_LoadRecord(string file, size_t index) {
     _filename = file;
     _in = fopen(_filename.c_str(),"rb");
     if(!_in) {
-        printf("ERROR: unable to open file %s\n",_filename.c_str());
+        char *error;
+        sprintf(error,"ReadSlice ERROR: unable to open file %s\n",_filename.c_str());
+        MyBase::SetErrMsg(error);
         return -1;
     }   
 
 	size_t offset = atoi(_recordKeys[index]["offset"].c_str());
-	fseek(_in,offset,SEEK_SET);
+	int rc = fseek(_in,offset,SEEK_SET);
+	if (rc != 0) MyBase::SetErrMsg("fseek error during GRIB _LoadRecord()");
 
     _recordKeysVerified = 0;
     std::map<std::string, std::string> keyMap;
@@ -525,20 +532,18 @@ int DCReaderGRIB::GribParser::_LoadRecord(string file, size_t index) {
         const void* msg;
         size_t size;
         grib_get_message(_h,&msg,&size);
-        //cout << _grib_count << " " << size << endl;
 
         grib_keys_iterator* kiter=NULL;
         _grib_count++;
-        //printf("-- Loading GRIB N. %d --\n",_grib_count);
         if(!_h) {
-            printf("ERROR: Unable to create grib handle\n");
-            fclose(_in);
+        	MyBase::SetErrMsg("Unable to create grib handle");
+			fclose(_in);
 			return 1;
         }
 
         kiter = grib_keys_iterator_new(_h,_key_iterator_filter_flags,_name_space);
         if (!kiter) {
-            printf("ERROR: Unable to create keys iterator\n");
+            MyBase::SetErrMsg("ERROR: Unable to create keys iterator\n");
 			fclose(_in);
             return 1;
         }
@@ -562,11 +567,6 @@ int DCReaderGRIB::GribParser::_LoadRecord(string file, size_t index) {
             }
         }
 
-    //std::map<std::string, std::string>::iterator it = keyMap.begin(); 
-    //for (it; it != keyMap.end(); ++it) {
-        //cout << "  " << it->first << " " << it->second << endl;
-    //}   
-
         grib_keys_iterator_delete(kiter);
         grib_handle_delete(_h);
     }
@@ -578,7 +578,9 @@ int DCReaderGRIB::GribParser::_LoadRecord(string file, size_t index) {
 int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
     _in = fopen(file.c_str(),"rb");
     if(!_in) {
-        printf("ERROR: unable to open file %s\n",file.c_str());
+        char *error;
+        sprintf(error,"ERROR: unable to open file %s\n",file.c_str());
+        MyBase::SetErrMsg(error);
 	    return -1;
     } 
 
@@ -600,16 +602,15 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 
         grib_keys_iterator* kiter=NULL;
         _grib_count++;
-        //printf("-- Loading GRIB N. %d --\n",_grib_count);
         if(!_h) {
-            printf("ERROR: Unable to create grib handle\n");
+        	MyBase::SetErrMsg("Unable to create grib handle");
 			fclose(_in);
             return 1;
         }   
             
         kiter = grib_keys_iterator_new(_h,_key_iterator_filter_flags,_name_space);
         if (!kiter) {
-            printf("ERROR: Unable to create keys iterator\n");
+            MyBase::SetErrMsg("Unable to create keys iterator");
 			fclose(_in);
             return 1;
         }   
@@ -633,7 +634,6 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 			}
 		}   
 
-		//cout << keyMap["shortName"] << " " << keyMap["level"] << " " << keyMap["file"] << " " << keyMap["offset"] << endl;
 		_recordKeys.push_back(keyMap);
 		keyMap.clear();
         grib_keys_iterator_delete(kiter);
@@ -648,7 +648,9 @@ int DCReaderGRIB::GribParser::_LoadAllRecordKeys(string file) {
     _filename = file;
     _in = fopen(_filename.c_str(),"rb");
     if(!_in) {
-        printf("ERROR: unable to open file %s\n",_filename.c_str());
+        char *error;
+        sprintf(error,"ERROR: unable to open file %s\n",_filename.c_str());
+        MyBase::SetErrMsg(error);
         return -1;
     } 
 	
@@ -657,9 +659,8 @@ int DCReaderGRIB::GribParser::_LoadAllRecordKeys(string file) {
 	while((_h = grib_handle_new_from_file(0,_in,&_err)) != NULL) {
 		grib_keys_iterator* kiter=NULL;
 		_grib_count++;
-		//printf("-- Loading GRIB N. %d --\n",_grib_count);
 		if(!_h) {
-			printf("ERROR: Unable to create grib handle\n");
+			MyBase::SetErrMsg("Unable to create grib handle");
 			fclose(_in);
 			return 1;
 		}
@@ -694,21 +695,22 @@ int DCReaderGRIB::GribParser::_VerifyKeys() {
 	int numRecords = _recordKeys.size();
   
 	for (int i=0; i<numRecords; i++) {
-		//cout << "Analyzing GRIB Record " << i << endl;
 		
-		//cout << "Verifying grid types among all records" << endl;
 		string grid;
         grid = _recordKeys[i]["gridType"];
         if ((strcmp(grid.c_str(),"regular_ll")!=0) && (strcmp(grid.c_str(),"regular_gg")!=0)){
-            cout << "Error: Invalid grid specification ('" << grid << "') for Record No. " << i << endl;
+            char* error;
+			sprintf(error,"Error: Invalid grid specification ('%s') for Record No. %i",grid.c_str(),i);
+			MyBase::SetErrMsg(error);
             return -1;
         } 
 
 		for (size_t k=0; k<_consistentKeys.size(); k++) {
-			//cout << "	Verifying consistency of " << _consistentKeys[k] << endl;
 			// Check for inconsistent key across multiple records
 			if (_recordKeys[i][_consistentKeys[k]].compare(_recordKeys[0][_consistentKeys[k]]) != 0) {
-				cout << "Error: Inconsistent key found in Record No. " << i << ", Key: " << _consistentKeys[k] << endl;
+				char* error;
+				sprintf(error,"Error: Inconsistent key found in Record No. %i, Key: %s",i,_consistentKeys[k].c_str());
+				MyBase::SetErrMsg(error);
 				return -1;
 			}
 		}
@@ -721,7 +723,9 @@ int DCReaderGRIB::GribParser::_DataDump() {
 	/* create new handle from a message in a file*/
 	_h = grib_handle_new_from_file(0,_in,&_err);
 	if (_h == NULL) {
-		printf("Error: unable to create handle from file %s\n",_filename.c_str());
+		char *error;
+        sprintf(error,"Error: unable to create handle from file %s\n",_filename.c_str());
+        MyBase::SetErrMsg(error);
 	}
 
 	/* get the size of the _values array*/

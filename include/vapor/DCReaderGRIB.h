@@ -48,7 +48,9 @@ class UDUnits;
 	// DCReader Virtual Functions
      virtual int OpenVariableRead(size_t timestep, string varname, 
                                   int reflevel=0, int lod=0);
-	 virtual int CloseVariable() {return 0;}
+	 virtual int CloseVariable() {grib_handle_delete(h);
+								  fclose(_inFile); return 0;}
+	 virtual int Read(float *values);
 	 virtual int ReadSlice(float *slice);
 	 virtual bool VariableExists(size_t ts, string varname,
                                  int reflevel=0, int lod=0) const;     // not pure
@@ -80,7 +82,7 @@ class UDUnits;
 	// Metadata Pure Virtual Functions
 	// virtual void   GetGridDim(size_t dim[3]) const;
  	virtual void GetBlockSize(size_t bs[3], int reflevel) const { GetGridDim(bs); }
-	virtual std::vector<double> GetExtents(size_t ts = 0) const {return _cartesianExtents;}
+	virtual std::vector<double> GetExtents(size_t ts = 0) const {return _cartographicExtents;}//_cartesianExtents;}
      virtual std::vector<long> GetPeriodicBoundary() const;				// Needs implementation!
      virtual std::vector<long> GetGridPermutation() const;				// Needs implementation!
      virtual void GetTSUserTimeStamp(size_t ts, std::string &s) const;
@@ -88,27 +90,9 @@ class UDUnits;
 	// END Metadata Virtual Functions
 	/////
 	
-
-
-	/////
-	// Convenience functions
-	 //int _Initialize(std::vector<std::map<std::string, std::string> > records);
-	 int _Initialize(vector<string> files);
-	 int PrintVar(string var);
-     float GetLevel(int index) {return _levels[index];}
-     void PrintLevels();
-	 void Print3dVars();
-	 void Print2dVars();
-	 void Print1dVars();
-	 double BarometricFormula(const double pressure) const;
-	 int _InitCartographicExtents(string mapProj,
-                                  const std::vector <double> vertCoordinates,
-                                  std::vector <double> &extents) const;
-	/////
-
     private:
 	 static int _sliceNum;
-     int _Ni; 
+	 int _Ni; 
      int _Nj;
 	 double _minLat;
 	 double _minLon;
@@ -116,13 +100,31 @@ class UDUnits;
 	 double _maxLon;
 	 string _openVar;
 	 int _openTS; 	
+	 FILE* _inFile;    
+	 grib_handle* h;
+ 
+	 /////
+     // Convenience functions
+     //int _Initialize(std::vector<std::map<std::string, std::string> > records);
+     int _Initialize(vector<string> files);
+     int PrintVar(string var);
+     float GetLevel(int index) {return _levels[index];}
+     void PrintLevels();
+     void Print3dVars();
+     void Print2dVars();
+     void Print1dVars();
+     double BarometricFormula(const double pressure) const;
+     int _InitCartographicExtents(string mapProj);
+                                  //const std::vector <double> vertCoordinates,
+                                  //std::vector <double> &extents) const;
+     /////
 
  	 struct MessageLocation {
 		string fileName;
 		int offset;
 	 };
 
-	 class VDF_API Variable {
+	 class Variable {
 		public:
 		Variable();
 		~Variable();
@@ -159,6 +161,7 @@ class UDUnits;
 
      std::vector<double> _levels;
 	 std::vector<double> _cartesianExtents;
+	 std::vector<double> _cartographicExtents;
      std::vector<double> _gribTimes;
 	 std::map<std::string, Variable*> _vars1d;
      std::map<std::string, Variable*> _vars2d;

@@ -37,6 +37,8 @@ MetadataVDC *CreateMetadataVDC(
         exit(1);
     }
 
+	file->SetExtents(GribData->GetExtents());
+
     //  
     //  
     //if (opt.missattr.size() && !opt.misstv) {
@@ -225,8 +227,6 @@ int CopyVar(
         return(-1);
     }
 
-    //cout << vdfio->GetDataRange()[0] << " " << vdfio->GetDataRange()[1] << endl;
-
     size_t dim[3];
     vdfio->GetDim(dim, -1);
     float *buf = new float [dim[0]*dim[1]];
@@ -276,15 +276,10 @@ int CopyVar(
         }
     }
 
-    //size_t min[3];
-    //size_t max[3];
-    //int reflevel = 3;
-    //vdfio->GetValidRegion(&min, &max, reflevel);
+	gribData->CloseVariable();
 
     if (buf) delete [] buf;
-    //ncdfData->CloseVariable();
     vdfio->CloseVariable();
-    //cout << "MyBase::GetErrCode(): " << MyBase::GetErrCode() << endl;
     return(rc);
 
 }
