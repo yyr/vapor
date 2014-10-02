@@ -176,21 +176,22 @@ int DCReaderGRIB::ReadSlice(float *_values){
 		bool jScan = targetVar->getjScan();  // 1: j scans positively, 0: negatively
 		if (iScan == 1) {
 			if (jScan == 1) {   // 1 1
-				cout << iScan << " <-i j->" << jScan << endl;
+				i = _Ni - gribIndex%_Ni;
+				j = gribIndex/_Ni;
+				vaporIndex = j*_Ni + i;
 			}
 			else {              // 1 0
-				cout << iScan << " <-i j->" << jScan << endl;
+				vaporIndex = _Ni*_Nj - gribIndex - 1;
 			}
 		}
 
-		else if (jScan == 1) {  // 0 1
-			cout << iScan << " <-i j->" << jScan << endl;
+		else if (jScan == 0) {  // 0 0
+            i = gribIndex % _Ni;
+            j = ((_Ni * _Nj) - 1 - gribIndex) / _Ni;
+            vaporIndex = j * _Ni + i;
 		}
-		else {                  // 0 0
-			i = gribIndex % _Ni;
-			j = ((_Ni * _Nj) - 1 - gribIndex) / _Ni;
-			vaporIndex = j * _Ni + i;
-		}
+		// if the case is 0 1, we don't have to do anything...
+		//
 		_values[vaporIndex] = (float) _dvalues[gribIndex];
 	}
 
