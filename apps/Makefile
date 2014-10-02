@@ -4,7 +4,7 @@ include $(TOP)/make/config/prebase.mk
 
 SUBDIRS = vdfcreate raw2vdf vdf2raw vaporversion ncdf2vdf momvdfcreate \
 	mom2vdf wrfvdfcreate wrf2vdf vdfls vdfedit cart2wrfvdf \
-	romsvdfcreate roms2vdf ncdfvdfcreate
+	romsvdfcreate roms2vdf ncdfvdfcreate camvdfcreate cam2vdf
 
 ifeq ($(BUILD_GRIB),1)
 SUBDIRS += gribvdfcreate
