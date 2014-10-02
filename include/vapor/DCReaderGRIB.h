@@ -89,35 +89,23 @@ class UDUnits;
 	 virtual std::string GetMapProjection() const;
 	// END Metadata Virtual Functions
 	/////
+
+	vector <double> GetZCoordsInMeters() {return _meterLevels;}
 	
     private:
-	 static int _sliceNum;
-	 int _Ni; 
-     int _Nj;
-	 double _minLat;
-	 double _minLon;
-	 double _maxLat;
-	 double _maxLon;
-	 string _openVar;
-	 int _openTS; 	
-	 FILE* _inFile;    
-	 grib_handle* h;
- 
 	 /////
      // Convenience functions
      //int _Initialize(std::vector<std::map<std::string, std::string> > records);
      int _Initialize(vector<string> files);
      int PrintVar(string var);
-     float GetLevel(int index) {return _levels[index];}
+     float GetLevel(int index) {return _pressureLevels[index];}
      void PrintLevels();
      void Print3dVars();
      void Print2dVars();
      void Print1dVars();
      double BarometricFormula(const double pressure) const;
      int _InitCartographicExtents(string mapProj);
-                                  //const std::vector <double> vertCoordinates,
-                                  //std::vector <double> &extents) const;
-     /////
+	 /////
 
  	 struct MessageLocation {
 		string fileName;
@@ -131,35 +119,51 @@ class UDUnits;
 		//! Add a udunits-created double time value to _unitTimes
 		void _AddTime(double t) {_unitTimes.push_back(t);}
 		int  _AddMessage(int msg) {_messages.push_back(msg); return 0;} 
-		void _AddLevel(float lvl) {_levels.push_back(lvl);}
+		void _AddLevel(float lvl) {_pressureLevels.push_back(lvl);}
 		void _AddIndex(double time, float level, string file, int offset);
 
 		int GetOffset(double time, float level);
 		string GetFileName(double time, float level);
 		std::vector<int> GetMessages() const {return _messages;}
 		std::vector<double> GetTimes() const {return _unitTimes;}
-		std::vector<float> GetLevels() const {return _levels;}
-		float GetLevel(int index) const {return _levels[index];}
+		std::vector<float> GetLevels() const {return _pressureLevels;}
+		float GetLevel(int index) const {return _pressureLevels[index];}
 		void PrintTimes();
 		void PrintMessages();
 		void PrintIndex(double time, float level);
-		void _SortLevels() {sort(_levels.begin(), _levels.end());}
+		void _SortLevels() {sort(_pressureLevels.begin(), _pressureLevels.end());}
 		bool _Exists(double time) const;
+		void setScanDirection(bool i, bool j) {iScan = i; jScan = j;}
+		bool getiScan() const {return iScan;}
+		bool getjScan() const {return jScan;}
 
 		private:
 		//       time             level
 		std::map<double, std::map<float, MessageLocation> > _indices;
 		std::vector<int> _messages;
-		std::vector<float> _levels;
+		std::vector<float> _pressureLevels;
 
 		//! list of time indices that a variable exists within
 		std::vector<size_t> _varTimes;
 		//! times stored in udunit2 format
 	    std::vector<double> _unitTimes;
+		bool iScan;
+		bool jScan;
 	};
 
-
-     std::vector<double> _levels;
+	 static int _sliceNum;
+     int _Ni;
+     int _Nj;
+     double _minLat;
+     double _minLon;
+     double _maxLat;
+     double _maxLon;
+     string _openVar;
+     int _openTS;   
+     FILE* _inFile;    
+     grib_handle* h;
+     std::vector<double> _pressureLevels;
+	 std::vector<double> _meterLevels;
 	 std::vector<double> _cartesianExtents;
 	 std::vector<double> _cartographicExtents;
      std::vector<double> _gribTimes;

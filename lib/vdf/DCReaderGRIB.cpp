@@ -90,7 +90,7 @@ void DCReaderGRIB::Variable::_AddIndex(double time, float level, string file, in
 DCReaderGRIB::DCReaderGRIB(const vector <string> files) {
 	_Ni = NULL;
 	_Nj = NULL;
-	_levels.clear();
+	_pressureLevels.clear();
 	_cartesianExtents.clear();
 	_gribTimes.clear();
 	_vars2d.clear();
@@ -123,13 +123,10 @@ int DCReaderGRIB::OpenVariableRead(size_t timestep, string varname,
     _inFile = fopen(filename.c_str(),"rb");
     if(!_inFile) {
         char err[50];
-        sprintf(err,"ReadSlice ERROR: unable to open file %s\n",filename.c_str());
+        sprintf(err,"ERROR: unable to open file %s\n",filename.c_str());
         MyBase::SetErrMsg(err);
         return -1; 
     }
-
-	int err;
-	h = grib_handle_new_from_file(0,_inFile,&err);
 
     return 0;
 }
@@ -157,7 +154,7 @@ int DCReaderGRIB::ReadSlice(float *_values){
 
 	/* create new handle from a message in a file*/
 	int err;
-    //grib_handle* h = grib_handle_new_from_file(0,_inFile,&err);
+    grib_handle* h = grib_handle_new_from_file(0,_inFile,&err);
     if (h == NULL) {
 		char erro[50];
         sprintf(erro,"Error: unable to create handle from file %s\n",filename.c_str());
@@ -172,15 +169,37 @@ int DCReaderGRIB::ReadSlice(float *_values){
     /* get data _values*/
     GRIB_CHECK(grib_get_double_array(h,"values",_dvalues,&_values_len),0);
 
-	// convert doubles to floats
-    for(size_t i = 0; i < _values_len; i++)
-		_values[i] = (float) _dvalues[i];
+	// re-order values according to scan direciton and convert doubles to floats
+	int vaporIndex, i, j;
+    for(size_t gribIndex = 0; gribIndex < _values_len; gribIndex++) {
+		bool iScan = targetVar->getiScan();  // 0: i scans positively, 1: negatively
+		bool jScan = targetVar->getjScan();  // 1: j scans positively, 0: negatively
+		if (iScan == 1) {
+			if (jScan == 1) {   // 1 1
+				cout << iScan << " <-i j->" << jScan << endl;
+			}
+			else {              // 1 0
+				cout << iScan << " <-i j->" << jScan << endl;
+			}
+		}
+
+		else if (jScan == 1) {  // 0 1
+			cout << iScan << " <-i j->" << jScan << endl;
+		}
+		else {                  // 0 0
+			i = gribIndex % _Ni;
+			j = ((_Ni * _Nj) - 1 - gribIndex) / _Ni;
+			vaporIndex = j * _Ni + i;
+		}
+		_values[vaporIndex] = (float) _dvalues[gribIndex];
+	}
 
     delete [] _dvalues;
  
-	if (_sliceNum == _levels.size()-1) _sliceNum = 0;
+	if (_sliceNum == _pressureLevels.size()-1) _sliceNum = 0;
 	else _sliceNum++;
-    return 1;
+    grib_handle_delete(h);
+	return 1;
 }
 
 string DCReaderGRIB::GetMapProjection() const {
@@ -228,9 +247,14 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
         SetErrMsg("Invalid map projection : %s", mapProj.c_str());
         return(-1);
     }  
+
+	for (int i=0; i<_pressureLevels.size(); i++) {
+		double height = BarometricFormula(_pressureLevels[i]);
+		_meterLevels.push_back(height);
+	}
 	
-	double bottom = BarometricFormula(_levels[_levels.size()-1]);
-	double top = BarometricFormula(_levels[0]);
+	double bottom = _meterLevels[0];//BarometricFormula(_pressureLevels[_pressureLevels.size()-1]);
+	double top = _meterLevels[_meterLevels.size()-1];//BarometricFormula(_pressureLevels[0]);
 
     _cartographicExtents.push_back(x[0]);
     _cartographicExtents.push_back(y[0]);
@@ -271,24 +295,27 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 		string name  = record["shortName"];
 		string file = record["file"];
 		int offset = atoi(record["offset"].c_str());
-		int year   = atoi(record["yearOfCentury"].c_str());
+		int year   = atoi(record["yearOfCentury"].c_str()) + 2000;
 		int month  = atoi(record["month"].c_str());
 		int day    = atoi(record["day"].c_str());
 		int hour   = atoi(record["hour"].c_str());
 		int minute = atoi(record["minute"].c_str());
 		int second = atoi(record["second"].c_str());
-		
+		bool iScan = atoi(record["iScansNegatively"].c_str());
+		bool jScan = atoi(record["jScansPositively"].c_str());
+	
 		double time = _udunit->EncodeTime(year, month, day, hour, minute, second); 
 		if (std::find(_gribTimes.begin(), _gribTimes.end(), time) == _gribTimes.end())
 			_gribTimes.push_back(time);
 
-		if (std::find(_levels.begin(), _levels.end(), level) == _levels.end())
-			if (level != 0.f) _levels.push_back(level);
+		if (std::find(_pressureLevels.begin(), _pressureLevels.end(), level) == _pressureLevels.end())
+			if (level != 0.f) _pressureLevels.push_back(level);
 
 		int isobaric = strcmp(levelType.c_str(),"isobaricInhPa");
 		if (isobaric == 0) {								    // if we have a 3d var...
 			if (_vars3d.find(name) == _vars3d.end()) {			// if we have a new 3d var...
 				_vars3d[name] = new Variable();
+				_vars3d[name]->setScanDirection(iScan,jScan);
 			}
 			
 			std::vector<double> varTimes = _vars3d[name]->GetTimes();
@@ -341,10 +368,11 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	for (it_type iterator=_vars2d.begin(); iterator!=_vars2d.end(); iterator++){
         _vars2d[iterator->first]->_SortLevels();			// Sort the levels that apply to each individual variable
     }
-	sort(_levels.begin(), _levels.end());	// Sort the levels that apply to the entire dataset
+	sort(_pressureLevels.begin(), _pressureLevels.end());	// Sort the levels that apply to the entire dataset
+	reverse(_pressureLevels.begin(), _pressureLevels.end());
 
 	int rc = _InitCartographicExtents(GetMapProjection());
-			  						 //_levels,
+			  						 //_pressureLevels,
 									 //_cartesianExtents);
 	if (rc<0) return -1;			 
 
@@ -360,7 +388,7 @@ void DCReaderGRIB::Print3dVars() {
 }
 
 void DCReaderGRIB::GetGridDim(size_t dim[3]) const {
-	dim[0]=_Ni; dim[1]=_Nj; dim[2]=_levels.size();
+	dim[0]=_Ni; dim[1]=_Nj; dim[2]=_pressureLevels.size();
 }
 
 std::vector<long> DCReaderGRIB::GetPeriodicBoundary() const {
@@ -462,7 +490,7 @@ std::vector<std::string> DCReaderGRIB::GetVariables3DExcluded() const {
 DCReaderGRIB::~DCReaderGRIB() {
 	if (_udunit) delete _udunit;
 	_cartesianExtents.clear();
-	_levels.clear();
+	_pressureLevels.clear();
 	_gribTimes.clear();
 	_vars2d.clear();
 	_vars3d.clear();
@@ -485,8 +513,12 @@ DCReaderGRIB::GribParser::GribParser() {
 	_consistentKeys.push_back("gridType");
     _consistentKeys.push_back("longitudeOfFirstGridPointInDegrees");
     _consistentKeys.push_back("longitudeOfLastGridPointInDegrees");
-    _consistentKeys.push_back("latitudeOfFirstGridPoinInDegrees");
+    _consistentKeys.push_back("latitudeOfFirstGridPointInDegrees");
     _consistentKeys.push_back("latitudeOfLastGridPointInDegrees");
+	_consistentKeys.push_back("iScansNegatively");
+	_consistentKeys.push_back("jScansPositively");
+	_consistentKeys.push_back("DxInMetres");
+	_consistentKeys.push_back("DyInMetres");
 	_consistentKeys.push_back("Ni");
 	_consistentKeys.push_back("Nj");
 

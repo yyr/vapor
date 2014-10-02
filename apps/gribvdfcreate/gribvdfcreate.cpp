@@ -39,6 +39,8 @@ MetadataVDC *CreateMetadataVDC(
 
 	file->SetExtents(GribData->GetExtents());
 
+	file->SetMapProjection(GribData->GetMapProjection());
+
     //  
     //  
     //if (opt.missattr.size() && !opt.misstv) {
@@ -158,6 +160,12 @@ MetadataVDC *CreateMetadataVDC(
 //        vec.push_back(opt.zcoordvar);
         file->SetCoordinateVariables(vec);
     }
+
+	vector <double> zcoords = GribData->GetZCoordsInMeters();
+	for (int ts=0; ts<GribData->GetNumTimeSteps(); ts++) {
+		file->SetTSZCoords(ts,zcoords);
+	}
+
 /*    else if (gridtype.compare("stretched")==0) {
         NetCDFCollection *ncdfc = GribData->GetNetCDFCollection();
         for(size_t ts = 0; ts < GribData->GetNumTimeSteps(); ts++) {
