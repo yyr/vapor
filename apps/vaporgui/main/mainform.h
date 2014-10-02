@@ -72,7 +72,7 @@ public:
 			assert(0);
 		return theMainForm;
 	}
-    	MainForm(QString& fileName, QApplication* app, QWidget* parent = 0, const char* name = 0, Qt::WFlags fl = Qt::Window );
+    	MainForm(QString& fileName, QApplication* app, QWidget* parent = 0, const char* name = 0 );
     	~MainForm();
 	static TabManager* getTabManager() {return tabWidget;}
 

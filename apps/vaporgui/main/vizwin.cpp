@@ -46,7 +46,7 @@ using namespace VAPoR;
  *  name 'name' and widget flags set to 'f'.
  *
  */
-VizWin::VizWin( MainForm* parent, const QString& name, Qt::WFlags fl, VizWinMgr* myMgr, QRect* location, int winNum)
+VizWin::VizWin( MainForm* parent, const QString& name, VizWinMgr* myMgr, QRect* location, int winNum)
     : QGLWidget(parent)
 {
 	setAttribute(Qt::WA_DeleteOnClose);

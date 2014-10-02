@@ -238,7 +238,7 @@ launchVisualizer()
 	//notify the window selector:
 	emit (newViz(qvizname, useWindowNum));
 	
-	VizWindow[useWindowNum] = new VizWin (MainForm::getInstance(), qvizname, 0, this, newRect, useWindowNum);
+	VizWindow[useWindowNum] = new VizWin (MainForm::getInstance(), qvizname, this, newRect, useWindowNum);
 	
 	QMdiSubWindow* qsbw = MainForm::getInstance()->getMDIArea()->addSubWindow(VizWindow[useWindowNum]);
 	VizMdiWin[useWindowNum]=qsbw;
@@ -289,7 +289,7 @@ attachVisualizer(int useVizNum)
 	//notify the window selector:
 	emit (newViz(qvizname, useVizNum));
 	
-	VizWindow[useVizNum] = new VizWin (MainForm::getInstance(), qvizname, 0, this, newRect, useVizNum);
+	VizWindow[useVizNum] = new VizWin (MainForm::getInstance(), qvizname, this, newRect, useVizNum);
 	
 	QMdiSubWindow* qsbw = MainForm::getInstance()->getMDIArea()->addSubWindow(VizWindow[useVizNum]);
 	VizMdiWin[useVizNum]=qsbw;
@@ -937,7 +937,7 @@ int VizWinMgr::addVisualizer(int useWindowNum){
 	//notify the window selector:
 	emit (newViz(qvizname, useWindowNum));
 	
-	VizWindow[useWindowNum] = new VizWin (MainForm::getInstance(), qvizname, 0, this, newRect, useWindowNum);
+	VizWindow[useWindowNum] = new VizWin (MainForm::getInstance(), qvizname, this, newRect, useWindowNum);
 	
 	QMdiSubWindow* qsbw = MainForm::getInstance()->getMDIArea()->addSubWindow(VizWindow[useWindowNum]);
 	VizMdiWin[useWindowNum]=qsbw;

@@ -85,21 +85,12 @@ int main( int argc, char ** argv ) {
 		exit(-1);
 	}
 #endif
-//Following needed for running vnc:
-#ifdef Linux
-	QApplication::setGraphicsSystem("raster");
-#endif
 
 #ifdef IRIX    
 	    QApplication::setColorSpec( QApplication::ManyColor );
 #endif
     	QApplication a( argc, argv,true );
 	
-	//see qWarnings in console only in debug mode:
-#ifdef NDEBUG
-	qInstallMsgHandler( myMessageOutput );
-#endif
-
 	// Set path for Qt to look for its plugins. 
 	//
     vector <string> paths;

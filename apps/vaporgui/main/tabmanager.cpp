@@ -36,7 +36,7 @@
 
 using namespace VAPoR;
 vector<long> TabManager::tabOrdering;
-TabManager::TabManager(QWidget* parent, const char* ,  Qt::WFlags )
+TabManager::TabManager(QWidget* parent, const char* )
 	: QTabWidget(parent)
 {
 	myParent = parent;
@@ -47,8 +47,7 @@ TabManager::TabManager(QWidget* parent, const char* ,  Qt::WFlags )
 	usedTypes.clear();
 	haveMultipleViz = false;
 	
-	int ok = connect(this, SIGNAL(currentChanged(int)), this, SLOT(newFrontTab(int)));
-	if(!ok) assert (ok);
+	connect(this, SIGNAL(currentChanged(int)), this, SLOT(newFrontTab(int)));
 	currentFrontPage = -1;
 	setElideMode(Qt::ElideNone);
 }
