@@ -177,8 +177,8 @@ reinit(bool doOverride){
 				float dataMin = ds->getDefaultDataMin2D(i);
 				float dataMax = ds->getDefaultDataMax2D(i);
 				string varname = ds->getVariableName2D(i);
-				if (GetIsoControl(varname,true)){	
-					new2DIsoControls[i] = (IsoControl*)GetIsoControl(varname,true)->deepCopy(0);
+				if (GetIsoControl(varname,false)){	
+					new2DIsoControls[i] = (IsoControl*)GetIsoControl(varname,false)->deepCopy(0);
 				} else {
 					new2DIsoControls[i] = new IsoControl(this, 8);
 					new2DIsoControls[i]->setVarNum(i);
