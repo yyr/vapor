@@ -723,12 +723,20 @@ reinitTab(bool doOverride){
 			lodCombo->addItem(s);
 		}
 	}
-	//Set up the variable combos with default 3D variables  
-	populateVariableCombos(true);
 	
-	//set the combo to 3D
-	variableDimCombo->setCurrentIndex(1);
+
+	
 	ArrowParams* dParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
+	bool is3D = dParams->VariablesAre3D();
+	if (is3D){
+		variableDimCombo->setCurrentIndex(1);
+		populateVariableCombos(true);
+	}
+	else {
+		variableDimCombo->setCurrentIndex(0);
+		populateVariableCombos(false);
+	}
+	
 	setupFidelity(3, fidelityLayout,fidelityBox, dParams, doOverride);
 	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 	updateTab();
