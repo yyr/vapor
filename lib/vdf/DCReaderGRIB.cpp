@@ -148,6 +148,8 @@ int DCReaderGRIB::ReadSlice(float *_values){
 	float level = targetVar->GetLevel(_sliceNum);
 	int offset = targetVar->GetOffset(usertime,level);
 	string filename = targetVar->GetFileName(usertime,level);	
+	
+	//cout << level << " " << offset << endl;
 
     int rc = fseek(_inFile,offset,SEEK_SET);
 	if (rc != 0) MyBase::SetErrMsg("fseek error during GRIB ReadSlice");  
@@ -196,9 +198,13 @@ int DCReaderGRIB::ReadSlice(float *_values){
 	}
 
     delete [] _dvalues;
+
+	cout << _values[0] << endl;
  
-	if (_sliceNum == _pressureLevels.size()-1) _sliceNum = 0;
-	else _sliceNum++;
+	//if (_sliceNum == _pressureLevels.size()-1) _sliceNum = 0;
+	//else _sliceNum++;
+	if (_sliceNum == 0) _sliceNum = _pressureLevels.size()-1;
+	else _sliceNum--;
     grib_handle_delete(h);
 	return 1;
 }
@@ -273,17 +279,21 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	for (int i=0; i<files.size(); i++){
 		parser->_LoadRecordKeys(files[i]);
 	}
+	int rc = parser->_VerifyKeys();
+    if (rc<0) return -1; 
+
 	std::vector<std::map<std::string, std::string> > records = parser->GetRecords();
 
 	_udunit = new UDUnits();
 
-	_sliceNum = 0;
     int numRecords = records.size();
 
 	_Ni = atoi(records[0]["Ni"].c_str());
 	_Nj = atoi(records[0]["Nj"].c_str());
 	_maxLat = atof(records[0]["latitudeOfFirstGridPointInDegrees"].c_str());
 	_minLon = atof(records[0]["longitudeOfFirstGridPointInDegrees"].c_str());
+	
+	_gridType = records[0]["gridType"];
 	_minLat = atof(records[0]["latitudeOfLastGridPointInDegrees"].c_str());
 	_maxLon = atof(records[0]["longitudeOfLastGridPointInDegrees"].c_str());
 
@@ -360,6 +370,7 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 			_vars1d[name]->_AddIndex(time,level,file,offset);
         }
 
+		if (name == "gh") _vars3d["ELEVATION"] = _vars3d["gh"];
 	}
 	
 	typedef std::map<std::string, Variable*>::iterator it_type;
@@ -372,9 +383,12 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	sort(_pressureLevels.begin(), _pressureLevels.end());	// Sort the levels that apply to the entire dataset
 	reverse(_pressureLevels.begin(), _pressureLevels.end());
 
-	int rc = _InitCartographicExtents(GetMapProjection());
+	rc = _InitCartographicExtents(GetMapProjection());
 			  						 //_pressureLevels,
 									 //_cartesianExtents);
+	
+	_sliceNum = _pressureLevels.size()-1;
+
 	if (rc<0) return -1;			 
 
 	return 0;
@@ -626,11 +640,11 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
     while((_h = grib_handle_new_from_file(0,_in,&_err)) != NULL) {
 
 		grib_get_message(_h,&msg,&size);
-		offset+=size;
 		ss << offset;		
 		keyMap["offset"] = ss.str();
 		ss.str(std::string());
 		ss.clear();
+		offset+=size;
 		keyMap["file"] = file;
 
         grib_keys_iterator* kiter=NULL;
@@ -726,14 +740,15 @@ int DCReaderGRIB::GribParser::_LoadAllRecordKeys(string file) {
 
 int DCReaderGRIB::GribParser::_VerifyKeys() {
 	int numRecords = _recordKeys.size();
-  
+ 
+	int n; 
+	char error[50];
 	for (int i=0; i<numRecords; i++) {
 		
 		string grid;
         grid = _recordKeys[i]["gridType"];
         if ((strcmp(grid.c_str(),"regular_ll")!=0) && (strcmp(grid.c_str(),"regular_gg")!=0)){
-            char* error;
-			sprintf(error,"Error: Invalid grid specification ('%s') for Record No. %i",grid.c_str(),i);
+			n=sprintf(error,"Error: Invalid grid specification ('%s') for Record No. %d",grid.c_str(),i);
 			MyBase::SetErrMsg(error);
             return -1;
         } 
@@ -741,8 +756,7 @@ int DCReaderGRIB::GribParser::_VerifyKeys() {
 		for (size_t k=0; k<_consistentKeys.size(); k++) {
 			// Check for inconsistent key across multiple records
 			if (_recordKeys[i][_consistentKeys[k]].compare(_recordKeys[0][_consistentKeys[k]]) != 0) {
-				char* error;
-				sprintf(error,"Error: Inconsistent key found in Record No. %i, Key: %s",i,_consistentKeys[k].c_str());
+				n=sprintf(error,"Error: Inconsistent key found in Record No. %i, Key: %s",i,_consistentKeys[k].c_str());
 				MyBase::SetErrMsg(error);
 				return -1;
 			}
@@ -790,3 +804,7 @@ int DCReaderGRIB::GribParser::_DataDump() {
 DCReaderGRIB::GribParser::~GribParser() {
 	if (_value) delete _value;
 }
+
+//DCReaderGRIB::DerivedVarElevation::DerivedVarElevation(int Ni, int Nj){
+	
+//}
