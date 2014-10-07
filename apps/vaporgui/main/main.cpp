@@ -111,14 +111,13 @@ int main( int argc, char ** argv ) {
     QStringList filePaths(filePath);
     QCoreApplication::setLibraryPaths(filePaths);
 //For Mac and Linux, set the PYTHONHOME in this app
-#ifndef WIN32
 
-    const char *s = getenv("PYTHONHOME");
+    const char *s = getenv("VAPOR_PYTHONHOME");
     string phome = s ? s : "";
     string pythonversion ("python");
     pythonversion += PYTHONVERSION;
     if (! phome.empty()) {
-        string msg("The PYTHONHOME variable is already specified as: \n");
+        string msg("The VAPOR_PYTHONHOME variable is specified as: \n");
         msg += phome;
         msg += "\n";
         msg += "The VAPOR ";
@@ -127,30 +126,47 @@ int main( int argc, char ** argv ) {
         msg += " This path must be the location of a Python ";
         msg += pythonversion;
         msg += " installation\n";
-        msg += "Unset the PYTHONHOME environment to revert to the installed ";
+        msg += "Unset the VAPOR_PYTHONHOME environment to revert to the installed ";
         msg += "VAPOR " + pythonversion + " environment.";
-        QMessageBox::warning(0,"PYTHONHOME warning", msg.c_str());
+        QMessageBox::warning(0,"VAPOR_PYTHONHOME warning", msg.c_str());
+
     } else {
+		//Set PYTHON in this app
         vector <string> ppaths;
         ppaths.push_back("lib");
         ppaths.push_back(pythonversion);
         phome =  GetAppPath("VAPOR", "", ppaths).c_str();
-        if (! phome.empty()) {    
-            const string separator = "/";
+        if (! phome.empty()) {  
+#ifdef _WINDOWS
+        const string separator = "\\";
+#else
+	const string separator = "/";
+#endif
             string s = "lib";
             s.append(separator);
             s.append(pythonversion);
             phome.erase(phome.rfind(s)); // remove trailing "lib/pythonX.XX"
         }
         else {
-            phome = PYTHONDIR;
+#ifndef _WINDOWS
+	   //PYTHONDIR is defined in options.mk to be root of python tree
+	   //so we can use that when debugging.
+	   phome = PYTHONDIR;
+#else
+       phome = getenv("PYTHONDIR");
+#endif
         }
 
-        setenv("PYTHONHOME",phome.c_str(),1);
     }
+#ifndef _WINDOWS
+    setenv("PYTHONHOME",phome.c_str(),1);
+#else
+	string winstring("PYTHONHOME=");
+	winstring += phome;
+	_putenv(winstring.c_str());
+#endif
     MyBase::SetDiagMsg("PYTHONHOME = %s", phome.c_str());
                                
-#endif
 
     app = &a;
     a.setPalette(QPalette(QColor(233,236,216), QColor(233,236,216)));
