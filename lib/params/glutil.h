@@ -50,6 +50,7 @@
 #include <math.h>
 #include <vapor/common.h>
 #include <vector>
+#include <string>
 
 /* These vector and quaternion macros complement similar
  * routines.

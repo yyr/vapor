@@ -621,7 +621,7 @@ loadRegionExtents(){
 	}
 	
 	//Open the file:
-	FILE* regionFile = fopen((const char*)filename.toAscii(),"r");
+	FILE* regionFile = fopen((const char*)filename.toLocal8Bit(),"r");
 	if (!regionFile){
 		
 		return;
@@ -701,7 +701,7 @@ saveRegionExtents(){
 	}
 	
 	//Open the file:
-	FILE* regionFile = fopen((const char*)filename.toAscii(),"w");
+	FILE* regionFile = fopen((const char*)filename.toLocal8Bit(),"w");
 	if (!regionFile){
 		
 		return;

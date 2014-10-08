@@ -27,7 +27,6 @@
 #pragma warning(disable : 4251 4100)
 #endif
 #include "glutil.h"	// Must be included first!!!
-#include <QMenuItem>
 #include "mainform.h"
 #include <QDockWidget>
 #include <QTextEdit>
@@ -127,7 +126,7 @@ MainForm* MainForm::theMainForm = 0;
 TabManager* MainForm::tabWidget = 0;
 //Only the main program should call the constructor:
 //
-MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const char*, Qt::WFlags )
+MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const char*)
     : QMainWindow( parent)
 {
 	setAttribute(Qt::WA_DeleteOnClose);
@@ -473,18 +472,20 @@ void MainForm::createActions(){
 
 	//Actions for the viztoolbar:
 	QPixmap* homeIcon = new QPixmap(home);
-	homeAction = new QAction(*homeIcon,QString(tr("Go to Home Viewpoint  "))+QString(QKeySequence(tr("Ctrl+H"))), this);
+	homeAction = new QAction(*homeIcon,QString(tr("Go to Home Viewpoint  ")), this);
+	homeAction->setShortcut(QKeySequence(tr("Ctrl+H")));
 	homeAction->setShortcut(Qt::CTRL+Qt::Key_H);
 	QPixmap* sethomeIcon = new QPixmap(sethome);
 	sethomeAction = new QAction(*sethomeIcon, "Set Home Viewpoint", this);
 	QPixmap* eyeIcon = new QPixmap(eye);
-	viewAllAction = new QAction(*eyeIcon,QString(tr("View All  "))+QString(QKeySequence(tr("Ctrl+V"))), this);
+	viewAllAction = new QAction(*eyeIcon,QString(tr("View All  ")), this);
+	viewAllAction->setShortcut(QKeySequence(tr("Ctrl+V")));
 	viewAllAction->setShortcut(Qt::CTRL+Qt::Key_V);
 	QPixmap* magnifyIcon = new QPixmap(magnify);
 	viewRegionAction = new QAction(*magnifyIcon, "View Region", this);
 
 	QPixmap* tileIcon = new QPixmap(tiles);
-	tileAction = new QAction(*tileIcon,QString(tr("Tile Windows  "))+QString(QKeySequence(tr("Ctrl+T"))),this);
+	tileAction = new QAction(*tileIcon,QString(tr("Tile Windows  ")),this);
 	tileAction->setShortcut(Qt::CTRL+Qt::Key_T);
 
 	QPixmap* cascadeIcon = new QPixmap(cascade);
@@ -493,19 +494,19 @@ void MainForm::createActions(){
 
 	//Create actions for each animation control button:
 	QPixmap* playForwardIcon = new QPixmap(playforward);
-	playForwardAction = new QAction(*playForwardIcon,QString(tr("Play Forward  "))+QString(QKeySequence(tr("Ctrl+P"))) , this);
+	playForwardAction = new QAction(*playForwardIcon,QString(tr("Play Forward  ")), this);
 	playForwardAction->setShortcut(Qt::CTRL+Qt::Key_P);
 	playForwardAction->setCheckable(true);
 	QPixmap* playBackwardIcon = new QPixmap(playreverse);
-	playBackwardAction = new QAction(*playBackwardIcon,QString(tr("Play Backward  "))+QString(QKeySequence(tr("Ctrl+B"))),this);
+	playBackwardAction = new QAction(*playBackwardIcon,QString(tr("Play Backward  ")),this);
 	playBackwardAction->setShortcut(Qt::CTRL+Qt::Key_B);
 	playBackwardAction->setCheckable(true);
 	QPixmap* pauseIcon = new QPixmap(pauseimage);
-	pauseAction = new QAction(*pauseIcon,QString(tr("End animation and unsteady flow integration  "))+QString(QKeySequence(tr("Ctrl+E"))), this);
+	pauseAction = new QAction(*pauseIcon,QString(tr("End animation and unsteady flow integration  ")), this);
 	pauseAction->setShortcut(Qt::CTRL+Qt::Key_E);
 	pauseAction->setCheckable(true);
 	QPixmap* stepForwardIcon = new QPixmap(stepfwd);
-	stepForwardAction = new QAction(*stepForwardIcon,QString(tr("Step forward  "))+QString(QKeySequence(tr("Ctrl+F"))), this);
+	stepForwardAction = new QAction(*stepForwardIcon,QString(tr("Step forward  ")), this);
 	stepForwardAction->setShortcut(Qt::CTRL+Qt::Key_F);
 	QPixmap* stepBackIcon = new QPixmap(stepback);
 	stepBackAction = new QAction(*stepBackIcon,"Step back",this);

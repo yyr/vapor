@@ -1,7 +1,7 @@
 #ifndef BANNERGUI_H
 #define BANNERGUI_H
 
-#include <QtGui/QMainWindow>
+#include <qmainwindow.h>
 #include <qlabel.h>
 #include <qboxlayout.h>
 #include <qpushbutton.h>

@@ -72,7 +72,7 @@ public:
 //! Internal methods not intended for general use
 //!
 ///@{
-	VizWin(MainForm* parent ,  const QString& name, Qt::WFlags fl , VizWinMgr*  myMgr, QRect* location , int winNum);
+	VizWin(MainForm* parent ,  const QString& name,  VizWinMgr*  myMgr, QRect* location , int winNum);
     ~VizWin();
 ///@}
 #ifndef DOXYGEN_SKIP_THIS
