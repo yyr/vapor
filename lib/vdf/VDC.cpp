@@ -5,6 +5,50 @@
 using namespace VAPoR;
 
 
+namespace {
+
+void _compute_bs(
+	const vector <VDC::Dimension> &dimensions, 
+	const vector <size_t> &default_bs,
+	bool compressed,
+	vector <size_t> &bs
+) {
+	bs.clear();
+
+#ifdef	DEAD
+	// Num spatial dimensions
+	//
+	size_t nsdim = dimensions[dimensions.size()-1].GetAxis() == 3 ?
+		dimensions.size()-1 : dimensions.size();
+
+	// Determine block size
+	//
+	vector <size_t> bs;
+	for (int i=0; i<nsdim; i++) {
+		if (compressed) bs.push_back(default_bs[i]);
+		else bs.push_back(dimensions[i].GetLength());
+	}
+#endif
+
+	// If the variable is compressed and a default block size exists us it.
+	// Otherwise set the bs for the slowest varying dimension to 1, and use
+	// the variables dimenion length for all other dimensions
+	//
+	for (int i=0; i<dimensions.size(); i++) {
+		if (compressed && i<default_bs.size() && dimensions[i].GetAxis() != 3) {
+			bs.push_back(default_bs[i]);
+		}
+		else if (i<(dimensions.size()-1)) {
+			bs.push_back(dimensions[i].GetLength());
+		}
+		else {
+			bs.push_back(1);	// slowest varying block size can be one
+		}
+	}
+}
+
+};
+
 VDC::VDC() {
 
 	_master_path.clear();
@@ -29,6 +73,7 @@ VDC::VDC() {
 	_dataVars.clear();
 	_dimsMap.clear();
 	_atts.clear();
+	_newUniformVars.clear();
 }
 
 int VDC::Initialize(string path, AccessMode mode)
@@ -187,18 +232,10 @@ int VDC::DefineCoordVar(
 		dimensions.push_back(dimension);
 	}
 
-	// Num spatial dimensions
-	//
-	size_t nsdim = dimensions[dimensions.size()-1].GetAxis() == 3 ?
-		dimensions.size()-1 : dimensions.size();
-
 	// Determine block size
 	//
 	vector <size_t> bs;
-	for (int i=0; i<nsdim; i++) {
-		if (compressed) bs.push_back(_bs[i]);
-		else bs.push_back(dimensions[i].GetLength());
-	}
+	_compute_bs(dimensions, _bs, compressed, bs);
 		
 	vector <size_t> cratios;
 	if (compressed) cratios = _cratios;
@@ -245,18 +282,10 @@ int VDC::DefineCoordVarUniform(
 	assert(! dimension.GetName().empty());
 	dimensions.push_back(dimension);
 
-	// Num spatial dimensions
-	//
-	size_t nsdim = dimensions[dimensions.size()-1].GetAxis() == 3 ?
-		dimensions.size()-1 : dimensions.size();
-
 	// Determine block size
 	//
 	vector <size_t> bs;
-	for (int i=0; i<nsdim; i++) {
-		if (compressed) bs.push_back(_bs[i]);
-		else bs.push_back(dimensions[i].GetLength());
-	}
+	_compute_bs(dimensions, _bs, compressed, bs);
 
 	vector <size_t> cratios;
 	if (compressed) cratios = _cratios;
@@ -266,6 +295,10 @@ int VDC::DefineCoordVarUniform(
 	);
 
 	_coordVars[varname] = coordvar;
+
+	// Keep track of any uniform variables that get defined
+	//
+	_newUniformVars.push_back(varname);
 
 	return(0);
 }
@@ -351,18 +384,10 @@ int VDC::DefineDataVar(
 		dimensions.push_back(dimension);
 	}
 
-	// Num spatial dimensions
-	//
-	size_t nsdim = dimensions[dimensions.size()-1].GetAxis() == 3 ?
-		dimensions.size()-1 : dimensions.size();
-
 	// Determine block size
 	//
 	vector <size_t> bs;
-	for (int i=0; i<nsdim; i++) {
-		if (compressed) bs.push_back(_bs[i]);
-		else bs.push_back(dimensions[i].GetLength());
-	}
+	_compute_bs(dimensions, _bs, compressed, bs);
 
 	vector <size_t> cratios;
 	if (compressed) cratios = _cratios;
@@ -410,18 +435,10 @@ int VDC::DefineDataVar(
 		dimensions.push_back(dimension);
 	}
 
-	// Num spatial dimensions
-	//
-	size_t nsdim = dimensions[dimensions.size()-1].GetAxis() == 3 ?
-		dimensions.size()-1 : dimensions.size();
-
 	// Determine block size
 	//
 	vector <size_t> bs;
-	for (int i=0; i<nsdim; i++) {
-		if (compressed) bs.push_back(_bs[i]);
-		else bs.push_back(dimensions[i].GetLength());
-	}
+	_compute_bs(dimensions, _bs, compressed, bs);
 
 	vector <size_t> cratios;
 	if (compressed) cratios = _cratios;
@@ -600,7 +617,7 @@ int VDC::GetNumTimeSteps(string varname) const {
 	}
 	 dimensions = var.GetDimensions();
 
-	if (! VDC::IsTimeVarying(varname)) return(0); 
+	if (! VDC::IsTimeVarying(varname)) return(1); 
 
 	for (int i=0; i<dimensions.size(); i++) {
 		if (dimensions[i].GetAxis() == 3) {
@@ -901,7 +918,7 @@ bool VDC::ParseDimensions(
     vector <size_t> &sdims, size_t &numts
 ) {
 	sdims.clear();
-	numts = 0;
+	numts = 1;
 
 	//
 	// Make sure dimensions vector is valid
@@ -944,6 +961,32 @@ int VDC::EndDefine() {
 	if (_WriteMasterMeta() < 0)  return(-1);
 
 	_defineMode = false;
+
+
+	// For any Uniform coordinate variables that were defined go ahead
+	// and give them default values
+	//
+	for (int i=0; i<_newUniformVars.size(); i++) {
+		VDC::CoordVar cvar;
+		VDC::GetCoordVarInfo(_newUniformVars[i], cvar);
+
+		vector <VDC::Dimension> dims = cvar.GetDimensions();
+		assert(dims.size() == 1);
+
+		size_t l = dims[0].GetLength();
+
+		float *buf = new float[l];
+		for (size_t j=0; j<l; j++) buf[j] = (float) j;
+
+		int rc = PutVar(_newUniformVars[i], -1, buf);
+		if (rc<0) {
+			delete [] buf;
+			return(rc);
+		}
+		delete [] buf;
+
+	}
+
 	return(0);
 }
 
@@ -1418,6 +1461,7 @@ bool VDC::_ValidDefineDataVar(
 		
 	return(true);
 }
+
 
 namespace VAPoR {
 

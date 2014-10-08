@@ -407,7 +407,9 @@ public:
   //! itself is not equal to one
   //
   bool GetCompressed() const {
-	return (!( _cratios.size() == 1 && (_cratios[0] == 1))); 
+	return (!
+		(_cratios.size()==0 || (_cratios.size()==1 && (_cratios[0]==1)))
+	); 
   };
 
   //! Access variable's block size
@@ -1155,13 +1157,15 @@ public:
  //!
  //! Returns the number of time steps (length of the time dimension)
  //! for which a variable is defined. If \p varname does not have a 
- //! time coordinate 0 is returned. If \p varname is not defined 
+ //! time coordinate 1 is returned. If \p varname is not defined 
  //! as a variable a negative int is returned.
  //!
  //! \param[in] varname A string specifying the name of the variable. 
  //! \retval count The length of the time dimension, or a negative
  //! int if \p varname is undefined.
  //!
+ //! \sa IsTimeVarying()
+ //
  int GetNumTimeSteps(string varname) const;
 
  //! Return the number of refinement levels for the indicated variable
@@ -1316,7 +1320,7 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //! \param[out] sdims Ordered vector of dimension lengths
  //! extracted from \p dimensions
  //! \param[out] numts The number of time steps if \p dimensions
- //! contains a time dimension, otherwise \p numts will be zero
+ //! contains a time dimension, otherwise \p numts will be one
  //! 
  //! \retval status A value of true is returned if the \p dimensions
  //! contains a correctly sized and ordered vector of dimensions
@@ -1376,7 +1380,8 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //! Return a variable's dimension lengths at a specified refinement level
  //!
  //! Compressed variables have a multi-resolution grid representation.
- //! This method returns the variable's ordered dimension lengths, 
+ //! This method returns the variable's ordered spatial and 
+ //! temporal dimension lengths, 
  //! and block dimensions
  //! at the multiresolution refinement level specified by \p level.
  //! 
@@ -1424,9 +1429,11 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //! offset into the variable's temporal dimension. If the variable
  //! does not have a temporal dimension \p ts is ignored.
  //! \param[in] varname Name of the variable to read
- //! \param[in] level Refinement level of the variable. 
+ //! \param[in] level Refinement level of the variable. Ignored if the
+ //! variable is not compressed.
  //! \param[in] lod Approximation level of the variable. A value of -1
- //! indicates the maximum approximation level defined for the VDC
+ //! indicates the maximum approximation level defined for the VDC.
+ //! Ignored if the variable is not compressed.
  //! \retval status Returns a non-negative value on success
  //!
  //! \sa GetNumRefLevels(), VDC::BaseVar::GetCRatios(), OpenVariableRead()
@@ -1461,7 +1468,8 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //! does not have a temporal dimension \p ts is ignored.
  //! \param[in] varname Name of the variable to read
  //! \param[in] lod Approximation level of the variable. A value of -1
- //! indicates the maximum approximation level defined for the VDC
+ //! indicates the maximum approximation level defined for the VDC.
+ //! Ignored if the variable is not compressed.
  //! \retval status Returns a non-negative value on success
  //!
  //! \sa GetNumRefLevels(), VDC::BaseVar::GetCRatios(), OpenVariableRead()
@@ -1617,13 +1625,16 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //! It is an error to call this method in \b define mode
  //!
  //! \param[in] varname Name of the variable to write
+ //! \param[in] lod Approximation level of the variable. A value of -1
+ //! indicates the maximum approximation level defined for the VDC.
+ //! Ignored if the variable is not compressed.
  //! \param[in] data Pointer from where the data will be copied
  //! 
  //! \retval status A negative int is returned on failure
  //!
  //! \sa GetVar()
  //
- int PutVar(string varname, const float *data) {return(-1); }
+ virtual int PutVar(string varname, int lod, const float *data) = 0;
  
  //! Write a variable at single time step
  //!
@@ -1640,13 +1651,16 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //! offset into the variable's temporal dimension. If the variable
  //! does not have a temporal dimension \p ts is ignored.
  //! \param[in] varname Name of the variable to write
+ //! \param[in] lod Approximation level of the variable. A value of -1
+ //! indicates the maximum approximation level defined for the VDC.
+ //! Ignored if the variable is not compressed.
  //! \param[in] data Pointer from where the data will be copied
  //! 
  //! \retval status A negative int is returned on failure
  //!
  //! \sa GetVar()
  //
- int PutVar(size_t ts, string varname, const float *data) {return(-1); }
+ virtual int PutVar(size_t ts, string varname, int lod, const float *data) = 0;
 
  //! Read an entire variable in one call
  //!
@@ -1661,6 +1675,11 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //! It is an error to call this method in \b define mode
  //!
  //! \param[in] varname Name of the variable to write
+ //! \param[in] level Refinement level of the variable. 
+ //! Ignored if the variable is not compressed.
+ //! \param[in] lod Approximation level of the variable. A value of -1
+ //! indicates the maximum approximation level defined for the VDC.
+ //! Ignored if the variable is not compressed.
  //! \param[out] data Pointer to where data will be copied. It is the 
  //! caller's responsbility to ensure \p data points to sufficient memory.
  //! 
@@ -1668,7 +1687,7 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //!
  //! \sa PutVar()
  //
- int GetVar(string varname, float *data) {return(-1); }
+ virtual int GetVar(string varname, int level, int lod, float *data) = 0;
 
  //! Read an entire variable at a given time step in one call
  //!
@@ -1686,6 +1705,11 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //! offset into the variable's temporal dimension. If the variable
  //! does not have a temporal dimension \p ts is ignored.
  //! \param[in] varname Name of the variable to write
+ //! \param[in] level Refinement level of the variable. 
+ //! Ignored if the variable is not compressed.
+ //! \param[in] lod Approximation level of the variable. A value of -1
+ //! indicates the maximum approximation level defined for the VDC.
+ //! Ignored if the variable is not compressed.
  //! \param[out] data Pointer to where data will be copied. It is the 
  //! caller's responsbility to ensure \p data points to sufficient memory.
  //! 
@@ -1693,7 +1717,9 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //!
  //! \sa PutVar()
  //
- int GetVar(size_t ts, string varname, float *data) {return(-1); }
+ virtual int GetVar(
+	size_t ts, string varname, int level, int lod, float *data
+ ) = 0;
 
  //! This method computes and returns the depth (number of levels) in a
  //! a multi-resolution hierarch for a given wavelet, \p wname,
@@ -1739,6 +1765,9 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  ) const = 0;
 
  friend std::ostream &operator<<(std::ostream &o, const VDC &vdc);
+
+private:
+ std::vector <string> _newUniformVars;
 
 protected:
  string _master_path;

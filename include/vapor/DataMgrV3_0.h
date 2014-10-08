@@ -5,6 +5,9 @@
 #include <vapor/MyBase.h>
 #include <vapor/RegularGrid.h>
 
+#ifndef	DataMgvV3_0_h
+#define DataMgvV3_0_h
+
 using namespace std;
 
 //! \class DataMgrV3_0
@@ -213,13 +216,15 @@ public:
  //!
  //! Returns the number of time steps (length of the time dimension)
  //! for which a variable is defined. If \p varname does not have a 
- //! time coordinate 0 is returned. If \p varname is not defined 
+ //! time coordinate 1 is returned. If \p varname is not defined 
  //! as a variable a negative int is returned.
  //!
  //! \param[in] varname A string specifying the name of the variable. 
  //! \retval count The length of the time dimension, or a negative
  //! int if \p varname is undefined.
  //!
+ //! \sa IsTimeVarying()
+ //
  int GetNumTimeSteps(string varname) const;
 
  //! Return the number of refinement levels for the indicated variable
@@ -510,7 +515,8 @@ protected:
  //! Return a variable's dimension lengths at a specified refinement level
  //!
  //! Compressed variables have a multi-resolution grid representation.
- //! This method returns the variable's ordered dimension lengths,
+ //! This method returns the variable's ordered spatial and 
+ //! temporal dimension lengths,
  //! and block dimensions
  //! at the multiresolution refinement level specified by \p level.
  //!
@@ -708,7 +714,9 @@ private:
 
  VarInfoCache _varInfoCache;
 
- int _get_coord_vars(string varname, vector <string> cvars) const;
+ int _get_coord_vars(
+	string varname, vector <string> &scvars, string &tcvar
+ ) const;
 
  int _DataMgrV3_0(size_t mem_size);
  int _GetTimeCoordinates(vector <double> &timecoords);
@@ -827,3 +835,4 @@ private:
 };
 
 };
+#endif

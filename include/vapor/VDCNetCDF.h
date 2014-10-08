@@ -169,6 +169,23 @@ public:
     const vector <size_t> &min, const vector <size_t> &max, float *region
  );
 
+ //! \copydoc VDC::PutVar()
+ //
+ int PutVar(string varname, int lod, const float *data);
+
+ //! \copydoc VDC::PutVar()
+ //
+ int PutVar(size_t ts, string varname, int lod, const float *data);
+
+ //! \copydoc VDC::GetVar()
+ //
+ int GetVar(string varname, int level, int lod, float *data);
+
+ //! \copydoc VDC::GetVar()
+ //
+ int GetVar(size_t ts, string varname, int level, int lod, float *data);
+
+
  //! \copydoc VDC::CompressionInfo()
  //
  bool CompressionInfo(
@@ -235,6 +252,19 @@ private:
  int _ReadMasterDataVarsDefs(); 
  int _ReadSlice(WASP *file, float *slice);
  int _ReadSlice(NetCDFCpp *file, float *slice);
+
+ int _PutAtt(
+    NetCDFCpp *ncdf,
+    string varname,
+    string tag,
+    const Attribute &attr
+ );
+
+ int _DefVar(NetCDFCpp *ncdf, const VDC::BaseVar &var, size_t max_ts);
+
+ bool _var_in_master(const VDC::BaseVar &var) const;
+
+
 
 };
 };

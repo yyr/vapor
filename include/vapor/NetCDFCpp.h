@@ -248,6 +248,12 @@ public:
  //!
  virtual bool ValidFile(string path);
 
+ //! Returns true if the named dimension is defined
+ //!
+ //! \param[in] dimname A NetCDF dimension name
+ //
+ virtual bool InqDimDefined(string dimname);
+
 private:
 
  int _ncid;

@@ -16,10 +16,13 @@ using namespace VAPoR;
 namespace {
 
 
+
+
+
 void map_vox_to_blk(
 	vector <size_t> bs, const vector <size_t> &vcoord, vector <size_t> &bcoord
 ) {
-	assert(bs.size() == bcoord.size());
+	assert(bs.size() == vcoord.size());
 	bcoord.clear();
 
     for (int i=0; i<bs.size(); i++) {
@@ -118,25 +121,55 @@ int	DataMgrV3_0::_DataMgrV3_0(
 }
 
 int DataMgrV3_0::Initialize(const vector <string> &files) {
-	int rc = _GetTimeCoordinates(_timeCoordinates);
+	int rc = _Initialize(files);
+	if (rc<0) {
+		SetErrMsg("Failed to initialize data importer");
+		return(-1);
+	}
+
+	rc = _GetTimeCoordinates(_timeCoordinates);
 	if (rc<0) {
 		SetErrMsg("Failed to get time coordinates");
 		return(-1);
 	}
-	return(_Initialize(files));
+	return(0);
 }
 
 
-int DataMgrV3_0::_get_coord_vars(string varname, vector <string> cvars) const {
-	cvars.clear();
+int DataMgrV3_0::_get_coord_vars(
+	string varname, vector <string> &scvars, string &tcvar
+) const {
+	scvars.clear();
+	tcvar.clear();
 
-	VAPoR::VDC::DataVar datavar;
+	VDC::DataVar datavar;
 	int rc = DataMgrV3_0::GetDataVarInfo(varname, datavar);
 	if (rc<0) {
 		SetErrMsg("Failed to get metadata for variable %s", varname.c_str());
 		return(-1);
 	}
+
+	vector <string> cvars;
 	cvars = datavar.GetCoordvars();
+
+	for (int i=0; i<cvars.size(); i++) {
+		VDC::CoordVar cvarinfo;
+
+		if (DataMgrV3_0::GetCoordVarInfo(cvars[i], cvarinfo) < 0) {
+			SetErrMsg("Failed to get metadata for variable %s",cvars[i].c_str());
+			return(-1);
+		}
+		
+		if (
+			cvarinfo.GetDimensions().size() && 
+			cvarinfo.GetDimensions()[0].GetAxis() == 3
+		)  {
+			tcvar = cvars[i];
+		}
+		else {
+			scvars.push_back(cvars[i]);
+		}
+	}
 
 	return(0);
 }
@@ -279,7 +312,7 @@ int DataMgrV3_0::GetNumTimeSteps(string varname) const {
 	for (int i=0; i<dims.size(); i++) {
 		if (dims[i].GetAxis() == 3) return (dims[i].GetLength());
 	}
-	return(0);	// not time varying
+	return(1);	// not time varying
 }
 
 int DataMgrV3_0::GetNumRefLevels(string varname) const {
@@ -430,9 +463,15 @@ RegularGrid *DataMgrV3_0::_make_grid(
 	const vector < vector <size_t > > &bmaxvec
 ) const {
 
-	vector <string> cvars = var.GetCoordvars();
-	vector <VDC::CoordVar> cvarsinfo;
 
+	vector <string> cvars;
+	string dummy;
+	int rc = _get_coord_vars(var.GetName(), cvars, dummy);
+	if (rc<0) return(NULL); 
+
+	vector <VDC::CoordVar> cvarsinfo;
+    vector < vector <int> > coord_axis;
+    vector <bool> uniform;
 	for (int i=0; i<cvars.size(); i++) {
 		VDC::CoordVar cvarinfo;
 
@@ -440,16 +479,11 @@ RegularGrid *DataMgrV3_0::_make_grid(
 			SetErrMsg("Unrecognized variable name : %s", cvars[i].c_str());
 			return(NULL);
 		}
+
 		cvarsinfo.push_back(cvarinfo);
+        coord_axis.push_back(get_spatial_axis(cvarinfo));
+        uniform.push_back(cvarinfo.GetUniform());
 	}
-
-
-    vector < vector <int> > coord_axis;
-    vector <bool> uniform;
-    for (int i=0; i<cvars.size(); i++) {
-        coord_axis.push_back(get_spatial_axis(cvarsinfo[i]));
-        uniform.push_back(cvarsinfo[i].GetUniform());
-    }
 
 
     //
@@ -480,7 +514,15 @@ RegularGrid *DataMgrV3_0::GetVariable (
 		"DataMgrV3_0::GetVariable(%d,%s,%d,%d,%d)",
 		ts,varname.c_str(),level,lod, lock
 	);
-	return(_getVariable(ts, varname, level, lod, lock, false));
+	RegularGrid *rg = _getVariable(ts, varname, level, lod, lock, false);
+	if (! rg) {
+		SetErrMsg(
+			"Failed to read variable \"%s\" at time step (%d), and\n"
+			"refinement level (%d) and level-of-detail (%d)",
+			varname.c_str(), ts, level, lod
+		);
+	}
+	return(rg);
 }
 
 #ifdef	DEAD
@@ -518,11 +560,18 @@ RegularGrid *DataMgrV3_0::_getVariable(
 		return(NULL);
 	}
 
+	// Remove time dimension if time-varying
+	//
+	if (DataMgrV3_0::IsTimeVarying(varname)) {
+		dims_at_level.pop_back();
+		bs_at_level.pop_back();
+	}
+
 	vector <size_t> min;
 	vector <size_t> max;
 	for (int i=0; i<dims_at_level.size(); i++) {
 		min.push_back(0);
-		max.push_back(dims_at_level[i]);
+		max.push_back(dims_at_level[i]-1);
 	}
 
 	return( DataMgrV3_0::_getVariable(
@@ -547,7 +596,11 @@ RegularGrid *DataMgrV3_0::_getVariable(
 		SetErrMsg("Unrecognized variable name : %s", varname.c_str());
 		return(NULL);
 	}
-	vector <string> cvars = var.GetCoordvars();
+
+	vector <string> cvars;
+	string dummy;
+	int rc = _get_coord_vars(var.GetName(), cvars, dummy);
+	if (rc<0) return(NULL); 
 	
 	vector <string> varnames;
 	varnames.push_back(varname);
@@ -555,13 +608,14 @@ RegularGrid *DataMgrV3_0::_getVariable(
 	varinfo.push_back(var);
 
 	for (int i=0; i<cvars.size(); i++) {
-		varnames.push_back(cvars[i]);
 
 		VDC::CoordVar cvar;
 		if (DataMgrV3_0::GetCoordVarInfo(cvars[i], cvar) < 0) {
 			SetErrMsg("Unrecognized variable name : %s", cvars[i].c_str());
 			return(NULL);
 		}
+
+		varnames.push_back(cvars[i]);
 		varinfo.push_back(cvar);
 	}
 
@@ -583,20 +637,19 @@ RegularGrid *DataMgrV3_0::_getVariable(
 			return(NULL);
 		}
 
-		if (min.size() != bs_at_level.size() || max.size() != bs_at_level.size()) {
-			SetErrMsg("Invalid variable reference : %s", varnames[i].c_str());
-			return(NULL);
+		// Remove time dimension if time-varying
+		//
+		if (DataMgrV3_0::IsTimeVarying(varnames[i])) {
+			dims_at_level.pop_back();
+			bs_at_level.pop_back();
 		}
 
 		vector <int> caxis = get_spatial_axis(varinfo[i]);
 
-		vector <size_t> permuted_dims;
-		vector <size_t> permuted_bs;
+
 		vector <size_t> permuted_min;
 		vector <size_t> permuted_max;
 		for (int j=0; j<caxis.size(); j++) {
-			permuted_dims.push_back(dims_at_level[caxis[j]]);
-			permuted_bs.push_back(bs_at_level[caxis[j]]);
 			permuted_min.push_back(min[caxis[j]]);
 			permuted_max.push_back(max[caxis[j]]);
 		}
@@ -604,11 +657,11 @@ RegularGrid *DataMgrV3_0::_getVariable(
 		// Map voxel coordinates into block coordinates
 		//
 		vector <size_t> bmin, bmax;
-		map_vox_to_blk(permuted_bs, permuted_min, bmin);
-		map_vox_to_blk(permuted_bs, permuted_min, bmax);
+		map_vox_to_blk(bs_at_level, permuted_min, bmin);
+		map_vox_to_blk(bs_at_level, permuted_max, bmax);
 
-		dimsvec.push_back(permuted_dims);
-		bsvec.push_back(permuted_bs);
+		dimsvec.push_back(dims_at_level);
+		bsvec.push_back(bs_at_level);
 		bminvec.push_back(bmin);
 		bmaxvec.push_back(bmax);
 	}
@@ -617,7 +670,7 @@ RegularGrid *DataMgrV3_0::_getVariable(
 	// if dataless we only load coordinate data
 	//
 	if (dataless) varnames[0].clear();
-	int rc = DataMgrV3_0::_get_regions(
+	rc = DataMgrV3_0::_get_regions(
 		ts, varnames, level, lod, true, bsvec, bminvec, bmaxvec, blkvec
 	);
 	if (rc < 0) return(NULL);
@@ -673,8 +726,17 @@ RegularGrid *DataMgrV3_0::GetVariable(
 		"DataMgrV3_0::GetVariable(%d,%s,%d,%d,...)",
 		ts,varname.c_str(),level,lod
 	);
-	return(_getVariable(ts, varname, level, lod, min, max, lock, false));
-
+	RegularGrid *rg = _getVariable(
+		ts, varname, level, lod, min, max, lock, false
+	);
+	if (! rg) {
+		SetErrMsg(
+			"Failed to read variable \"%s\" at time step (%d), and\n"
+			"refinement level (%d) and level-of-detail (%d)",
+			varname.c_str(), ts, level, lod
+		);
+	}
+	return(rg);
 }
 
 int DataMgrV3_0::GetVariableExtents(
@@ -685,7 +747,8 @@ int DataMgrV3_0::GetVariableExtents(
 	max.clear();
 
 	vector <string> cvars;
-	int rc = _get_coord_vars(varname, cvars);
+	string dummy;
+	int rc = _get_coord_vars(varname, cvars, dummy);
 	if (rc<0) return(-1);
 
 	string key = "VariableExtents";
@@ -1175,9 +1238,15 @@ int DataMgrV3_0::_get_regions(
 	for (int i=0; i<varnames.size(); i++) {
 		float *blks = NULL;
 
+		size_t my_ts = ts;
+
+		// If variable isn't time varying time step should always be 0
+		//
+		if (! DataMgrV3_0::IsTimeVarying(varnames[i])) my_ts = 0; 
+
 		if (! varnames[i].empty()) {
 			blks = _get_region(
-				ts, varnames[i], level, lod, bsvec[i], 
+				my_ts, varnames[i], level, lod, bsvec[i], 
 				bminvec[i], bmaxvec[i], true
 			);
 			if (! blks) {
@@ -1802,3 +1871,33 @@ void DataMgr::blkexts::getexts(
 	max = _maxs[offset];
 }
 #endif
+
+float *DataMgrV3_0::_get_unblocked_region_from_fs(
+	size_t ts, string varname, int level, 
+    const vector <size_t> &bs, const vector <size_t> &bmin, 
+	const vector <size_t> &bmax, bool lock
+) {
+
+	// Get
+	vector <size_t> dims;
+	vector <size_t> bs;
+	int rc = _GetDimLensAtLevel(varnames, -1, dims, bs);
+	if (rc<0) return(NULL);
+
+	float *blks = _alloc_region(
+		ts, varname, level, lod, bmin, bmax, bs, sizeof(float), lock, false
+	);
+	if (! blks) return(NULL);
+
+    vector <size_t> min, max;
+	map_blk_to_vox(bs, bmin, bmax, min, max);
+
+	int rc = _ReadVariableBlock(ts, varname, level, lod, min, max, blks);
+    if (rc < 0) {
+		_free_region(ts,varname ,level,lod,bmin,bmax);
+		return(NULL);
+	}
+
+	SetDiagMsg("DataMgrV3_0::GetGrid() - data read from fs\n");
+	return(blks);
+}

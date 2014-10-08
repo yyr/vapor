@@ -3,6 +3,8 @@
 #include <vapor/MyBase.h>
 #include <vapor/DataMgrV3_0.h>
 
+#ifndef DataMgrVDC_h
+#define DataMgrVDC_h
 
 //! \class DataMgrVDC
 //! \brief A cache based data reader for VDC data
@@ -31,19 +33,19 @@ protected:
 	return(_vdc.GetCoordVarNames());
  }
 
- bool _GetBaseVarInfo(string varname, VAPoR::VDC::BaseVar &var) {
+ virtual bool _GetBaseVarInfo(string varname, VAPoR::VDC::BaseVar &var) const {
 	return(_vdc.GetBaseVarInfo(varname, var));
  }
 
- bool _GetDataVarInfo(string varname, VAPoR::VDC::DataVar &var) {
+ virtual bool _GetDataVarInfo(string varname, VAPoR::VDC::DataVar &var) const {
 	return(_vdc.GetDataVarInfo(varname, var));
  }
 
- bool _GetCoordVarInfo(string varname, VAPoR::VDC::CoordVar &var) {
+ virtual bool _GetCoordVarInfo(string varname, VAPoR::VDC::CoordVar &var) const {
 	return(_vdc.GetCoordVarInfo(varname, var));
  }
 
- int _GetDimLensAtLevel(
+ virtual int _GetDimLensAtLevel(
     string varname, int level, vector <size_t> &dims_at_level,
     vector <size_t> &bs_at_level
  ) const {
@@ -52,7 +54,7 @@ protected:
 	);
  }
 
- int _GetNumRefLevels(string varname) const {
+ virtual int _GetNumRefLevels(string varname) const {
 	return(_vdc.GetNumRefLevels(varname));
  }
 
@@ -60,13 +62,17 @@ protected:
 	size_t ts, string varname,
 	int reflevel = 0,
 	int lod = 0
- ) {
+ ) const {
 	return(_vdc.VariableExists(ts, varname, reflevel, lod));
  }
 
- int _ReadVariableBlock (
+ virtual int _ReadVariableBlock (
 	size_t ts, string varname, int reflevel, int lod, 
 	vector <size_t> bmin, vector <size_t> bmax, float *blocks
+ );
+
+ virtual int _ReadVariable(
+    string varname, int level, int lod, float *data
  );
  
 
@@ -77,3 +83,4 @@ private:
 };
 
 };
+#endif

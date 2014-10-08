@@ -37,3 +37,12 @@ int DataMgrVDC::_ReadVariableBlock (
 
 	return(0);
 }
+
+int DataMgrVDC::_ReadVariable(
+    string varname, int level, int lod, float *data
+) {
+	int rc = _vdc.GetVar(varname, level, lod, data);
+	if (rc<0) return(-1);
+
+	return(0);
+}
