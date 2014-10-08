@@ -93,7 +93,7 @@ public:
 
  //! \copydoc _GetExtents()
  //
- virtual vector<double> GetExtents(size_t ts = 0) const ;
+ virtual vector<double> GetExtents(size_t ts = 0);
 
  //! \copydoc _GetNumTimeSteps()
  //
@@ -952,6 +952,7 @@ private:
  };
 
  VarInfoCache _VarInfoCache;
+ std::map <size_t, vector <double> > _extentsCache;
 
  float	*get_region_from_cache(
 	size_t ts,

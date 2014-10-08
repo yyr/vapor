@@ -28,6 +28,8 @@ int	DataMgr::_DataMgr(
 	
 	_mem_size = mem_size;
 
+	_extentsCache.clear();
+
 	return(0);
 }
 
@@ -1877,7 +1879,14 @@ bool DataMgr::IsCoordinateVariable(string varname) const {
 	return(false);
 }
 
-vector<double> DataMgr::GetExtents(size_t ts) const {
+vector<double> DataMgr::GetExtents(size_t ts) {
+
+	// Check cache first
+	//
+	map <size_t, vector <double> >::const_iterator itr = _extentsCache.find(ts);
+	if (itr != _extentsCache.end())  return(itr->second); 
+
+
 	vector <double> extents = _GetExtents(ts); 
 	if (DataMgr::GetCoordSystemType().compare("spherical")==0) {
 		vector <long> permv = GetGridPermutation();
@@ -1885,6 +1894,8 @@ vector<double> DataMgr::GetExtents(size_t ts) const {
 		extents[0] = extents[1] = extents[2] = -r;
 		extents[3] = extents[4] = extents[5] = r;
 	}
+
+	_extentsCache[ts] = extents;
 
 	return(extents);
 };
