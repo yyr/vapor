@@ -80,9 +80,8 @@ class UDUnits;
 	
 	/////
 	// Metadata Pure Virtual Functions
-	// virtual void   GetGridDim(size_t dim[3]) const;
- 	virtual void GetBlockSize(size_t bs[3], int reflevel) const { GetGridDim(bs); }
-	virtual std::vector<double> GetExtents(size_t ts = 0) const {return _cartographicExtents;}//_cartesianExtents;}
+ 	 virtual void GetBlockSize(size_t bs[3], int reflevel) const { GetGridDim(bs); }
+	 virtual std::vector<double> GetExtents(size_t ts = 0) const {return _cartographicExtents;}//_cartesianExtents;}
      virtual std::vector<long> GetPeriodicBoundary() const;				// Needs implementation!
      virtual std::vector<long> GetGridPermutation() const;				// Needs implementation!
      virtual void GetTSUserTimeStamp(size_t ts, std::string &s) const;
@@ -158,8 +157,9 @@ class UDUnits;
      double _minLon;
      double _maxLat;
      double _maxLon;
-     string _openVar;
-     int _openTS;   
+     string _gridType;
+	 string _openVar;
+     static int _openTS;   
      FILE* _inFile;    
      grib_handle* h;
      std::vector<double> _pressureLevels;
