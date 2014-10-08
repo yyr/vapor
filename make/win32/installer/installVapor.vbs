@@ -20,8 +20,6 @@ vaporhome = vaporhome & "VAPOR"
 vaporshare = vaporhome & "\share"
 vaporbin = vaporhome & "\bin"
 
-pythonhome = vaporhome & "\lib\python2.7"
-
 set shell = CreateObject("wscript.shell")
 
 If allUserProp Then
@@ -32,13 +30,7 @@ End If
 
 SysEnv("VAPOR_HOME") = vaporhome
 SysEnv("VAPOR_SHARE") = vaporshare
-pythonVar = sysEnv("PYTHONHOME")
 
-if (Len(PythonVar) > 0) Then
-    MsgBox("PYTHONHOME variable is being reset to point to VAPOR Python home")
-End if
-
-SysEnv("PYTHONHOME") = pythonhome
 
 '  Insert VAPOR_HOME\bin at start of path
 pathvar = sysEnv("path")

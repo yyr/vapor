@@ -18,7 +18,6 @@ vaporshare = vaporhome & "share"
 vaporidl = vaporhome & "bin"
 vaporidl2 = vaporhome & "bin;"
 
-vaporpythonhome = vaporhome & "\lib\python2.6"
 
 set shell = CreateObject("wscript.shell")
 If allUserProp Then
@@ -46,14 +45,6 @@ if  posn <> 0 Then
 	SysEnv("path") = pathvar
 End If
 
-'Find vaporhome in the PYTHONHOME.  If so, unset PYTHONHOME
-pathvar = sysEnv("PYTHONHOME")
-if (Len(pathvar) > 0) Then
-    posn = inStr(pathvar,vaporhome)
-    if  posn <> 0 Then
-	    sysEnv.Remove("PYTHONHOME")
-    End If
-End If
 
 idlpath = sysenv("IDL_DLM_PATH")
 ' the dlm path may either be followed by a : or not:
