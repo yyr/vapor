@@ -40,6 +40,7 @@ using namespace std;
 #define MAX_VAL_LEN 1024
 
 int DCReaderGRIB::_sliceNum=0;
+int DCReaderGRIB::_openTS=0;
 
 DCReaderGRIB::Variable::Variable() {
 	_messages.clear();
@@ -174,10 +175,10 @@ int DCReaderGRIB::ReadSlice(float *_values){
 	// re-order values according to scan direciton and convert doubles to floats
 	int vaporIndex, i, j;
     for(size_t gribIndex = 0; gribIndex < _values_len; gribIndex++) {
-		bool iScan = targetVar->getiScan();  // 0: i scans positively, 1: negatively
-		bool jScan = targetVar->getjScan();  // 1: j scans positively, 0: negatively
-		if (iScan == 1) {
-			if (jScan == 1) {   // 1 1
+		//bool _iScanNeg = targetVar->get_iScanNeg();  // 0: i scans positively, 1: negatively
+		//bool _jScan = targetVar->get_jScan();  // 1: j scans positively, 0: negatively
+		if (_iScanNeg == 1) {
+			if (_jScanPos == 1) {   // 1 1
 				i = _Ni - gribIndex%_Ni;
 				j = gribIndex/_Ni;
 				vaporIndex = j*_Ni + i;
@@ -187,7 +188,7 @@ int DCReaderGRIB::ReadSlice(float *_values){
 			}
 		}
 
-		else if (jScan == 0) {  // 0 0
+		else if (_jScanPos == 0) {  // 0 0
             i = gribIndex % _Ni;
             j = ((_Ni * _Nj) - 1 - gribIndex) / _Ni;
             vaporIndex = j * _Ni + i;
@@ -210,13 +211,23 @@ int DCReaderGRIB::ReadSlice(float *_values){
 }
 
 string DCReaderGRIB::GetMapProjection() const {
-
-    double lon_0 = (_minLon + _maxLon) / 2.0;
-    double lat_0 = (_minLat + _maxLat) / 2.0;
-    ostringstream oss;
-    oss << " +lon_0=" << lon_0 << " +lat_0=" << lat_0;
-    string projstring = "+proj=eqc +ellps=WGS84" + oss.str();
-
+	double lat_0;
+	double lon_0;
+	ostringstream oss;
+	string projstring;
+	if (strcmp(_gridType.c_str(), "regular_ll")){
+	    lon_0 = (_minLon + _maxLon) / 2.0;
+	    lat_0 = (_minLat + _maxLat) / 2.0;
+	    oss << " +lon_0=" << lon_0 << " +lat_0=" << lat_0;
+	    projstring = "+proj=eqc +ellps=WGS84" + oss.str();
+	}
+	else if(strcmp(_gridType.c_str(),"polar_stereographic")){
+		if (_minLat < 0) projstring = ""; 
+		//lat_0 = 	
+	}
+//	else if(
+//
+//	}
     return(projstring);
 }
 
@@ -246,29 +257,81 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
         return(-1);
     }   
 
-    double x[] = {_minLon, _maxLon};
-    double y[] = {_minLat, _maxLat};
+	double x[2];
+	double y[2];
+	if (strcmp(_gridType.c_str(),"regular_ll")){
+	    x[0] = _minLon;
+		x[1] = _maxLon;
+	    y[0] = _minLat;
+		y[1] = _maxLat;
+
+	    rc = proj4API.Transform(x,y,2,1);
+	    if (rc < 0) {
+	        SetErrMsg("Invalid map projection : %s", mapProj.c_str());
+	        return(-1);
+	    }
+	}
+	else if(strcmp(_gridType.c_str(),"polar_stereographic")){
+		x[0] = _minLon;
+		y[0] = _minLat;
+
+	    rc = proj4API.Transform(x,y,2,1);
+    	if (rc < 0) {
+        	SetErrMsg("Invalid map projection : %s", mapProj.c_str());
+        	return(-1);
+    	}
+
+		x[1] = x[0] + _Ni*_DxInMetres;
+		y[1] = y[0] + _Nj*_DyInMetres;
+	}
 
     rc = proj4API.Transform(x,y,2,1);
     if (rc < 0) {
         SetErrMsg("Invalid map projection : %s", mapProj.c_str());
         return(-1);
     }  
+	
+	OpenVariableRead(0,"ELEVATION",0,0);
+	float values[_Ni*_Nj];
+	ReadSlice(values);
 
-	for (int i=0; i<_pressureLevels.size(); i++) {
+	float max = values[0];
+	for (int i=0; i<_Ni; i++){
+		for (int j=0; j<_Nj; j++) {
+			float value = values[j*_Ni+i];
+			if (value > max) max = value;
+		}
+	}
+
+	_sliceNum = _pressureLevels.size()-1;
+    ReadSlice(values);
+
+    float min = values[0];
+    for (int i=0; i<_Ni; i++){
+        for (int j=0; j<_Nj; j++) {
+            float value = values[j*_Ni+i];
+            if (value < min) min = value;
+        }   
+    }
+	
+	_sliceNum += 1;
+	
+	/*
+	for (i=0; i<_pressureLevels.size(); i++) {
 		double height = BarometricFormula(_pressureLevels[i]);
 		_meterLevels.push_back(height);
 	}
 	
 	double bottom = _meterLevels[0];//BarometricFormula(_pressureLevels[_pressureLevels.size()-1]);
 	double top = _meterLevels[_meterLevels.size()-1];//BarometricFormula(_pressureLevels[0]);
+	*/
 
     _cartographicExtents.push_back(x[0]);
     _cartographicExtents.push_back(y[0]);
-    _cartographicExtents.push_back(bottom);
+    _cartographicExtents.push_back(min);
     _cartographicExtents.push_back(x[1]);
     _cartographicExtents.push_back(y[1]);
-    _cartographicExtents.push_back(top);
+    _cartographicExtents.push_back(max);
 
     return 0;
 }
@@ -290,12 +353,24 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 
 	_Ni = atoi(records[0]["Ni"].c_str());
 	_Nj = atoi(records[0]["Nj"].c_str());
-	_maxLat = atof(records[0]["latitudeOfFirstGridPointInDegrees"].c_str());
-	_minLon = atof(records[0]["longitudeOfFirstGridPointInDegrees"].c_str());
-	
 	_gridType = records[0]["gridType"];
-	_minLat = atof(records[0]["latitudeOfLastGridPointInDegrees"].c_str());
-	_maxLon = atof(records[0]["longitudeOfLastGridPointInDegrees"].c_str());
+	_iScanNeg = atoi(records[0]["iScanNegsNegatively"].c_str());
+    _jScanPos = atoi(records[0]["jScansPositively"].c_str());
+	_DxInMetres = atof(records[0]["_DxInMetres"].c_str());	
+	_DyInMetres = atof(records[0]["_DyInMetres"].c_str());
+
+	if (_iScanNeg==0) {
+		_maxLon = atof(records[0]["longitudeOfLastGridPointInDegrees"].c_str());
+		_minLon = atof(records[0]["longitudeOfFirstGridPointInDegrees"].c_str());
+	}
+	if (_jScanPos==0) {
+		_maxLat = atof(records[0]["latitudeOfFirstGridPointInDegrees"].c_str());
+		_minLat = atof(records[0]["latitudeOfLastGridPointInDegrees"].c_str());
+	}
+	else {
+        _maxLat = atof(records[0]["latitudeOfFirstGridPointInDegrees"].c_str());
+        _minLat = atof(records[0]["latitudeOfLastGridPointInDegrees"].c_str());
+	}
 
 	if (_maxLon < 0) _maxLon += 360;
 
@@ -312,8 +387,8 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 		int hour   = atoi(record["hour"].c_str());
 		int minute = atoi(record["minute"].c_str());
 		int second = atoi(record["second"].c_str());
-		bool iScan = atoi(record["iScansNegatively"].c_str());
-		bool jScan = atoi(record["jScansPositively"].c_str());
+		bool _iScanNeg = atoi(record["_iScanNegsNegatively"].c_str());
+		bool _jScan = atoi(record["_jScansPositively"].c_str());
 	
 		double time = _udunit->EncodeTime(year, month, day, hour, minute, second); 
 		if (std::find(_gribTimes.begin(), _gribTimes.end(), time) == _gribTimes.end())
@@ -326,7 +401,7 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 		if (isobaric == 0) {								    // if we have a 3d var...
 			if (_vars3d.find(name) == _vars3d.end()) {			// if we have a new 3d var...
 				_vars3d[name] = new Variable();
-				_vars3d[name]->setScanDirection(iScan,jScan);
+				_vars3d[name]->setScanDirection(_iScanNeg,_jScan);
 			}
 			
 			std::vector<double> varTimes = _vars3d[name]->GetTimes();
