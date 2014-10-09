@@ -412,7 +412,7 @@ int Visualizer::paintEvent(bool force)
 			glPushAttrib(GL_ALL_ATTRIB_BITS);
 
 			int rc = renderer[i]->paintGL(dataMgr);
-			if (!rc) {
+			if (rc) {
 				renderer[i]->setBypass(timeStep);
 				SetErrMsg( VAPOR_ERROR_GL_RENDERING,"Renderer %s error\n",renderer[i]->getMyName().c_str());
 			}
