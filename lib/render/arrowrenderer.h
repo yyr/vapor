@@ -57,7 +57,7 @@ namespace VAPoR {
 //! Virtual method issues all the OpenGL calls to draw the arrows in user coordinates.
 //! \param[in] DataMgr* current DataMgr that owns the data being rendered.
 //! \param[in] Params* Params* that is associated with this Renderer
-    virtual int _paintGL(DataMgr* , const RenderParams*);
+    virtual int _paintGL(DataMgr*);
 
 //! Protected method that gets the required data from the DataMgr, while determining valid extents.
 //! \param[in] vector<string>& varnames Names of variables defining field
