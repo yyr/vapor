@@ -25,16 +25,29 @@ void block_align(
 	acount = count;
 
 	assert(start.size() == count.size());
-	assert(bs.size() <= start.size());
+	assert(start.size() == bs.size());
 
-	for (int i0=bs.size()-1, i1 = astart.size()-1; i0>=0 && i1>=0; i0--,i1--) {
-		size_t stop = astart[i1] + acount[i1] - 1;
-		astart[i1] = (astart[i1] / bs[i0] * bs[i0]);
+	for (int i=0; i<start.size(); i++) {
+		size_t stop = astart[i] + acount[i] - 1;
+		astart[i] = (astart[i] / bs[i] * bs[i]);
 
-		stop = (stop / bs[i0]) * bs[i0] + (bs[i0] - 1);
-		acount[i1] = stop - astart[i1] + 1;
+		stop = (stop / bs[i]) * bs[i] + (bs[i] - 1);
+		acount[i] = stop - astart[i] + 1;
 	}
 }
+
+vector <size_t> compressor_bs(vector <size_t> bs) {
+	vector <size_t> my_bs = bs;
+	reverse(my_bs.begin(), my_bs.end());	// order fastest to slowest
+
+	// Remove slowest varying dimensions of length 1
+	//
+	while (my_bs.size() && my_bs[my_bs.size()-1] == 1) {
+		my_bs.pop_back();
+	}
+	return(my_bs);
+}
+
 
 
 // convert multi-dimensional coordinates, 'coords', for a space
@@ -121,10 +134,7 @@ vectorinc::vectorinc(
 ) {
 	assert(start.size() == count.size());
 	assert(start.size() == dims.size());
-	assert(start.size() >= inc.size());
-	while (inc.size() < start.size()) {
-		inc.insert(inc.begin(), 1);
-	}
+	assert(start.size() == inc.size());
 
 	for (int i=0; i<start.size(); i++) {
 		_end.push_back(start[i] + count[i]);
@@ -252,23 +262,24 @@ int thread_state::_status = 0;
 
 
 // Convert voxel coordinates, 'vcoords', to block coordinates, 'bcoords', 
-// assuming a block size of 'bs'. Handles case where 
-// rank(bs) < rank(vcoords)
+// assuming a block size of 'bs'. 
 //
 void to_block_coords(
 	vector <size_t> vcoords,
 	vector <size_t> bs,
 	vector <size_t> &bcoords
 ) {
+	assert(vcoords.size() == bs.size());
+
 	bcoords = vcoords;
 
 	size_t factor = 1;
 	size_t offset = 0;
-	for (int i0=bs.size()-1, i1 = bcoords.size()-1; i0>=0 && i1>=0; i0--,i1--) {
-		offset += factor * (bcoords[i1] % bs[i0]);
-		factor *= bs[i0];
+	for (int i=0; i<vcoords.size(); i++) {
+		offset += factor * (bcoords[i] % bs[i]);
+		factor *= bs[i];
 
-		bcoords[i1] /= bs[i0];
+		bcoords[i] /= bs[i];
 	}
 
 	bcoords.push_back(offset);	// offset from start of block
@@ -452,8 +463,7 @@ vector <size_t> vdiff(vector <size_t> a, vector <size_t> b) {
 // start: starting coordinates of block within array 'data' (need not 
 // be block aligned)
 // block : pointer to start of block where data should be copied
-// bs : dimensions of block. May have rank <= dims, in which case only
-// fastest varying dimensions are used
+// bs : dimensions of block. 
 // min, max : range of data values within block
 //
 void Block(
@@ -468,18 +478,18 @@ void Block(
 	min = 0.0;
 	max = 0.0;
 
-	// Only 1D, 2D, and 3D blocks handled
-	//
-	assert(bs.size() >=1 && bs.size() <= 3);
-	assert(bs.size() <= dims.size());
+	assert(dims.size() >= 1 && dims.size() <= 4);
 	assert(dims.size() == start.size());
+	assert(dims.size() == bs.size());
 
 	size_t offset = linearize(start, dims);
 	data += offset;
 
-	// Deal with rank of bs less than data rank
 	//
-	while (dims.size() > bs.size()) {
+	// Only 1D, 2D, and 3D blocks handled
+	//
+	while (bs.size() && bs[0] == 1) {
+		bs.erase(bs.begin());
 		dims.erase(dims.begin());
 		start.erase(start.begin());
 	}
@@ -580,8 +590,7 @@ void Block(
 // the data). Handles 1D, 2D, and 3D arrays
 //
 // block : pointer to start of block where data should be copied from
-// bs : dimensions of block. May have rank <= dims, in which case only
-// fastest varying dimensions are used
+// bs : dimensions of block. 
 // data : pointer to start of destination array
 // origin : coordinates of origin of data array
 // dims : dimensions of array
@@ -595,14 +604,15 @@ void UnBlock(
 	vector <size_t> origin, 
 	vector <size_t> start
 ) {
+	assert(dims.size() >= 1 && dims.size() <= 4);
+	assert(dims.size() == start.size());
+	assert(dims.size() == bs.size());
+	assert(dims.size() == origin.size());
 
-	// Only 1D, 2D, and 3D blocks handled
+	// Deal with block dimensions of length 1
 	//
-	assert(bs.size() >=1 && bs.size() <= 3);
-
-	// Deal with rank of bs less than data rank
-	//
-	while (dims.size() > bs.size()) {
+	while (bs.size() && bs[0] == 1) {
+		bs.erase(bs.begin());
 		origin.erase(origin.begin());
 		dims.erase(dims.begin());
 		start.erase(start.begin());
@@ -745,7 +755,8 @@ int ReconstructBlock(
 	bool reconstruct_map = false;
 	for (int i=0; i<ncoeffs.size(); i++) {
 		if (encoded_dims[i] != ncoeffs[i]) {	// last map not stored
-			sigmaps[i].SetMap(mapptr);
+			int rc = sigmaps[i].SetMap(mapptr);
+			if (rc<0) return(-1);
 			mapptr += sizeof(float) * (encoded_dims[i] - ncoeffs[i]);
 		}
 		else {
@@ -1062,7 +1073,7 @@ void *RunReadThread(void *arg) {
 		//
 		rc = ReconstructBlock(
 			s._compressors[s._id], s._coeffs, s._maps, s._ncoeffs, 
-			s._encoded_dims, s._block, vproduct(s._bs), s._level
+			s._encoded_dims, blockptr, vproduct(s._bs), s._level
 		);
 		if (rc<0) {
 			s._status = -1;
@@ -1073,7 +1084,7 @@ void *RunReadThread(void *arg) {
 		if (unblock) {
 			// Unblock the current block into the destination array
 			//
-			UnBlock(s._block, s._bs, s._data, s._count, roi_origin, roi_start);
+			UnBlock(blockptr, s._bs, s._data, s._count, roi_origin, roi_start);
 		}
 
 	}
@@ -1197,7 +1208,6 @@ int WASP::Open(
 	if (rc<0) return(-1);
 
 	int numfiles = 0;
-	vector <size_t> bs;
 	string wname;
 	if (compressed) {
 
@@ -1504,6 +1514,14 @@ int WASP::InqDimsAtLevel(
 	return(0);
 }
 
+bool WASP::InqCompressionInfo(
+    vector <size_t> bs, string wname, size_t &nlevels, size_t &maxcratio
+) {
+    return(Compressor::CompressionInfo(
+		compressor_bs(bs), wname, true, nlevels, maxcratio)
+	);
+}
+
 int WASP::InqVarNumRefLevels(string name) const {
 
 	vector <size_t> bs;
@@ -1517,12 +1535,8 @@ int WASP::InqVarNumRefLevels(string name) const {
 
 	if (cratios.size() == 0) return(1);	// no compression
 
-
-	vector <size_t> bs_vdc = bs;
-	reverse(bs_vdc.begin(), bs_vdc.end());	// VDC order
-
 	size_t nlevels, maxcratio;
-	(void) WASP::InqCompressionInfo(bs_vdc, wname, nlevels, maxcratio);
+	(void) WASP::InqCompressionInfo(bs, wname, nlevels, maxcratio);
 
 	return (nlevels);
 }
@@ -1530,7 +1544,7 @@ int WASP::InqVarNumRefLevels(string name) const {
 // static method to compute grid dimensions at a specified refinement level
 // 
 // dims : dimensions of native (original) grid
-// bs : dimensions of native storage brick. Rank may be less than 'dims' 
+// bs : dimensions of native storage brick. 
 // level : hierarchy level
 // wname : name of wavelet used in wavelet transform
 // dims_at_level : grid dimensions at given refinement level
@@ -1547,25 +1561,28 @@ int WASP::_dims_at_level(
 	dims_at_level.clear();
 	bs_at_level.clear();
 
-	vector <size_t> bs_vdc = bs;
-	reverse(bs_vdc.begin(), bs_vdc.end());	// VDC order
-	Compressor cmp(bs_vdc, wname);
+	Compressor cmp(compressor_bs(bs), wname);
 
 	if (level < 0) level = cmp.GetNumLevels();
     if (level > cmp.GetNumLevels()) level = cmp.GetNumLevels();
 
 	cmp.GetDimension(bs_at_level, level);
+	reverse(bs_at_level.begin(), bs_at_level.end());
+	while (bs_at_level.size() != dims.size()) {
+		bs_at_level.insert(bs_at_level.begin(), 1);
+	}
+	assert(dims.size() == bs_at_level.size());
 
 	dims_at_level = dims;
 	int  ldelta = cmp.GetNumLevels() - level;
 
-	for (int i0 = bs.size()-1, i1 = dims.size()-1; i0>=0 && i1>=0; i0--,i1--) {
-		size_t nblocks = dims[i1] / bs[i0];
-		size_t residual = dims[i1] - (nblocks*bs[i0]);
+	for (int i=0; i<bs.size(); i++) {
+		size_t nblocks = dims[i] / bs[i];
+		size_t residual = dims[i] - (nblocks*bs[i]);
 
 		residual = residual >> ldelta;
 
-		dims_at_level[i1] = nblocks * bs_at_level[i0] + residual;
+		dims_at_level[i] = nblocks * bs_at_level[i] + residual;
 
 	}
 
@@ -1671,10 +1688,8 @@ int WASP::OpenVarWrite(string name, int lod) {
 
 	// Create one compressor for each execution thread
 	//
-	vector <size_t> bs_vdc = bs;
-	reverse(bs_vdc.begin(), bs_vdc.end());	// VDC order
 	for (int i=0; i<_nthreads; i++) {
-		_open_compressors[i] = new Compressor(bs_vdc, wname);
+		_open_compressors[i] = new Compressor(compressor_bs(bs), wname);
 	}
 
 	_open_wname = wname;
@@ -1691,7 +1706,7 @@ int WASP::OpenVarWrite(string name, int lod) {
 	return(NC_NOERR);
 }
 
-int WASP::OpenVarRead(string name, int lod, int level) {
+int WASP::OpenVarRead(string name, int level, int lod) {
 	vector <size_t> bs;
 	vector <size_t> cratios;
 	vector <size_t> udims;
@@ -1737,10 +1752,8 @@ int WASP::OpenVarRead(string name, int lod, int level) {
         return(-1);
     }
 
-	vector <size_t> bs_vdc = bs;
-	reverse(bs_vdc.begin(), bs_vdc.end());	// VDC order
 	for (int i=0; i<_nthreads; i++) {
-		_open_compressors[i] = new Compressor(bs_vdc, wname);
+		_open_compressors[i] = new Compressor(compressor_bs(bs), wname);
 	}
 
 	if (level < 0) level = _open_compressors[0]->GetNumLevels();
@@ -1789,7 +1802,7 @@ bool WASP::_validate_put_vara_compressed(
 	if (start.size() != udims.size() || count.size() != udims.size()) {
         return(false);
 	}
-	assert (bs.size() <= start.size());
+	assert (bs.size() == start.size());
 
 	for (int i=0; i<count.size(); i++) {
 		if (count[i] < 1 || count[i] > udims[i]) return(false);
@@ -1804,16 +1817,16 @@ bool WASP::_validate_put_vara_compressed(
 	// dimension is not block aligned, count must align with the 
 	// array dimension boundary
 	//
-	for (int i0 = bs.size()-1, i1 = count.size()-1; i0>=0 && i1>=0; i0--,i1--) {
-		if (((count[i1] % bs[i0]) != 0) && (count[i1]+start[i1] !=udims[i1])) {
+	for (int i=0; i<bs.size(); i++) {
+		if (((count[i] % bs[i]) != 0) && (count[i]+start[i] !=udims[i])) {
 			return(false);
 		}
 	}
 
 	// Start must *always* be block aligned
 	//
-	for (int i0 = bs.size()-1, i1 = start.size()-1; i0>=0 && i1>=0; i0--,i1--) {
-		if ((start[i1] % bs[i0]) != 0) return(false);
+	for (int i=0; i<bs.size(); i++) {
+		if ((start[i] % bs[i]) != 0) return(false);
 	}
 
 	return(true);
@@ -1829,7 +1842,7 @@ bool WASP::_validate_get_vara_compressed(
 	if (start.size() != udims.size() || count.size() != udims.size()) {
         return(false);
 	}
-	assert (bs.size() <= start.size());
+	assert (bs.size() == start.size());
 
 	if (unblock) {
 		for (int i=0; i<count.size(); i++) {
@@ -2125,12 +2138,14 @@ int WASP::_GetCompressedDims(
 	//
 	cdims = dims;
 	cdimnames = dimnames;
-	for (int i=bs.size()-1, j=dimnames.size()-1; i>=0 && j>=0; i--, j--) {
-		size_t bdim = (size_t) ceil ((double) dims[j] / (double) bs[i]);
-		string bdimname = "Blk" + dimnames[j];
+	for (int i=0; i<bs.size(); i++) {
+		if (bs[i] != 1) {
+			size_t bdim = (size_t) ceil ((double) dims[i] / (double) bs[i]);
+			string bdimname = "Blk" + dimnames[i];
 
-		cdims[j] = bdim;
-		cdimnames[j] = bdimname;
+			cdims[i] = bdim;
+			cdimnames[i] = bdimname;
+		}
 	}
 
 	//
@@ -2171,9 +2186,7 @@ void WASP::_get_encoding_vectors(
 	ncoeffs.clear();
 	encoded_dims.clear();
 	
-	vector <size_t> bs_vdc = bs;
-	reverse(bs_vdc.begin(), bs_vdc.end());	// VDC order
-    Compressor compressor(bs_vdc, wname);
+    Compressor compressor(compressor_bs(bs), wname);
 
 	// Total number of wavelet coefficients generated by a forward transform
 	//
@@ -2233,7 +2246,7 @@ bool WASP::_validate_compression_params(
 	MatWaveBase mwb(wname);
 	if (! mwb.wavelet()) return(false);
 
-	if (bs.size() < 1 || bs.size() > 3) return(false);
+	if (bs.size() < 1 || bs.size() > 4) return(false);
 
 	if (_numfiles > 1) {
 		if (cratios.size() != _numfiles) return(false);
@@ -2250,9 +2263,7 @@ bool WASP::_validate_compression_params(
 		if (cratios[i] == 0) return(false);
 	}
 
-	// Rank of bs must be <= ranke of dims
-	//
-	if (bs.size() > dims.size()) return(false);
+	if (bs.size() != dims.size()) return(false);
 
 	size_t maxcratio;
 	size_t nlevels;

@@ -278,9 +278,7 @@ public:
  //! 
  static bool InqCompressionInfo(
 	vector <size_t> bs, string wname, size_t &nlevels, size_t &maxcratio
- ) {
-	return(Compressor::CompressionInfo(bs, wname, true, nlevels, maxcratio));
- }
+ );
 
  //! Define a new compressed variable
  //!
@@ -400,7 +398,7 @@ public:
  //!
  //! \sa GetVara()
  //
- virtual int OpenVarRead(string name, int lod, int level);
+ virtual int OpenVarRead(string name, int level, int lod);
 
  //! Close the currently opened variable
  //!

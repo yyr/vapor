@@ -666,3 +666,14 @@ int NetCDFCpp::GetVar(string varname, void *data) {
 
 	return(rc);
 }
+
+bool NetCDFCpp::InqDimDefined(string dimname) {
+
+	int dummy;
+	int rc = nc_inq_dimid(_ncid, dimname.c_str(), &dummy);
+
+	if (rc == NC_NOERR) return(true);
+
+	return(false);
+}
+
