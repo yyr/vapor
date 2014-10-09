@@ -222,7 +222,11 @@ string DCReaderGRIB::GetMapProjection() const {
 	    projstring = "+proj=eqc +ellps=WGS84" + oss.str();
 	}
 	else if(strcmp(_gridType.c_str(),"polar_stereographic")){
-		if (_minLat < 0) projstring = ""; 
+		if (_minLat < 0.) lat_0 = -90.0;
+		else lat_0 = 90.0; 
+
+		float lat_ts = _minLat;
+		float lon_0 = _minLon;
 		//lat_0 = 	
 	}
 //	else if(
@@ -292,7 +296,7 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
     }  
 	
 	OpenVariableRead(0,"ELEVATION",0,0);
-	float values[_Ni*_Nj];
+	float *values = new float[_Ni*_Nj];
 	ReadSlice(values);
 
 	float max = values[0];
@@ -333,6 +337,8 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
     _cartographicExtents.push_back(y[1]);
     _cartographicExtents.push_back(max);
 
+	delete values;
+
     return 0;
 }
 
@@ -359,17 +365,21 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	_DxInMetres = atof(records[0]["_DxInMetres"].c_str());	
 	_DyInMetres = atof(records[0]["_DyInMetres"].c_str());
 
-	if (_iScanNeg==0) {
+	if (_iScanNeg==0) {		// i scans positively
 		_maxLon = atof(records[0]["longitudeOfLastGridPointInDegrees"].c_str());
 		_minLon = atof(records[0]["longitudeOfFirstGridPointInDegrees"].c_str());
 	}
-	if (_jScanPos==0) {
+	else {					// i scans negatively
+		_minLon = atof(records[0]["longitudeOfLastGridPointInDegrees"].c_str());
+		_maxLon = atof(records[0]["longitudeOfFirstGridPointInDegrees"].c_str());
+	}
+	if (_jScanPos==0) {		// j scans negatively
 		_maxLat = atof(records[0]["latitudeOfFirstGridPointInDegrees"].c_str());
 		_minLat = atof(records[0]["latitudeOfLastGridPointInDegrees"].c_str());
 	}
-	else {
-        _maxLat = atof(records[0]["latitudeOfFirstGridPointInDegrees"].c_str());
-        _minLat = atof(records[0]["latitudeOfLastGridPointInDegrees"].c_str());
+	else { 					// j scans positively
+        _minLat = atof(records[0]["latitudeOfFirstGridPointInDegrees"].c_str());
+        _maxLat = atof(records[0]["latitudeOfLastGridPointInDegrees"].c_str());
 	}
 
 	if (_maxLon < 0) _maxLon += 360;
