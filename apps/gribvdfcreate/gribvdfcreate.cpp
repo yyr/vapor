@@ -307,23 +307,12 @@ int main(int argc, char** argv) {
         files.push_back(argv[i]);
     }   
 
-    //GribParser *parser = new GribParser();
-
     if (argc<3) usage(argv[0]);
     
 	vdfname = argv[1];
 
-    //for (int i=2; i<argc; i++){
-    //    gribfile = argv[i];
-    //    parser->_LoadRecordKeys(gribfile);
-    //}    
-
-    //parser->_VerifyKeys();
-    
 	// Create DCReaderGRIB with record info
 	DCReaderGRIB *DCGrib = new DCReaderGRIB(files);
-	//DCGrib->_Initialize(parser->GetRecords());
-
 
     // Create VDF file      
     VDCFactory vdcf(1);
@@ -349,19 +338,10 @@ int main(int argc, char** argv) {
 		for(int ts=0; ts<numTs; ts++) {
 			cout << "Processing variable " << var << " at timestep " << ts << endl;
 			rc = CopyVar(vdfio,
-	    	             DCGrib,//metadata,
-	        	         ts,ts,var,var,-1,-1);//0,0,"u","u",-1,-1);
+	    	             DCGrib,
+	        	         ts,ts,var,var,-1,-1);
 		}
 	}
 
-
-    //cout << rc << endl;
-    //const float * drange = vdfio->GetDataRange();
-    //cout << "data range (" << drange[0] << ", " << drange[1] << ")" << endl;
-
-    //metadata->Print3dVars();
-	//DCGrib->Print3dVars();
-
     return 0;
-
 }
