@@ -632,8 +632,6 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 		if (bnds[0] > minIso) { bnds[0] = minIso; histoBoundsChanged = true;}
 		if (bnds[1] < maxIso) { bnds[1] = maxIso; histoBoundsChanged = true;}
 	}
-
-	if(histoBoundsChanged) isolineParams->SetHistoBounds(bnds);
 	
 	
 	ivalues.push_back(minIso);
@@ -663,6 +661,13 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 			isoSpaceEdit->setText(QString::number(0.));
 	}
 	countIsoEdit->setText(QString::number(ivalues.size()));
+	
+	if(histoBoundsChanged) {
+		isolineParams->SetHistoBounds(bnds);
+		if (bnds[0] > minIso || bnds[1] < maxIso){
+			fitIsovalsToHisto(isolineParams);
+		}
+	}
 
 	isolineParams->SetHistoStretch(histoScaleEdit->text().toDouble());
 	
