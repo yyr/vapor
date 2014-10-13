@@ -716,7 +716,7 @@ p, li { white-space: pre-wrap; }
                  <string>Specify minimum isovalue</string>
                 </property>
                 <property name="whatsThis">
-                 <string>A series of evenly spaced isovalues can be specified by selecting the minimum, maximum and count.</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A series of evenly spaced isovalues can be specified by selecting the minimum, spacing between successive isovalues, and count.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>0.0</string>
@@ -729,7 +729,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QLabel" name="label_12">
                 <property name="text">
-                 <string>Max:</string>
+                 <string>Spacing:</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
@@ -737,7 +737,7 @@ p, li { white-space: pre-wrap; }
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="maxIsoEdit">
+               <widget class="QLineEdit" name="isoSpaceEdit">
                 <property name="maximumSize">
                  <size>
                   <width>100</width>
@@ -745,10 +745,10 @@ p, li { white-space: pre-wrap; }
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Specify maximum isovalue</string>
+                 <string>Specify interval between isovalues</string>
                 </property>
                 <property name="whatsThis">
-                 <string>A series of evenly spaced isovalues can be specified by selecting the minimum, maximum and count.</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A series of evenly spaced isovalues can be specified by selecting the minimum, spacing between successive isovalues, and count.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>24.5</string>
@@ -783,10 +783,10 @@ p, li { white-space: pre-wrap; }
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Specify number of isovalues between min and max</string>
+                 <string>Specify number of isovalues starting at minumum, with specified spacing</string>
                 </property>
                 <property name="whatsThis">
-                 <string>A series of evenly spaced isovalues can be specified by selecting the minimum, maximum and count.</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A series of evenly spaced isovalues can be specified by selecting the minimum, spacing between successive isovalues, and count.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>3</string>

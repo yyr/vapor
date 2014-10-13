@@ -157,7 +157,7 @@ IsolineEventRouter::hookUpTab()
 	connect (xSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (ySizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (minIsoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (maxIsoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (isoSpaceEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (countIsoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (isolineWidthEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (panelLineWidthEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
@@ -181,7 +181,7 @@ IsolineEventRouter::hookUpTab()
 	connect (phiEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (psiEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (minIsoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (maxIsoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (isoSpaceEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (countIsoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (isolineWidthEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (panelLineWidthEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
@@ -390,9 +390,12 @@ void IsolineEventRouter::updateTab(){
 		if (isoMax<ivalues[i]) isoMax = ivalues[i];
 		if (isoMin>ivalues[i]) isoMin = ivalues[i];
 	}
+	double isoSpace = 0.;
+	if (ivalues.size() > 1) 
+		isoSpace = (isoMax - isoMin)/(double)(ivalues.size()-1);
 	numDigitsEdit->setText(QString::number(isolineParams->GetNumDigits()));
 	minIsoEdit->setText(QString::number(isoMin));
-	maxIsoEdit->setText(QString::number(isoMax));
+	isoSpaceEdit->setText(QString::number(isoSpace));
 	countIsoEdit->setText(QString::number(ivalues.size()));
 	float histoBounds[2];
 	isolineParams->GetHistoBounds(histoBounds);
@@ -571,8 +574,17 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	if (numDigits < 2) numDigits = 2;
 	if (numDigits > 12) numDigits = 12;
 	if (numDigits != isolineParams->GetNumDigits()) isolineParams->SetNumDigits(numDigits);
-	double maxIso = (double)maxIsoEdit->text().toDouble();
+	int numIsos = countIsoEdit->text().toInt();
+	if (numIsos < 1) numIsos = 1;
+	
+	double isoSpace = (double)isoSpaceEdit->text().toDouble();
+	if (isoSpace <0.) isoSpace = 0.;
 	double minIso = (double)minIsoEdit->text().toDouble();
+	double maxIso = minIso + isoSpace*(numIsos-1);
+	if (maxIso < minIso) {
+		maxIso = minIso;
+		numIsos = 1;
+	}
 	double prevMinIso = 1.e30, prevMaxIso = -1.e30;
 	const vector<double>& prevIsoVals = isolineParams->GetIsovalues(); 
 	//Determine previous min/max of isovalues
@@ -586,32 +598,23 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	float bnds[2];
 	bnds[0] = leftHistoEdit->text().toFloat();
 	bnds[1] = rightHistoEdit->text().toFloat();
-	float newIsoMin = minIsoEdit->text().toFloat();
-	float newIsoMax = maxIsoEdit->text().toFloat();
-	if (newIsoMax < newIsoMin) newIsoMax = newIsoMin;
+	
+	if (maxIso < minIso) maxIso = minIso;
 	bool isoBoundsChanged = false;
 	
 	//If the number of isovalues is changing from 1 to a value >1, and if the
 	//min and max are the same, then expand the min/max interval by .5 times the 
 	//histo interval.
 	
-	int numIsos = countIsoEdit->text().toInt();
-	if (numIsos < 1) numIsos = 1;
-	if (maxIso < minIso) {
-		maxIso = minIso;
-		numIsos = 1;
-	}
+	
 	if (maxIso > minIso && numIsos == 1){
-		maxIso = minIso = 0.5*(maxIso+minIso);
+		maxIso = minIso;
 	}
 	if (maxIso == minIso && numIsos > 1) {
-		minIso = maxIso - 0.25*(bnds[1]-bnds[0]);
-		maxIso = maxIso + 0.25*(bnds[1]-bnds[0]);
-		if (minIso < newIsoMin) newIsoMin = minIso;
-		if (maxIso > newIsoMax) newIsoMax = maxIso;
+		maxIso = minIso + 0.5*(bnds[1]-bnds[0]);
 	}
-	if (abs(newIsoMin-prevMinIso) > 0.005*(prevIsoMax-prevIsoMin)) isoBoundsChanged = true;
-	if (abs(newIsoMax-prevMaxIso) > 0.005*(prevIsoMax-prevIsoMin)) isoBoundsChanged = true;
+	if (abs(minIso-prevMinIso) > 0.005*(prevIsoMax-prevIsoMin)) isoBoundsChanged = true;
+	if (abs(maxIso-prevMaxIso) > 0.005*(prevIsoMax-prevIsoMin)) isoBoundsChanged = true;
 	
 	
 	bool isovaluesChanged = isoBoundsChanged;
@@ -626,8 +629,8 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	if (abs(prevBnds[1]-bnds[1]) >0.005*(prevBnds[1]-prevBnds[0])) histoBoundsChanged = true;
 
 	if (isoBoundsChanged && !histoBoundsChanged){
-		if (bnds[0] > newIsoMin) { bnds[0] = newIsoMin; histoBoundsChanged = true;}
-		if (bnds[1] < newIsoMax) { bnds[1] = newIsoMax; histoBoundsChanged = true;}
+		if (bnds[0] > minIso) { bnds[0] = minIso; histoBoundsChanged = true;}
+		if (bnds[1] < maxIso) { bnds[1] = maxIso; histoBoundsChanged = true;}
 	}
 
 	if(histoBoundsChanged) isolineParams->SetHistoBounds(bnds);
@@ -654,7 +657,10 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	if(isovaluesChanged) isolineParams->SetIsovalues(ivalues);
 	if (isoBoundsChanged){
 		minIsoEdit->setText(QString::number(minIso));
-		maxIsoEdit->setText(QString::number(maxIso));
+		if (numIsos >1)
+			isoSpaceEdit->setText(QString::number((maxIso-minIso)/(double)numIsos));
+		else
+			isoSpaceEdit->setText(QString::number(0.));
 	}
 	countIsoEdit->setText(QString::number(ivalues.size()));
 
@@ -2914,9 +2920,9 @@ void IsolineEventRouter::guiSpaceIsovalues(){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "Space isovalues uniformly");
 
-	double maxIso = (double)maxIsoEdit->text().toDouble();
 	double minIso = (double)minIsoEdit->text().toDouble();
-	iParams->spaceIsovals(minIso,maxIso);
+	double interval = (double)isoSpaceEdit->text().toDouble();
+	iParams->spaceIsovals(minIso,interval);
 	
 	PanelCommand::captureEnd(cmd, iParams);
 	setIsolineDirty(iParams);
@@ -2991,10 +2997,14 @@ void IsolineEventRouter::fitIsovalsToHisto(IsolineParams* iParams){
 		//Now rearrange proportionately to fit in bounds
 		float newmin = bounds[0];
 		float newmax = bounds[1];
-		//Don't change bound if iso is inside
-		if (newmin < isoMin) newmin = isoMin;
-		if (newmax > isoMax) newmax = isoMax;
-		if (newmax < newmin) newmax = newmin;
+		//Don't change bounds if isos are inside
+		if (isoMin >= newmin && isoMax <= newmax && isoMin <= newmax && isoMax >= newmin) return;
+		//If there's only one, put it in the middle:
+		if (isovals.size() <= 0 || isoMax <= isoMin){
+			newmin = 0.5*(bounds[1]+bounds[0]);
+			isoMax = isoMin+1.; //prevent divide by zero in upcoming rescale
+		} 
+		//Arrange them proportionately between newmin and newmax
 		for (int i = 0; i<isovals.size(); i++){
 			double newIsoval = newmin + (newmax-newmin)*(isovals[i]-isoMin)/(isoMax-isoMin);
 			newIsovals.push_back(newIsoval);
