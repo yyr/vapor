@@ -173,10 +173,11 @@ int DCReaderGRIB::ReadSlice(float *_values){
     GRIB_CHECK(grib_get_double_array(h,"values",_dvalues,&_values_len),0);
 
 	// re-order values according to scan direciton and convert doubles to floats
+	float min,max;
+	min = (float) _dvalues[0];
+	max = (float) _dvalues[0];
 	int vaporIndex, i, j;
     for(size_t gribIndex = 0; gribIndex < _values_len; gribIndex++) {
-		//bool _iScanNeg = targetVar->get_iScanNeg();  // 0: i scans positively, 1: negatively
-		//bool _jScan = targetVar->get_jScan();  // 1: j scans positively, 0: negatively
 		if (_iScanNeg == 1) {
 			if (_jScanPos == 1) {   // 1 1
 				i = _Ni - gribIndex%_Ni;
@@ -188,20 +189,23 @@ int DCReaderGRIB::ReadSlice(float *_values){
 			}
 		}
 
-		else if (_jScanPos == 0) {  // 0 0
-            i = gribIndex % _Ni;
-            j = ((_Ni * _Nj) - 1 - gribIndex) / _Ni;
-            vaporIndex = j * _Ni + i;
-		}
-		// if the case is 0 1, we don't have to do anything...
-		//
+		else {
+			if (_jScanPos == 0) {  // 0 0
+            	i = gribIndex % _Ni;
+            	j = ((_Ni * _Nj) - 1 - gribIndex) / _Ni;
+            	vaporIndex = j * _Ni + i;
+			}
+			else {
+				vaporIndex = gribIndex;
+			}
+		}	
 		_values[vaporIndex] = (float) _dvalues[gribIndex];
+		if (_values[vaporIndex] < min) min = _values[vaporIndex];
+		if (_values[vaporIndex] > max) max = _values[vaporIndex];
 	}
 
     delete [] _dvalues;
 
-	cout << _values[0] << endl;
- 
 	//if (_sliceNum == _pressureLevels.size()-1) _sliceNum = 0;
 	//else _sliceNum++;
 	if (_sliceNum == 0) _sliceNum = _pressureLevels.size()-1;
@@ -213,25 +217,47 @@ int DCReaderGRIB::ReadSlice(float *_values){
 string DCReaderGRIB::GetMapProjection() const {
 	double lat_0;
 	double lon_0;
+	double lat_ts;
 	ostringstream oss;
 	string projstring;
-	if (strcmp(_gridType.c_str(), "regular_ll")){
+	if (!strcmp(_gridType.c_str(), "regular_ll")){
 	    lon_0 = (_minLon + _maxLon) / 2.0;
 	    lat_0 = (_minLat + _maxLat) / 2.0;
 	    oss << " +lon_0=" << lon_0 << " +lat_0=" << lat_0;
 	    projstring = "+proj=eqc +ellps=WGS84" + oss.str();
 	}
-	else if(strcmp(_gridType.c_str(),"polar_stereographic")){
-		if (_minLat < 0.) lat_0 = -90.0;
-		else lat_0 = 90.0; 
+	else if(!strcmp(_gridType.c_str(),"polar_stereographic")){
+		if (_minLat < 0.){
+			lat_0 = -90.0;
+			lat_ts = -60.0;
+		}
+		else {
+			lat_0 = 90.0; 
+			lat_ts = 60.0;
+		}
 
-		float lat_ts = _minLat;
-		float lon_0 = _minLon;
-		//lat_0 = 	
+		string lon_0 = _orientationOfTheGridInDegrees;
+
+		oss << " +lon_0=" << lon_0 << " +lat_0=" << lat_0 << " +lat_ts=" << lat_ts;
+		
+		projstring = "+proj=stere" + oss.str();	
 	}
-//	else if(
-//
-//	}
+	else if(!strcmp(_gridType.c_str(),"lambert")) {
+		lon_0 = _LoVInDegrees;
+		string lat_1 = _Latin1InDegrees;
+		string lat_2 = _Latin2InDegrees;
+
+		oss << " +lon_0=" << lon_0 << " +lat_1=" << lat_1 << " +lat_2=" << lat_2;
+	
+		projstring = "+proj=lcc" + oss.str();
+	}
+	else if(!strcmp(_gridType.c_str(),"mercator")) {
+		lon_0 = (_minLon + _maxLon) / 2;
+		lat_ts = _LaDInDegrees;	
+		
+		oss << " +lon_0=" << lon_0 << " +lat_ts=" << lat_ts;
+		projstring = "+proj=merc" + oss.str();
+	}
     return(projstring);
 }
 
@@ -263,7 +289,8 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
 
 	double x[2];
 	double y[2];
-	if (strcmp(_gridType.c_str(),"regular_ll")){
+	if (!strcmp(_gridType.c_str(),"regular_ll") ||
+		!strcmp(_gridType.c_str(),"mercator")) {
 	    x[0] = _minLon;
 		x[1] = _maxLon;
 	    y[0] = _minLat;
@@ -275,7 +302,8 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
 	        return(-1);
 	    }
 	}
-	else if(strcmp(_gridType.c_str(),"polar_stereographic")){
+	else if(!strcmp(_gridType.c_str(),"polar_stereographic") || 
+			(!strcmp(_gridType.c_str(),"lambert"))) {
 		x[0] = _minLon;
 		y[0] = _minLat;
 
@@ -286,14 +314,14 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
     	}
 
 		x[1] = x[0] + _Ni*_DxInMetres;
-		y[1] = y[0] + _Nj*_DyInMetres;
+        y[1] = y[0] + _Nj*_DyInMetres;
 	}
 
-    rc = proj4API.Transform(x,y,2,1);
-    if (rc < 0) {
-        SetErrMsg("Invalid map projection : %s", mapProj.c_str());
-        return(-1);
-    }  
+    //rc = proj4API.Transform(x,y,2,1);
+    //if (rc < 0) {
+    //    SetErrMsg("Invalid map projection : %s", mapProj.c_str());
+    //    return(-1);
+    //}  
 	
 	OpenVariableRead(0,"ELEVATION",0,0);
 	float *values = new float[_Ni*_Nj];
@@ -362,8 +390,30 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	_gridType = records[0]["gridType"];
 	_iScanNeg = atoi(records[0]["iScanNegsNegatively"].c_str());
     _jScanPos = atoi(records[0]["jScansPositively"].c_str());
-	_DxInMetres = atof(records[0]["_DxInMetres"].c_str());	
-	_DyInMetres = atof(records[0]["_DyInMetres"].c_str());
+	_DxInMetres = atof(records[0]["DxInMetres"].c_str());	
+	_DyInMetres = atof(records[0]["DyInMetres"].c_str());	
+	_LaDInDegrees = atof(records[0]["LaDInDegrees"].c_str());
+	_LoVInDegrees = atof(records[0]["LoVInDegrees"].c_str());
+	_Latin1InDegrees = records[0]["Latin1InDegrees"];
+	_Latin2InDegrees = records[0]["Latin2InDegrees"];
+	_orientationOfTheGridInDegrees = records[0]["orientationOfTheGridInDegrees"];
+	
+	int Nx = atoi(records[0]["Nx"].c_str());
+	int Ny = atoi(records[0]["Ny"].c_str());
+	double DiInMetres = atof(records[0]["DiInMetres"].c_str());	
+	double DjInMetres = atof(records[0]["DjInMetres"].c_str());
+	
+	if(!strcmp(_gridType.c_str(),"polar_stereographic") ||
+		!strcmp(_gridType.c_str(),"lambert")){
+		_Ni = Nx;
+		_Nj = Ny;
+	}
+
+	if(!strcmp(_gridType.c_str(),"mercator")) {
+		_DxInMetres = DiInMetres;
+		_DyInMetres = DjInMetres;
+	}
+
 
 	if (_iScanNeg==0) {		// i scans positively
 		_maxLon = atof(records[0]["longitudeOfLastGridPointInDegrees"].c_str());
@@ -383,6 +433,7 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	}
 
 	if (_maxLon < 0) _maxLon += 360;
+	if (_minLon > _maxLon) _minLon = _minLon - 360;
 
     for (int i=0; i<numRecords; i++) {
 		std::map<std::string, std::string> record = records[i];
@@ -405,7 +456,8 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 			_gribTimes.push_back(time);
 
 		if (std::find(_pressureLevels.begin(), _pressureLevels.end(), level) == _pressureLevels.end())
-			if (level != 0.f) _pressureLevels.push_back(level);
+			//if ((level != 0.f) && strcmp(name.c_str(),"sigma"))_pressureLevels.push_back(level);
+			if (!strcmp(name.c_str(),"gh")) _pressureLevels.push_back(level);
 
 		int isobaric = strcmp(levelType.c_str(),"isobaricInhPa");
 		if (isobaric == 0) {								    // if we have a 3d var...
@@ -615,12 +667,21 @@ DCReaderGRIB::GribParser::GribParser() {
     _consistentKeys.push_back("longitudeOfLastGridPointInDegrees");
     _consistentKeys.push_back("latitudeOfFirstGridPointInDegrees");
     _consistentKeys.push_back("latitudeOfLastGridPointInDegrees");
+	_consistentKeys.push_back("Latin1InDegrees");
+	_consistentKeys.push_back("Latin2InDegrees");
+	_consistentKeys.push_back("LoVInDegrees");
+	_consistentKeys.push_back("LaDInDegrees");
+	_consistentKeys.push_back("orientationOfTheGridInDegrees");
 	_consistentKeys.push_back("iScansNegatively");
 	_consistentKeys.push_back("jScansPositively");
 	_consistentKeys.push_back("DxInMetres");
 	_consistentKeys.push_back("DyInMetres");
+	_consistentKeys.push_back("DiInMetres");
+	_consistentKeys.push_back("DjInMetres");
 	_consistentKeys.push_back("Ni");
 	_consistentKeys.push_back("Nj");
+	_consistentKeys.push_back("Nx");
+	_consistentKeys.push_back("Ny");
 
 	// _varyingKeys are those that may change over time, but must
 	// fit some criteria for a legal data conversion
@@ -832,7 +893,10 @@ int DCReaderGRIB::GribParser::_VerifyKeys() {
 		
 		string grid;
         grid = _recordKeys[i]["gridType"];
-        if ((strcmp(grid.c_str(),"regular_ll")!=0) && (strcmp(grid.c_str(),"regular_gg")!=0)){
+        if ((strcmp(grid.c_str(),"regular_ll")!=0) && 
+			(strcmp(grid.c_str(),"polar_stereographic")!=0) &&
+			(strcmp(grid.c_str(),"lambert")) && 
+			(strcmp(grid.c_str(),"mercator"))) {
 			n=sprintf(error,"Error: Invalid grid specification ('%s') for Record No. %d",grid.c_str(),i);
 			MyBase::SetErrMsg(error);
             return -1;

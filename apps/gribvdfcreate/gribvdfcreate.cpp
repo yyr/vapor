@@ -151,20 +151,22 @@ MetadataVDC *CreateMetadataVDC(
         }
     }
 
+	file->SetGridType("layered");
     string gridtype = file->GetGridType();
 
-    if (gridtype.compare("layered")==0) {
-        vector <string> vec;
-        vec.push_back("NONE");
-        vec.push_back("NONE");
-//        vec.push_back(opt.zcoordvar);
-        file->SetCoordinateVariables(vec);
-    }
+//    if (gridtype.compare("layered")==0) {
+//        vector <string> vec;
+//        vec.push_back("NONE");
+//        vec.push_back("NONE");
+  //        vec.push_back(opt.zcoordvar);
+//        file->SetCoordinateVariables(vec);
+//    }
 
-	vector <double> zcoords = GribData->GetZCoordsInMeters();
+/*	vector <double> zcoords = GribData->GetZCoordsInMeters();
 	for (int ts=0; ts<GribData->GetNumTimeSteps(); ts++) {
 		file->SetTSZCoords(ts,zcoords);
 	}
+*/
 
 /*    else if (gridtype.compare("stretched")==0) {
         NetCDFCollection *ncdfc = GribData->GetNetCDFCollection();
@@ -270,7 +272,7 @@ int CopyVar(
             if (buf[j] < min) min = buf[j];
         }
 
-        //cout << min << " " << max << " ";
+        cout << min << " " << max << " ";
         //cout << vdfio->GetDataRange()[0] << " " << vdfio->GetDataRange()[1] << endl;
 
         rc = vdfio->WriteSlice(buf);
