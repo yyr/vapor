@@ -281,7 +281,7 @@ public:
 		return (float)(exts[4]-exts[1]);
 	}
 	//Space the isovalues to specified interval
-	void spaceIsovals(float minval, float maxval);
+	void spaceIsovals(float miniso, float spacing);
 	
 	static const string _isolineParamsTag;
 

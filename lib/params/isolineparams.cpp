@@ -461,20 +461,13 @@ int IsolineParams::getSessionVarNum(){
 	else 
 		return ds->getSessionVariableNum2D(GetVariableName());
 }
-void IsolineParams::spaceIsovals(float minval, float maxval){
+void IsolineParams::spaceIsovals(float minval, float interval){
 	vector<double>newIsos;
 	const vector<double>& isovals = GetIsovalues();
-	if (isovals.size() == 1) newIsos.push_back(0.5*(minval+maxval));
+	if (isovals.size() == 1) newIsos.push_back(minval);
 	else {
-		double minIso = 1.e30, maxIso = -1.e30;
-	
 		for (int i = 0; i<isovals.size(); i++){
-			if (minIso > isovals[i]) minIso = isovals[i];
-			if (maxIso < isovals[i]) maxIso = isovals[i]; 
-		}
-		double delta = (maxval - minval)/(isovals.size()-1);
-		for (int i = 0; i<isovals.size(); i++){
-			double ival = minval + i*delta;
+			double ival = minval + i*interval;
 			newIsos.push_back(ival);
 		}
 		SetIsovalues(newIsos);
