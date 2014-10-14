@@ -365,7 +365,7 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
     _cartographicExtents.push_back(y[1]);
     _cartographicExtents.push_back(max);
 
-	delete values;
+	if (values) delete [] values;
 
     return 0;
 }
@@ -525,6 +525,8 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 									 //_cartesianExtents);
 	
 	_sliceNum = _pressureLevels.size()-1;
+
+	if (parser) delete parser;
 
 	if (rc<0) return -1;			 
 

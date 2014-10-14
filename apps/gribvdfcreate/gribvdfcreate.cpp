@@ -272,9 +272,6 @@ int CopyVar(
             if (buf[j] < min) min = buf[j];
         }
 
-        cout << min << " " << max << " ";
-        //cout << vdfio->GetDataRange()[0] << " " << vdfio->GetDataRange()[1] << endl;
-
         rc = vdfio->WriteSlice(buf);
         if (rc<0) {
             cout << "WriteSlice(buf) error" << endl;
@@ -344,6 +341,9 @@ int main(int argc, char** argv) {
 	        	         ts,ts,var,var,-1,-1);
 		}
 	}
+
+	if (DCGrib) delete DCGrib;
+	if (wcwriter) delete wcwriter;
 
     return 0;
 }
