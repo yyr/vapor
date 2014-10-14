@@ -153,7 +153,9 @@ int main( int argc, char ** argv ) {
 	   //so we can use that when debugging.
 	   phome = PYTHONDIR;
 #else
-       phome = getenv("PYTHONDIR");
+	   char* thome = getenv("PYTHONDIR");
+	   if (thome)
+			phome = thome;
 #endif
         }
 
