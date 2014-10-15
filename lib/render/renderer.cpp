@@ -68,8 +68,8 @@ int Renderer::initializeGL() {
 	return(0);
 }
 
-int Renderer::paintGL(DataMgr* dataMgr, const RenderParams* renderParams) {
-	int rc = _paintGL(dataMgr, renderParams);
+int Renderer::paintGL(DataMgr* dataMgr) {
+	int rc = _paintGL(dataMgr);
 	if (rc<0) {
 		return(-1);
 	}

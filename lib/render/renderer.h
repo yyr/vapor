@@ -61,9 +61,8 @@ public:
 
 	//! All OpenGL rendering is performed in the pure virtual paintGL method.
 	//! \param[in] dataMgr Current (valid) dataMgr
-	//! \param[in] params Params that applies to this renderer
 	//! \retval int zero if successful.
-    virtual int		paintGL(DataMgr* dataMgr, const RenderParams* params);
+    virtual int		paintGL(DataMgr* dataMgr);
 	
 	//! Whenever the Params associated with the renderer is changed, setRenderParams must be called.
 	//! This virtual method should be overridden if there are any dirty flags registered by the renderer.
@@ -144,7 +143,7 @@ protected:
     virtual int	_initializeGL() = 0;
 
 	//! All OpenGL rendering is performed in the pure virtual paintGL method.
-    virtual int	_paintGL(DataMgr*, const RenderParams*) = 0;
+    virtual int	_paintGL(DataMgr*) = 0;
 
 	//! Enable specified clipping planes during the GL rendering
 	//! Must be invoked during paintGL()

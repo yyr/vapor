@@ -62,10 +62,10 @@ int ArrowRenderer::_initializeGL(){
 	return(0);
 }
 
-int ArrowRenderer::_paintGL(DataMgr* dataMgr, const RenderParams* params){
+int ArrowRenderer::_paintGL(DataMgr* dataMgr){
 
 	
-	ArrowParams* aParams = (ArrowParams*)params;
+	ArrowParams* aParams = (ArrowParams*)getRenderParams();
 
 	//
 	//Set up the variable data required, while determining data extents to use in rendering
@@ -103,7 +103,7 @@ int ArrowRenderer::_paintGL(DataMgr* dataMgr, const RenderParams* params){
 	//
 	//Perform OpenGL rendering of arrows
 	//
-	int rc = performRendering(dataMgr, params, actualRefLevel, vectorLengthScale, rad, varData);
+	int rc = performRendering(dataMgr, aParams, actualRefLevel, vectorLengthScale, rad, varData);
 	if(rc) return rc;
 	
 	//Release the locks on the data:

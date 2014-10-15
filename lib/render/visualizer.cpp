@@ -411,8 +411,11 @@ int Visualizer::paintEvent(bool force)
 			glPushMatrix();
 			glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-			renderer[i]->paintGL(dataMgr, renderer[i]->getRenderParams());
-
+			int rc = renderer[i]->paintGL(dataMgr);
+			if (rc) {
+				renderer[i]->setBypass(timeStep);
+				SetErrMsg( VAPOR_ERROR_GL_RENDERING,"Renderer %s error\n",renderer[i]->getMyName().c_str());
+			}
 			glPopAttrib();
 			glMatrixMode(GL_MODELVIEW);
 			glPopMatrix();
