@@ -204,6 +204,12 @@
     <ClCompile Include="..\..\..\lib\vdf\NetCDFCpp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\lib\vdf\DataMgrV3_0.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lib\vdf\DataMgrVDC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\vapor\AMRData.h">
@@ -339,6 +345,12 @@
       <Filter>Source Files\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\vapor\VDCNetCDF.h">
+      <Filter>Source Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\vapor\DataMgrV3_0.h">
+      <Filter>Source Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\vapor\DataMgrVDC.h">
       <Filter>Source Files\Header Files</Filter>
     </ClInclude>
   </ItemGroup>
