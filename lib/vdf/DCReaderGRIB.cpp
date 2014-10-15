@@ -150,8 +150,6 @@ int DCReaderGRIB::ReadSlice(float *_values){
 	int offset = targetVar->GetOffset(usertime,level);
 	string filename = targetVar->GetFileName(usertime,level);	
 	
-	//cout << level << " " << offset << endl;
-
     int rc = fseek(_inFile,offset,SEEK_SET);
 	if (rc != 0) MyBase::SetErrMsg("fseek error during GRIB ReadSlice");  
 
@@ -203,6 +201,8 @@ int DCReaderGRIB::ReadSlice(float *_values){
 		if (_values[vaporIndex] < min) min = _values[vaporIndex];
 		if (_values[vaporIndex] > max) max = _values[vaporIndex];
 	}
+
+	cout << _openVar << " " << min << " " << max << endl;
 
     delete [] _dvalues;
 
@@ -448,9 +448,11 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 		int hour   = atoi(record["hour"].c_str());
 		int minute = atoi(record["minute"].c_str());
 		int second = atoi(record["second"].c_str());
+		float P2 = atof(record["P2"].c_str());
 		bool _iScanNeg = atoi(record["_iScanNegsNegatively"].c_str());
 		bool _jScan = atoi(record["_jScansPositively"].c_str());
-	
+
+		if (P2 > 0) hour += P2;
 		double time = _udunit->EncodeTime(year, month, day, hour, minute, second); 
 		if (std::find(_gribTimes.begin(), _gribTimes.end(), time) == _gribTimes.end())
 			_gribTimes.push_back(time);
@@ -695,6 +697,7 @@ DCReaderGRIB::GribParser::GribParser() {
 	_varyingKeys.push_back("hour");
 	_varyingKeys.push_back("minute");
 	_varyingKeys.push_back("second");
+	_varyingKeys.push_back("P2");
 	_varyingKeys.push_back("typeOfLevel");
 	_varyingKeys.push_back("level");	
 
@@ -704,70 +707,6 @@ DCReaderGRIB::GribParser::GribParser() {
 	_h          = NULL;
 	_values_len = 0;	
     _err        = 0;
-}
-
-int DCReaderGRIB::GribParser::_LoadRecord(string file, size_t index) {
-    _filename = file;
-    _in = fopen(_filename.c_str(),"rb");
-    if(!_in) {
-        char *error;
-        sprintf(error,"ReadSlice ERROR: unable to open file %s\n",_filename.c_str());
-        MyBase::SetErrMsg(error);
-        return -1;
-    }   
-
-	size_t offset = atoi(_recordKeys[index]["offset"].c_str());
-	int rc = fseek(_in,offset,SEEK_SET);
-	if (rc != 0) MyBase::SetErrMsg("fseek error during GRIB _LoadRecord()");
-
-    _recordKeysVerified = 0;
-    std::map<std::string, std::string> keyMap;
-    	if ((_h = grib_handle_new_from_file(0,_in,&_err)) != NULL) {
-
-        const void* msg;
-        size_t size;
-        grib_get_message(_h,&msg,&size);
-
-        grib_keys_iterator* kiter=NULL;
-        _grib_count++;
-        if(!_h) {
-        	MyBase::SetErrMsg("Unable to create grib handle");
-			fclose(_in);
-			return 1;
-        }
-
-        kiter = grib_keys_iterator_new(_h,_key_iterator_filter_flags,_name_space);
-        if (!kiter) {
-            MyBase::SetErrMsg("ERROR: Unable to create keys iterator\n");
-			fclose(_in);
-            return 1;
-        }
-
-        while(grib_keys_iterator_next(kiter)) {
-            const char* name = grib_keys_iterator_get_name(kiter);
-            _vlen=MAX_VAL_LEN;
-            bzero(_value,_vlen);
-            GRIB_CHECK(grib_get_string(_h,name,_value,&_vlen),name);
-            std::string gribKey(name);
-            std::string gribValue(_value);
-            for (size_t i=0;i<_varyingKeys.size();i++){
-                if(strcmp(_varyingKeys[i].c_str(),gribKey.c_str())==0){
-                     keyMap[gribKey] = gribValue;
-                }
-            }
-            for (size_t i=0;i<_consistentKeys.size();i++){
-                if(strcmp(_consistentKeys[i].c_str(),gribKey.c_str())==0){
-                     keyMap[gribKey] = gribValue;
-                }
-            }
-        }
-
-        grib_keys_iterator_delete(kiter);
-        grib_handle_delete(_h);
-    }
-
-	fclose(_in);
-    return 0;
 }
 
 int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
@@ -786,6 +725,13 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 	_recordKeysVerified = 0;
     std::map<std::string, std::string> keyMap;
     while((_h = grib_handle_new_from_file(0,_in,&_err)) != NULL) {
+
+		for (size_t i=0; i<_consistentKeys.size(); i++) {
+			keyMap[_consistentKeys[i]] = "";
+		}
+		for (size_t i=0; i<_varyingKeys.size(); i++) {
+			keyMap[_varyingKeys[i]] = "";
+		}
 
 		grib_get_message(_h,&msg,&size);
 		ss << offset;		
