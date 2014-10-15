@@ -75,14 +75,14 @@ using namespace VAPoR;
 const float IsolineEventRouter::thumbSpeedFactor = 0.0005f;  //rotates ~45 degrees at full thumbwheel width
 const char* IsolineEventRouter::webHelpText[] = 
 {
-	"Isoline overview",
+	"Contour Line (Isoline) overview",
 	"Renderer control",
 	"Data accuracy control",
-	"Isoline basic settings",
+	"Contour line basic settings",
 	"Isovalue selection",
-	"Isoline layout",
-	"Isoline image settings",
-	"Isoline appearance",
+	"Contour line layout",
+	"Contour line image settings",
+	"Contour line appearance",
 	"<>"
 };
 const char* IsolineEventRouter::webHelpURL[] =
@@ -478,7 +478,7 @@ void IsolineEventRouter::updateTab(){
 		minDataBound->setText(QString::number(ds->getDataMin3D(sesVarNum,timestep)));
 		maxDataBound->setText(QString::number(ds->getDataMax3D(sesVarNum,timestep)));
 		copyToProbeButton->setText("Copy to Probe");
-		copyToProbeButton->setToolTip("Click to make the current active Probe display these isolines as a color contour plot");
+		copyToProbeButton->setToolTip("Click to make the current active Probe display these contour lines as a color contour plot");
 	}
 	else {
 		sesVarNum = ds->getSessionVariableNum2D(isolineParams->GetVariableName());
@@ -486,7 +486,7 @@ void IsolineEventRouter::updateTab(){
 		minDataBound->setText(QString::number(ds->getDataMin2D(sesVarNum,timestep)));
 		maxDataBound->setText(QString::number(ds->getDataMax2D(sesVarNum,timestep)));
 		copyToProbeButton->setText("Copy to 2D");
-		copyToProbeButton->setToolTip("Click to make the current active 2D Data display these isolines as a color contour plot");
+		copyToProbeButton->setToolTip("Click to make the current active 2D Data display these contour lines as a color contour plot");
 	}
 	
 	float val = 0.;
@@ -548,7 +548,7 @@ void IsolineEventRouter::refreshTab(){
 void IsolineEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
 	IsolineParams* isolineParams = VizWinMgr::getActiveIsolineParams();
-	PanelCommand* cmd = PanelCommand::captureStart(isolineParams, "edit Isoline text");
+	PanelCommand* cmd = PanelCommand::captureStart(isolineParams, "edit Contours text");
 	QString strn;
 	if (isolineParams->VariablesAre3D()){
 		float thetaVal = thetaEdit->text().toFloat();
@@ -889,7 +889,7 @@ guiReleaseXWheel(int val){
 	confirmText(false);
 	
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate isoline");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate Contour surface");
 	float finalRotate = (float)val*thumbSpeedFactor;
 	if(renormalizedRotate) {
 	
@@ -918,7 +918,7 @@ guiReleaseYWheel(int val){
 	confirmText(false);
 	
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate isoline");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate Contour surface");
 	float finalRotate = -(float)val*thumbSpeedFactor;
 	if(renormalizedRotate) {
 	
@@ -947,7 +947,7 @@ guiReleaseZWheel(int val){
 	confirmText(false);
 	
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate isoline");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate Contour surface");
 	float finalRotate = (float)val*thumbSpeedFactor;
 	if(renormalizedRotate) {
 	
@@ -975,7 +975,7 @@ void IsolineEventRouter::guiRotate90(int selection){
 	if (selection == 0) return;
 	confirmText(false);
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "90 deg isoline rotation");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "90 deg contour rotation");
 	int axis = (selection < 4) ? selection - 1 : selection -4;
 	float angle = (selection < 4) ? 90.f : -90.f;
 	//Renormalize and apply rotation:
@@ -1092,7 +1092,7 @@ guiAxisAlign(int choice){
 	if (choice == 0) return;
 	confirmText(false);
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "axis-align isoline");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "axis-align contour lines");
 	switch (choice) {
 		case (1) : //nearest axis
 			{ //align to nearest axis
@@ -1198,7 +1198,7 @@ guiFitDomain(){
 	//int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "fit isoline to domain");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "fit contours to domain");
 
 	double locextents[6];
 	const float* sizes = DataStatus::getInstance()->getFullSizes();
@@ -1371,7 +1371,7 @@ guiSetEnabled(bool value, int instance, bool undoredo){
 	if (value == pParams->isEnabled()) return;
 	
 	PanelCommand* cmd;
-	if(undoredo) cmd = PanelCommand::captureStart(pParams, "toggle isoline enabled",instance);
+	if(undoredo) cmd = PanelCommand::captureStart(pParams, "toggle contours enabled",instance);
 	pParams->setEnabled(value);
 	if(undoredo) PanelCommand::captureEnd(cmd, pParams);
 
@@ -1392,7 +1392,7 @@ guiSetEnabled(bool value, int instance, bool undoredo){
 void IsolineEventRouter::guiCenterIsolines(){
 	confirmText(false);
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Center Isolines at Selected Point");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Center Contour surface at Selected Point");
 	const float* selectedPoint = pParams->getSelectedPointLocal();
 	float isolineMin[3],isolineMax[3];
 	pParams->getLocalBox(isolineMin,isolineMax,-1);
@@ -1432,7 +1432,7 @@ guiChangeVariable(int varnum){
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
 	DataStatus* ds = DataStatus::getInstance();
 	int ts = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentTimestep();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams, "change isoline-selected variable");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "change contours-selected variable");
 	
 	int activeVar = variableCombo->currentIndex();
 	float minval, maxval;
@@ -1463,7 +1463,7 @@ void IsolineEventRouter::
 guiSetXCenter(int sliderval){
 	confirmText(false);
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide isoline X center");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide contours X center");
 	setXCenter(pParams,sliderval);
 	PanelCommand::captureEnd(cmd, pParams);
 	setIsolineDirty(pParams);	
@@ -1475,7 +1475,7 @@ void IsolineEventRouter::
 guiSetYCenter(int sliderval){
 	confirmText(false);
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide isoline Y center");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide contours Y center");
 	setYCenter(pParams,sliderval);
 	PanelCommand::captureEnd(cmd, pParams);
 	setIsolineDirty(pParams);
@@ -1487,7 +1487,7 @@ void IsolineEventRouter::
 guiSetZCenter(int sliderval){
 	confirmText(false);
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide isoline Z center");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide contours Z center");
 	setZCenter(pParams,sliderval);
 	PanelCommand::captureEnd(cmd, pParams);
 	setIsolineDirty(pParams);
@@ -1499,7 +1499,7 @@ void IsolineEventRouter::
 guiSetXSize(int sliderval){
 	confirmText(false);
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide isoline X size");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide contours X size");
 	setXSize(pParams,sliderval);
 	
 	PanelCommand::captureEnd(cmd, pParams);
@@ -1514,7 +1514,7 @@ void IsolineEventRouter::
 guiSetYSize(int sliderval){
 	confirmText(false);
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide isoline Y size");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide contours Y size");
 	setYSize(pParams,sliderval);
 	
 	PanelCommand::captureEnd(cmd, pParams);
@@ -1550,7 +1550,7 @@ guiSetNumRefinements(int n){
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
 	confirmText(false);
 	int maxNumRefinements = 0;
-	PanelCommand* cmd = PanelCommand::captureStart(pParams, "set number Refinements for isoline");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "set number Refinements for contours");
 	if (DataStatus::getInstance()) {
 		maxNumRefinements = DataStatus::getInstance()->getNumTransforms();
 		if (n > maxNumRefinements) {
@@ -1642,7 +1642,7 @@ captureMouseDown(int){
 	guiSetTextChanged(false);
 	if (savedCommand) delete savedCommand;
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
-	savedCommand = PanelCommand::captureStart(pParams,  "slide isoline handle");
+	savedCommand = PanelCommand::captureStart(pParams,  "slide contours handle");
 	
 	//Force a rerender, so we will see the selected face:
 	VizWinMgr::getInstance()->refreshIsoline(pParams);
@@ -1708,7 +1708,7 @@ guiStartCursorMove(){
 	confirmText(false);
 	guiSetTextChanged(false);
 	if (savedCommand) delete savedCommand;
-	savedCommand = PanelCommand::captureStart(VizWinMgr::getActiveIsolineParams(),  "move isoline cursor");
+	savedCommand = PanelCommand::captureStart(VizWinMgr::getActiveIsolineParams(),  "move contours cursor");
 }
 void IsolineEventRouter::
 guiEndCursorMove(){
@@ -1844,7 +1844,7 @@ void IsolineEventRouter::guiNudgeXSize(int val) {
 	confirmText(false);
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
 	
-	PanelCommand* cmd = PanelCommand::captureStart(pParams, "nudge isoline X size");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "nudge contours X size");
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
@@ -1892,7 +1892,7 @@ void IsolineEventRouter::guiNudgeXCenter(int val) {
 	confirmText(false);
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
 	
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge isoline X center");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge contours X center");
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
@@ -1940,7 +1940,7 @@ void IsolineEventRouter::guiNudgeYCenter(int val) {
 	confirmText(false);
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
 	
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge isoline Y center");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge contours Y center");
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 1);
@@ -1988,7 +1988,7 @@ void IsolineEventRouter::guiNudgeZCenter(int val) {
 	confirmText(false);
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
 	
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge isoline Z center");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge contours Z center");
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 2);
@@ -2037,7 +2037,7 @@ void IsolineEventRouter::guiNudgeYSize(int val) {
 	confirmText(false);
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
 	
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge isoline Y size");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge contours Y size");
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 1);
@@ -2163,7 +2163,7 @@ guiCropToRegion(){
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "crop isoline to region");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "crop contour extents to region");
 	double extents[6];
 	rParams->getLocalBox(extents,extents+3,timestep);
 
@@ -2174,7 +2174,7 @@ guiCropToRegion(){
 		isolineImageFrame->update();
 		VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::isolineMode);
 	} else {
-		MessageReporter::warningMsg(" Isoline cannot be cropped to region, insufficient overlap");
+		MessageReporter::warningMsg(" Contour line extents cannot be cropped to region, insufficient overlap");
 		delete cmd;
 	}
 }
@@ -2183,7 +2183,7 @@ guiCropToDomain(){
 	confirmText(false);
 	
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "crop isoline to domain");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "crop contour extents to domain");
 	const float *sizes = DataStatus::getInstance()->getFullSizes();
 	double extents[6];
 	for (int i = 0; i<3; i++){
@@ -2197,7 +2197,7 @@ guiCropToDomain(){
 		isolineImageFrame->update();
 		VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::isolineMode);
 	} else {
-		MessageReporter::warningMsg(" Isoline cannot be cropped to domain, insufficient overlap");
+		MessageReporter::warningMsg(" Contour line extents cannot be cropped to domain, insufficient overlap");
 		delete cmd;
 	}
 }
@@ -2208,7 +2208,7 @@ guiFitRegion(){
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "fit isoline to region");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "fit contour lines to region");
 	double extents[6];
 	rParams->getLocalBox(extents,extents+3,timestep);
 	setIsolineToExtents(extents,pParams);
@@ -2264,10 +2264,10 @@ void IsolineEventRouter::
 showHideLayout(){
 	if (showLayout) {
 		showLayout = false;
-		showHideLayoutButton->setText("Show Isoline Layout Options");
+		showHideLayoutButton->setText("Show Contour Line Layout Options");
 	} else {
 		showLayout = true;
-		showHideLayoutButton->setText("Hide Isoline Layout Options");
+		showHideLayoutButton->setText("Hide Contour Line Layout Options");
 	}
 	//Following HACK is needed to convince Qt to remove the extra space in the tab:
 	updateTab();
@@ -2278,10 +2278,10 @@ void IsolineEventRouter::
 showHideAppearance(){
 	if (showAppearance) {
 		showAppearance = false;
-		showHideAppearanceButton->setText("Show Isoline Appearance Options");
+		showHideAppearanceButton->setText("Show Contour Line Appearance Options");
 	} else {
 		showAppearance = true;
-		showHideAppearanceButton->setText("Hide Isoline Appearance Options");
+		showHideAppearanceButton->setText("Hide Contour Line Appearance Options");
 	}
 	//Following HACK is needed to convince Qt to remove the extra space in the tab:
 	updateTab();
@@ -2292,10 +2292,10 @@ void IsolineEventRouter::
 showHideImage(){
 	if (showImage) {
 		showImage = false;
-		showHideImageButton->setText("Show Isoline Image Settings");
+		showHideImageButton->setText("Show Contour Line Image Settings");
 	} else {
 		showImage = true;
-		showHideImageButton->setText("Hide Isoline Image Settings");
+		showHideImageButton->setText("Hide Contour Line Image Settings");
 	}
 	//Following HACK is needed to convince Qt to remove the extra space in the tab:
 	updateTab();
@@ -2441,7 +2441,7 @@ void IsolineEventRouter::guiSetDimension(int dim){
 		dimensionCombo->setCurrentIndex(1);
 		return;
 	}
-	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "set isoline variable dimension");
+	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "set contours variable dimension");
 	
 	//the combo is either 0 or 1 for dimension 2 or 3.
 	iParams->SetVariables3D(dim == 1);
@@ -2458,7 +2458,7 @@ void IsolineEventRouter::guiSetDimension(int dim){
 			variableCombo->insertItem(i,text);
 		}
 		copyToProbeButton->setText("Copy to Probe");
-		copyToProbeButton->setToolTip("Click to make the current active Probe display these isolines as a color contour plot");
+		copyToProbeButton->setToolTip("Click to make the current active Probe display these contours as a color contour plot");
 	} else {
 		for (int i = 0; i< DataStatus::getInstance()->getNumActiveVariables2D(); i++){
 			const std::string& s = DataStatus::getInstance()->getActiveVarName2D(i);
@@ -2467,7 +2467,7 @@ void IsolineEventRouter::guiSetDimension(int dim){
 			variableCombo->insertItem(i,text);
 		}
 		copyToProbeButton->setText("Copy to 2D");
-		copyToProbeButton->setToolTip("Click to make the current active 2D Data display these isolines as a color contour plot");
+		copyToProbeButton->setToolTip("Click to make the current active 2D Data display these contours as a color contour plot");
 	}
 	if (showLayout) {
 		if (dim == 1) orientationFrame->show();
@@ -2721,7 +2721,7 @@ void IsolineEventRouter::copyToProbeOr2D(){
 void IsolineEventRouter::guiCopyToProbe(){
 	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
 	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_probeParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Copy isoline setup to Probe");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Copy contour line positioning to Probe");
 	//Copy the Box
 	const vector<double>& exts = iParams->GetBox()->GetLocalExtents();
 	const vector<double>& angles = iParams->GetBox()->GetAngles();
@@ -2741,7 +2741,7 @@ void IsolineEventRouter::guiCopyToProbe(){
 void IsolineEventRouter::guiCopyTo2D(){
 	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
 	TwoDDataParams* pParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_twoDDataParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Copy isoline setup to 2D Data");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Copy contour line positioning to 2D Data");
 	//Copy the Box
 	const vector<double>& exts = iParams->GetBox()->GetLocalExtents();
 	pParams->GetBox()->SetLocalExtents(exts);

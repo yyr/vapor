@@ -2092,7 +2092,7 @@ void VizWinMgr::RegisterMouseModes(){
 	RegisterMouseMode(Params::_probeParamsTag,3,"Probe", probe);
 	RegisterMouseMode(Params::_twoDDataParamsTag,2,"2D Data", twoDData);
 	RegisterMouseMode(Params::_twoDImageParamsTag,2, "Image",twoDImage);
-	RegisterMouseMode(IsolineParams::_isolineParamsTag,3,"Isoline", isoline);
+	RegisterMouseMode(IsolineParams::_isolineParamsTag,3,"Contours", isoline);
 	InstallExtensionMouseModes();
 }
 int VizWinMgr::RegisterMouseMode(const std::string paramsTag, int manipType,  const char* name, const char* const xpmIcon[]){

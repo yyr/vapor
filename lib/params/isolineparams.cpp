@@ -8,7 +8,7 @@
 
 using namespace VetsUtil;
 using namespace VAPoR;
-const string IsolineParams::_shortName = "Isolines";
+const string IsolineParams::_shortName = "Contours";
 const string IsolineParams::_isolineParamsTag = "IsolineParams";
 const string IsolineParams::_IsoControlTag = "IsoControl";
 const string IsolineParams::_panelBackgroundColorTag= "PanelBackgroundColor";
