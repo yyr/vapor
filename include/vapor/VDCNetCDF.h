@@ -190,10 +190,7 @@ public:
  //
  bool CompressionInfo(
 	std::vector <size_t> bs, string wname, size_t &nlevels, size_t &maxcratio
- ) const {
-	std::reverse(bs.begin(), bs.end());	// NetCDF order
-	return(WASP::InqCompressionInfo(bs, wname, nlevels, maxcratio));
- };
+ ) const;
 
  virtual bool VariableExists(
     size_t ts,
@@ -213,8 +210,8 @@ protected:
 
 private:
  int _version;
- NetCDFCpp *_master;	// Master NetCDF file
- NetCDFCpp *_open_file;	// Currently opened data file
+ WASP *_master;	// Master NetCDF file
+ WASP *_open_file;	// Currently opened data file
  bool _open_write;	// opened for writing?
  BaseVar *_open_var;
  size_t _open_slice_num; // index of current slice for WriteSlice, ReadSlice
@@ -254,13 +251,13 @@ private:
  int _ReadSlice(NetCDFCpp *file, float *slice);
 
  int _PutAtt(
-    NetCDFCpp *ncdf,
+    WASP *ncdf,
     string varname,
     string tag,
     const Attribute &attr
  );
 
- int _DefVar(NetCDFCpp *ncdf, const VDC::BaseVar &var, size_t max_ts);
+ int _DefVar(WASP *ncdf, const VDC::BaseVar &var, size_t max_ts);
 
  bool _var_in_master(const VDC::BaseVar &var) const;
 

@@ -235,9 +235,7 @@ public:
  //!
  //! When disabled calls to SetErrMsg() report no error messages
  //! either through the error message callback or the error message
- //! FILE pointer. Error messages are recorded and can be retrieved
- //! by GetErrMsg(). By default error
- //! reporting is enabled.
+ //! FILE pointer. 
  //! 
  //! \param[in] enable Boolean flag to enable or disable error reporting
  //!

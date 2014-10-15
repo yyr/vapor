@@ -1872,6 +1872,7 @@ void DataMgr::blkexts::getexts(
 }
 #endif
 
+#ifdef	DEAD
 float *DataMgrV3_0::_get_unblocked_region_from_fs(
 	size_t ts, string varname, int level, 
     const vector <size_t> &bs, const vector <size_t> &bmin, 
@@ -1901,3 +1902,4 @@ float *DataMgrV3_0::_get_unblocked_region_from_fs(
 	SetDiagMsg("DataMgrV3_0::GetGrid() - data read from fs\n");
 	return(blks);
 }
+#endif

@@ -10,42 +10,44 @@ namespace {
 void _compute_bs(
 	const vector <VDC::Dimension> &dimensions, 
 	const vector <size_t> &default_bs,
-	bool compressed,
 	vector <size_t> &bs
 ) {
 	bs.clear();
 
-#ifdef	DEAD
-	// Num spatial dimensions
+	// Hack for 1D time varying where blocking makes no sense
 	//
-	size_t nsdim = dimensions[dimensions.size()-1].GetAxis() == 3 ?
-		dimensions.size()-1 : dimensions.size();
-
-	// Determine block size
-	//
-	vector <size_t> bs;
-	for (int i=0; i<nsdim; i++) {
-		if (compressed) bs.push_back(default_bs[i]);
-		else bs.push_back(dimensions[i].GetLength());
+	if (dimensions.size() == 1 && dimensions[0].GetAxis() == 3) {
+		bs.push_back(1);
+		return;
 	}
-#endif
 
-	// If the variable is compressed and a default block size exists us it.
-	// Otherwise set the bs for the slowest varying dimension to 1, and use
-	// the variables dimenion length for all other dimensions
+	// If the default block size exists for a dimension use it.
+	// Otherwise set the bs to 1
 	//
 	for (int i=0; i<dimensions.size(); i++) {
-		if (compressed && i<default_bs.size() && dimensions[i].GetAxis() != 3) {
+		if (i<default_bs.size() && dimensions[i].GetAxis() != 3) {
 			bs.push_back(default_bs[i]);
-		}
-		else if (i<(dimensions.size()-1)) {
-			bs.push_back(dimensions[i].GetLength());
 		}
 		else {
 			bs.push_back(1);	// slowest varying block size can be one
 		}
 	}
+
+	assert(dimensions.size() == bs.size());
 }
+
+int _axis_block_length(
+	const vector <VDC::Dimension> &dimensions, 
+	const vector <size_t> &bs, int axis
+) {
+	assert (dimensions.size() == bs.size());
+
+	for (int i=0; i<dimensions.size(); i++) {
+		if (dimensions[i].GetAxis() == axis) return(bs[i]);
+	}
+	return(0);
+}
+
 
 };
 
@@ -106,6 +108,7 @@ int VDC::SetCompressionBlock(
     vector <size_t> bs, string wname,
     vector <size_t> cratios
 ) {
+	if (! cratios.size()) cratios.push_back(1);
 	
 	if (! _ValidCompressionBlock(bs, wname, cratios)) {
 		SetErrMsg("Invalid compression settings");
@@ -235,12 +238,16 @@ int VDC::DefineCoordVar(
 	// Determine block size
 	//
 	vector <size_t> bs;
-	_compute_bs(dimensions, _bs, compressed, bs);
+	_compute_bs(dimensions, _bs, bs);
 		
-	vector <size_t> cratios;
-	if (compressed) cratios = _cratios;
+	vector <size_t> cratios(1,1);
+	string wname;
+	if (compressed) {
+		cratios = _cratios;
+		wname = _wname;
+	}
 	CoordVar coordvar(
-		varname, dimensions, units, type, bs, _wname, 
+		varname, dimensions, units, type, bs, wname, 
 		cratios, _periodic, axis, false
 	);
 
@@ -285,10 +292,14 @@ int VDC::DefineCoordVarUniform(
 	// Determine block size
 	//
 	vector <size_t> bs;
-	_compute_bs(dimensions, _bs, compressed, bs);
+	_compute_bs(dimensions, _bs, bs);
 
-	vector <size_t> cratios;
-	if (compressed) cratios = _cratios;
+	vector <size_t> cratios(1,1);
+	string wname;
+	if (compressed) {
+		cratios = _cratios;
+		wname = _wname;
+	}
 	CoordVar coordvar(
 		varname, dimensions, units, type, bs, _wname, 
 		cratios, _periodic, axis, true
@@ -387,10 +398,14 @@ int VDC::DefineDataVar(
 	// Determine block size
 	//
 	vector <size_t> bs;
-	_compute_bs(dimensions, _bs, compressed, bs);
+	_compute_bs(dimensions, _bs, bs);
 
-	vector <size_t> cratios;
-	if (compressed) cratios = _cratios;
+	vector <size_t> cratios(1,1);
+	string wname;
+	if (compressed) {
+		cratios = _cratios;
+		wname = _wname;
+	}
 	DataVar datavar(
 		varname, dimensions, units, type, bs, _wname, 
 		cratios, _periodic, coordvars
@@ -438,10 +453,14 @@ int VDC::DefineDataVar(
 	// Determine block size
 	//
 	vector <size_t> bs;
-	_compute_bs(dimensions, _bs, compressed, bs);
+	_compute_bs(dimensions, _bs, bs);
 
-	vector <size_t> cratios;
-	if (compressed) cratios = _cratios;
+	vector <size_t> cratios(1,1);
+	string wname;
+	if (compressed) {
+		cratios = _cratios;
+		wname = _wname;
+	}
 	DataVar datavar(
 		varname, dimensions, units, type, bs, _wname, 
 		cratios, _periodic, coordvars, 
@@ -1335,11 +1354,42 @@ bool VDC::_ValidCompressionBlock(
 	);
 	if (! status) return(false);
 	
-	for (int i=0; i<cratios.size(); i++) {
-		if (cratios[i] > maxcratio) return(false);
+	if (! wname.empty()) { 
+		for (int i=0; i<cratios.size(); i++) {
+			if (cratios[i] > maxcratio) return(false);
+		}
 	}
 	return(true);
 }
+
+bool VDC::_valid_blocking(
+	const vector <VDC::Dimension> &dimensions,
+	const vector <string> &coordvars,
+	const vector <size_t> &bs
+) const {
+	assert(dimensions.size() == coordvars.size());
+
+	for (int i=0; i<dimensions.size(); i++) {
+		int axis = dimensions[i].GetAxis();
+		string cvarname = coordvars[i];
+
+		map <string, CoordVar>::const_iterator itr = _coordVars.find(cvarname);	
+		assert(itr != _coordVars.end());
+
+		const CoordVar &cvar = itr->second;
+
+		size_t bs0 = _axis_block_length(dimensions, bs, axis);
+
+		size_t bs1 = _axis_block_length(
+			cvar.GetDimensions(), cvar.GetBS(), axis
+		);
+		if (bs1 == 0) continue;	// dimension not defined for this axis
+
+		if (bs0 != bs1) return(false);
+	}
+	return(true);
+}
+	
 
 bool VDC::_ValidDefineDataVar(
 	string varname, vector <string> dimnames, vector <string> coordvars,
@@ -1394,7 +1444,7 @@ bool VDC::_ValidDefineDataVar(
 				SetErrMsg("Dimensions must be ordered X, Y, Z, T");
 				return(false);
 			}
-			dimensions[i].GetAxis();
+			axis = dimensions[i].GetAxis();
 		}
 	}
 
@@ -1410,6 +1460,19 @@ bool VDC::_ValidDefineDataVar(
 			}
 			axis = itr->second.GetAxis();
 		}
+	}
+
+	// Determine block size
+	//
+	vector <size_t> bs;
+	_compute_bs(dimensions, _bs, bs);
+
+	// Data and coordinate variables must have same blocking along
+	// each axis
+	//
+	if (! _valid_blocking(dimensions, coordvars, bs)) {
+		SetErrMsg("Coordinate and data variables must have same blocking");
+		return(false);
 	}
 
 #ifdef	DEAD

@@ -63,7 +63,10 @@ namespace VAPoR {
 //! VetsUtil::MyBase::SetErrMsg()
 //!
 //! \param wname Name of biorthogonal wavelet to use for data 
-//! transformation. See VAPoR::WaveFiltBior.
+//! transformation. If not specified (if \p wname is the empty string) 
+//! no transformation or compression are performed. However, arrays
+//! are still decomposed into blocks as per the \p bs parameter.
+//! See VAPoR::WaveFiltBior.
 //!
 //! \param bs An ordered list of block dimensions that specifies the 
 //! block decomposition of the variable. The rank of \p bs may be less
@@ -357,6 +360,15 @@ public:
     string varname, bool &compressed
  ) const;
 
+ //! Inquire whether a names variable is a WASP variable
+ //!
+ //! This method returns true if the variable named by \p varname
+ //! was defined by the WASP API
+ //!
+ int InqVarWASP(
+    string varname, bool &wasp
+ ) const;
+
  //! Prepare a variable for writing 
  //!
  //! This method initializes the variable named by \p name for writing
@@ -538,8 +550,9 @@ public:
  //! NetCDF attribute name specifying compression ratios
  static string AttNameCRatios() {return("WASP.CRatios");}
 
- //! NetCDF attribute name specifying if compression may be present
- static string AttNameCompressed() {return("WASP.Compressed");}
+ //! NetCDF attribute name specifying if this is a WASP file or
+ //! variable
+ static string AttNameWASP() {return("WASP");}
 
  //! NetCDF attribute name specifying names of uncompressed dimensions
  static string AttNameDimNames() {return("WASP.DimNames");}
@@ -554,7 +567,7 @@ private:
  int _nthreads;
  vector <NetCDFCpp> _ncdfcs;
  vector <NetCDFCpp *> _ncdfcptrs;	// pointers into _ncdfcs;
- bool _compressionMode; // Compressed data ?
+ bool _waspFile; // Is this a WASP file
  int _numfiles; // Number of NetCDF files 
  VetsUtil::SmartBuf _blockbuf;    // Dynamic storage for blocks
  VetsUtil::SmartBuf _coeffbuf;    // Dynamic storage wavelet coefficients
@@ -572,6 +585,13 @@ private:
  string _open_varname;  // name of opened variable
  vector <Compressor *> _open_compressors;  // Compressor for opened variable
 
+
+ int _GetBlockAlignedDims(
+	vector <string> dimnames,
+	vector <size_t> bs,
+	vector <string> &badimnames,
+	vector <size_t> &badims
+ ) const;
 
  int _GetCompressedDims(
     vector <string> dimnames,
@@ -618,7 +638,7 @@ private:
     vector <size_t> start, vector <size_t> count, bool unblock, float *data
  );
 
- static int _dims_at_level(
+ static void _dims_at_level(
     vector <size_t> dims, vector <size_t> bs, int level,
 	string wname, vector <size_t> &dims_level, vector <size_t> &bs_level
  ) ;

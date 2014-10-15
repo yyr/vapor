@@ -14,7 +14,7 @@ Support Min/Max & clamp in decompression
 
 done - GetVara support non-block-aligned coords 
 
-Order threaded I/O
+serialize (order) threaded I/O
 
 Should 'unlimited' dimensions be supported ?
 

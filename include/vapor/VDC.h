@@ -402,15 +402,9 @@ public:
   XType GetXType() const {return (_type); };
   void SetXType(XType type) {_type = type; };
 
-  //! Return true if the number of avaiable compression ratios are 
-  //! not equal to one or the number is one the compression ratio
-  //! itself is not equal to one
+  //! Return true if no wavelet is defined
   //
-  bool GetCompressed() const {
-	return (!
-		(_cratios.size()==0 || (_cratios.size()==1 && (_cratios[0]==1)))
-	); 
-  };
+  bool GetCompressed() const { return (! _wname.empty()); };
 
   //! Access variable's block size
   //
@@ -1731,7 +1725,8 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //!
  //! \param[in] bs Dimensions of native decomposition block. The rank of
  //! \p bs may be less than or equal to the rank of \p dims.
- //! \param[in] wname wavelet name
+ //! \param[in] wname wavelet name. Empty string if no compression
+ //! is to be performed.
  //! \param[out] nlevels Number of levels in hierarchy
  //! \param[out] maxcratio Maximum compression ratio
  //!
@@ -1791,6 +1786,13 @@ protected:
  bool _ValidDefineCoordVar(
     string varname, vector <string> dimnames,
     string units, int axis, XType type, bool compressed
+ ) const;
+
+
+ bool _valid_blocking(
+	const vector <VDC::Dimension> &dimensions,
+	const vector <string> &coordvars,
+	const vector <size_t> &bs
  ) const;
 
  bool _ValidDefineDataVar(
