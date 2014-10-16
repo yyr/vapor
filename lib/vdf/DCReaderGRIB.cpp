@@ -89,8 +89,8 @@ void DCReaderGRIB::Variable::_AddIndex(double time, float level, string file, in
 }
 
 DCReaderGRIB::DCReaderGRIB(const vector <string> files) {
-	_Ni = NULL;
-	_Nj = NULL;
+	_Ni = 0;
+	_Nj = 0;
 	_pressureLevels.clear();
 	_cartesianExtents.clear();
 	_gribTimes.clear();
@@ -445,14 +445,14 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 		int year   = atoi(record["yearOfCentury"].c_str()) + 2000;
 		int month  = atoi(record["month"].c_str());
 		int day    = atoi(record["day"].c_str());
-		int hour   = atoi(record["hour"].c_str());
+		float hour   = atoi(record["hour"].c_str());
 		int minute = atoi(record["minute"].c_str());
 		int second = atoi(record["second"].c_str());
 		float P2 = atof(record["P2"].c_str());
 		bool _iScanNeg = atoi(record["_iScanNegsNegatively"].c_str());
 		bool _jScan = atoi(record["_jScansPositively"].c_str());
 
-		if (P2 > 0) hour += P2;
+		if (P2 > 0.0) hour += P2;
 		double time = _udunit->EncodeTime(year, month, day, hour, minute, second); 
 		if (std::find(_gribTimes.begin(), _gribTimes.end(), time) == _gribTimes.end())
 			_gribTimes.push_back(time);
@@ -645,7 +645,6 @@ std::vector<std::string> DCReaderGRIB::GetVariables3DExcluded() const {
 
 DCReaderGRIB::~DCReaderGRIB() {
 	if (_udunit) delete _udunit;
-	if (_value) delete _value;
 	_cartesianExtents.clear();
 	_pressureLevels.clear();
 	_gribTimes.clear();
@@ -902,7 +901,11 @@ int DCReaderGRIB::GribParser::_DataDump() {
 }
 
 DCReaderGRIB::GribParser::~GribParser() {
+	if (_h) grib_handle_delete(_h); 
+	if (_in) delete _in;
 	if (_value) delete _value;
+	if (_values) delete _values;
+	if (_name_space) delete _name_space;
 }
 
 //DCReaderGRIB::DerivedVarElevation::DerivedVarElevation(int Ni, int Nj){
