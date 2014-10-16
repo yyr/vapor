@@ -402,9 +402,6 @@ public:
   XType GetXType() const {return (_type); };
   void SetXType(XType type) {_type = type; };
 
-  //! Return true if no wavelet is defined
-  //
-  bool GetCompressed() const { return (! _wname.empty()); };
 
   //! Access variable's block size
   //
@@ -433,6 +430,19 @@ public:
   //
   std::map <string, Attribute> GetAttributes() const {return (_atts); };
   void SetAttributes(std::map <string, Attribute> &atts) {_atts = atts; };
+
+  //! Return true if no wavelet is defined
+  //
+  bool IsCompressed() const { return (! _wname.empty()); };
+
+  //! Return true if a time dimension is present
+  //
+  bool IsTimeVarying() const { 
+	for (int i=0; i<_dimensions.size(); i++) {
+		if (_dimensions[i].GetAxis() == 3) return(true);
+	}
+	return(false);
+  };
 
   friend std::ostream &operator<<(std::ostream &o, const BaseVar &var);
   
@@ -1143,7 +1153,7 @@ public:
  //! \retval bool Returns true if variable \p varname exists and is 
  //! compressed
  //!
- //! \sa DefineCoordVar(), DefineDataVar(), VDC::BaseVar::GetCompressed()
+ //! \sa DefineCoordVar(), DefineDataVar(), VDC::BaseVar::IsCompressed()
  //
  bool IsCompressed(string varname) const;
 
