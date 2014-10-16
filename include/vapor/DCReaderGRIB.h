@@ -117,7 +117,7 @@ class UDUnits;
 		~Variable();
 		//! Add a udunits-created double time value to _unitTimes
 		void _AddTime(double t) {_unitTimes.push_back(t);}
-		int  _AddMessage(int msg) {_messages.push_back(msg); return 0;} 
+		void  _AddMessage(int msg) {_messages.push_back(msg);} 
 		void _AddLevel(float lvl) {_pressureLevels.push_back(lvl);}
 		void _AddIndex(double time, float level, string file, int offset);
 

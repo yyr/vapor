@@ -645,6 +645,7 @@ std::vector<std::string> DCReaderGRIB::GetVariables3DExcluded() const {
 
 DCReaderGRIB::~DCReaderGRIB() {
 	if (_udunit) delete _udunit;
+	if (_value) delete _value;
 	_cartesianExtents.clear();
 	_pressureLevels.clear();
 	_gribTimes.clear();
@@ -802,6 +803,7 @@ int DCReaderGRIB::GribParser::_LoadAllRecordKeys(string file) {
 		_grib_count++;
 		if(!_h) {
 			MyBase::SetErrMsg("Unable to create grib handle");
+			grib_handle_delete(_h);
 			fclose(_in);
 			return 1;
 		}
@@ -809,6 +811,7 @@ int DCReaderGRIB::GribParser::_LoadAllRecordKeys(string file) {
 		kiter = grib_keys_iterator_new(_h,_key_iterator_filter_flags,_name_space);
 		if (!kiter) {
 			printf("ERROR: Unable to create keys iterator\n");
+			grib_handle_delete(_h);
 			fclose(_in);
 			return 1;
 		}
