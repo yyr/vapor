@@ -299,7 +299,7 @@ bool DataMgrV3_0::IsCompressed(string varname) const {
 	//
 	GetBaseVarInfo(varname, var);
 
-	return(var.GetCompressed());
+	return(var.IsCompressed());
 }
 
 int DataMgrV3_0::GetNumTimeSteps(string varname) const {

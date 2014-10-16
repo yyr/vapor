@@ -906,11 +906,14 @@ int StoreBlockCompressed(
 //
 int FetchBlock(
 	string varname, NetCDFCpp *ncdfcptr, vector <size_t> bcoords, 
-	vector <size_t> bs, float *block
+	size_t block_size, float *block
 ) {
 
 	vector <size_t> start = bcoords;
-	vector <size_t> count =  bs;
+	start.push_back(0);
+
+	vector <size_t> count(start.size(), 1);
+	count[count.size()-1] = block_size;
 
 	int rc = ncdfcptr->NetCDFCpp::GetVara(
 		varname, start, count, (void *) block
@@ -1181,7 +1184,8 @@ void *RunReadThread(void *arg) {
 		//
 		s._et->MutexLock();
 			int rc = FetchBlock(
-				s._varname, s._ncdfcptrs[0], bcoords, s._bs, blockptr
+				s._varname, s._ncdfcptrs[0], bcoords, s._encoded_dims[0], 
+				blockptr
 			);
 			if (rc<0) s._status = -1;
 		s._et->MutexUnlock();

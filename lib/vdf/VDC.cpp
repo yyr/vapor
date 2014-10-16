@@ -301,7 +301,7 @@ int VDC::DefineCoordVarUniform(
 		wname = _wname;
 	}
 	CoordVar coordvar(
-		varname, dimensions, units, type, bs, _wname, 
+		varname, dimensions, units, type, bs, wname, 
 		cratios, _periodic, axis, true
 	);
 
@@ -332,7 +332,7 @@ bool VDC::GetCoordVarInfo(
 	units = itr->second.GetUnits();
 	axis = itr->second.GetAxis();
 	type = itr->second.GetXType();
-	compressed = itr->second.GetCompressed();
+	compressed = itr->second.IsCompressed();
 	uniform = itr->second.GetUniform();
 	return(true);
 }
@@ -407,7 +407,7 @@ int VDC::DefineDataVar(
 		wname = _wname;
 	}
 	DataVar datavar(
-		varname, dimensions, units, type, bs, _wname, 
+		varname, dimensions, units, type, bs, wname, 
 		cratios, _periodic, coordvars
 	);
 
@@ -462,7 +462,7 @@ int VDC::DefineDataVar(
 		wname = _wname;
 	}
 	DataVar datavar(
-		varname, dimensions, units, type, bs, _wname, 
+		varname, dimensions, units, type, bs, wname, 
 		cratios, _periodic, coordvars, 
 		missing_value
 	);
@@ -492,7 +492,7 @@ bool VDC::GetDataVarInfo(
 	coordvars = itr->second.GetCoordvars();
 	units = itr->second.GetUnits();
 	type = itr->second.GetXType();
-	compressed = itr->second.GetCompressed();
+	compressed = itr->second.IsCompressed();
 	has_missing = itr->second.GetHasMissing();
 	missing_value = itr->second.GetMissingValue();
 	return(true);
@@ -613,12 +613,12 @@ bool VDC::IsCompressed(string varname) const {
 	if (VDC::IsDataVar(varname)) {
 		VDC::DataVar var;
 		bool ok = VDC::GetDataVarInfo(varname, var);
-		if (ok) return(var.GetCompressed());
+		if (ok) return(var.IsCompressed());
 	}
 	else if (VDC::IsCoordVar(varname)) {
 		VDC::CoordVar cvar;
 		bool ok = VDC::GetCoordVarInfo(varname, cvar);
-		if (ok) return(cvar.GetCompressed());
+		if (ok) return(cvar.IsCompressed());
 	}
 	return(false);	// not found
 }
@@ -659,7 +659,7 @@ int VDC::GetNumRefLevels(string varname) const {
 		return(-1);
 	}
 
-	if (! var.GetCompressed()) return(1);
+	if (! var.IsCompressed()) return(1);
 
 	size_t nlevels, maxcratio;
 	CompressionInfo(var.GetBS(), var.GetWName(), nlevels, maxcratio);

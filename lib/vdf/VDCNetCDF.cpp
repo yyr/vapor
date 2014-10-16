@@ -128,11 +128,15 @@ VDCNetCDF::VDCNetCDF(
 
 
 VDCNetCDF::~VDCNetCDF() {
+
+	if (_open_file && _open_file != _master) {
+		delete _open_file;
+	}
+
 	if (_master) {
 		_master->Close();
 		delete _master;
 	}
-	if (_open_file) delete _open_file;
 	if (_open_var) delete _open_var;
 }
 
@@ -287,7 +291,7 @@ int VDCNetCDF::GetDimLensAtLevel(
 	assert(bs.size() == dimlens.size());
 
 
-	if (var.GetCompressed()) {
+	if (var.IsCompressed()) {
 		wname = var.GetWName();
 
 		reverse(bs.begin(), bs.end());
@@ -361,9 +365,17 @@ int VDCNetCDF::OpenVariableRead(
 	if (lod < 0) lod = lod + ncratios;
 	if (lod < 0) lod = 0;
 	
-	WASP *wasp = new WASP(_nthreads);
-	rc = wasp->Open(path, NC_NOWRITE);
-	if (rc<0) return(-1);
+	WASP *wasp = NULL;
+
+	if (path.compare(_master_path) == 0) {
+		wasp = _master;
+	}
+	else {
+		wasp = new WASP(_nthreads);
+		rc = wasp->Open(path, NC_NOWRITE);
+		if (rc<0) return(-1);
+	}
+
 	_open_file = wasp;
 
 	rc = wasp->OpenVarRead(varname, level, lod);
@@ -400,11 +412,17 @@ int VDCNetCDF::OpenVariableWrite(size_t ts, string varname, int lod) {
 	int rc = GetPath(varname, ts, path, file_ts, max_ts);
 	if (rc<0) return(-1);
 
-	WASP *wasp = new WASP(_nthreads);
-	if (wasp->ValidFile(path)) {
+	WASP *wasp = NULL;
+
+	if (path.compare(_master_path) == 0) {
+		wasp = _master;
+	}
+	else if (_master->ValidFile(path)) {
+		wasp = new WASP(_nthreads);
 		rc = wasp->Open(path, NC_WRITE);
 	}
 	else {
+		wasp = new WASP(_nthreads);
 		string dir;
 		DirName(path, dir);
 		rc = MkDirHier(dir);
@@ -441,7 +459,7 @@ int VDCNetCDF::CloseVariable() {
 	if (_open_file) {
 		_open_file->CloseVar();
 	}
-	if (_open_file) {
+	if (_open_file && _open_file != _master) {
 		_open_file->Close();
 		delete _open_file;
 		_open_file = NULL;
@@ -890,7 +908,7 @@ bool VDCNetCDF::VariableExists(
 	if (rc<0) return(-1);
 
 	vector <string> paths;
-	if (! var.GetCompressed()) {
+	if (! var.IsCompressed()) {
 		paths.push_back(path);
 	}
 	else {
@@ -1585,6 +1603,8 @@ int VDCNetCDF::_PutAtt(
 
 bool VDCNetCDF::_var_in_master(const VDC::BaseVar &var) const {
 
+	if (var.IsTimeVarying() && var.GetDimensions().size() > 3) return(false);
+
 	size_t nelements = 1;
 	size_t ngridpoints = 1;
 	for (int i=0; i<var.GetDimensions().size(); i++) {
@@ -1593,7 +1613,7 @@ bool VDCNetCDF::_var_in_master(const VDC::BaseVar &var) const {
 			ngridpoints *= var.GetDimensions()[i].GetLength();
 		}
 	}
-	if (nelements < _master_threshold &&  ! var.GetCompressed()) {
+	if (nelements < _master_threshold &&  ! var.IsCompressed()) {
 		return(true);
 	}
 
