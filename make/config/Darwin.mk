@@ -9,7 +9,7 @@ endif
 CXXFLAGS          += -DDARWIN -Wall -Wno-format -Wno-sign-compare  -fPIC  
 
 ifeq ($(BUILD_FOR_MACOSX10_6), 1)
-CXXFLAGS          += -mmacosx-version-min=10.6 -isysroot /Developer/SDKs/MacOSX10.6.sdk
+CXXFLAGS          += -mmacosx-version-min=10.6 
 endif
 
 CXXFLAGS          += -Wno-overloaded-virtual
@@ -19,7 +19,7 @@ CXX_DEBUG_FLAGS   += -g
 CFLAGS            += -DDARWIN -Wall -Wno-format -fPIC
 
 ifeq ($(BUILD_FOR_MACOSX10_6), 1)
-CFLAGS            += -mmacosx-version-min=10.6 -isysroot /Developer/SDKs/MacOSX10.6.sdk
+CFLAGS            += -mmacosx-version-min=10.6
 endif
 
 C_RELEASE_FLAGS   += -O3 -DNDEBUG
