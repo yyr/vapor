@@ -121,6 +121,7 @@ int DCReaderGRIB::OpenVariableRead(size_t timestep, string varname,
     float level = targetVar->GetLevel(_sliceNum);
     string filename = targetVar->GetFileName(usertime,level);
 
+	fclose(_inFile);
     _inFile = fopen(filename.c_str(),"rb");
     if(!_inFile) {
         char err[50];
@@ -151,7 +152,10 @@ int DCReaderGRIB::ReadSlice(float *_values){
 	string filename = targetVar->GetFileName(usertime,level);	
 	
     int rc = fseek(_inFile,offset,SEEK_SET);
-	if (rc != 0) MyBase::SetErrMsg("fseek error during GRIB ReadSlice");  
+	if (rc != 0) {
+		MyBase::SetErrMsg("fseek error during GRIB ReadSlice");  
+		return -1;
+	}
 
 	/* create new handle from a message in a file*/
 	int err;
@@ -160,6 +164,7 @@ int DCReaderGRIB::ReadSlice(float *_values){
 		char erro[50];
         sprintf(erro,"Error: unable to create handle from file %s\n",filename.c_str());
         MyBase::SetErrMsg(erro);
+		return -1;
     }   
 
     /* get the size of the _values array*/
@@ -202,7 +207,7 @@ int DCReaderGRIB::ReadSlice(float *_values){
 		if (_values[vaporIndex] > max) max = _values[vaporIndex];
 	}
 
-	cout << _openVar << " " << min << " " << max << endl;
+	cout << _openVar << " " << usertime << " " << level << " " << _sliceNum << " " << offset << " " << filename << " " << min << " " << max << endl;
 
     delete [] _dvalues;
 
@@ -442,6 +447,7 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 		string name  = record["shortName"];
 		string file = record["file"];
 		int offset = atoi(record["offset"].c_str());
+		cout << offset << endl;
 		int year   = atoi(record["yearOfCentury"].c_str()) + 2000;
 		int month  = atoi(record["month"].c_str());
 		int day    = atoi(record["day"].c_str());
@@ -457,9 +463,10 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 		if (std::find(_gribTimes.begin(), _gribTimes.end(), time) == _gribTimes.end())
 			_gribTimes.push_back(time);
 
-		if (std::find(_pressureLevels.begin(), _pressureLevels.end(), level) == _pressureLevels.end())
-			//if ((level != 0.f) && strcmp(name.c_str(),"sigma"))_pressureLevels.push_back(level);
+		if (std::find(_pressureLevels.begin(), _pressureLevels.end(), level) == _pressureLevels.end()) {
 			if (!strcmp(name.c_str(),"gh")) _pressureLevels.push_back(level);
+		}
+			//if ((level != 0.f) && strcmp(name.c_str(),"sigma"))_pressureLevels.push_back(level);
 
 		int isobaric = strcmp(levelType.c_str(),"isobaricInhPa");
 		if (isobaric == 0) {								    // if we have a 3d var...
@@ -474,7 +481,7 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 			
 			// Add level data for current var object
 			std::vector<float> varLevels = _vars3d[name]->GetLevels();
-			if (std::find(varLevels.begin(),varLevels.end(),time) == varLevels.end())
+			if (std::find(varLevels.begin(),varLevels.end(),level) == varLevels.end())
 				_vars3d[name]->_AddLevel(level);
 			
 			_vars3d[name]->_AddMessage(i);									// in the grib file)
@@ -902,7 +909,7 @@ int DCReaderGRIB::GribParser::_DataDump() {
 
 DCReaderGRIB::GribParser::~GribParser() {
 	if (_h) grib_handle_delete(_h); 
-	if (_in) delete _in;
+	//if (_in) delete _in;
 	if (_value) delete _value;
 	if (_values) delete _values;
 	if (_name_space) delete _name_space;

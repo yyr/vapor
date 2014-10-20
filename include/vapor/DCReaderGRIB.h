@@ -48,7 +48,7 @@ class UDUnits;
 	// DCReader Virtual Functions
      virtual int OpenVariableRead(size_t timestep, string varname, 
                                   int reflevel=0, int lod=0);
-	 virtual int CloseVariable() {grib_handle_delete(h);
+	 virtual int CloseVariable() {//grib_handle_delete(h);
 								  fclose(_inFile); return 0;}
 	 virtual int Read(float *values);
 	 virtual int ReadSlice(float *slice);
