@@ -207,7 +207,7 @@ int DCReaderGRIB::ReadSlice(float *_values){
 		if (_values[vaporIndex] > max) max = _values[vaporIndex];
 	}
 
-	cout << _openVar << " " << usertime << " " << level << " " << _sliceNum << " " << offset << " " << filename << " " << min << " " << max << endl;
+	//cout << _openVar << " " << usertime << " " << level << " " << _sliceNum << " " << offset << " " << filename << " " << min << " " << max << endl;
 
     delete [] _dvalues;
 
@@ -666,7 +666,6 @@ DCReaderGRIB::GribParser::GribParser() {
 
 	// key iteration vars
 	_key_iterator_filter_flags     = GRIB_KEYS_ITERATOR_ALL_KEYS;
-	_name_space                    = 0; // NULL will return all keys
 	_grib_count                    = 0;
 	_value                         = new char[MAX_VAL_LEN];
 	_vlen                          = MAX_VAL_LEN;	
@@ -710,14 +709,14 @@ DCReaderGRIB::GribParser::GribParser() {
 
 	// data dump vars
 	_values     = NULL;
-	_in         = NULL;
-	_h          = NULL;
+	//_in         = NULL;
+	//_h          = NULL;
 	_values_len = 0;	
     _err        = 0;
 }
 
 int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
-    _in = fopen(file.c_str(),"rb");
+    FILE* _in = fopen(file.c_str(),"rb");
     if(!_in) {
         char *error;
         sprintf(error,"ERROR: unable to open file %s\n",file.c_str());
@@ -725,7 +724,10 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 	    return -1;
     } 
 
+	grib_handle *_h=NULL;
+	grib_keys_iterator* kiter=NULL;
 	const void* msg;
+	char* name_space = "vapor";
 	size_t size;
 	size_t offset=0;
     stringstream ss;
@@ -748,7 +750,6 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 		offset+=size;
 		keyMap["file"] = file;
 
-        grib_keys_iterator* kiter=NULL;
         _grib_count++;
         if(!_h) {
         	MyBase::SetErrMsg("Unable to create grib handle");
@@ -756,7 +757,7 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
             return 1;
         }   
             
-        kiter = grib_keys_iterator_new(_h,_key_iterator_filter_flags,_name_space);
+        kiter = grib_keys_iterator_new(_h,_key_iterator_filter_flags,name_space);
         if (!kiter) {
             MyBase::SetErrMsg("Unable to create keys iterator");
 			fclose(_in);
@@ -768,7 +769,8 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
             _vlen=MAX_VAL_LEN;
             bzero(_value,_vlen);
             GRIB_CHECK(grib_get_string(_h,name,_value,&_vlen),name);
-            std::string gribKey(name);
+            //grib_get_string(_h,name,_value,&_vlen);
+			std::string gribKey(name);
             std::string gribValue(_value);
 			for (size_t i=0;i<_varyingKeys.size();i++){
 				if(strcmp(_varyingKeys[i].c_str(),gribKey.c_str())==0){
@@ -790,55 +792,6 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 	_grib_count=0;  
 	fclose(_in); 
     return 0;
-}
-
-int DCReaderGRIB::GribParser::_LoadAllRecordKeys(string file) {
-    _filename = file;
-    _in = fopen(_filename.c_str(),"rb");
-    if(!_in) {
-        char *error;
-        sprintf(error,"ERROR: unable to open file %s\n",_filename.c_str());
-        MyBase::SetErrMsg(error);
-        return -1;
-    } 
-	
-	_recordKeysVerified = 0;
-	std::map<std::string, std::string> keyMap;
-	while((_h = grib_handle_new_from_file(0,_in,&_err)) != NULL) {
-		grib_keys_iterator* kiter=NULL;
-		_grib_count++;
-		if(!_h) {
-			MyBase::SetErrMsg("Unable to create grib handle");
-			grib_handle_delete(_h);
-			fclose(_in);
-			return 1;
-		}
-		
-		kiter = grib_keys_iterator_new(_h,_key_iterator_filter_flags,_name_space);
-		if (!kiter) {
-			printf("ERROR: Unable to create keys iterator\n");
-			grib_handle_delete(_h);
-			fclose(_in);
-			return 1;
-		}
-
-		while(grib_keys_iterator_next(kiter)) {
-			const char* name = grib_keys_iterator_get_name(kiter);
-			_vlen=MAX_VAL_LEN;
-			bzero(_value,_vlen);
-			GRIB_CHECK(grib_get_string(_h,name,_value,&_vlen),name);
-			std::string temp1(name);
-			std::string temp2(_value);
-			keyMap[temp1] = temp2;
-		}
-
-		// push each record back into our "keys" vector
-		_recordKeys.push_back(keyMap);
-		grib_keys_iterator_delete(kiter);
-		grib_handle_delete(_h);
-	}
-	fclose(_in);
-	return 0;
 }
 
 int DCReaderGRIB::GribParser::_VerifyKeys() {
@@ -872,47 +825,11 @@ int DCReaderGRIB::GribParser::_VerifyKeys() {
 	return 0;
 }
 
-int DCReaderGRIB::GribParser::_DataDump() {
-	/* create new handle from a message in a file*/
-	_h = grib_handle_new_from_file(0,_in,&_err);
-	if (_h == NULL) {
-		char *error;
-        sprintf(error,"Error: unable to create handle from file %s\n",_filename.c_str());
-        MyBase::SetErrMsg(error);
-	}
-
-	/* get the size of the _values array*/
-	GRIB_CHECK(grib_get_size(_h,"_values",&_values_len),0);
- 	_values = new double[_values_len];
- 
-	/* get data _values*/
-	GRIB_CHECK(grib_get_double_array(_h,"_values",_values,&_values_len),0);
-
-	for(size_t i = 0; i < _values_len; i++)
-		printf("%lu  %.10e\n",i+1,_values[i]);
- 
-	delete [] _values;
- 
- 
-	GRIB_CHECK(grib_get_double(_h,"max",&_max),0);
-	GRIB_CHECK(grib_get_double(_h,"min",&_min),0);
-	GRIB_CHECK(grib_get_double(_h,"average",&_average),0);
- 
-	printf("%d _values found in %s\n",(int)_values_len,_filename.c_str());
-	printf("max=%.10e min=%.10e average=%.10e\n",_max,_min,_average);
- 
-	grib_handle_delete(_h);
- 
-	fclose(_in);
-	return 0;
-}
-
 DCReaderGRIB::GribParser::~GribParser() {
-	if (_h) grib_handle_delete(_h); 
+	//if (_h) grib_handle_delete(_h); 
 	//if (_in) delete _in;
 	if (_value) delete _value;
 	if (_values) delete _values;
-	if (_name_space) delete _name_space;
 }
 
 //DCReaderGRIB::DerivedVarElevation::DerivedVarElevation(int Ni, int Nj){

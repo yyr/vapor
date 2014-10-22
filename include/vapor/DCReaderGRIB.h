@@ -187,10 +187,8 @@ class UDUnits;
 		 GribParser();
 		 ~GribParser();
 		 int _LoadRecord(string file, size_t offset);
-		 int _LoadAllRecordKeys(string file);// loads all keys
 		 int _LoadRecordKeys(const string file);	// loads only the keys that we need for vdc creation
 		 int _VerifyKeys();					// verifies that key/values conform to our reqs
-		 int _DataDump();					// dumps all data
 		 //DCReaderGRIB* GetDCReaderGRIB() {return _metadata;}
 		 std::vector<std::map<std::string, std::string> > GetRecords() {return _recordKeys;}
 
@@ -204,7 +202,6 @@ class UDUnits;
 
 		 // vars for key iteration 
 		 unsigned long _key_iterator_filter_flags;
-		 char* _name_space;
 		 int _grib_count;
 	     char* _value;
 	     size_t _vlen;
@@ -213,9 +210,9 @@ class UDUnits;
 		 double *_values;
 		 double _min,_max,_average;
 		 size_t _values_len;
-		 FILE* _in;
+		 //FILE* _in;
 		 string _filename;
-		 grib_handle *_h;
+		 //grib_handle *_h;
 	 };
 	 GribParser *parser;
 
