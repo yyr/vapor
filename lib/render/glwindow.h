@@ -21,7 +21,6 @@
 
 #ifndef GLWINDOW_H
 #define GLWINDOW_H
-#include <qgl.h>
 #include <map>
 #include "trackball.h"
 #include <qthread.h>
