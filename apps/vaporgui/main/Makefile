@@ -8,7 +8,6 @@ PROGRAM = vaporgui
 
 MAKEFILE_INCLUDE_DIRS := -I../guis -I../misc -I.. -I../../../lib/params -I../../../lib/render
 
-
 ifneq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += -DPYTHONVERSION=\"$(PYTHONVERSION)\"
 MAKEFILE_CXXFLAGS += -DPYTHONDIR=\"$(PYTHONDIR)\"

@@ -46,7 +46,7 @@ endif
 
 
 ifneq ($(QT_FRAMEWORK), 1) 
-QT_LIB = QtOpenGL QtGui QtCore  
+QT_LIB = QtGui QtCore QtNetwork 
 endif
 
 OBJDIR := $(BUILDDIR)
@@ -148,8 +148,12 @@ $(MOC_DIR)/moc_%.cpp : %.h
 #	@$(MAKE_MOCDIR)
 #	@$(MOC) $< -o $@ 
 
+ifneq ($(QT_FRAMEWORK), 1)
 QT_INCLUDE_DIRS += $(QTDIR)/include
 QT_INCLUDE_DIRS += $(addprefix $(QTDIR)/include/, Qt QtCore QtGui QtOpenGL)
+else
+QT_INCLUDE_DIRS += $(addprefix $(QTDIR)/lib/, $(addsuffix .framework/Headers,Qt QtCore QtGui QtOpenGL))
+endif
 QT_INCLUDE_DIRS += $(UI_DIR)
 
 ifneq ($(QT_FRAMEWORK), 1)
@@ -302,6 +306,12 @@ CFLAGS += -D$(ARCH) $(INCLUDE_DIRS)
 #CXXFLAGS += -D$(ARCH) -DQT_THREAD_SUPPORT $(INCLUDE_DIRS)
 CXXFLAGS += -D$(ARCH) -DQT_OPENGL_LIB -DQT_GUI_GUI_LIB -DQT_CORE_LIB -DQT_SHARED $(INCLUDE_DIRS)
 
+ifeq ($(QT), 1)
+ifeq ($(QT_FRAMEWORK), 1)
+CXXFLAGS += -F$(QTDIR)/lib
+endif
+endif
+
 #
 #	Append flags which may have been set from the makefile
 #
@@ -397,6 +407,7 @@ endif
 
 
 LDFLAGS += $(MAKEFILE_LDFLAGS)
+SHARED_LDFLAGS += $(MAKEFILE_LDFLAGS)
 
 dep: $(DEPS)
 	$(MAKE) -f $(word 1, $(MAKEFILE_LIST)) recurse INCLUDEDEPS=1

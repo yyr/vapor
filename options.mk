@@ -55,6 +55,11 @@ INC_SEARCH_DIRS =
 #
 NETCDF_LIBS = netcdf
 
+# Set FREETYPE2_INC_DIR to the path to the Freetype2 directory if not
+# in a standard location. This is the directory that contains the file
+# ft2build.h
+FREETYPE2_INC_DIR = 
+
 # Set to 1 if you want the VAPoR GUI to be built. Otherwise only the 
 # VAPoR libraries and support utilities are compiled
 #
@@ -157,3 +162,4 @@ FORCE_WORD_SIZE =
 #	based on host name, OS, etc.
 #
 -include $(TOP)/site.mk
+
