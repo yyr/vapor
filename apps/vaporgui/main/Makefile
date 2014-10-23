@@ -8,14 +8,6 @@ PROGRAM = vaporgui
 
 MAKEFILE_INCLUDE_DIRS += -I../guis -I../misc -I.. -I../../../lib/params -I../../../lib/render
 
-
-ifneq ($(QT_FRAMEWORK), 1)
-MAKEFILE_INCLUDE_DIRS += -I$(addprefix $(QTDIR)/include/, QtOpenGL)
-else
-QT_INCLUDE_DIRS += $(addprefix $(QTDIR)/lib/, $(addsuffix .framework/Headers,QtOpenGL))
-endif
-
-
 ifneq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += -DPYTHONVERSION=\"$(PYTHONVERSION)\"
 MAKEFILE_CXXFLAGS += -DPYTHONDIR=\"$(PYTHONDIR)\"

@@ -150,9 +150,9 @@ $(MOC_DIR)/moc_%.cpp : %.h
 
 ifneq ($(QT_FRAMEWORK), 1)
 QT_INCLUDE_DIRS += $(QTDIR)/include
-QT_INCLUDE_DIRS += $(addprefix $(QTDIR)/include/, Qt QtCore QtGui)
+QT_INCLUDE_DIRS += $(addprefix $(QTDIR)/include/, Qt QtCore QtGui QtOpenGL)
 else
-QT_INCLUDE_DIRS += $(addprefix $(QTDIR)/lib/, $(addsuffix .framework/Headers,Qt QtCore QtGui))
+QT_INCLUDE_DIRS += $(addprefix $(QTDIR)/lib/, $(addsuffix .framework/Headers,Qt QtCore QtGui QtOpenGL))
 endif
 QT_INCLUDE_DIRS += $(UI_DIR)
 

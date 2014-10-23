@@ -42,12 +42,6 @@ ifeq ($(ASSIMP_2),1)
 MAKEFILE_CXXFLAGS += -DASSIMP_2
 endif
 
-ifneq ($(QT_FRAMEWORK), 1)
-MAKEFILE_INCLUDE_DIRS += -I$(addprefix $(QTDIR)/include/, QtOpenGL)
-else
-QT_INCLUDE_DIRS += $(addprefix $(QTDIR)/lib/, $(addsuffix .framework/Headers,QtOpenGL))
-endif
-
 MAKEFILE_INCLUDE_DIRS += -I../params 
 
 include ${TOP}/make/config/base.mk
