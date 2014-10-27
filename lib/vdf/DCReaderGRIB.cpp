@@ -63,7 +63,10 @@ int DCReaderGRIB::Variable::GetOffset(double time, float level) {
 }
 
 string DCReaderGRIB::Variable::GetFileName(double time, float level) {
-    string fname = _indices[time][level].fileName;
+	//if (_vars3d.find(name) != _vars3d.end()) {	// we have a 3d var
+	    string fname = _indices[time][level].fileName;
+	//}
+	//else fname = _indices[time]
     return fname; 
 }
 
@@ -109,17 +112,29 @@ int DCReaderGRIB::OpenVariableRead(size_t timestep, string varname,
 
     if (timestep > _gribTimes.size()) return -1;
 
-    if (_vars3d.find(varname) == _vars3d.end()) {
-        if (_vars2d.find(varname) == _vars2d.end())
-			return -1; 		// variable does not exist
-    }
+	_openVar = varname;
+	_openTS = timestep;
 
-    _openVar = varname;
-    _openTS = timestep;
-	Variable *targetVar = _vars3d[_openVar];
+	Variable *targetVar;
+	string filename;
+	float level;
 	double usertime = GetTSUserTime(_openTS);
-    float level = targetVar->GetLevel(_sliceNum);
-    string filename = targetVar->GetFileName(usertime,level);
+    if (_vars3d.find(varname) != _vars3d.end()) {       // we have a 3d var
+		targetVar = _vars3d[_openVar];
+		level = targetVar->GetLevel(_sliceNum);
+		filename = targetVar->GetFileName(usertime,level);
+	}
+    else if (_vars2d.find(varname) != _vars2d.end()) {  // we have a 2d var
+		targetVar = _vars2d[_openVar];
+		level = targetVar->GetLevel(0);
+		filename = targetVar->GetFileName(usertime,level);
+	}
+	else return -1; 		// variable does not exist
+    
+//	Variable *targetVar = _vars3d[_openVar];
+//	double usertime = GetTSUserTime(_openTS);
+//  float level = targetVar->GetLevel(_sliceNum);
+//  string filename = targetVar->GetFileName(usertime,level);
 
 	fclose(_inFile);
     _inFile = fopen(filename.c_str(),"rb");
@@ -145,7 +160,17 @@ int DCReaderGRIB::Read(float *_values) {
 
 int DCReaderGRIB::ReadSlice(float *_values){
 
-	Variable *targetVar = _vars3d[_openVar];
+	Variable *targetVar;
+	if (_vars3d.find(_openVar) != _vars3d.end()) {       // we have a 3d var
+		targetVar = _vars3d[_openVar];
+	}
+	else if (_vars2d.find(_openVar) != _vars2d.end()) {  // we have a 2d var
+		targetVar = _vars2d[_openVar];
+	}
+	else {
+		MyBase::SetErrMsg("Variable not found in 2d or 3d variable set");
+		return -1;
+	}
 	double usertime = GetTSUserTime(_openTS);
 	float level = targetVar->GetLevel(_sliceNum);
 	int offset = targetVar->GetOffset(usertime,level);
@@ -207,15 +232,17 @@ int DCReaderGRIB::ReadSlice(float *_values){
 		if (_values[vaporIndex] > max) max = _values[vaporIndex];
 	}
 
-	//cout << _openVar << " " << usertime << " " << level << " " << _sliceNum << " " << offset << " " << filename << " " << min << " " << max << endl;
+	cout << _openVar << " " << usertime << " " << level << " " << _sliceNum << " " << offset << " " << filename << " " << min << " " << max << endl;
 
     delete [] _dvalues;
 
-	//if (_sliceNum == _pressureLevels.size()-1) _sliceNum = 0;
-	//else _sliceNum++;
-	if (_sliceNum == 0) _sliceNum = _pressureLevels.size()-1;
-	else _sliceNum--;
-    grib_handle_delete(h);
+
+    if (_vars3d.find(_openVar) != _vars3d.end()) {       // we have a 3d var, adjust the slice number
+		if (_sliceNum == 0) _sliceNum = _pressureLevels.size()-1;
+		else _sliceNum--;
+	}
+   
+	grib_handle_delete(h);
 	return 1;
 }
 
@@ -498,7 +525,7 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 			// Add level data to current var object
 			// (this should only happen once for a 2D var
             std::vector<float> varLevels = _vars2d[name]->GetLevels();
-            if (std::find(varLevels.begin(),varLevels.end(),time) == varLevels.end())
+            if (std::find(varLevels.begin(),varLevels.end(),level) == varLevels.end())
                 _vars2d[name]->_AddLevel(level);
 
 			_vars2d[name]->_AddTime(time);
@@ -550,6 +577,14 @@ void DCReaderGRIB::Print3dVars() {
     } 
 }
 
+void DCReaderGRIB::Print2dVars() {
+    typedef std::map<std::string, Variable*>::iterator it_type;
+    for (it_type iterator=_vars2d.begin(); iterator!=_vars2d.end(); iterator++){
+        cout << iterator->first << endl;
+        iterator->second->PrintTimes();
+    } 
+}
+
 void DCReaderGRIB::GetGridDim(size_t dim[3]) const {
 	dim[0]=_Ni; dim[1]=_Nj; dim[2]=_pressureLevels.size();
 }
@@ -594,14 +629,6 @@ std::vector<string> DCReaderGRIB::GetVariables2DXY() const {
         vars.push_back(iterator->first);
     }
     return vars;
-}
-
-void DCReaderGRIB::Print2dVars() {
-    typedef std::map<std::string, Variable*>::iterator it_type;
-    for (it_type iterator=_vars2d.begin(); iterator!=_vars2d.end(); iterator++){
-        cout << iterator->first << endl;
-        iterator->second->PrintTimes();
-    } 
 }
 
 void DCReaderGRIB::Print1dVars() {
@@ -727,7 +754,7 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 	grib_handle *_h=NULL;
 	grib_keys_iterator* kiter=NULL;
 	const void* msg;
-	char* name_space = "vapor";
+	char* name_space = NULL;//"vapor";
 	size_t size;
 	size_t offset=0;
     stringstream ss;
@@ -804,6 +831,7 @@ int DCReaderGRIB::GribParser::_VerifyKeys() {
 		string grid;
         grid = _recordKeys[i]["gridType"];
         if ((strcmp(grid.c_str(),"regular_ll")!=0) && 
+			(strcmp(grid.c_str(),"regular_gg")!=0) &&
 			(strcmp(grid.c_str(),"polar_stereographic")!=0) &&
 			(strcmp(grid.c_str(),"lambert")) && 
 			(strcmp(grid.c_str(),"mercator"))) {

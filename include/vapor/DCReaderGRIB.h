@@ -44,6 +44,8 @@ class UDUnits;
 	 DCReaderGRIB(const vector<string> files);
 	 ~DCReaderGRIB();
 
+	void Print2dVars();
+
 	/////
 	// DCReader Virtual Functions
      virtual int OpenVariableRead(size_t timestep, string varname, 
@@ -100,7 +102,6 @@ class UDUnits;
      float GetLevel(int index) {return _pressureLevels[index];}
      void PrintLevels();
      void Print3dVars();
-     void Print2dVars();
      void Print1dVars();
      double BarometricFormula(const double pressure) const;
      int _InitCartographicExtents(string mapProj);
