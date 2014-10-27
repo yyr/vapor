@@ -47,13 +47,6 @@ HEADER_FILES = \
 
 #LIB_DEFS = vdf.def
 
-
-ifeq ($(BUILD_GRIB),1)
-FILES += DCReaderGRIB
-HEADER_FILES += DCReaderGRIB
-LIBRARIES += grib_api
-endif
-
 ifeq ($(BUILD_GUI),1)
 MAKEFILE_CXXFLAGS += -D"BUILD_GUI"
 endif
