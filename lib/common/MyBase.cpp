@@ -131,13 +131,13 @@ void	MyBase::SetErrMsg(
 	va_list args;
 
 
+	if (! Enabled) return;
 	ErrCode = 1;
 
 	va_start(args, format);
 	_SetErrMsg(&ErrMsg, &ErrMsgSize, format, args);
 	va_end(args);
 
-	if (! Enabled) return;
 
 	if (ErrMsgCB) (*ErrMsgCB) (ErrMsg, ErrCode);
 
@@ -154,13 +154,13 @@ void	MyBase::SetErrMsg(
 	va_list args;
 
 
+	if (! Enabled) return;
 	ErrCode = errcode;
 
 	va_start(args, format);
 	_SetErrMsg(&ErrMsg, &ErrMsgSize, format, args);
 	va_end(args);
 
-	if (! Enabled) return;
 
 	if (ErrMsgCB) (*ErrMsgCB) (ErrMsg, ErrCode);
 
@@ -304,6 +304,12 @@ std::vector<int> &VetsUtil::SplitString(
 
 std::vector<float> &VetsUtil::SplitString(
 	const std::string &s, char delim, std::vector<float> &elems
+) {
+	return(splitString(s,delim,elems));
+}
+
+std::vector<double> &VetsUtil::SplitString(
+	const std::string &s, char delim, std::vector<double> &elems
 ) {
 	return(splitString(s,delim,elems));
 }

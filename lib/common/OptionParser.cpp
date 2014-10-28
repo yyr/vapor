@@ -356,6 +356,31 @@ int	VetsUtil::CvtToFloatVec(
 }
 
 //
+//	CvtToDoubleVec()
+//
+//	convert a colon delimited ascii string to vector of C++ STL float
+//
+int	VetsUtil::CvtToDoubleVec(
+	const char	*from,	/* the string	*/
+	void		*to
+) {
+	vector <double> *vptr	= (vector <double> *) to;
+	vptr->clear();
+
+    string s(from);
+	char delim;
+	if (s.find(":") != string::npos) {
+		delim = ':';
+	}
+	else {
+		delim = 'x';
+	}
+	(void) SplitString(from, delim, *vptr);
+
+	return(1);
+}
+
+//
 //	CvtToIntRange()
 //
 //	convert a colon-delimited string of ints to a min/max pair
