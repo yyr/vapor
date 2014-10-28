@@ -259,7 +259,7 @@ int CopyVar(
         }
         if (rc<0) {
             MyBase::SetErrMsg(
-                "Error reading netCDF variable \"%s\" at time step %d",
+                "Error reading GRIB variable \"%s\" at time step %d",
                 gribVar.c_str(), gribTS
             );
             break;

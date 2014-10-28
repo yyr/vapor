@@ -548,13 +548,18 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	
 	typedef std::map<std::string, Variable*>::iterator it_type;
 	for (it_type iterator=_vars3d.begin(); iterator!=_vars3d.end(); iterator++){
-    	_vars3d[iterator->first]->_SortLevels();           // Sort the levels that apply to each individual variable
+    	_vars3d[iterator->first]->_SortLevels();           //  Sort the levels that apply to each individual variable
+		_vars3d[iterator->first]->_SortTimes();				// Sort udunit times that apply to each individual variable
 	}
 	for (it_type iterator=_vars2d.begin(); iterator!=_vars2d.end(); iterator++){
         _vars2d[iterator->first]->_SortLevels();			// Sort the levels that apply to each individual variable
+		_vars2d[iterator->first]->_SortTimes();             // Sort udunit times that apply to each individual variable
     }
+
 	sort(_pressureLevels.begin(), _pressureLevels.end());	// Sort the levels that apply to the entire dataset
 	reverse(_pressureLevels.begin(), _pressureLevels.end());
+
+	sort(_gribTimes.begin(), _gribTimes.end());
 
 	rc = _InitCartographicExtents(GetMapProjection());
 			  						 //_pressureLevels,
