@@ -44,6 +44,8 @@ class UDUnits;
 	 DCReaderGRIB(const vector<string> files);
 	 ~DCReaderGRIB();
 
+	void Print2dVars();
+
 	/////
 	// DCReader Virtual Functions
      virtual int OpenVariableRead(size_t timestep, string varname, 
@@ -65,9 +67,9 @@ class UDUnits;
      virtual std::vector<string> GetVariables2DXY() const;                 // from Metadata.h
      virtual double GetTSUserTime(size_t ts) const {return _gribTimes[ts];}   // from Metadata.h
 	 virtual std::vector<string> GetVariables2DXZ() const {                // from Metadata.h
-        std::vector<string> empty; return(empty);};
+     std::vector<string> empty; return(empty);};
      virtual std::vector<string> GetVariables2DYZ() const {                // from Metadata.h
-        std::vector<string> empty; return(empty);};
+     std::vector<string> empty; return(empty);};
 
      //virtual std::string GetCoordSystemType() const;
      
@@ -100,7 +102,6 @@ class UDUnits;
      float GetLevel(int index) {return _pressureLevels[index];}
      void PrintLevels();
      void Print3dVars();
-     void Print2dVars();
      void Print1dVars();
      double BarometricFormula(const double pressure) const;
      int _InitCartographicExtents(string mapProj);
@@ -131,6 +132,7 @@ class UDUnits;
 		void PrintMessages();
 		void PrintIndex(double time, float level);
 		void _SortLevels() {sort(_pressureLevels.begin(), _pressureLevels.end());}
+		void _SortTimes() {sort(_unitTimes.begin(), _unitTimes.end());}
 		bool _Exists(double time) const;
 		void setScanDirection(bool i, bool j) {iScan = i; jScan = j;}
 		bool getiScan() const {return iScan;}

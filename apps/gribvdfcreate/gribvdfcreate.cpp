@@ -259,7 +259,7 @@ int CopyVar(
         }
         if (rc<0) {
             MyBase::SetErrMsg(
-                "Error reading netCDF variable \"%s\" at time step %d",
+                "Error reading GRIB variable \"%s\" at time step %d",
                 gribVar.c_str(), gribTS
             );
             break;
@@ -334,7 +334,20 @@ int main(int argc, char** argv) {
     VDFIOBase *vdfio = NULL;
     vdfio = wcwriter;
 
-	std::vector<string> vars = DCGrib->GetVariables3D();
+	std::vector<string> vars;
+	std::vector<string> vars3D = DCGrib->GetVariables3D();
+	std::vector<string> vars2D = DCGrib->GetVariables2DXY();
+
+	for (int i=0; i<vars3D.size(); i++) {
+		vars.push_back(vars3D[i]);
+	}
+
+	DCGrib->Print2dVars();
+
+	for (int i=0; i<vars2D.size(); i++) {
+		vars.push_back(vars2D[i]);
+	}
+
 	int numTs = (int) DCGrib->GetNumTimeSteps();
     
 	int rc;
