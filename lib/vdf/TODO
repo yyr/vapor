@@ -57,3 +57,10 @@ error checking
 convert all global time steps to local
 
 level and lod both need consisten speciefication (-1, -2, -3)
+
+Rename DataMgrV3 to DataMgr
+
+RegularGrid
+-----------
+
+Iterator for bounding volume defined in user coords

@@ -2,6 +2,7 @@
 #define _RegularGrid_
 
 #include <ostream>
+#include <vector>
 #include <vapor/common.h>
 
 //
@@ -180,6 +181,10 @@ public:
  virtual void GetBoundingBox(
 	const size_t min[3], const size_t max[3], double extents[6]
  ) const;
+ virtual void GetBoundingBox(
+	const std::vector <size_t> &min, const std::vector <size_t> &max,
+	std::vector <double> &minu, std::vector <double> &maxu
+ ) const; 
 
  //!
  //! Get voxel coordinates of grid containing a region

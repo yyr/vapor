@@ -379,6 +379,27 @@ void RegularGrid::GetBoundingBox(
 	);
 }
 
+void RegularGrid::GetBoundingBox(
+    const vector <size_t> &min, const vector <size_t> &max,
+    vector <double> &minu, vector <double> &maxu
+) const {
+	minu.clear();	
+	maxu.clear();
+    assert(min.size() == max.size());
+    size_t my_min[] = {0,0,0};
+    size_t my_max[] = {0,0,0};
+    for (int i=0; i<min.size(); i++) {
+        my_min[i] = min[i];
+        my_max[i] = max[i];
+    }
+	double extents[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+	GetBoundingBox(my_min, my_max, extents);
+    for (int i=0; i<min.size(); i++) {
+		minu.push_back(extents[i]);
+		maxu.push_back(extents[i+3]);
+	}
+}
+
 void    RegularGrid::GetEnclosingRegion(
     const double minu[3], const double maxu[3],
     size_t min[3], size_t max[3]

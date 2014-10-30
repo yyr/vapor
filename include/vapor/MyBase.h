@@ -332,6 +332,9 @@ private:
  std::vector<float> &SplitString(
     const std::string &s, char delim, std::vector<float> &elems
  ); 
+ std::vector<double> &SplitString(
+    const std::string &s, char delim, std::vector<double> &elems
+ ); 
 
 
 

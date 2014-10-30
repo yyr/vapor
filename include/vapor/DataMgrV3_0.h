@@ -26,9 +26,68 @@ using namespace std;
 //! This class inherits from VetsUtil::MyBase. Unless otherwise documented
 //! any method that returns an integer value is returning status. A negative
 //! value indicates failure. Error messages are logged via
-//! VetsUtil::MyBase::SetErrMsg(). Methods that return a boolean do
+//! VetsUtil::MyBase::SetErrMsg(). 
+//!
+//! Methods that return a boolean do
 //! not, unless otherwise documented, log an error message upon
 //! failure (return of false).
+//!
+//! \param level 
+//! \parblock
+//! Grid refinement level for multiresolution variables. 
+//! Compressed variables in the VDC have a multi-resolution 
+//! representation: the sampling grid for multi-resolution variables
+//! is hierarchical, and the dimension lengths of adjacent levels in the
+//! hierarchy differ by a factor of two. The \p level parameter is 
+//! used to select a particular depth of the hierarchy.
+//!
+//! To provide maximum flexibility as well as compatibility with previous
+//! versions of the VDC the interpretation of \p level is somewhat 
+//! complex. Both positive and negative values may be used to specify
+//! the refinement level and have different interpretations. 
+//!
+//! For positive
+//! values of \p level, a value of \b 0 indicates the coarsest 
+//! member of the 
+//! grid hierarchy. A value of \b 1 indicates the next grid refinement 
+//! after the coarsest, and so on. Using postive values the finest level 
+//! in the hierarchy is given by GetNumRefLevels() - 1. Values of \p level
+//! that are greater than GetNumRefLevels() - 1 are treated as if they
+//! were equal to GetNumRefLevels() - 1.
+//!
+//! For negative values of \p level a value of -1 indicates the
+//! variable's native grid resolution (the finest resolution available). 
+//! A value of -2 indicates the next coarsest member in the hierarchy after 
+//! the finest, and so
+//! on. Using negative values the coarsest available level in the hierarchy is 
+//! given by negating the value returned by GetNumRefLevels(). Values of
+//! \p level that are less than the negation of GetNumRefLevels() are
+//! treated as if they were equal to the negation of the GetNumRefLevels()
+//! return value.
+//!
+//! \param lod
+//! The level-of-detail parameter, \p lod, selects
+//! the approximation level for a compressed variable. 
+//! The \p lod parameter is similar to the \p level parameter in that it
+//! provides control over accuracy of a compressed variable. However, instead
+//! of selecting the grid resolution the \p lod parameter controls 
+//! the compression factor by indexing into the \p cratios vector (see below).
+//! As with the \p level parameter, both positive and negative values may be 
+//! used to index into \p cratios and 
+//! different interpretations. 
+//! 
+//! For positive
+//! values of \p lod, a value of \b 0 indicates the 
+//! the first element of \p cratios, a value of \b 1 indicates
+//! the second element, and so on up to the size of the 
+//! \p cratios vector (See VDC::GetCRatios()).
+//!
+//! For negative values of \p lod a value of \b -1 indexes the
+//! last element of \p cratios, a value of \b -2 indexes the 
+//! second to last element, and so on.
+//! Using negative values the first element of \p cratios - the greatest 
+//! compression rate - is indexed by negating the size of the 
+//! \p cratios vector.
 //
 
 namespace VAPoR {
@@ -62,7 +121,7 @@ public:
  //! message will be logged with MyBase::SetErrMsg()
  //!
  //
- virtual int Initialize(const vector <string> &files);
+ virtual int Initialize(const std::vector <string> &files);
 
 
  //! Return a list of names for all of the defined data variables.
@@ -102,7 +161,6 @@ public:
  //!
  //! \sa GetDataVarNames()
  //!
- //! \test New in 3.0
  virtual std::vector <string> GetCoordVarNames() const;
 
  //! Return a list of coordinate variables with a given dimension rank
@@ -118,7 +176,6 @@ public:
  //! variable names
  //! with the specified number of dimensions.
  //!
- //! \test New in 3.0
  virtual std::vector <string> GetCoordVarNames(int ndim, bool spatial) const;
 
  //! Get time coordinates
@@ -131,9 +188,8 @@ public:
  //! \note Need to deal with different units (e.g. seconds and days).
  //! \note Should methods that take a time step argument \p ts expect
  //! "local" or "global" time steps
- //! \test New in 3.0
  //!
- void GetTimeCoordinates(vector <double> &timecoords) const {
+ void GetTimeCoordinates(std::vector <double> &timecoords) const {
 	timecoords = _timeCoordinates;
  };
 
@@ -152,7 +208,6 @@ public:
  //!
  //! \sa GetCoordVarInfo()
  //!
- //! \test New in 3.0
  bool GetDataVarInfo( string varname, VAPoR::VDC::DataVar &datavar) const;
 
  //! Return metadata about a data or coordinate variable
@@ -165,7 +220,7 @@ public:
  //! named variable is invalid (unknown)
  //!
  //! \sa GetDataVarInfo(), GetCoordVarInfo()
- //! \test New in 3.0
+ //
  bool GetBaseVarInfo(string varname, VAPoR::VDC::BaseVar &var) const;
 
  //! Return a coordinate variable's definition
@@ -183,7 +238,6 @@ public:
  //!
  //! \sa GetDataVarInfo()
  //!
- //! \test New in 3.0
  bool GetCoordVarInfo(string varname, VAPoR::VDC::CoordVar &cvar) const;
 
  //! Return a boolean indicating whether a variable is time varying
@@ -259,7 +313,7 @@ public:
  //!
  //! \sa VDC::BaseVar::GetCRatios();
  //
-int GetCRatios(string varname, vector <size_t> &cratios) const;
+int GetCRatios(string varname, std::vector <size_t> &cratios) const;
 
  //! Read and return variable data
  //!
@@ -274,49 +328,11 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //! 
  //! \param[in] varname The name of the data or coordinate variable to access
  //!
- //! \param[in] level
- //! \parblock
- //! To provide maximum flexibility as well as compatibility with previous
- //! versions of the VDC the interpretation of \p level is somewhat
- //! complex. Both positive and negative values may be used to specify
- //! the refinement level and have different interpretations.
- //!
- //! For positive
- //! values of \p level, a value of \b 0 indicates the coarsest
- //! member of the
- //! grid hierarchy. A value of \b 1 indicates the next grid refinement
- //! after the coarsest, and so on. Using postive values the finest level
- //! in the hierarchy is given by GetNumRefLevels() - 1. Values of \p level
- //! that are greater than GetNumRefLevels() - 1 are treated as if they
- //! were equal to GetNumRefLevels() - 1.
- //!
- //! For negative values of \p level a value of -1 indicates the
- //! variable's native grid resolution (the finest resolution available).
- //! A value of -2 indicates the next coarsest member in the hierarchy after
- //! the finest, and so
- //! on. Using negative values the coarsest available level in the hierarchy is
- //! given by negating the value returned by GetNumRefLevels(). Values of
- //! \p level that are less than the negation of GetNumRefLevels() are
- //! treated as if they were equal to the negation of the GetNumRefLevels()
- //! return value.
+ //! \param[in] level Grid refinement level. See DataMgr
  //!
  //! \param[in] lod The level-of-detail parameter, \p lod, selects
- //! the approximation level. Valid values for \p lod are integers in
- //! the range 0..n-1, where \e n is returned by
- //! VDC::BaseVar::GetCRatios().size(), or the value -1 may be used
- //! to select the best approximation available
- //!
- //! \param[in] lock If true, the memory region will be locked into the 
- //! cache (i.e. valid after subsequent GetVariable() calls). Otherwise,
- //! the memory owned by the returned RegularGrid may be overwritten 
- //! after subsequent calls to GetVariable()
- //! \endparblock
- //!
- //! \note The RegularGrid structure returned is allocated from the heap. 
- //! it is the caller's responsiblity to delete the returned object
- //! when it is no longer in use.
- //!
- //! \test New in 3.0
+ //! the approximation level. See DataMgr.
+ //
  VAPoR::RegularGrid *GetVariable (
 	size_t ts, string varname, int level, int lod, bool lock=false
  );
@@ -332,7 +348,7 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //! hyperslab and the variable's spatial domain (which is not necessarily 
  //! rectangular or axis-aligned).
  //! If the requested hyperslab lies entirely outside of the domain of the 
- //! requested variable an empty RegularGrid structure is returned.
+ //! requested variable NULL is returned
  //!
  //! \param[in] min A one, two, or three element array specifying the 
  //! minimum extents, in user coordinates, of an axis-aligned box defining
@@ -348,15 +364,14 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //! it is the caller's responsiblity to delete the returned object
  //! when it is no longer in use.
  //!
- //! \test New in 3.0
  VAPoR::RegularGrid *GetVariable (
 	size_t ts, string varname, int level, int lod, 
-	vector <double> min, vector <double> max, bool lock=false
+	std::vector <double> min, std::vector <double> max, bool lock=false
  );
 
  VAPoR::RegularGrid *GetVariable(
 	size_t ts, string varname, int level, int lod,
-	vector <size_t> min, vector <size_t> max, bool lock=false
+	std::vector <size_t> min, std::vector <size_t> max, bool lock=false
  );
 
  //! Compute the coordinate extents of a variable
@@ -370,10 +385,9 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //! the variable indicated by \p varname, and the given refinement level,
  //! \p level
  //! 
- //! \test New in 3.0
  int GetVariableExtents(
 	size_t ts, string varname, int level,
-	vector <double> &min , vector <double> &max
+	std::vector <double> &min , std::vector <double> &max
  );
 
  //! Unlock a floating-point region of memory
@@ -387,6 +401,7 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //!
  //! \param[in] rg A pointer to a RegularGrid previosly
  //! returned by GetVariable()
+ //!
  //! \retval status Returns a non-negative value on success
  //!
  //! \sa GetVariable()
@@ -484,7 +499,7 @@ protected:
 
  //! \copydoc Initialize()
  //
- virtual int _Initialize(const vector <string> &files) = 0;
+ virtual int _Initialize(const std::vector <string> &files) = 0;
 
  //! \copydoc GetDataVarNames()
  //
@@ -536,8 +551,8 @@ protected:
  //! \sa VAPoR::VDC, VDC::BaseVar::GetBS(), VDC::BaseVar::GetDimensions()
  //
  virtual int _GetDimLensAtLevel(
-    string varname, int level, vector <size_t> &dims_at_level,
-    vector <size_t> &bs_at_level
+    string varname, int level, std::vector <size_t> &dims_at_level,
+    std::vector <size_t> &bs_at_level
  ) const = 0;
 
  virtual int _GetNumRefLevels(string varname) const = 0;
@@ -559,7 +574,7 @@ protected:
  //
  virtual int _ReadVariableBlock (
 	size_t ts, string varname, int level, int lod, 
-	vector <size_t> min, vector <size_t> max, float *blocks
+	std::vector <size_t> min, std::vector <size_t> max, float *blocks
  ) = 0;
 
  //! Read and return variable data
@@ -574,17 +589,30 @@ protected:
  virtual string GetMapProjection() const {return(""); };
 
 private:
- class blkexts {
+ class BlkExts {
  public:
-  blkexts(
-	std::vector <size_t> bs, std::vector <size_t> bdims,
-	const float *blks
+  BlkExts();
+  BlkExts(const std::vector <size_t> &bmin, const std::vector <size_t> &bmax);
+
+  void Insert(
+	const std::vector <size_t> &bcoord, 
+	const std::vector <double> &min, 
+	const std::vector <double> &max 
   );
-  void getexts(std::vector <size_t> blkcrds, float &min, float &max) const;
+
+  bool Intersect(
+	const std::vector <double> &min, 
+	const std::vector <double> &max,
+	std::vector <size_t> &bmin,
+	std::vector <size_t> &bmax
+  ) const;
+
  private:
-  std::vector <float> _mins;
-  std::vector <float> _maxs;
-  std::vector <size_t> _bdims;
+
+	std::vector <size_t> _bmin;
+	std::vector <size_t> _bmax;
+	std::vector < std::vector < double > > _mins;
+	std::vector < std::vector < double > > _maxs;
  };
 
  //
@@ -676,16 +704,14 @@ private:
 		_cacheDouble.clear(); 
 	}
 
+  static string _make_hash(
+	string key, size_t ts, std::vector <string> cvars, int level, int lod
+  );
 
  private:
 
-  map <string, vector <size_t> > _cacheSize_t;
-  map <string, vector <double> > _cacheDouble;
-
-  string _make_hash(
-	string key, size_t ts, vector <string> cvars, int level, int lod
-  ) const;
-
+  std::map <string, std::vector <size_t> > _cacheSize_t;
+  std::map <string, std::vector <double> > _cacheDouble;
 
 
  };
@@ -698,8 +724,8 @@ private:
 	string varname;
 	int level;
 	int lod;
-	vector <size_t> bmin;
-	vector <size_t> bmax;
+	std::vector <size_t> bmin;
+	std::vector <size_t> bmax;
 	int lock_counter;
 	float *blks;
  } region_t;
@@ -709,39 +735,46 @@ private:
 
  VAPoR::BlkMemMgr  *_blk_mem_mgr;
 
- vector <PipeLine *> _PipeLines;
+ std::vector <PipeLine *> _PipeLines;
 
 
  VarInfoCache _varInfoCache;
+ std::map <string, BlkExts> _blkExtsCache;
 
  int _get_coord_vars(
-	string varname, vector <string> &scvars, string &tcvar
+	string varname, std::vector <string> &scvars, string &tcvar
  ) const;
 
- int _DataMgrV3_0(size_t mem_size);
- int _GetTimeCoordinates(vector <double> &timecoords);
+ int _datamgr(size_t mem_size);
+ int _get_time_coordinates(std::vector <double> &timecoords);
 
  VAPoR::RegularGrid *_make_grid_regular(
     const VAPoR::VDC::DataVar &var,
-    const vector <size_t> &min,
-    const vector <size_t> &max,
-    const vector <size_t> &dims,
-    const vector <float *> &blkvec,
-    const vector <size_t> &bs,
-    const vector <size_t> &bmin,
-    const vector <size_t> &bmax
+    const std::vector <size_t> &min,
+    const std::vector <size_t> &max,
+    const std::vector <size_t> &dims,
+    const std::vector <float *> &blkvec,
+    const std::vector <size_t> &bs,
+    const std::vector <size_t> &bmin,
+    const std::vector <size_t> &bmax
  ) const;
 
  VAPoR::RegularGrid *_make_grid(
 	const VAPoR::VDC::DataVar &var,
-	const vector <size_t> &min,
-	const vector <size_t> &max,
-	const vector <size_t> &dims,
-	const vector <float *> &blkvec,
-	const vector < vector <size_t > > &bsvec,
-	const vector < vector <size_t > > &bminvec,
-	const vector < vector <size_t > > &bmaxvec
+	const std::vector <size_t> &min,
+	const std::vector <size_t> &max,
+	const std::vector <size_t> &dims,
+	const std::vector <float *> &blkvec,
+	const std::vector < std::vector <size_t > > &bsvec,
+	const std::vector < std::vector <size_t > > &bminvec,
+	const std::vector < std::vector <size_t > > &bmaxvec
  ) const;
+
+ int _find_bounding_grid(
+    size_t ts, string varname, int level, int lod,
+    std::vector <double> min, std::vector <double> max,
+    std::vector <size_t> &min_ui, std::vector <size_t> &max_ui
+ );
 
  VAPoR::RegularGrid *_getVariable(
     size_t ts,
@@ -757,8 +790,8 @@ private:
     string varname,
     int level,
     int lod,
-    vector <size_t> min,
-    vector <size_t> max,
+    std::vector <size_t> min,
+    std::vector <size_t> max,
     bool    lock,
     bool    dataless
  ); 
@@ -768,52 +801,53 @@ private:
 	string varname,
 	int level,
 	int lod,
-	const vector <size_t> &bmin,
-	const vector <size_t> &bmax,
+	const std::vector <size_t> &bmin,
+	const std::vector <size_t> &bmax,
 	bool    lock
  );
 
  float *_get_region_from_fs(
 	size_t ts, string varname, int level, int lod,
-	const vector <size_t> &bs, const vector <size_t> &bmin,
-	const vector <size_t> &bmax, bool lock
+	const std::vector <size_t> &bs, const std::vector <size_t> &bmin,
+	const std::vector <size_t> &bmax, bool lock
  );
 
  float *_get_region(
 	size_t ts,
 	string varname,
 	int level,
+	int nlevels,
 	int lod,
-	const vector <size_t> &bs,
-	const vector <size_t> &bmin,
-	const vector <size_t> &bmax,
+	int nlods,
+	const std::vector <size_t> &bs,
+	const std::vector <size_t> &bmin,
+	const std::vector <size_t> &bmax,
 	bool lock
  );
-
  int _get_regions(
 	size_t ts,
-	const vector <string> &varnames,
+	const std::vector <string> &varnames,
 	int level, int lod,
 	bool lock,
-	const vector < vector <size_t > > &bsvec,
-	const vector < vector <size_t> > &bminvec,
-	const vector < vector <size_t> > &bmaxvec,
-	vector <float *> &blkvec
+	const std::vector < std::vector <size_t > > &bsvec,
+	const std::vector < std::vector <size_t> > &bminvec,
+	const std::vector < std::vector <size_t> > &bmaxvec,
+	std::vector <float *> &blkvec
  ); 
 
  void _unlock_blocks(const float *blks);
 
- vector <string> _get_native_variables() const;
- vector <string> _get_derived_variables() const;
+ std::vector <string> _get_native_variables() const;
+ std::vector <string> _get_derived_variables() const;
 
  float   *_alloc_region(
 	size_t ts,
 	string varname,
 	int level,
 	int lod,
-	vector <size_t> bmin,
-	vector <size_t> bmax,
-	vector <size_t> bs,
+	std::vector <size_t> bmin,
+	std::vector <size_t> bmax,
+	std::vector <size_t> bs,
 	int element_sz,
 	bool    lock,
 	bool fill
@@ -824,13 +858,15 @@ private:
 	string varname,
 	int level,
 	int lod,
-	vector <size_t> bmin,
-	vector <size_t> bmax
+	std::vector <size_t> bmin,
+	std::vector <size_t> bmax
  );
 
  bool _free_lru();
  void _free_var(string varname);
 
+ int _level_correction(string varname, int &level) const;
+ int _lod_correction(string varname, int &lod) const;
 
 };
 
