@@ -233,7 +233,8 @@ int	main(int argc, char **argv) {
 	if (rc<0) exit(1);
 
 	vector <size_t> dims;
-	if (vdc.GetDimLensAtLevel(opt.varname, opt.level, dims) < 0) {
+	vector <size_t> dummy;
+	if (vdc.GetDimLensAtLevel(opt.varname, opt.level, dims, dummy) < 0) {
 		exit(1);
 	}
 
@@ -264,6 +265,16 @@ int	main(int argc, char **argv) {
 			vdc, fp, dims, opt.type, opt.xregion, opt.yregion, opt.zregion
 		);
 	}
+
+	if (! opt.quiet) {
+		cout << "Wrote ";
+		for (int i=0;i<dims.size(); i++) {
+			cout << dims[i];
+			if (i!=dims.size()-1) cout << "x";
+		}
+		cout << endl;
+	}
+		
 
 	rc = vdc.CloseVariable();
 	if (rc<0) exit(1);

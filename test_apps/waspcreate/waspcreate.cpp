@@ -107,8 +107,7 @@ int	main(int argc, char **argv) {
 	cratios1D.push_back(8);
 
 	int rc = wasp.Create(
-		opt.ofile, NC_64BIT_OFFSET, 0, chunksize,
-		string("bior3.3"), bs, cratios3D.size(), true
+		opt.ofile, NC_64BIT_OFFSET, 0, chunksize, cratios3D.size()
 	);
 	if (rc<0) exit(1);
 
@@ -160,7 +159,9 @@ int	main(int argc, char **argv) {
 			if (ncdims == 3) cratios = cratios3D;
 			if (ncdims == 2) cratios = cratios2D;
 			if (ncdims == 1) cratios = cratios1D;
-			int rc = wasp.DefVar(name, xtype, dimnames, cratios);
+			int rc = wasp.DefVar(
+				name, xtype, dimnames, string("bior3.3"), bs, cratios
+			);
 			if (rc<0) exit(1);
 		}
 

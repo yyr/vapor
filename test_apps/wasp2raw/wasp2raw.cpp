@@ -106,7 +106,7 @@ int	main(int argc, char **argv) {
 	if (rc<0) exit(1);
 
 
-	rc = wasp.OpenVarRead(opt.varname, opt.lod, opt.level);
+	rc = wasp.OpenVarRead(opt.varname, opt.level, opt.lod);
 	if (rc<0) exit(1);
 
 	vector <size_t> start(dims.size(), 0);

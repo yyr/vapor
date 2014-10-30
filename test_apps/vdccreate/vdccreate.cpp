@@ -18,10 +18,15 @@ struct opt_t {
     std::vector <size_t> cratios;
 	string wname;
 	int numts;
+	int nthreads;
     std::vector <string> vars3d;
     std::vector <string> vars2dxy;
     std::vector <string> vars2dxz;
     std::vector <string> vars2dyz;
+    std::vector <string> ncvars3d;
+    std::vector <string> ncvars2dxy;
+    std::vector <string> ncvars2dxz;
+    std::vector <string> ncvars2dyz;
 	OptionParser::Boolean_T	force;
 	OptionParser::Boolean_T	help;
 } opt;
@@ -50,21 +55,50 @@ OptionParser::OptDescRec_T	set_opts[] = {
 		"numts", 1, "1", "Number of timesteps in the data set"
 	},
 	{
+		"nthreads",    1,  "0",    "Specify number of execution threads "
+		"0 => use number of cores"
+	},
+	{
 		"vars3d",1, "var1",
-		"Colon delimited list of 3D variable names to be included in "
-		"the VDF"
+		"Colon delimited list of 3D variable names (compressed) "
+		"to be included in "
+		"the VDC"
 	},
 	{
 		"vars2dxy",1, "", "Colon delimited list of 2D XY-plane variable "
-		"names to be included in the VDF"
+		"names (compressed) "
+		"to be included in the VDC"
 	},
 	{
 		"vars2dxz",1, "", "Colon delimited list of 3D XZ-plane variable "
-		"names to be included in the VDF"
+		"names (compressed) "
+		"to be included in the VDC"
 	},
 	{
 		"vars2dyz",1, "", "Colon delimited list of 3D YZ-plane variable "
-		"names to be included in the VDF"
+		"names (compressed) "
+		"to be included in the VDC"
+	},
+	{
+		"ncvars3d",1, "",
+		"Colon delimited list of 3D variable names (not compressed) "
+		"to be included in "
+		"the VDC"
+	},
+	{
+		"ncvars2dxy",1, "", "Colon delimited list of 2D XY-plane variable "
+		"names (not compressed) "
+		"to be included in the VDC"
+	},
+	{
+		"ncvars2dxz",1, "", "Colon delimited list of 3D XZ-plane variable "
+		"names (not compressed) "
+		"to be included in the VDC"
+	},
+	{
+		"ncvars2dyz",1, "", "Colon delimited list of 3D YZ-plane variable "
+		"names (not compressed) "
+		"to be included in the VDC"
 	},
 	{"force",	0,	"",	"Create a new VDC master file even if a VDC data "
 	"directory already exists. Results may be undefined if settings between "
@@ -80,10 +114,15 @@ OptionParser::Option_T	get_options[] = {
 	{"cratios", VetsUtil::CvtToSize_tVec, &opt.cratios, sizeof(opt.cratios)},
 	{"wname", VetsUtil::CvtToCPPStr, &opt.wname, sizeof(opt.wname)},
 	{"numts", VetsUtil::CvtToInt, &opt.numts, sizeof(opt.numts)},
+	{"nthreads", VetsUtil::CvtToInt, &opt.nthreads, sizeof(opt.nthreads)},
 	{"vars3d", VetsUtil::CvtToStrVec, &opt.vars3d, sizeof(opt.vars3d)},
 	{"vars2dxy", VetsUtil::CvtToStrVec, &opt.vars2dxy, sizeof(opt.vars2dxy)},
 	{"vars2dxz", VetsUtil::CvtToStrVec, &opt.vars2dxz, sizeof(opt.vars2dxz)},
 	{"vars2dyz", VetsUtil::CvtToStrVec, &opt.vars2dyz, sizeof(opt.vars2dyz)},
+	{"ncvars3d", VetsUtil::CvtToStrVec, &opt.ncvars3d, sizeof(opt.ncvars3d)},
+	{"ncvars2dxy", VetsUtil::CvtToStrVec, &opt.ncvars2dxy, sizeof(opt.ncvars2dxy)},
+	{"ncvars2dxz", VetsUtil::CvtToStrVec, &opt.ncvars2dxz, sizeof(opt.ncvars2dxz)},
+	{"ncvars2dyz", VetsUtil::CvtToStrVec, &opt.ncvars2dyz, sizeof(opt.ncvars2dyz)},
 	{"force", VetsUtil::CvtToBoolean, &opt.force, sizeof(opt.force)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{NULL}
@@ -123,7 +162,7 @@ int	main(int argc, char **argv) {
 		exit(0);
 	}
 
-	VDCNetCDF    vdc;
+	VDCNetCDF    vdc(opt.nthreads);
 
 	if (vdc.DataDirExists(master) && !opt.force) {
 		MyBase::SetErrMsg(
@@ -143,18 +182,38 @@ int	main(int argc, char **argv) {
 	dimnames.push_back("Nz");
 	dimnames.push_back("Nt");
 
+	vector <size_t> bs;
+	bs.push_back(opt.bs[0]);
+	rc = vdc.SetCompressionBlock(bs, "", opt.cratios);
 	rc = vdc.DefineDimension(dimnames[0], opt.dim.nx, 0);
-	rc = vdc.DefineDimension(dimnames[1], opt.dim.ny, 1);
-	rc = vdc.DefineDimension(dimnames[2], opt.dim.nz, 2);
-	rc = vdc.DefineDimension(dimnames[3], opt.numts, 3);
 
 	
+	bs.clear();
+	bs.push_back(opt.bs[1]);
+	rc = vdc.SetCompressionBlock(bs, "", opt.cratios);
+	rc = vdc.DefineDimension(dimnames[1], opt.dim.ny, 1);
+
+	bs.clear();
+	bs.push_back(opt.bs[2]);
+	rc = vdc.SetCompressionBlock(bs, "", opt.cratios);
+	rc = vdc.DefineDimension(dimnames[2], opt.dim.nz, 2);
+
+	bs.clear();
+	rc = vdc.SetCompressionBlock(bs, "", opt.cratios);
+	rc = vdc.DefineDimension(dimnames[3], opt.numts, 3);
+
+	bs = opt.bs;
 	rc = vdc.SetCompressionBlock(opt.bs, opt.wname, opt.cratios);
 	if (rc<0) exit(1);
 
 	for (int i=0; i<opt.vars3d.size(); i++) {
 		rc = vdc.DefineDataVar(
 			opt.vars3d[i], dimnames, dimnames, "", VDC::FLOAT, true
+		);
+	}
+	for (int i=0; i<opt.ncvars3d.size(); i++) {
+		rc = vdc.DefineDataVar(
+			opt.ncvars3d[i], dimnames, dimnames, "", VDC::FLOAT, false
 		);
 	}
 
@@ -183,6 +242,11 @@ int	main(int argc, char **argv) {
 			opt.vars2dxy[i], dimnames2dxy, dimnames2dxy, "", VDC::FLOAT, true
 		);
 	}
+	for (int i=0; i<opt.ncvars2dxy.size(); i++) {
+		rc = vdc.DefineDataVar(
+			opt.ncvars2dxy[i], dimnames2dxy, dimnames2dxy, "", VDC::FLOAT, false
+		);
+	}
 
 	vector <string> dimnames2dxz;
 	dimnames2dxz.push_back(dimnames[0]);
@@ -193,6 +257,11 @@ int	main(int argc, char **argv) {
 			opt.vars2dxz[i], dimnames2dxz, dimnames2dxz, "", VDC::FLOAT, true
 		);
 	}
+	for (int i=0; i<opt.ncvars2dxz.size(); i++) {
+		rc = vdc.DefineDataVar(
+			opt.ncvars2dxz[i], dimnames2dxz, dimnames2dxz, "", VDC::FLOAT, false
+		);
+	}
 
 	vector <string> dimnames2dyz;
 	dimnames2dyz.push_back(dimnames[1]);
@@ -201,6 +270,11 @@ int	main(int argc, char **argv) {
 	for (int i=0; i<opt.vars2dyz.size(); i++) {
 		rc = vdc.DefineDataVar(
 			opt.vars2dyz[i], dimnames2dyz, dimnames2dyz, "", VDC::FLOAT, true
+		);
+	}
+	for (int i=0; i<opt.ncvars2dyz.size(); i++) {
+		rc = vdc.DefineDataVar(
+			opt.ncvars2dyz[i], dimnames2dyz, dimnames2dyz, "", VDC::FLOAT, false
 		);
 	}
 
