@@ -18,7 +18,7 @@
 #define MIN(a,b)        ((a) < (b) ? (a) : (b))
 #endif
 
-#define DEFAULT_MAX_TEXTURE 512
+#define DEFAULT_MAX_TEXTURE 8192
 
 using namespace VAPoR;
 
@@ -674,6 +674,14 @@ int TextureBrick::maxTextureSize(
   const RegularGrid *rg, int precision, int nvars
 ) {
 
+//
+// Attempting to use proxy textures to query the available hardware texture
+// memory has never worked as the OpenGL spec desribes. The bevahior varies
+// from driver to driver, vendor to vendor. Code is now ifdef'd out
+// and we simply return a really big value. 
+//
+#ifdef	DEAD
+
   const char *s = (const char *) glGetString(GL_VENDOR);
   if (! s) return(128);
   string glvendor;
@@ -736,6 +744,7 @@ int TextureBrick::maxTextureSize(
       return i;
     }
   }
+#endif
 
   return DEFAULT_MAX_TEXTURE;
 
