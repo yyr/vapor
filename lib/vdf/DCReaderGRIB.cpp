@@ -137,7 +137,7 @@ int DCReaderGRIB::OpenVariableRead(size_t timestep, string varname,
 //  float level = targetVar->GetLevel(_sliceNum);
 //  string filename = targetVar->GetFileName(usertime,level);
 
-	fclose(_inFile);
+	//fclose(_inFile);
     _inFile = fopen(filename.c_str(),"rb");
     if(!_inFile) {
         char err[50];
