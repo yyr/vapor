@@ -43,7 +43,7 @@ HEADER_FILES = \
 	DataMgrROMS DataMgrMOM DCReaderWRF UDUnitsClass Copy2VDF vdfcreate \
 	WrfVDCcreator WrfVDFcreator  Proj4API 
 
-#LIBRARIESS += grib_api
+LIBRARIES += grib_api
 
 #LIB_DEFS = vdf.def
 
