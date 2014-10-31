@@ -292,6 +292,22 @@ public:
  //! \retval status Returns 0 if successful
  //
  int SetElementStringVec(const string &tag, const vector<string> &values);
+ //! Set an ParamNode parameter of type string vector
+ //!
+ //! This method defines and sets a parameter of type string vector. The
+ //! parameter data
+ //! to be associated with \p tag is the array of strings
+ //! specified by \p values
+ //! The strings in the vector \p values may contain blanks, these will be
+ //! replaced by the string blankSub.
+ //!
+ //! \param[in] tag Name(Tag) of the element to define/set
+ //! \param[in] values Vector of strings
+ //! \param[in] blankSub string (not containing blanks) that will replace embedded blanks.
+ //!
+ //! \retval status Returns 0 if successful
+ //
+ int SetElementStringVec(const string &tag, const vector<string> &values, const string blankSub);
   //! Set a ParamNode parameter of type string
  //!
  //! This method defines and sets a parameter of type string vector. The
@@ -367,6 +383,20 @@ public:
  //! \param[out] vec Vector of strings associated with the named element
  //!
  virtual void GetElementStringVec(const string &tag, vector <string> &vec, const vector<string>& defaultVal = _emptyStringVec);
+ //! Get an element's data of type string vector at the current node
+ //!
+ //! Build the string vector data associated with the Xml element 
+ //! identified by a tag \p at this node. 
+ //! The strings in the vector \p vec will have blanks wherever the
+ //! string "blankSub" is found in a string.
+ //! If the element does not exist
+ //! an empty vector is returned
+ //!
+ //! \param[in] tag Node tag
+ //! \param[in] blankSub string used for blank substitution, must not contain blanks.
+ //! \param[out] vec Vector of strings associated with the named element
+ //!
+ virtual void GetElementStringVec(const string &tag, vector <string> &vec, const string blankSub);
  //! Set an ParamNode parameter of type long
  //!
  //! This method defines and sets a parameter of type long. The

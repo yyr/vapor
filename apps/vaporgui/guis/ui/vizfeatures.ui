@@ -1979,19 +1979,9 @@ with Lat/Lon</string>
              </spacer>
             </item>
             <item>
-             <widget class="QCheckBox" name="colorbarCheckbox">
-              <property name="toolTip">
-               <string>turn on/off display of color bar of DVR in scene</string>
-              </property>
+             <widget class="QLabel" name="label">
               <property name="text">
-               <string>Display color scale of current Renderer:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="rendererCombo">
-              <property name="toolTip">
-               <string>Choose the renderer type for color scale display</string>
+               <string>Display Color Scales of Current Renderers:</string>
               </property>
              </widget>
             </item>
@@ -2014,44 +2004,16 @@ with Lat/Lon</string>
            </layout>
           </item>
           <item>
+           <widget class="QTableWidget" name="colorbarTable">
+            <property name="columnCount">
+             <number>0</number>
+            </property>
+           </widget>
+          </item>
+          <item>
            <layout class="QGridLayout" name="gridLayout">
-            <item row="0" column="0" colspan="3">
-             <widget class="QLabel" name="textLabel4_4">
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>30</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Color scale lower-left coords</string>
-              </property>
-              <property name="wordWrap">
-               <bool>false</bool>
-              </property>
-              <property name="indent">
-               <number>0</number>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="3">
-             <spacer name="spacer19_4">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Expanding</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>13</width>
-                <height>21</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item row="0" column="4">
-             <widget class="QLineEdit" name="colorbarLLXEdit">
+            <item row="1" column="4">
+             <widget class="QLineEdit" name="colorbarNumDigitsEdit">
               <property name="minimumSize">
                <size>
                 <width>50</width>
@@ -2059,55 +2021,17 @@ with Lat/Lon</string>
                </size>
               </property>
               <property name="toolTip">
-               <string>specify color scale position in scene as lower-left x corner in [0,1]</string>
+               <string>Specify the number of digits accuracy for the number at a tic mark</string>
               </property>
               <property name="text">
-               <string>0</string>
+               <string>1</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignHCenter</set>
               </property>
              </widget>
             </item>
-            <item row="0" column="5">
-             <widget class="QLineEdit" name="colorbarLLYEdit">
-              <property name="minimumSize">
-               <size>
-                <width>50</width>
-                <height>25</height>
-               </size>
-              </property>
-              <property name="toolTip">
-               <string>specify color scale position in window as lower-left y corner in [0,1]</string>
-              </property>
-              <property name="text">
-               <string>0</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignHCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="textLabel4_2_2">
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>30</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Color scale size</string>
-              </property>
-              <property name="wordWrap">
-               <bool>false</bool>
-              </property>
-              <property name="indent">
-               <number>0</number>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2">
+            <item row="0" column="2">
              <spacer name="spacer19_2_2">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
@@ -2123,80 +2047,7 @@ with Lat/Lon</string>
               </property>
              </spacer>
             </item>
-            <item row="1" column="4">
-             <widget class="QLineEdit" name="colorbarXSizeEdit">
-              <property name="minimumSize">
-               <size>
-                <width>50</width>
-                <height>25</height>
-               </size>
-              </property>
-              <property name="toolTip">
-               <string>specify color scale width relative to window width in [0,1]</string>
-              </property>
-              <property name="text">
-               <string>1</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignHCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="5">
-             <widget class="QLineEdit" name="colorbarYSizeEdit">
-              <property name="minimumSize">
-               <size>
-                <width>50</width>
-                <height>25</height>
-               </size>
-              </property>
-              <property name="toolTip">
-               <string>specify color scale height relative to window height in [0,1]</string>
-              </property>
-              <property name="text">
-               <string>1</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignHCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="textLabel4_2_3">
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>30</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Font Size, no. digits</string>
-              </property>
-              <property name="wordWrap">
-               <bool>false</bool>
-              </property>
-              <property name="indent">
-               <number>0</number>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <spacer name="spacer19_2_3">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Expanding</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>18</width>
-                <height>21</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item row="2" column="4">
+            <item row="1" column="3">
              <widget class="QLineEdit" name="colorbarFontsizeEdit">
               <property name="minimumSize">
                <size>
@@ -2215,8 +2066,8 @@ with Lat/Lon</string>
               </property>
              </widget>
             </item>
-            <item row="2" column="5">
-             <widget class="QLineEdit" name="colorbarNumDigitsEdit">
+            <item row="0" column="3">
+             <widget class="QLineEdit" name="colorbarXSizeEdit">
               <property name="minimumSize">
                <size>
                 <width>50</width>
@@ -2224,7 +2075,7 @@ with Lat/Lon</string>
                </size>
               </property>
               <property name="toolTip">
-               <string>Specify the number of digits accuracy for the number at a tic mark</string>
+               <string>specify color scale width relative to window width in [0,1]</string>
               </property>
               <property name="text">
                <string>1</string>
@@ -2233,6 +2084,79 @@ with Lat/Lon</string>
                <set>Qt::AlignHCenter</set>
               </property>
              </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="textLabel4_2_3">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Font Size, no. digits</string>
+              </property>
+              <property name="wordWrap">
+               <bool>false</bool>
+              </property>
+              <property name="indent">
+               <number>0</number>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="4">
+             <widget class="QLineEdit" name="colorbarYSizeEdit">
+              <property name="minimumSize">
+               <size>
+                <width>50</width>
+                <height>25</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>specify color scale height relative to window height in [0,1]</string>
+              </property>
+              <property name="text">
+               <string>1</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignHCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QLabel" name="textLabel4_2_2">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Color scale size</string>
+              </property>
+              <property name="wordWrap">
+               <bool>false</bool>
+              </property>
+              <property name="indent">
+               <number>0</number>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <spacer name="spacer19_2_3">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Expanding</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>13</width>
+                <height>21</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </item>

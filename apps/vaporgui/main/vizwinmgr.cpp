@@ -100,6 +100,7 @@
 #include "images/cube.xpm"
 
 using namespace VAPoR;
+using namespace VetsUtil;
 TabManager* VizWinMgr::tabManager = 0;
 VizWinMgr* VizWinMgr::theVizWinMgr = 0;
 std::map<ParamsBase::ParamsBaseType, EventRouter*> VizWinMgr::eventRouterMap;
@@ -130,13 +131,18 @@ const string VizWinMgr::_vizLabelHeightAttr = "AxisLabelHeight";
 const string VizWinMgr::_vizLabelDigitsAttr = "AxisLabelDigits";
 const string VizWinMgr::_vizColorbarFontsizeAttr = "ColorbarFontsize";
 const string VizWinMgr::_vizColorbarDigitsAttr = "ColorbarDigits";
-const string VizWinMgr::_vizColorbarLLPositionAttr = "ColorbarLLPosition";
-const string VizWinMgr::_vizColorbarURPositionAttr = "ColorbarURPosition";
+const string VizWinMgr::_vizColorbarLLPositionAttr = "ColorbarLLPosition";//obsolete with 2.4
+const string VizWinMgr::_vizColorbarURPositionAttr = "ColorbarURPosition";//obsolete with 2.4
+const string VizWinMgr::_vizColorbarSizeAttr = "ColorbarSizes"; //new with 2.4
+const string VizWinMgr::_vizColorbarLLXTag = "ColorbarLLXPosition";
+const string VizWinMgr::_vizColorbarLLYTag = "ColorbarLLYPosition";
 const string VizWinMgr::_vizColorbarNumTicsAttr = "ColorbarNumTics";
 const string VizWinMgr::_vizAxisArrowsEnabledAttr = "AxesEnabled";
 const string VizWinMgr::_vizAxisAnnotationEnabledAttr = "AxisAnnotationEnabled";
-const string VizWinMgr::_vizColorbarEnabledAttr = "ColorbarEnabled";
-const string VizWinMgr::_vizColorbarParamsNameAttr = "ColorbarParamsTag";
+const string VizWinMgr::_vizColorbarEnabledAttr = "ColorbarEnabled";//obsolete with 2.4
+const string VizWinMgr::_vizColorbarEnabledTag = "ColorbarEnabled";
+const string VizWinMgr::_vizColorbarTitlesTag = "ColorbarTitles";
+const string VizWinMgr::_vizColorbarParamsNameAttr = "ColorbarParamsTag";//obsolete with 2.4
 const string VizWinMgr::_vizElevGridEnabledAttr = "ElevGridRenderingEnabled";
 const string VizWinMgr::_vizElevGridTexturedAttr = "ElevGridTextured";
 const string VizWinMgr::_vizElevGridColorAttr = "ElevGridColor";
@@ -1482,23 +1488,9 @@ ParamNode* VizWinMgr::buildNode() {
 			attrs[_vizAxisColorAttr] = oss.str();
 
 			oss.str(empty);
-			if (vizWin[i]->colorbarIsEnabled()) oss << "true";
-				else oss << "false";
-			attrs[_vizColorbarEnabledAttr] = oss.str();
-
-			int ptypeId = vizWin[i]->getColorbarParamsTypeId();
-			string pname = Params::GetTagFromType(ptypeId);
-			attrs[_vizColorbarParamsNameAttr] = pname;
-
-			oss.str(empty);
-			oss << (float)vizWin[i]->getColorbarLLCoord(0) << " "
-				<< (float)vizWin[i]->getColorbarLLCoord(1);
-			attrs[_vizColorbarLLPositionAttr] = oss.str();
-
-			oss.str(empty);
-			oss << (float)vizWin[i]->getColorbarURCoord(0) << " "
-				<< (float)vizWin[i]->getColorbarURCoord(1);
-			attrs[_vizColorbarURPositionAttr] = oss.str();
+			oss << (float)vizWin[i]->getColorbarSize(0) << " "
+				<< (float)vizWin[i]->getColorbarSize(1);
+			attrs[_vizColorbarSizeAttr] = oss.str();
 
 			oss.str(empty);
 			oss << (int) vizWin[i]->getColorbarNumTics();
@@ -1515,9 +1507,25 @@ ParamNode* VizWinMgr::buildNode() {
 			oss.str(empty);
 			oss << (int) i;
 			attrs[_visualizerNumAttr] = oss.str();
+
 			
 			ParamNode* locals = new ParamNode(_vizWinTag, attrs, 5);
 			vizMgrNode->AddChild(locals);
+
+			//Add the colorbar enabled, LLX, and LLY vectors
+			vector<double> LLX, LLY;
+			vector<long> enabled;
+			vector<string> titles;
+			for (int j = 0; j<vizWin[i]->getColorbarEnabled().size(); j++){
+				LLX.push_back((double)vizWin[i]->getColorbarLLX()[j]);
+				LLY.push_back((double)vizWin[i]->getColorbarLLY()[j]);
+				enabled.push_back((long)vizWin[i]->getColorbarEnabled()[j]);
+				titles.push_back(vizWin[i]->getColorbarTitles()[j]);
+			}
+			locals->SetElementLong(_vizColorbarEnabledTag, enabled);
+			locals->SetElementDouble(_vizColorbarLLXTag, LLX);
+			locals->SetElementDouble(_vizColorbarLLYTag, LLY);
+			locals->SetElementStringVec(_vizColorbarTitlesTag, titles, "_%_");
 			//Loop over all the local params that exist for this window:
 			
 			for (int pclass = 1; pclass<= Params::GetNumParamsClasses(); pclass++){
@@ -1578,10 +1586,11 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		int labelHeight = 10;
 		int labelDigits = 4;
 		float ticWidth = 2.f;
-		float colorbarLLPos[2], colorbarURPos[2];
+		float colorbarLLPos[2], colorbarURPos[2], colorbarSize[2];
 		colorbarLLPos[0]=colorbarLLPos[1]=0.f;
 		colorbarURPos[0]=0.1f;
 		colorbarURPos[1]=0.3f;
+		colorbarSize[0] = colorbarSize[1] = 0.f;
 		int colorbarFontsize = 10;
 		int colorbarDigits = 3;
 		int colorbarTics = 11;
@@ -1705,9 +1714,17 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 			}
 			else if (StrCmpNoCase(attr, _vizColorbarLLPositionAttr) == 0) {
 				ist >> colorbarLLPos[0]; ist>>colorbarLLPos[1];
+				colorbarSize[0] = colorbarURPos[0] - colorbarLLPos[0];
+				colorbarSize[1] = colorbarURPos[1] - colorbarLLPos[1];
 			}
 			else if (StrCmpNoCase(attr, _vizColorbarURPositionAttr) == 0) {
+				//from 2.3 and earlier...
 				ist >> colorbarURPos[0]; ist>>colorbarURPos[1];
+				colorbarSize[0] = colorbarURPos[0] - colorbarLLPos[0];
+				colorbarSize[1] = colorbarURPos[1] - colorbarLLPos[1];
+			}
+			else if (StrCmpNoCase(attr, _vizColorbarSizeAttr) == 0) {
+				ist >> colorbarSize[0]; ist>>colorbarSize[1];
 			}
 			else if (StrCmpNoCase(attr, _vizAxisArrowsEnabledAttr) == 0) {
 				if (value == "true") axesEnabled = true; 
@@ -1753,7 +1770,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		vizWin[parsingVizNum]->setColorbarBackgroundColor(winColorbarColor);
 		vizWin[parsingVizNum]->enableAxisArrows(axesEnabled);
 		vizWin[parsingVizNum]->enableAxisAnnotation(axisAnnotationEnabled);
-		vizWin[parsingVizNum]->enableColorbar(colorbarEnabled);
+		
 		vizWin[parsingVizNum]->enableRegionFrame(regionEnabled);
 		vizWin[parsingVizNum]->enableSubregionFrame(subregionEnabled);
 				
@@ -1775,21 +1792,42 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		vizWin[parsingVizNum]->setTicWidth(ticWidth);
 		vizWin[parsingVizNum]->setAxisColor(axisColor);
 		vizWin[parsingVizNum]->setLatLonAnnotation(useLatLonAnnot);
-		vizWin[parsingVizNum]->setColorbarLLCoord(0, colorbarLLPos[0]);
-		vizWin[parsingVizNum]->setColorbarLLCoord(1, colorbarLLPos[1]);
-		vizWin[parsingVizNum]->setColorbarURCoord(0, colorbarURPos[0]);
-		vizWin[parsingVizNum]->setColorbarURCoord(1, colorbarURPos[1]);
+		if (colorbarSize[0] > 0.f || colorbarSize[1] > 0.f){
+			vizWin[parsingVizNum]->setColorbarSize(0, colorbarSize[0]);
+			vizWin[parsingVizNum]->setColorbarSize(1, colorbarSize[1]);
+		}
+		if (colorbarEnabled){
+			//For backwards compatibility, specify the LL coordinates of
+			//a colorbar that is associated with the variable.
+			int colorbarRendererIndex = vizWin[parsingVizNum]->getGLWindow()->getColorbarIndex(colorbarParamsTypeId);
+			if (colorbarRendererIndex >=0){
+				vizWin[parsingVizNum]->setColorbarEnabled(colorbarRendererIndex,true);
+				vizWin[parsingVizNum]->setColorbarLLXY(colorbarRendererIndex,colorbarLLPos[0],colorbarLLPos[1]);
+				vizWin[parsingVizNum]->setColorbarTitle(colorbarRendererIndex,"");
+			}
+		}
+		
 		vizWin[parsingVizNum]->setColorbarNumTics(colorbarTics);
 		vizWin[parsingVizNum]->setColorbarDigits(colorbarDigits);
 		vizWin[parsingVizNum]->setColorbarFontsize(colorbarFontsize);
-		vizWin[parsingVizNum]->setColorbarParamsTypeId(colorbarParamsTypeId);
 		
 		return true;
 		}
 	case(3):
 		{
+		
+
 		//push the subsequent parsing to the params for current window 
 		if (parsingVizNum < 0) return false;//we should have already created a visualizer
+		// For vapor 2.4+, the colorbars have vectors to specify enabled, LLX, LLY
+		ExpatStackElement *state = pm->getStateStackTop();
+		if (tag == _vizColorbarLLXTag || tag == _vizColorbarLLYTag || tag == _vizColorbarEnabledTag || tag == _vizColorbarTitlesTag){
+			attrs++;
+			state->data_type = *attrs;
+			attrs++;
+			state->has_data = 1;
+			return true;
+		}
 		Params::ParamsBaseType typeId = Params::GetTypeFromTag(tag);
 		if (typeId <= 0) {
 			MessageReporter::errorMsg("Unrecognized Params tag: %s",tag.c_str());
@@ -1834,6 +1872,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 //End handler has nothing to do except for checking validity, except at end
 //need to pop back to session.
 bool VizWinMgr::elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
+	ExpatStackElement *state = pm->getStateStackTop();
 	switch (depth) {
 		case(1):
 			{
@@ -1861,6 +1900,45 @@ bool VizWinMgr::elementEndHandler(ExpatParseMgr* pm, int depth , std::string& ta
 		case(3):
 			//End of parsing a params for a visualizer (popped back from params parsing)
 			if (parsingVizNum < 0) return false;
+			
+			//Get the colorbar vectors
+			if (StrCmpNoCase(state->data_type, _longType) == 0 && tag == _vizColorbarEnabledTag) {
+				const vector <long> &lvec = pm->getLongData();
+				for (int i = 0; i<lvec.size(); i++) 
+					vizWin[parsingVizNum]->setColorbarEnabled(i, (bool)lvec[i]);
+			}
+
+			if (StrCmpNoCase(state->data_type, _doubleType) == 0 && tag == _vizColorbarLLXTag) {
+				const vector <double> &dvec = pm->getDoubleData();
+				vector<float> llx;
+				for (int i = 0; i<dvec.size(); i++) 
+					llx.push_back((float)dvec[i]);
+				vizWin[parsingVizNum]->setColorbarLLX(llx);
+			}
+			if (StrCmpNoCase(state->data_type, _doubleType) == 0 && tag == _vizColorbarLLYTag) {
+				const vector <double> &dvec = pm->getDoubleData();
+				vector<float> lly;
+				for (int i = 0; i<dvec.size(); i++) 
+					lly.push_back((float)dvec[i]);
+				vizWin[parsingVizNum]->setColorbarLLY(lly);
+			}
+			if (StrCmpNoCase(state->data_type, _stringType) == 0 && tag == _vizColorbarTitlesTag) {
+				string &svec = pm->getStringData();
+				vector<string> stvec;
+				//convert string data to vector.
+				StrToWordVec(svec, stvec);
+				//Replace every occurrence of "_%_" with blank
+				for (int i = 0; i<stvec.size(); i++){
+					string s = stvec[i];
+					for (int j = 0; j<stvec[i].size(); j++){
+						size_t found = s.find("_%_");
+						if (found == string::npos) break;
+						s.replace(found,3," ");
+					}
+					stvec[i] = s;
+				}
+				vizWin[parsingVizNum]->setColorbarTitles(stvec);
+			}
 			return true;
 		default:
 			return false;

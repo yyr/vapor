@@ -63,10 +63,10 @@ Renderer::~Renderer()
 //Following methods are to support display of a colorscale in front of the data.
 //
 void Renderer::
-buildColorscaleImage(){
+buildColorscaleImage( ){
 	//Get the image size from the VizWin:
-	float fwidth = myGLWindow->getColorbarURCoord(0) - myGLWindow->getColorbarLLCoord(0);
-	float fheight = myGLWindow->getColorbarURCoord(1) - myGLWindow->getColorbarLLCoord(1);
+	float fwidth = myGLWindow->getColorbarSize(0);
+	float fheight = myGLWindow->getColorbarSize(1);
 	imgWidth = (int)(fwidth*myGLWindow->width());
 	imgHeight = (int)(fheight*myGLWindow->height());
 	if (imgWidth < 2 || imgHeight < 2) return;
@@ -116,7 +116,7 @@ buildColorscaleImage(){
 	TransferFunction* myTransFunc = 
 		(TransferFunction*)currentRenderParams->GetMapperFunc();
 	
-	
+	if (!myTransFunc) return;
 	
 	for (int i = 0; i< numtics; i++){
 		int ticPos = i*(imgHeight/numtics)+(imgHeight/(2*numtics));
@@ -164,11 +164,11 @@ buildColorscaleImage(){
 	
 }
 void Renderer::
-renderColorscale(bool dorebuild){
+renderColorscale(bool dorebuild, int colortableIndex){
+	if (!currentRenderParams->GetMapperFunc()) return;
 	float whitecolor[4] = {1.,1.,1.,1.f};
 	if (dorebuild) buildColorscaleImage();
 
-	myGLWindow->setColorbarDirty(false);
 	glColor4fv(whitecolor);
 	glBindTexture(GL_TEXTURE_2D,_colorbarTexid);
 	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
@@ -180,11 +180,12 @@ renderColorscale(bool dorebuild){
 	//create a polygon appropriately positioned in the scene.  It's inside the unit cube--
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, imgWidth, imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE,
 		glColorbarImage.bits());
+	float llx = 2.f*myGLWindow->getColorbarLLX()[colortableIndex] - 1.f;
+	float lly = 2.f*myGLWindow->getColorbarLLY()[colortableIndex] - 1.f;
 	
-	float llx = 2.f*myGLWindow->getColorbarLLCoord(0) - 1.f; 
-	float lly = 2.f*myGLWindow->getColorbarLLCoord(1) - 1.f; 
-	float urx = 2.f*myGLWindow->getColorbarURCoord(0) - 1.f; 
-	float ury = 2.f*myGLWindow->getColorbarURCoord(1) - 1.f; 
+	float urx = llx + 2.*myGLWindow->getColorbarSize(0); 
+	float ury = lly + 2.*myGLWindow->getColorbarSize(1); 
+	
 	glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 	glBegin(GL_QUADS);
 	glTexCoord2f(0.0f, 0.0f); glVertex3f(llx, lly, 0.0f);

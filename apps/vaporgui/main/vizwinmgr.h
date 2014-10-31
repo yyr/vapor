@@ -512,12 +512,17 @@ protected:
 	static const string _vizLabelDigitsAttr;
 	static const string _vizColorbarDigitsAttr;
 	static const string _vizColorbarFontsizeAttr;
-	static const string _vizColorbarLLPositionAttr;
-	static const string _vizColorbarURPositionAttr;
+	static const string _vizColorbarLLPositionAttr;//obsolete with 2.4
+	static const string _vizColorbarURPositionAttr;//obsolete with 2.4
+	static const string _vizColorbarSizeAttr; //new with 2.4
+	static const string _vizColorbarLLXTag;//new with 2.4
+	static const string _vizColorbarLLYTag;//new with 2.4
+	static const string _vizColorbarTitlesTag; //new with 2.4
 	static const string _vizColorbarNumTicsAttr;
 	static const string _vizAxisArrowsEnabledAttr;
-	static const string _vizColorbarEnabledAttr;
-	static const string _vizColorbarParamsNameAttr;
+	static const string _vizColorbarEnabledAttr; //obsolete with 2.4
+	static const string _vizColorbarEnabledTag; //new with 2.4
+	static const string _vizColorbarParamsNameAttr; //obsolete with 2.4
 	static const string _vizRegionFrameEnabledAttr;
 	static const string _vizSubregionFrameEnabledAttr;
 	static const string _visualizerNumAttr;

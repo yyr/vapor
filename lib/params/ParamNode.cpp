@@ -302,6 +302,24 @@ int ParamNode::SetElementStringVec(
 	return(0);
 }
 
+int ParamNode::SetElementStringVec(
+	const string &tag, const vector<string> &str, string blankSub
+){ 
+	//Go through the vector, replacing blanks with blankSub
+	vector<string> subString;
+	for (int i = 0; i<str.size(); i++){
+		string newString = str[i];
+		for (int j = 0; j<str.size(); j++){
+			//replace all the blanks with blankSub
+			size_t found = newString.find(" ");
+			if (found == string::npos) break;
+			newString.replace(found, 1, blankSub);
+		}
+		subString.push_back(newString);
+	}
+	return SetElementStringVec(tag,subString);
+}
+	
 int ParamNode::SetFlagDirty(const string &tag){
 	// see if a dirty flag watcher is registered for this tag. If not
 	// do nothing.
@@ -670,6 +688,24 @@ void ParamNode::GetElementStringVec(const string &tag, vector <string> &vec, con
 	}
 	string s = currNode->GetElementString(tag);
 	StrToWordVec(s, vec);
+}
+void ParamNode::GetElementStringVec(const string &tag, vector <string> &vec, const string blankSub)  {
+	ParamNode* currNode = this;
+	if (!currNode->HasElementString(tag)){
+		return;
+	}
+	string s = currNode->GetElementString(tag);
+	StrToWordVec(s, vec);
+	for (int i = 0; i<vec.size(); i++){
+		string newString = vec[i];
+		for (int j = 0; j<vec[i].size(); j++){ //prevent infinite looping in case of invalid substitution
+			size_t found = newString.find(blankSub);
+			if (found == string::npos) break; // not found
+			newString.replace(found,blankSub.length()," ");
+		}
+		vec[i] = newString;
+	}
+
 }
 const string& ParamNode::GetElementString(const vector<string> &tagpath, const string& defaultVal) {
 	//Iterate through tags, finding associated node

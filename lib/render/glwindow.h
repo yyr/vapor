@@ -251,9 +251,12 @@ public:
 	QColor& getColorbarBackgroundColor() {return colorbarBackgroundColor;}
 	bool axisArrowsAreEnabled() {return axisArrowsEnabled;}
 	bool axisAnnotationIsEnabled() {return axisAnnotationEnabled;}
-	bool colorbarIsEnabled() {return colorbarEnabled;}
-	int getColorbarParamsTypeId() {return colorbarParamsTypeId;}
-	void setColorbarParamsTypeId(int val) {colorbarParamsTypeId = val;}
+	
+	const vector<bool> getColorbarEnabled() {return colorbarEnabled;}
+	void setColorbarEnabled(const vector<bool> vb) {colorbarEnabled = vb;}
+	void setColorbarTitles(const vector<string> vs) {colorbarTitles = vs;}
+	const vector<string> getColorbarTitles() {return colorbarTitles;}
+	
 	bool regionFrameIsEnabled() {return DataStatus::getInstance()->regionFrameIsEnabled();}
 	bool subregionFrameIsEnabled() {return DataStatus::getInstance()->subregionFrameIsEnabled();}
 	float getAxisArrowCoord(int i){return axisArrowCoord[i];}
@@ -267,8 +270,9 @@ public:
 	int getLabelDigits() {return labelDigits;}
 	float getTicWidth(){return ticWidth;}
 	QColor& getAxisColor() {return axisColor;}
-	float getColorbarLLCoord(int i) {return colorbarLLCoord[i];}
-	float getColorbarURCoord(int i) {return colorbarURCoord[i];}
+	const vector<float> getColorbarLLX() {return colorbarLLX;}
+	const vector<float> getColorbarLLY() {return colorbarLLY;}
+	float getColorbarSize(int i) {return colorbarSize[i];}
 	int getColorbarNumTics() {return numColorbarTics;}
 	int getColorbarDigits() {return colorbarDigits;}
 	int getColorbarFontsize() {return colorbarFontsize;}
@@ -292,7 +296,7 @@ public:
 	void setSubregionFrameColor(QColor& c) {DataStatus::getInstance()->setSubregionFrameColor(c);}
 	void enableAxisArrows(bool enable) {axisArrowsEnabled = enable;}
 	void enableAxisAnnotation(bool enable) {axisAnnotationEnabled = enable;}
-	void enableColorbar(bool enable) {colorbarEnabled = enable;}
+	
 	void enableRegionFrame(bool enable) {DataStatus::getInstance()->enableRegionFrame(enable);}
 	void enableSubregionFrame(bool enable) {DataStatus::getInstance()->enableSubregionFrame(enable);}
 	
@@ -309,8 +313,9 @@ public:
 	void setAxisColor(QColor& c) {axisColor = c;}
 	void setDisplacement(float val){displacement = val;}
 	float getDisplacement() {return displacement;}
-	void setColorbarLLCoord(int i, float crd) {colorbarLLCoord[i] = crd;}
-	void setColorbarURCoord(int i, float crd) {colorbarURCoord[i] = crd;}
+	void setColorbarLLX(const vector<float> crds) {colorbarLLX = crds;}
+	void setColorbarLLY(const vector<float> crds) {colorbarLLY = crds;}
+	void setColorbarSize(int i, float crd) {colorbarSize[i] = crd;}
 	void setColorbarNumTics(int i) {numColorbarTics = i;}
 	bool colorbarIsDirty() {return colorbarDirty;}
 	bool timeAnnotIsDirty() {return timeAnnotDirty;}
@@ -507,7 +512,12 @@ public:
 	void regPaintEvent();
 	bool peelInitialized;
 	bool isDepthPeeling(){return depthPeeling;}
-	
+	int getColorbarIndex(ParamsBase::ParamsBaseType t){
+		for (int i = 0; i< rendererTypeLookup.size(); i++){
+			if (rendererTypeLookup[i] == t) return i;
+		}
+		return -1;
+	}
 protected:
 	
 	QImage glTimeStampImage;
@@ -534,6 +544,19 @@ protected:
 	static bool renderPriority(RenderListElt* ren1, RenderListElt* ren2){
 		return (ren1->camDist > ren2->camDist);
 	}
+	int hasColorbarIndex(RenderParams* p){
+		if (!p->isEnabled()) return -1;
+		if (!p->UsesMapperFunction()) return -1;
+		if (p != Params::GetCurrentParamsInstance(p->GetParamsBaseTypeId(), winNum)) return -1;
+		for (int i = 0; i< rendererTypeLookup.size(); i++){
+			if (rendererTypeLookup[i] == p->GetParamsBaseTypeId()){
+				if (colorbarEnabled[i]) return i;
+				else return -1;
+			}
+		}
+		return -1;
+	}
+	
 	std::vector<QImage> axisLabels[3];
 	
 	bool axisLabelsDirty;
@@ -649,7 +672,6 @@ protected:
 	//values in vizFeature
 	QColor colorbarBackgroundColor;
 
-	int colorbarParamsTypeId;
 
 	int timeAnnotType;
 	int timeAnnotTextSize;
@@ -660,7 +682,7 @@ protected:
 	bool axisAnnotationEnabled;
 	int colorbarDigits;
 	int colorbarFontsize;
-	bool colorbarEnabled;
+	
 	float axisArrowCoord[3];
 	double axisOriginCoord[3];
 	double minTic[3];
@@ -673,8 +695,11 @@ protected:
 	QColor axisColor;
 	float displacement;
 
-	float colorbarLLCoord[2];
-	float colorbarURCoord[2];
+	vector<float> colorbarLLX;
+	vector<float> colorbarLLY;
+	vector<bool> colorbarEnabled;
+	vector<string>colorbarTitles;
+	float colorbarSize[2];
 	int numColorbarTics;
 	bool colorbarDirty;
 	bool timeAnnotDirty;
@@ -713,6 +738,7 @@ private:
 	map<Renderer*,vector<TextObject*> > textObjectMap;
 	map<Renderer*, bool> textValidFlag;
 	map< pair<Renderer*, int> , vector<float*>* > textCoordMap;
+	std::vector<int> rendererTypeLookup;
 	
 	
 #endif //DOXYGEN_SKIP_THIS
