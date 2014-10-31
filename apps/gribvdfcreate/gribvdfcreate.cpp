@@ -151,7 +151,7 @@ MetadataVDC *CreateMetadataVDC(
         }
     }
 
-	string gridtype = GribData->GetGridType();
+	string gridType = GribData->GetGridType();
 	file->SetGridType(gridType);
 	//file->SetGridType("layered");
     //string gridtype = file->GetGridType();

@@ -614,43 +614,43 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 }
 
 string DCReaderGRIB::GetGridType() {
-	if (!strcmp("regular_gg",_gridType.c_str()) return "regular";
+	if (!strcmp("regular_gg",_gridType.c_str())) return "regular";
 	else return "layered";
 }
 
 void DCReaderGRIB::_generateWeightTable() {
-	_gaussianLats = new double[_Ni];
-	grib_get_gaussian_latitudes(_Ni/2,_gaussianLats);
+	_gaussianLats = new double[_Nj];
+	grib_get_gaussian_latitudes(_Nj/2,_gaussianLats);
 
 
-	_regularLats = new double[_Ni];
-	double increment = (_maxLat - _minLat) / _Ni;
+	_regularLats = new double[_Nj];
+	double increment = (_maxLat - _minLat) / _Nj;
 	for (int i=0; i<_Nj; i++) {
 		_regularLats[i] = _maxLat - i*increment;
 	}
 
-	double candidate, closest, nextClosest, W;
-	for (int i=0; i<_Nj; i++) {
+	double regular, gaussianBelow, gaussianAbove, weight;
+	for (int regj=0; regj<_Nj; regj++) {
 
-		double closest = abs(_regularLats[i] - _gaussianLats[0]);	
-		double nextClosest = abs(_regularLats[i] - _gaussianLats[1]);
+		double closest = abs(_regularLats[regj] - _gaussianLats[0]);	
+		double nextClosest = abs(_regularLats[regj] - _gaussianLats[1]);
 		
 		// Find nearest neighbor below current regular lat
-		int j;
-		for (j=0; j<_Nj; j++) {
-		//	if (regularLats[i] <= gaussianLats[j]){
-		//		L1 = j;
-		//	}
-		//	else break;
-		
-		//  more efficient this way:
-			if (_regularLats[i] > _gaussianLats[j]) break; // this gaussian lat is below our regular lat
+		int gausj;
+		for (gausj=0; gausj<_Nj; gausj++) {
+			if (_regularLats[regj] >= _gaussianLats[gausj]) { // this gaussian lat is below our regular lat
+				regular = _regularLats[regj];
+				gaussianAbove = _gaussianLats[gausj];
+				gaussianBelow = _gaussianLats[gausj+1];
+				break;
+			}
 		}
 
 		// calculate weights
-		W = 1 - ((float)_regularLats[i] - (float)_gaussianLats[j]) / ((float)_gaussianLats[j] - (float)_gaussianLats[j+1]);
-		_weights.push_back(W);
-		_latIndices.push_back(j);
+		weight = 1 - abs(( ((float) regular  - (float)gaussianAbove)) 
+					/ ((float)gaussianAbove - (float)gaussianBelow));
+		_weights.push_back(weight);				// Store the weight for gaussian point "above" a regular latitude
+		_latIndices.push_back(regj);			// Store the guassian point "above" the indexed latitude
 	}
 }
 
