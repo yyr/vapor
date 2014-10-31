@@ -151,8 +151,10 @@ MetadataVDC *CreateMetadataVDC(
         }
     }
 
-	file->SetGridType("layered");
-    string gridtype = file->GetGridType();
+	string gridtype = GribData->GetGridType();
+	file->SetGridType(gridType);
+	//file->SetGridType("layered");
+    //string gridtype = file->GetGridType();
 
 //    if (gridtype.compare("layered")==0) {
 //        vector <string> vec;

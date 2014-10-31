@@ -45,6 +45,8 @@ class UDUnits;
 	 ~DCReaderGRIB();
 
 	void Print2dVars();
+	void _generateWeightTable();
+	string GetGridType();
 
 	/////
 	// DCReader Virtual Functions
@@ -92,6 +94,7 @@ class UDUnits;
 	/////
 
 	vector <double> GetZCoordsInMeters() {return _meterLevels;}
+	void _LinearInterpolation(float* values);
 	
     private:
 	 /////
@@ -150,6 +153,7 @@ class UDUnits;
 	    std::vector<double> _unitTimes;
 		bool iScan;
 		bool jScan;
+		bool isGaussian;
 	};
 
 	 static int _sliceNum;
@@ -182,6 +186,12 @@ class UDUnits;
 	 std::map<std::string, Variable*> _vars1d;
      std::map<std::string, Variable*> _vars2d;
      std::map<std::string, Variable*> _vars3d;
+	 double* _gaussianLats;
+	 std::vector<double> _weights;
+	 std::vector<int> _latIndices;
+	 float* _iValues;
+	 double* _regularLats;
+
 	 UDUnits *_udunit;
 
 	 class GribParser {

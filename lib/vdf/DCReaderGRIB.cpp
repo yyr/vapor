@@ -23,6 +23,7 @@
 #include <iterator>
 #include <cassert>
 #include <string>
+#include <cmath>
 
 #include "vapor/DCReaderGRIB.h"
 #include "vapor/Proj4API.h"
@@ -158,7 +159,7 @@ int DCReaderGRIB::Read(float *_values) {
 	return rc;
 }
 
-int DCReaderGRIB::ReadSlice(float *_values){
+int DCReaderGRIB::ReadSlice(float *values){
 
 	Variable *targetVar;
 	if (_vars3d.find(_openVar) != _vars3d.end()) {       // we have a 3d var
@@ -175,6 +176,8 @@ int DCReaderGRIB::ReadSlice(float *_values){
 	float level = targetVar->GetLevel(_sliceNum);
 	int offset = targetVar->GetOffset(usertime,level);
 	string filename = targetVar->GetFileName(usertime,level);	
+
+	
 	
     int rc = fseek(_inFile,offset,SEEK_SET);
 	if (rc != 0) {
@@ -193,19 +196,19 @@ int DCReaderGRIB::ReadSlice(float *_values){
     }   
 
     /* get the size of the _values array*/
-	size_t _values_len;
-    GRIB_CHECK(grib_get_size(h,"values",&_values_len),0);
-    double* _dvalues = new double[_values_len];
+	size_t values_len;
+    GRIB_CHECK(grib_get_size(h,"values",&values_len),0);
+    double* _dvalues = new double[values_len];
  
     /* get data _values*/
-    GRIB_CHECK(grib_get_double_array(h,"values",_dvalues,&_values_len),0);
+    GRIB_CHECK(grib_get_double_array(h,"values",_dvalues,&values_len),0);
 
 	// re-order values according to scan direciton and convert doubles to floats
 	float min,max;
 	min = (float) _dvalues[0];
 	max = (float) _dvalues[0];
 	int vaporIndex, i, j;
-    for(size_t gribIndex = 0; gribIndex < _values_len; gribIndex++) {
+    for(size_t gribIndex = 0; gribIndex < values_len; gribIndex++) {
 		if (_iScanNeg == 1) {
 			if (_jScanPos == 1) {   // 1 1
 				i = _Ni - gribIndex%_Ni;
@@ -226,11 +229,15 @@ int DCReaderGRIB::ReadSlice(float *_values){
 			else {
 				vaporIndex = gribIndex;
 			}
-		}	
-		_values[vaporIndex] = (float) _dvalues[gribIndex];
-		if (_values[vaporIndex] < min) min = _values[vaporIndex];
-		if (_values[vaporIndex] > max) max = _values[vaporIndex];
+		}
+
+		values[vaporIndex] = (float) _dvalues[gribIndex];
+		if (values[vaporIndex] < min) min = values[vaporIndex];
+		if (values[vaporIndex] > max) max = values[vaporIndex];
 	}
+
+	// Apply linear interpolation on _values if we are on a gaussian grid
+	if(!strcmp(_gridType.c_str(),"regular_gg")) _LinearInterpolation(values);
 
 	cout << _openVar << " " << usertime << " " << level << " " << _sliceNum << " " << offset << " " << filename << " " << min << " " << max << endl;
 
@@ -246,13 +253,33 @@ int DCReaderGRIB::ReadSlice(float *_values){
 	return 1;
 }
 
+void DCReaderGRIB::_LinearInterpolation(float *values) {
+	if (_iValues) delete [] _iValues;
+	_iValues = new float[_Ni*_Nj];
+	int lat, gLatIndex, dataIndex1, dataIndex2;
+	float weight, point1, point2;
+
+	for (int i=0; i<_Ni*_Nj; i++) {
+		lat = i/_Ni;							// find the index of our regular latitude to be interpolated
+		weight = _weights[lat];					// the weight that corresponds to our current regular latitude index
+		gLatIndex = _latIndices[lat];			// find the gaussian latitude index below our regular latitude
+		dataIndex1 = gLatIndex * _Ni + i;
+		dataIndex2 = (gLatIndex+1) * _Ni + i;
+		point1 = values[dataIndex1];			// data point below our interpolation
+		point2 = values[dataIndex2];			// data point above our interpolation
+		_iValues[i] = weight * point1 + (1-weight) * point2;
+	}
+	values = _iValues;
+}
+
 string DCReaderGRIB::GetMapProjection() const {
 	double lat_0;
 	double lon_0;
 	double lat_ts;
 	ostringstream oss;
 	string projstring;
-	if (!strcmp(_gridType.c_str(), "regular_ll")){
+	if (!strcmp(_gridType.c_str(), "regular_ll") || 
+		!strcmp(_gridType.c_str(), "regular_gg")){
 	    lon_0 = (_minLon + _maxLon) / 2.0;
 	    lat_0 = (_minLat + _maxLat) / 2.0;
 	    oss << " +lon_0=" << lon_0 << " +lat_0=" << lat_0;
@@ -290,6 +317,7 @@ string DCReaderGRIB::GetMapProjection() const {
 		oss << " +lon_0=" << lon_0 << " +lat_ts=" << lat_ts;
 		projstring = "+proj=merc" + oss.str();
 	}
+	else projstring = "";
     return(projstring);
 }
 
@@ -313,7 +341,7 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
 
     Proj4API proj4API;
 
-    int rc = proj4API.Initialize("", mapProj);
+	int rc = proj4API.Initialize("", mapProj);
     if (rc<0) {
         SetErrMsg("Invalid map projection : %s", mapProj.c_str());
         return(-1);
@@ -322,6 +350,7 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
 	double x[2];
 	double y[2];
 	if (!strcmp(_gridType.c_str(),"regular_ll") ||
+		!strcmp(_gridType.c_str(),"regular_gg") ||
 		!strcmp(_gridType.c_str(),"mercator")) {
 	    x[0] = _minLon;
 		x[1] = _maxLon;
@@ -354,32 +383,39 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
     //    SetErrMsg("Invalid map projection : %s", mapProj.c_str());
     //    return(-1);
     //}  
-	
-	OpenVariableRead(0,"ELEVATION",0,0);
-	float *values = new float[_Ni*_Nj];
-	ReadSlice(values);
 
-	float max = values[0];
-	for (int i=0; i<_Ni; i++){
-		for (int j=0; j<_Nj; j++) {
-			float value = values[j*_Ni+i];
-			if (value > max) max = value;
-		}
+	float min, max;
+	if (!strcmp(_gridType.c_str(),"regular_gg")) {
+		min = 0;
+		max = 0;
 	}
+	else {	
+		OpenVariableRead(0,"ELEVATION",0,0);
+		float *values = new float[_Ni*_Nj];
+		ReadSlice(values);
 
-	_sliceNum = _pressureLevels.size()-1;
-    ReadSlice(values);
+		max = values[0];
+		for (int i=0; i<_Ni; i++){
+			for (int j=0; j<_Nj; j++) {
+				float value = values[j*_Ni+i];
+				if (value > max) max = value;
+			}
+		}
 
-    float min = values[0];
-    for (int i=0; i<_Ni; i++){
-        for (int j=0; j<_Nj; j++) {
-            float value = values[j*_Ni+i];
-            if (value < min) min = value;
-        }   
-    }
+		_sliceNum = _pressureLevels.size()-1;
+	    ReadSlice(values);
+
+	    min = values[0];
+	    for (int i=0; i<_Ni; i++){
+	        for (int j=0; j<_Nj; j++) {
+	            float value = values[j*_Ni+i];
+	            if (value < min) min = value;
+	        }   
+	    }
 	
-	_sliceNum += 1;
-	
+		_sliceNum += 1;
+		if (values) delete [] values;
+	}
 	/*
 	for (i=0; i<_pressureLevels.size(); i++) {
 		double height = BarometricFormula(_pressureLevels[i]);
@@ -397,7 +433,6 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
     _cartographicExtents.push_back(y[1]);
     _cartographicExtents.push_back(max);
 
-	if (values) delete [] values;
 
     return 0;
 }
@@ -434,7 +469,7 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	int Ny = atoi(records[0]["Ny"].c_str());
 	double DiInMetres = atof(records[0]["DiInMetres"].c_str());	
 	double DjInMetres = atof(records[0]["DjInMetres"].c_str());
-	
+
 	if(!strcmp(_gridType.c_str(),"polar_stereographic") ||
 		!strcmp(_gridType.c_str(),"lambert")){
 		_Ni = Nx;
@@ -466,6 +501,10 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 
 	if (_maxLon < 0) _maxLon += 360;
 	if (_minLon > _maxLon) _minLon = _minLon - 360;
+
+	if (!strcmp(_gridType.c_str(),"regular_gg")) {
+		_generateWeightTable();
+	}
 
     for (int i=0; i<numRecords; i++) {
 		std::map<std::string, std::string> record = records[i];
@@ -572,6 +611,47 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	if (rc<0) return -1;			 
 
 	return 0;
+}
+
+string DCReaderGRIB::GetGridType() {
+	if (!strcmp("regular_gg",_gridType.c_str()) return "regular";
+	else return "layered";
+}
+
+void DCReaderGRIB::_generateWeightTable() {
+	_gaussianLats = new double[_Ni];
+	grib_get_gaussian_latitudes(_Ni/2,_gaussianLats);
+
+
+	_regularLats = new double[_Ni];
+	double increment = (_maxLat - _minLat) / _Ni;
+	for (int i=0; i<_Nj; i++) {
+		_regularLats[i] = _maxLat - i*increment;
+	}
+
+	double candidate, closest, nextClosest, W;
+	for (int i=0; i<_Nj; i++) {
+
+		double closest = abs(_regularLats[i] - _gaussianLats[0]);	
+		double nextClosest = abs(_regularLats[i] - _gaussianLats[1]);
+		
+		// Find nearest neighbor below current regular lat
+		int j;
+		for (j=0; j<_Nj; j++) {
+		//	if (regularLats[i] <= gaussianLats[j]){
+		//		L1 = j;
+		//	}
+		//	else break;
+		
+		//  more efficient this way:
+			if (_regularLats[i] > _gaussianLats[j]) break; // this gaussian lat is below our regular lat
+		}
+
+		// calculate weights
+		W = 1 - ((float)_regularLats[i] - (float)_gaussianLats[j]) / ((float)_gaussianLats[j] - (float)_gaussianLats[j+1]);
+		_weights.push_back(W);
+		_latIndices.push_back(j);
+	}
 }
 
 void DCReaderGRIB::Print3dVars() {
@@ -739,10 +819,7 @@ DCReaderGRIB::GribParser::GribParser() {
 	_varyingKeys.push_back("typeOfLevel");
 	_varyingKeys.push_back("level");	
 
-	// data dump vars
 	_values     = NULL;
-	//_in         = NULL;
-	//_h          = NULL;
 	_values_len = 0;	
     _err        = 0;
 }
