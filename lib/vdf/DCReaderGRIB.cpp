@@ -23,6 +23,7 @@
 #include <iterator>
 #include <cassert>
 #include <string>
+#include <cmath>
 
 #include "vapor/DCReaderGRIB.h"
 #include "vapor/Proj4API.h"
@@ -63,7 +64,10 @@ int DCReaderGRIB::Variable::GetOffset(double time, float level) {
 }
 
 string DCReaderGRIB::Variable::GetFileName(double time, float level) {
-    string fname = _indices[time][level].fileName;
+	//if (_vars3d.find(name) != _vars3d.end()) {	// we have a 3d var
+	    string fname = _indices[time][level].fileName;
+	//}
+	//else fname = _indices[time]
     return fname; 
 }
 
@@ -109,18 +113,31 @@ int DCReaderGRIB::OpenVariableRead(size_t timestep, string varname,
 
     if (timestep > _gribTimes.size()) return -1;
 
-    if (_vars3d.find(varname) == _vars3d.end()) {
-        if (_vars2d.find(varname) == _vars2d.end())
-			return -1; 		// variable does not exist
-    }
+	_openVar = varname;
+	_openTS = timestep;
 
-    _openVar = varname;
-    _openTS = timestep;
-	Variable *targetVar = _vars3d[_openVar];
+	Variable *targetVar;
+	string filename;
+	float level;
 	double usertime = GetTSUserTime(_openTS);
-    float level = targetVar->GetLevel(_sliceNum);
-    string filename = targetVar->GetFileName(usertime,level);
+    if (_vars3d.find(varname) != _vars3d.end()) {       // we have a 3d var
+		targetVar = _vars3d[_openVar];
+		level = targetVar->GetLevel(_sliceNum);
+		filename = targetVar->GetFileName(usertime,level);
+	}
+    else if (_vars2d.find(varname) != _vars2d.end()) {  // we have a 2d var
+		targetVar = _vars2d[_openVar];
+		level = targetVar->GetLevel(0);
+		filename = targetVar->GetFileName(usertime,level);
+	}
+	else return -1; 		// variable does not exist
+    
+//	Variable *targetVar = _vars3d[_openVar];
+//	double usertime = GetTSUserTime(_openTS);
+//  float level = targetVar->GetLevel(_sliceNum);
+//  string filename = targetVar->GetFileName(usertime,level);
 
+	//fclose(_inFile);
     _inFile = fopen(filename.c_str(),"rb");
     if(!_inFile) {
         char err[50];
@@ -142,16 +159,31 @@ int DCReaderGRIB::Read(float *_values) {
 	return rc;
 }
 
-int DCReaderGRIB::ReadSlice(float *_values){
+int DCReaderGRIB::ReadSlice(float *values){
 
-	Variable *targetVar = _vars3d[_openVar];
+	Variable *targetVar;
+	if (_vars3d.find(_openVar) != _vars3d.end()) {       // we have a 3d var
+		targetVar = _vars3d[_openVar];
+	}
+	else if (_vars2d.find(_openVar) != _vars2d.end()) {  // we have a 2d var
+		targetVar = _vars2d[_openVar];
+	}
+	else {
+		MyBase::SetErrMsg("Variable not found in 2d or 3d variable set");
+		return -1;
+	}
 	double usertime = GetTSUserTime(_openTS);
 	float level = targetVar->GetLevel(_sliceNum);
 	int offset = targetVar->GetOffset(usertime,level);
 	string filename = targetVar->GetFileName(usertime,level);	
+
+	
 	
     int rc = fseek(_inFile,offset,SEEK_SET);
-	if (rc != 0) MyBase::SetErrMsg("fseek error during GRIB ReadSlice");  
+	if (rc != 0) {
+		MyBase::SetErrMsg("fseek error during GRIB ReadSlice");  
+		return -1;
+	}
 
 	/* create new handle from a message in a file*/
 	int err;
@@ -160,22 +192,23 @@ int DCReaderGRIB::ReadSlice(float *_values){
 		char erro[50];
         sprintf(erro,"Error: unable to create handle from file %s\n",filename.c_str());
         MyBase::SetErrMsg(erro);
+		return -1;
     }   
 
     /* get the size of the _values array*/
-	size_t _values_len;
-    GRIB_CHECK(grib_get_size(h,"values",&_values_len),0);
-    double* _dvalues = new double[_values_len];
+	size_t values_len;
+    GRIB_CHECK(grib_get_size(h,"values",&values_len),0);
+    double* _dvalues = new double[values_len];
  
     /* get data _values*/
-    GRIB_CHECK(grib_get_double_array(h,"values",_dvalues,&_values_len),0);
+    GRIB_CHECK(grib_get_double_array(h,"values",_dvalues,&values_len),0);
 
 	// re-order values according to scan direciton and convert doubles to floats
 	float min,max;
 	min = (float) _dvalues[0];
 	max = (float) _dvalues[0];
 	int vaporIndex, i, j;
-    for(size_t gribIndex = 0; gribIndex < _values_len; gribIndex++) {
+    for(size_t gribIndex = 0; gribIndex < values_len; gribIndex++) {
 		if (_iScanNeg == 1) {
 			if (_jScanPos == 1) {   // 1 1
 				i = _Ni - gribIndex%_Ni;
@@ -196,22 +229,47 @@ int DCReaderGRIB::ReadSlice(float *_values){
 			else {
 				vaporIndex = gribIndex;
 			}
-		}	
-		_values[vaporIndex] = (float) _dvalues[gribIndex];
-		if (_values[vaporIndex] < min) min = _values[vaporIndex];
-		if (_values[vaporIndex] > max) max = _values[vaporIndex];
+		}
+
+		values[vaporIndex] = (float) _dvalues[gribIndex];
+		if (values[vaporIndex] < min) min = values[vaporIndex];
+		if (values[vaporIndex] > max) max = values[vaporIndex];
 	}
 
-	cout << _openVar << " " << min << " " << max << endl;
+	// Apply linear interpolation on _values if we are on a gaussian grid
+	if(!strcmp(_gridType.c_str(),"regular_gg")) _LinearInterpolation(values);
+
+	cout << _openVar << " " << usertime << " " << level << " " << _sliceNum << " " << offset << " " << filename << " " << min << " " << max << endl;
 
     delete [] _dvalues;
 
-	//if (_sliceNum == _pressureLevels.size()-1) _sliceNum = 0;
-	//else _sliceNum++;
-	if (_sliceNum == 0) _sliceNum = _pressureLevels.size()-1;
-	else _sliceNum--;
-    grib_handle_delete(h);
+
+    if (_vars3d.find(_openVar) != _vars3d.end()) {       // we have a 3d var, adjust the slice number
+		if (_sliceNum == 0) _sliceNum = _pressureLevels.size()-1;
+		else _sliceNum--;
+	}
+   
+	grib_handle_delete(h);
 	return 1;
+}
+
+void DCReaderGRIB::_LinearInterpolation(float *values) {
+	if (_iValues) delete [] _iValues;
+	_iValues = new float[_Ni*_Nj];
+	int lat, gLatIndex, dataIndex1, dataIndex2;
+	float weight, point1, point2;
+
+	for (int i=0; i<_Ni*_Nj; i++) {
+		lat = i/_Ni;							// find the index of our regular latitude to be interpolated
+		weight = _weights[lat];					// the weight that corresponds to our current regular latitude index
+		gLatIndex = _latIndices[lat];			// find the gaussian latitude index below our regular latitude
+		dataIndex1 = gLatIndex * _Ni + i;
+		dataIndex2 = (gLatIndex+1) * _Ni + i;
+		point1 = values[dataIndex1];			// data point below our interpolation
+		point2 = values[dataIndex2];			// data point above our interpolation
+		_iValues[i] = weight * point1 + (1-weight) * point2;
+	}
+	values = _iValues;
 }
 
 string DCReaderGRIB::GetMapProjection() const {
@@ -220,7 +278,8 @@ string DCReaderGRIB::GetMapProjection() const {
 	double lat_ts;
 	ostringstream oss;
 	string projstring;
-	if (!strcmp(_gridType.c_str(), "regular_ll")){
+	if (!strcmp(_gridType.c_str(), "regular_ll") || 
+		!strcmp(_gridType.c_str(), "regular_gg")){
 	    lon_0 = (_minLon + _maxLon) / 2.0;
 	    lat_0 = (_minLat + _maxLat) / 2.0;
 	    oss << " +lon_0=" << lon_0 << " +lat_0=" << lat_0;
@@ -258,6 +317,7 @@ string DCReaderGRIB::GetMapProjection() const {
 		oss << " +lon_0=" << lon_0 << " +lat_ts=" << lat_ts;
 		projstring = "+proj=merc" + oss.str();
 	}
+	else projstring = "";
     return(projstring);
 }
 
@@ -281,7 +341,7 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
 
     Proj4API proj4API;
 
-    int rc = proj4API.Initialize("", mapProj);
+	int rc = proj4API.Initialize("", mapProj);
     if (rc<0) {
         SetErrMsg("Invalid map projection : %s", mapProj.c_str());
         return(-1);
@@ -290,6 +350,7 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
 	double x[2];
 	double y[2];
 	if (!strcmp(_gridType.c_str(),"regular_ll") ||
+		!strcmp(_gridType.c_str(),"regular_gg") ||
 		!strcmp(_gridType.c_str(),"mercator")) {
 	    x[0] = _minLon;
 		x[1] = _maxLon;
@@ -322,32 +383,39 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
     //    SetErrMsg("Invalid map projection : %s", mapProj.c_str());
     //    return(-1);
     //}  
-	
-	OpenVariableRead(0,"ELEVATION",0,0);
-	float *values = new float[_Ni*_Nj];
-	ReadSlice(values);
 
-	float max = values[0];
-	for (int i=0; i<_Ni; i++){
-		for (int j=0; j<_Nj; j++) {
-			float value = values[j*_Ni+i];
-			if (value > max) max = value;
-		}
+	float min, max;
+	if (!strcmp(_gridType.c_str(),"regular_gg")) {
+		min = 0;
+		max = 0;
 	}
+	else {	
+		OpenVariableRead(0,"ELEVATION",0,0);
+		float *values = new float[_Ni*_Nj];
+		ReadSlice(values);
 
-	_sliceNum = _pressureLevels.size()-1;
-    ReadSlice(values);
+		max = values[0];
+		for (int i=0; i<_Ni; i++){
+			for (int j=0; j<_Nj; j++) {
+				float value = values[j*_Ni+i];
+				if (value > max) max = value;
+			}
+		}
 
-    float min = values[0];
-    for (int i=0; i<_Ni; i++){
-        for (int j=0; j<_Nj; j++) {
-            float value = values[j*_Ni+i];
-            if (value < min) min = value;
-        }   
-    }
+		_sliceNum = _pressureLevels.size()-1;
+	    ReadSlice(values);
+
+	    min = values[0];
+	    for (int i=0; i<_Ni; i++){
+	        for (int j=0; j<_Nj; j++) {
+	            float value = values[j*_Ni+i];
+	            if (value < min) min = value;
+	        }   
+	    }
 	
-	_sliceNum += 1;
-	
+		_sliceNum += 1;
+		if (values) delete [] values;
+	}
 	/*
 	for (i=0; i<_pressureLevels.size(); i++) {
 		double height = BarometricFormula(_pressureLevels[i]);
@@ -365,7 +433,6 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
     _cartographicExtents.push_back(y[1]);
     _cartographicExtents.push_back(max);
 
-	if (values) delete [] values;
 
     return 0;
 }
@@ -402,7 +469,7 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	int Ny = atoi(records[0]["Ny"].c_str());
 	double DiInMetres = atof(records[0]["DiInMetres"].c_str());	
 	double DjInMetres = atof(records[0]["DjInMetres"].c_str());
-	
+
 	if(!strcmp(_gridType.c_str(),"polar_stereographic") ||
 		!strcmp(_gridType.c_str(),"lambert")){
 		_Ni = Nx;
@@ -435,6 +502,10 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	if (_maxLon < 0) _maxLon += 360;
 	if (_minLon > _maxLon) _minLon = _minLon - 360;
 
+	if (!strcmp(_gridType.c_str(),"regular_gg")) {
+		_generateWeightTable();
+	}
+
     for (int i=0; i<numRecords; i++) {
 		std::map<std::string, std::string> record = records[i];
 		string levelType = record["typeOfLevel"];
@@ -442,6 +513,7 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 		string name  = record["shortName"];
 		string file = record["file"];
 		int offset = atoi(record["offset"].c_str());
+		cout << offset << endl;
 		int year   = atoi(record["yearOfCentury"].c_str()) + 2000;
 		int month  = atoi(record["month"].c_str());
 		int day    = atoi(record["day"].c_str());
@@ -457,9 +529,10 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 		if (std::find(_gribTimes.begin(), _gribTimes.end(), time) == _gribTimes.end())
 			_gribTimes.push_back(time);
 
-		if (std::find(_pressureLevels.begin(), _pressureLevels.end(), level) == _pressureLevels.end())
-			//if ((level != 0.f) && strcmp(name.c_str(),"sigma"))_pressureLevels.push_back(level);
+		if (std::find(_pressureLevels.begin(), _pressureLevels.end(), level) == _pressureLevels.end()) {
 			if (!strcmp(name.c_str(),"gh")) _pressureLevels.push_back(level);
+		}
+			//if ((level != 0.f) && strcmp(name.c_str(),"sigma"))_pressureLevels.push_back(level);
 
 		int isobaric = strcmp(levelType.c_str(),"isobaricInhPa");
 		if (isobaric == 0) {								    // if we have a 3d var...
@@ -474,7 +547,7 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 			
 			// Add level data for current var object
 			std::vector<float> varLevels = _vars3d[name]->GetLevels();
-			if (std::find(varLevels.begin(),varLevels.end(),time) == varLevels.end())
+			if (std::find(varLevels.begin(),varLevels.end(),level) == varLevels.end())
 				_vars3d[name]->_AddLevel(level);
 			
 			_vars3d[name]->_AddMessage(i);									// in the grib file)
@@ -491,7 +564,7 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 			// Add level data to current var object
 			// (this should only happen once for a 2D var
             std::vector<float> varLevels = _vars2d[name]->GetLevels();
-            if (std::find(varLevels.begin(),varLevels.end(),time) == varLevels.end())
+            if (std::find(varLevels.begin(),varLevels.end(),level) == varLevels.end())
                 _vars2d[name]->_AddLevel(level);
 
 			_vars2d[name]->_AddTime(time);
@@ -514,13 +587,18 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	
 	typedef std::map<std::string, Variable*>::iterator it_type;
 	for (it_type iterator=_vars3d.begin(); iterator!=_vars3d.end(); iterator++){
-    	_vars3d[iterator->first]->_SortLevels();           // Sort the levels that apply to each individual variable
+    	_vars3d[iterator->first]->_SortLevels();           //  Sort the levels that apply to each individual variable
+		_vars3d[iterator->first]->_SortTimes();				// Sort udunit times that apply to each individual variable
 	}
 	for (it_type iterator=_vars2d.begin(); iterator!=_vars2d.end(); iterator++){
         _vars2d[iterator->first]->_SortLevels();			// Sort the levels that apply to each individual variable
+		_vars2d[iterator->first]->_SortTimes();             // Sort udunit times that apply to each individual variable
     }
+
 	sort(_pressureLevels.begin(), _pressureLevels.end());	// Sort the levels that apply to the entire dataset
 	reverse(_pressureLevels.begin(), _pressureLevels.end());
+
+	sort(_gribTimes.begin(), _gribTimes.end());
 
 	rc = _InitCartographicExtents(GetMapProjection());
 			  						 //_pressureLevels,
@@ -535,9 +613,58 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	return 0;
 }
 
+string DCReaderGRIB::GetGridType() {
+	if (!strcmp("regular_gg",_gridType.c_str()) return "regular";
+	else return "layered";
+}
+
+void DCReaderGRIB::_generateWeightTable() {
+	_gaussianLats = new double[_Ni];
+	grib_get_gaussian_latitudes(_Ni/2,_gaussianLats);
+
+
+	_regularLats = new double[_Ni];
+	double increment = (_maxLat - _minLat) / _Ni;
+	for (int i=0; i<_Nj; i++) {
+		_regularLats[i] = _maxLat - i*increment;
+	}
+
+	double candidate, closest, nextClosest, W;
+	for (int i=0; i<_Nj; i++) {
+
+		double closest = abs(_regularLats[i] - _gaussianLats[0]);	
+		double nextClosest = abs(_regularLats[i] - _gaussianLats[1]);
+		
+		// Find nearest neighbor below current regular lat
+		int j;
+		for (j=0; j<_Nj; j++) {
+		//	if (regularLats[i] <= gaussianLats[j]){
+		//		L1 = j;
+		//	}
+		//	else break;
+		
+		//  more efficient this way:
+			if (_regularLats[i] > _gaussianLats[j]) break; // this gaussian lat is below our regular lat
+		}
+
+		// calculate weights
+		W = 1 - ((float)_regularLats[i] - (float)_gaussianLats[j]) / ((float)_gaussianLats[j] - (float)_gaussianLats[j+1]);
+		_weights.push_back(W);
+		_latIndices.push_back(j);
+	}
+}
+
 void DCReaderGRIB::Print3dVars() {
     typedef std::map<std::string, Variable*>::iterator it_type;
     for (it_type iterator=_vars3d.begin(); iterator!=_vars3d.end(); iterator++){
+        cout << iterator->first << endl;
+        iterator->second->PrintTimes();
+    } 
+}
+
+void DCReaderGRIB::Print2dVars() {
+    typedef std::map<std::string, Variable*>::iterator it_type;
+    for (it_type iterator=_vars2d.begin(); iterator!=_vars2d.end(); iterator++){
         cout << iterator->first << endl;
         iterator->second->PrintTimes();
     } 
@@ -587,14 +714,6 @@ std::vector<string> DCReaderGRIB::GetVariables2DXY() const {
         vars.push_back(iterator->first);
     }
     return vars;
-}
-
-void DCReaderGRIB::Print2dVars() {
-    typedef std::map<std::string, Variable*>::iterator it_type;
-    for (it_type iterator=_vars2d.begin(); iterator!=_vars2d.end(); iterator++){
-        cout << iterator->first << endl;
-        iterator->second->PrintTimes();
-    } 
 }
 
 void DCReaderGRIB::Print1dVars() {
@@ -659,7 +778,6 @@ DCReaderGRIB::GribParser::GribParser() {
 
 	// key iteration vars
 	_key_iterator_filter_flags     = GRIB_KEYS_ITERATOR_ALL_KEYS;
-	_name_space                    = 0; // NULL will return all keys
 	_grib_count                    = 0;
 	_value                         = new char[MAX_VAL_LEN];
 	_vlen                          = MAX_VAL_LEN;	
@@ -701,16 +819,13 @@ DCReaderGRIB::GribParser::GribParser() {
 	_varyingKeys.push_back("typeOfLevel");
 	_varyingKeys.push_back("level");	
 
-	// data dump vars
 	_values     = NULL;
-	_in         = NULL;
-	_h          = NULL;
 	_values_len = 0;	
     _err        = 0;
 }
 
 int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
-    _in = fopen(file.c_str(),"rb");
+    FILE* _in = fopen(file.c_str(),"rb");
     if(!_in) {
         char *error;
         sprintf(error,"ERROR: unable to open file %s\n",file.c_str());
@@ -718,7 +833,10 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 	    return -1;
     } 
 
+	grib_handle *_h=NULL;
+	grib_keys_iterator* kiter=NULL;
 	const void* msg;
+	char* name_space = NULL;//"vapor";
 	size_t size;
 	size_t offset=0;
     stringstream ss;
@@ -741,7 +859,6 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 		offset+=size;
 		keyMap["file"] = file;
 
-        grib_keys_iterator* kiter=NULL;
         _grib_count++;
         if(!_h) {
         	MyBase::SetErrMsg("Unable to create grib handle");
@@ -749,7 +866,7 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
             return 1;
         }   
             
-        kiter = grib_keys_iterator_new(_h,_key_iterator_filter_flags,_name_space);
+        kiter = grib_keys_iterator_new(_h,_key_iterator_filter_flags,name_space);
         if (!kiter) {
             MyBase::SetErrMsg("Unable to create keys iterator");
 			fclose(_in);
@@ -761,7 +878,8 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
             _vlen=MAX_VAL_LEN;
             bzero(_value,_vlen);
             GRIB_CHECK(grib_get_string(_h,name,_value,&_vlen),name);
-            std::string gribKey(name);
+            //grib_get_string(_h,name,_value,&_vlen);
+			std::string gribKey(name);
             std::string gribValue(_value);
 			for (size_t i=0;i<_varyingKeys.size();i++){
 				if(strcmp(_varyingKeys[i].c_str(),gribKey.c_str())==0){
@@ -785,55 +903,6 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
     return 0;
 }
 
-int DCReaderGRIB::GribParser::_LoadAllRecordKeys(string file) {
-    _filename = file;
-    _in = fopen(_filename.c_str(),"rb");
-    if(!_in) {
-        char *error;
-        sprintf(error,"ERROR: unable to open file %s\n",_filename.c_str());
-        MyBase::SetErrMsg(error);
-        return -1;
-    } 
-	
-	_recordKeysVerified = 0;
-	std::map<std::string, std::string> keyMap;
-	while((_h = grib_handle_new_from_file(0,_in,&_err)) != NULL) {
-		grib_keys_iterator* kiter=NULL;
-		_grib_count++;
-		if(!_h) {
-			MyBase::SetErrMsg("Unable to create grib handle");
-			grib_handle_delete(_h);
-			fclose(_in);
-			return 1;
-		}
-		
-		kiter = grib_keys_iterator_new(_h,_key_iterator_filter_flags,_name_space);
-		if (!kiter) {
-			printf("ERROR: Unable to create keys iterator\n");
-			grib_handle_delete(_h);
-			fclose(_in);
-			return 1;
-		}
-
-		while(grib_keys_iterator_next(kiter)) {
-			const char* name = grib_keys_iterator_get_name(kiter);
-			_vlen=MAX_VAL_LEN;
-			bzero(_value,_vlen);
-			GRIB_CHECK(grib_get_string(_h,name,_value,&_vlen),name);
-			std::string temp1(name);
-			std::string temp2(_value);
-			keyMap[temp1] = temp2;
-		}
-
-		// push each record back into our "keys" vector
-		_recordKeys.push_back(keyMap);
-		grib_keys_iterator_delete(kiter);
-		grib_handle_delete(_h);
-	}
-	fclose(_in);
-	return 0;
-}
-
 int DCReaderGRIB::GribParser::_VerifyKeys() {
 	int numRecords = _recordKeys.size();
  
@@ -844,6 +913,7 @@ int DCReaderGRIB::GribParser::_VerifyKeys() {
 		string grid;
         grid = _recordKeys[i]["gridType"];
         if ((strcmp(grid.c_str(),"regular_ll")!=0) && 
+			(strcmp(grid.c_str(),"regular_gg")!=0) &&
 			(strcmp(grid.c_str(),"polar_stereographic")!=0) &&
 			(strcmp(grid.c_str(),"lambert")) && 
 			(strcmp(grid.c_str(),"mercator"))) {
@@ -865,47 +935,11 @@ int DCReaderGRIB::GribParser::_VerifyKeys() {
 	return 0;
 }
 
-int DCReaderGRIB::GribParser::_DataDump() {
-	/* create new handle from a message in a file*/
-	_h = grib_handle_new_from_file(0,_in,&_err);
-	if (_h == NULL) {
-		char *error;
-        sprintf(error,"Error: unable to create handle from file %s\n",_filename.c_str());
-        MyBase::SetErrMsg(error);
-	}
-
-	/* get the size of the _values array*/
-	GRIB_CHECK(grib_get_size(_h,"_values",&_values_len),0);
- 	_values = new double[_values_len];
- 
-	/* get data _values*/
-	GRIB_CHECK(grib_get_double_array(_h,"_values",_values,&_values_len),0);
-
-	for(size_t i = 0; i < _values_len; i++)
-		printf("%lu  %.10e\n",i+1,_values[i]);
- 
-	delete [] _values;
- 
- 
-	GRIB_CHECK(grib_get_double(_h,"max",&_max),0);
-	GRIB_CHECK(grib_get_double(_h,"min",&_min),0);
-	GRIB_CHECK(grib_get_double(_h,"average",&_average),0);
- 
-	printf("%d _values found in %s\n",(int)_values_len,_filename.c_str());
-	printf("max=%.10e min=%.10e average=%.10e\n",_max,_min,_average);
- 
-	grib_handle_delete(_h);
- 
-	fclose(_in);
-	return 0;
-}
-
 DCReaderGRIB::GribParser::~GribParser() {
-	if (_h) grib_handle_delete(_h); 
-	if (_in) delete _in;
+	//if (_h) grib_handle_delete(_h); 
+	//if (_in) delete _in;
 	if (_value) delete _value;
 	if (_values) delete _values;
-	if (_name_space) delete _name_space;
 }
 
 //DCReaderGRIB::DerivedVarElevation::DerivedVarElevation(int Ni, int Nj){

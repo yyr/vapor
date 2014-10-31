@@ -51,7 +51,7 @@
 #include <vapor/errorcodes.h>
 
 #include <GL/glew.h>
-#include <qgl.h>
+//#include <qgl.h>
 
 //#include "util.h"
 

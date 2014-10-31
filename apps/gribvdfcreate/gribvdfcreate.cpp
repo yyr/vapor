@@ -151,8 +151,10 @@ MetadataVDC *CreateMetadataVDC(
         }
     }
 
-	file->SetGridType("layered");
-    string gridtype = file->GetGridType();
+	string gridtype = GribData->GetGridType();
+	file->SetGridType(gridType);
+	//file->SetGridType("layered");
+    //string gridtype = file->GetGridType();
 
 //    if (gridtype.compare("layered")==0) {
 //        vector <string> vec;
@@ -221,6 +223,7 @@ int CopyVar(
     int level,
     int lod
 ) {
+	cout << "OpenVarRead ";
     if (gribData->OpenVariableRead(gribTS, gribVar,NULL,NULL) < 0) {
         MyBase::SetErrMsg(
             "Failed to open GRIB variable \"%s\" at time step %d",
@@ -229,6 +232,7 @@ int CopyVar(
         return(-1);
     }
 
+	cout << "OpenVarWrite ";
     if (vdfio->OpenVariableWrite(vdcTS, vdcVar.c_str(), level, lod) < 0) {
         MyBase::SetErrMsg(
             "Failed to open VDC variable \"%s\" at time step %d",
@@ -245,6 +249,7 @@ int CopyVar(
     VDFIOBase::VarType_T vtype = vdfio->GetVarType(vdcVar);
     int n = vtype == Metadata::VAR3D ? dim[2] : 1;
     for (int i=0; i<n; i++) {
+		cout << "ReadStart ";
         rc = gribData->ReadSlice(buf);
         if (rc==0) {
             MyBase::SetErrMsg(
@@ -256,7 +261,7 @@ int CopyVar(
         }
         if (rc<0) {
             MyBase::SetErrMsg(
-                "Error reading netCDF variable \"%s\" at time step %d",
+                "Error reading GRIB variable \"%s\" at time step %d",
                 gribVar.c_str(), gribTS
             );
             break;
@@ -265,12 +270,14 @@ int CopyVar(
         //    MissingValue(vdfio, ncdfData, vdcVar, ncdfVar, vtype, buf);
         //}   
 
-        float min = buf[0];
+        /*float min = buf[0];
         float max = buf[0];
         for (size_t j=0; j<dim[0]*dim[1];j++){
             if (buf[j] > max) max = buf[j];
             if (buf[j] < min) min = buf[j];
-        }
+        }*/
+
+		cout << "WriteStart ";
 
         rc = vdfio->WriteSlice(buf);
         if (rc<0) {
@@ -287,6 +294,9 @@ int CopyVar(
 
     if (buf) delete [] buf;
     vdfio->CloseVariable();
+
+	cout << "End" << endl;
+
     return(rc);
 
 }
@@ -326,7 +336,20 @@ int main(int argc, char** argv) {
     VDFIOBase *vdfio = NULL;
     vdfio = wcwriter;
 
-	std::vector<string> vars = DCGrib->GetVariables3D();
+	std::vector<string> vars;
+	std::vector<string> vars3D = DCGrib->GetVariables3D();
+	std::vector<string> vars2D = DCGrib->GetVariables2DXY();
+
+	for (int i=0; i<vars3D.size(); i++) {
+		vars.push_back(vars3D[i]);
+	}
+
+	DCGrib->Print2dVars();
+
+	for (int i=0; i<vars2D.size(); i++) {
+		vars.push_back(vars2D[i]);
+	}
+
 	int numTs = (int) DCGrib->GetNumTimeSteps();
     
 	int rc;

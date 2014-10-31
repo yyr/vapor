@@ -44,11 +44,15 @@ class UDUnits;
 	 DCReaderGRIB(const vector<string> files);
 	 ~DCReaderGRIB();
 
+	void Print2dVars();
+	void _generateWeightTable();
+	string GetGridType();
+
 	/////
 	// DCReader Virtual Functions
      virtual int OpenVariableRead(size_t timestep, string varname, 
                                   int reflevel=0, int lod=0);
-	 virtual int CloseVariable() {grib_handle_delete(h);
+	 virtual int CloseVariable() {//grib_handle_delete(h);
 								  fclose(_inFile); return 0;}
 	 virtual int Read(float *values);
 	 virtual int ReadSlice(float *slice);
@@ -65,9 +69,9 @@ class UDUnits;
      virtual std::vector<string> GetVariables2DXY() const;                 // from Metadata.h
      virtual double GetTSUserTime(size_t ts) const {return _gribTimes[ts];}   // from Metadata.h
 	 virtual std::vector<string> GetVariables2DXZ() const {                // from Metadata.h
-        std::vector<string> empty; return(empty);};
+     std::vector<string> empty; return(empty);};
      virtual std::vector<string> GetVariables2DYZ() const {                // from Metadata.h
-        std::vector<string> empty; return(empty);};
+     std::vector<string> empty; return(empty);};
 
      //virtual std::string GetCoordSystemType() const;
      
@@ -90,6 +94,7 @@ class UDUnits;
 	/////
 
 	vector <double> GetZCoordsInMeters() {return _meterLevels;}
+	void _LinearInterpolation(float* values);
 	
     private:
 	 /////
@@ -100,7 +105,6 @@ class UDUnits;
      float GetLevel(int index) {return _pressureLevels[index];}
      void PrintLevels();
      void Print3dVars();
-     void Print2dVars();
      void Print1dVars();
      double BarometricFormula(const double pressure) const;
      int _InitCartographicExtents(string mapProj);
@@ -131,6 +135,7 @@ class UDUnits;
 		void PrintMessages();
 		void PrintIndex(double time, float level);
 		void _SortLevels() {sort(_pressureLevels.begin(), _pressureLevels.end());}
+		void _SortTimes() {sort(_unitTimes.begin(), _unitTimes.end());}
 		bool _Exists(double time) const;
 		void setScanDirection(bool i, bool j) {iScan = i; jScan = j;}
 		bool getiScan() const {return iScan;}
@@ -148,6 +153,7 @@ class UDUnits;
 	    std::vector<double> _unitTimes;
 		bool iScan;
 		bool jScan;
+		bool isGaussian;
 	};
 
 	 static int _sliceNum;
@@ -180,6 +186,12 @@ class UDUnits;
 	 std::map<std::string, Variable*> _vars1d;
      std::map<std::string, Variable*> _vars2d;
      std::map<std::string, Variable*> _vars3d;
+	 double* _gaussianLats;
+	 std::vector<double> _weights;
+	 std::vector<int> _latIndices;
+	 float* _iValues;
+	 double* _regularLats;
+
 	 UDUnits *_udunit;
 
 	 class GribParser {
@@ -187,10 +199,8 @@ class UDUnits;
 		 GribParser();
 		 ~GribParser();
 		 int _LoadRecord(string file, size_t offset);
-		 int _LoadAllRecordKeys(string file);// loads all keys
 		 int _LoadRecordKeys(const string file);	// loads only the keys that we need for vdc creation
 		 int _VerifyKeys();					// verifies that key/values conform to our reqs
-		 int _DataDump();					// dumps all data
 		 //DCReaderGRIB* GetDCReaderGRIB() {return _metadata;}
 		 std::vector<std::map<std::string, std::string> > GetRecords() {return _recordKeys;}
 
@@ -204,7 +214,6 @@ class UDUnits;
 
 		 // vars for key iteration 
 		 unsigned long _key_iterator_filter_flags;
-		 char* _name_space;
 		 int _grib_count;
 	     char* _value;
 	     size_t _vlen;
@@ -213,9 +222,9 @@ class UDUnits;
 		 double *_values;
 		 double _min,_max,_average;
 		 size_t _values_len;
-		 FILE* _in;
+		 //FILE* _in;
 		 string _filename;
-		 grib_handle *_h;
+		 //grib_handle *_h;
 	 };
 	 GribParser *parser;
 
