@@ -133,7 +133,7 @@ protected:
 	void disableFullClippingPlanes();
 	void disableRegionClippingPlanes();
 	RenderParams* currentRenderParams;
-	void buildColorscaleImage();
+	void buildColorscaleImage(int colortableIndex);
 	
 	
 	
