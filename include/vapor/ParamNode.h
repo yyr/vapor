@@ -284,7 +284,7 @@ public:
  //! parameter data
  //! to be associated with \p tag is the array of strings
  //! specified by \p values
- //! The strings in the vector \p values must not contain white characters.
+ //! The strings in the vector \p values must be nonempty and must not contain white characters.
  //!
  //! \param[in] tag Name(Tag) of the element to define/set
  //! \param[in] values Vector of strings
@@ -300,6 +300,7 @@ public:
  //! specified by \p values
  //! The strings in the vector \p values may contain blanks, these will be
  //! replaced by the string blankSub.
+ //! The strings must be non-null.
  //!
  //! \param[in] tag Name(Tag) of the element to define/set
  //! \param[in] values Vector of strings
@@ -314,7 +315,7 @@ public:
  //! parameter data
  //! data to be associated with \p tagpath is the array of strings
  //! specified by \p values
- //! The strings in the vector \p values must not contain white characters.
+ //! The strings in the vector \p values must not contain white characters and must not be null.
  //!
  //! \param[in] tagpath Names of nodes leading to value to be set
  //! \param[in] values Vector of strings

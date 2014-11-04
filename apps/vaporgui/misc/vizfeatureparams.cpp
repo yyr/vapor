@@ -422,7 +422,7 @@ setDialog(){
 	//setSelectionBehavior(QAbstractItemView::SelectRows);
 	//setFocusPolicy(Qt::ClickFocus);
 
-	QStringList headerList = QStringList() <<"Renderer" <<"Enabled" <<"Lower-left X" << "Lower-left Y" << "Title";
+	QStringList headerList = QStringList() <<"Renderer" <<"Display" <<"Lower-left X" << "Lower-left Y" << "Title";
     vizFeatureDlg->colorbarTable->setHorizontalHeaderLabels(headerList);
 	vizFeatureDlg->colorbarTable->horizontalHeader()->setDefaultAlignment(Qt::AlignHCenter);
 	colorbarTitles = vizWin->getColorbarTitles();
@@ -436,20 +436,25 @@ setDialog(){
 		const string& s = p->getShortName();
 		QString rendererName = QString(s.c_str());
 		QTableWidgetItem* it0 = new QTableWidgetItem(rendererName);
+		it0->setToolTip("Identify renderer associated with color bar");
 		it0->setTextAlignment(Qt::AlignCenter);
 		vizFeatureDlg->colorbarTable->setItem(i,0,it0);
 		QTableWidgetItem* it1 = new QTableWidgetItem("");
+		it1->setToolTip("Check box to display color bar of current renderer when enabled");
 		it1->setTextAlignment(Qt::AlignCenter);
 		if (colorBarEnabled[i])it1->setCheckState(Qt::Checked);
 			else it1->setCheckState(Qt::Unchecked);
 		vizFeatureDlg->colorbarTable->setItem(i,1,it1);
 		QTableWidgetItem* it2 = new QTableWidgetItem(QString::number(colorBarLLX[i]));
+		it2->setToolTip("Specify x-coordinate of left edge of color bar, relative to [0,1]");
 		it2->setTextAlignment(Qt::AlignCenter);
 		vizFeatureDlg->colorbarTable->setItem(i,2,it2);
 		QTableWidgetItem* it3 = new QTableWidgetItem(QString::number(colorBarLLY[i]));
+		it3->setToolTip("Specify y-coordinate of bottom of color bar, relative to [0,1]");
 		it3->setTextAlignment(Qt::AlignCenter);
 		vizFeatureDlg->colorbarTable->setItem(i,3,it3);
 		QTableWidgetItem* it4 = new QTableWidgetItem(colorbarTitles[i].c_str());
+		it4->setToolTip("Specify descriptive text to display below color bar");
 		it4->setTextAlignment(Qt::AlignLeft|Qt::AlignVCenter);
 		it4->setSizeHint(QSize(130,0));
 		vizFeatureDlg->colorbarTable->setItem(i,4,it4);
@@ -823,23 +828,32 @@ void VizFeatureParams::colorbarTableChanged(int row, int col){
 	assert(col > 0 && col < 5);
 	QTableWidgetItem *thisItem = vizFeatureDlg->colorbarTable->item(row,col);
 	dialogChanged = true;
-	if (col == 1) { //enabled checkbox
+	if (col == 1) { //display checkbox
 		bool enabled = (thisItem->checkState() == Qt::Checked);
 		colorBarEnabled[row] = enabled;
 		return;
 	}
 	if (col == 2) { //LLX
 		float val = thisItem->text().toFloat();
+		if (val < 0.) val = 0.;
+		if (val > 1.) val = 1.;
 		colorBarLLX[row] = val;
 		return;
 	}
 	if (col == 3) { //LLY
 		float val = thisItem->text().toFloat();
+		if (val < 0.) val = 0.;
+		if (val > 1.) val = 1.;
 		colorBarLLY[row] = val;
 		return;
 	}
 	if (col == 4) { //Title
 		string txt = thisItem->text().toStdString();
+		//Do not allow the empty string or many blanks
+		if (txt.size() == 0) txt = " ";
+		
+		else if (txt.find_first_not_of(" ") == string::npos) txt = " ";
+
 		colorbarTitles[row] = txt;
 		return;
 	}
