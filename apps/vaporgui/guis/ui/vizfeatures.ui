@@ -1949,7 +1949,7 @@ with Lat/Lon</string>
         </size>
        </property>
        <property name="whatsThis">
-        <string>Specify properties of a color scale that is displayed in the scene, based on the transfer function used in the volume renderer that is rendering in this window.</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Specify properties of color scales that are displayed in the scene, based on the transfer functions used in the current renderers that are rendering in this window.  Specify the lower-left coordinates of each color scale as values between 0 and 1, relative to the total rendering window size, and check &amp;quot;Enabled&amp;quot; to cause the color scale to be displayed.  A descriptive title may be displayed below the color bar.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
