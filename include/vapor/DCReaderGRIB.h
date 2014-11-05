@@ -46,7 +46,7 @@ class UDUnits;
 
 	void Print2dVars();
 	void _generateWeightTable();
-	string GetGridType();
+	string GetGridType() const;
 
 	/////
 	// DCReader Virtual Functions
