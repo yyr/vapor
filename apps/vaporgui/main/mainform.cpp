@@ -1070,13 +1070,7 @@ void MainForm::loadData()
 		"Choose the Metadata File to load into current session",
 		Session::getInstance()->getMetadataFile().c_str(),
 		"Vapor Metadata Files (*.vdf)");
-	if (filename == QString::null){
-		//Try again.  Probably invalid Metadata file
-		filename = QFileDialog::getOpenFileName(this,
-		"Choose the Metadata File to load into current session",
-		"MetadataFile.vdf",
-		"Vapor Metadata Files (*.vdf)");
-	}
+	
 	if(filename != QString::null){
 		QFileInfo fInfo(filename);
 		if (fInfo.isReadable() && fInfo.isFile()){
