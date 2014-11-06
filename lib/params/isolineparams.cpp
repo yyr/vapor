@@ -333,6 +333,9 @@ reinit(bool doOverride){
 }
 //Set everything to default values
 void IsolineParams::restart() {
+	//Delete any child nodes
+	GetRootNode()->DeleteAll();
+	
 	SetNumDigits(5);
 	SetRefinementLevel(0);
 	SetCompressionLevel(0);
@@ -344,6 +347,7 @@ void IsolineParams::restart() {
 	double clr[3] = {1.,1.,1.};
 	SetSingleColor(clr);
 	SetUseSingleColor(true);
+	
 	//Create the isocontrol.  Just one placeholder, but it contains the histo bounds and isovalues and colors
 	//The transferFunction and Isocontrol share the map/histo bounds and the edit bounds.
 	vector<string>ctlPath;
