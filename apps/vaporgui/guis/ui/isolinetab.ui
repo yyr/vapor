@@ -886,7 +886,7 @@ how the histogram is scaled.</string>
                   </size>
                  </property>
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This window displays a histogram of the variable in the specified interval, and allows you to modify the isovalues&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string/>
                  </property>
                  <property name="whatsThis">
                   <string>This window displays a histogram of the current variable and allows you to position the isovalues by moving the sliders at the bottom.  You can change the left and right bounds of the histogram by sliding the arrow at the top of this window.</string>

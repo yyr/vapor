@@ -116,7 +116,7 @@ public:
 
   void updateParams();
 
-  QString tipText(const QPoint &pos);
+  QString tipText(const QPoint &pos, bool isIso=false);
 
   float minDataValue() { return _minValue; }
   float maxDataValue() { return _maxValue; }

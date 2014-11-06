@@ -317,9 +317,9 @@ void MappingFrame::updateParams()
 }
 
 //----------------------------------------------------------------------------
-// Return a tool tip
+// Return a tool tip.  Slightly different for iso Selection
 //----------------------------------------------------------------------------
-QString MappingFrame::tipText(const QPoint &pos)
+QString MappingFrame::tipText(const QPoint &pos, bool isIso)
 {
   QString text;
 
@@ -349,7 +349,7 @@ QString MappingFrame::tipText(const QPoint &pos)
   text  = _variableName.c_str();
   text += QString(": %1;\n").arg(variable, 0, 'g', 4);
   
-  if (_opacityMappingEnabled)
+  if (_opacityMappingEnabled && !isIso)
   {
     text += QString("Opacity: %1; ").arg(opacity, 0, 'g', 4);
     text += QString("Y-Coord: %1;\n").arg(yopacity, 0, 'g', 4);
@@ -1759,9 +1759,9 @@ void MappingFrame::mouseDoubleClickEvent(QMouseEvent* /* event*/)
 void MappingFrame::mouseMoveEvent(QMouseEvent* event)
 {
 	if (event->buttons()== Qt::NoButton){
-		if (_isoSliderEnabled ||_isolineSlidersEnabled) return;
 		if (!DataStatus::trackMouse()) return;
-		QToolTip::showText(event->globalPos(), tipText(event->pos()));
+		bool isIso =  (_isoSliderEnabled ||_isolineSlidersEnabled);
+		QToolTip::showText(event->globalPos(), tipText(event->pos(), isIso));
 		return;
 	}
 	set<GLWidget*>::iterator iter;
