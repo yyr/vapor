@@ -16,7 +16,7 @@ B<ncdf2vdf> [options] I<ncdf_ncdf_files...> I<vdffile>
 
 B<ncdf2vdf> reads 3D and 2D variables from one or more netCDF files,
 wavelet transforms the data, and stores it in the VDC associated
-with the .vdf file I<vdffile>. The file I<vdffile> should be created with 
+with the .vdf file I<vdffile>. The file I<vdffile> must first be created with 
 the command B<ncdfvdfcreate>
 
 =head1 OPTIONS
@@ -61,7 +61,7 @@ step.
 
 =item -level E<lt>levelE<gt> 
 
-See raw2vdf
+See raw2vdf (VDC1 only)
 
 =item -lod E<lt>nE<gt> 
 
@@ -83,21 +83,80 @@ Operate quietly, only reporting fatal errors.
 
 =head1 EXAMPLES
 
+=head2 Implicit time steps
+
+
+Assuming the variables in your NetCDF files do not have an explicit 
+time dimension  the command:
+
     ncdfvdfcreate -vars u:v:temp file1.nc file2.nc file3.nc mydata.vdf
 
 will construct a VDF file, B<mydata.vdf> that will contain the B<u>,
 B<v>, and B<temp> variable names for all time steps found in the
 NetCDF files B<file1.nc>, B<file2.nc>, and B<file3.nc>.  Because no
 time dimension is specified the variables are assumed to be implicitly
-time varying (have no time dimension).
+time varying (the time step is inferred from the postion of the file
+containing the variable on the command line).
 
-The command
+Once B<mydata.vdf> exists the variables in the NetCDF files can be
+transformed with the single command:
+
+    ncdf2vdf -vars u:v:temp file1.nc file2.nc file3.nc mydata.vdf
+
+Alternatively, each of the three NetCDF files may be processed separately:
+
+    ncdf2vdf -vars u:v:temp -starts 0 file1.nc mydata.vdf
+
+    ncdf2vdf -vars u:v:temp -starts 1 file2.nc mydata.vdf
+
+    ncdf2vdf -vars u:v:temp -starts 2 file3.nc mydata.vdf
+
+
+=head2 Explicit time steps
+
+Assuming that your NetCDF files have an explicit time dimension with
+NetCDF dimension name B<times>, the command
 
     ncdfvdfcreate -timedims times -vars u:v:temp file1.nc file2.nc file3.nc mydata.vdf
 
-is identical to the previous example, except that here the variables
+will generate an appropriate .vdf file. This example is identical to the 
+previous example, except that here the variables
 are expected to be explicitly time varying, having their slowest varying
-dimension named "times".
+dimension named "times". Once the B<mydata.vdf> file 
+has been created the variables
+may be transformed with ncdf2vdf using the command:
+
+    ncdf2vdf -timedims times -vars u:v:temp file1.nc file2.nc file3.nc mydata.vdf
+
+to convert all variables at once. If the time dimesion is of length 10
+individual files may be processed
+by the sequence of commands:
+
+    ncdf2vdf -timedims times -vars u:v:temp -starts 0 file1.nc mydata.vdf
+
+    ncdf2vdf -timedims times -vars u:v:temp -starts 10 file2.nc mydata.vdf
+
+    ncdf2vdf -timedims times -vars u:v:temp -starts 20 file3.nc mydata.vdf
+
+=head2 Time coordinate variable
+
+If in addition to a time dimension, named "times", your NetCDF files 
+contain a time
+coordinate variable, also named "times" (a one-dimensional variable
+dimentioned by "times", and containing monotonically
+increasing values), the following command should be used to generate
+the .vdf file:
+
+    ncdfvdfcreate -timedims times -timevar times file1.nc file2.nc file3.nc mydata.vdf
+
+Note that the names of the variables were not specified to the 
+B<ncdfvdfcreate> command as in the previous examples. In this case all 2D
+and 3D time-varying variables present in the NetCDF files will be identified.
+
+All appropriate, detected variables may then be transformed with the command:
+
+    ncdf2vdf -timedims times -timevar times file1.nc file2.nc file3.nc mydata.vdf
+
 
 =head1 SEE ALSO
 
