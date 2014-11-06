@@ -383,6 +383,10 @@ void MainForm::hookupSignals() {
 	connect( dataImportDefaultMOM_Action, SIGNAL( triggered() ), this, SLOT( importDefaultMOMData() ) );
 	connect( dataImportROMS_Action, SIGNAL( triggered() ), this, SLOT( importROMSData() ) );
 	connect( dataImportDefaultROMS_Action, SIGNAL( triggered() ), this, SLOT( importDefaultROMSData() ) );
+	connect( dataImportCAM_Action, SIGNAL( triggered() ), this, SLOT( importCAMData() ) );
+	connect( dataImportDefaultCAM_Action, SIGNAL( triggered() ), this, SLOT( importDefaultCAMData() ) );
+	connect( dataImportGRIB_Action, SIGNAL( triggered() ), this, SLOT( importGRIBData() ) );
+	connect( dataImportDefaultGRIB_Action, SIGNAL( triggered() ), this, SLOT( importDefaultGRIBData() ) );
 	connect( dataSave_MetafileAction, SIGNAL( triggered() ), this, SLOT( saveMetadata() ) );
 	connect( dataLoad_MetafileAction, SIGNAL( triggered() ), this, SLOT( loadData() ) );
 	connect( dataLoad_DefaultMetafileAction, SIGNAL( triggered() ), this, SLOT( defaultLoadData() ) );
@@ -463,7 +467,11 @@ void MainForm::createMenus(){
 	importDataMenu->addAction(dataImportMOM_Action);
     importDefaultDataMenu->addAction(dataImportDefaultMOM_Action);
 	importDataMenu->addAction(dataImportROMS_Action);
-    importDefaultDataMenu->addAction(dataImportDefaultROMS_Action);
+	importDefaultDataMenu->addAction(dataImportDefaultROMS_Action);
+	importDataMenu->addAction(dataImportCAM_Action);
+	importDefaultDataMenu->addAction(dataImportDefaultCAM_Action);
+	importDataMenu->addAction(dataImportGRIB_Action);
+    importDefaultDataMenu->addAction(dataImportDefaultGRIB_Action);
 	Data->addAction(dataMerge_MetafileAction);
 	Data->addAction(dataSave_MetafileAction);
 	
@@ -548,6 +556,10 @@ void MainForm::createActions(){
 	dataImportDefaultMOM_Action = new QAction( this );
 	dataImportROMS_Action = new QAction( this );
 	dataImportDefaultROMS_Action = new QAction( this );
+	dataImportCAM_Action = new QAction( this );
+	dataImportDefaultCAM_Action = new QAction( this );
+	dataImportGRIB_Action = new QAction( this );
+	dataImportDefaultGRIB_Action = new QAction( this );
 	dataSave_MetafileAction = new QAction( this );
 	dataLoad_DefaultMetafileAction = new QAction(this);
 	fileNew_SessionAction = new QAction( this );
@@ -702,6 +714,14 @@ void MainForm::languageChange()
 	dataImportDefaultROMS_Action->setToolTip("Specify one or more ROMS output files to import into a new session");
 	dataImportROMS_Action->setText(tr("ROMS"));
 	dataImportROMS_Action->setToolTip("Specify one or more ROMS output files to import into the current session");
+	dataImportDefaultCAM_Action->setText(tr("CAM"));
+	dataImportDefaultCAM_Action->setToolTip("Specify one or more CAM output files to import into a new session");
+	dataImportCAM_Action->setText(tr("CAM"));
+	dataImportCAM_Action->setToolTip("Specify one or more CAM output files to import into the current session");
+	dataImportDefaultGRIB_Action->setText(tr("GRIB"));
+	dataImportDefaultGRIB_Action->setToolTip("Specify one or more GRIB output files to import into a new session");
+	dataImportGRIB_Action->setText(tr("GRIB"));
+	dataImportGRIB_Action->setToolTip("Specify one or more GRIB output files to import into the current session");
 	dataMerge_MetafileAction->setText( tr( "Merge a VDC Dataset into Current Session" ) );
 	
     
@@ -1132,16 +1152,34 @@ void MainForm::importDefaultMOMData()
 {
 	importData("mom4",true);
 }
-//import MOM data into current session
+//import ROMS data into current session
 //
 void MainForm::importROMSData()
 {
 	importData("roms",false);
 }
-//import MOM data into default session
+//import ROMS data into default session
 void MainForm::importDefaultROMSData()
 {
 	importData("roms",true);
+}
+void MainForm::importCAMData()
+{
+	importData("cam",false);
+}
+//import ROMS data into default session
+void MainForm::importDefaultCAMData()
+{
+	importData("cam",true);
+}
+void MainForm::importGRIBData()
+{
+	importData("grib",false);
+}
+//import ROMS data into default session
+void MainForm::importDefaultGRIBData()
+{
+	importData("grib",true);
 }
 void MainForm::importData(const string& modelType, bool useDefault){
 	//This launches a panel that enables the
@@ -1150,9 +1188,9 @@ void MainForm::importData(const string& modelType, bool useDefault){
 	QString prompt ("Select ");
 	prompt += modelType.c_str();
 	if (useDefault)
-		prompt += " NetCDF files to import into default session.";
+		prompt += " model output files to import into default session.";
 	else 
-		prompt += " NetCDF files to import into current session.";
+		prompt += " model output files to import into current session.";
 
 	QStringList filenames = QFileDialog::getOpenFileNames(this,
 		prompt,

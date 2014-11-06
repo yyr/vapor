@@ -436,7 +436,8 @@ setDialog(){
 		const string& s = p->getShortName();
 		QString rendererName = QString(s.c_str());
 		QTableWidgetItem* it0 = new QTableWidgetItem(rendererName);
-		it0->setToolTip("Identify renderer associated with color bar");
+		it0->setToolTip("Renderer type associated with color bar");
+		it0->setFlags(Qt::NoItemFlags);
 		it0->setTextAlignment(Qt::AlignCenter);
 		vizFeatureDlg->colorbarTable->setItem(i,0,it0);
 		QTableWidgetItem* it1 = new QTableWidgetItem("");

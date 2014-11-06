@@ -173,6 +173,10 @@ private:
     QAction* dataImportDefaultMOM_Action;
 	QAction* dataImportROMS_Action;
     QAction* dataImportDefaultROMS_Action;
+	QAction* dataImportCAM_Action;
+	QAction* dataImportDefaultCAM_Action;
+	QAction* dataImportGRIB_Action;
+	QAction* dataImportDefaultGRIB_Action;
     QAction* dataLoad_MetafileAction;
     QAction* dataLoad_DefaultMetafileAction;
     QAction* dataSave_MetafileAction;
@@ -236,6 +240,10 @@ public slots:
 	virtual void importDefaultMOMData();
 	virtual void importROMSData();
 	virtual void importDefaultROMSData();
+	virtual void importCAMData();
+	virtual void importDefaultCAMData();
+	virtual void importGRIBData();
+	virtual void importDefaultGRIBData();
 	virtual void saveMetadata();
 	virtual void newSession();
 	virtual void exportToIDL();
