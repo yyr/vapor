@@ -9,6 +9,7 @@
 #include <vapor/DataMgrWRF.h>
 #include <vapor/DataMgrROMS.h>
 #include <vapor/DataMgrMOM.h>
+#include <vapor/DataMgrGRIB.h>
 
 using namespace VAPoR;
 
@@ -42,6 +43,12 @@ DataMgr *DataMgrFactory::New(
 	}
 	else if (ftype.compare("mom4") == 0) {
 		return new DataMgrMOM(files, mem_size);
+	}
+	else if (ftype.compare("grib") == 0) {
+		return new DataMgrGRIB(files, mem_size);
+	}
+	else if (ftype.compare("cam") == 0) {
+		return new DataMgrROMS(files, mem_size);	// CAM uses ROMS reader
 	}
 	else {
 		SetErrMsg("Unknown data set type : %s", ftype.c_str());
