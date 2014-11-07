@@ -139,7 +139,6 @@ static void init_class(grib_accessor_class* c)
 /* END_CLASS_IMP */
 
 
-
 static int get_distinct(grib_accessor* a,double** val,long* len);
 static int compare_doubles( const void* a, const void* b );
 
@@ -154,7 +153,6 @@ static void init(grib_accessor* a,const long l, grib_arguments* c)
   self->lons=0;
 
   a->flags |= GRIB_ACCESSOR_FLAG_READ_ONLY;
-
 }
 
 static int    unpack_double   (grib_accessor* a, double* val, size_t *len)
@@ -169,7 +167,15 @@ static int    unpack_double   (grib_accessor* a, double* val, size_t *len)
 
   self->save=1;
   size=value_count(a);
-  if (*len<size) return GRIB_ARRAY_TOO_SMALL;
+
+  if (*len<size) {
+    /* self->lons are computed in value_count*/
+    if (self->lons) {
+      grib_context_free(c,self->lons);
+      self->lons=NULL;
+    }
+    return GRIB_ARRAY_TOO_SMALL;
+  }
   self->save=0;
 
   /* self->lons are computed in value_count*/
@@ -283,13 +289,11 @@ static int get_distinct(grib_accessor* a,double** val,long* len) {
   return GRIB_SUCCESS;
 }
 
-static int compare_doubles( const void* a, const void* b ) {
+static int compare_doubles( const void* a, const void* b )
+{
    double* arg1 = (double*) a;
    double* arg2 = (double*) b;
    if( *arg1 < *arg2 ) return -1;
    else if( *arg1 == *arg2 ) return 0;
    else return 1;
 }
-
-
-

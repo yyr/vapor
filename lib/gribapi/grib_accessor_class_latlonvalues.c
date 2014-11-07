@@ -138,7 +138,6 @@ static void init(grib_accessor* a,const long l, grib_arguments* c)
   self->values = grib_arguments_get_name(a->parent->h,c,n++);
 
   a->flags |= GRIB_ACCESSOR_FLAG_READ_ONLY;
-
 }
 
 static int    unpack_double   (grib_accessor* a, double* val, size_t *len)
@@ -152,7 +151,10 @@ static int    unpack_double   (grib_accessor* a, double* val, size_t *len)
 
   size=value_count(a);
 
-  if (*len<size) return GRIB_ARRAY_TOO_SMALL;
+  if (*len<size) {
+    if (iter) grib_iterator_delete(iter);
+    return GRIB_ARRAY_TOO_SMALL;
+  }
 
   if (ret!=GRIB_SUCCESS) {
     if (iter) grib_iterator_delete(iter);
@@ -185,5 +187,3 @@ static long value_count(grib_accessor* a)
   return (long)(3*size);
 
 }
-
-

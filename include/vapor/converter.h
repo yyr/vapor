@@ -18,7 +18,8 @@
 extern "C" {
 #endif
 
-#include "udunits2.h"
+//#include "vapor/udunits2.h"
+#include "vapor/common.h"
 typedef union cv_converter	cv_converter;
 
 /*

@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2011 University Corporation for Atmospheric Research
+ * Copyright 2013 University Corporation for Atmospheric Research
  *
- * This file is part of the UDUNITS-2 package.  See the file LICENSE
+ * This file is part of the UDUNITS-2 package.  See the file COPYRIGHT
  * in the top-level source-directory of the package for copying and
  * redistribution conditions.
  */
@@ -9,18 +9,15 @@
  * This module is thread-compatible but not thread-safe.
  */
 /*LINTLIBRARY*/
-#ifdef _WINDOWS
-//Annoying warning
-#pragma warning( disable : 4996 )
-#endif
+
 #ifndef	_XOPEN_SOURCE
 #   define _XOPEN_SOURCE 500
 #endif
 
+#define _USE_MATH_DEFINES
 #include <ctype.h>
 #include <float.h>
 #include <limits.h>
-#define _USE_MATH_DEFINES
 #include <math.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -607,7 +604,7 @@ latin1PrintBasics(
 
 	if (power != 0) {
 	    if (needSeparator) {
-		n = _snprintf(buf+nchar, size, "%s", "·");	/* 0xb7 */
+		n = _snprintf(buf+nchar, size, "%s", "\xb7");	/* raised dot */
 
 		if (n < 0) {
 		    nchar = n;
@@ -637,7 +634,7 @@ latin1PrintBasics(
              */
             if (power != 1) {
                 n = _snprintf(buf+nchar, size, "%s",
-                    power == 2 ? "²" : "³");	/* 0xb2 0xb3 */
+                    power == 2 ? "\xb2" : "\xb3");	/* superscript 2, superscript 3 */
 
                 if (n < 0) {
                     nchar = n;

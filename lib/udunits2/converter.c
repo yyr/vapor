@@ -1,7 +1,7 @@
 /*
- * Copyright 2008, 2009 University Corporation for Atmospheric Research
+ * Copyright 2013 University Corporation for Atmospheric Research
  *
- * This file is part of the UDUNITS-2 package.  See the file LICENSE
+ * This file is part of the UDUNITS-2 package.  See the file COPYRIGHT
  * in the top-level source-directory of the package for copying and
  * redistribution conditions.
  */
@@ -10,22 +10,22 @@
  */
 
 /*LINTLIBRARY*/
-#ifdef _WINDOWS
-//Annoying warning
-#pragma warning( disable : 4996 )
-#endif
+
 #ifndef	_XOPEN_SOURCE
 #   define _XOPEN_SOURCE 500
 #endif
+
+#ifdef _MSC_VER
 #define _USE_MATH_DEFINES
+#include "vapor/udunits2.h" /* For the MSVC-specific defines. */
+#endif
 
 #include <math.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "vapor/udunits2.h"
-#include "vapor/converter.h"		/* this module's API */
+#include "converter.h"		/* this module's API */
 
 typedef struct {
     cv_converter*	(*clone)(cv_converter*);
@@ -184,7 +184,7 @@ trivialGetExpression(
     const size_t		max,
     const char* const		variable)
 {
-    return _snprintf(buf, max, "%s", variable);
+    return snprintf(buf, max, "%s", variable);
 }
 
 
@@ -282,8 +282,8 @@ reciprocalGetExpression(
 {
     return
 	cvNeedsParentheses(variable)
-	? _snprintf(buf, max, "1/(%s)", variable)
-	: _snprintf(buf, max, "1/%s", variable);
+	? snprintf(buf, max, "1/(%s)", variable)
+	: snprintf(buf, max, "1/%s", variable);
 }
 
 

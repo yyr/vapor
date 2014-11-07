@@ -1,7 +1,7 @@
 /*
- * Copyright 2008, 2009 University Corporation for Atmospheric Research
+ * Copyright 2013 University Corporation for Atmospheric Research
  *
- * This file is part of the UDUNITS-2 package.  See the file LICENSE
+ * This file is part of the UDUNITS-2 package.  See the file COPYRIGHT
  * in the top-level source-directory of the package for copying and
  * redistribution conditions.
  */
@@ -10,19 +10,17 @@
  */
 
 /*LINTLIBRARY*/
-#ifdef _WINDOWS
-//Annoying warning
-#pragma warning( disable : 4996 )
-#endif
+
 #ifndef	_XOPEN_SOURCE
 #   define _XOPEN_SOURCE 500
 #endif
 
 #include <assert.h>
 #include "tsearch.h"
+
 #include <stdlib.h>
+
 #include <string.h>
-//#include <strings.h>
 
 #include "vapor/udunits2.h"
 #include "unitAndId.h"
@@ -52,7 +50,7 @@ insensitiveCompare(
     const void* const	node1,
     const void* const	node2)
 {
-    return stricmp(((const UnitAndId*)node1)->id, 
+    return strcasecmp(((const UnitAndId*)node1)->id, 
 	((const UnitAndId*)node2)->id);
 }
 

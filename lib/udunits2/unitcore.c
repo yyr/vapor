@@ -1,7 +1,7 @@
 /*
- * Copyright 2011 University Corporation for Atmospheric Research
+ * Copyright 2013 University Corporation for Atmospheric Research
  *
- * This file is part of the UDUNITS-2 package.  See the file LICENSE
+ * This file is part of the UDUNITS-2 package.  See the file COPYRIGHT
  * in the top-level source-directory of the package for copying and
  * redistribution conditions.
  */
@@ -34,10 +34,7 @@
  */
 
 /*LINTLIBRARY*/
-#ifdef _WINDOWS
-//Annoying warning
-#pragma warning( disable : 4996 )
-#endif
+
 #ifndef	_XOPEN_SOURCE
 #   define _XOPEN_SOURCE 500
 #endif
@@ -46,16 +43,19 @@
 #include <ctype.h>
 #include <errno.h>
 #include <float.h>
-//#include <inttypes.h>
 #define int32_t __int32
+
+#define _USE_MATH_DEFINES
+
 #include <limits.h>
 #include <math.h>
+
 #include "tsearch.h"
+
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include <strings.h>
 
 #include "vapor/udunits2.h"		/* this module's API */
 #include "vapor/converter.h"
@@ -230,8 +230,7 @@ static ut_unit*		productRoot(
 /*
  * Convert a Julian day number to a Gregorian/Julian date.
  */
-void
-julianDayToGregorianDate(julday, year, month, day)
+void julianDayToGregorianDate(julday, year, month, day)
     long	julday;		/* Julian day number to convert */
     int		*year;		/* Gregorian year (out) */
     int		*month;		/* Gregorian month (1-12) (out) */
@@ -389,11 +388,11 @@ ut_encode_clock(
  */
 static void
 decompose(value, uncer, nbasis, basis, count)
-    double	value;
-    double	uncer;		/* >= 0 */
-    int		nbasis;
-    double	*basis;		/* all values > 0 */
-    double	*count;
+    double        value;
+    double        uncer;		/* >= 0 */
+    int           nbasis;
+    const double *basis;		/* all values > 0 */
+    double       *count;
 {
     int		i;
 
@@ -1485,7 +1484,7 @@ productAcceptVisitor(
     void* const			arg)
 {
     int		count = unit->product.count;
-    BasicUnit**	basicUnits = malloc(sizeof(BasicUnit)*count);
+    BasicUnit**	basicUnits = malloc(sizeof(BasicUnit*)*count);
 
     assert(unit != NULL);
     assert(IS_PRODUCT(unit));
@@ -1498,7 +1497,7 @@ productAcceptVisitor(
 	    "Couldn't allocate %d-element basic-unit array", count);
     }
     else {
-	int*	powers = malloc(sizeof(int)*count);
+        int*	powers = (count > 0 ? malloc(sizeof(int)*count) : NULL);
 
 	if (count != 0 && powers == NULL) {
 	    ut_set_status(UT_OS);
@@ -1519,7 +1518,8 @@ productAcceptVisitor(
 	    ut_set_status(visitor->visit_product(unit, count,
 		(const ut_unit**)basicUnits, powers, arg));
 
-	    free(powers);
+            if (powers)
+                free(powers);
 	}				/* "powers" allocated */
 
 	free(basicUnits);
@@ -2083,6 +2083,7 @@ timestampNewOrigin(
 }
 
 
+#if 0
 /*
  * Returns a new unit instance.
  *
@@ -2118,6 +2119,7 @@ timestampNew(
     return timestampNewOrigin(
 	unit, ut_encode_time(year, month, day, hour, minute, second));
 }
+#endif
 
 
 static ProductUnit*
