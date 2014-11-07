@@ -161,12 +161,15 @@ int DCReaderGRIB::Read(float *_values) {
 
 int DCReaderGRIB::ReadSlice(float *values){
 
+	int savedSliceNum;
 	Variable *targetVar;
 	if (_vars3d.find(_openVar) != _vars3d.end()) {       // we have a 3d var
 		targetVar = _vars3d[_openVar];
 	}
 	else if (_vars2d.find(_openVar) != _vars2d.end()) {  // we have a 2d var
 		targetVar = _vars2d[_openVar];
+		savedSliceNum = _sliceNum;
+		_sliceNum = 0;
 	}
 	else {
 		MyBase::SetErrMsg("Variable not found in 2d or 3d variable set");
@@ -177,8 +180,6 @@ int DCReaderGRIB::ReadSlice(float *values){
 	int offset = targetVar->GetOffset(usertime,level);
 	string filename = targetVar->GetFileName(usertime,level);	
 
-	
-	
     int rc = fseek(_inFile,offset,SEEK_SET);
 	if (rc != 0) {
 		MyBase::SetErrMsg("fseek error during GRIB ReadSlice");  
@@ -232,15 +233,16 @@ int DCReaderGRIB::ReadSlice(float *values){
 		}
 
 		values[vaporIndex] = (float) _dvalues[gribIndex];
+
 		if (values[vaporIndex] < min) min = values[vaporIndex];
 		if (values[vaporIndex] > max) max = values[vaporIndex];
 	}
 
 	// Apply linear interpolation on _values if we are on a gaussian grid
-	if(!strcmp(_gridType.c_str(),"regular_gg")) _LinearInterpolation(values);
+	//if(!strcmp(_gridType.c_str(),"regular_gg")) _LinearInterpolation(values);
 
-	cout << _openVar << " " << usertime << " " << level << " " << _sliceNum << " " << offset << " " << filename << " " << min << " " << max << endl;
-
+	//cout << _openVar << " " << usertime << " " << level << " " << _sliceNum << " " << offset << " " << filename << " " << min << " " << max << endl;
+	//cout << _openVar << " " << min << " " << max << endl;
     delete [] _dvalues;
 
 
@@ -248,12 +250,14 @@ int DCReaderGRIB::ReadSlice(float *values){
 		if (_sliceNum == 0) _sliceNum = _pressureLevels.size()-1;
 		else _sliceNum--;
 	}
+	else _sliceNum = savedSliceNum;						// we had a 2d var, so we revert to the saved slice number
    
 	grib_handle_delete(h);
 	return 1;
 }
 
 void DCReaderGRIB::_LinearInterpolation(float *values) {
+	//cout << "LinearInterpolation" << endl;
 	if (_iValues) delete [] _iValues;
 	_iValues = new float[_Ni*_Nj];
 	int lat, gLatIndex, dataIndex1, dataIndex2;
@@ -268,6 +272,7 @@ void DCReaderGRIB::_LinearInterpolation(float *values) {
 		point1 = values[dataIndex1];			// data point below our interpolation
 		point2 = values[dataIndex2];			// data point above our interpolation
 		_iValues[i] = weight * point1 + (1-weight) * point2;
+		//printf("i %i %d %i %d %d %d \n",dataIndex1,point1,dataIndex2,point2,weight,lat);
 	}
 	values = _iValues;
 }
@@ -438,12 +443,13 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
 }
 
 int DCReaderGRIB::_Initialize(const vector <string> files) {
-
+	int rc;
 	parser = new GribParser();
 	for (int i=0; i<files.size(); i++){
-		parser->_LoadRecordKeys(files[i]);
+		rc = parser->_LoadRecordKeys(files[i]);
+		if (rc !=0) MyBase::SetErrMsg("No such file");
 	}
-	int rc = parser->_VerifyKeys();
+	rc = parser->_VerifyKeys();
     if (rc<0) return -1; 
 
 	std::vector<std::map<std::string, std::string> > records = parser->GetRecords();
@@ -503,6 +509,7 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	if (_minLon > _maxLon) _minLon = _minLon - 360;
 
 	if (!strcmp(_gridType.c_str(),"regular_gg")) {
+		//cout << "generating weights" << endl;
 		_generateWeightTable();
 	}
 
@@ -513,7 +520,6 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 		string name  = record["shortName"];
 		string file = record["file"];
 		int offset = atoi(record["offset"].c_str());
-		cout << offset << endl;
 		int year   = atoi(record["yearOfCentury"].c_str()) + 2000;
 		int month  = atoi(record["month"].c_str());
 		int day    = atoi(record["day"].c_str());
@@ -532,7 +538,6 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 		if (std::find(_pressureLevels.begin(), _pressureLevels.end(), level) == _pressureLevels.end()) {
 			if (!strcmp(name.c_str(),"gh")) _pressureLevels.push_back(level);
 		}
-			//if ((level != 0.f) && strcmp(name.c_str(),"sigma"))_pressureLevels.push_back(level);
 
 		int isobaric = strcmp(levelType.c_str(),"isobaricInhPa");
 		if (isobaric == 0) {								    // if we have a 3d var...
@@ -619,12 +624,14 @@ string DCReaderGRIB::GetGridType() {
 }
 
 void DCReaderGRIB::_generateWeightTable() {
+	//_Nj = 6;
 	_gaussianLats = new double[_Nj];
 	grib_get_gaussian_latitudes(_Nj/2,_gaussianLats);
-
+	//_maxLat=_gaussianLats[0];
+	//_minLat=_gaussianLats[5];
 
 	_regularLats = new double[_Nj];
-	double increment = (_maxLat - _minLat) / _Nj;
+	double increment = (_maxLat - _minLat) / (_Nj-1);
 	for (int i=0; i<_Nj; i++) {
 		_regularLats[i] = _maxLat - i*increment;
 	}
@@ -632,16 +639,13 @@ void DCReaderGRIB::_generateWeightTable() {
 	double regular, gaussianBelow, gaussianAbove, weight;
 	for (int regj=0; regj<_Nj; regj++) {
 
-		double closest = abs(_regularLats[regj] - _gaussianLats[0]);	
-		double nextClosest = abs(_regularLats[regj] - _gaussianLats[1]);
-		
 		// Find nearest neighbor below current regular lat
-		int gausj;
-		for (gausj=0; gausj<_Nj; gausj++) {
+		for (int gausj=0; gausj<_Nj; gausj++) {
 			if (_regularLats[regj] >= _gaussianLats[gausj]) { // this gaussian lat is below our regular lat
 				regular = _regularLats[regj];
 				gaussianAbove = _gaussianLats[gausj];
 				gaussianBelow = _gaussianLats[gausj+1];
+				//cout << "      " << gaussianAbove << "  " << regular << endl;
 				break;
 			}
 		}
@@ -745,21 +749,13 @@ void DCReaderGRIB::GetLatLonExtents(size_t ts, double lon_exts[2], double lat_ex
 }
 
 std::vector<std::string> DCReaderGRIB::GetVariables2DExcluded() const {
-	std::vector <string> vars;
-	typedef std::map<std::string, Variable*>::const_iterator it_type;
-	for(it_type iterator = _vars3d.begin(); iterator != _vars3d.end(); iterator++) {
-    	vars.push_back(iterator->first);
-	}
-	return vars;
+	vector<string> empty;
+	return empty;
 }
 
 std::vector<std::string> DCReaderGRIB::GetVariables3DExcluded() const {
-    std::vector <string> vars;
-    typedef std::map<std::string, Variable*>::const_iterator it_type;
-    for(it_type itr = _vars2d.begin(); itr != _vars2d.end(); itr++) {
-        vars.push_back(itr->first);
-    }    
-    return vars;
+    vector<string> empty;
+	return empty;
 }
 
 DCReaderGRIB::~DCReaderGRIB() {
@@ -827,7 +823,7 @@ DCReaderGRIB::GribParser::GribParser() {
 int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
     FILE* _in = fopen(file.c_str(),"rb");
     if(!_in) {
-        char *error;
+        char error[50];
         sprintf(error,"ERROR: unable to open file %s\n",file.c_str());
         MyBase::SetErrMsg(error);
 	    return -1;

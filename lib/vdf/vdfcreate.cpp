@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <vapor/OptionParser.h>
 #include <vapor/MetadataVDC.h>
+#include <vapor/DCReaderGRIB.h>
 #include <vapor/DCReaderMOM.h>
 #include <vapor/DCReaderROMS.h>
 #include <vapor/DCReaderWRF.h>
@@ -305,7 +306,10 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 	}
 	
     if (NetCDFtype == "roms") DCdata = new DCReaderROMS(ncdffiles);
-    else if (NetCDFtype == "wrf") {
+    else if (NetCDFtype == "grib") {
+		DCdata = new DCReaderGRIB(ncdffiles);
+	}
+	else if (NetCDFtype == "wrf") {
 		DCdata = new DCReaderWRF(ncdffiles);
 	}
 	else DCdata = new DCReaderMOM(ncdffiles);

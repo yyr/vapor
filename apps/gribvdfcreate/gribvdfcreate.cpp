@@ -13,6 +13,8 @@
 using namespace VetsUtil;
 using namespace VAPoR;
 
+OptionParser op; 
+
 MetadataVDC *CreateMetadataVDC(
     const VDCFactory &vdcf,
     DCReaderGRIB *GribData
@@ -54,19 +56,7 @@ MetadataVDC *CreateMetadataVDC(
 
     vector <string> candidate_vars, vars;
     candidate_vars = GribData->GetVariables3D();
-    //if (! opt.vars.size()) {
     vars = candidate_vars;
-    //}   
-    /*else {
-
-        vars.clear();
-        for (int i=0; i<opt.vars.size(); i++) {
-            vector <string>::iterator itr = find(candidate_vars.begin(), candidate_vars.end(), opt.vars[i]);
-            if (itr != candidate_vars.end()) {
-                vars.push_back(opt.vars[i]);
-            }   
-        }   
-    } */
 
     if(file->SetVariables3D(vars)) {
         cerr << "Error populating Variables." << endl;
@@ -74,57 +64,21 @@ MetadataVDC *CreateMetadataVDC(
     }
 
     candidate_vars = GribData->GetVariables2DXY();
-    //if (! opt.vars.size()) {
-        vars = candidate_vars;
-    //}   
-    /*else {
-
-        vars.clear();
-        for (int i=0; i<opt.vars.size(); i++) {
-            vector <string>::iterator itr = find(candidate_vars.begin(), candidate_vars.end(), opt.vars[i]);
-            if (itr != candidate_vars.end()) {
-                vars.push_back(opt.vars[i]);
-            }   
-        }   
-    } */
+    vars = candidate_vars;
     if(file->SetVariables2DXY(vars)) {
         cerr << "Error populating Variables." << endl;
         exit(1);
     }
 
     candidate_vars = GribData->GetVariables2DXZ();
-    //if (! opt.vars.size()) {
-        vars = candidate_vars;
-    //}   
-    /*else {
-
-        vars.clear();
-        for (int i=0; i<opt.vars.size(); i++) {
-            vector <string>::iterator itr = find(candidate_vars.begin(), candidate_vars.end(), opt.vars[i]);
-            if (itr != candidate_vars.end()) {
-                vars.push_back(opt.vars[i]);
-            }   
-        }   
-    } */
+    vars = candidate_vars;
     if(file->SetVariables2DXZ(vars)) {
         cerr << "Error populating Variables." << endl;
         exit(1);
     }
 
     candidate_vars = GribData->GetVariables2DYZ();
-    //if (! opt.vars.size()) {
-        vars = candidate_vars;
-    //}   
-    /*else {
-
-        vars.clear();
-        for (int i=0; i<opt.vars.size(); i++) {
-            vector <string>::iterator itr = find(candidate_vars.begin(), candidate_vars.end(), opt.vars[i]);
-            if (itr != candidate_vars.end()) {
-                vars.push_back(opt.vars[i]);
-            }   
-        }   
-    } */
+    vars = candidate_vars;
     if(file->SetVariables2DYZ(vars)) {
         cerr << "Error populating Variables." << endl;
         exit(1);
@@ -153,62 +107,6 @@ MetadataVDC *CreateMetadataVDC(
 
 	string gridType = GribData->GetGridType();
 	file->SetGridType(gridType);
-	//file->SetGridType("layered");
-    //string gridtype = file->GetGridType();
-
-//    if (gridtype.compare("layered")==0) {
-//        vector <string> vec;
-//        vec.push_back("NONE");
-//        vec.push_back("NONE");
-  //        vec.push_back(opt.zcoordvar);
-//        file->SetCoordinateVariables(vec);
-//    }
-
-/*	vector <double> zcoords = GribData->GetZCoordsInMeters();
-	for (int ts=0; ts<GribData->GetNumTimeSteps(); ts++) {
-		file->SetTSZCoords(ts,zcoords);
-	}
-*/
-
-/*    else if (gridtype.compare("stretched")==0) {
-        NetCDFCollection *ncdfc = GribData->GetNetCDFCollection();
-        for(size_t ts = 0; ts < GribData->GetNumTimeSteps(); ts++) {
-            vector <double> coords;
-            if (! (opt.xcoordvar.compare("NONE")==0)) {
-                GetCoordinates(ncdfc, ts, opt.xcoordvar, dims[0], coords);
-            }   
-            else {
-                // Ugh. Stupid hack to fix bug #1007. The VDCFactory
-                // object parses the -{x,y,z}coords option and sets 
-                // the coordinates, but only for the first time step.
-                // Need to grab coordinates from ts=0, and set the rest of
-                // the time steps
-                //  
-                coords = file->GetTSXCoords(0);
-            }   
-            int rc = file->SetTSXCoords(ts, coords);
-            if (rc<0) exit(1);
-
-            if (! (opt.ycoordvar.compare("NONE")==0)) {
-                GetCoordinates(ncdfc, ts, opt.ycoordvar, dims[0], coords);
-            }   
-            else {
-                coords = file->GetTSYCoords(0);
-            }   
-            rc = file->SetTSYCoords(ts, coords);
-            if (rc<0) exit(1);
-
-            if (! (opt.zcoordvar.compare("NONE")==0)) {
-                GetCoordinates(ncdfc, ts, opt.zcoordvar, dims[0], coords);
-            }   
-            else {
-                coords = file->GetTSZCoords(0);
-            }   
-            rc = file->SetTSZCoords(ts, coords);
-            if (rc<0) exit(1);
-
-        }   
-    }*/
 
     return(file);
 }
@@ -223,7 +121,6 @@ int CopyVar(
     int level,
     int lod
 ) {
-	cout << "OpenVarRead ";
     if (gribData->OpenVariableRead(gribTS, gribVar,NULL,NULL) < 0) {
         MyBase::SetErrMsg(
             "Failed to open GRIB variable \"%s\" at time step %d",
@@ -232,7 +129,6 @@ int CopyVar(
         return(-1);
     }
 
-	cout << "OpenVarWrite ";
     if (vdfio->OpenVariableWrite(vdcTS, vdcVar.c_str(), level, lod) < 0) {
         MyBase::SetErrMsg(
             "Failed to open VDC variable \"%s\" at time step %d",
@@ -249,7 +145,6 @@ int CopyVar(
     VDFIOBase::VarType_T vtype = vdfio->GetVarType(vdcVar);
     int n = vtype == Metadata::VAR3D ? dim[2] : 1;
     for (int i=0; i<n; i++) {
-		cout << "ReadStart ";
         rc = gribData->ReadSlice(buf);
         if (rc==0) {
             MyBase::SetErrMsg(
@@ -277,8 +172,6 @@ int CopyVar(
             if (buf[j] < min) min = buf[j];
         }*/
 
-		cout << "WriteStart ";
-
         rc = vdfio->WriteSlice(buf);
         if (rc<0) {
             cout << "WriteSlice(buf) error" << endl;
@@ -295,48 +188,197 @@ int CopyVar(
     if (buf) delete [] buf;
     vdfio->CloseVariable();
 
-	cout << "End" << endl;
-
     return(rc);
-
 }
 
-void usage(char* prog) {
-    printf("usage: %s _vdfFileName _gribFiles\n",prog);
+void Usage(const char * msg) {
+	if (msg) {
+		cerr << "gribvdfcreate: " << msg << endl;
+	}
+	cerr << "Usage: gribvdfcreate [options] grib_file(s)... vdf_file" << endl;
+	op.PrintOptionHelp(stderr, 80, false);
     exit(1);
+}
+
+void writeToScreen(DCReader *DCdata, MetadataVDC *file) {
+    if (DCdata->GetNumTimeSteps() > 0) {
+        cout << "Created VDF file:" << endl;
+        cout << "\tNum time steps : " << file->GetNumTimeSteps() << endl;
+
+        cout << "\t3D Variable names : ";
+        for (int i = 0; i < file->GetVariables3D().size(); i++) {
+            cout << file->GetVariables3D()[i] << " ";
+        }
+        cout << endl;
+
+        cout << "\t2DXY Variable names : ";
+        for (int i=0; i < file->GetVariables2DXY().size(); i++) {
+            cout << file->GetVariables2DXY()[i] << " ";
+        }
+        cout << endl;
+
+        cout << "\t2DXZ Variable names : ";
+        for (int i=0; i < file->GetVariables2DXZ().size(); i++) {
+            cout << file->GetVariables2DXZ()[i] << " ";
+        }
+        cout << endl;
+
+        cout << "\t2DYZ Variable names : ";
+        for (int i=0; i < file->GetVariables2DYZ().size(); i++) {
+            cout << file->GetVariables2DYZ()[i] << " ";
+        }
+        cout << endl;
+
+        cout << "\tExcluded 3D Variable names : ";
+        for (int i = 0; i < DCdata->GetVariables3DExcluded().size(); i++) {
+            cout << DCdata->GetVariables3DExcluded()[i] << " ";
+        }
+        cout << endl;
+
+        cout << "\tExcluded 2D Variable names : ";
+        for (int i = 0; i < DCdata->GetVariables2DExcluded().size(); i++) {
+            cout << DCdata->GetVariables2DExcluded()[i] << " ";
+        }
+        cout << endl;
+
+        cout << "\tCoordinate extents : ";
+        const vector <double> extptr = file->GetExtents();
+        for(int i=0; i<6; i++) {
+            cout << extptr[i] << " ";
+        }
+        cout << endl;
+        double lon[2], lat[2];
+        DCdata->GetLatLonExtents(0, lon, lat);
+        cout << "\tMin Longitude and Latitude : " <<lon[0]<< " " <<lat[0]<< endl;
+        cout << "\tMax Longitude and Latitude : " <<lon[1]<< " " <<lat[1]<< endl;
+
+    }
 }
 
 int main(int argc, char** argv) {
     
 	string gribfile;
-	string vdfname;
+	//string vdfname;
 
-    vector <string> files;
-    for (int i=2; i<argc; i++){
-        files.push_back(argv[i]);
-    }   
+    //vector <string> files;
+    //for (int i=2; i<argc; i++){
+    //    files.push_back(argv[i]);
+    //}   
 
-    if (argc<3) usage(argv[0]);
+//    if (argc<3) Usage(argv[0]);
     
-	vdfname = argv[1];
+	//vdfname = argv[1];
+
+	
+	//
+	// command line options passed to launchVdfCreate
+	//
+	vector <string> vars;
+	VetsUtil::OptionParser::Boolean_T help=false;
+	VetsUtil::OptionParser::Boolean_T quiet=false;
+	VetsUtil::OptionParser::Boolean_T debug=false;
+	string progname = argv[0];
+
+    OptionParser::OptDescRec_T  set_opts[] = { 
+        {"vars",1,    "",   "Colon delimited list of variables to be copied "
+            "from ncdf data. The default is to copy all 2D and 3D variables"},
+        {"help",    0,  "", "Print this message and exit"},
+        {"quiet",   0,  "", "Operate quietly"},
+        {"debug",   0,  "", "Turn on debugging"},
+        {NULL}
+    };  
+
+    OptionParser::Option_T  get_options[] = { 
+        {"vars", VetsUtil::CvtToStrVec, &vars, sizeof(vars)},
+        {"help", VetsUtil::CvtToBoolean, &help, sizeof(help)},
+        {"quiet", VetsUtil::CvtToBoolean, &quiet, sizeof(quiet)},
+        {"debug", VetsUtil::CvtToBoolean, &debug, sizeof(debug)},
+        {NULL}
+    }; 
+
+	if (op.AppendOptions(set_opts) < 0) {
+		exit(1);
+	}
+
+	if (op.ParseOptions(&argc, argv, get_options) < 0) {
+		cout << "Error parsing arguments" << endl;
+		MyBase::SetErrMsg("Error parsing arguments");
+		exit(1);
+	}
+
+	VDCFactory vdcf(1);
+	vector <string> rmopts;
+	rmopts.push_back("nfilter");
+    rmopts.push_back("nlifting");
+    rmopts.push_back("varnames");
+    rmopts.push_back("vars3d");
+    rmopts.push_back("vars2dxy");
+    rmopts.push_back("vars2dxz");
+    rmopts.push_back("vars2dyz");
+    rmopts.push_back("missing");
+    rmopts.push_back("level");
+    rmopts.push_back("order");
+    rmopts.push_back("deltat");
+    rmopts.push_back("gridtype");
+    rmopts.push_back("usertimes");
+    rmopts.push_back("xcoords");
+    rmopts.push_back("ycoords");
+    rmopts.push_back("zcoords");
+    rmopts.push_back("mapprojection");
+    rmopts.push_back("coordsystem");
+    rmopts.push_back("extents");
+    rmopts.push_back("startt");
+    rmopts.push_back("numts");
+	vdcf.RemoveOptions(rmopts);
+
+	if (vdcf.Parse(&argc, argv) < 0) {
+		cout << "Error parsing arguments" << endl;
+		MyBase::SetErrMsg("Error parsing arguments");
+		exit(1);
+	}
+
+	if (debug) MyBase::SetDiagMsgFilePtr(stderr);
+
+	if (help) {
+		Usage("");
+		vdcf.Usage(stderr);
+		exit(0);
+	}
+
+	argv++;
+	argc--;
+
+	if (argc < 2) {
+		Usage("No files to process");
+		vdcf.Usage(stderr);
+		MyBase::SetErrMsg("No files to process");
+		exit(1);
+	}
+
+	vector<string> gribfiles;
+	for(int i=0; i<argc-1; i++){
+		gribfiles.push_back(argv[i]);
+	}
 
 	// Create DCReaderGRIB with record info
-	DCReaderGRIB *DCGrib = new DCReaderGRIB(files);
+	DCReaderGRIB *DCGrib = new DCReaderGRIB(gribfiles);
 
     // Create VDF file      
-    VDCFactory vdcf(1);
+    //VDCFactory vdcf(1);
     MetadataVDC *file = CreateMetadataVDC(vdcf, DCGrib);
-    file->Write(vdfname);
+    file->Write(argv[argc-1]);
 
+	writeToScreen(DCGrib, file);
+	if (DCGrib) delete DCGrib;
 
     // Create VDC
-    WaveCodecIO *wcwriter;
+/*    WaveCodecIO *wcwriter;
     MetadataVDC metadataVDC(vdfname);
     wcwriter = new WaveCodecIO(metadataVDC,1);  
     VDFIOBase *vdfio = NULL;
     vdfio = wcwriter;
 
-	std::vector<string> vars;
+	//std::vector<string> vars;
 	std::vector<string> vars3D = DCGrib->GetVariables3D();
 	std::vector<string> vars2D = DCGrib->GetVariables2DXY();
 
@@ -344,7 +386,7 @@ int main(int argc, char** argv) {
 		vars.push_back(vars3D[i]);
 	}
 
-	DCGrib->Print2dVars();
+	//DCGrib->Print2dVars();
 
 	for (int i=0; i<vars2D.size(); i++) {
 		vars.push_back(vars2D[i]);
@@ -367,6 +409,6 @@ int main(int argc, char** argv) {
 
 	if (DCGrib) delete DCGrib;
 	if (wcwriter) delete wcwriter;
-
+*/
     return 0;
 }

@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <vapor/OptionParser.h>
 #include <vapor/MetadataVDC.h>
+#include <vapor/DCReaderGRIB.h>
 #include <vapor/DCReaderROMS.h>
 #include <vapor/DCReaderMOM.h>
 #include <vapor/DCReaderWRF.h>
@@ -447,6 +448,7 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 	
 	if (DCData==NULL){
 		if (dataType == "roms") DCData = new DCReaderROMS(ncdffiles); 
+		else if (dataType == "grib") DCData = new DCReaderGRIB(ncdffiles);
 		else DCData = new DCReaderMOM(ncdffiles);
 	}
 
