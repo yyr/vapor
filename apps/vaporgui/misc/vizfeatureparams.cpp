@@ -57,6 +57,7 @@ VizFeatureParams::VizFeatureParams(){
 	DataStatus *ds;
 	ds = DataStatus::getInstance();
 	
+	
 }
 //Clone a new vizfeatureparams
 VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
@@ -66,7 +67,7 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	for (int i = 0; i< 3; i++) stretch[i] = vfParams.stretch[i];
 	currentComboIndex = vfParams.currentComboIndex;
 	vizName = vfParams.vizName;
-	showBar = vfParams.showBar;
+	
 	showAxisArrows = vfParams.showAxisArrows;
 	enableSpin = vfParams.enableSpin;
 	
@@ -91,17 +92,19 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	ticWidth = vfParams.ticWidth;
 
 	colorbarDigits = vfParams.colorbarDigits;
-	colorbarRendererTypeId = vfParams.colorbarRendererTypeId;
+	
 	colorbarFontsize = vfParams.colorbarFontsize;
-	colorbarLLCoords[0] = vfParams.colorbarLLCoords[0];
-	colorbarLLCoords[1] = vfParams.colorbarLLCoords[1];
-	colorbarURCoords[0] = vfParams.colorbarURCoords[0];
-	colorbarURCoords[1] = vfParams.colorbarURCoords[1];
+	colorBarLLX = vfParams.colorBarLLX;
+	colorBarLLY = vfParams.colorBarLLY;
+	colorBarEnabled = vfParams.colorBarEnabled;
+	colorbarTitles = vfParams.colorbarTitles;
+	colorbarSize[0] = vfParams.colorbarSize[0];
+	colorbarSize[1] = vfParams.colorbarSize[1];
 	numColorbarTics = vfParams.numColorbarTics;
 	
 	colorbarBackgroundColor = vfParams.colorbarBackgroundColor;
 	colorbarDigits = vfParams.colorbarDigits;
-	colorbarRendererTypeId = vfParams.colorbarRendererTypeId;
+	
 	colorbarFontsize = vfParams.colorbarFontsize;
 	
 	useLatLon = vfParams.useLatLon;
@@ -136,6 +139,16 @@ void VizFeatureParams::launch(){
 	vizFeatureDlg = new VizFeatureDialog(featureHolder);
 	sv->setWidget(vizFeatureDlg);
 	
+	//Set up the renderer type lookup:
+	rendererTypeLookup.clear();
+	
+	for (int i = 1; i<= Params::GetNumParamsClasses(); i++){
+		RenderParams* p = dynamic_cast<RenderParams*>(Params::GetDefaultParams(i));
+		if (!p) continue;
+		if (!p->UsesMapperFunction()) continue;
+		rendererTypeLookup.push_back(p->GetParamsBaseTypeId());
+	}
+
 	//Copy values into dialog, using current comboIndex:
 	setDialog();
 	dialogChanged = false;
@@ -181,6 +194,7 @@ void VizFeatureParams::launch(){
 	}
 	
 	//Do connections.  
+	connect(vizFeatureDlg->colorbarTable, SIGNAL(cellChanged(int, int)), this, SLOT(colorbarTableChanged(int, int)));
 	connect(vizFeatureDlg->currentNameCombo, SIGNAL(activated(int)), this, SLOT(visualizerSelected(int)));
 	
 	connect (vizFeatureDlg->vizNameEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
@@ -189,16 +203,13 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->axisZEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->colorbarNumDigitsEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->colorbarFontsizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
-	connect (vizFeatureDlg->colorbarLLXEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
-	connect (vizFeatureDlg->colorbarLLYEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->colorbarTable, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->colorbarXSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->colorbarYSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->numTicsEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->colorbarBackgroundButton, SIGNAL(clicked()), this, SLOT(selectColorbarBackgroundColor()));
 	connect (vizFeatureDlg->axisCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->spinAnimationCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
-	connect (vizFeatureDlg->colorbarCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
-	connect (vizFeatureDlg->rendererCombo, SIGNAL(activated(int)), this, SLOT(rendererChanged(int)));
 	
 	connect (vizFeatureDlg->applyButton, SIGNAL(clicked()), this, SLOT(applySettings()));
 	connect (vizFeatureDlg->applyButton2, SIGNAL(clicked()), this, SLOT(applySettings()));
@@ -248,11 +259,7 @@ void VizFeatureParams::launch(){
 	featureHolder->exec();
 	
 }
-void VizFeatureParams::
-rendererChanged(int renIndex){
-	colorbarRendererTypeId = rendererTypeLookup[renIndex];
-	dialogChanged = true;
-}
+
 
 //Slots to identify that a change has occurred
 void VizFeatureParams::
@@ -406,27 +413,75 @@ setDialog(){
 	QPalette pal0(vizFeatureDlg->axisColorEdit->palette());
 	pal0.setColor(QPalette::Base,axisAnnotationColor);
 	vizFeatureDlg->axisColorEdit->setPalette(pal0);
+	// Insert a row in the table for each renderer type that has a TF
+	vizFeatureDlg->colorbarTable->setRowCount(rendererTypeLookup.size());
+	vizFeatureDlg->colorbarTable->setColumnCount(5);
 	
+    vizFeatureDlg->colorbarTable->verticalHeader()->hide();
+	//setSelectionMode(QAbstractItemView::SingleSelection);
+	//setSelectionBehavior(QAbstractItemView::SelectRows);
+	//setFocusPolicy(Qt::ClickFocus);
+
+	QStringList headerList = QStringList() <<"Renderer" <<"Display" <<"Lower-left X" << "Lower-left Y" << "Title";
+    vizFeatureDlg->colorbarTable->setHorizontalHeaderLabels(headerList);
+	vizFeatureDlg->colorbarTable->horizontalHeader()->setDefaultAlignment(Qt::AlignHCenter);
+	colorbarTitles = vizWin->getColorbarTitles();
+	colorBarEnabled = vizWin->getColorbarEnabled();
+	colorBarLLX = vizWin->getColorbarLLX();
+	colorBarLLY = vizWin->getColorbarLLY();
+	
+	//Populate the table:
+	for (int i = 0; i< rendererTypeLookup.size(); i++){
+		RenderParams* p = dynamic_cast<RenderParams*>(Params::GetDefaultParams(rendererTypeLookup[i]));
+		const string& s = p->getShortName();
+		QString rendererName = QString(s.c_str());
+		QTableWidgetItem* it0 = new QTableWidgetItem(rendererName);
+		it0->setToolTip("Renderer type associated with color bar");
+		it0->setFlags(Qt::NoItemFlags);
+		it0->setTextAlignment(Qt::AlignCenter);
+		vizFeatureDlg->colorbarTable->setItem(i,0,it0);
+		QTableWidgetItem* it1 = new QTableWidgetItem("");
+		it1->setToolTip("Check box to display color bar of current renderer when enabled");
+		it1->setTextAlignment(Qt::AlignCenter);
+		if (colorBarEnabled[i])it1->setCheckState(Qt::Checked);
+			else it1->setCheckState(Qt::Unchecked);
+		vizFeatureDlg->colorbarTable->setItem(i,1,it1);
+		QTableWidgetItem* it2 = new QTableWidgetItem(QString::number(colorBarLLX[i]));
+		it2->setToolTip("Specify x-coordinate of left edge of color bar, relative to [0,1]");
+		it2->setTextAlignment(Qt::AlignCenter);
+		vizFeatureDlg->colorbarTable->setItem(i,2,it2);
+		QTableWidgetItem* it3 = new QTableWidgetItem(QString::number(colorBarLLY[i]));
+		it3->setToolTip("Specify y-coordinate of bottom of color bar, relative to [0,1]");
+		it3->setTextAlignment(Qt::AlignCenter);
+		vizFeatureDlg->colorbarTable->setItem(i,3,it3);
+		QTableWidgetItem* it4 = new QTableWidgetItem(colorbarTitles[i].c_str());
+		it4->setToolTip("Specify descriptive text to display below color bar");
+		it4->setTextAlignment(Qt::AlignLeft|Qt::AlignVCenter);
+		it4->setSizeHint(QSize(130,0));
+		vizFeatureDlg->colorbarTable->setItem(i,4,it4);
+	}
+	vizFeatureDlg->colorbarTable->resizeColumnsToContents();
+	//setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	//setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 	
 	colorbarDigits = vizWin->getColorbarDigits();
-	colorbarRendererTypeId = vizWin->getColorbarParamsTypeId();
-	int indx = 0;
-	for (int i = 0; i< rendererTypeLookup.size(); i++){
-		if(rendererTypeLookup[i] == colorbarRendererTypeId) indx = i;
-	}
-	vizFeatureDlg->rendererCombo->setCurrentIndex(indx);
+	
+	colorBarLLX = vizWin->getColorbarLLX();
+	colorBarLLY = vizWin->getColorbarLLY();
+
+	
 	colorbarFontsize = vizWin->getColorbarFontsize();
 	vizFeatureDlg->colorbarFontsizeEdit->setText(QString::number(colorbarFontsize));
 	vizFeatureDlg->colorbarNumDigitsEdit->setText(QString::number(colorbarDigits));
-	colorbarLLCoords[0] = vizWin->getColorbarLLCoord(0);
-	colorbarLLCoords[1] = vizWin->getColorbarLLCoord(1);
-	vizFeatureDlg->colorbarLLXEdit->setText(QString::number(colorbarLLCoords[0]));
-	vizFeatureDlg->colorbarLLYEdit->setText(QString::number(colorbarLLCoords[1]));
-	colorbarURCoords[0] = vizWin->getColorbarURCoord(0);
-	colorbarURCoords[1] = vizWin->getColorbarURCoord(1);
-	vizFeatureDlg->colorbarXSizeEdit->setText(QString::number(colorbarURCoords[0]-colorbarLLCoords[0]));
-	vizFeatureDlg->colorbarYSizeEdit->setText(QString::number(colorbarURCoords[1]-colorbarLLCoords[1]));
+	
+	
+	colorbarSize[0] = vizWin->getColorbarSize(0);
+	colorbarSize[1] = vizWin->getColorbarSize(1);
+	
+	vizFeatureDlg->colorbarXSizeEdit->setText(QString::number(colorbarSize[0]));
+	vizFeatureDlg->colorbarYSizeEdit->setText(QString::number(colorbarSize[1]));
 
+	
 	timeAnnotCoords[0] = vizWin->getTimeAnnotCoord(0);
 	timeAnnotCoords[1] = vizWin->getTimeAnnotCoord(1);
 	timeAnnotType = vizWin->getTimeAnnotType();
@@ -443,8 +498,7 @@ setDialog(){
 
 	numColorbarTics = vizWin->getColorbarNumTics();
 	vizFeatureDlg->numTicsEdit->setText(QString::number(numColorbarTics));
-	showBar = vizWin->colorbarIsEnabled();
-	vizFeatureDlg->colorbarCheckbox->setChecked(showBar);
+	
 	showAxisArrows = vizWin->axisArrowsAreEnabled();
 
 	vizFeatureDlg->axisCheckbox->setChecked(showAxisArrows);
@@ -459,25 +513,6 @@ setDialog(){
 	vizFeatureDlg->colorbarBackgroundEdit->setPalette(pal2);
 
 
-	//Set up the renderer combo.
-	vizFeatureDlg->rendererCombo->clear();
-	rendererTypeLookup.clear();
-	
-	int typeId = vizWin->getColorbarParamsTypeId();
-	int comboIndex = 0;
-	for (int i = 1; i<= Params::GetNumParamsClasses(); i++){
-		RenderParams* p = dynamic_cast<RenderParams*>(Params::GetDefaultParams(i));
-		if (!p) continue;
-		if (!p->UsesMapperFunction()) continue;
-		const string& s = p->getShortName();
-		vizFeatureDlg->rendererCombo->addItem(s.c_str());
-		rendererTypeLookup.push_back(p->GetParamsBaseTypeId());
-		
-		if (p->GetParamsBaseTypeId() == typeId) 
-			vizFeatureDlg->rendererCombo->setCurrentIndex(comboIndex);
-		comboIndex++;
-	}
-
 }
 //Copy values from the dialog into 'this', and also to the visualizer state specified
 //by the currentComboIndex (not the actual combo index).  This event gets captured in the
@@ -491,8 +526,6 @@ copyFromDialog(){
 	//Make copy for history.  Note that the "currentComboIndex" is not part
 	//Of the state that will modify visualizer
 	VizFeatureCommand* cmd = VizFeatureCommand::captureStart(this, "Feature edit", vizNum);
-
-	
 
 	stretch[0] = vizFeatureDlg->stretch0Edit->text().toFloat();
 	stretch[1] = vizFeatureDlg->stretch1Edit->text().toFloat();
@@ -543,11 +576,11 @@ copyFromDialog(){
 	timeAnnotTextSize = vizFeatureDlg->timeSizeEdit->text().toInt();
 
 	timeAnnotColor = tempTimeAnnotColor;
-	colorbarRendererTypeId = rendererTypeLookup[vizFeatureDlg->rendererCombo->currentIndex()];
+	
+	
 	colorbarDigits = vizFeatureDlg->colorbarNumDigitsEdit->text().toInt();
 	colorbarFontsize = vizFeatureDlg->colorbarFontsizeEdit->text().toInt();
-	colorbarLLCoords[0] = vizFeatureDlg->colorbarLLXEdit->text().toFloat();
-	colorbarLLCoords[1] = vizFeatureDlg->colorbarLLYEdit->text().toFloat();
+	
 	float wid = vizFeatureDlg->colorbarXSizeEdit->text().toFloat();
 	float ht = vizFeatureDlg->colorbarYSizeEdit->text().toFloat();
 
@@ -560,13 +593,13 @@ copyFromDialog(){
 		ht = 0.1f;
 		vizFeatureDlg->colorbarYSizeEdit->setText(QString::number(ht));
 	}
-	colorbarURCoords[0] = colorbarLLCoords[0]+wid;
-	colorbarURCoords[1] = colorbarLLCoords[1]+ht;
+	colorbarSize[0] = wid;
+	colorbarSize[1] = ht;
 	
 	numColorbarTics = vizFeatureDlg->numTicsEdit->text().toInt();
 	if (numColorbarTics <2) numColorbarTics = 0;
 	if (numColorbarTics > 50) numColorbarTics = 50;
-	showBar = vizFeatureDlg->colorbarCheckbox->isChecked();
+	
 	showAxisArrows = vizFeatureDlg->axisCheckbox->isChecked();
 
 	enableSpin = vizFeatureDlg->spinAnimationCheckbox->isChecked();
@@ -670,15 +703,17 @@ applyToViz(int vizNum){
 	vizWin->setLabelDigits(labelDigits);
 	
 	vizWin->setColorbarDigits(colorbarDigits);
-	vizWin->setColorbarParamsTypeId(colorbarRendererTypeId);
-	vizWin->setColorbarFontsize(colorbarFontsize);
-	vizWin->setColorbarLLCoord(0,colorbarLLCoords[0]);
-	vizWin->setColorbarLLCoord(1,colorbarLLCoords[1]);
-	vizWin->setColorbarURCoord(0,colorbarURCoords[0]);
-	vizWin->setColorbarURCoord(1,colorbarURCoords[1]);
-	vizWin->setColorbarParamsTypeId(colorbarRendererTypeId);
+	vizWin->setColorbarTitles(colorbarTitles);
+	vizWin->setColorbarEnabled(colorBarEnabled);
+	vizWin->setColorbarLLX(colorBarLLX);
+	vizWin->setColorbarLLY(colorBarLLY);
 	
-	vizWin->enableColorbar(showBar);
+	vizWin->setColorbarFontsize(colorbarFontsize);
+	
+	vizWin->setColorbarSize(0,colorbarSize[0]);
+	vizWin->setColorbarSize(1,colorbarSize[1]);
+	
+	
 	vizWin->enableAxisArrows(showAxisArrows);
 	vizWin->enableAxisAnnotation(showAxisAnnotation);
 
@@ -789,4 +824,39 @@ toggleLatLon(bool on){
 	vizFeatureDlg->zTicSizeEdit->setText(QString::number(ticLength[2]));
 	useLatLon = on;
 	dialogChanged = true;
+}
+void VizFeatureParams::colorbarTableChanged(int row, int col){
+	assert(col > 0 && col < 5);
+	QTableWidgetItem *thisItem = vizFeatureDlg->colorbarTable->item(row,col);
+	dialogChanged = true;
+	if (col == 1) { //display checkbox
+		bool enabled = (thisItem->checkState() == Qt::Checked);
+		colorBarEnabled[row] = enabled;
+		return;
+	}
+	if (col == 2) { //LLX
+		float val = thisItem->text().toFloat();
+		if (val < 0.) val = 0.;
+		if (val > 1.) val = 1.;
+		colorBarLLX[row] = val;
+		return;
+	}
+	if (col == 3) { //LLY
+		float val = thisItem->text().toFloat();
+		if (val < 0.) val = 0.;
+		if (val > 1.) val = 1.;
+		colorBarLLY[row] = val;
+		return;
+	}
+	if (col == 4) { //Title
+		string txt = thisItem->text().toStdString();
+		//Do not allow the empty string or many blanks
+		if (txt.size() == 0) txt = " ";
+		
+		else if (txt.find_first_not_of(" ") == string::npos) txt = " ";
+
+		colorbarTitles[row] = txt;
+		return;
+	}
+
 }

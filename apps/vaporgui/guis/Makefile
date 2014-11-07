@@ -12,8 +12,6 @@ endif
 
 MAKEFILE_INCLUDE_DIRS +=  -I../main -I../misc -I../../../lib/params -I../../../lib/render
 
-MAKEFILE_INCLUDE_DIRS += -I$(addprefix $(QTDIR)/include/, QtOpenGL)
-
 VPATH = ../misc ../main ui
 
 include guis.mk

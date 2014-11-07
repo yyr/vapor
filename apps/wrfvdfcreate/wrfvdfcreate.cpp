@@ -12,6 +12,6 @@ int main(int argc, char **argv) {
 	wrfvdfcreate launcher;
 
 	int rc = launcher.launchVdfCreate(argc,argv);
-	if (rc == 0) exit(0);
-	exit(1);
+	if (rc == 0) return(0);
+	return(1);
 }

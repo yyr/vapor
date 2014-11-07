@@ -46,6 +46,8 @@ Wrf2vdf::~Wrf2vdf() {
         if (_mvMask2DXY) delete [] _mvMask2DXY;
         if (_mvMask2DXZ) delete [] _mvMask2DXZ;
         if (_mvMask2DYZ) delete [] _mvMask2DYZ;
+        if (wcwriter) delete wcwriter;
+        if (wrfData) delete wrfData;
 }
 
 const char *ProgName;
@@ -257,8 +259,8 @@ int Wrf2vdf::CopyVar(
 }
 
 void Wrf2vdf::deleteObjects(){
-	delete wcwriter;
-	delete wrfData;
+	if (wcwriter) delete wcwriter;
+	if (wrfData) delete wrfData;
 	wrfData=NULL;
 	wcwriter=NULL;
 }

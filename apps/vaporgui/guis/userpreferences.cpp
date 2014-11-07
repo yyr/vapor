@@ -1019,22 +1019,19 @@ void UserPreferences::okClicked(){
 void UserPreferences::requestSave(bool prompt){
 	if(prompt){
 		int rc = QMessageBox::question(0, "Save User Preferences?", 
-			"User Preferences have changed.\nDo you want to save them to file?",
+			"User Preferences have changed.\nWould you like to save them?",
 			 QMessageBox::Yes|QMessageBox::Default,QMessageBox::No,Qt::NoButton);
 		if (rc != QMessageBox::Yes) return;
 	}
 	
-	QString filename = QFileDialog::getSaveFileName(MainForm::getInstance(),
-            	"Select the filename for saving user preferences", 
-		Session::getPreferencesFile().c_str(),
-            	".*");
-	
+	QString filename(Session::getPreferencesFile().c_str());
+            	
 	if(filename.length() == 0) return;
 	ofstream os;
 	os.open((const char*)filename.toAscii());
 
 	if (!os || !saveToFile(os)){//Report error if you can't open the file
-		MessageReporter::errorMsg("Unable to open preferences file: \n%s", (const char*)filename.toAscii());
+		MessageReporter::errorMsg("Unable to save preferences file: \n%s", (const char*)filename.toAscii());
 	}
 	os.close();
 	

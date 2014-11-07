@@ -8,7 +8,7 @@
 
 using namespace VetsUtil;
 using namespace VAPoR;
-const string IsolineParams::_shortName = "Isolines";
+const string IsolineParams::_shortName = "Contours";
 const string IsolineParams::_isolineParamsTag = "IsolineParams";
 const string IsolineParams::_IsoControlTag = "IsoControl";
 const string IsolineParams::_panelBackgroundColorTag= "PanelBackgroundColor";
@@ -177,8 +177,8 @@ reinit(bool doOverride){
 				float dataMin = ds->getDefaultDataMin2D(i);
 				float dataMax = ds->getDefaultDataMax2D(i);
 				string varname = ds->getVariableName2D(i);
-				if (GetIsoControl(varname,true)){	
-					new2DIsoControls[i] = (IsoControl*)GetIsoControl(varname,true)->deepCopy(0);
+				if (GetIsoControl(varname,false)){	
+					new2DIsoControls[i] = (IsoControl*)GetIsoControl(varname,false)->deepCopy(0);
 				} else {
 					new2DIsoControls[i] = new IsoControl(this, 8);
 					new2DIsoControls[i]->setVarNum(i);
@@ -333,6 +333,9 @@ reinit(bool doOverride){
 }
 //Set everything to default values
 void IsolineParams::restart() {
+	//Delete any child nodes
+	GetRootNode()->DeleteAll();
+	
 	SetNumDigits(5);
 	SetRefinementLevel(0);
 	SetCompressionLevel(0);
@@ -344,6 +347,7 @@ void IsolineParams::restart() {
 	double clr[3] = {1.,1.,1.};
 	SetSingleColor(clr);
 	SetUseSingleColor(true);
+	
 	//Create the isocontrol.  Just one placeholder, but it contains the histo bounds and isovalues and colors
 	//The transferFunction and Isocontrol share the map/histo bounds and the edit bounds.
 	vector<string>ctlPath;
@@ -461,20 +465,13 @@ int IsolineParams::getSessionVarNum(){
 	else 
 		return ds->getSessionVariableNum2D(GetVariableName());
 }
-void IsolineParams::spaceIsovals(float minval, float maxval){
+void IsolineParams::spaceIsovals(float minval, float interval){
 	vector<double>newIsos;
 	const vector<double>& isovals = GetIsovalues();
-	if (isovals.size() == 1) newIsos.push_back(0.5*(minval+maxval));
+	if (isovals.size() == 1) newIsos.push_back(minval);
 	else {
-		double minIso = 1.e30, maxIso = -1.e30;
-	
 		for (int i = 0; i<isovals.size(); i++){
-			if (minIso > isovals[i]) minIso = isovals[i];
-			if (maxIso < isovals[i]) maxIso = isovals[i]; 
-		}
-		double delta = (maxval - minval)/(isovals.size()-1);
-		for (int i = 0; i<isovals.size(); i++){
-			double ival = minval + i*delta;
+			double ival = minval + i*interval;
 			newIsos.push_back(ival);
 		}
 		SetIsovalues(newIsos);

@@ -110,6 +110,7 @@ CLD_EXCLUDE_LIBS = ^/usr ^/lib
 # various system libraries that aren't necessarily installed on all 
 # flavors of linux
 #
+CLD_INCLUDE_LIBS += libpng
 CLD_INCLUDE_LIBS += libcurl
 CLD_INCLUDE_LIBS += libexpat
 CLD_INCLUDE_LIBS += liblapack

@@ -2018,7 +2018,7 @@ void TwoDDataEventRouter::mapCursor(){
 		for (int i = 0; i<3; i++) sPoint[i] = selectPoint[i]+userExtents[i];
 		float val = RegionParams::calcCurrentValue(tParams->GetHeightVariableName(),selectPoint,tParams->GetRefinementLevel(), tParams->GetCompressionLevel(), timeStep);
 		if (val != OUT_OF_BOUNDS)
-				selectPoint[mapDims[2]] = val+tParams->getLocalTwoDMin(2);
+				selectPoint[mapDims[2]] = val+tParams->getLocalTwoDMin(2)-userExtents[2];
 		
 	} 
 	float spt[3];

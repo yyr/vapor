@@ -64,17 +64,7 @@
           <string>Select current instance by clicking at left.  Check the box to enable rendering.</string>
          </property>
          <property name="whatsThis">
-          <string>The instance checkbox determines which
-Isoline planes are actively 
-rendering in the active visualizer.  You 
-can only use it after a data set has been
-loaded.  The identifying number (at the 
-left) selects the isoline instance whose 
-parameters are currently edited in this 
-panel.  Any  number of instances can 
-render at the same time.  Use the &quot;New&quot; 
-button or the &quot;Duplicate In&quot; selector to 
-create new Isoline plane instances.</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The instance checkbox determines which Contour line planes are actively rendering in the active visualizer. You can only use it after a data set has beenloaded. The identifying number (at the left) selects the Contours instance whose parameters are currently edited in this panel. Any number of instances can render at the same time. Use the &amp;quot;New&amp;quot; button or the &amp;quot;Duplicate In&amp;quot; selector to create new Contours plane instances.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>
@@ -104,17 +94,7 @@ create new Isoline plane instances.</string>
               <string>Create a new, default instance of this renderer</string>
              </property>
              <property name="whatsThis">
-              <string>The instance checkbox determines which
-Isoline planes are actively 
-rendering in the active visualizer.  You 
-can only use it after a data set has been
-loaded.  The identifying number (at the 
-left) selects the isoline instance whose 
-parameters are currently edited in this 
-panel.  Any  number of instances can 
-render at the same time.  Use the &quot;New&quot; 
-button or the &quot;Duplicate In&quot; selector to 
-create new Isoline instances.</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The instance checkbox determines which Contour line planes are actively rendering in the active visualizer. You can only use it after a data set has beenloaded. The identifying number (at the left) selects the Contours instance whose parameters are currently edited in this panel. Any number of instances can render at the same time. Use the &amp;quot;New&amp;quot; button or the &amp;quot;Duplicate In&amp;quot; selector to create new Contours plane instances.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>New</string>
@@ -143,17 +123,7 @@ create new Isoline instances.</string>
               <string>Delete current renderer Instance</string>
              </property>
              <property name="whatsThis">
-              <string>The instance checkbox determines which
-Isoline planes are actively 
-rendering in the active visualizer.  You 
-can only use it after a data set has been
-loaded.  The identifying number (at the 
-left) selects the isoline instance whose 
-parameters are currently edited in this 
-panel.  Any  number of instances can 
-render at the same time.  Use the &quot;New&quot; 
-button or the &quot;Duplicate In&quot; selector to 
-create new Isoline instances.</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The instance checkbox determines which Contour line planes are actively rendering in the active visualizer. You can only use it after a data set has beenloaded. The identifying number (at the left) selects the Contours instance whose parameters are currently edited in this panel. Any number of instances can render at the same time. Use the &amp;quot;New&amp;quot; button or the &amp;quot;Duplicate In&amp;quot; selector to create new Contours plane instances.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>Delete</string>
@@ -195,17 +165,7 @@ create new Isoline instances.</string>
               <string>Select a visualizer where this renderer instance will be copied</string>
              </property>
              <property name="whatsThis">
-              <string>The instance checkbox determines which
-Isoline planes are actively 
-rendering in the active visualizer.  You 
-can only use it after a data set has been
-loaded.  The identifying number (at the 
-left) selects the isoline instance whose 
-parameters are currently edited in this 
-panel.  Any  number of instances can 
-render at the same time.  Use the &quot;New&quot; 
-button or the &quot;Duplicate In&quot; selector to 
-create new Isoline instances.</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The instance checkbox determines which Contour line planes are actively rendering in the active visualizer. You can only use it after a data set has beenloaded. The identifying number (at the left) selects the Contours instance whose parameters are currently edited in this panel. Any number of instances can render at the same time. Use the &amp;quot;New&amp;quot; button or the &amp;quot;Duplicate In&amp;quot; selector to create new Contours plane instances.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <item>
               <property name="text">
@@ -321,6 +281,9 @@ p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Click to set default Fidelity to current LOD and Refinement levels.  The default can optionally be saved in user preferences.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
+                <property name="whatsThis">
+                 <string>The fidelity setting controls both refinement and LOD.  Click on the &quot;Set Default Fidelity&quot; button to establish a fidelity level that is interactive on the current platform.</string>
+                </property>
                 <property name="text">
                  <string>Set Default Fidelity</string>
                 </property>
@@ -341,6 +304,9 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QGroupBox" name="fidelityBox">
+                <property name="whatsThis">
+                 <string>The fidelity setting controls both refinement and LOD.  Click on the &quot;Set Default Fidelity&quot; button to establish a fidelity level that is interactive on the current platform.</string>
+                </property>
                 <property name="title">
                  <string>low .. Fidelity .. high</string>
                 </property>
@@ -366,7 +332,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QLabel" name="textLabel1_13">
                 <property name="toolTip">
-                 <string>Select the refinement level (resolution) of the current isoline/contour plane</string>
+                 <string>Select the compression level of the current isoline/contour plane</string>
                 </property>
                 <property name="text">
                  <string>LOD</string>
@@ -390,7 +356,7 @@ p, li { white-space: pre-wrap; }
                  <enum>Qt::ClickFocus</enum>
                 </property>
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Specify the approximation level (compression) for the data being used to calculate isolines.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Specify the approximation level (compression) for the data being used to calculate contour lines.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="whatsThis">
                  <string>The Refinement parameter and (in the case of VDC2 data) the LOD parameter control the quality of the approximation used when visualizing a variable.  The Refinement parameter selects the grid resolutiion.  Coarser resolutions require less memory (RAM); less computation by the visualization algorithms; and for VDC1 data, less storage space on disk, therefore less time to read the data.  For VDC2 data the Refinement level has no impact on disk storage.  The LOD parameter, which is only available for VDC2 data sets, selects a compression level.  Variables with greater compression require less disk storage and can thus be read from disk by vaporgui more quickly, but have no impact on memory  (RAM) or computation time required by the visualziation algorithms.  For both LOD and Refinement, level 0 corresponds to the coarsest approximation available.</string>
@@ -458,7 +424,7 @@ p, li { white-space: pre-wrap; }
                  <enum>Qt::ClickFocus</enum>
                 </property>
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the refinement level (resolution) of the data used to calculate isolines.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the refinement level (resolution) of the data used to calculate contour lines.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="whatsThis">
                  <string>The Refinement parameter and (in the case of VDC2 data) the LOD parameter control the quality of the approximation used when visualizing a variable.  The Refinement parameter selects the grid resolutiion.  Coarser resolutions require less memory (RAM); less computation by the visualization algorithms; and for VDC1 data, less storage space on disk, therefore less time to read the data.  For VDC2 data the Refinement level has no impact on disk storage.  The LOD parameter, which is only available for VDC2 data sets, selects a compression level.  Variables with greater compression require less disk storage and can thus be read from disk by vaporgui more quickly, but have no impact on memory  (RAM) or computation time required by the visualziation algorithms.  For both LOD and Refinement, level 0 corresponds to the coarsest approximation available.</string>
@@ -552,7 +518,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QLabel" name="label_9">
                 <property name="statusTip">
-                 <string>Select either isolines of 3D or 2D variables</string>
+                 <string>Select either contours of 3D or 2D variables</string>
                 </property>
                 <property name="whatsThis">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Isolines can be calculated from 3D variables along arbitrarily oriented planes, or from 2D variables along a horizontally oriented plane.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -582,10 +548,10 @@ p, li { white-space: pre-wrap; }
                  </font>
                 </property>
                 <property name="toolTip">
-                 <string>Specify whether the isolines are of 2D or 3D variables</string>
+                 <string>Specify whether the contours are of 2D or 3D variables</string>
                 </property>
                 <property name="statusTip">
-                 <string>Select either isolines of 3D or 2D variables</string>
+                 <string>Select either contours of 3D or 2D variables</string>
                 </property>
                 <property name="whatsThis">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Isolines can be calculated from 3D variables along arbitrarily oriented planes, or from 2D variables along a horizontally oriented plane.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -649,7 +615,7 @@ p, li { white-space: pre-wrap; }
                  <enum>Qt::ClickFocus</enum>
                 </property>
                 <property name="toolTip">
-                 <string>Specify name of variable used in isolines</string>
+                 <string>Specify name of variable used in contour lines</string>
                 </property>
                 <item>
                  <property name="text">
@@ -709,6 +675,9 @@ p, li { white-space: pre-wrap; }
                 <property name="toolTip">
                  <string>Specify minimum isovalue</string>
                 </property>
+                <property name="whatsThis">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A series of evenly spaced isovalues can be specified by selecting the minimum, spacing between successive isovalues, and count.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
                 <property name="text">
                  <string>0.0</string>
                 </property>
@@ -720,7 +689,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QLabel" name="label_12">
                 <property name="text">
-                 <string>Max:</string>
+                 <string>Spacing:</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
@@ -728,7 +697,7 @@ p, li { white-space: pre-wrap; }
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="maxIsoEdit">
+               <widget class="QLineEdit" name="isoSpaceEdit">
                 <property name="maximumSize">
                  <size>
                   <width>100</width>
@@ -736,7 +705,10 @@ p, li { white-space: pre-wrap; }
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Specify maximum isovalue</string>
+                 <string>Specify interval between isovalues</string>
+                </property>
+                <property name="whatsThis">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A series of evenly spaced isovalues can be specified by selecting the minimum, spacing between successive isovalues, and count.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>24.5</string>
@@ -771,7 +743,10 @@ p, li { white-space: pre-wrap; }
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Specify number of isovalues between min and max</string>
+                 <string>Specify number of isovalues starting at minumum, with specified spacing</string>
+                </property>
+                <property name="whatsThis">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A series of evenly spaced isovalues can be specified by selecting the minimum, spacing between successive isovalues, and count.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>3</string>
@@ -911,10 +886,10 @@ how the histogram is scaled.</string>
                   </size>
                  </property>
                  <property name="toolTip">
-                  <string>This window displays a histogram of the variable in the specified interval, and allows you to pick the isovalue</string>
+                  <string/>
                  </property>
                  <property name="whatsThis">
-                  <string>This window displays a histogram of the current variable and allows you to position the isovalue by moving the slider at the bottom.  You can change the left and right bounds of the histogram by sliding the arrow at the top of this window.</string>
+                  <string>This window displays a histogram of the current variable and allows you to position the isovalues by moving the sliders at the bottom.  You can change the left and right bounds of the histogram by sliding the arrow at the top of this window.</string>
                  </property>
                  <property name="colorMapping" stdset="0">
                   <bool>true</bool>
@@ -941,14 +916,7 @@ how the histogram is scaled.</string>
                  <string>Minimum of histogrammed domain</string>
                 </property>
                 <property name="whatsThis">
-                 <string>The displayed data bounds are based on
-the range of data values in the first time step
-of the dataset.  These values are only a
-guide.  The TF Domain Bounds can be
-reset to any range.  Click on the &quot;histo&quot;
-button to construct, a histogram and thereby
-to determine the actual data values in the
-specified range.</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The displayed data bounds are based on&lt;/p&gt;&lt;p&gt;the range of data values in the first time step&lt;/p&gt;&lt;p&gt;of the dataset.  These values are only a&lt;/p&gt;&lt;p&gt;guide.  The histogram bounds can be&lt;/p&gt;&lt;p&gt;reset to any range.  Click on the &amp;quot;histo&amp;quot;&lt;/p&gt;&lt;p&gt;button to construct a histogram and thereby&lt;/p&gt;&lt;p&gt;to determine the actual data values in the&lt;/p&gt;&lt;p&gt;specified range. The histo bounds are&lt;/p&gt;&lt;p&gt;automatically set to include the minimum and &lt;/p&gt;&lt;p&gt;maximum isovalue.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>0.0</string>
@@ -1012,16 +980,7 @@ specified range.</string>
                  <string>Maximum of histogrammed domain</string>
                 </property>
                 <property name="whatsThis">
-                 <string>The displayed data bounds are based on
-the range of data values in the first time step
-of the dataset.  These values are only a
-guide.  The histogram bounds can be
-reset to any range.  Click on the &quot;histo&quot;
-button to construct, a histogram and thereby
-to determine the actual data values in the
-specified range.  If you can't see the isovalue
-in the display, set it to a value between the
-left and right bounds.</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The displayed data bounds are based on&lt;/p&gt;&lt;p&gt;the range of data values in the first time step&lt;/p&gt;&lt;p&gt;of the dataset.  These values are only a&lt;/p&gt;&lt;p&gt;guide.  The histogram bounds can be&lt;/p&gt;&lt;p&gt;reset to any range.  Click on the &amp;quot;histo&amp;quot;&lt;/p&gt;&lt;p&gt;button to construct a histogram and thereby&lt;/p&gt;&lt;p&gt;to determine the actual data values in the&lt;/p&gt;&lt;p&gt;specified range. The histo bounds are&lt;/p&gt;&lt;p&gt;automatically set to include the minimum and &lt;/p&gt;&lt;p&gt;maximum isovalue.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>1.0</string>
@@ -1136,6 +1095,9 @@ specified range.</string>
                   <width>120</width>
                   <height>16777215</height>
                  </size>
+                </property>
+                <property name="toolTip">
+                 <string>Click to edit the current set of isovalues</string>
                 </property>
                 <property name="text">
                  <string>Edit Isovals</string>
@@ -1263,7 +1225,7 @@ specified range.</string>
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Load transfer function from file or session</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load transfer function from file or session, so that its color map will apply to the contour lines.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>Load TF</string>
@@ -1295,7 +1257,7 @@ specified range.</string>
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Load Transfer Function from directory of pre-installed transfer functions</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load Transfer Function from directory of pre-installed transfer functions, whose color maps will be applied to the contour lines.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>Load Installed TF</string>
@@ -1327,7 +1289,7 @@ specified range.</string>
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Save this transfer function to a file or session</string>
+                 <string>Save this color map as a transfer function,  to a file or session</string>
                 </property>
                 <property name="text">
                  <string>Save TF</string>
@@ -1376,7 +1338,7 @@ specified range.</string>
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Move the isovalues to fit in histo bounds</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use the isovalues to define a discrete color map in the current Probe or 2D renderer panel, so that the current isovalues in this panel will display as color bands in that panel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>Copy To Probe</string>
@@ -1495,10 +1457,10 @@ specified range.</string>
           <item>
            <widget class="QPushButton" name="showHideLayoutButton">
             <property name="toolTip">
-             <string>Click to toggle hide/show the isoline plane layout options</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click to toggle hide/show the contour plane layout options&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>Show Isoline Layout Options</string>
+             <string>Show Contour Line (Isoline) Layout Options</string>
             </property>
            </widget>
           </item>
@@ -1529,17 +1491,7 @@ specified range.</string>
                       </sizepolicy>
                      </property>
                      <property name="whatsThis">
-                      <string>Manipulate the location of the isoline
-with these sliders and/or text boxes.
-You can &quot;nudge&quot; the isoline by
-one volume cell (at the current
-refinement level) in any direction
-by clicking on the bar of a slider to
-the left or right of the slider handle.
-The X, Y, and Z center refer to 
-the coordinates in the 3D volume
-where the center of the isoline is
-positioned.</string>
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the location of the contour lines with these sliders and/or text boxes. You can &amp;quot;nudge&amp;quot; the contours by one volume cell (at the current refinement level) in any direction by clicking on the bar of a slider to the left or right of the slider handle. The X, Y, and Z center refer to the coordinates in the 3D volume where the center of the contour line surface is positioned.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                      </property>
                      <property name="text">
                       <string>Plane Center</string>
@@ -1585,20 +1537,10 @@ positioned.</string>
                         </size>
                        </property>
                        <property name="toolTip">
-                        <string>Specify the X center of isoline plane in scene</string>
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Specify the X center of plane in scene&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                        </property>
                        <property name="whatsThis">
-                        <string>Manipulate the location of the isoline
-with these sliders and/or text boxes.
-You can &quot;nudge&quot; the isoline by
-one volume cell (at the current
-refinement level) in any direction
-by clicking on the bar of a slider to
-the left or right of the slider handle.
-The X, Y, and Z center refer to 
-the coordinates in the 3D volume
-where the center of the isoline is
-positioned.</string>
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the size of the contour planar surface with these sliders and/or text boxes.You can &amp;quot;nudge&amp;quot; the contour plane size by two volume cells (at the current refinement level) in any dimension, by clicking on the bar of a slider to the left or right of the slider handle. The Xp, Yp, and Zp sizes refer to the contour surface sizes before it is mapped into the data volume. The Xp and Yp axes are the (x,y) coordinates in the cross-section view (below). If there is a nonzero rotation, the Xp, Yp, and Zp axes will not be the same as the X, Y, and Z axes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                        </property>
                        <property name="minimum">
                         <number>0</number>
@@ -1632,20 +1574,10 @@ positioned.</string>
                         </size>
                        </property>
                        <property name="toolTip">
-                        <string>Specify the X center of isoline plane in scene</string>
+                        <string>Specify the X center of plane in scene</string>
                        </property>
                        <property name="whatsThis">
-                        <string>Manipulate the location of the isoline
-with these sliders and/or text boxes.
-You can &quot;nudge&quot; the isoline by
-one volume cell (at the current
-refinement level) in any direction
-by clicking on the bar of a slider to
-the left or right of the slider handle.
-The X, Y, and Z center refer to 
-the coordinates in the 3D volume
-where the center of the isoline is
-positioned.</string>
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the size of the contour planar surface with these sliders and/or text boxes.You can &amp;quot;nudge&amp;quot; the contour plane size by two volume cells (at the current refinement level) in any dimension, by clicking on the bar of a slider to the left or right of the slider handle. The Xp, Yp, and Zp sizes refer to the contour surface sizes before it is mapped into the data volume. The Xp and Yp axes are the (x,y) coordinates in the cross-section view (below). If there is a nonzero rotation, the Xp, Yp, and Zp axes will not be the same as the X, Y, and Z axes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                        </property>
                        <property name="text">
                         <string>0.3</string>
@@ -1693,20 +1625,10 @@ positioned.</string>
                         </size>
                        </property>
                        <property name="toolTip">
-                        <string>Specify the Y center of isoline plane in scene</string>
+                        <string>Specify the Y center of plane in scene</string>
                        </property>
                        <property name="whatsThis">
-                        <string>Manipulate the location of the isoline
-with these sliders and/or text boxes.
-You can &quot;nudge&quot; the isoline by
-one volume cell (at the current
-refinement level) in any direction
-by clicking on the bar of a slider to
-the left or right of the slider handle.
-The X, Y, and Z center refer to 
-the coordinates in the 3D volume
-where the center of the isoline is
-positioned.</string>
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the size of the contour planar surface with these sliders and/or text boxes.You can &amp;quot;nudge&amp;quot; the contour plane size by two volume cells (at the current refinement level) in any dimension, by clicking on the bar of a slider to the left or right of the slider handle. The Xp, Yp, and Zp sizes refer to the contour surface sizes before it is mapped into the data volume. The Xp and Yp axes are the (x,y) coordinates in the cross-section view (below). If there is a nonzero rotation, the Xp, Yp, and Zp axes will not be the same as the X, Y, and Z axes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                        </property>
                        <property name="minimum">
                         <number>0</number>
@@ -1740,20 +1662,10 @@ positioned.</string>
                         </size>
                        </property>
                        <property name="toolTip">
-                        <string>Specify the Y center of isoline plane in scene</string>
+                        <string>Specify the Y center of plane in scene</string>
                        </property>
                        <property name="whatsThis">
-                        <string>Manipulate the location of the isoline
-with these sliders and/or text boxes.
-You can &quot;nudge&quot; the isoline by
-one volume cell (at the current
-refinement level) in any direction
-by clicking on the bar of a slider to
-the left or right of the slider handle.
-The X, Y, and Z center refer to 
-the coordinates in the 3D volume
-where the center of the isoline is
-positioned.</string>
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the size of the contour planar surface with these sliders and/or text boxes.You can &amp;quot;nudge&amp;quot; the contour plane size by two volume cells (at the current refinement level) in any dimension, by clicking on the bar of a slider to the left or right of the slider handle. The Xp, Yp, and Zp sizes refer to the contour surface sizes before it is mapped into the data volume. The Xp and Yp axes are the (x,y) coordinates in the cross-section view (below). If there is a nonzero rotation, the Xp, Yp, and Zp axes will not be the same as the X, Y, and Z axes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                        </property>
                        <property name="text">
                         <string>0.132</string>
@@ -1801,20 +1713,10 @@ positioned.</string>
                         </size>
                        </property>
                        <property name="toolTip">
-                        <string>Specify the Z center of isoline plane in scene</string>
+                        <string>Specify the Z center of plane in scene</string>
                        </property>
                        <property name="whatsThis">
-                        <string>Manipulate the location of the isoline
-with these sliders and/or text boxes.
-You can &quot;nudge&quot; the isoline by
-one volume cell (at the current
-refinement level) in any direction
-by clicking on the bar of a slider to
-the left or right of the slider handle.
-The X, Y, and Z center refer to 
-the coordinates in the 3D volume
-where the center of the isoline is
-positioned.</string>
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the size of the contour planar surface with these sliders and/or text boxes.You can &amp;quot;nudge&amp;quot; the contour plane size by two volume cells (at the current refinement level) in any dimension, by clicking on the bar of a slider to the left or right of the slider handle. The Xp, Yp, and Zp sizes refer to the contour surface sizes before it is mapped into the data volume. The Xp and Yp axes are the (x,y) coordinates in the cross-section view (below). If there is a nonzero rotation, the Xp, Yp, and Zp axes will not be the same as the X, Y, and Z axes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                        </property>
                        <property name="minimum">
                         <number>0</number>
@@ -1848,20 +1750,10 @@ positioned.</string>
                         </size>
                        </property>
                        <property name="toolTip">
-                        <string>Specify the Z center of isoline plane in scene</string>
+                        <string>Specify the Z center of plane in scene</string>
                        </property>
                        <property name="whatsThis">
-                        <string>Manipulate the location of the isoline
-with these sliders and/or text boxes.
-You can &quot;nudge&quot; the isoline by
-one volume cell (at the current
-refinement level) in any direction
-by clicking on the bar of a slider to
-the left or right of the slider handle.
-The X, Y, and Z center refer to 
-the coordinates in the 3D volume
-where the center of the isoline is
-positioned.</string>
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the size of the contour planar surface with these sliders and/or text boxes.You can &amp;quot;nudge&amp;quot; the contour plane size by two volume cells (at the current refinement level) in any dimension, by clicking on the bar of a slider to the left or right of the slider handle. The Xp, Yp, and Zp sizes refer to the contour surface sizes before it is mapped into the data volume. The Xp and Yp axes are the (x,y) coordinates in the cross-section view (below). If there is a nonzero rotation, the Xp, Yp, and Zp axes will not be the same as the X, Y, and Z axes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                        </property>
                        <property name="text">
                         <string>0.0</string>
@@ -1935,22 +1827,7 @@ positioned.</string>
                         <string>Specify the width (X size) of plane in scene</string>
                        </property>
                        <property name="whatsThis">
-                        <string>Manipulate the size of the isoline
-with these sliders and/or text boxes.
-You can &quot;nudge&quot; the isoline size 
-by two volume cells (at the current
-refinement level) in any dimension,
-by clicking on the bar of a slider to
-the left or right of the slider handle.
-The Xp, Yp, and Zp sizes refer to 
-the isoline sizes before it is 
-mapped into the data volume.  
-The Xp and Yp axes are the (x,y) 
-coordinates in the cross-section 
-view (below).
-If there is a nonzero rotation, the Xp,
-Yp, and Zp axes will not be the
-same as the X, Y, and Z axes.</string>
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the size of the contour planar surface with these sliders and/or text boxes.You can &amp;quot;nudge&amp;quot; the contour plane size by two volume cells (at the current refinement level) in any dimension, by clicking on the bar of a slider to the left or right of the slider handle. The Xp, Yp, and Zp sizes refer to the contour surface sizes before it is mapped into the data volume. The Xp and Yp axes are the (x,y) coordinates in the cross-section view (below). If there is a nonzero rotation, the Xp, Yp, and Zp axes will not be the same as the X, Y, and Z axes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                        </property>
                        <property name="minimum">
                         <number>0</number>
@@ -1984,25 +1861,10 @@ same as the X, Y, and Z axes.</string>
                         </size>
                        </property>
                        <property name="toolTip">
-                        <string>Specify the width (X size) of isoline plane in scene</string>
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Specify the width (X size) of plane in scene&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                        </property>
                        <property name="whatsThis">
-                        <string>Manipulate the size of the isoline
-with these sliders and/or text boxes.
-You can &quot;nudge&quot; the isoline size 
-by two volume cells (at the current
-refinement level) in any dimension,
-by clicking on the bar of a slider to
-the left or right of the slider handle.
-The Xp, Yp, and Zp sizes refer to 
-the isoline sizes before it is 
-mapped into the data volume.  
-The Xp and Yp axes are the (x,y) 
-coordinates in the cross-section 
-view (below).
-If there is a nonzero rotation, the Xp,
-Yp, and Zp axes will not be the
-same as the X, Y, and Z axes.</string>
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the size of the contour planar surface with these sliders and/or text boxes.You can &amp;quot;nudge&amp;quot; the contour plane size by two volume cells (at the current refinement level) in any dimension, by clicking on the bar of a slider to the left or right of the slider handle. The Xp, Yp, and Zp sizes refer to the contour surface sizes before it is mapped into the data volume. The Xp and Yp axes are the (x,y) coordinates in the cross-section view (below). If there is a nonzero rotation, the Xp, Yp, and Zp axes will not be the same as the X, Y, and Z axes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                        </property>
                        <property name="text">
                         <string>0.3</string>
@@ -2050,25 +1912,10 @@ same as the X, Y, and Z axes.</string>
                         </size>
                        </property>
                        <property name="toolTip">
-                        <string>Specify the Y size height (Y-size)  of isoline in scene</string>
+                        <string>Specify the Y size height (Y-size)  of plane in scene</string>
                        </property>
                        <property name="whatsThis">
-                        <string>Manipulate the size of the isoline
-with these sliders and/or text boxes.
-You can &quot;nudge&quot; the isoline size 
-by two volume cells (at the current
-refinement level) in any dimension,
-by clicking on the bar of a slider to
-the left or right of the slider handle.
-The Xp, Yp, and Zp sizes refer to 
-the isoline sizes before it is 
-mapped into the data volume.  
-The Xp and Yp axes are the (x,y) 
-coordinates in the cross-section 
-view (below).
-If there is a nonzero rotation, the Xp,
-Yp, and Zp axes will not be the
-same as the X, Y, and Z axes.</string>
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the size of the contour planar surface with these sliders and/or text boxes.You can &amp;quot;nudge&amp;quot; the contour plane size by two volume cells (at the current refinement level) in any dimension, by clicking on the bar of a slider to the left or right of the slider handle. The Xp, Yp, and Zp sizes refer to the contour surface sizes before it is mapped into the data volume. The Xp and Yp axes are the (x,y) coordinates in the cross-section view (below). If there is a nonzero rotation, the Xp, Yp, and Zp axes will not be the same as the X, Y, and Z axes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                        </property>
                        <property name="minimum">
                         <number>0</number>
@@ -2102,25 +1949,10 @@ same as the X, Y, and Z axes.</string>
                         </size>
                        </property>
                        <property name="toolTip">
-                        <string>Specify the Y size height (Y-size)  of isoline plane in scene</string>
+                        <string>Specify the Y size height (Y-size)  of  plane in scene</string>
                        </property>
                        <property name="whatsThis">
-                        <string>Manipulate the size of the isoline
-with these sliders and/or text boxes.
-You can &quot;nudge&quot; the isoline size 
-by two volume cells (at the current
-refinement level) in any dimension,
-by clicking on the bar of a slider to
-the left or right of the slider handle.
-The Xp, Yp, and Zp sizes refer to 
-the isoline sizes before it is 
-mapped into the data volume.  
-The Xp and Yp axes are the (x,y) 
-coordinates in the cross-section 
-view (below).
-If there is a nonzero rotation, the Xp,
-Yp, and Zp axes will not be the
-same as the X, Y, and Z axes.</string>
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the size of the contour planar surface with these sliders and/or text boxes.You can &amp;quot;nudge&amp;quot; the contour plane size by two volume cells (at the current refinement level) in any dimension, by clicking on the bar of a slider to the left or right of the slider handle. The Xp, Yp, and Zp sizes refer to the contour surface sizes before it is mapped into the data volume. The Xp and Yp axes are the (x,y) coordinates in the cross-section view (below). If there is a nonzero rotation, the Xp, Yp, and Zp axes will not be the same as the X, Y, and Z axes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                        </property>
                        <property name="text">
                         <string>0.132</string>
@@ -2250,7 +2082,7 @@ same as the X, Y, and Z axes.</string>
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>Min and max user coordinates of smallest box containing the isoline plane</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max user coordinates of smallest box containing the plane of contour lines.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>1.2345e5</string>
@@ -2272,7 +2104,7 @@ same as the X, Y, and Z axes.</string>
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>Min and max user coordinates of smallest box containing the isoline plane</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max user coordinates of smallest box containing the plane of contour lines.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>1.2345e5</string>
@@ -2294,7 +2126,7 @@ same as the X, Y, and Z axes.</string>
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>Min and max user coordinates of smallest box containing the isoline plane</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max user coordinates of smallest box containing the plane of contour lines.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>1.2345e5</string>
@@ -2326,7 +2158,7 @@ same as the X, Y, and Z axes.</string>
                  <item>
                   <widget class="QLabel" name="minGridXLabel">
                    <property name="toolTip">
-                    <string>Min and max grid coordinates of smallest box containing the isoline at full resolution</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max grid coordinates of smallest box containing the contour planar surface at full resolution&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>1234</string>
@@ -2342,7 +2174,7 @@ same as the X, Y, and Z axes.</string>
                  <item>
                   <widget class="QLabel" name="minGridYLabel">
                    <property name="toolTip">
-                    <string>Min and max grid coordinates of smallest box containing the isoline at full resolution</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max grid coordinates of smallest box containing the contour planar surface at full resolution&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>1234</string>
@@ -2358,7 +2190,7 @@ same as the X, Y, and Z axes.</string>
                  <item>
                   <widget class="QLabel" name="minGridZLabel">
                    <property name="toolTip">
-                    <string>Min and max grid coordinates of smallest box containing the isoline at full resolution</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max grid coordinates of smallest box containing the contour planar surface at full resolution&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>1234</string>
@@ -2397,7 +2229,7 @@ same as the X, Y, and Z axes.</string>
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>Min and max user coordinates of smallest box containing the isoline plane</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max user coordinates of smallest box containing the plane of contour lines.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>1.2345e5</string>
@@ -2419,7 +2251,7 @@ same as the X, Y, and Z axes.</string>
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>Min and max user coordinates of smallest box containing the isoline plane</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max user coordinates of smallest box containing the plane of contour lines.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>1.2345e5</string>
@@ -2441,7 +2273,7 @@ same as the X, Y, and Z axes.</string>
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>Min and max user coordinates of smallest box containing the isoline plane</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max user coordinates of smallest box containing the plane of contour lines.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>1.2345e5</string>
@@ -2473,7 +2305,7 @@ same as the X, Y, and Z axes.</string>
                  <item>
                   <widget class="QLabel" name="maxGridXLabel">
                    <property name="toolTip">
-                    <string>Min and max grid coordinates of smallest box containing the isoline at full resolution</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max grid coordinates of smallest box containing the contour planar surface at full resolution&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>1234</string>
@@ -2489,7 +2321,7 @@ same as the X, Y, and Z axes.</string>
                  <item>
                   <widget class="QLabel" name="maxGridYLabel">
                    <property name="toolTip">
-                    <string>Min and max grid coordinates of smallest box containing the isoline at full resolution</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max grid coordinates of smallest box containing the contour planar surface at full resolution&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>1234</string>
@@ -2505,7 +2337,7 @@ same as the X, Y, and Z axes.</string>
                  <item>
                   <widget class="QLabel" name="maxGridZLabel">
                    <property name="toolTip">
-                    <string>Min and max grid coordinates of smallest box containing the isoline at full resolution</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max grid coordinates of smallest box containing the contour planar surface at full resolution&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>1234</string>
@@ -2561,7 +2393,7 @@ same as the X, Y, and Z axes.</string>
                          </size>
                         </property>
                         <property name="toolTip">
-                         <string>Longitude and latitude of upper-right corner of isoline plane</string>
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Longitude and latitude of upper-right corner of contours&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
                         <property name="text">
                          <string>1.2345e5</string>
@@ -2583,7 +2415,7 @@ same as the X, Y, and Z axes.</string>
                          </size>
                         </property>
                         <property name="toolTip">
-                         <string>Longitude and latitude of upper-right corner of isoline plane</string>
+                         <string>Longitude and latitude of upper-right corner of contours</string>
                         </property>
                         <property name="text">
                          <string>1.2345e5</string>
@@ -2628,7 +2460,7 @@ same as the X, Y, and Z axes.</string>
                          </size>
                         </property>
                         <property name="toolTip">
-                         <string>longitude and latitude of lower-left corner of isoline plane</string>
+                         <string>longitude and latitude of lower-left corner of contours</string>
                         </property>
                         <property name="text">
                          <string>1.2345e5</string>
@@ -2650,7 +2482,7 @@ same as the X, Y, and Z axes.</string>
                          </size>
                         </property>
                         <property name="toolTip">
-                         <string>longitude and latitude of lower-left corner of isoline plane</string>
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;longitude and latitude of lower-left corner of contours&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
                         <property name="text">
                          <string>1.2345e5</string>
@@ -2729,7 +2561,7 @@ same as the X, Y, and Z axes.</string>
                            <string>theta (rotation angle from +X axis)of isoline plane normal vector</string>
                           </property>
                           <property name="whatsThis">
-                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the Contour line plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the contour line plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                           </property>
                           <property name="text">
                            <string>0</string>
@@ -2751,7 +2583,7 @@ same as the X, Y, and Z axes.</string>
                            <string>Psi angle (Rotation around axis determined by phi, theta)</string>
                           </property>
                           <property name="whatsThis">
-                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the Contour line plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the contour line plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                           </property>
                           <property name="text">
                            <string>90</string>
@@ -2764,7 +2596,7 @@ same as the X, Y, and Z axes.</string>
                         <item row="0" column="0">
                          <widget class="QLabel" name="textLabel12_3">
                           <property name="whatsThis">
-                           <string>The orientation of the isoline is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the isoline.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &quot;Axis-Align&quot; selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  &quot;90 deg rotate&quot; selector rotates the isoline 90 degrees about the selected axis.</string>
+                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the contour line surface is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the contour line surface.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  &amp;quot;90 deg rotate&amp;quot; selector rotates the contour line plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                           </property>
                           <property name="text">
                            <string>Theta</string>
@@ -2789,7 +2621,7 @@ same as the X, Y, and Z axes.</string>
                            <string>Phi angle (angle from +Z) of isoline plane normal vector</string>
                           </property>
                           <property name="whatsThis">
-                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the Contour line plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the contour line plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                           </property>
                           <property name="text">
                            <string>90</string>
@@ -2802,7 +2634,7 @@ same as the X, Y, and Z axes.</string>
                         <item row="0" column="2">
                          <widget class="QLabel" name="textLabel1_7">
                           <property name="whatsThis">
-                           <string>The orientation of the isoline is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the isoline.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &quot;Axis-Align&quot; selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  &quot;90 deg rotate&quot; selector rotates the isoline 90 degrees about the selected axis.</string>
+                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the contour line surface is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the contour line surface.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  &amp;quot;90 deg rotate&amp;quot; selector rotates the contour line plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                           </property>
                           <property name="text">
                            <string>Psi</string>
@@ -2818,7 +2650,7 @@ same as the X, Y, and Z axes.</string>
                         <item row="0" column="1">
                          <widget class="QLabel" name="textLabel12_4">
                           <property name="whatsThis">
-                           <string>The orientation of the isoline is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the isoline.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &quot;Axis-Align&quot; selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  &quot;90 deg rotate&quot; selector rotates the isoline 90 degrees about the selected axis.</string>
+                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the contour line surface is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the contour line surface.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  &amp;quot;90 deg rotate&amp;quot; selector rotates the contour line plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                           </property>
                           <property name="text">
                            <string>Phi</string>
@@ -2852,7 +2684,7 @@ same as the X, Y, and Z axes.</string>
                            <string>Align isoline plane with a coordinate axis</string>
                           </property>
                           <property name="whatsThis">
-                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the Contour line plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the contour line plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                           </property>
                           <item>
                            <property name="text">
@@ -2913,7 +2745,7 @@ same as the X, Y, and Z axes.</string>
                            <string>Rotate isoline plane 90 degrees about its center using selected axis direction</string>
                           </property>
                           <property name="whatsThis">
-                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the Contour line plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the contour line plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                           </property>
                           <item>
                            <property name="text">
@@ -3010,7 +2842,7 @@ same as the X, Y, and Z axes.</string>
                            <string>Rotate About X-Axis</string>
                           </property>
                           <property name="whatsThis">
-                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the Contour line plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the contour line plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                           </property>
                          </widget>
                         </item>
@@ -3052,7 +2884,7 @@ same as the X, Y, and Z axes.</string>
                            <string>Rotate about Y-Axis</string>
                           </property>
                           <property name="whatsThis">
-                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the Contour line plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the contour line plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                           </property>
                          </widget>
                         </item>
@@ -3094,7 +2926,7 @@ same as the X, Y, and Z axes.</string>
                            <string>Rotate about Z-axis</string>
                           </property>
                           <property name="whatsThis">
-                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the isoline plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the isoline plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation of the Contour line plane is controlled by three angles, theta, phi, and psi. Theta and phi are spherical angles determining the direction of the line normal to the plane of the isolines. Psi determines the angle of rotation about the normal vector. The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the &amp;quot;Axis-Align&amp;quot; selector will reset the orientation to the nearest axis or a selected axis alignment. Clicking on the &amp;quot;90 deg rotate&amp;quot; selector rotates the contour line plane 90 degrees about the selected axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                           </property>
                          </widget>
                         </item>
@@ -3150,10 +2982,10 @@ same as the X, Y, and Z axes.</string>
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>Modify isoline plane to fit within current region</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Modify plane to fit within current region&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="whatsThis">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking the &amp;quot;Fit to Region&amp;quot; or &amp;quot;Fit to Domain&amp;quot; buttons modifies the isoline plane so as to make its  planar slice as large as possible while fitting inside the extents of the region or the domain, while retaining the 3D plane on which the isoline region is positioned.  The isoline orientation is not changed.  If the isoline plane does not intersect the region or domain extents, the isoline is translated into the region or domain extents.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking the &amp;quot;Region Crop&amp;quot; or &amp;quot;Domain Crop&amp;quot; buttons reduces the contour line planar extents so that the planar slice fits within the current region or the full data domain. The orientation is not changed. If the plane does not intersect the region or domain, then nothing is changed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>Fit to
@@ -3170,10 +3002,10 @@ Region</string>
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>Crop isoline plane to fit insidecurrent region</string>
+                    <string>Crop plane to fit insidecurrent region</string>
                    </property>
                    <property name="whatsThis">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking the &amp;quot;Region Crop&amp;quot; or &amp;quot;Domain Crop&amp;quot; buttons reduces the isoline planar extents so that the isoline planar slice fits within the current region or the full data domain.  The isoline orientation is not changed.  If the isoline plane does not intersect the region or domain, then nothing is changed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking the &amp;quot;Region Crop&amp;quot; or &amp;quot;Domain Crop&amp;quot; buttons reduces the contour line planar extents so that the planar slice fits within the current region or the full data domain. The orientation is not changed. If the plane does not intersect the region or domain, then nothing is changed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>Crop to
@@ -3190,10 +3022,10 @@ Region</string>
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>Modify isoline plane to fit inside full data domain</string>
+                    <string>Modify plane to fit inside full data domain</string>
                    </property>
                    <property name="whatsThis">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking the &amp;quot;Fit to Region&amp;quot; or &amp;quot;Fit to Domain&amp;quot; buttons modifies the isoline plane so as to make its  planar slice as large as possible while fitting inside the extents of the region or the domain, while retaining the 3D plane on which the isoline region is positioned.  The isoline orientation is not changed.  If the isoline plane does not intersect the region or domain extents, the isoline is translated into the region or domain extents.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking the &amp;quot;Region Crop&amp;quot; or &amp;quot;Domain Crop&amp;quot; buttons reduces the contour line planar extents so that the planar slice fits within the current region or the full data domain. The orientation is not changed. If the plane does not intersect the region or domain, then nothing is changed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>Fit to
@@ -3210,10 +3042,10 @@ Domain</string>
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>Crop isoline plane to fit inside data domain</string>
+                    <string>Crop plane to fit inside data domain</string>
                    </property>
                    <property name="whatsThis">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking the &amp;quot;Region Crop&amp;quot; or &amp;quot;Domain Crop&amp;quot; buttons reduces the isoline planar extents so that the isoline planar slice fits within the current region or the full data domain.  The isoline orientation is not changed.  If the isoline plane does not intersect the region or domain, then nothing is changed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking the &amp;quot;Region Crop&amp;quot; or &amp;quot;Domain Crop&amp;quot; buttons reduces the contour line planar extents so that the planar slice fits within the current region or the full data domain. The orientation is not changed. If the plane does not intersect the region or domain, then nothing is changed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>Crop to 
@@ -3272,7 +3104,7 @@ Domain</string>
           <item>
            <widget class="QPushButton" name="showHideImageButton">
             <property name="toolTip">
-             <string>Click to toggle hide/show the isoline image options</string>
+             <string>Click to toggle hide/show the contour line image options</string>
             </property>
             <property name="text">
              <string>Hide Image Settings</string>
@@ -3338,7 +3170,7 @@ Domain</string>
                        </size>
                       </property>
                       <property name="whatsThis">
-                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The planar view shows an image of the isolines in the plane where they are being calculated. Click on a point in this image to identify the 3D coordinates of the point.  The selected point will also be shown in the 3D scene (when in isoline mode).  The selected point can be used for centering, or for specifying flow seed points.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The planar view shows an image of the contour lines in the plane where they are being calculated. Click on a point in this image to identify the 3D coordinates of the point and the value of the iso variable at the point. The selected point will also be shown in the 3D scene (when in contour mode). The selected point can be used for centering, or for specifying flow seed points.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                       </property>
                      </widget>
                     </item>
@@ -3474,7 +3306,7 @@ Domain</string>
                     </font>
                    </property>
                    <property name="toolTip">
-                    <string>Click to specify the background color of the isoline image in this panel</string>
+                    <string>Click to specify the background color in this image panel</string>
                    </property>
                    <property name="text">
                     <string>Select</string>
@@ -3563,7 +3395,7 @@ Domain</string>
                     <bool>true</bool>
                    </property>
                    <property name="toolTip">
-                    <string>Clisk to specify color used in constant map</string>
+                    <string>this is the background color of the image view</string>
                    </property>
                    <property name="inputMask">
                     <string notr="true"/>
@@ -3606,7 +3438,7 @@ Domain</string>
                     </font>
                    </property>
                    <property name="toolTip">
-                    <string>Specify width of isolines in this panel</string>
+                    <string>Specify width of lines in this panel in pixels</string>
                    </property>
                    <property name="text">
                     <string>1.0</string>
@@ -3902,7 +3734,7 @@ Domain</string>
                          </size>
                         </property>
                         <property name="toolTip">
-                         <string>value or magnitude of isoline variable at selected point </string>
+                         <string>value or magnitude of contour line variable at selected point </string>
                         </property>
                         <property name="text">
                          <string>7.25</string>
@@ -4050,15 +3882,15 @@ Domain</string>
                        </widget>
                       </item>
                       <item>
-                       <widget class="QPushButton" name="probeCenterButton">
+                       <widget class="QPushButton" name="isolineCenterButton">
                         <property name="toolTip">
-                         <string>Click to recenter this isoline at selected point</string>
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click to recenter this contour surface at selected point&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
                         <property name="whatsThis">
-                         <string>When this button is clicked, this isoline is moved so that its center becomes the selected point.</string>
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When this button is clicked, this contour line surface is moved so that its center becomes the selected point.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
                         <property name="text">
-                         <string>Probe </string>
+                         <string>Contours</string>
                         </property>
                        </widget>
                       </item>
@@ -4116,7 +3948,7 @@ Domain</string>
              </font>
             </property>
             <property name="text">
-             <string>Appearance of Isolines in Visualizer:</string>
+             <string>Appearance of contour lines in Visualizer:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -4149,7 +3981,7 @@ Domain</string>
                </font>
               </property>
               <property name="text">
-               <string>Isoline width:</string>
+               <string>Line width:</string>
               </property>
               <property name="wordWrap">
                <bool>false</bool>
@@ -4189,7 +4021,7 @@ Domain</string>
                </font>
               </property>
               <property name="toolTip">
-               <string>Specify width in voxels of isolines</string>
+               <string>Specify width in voxels of contour lines</string>
               </property>
               <property name="text">
                <string>1.0</string>
@@ -4287,6 +4119,9 @@ Domain</string>
                 <pointsize>10</pointsize>
                </font>
               </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check to use a single color for all contour lines.  Un-check to use the color mapping specified in the IsoValue Selection panel above.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>Use Single Color</string>
               </property>
@@ -4311,6 +4146,9 @@ Domain</string>
                <font>
                 <pointsize>10</pointsize>
                </font>
+              </property>
+              <property name="toolTip">
+               <string>Click to select the single color to apply to all contour lines.</string>
               </property>
               <property name="text">
                <string>Select</string>
@@ -4415,7 +4253,7 @@ Domain</string>
                <bool>true</bool>
               </property>
               <property name="toolTip">
-               <string>Clisk to specify color used in constant map</string>
+               <string>This is the single color applied to contour lines.</string>
               </property>
               <property name="inputMask">
                <string notr="true"/>
@@ -4505,7 +4343,7 @@ Domain</string>
             <item>
              <widget class="QSlider" name="densitySlider">
               <property name="toolTip">
-               <string>Specify a value between 0 and 1 indicating how densely isoline values will be annotated</string>
+               <string>Specify a value between 0 and 1 indicating how densely contour lines will be annotated</string>
               </property>
               <property name="maximum">
                <number>256</number>
@@ -4530,7 +4368,7 @@ Domain</string>
                </font>
               </property>
               <property name="toolTip">
-               <string>Specify a value between 0 and 1 indicating how densely isoline values will be annotated</string>
+               <string>Specify a value between 0 and 1 indicating how densely contour lines will be annotated</string>
               </property>
               <property name="text">
                <string>0.0</string>

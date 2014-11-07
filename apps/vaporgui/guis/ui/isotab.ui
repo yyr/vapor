@@ -359,6 +359,9 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QGroupBox" name="fidelityBox">
+                <property name="whatsThis">
+                 <string>The fidelity setting controls both refinement and LOD.  Click on the &quot;Set Default Fidelity&quot; button to establish a fidelity level that is interactive on the current platform.</string>
+                </property>
                 <property name="title">
                  <string>low .. Fidelity .. high</string>
                 </property>
@@ -690,7 +693,7 @@ how the histogram is scaled.</string>
                 </size>
                </property>
                <property name="toolTip">
-                <string>This window displays a histogram of the variable in the specified interval, and allows you to pick the isovalue</string>
+                <string/>
                </property>
                <property name="whatsThis">
                 <string>This window displays a histogram of the current variable and allows you to position the isovalue by moving the slider at the bottom.  You can change the left and right bounds of the histogram by sliding the arrow at the top of this window.</string>

@@ -164,7 +164,7 @@ protected slots:
 	void isolineCenterRegion();
 	void isolineCenterView();
 	void isolineCenterRake();
-	void guiCenterProbe();
+	void guiCenterIsolines();
 	void isolineAddSeed();
 	void isolineAttachSeed(bool attach);
 	void guiEnableText(bool val);

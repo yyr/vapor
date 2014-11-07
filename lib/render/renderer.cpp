@@ -63,10 +63,10 @@ Renderer::~Renderer()
 //Following methods are to support display of a colorscale in front of the data.
 //
 void Renderer::
-buildColorscaleImage(){
+buildColorscaleImage(int colortableIndex ){
 	//Get the image size from the VizWin:
-	float fwidth = myGLWindow->getColorbarURCoord(0) - myGLWindow->getColorbarLLCoord(0);
-	float fheight = myGLWindow->getColorbarURCoord(1) - myGLWindow->getColorbarLLCoord(1);
+	float fwidth = myGLWindow->getColorbarSize(0);
+	float fheight = myGLWindow->getColorbarSize(1);
 	imgWidth = (int)(fwidth*myGLWindow->width());
 	imgHeight = (int)(fheight*myGLWindow->height());
 	if (imgWidth < 2 || imgHeight < 2) return;
@@ -83,22 +83,31 @@ buildColorscaleImage(){
 	
 	//First, create a QPixmap (specified background color) and draw the coordinates on it.
 	QPixmap colorbarPixmap(imgWidth, imgHeight);
+	int numtics = myGLWindow->getColorbarNumTics();
+	//Shorten the image by text height if there are colorbar titles.
+	string colorbarTitle = myGLWindow->getColorbarTitles()[colortableIndex];
+	float heightFactor = 1.f;
+	if(colorbarTitle != " " || colorbarTitle.size()>1){
+		heightFactor = 0.9;
+	}
+	int newImgHeight = (int)(heightFactor*imgHeight);
 
 	QColor bgColor = myGLWindow->getColorbarBackgroundColor();
 	colorbarPixmap.fill(bgColor);
-	//assert(colorbarPixmap.depth()==32);
+	
 	
 	QPainter painter(&colorbarPixmap);
 	QColor penColor(255-bgColor.red(), 255-bgColor.green(),255-bgColor.blue());
 	QPen myPen(penColor, 6);
 	painter.setPen(myPen);
 
+	
 	//Setup font:
 	int textHeight;
-	int numtics = myGLWindow->getColorbarNumTics();
-	if (numtics == 0) textHeight = imgHeight;  
-	else  textHeight = imgHeight/(2*numtics);
-	if (textHeight > imgHeight/15) textHeight = imgHeight/15;
+	
+	if (numtics == 0) textHeight = newImgHeight;  
+	else  textHeight = newImgHeight/(2*numtics);
+	if (textHeight > newImgHeight/15) textHeight = newImgHeight/15;
 	QFont textFont;
 	int fontsize = myGLWindow->getColorbarFontsize();
 	textHeight = (int) (textHeight*fontsize*0.1);
@@ -107,25 +116,28 @@ buildColorscaleImage(){
 	int numdigits = myGLWindow->getColorbarDigits();
 
 	//Draw outline:
-	painter.drawLine(0,3, imgWidth, 3);
-	painter.drawLine(imgWidth-3,0, imgWidth-3, imgHeight);
-	painter.drawLine(imgWidth, imgHeight-3, 0, imgHeight-3);
-	painter.drawLine(3, imgHeight, 3, 0);
+	painter.drawLine(0,3, imgWidth, 3); //top
+	painter.drawLine(imgWidth-3,0, imgWidth-3, newImgHeight); //right side
+	painter.drawLine(imgWidth, newImgHeight, 0, newImgHeight); //bottom
+	painter.drawLine(3, newImgHeight, 3, 0);//left
 
 	//Obtain the relevant transfer function:
 	TransferFunction* myTransFunc = 
 		(TransferFunction*)currentRenderParams->GetMapperFunc();
 	
-	
+	if (!myTransFunc) return;
 	
 	for (int i = 0; i< numtics; i++){
-		int ticPos = i*(imgHeight/numtics)+(imgHeight/(2*numtics));
+		int ticPos = i*(newImgHeight/numtics)+(newImgHeight/(2*numtics));
 		painter.drawLine((int)(imgWidth*.35), ticPos, (int)(imgWidth*.45), ticPos);
 		double ycoord = myTransFunc->getMinMapValue() + (1.f - (float)i/(float)(numtics-1.f))*(myTransFunc->getMaxMapValue() -myTransFunc->getMinMapValue());
 		QString ytext = QString::number(ycoord,'g',numdigits);
 		painter.drawText(imgWidth/2 , ticPos - textHeight/2, imgWidth/2, textHeight, Qt::AlignLeft, ytext);
 	}
-	
+	//Draw the titles
+	if(colorbarTitle != " " || colorbarTitle.size()>1){
+		painter.drawText(0 , newImgHeight + textHeight, QString(colorbarTitle.c_str()));
+	}
 	//Then, convert the pxmap to a QImage and draw the colormap colors on it.
 	QImage colorbarImage = colorbarPixmap.toImage();
 
@@ -135,19 +147,19 @@ buildColorscaleImage(){
 	//With no tics, use the whole scale
 	if (numtics == 0) numtics = 1000;
 	double A = (myTransFunc->getMaxMapValue() - myTransFunc->getMinMapValue())*(double)(numtics)/
-		((double)(1.-numtics)*(double)imgHeight);
-	double B = myTransFunc->getMaxMapValue() - A*(double)imgHeight*.5/(double)(numtics);
+		((double)(1.-numtics)*(double)newImgHeight);
+	double B = myTransFunc->getMaxMapValue() - A*(double)newImgHeight*.5/(double)(numtics);
 	
 	//check it out, should work at top and bottom:
 	/*
-	int topTicPosn = imgHeight/(2*numtics);
-	int botTicPosn = (numtics-1)*(imgHeight/numtics)+(imgHeight/(2*numtics));
+	int topTicPosn = newImgHeight/(2*numtics);
+	int botTicPosn = (numtics-1)*(newImgHeight/numtics)+(newImgHeight/(2*numtics));
 	double topFloat = A*(double)topTicPosn + B;
 	double botFloat = A*(double)botTicPosn + B;
 	*/
 
 
-	for (int line = imgHeight-16; line>=16; line--){
+	for (int line = newImgHeight-16; line>=16; line--){
 		float ycoord = A*(float)line + B;
         
         QRgb clr = myTransFunc->colorValue(ycoord);
@@ -164,11 +176,11 @@ buildColorscaleImage(){
 	
 }
 void Renderer::
-renderColorscale(bool dorebuild){
+renderColorscale(bool dorebuild, int colortableIndex){
+	if (!currentRenderParams->GetMapperFunc()) return;
 	float whitecolor[4] = {1.,1.,1.,1.f};
-	if (dorebuild) buildColorscaleImage();
+	if (dorebuild) buildColorscaleImage(colortableIndex);
 
-	myGLWindow->setColorbarDirty(false);
 	glColor4fv(whitecolor);
 	glBindTexture(GL_TEXTURE_2D,_colorbarTexid);
 	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
@@ -180,11 +192,12 @@ renderColorscale(bool dorebuild){
 	//create a polygon appropriately positioned in the scene.  It's inside the unit cube--
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, imgWidth, imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE,
 		glColorbarImage.bits());
+	float llx = 2.f*myGLWindow->getColorbarLLX()[colortableIndex] - 1.f;
+	float lly = 2.f*myGLWindow->getColorbarLLY()[colortableIndex] - 1.f;
 	
-	float llx = 2.f*myGLWindow->getColorbarLLCoord(0) - 1.f; 
-	float lly = 2.f*myGLWindow->getColorbarLLCoord(1) - 1.f; 
-	float urx = 2.f*myGLWindow->getColorbarURCoord(0) - 1.f; 
-	float ury = 2.f*myGLWindow->getColorbarURCoord(1) - 1.f; 
+	float urx = llx + 2.*myGLWindow->getColorbarSize(0); 
+	float ury = lly + 2.*myGLWindow->getColorbarSize(1); 
+	
 	glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 	glBegin(GL_QUADS);
 	glTexCoord2f(0.0f, 0.0f); glVertex3f(llx, lly, 0.0f);

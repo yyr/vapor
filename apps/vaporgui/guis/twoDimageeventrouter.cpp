@@ -1717,7 +1717,7 @@ void TwoDImageEventRouter::mapCursor(){
 		for (int i = 0; i<3; i++) sPoint[i] = selectPoint[i]+userExtents[i];
 		float val = RegionParams::calcCurrentValue(tParams->GetHeightVariableName(),sPoint,tParams->GetRefinementLevel(), tParams->GetCompressionLevel(), (size_t)currentTimeStep);
 		if (val != OUT_OF_BOUNDS){
-			selectPoint[2] = val+(tParams->getLocalTwoDMin(2));
+			selectPoint[2] = val+(tParams->getLocalTwoDMin(2)) - userExtents[2];
 		}
 	} 
 	

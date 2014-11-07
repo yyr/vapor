@@ -118,7 +118,7 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 	axisLabelsDirty = true;
 	latLonAnnot = false;
 	for (int axis=0; axis < 3; axis++) axisLabels[axis].clear();
-	colorbarParamsTypeId = Params::GetTypeFromTag(Params::_dvrParamsTag);
+	
 	mouseDownHere = false;
 
 	//values of features:
@@ -135,7 +135,7 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 	axisArrowsEnabled = getDefaultAxisArrowsEnabled();
 	axisAnnotationEnabled = false;
 	
-	colorbarEnabled = false;
+	
 	for (int i = 0; i<3; i++){
 	    axisArrowCoord[i] = 0.f;
 		axisOriginCoord[i] = 0.;
@@ -154,12 +154,33 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 
 	colorbarFontsize = 10;
 	colorbarDigits = 3;
-	colorbarLLCoord[0] = 0.1f;
-	colorbarLLCoord[1] = 0.1f;
-	colorbarURCoord[0] = 0.3f;
-	colorbarURCoord[1] = 0.5f;
-	numColorbarTics = 11;
+	
+	colorbarSize[0] = 0.15f;
+	colorbarSize[1] = 0.3f;
+	numColorbarTics = 6;
 	numRenderers = 0;
+	//Determine how many renderers have transfer functions:
+	for (int i = 1; i<= Params::GetNumParamsClasses(); i++){
+		RenderParams* p = dynamic_cast<RenderParams*>(Params::GetDefaultParams(i));
+		if (!p) continue;
+		if (!p->UsesMapperFunction()) continue;
+		rendererTypeLookup.push_back(p->GetParamsBaseTypeId());
+	}
+	int numTFs = rendererTypeLookup.size();
+	
+	colorbarLLX.clear();
+	colorbarLLY.clear();
+	colorbarEnabled.clear();
+	colorbarTitles.clear();
+	float barLLX = 0.;
+	for (int i = 0; i<numTFs; i++){
+		colorbarLLX.push_back(barLLX);
+		colorbarLLY.push_back(0.f);
+		colorbarEnabled.push_back(false);
+		colorbarTitles.push_back(" ");
+		if (colorbarSize[0]+barLLX+.025 <=1.0) barLLX += colorbarSize[0]+0.025;
+	}
+
 	for (int i = 0; i< MAXNUMRENDERERS; i++){
 		renderType[i] = 0;
 		renderOrder[i] = 0;
@@ -933,25 +954,28 @@ void GLWindow::depthPeelPaintEvent(){
 		glPopMatrix();
 	}
 
-	//One colorbar may be drawn.  It is drawn at a fixed position on the final image.
-	//See if there is a renderer that has an enabled colorbar and a valid transfer function
-	RenderParams* p = dynamic_cast<RenderParams*>(getActiveParams(Params::GetTagFromType(colorbarParamsTypeId)));
-	if(p && colorbarIsEnabled() && p->isEnabled() && p->GetMapperFunc()){
-		//Now go to default 2D window
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
+	//Now go through all the active renderers, and draw colorbars as appropriate
+	for (int i = 0; i< getNumRenderers(); i++){
+		if(renderer[i]->isInitialized() && !(renderer[i]->doAlwaysBypass(timeStep))) {
+			RenderParams* p = renderer[i]->getRenderParams();
+			int indx = hasColorbarIndex(p);
+			if (indx<0) continue;
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			glLoadIdentity();
+			glMatrixMode(GL_PROJECTION);
+			glPushMatrix();
+			glLoadIdentity();
 		
-		getRenderer(p)->renderColorscale(colorbarIsDirty());
+			getRenderer(p)->renderColorscale(colorbarIsDirty(),indx);
 		
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
+			glMatrixMode(GL_PROJECTION);
+			glPopMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
+		}
 	}
+	setColorbarDirty(false);
 	
 	//Create time annotation from current time step.  Draw it over the image.
 	if(getTimeAnnotType()){
@@ -1288,25 +1312,29 @@ void GLWindow::regPaintEvent()
 	renderText();
 	
 
-	//One colorbar may be drawn.  It is drawn at a fixed position on the final image.
-	//See if there is a renderer that has an enabled colorbar and a valid transfer function
-	RenderParams* p = dynamic_cast<RenderParams*>(getActiveParams(Params::GetTagFromType(colorbarParamsTypeId)));
-	if(p && colorbarIsEnabled() && p->isEnabled() && p->GetMapperFunc()){
-		//Now go to default 2D window
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
+	
+	//Now go through all the active renderers, and draw colorbars as appropriate
+	for (int i = 0; i< getNumRenderers(); i++){
+		if(renderer[i]->isInitialized() && !(renderer[i]->doAlwaysBypass(timeStep))) {
+			RenderParams* p = renderer[i]->getRenderParams();
+			int indx = hasColorbarIndex(p);
+			if (indx<0) continue;
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			glLoadIdentity();
+			glMatrixMode(GL_PROJECTION);
+			glPushMatrix();
+			glLoadIdentity();
 		
-		getRenderer(p)->renderColorscale(colorbarIsDirty());
+			getRenderer(p)->renderColorscale(colorbarIsDirty(),indx);
 		
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
+			glMatrixMode(GL_PROJECTION);
+			glPopMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
+		}
 	}
+	setColorbarDirty(false);
 	
 	//Create time annotation from current time step.  Draw it over the image.
 	

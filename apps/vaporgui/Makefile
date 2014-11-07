@@ -36,10 +36,8 @@ LIBRARIES += $(GLU_LIB) $(OGL_LIB)
 MAKEFILE_LDFLAGS += -Xlinker -export-dynamic
 endif
 
-MAKEFILE_INCLUDE_DIRS += -I$(addprefix $(QTDIR)/include/, QtOpenGL)
 
 ifeq ($(ARCH),Darwin)
-
 
 MAKEFILE_LDFLAGS += -framework CoreFoundation -framework CoreServices 
 MAKEFILE_LDFLAGS += -framework Cocoa -framework AppKit -framework 

@@ -216,7 +216,7 @@ int	main(int argc, char **argv) {
 
 	if (opt.help) {
 		Usage(op, NULL);
-		exit(0);
+		return(0);
 	}
 
 	argv++;
@@ -360,5 +360,5 @@ int	main(int argc, char **argv) {
 		cout << endl;
 	}
 
-	exit(0);
+	return(0);
 }

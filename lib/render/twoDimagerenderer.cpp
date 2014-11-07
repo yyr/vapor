@@ -376,7 +376,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 					//Find cell coordinates of locCoords in data grid space
 					float elev = hgtGrid->GetValue(elevVertLine[3*i], elevVertLine[3*i+1],0.);
 					if (elev == hgtGrid->GetMissingValue()) elev = 0.;
-					locCoords[2] = elev+constElev;
+					locCoords[2] = elev+constElev-fullUserExts[2];
 				}
 				else { //not mapped to terrain, use constant elevation
 					locCoords[2] = constElev;
@@ -412,7 +412,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 				//Find cell coordinates of locCoords in data grid space
 				float elev = hgtGrid->GetValue((double)locCoords[0], (double)locCoords[1],0.);
 				if (elev == hgtGrid->GetMissingValue()) elev = 0.;
-				locCoords[2] = elev+constElev;
+				locCoords[2] = elev+constElev-fullUserExts[2];
 				
 				//Convert to stretched cube coords.  Note that following
 				//routine requires local coords, not global world coords, despite name of method:

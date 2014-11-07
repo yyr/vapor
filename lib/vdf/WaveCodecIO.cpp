@@ -378,7 +378,7 @@ int WaveCodecIO::OpenVariableRead(
 	for (int t=0; t<_nthreads; t++) {
 		_compressorThread[t]->ClampMinOnOff() = true;
 		_compressorThread[t]->ClampMaxOnOff() = true;
-#ifndef	VAPOR_3_0_COMPATIBLE
+#ifdef	VAPOR_3_0_COMPATIBLE
 cerr << "CLAMPING OFF\n";
 _compressorThread[t]->ClampMinOnOff() = false;
 _compressorThread[t]->ClampMaxOnOff() = false;

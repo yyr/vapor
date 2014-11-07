@@ -80,7 +80,6 @@ protected slots:
 	void toggleLatLon(bool val);
 	void visualizerSelected(int comboIndex);
 	void panelChanged();
-	void rendererChanged(int);
 	
 	void selectTimeTextColor();
 
@@ -94,6 +93,7 @@ protected slots:
 	void doHelp();
 	
 	void checkSurface(bool);
+	void colorbarTableChanged(int row, int col);
 	
 protected:
 	//Copy data from vizwin to and from dialog (shadowed in this class)
@@ -107,11 +107,10 @@ protected:
 	ScrollContainer* featureHolder;
 
 	//State of one visualizer is saved here:
-	int colorbarRendererTypeId;
 	int currentComboIndex;
 	bool dialogChanged;
 	QString vizName;
-	bool showBar;
+
 	bool showAxisArrows;
 	bool useLatLon;
 	bool showAxisAnnotation;
@@ -126,8 +125,12 @@ protected:
 	int timeAnnotTextSize;
 	float ticWidth;
 	
-	float colorbarLLCoords[2];
-	float colorbarURCoords[2];
+	std::vector<float> colorBarLLX;
+	std::vector<float> colorBarLLY;
+	std::vector<bool> colorBarEnabled;
+	std::vector<std::string> colorbarTitles;
+	float colorbarSize[2];
+
 	int colorbarDigits;
 	int colorbarFontsize;
 	float timeAnnotCoords[2];

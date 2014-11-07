@@ -111,13 +111,13 @@ public:
 	const QColor getRegionFrameColor() {return DataStatus::getInstance()->getRegionFrameColor();}
 	const QColor getSubregionFrameColor() {return DataStatus::getInstance()->getSubregionFrameColor();}
 	QColor& getColorbarBackgroundColor() {return myGLWindow->getColorbarBackgroundColor();}
-	int getColorbarParamsTypeId() {return myGLWindow->getColorbarParamsTypeId();}
-	void setColorbarParamsTypeId(int val) {myGLWindow->setColorbarParamsTypeId(val);}
+	const vector<bool> getColorbarEnabled() {return myGLWindow->getColorbarEnabled();}
+	const vector<string> getColorbarTitles() {return myGLWindow->getColorbarTitles();}
 	
 	//Pass get/set onto glwindow:
 	bool axisArrowsAreEnabled() {return myGLWindow->axisArrowsAreEnabled();}
 	bool axisAnnotationIsEnabled() {return myGLWindow->axisAnnotationIsEnabled();}
-	bool colorbarIsEnabled() {return myGLWindow->colorbarIsEnabled();}
+	
 	bool regionFrameIsEnabled() {return myGLWindow->regionFrameIsEnabled();}
 	bool subregionFrameIsEnabled() {return myGLWindow->subregionFrameIsEnabled();}
 	float getAxisArrowCoord(int i){return myGLWindow->getAxisArrowCoord(i);}
@@ -131,8 +131,10 @@ public:
 	int getLabelDigits(){return myGLWindow->getLabelDigits();}
 	float getTicWidth(){return myGLWindow->getTicWidth();}
 	QColor& getAxisColor(){return myGLWindow->getAxisColor();}
-	float getColorbarLLCoord(int i) {return myGLWindow->getColorbarLLCoord(i);}
-	float getColorbarURCoord(int i) {return myGLWindow->getColorbarURCoord(i);}
+
+	const vector<float> getColorbarLLX() {return myGLWindow->getColorbarLLX();}
+	const vector<float> getColorbarLLY() {return myGLWindow->getColorbarLLY();}
+	float getColorbarSize(int i) {return myGLWindow->getColorbarSize(i);}
 	int getColorbarNumTics() {return myGLWindow->getColorbarNumTics();}
 	int getColorbarDigits() {return myGLWindow->getColorbarDigits();}
 	void setColorbarDigits(int ndigs) {myGLWindow->setColorbarDigits(ndigs);}
@@ -146,7 +148,7 @@ public:
 	void setSubregionFrameColor(QColor& c) {myGLWindow->setSubregionFrameColor(c);}
 	void enableAxisArrows(bool enable) {myGLWindow->enableAxisArrows(enable);}
 	void enableAxisAnnotation(bool enable) {myGLWindow->enableAxisAnnotation(enable);}
-	void enableColorbar(bool enable) {myGLWindow->enableColorbar( enable) ;}
+	
 	void enableRegionFrame(bool enable) {myGLWindow->enableRegionFrame( enable);}
 	void enableSubregionFrame(bool enable) {myGLWindow->enableSubregionFrame( enable);}
 	void setAxisArrowCoord(int i, float val){myGLWindow->setAxisArrowCoord( i,  val);}
@@ -179,8 +181,29 @@ public:
 	bool useLatLonAnnotation() {return myGLWindow->useLatLonAnnotation();}
 	void setLatLonAnnotation(bool val) {myGLWindow->setLatLonAnnotation(val);}
 	
-	void setColorbarLLCoord(int i, float crd) {myGLWindow->setColorbarLLCoord( i,  crd);;}
-	void setColorbarURCoord(int i, float crd) {myGLWindow->setColorbarURCoord( i,  crd);}
+	void setColorbarEnabled(const vector<bool> vb) {myGLWindow->setColorbarEnabled(vb);}
+	void setColorbarEnabled(int colorbarIndex, bool val){
+		vector<bool> enabled = getColorbarEnabled();
+		enabled[colorbarIndex] = val;
+		setColorbarEnabled(enabled);
+	}
+	void setColorbarTitle(int colorbarIndex, string title){
+		vector<string> titles = getColorbarTitles();
+		titles[colorbarIndex] = title;
+		setColorbarTitles(titles);
+	}
+	void setColorbarTitles(vector<string>titles){myGLWindow->setColorbarTitles(titles);}
+	void setColorbarLLX(const vector<float> vf) {myGLWindow->setColorbarLLX( vf);}
+	void setColorbarLLY(const vector<float> vf) {myGLWindow->setColorbarLLY( vf);}
+	void setColorbarLLXY(int colorbarIndex, float llx, float lly){
+		vector<float> LLX = getColorbarLLX();
+		vector<float> LLY = getColorbarLLY();
+		LLX[colorbarIndex] = llx;
+		LLY[colorbarIndex] = lly;
+		setColorbarLLX(LLX);
+		setColorbarLLY(LLY);
+	}
+	void setColorbarSize(int i, float crd) {myGLWindow->setColorbarSize( i,  crd);}
 	void setColorbarNumTics(int i) {myGLWindow->setColorbarNumTics( i);}
 
 		

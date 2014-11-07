@@ -18,7 +18,7 @@
 //
 
 
-#include <qwidget.h>
+#include <QWidget>
 
 #include <QFrame>
 #include <qimage.h>
