@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
 	string command = "mom";
 	int rc = vdfc.launchVdfCreate(argc, argv, command);
 
-    if (rc == 0) exit(0);
-    else exit(1);
+    if (rc == 0) return(0);
+    else return(1);
 
 }

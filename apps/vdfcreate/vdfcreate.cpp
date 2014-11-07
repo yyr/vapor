@@ -99,5 +99,5 @@ int	main(int argc, char **argv) {
 	if (file->Write(argv[1]) < 0) {
 		exit(1);
 	}
-	exit(0);
+	return(0);
 }

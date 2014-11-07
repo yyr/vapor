@@ -672,9 +672,7 @@ int DCReaderWRF::_InitProjection(
 int DCReaderWRF::_InitVerticalCoordinates(
 	NetCDFCollection *ncdfc
 ) {
-	_elev = NULL;
-
-	DerivedVarElevation *_elev = new DerivedVarElevation(ncdfc, _grav);
+	_elev = new DerivedVarElevation(ncdfc, _grav);
 	
 	ncdfc->InstallDerivedVar("ELEVATION", _elev);
 
@@ -803,6 +801,7 @@ int DCReaderWRF::_InitDimensions(
 
 
 DCReaderWRF::~DCReaderWRF() {
+
 	if (_elev) delete _elev;
 	if (_sliceBuffer) delete [] _sliceBuffer;
 
@@ -966,7 +965,6 @@ DCReaderWRF::DerivedVarElevation::DerivedVarElevation(
 }
 
 DCReaderWRF::DerivedVarElevation::~DerivedVarElevation() {
-
 	if (_PH) delete [] _PH;
 	if (_PHB) delete [] _PHB;
 }

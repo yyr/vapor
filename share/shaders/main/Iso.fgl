@@ -110,7 +110,7 @@ void main(void)
 
 	// Compute number of samples based on samplin distance, delta 
 	//
-	int nsegs = int(min(float(nsamples), 256.0));
+	int nsegs = int(max(float(nsamples), 256.0));
 	if (fast) nsegs = 16;
 
 	vec3 deltaVec = texDir / float(nsegs-1.0);

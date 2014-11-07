@@ -13,11 +13,42 @@
 #include <QMainWindow>
 //#include <QMessageBox>
 
+#ifdef	Darwin
+#include <sys/utsname.h>
+#endif
+
+
 #ifndef WIN32
 static char* const vfilepath = getenv("HOME");
 #else
 static char* const vfilepath = getenv("USERPROFILE");
 #endif
+
+namespace {
+
+bool qnam_supported() {
+
+#ifndef	Darwin
+	return(true);
+#else
+
+	struct utsname myuname;
+
+    int rc = uname(&myuname);
+	if (rc<0) return(false);
+
+    int major = 0;
+    istringstream iss (myuname.release);
+    iss >> major;
+
+	// Not supported in pre Mac OSX 10.6 (uname release 10.x)
+	//
+	return(major>10);	
+#endif
+}
+
+}
+
 
 class vfiledata
 {
@@ -64,12 +95,19 @@ VAPoR::VersionChecker::VersionChecker()
 	waiting = false;
 	bad = false;
 	error = "";
+	_manager = NULL;
+}
+
+VAPoR::VersionChecker::~VersionChecker() {
+	if (_manager) delete _manager;
 }
 
 //This sends out an http request, and sets a callback so that when the request returns,
 //  it will be handled by on_version_reply (another method of this class).
 void VAPoR::VersionChecker::request(QString url)
 {
+	if (! qnam_supported()) return;
+
 	//build the version check filename based on OS
 	char* vfilename = new char[strlen(vfilepath) + strlen("/.vapor-version") + 1];
 	vfilename[0] = 0;
@@ -91,9 +129,9 @@ void VAPoR::VersionChecker::request(QString url)
 	waiting = true;
 	bad = false;
 	//send the network request
-	QNetworkAccessManager* manager = new QNetworkAccessManager(NULL);
-	connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(on_version_reply(QNetworkReply*)));
-	manager->get(QNetworkRequest(QUrl(url)));
+	if (! _manager) _manager = new QNetworkAccessManager(NULL);
+	connect(_manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(on_version_reply(QNetworkReply*)));
+	_manager->get(QNetworkRequest(QUrl(url)));
 }
 
 //processes the reply to our request (here's where the actual checking and notification happens)

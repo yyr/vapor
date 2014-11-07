@@ -226,6 +226,7 @@
     <ClCompile Include="..\..\..\lib\vdf\DataMgr.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\DataMgrAMR.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\DataMgrFactory.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\DataMgrGRIB.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\DataMgrMOM.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\DataMgrROMS.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\DataMgrWB.cpp" />

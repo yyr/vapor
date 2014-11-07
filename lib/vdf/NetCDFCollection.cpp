@@ -233,7 +233,7 @@ vector <string> NetCDFCollection::GetVariableNames(
 	for (; p!=_variableList.end(); ++p) {
 		const TimeVaryingVar &tvvars = p->second;
 		int myndims = tvvars.GetSpatialDims().size();
-		if (! spatial && tvvars.GetTimeVarying()) {
+		if (! spatial && tvvars.GetTimeVarying() && !tvvars.GetTimeDimName().empty()) {
 			myndims++; 
 		}
 		if (myndims == ndims) {
@@ -728,7 +728,7 @@ int NetCDFCollection::ReadNative(
 	}
 
 	int idx = 0;
-	if (fh._tvvars.GetTimeVarying()) {
+	if (fh._tvvars.GetTimeVarying() && ! fh._tvvars.GetTimeDimName().empty()) {
 		mystart[idx] = fh._local_ts;
 		mycount[idx] = 1;
 		idx++;
@@ -762,7 +762,7 @@ int NetCDFCollection::ReadNative(
 	}
 
 	int idx = 0;
-	if (fh._tvvars.GetTimeVarying()) {
+	if (fh._tvvars.GetTimeVarying() && ! fh._tvvars.GetTimeDimName().empty()) {
 		mystart[idx] = fh._local_ts;
 		mycount[idx] = 1;
 		idx++;
@@ -795,7 +795,7 @@ int NetCDFCollection::ReadNative(
 	}
 
 	int idx = 0;
-	if (fh._tvvars.GetTimeVarying()) {
+	if (fh._tvvars.GetTimeVarying() && ! fh._tvvars.GetTimeDimName().empty()) {
 		mystart[idx] = fh._local_ts;
 		mycount[idx] = 1;
 		idx++;
@@ -1700,7 +1700,11 @@ int NetCDFCollection::TimeVaryingVar::Insert(
 	if (variable.GetDimNames().size()) {
 		string s = variable.GetDimNames()[0];
 
-		if (find(time_dimnames.begin(), time_dimnames.end(), s) != time_dimnames.end()) {
+		if (time_dimnames.empty()) {	// Handle ITVV case
+			time_varying = true;
+			time_name = "";
+		}
+		else if (find(time_dimnames.begin(), time_dimnames.end(), s) != time_dimnames.end()) {
 			time_varying = true;
 			time_name = s;
 			space_dims.erase(space_dims.begin());

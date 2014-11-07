@@ -618,7 +618,7 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	return 0;
 }
 
-string DCReaderGRIB::GetGridType() {
+string DCReaderGRIB::GetGridType() const {
 	if (!strcmp("regular_gg",_gridType.c_str())) return "regular";
 	else return "layered";
 }
