@@ -168,6 +168,9 @@
       <Project>{91c4e098-bc79-4784-94b7-c96b3548682d}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\include\vapor\DCReaderGRIB.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

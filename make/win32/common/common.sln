@@ -100,6 +100,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "camvdfcreate", "..\camvdfcr
 		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "grib2vdf", "..\grib2vdf\grib2vdf.vcxproj", "{E6E399BB-C792-4789-84A8-CD673D429414}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -350,6 +352,14 @@ Global
 		{FBAB99D1-1873-4A96-988C-BB30477DEB37}.Release|Win32.Build.0 = Release|Win32
 		{FBAB99D1-1873-4A96-988C-BB30477DEB37}.Release|x64.ActiveCfg = Release|x64
 		{FBAB99D1-1873-4A96-988C-BB30477DEB37}.Release|x64.Build.0 = Release|x64
+		{E6E399BB-C792-4789-84A8-CD673D429414}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E6E399BB-C792-4789-84A8-CD673D429414}.Debug|Win32.Build.0 = Debug|Win32
+		{E6E399BB-C792-4789-84A8-CD673D429414}.Debug|x64.ActiveCfg = Debug|x64
+		{E6E399BB-C792-4789-84A8-CD673D429414}.Debug|x64.Build.0 = Debug|x64
+		{E6E399BB-C792-4789-84A8-CD673D429414}.Release|Win32.ActiveCfg = Release|Win32
+		{E6E399BB-C792-4789-84A8-CD673D429414}.Release|Win32.Build.0 = Release|Win32
+		{E6E399BB-C792-4789-84A8-CD673D429414}.Release|x64.ActiveCfg = Release|x64
+		{E6E399BB-C792-4789-84A8-CD673D429414}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
