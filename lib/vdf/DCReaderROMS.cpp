@@ -403,6 +403,7 @@ int DCReaderROMS::OpenVariableRead(
 
 int DCReaderROMS::ReadSlice(float *slice) {
 
+
 	//
 	// Deal with derived variables
 	//
@@ -423,10 +424,13 @@ int DCReaderROMS::ReadSlice(float *slice) {
 		return(1);
 	}
 
-	if (_GetSpatialDims(_ncdfc, _ovr_varname).size() < 2) {
+	vector <size_t> dims = _GetSpatialDims(_ncdfc, _ovr_varname);
+	if (dims.size() < 2) {
 		SetErrMsg("Invalid operation");
 		return(-1);
 	}
+	size_t nz = (dims.size() == 3) ? dims[2] : 1;
+	if (_ovr_slice >= nz) return(0);	// EOF
 
 	// If data is reversed, read in reversed order (duh)
 	// ELEVATION is already fed in reverse order w.r.t CAM,
@@ -455,8 +459,8 @@ int DCReaderROMS::ReadSlice(float *slice) {
 		dstMV = srcMV;
 	}
 
-	size_t dims[] = {_dims[0], _dims[1]};
-	_weightTable->interp2D(_sliceBuffer, slice, srcMV, dstMV, dims);
+	size_t mydims[] = {_dims[0], _dims[1]};
+	_weightTable->interp2D(_sliceBuffer, slice, srcMV, dstMV, mydims);
 
 	_ovr_slice++;
 	return(1);
