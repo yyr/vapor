@@ -255,17 +255,30 @@ void	BlkMemMgr::FreeMem(
 			if (ptr == mem_region[i]._blk) {
 				found = true;
 				mem_region[i]._nfree = mem_region[i]._nused;
+				mem_region[i]._nused = 0;
 
-				//
-				// Collapse two adjacent runs of they're both free
-				//
-				if (i>0 && mem_region[i-1]._nfree) {
-					mem_region[i-1]._nfree += mem_region[i]._nfree;
-					mem_region.erase(mem_region.begin() + i);
-				}
 			}
 		}
 	}
+	if (! found) cerr << "Failed to free block " << ptr << endl;
 
-if (! found) cerr << "Failed to free block " << ptr << endl;
+	//
+	// Collapse any two adjacent runs of they're both free
+	//
+	bool collapse;
+	do {
+		collapse = false;
+		for (int r=0; r<_mem_regions.size(); r++) {
+		vector <_mem_allocation_t> &mem_region = _mem_regions[r];
+			for (int i=0; i<mem_region.size()-1; i++) {
+				if (mem_region[i]._nfree && mem_region[i+1]._nfree) {
+					mem_region[i]._nfree += mem_region[i+1]._nfree;
+					mem_region.erase(mem_region.begin() + i+1);
+					collapse = true;
+					break;
+				}
+			}
+		}
+	} while (collapse);
+
 }
