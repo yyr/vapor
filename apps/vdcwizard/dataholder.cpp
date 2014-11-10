@@ -55,9 +55,15 @@ DataHolder::DataHolder(){
 	VDFstartTime = "0";
 	PDstartTime = "0";
 
+	reader = NULL;
 	ncdfFilesChanged = true;
 	vdfSettingsChanged = true;
 	vdcSettingsChanged = true;
+}
+
+void DataHolder::deleteReader() {
+	if (reader) delete reader;
+	reader = NULL;
 }
 
 void DataHolder::getExtents(){
@@ -124,28 +130,30 @@ void DataHolder::clearVDFSelectedVars() {
 
 // Create a DCReader object and pull important data from it
 int DataHolder::createReader() {
-	if (fileType == "ROMS") 
-		reader = new DCReaderROMS(dataFiles);
-	else if (fileType == "CAM") 
-		reader = new DCReaderROMS(dataFiles);
-	else if (fileType == "GRIMs") 
-		reader = new DCReaderGRIB(dataFiles);
-	else if (fileType == "WRF") 
-		reader = new DCReaderWRF(dataFiles);
-	else 
-		reader = new DCReaderMOM(dataFiles);
+	if (reader==NULL){
+		if (fileType == "ROMS") 
+			reader = new DCReaderROMS(dataFiles);
+		else if (fileType == "CAM") 
+			reader = new DCReaderROMS(dataFiles);
+		else if (fileType == "GRIMs") 
+			reader = new DCReaderGRIB(dataFiles);
+		else if (fileType == "WRF") 
+			reader = new DCReaderWRF(dataFiles);
+		else 
+			reader = new DCReaderMOM(dataFiles);
 	
-	if (MyBase::GetErrCode()!=0) return 1;
+		if (MyBase::GetErrCode()!=0) return 1;
 	
-    std::stringstream strstream;
-    strstream << reader->GetNumTimeSteps();
-    strstream >> VDFnumTS;
-    setPDnumTS(VDFnumTS);
-    ncdfVars = reader->GetVariableNames();
-    std::sort(ncdfVars.begin(),ncdfVars.end());
+	    std::stringstream strstream;
+	    strstream << reader->GetNumTimeSteps();
+	    strstream >> VDFnumTS;
+	    setPDnumTS(VDFnumTS);
+	    ncdfVars = reader->GetVariableNames();
+	    std::sort(ncdfVars.begin(),ncdfVars.end());
 
-	if (MyBase::GetErrCode()==0 ) return 0;
-	else return 1;
+		if (MyBase::GetErrCode()!=0) return 1;
+	}
+	return 0;
 }
 
 void DataHolder::findPopDataVars() {

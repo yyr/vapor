@@ -43,7 +43,7 @@ SelectFilePage::SelectFilePage(DataHolder *DH, QWidget *parent) :
     vdfBadFile = new VdfBadFile;
     vdfBadFile->exitButton->hide();
     vdfBadFile->continueButton->hide();
-    
+ 
 	errorMessage = new ErrorMessage;
 	
 	QString selectedDirectory;
@@ -110,6 +110,7 @@ void SelectFilePage::on_addFileButton_clicked() {
 		stdFileList = getSelectedFiles();
 		dataHolder->setFiles(stdFileList);
 		dataHolder->ncdfFilesChanged = true;
+		dataHolder->deleteReader();			//DCReader will need to be regenerated due to input file change
 		completeChanged();
 	} 
 }
@@ -125,6 +126,7 @@ void SelectFilePage::on_removeFileButton_clicked() {
     }*/
     stdFileList = getSelectedFiles();
     dataHolder->setFiles(stdFileList);
+	dataHolder->deleteReader();				//DCReader will need to be regenerated due to input file change
 	completeChanged();
 }
 
