@@ -32,6 +32,7 @@
 #include <vapor/MetadataVDC.h>
 #include <vapor/WaveCodecIO.h>
 #include <vapor/DCReader.h>
+#include <vapor/DCReaderGRIB.h>
 #include <vapor/DCReaderMOM.h>
 #include <vapor/DCReaderROMS.h>
 #include <vapor/DCReaderWRF.h>
@@ -124,7 +125,9 @@ void DataHolder::clearVDFSelectedVars() {
 // Create a DCReader object and pull important data from it
 int DataHolder::createReader() {
 	if (fileType == "ROMS") reader = new DCReaderROMS(dataFiles);
-    else if (fileType == "WRF") reader = new DCReaderWRF(dataFiles);
+	else if (fileType == "CAM") reader = new DCReaderROMS(dataFiles);
+	else if (fileType == "GRIMs") reader = new DCReaderGRIB(dataFiles);
+	else if (fileType == "WRF") reader = new DCReaderWRF(dataFiles);
 	else reader = new DCReaderMOM(dataFiles);
 	
 	if (MyBase::GetErrCode()!=0) return 1;
@@ -156,7 +159,9 @@ void DataHolder::findPopDataVars() {
 string DataHolder::getCreateVDFcmd() {
     vector<std::string> argv;
     if (getFileType() == "ROMS") argv.push_back("romsvdfcreate");
+	else if (getFileType() == "CAM") argv.push_back("camvdfcreate");
     else if (getFileType() == "WRF") argv.push_back("wrfvdfcreate");//Users/pears
+	else if (getFileType() == "GRIMs") argv.push_back("gribvdfcreate");
     else argv.push_back("momvdfcreate");
     argv.push_back("-quiet");
     if (getFileType()=="WRF") argv.push_back("-vdc2");
@@ -208,6 +213,8 @@ string DataHolder::getCreateVDFcmd() {
 string DataHolder::getPopDataCmd() {
     vector<std::string> argv;
     if (getFileType() == "ROMS") argv.push_back("roms2vdf");
+	else if (getFileType() == "GRIMs") argv.push_back("grib2vdf");
+	else if (getFileType() == "CAM") argv.push_back("cam2vdf");
     else if (getFileType() == "WRF") argv.push_back("wrf2vdf");
     else argv.push_back("mom2vdf");
     argv.push_back("-quiet");
@@ -284,7 +291,9 @@ int DataHolder::VDFCreate() {
     int argc = 2;
     vector<std::string> argv;
     if (getFileType() == "ROMS") argv.push_back("romsvdfcreate");
-    else if (getFileType() == "WRF") argv.push_back("wrfvdfcreate");//Users/pearse/VaporWinTestDir2/targets/Darwin_x86_64/bin/wrfvdfcreate");
+	else if (getFileType() == "CAM") argv.push_back("camvdfcreate");
+    else if (getFileType() == "GRIMs") argv.push_back("gribvdfcreate");
+	else if (getFileType() == "WRF") argv.push_back("wrfvdfcreate");
 	else argv.push_back("momvdfcreate");
     argv.push_back("-quiet");
 	
@@ -363,7 +372,9 @@ int DataHolder::run2VDFcomplete() {
     int argc = 2;
     vector<std::string> argv;
     if (getFileType() == "ROMS") argv.push_back("roms2vdf");
-    else if (getFileType() == "WRF") argv.push_back("wrf2vdf");
+	else if (getFileType() == "CAM") argv.push_back("cam2vdf");
+    else if (getFileType() == "GRIMs") argv.push_back("grib2vdf");
+	else if (getFileType() == "WRF") argv.push_back("wrf2vdf");
 	else argv.push_back("mom2vdf");
     argv.push_back("-quiet");
 
@@ -433,7 +444,9 @@ int DataHolder::run2VDFincremental(string start, string var) {
     int argc = 2;
     vector<std::string> argv;
     if (getFileType() == "ROMS") argv.push_back("roms2vdf");
-    else if (getFileType() == "WRF") argv.push_back("wrf2vdf");
+	else if (getFileType() == "CAM") argv.push_back("cam2vdf");
+    else if (getFileType() == "GRIMs") argv.push_back("grib2vdf");
+	else if (getFileType() == "WRF") argv.push_back("wrf2vdf");
     else argv.push_back("mom2vdf");
     argv.push_back("-quiet");
 

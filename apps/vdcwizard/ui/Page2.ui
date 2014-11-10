@@ -267,17 +267,20 @@
    </property>
   </widget>
   <widget class="QComboBox" name="dataTypeComboBox">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
-     <x>180</x>
-     <y>290</y>
+     <x>151</x>
+     <y>327</y>
      <width>111</width>
      <height>26</height>
     </rect>
    </property>
    <item>
     <property name="text">
-     <string> - -</string>
+     <string/>
     </property>
    </item>
    <item>
@@ -307,7 +310,7 @@
    </item>
    <item>
     <property name="text">
-     <string>GRIB</string>
+     <string>GRIMs</string>
     </property>
    </item>
   </widget>

@@ -54,8 +54,12 @@ SelectFilePage::SelectFilePage(DataHolder *DH, QWidget *parent) :
 
 void SelectFilePage::on_browseOutputVdfFile_clicked() {
 	QString file;
-    if (dataHolder->getOperation()=="2vdf") file = QFileDialog::getOpenFileName(this,"Select output metada (.vdf) file.",selectedDirectory);//,"/glade/proj3/DASG/pearse/data");
-    else file = QFileDialog::getSaveFileName(this,"Select output metada (.vdf) file.",selectedDirectory);//,selectedFilter=tr("files(*.vdf )"));
+    if (dataHolder->getOperation()=="2vdf") {
+		file = QFileDialog::getOpenFileName(this,"Select output metada (.vdf) file.",selectedDirectory);
+	}
+    else {
+		file = QFileDialog::getSaveFileName(this,"Select output metada (.vdf) file.",selectedDirectory);
+	}
 	selectedDirectory = QDir(file).absolutePath();
 	int size = file.split(".",QString::SkipEmptyParts).size();
 	if (file != ""){
@@ -93,6 +97,7 @@ void SelectFilePage::on_addFileButton_clicked() {
 		fileList->addItems(fileNames);
 	
 		if (fileList->count() > 0) {
+			dataTypeComboBox->setEnabled(true);
 			momRadioButton->setEnabled(true);
 			popRadioButton->setEnabled(true);
 			romsRadioButton->setEnabled(true);
@@ -123,11 +128,13 @@ void SelectFilePage::on_removeFileButton_clicked() {
 	completeChanged();
 }
 
-void SelectFilePage::on_dataTypeComboBox_currentIndexChanged(const QString &text) {
-	if (text != " - -") {
-		dataHolder->setFileType(text.toStdString());
-	}
-	cout << text.toStdString() << endl;
+void SelectFilePage::on_dataTypeComboBox_currentIndexChanged(const QString &dataType) {
+	dataHolder->setFileType(dataType.toStdString());
+
+	cout << dataHolder->getFileType() << endl; 
+	cout << dataHolder->getVDFfileName() << endl;
+
+	completeChanged();
 }
 
 void SelectFilePage::on_momRadioButton_clicked() {
