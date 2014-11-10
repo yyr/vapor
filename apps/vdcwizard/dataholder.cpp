@@ -124,11 +124,16 @@ void DataHolder::clearVDFSelectedVars() {
 
 // Create a DCReader object and pull important data from it
 int DataHolder::createReader() {
-	if (fileType == "ROMS") reader = new DCReaderROMS(dataFiles);
-	else if (fileType == "CAM") reader = new DCReaderROMS(dataFiles);
-	else if (fileType == "GRIMs") reader = new DCReaderGRIB(dataFiles);
-	else if (fileType == "WRF") reader = new DCReaderWRF(dataFiles);
-	else reader = new DCReaderMOM(dataFiles);
+	if (fileType == "ROMS") 
+		reader = new DCReaderROMS(dataFiles);
+	else if (fileType == "CAM") 
+		reader = new DCReaderROMS(dataFiles);
+	else if (fileType == "GRIMs") 
+		reader = new DCReaderGRIB(dataFiles);
+	else if (fileType == "WRF") 
+		reader = new DCReaderWRF(dataFiles);
+	else 
+		reader = new DCReaderMOM(dataFiles);
 	
 	if (MyBase::GetErrCode()!=0) return 1;
 	

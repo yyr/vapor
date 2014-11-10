@@ -78,7 +78,7 @@ public:
  //! advanced.
  //
  static const string &GetDateString() {
-	_dateString.assign("Fri Mar  7 17:11:30 MST 2014"); return(_dateString);
+	_dateString.assign("Mon Nov 10 08:25:10 MST 2014"); return(_dateString);
  }
 
  //! Parse a version string into it's component major, minor,

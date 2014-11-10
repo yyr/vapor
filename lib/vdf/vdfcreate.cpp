@@ -305,11 +305,11 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 		 ncdffiles.push_back(argv[i]);
 	}
 	
-    if (NetCDFtype == "roms") DCdata = new DCReaderROMS(ncdffiles);
-    else if (NetCDFtype == "grib") {
+    if (NetCDFtype == "ROMS") DCdata = new DCReaderROMS(ncdffiles);
+    else if (NetCDFtype == "GRIMs") {
 		DCdata = new DCReaderGRIB(ncdffiles);
 	}
-	else if (NetCDFtype == "wrf") {
+	else if (NetCDFtype == "WRF") {
 		DCdata = new DCReaderWRF(ncdffiles);
 	}
 	else DCdata = new DCReaderMOM(ncdffiles);
