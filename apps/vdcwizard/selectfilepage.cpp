@@ -43,6 +43,7 @@ SelectFilePage::SelectFilePage(DataHolder *DH, QWidget *parent) :
     vdfBadFile = new VdfBadFile;
     vdfBadFile->exitButton->hide();
     vdfBadFile->continueButton->hide();
+	processIndicator->setText("<font color='blue'> </font>");   
  
 	errorMessage = new ErrorMessage;
 	
@@ -142,12 +143,14 @@ void SelectFilePage::on_dataTypeComboBox_currentIndexChanged(const QString &data
 void SelectFilePage::on_momRadioButton_clicked() {
     if (momRadioButton->isChecked()) dataHolder->setFileType("mom");
 	else dataHolder->setFileType("");
+	processIndicator->setText("<font color='blue'>Analyzing Files...</font>");	
     completeChanged();
 }
 
 void SelectFilePage::on_popRadioButton_clicked() {
     if (popRadioButton->isChecked()) dataHolder->setFileType("mom");
     else dataHolder->setFileType("");
+	processIndicator->setText("Analyzing Files!!!");
 	completeChanged();
 }
 
@@ -236,8 +239,11 @@ int SelectFilePage::nextId() const{
 	if (isComplete() == true){
 		//if there has been a change to the ncdf files, we will need to generate a new
 		//DCReader, and go through our error checking process
+		processIndicator->setText("<font color='blue'>Analyzing Files...</font>"); 
+		QApplication::processEvents();
 		if (dataHolder->createReader()==0) {
 			wizard()->button(QWizard::NextButton)->setEnabled(true);
+			processIndicator->setText("<font color='blue'> </font>"); ;
 			if (dataHolder->getOperation() == "vdfcreate") return VDCWizard::Create_VdfPage;
 	        else return VDCWizard::Populate_DataPage;
 		}	
@@ -253,6 +259,7 @@ int SelectFilePage::nextId() const{
 			MyBase::SetErrCode(0);
 	    }
 	}
+	processIndicator->setText("<font color='blue'> </font>"); 
 	wizard()->button(QWizard::NextButton)->setEnabled(true);
 	return VDCWizard::SelectFile_Page;
 }
