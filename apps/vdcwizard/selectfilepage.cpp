@@ -98,11 +98,11 @@ void SelectFilePage::on_addFileButton_clicked() {
 		fileList->addItems(fileNames);
 	
 		if (fileList->count() > 0) {
-			dataTypeComboBox->setEnabled(true);
-			momRadioButton->setEnabled(true);
-			popRadioButton->setEnabled(true);
-			romsRadioButton->setEnabled(true);
-			wrfRadioButton->setEnabled(true);
+            dataTypeComboBox->setEnabled(true);
+            //momRadioButton->setEnabled(true);
+            //popRadioButton->setEnabled(true);
+            //romsRadioButton->setEnabled(true);
+            //wrfRadioButton->setEnabled(true);
 		}
 	
 		selectedDirectory = QDir(fileNames.at(0)).absolutePath();
@@ -120,11 +120,6 @@ void SelectFilePage::on_removeFileButton_clicked() {
     dataHolder->ncdfFilesChanged = true;
 	qDeleteAll(fileList->selectedItems());
 
-    /*QStringList fileNames;
-    int count = fileList->count();
-    for (int i=0;i<count;i++) {
-        fileNames.append(fileList->item(i)->text());
-    }*/
     stdFileList = getSelectedFiles();
     dataHolder->setFiles(stdFileList);
 	dataHolder->deleteReader();				//DCReader will need to be regenerated due to input file change
@@ -133,37 +128,7 @@ void SelectFilePage::on_removeFileButton_clicked() {
 
 void SelectFilePage::on_dataTypeComboBox_currentIndexChanged(const QString &dataType) {
 	dataHolder->setFileType(dataType.toStdString());
-
-	cout << dataHolder->getFileType() << endl; 
-	cout << dataHolder->getVDFfileName() << endl;
-
 	completeChanged();
-}
-
-void SelectFilePage::on_momRadioButton_clicked() {
-    if (momRadioButton->isChecked()) dataHolder->setFileType("mom");
-	else dataHolder->setFileType("");
-	processIndicator->setText("<font color='blue'>Analyzing Files...</font>");	
-    completeChanged();
-}
-
-void SelectFilePage::on_popRadioButton_clicked() {
-    if (popRadioButton->isChecked()) dataHolder->setFileType("mom");
-    else dataHolder->setFileType("");
-	processIndicator->setText("Analyzing Files!!!");
-	completeChanged();
-}
-
-void SelectFilePage::on_romsRadioButton_clicked() {
-    if (romsRadioButton->isChecked()) dataHolder->setFileType("roms");
-    else dataHolder->setFileType("");
-	completeChanged();
-}
-
-void SelectFilePage::on_wrfRadioButton_clicked() {
-    if (wrfRadioButton->isChecked()) dataHolder->setFileType("wrf");
-    else dataHolder->setFileType("");
-    completeChanged();
 }
 
 vector<string> SelectFilePage::getSelectedFiles() {
@@ -243,7 +208,8 @@ int SelectFilePage::nextId() const{
 		QApplication::processEvents();
 		if (dataHolder->createReader()==0) {
 			wizard()->button(QWizard::NextButton)->setEnabled(true);
-			processIndicator->setText("<font color='blue'> </font>"); ;
+            processIndicator->setText("<font color='blue'> </font>");
+            QApplication::processEvents();
 			if (dataHolder->getOperation() == "vdfcreate") return VDCWizard::Create_VdfPage;
 	        else return VDCWizard::Populate_DataPage;
 		}	
@@ -260,6 +226,7 @@ int SelectFilePage::nextId() const{
 	    }
 	}
 	processIndicator->setText("<font color='blue'> </font>"); 
+    QApplication::processEvents();
 	wizard()->button(QWizard::NextButton)->setEnabled(true);
 	return VDCWizard::SelectFile_Page;
 }

@@ -61,10 +61,10 @@ private slots:
     void on_addFileButton_clicked();
     void on_removeFileButton_clicked();
     void on_dataTypeComboBox_currentIndexChanged(const QString &dataType);
-	void on_momRadioButton_clicked();
-    void on_popRadioButton_clicked();
-    void on_romsRadioButton_clicked();
-	void on_wrfRadioButton_clicked();
+	//void on_momRadioButton_clicked();
+    //void on_popRadioButton_clicked();
+    //void on_romsRadioButton_clicked();
+	//void on_wrfRadioButton_clicked();
 
 private:
 	int nextId() const;

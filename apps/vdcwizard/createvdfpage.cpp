@@ -1,4 +1,4 @@
-//************************************************************************
+///************************************************************************
 //                                                                                                                                              *
 //                   Copyright (C)  2013                                 *
 //     University Corporation for Atmospheric Research                   *
@@ -55,6 +55,7 @@ CreateVdfPage::CreateVdfPage(DataHolder *DH, QWidget *parent) :
 	startTimeSpinner->hide();
 	numtsSpinner->hide();
 
+    processIndicator->setText("<font color='blue'> </font>");
     connect(vdfNewVar->buttonBox, SIGNAL(accepted()), this,
             SLOT(addVar()));
 }
@@ -99,6 +100,8 @@ void CreateVdfPage::on_clearAllButton_clicked() {
 // Call vdfcreate and exit without continuing to the populate data page
 void CreateVdfPage::saveAndExit() {
     populateCheckedVars();
+    processIndicator->setText("<font color='blue'>Creating VDF...</font>");
+    QApplication::processEvents();
     dataHolder->VDFCreate();
     exit(0);
 }
@@ -199,14 +202,17 @@ bool CreateVdfPage::validatePage() {
 	completeChanged();
 	wizard()->button(QWizard::BackButton)->setEnabled(false);
 	wizard()->button(QWizard::CustomButton1)->setEnabled(false);
-	QApplication::processEvents();
 	populateCheckedVars();
+    processIndicator->setText("<font color='blue'>Analyzing Files...</font>");
+    QApplication::processEvents();
 	if (dataHolder->VDFCreate()==0) {   
         Complete=1;
 		completeChanged();
         wizard()->button(QWizard::BackButton)->setEnabled(true);
    	    wizard()->button(QWizard::CustomButton1)->setEnabled(true);
 		dataHolder->vdfSettingsChanged=false;
+        processIndicator->setText("<font color='blue'> </font>");
+        QApplication::processEvents();
 		return true;
     }   
     else {
@@ -222,6 +228,7 @@ bool CreateVdfPage::validatePage() {
 		completeChanged();
         wizard()->button(QWizard::BackButton)->setEnabled(true);
         wizard()->button(QWizard::CustomButton1)->setEnabled(true);
+        processIndicator->setText("<font color='blue'> </font>");
 		QApplication::processEvents();
 		return false;
     }   
@@ -230,5 +237,4 @@ bool CreateVdfPage::validatePage() {
 bool CreateVdfPage::isComplete() const {
     if (Complete==0) return false;
     else return true;
-    //dataHolder->vdfSettingsChanged;
 }
