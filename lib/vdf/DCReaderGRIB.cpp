@@ -520,17 +520,52 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 		string name  = record["shortName"];
 		string file = record["file"];
 		int offset = atoi(record["offset"].c_str());
-		int year   = atoi(record["yearOfCentury"].c_str()) + 2000;
-		int month  = atoi(record["month"].c_str());
-		int day    = atoi(record["day"].c_str());
-		float hour   = atoi(record["hour"].c_str());
-		int minute = atoi(record["minute"].c_str());
-		int second = atoi(record["second"].c_str());
+		
+		int year,month,day,hour,minute,second;
+		if (1){
+			std::stringstream ss;
+			string date = record["dataDate"];
+			string time = record["dataTime"];
+			ss << date[0] << date[1] << date[2] << date[3];
+			year = atoi(ss.str().c_str());
+		
+			ss.str(std::string());	
+			ss.clear();
+			ss << date[4] << date[5];
+			month = atoi(ss.str().c_str());
+			
+			ss.str(std::string());
+			ss.clear();
+			ss << date[6] << date[7];
+			day = atoi(ss.str().c_str());
+			
+			ss.str(std::string());
+			ss.clear();
+			ss << time[0] << time[1];
+			hour = atoi(record["dataTime"].c_str())/100;//ss.str().c_str());
+			if (hour == 4)
+				cout << "!" << endl;
+			ss.str(std::string());
+			ss.clear();
+
+			minute = 0;
+			second = 0;
+		}
+		else {
+			year   = atoi(record["yearOfCentury"].c_str()) + 2000;
+			month  = atoi(record["month"].c_str());
+			day    = atoi(record["day"].c_str());
+			hour   = atoi(record["hour"].c_str());
+			minute = atoi(record["minute"].c_str());
+			second = atoi(record["second"].c_str());
+		}
+	
+	
 		float P2 = atof(record["P2"].c_str());
 		bool _iScanNeg = atoi(record["_iScanNegsNegatively"].c_str());
 		bool _jScan = atoi(record["_jScansPositively"].c_str());
 
-		if (P2 > 0.0) hour += P2;
+		//if (P2 > 0.0) hour += P2;
 		double time = _udunit->EncodeTime(year, month, day, hour, minute, second); 
 		if (std::find(_gribTimes.begin(), _gribTimes.end(), time) == _gribTimes.end())
 			_gribTimes.push_back(time);
@@ -814,6 +849,8 @@ DCReaderGRIB::GribParser::GribParser() {
 	_varyingKeys.push_back("P2");
 	_varyingKeys.push_back("typeOfLevel");
 	_varyingKeys.push_back("level");	
+	_varyingKeys.push_back("dataDate");
+	_varyingKeys.push_back("dataTime");
 
 	_values     = NULL;
 	_values_len = 0;	
@@ -879,12 +916,12 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
             std::string gribValue(_value);
 			for (size_t i=0;i<_varyingKeys.size();i++){
 				if(strcmp(_varyingKeys[i].c_str(),gribKey.c_str())==0){
-					 keyMap[gribKey] = gribValue;
+					keyMap[gribKey] = gribValue;
 				}
 			}
 			for (size_t i=0;i<_consistentKeys.size();i++){
 				if(strcmp(_consistentKeys[i].c_str(),gribKey.c_str())==0){
-                     keyMap[gribKey] = gribValue;
+					keyMap[gribKey] = gribValue;
                 }
 			}
 		}   
