@@ -199,7 +199,11 @@ vector <string> NetCDFCFCollection::GetDataVariableNames(
 		if (IsCoordVarCF(tmp[i]) || IsAuxCoordVarCF(tmp[i])) continue;
 
 		vector <string> cvars;
-		NetCDFCFCollection::GetVarCoordVarNames(tmp[i], cvars);
+		bool enable = EnableErrMsg(false);
+		int rc = NetCDFCFCollection::GetVarCoordVarNames(tmp[i], cvars);
+		EnableErrMsg(enable); SetErrCode(0);
+
+		if (rc<0) continue;	// Doesn't have coordinate variables
 
 		int myndim = cvars.size();
 		if (spatial && IsTimeVarying(tmp[i])) {
@@ -333,7 +337,11 @@ int NetCDFCFCollection::GetVarCoordVarNames(
 			}
 		}
 	}
-	assert(tmpcvars.size() <= dimnames.size());
+//	assert(tmpcvars.size() <= dimnames.size());
+	if (tmpcvars.size() != dimnames.size()) {
+		SetErrMsg("Non-conforming CF variable : %s", var.c_str());
+		return(-1);
+	}
 
 	//
 	// Finally, order the coordinate variables from slowest to fastest
@@ -498,11 +506,9 @@ int NetCDFCFCollection::InstallStandardVerticalConverter(
 
     string standard_name;
     varinfo.GetAtt("standard_name", standard_name);
-    if (standard_name.empty()) return(-1);
 
     string formula_terms;
     varinfo.GetAtt("formula_terms", formula_terms);
-    if (formula_terms.empty()) return(-1);
 
 	map <string, string> terms_map;
 	int rc = _parse_formula(formula_terms, terms_map);
@@ -524,6 +530,17 @@ int NetCDFCFCollection::InstallStandardVerticalConverter(
 		derived_var = new DerivedVar_AHSPC(
 			this, terms_map
 		);
+	}
+	else if (standard_name.compare("altitude") == 0) {	// noop
+
+		// The "altitude" representation is already in units of distance
+		// Setting up a bogus formula allows use to use the 
+		// DerivedVar_noop class and avoid special case handling
+		//
+		terms_map.clear();
+		terms_map["z"] = cvar;
+
+		derived_var = new DerivedVar_noop(this, terms_map);
 	}
 	else {
 		SetErrMsg("Standard formula \"%s\" not supported",standard_name.c_str());
@@ -551,6 +568,76 @@ void NetCDFCFCollection::UninstallStandardVerticalConverter(string cvar)  {
 	}
 
 	NetCDFCollection::RemoveDerivedVar(cvar);
+}
+
+bool NetCDFCFCollection::GetMapProjectionProj4(
+	string varname, string &proj4string
+) const {
+	proj4string.clear();
+
+	bool enable = EnableErrMsg(false);
+    NetCDFSimple::Variable varinfo;
+		int rc = NetCDFCollection::GetVariableInfo(varname, varinfo);
+	EnableErrMsg(enable); SetErrCode(0);
+	if (rc<0) return(false);
+
+	// If variable has a map projection  a NetCDF variable named
+	// after the projection will exist that contains map projection 
+	// parameter attributes
+	//
+	string projection;
+	varinfo.GetAtt("grid_mapping", projection);
+	if (projection.empty()) return(false);	// No map projection found
+
+	// Currently only support rotated_latitude_longitude
+	//
+	if (projection.compare("rotated_latitude_longitude") != 0) return(false);
+
+	enable = EnableErrMsg(false);
+		rc = NetCDFCollection::GetVariableInfo(projection, varinfo);
+	EnableErrMsg(enable); SetErrCode(0);
+	if (rc<0) return(false);
+
+	vector <double> lon0, pole_lat, pole_lon;
+	varinfo.GetAtt("longitude_of_prime_meridian", lon0);
+	varinfo.GetAtt("grid_north_pole_longitude", pole_lon);
+	varinfo.GetAtt("grid_north_pole_latitude", pole_lat);
+
+	if (lon0.size() != 1 || pole_lon.size() != 1 || pole_lat.size() != 1) {
+		return(false);	// Probably should return error
+	}
+
+	ostringstream oss;
+
+	proj4string = "+ellps=WGS84 ";
+
+	proj4string += "+proj=ob_tran";
+	proj4string += " +o_proj=eqc";
+	proj4string += " +to_meter=0.0174532925199";
+
+	proj4string += " +o_lat_p=";
+	oss.str("");
+	oss << (double) pole_lat[0];
+	proj4string += oss.str();
+	proj4string += "d"; //degrees, not radians
+
+	proj4string += " +o_lon_p=";
+	oss.str("");
+//	oss << (double)(180. + pole_lon[0]);
+	oss << (double)(-lon0[0]);
+	proj4string += oss.str();
+	proj4string += "d"; //degrees, not radians
+
+	proj4string += " +lon_0=";
+	oss.str("");
+//	oss << (double)(-lon0[0]);
+	oss << (double)(180. + pole_lon[0]);
+	proj4string += oss.str();
+	proj4string += "d"; //degrees, not radians
+
+	proj4string += " +no_defs"; 
+	
+	return(true);
 }
 
 
@@ -719,6 +806,9 @@ bool NetCDFCFCollection::_IsLatCoordVar(
 bool NetCDFCFCollection::_IsVertCoordVar(
 	const NetCDFSimple::Variable &varinfo
 ) const {
+
+	if (varinfo.GetDimNames().size() < 1) return(false);
+
 	string s;
 	varinfo.GetAtt("axis", s);
 	if (StrCmpNoCase(s, "Z") == 0) return(true);
@@ -737,6 +827,7 @@ bool NetCDFCFCollection::_IsVertCoordVar(
 	if (StrCmpNoCase(s,"ocean_double_sigma_coordinate")==0) return(true);
 	if (StrCmpNoCase(s,"ocean_s_coordinate_g1")==0) return(true);
 	if (StrCmpNoCase(s,"ocean_s_coordinate_g2")==0) return(true);
+	if (StrCmpNoCase(s,"altitude")==0) return(true);
 
 	string unit;
 	varinfo.GetAtt("units", unit);
@@ -1712,4 +1803,44 @@ int NetCDFCFCollection::DerivedVar_AHSPC::SeekSlice(
     _slice_num = slice;
 
     return(0);
+}
+
+NetCDFCFCollection::DerivedVar_noop::DerivedVar_noop(
+	NetCDFCFCollection *ncdfcf, 
+	const std::map <string, string> &formula_map
+) : DerivedVar(ncdfcf) {
+
+	_zvar.clear();
+
+    map <string, string>::const_iterator itr;
+    itr = formula_map.find("z");
+    if (itr != formula_map.end()) _zvar = itr->second;
+}
+
+
+int NetCDFCFCollection::DerivedVar_noop::Open(size_t ts) {
+
+	if (_zvar.empty()) return(-1);
+
+	int fd = _ncdfc->OpenRead(ts, _zvar); if (fd<0) return(-1);
+
+	return(fd);
+}
+
+int NetCDFCFCollection::DerivedVar_noop::Read(
+	float *buf, int fd
+) {
+	return(_ncdfc->Read(buf, fd));
+}
+
+int NetCDFCFCollection::DerivedVar_noop::ReadSlice(
+	float *slice, int fd
+) {
+	return(_ncdfc->ReadSlice(slice, fd));
+}
+
+int NetCDFCFCollection::DerivedVar_noop::SeekSlice(
+	int offset, int whence, int  fd
+) {
+	return(_ncdfc->SeekSlice(offset, whence, fd));
 }

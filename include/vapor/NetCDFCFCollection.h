@@ -352,6 +352,19 @@ public:
  //
  virtual void UninstallStandardVerticalConverter(string cvar) ;
 
+
+ //! Get a map projection as a proj4 string
+ //!
+ //! If a variable has a map projection generate a proj4
+ //! transformation string for converting from geographic to
+ //! Cartographic coordinates. Returns false if no proj4 string
+ //! could be generated: either no map projection exists, or one
+ //! exists but is not supported.
+ // 
+ bool GetMapProjectionProj4(
+    string varname, string &proj4string
+ ) const ;
+
  void FormatTimeStr(double time, string &str) const;
 
  friend std::ostream &operator<<(
@@ -491,6 +504,43 @@ public:
   int KMAX;
   int IDIM;
   int IMAX;
+ };
+
+ class DerivedVar_noop : public NetCDFCollection::DerivedVar {
+
+ public:
+  DerivedVar_noop(
+	NetCDFCFCollection *ncdfcf, 
+	const std::map <string, string> &formula_map
+  );
+  virtual ~DerivedVar_noop() {}
+
+  virtual int Open(size_t ts);
+  virtual int ReadSlice(float *slice, int fd);
+  virtual int Read(float *buf, int fd);
+  virtual int SeekSlice(int offset, int whence, int fd);
+  virtual int Close(int fd) {return(_ncdfc->Close(fd)); };
+  virtual bool TimeVarying() const {return(_ncdfc->IsTimeVarying(_zvar)); };
+  virtual std::vector <size_t>  GetSpatialDims() const {
+	return(_ncdfc->GetSpatialDims(_zvar));
+  };
+  virtual std::vector <string>  GetSpatialDimNames() const { 
+	return(_ncdfc->GetSpatialDimNames(_zvar));
+  };
+  virtual size_t  GetTimeDim() const { 
+	return(_ncdfc->GetTimeDim(_zvar));
+  };
+  virtual string  GetTimeDimName() const {
+	return(_ncdfc->GetTimeDimName(_zvar));
+  };
+	
+  virtual bool GetMissingValue(double &mv) const {
+	return(_ncdfc->GetMissingValue(_zvar, mv));
+  };
+	
+
+ private:
+  string _zvar;
  };
 
  std::map <string, DerivedVar *> _derivedVarsMap;

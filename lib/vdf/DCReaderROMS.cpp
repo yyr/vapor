@@ -109,6 +109,7 @@ DCReaderROMS::DCReaderROMS(const vector <string> &files) {
 	if (llb._latbuf) delete [] llb._latbuf;
 	if (llb._lonbuf) delete [] llb._lonbuf;
 
+	_ncdfc = ncdfc;
 	rc = _InitCartographicExtents(
 		GetMapProjection(), _lonExts, _latExts, _vertCoordinates, 
 		_cartesianExtents
@@ -127,7 +128,6 @@ DCReaderROMS::DCReaderROMS(const vector <string> &files) {
 	_latDEGBuf = new float[_dims[0]*_dims[1]];
 	_getRotationVariables(_weightTable, _angleRADBuf, _latDEGBuf);
 
-	_ncdfc = ncdfc;
 
 	sort(_vars3d.begin(), _vars3d.end());
 	sort(_vars2dXY.begin(), _vars2dXY.end());
@@ -137,13 +137,33 @@ DCReaderROMS::DCReaderROMS(const vector <string> &files) {
 
 string DCReaderROMS::GetMapProjection() const {
 
+	// Get Map projection if it exists. Assume all variables use same
+	// projection
+	//
+	vector <string> allvars = _vars3d;
+	allvars.insert(allvars.end(), _vars2dXY.begin(), _vars2dXY.end());
+
+
+	// Get Map projection from data if one exists
+	//
+	string proj4string;
+	for (int i=0; i<allvars.size(); i++) {
+
+		bool status = _ncdfc->GetMapProjectionProj4(allvars[i], proj4string);	
+		if (status) break;
+	}
+
+	if (! proj4string.empty()) return(proj4string); 
+
+	// No map projection defined so use cylindrical equidistant
+	//
 	double lon_0 = (_lonExts[0] + _lonExts[1]) / 2.0;
 	double lat_0 = (_latExts[0] + _latExts[1]) / 2.0;
 	ostringstream oss;
 	oss << " +lon_0=" << lon_0 << " +lat_0=" << lat_0;
-	string projstring = "+proj=eqc +ellps=WGS84" + oss.str();
+	proj4string = "+proj=eqc +ellps=WGS84" + oss.str();
 
-	return(projstring);
+	return(proj4string);
 }
 
 vector <size_t> DCReaderROMS::_GetSpatialDims(
@@ -713,7 +733,7 @@ int DCReaderROMS::_InitCoordVars(NetCDFCFCollection *ncdfc)
 		//
 		if (_timeCV.empty() && !timecv.empty()) _timeCV = timecv;
 		if (! _timeCV.empty() && ! timecv.empty() && _timeCV.compare(timecv) != 0) excluded = true;
-		if (! excluded && _GetSpatialDims(ncdfc, vertcv).size() > 1) excluded = true;
+		//if (! excluded && _GetSpatialDims(ncdfc, vertcv).size() > 1) excluded = true;
 
 		//
 		// Lat and lon coordinate variables must be 1D or 2D and
