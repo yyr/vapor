@@ -124,11 +124,13 @@ int DCReaderGRIB::OpenVariableRead(size_t timestep, string varname,
 		targetVar = _vars3d[_openVar];
 		level = targetVar->GetLevel(_sliceNum);
 		filename = targetVar->GetFileName(usertime,level);
+		_sliceNum = _pressureLevels.size()-1;
 	}
     else if (_vars2d.find(varname) != _vars2d.end()) {  // we have a 2d var
 		targetVar = _vars2d[_openVar];
 		level = targetVar->GetLevel(0);
 		filename = targetVar->GetFileName(usertime,level);
+		_sliceNum = 0;
 	}
 	else return -1; 		// variable does not exist
     
@@ -241,17 +243,19 @@ int DCReaderGRIB::ReadSlice(float *values){
 	// Apply linear interpolation on _values if we are on a gaussian grid
 	//if(!strcmp(_gridType.c_str(),"regular_gg")) _LinearInterpolation(values);
 
-	//cout << _openVar << " " << usertime << " " << level << " " << _sliceNum << " " << offset << " " << filename << " " << min << " " << max << endl;
-	//cout << _openVar << " " << min << " " << max << endl;
-    delete [] _dvalues;
+	cout << _openVar << " " << _openTS << " " <<  usertime << " " << level << " " << _sliceNum << " " << offset << " " << filename << " " << min << " " << max << endl;
+	delete [] _dvalues;
 
 
-    if (_vars3d.find(_openVar) != _vars3d.end()) {       // we have a 3d var, adjust the slice number
+	if (_vars3d.find(_openVar) != _vars3d.end()) {       // we have a 3d var, adjust the slice number
 		if (_sliceNum == 0) _sliceNum = _pressureLevels.size()-1;
 		else _sliceNum--;
 	}
-	else _sliceNum = savedSliceNum;						// we had a 2d var, so we revert to the saved slice number
-   
+	else {
+		_sliceNum = savedSliceNum;						// we had a 2d var, so we revert to the saved slice number
+		_sliceNum = _pressureLevels.size()-1;
+	}
+	
 	grib_handle_delete(h);
 	return 1;
 }
@@ -399,26 +403,26 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
 		float *values = new float[_Ni*_Nj];
 		ReadSlice(values);
 
-		max = values[0];
-		for (int i=0; i<_Ni; i++){
-			for (int j=0; j<_Nj; j++) {
-				float value = values[j*_Ni+i];
-				if (value > max) max = value;
-			}
-		}
+        min = values[0];
+        for (int i=0; i<_Ni; i++){
+            for (int j=0; j<_Nj; j++) {
+                float value = values[j*_Ni+i];
+                if (value < min) min = value;
+            }   
+        } 
 
-		_sliceNum = _pressureLevels.size()-1;
+		_sliceNum = 0;//_pressureLevels.size()-1;
 	    ReadSlice(values);
 
-	    min = values[0];
-	    for (int i=0; i<_Ni; i++){
-	        for (int j=0; j<_Nj; j++) {
-	            float value = values[j*_Ni+i];
-	            if (value < min) min = value;
-	        }   
-	    }
+        max = values[0];
+        for (int i=0; i<_Ni; i++){
+            for (int j=0; j<_Nj; j++) {
+                float value = values[j*_Ni+i];
+                if (value > max) max = value;
+            }   
+        }
 	
-		_sliceNum += 1;
+		//_sliceNum += 1;
 		if (values) delete [] values;
 	}
 	/*
@@ -565,10 +569,10 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 		bool _iScanNeg = atoi(record["_iScanNegsNegatively"].c_str());
 		bool _jScan = atoi(record["_jScansPositively"].c_str());
 
-		//if (P2 > 0.0) hour += P2;
+		if (P2 > 0.0) hour += P2;
 		double time = _udunit->EncodeTime(year, month, day, hour, minute, second); 
-		if (std::find(_gribTimes.begin(), _gribTimes.end(), time) == _gribTimes.end())
-			_gribTimes.push_back(time);
+//		if (std::find(_gribTimes.begin(), _gribTimes.end(), time) == _gribTimes.end())
+//			_gribTimes.push_back(time);
 
 		if (std::find(_pressureLevels.begin(), _pressureLevels.end(), level) == _pressureLevels.end()) {
 			if (!strcmp(name.c_str(),"gh")) _pressureLevels.push_back(level);
@@ -576,6 +580,9 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 
 		int isobaric = strcmp(levelType.c_str(),"isobaricInhPa");
 		if (isobaric == 0) {								    // if we have a 3d var...
+                	if (std::find(_gribTimes.begin(), _gribTimes.end(), time) == _gribTimes.end())
+                        	_gribTimes.push_back(time);
+
 			if (_vars3d.find(name) == _vars3d.end()) {			// if we have a new 3d var...
 				_vars3d[name] = new Variable();
 				_vars3d[name]->setScanDirection(_iScanNeg,_jScan);
