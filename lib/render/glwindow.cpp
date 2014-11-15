@@ -1428,10 +1428,14 @@ void GLWindow::initializeGL()
 	glEnable(GL_MULTISAMPLE);
 	if (printOpenGLError()) return;
 	//Check to see if we are using MESA:
+
+#ifdef	DEAD
 	if (GetVendor() == MESA){
 		SetErrMsg(VAPOR_ERROR_GL_VENDOR,"GL Vendor String is MESA.\nGraphics drivers may need to be reinstalled");
 		
 	}
+#endif
+
 
 	SetDiagMsg(
 		"OpenGL Capabilities : GLEW_VERSION_2_0 %s",
