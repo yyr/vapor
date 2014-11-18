@@ -508,7 +508,7 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 			}
 			if (! DCData->VariableExists(itr->second, variables[v])) {
 				SetErrMsg(
-					"Variable \"%s\"does not exist!", variables[v].c_str()
+					"Variable \"%s\"does not exist at timestep %i", variables[v].c_str(), itr->first
 				); 
 				MyBase::SetErrCode(0); 	// must clear error code
 				continue;
