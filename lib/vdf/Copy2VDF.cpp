@@ -529,8 +529,6 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 				continue;
 			}
 
-			cout << itr->first << " " << itr->second << endl;	
-
 			int rc = CopyVar(
 				vdfio, DCData, itr->first, itr->second, 
 				variables[v], variables[v],
