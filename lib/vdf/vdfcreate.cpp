@@ -141,14 +141,34 @@ MetadataVDC *vdfcreate::CreateMetadataVDC(
 		return (NULL);
 	}
 
-	// Copy values over from DCReaderMOM to MetadataVDC.
+	// Copy values over from DCReader to MetadataVDC.
 	// Add checking of return values and error messsages.
 	//
-    if(file->SetNumTimeSteps(DCdata->GetNumTimeSteps())) {
+	int numTimeSteps;
+    if (_numTS == -1) numTimeSteps = DCdata->GetNumTimeSteps();
+	else numTimeSteps = _numTS;
+	if(file->SetNumTimeSteps(numTimeSteps)) {
 		file->SetErrMsg(2,"Error populating NumTimeSteps.");
 		return (NULL);
 		//exit(1);
 	}
+
+    vector <double> usertime;
+	double delta = DCdata->GetTSUserTime(1) - DCdata->GetTSUserTime(0);
+    for(int t = 0; t < numTimeSteps; t++) {
+
+        usertime.clear();
+        //usertime.push_back(DCdata->GetTSUserTime(t));
+        usertime.push_back(DCdata->GetTSUserTime(0) + delta*t);
+		if(file->SetTSUserTime(t, usertime)) {
+            file->SetErrMsg(1,"Error populating TSUserTime.");
+            return (NULL);
+        }   
+		cout << DCdata->GetTSUserTime(0) << " " << delta << " " << usertime[0] << endl;
+        string timestamp;
+        DCdata->GetTSUserTimeStamp(t, timestamp);
+        file->SetTSUserTimeStamp(t, timestamp);
+    } 
 
     file->SetExtents(DCdata->GetExtents());
 
@@ -178,22 +198,6 @@ MetadataVDC *vdfcreate::CreateMetadataVDC(
 		}
 	}
 
-
-	vector <double> usertime;
-    for(int t = 0; t < DCdata->GetNumTimeSteps(); t++) {
-
-		usertime.clear();
-        usertime.push_back(DCdata->GetTSUserTime(t));
-		if(file->SetTSUserTime(t, usertime)) {
-			file->SetErrMsg(1,"Error populating TSUserTime.");
-			return (NULL);
-		}
-
-		string timestamp;
-        DCdata->GetTSUserTimeStamp(t, timestamp);
-		file->SetTSUserTimeStamp(t, timestamp);
-	}
-
     string gridtype = DCdata->GetGridType();
 	file->SetGridType(gridtype);
 	if (gridtype.compare("stretched") == 0) {
@@ -219,6 +223,7 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 		{"help",	0,	"",	"Print this message and exit"},
 		{"quiet",	0,	"",	"Operate quietly"},
 		{"debug",   0,  "", "Turn on debugging"},
+		{"fastMode",1,  "-1", "Enable fast mode"},
 		{NULL}
 	};
 
@@ -227,10 +232,9 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 		{"help", VetsUtil::CvtToBoolean, &_help, sizeof(_help)},
 		{"quiet", VetsUtil::CvtToBoolean, &_quiet, sizeof(_quiet)},
 		{"debug", VetsUtil::CvtToBoolean, &_debug, sizeof(_debug)},
+		{"fastMode", VetsUtil::CvtToInt, &_numTS, sizeof(_numTS)},
 		{NULL}
 	};
-
-    //for(int i=0;i<argc;i++) cout << argv[i] << " ";
 
     //not for production - ok for command line
     //MyBase::SetErrMsgFilePtr(stderr);
@@ -289,6 +293,7 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 		return 0;//exit(0);
 	}
 
+	cout << _numTS << endl;
 
 	argv++;
 	argc--;
@@ -307,7 +312,15 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 	
     if (NetCDFtype == "ROMS") DCdata = new DCReaderROMS(ncdffiles);
     else if (NetCDFtype == "GRIMs") {
-		DCdata = new DCReaderGRIB(ncdffiles);
+		if (_numTS != -1){
+			vector<string> twoFiles;
+			twoFiles.push_back(ncdffiles[0]);
+			twoFiles.push_back(ncdffiles[1]);
+			DCdata = new DCReaderGRIB(twoFiles);
+		}
+		else {
+			DCdata = new DCReaderGRIB(ncdffiles);
+		}
 	}
 	else if (NetCDFtype == "WRF") {
 		DCdata = new DCReaderWRF(ncdffiles);

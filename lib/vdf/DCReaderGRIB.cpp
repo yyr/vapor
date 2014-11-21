@@ -153,7 +153,6 @@ int DCReaderGRIB::OpenVariableRead(size_t timestep, string varname,
 
 int DCReaderGRIB::Read(float *_values) {
 	float *ptr = _values;
-	
 	int rc;
 	while ((rc = DCReaderGRIB::ReadSlice(ptr)) > 0) {
 		ptr += _Ni * _Nj;
@@ -162,7 +161,8 @@ int DCReaderGRIB::Read(float *_values) {
 }
 
 int DCReaderGRIB::ReadSlice(float *values){
-
+	
+	if (_sliceNum < 0) return 0;
 	int savedSliceNum;
 	Variable *targetVar;
 	if (_vars3d.find(_openVar) != _vars3d.end()) {       // we have a 3d var
@@ -182,7 +182,7 @@ int DCReaderGRIB::ReadSlice(float *values){
 	int offset = targetVar->GetOffset(usertime,level);
 	string filename = targetVar->GetFileName(usertime,level);	
 
-    int rc = fseek(_inFile,offset,SEEK_SET);
+	int rc = fseek(_inFile,offset,SEEK_SET);
 	if (rc != 0) {
 		MyBase::SetErrMsg("fseek error during GRIB ReadSlice");  
 		return -1;
@@ -190,28 +190,28 @@ int DCReaderGRIB::ReadSlice(float *values){
 
 	/* create new handle from a message in a file*/
 	int err;
-    grib_handle* h = grib_handle_new_from_file(0,_inFile,&err);
-    if (h == NULL) {
+	grib_handle* h = grib_handle_new_from_file(0,_inFile,&err);
+	if (h == NULL) {
 		char erro[50];
         sprintf(erro,"Error: unable to create handle from file %s\n",filename.c_str());
         MyBase::SetErrMsg(erro);
 		return -1;
-    }   
+	}   
 
-    /* get the size of the _values array*/
+	/* get the size of the _values array*/
 	size_t values_len;
-    GRIB_CHECK(grib_get_size(h,"values",&values_len),0);
-    double* _dvalues = new double[values_len];
+	GRIB_CHECK(grib_get_size(h,"values",&values_len),0);
+	double* _dvalues = new double[values_len];
  
-    /* get data _values*/
-    GRIB_CHECK(grib_get_double_array(h,"values",_dvalues,&values_len),0);
+	/* get data _values*/
+	GRIB_CHECK(grib_get_double_array(h,"values",_dvalues,&values_len),0);
 
 	// re-order values according to scan direciton and convert doubles to floats
 	float min,max;
 	min = (float) _dvalues[0];
 	max = (float) _dvalues[0];
 	int vaporIndex, i, j;
-    for(size_t gribIndex = 0; gribIndex < values_len; gribIndex++) {
+	for(size_t gribIndex = 0; gribIndex < values_len; gribIndex++) {
 		if (_iScanNeg == 1) {
 			if (_jScanPos == 1) {   // 1 1
 				i = _Ni - gribIndex%_Ni;
@@ -247,16 +247,18 @@ int DCReaderGRIB::ReadSlice(float *values){
 	delete [] _dvalues;
 
 
-	if (_vars3d.find(_openVar) != _vars3d.end()) {       // we have a 3d var, adjust the slice number
+	/*if (_vars3d.find(_openVar) != _vars3d.end()) {       // we have a 3d var, adjust the slice number
 		if (_sliceNum == 0) _sliceNum = _pressureLevels.size()-1;
 		else _sliceNum--;
 	}
 	else {
 		_sliceNum = savedSliceNum;						// we had a 2d var, so we revert to the saved slice number
 		_sliceNum = _pressureLevels.size()-1;
-	}
+	}*/
 	
 	grib_handle_delete(h);
+
+	_sliceNum--;	
 	return 1;
 }
 
@@ -571,8 +573,6 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 
 		if (P2 > 0.0) hour += P2;
 		double time = _udunit->EncodeTime(year, month, day, hour, minute, second); 
-//		if (std::find(_gribTimes.begin(), _gribTimes.end(), time) == _gribTimes.end())
-//			_gribTimes.push_back(time);
 
 		if (std::find(_pressureLevels.begin(), _pressureLevels.end(), level) == _pressureLevels.end()) {
 			if (!strcmp(name.c_str(),"gh")) _pressureLevels.push_back(level);
@@ -642,7 +642,7 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 		_vars2d[iterator->first]->_SortTimes();             // Sort udunit times that apply to each individual variable
     }
 
-	sort(_pressureLevels.begin(), _pressureLevels.end());	// Sort the levels that apply to the entire dataset
+	sort(_pressureLevels.begin(), _pressureLevels.end());	// Sort the level that apply to the entire dataset
 	reverse(_pressureLevels.begin(), _pressureLevels.end());
 
 	sort(_gribTimes.begin(), _gribTimes.end());
