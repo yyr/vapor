@@ -2,7 +2,7 @@ TOP = .
 
 include $(TOP)/make/config/prebase.mk
 
-SUBDIRS = lib apps scripts share 
+SUBDIRS = lib apps scripts share  buildutils
 
 ifeq ($(BUILD_TESTAPPS), 1)
 SUBDIRS += test_apps
@@ -47,12 +47,12 @@ install-dep::
 endif
 
 
-ifeq ($(ARCH), Linux)
-shlibs = $(wildcard $(INSTALL_LIBDIR)/lib*.so.*  $(INSTALL_PLUGINSDIR)/lib*.so)
-install-dep:: 
-	@$(ECHO) "Removing rpaths from shared libraries..."
-	@for i in $(shlibs); do echo "	$$i"; /usr/bin/patchelf --set-rpath "" $$i; done
-endif
+#ifeq ($(ARCH), Linux)
+#shlibs = $(wildcard $(INSTALL_LIBDIR)/lib*.so.*  $(INSTALL_PLUGINSDIR)/lib*.so)
+#install-dep:: 
+#	@$(ECHO) "Removing rpaths from shared libraries..."
+#	@for i in $(shlibs); do echo "	$$i"; /usr/bin/patchelf --set-rpath "" $$i; done
+#endif
 
 ifeq ($(ARCH), Darwin)
 CLD_INCLUDE_FLAGS = $(addprefix -include  ^, $(INSTALL_LIBDIR))
