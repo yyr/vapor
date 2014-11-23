@@ -43,6 +43,9 @@ install-dep::
 	$(CP) -R $(PYTHONDIR)/include/python$(PYTHONVERSION) $(INSTALL_PREFIX_DIR)/include
 	@$(ECHO) "Copying Python plugin library dependencies to $(INSTALL_LIBDIR)"
 	$(PERL) $(TOP)/buildutils/copylibdeps.pl -arch $(ARCH) $(LDLIBPATHS) $(CLD_EXCLUDE_FLAGS) $(CLD_INCLUDE_FLAGS) $(INSTALL_LIBDIR)/python$(PYTHONVERSION)/site-packages/numpy/linalg/*.so $(INSTALL_LIBDIR)
+	@$(ECHO) "Copying GRIB_API share files to  $(INSTALL_SHAREDIR)"
+	@$(MAKE_INSTALL_SHAREDIR)
+	$(CP) -R $(GRIB_API_DIR)/share/grib_api $(INSTALL_SHAREDIR)
 
 endif
 
