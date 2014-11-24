@@ -8,7 +8,7 @@ using namespace VetsUtil;
 int main(int argc, char **argv) {
 	MyBase::SetErrMsgFilePtr(stderr);
 	vdfcreate vdfc;
-	string command = "mom";
+	string command = "MOM";
 	int rc = vdfc.launchVdfCreate(argc, argv, command);
 
     if (rc == 0) return(0);

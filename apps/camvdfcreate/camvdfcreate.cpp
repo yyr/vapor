@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
 	
 	MyBase::SetErrMsgFilePtr(stderr);
 	vdfcreate vdfc;
-	std::string command = "roms";
+	std::string command = "ROMS";
 	int rc = vdfc.launchVdfCreate(argc, argv, command);
 
 	if (rc == 0) return(0);

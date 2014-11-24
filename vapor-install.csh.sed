@@ -138,6 +138,23 @@ set new3 = "mandir=$mandir"
 $sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#$new3#" < $dir/vapor-setup.sh >! $dir/vapor-setup.tmp
 /bin/mv $dir/vapor-setup.tmp $dir/vapor-setup.sh
 
+#
+# Set DT_RUNPATH for all binary executables and shared libs on Linux
+# platforms
+#
+# N.B. patchelf program seems to break stripped libraries. So we skip
+# them. Fortunately, only need to set RUNPATH for libs that depend
+# on other libs, and none of the stripped libs have recursive
+# dependencies
+#
+if ("$arch" == "Linux") then
+    foreach f ($directory/bin/* $directory/lib/*)
+        file $f | grep ELF | grep -q "not stripped"
+        if ( $status == 0 && ! -l $f && $f != $directory/bin/patchelf) then
+            $directory/bin/patchelf --set-rpath $directory/lib $f
+        endif
+    end
+endif
 
 
 exit 0

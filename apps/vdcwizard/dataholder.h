@@ -52,6 +52,7 @@ public:
     int createReader();
 
     // File selection set functions
+	void deleteReader();
     void setOperation(string op) { operation = op; }
     void setFileType(string type) { fileType = type; }
     void setFiles(vector<string> files) { dataFiles = files; }

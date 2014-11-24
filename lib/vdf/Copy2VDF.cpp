@@ -392,6 +392,20 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 		{NULL}
 	};
 
+
+	OptionParser::OptDescRec_T	grib_opts[] = {
+		{"vars",1,    "",	"Colon delimited list of variables to be copied "
+			"from ncdf data. The default is to copy all 2D and 3D variables"},
+		{"level",   1,  "-1","Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
+		{"lod", 1,  "-1",   "Compression levels saved. 0 => coarsest, 1 => "
+			"next refinement, etc. -1 => all levels defined by the .vdf file"},
+		{"nthreads",1,  "0",    "Number of execution threads (0 => # processors)"},
+		{"help",	0,	"",	"Print this message and exit"},
+		{"quiet",	0,	"",	"Operate quietly"},
+		{"debug",	0,	"",	"Turn on debugging"},
+		{NULL}
+	};
+
 	OptionParser::Option_T	get_options[] = {
 		{"vars", VetsUtil::CvtToStrVec, &_vars, sizeof(_vars)},
 		{"numts", VetsUtil::CvtToInt, &_numts, sizeof(_numts)},
@@ -405,26 +419,31 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 		{NULL}
 	};
 
+
     MyBase::SetErrMsgFilePtr(stderr);
 
     _progname = Basename(argv[0]);
-	//DCReader *DCData;
 
 	OptionParser op;
-    if (op.AppendOptions(set_opts) < 0) {
-		//exit(1);
-		return(-1);
+	if (!strcmp(dataType.c_str(),"GRIMs")){
+		if (op.AppendOptions(grib_opts) < 0) {
+			return(-1);
+		}
 	}
+	else {
+		if (op.AppendOptions(set_opts) < 0) {
+			return(-1);
+		}
+	}
+	
 
     if (op.ParseOptions(&argc, argv, get_options) < 0) {
-		//exit(1);
 		return(-1);
 	}
     if (_debug) MyBase::SetDiagMsgFilePtr(stderr);
 
     if (_help) {
         Usage(op, NULL);
-		//exit(0);
 		return(0);
 	}
 
@@ -433,7 +452,6 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 
 	if (argc < 2) {
         Usage(op, "No files to process");
-		//exit(1);
 		return(-1);
 	}
 
@@ -447,21 +465,19 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 	string metafile = argv[argc-1];
 	
 	if (DCData==NULL){
-		if (dataType == "roms") DCData = new DCReaderROMS(ncdffiles); 
-		else if (dataType == "grib") DCData = new DCReaderGRIB(ncdffiles);
+		if (dataType == "ROMS") DCData = new DCReaderROMS(ncdffiles); 
+		else if (dataType == "GRIMs") DCData = new DCReaderGRIB(ncdffiles);
 		else DCData = new DCReaderMOM(ncdffiles);
 	}
 
 	if (MyBase::GetErrCode() != 0) return(-1);
 
 	WaveletBlockIOBase	*wbwriter3D = NULL;	// VDC type 1 writer
-	//WaveCodecIO	*wcwriter = NULL;	// VDC type 2 writer
 	VDFIOBase *vdfio = NULL;
 
 	MetadataVDC metadata (metafile);
 	if (MetadataVDC::GetErrCode() != 0) {
 		MyBase::SetErrMsg("Error processing metafile \"%s\"", metafile.c_str());
-		//exit(1);
 		return(-1);
 	}
 	
@@ -477,7 +493,6 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 		vdfio = wcwriter;
 	}
 	if (vdfio->GetErrCode() != 0) {
-		//exit(1);
 		return(-1);
 	}
 
@@ -508,13 +523,11 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 			}
 			if (! DCData->VariableExists(itr->second, variables[v])) {
 				SetErrMsg(
-					"Variable \"%s\"does not exist!", variables[v].c_str()
+					"Variable \"%s\"does not exist at timestep %i", variables[v].c_str(), itr->first
 				); 
 				MyBase::SetErrCode(0); 	// must clear error code
 				continue;
 			}
-
-			cout << itr->first << " " << itr->second << endl;	
 
 			int rc = CopyVar(
 				vdfio, DCData, itr->first, itr->second, 
@@ -538,8 +551,5 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 		SetErrMsg("Failed to copy %d variables", fails);
 		estatus = 1;
 	}
-	//delete wcwriter;
-	//delete DCData;
-	//DCData=NULL;
 	return estatus;
 }

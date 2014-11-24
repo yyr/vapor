@@ -61,7 +61,7 @@ public:
 
  //! Return the sub minor version number
  //
- static string GetRC() { return(""); }
+ static string GetRC() { return("RC0"); }
 
  //! Return the canonical version number as a formatted string
  //!
@@ -78,7 +78,7 @@ public:
  //! advanced.
  //
  static const string &GetDateString() {
-	_dateString.assign("Fri Mar  7 17:11:30 MST 2014"); return(_dateString);
+	_dateString.assign("Mon Nov 24 12:29:57 MST 2014"); return(_dateString);
  }
 
  //! Parse a version string into it's component major, minor,
@@ -93,8 +93,8 @@ public:
 
 private:
  static const int _majorVersion = 2;
- static const int _minorVersion = 3;
- static const int _minorMinorVersion = 1;
+ static const int _minorVersion = 4;
+ static const int _minorMinorVersion = 0;
  static string _formatString;
  static string _dateString;
 

@@ -2,7 +2,7 @@ TOP = .
 
 include $(TOP)/make/config/prebase.mk
 
-SUBDIRS = lib apps scripts share 
+SUBDIRS = lib apps scripts share  buildutils
 
 ifeq ($(BUILD_TESTAPPS), 1)
 SUBDIRS += test_apps
@@ -43,16 +43,19 @@ install-dep::
 	$(CP) -R $(PYTHONDIR)/include/python$(PYTHONVERSION) $(INSTALL_PREFIX_DIR)/include
 	@$(ECHO) "Copying Python plugin library dependencies to $(INSTALL_LIBDIR)"
 	$(PERL) $(TOP)/buildutils/copylibdeps.pl -arch $(ARCH) $(LDLIBPATHS) $(CLD_EXCLUDE_FLAGS) $(CLD_INCLUDE_FLAGS) $(INSTALL_LIBDIR)/python$(PYTHONVERSION)/site-packages/numpy/linalg/*.so $(INSTALL_LIBDIR)
+	@$(ECHO) "Copying GRIB_API share files to  $(INSTALL_SHAREDIR)"
+	@$(MAKE_INSTALL_SHAREDIR)
+	$(CP) -R $(GRIB_API_DIR)/share/grib_api $(INSTALL_SHAREDIR)
 
 endif
 
 
-ifeq ($(ARCH), Linux)
-shlibs = $(wildcard $(INSTALL_LIBDIR)/lib*.so.*  $(INSTALL_PLUGINSDIR)/lib*.so)
-install-dep:: 
-	@$(ECHO) "Removing rpaths from shared libraries..."
-	@for i in $(shlibs); do echo "	$$i"; /usr/bin/patchelf --set-rpath "" $$i; done
-endif
+#ifeq ($(ARCH), Linux)
+#shlibs = $(wildcard $(INSTALL_LIBDIR)/lib*.so.*  $(INSTALL_PLUGINSDIR)/lib*.so)
+#install-dep:: 
+#	@$(ECHO) "Removing rpaths from shared libraries..."
+#	@for i in $(shlibs); do echo "	$$i"; /usr/bin/patchelf --set-rpath "" $$i; done
+#endif
 
 ifeq ($(ARCH), Darwin)
 CLD_INCLUDE_FLAGS = $(addprefix -include  ^, $(INSTALL_LIBDIR))

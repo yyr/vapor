@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
 
 	MyBase::SetErrMsgFilePtr(stderr);
 	Copy2VDF c2vdf;
-	string command = "mom";
+	string command = "MOM";
 	int rc = c2vdf.launch2vdf(argc, argv, command);
 
 	if (rc == 0) exit(0);

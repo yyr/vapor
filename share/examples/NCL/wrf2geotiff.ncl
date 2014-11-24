@@ -4,11 +4,11 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/contributed.ncl"
 _wrf2geotiff_DEBUG = False
 
 ; Some symbolic constants (hopefully these don't collide with anything else!)
+_wrf2geotiff_GROWSIZE = 10
 _wrf2geotiff_LANDSCAPE = 6
 _wrf2geotiff_PSMINXY = 0
 _wrf2geotiff_PSMAXX = 612   ; 8.5"
 _wrf2geotiff_PSMAXY = 792   ; 11"
-_wrf2geotiff_GROWSIZE = 10
 
 ; ------------------------------------------------------------------------------------
 ; 
@@ -54,6 +54,14 @@ begin
         if (str_get_cols(filename, -3, -1).ne.".ps") then
             filename = filename + ".ps"
         end if
+
+        ; The cairo postscript driver inserts a %%BoundingBox directive that has dimensions slightly 
+        ; smaller than the actual page dimensions: 766 in the Y versus 792 for the actual papersize. 
+        ; This messes up the calculation for cropping the plots.
+        ; At the time this script was originally written, the original NCAR-developed postscript drivers 
+        ; were the default, so we didn't see this behavior.
+        ; Adjust here if we are using the cairo driver.  -- RLB, 11/18/2014
+        _wrf2geotiff_PSMAXY = _wrf2geotiff_PSMAXY + 28   ; empirically determined,  why not 26 = 792-766?
     else
         getvalues wks
             "wkPSFileName":  filename

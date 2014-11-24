@@ -8,31 +8,13 @@ set mandir = INSTALL_MANDIR
 set lib_search_dirs = LIB_SEARCH_DIRS
 
 setenv VAPOR_HOME $root
+setenv GRIB_DEFINITION_PATH $root/share/grib_api/definitions
+
 
 if !($?PATH) then
     setenv PATH "$bindir"
 else
     setenv PATH "${bindir}:$PATH"
-endif
-
-if ( "$arch" == "Darwin" ) then
-	if !($?DYLD_FALLBACK_LIBRARY_PATH) then
-	    setenv DYLD_FALLBACK_LIBRARY_PATH "$lib_search_dirs"
-	else
-	    setenv DYLD_FALLBACK_LIBRARY_PATH "${lib_search_dirs}:$DYLD_FALLBACK_LIBRARY_PATH"
-	endif
-else if ( "$arch" == "AIX" ) then
-	if !($?LIBPATH) then
-	    setenv LIBPATH "$lib_search_dirs"
-	else
-	    setenv LIBPATH "${lib_search_dirs}:$LIBPATH"
-	endif
-else
-	if !($?LD_LIBRARY_PATH) then
-	    setenv LD_LIBRARY_PATH "$lib_search_dirs"
-	else
-	    setenv LD_LIBRARY_PATH "${lib_search_dirs}:$LD_LIBRARY_PATH"
-	endif
 endif
 
 if !($?MANPATH) then
