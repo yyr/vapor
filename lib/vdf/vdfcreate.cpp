@@ -164,7 +164,6 @@ MetadataVDC *vdfcreate::CreateMetadataVDC(
             file->SetErrMsg(1,"Error populating TSUserTime.");
             return (NULL);
         }   
-		cout << DCdata->GetTSUserTime(0) << " " << delta << " " << usertime[0] << endl;
         string timestamp;
         DCdata->GetTSUserTimeStamp(t, timestamp);
         file->SetTSUserTimeStamp(t, timestamp);

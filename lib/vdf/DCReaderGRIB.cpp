@@ -241,7 +241,7 @@ int DCReaderGRIB::ReadSlice(float *values){
 	// Apply linear interpolation on _values if we are on a gaussian grid
 	//if(!strcmp(_gridType.c_str(),"regular_gg")) _LinearInterpolation(values);
 
-	cout << _openVar << " " << _openTS << " " <<  usertime << " " << level << " " << _sliceNum << " " << offset << " " << filename << " " << min << " " << max << endl;
+	//cout << _openVar << " " << _openTS << " " <<  usertime << " " << level << " " << _sliceNum << " " << offset << " " << filename << " " << min << " " << max << endl;
 	delete [] _dvalues;
 
 
@@ -547,8 +547,6 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 			ss.clear();
 			ss << time[0] << time[1];
 			hour = atoi(record["dataTime"].c_str())/100;//ss.str().c_str());
-			if (hour == 4)
-				cout << "!" << endl;
 			ss.str(std::string());
 			ss.clear();
 
