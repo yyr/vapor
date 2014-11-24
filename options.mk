@@ -60,6 +60,12 @@ NETCDF_LIBS = netcdf
 # ft2build.h
 FREETYPE2_INC_DIR = 
 
+# Set GRIB_API_DIR to the root of the path to the GRIB_API directory,
+# where the sub directories 'bin', 'lib', 'include', and 'share' may be 
+# found. 
+#
+GRIB_API_DIR = 
+
 # Set to 1 if you want the VAPoR GUI to be built. Otherwise only the 
 # VAPoR libraries and support utilities are compiled
 #

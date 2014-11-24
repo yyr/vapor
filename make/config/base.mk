@@ -637,6 +637,10 @@ define MAKE_INSTALL_PLUGINSDIR
 	if test ! -d $(INSTALL_PLUGINSDIR); then $(MKDIR) $(INSTALL_PLUGINSDIR); fi
 endef
 
+define MAKE_INSTALL_SHAREDIR
+	if test ! -d $(INSTALL_SHAREDIR); then $(MKDIR) $(INSTALL_SHAREDIR); fi
+endef
+
 ifdef SUBDIRS
 
 install:: 

@@ -8,6 +8,8 @@ mandir=INSTALL_MANDIR
 lib_search_dirs=LIB_SEARCH_DIRS
 
 VAPOR_HOME="$root"; export VAPOR_HOME
+GRIB_DEFINITION_PATH="$root/share/grib_api/definitions"; export GRIB_DEFINITION_PATH
+
 
 if [ -z "${PATH}" ]
 then
@@ -15,34 +17,6 @@ then
 else
     PATH="$bindir:$PATH"; export PATH
 fi
-
-if [ "$arch" = "Darwin" ]
-then
-	if [ -z "${DYLD_FALLBACK_LIBRARY_PATH}" ]
-	then
-	    DYLD_FALLBACK_LIBRARY_PATH="${lib_search_dirs}"; export DYLD_FALLBACK_LIBRARY_PATH
-	else
-	    DYLD_FALLBACK_LIBRARY_PATH="${lib_search_dirs}:$DYLD_FALLBACK_LIBRARY_PATH"; export DYLD_FALLBACK_LIBRARY_PATH
-	fi
-else
-if [ "$arch" = "AIX" ]
-then
-	if [ -z "${LIBPATH}" ]
-	then
-	    LIBPATH="${lib_search_dirs}"; export LIBPATH
-	else
-	    LIBPATH="${lib_search_dirs}:$LIBPATH"; export LIBPATH
-	fi
-else
-	if [ -z "${LD_LIBRARY_PATH}" ]
-	then
-	    LD_LIBRARY_PATH="${lib_search_dirs}"; export LD_LIBRARY_PATH
-	else
-	    LD_LIBRARY_PATH="${lib_search_dirs}:$LD_LIBRARY_PATH"; export LD_LIBRARY_PATH
-	fi
-fi
-fi
-
 
 if [ -z "${MANPATH}" ]
 then
