@@ -105,9 +105,6 @@ DCReaderGRIB::DCReaderGRIB(const vector <string> files) {
 	DCReaderGRIB::_Initialize(files);
 }
 
-
-
-//int DCReaderGRIB::OpenVariableRead(size_t gribTS, string gribVar) {
 int DCReaderGRIB::OpenVariableRead(size_t timestep, string varname,
 							 int reflevel, int lod) {
 
@@ -122,9 +119,10 @@ int DCReaderGRIB::OpenVariableRead(size_t timestep, string varname,
 	double usertime = GetTSUserTime(_openTS);
     if (_vars3d.find(varname) != _vars3d.end()) {       // we have a 3d var
 		targetVar = _vars3d[_openVar];
+		_sliceNum = _pressureLevels.size()-1;
 		level = targetVar->GetLevel(_sliceNum);
 		filename = targetVar->GetFileName(usertime,level);
-		_sliceNum = _pressureLevels.size()-1;
+		//_sliceNum = _pressureLevels.size()-1;
 	}
     else if (_vars2d.find(varname) != _vars2d.end()) {  // we have a 2d var
 		targetVar = _vars2d[_openVar];
