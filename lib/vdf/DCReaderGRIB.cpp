@@ -141,7 +141,7 @@ int DCReaderGRIB::OpenVariableRead(size_t timestep, string varname,
     _inFile = fopen(filename.c_str(),"rb");
     if(!_inFile) {
         char err[50];
-        sprintf(err,"ERROR: unable to open file %s\n",filename.c_str());
+        sprintf(err,"ERROR: unable to open file %s",filename.c_str());
         MyBase::SetErrMsg(err);
         return -1; 
     }
@@ -191,7 +191,7 @@ int DCReaderGRIB::ReadSlice(float *values){
 	grib_handle* h = grib_handle_new_from_file(0,_inFile,&err);
 	if (h == NULL) {
 		char erro[50];
-        sprintf(erro,"Error: unable to create handle from file %s\n",filename.c_str());
+        sprintf(erro,"Error: unable to create handle from file %s",filename.c_str());
         MyBase::SetErrMsg(erro);
 		return -1;
 	}   
@@ -451,7 +451,12 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	parser = new GribParser();
 	for (int i=0; i<files.size(); i++){
 		rc = parser->_LoadRecordKeys(files[i]);
-		if (rc !=0) MyBase::SetErrMsg("No such file");
+        if (rc !=0) {
+			char error[50];
+	        sprintf(error,"ERROR: unable to operate on file %s.  Program aborting.",files[i].c_str());
+	        MyBase::SetErrMsg(error);
+			return -1;
+		}
 	}
 	rc = parser->_VerifyKeys();
     if (rc<0) return -1; 
@@ -864,7 +869,7 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
     FILE* _in = fopen(file.c_str(),"rb");
     if(!_in) {
         char error[50];
-        sprintf(error,"ERROR: unable to open file %s\n",file.c_str());
+        sprintf(error,"ERROR: unable to open file %s.",file.c_str());
         MyBase::SetErrMsg(error);
 	    return -1;
     } 
@@ -878,7 +883,7 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
     stringstream ss;
 	_recordKeysVerified = 0;
     std::map<std::string, std::string> keyMap;
-    while((_h = grib_handle_new_from_file(0,_in,&_err)) != NULL) {
+    if((_h = grib_handle_new_from_file(0,_in,&_err)) != NULL) {
 
 		for (size_t i=0; i<_consistentKeys.size(); i++) {
 			keyMap[_consistentKeys[i]] = "";
@@ -934,6 +939,12 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
         grib_keys_iterator_delete(kiter);
         grib_handle_delete(_h);
     }
+	else{
+		char error[50];
+        sprintf(error,"ERROR: Unable to create grib_handle from file %s.",file.c_str());
+        MyBase::SetErrMsg(error);
+        return -1;
+	}
 	_grib_count=0;  
 	fclose(_in); 
     return 0;
