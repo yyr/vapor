@@ -154,12 +154,20 @@ MetadataVDC *vdfcreate::CreateMetadataVDC(
 	}
 
     vector <double> usertime;
-	double delta = DCdata->GetTSUserTime(1) - DCdata->GetTSUserTime(0);
-    for(int t = 0; t < numTimeSteps; t++) {
+	double delta = 1;
+	if (_numTS != -1) {		// -fastMode is engaged
+  		delta = DCdata->GetTSUserTime(1) - DCdata->GetTSUserTime(0);
+    }
+
+	for(int t = 0; t < numTimeSteps; t++) {
 
         usertime.clear();
-        //usertime.push_back(DCdata->GetTSUserTime(t));
-        usertime.push_back(DCdata->GetTSUserTime(0) + delta*t);
+
+		if (_numTS == -1)				// normal operation
+        	usertime.push_back(DCdata->GetTSUserTime(t));
+        else							// apply -fastMode timestamp
+			usertime.push_back(DCdata->GetTSUserTime(0) + delta*t);
+
 		if(file->SetTSUserTime(t, usertime)) {
             file->SetErrMsg(1,"Error populating TSUserTime.");
             return (NULL);
@@ -313,6 +321,10 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
     if (NetCDFtype == "ROMS") DCdata = new DCReaderROMS(ncdffiles);
     else if (NetCDFtype == "GRIMs") {
 		if (_numTS != -1){
+			if (ncdffiles.size()<2) {
+				MyBase::SetErrMsg("Error: The -fastMode option requires at least the first two files in the GRIB dataset.");
+				return 0;
+			}
 			vector<string> twoFiles;
 			twoFiles.push_back(ncdffiles[0]);
 			twoFiles.push_back(ncdffiles[1]);
