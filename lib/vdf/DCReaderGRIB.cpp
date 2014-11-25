@@ -105,9 +105,6 @@ DCReaderGRIB::DCReaderGRIB(const vector <string> files) {
 	DCReaderGRIB::_Initialize(files);
 }
 
-
-
-//int DCReaderGRIB::OpenVariableRead(size_t gribTS, string gribVar) {
 int DCReaderGRIB::OpenVariableRead(size_t timestep, string varname,
 							 int reflevel, int lod) {
 
@@ -122,9 +119,10 @@ int DCReaderGRIB::OpenVariableRead(size_t timestep, string varname,
 	double usertime = GetTSUserTime(_openTS);
     if (_vars3d.find(varname) != _vars3d.end()) {       // we have a 3d var
 		targetVar = _vars3d[_openVar];
+		_sliceNum = _pressureLevels.size()-1;
 		level = targetVar->GetLevel(_sliceNum);
 		filename = targetVar->GetFileName(usertime,level);
-		_sliceNum = _pressureLevels.size()-1;
+		//_sliceNum = _pressureLevels.size()-1;
 	}
     else if (_vars2d.find(varname) != _vars2d.end()) {  // we have a 2d var
 		targetVar = _vars2d[_openVar];
@@ -143,7 +141,7 @@ int DCReaderGRIB::OpenVariableRead(size_t timestep, string varname,
     _inFile = fopen(filename.c_str(),"rb");
     if(!_inFile) {
         char err[50];
-        sprintf(err,"ERROR: unable to open file %s\n",filename.c_str());
+        sprintf(err,"ERROR: unable to open file %s",filename.c_str());
         MyBase::SetErrMsg(err);
         return -1; 
     }
@@ -193,7 +191,7 @@ int DCReaderGRIB::ReadSlice(float *values){
 	grib_handle* h = grib_handle_new_from_file(0,_inFile,&err);
 	if (h == NULL) {
 		char erro[50];
-        sprintf(erro,"Error: unable to create handle from file %s\n",filename.c_str());
+        sprintf(erro,"Error: unable to create handle from file %s",filename.c_str());
         MyBase::SetErrMsg(erro);
 		return -1;
 	}   
@@ -243,7 +241,7 @@ int DCReaderGRIB::ReadSlice(float *values){
 	// Apply linear interpolation on _values if we are on a gaussian grid
 	//if(!strcmp(_gridType.c_str(),"regular_gg")) _LinearInterpolation(values);
 
-	cout << _openVar << " " << _openTS << " " <<  usertime << " " << level << " " << _sliceNum << " " << offset << " " << filename << " " << min << " " << max << endl;
+	//cout << _openVar << " " << _openTS << " " <<  usertime << " " << level << " " << _sliceNum << " " << offset << " " << filename << " " << min << " " << max << endl;
 	delete [] _dvalues;
 
 
@@ -453,7 +451,12 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	parser = new GribParser();
 	for (int i=0; i<files.size(); i++){
 		rc = parser->_LoadRecordKeys(files[i]);
-		if (rc !=0) MyBase::SetErrMsg("No such file");
+        if (rc !=0) {
+			char error[50];
+	        sprintf(error,"ERROR: Unable to operate on file %s.  Program aborting.",files[i].c_str());
+	        MyBase::SetErrMsg(error);
+			return -1;
+		}
 	}
 	rc = parser->_VerifyKeys();
     if (rc<0) return -1; 
@@ -549,8 +552,6 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 			ss.clear();
 			ss << time[0] << time[1];
 			hour = atoi(record["dataTime"].c_str())/100;//ss.str().c_str());
-			if (hour == 4)
-				cout << "!" << endl;
 			ss.str(std::string());
 			ss.clear();
 
@@ -580,8 +581,8 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 
 		int isobaric = strcmp(levelType.c_str(),"isobaricInhPa");
 		if (isobaric == 0) {								    // if we have a 3d var...
-                	if (std::find(_gribTimes.begin(), _gribTimes.end(), time) == _gribTimes.end())
-                        	_gribTimes.push_back(time);
+			if (std::find(_gribTimes.begin(), _gribTimes.end(), time) == _gribTimes.end())
+				_gribTimes.push_back(time);
 
 			if (_vars3d.find(name) == _vars3d.end()) {			// if we have a new 3d var...
 				_vars3d[name] = new Variable();
@@ -868,7 +869,7 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
     FILE* _in = fopen(file.c_str(),"rb");
     if(!_in) {
         char error[50];
-        sprintf(error,"ERROR: unable to open file %s\n",file.c_str());
+        sprintf(error,"ERROR: unable to open file %s.",file.c_str());
         MyBase::SetErrMsg(error);
 	    return -1;
     } 
@@ -876,14 +877,20 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 	grib_handle *_h=NULL;
 	grib_keys_iterator* kiter=NULL;
 	const void* msg;
-	char* name_space = NULL;//"vapor";
+	char* name_space = NULL;
 	size_t size;
 	size_t offset=0;
     stringstream ss;
 	_recordKeysVerified = 0;
     std::map<std::string, std::string> keyMap;
-    while((_h = grib_handle_new_from_file(0,_in,&_err)) != NULL) {
+    while((_h = grib_handle_new_from_file(0,_in,&_err))) { // != NULL) {
 
+        if(_h==NULL) {
+        	MyBase::SetErrMsg("Unable to create grib handle");
+			fclose(_in);
+            return -1;
+        }   
+		
 		for (size_t i=0; i<_consistentKeys.size(); i++) {
 			keyMap[_consistentKeys[i]] = "";
 		}
@@ -903,14 +910,14 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
         if(!_h) {
         	MyBase::SetErrMsg("Unable to create grib handle");
 			fclose(_in);
-            return 1;
+            return -1;
         }   
             
         kiter = grib_keys_iterator_new(_h,_key_iterator_filter_flags,name_space);
         if (!kiter) {
             MyBase::SetErrMsg("Unable to create keys iterator");
 			fclose(_in);
-            return 1;
+            return -1;
         }   
 
         while(grib_keys_iterator_next(kiter)) {
@@ -938,6 +945,15 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
         grib_keys_iterator_delete(kiter);
         grib_handle_delete(_h);
     }
+
+	// if offset did not increment, we read no grib records and were given an invalid file
+	if (offset == 0) {
+		char error[50];
+		sprintf(error,"ERROR: Unable to create grib_handle from file %s.",file.c_str());
+		MyBase::SetErrMsg(error);
+		return -1;
+	}
+
 	_grib_count=0;  
 	fclose(_in); 
     return 0;

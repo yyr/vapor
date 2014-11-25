@@ -25,7 +25,7 @@ using namespace VAPoR;
 Copy2VDF::Copy2VDF() {
 	_progname.clear();
 	_vars.clear();
-	_numts = 0;
+	_numts = -1;
 	_startts = 0;
 	_level = 0;
 	_lod = 0;

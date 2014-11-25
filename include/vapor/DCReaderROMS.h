@@ -213,7 +213,7 @@ private:
 
  int _InitVerticalCoordinates(
 	NetCDFCFCollection *ncdfc, 
-	std::vector <string> &cvars, std::vector <double> &vertCoords
+	const std::vector <string> &cvars, std::vector <double> &vertCoords
  );
 
  void _InitDimensions(
