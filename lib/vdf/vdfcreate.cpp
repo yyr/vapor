@@ -292,8 +292,6 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 		return 0;//exit(0);
 	}
 
-	cout << _numTS << endl;
-
 	argv++;
 	argc--;
 
