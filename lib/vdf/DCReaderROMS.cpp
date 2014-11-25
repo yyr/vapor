@@ -184,11 +184,16 @@ vector <string> DCReaderROMS::_GetSpatialDimNames(
 
 int DCReaderROMS::_InitVerticalCoordinates(
 	NetCDFCFCollection *ncdfc, 
-	vector <string> &cvars,
+	const vector <string> &cvars,
 	vector <double> &vertCoords
 ) {
 
 	vertCoords.clear();
+	if (cvars.size() == 0) { 	// No vertical dimension
+		vertCoords.push_back(0.0);
+		vertCoords.push_back(0.0);
+		return(0);
+	}
 
 	// Determine whether the data is read top-to-bottom (as in CAM)
 	// or bottom-to-top, by checking the standard formula of the vert coordinate
@@ -201,11 +206,6 @@ int DCReaderROMS::_InitVerticalCoordinates(
 		_dataReversed = 1;
 	}
 
-	if (cvars.size() == 0) { 	// No vertical dimension
-		vertCoords.push_back(0.0);
-		vertCoords.push_back(0.0);
-		return(0);
-	}
 
 	if (cvars.size() > 1) {
 		SetErrMsg("Only one vertical coordinate variable supported");
@@ -615,17 +615,17 @@ int DCReaderROMS::_InitCoordVars(NetCDFCFCollection *ncdfc)
 	//
 	vector <size_t> udims;	// unstaggered dims 
 	vector <string> vars = ncdfc->GetDataVariableNames(3, true);
+	if (! vars.size()) vars = ncdfc->GetDataVariableNames(2, true);
 	for (int i=0; i<vars.size(); i++) {
 
 		vector <size_t> dims = _GetSpatialDims(ncdfc, vars[i]);
-		assert(dims.size() == 3);
 		if (udims.size() == 0) udims = dims;
 
 		//
 		// The grid with minimum dimensions is the based grid that 
 		// staggered variables are resampled to
 		//
-		for (int j=0; j<3; j++) {
+		for (int j=0; j<dims.size(); j++) {
 			if (dims[j] < udims[j]) {
 				udims[j] = dims[j];
 			}
