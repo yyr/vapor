@@ -241,7 +241,7 @@ int DCReaderGRIB::ReadSlice(float *values){
 	// Apply linear interpolation on _values if we are on a gaussian grid
 	//if(!strcmp(_gridType.c_str(),"regular_gg")) _LinearInterpolation(values);
 
-	cout << _openVar << " " << _openTS << " " <<  usertime << " " << level << " " << _sliceNum << " " << offset << " " << filename << " " << min << " " << max << endl;
+	//cout << _openVar << " " << _openTS << " " <<  usertime << " " << level << " " << _sliceNum << " " << offset << " " << filename << " " << min << " " << max << endl;
 	delete [] _dvalues;
 
 
