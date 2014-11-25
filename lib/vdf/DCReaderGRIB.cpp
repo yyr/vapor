@@ -928,8 +928,6 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
             //grib_get_string(_h,name,_value,&_vlen);
 			std::string gribKey(name);
             std::string gribValue(_value);
-			if (gribKey.compare("shortName") == 0)
-				cout << gribKey << " " << gribValue << endl;
 			for (size_t i=0;i<_varyingKeys.size();i++){
 				if(strcmp(_varyingKeys[i].c_str(),gribKey.c_str())==0){
 					keyMap[gribKey] = gribValue;
