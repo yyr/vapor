@@ -453,7 +453,7 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 		rc = parser->_LoadRecordKeys(files[i]);
         if (rc !=0) {
 			char error[50];
-	        sprintf(error,"ERROR: unable to operate on file %s.  Program aborting.",files[i].c_str());
+	        sprintf(error,"ERROR: Unable to operate on file %s.  Program aborting.",files[i].c_str());
 	        MyBase::SetErrMsg(error);
 			return -1;
 		}
@@ -581,8 +581,8 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 
 		int isobaric = strcmp(levelType.c_str(),"isobaricInhPa");
 		if (isobaric == 0) {								    // if we have a 3d var...
-                	if (std::find(_gribTimes.begin(), _gribTimes.end(), time) == _gribTimes.end())
-                        	_gribTimes.push_back(time);
+			if (std::find(_gribTimes.begin(), _gribTimes.end(), time) == _gribTimes.end())
+				_gribTimes.push_back(time);
 
 			if (_vars3d.find(name) == _vars3d.end()) {			// if we have a new 3d var...
 				_vars3d[name] = new Variable();
@@ -877,14 +877,20 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 	grib_handle *_h=NULL;
 	grib_keys_iterator* kiter=NULL;
 	const void* msg;
-	char* name_space = NULL;//"vapor";
+	char* name_space = NULL;
 	size_t size;
 	size_t offset=0;
     stringstream ss;
 	_recordKeysVerified = 0;
     std::map<std::string, std::string> keyMap;
-    if((_h = grib_handle_new_from_file(0,_in,&_err)) != NULL) {
+    while((_h = grib_handle_new_from_file(0,_in,&_err))) { // != NULL) {
 
+        if(_h==NULL) {
+        	MyBase::SetErrMsg("Unable to create grib handle");
+			fclose(_in);
+            return -1;
+        }   
+		
 		for (size_t i=0; i<_consistentKeys.size(); i++) {
 			keyMap[_consistentKeys[i]] = "";
 		}
@@ -904,14 +910,14 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
         if(!_h) {
         	MyBase::SetErrMsg("Unable to create grib handle");
 			fclose(_in);
-            return 1;
+            return -1;
         }   
             
         kiter = grib_keys_iterator_new(_h,_key_iterator_filter_flags,name_space);
         if (!kiter) {
             MyBase::SetErrMsg("Unable to create keys iterator");
 			fclose(_in);
-            return 1;
+            return -1;
         }   
 
         while(grib_keys_iterator_next(kiter)) {
@@ -939,12 +945,15 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
         grib_keys_iterator_delete(kiter);
         grib_handle_delete(_h);
     }
-	else{
+
+	// if offset did not increment, we read no grib records and were given an invalid file
+	if (offset == 0) {
 		char error[50];
-        sprintf(error,"ERROR: Unable to create grib_handle from file %s.",file.c_str());
-        MyBase::SetErrMsg(error);
-        return -1;
+		sprintf(error,"ERROR: Unable to create grib_handle from file %s.",file.c_str());
+		MyBase::SetErrMsg(error);
+		return -1;
 	}
+
 	_grib_count=0;  
 	fclose(_in); 
     return 0;

@@ -222,7 +222,10 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 		{"help",	0,	"",	"Print this message and exit"},
 		{"quiet",	0,	"",	"Operate quietly"},
 		{"debug",   0,  "", "Turn on debugging"},
-		{"fastMode",1,  "-1", "Enable fast mode"},
+		{"fastMode",1,  "-1", "Enable fast mode.  Argument is the number of "
+			"timesteps to be converted.  All files must contain the same "
+			"variables, and have equal time increments (30 min, hourly, "
+			"daily, etc...)"},
 		{NULL}
 	};
 
