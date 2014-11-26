@@ -17,7 +17,10 @@ vaporbin = vaporhome & "bin;"
 vaporshare = vaporhome & "share"
 vaporidl = vaporhome & "bin"
 vaporidl2 = vaporhome & "bin;"
+vaporgrib = vaporshare & "\grib_api"
+vaporgrib2 = vaporshare & "\grib_api:"
 
+vaporpythonhome = vaporhome & "\lib\python2.6"
 
 set shell = CreateObject("wscript.shell")
 If allUserProp Then
@@ -45,6 +48,33 @@ if  posn <> 0 Then
 	SysEnv("path") = pathvar
 End If
 
+'Find vaporhome in the PYTHONHOME.  If so, unset PYTHONHOME
+pathvar = sysEnv("PYTHONHOME")
+if (Len(pathvar) > 0) Then
+    posn = inStr(pathvar,vaporhome)
+    if  posn <> 0 Then
+	    sysEnv.Remove("PYTHONHOME")
+    End If
+End If
+
+'Find vaporgrib or vaporgrib2 in the GRIB_DEFINITION_PATH.  If so, remove it
+pathvar = sysEnv("GRIB_DEFINITION_PATH")
+
+posn = inStr(pathvar,vaporgrib2)
+if  posn <> 0 Then
+	pathvar = Replace(pathvar, vaporgrib2, "")
+    SysEnv("GRIB_DEFINITION_PATH") = pathvar
+Else
+    posn = inStr(pathvar, vaporgrib)
+	if posn <> 0 Then
+		pathvar = Replace(pathvar, vaporgrib, "")
+		if pathvar = "" Then
+			SysEnv.Remove("GRIB_DEFINITION_PATH")
+		Else
+			SysEnv("GRIB_DEFINITION_PATH") = pathvar
+		End If
+	End If
+End If
 
 idlpath = sysenv("IDL_DLM_PATH")
 ' the dlm path may either be followed by a : or not:
