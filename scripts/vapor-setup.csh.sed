@@ -9,6 +9,7 @@ set lib_search_dirs = LIB_SEARCH_DIRS
 
 setenv VAPOR_HOME $root
 setenv GRIB_DEFINITION_PATH $root/share/grib_api/definitions
+setenv PROJ_LIB $root/share/proj
 
 
 if !($?PATH) then
