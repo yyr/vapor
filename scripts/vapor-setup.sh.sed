@@ -9,6 +9,7 @@ lib_search_dirs=LIB_SEARCH_DIRS
 
 VAPOR_HOME="$root"; export VAPOR_HOME
 GRIB_DEFINITION_PATH="$root/share/grib_api/definitions"; export GRIB_DEFINITION_PATH
+PROJ_LIB="$root/share/proj"; export PROJ_LIB
 
 
 if [ -z "${PATH}" ]

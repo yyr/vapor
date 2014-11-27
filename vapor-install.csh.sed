@@ -154,6 +154,15 @@ if ("$arch" == "Linux") then
             $directory/bin/patchelf --set-rpath $directory/lib $f
         endif
     end
+
+	#
+	# now do plugins - strip test doesn't work. sigh 
+    foreach f ($directory/plugins/*/*)
+        file $f | grep -q ELF 
+        if ( $status == 0 && ! -l $f ) then
+            $directory/bin/patchelf --set-rpath $directory/lib $f
+        endif
+    end
 endif
 
 

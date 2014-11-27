@@ -66,6 +66,12 @@ FREETYPE2_INC_DIR =
 #
 GRIB_API_DIR = 
 
+# Set PROJ4_DIR to the root of the path to the PROJ4 directory,
+# where the sub directories 'bin', 'lib', 'include', and 'share' may be 
+# found. 
+#
+PROJ4_DIR = 
+
 # Set to 1 if you want the VAPoR GUI to be built. Otherwise only the 
 # VAPoR libraries and support utilities are compiled
 #

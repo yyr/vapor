@@ -46,6 +46,9 @@ install-dep::
 	@$(ECHO) "Copying GRIB_API share files to  $(INSTALL_SHAREDIR)"
 	@$(MAKE_INSTALL_SHAREDIR)
 	$(CP) -R $(GRIB_API_DIR)/share/grib_api $(INSTALL_SHAREDIR)
+	@$(ECHO) "Copying PROJ4 share files to  $(INSTALL_SHAREDIR)"
+	@$(MAKE_INSTALL_SHAREDIR)
+	$(CP) -R $(PROJ4_DIR)/share/proj $(INSTALL_SHAREDIR)
 
 endif
 
