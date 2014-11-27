@@ -20,6 +20,9 @@ vaporhome = vaporhome & "VAPOR"
 vaporshare = vaporhome & "\share"
 vaporbin = vaporhome & "\bin"
 
+pythonhome = vaporhome & "\lib\python2.7"
+gribdir = vaporshare & "\grib_api"
+
 set shell = CreateObject("wscript.shell")
 
 If allUserProp Then
@@ -31,6 +34,20 @@ End If
 SysEnv("VAPOR_HOME") = vaporhome
 SysEnv("VAPOR_SHARE") = vaporshare
 
+pythonVar = sysEnv("PYTHONHOME")
+
+if (Len(PythonVar) > 0) Then
+    MsgBox("PYTHONHOME variable is being reset to point to VAPOR Python home")
+End if
+SysEnv("PYTHONHOME") = pythonhome
+
+gribVar = sysEnv("GRIB_DEFINITION_PATH")
+
+if (Len(gribvar) > 0) Then
+    MsgBox("GRIB_DEFINITION_PATH variable is being reset to point into VAPOR share")
+End if
+
+SysEnv("GRIB_DEFINITION_PATH") = gribdir
 
 '  Insert VAPOR_HOME\bin at start of path
 pathvar = sysEnv("path")
