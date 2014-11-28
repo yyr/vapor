@@ -23,6 +23,7 @@
 #pragma warning( disable : 4100 4996 )
 #endif
 #include "glutil.h"	// Must be included first!!!
+#include <algorithm>
 #include <QScrollBar>
 #include <qdesktopwidget.h>
 #include <qrect.h>
