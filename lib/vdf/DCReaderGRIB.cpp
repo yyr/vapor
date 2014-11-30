@@ -18,6 +18,7 @@
 //               
 //
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <iterator>
@@ -921,23 +922,27 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
         }   
 
         while(grib_keys_iterator_next(kiter)) {
-            const char* name = grib_keys_iterator_get_name(kiter);
+            string name = grib_keys_iterator_get_name(kiter);
+			if (
+				find(
+					_varyingKeys.begin(), _varyingKeys.end(), name
+				) == _varyingKeys.end()
+				&& 
+				find(
+					_consistentKeys.begin(), _consistentKeys.end(),name
+				) == _consistentKeys.end()
+			) {
+
+				continue;
+			}
+
             _vlen=MAX_VAL_LEN;
             bzero(_value,_vlen);
-            GRIB_CHECK(grib_get_string(_h,name,_value,&_vlen),name);
+            GRIB_CHECK(grib_get_string(_h,name.c_str(),_value,&_vlen),name.c_str());
             //grib_get_string(_h,name,_value,&_vlen);
 			std::string gribKey(name);
             std::string gribValue(_value);
-			for (size_t i=0;i<_varyingKeys.size();i++){
-				if(strcmp(_varyingKeys[i].c_str(),gribKey.c_str())==0){
-					keyMap[gribKey] = gribValue;
-				}
-			}
-			for (size_t i=0;i<_consistentKeys.size();i++){
-				if(strcmp(_consistentKeys[i].c_str(),gribKey.c_str())==0){
-					keyMap[gribKey] = gribValue;
-                }
-			}
+			keyMap[gribKey] = gribValue;
 		}   
 
 		_recordKeys.push_back(keyMap);
