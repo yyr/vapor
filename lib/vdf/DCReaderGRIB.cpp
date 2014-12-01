@@ -94,6 +94,7 @@ void DCReaderGRIB::Variable::_AddIndex(double time, float level, string file, in
 }
 
 DCReaderGRIB::DCReaderGRIB(const vector <string> files) {
+	_ignoreForecastData = 0;
 	_Ni = 0;
 	_Nj = 0;
 	_pressureLevels.clear();
@@ -123,7 +124,6 @@ int DCReaderGRIB::OpenVariableRead(size_t timestep, string varname,
 		_sliceNum = _pressureLevels.size()-1;
 		level = targetVar->GetLevel(_sliceNum);
 		filename = targetVar->GetFileName(usertime,level);
-		//_sliceNum = _pressureLevels.size()-1;
 	}
     else if (_vars2d.find(varname) != _vars2d.end()) {  // we have a 2d var
 		targetVar = _vars2d[_openVar];
@@ -133,12 +133,6 @@ int DCReaderGRIB::OpenVariableRead(size_t timestep, string varname,
 	}
 	else return -1; 		// variable does not exist
     
-//	Variable *targetVar = _vars3d[_openVar];
-//	double usertime = GetTSUserTime(_openTS);
-//  float level = targetVar->GetLevel(_sliceNum);
-//  string filename = targetVar->GetFileName(usertime,level);
-
-	//fclose(_inFile);
     _inFile = fopen(filename.c_str(),"rb");
     if(!_inFile) {
         char err[50];
@@ -245,16 +239,6 @@ int DCReaderGRIB::ReadSlice(float *values){
 	//cout << _openVar << " " << _openTS << " " <<  usertime << " " << level << " " << _sliceNum << " " << offset << " " << filename << " " << min << " " << max << endl;
 	delete [] _dvalues;
 
-
-	/*if (_vars3d.find(_openVar) != _vars3d.end()) {       // we have a 3d var, adjust the slice number
-		if (_sliceNum == 0) _sliceNum = _pressureLevels.size()-1;
-		else _sliceNum--;
-	}
-	else {
-		_sliceNum = savedSliceNum;						// we had a 2d var, so we revert to the saved slice number
-		_sliceNum = _pressureLevels.size()-1;
-	}*/
-	
 	grib_handle_delete(h);
 
 	_sliceNum--;	
@@ -262,7 +246,6 @@ int DCReaderGRIB::ReadSlice(float *values){
 }
 
 void DCReaderGRIB::_LinearInterpolation(float *values) {
-	//cout << "LinearInterpolation" << endl;
 	if (_iValues) delete [] _iValues;
 	_iValues = new float[_Ni*_Nj];
 	int lat, gLatIndex, dataIndex1, dataIndex2;
@@ -309,7 +292,7 @@ string DCReaderGRIB::GetMapProjection() const {
 
 		oss << " +lon_0=" << lon_0 << " +lat_0=" << lat_0 << " +lat_ts=" << lat_ts;
 		
-		projstring = "+proj=stere" + oss.str();	
+		projstring = "+proj=stere +ellps=WGS84" + oss.str();	
 	}
 	else if(!strcmp(_gridType.c_str(),"lambert")) {
 		lon_0 = _LoVInDegrees;
@@ -318,14 +301,14 @@ string DCReaderGRIB::GetMapProjection() const {
 
 		oss << " +lon_0=" << lon_0 << " +lat_1=" << lat_1 << " +lat_2=" << lat_2;
 	
-		projstring = "+proj=lcc" + oss.str();
+		projstring = "+proj=lcc +ellps=WGS84" + oss.str();
 	}
 	else if(!strcmp(_gridType.c_str(),"mercator")) {
 		lon_0 = (_minLon + _maxLon) / 2;
 		lat_ts = _LaDInDegrees;	
 		
 		oss << " +lon_0=" << lon_0 << " +lat_ts=" << lat_ts;
-		projstring = "+proj=merc" + oss.str();
+		projstring = "+proj=merc +ellps=WGS84" + oss.str();
 	}
 	else projstring = "";
     return(projstring);
@@ -464,6 +447,10 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 
 	std::vector<std::map<std::string, std::string> > records = parser->GetRecords();
 
+	// If the first record contains 'simulation' data, we will ignore all 
+	// other records that contain 'forecast' data
+	if (atof(records[0]["P2"].c_str()) == 0.0) _ignoreForecastData = 1;
+
 	_udunit = new UDUnits();
 
     int numRecords = records.size();
@@ -519,120 +506,123 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	if (_minLon > _maxLon) _minLon = _minLon - 360;
 
 	if (!strcmp(_gridType.c_str(),"regular_gg")) {
-		//cout << "generating weights" << endl;
 		_generateWeightTable();
 	}
 
     for (int i=0; i<numRecords; i++) {
 		std::map<std::string, std::string> record = records[i];
-		string levelType = record["typeOfLevel"];
-		float level = atof(record["level"].c_str());
-		string name  = record["shortName"];
-		string file = record["file"];
-		int offset = atoi(record["offset"].c_str());
-		
-		int year,month,day,hour,minute,second;
-		if (1){
-			std::stringstream ss;
-			string date = record["dataDate"];
-			string time = record["dataTime"];
-			ss << date[0] << date[1] << date[2] << date[3];
-			year = atoi(ss.str().c_str());
-		
-			ss.str(std::string());	
-			ss.clear();
-			ss << date[4] << date[5];
-			month = atoi(ss.str().c_str());
-			
-			ss.str(std::string());
-			ss.clear();
-			ss << date[6] << date[7];
-			day = atoi(ss.str().c_str());
-			
-			ss.str(std::string());
-			ss.clear();
-			ss << time[0] << time[1];
-			hour = atoi(record["dataTime"].c_str())/100;//ss.str().c_str());
-			ss.str(std::string());
-			ss.clear();
+		//float P2 = atof(record["P2"].c_str());
+		//if (!((P2 > 0.0) && _ignoreForecastData)) {
 
-			minute = 0;
-			second = 0;
-		}
-		else {
-			year   = atoi(record["yearOfCentury"].c_str()) + 2000;
-			month  = atoi(record["month"].c_str());
-			day    = atoi(record["day"].c_str());
-			hour   = atoi(record["hour"].c_str());
-			minute = atoi(record["minute"].c_str());
-			second = atoi(record["second"].c_str());
-		}
+			string levelType = record["typeOfLevel"];
+			float level = atof(record["level"].c_str());
+			string name  = record["shortName"];
+			string file = record["file"];
+			int offset = atoi(record["offset"].c_str());		
+			int year,month,day,hour,minute,second;
+	
+			if (1){
+				std::stringstream ss;
+				string date = record["dataDate"];
+				string time = record["dataTime"];
+				ss << date[0] << date[1] << date[2] << date[3];
+				year = atoi(ss.str().c_str());
+			
+				ss.str(std::string());	
+				ss.clear();
+				ss << date[4] << date[5];
+				month = atoi(ss.str().c_str());
+				
+				ss.str(std::string());
+				ss.clear();
+				ss << date[6] << date[7];
+				day = atoi(ss.str().c_str());
+				
+				ss.str(std::string());
+				ss.clear();
+				ss << time[0] << time[1];
+				hour = atoi(record["dataTime"].c_str())/100;//ss.str().c_str());
+				ss.str(std::string());
+				ss.clear();
+	
+				minute = 0;
+				second = 0;
+			}
+			else {
+				year   = atoi(record["yearOfCentury"].c_str()) + 2000;
+				month  = atoi(record["month"].c_str());
+				day    = atoi(record["day"].c_str());
+				hour   = atoi(record["hour"].c_str());
+				minute = atoi(record["minute"].c_str());
+				second = atoi(record["second"].c_str());
+			}
 	
 	
-		float P2 = atof(record["P2"].c_str());
-		bool _iScanNeg = atoi(record["_iScanNegsNegatively"].c_str());
-		bool _jScan = atoi(record["_jScansPositively"].c_str());
+			float P2 = atof(record["P2"].c_str());
+			bool _iScanNeg = atoi(record["_iScanNegsNegatively"].c_str());
+			bool _jScan = atoi(record["_jScansPositively"].c_str());
+	
+			if (P2 > 0.0) hour += P2;
+			double time = _udunit->EncodeTime(year, month, day, hour, minute, second); 
 
-		if (P2 > 0.0) hour += P2;
-		double time = _udunit->EncodeTime(year, month, day, hour, minute, second); 
-
-		if (std::find(_pressureLevels.begin(), _pressureLevels.end(), level) == _pressureLevels.end()) {
-			if (!strcmp(name.c_str(),"gh")) _pressureLevels.push_back(level);
-		}
-
-		int isobaric = strcmp(levelType.c_str(),"isobaricInhPa");
-		if (isobaric == 0) {								    // if we have a 3d var...
-			if (std::find(_gribTimes.begin(), _gribTimes.end(), time) == _gribTimes.end())
-				_gribTimes.push_back(time);
-
-			if (_vars3d.find(name) == _vars3d.end()) {			// if we have a new 3d var...
-				_vars3d[name] = new Variable();
-				_vars3d[name]->setScanDirection(_iScanNeg,_jScan);
+			if (std::find(_pressureLevels.begin(), _pressureLevels.end(), level) == _pressureLevels.end()) {
+				if (!strcmp(name.c_str(),"gh")) _pressureLevels.push_back(level);
 			}
+	
+			int isobaric = strcmp(levelType.c_str(),"isobaricInhPa");
+			if (isobaric == 0) {								    // if we have a 3d var...
+				if (std::find(_gribTimes.begin(), _gribTimes.end(), time) == _gribTimes.end())
+					_gribTimes.push_back(time);
+	
+				if (_vars3d.find(name) == _vars3d.end()) {			// if we have a new 3d var...
+					_vars3d[name] = new Variable();
+					_vars3d[name]->setScanDirection(_iScanNeg,_jScan);
+				}
 			
-			std::vector<double> varTimes = _vars3d[name]->GetTimes();
-			if (std::find(varTimes.begin(),varTimes.end(),time) == varTimes.end())	// we only want to record new timestamps
-				_vars3d[name]->_AddTime(time);										// for our vars.  (_gribTimes records all times 
+				std::vector<double> varTimes = _vars3d[name]->GetTimes();
+				if (std::find(varTimes.begin(),varTimes.end(),time) == varTimes.end())	// we only want to record new timestamps
+					_vars3d[name]->_AddTime(time);										// for our vars.  (_gribTimes records all times 
 			
-			// Add level data for current var object
-			std::vector<float> varLevels = _vars3d[name]->GetLevels();
-			if (std::find(varLevels.begin(),varLevels.end(),level) == varLevels.end())
-				_vars3d[name]->_AddLevel(level);
+				// Add level data for current var object
+				std::vector<float> varLevels = _vars3d[name]->GetLevels();
+				if (std::find(varLevels.begin(),varLevels.end(),level) == varLevels.end())
+					_vars3d[name]->_AddLevel(level);
 			
-			_vars3d[name]->_AddMessage(i);									// in the grib file)
-			_vars3d[name]->_AddIndex(time,level,file,offset);
-		}
-
-		int surface = strcmp(levelType.c_str(),"surface");
-		int meanSea = strcmp(levelType.c_str(),"meanSea");
-		if ((surface == 0) || (meanSea == 0)) {	        		// if we have a 2d var...
-	        if (_vars2d.find(name) == _vars2d.end()) {			// if we have a new 2d var...
-            	_vars2d[name] = new Variable();
+				_vars3d[name]->_AddMessage(i);									// in the grib file)
+				_vars3d[name]->_AddIndex(time,level,file,offset);
 			}
 
-			// Add level data to current var object
-			// (this should only happen once for a 2D var
-            std::vector<float> varLevels = _vars2d[name]->GetLevels();
-            if (std::find(varLevels.begin(),varLevels.end(),level) == varLevels.end())
-                _vars2d[name]->_AddLevel(level);
+			int surface = strcmp(levelType.c_str(),"surface");
+			int meanSea = strcmp(levelType.c_str(),"meanSea");
+			if ((surface == 0) || (meanSea == 0)) {	        		// if we have a 2d var...
+		        if (_vars2d.find(name) == _vars2d.end()) {			// if we have a new 2d var...
+					_vars2d[name] = new Variable();
+				}
 
-			_vars2d[name]->_AddTime(time);
-        	_vars2d[name]->_AddMessage(i);	
-			_vars2d[name]->_AddIndex(time,level,file,offset);
+				// Add level data to current var object
+				// (this should only happen once for a 2D var
+	            std::vector<float> varLevels = _vars2d[name]->GetLevels();
+	            if (std::find(varLevels.begin(),varLevels.end(),level) == varLevels.end())
+	                _vars2d[name]->_AddLevel(level);
+
+				_vars2d[name]->_AddTime(time);
+	        	_vars2d[name]->_AddMessage(i);	
+				_vars2d[name]->_AddIndex(time,level,file,offset);
+			}
+
+			int entireAtmos = strcmp(levelType.c_str(),"entireAtmosphere");
+	        if (entireAtmos == 0) {									// if we have a 1d var...
+	            if (_vars1d.find(name) == _vars1d.end()) { 			// if we have a new 2d var...
+	                _vars1d[name] = new Variable();
+	            }   
+	            _vars1d[name]->_AddTime(time);
+	            _vars1d[name]->_AddMessage(i);   
+				_vars1d[name]->_AddIndex(time,level,file,offset);
+	        }
+
+			if (name == "gh") _vars3d["ELEVATION"] = _vars3d["gh"];
 		}
-
-		int entireAtmos = strcmp(levelType.c_str(),"entireAtmosphere");
-        if (entireAtmos == 0) {									// if we have a 1d var...
-            if (_vars1d.find(name) == _vars1d.end()) { 			// if we have a new 2d var...
-                _vars1d[name] = new Variable();
-            }   
-            _vars1d[name]->_AddTime(time);
-            _vars1d[name]->_AddMessage(i);   
-			_vars1d[name]->_AddIndex(time,level,file,offset);
-        }
-
-		if (name == "gh") _vars3d["ELEVATION"] = _vars3d["gh"];
-	}
+	//}
 	
 	typedef std::map<std::string, Variable*>::iterator it_type;
 	for (it_type iterator=_vars3d.begin(); iterator!=_vars3d.end(); iterator++){
