@@ -14,6 +14,7 @@ $(BINDIR)/vapor-setup.sh: FRC
 		-e s#INSTALL_PREFIX_DIR#$(INSTALL_PREFIX_DIR)# \
 		-e s#INSTALL_BINDIR#$(INSTALL_BINDIR)# \
 		-e s#INSTALL_MANDIR#$(INSTALL_MANDIR)# \
+		-e s#INSTALL_SHAREDIR#$(INSTALL_SHAREDIR)# \
 		-e s#LIB_SEARCH_DIRS#$(libs)# \
 		-e s#BUILD_IDL_WRAPPERS#$(BUILD_IDL_WRAPPERS)# \
 		< vapor-setup.sh.sed > $@
@@ -31,6 +32,7 @@ $(BINDIR)/vapor-setup.csh: FRC
 		-e s#INSTALL_PREFIX_DIR#$(INSTALL_PREFIX_DIR)# \
 		-e s#INSTALL_BINDIR#$(INSTALL_BINDIR)# \
 		-e s#INSTALL_MANDIR#$(INSTALL_MANDIR)# \
+		-e s#INSTALL_SHAREDIR#$(INSTALL_SHAREDIR)# \
 		-e s#LIB_SEARCH_DIRS#$(libs)# \
 		-e s#BUILD_IDL_WRAPPERS#$(BUILD_IDL_WRAPPERS)# \
 		< vapor-setup.csh.sed > $@

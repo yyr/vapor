@@ -12,6 +12,7 @@ set vapor_root = $InstDest/VAPOR/VAPOR.app
 set bindir = $vapor_root/Contents/MacOS
 set lib_search_dirs = $bindir
 set mandir = $vapor_root/Contents/SharedSupport/man
+set sharedir = $vapor_root/Contents/SharedSupport
 
 set sedcmd = sed
 if (-e /bin/sed) set sedcmd = /bin/sed
@@ -29,7 +30,9 @@ set old2 = 'set[    ][  ]*bindir[   ][  ]*=.*$'
 set new2 = "set bindir = $bindir"
 set old3 = 'set[    ][  ]*mandir[   ][  ]*=.*$'
 set new3 = "set mandir = $mandir"
-$sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#"  -e "s#$old2#$new2#"  -e "s#$old3#$new3#" < $bindir/vapor-setup.csh >! $bindir/vapor-setup.tmp
+set old4 = 'set[    ][  ]*sharedir[   ][  ]*=.*$'
+set new4 = "set sharedir = $sharedir"
+$sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#"  -e "s#$old2#$new2#"  -e "s#$old3#$new3#" -e "s#$old4#$new4#" < $bindir/vapor-setup.csh >! $bindir/vapor-setup.tmp
 /bin/mv $bindir/vapor-setup.tmp $bindir/vapor-setup.csh
 
 
@@ -41,7 +44,9 @@ set old2 = 'bindir=.*$'
 set new2 = "bindir=$bindir"
 set old3 = 'mandir=.*$'
 set new3 = "mandir=$mandir"
-$sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#$new3#" < $bindir/vapor-setup.sh >! $bindir/vapor-setup.tmp
+set old4 = 'sharedir=.*$'
+set new4 = "sharedir=$sharedir"
+$sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#$new3#" -e "s#$old4#$new4#" < $bindir/vapor-setup.sh >! $bindir/vapor-setup.tmp
 /bin/mv $bindir/vapor-setup.tmp $bindir/vapor-setup.sh
 
 echo "Finish postinstall script"

@@ -5,11 +5,12 @@ root=INSTALL_PREFIX_DIR
 idl=BUILD_IDL_WRAPPERS
 bindir=INSTALL_BINDIR
 mandir=INSTALL_MANDIR
+sharedir=INSTALL_SHAREDIR
 lib_search_dirs=LIB_SEARCH_DIRS
 
 VAPOR_HOME="$root"; export VAPOR_HOME
-GRIB_DEFINITION_PATH="$root/share/grib_api/definitions"; export GRIB_DEFINITION_PATH
-PROJ_LIB="$root/share/proj"; export PROJ_LIB
+GRIB_DEFINITION_PATH="$sharedir/grib_api/definitions"; export GRIB_DEFINITION_PATH
+PROJ_LIB="$sharedir/proj"; export PROJ_LIB
 
 
 if [ -z "${PATH}" ]

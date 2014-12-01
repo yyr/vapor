@@ -5,11 +5,12 @@ set root = INSTALL_PREFIX_DIR
 set idl = BUILD_IDL_WRAPPERS
 set bindir = INSTALL_BINDIR
 set mandir = INSTALL_MANDIR
+set sharedir = INSTALL_SHAREDIR
 set lib_search_dirs = LIB_SEARCH_DIRS
 
 setenv VAPOR_HOME $root
-setenv GRIB_DEFINITION_PATH $root/share/grib_api/definitions
-setenv PROJ_LIB $root/share/proj
+setenv GRIB_DEFINITION_PATH $sharedir/grib_api/definitions
+setenv PROJ_LIB $sharedir/proj
 
 
 if !($?PATH) then
