@@ -20,7 +20,7 @@ vaporshare = vaporhome & "share"
 vaporbin = vaporhome & "bin"
 
 pythonhome = vaporhome & "lib\python2.7"
-gribdatabase = vaporshare & "\grib_api"
+gribdatabase = vaporshare & "\grib_api\definitions"
 
 set shell = CreateObject("wscript.shell")
 
@@ -42,7 +42,7 @@ End if
 SysEnv("PYTHONHOME") = pythonhome
 
 if (gribVar <> "") Then
-    gribVar = ":" & gribVar
+    gribVar = ";" & gribVar
 End if
 
 SysEnv("GRIB_DEFINITION_PATH") = gribdatabase & gribVar
