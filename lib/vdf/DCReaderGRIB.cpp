@@ -730,7 +730,20 @@ std::vector<long> DCReaderGRIB::GetGridPermutation() const {
 }
 
 void DCReaderGRIB::GetTSUserTimeStamp(size_t ts, std::string &s) const {
-	s = "dum";
+    int seconds = int(_gribTimes[ts]);
+	int year, month, day, hour, minute, second;
+    _udunit->DecodeTime(seconds, &year, &month, &day, &hour, &minute, &second);
+
+    ostringstream oss; 
+    oss.fill('0');
+    oss.width(4); oss << year; oss << "-"; 
+    oss.width(2); oss << month; oss << "-"; 
+    oss.width(2); oss << day; oss << " "; 
+    oss.width(2); oss << hour; oss << ":"; 
+    oss.width(2); oss << minute; oss << ":"; 
+    oss.width(2); oss << second; oss << " "; 
+
+    s = oss.str();
 }
 
 long DCReaderGRIB::GetNumTimeSteps() const {
