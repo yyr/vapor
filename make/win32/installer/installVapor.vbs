@@ -21,7 +21,7 @@ vaporshare = vaporhome & "\share"
 vaporbin = vaporhome & "\bin"
 
 pythonhome = vaporhome & "\lib\python2.7"
-gribdir = vaporshare & "\grib_api"
+gribdir = vaporshare & "\grib_api\definitions"
 
 set shell = CreateObject("wscript.shell")
 

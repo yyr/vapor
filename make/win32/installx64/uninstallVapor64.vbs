@@ -17,8 +17,8 @@ vaporbin = vaporhome & "bin;"
 vaporshare = vaporhome & "share"
 vaporidl = vaporhome & "bin"
 vaporidl2 = vaporhome & "bin;"
-vaporgrib = vaporshare & "\grib_api"
-vaporgrib2 = vaporshare & "\grib_api:"
+vaporgrib = vaporshare & "\grib_api\definitions"
+vaporgrib2 = vaporshare & "\grib_api\definitions;"
 
 vaporpythonhome = vaporhome & "\lib\python2.6"
 
