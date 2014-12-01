@@ -54,7 +54,6 @@ DCReaderGRIB::Variable::~Variable() {
 }
 
 bool DCReaderGRIB::Variable::_Exists(double time) const {
-	//if (_unitTimes.find(time) == _unitTimes.end()) return 0;
 	if (std::find(_unitTimes.begin(), _unitTimes.end(), time)==_unitTimes.end()) return 0;
 	return 1;
 }
@@ -65,10 +64,7 @@ int DCReaderGRIB::Variable::GetOffset(double time, float level) {
 }
 
 string DCReaderGRIB::Variable::GetFileName(double time, float level) {
-	//if (_vars3d.find(name) != _vars3d.end()) {	// we have a 3d var
-	    string fname = _indices[time][level].fileName;
-	//}
-	//else fname = _indices[time]
+	string fname = _indices[time][level].fileName;
     return fname; 
 }
 
@@ -455,9 +451,14 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 
     int numRecords = records.size();
 
+	_gridType = records[0]["gridType"];
+	if (_gridType.compare("regular_gg") == 0) {
+		MyBase::SetErrMsg("Error: The grid type 'regular_gg' is currently unsupported. Process aborting.");
+		return -1;		
+	}
+
 	_Ni = atoi(records[0]["Ni"].c_str());
 	_Nj = atoi(records[0]["Nj"].c_str());
-	_gridType = records[0]["gridType"];
 	_iScanNeg = atoi(records[0]["iScanNegsNegatively"].c_str());
     _jScanPos = atoi(records[0]["jScansPositively"].c_str());
 	_DxInMetres = atof(records[0]["DxInMetres"].c_str());	
