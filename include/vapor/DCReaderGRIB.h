@@ -156,6 +156,7 @@ class UDUnits;
 		bool isGaussian;
 	};
 
+	 bool _ignoreForecastData;
 	 static int _sliceNum;
      int _Ni;
      int _Nj;
