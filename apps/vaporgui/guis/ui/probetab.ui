@@ -629,15 +629,14 @@ probe volume.</string>
             </item>
             <item>
              <widget class="QComboBox" name="variableCombo">
-              <property name="font">
-               <font>
-                <family>MS Shell Dlg 2</family>
-                <pointsize>8</pointsize>
-               </font>
-              </property>
               <property name="focusPolicy">
                <enum>Qt::ClickFocus</enum>
               </property>
+              <item>
+               <property name="text">
+                <string>variable</string>
+               </property>
+              </item>
              </widget>
             </item>
             <item>
@@ -2153,11 +2152,6 @@ same as the X, Y, and Z axes.</string>
                          <height>32767</height>
                         </size>
                        </property>
-                       <property name="font">
-                        <font>
-                         <pointsize>9</pointsize>
-                        </font>
-                       </property>
                        <property name="toolTip">
                         <string>Align probe with a coordinate axis</string>
                        </property>
@@ -2213,11 +2207,6 @@ same as the X, Y, and Z axes.</string>
                          <width>100</width>
                          <height>32767</height>
                         </size>
-                       </property>
-                       <property name="font">
-                        <font>
-                         <pointsize>9</pointsize>
-                        </font>
                        </property>
                        <property name="toolTip">
                         <string>Rotate probe 90 degrees about its center using selected axis direction</string>
