@@ -1178,7 +1178,7 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 	if (numValidTimesteps < 2){
 		MyBase::SetErrMsg(VAPOR_ERROR_FLOW, "Insufficient time steps for unsteady advection");
 		delete [] timeStepList;
-		return false;
+		return NULL;
 	}
 	if (numValidTimesteps < numTimesteps && ds->warnIfDataMissing()){
 		

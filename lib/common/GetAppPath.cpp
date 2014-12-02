@@ -42,7 +42,7 @@ string get_path_from_bundle(const string &app) {
     char componentStr[kBufferLength];
 
     CFIndex componentLength = CFURLGetBytes(url, buffer, kBufferLength);
-    if (componentLength < 0) return(false);
+    if (componentLength < 0) return("");
     buffer[componentLength] = 0;
 
     CFRange range;
