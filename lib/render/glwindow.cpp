@@ -2893,8 +2893,6 @@ void GLWindow::addText(Renderer* ren, int objectIndex, float posn[3]){
 //Render all the text; 
 void GLWindow::renderText(){
 	//iterate over all valid text objects, paint them at specified coordinates.
-	DataStatus* ds = DataStatus::getInstance();
-	const vector<double>& fullUsrExts = ds->getDataMgr()->GetExtents();
 	int timestep = getActiveAnimationParams()->getCurrentTimestep();
 	map< Renderer*, vector<TextObject*> >::iterator iter;
 	for (iter = textObjectMap.begin(); iter != textObjectMap.end(); iter++){

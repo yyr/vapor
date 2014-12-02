@@ -501,9 +501,6 @@ public:
   bool _ok;
   float _min;
   float _max;
-  int KMAX;
-  int IDIM;
-  int IMAX;
  };
 
  class DerivedVar_noop : public NetCDFCollection::DerivedVar {

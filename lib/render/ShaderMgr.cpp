@@ -222,7 +222,7 @@ bool ShaderMgr::defineEffect(std::string baseName, std::string defines, std::str
 #ifdef DEBUG		
 	std::cout << "ShaderMgr::defineEffect(baseName, defines, intanceName) : " << baseName << " " << defines << " " << instanceName << std::endl;
 #endif
-	if (baseEffects.count(baseName) < 0) {
+	if (baseEffects.count(baseName) == 0) {
 		SetErrMsg(
 			VAPOR_ERROR_GL_SHADER, "Base effect \"%s\" is not loaded", 
 			baseName.c_str()
@@ -280,7 +280,7 @@ bool ShaderMgr::undefEffect(std::string instanceName)
 #ifdef DEBUG		
 	std::cout << "ShaderMgr::undefEffect(instanceName) : " << instanceName << std::endl;
 #endif
-	if (effects.count(instanceName) < 0) {
+	if (effects.count(instanceName) == 0) {
 	  //effect has not been defined
 		return false;
 	}

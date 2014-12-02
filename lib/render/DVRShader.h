@@ -99,7 +99,6 @@ private:
 
   float          *_colormap;
   float          *_coordmap;
-  ShaderProgram  *_shader;
 
   // voxel coordinates for stretched grids
   //

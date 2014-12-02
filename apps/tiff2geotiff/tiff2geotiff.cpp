@@ -771,7 +771,8 @@ tiffcp(TIFF* in, TIFF* out)
 	currentImageHeight = l;
         if( convert_8_to_4 )
         {
-            TIFFSetField(out, TIFFTAG_BITSPERSAMPLE, 4);
+			bitspersample = 4;
+            TIFFSetField(out, TIFFTAG_BITSPERSAMPLE, bitspersample);
         }
         else
         {

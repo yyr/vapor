@@ -1170,7 +1170,7 @@ setupFieldData(const vector<string>& varnames,
 		minInt, maxInt, &pUGrid[0],  &pVGrid[0],  &pWGrid[0]);
 	
 	if (!gotData) 
-		return false;
+		return NULL;
 	
 	pSolution = new Solution(pUGrid,pVGrid,pWGrid, 1, periodicDim);
 	if (scaleField)

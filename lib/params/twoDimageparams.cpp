@@ -1122,7 +1122,7 @@ uint32* TwoDImageParams::_readTiffImage(
 						for (int k = 0; k<h; k++){
 							unsigned char alphaval = charArray[k];
 							if (alphaval != 0xff) transparentAlpha = true;
-							texture[revrow*w+k] = alphaval<<24 | (texture[revrow*w+k] && 0xffffff);
+							texture[revrow*w+k] = alphaval<<24 | (texture[revrow*w+k] & 0xffffff);
 						}
 					}
 				}

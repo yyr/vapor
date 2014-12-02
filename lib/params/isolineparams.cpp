@@ -247,7 +247,6 @@ reinit(bool doOverride){
 	
 	if (doOverride) {
 		SetHistoStretch(1.0);
-		float col[4] = {1.f, 1.f, 1.f, 1.f};
 	}
 	
 
@@ -317,7 +316,6 @@ reinit(bool doOverride){
 	SetVariables3D(is3D);
 
 	if (doOverride) { //set default colors
-		const float white_color[3] = {1.0, 1.0, 1.0};
 		const float black_color[3] = {.0, .0, .0};
 		SetPanelBackgroundColor(black_color);
 	}
@@ -382,7 +380,6 @@ void IsolineParams::restart() {
 	setMaxEditBound(1.);
 	
 	setEnabled(false);
-	const float white_color[3] = {1.0, 1.0, 1.0};
 	const float black_color[3] = {.0, .0, .0};
 	
 	SetPanelBackgroundColor(black_color);
