@@ -2675,11 +2675,6 @@ specified range.</string>
                             <height>32767</height>
                            </size>
                           </property>
-                          <property name="font">
-                           <font>
-                            <pointsize>9</pointsize>
-                           </font>
-                          </property>
                           <property name="toolTip">
                            <string>Align isoline plane with a coordinate axis</string>
                           </property>
@@ -2735,11 +2730,6 @@ specified range.</string>
                             <width>100</width>
                             <height>32767</height>
                            </size>
-                          </property>
-                          <property name="font">
-                           <font>
-                            <pointsize>9</pointsize>
-                           </font>
                           </property>
                           <property name="toolTip">
                            <string>Rotate isoline plane 90 degrees about its center using selected axis direction</string>
@@ -3972,14 +3962,6 @@ Domain</string>
             </item>
             <item>
              <widget class="QLabel" name="textLabel1_12">
-              <property name="font">
-               <font>
-                <family>MS Shell Dlg 2</family>
-                <pointsize>10</pointsize>
-                <weight>50</weight>
-                <bold>false</bold>
-               </font>
-              </property>
               <property name="text">
                <string>Line width:</string>
               </property>
@@ -4012,14 +3994,6 @@ Domain</string>
                 <height>0</height>
                </size>
               </property>
-              <property name="font">
-               <font>
-                <family>MS Shell Dlg 2</family>
-                <pointsize>10</pointsize>
-                <weight>50</weight>
-                <bold>false</bold>
-               </font>
-              </property>
               <property name="toolTip">
                <string>Specify width in voxels of contour lines</string>
               </property>
@@ -4046,14 +4020,6 @@ Domain</string>
             </item>
             <item>
              <widget class="QLabel" name="textLabel1_14">
-              <property name="font">
-               <font>
-                <family>MS Shell Dlg 2</family>
-                <pointsize>10</pointsize>
-                <weight>50</weight>
-                <bold>false</bold>
-               </font>
-              </property>
               <property name="text">
                <string>Text size:</string>
               </property>
@@ -4075,14 +4041,6 @@ Domain</string>
                 <width>100</width>
                 <height>16777215</height>
                </size>
-              </property>
-              <property name="font">
-               <font>
-                <family>MS Shell Dlg 2</family>
-                <pointsize>10</pointsize>
-                <weight>50</weight>
-                <bold>false</bold>
-               </font>
               </property>
               <property name="toolTip">
                <string>Specify font size (points) of annotation in 3D scene</string>
@@ -4114,11 +4072,6 @@ Domain</string>
            <layout class="QHBoxLayout" name="_8">
             <item>
              <widget class="QCheckBox" name="singleColorCheckbox">
-              <property name="font">
-               <font>
-                <pointsize>10</pointsize>
-               </font>
-              </property>
               <property name="toolTip">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check to use a single color for all contour lines.  Un-check to use the color mapping specified in the IsoValue Selection panel above.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
@@ -4142,11 +4095,6 @@ Domain</string>
             </item>
             <item>
              <widget class="QPushButton" name="singleColorButton">
-              <property name="font">
-               <font>
-                <pointsize>10</pointsize>
-               </font>
-              </property>
               <property name="toolTip">
                <string>Click to select the single color to apply to all contour lines.</string>
               </property>
@@ -4288,11 +4236,6 @@ Domain</string>
             </item>
             <item>
              <widget class="QCheckBox" name="textCheckbox">
-              <property name="font">
-               <font>
-                <pointsize>10</pointsize>
-               </font>
-              </property>
               <property name="toolTip">
                <string>Check to enable text annotation of isovalues</string>
               </property>
@@ -4329,12 +4272,6 @@ Domain</string>
             </item>
             <item>
              <widget class="QLabel" name="label">
-              <property name="font">
-               <font>
-                <family>MS Shell Dlg 2</family>
-                <pointsize>10</pointsize>
-               </font>
-              </property>
               <property name="text">
                <string>Density:</string>
               </property>
@@ -4360,12 +4297,6 @@ Domain</string>
                 <width>100</width>
                 <height>16777215</height>
                </size>
-              </property>
-              <property name="font">
-               <font>
-                <family>MS Shell Dlg 2</family>
-                <pointsize>10</pointsize>
-               </font>
               </property>
               <property name="toolTip">
                <string>Specify a value between 0 and 1 indicating how densely contour lines will be annotated</string>
@@ -4393,12 +4324,6 @@ Domain</string>
             </item>
             <item>
              <widget class="QLabel" name="label_3">
-              <property name="font">
-               <font>
-                <family>MS Shell Dlg 2</family>
-                <pointsize>10</pointsize>
-               </font>
-              </property>
               <property name="text">
                <string>Digits:</string>
               </property>
@@ -4411,12 +4336,6 @@ Domain</string>
                 <width>60</width>
                 <height>16777215</height>
                </size>
-              </property>
-              <property name="font">
-               <font>
-                <family>MS Shell Dlg 2</family>
-                <pointsize>10</pointsize>
-               </font>
               </property>
               <property name="toolTip">
                <string>Specify number of digits used for annotation</string>
@@ -4470,14 +4389,14 @@ Domain</string>
    <header>mappingframe.h</header>
   </customwidget>
   <customwidget>
-   <class>IsolineFrame</class>
-   <extends>QWidget</extends>
-   <header>../isolineframe.h</header>
-  </customwidget>
-  <customwidget>
    <class>QtThumbWheel</class>
    <extends>QWidget</extends>
    <header>../../guis/qtthumbwheel.h</header>
+  </customwidget>
+  <customwidget>
+   <class>IsolineFrame</class>
+   <extends>QWidget</extends>
+   <header>../isolineframe.h</header>
   </customwidget>
  </customwidgets>
  <includes>

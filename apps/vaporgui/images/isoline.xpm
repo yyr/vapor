@@ -1,5 +1,5 @@
 /* XPM */
-static char *isoline[] = {
+static const char *isoline[] = {
 /* columns rows colors chars-per-pixel */
 "24 21 20 1 ",
 "  c black",

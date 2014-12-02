@@ -479,7 +479,6 @@ mouseMoveEvent(QMouseEvent* e){
 		latestMoveTime = latestTime;
 	}
 	if(doNavigate){
-		QPoint deltaPoint = e->globalPos() - mouseDownPosition;
 		myTrackball->MouseOnTrackball(1, e->button(), e->x(), e->y(), width(), height());
 		//Note that the coords have changed:
 		myGLWindow->setViewerCoordsChanged(true);

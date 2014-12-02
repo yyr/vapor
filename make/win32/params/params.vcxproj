@@ -154,6 +154,7 @@
       <ProgramDataBaseFileName>../../../targets/win32/built/params/vc70.pdb</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
     </ClCompile>
     <Link>
       <AdditionalDependencies>..\..\..\targets\win32\bin\vdf.lib;..\..\..\targets\win32\bin\common.lib;mpr.lib;QtCore4.lib;QtGui4.lib;QtOpenGL4.lib;opengl32.lib;libtiff.lib;geotiff.lib;glu32.lib;proj.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -187,6 +188,7 @@
       <ProgramDataBaseFileName>../../../targets/win64/built/params/vc70.pdb</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
     </ClCompile>
     <Link>
       <AdditionalDependencies>..\..\..\targets\win64\bin\vdf.lib;..\..\..\targets\win64\bin\common.lib;mpr.lib;QtCore4.lib;QtGui4.lib;opengl32.lib;libtiff.lib;geotiff.lib;glu32.lib;proj.lib;python27.lib;libjpeg.lib;%(AdditionalDependencies)</AdditionalDependencies>
