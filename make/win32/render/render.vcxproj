@@ -152,6 +152,7 @@
       <ProgramDataBaseFileName>../../../targets/win32/built/render/vc70.pdb</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
     </ClCompile>
     <Link>
       <AdditionalDependencies>..\..\..\targets\win32\bin\vdf.lib;..\..\..\targets\win32\bin\common.lib;..\..\..\targets\win32\bin\params.lib;ftgl.lib;mpr.lib;QtCore4.lib;QtGui4.lib;QtOpenGL4.lib;opengl32.lib;glu32.lib;proj.lib;libtiff.lib;glew32.lib;libjpeg.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -184,6 +185,7 @@
       <ProgramDataBaseFileName>../../../targets/win64/built/render/vc70.pdb</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
     </ClCompile>
     <Link>
       <AdditionalDependencies>..\..\..\targets\win64\bin\vdf.lib;..\..\..\targets\win64\bin\common.lib;..\..\..\targets\win64\bin\params.lib;ftgl.lib;mpr.lib;opengl32.lib;QtOpenGL4.lib;glu32.lib;proj.lib;libtiff.lib;glew32.lib;libjpeg.lib;QtCore4.lib;QtGui4.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
