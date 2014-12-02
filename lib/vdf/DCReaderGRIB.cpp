@@ -431,15 +431,15 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	parser = new GribParser();
 	for (int i=0; i<files.size(); i++){
 		rc = parser->_LoadRecordKeys(files[i]);
-        if (rc !=0) {
+		if (rc !=0) {
 			char error[50];
-	        sprintf(error,"ERROR: Unable to operate on file %s.  Program aborting.",files[i].c_str());
-	        MyBase::SetErrMsg(error);
+			sprintf(error,"ERROR: Unable to operate on file %s.  Program aborting.",files[i].c_str());
+			MyBase::SetErrMsg(error);
 			return -1;
 		}
 	}
 	rc = parser->_VerifyKeys();
-    if (rc<0) return -1; 
+	if (rc<0) return -1; 
 
 	std::vector<std::map<std::string, std::string> > records = parser->GetRecords();
 
@@ -449,7 +449,7 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 
 	_udunit = new UDUnits();
 
-    int numRecords = records.size();
+	int numRecords = records.size();
 
 	_gridType = records[0]["gridType"];
 	if (_gridType.compare("regular_gg") == 0) {
@@ -460,7 +460,7 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	_Ni = atoi(records[0]["Ni"].c_str());
 	_Nj = atoi(records[0]["Nj"].c_str());
 	_iScanNeg = atoi(records[0]["iScanNegsNegatively"].c_str());
-    _jScanPos = atoi(records[0]["jScansPositively"].c_str());
+	_jScanPos = atoi(records[0]["jScansPositively"].c_str());
 	_DxInMetres = atof(records[0]["DxInMetres"].c_str());	
 	_DyInMetres = atof(records[0]["DyInMetres"].c_str());	
 	_LaDInDegrees = atof(records[0]["LaDInDegrees"].c_str());
@@ -510,61 +510,71 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 		_generateWeightTable();
 	}
 
-    for (int i=0; i<numRecords; i++) {
+	for (int i=0; i<numRecords; i++) {
 		std::map<std::string, std::string> record = records[i];
-		//float P2 = atof(record["P2"].c_str());
-		//if (!((P2 > 0.0) && _ignoreForecastData)) {
+		string levelType = record["typeOfLevel"];
+		float level = atof(record["level"].c_str());
+		string name  = record["shortName"];
+		string file = record["file"];
+		int offset = atoi(record["offset"].c_str());		
+		int year,month,day,hour,minute,second;
+		float P2 = atof(record["P2"].c_str());
 
-			string levelType = record["typeOfLevel"];
+		// Skip loading a new time if we're reading forecast data
+		// (indicated by P2>0) within a simulation dataset
+		if (!((P2 > 0.0) && _ignoreForecastData)) {
+			/*string levelType = record["typeOfLevel"];
 			float level = atof(record["level"].c_str());
 			string name  = record["shortName"];
 			string file = record["file"];
 			int offset = atoi(record["offset"].c_str());		
 			int year,month,day,hour,minute,second;
-	
-			if (1){
-				std::stringstream ss;
-				string date = record["dataDate"];
-				string time = record["dataTime"];
-				ss << date[0] << date[1] << date[2] << date[3];
-				year = atoi(ss.str().c_str());
-			
-				ss.str(std::string());	
-				ss.clear();
-				ss << date[4] << date[5];
-				month = atoi(ss.str().c_str());
+	*/
+			std::stringstream ss;
+			string date = record["dataDate"];
+			string time = record["dataTime"];
+			ss << date[0] << date[1] << date[2] << date[3];
+			year = atoi(ss.str().c_str());
+		
+			ss.str(std::string());	
+			ss.clear();
+			ss << date[4] << date[5];
+			month = atoi(ss.str().c_str());
 				
-				ss.str(std::string());
-				ss.clear();
-				ss << date[6] << date[7];
-				day = atoi(ss.str().c_str());
+			ss.str(std::string());
+			ss.clear();
+			ss << date[6] << date[7];
+			day = atoi(ss.str().c_str());
 				
-				ss.str(std::string());
-				ss.clear();
-				ss << time[0] << time[1];
-				hour = atoi(record["dataTime"].c_str())/100;//ss.str().c_str());
-				ss.str(std::string());
-				ss.clear();
-	
-				minute = 0;
-				second = 0;
-			}
-			else {
-				year   = atoi(record["yearOfCentury"].c_str()) + 2000;
-				month  = atoi(record["month"].c_str());
-				day    = atoi(record["day"].c_str());
-				hour   = atoi(record["hour"].c_str());
-				minute = atoi(record["minute"].c_str());
-				second = atoi(record["second"].c_str());
-			}
-	
-	
-			float P2 = atof(record["P2"].c_str());
+			ss.str(std::string());
+			ss.clear();
+			ss << time[0] << time[1];
+			hour = atoi(record["dataTime"].c_str())/100;//ss.str().c_str());
+			if (P2 > 0.0) hour += P2;
+			ss.str(std::string());
+			ss.clear();
+
+			minute = 0;
+			second = 0;
+		
+			// Alternative date/time generator			
+			/*year   = atoi(record["yearOfCentury"].c_str()) + 2000;
+			month  = atoi(record["month"].c_str());
+			day    = atoi(record["day"].c_str());
+			hour   = atoi(record["hour"].c_str());
+			minute = atoi(record["minute"].c_str());
+			second = atoi(record["second"].c_str());
+			*/
+		}
+
+			double time = _udunit->EncodeTime(year, month, day, hour, minute, second); 
+			//float P2 = atof(record["P2"].c_str());
 			bool _iScanNeg = atoi(record["_iScanNegsNegatively"].c_str());
 			bool _jScan = atoi(record["_jScansPositively"].c_str());
 	
-			if (P2 > 0.0) hour += P2;
-			double time = _udunit->EncodeTime(year, month, day, hour, minute, second); 
+			//float P2 = atof(record["P2"].c_str());
+			//if (P2 > 0.0) hour += P2;
+			//double time = _udunit->EncodeTime(year, month, day, hour, minute, second); 
 
 			if (std::find(_pressureLevels.begin(), _pressureLevels.end(), level) == _pressureLevels.end()) {
 				if (!strcmp(name.c_str(),"gh")) _pressureLevels.push_back(level);
