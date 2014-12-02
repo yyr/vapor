@@ -772,7 +772,7 @@ float RegionParams::fullRegionMBs(int refLevel){
 	double userMinCoords[3],userMaxCoords[3];
 	
 	GetBox()->GetLocalExtents(regExts);
-	bool extentsChanged = false;(oldRefLevel != refLevel);
+	bool extentsChanged = false;
 	//Because of the slowness of GetEnclosingRegion, we are caching the region extents in this method.
 	for (int i = 0; i<6; i++){
 		if (regExts[i] != oldExtents[i]){

@@ -706,6 +706,7 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 		}
 	}
 	//Done with traversals.  check if every edge has been marked
+/* Comment out these tests for the release version:
 	for (edgeEdgeIter = edgeEdge1.begin(); edgeEdgeIter != edgeEdge1.end(); edgeEdgeIter++){
 		pair<int,int> thisEdge = edgeEdgeIter->first;
 		assert (markerBit[thisEdge]) ;
@@ -714,6 +715,7 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 		pair<int,int> thisEdge = edgeEdgeIter->first;
 		assert (markerBit[thisEdge]) ;
 	}
+*/
 	//Now traverse each component, writing annotation at specified interval
 	//Note that all marker bits are true,so we can use markerBit[i]==false as a new marker
 	//When textDensity is 1, there is annotation at every point.  When textDensity is 0.5 (typical)

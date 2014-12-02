@@ -72,9 +72,9 @@ bool CartesianGrid::isInRegion(VECTOR3& pos)
 {
 	if (pos[0] == END_FLOW_FLAG) return false;
 	assert(pos[0] != STATIONARY_STREAM_FLAG);
-	if( (periodicDim[0]||(pos[0] >= m_vMinRegBound[0]) && (pos[0] <= m_vMaxRegBound[0]) )&&
-		(periodicDim[1]||(pos[1] >= m_vMinRegBound[1]) && (pos[1] <= m_vMaxRegBound[1]) )&&
-		(periodicDim[2]||(pos[2] >= m_vMinRegBound[2]) && (pos[2] <= m_vMaxRegBound[2]))  )
+	if( (periodicDim[0]||((pos[0] >= m_vMinRegBound[0]) && (pos[0] <= m_vMaxRegBound[0])))&&
+		(periodicDim[1]||((pos[1] >= m_vMinRegBound[1]) && (pos[1] <= m_vMaxRegBound[1])))&&
+		(periodicDim[2]||((pos[2] >= m_vMinRegBound[2]) && (pos[2] <= m_vMaxRegBound[2]))) )
 		return true;
 	else
 		return false;
