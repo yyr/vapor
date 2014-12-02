@@ -233,6 +233,9 @@
          <height>16777215</height>
         </size>
        </property>
+       <property name="whatsThis">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Basic Settings provide various means of specifying the isovalues that define the contours. Check the tooltips in this section to see the explanation of each button or text box.  The color mapping in this section determines the colors used for each contour line, provided that the &amp;quot;use single color&amp;quot; checkbox is un-checked in the Appearance settings below.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
        </property>
@@ -1340,6 +1343,9 @@ specified range.</string>
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use the isovalues to define a discrete color map in the current Probe or 2D renderer panel, so that the current isovalues in this panel will display as color bands in that panel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
+                <property name="whatsThis">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking on this &amp;quot;Copy to...&amp;quot;  button alters the color mapping in the current Probe or 2D renderer so that the contour lines will be displayed in the Probe or 2D renderer as the boundary between different colors.  The current color map in the Probe or 2D renderer is altered to show these contour lines.  The color mapping interval in the Probe or 2D renderer is moved to the current contour color interval, and the color mapping becomes discrete.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
                 <property name="text">
                  <string>Copy To Probe</string>
                 </property>
@@ -1466,6 +1472,9 @@ specified range.</string>
           </item>
           <item>
            <widget class="QFrame" name="layoutFrame">
+            <property name="whatsThis">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Contour Line layout options are used to position the planar region where contours are calculated. If the variables are 3D, the plane can be rotated, resized, and translated (like the Probe). If the variables are 2D the plane can only be translated and resized. Tooltips in this section provide more details of the function of the various widgets.  Use Contour mode to alter the layout using handles in the 3D scene.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="frameShape">
              <enum>QFrame::NoFrame</enum>
             </property>
@@ -3079,6 +3088,9 @@ Domain</string>
          <height>16777215</height>
         </size>
        </property>
+       <property name="whatsThis">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The image settings are used for close examination of the planar region where the contours are drawn. Click the cursor in the image to identify the coordinates of points near the contours and to find the values of the contour variable. In Contour mode, the position of the cursor will be displayed as a 3D cursor in the 3D scene. The cursor position can also be used to specify seeds for flow integration. Tooltips in this section provide more detailed information.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
        </property>
@@ -3913,10 +3925,8 @@ Domain</string>
      </item>
      <item>
       <widget class="QFrame" name="appearanceFrame">
-       <property name="font">
-        <font>
-         <family>Arial</family>
-        </font>
+       <property name="whatsThis">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Various appearance settings control how contours are displayed in the 3D scene, and whether they are annotated with text.  Tooltips in this section explain the various capabilities.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
