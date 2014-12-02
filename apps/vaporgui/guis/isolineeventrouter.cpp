@@ -2758,6 +2758,9 @@ void IsolineEventRouter::guiCopyTo2D(){
 void IsolineEventRouter::convertIsovalsToColors(TransferFunction* tf){
 	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
 	vector<double> isovals = iParams->GetIsovalues();//copy the isovalues from the params
+	//If the colormap is discrete, make it (temporarily) linear
+	bool wasDiscrete = (tf->colorInterpType() == TFInterpolator::discrete);
+	if (wasDiscrete) tf->setColorInterpType(TFInterpolator::linear);
 	ColorMapBase* cmap = tf->getColormap();
 	std::sort(isovals.begin(),isovals.end());
 
