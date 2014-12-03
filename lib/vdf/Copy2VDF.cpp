@@ -465,7 +465,7 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 	string metafile = argv[argc-1];
 	
 	if (DCData==NULL){
-		if (dataType == "ROMS") DCData = new DCReaderROMS(ncdffiles); 
+		if ((dataType == "ROMS") || (dataType == "CAM")) DCData = new DCReaderROMS(ncdffiles); 
 		else if (dataType == "GRIMs") DCData = new DCReaderGRIB(ncdffiles);
 		else DCData = new DCReaderMOM(ncdffiles);
 	}

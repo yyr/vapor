@@ -318,7 +318,7 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 		 ncdffiles.push_back(argv[i]);
 	}
 	
-    if (NetCDFtype == "ROMS") DCdata = new DCReaderROMS(ncdffiles);
+    if ((NetCDFtype == "ROMS") || (NetCDFtype == "CAM")) DCdata = new DCReaderROMS(ncdffiles);
     else if (NetCDFtype == "GRIMs") {
 		if (_numTS != -1){
 			if (ncdffiles.size()<2) {

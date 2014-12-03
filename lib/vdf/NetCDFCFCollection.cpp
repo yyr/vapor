@@ -1419,129 +1419,129 @@ NetCDFCFCollection::DerivedVar_AHSPC::~DerivedVar_AHSPC() {
 int NetCDFCFCollection::DerivedVar_AHSPC::Open(size_t ts) {
 
 	if (_is_open) return(0);    // Only open first time step
-    if (! _ok) {
-        SetErrMsg("Missing forumla terms");
-        return(-1);
-    }
+	if (! _ok) {
+        	SetErrMsg("Missing forumla terms");
+        	return(-1);
+	}
 
-    _slice_num = 0;
+	_slice_num = 0;
 
-    size_t nx = _dims[2];
-    size_t ny = _dims[1];
-    size_t nz = _dims[0];
+	size_t nx = _dims[2];
+	size_t ny = _dims[1];
+	size_t nz = _dims[0];
 
-    int rc;
-    double mv;
+	int rc;
+	double mv;
 
-    // If Z3 exists, populate it, otherwise we derive Z2.
-    if (_ncdfc->VariableExists("Z3")) {
-        int fd = _ncdfc->OpenRead(ts, "Z3"); if (fd<0) return(-1);
-        rc = _ncdfc->Read(_Z3, fd); if (rc<0) return(-1);
-        rc = _ncdfc->Close(fd); if (rc<0) return(-1);
-        if (_ncdfc->GetMissingValue("Z3", mv)) {
-            for (size_t i=0; i<nx*ny*nz; i++) {
-                if (_Z3[i] == mv) _Z3[i] = 0.0;
-            }
-        }
-    }
-    else {
-        // PS - Surface Pressure
-        int fd = _ncdfc->OpenRead(ts, "PS"); if (fd<0) return(-1);
-        rc = _ncdfc->Read(PS, fd); if (rc<0) return(-1);
-        rc = _ncdfc->Close(fd); if (rc<0) return(-1);
-        if (_ncdfc->GetMissingValue("PS", mv)) {   // zero out any mv
-            for (size_t i=0; i<nx*ny; i++) {
-                if (PS[i] == mv) PS[i] = 0.0;
-            }
-        }
+	// If Z3 exists, populate it, otherwise we derive Z2.
+	if (_ncdfc->VariableExists("Z3")) {
+		int fd = _ncdfc->OpenRead(ts, "Z3"); if (fd<0) return(-1);
+		rc = _ncdfc->Read(_Z3, fd); if (rc<0) return(-1);
+		rc = _ncdfc->Close(fd); if (rc<0) return(-1);
+		if (_ncdfc->GetMissingValue("Z3", mv)) {
+			for (size_t i=0; i<nx*ny*nz; i++) {
+				if (_Z3[i] == mv) _Z3[i] = 0.0;
+			}
+		}
+	}
+	else {
+		// PS - Surface Pressure
+		int fd = _ncdfc->OpenRead(ts, "PS"); if (fd<0) return(-1);
+		rc = _ncdfc->Read(PS, fd); if (rc<0) return(-1);
+		rc = _ncdfc->Close(fd); if (rc<0) return(-1);
+		if (_ncdfc->GetMissingValue("PS", mv)) {   // zero out any mv
+			for (size_t i=0; i<nx*ny; i++) {
+				if (PS[i] == mv) PS[i] = 0.0;
+			}
+	        }
 
-        // PHIS - Surface Geopotential Height
-        if (_ncdfc->VariableExists("PHIS")){	
+		// PHIS - Surface Geopotential Height
+		if (_ncdfc->VariableExists("PHIS")){	
 			fd = _ncdfc->OpenRead(ts, "PHIS");
 			if (fd<0) {
-            	for (size_t i=0; i<nx*ny; i++) {
-                	PHIS[i] = 0.0;
-        		}
-        	}
+				for (size_t i=0; i<nx*ny; i++) {
+					PHIS[i] = 0.0;
+				}
+			}
         
-            rc = _ncdfc->Read(PHIS, fd); if (rc<0) return(-1);
-            rc = _ncdfc->Close(fd); if (rc<0) return(-1);
-            if (_ncdfc->GetMissingValue("PHIS", mv)) {   // zero out any mv
-                for (size_t i=0; i<nx*ny; i++) {
-                    if (PHIS[i] == mv) PHIS[i] = 0.0;
-                }
-            }
+			rc = _ncdfc->Read(PHIS, fd); if (rc<0) return(-1);
+			rc = _ncdfc->Close(fd); if (rc<0) return(-1);
+			if (_ncdfc->GetMissingValue("PHIS", mv)) {   // zero out any mv
+				for (size_t i=0; i<nx*ny; i++) {
+					if (PHIS[i] == mv) PHIS[i] = 0.0;
+				}
+			}
 		}	
 		else{
 			for (size_t i=0; i<nx*ny; i++) {
-                PHIS[i] = 0.0; 
-            }   
-        }
+	        	        PHIS[i] = 0.0; 
+			}   
+		}
 
-        // T - Temperature (Virtual)
-        fd = _ncdfc->OpenRead(ts, "T"); if (fd<0) return(-1);
-        rc = _ncdfc->Read(TV, fd); if (rc<0) return(-1);
-        rc = _ncdfc->Close(fd); if (rc<0) return(-1);
-        if (_ncdfc->GetMissingValue("T", mv)) {   // zero out any mv
-            for (size_t i=0; i<nx*ny; i++) {
-                if (TV[i] == mv) TV[i] = 0.0;
-            }
-        }
+		// T - Temperature (Virtual)
+		fd = _ncdfc->OpenRead(ts, "T"); if (fd<0) return(-1);
+		rc = _ncdfc->Read(TV, fd); if (rc<0) return(-1);
+		rc = _ncdfc->Close(fd); if (rc<0) return(-1);
+		if (_ncdfc->GetMissingValue("T", mv)) {   // zero out any mv
+			for (size_t i=0; i<nx*ny; i++) {
+				if (TV[i] == mv) TV[i] = 0.0;
+			}
+		}
 
-        // P0 - CAM pressure constant
-        fd = _ncdfc->OpenRead(ts,"P0"); if (fd<0) return(-1);
-        rc = _ncdfc->Read(&P0, fd); if (rc<0) return(-1);
-        rc = _ncdfc->Close(fd); if (rc<0) return(-1);
+		// P0 - CAM pressure constant
+		fd = _ncdfc->OpenRead(ts,"P0"); if (fd<0) return(-1);
+		rc = _ncdfc->Read(&P0, fd); if (rc<0) return(-1);
+		rc = _ncdfc->Close(fd); if (rc<0) return(-1);
 
-        // HYAM - Hybrid A midpoint coefficients
-        fd = _ncdfc->OpenRead(ts, "hyam"); if (fd<0) return(-1);
-        rc = _ncdfc->Read(HYAM, fd); if (rc<0) return(-1);
-        rc = _ncdfc->Close(fd); if (rc<0) return(-1);
-        if (_ncdfc->GetMissingValue("hyam", mv)) {
-            for (size_t i=0; i<nz; i++) {
-                if (HYAM[i] == mv) HYAM[i] = 0.0;
-            }
-        }
+		// HYAM - Hybrid A midpoint coefficients
+		fd = _ncdfc->OpenRead(ts, "hyam"); if (fd<0) return(-1);
+		rc = _ncdfc->Read(HYAM, fd); if (rc<0) return(-1);
+		rc = _ncdfc->Close(fd); if (rc<0) return(-1);
+		if (_ncdfc->GetMissingValue("hyam", mv)) {
+			for (size_t i=0; i<nz; i++) {
+				if (HYAM[i] == mv) HYAM[i] = 0.0;
+			}
+		}
 
-        // HYBM - Hybrid B midpoint coefficients
-        fd = _ncdfc->OpenRead(ts, "hybm"); if (fd<0) return(-1);
-        rc = _ncdfc->Read(HYBM, fd); if (rc<0) return(-1);
-        rc = _ncdfc->Close(fd); if (rc<0) return(-1);
-        if (_ncdfc->GetMissingValue("hybm", mv)) {
-            for (size_t i=0; i<nz; i++) {
-                if (HYBM[i] == mv) HYBM[i] = 0.0;
-            }
-        }
+		// HYBM - Hybrid B midpoint coefficients
+		fd = _ncdfc->OpenRead(ts, "hybm"); if (fd<0) return(-1);
+		rc = _ncdfc->Read(HYBM, fd); if (rc<0) return(-1);
+		rc = _ncdfc->Close(fd); if (rc<0) return(-1);
+		if (_ncdfc->GetMissingValue("hybm", mv)) {
+			for (size_t i=0; i<nz; i++) {
+				if (HYBM[i] == mv) HYBM[i] = 0.0;
+			}
+		}
 
-        // HYAI - Hybrid A interface coefficients
-        fd = _ncdfc->OpenRead(ts, "hyai"); if (fd<0) return(-1);
-        rc = _ncdfc->Read(HYAI, fd); if (rc<0) return(-1);
-        rc = _ncdfc->Close(fd); if (rc<0) return(-1);
-        if (_ncdfc->GetMissingValue("hyai", mv)) {
-            for (size_t i=0; i<nz; i++) {
-                if (HYAI[i] == mv) HYAI[i] = 0.0;
-            }
-        }
+		// HYAI - Hybrid A interface coefficients
+		fd = _ncdfc->OpenRead(ts, "hyai"); if (fd<0) return(-1);
+		rc = _ncdfc->Read(HYAI, fd); if (rc<0) return(-1);
+		rc = _ncdfc->Close(fd); if (rc<0) return(-1);
+		if (_ncdfc->GetMissingValue("hyai", mv)) {
+			for (size_t i=0; i<nz; i++) {
+				if (HYAI[i] == mv) HYAI[i] = 0.0;
+			}
+		}
 
-        // HYBI - Hybrid B interface coefficients
-        fd = _ncdfc->OpenRead(ts, "hybi"); if (fd<0) return(-1);
-        rc = _ncdfc->Read(HYBI, fd); if (rc<0) return(-1);
-        rc = _ncdfc->Close(fd); if (rc<0) return(-1);
-        if (_ncdfc->GetMissingValue("hybi", mv)) {
-                for (size_t i=0; i<nz; i++) {
-                if (HYBI[i] == mv) HYBI[i] = 0.0;
-            }
-        }
+		// HYBI - Hybrid B interface coefficients
+		fd = _ncdfc->OpenRead(ts, "hybi"); if (fd<0) return(-1);
+		rc = _ncdfc->Read(HYBI, fd); if (rc<0) return(-1);
+		rc = _ncdfc->Close(fd); if (rc<0) return(-1);
+		if (_ncdfc->GetMissingValue("hybi", mv)) {
+			for (size_t i=0; i<nz; i++) {
+				if (HYBI[i] == mv) HYBI[i] = 0.0;
+			}
+		}
 
-        int rc = NetCDFCFCollection::DerivedVar_AHSPC::CalculateElevation();
-
+		int rc = NetCDFCFCollection::DerivedVar_AHSPC::CalculateElevation();
+	
 		if (rc>0) {
-            SetErrMsg("Unable to calculate vertical elevation slice");
-            return(-1);
-        } 
+			SetErrMsg("Unable to calculate vertical elevation slice");
+			return(-1);
+		} 
 
-        _is_open = true;
-    }
+		_is_open = true;
+	}
 	return(0);
 }
 
