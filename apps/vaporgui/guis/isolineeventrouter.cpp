@@ -588,84 +588,62 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	}
 	double prevMinIso = 1.e30, prevMaxIso = -1.e30;
 	const vector<double>& prevIsoVals = isolineParams->GetIsovalues(); 
-	//Determine previous min/max of isovalues
+	//Determine previous min/max of isovalues and previous spacing
 	for (int i = 0; i<prevIsoVals.size(); i++){
 		if (prevIsoVals[i]<prevMinIso) prevMinIso = prevIsoVals[i];
 		if (prevIsoVals[i]>prevMaxIso) prevMaxIso = prevIsoVals[i];
 	}
-	//Determine if the histo interval has changed, and if the isovalue interval has changed.
+	double prevSpacing = prevIsoVals[prevIsoVals.size()-1] - prevIsoVals[0];
+	if (prevIsoVals.size()>1) prevSpacing = prevSpacing/(double)(prevIsoVals.size() -1);
+	float prevBnds[2];
+	isolineParams->GetHistoBounds(prevBnds);
+	//Determine if either the minIso, numIsos or isoSpace has changed.  
+	bool isoIntervalChanged = false;
+	if (numIsos != isolineParams->getNumIsovalues()) isoIntervalChanged = true;
+	if (abs(prevMinIso - minIso) > .001*(prevBnds[1]-prevBnds[0])) isoIntervalChanged = true;
+	if (abs(isoSpace - prevSpacing) > .001*(prevBnds[1]-prevBnds[0])) isoIntervalChanged = true;
+	if (numIsos != isolineParams->getNumIsovalues()){
+		//If the number was previously one, then also need to make sure the spacing is nonzero
+		if (isolineParams->getNumIsovalues() == 1){
+			if (isoSpace <= 0.) isoSpace = 0.1*(prevBnds[1]-prevBnds[0]);
+		}
+		isoIntervalChanged = true;
+	}
+
+	//If isoIntervalChanged is true, then just generate the isovalues based on the interval:
+	if (isoIntervalChanged){
+
+		ivalues.clear();
+		for (int i = 0; i<numIsos; i++){
+			ivalues.push_back(minIso + (double)i*isoSpace);
+		}
+		isolineParams->SetIsovalues(ivalues);
+	} 
+
+	//Determine if the histo interval has changed
 	//If the isovalue interval changed and the histo interval did not change, then make the histo interval as large as
 	//the isovalue interval.  If the histo interval is invalid, make it include the iso interval
 	float bnds[2];
 	bnds[0] = leftHistoEdit->text().toFloat();
 	bnds[1] = rightHistoEdit->text().toFloat();
-	
-	if (maxIso < minIso) maxIso = minIso;
-	bool isoBoundsChanged = false;
-	
-	//If the number of isovalues is changing from 1 to a value >1, and if the
-	//min and max are the same, then expand the min/max interval by .5 times the 
-	//histo interval.
-	
-	
-	if (maxIso > minIso && numIsos == 1){
-		maxIso = minIso;
-	}
-	if (maxIso == minIso && numIsos > 1) {
-		maxIso = minIso + 0.5*(bnds[1]-bnds[0]);
-	}
-	if (abs(minIso-prevMinIso) > 0.005*(prevIsoMax-prevIsoMin)) isoBoundsChanged = true;
-	if (abs(maxIso-prevMaxIso) > 0.005*(prevIsoMax-prevIsoMin)) isoBoundsChanged = true;
-	
-	
-	bool isovaluesChanged = isoBoundsChanged;
-	if (bnds[0] >= bnds[1]){ //fix invalid settings...
+
+	if (bnds[0] >= bnds[1] ){ //fix invalid settings
 		bnds[0] = minIso - 0.1*(maxIso-minIso);
 		bnds[1] = maxIso + 0.1*(maxIso-minIso);
 	}
-	float prevBnds[2];
-	isolineParams->GetHistoBounds(prevBnds);
+	//make the histo interval include all the isovalues:
+	if (isoIntervalChanged){
+		if (bnds[0] > minIso) bnds[0] = minIso - 0.1*(maxIso-minIso);
+		if (bnds[1] < maxIso) bnds[1] = maxIso + 0.1*(maxIso-minIso);
+	}
 	bool histoBoundsChanged = false;
 	if (abs(prevBnds[0]-bnds[0]) >0.005*(prevBnds[1]-prevBnds[0])) histoBoundsChanged = true;
 	if (abs(prevBnds[1]-bnds[1]) >0.005*(prevBnds[1]-prevBnds[0])) histoBoundsChanged = true;
 
-	if (isoBoundsChanged && !histoBoundsChanged){
-		if (bnds[0] > minIso) { bnds[0] = minIso; histoBoundsChanged = true;}
-		if (bnds[1] < maxIso) { bnds[1] = maxIso; histoBoundsChanged = true;}
-	}
-	
-	
-	ivalues.push_back(minIso);
-	//Did numIso's change?  If so set intermediate values based on end points.
-	if (numIsos != isolineParams->getNumIsovalues()){
-		//Set intermediate isovalues based on end points
-		
-		for (int i = 1; i<numIsos; i++){
-			ivalues.push_back(minIso + (maxIso - minIso)*(float)i/(float)(numIsos-1));
-		}
-		isovaluesChanged = true;
-	// rescale isovalues to use new interval
-	} else if (isoBoundsChanged && numIsos > 1){
-		ivalues.clear();
-		for (int i = 0; i< numIsos; i++){
-			double frac = (prevIsoVals[i]-prevMinIso)/(prevMaxIso-prevMinIso);
-			ivalues.push_back(minIso+frac*(maxIso-minIso));
-		}
-		isovaluesChanged = true;
-	} 
-	if(isovaluesChanged) isolineParams->SetIsovalues(ivalues);
-	if (isoBoundsChanged){
-		minIsoEdit->setText(QString::number(minIso));
-		if (numIsos >1)
-			isoSpaceEdit->setText(QString::number((maxIso-minIso)/(double)numIsos));
-		else
-			isoSpaceEdit->setText(QString::number(0.));
-	}
-	countIsoEdit->setText(QString::number(ivalues.size()));
-	
+	//Rescale the isovalues if just the histo bounds changed
 	if(histoBoundsChanged) {
 		isolineParams->SetHistoBounds(bnds);
-		if (bnds[0] > minIso || bnds[1] < maxIso){
+		if (!isoIntervalChanged && (bnds[0] > minIso || bnds[1] < maxIso)){
 			fitIsovalsToHisto(isolineParams);
 		}
 	}
@@ -2988,6 +2966,7 @@ guiSetUseSingleColor(bool val){
 	setIsolineDirty(iParams);
 	VizWinMgr::getInstance()->forceRender(iParams);
 }
+//Rescale isovalues to fit in histo
 void IsolineEventRouter::fitIsovalsToHisto(IsolineParams* iParams){
 	float bounds[2];
 	iParams->GetHistoBounds(bounds);

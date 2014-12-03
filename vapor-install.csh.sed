@@ -49,6 +49,8 @@ if (! $?vapor_root) set vapor_root = $directory
 if (! $?lib_search_dirs) set lib_search_dirs = $vapor_root/lib
 if (! $?bindir) set bindir = $vapor_root/bin
 if (! $?mandir) set mandir = $vapor_root/share/man
+set sharedir = $vapor_root/share
+
 
 echo directory = $directory
 
@@ -123,7 +125,9 @@ set old2 = 'set[ 	][ 	]*bindir[ 	][ 	]*=.*$'
 set new2 = "set bindir = $bindir"
 set old3 = 'set[ 	][ 	]*mandir[ 	][ 	]*=.*$'
 set new3 = "set mandir = $mandir"
-$sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#$new3#" < $dir/vapor-setup.csh >! $dir/vapor-setup.tmp
+set old4 = 'set[ 	][ 	]*sharedir[ 	][ 	]*=.*$'
+set new4 = "set sharedir = $sharedir"
+$sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#$new3#" -e "s#$old4#$new4#" < $dir/vapor-setup.csh >! $dir/vapor-setup.tmp
 /bin/mv $dir/vapor-setup.tmp $dir/vapor-setup.csh
 
 
@@ -135,7 +139,9 @@ set old2 = 'bindir=.*$'
 set new2 = "bindir=$bindir"
 set old3 = 'mandir=.*$'
 set new3 = "mandir=$mandir"
-$sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#$new3#" < $dir/vapor-setup.sh >! $dir/vapor-setup.tmp
+set old4 = 'sharedir=.*$'
+set new4 = "sharedir=$sharedir"
+$sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#$new3#" -e "s#$old4#$new4#"< $dir/vapor-setup.sh >! $dir/vapor-setup.tmp
 /bin/mv $dir/vapor-setup.tmp $dir/vapor-setup.sh
 
 #
@@ -145,20 +151,23 @@ $sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#
 # N.B. patchelf program seems to break stripped libraries. So we skip
 # them. Fortunately, only need to set RUNPATH for libs that depend
 # on other libs, and none of the stripped libs have recursive
-# dependencies
+# dependencies. N.B. patchelf doesn't work with symlinks either.
 #
 if ("$arch" == "Linux") then
-    foreach f ($directory/bin/* $directory/lib/*)
-        file $f | grep ELF | grep -q "not stripped"
+#    foreach f ($directory/bin/* $directory/lib/*)
+    foreach f ($directory/bin/*)
+        file -L $f | grep ELF | grep -q "not stripped"
         if ( $status == 0 && ! -l $f && $f != $directory/bin/patchelf) then
             $directory/bin/patchelf --set-rpath $directory/lib $f
         endif
     end
 
 	#
-	# now do plugins - strip test doesn't work. sigh 
-    foreach f ($directory/plugins/*/*)
-        file $f | grep -q ELF 
+	# now do libraries  and plugins
+	#
+    foreach f (`find $directory/lib $directory/plugins -name \*.so -o -name \*.so.\*`)
+        #file -L $f | grep -q ELF 
+        file -L $f | grep ELF | grep -q "not stripped"
         if ( $status == 0 && ! -l $f ) then
             $directory/bin/patchelf --set-rpath $directory/lib $f
         endif
