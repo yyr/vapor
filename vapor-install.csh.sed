@@ -154,7 +154,8 @@ $sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#
 # dependencies
 #
 if ("$arch" == "Linux") then
-    foreach f ($directory/bin/* $directory/lib/*)
+#    foreach f ($directory/bin/* $directory/lib/*)
+    foreach f ($directory/bin/*)
         file $f | grep ELF | grep -q "not stripped"
         if ( $status == 0 && ! -l $f && $f != $directory/bin/patchelf) then
             $directory/bin/patchelf --set-rpath $directory/lib $f
@@ -163,7 +164,7 @@ if ("$arch" == "Linux") then
 
 	#
 	# now do plugins - strip test doesn't work. sigh 
-    foreach f ($directory/plugins/*/*)
+    foreach f (`find $directory/lib $directory/plugins -name \*.so`)
         file $f | grep -q ELF 
         if ( $status == 0 && ! -l $f ) then
             $directory/bin/patchelf --set-rpath $directory/lib $f
