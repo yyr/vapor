@@ -974,7 +974,7 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 		char error[50];
 		sprintf(error,"ERROR: Unable to create grib_handle from file %s.",file.c_str());
 		MyBase::SetErrMsg(error);
-		return 0;
+		return -1;
 	}
 
 	_grib_count=0;  
