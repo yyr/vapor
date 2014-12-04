@@ -131,9 +131,10 @@ int DCReaderGRIB::OpenVariableRead(size_t timestep, string varname,
 	
 	_inFile = fopen(filename.c_str(),"rb");
 	if(!_inFile) {
-		char err[50];
-		sprintf(err,"ERROR: unable to open file %s",filename.c_str());
-		MyBase::SetErrMsg(err);
+		//char err[50];
+		//sprintf(err,"ERROR: unable to open file %s",filename.c_str());
+		//MyBase::SetErrMsg(err);
+		MyBase::SetErrMsg("ERROR: unable to open file %s",filename.c_str());
 		return -1; 
 	}
 
@@ -181,9 +182,10 @@ int DCReaderGRIB::ReadSlice(float *values){
 	int err;
 	grib_handle* h = grib_handle_new_from_file(0,_inFile,&err);
 	if (h == NULL) {
-		char erro[50];
-		sprintf(erro,"Error: unable to create handle from file %s",filename.c_str());
-		MyBase::SetErrMsg(erro);
+		//char erro[50];
+		//sprintf(erro,"Error: unable to create handle from file %s",filename.c_str());
+		//MyBase::SetErrMsg(erro);
+		MyBase::SetErrMsg("Error: unable to create handle from file %s",filename.c_str());
 		return -1;
 	}   
 
@@ -432,9 +434,10 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	for (int i=0; i<files.size(); i++){
 		rc = parser->_LoadRecordKeys(files[i]);
 		if (rc !=0) {
-			char error[50];
-			sprintf(error,"ERROR: Unable to operate on file %s.  Program aborting.",files[i].c_str());
-			MyBase::SetErrMsg(error);
+			//char error[50];
+			//sprintf(error,"ERROR: Unable to operate on file %s.  Program aborting.",files[i].c_str());
+			//MyBase::SetErrMsg(error);
+			MyBase::SetErrMsg("ERROR: Unable to operate on file %s.  Program aborting.",files[i].c_str());
 			return -1;
 		}
 	}
@@ -887,9 +890,10 @@ DCReaderGRIB::GribParser::GribParser() {
 int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 	FILE* _in = fopen(file.c_str(),"rb");
 	if(!_in) {
-		char error[50];
-		sprintf(error,"ERROR: unable to open file %s.",file.c_str());
-		MyBase::SetErrMsg(error);
+		//char error[50];
+		//sprintf(error,"ERROR: unable to open file %s.",file.c_str());
+		//MyBase::SetErrMsg(error);
+		MyBase::SetErrMsg("ERROR: unable to open file %s.",file.c_str());
 		return -1;
 	} 
 
@@ -971,10 +975,11 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 
 	// if offset did not increment, we read no grib records and were given an invalid file
 	if (offset == 0) {
-		char error[50];
-		sprintf(error,"ERROR: Unable to create grib_handle from file %s.",file.c_str());
-		MyBase::SetErrMsg(error);
-		return 0;
+		//char error[50];
+		//sprintf(error,"ERROR: Unable to create grib_handle from file %s.",file.c_str());
+		//MyBase::SetErrMsg(error);
+		MyBase::SetErrMsg("ERROR: Unable to create grib_handle from file %s.",file.c_str());
+		return -1;
 	}
 
 	_grib_count=0;  
@@ -985,8 +990,6 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 int DCReaderGRIB::GribParser::_VerifyKeys() {
 	int numRecords = _recordKeys.size();
  
-	int n; 
-	char error[50];
 	string dataDate = _recordKeys[0]["dataDate"];
 	string dataTime = _recordKeys[0]["dataTime"];
 	string P2 = _recordKeys[0]["P2"];
@@ -1002,16 +1005,18 @@ int DCReaderGRIB::GribParser::_VerifyKeys() {
 			(strcmp(grid.c_str(),"polar_stereographic")!=0) &&
 			(strcmp(grid.c_str(),"lambert")) && 
 			(strcmp(grid.c_str(),"mercator"))) {
-			n=sprintf(error,"Error: Invalid grid specification ('%s') for Record No. %d",grid.c_str(),i);
-			MyBase::SetErrMsg(error);
+			//n=sprintf(error,"Error: Invalid grid specification ('%s') for Record No. %d",grid.c_str(),i);
+			//MyBase::SetErrMsg(error);
+			MyBase::SetErrMsg("Error: Invalid grid specification ('%s') for Record No. %d",grid.c_str(),i);
 			return -1;
 		} 
 
 		for (size_t k=0; k<_consistentKeys.size(); k++) {
 			// Check for inconsistent key across multiple records
 			if (_recordKeys[i][_consistentKeys[k]].compare(_recordKeys[0][_consistentKeys[k]]) != 0) {
-				n=sprintf(error,"Error: Inconsistent key found in Record No. %i, Key: %s",i,_consistentKeys[k].c_str());
-				MyBase::SetErrMsg(error);
+				//n=sprintf(error,"Error: Inconsistent key found in Record No. %i, Key: %s",i,_consistentKeys[k].c_str());
+				//MyBase::SetErrMsg(error);
+				MyBase::SetErrMsg("Error: Inconsistent key found in Record No. %i, Key: %s",i,_consistentKeys[k].c_str());
 				return -1;
 			}
 		}
