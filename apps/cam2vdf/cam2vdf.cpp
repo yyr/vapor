@@ -9,7 +9,8 @@ int main(int argc, char **argv) {
 		
 	MyBase::SetErrMsgFilePtr(stderr);
 	Copy2VDF copy2vdf;
-	string command = "ROMS";
+//	string command = "ROMS";
+	string command = "CAM";
 	int rc = copy2vdf.launch2vdf(argc, argv, command);
 
 	if (rc == 0) exit(0);    

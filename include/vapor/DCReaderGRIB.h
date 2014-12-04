@@ -204,6 +204,7 @@ class UDUnits;
 		 int _VerifyKeys();					// verifies that key/values conform to our reqs
 		 //DCReaderGRIB* GetDCReaderGRIB() {return _metadata;}
 		 std::vector<std::map<std::string, std::string> > GetRecords() {return _recordKeys;}
+		 int doWeIgnoreForecastTimes() {return _ignoreForecastTimes;}
 
 		private:
 		 int _err;
@@ -211,6 +212,7 @@ class UDUnits;
 		 std::vector<std::string> _consistentKeys;
 		 std::vector<std::string> _varyingKeys;
 		 bool _recordKeysVerified;
+		 int _ignoreForecastTimes;
 		 DCReaderGRIB *_metadata;
 
 		 // vars for key iteration 
