@@ -9,6 +9,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <iostream>
 #include <vapor/MyBase.h>
 #include <vapor/BlkMemMgr.h>
 #include <vapor/common.h>
@@ -467,6 +468,12 @@ public:
  //! \sa GetCoordinateVariables()
  //
  virtual bool IsCoordinateVariable(string varname) const;
+
+ //! Print out contents of data cache
+ //!
+ //! Debugging method for dumping out the contents of the data cache
+ //!
+ void PrintCache(std::ostream &o);
 
 protected:
 

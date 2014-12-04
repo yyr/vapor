@@ -2833,18 +2833,43 @@ void GLWindow::ConvertAxes(bool toLatLon, const int ticDirs[3], const double fro
 		DataStatus::convertToLonLat(xmin);
 		DataStatus::convertToLonLat(ymin);
 		DataStatus::convertToLonLat(xmax);
+		
 		DataStatus::convertToLonLat(ymax);
 		DataStatus::convertToLonLat(toOrigin);
+		if (xmax[0] < xmin[0]) xmax[0]+= 360.;
+		if (xmax[0] > 361.){
+			xmax[0] -= 360.;
+			xmin[0] -= 360.;
+			toOrigin[0] -= 360.;
+		}
+		if (xmin[0] <= -360.){
+			xmax[0] += 360.;
+			xmin[0] += 360.;
+			toOrigin[0] += 360.;
+		}
 		
 	} else {
 		//Convert lat/lon to user
+		//First find lat/lon of min/max extents:
+		const vector<double>& exts = DataStatus::getInstance()->getDataMgr()->GetExtents();
+		double cvExts[4];
+		cvExts[0] = exts[0];
+		cvExts[1] = exts[1];
+		cvExts[2] = exts[3];
+		cvExts[3] = exts[4];
+		DataStatus::convertToLonLat(cvExts,2);
+		if (cvExts[2] <= cvExts[0]) cvExts[2] = cvExts[2]+360.;
+		if (cvExts[2] > 360.){
+			cvExts[2] -= 360.;
+			cvExts[0] -= 360.;
+		}
 		//convert user coords at axis annotation ends from lat/lon to user
-		
-		DataStatus::convertFromLonLat(xmin);
-		DataStatus::convertFromLonLat(ymin);
-		DataStatus::convertFromLonLat(xmax);
-		DataStatus::convertFromLonLat(ymax);
-		DataStatus::convertFromLonLat(toOrigin);
+	
+		flatConvertFromLonLat(xmin, cvExts[0], cvExts[2], exts[0], exts[3]);
+		flatConvertFromLonLat(xmax, cvExts[0], cvExts[2], exts[0], exts[3]);
+		flatConvertFromLonLat(ymin, cvExts[0], cvExts[2], exts[0], exts[3]);
+		flatConvertFromLonLat(ymax, cvExts[0], cvExts[2], exts[0], exts[3]);
+		flatConvertFromLonLat(toOrigin, cvExts[0], cvExts[2], exts[0], exts[3]);
 		
 	}
 	//Set min/max tic from xmin,xmax,ymin,ymax
@@ -2936,6 +2961,23 @@ void GLWindow::clearTextObjects(Renderer* ren){
 	//Now remove these textObjects from the mapping.
 	map<Renderer*, vector<TextObject*> >::iterator it = textObjectMap.find(ren);
 	textObjectMap.erase(it);
+}
+void GLWindow::flatConvertFromLonLat(double x[2], double minLon, double maxLon, double minX, double maxX){
+	if (x[1] > 90.) x[1] = 90.;
+	if (x[1] < -90.) x[1] = -90.;
+	//Extend the conversion linearly if the point is outside the lon extents.
+	
+	if( x[0] < minLon){
+		x[0] = 2.*minLon - x[0];
+		DataStatus::convertFromLonLat(x);
+		x[0] = 2.*minX - x[0];
+	} else if (x[0] > maxLon){
+		x[0] = 2.*maxLon -x[0];
+		DataStatus::convertFromLonLat(x);
+		x[0] = 2.*maxX - x[0];
+	} else {
+		DataStatus::convertFromLonLat(x);
+	}
 }
 
 #ifdef	Darwin

@@ -242,6 +242,7 @@ RegularGrid *DataMgr::GetGrid(
 	const size_t max[3],
 	bool	lock
 ) {
+
 	RegularGrid *rg = NULL;
 	bool ondisk = false;
 
@@ -1078,6 +1079,7 @@ float	*DataMgr::alloc_region(
 	while (! (blks = (float *) _blk_mem_mgr->Alloc(nblocks, fill))) {
 		if (free_lru() < 0) {
 			SetErrMsg("Failed to allocate requested memory");
+			 //DataMgr::PrintCache(cerr);
 			return(NULL);
 		}
 	}
@@ -1169,6 +1171,28 @@ void	DataMgr::free_var(const string &varname, int do_native) {
 
 }
 
+void DataMgr::PrintCache(std::ostream &o) {
+
+	// The least recently used region is at the front of the list
+	//
+	list <region_t>::iterator itr;
+	int i = 0;
+	for(itr = _regionsList.begin(); itr!=_regionsList.end(); itr++) {
+		const region_t &region = *itr;
+		o << "Cached region " << i << endl;
+		o << "	ts: " << region.ts << endl;
+		o << "	varname: " << region.varname << endl;
+		o << "	reflevel: " << region.reflevel << endl;
+		o << "	lod: " << region.lod << endl;
+		o << "	min: " << region.min[0] << " " << region.min[1] 
+			<< " " << region.min[2] << endl;
+		o << "	max: " << region.max[0] << " " << region.max[1] 
+			<< " " << region.max[2] << endl;
+		o << "	lock_counter: " << region.lock_counter << endl;
+		o << "	blks: " << region.blks << endl;
+		o << endl;
+	}
+}
 
 int	DataMgr::free_lru(
 ) {
