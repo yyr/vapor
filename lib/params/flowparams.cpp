@@ -2460,6 +2460,7 @@ mapUnsteadyColors(PathLineData* container, int startTimeStep, int minFrame, Regi
 		int rc = 0;
 		if (nextDataTime == currentTimestep && nextDataTime == nextTimestep) { //case (2)
 			//delete currData, set currData = nextData, no allocation needed
+			dataMgr->UnlockGrid(currData);
 			delete currData;
 			numGrids--;
 			currData = nextData;
@@ -2468,6 +2469,7 @@ mapUnsteadyColors(PathLineData* container, int startTimeStep, int minFrame, Regi
 		} else if (nextDataTime == currentTimestep && nextDataTime != nextTimestep){//case (3)
 			//Delete currData, set currData = nextData
 			if (nextData != currData) {
+				dataMgr->UnlockGrid(currData);
 				delete currData;
 				numGrids--;
 			}
@@ -2485,6 +2487,7 @@ mapUnsteadyColors(PathLineData* container, int startTimeStep, int minFrame, Regi
 		} else if (currDataTime == nextDataTime && currentTimestep == nextTimestep && currentTimestep != currDataTime){//case 4a
 			//delete currData, allocate one new grid for both currData and nextData
 			if (currData) {
+				dataMgr->UnlockGrid(currData);
 				delete currData;
 				numGrids--;
 			}
@@ -2502,6 +2505,7 @@ mapUnsteadyColors(PathLineData* container, int startTimeStep, int minFrame, Regi
 		} else if (currDataTime == nextDataTime && currentTimestep != nextTimestep && currentTimestep != currDataTime ) {//case 4b
 			//allocate a new currData and a new nextData
 			if(currData) {
+				dataMgr->UnlockGrid(currData);
 				delete currData;
 				numGrids--;
 			}
@@ -2566,8 +2570,13 @@ mapUnsteadyColors(PathLineData* container, int startTimeStep, int minFrame, Regi
 			}
 		} //End loop over lines 
 	} //end loop over indx
-	if (currData) {delete currData;numGrids--;}
+	if (currData) {
+		dataMgr->UnlockGrid(currData);
+		delete currData;
+		numGrids--;
+	}
 	if (nextData && nextData != currData) {
+		dataMgr->UnlockGrid(nextData);
 		delete nextData;
 		numGrids--;
 	}
