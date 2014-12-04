@@ -559,6 +559,16 @@ copyFromDialog(){
 	labelDigits = vizFeatureDlg->labelDigitsEdit->text().toInt();
 	ticWidth = vizFeatureDlg->ticWidthEdit->text().toFloat();
 	useLatLon = vizFeatureDlg->latLonCheckbox->isChecked();
+	if (useLatLon){ //force valid latitude
+		if (minTic[1] < -90.) minTic[1] = -90.;
+		if (maxTic[1] > 90.) maxTic[1] = 90.;
+		if (axisOriginCoords[1] < -90.) axisOriginCoords[1] = -90.;
+		if (axisOriginCoords[1] > 90.) axisOriginCoords[1] = 90.;
+		
+		vizFeatureDlg->axisOriginYEdit->setText(QString::number(axisOriginCoords[1]));
+		vizFeatureDlg->yMinTicEdit->setText(QString::number(minTic[1]));
+		vizFeatureDlg->yMaxTicEdit->setText(QString::number(maxTic[1]));
+	}
 
 	axisAnnotationColor = tempAxisAnnotationColor;
 

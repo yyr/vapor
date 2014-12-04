@@ -555,7 +555,8 @@ protected:
 		}
 		return -1;
 	}
-	
+	//This method converts lon lat to user coords, assuming a "flat" earth so axes will not wrap.
+	static void flatConvertFromLonLat(double x[2], double minLon, double maxLon, double minX, double maxX);
 	std::vector<QImage> axisLabels[3];
 	
 	bool axisLabelsDirty;
