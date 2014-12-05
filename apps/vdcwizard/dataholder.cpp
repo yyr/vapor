@@ -244,13 +244,15 @@ string DataHolder::getPopDataCmd() {
 		argv.push_back("-nthreads");
 		argv.push_back(PDnumThreads);
 	}   
-	
-	argv.push_back("-numts");
-	argv.push_back(PDnumTS);
+
+	if (getFileType() != "GRIMs") {	
+		argv.push_back("-numts");
+		argv.push_back(PDnumTS);
   
-	argv.push_back("-startts");
-	argv.push_back(PDstartTime);
-  
+		argv.push_back("-startts");
+		argv.push_back(PDstartTime);
+	}  
+
 	if (PDSelectedVars.size() != 0) {
 		argv.push_back("-vars");
 
@@ -406,16 +408,20 @@ int DataHolder::run2VDFcomplete() {
 		argv.push_back(PDnumThreads);
 		argc+=2;
 	}
-	if (PDnumTS != "") {
-		argv.push_back("-numts");
-		argv.push_back(PDnumTS);
-		argc+=2;
+
+	if (getFileType() != "GRIMs") {
+		if (PDnumTS != "") {
+			argv.push_back("-numts");
+			argv.push_back(PDnumTS);
+			argc+=2;
+		}
+		if (PDstartTime != "") {
+			argv.push_back("-startts");
+			argv.push_back(PDstartTime);
+			argc+=2;
+		}
 	}
-	if (PDstartTime != "") {
-		argv.push_back("-startts");
-		argv.push_back(PDstartTime);
-		argc+=2;
-	}
+
 	if (PDSelectedVars.size() != 0) {
 		argv.push_back("-vars");
 		argc++;
@@ -478,14 +484,16 @@ int DataHolder::run2VDFincremental(string start, string var) {
 		argv.push_back(PDnumThreads);
 		argc+=2;
 	}   
-	
-	argv.push_back("-numts");
-	argv.push_back("1");
-	argc+=2;
+
+	if (getFileType() != "GRIMs") {	
+		argv.push_back("-numts");
+		argv.push_back("1");
+		argc+=2;
   
-	argv.push_back("-startts");
-	argv.push_back(start);
-	argc+=2;
+		argv.push_back("-startts");
+		argv.push_back(start);
+		argc+=2;
+	}
   
 	argv.push_back("-vars");
 	argc++;
@@ -508,13 +516,14 @@ int DataHolder::run2VDFincremental(string start, string var) {
 		argc++;
 	}
 
-	cout << "COMMAND: " << endl;
+	//cout << "COMMAND: " << endl;
 	char** args = new char*[ argv.size() + 1 ];
 	for(size_t a=0; a<argv.size(); a++) {
-		cout << argv[a].c_str() << " ";
+	//	cout << argv[a].c_str() << " ";
 		args[a] = strdup(argv[a].c_str());
 	}   
-	cout << endl;
+	//cout << endl;
+	
 
 	if (getFileType()=="WRF") {
 		//w2v.deleteWrfData();
