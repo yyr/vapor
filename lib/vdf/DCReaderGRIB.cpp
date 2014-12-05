@@ -989,13 +989,13 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 }
 
 int DCReaderGRIB::GribParser::_VerifyKeys() {
-	int numRecords = _recordKeys.size();
- 
+	int numRecords = _recordKeys.size(); 
 	string dataDate = _recordKeys[0]["dataDate"];
 	string dataTime = _recordKeys[0]["dataTime"];
 	string P2 = _recordKeys[0]["P2"];
 	bool dateChanged = 0;
 	bool P2Changed = 0;
+	_ignoreForecastTimes = 0;
 
 	for (int i=0; i<numRecords; i++) {
 		
