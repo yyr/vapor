@@ -517,6 +517,13 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	if (!strcmp(_gridType.c_str(),"regular_gg")) {
 		_generateWeightTable();
 	}
+	
+	int year=0;
+	int month=0;
+	int day=0;
+	int hour=0;
+	int minute=0;
+	int second=0;
 
 	for (int i=0; i<numRecords; i++) {
 		std::map<std::string, std::string> record = records[i];
@@ -525,18 +532,9 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 		string name  = record["shortName"];
 		string file = record["file"];
 		int offset = atoi(record["offset"].c_str());		
-		int year,month,day,hour,minute,second;
 		float P2 = atof(record["P2"].c_str());
-		// Skip loading a new time if we're reading forecast data
-		// (indicated by P2>0) within a simulation dataset
 		if (!((P2 > 0.0) && _ignoreForecastData)) {
-			/*string levelType = record["typeOfLevel"];
-			float level = atof(record["level"].c_str());
-			string name  = record["shortName"];
-			string file = record["file"];
-			int offset = atoi(record["offset"].c_str());		
-			int year,month,day,hour,minute,second;
-	*/
+			
 			std::stringstream ss;
 			string date = record["dataDate"];
 			string time = record["dataTime"];
@@ -747,7 +745,7 @@ std::vector<long> DCReaderGRIB::GetGridPermutation() const {
 }
 
 void DCReaderGRIB::GetTSUserTimeStamp(size_t ts, std::string &s) const {
-	int seconds = int(_gribTimes[ts]);
+	double seconds = _gribTimes[ts];
 	int year, month, day, hour, minute, second;
 	_udunit->DecodeTime(seconds, &year, &month, &day, &hour, &minute, &second);
 
