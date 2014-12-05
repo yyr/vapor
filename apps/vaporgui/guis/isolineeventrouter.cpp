@@ -2700,16 +2700,19 @@ void IsolineEventRouter::copyToProbeOr2D(){
 void IsolineEventRouter::guiCopyToProbe(){
 	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
 	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_probeParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Copy contour line positioning to Probe");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Copy contour line settings to Probe instance");
 	//Copy the Box
 	const vector<double>& exts = iParams->GetBox()->GetLocalExtents();
 	const vector<double>& angles = iParams->GetBox()->GetAngles();
 	pParams->GetBox()->SetAngles(angles);
 	pParams->GetBox()->SetLocalExtents(exts);
+	
 	//set the variable:
 	const std::string& varname = iParams->GetVariableName();
 	int sesvarnum = DataStatus::getInstance()->getSessionVariableNum3D(varname);
 	pParams->setVariableSelected(sesvarnum,true);
+	pParams->SetCompressionLevel(iParams->GetCompressionLevel());
+	pParams->SetRefinementLevel(iParams->GetRefinementLevel());
 	//Modify the TransferFunction
 	TransferFunction* tf = pParams->GetTransFunc();
 	
@@ -2720,13 +2723,15 @@ void IsolineEventRouter::guiCopyToProbe(){
 void IsolineEventRouter::guiCopyTo2D(){
 	IsolineParams* iParams = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
 	TwoDDataParams* pParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_twoDDataParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Copy contour line positioning to 2D Data");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Copy contour line settings to 2D Data instance");
 	//Copy the Box
 	const vector<double>& exts = iParams->GetBox()->GetLocalExtents();
 	pParams->GetBox()->SetLocalExtents(exts);
 	const std::string& varname = iParams->GetVariableName();
 	int sesvarnum = DataStatus::getInstance()->getSessionVariableNum2D(varname);
 	pParams->setVariableSelected(sesvarnum,true);
+	pParams->SetCompressionLevel(iParams->GetCompressionLevel());
+	pParams->SetRefinementLevel(iParams->GetRefinementLevel());
 	//Modify the TransferFunction
 	TransferFunction* tf = pParams->GetTransFunc();
 	convertIsovalsToColors(tf);

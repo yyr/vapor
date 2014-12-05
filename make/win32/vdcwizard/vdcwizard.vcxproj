@@ -89,7 +89,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\lib\gribapi;$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON32ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/QtOpenGL;$(QTDIR32)/include/;$(QTDIR32)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\lib\gribapi;$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\\render;..\..\..\apps\\misc;..\..\..\apps\vdcwizard;..\..\..\apps\\main;..\..\..\apps\;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard\ui;../../../apps//guis/ui\;$(PYTHON32ROOT)/include;.;..\..\..\apps\\moc\;$(QTDIR)/include/QtCore;$(QTDIR)/include/QtOpenGL;$(QTDIR)/include/;$(QTDIR)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -105,7 +105,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\lib\gribapi;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard;../../../apps/vdcwizard/ui\;$(PYTHON32ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/;$(QTDIR32)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(QTDIR)/include/;..\..\..\lib\gribapi;$(VAPORDEPS_INC_DIR);..\..\..\include;..\..\..\lib\params;..\..\..\apps\vdcwizard;../../../apps/vdcwizard/ui\;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR)/include/QtCore;$(PYTHON64ROOT)/include;$(QTDIR)/include/QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -123,7 +123,7 @@
       </FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <PreprocessorDefinitions>SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\lib\gribapi;$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\vdcwizard;..\..\..\include;..\..\..\lib\vdf;..\..\..\apps\vdcwizard\ui;$(PYTHON32ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/QtOpenGL;$(QTDIR32)/include/;$(QTDIR32)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\lib\gribapi;$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\vdcwizard;..\..\..\include;..\..\..\lib\vdf;..\..\..\apps\vdcwizard\ui;$(PYTHON32ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR)/include/QtCore;$(QTDIR)/include/QtOpenGL;$(QTDIR)/include/;$(QTDIR)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OmitFramePointers>
       </OmitFramePointers>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -161,7 +161,7 @@
       </FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <PreprocessorDefinitions>SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\lib\gribapi;c:\vaporwin64deps\vapordlls;$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\vdcwizard;..\..\..\include\vapor;..\..\..\lib\vdf;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR64)/include/QtCore;$(QTDIR64)/include/QtOpenGL;$(QTDIR64)/include/;$(QTDIR64)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\lib\gribapi;c:\vaporwin64deps\vapordlls;$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\vdcwizard;..\..\..\include\vapor;..\..\..\lib\vdf;..\..\..\apps\vdcwizard\ui;$(PYTHON64ROOT)/include;.;..\..\..\apps\vdcwizard\moc\;$(QTDIR)/include/QtCore;$(QTDIR)/include/QtOpenGL;$(QTDIR)/include/QtGui;..\..\..\lib\render;$(QTDIR)/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OmitFramePointers>
       </OmitFramePointers>
       <WholeProgramOptimization>false</WholeProgramOptimization>
