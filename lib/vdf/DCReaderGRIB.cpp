@@ -557,7 +557,7 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 			ss.clear();
 			ss << time[0] << time[1];
 			hour = atoi(record["dataTime"].c_str())/100;//ss.str().c_str());
-			if (P2 > 0.0) hour += P2;
+			if (P2 > 0.0) hour += int(P2);
 			ss.str(std::string());
 			ss.clear();
 
