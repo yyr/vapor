@@ -973,16 +973,13 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 
 	// if offset did not increment, we read no grib records and were given an invalid file
 	if (offset == 0) {
-<<<<<<< HEAD
 		char error[50];
 		sprintf(error,"ERROR: Unable to create grib_handle from file %s.",file.c_str());
 		MyBase::SetErrMsg(error);
-=======
 		//char error[50];
 		//sprintf(error,"ERROR: Unable to create grib_handle from file %s.",file.c_str());
 		//MyBase::SetErrMsg(error);
 		MyBase::SetErrMsg("ERROR: Unable to create grib_handle from file %s.",file.c_str());
->>>>>>> c05a0bfd85f335f331c030a184f8e66ab3c47c75
 		return -1;
 	}
 
