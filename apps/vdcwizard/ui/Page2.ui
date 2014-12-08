@@ -48,7 +48,7 @@
     <enum>Qt::LeftToRight</enum>
    </property>
    <property name="text">
-    <string>Input Data Type</string>
+    <string>Input Data Type:</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
@@ -187,7 +187,7 @@
    </property>
    <property name="geometry">
     <rect>
-     <x>138</x>
+     <x>180</x>
      <y>323</y>
      <width>111</width>
      <height>30</height>
