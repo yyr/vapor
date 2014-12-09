@@ -61,6 +61,9 @@ DataHolder::DataHolder(){
 	vdcSettingsChanged = true;
 }
 
+DataHolder::~DataHolder(){
+}
+
 void DataHolder::deleteReader() {
 	if (reader) delete reader;
 	reader = NULL;
@@ -167,6 +170,7 @@ void DataHolder::findPopDataVars() {
 	launcher2VDF.GetVariables(vdfio, reader, emptyVars, outVars);
 	std::sort(outVars.begin(),outVars.end());
 	setPDDisplayedVars(outVars);
+	delete wcwriter;
 }
 
 string DataHolder::getCreateVDFcmd() {
@@ -524,14 +528,19 @@ int DataHolder::run2VDFincremental(string start, string var) {
 	}   
 	//cout << endl;
 	
-
+	int rc;
 	if (getFileType()=="WRF") {
-		//w2v.deleteWrfData();
-		return w2v.launchWrf2Vdf(argc,args);
+		rc = w2v.launchWrf2Vdf(argc,args);
 	}
 	else {
-		return launcher2VDF.launch2vdf(argc, args, getFileType());
+		rc = launcher2VDF.launch2vdf(argc, args, getFileType());
 	}
+
+	for (size_t a=0; a<argv.size(); a++){
+		if (args[a]) delete [] args[a];
+	}
+	if (args) delete [] args;
+	return rc;
 }
 
 void DataHolder::purgeObjects() {

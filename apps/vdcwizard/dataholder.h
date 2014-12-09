@@ -38,7 +38,8 @@ class DataHolder
 {
 public:
     DataHolder();
-	
+	~DataHolder();
+
     void purgeObjects();
     void getExtents(); 
    

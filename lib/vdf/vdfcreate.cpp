@@ -362,6 +362,7 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 
     writeToScreen(DCdata,file);
 
+	ncdffiles.clear();
 	if (DCdata) delete DCdata;
     return 0;
 }

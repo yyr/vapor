@@ -32,14 +32,17 @@
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>140</x>
+     <x>100</x>
      <y>20</y>
-     <width>62</width>
-     <height>16</height>
+     <width>141</width>
+     <height>20</height>
     </rect>
    </property>
    <property name="text">
     <string>Warning:</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="label_2">

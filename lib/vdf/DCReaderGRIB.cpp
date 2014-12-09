@@ -48,9 +48,33 @@ DCReaderGRIB::Variable::Variable() {
 	_messages.clear();
 	_unitTimes.clear();
 	_varTimes.clear();
+	_pressureLevels.clear();
+	_indices.clear();
+	//_unitTimes.clear();
 }
 
 DCReaderGRIB::Variable::~Variable() {
+	if (_messages) _messages.clear();
+	if (_unitTimes) _unitTimes.clear();
+	if (_varTimes) _varTimes.clear();
+	if (_pressureLevels) _pressureLevels.clear();
+
+	/*typedef std::map<double, std::map<float, MessageLocation> >::iterator it_type;
+	for (it_type it = _indices.begin(); it != _indices.end(); it++) {
+		it->second.clear();
+	}*/
+
+	/*typedef std::map<double, std::map<float, MessageLocation> >::iterator it_type;
+	typedef std::map<float, MessageLocation>::iterator it2_type;
+	for (it_type it = _indices.begin(); it != _indices.end(); it++) {
+		//std::map<float, MessageLocation> second = it->second;	
+		for (it2_type it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+			it2->second.;
+		}
+		delete it->second;
+	}*/
+	
+	if (_indices) _indices.clear();
 }
 
 bool DCReaderGRIB::Variable::_Exists(double time) const {
@@ -824,10 +848,29 @@ std::vector<std::string> DCReaderGRIB::GetVariables3DExcluded() const {
 DCReaderGRIB::~DCReaderGRIB() {
 	if (_udunit) delete _udunit;
 	_cartesianExtents.clear();
+	_cartographicExtents.clear();
 	_pressureLevels.clear();
+	_meterLevels.clear();
 	_gribTimes.clear();
+
+	typedef std::map<std::string, Variable*>::iterator it_type;
+	for (it_type it = _vars1d.begin(); it != _vars1d.end(); it++) {
+		delete it->second;
+	}
+
+	for (it_type it = _vars2d.begin(); it != _vars2d.end(); it++) {
+		delete it->second;
+	}
+
+	for (it_type it = _vars3d.begin(); it != _vars3d.end(); it++) {
+		delete it->second;
+	}
+
+	_vars1d.clear();
 	_vars2d.clear();
 	_vars3d.clear();
+	_weights.clear();
+	_latIndices.clear();
 }
 
 DCReaderGRIB::GribParser::GribParser() {
@@ -1033,12 +1076,9 @@ int DCReaderGRIB::GribParser::_VerifyKeys() {
 }
 
 DCReaderGRIB::GribParser::~GribParser() {
-	//if (_h) grib_handle_delete(_h); 
-	//if (_in) delete _in;
-	if (_value) delete _value;
+	if (_value) delete [] _value;
 	if (_values) delete _values;
+	_recordKeys.clear();
+	_consistentKeys.clear();
+	_varyingKeys.clear();
 }
-
-//DCReaderGRIB::DerivedVarElevation::DerivedVarElevation(int Ni, int Nj){
-	
-//}
