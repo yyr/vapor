@@ -54,10 +54,10 @@ DCReaderGRIB::Variable::Variable() {
 }
 
 DCReaderGRIB::Variable::~Variable() {
-	if (_messages) _messages.clear();
-	if (_unitTimes) _unitTimes.clear();
-	if (_varTimes) _varTimes.clear();
-	if (_pressureLevels) _pressureLevels.clear();
+	if (_messages.size()) _messages.clear();
+	if (_unitTimes.size()) _unitTimes.clear();
+	if (_varTimes.size()) _varTimes.clear();
+	if (_pressureLevels.size()) _pressureLevels.clear();
 
 	/*typedef std::map<double, std::map<float, MessageLocation> >::iterator it_type;
 	for (it_type it = _indices.begin(); it != _indices.end(); it++) {
@@ -74,7 +74,7 @@ DCReaderGRIB::Variable::~Variable() {
 		delete it->second;
 	}*/
 	
-	if (_indices) _indices.clear();
+	if (_indices.size()) _indices.clear();
 }
 
 bool DCReaderGRIB::Variable::_Exists(double time) const {
