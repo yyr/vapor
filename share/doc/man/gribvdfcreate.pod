@@ -1,0 +1,80 @@
+=begin comment
+
+$Id$
+
+=end comment
+
+=head1 NAME
+
+gribcreate - Generate a VDF metadata file for a GRIB data set
+
+=head1 SYNOPSIS
+
+B<gribvdfcreate> [options] I<grib_files...> I<vdffile>
+
+=head1 DESCRIPTION
+
+B<gribvdfcreate> generates a .vdf metafile that defines a VAPOR Data
+Collection (VDC) suitable for containing simulation output from GRIMs 
+models.  All of the model output GRIB filenames must be provided on 
+the command line, followed the desired VAPOR (.vdf) output file name.  
+
+=head1 OPTIONS
+
+=over 4
+
+=item -vars E<lt>varsE<gt>
+
+A colon-delimited list of names of 2D and 3D (spatial) data variables
+to include in the .vdf file.  In general, the list of variables
+should be a subset of the data variables found in the GRIB input
+files.  If this option is not present the default behavior is to
+generate the list of variables from all of the 2D and 3D (spatial)
+variables found in any of the GRIMs GRIB input files.
+
+=item -level E<lt>levelE<gt>
+
+See vdfcreate.
+
+=item -comment E<lt>stringE<gt>
+
+See vdfcreate.
+
+=item -bs E<lt>NXxNYxNZE<gt>
+
+See vdfcreate.
+
+=item -wname E<lt>wave_nameE<gt>
+
+This option is for VDC2 only, see vdfcreate.
+
+=item -cratios E<lt>vectorE<gt>
+
+This option is for VDC2 only, see vdfcreate.
+
+=item -help 
+
+Print a usage statement and then exit.
+
+=back
+
+=head1 EXAMPLES
+
+
+The command 
+
+    gribvdfcreate -vars u:v:time gribFile1 gribFile2 gribFile3 mydata.vdf
+
+will construct a VDF file, B<mydata.vdf> that will contain the B<u>,
+B<v>, and B<temp> variable names for all time steps found in the
+MOM netCDF files B<gribFile1>, B<gribFile2>, and B<gribFile3>.
+
+=head1 SEE ALSO
+
+vdfcreate, grib2vdf,
+
+I<Conversion of GRIB datafiles to a VAPOR VDC>
+
+=head1 HISTORY
+
+Last updated on $Date$

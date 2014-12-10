@@ -1,0 +1,81 @@
+=begin comment
+
+$Id$
+
+=end comment
+
+=head1 NAME
+
+grib2vdf - Transform GRIB data into a VDC
+
+=head1 SYNOPSIS
+
+B<grib2vdf> [options] I<grib_file...> I<vdffile> 
+
+=head1 DESCRIPTION
+
+B<grib2vdf> reads 3D and 2D (spatial) variables from one or more 
+GRIB files, wavelet transforms the data, and stores it in the VDC
+associated with the .vdf file I<vdffile>.
+
+=head1 OPTIONS
+
+=over 4
+
+=item -vars E<lt>varsE<gt>
+
+Variables to convert.  A colon delimited list of the 3D and 2D
+variables you wish to transform. Their names must appear in the
+.vdf file, I<vdffile>.  The default is to convert all 3D and 2D
+(spatial) variables defined in both the .vdf file and the GRIBfiles.
+
+=item -numts E<lt>numberE<gt>
+
+Specify the maximum number of time steps to convert. After converting
+B<number> time steps, no further processing will take place.
+
+=item -level E<lt>levelE<gt> 
+
+See raw2vdf
+
+=item -lod E<lt>nE<gt> 
+
+See raw2vdf (VDC2 only). 
+
+=item -help 
+
+Print a usage statement and then exit.
+
+=item -quiet 
+
+Operate quietly, only reporting fatal errors.
+
+=back
+
+=head1 EXAMPLES
+
+The command 
+
+    grib2vdf gribFile1 gribFile2 gribFile3 mydata.vdf 
+
+transforms all of the variables at all of the time steps found in
+the GRIB files B<gribFile1>, B<gribFile2>, and B<gribFile3> that
+match the variable names and time stamps found
+in B<mydata.vdf>.
+
+The command 
+
+    grib2vdf -varnames u:v:w gribFile1 gribFile2 mydata.vdf 
+
+is similar to the above example except that the converted variables are limited
+to the three velocity components, B<u>, B<v>, and B<w>.
+
+=head1 SEE ALSO
+
+gribvdfcreate, ncdf2vdf, raw2vdf 
+
+I<Conversion of MOM or POP datafiles to a VAPOR VDC>
+
+=head1 HISTORY
+
+Last updated on $Date$
