@@ -1429,9 +1429,10 @@ guiChangeVariable(int varnum){
 	}
 	
 	updateHistoBounds(pParams);
-	PanelCommand::captureEnd(cmd, pParams);
 	setEditorDirty(pParams);
 	isoSelectionFrame->fitToView();
+	PanelCommand::captureEnd(cmd, pParams);
+	
 	//Need to update the selected point for the new variables
 	updateTab();
 	setIsolineDirty(pParams);	
@@ -2559,8 +2560,9 @@ guiEndChangeIsoSelection(){
 //Set isoControl editor  dirty.
 void IsolineEventRouter::
 setEditorDirty(RenderParams* p){
-	IsolineParams* ip = (IsolineParams*)p;
+	IsolineParams* ip = dynamic_cast<IsolineParams*>(p);
 	if(!ip) ip = (IsolineParams*)VizWinMgr::getInstance()->getApplicableParams(IsolineParams::_isolineParamsTag);
+	if(ip->GetIsoControl())ip->GetIsoControl()->setParams(ip);
     isoSelectionFrame->setMapperFunction(ip->GetIsoControl());
 	isoSelectionFrame->setVariableName(ip->GetVariableName());
 	isoSelectionFrame->setIsoValue(ip->GetIsovalues()[0]);
