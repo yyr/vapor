@@ -29,11 +29,6 @@ variables you wish to transform. Their names must appear in the
 .vdf file, I<vdffile>.  The default is to convert all 3D and 2D
 (spatial) variables defined in both the .vdf file and the GRIBfiles.
 
-=item -numts E<lt>numberE<gt>
-
-Specify the maximum number of time steps to convert. After converting
-B<number> time steps, no further processing will take place.
-
 =item -level E<lt>levelE<gt> 
 
 See raw2vdf
