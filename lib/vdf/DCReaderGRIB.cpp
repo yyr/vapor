@@ -50,14 +50,15 @@ DCReaderGRIB::Variable::Variable() {
 	_varTimes.clear();
 	_pressureLevels.clear();
 	_indices.clear();
-	//_unitTimes.clear();
 }
 
 DCReaderGRIB::Variable::~Variable() {
-	if (_messages.size()) _messages.clear();
-	if (_unitTimes.size()) _unitTimes.clear();
-	if (_varTimes.size()) _varTimes.clear();
-	if (_pressureLevels.size()) _pressureLevels.clear();
+	//if (_messages.size()) _messages.clear();
+	//if (_unitTimes.size()) _unitTimes.clear();
+	//if (_varTimes.size()) _varTimes.clear();
+	//if (_pressureLevels.size()) _pressureLevels.clear();
+
+
 
 	/*typedef std::map<double, std::map<float, MessageLocation> >::iterator it_type;
 	for (it_type it = _indices.begin(); it != _indices.end(); it++) {
@@ -74,7 +75,7 @@ DCReaderGRIB::Variable::~Variable() {
 		delete it->second;
 	}*/
 	
-	if (_indices.size()) _indices.clear();
+	//if (_indices.size()) _indices.clear();
 }
 
 bool DCReaderGRIB::Variable::_Exists(double time) const {
@@ -855,15 +856,31 @@ DCReaderGRIB::~DCReaderGRIB() {
 
 	typedef std::map<std::string, Variable*>::iterator it_type;
 	for (it_type it = _vars1d.begin(); it != _vars1d.end(); it++) {
-		delete it->second;
+		if (it->second) delete it->second;
+		it->second = NULL;
+		_vars1d[it->first] = NULL;
 	}
 
 	for (it_type it = _vars2d.begin(); it != _vars2d.end(); it++) {
-		delete it->second;
+		if (it->second) delete it->second;
+		_vars2d[it->first] = NULL;
+	}
+
+
+	// special case for ELEVATION and its derived variable, which
+	// are two keys pointing to the same value.  We can can only delete
+	// the value once	
+	for (it_type it = _vars3d.begin(); it != _vars3d.end(); it++) {
+		for (it_type it2 = _vars3d.begin(); it2 != _vars3d.end(); it2++) {
+			if (it->second == it2->second) {
+				it->second = NULL;
+			}
+		}
 	}
 
 	for (it_type it = _vars3d.begin(); it != _vars3d.end(); it++) {
-		delete it->second;
+		if (it->second) delete it->second;
+		_vars3d[it->first] = NULL;
 	}
 
 	_vars1d.clear();
