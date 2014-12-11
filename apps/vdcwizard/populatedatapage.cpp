@@ -58,6 +58,7 @@ PopulateDataPage::PopulateDataPage(DataHolder *DH, QWidget *parent) :
 	checkOverwrites->continueButton->setVisible(false);
 	checkOverwrites->label->setText("Warning");
 	checkOverwrites->label_2->setText("Some of the selected variables already have data files in the vdf directory.  These files may be overwritten.  Do you still want to proceed?");
+
 }
 
 void PopulateDataPage::on_showCommandButton_clicked() {
