@@ -964,7 +964,6 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 	stringstream ss;
 	_recordKeysVerified = 0;
 	std::map<std::string, std::string> keyMap;
-	cout << "before" << endl;
 	_err = 0;
 	_h = grib_handle_new_from_file(0,_in,&_err);
 	while((_h = grib_handle_new_from_file(0,_in,&_err))) { // != NULL) {
