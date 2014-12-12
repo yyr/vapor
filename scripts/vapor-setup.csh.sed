@@ -12,6 +12,17 @@ setenv VAPOR_HOME $root
 setenv GRIB_DEFINITION_PATH $sharedir/grib_api/definitions
 setenv PROJ_LIB $sharedir/proj
 
+if ($?LD_LIBRARY_PATH) then
+	echo "######################## WARNING ##############################"
+	echo ""
+	echo "The LD_LIBRARY_PATH environment variable is set."
+	echo "Some VAPOR applications may fail to run correctly."
+	echo "To un-set LD_LIBRARY_PATH execute: unsetenv LD_LIBRARY_PATH"
+	echo ""
+	echo "######################## WARNING ##############################"
+endif
+	
+
 
 if !($?PATH) then
     setenv PATH "$bindir"
