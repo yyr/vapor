@@ -53,10 +53,10 @@ DCReaderGRIB::Variable::Variable() {
 }
 
 DCReaderGRIB::Variable::~Variable() {
-	//if (_messages.size()) _messages.clear();
-	//if (_unitTimes.size()) _unitTimes.clear();
-	//if (_varTimes.size()) _varTimes.clear();
-	//if (_pressureLevels.size()) _pressureLevels.clear();
+	if (_messages.size()) _messages.clear();
+	if (_unitTimes.size()) _unitTimes.clear();
+	if (_varTimes.size()) _varTimes.clear();
+	if (_pressureLevels.size()) _pressureLevels.clear();
 
 
 
@@ -75,7 +75,7 @@ DCReaderGRIB::Variable::~Variable() {
 		delete it->second;
 	}*/
 	
-	//if (_indices.size()) _indices.clear();
+	if (_indices.size()) _indices.clear();
 }
 
 bool DCReaderGRIB::Variable::_Exists(double time) const {
@@ -964,6 +964,9 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 	stringstream ss;
 	_recordKeysVerified = 0;
 	std::map<std::string, std::string> keyMap;
+	cout << "before" << endl;
+	_err = 0;
+	_h = grib_handle_new_from_file(0,_in,&_err);
 	while((_h = grib_handle_new_from_file(0,_in,&_err))) { // != NULL) {
 
 		if(_h==NULL) {
@@ -1033,12 +1036,6 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 
 	// if offset did not increment, we read no grib records and were given an invalid file
 	if (offset == 0) {
-		char error[50];
-		sprintf(error,"ERROR: Unable to create grib_handle from file %s.",file.c_str());
-		MyBase::SetErrMsg(error);
-		//char error[50];
-		//sprintf(error,"ERROR: Unable to create grib_handle from file %s.",file.c_str());
-		//MyBase::SetErrMsg(error);
 		MyBase::SetErrMsg("ERROR: Unable to create grib_handle from file %s.",file.c_str());
 		return -1;
 	}
