@@ -72,12 +72,10 @@ void TwoDImageRenderer::paintGL()
 	);
 	QApplication::restoreOverrideCursor();
 	if(!twoDTex) {setBypass(currentTimestep); return;}
-	myGLWindow->setRenderNew();
 
 	if (myTwoDImageParams->elevGridIsDirty()){
 		invalidateElevGrid();
 		myTwoDImageParams->setElevGridDirty(false);
-		myGLWindow->setRenderNew();
 	}
 	if (twoDTex){
 		

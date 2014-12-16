@@ -74,7 +74,6 @@ void ProbeRenderer::paintGL()
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		probeTex = getProbeTexture(myProbeParams,currentTimestep, true, _framebufferid, _fbTexid);
 		QApplication::restoreOverrideCursor();
-		myGLWindow->setRenderNew();
 	} else { //existing texture is OK:
 		probeTex = getProbeTexture(myProbeParams,currentTimestep,true, _framebufferid, _fbTexid);
 	}
