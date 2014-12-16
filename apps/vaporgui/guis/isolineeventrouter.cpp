@@ -600,8 +600,8 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	//Determine if either the minIso, numIsos or isoSpace has changed.  
 	bool isoIntervalChanged = false;
 	if (numIsos != isolineParams->getNumIsovalues()) isoIntervalChanged = true;
-	if (abs(prevMinIso - minIso) > .001*(prevBnds[1]-prevBnds[0])) isoIntervalChanged = true;
-	if (abs(isoSpace - prevSpacing) > .001*(prevBnds[1]-prevBnds[0])) isoIntervalChanged = true;
+	if (abs(prevMinIso - minIso) > 1.e-7) isoIntervalChanged = true;
+	if (abs(isoSpace - prevSpacing) > 1.e-7) isoIntervalChanged = true;
 	if (numIsos != isolineParams->getNumIsovalues()){
 		//If the number was previously one, then also need to make sure the spacing is nonzero
 		if (isolineParams->getNumIsovalues() == 1){
@@ -637,8 +637,8 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 		if (bnds[1] < maxIso) bnds[1] = maxIso + 0.1*(maxIso-minIso);
 	}
 	bool histoBoundsChanged = false;
-	if (abs(prevBnds[0]-bnds[0]) >0.005*(prevBnds[1]-prevBnds[0])) histoBoundsChanged = true;
-	if (abs(prevBnds[1]-bnds[1]) >0.005*(prevBnds[1]-prevBnds[0])) histoBoundsChanged = true;
+	if (abs(prevBnds[0]-bnds[0]) >0.0005*(prevBnds[1]-prevBnds[0])) histoBoundsChanged = true;
+	if (abs(prevBnds[1]-bnds[1]) >0.0005*(prevBnds[1]-prevBnds[0])) histoBoundsChanged = true;
 
 	//Rescale the isovalues if just the histo bounds changed
 	if(histoBoundsChanged) {
