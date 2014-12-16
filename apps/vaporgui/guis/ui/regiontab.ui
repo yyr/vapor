@@ -1127,7 +1127,7 @@ share the same region settings.</string>
           <string>Set current Rake to use this region</string>
          </property>
          <property name="text">
-          <string>Copy Region to Rake</string>
+          <string>Copy Region to Flow Rake</string>
          </property>
         </widget>
        </item>
@@ -1253,7 +1253,7 @@ share the same region settings.</string>
           <string>Set this region to use current rake bounds</string>
          </property>
          <property name="text">
-          <string>Copy Rake to Region</string>
+          <string>Copy Flow Rake to Region</string>
          </property>
         </widget>
        </item>

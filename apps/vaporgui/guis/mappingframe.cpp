@@ -335,16 +335,17 @@ QString MappingFrame::tipText(const QPoint &pos, bool isIso)
   float opacity  = getOpacity(variable);
       
   float hf = 0.0,sf = 0.0,vf = 0.0;
-  int hue, sat, val;
+  int hue =0, sat=0, val=0;
   
-  if (_mapper)
+  if (_mapper  && _colorMappingEnabled)
   {
     _mapper->hsvValue(variable, &hf, &sf, &vf);
-  }
+ 
       
-  hue = (int)(hf*359.99f);
-  sat = (int)(sf*255.99f);
-  val = (int)(vf*255.99f);
+	  hue = (int)(hf*359.99f);
+	  sat = (int)(sf*255.99f);
+	  val = (int)(vf*255.99f);
+  }
   
   text  = _variableName.c_str();
   text += QString(": %1;\n").arg(variable, 0, 'g', 4);
