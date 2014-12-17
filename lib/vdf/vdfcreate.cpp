@@ -224,9 +224,9 @@ MetadataVDC *vdfcreate::CreateMetadataVDC(
 
 int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 
-	OptionParser::OptDescRec_T	set_opts[] = {
+	/*OptionParser::OptDescRec_T	grib_set_opts[] = { 
 		{"vars",1,    "",	"Colon delimited list of variables to be copied "
-			"from ncdf data. The default is to copy all 2D and 3D variables"},
+		"from ncdf data. The default is to copy all 2D and 3D variables"},
 		{"help",	0,	"",	"Print this message and exit"},
 		{"quiet",	0,	"",	"Operate quietly"},
 		{"debug",   0,  "", "Turn on debugging"},
@@ -236,18 +236,46 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 			"daily, etc...)"},
 		{NULL}
 	};
-
-	OptionParser::Option_T	get_options[] = {
+	
+	OptionParser::Option_T grib_get_options[] = {
 		{"vars", VetsUtil::CvtToStrVec, &_vars, sizeof(_vars)},
 		{"help", VetsUtil::CvtToBoolean, &_help, sizeof(_help)},
 		{"quiet", VetsUtil::CvtToBoolean, &_quiet, sizeof(_quiet)},
 		{"debug", VetsUtil::CvtToBoolean, &_debug, sizeof(_debug)},
 		{"fastMode", VetsUtil::CvtToInt, &_numTS, sizeof(_numTS)},
 		{NULL}
+	};*/
+	
+	OptionParser::OptDescRec_T	set_opts[] = {
+		{"vars",1,    "",	"Colon delimited list of variables to be copied "
+			"from ncdf data. The default is to copy all 2D and 3D variables"},
+		{"help",	0,	"",	"Print this message and exit"},
+		{"quiet",	0,	"",	"Operate quietly"},
+		{"debug",   0,  "", "Turn on debugging"},
+		{NULL},
+		{NULL}
 	};
 
-    //not for production - ok for command line
-    //MyBase::SetErrMsgFilePtr(stderr);
+	OptionParser::Option_T get_options[] = {
+		{"vars", VetsUtil::CvtToStrVec, &_vars, sizeof(_vars)},
+		{"help", VetsUtil::CvtToBoolean, &_help, sizeof(_help)},
+		{"quiet", VetsUtil::CvtToBoolean, &_quiet, sizeof(_quiet)},
+		{"debug", VetsUtil::CvtToBoolean, &_debug, sizeof(_debug)},
+		{NULL},
+		{NULL}
+	};
+
+	if (NetCDFtype == "GRIMs") {
+		OptionParser::OptDescRec_T fm1 = {"fastMode",1,  "-1", "Enable fast mode.  Argument is the number of "
+             "timesteps to be converted.  All files must contain the same "
+             "variables, and have equal time increments (30 min, hourly, "
+             "daily, etc...)"};
+		OptionParser::Option_T fm2 = {"fastMode", VetsUtil::CvtToInt, &_numTS, sizeof(_numTS)};
+		set_opts[4] = fm1;
+		get_options[4] = fm2;
+		//set_opts = grib_set_opts;
+		//get_options = grib_get_options;
+	}
 
     OptionParser op;
 
