@@ -103,7 +103,7 @@ int vtCTimeVaryingFieldLine::advectParticle(vtParticleInfo& initialPoint,
 	int maxProgress = 0;
 	
 	// start to advect
-	
+	bool reducedDt = false;
 	while(curTime*m_timeDir < finalTime*m_timeDir)
 	{
 		
@@ -125,6 +125,7 @@ int vtCTimeVaryingFieldLine::advectParticle(vtParticleInfo& initialPoint,
 		{
 			retrace = false;
 			//Loop until dt*mag is small enough, dividing dt by 10 if necessary
+			
 			for (int tries = 0; tries < 40; tries++){
 				
 				istat = runge_kutta4(m_timeDir, UNSTEADY, thisParticle, &curTime, dt,maxDtMag);
@@ -132,7 +133,8 @@ int vtCTimeVaryingFieldLine::advectParticle(vtParticleInfo& initialPoint,
 				//Must retry.  Reset curTime, use a smaller dt.
 				curTime -= dt*m_timeDir;
 				if (curTime*m_timeDir < initialTime*m_timeDir) curTime = initialTime;
-				dt = dt *0.1;
+				dt = dt *0.5;
+				reducedDt = true;
 			}
 			assert(istat != FIELD_TOO_BIG);
 			
@@ -178,7 +180,15 @@ int vtCTimeVaryingFieldLine::advectParticle(vtParticleInfo& initialPoint,
 				mag = vel.GetDMag();
 				minStepsize = m_fInitStepSize * cell_vol / mag;
 				maxStepsize = m_fMaxStepSize * cell_vol / mag;
+				double prevDt = dt;
 				retrace = adapt_step(second_prevPhy, prevPhy, thisPhy, minStepsize, maxStepsize, &dt, bAdaptive);
+				//Do not allow increasing dt if we just reduced it.  
+				//This guarantees we will perform one more integration step before increasing dt,
+				//preventing an infinite loop
+				if (dt > prevDt && reducedDt){ 
+					dt = prevDt; 
+					reducedDt = false;
+				}
 				
 				if(bAdaptive == false)
 					nSetAdaptiveCount = 0;
