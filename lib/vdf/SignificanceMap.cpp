@@ -463,8 +463,7 @@ void SignificanceMap::GetMap(unsigned char *encodedMap) {
 		do_swapbytes = true;
 	}
 	
-	size_t mapsize = GetMapSize();
-	memset(encodedMap, 0, mapsize);
+	memset(_sigMapEncode, 0, _sigMapEncodeSize);
 
 	// 
 	//  Encode header
@@ -544,8 +543,8 @@ void SignificanceMap::GetMap(const unsigned char **map, size_t *maplen) {
 		}
 		_sigMapEncode = new unsigned char[l];
 		_sigMapEncodeSize = l;
-		memset(_sigMapEncode, 0, l);
 	}
+	memset(_sigMapEncode, 0, _sigMapEncodeSize);
 	*map = _sigMapEncode;
 	*maplen = mapsize;
 
