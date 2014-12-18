@@ -1201,6 +1201,7 @@ void MainForm::importData(const string& modelType, bool useDefault){
 			files.push_back((*it).toStdString());
 			++it;
 		}
+		DataStatus::getInstance()->invalidateDataMgr();
 		Session::getInstance()->resetMetadata(files, !useDefault ,modelType);
 	
 	} else MessageReporter::errorMsg("No valid %s files \n", modelType.c_str());

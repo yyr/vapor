@@ -470,6 +470,9 @@ public:
 	//! \retval DataMgr* pointer to current Data Manager
 	DataMgr* getDataMgr() {return dataMgr;}
 
+	//! Invalidate current data manager:
+	void invalidateDataMgr(){dataMgr = 0;}
+
 	//! Method indicates if user requested a warning when data is missing.
 	//! \retval bool true if warning is requested.
 	static bool warnIfDataMissing() {return doWarnIfDataMissing;}
