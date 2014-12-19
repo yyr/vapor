@@ -304,6 +304,9 @@ share the same region settings.</string>
              <property name="toolTip">
               <string>Slide region center coordinates</string>
              </property>
+             <property name="whatsThis">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Region center and size can be controlled by sliders or by typed-in values.  When typing in values, press enter to cause the changed values to take effect.  The Region size and position can also be controlled by enabling Region mouse mode, and dragging the region handles in the 3D scene.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="minimum">
               <number>0</number>
              </property>
@@ -337,6 +340,9 @@ share the same region settings.</string>
              </property>
              <property name="toolTip">
               <string>Specify region center coordinate</string>
+             </property>
+             <property name="whatsThis">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Region center and size can be controlled by sliders or by typed-in values.  When typing in values, press enter to cause the changed values to take effect.  The Region size and position can also be controlled by enabling Region mouse mode, and dragging the region handles in the 3D scene.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>0.5</string>
@@ -392,6 +398,9 @@ share the same region settings.</string>
              <property name="toolTip">
               <string>Slide region center coordinates</string>
              </property>
+             <property name="whatsThis">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Region center and size can be controlled by sliders or by typed-in values.  When typing in values, press enter to cause the changed values to take effect.  The Region size and position can also be controlled by enabling Region mouse mode, and dragging the region handles in the 3D scene.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="minimum">
               <number>0</number>
              </property>
@@ -425,6 +434,9 @@ share the same region settings.</string>
              </property>
              <property name="toolTip">
               <string>Specify region center coordinate</string>
+             </property>
+             <property name="whatsThis">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Region center and size can be controlled by sliders or by typed-in values.  When typing in values, press enter to cause the changed values to take effect.  The Region size and position can also be controlled by enabling Region mouse mode, and dragging the region handles in the 3D scene.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>0.1</string>
@@ -480,6 +492,9 @@ share the same region settings.</string>
              <property name="toolTip">
               <string>Slide region center coordinates</string>
              </property>
+             <property name="whatsThis">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Region center and size can be controlled by sliders or by typed-in values.  When typing in values, press enter to cause the changed values to take effect.  The Region size and position can also be controlled by enabling Region mouse mode, and dragging the region handles in the 3D scene.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="minimum">
               <number>0</number>
              </property>
@@ -513,6 +528,9 @@ share the same region settings.</string>
              </property>
              <property name="toolTip">
               <string>Specify region center coordinate</string>
+             </property>
+             <property name="whatsThis">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Region center and size can be controlled by sliders or by typed-in values.  When typing in values, press enter to cause the changed values to take effect.  The Region size and position can also be controlled by enabling Region mouse mode, and dragging the region handles in the 3D scene.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>0.05</string>
@@ -771,6 +789,9 @@ share the same region settings.</string>
              <property name="toolTip">
               <string>Slide to stretch or shrink region size</string>
              </property>
+             <property name="whatsThis">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Region center and size can be controlled by sliders or by typed-in values.  When typing in values, press enter to cause the changed values to take effect.  The Region size and position can also be controlled by enabling Region mouse mode, and dragging the region handles in the 3D scene.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="minimum">
               <number>0</number>
              </property>
@@ -804,6 +825,9 @@ share the same region settings.</string>
              </property>
              <property name="toolTip">
               <string>Specify X size of region</string>
+             </property>
+             <property name="whatsThis">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Region center and size can be controlled by sliders or by typed-in values.  When typing in values, press enter to cause the changed values to take effect.  The Region size and position can also be controlled by enabling Region mouse mode, and dragging the region handles in the 3D scene.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>1.0</string>
@@ -839,6 +863,9 @@ share the same region settings.</string>
              <property name="toolTip">
               <string>Slide to stretch or shrink region size</string>
              </property>
+             <property name="whatsThis">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Region center and size can be controlled by sliders or by typed-in values.  When typing in values, press enter to cause the changed values to take effect.  The Region size and position can also be controlled by enabling Region mouse mode, and dragging the region handles in the 3D scene.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="minimum">
               <number>0</number>
              </property>
@@ -872,6 +899,9 @@ share the same region settings.</string>
              </property>
              <property name="toolTip">
               <string>Specify Y size of region</string>
+             </property>
+             <property name="whatsThis">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Region center and size can be controlled by sliders or by typed-in values.  When typing in values, press enter to cause the changed values to take effect.  The Region size and position can also be controlled by enabling Region mouse mode, and dragging the region handles in the 3D scene.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>0.1</string>
@@ -907,6 +937,9 @@ share the same region settings.</string>
              <property name="toolTip">
               <string>Slide to stretch or shrink region size</string>
              </property>
+             <property name="whatsThis">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Region center and size can be controlled by sliders or by typed-in values.  When typing in values, press enter to cause the changed values to take effect.  The Region size and position can also be controlled by enabling Region mouse mode, and dragging the region handles in the 3D scene.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="minimum">
               <number>0</number>
              </property>
@@ -940,6 +973,9 @@ share the same region settings.</string>
              </property>
              <property name="toolTip">
               <string>Specify Z size of region</string>
+             </property>
+             <property name="whatsThis">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Region center and size can be controlled by sliders or by typed-in values.  When typing in values, press enter to cause the changed values to take effect.  The Region size and position can also be controlled by enabling Region mouse mode, and dragging the region handles in the 3D scene.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>0.1</string>
@@ -1405,6 +1441,9 @@ share the same region settings.</string>
          <family>MS Shell Dlg 2</family>
          <pointsize>8</pointsize>
         </font>
+       </property>
+       <property name="whatsThis">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Region information about loaded data is used to determine information about the current data being visualized. Specify the refinement level, the variable, and the timestep, and the extents of the data are displayed in user coordinates as well as in voxel coordinates. The VDC extents indicate the full extents of the data, which may be larger than the extents of a particular variable. The Region extents are determined by the region settings at the top of this panel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>

@@ -64,17 +64,7 @@
           <string>Select current instance by clicking at left.  Check the box to enable rendering.</string>
          </property>
          <property name="whatsThis">
-          <string>The instance checkbox determines which
-2D planes are currently
-rendering in the active visualizer.  You 
-can only check it after a data set has been
-loaded.  The identifying number (at the 
-left) selects the 2D plane instance whose 
-parameters are currently edited in this 
-panel.  Any  number of instances can 
-render at the same time.  Use the &quot;New&quot; 
-button or the &quot;Duplicate In&quot; selector to 
-create new 2D planar instances.</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The instance checkbox determines which images are currentlyrendering in the active visualizer.  You can only check it after a data set has beenloaded.  The identifying number (at the left) selects theimage instance whose parameters are currently edited in thispanel.  Any  number of image instances can render at the same time.  Use the &amp;quot;New&amp;quot; button or the &amp;quot;Duplicate In&amp;quot; selector to create new image instances.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>
@@ -104,17 +94,7 @@ create new 2D planar instances.</string>
               <string>Create a new, default instance of this renderer</string>
              </property>
              <property name="whatsThis">
-              <string>The instance checkbox determines which
-2D planes are currently
-rendering in the active visualizer.  You 
-can only check it after a data set has been
-loaded.  The identifying number (at the 
-left) selects the 2D plane instance whose 
-parameters are currently edited in this 
-panel.  Any  number of instances can 
-render at the same time.  Use the &quot;New&quot; 
-button or the &quot;Duplicate In&quot; selector to 
-create new 2D planar instances.</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The instance checkbox determines which images are currentlyrendering in the active visualizer.  You can only check it after a data set has beenloaded.  The identifying number (at the left) selects theimage instance whose parameters are currently edited in thispanel.  Any  number of image instances can render at the same time.  Use the &amp;quot;New&amp;quot; button or the &amp;quot;Duplicate In&amp;quot; selector to create new image instances.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>New</string>
@@ -143,17 +123,7 @@ create new 2D planar instances.</string>
               <string>Delete current renderer Instance</string>
              </property>
              <property name="whatsThis">
-              <string>The instance checkbox determines which
-2D planes are currently
-rendering in the active visualizer.  You 
-can only check it after a data set has been
-loaded.  The identifying number (at the 
-left) selects the 2D plane instance whose 
-parameters are currently edited in this 
-panel.  Any  number of instances can 
-render at the same time.  Use the &quot;New&quot; 
-button or the &quot;Duplicate In&quot; selector to 
-create new 2D planar instances.</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The instance checkbox determines which images are currentlyrendering in the active visualizer.  You can only check it after a data set has beenloaded.  The identifying number (at the left) selects theimage instance whose parameters are currently edited in thispanel.  Any  number of image instances can render at the same time.  Use the &amp;quot;New&amp;quot; button or the &amp;quot;Duplicate In&amp;quot; selector to create new image instances.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>Delete</string>
@@ -195,17 +165,7 @@ create new 2D planar instances.</string>
               <string>Select a visualizer where this renderer instance will be copied</string>
              </property>
              <property name="whatsThis">
-              <string>The instance checkbox determines which
-2D planes are currently
-rendering in the active visualizer.  You 
-can only check it after a data set has been
-loaded.  The identifying number (at the 
-left) selects the 2D plane instance whose 
-parameters are currently edited in this 
-panel.  Any  number of instances can 
-render at the same time.  Use the &quot;New&quot; 
-button or the &quot;Duplicate In&quot; selector to 
-create new 2D planar instances.</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The instance checkbox determines which images are currentlyrendering in the active visualizer.  You can only check it after a data set has beenloaded.  The identifying number (at the left) selects theimage instance whose parameters are currently edited in thispanel.  Any  number of image instances can render at the same time.  Use the &amp;quot;New&amp;quot; button or the &amp;quot;Duplicate In&amp;quot; selector to create new image instances.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <item>
               <property name="text">
@@ -277,7 +237,7 @@ create new 2D planar instances.</string>
         </size>
        </property>
        <property name="whatsThis">
-        <string>The 2D panel controls the location and size of a 2-dimensional planar region that is placed within the full data volume.   Horizontal (X-Y) 2D variables can be displayed in this region or mapped to the terrain (on terrain-following grids).  In image mode, geo-referenced images are displayed. This panel controls positioning and color-mapping of the planar region and, in data mode, allows querying variable values and flow seed placement.</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The image panel controls the location and size of a 2-dimensional planar region that is displayed as an image in the scene, and positions at tiff image in the region.  If the image is geo-referenced (i.e. a geotiff) then the image is mapped to the appropriate region on the earth's surface.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
@@ -329,6 +289,9 @@ create new 2D planar instances.</string>
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Click to set default Fidelity to current LOD and Refinement levels.  The default can optionally be saved in user preferences.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="whatsThis">
+                 <string>The fidelity setting controls both refinement and LOD.  Click on the &quot;Set Default Fidelity&quot; button to establish a fidelity level that is interactive on the current platform.</string>
                 </property>
                 <property name="text">
                  <string>Set Default Fidelity</string>
@@ -438,7 +401,7 @@ p, li { white-space: pre-wrap; }
                  <string>Select the refinement level (resolution) to use when mapping image to terrain elevation.</string>
                 </property>
                 <property name="whatsThis">
-                 <string>This selector controls the refinement level of elevation grid data and the resolution of the grid used for image warping.</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This selector controls the refinement level of elevation grid data and the resolution of the height variable used for terrain mapping.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>Refinement:</string>
@@ -536,7 +499,7 @@ p, li { white-space: pre-wrap; }
                  <string>Specifies coordinate plane alignment of data or image</string>
                 </property>
                 <property name="whatsThis">
-                 <string>The orientation indicates the planar alignment of the 2D plane.  With a Data source, the orientation is always X-Y (horizontal).    When using an Image source, the orientation can be selected; however, only horizontal-oriented images can make use of georeferencing.</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The orientation indicates the planar alignment of the image.   When an image has been selected, any orientation can be chosen; however, only horizontal-oriented images can make use of georeferencing or terrain-mapping.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <item>
                  <property name="text">
@@ -582,6 +545,9 @@ p, li { white-space: pre-wrap; }
               <width>32767</width>
               <height>275</height>
              </size>
+            </property>
+            <property name="whatsThis">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The image display settings allow the user to select a tiff file and control how it is displayed in the scene.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="frameShape">
              <enum>QFrame::StyledPanel</enum>
@@ -656,6 +622,9 @@ p, li { white-space: pre-wrap; }
                   <widget class="QPushButton" name="installedImageButton">
                    <property name="toolTip">
                     <string>Click to select a pre-installed image</string>
+                   </property>
+                   <property name="whatsThis">
+                    <string>VAPOR provides a number of useful geo-referenced images that can be applied in a scene.</string>
                    </property>
                    <property name="text">
                     <string>Select Installed Image</string>
@@ -881,6 +850,9 @@ p, li { white-space: pre-wrap; }
                    <property name="toolTip">
                     <string>Check to display image on terrain surface</string>
                    </property>
+                   <property name="whatsThis">
+                    <string>A height variable can be used to vertically warp the image so as to match the terrain. Any 2D variable can be used as a height variable, so it is not necessary to use only terrain height as the vertical displacement.</string>
+                   </property>
                    <property name="text">
                     <string>Apply to terrain</string>
                    </property>
@@ -901,6 +873,9 @@ p, li { white-space: pre-wrap; }
                  </item>
                  <item>
                   <widget class="QLabel" name="label_2">
+                   <property name="whatsThis">
+                    <string>A height variable can be used to vertically warp the image so as to match the terrain. Any 2D variable can be used as a height variable, so it is not necessary to use only terrain height as the vertical displacement.</string>
+                   </property>
                    <property name="text">
                     <string>Use Height Variable:</string>
                    </property>
@@ -910,6 +885,9 @@ p, li { white-space: pre-wrap; }
                   <widget class="QComboBox" name="heightCombo">
                    <property name="toolTip">
                     <string>Specify variable that represents terrain height</string>
+                   </property>
+                   <property name="whatsThis">
+                    <string>A height variable can be used to vertically warp the image so as to match the terrain. Any 2D variable can be used as a height variable, so it is not necessary to use only terrain height as the vertical displacement.</string>
                    </property>
                   </widget>
                  </item>
@@ -1853,6 +1831,9 @@ orientation of the plane.</string>
               <property name="toolTip">
                <string>Set the image box to the current region</string>
               </property>
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click to set the image extents to the current horizontal extents in the active Region panel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>Fit box to current region</string>
               </property>
@@ -1944,6 +1925,9 @@ orientation of the plane.</string>
               <property name="toolTip">
                <string>Min and max user coordinates of the specified planar region </string>
               </property>
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string> User coord extents (X,Y,Z)</string>
               </property>
@@ -1976,6 +1960,9 @@ orientation of the plane.</string>
               <property name="toolTip">
                <string>Min and max grid coordinates of the planar region, at highest refinement level</string>
               </property>
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>Grid extents (X,Y,Z)</string>
               </property>
@@ -1993,6 +1980,9 @@ orientation of the plane.</string>
            <layout class="QHBoxLayout">
             <item>
              <widget class="QLabel" name="textLabel9">
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>Min:</string>
               </property>
@@ -2014,6 +2004,9 @@ orientation of the plane.</string>
               </property>
               <property name="toolTip">
                <string>Min and max user coordinates of the specified planar region </string>
+              </property>
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>1.2345e5</string>
@@ -2037,6 +2030,9 @@ orientation of the plane.</string>
               <property name="toolTip">
                <string>Min and max user coordinates of the specified planar region </string>
               </property>
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>1.2345e5</string>
               </property>
@@ -2058,6 +2054,9 @@ orientation of the plane.</string>
               </property>
               <property name="toolTip">
                <string>Min and max user coordinates of the specified planar region </string>
+              </property>
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>1.2345e5</string>
@@ -2091,6 +2090,9 @@ orientation of the plane.</string>
               <property name="toolTip">
                <string>Min and max grid coordinates of the planar region, at highest refinement level</string>
               </property>
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>1234</string>
               </property>
@@ -2107,6 +2109,9 @@ orientation of the plane.</string>
               <property name="toolTip">
                <string>Min and max grid coordinates of the planar region, at highest refinement level</string>
               </property>
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>1234</string>
               </property>
@@ -2122,6 +2127,9 @@ orientation of the plane.</string>
              <widget class="QLabel" name="minGridZLabel">
               <property name="toolTip">
                <string>Min and max grid coordinates of the planar region, at highest refinement level</string>
+              </property>
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>1234</string>
@@ -2140,6 +2148,9 @@ orientation of the plane.</string>
            <layout class="QHBoxLayout">
             <item>
              <widget class="QLabel" name="textLabel9_2">
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>Max:</string>
               </property>
@@ -2161,6 +2172,9 @@ orientation of the plane.</string>
               </property>
               <property name="toolTip">
                <string>Min and max user coordinates of the specified planar region </string>
+              </property>
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>1.2345e5</string>
@@ -2184,6 +2198,9 @@ orientation of the plane.</string>
               <property name="toolTip">
                <string>Min and max user coordinates of the specified planar region </string>
               </property>
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>1.2345e5</string>
               </property>
@@ -2205,6 +2222,9 @@ orientation of the plane.</string>
               </property>
               <property name="toolTip">
                <string>Min and max user coordinates of the specified planar region </string>
+              </property>
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>1.2345e5</string>
@@ -2238,6 +2258,9 @@ orientation of the plane.</string>
               <property name="toolTip">
                <string>Min and max grid coordinates of the planar region, at highest refinement level</string>
               </property>
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>1234</string>
               </property>
@@ -2253,6 +2276,9 @@ orientation of the plane.</string>
              <widget class="QLabel" name="maxGridYLabel">
               <property name="toolTip">
                <string>Min and max grid coordinates of the planar region, at highest refinement level</string>
+              </property>
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>1234</string>
@@ -2270,6 +2296,9 @@ orientation of the plane.</string>
               <property name="toolTip">
                <string>Min and max grid coordinates of the planar region, at highest refinement level</string>
               </property>
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>1234</string>
               </property>
@@ -2285,6 +2314,9 @@ orientation of the plane.</string>
           </item>
           <item>
            <widget class="QFrame" name="minMaxLonLatFrame">
+            <property name="whatsThis">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When georeferencing is used, the longitude and latitude of the corners of the image extents are displayed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="frameShape">
              <enum>QFrame::NoFrame</enum>
             </property>
@@ -2298,6 +2330,9 @@ orientation of the plane.</string>
                 <layout class="QHBoxLayout">
                  <item>
                   <widget class="QLabel" name="textLabel9_2_2">
+                   <property name="whatsThis">
+                    <string>The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.</string>
+                   </property>
                    <property name="text">
                     <string>Upper-right Lon/Lat</string>
                    </property>
@@ -2319,6 +2354,9 @@ orientation of the plane.</string>
                    </property>
                    <property name="toolTip">
                     <string>Longitude and latitude of upper-right corner of 2D extents</string>
+                   </property>
+                   <property name="whatsThis">
+                    <string>The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.</string>
                    </property>
                    <property name="text">
                     <string>1.2345e5</string>
@@ -2342,6 +2380,9 @@ orientation of the plane.</string>
                    <property name="toolTip">
                     <string>Longitude and latitude of upper-right corner of 2D extents</string>
                    </property>
+                   <property name="whatsThis">
+                    <string>The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.</string>
+                   </property>
                    <property name="text">
                     <string>1.2345e5</string>
                    </property>
@@ -2359,6 +2400,9 @@ orientation of the plane.</string>
                 <layout class="QHBoxLayout">
                  <item>
                   <widget class="QLabel" name="textLabel9_2_2_2">
+                   <property name="whatsThis">
+                    <string>The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.</string>
+                   </property>
                    <property name="text">
                     <string>Lower-left Lon/Lat</string>
                    </property>
@@ -2381,6 +2425,9 @@ orientation of the plane.</string>
                    <property name="toolTip">
                     <string>Longitude and latitude of lower-left corner of 2D extents</string>
                    </property>
+                   <property name="whatsThis">
+                    <string>The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.</string>
+                   </property>
                    <property name="text">
                     <string>1.2345e5</string>
                    </property>
@@ -2402,6 +2449,9 @@ orientation of the plane.</string>
                    </property>
                    <property name="toolTip">
                     <string>Longitude and latitude of lower-left corner of 2D extents</string>
+                   </property>
+                   <property name="whatsThis">
+                    <string>The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.</string>
                    </property>
                    <property name="text">
                     <string>1.2345e5</string>
@@ -2496,7 +2546,7 @@ below the contour view.</string>
                   </size>
                  </property>
                  <property name="whatsThis">
-                  <string>The contour view shows a planar image of the subset of the 2D data  determined by the size limits.  The colors in the plane are determined by mapping the variables in the 2D data using the color mapping of the current transfer function. The same plane is displayed in the scene, however the in-scene image is influenced by the opacity as well as the color of the transfer function.  Left-mouse clicks in this window are used to select a point in the plane, that is displayed with a cursor.  In 2D planer mode, the cursor is also shown in 3D in the visualizer.  The coordinates and variable value at the selected point are shown below  the contour view.</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The contour view shows the image. The same plane is displayed in the scene.  Left-mouse clicks in this window are used to select a point in the plane, that is displayed with a cursor.  In image mode, the cursor is also shown in 3D in the visualizer.  The coordinates at the selected point are shown below the contour view.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                 </widget>
                </item>
@@ -2554,6 +2604,9 @@ below the contour view.</string>
             </item>
             <item>
              <widget class="QLabel" name="textLabel5">
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;coordinates of the selected point are displayed as (x,y,z) coordinates, or as longitude and latitude if the image is geo-referenced.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>Selected Point</string>
               </property>
@@ -2572,6 +2625,9 @@ below the contour view.</string>
               </property>
               <property name="toolTip">
                <string>local X-coordinate of  point at cross-hairs</string>
+              </property>
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;coordinates of the selected point are displayed as (x,y,z) coordinates, or as longitude and latitude if the image is geo-referenced.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>0.0</string>
@@ -2595,6 +2651,9 @@ below the contour view.</string>
               <property name="toolTip">
                <string>local Y-coordinate of selected point at cross-hairs</string>
               </property>
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;coordinates of the selected point are displayed as (x,y,z) coordinates, or as longitude and latitude if the image is geo-referenced.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>0.0</string>
               </property>
@@ -2616,6 +2675,9 @@ below the contour view.</string>
               </property>
               <property name="toolTip">
                <string>local Z-coordinate of selected point at cross-hairs</string>
+              </property>
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;coordinates of the selected point are displayed as (x,y,z) coordinates, or as longitude and latitude if the image is geo-referenced.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>0.0</string>
@@ -2675,6 +2737,9 @@ below the contour view.</string>
                </item>
                <item>
                 <widget class="QLabel" name="textLabel5_2">
+                 <property name="whatsThis">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;coordinates of the selected point are displayed as (x,y,z) coordinates, or as longitude and latitude if the image is geo-referenced.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
                  <property name="text">
                   <string>Longitude, latitude</string>
                  </property>
@@ -2693,6 +2758,9 @@ below the contour view.</string>
                  </property>
                  <property name="toolTip">
                   <string>Longitude and latitude of selected point of selected point at cross-hairs</string>
+                 </property>
+                 <property name="whatsThis">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;coordinates of the selected point are displayed as (x,y,z) coordinates, or as longitude and latitude if the image is geo-referenced.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
                   <string>0.0</string>
@@ -2715,6 +2783,9 @@ below the contour view.</string>
                  </property>
                  <property name="toolTip">
                   <string>Longitude and latitude of selected point of selected point at cross-hairs</string>
+                 </property>
+                 <property name="whatsThis">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;coordinates of the selected point are displayed as (x,y,z) coordinates, or as longitude and latitude if the image is geo-referenced.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
                   <string>0.0</string>
@@ -2772,20 +2843,7 @@ below the contour view.</string>
                <string>Check this box to attach the selected point to a seed in the currently applicable flow instance at the current time step.</string>
               </property>
               <property name="whatsThis">
-               <string>The current selected point in the 2D plane
-can be inserted into the list of seeds in
-the flow instance that is currently active
-in the active visualizer.  When you click &quot;Add
-Point to Flow Seeds&quot;, the point will be
-added to the list of seeds at the current
-time step. The resulting flow line will be 
-immediately visualized if that flow instance
-is enabled and set to use the seed list,
-provided of course that the seed is inside
-the current region.
-If you check the &quot;Attach Point to flow seed&quot;,
-then the seed will move around as you
-change the selection in the 2D plane</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The current selected point in the image plane can be inserted into the list of seeds in the flow instance that is currently active in the active visualizer. When you click &amp;quot;Add Point to Flow Seeds&amp;quot;, the point will be added to the list of seeds at the current time step. The resulting flow line will be immediately visualized if that flow instance is enabled and set to use the seed list,provided of course that the seed is inside the current region. If you check the &amp;quot;Attach Point to flow seed&amp;quot;, then the seed will move around as you change the selection in the image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Attach Point to Flow Seed</string>
@@ -2798,20 +2856,7 @@ change the selection in the 2D plane</string>
                <string>Click to add the selected point to the seeds for the applicable flow panel, at the current time step</string>
               </property>
               <property name="whatsThis">
-               <string>The current selected point in the 2D plane
-can be inserted into the list of seeds in
-the flow instance that is currently active
-in the active visualizer.  When you click &quot;Add
-Point to Flow Seeds&quot;, the point will be
-added to the list of seeds at the current
-time step. The resulting flow line will be 
-immediately visualized if that flow instance
-is enabled and set to use the seed list,
-provided of course that the seed is inside
-the current region.
-If you check the &quot;Attach Point to flow seed&quot;,
-then the seed will move around as you
-change the selection in the 2D plane</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The current selected point in the image plane can be inserted into the list of seeds in the flow instance that is currently active in the active visualizer. When you click &amp;quot;Add Point to Flow Seeds&amp;quot;, the point will be added to the list of seeds at the current time step. The resulting flow line will be immediately visualized if that flow instance is enabled and set to use the seed list,provided of course that the seed is inside the current region. If you check the &amp;quot;Attach Point to flow seed&amp;quot;, then the seed will move around as you change the selection in the image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Add Point to Flow Seeds</string>
@@ -2857,7 +2902,7 @@ change the selection in the 2D plane</string>
                <string>Click to move the current region center to the selected point</string>
               </property>
               <property name="whatsThis">
-               <string>When this is clicked, the selected point is made the center of the current region.  The region is shrunk as necessary to fit within the full data extents.</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The current selected point in the image plane can be used to center the current active Region, Rake, or Probe.  It can also be made the center of rotation in the View panel, which will cause the view to center at that point.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Region </string>
@@ -2870,7 +2915,7 @@ change the selection in the 2D plane</string>
                <string>Click to recenter viewpoint at selected point</string>
               </property>
               <property name="whatsThis">
-               <string>When this is clicked, the current viewpoint is modified to point at the selected point and the selected point becomes the rotation center.</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The current selected point in the image plane can be used to center the current active Region, Rake, or Probe.  It can also be made the center of rotation in the View panel, which will cause the view to center at that point.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>View </string>
@@ -2883,7 +2928,7 @@ change the selection in the 2D plane</string>
                <string>Click to reenter flow rake at selected point</string>
               </property>
               <property name="whatsThis">
-               <string>When clicked, the current selected point becomes the center of the current rake (for the current active flow instance).  The rake will be shrunk as necessary to fit within the data domain.</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The current selected point in the image plane can be used to center the current active Region, Rake, or Probe.  It can also be made the center of rotation in the View panel, which will cause the view to center at that point.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Rake </string>
@@ -2896,7 +2941,7 @@ change the selection in the 2D plane</string>
                <string>Click to move the current probe center to the selected point</string>
               </property>
               <property name="whatsThis">
-               <string>When this button is clicked, this probe is moved so that its center becomes the selected point.</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The current selected point in the image plane can be used to center the current active Region, Rake, or Probe.  It can also be made the center of rotation in the View panel, which will cause the view to center at that point.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Probe </string>

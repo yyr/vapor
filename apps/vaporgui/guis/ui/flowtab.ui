@@ -28,6 +28,9 @@
   <property name="toolTip">
    <string/>
   </property>
+  <property name="whatsThis">
+   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Flow panel controls the integration of flow lines in the 3D scene.  There are three types of flow integration supported:  Steady flow provides an instantaneous image of a flow field, i.e. streamlines.  Unsteady flow displays the time-varying motion paths of massless particles in a flow field.  Field Line Advection combines steady and unsteady flow to display how streamlines of a steady flow field are advected by another (unsteady) field.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+  </property>
   <layout class="QHBoxLayout" name="horizontalLayout_17">
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_10">
@@ -251,9 +254,7 @@ is controlled by the values in this
         </size>
        </property>
        <property name="whatsThis">
-        <string>The Basic Flow Parameters are the
-parameters that must be specified
-for any flow integration.</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Basic Flow Parameters are theparameters that must be specified for any flow integration.    They include the specification of steady and unsteady flow variables, periodicity, accuracy, and other parameters.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
@@ -373,6 +374,9 @@ in the unsteady field.</string>
               <property name="toolTip">
                <string>Click to interrupt current unsteady flow integration at completion of current time step</string>
               </property>
+              <property name="whatsThis">
+               <string>The STOP button will interrupt the current unsteady flow integration (or field line advection) after completing the time step currently being integrated.</string>
+              </property>
               <property name="text">
                <string>STOP</string>
               </property>
@@ -421,6 +425,9 @@ in the unsteady field.</string>
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Click to set default Fidelity to current LOD and Refinement levels.  The default can optionally be saved in user preferences.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="whatsThis">
+                 <string>The fidelity setting controls both refinement and LOD.  Click on the &quot;Set Default Fidelity&quot; button to establish a fidelity level that is interactive on the current platform.</string>
                 </property>
                 <property name="text">
                  <string>Set Default Fidelity</string>
@@ -492,7 +499,7 @@ p, li { white-space: pre-wrap; }
                  <string>Specify the approximation level for the data being visualized</string>
                 </property>
                 <property name="whatsThis">
-                 <string>The Refinement parameter and (in the case of VDC2 data) the LOD parameter control the quality of the approximation used when visualizing a variable.  The Refinement parameter selects the grid resolutiion.  Coarser resolutions require less memory (RAM); less computation by the visualization algorithms; and for VDC1 data, less storage space on disk, therefore less time to read the data.  For VDC2 data the Refinement level has no impact on disk storage.  The LOD parameter, which is only available for VDC2 data sets, selects a compression level.  Variables with greater compression require less disk storage and can thus be read from disk by vaporgui more quickly, but have no impact on memory  (RAM) or computation time required by the visualziation algorithms.  For both LOD and Refinement, level 0 corresponds to the coarsest approximation available.</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Refinement parameter and (in the case of VDC2 data) the LOD parameter control the quality of the approximation used when visualizing a variable.  These are controlled by the Fidelity controls, but can be used to override the Fidelity defaults.&lt;/p&gt;&lt;p&gt; The Refinement parameter selects the grid resolutiion.  Coarser resolutions require less memory (RAM); less computation by the visualization algorithms; and for VDC1 data, less storage space on disk, therefore less time to read the data.  For VDC2 data the Refinement level has no impact on disk storage.  The LOD parameter, which is only available for VDC2 data sets, selects a compression level.  Variables with greater compression require less disk storage and can thus be read from disk by vaporgui more quickly, but have no impact on memory  (RAM) or computation time required by the visualziation algorithms.  For both LOD and Refinement, level 0 corresponds to the coarsest approximation available.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <item>
                  <property name="text">
@@ -549,7 +556,7 @@ p, li { white-space: pre-wrap; }
                  <string>The refinement level specifies the resolution of data that is used</string>
                 </property>
                 <property name="whatsThis">
-                 <string>The Refinement parameter and (in the case of VDC2 data) the LOD parameter control the quality of the approximation used when visualizing a variable.  The Refinement parameter selects the grid resolutiion.  Coarser resolutions require less memory (RAM); less computation by the visualization algorithms; and for VDC1 data, less storage space on disk, therefore less time to read the data.  For VDC2 data the Refinement level has no impact on disk storage.  The LOD parameter, which is only available for VDC2 data sets, selects a compression level.  Variables with greater compression require less disk storage and can thus be read from disk by vaporgui more quickly, but have no impact on memory  (RAM) or computation time required by the visualziation algorithms.  For both LOD and Refinement, level 0 corresponds to the coarsest approximation available.</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Refinement parameter and (in the case of VDC2 data) the LOD parameter control the quality of the approximation used when visualizing a variable.  These are controlled by the Fidelity controls, but can be used to override the Fidelity defaults.&lt;/p&gt;&lt;p&gt; The Refinement parameter selects the grid resolutiion.  Coarser resolutions require less memory (RAM); less computation by the visualization algorithms; and for VDC1 data, less storage space on disk, therefore less time to read the data.  For VDC2 data the Refinement level has no impact on disk storage.  The LOD parameter, which is only available for VDC2 data sets, selects a compression level.  Variables with greater compression require less disk storage and can thus be read from disk by vaporgui more quickly, but have no impact on memory  (RAM) or computation time required by the visualziation algorithms.  For both LOD and Refinement, level 0 corresponds to the coarsest approximation available.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="maxCount">
                  <number>5</number>
@@ -1656,6 +1663,9 @@ time steps are specified in the animation panel.</string>
          <width>422</width>
          <height>16777215</height>
         </size>
+       </property>
+       <property name="whatsThis">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;All flow integration in the vapor scene is based on the specification of seed points, which are the starting points for the line integration that results in the flow lines.  Seed points can be either random, nonrandom, or based on a list of points.  Random seeds can be uniform or can be biased based on large or small values of a specified3D field.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
@@ -3402,17 +3412,7 @@ current region early.</string>
         </size>
        </property>
        <property name="whatsThis">
-        <string>The advanced unsteady flow
-parameters are needed
-to change some default settings.
-For example they can be set
-to sample only a subset of the
-available time steps, or to
-enable seeds to be distributed
-according to field magnitude.
-Click on the button &quot;Unsteady
-Flow Setup Help&quot; for more
-information.</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The unsteady flow time settings are needed for both unsteady flow and for field line advection.  They control how time is sampled during unsteady flow integration.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
@@ -3778,7 +3778,7 @@ time steps, use the time step list
                         <string>Check to use the list of time steps</string>
                        </property>
                        <property name="whatsThis">
-                        <string>Check the &quot;Use time step list&quot; check box to specify a set of time steps that will be used to sample the vector fields during unsteady flow integration.  The list contents can be edited and time steps can be inserted or deleted.  During field line advection, these time steps will also be used for steady flow integration.</string>
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check the &amp;quot;Use time step list&amp;quot; check box to specify a set of time steps that will be used to sample the vector fields during unsteady flow integration.  The list contents can be edited and time steps can be inserted or deleted.  During field line advection, these time steps will also be used for steady flow integration.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                        </property>
                        <property name="text">
                         <string>Use time step list</string>
@@ -3811,7 +3811,7 @@ time steps, use the time step list
                         <string>Click to add blank timestep to list, you must type in desired value</string>
                        </property>
                        <property name="whatsThis">
-                        <string>Check the &quot;Use time step list&quot; check box to specify a set of time steps that will be used to sample the vector fields during unsteady flow integration.  The list contents can be edited and time steps can be inserted or deleted.  During field line advection, these time steps will also be used for steady flow integration.</string>
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check the &amp;quot;Use time step list&amp;quot; check box to specify a set of time steps that will be used to sample the vector fields during unsteady flow integration.  The list contents can be edited and time steps can be inserted or deleted.  During field line advection, these time steps will also be used for steady flow integration.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                        </property>
                        <property name="text">
                         <string>Add</string>
@@ -3824,7 +3824,7 @@ time steps, use the time step list
                         <string>Click to delete the selected time step</string>
                        </property>
                        <property name="whatsThis">
-                        <string>Check the &quot;Use time step list&quot; check box to specify a set of time steps that will be used to sample the vector fields during unsteady flow integration.  The list contents can be edited and time steps can be inserted or deleted.  During field line advection, these time steps will also be used for steady flow integration.</string>
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check the &amp;quot;Use time step list&amp;quot; check box to specify a set of time steps that will be used to sample the vector fields during unsteady flow integration.  The list contents can be edited and time steps can be inserted or deleted.  During field line advection, these time steps will also be used for steady flow integration.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                        </property>
                        <property name="text">
                         <string>Delete</string>
@@ -3835,6 +3835,9 @@ time steps, use the time step list
                       <widget class="QPushButton" name="rebuildButton1">
                        <property name="toolTip">
                         <string>Build a list of timesteps based on the timesteps available for any variable  in the data</string>
+                       </property>
+                       <property name="whatsThis">
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check the &amp;quot;Use time step list&amp;quot; check box to specify a set of time steps that will be used to sample the vector fields during unsteady flow integration.  The list contents can be edited and time steps can be inserted or deleted.  During field line advection, these time steps will also be used for steady flow integration.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                        </property>
                        <property name="text">
                         <string>Rebuild</string>
@@ -3852,6 +3855,9 @@ time steps, use the time step list
                      <width>120</width>
                      <height>120</height>
                     </size>
+                   </property>
+                   <property name="whatsThis">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check the &amp;quot;Use time step list&amp;quot; check box to specify a set of time steps that will be used to sample the vector fields during unsteady flow integration.  The list contents can be edited and time steps can be inserted or deleted.  During field line advection, these time steps will also be used for steady flow integration.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                   </widget>
                  </item>
@@ -4115,11 +4121,7 @@ flow line.</string>
         </size>
        </property>
        <property name="whatsThis">
-        <string>The color and opacity of the flow
-lines, point, or arrows
-are set by defining a color
-mapping and an opacity mapping
-in this panel.</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The appearance settings control the shape, size, color, and transparency of the flow lines displayed.  The smoothness and length of steady flow lines can also be controlled here.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
@@ -4148,6 +4150,9 @@ in this panel.</string>
           </item>
           <item>
            <widget class="QFrame" name="appearanceFrame">
+            <property name="whatsThis">
+             <string>Flow appearance settings control the shapes and colors that are displayed when flow is integrated.</string>
+            </property>
             <property name="frameShape">
              <enum>QFrame::NoFrame</enum>
             </property>
@@ -4820,6 +4825,9 @@ p, li { white-space: pre-wrap; }
                       </item>
                       <item>
                        <widget class="QCheckBox" name="displayListCheckbox">
+                        <property name="whatsThis">
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Flow rendering performance can sometimes be improved by using display lists, however they may not work on all platforms.  &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
                         <property name="text">
                          <string>Use display lists to cache flow geometry</string>
                         </property>
@@ -5463,16 +5471,7 @@ how the histogram is scaled.</string>
                     </size>
                    </property>
                    <property name="whatsThis">
-                    <string>The color editor displays a 
-mapping from the Color entity
-to opacity,  This editor is only
-available when you select an
-entity other than &quot;Constant&quot; for
-color mapping.   This mapping
-determines the color of flow lines
-in the visualizer.  Additional
-options are available from the
-right mouse button.</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The transfer function editor displays a mapping from the Color/Opacity entity&lt;/p&gt;&lt;p&gt;to color and opacity.   This editor is onlyavailable when you select an&lt;/p&gt;&lt;p&gt;entity other than &amp;quot;Constant&amp;quot; for color/Opacity mapped entity.  This mapping&lt;/p&gt;&lt;p&gt;determines the color of flow lines in the visualizer.  Additional options are available from the&lt;/p&gt;&lt;p&gt;right mouse button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="colorMapping" stdset="0">
                     <bool>true</bool>

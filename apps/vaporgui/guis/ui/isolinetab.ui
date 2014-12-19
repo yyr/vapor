@@ -1448,6 +1448,9 @@ specified range.</string>
          <height>16777215</height>
         </size>
        </property>
+       <property name="whatsThis">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The contour line layout options depend on whether 2D or 3D variable contours are being displayed.  If the variable is 2D, then these settings are similar to the corresponding settings in the 2D panel (specifying a 2D horizontal planar region).  If the variable is 3D, then, similar to the Probe layout, these can be used to specify an arbitrary 2D rectangle intersecting the 3D domain.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
        </property>
