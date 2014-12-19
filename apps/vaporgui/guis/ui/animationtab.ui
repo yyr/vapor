@@ -90,17 +90,7 @@ time steps is also controlled here.</string>
           <string>Apply these settings to visualizers, either globally or locally</string>
          </property>
          <property name="whatsThis">
-          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Animation parameters can be either&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;&amp;quot;local&amp;quot; or &amp;quot;global&amp;quot;.  To apply these&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;parameters to only the one (selected)&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;visualizer, set this to &amp;quot;local&amp;quot;.  All&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;visualizers that have this value set to&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;&amp;quot;global&amp;quot; will share the same time-&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;step, and will animate in unison.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The current frame and the timestep are the same unless using keyframe animation, in which case the time step is interpolated from the time steps at key frames.  The slider indicates the current frame position, between the start and end frame.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="editable">
           <bool>false</bool>
@@ -159,6 +149,9 @@ p, li { white-space: pre-wrap; }
        <property name="toolTip">
         <string>Slider indicates current animation timestep between start and end</string>
        </property>
+       <property name="whatsThis">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The current frame and the timestep are the same unless using keyframe animation, in which case the time step is interpolated from the time steps at key frames.  The slider indicates the current frame position, between the start and end frame.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="maximum">
         <number>20000</number>
        </property>
@@ -182,6 +175,9 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Min and Max timesteps refer to the smallest and largest time steps in the current dataset.&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Min and Max frames refer to the first and last frame index in the current keyframe sequence.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The current frame and the timestep are the same unless using keyframe animation, in which case the time step is interpolated from the time steps at key frames.  The slider indicates the current frame position, between the start and end frame.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>Min Time Step: </string>
          </property>
@@ -199,6 +195,9 @@ p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Min and Max timesteps refer to the smallest and largest time steps in the current dataset.&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Min and Max frames refer to the first and last frame index in the current keyframe sequence.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The current frame and the timestep are the same unless using keyframe animation, in which case the time step is interpolated from the time steps at key frames.  The slider indicates the current frame position, between the start and end frame.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string>1</string>
@@ -229,6 +228,9 @@ p, li { white-space: pre-wrap; }
        </item>
        <item>
         <widget class="QLabel" name="playbac">
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The current frame and the timestep are the same unless using keyframe animation, in which case the time step is interpolated from the time steps at key frames.  The slider indicates the current frame position, between the start and end frame.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>Frame Position</string>
          </property>
@@ -266,6 +268,9 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Min and Max timesteps refer to the smallest and largest time steps in the current dataset.&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Min and Max frames refer to the first and last frame index in the current keyframe sequence.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The current frame and the timestep are the same unless using keyframe animation, in which case the time step is interpolated from the time steps at key frames.  The slider indicates the current frame position, between the start and end frame.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>Max Time Step:</string>
          </property>
@@ -283,6 +288,9 @@ p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Min and Max timesteps refer to the smallest and largest time steps in the current dataset.&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Min and Max frames refer to the first and last frame index in the current keyframe sequence.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The current frame and the timestep are the same unless using keyframe animation, in which case the time step is interpolated from the time steps at key frames.  The slider indicates the current frame position, between the start and end frame.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string>100</string>
@@ -311,6 +319,9 @@ p, li { white-space: pre-wrap; }
            <property name="toolTip">
             <string>First frame number of animation</string>
            </property>
+           <property name="whatsThis">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The current frame and the timestep are the same unless using keyframe animation, in which case the time step is interpolated from the time steps at key frames.  The slider indicates the current frame position, between the start and end frame.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="text">
             <string>1</string>
            </property>
@@ -323,6 +334,9 @@ p, li { white-space: pre-wrap; }
           <widget class="QLabel" name="textLabel2">
            <property name="toolTip">
             <string>First time step of animation</string>
+           </property>
+           <property name="whatsThis">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The current frame and the timestep are the same unless using keyframe animation, in which case the time step is interpolated from the time steps at key frames.  The slider indicates the current frame position, between the start and end frame.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
             <string>Start</string>
@@ -365,6 +379,9 @@ p, li { white-space: pre-wrap; }
            <property name="toolTip">
             <string>Currently displayed frame number</string>
            </property>
+           <property name="whatsThis">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The current frame and the timestep are the same unless using keyframe animation, in which case the time step is interpolated from the time steps at key frames.  The slider indicates the current frame position, between the start and end frame.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="text">
             <string>1</string>
            </property>
@@ -377,6 +394,9 @@ p, li { white-space: pre-wrap; }
           <widget class="QLabel" name="textLabel3">
            <property name="toolTip">
             <string>Currently displayed time step</string>
+           </property>
+           <property name="whatsThis">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The current frame and the timestep are the same unless using keyframe animation, in which case the time step is interpolated from the time steps at key frames.  The slider indicates the current frame position, between the start and end frame.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
             <string>Current Frame</string>
@@ -406,6 +426,9 @@ p, li { white-space: pre-wrap; }
            <property name="toolTip">
             <string>Currently displayed data time step</string>
            </property>
+           <property name="whatsThis">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The current frame and the timestep are the same unless using keyframe animation, in which case the time step is interpolated from the time steps at key frames.  The slider indicates the current frame position, between the start and end frame.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="text">
             <string>1</string>
            </property>
@@ -421,6 +444,9 @@ p, li { white-space: pre-wrap; }
           <widget class="QLabel" name="textLabel3_3">
            <property name="toolTip">
             <string>Currently displayed time step</string>
+           </property>
+           <property name="whatsThis">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The current frame and the timestep are the same unless using keyframe animation, in which case the time step is interpolated from the time steps at key frames.  The slider indicates the current frame position, between the start and end frame.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
             <string>Timestep</string>
@@ -462,6 +488,9 @@ p, li { white-space: pre-wrap; }
            </property>
            <property name="toolTip">
             <string>Ending frame number of animation</string>
+           </property>
+           <property name="whatsThis">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The current frame and the timestep are the same unless using keyframe animation, in which case the time step is interpolated from the time steps at key frames.  The slider indicates the current frame position, between the start and end frame.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
             <string>100</string>
@@ -514,6 +543,9 @@ p, li { white-space: pre-wrap; }
          <property name="toolTip">
           <string>Reverse Play</string>
          </property>
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;These buttons control the playing (frame advance) of the vapor display.  The upper row is used to play backwards, pause, or to play forwards.  The bottom row supports jumps to the start, single-step backwards, continuous replay, single-step forwards, or jump to end.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -530,6 +562,9 @@ p, li { white-space: pre-wrap; }
         <widget class="QPushButton" name="pauseButton">
          <property name="toolTip">
           <string>Pause Animation</string>
+         </property>
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;These buttons control the playing (frame advance) of the vapor display.  The upper row is used to play backwards, pause, or to play forwards.  The bottom row supports jumps to the start, single-step backwards, continuous replay, single-step forwards, or jump to end.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string/>
@@ -550,6 +585,9 @@ p, li { white-space: pre-wrap; }
         <widget class="QPushButton" name="playForwardButton">
          <property name="toolTip">
           <string>Forward Play</string>
+         </property>
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;These buttons control the playing (frame advance) of the vapor display.  The upper row is used to play backwards, pause, or to play forwards.  The bottom row supports jumps to the start, single-step backwards, continuous replay, single-step forwards, or jump to end.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string/>
@@ -572,6 +610,9 @@ p, li { white-space: pre-wrap; }
          <property name="toolTip">
           <string>Go to Start</string>
          </property>
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;These buttons control the playing (frame advance) of the vapor display.  The upper row is used to play backwards, pause, or to play forwards.  The bottom row supports jumps to the start, single-step backwards, continuous replay, single-step forwards, or jump to end.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -589,6 +630,9 @@ p, li { white-space: pre-wrap; }
          <property name="toolTip">
           <string>Step Reverse</string>
          </property>
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;These buttons control the playing (frame advance) of the vapor display.  The upper row is used to play backwards, pause, or to play forwards.  The bottom row supports jumps to the start, single-step backwards, continuous replay, single-step forwards, or jump to end.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -604,6 +648,9 @@ p, li { white-space: pre-wrap; }
         <widget class="QPushButton" name="replayButton">
          <property name="toolTip">
           <string>Continuous Replay</string>
+         </property>
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;These buttons control the playing (frame advance) of the vapor display.  The upper row is used to play backwards, pause, or to play forwards.  The bottom row supports jumps to the start, single-step backwards, continuous replay, single-step forwards, or jump to end.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string/>
@@ -628,6 +675,9 @@ p, li { white-space: pre-wrap; }
          <property name="toolTip">
           <string>Step Forward</string>
          </property>
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;These buttons control the playing (frame advance) of the vapor display.  The upper row is used to play backwards, pause, or to play forwards.  The bottom row supports jumps to the start, single-step backwards, continuous replay, single-step forwards, or jump to end.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -646,6 +696,9 @@ p, li { white-space: pre-wrap; }
         <widget class="QPushButton" name="toEndButton">
          <property name="toolTip">
           <string>Go to End</string>
+         </property>
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;These buttons control the playing (frame advance) of the vapor display.  The upper row is used to play backwards, pause, or to play forwards.  The bottom row supports jumps to the start, single-step backwards, continuous replay, single-step forwards, or jump to end.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string/>

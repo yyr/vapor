@@ -51,7 +51,7 @@ const string ParamsIso::_NumBitsTag = "NumVoxelBits";
 const string ParamsIso::_editBoundsTag = "EditBounds";
 const string ParamsIso::_mapEditModeTag = "MapEditMode";
 const string ParamsIso::_isoEditModeTag = "IsoEditMode";
-int ParamsIso::defaultBitsPerVoxel = 8;
+int ParamsIso::defaultBitsPerVoxel = 16;
 namespace {
 	const string IsoName = "IsosurfaceParams";
 };
@@ -335,7 +335,7 @@ void ParamsIso::restart() {
 	
 }
 void ParamsIso::setDefaultPrefs(){
-	defaultBitsPerVoxel = 8;
+	defaultBitsPerVoxel = 16;
 }
 //Hook up the new transfer function in specified slot,
 //Delete the old one.  This is called whenever a new tf is loaded.

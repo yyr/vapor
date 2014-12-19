@@ -87,9 +87,6 @@ protected slots:
 
    void guiApplyClipping(bool);
    
-   void guiSetNumRefinements(int num);
-   void guiSetCompRatio(int num);
-   
    void guiLoadModel();
    void guiSelectColor();
    
