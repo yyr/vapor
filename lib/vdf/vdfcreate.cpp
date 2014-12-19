@@ -324,19 +324,7 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 	
     if ((NetCDFtype == "ROMS") || (NetCDFtype == "CAM")) DCdata = new DCReaderROMS(ncdffiles);
     else if (NetCDFtype == "GRIMs") {
-		if (_numTS != -1){
-			if (ncdffiles.size()<2) {
-				MyBase::SetErrMsg("Error: The -fastMode option requires at least the first two files in the GRIB dataset.");
-				return 0;
-			}
-			vector<string> twoFiles;
-			twoFiles.push_back(ncdffiles[0]);
-			twoFiles.push_back(ncdffiles[1]);
-			DCdata = new DCReaderGRIB(twoFiles);
-		}
-		else {
-			DCdata = new DCReaderGRIB(ncdffiles);
-		}
+		DCdata = new DCReaderGRIB(ncdffiles);
 	}
 	else if (NetCDFtype == "WRF") {
 		DCdata = new DCReaderWRF(ncdffiles);
