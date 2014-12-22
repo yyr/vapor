@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>467</width>
-    <height>1110</height>
+    <height>905</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -1157,17 +1157,38 @@ share the same region settings.</string>
      </item>
      <item>
       <layout class="QGridLayout">
-       <item row="0" column="1">
-        <widget class="QPushButton" name="regionToRakeButton">
-         <property name="toolTip">
-          <string>Set current Rake to use this region</string>
+       <item row="0" column="4">
+        <widget class="QLabel" name="label_2">
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The extents being used in one tab can be copied to another tab using the &amp;quot;Copy Box&amp;quot; button. Select the &amp;quot;From:&amp;quot; tab and the &amp;quot;To:&amp;quot; tab associated with the extents to be copied, make sure that the current instances in each of these tabs are the ones that are to be copied, and that these extents are associated with the current active visualizer (if there is more than one visualizer). The extents of the source box should be within the current data domain. Note: when copying a 2D box to a 3D box, the 3D box retains its vertical size. When copying a 3D box to a 2D box the vertical extents of the 3D box are ignored. When copying a rotated 3D box (Probe or Contours) the rotation is ignored. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
-          <string>Copy Region to Flow Rake</string>
+          <string>To:</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="4">
+       <item row="0" column="3">
+        <widget class="QComboBox" name="copyBoxFromCombo">
+         <property name="minimumSize">
+          <size>
+           <width>60</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Select the tab associated with the extents to be copied</string>
+         </property>
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The extents being used in one tab can be copied to another tab using the &amp;quot;Copy Box&amp;quot; button. Select the &amp;quot;From:&amp;quot; tab and the &amp;quot;To:&amp;quot; tab associated with the extents to be copied, make sure that the current instances in each of these tabs are the ones that are to be copied, and that these extents are associated with the current active visualizer (if there is more than one visualizer). The extents of the source box should be within the current data domain. Note: when copying a 2D box to a 3D box, the 3D box retains its vertical size. When copying a 3D box to a 2D box the vertical extents of the 3D box are ignored. When copying a rotated 3D box (Probe or Contours) the rotation is ignored. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <item>
+          <property name="text">
+           <string>Region</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="0" column="6">
         <spacer name="spacer23">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -1178,38 +1199,6 @@ share the same region settings.</string>
          <property name="sizeHint" stdset="0">
           <size>
            <width>55</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="1" column="2">
-        <spacer name="spacer22">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Expanding</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>52</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="1" column="4">
-        <spacer name="spacer24">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Expanding</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>50</width>
            <height>20</height>
           </size>
          </property>
@@ -1231,65 +1220,47 @@ share the same region settings.</string>
          </property>
         </spacer>
        </item>
-       <item row="1" column="3">
-        <widget class="QPushButton" name="probeToRegionButton">
-         <property name="toolTip">
-          <string>Set this region to use current probe bounds</string>
-         </property>
-         <property name="text">
-          <string>Copy Probe to Region</string>
-         </property>
-        </widget>
-       </item>
        <item row="0" column="2">
-        <spacer name="spacer21_2">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Expanding</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>52</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="1" column="0">
-        <spacer name="spacer20_2">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Expanding</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>53</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="1" column="1">
-        <widget class="QPushButton" name="regionToProbeButton">
-         <property name="toolTip">
-          <string>Set current probe to this region</string>
+        <widget class="QLabel" name="label">
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The extents being used in one tab can be copied to another tab using the &amp;quot;Copy Box&amp;quot; button. Select the &amp;quot;From:&amp;quot; tab and the &amp;quot;To:&amp;quot; tab associated with the extents to be copied, make sure that the current instances in each of these tabs are the ones that are to be copied, and that these extents are associated with the current active visualizer (if there is more than one visualizer). The extents of the source box should be within the current data domain. Note: when copying a 2D box to a 3D box, the 3D box retains its vertical size. When copying a 3D box to a 2D box the vertical extents of the 3D box are ignored. When copying a rotated 3D box (Probe or Contours) the rotation is ignored. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
-          <string>Copy Region to Probe</string>
+          <string> From:</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="3">
-        <widget class="QPushButton" name="rakeToRegionButton">
+       <item row="0" column="5">
+        <widget class="QComboBox" name="copyBoxToCombo">
+         <property name="minimumSize">
+          <size>
+           <width>60</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="toolTip">
-          <string>Set this region to use current rake bounds</string>
+          <string>Select the tab whose extents will be the target of the copy.</string>
+         </property>
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The extents being used in one tab can be copied to another tab using the &amp;quot;Copy Box&amp;quot; button. Select the &amp;quot;From:&amp;quot; tab and the &amp;quot;To:&amp;quot; tab associated with the extents to be copied, make sure that the current instances in each of these tabs are the ones that are to be copied, and that these extents are associated with the current active visualizer (if there is more than one visualizer). The extents of the source box should be within the current data domain. Note: when copying a 2D box to a 3D box, the 3D box retains its vertical size. When copying a 3D box to a 2D box the vertical extents of the 3D box are ignored. When copying a rotated 3D box (Probe or Contours) the rotation is ignored. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <item>
+          <property name="text">
+           <string>Barbs</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QPushButton" name="copyBoxButton">
+         <property name="toolTip">
+          <string>Click to copy box extents between current instances</string>
+         </property>
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The extents being used in one tab can be copied to another tab using the &amp;quot;Copy Box&amp;quot; button. Select the &amp;quot;From:&amp;quot; tab and the &amp;quot;To:&amp;quot; tab associated with the extents to be copied, make sure that the current instances in each of these tabs are the ones that are to be copied, and that these extents are associated with the current active visualizer (if there is more than one visualizer). The extents of the source box should be within the current data domain. Note: when copying a 2D box to a 3D box, the 3D box retains its vertical size. When copying a 3D box to a 2D box the vertical extents of the 3D box are ignored. When copying a rotated 3D box (Probe or Contours) the rotation is ignored. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
-          <string>Copy Flow Rake to Region</string>
+          <string>Copy Box Extents</string>
          </property>
         </widget>
        </item>

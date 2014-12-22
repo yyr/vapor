@@ -117,7 +117,7 @@ public:
 	void guiSetZSize(int sliderval);
 	void guiStartCursorMove();
 	void guiEndCursorMove();
-	void guiCopyRegionToProbe();
+	
 	bool isAnimating(){return animationFlag;}
 	void setProbeDirty(ProbeParams* pParams){
 		bool b = animationFlag;
