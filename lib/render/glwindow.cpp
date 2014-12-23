@@ -116,6 +116,7 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 	colorbarDirty = true;
 	timeAnnotDirty = true;
 	axisLabelsDirty = true;
+	textRenderersDirty = true;
 	latLonAnnot = false;
 	for (int axis=0; axis < 3; axis++) axisLabels[axis].clear();
 	
@@ -1310,7 +1311,7 @@ void GLWindow::regPaintEvent()
 		glPopMatrix();
 	}
 	renderText();
-	
+	textRenderersDirty = false;
 
 	
 	//Now go through all the active renderers, and draw colorbars as appropriate

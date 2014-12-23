@@ -416,6 +416,7 @@ selectBackgroundColor(){
 	pal.setColor(QPalette::Base,bgColor);
 	backgroundColorEdit->setPalette(pal);
 	backgroundColor = bgColor;
+	VizWinMgr::getInstance()->refreshText();
 	dialogChanged = true;
 }
 void UserPreferences::tabNameChanged(int val) {

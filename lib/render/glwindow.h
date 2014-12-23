@@ -323,6 +323,8 @@ public:
 	void setColorbarDigits(int ndigs) {colorbarDigits = ndigs;}
 	void setColorbarFontsize(int fsize) {colorbarFontsize = fsize;}
 	void setAxisLabelsDirty(bool val){axisLabelsDirty = val;}
+	void setTextRenderersDirty(bool val){textRenderersDirty = val;}
+	bool textRenderersAreDirty()  {return textRenderersDirty;}
 	bool axisLabelsAreDirty(){return axisLabelsDirty;}
 
 
@@ -560,7 +562,7 @@ protected:
 	std::vector<QImage> axisLabels[3];
 	
 	bool axisLabelsDirty;
-
+	bool textRenderersDirty;
 	static bool depthPeeling;
 	int winNum;
 	int previousTimeStep;

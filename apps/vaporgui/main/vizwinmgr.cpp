@@ -2238,3 +2238,12 @@ void VizWinMgr::forceFidelityUpdate(){
 		eRouter->setFidelityDefaultChangedFlag(true);
 	}
 }
+void VizWinMgr::refreshText(){
+		for (int i = 0; i<MAXVIZWINS; i++){
+			if (vizWin[i]){
+				vizWin[i]->setTimeAnnotDirty();
+				vizWin[i]->setAxisLabelsDirty();
+				vizWin[i]->setTextRenderersDirty();
+			}
+		}
+	}

@@ -78,7 +78,7 @@ void IsolineRenderer::paintGL()
 
 	int timestep = myGLWindow->getActiveAnimationParams()->getCurrentTimestep();
 
-	if (!cacheIsValid(timestep)){
+	if (!cacheIsValid(timestep) || myGLWindow->textRenderersAreDirty()){
 		if (!buildLineCache(timestep)) return;
 	}
 		
