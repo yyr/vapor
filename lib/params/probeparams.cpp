@@ -204,9 +204,9 @@ void ProbeParams::setOpacityScale(float val)
 //
 bool ProbeParams::
 reinit(bool doOverride){
-	
-	const float* extents = DataStatus::getInstance()->getLocalExtents();
-	setMaxNumRefinements(DataStatus::getInstance()->getNumTransforms());
+	DataStatus* ds = DataStatus::getInstance();
+	const float* extents =ds->getLocalExtents();
+	setMaxNumRefinements(ds->getNumTransforms());
 	//Set up the numRefinements combo
 	
 	
@@ -264,19 +264,19 @@ reinit(bool doOverride){
 
 	//Make sure fidelity is valid:
 	int fidelity = GetFidelityLevel();
-	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	DataMgr* dataMgr = ds->getDataMgr();
 	if (dataMgr && fidelity > maxNumRefinements+dataMgr->GetCRatios().size()-1)
 		SetFidelityLevel(maxNumRefinements+dataMgr->GetCRatios().size()-1);
 	//Get the variable names:
 
-	int newNumVariables = DataStatus::getInstance()->getNumSessionVariables();
+	int newNumVariables = ds->getNumSessionVariables();
 	
 	//See if current firstVarNum is valid
 	//if not, reset to first variable that is present:
-	if (!DataStatus::getInstance()->variableIsPresent3D(firstVarNum)){
+	if (!ds->variableIsPresent3D(firstVarNum)){
 		firstVarNum = -1;
 		for (int i = 0; i<newNumVariables; i++) {
-			if (DataStatus::getInstance()->variableIsPresent3D(i)){
+			if (ds->variableIsPresent3D(i)){
 				firstVarNum = i;
 				break;
 			}
@@ -305,7 +305,7 @@ reinit(bool doOverride){
 		//anything that isn't there:
 		for (int i = 0; i<newNumVariables; i++){
 			if (variableSelected[i] && 
-				!DataStatus::getInstance()->variableIsPresent3D(i))
+				!ds->variableIsPresent3D(i))
 				variableSelected[i] = false;
 		}
 	}
@@ -316,21 +316,21 @@ reinit(bool doOverride){
 	}
 
 	// set up the ibfv variables
-	int numComboVariables = DataStatus::getInstance()->getNumActiveVariables3D()+1;
+	int numComboVariables = ds->getNumActiveVariables3D()+1;
 	if (doOverride){
 		for (int j = 0; j<3; j++){
 			ibfvComboVarNum[j] = Min(j+1,numComboVariables);
-			ibfvSessionVarNum[j] = DataStatus::getInstance()->mapActiveToSessionVarNum3D(ibfvComboVarNum[j]-1)+1;
+			ibfvSessionVarNum[j] = ds->mapActiveToSessionVarNum3D(ibfvComboVarNum[j]-1)+1;
 		}
 	} 
 	for (int dim = 0; dim < 3; dim++){
 		//See if current varNum is valid.  If not, 
 		//reset to first variable that is present:
 		if (ibfvSessionVarNum[dim] > 0) {
-			if (!DataStatus::getInstance()->variableIsPresent3D(ibfvSessionVarNum[dim]-1)){
+			if (!ds->variableIsPresent3D(ibfvSessionVarNum[dim]-1)){
 				ibfvSessionVarNum[dim] = -1;
 				for (int i = 0; i<newNumVariables; i++) {
-					if (DataStatus::getInstance()->variableIsPresent3D(i)){
+					if (ds->variableIsPresent3D(i)){
 						ibfvSessionVarNum[dim] = i+1;
 						break;
 					}
@@ -345,7 +345,7 @@ reinit(bool doOverride){
 	for (int dim = 0; dim < 3; dim++){
 		if(ibfvSessionVarNum[dim] == 0) ibfvComboVarNum[dim] = 0;
 		else 
-			ibfvComboVarNum[dim] = DataStatus::getInstance()->mapSessionToActiveVarNum3D(ibfvSessionVarNum[dim]-1)+1;
+			ibfvComboVarNum[dim] = ds->mapSessionToActiveVarNum3D(ibfvSessionVarNum[dim]-1)+1;
 	}
 		
 	
@@ -362,14 +362,15 @@ reinit(bool doOverride){
 		//Create new transfer functions, their editors, hook them up:
 		
 		for (int i = 0; i<newNumVariables; i++){
+			string varname = ds->getVariableName3D(i);
 			newTransFunc[i] = new TransferFunction(this, 8);
 			//Initialize to be fully opaque:
 			newTransFunc[i]->setOpaque();
 
-			newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin3D(i));
-			newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax3D(i));
-			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin3D(i);
-			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax3D(i);
+			newTransFunc[i]->setMinMapValue(ds->getDefaultDataMin3D(i,usingVariable(varname)));
+			newTransFunc[i]->setMaxMapValue(ds->getDefaultDataMax3D(i,usingVariable(varname)));
+			newMinEdit[i] = ds->getDefaultDataMin3D(i,usingVariable(varname));
+			newMaxEdit[i] = ds->getDefaultDataMax3D(i,usingVariable(varname));
 
             newTransFunc[i]->setVarNum(i);
 		}
@@ -377,6 +378,7 @@ reinit(bool doOverride){
 		//attempt to make use of existing transfer functions, edit ranges.
 		//delete any that are no longer referenced
 		for (int i = 0; i<newNumVariables; i++){
+			string varname = ds->getVariableName3D(i);
 			if(i<numVariables){
 				newTransFunc[i] = transFunc[i];
 				newMinEdit[i] = minColorEditBounds[i];
@@ -386,10 +388,10 @@ reinit(bool doOverride){
 				//Initialize to be fully opaque:
 				newTransFunc[i]->setOpaque();
 
-				newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin3D(i));
-				newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax3D(i));
-				newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin3D(i);
-				newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax3D(i);
+				newTransFunc[i]->setMinMapValue(ds->getDefaultDataMin3D(i,usingVariable(varname)));
+				newTransFunc[i]->setMaxMapValue(ds->getDefaultDataMax3D(i,usingVariable(varname)));
+				newMinEdit[i] = ds->getDefaultDataMin3D(i,usingVariable(varname));
+				newMaxEdit[i] = ds->getDefaultDataMax3D(i,usingVariable(varname));
                 newTransFunc[i]->setVarNum(i);
 			}
 		}
@@ -403,9 +405,10 @@ reinit(bool doOverride){
 		setCurrentDatarange(newTransFunc[firstVarNum]->getMinMapValue(),newTransFunc[firstVarNum]->getMaxMapValue());
 	//Make sure edit bounds are valid
 	for(int i = 0; i<newNumVariables; i++){
+		string varname = ds->getVariableName3D(i);
 		if (newMinEdit[i] >= newMaxEdit[i]){
-			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin3D(i);
-			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax3D(i);
+			newMinEdit[i] = ds->getDefaultDataMin3D(i,usingVariable(varname));
+			newMaxEdit[i] = ds->getDefaultDataMax3D(i,usingVariable(varname));
 		}
 		//And check again...
 		if (newMinEdit[i] >= newMaxEdit[i]){
@@ -437,7 +440,7 @@ reinit(bool doOverride){
 	if (ibfvUField) delete [] ibfvUField;
 	if (ibfvVField) delete [] ibfvVField;
 	if (ibfvValid) delete [] ibfvValid;
-	maxTimestep = DataStatus::getInstance()->getNumTimesteps()-1;
+	maxTimestep = ds->getNumTimesteps()-1;
 	probeDataTextures = 0;
 	probeIBFVTextures = 0;
 	ibfvUField = 0;

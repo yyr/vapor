@@ -328,21 +328,24 @@ reinit(bool doOverride){
 		//Create new transfer functions, their editors, hook them up:
 		
 		for (int i = 0; i<newNumVariables; i++){
+			string varname = ds->getVariableName2D(i);
 			newTransFunc[i] = new TransferFunction(this, 8);
 			//Initialize to be fully opaque:
 			newTransFunc[i]->setOpaque();
 
-			newTransFunc[i]->setMinMapValue(ds->getDefaultDataMin2D(i));
-			newTransFunc[i]->setMaxMapValue(ds->getDefaultDataMax2D(i));
-			newMinEdit[i] = ds->getDefaultDataMin2D(i);
-			newMaxEdit[i] = ds->getDefaultDataMax2D(i);
+			newTransFunc[i]->setMinMapValue(ds->getDefaultDataMin2D(i,usingVariable(varname)));
+			newTransFunc[i]->setMaxMapValue(ds->getDefaultDataMax2D(i,usingVariable(varname)));
+			newMinEdit[i] = ds->getDefaultDataMin2D(i,usingVariable(varname));
+			newMaxEdit[i] = ds->getDefaultDataMax2D(i,usingVariable(varname));
 
             newTransFunc[i]->setVarNum(i);
 		}
 	} else { 
 		//attempt to make use of existing transfer functions, edit ranges.
 		//delete any that are no longer referenced
+		
 		for (int i = 0; i<newNumVariables; i++){
+			string varname = ds->getVariableName2D(i);
 			if(i<numVariables){
 				newTransFunc[i] = transFunc[i];
 				newMinEdit[i] = minColorEditBounds[i];
@@ -352,10 +355,10 @@ reinit(bool doOverride){
 				//Initialize to be fully opaque:
 				newTransFunc[i]->setOpaque();
 
-				newTransFunc[i]->setMinMapValue(ds->getDefaultDataMin2D(i));
-				newTransFunc[i]->setMaxMapValue(ds->getDefaultDataMax2D(i));
-				newMinEdit[i] = ds->getDefaultDataMin2D(i);
-				newMaxEdit[i] = ds->getDefaultDataMax2D(i);
+				newTransFunc[i]->setMinMapValue(ds->getDefaultDataMin2D(i,usingVariable(varname)));
+				newTransFunc[i]->setMaxMapValue(ds->getDefaultDataMax2D(i,usingVariable(varname)));
+				newMinEdit[i] = ds->getDefaultDataMin2D(i,usingVariable(varname));
+				newMaxEdit[i] = ds->getDefaultDataMax2D(i,usingVariable(varname));
                 newTransFunc[i]->setVarNum(i);
 			}
 		}
@@ -366,9 +369,10 @@ reinit(bool doOverride){
 	} //end if(doOverride)
 	//Make sure edit bounds are valid
 	for(int i = 0; i<newNumVariables; i++){
+		string varname = ds->getVariableName2D(i);
 		if (newMinEdit[i] >= newMaxEdit[i]){
-			newMinEdit[i] = ds->getDefaultDataMin2D(i);
-			newMaxEdit[i] = ds->getDefaultDataMax2D(i);
+			newMinEdit[i] = ds->getDefaultDataMin2D(i,usingVariable(varname));
+			newMaxEdit[i] = ds->getDefaultDataMax2D(i,usingVariable(varname));
 		}
 		//And check again...
 		if (newMinEdit[i] >= newMaxEdit[i]){

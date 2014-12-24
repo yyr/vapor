@@ -1241,33 +1241,33 @@ int DataStatus::getActiveVarNum2D(const string varname) const{
 	}
 	return -1;
 }
-double DataStatus::getDefaultDataMax3D(int varnum){
+double DataStatus::getDefaultDataMax3D(int varnum, bool mustGet){
 	int activeNum = mapSessionToActiveVarNum3D(varnum);
 	if (activeNum < 0) return 1.f;
 	string varname = getActiveVarName3D(activeNum);
 	//If it's derived, we don't get the actual max until it's retrieved for other purposes
-	return getDataMax3D(varnum, (int)minTimeStep, !isDerivedVariable(varname));
+	return getDataMax3D(varnum, (int)minTimeStep, mustGet && !isDerivedVariable(varname));
 }
-double DataStatus::getDefaultDataMin3D(int varnum){
+double DataStatus::getDefaultDataMin3D(int varnum, bool mustGet){
 	int activeNum = mapSessionToActiveVarNum3D(varnum);
 	if (activeNum < 0) return -1.f;
 	string varname = getActiveVarName3D(activeNum);
 	//If it's derived, we don't get the actual min until it's retrieved for other purposes
-	return getDataMin3D(varnum, (int)minTimeStep, !isDerivedVariable(varname));
+	return getDataMin3D(varnum, (int)minTimeStep,mustGet && !isDerivedVariable(varname));
 }
-double DataStatus::getDefaultDataMax2D(int varnum){
+double DataStatus::getDefaultDataMax2D(int varnum, bool mustGet){
 	int activeNum = mapSessionToActiveVarNum2D(varnum);
 	if (activeNum < 0) return 1.f;
 	string varname = getActiveVarName2D(activeNum);
 	//If it's derived, we don't get the actual max until it's retrieved for other purposes
-	return getDataMax2D(varnum, (int)minTimeStep, !isDerivedVariable(varname));
+	return getDataMax2D(varnum, (int)minTimeStep, mustGet && !isDerivedVariable(varname));
 }
-double DataStatus::getDefaultDataMin2D(int varnum){
+double DataStatus::getDefaultDataMin2D(int varnum, bool mustGet){
 	int activeNum = mapSessionToActiveVarNum2D(varnum);
 	if (activeNum < 0) return -1.f;
 	string varname = getActiveVarName2D(activeNum);
 	//If it's derived, we don't get the actual max until it's retrieved for other purposes
-	return getDataMin2D(varnum, (int)minTimeStep, !isDerivedVariable(varname));
+	return getDataMin2D(varnum, (int)minTimeStep, mustGet && !isDerivedVariable(varname));
 }
 double DataStatus::getDataMin3D(int sesvarNum, int timestep, bool mustGet){
 	if (!dataIsPresent3D(sesvarNum, timestep))return -1.0;
