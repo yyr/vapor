@@ -528,9 +528,6 @@ int DataHolder::run2VDFincremental(string start, string var) {
 		rc = launcher2VDF.launch2vdf(argc, args, getFileType());
 	}
 
-	//for (size_t a=0; a<argv.size(); a++){
-	//	if (args[a]) delete [] args[a];
-	//}
 	if (args) delete [] args;
 	return rc;
 }

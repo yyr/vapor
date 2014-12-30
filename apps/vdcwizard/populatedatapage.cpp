@@ -252,9 +252,10 @@ bool PopulateDataPage::validatePage() {
 		
 		int varsSize = dataHolder->getPDSelectedVars().size();
 		int tsSize = atoi(dataHolder->getPDnumTS().c_str());
+		int start = atoi(dataHolder->getPDStartTime().c_str());
 		int dataChunks = varsSize * tsSize;
-		progressBar->setRange(0,dataChunks-1);
-	
+		progressBar->setRange(0,dataChunks-1);	
+
 		char percentComplete[20];
     
 		//Cycle through variables in each timestep
@@ -263,7 +264,8 @@ bool PopulateDataPage::validatePage() {
 				if (activateCancel==0){
 					std::stringstream ss;
 					ss.clear();
-					ss << tsSize-timeStep-1;
+					//ss << tsSize-timeStep-1;
+					ss << start + timeStep;
 					string varName = dataHolder->getPDSelectedVars().at(var);	
 					if (dataHolder->run2VDFincremental(ss.str(),varName) != 0){
 					    dataHolder->vdcSettingsChanged=false;
