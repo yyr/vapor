@@ -1632,7 +1632,7 @@ void GLWindow::renderDomainFrame(float* extents, float* minFull, float* maxFull)
 		if (regionSize < fullSize[i]*.3) numLines[i] = 2;
 		else numLines[i] = 1;
 	}
-	
+	glPushAttrib(GL_CURRENT_BIT);
 
 	glColor3fv(regionFrameColorFlt);	   
     glLineWidth( 2.0 );
@@ -1706,7 +1706,7 @@ void GLWindow::renderDomainFrame(float* extents, float* minFull, float* maxFull)
 	
 	glEnd();//GL_LINES
 	
-	
+	glPopAttrib();
 	
 
 }
@@ -1740,6 +1740,7 @@ bool GLWindow::faceIsVisible(float* extents, float* viewerCoords, int faceNum){
 }
 void GLWindow::drawSubregionBounds(float* extents) {
 	setSubregionFrameColorFlt(DataStatus::getSubregionFrameColor());
+	glPushAttrib(GL_CURRENT_BIT);
 	glLineWidth( 2.0 );
 	glColor3fv(subregionFrameColorFlt);
 	glBegin(GL_LINE_LOOP);
@@ -1766,6 +1767,7 @@ void GLWindow::drawSubregionBounds(float* extents) {
 	glVertex3f(extents[3], extents[1], extents[5]);
 	glVertex3f(extents[0], extents[1], extents[5]);
 	glEnd();
+	glPopAttrib();
 }
 
 
