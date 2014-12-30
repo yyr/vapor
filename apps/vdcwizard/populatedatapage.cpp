@@ -161,7 +161,7 @@ void PopulateDataPage::populateCheckedVars() {
         }
     }
 
-    if (dataHolder->getFileType()!="mom"){
+    if (dataHolder->getFileType()!="MOM"){
         // If ELEVATION var is already included
         if (std::find(varsVector.begin(), varsVector.end(), "ELEVATION") == varsVector.end()) {
             varsVector.push_back("ELEVATION");
@@ -264,8 +264,8 @@ bool PopulateDataPage::validatePage() {
 					std::stringstream ss;
 					ss.clear();
 					ss << tsSize-timeStep-1;
-					
-					if (dataHolder->run2VDFincremental(ss.str(),dataHolder->getPDSelectedVars().at(var)) != 0){
+					string varName = dataHolder->getPDSelectedVars().at(var);	
+					if (dataHolder->run2VDFincremental(ss.str(),varName) != 0){
 					    dataHolder->vdcSettingsChanged=false;
    		     		    for (int i=0;i<dataHolder->getErrors().size();i++){
 							errorMessage->errorList->append(dataHolder->getErrors()[i]);
