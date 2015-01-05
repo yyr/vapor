@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>482</width>
+    <width>448</width>
     <height>814</height>
    </rect>
   </property>
@@ -38,8 +38,8 @@
    <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;This panel controls the rendering of 3D geometry models.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;This panel controls the rendering of 3D geometry models.  The geometry is specified in a model file and may be altered by a geometric transform.  All models that can be read by the ASSIMP asset import library can be displayed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_5">
    <item>
@@ -70,16 +70,15 @@ p, li { white-space: pre-wrap; }
        </property>
        <property name="whatsThis">
         <string>The instance checkbox determines which
-DVR is actively rendering.  You can only
+Model instance is actively rendering.  You can only
 use it after a dataset has been loaded.
-Only one DVR can render at one time.
-You can have any number of DVR
+You can have any number of Model
 instances in each visualization window.
 Use the &quot;New&quot;  button or the &quot;Duplicate
-In&quot; selector to create new renderer
+In&quot; selector to create new Model
 instances. The instance that is selected
 is controlled by the values in this
-(currently displayed) DVR panel.</string>
+(currently displayed) Model panel.</string>
        </property>
       </widget>
      </item>
@@ -108,6 +107,18 @@ is controlled by the values in this
            <property name="toolTip">
             <string>Create a new, default instance of this renderer</string>
            </property>
+           <property name="whatsThis">
+            <string>The instance checkbox determines which
+Model instance is actively rendering.  You can only
+use it after a dataset has been loaded.
+You can have any number of Model
+instances in each visualization window.
+Use the &quot;New&quot;  button or the &quot;Duplicate
+In&quot; selector to create new Model
+instances. The instance that is selected
+is controlled by the values in this
+(currently displayed) Model panel.</string>
+           </property>
            <property name="text">
             <string>New</string>
            </property>
@@ -133,6 +144,18 @@ is controlled by the values in this
           <widget class="QPushButton" name="deleteInstanceButton">
            <property name="toolTip">
             <string>Delete current renderer Instance</string>
+           </property>
+           <property name="whatsThis">
+            <string>The instance checkbox determines which
+Model instance is actively rendering.  You can only
+use it after a dataset has been loaded.
+You can have any number of Model
+instances in each visualization window.
+Use the &quot;New&quot;  button or the &quot;Duplicate
+In&quot; selector to create new Model
+instances. The instance that is selected
+is controlled by the values in this
+(currently displayed) Model panel.</string>
            </property>
            <property name="text">
             <string>Delete</string>
@@ -169,6 +192,18 @@ is controlled by the values in this
            </property>
            <property name="toolTip">
             <string>Select a visualizer where this renderer instance will be copied</string>
+           </property>
+           <property name="whatsThis">
+            <string>The instance checkbox determines which
+Model instance is actively rendering.  You can only
+use it after a dataset has been loaded.
+You can have any number of Model
+instances in each visualization window.
+Use the &quot;New&quot;  button or the &quot;Duplicate
+In&quot; selector to create new Model
+instances. The instance that is selected
+is controlled by the values in this
+(currently displayed) Model panel.</string>
            </property>
            <item>
             <property name="text">
@@ -232,158 +267,6 @@ is controlled by the values in this
     </spacer>
    </item>
    <item>
-    <widget class="QFrame" name="bigFooFrame">
-     <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_9">
-      <item>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <item>
-           <spacer name="spacer50">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Expanding</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>21</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>LOD</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="lodCombo">
-            <property name="focusPolicy">
-             <enum>Qt::ClickFocus</enum>
-            </property>
-            <property name="toolTip">
-             <string>Specify the approximation level for the data being visualized</string>
-            </property>
-            <property name="whatsThis">
-             <string>The Refinement parameter and (in the case of VDC2 data) the LOD parameter control the quality of the approximation used when visualizing a variable.  The Refinement parameter selects the grid resolutiion.  Coarser resolutions require less memory (RAM); less computation by the visualization algorithms; and for VDC1 data, less storage space on disk, therefore less time to read the data.  For VDC2 data the Refinement level has no impact on disk storage.  The LOD parameter, which is only available for VDC2 data sets, selects a compression level.  Variables with greater compression require less disk storage and can thus be read from disk by vaporgui more quickly, but have no impact on memory  (RAM) or computation time required by the visualziation algorithms.  For both LOD and Refinement, level 0 corresponds to the coarsest approximation available.</string>
-            </property>
-            <item>
-             <property name="text">
-              <string>1:1</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>100:1</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QLabel" name="textLabel1_9">
-            <property name="text">
-             <string>Refinement</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-            <property name="wordWrap">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="refinementCombo">
-            <property name="focusPolicy">
-             <enum>Qt::ClickFocus</enum>
-            </property>
-            <property name="toolTip">
-             <string>Specify the refinement level (resolution) of the data being visualized</string>
-            </property>
-            <property name="whatsThis">
-             <string>The Refinement parameter and (in the case of VDC2 data) the LOD parameter control the quality of the approximation used when visualizing a variable.  The Refinement parameter selects the grid resolutiion.  Coarser resolutions require less memory (RAM); less computation by the visualization algorithms; and for VDC1 data, less storage space on disk, therefore less time to read the data.  For VDC2 data the Refinement level has no impact on disk storage.  The LOD parameter, which is only available for VDC2 data sets, selects a compression level.  Variables with greater compression require less disk storage and can thus be read from disk by vaporgui more quickly, but have no impact on memory  (RAM) or computation time required by the visualziation algorithms.  For both LOD and Refinement, level 0 corresponds to the coarsest approximation available.</string>
-            </property>
-            <property name="maxCount">
-             <number>5</number>
-            </property>
-            <item>
-             <property name="text">
-              <string>0</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>1</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>2</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>3</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>5</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item>
-           <spacer name="spacer51">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Expanding</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>18</width>
-              <height>21</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
     <widget class="QFrame" name="modelFileFrame">
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -408,6 +291,9 @@ is controlled by the values in this
             <width>0</width>
             <height>0</height>
            </size>
+          </property>
+          <property name="toolTip">
+           <string>Click to select a model file that will be displayed</string>
           </property>
           <property name="text">
            <string>Specify File</string>
@@ -899,12 +785,19 @@ is controlled by the values in this
        </widget>
       </item>
       <item>
-       <widget class="QListView" name="transformView"/>
+       <widget class="QListView" name="transformView">
+        <property name="whatsThis">
+         <string>Specify tranforms to be applied to the model.  The buttons can be used to insert various types of transforms</string>
+        </property>
+       </widget>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_6">
         <item>
          <widget class="QPushButton" name="addTranslate">
+          <property name="whatsThis">
+           <string>Specify tranforms to be applied to the model.  The buttons can be used to insert various types of transforms</string>
+          </property>
           <property name="text">
            <string>+Translate</string>
           </property>
@@ -912,6 +805,9 @@ is controlled by the values in this
         </item>
         <item>
          <widget class="QPushButton" name="addScale">
+          <property name="whatsThis">
+           <string>Specify tranforms to be applied to the model.  The buttons can be used to insert various types of transforms</string>
+          </property>
           <property name="text">
            <string>+Scale</string>
           </property>
@@ -919,6 +815,9 @@ is controlled by the values in this
         </item>
         <item>
          <widget class="QPushButton" name="addRotate">
+          <property name="whatsThis">
+           <string>Specify tranforms to be applied to the model.  The buttons can be used to insert various types of transforms</string>
+          </property>
           <property name="text">
            <string>+Rotate</string>
           </property>
@@ -939,6 +838,9 @@ is controlled by the values in this
         </item>
         <item>
          <widget class="QPushButton" name="deleteItem">
+          <property name="whatsThis">
+           <string>Specify tranforms to be applied to the model.  The buttons can be used to insert various types of transforms</string>
+          </property>
           <property name="text">
            <string>Delete</string>
           </property>

@@ -305,11 +305,13 @@ int ParamNode::SetElementStringVec(
 int ParamNode::SetElementStringVec(
 	const string &tag, const vector<string> &str, string blankSub
 ){ 
-	//Go through the vector, replacing blanks with blankSub
+	//Go through the vector, replacing blanks with blankSub.
+	//If the string is of length 0, replace the string with blankSub
 	vector<string> subString;
 	for (int i = 0; i<str.size(); i++){
 		string newString = str[i];
-		for (int j = 0; j<str.size(); j++){
+		if (newString.size() == 0) newString = blankSub;
+		else for (int j = 0; j<str.size(); j++){
 			//replace all the blanks with blankSub
 			size_t found = newString.find(" ");
 			if (found == string::npos) break;

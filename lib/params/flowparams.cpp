@@ -350,14 +350,15 @@ bool FlowParams::
 reinit(bool doOverride){
 	int i;
 	if(doOverride) restart();
-	int nlevels = DataStatus::getInstance()->getNumTransforms();
+	DataStatus* ds = DataStatus::getInstance();
+	int nlevels = ds->getNumTransforms();
 	
 	setMaxNumTrans(nlevels);
 	
 	//Make min and max conform to new data.
 	//Start with values in session:
 	int minFrame = 0;
-	maxFrame = (int)(DataStatus::getInstance()->getNumTimesteps()-1);
+	maxFrame = (int)(ds->getNumTimesteps()-1);
 	editMode = true;
 	// set the params state based on whether we are overriding or not:
 	if (doOverride) {
@@ -390,13 +391,13 @@ reinit(bool doOverride){
 	}
 	//Make sure fidelity is valid:
 	int fidelity = GetFidelityLevel();
-	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	DataMgr* dataMgr = ds->getDataMgr();
 	if (dataMgr->GetGridType().compare("layered")== 0) periodicDim[2] = false;
 	if (dataMgr && fidelity > maxNumRefinements+dataMgr->GetCRatios().size()-1)
 		SetFidelityLevel(maxNumRefinements+dataMgr->GetCRatios().size()-1);
 
 	//Set up the seed region:
-	const float* fullExtents = DataStatus::getInstance()->getLocalExtents();
+	const float* fullExtents = ds->getLocalExtents();
 	double seedBoxExtents[6];
 	GetBox()->GetLocalExtents(seedBoxExtents);
 	if (doOverride){
@@ -432,7 +433,7 @@ reinit(bool doOverride){
 			int ts = (int) psn.getVal(3);
 			if (ts < 0) ts = 0; //Use zero for extents (which won't move) if seed applies to all timesteps
 			float pt[3];
-			const vector<double>& usrExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)ts);
+			const vector<double>& usrExts = ds->getDataMgr()->GetExtents((size_t)ts);
 			for (int j = 0; j<3; j++) pt[j] = psn.getVal(j) + usrExts[j];
 			seedPointList[i].set3Val(pt);
 		}
@@ -440,8 +441,8 @@ reinit(bool doOverride){
 	//Set up variables:
 	//Get the variable names:
 	
-	int newNumVariables = DataStatus::getInstance()->getNumSessionVariables();
-	int newNumComboVariables = DataStatus::getInstance()->getNumActiveVariables3D();
+	int newNumVariables = ds->getNumSessionVariables();
+	int newNumComboVariables = ds->getNumActiveVariables3D();
 	
 	if (newNumVariables == 0 || newNumComboVariables == 0) return false;
 	//Rebuild map bounds arrays:
@@ -459,7 +460,7 @@ reinit(bool doOverride){
 	colorMapEntity.push_back("Seed Index");
 	
 	for (i = 0; i< newNumComboVariables; i++){
-		colorMapEntity.push_back(DataStatus::getInstance()->getActiveVarName3D(i));
+		colorMapEntity.push_back(ds->getActiveVarName3D(i));
 	}
 	
 	if(doOverride || getColorMapEntityIndex() >= newNumComboVariables+4){
@@ -468,21 +469,21 @@ reinit(bool doOverride){
 	if (doOverride){
 		for (int j = 0; j<3; j++){
 			comboSteadyVarNum[j] = Min(j+1,newNumComboVariables);
-			steadyVarNum[j] = DataStatus::getInstance()->mapActiveToSessionVarNum3D(comboSteadyVarNum[j]-1)+1;
+			steadyVarNum[j] = ds->mapActiveToSessionVarNum3D(comboSteadyVarNum[j]-1)+1;
 		}
 		for (int j = 0; j<3; j++){
 			comboUnsteadyVarNum[j] = Min(j+1,newNumComboVariables);
-			unsteadyVarNum[j] = DataStatus::getInstance()->mapActiveToSessionVarNum3D(comboUnsteadyVarNum[j]-1)+1;
+			unsteadyVarNum[j] = ds->mapActiveToSessionVarNum3D(comboUnsteadyVarNum[j]-1)+1;
 		}
 	} 
 	for (int dim = 0; dim < 3; dim++){
 		//See if current steadyvarNum is valid.  If not, 
 		//reset to first variable that is present:
 		if (steadyVarNum[dim] > 0) {
-			if (!DataStatus::getInstance()->variableIsPresent3D(steadyVarNum[dim]-1)){
+			if (!ds->variableIsPresent3D(steadyVarNum[dim]-1)){
 				steadyVarNum[dim] = -1;
 				for (i = 0; i<newNumVariables; i++) {
-					if (DataStatus::getInstance()->variableIsPresent3D(i)){
+					if (ds->variableIsPresent3D(i)){
 						steadyVarNum[dim] = i+1;
 						break;
 					}
@@ -492,29 +493,29 @@ reinit(bool doOverride){
 		//See if current unsteadyvarNum is valid.  If not, 
 		//reset to first variable that is present:
 		if(unsteadyVarNum[dim] > 0) {
-			if (!DataStatus::getInstance()->variableIsPresent3D(unsteadyVarNum[dim]-1)){
+			if (!ds->variableIsPresent3D(unsteadyVarNum[dim]-1)){
 				unsteadyVarNum[dim] = -1;
 				for (i = 0; i<newNumVariables; i++) {
-					if (DataStatus::getInstance()->variableIsPresent3D(i)){
+					if (ds->variableIsPresent3D(i)){
 						unsteadyVarNum[dim] = i+1;
 						break;
 					}
 				}
 			}
 		}
-		if (!DataStatus::getInstance()->variableIsPresent3D(seedDistVarNum[dim])){
+		if (!ds->variableIsPresent3D(seedDistVarNum[dim])){
 			seedDistVarNum[dim] = -1;
 			for (i = 0; i<newNumVariables; i++) {
-				if (DataStatus::getInstance()->variableIsPresent3D(i)){
+				if (ds->variableIsPresent3D(i)){
 					seedDistVarNum[dim] = i;
 					break;
 				}
 			}
 		}
-		if (!DataStatus::getInstance()->variableIsPresent3D(priorityVarNum[dim])){
+		if (!ds->variableIsPresent3D(priorityVarNum[dim])){
 			priorityVarNum[dim] = -1;
 			for (i = 0; i<newNumVariables; i++) {
-				if (DataStatus::getInstance()->variableIsPresent3D(i)){
+				if (ds->variableIsPresent3D(i)){
 					priorityVarNum[dim] = i;
 					break;
 				}
@@ -530,12 +531,12 @@ reinit(bool doOverride){
 	for (int dim = 0; dim < 3; dim++){
 		if(steadyVarNum[dim] == 0) comboSteadyVarNum[dim] = 0;
 		else 
-			comboSteadyVarNum[dim] = DataStatus::getInstance()->mapSessionToActiveVarNum3D(steadyVarNum[dim]-1)+1;
+			comboSteadyVarNum[dim] = ds->mapSessionToActiveVarNum3D(steadyVarNum[dim]-1)+1;
 		if (unsteadyVarNum[dim] == 0) comboUnsteadyVarNum[dim] = 0;
 		else
-			comboUnsteadyVarNum[dim] = DataStatus::getInstance()->mapSessionToActiveVarNum3D(unsteadyVarNum[dim]-1)+1;
-		comboSeedDistVarNum[dim] = DataStatus::getInstance()->mapSessionToActiveVarNum3D(seedDistVarNum[dim]);
-		comboPriorityVarNum[dim] = DataStatus::getInstance()->mapSessionToActiveVarNum3D(priorityVarNum[dim]);
+			comboUnsteadyVarNum[dim] = ds->mapSessionToActiveVarNum3D(unsteadyVarNum[dim]-1)+1;
+		comboSeedDistVarNum[dim] = ds->mapSessionToActiveVarNum3D(seedDistVarNum[dim]);
+		comboPriorityVarNum[dim] = ds->mapSessionToActiveVarNum3D(priorityVarNum[dim]);
 	}
 	//Set up sampling.  
 	if (doOverride){
@@ -596,11 +597,12 @@ reinit(bool doOverride){
 		newMaxColorEditBounds[2] = maxColorBounds[2];
 		//Other variables:
 		for (i = 0; i< newNumComboVariables; i++){
-			if (DataStatus::getInstance()->variableIsPresent3D(i)){
-				newMinOpacEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMin3D(i);
-				newMaxOpacEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMax3D(i);
-				newMinColorEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMin3D(i);
-				newMaxColorEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMin3D(i);
+			string varname = ds->getVariableName3D(i);
+			if (ds->variableIsPresent3D(i)){
+				newMinOpacEditBounds[i+4] = ds->getDefaultDataMin3D(i,usingVariable(varname));
+				newMaxOpacEditBounds[i+4] = ds->getDefaultDataMax3D(i,usingVariable(varname));
+				newMinColorEditBounds[i+4] = ds->getDefaultDataMin3D(i,usingVariable(varname));
+				newMaxColorEditBounds[i+4] = ds->getDefaultDataMin3D(i,usingVariable(varname));
 			} else {
 				newMinOpacEditBounds[i+4] = 0.f;
 				newMaxOpacEditBounds[i+4] = 1.f;
@@ -619,11 +621,12 @@ reinit(bool doOverride){
 		//Try to reuse existing bounds:
 		
 		for (i = 0; i< newNumComboVariables; i++){
+			string varname = ds->getVariableName3D(i);
 			if (i >= numComboVariables){
-				newMinOpacEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMin3D(i);
-				newMaxOpacEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMax3D(i);
-				newMinColorEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMin3D(i);
-				newMaxColorEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMax3D(i);
+				newMinOpacEditBounds[i+4] = ds->getDefaultDataMin3D(i,usingVariable(varname));
+				newMaxOpacEditBounds[i+4] = ds->getDefaultDataMax3D(i,usingVariable(varname));
+				newMinColorEditBounds[i+4] = ds->getDefaultDataMin3D(i,usingVariable(varname));
+				newMaxColorEditBounds[i+4] = ds->getDefaultDataMax3D(i,usingVariable(varname));
 			} else {
 				newMinOpacEditBounds[i+4] = minOpacEditBounds[i+4];
 				newMaxOpacEditBounds[i+4] = maxOpacEditBounds[i+4];
@@ -2645,28 +2648,31 @@ void FlowParams::setMaxOpacMapBound(float val){
 
 //Determine the max and min (likely range) associated with a mapped index:
 float FlowParams::minRange(int index, int timestep){
+	DataStatus* ds = DataStatus::getInstance();
 	switch(index){
+		
 		case (0): return 0.f;
 		case (1): //
 			//Need to fix this for unsteady
 			if (flowType != 1){
 				return 0.f;
 			}
-			else return ((float)DataStatus::getInstance()->getMinTimestep());
+			else return ((float)ds->getMinTimestep());
 		case (2): return (0.f);// minimum speed
 		case (3): //seed index.  Goes from 0 to num seedsp
 			return (0.f );
 		default:
 			int varnum = DataStatus::mapActiveToSessionVarNum3D(index -4);
-			if (DataStatus::getInstance()&& DataStatus::getInstance()->variableIsPresent3D(varnum)){
-				return( DataStatus::getInstance()->getDataMin3D(varnum,timestep));
+			string varname = ds->getVariableName3D(varnum);
+			if (ds->getDataMgr() && ds->variableIsPresent3D(varnum)){
+				return(ds->getDefaultDataMin3D(varnum,usingVariable(varname)));
 			}
 			else return 0.f;
 	}
 }
 float FlowParams::maxRange(int index, int timestep){
 	float maxSpeed = 0.f;
-	
+	DataStatus* ds = DataStatus::getInstance();
 	switch(index){
 		case (0): return 1.f;
 		case (1): // length along line
@@ -2681,10 +2687,11 @@ float FlowParams::maxRange(int index, int timestep){
 				if (flowIsSteady()) var = steadyVarNum[k];
 				else var = unsteadyVarNum[k];
 				if (var == 0) continue;
-				if (maxSpeed < fabs(DataStatus::getInstance()->getDefaultDataMax3D(var-1)))
-					maxSpeed = fabs(DataStatus::getInstance()->getDefaultDataMax3D(var-1));
-				if (maxSpeed < fabs(DataStatus::getInstance()->getDefaultDataMin3D(var-1)))
-					maxSpeed = fabs(DataStatus::getInstance()->getDefaultDataMin3D(var-1));
+				string varname = ds->getVariableName3D(var-1);
+				if (maxSpeed < fabs(ds->getDefaultDataMax3D(var-1,usingVariable(varname))))
+					maxSpeed = fabs(ds->getDefaultDataMax3D(var-1,usingVariable(varname)));
+				if (maxSpeed < fabs(ds->getDefaultDataMin3D(var-1,usingVariable(varname))))
+					maxSpeed = fabs(ds->getDefaultDataMin3D(var-1,usingVariable(varname)));
 			}
 			return maxSpeed;
 		case (3): // seed Index, from 0 to numseeds-1
@@ -2692,8 +2699,9 @@ float FlowParams::maxRange(int index, int timestep){
 			return (doRake ? (float)getNumRakeSeedPoints()-1 :(float)(getNumListSeedPoints()-1));
 		default:
 			int varnum = DataStatus::mapActiveToSessionVarNum3D(index -4);
-			if (DataStatus::getInstance()&& DataStatus::getInstance()->variableIsPresent3D(varnum)){
-				return( DataStatus::getInstance()->getDataMax3D(varnum,timestep));
+			string varname = ds->getVariableName3D(varnum);
+			if (ds->getDataMgr() && ds->variableIsPresent3D(varnum)){
+				return( ds->getDefaultDataMax3D(varnum,usingVariable(varname)));
 			}
 			else return 1.f;
 	}

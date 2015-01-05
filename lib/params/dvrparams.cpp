@@ -214,12 +214,13 @@ reinit(bool doOverride){
 		//Create new transfer functions, their editors, hook them up:
 		
 		for (i = 0; i<totNumVariables; i++){
+			string varname = ds->getVariableName3D(i);
 			newTransFunc[i] = new TransferFunction(this, numBits);
 
-			newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin3D(i));
-			newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax3D(i));
-			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin3D(i);
-			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax3D(i);
+			newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin3D(i,usingVariable(varname)));
+			newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax3D(i,usingVariable(varname)));
+			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin3D(i,usingVariable(varname));
+			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax3D(i,usingVariable(varname));
 
             newTransFunc[i]->setVarNum(i);
 		}
@@ -227,16 +228,17 @@ reinit(bool doOverride){
 		//attempt to make use of existing transfer functions, edit ranges.
 		//delete any that are no longer referenced
 		for (i = 0; i<totNumVariables; i++){
+			string varname = ds->getVariableName3D(i);
 			if(i<numVariables){
 				newTransFunc[i] = transFunc[i];
 				newMinEdit[i] = minColorEditBounds[i];
 				newMaxEdit[i] = maxColorEditBounds[i];
 			} else { 
 				newTransFunc[i] = new TransferFunction(this, numBits);
-				newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin3D(i));
-				newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax3D(i));
-				newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin3D(i);
-				newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax3D(i);
+				newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin3D(i,usingVariable(varname)));
+				newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax3D(i,usingVariable(varname)));
+				newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin3D(i,usingVariable(varname));
+				newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax3D(i,usingVariable(varname));
 				newTransFunc[i]->setVarNum(i);		
 			}
 			

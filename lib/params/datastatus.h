@@ -221,25 +221,25 @@ public:
 	//! This is usually the maximum value at the first time step.
 	//! \param[in] int varnum 3D Session variable number
 	//! \retval double maximum value
-	double getDefaultDataMax3D(int varnum);
+	double getDefaultDataMax3D(int varnum, bool mustGet = true);
 
 	//! Indicates the default minimum value of a 3D variable.
 	//! This is usually the minimum value at the first time step.
 	//! \param[in] int varnum Session variable number
 	//! \retval double minimum value
-	double getDefaultDataMin3D(int varnum);
+	double getDefaultDataMin3D(int varnum, bool mustGet = true);
 
 	//! Indicates the default maximum value of a 2D variable.
 	//! This is usually the maximum value at the first time step.
 	//! \param[in] int varnum Session variable number
 	//! \retval double maximum value
-	double getDefaultDataMax2D(int varnum);
+	double getDefaultDataMax2D(int varnum, bool mustGet = true);
 
 	//! Indicates the default minimum value of a 2D variable.
 	//! This is usually the minimum value at the first time step.
 	//! \param[in] int varnum Session variable number
 	//! \retval double minimum value
-	double getDefaultDataMin2D(int varnum);
+	double getDefaultDataMin2D(int varnum, bool mustGet = true);
 	
 	//! Indicates the maximum refinement level of a 3D variable
 	//! that is present at a specified time step.
@@ -469,6 +469,9 @@ public:
 	//! Returns null if it does not exist.
 	//! \retval DataMgr* pointer to current Data Manager
 	DataMgr* getDataMgr() {return dataMgr;}
+
+	//! Invalidate current data manager:
+	void invalidateDataMgr(){dataMgr = 0;}
 
 	//! Method indicates if user requested a warning when data is missing.
 	//! \retval bool true if warning is requested.

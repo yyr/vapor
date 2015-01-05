@@ -1390,34 +1390,6 @@ guiFitDomain(){
 	
 }
 
-//Make region match probe.  Responds to button in region panel
-void ProbeEventRouter::
-guiCopyRegionToProbe(){
-	confirmText(false);
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "copy region to probe");
-	if (pParams->isPlanar()){//maybe need to turn off planar:
-		if (rParams->getLocalRegionMin(2,timestep) < rParams->getLocalRegionMax(2,timestep)){
-			pParams->setPlanar(false);
-		}
-	}
-	for (int i = 0; i< 3; i++){
-		pParams->setLocalProbeMin(i, rParams->getLocalRegionMin(i,timestep));
-		pParams->setLocalProbeMax(i, rParams->getLocalRegionMax(i,timestep));
-	}
-	//Note:  the probe may not fit in the region.  
-	updateTab();
-	setProbeDirty(pParams);
-	
-	PanelCommand::captureEnd(cmd,pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams,GLWindow::getCurrentMouseMode() == GLWindow::probeMode);
-	
-}
-
-
 
 //Reinitialize Probe tab settings, session has changed.
 //Note that this is called after the globalProbeParams are set up, but before

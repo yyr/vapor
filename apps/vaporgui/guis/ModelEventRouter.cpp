@@ -111,8 +111,7 @@ void ModelEventRouter::hookUpTab()
    // 
    // the following are needed for any renderer eventrouter:
    //
-   connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
-   connect (lodCombo,SIGNAL(activated(int)), this, SLOT(guiSetCompRatio(int)));
+ 
    connect (instanceTable, SIGNAL(changeCurrentInstance(int)), this, SLOT(guiChangeInstance(int)));
    connect (copyCombo, SIGNAL(activated(int)), this, SLOT(guiCopyInstanceTo(int)));
    connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
@@ -423,15 +422,6 @@ void ModelEventRouter::updateTab()
                                     Params::GetTypeFromTag(ModelParams::_modelParamsTag)) > 1);
 
    // 
-   // Set up refinements and LOD combos:
-   //
-   int numRefs = modelParams->GetRefinementLevel();
-
-   if(numRefs <= refinementCombo->count()) refinementCombo->setCurrentIndex(numRefs);
-
-   lodCombo->setCurrentIndex(modelParams->GetCompressionLevel());
-	
-   // 
    // Set model and scene file names
    //
    modelFile->setText(modelParams->GetSceneFilename().c_str());
@@ -493,74 +483,10 @@ void ModelEventRouter::reinitTab(bool doOverride)
       instanceTable->rebuild(this);
    }
    else setEnabled(false);
-
-   int i;
-	
-   //
-   // Set up the refinement combo:
-   //
-   const DataMgr *dataMgr = ds->getDataMgr();
-   
-   int numRefinements = dataMgr->GetNumTransforms();
-   refinementCombo->setMaxCount(numRefinements+1);
-   refinementCombo->clear();
-   for (i = 0; i<= numRefinements; i++)
-   {
-      refinementCombo->addItem(QString::number(i));
-   }
-	
-   if (dataMgr)
-   {
-      vector<size_t> cRatios = dataMgr->GetCRatios();
-      lodCombo->clear();
-      lodCombo->setMaxCount(cRatios.size());
-
-      for (int i = 0; i<cRatios.size(); i++)
-      {
-         QString s = QString::number(cRatios[i]);
-         s += ":1";
-         lodCombo->addItem(s);
-      }
-   }
 	
    updateTab();
 }
 
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
-void ModelEventRouter::guiSetCompRatio(int num)
-{
-   confirmText(false);
-   //make sure we are changing it
-   ModelParams* dParams = (ModelParams*)VizWinMgr::getActiveParams(ModelParams::_modelParamsTag);
-   if (num == dParams->GetCompressionLevel()) return;
-   
-   PanelCommand* cmd = PanelCommand::captureStart(dParams, "set compression level");
-   
-   dParams->SetCompressionLevel(num);
-   lodCombo->setCurrentIndex(num);
-   PanelCommand::captureEnd(cmd, dParams);
-   VizWinMgr::getInstance()->forceRender(dParams);
-}
-
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
-void ModelEventRouter::guiSetNumRefinements(int num)
-{
-   confirmText(false);
-   //make sure we are changing it
-   ModelParams* dParams = (ModelParams*)VizWinMgr::getActiveParams(ModelParams::_modelParamsTag);
-   if (num == dParams->GetRefinementLevel()) return;
-	
-   PanelCommand* cmd = PanelCommand::captureStart(dParams, "set number of refinements");
-   
-   dParams->SetRefinementLevel(num);
-   refinementCombo->setCurrentIndex(num);
-   PanelCommand::captureEnd(cmd, dParams);
-   VizWinMgr::getInstance()->forceRender(dParams);
-}
 
 //----------------------------------------------------------------------------
 //

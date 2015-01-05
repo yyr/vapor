@@ -73,12 +73,10 @@ void TwoDDataRenderer::paintGL()
 
 	QApplication::restoreOverrideCursor();
 	if(!twoDTex) {setBypass(currentTimestep); return;}
-	myGLWindow->setRenderNew();
 
 	if (myTwoDParams->elevGridIsDirty()){
 		invalidateElevGrid();
 		myTwoDParams->setElevGridDirty(false);
-		myGLWindow->setRenderNew();
 	}
 	if (twoDTex){
 		if(myTwoDParams->imageCrop()) enable2DClippingPlanes();

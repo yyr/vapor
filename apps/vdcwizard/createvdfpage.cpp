@@ -184,7 +184,7 @@ void CreateVdfPage::populateCheckedVars() {
         }
     }
 
-    if (dataHolder->getFileType()!="mom"){
+    if (dataHolder->getFileType()!="MOM"){
         // If ELEVATION var is already included
         if (std::find(varsVector.begin(), varsVector.end(), "ELEVATION") == varsVector.end()) {
             varsVector.push_back("ELEVATION");

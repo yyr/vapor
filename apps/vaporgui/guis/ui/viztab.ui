@@ -999,6 +999,9 @@ where the camera is pointed.</string>
        </item>
        <item>
         <widget class="QLabel" name="textLabel1_5">
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The stereo controls allow users to construct a left and right image, with a specified angular separation, so that the two images can be used as a stereo pair.  However this feature is currently fairly primitive and cannot produce high-quality stereo views. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>Separation Angle:</string>
          </property>
@@ -1020,6 +1023,9 @@ where the camera is pointed.</string>
          </property>
          <property name="toolTip">
           <string>Specify separation angle in degrees between left and right stereo viewpoints</string>
+         </property>
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The stereo controls allow users to construct a left and right image, with a specified angular separation, so that the two images can be used as a stereo pair.  However this feature is currently fairly primitive and cannot produce high-quality stereo views. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string>0</string>
@@ -1062,6 +1068,9 @@ where the camera is pointed.</string>
         <widget class="QComboBox" name="stereoCombo">
          <property name="toolTip">
           <string>Change viewpoint to Left, Right, or Center for creating stereo pairs</string>
+         </property>
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The stereo controls allow users to construct a left and right image, with a specified angular separation, so that the two images can be used as a stereo pair.  However this feature is currently fairly primitive and cannot produce high-quality stereo views. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <item>
           <property name="text">
@@ -1746,11 +1755,7 @@ p, li { white-space: pre-wrap; }
      <item>
       <spacer name="spacer62">
        <property name="toolTip">
-        <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Specify values between 0 and 1 for the intensity of the specular component and the diffuse component of the light source&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>Vertical Spacer 'spacer62', 20 x 30</string>
        </property>
        <property name="orientation">
         <enum>Qt::Vertical</enum>

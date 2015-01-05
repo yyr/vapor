@@ -642,8 +642,6 @@ void VolumeRenderer::_updateDriverRenderParamsSpec(
 	if (clutIsDirty()) {
 		DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
 
-		myGLWindow->setRenderNew();
-
 		bool preint = myDVRParams->getPreIntegration();
 
 		_driver->SetPreintegrationOnOff(preint);

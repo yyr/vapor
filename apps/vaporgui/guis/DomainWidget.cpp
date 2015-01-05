@@ -351,8 +351,8 @@ void IsoSlider::paintGL(){
 		glNormal3f(0.,0.,1.);
 		glVertex3f(mid()- 0.1*_lineWidth, 0.0, 0.0);
 		glVertex3f(mid()+ 0.1*_lineWidth, 0.0, 0.0);
-		glVertex3f(mid()+ 0.1*_lineWidth, 1.0, 0.0);
-		glVertex3f(mid()- 0.1*_lineWidth, 1.0, 0.0);
+		glVertex3f(mid()+ 0.1*_lineWidth, 0.8, 0.0);
+		glVertex3f(mid()- 0.1*_lineWidth, 0.8, 0.0);
 		
 		glEnd();
 		

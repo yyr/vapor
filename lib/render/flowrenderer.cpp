@@ -243,7 +243,6 @@ void FlowRenderer::paintGL()
 	if (didRebuild){
 		setFlowDataClean(timeStep);
 		setFlowMapClean(timeStep);
-		myGLWindow->setRenderNew();
 	}
 	
 	lastShapeType = myFlowParams->getShapeType();
@@ -427,7 +426,6 @@ renderFlowData(bool constColors, int currentFrameNum){
 	glPopMatrix();
 	printOpenGLError();
 	if (currentFrameNum != lastTimeStep){
-		myGLWindow->setRenderNew();
 		lastTimeStep = currentFrameNum;
 	}
 

@@ -51,7 +51,7 @@ const string ParamsIso::_NumBitsTag = "NumVoxelBits";
 const string ParamsIso::_editBoundsTag = "EditBounds";
 const string ParamsIso::_mapEditModeTag = "MapEditMode";
 const string ParamsIso::_isoEditModeTag = "IsoEditMode";
-int ParamsIso::defaultBitsPerVoxel = 8;
+int ParamsIso::defaultBitsPerVoxel = 16;
 namespace {
 	const string IsoName = "IsosurfaceParams";
 };
@@ -148,10 +148,10 @@ reinit(bool doOverride){
 	if (doOverride){
 		for (int i = 0; i<totNumVariables; i++){
 			boundsArrays[i] = new float[4];
-			
+			string varname = ds->getVariableName3D(i);
 			//will need to set the iso value:
-			float dataMin = ds->getDefaultDataMin3D(i);
-			float dataMax = ds->getDefaultDataMax3D(i);
+			float dataMin = ds->getDefaultDataMin3D(i,usingVariable(varname));
+			float dataMax = ds->getDefaultDataMax3D(i,usingVariable(varname));
 			if (dataMin == dataMax){
 				dataMin -= 0.f; dataMax += 0.5;
 			}
@@ -173,10 +173,11 @@ reinit(bool doOverride){
 		//delete any that are no longer referenced
 		
 		for (int i = 0; i<totNumVariables; i++){
+			string varname = ds->getVariableName3D(i);
 			boundsArrays[i] = new float[4];
 			if(i<GetNumVariables()){ //make copy of existing ones, don't set their root nodes yet
-				float dataMin = ds->getDefaultDataMin3D(i);
-				float dataMax = ds->getDefaultDataMax3D(i);
+				float dataMin = ds->getDefaultDataMin3D(i,usingVariable(varname));
+				float dataMax = ds->getDefaultDataMax3D(i,usingVariable(varname));
 				if (!GetTransFunc(i)){ //for backwards compatibility, create default trans func
 					newTransFunc[i] = new TransferFunction(this, 8);
 					newTransFunc[i]->setOpaque();
@@ -206,18 +207,18 @@ reinit(bool doOverride){
 			} else { //create new tfs, isocontrols
 				
 				newIsoControls[i] = new IsoControl(this, 8);
-				newIsoControls[i]->setMinHistoValue(ds->getDefaultDataMin3D(i));
-				newIsoControls[i]->setMaxHistoValue(ds->getDefaultDataMax3D(i));
-				newIsoControls[i]->setIsoValue(0.5f*(ds->getDefaultDataMin3D(i)+ds->getDefaultDataMax3D(i)));
+				newIsoControls[i]->setMinHistoValue(ds->getDefaultDataMin3D(i,usingVariable(varname)));
+				newIsoControls[i]->setMaxHistoValue(ds->getDefaultDataMax3D(i,usingVariable(varname)));
+				newIsoControls[i]->setIsoValue(0.5f*(ds->getDefaultDataMin3D(i,usingVariable(varname))+ds->getDefaultDataMax3D(i,usingVariable(varname))));
 				newIsoControls[i]->setVarNum(i);
 				newIsoControls[i]->setParams(this);
 				newTransFunc[i] = new TransferFunction(this, 8);
 				newTransFunc[i]->setOpaque();
-				newTransFunc[i]->setMinMapValue(ds->getDefaultDataMin3D(i));
-				newTransFunc[i]->setMaxMapValue(ds->getDefaultDataMax3D(i));
+				newTransFunc[i]->setMinMapValue(ds->getDefaultDataMin3D(i,usingVariable(varname)));
+				newTransFunc[i]->setMaxMapValue(ds->getDefaultDataMax3D(i,usingVariable(varname)));
 				newTransFunc[i]->setVarNum(i);
-				boundsArrays[i][0] = boundsArrays[i][1] = ds->getDefaultDataMin3D(i);
-				boundsArrays[i][2] = boundsArrays[i][3] = ds->getDefaultDataMax3D(i);
+				boundsArrays[i][0] = boundsArrays[i][1] = ds->getDefaultDataMin3D(i,usingVariable(varname));
+				boundsArrays[i][2] = boundsArrays[i][3] = ds->getDefaultDataMax3D(i,usingVariable(varname));
 				//For backwards compatibility, if we have read iso from an old session:
 				if (noIsoControlTags){
 					newIsoControls[i]->setIsoValue(oldIsoValue);
@@ -335,7 +336,7 @@ void ParamsIso::restart() {
 	
 }
 void ParamsIso::setDefaultPrefs(){
-	defaultBitsPerVoxel = 8;
+	defaultBitsPerVoxel = 16;
 }
 //Hook up the new transfer function in specified slot,
 //Delete the old one.  This is called whenever a new tf is loaded.

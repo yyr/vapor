@@ -61,8 +61,7 @@ public:
 	void guiSetCenter(const float * coords);
 	
 	
-	void guiCopyRakeToRegion();
-	void guiCopyProbeToRegion();
+
 
 	
 
@@ -100,13 +99,13 @@ protected slots:
 	void guiSetYSize(int n);
 	void guiSetZCenter(int n);
 	void guiSetZSize(int n);
-	void copyRegionToRake();
-	void copyRakeToRegion();
-	void copyRegionToProbe();
-	void copyProbeToRegion();
+	void guiCopyBox();
+	
 protected:
 	static const char* webHelpText[];
 	static const char* webHelpURL[];
+	//Map combo indices to ParamsBase typeid
+	static vector<ParamsBase::ParamsBaseType> boxMapping;
 
 };
 

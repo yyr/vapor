@@ -76,16 +76,11 @@ void DataHolder::getExtents(){
 		double latBuffer[2];
 		reader->GetLatLonExtents(i,lonBuffer,latBuffer);
 		
-		//cout << latBuffer[0] << " " << latBuffer[1] << " " << lonBuffer[0] << " " << lonBuffer[1] << endl;
-	
 		if (latBuffer[0]<latExtents[0]) latExtents[0]=latBuffer[0];
 		if (latBuffer[1]>latExtents[1]) latExtents[1]=latBuffer[1];
 		if (lonBuffer[0]<lonExtents[0]) lonExtents[0]=lonBuffer[0];
 		if (lonBuffer[1]>lonExtents[1]) lonExtents[1]=lonBuffer[1];
 	}
-
-	//cout << latExtents << " " << lonExtents << endl;	
-	//cout << latExtents[0] << " " << latExtents[1] << " " << lonExtents[0] << " " << lonExtents[1] << endl;
 }
 
 void DataHolder::setVDFstartTime(string startTime) {
@@ -289,7 +284,6 @@ string DataHolder::getPopDataCmd() {
 		argv.push_back(PDinputVDFfile);
 	}   
 
-	//cout << "COMMAND: " << endl;
 	char** args = new char*[ argv.size() + 1 ];
 	for(size_t a=0; a<argv.size(); a++) {
 		args[a] = strdup(argv[a].c_str());
@@ -374,10 +368,8 @@ int DataHolder::VDFCreate() {
 
 	char** args = new char*[ argv.size() + 1 ];
 	for(size_t a=0; a<argv.size(); a++) {
-		//cout << argv[a].c_str() ;
 		args[a] = strdup(argv[a].c_str());
 	}
-	//cout << endl;
 
 	if (getFileType()=="WRF") {
 		wrfvdfcreate launcherWrfVdfCreate;
@@ -536,9 +528,6 @@ int DataHolder::run2VDFincremental(string start, string var) {
 		rc = launcher2VDF.launch2vdf(argc, args, getFileType());
 	}
 
-	//for (size_t a=0; a<argv.size(); a++){
-	//	if (args[a]) delete [] args[a];
-	//}
 	if (args) delete [] args;
 	return rc;
 }

@@ -394,6 +394,10 @@ public:
 	//Force dvr renderer to get latest CLUT
 	//
 	void setClutDirty(RenderParams* p);
+
+	//Force all text-renderers to refresh, e.g. if background color changes
+	void refreshText();
+
 	
 	//Force dvr renderers to get latest DataRange
 	//

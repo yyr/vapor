@@ -64,6 +64,7 @@
 #include "floweventrouter.h"
 
 using namespace VAPoR;
+std::vector<ParamsBase::ParamsBaseType> RegionEventRouter::boxMapping;
 const char* RegionEventRouter::webHelpText[] = 
 {
 
@@ -132,10 +133,7 @@ RegionEventRouter::hookUpTab()
 	connect (zSizeSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetZSize(int)));
 	
 	connect (setFullRegionButton, SIGNAL(clicked()), this, SLOT (guiSetMaxSize()));
-	connect (regionToRakeButton, SIGNAL(clicked()), this, SLOT(copyRegionToRake()));
-	connect (regionToProbeButton, SIGNAL(clicked()), this, SLOT(copyRegionToProbe()));
-	connect (rakeToRegionButton, SIGNAL(clicked()), this, SLOT(copyRakeToRegion()));
-	connect (probeToRegionButton, SIGNAL(clicked()), this, SLOT(copyProbeToRegion()));
+	connect (copyBoxButton, SIGNAL(clicked()), this, SLOT(guiCopyBox()));
 
 	connect (loadRegionsButton, SIGNAL(clicked()), this, SLOT(guiLoadRegionExtents()));
 	connect (saveRegionsButton, SIGNAL(clicked()), this, SLOT(saveRegionExtents()));
@@ -189,24 +187,6 @@ regionReturnPressed(void){
 }
 
 
-void RegionEventRouter::copyRakeToRegion(){
-	guiCopyRakeToRegion();
-}
-void RegionEventRouter::copyProbeToRegion(){
-	guiCopyProbeToRegion();
-}
-void RegionEventRouter::copyRegionToRake(){
-	//Need to find relevant Flowparams, make it update with this region.
-	
-	FlowEventRouter* fer = VizWinMgr::getInstance()->getFlowRouter();
-	fer->guiSetRakeToRegion();
-}
-void RegionEventRouter::copyRegionToProbe(){
-	//Need to find relevant Probe, make it update with this region.
-	//Currently there is no probe router
-	ProbeEventRouter* per = VizWinMgr::getInstance()->getProbeRouter();
-	per->guiCopyRegionToProbe();
-}
 
 //Insert values from params into tab panel
 //
@@ -729,43 +709,41 @@ refreshRegionInfo(RegionParams* rParams){
 //
 //Make region match probe.  Responds to button in region panel
 void RegionEventRouter::
-guiCopyProbeToRegion(){
+guiCopyBox(){
 	confirmText(false);
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "copy probe to region");
-	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_probeParamsTag);
-	if (pParams->getPhi() != 0.f ||
-		pParams->getTheta() != 0.f ||
-		pParams->getPsi() != 0.f) {
-			MessageReporter::warningMsg("Note: current probe is rotated.\n%s",
-				"Copied region is the smallest \naxis-aligned box that contains the probe");
+	if (!DataStatus::getInstance()->getDataMgr()) return;
+	int viznum = VizWinMgr::getInstance()->getActiveViz();
+	if (viznum <0) return;
+	ParamsBase::ParamsBaseType fromParams = boxMapping[copyBoxFromCombo->currentIndex()];
+	ParamsBase::ParamsBaseType toParams = boxMapping[copyBoxToCombo->currentIndex()];
+	if (toParams == fromParams) {
+		MessageReporter::errorMsg("Source and Target of extents copy cannot be the same");
+		return;
 	}
-	float regMin[3], regMax[3];
-	pParams->getLocalContainingRegion(regMin, regMax);
-	rParams->setLocalBox(regMin, regMax,timestep);
-	updateTab();
-	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);
-	PanelCommand::captureEnd(cmd,rParams);
+	
+	Params* pFrom = Params::GetCurrentParamsInstance(fromParams, viznum);
+	Params* pTo = Params::GetCurrentParamsInstance(toParams, viznum);
+	PanelCommand* cmd = PanelCommand::captureStart(pTo, "copy box extents");
+	double toExtents[6], fromExtents[6];
+	pFrom->GetBox()->GetLocalExtents(fromExtents);
+	pTo->GetBox()->GetLocalExtents(toExtents);
+	//Check if the source is 2D;  If the target is not 2D then don't alter its vertical extents
+	if (fromExtents[2] == fromExtents[5] && toExtents[2] != toExtents[5]){
+		fromExtents[2] = toExtents[2];
+		fromExtents[5] = toExtents[5];
+	}
+	//Check if target is 2D, and source is not 2D don't change its extents
+	else if (toExtents[2] == toExtents[5] && fromExtents[2] != fromExtents[5]){
+		fromExtents[2] = toExtents[2];
+		fromExtents[5] = toExtents[5];
+	}
+	pTo->GetBox()->SetLocalExtents(fromExtents);
+	PanelCommand::captureEnd(cmd,pTo);
+	VizWin* vizwin = VizWinMgr::getInstance()->getVizWin(viznum);
+	if (vizwin) vizwin->updateGL();
 	
 }
-//Make region match rake.  Responds to button in region panel
-void RegionEventRouter::
-guiCopyRakeToRegion(){
-	confirmText(false);
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "copy rake to region");
-	FlowParams* fParams = (FlowParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_flowParamsTag);
-	float boxmin[3],boxmax[3];
-	fParams->getLocalBox(boxmin, boxmax, timestep);
-	rParams->setLocalBox(boxmin, boxmax, timestep);
-	
-	updateTab();
-	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);
-	PanelCommand::captureEnd(cmd,rParams);
-	
-}
+
 void RegionEventRouter::
 guiSetVarNum(int n){
 	confirmText(false);
@@ -949,6 +927,20 @@ reinitTab(bool doOverride){
 	}
 	if (VizWinMgr::getInstance()->getNumVisualizers() > 1) LocalGlobal->setEnabled(true);
 	else LocalGlobal->setEnabled(false);
+
+	//Set up the copy combos
+	copyBoxFromCombo->clear();
+	copyBoxToCombo->clear();
+	boxMapping.clear();
+	for (int i = 1; i<= Params::GetNumParamsClasses(); i++){
+		ParamsBase::ParamsBaseType type = i;
+		Params* p = Params::GetDefaultParams(type);
+		if (! p->GetBox()) continue;
+		QString pname = QString(p->getShortName().c_str());
+		copyBoxFromCombo->addItem(pname);
+		copyBoxToCombo->addItem(pname);
+		boxMapping.push_back(i);
+	}
 }
 
 

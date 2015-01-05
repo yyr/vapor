@@ -1,0 +1,89 @@
+=begin comment
+
+$Id$
+
+=end comment
+
+=head1 NAME
+
+camvdfcreate - Generate a VDF metadata file for a CAM data set
+
+=head1 SYNOPSIS
+
+B<camvdfcreate> [options] I<cam_ncdf_files...> I<cam_grid_file> I<vdffile>
+
+=head1 DESCRIPTION
+
+B<camvdfcreate> generates a .vdf metafile that defines a VAPOR
+Data Collection (VDC) suitable for containing ocean simulation
+output from a CAM model output.  All of the model output NetCDF
+filenames must be provided on the command line, followed by one
+NetCDF grid filename, and the desired VAPOR (.vdf) file name.  The
+grid file must include variables that do not change in time, including
+the depth of the ocean, and the variables defining mappings from
+the model grid to latitude, latitude, and depth.  The grid file may
+also be included in the collection I<cam_netcdf_files>, if it
+contains data variables that change in time.
+
+=head1 OPTIONS
+
+=over 4
+
+=item -vars E<lt>varnamesE<gt>
+
+A colon-delimited list of names of 2D and 3D (spatial) data variables
+to include in the .vdf file.  In general, the list of variables
+should be a subset of the data variables found in the MOM/POP input
+files.  If this option is not present the default behavior is to
+generate the list of variables from all of the 2D and 3D (spatial)
+variables found in any of the MOM/POP netCDF input files.
+
+=item -level E<lt>levelE<gt>
+
+See vdfcreate.
+
+=item -comment E<lt>stringE<gt>
+
+See vdfcreate.
+
+=item -bs E<lt>NXxNYxNZE<gt>
+
+See vdfcreate.
+
+=item -wname E<lt>wave_nameE<gt>
+
+This option is for VDC2 only, see vdfcreate.
+
+=item -cratios E<lt>vectorE<gt>
+
+This option is for VDC2 only, see vdfcreate.
+
+=item -help 
+
+Print a usage statement and then exit.
+
+=back
+
+=head1 EXAMPLES
+
+
+The command 
+
+    camvdfcreate -vars u:v:temp cam1.nc cam2.nc cam3.nc camgrid.nc mydata.vdf
+
+will construct a VDF file, B<mydata.vdf> that will contain the B<u>,
+B<v>, and B<temp> variable names for all time steps found in the
+CAM netCDF files B<cam1.nc>, B<cam2.nc>, and B<cam3.nc>.  The
+netCDF file B<camgrid.nc> will contain time-invariant variables
+defining the grid.
+
+
+=head1 SEE ALSO
+
+vdfcreate, cam2vdf,
+
+I<Conversion of CAM datafiles to a VAPOR VDC>
+
+=head1 HISTORY
+
+Last updated on $Date$

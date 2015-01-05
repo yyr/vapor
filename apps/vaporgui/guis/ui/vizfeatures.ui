@@ -32,7 +32,7 @@
    <string>Form1</string>
   </property>
   <property name="whatsThis">
-   <string>This panel specifies properties of each visualizer.  Additional information is available as a tooltip for each element.</string>
+   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This panel specifies properties of each visualizer.  Additional information about this panel is available as a tooltip for each element.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_7">
    <item>

@@ -573,6 +573,9 @@ probe volume.</string>
             </item>
             <item>
              <widget class="QLabel" name="textLabel1_7">
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Probe Type can be either &amp;quot;Data Value&amp;quot; or &amp;quot;Flow Image&amp;quot;.  The default Data Value probe will display color-mapped data values of a 3D variable.  When Flow Image is selected, the probe will display a texture indicating flow motion based on 3 3D variables.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>Probe Type</string>
               </property>
@@ -591,6 +594,9 @@ probe volume.</string>
               </property>
               <property name="toolTip">
                <string>Select whether the probe will display the color-mapped data or a tlow image (using image-based flow visualization)</string>
+              </property>
+              <property name="whatsThis">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Probe Type can be either &amp;quot;Data Value&amp;quot; or &amp;quot;Flow Image&amp;quot;.  The default Data Value probe will display color-mapped data values of a 3D variable.  When Flow Image is selected, the probe will display a texture indicating flow motion based on 3 3D variables.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <item>
                <property name="text">
@@ -704,6 +710,9 @@ probe volume.</string>
           </item>
           <item>
            <widget class="QFrame" name="layoutFrame">
+            <property name="whatsThis">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The probe layout settings allow arbritrary positioning of a rectangular slice intersecting the 3D volume.  The probe is transformed by a rotation about the specified center (angles theta, phi and psi) from its initial axis-aligned position in the data volume.  Xp, Yp, and Zp refer to the size in probe coordinates.  The probe can be manipulated using controls in this section or can be positioned using handles in the 3D scene when Probe mouse mode is enabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="frameShape">
              <enum>QFrame::NoFrame</enum>
             </property>
@@ -2577,6 +2586,9 @@ Domain</string>
           </item>
           <item>
            <widget class="QFrame" name="imageFrame">
+            <property name="whatsThis">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Probe image is displayed here and in the 3D scene.  It can be saved as a jpeg image.  Variable values and coordinates at selected points in the probe can be viewed here and (in Probe mouse mode) the cross-hairs of cursor position can be viewed in the 3D scene.  &lt;/p&gt;&lt;p&gt;Selected points can be used as seed points for flow integration.  The selected point can also be used to recenter the current Region, View, Rake, or this Probe.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="frameShape">
              <enum>QFrame::NoFrame</enum>
             </property>
@@ -3674,6 +3686,9 @@ change the selection in the probe</string>
          <width>422</width>
          <height>16777215</height>
         </size>
+       </property>
+       <property name="whatsThis">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Probe appearance is controlled by a transfer function editor in this section.  When using a flow image, the color map of the selected variable is applied to the flow image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
