@@ -26,6 +26,7 @@
 #include "eventrouter.h"
 #include <vapor/MyBase.h>
 #include "animationtab.h"
+#include "tabmanager.h"
 
 class QTableWidget;
 
@@ -50,7 +51,8 @@ public:
 	//Required method to create the tab:
 	static EventRouter* CreateTab(){
 		TabManager* tMgr = VizWinMgr::getInstance()->getTabManager();
-		return (EventRouter*)(new AnimationEventRouter((QWidget*)tMgr));
+		QWidget* parent = tMgr->getSubTabWidget(1);
+		return (EventRouter*)(new AnimationEventRouter(parent));
 	}
 	//Connect signals and slots from tab
 	virtual void hookUpTab();

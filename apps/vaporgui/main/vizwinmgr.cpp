@@ -122,15 +122,9 @@ createAllDefaultTabs() {
 	InstallTab(Params::_viewpointParamsTag, ViewpointEventRouter::CreateTab);
 	InstallTab(Params::_regionParamsTag, RegionEventRouter::CreateTab);
 	
-	//Provide default tab ordering if needed:
-	vector<long> defaultOrdering = TabManager::getTabOrdering();
-	vector<long> tempOrdering;
-	//The tab manager needs to be refreshed once with all the tabs in place;  
-	tabManager->setTabOrdering(tempOrdering);
+	//set up tabs
 	tabManager->orderTabs();
-	//Now insert just the desired tabs:
-	tabManager->setTabOrdering(defaultOrdering);
-	tabManager->orderTabs();
+	
 
 }
 
@@ -327,7 +321,7 @@ createDefaultParams(int winnum){
 	for (int i = 1; i<= ControlExec::GetNumParamsClasses(); i++){
 		string tag = ControlExec::GetTagFromType(i);
 		Params* q = ControlExec::GetDefaultParams(tag);
-		
+		if (q->isRenderParams()) continue;
 		Params* p = (Params*)(q->deepCopy());
 		p->SetVizNum(winnum);
 		//Check for strange error:
@@ -420,7 +414,8 @@ updateActiveParams(){
 	int activeViz = getActiveViz();
 	if (activeViz < 0 ||!getVizWin(activeViz)) return;
 	for (int i = ControlExec::GetNumBasicParamsClasses()+1; i<= ControlExec::GetNumParamsClasses(); i++){
-		getEventRouter(i)->updateTab();
+		if (Params::GetCurrentParamsInstance(i,activeViz))
+			getEventRouter(i)->updateTab();
 	}
 }
 

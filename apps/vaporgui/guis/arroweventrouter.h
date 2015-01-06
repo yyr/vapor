@@ -8,6 +8,9 @@
 #include "eventrouter.h"
 #include <vapor/MyBase.h>
 #include "arrow.h"
+#include "tabmanager.h"
+#include "arrowAppearance.h"
+#include "arrowLayout.h"
 
 
 using namespace VetsUtil;
@@ -30,7 +33,8 @@ public:
 	virtual ~ArrowEventRouter();
 	static EventRouter* CreateTab(){
 		TabManager* tMgr = VizWinMgr::getInstance()->getTabManager();
-		return (EventRouter*)(new ArrowEventRouter((QWidget*)tMgr));
+		QWidget* parent = tMgr->getSubTabWidget(0);
+		return (EventRouter*)(new ArrowEventRouter(parent));
 	}
 	//Connect signals and slots from tab
 	virtual void hookUpTab();
@@ -46,11 +50,6 @@ public:
 
 protected slots:
 
-	void changeInstance(int);
-	void newInstance();
-	void deleteInstance();
-	
-	void copyInstanceTo(int toViz);
 		
 	void setNumRefinements(int num);
 	void setCompRatio(int num);
@@ -67,8 +66,7 @@ protected slots:
 	void toggleTerrainAlign(bool);
 	void selectColor();
 	void changeExtents();
-	void showHideLayout();
-	void showHideAppearance();
+
 	void fitToData();
 	void setVariableDims(int);
 	void alignToData(bool);
@@ -79,7 +77,9 @@ protected:
 	void populateVariableCombos(bool is3d);
 	vector<int> copyCount;
 	bool showLayout;
-	bool showAppearance;
+	
+	ArrowAppearance * myAppearance;
+	ArrowLayout * myLayout;
 
    };
 

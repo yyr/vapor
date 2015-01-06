@@ -26,6 +26,7 @@
 #include "eventrouter.h"
 #include <vapor/MyBase.h>
 #include "regiontab.h"
+#include "tabmanager.h"
 
 
 using namespace VetsUtil;
@@ -46,7 +47,8 @@ public:
 	virtual ~RegionEventRouter();
 	static EventRouter* CreateTab(){
 		TabManager* tMgr = VizWinMgr::getInstance()->getTabManager();
-		return (EventRouter*)(new RegionEventRouter((QWidget*)tMgr));
+		QWidget* parent = tMgr->getSubTabWidget(1);
+		return (EventRouter*)(new RegionEventRouter(parent));
 	}
 	//Connect signals and slots from tab
 	virtual void hookUpTab();

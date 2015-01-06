@@ -227,8 +227,8 @@
     <ClCompile>
       <AdditionalOptions>-Zm200 /EHsc -w34100 -w34189 %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;$(PYTHON32ROOT)/include;.;..\..\..\apps\vaporgui\moc\;$(QTDIR32)/include/QtCore;$(QTDIR32)/include/QtOpenGL;$(QTDIR32)/include/;$(QTDIR32)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;QT_CORE_LIB;QT_GUI_LIB;QT_THREAD_SUPPORT;QT_OPENGL_LIB;_CRT_SECURE_NO_WARNINGS;MODELS;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(VAPORDEPS_INC_DIR)/geotiff;$(VAPORDEPS_INC_DIR)/jpeg;$(VAPORDEPS_INC_DIR)/tiff;$(VAPORDEPS_INC_DIR);..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;$(PYTHON32ROOT)/include;.;..\..\..\apps\vaporgui\moc\;$(QTDIR)/include/QtCore;$(QTDIR)/include/QtOpenGL;$(QTDIR)/include/;$(QTDIR)/include/QtGui;..\..\..\lib\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_CORE_LIB;QT_GUI_LIB;QT_THREAD_SUPPORT;QT_OPENGL_LIB;_CRT_SECURE_NO_WARNINGS;MODELS;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
       <MinimalRebuild>true</MinimalRebuild>
@@ -272,6 +272,7 @@
     <ClCompile Include="..\..\..\apps\vaporgui\guis\boxsliderframe.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\eventrouter.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\instancetable.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\guis\renderholder.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\main\main.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\main\mainform.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\regioneventrouter.cpp" />
@@ -283,12 +284,15 @@
     <ClCompile Include="..\..\..\apps\vaporgui\guis\vizselectcombo.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\main\vizwin.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_animationeventrouter.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_arrowAppearance.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_arroweventrouter.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_arrowLayout.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_bannergui.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_boxsliderframe.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_instancetable.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_mainform.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_regioneventrouter.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_renderholder.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_tabmanager.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_viewpointeventrouter.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_vizfeatureparams.cpp" />
@@ -388,6 +392,18 @@
 </Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\moc\moc_boxsliderframe.cpp;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\arrowAppearance.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\arrowAppearance.h -o ..\..\..\apps\vaporgui\moc\moc_arrowAppearance.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">moc%27ing arrowAppearance.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\moc\moc_arrowAppearance.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\arrowLayout.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\arrowLayout.h -o ..\..\..\apps\vaporgui\moc\moc_arrowLayout.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">moc%27ing arrowLayout.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\moc\moc_arrowLayout.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
     <ClInclude Include="..\..\..\apps\vaporgui\guis\eventrouter.h" />
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\instancetable.h">
@@ -544,10 +560,32 @@
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\moc\moc_vizwin.cpp;%(Outputs)</Outputs>
     </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\renderholder.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\renderholder.h -o ..\..\..\apps\vaporgui\moc\moc_renderholder.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\renderholder.h -o ..\..\..\apps\vaporgui\moc\moc_renderholder.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\renderholder.h -o ..\..\..\apps\vaporgui\moc\moc_renderholder.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\renderholder.h -o ..\..\..\apps\vaporgui\moc\moc_renderholder.cpp</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vaporgui\moc\moc_renderholder.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vaporgui\moc\moc_renderholder.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\moc\moc_renderholder.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\moc\moc_renderholder.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing renderholder.h...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing renderholder.h...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing renderholder.h...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing renderholder.h...</Message>
+    </CustomBuild>
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\animationtab.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\arrow.h" />
+    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\barbAppearance.h" />
+    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\barbLayout.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\boxframe.h" />
+    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\newRendererDialog.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\regiontab.h" />
+    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\renderselector.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\vizfeatures.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\viztab.h" />
   </ItemGroup>
@@ -698,6 +736,54 @@
       <Project>{91c4e098-bc79-4784-94b7-c96b3548682d}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\barbAppearance.ui">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\barbAppearance.ui -o ..\..\..\apps\vaporgui\guis\ui\barbAppearance.h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">uic%27ing barbAppearance.ui..</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\guis\ui\barbAppearance.h;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\barbLayout.ui">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\barbLayout.ui -o ..\..\..\apps\vaporgui\guis\ui\barbLayout.h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">uic%27ing barbLayout.ui..</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\guis\ui\barbLayout.h;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\renderselector.ui">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\renderselector.ui -o ..\..\..\apps\vaporgui\guis\ui\renderselector.h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">uic%27ing renderselector.ui</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\guis\ui\renderselector.h;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vaporgui\guis\ui\renderselector.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vaporgui\guis\ui\renderselector.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\guis\ui\renderselector.h;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">uic%27ing renderselector.ui</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">uic%27ing renderselector.ui</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">uic%27ing renderselector.ui</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\renderselector.ui -o ..\..\..\apps\vaporgui\guis\ui\renderselector.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\renderselector.ui -o ..\..\..\apps\vaporgui\guis\ui\renderselector.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\renderselector.ui -o ..\..\..\apps\vaporgui\guis\ui\renderselector.h</Command>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\newRendererDialog.ui">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\newRendererDialog.ui -o ..\..\..\apps\vaporgui\guis\ui\newRendererDialog.h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">uic%27ing newRendererDialog.ui.. </Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\guis\ui\newRendererDialog.h;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

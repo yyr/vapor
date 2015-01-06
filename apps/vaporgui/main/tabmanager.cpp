@@ -22,6 +22,7 @@
 #include <qwidget.h>
 #include <QScrollArea>
 #include <QMdiSubWindow>
+#include "qstackedwidget.h"
 #include <QMdiArea>
 #include "tabmanager.h"
 #include "assert.h"
@@ -33,57 +34,68 @@
 #include "vizselectcombo.h"
 #include "mainform.h"
 #include "vapor/ControlExecutive.h"
+#include "renderholder.h"
 
 using namespace VAPoR;
-vector<long> TabManager::tabOrdering;
+
 TabManager::TabManager(QWidget* parent, const char* )
 	: QTabWidget(parent)
 {
 	myParent = parent;
 	//Initialize arrays:
 	//
-	widgets.clear();
-	widgetBaseTypes.clear();
-	usedTypes.clear();
-	haveMultipleViz = false;
+	for (int i = 0; i<3; i++){
+		widgets[i].clear();
+		widgetBaseTypes[i].clear();
+		currentFrontPage[i] = -1;
+		topWidgets[i] = 0;
+		
+	}
 	
-	connect(this, SIGNAL(currentChanged(int)), this, SLOT(newFrontTab(int)));
-	currentFrontPage = -1;
+	currentTopTab = -1;
+	
 	setElideMode(Qt::ElideNone);
+	
+	topName[0]= "Renderers";
+	topName[1]= "Navigation";
+	topName[2]= "Settings";
+	
+	show();
 }
-//Insert a new tabbed widget at the end of the tabs
+//Insert a new tabbed widget at the end of the tabs, as either a 0=rendererTab, 1=navTab, 2=settingsTab
 //
 int TabManager::insertWidget(QWidget* wid, Params::ParamsBaseType widBaseType, bool selected){
 	//qWarning("In insert Widget");
 	//Create a QScrollView, put the widget into the scrollview, then
 	//Insert the scrollview into the tabs
 	//
+	int widType = getTabType(widBaseType);
+	//the top-level widget should exist
+	assert(topWidgets[widType]);
 	
-	QScrollArea* myScrollArea = new QScrollArea(this);
+	QScrollArea* myScrollArea = new QScrollArea(topWidgets[widType]);
 	//myScrollview->resizeContents(500, 1000);
 	//myScrollview->setResizePolicy(QScrollView::Manual);
 	
 	string tag = ControlExec::GetTagFromType(widBaseType);
-	insertTab(-1, myScrollArea, QString::fromStdString(ControlExec::GetShortName(tag)));
-	//connect(myScrollArea, SIGNAL(verticalSliderReleased()), this, SLOT(tabScrolled()));
-	//myScrollview->addChild(wid);
+
 	myScrollArea->setWidget(wid);
 	
-	int posn = count()-1;
+	int posn = topWidgets[widType]->count()-1;
 	
 	if (selected) {
-		setCurrentIndex(posn);
+		topWidgets[widType]->setCurrentIndex(posn);
 	}
+	
 	return posn;
 }
 
-//Add a tabWidget to saved list of widgets:
+//Add a tabWidget to appropriate saved list of widgets:
 //
 void TabManager::addWidget(QWidget* wid, Params::ParamsBaseType widBaseType){
-	
-	widgets.push_back(wid);
-	widgetBaseTypes.push_back(widBaseType);
-	
+	int ttype = getTabType(widBaseType);
+	widgets[ttype].push_back(wid);
+	widgetBaseTypes[ttype].push_back(widBaseType);
 }
 
 
@@ -99,10 +111,14 @@ moveToFront(Params::ParamsBaseType widgetBaseType){
 
 	int posn = findWidget(widgetBaseType);
 	if (posn < 0) return -1;
-	int lastCurrentPage = currentIndex();
-	currentFrontPage = posn;
-	if (lastCurrentPage == posn) return posn; //No change!
-	setCurrentIndex(posn);
+	int lastCurrentTopPage = currentIndex(); 
+	int tabType = getTabType(widgetBaseType);
+	if (lastCurrentTopPage == tabType && posn == currentFrontPage[tabType]) return posn;  //No change
+	currentFrontPage[tabType] = posn;
+	
+	setCurrentIndex(tabType);
+	topWidgets[tabType]->setCurrentIndex(posn);
+	
 	//The following code is inserted as a workaround for bug 3138674.
 	//This is apparently a QT4.6 bug
 	//The problem is that sometimes setCurrentIndex() triggers a QMdiArea event,
@@ -121,61 +137,51 @@ moveToFront(Params::ParamsBaseType widgetBaseType){
 	return posn;
 }
 /*
- *  Find the index of the widget that has the specified type
+ *  Find the index of the widget in its subTabWidget that has the specified type
  */
 int 
 TabManager::findWidget(Params::ParamsBaseType widgetBaseType){
-	if (tabOrdering.size() < widgetBaseType) return -1;
-	int order = tabOrdering[widgetBaseType-1];
-	if (order <= 0) return -1;
-	
-	return (order-1);
+	int tabType = getTabType(widgetBaseType);
+	for (int i = 0; i< widgets[tabType].size(); i++){
+		if (widgetBaseTypes[tabType][i] == widgetBaseType) return i;
+	}
+	return -1;
 }
 void TabManager::toggleFrontTabs(Params::ParamsBaseType currentType){
-	//find any tab that is not associated with current type
-	int i;
-	for (i = 0; i<tabOrdering.size(); i++){
-		if ((i+1+Params::GetNumBasicParamsClasses()) == currentType) continue;
-		if (tabOrdering[i]> 0) break;
-	}
-	if (i >= tabOrdering.size()) return;
-	//move tab i to front, but dont trigger an undo event
-	
-	moveToFront(i+1);
-	EventRouter* eRouter = VizWinMgr::getInstance()->getEventRouter(i+1+Params::GetNumBasicParamsClasses());
-	eRouter->updateTab();
-	moveToFront(currentType-Params::GetNumBasicParamsClasses());
-	eRouter = VizWinMgr::getInstance()->getEventRouter(currentType);
-	eRouter->updateTab();
-	
+	//Let's see if this is really needed.
 	return;
 }
-//Catch any change in the front page:
-//
+//Catch any change in the top tab, update the eventRouter of the sub tab
 void TabManager::
-newFrontTab(int newFrontPosn) {
+newTopTab(int newFrontPosn) {
+	if (newFrontPosn < 0) return;
+	int subTabIndex = currentFrontPage[newFrontPosn];
+	if (subTabIndex < 0) return;
+	if (newFrontPosn==2) return;
+	ParamsBase::ParamsBaseType t = widgetBaseTypes[newFrontPosn][subTabIndex];
 	
-	//Don't check, sometimes this method can be used to refresh
-	//the existing front tab
 	
-	Params::ParamsBaseType prevType = 0;
-	if(currentFrontPage >= 0) prevType = usedTypes[currentFrontPage];
-	currentFrontPage = newFrontPosn;
-	//Ignore if we haven't set up tabs yet
-	if(widgets.size() <= newFrontPosn) return;
-	//Refresh this tab 
-	
-	EventRouter* eRouter = VizWinMgr::getEventRouter(getTypeInPosition(newFrontPosn));
+	EventRouter* eRouter = VizWinMgr::getEventRouter(t);
 	eRouter->updateTab();
 	
-	//Put into history
+	//Put into history!
 	
 
 } 
-Params::ParamsBaseType TabManager::getTypeInPosition(int posn){
-	if (posn >= usedTypes.size()) return 0;
-	return usedTypes[posn];
+void TabManager::
+newFrontTab(int topTab, int newSubPosn) {
+	
+	EventRouter* eRouter = VizWinMgr::getEventRouter(widgetBaseTypes[topTab][newSubPosn]);
+	eRouter->updateTab();
+	
+} 
+void TabManager::newSubTab(int posn){
+	int topTab = currentIndex();
+	if (topTab < 0) return;
+	newFrontTab(topTab,posn);
 }
+
+
 
 /*
  *  When the scroll bar is released, call updateTab on current front window
@@ -183,90 +189,100 @@ Params::ParamsBaseType TabManager::getTypeInPosition(int posn){
 */
 void TabManager::tabScrolled(){
 #ifdef WIN32
-	int frontPage = currentIndex();
-	
-	if (frontPage < 0) return;
-	Params::ParamsBaseType tabType = usedTypes[frontPage];
-	EventRouter* eRouter = VizWinMgr::getEventRouter(tabType);
+	int topPage = currentIndex();
+	if (topPage < 0) return;
+	ParamsBase::ParamsBaseType t = widgetBaseTypes[topPage][currentFrontPage[topPage]];
+	EventRouter* eRouter = VizWinMgr::getEventRouter(t);
 	
 	eRouter->refreshTab();
 #endif
 }
 void TabManager::scrollFrontToTop(){
 	//Get the front scrollview:
-
+	/*
 	QScrollArea *sv = (QScrollArea*)currentWidget();
 	sv->ensureVisible(0,0);
+	*/
 }
+
 void TabManager::orderTabs(){
 	
 	clear();
 	
-	setEnabled(false);
-	//find how many tabs are used:
-	int numTabs = 0;
-	for (int i = 0; i< tabOrdering.size(); i++) if (tabOrdering[i] > 0) numTabs++;
-	//Make sure the tabOrdering is valid.  It needs to have a place for all paramsBaseTypes except UndoRedo params
-	int numTabClasses = ControlExec::GetNumParamsClasses()-ControlExec::GetNumBasicParamsClasses();
-	if (tabOrdering.size() < numTabClasses){
-		for (int i = tabOrdering.size(); i< numTabClasses; i++){
-			tabOrdering.push_back(++numTabs);
-		}
-	} else if (tabOrdering.size() > numTabClasses){
-		//If the ordering is too large, revert to the default
-		tabOrdering.clear();
-		for (int i = 1; i<= numTabClasses; i++)
-			tabOrdering.push_back(i);
-		numTabs = tabOrdering.size();
-	}
-	assert(tabOrdering.size() == numTabClasses);
-	//Now construct a list of all the ParamsBaseTypes that are used, in the order they are used:
-	usedTypes.clear();
-	//Go through the tabOrdering, looking in order for each tab position > 0
-	//For each tab position, the corresponding type is the offset where it occurs plus the number of BasicParams types, plus 1.
-	int nextIndex = 1;
-	while (nextIndex <= numTabs) {
-		bool found = false;
-		for (int i = 0; i < tabOrdering.size(); i++){
-			if (tabOrdering[i] == nextIndex){
-				usedTypes.push_back(i+ControlExec::GetNumBasicParamsClasses()+1);
-				nextIndex++;
-				found = true;
-				break;
-			}
-		}
-		if(!found) {//bad ordering.  Revert to default:
-			tabOrdering.clear();
-			usedTypes.clear();
-			for (int i = 1; i<= numTabClasses; i++){
-				tabOrdering.push_back(i);
-				usedTypes.push_back(i);
-			}
-			numTabs = tabOrdering.size();
-			break;
-		}
-	}
-	assert(usedTypes.size() == numTabs);
-	//Now add the tabs:
-	for (int i = 0; i< usedTypes.size(); i++){
-		//Find the appropriate widget:
-		bool found = false;
-		for (int j = 0; j< widgets.size(); j++){
-			if (widgetBaseTypes[j] == usedTypes[i]){
-				insertWidget(widgets[j],widgetBaseTypes[j],false);
-				found = true;
-				break;
-			}
-		}
-		
-	}
-	currentFrontPage= numTabs-1;
-	setCurrentIndex(currentFrontPage);
 	
+	//Create top widgets.  Bottom tab widgets already exist.
+	//The first one is for renderers, the other two are tab widgets for nav and settings
+	for (int i = 1; i<3; i++) topWidgets[i] = new QTabWidget(this);
+	RenderHolder* renderHolder = new RenderHolder(this);
+	
+	int rc = renderHolder->addWidget(widgets[0][0], "Barbs_1", ArrowParams::_arrowParamsTag);
+	rc = addTab(renderHolder, topName[0]);
+	//Add the bottom widgets (eventrouter-based) to 2 of the 3 top widgets.
+	for (int topTab = 1; topTab<3; topTab++){
+		for (int j = 0; j< widgets[topTab].size(); j++){
+			QScrollArea* myScrollArea = new QScrollArea(topWidgets[topTab]);
+			ParamsBase::ParamsBaseType t = widgetBaseTypes[topTab][j];
+			string tag = ControlExec::GetTagFromType(t);
+			topWidgets[topTab]->addTab(myScrollArea, QString::fromStdString(ControlExec::GetShortName(tag)));
+			myScrollArea->setWidget(widgets[topTab][j]);
+		}
+	}
+	//Add all 3 top tabs to this
+	for (int widType = 1; widType<3; widType++){ 
+		addTab(topWidgets[widType],topName[widType]);
+		topWidgets[widType]->setCurrentIndex(0);
+		//myScrollArea->setWidget(topWidgets[widType]);
+	}
+	
+	//Start them at position 0:
+	setCurrentIndex(0);
+	currentTopTab = 0;
+	setCurrentIndex(0);
+	
+	for (int i = 0; i<3; i++) currentFrontPage[i] = 0;
+
+	//Hook up signals
+	for (int topTab = 1; topTab<3; topTab++){
+		connect(topWidgets[topTab], SIGNAL(currentChanged(int)), this, SLOT(newSubTab(int)));
+	}
+	connect(this, SIGNAL(currentChanged(int)), this, SLOT(newTopTab(int)));
+	return;
+	/*
+	for (int topTab = 0; topTab<3; topTab++){
+		topWidgets[topTab]->setEnabled(false);
+		for (int j = 0; j< widgets[topTab].size(); j++){
+			foobar = currentIndex();
+			insertWidget(widgets[topTab][j],widgetBaseTypes[topTab][j],false);
+			foobar = currentIndex();
+		}
+		currentFrontPage[topTab] = 0;
+		topWidgets[topTab]->setCurrentIndex(0);
+		topWidgets[topTab]->setParent(this);
+	}
+	foobar = currentIndex();
+	
+	
+	for (int topTab = 0; topTab<3; topTab++){
+		connect(topWidgets[topTab], SIGNAL(currentChanged(int)), this, SLOT(newSubTab(int)));
+		topWidgets[topTab]->setEnabled(true);
+		topWidgets[topTab]->show();
+	}
 	setEnabled(true);
+	show();
 	update();
+	*/
 }
+
 bool TabManager::isFrontTab(QWidget* wid){
-	int widtype = usedTypes[currentFrontPage];
-	return (wid == widgets[widtype-1-ControlExec::GetNumBasicParamsClasses()]);
+	int topTab = currentTopTab;
+	
+	return (wid == widgets[topTab][currentFrontPage[topTab]]);
+}
+int TabManager::getTabType(ParamsBase::ParamsBaseType t){
+	Params* p = Params::GetDefaultParams(t);
+	if (p->isRenderParams()) return 0;
+	if (dynamic_cast<RegionParams*>(p)) return 1;
+	if (dynamic_cast<AnimationParams*>(p)) return 1;
+	if (dynamic_cast<ViewpointParams*>(p)) return 1;
+	return 2;
 }

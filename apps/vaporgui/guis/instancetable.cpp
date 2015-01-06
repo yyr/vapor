@@ -78,11 +78,13 @@ void InstanceTable::rebuild(EventRouter* myRouter){
 	string type = ControlExec::GetTagFromType(renderBaseType);
 	numInsts = ControlExec::GetNumParamsInstances(winnum,type);
 	int currInst = ControlExec::GetCurrentRenderParamsInstance(winnum, type);
-	assert(currInst >= 0 && currInst < numInsts);
+	//assert(currInst >= 0 && currInst < numInsts);
 	//create items as needed
 	//Also insert labels in first column
-	if (rowCount() > numInsts) selectRow(currInst);  //avoid crash if selected row is too high
-	if(rowCount() != numInsts) setRowCount(numInsts);
+	if (currInst == numInsts){
+		if (rowCount() > numInsts) selectRow(currInst);  //avoid crash if selected row is too high
+		if(rowCount() != numInsts) setRowCount(numInsts);
+	}
 	
 	for (int r = 0; r<numInsts; r++){
 		RenderParams* rParams = (RenderParams*)ControlExec::GetParams(winnum,type,r);

@@ -211,6 +211,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \retval Pointer to specified Params instance
 	static Params* GetCurrentParamsInstance(int pType, int winnum){
 		Params* p = GetParamsInstance(pType, winnum, -1);
+		if (!p) return p;
 		if (p->IsLocal()) return p;
 		return GetDefaultParams(pType);
 	}

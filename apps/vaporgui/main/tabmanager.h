@@ -41,7 +41,7 @@ class TabManager : public QTabWidget{
 		TabManager(QWidget* parent, const char* name);
 		
 	
-		// Insert a widget, it should not already be there.
+		// Insert a widget into a sub-tab, it should not already be there.
 		// Move to front, if selected is true
 		// Associate this with specified viz, if viznum >= 0 
 		// Associate with all viz, if viznum = -1
@@ -56,59 +56,56 @@ class TabManager : public QTabWidget{
 		//
 		void addWidget(QWidget* wid, Params::ParamsBaseType widgetBaseType);
 
-		//Find the position of the specified widget, or -1 if it isn't there.
+		//Find the position of the specified widget in subTab, or -1 if it isn't there.
 		//
 		int findWidget(Params::ParamsBaseType widgetBaseType);
 		
-		//Make this the front widget, associate with specified viz
-		//return the tab position
+		//Make this the front widget, of associated subTab, associate with specified viz
+		//return the tab position in subTab
 		//
 		int moveToFront(Params::ParamsBaseType widgetType);
 		//Mainform must set the session before can handle any history changes.
 		//
-		//Determine if a widget is the current front tab
+		//Determine if a widget is the current front tab in its subtab
 		bool isFrontTab(QWidget* wid);
-
+		
 		EventRouter* getFrontEventRouter() { 
-			return VizWinMgr::getInstance()->getEventRouter(usedTypes[currentFrontPage]);
+			return VizWinMgr::getInstance()->getEventRouter(widgetBaseTypes[currentTopTab][currentFrontPage[currentTopTab]]);
 		}
-		QPoint tabPos() {
-			return (myParent->pos());
-		}
+		
 		//Make the visible tab scroll to top.
 		void scrollFrontToTop();
 		virtual QSize sizeHint() const { return QSize(460, 800);}
 		virtual void keyPressEvent(QKeyEvent* e){
 			e->accept();// This prevents a "beep" from occuring when you press enter on the Mac.
 		}
-		static const vector<long>& getTabOrdering() {return tabOrdering;}
-		static void setTabOrdering(const vector<long>& ordering){
-			tabOrdering.clear();
-			tabOrdering = ordering;
-		}
-		//Refresh the tab ordering based on the current values in tabOrdering
+		
+		//Refresh the tabs
 		void orderTabs();
 		//switch tabs, to force front tab to resize properly
 		void toggleFrontTabs(Params::ParamsBaseType currentType);
-		Params::ParamsBaseType getTypeInPosition(int posn);
+		
+		QTabWidget* getSubTabWidget(int widType){
+			return topWidgets[widType];
+		}
+		int getTabType(ParamsBase::ParamsBaseType);
+		void newFrontTab(int topType, int subPosn);
 	public slots:
-		void newFrontTab(int);
+		void newTopTab(int);
+		void newSubTab(int);
+		
 		void tabScrolled();
 		
 	private:
 		//Data structures to store widget info
-		//
-		//Each value in tabOrdering indicates the position the corresponding widgetBaseType is placed.  Zero indicates that widgetbaseType is not used.
-		//If tabOrdering is longer than number of base types, extra values are ignored.  If tabOrdering is shorter than number of base types, the
-		//unspecified base types are appended at the end.
-		static vector<long> tabOrdering;
-		//Following is to lookup a widget or a widgetType based on a tab index:
-		vector<ParamsBase::ParamsBaseType> usedTypes;
-		vector<QWidget*> widgets;
-		vector<ParamsBase::ParamsBaseType> widgetBaseTypes;
-		bool haveMultipleViz;
-		int currentFrontPage;
+		vector<QWidget*> widgets[3];
+		vector<ParamsBase::ParamsBaseType> widgetBaseTypes[3];
+		QTabWidget* topWidgets[3];
+		QString topName[3];
+		int currentFrontPage[3];
+		int currentTopTab;
 		QWidget* myParent;
+		
 };
 };
 

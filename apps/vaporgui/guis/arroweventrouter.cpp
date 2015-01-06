@@ -53,8 +53,15 @@ ArrowEventRouter::ArrowEventRouter(QWidget* parent): QWidget(parent), Ui_Arrow()
         setupUi(this);
 	myParamsBaseType = ControlExec::GetTypeFromTag(ArrowParams::_arrowParamsTag);
 
-	showAppearance = false;
 	showLayout = false;
+	
+	QTabWidget* myTabWidget = new QTabWidget(this);
+	myTabWidget->setTabPosition(QTabWidget::West);
+	myAppearance = new ArrowAppearance(myTabWidget);
+	myTabWidget->addTab(myAppearance, "Appearance");
+	myLayout = new ArrowLayout(myTabWidget);
+	myTabWidget->addTab(myLayout,"Layout");
+	tabHolderLayout->addWidget(myTabWidget);
 }
 
 
@@ -71,74 +78,51 @@ ArrowEventRouter::hookUpTab()
 	
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(setNumRefinements(int)));
 	connect (lodCombo,SIGNAL(activated(int)), this, SLOT(setCompRatio(int)));
-	connect (instanceTable, SIGNAL(changeCurrentInstance(int)), this, SLOT(changeInstance(int)));
-	connect (copyCombo, SIGNAL(activated(int)), this, SLOT(copyInstanceTo(int)));
-	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(newInstance()));
-	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(deleteInstance()));
-	connect (instanceTable, SIGNAL(enableInstance(bool,int)), this, SLOT(setArrowEnabled(bool,int)));
 	
 	//Unique connections for ArrowTab:
 	//Connect all line edits to textChanged and return pressed: 
-	connect (thicknessEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
-	connect (thicknessEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
-	connect (scaleEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
-	connect (scaleEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
+	connect (myAppearance->thicknessEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
+	connect (myAppearance->thicknessEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
+	connect (myAppearance->scaleEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
+	connect (myAppearance->scaleEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
 	
-	connect (xDimEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
-	connect (xDimEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
-	connect (yDimEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
-	connect (yDimEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
-	connect (zDimEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
-	connect (zDimEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
+	connect (myLayout->xDimEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
+	connect (myLayout->xDimEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
+	connect (myLayout->yDimEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
+	connect (myLayout->yDimEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
+	connect (myLayout->zDimEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
+	connect (myLayout->zDimEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
 
-	connect (xStrideEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
-	connect (xStrideEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
-	connect (yStrideEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
-	connect (yStrideEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
+	connect (myLayout->xStrideEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
+	connect (myLayout->xStrideEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
+	connect (myLayout->yStrideEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
+	connect (myLayout->yStrideEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
 	
 	//Connect variable combo boxes to their own slots:
 	connect (xVarCombo,SIGNAL(activated(int)), this, SLOT(setXVarNum(int)));
 	connect (yVarCombo,SIGNAL(activated(int)), this, SLOT(setYVarNum(int)));
 	connect (zVarCombo,SIGNAL(activated(int)), this, SLOT(setZVarNum(int)));
-	connect (heightCombo, SIGNAL(activated(int)),this,SLOT(setHeightVarNum(int)));
+	connect (myLayout->heightCombo, SIGNAL(activated(int)),this,SLOT(setHeightVarNum(int)));
 	connect (variableDimCombo, SIGNAL(activated(int)), this, SLOT(setVariableDims(int)));
 	//checkboxes
-	connect(terrainAlignCheckbox,SIGNAL(toggled(bool)), this, SLOT(toggleTerrainAlign(bool)));
-	connect(alignDataCheckbox,SIGNAL(toggled(bool)),this, SLOT(alignToData(bool)));
+	connect(myLayout->terrainAlignCheckbox,SIGNAL(toggled(bool)), this, SLOT(toggleTerrainAlign(bool)));
+	connect(myLayout->alignDataCheckbox,SIGNAL(toggled(bool)),this, SLOT(alignToData(bool)));
 	//buttons:
-	connect (colorSelectButton, SIGNAL(pressed()), this, SLOT(selectColor()));
-	connect (boxSliderFrame, SIGNAL(extentsChanged()), this, SLOT(changeExtents()));
-	connect (showHideLayoutButton, SIGNAL(pressed()), this, SLOT(showHideLayout()));
-	connect (showHideAppearanceButton, SIGNAL(pressed()), this, SLOT(showHideAppearance()));
-	connect (fitDataButton, SIGNAL(pressed()), this, SLOT(fitToData()));
+	connect (myAppearance->colorSelectButton, SIGNAL(pressed()), this, SLOT(selectColor()));
+	connect (myLayout->boxSliderFrame, SIGNAL(extentsChanged()), this, SLOT(changeExtents()));
+	
+
+	connect (myLayout->fitDataButton, SIGNAL(pressed()), this, SLOT(fitToData()));
 	//slider:
-	connect (barbLengthSlider, SIGNAL(sliderMoved(int)),this,SLOT(moveScaleSlider(int)));
-	connect (barbLengthSlider, SIGNAL(sliderReleased()),this,SLOT(releaseScaleSlider()));
+	connect (myAppearance->barbLengthSlider, SIGNAL(sliderMoved(int)),this,SLOT(moveScaleSlider(int)));
+	connect (myAppearance->barbLengthSlider, SIGNAL(sliderReleased()),this,SLOT(releaseScaleSlider()));
 
 }
 
 /*********************************************************************************
  * Slots associated with ArrowTab:
  *********************************************************************************/
-void ArrowEventRouter::changeInstance(int newCurrent){
-	performGuiChangeInstance(newCurrent);
-}
 
-	
-void ArrowEventRouter::newInstance(){
-	performGuiNewInstance();
-}
-void ArrowEventRouter::deleteInstance(){
-	performGuiDeleteInstance();
-}
-
-void ArrowEventRouter::copyInstanceTo(int toViz){
-	if (toViz == 0) return; 
-	if (toViz == 1) {performGuiCopyInstance(); return;}
-	int viznum = copyCount[toViz];
-	copyCombo->setCurrentIndex(0);
-	performGuiCopyInstanceToViz(viznum);
-}
 
 void ArrowEventRouter::
 setArrowTextChanged(const QString& ){
@@ -153,17 +137,17 @@ void ArrowEventRouter::confirmText(bool /*render*/){
 	QString strn;
 	//Get all text values from gui, apply to params
 	int gridsize[3];
-	gridsize[0] = xDimEdit->text().toInt();
-	gridsize[1] = yDimEdit->text().toInt();
-	gridsize[2] = zDimEdit->text().toInt();
+	gridsize[0] = myLayout->xDimEdit->text().toInt();
+	gridsize[1] = myLayout->yDimEdit->text().toInt();
+	gridsize[2] = myLayout->zDimEdit->text().toInt();
 	
 	aParams->SetRakeGrid(gridsize);
 	
 	//Check if the strides have changed; if so will need to updateTab.
 	if (aParams->IsAlignedToData()){
 		const vector<long> currStrides = aParams->GetGridAlignStrides();
-		long xstride = xStrideEdit->text().toInt();
-		long ystride = yStrideEdit->text().toInt();
+		long xstride = (myLayout->xStrideEdit)->text().toInt();
+		long ystride = (myLayout->yStrideEdit)->text().toInt();
 		if (currStrides[0] != xstride || currStrides[1] != ystride){
 			vector<long> strides;
 			strides.push_back( xstride);
@@ -172,10 +156,10 @@ void ArrowEventRouter::confirmText(bool /*render*/){
 		}
 	}
 
-	float thickness = thicknessEdit->text().toFloat();
+	float thickness = myAppearance->thicknessEdit->text().toFloat();
 	aParams->SetLineThickness((double)thickness);
 
-	double scale = scaleEdit->text().toDouble();
+	double scale = myAppearance->scaleEdit->text().toDouble();
 	
 	aParams->SetVectorScale(scale);
 	
@@ -293,11 +277,11 @@ populateVariableCombos(bool is3D){
 		}
 	}
 	//Populate the height variable combo with all 2d Vars:
-	heightCombo->clear();
-	heightCombo->setMaxCount(ds->getNumActiveVariables2D());
+	myLayout->heightCombo->clear();
+	myLayout->heightCombo->setMaxCount(ds->getNumActiveVariables2D());
 	for (int i = 0; i< ds->getNumActiveVariables2D(); i++){
 		const std::string& s = dataMgr->GetVariables2DXY()[i];
-		heightCombo->addItem(QString::fromStdString(s));
+		myLayout->heightCombo->addItem(QString::fromStdString(s));
 	}
 }
 
@@ -373,11 +357,11 @@ toggleTerrainAlign(bool isOn){
 void ArrowEventRouter::
 selectColor(){
 	confirmText(true);
-	QPalette pal(colorBox->palette());
+	QPalette pal(myAppearance->colorBox->palette());
 	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Base), this);
 	if (!newColor.isValid()) return;
 	pal.setColor(QPalette::Base, newColor);
-	colorBox->setPalette(pal);
+	myAppearance->colorBox->setPalette(pal);
 	ArrowParams* aParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
 	qreal rgb[3];
 	newColor.getRgbF(rgb,rgb+1,rgb+2);
@@ -392,7 +376,7 @@ changeExtents(){
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	ArrowParams* aParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
 	double newExts[6];
-	boxSliderFrame->getBoxExtents(newExts);
+	myLayout->boxSliderFrame->getBoxExtents(newExts);
 	Box* bx = aParams->GetBox();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	//convert newExts (in user coords) to local extents, by subtracting time-varying extents origin 
@@ -408,8 +392,8 @@ alignToData(bool doAlign){
 	confirmText(true);
 	ArrowParams* aParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
 	aParams->AlignGridToData(doAlign);
-	xStrideEdit->setEnabled(doAlign);
-	yStrideEdit->setEnabled(doAlign);
+	myLayout->xStrideEdit->setEnabled(doAlign);
+	myLayout->yStrideEdit->setEnabled(doAlign);
 	
 	updateTab();
 	VizWinMgr::getInstance()->forceRender(aParams);	
@@ -440,18 +424,14 @@ void ArrowEventRouter::updateTab(){
 	
 	//Set up the instance table:
 	DataStatus* ds = DataStatus::getInstance();
-	if (ds->getDataMgr()) instanceTable->setEnabled(true);
-	else instanceTable->setEnabled(false);
-	instanceTable->rebuild(this);
+	
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	ArrowParams* arrowParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
 	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	//Find all the visualizers other than the one we are using
 	int winnum = vizMgr->getActiveViz();
 	vector<long> viznums = VizWinParams::GetVisualizerNums();
-	copyCombo->clear();
-	copyCombo->addItem("Duplicate In:");
-	copyCombo->addItem("This visualizer");
+	
 		
 	if (viznums.size() > 1) {
 		copyCount.clear();
@@ -461,14 +441,12 @@ void ArrowEventRouter::updateTab(){
 		for (int i = 0; i< viznums.size(); i++){
 			int vizwin = viznums[i];
 			if (winnum != vizwin){
-				copyCombo->addItem(QString::fromStdString(VizWinParams::GetVizName(vizwin)));
 				//Remember the viznum corresponding to a combo item:
 				copyCount.push_back(vizwin);
 			}
 		}
 	}
-	int numInst = ControlExec::GetNumParamsInstances(winnum,ArrowParams::_arrowParamsTag);
-	deleteInstanceButton->setEnabled(numInst > 1);
+	
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	//Set up refinements and LOD combos:
 	int numRefs = arrowParams->GetRefinementLevel();
@@ -504,16 +482,16 @@ void ArrowEventRouter::updateTab(){
 	const string& hname = arrowParams->GetHeightVariableName();
 	int hNum = ds->getActiveVarNum2D(hname);
 	if (hNum <0) hNum = 0;
-	heightCombo->setCurrentIndex(hNum);
+	myLayout->heightCombo->setCurrentIndex(hNum);
 
 	//Set the constant color box
 	const vector<double>& clr = arrowParams->GetConstantColor();
 	QColor newColor;
 	newColor.setRgbF((qreal)clr[0],(qreal)clr[1],(qreal)clr[2]);
-	QPalette pal(colorBox->palette());
+	QPalette pal(myAppearance->colorBox->palette());
 	pal.setColor(QPalette::Base, newColor);
 	
-	colorBox->setPalette(pal);
+	myAppearance->colorBox->setPalette(pal);
 	
 	//Set the rake extents
 	const double* fullSizes = ds->getFullSizes();
@@ -535,54 +513,51 @@ void ArrowEventRouter::updateTab(){
 		fullUsrExts[i]+= usrExts[i%3];
 		usrRakeExts.push_back(rakeexts[i]+usrExts[i%3]);
 	}
-	boxSliderFrame->setFullDomain(fullUsrExts);
-	boxSliderFrame->setBoxExtents(usrRakeExts);
-	boxSliderFrame->setNumRefinements(numRefs);
+	myLayout->boxSliderFrame->setFullDomain(fullUsrExts);
+	myLayout->boxSliderFrame->setBoxExtents(usrRakeExts);
+	myLayout->boxSliderFrame->setNumRefinements(numRefs);
 
 	
 
 	const vector<long>rakeGrid = arrowParams->GetRakeGrid();
-	xDimEdit->setText(QString::number(rakeGrid[0]));
-	yDimEdit->setText(QString::number(rakeGrid[1]));
-	zDimEdit->setText(QString::number(rakeGrid[2]));
+	myLayout->xDimEdit->setText(QString::number(rakeGrid[0]));
+	myLayout->yDimEdit->setText(QString::number(rakeGrid[1]));
+	myLayout->zDimEdit->setText(QString::number(rakeGrid[2]));
 
 	vector<long> strides = arrowParams->GetGridAlignStrides();
-	xStrideEdit->setText(QString::number(strides[0]));
-	yStrideEdit->setText(QString::number(strides[1]));
+	myLayout->xStrideEdit->setText(QString::number(strides[0]));
+	myLayout->yStrideEdit->setText(QString::number(strides[1]));
 	
-	thicknessEdit->setText(QString::number(arrowParams->GetLineThickness()));
-	scaleEdit->setText(QString::number(arrowParams->GetVectorScale()));
+	myAppearance->thicknessEdit->setText(QString::number(arrowParams->GetLineThickness()));
+	myAppearance->scaleEdit->setText(QString::number(arrowParams->GetVectorScale()));
 	//Only allow terrainAlignCheckbox if height variable exists
 	
 	if (ds->getDataMgr()->VariableExists(currentTimeStep,arrowParams->GetHeightVariableName().c_str())){
-		terrainAlignCheckbox->setEnabled(true);
-		terrainAlignCheckbox->setChecked(arrowParams->IsTerrainMapped());
+		myLayout->terrainAlignCheckbox->setEnabled(true);
+		myLayout->terrainAlignCheckbox->setChecked(arrowParams->IsTerrainMapped());
 	} else {
-		terrainAlignCheckbox->setEnabled(false);
-		terrainAlignCheckbox->setChecked(false);
+		myLayout->terrainAlignCheckbox->setEnabled(false);
+		myLayout->terrainAlignCheckbox->setChecked(false);
 		if(arrowParams->IsTerrainMapped())
 			arrowParams->SetTerrainMapped(false);
 	}
-	heightCombo->setEnabled(ds->getNumActiveVariables2D() > 0);
+	myLayout->heightCombo->setEnabled(ds->getNumActiveVariables2D() > 0);
 	bool isAligned = arrowParams->IsAlignedToData();
-	alignDataCheckbox->setChecked(isAligned);
-	xStrideEdit->setEnabled(isAligned);
-	yStrideEdit->setEnabled(isAligned);
-	xDimEdit->setEnabled(!isAligned);
-	yDimEdit->setEnabled(!isAligned);
+	myLayout->alignDataCheckbox->setChecked(isAligned);
+	myLayout->xStrideEdit->setEnabled(isAligned);
+	myLayout->yStrideEdit->setEnabled(isAligned);
+	myLayout->xDimEdit->setEnabled(!isAligned);
+	myLayout->yDimEdit->setEnabled(!isAligned);
 	
 	if (isAligned){
 		double exts[6];
 		int grdExts[3];
 		arrowParams->getDataAlignment(exts,grdExts,(size_t)currentTimeStep);
 		//Display the new aligned grid extents
-		xDimEdit->setText(QString::number(grdExts[0]));
-		yDimEdit->setText(QString::number(grdExts[1]));
+		myLayout->xDimEdit->setText(QString::number(grdExts[0]));
+		myLayout->yDimEdit->setText(QString::number(grdExts[1]));
 	}
-	if (showLayout) layoutFrame->show();
-	else layoutFrame->hide();
-	if (showAppearance) appearanceFrame->show();
-	else appearanceFrame->hide();
+	
 	adjustSize();
 	update();
 	guiSetTextChanged(false);
@@ -599,8 +574,6 @@ reinitTab(bool doOverride){
 	DataStatus* ds = DataStatus::getInstance();
 	if (ds->getDataMgr()) {
 		setEnabled(true);
-		instanceTable->setEnabled(true);
-		instanceTable->rebuild(this);
 	}
 	else setEnabled(false);
 	int i;
@@ -632,7 +605,8 @@ reinitTab(bool doOverride){
 	
 	//set the combo to 3D
 	variableDimCombo->setCurrentIndex(1);
-	updateTab();
+	string tag = ParamsBase::GetTagFromType(myParamsBaseType);
+	if(ControlExec::GetActiveParams(tag))updateTab();
 }
 
 void ArrowEventRouter::
@@ -656,7 +630,7 @@ moveScaleSlider(int sliderval){
 	// find the new length as 10**(sliderVal)*defaultLength
 	// note that the slider goes from -100 to +100
 	double newVal = defaultScale*pow(10.,(double)sliderval/100.);
-	scaleEdit->setText(QString::number(newVal));
+	myAppearance->scaleEdit->setText(QString::number(newVal));
 	guiSetTextChanged(false); //Don't respond to text-change event
 	
 	
@@ -664,7 +638,7 @@ moveScaleSlider(int sliderval){
 void ArrowEventRouter::
 releaseScaleSlider(){
 	confirmText(false);
-	int sliderval = barbLengthSlider->value();
+	int sliderval = myAppearance->barbLengthSlider->value();
 	ArrowParams* aParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
 	
 	
@@ -672,7 +646,7 @@ releaseScaleSlider(){
 	// find the new length as 10**(sliderVal)*defaultLength
 	// note that the slider goes from -100 to +100
 	double newVal = defaultScale*pow(10.,(double)sliderval/100.);
-	scaleEdit->setText(QString::number(newVal));
+	myAppearance->scaleEdit->setText(QString::number(newVal));
 	guiSetTextChanged(false); //Don't respond to text-change event
 	aParams->SetVectorScale(newVal);
 	
@@ -688,7 +662,7 @@ setNumRefinements(int num){
 
 	dParams->SetRefinementLevel(num);
 	refinementCombo->setCurrentIndex(num);
-	boxSliderFrame->setNumRefinements(num);
+	myLayout->boxSliderFrame->setNumRefinements(num);
 	
 	VizWinMgr::getInstance()->forceRender(dParams);
 }
@@ -735,41 +709,11 @@ fitToData(){
 	box->SetLocalExtents(newExtents,aParams);
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double>& currExts =DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
-	boxSliderFrame->setBoxExtents(currExts);
+	myLayout->boxSliderFrame->setBoxExtents(currExts);
 	MouseModeParams::mouseModeType t = MouseModeParams::GetCurrentMouseMode();
 	VizWinMgr::getInstance()->forceRender(aParams,t == MouseModeParams::barbMode);
 }
 
-void ArrowEventRouter::
-showHideAppearance(){
-	if (showAppearance) {
-		showAppearance = false;
-		showHideAppearanceButton->setText("Show Appearance Options");
-	} else {
-		showAppearance = true;
-		showHideAppearanceButton->setText("Hide Appearance Options");
-	}
-	//Following HACK is needed to convince Qt to remove the extra space in the tab:
-	updateTab();
-	VizWinMgr::getInstance()->getTabManager()->toggleFrontTabs(ControlExec::GetTypeFromTag(ArrowParams::_arrowParamsTag));
-	updateTab();
-
-}
-
-void ArrowEventRouter::
-showHideLayout(){
-	if (showLayout) {
-		showLayout = false;
-		showHideLayoutButton->setText("Show Barb Layout Options");
-	} else {
-		showLayout = true;
-		showHideLayoutButton->setText("Hide Barb Layout Options");
-	}
-	//Following HACK is needed to convince Qt to remove the extra space in the tab:
-	updateTab();
-	VizWinMgr::getInstance()->getTabManager()->toggleFrontTabs(ControlExec::GetTypeFromTag(ArrowParams::_arrowParamsTag));
-	updateTab();
-}
 
 
 

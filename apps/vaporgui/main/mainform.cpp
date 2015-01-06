@@ -1111,7 +1111,7 @@ void MainForm::updateWidgets(){
 }
 void MainForm::showTab(const std::string& tag){
 	ParamsBase::ParamsBaseType t = ControlExec::GetTypeFromTag(tag);
-	tabWidget->moveToFront(t-Params::GetNumBasicParamsClasses());
+	tabWidget->moveToFront(t);
 	EventRouter* eRouter = VizWinMgr::getEventRouter(tag);
 	eRouter->updateTab();
 }

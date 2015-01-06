@@ -4,7 +4,7 @@ GUI_FILES := \
 	vizselectcombo instancetable \
 	animationeventrouter \
 	regioneventrouter viewpointeventrouter \
-	arroweventrouter 
+	arroweventrouter renderholder arrowAppearance 
 		       
 
 GUI_QT_HEADERS := \
@@ -12,7 +12,7 @@ GUI_QT_HEADERS := \
 	vizselectcombo \
 	instancetable \
 	animationeventrouter \
-	arroweventrouter \
+	arroweventrouter renderholder arrowAppearance arrowLayout \
 	regioneventrouter viewpointeventrouter\
 
 
