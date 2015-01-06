@@ -1653,6 +1653,13 @@ int NetCDFCFCollection::DerivedVar_AHSPC::CalculateElevation() {
         }
     }
 
+	for (int i=0; i<_dims[2]; i++){
+		if (HYPDLN[i]) delete [] HYPDLN[i];
+		if (HYALPH[i]) delete [] HYALPH[i];
+		if (PTERM[i])  delete [] PTERM[i];
+		if (TV2[i])	delete [] TV2[i];
+		if (ZSLICE[i]) delete [] ZSLICE[i];
+	}
 	if (HYPDLN) delete [] HYPDLN;
 	if (HYALPH) delete [] HYALPH;
 	if (PTERM)  delete [] PTERM;
