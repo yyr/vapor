@@ -52,14 +52,14 @@ private:
 	//The following are mapped from visualizer index to TableWidget information
 	//instanceIndex is the instance index of the particular renderer.
 	//Not visible to user but required for params identification.
-	std::map<int,std::vector<int>> instanceIndex;
+	std::map<int,std::vector<int> > instanceIndex;
 	//Currentrow indicates which row is selected in the tableWidget for the particular visualizer.
 	//Need to know in case the active visualizer changes
 	std::map<int, int> currentRow;
 	//instanceName is the name the user provides for the instance.  It need not be unique.
-	std::map<int, std::vector<string>> instanceName;
+	std::map<int, std::vector<string> > instanceName;
 	//renParams is the RenderParams* for the tableWidget entry
-	std::map<int, std::vector<RenderParams*>> renParams;
+	std::map<int, std::vector<RenderParams*> > renParams;
 
 	//Boolean indicates whether will respond to signals
 	bool signalsOn;

@@ -23,12 +23,9 @@ class ArrowAppearance : public QWidget, public Ui_barbAppearance {
 
 public: 
 	
-	ArrowAppearance(QWidget* parent): QWidget(parent), Ui_barbAppearance(){
-        setupUi(this);
-	
-}
+	ArrowAppearance(QWidget* parent); 
 
-	virtual ~ArrowAppearance() {}
+	virtual ~ArrowAppearance(); 
 
    };
 
