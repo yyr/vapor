@@ -19,7 +19,7 @@ int DataMgrVDC::_Initialize(const vector <string> &files) {
 		SetErrMsg("Invalid initialization : not VDC master file");
 		return(-1);
 	}
-	return(_vdc.Initialize(files[0], VDC::R));
+	return(_vdc.Initialize(files, VDC::R));
 }
 
 int DataMgrVDC::_ReadVariableBlock (

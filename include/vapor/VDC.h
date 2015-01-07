@@ -1,6 +1,7 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <vapor/DC.h>
 #include <vapor/MyBase.h>
 #include <vapor/UDUnitsClass.h>
 
@@ -137,7 +138,7 @@ namespace VAPoR {
 //! values of \p lod, a value of \b 0 indicates the 
 //! the first element of \p cratios, a value of \b 1 indicates
 //! the second element, and so on up to the size of the 
-//! \p cratios vector (See VDC::GetCRatios()).
+//! \p cratios vector (See DC::GetCRatios()).
 //!
 //! For negative values of \p lod a value of \b -1 indexes the
 //! last element of \p cratios, a value of \b -2 indexes the 
@@ -173,442 +174,12 @@ namespace VAPoR {
 //!
 //! \endparblock
 //!
-class VDC : public VetsUtil::MyBase {
+class VDC : public VAPoR::DC {
 public:
 
  //! Read, Write, Append access mode
  //!
  enum AccessMode {R,W,A};
-
- //! External storage types for primitive data
- //
- enum XType {INVALID = -1, FLOAT, DOUBLE, INT32, INT64, TEXT};
-
- //! \class Dimension
- //!
- //! \brief Metadata describing a coordinate dimension
- //!
- class Dimension {
- public:
-
-  //! Default dimension constructor
-  //!
-  Dimension() {
-	_name.clear();
-	_length = 0;
-	_axis = 0;
-  };
-
-  //! Dimension class constructor
-  //!
-  //! \param[in] name The name of dimension
-  //! \param[in] length The dimension length
-  //! \param[in] axis The dimension axis, an integer in the range 0..3 
-  //! indicating X (or longitude), Y (latitude), Z (height), and T (time), 
-  //! respectively.
-  //!
-  Dimension(std::string name, size_t length, int axis) { 
-	_name = name;
-	_length = length;
-	_axis = axis;
-  };
-  virtual ~Dimension() {};
-
-  void Clear() {
-	_name.clear();
-	_length = 0;
-	_axis = 0;
-  }
-
-  //! Get dimension name
-  //
-  string GetName() const {return (_name); };
-
-  //! Set dimension name
-  //
-  void SetName(string name) {_name = name;};
-
-  //! Access dimension length
-  //
-  size_t GetLength() const {return (_length); };
-
-  //! Set dimension length
-  //
-  void SetLength(size_t length) {_length = length;};
-
-  //! Access dimension axis
-  //
-  int GetAxis() const {return (_axis); };
-
-  //! Set dimension axis
-  //
-  void SetAxis(int axis) {_axis = axis;};
-
-  friend std::ostream &operator<<(
-	std::ostream &o, const Dimension &dimension
-  );
-
- private:
-  string _name;
-  size_t _length;
-  int _axis;
- };
-
- //! \class Attribute
- //!
- //! \brief Variable or global metadata
- //!
- class Attribute {
- public:
-  Attribute() {_name = ""; _type = FLOAT; _values.clear(); };
-
-  //! Attribute constructor
-  //!
-  //! \param[in] name The name of the attribute
-  //! \param[in] type External representation format
-  //! \param[in] values A vector specifying the attribute's values
-  //
-  Attribute(string name, XType type, const std::vector <float> &values);
-  Attribute(string name, XType type, const std::vector <double> &values);
-  Attribute(string name, XType type, const std::vector <int> &values);
-  Attribute(string name, XType type, const std::vector <long> &values);
-  Attribute(string name, XType type, const string &values);
-  Attribute(string name, XType type) {
-	_name = name; _type = type; _values.clear(); 
-  };
-  virtual ~Attribute() {};
-
-  //! Get variable name
-  //
-  string GetName() const {return (_name); };
-
-  //! Get an attribute's external representation type
-  //
-  XType GetXType() const {return (_type);};
-
-  //! Get an attribute's value(s)
-  //! 
-  //! Get the value(s) for an attribute, performing type conversion
-  //! as necessary from the external storage type to the desired type
-  //!
-  void GetValues(std::vector <float> &values) const;
-  void GetValues(std::vector <double> &values) const;
-  void GetValues(std::vector <int> &values) const;
-  void GetValues(std::vector <long> &values) const;
-  void GetValues(string &values) const;
-
-  //! Set an attribute's value(s)
-  //! 
-  //! Set the value(s) for an attribute, performing type conversion
-  //! as necessary to meet the external storage type.
-  //!
-  void SetValues(const std::vector <float> &values);
-  void SetValues(const std::vector <double> &values);
-  void SetValues(const std::vector <int> &values);
-  void SetValues(const std::vector <long> &values);
-  void SetValues(const string &values);
-
-  friend std::ostream &operator<<(std::ostream &o, const Attribute &attr);
-
- private:
-  string _name;
-  XType _type;
-  union podunion {
-   float f;
-   double d;
-   int i;
-   long l;
-   char c;
-  };
-  std::vector <podunion> _values;
-  
- };
-
-  //! \class BaseVar
-  //!
-  //! \brief Base class for storing variable metadata
-  //
- class BaseVar {
- public:
-
-  //! Default constructor
-  //!
-  BaseVar() {};
-
-  //! Constructor 
-  //!
-  //! \param[in] name The variable's name
-  //! \param[in] dimensions An ordered vector specifying the variable's spatial 
-  //! and/or temporal dimensions
-  //! \param[in] units A string recognized by Udunits-2 specifying the
-  //! unit measure for the variable. An empty string indicates that the
-  //! variable is unitless.
-  //! \param[in] type The external storage type for variable data
-  //! \param[in] bs An ordered array specifying the storage 
-  //! blocking
-  //! factor for the variable. Results are undefined if the rank of 
-  //! of \p bs does not match that of \p dimensions spatial dimensions.
-  //! dimensions only the needed elements of \p bs are accessed
-  //! \param[in] wname The wavelet family name for compressed variables
-  //! \param[in] cratios Specifies a vector of compression factors for
-  //! compressed variable definitions. If empty, or if cratios.size()==1 
-  //! and cratios[0]==1, the variable is not 
-  //! compressed
-  //! \param[in] periodic An ordered array of booleans 
-  //! specifying the
-  //! spatial boundary periodicity.
-  //! Results are undefined if the rank of 
-  //! of \p periodic does not match that of \p dimensions.
-  //!
-  BaseVar(
-	string name, std::vector <VDC::Dimension> dimensions,
-	string units, XType type, 
-	std::vector <size_t> bs, string wname, 
-	std::vector <size_t> cratios, std::vector <bool> periodic
-  ) :
-	_name(name),
-	_dimensions(dimensions),
-	_units(units),
-	_type(type),
-	_wname(wname),
-	_cratios(cratios),
-	_bs(bs),
-	_periodic(periodic)
-  {
-	if (_cratios.size()==0) _cratios.push_back(1);
-  };
-
-  virtual ~BaseVar() {};
-
-  //! Get variable name
-  //
-  string GetName() const {return (_name); };
-  void SetName(string name) {_name = name; };
-
-  //! Access variable's dimension names
-  //
-  std::vector <VDC::Dimension> GetDimensions() const {return (_dimensions); };
-  void SetDimensions(std::vector <VDC::Dimension> dimensions) {
-	_dimensions = dimensions;
-  };
-
-  //! Access variable units
-  //
-  string GetUnits() const {return (_units); };
-  void SetUnits(string units) {_units = units; };
-
-  //! Access variable external storage type
-  //
-  XType GetXType() const {return (_type); };
-  void SetXType(XType type) {_type = type; };
-
-
-  //! Access variable's block size
-  //
-  std::vector <size_t> GetBS() const {return (_bs); };
-  void SetBS(std::vector <size_t> bs) {_bs = bs; };
-
-  //! Access variable's wavelet family name
-  //
-  string GetWName() const {return (_wname); };
-  void SetWName(string wname) {_wname = wname; };
-
-  //! Access variable's compression ratios
-  //
-  std::vector <size_t> GetCRatios() const {return (_cratios); };
-  void SetCRatios(std::vector <size_t> cratios) {
-	_cratios = cratios;
-	if (_cratios.size()==0) _cratios.push_back(1);
-  };
-
-  //! Access variable bounary periodic 
-  //
-  std::vector <bool> GetPeriodic() const {return (_periodic); };
-  void SetPeriodic(std::vector <bool> periodic) { _periodic = periodic; };
-
-  //! Access variable attributes
-  //
-  std::map <string, Attribute> GetAttributes() const {return (_atts); };
-  void SetAttributes(std::map <string, Attribute> &atts) {_atts = atts; };
-
-  //! Return true if no wavelet is defined
-  //
-  bool IsCompressed() const { return (! _wname.empty()); };
-
-  //! Return true if a time dimension is present
-  //
-  bool IsTimeVarying() const { 
-	for (int i=0; i<_dimensions.size(); i++) {
-		if (_dimensions[i].GetAxis() == 3) return(true);
-	}
-	return(false);
-  };
-
-  friend std::ostream &operator<<(std::ostream &o, const BaseVar &var);
-  
- private:
-  string _name;
-  std::vector <VDC::Dimension> _dimensions;
-  string _units;
-  XType _type;
-  string _wname;
-  std::vector <size_t> _cratios;
-  vector <size_t> _bs;
-  std::vector <bool> _periodic;
-  std::map <string, Attribute> _atts;
- };
-
- //! \class CoordVar
- //! \brief Coordinate variable metadata
- //
- class CoordVar : public BaseVar {
- public:
-
-  //! Default Coordinate Variable metadata constructor
-  //
-  CoordVar() : BaseVar() {};
-
-
-  //! Construct Data variable definition with missing values
-  //!
-  //! \copydetails BaseVar(string name, std::vector <VDC::Dimension> dimensions,
-  //!  string units, XType type, bool compressed,
-  //!  vector <size_t> bs, string wname, 
-  //!  std::vector <size_t> cratios,
-  //!  std::vector <bool> periodic)
-  //!
-  //! \param[in] axis an int in the range 0..3 indicating the coordinate
-  //! axis, one of X, Y, Z, or T, respectively
-  //! \param[in] uniform A bool indicating whether the coordinate variable
-  //! is uniformly sampled.
-  //
-  CoordVar(
-	string name, std::vector <VDC::Dimension> dimensions,
-	string units, XType type, 
-	std::vector <size_t> bs, string wname, 
-	std::vector <size_t> cratios, std::vector <bool> periodic, 
-	int axis, bool uniform
-  ) :
-	BaseVar(
-		name, dimensions, units, type, bs, 
-		wname, cratios,
-		periodic
-	),
-	_axis(axis),
-	_uniform(uniform)
- {}
-  virtual ~CoordVar() {};
-
-  //! Access coordinate variable axis
-  //
-  int GetAxis() const {return (_axis); };
-  void SetAxis(int axis) {_axis = axis; };
-
-  //! Access coordinate variable uniform sampling flag
-  //
-  bool GetUniform() const {return (_uniform); };
-  void SetUniform(bool uniform) {_uniform = uniform; };
-
-  friend std::ostream &operator<<(std::ostream &o, const CoordVar &var);
-
- private:
-  int _axis;
-  bool _uniform;
- };
-
- //! \class DataVar
- //! \brief Data variable metadata
- //!
- //! This class defines metadata associatd with a Data variable
- //!
- class DataVar : public BaseVar {
- public:
-
-  //! constructor for default Data variable definition
-  //
-  DataVar() : BaseVar() {};
-
-  //! Construct Data variable definition with missing values
-  //!
-  //! \copydetails BaseVar(string name, std::vector <VDC::Dimension> dimensions,
-  //!  string units, XType type, 
-  //!  std::vector <size_t> bs, string wname,
-  //!  std::vector <size_t> cratios,
-  //!  std::vector <bool> periodic)
-  //!
-  //! \param[in] coordvars Names of coordinate variables associated 
-  //! with this variables dimensions
-  //! \param[in] missing_value  Value of the missing value indicator
-  //!
-  DataVar(
-	string name, std::vector <VDC::Dimension> dimensions,
-	string units, XType type, 
-	std::vector <size_t> bs, string wname,
-	std::vector <size_t> cratios,
-	std::vector <bool> periodic, std::vector <string> coordvars, 
-	double missing_value
-  ) :
-	BaseVar(
-		name, dimensions, units, type, 
-		bs, wname, cratios, periodic
-	),
-	_coordvars(coordvars),
-	_has_missing(true),
-	_missing_value(missing_value)
-  {}
-
-  //! Construct Data variable definition without missing values
-  //!
-  //! \copydetails BaseVar(string name, std::vector <VDC::Dimension> dimensions,
-  //!  string units, XType type, 
-  //!  std::vector <size_t> bs, string wname,
-  //!  std::vector <size_t> cratios,
-  //!  vector <bool> periodic)
-  //!
-  //! \param[in] coordvars Names of coordinate variables associated 
-  //! with this variables dimensions
-  //!
-  DataVar(
-	string name, std::vector <VDC::Dimension> dimensions,
-	string units, XType type, 
-	std::vector <size_t> bs, string wname,
-	std::vector <size_t> cratios,
-	std::vector <bool> periodic, std::vector <string> coordvars
-  ) :
-	BaseVar(
-		name, dimensions, units, type, 
-		bs, wname, cratios, periodic
-	),
-	_coordvars(coordvars),
-	_has_missing(false),
-	_missing_value(0.0)
-  {}
-  virtual ~DataVar() {};
-
-  //! Access data variable's coordinate variable names
-  //
-  std::vector <string> GetCoordvars() const {return (_coordvars); };
-  void SetCoordvars(std::vector <string> coordvars) {_coordvars = coordvars; };
-
-  //! Access data variable's missing data flag
-  //
-  bool GetHasMissing() const {return (_has_missing); };
-  void SetHasMissing(bool has_missing) {_has_missing = has_missing; };
-
-  //! Access data variable's missing data value
-  //
-  double GetMissingValue() const {return (_missing_value); };
-  void SetMissingValue(double missing_value) {_missing_value = missing_value; };
-
-  friend std::ostream &operator<<(std::ostream &o, const DataVar &var);
-
- private:
-  std::vector <string> _coordvars;
-  bool _has_missing;
-  double _missing_value;
- };
-
-
 
  //! Class constuctor
  //!
@@ -624,7 +195,8 @@ public:
  //! before any other class methods. This method
  //! exists only because C++ constructors can not return error codes.
  //!
- //! \param[in] path Path name of file that contains, or will
+ //! \param[in] path A single element vector that specifies the name of file 
+ //! that contains, or will
  //! contain, the VDC master file for this data collection
  //! \param[in] mode One of \b R, \b W, or \b A, indicating whether \p path
  //! will be opened for reading, writing, or appending, respectively. 
@@ -654,7 +226,10 @@ public:
  //!
  //! \sa EndDefine();
  //
- virtual int Initialize(string path, AccessMode mode);
+ virtual int Initialize(const std::vector <string> &paths, AccessMode mode);
+ virtual int Initialize(const std::vector <string> &paths) {
+	return(Initialize(paths, R));
+ }
 
  //! Sets various parameters for storage blocks for subsequent variable 
  //! definitions
@@ -817,7 +392,7 @@ public:
  //! Return a dimensions's definition
  //!
  //! This method returns the definition of the dimension named
- //! by \p dimname as a reference to a VDC::Dimension object. If
+ //! by \p dimname as a reference to a DC::Dimension object. If
  //! \p dimname is not defined as a dimension then the name of \p dimension
  //! will be the empty string()
  //!
@@ -826,7 +401,7 @@ public:
  //! \retval bool If the named dimension can not be found false is returned.
  //!
  bool GetDimension(
-	string dimname, VDC::Dimension &dimension
+	string dimname, DC::Dimension &dimension
  ) const;
 
  //! Return names of all defined dimensions
@@ -962,7 +537,7 @@ public:
 
  //! Return a coordinate variable's definition
  //!
- //! Return a reference to a VDC::CoordVar object describing 
+ //! Return a reference to a DC::CoordVar object describing 
  //! the coordinate variable named by \p varname
  //!
  //! \param[in] varname A string specifying the name of the coordinate 
@@ -975,7 +550,7 @@ public:
  //! \sa DefineCoordVar(), DefineCoordVarUniform(), SetCompressionBlock(),
  //! SetPeriodicBoundary()
  //!
- bool GetCoordVarInfo(string varname, VDC::CoordVar &cvar) const;
+ bool GetCoordVarInfo(string varname, DC::CoordVar &cvar) const;
 
  //! Define a data variable
  //!
@@ -1059,7 +634,7 @@ public:
 
  //! Return a data variable's definition
  //!
- //! Return a reference to a VDC::DataVar object describing 
+ //! Return a reference to a DC::DataVar object describing 
  //! the data variable named by \p varname
  //!
  //! \param[in] varname A string specifying the name of the variable. 
@@ -1072,7 +647,7 @@ public:
  //! \sa DefineCoordVar(), DefineCoordVarUniform(), SetCompressionBlock(),
  //! SetPeriodicBoundary()
  //!
- bool GetDataVarInfo( string varname, VDC::DataVar &datavar) const;
+ bool GetDataVarInfo( string varname, DC::DataVar &datavar) const;
  
  //! Return metadata about a data or coordinate variable
  //!
@@ -1085,7 +660,7 @@ public:
  //!
  //! \sa GetDataVarInfo(), GetCoordVarInfo()
  //
- bool GetBaseVarInfo(string varname, VDC::BaseVar &var) const;
+ bool GetBaseVarInfo(string varname, DC::BaseVar &var) const;
 
 
  //! Return a list of names for all of the defined data variables.
@@ -1153,7 +728,7 @@ public:
  //! \retval bool Returns true if variable \p varname exists and is 
  //! compressed
  //!
- //! \sa DefineCoordVar(), DefineDataVar(), VDC::BaseVar::IsCompressed()
+ //! \sa DefineCoordVar(), DefineDataVar(), DC::BaseVar::IsCompressed()
  //
  bool IsCompressed(string varname) const;
 
@@ -1204,29 +779,6 @@ public:
  //
 int GetCRatios(string varname, vector <size_t> &cratios) const;
 
-
- //! Return a boolean indicating whether a variable is a data variable 
- //!
- //! This method returns \b true if a data variable is defined
- //! with the name \p varname.  Otherwise the method returns false.
- //!
- //! \retval bool Returns true if \p varname names a defined data variable
- //!
- bool IsDataVar(string varname) const {
-	return(_dataVars.find(varname) != _dataVars.end());
- }
-
- //! Return a boolean indicating whether a variable is a coordinate variable 
- //!
- //! This method returns \b true if a coordinate variable is defined
- //! with the name \p varname.  Otherwise the method returns false.
- //!
- //! \retval bool Returns true if \p varname names a defined coordinate 
- //! variable
- //!
- bool IsCoordVar(string varname) const {
-	return(_coordVars.find(varname) != _coordVars.end());
- }
 
  //! Write an attribute
  //!
@@ -1313,7 +865,7 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //!
  XType GetAttType(string varname, string attname) const;
 
- //! Parse a vector of VDC::Dimensions into space and time dimensions
+ //! Parse a vector of DC::Dimensions into space and time dimensions
  //!
  //! This is a convenience utility that parses an ordered 
  //! vector of Dimensions into a vector of spatial lengths, and
@@ -1330,7 +882,7 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //! contains a correctly sized and ordered vector of dimensions
  //
  static bool ParseDimensions(
-	const vector <VDC::Dimension> &dimensions,
+	const vector <DC::Dimension> &dimensions,
 	vector <size_t> &sdims, size_t &numts
  );
 
@@ -1402,7 +954,7 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //!
  //! \retval status Zero is returned upon success, otherwise -1.
  //!
- //! \sa VAPoR::VDC, VDC::BaseVar::GetBS(), VDC::BaseVar::GetDimensions()
+ //! \sa VAPoR::VDC, DC::BaseVar::GetBS(), DC::BaseVar::GetDimensions()
  //
  virtual int GetDimLensAtLevel(
 	string varname, int level, std::vector <size_t> &dims_at_level,
@@ -1421,7 +973,7 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //! The level-of-detail parameter, \p lod, selects
  //! the approximation level. Valid values for \p lod are integers in
  //! the range 0..n-1, where \e n is returned by 
- //! VDC::BaseVar::GetCRatios().size(), or the value -1 may be used
+ //! DC::BaseVar::GetCRatios().size(), or the value -1 may be used
  //! to select the best approximation available. 
  //!
  //! An error occurs, indicated by a negative return value, if the
@@ -1440,7 +992,7 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //! Ignored if the variable is not compressed.
  //! \retval status Returns a non-negative value on success
  //!
- //! \sa GetNumRefLevels(), VDC::BaseVar::GetCRatios(), OpenVariableRead()
+ //! \sa GetNumRefLevels(), DC::BaseVar::GetCRatios(), OpenVariableRead()
  //
  virtual int OpenVariableRead(
 	size_t ts, string varname, int level=0, int lod=0
@@ -1476,7 +1028,7 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //! Ignored if the variable is not compressed.
  //! \retval status Returns a non-negative value on success
  //!
- //! \sa GetNumRefLevels(), VDC::BaseVar::GetCRatios(), OpenVariableRead()
+ //! \sa GetNumRefLevels(), DC::BaseVar::GetCRatios(), OpenVariableRead()
  //
  virtual int OpenVariableWrite(size_t ts, string varname, int lod=-1) = 0;
 
@@ -1607,7 +1159,7 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //!
  //! \li The vectors \p start and \p count must be aligned
  //! with the underlying storage block of the variable. See
- //! VDC::SetCompressionBlock()
+ //! DC::SetCompressionBlock()
  //!
  //! \li The hyperslab copied to \p region will preserve its underlying
  //! storage blocking (the data will not be contiguous)
@@ -1800,7 +1352,7 @@ protected:
 
 
  bool _valid_blocking(
-	const vector <VDC::Dimension> &dimensions,
+	const vector <DC::Dimension> &dimensions,
 	const vector <string> &coordvars,
 	const vector <size_t> &bs
  ) const;

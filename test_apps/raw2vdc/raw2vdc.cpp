@@ -176,7 +176,7 @@ int	main(int argc, char **argv) {
 
 	int rc = vdc.Initialize(master, VDC::A, 4*1024*1024);
 
-	VDC::BaseVar var;
+	DC::BaseVar var;
 	if (! vdc.GetBaseVarInfo(opt.varname, var)) {
 		MyBase::SetErrMsg("Invalid variable name: %s", opt.varname.c_str());
 		exit(1);
@@ -184,7 +184,7 @@ int	main(int argc, char **argv) {
 
 	vector <size_t> sdims;
 	size_t numts;
-	if (! vdc.ParseDimensions(var.GetDimensions(), sdims, numts)) {
+	if (! DC::ParseDimensions(var.GetDimensions(), sdims, numts)) {
 		MyBase::SetErrMsg("VDC corrupt, invalid dimensions");
 		exit(1);
 	}

@@ -78,9 +78,13 @@ VDC::VDC() {
 	_newUniformVars.clear();
 }
 
-int VDC::Initialize(string path, AccessMode mode)
+int VDC::Initialize(const vector <string> &paths, AccessMode mode)
 {
-	_master_path = path;
+	if (! paths.size()) {
+		SetErrMsg("Invalid argument");
+		return(-1);
+	}
+	_master_path = paths[0];
 	if (mode == R) {
 		_defineMode = false;
 	}
@@ -518,25 +522,6 @@ vector <string> VDC::GetDataVarNames() const {
 	return(names);
 }
 
-vector <string> VDC::GetDataVarNames(int ndim, bool spatial) const {
-	vector <string> names;
-
-	map <string, DataVar>::const_iterator itr;
-	for (itr = _dataVars.begin(); itr != _dataVars.end(); ++itr) {
-
-		// if spatial is true we ignore time dimensions
-		//
-		int myndim = itr->second.GetDimensions().size();
-		if (spatial && VDC::IsTimeVarying(itr->first)) {
-			myndim--;
-		}
-		if (myndim == ndim) {
-			names.push_back(itr->first);
-		}
-	}
-				
-	return(names);
-}
 
 vector <string> VDC::GetCoordVarNames() const {
 	vector <string> names;
@@ -548,107 +533,6 @@ vector <string> VDC::GetCoordVarNames() const {
 	return(names);
 }
 
-vector <string> VDC::GetCoordVarNames(int ndim, bool spatial) const {
-	vector <string> names;
-
-	map <string, CoordVar>::const_iterator itr;
-	for (itr = _coordVars.begin(); itr != _coordVars.end(); ++itr) {
-
-		// if spatial is true we ignore time dimensions
-		//
-		if (spatial) {
-			if (VDC::IsTimeVarying(itr->first)) {
-				if (itr->second.GetDimensions().size() == ndim - 1) {
-					names.push_back(itr->first);
-				}
-			}
-			else {
-				if (itr->second.GetDimensions().size() == ndim) {
-					names.push_back(itr->first);
-				}
-			}
-		}
-		else {
-			if (itr->second.GetDimensions().size() == ndim) {
-				names.push_back(itr->first);
-			}
-		}
-	}
-				
-	return(names);
-}
-
-bool VDC::IsTimeVarying(string name) const {
-
-	const BaseVar *vptr = NULL;
-
-	// First the coordinate variable. Could be a Coordinate or Data variable, or
-	// may not exist
-	//
-	map <string, CoordVar>::const_iterator itr1;
-	itr1 = _coordVars.find(name);
-	if (itr1 != _coordVars.end()) vptr = &(itr1->second);
-
-	if (! vptr) {	// not a coordinate variable
-		map <string, DataVar>::const_iterator itr2;
-		itr2 = _dataVars.find(name);
-		if (itr2 != _dataVars.end()) vptr = &(itr2->second);
-	}
-
-	if (! vptr) return (false);	// variable doesn't exist
-
-	// 
-	// Now look for a time dimension. Theoretically we only need to 
-	// check the last dimension name as they are supposed to be ordered
-	//
-	vector <VDC::Dimension> dimensions = vptr->GetDimensions();
-	for (int i=0; i<dimensions.size(); i++) {
-		if (dimensions[i].GetAxis() == 3) return(true);
-	}
-	return(false);
-}
-
-bool VDC::IsCompressed(string varname) const {
-
-	if (VDC::IsDataVar(varname)) {
-		VDC::DataVar var;
-		bool ok = VDC::GetDataVarInfo(varname, var);
-		if (ok) return(var.IsCompressed());
-	}
-	else if (VDC::IsCoordVar(varname)) {
-		VDC::CoordVar cvar;
-		bool ok = VDC::GetCoordVarInfo(varname, cvar);
-		if (ok) return(cvar.IsCompressed());
-	}
-	return(false);	// not found
-}
-
-int VDC::GetNumTimeSteps(string varname) const {
-	vector <VDC::Dimension> dimensions;
-
-	// Verify variable exists first and return error if not
-	//
-	VDC::BaseVar var;
-	bool status = VDC::GetBaseVarInfo(varname, var);
-	if (! status) {
-		SetErrMsg("Undefined variable name : %s", varname.c_str());
-		return(-1);
-	}
-	 dimensions = var.GetDimensions();
-
-	if (! VDC::IsTimeVarying(varname)) return(1); 
-
-	for (int i=0; i<dimensions.size(); i++) {
-		if (dimensions[i].GetAxis() == 3) {
-			return((int) dimensions[i].GetLength());
-		}
-	}
-
-	// Shouldn't ever get here
-	//
-	SetErrMsg("Internal error");
-	return(-1);
-}
 
 int VDC::GetNumRefLevels(string varname) const {
 
@@ -666,20 +550,6 @@ int VDC::GetNumRefLevels(string varname) const {
 
 	return(nlevels);
 }
-
-int VDC::GetCRatios(string varname, vector <size_t> &cratios) const {
-
-	VDC::BaseVar var;
-	bool status = VDC::GetBaseVarInfo(varname, var);
-	if (! status) {
-		SetErrMsg("Undefined variable name : %s", varname.c_str());
-		return(-1);
-	}
-
-	cratios = var.GetCRatios();
-	return(0);
-}
-
 
 int VDC::PutAtt(
     string varname, string attname, XType type, const vector <double> &values
@@ -930,38 +800,6 @@ VDC::XType VDC::GetAttType(
 		return(itr->second.GetXType());
 	} 
 	return(INVALID);
-}
-
-bool VDC::ParseDimensions(
-    const vector <VDC::Dimension> &dimensions,
-    vector <size_t> &sdims, size_t &numts
-) {
-	sdims.clear();
-	numts = 1;
-
-	//
-	// Make sure dimensions vector is valid
-	//
-	if (! (dimensions.size() >= 1 && dimensions.size() <= 4)) return(false);
-
-	int axis = -1;
-	for (int i=0; i<dimensions.size(); i++) {
-		if (dimensions[i].GetAxis() <= axis) {
-			return(false);
-		}
-		axis = dimensions[i].GetAxis();
-	}
-
-	vector <VDC::Dimension> sdimensions = dimensions;
-	if (sdimensions[sdimensions.size()-1].GetAxis() == 3) { // time varying
-		numts = sdimensions[sdimensions.size()-1].GetLength();
-		sdimensions.pop_back();	// remove time varying dimension
-	}
-
-	for (int i=0; i<sdimensions.size(); i++) {
-		sdims.push_back(sdimensions[i].GetLength());
-	}
-	return(true);
 }
 
 int VDC::EndDefine() {

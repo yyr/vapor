@@ -1,7 +1,7 @@
 #include <vector>
 #include <list>
 #include <vapor/BlkMemMgr.h>
-#include <vapor/VDC.h>
+#include <vapor/DC.h>
 #include <vapor/MyBase.h>
 #include <vapor/RegularGrid.h>
 
@@ -9,6 +9,9 @@
 #define DataMgvV3_0_h
 
 using namespace std;
+
+namespace VAPoR {
+class PipeLine;
 
 //! \class DataMgrV3_0
 //! \brief A cache based data reader
@@ -64,8 +67,10 @@ using namespace std;
 //! \p level that are less than the negation of GetNumRefLevels() are
 //! treated as if they were equal to the negation of the GetNumRefLevels()
 //! return value.
+//! \endparblock
 //!
 //! \param lod
+//! \parblock
 //! The level-of-detail parameter, \p lod, selects
 //! the approximation level for a compressed variable. 
 //! The \p lod parameter is similar to the \p level parameter in that it
@@ -80,7 +85,7 @@ using namespace std;
 //! values of \p lod, a value of \b 0 indicates the 
 //! the first element of \p cratios, a value of \b 1 indicates
 //! the second element, and so on up to the size of the 
-//! \p cratios vector (See VDC::GetCRatios()).
+//! \p cratios vector (See DC::GetCRatios()).
 //!
 //! For negative values of \p lod a value of \b -1 indexes the
 //! last element of \p cratios, a value of \b -2 indexes the 
@@ -88,11 +93,8 @@ using namespace std;
 //! Using negative values the first element of \p cratios - the greatest 
 //! compression rate - is indexed by negating the size of the 
 //! \p cratios vector.
+//! \endparblock
 //
-
-namespace VAPoR {
-class PipeLine;
-
 class DataMgrV3_0 : public VetsUtil::MyBase {
 public:
 
@@ -102,11 +104,19 @@ public:
  //! variables in memory. The \p mem_size specifies the requested cache
  //! size in MEGABYTES!!!
  //!
+ //! \param[in] format A string indicating the format of data collection.
+ //!
  //! \param[in] mem_size Size of memory cache to be created, specified
  //! in MEGABYTES!!
  //!
+ //! \param[in] numthreads Number of parallel execution threads
+ //! to be run during encoding and decoding of compressed data. A value
+ //! of 0, the default, indicates that the thread count should be
+ //! determined by the environment in a platform-specific manner, for
+ //! example using sysconf(_SC_NPROCESSORS_ONLN) under *nix OSes.
+ //!
  //
- DataMgrV3_0(size_t mem_size);
+ DataMgrV3_0(string format, size_t mem_size, int nthreads = 0);
 
  virtual ~DataMgrV3_0();
 
@@ -196,7 +206,7 @@ public:
 
  //! Return a data variable's definition
  //!
- //! Return a reference to a VDC::DataVar object describing
+ //! Return a reference to a DC::DataVar object describing
  //! the data variable named by \p varname
  //!
  //! \param[in] varname A string specifying the name of the variable.
@@ -208,7 +218,7 @@ public:
  //!
  //! \sa GetCoordVarInfo()
  //!
- bool GetDataVarInfo( string varname, VAPoR::VDC::DataVar &datavar) const;
+ bool GetDataVarInfo( string varname, VAPoR::DC::DataVar &datavar) const;
 
  //! Return metadata about a data or coordinate variable
  //!
@@ -221,11 +231,11 @@ public:
  //!
  //! \sa GetDataVarInfo(), GetCoordVarInfo()
  //
- bool GetBaseVarInfo(string varname, VAPoR::VDC::BaseVar &var) const;
+ bool GetBaseVarInfo(string varname, VAPoR::DC::BaseVar &var) const;
 
  //! Return a coordinate variable's definition
  //!
- //! Return a reference to a VDC::CoordVar object describing
+ //! Return a reference to a DC::CoordVar object describing
  //! the coordinate variable named by \p varname
  //!
  //! \param[in] varname A string specifying the name of the coordinate
@@ -238,7 +248,7 @@ public:
  //!
  //! \sa GetDataVarInfo()
  //!
- bool GetCoordVarInfo(string varname, VAPoR::VDC::CoordVar &cvar) const;
+ bool GetCoordVarInfo(string varname, VAPoR::DC::CoordVar &cvar) const;
 
  //! Return a boolean indicating whether a variable is time varying
  //!
@@ -262,7 +272,7 @@ public:
  //! \retval bool Returns true if variable \p varname exists and is 
  //! compressed
  //!
- //! \sa DefineCoordVar(), DefineDataVar(), VDC::BaseVar::GetCompressed()
+ //! \sa DefineCoordVar(), DefineDataVar(), DC::BaseVar::GetCompressed()
  //
  bool IsCompressed(string varname) const;
 
@@ -311,7 +321,7 @@ public:
  //!
  //! \retval status A negative int is returned on failure
  //!
- //! \sa VDC::BaseVar::GetCRatios();
+ //! \sa DC::BaseVar::GetCRatios();
  //
 int GetCRatios(string varname, std::vector <size_t> &cratios) const;
 
@@ -425,7 +435,7 @@ int GetCRatios(string varname, std::vector <size_t> &cratios) const;
  //! \param[in] varname A valid variable name
  //! \param[in] level Refinement level requested. 
  //! \param[in] lod Compression level of detail requested. 
- //! refinement level contained in the VDC.
+ //! refinement level contained in the DC.
  //
  virtual bool VariableExists(
 	size_t ts,
@@ -495,96 +505,6 @@ int GetCRatios(string varname, std::vector <size_t> &cratios) const;
  //!
  void PurgeVariable(string varname);
 
-protected: 
-
- //! \copydoc Initialize()
- //
- virtual int _Initialize(const std::vector <string> &files) = 0;
-
- //! \copydoc GetDataVarNames()
- //
- virtual std::vector <string> _GetDataVarNames() const = 0;
- 
- //! \copydoc GetCoordVarNames()
- //
- virtual std::vector <string> _GetCoordVarNames() const = 0;
-
- //! \copydoc GetBaseVarInfo()
- //
- virtual bool _GetBaseVarInfo(
-	string varname, VAPoR::VDC::BaseVar &var
- ) const = 0;
-
- //! \copydoc GetDataVarInfo()
- //
- virtual bool _GetDataVarInfo(
-	string varname, VAPoR::VDC::DataVar &datavar
- ) const = 0;
-
- //! \copydoc GetBaseVarInfo()
- //
- virtual bool _GetCoordVarInfo(
-	string varname, VAPoR::VDC::CoordVar &cvar
- ) const = 0;
-
- //! Return a variable's dimension lengths at a specified refinement level
- //!
- //! Compressed variables have a multi-resolution grid representation.
- //! This method returns the variable's ordered spatial and 
- //! temporal dimension lengths,
- //! and block dimensions
- //! at the multiresolution refinement level specified by \p level.
- //!
- //! If the variable named by \p varname is not compressed the variable's
- //! native dimensions are returned.
- //!
- //! \param[in] varname Data or coordinate variable name.
- //! \param[in] level Specifies a member of a multi-resolution variable's
- //! grid hierarchy as described above.
- //! \param[out] dims_at_level An ordered vector containing the variable's
- //! dimensions at the specified refinement level
- //! \param[out] bs_at_level An ordered vector containing the variable's
- //! block dimensions at the specified refinement level
- //!
- //! \retval status Zero is returned upon success, otherwise -1.
- //!
- //! \sa VAPoR::VDC, VDC::BaseVar::GetBS(), VDC::BaseVar::GetDimensions()
- //
- virtual int _GetDimLensAtLevel(
-    string varname, int level, std::vector <size_t> &dims_at_level,
-    std::vector <size_t> &bs_at_level
- ) const = 0;
-
- virtual int _GetNumRefLevels(string varname) const = 0;
-
-
- //! \copydoc VariableExists()
- //
- virtual bool _VariableExists(
-	size_t ts, string,
-	int level = 0,
-	int lod = 0
- ) const = 0;
-
- //! Read and return variable data
- //!
- //! Reads all data for the variable named by \p varname for the time
- //! step indicated by \p ts ...
- //! \test New in 3.0
- //
- virtual int _ReadVariableBlock (
-	size_t ts, string varname, int level, int lod, 
-	std::vector <size_t> min, std::vector <size_t> max, float *blocks
- ) = 0;
-
- //! Read and return variable data
- //!
- //! Reads the variable in its entirety. All time steps, etc.
- //!
- virtual int _ReadVariable(
-	string varname, int level, int lod, float *data
- ) = 0;
- 
  //! \todo Need to define
  virtual string GetMapProjection() const {return(""); };
 
@@ -716,7 +636,12 @@ private:
 
  };
 
+ string _format;
+ int _nthreads;
  size_t _mem_size;
+
+ DC *_dc;
+
  std::vector <double> _timeCoordinates;
 
  typedef struct {
@@ -735,6 +660,7 @@ private:
 
  VAPoR::BlkMemMgr  *_blk_mem_mgr;
 
+
  std::vector <PipeLine *> _PipeLines;
 
 
@@ -745,11 +671,10 @@ private:
 	string varname, std::vector <string> &scvars, string &tcvar
  ) const;
 
- int _datamgr(size_t mem_size);
  int _get_time_coordinates(std::vector <double> &timecoords);
 
  VAPoR::RegularGrid *_make_grid_regular(
-    const VAPoR::VDC::DataVar &var,
+    const VAPoR::DC::DataVar &var,
     const std::vector <size_t> &min,
     const std::vector <size_t> &max,
     const std::vector <size_t> &dims,
@@ -760,7 +685,7 @@ private:
  ) const;
 
  VAPoR::RegularGrid *_make_grid(
-	const VAPoR::VDC::DataVar &var,
+	const VAPoR::DC::DataVar &var,
 	const std::vector <size_t> &min,
 	const std::vector <size_t> &max,
 	const std::vector <size_t> &dims,

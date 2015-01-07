@@ -6,6 +6,7 @@
 #include <cfloat>
 #include <vector>
 #include <map>
+#include <vapor/VDCNetCDF.h>
 #include <vapor/DataMgrV3_0.h>
 #ifdef WIN32
 #include <float.h>
@@ -328,7 +329,7 @@ void map_blk_to_vox(
 // Extract various grid related metadata from a BaseVar class object
 //
 void grid_params(
-	const VDC::BaseVar &var,
+	const DC::BaseVar &var,
 	const vector <size_t> &min,
 	const vector <size_t> &max,
 	const vector <size_t> &dims,
@@ -349,7 +350,7 @@ void grid_params(
 	}
 
 
-	const VDC::DataVar *dvarptr = dynamic_cast<const VDC::DataVar *> (&var);
+	const DC::DataVar *dvarptr = dynamic_cast<const DC::DataVar *> (&var);
 	if (dvarptr->GetHasMissing()) {
 		has_missing = true;
 		missing = dvarptr->GetMissingValue();
@@ -358,10 +359,10 @@ void grid_params(
 
 // Return an ordered vector identify the spatial axes of a variable
 //
-vector <int> get_spatial_axes(const VDC::BaseVar &var) {
+vector <int> get_spatial_axes(const DC::BaseVar &var) {
 	vector <int> axis;
 
-	vector <VDC::Dimension> dims = var.GetDimensions();
+	vector <DC::Dimension> dims = var.GetDimensions();
 	for (int i=0; i<dims.size(); i++) {
 		if (dims[i].GetAxis() != 3) axis.push_back(dims[i].GetAxis());
 	}
@@ -370,10 +371,23 @@ vector <int> get_spatial_axes(const VDC::BaseVar &var) {
 
 };
 
-int	DataMgrV3_0::_datamgr(
-	size_t mem_size
+
+DataMgrV3_0::DataMgrV3_0(
+	string format,
+	size_t mem_size,
+	int nthreads
 ) {
-	SetClassName("DataMgrV3_0");
+
+	SetDiagMsg(
+		"DataMgrV3_0::DataMgrV3_0(%s,%d,%d)",
+		format.c_str(), nthreads, mem_size
+	);
+
+	_format = format;
+	_nthreads = nthreads;
+	_mem_size = mem_size;
+
+	_dc = NULL;
 
 	_blk_mem_mgr = NULL;
 
@@ -381,26 +395,18 @@ int	DataMgrV3_0::_datamgr(
 
 	_regionsList.clear();
 	
-	_mem_size = mem_size;
 
 	_varInfoCache.Clear();
-
-	return(0);
-}
-
-DataMgrV3_0::DataMgrV3_0(
-	size_t mem_size
-) {
-
-	SetDiagMsg("DataMgrV3_0::DataMgrV3_0(,%d)", mem_size);
-
-	if (_datamgr(mem_size) < 0) return;
 }
 
 
 DataMgrV3_0::~DataMgrV3_0(
 ) {
 	SetDiagMsg("DataMgrV3_0::~DataMgrV3_0()");
+
+	if (_dc) delete _dc;
+	_dc = NULL;
+
 
 	Clear();
 	if (_blk_mem_mgr) delete _blk_mem_mgr;
@@ -410,7 +416,15 @@ DataMgrV3_0::~DataMgrV3_0(
 }
 
 int DataMgrV3_0::Initialize(const vector <string> &files) {
-	int rc = _Initialize(files);
+	if (_format.compare("vdc")) {
+		_dc = new VDCNetCDF(_nthreads);
+	}
+	else {
+		SetErrMsg("Invalid data collection format : %s", _format.c_str());
+		return(-1);
+	}
+
+	int rc = _dc->Initialize(files);
 	if (rc<0) {
 		SetErrMsg("Failed to initialize data importer");
 		return(-1);
@@ -427,7 +441,7 @@ int DataMgrV3_0::Initialize(const vector <string> &files) {
 
 
 vector <string> DataMgrV3_0::GetDataVarNames() const {
-	return(_GetDataVarNames());
+	return(_dc->GetDataVarNames());
 }
 
 vector <string> DataMgrV3_0::GetDataVarNames(int ndim, bool spatial) const {
@@ -435,12 +449,12 @@ vector <string> DataMgrV3_0::GetDataVarNames(int ndim, bool spatial) const {
 
 	vector <string> names;
 	for (int i=0; i<allnames.size(); i++) {
-		VDC::DataVar var;
+		DC::DataVar var;
 
 		// No error checking here!!!!!
 		//
 		DataMgrV3_0::GetDataVarInfo(allnames[i], var);
-		vector <VDC::Dimension> dims = var.GetDimensions();
+		vector <DC::Dimension> dims = var.GetDimensions();
 		int rank;
 		if (spatial && DataMgrV3_0::IsTimeVarying(allnames[i])) {
 			rank = dims.size() - 1;
@@ -454,7 +468,7 @@ vector <string> DataMgrV3_0::GetDataVarNames(int ndim, bool spatial) const {
 }
 
 vector <string> DataMgrV3_0::GetCoordVarNames() const {
-	return(_GetCoordVarNames());
+	return(_dc->GetCoordVarNames());
 }
 
 
@@ -464,12 +478,12 @@ vector <string> DataMgrV3_0::GetCoordVarNames(int ndim, bool spatial) const {
 
 	vector <string> names;
 	for (int i=0; i<allnames.size(); i++) {
-		VDC::CoordVar var;
+		DC::CoordVar var;
 
 		// No error checking here!!!!!
 		//
 		GetCoordVarInfo(allnames[i], var);
-		vector <VDC::Dimension> dims = var.GetDimensions();
+		vector <DC::Dimension> dims = var.GetDimensions();
 		int rank;
 		if (spatial && DataMgrV3_0::IsTimeVarying(allnames[i])) {
 			rank = dims.size() - 1;
@@ -484,37 +498,37 @@ vector <string> DataMgrV3_0::GetCoordVarNames(int ndim, bool spatial) const {
 
 
 bool DataMgrV3_0::GetDataVarInfo(
-	string varname, VAPoR::VDC::DataVar &var
+	string varname, VAPoR::DC::DataVar &var
 ) const {
 	// 
 	// NEED TO HANDLE DERIVED VARS
 	//
-	return(_GetDataVarInfo(varname, var));
+	return(_dc->GetDataVarInfo(varname, var));
 }
 
 bool DataMgrV3_0::GetCoordVarInfo(
-	string varname, VAPoR::VDC::CoordVar &var
+	string varname, VAPoR::DC::CoordVar &var
 ) const {
-	return(_GetCoordVarInfo(varname, var));
+	return(_dc->GetCoordVarInfo(varname, var));
 }
 
 bool DataMgrV3_0::GetBaseVarInfo(
-	string varname, VAPoR::VDC::BaseVar &var
+	string varname, VAPoR::DC::BaseVar &var
 ) const {
 
 	// 
 	// NEED TO HANDLE DERIVED VARS
 	//
-	return(_GetBaseVarInfo(varname, var));
+	return(_dc->GetBaseVarInfo(varname, var));
 }
 
 bool DataMgrV3_0::IsTimeVarying(string varname) const {
-		VDC::BaseVar var;
+		DC::BaseVar var;
 
 		// No error checking here!!!!!
 		//
 		GetBaseVarInfo(varname, var);
-		vector <VDC::Dimension> dims = var.GetDimensions();
+		vector <DC::Dimension> dims = var.GetDimensions();
 
 		for (int i=0; i<dims.size(); i++) {
 			if (dims[i].GetAxis() == 3) return (true);
@@ -523,7 +537,7 @@ bool DataMgrV3_0::IsTimeVarying(string varname) const {
 }
 
 bool DataMgrV3_0::IsCompressed(string varname) const {
-	VDC::BaseVar var;
+	DC::BaseVar var;
 
 	// No error checking here!!!!!
 	//
@@ -534,11 +548,11 @@ bool DataMgrV3_0::IsCompressed(string varname) const {
 }
 
 int DataMgrV3_0::GetNumTimeSteps(string varname) const {
-	VDC::BaseVar var;
+	DC::BaseVar var;
 	int rc = GetBaseVarInfo(varname, var);
 	if (rc<0) return(rc);
 
-	vector <VDC::Dimension> dims = var.GetDimensions();
+	vector <DC::Dimension> dims = var.GetDimensions();
 
 	for (int i=0; i<dims.size(); i++) {
 		if (dims[i].GetAxis() == 3) return (dims[i].GetLength());
@@ -547,13 +561,13 @@ int DataMgrV3_0::GetNumTimeSteps(string varname) const {
 }
 
 int DataMgrV3_0::GetNumRefLevels(string varname) const {
-	return(_GetNumRefLevels(varname));
+	return(_dc->GetNumRefLevels(varname));
 }
 
 int DataMgrV3_0::GetCRatios(string varname, vector <size_t> &cratios) const {
 	cratios.clear();
 
-	VDC::BaseVar var;
+	DC::BaseVar var;
 	int rc = GetBaseVarInfo(varname, var);
 	if (rc<0) return(rc);
 
@@ -628,7 +642,7 @@ RegularGrid *DataMgrV3_0::_getVariable(
 
 	vector <size_t> dims_at_level;
 	vector <size_t> dummy;
-	int rc = _GetDimLensAtLevel(
+	int rc = _dc->GetDimLensAtLevel(
 		varname, level, dims_at_level, dummy
 	);
 	if (rc < 0) {
@@ -666,7 +680,7 @@ RegularGrid *DataMgrV3_0::_getVariable(
 ) {
 	RegularGrid *rg = NULL;
 
-	VDC::DataVar var;
+	DC::DataVar var;
 	if (DataMgrV3_0::GetDataVarInfo(varname, var) < 0) {
 		SetErrMsg("Unrecognized variable name : %s", varname.c_str());
 		return(NULL);
@@ -674,7 +688,7 @@ RegularGrid *DataMgrV3_0::_getVariable(
 
 	vector <size_t> dummy;
 	vector <size_t> bs;
-	int rc = _GetDimLensAtLevel(varname, -1, dummy, bs);
+	int rc = _dc->GetDimLensAtLevel(varname, -1, dummy, bs);
 	if (rc < 0) {
 		SetErrMsg("Invalid variable reference : %s", varname.c_str());
 		return(NULL);
@@ -682,7 +696,7 @@ RegularGrid *DataMgrV3_0::_getVariable(
 
 	vector <size_t> dims_at_level;
 	vector <size_t> bs_at_level;
-	rc = _GetDimLensAtLevel(varname, level, dims_at_level, bs_at_level);
+	rc = _dc->GetDimLensAtLevel(varname, level, dims_at_level, bs_at_level);
 	if (rc < 0) {
 		SetErrMsg("Invalid variable reference : %s", varname.c_str());
 		return(NULL);
@@ -733,7 +747,7 @@ RegularGrid *DataMgrV3_0::_getVariable(
 	for (int i=0; i<cvars.size(); i++) {
 		varnames.push_back(cvars[i]);
 
-		VDC::CoordVar cvar;
+		DC::CoordVar cvar;
 		if (DataMgrV3_0::GetCoordVarInfo(cvars[i], cvar) < 0) {
 			SetErrMsg("Unrecognized variable name : %s", cvars[i].c_str());
 			return(NULL);
@@ -1036,7 +1050,7 @@ bool DataMgrV3_0::VariableExists(
 	//
 	vector <string> varnames;
 	varnames.push_back(varname);
-	VAPoR::VDC::DataVar datavar;
+	VAPoR::DC::DataVar datavar;
 	if (DataMgrV3_0::GetDataVarInfo(varname, datavar)) {
 		vector <string> cvars = datavar.GetCoordvars();
 		for (int i=0; i<cvars.size(); i++) varnames.push_back(cvars[i]);
@@ -1064,7 +1078,7 @@ bool DataMgrV3_0::VariableExists(
 		if (_varInfoCache.Get(ts, varname, level, lod, key, exists_vec)) {
 			continue;
 		}
-		bool exists = _VariableExists(ts, varname, level, lod);
+		bool exists = _dc->VariableExists(ts, varname, level, lod);
 		if (exists) {
 			_varInfoCache.Set(ts, varname, level, lod, key, exists_vec);
 		}
@@ -1309,11 +1323,18 @@ float *DataMgrV3_0::_get_region_from_fs(
     vector <size_t> min, max;
 	map_blk_to_vox(bs, bmin, bmax, min, max);
 
-	int rc = _ReadVariableBlock(ts, varname, level, lod, min, max, blks);
+	int rc = _dc->OpenVariableRead(ts, varname, level, lod);
+    if (rc < 0) return(NULL);
+
+	rc = _dc->ReadRegionBlock(min, max, blks);
     if (rc < 0) {
 		_free_region(ts,varname ,level,lod,bmin,bmax);
+		_dc->CloseVariable(); 
 		return(NULL);
 	}
+
+	rc = _dc->CloseVariable(); 
+	if (rc<0) return(NULL);
 
 	SetDiagMsg("DataMgrV3_0::GetGrid() - data read from fs\n");
 	return(blks);
@@ -1407,7 +1428,7 @@ int DataMgrV3_0::_get_regions(
 		int nlevels = DataMgrV3_0::GetNumRefLevels(varnames[i]);
 		if (nlevels < 0) return(-1);
 
-		VDC::BaseVar var;
+		DC::BaseVar var;
 		int rc = GetBaseVarInfo(varnames[i], var);
 		if (rc<0) return(rc);
 
@@ -1819,8 +1840,8 @@ bool DataMgrV3_0::depends_on(
 // return complete list of native variables
 //
 vector <string> DataMgrV3_0::_get_native_variables() const {
-	vector <string> v1 = _GetDataVarNames();
-	vector <string> v2 = _GetCoordVarNames();
+	vector <string> v1 = _dc->GetDataVarNames();
+	vector <string> v2 = _dc->GetCoordVarNames();
 
 	v1.insert(v1.end(), v2.begin(), v2.end());
 	return(v1);
@@ -2062,7 +2083,7 @@ float *DataMgrV3_0::_get_unblocked_region_from_fs(
 	// Get
 	vector <size_t> dims;
 	vector <size_t> bs;
-	int rc = _GetDimLensAtLevel(varnames, -1, dims, bs);
+	int rc = _dc->GetDimLensAtLevel(varnames, -1, dims, bs);
 	if (rc<0) return(NULL);
 
 	float *blks = _alloc_region(
@@ -2073,11 +2094,18 @@ float *DataMgrV3_0::_get_unblocked_region_from_fs(
     vector <size_t> min, max;
 	map_blk_to_vox(bs, bmin, bmax, min, max);
 
-	int rc = _ReadVariableBlock(ts, varname, level, lod, min, max, blks);
+	int rc = _dc->OpenVariableRead(ts, varname, level, lod);
+    if (rc < 0) (return(-1);
+
+	rc = _dc->ReadVariableBlock(min, max, blks);
     if (rc < 0) {
 		_free_region(ts,varname ,level,lod,bmin,bmax);
+		_dc->CloseVariable(); 
 		return(NULL);
 	}
+
+	rc = _dc->CloseVariable(); 
+	if (rc<0) return(-1);
 
 	SetDiagMsg("DataMgrV3_0::GetGrid() - data read from fs\n");
 	return(blks);
@@ -2095,7 +2123,7 @@ int DataMgrV3_0::_level_correction(string varname, int &level) const {
 }
 
 int DataMgrV3_0::_lod_correction(string varname, int &lod) const {
-	VDC::BaseVar var;
+	DC::BaseVar var;
 	int rc = GetBaseVarInfo(varname, var);
 	if (rc<0) return(rc);
 
@@ -2118,7 +2146,7 @@ int DataMgrV3_0::_get_coord_vars(
 	scvars.clear();
 	tcvar.clear();
 
-	VDC::DataVar datavar;
+	DC::DataVar datavar;
 	int rc = DataMgrV3_0::GetDataVarInfo(varname, datavar);
 	if (rc<0) {
 		SetErrMsg("Failed to get metadata for variable %s", varname.c_str());
@@ -2129,7 +2157,7 @@ int DataMgrV3_0::_get_coord_vars(
 	cvars = datavar.GetCoordvars();
 
 	for (int i=0; i<cvars.size(); i++) {
-		VDC::CoordVar cvarinfo;
+		DC::CoordVar cvarinfo;
 
 		if (DataMgrV3_0::GetCoordVarInfo(cvars[i], cvarinfo) < 0) {
 			SetErrMsg("Failed to get metadata for variable %s",cvars[i].c_str());
@@ -2156,17 +2184,17 @@ int DataMgrV3_0::_get_time_coordinates(vector <double> &timecoords) {
 	vector <string> allnames = DataMgrV3_0::GetCoordVarNames();
 
 	for (int i=0; i<allnames.size(); i++) {
-		VDC::CoordVar var;
+		DC::CoordVar var;
 
 		// No error checking here!!!!!
 		//
 		GetCoordVarInfo(allnames[i], var);
-		vector <VDC::Dimension> dims = var.GetDimensions();
+		vector <DC::Dimension> dims = var.GetDimensions();
 		if (dims.size() == 1 && dims[0].GetAxis() == 3) {
 
 			size_t n = dims[0].GetLength();
 			float *buf = new float[n];
-			int rc = _ReadVariable(allnames[i], -1, -1, buf);
+			int rc = _dc->GetVar(allnames[i], -1, -1, buf);
 			if (rc<0) {
 				return(-1);
 			}
@@ -2181,7 +2209,7 @@ int DataMgrV3_0::_get_time_coordinates(vector <double> &timecoords) {
 }
 
 RegularGrid *DataMgrV3_0::_make_grid_regular(
-	const VDC::DataVar &var,
+	const DC::DataVar &var,
     const vector <size_t> &min,
 	const vector <size_t> &max, 
 	const vector <size_t> &dims,
@@ -2257,7 +2285,7 @@ RegularGrid *DataMgrV3_0::_make_grid_regular(
 //
 
 RegularGrid *DataMgrV3_0::_make_grid(
-	const VDC::DataVar &var,
+	const DC::DataVar &var,
     const vector <size_t> &min,
 	const vector <size_t> &max, 
 	const vector <size_t> &dims,
@@ -2273,11 +2301,11 @@ RegularGrid *DataMgrV3_0::_make_grid(
 	int rc = _get_coord_vars(var.GetName(), cvars, dummy);
 	if (rc<0) return(NULL); 
 
-	vector <VDC::CoordVar> cvarsinfo;
+	vector <DC::CoordVar> cvarsinfo;
     vector < vector <int> > coord_axis;
     vector <bool> uniform;
 	for (int i=0; i<cvars.size(); i++) {
-		VDC::CoordVar cvarinfo;
+		DC::CoordVar cvarinfo;
 
 		if (GetCoordVarInfo(cvars[i], cvarinfo) < 0) {
 			SetErrMsg("Unrecognized variable name : %s", cvars[i].c_str());
@@ -2334,7 +2362,7 @@ int DataMgrV3_0::_find_bounding_grid(
 
 	vector <size_t> dims_at_level;
 	vector <size_t> bs_at_level;
-	rc = _GetDimLensAtLevel(varname, level, dims_at_level, bs_at_level);
+	rc = _dc->GetDimLensAtLevel(varname, level, dims_at_level, bs_at_level);
 	if (rc < 0) {
 		SetErrMsg("Invalid variable reference : %s", varname.c_str());
 		return(-1);

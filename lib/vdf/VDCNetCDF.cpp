@@ -141,10 +141,12 @@ VDCNetCDF::~VDCNetCDF() {
 }
 
 
-int VDCNetCDF::Initialize(string path, AccessMode mode, size_t chunksizehint) {
+int VDCNetCDF::Initialize(
+	const vector <string> &paths, AccessMode mode, size_t chunksizehint
+) {
 	_chunksizehint =  chunksizehint;
 
-	int rc = VDC::Initialize(path, mode);
+	int rc = VDC::Initialize(paths, mode);
 	if (rc<0) return(-1);
 
 	if (mode == VDC::W) {
@@ -160,6 +162,7 @@ int VDCNetCDF::Initialize(string path, AccessMode mode, size_t chunksizehint) {
 		rc = _master->Open(_master_path, NC_NOWRITE);
 	}
 	if (rc<0) return(-1);
+	return(0);
 }
 
 string VDCNetCDF::GetDataDir(string master) {

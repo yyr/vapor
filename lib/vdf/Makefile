@@ -21,8 +21,8 @@ FILES = \
 	NetCDFCollection NetCDFCFCollection WeightTable \
 	DCReaderNCDF  DCReaderMOM DCReaderROMS VDCFactory \
 	DataMgrROMS DataMgrMOM DCReaderWRF UDUnitsClass Copy2VDF vdfcreate \
-	WrfVDCcreator WrfVDFcreator  Proj4API VDC VDCNetCDF NetCDFCpp WASP \
-	DataMgrV3_0  DataMgrVDC
+	WrfVDCcreator WrfVDFcreator  Proj4API DC VDC VDCNetCDF NetCDFCpp WASP \
+	DataMgrV3_0  
 	
 
 HEADER_FILES = \
@@ -43,8 +43,8 @@ HEADER_FILES = \
 	NetCDFCollection NetCDFCFCollection WeightTable \
 	DCReader DCReaderNCDF DCReaderMOM DCReaderROMS VDCFactory \
 	DataMgrROMS DataMgrMOM DCReaderWRF UDUnitsClass Copy2VDF vdfcreate \
-	WrfVDCcreator WrfVDFcreator  Proj4API VDC VDCNetCDF NetCDFCpp WASP \
-	DataMgrV3_0  DataMgrVDC
+	WrfVDCcreator WrfVDFcreator  Proj4API DC VDC VDCNetCDF NetCDFCpp WASP \
+	DataMgrV3_0  
 
 
 #LIB_DEFS = vdf.def
