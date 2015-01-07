@@ -11,6 +11,7 @@
 #include "tabmanager.h"
 #include "arrowAppearance.h"
 #include "arrowLayout.h"
+#include "arrowBasic.h"
 
 
 using namespace VetsUtil;
@@ -77,7 +78,7 @@ protected:
 	void populateVariableCombos(bool is3d);
 	vector<int> copyCount;
 	bool showLayout;
-	
+	ArrowBasic *myBasic;
 	ArrowAppearance * myAppearance;
 	ArrowLayout * myLayout;
 

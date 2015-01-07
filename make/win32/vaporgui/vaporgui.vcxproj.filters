@@ -123,6 +123,9 @@
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_renderholder.cpp">
       <Filter>Generated MOC Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_arrowBasic.cpp">
+      <Filter>Generated MOC Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\apps\vaporgui\guis\eventrouter.h">
@@ -156,6 +159,9 @@
       <Filter>Generated Form Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\newRendererDialog.h">
+      <Filter>Generated Form Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\barbBasic.h">
       <Filter>Generated Form Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -237,6 +243,12 @@
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\newRendererDialog.ui">
       <Filter>Forms</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\barbBasic.ui">
+      <Filter>Forms</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\arrowBasic.h">
+      <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>
 </Project>

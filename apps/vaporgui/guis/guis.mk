@@ -13,7 +13,7 @@ GUI_QT_HEADERS := \
 	instancetable \
 	animationeventrouter \
 	arroweventrouter renderholder arrowAppearance arrowLayout \
-	regioneventrouter viewpointeventrouter\
+	regioneventrouter viewpointeventrouter arrowBasic\
 
 
 

@@ -57,6 +57,8 @@ ArrowEventRouter::ArrowEventRouter(QWidget* parent): QWidget(parent), Ui_Arrow()
 	
 	QTabWidget* myTabWidget = new QTabWidget(this);
 	myTabWidget->setTabPosition(QTabWidget::West);
+	myBasic = new ArrowBasic(myTabWidget);
+	myTabWidget->addTab(myBasic, "Basics");
 	myAppearance = new ArrowAppearance(myTabWidget);
 	myTabWidget->addTab(myAppearance, "Appearance");
 	myLayout = new ArrowLayout(myTabWidget);
@@ -76,8 +78,8 @@ ArrowEventRouter::hookUpTab()
 {
 	//following are needed for any renderer eventrouter:
 	
-	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(setNumRefinements(int)));
-	connect (lodCombo,SIGNAL(activated(int)), this, SLOT(setCompRatio(int)));
+	connect (myBasic->refinementCombo,SIGNAL(activated(int)), this, SLOT(setNumRefinements(int)));
+	connect (myBasic->lodCombo,SIGNAL(activated(int)), this, SLOT(setCompRatio(int)));
 	
 	//Unique connections for ArrowTab:
 	//Connect all line edits to textChanged and return pressed: 
@@ -99,11 +101,11 @@ ArrowEventRouter::hookUpTab()
 	connect (myLayout->yStrideEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
 	
 	//Connect variable combo boxes to their own slots:
-	connect (xVarCombo,SIGNAL(activated(int)), this, SLOT(setXVarNum(int)));
-	connect (yVarCombo,SIGNAL(activated(int)), this, SLOT(setYVarNum(int)));
-	connect (zVarCombo,SIGNAL(activated(int)), this, SLOT(setZVarNum(int)));
+	connect (myBasic->xVarCombo,SIGNAL(activated(int)), this, SLOT(setXVarNum(int)));
+	connect (myBasic->yVarCombo,SIGNAL(activated(int)), this, SLOT(setYVarNum(int)));
+	connect (myBasic->zVarCombo,SIGNAL(activated(int)), this, SLOT(setZVarNum(int)));
 	connect (myLayout->heightCombo, SIGNAL(activated(int)),this,SLOT(setHeightVarNum(int)));
-	connect (variableDimCombo, SIGNAL(activated(int)), this, SLOT(setVariableDims(int)));
+	connect (myBasic->variableDimCombo, SIGNAL(activated(int)), this, SLOT(setVariableDims(int)));
 	//checkboxes
 	connect(myLayout->terrainAlignCheckbox,SIGNAL(toggled(bool)), this, SLOT(toggleTerrainAlign(bool)));
 	connect(myLayout->alignDataCheckbox,SIGNAL(toggled(bool)),this, SLOT(alignToData(bool)));
@@ -209,9 +211,9 @@ setVariableDims(int is3D){
 	if (aParams->VariablesAre3D() == (is3D == 1)) return;
 	
 	aParams->SetVariables3D(is3D == 1);
-	xVarCombo->setCurrentIndex(0);
-	yVarCombo->setCurrentIndex(0);
-	zVarCombo->setCurrentIndex(0);
+	myBasic->xVarCombo->setCurrentIndex(0);
+	myBasic->yVarCombo->setCurrentIndex(0);
+	myBasic->zVarCombo->setCurrentIndex(0);
 	aParams->SetFieldVariableName(0,"0");
 	aParams->SetFieldVariableName(1,"0");
 	aParams->SetFieldVariableName(2,"0");
@@ -232,49 +234,49 @@ populateVariableCombos(bool is3D){
 	const vector<string>& vars = (is3D ? dataMgr->GetVariables3D() : dataMgr->GetVariables2DXY());
 	if (is3D){
 		//The first entry is "0"
-		xVarCombo->clear();
-		xVarCombo->setMaxCount(ds->getNumActiveVariables3D()+1);
-		xVarCombo->addItem(QString("0"));
+		myBasic->xVarCombo->clear();
+		myBasic->xVarCombo->setMaxCount(ds->getNumActiveVariables3D()+1);
+		myBasic->xVarCombo->addItem(QString("0"));
 		for (int i = 0; i< ds->getNumActiveVariables3D(); i++){
 			const std::string& s = vars[i];
-			xVarCombo->addItem(QString::fromStdString(s));
+			myBasic->xVarCombo->addItem(QString::fromStdString(s));
 		}
-		yVarCombo->clear();
-		yVarCombo->setMaxCount(ds->getNumActiveVariables3D()+1);
-		yVarCombo->addItem(QString("0"));
+		myBasic->yVarCombo->clear();
+		myBasic->yVarCombo->setMaxCount(ds->getNumActiveVariables3D()+1);
+		myBasic->yVarCombo->addItem(QString("0"));
 		for (int i = 0; i< ds->getNumActiveVariables3D(); i++){
 			const std::string& s = vars[i];
-			yVarCombo->addItem(QString::fromStdString(s));
+			myBasic->yVarCombo->addItem(QString::fromStdString(s));
 		}
-		zVarCombo->clear();
-		zVarCombo->setMaxCount(ds->getNumActiveVariables3D()+1);
-		zVarCombo->addItem(QString("0"));
+		myBasic->zVarCombo->clear();
+		myBasic->zVarCombo->setMaxCount(ds->getNumActiveVariables3D()+1);
+		myBasic->zVarCombo->addItem(QString("0"));
 		for (int i = 0; i< ds->getNumActiveVariables3D(); i++){
 			const std::string& s = vars[i];
-			zVarCombo->addItem(QString::fromStdString(s));
+			myBasic->zVarCombo->addItem(QString::fromStdString(s));
 		}
 	} else { //2D vars:
 		//The first entry is "0"
-		xVarCombo->clear();
-		xVarCombo->setMaxCount(ds->getNumActiveVariables2D()+1);
-		xVarCombo->addItem(QString("0"));
+		myBasic->xVarCombo->clear();
+		myBasic->xVarCombo->setMaxCount(ds->getNumActiveVariables2D()+1);
+		myBasic->xVarCombo->addItem(QString("0"));
 		for (int i = 0; i< ds->getNumActiveVariables2D(); i++){
 			const std::string& s = vars[i];
-			xVarCombo->addItem(QString::fromStdString(s));
+			myBasic->xVarCombo->addItem(QString::fromStdString(s));
 		}
-		yVarCombo->clear();
-		yVarCombo->setMaxCount(ds->getNumActiveVariables2D()+1);
-		yVarCombo->addItem(QString("0"));
+		myBasic->yVarCombo->clear();
+		myBasic->yVarCombo->setMaxCount(ds->getNumActiveVariables2D()+1);
+		myBasic->yVarCombo->addItem(QString("0"));
 		for (int i = 0; i< ds->getNumActiveVariables2D(); i++){
 			const std::string& s = vars[i];
-			yVarCombo->addItem(QString::fromStdString(s));
+			myBasic->yVarCombo->addItem(QString::fromStdString(s));
 		}
-		zVarCombo->clear();
-		zVarCombo->setMaxCount(ds->getNumActiveVariables2D()+1);
-		zVarCombo->addItem(QString("0"));
+		myBasic->zVarCombo->clear();
+		myBasic->zVarCombo->setMaxCount(ds->getNumActiveVariables2D()+1);
+		myBasic->zVarCombo->addItem(QString("0"));
 		for (int i = 0; i< ds->getNumActiveVariables2D(); i++){
 			const std::string& s = vars[i];
-			zVarCombo->addItem(QString::fromStdString(s));
+			myBasic->zVarCombo->addItem(QString::fromStdString(s));
 		}
 	}
 	//Populate the height variable combo with all 2d Vars:
@@ -452,16 +454,16 @@ void ArrowEventRouter::updateTab(){
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	//Set up refinements and LOD combos:
 	int numRefs = arrowParams->GetRefinementLevel();
-	if(numRefs <= refinementCombo->count())
-		refinementCombo->setCurrentIndex(numRefs);
-	lodCombo->setCurrentIndex(arrowParams->GetCompressionLevel());
+	if(numRefs <= myBasic->refinementCombo->count())
+		myBasic->refinementCombo->setCurrentIndex(numRefs);
+	myBasic->lodCombo->setCurrentIndex(arrowParams->GetCompressionLevel());
 	
 	//Set the combo based on the current field variables
 	int comboIndex[3] = { 0,0,0};
 	bool is3D = arrowParams->VariablesAre3D();
-	int dimComIndex = variableDimCombo->currentIndex();
+	int dimComIndex = myBasic->variableDimCombo->currentIndex();
 	if (is3D != (dimComIndex == 1)){
-		variableDimCombo->setCurrentIndex(1-dimComIndex);
+		myBasic->variableDimCombo->setCurrentIndex(1-dimComIndex);
 		populateVariableCombos(is3D);
 	}
 	if (is3D){
@@ -477,9 +479,9 @@ void ArrowEventRouter::updateTab(){
 			else comboIndex[i]=0;
 		}
 	}
-	xVarCombo->setCurrentIndex(comboIndex[0]);
-	yVarCombo->setCurrentIndex(comboIndex[1]);
-	zVarCombo->setCurrentIndex(comboIndex[2]);
+	myBasic->xVarCombo->setCurrentIndex(comboIndex[0]);
+	myBasic->yVarCombo->setCurrentIndex(comboIndex[1]);
+	myBasic->zVarCombo->setCurrentIndex(comboIndex[2]);
 
 	const string& hname = arrowParams->GetHeightVariableName();
 	int hNum = ds->getActiveVarNum2D(hname);
@@ -585,20 +587,20 @@ reinitTab(bool doOverride){
 	const DataMgr *dataMgr = ds->getDataMgr();
 	
 	int numRefinements = dataMgr->GetNumTransforms();
-	refinementCombo->setMaxCount(numRefinements+1);
-	refinementCombo->clear();
+	myBasic->refinementCombo->setMaxCount(numRefinements+1);
+	myBasic->refinementCombo->clear();
 	for (i = 0; i<= numRefinements; i++){
-		refinementCombo->addItem(QString::number(i));
+		myBasic->refinementCombo->addItem(QString::number(i));
 	}
 	
 	if (dataMgr){
 		vector<size_t> cRatios = dataMgr->GetCRatios();
-		lodCombo->clear();
-		lodCombo->setMaxCount(cRatios.size());
+		myBasic->lodCombo->clear();
+		myBasic->lodCombo->setMaxCount(cRatios.size());
 		for (int i = 0; i<cRatios.size(); i++){
 			QString s = QString::number(cRatios[i]);
 			s += ":1";
-			lodCombo->addItem(s);
+			myBasic->lodCombo->addItem(s);
 		}
 	}
 	//Set up the variable combos with default 3D variables  
@@ -606,7 +608,7 @@ reinitTab(bool doOverride){
 	
 	
 	//set the combo to 3D
-	variableDimCombo->setCurrentIndex(1);
+	myBasic->variableDimCombo->setCurrentIndex(1);
 	string tag = ParamsBase::GetTagFromType(myParamsBaseType);
 	if(ControlExec::GetActiveParams(tag))updateTab();
 }
@@ -619,7 +621,7 @@ setCompRatio(int num){
 	if (num == dParams->GetCompressionLevel()) return;
 	
 	dParams->SetCompressionLevel(num);
-	lodCombo->setCurrentIndex(num);
+	myBasic->lodCombo->setCurrentIndex(num);
 	
 	VizWinMgr::getInstance()->forceRender(dParams);
 }
@@ -663,7 +665,7 @@ setNumRefinements(int num){
 	if (num == dParams->GetRefinementLevel()) return;
 
 	dParams->SetRefinementLevel(num);
-	refinementCombo->setCurrentIndex(num);
+	myBasic->refinementCombo->setCurrentIndex(num);
 	myLayout->boxSliderFrame->setNumRefinements(num);
 	
 	VizWinMgr::getInstance()->forceRender(dParams);
