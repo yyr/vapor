@@ -43,6 +43,7 @@ private slots:
 	void newRenderer();
 	void deleteRenderer();
 	void changeChecked(int i, int j);
+	void itemTextChange(QTableWidgetItem*);
 	void selectInstance();
 	void copyInstanceTo(int viznum);
 
@@ -63,6 +64,10 @@ private:
 
 	//Boolean indicates whether will respond to signals
 	bool signalsOn;
+
+	//Convert name to a unique name (among renderer names)
+	std::string uniqueName(std::string name);
+
 	
    };
 

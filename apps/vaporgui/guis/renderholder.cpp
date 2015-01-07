@@ -50,6 +50,7 @@ RenderHolder::RenderHolder(QWidget* parent) : QWidget(parent), Ui_RenderSelector
 	connect(dupCombo, SIGNAL(activated(int)), this, SLOT(copyInstanceTo(int)));
 	connect(tableWidget,SIGNAL(cellChanged(int,int)), this, SLOT(changeChecked(int,int)));
 	connect(tableWidget, SIGNAL(itemSelectionChanged()), this, SLOT(selectInstance()));
+	connect(tableWidget, SIGNAL(itemChanged(QTableWidgetItem*)),this, SLOT(itemTextChange(QTableWidgetItem*)));
 	
 	//Remove any existing widgets:
 	for (int i = stackedWidget->count()-1; i>=0; i--){
@@ -100,6 +101,10 @@ newRenderer(){
 	int rowCount = tableWidget->rowCount();
 	tableWidget->setRowCount(rowCount+1);
 	QString name = rDialog.rendererNameEdit->text();
+	string name1 = name.toStdString();
+	if (name1 == "Renderer Name") name1 = ControlExec::GetShortName(tag);
+	name1 = uniqueName(name1);
+	name = QString(name1.c_str());
 
 	QTableWidgetItem *item0 = new QTableWidgetItem(name);
 	item0->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
@@ -196,6 +201,26 @@ selectInstance(){
 	ControlExec::SetCurrentParamsInstance(viznum,tag, instance);
 	VizWinMgr::getEventRouter(tag)->updateTab();
 }
+void RenderHolder::
+itemTextChange(QTableWidgetItem* item){
+	if (! signalsOn) return;
+	
+	int row = item->row();
+	int col = item->column();
+	if (col != 0) return;
+	int viznum = VizWinMgr::getInstance()->getActiveViz();
+	//avoid responding to item creation:
+	if (instanceName[viznum].size() <= row) return;
+	QString newtext = item->text();
+	string stdtext = newtext.toStdString();
+	
+	if (stdtext == instanceName[viznum][row]) return;
+	string stdtext1 = uniqueName(stdtext);
+	instanceName[viznum][row] = stdtext1;
+	signalsOn = false;
+	if (stdtext1 != stdtext) item->setText(QString(stdtext1.c_str()));
+	signalsOn = true;
+}
 
 void RenderHolder::copyInstanceTo(int toViz){
 	if (toViz == 0) return; 
@@ -210,14 +235,13 @@ void RenderHolder::copyInstanceTo(int toViz){
 	if (toViz == 1) {
 		//another instance in the same viz:
 		RenderParams* newP = (RenderParams*)rP->deepCopy();
-		int rc = ControlExec::AddParams(fromViz,tag,newP);
+		ControlExec::AddParams(fromViz,tag,newP);
 		newP->SetVizNum(fromViz);
 		newP->SetEnabled(false);
 		//Create row in table widget:
 		int rowCount = tableWidget->rowCount();
 		tableWidget->setRowCount(rowCount+1);
-		string name = instanceName[fromViz][row];
-
+		string name = uniqueName(instanceName[fromViz][row]);
 
 		QTableWidgetItem *item0 = new QTableWidgetItem(name.c_str());
 		item0->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
@@ -248,6 +272,36 @@ void RenderHolder::copyInstanceTo(int toViz){
 	er->performGuiCopyInstanceToViz(viznum);
 	return;
 }
+std::string RenderHolder::uniqueName(std::string name){
+	string newname = name;
+	int numViz = VizWinMgr::getInstance()->getNumVisualizers();
+	
+	while(1){
+		bool match = false;
+		for (int viz = 0; viz<numViz; viz++){ 
+			for (int i = 0; i< instanceName[viz].size(); i++){
+				if (newname != instanceName[viz][i]) continue;
+				match = true;
+				//found a match.  Modify newname
+				//If newname ends with a number, increase the number.  Otherwise just append _1
+				size_t lastnonint = newname.find_last_not_of("0123456789");
+				if (lastnonint < newname.length()-1){
+					//remove terminating int
+					string endchars = newname.substr(lastnonint+1);
+					int termInt = std::stoi(endchars);
+					termInt++;
+					endchars = std::to_string((unsigned long long)termInt);
+					newname.replace(lastnonint+1,string::npos, endchars);
+				} else {
+					newname = newname + "_1";
+				}
+				break;
+			}
 
+		}
+		if (!match) break;
+	}
+	return newname;
+}
 
 

@@ -247,30 +247,7 @@ void TabManager::orderTabs(){
 	}
 	connect(this, SIGNAL(currentChanged(int)), this, SLOT(newTopTab(int)));
 	return;
-	/*
-	for (int topTab = 0; topTab<3; topTab++){
-		topWidgets[topTab]->setEnabled(false);
-		for (int j = 0; j< widgets[topTab].size(); j++){
-			foobar = currentIndex();
-			insertWidget(widgets[topTab][j],widgetBaseTypes[topTab][j],false);
-			foobar = currentIndex();
-		}
-		currentFrontPage[topTab] = 0;
-		topWidgets[topTab]->setCurrentIndex(0);
-		topWidgets[topTab]->setParent(this);
-	}
-	foobar = currentIndex();
 	
-	
-	for (int topTab = 0; topTab<3; topTab++){
-		connect(topWidgets[topTab], SIGNAL(currentChanged(int)), this, SLOT(newSubTab(int)));
-		topWidgets[topTab]->setEnabled(true);
-		topWidgets[topTab]->show();
-	}
-	setEnabled(true);
-	show();
-	update();
-	*/
 }
 
 bool TabManager::isFrontTab(QWidget* wid){

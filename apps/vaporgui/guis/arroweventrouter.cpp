@@ -131,6 +131,7 @@ setArrowTextChanged(const QString& ){
 void ArrowEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
 	ArrowParams* aParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
+	if (!aParams) return;
 	Command* cmd = Command::CaptureStart(aParams,"barbs text edit");
 	
 	
@@ -427,6 +428,7 @@ void ArrowEventRouter::updateTab(){
 	
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	ArrowParams* arrowParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
+	if (!arrowParams) return;
 	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	//Find all the visualizers other than the one we are using
 	int winnum = vizMgr->getActiveViz();
