@@ -24,7 +24,7 @@
 #include "vapor/ControlExecutive.h"
 #include "qdialog.h"
 #include "newRendererDialog.h"
-
+#include <sstream>
 #include "assert.h"
 using namespace VAPoR;
 
@@ -288,9 +288,15 @@ std::string RenderHolder::uniqueName(std::string name){
 				if (lastnonint < newname.length()-1){
 					//remove terminating int
 					string endchars = newname.substr(lastnonint+1);
-					int termInt = std::stoi(endchars);
+					//Convert to int:
+					int termInt = atoi(endchars.c_str());
+					//int termInt = std::stoi(endchars);
 					termInt++;
-					endchars = std::to_string((unsigned long long)termInt);
+					//convert termInt to a string
+					std::stringstream ss;
+					ss << termInt;
+				 	endchars = ss.str();	
+					//endchars = std::to_string((unsigned long long)termInt);
 					newname.replace(lastnonint+1,string::npos, endchars);
 				} else {
 					newname = newname + "_1";
