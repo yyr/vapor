@@ -75,7 +75,7 @@ class UDUnits;
 
      //virtual std::string GetCoordSystemType() const;
      
-	 virtual void GetCoordinates(vector <double> &coords) {};
+	 //virtual void GetCoordinates(vector <double> &coords) {};
      //Variable* Get3dVariable(string varname) {return _vars3d[varname];}
      //Variable* Get2dVariable(string varname) {return _vars2d[varname];}
 	// END DCReader Functions

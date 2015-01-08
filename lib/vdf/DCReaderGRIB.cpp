@@ -597,73 +597,71 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 			*/
 		}
 
-			double time = _udunit->EncodeTime(year, month, day, hour, minute, second); 
-			//float P2 = atof(record["P2"].c_str());
-			bool _iScanNeg = atoi(record["_iScanNegsNegatively"].c_str());
-			bool _jScan = atoi(record["_jScansPositively"].c_str());
+		double time = _udunit->EncodeTime(year, month, day, hour, minute, second); 
+		//float P2 = atof(record["P2"].c_str());
+		bool _iScanNeg = atoi(record["_iScanNegsNegatively"].c_str());
+		bool _jScan = atoi(record["_jScansPositively"].c_str());
 	
-			//float P2 = atof(record["P2"].c_str());
-			//if (P2 > 0.0) hour += P2;
-			//double time = _udunit->EncodeTime(year, month, day, hour, minute, second); 
+		//float P2 = atof(record["P2"].c_str());
+		//if (P2 > 0.0) hour += P2;
+		//double time = _udunit->EncodeTime(year, month, day, hour, minute, second); 
 
-			if (std::find(_pressureLevels.begin(), _pressureLevels.end(), level) == _pressureLevels.end()) {
-				if (!strcmp(name.c_str(),"gh")) _pressureLevels.push_back(level);
+		if (std::find(_pressureLevels.begin(), _pressureLevels.end(), level) == _pressureLevels.end()) {
+			if (!strcmp(name.c_str(),"gh")) _pressureLevels.push_back(level);
+		}
+
+		int isobaric = strcmp(levelType.c_str(),"isobaricInhPa");
+		if (isobaric == 0) {									// if we have a 3d var...
+			if (std::find(_gribTimes.begin(), _gribTimes.end(), time) == _gribTimes.end())
+				_gribTimes.push_back(time);
+
+			if (_vars3d.find(name) == _vars3d.end()) {			// if we have a new 3d var...
+				_vars3d[name] = new Variable();
+				_vars3d[name]->setScanDirection(_iScanNeg,_jScan);
 			}
-	
-			int isobaric = strcmp(levelType.c_str(),"isobaricInhPa");
-			if (isobaric == 0) {									// if we have a 3d var...
-				if (std::find(_gribTimes.begin(), _gribTimes.end(), time) == _gribTimes.end())
-					_gribTimes.push_back(time);
-	
-				if (_vars3d.find(name) == _vars3d.end()) {			// if we have a new 3d var...
-					_vars3d[name] = new Variable();
-					_vars3d[name]->setScanDirection(_iScanNeg,_jScan);
-				}
-			
-				std::vector<double> varTimes = _vars3d[name]->GetTimes();
-				if (std::find(varTimes.begin(),varTimes.end(),time) == varTimes.end())	// we only want to record new timestamps
-					_vars3d[name]->_AddTime(time);										// for our vars.  (_gribTimes records all times 
-			
-				// Add level data for current var object
-				std::vector<float> varLevels = _vars3d[name]->GetLevels();
-				if (std::find(varLevels.begin(),varLevels.end(),level) == varLevels.end())
-					_vars3d[name]->_AddLevel(level);
-			
+
+			std::vector<double> varTimes = _vars3d[name]->GetTimes();
+			if (std::find(varTimes.begin(),varTimes.end(),time) == varTimes.end())	// we only want to record new timestamps
+				_vars3d[name]->_AddTime(time);										// for our vars.  (_gribTimes records all times 
+		
+			// Add level data for current var object
+			std::vector<float> varLevels = _vars3d[name]->GetLevels();
+			if (std::find(varLevels.begin(),varLevels.end(),level) == varLevels.end())
+				_vars3d[name]->_AddLevel(level);		
 				_vars3d[name]->_AddMessage(i);									// in the grib file)
 				_vars3d[name]->_AddIndex(time,level,file,offset);
-			}
+		}
 
-			int surface = strcmp(levelType.c_str(),"surface");
-			int meanSea = strcmp(levelType.c_str(),"meanSea");
-			if ((surface == 0) || (meanSea == 0)) {					// if we have a 2d var...
+		int surface = strcmp(levelType.c_str(),"surface");
+		int meanSea = strcmp(levelType.c_str(),"meanSea");
+		if ((surface == 0) || (meanSea == 0)) {					// if we have a 2d var...
 				if (_vars2d.find(name) == _vars2d.end()) {			// if we have a new 2d var...
 					_vars2d[name] = new Variable();
 				}
 
-				// Add level data to current var object
-				// (this should only happen once for a 2D var
-				std::vector<float> varLevels = _vars2d[name]->GetLevels();
-				if (std::find(varLevels.begin(),varLevels.end(),level) == varLevels.end())
-					_vars2d[name]->_AddLevel(level);
+			// Add level data to current var object
+			// (this should only happen once for a 2D var
+			std::vector<float> varLevels = _vars2d[name]->GetLevels();
+			if (std::find(varLevels.begin(),varLevels.end(),level) == varLevels.end())
+				_vars2d[name]->_AddLevel(level);
 
-				_vars2d[name]->_AddTime(time);
-				_vars2d[name]->_AddMessage(i);	
-				_vars2d[name]->_AddIndex(time,level,file,offset);
-			}
-
-			int entireAtmos = strcmp(levelType.c_str(),"entireAtmosphere");
-			if (entireAtmos == 0) {									// if we have a 1d var...
-				if (_vars1d.find(name) == _vars1d.end()) { 			// if we have a new 2d var...
-					_vars1d[name] = new Variable();
-				}   
-				_vars1d[name]->_AddTime(time);
-				_vars1d[name]->_AddMessage(i);   
-				_vars1d[name]->_AddIndex(time,level,file,offset);
-			}
-
-			if (name == "gh") _vars3d["ELEVATION"] = _vars3d["gh"];
+			_vars2d[name]->_AddTime(time);
+			_vars2d[name]->_AddMessage(i);	
+			_vars2d[name]->_AddIndex(time,level,file,offset);
 		}
-	//}
+
+		int entireAtmos = strcmp(levelType.c_str(),"entireAtmosphere");
+		if (entireAtmos == 0) {									// if we have a 1d var...
+			if (_vars1d.find(name) == _vars1d.end()) { 			// if we have a new 2d var...
+				_vars1d[name] = new Variable();
+			}   
+			_vars1d[name]->_AddTime(time);
+			_vars1d[name]->_AddMessage(i);   
+			_vars1d[name]->_AddIndex(time,level,file,offset);
+		}
+
+		if (name == "gh") *_vars3d["ELEVATION"] = *_vars3d["gh"];
+	}
 	
 	typedef std::map<std::string, Variable*>::iterator it_type;
 	for (it_type iterator=_vars3d.begin(); iterator!=_vars3d.end(); iterator++){
@@ -870,13 +868,13 @@ DCReaderGRIB::~DCReaderGRIB() {
 	// special case for ELEVATION and its derived variable, which
 	// are two keys pointing to the same value.  We can can only delete
 	// the value once	
-	for (it_type it = _vars3d.begin(); it != _vars3d.end(); it++) {
-		for (it_type it2 = _vars3d.begin(); it2 != _vars3d.end(); it2++) {
-			if (it->second == it2->second) {
-				it->second = NULL;
-			}
-		}
-	}
+	//for (it_type it = _vars3d.begin(); it != _vars3d.end(); it++) {
+	//	for (it_type it2 = _vars3d.begin(); it2 != _vars3d.end(); it2++) {
+	//		if (it->second == it2->second) {
+	//			it->second = NULL;
+	//		}
+	//	}
+	//}
 
 	for (it_type it = _vars3d.begin(); it != _vars3d.end(); it++) {
 		if (it->second) delete it->second;

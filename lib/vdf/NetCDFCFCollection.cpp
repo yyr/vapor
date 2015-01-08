@@ -1453,7 +1453,7 @@ int NetCDFCFCollection::DerivedVar_AHSPC::Open(size_t ts) {
 			for (size_t i=0; i<nx*ny; i++) {
 				if (PS[i] == mv) PS[i] = 0.0;
 			}
-	        }
+		}
 
 		// PHIS - Surface Geopotential Height
 		if (_ncdfc->VariableExists("PHIS")){	
