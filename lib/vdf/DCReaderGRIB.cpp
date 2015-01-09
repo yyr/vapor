@@ -6,13 +6,13 @@
 //																	   *
 //************************************************************************/
 //
-//  File:		DCReaderGRIB.cpp
+//  File:        DCReaderGRIB.cpp
 //
-//  Author:	  Scott Pearse
-//			   National Center for Atmospheric Research
-//			   PO 3000, Boulder, Colorado
+//  Author:      Scott Pearse
+//               National Center for Atmospheric Research
+//               PO 3000, Boulder, Colorado
 //
-//  Date:		June 2014
+//  Date:	     June 2014
 //
 //  Description: TBD 
 //			   
@@ -52,30 +52,28 @@ DCReaderGRIB::Variable::Variable() {
 	_indices.clear();
 }
 
-DCReaderGRIB::Variable::~Variable() {
-	//if (_messages.size()) _messages.clear();
-	//if (_unitTimes.size()) _unitTimes.clear();
-	//if (_varTimes.size()) _varTimes.clear();
-	//if (_pressureLevels.size()) _pressureLevels.clear();
-
-
-
-	/*typedef std::map<double, std::map<float, MessageLocation> >::iterator it_type;
-	for (it_type it = _indices.begin(); it != _indices.end(); it++) {
-		it->second.clear();
-	}*/
-
-	/*typedef std::map<double, std::map<float, MessageLocation> >::iterator it_type;
-	typedef std::map<float, MessageLocation>::iterator it2_type;
-	for (it_type it = _indices.begin(); it != _indices.end(); it++) {
-		//std::map<float, MessageLocation> second = it->second;	
-		for (it2_type it2 = it->second.begin(); it2 != it->second.end(); it2++) {
-			it2->second.;
-		}
-		delete it->second;
-	}*/
+/*DCReaderGRIB::Variable::Variable(const Variable& var){
+	_indices = var._indices;
+	_messages = var._messages;
+	_pressureLevels = var._pressureLevels;
+	_varTimes = var._varTimes;
+	_unitTimes = var._unitTimes;
 	
-	//if (_indices.size()) _indices.clear();
+	typedef std::map<double, std::map<float, MessageLocation> > ::iterator time_it;
+	typedef std::map<float, MessageLocation> ::iterator level_it;
+    for (time_it time=_indices.begin(); time!=_indices.end(); time++){	
+		for (level_it level=_indices[time->first].begin(); level!=_indices[time->first].end(); level++){
+			_indices[time->first][level->first] = var._indices[time->first][level->first];
+		}
+	}
+}*/
+
+DCReaderGRIB::Variable::~Variable() {
+	if (_messages.size()) _messages.clear();
+	if (_unitTimes.size()) _unitTimes.clear();
+	if (_varTimes.size()) _varTimes.clear();
+	if (_pressureLevels.size()) _pressureLevels.clear();
+	if (_indices.size()) _indices.clear();
 }
 
 bool DCReaderGRIB::Variable::_Exists(double time) const {
@@ -660,10 +658,14 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 			_vars1d[name]->_AddIndex(time,level,file,offset);
 		}
 
-		if (name == "gh") *_vars3d["ELEVATION"] = *_vars3d["gh"];
+		//if (name == "gh") *_vars3d["ELEVATION"] = *_vars3d["gh"];
 	}
 	
 	typedef std::map<std::string, Variable*>::iterator it_type;
+	for (it_type iterator=_vars3d.begin(); iterator!=_vars3d.end(); iterator++){
+		if (iterator->first == "gh") _vars3d["ELEVATION"] = new Variable(*_vars3d["gh"]);
+	}
+
 	for (it_type iterator=_vars3d.begin(); iterator!=_vars3d.end(); iterator++){
 		_vars3d[iterator->first]->_SortLevels();		   //  Sort the levels that apply to each individual variable
 		_vars3d[iterator->first]->_SortTimes();				// Sort udunit times that apply to each individual variable
@@ -679,8 +681,6 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	sort(_gribTimes.begin(), _gribTimes.end());
 
 	rc = _InitCartographicExtents(GetMapProjection());
-			  						 //_pressureLevels,
-									 //_cartesianExtents);
 	
 	_sliceNum = _pressureLevels.size()-1;
 
