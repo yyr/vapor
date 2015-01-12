@@ -1546,7 +1546,13 @@ int NetCDFCFCollection::DerivedVar_AHSPC::Open(size_t ts) {
 }
 
 int NetCDFCFCollection::DerivedVar_AHSPC::Read(float *buf, int){
-	return(0);
+    float *ptr = buf;
+
+    int rc;
+    while ((rc = NetCDFCFCollection::DerivedVar_AHSPC::ReadSlice(ptr,0)) > 0) { 
+        ptr += _dims[0] * _dims[1];
+    }    
+    return(rc);	
 }
 
 int NetCDFCFCollection::DerivedVar_AHSPC::CalculateElevation() {
