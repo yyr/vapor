@@ -87,7 +87,7 @@ class VDF_API DCReaderGRIB : public DCReader {
 		// END Metadata Virtual Functions
 		/////
 
-		vector <double> GetZCoordsInMeters() {return _meterLevels;}
+		vector <double> GetZCoordsInMeters() const {return _meterLevels;}
 		void _LinearInterpolation(float* values);
 	
     private:
@@ -96,7 +96,7 @@ class VDF_API DCReaderGRIB : public DCReader {
 		//int _Initialize(std::vector<std::map<std::string, std::string> > records);
 		int _Initialize(vector<string> files);
 		int PrintVar(string var);
-		float GetLevel(int index) {return _pressureLevels[index];}
+		float GetLevel(int index) const {return _pressureLevels[index];}
 		void PrintLevels();
 		void Print3dVars();
 		void Print1dVars();
@@ -119,8 +119,8 @@ class VDF_API DCReaderGRIB : public DCReader {
 				void _AddLevel(float lvl) {_pressureLevels.push_back(lvl);}
 				void _AddIndex(double time, float level, string file, int offset);
 
-				int GetOffset(double time, float level);
-				string GetFileName(double time, float level);
+				int GetOffset(double time, float level) const;
+				string GetFileName(double time, float level) const;
 				std::vector<int> GetMessages() const {return _messages;}
 				std::vector<double> GetTimes() const {return _unitTimes;}
 				std::vector<float> GetLevels() const {return _pressureLevels;}
@@ -196,7 +196,7 @@ class VDF_API DCReaderGRIB : public DCReader {
 				int _LoadRecord(string file, size_t offset);
 				int _LoadRecordKeys(const string file);	// loads only the keys that we need for vdc creation
 				int _VerifyKeys();					// verifies that key/values conform to our reqs
-				std::vector<std::map<std::string, std::string> > GetRecords() {return _recordKeys;}
+				std::vector<std::map<std::string, std::string> > GetRecords() const {return _recordKeys;}
 				 int doWeIgnoreForecastTimes() {return _ignoreForecastTimes;}
 
 			private:

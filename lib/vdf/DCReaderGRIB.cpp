@@ -45,6 +45,7 @@ int DCReaderGRIB::_sliceNum=0;
 int DCReaderGRIB::_openTS=0;
 
 DCReaderGRIB::Variable::Variable() {
+	_iValues = NULL;
 	_messages.clear();
 	_unitTimes.clear();
 	_varTimes.clear();
@@ -65,12 +66,12 @@ bool DCReaderGRIB::Variable::_Exists(double time) const {
 	return 1;
 }
 
-int DCReaderGRIB::Variable::GetOffset(double time, float level) {
+int DCReaderGRIB::Variable::GetOffset(double time, float level) const {
 	int off = _indices[time][level].offset;
 	return off;
 }
 
-string DCReaderGRIB::Variable::GetFileName(double time, float level) {
+string DCReaderGRIB::Variable::GetFileName(double time, float level) const {
 	string fname = _indices[time][level].fileName;
 	return fname; 
 }
