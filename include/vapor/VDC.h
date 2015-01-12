@@ -657,19 +657,6 @@ public:
  //
  virtual std::vector <string> GetDataVarNames() const;
 
- //! Return a list of data variables with a given dimension rank
- //!
- //! Returns a list of all data variables defined having a 
- //! dimension rank of \p ndim. If \p spatial is true, only the spatial
- //! dimension rank of the variable is compared against \p ndim
- //!
- //! \param[in] ndim Rank of dimensions for comparision
- //! \param[in] spatial Only compare spatial dimensions against \p ndim
- //!
- //! \sa DefineDataVar()
- //
- virtual std::vector <string> GetDataVarNames(int ndim, bool spatial) const;
-
  //! Return a list of names for all of the defined coordinate variables.
  //!
  //! Returns a list of names for all coordinate variables defined 
@@ -678,60 +665,6 @@ public:
  //
  virtual std::vector <string> GetCoordVarNames() const;
 
- //
- //! Return a list of coordinate variables with a given dimension rank
- //!
- //! Returns a list of all coordinate variables defined having a 
- //! dimension rank of \p ndim. If \p spatial is true, only the spatial
- //! dimension rank of the variable is compared against \p ndim
- //!
- //! \param[in] ndim Rank of dimensions for comparision
- //! \param[in] spatial Only compare spatial dimensions against \p ndim
- //!
- //! \sa DefineCoordVar()
- //
- virtual std::vector <string> GetCoordVarNames(int ndim, bool spatial) const;
-
- //! Return a boolean indicating whether a variable is time varying
- //!
- //! This method returns \b true if the variable named by \p varname is defined
- //! and it has a time axis dimension. If either of these conditions
- //! is not true the method returns false.
- //!
- //! \param[in] varname A string specifying the name of the variable. 
- //! \retval bool Returns true if variable \p varname exists and is 
- //! time varying.
- //!
- bool IsTimeVarying(string varname) const;
-
- //! Return a boolean indicating whether a variable is compressed
- //!
- //! This method returns \b true if the variable named by \p varname is defined
- //! and it has a compressed representation. If either of these conditions
- //! is not true the method returns false.
- //!
- //! \param[in] varname A string specifying the name of the variable. 
- //! \retval bool Returns true if variable \p varname exists and is 
- //! compressed
- //!
- //! \sa DefineCoordVar(), DefineDataVar(), DC::BaseVar::IsCompressed()
- //
- bool IsCompressed(string varname) const;
-
- //! Return the time dimension length for a variable
- //!
- //! Returns the number of time steps (length of the time dimension)
- //! for which a variable is defined. If \p varname does not have a 
- //! time coordinate 1 is returned. If \p varname is not defined 
- //! as a variable a negative int is returned.
- //!
- //! \param[in] varname A string specifying the name of the variable. 
- //! \retval count The length of the time dimension, or a negative
- //! int if \p varname is undefined.
- //!
- //! \sa IsTimeVarying()
- //
- int GetNumTimeSteps(string varname) const;
 
  //! Return the number of refinement levels for the indicated variable
  //!
@@ -749,21 +682,6 @@ public:
  //! hierarchy are returned.
  //
  int GetNumRefLevels(string varname) const;
-
- //! Return the compression ratio vector for the indicated variable
- //!
- //! Return the compression ratio vector for the indicated variable. 
- //! The vector returned contains an ordered list of available 
- //! compression ratios for the variable named by \p variable. 
- //! If the variable is not compressed, the \p cratios parameter will
- //! contain a single element, one.
- //!
- //! \param[in] varname Data or coordinate variable name.
- //! \param[out] cratios Ordered vector of compression ratios
- //!
- //! \retval status A negative int is returned on failure
- //
-int GetCRatios(string varname, vector <size_t> &cratios) const;
 
 
  //! Write an attribute
@@ -850,27 +768,6 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
  //! negative value is returned.
  //!
  XType GetAttType(string varname, string attname) const;
-
- //! Parse a vector of DC::Dimensions into space and time dimensions
- //!
- //! This is a convenience utility that parses an ordered 
- //! vector of Dimensions into a vector of spatial lengths, and
- //! the number of time steps (if time varying). The dimension
- //! vector axis must be ordered: X, Y, Z, T
- //!
- //! \param[in] dimensions An ordered vector of dimensions
- //! \param[out] sdims Ordered vector of dimension lengths
- //! extracted from \p dimensions
- //! \param[out] numts The number of time steps if \p dimensions
- //! contains a time dimension, otherwise \p numts will be one
- //! 
- //! \retval status A value of true is returned if the \p dimensions
- //! contains a correctly sized and ordered vector of dimensions
- //
- static bool ParseDimensions(
-	const vector <DC::Dimension> &dimensions,
-	vector <size_t> &sdims, size_t &numts
- );
 
  //! \copydoc DC::GetMapProjection()
  //!
