@@ -8,7 +8,7 @@ FILES = \
 	params regionparams arrowparams mousemodeparams \
 	renderparams viewpoint  vizwinparams instanceparams \
 	animationparams	viewpointparams ParamsBase Box \
-	OpacityMap ColorMap OpacityMapBase ColorMapBase ParamNode command \
+	OpacityMap Colormap OpacityMapBase ColorMapBase ParamNode command \
 	mapperfunction MapperFunctionBase transferfunction histo \
 	tfinterpolator
 	  
