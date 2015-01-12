@@ -27,18 +27,19 @@ using namespace VAPoR;
 // Constructor
 //----------------------------------------------------------------------------
 VColormap::VColormap(MapperFunctionBase *mapper) :
-  ColorMapBase(),
-  _mapper(mapper)
+  ColorMapBase()
+  
 {
+	_mapper = mapper;
 }
 
 //----------------------------------------------------------------------------
 // Copy constructor
 //----------------------------------------------------------------------------
 VColormap::VColormap(const VColormap &cmap, MapperFunctionBase *mapper) : 
-  ColorMapBase(cmap),
-  _mapper(mapper)
+  ColorMapBase(cmap)
 {
+	_mapper=mapper;
 }
 
 //----------------------------------------------------------------------------
@@ -57,11 +58,11 @@ VColormap::~VColormap()
 // space. Therefore, the color map will change relative to any changes in
 // the parameter space. 
 //----------------------------------------------------------------------------
-float VColormap::minValue() const
+float VColormap::minValue()
 {
   assert(_mapper);
 
-  return _mapper->getMinColorMapValue() + _minValue * 
+  return _mapper->getMinColorMapValue() + (float)GetMinValue() * 
     (_mapper->getMaxColorMapValue() - _mapper->getMinColorMapValue());
 }
 
@@ -76,9 +77,10 @@ void VColormap::minValue(float value)
 {
   assert(_mapper);
 
-  _minValue = 
+  SetMinValue( 
     (value - _mapper->getMinColorMapValue()) / 
-    (_mapper->getMaxColorMapValue() - _mapper->getMinColorMapValue());
+    (_mapper->getMaxColorMapValue() - _mapper->getMinColorMapValue())
+	);
 }
 
 //----------------------------------------------------------------------------
@@ -88,11 +90,11 @@ void VColormap::minValue(float value)
 // space. Therefore, the color map will change relative to any changes in
 // the parameter space. 
 //----------------------------------------------------------------------------
-float VColormap::maxValue() const
+float VColormap::maxValue()
 {
   assert(_mapper);
 
-  return _mapper->getMinColorMapValue() + _maxValue * 
+  return _mapper->getMinColorMapValue() + GetMaxValue() * 
     (_mapper->getMaxColorMapValue() - _mapper->getMinColorMapValue());
 }
 
@@ -107,7 +109,8 @@ void VColormap::maxValue(float value)
 {
   assert(_mapper);
 
-  _maxValue = 
+  SetMaxValue(
     (value - _mapper->getMinColorMapValue()) / 
-    (_mapper->getMaxColorMapValue()-_mapper->getMinColorMapValue());
+    (_mapper->getMaxColorMapValue()-_mapper->getMinColorMapValue())
+	);
 }

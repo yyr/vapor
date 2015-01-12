@@ -16,6 +16,7 @@
 #include <vapor/ColorMapBase.h>
 #include <vapor/MapperFunctionBase.h>
 #include "assert.h"
+#include "renderparams.h"
 
 #ifndef MAX
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -152,8 +153,7 @@ void ColorMapBase::Color::toRGB(float *rgb)
 //----------------------------------------------------------------------------
 ColorMapBase::ControlPoint::ControlPoint() :
   _value(0.0),
-  _color(),
-  _selected(false)
+  _color()
 {
 }
 
@@ -162,8 +162,7 @@ ColorMapBase::ControlPoint::ControlPoint() :
 //----------------------------------------------------------------------------
 ColorMapBase::ControlPoint::ControlPoint(Color c, float v) :
   _value(v),
-  _color(c),
-  _selected(false)
+  _color(c)
 {
 }
 
@@ -172,8 +171,7 @@ ColorMapBase::ControlPoint::ControlPoint(Color c, float v) :
 //----------------------------------------------------------------------------
 ColorMapBase::ControlPoint::ControlPoint(const ControlPoint &cp) :
   _value(cp._value),
-  _color(cp._color),
-  _selected(cp._selected)
+  _color(cp._color)
 {
 }
 
@@ -183,32 +181,18 @@ ColorMapBase::ControlPoint::ControlPoint(const ControlPoint &cp) :
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-ColorMapBase::ColorMapBase() :
-  _minValue(0.0),
-  _maxValue(1.0),
-  _interpType(TFInterpolator::linear)
+ 
+ColorMapBase::ColorMapBase() : ParamsBase(0, _tag)
 {
+	_interpType = TFInterpolator::linear;
+  SetMinValue( 0.0);
+  SetMaxValue( 1.0);
   _controlPoints.push_back(new ControlPoint(Color(0, 1.0, 1.0), 0.0));
   _controlPoints.push_back(new ControlPoint(Color(0.333, 1.0, 1.0), 0.333));
   _controlPoints.push_back(new ControlPoint(Color(0.667, 1.0, 1.0), 0.667));
   _controlPoints.push_back(new ControlPoint(Color(0.833, 1.0, 1.0), 1.0));
 }
 
-//----------------------------------------------------------------------------
-// Copy constructor
-//----------------------------------------------------------------------------
-ColorMapBase::ColorMapBase(const ColorMapBase &cmap) :
-  _minValue(cmap._minValue),
-  _maxValue(cmap._maxValue),
-  _interpType(cmap._interpType)
-{
-  for(int i=0; i<cmap._controlPoints.size(); i++)
-  {
-    ControlPoint *cp = cmap._controlPoints[i];
-
-    _controlPoints.push_back(new ControlPoint(*cp));
-  }
-}
 
 
 //----------------------------------------------------------------------------
@@ -234,90 +218,6 @@ void ColorMapBase::clear()
 }
 
 
-//----------------------------------------------------------------------------
-// Build an xml node
-//----------------------------------------------------------------------------
-ParamNode* ColorMapBase::buildNode()
-{
-  std::map <string, string> attrs;
-  string empty;
-
-  attrs.empty();
-  ostringstream oss;
-
-  oss.str(empty);
-  oss << (double)_minValue;
-  attrs[_minTag] = oss.str();
-
-  oss.str(empty);
-  oss << (double)_maxValue;
-  attrs[_maxTag] = oss.str();
-
-  oss.str(empty);
-  if (interpType() == TFInterpolator::discrete)
-	oss << "true";
-  else oss << "false";
-  attrs[_discreteColorAttr] = oss.str();
-
-
-  ParamNode* mainNode = new ParamNode(_tag, attrs, _controlPoints.size());
-
-  for (int i=0; i < _controlPoints.size(); i++)
-  {
-    map <string, string> cpAttrs;
-
-    oss.str(empty);
-    oss << (double)_controlPoints[i]->color().hue() << " " 
-        << (double)_controlPoints[i]->color().sat() << " " 
-        << (double)_controlPoints[i]->color().val();
-    cpAttrs[_cpHSVTag] = oss.str();
-    
-    oss.str(empty);
-    oss << (double)_controlPoints[i]->value();
-    cpAttrs[_cpValueTag] = oss.str();
-    
-    mainNode->NewChild(_controlPointTag, cpAttrs, 0);
-  }
-
-  return mainNode;
-}
-
-//----------------------------------------------------------------------------
-// Return the minimum value of the color map (in data coordinates).
-// 
-//----------------------------------------------------------------------------
-float ColorMapBase::minValue() const
-{
-
-  return _minValue;
-}
-
-//----------------------------------------------------------------------------
-// Set the minimum value of the color map (in data coordinates).
-// 
-//----------------------------------------------------------------------------
-void ColorMapBase::minValue(float value)
-{
-  _minValue = value;
-}
-
-//----------------------------------------------------------------------------
-// Return the maximum value of the color map (in data coordinates).
-// 
-//----------------------------------------------------------------------------
-float ColorMapBase::maxValue() const
-{
-  return _maxValue;
-}
-
-//----------------------------------------------------------------------------
-// Set the maximum value of the color map (in data coordinates).
-// 
-//----------------------------------------------------------------------------
-void ColorMapBase::maxValue(float value)
-{
-  _maxValue = value;
-}
 
 //----------------------------------------------------------------------------
 // Return the control point's color
@@ -346,7 +246,7 @@ float ColorMapBase::controlPointValue(int index)
   assert(index>=0 && index<_controlPoints.size());
   float norm = _controlPoints[index]->value();
 
-  return (norm * (maxValue() - minValue()) + minValue());
+  return (norm * (GetMaxValue() - GetMinValue()) + GetMinValue());
 }
 
 //----------------------------------------------------------------------------
@@ -363,7 +263,7 @@ void  ColorMapBase::controlPointValue(int index, float value)
   
   ControlPoint *cp = *iter;
 
-  float nv = (value - minValue()) / (maxValue() - minValue());
+  float nv = (value - GetMinValue()) / (GetMaxValue() - GetMinValue());
 
   float minVal = 0.0;
   float maxVal = 1.0;
@@ -407,7 +307,7 @@ void ColorMapBase::addControlPointAt(float value)
 {
   Color c = color(value);
 
-  float nv = (value - minValue()) / (maxValue() - minValue());
+  float nv = (value - GetMinValue()) / (GetMaxValue() - GetMinValue());
 
   _controlPoints.push_back(new ControlPoint(c, nv));
 
@@ -419,7 +319,7 @@ void ColorMapBase::addControlPointAt(float value)
 //----------------------------------------------------------------------------
 void ColorMapBase::addControlPointAt(float value, Color color)
 {
-  float nv = (value - minValue()) / (maxValue() - minValue());
+  float nv = (value - GetMinValue()) / (GetMaxValue() - GetMinValue());
 
   _controlPoints.push_back(new ControlPoint(color, nv));
 
@@ -467,7 +367,7 @@ void ColorMapBase::move(int index, float delta)
 
     float minVal = 0.0;
     float maxVal = 1.0;
-    float ndx = delta / (maxValue() - minValue());
+    float ndx = delta / (GetMaxValue() - GetMinValue());
 
     if (iter != _controlPoints.begin())
     {
@@ -508,7 +408,7 @@ ColorMapBase::Color ColorMapBase::color(float value)
   //
   // normalize the value
   // 
-  float nv = (value - minValue()) / (maxValue() - minValue());
+  float nv = (value - GetMinValue()) / (GetMaxValue() - GetMinValue());
   
   //
   // Find the bounding control points
@@ -582,122 +482,5 @@ int ColorMapBase::leftIndex(float val)
   return left;
 }
 
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
-bool ColorMapBase::elementStartHandler(ExpatParseMgr* pm, int depth, string& tag,
-                                   const char **attrs)
-{
-  if (StrCmpNoCase(tag, _tag) == 0)
-  {
-    //
-    // Clear the current control points
-    //
-    clear();
-	//Default interpolation is linear:
-	interpType(TFInterpolator::linear); 
-    //
-    // Read in the attributes
-    //
-    while (*attrs)
-    {
-      string attribName = *attrs;
-      attrs++;
-      string value = *attrs;
-      attrs++;
-      istringstream ist(value);
-
-      // Minimum extent
-      if (StrCmpNoCase(attribName, _minTag) == 0) 
-      {
-        ist >> _minValue;
-      }
-      
-      // Maximum extent
-      else if (StrCmpNoCase(attribName, _maxTag) == 0) 
-      {
-        ist >> _maxValue;
-      }
-	  else if (StrCmpNoCase(attribName, _discreteColorAttr) == 0) 
-      {
-        if (value == "true") interpType(TFInterpolator::discrete); 
-		else interpType(TFInterpolator::linear); 
-      }
-
-    }
-    
-    return true;
-  }
-  //
-  // Read in control points
-  //
-  else if (StrCmpNoCase(tag, _controlPointTag) == 0) 
-  {
-    float hue;
-    float sat;
-    float val;
-    float value;
-
-    while (*attrs)
-    {
-      string attribName = *attrs;
-      attrs++;
-      istringstream ist(*attrs);
-      attrs++;
-
-      // Color
-      if (StrCmpNoCase(attribName, _cpHSVTag) == 0) 
-      {
-        ist >> hue;
-        ist >> sat;
-        ist >> val;
-      }
-	  else if (StrCmpNoCase(attribName, _cpRGBTag) == 0) 
-      {
-	    float rgb[3],hsv[3];
-        ist >> rgb[0];
-        ist >> rgb[1];
-        ist >> rgb[2];
-		for (int i = 0; i<3; i++) rgb[i] /= 256.f;
-		MapperFunctionBase::rgbToHsv(rgb,hsv);
-		hue = hsv[0];
-		sat = hsv[1];
-		val = hsv[2];
-		
-      }
-      // Value
-      else if (StrCmpNoCase(attribName, _cpValueTag) == 0) 
-      {
-        ist >> value;
-      }
-
-    }    
-
-    _controlPoints.push_back(new ControlPoint(Color(hue, sat, val), value));
-
-    return true;
-  }
-  pm->skipElement(tag, depth);
-  return true;
-
-}
-
-
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
-bool ColorMapBase::elementEndHandler(ExpatParseMgr* pm, int depth, string &tag)
-{
-  //Check only for the transferfunction tag, ignore others.
-  if (StrCmpNoCase(tag, _tag) != 0) return true;
-  
-  //If depth is 0, this is a color map file; otherwise need to
-  //pop the parse stack.  The caller will need to save the resulting
-  //transfer function (i.e. this)
-  if (depth == 0) return true;
-	
-  ParsedXml* px = pm->popClassStack();
-  bool ok = px->elementEndHandler(pm, depth, tag);
-
-  return ok;
-}
+void ColorMapBase::SetMinValue(double val) {SetValueDouble(_minTag,"Set min color map value", val, _mapper->getParams());}
+void ColorMapBase::SetMaxValue(double val) {SetValueDouble(_maxTag,"Set max color map value", val, _mapper->getParams());}

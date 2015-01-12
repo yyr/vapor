@@ -8,9 +8,13 @@ FILES = \
 	params regionparams arrowparams mousemodeparams \
 	renderparams viewpoint  vizwinparams instanceparams \
 	animationparams	viewpointparams ParamsBase Box \
-	ParamNode command  
+	OpacityMap ColorMap OpacityMapBase ColorMapBase ParamNode command \
+	mapperfunction MapperFunctionBase transferfunction histo \
+	tfinterpolator
+	  
 	
-HEADER_FILES = ParamsBase ParamNode
+HEADER_FILES = ParamsBase ParamNode MapperFunctionBase ColorMapBase \
+	OpacityMapBase tfinterpolator
 	
 ifeq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += /D"PARAMS_EXPORTS"

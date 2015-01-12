@@ -11,7 +11,7 @@
 
 
 #include <iostream>
-#include <vapor/ExpatParseMgr.h>
+#include <vapor/ParamsBase.h>
 #include <vapor/tfinterpolator.h>
 
 namespace VAPoR {
@@ -20,7 +20,7 @@ class XmlNode;
 class ParamNode;
 class MapperFunctionBase;
 
-class PARAMS_API OpacityMapBase : public ParsedXml 
+class PARAMS_API OpacityMapBase : public ParamsBase
 {
   class ControlPoint
   {
@@ -37,16 +37,11 @@ class PARAMS_API OpacityMapBase : public ParsedXml
     void  value(float val) { _value = val; }  // Normalized Coordinates
     float value()          { return _value; } // Normalized Coordinates
 
-    void  select()   { _selected = true; }
-    void  deselect() { _selected = false; }
-    bool  selected() { return _selected; }
-	
   private:
 
     float _value;   // Normalized coordinates
     float _opacity;
     
-    bool  _selected;
   };
 
 public:
@@ -59,18 +54,12 @@ public:
     SINE
   };
 
-#ifdef	DEAD
-  OpacityMapBase(RenderParams *params, OpacityMapBase::Type type=CONTROL_POINT);
-#else
   OpacityMapBase(OpacityMapBase::Type type=CONTROL_POINT);
-#endif
-  OpacityMapBase(const OpacityMapBase &omap);
 
   virtual ~OpacityMapBase();
 
   void clear();
 
-  ParamNode* buildNode();
 
   const OpacityMapBase& operator=(const OpacityMapBase &cmap);
 
@@ -83,11 +72,13 @@ public:
   bool isEnabled() { return _enabled; }
   void setEnabled(bool flag) { _enabled = flag;}
 
-  virtual float minValue() const;      // Data Coordinates
-  virtual void  minValue(float value); // Data Coordinates
+  //The base class has Get/Set of min and max which are relative to 0,1
+  double GetMinValue()  {return GetValueDouble(_minTag);}     // Data Coordinates
+  double GetMaxValue()  {return GetValueDouble(_maxTag);}     // Data Coordinates
 
-  virtual float maxValue() const;      // Data Coordinates
-  virtual void  maxValue(float value); // Data Coordinates
+  void SetMinValue(double val); 
+  void SetMaxValue(double val);
+
 
   int numControlPoints()      { return (int)_controlPoints.size(); }
 
@@ -119,13 +110,12 @@ public:
 
   static string xmlTag() { return _tag; }
 
-  virtual bool elementStartHandler(ExpatParseMgr*, int, std::string&, 
-                                   const char **attribs);
-  virtual bool elementEndHandler(ExpatParseMgr*, int depth, std::string &tag);
   void interpType(TFInterpolator::type t){_interpType = t;}
   TFInterpolator::type interpType() {return _interpType;}
+  void setMapper(MapperFunctionBase* m) {_mapper = m;}
 
-protected:
+protected: 
+  MapperFunctionBase *_mapper;
   TFInterpolator::type _interpType;
   int leftControlIndex(float val);
   static bool sortCriterion(ControlPoint *p1, ControlPoint *p2);
@@ -138,9 +128,6 @@ protected:
 
   double normSinePhase(double phase) const;
   double denormSinePhase(double phase) const;
-
-  float _minValue;
-  float _maxValue;
    
 private:
 

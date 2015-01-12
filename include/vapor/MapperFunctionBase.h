@@ -33,13 +33,13 @@
 namespace VAPoR {
 class XmlNode;
 class ParamNode;
+class RenderParams;
 class PARAMS_API MapperFunctionBase : public ParamsBase 
 {
 
 public:
 	MapperFunctionBase(const string& name);
 	MapperFunctionBase(int nBits, const string& name);
-	MapperFunctionBase(const MapperFunctionBase &mapper);
 	
 	virtual ~MapperFunctionBase();
 
@@ -170,22 +170,7 @@ public:
                      (float)(numEntries-1));
 	}
 	
-    //
-	// Methods to save and restore Mapper functions.
-	// The gui opens the FILEs that are then read/written
-	// Failure results in false/null pointer
-	//
-	// These methods are the same as the transfer function methods,
-	// except for specifying separate color and opacity bounds,
-	// and not having a name attribute
-    //
-	
-	virtual ParamNode* buildNode(); 
-
-	virtual bool elementStartHandler(ExpatParseMgr*, int depth, 
-                                     std::string&, const char **);
-
-	virtual bool elementEndHandler(ExpatParseMgr*, int, std::string&);
+   
    
     std::string getName() { return mapperName; }
 
@@ -198,6 +183,8 @@ public:
 	void setColorInterpType(TFInterpolator::type t){
 		if (_colormap) _colormap->interpType(t);
 	}
+	void setParams(RenderParams* p) { _params = p; }
+	RenderParams* getParams()       { return _params; }
 
 protected:
 
@@ -246,9 +233,8 @@ protected:
     //
     // Parent params
     //
-#ifdef	DEAD
-	RenderParams* myParams;
-#endif
+
+	RenderParams* _params;
 	
     //
 	// Size of lookup table.  Always 1<<8 currently!

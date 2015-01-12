@@ -18,10 +18,8 @@
 //
 #include "histo.h"
 #include "regionparams.h"
-#include "dvrparams.h"
 #include "animationparams.h"
-#include <qapplication.h>
-#include <qcursor.h>
+
 using namespace VAPoR;
 
 

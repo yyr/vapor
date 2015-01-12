@@ -95,7 +95,7 @@ class PipeLine;
 //! \p cratios vector.
 //! \endparblock
 //
-class DataMgrV3_0 : public VetsUtil::MyBase {
+class VDF_API DataMgrV3_0 : public VetsUtil::MyBase {
 public:
 
  //! Constructor for the DataMgrV3_0 class.

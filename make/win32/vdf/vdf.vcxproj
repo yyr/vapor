@@ -228,10 +228,10 @@
     <ClCompile Include="..\..\..\lib\vdf\DataMgrMOM.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\DataMgrROMS.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\DataMgrV3_0.cpp" />
-    <ClCompile Include="..\..\..\lib\vdf\DataMgrVDC.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\DataMgrWB.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\DataMgrWC.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\DataMgrWRF.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\DC.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\DCReaderMOM.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\DCReaderNCDF.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\DCReaderROMS.cpp" />
@@ -293,8 +293,8 @@
     <ClInclude Include="..\..\..\include\vapor\DataMgrMOM.h" />
     <ClInclude Include="..\..\..\include\vapor\DataMgrROMS.h" />
     <ClInclude Include="..\..\..\include\vapor\DataMgrV3_0.h" />
-    <ClInclude Include="..\..\..\include\vapor\DataMgrVDC.h" />
     <ClInclude Include="..\..\..\include\vapor\DataMgrWB.h" />
+    <ClInclude Include="..\..\..\include\vapor\DC.h" />
     <ClInclude Include="..\..\..\include\vapor\DCReader.h" />
     <ClInclude Include="..\..\..\include\vapor\DCReaderMOM.h" />
     <ClInclude Include="..\..\..\include\vapor\DCReaderNCDF.h" />

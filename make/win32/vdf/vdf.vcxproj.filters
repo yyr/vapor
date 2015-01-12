@@ -207,7 +207,7 @@
     <ClCompile Include="..\..\..\lib\vdf\DataMgrV3_0.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\lib\vdf\DataMgrVDC.cpp">
+    <ClCompile Include="..\..\..\lib\vdf\DC.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -350,7 +350,7 @@
     <ClInclude Include="..\..\..\include\vapor\DataMgrV3_0.h">
       <Filter>Source Files\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\vapor\DataMgrVDC.h">
+    <ClInclude Include="..\..\..\include\vapor\DC.h">
       <Filter>Source Files\Header Files</Filter>
     </ClInclude>
   </ItemGroup>

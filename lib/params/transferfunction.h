@@ -26,10 +26,8 @@
 #define TRANSFERFUNCTION_H
 #define MAXCONTROLPOINTS 50
 #include <vapor/tfinterpolator.h>
-//#include "params.h"
+
 #include "mapperfunction.h"
-#include <vapor/ExpatParseMgr.h>
-#include <qcolor.h>
 
 namespace VAPoR {
 class TFEditor;
@@ -80,21 +78,13 @@ public:
 	bool saveToFile(ofstream& f);
     static TransferFunction* loadFromFile(ifstream& is, RenderParams *p);
 
-	virtual ParamNode* buildNode(const string& tfname);
-	virtual ParamNode* buildNode();
-	
-	//All the parsing can be done with the start handlers
-	bool elementStartHandler(ExpatParseMgr*, int depth , std::string& s, 
-                             const char **attr);
-	bool elementEndHandler(ExpatParseMgr*, int , std::string&);
-
 	//Transfer function tag is visible to session 
 	static const string _transferFunctionTag;
 	virtual void hookup(RenderParams* p, int cvar, int ovar){
 		_params = p;
 		colorVarNum = cvar;
 		opacVarNum = ovar; 
-		if(_colormap)((VColormap*)_colormap)->setMapper(this);
+		if(_colormap) _colormap->setMapper(this);
 		if(_opacityMaps.size()>0) ((OpacityMap*)_opacityMaps[0])->setMapper(this);
 	}
 	virtual TransferFunction* deepCopy(ParamNode* newRoot = 0){

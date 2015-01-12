@@ -147,7 +147,7 @@ namespace VAPoR {
 //!
 //! \endparblock
 //!
-class DC : public VetsUtil::MyBase {
+class VDF_API DC : public VetsUtil::MyBase {
 public:
 
  //! External storage types for primitive data

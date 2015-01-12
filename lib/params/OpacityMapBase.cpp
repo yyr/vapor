@@ -17,6 +17,8 @@
 #include <vapor/ParamNode.h>
 #include <vapor/MyBase.h>
 #include <vapor/OpacityMapBase.h>
+#include <vapor/MapperFunctionBase.h>
+#include "renderparams.h"
 
 #ifndef MAX
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -64,8 +66,7 @@ const string OpacityMapBase::_cpValueTag = "Value";
 //----------------------------------------------------------------------------
 OpacityMapBase::ControlPoint::ControlPoint() :
   _value(0.0),
-  _opacity(1.0),
-  _selected(false)
+  _opacity(1.0)
 {
 }
 
@@ -74,8 +75,7 @@ OpacityMapBase::ControlPoint::ControlPoint() :
 //----------------------------------------------------------------------------
 OpacityMapBase::ControlPoint::ControlPoint(float v, float o) :
   _value(v),
-  _opacity(o),
-  _selected(false)
+  _opacity(o)
 {
 }
 
@@ -84,64 +84,37 @@ OpacityMapBase::ControlPoint::ControlPoint(float v, float o) :
 //----------------------------------------------------------------------------
 OpacityMapBase::ControlPoint::ControlPoint(const ControlPoint &cp) :
   _value(cp._value),
-  _opacity(cp._opacity),
-  _selected(cp._selected)
+  _opacity(cp._opacity)
 {
 }
 
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-OpacityMapBase::OpacityMapBase(OpacityMapBase::Type type) :
-  _minValue(0.0),
-  _maxValue(1.0),
-  _type(type),
-  _enabled(true),
-  _mean(0.5),
-  _ssq(0.1),
-  _freq(5.0),
-  _phase(2*M_PI),
+OpacityMapBase::OpacityMapBase(OpacityMapBase::Type type) : ParamsBase(0, _tag),
   _minSSq(0.0001),
   _maxSSq(1.0),
   _minFreq(1.0),
   _maxFreq(30.0),
   _minPhase(0.0),
   _maxPhase(2*M_PI),
-  _interpType(TFInterpolator::linear)
+  _mapper(NULL)
 {
+  _interpType = TFInterpolator::linear;
+  
+  _type =type,
+  _enabled = true;
+  _mean = 0.5;
+  _ssq = 0.1;
+  _freq = 5.0;
+  _phase=2*M_PI;
+  
   _controlPoints.push_back(new ControlPoint(0.0, 0.0));
   _controlPoints.push_back(new ControlPoint(0.333, 0.333));
   _controlPoints.push_back(new ControlPoint(0.667, 0.667));
   _controlPoints.push_back(new ControlPoint(1.0, 1.0));
 }
 
-//----------------------------------------------------------------------------
-// Copy constructor
-//----------------------------------------------------------------------------
-OpacityMapBase::OpacityMapBase(const OpacityMapBase &omap) :
-  _minValue(omap._minValue),
-  _maxValue(omap._maxValue),
-  _type(omap._type),
-  _interpType(omap._interpType),
-  _enabled(omap._enabled),
-  _mean(omap._mean),
-  _ssq(omap._ssq),
-  _freq(omap._freq),
-  _phase(omap._phase),
-  _minSSq(0.0001),
-  _maxSSq(1.0),
-  _minFreq(1.0),
-  _maxFreq(60.0),
-  _minPhase(0.0),
-  _maxPhase(2*M_PI)
-{
-  for(int i=0; i<omap._controlPoints.size(); i++)
-  {
-    ControlPoint *cp = omap._controlPoints[i];
-
-    _controlPoints.push_back(new ControlPoint(*cp));
-  }
-}
 
 //----------------------------------------------------------------------------
 // Destructor
@@ -163,69 +136,6 @@ void OpacityMapBase::clear()
   }
 
   _controlPoints.clear();
-}
-
-//----------------------------------------------------------------------------
-// Build an xml node (caller has ownership)
-//----------------------------------------------------------------------------
-ParamNode* OpacityMapBase::buildNode()
-{
-  std::map <string, string> attrs;
-  string empty;
-
-  attrs.empty();
-  ostringstream oss;
-
-  oss.str(empty);
-  oss << (int)_type;
-  attrs[_typeTag] = oss.str();
-
-  oss.str(empty);
-  oss << (double)_minValue;
-  attrs[_minTag] = oss.str();
-
-  oss.str(empty);
-  oss << (double)_maxValue;
-  attrs[_maxTag] = oss.str();
-
-  oss.str(empty);
-  oss << (bool)_enabled;
-  attrs[_enabledTag] = oss.str();
-
-  oss.str(empty);
-  oss << (double)_mean;
-  attrs[_meanTag] = oss.str();
-
-  oss.str(empty);
-  oss << (double)_ssq;
-  attrs[_ssqTag] = oss.str();
-
-  oss.str(empty);
-  oss << (double)_freq;
-  attrs[_freqTag] = oss.str();
-
-  oss.str(empty);
-  oss << (double)_phase;
-  attrs[_phaseTag] = oss.str();
-
-  ParamNode* mainNode = new ParamNode(_tag, attrs, _controlPoints.size());
-
-  for (int i=0; i < _controlPoints.size(); i++)
-  {
-    map <string, string> cpAttrs;
-
-    oss.str(empty);
-    oss << (double)_controlPoints[i]->opacity();
-    cpAttrs[_cpOpacityTag] = oss.str();
-    
-    oss.str(empty);
-    oss << (double)_controlPoints[i]->value();
-    cpAttrs[_cpValueTag] = oss.str();
-    
-    mainNode->NewChild(_controlPointTag, cpAttrs, 0);
-  }
-
-  return mainNode;
 }
 
 
@@ -253,7 +163,7 @@ void OpacityMapBase::addNormControlPoint(float normVal, float opacity)
 //----------------------------------------------------------------------------
 void OpacityMapBase::addControlPoint(float value, float opacity)
 {
-  float normVal = (value - minValue()) / (maxValue() - minValue());
+  float normVal = (value - GetMinValue()) / (GetMaxValue() - GetMinValue());
 
   _controlPoints.push_back(new ControlPoint(normVal, opacity));
                            
@@ -291,7 +201,7 @@ void OpacityMapBase::moveControlPoint(int index, float dx, float dy)
 
     float minVal = 0.0;
     float maxVal = 1.0;
-    float ndx = dx / (maxValue() - minValue());
+    float ndx = dx / (GetMaxValue() - GetMinValue());
 
     if (iter != _controlPoints.begin())
     {
@@ -381,17 +291,17 @@ float OpacityMapBase::controlPointValue(int index)
 {
   if (index < 0)
   {
-    return minValue();
+    return GetMinValue();
   }
 
   if (index >= _controlPoints.size())
   {
-    return maxValue();
+    return GetMaxValue();
   }
 
   float norm = _controlPoints[index]->value();
 
-  return (norm * (maxValue() - minValue()) + minValue());
+  return (norm * (GetMaxValue() - GetMinValue()) + GetMinValue());
 }
 
 //----------------------------------------------------------------------------
@@ -408,7 +318,7 @@ void OpacityMapBase::controlPointValue(int index, float value)
   
   ControlPoint *cp = *iter;
 
-  float nv = (value - minValue()) / (maxValue() - minValue());
+  float nv = (value - GetMinValue()) / (GetMaxValue() - GetMinValue());
 
   float minVal = 0.0;
   float maxVal = 1.0;
@@ -468,56 +378,20 @@ void OpacityMapBase::sinePhase(double p)
   _phase = denormSinePhase(p); 
 } 
 
-//----------------------------------------------------------------------------
-// Return the minimum value of the opacity map (in data coordinates).
-// 
-//----------------------------------------------------------------------------
-float OpacityMapBase::minValue() const
-{
-  return _minValue;
-}
-
-//----------------------------------------------------------------------------
-// Set the minimum value of the opacity map (in data coordinates).
-// 
-//----------------------------------------------------------------------------
-void OpacityMapBase::minValue(float value)
-{
-  _minValue = value;
-}
-
-//----------------------------------------------------------------------------
-// Return the maximum value of the opacity map (in data coordinates).
-// 
-//----------------------------------------------------------------------------
-float OpacityMapBase::maxValue() const
-{
-  return _maxValue;
-}
-
-//----------------------------------------------------------------------------
-// Set the maximum value of the opacity map (in data coordinates).
-// 
-//----------------------------------------------------------------------------
-void OpacityMapBase::maxValue(float value)
-{
-  _maxValue = value;
-}
-
 
 //----------------------------------------------------------------------------
 // 
 //----------------------------------------------------------------------------
 float OpacityMapBase::opacity(float value)
 {
-  float nv = (value - minValue()) / (maxValue() - minValue());
+  float nv = (value - GetMinValue()) / (GetMaxValue() - GetMinValue());
  
-  if (value < minValue())
+  if (value < GetMinValue())
   {
     nv = 0;
   }
   
-  if (value > maxValue())
+  if (value > GetMaxValue())
   {
     nv = 1.0;
   }
@@ -578,7 +452,7 @@ float OpacityMapBase::opacity(float value)
 //----------------------------------------------------------------------------
 bool OpacityMapBase::bounds(float value)
 {
-  return (value >= minValue() && value <= maxValue());
+  return (value >= GetMinValue() && value <= GetMaxValue());
 }
 
 //----------------------------------------------------------------------------
@@ -682,143 +556,5 @@ bool OpacityMapBase::isOpaque()
   return true;
 }
 
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
-bool OpacityMapBase::elementStartHandler(ExpatParseMgr* pm, int depth, string& tag,
-                                     const char **attrs)
-{
-  if (StrCmpNoCase(tag, _tag) == 0)
-  {
-    //
-    // Clear the current control points
-    //
-    for(int i=0; i<_controlPoints.size(); i++)
-    {
-      ControlPoint *cp = _controlPoints[i];
-      if (cp) delete cp;
-    }
-
-    _controlPoints.clear();
-
-    //
-    // Read in the attributes
-    //
-    while (*attrs)
-    {
-      string attribName = *attrs;
-      attrs++;
-      string value = *attrs;
-      attrs++;
-      istringstream ist(value);
-
-      // Minimum extent
-      if (StrCmpNoCase(attribName, _minTag) == 0) 
-      {
-        ist >> _minValue;
-      }
-      
-      // Maximum extent
-      else if (StrCmpNoCase(attribName, _maxTag) == 0) 
-      {
-        ist >> _maxValue;
-      }
-
-      // Enabled
-      else if (StrCmpNoCase(attribName, _enabledTag) == 0) 
-      {
-        ist >> _enabled;
-      }
-
-      // Type
-      else if (StrCmpNoCase(attribName, _typeTag) == 0)
-      {
-        int ival;
-        ist >> ival;
-
-        _type = (OpacityMapBase::Type)ival;
-      }
-
-      // Gaussian Mean
-      else if (StrCmpNoCase(attribName, _meanTag) == 0)
-      {
-        ist >> _mean;
-      }
-
-      // Gaussian sigma^2
-      else if (StrCmpNoCase(attribName, _ssqTag) == 0)
-      {
-        ist >> _ssq;
-      }
-
-      // Sine Freq
-      else if (StrCmpNoCase(attribName, _freqTag) == 0)
-      {
-        ist >> _freq;
-      }
-
-      // Sine phase
-      else if (StrCmpNoCase(attribName, _phaseTag) == 0)
-      {
-        ist >> _phase;
-      }
-
-    }
-    
-    return true;
-  }
-  //
-  // Read in control points
-  //
-  else if (StrCmpNoCase(tag, _controlPointTag) == 0) 
-  {
-    float opacity;
-    float value;
-
-    while (*attrs)
-    {
-      string attribName = *attrs;
-      attrs++;
-      istringstream ist(*attrs);
-      attrs++;
-
-      // Opacity
-      if (StrCmpNoCase(attribName, _cpOpacityTag) == 0) 
-      {
-        ist >> opacity;
-      }
-      // Value
-      else if (StrCmpNoCase(attribName, _cpValueTag) == 0) 
-      {
-        ist >> value;
-      }
-    }    
-
-    _controlPoints.push_back(new ControlPoint(value, opacity));
-
-    return true;
-  }
-
-  pm->skipElement(tag, depth);
-  return true;
-}
-
-
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
-bool OpacityMapBase::elementEndHandler(ExpatParseMgr* pm, int depth, string &tag)
-{
-  //Check only for the transferfunction tag, ignore others.
-  if (StrCmpNoCase(tag, _tag) != 0) return true;
-  
-  //If depth is 0, this is a opacity map file; otherwise need to
-  //pop the parse stack.  The caller will need to save the resulting
-  //transfer function (i.e. this)
-  if (depth == 0) return true;
-	
-  ParsedXml* px = pm->popClassStack();
-  bool ok = px->elementEndHandler(pm, depth, tag);
-
-  return ok;
-}
+void OpacityMapBase::SetMinValue(double val) {SetValueDouble(_minTag,"Set min opacity map value", val, _mapper->getParams());}
+void OpacityMapBase::SetMaxValue(double val) {SetValueDouble(_maxTag,"Set max opacity map value", val, _mapper->getParams());}

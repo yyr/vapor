@@ -9,14 +9,15 @@
 #ifndef ColorMapBase_H
 #define ColorMapBase_H
 
-#include <vapor/ExpatParseMgr.h>
+#include <vapor/ParamsBase.h>
 #include <vapor/tfinterpolator.h>
 
 namespace VAPoR {
 
 class ParamNode;
+class MapperFunctionBase;
 
-class PARAMS_API ColorMapBase : public ParsedXml 
+class PARAMS_API ColorMapBase : public ParamsBase
 {
 
 public:
@@ -50,21 +51,19 @@ public:
 
 
   ColorMapBase();
-  ColorMapBase(const ColorMapBase &cmap);
-
+ 
   virtual ~ColorMapBase();
 
   const ColorMapBase& operator=(const ColorMapBase &cmap);
 
-  ParamNode* buildNode();
-
   void  clear();
 
-  virtual float minValue() const;      // Data Coordinates
-  virtual void  minValue(float value); // Data Coordinates
+  //The base class has Get/Set of min and max which are relative to 0,1
+  double GetMinValue()  {return GetValueDouble(_minTag);}     // Data Coordinates
+  double GetMaxValue()  {return GetValueDouble(_maxTag);}     // Data Coordinates
 
-  virtual float maxValue() const;      // Data Coordinates
-  virtual void  maxValue(float value); // Data Coordinates
+  void SetMinValue(double val); 
+  void SetMaxValue(double val);
 
   int numControlPoints()                { return (int)_controlPoints.size(); }
 
@@ -85,14 +84,13 @@ public:
 
   static string xmlTag() { return _tag; }
 
-  virtual bool elementStartHandler(ExpatParseMgr*, int, std::string&, 
-                                   const char **attribs);
-  virtual bool elementEndHandler(ExpatParseMgr*, int depth, std::string &tag);
+ 
   void interpType(TFInterpolator::type t){_interpType = t;}
   TFInterpolator::type interpType() {return _interpType;}
+  void setMapper(MapperFunctionBase* m) {_mapper = m;}
 	
 protected:
-
+  MapperFunctionBase *_mapper;
   int leftIndex(float val);
   TFInterpolator::type _interpType;
 
@@ -110,28 +108,22 @@ protected:
 
     void  value(float val) { _value = val; }
     float value()          { return _value; }
-
-    void  select()   { _selected = true; }
-    void  deselect() { _selected = false; }
-    bool  selected() { return _selected; }
 	
   private:
 	
     float _value;
     Color _color;
     
-    bool  _selected;
   };
 
   static bool sortCriterion(ControlPoint *p1, ControlPoint *p2);
 
-  float _minValue;
-  float _maxValue;
+  
 
 
 private:
 
-
+  
   vector<ControlPoint*> _controlPoints;
 
   static const string _tag;
@@ -142,6 +134,15 @@ private:
   static const string _cpRGBTag;
   static const string _cpValueTag;
   static const string _discreteColorAttr;
+};
+class PARAMS_API ARGB{
+public:
+	ARGB(int r, int g, int b){
+		argbvalue = ((r&255)<<16) | ((g&255)<<8) | (b&255);
+	}
+private:
+	unsigned int argbvalue;
+
 };
 };
 

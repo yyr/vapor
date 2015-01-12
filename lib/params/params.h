@@ -491,6 +491,8 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	static const string _VisualizerNumTag;
 	static const string _VariablesTag;
 	static const string _LocalTag;
+	static const string _IsoControlTag;
+	static const string _IsoValueTag;
 	
 #endif
 protected:

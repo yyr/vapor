@@ -23,7 +23,7 @@
 #define DVRPARAMS_H
 
 #define HISTOSTRETCHCONSTANT 0.1f
-#include <qwidget.h>
+
 #include "params.h"
 #include "datastatus.h"
 #include <vapor/common.h>

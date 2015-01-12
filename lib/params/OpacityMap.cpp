@@ -40,8 +40,7 @@ using namespace VAPoR;
 // Constructor
 //----------------------------------------------------------------------------
 OpacityMap::OpacityMap(MapperFunctionBase *mapper, OpacityMap::Type type) :
-  OpacityMapBase(type),
-  _mapper(mapper)
+  OpacityMapBase(type)
 {
 }
 
@@ -49,8 +48,7 @@ OpacityMap::OpacityMap(MapperFunctionBase *mapper, OpacityMap::Type type) :
 // Copy constructor
 //----------------------------------------------------------------------------
 OpacityMap::OpacityMap(const OpacityMap &omap, MapperFunctionBase *mapper) :
-  OpacityMapBase(omap),
-  _mapper(mapper)
+  OpacityMapBase(omap)
 {
 }
 
@@ -68,9 +66,9 @@ OpacityMap::~OpacityMap()
 // space. Therefore, the opacity map will change relative to any changes in
 // the parameter space. 
 //----------------------------------------------------------------------------
-float OpacityMap::minValue() const
+float OpacityMap::minValue()
 {
-  return _mapper->getMinOpacMapValue() + _minValue * 
+  return _mapper->getMinOpacMapValue() + GetMinValue() * 
     (_mapper->getMaxOpacMapValue() - _mapper->getMinOpacMapValue());
 }
 
@@ -83,10 +81,11 @@ float OpacityMap::minValue() const
 //----------------------------------------------------------------------------
 void OpacityMap::minValue(float value)
 {
-  _minValue = 
+  SetMinValue(
     MAX(0.0, 
         (value - _mapper->getMinOpacMapValue()) / 
-        (_mapper->getMaxOpacMapValue() - _mapper->getMinOpacMapValue()));
+        (_mapper->getMaxOpacMapValue() - _mapper->getMinOpacMapValue()))
+		);
 }
 
 //----------------------------------------------------------------------------
@@ -97,9 +96,9 @@ void OpacityMap::minValue(float value)
 // the parameter space.  Slightly increased to ensure that, even with
 // numerical error, the max value always is in the opacity map domain
 //----------------------------------------------------------------------------
-float OpacityMap::maxValue() const
+float OpacityMap::maxValue()
 {
-  return _mapper->getMinOpacMapValue() + _maxValue * 1.0001 * 
+  return _mapper->getMinOpacMapValue() + GetMaxValue() * 1.0001 * 
     (_mapper->getMaxOpacMapValue() - _mapper->getMinOpacMapValue());
 }
 
@@ -112,8 +111,9 @@ float OpacityMap::maxValue() const
 //----------------------------------------------------------------------------
 void OpacityMap::maxValue(float value)
 {
-  _maxValue = 
+  SetMaxValue(
     MIN(1.0, 
         (value - _mapper->getMinOpacMapValue()) / 
-        (_mapper->getMaxOpacMapValue()-_mapper->getMinOpacMapValue()));
+        (_mapper->getMaxOpacMapValue()-_mapper->getMinOpacMapValue()))
+		);
 }

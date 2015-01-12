@@ -50,6 +50,9 @@ const string Params::_RefinementLevelTag = "RefinementLevel";
 const string Params::_CompressionLevelTag = "CompressionLevel";
 const string Params::_VariableNamesTag = "VariableNames";
 const string Params::_LocalTag = "Local";
+const string Params::_IsoControlTag = "IsoControl";
+const string Params::_IsoValueTag = "IsoValue";
+
 
 std::map<pair<int,int>,vector<Params*> > Params::paramsInstances;
 std::map<pair<int,int>, int> Params::currentParamsInstance;

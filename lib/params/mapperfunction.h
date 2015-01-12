@@ -23,7 +23,6 @@
 #define MAPPERFUNCTION_H
 #define MAXCONTROLPOINTS 50
 #include <iostream>
-#include <qcolor.h>
 #include <vapor/tfinterpolator.h>
 #include <vapor/ExpatParseMgr.h>
 #include <vapor/MapperFunctionBase.h>
@@ -56,15 +55,14 @@ public:
 		return mf;
 	}
 
-	void setParams(RenderParams* p) { _params = p; }
-	RenderParams* getParams()       { return _params; }
+	
 	
 
 
     //
     // Function values
     //
-    QRgb  colorValue(float point);
+    ARGB  colorValue(float point);
 
     //
     // Opacity Maps
@@ -79,10 +77,7 @@ public:
 
 protected:
 
-    //
-    // Parent params
-    //
-	RenderParams* _params;
+    
 	
 };
 class PARAMS_API IsoControl : public MapperFunction{
@@ -99,25 +94,29 @@ public:
 	}
 	static ParamsBase* CreateDefaultInstance(){return new IsoControl();}
 	virtual ~IsoControl();
-	void setIsoValue(double val){isoValue = val;}
-	double getIsoValue(){return isoValue;}
+	void setIsoValue(double val){isoValues[0] = val;}
+	double getIsoValue(){return isoValues[0];}
+	void setIsoValues(const vector<double>& vals){isoValues = vals;}
+	const vector<double>& getIsoValues(){return isoValues;}
 	
-	virtual ParamNode* buildNode();
-	void setMinHistoValue(float val){setMinOpacMapValue(val);}
-	void setMaxHistoValue(float val){setMaxOpacMapValue(val);}
+	void setMinHistoValue(float val){
+		setMinOpacMapValue(val);
+		setMinColorMapValue(val);
+	}
+	void setMaxHistoValue(float val){
+		setMaxOpacMapValue(val);
+		setMaxColorMapValue(val);
+	}
 	float getMinHistoValue() {return getMinOpacMapValue();}
 	float getMaxHistoValue() {return getMaxOpacMapValue();}
 	
-	virtual bool elementStartHandler(ExpatParseMgr*, int depth, 
-                                     std::string&, const char **);
 
-	virtual bool elementEndHandler(ExpatParseMgr*, int, std::string&);
 protected:
 	static const string _leftHistoBoundAttr;
 	static const string _rightHistoBoundAttr;
 	static const string _leftHistoBoundTag;
 	static const string _rightHistoBoundTag;
-	double isoValue;
+	vector<double> isoValues;
 };
 };
 #endif //MAPPERFUNCTION_H

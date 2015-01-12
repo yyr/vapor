@@ -8,7 +8,7 @@ using namespace VAPoR;
 
 DataMgrVDC::DataMgrVDC(
 	size_t mem_size, int numthreads
-) : DataMgrV3_0(mem_size), _vdc(numthreads)
+) : DataMgrV3_0("vdc",mem_size), _vdc(numthreads)
 { } 
 
 DataMgrVDC::~DataMgrVDC() {}

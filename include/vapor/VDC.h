@@ -174,7 +174,7 @@ namespace VAPoR {
 //!
 //! \endparblock
 //!
-class VDC : public VAPoR::DC {
+class VDF_API VDC : public VAPoR::DC {
 public:
 
  //! Read, Write, Append access mode
