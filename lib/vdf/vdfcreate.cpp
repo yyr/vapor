@@ -39,7 +39,7 @@ void vdfcreate::Usage(OptionParser &op, const char * msg) {
 	if (msg) {
         cerr << _progname << " : " << msg << endl;
 	}
-    cerr << "Usage: " << _progname << " [options] ncdf_file... vdf_file" << endl;
+    cerr << "Usage: " << _progname << " [options] input_file(s)... vdf_file" << endl;
 	op.PrintOptionHelp(stderr, 80, false);
 }
 
@@ -226,7 +226,7 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 
 	OptionParser::OptDescRec_T	set_opts[] = {
 		{"vars",1,    "",	"Colon delimited list of variables to be copied "
-			"from ncdf data. The default is to copy all 2D and 3D variables"},
+			"from the input data. The default is to copy all 2D and 3D variables"},
 		{"help",	0,	"",	"Print this message and exit"},
 		{"quiet",	0,	"",	"Operate quietly"},
 		{"debug",   0,  "", "Turn on debugging"},
