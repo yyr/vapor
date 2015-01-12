@@ -374,20 +374,6 @@ public:
  //
  int DefineDimension(string dimname, size_t length, int axis);
 
- //! Return a dimensions's definition
- //!
- //! This method returns the length and axis for the dimension
- //! named by \p dimname. If \p dimname is not defined as a dimension
- //! \p length and \p axis will both be set to zero, and false returned.
- //!
- //! \param[in] dimname A string specifying the name of the dimension. 
- //! \param[out] length The dimension length, which must be greater than zero. 
- //! \param[out] axis The axis associated with the dimension. 
- //! \retval bool If the named dimension can not be found false is returned.
- //!
- bool GetDimension(
-	string dimname, size_t &length, int &axis
- ) const;
 
  //! Return a dimensions's definition
  //!
@@ -886,6 +872,24 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
 	vector <size_t> &sdims, size_t &numts
  );
 
+ //! \copydoc DC::GetMapProjection()
+ //!
+ virtual int GetMapProjection(
+	string lonname, string latname, string &projstring
+ ) const;
+
+ //! Set a map projection string for a lat-lon coordinate pair
+ //!
+ //! This method sets a Proj4 map projection string for the 
+ //! longitude-latitude coordinate pair indicated by \p lonname
+ //! and \p latname
+ //!
+ //! \sa GetMapProjection()
+ //
+ virtual int SetMapProjection(
+	string lonname, string latname, string projstring
+ );
+
  //!
  //! When the open mode \b mode is \b A or \b W this method signals the 
  //! class object that metadata defintions have been completed and it 
@@ -1320,6 +1324,7 @@ int GetCRatios(string varname, vector <size_t> &cratios) const;
     int reflevel = 0,
     int lod = 0
  ) const = 0;
+
 
  friend std::ostream &operator<<(std::ostream &o, const VDC &vdc);
 

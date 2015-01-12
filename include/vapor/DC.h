@@ -348,6 +348,27 @@ public:
 	if (_cratios.size()==0) _cratios.push_back(1);
   };
 
+  //! No compression constructor 
+  //!
+  //! \param[in] name The variable's name
+  //! \param[in] dimensions An ordered vector specifying the variable's spatial 
+  //! and/or temporal dimensions
+  //! \param[in] units A string recognized by Udunits-2 specifying the
+  //! unit measure for the variable. An empty string indicates that the
+  //! variable is unitless.
+  //! \param[in] type The external storage type for variable data
+  //! factor for the variable. 
+  //! \param[in] periodic An ordered array of booleans 
+  //! specifying the
+  //! spatial boundary periodicity.
+  //! Results are undefined if the rank of 
+  //! of \p periodic does not match that of \p dimensions.
+  //!
+  BaseVar(
+	string name, std::vector <DC::Dimension> dimensions,
+	string units, XType type, std::vector <bool> periodic
+  );
+
   virtual ~BaseVar() {};
 
   //! Get variable name
@@ -553,6 +574,54 @@ public:
 	_has_missing(false),
 	_missing_value(0.0)
   {}
+
+  //! Construct Data variable definition with missing values but no compression
+  //!
+  //! \copydetails BaseVar(string name, std::vector <DC::Dimension> dimensions,
+  //!  string units, XType type, 
+  //!  std::vector <bool> periodic)
+  //!
+  //! \param[in] coordvars Names of coordinate variables associated 
+  //! with this variables dimensions
+  //! \param[in] missing_value  Value of the missing value indicator
+  //!
+  DataVar(
+	string name, std::vector <DC::Dimension> dimensions,
+	string units, XType type, 
+	std::vector <bool> periodic, std::vector <string> coordvars, 
+	double missing_value
+  ) : 
+	BaseVar(
+		name, dimensions, units, type, periodic
+	),
+	_coordvars(coordvars),
+	_has_missing(true),
+	_missing_value(missing_value)
+	{}
+
+  //! Construct Data variable definition with no missing values or compression
+  //!
+  //! \copydetails BaseVar(string name, std::vector <DC::Dimension> dimensions,
+  //!  string units, XType type, 
+  //!  std::vector <bool> periodic)
+  //!
+  //! \param[in] coordvars Names of coordinate variables associated 
+  //! with this variables dimensions
+  //!
+  DataVar(
+	string name, std::vector <DC::Dimension> dimensions,
+	string units, XType type, 
+	std::vector <bool> periodic, std::vector <string> coordvars
+  ) : 
+	BaseVar(
+		name, dimensions, units, type, periodic
+	),
+	_coordvars(coordvars),
+	_has_missing(false),
+	_missing_value(0.0)
+	{}
+
+
   virtual ~DataVar() {};
 
   //! Access data variable's coordinate variable names
@@ -603,20 +672,6 @@ public:
  //
  virtual int Initialize(const vector <string> &paths) = 0;
 
- //! Return a dimensions's definition
- //!
- //! This method returns the length and axis for the dimension
- //! named by \p dimname. If \p dimname is not defined as a dimension
- //! \p length and \p axis will both be set to zero, and false returned.
- //!
- //! \param[in] dimname A string specifying the name of the dimension. 
- //! \param[out] length The dimension length, which must be greater than zero. 
- //! \param[out] axis The axis associated with the dimension. 
- //! \retval bool If the named dimension can not be found false is returned.
- //!
- virtual bool GetDimension(
-	string dimname, size_t &length, int &axis
- ) const = 0;
 
  //! Return a dimensions's definition
  //!
@@ -801,6 +856,25 @@ public:
  virtual int GetDimLensAtLevel(
 	string varname, int level, std::vector <size_t> &dims_at_level,
 	std::vector <size_t> &bs_at_level
+ ) const = 0;
+
+ //! Return a Proj4 map projection string.
+ //!
+ //! For georeference data sets that have map projections this
+ //! method returns a properly formatted Proj4 projection string 
+ //! for mapping from geographic to cartographic coordinates. If no
+ //! such projection exists an empty string is returned.
+ //!
+ //! \param[in] lonname Name of longitude coordinate variable
+ //! \param[in] latname Name of latitude coordinate variable
+ //! \param[out] projstring An empty string if a Proj4 map projection is
+ //! not available for the named coordinate pair, otherwise a properly 
+ //! formatted Proj4 projection
+ //! string is returned.
+ //!
+ //
+ virtual int GetMapProjection(
+	string lonname, string latname, string &projstring
  ) const = 0;
 
 
@@ -1018,11 +1092,26 @@ public:
 
  /////////////////////////////////////////////////////////////////////
  //
- // The following are convience methods provided by the DC base 
+ // The following are convenience methods provided by the DC base 
  // class. In general they should NOT need to be reimplimented by
  // derived classes.
  //
  /////////////////////////////////////////////////////////////////////
+
+ //! Return a dimensions's definition
+ //!
+ //! This method returns the length and axis for the dimension
+ //! named by \p dimname. If \p dimname is not defined as a dimension
+ //! \p length and \p axis will both be set to zero, and false returned.
+ //!
+ //! \param[in] dimname A string specifying the name of the dimension. 
+ //! \param[out] length The dimension length, which must be greater than zero. 
+ //! \param[out] axis The axis associated with the dimension. 
+ //! \retval bool If the named dimension can not be found false is returned.
+ //!
+ virtual bool GetDimension(
+	string dimname, size_t &length, int &axis
+ ) const;
 
  //! Return a list of data variables with a given dimension rank
  //!
@@ -1130,6 +1219,24 @@ public:
 	vector <string> names = GetDataVarNames();
 	return(find(names.begin(), names.end(), varname) != names.end());
  }
+
+ //! Return a Proj4 map projection string for the named variable.
+ //!
+ //! For georeference data sets that have map projections this
+ //! method returns a properly formatted Proj4 projection string 
+ //! for mapping from geographic to cartographic coordinates. If no
+ //! such projection exists for the named data variable an empty 
+ //! string is returned.
+ //!
+ //! \param[in] varname Name of a data variable
+ //!
+ //! \param[out] projstring An empty string if a Proj4 map projection is
+ //! not available for the named coordinate pair, otherwise a properly 
+ //! formatted Proj4 projection
+ //! string is returned.
+ //!
+ //
+ virtual int GetMapProjection(string varname, string &projstring) const;
 
  //! Parse a vector of DC::Dimensions into space and time dimensions
  //!

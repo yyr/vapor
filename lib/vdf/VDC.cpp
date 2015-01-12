@@ -172,20 +172,6 @@ int VDC::DefineDimension(string name, size_t length, int axis) {
 	
 }
 
-bool VDC::GetDimension(
-	string name, size_t &length, int &axis
-) const {
-	length = 0;
-	axis = 0;
-
-	map <string, Dimension>::const_iterator itr = _dimsMap.find(name);
-	if (itr == _dimsMap.end()) return(false);
-
-	length = itr->second.GetLength();
-	axis = itr->second.GetAxis();
-	return(true);
-}
-
 bool VDC::GetDimension(string name, Dimension &dimension) const {
 	dimension.Clear();
 
@@ -800,6 +786,28 @@ VDC::XType VDC::GetAttType(
 		return(itr->second.GetXType());
 	} 
 	return(INVALID);
+}
+
+int VDC::GetMapProjection(
+	string lonname, string latname, string &projstring
+) const {
+
+	string attname = "MapProj_";
+	attname += lonname;
+	attname += "_";
+	attname += latname;
+
+	return(VDC::GetAtt("",attname, projstring));
+}
+	
+int VDC::SetMapProjection(string lonname, string latname, string projstring) {
+	string attname = "MapProj_";
+	attname += lonname;
+	attname += "_";
+	attname += latname;
+
+	return(VDC::GetAtt("",attname, projstring));
+
 }
 
 int VDC::EndDefine() {
