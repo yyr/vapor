@@ -149,7 +149,7 @@ float MapperFunctionBase::opacityValue(float value)
   {
     OpacityMapBase *omap = _opacityMaps[i];
 
-    if (omap->isEnabled() && omap->bounds(value))
+    if (omap->IsEnabled() && omap->bounds(value))
     {
       if (_compType == ADDITION)
       {

@@ -29,6 +29,7 @@ public:
    
     Color();
     Color(float h, float s, float v);
+	Color(double h, double s, double v);
     Color(const Color &color);
 
     void toRGB(float *rgb);
@@ -62,10 +63,13 @@ public:
   double GetMinValue()  {return GetValueDouble(_minTag);}     // Data Coordinates
   double GetMaxValue()  {return GetValueDouble(_maxTag);}     // Data Coordinates
 
+  TFInterpolator::type GetInterpType() {return (TFInterpolator::type) GetValueLong(_interpTypeTag);}
+  void SetInterpType(TFInterpolator::type t);
+
   void SetMinValue(double val); 
   void SetMaxValue(double val);
 
-  int numControlPoints()                { return (int)_controlPoints.size(); }
+  int numControlPoints()                { return (int)(GetControlPoints().size()/4); }
 
   Color controlPointColor(int index);
   void  controlPointColor(int index, Color color);
@@ -84,56 +88,26 @@ public:
 
   static string xmlTag() { return _tag; }
 
- 
-  void interpType(TFInterpolator::type t){_interpType = t;}
-  TFInterpolator::type interpType() {return _interpType;}
   void setMapper(MapperFunctionBase* m) {_mapper = m;}
+
+  // Method to obtain the control points as a double vector, with 4 entries for each control point
+  // in the order hue,sat,value, datavalue
+  vector<double> GetControlPoints(){
+	  return GetValueDoubleVec(_controlPointsTag);
+  }
+  int SetControlPoints(vector<double> controlPoints);
 	
 protected:
   MapperFunctionBase *_mapper;
   int leftIndex(float val);
-  TFInterpolator::type _interpType;
-
-  class ControlPoint
-  {
-
-  public:
-
-    ControlPoint();
-    ControlPoint(Color c, float v);
-    ControlPoint(const ControlPoint &cp);
-
-    void  color(Color color) { _color = color; }
-    Color color()            { return _color; }
-
-    void  value(float val) { _value = val; }
-    float value()          { return _value; }
-	
-  private:
-	
-    float _value;
-    Color _color;
-    
-  };
-
-  static bool sortCriterion(ControlPoint *p1, ControlPoint *p2);
-
-  
-
 
 private:
-
-  
-  vector<ControlPoint*> _controlPoints;
 
   static const string _tag;
   static const string _minTag;
   static const string _maxTag;
-  static const string _controlPointTag;  
-  static const string _cpHSVTag;
-  static const string _cpRGBTag;
-  static const string _cpValueTag;
-  static const string _discreteColorAttr;
+  static const string _controlPointsTag; 
+  static const string _interpTypeTag;
 };
 class PARAMS_API ARGB{
 public:

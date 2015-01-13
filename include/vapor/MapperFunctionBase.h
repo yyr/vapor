@@ -177,11 +177,11 @@ public:
 	// Mapper function tag is public, visible to flowparams
 	static const string _mapperFunctionTag;
 	TFInterpolator::type colorInterpType() {
-		if (_colormap) return _colormap->interpType();
+		if (_colormap) return _colormap->GetInterpType();
 		return TFInterpolator::linear;
 	}
 	void setColorInterpType(TFInterpolator::type t){
-		if (_colormap) _colormap->interpType(t);
+		if (_colormap) _colormap->SetInterpType(t);
 	}
 	void setParams(RenderParams* p) { _params = p; }
 	RenderParams* getParams()       { return _params; }

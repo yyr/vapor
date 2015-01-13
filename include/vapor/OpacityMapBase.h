@@ -22,27 +22,7 @@ class MapperFunctionBase;
 
 class PARAMS_API OpacityMapBase : public ParamsBase
 {
-  class ControlPoint
-  {
-
-  public:
-
-    ControlPoint();
-    ControlPoint(float value, float opacity);
-    ControlPoint(const ControlPoint &cp);
-
-    void  opacity(float op) { _opacity = op; }   
-    float opacity()         { return _opacity; } 
-
-    void  value(float val) { _value = val; }  // Normalized Coordinates
-    float value()          { return _value; } // Normalized Coordinates
-
-  private:
-
-    float _value;   // Normalized coordinates
-    float _opacity;
-    
-  };
+ 
 
 public:
 
@@ -59,18 +39,15 @@ public:
   virtual ~OpacityMapBase();
 
   void clear();
-
-
   const OpacityMapBase& operator=(const OpacityMapBase &cmap);
 
   float opacity(float value);
   bool  bounds(float value);
 
-  void             type(OpacityMapBase::Type type) { _type = type; }
-  OpacityMapBase::Type type() const              { return _type; }
-
-  bool isEnabled() { return _enabled; }
-  void setEnabled(bool flag) { _enabled = flag;}
+  void SetType(OpacityMapBase::Type type);
+  OpacityMapBase::Type GetType()          {
+	  return (OpacityMapBase::Type) GetValueLong(_typeTag);
+  }
 
   //The base class has Get/Set of min and max which are relative to 0,1
   double GetMinValue()  {return GetValueDouble(_minTag);}     // Data Coordinates
@@ -78,9 +55,21 @@ public:
 
   void SetMinValue(double val); 
   void SetMaxValue(double val);
+  
+  bool IsEnabled() {
+	  return (bool)GetValueLong(_enabledTag);
+  }
+  void SetEnabled(bool enabled);
+  double GetMean(){ return GetValueDouble(_meanTag);}
+  void SetMean(double mean);
+  double GetSSQ(){return GetValueDouble(_ssqTag);}
+  void SetSSQ(double ssq);
+  double GetFreq(){ return GetValueDouble(_freqTag);}
+  void SetFreq(double freq);
+  double GetPhase(){ return GetValueDouble(_phaseTag);}
+  void SetPhase(double phase);
 
-
-  int numControlPoints()      { return (int)_controlPoints.size(); }
+  int numControlPoints()      { return (int)GetControlPoints().size()/2; }
 
   void  addNormControlPoint(float normv, float opacity); // Normalized Coords
   void  addControlPoint(float value, float opacity);     // Data Coordinates
@@ -92,7 +81,7 @@ public:
 
   float controlPointValue(int index);               // Data Coordinates
   void  controlPointValue(int index, float value);  // Data Coordinates
-
+  /*
   void   mean(double mean);                      // Normalized 
   double mean() const          { return _mean; } // Normalized 
 
@@ -104,45 +93,38 @@ public:
 
   void   sinePhase(double p);                                  // Normalized
   double sinePhase() const   { return normSinePhase(_phase); } // Normalized
-
+  */
   void setOpaque();
   bool isOpaque();
 
   static string xmlTag() { return _tag; }
 
-  void interpType(TFInterpolator::type t){_interpType = t;}
-  TFInterpolator::type interpType() {return _interpType;}
+  void SetInterpType(TFInterpolator::type t);
+	 
+  TFInterpolator::type GetInterpType() {
+	  return (TFInterpolator::type) GetValueLong(_interpTypeTag);
+  }
+  vector<double> GetControlPoints(){
+	  return GetValueDoubleVec(_controlPointsTag);
+  }
+  void SetControlPoints(vector<double> opacityControlPoints);
   void setMapper(MapperFunctionBase* m) {_mapper = m;}
 
 protected: 
   MapperFunctionBase *_mapper;
-  TFInterpolator::type _interpType;
+  
   int leftControlIndex(float val);
-  static bool sortCriterion(ControlPoint *p1, ControlPoint *p2);
 
-  double normSSq(double ssq) const;
-  double denormSSq(double ssq) const;
+  double normSSq(double ssq);
+  double denormSSq(double ssq);
 
-  double normSineFreq(double freq) const;
-  double denormSineFreq(double freq) const;
+  double normSineFreq(double freq);
+  double denormSineFreq(double freq);
 
-  double normSinePhase(double phase) const;
-  double denormSinePhase(double phase) const;
+  double normSinePhase(double phase);
+  double denormSinePhase(double phase);
    
 private:
-
-  OpacityMapBase::Type _type;
-
-
-  bool  _enabled;
-
-  vector<ControlPoint*> _controlPoints;
-
-  double _mean;
-  double _ssq;
-
-  double _freq;
-  double _phase;
 
   const double _minSSq;
   const double _maxSSq;
@@ -160,9 +142,8 @@ private:
   static const string _freqTag;
   static const string _phaseTag;
   static const string _typeTag;
-  static const string _controlPointTag;
-  static const string _cpOpacityTag;
-  static const string _cpValueTag;
+  static const string _controlPointsTag;
+  static const string _interpTypeTag;
 };
 };
 

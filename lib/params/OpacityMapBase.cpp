@@ -52,41 +52,16 @@ const string OpacityMapBase::_ssqTag = "SSq";
 const string OpacityMapBase::_freqTag = "Freq";
 const string OpacityMapBase::_phaseTag = "Phase";
 const string OpacityMapBase::_typeTag = "Type";
-const string OpacityMapBase::_controlPointTag = "OpacityMapControlPoint";
-const string OpacityMapBase::_cpOpacityTag = "Opacity";
-const string OpacityMapBase::_cpValueTag = "Value";
+const string OpacityMapBase::_controlPointsTag = "OpacityMapControlPoints";
+const string OpacityMapBase::_interpTypeTag = "OpacityInterpolation";
+
 
 
 //============================================================================
 // class OpacityMapBase::ControlPoint
 //============================================================================
 
-//----------------------------------------------------------------------------
-// Default constructor
-//----------------------------------------------------------------------------
-OpacityMapBase::ControlPoint::ControlPoint() :
-  _value(0.0),
-  _opacity(1.0)
-{
-}
 
-//----------------------------------------------------------------------------
-// Constructor
-//----------------------------------------------------------------------------
-OpacityMapBase::ControlPoint::ControlPoint(float v, float o) :
-  _value(v),
-  _opacity(o)
-{
-}
-
-//----------------------------------------------------------------------------
-// Copy constructor
-//----------------------------------------------------------------------------
-OpacityMapBase::ControlPoint::ControlPoint(const ControlPoint &cp) :
-  _value(cp._value),
-  _opacity(cp._opacity)
-{
-}
 
 //----------------------------------------------------------------------------
 // Constructor
@@ -100,19 +75,20 @@ OpacityMapBase::OpacityMapBase(OpacityMapBase::Type type) : ParamsBase(0, _tag),
   _maxPhase(2*M_PI),
   _mapper(NULL)
 {
-  _interpType = TFInterpolator::linear;
+  SetInterpType( TFInterpolator::linear);
+  SetType(type);
+  SetEnabled(true);
+  SetMean(0.5);
+  SetSSQ(0.1);
+  SetFreq(5.0);
+  SetPhase(2.*M_PI);
   
-  _type =type,
-  _enabled = true;
-  _mean = 0.5;
-  _ssq = 0.1;
-  _freq = 5.0;
-  _phase=2*M_PI;
-  
-  _controlPoints.push_back(new ControlPoint(0.0, 0.0));
-  _controlPoints.push_back(new ControlPoint(0.333, 0.333));
-  _controlPoints.push_back(new ControlPoint(0.667, 0.667));
-  _controlPoints.push_back(new ControlPoint(1.0, 1.0));
+  vector<double> cps;
+  for (int i = 0; i<4; i++){
+	  cps.push_back((double)i/4.);
+	  cps.push_back((double)i/4.);
+  }
+  SetControlPoints(cps);
 }
 
 
@@ -121,31 +97,15 @@ OpacityMapBase::OpacityMapBase(OpacityMapBase::Type type) : ParamsBase(0, _tag),
 //----------------------------------------------------------------------------
 OpacityMapBase::~OpacityMapBase()
 {
-  clear();
 }
 
 //----------------------------------------------------------------------------
-// Clear (& deallocated) the control points
+// Clear  the control points
 //----------------------------------------------------------------------------
 void OpacityMapBase::clear()
 {
-  for(int i=0; i<_controlPoints.size(); i++)
-  {
-    ControlPoint *cp = _controlPoints[i];
-    if (cp) delete cp;
-  }
-
-  _controlPoints.clear();
-}
-
-
-//----------------------------------------------------------------------------
-// Sort criterion used to sort control points
-//----------------------------------------------------------------------------
-bool OpacityMapBase::sortCriterion(OpacityMapBase::ControlPoint *p1, 
-                               OpacityMapBase::ControlPoint *p2)
-{
-  return p1->value() < p2->value();
+  vector<double> cps;
+  SetControlPoints(cps);
 }
 
 //----------------------------------------------------------------------------
@@ -153,9 +113,11 @@ bool OpacityMapBase::sortCriterion(OpacityMapBase::ControlPoint *p1,
 //----------------------------------------------------------------------------
 void OpacityMapBase::addNormControlPoint(float normVal, float opacity)
 {
-  _controlPoints.push_back(new ControlPoint(normVal, opacity));
-                           
-  std::sort(_controlPoints.begin(), _controlPoints.end(), sortCriterion);
+	vector<double>cps = GetControlPoints();
+	int index = leftControlIndex(normVal)*2;
+	cps.insert(cps.begin()+index++, opacity);
+	cps.insert(cps.begin()+index,normVal);
+                          
 }
 
 //----------------------------------------------------------------------------
@@ -163,11 +125,10 @@ void OpacityMapBase::addNormControlPoint(float normVal, float opacity)
 //----------------------------------------------------------------------------
 void OpacityMapBase::addControlPoint(float value, float opacity)
 {
+ 
   float normVal = (value - GetMinValue()) / (GetMaxValue() - GetMinValue());
-
-  _controlPoints.push_back(new ControlPoint(normVal, opacity));
+  addNormControlPoint(normVal, opacity);
                            
-  std::sort(_controlPoints.begin(), _controlPoints.end(), sortCriterion);
 }
 
 //----------------------------------------------------------------------------
@@ -175,16 +136,11 @@ void OpacityMapBase::addControlPoint(float value, float opacity)
 //----------------------------------------------------------------------------
 void OpacityMapBase::deleteControlPoint(int index)
 {
-  if (index >= 0 && index < _controlPoints.size() && _controlPoints.size() > 1)
+	vector<double>cps = GetControlPoints();
+  if (index >= 0 && index < cps.size()/2 -1 && cps.size() > 2)
   {
-    vector<ControlPoint*>::iterator iter = _controlPoints.begin()+index;
-
-    ControlPoint *cp = *iter;
-
-    _controlPoints.erase(iter);
-    
-    if (cp) delete cp;
-    cp = NULL;
+	cps.erase(cps.begin()+2*index, cps.begin()+2*index+1);
+    SetControlPoints(cps);
   }
 }
 
@@ -193,27 +149,25 @@ void OpacityMapBase::deleteControlPoint(int index)
 //---------------------------------------------------------------------------- 
 void OpacityMapBase::moveControlPoint(int index, float dx, float dy)
 {
-  if (index >= 0 && index < _controlPoints.size())
+	vector<double>cps = GetControlPoints();
+  if (index >= 0 && index < cps.size()/2 -1)
   {
-    vector<ControlPoint*>::iterator iter = _controlPoints.begin()+index;
-
-    ControlPoint *cp = *iter;
-
+    
     float minVal = 0.0;
     float maxVal = 1.0;
     float ndx = dx / (GetMaxValue() - GetMinValue());
 
-    if (iter != _controlPoints.begin())
+    if (index != 0)
     {
-      minVal = (*(iter-1))->value();
+      minVal = cps[2*index-1];
     }
 
-    if (iter+1 != _controlPoints.end())
+    if (index < cps.size()/2 -1)
     {
-      maxVal = (*(iter+1))->value();
+      maxVal = cps[2*index+3];
     }
 
-    float value = cp->value() + ndx;
+    float value = cps[2*index+1] + ndx;
 
     if (value < minVal)
     {
@@ -224,9 +178,9 @@ void OpacityMapBase::moveControlPoint(int index, float dx, float dy)
       value = maxVal;
     }
     
-    cp->value(value);
+    cps[2*index+1]=value;
     
-    float opacity = cp->opacity() + dy;
+    float opacity = cps[2*index] + dy;
     
     if (opacity < 0.0)
     {
@@ -237,7 +191,7 @@ void OpacityMapBase::moveControlPoint(int index, float dx, float dy)
       opacity = 1.0;
     }
 
-    cp->opacity(opacity);
+    cps[2*index] = opacity;
   }
 }
 
@@ -250,13 +204,13 @@ float OpacityMapBase::controlPointOpacity(int index)
   {
     return 0.0;
   }
-
-  if (index >= _controlPoints.size())
+  vector<double> cps = GetControlPoints();
+  if (index >= cps.size()/2 -1)
   {
     return 1.0;
   }
 
-  return _controlPoints[index]->opacity();
+  return cps[2*index];
 }
 
 //----------------------------------------------------------------------------
@@ -264,23 +218,15 @@ float OpacityMapBase::controlPointOpacity(int index)
 //---------------------------------------------------------------------------- 
 void OpacityMapBase::controlPointOpacity(int index, float opacity)
 {
-  if (index < 0 || index >= _controlPoints.size())
-  {
+  vector<double> cps = GetControlPoints();
+  if (index < 0 || 2*index >= cps.size())
     return;
-  }
 
-  if (opacity < 0.0) 
-  {
-    _controlPoints[index]->opacity(0.0);
-  }
-  else if (opacity > 1.0)
-  {
-    _controlPoints[index]->opacity(1.0);
-  }
-  else
-  {
-    _controlPoints[index]->opacity(opacity);
-  }
+  if (opacity < 0.0) opacity = 0.;
+  else if (opacity > 1.0) opacity = 1.;
+  
+  cps[index*2]=opacity;
+ 
 }
 
 
@@ -293,13 +239,13 @@ float OpacityMapBase::controlPointValue(int index)
   {
     return GetMinValue();
   }
-
-  if (index >= _controlPoints.size())
+  vector<double> cps = GetControlPoints();
+  if (2*index+1 >= cps.size())
   {
     return GetMaxValue();
   }
 
-  float norm = _controlPoints[index]->value();
+  float norm = cps[2*index+1];
 
   return (norm * (GetMaxValue() - GetMinValue()) + GetMinValue());
 }
@@ -309,28 +255,26 @@ float OpacityMapBase::controlPointValue(int index)
 //---------------------------------------------------------------------------- 
 void OpacityMapBase::controlPointValue(int index, float value)
 {
-  if (index < 0 || index >= _controlPoints.size())
+  vector<double> cps = GetControlPoints();
+  if (index < 0 || index*2 >= cps.size())
   {
     return;
   }
 
-  vector<ControlPoint*>::iterator iter = _controlPoints.begin()+index;
-  
-  ControlPoint *cp = *iter;
 
   float nv = (value - GetMinValue()) / (GetMaxValue() - GetMinValue());
 
   float minVal = 0.0;
   float maxVal = 1.0;
 
-  if (iter != _controlPoints.begin())
+  if (index >0)
   {
-    minVal = (*(iter-1))->value();
+    minVal = cps[2*index -1];
   }
   
-  if (iter+1 != _controlPoints.end())
+  if (index*2+3 < cps.size())
   {
-    maxVal = (*(iter+1))->value();
+    maxVal = cps[2*index+3];
   }
 
   if (nv < minVal)
@@ -342,40 +286,40 @@ void OpacityMapBase::controlPointValue(int index, float value)
     nv = maxVal;
   }
   
-  cp->value(nv);
+  cps[2*index+1] = nv;
 }
 
 //----------------------------------------------------------------------------
 // Set the mean value (normalized coordinates) for the gaussian function
 //----------------------------------------------------------------------------
-void OpacityMapBase::mean(double mean)
+void OpacityMapBase::SetMean(double mean)
 {
-  _mean = mean;
+  SetValueDouble(_meanTag, "Set opacity mean", mean, _mapper->getParams());
 }
 
 //----------------------------------------------------------------------------
 // Set the sigma squared value (normalized coordinates) for the gaussian 
 // function
 //----------------------------------------------------------------------------
-void OpacityMapBase::sigmaSq(double ssq)
+void OpacityMapBase::SetSSQ(double ssq)
 {
-  _ssq = denormSSq(ssq); 
+	SetValueDouble(_ssqTag,"Set Opac SSQ", ssq, _mapper->getParams());
 }
 
 //----------------------------------------------------------------------------
 // Set the frequency (normalized coordinates) of the sine function
 //----------------------------------------------------------------------------
-void OpacityMapBase::sineFreq(double freq) 
+void OpacityMapBase::SetFreq(double freq) 
 { 
-  _freq = denormSineFreq(freq); 
+  SetValueDouble(_freqTag,"Set Opac Freq", freq, _mapper->getParams());
 }
 
 //----------------------------------------------------------------------------
 // Set the phase (normalized coordinates) of the sine function
 //----------------------------------------------------------------------------
-void OpacityMapBase::sinePhase(double p)
+void OpacityMapBase::SetPhase(double p)
 {
-  _phase = denormSinePhase(p); 
+	SetValueDouble(_phaseTag, "Set Opac Phase", denormSinePhase(p), _mapper->getParams());
 } 
 
 
@@ -385,7 +329,7 @@ void OpacityMapBase::sinePhase(double p)
 float OpacityMapBase::opacity(float value)
 {
   float nv = (value - GetMinValue()) / (GetMaxValue() - GetMinValue());
- 
+  vector<double>cps = GetControlPoints();
   if (value < GetMinValue())
   {
     nv = 0;
@@ -395,7 +339,7 @@ float OpacityMapBase::opacity(float value)
   {
     nv = 1.0;
   }
-  
+  OpacityMapBase::Type _type = GetType();
   switch(_type)
   {
     case CONTROL_POINT:
@@ -404,43 +348,42 @@ float OpacityMapBase::opacity(float value)
       // Find the bounding control points
       //
       int index = leftControlIndex(nv);
-      
-      ControlPoint *cp0 = _controlPoints[index];
-      ControlPoint *cp1 = _controlPoints[index+1];
+      double val0 = cps[2*index+1];
+	  double val1 = cps[2*index+3];
 
-      float ratio = (nv - cp0->value())/(cp1->value() - cp0->value());
+      float ratio = (nv - val0)/(val1 - val0);
 
-      if (ratio > 0.f && ratio < 1.f)
+      if (ratio > 0. && ratio < 1.)
       {
         
-        float o = TFInterpolator::interpolate(interpType(), 
-                                              cp0->opacity(),
-                                              cp1->opacity(),
+        float o = TFInterpolator::interpolate(GetInterpType(), 
+                                              cps[2*index],
+                                              cps[2*index+2],
                                               ratio);
         return o;
       }
       
       if (ratio >= 1.0)
       {
-        return cp1->opacity();
+        return cps[2*index+2];
       }
       
-      return cp0->opacity();
+      return cps[2*index];
     }
 
     case GAUSSIAN:
     {
-      return pow(M_E, -((nv-_mean) * (nv-_mean))/(2.0*_ssq));
+      return pow(M_E, -((nv-GetMean()) * (nv-GetMean()))/(2.0*GetSSQ()));
     }
 
     case INVERTED_GAUSSIAN:
     {
-      return 1.0-pow(M_E, -((nv-_mean) * (nv-_mean))/(2.0*_ssq));
+      return 1.0-pow(M_E, -((nv-GetMean()) * (nv-GetMean()))/(2.0*GetSSQ()));
     }
 
     case SINE:
     {
-      return (0.5 + sin(_freq * M_PI * nv + _phase)/2);
+      return (0.5 + sin(GetFreq() * M_PI * nv + GetPhase())/2);
     }
   }
 
@@ -461,10 +404,11 @@ bool OpacityMapBase::bounds(float value)
 //
 // Developed by Alan Norton. 
 //----------------------------------------------------------------------------
-int OpacityMapBase::leftControlIndex(float val)
+int OpacityMapBase::leftControlIndex(float normval)
 {
+  vector<double>cps = GetControlPoints();
   int left = 0;
-  int right = _controlPoints.size()-1;
+  int right = cps.size()/2 - 1;
 
   //
   // Iterate, keeping left to the left of ctrl point
@@ -472,8 +416,7 @@ int OpacityMapBase::leftControlIndex(float val)
   while (right-left > 1)
   {
     int mid = left+ (right-left)/2;
-
-    if (_controlPoints[mid]->value() > val) 
+	if (cps[mid*2+1] > normval)
     {
       right = mid;
     }
@@ -489,49 +432,49 @@ int OpacityMapBase::leftControlIndex(float val)
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-double OpacityMapBase::normSSq(double ssq) const
+double OpacityMapBase::normSSq(double ssq) 
 {
-  return (ssq - _minSSq) / (_maxSSq - _minSSq);
+  return (GetSSQ() - _minSSq) / (_maxSSq - _minSSq);
 }
 
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-double OpacityMapBase::denormSSq(double ssq) const
+double OpacityMapBase::denormSSq(double ssq) 
 {
-  return _minSSq + (ssq * (_maxSSq - _minSSq));
+  return _minSSq + (GetSSQ() * (_maxSSq - _minSSq));
 }
 
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-double OpacityMapBase::normSineFreq(double freq) const
+double OpacityMapBase::normSineFreq(double freq) 
 {
-  return (freq - _minFreq) / (_maxFreq - _minFreq);
+  return (GetFreq() - _minFreq) / (_maxFreq - _minFreq);
 }
 
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-double OpacityMapBase::denormSineFreq(double freq) const
+double OpacityMapBase::denormSineFreq(double freq) 
 {
-  return _minFreq + (freq * (_maxFreq - _minFreq));
+  return _minFreq + (GetFreq() * (_maxFreq - _minFreq));
 }
 
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-double OpacityMapBase::normSinePhase(double phase) const
+double OpacityMapBase::normSinePhase(double phase) 
 {
-  return (phase - _minPhase) / (_maxPhase - _minPhase);
+  return (GetPhase() - _minPhase) / (_maxPhase - _minPhase);
 }
 
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-double OpacityMapBase::denormSinePhase(double phase) const
+double OpacityMapBase::denormSinePhase(double phase)
 {
-  return _minPhase + (phase * (_maxPhase - _minPhase));
+  return _minPhase + (GetPhase() * (_maxPhase - _minPhase));
 }
 
 
@@ -540,21 +483,31 @@ double OpacityMapBase::denormSinePhase(double phase) const
 //----------------------------------------------------------------------------
 void OpacityMapBase::setOpaque()
 {
-  for(int i=0; i<_controlPoints.size(); i++)
+  vector<double> cps = GetControlPoints();
+  for(int i=0; i<cps.size()/2; i++)
   {
-    ControlPoint *cp = _controlPoints[i];
-    cp->opacity(1.0);
+    cps[2*i] = 1.;
   }
 }
 bool OpacityMapBase::isOpaque()
 {
-  for(int i=0; i<_controlPoints.size(); i++)
+  vector<double> cps = GetControlPoints();
+  for(int i=0; i<cps.size(); i+=2)
   {
-    ControlPoint *cp = _controlPoints[i];
-    if (cp->opacity() < 1.0) return false;
+    if (cps[i] < 1.0) return false;
   }
   return true;
 }
 
 void OpacityMapBase::SetMinValue(double val) {SetValueDouble(_minTag,"Set min opacity map value", val, _mapper->getParams());}
 void OpacityMapBase::SetMaxValue(double val) {SetValueDouble(_maxTag,"Set max opacity map value", val, _mapper->getParams());}
+void OpacityMapBase::SetEnabled(bool val) {SetValueLong(_enabledTag, "Change opacity map enabled", (long)val, _mapper->getParams());}
+void OpacityMapBase::SetControlPoints(vector<double> controlPoints){
+	SetValueDouble(_controlPointsTag,"Set opacity control points", controlPoints, _mapper->getParams());
+}
+void OpacityMapBase::SetInterpType(TFInterpolator::type t){
+	SetValueLong(_interpTypeTag, "Set Opacity Interpolation", (long)t, _mapper->getParams());
+}
+void OpacityMapBase::SetType(OpacityMapBase::Type t){
+	SetValueLong(_typeTag, "Set Opacity Map Type", (long)t, _mapper->getParams());
+}
