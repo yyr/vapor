@@ -65,19 +65,12 @@ bool DCReaderGRIB::Variable::_Exists(double time) const {
 	return 1;
 }
 
-int DCReaderGRIB::Variable::GetOffset(double time, float level){
-	int off = _indices[time][level].offset;
-	cout << "1 " << off << endl;
-	cout << "2 " << ((_indices.find(time)->second).find(level)->second).offset << endl;
-	return off;
-	//return (_indices.find(time)->second).find(level)->second;
+int DCReaderGRIB::Variable::GetOffset(double time, float level) const {
+	return ((_indices.find(time)->second).find(level)->second).offset << endl;
 }
 
-string DCReaderGRIB::Variable::GetFileName(double time, float level) {
-	string fname = _indices[time][level].fileName;
-	cout << "1 " << fname << endl;
-	cout << "2 " << ((_indices.find(time)->second).find(level)->second).fileName << endl;
-	return fname; 
+string DCReaderGRIB::Variable::GetFileName(double time, float level) const {
+	return ((_indices.find(time)->second).find(level)->second).fileName << endl;
 }
 
 void DCReaderGRIB::Variable::PrintTimes() {
@@ -174,7 +167,7 @@ int DCReaderGRIB::ReadSlice(float *values){
 		_sliceNum = 0;
 	}
 	else {
-		MyBase::SetErrMsg("Variable not found in 2d or 3d variable set");
+		MyBase::SetErrMsg("Variable %s not found in 2d or 3d variable set",_openVar.c_str());
 		return -1;
 	}
 	double usertime = GetTSUserTime(_openTS);
@@ -380,6 +373,15 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
 		min = 0;
 		max = 0;
 	}
+	else if (GetGridType() == "stretched"){
+		for (int i=0; i<_pressureLevels.size(); i++) {
+			double height = BarometricFormula(_pressureLevels[i]);
+			_vertCoordinates.push_back(height);
+		}
+	
+		min = _vertCoordinates.front();
+		max = _vertCoordinates.back();
+	}
 	else {	
 		OpenVariableRead(0,"ELEVATION",0,0);
 		float *values = new float[_Ni*_Nj];
@@ -410,11 +412,11 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
 	#ifdef DEAD
 	for (i=0; i<_pressureLevels.size(); i++) {
 		double height = BarometricFormula(_pressureLevels[i]);
-		_meterLevels.push_back(height);
+		_vertCoordinates.push_back(height);
 	}
 	
-	double bottom = _meterLevels[0];
-	double top = _meterLevels[_meterLevels.size()-1];
+	double bottom = _vertCoordinates[0];
+	double top = _vertCoordinates[_vertCoordinates.size()-1];
 	#endif
 
 	_cartographicExtents.push_back(x[0]);
@@ -574,7 +576,8 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 		bool _jScan = atoi(record["_jScansPositively"].c_str());
 	
 		if (std::find(_pressureLevels.begin(), _pressureLevels.end(), level) == _pressureLevels.end()) {
-			if (!strcmp(name.c_str(),"gh")) _pressureLevels.push_back(level);
+			//if (!strcmp(name.c_str(),"gh")) _pressureLevels.push_back(level);
+			if (level != 0) _pressureLevels.push_back(level);
 		}
 
 		int isobaric = strcmp(levelType.c_str(),"isobaricInhPa");
@@ -660,7 +663,8 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 
 string DCReaderGRIB::GetGridType() const {
 	if (!strcmp("regular_gg",_gridType.c_str())) return "regular";
-	else return "layered";
+	else if (_vars3d.find("ELEVATION") != _vars3d.end()) return "layered";
+	else return "stretched";
 }
 
 void DCReaderGRIB::_generateWeightTable() {
@@ -812,7 +816,7 @@ DCReaderGRIB::~DCReaderGRIB() {
 	_cartesianExtents.clear();
 	_cartographicExtents.clear();
 	_pressureLevels.clear();
-	_meterLevels.clear();
+	_vertCoordinates.clear();
 	_gribTimes.clear();
 
 	typedef std::map<std::string, Variable*>::iterator it_type;
