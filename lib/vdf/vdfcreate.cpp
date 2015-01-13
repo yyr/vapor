@@ -144,10 +144,11 @@ MetadataVDC *vdfcreate::CreateMetadataVDC(
 	// Copy values over from DCReader to MetadataVDC.
 	// Add checking of return values and error messsages.
 	//
-	int numTimeSteps;
-    if (_numTS == -1) numTimeSteps = DCdata->GetNumTimeSteps();
-	else numTimeSteps = _numTS;
-	if(file->SetNumTimeSteps(numTimeSteps)) {
+	//int numTimeSteps;
+    //if (_numTS == -1) numTimeSteps = DCdata->GetNumTimeSteps();
+	//else numTimeSteps = _numTS;
+    _numTS = DCdata->GetNumTimeSteps();
+	if(file->SetNumTimeSteps(_numTS)) {
 		file->SetErrMsg(2,"Error populating NumTimeSteps.");
 		return (NULL);
 		//exit(1);
@@ -159,7 +160,7 @@ MetadataVDC *vdfcreate::CreateMetadataVDC(
   		delta = DCdata->GetTSUserTime(1) - DCdata->GetTSUserTime(0);
     }
 
-	for(int t = 0; t < numTimeSteps; t++) {
+	for(int t = 0; t < _numTS; t++) {
 
         usertime.clear();
 

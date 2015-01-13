@@ -119,8 +119,8 @@ class VDF_API DCReaderGRIB : public DCReader {
 				void _AddLevel(float lvl) {_pressureLevels.push_back(lvl);}
 				void _AddIndex(double time, float level, string file, int offset);
 
-				int GetOffset(double time, float level) const;
-				string GetFileName(double time, float level) const;
+				int GetOffset(double time, float level);
+				string GetFileName(double time, float level);
 				std::vector<int> GetMessages() const {return _messages;}
 				std::vector<double> GetTimes() const {return _unitTimes;}
 				std::vector<float> GetLevels() const {return _pressureLevels;}

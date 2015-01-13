@@ -45,7 +45,6 @@ int DCReaderGRIB::_sliceNum=0;
 int DCReaderGRIB::_openTS=0;
 
 DCReaderGRIB::Variable::Variable() {
-	_iValues = NULL;
 	_messages.clear();
 	_unitTimes.clear();
 	_varTimes.clear();
@@ -66,13 +65,18 @@ bool DCReaderGRIB::Variable::_Exists(double time) const {
 	return 1;
 }
 
-int DCReaderGRIB::Variable::GetOffset(double time, float level) const {
+int DCReaderGRIB::Variable::GetOffset(double time, float level){
 	int off = _indices[time][level].offset;
+	cout << "1 " << off << endl;
+	cout << "2 " << ((_indices.find(time)->second).find(level)->second).offset << endl;
 	return off;
+	//return (_indices.find(time)->second).find(level)->second;
 }
 
-string DCReaderGRIB::Variable::GetFileName(double time, float level) const {
+string DCReaderGRIB::Variable::GetFileName(double time, float level) {
 	string fname = _indices[time][level].fileName;
+	cout << "1 " << fname << endl;
+	cout << "2 " << ((_indices.find(time)->second).find(level)->second).fileName << endl;
 	return fname; 
 }
 
@@ -98,6 +102,7 @@ void DCReaderGRIB::Variable::_AddIndex(double time, float level, string file, in
 }
 
 DCReaderGRIB::DCReaderGRIB(const vector <string> files) {
+	_iValues = NULL;
 	_ignoreForecastData = 0;
 	_Ni = 0;
 	_Nj = 0;
