@@ -29,6 +29,7 @@
 #include <vapor/ColorMapBase.h>
 #include <vapor/tfinterpolator.h>
 #include <vapor/ParamsBase.h>
+#include "renderparams.h"
 
 namespace VAPoR {
 class XmlNode;
@@ -61,26 +62,18 @@ public:
     //
     // Data Bounds
     //
-	float getMinColorMapValue() { return minColorMapBound; }
-	float getMaxColorMapValue() { return maxColorMapBound; }
-	float getMinOpacMapValue()  { return minOpacMapBound; }
-	float getMaxOpacMapValue()  { return maxOpacMapBound; }
-
-	void setMinColorMapValue(float val) { minColorMapBound = val; }
-	void setMaxColorMapValue(float val) { maxColorMapBound = val; }
-	void setMinOpacMapValue(float val)  { minOpacMapBound = val; }
-	void setMaxOpacMapValue(float val)  { maxOpacMapBound = val; }
-
-    //
-    // Variables
-    //
-   
-    int getColorVarNum() { return colorVarNum; }
-    int getOpacVarNum() { return opacVarNum; }
-   
-    virtual void setVarNum(int var)     { colorVarNum = var; opacVarNum = var;}
-    virtual void setColorVarNum(int var){ colorVarNum = var; }
-    virtual void setOpacVarNum(int var) { opacVarNum = var; }
+	float getMinMapValue() { return GetValueDouble(_leftDataBoundTag); }
+	float getMaxMapValue() { return GetValueDouble(_rightDataBoundTag); }
+	
+	void setMinMapValue(float val) { SetValueDouble(_leftDataBoundTag, "Set min map value", val, _params);}
+	void setMaxMapValue(float val)  { SetValueDouble(_rightDataBoundTag, "Set max map value", val, _params);}
+	
+    virtual void setVarNum(int var) {
+		SetValueLong(_varNumTag, "Set variable num", var, _params);
+	}
+	int getVarNum(){
+		return GetValueLong(_varNumTag);
+	}
 
     //
     // Opacity Maps
@@ -88,15 +81,18 @@ public:
     virtual OpacityMapBase* createOpacityMap(
 		OpacityMapBase::Type type=OpacityMapBase::CONTROL_POINT
 	);
-    virtual OpacityMapBase* getOpacityMap(int index) const;
+    virtual OpacityMapBase* GetOpacityMap(int index) const;
     void        deleteOpacityMap(OpacityMapBase *omap);
-    int         getNumOpacityMaps() const { return (int)_opacityMaps.size(); }
+	int         getNumOpacityMaps() const {return opacityPaths.size();}
 
     //
     // Opacity scale factor (scales all opacity maps)
     //
-	void setOpacityScaleFactor(float val) { opacityScaleFactor = val; }
-	float getOpacityScaleFactor()         { return opacityScaleFactor; }
+	void setOpacityScale(double val) { 
+		SetValueDouble(_opacityScaleTag, "Set Opacity Scale", val, _params);
+		
+	}
+	double getOpacityScale()   {return GetValueDouble(_opacityScaleTag);}
 
     //
     // Opacity composition
@@ -107,14 +103,12 @@ public:
       MULTIPLICATION = 1
     };
 
-    void setOpacityComposition(CompositionType t) { _compType = t; }
-    CompositionType getOpacityComposition() { return _compType; }
-
-    //
-    // Colormap
-    //
-    virtual ColorMapBase*   getColormap() const;
-
+    void setOpacityComposition(CompositionType t) { 
+		SetValueLong(_opacityCompositionTag, "Set Opacity Composition Type", (long) t, _params);
+	}
+    CompositionType getOpacityComposition() {
+		return (CompositionType) GetValueLong(_opacityCompositionTag); 
+	}
     //
 	// Color conversion 
     //
@@ -126,65 +120,65 @@ public:
 	//
 	static int mapPosition(float x, float minValue, float maxValue, int hSize);
 
-	int getNumEntries()         { return numEntries; }
-	void setNumEntries(int val) { numEntries = val; }
+	int getNumEntries() const { return numEntries; }
 
     //
 	// Map and quantize a real value to the corresponding table index
 	// i.e., quantize to current Mapper function domain
 	//
-	int mapFloatToColorIndex(float point) 
+	int mapFloatToIndex(float point) 
     {
-		
       int indx = mapPosition(point, 
-                             getMinColorMapValue(), 
-                             getMaxColorMapValue(), numEntries-1);
+                             getMinMapValue(), 
+                             getMaxMapValue(), numEntries-1);
       if (indx < 0) indx = 0;
       if (indx > numEntries-1) indx = numEntries-1;
       return indx;
 	}
 
-	float mapColorIndexToFloat(int indx)
+	float mapIndexToFloat(int indx)
     {
-      return (float)(getMinColorMapValue() + 
-                     ((float)indx)*(float)(getMaxColorMapValue()-
-                                           getMinColorMapValue())/
+      return (float)(getMinMapValue() + 
+                     ((float)indx)*(float)(getMaxMapValue()-
+                                           getMinMapValue())/
                      (float)(numEntries-1));
 	}
 
-	int mapFloatToOpacIndex(float point) 
-    {
-      int indx = mapPosition(point, 
-                             getMinOpacMapValue(), 
-                             getMaxOpacMapValue(), numEntries-1);
-      if (indx < 0) indx = 0;
-      if (indx > numEntries-1) indx = numEntries-1;
-      return indx;
-	}
-
-	float mapOpacIndexToFloat(int indx)
-    {
-      return (float)(getMinOpacMapValue() + 
-                     ((float)indx)*(float)(getMaxOpacMapValue()-
-                                           getMinOpacMapValue())/
-                     (float)(numEntries-1));
-	}
 	
-   
-   
-    std::string getName() { return mapperName; }
+    //Obtain name (used when TF is saved in session..
+    std::string GetName() { 
+		return GetValueString(_mapperNameTag);
+	}
+	void SetName(const string str){
+		SetValueString(_mapperNameTag, "Set mapper function name", str, _params);
+	}
 
 	// Mapper function tag is public, visible to flowparams
 	static const string _mapperFunctionTag;
-	TFInterpolator::type colorInterpType() {
-		if (_colormap) return _colormap->GetInterpType();
+	TFInterpolator::type getColorInterpType() {
+		ColorMapBase* cmap = GetColorMap();
+		if (cmap) return cmap->GetInterpType();
 		return TFInterpolator::linear;
 	}
 	void setColorInterpType(TFInterpolator::type t){
-		if (_colormap) _colormap->SetInterpType(t);
+		ColorMapBase* cmap = GetColorMap();
+		if (cmap) cmap->SetInterpType(t);
 	}
 	void setParams(RenderParams* p) { _params = p; }
-	RenderParams* getParams()       { return _params; }
+	RenderParams* getParams()  const { return _params; } 
+	//! Methods to set/get the Color Map 
+	virtual ColorMapBase* GetColorMap() const {
+		vector<string>path;
+		path.push_back(ColorMapBase::xmlTag());
+		return (ColorMapBase*) GetParamsBase(path);
+	}
+	virtual void SetColorMap(ColorMapBase* cmap) {
+		vector<string>path;
+		path.push_back(ColorMapBase::xmlTag());
+		SetParamsBase(path, cmap);
+	}
+
+	
 
 protected:
 
@@ -193,42 +187,23 @@ protected:
 	// Set to starting values
 	//
 	virtual void init();  
-    	
-		
-protected:
 
-    vector<OpacityMapBase*>  _opacityMaps;
-    CompositionType      _compType;
-
-    ColorMapBase            *_colormap;
+	//Map child index to the path to opacityMapBase
+	std::vector<vector<string>> opacityPaths;
+	//Provide name for opac map node, unique for this instance;
+	string getOpacMapTag();
+    
     //
     // XML tags
     //
-	static const string _leftColorBoundAttr;
-	static const string _rightColorBoundAttr;
-	static const string _leftOpacityBoundAttr;
-	static const string _rightOpacityBoundAttr;
-    static const string _opacityCompositionAttr;
-	//Several attributes became tags after version 1.5:
-	static const string _leftColorBoundTag;
-	static const string _rightColorBoundTag;
-	static const string _leftOpacityBoundTag;
-	static const string _rightOpacityBoundTag;
+	
+	static const string _leftDataBoundTag;
+	static const string _rightDataBoundTag;
     static const string _opacityCompositionTag;
-	static const string _hsvAttr;
-	static const string _positionAttr;
-	static const string _opacityAttr;
-	static const string _opacityControlPointTag;
-	static const string _colorControlPointTag;
-	// Additional attributes not yet supported:
-	
-	static const string _rgbAttr;
-	
-    //
-    // Mapping bounds
-    //
-	float minColorMapBound, maxColorMapBound;
-	float minOpacMapBound, maxOpacMapBound;
+	static const string _mapperNameTag;
+	static const string _varNumTag;
+	static const string _opacityScaleTag;
+	static const string _opacityMapsTag;
 
     //
     // Parent params
@@ -239,23 +214,10 @@ protected:
     //
 	// Size of lookup table.  Always 1<<8 currently!
 	//
-	int numEntries;
+	const int numEntries;
+	int opacityMapNum;
 
-    //
-	// Mapper function name, if it's named.
-    //
-	string mapperName;
-
-	//
-    // Corresponding var nums
-    //
-	int colorVarNum;
-    int opacVarNum;	
-
-    //
-    // Opacity scale factor
-    //
-    float opacityScaleFactor;
+   
 };
 };
 #endif //MAPPERFUNCTIONBASE_H

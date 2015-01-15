@@ -87,7 +87,7 @@ ParamsBase::ParamsBase(const ParamsBase& pBase) :
 	_paramsBaseName = pBase._paramsBaseName;
 }
 	
-ParamsBase* ParamsBase::GetParamsBase(const vector<string>& path){
+ParamsBase* ParamsBase::GetParamsBase(const vector<string>& path) const{
 	ParamNode* node = GetRootNode();
 	if (!node) return 0;
 	for (int i = 0; i< path.size(); i++){
@@ -142,6 +142,39 @@ int ParamsBase::SetParamsBase(const vector<string>& path, ParamsBase* pbase){
 	}
 }
 
+int ParamsBase::RemoveParamsBase(const vector<string>& path, ParamsBase* pbase){
+	//Iterate, looking for parent of the node to be removed
+	ParamNode* parentNode = GetRootNode();
+	if (!parentNode) return -1;
+	for (int i = 0; i<path.size()-1; i++){
+		ParamNode* newNode = parentNode->GetNode(path[i]);
+		if (!newNode) {
+			return -1; //Error, cannot descend path
+		} 
+		parentNode = newNode;
+	}
+	//Finally, identify the last node in the path, if it exists
+	int len = path.size()-1;
+	string lastTag = path[len];
+	ParamNode* lastNode = parentNode->GetNode(lastTag);
+	if (!lastNode){
+		return -1;
+	}
+	else {
+		if( lastNode->GetParamsBase()) {
+			//Delete the existing ParamsBase
+			delete lastNode->GetParamsBase();
+			//Replace it with null, so we can remove the child.
+			lastNode->SetParamsBase(0);
+			int rc = parentNode->DeleteChild(lastTag);
+			return rc;
+		}
+		//It really shouldn't ever get here:  the ParamNode 
+		//exists but does not have a ParamsBase.
+		assert(0);
+		return -1;
+	}
+}
 //Default buildNode clones the ParamNodes but calls buildNode on Registered nodes
 ParamNode* ParamsBase::buildNode(){	
 	

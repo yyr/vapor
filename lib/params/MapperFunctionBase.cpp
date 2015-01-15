@@ -45,64 +45,50 @@ using namespace VAPoR;
 using namespace VetsUtil;
 
 const string MapperFunctionBase::_mapperFunctionTag = "MapperFunction";
-const string MapperFunctionBase::_leftColorBoundAttr = "LeftColorBound";
-const string MapperFunctionBase::_rightColorBoundAttr = "RightColorBound";
-const string MapperFunctionBase::_leftOpacityBoundAttr = "LeftOpacityBound";
-const string MapperFunctionBase::_rightOpacityBoundAttr = "RightOpacityBound";
-const string MapperFunctionBase::_opacityCompositionAttr = "OpacityComposition";
-
-const string MapperFunctionBase::_leftColorBoundTag = "LeftColorBound";
-const string MapperFunctionBase::_rightColorBoundTag = "RightColorBound";
-const string MapperFunctionBase::_leftOpacityBoundTag = "LeftOpacityBound";
-const string MapperFunctionBase::_rightOpacityBoundTag = "RightOpacityBound";
+const string MapperFunctionBase::_mapperNameTag = "MapperName";
+const string MapperFunctionBase::_leftDataBoundTag = "LeftDataBound";
+const string MapperFunctionBase::_rightDataBoundTag = "RightDataBound";
 const string MapperFunctionBase::_opacityCompositionTag = "OpacityComposition";
-const string MapperFunctionBase::_hsvAttr = "HSV";
-const string MapperFunctionBase::_positionAttr = "Position";
-const string MapperFunctionBase::_opacityAttr = "Opacity";
-const string MapperFunctionBase::_opacityControlPointTag = "OpacityControlPoint";
-const string MapperFunctionBase::_colorControlPointTag = "ColorControlPoint";
+const string MapperFunctionBase::_opacityScaleTag = "OpacityScale";
+const string MapperFunctionBase::_varNumTag = "VariableNum";
+const string MapperFunctionBase::_opacityMapsTag = "OpacityMaps";
 
 
 //----------------------------------------------------------------------------
 // Constructor for empty, default Mapper function
 //----------------------------------------------------------------------------
 MapperFunctionBase::MapperFunctionBase(const string& name) :
-	ParamsBase(0, name)
+	ParamsBase(0, name),
+	numEntries(256)
 {	
-	
+	opacityMapNum = 0;
 	previousClass = 0;
-    opacityScaleFactor = 1.0;
-	colorVarNum = 0;
-    opacVarNum  = 0;	
-    
-    _colormap = NULL;
+	setOpacityScale(1.0);
+	setVarNum(0);
+   
+    SetColorMap(NULL);
 	_params = NULL;
-
-    _compType = ADDITION;
-	numEntries = 256;
+    setOpacityComposition( ADDITION);
 }
 
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
 MapperFunctionBase::MapperFunctionBase(int nBits, const string& name) : 
-	ParamsBase(name)
+	ParamsBase(name),
+	numEntries(256)
 {
+	opacityMapNum = 0;
 	previousClass = 0;
-	//Currently ignore the nBits parameter:
-	numEntries = 256;
+	setMinMapValue(0.);
+	setMaxMapValue(1.);
+	
+    setOpacityScale( 1.0);
+	setVarNum(0);
 
-	minColorMapBound = 0.f;
-	maxColorMapBound = 1.f;
-	minOpacMapBound = 0.f;
-	maxOpacMapBound = 1.f;
-    opacityScaleFactor = 1.0;
-	colorVarNum = 0;
-    opacVarNum  = 0;	
-
-    _colormap = NULL;
+    SetColorMap(NULL);
 	_params = NULL;
-    _compType = ADDITION;
+    setOpacityComposition( ADDITION);
 }
 
 
@@ -112,16 +98,7 @@ MapperFunctionBase::MapperFunctionBase(int nBits, const string& name) :
 MapperFunctionBase::~MapperFunctionBase() 
 {
 
-    if (_colormap) delete _colormap;
-    _colormap = NULL;
-
-    for (int i=0; i<_opacityMaps.size(); i++)
-    {
-      if (_opacityMaps[i]) delete _opacityMaps[i];
-      _opacityMaps[i] = NULL;
-    }
-    
-    _opacityMaps.clear();
+   
 }
 
 //----------------------------------------------------------------------------
@@ -136,22 +113,22 @@ float MapperFunctionBase::opacityValue(float value)
   // better control over low opacity values.
   // But this correction will be made in the GUI
   //
-  float opacScale = opacityScaleFactor;
+  float opacScale = getOpacityScale();
   
   float opacity = 0.0;
 
-  if (_compType == MULTIPLICATION)
+  if (getOpacityComposition() == MULTIPLICATION)
   {
     opacity = 1.0;
   }
 
-  for (int i=0; i<_opacityMaps.size(); i++)
+  for (int i=0; i<getNumOpacityMaps(); i++)
   {
-    OpacityMapBase *omap = _opacityMaps[i];
+    OpacityMapBase *omap = GetOpacityMap(i);
 
     if (omap->IsEnabled() && omap->bounds(value))
     {
-      if (_compType == ADDITION)
+      if (getOpacityComposition() == ADDITION)
       {
         opacity += omap->opacity(value);
       }
@@ -179,9 +156,10 @@ float MapperFunctionBase::opacityValue(float value)
 //----------------------------------------------------------------------------
 void MapperFunctionBase::hsvValue(float value, float *h, float *s, float *v)
 {
-  if (_colormap)
+  ColorMapBase* cmap = GetColorMap();
+  if (cmap)
   {
-    ColorMapBase::Color color = _colormap->color(value);
+    ColorMapBase::Color color = cmap->color(value);
 
     *h = color.hue();
     *s = color.sat();
@@ -194,16 +172,15 @@ void MapperFunctionBase::hsvValue(float value, float *h, float *s, float *v)
 //----------------------------------------------------------------------------
 void MapperFunctionBase::makeLut(float* clut)
 {
-  float ostep = (getMaxOpacMapValue() - getMinOpacMapValue())/(numEntries-1);
-  float cstep = (getMaxColorMapValue() - getMinColorMapValue())/(numEntries-1);
+  float step = (getMaxMapValue() - getMinMapValue())/(numEntries-1);
 
   for (int i = 0; i< numEntries; i++)
   {
-    float ov = getMinOpacMapValue() + i*ostep;
-    float cv = getMinColorMapValue() + i*cstep;
-
-    _colormap->color(cv).toRGB(&clut[4*i]);
-    clut[4*i+3] = opacityValue(ov);
+    float v = getMinMapValue() + i*step;
+   
+	ColorMapBase* cmap = GetColorMap();
+    cmap->color(v).toRGB(&clut[4*i]);
+    clut[4*i+3] = opacityValue(v);
   }
 }
 
@@ -214,45 +191,38 @@ void MapperFunctionBase::makeLut(float* clut)
 OpacityMapBase* MapperFunctionBase::createOpacityMap(OpacityMapBase::Type type)
 {
   OpacityMapBase *omap = new OpacityMapBase(type);
-
-  _opacityMaps.push_back(omap);
-
+  vector<string>path;
+  path.push_back(_opacityMapsTag);
+  path.push_back(getOpacMapTag());
+  SetParamsBase(path, omap);
+  opacityPaths.push_back(path);
   return omap;
 }
 
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-OpacityMapBase* MapperFunctionBase::getOpacityMap(int index) const
+OpacityMapBase* MapperFunctionBase::GetOpacityMap(int index) const
 {
-  if (index < 0 || index >= _opacityMaps.size())
-  {
-    return NULL;
-  }
-
-  return _opacityMaps[index];
+  return (OpacityMapBase*)GetParamsBase(opacityPaths[index]);
 }
 
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
-ColorMapBase* MapperFunctionBase::getColormap() const {
-	return(_colormap);
-}
 
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
 void MapperFunctionBase::deleteOpacityMap(OpacityMapBase *omap)
 {
-  vector<OpacityMapBase*>::iterator iter = 
-    std::find(_opacityMaps.begin(), _opacityMaps.end(), omap);
-
-  if (iter != _opacityMaps.end())
-  {
-	if (*iter) delete *iter;
-    _opacityMaps.erase(iter);
-  }
+	for (int i = 0; i<getNumOpacityMaps(); i++){
+		if (GetOpacityMap(i) == omap){
+			//remove it from the xml
+			RemoveParamsBase(opacityPaths[i], omap);
+			//remove it from the vector
+			opacityPaths.erase(opacityPaths.begin()+i);
+			return;
+		}
+	}
+	return;  //Didn't find it...
 }
 
 //----------------------------------------------------------------------------
@@ -260,24 +230,23 @@ void MapperFunctionBase::deleteOpacityMap(OpacityMapBase *omap)
 //----------------------------------------------------------------------------
 void MapperFunctionBase::init()
 {  	
-	numEntries = 256;
-	setMinColorMapValue(0.f);
-	setMaxColorMapValue(1.f);
-	setMinOpacMapValue(0.f);
-	setMaxOpacMapValue(1.f);
-    setOpacityScaleFactor(1.0f);
+	
+	setMinMapValue(0.f);
+	setMaxMapValue(1.f);
+    setOpacityScale(1.0f);
 
     //
     // Delete the opacity maps
     //
-    for (int i=0; i<_opacityMaps.size(); i++)
-    {
-      if (_opacityMaps[i]) delete _opacityMaps[i];
-      _opacityMaps[i] = NULL;
-    }
-    
-    _opacityMaps.clear();
-    if(_colormap) _colormap->clear();
+	for (int i = opacityPaths.size()-1; i>=0; i--){
+		OpacityMapBase* omap = GetOpacityMap(i); 
+		deleteOpacityMap(omap);
+	}
+	
+	opacityPaths.clear();
+	//Do we need to add a default mapping?
+	ColorMapBase* cmap = GetColorMap();
+    if(cmap) cmap->clear();
 }
 
 //----------------------------------------------------------------------------
@@ -385,18 +354,25 @@ void MapperFunctionBase::rgbToHsv(float* rgb, float* hsv)
 void MapperFunctionBase::setOpaque()
 {
   // New-school
-  for (int i=0; i<_opacityMaps.size(); i++)
+  for (int i=0; i<getNumOpacityMaps(); i++)
   {
-    _opacityMaps[i]->setOpaque();
+   GetOpacityMap(i)->setOpaque();
   }
 }
 bool MapperFunctionBase::isOpaque()
 {
 
-  for (int i=0; i<_opacityMaps.size(); i++)
+  for (int i=0; i<getNumOpacityMaps(); i++)
   {
-    if(!_opacityMaps[i]->isOpaque()) return false;
+    if(GetOpacityMap(i)->isOpaque()) return false;
   }
   return true;
 }
 
+string MapperFunctionBase::getOpacMapTag(){
+	opacityMapNum++;
+	char num[10];
+	_itoa(opacityMapNum, num, 10);
+	string name = string("OpacityMap")+string(num)+"Tag";
+	return name;
+}

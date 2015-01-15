@@ -475,7 +475,7 @@ public:
  //! \retval Pointer to the ParamsBase node for which this is the root node
  //! \sa SetParamsBase()
  //
-ParamsBase* GetParamsBase() {return _paramsBase;}
+ParamsBase* GetParamsBase() const {return _paramsBase;}
 #ifndef DOXYGEN_SKIP_THIS
 static const string _paramsBaseAttr;
 static const string _paramNodeAttr;

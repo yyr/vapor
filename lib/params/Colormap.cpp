@@ -62,8 +62,8 @@ float VColormap::minValue()
 {
   assert(_mapper);
 
-  return _mapper->getMinColorMapValue() + (float)GetMinValue() * 
-    (_mapper->getMaxColorMapValue() - _mapper->getMinColorMapValue());
+  return _mapper->getMinMapValue() + (float)GetMinValue() * 
+    (_mapper->getMaxMapValue() - _mapper->getMinMapValue());
 }
 
 //----------------------------------------------------------------------------
@@ -78,8 +78,8 @@ void VColormap::minValue(float value)
   assert(_mapper);
 
   SetMinValue( 
-    (value - _mapper->getMinColorMapValue()) / 
-    (_mapper->getMaxColorMapValue() - _mapper->getMinColorMapValue())
+    (value - _mapper->getMinMapValue()) / 
+    (_mapper->getMaxMapValue() - _mapper->getMinMapValue())
 	);
 }
 
@@ -94,8 +94,8 @@ float VColormap::maxValue()
 {
   assert(_mapper);
 
-  return _mapper->getMinColorMapValue() + GetMaxValue() * 
-    (_mapper->getMaxColorMapValue() - _mapper->getMinColorMapValue());
+  return _mapper->getMinMapValue() + GetMaxValue() * 
+    (_mapper->getMaxMapValue() - _mapper->getMinMapValue());
 }
 
 //----------------------------------------------------------------------------
@@ -110,7 +110,7 @@ void VColormap::maxValue(float value)
   assert(_mapper);
 
   SetMaxValue(
-    (value - _mapper->getMinColorMapValue()) / 
-    (_mapper->getMaxColorMapValue()-_mapper->getMinColorMapValue())
+    (value - _mapper->getMinMapValue()) / 
+    (_mapper->getMaxMapValue()-_mapper->getMinMapValue())
 	);
 }

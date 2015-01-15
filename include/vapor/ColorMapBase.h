@@ -108,6 +108,7 @@ private:
   static const string _maxTag;
   static const string _controlPointsTag; 
   static const string _interpTypeTag;
+ 
 };
 class PARAMS_API ARGB{
 public:

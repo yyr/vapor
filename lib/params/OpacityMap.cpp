@@ -68,8 +68,8 @@ OpacityMap::~OpacityMap()
 //----------------------------------------------------------------------------
 float OpacityMap::minValue()
 {
-  return _mapper->getMinOpacMapValue() + GetMinValue() * 
-    (_mapper->getMaxOpacMapValue() - _mapper->getMinOpacMapValue());
+  return _mapper->getMinMapValue() + GetMinValue() * 
+    (_mapper->getMaxMapValue() - _mapper->getMinMapValue());
 }
 
 //----------------------------------------------------------------------------
@@ -83,8 +83,8 @@ void OpacityMap::minValue(float value)
 {
   SetMinValue(
     MAX(0.0, 
-        (value - _mapper->getMinOpacMapValue()) / 
-        (_mapper->getMaxOpacMapValue() - _mapper->getMinOpacMapValue()))
+        (value - _mapper->getMinMapValue()) / 
+        (_mapper->getMaxMapValue() - _mapper->getMinMapValue()))
 		);
 }
 
@@ -98,8 +98,8 @@ void OpacityMap::minValue(float value)
 //----------------------------------------------------------------------------
 float OpacityMap::maxValue()
 {
-  return _mapper->getMinOpacMapValue() + GetMaxValue() * 1.0001 * 
-    (_mapper->getMaxOpacMapValue() - _mapper->getMinOpacMapValue());
+  return _mapper->getMinMapValue() + GetMaxValue() * 1.0001 * 
+    (_mapper->getMaxMapValue() - _mapper->getMinMapValue());
 }
 
 //----------------------------------------------------------------------------
@@ -113,7 +113,7 @@ void OpacityMap::maxValue(float value)
 {
   SetMaxValue(
     MIN(1.0, 
-        (value - _mapper->getMinOpacMapValue()) / 
-        (_mapper->getMaxOpacMapValue()-_mapper->getMinOpacMapValue()))
+        (value - _mapper->getMinMapValue()) / 
+        (_mapper->getMaxMapValue()-_mapper->getMinMapValue()))
 		);
 }

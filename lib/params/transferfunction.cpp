@@ -68,24 +68,6 @@ TransferFunction::TransferFunction() : MapperFunction(_transferFunctionTag)
 	
 }
 
-//----------------------------------------------------------------------------
-// Reset to starting values
-//----------------------------------------------------------------------------
-void TransferFunction::init()
-{
-	numEntries = 256;
-	setMinMapValue(0.f);
-	setMaxMapValue(1.f);
-
-    for (int i=0; i<_opacityMaps.size(); i++)
-    {
-      if (_opacityMaps[i]) delete _opacityMaps[i];
-      _opacityMaps[i] = NULL;
-    }    
-
-    _opacityMaps.clear();
-    _colormap->clear();
-}
 
 //----------------------------------------------------------------------------
 // Construtor 

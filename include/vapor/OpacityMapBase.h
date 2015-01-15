@@ -57,7 +57,7 @@ public:
   void SetMaxValue(double val);
   
   bool IsEnabled() {
-	  return (bool)GetValueLong(_enabledTag);
+	  return (GetValueLong(_enabledTag) != 0 ? true : false);
   }
   void SetEnabled(bool enabled);
   double GetMean(){ return GetValueDouble(_meanTag);}

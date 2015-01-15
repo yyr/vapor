@@ -48,6 +48,7 @@ const string IsoControl::_leftHistoBoundAttr = "LeftHistoBound";
 const string IsoControl::_rightHistoBoundAttr = "RightHistoBound";
 const string IsoControl::_leftHistoBoundTag = "LeftHistoBound";
 const string IsoControl::_rightHistoBoundTag = "RightHistoBound";
+const string IsoControl::_isoValuesTag = "IsoValues";
 
 //----------------------------------------------------------------------------
 // Constructor for empty, default Mapper function
@@ -56,11 +57,9 @@ MapperFunction::MapperFunction() :
 MapperFunctionBase(MapperFunctionBase::_mapperFunctionTag)
 
 {	
-	// Delete ColorMapBase created by parent class
-	if (_colormap) delete _colormap;	
- 
-	_colormap = new VColormap(NULL);
+	VColormap* _colormap = new VColormap(NULL);
 	_colormap->SetInterpType(TFInterpolator::linear);
+	SetColorMap(_colormap);
 }
 
 //----------------------------------------------------------------------------
@@ -69,11 +68,9 @@ MapperFunctionBase(MapperFunctionBase::_mapperFunctionTag)
 MapperFunction::MapperFunction(const string& tag) : 
 MapperFunctionBase(tag)
 {	
-	// Delete ColorMapBase created by parent class
-	if (_colormap) delete _colormap;	
- 
-	_colormap = new VColormap(NULL);
+	VColormap* _colormap = new VColormap(NULL);
 	_colormap->SetInterpType(TFInterpolator::linear);
+	SetColorMap(_colormap);
 }
 //----------------------------------------------------------------------------
 // Constructor
@@ -81,22 +78,25 @@ MapperFunctionBase(tag)
 MapperFunction::MapperFunction(RenderParams* p, int nBits) :
   MapperFunctionBase(nBits,MapperFunctionBase::_mapperFunctionTag)
 {
-	// Delete ColorMapBase and OpacityMapBase created by parent class
-	if (_colormap) delete _colormap;	
-
-	for (int i=0; i<_opacityMaps.size(); i++) {
-		delete _opacityMaps[i];
-		_opacityMaps[i] = NULL;
-    }
-    _opacityMaps.clear();
-
+	
+	 //
+    // Delete the opacity maps
+    //
+	for (int i = opacityPaths.size()-1; i>=0; i--){
+		OpacityMapBase* omap = GetOpacityMap(i); 
+		deleteOpacityMap(omap);
+	}
+	
+	opacityPaths.clear();
 
 	// Now recreate them with the appropriate type
 	//
-    _colormap = new VColormap(this);
+    VColormap* _colormap = new VColormap(NULL);
 	_colormap->SetInterpType(TFInterpolator::linear);
+	SetColorMap(_colormap);
 
-    _opacityMaps.push_back(new OpacityMap(this));
+	createOpacityMap();
+    
 }
 
 //----------------------------------------------------------------------------
@@ -106,55 +106,18 @@ MapperFunction::MapperFunction(const MapperFunction &mapper) :
   MapperFunctionBase(mapper)
 {
 	_params = mapper._params;
-	// Delete ColorMapBase and OpacityMapBase created by parent class
-	if (_colormap) delete _colormap;	
-
-	for (int i=0; i<_opacityMaps.size(); i++) 
-    {
-      delete _opacityMaps[i];
-      _opacityMaps[i] = NULL;
-    }
-
-    _opacityMaps.clear();
-
-	// Now recreate them with the appropriate type
-	//
-	if (mapper._colormap){
-		const VColormap &cmap =  (const VColormap &) (*(mapper._colormap));
-		_colormap = new VColormap(cmap, this);
-	}
-
-	for (int i=0; i<mapper._opacityMaps.size(); i++) 
-    {
-      _opacityMaps.push_back(new OpacityMap((const OpacityMap &) 
-                                            (*mapper._opacityMaps[i]), this));
-	}
+	
 }
-
+  //----------------------------------------------------------------------------
+// Copy Constructor
+//----------------------------------------------------------------------------
 MapperFunction::MapperFunction(const MapperFunctionBase &mapper) :
   MapperFunctionBase(mapper)
 {
-	// Delete ColorMapBase and OpacityMapBase created by parent class
-	if (_colormap) delete _colormap;	
-
-	for (int i=0; i<_opacityMaps.size(); i++) {
-		delete _opacityMaps[i];
-		_opacityMaps[i] = NULL;
-    }
-    _opacityMaps.clear();
-
-	// Now recreate them with the appropriate type
-	//
-	const ColorMapBase *cmap =  mapper.getColormap();
-	if (cmap){
-		_colormap = new VColormap((const VColormap &) *cmap, this);
-	}
-	for (int i=0; i<mapper.getNumOpacityMaps(); i++) 
-    {
-      const OpacityMapBase *omap =  mapper.getOpacityMap(i);
-      _opacityMaps.push_back(new OpacityMap((const OpacityMap &)*omap, this));
-	}
+	_params = mapper.getParams();
+	
 }
+
 
 //----------------------------------------------------------------------------
 // Destructor
@@ -169,10 +132,11 @@ MapperFunction::~MapperFunction()
 //----------------------------------------------------------------------------
 ARGB MapperFunction::colorValue(float value)
 {
-  if (_colormap)
+	ColorMapBase* cmap = GetColorMap();
+  if (cmap)
   {
     float rgb[3];
-    _colormap->color(value).toRGB(rgb);
+    cmap->color(value).toRGB(rgb);
 
     return ARGB((int)(255*rgb[0]), (int)(255*rgb[1]), (int)(255*rgb[2]));
   }
@@ -182,47 +146,23 @@ ARGB MapperFunction::colorValue(float value)
 
 
 //----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
-OpacityMap* MapperFunction::createOpacityMap(OpacityMap::Type type)
-{
-  OpacityMap *omap = new OpacityMap(this, type);
-
-  _opacityMaps.push_back(omap);
-
-  return omap;
-}
-
-//----------------------------------------------------------------------------
-//  
-//----------------------------------------------------------------------------
-OpacityMap* MapperFunction::getOpacityMap(int index)
-{     
-	return((OpacityMap *) MapperFunctionBase::getOpacityMap(index));
-}
-
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
-VColormap* MapperFunction::getColormap() {
-    return((VColormap *)_colormap);
-}
-
-
-//----------------------------------------------------------------------------
 // Constructor for empty, default IsoControl
 //----------------------------------------------------------------------------
 IsoControl::IsoControl() : 
   MapperFunction()
 {	
-	//delete opacity map:
-	for (int i=0; i<_opacityMaps.size(); i++) {
-		delete _opacityMaps[i];
-		_opacityMaps[i] = NULL;
-    }
-    _opacityMaps.clear();
-	isoValues.clear();
-	isoValues.push_back(0.);
+	//
+    // Delete the opacity maps
+    //
+	for (int i = opacityPaths.size()-1; i>=0; i--){
+		OpacityMapBase* omap = GetOpacityMap(i); 
+		deleteOpacityMap(omap);
+	}
+	
+	opacityPaths.clear();
+	vector<double>isovalues;
+	isovalues.push_back(0.);
+	setIsoValues(isovalues);
 
 }
 
@@ -233,14 +173,19 @@ IsoControl::IsoControl(RenderParams* p, int nBits) :
   MapperFunction(p,nBits)
 {
 	
-	for (int i=0; i<_opacityMaps.size(); i++) {
-		delete _opacityMaps[i];
-		_opacityMaps[i] = NULL;
-    }
-    _opacityMaps.clear();
+	//
+    // Delete the opacity maps
+    //
+	for (int i = opacityPaths.size()-1; i>=0; i--){
+		OpacityMapBase* omap = GetOpacityMap(i); 
+		deleteOpacityMap(omap);
+	}
+	
+	opacityPaths.clear();
 
-	isoValues.clear();
+	vector<double> isoValues;
 	isoValues.push_back(0.);
+	setIsoValues(isoValues);
 
 }
 
@@ -250,20 +195,7 @@ IsoControl::IsoControl(RenderParams* p, int nBits) :
 IsoControl::IsoControl(const IsoControl &mapper) :
   MapperFunction(mapper)
 {
-	// Delete OpacityMapBase created by parent class
 	
-
-	for (int i=0; i<_opacityMaps.size(); i++) 
-    {
-      delete _opacityMaps[i];
-      _opacityMaps[i] = NULL;
-    }
-
-    _opacityMaps.clear();
-
-	isoValues = mapper.isoValues;
-	
-
 }
 
 //----------------------------------------------------------------------------
@@ -271,4 +203,17 @@ IsoControl::IsoControl(const IsoControl &mapper) :
 //----------------------------------------------------------------------------
 IsoControl::~IsoControl() 
 {
+}
+void IsoControl::setIsoValue(double val){
+	SetValueDouble(_isoValuesTag, "Set Isovalue", val, _params);
+}
+double IsoControl::getIsoValue(){
+	return GetValueDouble(_isoValuesTag);
+}
+void IsoControl::setIsoValues(const vector<double>& vals){
+	SetValueDouble(_isoValuesTag, "Set Isovalues", vals, _params);
+}
+
+const vector<double> IsoControl::getIsoValues(){
+	return GetValueDoubleVec(_isoValuesTag);
 }

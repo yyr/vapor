@@ -37,10 +37,6 @@ public:
 
   virtual float maxValue();      // Data Coordinates
   virtual void  maxValue(float value); // Data Coordinates
- 
-
-private:
-
 
 };
 };

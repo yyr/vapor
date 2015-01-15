@@ -64,20 +64,8 @@ public:
     //
     ARGB  colorValue(float point);
 
-    //
-    // Opacity Maps
-    //
-    virtual OpacityMap* createOpacityMap(OpacityMap::Type type=OpacityMap::CONTROL_POINT);
-
-	virtual OpacityMap* getOpacityMap(int index);
-
-	virtual VColormap*   getColormap();
-
-
-
-protected:
-
     
+
 	
 };
 class PARAMS_API IsoControl : public MapperFunction{
@@ -94,21 +82,21 @@ public:
 	}
 	static ParamsBase* CreateDefaultInstance(){return new IsoControl();}
 	virtual ~IsoControl();
-	void setIsoValue(double val){isoValues[0] = val;}
-	double getIsoValue(){return isoValues[0];}
-	void setIsoValues(const vector<double>& vals){isoValues = vals;}
-	const vector<double>& getIsoValues(){return isoValues;}
+	void setIsoValue(double val);
+	double getIsoValue();
+	void setIsoValues(const vector<double>& vals);
+	const vector<double> getIsoValues();
 	
 	void setMinHistoValue(float val){
-		setMinOpacMapValue(val);
-		setMinColorMapValue(val);
+		setMinMapValue(val);
+	
 	}
 	void setMaxHistoValue(float val){
-		setMaxOpacMapValue(val);
-		setMaxColorMapValue(val);
+		setMaxMapValue(val);
+	
 	}
-	float getMinHistoValue() {return getMinOpacMapValue();}
-	float getMaxHistoValue() {return getMaxOpacMapValue();}
+	float getMinHistoValue() {return getMinMapValue();}
+	float getMaxHistoValue() {return getMaxMapValue();}
 	
 
 protected:
@@ -116,7 +104,8 @@ protected:
 	static const string _rightHistoBoundAttr;
 	static const string _leftHistoBoundTag;
 	static const string _rightHistoBoundTag;
-	vector<double> isoValues;
+	static const string _isoValuesTag;
+
 };
 };
 #endif //MAPPERFUNCTION_H

@@ -173,7 +173,7 @@ virtual ParamNode* buildNode();
  //! This method returns the top node in the parameter node tree
  //!
 
-ParamNode *GetRootNode() { return(_rootParamNode); }
+ParamNode *GetRootNode() const { return(_rootParamNode); }
 
 
 //!	
@@ -410,7 +410,7 @@ static ParamsBase* CreateDefaultParamsBase(const string&tag);
 //! starting at the root node of the ParamsBase (or Params) containing the 
 //! requested ParamsBase instance.
 //! \retval ParamsBase* instance at specified path, or NULL if does not exist.
-	ParamsBase* GetParamsBase(const vector<string>& path);
+	ParamsBase* GetParamsBase(const vector<string>& path) const;
 
 //! Following method is to be used to specify a ParamsBase instance that
 //! will be inside a Params (or ParamsBase) instance, or to replace an existing ParamsBase instance.
@@ -418,6 +418,8 @@ static ParamsBase* CreateDefaultParamsBase(const string&tag);
 //! a Viewpoint in a Params instance.  The path from the root node as
 //! well as the ParamsBase instance must be specified.
 //! This will replace (and delete) any existing ParamsBase instance at specified path.
+//! If there is no pre-existing node at the specified path, a new child is added
+//! as the last child of its parent.
 //! Constructs path to specified ParamsBase if it does not already exist.
 //! \param[in] vector<string> sequence of tags to specified ParamsBase,
 //! starting at the root node of the ParamsBase (or Params) containing the 
@@ -425,6 +427,18 @@ static ParamsBase* CreateDefaultParamsBase(const string&tag);
 //! \param[in] ParamsBase* pbase class instance to be set
 //! \retval 0 if successful, -1 otherwise
 	int SetParamsBase(const vector<string>& path, ParamsBase* pbase);
+
+//! Following method is to be used to remove a ParamsBase instance that
+//! is inside a Params (or ParamsBase) instance, 
+//! The path from the root node as
+//! well as the ParamsBase instance must be specified.
+//! This will remove (and delete) the existing ParamsBase instance at specified path.
+//! \param[in] vector<string> sequence of tags to specified ParamsBase,
+//! starting at the root node of the ParamsBase (or Params) containing the 
+//! requested ParamsBase instance.
+//! \param[in] ParamsBase* pbase class instance to be set
+//! \retval 0 if successful, -1 otherwise
+	int RemoveParamsBase(const vector<string>& path, ParamsBase* pbase);
 
 #ifndef DOXYGEN_SKIP_THIS
 

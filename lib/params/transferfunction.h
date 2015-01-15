@@ -47,29 +47,7 @@ public:
 	virtual ~TransferFunction();
 	static ParamsBase* CreateDefaultInstance(){return new TransferFunction();}
 
-    //
-	// Note:  All public methods use actual real coords.
-	// (Protected methods use normalized points in [0,1]
-	//
-	
-    //
-	// Transfer function has identical min,max map bounds, but
-	// Parent class has them potentially unequal.
-    //
-	void setMinMapValue(float minVal) 
-    { setMinOpacMapValue(minVal); setMinColorMapValue(minVal);}
-
-	void setMaxMapValue(float val)    
-    { setMaxOpacMapValue(val); setMaxColorMapValue(val); }
-
-	float getMinMapValue() {return getMinColorMapValue();}
-	float getMaxMapValue() {return getMaxColorMapValue();}
-
-	int mapFloatToIndex(float f) { return mapFloatToColorIndex(f); }
-	float mapIndexToFloat(int indx) { return mapColorIndexToFloat(indx); }
-
-    void setVarNum(int var)      { colorVarNum = var; opacVarNum = var; }
-
+  
     //
 	// Methods to save and restore transfer functions.
 	// The gui opens the FILEs that are then read/written
@@ -80,12 +58,12 @@ public:
 
 	//Transfer function tag is visible to session 
 	static const string _transferFunctionTag;
-	virtual void hookup(RenderParams* p, int cvar, int ovar){
+	virtual void hookup(RenderParams* p, int cvar){
 		_params = p;
-		colorVarNum = cvar;
-		opacVarNum = ovar; 
-		if(_colormap) _colormap->setMapper(this);
-		if(_opacityMaps.size()>0) ((OpacityMap*)_opacityMaps[0])->setMapper(this);
+		setVarNum(cvar);
+		ColorMapBase* cmap = GetColorMap();
+		if(cmap) cmap->setMapper(this);
+		if(getNumOpacityMaps()>0) (GetOpacityMap(0))->setMapper(this);
 	}
 	virtual TransferFunction* deepCopy(ParamNode* newRoot = 0){
 		TransferFunction* tf = new TransferFunction(*this);
@@ -93,13 +71,6 @@ public:
 		if(newRoot) newRoot->SetParamsBase(tf);
 		return tf;
 	}
-	
-protected:
-
-    //
-	//Set to starting values
-	//
-	virtual void init();  
 	
 protected:
 	
