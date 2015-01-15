@@ -47,7 +47,8 @@ class VDF_API DCReaderGRIB : public DCReader {
 		void Print2dVars();
 		void _generateWeightTable();
 		string GetGridType() const;
-
+		virtual std::vector<double> GetTSZCoords(size_t ) const {
+			return(_vertCoordinates);};
 		/////
 		// DCReader Virtual Functions
     	virtual int OpenVariableRead(size_t timestep, string varname, 
@@ -87,7 +88,7 @@ class VDF_API DCReaderGRIB : public DCReader {
 		// END Metadata Virtual Functions
 		/////
 
-		vector <double> GetZCoordsInMeters() const {return _meterLevels;}
+		vector <double> GetZCoordsInMeters() const {return _vertCoordinates;}
 		void _LinearInterpolation(float* values);
 	
     private:
@@ -119,8 +120,8 @@ class VDF_API DCReaderGRIB : public DCReader {
 				void _AddLevel(float lvl) {_pressureLevels.push_back(lvl);}
 				void _AddIndex(double time, float level, string file, int offset);
 
-				int GetOffset(double time, float level);
-				string GetFileName(double time, float level);
+				int GetOffset(double time, float level) const;
+				string GetFileName(double time, float level) const;
 				std::vector<int> GetMessages() const {return _messages;}
 				std::vector<double> GetTimes() const {return _unitTimes;}
 				std::vector<float> GetLevels() const {return _pressureLevels;}
@@ -132,6 +133,10 @@ class VDF_API DCReaderGRIB : public DCReader {
 				void _SortTimes() {sort(_unitTimes.begin(), _unitTimes.end());}
 				bool _Exists(double time) const;
 				void setScanDirection(bool i, bool j) {iScan = i; jScan = j;}
+				void setOperatingCenter(string oc) {_operatingCenter = oc;}
+				void setParamId(int id) {_paramId = id;}
+				string getOperatingCenter() {return _operatingCenter;}
+				int getParamId() {return _paramId;}
 				bool getiScan() const {return iScan;}
 				bool getjScan() const {return jScan;}
 
@@ -145,6 +150,8 @@ class VDF_API DCReaderGRIB : public DCReader {
 				std::vector<size_t> _varTimes;
 				//! times stored in udunit2 format
 			    std::vector<double> _unitTimes;
+				string _operatingCenter;
+				int _paramId;
 				bool iScan;
 				bool jScan;
 				bool isGaussian;
@@ -174,7 +181,7 @@ class VDF_API DCReaderGRIB : public DCReader {
 		FILE* _inFile;    
 		grib_handle* h;
 		std::vector<double> _pressureLevels;
-		std::vector<double> _meterLevels;
+		std::vector<double> _vertCoordinates;
 		std::vector<double> _cartesianExtents;
 		std::vector<double> _cartographicExtents;
 		std::vector<double> _gribTimes;

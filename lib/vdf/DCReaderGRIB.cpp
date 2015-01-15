@@ -66,11 +66,11 @@ bool DCReaderGRIB::Variable::_Exists(double time) const {
 }
 
 int DCReaderGRIB::Variable::GetOffset(double time, float level) const {
-	return ((_indices.find(time)->second).find(level)->second).offset << endl;
+	return ((_indices.find(time)->second).find(level)->second).offset;
 }
 
 string DCReaderGRIB::Variable::GetFileName(double time, float level) const {
-	return ((_indices.find(time)->second).find(level)->second).fileName << endl;
+	return ((_indices.find(time)->second).find(level)->second).fileName;
 }
 
 void DCReaderGRIB::Variable::PrintTimes() {
@@ -225,8 +225,14 @@ int DCReaderGRIB::ReadSlice(float *values){
 			}
 		}
 
-		values[vaporIndex] = (float) _dvalues[gribIndex];
-
+		string oc = targetVar->getOperatingCenter();
+		int id = targetVar->getParamId();
+		if ((oc == "ecmf") && (id = 98)) {				//We are looking at geopotential height, so divide by g
+			values[vaporIndex] = (float) _dvalues[gribIndex] / 9.8;
+		}
+		else {
+			values[vaporIndex] = (float) _dvalues[gribIndex];
+		}
 		if (values[vaporIndex] < min) min = values[vaporIndex];
 		if (values[vaporIndex] > max) max = values[vaporIndex];
 	}
@@ -529,6 +535,8 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 		float level = atof(record["level"].c_str());
 		string name  = record["shortName"];
 		string file = record["file"];
+		int paramId = atoi(record["paramId"].c_str());
+		string operatingCenter = record["centre"];
 		int offset = atoi(record["offset"].c_str());		
 		float P2 = atof(record["P2"].c_str());
 		if (!((P2 > 0.0) && _ignoreForecastData)) {
@@ -580,6 +588,10 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 			if (level != 0) _pressureLevels.push_back(level);
 		}
 
+
+		//////
+		//	Process all 3D vars!
+		//////
 		int isobaric = strcmp(levelType.c_str(),"isobaricInhPa");
 		if (isobaric == 0) {									// if we have a 3d var...
 			if (std::find(_gribTimes.begin(), _gribTimes.end(), time) == _gribTimes.end())
@@ -587,6 +599,8 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 
 			if (_vars3d.find(name) == _vars3d.end()) {			// if we have a new 3d var...
 				_vars3d[name] = new Variable();
+				_vars3d[name]->setParamId(paramId);
+				_vars3d[name]->setOperatingCenter(operatingCenter);
 				_vars3d[name]->setScanDirection(_iScanNeg,_jScan);
 			}
 
@@ -598,19 +612,25 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 			std::vector<float> varLevels = _vars3d[name]->GetLevels();
 			if (std::find(varLevels.begin(),varLevels.end(),level) == varLevels.end())
 				_vars3d[name]->_AddLevel(level);		
-				_vars3d[name]->_AddMessage(i);									// in the grib file)
-				_vars3d[name]->_AddIndex(time,level,file,offset);
+			
+			_vars3d[name]->_AddMessage(i);									// in the grib file)
+			_vars3d[name]->_AddIndex(time,level,file,offset);
 		}
 
+
+		//////
+		//	Process all 2D vars!
+		//////
 		int surface = strcmp(levelType.c_str(),"surface");
 		int meanSea = strcmp(levelType.c_str(),"meanSea");
 		if ((surface == 0) || (meanSea == 0)) {					// if we have a 2d var...
 				if (_vars2d.find(name) == _vars2d.end()) {			// if we have a new 2d var...
 					_vars2d[name] = new Variable();
+					_vars2d[name]->setParamId(paramId);
 				}
 
 			// Add level data to current var object
-			// (this should only happen once for a 2D var
+			// (this should only happen once for a 2D var)
 			std::vector<float> varLevels = _vars2d[name]->GetLevels();
 			if (std::find(varLevels.begin(),varLevels.end(),level) == varLevels.end())
 				_vars2d[name]->_AddLevel(level);
@@ -620,10 +640,14 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 			_vars2d[name]->_AddIndex(time,level,file,offset);
 		}
 
+		//////
+		//	Process all 1D vars!
+		//////
 		int entireAtmos = strcmp(levelType.c_str(),"entireAtmosphere");
 		if (entireAtmos == 0) {									// if we have a 1d var...
 			if (_vars1d.find(name) == _vars1d.end()) { 			// if we have a new 2d var...
 				_vars1d[name] = new Variable();
+				_vars1d[name]->setParamId(paramId);
 			}   
 			_vars1d[name]->_AddTime(time);
 			_vars1d[name]->_AddMessage(i);   
@@ -633,7 +657,12 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	
 	typedef std::map<std::string, Variable*>::iterator it_type;
 	for (it_type iterator=_vars3d.begin(); iterator!=_vars3d.end(); iterator++){
-		if (iterator->first == "gh") _vars3d["ELEVATION"] = new Variable(*_vars3d["gh"]);
+		if (iterator->first == "gh") _vars3d["ELEVATION"] = new Variable(*_vars3d["gh"]);	// KISTI's definition of geopotential height
+		cout << _vars3d[iterator->first]->getOperatingCenter() << " ";
+		cout << _vars3d[iterator->first]->getParamId() << endl;
+		if ((_vars3d[iterator->first]->getParamId() == 129) &&
+			(_vars3d[iterator->first]->getOperatingCenter() == "ecmf"))
+				_vars3d["ELEVATION"] = new Variable(*_vars3d[iterator->first]);
 	}
 
 	for (it_type iterator=_vars3d.begin(); iterator!=_vars3d.end(); iterator++){
@@ -879,6 +908,8 @@ DCReaderGRIB::GribParser::GribParser() {
 
 	// _varyingKeys are those that may change over time, but must
 	// fit some criteria for a legal data conversion
+	_varyingKeys.push_back("paramId");
+	_varyingKeys.push_back("centre");
 	_varyingKeys.push_back("shortName");
 	_varyingKeys.push_back("units");
 	_varyingKeys.push_back("yearOfCentury");

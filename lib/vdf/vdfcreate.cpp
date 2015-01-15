@@ -143,31 +143,19 @@ MetadataVDC *vdfcreate::CreateMetadataVDC(
 
 	// Copy values over from DCReader to MetadataVDC.
 	// Add checking of return values and error messsages.
-	//
-	//int numTimeSteps;
-    //if (_numTS == -1) numTimeSteps = DCdata->GetNumTimeSteps();
-	//else numTimeSteps = _numTS;
     _numTS = DCdata->GetNumTimeSteps();
 	if(file->SetNumTimeSteps(_numTS)) {
 		file->SetErrMsg(2,"Error populating NumTimeSteps.");
 		return (NULL);
-		//exit(1);
 	}
 
     vector <double> usertime;
-	double delta = 1;
-	if (_numTS != -1) {		// -fastMode is engaged
-  		delta = DCdata->GetTSUserTime(1) - DCdata->GetTSUserTime(0);
-    }
 
 	for(int t = 0; t < _numTS; t++) {
 
         usertime.clear();
 
-		if (_numTS == -1)				// normal operation
-        	usertime.push_back(DCdata->GetTSUserTime(t));
-        else							// apply -fastMode timestamp
-			usertime.push_back(DCdata->GetTSUserTime(0) + delta*t);
+        usertime.push_back(DCdata->GetTSUserTime(t));
 
 		if(file->SetTSUserTime(t, usertime)) {
             file->SetErrMsg(1,"Error populating TSUserTime.");
