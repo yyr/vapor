@@ -189,7 +189,7 @@ protected:
 	virtual void init();  
 
 	//Map child index to the path to opacityMapBase
-	std::vector<vector<string>> opacityPaths;
+	std::vector<vector<string> > opacityPaths;
 	//Provide name for opac map node, unique for this instance;
 	string getOpacMapTag();
     

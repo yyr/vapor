@@ -372,7 +372,7 @@ bool MapperFunctionBase::isOpaque()
 string MapperFunctionBase::getOpacMapTag(){
 	opacityMapNum++;
 	char num[10];
-	_itoa(opacityMapNum, num, 10);
+	sprintf(num,"%d",opacityMapNum);
 	string name = string("OpacityMap")+string(num)+"Tag";
 	return name;
 }
