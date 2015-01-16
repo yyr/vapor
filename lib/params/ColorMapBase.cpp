@@ -456,3 +456,68 @@ int ColorMapBase::SetControlPoints(vector<double> controlPoints){
 void ColorMapBase::SetInterpType(TFInterpolator::type t){
 	SetValueLong(_interpTypeTag, "Set Color Interpolation", (long)t, _mapper->getParams());
 }
+
+
+//----------------------------------------------------------------------------
+// Return the minimum value of the color map (in data coordinates).
+// 
+// The minimum value is stored as normalized coordinates in the parameter 
+// space. Therefore, the color map will change relative to any changes in
+// the parameter space. 
+//----------------------------------------------------------------------------
+float ColorMapBase::minValue()
+{
+  assert(_mapper);
+
+  return _mapper->getMinMapValue() + (float)GetMinValue() * 
+    (_mapper->getMaxMapValue() - _mapper->getMinMapValue());
+}
+
+//----------------------------------------------------------------------------
+// Set the minimum value of the color map (in data coordinates).
+// 
+// The minimum value is stored as normalized coordinates in the parameter 
+// space. Therefore, the color map will change relative to any changes in
+// the parameter space. 
+//----------------------------------------------------------------------------
+void ColorMapBase::minValue(float value)
+{
+  assert(_mapper);
+
+  SetMinValue( 
+    (value - _mapper->getMinMapValue()) / 
+    (_mapper->getMaxMapValue() - _mapper->getMinMapValue())
+	);
+}
+
+//----------------------------------------------------------------------------
+// Return the maximum value of the color map (in data coordinates).
+// 
+// The minimum value is stored as normalized coordinates in the parameter 
+// space. Therefore, the color map will change relative to any changes in
+// the parameter space. 
+//----------------------------------------------------------------------------
+float ColorMapBase::maxValue()
+{
+  assert(_mapper);
+
+  return _mapper->getMinMapValue() + GetMaxValue() * 
+    (_mapper->getMaxMapValue() - _mapper->getMinMapValue());
+}
+
+//----------------------------------------------------------------------------
+// Set the maximum value of the color map (in data coordinates).
+// 
+// The maximum value is stored as normalized coordinates in the parameter 
+// space. Therefore, the color map will change relative to any changes in
+// the parameter space. 
+//----------------------------------------------------------------------------
+void ColorMapBase::maxValue(float value)
+{
+  assert(_mapper);
+
+  SetMaxValue(
+    (value - _mapper->getMinMapValue()) / 
+    (_mapper->getMaxMapValue()-_mapper->getMinMapValue())
+	);
+}

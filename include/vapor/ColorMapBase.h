@@ -96,10 +96,18 @@ public:
 	  return GetValueDoubleVec(_controlPointsTag);
   }
   int SetControlPoints(vector<double> controlPoints);
+
+  virtual float minValue();      // Data Coordinates
+  virtual void  minValue(float value); // Data Coordinates
+
+  virtual float maxValue();      // Data Coordinates
+  virtual void  maxValue(float value); // Data Coordinates
 	
 protected:
   MapperFunctionBase *_mapper;
   int leftIndex(float val);
+
+ 
 
 private:
 

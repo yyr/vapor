@@ -455,6 +455,21 @@ public:
  //
  int DeleteNode(const vector<string> &tagpath); 
 
+ //! Delete all children of the indicated node and all their descendants. 
+ //!
+ //! \param[in] tag Name of the node whose children will be deleted
+ //! \retval status Return 0 if successful, -1 if child does not exist.
+ //
+ int DeleteChildren(const string &tag);
+		
+ //! Delete all children of the indicated node and all their descendants. 
+ //! given a path to the child
+ //!
+ //! \param[in] tagpath Path to the child node to delete
+ //! \retval status Return 0 if successful, -1 if child does not exist.
+ //
+ int DeleteChildren(const vector<string> &tagpath);
+
  //! Set a ParamsBase node for which this is the root
  //!
  //! The ParamsBase node is NULL unless this node is associated with a

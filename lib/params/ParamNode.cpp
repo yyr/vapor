@@ -264,6 +264,18 @@ int ParamNode::DeleteNode(const vector<string> &tagpath){
 		delete pNode;
 		return 0;
  }
+int ParamNode::DeleteChildren(const string &tag){
+		ParamNode* pNode = GetNode(tag);
+		if (!pNode) return -1;
+		pNode->DeleteAll();
+		return 0;
+ }
+int ParamNode::DeleteChildren(const vector<string> &tagpath){
+		ParamNode* pNode = GetNode(tagpath);
+		if (!pNode) return -1;
+		pNode->DeleteAll();
+		return 0;
+ }
 int ParamNode::ReplaceNode(const vector<string> &tagpath, ParamNode* newNode){
 		ParamNode* pNode = GetNode(tagpath);
 		if (!pNode) return -1;

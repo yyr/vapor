@@ -469,9 +469,6 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	
 #ifndef DOXYGEN_SKIP_THIS
 	
-	
-	
-	
 	static Params* CreateDummyParams(std::string tag);
 	static void	BailOut (const char *errstr, const char *fname, int lineno);
 
@@ -493,6 +490,9 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	static const string _LocalTag;
 	static const string _IsoControlTag;
 	static const string _IsoValueTag;
+	static const string _Variables3DTag;
+	static const string _Variables2DTag;
+	static const string _VariableNameTag;
 	
 #endif
 protected:

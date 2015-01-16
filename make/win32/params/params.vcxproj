@@ -215,6 +215,7 @@
     <ClCompile Include="..\..\..\lib\params\glutil.cpp" />
     <ClCompile Include="..\..\..\lib\params\histo.cpp" />
     <ClCompile Include="..\..\..\lib\params\instanceparams.cpp" />
+    <ClCompile Include="..\..\..\lib\params\isolineparams.cpp" />
     <ClCompile Include="..\..\..\lib\params\mapperfunction.cpp" />
     <ClCompile Include="..\..\..\lib\params\MapperFunctionBase.cpp" />
     <ClCompile Include="..\..\..\lib\params\mousemodeparams.cpp" />
@@ -248,6 +249,7 @@
     <ClInclude Include="..\..\..\include\vapor\ParamNode.h" />
     <ClInclude Include="..\..\..\lib\params\histo.h" />
     <ClInclude Include="..\..\..\lib\params\instanceparams.h" />
+    <ClInclude Include="..\..\..\lib\params\isolineparams.h" />
     <ClInclude Include="..\..\..\lib\params\mapperfunction.h" />
     <ClInclude Include="..\..\..\lib\params\mousemodeparams.h" />
     <ClInclude Include="..\..\..\lib\params\OpacityMap.h" />

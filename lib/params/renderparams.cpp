@@ -43,6 +43,8 @@ using namespace VAPoR;
 #include "command.h"
 
 const string RenderParams::_EnabledTag = "Enabled";
+const string RenderParams::_FidelityLevelTag = "FidelityLevel";
+const string RenderParams::_IgnoreFidelityTag = "IgnoreFidelity";
 
 RenderParams::RenderParams(XmlNode *parent, const string &name, int winnum):Params(parent, name, winnum){
 	SetLocal(true);
@@ -94,3 +96,15 @@ void RenderParams::SetEnabled(bool val){
 	SetValueLong(_EnabledTag,"enable/disable renderer",lval);
 	Command::unblockCapture();
 }
+int RenderParams::GetFidelityLevel(){
+	return GetValueLong(_FidelityLevelTag);
+ }
+void RenderParams::SetFidelityLevel(int level){
+	 SetValueLong(_FidelityLevelTag,"Set Fidelity", level);
+ }
+bool RenderParams::GetIgnoreFidelity(){
+	return (bool)GetValueLong(_IgnoreFidelityTag);
+ }
+void RenderParams::SetIgnoreFidelity(bool val){
+	 SetValueLong(_IgnoreFidelityTag, "change fidelity usage", val);
+ }

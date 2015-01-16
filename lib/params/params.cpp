@@ -52,6 +52,9 @@ const string Params::_VariableNamesTag = "VariableNames";
 const string Params::_LocalTag = "Local";
 const string Params::_IsoControlTag = "IsoControl";
 const string Params::_IsoValueTag = "IsoValue";
+const string Params::_Variables2DTag = "2DVariables";
+const string Params::_Variables3DTag = "3DVariables";
+const string Params::_VariableNameTag = "VariableName";
 
 
 std::map<pair<int,int>,vector<Params*> > Params::paramsInstances;

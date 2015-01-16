@@ -90,6 +90,9 @@
     <ClCompile Include="..\..\..\lib\params\transferfunction.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\lib\params\isolineparams.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\lib\params\animationparams.h">
@@ -171,6 +174,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\vapor\tfinterpolator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lib\params\isolineparams.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

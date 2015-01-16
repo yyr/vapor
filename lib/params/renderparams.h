@@ -133,6 +133,24 @@ public:
 	//! \retval bool value of flag
 	bool doAlwaysBypass(int ts) {return ((ts < bypassFlags.size()) && bypassFlags[ts]>1);}
 
+	//! virtual method indicates current fidelity level
+	//! \retval float between 0 and 1
+	//!
+	virtual int GetFidelityLevel();
+	//! virtual method sets current fidelity level
+	//! \param[in] float level
+	//!
+	virtual void SetFidelityLevel(int level);
+	//! virtual method indicates fidelity is ignored
+	//! \retval bool
+	//!
+	virtual bool GetIgnoreFidelity();
+	//! virtual method sets whether fidelity is ignored
+	//! \param[in] bool 
+	//!
+	virtual void SetIgnoreFidelity(bool val);
+	
+
 
 #ifndef DOXYGEN_SKIP_THIS
 
@@ -153,6 +171,8 @@ public:
 	
 protected:
 	static const string _EnabledTag;
+	static const string _FidelityLevelTag;
+	static const string _IgnoreFidelityTag;
 	
 	vector<int> bypassFlags;
 #endif //DOXYGEN_SKIP_THIS
