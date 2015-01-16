@@ -10,7 +10,7 @@ FILES = \
 	animationparams	viewpointparams ParamsBase Box \
 	OpacityMap Colormap OpacityMapBase ColorMapBase ParamNode command \
 	mapperfunction MapperFunctionBase transferfunction histo \
-	tfinterpolator
+	tfinterpolator isolineparams
 	  
 	
 HEADER_FILES = ParamsBase ParamNode MapperFunctionBase ColorMapBase \
