@@ -32,6 +32,7 @@
 #include "datastatus.h"
 #include "mousemodeparams.h"
 
+
 namespace VAPoR {
 typedef bool (*renderCBFcn)(int winnum, bool newCoords);
 
@@ -41,6 +42,7 @@ class AnimationParams;
 class Renderer;
 class Trackball;
 class TranslateStretchManip;
+class TextObject;
 
 //! \class Visualizer
 //! \ingroup Public_Render
@@ -113,6 +115,15 @@ public:
 	//! \retval visualizer index;
 	int getWindowNum() {return winNum;}
 
+	//Added for FTGL 
+	//Add a textObject to the set of text to be used.  Return its index.
+	int addTextObject(Renderer*, const char* fontPath, int textSize, float textColor[4], float bgColor[4], int type, string text); 
+	//Add an instance of text at specified position, using specified object
+	void addText(Renderer*, int objectNum, float posn[3]);
+	void clearTextObjects(Renderer*);
+	//Check whether the textObjects have been built for this renderer
+	bool isTextValid(Renderer* ren) {return textValidFlag[ren];}
+	void setTextValid(Renderer* ren, bool val) {textValidFlag[ren] = val;}
 #ifndef DOXYGEN_SKIP_THIS
 	 Visualizer( int winnum);
     ~Visualizer();
@@ -127,7 +138,7 @@ public:
 	//! Project a 3D point (in cube coord system) to window coords.
 	//! Return true if in front of camera.  Used by pointIsOnQuad, as well as in building Axis labels.
 	//
-	bool projectPointToWin(double cubeCoords[3], float winCoords[2]);
+	bool projectPointToWin(double cubeCoords[3], double winCoords[2]);
 
 	//! Project the current mouse coordinates to a line in screen space.
 	//! The line starts at the mouseDownPosition, and points in the
@@ -135,28 +146,28 @@ public:
 	//! associated with the dragHandle.  Returns false on error.
 	//! Invoked during mouseMoveEvent, uses values of mouseDownPoint, handleProjVec, mouseDownHere
 
-	bool projectPointToLine(float mouseCoords[2], float projCoords[2]);
+	bool projectPointToLine(double mouseCoords[2], double projCoords[2]);
 	//Test if the screen projection of a 3D quad encloses a point on the screen.
 	//The 4 corners of the quad must be specified in counter-clockwise order
 	//as viewed from the outside (pickable side) of the quad.  
 	//
-	bool pointIsOnQuad(double cor1[3],double cor2[3],double cor3[3],double cor4[3], float pickPt[2]);
+	bool pointIsOnQuad(double cor1[3],double cor2[3],double cor3[3],double cor4[3], double pickPt[2]);
 
 	//Determine if a point is over (and not inside) a box, specified by 8 3-D coords.
 	//the first four corners are the counter-clockwise (from outside) vertices of one face,
 	//the last four are the corresponding back vertices, clockwise from outside
 	//Returns index of face (0..5), or -1 if not on Box
 	//
-	int pointIsOnBox(double corners[8][3], float pickPt[2]);
+	int pointIsOnBox(double corners[8][3], double pickPt[2]);
 
 
 	//Params argument is the params that owns the manip
-	bool startHandleSlide(float mouseCoords[2], int handleNum, Params* p);
+	bool startHandleSlide(double mouseCoords[2], int handleNum, Params* p);
 	
 	//Determine a unit direction vector associated with a pixel.  Uses OpenGL screencoords
 	// I.e. y = 0 at bottom.  Returns false on failure.  Used during mouseMoveEvent.
 	//
-	bool pixelToVector(float winCoords[2], const vector<double> cameraPos, double dirVec[3]);
+	bool pixelToVector(double winCoords[2], const vector<double> cameraPos, double dirVec[3]);
 
 	//Get the current image in the front buffer;
 	bool getPixelData(unsigned char* data);
@@ -233,9 +244,13 @@ public:
 	static bool activeWinSharesRegion() {return regionShareFlag;}
 	static void setRegionShareFlag(bool regionIsShared){regionShareFlag = regionIsShared;}
 	const double* getProjectionMatrix() { return projectionMatrix;}	
+	void setTextRenderersDirty(bool val){textRenderersDirty = val;}
+	bool textRenderersAreDirty()  {return textRenderersDirty;}
 	void getNearFarClippingPlanes(float *nearplane, float *farplane) {
 		*nearplane = nearDist; *farplane = farDist;
 	}
+	int getWidth() {return width;}
+	int getHeight() {return height;}
 
 	const int* getViewport() {return viewport;}
 
@@ -301,7 +316,8 @@ protected:
 	//Draw the region bounds and frame it in full domain.
 	//Arguments are in unit cube coordinates
 	void renderDomainFrame(const double* extents,const double* minFull,const double* maxFull);
-	
+	//Render all the text; build textobjects if necessary.
+	void renderText();
 	void placeLights();
 	
 	float regionFrameColorFlt[3];
@@ -310,7 +326,7 @@ protected:
 	//updateGL.
 	bool needsResize;
 	float farDist, nearDist;
-
+	bool textRenderersDirty;
 	int viewport[4];
 	double projectionMatrix[16];
 	static bool nowPainting;
@@ -343,7 +359,9 @@ protected:
 	//flag indicating change to viewpoint
 	bool vpChanged;
 
-	
+	map<Renderer*,vector<TextObject*> > textObjectMap;
+	map<Renderer*, bool> textValidFlag;
+	map< pair<Renderer*, int> , vector<float*>* > textCoordMap;
 #endif //DOXYGEN_SKIP_THIS
 	
 };

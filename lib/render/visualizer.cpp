@@ -45,6 +45,7 @@
 #include <vapor/jpegapi.h>
 #include <vapor/common.h>
 #include "vapor/ControlExecutive.h"
+#include "textRenderer.h"
 #ifdef Darwin
 #include <OpenGL/gl.h>
 #else
@@ -70,7 +71,7 @@ Visualizer::Visualizer(int windowNum )
 {
 	
 	MyBase::SetDiagMsg("Visualizer::Visualizer() begin");
-	
+	textRenderersDirty = true;
 	for (int i = 0; i<3; i++){
 		regionFrameColorFlt[i] = 1.;
 	}
@@ -120,6 +121,7 @@ Visualizer::~Visualizer()
 	
 	for (int i = 0; i< renderer.size(); i++){
 		delete renderer[i];
+		clearTextObjects(renderer[i]);
 	}
 	renderType.clear();
 	renderOrder.clear();
@@ -513,7 +515,7 @@ void Visualizer::initializeGL()
 //resulting screen coords returned in 2nd argument.  Note that
 //OpenGL coords are 0 at bottom of window!
 //
-bool Visualizer::projectPointToWin(double cubeCoords[3], float winCoords[2]){
+bool Visualizer::projectPointToWin(double cubeCoords[3], double winCoords[2]){
 	double depth;
 	GLdouble wCoords[2];
 	GLdouble cbCoords[3];
@@ -523,15 +525,15 @@ bool Visualizer::projectPointToWin(double cubeCoords[3], float winCoords[2]){
 	bool success = (0!=gluProject(cbCoords[0],cbCoords[1],cbCoords[2], getModelViewMatrix(),
 		getProjectionMatrix(), getViewport(), wCoords, (wCoords+1),(GLdouble*)(&depth)));
 	if (!success) return false;
-	winCoords[0] = (float)wCoords[0];
-	winCoords[1] = (float)wCoords[1];
+	winCoords[0] = wCoords[0];
+	winCoords[1] = wCoords[1];
 	return (depth > 0.0);
 }
 //Convert a screen coord to a direction vector, representing the direction
 //from the camera associated with the screen coords.  Note screen coords
 //are OpenGL style
 //
-bool Visualizer::pixelToVector(float winCoords[2], const vector<double> camPos, double dirVec[3]){
+bool Visualizer::pixelToVector(double winCoords[2], const vector<double> camPos, double dirVec[3]){
 	GLdouble pt[3];
 	//Obtain the coords of a point in view:
 	bool success = (0 != gluUnProject((GLdouble)winCoords[0],(GLdouble)winCoords[1],(GLdouble)1.0, getModelViewMatrix(),
@@ -552,12 +554,12 @@ bool Visualizer::pixelToVector(float winCoords[2], const vector<double> camPos, 
 //Window coords are as in OpenGL (0 at bottom of window)
 //
 bool Visualizer::
-pointIsOnQuad(double cor1[3], double cor2[3], double cor3[3], double cor4[3], float pickPt[2])
+pointIsOnQuad(double cor1[3], double cor2[3], double cor3[3], double cor4[3], double pickPt[2])
 {
-	float winCoord1[2];
-	float winCoord2[2];
-	float winCoord3[2];
-	float winCoord4[2];
+	double winCoord1[2];
+	double winCoord2[2];
+	double winCoord3[2];
+	double winCoord4[2];
 	if(!projectPointToWin(cor1, winCoord1)) return false;
 	if (!projectPointToWin(cor2, winCoord2)) return false;
 	if (pointOnRight(winCoord1, winCoord2, pickPt)) return false;
@@ -570,7 +572,7 @@ pointIsOnQuad(double cor1[3], double cor2[3], double cor3[3], double cor4[3], fl
 }
 //Test whether the pickPt is over (and outside) the box (as specified by 8 points)
 int Visualizer::
-pointIsOnBox(double corners[8][3], float pickPt[2]){
+pointIsOnBox(double corners[8][3], double pickPt[2]){
 	//front (-Z)
 	if (pointIsOnQuad(corners[0],corners[1],corners[3],corners[2],pickPt)) return 2;
 	//back (+Z)
@@ -904,7 +906,7 @@ void Visualizer::placeLights(){
 // The line starts at the mouseDownPosition, and points in the
 // direction resulting from projecting to the screen the axis 
 // associated with the dragHandle.  Returns false on error.
-bool Visualizer::projectPointToLine(float mouseCoords[2], float projCoords[2]){
+bool Visualizer::projectPointToLine(double mouseCoords[2], double projCoords[2]){
 	//  State saved at a mouse press is:
 	//	mouseDownPoint[2] = P
 	//  handleProjVec[2] unit vector (U)
@@ -915,13 +917,13 @@ bool Visualizer::projectPointToLine(float mouseCoords[2], float projCoords[2]){
 	if (!mouseDownHere) return false;
 	diff[0] = mouseCoords[0] - mouseDownPoint[0];
 	diff[1] = mouseCoords[1] - mouseDownPoint[1];
-	float dotprod = diff[0]*handleProjVec[0]+diff[1]*handleProjVec[1];
+	double dotprod = diff[0]*handleProjVec[0]+diff[1]*handleProjVec[1];
 	projCoords[0] = mouseDownPoint[0] + dotprod*handleProjVec[0];
 	projCoords[1] = mouseDownPoint[1] + dotprod*handleProjVec[1];
 	
 	return true;
 }
-bool Visualizer::startHandleSlide(float mouseCoords[2], int handleNum, Params* manipParams){
+bool Visualizer::startHandleSlide(double mouseCoords[2], int handleNum, Params* manipParams){
 	// When the mouse is first pressed over a handle, 
 	// need to save the
 	// windows coordinates of the click, as well as
@@ -933,8 +935,8 @@ bool Visualizer::startHandleSlide(float mouseCoords[2], int handleNum, Params* m
 	//Get the cube coords of the rotation center:
 	
 	double boxCtr[3]; 
-	float winCoords[2] = {0.f,0.f};
-	float dispCoords[2];
+	double winCoords[2] = {0.,0.};
+	double dispCoords[2];
 	
 	if (handleNum > 2) handleNum = handleNum-3;
 	else handleNum = 2 - handleNum;
@@ -1089,4 +1091,31 @@ RegionParams* Visualizer::getActiveRegionParams() {
 
 AnimationParams* Visualizer::getActiveAnimationParams() {
 	return (AnimationParams*)ControlExec::getInstance()->GetCurrentParams(winNum,Params::_animationParamsTag);
+}
+void Visualizer::clearTextObjects(Renderer* ren){
+	/*
+	//verify that the renderer has text objects:
+	if (textObjectMap.count(ren) == 0) return;
+	
+	vector<TextObject*> txtObjs = textObjectMap[ren];
+	for (int i = 0; i<txtObjs.size(); i++){
+			//first delete the coordinates used by the text object
+			TextObject* txtObj = txtObjs[i];
+			pair<Renderer*, int> coordPair = make_pair(ren, i);
+			vector<float*> textCoords = *textCoordMap[coordPair];
+			for (int j = 0; j<textCoords.size(); j++){
+				delete textCoords[j];
+			}
+			textCoords.clear();
+			//Remove the entry from the textcoordinate map:
+			map<pair<Renderer*, int>, vector<float*>*>::iterator it2 = textCoordMap.find(coordPair);
+			textCoordMap.erase(it2);
+			//And delete the text object
+			delete txtObj;
+		}
+	txtObjs.clear();
+	//Now remove these textObjects from the mapping.
+	map<Renderer*, vector<TextObject*> >::iterator it = textObjectMap.find(ren);
+	textObjectMap.erase(it);
+	*/
 }

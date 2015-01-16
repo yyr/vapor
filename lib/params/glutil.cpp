@@ -243,7 +243,7 @@ void vtransform3t(const float *v, float *mat, float *vt)
 }
 //Test whether a planar point is right (or left) of the oriented line from
 // pt1 to pt2
-bool pointOnRight(float* pt1, float* pt2, float* testPt){
+bool pointOnRight(double* pt1, double* pt2, double* testPt){
 	float rhs = pt1[0]*(pt1[1]-pt2[1]) + pt1[1]*(pt2[0]-pt1[0]);
 	float test = (pt2[0]-pt1[0])*testPt[1] + (pt1[1]-pt2[1])*testPt[0] - rhs;
 	return (test < 0.f);
@@ -1668,7 +1668,12 @@ void squad(float quat1[4],float quat2[4], float s1[4],float s2[4], float t, floa
 void qconj(float quat[4], float conj[4]){
 	conj[3]=quat[3];conj[0]=-quat[0];conj[1]=-quat[1];conj[2]=-quat[2];
 }
-
+void doubleToString(const double d, string& s, int digits){
+	char buf[30];
+	sprintf(buf, "%-.*G", digits, d);
+	string ss(buf);
+	s = ss;
+}
 #define DEAD
 #ifdef	DEAD
 

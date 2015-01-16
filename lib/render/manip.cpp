@@ -64,7 +64,7 @@ TranslateStretchManip::TranslateStretchManip(Visualizer* win, Params* p) : Manip
 // Does not take into account drag distance, because the mouse is just being clicked.
 //
 int TranslateStretchManip::
-mouseIsOverHandle(float screenCoords[2], double* boxExtents, int* faceNum){
+mouseIsOverHandle(double screenCoords[2], double* boxExtents, int* faceNum){
 	//Determine if the mouse is over any of the six handles.
 	//Test first the 3 handles in front, then the object, then the three in back.
 	//The specified getHandle methods must return boxes with prescribed alignment

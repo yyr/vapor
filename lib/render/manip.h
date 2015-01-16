@@ -50,7 +50,7 @@ public:
 	Params* getParams() {return myParams;}
 	void setParams(Params* p) {myParams = p;}
 	// Determine which handle (if any) is under mouse 
-	virtual int mouseIsOverHandle(float screenCoords[2], double* boxExtents, int* faceNum) = 0;
+	virtual int mouseIsOverHandle(double screenCoords[2], double* boxExtents, int* faceNum) = 0;
 	virtual void mouseRelease(float screenCoords[2]) = 0;
 	virtual int draggingHandle() = 0;
 	
@@ -85,7 +85,7 @@ public:
 	
 	
 	//Identify the handle and face if the mouse is over handle:
-	int mouseIsOverHandle(float screenCoords[2], double* boxExtents, int* faceNum);
+	int mouseIsOverHandle(double screenCoords[2], double* boxExtents, int* faceNum);
 	
 	virtual void mouseRelease(float screenCoords[2]);
 	virtual int draggingHandle() {return selectedHandle;}

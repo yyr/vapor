@@ -110,7 +110,7 @@ PARAMS_API void	vtransform (const double *v, GLdouble *mat, double *vt);
 PARAMS_API void	vtransform4 (const float *v, GLfloat *mat, float *vt);
 PARAMS_API void	vtransform3 (const float *v, float *mat, float *vt);
 PARAMS_API void	vtransform3t (const float *v, float *mat, float *vt);
-PARAMS_API bool	pointOnRight(float* pt1, float* pt2, float* testPt);
+PARAMS_API bool	pointOnRight(double* pt1, double* pt2, double* testPt);
 PARAMS_API void	mcopy (GLfloat *m1, GLfloat *m2);
 PARAMS_API void	mcopy (double *m1, double *m2);
 PARAMS_API void	mmult (GLfloat *m1, GLfloat *m2, GLfloat *prod);
@@ -252,6 +252,7 @@ PARAMS_API int printOglError(const char *file, int line, const char *msg = 0);
 //
 PARAMS_API bool oglStatusOK(std::vector <int> &status);
 
+PARAMS_API void doubleToString(const double val, std::string& result, int digits);
 //! Decode OpenGL error codes and format them as a string
 //!
 //! This function takes a vector of error codes (see oglStatusOK) and

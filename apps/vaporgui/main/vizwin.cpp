@@ -108,7 +108,7 @@ void VizWin::initializeGL(){
  */
 void VizWin::
 mousePressEvent(QMouseEvent* e){
-	float screenCoords[2];
+	double screenCoords[2];
 	//if (numRenderers <= 0) return;// Even with no renderers, do mouse mode stuff
 	screenCoords[0] = (float)e->x()-3.f;
 	//To keep orientation correct in plane, and use
@@ -335,8 +335,8 @@ mouseMoveEvent(QMouseEvent* e){
 	//Respond based on what activity we are tracking
 	//Need to tell the appropriate params about the change,
 	//And it should refresh the panel
-	float mouseCoords[2];
-	float projMouseCoords[2];
+	double mouseCoords[2];
+	double projMouseCoords[2];
 	mouseCoords[0] = (float) e->x();
 	mouseCoords[1] = (float) height()-e->y();
 	int mode = MouseModeParams::GetCurrentMouseMode();
