@@ -198,6 +198,7 @@ void _LatExtentsTemplate(
 }
 
 
+
 template <class T>
 void _LatExtentsTemplate(
 	const T *lat, int ny, 
@@ -219,6 +220,18 @@ void _LatExtentsTemplate(
 	//
 	if (latsouth < -90.0) latsouth = -90.0;
 	if (latnorth > 90.0) latnorth = 90.0;
+}
+
+template <class T> 
+void _ExtractBoundaryTemplate(
+	const T *a, int nx, int ny, T *bdry
+) {
+	T *bdryptr = bdry;
+
+	for (int i=0; i<nx; i++) *bdryptr++ = a[i];
+	for (int j=1; j<ny; j++) *bdryptr++ = a[nx*j + nx-1];
+	for (int i=nx-2; i>=0; i--) *bdryptr++ = a[nx*(ny-1) + i];
+	for (int j=ny-2; j>=1; j--) *bdryptr++ = a[j*nx];
 }
 
 
@@ -286,4 +299,16 @@ void GeoUtil::LatExtents(
 	double &latsouth, double &latnorth
 ) {
 	_LatExtentsTemplate(lat, ny, latsouth, latnorth);
+}
+
+void GeoUtil::ExtractBoundary(
+	const float *a, int nx, int ny, float *bdry
+) {
+	_ExtractBoundaryTemplate(a, nx, ny, bdry);
+}
+
+void GeoUtil::ExtractBoundary(
+	const double *a, int nx, int ny, double *bdry
+) {
+	_ExtractBoundaryTemplate(a, nx, ny, bdry);
 }
