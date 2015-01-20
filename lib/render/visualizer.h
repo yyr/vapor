@@ -119,7 +119,7 @@ public:
 	//Add a textObject to the set of text to be used.  Return its index.
 	int addTextObject(Renderer*, const char* fontPath, int textSize, float textColor[4], float bgColor[4], int type, string text); 
 	//Add an instance of text at specified position, using specified object
-	void addText(Renderer*, int objectNum, float posn[3]);
+	void addText(Renderer*, int objectNum, double posn[3]);
 	void clearTextObjects(Renderer*);
 	//Check whether the textObjects have been built for this renderer
 	bool isTextValid(Renderer* ren) {return textValidFlag[ren];}

@@ -26,6 +26,7 @@
 #include "viewpointparams.h"
 #include "animationparams.h"
 #include "vapor/ControlExecutive.h"
+#include "vapor/errorcodes.h"
 #ifdef Darwin
 #include <OpenGL/gl.h>
 #else
@@ -208,4 +209,216 @@ void Renderer::UndoRedo(bool isUndo, int instance, Params* beforeP, Params* afte
 	
 	ControlExec::ActivateRender(beforeP->GetVizNum(),Params::GetTagFromType(beforeP->GetParamsBaseTypeId()),instance,doEnable);
 	return;
+}
+void Renderer::
+buildLocalCoordTransform(double transformMatrix[12], double extraThickness, int timestep, float rotation, int axis){
+	
+	double theta, phi, psi;
+	double ang[3];
+	
+	if (rotation != 0.f) {
+		getRenderParams()->GetBox()->convertThetaPhiPsi(&theta,&phi,&psi, axis, rotation);
+	} else {
+		getRenderParams()->GetBox()->GetAngles(ang);
+		theta = ang[0];
+		phi = ang[1];
+		psi = ang[2];
+	}
+	
+	double boxSize[3];
+	
+	double locExts[6];
+	getRenderParams()->GetBox()->GetLocalExtents(locExts, timestep);
+	
+	for (int i = 0; i< 3; i++) {
+		locExts[i] -= extraThickness;
+		locExts[i+3] += extraThickness;
+		boxSize[i] = (locExts[i+3] - locExts[i]);
+	}
+	
+	//Get the 3x3 rotation matrix:
+	double rotMatrix[9];
+	getRotationMatrix(theta*M_PI/180., phi*M_PI/180., psi*M_PI/180., rotMatrix);
+
+	//then scale according to box:
+	transformMatrix[0] = 0.5*boxSize[0]*rotMatrix[0];
+	transformMatrix[1] = 0.5*boxSize[1]*rotMatrix[1];
+	transformMatrix[2] = 0.5*boxSize[2]*rotMatrix[2];
+	//2nd row:
+	transformMatrix[4] = 0.5*boxSize[0]*rotMatrix[3];
+	transformMatrix[5] = 0.5*boxSize[1]*rotMatrix[4];
+	transformMatrix[6] = 0.5*boxSize[2]*rotMatrix[5];
+	//3rd row:
+	transformMatrix[8] = 0.5*boxSize[0]*rotMatrix[6];
+	transformMatrix[9] = 0.5*boxSize[1]*rotMatrix[7];
+	transformMatrix[10] = 0.5*boxSize[2]*rotMatrix[8];
+	//last column, i.e. translation:
+	transformMatrix[3] = .5f*(locExts[3]+locExts[0]);
+	transformMatrix[7] = .5f*(locExts[4]+locExts[1]);
+	transformMatrix[11] = .5f*(locExts[5]+locExts[2]);
+	
+}
+void Renderer::buildLocal2DTransform(int dataOrientation, float a[2],float b[2],float constVal[2], int mappedDims[3]){
+	
+	mappedDims[2] = dataOrientation;
+	mappedDims[0] = (dataOrientation == 0) ? 1 : 0;  // x or y
+	mappedDims[1] = (dataOrientation < 2) ? 2 : 1; // z or y
+	const vector<double>& exts = getRenderParams()->GetBox()->GetLocalExtents();
+	constVal[0] = exts[dataOrientation];
+	constVal[1] = exts[dataOrientation+3];
+	//constant terms go to middle
+	b[0] = 0.5*(exts[mappedDims[0]]+exts[3+mappedDims[0]]);
+	b[1] = 0.5*(exts[mappedDims[1]]+exts[3+mappedDims[1]]);
+	//linear terms send -1,1 to box min,max
+	a[0] = b[0] - exts[mappedDims[0]];
+	a[1] = b[1] - exts[mappedDims[1]];
+
+}
+void Renderer::getLocalContainingRegion(float regMin[3], float regMax[3]){
+	//Determine the smallest axis-aligned cube that contains the rotated box local coordinates.  This is
+	//obtained by mapping all 8 corners into the space.
+	
+	double transformMatrix[12];
+	//Set up to transform from probe (coords [-1,1]) into volume:
+	buildLocalCoordTransform(transformMatrix, 0.f, -1);
+	const double* sizes = DataStatus::getInstance()->getFullSizes();
+
+	//Calculate the normal vector to the probe plane:
+	double zdir[3] = {0.f,0.f,1.f};
+	double normEnd[3];  //This will be the unit normal
+	double normBeg[3];
+	double zeroVec[3] = {0.f,0.f,0.f};
+	vtransform(zdir, transformMatrix, normEnd);
+	vtransform(zeroVec,transformMatrix,normBeg);
+	vsub(normEnd,normBeg,normEnd);
+	vnormal(normEnd);
+
+	//Start by initializing extents, and variables that will be min,max
+	for (int i = 0; i< 3; i++){
+		regMin[i] = 1.e30f;
+		regMax[i] = -1.e30f;
+	}
+	
+	for (int corner = 0; corner< 8; corner++){
+		int intCoord[3];
+		double startVec[3], resultVec[3];
+		intCoord[0] = corner%2;
+		intCoord[1] = (corner/2)%2;
+		intCoord[2] = (corner/4)%2;
+		for (int i = 0; i<3; i++)
+			startVec[i] = -1.f + (float)(2.f*intCoord[i]);
+		// calculate the mapping of this corner,
+		vtransform(startVec, transformMatrix, resultVec);
+		// force mapped corner to lie in the local extents
+		//and then force box to contain the corner:
+		for (int i = 0; i<3; i++) {
+			//force to lie in domain
+			if (resultVec[i] < 0.) resultVec[i] = 0.;
+			if (resultVec[i] > sizes[i]) resultVec[i] = sizes[i];
+			
+			if (resultVec[i] < regMin[i]) regMin[i] = resultVec[i];
+			if (resultVec[i] > regMax[i]) regMax[i] = resultVec[i];
+		}
+	}
+	return;
+}
+//Obtain grids for a set of variables in requested extents. Pointer to requested LOD and refLevel, may change if not available 
+//Extents are reduced if data not available at requested extents.
+//Vector of varnames can include "0" for zero variable.
+//Variables can be 2D or 3D depending on value of "varsAre2D"
+//Returns 0 on failure
+//
+int Renderer::getGrids(size_t ts, const vector<string>& varnames, double extents[6], int* refLevel, int* lod, RegularGrid** grids){
+	
+	DataStatus* ds = DataStatus::getInstance();
+	DataMgr* dataMgr = ds->getDataMgr();
+	if (!dataMgr) return 0;
+	
+	//reduce reflevel if variable is available:
+	int tempRefLevel = *refLevel;
+	int tempLOD = *lod;
+	for (int i = 0; i< varnames.size(); i++){
+		if (varnames[i] != "0"){
+			tempRefLevel = Min(ds->maxXFormPresent(varnames[i], ts), tempRefLevel);
+			tempLOD = Min(ds->maxLODPresent(varnames[i], ts), tempLOD);
+		}
+	}
+	if (ds->useLowerAccuracy()){
+		*lod = tempLOD;
+		*refLevel = tempRefLevel;
+	} else {
+		if (tempRefLevel< *refLevel || tempLOD < *lod){
+			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE, "Variable not present at required refinement and LOD\n");
+			return 0;
+		}
+	}
+						  
+	if (*refLevel < 0 || *lod < 0) return 0;
+	
+	//Determine the integer extents of valid cube, truncate to
+	//valid integer coords:
+	//Find a containing voxel box:
+	size_t boxMin[3], boxMax[3];
+	dataMgr->GetEnclosingRegion(ts, extents, extents+3, boxMin, boxMax, *refLevel, *lod);
+	
+	//Determine what region is available for all variables
+	size_t temp_min[3], temp_max[3];
+	for (int i = 0; i<varnames.size(); i++){
+		if (varnames[i] != "0"){
+			int rc = dataMgr->GetValidRegion(ts, varnames[i].c_str(), *refLevel, temp_min, temp_max);
+			if (rc != 0) {
+				MyBase::SetErrCode(0);
+				return 0;
+			}
+			for (int j=0; j<3; j++){
+				if (temp_min[j] > boxMin[j]) boxMin[j] = temp_min[j];
+				if (temp_max[j] < boxMax[j]) boxMax[j] = temp_max[j];
+				//If there is no valid intersection, the min will be greater than the max
+				if (boxMax[j] < boxMin[j]) return 0;
+			}
+		}
+	}
+			
+
+	
+	//see if we have enough space:
+	int numMBs = 0;
+	const vector<string> varnames3D = dataMgr->GetVariables3D();
+	for (int i = 0; i<varnames.size(); i++){
+		if (varnames[i] == "0") continue;
+		bool varIs3D = false;
+		for (int j = 0; j<varnames3D.size();j++){
+			if (varnames[i] == varnames3D[j]){varIs3D = true; break;}
+		}
+		
+		if (varIs3D)
+			numMBs += 4*(boxMax[0]-boxMin[0]+1)*(boxMax[1]-boxMin[1]+1)*(boxMax[2]-boxMin[2]+1)/1000000;
+		else
+			numMBs += 4*(boxMax[0]-boxMin[0]+1)*(boxMax[1]-boxMin[1]+1)/1000000;
+	} 	
+	int cacheSize = DataStatus::getInstance()->getCacheMB();
+	if (numMBs > (int)(cacheSize*0.75)){
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small\nfor current probe and resolution.\n%s",
+						  "Lower the refinement level, reduce the size, or increase the cache size.");
+		return 0;
+	}
+	
+	
+	for (int i = 0; i< varnames.size(); i++){
+		if(varnames[i] == "0") grids[i] = 0;
+		else {
+			RegularGrid* rg = dataMgr->GetGrid(ts, varnames[i], *refLevel, *lod, boxMin, boxMax, 1);
+			if (!rg) {
+				for (int j = 0; j<i; j++){
+					if (grids[j]){ dataMgr->UnlockGrid(grids[j]); delete grids[j];}
+				}
+				return 0;
+			}
+			grids[i] = rg;
+		}
+	}
+	//obtained all of the grids needed
+	
+	return 1;	
+	
 }

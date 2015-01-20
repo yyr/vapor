@@ -68,7 +68,7 @@ public:
 	//! Obtain the full extents of the current data in stretched user coordinates.
 	//! Values in this array are in the order: minx, miny, minz, maxx, maxy, maxz.
 	//! \retval const double[6] extents array
-	const double* getFullStretchedSizes() {return fullStretchedSizes;}
+	static const double* getFullStretchedSizes() {return fullStretchedSizes;}
 	//! Obtain the full extents of the current data in stretched local coordinates.
 	//! Values in this array are in the order: minx, miny, minz, maxx, maxy, maxz.
 	//! \retval const double[6] extents array
@@ -127,7 +127,7 @@ public:
 
 	//! Return the current scene stretch factors
 	//! \retval const float* current stretch factors
-	const double* getStretchFactors() {return stretchFactors;}
+	static const double* getStretchFactors() {return stretchFactors;}
 
 	//! Stretch a 3-vector
 	//! \param[in/out] vector<double> coords[3]
@@ -141,9 +141,16 @@ public:
 	}
 	//! Find the max domain extent in stretched coords
 	//! \retval float maximum stretched extent
-	float getMaxStretchedSize(){
+	static double getMaxStretchedSize(){
 		return (Max(fullStretchedSizes[0],Max(fullStretchedSizes[1],fullStretchedSizes[2])));
 	}
+	static void localToStretchedCube(const double fromCoords[3], double toCoords[3]);
+	int maxXFormPresent(string varname, size_t timestep);
+	int maxLODPresent(string varname, size_t timestep);
+	//! Method indicates if user requests using lower accuracy, when specified LOD or refinement is not available.
+	//! \retval bool true if lower accuracy is requested.
+	static bool useLowerAccuracy() {return doUseLowerAccuracy;}
+	static void setUseLowerAccuracy(bool val){doUseLowerAccuracy = val;}
 	
 #ifndef DOXYGEN_SKIP_THIS
 	DataStatus();
@@ -186,11 +193,12 @@ private:
 	
 	double extents[6];
 	double stretchedExtents[6];
-	double stretchFactors[3];
+	static double stretchFactors[3];
 	double fullSizes[3];
-	double fullStretchedSizes[3];
+	static double fullStretchedSizes[3];
 	//Cache size in megabytes
 	static size_t cacheMB;
+	static bool doUseLowerAccuracy;
 	
 #endif //DOXYGEN_SKIP_THIS
 };

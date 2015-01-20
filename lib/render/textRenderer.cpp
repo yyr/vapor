@@ -107,7 +107,7 @@ int TextObject::Initialize( string inFont,
 		//Convert user to local/stretched coordinates in cube
 		DataStatus* ds = DataStatus::getInstance();
 		const vector<double>& fullUsrExts = ds->getDataMgr()->GetExtents();
-		float sceneScaleFactor = 1./ViewpointParams::getMaxStretchedCubeSide();
+		float sceneScaleFactor = 1./DataStatus::getInstance()->getMaxStretchedSize();
 		const double* scales = ds->getStretchFactors();
 		for (int i = 0; i<3; i++){ 
 			_3Dcoords[i] = _coords[i] - fullUsrExts[i];
@@ -117,7 +117,8 @@ int TextObject::Initialize( string inFont,
 	}
 
 	_pixmap->FaceSize(_size);
-	_myWindow->makeCurrent();
+	//Note:  can we do this without QT?
+	//_myWindow->makeCurrent();
     findBBoxSize();
     initFrameBufferTexture();
     initFrameBuffer();
@@ -253,7 +254,7 @@ void TextObject::applyViewerMatrix() {
 }
 
 //float * TextObject::applyViewerMatrix(float coords[3]) {
-int TextObject::applyViewerMatrix(float coords[3]) {
+int TextObject::applyViewerMatrix(double coords[3]) {
     if ((_type == 0) || (_type == 1)){ 
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
@@ -266,7 +267,7 @@ int TextObject::applyViewerMatrix(float coords[3]) {
         glEnable(GL_TEXTURE_2D);
     }    
     if (_type == 1) { 
-        float newCoords[3];
+        double newCoords[3];
 		
         Visualizer *castWin;
         castWin = dynamic_cast <Visualizer*> (_myWindow);
@@ -288,14 +289,14 @@ void TextObject::removeViewerMatrix() {
     }
 }
 
-int TextObject::drawMe(float coords[3], int timestep) {
+int TextObject::drawMe(double coords[3], int timestep) {
 
 	if (_type == 1) {
         //Convert user to local/stretched coordinates in cube
         DataStatus* ds = DataStatus::getInstance();
         const vector<double>& fullUsrExts = ds->getDataMgr()->GetExtents((size_t)timestep);
-        float sceneScaleFactor = 1./ViewpointParams::getMaxStretchedCubeSide();
-        const float* scales = ds->getStretchFactors();
+        float sceneScaleFactor = 1./DataStatus::getInstance()->getMaxStretchedSize();
+        const double* scales = ds->getStretchFactors();
 		for (int i = 0; i<3; i++){ 
             coords[i] = coords[i] - fullUsrExts[i];
             coords[i] *= sceneScaleFactor;

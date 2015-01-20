@@ -76,7 +76,7 @@ namespace VAPoR {
 //! Draw Text Object at default coordinates specified in TextObject::Initialize()
     int drawMe();
 //! Draw Text Object at specified x, y, z coordinate, at specified time step
-	int drawMe(float coords[3], int timestep);
+	int drawMe(double coords[3], int timestep);
 
 //! Sets the variables \p _width and \p _height.
 //! These define the size of the texture box that text will be drawn on to
@@ -89,7 +89,7 @@ namespace VAPoR {
 //! to draw the appropriate type of text object.
     void applyViewerMatrix();
 	//float * applyViewerMatrix(float coords[3]);
-	int applyViewerMatrix(float coords[3]);
+	int applyViewerMatrix(double coords[3]);
 
 //! Resets the state of the GL machine to what it was before
 //! our text rendering.
@@ -111,8 +111,8 @@ private:
     int           _size;             // font size
     float         _txtColor[4];      // text color
     float         _bgColor[4];       // background color
-    float         _coords[3];        // text coordates
-    float		  _3Dcoords[3];		 // 3D coordinates used if we draw text within the scene
+    double         _coords[3];        // text coordates
+    double		  _3Dcoords[3];		 // 3D coordinates used if we draw text within the scene
 	int           _type;             // in front of scene, following a point in domain, or within
                                      // type 0 - text drawn in 2d on top of the scene
                                      // type 1 - text drawn in 2d, following a point in the scene

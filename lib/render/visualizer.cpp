@@ -913,7 +913,7 @@ bool Visualizer::projectPointToLine(double mouseCoords[2], double projCoords[2])
 	//
 	// When the mouse is moved, project to the line:
 	// point Q projects to P + aU, where a = (Q-P).U = dotprod
-	float diff[2];
+	double diff[2];
 	if (!mouseDownHere) return false;
 	diff[0] = mouseCoords[0] - mouseDownPoint[0];
 	diff[1] = mouseCoords[1] - mouseDownPoint[1];
@@ -1118,4 +1118,31 @@ void Visualizer::clearTextObjects(Renderer* ren){
 	map<Renderer*, vector<TextObject*> >::iterator it = textObjectMap.find(ren);
 	textObjectMap.erase(it);
 	*/
+}
+//Add an instance of text at specified position, using specified writer
+void Visualizer::addText(Renderer* ren, int objectIndex, double posn[3]){
+	float* newPosn = new float[3];
+	for (int i = 0; i<3; i++) newPosn[i] = posn[i];
+	pair<Renderer*, int> coordPair = make_pair(ren, objectIndex);
+	textCoordMap[coordPair]->push_back(newPosn);
+}
+//Add a textObject to the set of objects to be used.  Return its index.
+int Visualizer::addTextObject(Renderer* ren, const char* fontPath, int textSize, float textColor[4], float bgColor[4], int type, string text){
+	if(textObjectMap.count(ren) == 0){
+		vector<TextObject*> txtObjs = *(new vector<TextObject*>);
+		textObjectMap[ren] = txtObjs;
+	}
+	float dummyCoords[3] = {.23,.32,.25};//not used
+
+	TextObject *to = new TextObject();
+	to->Initialize(fontPath,text,textSize,dummyCoords,type,textColor,bgColor,this);
+	textObjectMap[ren].push_back(to);//new TextObject(fontPath,text,textSize,dummyCoords,type,textColor,bgColor,this));
+		
+	int objectIndex = textObjectMap[ren].size()-1;
+
+	pair<Renderer*, int> coordPair = make_pair(ren, objectIndex);
+	vector<float*>* coordinates = new vector<float*>;
+	textCoordMap[coordPair] = coordinates;
+	
+	return objectIndex;
 }

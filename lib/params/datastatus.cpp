@@ -45,6 +45,9 @@ using namespace VetsUtil;
 DataStatus* DataStatus::theDataStatus = 0;
 const std::string DataStatus::_emptyString = "";
 const vector<string> DataStatus::emptyVec;
+double DataStatus::stretchFactors[3];
+double DataStatus::fullStretchedSizes[3];
+bool DataStatus::doUseLowerAccuracy = false;
 
 size_t DataStatus::cacheMB = 0;
 
@@ -221,4 +224,29 @@ void DataStatus::mapBoxToVox(Box* box, int refLevel, int lod, int timestep, size
 	dataMgr->MapUserToVox((size_t)timestep,userExts+3,voxExts+3, refLevel,lod);
 	return;
 
+}
+void DataStatus::
+localToStretchedCube(const double fromCoords[3], double toCoords[3]){
+	const double* stretch = getStretchFactors();
+	for (int i = 0; i<3; i++){
+		toCoords[i] = (fromCoords[i]*stretch[i])/getMaxStretchedSize();
+	}
+	return;
+}
+int DataStatus::maxXFormPresent(string varname, size_t timestep){
+	int maxx = dataMgr->GetNumTransforms();
+	int i;
+	for (i =0 ; i<maxx; i++){
+		if (!dataMgr->VariableExists(timestep, varname.c_str(), i)) break;
+	}
+	
+	return i-1;
+}
+int DataStatus::maxLODPresent(string varname, size_t timestep){
+	int maxlod = dataMgr->GetCRatios().size();
+	int i;
+	for (i =0 ; i<maxlod; i++){
+		if (!dataMgr->VariableExists(timestep, varname.c_str(),0,i)) break;
+	}
+	return i-1;
 }

@@ -99,10 +99,10 @@ void IsolineRenderer::performRendering(int timestep){
 	
 	glLineWidth(iParams->GetLineThickness());
 	//Need to convert the iso-box coordinates to user coordinates, then to unit box coords.
-	float transformMatrix[12];
-	iParams->buildLocalCoordTransform(transformMatrix, 0.f, -1);
-	float pointa[3],pointb[3]; //points in cache
-	float point1[3],point2[3]; //points in local box
+	double transformMatrix[12];
+	buildLocalCoordTransform(transformMatrix, 0.f, -1);
+	double pointa[3],pointb[3]; //points in cache
+	double point1[3],point2[3]; //points in local box
 	pointa[2]=pointb[2] = 0.;
 	
 	glBegin(GL_LINES);
@@ -120,10 +120,10 @@ void IsolineRenderer::performRendering(int timestep){
 			pointb[1] = lines[linenum][3];
 			vtransform(pointa,transformMatrix,point1);
 			vtransform(pointb,transformMatrix,point2);
-			ViewpointParams::localToStretchedCube(point1,point1);
-			ViewpointParams::localToStretchedCube(point2,point2);
-			glVertex3fv(point1);
-			glVertex3fv(point2);
+			DataStatus::localToStretchedCube(point1,point1);
+			DataStatus::localToStretchedCube(point2,point2);
+			glVertex3dv(point1);
+			glVertex3dv(point2);
 		}
 	}
 	glEnd();
@@ -161,14 +161,14 @@ bool IsolineRenderer::buildLineCache(int timestep){
 	float boxexts[6];
 
 	bool is3D = iParams->VariablesAre3D();
-	if (is3D) iParams->getLocalContainingRegion(boxexts, boxexts+3);
+	if (is3D) getLocalContainingRegion(boxexts, boxexts+3);
 	else iParams->GetBox()->GetLocalExtents(boxexts);
 
 	for (int i = 0; i<6; i++){
 		extents[i] = boxexts[i]+userExts[i%3];
 	}
 	
-	int rc = iParams->getGrids( (size_t)timestep, varname, extents, &actualRefLevel, &lod, &isolineGrid);
+	int rc = getGrids( (size_t)timestep, varname, extents, &actualRefLevel, &lod, &isolineGrid);
 	if(!rc){
 		return false;
 	}
@@ -185,8 +185,8 @@ bool IsolineRenderer::buildLineCache(int timestep){
 	int mapDims[3];
 	double transformMatrix[12];
 
-	if(is3D)iParams->buildLocalCoordTransform(transformMatrix, 0.f, -1);
-	else iParams->buildLocal2DTransform(2, a,b,constValue,mapDims);
+	if(is3D)buildLocalCoordTransform(transformMatrix, 0.f, -1);
+	else buildLocal2DTransform(2, a,b,constValue,mapDims);
 	
 	double planeCoords[3], dataCoords[3];
 	planeCoords[2] = 0.;
@@ -194,11 +194,11 @@ bool IsolineRenderer::buildLineCache(int timestep){
 	
 
 	//Get the data dimensions (at this resolution):
-	int dataSize[3];
+	size_t dataSize[3];
 	//Start by initializing extents
-	for (int i = 0; i< 3; i++){
-		dataSize[i] = (int)ds->getFullSizeAtLevel(actualRefLevel,i);
-	}
+	
+	dataMgr->GetDim(dataSize,actualRefLevel);
+	
 	const double* sizes = ds->getFullSizes();
 	double extExtents[6]; //Extend extents 1/2 voxel on each side so no bdry issues.
 	for (int i = 0; i<3; i++){
@@ -591,10 +591,10 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 	string isoText;
 	doubleToString((iParams->GetIsovalues()[iso]), isoText, iParams->GetNumDigits());
 	//Prepare to convert the iso-box coordinates to user coordinates, then to unit box coords.
-	float transformMatrix[12];
-	iParams->buildLocalCoordTransform(transformMatrix, 0.f, -1);
-	float pointa[3]; //point in cache
-	float point1[3]; //point in local box
+	double transformMatrix[12];
+	buildLocalCoordTransform(transformMatrix, 0.f, -1);
+	double pointa[3]; //point in cache
+	double point1[3]; //point in local box
 	pointa[2] = 0.;
 	
 	
