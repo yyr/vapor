@@ -891,7 +891,6 @@ void TranslateRotateManip::render(){
 	//With any rotation applied:
 	
 	myParams->GetBox()->calcContainingStretchedBoxExtents(extents);
-	ViewpointParams* myViewpointParams = myVis->getActiveViewpointParams();
 	
 
 	//Set the handleSize, in cube coords:

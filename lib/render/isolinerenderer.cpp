@@ -68,7 +68,6 @@ IsolineRenderer::~IsolineRenderer()
 
 int IsolineRenderer::_paintGL(DataMgr* dataMgr)
 {
-	DataStatus* ds = DataStatus::getInstance();
 	
 	if (!dataMgr) return -1;
 
@@ -239,9 +238,6 @@ bool IsolineRenderer::buildLineCache(int timestep){
 	
 	//Clear the textObjects (if they exist)
 	myVisualizer->clearTextObjects(this);
-	//Create a new textObject for each isoline:
-	float bgc[4] = {0.,0.,0.,1.};
-	//background always black for now!
 	
 	objectNums.clear();
 	for (int iso = 0; iso < isovals.size(); iso++){

@@ -47,7 +47,7 @@ ControlExec::~ControlExec(){
 
 int ControlExec::NewVisualizer(int viznum){
 	std::map<int, Visualizer*>::iterator it;
-	int numviz = visualizers.size();
+	
 	bool addVis = false;  //Indicate whether a new visualizer must be added to the VizWinParams
 	//if viznum is nonnegative, see if the index is already used.
 	if (viznum >= 0) {

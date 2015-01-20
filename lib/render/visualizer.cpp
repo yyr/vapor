@@ -152,10 +152,6 @@ void Visualizer::resizeGL( int wid, int ht )
 	glGetDoublev(GL_PROJECTION_MATRIX, projectionMatrix);
 	glMatrixMode(GL_MODELVIEW);
 	
-	GLsizei myheight =  (GLsizei)height;
-    GLsizei mywidth = (GLsizei) width;
-	
-	
 	height = ht;
 	width = wid;
 	return;
@@ -380,7 +376,7 @@ int Visualizer::paintEvent(bool force)
 		int mode = MouseModeParams::GetCurrentMouseMode();
 		ParamsBase::ParamsBaseType t = MouseModeParams::getModeParamType(mode);
 		TranslateStretchManip* manip = manipHolder[mode];
-		ControlExec* ce = ControlExec::getInstance();
+		
 		string tag = ControlExec::GetTagFromType(t);
 		RenderParams* p = (RenderParams*)ControlExec::getInstance()->GetCurrentParams(winNum,tag);
 		manip->setParams(p);
@@ -1059,7 +1055,7 @@ void Visualizer::saveGLMatrix(int timestep, ViewpointParams* vpParams){
 }
 //Static method to set changed bits on all visualizers that are using shared viewpoints
 void Visualizer::SetSharedViewpointChanged(){
-	ControlExec* ce = ControlExec::getInstance();
+	
 	for (int i = 0; i<ControlExec::GetNumVisualizers(); i++){
 		Visualizer* viz = ControlExec::GetVisualizer(i);
 		if (viz->getActiveViewpointParams()->IsLocal()) continue;
