@@ -1231,7 +1231,9 @@ bool VDC::_valid_blocking(
 		);
 		if (bs1 == 0) continue;	// dimension not defined for this axis
 
-		if (bs0 != bs1) return(false);
+		// Must have same blocking or no blocking
+		//
+		if (bs0 != bs1 && bs1 != 1) return(false);
 	}
 	return(true);
 }

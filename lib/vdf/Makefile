@@ -22,7 +22,7 @@ FILES = \
 	DCReaderNCDF  DCReaderMOM DCReaderROMS VDCFactory \
 	DataMgrROMS DataMgrMOM DCReaderWRF UDUnitsClass Copy2VDF vdfcreate \
 	WrfVDCcreator WrfVDFcreator  Proj4API DC VDC VDCNetCDF NetCDFCpp WASP \
-	DataMgrV3_0  
+	DataMgrV3_0  DCWRF
 	
 
 HEADER_FILES = \
@@ -44,7 +44,7 @@ HEADER_FILES = \
 	DCReader DCReaderNCDF DCReaderMOM DCReaderROMS VDCFactory \
 	DataMgrROMS DataMgrMOM DCReaderWRF UDUnitsClass Copy2VDF vdfcreate \
 	WrfVDCcreator WrfVDFcreator  Proj4API DC VDC VDCNetCDF NetCDFCpp WASP \
-	DataMgrV3_0  
+	DataMgrV3_0  DCWRF
 
 
 #LIB_DEFS = vdf.def

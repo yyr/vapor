@@ -1259,7 +1259,7 @@ NetCDFCFCollection::DerivedVar_AHSPC::DerivedVar_AHSPC(
     PS = NULL;             //Current surface pressure
     PHIS = NULL;           //Surface Geopotential Height
     TV = NULL;             //Virtual Temperature
-    P0 = NULL;             //Pressure constant set by model code
+    P0 = 0.0;             //Pressure constant set by model code
     HYAM = NULL;           //HYAM
     HYBM = NULL;           //HYBM
     HYAI = NULL;           //HYAI

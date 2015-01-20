@@ -47,6 +47,16 @@ entirely - it's redundant).
 
 Support block access - read blocks without unblocking
 
+Make sure open mode (RWA) is handled correctly both for supporting vdccreate
+and 2vdc operations
+
+Need to be consistent in interpretation of BS (e.b. bs== dimensions, bs=1, etc)
+for WASP.cpp, VDC*
+
+Verify that DC ensures that dimensions are always in correct order. In 
+particular, uses of DC API don't have to verify order is correct when
+getting a variables dimensions.
+
 DataMgr
 -------
 
