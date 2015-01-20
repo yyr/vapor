@@ -6,9 +6,11 @@ LIBRARY = render
 
 FILES = \
 	visualizer renderer trackball\
-	arrowrenderer manip \
+	arrowrenderer isolinerenderer manip textRenderer \
 	ControlExecutive \
 	jfilewrite
+
+LIBRARIES += ftgl freetype
 
 ifdef FREETYPE2_INC_DIR
 MAKEFILE_INCLUDE_DIRS += -I$(FREETYPE2_INC_DIR)
