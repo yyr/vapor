@@ -10,7 +10,9 @@ FILES = \
 	ControlExecutive \
 	jfilewrite
 
-
+ifdef FREETYPE2_INC_DIR
+MAKEFILE_INCLUDE_DIRS += -I$(FREETYPE2_INC_DIR)
+endif
 ifeq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += -D"RENDER_EXPORTS"
 endif
