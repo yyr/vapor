@@ -460,7 +460,7 @@ public:
   CoordVar() : BaseVar() {};
 
 
-  //! Construct Data variable definition with missing values
+  //! Construct coordinate variable 
   //!
   //! \copydetails BaseVar(string name, std::vector <DC::Dimension> dimensions,
   //!  string units, XType type, bool compressed,
@@ -488,6 +488,28 @@ public:
 	_axis(axis),
 	_uniform(uniform)
  {}
+
+  //! Construct coordinate variable without compression
+  //!
+  //! \copydetails BaseVar(string name, std::vector <DC::Dimension> dimensions,
+  //!  string units, XType type, std::vector <bool> periodic)
+  //!
+  //! \param[in] axis an int in the range 0..3 indicating the coordinate
+  //! axis, one of X, Y, Z, or T, respectively
+  //! \param[in] uniform A bool indicating whether the coordinate variable
+  //! is uniformly sampled.
+  //
+  CoordVar(
+	string name, std::vector <DC::Dimension> dimensions,
+	string units, XType type, 
+	std::vector <bool> periodic, 
+	int axis, bool uniform
+  ) :
+	BaseVar(name, dimensions, units, type, periodic),
+	_axis(axis),
+	_uniform(uniform)
+ {}
+
   virtual ~CoordVar() {};
 
   //! Access coordinate variable axis
