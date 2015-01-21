@@ -950,8 +950,8 @@ int DCWRF::_InitVerticalCoordinates(
 
 	dims.clear();
 	dims.push_back(_dimsMap["west_east"]);
-	dims.push_back(_dimsMap["south_north_stag"]);
-	dims.push_back(_dimsMap["bottom_top"]);
+	dims.push_back(_dimsMap["south_north"]);
+	dims.push_back(_dimsMap["bottom_top_stag"]);
 	dims.push_back(_dimsMap["Time"]);
 	name = "ELEVATIONW";
 
@@ -1286,17 +1286,17 @@ DCWRF::DerivedVarElevation::DerivedVarElevation(
 
 
 	_ph_dims = _sdims;
-	if (_name.compare("ELEVATION")) {
+	if (_name.compare("ELEVATION")==0) {
 		_zinterpolate = true;
 		_ph_dims[0]++;	// Z dimension
 	}
-	if (_name.compare("ELEVATIONU")) {
+	if (_name.compare("ELEVATIONU")==0) {
 		_xextrapolate = true;
 		_zinterpolate = true;
 		_ph_dims[2]--;	// X dimension
 		_ph_dims[0]++;	// Z dimension
 	}
-	else if (_name.compare("ELEVATIONV")) {
+	else if (_name.compare("ELEVATIONV")==0) {
 		_yextrapolate = true;
 		_zinterpolate = true;
 		_ph_dims[1]--;	// Y dimension
@@ -1437,7 +1437,7 @@ int DCWRF::DerivedVarElevation::ReadSlice(
 		size_t nxs = nx+1;	// staggered dimension
 		for (size_t y=0; y<ny; y++) {
 		for (size_t x=1; x<nxs-1; x++) {
-			slice[y*nxs+x] = 0.5*(_xysliceBuf[y*nx+x] + _xysliceBuf[y*nx+x+1]);
+			slice[y*nxs+x] = 0.5*(_xysliceBuf[y*nx+x-1] + _xysliceBuf[y*nx+x]);
 		}
 		}
 
@@ -1459,7 +1459,7 @@ int DCWRF::DerivedVarElevation::ReadSlice(
 		size_t nys = ny+1;	// staggered dimension
 		for (size_t y=1; y<nys-1; y++) {
 		for (size_t x=0; x<nx; x++) {
-			slice[y*nx+x] = 0.5*(_xysliceBuf[y*nx+x] + _xysliceBuf[(y+1)*nx+x]);
+			slice[y*nx+x] = 0.5*(_xysliceBuf[(y-1)*nx+x] + _xysliceBuf[y*nx+x]);
 		}
 		}
 

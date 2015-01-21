@@ -80,7 +80,7 @@ int CopyVar2d3d(
     size_t nz = mydims.size() > 2 ? mydims[mydims.size()-1].GetLength() : 1;
 
 	size_t sz = mydims[0].GetLength() * mydims[1].GetLength();
-	float *buf = (float *) dataBuffer.Alloc(sz);
+	float *buf = (float *) dataBuffer.Alloc(sz*sizeof(*buf));
 
     for (size_t i=0; i<nz; i++) {
         rc = dc.ReadSlice(buf);
