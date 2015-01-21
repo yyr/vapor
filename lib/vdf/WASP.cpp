@@ -1510,7 +1510,7 @@ int WASP::DefVar(
 		return(-1);
 	}
 
-	if (vproduct(bs) == 1) { 
+	if (bs.size()==0 || vproduct(bs) == 1) { 
 		return(NetCDFCpp::DefVar(name, xtype, dimnames));
 	}
 
@@ -1648,6 +1648,9 @@ int WASP::DefVar(
 		SetErrMsg("Not a WASP file");
 		return(-1);
 	}
+	if (bs.size()==0 || vproduct(bs) == 1) { 
+		return(NetCDFCpp::DefVar(name, xtype, dimnames));
+	}
 
 	int rc = WASP::DefVar(name, xtype, dimnames, wname, bs, cratios);
 	if (rc<0) return(rc);
@@ -1670,7 +1673,15 @@ int WASP::InqVarDims(
 		return(-1);
 	}
 
-	int rc = GetAtt(name, AttNameDimNames(), dimnames);
+	bool waspvar;
+	int rc = InqVarWASP(name, waspvar);
+	if (rc<0) return(rc);
+
+	if (! waspvar) {
+		return(NetCDFCpp::InqVarDims(name, dimnames, dims));
+	}
+
+	rc = GetAtt(name, AttNameDimNames(), dimnames);
 	if (rc<0) return(rc);
 	for (int i=0; i<dimnames.size(); i++) {
 		size_t len;
@@ -1694,7 +1705,13 @@ int WASP::InqVarCompressionParams(
 		return(-1);
 	}
 
-	int rc = GetAtt(name, AttNameBlockSize(), bs);
+	bool waspvar;
+	int rc = InqVarWASP(name, waspvar);
+	if (rc<0) return(rc);
+
+	if (! waspvar) return(0);
+
+	rc = GetAtt(name, AttNameBlockSize(), bs);
 	if (rc<0) return(rc);
 
 	rc = GetAtt(name, AttNameCRatios(), cratios);
@@ -1762,13 +1779,19 @@ int WASP::InqVarNumRefLevels(string name) const {
 		return(-1);
 	}
 
+	bool waspvar;
+	int rc = InqVarWASP(name, waspvar);
+	if (rc<0) return(rc);
+
+	if (! waspvar) return(1);
+
 	vector <size_t> bs;
 	vector <size_t> cratios;
 	vector <size_t> udims;
 	vector <size_t> dims;
 	string wname;
 	
-	int rc = _get_compression_params(name, bs, cratios, udims, dims, wname);
+	rc = _get_compression_params(name, bs, cratios, udims, dims, wname);
 	if (rc<0) return(rc);
 
 	if (cratios.size() == 0) return(1);	// no compression
@@ -1926,6 +1949,17 @@ int WASP::OpenVarWrite(string name, int lod) {
 		return(-1);
 	}
 
+	_open_waspvar = false;
+	int rc = InqVarWASP(name, _open_waspvar);
+	if (rc<0) return(rc);
+
+	if (! _open_waspvar) {
+		_open_write = true;
+		_open_varname = name;
+		_open = true;
+		return(0);
+	}
+
     if (_ncdfcptrs.size() < 1) {
         SetErrMsg("Invalid state");
         return(-1);
@@ -1945,7 +1979,7 @@ int WASP::OpenVarWrite(string name, int lod) {
 	_open_varname.clear();
 	_open = false;
 
-	int rc = _get_compression_params(name, bs, cratios, udims, dims, wname);
+	rc = _get_compression_params(name, bs, cratios, udims, dims, wname);
 	if (rc<0) return(rc);
 
 	if (lod < 0)  lod = cratios.size() - 1;
@@ -1989,6 +2023,17 @@ int WASP::OpenVarRead(string name, int level, int lod) {
 		return(-1);
 	}
 
+	_open_waspvar = false;
+	int rc = InqVarWASP(name, _open_waspvar);
+	if (rc<0) return(rc);
+
+	if (! _open_waspvar) {
+		_open_write = false;
+		_open_varname = name;
+		_open = true;
+		return(0);
+	}
+
     if (_ncdfcptrs.size() < 1) {
         SetErrMsg("Invalid state");
         return(-1);
@@ -2010,7 +2055,7 @@ int WASP::OpenVarRead(string name, int level, int lod) {
 	_open_varname.clear();
 	_open = false;
 
-	int rc = _get_compression_params(name, bs, cratios, udims, dims, wname);
+	rc = _get_compression_params(name, bs, cratios, udims, dims, wname);
 	if (rc<0) return(rc);
 
 	if (lod < 0)  lod = cratios.size() - 1;
@@ -2162,18 +2207,17 @@ int WASP::PutVara(
         return(-1);
 	}
 
+	if (! _open_waspvar) {
+		return(NetCDFCpp::PutVara(_open_varname, start, count, data));
+	}
+
+
 	if (! _validate_put_vara_compressed(
 		start, count, _open_bs, _open_udims, _open_cratios)
 	) {
 		SetErrMsg("Invalid parameter");
         return(-1);
 	}
-
-	// Handle variable if not blocked (or compressed);
-	//
-	if (vproduct(_open_bs) == 1) {
-		return(NetCDFCpp::PutVara( _open_varname, start, count, data));
-	} 
 
 	vector <size_t> ncoeffs;
 	vector <size_t> encoded_dims;
@@ -2269,6 +2313,10 @@ int WASP::PutVar(const float *data) {
         return(-1);
 	}
 
+	if (! _open_waspvar) {
+		return(NetCDFCpp::PutVar(_open_varname, data));
+	}
+
 	vector <size_t> count = _open_udims; 
     vector <size_t> start(count.size(), 0); 
 
@@ -2283,11 +2331,9 @@ int WASP::_GetVara(
         return(-1);
 	}
 
-	// Handle variable if not blocked (or compressed);
-	//
-	if (vproduct(_open_bs) == 1) {
-		return(NetCDFCpp::GetVara( _open_varname, start, count, data));
-	} 
+	if (! _open_waspvar) {
+		return(NetCDFCpp::GetVara(_open_varname, start, count, data));
+	}
 
 	vector <size_t> ncoeffs;
 	vector <size_t> encoded_dims;
@@ -2402,6 +2448,7 @@ int WASP::GetVara(
 		SetErrMsg("Not a WASP file");
 		return(-1);
 	}
+
 	return(WASP::_GetVara(start, count, true, data));
 }
 
@@ -2413,6 +2460,7 @@ int WASP::GetVaraBlock(
 		SetErrMsg("Not a WASP file");
 		return(-1);
 	}
+
 	return(WASP::_GetVara(start, count, false, data));
 }
 
@@ -2426,6 +2474,10 @@ int WASP::GetVar(float *data) {
 	if (! _open || ! _open_write) {
 		SetErrMsg("Invalid state");
         return(-1);
+	}
+
+	if (! _open_waspvar) {
+		return(NetCDFCpp::GetVar(_open_varname, data));
 	}
 
 	vector <size_t> count = _open_udims; 
@@ -2608,7 +2660,7 @@ bool WASP::_validate_compression_params(
 	if (bs.size() < 1 || bs.size() > 4) return(false);
 
 	if (_numfiles > 1) {
-		if (cratios.size() != _numfiles) return(false);
+		if (cratios.size() > _numfiles) return(false);
 	}
 
 	if (bs.size() != dims.size()) return(false);

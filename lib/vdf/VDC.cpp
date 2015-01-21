@@ -7,6 +7,15 @@ using namespace VAPoR;
 
 namespace {
 
+// Product of elements in a vector
+//
+size_t vproduct(vector <size_t> a) {
+	size_t ntotal = 1;
+
+	for (int i=0; i<a.size(); i++) ntotal *= a[i];
+	return(ntotal);
+}
+
 void _compute_bs(
 	const vector <VDC::Dimension> &dimensions, 
 	const vector <size_t> &default_bs,
@@ -113,6 +122,13 @@ int VDC::SetCompressionBlock(
     vector <size_t> cratios
 ) {
 	if (! cratios.size()) cratios.push_back(1);
+
+	if (! bs.size()) {
+		for (int i=0; i<3; i++) bs.push_back(1);
+		wname.clear();
+		cratios.clear();
+		cratios.push_back(1);
+	}
 	
 	if (! _ValidCompressionBlock(bs, wname, cratios)) {
 		SetErrMsg("Invalid compression settings");
@@ -1192,6 +1208,13 @@ bool VDC::_ValidCompressionBlock(
 ) const {
 	for (int i=0; i<cratios.size(); i++) {
 		if (cratios[i] < 1) return(false);
+	}
+
+	// No compression if no blocking
+	//
+	if (vproduct(bs) == 1) {
+		if (! wname.empty()) return(false);
+		if (! (cratios.size() == 1 && cratios[0] == 1)) return(false);
 	}
 
 	size_t nlevels, maxcratio;

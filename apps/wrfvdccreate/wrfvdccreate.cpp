@@ -169,7 +169,7 @@ int	main(int argc, char **argv) {
 
 		vector <size_t> cratios(1,1);
 
-		rc = vdc.SetCompressionBlock(mybs, "", cratios);
+		rc = vdc.SetCompressionBlock(mybs, opt.wname, cratios);
 		if (rc<0) exit(1);
 
 		for (int i=0; i<coordnames.size(); i++) {
@@ -203,12 +203,18 @@ cout << d << " " << coordnames[i] << endl;
 		//
 		// Time coordinate and 1D coordinates are not blocked
 		//
+		string mywname;
 		vector <size_t> mybs;
+		bool compress;
 		if (d < 2) {
+			mywname.clear();
 			mybs.clear();
+			compress = false;
 		}
 		else {
+			mywname = opt.wname;
 			mybs = opt.bs;
+			compress = true;
 		}
 
 		// Try to compute "reasonable" 1D & 2D compression ratios from 3D
@@ -222,7 +228,7 @@ cout << d << " " << coordnames[i] << endl;
 			cratios[i] = c;
 		}
 
-		rc = vdc.SetCompressionBlock(mybs, "", cratios);
+		rc = vdc.SetCompressionBlock(mybs, mywname, cratios);
 		if (rc<0) exit(1);
 
 		for (int i=0; i<datanames.size(); i++) {
@@ -239,7 +245,7 @@ cout << d << " " << coordnames[i] << endl;
 		
 			rc = vdc.DefineDataVar(
 				dvar.GetName(), dimnames, coordvars, dvar.GetUnits(), 
-				dvar.GetXType(), true
+				dvar.GetXType(), compress
 			);
 
 			if (rc<0) {

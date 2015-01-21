@@ -289,7 +289,8 @@ public:
  //! \param[in] xtype Same as NetCDFCpp::DefVar()
  //! \param[in] dimnames Same as NetCDFCpp::DefVar()
  //! \param[in] wname Name of biorthogonal wavelet to use for data 
- //! transformation. See VAPoR::WaveFiltBior.
+ //! transformation. See VAPoR::WaveFiltBior. If empty, the variable
+ //! will be blocked according to \p bs, but will not be compressed.
  //! \param[in] bs An ordered list of block dimensions that specifies the 
  //! block decomposition of the variable. 
  //! array's associated dimension. The rank of \p bs may be equal to 
@@ -299,7 +300,10 @@ public:
  //! The dimension(s) of \p bs[i] need not align with (be integral factors
  //! of) the dimension lengths
  //! associated with \p dimnames in which case boundary blocks will be
- //! padded.
+ //! padded. If \p bs is empty, or the product of its elements is one, 
+ //! the variable will not be blocked or compressed. Hence, the 
+ //! \p wname and \p cratio parameters will be ignored. The variable
+ //! will not be defined as a \b WASP variable. See InqVarWASP().
  //! \param[in] cratios A monotonically decreasing vector of 
  //! compression ratios. Each element of \p cratios is in 
  //! the range 1 
@@ -360,10 +364,11 @@ public:
     string varname, bool &compressed
  ) const;
 
- //! Inquire whether a names variable is a WASP variable
+ //! Inquire whether a variable is a WASP variable
  //!
  //! This method returns true if the variable named by \p varname
- //! was defined by the WASP API
+ //! was defined by the WASP API and is either compressed, blocked, or
+ //! both.
  //!
  int InqVarWASP(
     string varname, bool &wasp
@@ -582,6 +587,7 @@ private:
  int _open_lod; // level-of-detail of opened variable
  int _open_level;   // grid refinement level of opened variable
  bool _open_write;  // opened variable open for writing?
+ bool _open_waspvar;	// opened variable is a WASP variable?
  string _open_varname;  // name of opened variable
  vector <Compressor *> _open_compressors;  // Compressor for opened variable
 

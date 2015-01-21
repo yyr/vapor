@@ -1668,7 +1668,7 @@ int DCWRF::DerivedVarHorizontal::Open(size_t ts) {
 
 int DCWRF::DerivedVarHorizontal::Read(float *buf, int) {
 
-	if (_is_open) {
+	if (! _is_open) {
 		SetErrMsg("Invalid operation");
 		return(-1);
 	}

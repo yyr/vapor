@@ -91,7 +91,7 @@ void vdc_2_ncdfcoords(
 	count.clear();
 
 	assert(min.size() == max.size());;
-	assert(min.size() >= 1 && max.size() <= 3);
+	assert(max.size() <= 3);
 	assert(ts1 >= ts0);
 
 	if (time_varying) {
