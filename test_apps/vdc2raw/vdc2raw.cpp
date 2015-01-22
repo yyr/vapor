@@ -113,30 +113,56 @@ int write_data(
 
 
 void process_volume(
+	size_t ts,
+	string varname,
+	int level,
+	int lod,
 	VDCNetCDF &vdc,
 	FILE *fp,
 	vector <size_t> dims,
 	string type
 ) {
 
-	size_t nelements = dims[0];
-	if (dims.size() > 1) nelements *= dims[1];
+	size_t nelements = 1;
+	for (int i=0; i<dims.size() && i < 2; i++) {
+		nelements *= dims[i];
+	}
+	float *buffer = new float[nelements];
 
-	float *slice = new float[nelements];
-
-    size_t nz = dims.size() > 2 ? dims[2] : 1;
-
-	for (size_t i=0; i<nz; i++) {
-		int rc = vdc.ReadSlice(slice);
+	if (dims.size() < 2) {
+		int rc = vdc.GetVar(ts, varname, level, lod, buffer);
 		if (rc<0) exit(1);
 
-		rc = write_data(fp, opt.type, nelements, slice);
+		rc = write_data(fp, type, nelements, buffer);
 		if (rc<0) exit(1);
 	}
-	delete [] slice;
+	else {
+		int rc = vdc.OpenVariableRead(ts, varname, level, lod);
+		if (rc<0) exit(1);
+
+		size_t nz = dims.size() > 2 ? dims[2] : 1;
+
+		for (size_t i=0; i<nz; i++) {
+			rc = vdc.ReadSlice(buffer);
+			if (rc<0) exit(1);
+
+			rc = write_data(fp, type, nelements, buffer);
+			if (rc<0) exit(1);
+		}
+
+		rc = vdc.CloseVariable();
+		if (rc<0) exit(1);
+	}
+
+	delete [] buffer;
+
 }
 
 void process_region(
+	size_t ts,
+	string varname,
+	int level,
+	int lod,
 	VDCNetCDF &vdc,
 	FILE *fp,
 	vector <size_t> dims,
@@ -156,6 +182,9 @@ void process_region(
 	min_bound.push_back(xregion[0] < 0 ? 0 : xregion[0]);
 	max_bound.push_back(xregion[1] < 0 ? dims[0]-1 : xregion[1]);
 
+	int rc = vdc.OpenVariableRead(ts, varname, level, lod);
+	if (rc<0) exit(1);
+
 	if (dims.size() > 1) {
 		min_bound.push_back(yregion[0] < 0 ? 0 : yregion[0]);
 		max_bound.push_back(yregion[1] < 0 ? dims[1]-1 : yregion[1]);
@@ -172,14 +201,16 @@ void process_region(
 
 	float *region = new float[nelements];
 	
-	int rc = vdc.ReadRegion(min_bound, max_bound, region);
+	rc = vdc.ReadRegion(min_bound, max_bound, region);
 	if (rc<0) exit(1);
 
-	rc = write_data(fp, opt.type, nelements, region);
+	rc = write_data(fp, type, nelements, region);
 	if (rc<0) exit(1);
 
 	delete [] region;
 	
+	rc = vdc.CloseVariable();
+	if (rc<0) exit(1);
 }
 
 const char	*ProgName;
@@ -251,18 +282,20 @@ int	main(int argc, char **argv) {
 
 
 	//
-	rc = vdc.OpenVariableRead(opt.ts, opt.varname, opt.level, opt.lod);
-	if (rc<0) exit(1);
 
 	if (opt.xregion[0] == -1 && opt.xregion[1] == -1 && 
 		opt.yregion[0] == -1 && opt.yregion[1] == -1 &&
 		opt.zregion[0] == -1 && opt.zregion[1] == -1) { 
 
-		process_volume(vdc, fp, dims, opt.type);
+		process_volume(
+			opt.ts, opt.varname, opt.level, opt.lod, vdc,
+			fp, dims, opt.type
+		);
 	}
 	else {
 		process_region(
-			vdc, fp, dims, opt.type, opt.xregion, opt.yregion, opt.zregion
+			opt.ts, opt.varname, opt.level, opt.lod, vdc, 
+			fp, dims, opt.type, opt.xregion, opt.yregion, opt.zregion
 		);
 	}
 
@@ -274,10 +307,7 @@ int	main(int argc, char **argv) {
 		}
 		cout << endl;
 	}
-		
 
-	rc = vdc.CloseVariable();
-	if (rc<0) exit(1);
 
 	fclose(fp);
 
