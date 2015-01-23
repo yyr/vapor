@@ -3,6 +3,7 @@
 #include <map>
 #include <iostream>
 #include <cassert>
+#include <stdio.h>
 
 #ifdef _WINDOWS
 #define _USE_MATH_DEFINES
