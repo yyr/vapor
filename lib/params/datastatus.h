@@ -103,12 +103,28 @@ public:
 	 
 	int getNumActiveVariables3D() {return dataMgr->GetVariables3D().size();}
 	int getNumActiveVariables2D() {return dataMgr->GetVariables2DXY().size();}
+	int getNumActiveVariables() {return getNumActiveVariables3D()+getNumActiveVariables2D();}
 	int getActiveVarNum3D(string vname) {return getVarNum3D(vname);}
 	int getActiveVarNum2D(string vname) {return getVarNum2D(vname);}
 	int getVarNum3D(string vname);
 	int getVarNum2D(string vname);
 	float getDefaultDataMax(string vname);
 	float getDefaultDataMin(string vname);
+	float getDefaultLODFidelity2D(){return defaultLODFidelity2D;}
+	float getDefaultRefinementFidelity2D(){return defaultRefFidelity2D;}
+	float getDefaultLODFidelity3D(){return defaultLODFidelity3D;}
+	float getDefaultRefinementFidelity3D(){return defaultRefFidelity3D;}
+	void setDefaultLODFidelity2D(float q) {defaultLODFidelity2D = q;}
+	void setDefaultLODFidelity3D(float q) {defaultLODFidelity3D = q;}
+	void setDefaultRefinementFidelity2D(float q){defaultRefFidelity2D = q;}
+	void setDefaultRefinementFidelity3D(float q){defaultRefFidelity3D = q;}
+	//Convert user point coordinates in-place.  Return bool if can't do it.
+	//If the timestep is negative, then the coords are in a time-varying
+	//extent.
+	static bool convertToLonLat(double coords[], int npoints = 1);
+	static bool convertFromLonLat(double coords[], int npoints = 1);
+	static bool convertLocalToLonLat(int timestep, double coords[], int npoints = 1);
+	static bool convertLocalFromLonLat(int timestep,double coords[], int npoints = 1);
 	
 	void mapBoxToVox(Box* box, int refLevel, int lod, int timestep, size_t voxExts[6]);
 
@@ -190,7 +206,10 @@ private:
 	int numTimesteps;
 
 	size_t fullDataSize[3];
-	
+	float defaultRefFidelity2D;
+	float defaultRefFidelity3D;
+	float defaultLODFidelity2D;
+	float defaultLODFidelity3D;
 	double extents[6];
 	double stretchedExtents[6];
 	static double stretchFactors[3];

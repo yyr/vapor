@@ -28,7 +28,7 @@ using namespace VAPoR;
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-OpacityWidget::OpacityWidget(MappingFrame *parent, OpacityMap *omap) :
+OpacityWidget::OpacityWidget(MappingFrame *parent, OpacityMapBase *omap) :
   GLWidget(),
   _parent(parent),
   _opacityMap(omap),
@@ -72,7 +72,7 @@ void OpacityWidget::move(float dx, float dy, float)
   }
 
   else if (_selected >= CONTROL_POINT &&
-           _opacityMap->type() == OpacityMap::CONTROL_POINT)
+           _opacityMap->GetType() == OpacityMap::CONTROL_POINT)
   {
     set<int>::iterator iter;
 
@@ -228,7 +228,7 @@ void OpacityWidget::deselect()
 //----------------------------------------------------------------------------
 bool OpacityWidget::enabled() const
 {
-  return _opacityMap->isEnabled();
+  return _opacityMap->IsEnabled();
 }
 
 //----------------------------------------------------------------------------
@@ -237,7 +237,7 @@ bool OpacityWidget::enabled() const
 void OpacityWidget::enable(bool flag)
 {
   _enabled = flag;
-  _opacityMap->setEnabled(flag);
+  _opacityMap->SetEnabled(flag);
 }
 
 
@@ -495,7 +495,7 @@ void OpacityWidget::drawCurve()
   //
   // Draw control points 
   //
-  if (_opacityMap->type() == OpacityMap::CONTROL_POINT)
+  if (_opacityMap->GetType() == OpacityMap::CONTROL_POINT)
   {
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
@@ -564,9 +564,9 @@ float OpacityWidget::left()
 //----------------------------------------------------------------------------
 bool OpacityWidget::hasTopSlider()
 {
-  return (_opacityMap->type() == OpacityMap::GAUSSIAN ||
-          _opacityMap->type() == OpacityMap::INVERTED_GAUSSIAN ||
-          _opacityMap->type() == OpacityMap::SINE);
+  return (_opacityMap->GetType() == OpacityMap::GAUSSIAN ||
+          _opacityMap->GetType() == OpacityMap::INVERTED_GAUSSIAN ||
+          _opacityMap->GetType() == OpacityMap::SINE);
 }
                    
 //----------------------------------------------------------------------------
@@ -574,13 +574,13 @@ bool OpacityWidget::hasTopSlider()
 //----------------------------------------------------------------------------
 float OpacityWidget::topSlider()
 {
-  switch (_opacityMap->type())
+  switch (_opacityMap->GetType())
   {
     case OpacityMap::GAUSSIAN:
     case OpacityMap::INVERTED_GAUSSIAN:
-      return left() + (_opacityMap->mean() * (right() - left()));
+      return left() + (_opacityMap->GetMean() * (right() - left()));
     case OpacityMap::SINE:
-      return left() + (_opacityMap->sineFreq() * (right() - left()));
+      return left() + (_opacityMap->GetFreq() * (right() - left()));
     default:
       return 0.5;
   }
@@ -591,13 +591,13 @@ float OpacityWidget::topSlider()
 //----------------------------------------------------------------------------
 void OpacityWidget::topSlider(float value)
 {
-  switch (_opacityMap->type())
+  switch (_opacityMap->GetType())
   {
     case OpacityMap::GAUSSIAN:
     case OpacityMap::INVERTED_GAUSSIAN:
-      _opacityMap->mean((value - left()) / (right() - left()));
+      _opacityMap->SetMean((value - left()) / (right() - left()));
     case OpacityMap::SINE:
-      _opacityMap->sineFreq((value - left()) / (right() - left()));
+      _opacityMap->SetFreq((value - left()) / (right() - left()));
     default:
       break;
   }
@@ -631,9 +631,9 @@ void OpacityWidget::bottomSlider(float)
 //----------------------------------------------------------------------------
 bool OpacityWidget::hasLeftSlider()
 {
-  return (_opacityMap->type() == OpacityMap::GAUSSIAN ||
-          _opacityMap->type() == OpacityMap::INVERTED_GAUSSIAN ||
-          _opacityMap->type() == OpacityMap::SINE);
+  return (_opacityMap->GetType() == OpacityMap::GAUSSIAN ||
+          _opacityMap->GetType() == OpacityMap::INVERTED_GAUSSIAN ||
+          _opacityMap->GetType() == OpacityMap::SINE);
 }
                    
 //----------------------------------------------------------------------------
@@ -641,13 +641,13 @@ bool OpacityWidget::hasLeftSlider()
 //----------------------------------------------------------------------------
 float OpacityWidget::leftSlider()
 {
-  switch (_opacityMap->type())
+  switch (_opacityMap->GetType())
   {
     case OpacityMap::GAUSSIAN:
     case OpacityMap::INVERTED_GAUSSIAN:
-      return sqrt(_opacityMap->sigmaSq());
+      return sqrt(_opacityMap->GetSSQ());
     case OpacityMap::SINE:
-      return _opacityMap->sinePhase();
+      return _opacityMap->GetPhase();
     default:
       break;
   }
@@ -660,13 +660,13 @@ float OpacityWidget::leftSlider()
 //----------------------------------------------------------------------------
 void OpacityWidget::leftSlider(float value)
 {
-  switch (_opacityMap->type())
+  switch (_opacityMap->GetType())
   {
     case OpacityMap::GAUSSIAN:
     case OpacityMap::INVERTED_GAUSSIAN:
-      _opacityMap->sigmaSq(value*value);
+      _opacityMap->SetSSQ(value*value);
     case OpacityMap::SINE:
-      _opacityMap->sinePhase(value);
+      _opacityMap->SetPhase(value);
     default:
       break;
   }

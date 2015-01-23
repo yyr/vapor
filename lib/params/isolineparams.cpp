@@ -22,9 +22,7 @@ const string IsolineParams::_variableDimensionTag = "VariableDimension";
 const string IsolineParams::_cursorCoordsTag = "CursorCoords";
 const string IsolineParams::_2DBoxTag = "Box2D";
 const string IsolineParams::_3DBoxTag = "Box3D";
-const string IsolineParams::_editBoundsTag = "EditBounds";
-const string IsolineParams::_histoScaleTag = "HistoScale";
-const string IsolineParams::_histoBoundsTag = "HistoBounds";
+
 const string IsolineParams::_numDigitsTag = "NumDigits";
 const string IsolineParams::_textEnabledTag = "TextEnabled";
 const string IsolineParams::_useSingleColorTag = "UseSingleColor";
@@ -440,12 +438,6 @@ void IsolineParams::SetPanelBackgroundColor(const float rgb[3]){
 const vector<double> IsolineParams::GetPanelBackgroundColor() {
 	return GetValueDoubleVec(_panelBackgroundColorTag);
 }
-const string IsolineParams::GetVariableName(){
-	 return GetValueString(_VariableNameTag);
-}
-void IsolineParams::SetVariableName(const string& varname){
-	SetValueString(_VariableNameTag, "Specify variable name", varname);
-}
 
 void IsolineParams::spaceIsovals(float minval, float interval){
 	vector<double>newIsos;
@@ -479,7 +471,7 @@ hookupTF(TransferFunction* tf, int ){
 	}
 }
 
-MapperFunction* IsolineParams::GetMapperFunc(){
+TransferFunction* IsolineParams::GetTransferFunction(){
 	//Convert it to a transfer function so it can be saved as such.
 	//Start with a default TransferFunction, replace its colormap with
 	//The one from the 
@@ -503,7 +495,7 @@ MapperFunction* IsolineParams::GetMapperFunc(){
 		float normval = (icmap->controlPointValue(i) - minval)/(maxval - minval);
 		tfcm->addNormControlPoint(normval,icmap->controlPointColor(i));
 	}
-	return (MapperFunction*) tf;
+	return  tf;
 }
 void IsolineParams::getLineColor(int isoNum, float lineColor[3]){
 	if (UseSingleColor()){

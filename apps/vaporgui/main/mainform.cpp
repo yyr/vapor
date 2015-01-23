@@ -27,6 +27,9 @@
 #pragma warning(disable : 4251 4100)
 #endif
 #include "glutil.h"	// Must be included first!!!
+#include <QMenuItem>
+#include <qdesktopservices.h>
+#include <qurl.h>
 #include "mainform.h"
 #include <QDockWidget>
 #include <QTextEdit>
@@ -68,7 +71,7 @@
 #include "regionparams.h"
 #include "animationparams.h"
 #include "assert.h"
-#include "vizfeatureparams.h"
+
 #include "mousemodeparams.h"
 #include "vizwinparams.h"
 #include "vapor/ControlExecutive.h"
@@ -335,6 +338,11 @@ void MainForm::hookupSignals() {
 	connect (stepForwardAction, SIGNAL(triggered()), this, SLOT(stepForward()));
 	connect (stepBackAction, SIGNAL(triggered()), this, SLOT(stepBack()));
 	connect (timeStepEdit, SIGNAL(editingFinished()),this, SLOT(setTimestep()));
+	connect (webTabHelpMenu, SIGNAL(triggered(QAction*)),this, SLOT(launchWebHelp(QAction*)));
+	connect (webBasicHelpMenu, SIGNAL(triggered(QAction*)),this, SLOT(launchWebHelp(QAction*)));
+	connect (webPythonHelpMenu, SIGNAL(triggered(QAction*)),this, SLOT(launchWebHelp(QAction*)));
+	connect (webPreferencesHelpMenu, SIGNAL(triggered(QAction*)),this, SLOT(launchWebHelp(QAction*)));
+	connect (webVisualizationHelpMenu, SIGNAL(triggered(QAction*)),this, SLOT(launchWebHelp(QAction*)));
 }
 
 void MainForm::createMenus(){
@@ -390,14 +398,22 @@ void MainForm::createMenus(){
 	captureMenu->addAction(captureStartFlowCaptureAction);
 	captureMenu->addAction(captureEndFlowCaptureAction);
 
-    
-    Main_Form->addSeparator();
-
+	Main_Form->addSeparator();
     helpMenu = menuBar()->addMenu(tr("Help"));
-
     helpMenu->addAction(whatsThisAction);
     helpMenu->addSeparator();
     helpMenu->addAction(helpAboutAction );
+	webBasicHelpMenu = new QMenu("Web Help: Basic capabilities of VAPOR GUI",this);
+	helpMenu->addMenu(webBasicHelpMenu);
+	webPreferencesHelpMenu = new QMenu("Web Help: User Preferences",this);
+	helpMenu->addMenu(webPreferencesHelpMenu);
+	webPythonHelpMenu = new QMenu("Web Help: Derived Variables",this);
+	helpMenu->addMenu(webPythonHelpMenu);
+	webVisualizationHelpMenu = new QMenu("Web Help: Visualization",this);
+	helpMenu->addMenu(webVisualizationHelpMenu);
+	buildWebHelpMenus();
+	webTabHelpMenu = new QMenu("Web Help: About the current tab",this);
+	helpMenu->addMenu(webTabHelpMenu);
 }
 
 void MainForm::createActions(){
@@ -1041,8 +1057,8 @@ void MainForm::endFlowCapture(){
 	
 }
 void MainForm::launchVizFeaturesPanel(){
-	VizFeatureParams vFP;
-	vFP.launch();
+	//VizFeatureParams vFP;
+	//vFP.launch();
 }
 void MainForm::launchPreferencesPanel(){
 	
@@ -1148,4 +1164,222 @@ void MainForm::addMouseModes(){
 		QIcon icon = QIcon(qp);
 		addMode(text,icon);
 	}
+}
+void MainForm::launchWebHelp(QAction* webAction){
+	QVariant qv = webAction->data();
+	QUrl myURL = qv.toUrl();
+	bool success = QDesktopServices::openUrl(myURL);
+	if (!success){
+//		MessageReporter::errorMsg("Unable to launch Web browser for URL %s\n",
+//			myURL.toString().toAscii().data());
+	}
+}
+void MainForm::buildWebTabHelpMenu(vector<QAction*>* actions){
+	webTabHelpMenu->clear();
+	for (int i = 0; i< (*actions).size(); i++){
+		webTabHelpMenu->addAction((*actions)[i]);
+	}
+}
+
+void MainForm::buildWebHelpMenus(){
+	//Basci web help
+	const char* currText = "VAPOR Overview";
+	const char* currURL = "http://www.vapor.ucar.edu/docs/vapor-overview/vapor-overview";
+	QAction* currAction = new QAction(QString(currText),this);
+	QUrl myqurl(currURL);
+	QVariant qv(myqurl);
+	currAction->setData(qv);
+	webBasicHelpMenu->addAction(currAction);
+	currText = "VAPOR GUI General Guide";
+	currURL = "http://www.vapor.ucar.edu/docs/vaporgui-help";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webBasicHelpMenu->addAction(currAction);
+	currText = "Obtaining help within VAPOR GUI";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-how-guide/help-user-interface";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webBasicHelpMenu->addAction(currAction);
+	currText = "Loading and Importing data";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-gui-help/loading-and-importing-data";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webBasicHelpMenu->addAction(currAction);
+	currText = "Undo and Redo";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-documentation/undo-and-redo-recent-actions";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webBasicHelpMenu->addAction(currAction);
+	currText = "Sessions and Session files";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-how-guide/sessions-and-session-files";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webBasicHelpMenu->addAction(currAction);
+	currText = "Capturing images and flow lines";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-gui-help/capturing-images-and-flow-lines";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webBasicHelpMenu->addAction(currAction);
+	//Preferences Help
+	currText = "User Preferences Overview";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-how-guide/user-preferences";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webPreferencesHelpMenu->addAction(currAction);
+	currText = "Data Cache size";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-how-guide/user-preferences#dataCacheSize";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webPreferencesHelpMenu->addAction(currAction);
+	currText = "Specifying window size";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-how-guide/user-preferences#lockWindow";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webPreferencesHelpMenu->addAction(currAction);
+	currText = "Control message popups and logging";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-how-guide/user-preferences#MessageLoggingPopups";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webPreferencesHelpMenu->addAction(currAction);
+	currText = "Changing user default settings";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-documentation/changing-default-tabbed-panel-settings";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webPreferencesHelpMenu->addAction(currAction);
+	currText = "Specifying default directories for reading and writing files";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-documentation/default-directories";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webPreferencesHelpMenu->addAction(currAction);
+	currText = "Rearrange or hide tabs";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-documentation/rearrange-or-hide-tabs";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webPreferencesHelpMenu->addAction(currAction);
+	//Derived variables menu
+	currText = "Derived variables overview";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-gui-help/derived-variables";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webPythonHelpMenu->addAction(currAction);
+	currText = "Defining new derived variables in Python";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-how-guide/define-variables-python";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webPythonHelpMenu->addAction(currAction);
+	currText = "Specifying a Python startup script";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-gui-help/specify-python-startup-script";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webPythonHelpMenu->addAction(currAction);
+	currText = "VAPOR python modules";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-gui-help/vapor-python-modules";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webPythonHelpMenu->addAction(currAction);
+	currText = "Viewing python script output text";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-gui-help/python-script-output-text";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webPythonHelpMenu->addAction(currAction);
+	currText = "Using IDL to derive variables in VAPOR GUI";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-gui-help/using-idl-vapor-gui";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webPythonHelpMenu->addAction(currAction);
+	//Visualization help
+	currText = "VAPOR data visualization overview";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-gui-help/data-visualization";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webVisualizationHelpMenu->addAction(currAction);
+	currText = "Visualizers (visualization windows)";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-gui-help/visualizers-visualization-windows";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webVisualizationHelpMenu->addAction(currAction);
+	currText = "Auxiliary content in the scene";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-gui-help/auxiliary-geometry-scene";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webVisualizationHelpMenu->addAction(currAction);
+	currText = "Navigation in the 3D scene";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-gui-help/navigation-3d-scene";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webVisualizationHelpMenu->addAction(currAction);
+	currText = "Controlling multiple visualizers";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-gui-help/multiple-visualizers";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webVisualizationHelpMenu->addAction(currAction);
+	currText = "Visualizer features";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-how-guide/visualizer-features";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webVisualizationHelpMenu->addAction(currAction);
+	currText = "Manipulators and mouse modes";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-how-guide/manipulators-and-mouse-modes";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webVisualizationHelpMenu->addAction(currAction);
+	currText = "Coordinate systems";
+	currURL = "http://www.vapor.ucar.edu/docs/vapor-gui-help/coordinate-systems-user-grid-latlon";
+	currAction = new QAction(QString(currText),this);
+	myqurl.setUrl(currURL);
+	qv.setValue(myqurl);
+	currAction->setData(qv);
+	webVisualizationHelpMenu->addAction(currAction);
 }

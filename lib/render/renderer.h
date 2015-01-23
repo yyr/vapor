@@ -132,13 +132,6 @@ public:
 	//! \retval name (i.e. tag) of renderer
 	const string getMyName() const {return(_myName);};
 	
-	//! Method to build a transform matrix for a 3D renderer 
-	//! \param[out] resulting 4x3 transform matrix
-	//! \param[in] extra thickness parameter to allow slight magnification of region being rotated
-	//! \param[in] timestep needed if region extents change over time
-	//! \param[in] rotation used to specify rotation about an axis
-	//! \param[in] axis about which the rotation occurs.
-	void buildLocalCoordTransform(double transformMatrix[12], double extraThickness, int timestep, float rotation = 0.f, int axis = -1);
 	//! Construct transform of form (x,y)-> a[0]x+b[0],a[1]y+b[1],
 	//! Mapping [-1,1]X[-1,1] into local 3D volume coordinates.
 	void buildLocal2DTransform(int dataOrientation, float a[2],float b[2], float* constVal, int mappedDims[3]);

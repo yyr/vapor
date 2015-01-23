@@ -44,6 +44,7 @@ class ParamNode;
 class ViewpointParams;
 class DataMgr;
 class Command;
+class MapperFunction;
 
 
 //! \class RenderParams
@@ -83,6 +84,12 @@ public:
 	//! \param[in] varname name of the variable
 	//!
 	virtual bool usingVariable(const std::string& varname) = 0;
+	//! Specify primary variable name; e.g. used in color mapping
+	//! \param[in] string varName
+	virtual void SetVariableName(const string& varName);
+	//! Get the primary variable name, e.g. used in color mapping.
+	//! \retval string variable name
+	virtual const string GetVariableName();
 	//! Pure virtual method sets current number of refinements of this Params.
 	//! \param[in] int refinements
 	//!
@@ -149,7 +156,33 @@ public:
 	//! \param[in] bool 
 	//!
 	virtual void SetIgnoreFidelity(bool val);
-	
+	void SetHistoStretch(float factor){
+		SetValueDouble(_histoScaleTag,"Set histo stretch",(double)factor);
+	}
+	float GetHistoStretch(){
+		return GetValueDouble(_histoScaleTag);
+	}
+	double getMinEditBound(){
+		return GetRootNode()->GetElementDouble(_editBoundsTag)[0];
+	}
+	double getMaxEditBound(){
+		return GetRootNode()->GetElementDouble(_editBoundsTag)[1];
+	}
+	void setMinEditBound(double val){
+		vector<double>vals = GetValueDoubleVec(_editBoundsTag);
+		if (vals.size()<1) vals.push_back(val);
+		vals[0]=val;
+		SetValueDouble(_editBoundsTag,"change edit min bound",vals);
+	}
+	void setMaxEditBound(double val){
+		vector<double>vals = GetValueDoubleVec(_editBoundsTag);
+		while (vals.size()<2) vals.push_back(val);
+		vals[1]=val;
+		SetValueDouble(_editBoundsTag,"change edit min bound",vals);
+	}
+	virtual MapperFunction* GetMapperFunc(){
+		return 0;
+	}
 
 
 #ifndef DOXYGEN_SKIP_THIS
@@ -173,6 +206,9 @@ protected:
 	static const string _EnabledTag;
 	static const string _FidelityLevelTag;
 	static const string _IgnoreFidelityTag;
+	static const string _histoScaleTag;
+	static const string _editBoundsTag;
+	static const string _histoBoundsTag;
 	
 	vector<int> bypassFlags;
 #endif //DOXYGEN_SKIP_THIS

@@ -45,6 +45,9 @@ using namespace VAPoR;
 const string RenderParams::_EnabledTag = "Enabled";
 const string RenderParams::_FidelityLevelTag = "FidelityLevel";
 const string RenderParams::_IgnoreFidelityTag = "IgnoreFidelity";
+const string RenderParams::_histoScaleTag = "HistoScale";
+const string RenderParams::_editBoundsTag = "EditBounds";
+const string RenderParams::_histoBoundsTag = "HistoBounds";
 
 RenderParams::RenderParams(XmlNode *parent, const string &name, int winnum):Params(parent, name, winnum){
 	SetLocal(true);
@@ -108,3 +111,10 @@ bool RenderParams::GetIgnoreFidelity(){
 void RenderParams::SetIgnoreFidelity(bool val){
 	 SetValueLong(_IgnoreFidelityTag, "change fidelity usage", val);
  }
+const string RenderParams::GetVariableName(){
+	 return GetValueString(_VariableNameTag);
+}
+
+void RenderParams::SetVariableName(const string& varname){
+	SetValueString(_VariableNameTag, "Specify variable name", varname);
+}

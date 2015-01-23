@@ -99,7 +99,7 @@ void IsolineRenderer::performRendering(int timestep){
 	glLineWidth(iParams->GetLineThickness());
 	//Need to convert the iso-box coordinates to user coordinates, then to unit box coords.
 	double transformMatrix[12];
-	buildLocalCoordTransform(transformMatrix, 0.f, -1);
+	iParams->GetBox()->buildLocalCoordTransform(transformMatrix, 0.f, -1);
 	double pointa[3],pointb[3]; //points in cache
 	double point1[3],point2[3]; //points in local box
 	pointa[2]=pointb[2] = 0.;
@@ -184,7 +184,7 @@ bool IsolineRenderer::buildLineCache(int timestep){
 	int mapDims[3];
 	double transformMatrix[12];
 
-	if(is3D)buildLocalCoordTransform(transformMatrix, 0.f, -1);
+	if(is3D)iParams->GetBox()->buildLocalCoordTransform(transformMatrix, 0.f, -1);
 	else buildLocal2DTransform(2, a,b,constValue,mapDims);
 	
 	double planeCoords[3], dataCoords[3];
@@ -588,7 +588,7 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 	doubleToString((iParams->GetIsovalues()[iso]), isoText, iParams->GetNumDigits());
 	//Prepare to convert the iso-box coordinates to user coordinates, then to unit box coords.
 	double transformMatrix[12];
-	buildLocalCoordTransform(transformMatrix, 0.f, -1);
+	iParams->GetBox()->buildLocalCoordTransform(transformMatrix, 0.f, -1);
 	double pointa[3]; //point in cache
 	double point1[3]; //point in local box
 	pointa[2] = 0.;

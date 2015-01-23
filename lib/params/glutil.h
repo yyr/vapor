@@ -109,6 +109,7 @@ PARAMS_API void	vtransform (const double *v, GLfloat *mat, double *vt);
 PARAMS_API void	vtransform (const double *v, GLdouble *mat, double *vt);
 PARAMS_API void	vtransform4 (const float *v, GLfloat *mat, float *vt);
 PARAMS_API void	vtransform3 (const float *v, float *mat, float *vt);
+PARAMS_API void	vtransform3 (const double *v, double *mat, double *vt);
 PARAMS_API void	vtransform3t (const float *v, float *mat, float *vt);
 PARAMS_API bool	pointOnRight(double* pt1, double* pt2, double* testPt);
 PARAMS_API void	mcopy (GLfloat *m1, GLfloat *m2);
@@ -137,6 +138,7 @@ PARAMS_API void getAxisRotation(int axis, double rotation, double* matrix);
 //Determine the psi, phi, theta from a rotation matrix:
 PARAMS_API void getRotAngles(double* theta, double* phi, double* psi, const double* matrix);
 PARAMS_API int rayBoxIntersect(const float rayStart[3], const float rayDir[3],const float boxExts[6], float results[2]);
+PARAMS_API int rayBoxIntersect(const double rayStart[3], const double rayDir[3],const double boxExts[6], double results[2]);
 
 PARAMS_API void	qnormal (float *q);
 PARAMS_API void qinv(const float q1[4], float q2[4]);

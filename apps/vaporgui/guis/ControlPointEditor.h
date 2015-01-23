@@ -20,7 +20,9 @@ namespace VAPoR {
 
 class MapperFunction;
 class OpacityMap;
+class OpacityMapBase;
 class VColormap;
+class ColorMapBase;
 
 class ControlPointEditor : public QDialog, public Ui_ControlPointEditorBase
 {
@@ -28,8 +30,8 @@ class ControlPointEditor : public QDialog, public Ui_ControlPointEditorBase
 
  public:
 
-  ControlPointEditor(MappingFrame* parent, OpacityMap *map, int cp);
-  ControlPointEditor(MappingFrame* parent, VColormap *map, int cp);
+  ControlPointEditor(MappingFrame* parent, OpacityMapBase *map, int cp);
+  ControlPointEditor(MappingFrame* parent, ColorMapBase *map, int cp);
 
   ~ControlPointEditor();
 
@@ -58,8 +60,8 @@ class ControlPointEditor : public QDialog, public Ui_ControlPointEditorBase
   int _controlPoint;
 
   MapperFunction *_mapper;
-  OpacityMap     *_omap;
-  VColormap       *_cmap;
+  OpacityMapBase     *_omap;
+  ColorMapBase       *_cmap;
 };
 
 }; // VAPoR namespace

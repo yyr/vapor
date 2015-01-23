@@ -210,54 +210,7 @@ void Renderer::UndoRedo(bool isUndo, int instance, Params* beforeP, Params* afte
 	ControlExec::ActivateRender(beforeP->GetVizNum(),Params::GetTagFromType(beforeP->GetParamsBaseTypeId()),instance,doEnable);
 	return;
 }
-void Renderer::
-buildLocalCoordTransform(double transformMatrix[12], double extraThickness, int timestep, float rotation, int axis){
-	
-	double theta, phi, psi;
-	double ang[3];
-	
-	if (rotation != 0.f) {
-		getRenderParams()->GetBox()->convertThetaPhiPsi(&theta,&phi,&psi, axis, rotation);
-	} else {
-		getRenderParams()->GetBox()->GetAngles(ang);
-		theta = ang[0];
-		phi = ang[1];
-		psi = ang[2];
-	}
-	
-	double boxSize[3];
-	
-	double locExts[6];
-	getRenderParams()->GetBox()->GetLocalExtents(locExts, timestep);
-	
-	for (int i = 0; i< 3; i++) {
-		locExts[i] -= extraThickness;
-		locExts[i+3] += extraThickness;
-		boxSize[i] = (locExts[i+3] - locExts[i]);
-	}
-	
-	//Get the 3x3 rotation matrix:
-	double rotMatrix[9];
-	getRotationMatrix(theta*M_PI/180., phi*M_PI/180., psi*M_PI/180., rotMatrix);
 
-	//then scale according to box:
-	transformMatrix[0] = 0.5*boxSize[0]*rotMatrix[0];
-	transformMatrix[1] = 0.5*boxSize[1]*rotMatrix[1];
-	transformMatrix[2] = 0.5*boxSize[2]*rotMatrix[2];
-	//2nd row:
-	transformMatrix[4] = 0.5*boxSize[0]*rotMatrix[3];
-	transformMatrix[5] = 0.5*boxSize[1]*rotMatrix[4];
-	transformMatrix[6] = 0.5*boxSize[2]*rotMatrix[5];
-	//3rd row:
-	transformMatrix[8] = 0.5*boxSize[0]*rotMatrix[6];
-	transformMatrix[9] = 0.5*boxSize[1]*rotMatrix[7];
-	transformMatrix[10] = 0.5*boxSize[2]*rotMatrix[8];
-	//last column, i.e. translation:
-	transformMatrix[3] = .5f*(locExts[3]+locExts[0]);
-	transformMatrix[7] = .5f*(locExts[4]+locExts[1]);
-	transformMatrix[11] = .5f*(locExts[5]+locExts[2]);
-	
-}
 void Renderer::buildLocal2DTransform(int dataOrientation, float a[2],float b[2],float constVal[2], int mappedDims[3]){
 	
 	mappedDims[2] = dataOrientation;
@@ -280,7 +233,7 @@ void Renderer::getLocalContainingRegion(float regMin[3], float regMax[3]){
 	
 	double transformMatrix[12];
 	//Set up to transform from probe (coords [-1,1]) into volume:
-	buildLocalCoordTransform(transformMatrix, 0.f, -1);
+	getRenderParams()->GetBox()->buildLocalCoordTransform(transformMatrix, 0.f, -1);
 	const double* sizes = DataStatus::getInstance()->getFullSizes();
 
 	//Calculate the normal vector to the probe plane:
