@@ -239,11 +239,17 @@ public:
 //! containing all 8 corners of the box.
 //! \param[out] double extents[6] is smallest extents containing the box.
 	void calcRotatedStretchedBoxExtents(double extents[6]);
-
+	//Used only by params with rotated boxes:
+	bool cropToBox(const double boxExts[6], Params* p);
+	bool intersectRotatedBox(double boxexts[6], double pointFound[3], double probeCoords[2]);
+	bool fitToBox(const double boxExts[6], Params* p);
+	int interceptBox(const double boxExts[6], double intercept[6][3]);
+	void getRotatedVoxelExtents(float voxdims[2], int numRefinements);
+	void rotateAndRenormalize(int axis, double rotVal, Params* p);
 	///@}
 
 #ifndef DOXYGEN_SKIP_THIS
-	void buildLocalCoordTransform(double transformMatrix[12], double extraThickness, int timestep, double rotation, int axis);
+	void buildLocalCoordTransform(double transformMatrix[12], double extraThickness, int timestep, double rotation = 0., int axis= -1);
 	void convertThetaPhiPsi(double *newTheta, double* newPhi, double* newPsi, int axis, double rotation);
 	//Not part of public API
 	void calcLocalBoxCorners(double corners[8][3], float extraThickness, int timestep, double rotation = 0., int axis = -1);

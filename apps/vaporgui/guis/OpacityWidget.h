@@ -22,6 +22,7 @@ class MappingFrame;
 namespace VAPoR {
 
 class OpacityMap;
+class OpacityMapBase;
 
 class OpacityWidget : public GLWidget
 {
@@ -44,7 +45,7 @@ class OpacityWidget : public GLWidget
 
 public:
 
-  OpacityWidget(MappingFrame *parent, OpacityMap *omap);
+  OpacityWidget(MappingFrame *parent, OpacityMapBase *omap);
   virtual ~OpacityWidget();
 
   void paintGL();
@@ -58,7 +59,7 @@ public:
   void move(float dx, float dy=0.0, float dz=0.0);
   void drag(float dx, float dy=0.0, float dz=0.0);
 
-  OpacityMap *opacityMap() { return _opacityMap; }
+  OpacityMapBase *opacityMap() { return _opacityMap; }
 
   virtual void select(int handle, Qt::KeyboardModifiers state);
   virtual void deselect();
@@ -108,7 +109,7 @@ public:
 private:
 
   MappingFrame *_parent;
-  OpacityMap   *_opacityMap;
+  OpacityMapBase   *_opacityMap;
 
   //
   // Frame data

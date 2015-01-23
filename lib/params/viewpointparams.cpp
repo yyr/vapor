@@ -93,7 +93,6 @@ restart(){
 	vp = new Viewpoint();
 	setHomeViewpoint(vp);
 	
-	double viewDir[3];
 	vector<double> vdir = currentViewpoint->getViewDir();
 	//!?
 	centerFullRegion(0);

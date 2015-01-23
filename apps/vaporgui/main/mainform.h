@@ -113,6 +113,8 @@ public:
 	
 	void setMouseMode(int newMode) {modeCombo->setCurrentIndex(newMode);}
 	void showCitationReminder();
+	void buildWebTabHelpMenu(vector<QAction*>* actions);
+	void buildWebHelpMenus();
 	
 private:
     void createActions(); 
@@ -133,6 +135,11 @@ private:
     QToolBar *modeToolBar;
     QToolBar *vizToolBar;
     QToolBar *animationToolBar;
+	QMenu *webTabHelpMenu;
+	QMenu *webBasicHelpMenu;
+	QMenu *webPreferencesHelpMenu;
+	QMenu *webPythonHelpMenu;
+	QMenu *webVisualizationHelpMenu;
    //File menu:
     QAction* fileOpenAction;
     QAction* fileSaveAction;
@@ -243,7 +250,7 @@ public slots:
 	virtual void stepForward();
 	virtual void stepBack();
 	virtual void setTimestep();
-
+	void launchWebHelp(QAction*);
 
 protected:
 	void closeEvent(QCloseEvent* event);

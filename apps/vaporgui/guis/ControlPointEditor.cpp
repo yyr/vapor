@@ -25,7 +25,7 @@ using namespace VAPoR;
 //----------------------------------------------------------------------------
 // Constructor -- Opacity control point
 //----------------------------------------------------------------------------
-ControlPointEditor::ControlPointEditor(MappingFrame* parent, OpacityMap *map, 
+ControlPointEditor::ControlPointEditor(MappingFrame* parent, OpacityMapBase *map, 
                                        int cp) :
   QDialog(parent),
   Ui_ControlPointEditorBase(),
@@ -42,7 +42,7 @@ ControlPointEditor::ControlPointEditor(MappingFrame* parent, OpacityMap *map,
 //----------------------------------------------------------------------------
 // Constructor -- Color control point
 //----------------------------------------------------------------------------
-ControlPointEditor::ControlPointEditor(MappingFrame* parent, VColormap *map, 
+ControlPointEditor::ControlPointEditor(MappingFrame* parent, ColorMapBase *map, 
                                        int cp) :
   QDialog(parent),
   Ui_ControlPointEditorBase(),
@@ -239,9 +239,7 @@ int ControlPointEditor::toIndex(float data)
 {
   if (_mapper)
   {
-    return _omap ? 
-      _mapper->mapFloatToOpacIndex(data) 
-    : _mapper->mapFloatToColorIndex(data);
+    return  _mapper->mapFloatToIndex(data);
   }
 
   return 0;
@@ -254,9 +252,8 @@ float ControlPointEditor::toData(int index)
 {
   if (_mapper)
   {
-    return _omap ? 
-      _mapper->mapOpacIndexToFloat(index)
-    : _mapper->mapColorIndexToFloat(index);
+    return 
+      _mapper->mapIndexToFloat(index);    
   }
 
   return 0;

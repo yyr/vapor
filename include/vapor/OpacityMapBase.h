@@ -55,6 +55,12 @@ public:
 
   void SetMinValue(double val); 
   void SetMaxValue(double val);
+
+  virtual float minValue() ;      // Data Coordinates
+  virtual void  minValue(float value); // Data Coordinates
+  virtual float maxValue();      // Data Coordinates
+  virtual void  maxValue(float value); // Data Coordinates
+
   
   bool IsEnabled() {
 	  return (GetValueLong(_enabledTag) != 0 ? true : false);

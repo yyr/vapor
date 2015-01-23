@@ -57,10 +57,10 @@ public:
 		}
 		return false;
 	}
-	void setSelectedPointLocal(const float point[3]){
+	void setSelectedPointLocal(const double point[3]){
 		for (int i = 0; i<3; i++) selectPoint[i] = point[i];
 	}
-	virtual const float* getSelectedPointLocal() {
+	virtual const double* getSelectedPointLocal() {
 		return selectPoint;
 	}
 
@@ -129,9 +129,6 @@ public:
 
 	void getLineColor(int isoNum, float lineColor[3]);
 	
-	void SetVariableName(const string& varName);
-	const string GetVariableName();
-
 	void SetVariables3D(bool val) {
 		SetValueLong(_variableDimensionTag,"set variable dimension",(val ? 3:2));
 		setAllBypass(false);
@@ -164,7 +161,10 @@ public:
 	}
 	int SetIsoControl(const string varname, IsoControl* iControl, bool is3D);
 		
-	virtual MapperFunction* GetMapperFunc();
+	virtual TransferFunction* GetTransferFunction();
+	virtual MapperFunction* GetMapperFunc(){
+		return (MapperFunction*)GetIsoControl();
+	}
 	virtual bool UsesMapperFunction() {return true;}
 	const vector<double> GetIsovalues(){
 		return (GetIsoControl()->getIsoValues());
@@ -179,36 +179,14 @@ public:
 		SetValueDouble(_cursorCoordsTag,"set cursor coords",coords);
 	}
 	
-	double getMinEditBound(){
-		return GetRootNode()->GetElementDouble(_editBoundsTag)[0];
-	}
-	double getMaxEditBound(){
-		return GetRootNode()->GetElementDouble(_editBoundsTag)[1];
-	}
-	void setMinEditBound(double val){
-		vector<double>vals = GetValueDoubleVec(_editBoundsTag);
-		if (vals.size()<1) vals.push_back(val);
-		vals[0]=val;
-		SetValueDouble(_editBoundsTag,"change edit min bound",vals);
-	}
-	void setMaxEditBound(double val){
-		vector<double>vals = GetValueDoubleVec(_editBoundsTag);
-		while (vals.size()<2) vals.push_back(val);
-		vals[1]=val;
-		SetValueDouble(_editBoundsTag,"change edit min bound",vals);
-	}
+	
 	void SetNumDigits(int val){
 		SetValueLong(_numDigitsTag,"set display digits",val);
 	}
 	int GetNumDigits(){
 		return GetValueLong(_numDigitsTag);
 	}
-	void SetHistoStretch(float factor){
-		SetValueDouble(_histoScaleTag,"Set histo stretch",(double)factor);
-	}
-	float GetHistoStretch(){
-		return GetValueDouble(_histoScaleTag);
-	}
+	
 	void SetHistoBounds(const float bnds[2]){
 		IsoControl* isoContr = GetIsoControl();
 		if(!isoContr) return;
@@ -281,14 +259,12 @@ protected:
 	static const string _2DBoxTag;
 	static const string _3DBoxTag;
 	static const string _editBoundsTag;
-	static const string _histoScaleTag;
-	static const string _histoBoundsTag;
 	static const string _IsoControlTag;
 	static const string _textEnabledTag;
 	static const string _useSingleColorTag;
 	static const string _singleColorTag;
 
-	float selectPoint[3];
+	double selectPoint[3];
 	float _histoBounds[2];
 	
 }; //End of Class IsolineParams

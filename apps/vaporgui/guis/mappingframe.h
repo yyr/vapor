@@ -31,7 +31,7 @@
 #include <QContextMenuEvent>
 #include <QPaintEvent>
 #include <QMouseEvent>
-#include "glwindow.h"
+#include "visualizer.h"
 
 #include <qpoint.h>
 #include <list>
@@ -53,7 +53,7 @@ namespace VAPoR {
 	class IsoSlider;
 	class GLWidget;
 	class OpacityWidget;
-	class OpacityMap;
+	class OpacityMapBase;
 	class ColorbarWidget;
 };
 
@@ -105,13 +105,18 @@ public:
   void setIsoSlider(bool flag) {_isoSliderEnabled = flag;}
   bool isoSliderEnabled() const { return _isoSliderEnabled; }
 
+  void setIsolineSliders(bool flag) {_isolineSlidersEnabled = flag;}
+  bool isolineSlidersEnabled() const { return _isolineSlidersEnabled; }
+
+  void setIsolineSliders(const vector<double>& slidervals);
+
   void setVariableName(std::string name);
 
   void setIsoValue(float val){_isoVal = val;}
 
   void updateParams();
 
-  QString tipText(const QPoint &pos);
+  QString tipText(const QPoint &pos, bool isIso=false);
 
   float minDataValue() { return _minValue; }
   float maxDataValue() { return _maxValue; }
@@ -139,7 +144,7 @@ public slots:
   void bindOpacityToColor();
   void updateGL();
   void update(){
-	  if (!GLWindow::isRendering()) QGLWidget::update();
+	  QGLWidget::update();
   }
 
 signals:
@@ -172,7 +177,7 @@ protected:
   void initWidgets();
   void initConnections();
 
-  OpacityWidget* createOpacityWidget(OpacityMap *map);
+  OpacityWidget* createOpacityWidget(OpacityMapBase *map);
   void deleteOpacityWidgets();
 
   void initializeGL();
@@ -185,6 +190,7 @@ protected:
   void drawOpacityWidgets();
   void drawDomainSlider();
   void drawIsoSlider();
+  void drawIsolineSliders();
   void drawColorbar();
 
   void updateTexture();
@@ -241,6 +247,7 @@ protected slots:
 
   void setDomain();
   void setIsoSlider();
+  void setIsolineSlider(int sliderIndex);
 
 private:
 
@@ -252,6 +259,10 @@ private:
   bool            _opacityMappingEnabled;
   bool            _colorMappingEnabled;
   bool			  _isoSliderEnabled;
+  bool			  _isolineSlidersEnabled;
+  vector<IsoSlider*> _isolineSliders;
+  int			_lastSelectedIndex;
+
 
   std::string     _variableName;
 
@@ -305,7 +316,7 @@ private:
   const int _domainBarHeight;
   const int _domainLabelHeight;
   const int _domainHeight;
-  const int _axisRegionHeight;
+  int _axisRegionHeight;
   const int _opacityGap;
   const int _bottomGap;
 

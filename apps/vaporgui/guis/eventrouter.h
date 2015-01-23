@@ -25,14 +25,19 @@
 #include "vizwin.h"
 #include <qobject.h>
 class QWidget;
+class QHBoxLayout;
+class QGroupBox;
+class QComboBox;
+class QButtonGroup;
 
+#define OUT_OF_BOUNDS 1.e30f
 #ifdef WIN32
 //Annoying unreferenced formal parameter warning
 #pragma warning( disable : 4100)
 #endif
 
 namespace VAPoR{
-
+class Histo;
 //!
 //! \class EventRouter
 //! \ingroup Public_GUI
@@ -57,7 +62,16 @@ class EventRouter
 {
 	
 public:
-	
+	EventRouter(){
+		currentHistogram = 0;
+		_isoShown = false;
+		_colorMapShown=false;
+		_opacityMapShown=false;
+		_texShown=false;
+		myParamsBaseType = 0;
+		textChangedFlag=false;
+		ignoreBoxSliderEvents=false;
+	}
 	//! Pure virtual method connects all the Qt signals and slots associated with the tab.
 	//! Must include connections that send signals when any QTextEdit box is changed and when enter is pressed.
 	virtual void hookUpTab() = 0;
@@ -133,8 +147,6 @@ public:
 	//! captureMouseDown() for the EventRouter that is associated with the current mouse mode.
 	virtual void captureMouseDown(int mouseNum) {assert(0);}
 
-	
-	
 	//! Indicate the ParamsBaseType associated with the Params of this EventRouter.
 	//! \retval ParamsBase::ParamsBaseType
 	Params::ParamsBaseType getParamsBaseType() {return myParamsBaseType;}
@@ -194,18 +206,25 @@ public:
 	void fileSaveTF(RenderParams* rParams);
 	//! Launch a dialog to enable user to load an installed transfer function.
 	//! \param[in] rParams RenderParams instance associated with the transfer function
-	//! \param[in] varnum session variable number of the variable associated with the TF.
-	void loadInstalledTF(RenderParams* rParams, int varnum);
+	//! \param[in] varname name of the variable associated with the TF.
+	void loadInstalledTF(RenderParams* rParams, string varname);
 	//! Launch a dialog to enable user to load a transfer function from session or file.
 	//! \param[in] rParams RenderParams instance associated with the transfer function
-	//! \param[in] varnum session variable number of the variable associated with the TF.
-	void loadTF(RenderParams* rParams, int varnum);
+	//! \param[in] varname name of the variable associated with the TF.
+	void loadTF(RenderParams* rParams, string varname);
 	//! Launch a dialog to enable user to load a transfer function from file.
 	//! \param[in] rParams RenderParams instance associated with the transfer function
-	//! \param[in] varnum session variable number of the variable associated with the TF.
+	//! \param[in] varname name of the variable associated with the TF.
 	//! \param[in] startPath file path for the dialog to initially present to user
 	//! \param[in] savePath indicates whether or not the resulting path should be saved to user preferences.
-	void fileLoadTF(RenderParams* rParams, int varnum, const char* startPath, bool savePath);
+	void fileLoadTF(RenderParams* rParams, string varname, const char* startPath, bool savePath);
+
+	virtual Histo* getHistogram(RenderParams*, bool mustGet, bool isIsoWin = false);
+
+	virtual void refreshHistogram(RenderParams* p){}
+	virtual void refresh2DHistogram(RenderParams*);
+	//Calculate a histogram of a slice of 3d variables
+	void calcSliceHistogram(RenderParams*p, int ts, Histo* histo);
 
 public slots:
 	//! Slot that is connected to the transfer function frame, indicating the beginning of changes
@@ -214,6 +233,9 @@ public slots:
 	//! Slot that is connected to the transfer function frame, indicating the end of changes
 	//! to the transfer function.  Must be implemented and connected in tabs with a transfer function editor.
 	virtual void guiEndChangeMapFcn() { assert(0); }
+	bool isoShown() {return _isoShown;}
+	bool opacityMapShown() {return _opacityMapShown;}
+	bool colorMapShown() {return _colorMapShown;}
 	
 protected:
 	
@@ -240,15 +262,45 @@ protected:
 	//! could interfere with interactive updating.
 	//! \param[in] doIgnore true to start ignoring, false to stop.
 	void setIgnoreBoxSliderEvents(bool doIgnore) {ignoreBoxSliderEvents = doIgnore;}
+	//Use fidelity setting and preferences to calculate LOD and Refinement
+	//To support Fidelity, each eventRouter class must perform the following:
+	//Implement fidelityBox and fidelityLayout as in dvr.ui
+	// set fidelityButtons = 0 in constructor
+	// implement slots guiSetFidelity(int) and guiSetFidelityDefault()
+	// connect fidelityDefaultButton clicked() to guiSetFidelityDefault
+	// in updateTab, check for fidelityUpdateChanged, if so, call setupFidelity
+	//	 then connect fidelityButtons to guiSetFidelity, then call updateFidelity()
+	// in reinitTab, call SetFidelityLevel, then connect fidelityButtons to guiSetFidelity
+	// in guiSetCompRatios, call SetIgnoreFidelity(true)
+	// in guiSetRefinement, call SetIgnoreFidelity(true)
+	// in guiSetFidelityDefault, call setFidelityDefault
+
+	//Build the vectors of reflevels and lods
+	virtual int orderLODRefs(int dim);
+	//Determine the default lod and ref level for a specified region size
+	virtual void calcLODRefDefault(int dim, float regMBs, int* lod, int* reflevel);
+	virtual void updateFidelity(QGroupBox*, RenderParams* rp, QComboBox* lodCombo, QComboBox* refinementCombo);
+
+	void setupFidelity(int dim, QHBoxLayout* fidelityLayout,
+		QGroupBox* fidelityBox, RenderParams* dParams, bool useDefault=false);
+	void setFidelityDefault(int dim, RenderParams* dParams);
 	//! Method indicates whether box slider events are being ignored.
 	//! \retval true if the box slider events are being ignored.
 	bool doIgnoreBoxSliderEvents() {return ignoreBoxSliderEvents;}
 	
+	vector<QAction*>* makeWebHelpActions(const char* text[], const char* urls[]);
+	virtual QAction* getWebHelpAction(int n) {return (*myWebHelpActions)[n];}
+	vector<QAction*>* myWebHelpActions;
+	QButtonGroup* fidelityButtons;
+	vector<int> fidelityRefinements;
+	vector<int> fidelityLODs;
+	bool fidelityDefaultChanged;
+	Histo* currentHistogram;
 
 #ifndef DOXYGEN_SKIP_THIS
 	//! variables used to workaround Darwin bug, indicate whether or not
 	//! various widgets in the tab have yet been displayed.
-	bool isoShown, colorMapShown, opacityMapShown, texShown;
+	bool _isoShown, _colorMapShown, _opacityMapShown, _texShown;
 	Params::ParamsBaseType myParamsBaseType;
 	bool textChangedFlag;
 	bool ignoreBoxSliderEvents;

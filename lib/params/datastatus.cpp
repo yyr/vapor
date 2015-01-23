@@ -33,7 +33,7 @@
 #include <vapor/MyBase.h>
 #include <vapor/DataMgr.h>
 #include <vapor/Version.h>
-
+#include <vapor/Proj4API.h>
 #include <vapor/errorcodes.h>
 #include "math.h"
 using namespace VAPoR;
@@ -67,6 +67,10 @@ DataStatus()
 	numTimesteps = 0;
 	numTransforms = 0;
 	numLODs = 0;
+	defaultRefFidelity2D = 4.f;
+	defaultRefFidelity3D = 4.f;
+	defaultLODFidelity2D = 2.f;
+	defaultLODFidelity3D = 2.f;
 	
 	for (int i = 0; i< 3; i++){
 		extents[i] = 0.f;
@@ -249,4 +253,63 @@ int DataStatus::maxLODPresent(string varname, size_t timestep){
 		if (!dataMgr->VariableExists(timestep, varname.c_str(),0,i)) break;
 	}
 	return i-1;
+}
+
+//static methods to convert coordinates to and from latlon
+//coordinates are in the order longitude,latitude
+//result is in user coordinates.
+bool DataStatus::convertFromLonLat(double coords[2], int npoints){
+	//Set up proj.4 to convert from LatLon to VDC coords
+	string projString = getInstance()->getDataMgr()->GetMapProjection();
+	if (projString.size() == 0) return false;
+
+	Proj4API proj4API;
+	int rc = proj4API.Initialize("", projString);
+	if (rc<0) return (false);
+
+	rc = proj4API.Transform(coords, coords+1, npoints, 2);
+	if (rc<0) return(false);
+	
+	return true;
+	
+}
+bool DataStatus::convertLocalFromLonLat(int timestep, double coords[2], int npoints){
+	DataMgr* dataMgr = getInstance()->getDataMgr();
+	if (!dataMgr) return false;
+	if(!convertFromLonLat(coords, npoints)) return false;
+	const vector<double>& tvExts = dataMgr->GetExtents((size_t)timestep);
+	for (int i = 0; i<npoints; i++){
+		coords[2*i] -= tvExts[0];
+		coords[2*i+1] -= tvExts[1];
+	}
+	return true;
+}
+bool DataStatus::convertLocalToLonLat(int timestep, double coords[2], int npoints){
+	DataMgr* dataMgr = getInstance()->getDataMgr();
+	if (!dataMgr) return false;
+	const vector<double>& tvExts = dataMgr->GetExtents((size_t)timestep);
+	//Convert local to user coordinates:
+	for (int i = 0; i<npoints; i++){
+		coords[2*i] += tvExts[0];
+		coords[2*i+1] += tvExts[1];
+	}
+	if(!convertToLonLat(coords, npoints)) return false;
+	return true;
+}
+//coordinates are always in user coordinates.
+bool DataStatus::convertToLonLat(double coords[2], int npoints){
+
+	//Set up proj.4 to convert to latlon
+	string pstring = getInstance()->getDataMgr()->GetMapProjection();
+	if (pstring.size() == 0) return false;
+
+	Proj4API proj4API;
+	int rc = proj4API.Initialize(pstring, "");
+	if (rc<0) return (false);
+
+	rc = proj4API.Transform(coords, coords+1, npoints, 2);
+	if (rc<0) return(false);
+
+	return true;
+	
 }

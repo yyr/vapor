@@ -458,9 +458,6 @@ void VizFeatureParams::
 applyToViz(int vizNum){
 	
 	int i;
-	DataStatus* ds = DataStatus::getInstance();
-	
-	
 	
 	bool stretchChanged = false;
 	double oldStretch[3];

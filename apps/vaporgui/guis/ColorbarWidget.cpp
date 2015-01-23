@@ -21,7 +21,7 @@ using namespace VAPoR;
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-ColorbarWidget::ColorbarWidget(MappingFrame *parent, VColormap *colormap) :
+ColorbarWidget::ColorbarWidget(MappingFrame *parent, ColorMapBase *colormap) :
   GLWidget(parent),
   _NUM_BINS(256),
   _parent(parent),
@@ -52,7 +52,7 @@ ColorbarWidget::~ColorbarWidget()
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-void ColorbarWidget::setColormap(VColormap *colormap)
+void ColorbarWidget::setColormap(ColorMapBase *colormap)
 {
   _colormap = colormap;
   

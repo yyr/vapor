@@ -233,6 +233,14 @@ void vtransform3(const float *v, float *mat, float *vt)
     vt[1] = v[0]*mat[3] + v[1]*mat[4] + v[2]*mat[5];
     vt[2] = v[0]*mat[6] + v[1]*mat[7] + v[2]*mat[8];
 }
+void vtransform3(const double *v, double *mat, double *vt)
+{
+    /* 3x3 matrix multiply
+     */
+    vt[0] = v[0]*mat[0] + v[1]*mat[1] + v[2]*mat[2];
+    vt[1] = v[0]*mat[3] + v[1]*mat[4] + v[2]*mat[5];
+    vt[2] = v[0]*mat[6] + v[1]*mat[7] + v[2]*mat[8];
+}
 void vtransform3t(const float *v, float *mat, float *vt)
 {
     /* 3x3 matrix multiply, using transpose of matrix
@@ -1506,6 +1514,60 @@ int rayBoxIntersect(const float rayStart[3], const float rayDir[3],const float b
 		}
 	}
 	return numfound;
+
+}
+int rayBoxIntersect(const double rayStart[3], const double rayDir[3],const double boxExts[6], double results[2]){
+	//Loop over axes of cube.  Intersect faces with the ray, then test if it's inside box extents:
+	//Return at most two intersections, the max and min along the ray.
+	int numfound = 0;
+	double tempResults[6];
+	double epsilons[3];  //Error tolerance is size/10^6
+	for (int i = 0; i<3; i++) epsilons[i] = (boxExts[i+3]-boxExts[i])*1.e-6;
+	for (int axis = 0; axis < 3; axis++){
+		if (numfound == 6) break;
+		//Points along ray are rayStart+t*rayDir.  
+		//To intersect face, rayStart+t*rayDir has axis coordinate equal to boxExts[axis] or boxExts[axis+3]
+		//so that t = (boxExts[axis+(0 or 3)] - rayStart[axis])/rayDir[axis];
+		if (rayDir[axis] == 0. ) continue; //Plane is parallel to ray
+		//check front and back intersections:
+		for (int frontBack = 0; frontBack < 4; frontBack+=3){
+			float t = (boxExts[axis+frontBack] - rayStart[axis])/rayDir[axis];
+			//Check to see if point is within other two box bounds
+			float intersectPoint[3];
+			for (int j = 0; j< 3; j++) {
+				intersectPoint[j] = rayStart[j]+t*rayDir[j];
+			}
+			bool pointOK = true;
+			for (int otherCoord = 0; otherCoord < 3; otherCoord++){
+				if (otherCoord == axis) continue;
+				if (intersectPoint[otherCoord] < boxExts[otherCoord]-epsilons[otherCoord]) {pointOK = false; break;}
+				if (intersectPoint[otherCoord] > boxExts[otherCoord+3]+epsilons[otherCoord]) {pointOK = false; break;}
+			}
+			if (pointOK){
+				//Found an intersection!
+				tempResults[numfound++] = t;
+				
+			}
+			if (numfound == 6) break;
+		}
+	}
+	if (numfound == 0) return 0;
+	//Find the max and min t
+	double mint = 1.e30; 
+	double maxt = -1.e30;
+
+	for (int i = 0; i<numfound; i++){
+		if (tempResults[i]< mint) {
+			mint = tempResults[i];
+		}
+		if (tempResults[i] > maxt){
+			maxt = tempResults[i];
+		}
+	}
+	results[0] = mint;
+	if (numfound == 1) return 1;
+	results[1] = maxt;
+	return 2;
 
 }
 //Convert a camera view to a quaternion, for linear interpolation of viewpoints.
