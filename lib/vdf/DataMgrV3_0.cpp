@@ -668,6 +668,130 @@ RegularGrid *DataMgrV3_0::_getVariable(
 	));
 }
 
+int	DataMgrV3_0::_setupCoordVecs(
+	size_t ts,
+	string varname,
+	int level,
+	int lod,
+	const vector <size_t> &min,
+	const vector <size_t> &max,
+	vector <string> &varnames,
+	vector < vector <size_t > > &dimsvec,
+	vector < vector <size_t > > &dims_at_levelvec,
+	vector < vector <size_t > > &bsvec,
+	vector < vector <size_t > > &bs_at_levelvec,
+	vector < vector <size_t > > &bminvec,
+	vector < vector <size_t > > &bmaxvec
+) const {
+	varnames.clear();
+	dimsvec.clear();
+	dims_at_levelvec.clear();
+	bsvec.clear();
+	bs_at_levelvec.clear();
+	bminvec.clear();
+	bmaxvec.clear();
+
+	DC::DataVar dvar;
+	if (DataMgrV3_0::GetDataVarInfo(varname, dvar) < 0) {
+		SetErrMsg("Unrecognized variable name : %s", varname.c_str());
+		return(-1);
+	}
+
+	// Spatial dimension axes
+	//
+	vector <int> data_axes = get_spatial_axes(dvar);
+
+	// Get names of all coordinate variables
+	//
+	vector <string> cvarnames;
+	string dummy1;
+	int rc = _get_coord_vars(varname, cvarnames, dummy1);
+	if (rc<0) return(-1); 
+
+	// data varname + coord varnames
+	//
+	varnames.push_back(varname);
+	varnames.insert(varnames.end(), cvarnames.begin(), cvarnames.end());
+
+	// Set up various dimension vectors for each of the coordinate
+	// variables, which in general have different shape then the 
+	// data variable
+	//
+	for (int i=0; i<varnames.size(); i++) {
+		DC::BaseVar var;
+		if (DataMgrV3_0::GetBaseVarInfo(varnames[i], var) < 0) {
+			SetErrMsg("Unrecognized variable name : %s", varnames[i].c_str());
+			return(-1);
+		}
+
+		// Grid and block dimensions at max refinement
+		//
+		vector <size_t> dims;
+		vector <size_t> bs;
+		int rc = _dc->GetDimLensAtLevel(varnames[i], -1, dims, bs);
+		if (rc < 0) {
+			SetErrMsg("Invalid variable reference : %s", varnames[i].c_str());
+			return(-1);
+		}
+
+		// Remove time dimension if time-varying
+		//
+		if (var.IsTimeVarying()) {
+			dims.pop_back();
+			bs.pop_back();
+		}
+		dimsvec.push_back(dims);
+		bsvec.push_back(bs);
+
+		// Grid and block dimensions at requested refinement
+		//
+		vector <size_t> dims_at_level;
+		vector <size_t> bs_at_level;
+		rc = _dc->GetDimLensAtLevel(varnames[i], level, dims_at_level, bs_at_level);
+		if (rc < 0) {
+			SetErrMsg("Invalid variable reference : %s", varnames[i].c_str());
+			return(-1);
+		}
+
+		// Remove time dimension if time-varying
+		//
+		if (var.IsTimeVarying()) {
+			dims_at_level.pop_back();
+			bs_at_level.pop_back();
+		}
+
+		dims_at_levelvec.push_back(dims_at_level);
+		bs_at_levelvec.push_back(bs_at_level);
+
+		// Spatial dimension axes
+		//
+		vector <int> axes = get_spatial_axes(var);
+
+
+		// Reshape min and max to match coordinate variable
+		//
+		vector <size_t> mymin;
+		vector <size_t> mymax;
+		for (int i=0; i<axes.size(); i++) {
+			int index = lookup_axis_index(data_axes, axes[i]);
+			assert(index>=0 && index<=2);
+
+			mymin.push_back(min[index]);
+			mymax.push_back(max[index]);
+		}
+
+		// Map voxel coordinates into block coordinates
+		//
+		vector <size_t> bmin, bmax;
+		map_vox_to_blk(bs_at_level, mymin, bmin);
+		map_vox_to_blk(bs_at_level, mymax, bmax);
+
+		bminvec.push_back(bmin);
+		bmaxvec.push_back(bmax);
+	}
+	return(0);
+}
+
 RegularGrid *DataMgrV3_0::_getVariable(
 	size_t ts,
 	string varname,
@@ -680,110 +804,33 @@ RegularGrid *DataMgrV3_0::_getVariable(
 ) {
 	RegularGrid *rg = NULL;
 
-	DC::DataVar var;
-	if (DataMgrV3_0::GetDataVarInfo(varname, var) < 0) {
+	DC::DataVar dvar;
+	if (DataMgrV3_0::GetDataVarInfo(varname, dvar) < 0) {
 		SetErrMsg("Unrecognized variable name : %s", varname.c_str());
 		return(NULL);
 	}
 
-	vector <size_t> dummy;
-	vector <size_t> bs;
-	int rc = _dc->GetDimLensAtLevel(varname, -1, dummy, bs);
-	if (rc < 0) {
-		SetErrMsg("Invalid variable reference : %s", varname.c_str());
-		return(NULL);
-	}
-
-	vector <size_t> dims_at_level;
-	vector <size_t> bs_at_level;
-	rc = _dc->GetDimLensAtLevel(varname, level, dims_at_level, bs_at_level);
-	if (rc < 0) {
-		SetErrMsg("Invalid variable reference : %s", varname.c_str());
-		return(NULL);
-	}
-
-	// Remove time dimension if time-varying
-	//
-	if (DataMgrV3_0::IsTimeVarying(varname)) {
-		dims_at_level.pop_back();
-		bs_at_level.pop_back();
-		bs.pop_back();
-	}
-
-	// Spatial dimension axes
-	//
-	vector <int> axes = get_spatial_axes(var);
-
-	vector <string> cvars;
-	string dummy1;
-	rc = _get_coord_vars(var.GetName(), cvars, dummy1);
-	if (rc<0) return(NULL); 
-	
-
-	// Map voxel coordinates into block coordinates
-	//
-	vector <size_t> bmin, bmax;
-	map_vox_to_blk(bs_at_level, min, bmin);
-	map_vox_to_blk(bs_at_level, max, bmax);
-
-	vector <float *> blkvec;
-	vector < vector <size_t > > bs_at_levelvec;
+	vector <string> varnames;
+	vector < vector <size_t > > dimsvec;
+	vector < vector <size_t > > dims_at_levelvec;
 	vector < vector <size_t > > bsvec;
+	vector < vector <size_t > > bs_at_levelvec;
 	vector < vector <size_t > > bminvec;
 	vector < vector <size_t > > bmaxvec;
-	vector <string> varnames;
+	
 
-
-	bsvec.push_back(bs);
-	bs_at_levelvec.push_back(bs_at_level);
-	bminvec.push_back(bmin);
-	bmaxvec.push_back(bmax);
-	varnames.push_back(varname);
-
-	// Set up various dimension vectors for each of the coordinate
-	// variables, which in general have different shape then the 
-	// data variable
-	//
-	for (int i=0; i<cvars.size(); i++) {
-		varnames.push_back(cvars[i]);
-
-		DC::CoordVar cvar;
-		if (DataMgrV3_0::GetCoordVarInfo(cvars[i], cvar) < 0) {
-			SetErrMsg("Unrecognized variable name : %s", cvars[i].c_str());
-			return(NULL);
-		}
-
-		// Deal with shape differences between data and coordinate variable
-		//
-		vector <int> caxes = get_spatial_axes(cvar);
-
-		vector <size_t> cdims_at_level;
-		vector <size_t> cbs_at_level;
-		vector <size_t> cbs;
-		vector <size_t> cbmin;
-		vector <size_t> cbmax;
-
-		for (int i=0; i<caxes.size(); i++) {
-			int index = lookup_axis_index(axes, caxes[i]);
-			assert(index>=0 && index<=2);
-
-			cdims_at_level.push_back(dims_at_level[index]);
-			cbs_at_level.push_back(bs_at_level[index]);
-			cbs.push_back(bs[index]);
-			cbmin.push_back(bmin[index]);
-			cbmax.push_back(bmax[index]);
-		}
-
-		bsvec.push_back(cbs);
-		bs_at_levelvec.push_back(cbs_at_level);
-		bminvec.push_back(cbmin);
-		bmaxvec.push_back(cbmax);
-	}
+	int	rc = _setupCoordVecs(
+		ts, varname, level, lod, min, max, varnames,
+		dimsvec, dims_at_levelvec, bsvec, bs_at_levelvec, bminvec, bmaxvec
+	);
+	if (rc<0) return(NULL);
 
 	//
 	// if dataless we only load coordinate data
 	//
 	if (dataless) varnames[0].clear();
+
+    vector <float *> blkvec;
 	rc = DataMgrV3_0::_get_regions(
 		ts, varnames, level, lod, true, bsvec, bminvec, bmaxvec, blkvec
 	);
@@ -803,7 +850,7 @@ RegularGrid *DataMgrV3_0::_getVariable(
 	}
 	else {
 		rg = _make_grid(
-			var, min, max, dims_at_level, blkvec, 
+			dvar, min, max, dims_at_levelvec[0], blkvec, 
 			bs_at_levelvec, bminvec, bmaxvec
 		);
 	}
@@ -2274,10 +2321,82 @@ RegularGrid *DataMgrV3_0::_make_grid_regular(
 	return(rg);
 }
 
+LayeredGrid *DataMgrV3_0::_make_grid_layered(
+	const DC::DataVar &var,
+    const vector <size_t> &min,
+	const vector <size_t> &max, 
+	const vector <size_t> &dims,
+    const vector <float *> &blkvec,
+	const vector <size_t> &bs,
+	const vector <size_t> &bmin,
+	const vector <size_t> &bmax
+) const {
+	assert (min.size() == max.size());
+	assert (min.size() == dims.size());
+	assert (min.size() == min.size());
+	assert (min.size() == max.size());
+	assert (min.size() == bs.size());
+	assert (min.size() == bmin.size());
+	assert (min.size() == bmax.size());
+
+	size_t a_min[3] = {0,0,0};
+	size_t a_max[3] = {0,0,0};
+	size_t a_bs[3] = {0,0,0};
+	for (int i=0; i<min.size(); i++) {
+		a_min[i] = min[i];
+		a_max[i] = max[i];
+		a_bs[i] = bs[i];
+	}
+
+	double extents[6] = {0.0,0.0,0.0,0.0,0.0,0.0};
+	for (int i = 0; i<min.size()-1; i++) { 
+		float *coords = blkvec[i+1];
+		int x0 = min[i] % bs[i];
+        int x1 = x0 + (max[i]-min[i]);
+		extents[i] = coords[x0];
+		extents[i+3] = coords[x1];
+	}
+
+	bool periodic[3];
+	bool has_missing;
+	float mv;
+	grid_params(var, min, max, dims, periodic, has_missing, mv);
+
+	size_t nblocks = 1;
+	size_t block_size = 1;
+    for (int i=0; i<bs.size(); i++) {
+        nblocks *= bmax[i]-bmin[i]+1;
+        block_size *= bs[i];
+    }
+
+    float **blkptrs = blkvec[0] ? new float*[nblocks] : NULL;
+    float **zcblkptrs = new float*[nblocks];
+    for (int i=0; i<nblocks; i++) {
+        if (blkptrs) blkptrs[i] = blkvec[0] + i*block_size;
+        zcblkptrs[i] = blkvec[3] + i*block_size;
+	}
+
+	LayeredGrid *lg;
+	if (has_missing) {
+		lg = new LayeredGrid(
+			a_bs,a_min,a_max,extents,periodic,blkptrs, zcblkptrs, 2, mv
+		);
+	}
+	else {
+		lg = new LayeredGrid(
+			a_bs,a_min,a_max,extents,periodic,blkptrs, zcblkptrs, 2
+		);
+	}
+	if (blkptrs) delete [] blkptrs;
+	if (zcblkptrs) delete [] zcblkptrs;
+
+	return(lg);
+}
+
 //	var: variable info
 //  min: min ROI offsets in voxels, full domain 
 //  min: max ROI offsets in voxels, full domain 
-//	dims: dimensions of full variable domain in voxels
+//	dims: spatial dimensions of full variable domain in voxels
 //	blkvec: data blocks, and coordinate blocks
 //	bsvec: data block dimensions, and coordinate block dimensions
 //  bminvec: ROI offsets in blocks, full domain, data and coordinates
@@ -2302,8 +2421,7 @@ RegularGrid *DataMgrV3_0::_make_grid(
 	if (rc<0) return(NULL); 
 
 	vector <DC::CoordVar> cvarsinfo;
-    vector < vector <int> > coord_axis;
-    vector <bool> uniform;
+	vector < vector <size_t> > cdimlens;
 	for (int i=0; i<cvars.size(); i++) {
 		DC::CoordVar cvarinfo;
 
@@ -2312,25 +2430,46 @@ RegularGrid *DataMgrV3_0::_make_grid(
 			return(NULL);
 		}
 
+		vector <size_t> cdims;
+		size_t dummy;
+		DC::ParseDimensions(cvarinfo.GetDimensions(), cdims, dummy);
+
+		cdimlens.push_back(cdims);
+
 		cvarsinfo.push_back(cvarinfo);
-        coord_axis.push_back(get_spatial_axes(cvarinfo));
-        uniform.push_back(cvarinfo.GetUniform());
 	}
+	assert(cdimlens.size() == cvarsinfo.size());
 
 
     //
     // First check for RegularGrid
     //
     bool regular_grid = true;
-    for (int i=0; i<coord_axis.size(); i++) {
-        if (coord_axis[i].size() != 1 || ! uniform[i]) {
+    for (int i=0; i<cdimlens.size(); i++) {
+        if (cdimlens[i].size() != 1 || ! cvarsinfo[i].GetUniform()) {
             regular_grid = false;
         }
     }
+	bool layered_grid = false;
+	if (! regular_grid) {
+		if (
+			cdimlens.size()==3 && 
+			cvarsinfo[0].GetUniform() && cvarsinfo[1].GetUniform() && 
+			cdimlens[2].size() == 3
+		) {
+			layered_grid = true;
+		}
+	}
+		
 
 	RegularGrid *rg = NULL;
     if (regular_grid) {
 		rg = _make_grid_regular(
+			var, min, max, dims, blkvec, bsvec[0], bminvec[0], bmaxvec[0]
+		);
+	}
+	else if (layered_grid) {
+		rg = _make_grid_layered(
 			var, min, max, dims, blkvec, bsvec[0], bminvec[0], bmaxvec[0]
 		);
 	}

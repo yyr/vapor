@@ -45,6 +45,26 @@ void _compute_bs(
 	assert(dimensions.size() == bs.size());
 }
 
+void _compute_periodic(
+	const vector <VDC::Dimension> &dimensions, 
+	const vector <bool> &default_periodic,
+	vector <bool> &periodic
+) {
+	// If the default periodicity exists for a dimension use it.
+	// Otherwise set the periodicity to false. No periodicity for
+	// time dimensions
+	//
+	for (int i=0; i<dimensions.size(); i++) {
+		if (dimensions[i].GetAxis() == 3) break;
+		if (i<default_periodic.size()) {
+			periodic.push_back(default_periodic[i]);
+		}
+		else {
+			periodic.push_back(false);	
+		}
+	}
+}
+
 int _axis_block_length(
 	const vector <VDC::Dimension> &dimensions, 
 	const vector <size_t> &bs, int axis
@@ -180,7 +200,8 @@ int VDC::DefineDimension(string name, size_t length, int axis) {
 	//
 	// A 1D coordinate variable is implicitly defined for each dimension
 	//
-	int status = DefineCoordVarUniform(name, name, "", axis, FLOAT, false);
+	vector <string> dimnames(1,name);
+	int status = DefineCoordVarUniform(name, dimnames, "", axis, FLOAT, false);
 	if (status < 0) {
 		_dimsMap.erase(name);	// remove dimension definition
 	}
@@ -245,6 +266,9 @@ int VDC::DefineCoordVar(
 	//
 	vector <size_t> bs;
 	_compute_bs(dimensions, _bs, bs);
+
+	vector <bool> periodic;
+	_compute_periodic(dimensions, _periodic, periodic);
 		
 	vector <size_t> cratios(1,1);
 	string wname;
@@ -252,66 +276,29 @@ int VDC::DefineCoordVar(
 		cratios = _cratios;
 		wname = _wname;
 	}
-	CoordVar coordvar(
-		varname, dimensions, units, type, bs, wname, 
-		cratios, _periodic, axis, false
-	);
 
 	// _coordVars contains a table of all the coordinate variables
 	//
-	_coordVars[varname] = coordvar;
+	_coordVars[varname] = CoordVar (
+		varname, dimensions, units, type, bs, wname, 
+		cratios, periodic, axis, false
+	);
 
 	return(0);
-
 }
 
 int VDC::DefineCoordVarUniform(
-	string varname, string dimname,
+	string varname, vector <string> dimnames,
 	string units, int axis, XType type, bool compressed
 ) {
-	if (! _defineMode) {
-		SetErrMsg("Not in define mode");
-		return(-1);
-	}
-
-	if (_mode == A) {
-		if (_coordVars.find(varname) != _coordVars.end()) {
-			SetErrMsg("Variable \"%s\" already defined", varname.c_str());
-			return(-1);
-		} 
-	}
-
-	if (axis == 3 && units.empty()) units = "seconds"; 
-
-	vector <string> dimnames;
-	dimnames.push_back(dimname);
-	if (! _ValidDefineCoordVar(varname,dimnames,units,axis,type,compressed)) {
-		return(-1);
-	}
-
-    vector <Dimension> dimensions;
-	Dimension dimension;
-	VDC::GetDimension(dimname, dimension);
-	assert(! dimension.GetName().empty());
-	dimensions.push_back(dimension);
-
-	// Determine block size
-	//
-	vector <size_t> bs;
-	_compute_bs(dimensions, _bs, bs);
-
-	vector <size_t> cratios(1,1);
-	string wname;
-	if (compressed) {
-		cratios = _cratios;
-		wname = _wname;
-	}
-	CoordVar coordvar(
-		varname, dimensions, units, type, bs, wname, 
-		cratios, _periodic, axis, true
+	int rc = VDC::DefineCoordVar(
+		varname, dimnames, units, axis, type, compressed
 	);
+	if (rc<0) return(-1);
 
-	_coordVars[varname] = coordvar;
+	assert(_coordVars.find(varname) != _coordVars.end());
+
+	_coordVars[varname].SetUniform(true);
 
 	// Keep track of any uniform variables that get defined
 	//
@@ -406,6 +393,9 @@ int VDC::DefineDataVar(
 	vector <size_t> bs;
 	_compute_bs(dimensions, _bs, bs);
 
+	vector <bool> periodic;
+	_compute_periodic(dimensions, _periodic, periodic);
+
 	vector <size_t> cratios(1,1);
 	string wname;
 	if (compressed) {
@@ -414,7 +404,7 @@ int VDC::DefineDataVar(
 	}
 	DataVar datavar(
 		varname, dimensions, units, type, bs, wname, 
-		cratios, _periodic, coordvars
+		cratios, periodic, coordvars
 	);
 
 	_dataVars[varname] = datavar;
@@ -461,6 +451,9 @@ int VDC::DefineDataVar(
 	vector <size_t> bs;
 	_compute_bs(dimensions, _bs, bs);
 
+	vector <bool> periodic;
+	_compute_periodic(dimensions, _periodic, periodic);
+
 	vector <size_t> cratios(1,1);
 	string wname;
 	if (compressed) {
@@ -469,7 +462,7 @@ int VDC::DefineDataVar(
 	}
 	DataVar datavar(
 		varname, dimensions, units, type, bs, wname, 
-		cratios, _periodic, coordvars, 
+		cratios, periodic, coordvars, 
 		missing_value
 	);
 
@@ -844,7 +837,8 @@ int VDC::EndDefine() {
 	_defineMode = false;
 
 
-	// For any Uniform coordinate variables that were defined go ahead
+	// For any 1D Uniform coordinate variables that 
+	// were defined go ahead
 	// and give them default values
 	//
 	for (int i=0; i<_newUniformVars.size(); i++) {
@@ -852,7 +846,7 @@ int VDC::EndDefine() {
 		VDC::GetCoordVarInfo(_newUniformVars[i], cvar);
 
 		vector <VDC::Dimension> dims = cvar.GetDimensions();
-		assert(dims.size() == 1);
+		if (dims.size() != 1) continue;
 
 		size_t l = dims[0].GetLength();
 

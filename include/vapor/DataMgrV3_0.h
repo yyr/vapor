@@ -4,6 +4,7 @@
 #include <vapor/DC.h>
 #include <vapor/MyBase.h>
 #include <vapor/RegularGrid.h>
+#include <vapor/LayeredGrid.h>
 
 #ifndef	DataMgvV3_0_h
 #define DataMgvV3_0_h
@@ -684,6 +685,17 @@ private:
     const std::vector <size_t> &bmax
  ) const;
 
+ VAPoR::LayeredGrid *_make_grid_layered(
+    const VAPoR::DC::DataVar &var,
+    const std::vector <size_t> &min,
+    const std::vector <size_t> &max,
+    const std::vector <size_t> &dims,
+    const std::vector <float *> &blkvec,
+    const std::vector <size_t> &bs,
+    const std::vector <size_t> &bmin,
+    const std::vector <size_t> &bmax
+ ) const;
+
  VAPoR::RegularGrid *_make_grid(
 	const VAPoR::DC::DataVar &var,
 	const std::vector <size_t> &min,
@@ -700,6 +712,22 @@ private:
     std::vector <double> min, std::vector <double> max,
     std::vector <size_t> &min_ui, std::vector <size_t> &max_ui
  );
+
+int _setupCoordVecs(
+	size_t ts,
+	string varname,
+	int level,
+	int lod,
+	const vector <size_t> &min,
+	const vector <size_t> &max,
+	vector <string> &varnames,
+	vector < vector <size_t > > &dimsvec,
+	vector < vector <size_t > > &dims_at_levelvec,
+	vector < vector <size_t > > &bsvec,
+	vector < vector <size_t > > &bs_at_levelvec,
+	vector < vector <size_t > > &bminvec,
+	vector < vector <size_t > > &bmaxvec
+ ) const;
 
  VAPoR::RegularGrid *_getVariable(
     size_t ts,

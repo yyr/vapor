@@ -182,24 +182,25 @@ int	main(int argc, char **argv) {
 	dimnames.push_back("Nz");
 	dimnames.push_back("Nt");
 
-	vector <size_t> bs;
-	bs.push_back(opt.bs[0]);
-	rc = vdc.SetCompressionBlock(bs, "", opt.cratios);
+	vector <size_t> bs(1,1);
+	vector <size_t> cratios(1,1);
+//	bs.push_back(opt.bs[0]);
+	rc = vdc.SetCompressionBlock(bs, "", cratios);
 	rc = vdc.DefineDimension(dimnames[0], opt.dim.nx, 0);
 
 	
-	bs.clear();
-	bs.push_back(opt.bs[1]);
-	rc = vdc.SetCompressionBlock(bs, "", opt.cratios);
+//	bs.clear();
+//	bs.push_back(opt.bs[1]);
+	rc = vdc.SetCompressionBlock(bs, "", cratios);
 	rc = vdc.DefineDimension(dimnames[1], opt.dim.ny, 1);
 
-	bs.clear();
-	bs.push_back(opt.bs[2]);
-	rc = vdc.SetCompressionBlock(bs, "", opt.cratios);
+//	bs.clear();
+//	bs.push_back(opt.bs[2]);
+	rc = vdc.SetCompressionBlock(bs, "", cratios);
 	rc = vdc.DefineDimension(dimnames[2], opt.dim.nz, 2);
 
-	bs.clear();
-	rc = vdc.SetCompressionBlock(bs, "", opt.cratios);
+//	bs.clear();
+	rc = vdc.SetCompressionBlock(bs, "", cratios);
 	rc = vdc.DefineDimension(dimnames[3], opt.numts, 3);
 
 	bs = opt.bs;

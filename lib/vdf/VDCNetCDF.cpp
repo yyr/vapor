@@ -118,7 +118,6 @@ VDCNetCDF::VDCNetCDF(
 	_chunksizehint =  0;
 	_master = new WASP();
 	_open_file = NULL;
-	_open_var = NULL;
 	_open_slice_num = 0;
 	_open_write = false;
 	_open_level = 0;
@@ -137,7 +136,6 @@ VDCNetCDF::~VDCNetCDF() {
 		_master->Close();
 		delete _master;
 	}
-	if (_open_var) delete _open_var;
 }
 
 
@@ -332,7 +330,6 @@ int VDCNetCDF::OpenVariableRead(
 	CloseVariable();
 	_open_file = NULL; 
 	_open_write = false;
-	_open_var = NULL;
 	_open_slice_num = 0; 
 	_open_ts = 0;
 	_open_file_ts = 0;
@@ -344,7 +341,7 @@ int VDCNetCDF::OpenVariableRead(
         SetErrMsg("Undefined variable name : %s", varname.c_str());
 		return(false);
 	}
-	_open_var = new VDC::BaseVar(var);
+	_open_var = var;
 
 
 	string path;
@@ -353,7 +350,7 @@ int VDCNetCDF::OpenVariableRead(
 	int rc = GetPath(varname, ts, path, file_ts, max_ts);
 	if (rc<0) return(-1);
 
-	vector <VDC::Dimension> dims = _open_var->GetDimensions();
+	vector <VDC::Dimension> dims = _open_var.GetDimensions();
 
 	int nlevels = VDC::GetNumRefLevels(varname);
 
@@ -396,7 +393,6 @@ int VDCNetCDF::OpenVariableWrite(size_t ts, string varname, int lod) {
 	CloseVariable();
 	_open_file = NULL; 
 	_open_write = true;
-	_open_var = NULL;
 	_open_slice_num = 0; 
 	_open_ts = 0;
 	_open_file_ts = 0;
@@ -407,7 +403,7 @@ int VDCNetCDF::OpenVariableWrite(size_t ts, string varname, int lod) {
         SetErrMsg("Undefined variable name : %s", varname.c_str());
 		return(false);
 	}
-	_open_var = new VDC::BaseVar(var);
+	_open_var = var;
 
 	string path;
 	size_t file_ts;
@@ -434,7 +430,7 @@ int VDCNetCDF::OpenVariableWrite(size_t ts, string varname, int lod) {
 		size_t chsz = _chunksizehint;
 		rc = wasp->Create(
 			path, NC_WRITE | NC_64BIT_OFFSET, 0, chsz, 
-			_open_var->GetCRatios().size()
+			_open_var.GetCRatios().size()
 		);
 		if (rc<0) return(-1);
 
@@ -467,10 +463,6 @@ int VDCNetCDF::CloseVariable() {
 		delete _open_file;
 		_open_file = NULL;
 	}
-	if (_open_var) {
-		delete _open_var;
-		_open_var = NULL;
-	}
 	_open_slice_num = 0;
 	return(0);
 }
@@ -483,10 +475,10 @@ int VDCNetCDF::Write(const float *data) {
 
 	vector <size_t> sdims;
 	size_t numts;
-	VDC::ParseDimensions(_open_var->GetDimensions(), sdims, numts);
+	VDC::ParseDimensions(_open_var.GetDimensions(), sdims, numts);
 	assert(sdims.size() >= 0 && sdims.size() <= 3);
 
-	bool time_varying = VDC::IsTimeVarying(_open_var->GetName());
+	bool time_varying = VDC::IsTimeVarying(_open_var.GetName());
 
 	vector <size_t> start;
 	vector <size_t> count;
@@ -505,13 +497,13 @@ int VDCNetCDF::Write(const float *data) {
 int VDCNetCDF::_WriteSlice(WASP *file, const float *slice) {
 	vector <size_t> sdims;
 	size_t numts;
-	VDC::ParseDimensions(_open_var->GetDimensions(), sdims, numts);
+	VDC::ParseDimensions(_open_var.GetDimensions(), sdims, numts);
 	assert(sdims.size() >= 2 && sdims.size() <= 3);
 	
-	vector <size_t> sbs = _open_var->GetBS();	// bs, spatial dims only
+	vector <size_t> sbs = _open_var.GetBS();	// bs, spatial dims only
 
 	bool time_varying = false;
-	if (VDC::IsTimeVarying(_open_var->GetName())) {
+	if (VDC::IsTimeVarying(_open_var.GetName())) {
 		sbs.pop_back();
 		time_varying = true;
 	}
@@ -583,10 +575,10 @@ int VDCNetCDF::Read(float *data) {
 
 	vector <size_t> sdims;
 	size_t numts;
-	VDC::ParseDimensions(_open_var->GetDimensions(), sdims, numts);
+	VDC::ParseDimensions(_open_var.GetDimensions(), sdims, numts);
 	assert(sdims.size() >= 0 && sdims.size() <= 3);
 
-	bool time_varying = VDC::IsTimeVarying(_open_var->GetName());
+	bool time_varying = VDC::IsTimeVarying(_open_var.GetName());
 
 	vector <size_t> start;
 	vector <size_t> count;
@@ -607,7 +599,7 @@ int VDCNetCDF::_ReadSlice(WASP *file, float *slice) {
 	vector <size_t> dims_at_level;
 	vector <size_t> bs_at_level;
 	(void) file->InqVarDimlens(
-		_open_var->GetName(), _open_level, dims_at_level, bs_at_level
+		_open_var.GetName(), _open_level, dims_at_level, bs_at_level
 	);
 	reverse(dims_at_level.begin(), dims_at_level.end());  // NetCDF order
 	reverse(bs_at_level.begin(), bs_at_level.end());  // NetCDF order
@@ -617,7 +609,7 @@ int VDCNetCDF::_ReadSlice(WASP *file, float *slice) {
 	vector <size_t> sbs = dims_at_level;
 	size_t numts = 0;
 	bool time_varying = false;
-	if (VDC::IsTimeVarying(_open_var->GetName())) {
+	if (VDC::IsTimeVarying(_open_var.GetName())) {
 		numts = sdims[sdims.size()-1];
 		sdims.pop_back();
 		sbs.pop_back();
@@ -688,10 +680,10 @@ int VDCNetCDF::ReadRegion(
 ) {
 	vector <size_t> sdims;
 	size_t numts;
-	VDC::ParseDimensions(_open_var->GetDimensions(), sdims, numts);
+	VDC::ParseDimensions(_open_var.GetDimensions(), sdims, numts);
 	assert(sdims.size() >= 0 && sdims.size() <= 3);
 
-	bool time_varying = VDC::IsTimeVarying(_open_var->GetName());
+	bool time_varying = VDC::IsTimeVarying(_open_var.GetName());
 
 	vector <size_t> start;
 	vector <size_t> count;
@@ -707,10 +699,10 @@ int VDCNetCDF::ReadRegionBlock(
 ) {
 	vector <size_t> sdims;
 	size_t numts;
-	VDC::ParseDimensions(_open_var->GetDimensions(), sdims, numts);
+	VDC::ParseDimensions(_open_var.GetDimensions(), sdims, numts);
 	assert(sdims.size() >= 0 && sdims.size() <= 3);
 
-	bool time_varying = VDC::IsTimeVarying(_open_var->GetName());
+	bool time_varying = VDC::IsTimeVarying(_open_var.GetName());
 
 	vector <size_t> start;
 	vector <size_t> count;

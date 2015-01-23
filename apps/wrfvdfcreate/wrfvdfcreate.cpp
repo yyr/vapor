@@ -451,5 +451,5 @@ int	main(int argc, char **argv) {
 		
 	} // End if quiet.
 
-	exit(0);
+	return(0);
 } // End of main.

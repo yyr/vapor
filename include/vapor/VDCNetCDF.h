@@ -222,7 +222,7 @@ private:
  WASP *_master;	// Master NetCDF file
  WASP *_open_file;	// Currently opened data file
  bool _open_write;	// opened for writing?
- BaseVar *_open_var;
+ BaseVar _open_var;
  size_t _open_slice_num; // index of current slice for WriteSlice, ReadSlice
  size_t _open_ts;	// global time step of current open variable
  size_t _open_file_ts;	// local (within file) time step of current open var

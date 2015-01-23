@@ -152,6 +152,12 @@ void LayeredGrid::_GetBoundingBox(
 
 	float mv = GetMissingValue();
 
+	assert(_varying_dim >= 0 && _varying_dim <= 2);
+	bool flip = (
+		_AccessIJK(_coords, 0, 0, min[_varying_dim]) > 
+		_AccessIJK(_coords, 0, 0, max[_varying_dim])
+	);
+
 	// Now find the extreme values of the varying dimension's coordinates
 	//
 	if (_varying_dim == 0) {	// I plane
@@ -162,7 +168,7 @@ void LayeredGrid::_GetBoundingBox(
 		for (int j = min[1]; j<=max[1]; j++) {
 			float v = _AccessIJK(_coords, min[0],j,k);
 			if (v == mv) continue;
-			if (extents[0] < extents[3]) {
+			if (! flip) {
 				if (v<mincoord) mincoord = v;
 			} else {
 				if (v>mincoord) mincoord = v;
@@ -176,7 +182,7 @@ void LayeredGrid::_GetBoundingBox(
 		for (int j = min[1]; j<=max[1]; j++) {
 			float v = _AccessIJK(_coords, max[0],j,k);
 			if (v == mv) continue;
-			if (extents[0] <extents[3]) {
+			if (! flip) {
 				if (v>maxcoord) maxcoord = v;
 			} else {
 				if (v<maxcoord) maxcoord = v;
@@ -189,7 +195,7 @@ void LayeredGrid::_GetBoundingBox(
 		for (int i = min[0]; i<=max[0]; i++) {
 			float v = _AccessIJK(_coords, i,min[1],k);
 			if (v == mv) continue;
-			if (extents[1] < extents[4]) {
+			if (! flip) {
 				if (v<mincoord) mincoord = v;
 			} else {
 				if (v>mincoord) mincoord = v;
@@ -201,7 +207,7 @@ void LayeredGrid::_GetBoundingBox(
 		for (int i = min[0]; i<=max[0]; i++) {
 			float v = _AccessIJK(_coords, i,max[1],k);
 			if (v == mv) continue;
-			if (extents[1] < extents[4]) {
+			if (! flip) {
 				if (v>maxcoord) maxcoord = v;
 			} else {
 				if (v<maxcoord) maxcoord = v;
@@ -214,7 +220,7 @@ void LayeredGrid::_GetBoundingBox(
 		for (int i = min[0]; i<=max[0]; i++) {
 			float v = _AccessIJK(_coords, i,j,min[2]);
 			if (v == mv) continue;
-			if (extents[2] < extents[5]) {
+			if (! flip) {
 				if (v<mincoord) mincoord = v;
 			} else {
 				if (v>mincoord) mincoord = v;
@@ -226,7 +232,7 @@ void LayeredGrid::_GetBoundingBox(
 		for (int i = min[0]; i<=max[0]; i++) {
 			float v = _AccessIJK(_coords, i,j,max[2]);
 			if (v == mv) continue;
-			if (extents[2] < extents[5]) {
+			if (! flip) {
 				if (v>maxcoord) maxcoord = v;
 			} else {
 				if (v<maxcoord) maxcoord = v;

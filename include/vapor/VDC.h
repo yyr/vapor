@@ -452,8 +452,9 @@ public:
  //! Define a coordinate variable with uniform sampling
  //!
  //! This method provides the definition for a uniform coordinate variable. 
- //! A uniformly sampled coordinate variable is a 1D variable
- //! for which the coordinates may be given by <em> i * dx </em>, where
+ //! A uniformly sampled coordinate variable is a variable
+ //! for which the coordinates along the fastest varying axis
+ //! may be given by <em> i * dx </em>, where
  //! \em i is an index starting from zero, and \em dx is a real number
  //! representing the spacing between points.
  //!
@@ -462,8 +463,8 @@ public:
  //! more general DefineCoordVar().
  //!
  //! \param[in] varname The name of the coordinate variable. 
- //! \param[in] dimname An string specifying the variable's
- //! dimension name. The dimension names must have previously be defined
+ //! \param[in] dimnames An ordered vector specifying the variables
+ //! dimension names. The dimension names must have previously been defined
  //! with the DefineDimension() method. 
  //! \param[in] units This parameter specifies a string describing the 
  //! units of measure for the
@@ -490,7 +491,7 @@ public:
  //! \sa DefineDimension(), DefineCoordVar(), SetCompressionBlock()
  //
  int DefineCoordVarUniform(
-	string varname, string dimname, 
+	string varname, std::vector <string> dimname, 
 	string units, int axis, XType type, bool compressed
  );
 

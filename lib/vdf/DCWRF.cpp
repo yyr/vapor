@@ -1553,12 +1553,14 @@ DCWRF::DerivedVarHorizontal::DerivedVarHorizontal(
 	else if ((_name.compare("XU")==0) || (_name.compare("YU")==0)) {
 		_lonname = "XLONG_U";
 		_latname = "XLAT_U";
+		_nx++;
 		if (_name.compare("XU")==0) _ncoords = _nx;
 		else _ncoords = _ny;
 	}
 	else if ((_name.compare("XV")==0) || (_name.compare("YV")==0)) {
 		_lonname = "XLONG_V";
 		_latname = "XLAT_V";
+		_ny++;
 		if (_name.compare("XV")==0) _ncoords = _nx;
 		else _ncoords = _ny;
 	}
@@ -1635,13 +1637,16 @@ int DCWRF::DerivedVarHorizontal::_GetCartCoords(
 	if (_name.compare(0,1,"X")==0) { 
 		assert(_ncoords == _nx);
 		delta = (maxx - minx) / (float) (_nx-1);
+		for (int i=0; i<_ncoords; i++) {
+			_coords[i] = minx + (float) i * delta;
+		}
 	}
 	else{
 		assert(_ncoords == _ny);
 		delta = (maxy - miny) / (float) (_ny-1);
-	}
-	for (int i=0; i<_ncoords; i++) {
-		_coords[i] = (float) i * delta;
+		for (int i=0; i<_ncoords; i++) {
+			_coords[i] = maxy + (float) i * delta;
+		}
 	}
 
 	return(0);

@@ -1176,7 +1176,7 @@ void *RunReadThread(void *arg) {
 		//
 		float *blockptr = s._block;
 		if (! unblock) {
-			blockptr = s._data + linearize(roi_start, aligned_count);
+			blockptr = s._data + ((size_t) i * vproduct(s._bs));
 		}
 
 		// Read wavelet coefficients from disk. Need a mutex because
@@ -2110,6 +2110,9 @@ int WASP::CloseVar() {
 
 	_open = false;
 	_open_write = false;
+
+	if (! _open_waspvar) return(0);
+
 	for (int i=0; i<_nthreads; i++) {
 		if (_open_compressors[i]) delete _open_compressors[i];
 		_open_compressors[i] = NULL;

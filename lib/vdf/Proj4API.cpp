@@ -192,7 +192,7 @@ int Proj4API::Transform(
 		for (size_t i = 0; i<n; i++) zd[i] = z[i];
 	}
 
-	int rc = Proj4API::Transform(xd,yd,yd,n,offset);
+	int rc = Proj4API::Transform(xd,yd,zd,n,offset);
 
 	if (xd) {
 		for (size_t i = 0; i<n; i++) x[i] = xd[i];

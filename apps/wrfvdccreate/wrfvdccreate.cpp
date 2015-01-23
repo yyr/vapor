@@ -182,11 +182,19 @@ cout << d << " " << coordnames[i] << endl;
 			for (int i=0; i<dims.size(); i++) {
 				dimnames.push_back(dims[i].GetName());
 			}
-		
-			rc = vdc.DefineCoordVar(
-				cvar.GetName(), dimnames, cvar.GetUnits(), 
-				cvar.GetAxis(), cvar.GetXType(), false
-			);
+	
+			if (cvar.GetUniform()) {
+				rc = vdc.DefineCoordVarUniform(
+					cvar.GetName(), dimnames, cvar.GetUnits(), 
+					cvar.GetAxis(), cvar.GetXType(), false
+				);
+			}
+			else {
+				rc = vdc.DefineCoordVar(
+					cvar.GetName(), dimnames, cvar.GetUnits(), 
+					cvar.GetAxis(), cvar.GetXType(), false
+				);
+			}
 
 			if (rc<0) {
 				exit(1);
