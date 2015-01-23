@@ -2135,11 +2135,11 @@ void IsolineEventRouter::paintEvent(QPaintEvent* ev){
 		
 		//First show the texture frame, 
 		//Other order doesn't work.
-		if(!texShown ){
+		if(!_texShown ){
 #if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 			QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
 			sArea->ensureWidgetVisible(isolineFrameHolder);
-			texShown = true;
+			_texShown = true;
 #endif
 			isolineImageFrame->show();
 			isolineImageFrame->updateGeometry();
