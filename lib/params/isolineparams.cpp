@@ -5,7 +5,7 @@
 #include "glutil.h"
 #include <string>
 #include "transferfunction.h"
-#include "MapperFunctionBase.h"
+#include "vapor/MapperFunctionBase.h"
 
 using namespace VetsUtil;
 using namespace VAPoR;
