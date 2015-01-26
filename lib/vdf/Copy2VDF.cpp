@@ -424,6 +424,7 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 
     _progname = Basename(argv[0]);
 
+#ifdef DEAD
 	OptionParser op;
 	if (!strcmp(dataType.c_str(),"GRIMs")){
 		if (op.AppendOptions(grib_opts) < 0) {
@@ -435,7 +436,8 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 			return(-1);
 		}
 	}
-	
+#endif
+	op.AppendOptions(set_opts);
 
     if (op.ParseOptions(&argc, argv, get_options) < 0) {
 		return(-1);
