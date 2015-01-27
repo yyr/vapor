@@ -60,7 +60,8 @@ namespace VAPoR {
 //! This class inherits from VetsUtil::MyBase. Unless otherwise documented
 //! any method that returns an integer value is returning status. A negative
 //! value indicates failure. Error messages are logged via 
-//! VetsUtil::MyBase::SetErrMsg()
+//! VetsUtil::MyBase::SetErrMsg(). In general, methods that return
+//! boolean values will not record an error message on failure.
 //!
 //! \param wname Name of biorthogonal wavelet to use for data 
 //! transformation. If not specified (if \p wname is the empty string) 
@@ -200,8 +201,9 @@ public:
  //!
  //! This method returns various compression parameters associated
  //! with a compressed variabled named by \p name. If the variable
- //! \p name is not compressed the output parameters will be empty, but
- //! no error will be generated.
+ //! \p name is not compressed \p wname will be empty. If the variable
+ //! is not blocked \p bs will be either empty or all elements 
+ //! set to one.
  //!
  //! \param[in] name The variable name.
  //! \param[out] wname The name of the wavelet used to transform the variable.
@@ -376,6 +378,7 @@ public:
 
  //! Prepare a variable for writing 
  //!
+ //! Compressed or blocked variables must be opened prior to writing.
  //! This method initializes the variable named by \p name for writing
  //! using the PutVara() method. If the variable is defined as compressed
  //! the \p lod parameter indicates which compression levels will be stored.
@@ -385,10 +388,13 @@ public:
  //! Any currently opened variable is first closed with Close()
  //!
  //! \param[in] name Name of variable
- //! \param[in] lod Level-of-detail to save. 
+ //! \param[in] lod Level-of-detail to save. If not -1, all LOD's from
+ //! 0 to \p lod will subsequently be written. 
  //!
  //! \note Is \p lod needed? Since cratios can be specified on a per
- //! variable basis perhaps this is not needed?
+ //! variable basis perhaps this is not needed? For single file
+ //! representations it would be better to limit the lod using cratios,
+ //! which will result in a smaller file.
  //!
  //! \sa PutVara(), 
  //
@@ -396,13 +402,14 @@ public:
 
  //! Prepare a variable for reading 
  //!
+ //! Compressed or blocked variables must be opened prior to reading.
  //! This method initializes the variable named by \p name for reading
  //! using the GetVara() or GetVar() methods. If the variable is 
  //! defined as compressed
  //! the \p lod parameter indicates which compression levels will used
  //! during reconstruction of the variable.
  //! Valid values for \p lod are in the range 0..max, where \p max the size
- //! of cratios - 1.
+ //! of \b cratios - 1.
  //! If the transform used to compress this variable supports
  //! multiresolution then the \p level parameter indicates the 
  //! grid hierarchy refinement level for which to reconstruct the data.
@@ -429,11 +436,12 @@ public:
 
  //! Write an array of values to the currently opened variable
  //!
- //! The currently opened variable may or may not be compressed
+ //! The currently opened variable may or may not be a WASP
+ //! variable (See InqVarWASP()).
  //!
  //! The combination of \p start and \p count specify the 
  //! coordinates of a hyperslab to write as described by
- //! NetCDFCpp::PutVara(). However, for compressed data dimensions
+ //! NetCDFCpp::PutVara(). However, for blocked data dimensions
  //! the values of \p start and \p count must be block aligned  
  //! unless the hyperslab includes the array boundary, in which case
  //! the hyperslab must be aligned to the boundary. 
@@ -456,7 +464,8 @@ public:
 
  //! Read a hyper-slab of values from the currently opened variable
  //!
- //! The currently opened variable may or may not be compressed.
+ //! The currently opened variable may or may not be a WASP
+ //! variable (See InqVarWASP()).
  //!
  //! If a compressed variable is being read and the transform
  //! supports multi-resolution the method InqVarDimlens()
@@ -507,7 +516,8 @@ public:
 
  //! Read an array of values from the currently opened variable
  //!
- //! The currently opened variable may or may not be compressed
+ //! The currently opened variable may or may not be a WASP
+ //! variable (See InqVarWASP()).
  //!
  //! The entire variable is read and copied into the array pointed to
  //! by \p data. The caller is responsible for ensuring that
@@ -526,6 +536,7 @@ public:
 
  //! Return the NetCDF file paths that would be created from a base
  //! path.
+ //!
  //!
  //! \param[in] path The file base name of the new NetCDF data set
  //! \param[in] numfiles An integer greater than or equal to one indicating 
