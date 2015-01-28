@@ -225,9 +225,11 @@ int DCReaderGRIB::ReadSlice(float *values){
 			}
 		}
 
-		string oc = targetVar->getOperatingCenter();
-		int id = targetVar->getParamId();
-		if ((oc == "ecmf") && (id = 98)) {				//We are looking at geopotential height, so divide by g
+		//string oc = targetVar->getOperatingCenter();
+		//int id = targetVar->getParamId();
+		//If we are looking at geopotential height, divide by g
+		//if ((oc == "ecmf") && (id = 126)) { 
+		if (_openVar == "z") {		// z is geopotential.  Divide by g to get geopotential height
 			values[vaporIndex] = (float) _dvalues[gribIndex] / 9.8;
 		}
 		else {
@@ -658,11 +660,10 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	typedef std::map<std::string, Variable*>::iterator it_type;
 	for (it_type iterator=_vars3d.begin(); iterator!=_vars3d.end(); iterator++){
 		if (iterator->first == "gh") _vars3d["ELEVATION"] = new Variable(*_vars3d["gh"]);	// KISTI's definition of geopotential height
-		cout << _vars3d[iterator->first]->getOperatingCenter() << " ";
-		cout << _vars3d[iterator->first]->getParamId() << endl;
-		if ((_vars3d[iterator->first]->getParamId() == 129) &&
-			(_vars3d[iterator->first]->getOperatingCenter() == "ecmf"))
-				_vars3d["ELEVATION"] = new Variable(*_vars3d[iterator->first]);
+		if (iterator->first == "z") _vars3d["ELEVATION"] = new Variable(*_vars3d["z"]);	// KISTI's definition of geopotential height
+		//if ((_vars3d[iterator->first]->getParamId() == 129) &&
+		//	(_vars3d[iterator->first]->getOperatingCenter() == "ecmf"))
+		//		_vars3d["ELEVATION"] = new Variable(*_vars3d[iterator->first]);
 	}
 
 	for (it_type iterator=_vars3d.begin(); iterator!=_vars3d.end(); iterator++){

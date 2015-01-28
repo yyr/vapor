@@ -423,9 +423,9 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
     MyBase::SetErrMsgFilePtr(stderr);
 
     _progname = Basename(argv[0]);
+	OptionParser op;
 
 #ifdef DEAD
-	OptionParser op;
 	if (!strcmp(dataType.c_str(),"GRIMs")){
 		if (op.AppendOptions(grib_opts) < 0) {
 			return(-1);
@@ -437,6 +437,7 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 		}
 	}
 #endif
+
 	op.AppendOptions(set_opts);
 
     if (op.ParseOptions(&argc, argv, get_options) < 0) {
