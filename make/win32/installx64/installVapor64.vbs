@@ -41,9 +41,9 @@ End if
 
 SysEnv("PYTHONHOME") = pythonhome
 
-if (gribVar <> "") Then
-    gribVar = ";" & gribVar
-End if
+'if (gribVar <> "") Then
+'    gribVar = ";" & gribVar
+'End if
 
 SysEnv("GRIB_DEFINITION_PATH") = gribdatabase & gribVar
 
