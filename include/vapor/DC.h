@@ -346,6 +346,7 @@ public:
 	_periodic(periodic)
   {
 	if (_cratios.size()==0) _cratios.push_back(1);
+	for (int i=_bs.size(); i<_dimensions.size(); i++) _bs.push_back(1);
   };
 
   //! No compression constructor 
@@ -690,7 +691,6 @@ public:
  //!
  //! \retval status A negative int is returned on failure
  //!
- //! \sa EndDefine();
  //
  virtual int Initialize(const vector <string> &paths) = 0;
 
@@ -715,8 +715,6 @@ public:
  //! This method returns the list of names of all of the dimensions
  //! defined in the DC.
  //!
- //! \sa DefineDimension()
- //!
  virtual std::vector <string> GetDimensionNames() const = 0;
 
  //! Return a coordinate variable's definition
@@ -729,7 +727,7 @@ public:
  //! \param[out] coordvar A CoordVar object containing the definition
  //! of the named variable.
  //! \retval bool False is returned if the named coordinate variable does 
- //! not exist, and the contents of cvar will be undefined.
+ //! not exist, and the contents of \p cvar will be undefined.
  //!
  virtual bool GetCoordVarInfo(string varname, DC::CoordVar &cvar) const = 0;
 
@@ -812,7 +810,6 @@ public:
  //!
  //! \retval status A negative int is returned on failure
  //!
- //! \sa PutAtt()
  //
  virtual int GetAtt(
 	string varname, string attname, vector <double> &values
@@ -1130,6 +1127,8 @@ public:
  //! \param[out] length The dimension length, which must be greater than zero. 
  //! \param[out] axis The axis associated with the dimension. 
  //! \retval bool If the named dimension can not be found false is returned.
+ //!
+ //! \sa DC::Dimension
  //!
  virtual bool GetDimension(
 	string dimname, size_t &length, int &axis
