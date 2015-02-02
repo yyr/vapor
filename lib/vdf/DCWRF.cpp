@@ -81,9 +81,6 @@ DCWRF::~DCWRF() {
 int DCWRF::Initialize(const vector <string> &files) {
 
 
-	vector <string> time_dimnames;
-	vector <string> time_coordvars;
-	time_dimnames.push_back("Time");
 
 	NetCDFCollection *ncdfc = new NetCDFCollection();
 
@@ -99,6 +96,13 @@ int DCWRF::Initialize(const vector <string> &files) {
 	vector <string> sorted_files = files;
 	std::sort(sorted_files.begin(), sorted_files.end());
 
+	// Initialize the NetCDFCollection class. Need to specify the name
+	// of the time dimension ("Times" for WRF), and time coordinate variable
+	// names (N/A for WRF)
+	//
+	vector <string> time_dimnames;
+	vector <string> time_coordvars;
+	time_dimnames.push_back("Time");
 	int rc = ncdfc->Initialize(sorted_files, time_dimnames, time_coordvars);
 	if (rc<0) {
 		SetErrMsg("Failed to initialize netCDF data collection for reading");
@@ -107,6 +111,8 @@ int DCWRF::Initialize(const vector <string> &files) {
 
 
 
+	// Use UDUnits for unit conversion
+	//
 	rc = _udunits.Initialize();
 	if (rc<0) {
 		SetErrMsg(
@@ -116,7 +122,7 @@ int DCWRF::Initialize(const vector <string> &files) {
 		return(-1);
 	}
 
-	// Get required and optional global attributes 
+	// Get required and optional global attributes  from WRF files.
 	// Initializes members: _dx, _dy, _cen_lat, _cen_lon, _pole_lat,
 	// _pole_lon, _grav, _radius, _p2si
 	//
@@ -141,24 +147,33 @@ int DCWRF::Initialize(const vector <string> &files) {
 		return(-1);
 	}
 
-	//  Set up the X, Y, XV, YV, XU, and YU coordinate variables
-	//	Initializes members: _coordVarMap
+	// Set up the X, Y, XV, YV, XU, and YU coordinate variables
+	// These are derived variables that provide horizontal coordinates
+	// in **Cartographic coordinates**. I.e. geographic coordinate
+	// variables found in WRF data are projected to cartographic 
+	// coordinates using Proj4
+	//
+	// Initializes members: _coordVarMap
 	//
 	rc = _InitHorizontalCoordinates(ncdfc, &_proj4API);
 	if (rc<0) {
 		return(-1);
 	}
 
-	//  Set up the ELEVATION coordinate variable
-	//	Initializes members: _coordVarMap
+	// Set up the ELEVATION coordinate variable. WRF pressure based
+	// coordinate system is transformed to meters by generated derived
+	// variables.
+	// 
+	// Initializes members: _coordVarMap
 	//
 	rc = _InitVerticalCoordinates(ncdfc);
 	if (rc<0) {
 		return(-1);
 	}
 
-	// Set up user time and time stamps
-	//	Initializes members: _coordVarsMap
+	// Set up user time coordinate derived variable . Time must be
+	// in seconds.
+	// Initializes members: _coordVarsMap
 	//
 	rc = _InitTime(ncdfc);
 	if (rc<0) {
@@ -168,7 +183,6 @@ int DCWRF::Initialize(const vector <string> &files) {
 	//
 	// Identify data and coordinate variables. Sets up members:
 	// Initializes members: _dataVarsMap, _coordVarsMap
-	// _vars2dExcluded
 	//
 	rc = _InitVars(ncdfc) ;
 	if (rc<0) return(-1);
@@ -388,17 +402,22 @@ int DCWRF::GetVar(string varname, float *data) {
 	}
 	vector <DC::Dimension> dims = var.GetDimensions();
 
-	int nts = 1;
+	int nts = 1;	// num time steps
 	if (var.IsTimeVarying()) {
 		nts = dims[dims.size()-1].GetLength();
-		dims.pop_back();
+		dims.pop_back();	// remove time dimension
 	}
 
+	// Number of grid points for variable
+	//
 	size_t sz = 1;
 	for (int i=0; i<dims.size(); i++) {
 		sz *= dims[i].GetLength();
 	}
 		
+	//
+	// Read one time step at a time
+	//
 	float *ptr = data;
 	for (int ts=0; ts<nts; ts++) {
 		int rc = DCWRF::OpenVariableRead(ts, varname);
@@ -410,7 +429,7 @@ int DCWRF::GetVar(string varname, float *data) {
 		rc = DCWRF::CloseVariable();
 		if (rc<0) return(-1);
 		
-		ptr += sz;
+		ptr += sz;	// Advance buffer past current time step
 	}
 	return(0);
 }
@@ -453,6 +472,10 @@ vector <string> DCWRF::_GetSpatialDimNames(
 	return(v);
 }
 
+//
+// Read select attributes from the WRF files. Most of the attributes are
+// needed for map projections 
+//
 int DCWRF::_InitAtts(
 	NetCDFCollection *ncdfc
 ) {
@@ -508,6 +531,11 @@ int DCWRF::_InitAtts(
 	//
 	// "PlanetWRF" attributes
 	//
+	// RADIUS is the radius of the planet 
+	//
+	// P2SI is the number of SI seconds in an planetary solar day
+	// divided by the number of SI seconds in an earth solar day
+	//
 	ncdfc->GetAtt("", "G", dvalues);
 	if (dvalues.size() == 1) {
 
@@ -531,6 +559,12 @@ int DCWRF::_InitAtts(
 	return(0);
 }
 
+//
+// Generate a Proj4 projection string for whatever map projection is used
+// by the data. Map projection type is indicated by map_proj
+// The Proj4 string will be used to transform from geographic coordinates
+// measured in degrees to Cartographic coordinates in meters.
+//
 int DCWRF::_GetProj4String(
 	NetCDFCollection *ncdfc, float radius, int map_proj, string &projstring
 ) {
@@ -740,6 +774,9 @@ int DCWRF::_GetProj4String(
 	return(0);
 }
 
+//
+// Set up map projection stuff
+//
 int DCWRF::_InitProjection(
 	NetCDFCollection *ncdfc, float radius
 ) {
@@ -770,16 +807,24 @@ int DCWRF::_InitProjection(
 	return(0);
 }
 
+//
+// Create derived variables expressing the horizontal coordinates
+// in Cartographic coordinates in meters. WRF uses a Arakawa C grid (staggered
+// grid). Hence, there are separate horizontal coordinates for U, V, and
+// all other variables.
+// 
+// The derived variables are named X, Y, XU, YU, XV, YV.
+//
 int DCWRF::_InitHorizontalCoordinates(
 	NetCDFCollection *ncdfc, Proj4API *proj4API
 ) {
 	_coordVarsMap.clear();
 	_derivedX = NULL;
-	_derivedY = NULL;
+	_derivedY = NULL;	// Derived X and Y for all vars except U and V
 	_derivedXU = NULL;
-	_derivedYU = NULL;
+	_derivedYU = NULL;	// Derived X and Y for U
 	_derivedXV = NULL;
-	_derivedYV = NULL;
+	_derivedYV = NULL;	// Derived X and Y for V
 
 	vector <bool> periodic(2, false);
 
@@ -795,17 +840,31 @@ int DCWRF::_InitHorizontalCoordinates(
 	// "X" coordinate, unstaggered
 	//
 
+	// Get dimensions from _dimsMap. Dimensions of cartographic dimensions
+	// will be same as geographic. Order must be from fastest to slowest
+	// varying dimension.
+	//
 	vector <DC::Dimension> dims;
 	dims.push_back(_dimsMap["west_east"]);
 	dims.push_back(_dimsMap["Time"]);
 	string name = "X";
 
+	// Create the X derived variable class object
+	//
 	_derivedX = new DerivedVarHorizontal(
 		ncdfc, name, dims, latlondims, proj4API
 	);
 
+	// Install the derived variable on the NetCDFCollection class. Then
+	// all NetCDFCollection methods will treat the derived variable as
+	// if it existed in the WRF data set.
+	//
 	ncdfc->InstallDerivedVar(name, _derivedX);
 
+	// Finally, add the variable to _coordVarsMap. Probably don't 
+	// need to do this here. Could do this when we process native WRF
+	// variables later. Sigh
+	//
 	_coordVarsMap[name] = CoordVar(
 		name, dims, "meters", DC::FLOAT, periodic, 0, true
 	);
@@ -894,6 +953,15 @@ int DCWRF::_InitHorizontalCoordinates(
 	return(0);
 }
 
+//
+// Create derived variables expressing the vertical coordinates
+// in meters. WRF uses a Arakawa C grid (staggered
+// grid). Hence, there are separate vertical coordinates for U, V, W, and
+// all other variables.
+// 
+// The derived variables are named ELEVATION, ELEVATIONU, ELEVATIONV,
+// ELEVATIONW.
+//
 int DCWRF::_InitVerticalCoordinates(
 	NetCDFCollection *ncdfc
 ) {
@@ -967,6 +1035,11 @@ int DCWRF::_InitVerticalCoordinates(
 	return(0);
 }
 
+
+// Create a derived variable for the time coordinate. Time in WRF data
+// is an array of formatted time strings. The DC class requires that
+// time be expressed as seconds represented as floats.
+//
 int DCWRF::_InitTime(
 	NetCDFCollection *ncdfc
 ) {
@@ -983,6 +1056,10 @@ int DCWRF::_InitTime(
 
 	const char *format = "%4d-%2d-%2d_%2d:%2d:%2d";
 
+	// Read all of the formatted time strings up front - it's a 1D array
+	// so we can simply store the results in memory - and convert from
+	// a formatted time string to seconds since the EPOCH
+	//
 	vector <float> times;
 	for (size_t ts = 0; ts < ncdfc->GetTimeDim("Times"); ts++) {
 
@@ -1021,6 +1098,9 @@ int DCWRF::_InitTime(
 	}
 	delete [] buf;
 
+	// Create and install the Time coordinate variable
+	//
+	
 	vector <DC::Dimension> dims;
 	dims.push_back(_dimsMap["Time"]);
 
@@ -1036,12 +1116,18 @@ int DCWRF::_InitTime(
 	return(0);
 }
 
+// Get Space and time dimensions from WRF data set. Initialize
+// _dimsMap and _sliceBuffer
+//
 int DCWRF::_InitDimensions(
 	NetCDFCollection *ncdfc
 ) {
 	_dimsMap.clear();
 	_sliceBuffer = NULL;
 
+	// Get dimension names and lengths for all dimensions in the
+	// WRF data set. 
+	//
 	vector <string> dimnames = ncdfc->GetDimNames();
 	vector <size_t> dimlens = ncdfc->GetDims();
 	assert(dimnames.size() == dimlens.size());
@@ -1049,6 +1135,12 @@ int DCWRF::_InitDimensions(
 	size_t maxnx = 0;
 	size_t maxny = 0;
 
+	// WRF files use reserved names for dimensions. The time dimension
+	// is always named "Time", etc.
+	// Dimensions are expressed in the DC::Dimension class as a
+	// combination of name, length, and axis (one of 0,1,2,3, coresponding
+	// to X axis, Y, Z, and time)
+	//
 	int axis;
 	string timedimname = "Time";
 	for (int i=0; i<dimnames.size(); i++) {
@@ -1093,6 +1185,8 @@ int DCWRF::_InitDimensions(
 		return(-1);
 	}
 
+	// Set up slice buffer for reading data from WRF one 2D slice at a time
+	//
 	_sliceBuffer = new float[maxnx * maxny];
 	if (! _sliceBuffer) return(-1);
 	
@@ -1100,6 +1194,15 @@ int DCWRF::_InitDimensions(
 }
 
 
+// Given a data variable name return the variable's dimensions and
+// associated coordinate variables. The coordinate variable names
+// returned is for the derived coordinate variables expressed in 
+// Cartographic coordinates, not the native geographic coordinates
+// found in the WRF file. 
+//
+// The order of the returned vectors
+// is significant.
+//
 bool DCWRF::_GetVarCoordinates(
 	NetCDFCollection *ncdfc, string varname,
 	vector <DC::Dimension> &dimensions,
@@ -1108,6 +1211,8 @@ bool DCWRF::_GetVarCoordinates(
 	dimensions.clear();
 	coordvars.clear();
 
+	// Order of dimensions in WRF files is reverse of DC convention
+	//
 	vector <size_t> dims = ncdfc->GetDims(varname);
 	reverse(dims.begin(), dims.end());	// DC dimension order
 
@@ -1115,6 +1220,8 @@ bool DCWRF::_GetVarCoordinates(
 	reverse(dimnames.begin(), dimnames.end());
 	assert(dims.size() == dimnames.size());
 
+	// Deal with time dimension first
+	//
 	if (dimnames.size() == 1) {
 		if (dimnames[0].compare("Times")!=0) {
 			return(false);
@@ -1186,13 +1293,17 @@ bool DCWRF::_GetVarCoordinates(
 
 }
 
+// Collect metadata for all data variables found in the WRF data 
+// set. Initialize the _dataVarsMap member
+//
 int DCWRF::_InitVars(NetCDFCollection *ncdfc) 
 {
 	_dataVarsMap.clear();
 
 	vector <bool> periodic(3, false);
 	//
-	// Get data variables 
+	// Get names of variables  in the WRF data set that have 1 2 or 3
+	// spatial dimensions
 	//
 	vector <string> vars;
 	for (int i=1; i<4; i++) {
@@ -1200,6 +1311,8 @@ int DCWRF::_InitVars(NetCDFCollection *ncdfc)
 		vars.insert(vars.end(), v.begin(), v.end());
 	}
 
+	// For each variable add a member to _dataVarsMap
+	//
 	for (int i=0; i<vars.size(); i++) {
 
 		// variable type must be float or int
@@ -1238,7 +1351,21 @@ int DCWRF::_InitVars(NetCDFCollection *ncdfc)
 	return(0);
 }
 
+//////////////////////////////////////////////////////////////////////
+//
+// Class definitions for derived coordinate variables
+//
+//////////////////////////////////////////////////////////////////////
 
+// The ELEVATION variables used for the vertical coordinate.
+//
+// The conversion from WRF's native vertical coordinate system to
+// meters above the ground is given by:
+//
+//	z = PH * PHB / g
+//
+// where g is the gravitational constant
+//
 DCWRF::DerivedVarElevation::DerivedVarElevation(
 	NetCDFCollection *ncdfc, string name, 
 	const vector <DC::Dimension> &dims, float grav
@@ -1286,6 +1413,11 @@ DCWRF::DerivedVarElevation::DerivedVarElevation(
 	for (int i=0; i<3; i++) _sdimnames.push_back(dimsncdf[i+1].GetName());
 
 
+	// Depending on which vertical coordinate variable we are calculating
+	// (ELEVATION, ELEVATIONU, ELEVATIONV, ELEVATIONW) we may need to
+	// interpolate or extrapolate because we only have PH and PHB for 
+	// the W grid
+	//
 	_ph_dims = _sdims;
 	if (_name.compare("ELEVATION")==0) {
 		_zinterpolate = true;
@@ -1359,6 +1491,9 @@ int DCWRF::DerivedVarElevation::Read(float *buf, int) {
 	return(0);
 }
 
+// Read a 2D slice from PH or PHB and vertical (along Z) interpolation if 
+// required.
+//
 int DCWRF::DerivedVarElevation::_ReadSlice(
 	float *slice
 ) {
@@ -1367,6 +1502,10 @@ int DCWRF::DerivedVarElevation::_ReadSlice(
 	size_t nx = _ph_dims[2];
 	size_t ny = _ph_dims[1];
 
+	
+	// First deal with interpolation along Z axis. Need to interpolate if
+	// requested vertical coordinate is not on W grid. 
+	//
 	if (_firstSlice && _zinterpolate) {
 		int rc;
 		rc = _ncdfc->ReadSlice(_PH, _PHfd);
@@ -1419,6 +1558,9 @@ int DCWRF::DerivedVarElevation::ReadSlice(
 		return(-1);
 	}
 	
+	// If calculating ELEVATIONU or ELEVATIONV extrapolation will be 
+	// required.
+	//
 	if (! (_xextrapolate || _yextrapolate)) {
 		return (DerivedVarElevation::_ReadSlice(slice));
 	}
@@ -1503,6 +1645,11 @@ int DCWRF::DerivedVarElevation::Close(int) {
 	return(rc);
 }
 
+// The X,Y, XU,YU, XV,YV variables used for the horizontal coordinate.
+//
+// WRF's native horizontal coordinate system is geographic. Need to
+// project from geographic to Cartographic using the Proj4 API
+//
 DCWRF::DerivedVarHorizontal::DerivedVarHorizontal(
 	NetCDFCollection *ncdfc, string name, const vector <DC::Dimension> &dims,
 	const vector <size_t> latlondims, Proj4API *proj4API
@@ -1545,6 +1692,9 @@ DCWRF::DerivedVarHorizontal::DerivedVarHorizontal(
 	_lonname.clear();
 	_latname.clear();
 
+	// Figure out which native WRF coordinate arrays to use based
+	// on the requested Cartographic coordinate
+	//
 	if ((_name.compare("X")==0) || (_name.compare("Y")==0)) {
 		_lonname = "XLONG";
 		_latname = "XLAT";
@@ -1584,6 +1734,8 @@ int DCWRF::DerivedVarHorizontal::_GetCartCoords(
 	size_t ts
 ) {
 
+	// Read 2D longitude variable
+	//
 	int fd = _ncdfc->OpenRead(ts,_lonname);
 	if (fd<0) {
 		SetErrMsg("Can't read %s variable", _lonname.c_str());
@@ -1598,8 +1750,12 @@ int DCWRF::DerivedVarHorizontal::_GetCartCoords(
 	}
 	_ncdfc->Close(fd);
 
+	// We only care about the boundary values
+	//
 	GeoUtil::ExtractBoundary(_sliceBuf, _nx, _ny, _lonBdryBuf);
 
+	// Read 2D lattitude variable
+	//
 	fd = _ncdfc->OpenRead(ts,_latname);
 	if (fd<0) {
 		SetErrMsg("Can't read %s variable", _latname.c_str());
@@ -1616,9 +1772,13 @@ int DCWRF::DerivedVarHorizontal::_GetCartCoords(
 
 	GeoUtil::ExtractBoundary(_sliceBuf, _nx, _ny, _latBdryBuf);
 
+	// Transform boundary values only
+	//
 	size_t n = 2*_nx + 2*_ny - 4;
 	rc = _proj4API->Transform(_lonBdryBuf, _latBdryBuf, n);
 
+	// now find min and max Cartographic coordinates along grid boundary
+	//
 	float minx = _lonBdryBuf[0];
 	float maxx = _lonBdryBuf[0];
 	float miny = _latBdryBuf[0];
@@ -1634,6 +1794,9 @@ int DCWRF::DerivedVarHorizontal::_GetCartCoords(
 	assert(_nx>1);
 	assert(_ny>1);
 
+	// Compute 1D X or Y coordinate variable assuming uniform spacing
+	// between min and max. The WRF projection guarantees isotropic grids
+	//
 	float delta;
 	if (_name.compare(0,1,"X")==0) { 
 		assert(_ncoords == _nx);
@@ -1705,6 +1868,8 @@ int DCWRF::DerivedVarHorizontal::Close(int) {
 	return(0);
 }
 
+// The Time variables used for the time coordinate.
+//
 DCWRF::DerivedVarTime::DerivedVarTime(
 	NetCDFCollection *ncdfc, DC::Dimension dim, 
 	const std::vector <float> &timecoords
