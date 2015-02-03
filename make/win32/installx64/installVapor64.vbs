@@ -35,15 +35,15 @@ SysEnv("VAPOR_SHARE") = vaporshare
 pythonVar = sysEnv("PYTHONHOME")
 gribVar = sysEnv("GRIB_DEFINITION_PATH")
 
-if (Len(PythonVar) > 0) Then
-    MsgBox("PYTHONHOME variable is being reset to point to VAPOR Python home")
-End if
+'if (Len(PythonVar) > 0) Then
+'    MsgBox("PYTHONHOME variable is being reset to point to VAPOR Python home")
+'End if
 
 SysEnv("PYTHONHOME") = pythonhome
 
-'if (gribVar <> "") Then
-'    gribVar = ";" & gribVar
-'End if
+if (gribVar <> "") Then
+    gribVar = ";" & gribVar
+End if
 
 SysEnv("GRIB_DEFINITION_PATH") = gribdatabase & gribVar
 
