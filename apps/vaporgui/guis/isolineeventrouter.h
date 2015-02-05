@@ -26,7 +26,7 @@
 #include "params.h"
 #include "eventrouter.h"
 #include <vapor/MyBase.h>
-#include "contourtab.h"
+#include "contourTab.h"
 #include "isolineAppearance.h"
 #include "isolineLayout.h"
 #include "isolineIsovals.h"

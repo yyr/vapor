@@ -54,7 +54,7 @@
 #include <fstream>
 #include <sstream>
 #include "params.h"
-#include "contourtab.h"
+#include "contourTab.h"
 #include <vapor/jpegapi.h>
 #include <vapor/XmlNode.h>
 #include "vapor/GetAppPath.h"
