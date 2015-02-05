@@ -79,10 +79,10 @@ restart(){
 //Reinitialize region settings, session has changed
 //Need to force the regionMin, regionMax to be OK.
 void RegionParams::
-Validate(bool doOverride){
+Validate(int type){
 	//Command capturing should be disabled
 	assert(!Command::isRecording());
-	
+	bool doOverride = (type == 0);
 	int i;
 	
 	const double* extents = DataStatus::getInstance()->getLocalExtents();
@@ -168,7 +168,7 @@ bool RegionParams::insertTime(int timestep){
 	for (int i = 0; i<6; i++) copyExts.push_back(extents[i]);
 	GetBox()->SetValueLong(Box::_timesTag, "",copyTimes, this);
 	GetBox()->SetValueDouble(Box::_extentsTag,"", copyExts, this);
-	Validate(false);
+	Validate(2);
 	Command::CaptureEnd(cmd,this);
 	return true;
 }

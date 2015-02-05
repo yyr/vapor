@@ -75,8 +75,8 @@ MapperFunctionBase(tag)
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-MapperFunction::MapperFunction(RenderParams* p, int nBits) :
-  MapperFunctionBase(nBits,MapperFunctionBase::_mapperFunctionTag)
+MapperFunction::MapperFunction(RenderParams* p, int nBits, const string& tag) :
+  MapperFunctionBase(p, nBits,tag)
 {
 	
 	 //
@@ -91,7 +91,7 @@ MapperFunction::MapperFunction(RenderParams* p, int nBits) :
 
 	// Now recreate them with the appropriate type
 	//
-    VColormap* _colormap = new VColormap(NULL);
+    VColormap* _colormap = new VColormap(this);
 	_colormap->SetInterpType(TFInterpolator::linear);
 	SetColorMap(_colormap);
 
@@ -149,7 +149,8 @@ ARGB MapperFunction::colorValue(float value)
 // Constructor for empty, default IsoControl
 //----------------------------------------------------------------------------
 IsoControl::IsoControl() : 
-  MapperFunction()
+
+  MapperFunction(Params::_IsoControlTag)
 {	
 	//
     // Delete the opacity maps
@@ -166,11 +167,12 @@ IsoControl::IsoControl() :
 
 }
 
+
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
 IsoControl::IsoControl(RenderParams* p, int nBits) :
-  MapperFunction(p,nBits)
+  MapperFunction(p,nBits, Params::_IsoControlTag)
 {
 	
 	//

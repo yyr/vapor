@@ -45,6 +45,11 @@
            <string>Barbs</string>
           </property>
          </item>
+         <item>
+          <property name="text">
+           <string>Contours</string>
+          </property>
+         </item>
         </widget>
        </item>
        <item>

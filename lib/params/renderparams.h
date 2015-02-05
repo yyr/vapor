@@ -178,7 +178,10 @@ public:
 		vector<double>vals = GetValueDoubleVec(_editBoundsTag);
 		while (vals.size()<2) vals.push_back(val);
 		vals[1]=val;
-		SetValueDouble(_editBoundsTag,"change edit min bound",vals);
+		SetValueDouble(_editBoundsTag,"change edit max bound",vals);
+	}
+	void SetEditBounds(vector<double>bounds){
+		SetValueDouble(_editBoundsTag,"set edit bounds",bounds);
 	}
 	virtual MapperFunction* GetMapperFunc(){
 		return 0;

@@ -167,7 +167,7 @@ void ArrowEventRouter::confirmText(bool /*render*/){
 	aParams->SetVectorScale(scale);
 	
 	guiSetTextChanged(false);
-	aParams->Validate(false);
+	aParams->Validate(2);
 	Command::CaptureEnd(cmd,aParams);
 	
 	updateTab();

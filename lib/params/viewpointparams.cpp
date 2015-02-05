@@ -124,11 +124,11 @@ restart(){
 //Note that this should be called after the region is init'ed
 //
 void ViewpointParams::
-Validate(bool doOverride){
+Validate(int type){
 	//Command capturing should be disabled
 	assert(!Command::isRecording());
 	
-	if (doOverride){
+	if (type==0){
 		//set to defaults:
 		restart();
 		

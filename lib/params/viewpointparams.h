@@ -72,7 +72,7 @@ public:
 	
 	//! Virtual method to check that values in Params are valid, and
 	//! forces them either to valid or default values.
-	virtual void Validate(bool useDefault);
+	virtual void Validate(int type);
 
 	//! Put a ViewpointParams into default state in the absence of data
 	virtual void restart();

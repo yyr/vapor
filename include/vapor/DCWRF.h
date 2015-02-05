@@ -18,7 +18,8 @@ namespace VAPoR {
 //! \class DCWRF
 //! \ingroup Public_VDCWRF
 //!
-//! \brief Defines API for reading a collection of data.
+//! \brief Class for reading a WRF data set stored as a series
+//! of NetCDF files.
 //!
 //! \author John Clyne
 //! \date    January, 2015
@@ -35,14 +36,15 @@ public:
 
  //! Initialize the DCWRF class
  //!
- //! Prepare a DCWRF for reading. This method prepares
- //! the master DCWRF file indicated by \p path for reading.
+ //! Prepare a WRF data set for reading. This method prepares
+ //! the DCWRF class for reading the files indicated by
+ //! \p paths.
  //! The method should be called immediately after the constructor, 
  //! before any other class methods. This method
  //! exists only because C++ constructors can not return error codes.
  //!
- //! \param[in] path Path name of file that contains, or will
- //! contain, the DCWRF master file for this data collection
+ //! \param[in] path A list of WRF NetCDF files comprising the output of 
+ //! a single WRF model run.
  //!
  //! \retval status A negative int is returned on failure
  //!
@@ -207,12 +209,9 @@ private:
  float _p2si;
  float _mapProj;
 
- std::vector<string> _timeStamps;
- std::vector<float> _times;
- int _ovr_fd;
+ int _ovr_fd;	// File descriptor for currently opened file
  string _projString;
  Proj4API _proj4API;
-
 
  float *_sliceBuffer;
 
@@ -275,6 +274,18 @@ private:
 
  int _InitVars(NetCDFCollection *ncdfc);
 
+ ///////////////////////////////////////////////////////////////////////////
+ //
+ //	Specializations of the NetCDFCollection::DerivedVar class used to 
+ // support derived variables - required variables that are not 
+ // found in the WRF data.
+ //
+ ///////////////////////////////////////////////////////////////////////////
+
+ //
+ // Elevation derived variable. This class computes a vertical coordinate
+ // in meters from the pressure variables found in a WRF data set
+ //
  class DerivedVarElevation : public VAPoR::NetCDFCollection::DerivedVar {
  public:
   DerivedVarElevation(
@@ -321,6 +332,11 @@ private:
  };
 
 
+ //
+ // Horizontal coordinate  derived variables. This class computes 
+ // horizontal coordinate variables in meters by using a map projection
+ // from geographic to cartographic coordinates
+ //
  class DerivedVarHorizontal : public NetCDFCollection::DerivedVar {
  public:
   DerivedVarHorizontal(
@@ -362,6 +378,10 @@ private:
   int _GetCartCoords(size_t ts);
  };
 
+ //
+ // Time coordinate  derived variables. This class computes 
+ // a time coordinate variable with units in seconds.
+ //
  class DerivedVarTime : public NetCDFCollection::DerivedVar {
  public:
   DerivedVarTime(

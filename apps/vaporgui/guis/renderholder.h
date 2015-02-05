@@ -7,7 +7,7 @@
 #include "qpushbutton.h"
 #include "qtableview.h"
 #include "params.h"
-#include "arrowparams.h"
+
 #include "eventrouter.h"
 #include <vapor/MyBase.h>
 #include "renderselector.h"

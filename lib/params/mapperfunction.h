@@ -42,18 +42,20 @@ class PARAMS_API MapperFunction : public MapperFunctionBase
 public:
 	MapperFunction();
 	MapperFunction(const string& tag);
-	MapperFunction(RenderParams* p, int nBits = 8);
+	MapperFunction(RenderParams* p, int nBits = 8, const string& tag =_mapperFunctionTag );
 	MapperFunction(const MapperFunction &mapper);
 	MapperFunction(const MapperFunctionBase &mapper);
 	static ParamsBase* CreateDefaultInstance(){return new MapperFunction();}
 
 	virtual ~MapperFunction();
+	/*
 	virtual MapperFunction* deepCopy(ParamNode* newRoot = 0){
 		MapperFunction* mf = new MapperFunction(*this);
 		mf->SetRootParamNode(newRoot);
 		if(newRoot) newRoot->SetParamsBase(mf);
 		return mf;
 	}
+	*/
 
 	
 	
@@ -74,12 +76,14 @@ public:
 	IsoControl(RenderParams* p, int nBits = 8);
 	//Copy constructor
 	IsoControl(const IsoControl &mapper);
+	/*
 	virtual IsoControl* deepCopy(ParamNode* newRoot = 0){
 		IsoControl* mf = new IsoControl(*this);
 		mf->SetRootParamNode(newRoot);
 		if(newRoot) newRoot->SetParamsBase(mf);
 		return mf;
 	}
+	*/
 	static ParamsBase* CreateDefaultInstance(){return new IsoControl();}
 	virtual ~IsoControl();
 	void setIsoValue(double val);

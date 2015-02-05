@@ -81,7 +81,7 @@ void GLIsolineWindow::mouseReleaseEvent( QMouseEvent *e ){
 
 GLIsolineWindow::GLIsolineWindow( QGLFormat& fmt, QWidget* parent, const char* , IsolineFrame* pf ) : 
 	QGLWidget(fmt, parent) {
-
+	
 	if(!doubleBuffer()){
 		QString strng(" Inadequate rendering capability.\n");
 		strng += "Ensure your graphics card is properly configured, and/or \n";
@@ -117,6 +117,8 @@ GLIsolineWindow::~GLIsolineWindow()
 
 void GLIsolineWindow::resizeGL( int width, int height )
 {
+	printOpenGLErrorMsg("GLIsoWindowResizeEvent");
+	
 	_winWidth = width;
 	_winHeight = height;
 	
@@ -166,6 +168,8 @@ void GLIsolineWindow::setImageSize(float horiz, float vert){
 
 void GLIsolineWindow::paintGL()
 {
+	printOpenGLErrorMsg("GLIsoWindowPaintGL");
+	
 #ifdef  Darwin
 	//
 	// Under Mac OS 10.8.2 paintGL() is called before the frame buffer
@@ -184,6 +188,7 @@ void GLIsolineWindow::paintGL()
 	rendering = true;
 
 	printOpenGLErrorMsg("GLIsolineWindow");
+
 	_resizeGL();
 	
 	//If there is a valid cache in the renderer, use it to draw in the tab.
@@ -267,7 +272,7 @@ void GLIsolineWindow::performRendering(int timestep, const std::map<pair<int,int
 
 void GLIsolineWindow::initializeGL()
 {
-	printOpenGLErrorMsg("GLIsolineWindow");
+	printOpenGLErrorMsg("GLIsolineWindowInitialize");
 	
    	makeCurrent();
 	

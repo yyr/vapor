@@ -236,6 +236,7 @@
     <ClCompile Include="..\..\..\lib\vdf\DCReaderNCDF.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\DCReaderROMS.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\DCReaderWRF.cpp" />
+    <ClCompile Include="..\..\..\lib\vdf\DCWRF.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\ExpatParseMgr.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\ImpExp.cpp" />
     <ClCompile Include="..\..\..\lib\vdf\LayeredGrid.cpp" />
@@ -299,6 +300,7 @@
     <ClInclude Include="..\..\..\include\vapor\DCReaderMOM.h" />
     <ClInclude Include="..\..\..\include\vapor\DCReaderNCDF.h" />
     <ClInclude Include="..\..\..\include\vapor\DCReaderROMS.h" />
+    <ClInclude Include="..\..\..\include\vapor\DCWRF.h" />
     <ClInclude Include="..\..\..\include\vapor\ExpatParseMgr.h" />
     <ClInclude Include="..\..\..\include\vapor\ImpExp.h" />
     <ClInclude Include="..\..\..\include\vapor\LayeredGrid.h" />

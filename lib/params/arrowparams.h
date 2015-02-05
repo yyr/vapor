@@ -40,7 +40,7 @@ public:
 
 	//! Validate current settings
 	//! \param[in] bool useDefault determines whether or not to set values to default.
-	virtual void Validate(bool useDefault);
+	virtual void Validate(int type);
 	virtual bool IsOpaque() {return true;}
 	//!
 	//! Determine if the specified variable is being used

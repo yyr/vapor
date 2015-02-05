@@ -43,7 +43,7 @@ public:
 	//!
 	//! Pure virtual method required of Params
 	//!
-	virtual void Validate(bool override);
+	virtual void Validate(int type);
 
 
 	
@@ -259,7 +259,6 @@ protected:
 	static const string _2DBoxTag;
 	static const string _3DBoxTag;
 	static const string _editBoundsTag;
-	static const string _IsoControlTag;
 	static const string _textEnabledTag;
 	static const string _useSingleColorTag;
 	static const string _singleColorTag;

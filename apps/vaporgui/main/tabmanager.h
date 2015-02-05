@@ -56,6 +56,9 @@ class TabManager : public QTabWidget{
 		//
 		void addWidget(QWidget* wid, Params::ParamsBaseType widgetBaseType);
 
+		// Show the render widget corresponding to a particular tag:
+		void showRenderWidget(string tag);
+
 		//Find the position of the specified widget in subTab, or -1 if it isn't there.
 		//
 		int findWidget(Params::ParamsBaseType widgetBaseType);

@@ -24,6 +24,8 @@
 #include <fstream>
 #include <sstream>
 #include "vizwinparams.h"
+#include "vapor/OpacityMapBase.h"
+#include "vapor/ColorMapBase.h"
 
 using namespace VAPoR;
 ControlExec* ControlExec::controlExecutive = 0;
@@ -152,8 +154,8 @@ int ControlExec::ActivateRender(int viz, string type, int instance, bool on){
 	}
 	//OK, p is enabled, we should activate it
 	if (on) { 
-		Renderer* myArrow = new ArrowRenderer(GetVisualizer(viz), p);
-		GetVisualizer(viz)->insertSortedRenderer(p,myArrow);
+		Renderer* myRenderer = Renderer::CreateInstance(type, p, GetVisualizer(viz));
+		GetVisualizer(viz)->insertSortedRenderer(p,myRenderer);
 		return 0;
 	}
 	else return -1;//not on!
@@ -345,6 +347,10 @@ createAllDefaultParams() {
 
 	ParamsBase::RegisterParamsBaseClass(Box::_boxTag, Box::CreateDefaultInstance, false);
 	ParamsBase::RegisterParamsBaseClass(Viewpoint::_viewpointTag, Viewpoint::CreateDefaultInstance, false);
+	ParamsBase::RegisterParamsBaseClass(TransferFunction::_transferFunctionTag, TransferFunction::CreateDefaultInstance, false);
+	ParamsBase::RegisterParamsBaseClass(RenderParams::_IsoControlTag, IsoControl::CreateDefaultInstance, false);
+	ParamsBase::RegisterParamsBaseClass(ColorMapBase::_tag, ColorMapBase::CreateDefaultInstance, false);
+	ParamsBase::RegisterParamsBaseClass(OpacityMapBase::_tag, OpacityMapBase::CreateDefaultInstance, false);
 
 	//Animation Params comes first because others will refer to it.
 	ParamsBase::RegisterParamsBaseClass(Params::_animationParamsTag, AnimationParams::CreateDefaultInstance, true);
@@ -360,7 +366,9 @@ reinitializeParams(bool doOverride){
 	for (int i = 1; i<= Params::GetNumParamsClasses(); i++){
 		Params* p = Params::GetDefaultParams(i);
 		bool rparams = p->isRenderParams();
-		p->Validate(rparams||doOverride);
+		int type = 1; 
+		if (rparams||doOverride) type = 0;
+		p->Validate(type);
 		ViewpointParams* vpp = dynamic_cast<ViewpointParams*>(p);
 		if (vpp) vpp->SetChanged(true);
 	}
@@ -374,12 +382,14 @@ reinitializeParams(bool doOverride){
 		for (int pType = 1; pType <= Params::GetNumParamsClasses(); pType++){
 			for (int inst = 0; inst < Params::GetNumParamsInstances(pType, viz); inst++){
 				Params* p = Params::GetParamsInstance(pType,viz,inst);
-				p->Validate(doOverride);
+				int type = 1;
+				if (doOverride) type = 0;
+				p->Validate(type);
 				if (!p->isRenderParams()) break;
 				RenderParams* rParams = (RenderParams*)p;
 				rParams->SetEnabled(false);
 			}
-			//Set the active instances for renderParams
+			//Set the default instance for renderParams
 			Params* q = Params::GetDefaultParams(pType);
 			if (!q->isRenderParams()) continue;
 			int currentInstance = InstanceParams::GetCurrentInstance(GetTagFromType(pType),viz);
