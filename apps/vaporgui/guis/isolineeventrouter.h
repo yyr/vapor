@@ -26,7 +26,12 @@
 #include "params.h"
 #include "eventrouter.h"
 #include <vapor/MyBase.h>
-#include "isolinetab.h"
+#include "contourtab.h"
+#include "isolineAppearance.h"
+#include "isolineLayout.h"
+#include "isolineIsovals.h"
+#include "isolineImage.h"
+#include "isolineBasics.h"
 
 
 using namespace VetsUtil;
@@ -38,7 +43,7 @@ class XmlNode;
 class PanelCommand;
 class TransferFunction;
 
-class IsolineEventRouter : public QWidget, public Ui_IsolineTab, public EventRouter {
+class IsolineEventRouter : public QWidget, public Ui_ContourTab, public EventRouter {
 	Q_OBJECT
 public: 
 	
@@ -54,8 +59,6 @@ public:
 	virtual void hookUpTab();
 	virtual void confirmText(bool /*render*/);
 	virtual void updateTab();
-	
-	virtual void refreshTab();
 	
 	virtual void setEditorDirty(RenderParams*);
 	
@@ -181,9 +184,6 @@ protected slots:
 	void setIsolineTabTextChanged(const QString& qs);
 	void isolineReturnPressed();
 	
-	void showHideAppearance();
-	void showHideLayout();
-	void showHideImage();
 	void guiSetPanelBackgroundColor();
 	void guiSetDimension(int);
 	void guiSetAligned();
@@ -195,6 +195,11 @@ protected slots:
 	
 	
 protected:
+	IsolineBasics *myBasics;
+	IsolineAppearance * myAppearance;
+	IsolineLayout * myLayout;
+	IsolineIsovals * myIsovals;
+	IsolineImage *myImage;
 	static const char* webHelpText[];
 	static const char* webHelpURL[];
 	void setIsolineToExtents(const double* extents, IsolineParams* pparams);

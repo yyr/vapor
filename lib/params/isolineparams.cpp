@@ -6,12 +6,12 @@
 #include <string>
 #include "transferfunction.h"
 #include "vapor/MapperFunctionBase.h"
+#include "command.h"
 
 using namespace VetsUtil;
 using namespace VAPoR;
 const string IsolineParams::_shortName = "Contours";
 const string IsolineParams::_isolineParamsTag = "IsolineParams";
-const string IsolineParams::_IsoControlTag = "IsoControl";
 const string IsolineParams::_panelBackgroundColorTag= "PanelBackgroundColor";
 const string IsolineParams::_isolineExtentsTag = "IsolineExtents";
 const string IsolineParams::_lineThicknessTag = "LineThickness";
@@ -46,10 +46,11 @@ IsolineParams::~IsolineParams() {
 //Initialize for new metadata.  Keep old transfer functions
 //
 void IsolineParams::
-Validate(bool doOverride){
+Validate(int type){
 
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
+	bool doOverride = (type == 0);
 	int numVariables2D = dataMgr->GetVariables2DXY().size();
 	int numVariables3D = dataMgr->GetVariables3D().size();
 	int totNumVariables = numVariables2D+numVariables3D;
@@ -119,6 +120,7 @@ Validate(bool doOverride){
 			new3DIsoControls[i]->setMaxHistoValue(dataMax);
 			vector<double> isovals(1,0.5*(dataMin+dataMax)); 
 			new3DIsoControls[i]->setIsoValues(isovals);
+			
 		}
 		for (int i = 0; i<numVariables2D; i++){
 			string varname = dataMgr->GetVariables2DXY()[i];
@@ -136,10 +138,10 @@ Validate(bool doOverride){
 			vector<double> isovals(1,0.5*(dataMin+dataMax)); 
 			new2DIsoControls[i]->setIsoValues(isovals);
 		}
-	} else {
+	} else if (type == 1) {
 		//attempt to make use of existing isocontrols.
 		//delete any that are no longer referenced
-		
+		//Unnecessary with type=2.
 		for (int i = 0; i<numVariables3D; i++){
 			string varname = dataMgr->GetVariables3D()[i];
 			if(i<GetNumVariables3D()){ //make copy of existing ones, don't set their root nodes yet
@@ -202,31 +204,36 @@ Validate(bool doOverride){
 			}
 			
 		}
-	} //end if(doOverride)
+	} //end if(doOverride or type == 1)
 
-	//Delete all existing variable nodes
-	GetRootNode()->DeleteNode(_Variables3DTag);
-	GetRootNode()->DeleteNode(_Variables2DTag);
+	if (type != 2){
+		//Delete all existing variable nodes
+		GetRootNode()->DeleteNode(_Variables3DTag);
+		GetRootNode()->DeleteNode(_Variables2DTag);
 	
-	vector<string> path;
-	for (int i = 0; i<numVariables3D; i++){
-		path.clear();
-		path.push_back(_Variables3DTag);
-		std::string& varname = dataMgr->GetVariables3D()[i];
-		path.push_back(varname);
-		path.push_back(_IsoControlTag);
-		SetParamsBase(path, new3DIsoControls[i]);
+		vector<string> path;
+		vector<double>ccs;
+		for (int i = 0; i<numVariables3D; i++){
+			path.clear();
+			path.push_back(_Variables3DTag);
+			std::string varname = dataMgr->GetVariables3D()[i];
+			path.push_back(varname);
+			path.push_back(_IsoControlTag);
+			SetParamsBase(path, new3DIsoControls[i]);
+			ccs = GetIsoControl(varname, true)->GetColorMap()->GetControlPoints();
+		}
+	
+		for (int i = 0; i<numVariables2D; i++){
+			path.clear();
+			path.push_back(_Variables2DTag);
+			std::string varname = dataMgr->GetVariables2DXY()[i];
+			path.push_back(varname);
+			path.push_back(_IsoControlTag);
+			SetParamsBase(path, new2DIsoControls[i]);
+		}
+		if (numVariables2D > 0)assert(GetRootNode()->GetNode(_Variables2DTag)->GetNumChildren() == numVariables2D);
+		if (numVariables3D > 0)assert(GetRootNode()->GetNode(_Variables3DTag)->GetNumChildren() == numVariables3D);
 	}
-	for (int i = 0; i<numVariables2D; i++){
-		path.clear();
-		path.push_back(_Variables2DTag);
-		std::string& varname = dataMgr->GetVariables2DXY()[i];
-		path.push_back(varname);
-		path.push_back(_IsoControlTag);
-		SetParamsBase(path, new2DIsoControls[i]);
-	}
-	if (numVariables2D > 0)assert(GetRootNode()->GetNode(_Variables2DTag)->GetNumChildren() == numVariables2D);
-	if (numVariables3D > 0)assert(GetRootNode()->GetNode(_Variables3DTag)->GetNumChildren() == numVariables3D);
 	
 	delete [] new2DIsoControls;
 	delete [] new3DIsoControls;
@@ -323,10 +330,12 @@ Validate(bool doOverride){
 		if (GetPanelLineThickness() < 1.0 || GetPanelLineThickness() > 100.) SetPanelLineThickness(1.0);
 	}
 	initializeBypassFlags();
+	IsoControl* ictl = GetIsoControl();
 	return;
 }
 //Set everything to default values
 void IsolineParams::restart() {
+	Command::blockCapture();
 	//Delete any child nodes
 	GetRootNode()->DeleteAll();
 	
@@ -359,6 +368,7 @@ void IsolineParams::restart() {
 	iControl = (IsoControl*)IsoControl::CreateDefaultInstance();
 	iControl->setMinMapValue(0.);
 	iControl->setMaxMapValue(1.);
+	iControl->setParams(this);
 	SetIsoControl("isovar3d",iControl,true);
 	SetVariableName("isovar3d");
 	selectPoint[0]=selectPoint[1]=selectPoint[2]=0.f;
@@ -372,9 +382,10 @@ void IsolineParams::restart() {
 	SetHistoStretch(1.);
 	zeros.push_back(0.);
 
-	setMinEditBound(0.);
-	setMaxEditBound(1.);
-	
+	vector<double> bounds;
+	bounds.push_back(0.);
+	bounds.push_back(1.);
+	SetEditBounds(bounds);
 	SetEnabled(false);
 	const float black_color[3] = {.0, .0, .0};
 	
@@ -416,6 +427,7 @@ void IsolineParams::restart() {
 	SetTextDensity(0.25);
 	SetTextEnabled(false);
 	GetBox()->SetAngles(zeros, this);
+	Command::unblockCapture();
 	
 }
 

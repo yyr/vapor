@@ -117,20 +117,19 @@ int ParamsBase::SetParamsBase(const vector<string>& path, ParamsBase* pbase){
 	if (!lastNode){
 		//Need to use the pbase's root node
 		lastNode = pbase->GetRootNode();
-		node->AddChild(lastNode);
+		node->AddNode(lastTag,lastNode);
 		lastNode->SetParamsBase(pbase);
 		lastNode->Attrs()[_typeAttr] = ParamNode::_paramsBaseAttr;
 		return 0;
 	}
 	else {
 		if( lastNode->GetParamsBase()) {
-			//Delete any existing ParamsBase
-			delete lastNode->GetParamsBase();
+			
 			ParamNode* newNode = new ParamNode(lastTag);
 			node->ReplaceChild(lastNode,newNode);
 			pbase->SetRootParamNode(newNode);
 			newNode->SetParamsBase(pbase);
-			lastNode->Attrs()[_typeAttr] = ParamNode::_paramsBaseAttr;
+			newNode->Attrs()[_typeAttr] = ParamNode::_paramsBaseAttr;
 			return 0;
 		}
 		//It really shouldn't ever get here:  the ParamNode 
@@ -163,6 +162,8 @@ int ParamsBase::RemoveParamsBase(const vector<string>& path, ParamsBase* pbase){
 	else {
 		if( lastNode->GetParamsBase()) {
 			//Delete the existing ParamsBase
+			//First set its ParamNode to null so it won't be deleted:
+			lastNode->GetParamsBase()->SetRootParamNode(0);
 			delete lastNode->GetParamsBase();
 			//Replace it with null, so we can remove the child.
 			lastNode->SetParamsBase(0);
@@ -378,7 +379,7 @@ int ParamsBase::SetValueLong(string tag, const char* description, long value, Pa
 		if (cmd) delete cmd;
 		return rc;
 	}
-	if (p&&cmd) p->Validate(false);
+	if (p&&cmd) p->Validate(2);
 	if (cmd) Command::CaptureEnd(cmd, p);
 	return 0;
 }
@@ -392,7 +393,7 @@ int ParamsBase::SetValueLong(string tag, const char* description, const vector<l
 		if (cmd) delete cmd;
 		return rc;
 	}
-	if (p&&cmd) p->Validate(false);
+	if (p&&cmd) p->Validate(2);
 	if (cmd) Command::CaptureEnd(cmd, p);
 	return rc;
 }
@@ -405,7 +406,7 @@ int ParamsBase::SetValueDouble(string tag, const char* description, double value
 		if (cmd) delete cmd;
 		return rc;
 	}
-	if (p&&cmd) p->Validate(false);
+	if (p&&cmd) p->Validate(2);
 	if (cmd) Command::CaptureEnd(cmd, p);
 	return rc;
 }
@@ -413,12 +414,13 @@ int ParamsBase::SetValueDouble(string tag, const char* description, const vector
 	Command* cmd = 0;
 	if (Command::isRecording() && p)
 		cmd = Command::CaptureStart(p, description);
+	if (!GetRootNode()) return -1;
 	int rc = GetRootNode()->SetElementDouble(tag,value);
 	if (rc){
 		if (cmd) delete cmd;
 		return rc;
 	}
-	if (p&&cmd) p->Validate(false);
+	if (p&&cmd) p->Validate(2);
 	if (cmd) Command::CaptureEnd(cmd, p);
 	return rc;
 }
@@ -432,7 +434,7 @@ int ParamsBase::SetValueString(string tag, const char* description, const string
 		if (cmd) delete cmd;
 		return rc;
 	}
-	if (p&&cmd) p->Validate(false);
+	if (p&&cmd) p->Validate(2);
 	if (cmd) Command::CaptureEnd(cmd, p);
 	return rc;
 }
@@ -443,7 +445,7 @@ int ParamsBase::SetValueStringVec(string tag,const  char* description, const vec
 	if (Command::isRecording()&&p)
 		cmd = Command::CaptureStart(p, description);
 	int rc = GetRootNode()->SetElementStringVec(tag,value);
-	if (p&&cmd) p->Validate(false);
+	if (p&&cmd) p->Validate(2);
 	if (cmd) Command::CaptureEnd(cmd, p);
 	return rc;
 }

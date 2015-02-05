@@ -49,6 +49,7 @@ using namespace VAPoR;
 VizWin::VizWin( MainForm* parent, const QString& name, VizWinMgr* myMgr, QRect* location, int winNum)
     : QGLWidget(parent)
 {
+	
 	setAttribute(Qt::WA_DeleteOnClose);
     myWindowNum = winNum;
 	setWindowIcon(QPixmap(vapor_icon___));
@@ -92,7 +93,8 @@ focusInEvent(QFocusEvent* e){
 // React to a user-change in window size/position (or possibly max/min)
 // Either the window is minimized, maximized, restored, or just resized.
 void VizWin::resizeGL(int width, int height){
-	
+	printOpenGLErrorMsg("GLVizWindowResizeEvent");
+
 	ControlExec::ResizeViz(myWindowNum, width, height);
 	VizWinParams::SetWindowHeight(myWindowNum, height);
 	VizWinParams::SetWindowWidth(myWindowNum, width);
@@ -100,6 +102,8 @@ void VizWin::resizeGL(int width, int height){
 	return;
 }
 void VizWin::initializeGL(){
+	printOpenGLErrorMsg("GLVizWindowInitializeEvent");
+	
 	ControlExec::InitializeViz(myWindowNum, width(),height());
 }
 
@@ -395,6 +399,8 @@ void VizWin::setFocus(){
 void VizWin::paintGL(){
 	//only paint if necessary
 	//Note that makeCurrent is needed when here we have multiple windows.
+	printOpenGLErrorMsg("VizWindowPaintGL");
+	
 	makeCurrent();
 	int rc = ControlExec::Paint(myWindowNum, false);
 	

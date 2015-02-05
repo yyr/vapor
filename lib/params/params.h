@@ -392,19 +392,22 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 
 
 //! Pure virtual method for validation of all settings
-//! It is important that implementers of Params classes write this method so that
+//! It is required that implementers of Params classes write this method so that
 //! it checks the values of all parameters in the Params instance, ensuring that they
 //! are consistent with the current DataMgr
-//! When the "default" argument is true, this method must all parameters to their default values
+//! When the type argument is 0, this method sets all parameters to their default values
 //! associated with the current Data Manager.
-//! When the "default" argument is false, the method should change only those parameters that are
+//! When the type argument is 1, the method changes only those parameters that are
 //! inconsistent with the current Data Manager, setting them to values that are consistent.
+//! When the type argument is 2 the method can assume that the DataMgr has not changed
+//! so the values that change with DataMgr (such as the variable names) do not need to
+//! be checked.
 //! \par
 //! The Validate method is invoked after a SetValue is issued, so that the state of the Params
 //! object should be valid even after erroneous values have been set.
 //! \param[in] bool default 
 //! \sa DataMgr
-	virtual void Validate(bool setdefault)=0;
+	virtual void Validate(int type)=0;
 
 //! Static method that tells whether or not any renderer is enabled in a visualizer. 
 //! Useful for application developers.
@@ -617,7 +620,7 @@ class DummyParams : public Params {
 	virtual ~DummyParams(){}
 	virtual void restart(){}
 	
-	virtual void Validate(bool) {return;}
+	virtual void Validate(int) {return;}
 	
 	virtual bool usingVariable(const std::string& ){
 		return false;

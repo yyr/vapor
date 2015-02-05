@@ -280,7 +280,9 @@ list<float> OpacityWidget::selectedPoints()
 //----------------------------------------------------------------------------
 void OpacityWidget::paintGL()
 {
-  printOpenGLErrorMsg("OpacityWidget");
+	
+  printOpenGLErrorMsg("OpacityWidgetPaintGL");
+  
 
   glPushName(_id);
       

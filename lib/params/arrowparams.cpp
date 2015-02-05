@@ -43,10 +43,10 @@ ArrowParams::~ArrowParams() {
 // For each new variable in the metadata create a variable child node, and build the
 // associated isoControl and transfer function nodes.
 void ArrowParams::
-Validate(bool doOverride){
+Validate(int type){
 	//Command capturing should be disabled
 	assert(!Command::isRecording());
-	
+	bool doOverride = (type == 0);
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return;
@@ -179,7 +179,7 @@ Validate(bool doOverride){
 }
 //Set everything to default values
 void ArrowParams::restart() {
-	
+	Command::blockCapture();
 	SetVizNum(0);
 	SetRefinementLevel(0);
 	SetCompressionLevel(0);
@@ -189,9 +189,9 @@ void ArrowParams::restart() {
 	SetFieldVariableName(2, "0");
 	SetVariables3D(true);
 	SetHeightVariableName("HGT");
-	Command::blockCapture();
+	
 	SetEnabled(false);
-	Command::unblockCapture();
+	
 	const double default_color[3] = {1.0, 0.0, 0.0};
 	SetConstantColor(default_color);
 	SetVectorScale(1.0);
@@ -223,7 +223,7 @@ void ArrowParams::restart() {
 	alignStrides.push_back(0);
 	SetGridAlignStrides(alignStrides);
 	AlignGridToData(false);
-	
+	Command::unblockCapture();
 }
 //calculate rake extents when aligned to data.
 //Also determine the dimensions (size) of the grid-aligned rake

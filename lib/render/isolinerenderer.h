@@ -42,7 +42,15 @@ public:
 
     IsolineRenderer( Visualizer* , RenderParams*);
     ~IsolineRenderer();
-	
+
+//! CreateInstance:  Static method to create a renderer given the associated Params instance and visualizer
+//! \param[in] Visualizer* pointer to the visualizer where this will draw
+//! \param[in] RenderParams* pointer to the IsolineParams associated with this renderer
+//! \return IsolineRenderer* new IsolineRenderer instance.
+	static Renderer* CreateInstance(Visualizer* v, RenderParams* rp) {
+		return new IsolineRenderer(v,rp);
+	}
+
 	virtual int	_initializeGL();
     virtual int		_paintGL(DataMgr*);
 

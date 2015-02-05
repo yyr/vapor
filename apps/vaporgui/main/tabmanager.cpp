@@ -35,6 +35,8 @@
 #include "mainform.h"
 #include "vapor/ControlExecutive.h"
 #include "renderholder.h"
+#include "arrowparams.h"
+#include "isolineparams.h"
 
 using namespace VAPoR;
 
@@ -96,6 +98,14 @@ void TabManager::addWidget(QWidget* wid, Params::ParamsBaseType widBaseType){
 	int ttype = getTabType(widBaseType);
 	widgets[ttype].push_back(wid);
 	widgetBaseTypes[ttype].push_back(widBaseType);
+}
+
+void TabManager::showRenderWidget(string tag){
+	Params::ParamsBaseType typ = ParamsBase::GetTypeFromTag(tag);
+	for (int i = 0; i<widgets[0].size(); i++){
+		if (widgetBaseTypes[0][i] != typ) widgets[0][i]->hide();
+		else widgets[0][i]->show();
+	}
 }
 
 
@@ -216,6 +226,9 @@ void TabManager::orderTabs(){
 	RenderHolder* renderHolder = new RenderHolder(this);
 	
 	int rc = renderHolder->addWidget(widgets[0][0], "Barbs_1", ArrowParams::_arrowParamsTag);
+	rc = renderHolder->addWidget(widgets[0][1], "Contours_1", IsolineParams::_isolineParamsTag);
+	widgets[0][0]->hide();
+	widgets[0][1]->hide();
 	rc = addTab(renderHolder, topName[0]);
 	//Add the bottom widgets (eventrouter-based) to 2 of the 3 top widgets.
 	for (int topTab = 1; topTab<3; topTab++){

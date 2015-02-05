@@ -177,7 +177,7 @@ public:
 #ifndef DOXYGEN_SKIP_THIS
 	//! Make state valid, either setting to defaults, or to values consistent with data
 	//! \param in bool setDefault true if values are set to default.
-	virtual void Validate(bool setdefault);
+	virtual void Validate(int type);
 	//! Put a params instance into default state with no data.
 	virtual void restart();
 	//! Pure virtual method on Params. Provide a short name suitable for use in the GUI

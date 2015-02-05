@@ -105,6 +105,7 @@ MappingFrame::MappingFrame(QWidget* parent, const char* )
     _bottomGap(10)
 
 {
+	
   initWidgets();
   initConnections();
   setMouseTracking(true);
@@ -769,6 +770,8 @@ void MappingFrame::deleteOpacityWidgets()
 //----------------------------------------------------------------------------
 void MappingFrame::resizeGL(int width, int height)
 {
+	printOpenGLErrorMsg("MappingFrameResizeEvent");
+	
   //
   // Update the size of the drawing rectangle
   //
@@ -801,8 +804,8 @@ void MappingFrame::paintGL()
   }
 #endif
 
-  printOpenGLErrorMsg("MappingFrame");
-
+  printOpenGLErrorMsg("MappingFramePaint");
+  
   glDisable(GL_LIGHT0);
   glDisable(GL_LIGHTING);
 
@@ -960,7 +963,8 @@ void MappingFrame::paintGL()
 void MappingFrame::initializeGL()
 {
  
-  printOpenGLErrorMsg("MappingFrame");
+  printOpenGLErrorMsg("MappingFrameInitialize");
+
   setAutoBufferSwap(false);
   qglClearColor(QColor(0,0,0)); 
 
@@ -1588,6 +1592,7 @@ void MappingFrame::resize()
   //
   // View to world coordinates factor
   //
+float foo = height();
   float unitPerPixel = 1.0 / (float)(height()-totalFixedHeight());
 
   //Provide extra space at bottom for 2 rows of annotation with isolines.
@@ -2431,11 +2436,13 @@ void MappingFrame::setIsolineSlider(int index)
 }
 void MappingFrame::paintEvent(QPaintEvent* event)
 {
+	printOpenGLErrorMsg("MappingFramePaintEvent");
+	
 	  QGLWidget::paintEvent(event);
+	  printOpenGLErrorMsg("MappingFramePaintEvent");
 	
 }
 void MappingFrame::updateGL(){
-	
 	
 #ifndef Darwin
 	QGLWidget::updateGL();

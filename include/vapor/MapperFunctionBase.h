@@ -40,7 +40,7 @@ class PARAMS_API MapperFunctionBase : public ParamsBase
 
 public:
 	MapperFunctionBase(const string& name);
-	MapperFunctionBase(int nBits, const string& name);
+	MapperFunctionBase(RenderParams* p, int nBits, const string& name);
 	
 	virtual ~MapperFunctionBase();
 
@@ -65,8 +65,12 @@ public:
 	float getMinMapValue() { return GetValueDouble(_leftDataBoundTag); }
 	float getMaxMapValue() { return GetValueDouble(_rightDataBoundTag); }
 	
-	void setMinMapValue(float val) { SetValueDouble(_leftDataBoundTag, "Set min map value", val, _params);}
-	void setMaxMapValue(float val)  { SetValueDouble(_rightDataBoundTag, "Set max map value", val, _params);}
+	void setMinMapValue(float val) { 
+		SetValueDouble(_leftDataBoundTag, "Set min map value", val, _params);
+	}
+	void setMaxMapValue(float val)  { 
+		SetValueDouble(_rightDataBoundTag, "Set max map value", val, _params);
+	}
 	
     virtual void setVarNum(int var) {
 		SetValueLong(_varNumTag, "Set variable num", var, _params);

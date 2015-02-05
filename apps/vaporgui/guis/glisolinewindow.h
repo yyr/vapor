@@ -31,7 +31,7 @@
 #endif
 
 #include <qgl.h>
-
+#include "glutil.h"
 #include <QPaintEvent>
 #include "visualizer.h"
 #define ISOL_CURSOR_COLOR 1.f,1.f,1.f
@@ -65,6 +65,7 @@ protected:
     void		resizeGL( int w, int h );
 	//Virtual, Reimplemented here:
 	void paintEvent(QPaintEvent* event){
+		printOpenGLErrorMsg("GLIsoWindowPaintEvent");
 		QGLWidget::paintEvent(event);
 	}
 	void performRendering(int timestep, const std::map<pair<int,int>,vector<float*> >&  lineCache);

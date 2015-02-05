@@ -44,6 +44,13 @@ namespace VAPoR {
 //! Destructor
     virtual ~ArrowRenderer();
 
+//! CreateInstance:  Static method to create a renderer given the associated Params instance and visualizer
+//! \param[in] Visualizer* pointer to the visualizer where this will draw
+//! \param[in] RenderParams* pointer to the ArrowParams associated with this renderer
+	static Renderer* CreateInstance(Visualizer* v, RenderParams* rp) {
+		return new ArrowRenderer(v,rp);
+	}
+
 
 //! Virtual method to force rebuilding of any caches associated with this renderer.
 //! The ArrowRender has no caches so this method does nothing.

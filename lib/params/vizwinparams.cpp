@@ -62,10 +62,9 @@ restart(){
 //Reinitialize settings, session has changed
 
 void VizWinParams::
-Validate(bool doOverride){
+Validate(int type){
 	//Command capturing should be disabled
 	assert(!Command::isRecording());
-	
 	
 	//Otherwise, verify that this is a registered mouse mode
 	//else if (GetCurrentMouseMode()

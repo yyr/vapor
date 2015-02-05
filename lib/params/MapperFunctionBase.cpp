@@ -63,21 +63,25 @@ MapperFunctionBase::MapperFunctionBase(const string& name) :
 {	
 	opacityMapNum = 0;
 	previousClass = 0;
+	_params = NULL;
+	
 	setOpacityScale(1.0);
 	setVarNum(0);
    
-    SetColorMap(NULL);
+    SetColorMap((ColorMapBase*)ColorMapBase::CreateDefaultInstance());
 	_params = NULL;
     setOpacityComposition( ADDITION);
+	
 }
 
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-MapperFunctionBase::MapperFunctionBase(int nBits, const string& name) : 
-	ParamsBase(name),
+MapperFunctionBase::MapperFunctionBase(RenderParams* p, int nBits, const string& name) : 
+	ParamsBase(0, name),
 	numEntries(256)
 {
+	_params = p;
 	opacityMapNum = 0;
 	previousClass = 0;
 	setMinMapValue(0.);
@@ -85,9 +89,7 @@ MapperFunctionBase::MapperFunctionBase(int nBits, const string& name) :
 	
     setOpacityScale( 1.0);
 	setVarNum(0);
-
-    SetColorMap(NULL);
-	_params = NULL;
+	
     setOpacityComposition( ADDITION);
 }
 

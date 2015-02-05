@@ -167,9 +167,9 @@ public:
 	virtual ~VizWinParams();
 	
 	//! Method to validate all values in a VizWinParams instance
-	//! \param[in] bool default indicates whether or not to set to default values associated with the current DataMgr
+	//! \param[in] type indicates whether or not to set to default values associated with the current DataMgr, or if the DataMgr has not changed
 	//! \sa DataMgr
-	virtual void Validate(bool useDefault);
+	virtual void Validate(int type);
 	//! Method to initialize a new VizWinParams instance
 	virtual void restart();
 	

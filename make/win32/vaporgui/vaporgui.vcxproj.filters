@@ -183,6 +183,21 @@
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp">
       <Filter>Generated MOC Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isolineAppearance.cpp">
+      <Filter>Generated MOC Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isolineBasics.cpp">
+      <Filter>Generated MOC Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isolineImage.cpp">
+      <Filter>Generated MOC Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isolineIsovals.cpp">
+      <Filter>Generated MOC Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isolineLayout.cpp">
+      <Filter>Generated MOC Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\apps\vaporgui\guis\eventrouter.h">
@@ -221,13 +236,28 @@
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\barbBasic.h">
       <Filter>Generated Form Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\isolinetab.h">
-      <Filter>Generated Form Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\apps\vaporgui\guis\glisolinewindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.h">
+      <Filter>Generated Form Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\contourTab.h">
+      <Filter>Generated Form Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\contourLayout.h">
+      <Filter>Generated Form Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\contourIsovalues.h">
+      <Filter>Generated Form Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\contourImage.h">
+      <Filter>Generated Form Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\contourBasics.h">
+      <Filter>Generated Form Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\contourAppearance.h">
       <Filter>Generated Form Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -313,9 +343,6 @@
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\arrowBasic.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\isolinetab.ui">
-      <Filter>Forms</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.ui">
       <Filter>Forms</Filter>
     </CustomBuild>
@@ -347,6 +374,39 @@
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\qtthumbwheel.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\contourAppearance.ui">
+      <Filter>Forms</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\contourBasics.ui">
+      <Filter>Forms</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\contourImage.ui">
+      <Filter>Forms</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\contourIsovalues.ui">
+      <Filter>Forms</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\contourLayout.ui">
+      <Filter>Forms</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\contourTab.ui">
+      <Filter>Forms</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\isolineAppearance.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\isolineBasics.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\isolineImage.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\isolineIsovals.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\isolineLayout.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>

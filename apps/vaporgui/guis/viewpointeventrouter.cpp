@@ -215,7 +215,7 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 	vParams->setUpVec(2, upVec2->text().toFloat());
 	
 	
-	vParams->Validate(false);
+	vParams->Validate(2);
 	Command::CaptureEnd(cmd, vParams);
 
 	updateRenderer(vParams,false, -1, false);

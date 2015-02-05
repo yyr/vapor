@@ -58,7 +58,7 @@ public:
 	//! Method to validate all values in a MouseModeParams instance
 	//! \param[in] bool default indicates whether or not to set to default values associated with the current DataMgr
 	//! \sa DataMgr
-	virtual void Validate(bool useDefault);
+	virtual void Validate(int type);
 	//! Method to initialize a new MouseModeParams instance
 	virtual void restart();
 	
