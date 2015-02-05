@@ -124,8 +124,8 @@ createAllDefaultTabs() {
 	InstallTab(Params::_viewpointParamsTag, ViewpointEventRouter::CreateTab);
 	InstallTab(Params::_regionParamsTag, RegionEventRouter::CreateTab);
 	
-	//set up tabs
-	tabManager->orderTabs();
+	//set up widgets in tabs:
+	tabManager->installWidgets();
 	
 
 }

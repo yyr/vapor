@@ -145,6 +145,7 @@ MappingFrame::~MappingFrame()
   }
   _axisTexts.clear();
   _axisTextPos.clear();
+  _mapper = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -782,7 +783,7 @@ void MappingFrame::resizeGL(int width, int height)
   glMatrixMode(GL_MODELVIEW);
 
   qglClearColor(QColor(0,0,0)); 
-
+  printOpenGLErrorMsg("MappingFrameResizeEvent");
 }
 	
 //----------------------------------------------------------------------------
@@ -792,7 +793,7 @@ void MappingFrame::paintGL()
 {
 
   printOpenGLErrorMsg("MappingFramePaint");
-  
+ 
   glDisable(GL_LIGHT0);
   glDisable(GL_LIGHTING);
 
@@ -951,7 +952,7 @@ void MappingFrame::initializeGL()
 {
  
   printOpenGLErrorMsg("MappingFrameInitialize");
-
+ 
   setAutoBufferSwap(false);
   qglClearColor(QColor(0,0,0)); 
 
@@ -1579,7 +1580,7 @@ void MappingFrame::resize()
   //
   // View to world coordinates factor
   //
-float foo = height();
+
   float unitPerPixel = 1.0 / (float)(height()-totalFixedHeight());
 
   //Provide extra space at bottom for 2 rows of annotation with isolines.

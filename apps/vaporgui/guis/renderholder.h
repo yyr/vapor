@@ -37,7 +37,9 @@ public:
 	void deleteViznum(int);
 	void addViznum(int);
 	
-
+	void setCurrentIndex(int indx){
+		stackedWidget->setCurrentIndex(indx);
+	}
 
 private slots:
 	void newRenderer();

@@ -99,12 +99,14 @@ void VizWin::resizeGL(int width, int height){
 	VizWinParams::SetWindowHeight(myWindowNum, height);
 	VizWinParams::SetWindowWidth(myWindowNum, width);
 	reallyUpdate();
+	printOpenGLErrorMsg("GLVizWindowResizeEvent");
 	return;
 }
 void VizWin::initializeGL(){
 	printOpenGLErrorMsg("GLVizWindowInitializeEvent");
 	
 	ControlExec::InitializeViz(myWindowNum, width(),height());
+	printOpenGLErrorMsg("GLVizWindowInitializeEvent");
 }
 
 /* If the user presses the mouse on the active viz window,
@@ -405,6 +407,7 @@ void VizWin::paintGL(){
 	int rc = ControlExec::Paint(myWindowNum, false);
 	
 	if (!rc) swapBuffers();
+	printOpenGLErrorMsg("VizWindowPaintGL");
 	return;
 	
 }

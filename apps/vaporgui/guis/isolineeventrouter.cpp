@@ -275,7 +275,7 @@ IsolineEventRouter::hookUpTab()
 //Insert values from params into tab panel
 //
 void IsolineEventRouter::updateTab(){
-	//if(!MainForm::getTabManager()->isFrontTab(this)) return;
+	if(!MainForm::getTabManager()->isFrontTab(this)) return;
 	MainForm::getInstance()->buildWebTabHelpMenu(myWebHelpActions);
 
 	guiSetTextChanged(false);

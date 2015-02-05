@@ -28,6 +28,7 @@ namespace VAPoR {
 
 class MainForm;
 class ControlExec;
+class RenderHolder;
 //Total number of different widgets that can go into tabs
 //
 
@@ -83,12 +84,12 @@ class TabManager : public QTabWidget{
 			e->accept();// This prevents a "beep" from occuring when you press enter on the Mac.
 		}
 		
-		//Refresh the tabs
-		void orderTabs();
+		//During initialization, put all the widgets in the appropriate tabs.
+		void installWidgets();
 		//switch tabs, to force front tab to resize properly
 		void toggleFrontTabs(Params::ParamsBaseType currentType);
 		
-		QTabWidget* getSubTabWidget(int widType){
+		QWidget* getSubTabWidget(int widType){
 			return topWidgets[widType];
 		}
 		int getTabType(ParamsBase::ParamsBaseType);
@@ -103,11 +104,12 @@ class TabManager : public QTabWidget{
 		//Data structures to store widget info
 		vector<QWidget*> widgets[3];
 		vector<ParamsBase::ParamsBaseType> widgetBaseTypes[3];
-		QTabWidget* topWidgets[3];
+		QWidget* topWidgets[3];
 		QString topName[3];
 		int currentFrontPage[3];
 		int currentTopTab;
 		QWidget* myParent;
+		RenderHolder* renderHolder;
 		
 };
 };

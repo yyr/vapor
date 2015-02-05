@@ -205,8 +205,8 @@ selectInstance(){
 	string tag = rP->GetName();
 	int instance = instanceIndex[viznum][row];
 	ControlExec::SetCurrentParamsInstance(viznum,tag, instance);
-	VizWinMgr::getEventRouter(tag)->updateTab();
 	VizWinMgr::getInstance()->getTabManager()->showRenderWidget(tag);
+	VizWinMgr::getEventRouter(tag)->updateTab();
 }
 void RenderHolder::
 itemTextChange(QTableWidgetItem* item){
