@@ -127,11 +127,19 @@ void GLIsolineWindow::resizeGL( int width, int height )
 
 void GLIsolineWindow::_resizeGL() {
 
+	glMatrixMode(GL_TEXTURE);
+	glPushMatrix();
+	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	//update the size of the drawing rectangle
 	glViewport( 0, 0, (GLint)_winWidth, (GLint)_winHeight);
-	
 	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
 	glLoadIdentity();
+
 	glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
 
 	glMatrixMode(GL_MODELVIEW);
@@ -157,7 +165,13 @@ void GLIsolineWindow::_resizeGL() {
 		rectLeft = winAspect/imgAspect;
 		rectTop = 1.f;
 	}
-
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glPopAttrib();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+	glMatrixMode(GL_TEXTURE);
+	glPopMatrix();
 }
 	
 void GLIsolineWindow::setImageSize(float horiz, float vert){
@@ -187,7 +201,7 @@ void GLIsolineWindow::paintGL()
 	if(rendering) return;
 	rendering = true;
 
-	printOpenGLErrorMsg("GLIsolineWindow");
+	printOpenGLErrorMsg("GLIsolineWindowPaintGL");
 
 	_resizeGL();
 	
@@ -199,7 +213,17 @@ void GLIsolineWindow::paintGL()
 	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentTimestep();
 	if (!iRender->cacheIsValid(timestep)) {rendering = false; return;}
 	
-	
+	glMatrixMode(GL_TEXTURE);
+	glPushMatrix();
+	glLoadIdentity();
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+
 	glClear(GL_COLOR_BUFFER_BIT);
 	const vector<double>& dcolors = iParams->GetPanelBackgroundColor();
 	glColor3f((float)dcolors[0],(float)dcolors[1],(float)dcolors[2]); 
@@ -231,6 +255,13 @@ void GLIsolineWindow::paintGL()
 	}
 	printOpenGLErrorMsg("GLIsolineWindow");
 	rendering = false;
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glPopAttrib();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+	glMatrixMode(GL_TEXTURE);
+	glPopMatrix();
 }
 
 void GLIsolineWindow::performRendering(int timestep, const std::map<pair<int,int>,vector<float*> >&  lineCache){
@@ -275,13 +306,13 @@ void GLIsolineWindow::initializeGL()
 	printOpenGLErrorMsg("GLIsolineWindowInitialize");
 	
    	makeCurrent();
-	
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	qglClearColor(palette().color(QPalette::Window));
     glShadeModel( GL_FLAT );
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glDisable(GL_LIGHTING);
 	
-	
+	glPopAttrib();
 	printOpenGLErrorMsg("GLIsolineWindow");
     
 }
