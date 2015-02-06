@@ -99,7 +99,6 @@ void VizWin::resizeGL(int width, int height){
 	VizWinParams::SetWindowHeight(myWindowNum, height);
 	VizWinParams::SetWindowWidth(myWindowNum, width);
 	reallyUpdate();
-	printOpenGLErrorMsg("GLVizWindowResizeEvent");
 	return;
 }
 void VizWin::initializeGL(){
