@@ -771,18 +771,8 @@ void MappingFrame::deleteOpacityWidgets()
 //----------------------------------------------------------------------------
 void MappingFrame::resizeGL(int width, int height)
 {
-	
 	printOpenGLErrorMsg("MappingFrameResizeEvent");
-	 glMatrixMode(GL_TEXTURE);
-	glPushMatrix();
-	glLoadIdentity();
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
+	
   //
   // Update the size of the drawing rectangle
   //
@@ -793,13 +783,6 @@ void MappingFrame::resizeGL(int width, int height)
   glMatrixMode(GL_MODELVIEW);
 
   qglClearColor(QColor(0,0,0)); 
-   glMatrixMode(GL_MODELVIEW);
-  glPopMatrix();
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix();
-  glPopAttrib();
-  glMatrixMode(GL_TEXTURE);
-  glPopMatrix();
   printOpenGLErrorMsg("MappingFrameResizeEvent");
 }
 	
@@ -810,17 +793,7 @@ void MappingFrame::paintGL()
 {
 
   printOpenGLErrorMsg("MappingFramePaint");
-  glMatrixMode(GL_TEXTURE);
-	glPushMatrix();
-	glLoadIdentity();
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
-
+ 
   glDisable(GL_LIGHT0);
   glDisable(GL_LIGHTING);
 
@@ -969,14 +942,6 @@ void MappingFrame::paintGL()
   
   swapBuffers();
   glFlush();
-  glMatrixMode(GL_MODELVIEW);
-  glPopMatrix();
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix();
-  glPopAttrib();
-  glMatrixMode(GL_TEXTURE);
-  glPopMatrix();
-
   printOpenGLErrorMsg("MappingFrame");
 }
 
@@ -987,16 +952,7 @@ void MappingFrame::initializeGL()
 {
  
   printOpenGLErrorMsg("MappingFrameInitialize");
-   glMatrixMode(GL_TEXTURE);
-	glPushMatrix();
-	glLoadIdentity();
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
+ 
   setAutoBufferSwap(false);
   qglClearColor(QColor(0,0,0)); 
 
@@ -1049,13 +1005,6 @@ void MappingFrame::initializeGL()
   {
     _colorbarWidget->initializeGL();
   }
-  glMatrixMode(GL_MODELVIEW);
-  glPopMatrix();
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix();
-  glPopAttrib();
-  glMatrixMode(GL_TEXTURE);
-  glPopMatrix();
   printOpenGLErrorMsg("MappingFrame");
 }
 

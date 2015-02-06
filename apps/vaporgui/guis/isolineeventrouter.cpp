@@ -276,7 +276,6 @@ IsolineEventRouter::hookUpTab()
 //
 void IsolineEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
-	
 	MainForm::getInstance()->buildWebTabHelpMenu(myWebHelpActions);
 
 	guiSetTextChanged(false);
@@ -289,7 +288,7 @@ void IsolineEventRouter::updateTab(){
 	IsolineParams* isolineParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
 	if (!isolineParams) return;
 	Command::blockCapture();
-	//myIsovals->isoSelectionFrame->setIsolineSliders(isolineParams->GetIsovalues());
+	myIsovals->isoSelectionFrame->setIsolineSliders(isolineParams->GetIsovalues());
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	size_t timestep = (size_t)vizMgr->getActiveAnimationParams()->getCurrentTimestep();
 	int winnum = vizMgr->getActiveViz();
