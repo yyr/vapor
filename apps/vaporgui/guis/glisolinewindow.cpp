@@ -174,20 +174,6 @@ void GLIsolineWindow::paintGL()
 {
 	printOpenGLErrorMsg("GLIsoWindowPaintGL");
 	
-#ifdef  Darwin
-	//
-	// Under Mac OS 10.8.2 paintGL() is called before the frame buffer
-	// is ready for drawing
-	//
-	GLenum status;
-	if ((status = glCheckFramebufferStatus(GL_FRAMEBUFFER)) != GL_FRAMEBUFFER_COMPLETE) {
-		MyBase::SetDiagMsg(
-			"GLIsolineWindow::paintGL() - glCheckFramebufferStatus() = %d", status
-		);
-		return;
-	}
-#endif
-			
 	if(rendering) return;
 	rendering = true;
 
