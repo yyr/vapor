@@ -53,7 +53,8 @@ RenderHolder::RenderHolder(QWidget* parent) : QWidget(parent), Ui_RenderSelector
 	connect(tableWidget,SIGNAL(cellChanged(int,int)), this, SLOT(changeChecked(int,int)));
 	connect(tableWidget, SIGNAL(itemSelectionChanged()), this, SLOT(selectInstance()));
 	connect(tableWidget, SIGNAL(itemChanged(QTableWidgetItem*)),this, SLOT(itemTextChange(QTableWidgetItem*)));
-	
+	stackedWidget = new QStackedWidget(this);
+	scrollArea->setWidget(stackedWidget);
 	//Remove any existing widgets:
 	for (int i = stackedWidget->count()-1; i>=0; i--){
 		QWidget* wid = stackedWidget->widget(i);

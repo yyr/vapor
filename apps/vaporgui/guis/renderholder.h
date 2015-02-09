@@ -70,7 +70,7 @@ private:
 	//Convert name to a unique name (among renderer names)
 	std::string uniqueName(std::string name);
 
-	
+	QStackedWidget* stackedWidget;
    };
 
 };
