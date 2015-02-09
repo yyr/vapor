@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>438</width>
-    <height>564</height>
+    <height>495</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,6 +27,12 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>25</height>
+            </size>
            </property>
            <property name="whatsThis">
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the location of the contour lines with these sliders and/or text boxes. You can &amp;quot;nudge&amp;quot; the contours by one volume cell (at the current refinement level) in any direction by clicking on the bar of a slider to the left or right of the slider handle. The X, Y, and Z center refer to the coordinates in the 3D volume where the center of the contour line surface is positioned.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -72,6 +78,12 @@
               <size>
                <width>80</width>
                <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>25</height>
               </size>
              </property>
              <property name="toolTip">
@@ -162,6 +174,12 @@
                <height>0</height>
               </size>
              </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>25</height>
+              </size>
+             </property>
              <property name="toolTip">
               <string>Specify the Y center of plane in scene</string>
              </property>
@@ -250,6 +268,12 @@
                <height>0</height>
               </size>
              </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>25</height>
+              </size>
+             </property>
              <property name="toolTip">
               <string>Specify the Z center of plane in scene</string>
              </property>
@@ -318,6 +342,12 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>50</height>
+            </size>
+           </property>
            <property name="text">
             <string>Planar Size</string>
            </property>
@@ -359,6 +389,12 @@
               <size>
                <width>80</width>
                <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>25</height>
               </size>
              </property>
              <property name="toolTip">
@@ -449,6 +485,12 @@
                <height>0</height>
               </size>
              </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>25</height>
+              </size>
+             </property>
              <property name="toolTip">
               <string>Specify the Y size height (Y-size)  of plane in scene</string>
              </property>
@@ -518,12 +560,12 @@
         <enum>Qt::Vertical</enum>
        </property>
        <property name="sizeType">
-        <enum>QSizePolicy::Expanding</enum>
+        <enum>QSizePolicy::Fixed</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
          <width>415</width>
-         <height>13</height>
+         <height>3</height>
         </size>
        </property>
       </spacer>
@@ -1046,12 +1088,12 @@
         <enum>Qt::Vertical</enum>
        </property>
        <property name="sizeType">
-        <enum>QSizePolicy::Expanding</enum>
+        <enum>QSizePolicy::Fixed</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
          <width>415</width>
-         <height>13</height>
+         <height>3</height>
         </size>
        </property>
       </spacer>
@@ -1473,12 +1515,12 @@
         <enum>Qt::Vertical</enum>
        </property>
        <property name="sizeType">
-        <enum>QSizePolicy::Expanding</enum>
+        <enum>QSizePolicy::Fixed</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
          <width>415</width>
-         <height>13</height>
+         <height>3</height>
         </size>
        </property>
       </spacer>

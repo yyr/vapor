@@ -270,7 +270,7 @@ void ColorMapBase::addControlPointAt(float value)
 {
   Color c = color(value);
 
-  float nv = (value - GetMinValue()) / (GetMaxValue() - GetMinValue());
+  float nv = (value - minValue()) / (maxValue() - minValue());
 
   vector<double> cps = GetControlPoints();
   //Find the insertion point:

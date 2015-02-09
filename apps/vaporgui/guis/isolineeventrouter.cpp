@@ -113,12 +113,12 @@ IsolineEventRouter::IsolineEventRouter(QWidget* parent): QWidget(parent), Ui_Con
 	myTabWidget->setTabPosition(QTabWidget::West);
 	myBasics = new IsolineBasics(myTabWidget);
 	myTabWidget->addTab(myBasics, "Basics");
-	myAppearance = new IsolineAppearance(myTabWidget);
-	myTabWidget->addTab(myAppearance, "Appearance");
-	myLayout = new IsolineLayout(myTabWidget);
-	myTabWidget->addTab(myLayout,"Layout");
 	myIsovals = new IsolineIsovals(myTabWidget);
 	myTabWidget->addTab(myIsovals,"Isovalues");
+	myLayout = new IsolineLayout(myTabWidget);
+	myTabWidget->addTab(myLayout,"Layout");
+	myAppearance = new IsolineAppearance(myTabWidget);
+	myTabWidget->addTab(myAppearance, "Appearance");
 	myImage = new IsolineImage(myTabWidget);
 	myTabWidget->addTab(myImage,"Image");
 	tabHolderLayout->addWidget(myTabWidget);
