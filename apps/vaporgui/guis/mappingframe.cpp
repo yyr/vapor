@@ -771,9 +771,10 @@ void MappingFrame::deleteOpacityWidgets()
 //----------------------------------------------------------------------------
 void MappingFrame::resizeGL(int width, int height)
 {
+	
 	printOpenGLErrorMsg("MappingFrameResizeEvent");
 	
-  //
+	
   // Update the size of the drawing rectangle
   //
   glViewport( 0, 0, (GLint)width, (GLint)height );
@@ -783,6 +784,7 @@ void MappingFrame::resizeGL(int width, int height)
   glMatrixMode(GL_MODELVIEW);
 
   qglClearColor(QColor(0,0,0)); 
+  
   printOpenGLErrorMsg("MappingFrameResizeEvent");
 }
 	
@@ -793,7 +795,17 @@ void MappingFrame::paintGL()
 {
 
   printOpenGLErrorMsg("MappingFramePaint");
- 
+  glMatrixMode(GL_TEXTURE);
+	glPushMatrix();
+	
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	
+
   glDisable(GL_LIGHT0);
   glDisable(GL_LIGHTING);
 
@@ -942,6 +954,14 @@ void MappingFrame::paintGL()
   
   swapBuffers();
   glFlush();
+  glMatrixMode(GL_MODELVIEW);
+  glPopMatrix();
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glPopAttrib();
+  glMatrixMode(GL_TEXTURE);
+  glPopMatrix();
+
   printOpenGLErrorMsg("MappingFrame");
 }
 
@@ -952,7 +972,8 @@ void MappingFrame::initializeGL()
 {
  
   printOpenGLErrorMsg("MappingFrameInitialize");
- 
+  
+	
   setAutoBufferSwap(false);
   qglClearColor(QColor(0,0,0)); 
 
@@ -1005,6 +1026,7 @@ void MappingFrame::initializeGL()
   {
     _colorbarWidget->initializeGL();
   }
+ 
   printOpenGLErrorMsg("MappingFrame");
 }
 

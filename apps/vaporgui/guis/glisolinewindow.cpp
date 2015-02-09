@@ -123,15 +123,18 @@ void GLIsolineWindow::resizeGL( int width, int height )
 	_winHeight = height;
 	
 	_resizeGL();
+	
 }
 
 void GLIsolineWindow::_resizeGL() {
 
+	
 	//update the size of the drawing rectangle
 	glViewport( 0, 0, (GLint)_winWidth, (GLint)_winHeight);
-	
 	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
 	glLoadIdentity();
+
 	glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
 
 	glMatrixMode(GL_MODELVIEW);
@@ -157,7 +160,8 @@ void GLIsolineWindow::_resizeGL() {
 		rectLeft = winAspect/imgAspect;
 		rectTop = 1.f;
 	}
-
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
 }
 	
 void GLIsolineWindow::setImageSize(float horiz, float vert){
@@ -187,7 +191,7 @@ void GLIsolineWindow::paintGL()
 	if(rendering) return;
 	rendering = true;
 
-	printOpenGLErrorMsg("GLIsolineWindow");
+	printOpenGLErrorMsg("GLIsolineWindowPaintGL");
 
 	_resizeGL();
 	
@@ -199,6 +203,15 @@ void GLIsolineWindow::paintGL()
 	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentTimestep();
 	if (!iRender->cacheIsValid(timestep)) {rendering = false; return;}
 	
+	glMatrixMode(GL_TEXTURE);
+	glPushMatrix();
+	
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
 	
 	glClear(GL_COLOR_BUFFER_BIT);
 	const vector<double>& dcolors = iParams->GetPanelBackgroundColor();
@@ -231,6 +244,13 @@ void GLIsolineWindow::paintGL()
 	}
 	printOpenGLErrorMsg("GLIsolineWindow");
 	rendering = false;
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glPopAttrib();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+	glMatrixMode(GL_TEXTURE);
+	glPopMatrix();
 }
 
 void GLIsolineWindow::performRendering(int timestep, const std::map<pair<int,int>,vector<float*> >&  lineCache){

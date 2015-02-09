@@ -276,6 +276,7 @@ IsolineEventRouter::hookUpTab()
 //
 void IsolineEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
+	
 	MainForm::getInstance()->buildWebTabHelpMenu(myWebHelpActions);
 
 	guiSetTextChanged(false);
