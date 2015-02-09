@@ -341,7 +341,7 @@ void ColorMapBase::move(int index, float delta)
   if (index > 0 && index < cps.size()/4 -1) //don't move first or last control point!
   {
     
-    float ndx = delta / (GetMaxValue() - GetMinValue());
+    float ndx = delta / (maxValue() - minValue());
 
 	float minVal = cps[index*4 -1]; //value to the left
    
