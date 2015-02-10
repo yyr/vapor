@@ -156,6 +156,8 @@ void ColorMapBase::Color::toRGB(float *rgb)
  
 ColorMapBase::ColorMapBase() : ParamsBase(0, _tag)
 {
+  _mapper = 0;
+  
   SetInterpType(TFInterpolator::linear);
   SetMinValue( 0.0);
   SetMaxValue( 1.0);
@@ -169,6 +171,7 @@ ColorMapBase::ColorMapBase() : ParamsBase(0, _tag)
   }
   cps[0] = 0.9;  //start at purple
   SetControlPoints(cps);
+  
 }
 
 
@@ -178,7 +181,8 @@ ColorMapBase::ColorMapBase() : ParamsBase(0, _tag)
 //----------------------------------------------------------------------------
 ColorMapBase::~ColorMapBase()
 {
-  clear();
+	_mapper = 0;
+	clear();
 }
 
 //----------------------------------------------------------------------------
@@ -222,7 +226,7 @@ float ColorMapBase::controlPointValue(int index)
   vector<double> cps = GetControlPoints();
   float norm = (float)cps[4*index+3];
 
-  return (norm * (GetMaxValue() - GetMinValue()) + GetMinValue());
+  return (norm * (maxValue() - minValue()) + minValue());
 }
 
 //----------------------------------------------------------------------------
@@ -233,7 +237,7 @@ void  ColorMapBase::controlPointValue(int index, float value)
  
   vector<double> cps = GetControlPoints();
 
-  float nv = (value - GetMinValue()) / (GetMaxValue() - GetMinValue());
+  float nv = (value - minValue()) / (maxValue() - minValue());
 
   float minVal = 0.0;
   float maxVal = 1.0;
@@ -266,7 +270,7 @@ void ColorMapBase::addControlPointAt(float value)
 {
   Color c = color(value);
 
-  float nv = (value - GetMinValue()) / (GetMaxValue() - GetMinValue());
+  float nv = (value - minValue()) / (maxValue() - minValue());
 
   vector<double> cps = GetControlPoints();
   //Find the insertion point:
@@ -337,7 +341,7 @@ void ColorMapBase::move(int index, float delta)
   if (index > 0 && index < cps.size()/4 -1) //don't move first or last control point!
   {
     
-    float ndx = delta / (GetMaxValue() - GetMinValue());
+    float ndx = delta / (maxValue() - minValue());
 
 	float minVal = cps[index*4 -1]; //value to the left
    
@@ -373,7 +377,7 @@ ColorMapBase::Color ColorMapBase::color(float value)
   //
   // normalize the value
   // 
-  float nv = (value - GetMinValue()) / (GetMaxValue() - GetMinValue());
+  float nv = (value - minValue()) / (maxValue() - minValue());
   vector<double> cps = GetControlPoints();
   //
   // Find the bounding control points
@@ -446,15 +450,17 @@ int ColorMapBase::leftIndex(float val)
   return left;
 }
 
-void ColorMapBase::SetMinValue(double val) {SetValueDouble(_minTag,"Set min color map value", val, _mapper->getParams());
-}
-void ColorMapBase::SetMaxValue(double val) {SetValueDouble(_maxTag,"Set max color map value", val, _mapper->getParams());
-}
+
 int ColorMapBase::SetControlPoints(vector<double> controlPoints){
-	return SetValueDouble(_controlPointsTag,"Set color control points", controlPoints, _mapper->getParams());
+	if (_mapper)
+		return SetValueDouble(_controlPointsTag,"Set color control points", controlPoints, _mapper->getParams());
+	else return SetValueDouble(_controlPointsTag,"Set color control points", controlPoints, 0);
 }
 void ColorMapBase::SetInterpType(TFInterpolator::type t){
-	SetValueLong(_interpTypeTag, "Set Color Interpolation", (long)t, _mapper->getParams());
+	if (_mapper)
+		SetValueLong(_interpTypeTag, "Set Color Interpolation", (long)t, _mapper->getParams());
+	else 
+		SetValueLong(_interpTypeTag, "Set Color Interpolation", (long)t, 0);
 }
 
 
@@ -469,8 +475,7 @@ float ColorMapBase::minValue()
 {
   assert(_mapper);
 
-  return _mapper->getMinMapValue() + (float)GetMinValue() * 
-    (_mapper->getMaxMapValue() - _mapper->getMinMapValue());
+  return _mapper->getMinMapValue();
 }
 
 //----------------------------------------------------------------------------
@@ -483,11 +488,7 @@ float ColorMapBase::minValue()
 void ColorMapBase::minValue(float value)
 {
   assert(_mapper);
-
-  SetMinValue( 
-    (value - _mapper->getMinMapValue()) / 
-    (_mapper->getMaxMapValue() - _mapper->getMinMapValue())
-	);
+  _mapper->setMinMapValue(value);
 }
 
 //----------------------------------------------------------------------------
@@ -501,8 +502,7 @@ float ColorMapBase::maxValue()
 {
   assert(_mapper);
 
-  return _mapper->getMinMapValue() + GetMaxValue() * 
-    (_mapper->getMaxMapValue() - _mapper->getMinMapValue());
+  return _mapper->getMaxMapValue();
 }
 
 //----------------------------------------------------------------------------
@@ -515,9 +515,5 @@ float ColorMapBase::maxValue()
 void ColorMapBase::maxValue(float value)
 {
   assert(_mapper);
-
-  SetMaxValue(
-    (value - _mapper->getMinMapValue()) / 
-    (_mapper->getMaxMapValue()-_mapper->getMinMapValue())
-	);
+  _mapper->setMaxMapValue(value);
 }

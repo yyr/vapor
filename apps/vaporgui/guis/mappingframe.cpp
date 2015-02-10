@@ -105,6 +105,7 @@ MappingFrame::MappingFrame(QWidget* parent, const char* )
     _bottomGap(10)
 
 {
+	
   initWidgets();
   initConnections();
   setMouseTracking(true);
@@ -144,6 +145,7 @@ MappingFrame::~MappingFrame()
   }
   _axisTexts.clear();
   _axisTextPos.clear();
+  _mapper = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -769,7 +771,10 @@ void MappingFrame::deleteOpacityWidgets()
 //----------------------------------------------------------------------------
 void MappingFrame::resizeGL(int width, int height)
 {
-  //
+	
+	printOpenGLErrorMsg("MappingFrameResizeEvent");
+	
+	
   // Update the size of the drawing rectangle
   //
   glViewport( 0, 0, (GLint)width, (GLint)height );
@@ -779,7 +784,8 @@ void MappingFrame::resizeGL(int width, int height)
   glMatrixMode(GL_MODELVIEW);
 
   qglClearColor(QColor(0,0,0)); 
-
+  
+  printOpenGLErrorMsg("MappingFrameResizeEvent");
 }
 	
 //----------------------------------------------------------------------------
@@ -787,21 +793,18 @@ void MappingFrame::resizeGL(int width, int height)
 //----------------------------------------------------------------------------
 void MappingFrame::paintGL()
 {
-#ifdef  Darwin 
-  //
-  // Under Mac OS 10.8.2 paintGL() is called before the frame buffer
-  // is ready for drawing
-  //
-  GLenum status;
-  if ((status = glCheckFramebufferStatus(GL_FRAMEBUFFER)) != GL_FRAMEBUFFER_COMPLETE) {
-    MyBase::SetDiagMsg(
-      "GLProbeWindow::paintGL() - glCheckFramebufferStatus() = %d", status
-    );
-    return;
-  }
-#endif
 
-  printOpenGLErrorMsg("MappingFrame");
+  printOpenGLErrorMsg("MappingFramePaint");
+  glMatrixMode(GL_TEXTURE);
+	glPushMatrix();
+	
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	
 
   glDisable(GL_LIGHT0);
   glDisable(GL_LIGHTING);
@@ -951,6 +954,14 @@ void MappingFrame::paintGL()
   
   swapBuffers();
   glFlush();
+  glMatrixMode(GL_MODELVIEW);
+  glPopMatrix();
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glPopAttrib();
+  glMatrixMode(GL_TEXTURE);
+  glPopMatrix();
+
   printOpenGLErrorMsg("MappingFrame");
 }
 
@@ -960,7 +971,9 @@ void MappingFrame::paintGL()
 void MappingFrame::initializeGL()
 {
  
-  printOpenGLErrorMsg("MappingFrame");
+  printOpenGLErrorMsg("MappingFrameInitialize");
+  
+	
   setAutoBufferSwap(false);
   qglClearColor(QColor(0,0,0)); 
 
@@ -1013,6 +1026,7 @@ void MappingFrame::initializeGL()
   {
     _colorbarWidget->initializeGL();
   }
+ 
   printOpenGLErrorMsg("MappingFrame");
 }
 
@@ -1588,6 +1602,7 @@ void MappingFrame::resize()
   //
   // View to world coordinates factor
   //
+
   float unitPerPixel = 1.0 / (float)(height()-totalFixedHeight());
 
   //Provide extra space at bottom for 2 rows of annotation with isolines.
@@ -2431,11 +2446,13 @@ void MappingFrame::setIsolineSlider(int index)
 }
 void MappingFrame::paintEvent(QPaintEvent* event)
 {
+	printOpenGLErrorMsg("MappingFramePaintEvent");
+	
 	  QGLWidget::paintEvent(event);
+	  printOpenGLErrorMsg("MappingFramePaintEvent");
 	
 }
 void MappingFrame::updateGL(){
-	
 	
 #ifndef Darwin
 	QGLWidget::updateGL();

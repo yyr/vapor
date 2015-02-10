@@ -62,7 +62,7 @@ IsolineFrame::~IsolineFrame() {
 	
 
 void IsolineFrame::paintEvent(QPaintEvent* ){
-	
+	return;
 	glIsolineWindow->updateGL();
 }
 

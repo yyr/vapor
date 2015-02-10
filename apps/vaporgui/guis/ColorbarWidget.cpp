@@ -55,7 +55,8 @@ ColorbarWidget::~ColorbarWidget()
 void ColorbarWidget::setColormap(ColorMapBase *colormap)
 {
   _colormap = colormap;
-  
+  vector<double> cps = colormap->GetControlPoints();
+  assert(cps.size()>0);
   _updateTexture = true;
 }
 
@@ -117,7 +118,7 @@ void ColorbarWidget::drag(float dx, float, float)
 void ColorbarWidget::paintGL()
 {
   printOpenGLErrorMsg("ColorbarWidget");
-
+ 
   float offset = (_maxY - _minY) * 0.2;
 
   if (_colormap)
@@ -172,7 +173,8 @@ void ColorbarWidget::paintGL()
 //----------------------------------------------------------------------------
 void ColorbarWidget::initializeGL()
 {
-  printOpenGLErrorMsg("ColorbarWidget");
+  printOpenGLErrorMsg("ColorbarWidgetInitialize");
+ 
   glShadeModel( GL_SMOOTH );
   glPolygonMode(GL_FRONT, GL_FILL);
 

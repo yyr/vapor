@@ -17,6 +17,8 @@
 //	Description:	Implements the RenderHolder class
 
 #include "renderholder.h"
+#include "arrowparams.h"
+#include "isolineparams.h"
 #include <qcombobox.h>
 #include <QStringList>
 #include <QTableWidget>
@@ -51,7 +53,8 @@ RenderHolder::RenderHolder(QWidget* parent) : QWidget(parent), Ui_RenderSelector
 	connect(tableWidget,SIGNAL(cellChanged(int,int)), this, SLOT(changeChecked(int,int)));
 	connect(tableWidget, SIGNAL(itemSelectionChanged()), this, SLOT(selectInstance()));
 	connect(tableWidget, SIGNAL(itemChanged(QTableWidgetItem*)),this, SLOT(itemTextChange(QTableWidgetItem*)));
-	
+	stackedWidget = new QStackedWidget(this);
+	scrollArea->setWidget(stackedWidget);
 	//Remove any existing widgets:
 	for (int i = stackedWidget->count()-1; i>=0; i--){
 		QWidget* wid = stackedWidget->widget(i);
@@ -84,10 +87,14 @@ newRenderer(){
 	rDialog.rendererNameEdit->setText("Renderer Name");
 	if (nDialog.exec() != QDialog::Accepted) return;
 	//Create a new default RenderParams of specified type in current active visualizer
-	//The type is determined by the combo index (currently only barbs supported)
+	//The type is determined by the combo index (currently only barbs and contours supported)
+	int selection = rDialog.rendererCombo->currentIndex();
 	//eventually we will need to have a mapping between combo entries and params tags
+	vector<string> renderTags;
+	renderTags.push_back(ArrowParams::_arrowParamsTag);
+	renderTags.push_back(IsolineParams::_isolineParamsTag);
 	signalsOn = false;
-	string tag = ArrowParams::_arrowParamsTag;
+	string tag = renderTags[selection];
 	int winnum = VizWinMgr::getInstance()->getActiveViz();
 	RenderParams* newP = dynamic_cast<RenderParams*>(ControlExec::GetDefaultParams(tag)->deepCopy());
 	
@@ -199,6 +206,7 @@ selectInstance(){
 	string tag = rP->GetName();
 	int instance = instanceIndex[viznum][row];
 	ControlExec::SetCurrentParamsInstance(viznum,tag, instance);
+	VizWinMgr::getInstance()->getTabManager()->showRenderWidget(tag);
 	VizWinMgr::getEventRouter(tag)->updateTab();
 }
 void RenderHolder::

@@ -37,7 +37,7 @@ public:
   OpacityMapBase(OpacityMapBase::Type type=CONTROL_POINT);
 
   virtual ~OpacityMapBase();
-
+  static ParamsBase* CreateDefaultInstance(){return new OpacityMapBase();}
   void clear();
   const OpacityMapBase& operator=(const OpacityMapBase &cmap);
 
@@ -115,7 +115,7 @@ public:
   }
   void SetControlPoints(vector<double> opacityControlPoints);
   void setMapper(MapperFunctionBase* m) {_mapper = m;}
-
+  static const string _tag;
 protected: 
   MapperFunctionBase *_mapper;
   
@@ -139,7 +139,7 @@ private:
   const double _minPhase;
   const double _maxPhase;
 
-  static const string _tag;
+  
   static const string _minTag;
   static const string _maxTag;
   static const string _enabledTag;

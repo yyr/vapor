@@ -176,7 +176,7 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 	camPos.push_back(camPos0->text().toFloat()-tvExts[0]);
 	camPos.push_back(camPos1->text().toFloat()-tvExts[1]);
 	camPos.push_back(camPos2->text().toFloat()-tvExts[2]);
-	vParams->setRotationCenterLocal(camPos);
+	vParams->setRotationCenterLocal(rotCtr);
 	vParams->setCameraPosLocal(camPos, timestep);
 	
 	
@@ -215,7 +215,7 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 	vParams->setUpVec(2, upVec2->text().toFloat());
 	
 	
-	vParams->Validate(false);
+	vParams->Validate(2);
 	Command::CaptureEnd(cmd, vParams);
 
 	updateRenderer(vParams,false, -1, false);

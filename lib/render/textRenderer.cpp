@@ -25,6 +25,7 @@
 #include "viewpointparams.h"
 #include <vapor/MyBase.h>
 
+
 using namespace VAPoR;
 //struct GLWindow;        // just to retrieve window size
 
@@ -118,7 +119,7 @@ int TextObject::Initialize( string inFont,
 
 	_pixmap->FaceSize(_size);
 	//Note:  can we do this without QT?
-	//_myWindow->makeCurrent();
+	//glMakeCurrent();
     findBBoxSize();
     initFrameBufferTexture();
     initFrameBuffer();

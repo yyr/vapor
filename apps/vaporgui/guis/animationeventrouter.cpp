@@ -256,7 +256,7 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 	
 	aParams->setMaxFrameRate(maxFrameRate);
 	
-	aParams->Validate(false);
+	aParams->Validate(2);
 	Command::CaptureEnd(cmd,aParams);
 	
 	updateTab();

@@ -55,19 +55,21 @@ public:
  
   virtual ~ColorMapBase();
 
+  static ParamsBase* CreateDefaultInstance(){return new ColorMapBase();}
+
   const ColorMapBase& operator=(const ColorMapBase &cmap);
 
   void  clear();
 
   //The base class has Get/Set of min and max which are relative to 0,1
-  double GetMinValue()  {return GetValueDouble(_minTag);}     // Data Coordinates
-  double GetMaxValue()  {return GetValueDouble(_maxTag);}     // Data Coordinates
+  double GetMinValue()  {return 0.;}     //Relative Coordinates
+  double GetMaxValue()  {return 1.;}     // Relative Coordinates
 
   TFInterpolator::type GetInterpType() {return (TFInterpolator::type) GetValueLong(_interpTypeTag);}
   void SetInterpType(TFInterpolator::type t);
 
-  void SetMinValue(double val); 
-  void SetMaxValue(double val);
+  void SetMinValue(double val) { assert (val == 0.);} // this is always 0,1 
+  void SetMaxValue(double val) { assert(val == 1.);}
 
   int numControlPoints()                { return (int)(GetControlPoints().size()/4); }
 
@@ -102,6 +104,8 @@ public:
 
   virtual float maxValue();      // Data Coordinates
   virtual void  maxValue(float value); // Data Coordinates
+
+  static const string _tag;
 	
 protected:
   MapperFunctionBase *_mapper;
@@ -111,7 +115,7 @@ protected:
 
 private:
 
-  static const string _tag;
+ 
   static const string _minTag;
   static const string _maxTag;
   static const string _controlPointsTag; 

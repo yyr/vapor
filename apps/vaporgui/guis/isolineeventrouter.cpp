@@ -46,7 +46,6 @@
 #include "regionparams.h"
 #include "mainform.h"
 #include "vizwinmgr.h"
-#include "instancetable.h"
 #include "qtthumbwheel.h"
 #include "histo.h"
 #include <vector>
@@ -55,7 +54,7 @@
 #include <fstream>
 #include <sstream>
 #include "params.h"
-#include "isolinetab.h"
+#include "contourTab.h"
 #include <vapor/jpegapi.h>
 #include <vapor/XmlNode.h>
 #include "vapor/GetAppPath.h"
@@ -71,6 +70,11 @@
 #include "vapor/ControlExecutive.h"
 #include "manip.h"
 #include "vizwinparams.h"
+#include "isolineAppearance.h"
+#include "isolineImage.h"
+#include "isolineIsovals.h"
+#include "isolineLayout.h"
+#include "isolineBasics.h"
 
 using namespace VAPoR;
 const float IsolineEventRouter::thumbSpeedFactor = 0.0005f;  //rotates ~45 degrees at full thumbwheel width
@@ -98,14 +102,31 @@ const char* IsolineEventRouter::webHelpURL[] =
 	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/isolines#Appearance"
 };
 
-IsolineEventRouter::IsolineEventRouter(QWidget* parent): QWidget(parent), Ui_IsolineTab(), EventRouter(){
+IsolineEventRouter::IsolineEventRouter(QWidget* parent): QWidget(parent), Ui_ContourTab(), EventRouter(){
 	setupUi(this);
 	myParamsBaseType = Params::GetTypeFromTag(IsolineParams::_isolineParamsTag);
 	myWebHelpActions = makeWebHelpActions(webHelpText,webHelpURL);
-	isoSelectionFrame->setOpacityMapping(true);
-	isoSelectionFrame->setColorMapping(true);
-	isoSelectionFrame->setIsoSlider(false);
-	isoSelectionFrame->setIsolineSliders(true);
+
+	showLayout = false;
+	
+	QTabWidget* myTabWidget = new QTabWidget(this);
+	myTabWidget->setTabPosition(QTabWidget::West);
+	myBasics = new IsolineBasics(myTabWidget);
+	myTabWidget->addTab(myBasics, "Basics");
+	myIsovals = new IsolineIsovals(myTabWidget);
+	myTabWidget->addTab(myIsovals,"Isovalues");
+	myLayout = new IsolineLayout(myTabWidget);
+	myTabWidget->addTab(myLayout,"Layout");
+	myAppearance = new IsolineAppearance(myTabWidget);
+	myTabWidget->addTab(myAppearance, "Appearance");
+	myImage = new IsolineImage(myTabWidget);
+	myTabWidget->addTab(myImage,"Image");
+	tabHolderLayout->addWidget(myTabWidget);
+
+	myIsovals->isoSelectionFrame->setOpacityMapping(true);
+	myIsovals->isoSelectionFrame->setColorMapping(true);
+	myIsovals->isoSelectionFrame->setIsoSlider(false);
+	myIsovals->isoSelectionFrame->setIsolineSliders(true);
 	fidelityButtons = 0;
 	
 	ignoreComboChanges = false;
@@ -120,7 +141,7 @@ IsolineEventRouter::IsolineEventRouter(QWidget* parent): QWidget(parent), Ui_Iso
 	lastXCenterSlider = 128;
 	lastYCenterSlider = 128;
 	lastZCenterSlider = 128;
-	isoSelectionFrame->setIsolineSliders(true);
+	myIsovals->isoSelectionFrame->setIsolineSliders(true);
 	
 	for (int i = 0; i<3; i++)maxBoxSize[i] = 1.f;
 	
@@ -128,8 +149,8 @@ IsolineEventRouter::IsolineEventRouter(QWidget* parent): QWidget(parent), Ui_Iso
 #if defined(Darwin) && (QT_VERSION < QT_VERSION_CHECK(4,8,0))
 	_opacityMapShown = false;
 	_texShown = false;
-	isolineImageFrame->hide();
-	isoSelectionFrame->hide();
+	myImage->isolineImageFrame->hide();
+	myIsovals->isoSelectionFrame->hide();
 #endif
 	
 }
@@ -144,125 +165,118 @@ void
 IsolineEventRouter::hookUpTab()
 {
 	//Nudge sliders by clicking on slider bar:
-	connect (xSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeXSize(int)));
-	connect (xCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeXCenter(int)));
-	connect (ySizeSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeYSize(int)));
-	connect (yCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeYCenter(int)));
-	connect (zCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeZCenter(int)));
-	connect (xCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (yCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (zCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (thetaEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (phiEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (psiEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (xSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (ySizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (minIsoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (isoSpaceEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (countIsoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (isolineWidthEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (panelLineWidthEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (textSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (densityEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (histoScaleEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (leftHistoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (rightHistoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (numDigitsEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (fidelityDefaultButton, SIGNAL(clicked()), this, SLOT(guiSetFidelityDefault()));
-	connect (fitDataButton, SIGNAL(clicked()), this, SLOT(guiFitToData()));
-	connect (uniformButton, SIGNAL(clicked()),this,SLOT(guiSpaceIsovalues()));
-	connect (singleColorButton, SIGNAL(clicked()),this, SLOT(guiSetSingleColor()));
+	connect (myLayout->xSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeXSize(int)));
+	connect (myLayout->xCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeXCenter(int)));
+	connect (myLayout->ySizeSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeYSize(int)));
+	connect (myLayout->yCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeYCenter(int)));
+	connect (myLayout->zCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeZCenter(int)));
+	connect (myLayout->xCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (myLayout->yCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (myLayout->zCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (myLayout->thetaEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (myLayout->phiEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (myLayout->psiEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (myLayout->xSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (myLayout->ySizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (myIsovals->minIsoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (myIsovals->isoSpaceEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (myIsovals->countIsoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (myAppearance->isolineWidthEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (myImage->panelLineWidthEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (myAppearance->textSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (myAppearance->densityEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (myIsovals->histoScaleEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (myIsovals->leftHistoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (myIsovals->rightHistoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (myAppearance->numDigitsEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (myBasics->fidelityDefaultButton, SIGNAL(clicked()), this, SLOT(guiSetFidelityDefault()));
+	connect (myIsovals->fitDataButton, SIGNAL(clicked()), this, SLOT(guiFitToData()));
+	connect (myIsovals->uniformButton, SIGNAL(clicked()),this,SLOT(guiSpaceIsovalues()));
+	connect (myAppearance->singleColorButton, SIGNAL(clicked()),this, SLOT(guiSetSingleColor()));
 
-	connect (xCenterEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (yCenterEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (zCenterEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (xSizeEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (ySizeEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (thetaEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (phiEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (psiEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (minIsoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (isoSpaceEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (countIsoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (isolineWidthEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (panelLineWidthEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (textSizeEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (densityEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (leftHistoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (rightHistoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (histoScaleEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (numDigitsEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (myLayout->xCenterEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (myLayout->yCenterEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (myLayout->zCenterEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (myLayout->xSizeEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (myLayout->ySizeEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (myLayout->thetaEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (myLayout->phiEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (myLayout->psiEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (myIsovals->minIsoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (myIsovals->isoSpaceEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (myIsovals->countIsoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (myAppearance->isolineWidthEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (myImage->panelLineWidthEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (myAppearance->textSizeEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (myAppearance->densityEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (myIsovals->leftHistoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (myIsovals->rightHistoEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (myIsovals->histoScaleEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	connect (myAppearance->numDigitsEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 
-	connect (loadButton, SIGNAL(clicked()), this, SLOT(isolineLoadTF()));
-	connect (loadInstalledButton, SIGNAL(clicked()), this, SLOT(isolineLoadInstalledTF()));
-	connect (saveButton, SIGNAL(clicked()), this, SLOT(isolineSaveTF()));
-	connect (regionCenterButton, SIGNAL(clicked()), this, SLOT(isolineCenterRegion()));
-	connect (viewCenterButton, SIGNAL(clicked()), this, SLOT(isolineCenterView()));
-	connect (rakeCenterButton, SIGNAL(clicked()), this, SLOT(isolineCenterRake()));
-	connect (isolineCenterButton, SIGNAL(clicked()), this, SLOT(guiCenterIsolines()));
-	connect (addSeedButton, SIGNAL(clicked()), this, SLOT(isolineAddSeed()));
-	connect (axisAlignCombo, SIGNAL(activated(int)), this, SLOT(guiAxisAlign(int)));
-	connect (fitRegionButton, SIGNAL(clicked()), this, SLOT(guiFitRegion()));
-	connect (fitDomainButton, SIGNAL(clicked()), this, SLOT(guiFitDomain()));
-	connect (cropRegionButton, SIGNAL(clicked()), this, SLOT(guiCropToRegion()));
-	connect (cropDomainButton, SIGNAL(clicked()), this, SLOT(guiCropToDomain()));
+	connect (myIsovals->loadButton, SIGNAL(clicked()), this, SLOT(isolineLoadTF()));
+	connect (myIsovals->loadInstalledButton, SIGNAL(clicked()), this, SLOT(isolineLoadInstalledTF()));
+	connect (myIsovals->saveButton, SIGNAL(clicked()), this, SLOT(isolineSaveTF()));
+	connect (myImage->regionCenterButton, SIGNAL(clicked()), this, SLOT(isolineCenterRegion()));
+	connect (myImage->viewCenterButton, SIGNAL(clicked()), this, SLOT(isolineCenterView()));
+	connect (myImage->rakeCenterButton, SIGNAL(clicked()), this, SLOT(isolineCenterRake()));
+	connect (myImage->isolineCenterButton, SIGNAL(clicked()), this, SLOT(guiCenterIsolines()));
+	connect (myImage->addSeedButton, SIGNAL(clicked()), this, SLOT(isolineAddSeed()));
+	connect (myLayout->axisAlignCombo, SIGNAL(activated(int)), this, SLOT(guiAxisAlign(int)));
+	connect (myLayout->fitRegionButton, SIGNAL(clicked()), this, SLOT(guiFitRegion()));
+	connect (myLayout->fitDomainButton, SIGNAL(clicked()), this, SLOT(guiFitDomain()));
+	connect (myLayout->cropRegionButton, SIGNAL(clicked()), this, SLOT(guiCropToRegion()));
+	connect (myLayout->cropDomainButton, SIGNAL(clicked()), this, SLOT(guiCropToDomain()));
 
-	connect (xThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateXWheel(int)));
-	connect (yThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateYWheel(int)));
-	connect (zThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateZWheel(int)));
-	connect (xThumbWheel, SIGNAL(wheelReleased(int)), this, SLOT(guiReleaseXWheel(int)));
-	connect (yThumbWheel, SIGNAL(wheelReleased(int)), this, SLOT(guiReleaseYWheel(int)));
-	connect (zThumbWheel, SIGNAL(wheelReleased(int)), this, SLOT(guiReleaseZWheel(int)));
-	connect (xThumbWheel, SIGNAL(wheelPressed()), this, SLOT(pressXWheel()));
-	connect (yThumbWheel, SIGNAL(wheelPressed()), this, SLOT(pressYWheel()));
-	connect (zThumbWheel, SIGNAL(wheelPressed()), this, SLOT(pressZWheel()));
+	connect (myLayout->xThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateXWheel(int)));
+	connect (myLayout->yThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateYWheel(int)));
+	connect (myLayout->zThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateZWheel(int)));
+	connect (myLayout->xThumbWheel, SIGNAL(wheelReleased(int)), this, SLOT(guiReleaseXWheel(int)));
+	connect (myLayout->yThumbWheel, SIGNAL(wheelReleased(int)), this, SLOT(guiReleaseYWheel(int)));
+	connect (myLayout->zThumbWheel, SIGNAL(wheelReleased(int)), this, SLOT(guiReleaseZWheel(int)));
+	connect (myLayout->xThumbWheel, SIGNAL(wheelPressed()), this, SLOT(pressXWheel()));
+	connect (myLayout->yThumbWheel, SIGNAL(wheelPressed()), this, SLOT(pressYWheel()));
+	connect (myLayout->zThumbWheel, SIGNAL(wheelPressed()), this, SLOT(pressZWheel()));
 	
-	connect (attachSeedCheckbox,SIGNAL(toggled(bool)),this, SLOT(isolineAttachSeed(bool)));
-	connect (singleColorCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiSetUseSingleColor(bool)));
-	connect (textCheckbox, SIGNAL(toggled(bool)), this, SLOT(guiEnableText(bool)));
-	connect (dimensionCombo,SIGNAL(activated(int)), this, SLOT(guiSetDimension(int)));
-	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
-	connect (lodCombo,SIGNAL(activated(int)), this, SLOT(guiSetCompRatio(int)));
-	connect (rotate90Combo,SIGNAL(activated(int)), this, SLOT(guiRotate90(int)));
-	connect (variableCombo,SIGNAL(activated(int)), this, SLOT(guiChangeVariable(int)));
-	connect (xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineXCenter()));
-	connect (yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineYCenter()));
-	connect (zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineZCenter()));
-	connect (xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineXSize()));
-	connect (ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineYSize()));
-	connect (densitySlider, SIGNAL(sliderReleased()), this, SLOT (guiSetIsolineDensity()));
-	connect (copyToProbeButton, SIGNAL(clicked()), this, SLOT(copyToProbeOr2D()));
+	connect (myImage->attachSeedCheckbox,SIGNAL(toggled(bool)),this, SLOT(isolineAttachSeed(bool)));
+	connect (myAppearance->singleColorCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiSetUseSingleColor(bool)));
+	connect (myAppearance->textCheckbox, SIGNAL(toggled(bool)), this, SLOT(guiEnableText(bool)));
+	connect (myBasics->dimensionCombo,SIGNAL(activated(int)), this, SLOT(guiSetDimension(int)));
+	connect (myBasics->refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
+	connect (myBasics->lodCombo,SIGNAL(activated(int)), this, SLOT(guiSetCompRatio(int)));
+	connect (myLayout->rotate90Combo,SIGNAL(activated(int)), this, SLOT(guiRotate90(int)));
+	connect (myBasics->variableCombo,SIGNAL(activated(int)), this, SLOT(guiChangeVariable(int)));
+	connect (myLayout->xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineXCenter()));
+	connect (myLayout->yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineYCenter()));
+	connect (myLayout->zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineZCenter()));
+	connect (myLayout->xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineXSize()));
+	connect (myLayout->ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineYSize()));
+	connect (myAppearance->densitySlider, SIGNAL(sliderReleased()), this, SLOT (guiSetIsolineDensity()));
+	connect (myIsovals->copyToProbeButton, SIGNAL(clicked()), this, SLOT(copyToProbeOr2D()));
 
-	connect (instanceTable, SIGNAL(changeCurrentInstance(int)), this, SLOT(guiChangeInstance(int)));
 	
-	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
-	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
-	connect (instanceTable, SIGNAL(enableInstance(bool,int)), this, SLOT(setIsolineEnabled(bool,int)));
-	
-	connect (showHideLayoutButton, SIGNAL(pressed()), this, SLOT(showHideLayout()));
-	connect (showHideImageButton, SIGNAL(pressed()), this, SLOT(showHideImage()));
-	connect (showHideAppearanceButton, SIGNAL(pressed()), this, SLOT(showHideAppearance()));
-	connect (isolinePanelBackgroundColorButton, SIGNAL(clicked()), this, SLOT(guiSetPanelBackgroundColor()));
-	connect(newHistoButton, SIGNAL(clicked()), this, SLOT(refreshHisto()));
-	connect(editButton, SIGNAL(toggled(bool)), this, SLOT(setIsolineEditMode(bool)));
-	connect(navigateButton, SIGNAL(toggled(bool)), this, SLOT(setIsolineNavigateMode(bool)));
-	connect(editIsovaluesButton, SIGNAL(clicked()), this, SLOT(guiEditIsovalues()));
+	connect (myImage->isolinePanelBackgroundColorButton, SIGNAL(clicked()), this, SLOT(guiSetPanelBackgroundColor()));
+	connect(myIsovals->newHistoButton, SIGNAL(clicked()), this, SLOT(refreshHisto()));
+	connect(myIsovals->editButton, SIGNAL(toggled(bool)), this, SLOT(setIsolineEditMode(bool)));
+	connect(myIsovals->navigateButton, SIGNAL(toggled(bool)), this, SLOT(setIsolineNavigateMode(bool)));
+	connect(myIsovals->editIsovaluesButton, SIGNAL(clicked()), this, SLOT(guiEditIsovalues()));
 
 	// isoSelectionFrame controls:
-	connect(editButton, SIGNAL(toggled(bool)), 
-            isoSelectionFrame, SLOT(setEditMode(bool)));
-	connect(alignButton, SIGNAL(clicked()), this, SLOT(guiSetAligned()));
-	connect(alignButton, SIGNAL(clicked()),
-            isoSelectionFrame, SLOT(fitToView()));
-    connect(isoSelectionFrame, SIGNAL(startChange(QString)), 
+	connect(myIsovals->editButton, SIGNAL(toggled(bool)), 
+            myIsovals->isoSelectionFrame, SLOT(setEditMode(bool)));
+	connect(myIsovals->alignButton, SIGNAL(clicked()), this, SLOT(guiSetAligned()));
+	connect(myIsovals->alignButton, SIGNAL(clicked()),
+            myIsovals->isoSelectionFrame, SLOT(fitToView()));
+    connect(myIsovals->isoSelectionFrame, SIGNAL(startChange(QString)), 
             this, SLOT(guiStartChangeIsoSelection(QString)));
-    connect(isoSelectionFrame, SIGNAL(endChange()),
+    connect(myIsovals->isoSelectionFrame, SIGNAL(endChange()),
             this, SLOT(guiEndChangeIsoSelection()));
 }
 //Insert values from params into tab panel
 //
 void IsolineEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
+	
 	MainForm::getInstance()->buildWebTabHelpMenu(myWebHelpActions);
 
 	guiSetTextChanged(false);
@@ -270,33 +284,32 @@ void IsolineEventRouter::updateTab(){
 
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
-	if (dataMgr && (dataMgr->GetVariables2DXY().size() ||dataMgr->GetVariables3D().size())) instanceTable->setEnabled(true);
-	else return;
-	instanceTable->rebuild(this);
+	if (!dataMgr || dataMgr->GetVariableNames().size() == 0) return;
 	
 	IsolineParams* isolineParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
-	isoSelectionFrame->setIsolineSliders(isolineParams->GetIsovalues());
+	if (!isolineParams) return;
+	Command::blockCapture();
+	myIsovals->isoSelectionFrame->setIsolineSliders(isolineParams->GetIsovalues());
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	size_t timestep = (size_t)vizMgr->getActiveAnimationParams()->getCurrentTimestep();
 	int winnum = vizMgr->getActiveViz();
 	if (ds->getDataMgr() && fidelityDefaultChanged){
-		setupFidelity(3, fidelityLayout,fidelityBox, isolineParams, false);
+		setupFidelity(3, myBasics->fidelityLayout,myBasics->fidelityBox, isolineParams, false);
 		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 		fidelityDefaultChanged = false;
 	}
-	if (ds->getDataMgr()) updateFidelity(fidelityBox, isolineParams,lodCombo,refinementCombo);
+	if (ds->getDataMgr()) updateFidelity(myBasics->fidelityBox, isolineParams,myBasics->lodCombo,myBasics->refinementCombo);
 	
 	guiSetTextChanged(false);
 
-	singleColorCheckbox->setChecked(isolineParams->UseSingleColor());
-	QPalette pal(singleColorEdit->palette());
+	myAppearance->singleColorCheckbox->setChecked(isolineParams->UseSingleColor());
+	QPalette pal(myAppearance->singleColorEdit->palette());
 	vector<double> clr = isolineParams->GetSingleColor();
 	QColor newColor = QColor((int)(clr[0]*255),(int)(clr[1]*255),(int)(clr[2]*255));
 	pal.setColor(QPalette::Base, newColor);
-	singleColorEdit->setPalette(pal);
+	myAppearance->singleColorEdit->setPalette(pal);
 
-	textCheckbox->setChecked(isolineParams->textEnabled());
-	deleteInstanceButton->setEnabled(Params::GetNumParamsInstances(IsolineParams::_isolineParamsTag, winnum) > 1);
+	myAppearance->textCheckbox->setChecked(isolineParams->textEnabled());
 	
 	vector<long> viznums = VizWinParams::GetVisualizerNums();
 	
@@ -316,7 +329,6 @@ void IsolineEventRouter::updateTab(){
 
 	
 	QString strn;
-	Command::blockCapture();
 
 	guiSetTextChanged(false);
 	
@@ -334,12 +346,12 @@ void IsolineEventRouter::updateTab(){
 	const double* fullSizes = ds->getFullSizes();
 	isolineParams->GetBox()->GetLocalExtents(locExts);
 	for (int i = 0; i<3; i++) boxCenter[i] = (locExts[i]+locExts[3+i])*0.5f;
-	xCenterSlider->setValue((int)(256.f*boxCenter[0]/fullSizes[0]));
-	yCenterSlider->setValue((int)(256.f*boxCenter[1]/fullSizes[1]));
-	zCenterSlider->setValue((int)(256.f*boxCenter[2]/fullSizes[2]));
-	xCenterEdit->setText(QString::number(userExts[0]+boxCenter[0]));
-	yCenterEdit->setText(QString::number(userExts[1]+boxCenter[1]));
-	zCenterEdit->setText(QString::number(userExts[2]+boxCenter[2]));
+	myLayout->xCenterSlider->setValue((int)(256.f*boxCenter[0]/fullSizes[0]));
+	myLayout->yCenterSlider->setValue((int)(256.f*boxCenter[1]/fullSizes[1]));
+	myLayout->zCenterSlider->setValue((int)(256.f*boxCenter[2]/fullSizes[2]));
+	myLayout->xCenterEdit->setText(QString::number(userExts[0]+boxCenter[0]));
+	myLayout->yCenterEdit->setText(QString::number(userExts[1]+boxCenter[1]));
+	myLayout->zCenterEdit->setText(QString::number(userExts[2]+boxCenter[2]));
 
 	//Calculate extents of the containing box
 	double corners[8][3];
@@ -360,24 +372,24 @@ void IsolineEventRouter::updateTab(){
 	}
 	//Now convert to user coordinates
 
-	minUserXLabel->setText(QString::number(userExts[0]+dboxmin[0]));
-	minUserYLabel->setText(QString::number(userExts[1]+dboxmin[1]));
-	minUserZLabel->setText(QString::number(userExts[2]+dboxmin[2]));
-	maxUserXLabel->setText(QString::number(userExts[0]+dboxmax[0]));
-	maxUserYLabel->setText(QString::number(userExts[1]+dboxmax[1]));
-	maxUserZLabel->setText(QString::number(userExts[2]+dboxmax[2]));
+	myLayout->minUserXLabel->setText(QString::number(userExts[0]+dboxmin[0]));
+	myLayout->minUserYLabel->setText(QString::number(userExts[1]+dboxmin[1]));
+	myLayout->minUserZLabel->setText(QString::number(userExts[2]+dboxmin[2]));
+	myLayout->maxUserXLabel->setText(QString::number(userExts[0]+dboxmax[0]));
+	myLayout->maxUserYLabel->setText(QString::number(userExts[1]+dboxmax[1]));
+	myLayout->maxUserZLabel->setText(QString::number(userExts[2]+dboxmax[2]));
 
 	//And convert these to grid coordinates:
 	
 	if (dataMgr && showLayout){
 		DataStatus::getInstance()->mapBoxToVox(isolineParams->GetBox(),isolineParams->GetRefinementLevel(),isolineParams->GetCompressionLevel(),timestep,gridExts);
 		
-		minGridXLabel->setText(QString::number(gridExts[0]));
-		minGridYLabel->setText(QString::number(gridExts[1]));
-		minGridZLabel->setText(QString::number(gridExts[2]));
-		maxGridXLabel->setText(QString::number(gridExts[3]));
-		maxGridYLabel->setText(QString::number(gridExts[4]));
-		maxGridZLabel->setText(QString::number(gridExts[5]));
+		myLayout->minGridXLabel->setText(QString::number(gridExts[0]));
+		myLayout->minGridYLabel->setText(QString::number(gridExts[1]));
+		myLayout->minGridZLabel->setText(QString::number(gridExts[2]));
+		myLayout->maxGridXLabel->setText(QString::number(gridExts[3]));
+		myLayout->maxGridYLabel->setText(QString::number(gridExts[4]));
+		myLayout->maxGridZLabel->setText(QString::number(gridExts[5]));
 	}
 	vector<double>ivalues = isolineParams->GetIsovalues();
 	//find min and max
@@ -389,36 +401,36 @@ void IsolineEventRouter::updateTab(){
 	double isoSpace = 0.;
 	if (ivalues.size() > 1) 
 		isoSpace = (isoMax - isoMin)/(double)(ivalues.size()-1);
-	numDigitsEdit->setText(QString::number(isolineParams->GetNumDigits()));
-	minIsoEdit->setText(QString::number(isoMin));
-	isoSpaceEdit->setText(QString::number(isoSpace));
-	countIsoEdit->setText(QString::number(ivalues.size()));
+	myAppearance->numDigitsEdit->setText(QString::number(isolineParams->GetNumDigits()));
+	myIsovals->minIsoEdit->setText(QString::number(isoMin));
+	myIsovals->isoSpaceEdit->setText(QString::number(isoSpace));
+	myIsovals->countIsoEdit->setText(QString::number(ivalues.size()));
 	float histoBounds[2];
 	isolineParams->GetHistoBounds(histoBounds);
-	leftHistoEdit->setText(QString::number(histoBounds[0]));
-	rightHistoEdit->setText(QString::number(histoBounds[1]));
-	histoScaleEdit->setText(QString::number(isolineParams->GetHistoStretch()));
+	myIsovals->leftHistoEdit->setText(QString::number(histoBounds[0]));
+	myIsovals->rightHistoEdit->setText(QString::number(histoBounds[1]));
+	myIsovals->histoScaleEdit->setText(QString::number(isolineParams->GetHistoStretch()));
 	
 
-	isolineWidthEdit->setText(QString::number(isolineParams->GetLineThickness()));
-	panelLineWidthEdit->setText(QString::number(isolineParams->GetPanelLineThickness()));
-	textSizeEdit->setText(QString::number(isolineParams->GetTextSize()));
+	myAppearance->isolineWidthEdit->setText(QString::number(isolineParams->GetLineThickness()));
+	myImage->panelLineWidthEdit->setText(QString::number(isolineParams->GetPanelLineThickness()));
+	myAppearance->textSizeEdit->setText(QString::number(isolineParams->GetTextSize()));
 	double den = isolineParams->GetTextDensity();
-	densityEdit->setText(QString::number(isolineParams->GetTextDensity()));
+	myAppearance->densityEdit->setText(QString::number(isolineParams->GetTextDensity()));
 	int sliderVal = den*256.;
-	int sval = densitySlider->value();
-	if (sval != sliderVal) densitySlider->setValue(sliderVal);
+	int sval = myAppearance->densitySlider->value();
+	if (sval != sliderVal) myAppearance->densitySlider->setValue(sliderVal);
 
 	//set color buttons
 	QPalette pal2;
 	const vector<double>&bColor = isolineParams->GetPanelBackgroundColor();
 	QColor clr2 = QColor((int)(255*bColor[0]),(int)(255*bColor[1]),(int)(255*bColor[2]));
 	pal2.setColor(QPalette::Base, clr2);
-	isolinePanelBackgroundColorEdit->setPalette(pal2);
+	myImage->isolinePanelBackgroundColorEdit->setPalette(pal2);
 	
 	//Provide latlon box extents if available:
 	if (dataMgr->GetMapProjection().size() == 0){
-		minMaxLonLatFrame->hide();
+		myLayout->minMaxLonLatFrame->hide();
 	} else {
 		double boxLatLon[4];
 		
@@ -428,59 +440,59 @@ void IsolineEventRouter::updateTab(){
 		boxLatLon[3] = locExts[4];
 		
 		if (DataStatus::convertLocalToLonLat((int)timestep, boxLatLon,2)){
-			minLonLabel->setText(QString::number(boxLatLon[0]));
-			minLatLabel->setText(QString::number(boxLatLon[1]));
-			maxLonLabel->setText(QString::number(boxLatLon[2]));
-			maxLatLabel->setText(QString::number(boxLatLon[3]));
-			minMaxLonLatFrame->show();
+			myLayout->minLonLabel->setText(QString::number(boxLatLon[0]));
+			myLayout->minLatLabel->setText(QString::number(boxLatLon[1]));
+			myLayout->maxLonLabel->setText(QString::number(boxLatLon[2]));
+			myLayout->maxLatLabel->setText(QString::number(boxLatLon[3]));
+			myLayout->minMaxLonLatFrame->show();
 		} else {
-			minMaxLonLatFrame->hide();
+			myLayout->minMaxLonLatFrame->hide();
 		}
 	}
 	float angles[3];
     isolineParams->GetBox()->GetAngles(angles);
-	thetaEdit->setText(QString::number(angles[0],'f',1));
-	phiEdit->setText(QString::number(angles[1],'f',1));
-	psiEdit->setText(QString::number(angles[2],'f',1));
+	myLayout->thetaEdit->setText(QString::number(angles[0],'f',1));
+	myLayout->phiEdit->setText(QString::number(angles[1],'f',1));
+	myLayout->psiEdit->setText(QString::number(angles[2],'f',1));
 	mapCursor();
 	
 	const double* selectedPoint = isolineParams->getSelectedPointLocal();
 	double selectedUserCoords[3];
 	//selectedPoint is in local coordinates.  convert to user coords:
 	for (int i = 0; i<3; i++)selectedUserCoords[i] = selectedPoint[i]+userExts[i];
-	selectedXLabel->setText(QString::number(selectedUserCoords[0]));
-	selectedYLabel->setText(QString::number(selectedUserCoords[1]));
-	selectedZLabel->setText(QString::number(selectedUserCoords[2]));
+	myImage->selectedXLabel->setText(QString::number(selectedUserCoords[0]));
+	myImage->selectedYLabel->setText(QString::number(selectedUserCoords[1]));
+	myImage->selectedZLabel->setText(QString::number(selectedUserCoords[2]));
 
 	//Provide latlon coords if available:
 	if (dataMgr->GetMapProjection().size() == 0){
-		latLonFrame->hide();
+		myImage->latLonFrame->hide();
 	} else {
 		double selectedLatLon[2];
 		selectedLatLon[0] = selectedUserCoords[0];
 		selectedLatLon[1] = selectedUserCoords[1];
 		if (DataStatus::convertToLonLat(selectedLatLon,1)){
-			selectedLonLabel->setText(QString::number(selectedLatLon[0]));
-			selectedLatLabel->setText(QString::number(selectedLatLon[1]));
-			latLonFrame->show();
+			myImage->selectedLonLabel->setText(QString::number(selectedLatLon[0]));
+			myImage->selectedLatLabel->setText(QString::number(selectedLatLon[1]));
+			myImage->latLonFrame->show();
 		} else {
-			latLonFrame->hide();
+			myImage->latLonFrame->hide();
 		}
 	}
-	attachSeedCheckbox->setChecked(seedAttached);
+	myImage->attachSeedCheckbox->setChecked(seedAttached);
 	int activeVarNum;
 	float range[2];
 	dataMgr->GetDataRange(timestep, isolineParams->GetVariableName().c_str(),range);
-	minDataBound->setText(QString::number(range[0]));
-	maxDataBound->setText(QString::number(range[1]));
+	myIsovals->minDataBound->setText(QString::number(range[0]));
+	myIsovals->maxDataBound->setText(QString::number(range[1]));
 	if (isolineParams->VariablesAre3D()){
-		copyToProbeButton->setText("Copy to Probe");
-		copyToProbeButton->setToolTip("Click to make the current active Probe display these contour lines as a color contour plot");
+		myIsovals->copyToProbeButton->setText("Copy to Probe");
+		myIsovals->copyToProbeButton->setToolTip("Click to make the current active Probe display these contour lines as a color contour plot");
 		activeVarNum = ds->getActiveVarNum3D(isolineParams->GetVariableName());
 	}
 	else {
-		copyToProbeButton->setText("Copy to 2D");
-		copyToProbeButton->setToolTip("Click to make the current active 2D Data display these contour lines as a color contour plot");
+		myIsovals->copyToProbeButton->setText("Copy to 2D");
+		myIsovals->copyToProbeButton->setToolTip("Click to make the current active 2D Data display these contour lines as a color contour plot");
 		activeVarNum = ds->getActiveVarNum2D(isolineParams->GetVariableName());
 	}
 	
@@ -489,39 +501,32 @@ void IsolineEventRouter::updateTab(){
 		val = calcCurrentValue(isolineParams,selectedUserCoords);
 	
 	if (val == OUT_OF_BOUNDS)
-		valueMagLabel->setText(QString(" "));
-	else valueMagLabel->setText(QString::number(val));
+		myImage->valueMagLabel->setText(QString(" "));
+	else myImage->valueMagLabel->setText(QString::number(val));
 	guiSetTextChanged(false);
 	//Set the selection in the variable combo
 	//Turn off combo message-listening
 	ignoreComboChanges = true;
-	variableCombo->setCurrentIndex(activeVarNum);
+	myBasics->variableCombo->setCurrentIndex(activeVarNum);
 	int dim = isolineParams->VariablesAre3D() ? 3 : 2;
-	dimensionCombo->setCurrentIndex(dim-2);
+	myBasics->dimensionCombo->setCurrentIndex(dim-2);
 	ignoreComboChanges = false;
 	
 	if(isolineParams->GetIsoControl()){
 		isolineParams->GetIsoControl()->setParams(isolineParams);
-		isoSelectionFrame->setMapperFunction(isolineParams->GetIsoControl());
+		myIsovals->isoSelectionFrame->setMapperFunction(isolineParams->GetIsoControl());
 	}
 	
-    isoSelectionFrame->setVariableName(isolineParams->GetVariableName());
+    myIsovals->isoSelectionFrame->setVariableName(isolineParams->GetVariableName());
 	updateHistoBounds(isolineParams);
 	
-	isoSelectionFrame->updateParams();
+	myIsovals->isoSelectionFrame->updateParams();
 	
-	isolineImageFrame->setParams(isolineParams);
-	isolineImageFrame->update();
-	if (showLayout) {
-		layoutFrame->show();
-		if (dim == 3) orientationFrame->show();
-		else orientationFrame->hide();
-	}
-	else layoutFrame->hide();
-	if (showAppearance) appearanceFrame->show();
-	else appearanceFrame->hide();
-	if (showImage) imageFrame->show();
-	else imageFrame->hide();
+	myImage->isolineImageFrame->setParams(isolineParams);
+	myImage->isolineImageFrame->update();
+	
+	
+	
 	adjustSize();
 	
 	vizMgr->getTabManager()->update();
@@ -532,13 +537,7 @@ void IsolineEventRouter::updateTab(){
 	setIgnoreBoxSliderEvents(false);
 	
 }
-//Fix for clean Windows scrolling:
-void IsolineEventRouter::refreshTab(){
-	isolineFrameHolder->hide();
-	isolineFrameHolder->show();
-	appearanceFrame->hide();
-	appearanceFrame->show();
-}
+
 
 void IsolineEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
@@ -546,18 +545,18 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	
 	QString strn;
 	if (isolineParams->VariablesAre3D()){
-		float thetaVal = thetaEdit->text().toFloat();
+		float thetaVal = myLayout->thetaEdit->text().toFloat();
 		while (thetaVal > 180.f) thetaVal -= 360.f;
 		while (thetaVal < -180.f) thetaVal += 360.f;
-		thetaEdit->setText(QString::number(thetaVal,'f',1));
-		float phiVal = phiEdit->text().toFloat();
+		myLayout->thetaEdit->setText(QString::number(thetaVal,'f',1));
+		float phiVal = myLayout->phiEdit->text().toFloat();
 		while (phiVal > 180.f) phiVal -= 180.f;
 		while (phiVal < 0.f) phiVal += 180.f;
-		phiEdit->setText(QString::number(phiVal,'f',1));
-		float psiVal = psiEdit->text().toFloat();
+		myLayout->phiEdit->setText(QString::number(phiVal,'f',1));
+		float psiVal = myLayout->psiEdit->text().toFloat();
 		while (psiVal > 180.f) psiVal -= 360.f;
 		while (psiVal < -180.f) psiVal += 360.f;
-		psiEdit->setText(QString::number(psiVal,'f',1));
+		myLayout->psiEdit->setText(QString::number(psiVal,'f',1));
 		vector<double>angles;
 		angles.push_back(thetaVal);
 		angles.push_back(phiVal);
@@ -567,16 +566,16 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	}
 
 	vector<double>ivalues;
-	int numDigits = numDigitsEdit->text().toInt();
+	int numDigits = myAppearance->numDigitsEdit->text().toInt();
 	if (numDigits < 2) numDigits = 2;
 	if (numDigits > 12) numDigits = 12;
 	if (numDigits != isolineParams->GetNumDigits()) isolineParams->SetNumDigits(numDigits);
-	int numIsos = countIsoEdit->text().toInt();
+	int numIsos = myIsovals->countIsoEdit->text().toInt();
 	if (numIsos < 1) numIsos = 1;
 	
-	double isoSpace = (double)isoSpaceEdit->text().toDouble();
+	double isoSpace = (double)myIsovals->isoSpaceEdit->text().toDouble();
 	if (isoSpace <0.) isoSpace = 0.;
-	double minIso = (double)minIsoEdit->text().toDouble();
+	double minIso = (double)myIsovals->minIsoEdit->text().toDouble();
 	double maxIso = minIso + isoSpace*(numIsos-1);
 	if (maxIso < minIso) {
 		maxIso = minIso;
@@ -620,8 +619,8 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	//If the isovalue interval changed and the histo interval did not change, then make the histo interval as large as
 	//the isovalue interval.  If the histo interval is invalid, make it include the iso interval
 	float bnds[2];
-	bnds[0] = leftHistoEdit->text().toFloat();
-	bnds[1] = rightHistoEdit->text().toFloat();
+	bnds[0] = myIsovals->leftHistoEdit->text().toFloat();
+	bnds[1] = myIsovals->rightHistoEdit->text().toFloat();
 
 	if (bnds[0] >= bnds[1] ){ //fix invalid settings
 		bnds[0] = minIso - 0.1*(maxIso-minIso);
@@ -644,24 +643,24 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 		}
 	}
 
-	isolineParams->SetHistoStretch(histoScaleEdit->text().toDouble());
+	isolineParams->SetHistoStretch(myIsovals->histoScaleEdit->text().toDouble());
 	
-	double thickness = isolineWidthEdit->text().toDouble();
+	double thickness = myAppearance->isolineWidthEdit->text().toDouble();
 	if (thickness <= 0. || thickness > 100.) thickness = 1.0;
 	isolineParams->SetLineThickness(thickness);
-	thickness = panelLineWidthEdit->text().toDouble();
+	thickness = myImage->panelLineWidthEdit->text().toDouble();
 	if (thickness <= 0. || thickness > 100.) thickness = 1.0;
 	isolineParams->SetPanelLineThickness(thickness);
-	double textsize = textSizeEdit->text().toDouble();
+	double textsize = myAppearance->textSizeEdit->text().toDouble();
 	if (textsize <= 0. || textsize > 100.) textsize = 10.0;
 	isolineParams->SetTextSize(textsize);
-	double textDensity = densityEdit->text().toDouble();
+	double textDensity = myAppearance->densityEdit->text().toDouble();
 	if (textDensity <= 0. || textDensity > 1.) textDensity = 0.0;
 	
 	isolineParams->SetTextDensity(textDensity);
 	int sliderVal = textDensity*256.;
-	int sval = densitySlider->value();
-	if (sval != sliderVal) densitySlider->setValue(sliderVal);
+	int sval = myAppearance->densitySlider->value();
+	if (sval != sliderVal) myAppearance->densitySlider->setValue(sliderVal);
 
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 
@@ -669,16 +668,16 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	const vector<double>& userExts = DataStatus::getInstance()->getDataMgr()->GetExtents(timestep);
 	//Set the isoline size based on current text box settings:
 	float boxSize[3], boxexts[6],  boxCenter[3];
-	boxSize[0] = xSizeEdit->text().toFloat();
-	boxSize[1] = ySizeEdit->text().toFloat();
+	boxSize[0] = myLayout->xSizeEdit->text().toFloat();
+	boxSize[1] = myLayout->ySizeEdit->text().toFloat();
 	boxSize[2] =0.;
 	for (int i = 0; i<3; i++){
 		if (boxSize[i] < 0.f) boxSize[i] = 0.f;
 	}
 	//Convert text to local extents:
-	boxCenter[0] = xCenterEdit->text().toFloat()- userExts[0];
-	boxCenter[1] = yCenterEdit->text().toFloat()- userExts[1];
-	boxCenter[2] = zCenterEdit->text().toFloat()- userExts[2];
+	boxCenter[0] = myLayout->xCenterEdit->text().toFloat()- userExts[0];
+	boxCenter[1] = myLayout->yCenterEdit->text().toFloat()- userExts[1];
+	boxCenter[2] = myLayout->zCenterEdit->text().toFloat()- userExts[2];
 	const double* fullSizes = DataStatus::getInstance()->getFullSizes();
 	for (int i = 0; i<3;i++){
 		//Don't constrain the box to have center in the domain:
@@ -689,14 +688,14 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	isolineParams->GetBox()->SetLocalExtents(boxexts,isolineParams, -1);
 	adjustBoxSize(isolineParams);
 	//set the center sliders:
-	xCenterSlider->setValue((int)(256.f*boxCenter[0]/fullSizes[0]));
-	yCenterSlider->setValue((int)(256.f*boxCenter[1]/fullSizes[1]));
-	zCenterSlider->setValue((int)(256.f*boxCenter[2]/fullSizes[2]));
+	myLayout->xCenterSlider->setValue((int)(256.f*boxCenter[0]/fullSizes[0]));
+	myLayout->yCenterSlider->setValue((int)(256.f*boxCenter[1]/fullSizes[1]));
+	myLayout->zCenterSlider->setValue((int)(256.f*boxCenter[2]/fullSizes[2]));
 	resetImageSize(isolineParams);
 	
 	setIsolineDirty(isolineParams);
 	
-	isolineImageFrame->update();
+	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(isolineParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
 	
 	//Cancel any response to events generated in this method:
@@ -715,7 +714,7 @@ void IsolineEventRouter::pressXWheel(){
 	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
 	const double* stretch = DataStatus::getInstance()->getStretchFactors();
 	renormalizedRotate = false;
-	xThumbWheel->setValue(0);
+	myLayout->xThumbWheel->setValue(0);
 	if (stretch[1] == stretch[2]) return;
 	double rotMatrix[9];
 	double angles[3];
@@ -746,7 +745,7 @@ void IsolineEventRouter::pressYWheel(){
 	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
 	const double* stretch = DataStatus::getInstance()->getStretchFactors();
 	renormalizedRotate = false;
-	yThumbWheel->setValue(0);
+	myLayout->yThumbWheel->setValue(0);
 	if (stretch[0] == stretch[2]) return;
 	double rotMatrix[9];
 	double angles[3];
@@ -778,7 +777,7 @@ void IsolineEventRouter::pressZWheel(){
 	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
 	const double* stretch = DataStatus::getInstance()->getStretchFactors();
 	renormalizedRotate = false;
-	zThumbWheel->setValue(0);
+	myLayout->zThumbWheel->setValue(0);
 	if (stretch[1] == stretch[0]) return;
 	double rotMatrix[9];
 	double angles[3];
@@ -823,7 +822,7 @@ rotateXWheel(int val){
 	}
 	viz->updateGL();
 	
-	assert(!xThumbWheel->isSliderDown());
+	assert(!myLayout->xThumbWheel->isSliderDown());
 	
 }
 void IsolineEventRouter::
@@ -890,7 +889,7 @@ guiReleaseXWheel(int val){
 	updateTab();
 	setIsolineDirty(pParams);
 
-	isolineImageFrame->update();
+	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams, MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
 }
 void IsolineEventRouter::
@@ -918,7 +917,7 @@ guiReleaseYWheel(int val){
 	updateTab();
 	setIsolineDirty(pParams);
 
-	isolineImageFrame->update();
+	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
 	
 }
@@ -947,7 +946,7 @@ guiReleaseZWheel(int val){
 	updateTab();
 	setIsolineDirty(pParams);
 
-	isolineImageFrame->update();
+	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
 }
 
@@ -960,11 +959,11 @@ void IsolineEventRouter::guiRotate90(int selection){
 	float angle = (selection < 4) ? 90.f : -90.f;
 	//Renormalize and apply rotation:
 	pParams->GetBox()->rotateAndRenormalize(axis, angle, pParams);
-	rotate90Combo->setCurrentIndex(0);
+	myLayout->rotate90Combo->setCurrentIndex(0);
 	updateTab();
 	setIsolineDirty(pParams);
 	
-	isolineImageFrame->update();
+	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
 
 }
@@ -1129,12 +1128,12 @@ guiAxisAlign(int choice){
 		default:
 			assert(0);
 	}
-	axisAlignCombo->setCurrentIndex(0);
+	myLayout->axisAlignCombo->setCurrentIndex(0);
 	//Force a redraw, update tab
 	updateTab();
 	setIsolineDirty(pParams);
 
-	isolineImageFrame->update();
+	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
 
 }	
@@ -1151,27 +1150,27 @@ isolineAttachSeed(bool attach){
 void IsolineEventRouter::
 setIsolineXCenter(){
 	guiSetXCenter(
-		xCenterSlider->value());
+		myLayout->xCenterSlider->value());
 }
 void IsolineEventRouter::
 setIsolineYCenter(){
 	guiSetYCenter(
-		yCenterSlider->value());
+		myLayout->yCenterSlider->value());
 }
 void IsolineEventRouter::
 setIsolineZCenter(){
 	guiSetZCenter(
-		zCenterSlider->value());
+		myLayout->zCenterSlider->value());
 }
 void IsolineEventRouter::
 setIsolineXSize(){
 	guiSetXSize(
-		xSizeSlider->value());
+		myLayout->xSizeSlider->value());
 }
 void IsolineEventRouter::
 setIsolineYSize(){
 	guiSetYSize(
-		ySizeSlider->value());
+		myLayout->ySizeSlider->value());
 }
 
 
@@ -1197,7 +1196,7 @@ guiFitDomain(){
 	updateTab();
 	setIsolineDirty(pParams);
 	
-	isolineImageFrame->update();
+	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
 	
 }
@@ -1213,16 +1212,16 @@ reinitTab(bool doOverride){
 	DataStatus* ds = DataStatus::getInstance();
 	setEnabled(true);
 	setIgnoreBoxSliderEvents(false);
-	xThumbWheel->setRange(-100000,100000);
-	yThumbWheel->setRange(-100000,100000);
-	zThumbWheel->setRange(-100000,100000);
-	xThumbWheel->setValue(0);
-	yThumbWheel->setValue(0);
-	zThumbWheel->setValue(0);
+	myLayout->xThumbWheel->setRange(-100000,100000);
+	myLayout->yThumbWheel->setRange(-100000,100000);
+	myLayout->zThumbWheel->setRange(-100000,100000);
+	myLayout->xThumbWheel->setValue(0);
+	myLayout->yThumbWheel->setValue(0);
+	myLayout->zThumbWheel->setValue(0);
 	
 	//Set the names in the variable listbox
 	ignoreComboChanges = true;
-	variableCombo->clear();
+	myBasics->variableCombo->clear();
 
 	ignoreComboChanges = false;
 
@@ -1232,30 +1231,31 @@ reinitTab(bool doOverride){
 	const DataMgr* dataMgr = ds->getDataMgr();
 	
 	int numRefinements = dataMgr->GetNumTransforms();
-	refinementCombo->setMaxCount(numRefinements+1);
-	refinementCombo->clear();
+	myBasics->refinementCombo->setMaxCount(numRefinements+1);
+	myBasics->refinementCombo->clear();
 	for (int i = 0; i<= numRefinements; i++){
-		refinementCombo->addItem(QString::number(i));
+		myBasics->refinementCombo->addItem(QString::number(i));
 	}
 	if (dataMgr){
 		vector<size_t> cRatios = dataMgr->GetCRatios();
-		lodCombo->clear();
-		lodCombo->setMaxCount(cRatios.size());
+		myBasics->lodCombo->clear();
+		myBasics->lodCombo->setMaxCount(cRatios.size());
 		for (int i = 0; i<cRatios.size(); i++){
 			QString s = QString::number(cRatios[i]);
 			s += ":1";
-			lodCombo->addItem(s);
+			myBasics->lodCombo->addItem(s);
 		}
 	}
 	if (currentHistogram) {
 		delete currentHistogram;
 		currentHistogram = 0;
 	}
-	
-	IsolineParams* dParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
+	//Do not record changes in the dParams...
+	Command::blockCapture();
+	IsolineParams* dParams = (IsolineParams*)ControlExec::GetDefaultParams(IsolineParams::_isolineParamsTag);
 	//Set the names in the variable listbox
 	ignoreComboChanges = true;
-	variableCombo->clear();
+	myBasics->variableCombo->clear();
 	vector<string>varnames;
 	if (dParams->VariablesAre3D())
 		varnames = dataMgr->GetVariables3D();
@@ -1263,13 +1263,14 @@ reinitTab(bool doOverride){
 		varnames = dataMgr->GetVariables2DXY();
 
 	for (int i = 0; i<varnames.size(); i++)
-		variableCombo->insertItem(i,varnames[i].c_str());
+		myBasics->variableCombo->insertItem(i,varnames[i].c_str());
 		
 	ignoreComboChanges = false;
-	setupFidelity(3, fidelityLayout,fidelityBox, dParams, doOverride);
+	setupFidelity(3, myBasics->fidelityLayout,myBasics->fidelityBox, dParams, doOverride);
 	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 	
 	updateTab();
+	Command::unblockCapture();
 }
 
 
@@ -1314,7 +1315,7 @@ void IsolineEventRouter::guiCenterIsolines(){
 	
 	updateTab();
 	setIsolineDirty(pParams);
-	isolineImageFrame->update();
+	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
 }
 //Following method sets up (or releases) a connection to the Flow 
@@ -1348,25 +1349,25 @@ guiChangeVariable(int varnum){
 	confirmText(false);
 	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
 	
-	int activeVar = variableCombo->currentIndex();
+	int activeVar = myBasics->variableCombo->currentIndex();
 	
 	if (pParams->VariablesAre3D()){
-		const string& varname = dataMgr->GetVariables3D()[activeVar];
+		const string varname = dataMgr->GetVariables3D()[activeVar];
 		pParams->SetVariableName(varname);
 	}
 	else {
-		const string& varname = dataMgr->GetVariables2DXY()[activeVar];
+		const string varname = dataMgr->GetVariables2DXY()[activeVar];
 		pParams->SetVariableName(varname);
 	}
 	
 	updateHistoBounds(pParams);
 	setEditorDirty(pParams);
-	isoSelectionFrame->fitToView();
+	myIsovals->isoSelectionFrame->fitToView();
 	
 	//Need to update the selected point for the new variables
 	updateTab();
 	setIsolineDirty(pParams);	
-	isolineImageFrame->update();
+	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams);
 }
 void IsolineEventRouter::
@@ -1377,7 +1378,7 @@ guiSetXCenter(int sliderval){
 	setXCenter(pParams,sliderval);
 	
 	setIsolineDirty(pParams);	
-	isolineImageFrame->update();
+	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
 	
 }
@@ -1388,7 +1389,7 @@ guiSetYCenter(int sliderval){
 	
 	setYCenter(pParams,sliderval);
 	setIsolineDirty(pParams);
-	isolineImageFrame->update();
+	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
 	
 }
@@ -1400,7 +1401,7 @@ guiSetZCenter(int sliderval){
 	setZCenter(pParams,sliderval);
 	
 	setIsolineDirty(pParams);
-	isolineImageFrame->update();
+	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
 
 }
@@ -1413,7 +1414,7 @@ guiSetXSize(int sliderval){
 	
 	resetImageSize(pParams);
 	setIsolineDirty(pParams);
-	isolineImageFrame->update();
+	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
 
 }
@@ -1426,7 +1427,7 @@ guiSetYSize(int sliderval){
 
 	resetImageSize(pParams);
 	setIsolineDirty(pParams);
-	isolineImageFrame->update();
+	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
 
 }
@@ -1439,14 +1440,14 @@ guiSetCompRatio(int num){
 	if (num == pParams->GetCompressionLevel()) return;
 	
 	pParams->SetCompressionLevel(num);
-	lodCombo->setCurrentIndex(num);
+	myBasics->lodCombo->setCurrentIndex(num);
 	pParams->SetIgnoreFidelity(true);
-	QPalette pal = QPalette(fidelityBox->palette());
+	QPalette pal = QPalette(myBasics->fidelityBox->palette());
 	pal.setColor(QPalette::WindowText, Qt::gray);
-	fidelityBox->setPalette(pal);
+	myBasics->fidelityBox->setPalette(pal);
 	
 	setIsolineDirty(pParams);
-	isolineImageFrame->update();
+	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams);	
 }
 void IsolineEventRouter::
@@ -1460,17 +1461,17 @@ guiSetNumRefinements(int n){
 		if (n > maxNumRefinements) {
 			//MessageReporter::warningMsg("%s","Invalid number of Refinements \nfor current data");
 			n = maxNumRefinements;
-			refinementCombo->setCurrentIndex(n);
+			myBasics->refinementCombo->setCurrentIndex(n);
 		}
 	} else if (n > maxNumRefinements) maxNumRefinements = n;
 	pParams->SetRefinementLevel(n);
 	pParams->SetIgnoreFidelity(true);
-	QPalette pal = QPalette(fidelityBox->palette());
+	QPalette pal = QPalette(myBasics->fidelityBox->palette());
 	pal.setColor(QPalette::WindowText, Qt::gray);
-	fidelityBox->setPalette(pal);
+	myBasics->fidelityBox->setPalette(pal);
 	
 	setIsolineDirty(pParams);
-	isolineImageFrame->update();
+	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams);
 }
 	
@@ -1509,18 +1510,18 @@ sliderToText(IsolineParams* pParams, int coord, int slideCenter, int slideSize){
 	float selectCoord = selectedPoint[coord] + userExts[coord];
 	switch(coord) {
 		case 0:
-			xSizeEdit->setText(QString::number(newSize,'g',7));
-			xCenterEdit->setText(QString::number(newCenter,'g',7));
-			selectedXLabel->setText(QString::number(selectCoord));
+			myLayout->xSizeEdit->setText(QString::number(newSize,'g',7));
+			myLayout->xCenterEdit->setText(QString::number(newCenter,'g',7));
+			myImage->selectedXLabel->setText(QString::number(selectCoord));
 			break;
 		case 1:
-			ySizeEdit->setText(QString::number(newSize,'g',7));
-			yCenterEdit->setText(QString::number(newCenter,'g',7));
-			selectedYLabel->setText(QString::number(selectCoord));
+			myLayout->ySizeEdit->setText(QString::number(newSize,'g',7));
+			myLayout->yCenterEdit->setText(QString::number(newCenter,'g',7));
+			myImage->selectedYLabel->setText(QString::number(selectCoord));
 			break;
 		case 2:
-			zCenterEdit->setText(QString::number(newCenter,'g',7));
-			selectedZLabel->setText(QString::number(selectCoord));
+			myLayout->zCenterEdit->setText(QString::number(newCenter,'g',7));
+			myImage->selectedZLabel->setText(QString::number(selectCoord));
 			break;
 		default:
 			assert(0);
@@ -1530,7 +1531,7 @@ sliderToText(IsolineParams* pParams, int coord, int slideCenter, int slideSize){
 	update();
 	//force a new render with new Isoline data
 	setIsolineDirty(pParams);
-	isolineImageFrame->update();
+	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
 	return;
 	
@@ -1561,7 +1562,7 @@ captureMouseUp(){
 	if(MainForm::getTabManager()->isFrontTab(this)) {
 		updateTab();
 	}
-	isolineImageFrame->update();
+	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams,true);
 }
 //When the center slider moves, set the IsolineMin and IsolineMax
@@ -1569,12 +1570,12 @@ void IsolineEventRouter::
 setXCenter(IsolineParams* pParams,int sliderval){
 	//new min and max are center -+ size/2.  
 	//center is min + (slider/256)*(max-min)
-	sliderToText(pParams,0, sliderval, xSizeSlider->value());
+	sliderToText(pParams,0, sliderval, myLayout->xSizeSlider->value());
 	setIsolineDirty(pParams);
 }
 void IsolineEventRouter::
 setYCenter(IsolineParams* pParams,int sliderval){
-	sliderToText(pParams,1, sliderval, ySizeSlider->value());
+	sliderToText(pParams,1, sliderval, myLayout->ySizeSlider->value());
 	setIsolineDirty(pParams);
 }
 void IsolineEventRouter::
@@ -1586,12 +1587,12 @@ setZCenter(IsolineParams* pParams,int sliderval){
 //size is regionsize*sliderval/256
 void IsolineEventRouter::
 setXSize(IsolineParams* pParams,int sliderval){
-	sliderToText(pParams,0, xCenterSlider->value(),sliderval);
+	sliderToText(pParams,0, myLayout->xCenterSlider->value(),sliderval);
 	setIsolineDirty(pParams);
 }
 void IsolineEventRouter::
 setYSize(IsolineParams* pParams,int sliderval){
-	sliderToText(pParams,1, yCenterSlider->value(),sliderval);
+	sliderToText(pParams,1, myLayout->yCenterSlider->value(),sliderval);
 	setIsolineDirty(pParams);
 }
 
@@ -1650,17 +1651,17 @@ calcCurrentValue(IsolineParams* pParams, const double point[3] ){
 	}
 	vector<string> varname;
 	varname.push_back(pParams->GetVariableName());
-	RegularGrid** grid;
+	RegularGrid* grid;
 	//Get the data dimensions (at current resolution):
 	
 	int numRefinements = pParams->GetRefinementLevel();
 	int lod = pParams->GetCompressionLevel();
-	int rc = Renderer::getGrids(timeStep, varname, exts, &numRefinements, &lod, grid);
+	int rc = Renderer::getGrids(timeStep, varname, exts, &numRefinements, &lod, &grid);
 	
 	if (!rc) return OUT_OF_BOUNDS;
-	float varVal = (*grid)->GetValue(point[0],point[1],point[2]);
+	float varVal = (grid)->GetValue(point[0],point[1],point[2]);
 	
-	delete *grid;
+	delete grid;
 	return varVal;
 }
 
@@ -1706,7 +1707,7 @@ void IsolineEventRouter::guiNudgeXSize(int val) {
 	int newSliderPos = (int)(256.*newSize/(maxExtent-minExtent) +0.5f);
 	if(lastXSizeSlider != newSliderPos){
 		lastXSizeSlider = newSliderPos;
-		xSizeSlider->setValue(newSliderPos);
+		myLayout->xSizeSlider->setValue(newSliderPos);
 	}
 	updateTab();
 	setIsolineDirty(pParams);
@@ -1752,7 +1753,7 @@ void IsolineEventRouter::guiNudgeXCenter(int val) {
 	int newSliderPos = (int)(256.*(newCenter - minExtent)/(maxExtent-minExtent) +0.5f);
 	if(lastXCenterSlider != newSliderPos){
 		lastXCenterSlider = newSliderPos;
-		xCenterSlider->setValue(newSliderPos);
+		myLayout->xCenterSlider->setValue(newSliderPos);
 	}
 	updateTab();
 	setIsolineDirty(pParams);
@@ -1797,7 +1798,7 @@ void IsolineEventRouter::guiNudgeYCenter(int val) {
 	int newSliderPos = (int)(256.*(newCenter - minExtent)/(maxExtent-minExtent) +0.5f);
 	if(lastYCenterSlider != newSliderPos){
 		lastYCenterSlider = newSliderPos;
-		yCenterSlider->setValue(newSliderPos);
+		myLayout->yCenterSlider->setValue(newSliderPos);
 	}
 	updateTab();
 	setIsolineDirty(pParams);
@@ -1843,7 +1844,7 @@ void IsolineEventRouter::guiNudgeZCenter(int val) {
 	int newSliderPos = (int)(256.*(newCenter - minExtent)/(maxExtent-minExtent) +0.5f);
 	if(lastZCenterSlider != newSliderPos){
 		lastZCenterSlider = newSliderPos;
-		zCenterSlider->setValue(newSliderPos);
+		myLayout->zCenterSlider->setValue(newSliderPos);
 	}
 	updateTab();
 
@@ -1891,7 +1892,7 @@ void IsolineEventRouter::guiNudgeYSize(int val) {
 	int newSliderPos = (int)(256.*newSize/(maxExtent-minExtent) +0.5f);
 	if(lastYSizeSlider != newSliderPos){
 		lastYSizeSlider = newSliderPos;
-		ySizeSlider->setValue(newSliderPos);
+		myLayout->ySizeSlider->setValue(newSliderPos);
 	}
 	updateTab();
 	setIsolineDirty(pParams);
@@ -1950,15 +1951,15 @@ adjustBoxSize(IsolineParams* pParams){
 	}
 	
 	//Set the size sliders appropriately:
-	xSizeEdit->setText(QString::number(extents[3]-extents[0]));
-	ySizeEdit->setText(QString::number(extents[4]-extents[1]));
+	myLayout->xSizeEdit->setText(QString::number(extents[3]-extents[0]));
+	myLayout->ySizeEdit->setText(QString::number(extents[4]-extents[1]));
 	
 	//Cancel any response to text events generated in this method, to prevent
 	//the sliders from triggering text change
 	//
 	guiSetTextChanged(false);
-	xSizeSlider->setValue((int)(256.f*(extents[3]-extents[0])/(maxBoxSize[0])));
-	ySizeSlider->setValue((int)(256.f*(extents[4]-extents[1])/(maxBoxSize[1])));
+	myLayout->xSizeSlider->setValue((int)(256.f*(extents[3]-extents[0])/(maxBoxSize[0])));
+	myLayout->ySizeSlider->setValue((int)(256.f*(extents[4]-extents[1])/(maxBoxSize[1])));
 	
 }
 
@@ -1998,7 +1999,7 @@ guiCropToRegion(){
 		updateTab();
 		setIsolineDirty(pParams);
 		
-		isolineImageFrame->update();
+		myImage->isolineImageFrame->update();
 		VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
 	} else {
 		//MessageReporter::warningMsg(" Contour line extents cannot be cropped to region, insufficient overlap");
@@ -2020,7 +2021,7 @@ guiCropToDomain(){
 	if (pParams->GetBox()->cropToBox(extents,pParams)){
 		updateTab();
 		setIsolineDirty(pParams);
-		isolineImageFrame->update();
+		myImage->isolineImageFrame->update();
 		VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
 	} else {
 	//	MessageReporter::warningMsg(" Contour line extents cannot be cropped to domain, insufficient overlap");
@@ -2040,7 +2041,7 @@ guiFitRegion(){
 	setIsolineToExtents(extents,pParams);
 	updateTab();
 	setIsolineDirty(pParams);
-	isolineImageFrame->update();
+	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
 	
 }
@@ -2085,48 +2086,7 @@ double IsolineEventRouter::convertRotStretchedToActual(int axis, double angle){
 	return retval;
 }
 
-void IsolineEventRouter::
-showHideLayout(){
-	if (showLayout) {
-		showLayout = false;
-		showHideLayoutButton->setText("Show Contour Line Layout Options");
-	} else {
-		showLayout = true;
-		showHideLayoutButton->setText("Hide Contour Line Layout Options");
-	}
-	//Following HACK is needed to convince Qt to remove the extra space in the tab:
-	updateTab();
-	VizWinMgr::getInstance()->getTabManager()->toggleFrontTabs(Params::GetTypeFromTag(IsolineParams::_isolineParamsTag));
-	updateTab();
-}
-void IsolineEventRouter::
-showHideAppearance(){
-	if (showAppearance) {
-		showAppearance = false;
-		showHideAppearanceButton->setText("Show Contour Line Appearance Options");
-	} else {
-		showAppearance = true;
-		showHideAppearanceButton->setText("Hide Contour Line Appearance Options");
-	}
-	//Following HACK is needed to convince Qt to remove the extra space in the tab:
-	updateTab();
-	VizWinMgr::getInstance()->getTabManager()->toggleFrontTabs(Params::GetTypeFromTag(IsolineParams::_isolineParamsTag));
-	updateTab();
-}
-void IsolineEventRouter::
-showHideImage(){
-	if (showImage) {
-		showImage = false;
-		showHideImageButton->setText("Show Contour Line Image Settings");
-	} else {
-		showImage = true;
-		showHideImageButton->setText("Hide Contour Line Image Settings");
-	}
-	//Following HACK is needed to convince Qt to remove the extra space in the tab:
-	updateTab();
-	VizWinMgr::getInstance()->getTabManager()->toggleFrontTabs(Params::GetTypeFromTag(IsolineParams::_isolineParamsTag));
-	updateTab();
-}
+
 //Workaround for Qt/Cocoa bug: postpone showing of OpenGL widgets 
 
 #ifdef Darwin
@@ -2141,8 +2101,8 @@ void IsolineEventRouter::paintEvent(QPaintEvent* ev){
 			sArea->ensureWidgetVisible(isolineFrameHolder);
 			_texShown = true;
 #endif
-			isolineImageFrame->show();
-			isolineImageFrame->updateGeometry();
+			myImage->isolineImageFrame->show();
+			myImage->isolineImageFrame->updateGeometry();
 			QWidget::paintEvent(ev);
 			return;
 		} 
@@ -2191,15 +2151,15 @@ void IsolineEventRouter::guiSetFidelity(int buttonID){
 	dParams->SetRefinementLevel(newRef);
 	dParams->SetFidelityLevel(fidelity);
 	dParams->SetIgnoreFidelity(false);
-	QPalette pal = QPalette(fidelityBox->palette());
+	QPalette pal = QPalette(myBasics->fidelityBox->palette());
 	pal.setColor(QPalette::WindowText, Qt::black);
-	fidelityBox->setPalette(pal);
+	myBasics->fidelityBox->setPalette(pal);
 	//change values of LOD and refinement combos using setCurrentIndex().
-	lodCombo->setCurrentIndex(newLOD);
-	refinementCombo->setCurrentIndex(newRef);
+	myBasics->lodCombo->setCurrentIndex(newLOD);
+	myBasics->refinementCombo->setCurrentIndex(newRef);
 
 	setIsolineDirty(dParams);
-	isolineImageFrame->update();
+	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(dParams);	
 }
 
@@ -2227,7 +2187,7 @@ void IsolineEventRouter::resetImageSize(IsolineParams* iParams){
 	//setup the texture:
 	float voxDims[2];
 	iParams->GetBox()->getRotatedVoxelExtents(voxDims,iParams->GetRefinementLevel());
-	isolineImageFrame->setImageSize(voxDims[0],voxDims[1]);
+	myImage->isolineImageFrame->setImageSize(voxDims[0],voxDims[1]);
 }
 /*
  * Respond to user clicking a color button
@@ -2235,11 +2195,11 @@ void IsolineEventRouter::resetImageSize(IsolineParams* iParams){
 
 
 void IsolineEventRouter::guiSetPanelBackgroundColor(){
-	QPalette pal(isolinePanelBackgroundColorEdit->palette());
+	QPalette pal(myImage->isolinePanelBackgroundColorEdit->palette());
 	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Base), this);
 	if (!newColor.isValid()) return;
 	pal.setColor(QPalette::Base, newColor);
-	isolinePanelBackgroundColorEdit->setPalette(pal);
+	myImage->isolinePanelBackgroundColorEdit->setPalette(pal);
 	//Set parameter value of the appropriate parameter set:
 	confirmText(false);
 	IsolineParams* iParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
@@ -2261,11 +2221,11 @@ void IsolineEventRouter::guiSetDimension(int dim){
 	if (curdim == dim) return;
 	//Don't allow setting of dimension of there aren't any variables in the proposed dimension:
 	if (dim == 1 && DataStatus::getInstance()->getNumActiveVariables3D()==0){
-		dimensionCombo->setCurrentIndex(0);
+		myBasics->dimensionCombo->setCurrentIndex(0);
 		return;
 	}
 	if (dim == 0 && DataStatus::getInstance()->getNumActiveVariables2D()==0){
-		dimensionCombo->setCurrentIndex(1);
+		myBasics->dimensionCombo->setCurrentIndex(1);
 		return;
 	}
 	
@@ -2275,7 +2235,7 @@ void IsolineEventRouter::guiSetDimension(int dim){
 	//Set the names in the variable listbox.
 	//Set the current variable name to be the first variable
 	ignoreComboChanges = true;
-	variableCombo->clear();
+	myBasics->variableCombo->clear();
 	vector<string> varnames;
 	if (dim == 1){ //dim = 1 for 3D vars
 		varnames = DataStatus::getInstance()->getDataMgr()->GetVariables3D();
@@ -2283,25 +2243,25 @@ void IsolineEventRouter::guiSetDimension(int dim){
 			string s = varnames[i];
 			if (i == 0) iParams->SetVariableName(s);
 			const QString& text = QString(s.c_str());
-			variableCombo->insertItem(i,text);
+			myBasics->variableCombo->insertItem(i,text);
 		}
-		copyToProbeButton->setText("Copy to Probe");
-		copyToProbeButton->setToolTip("Click to make the current active Probe display these contours as a color contour plot");
+		myIsovals->copyToProbeButton->setText("Copy to Probe");
+		myIsovals->copyToProbeButton->setToolTip("Click to make the current active Probe display these contours as a color contour plot");
 	} else {
 		varnames = DataStatus::getInstance()->getDataMgr()->GetVariables2DXY();
 		for (int i = 0; i< varnames.size(); i++){
 			string s = varnames[i];
 			if (i == 0) iParams->SetVariableName(s);
 			const QString& text = QString(s.c_str());
-			variableCombo->insertItem(i,text);
+			myBasics->variableCombo->insertItem(i,text);
 		}
 		
-		copyToProbeButton->setText("Copy to 2D");
-		copyToProbeButton->setToolTip("Click to make the current active 2D Data display these contours as a color contour plot");
+		myIsovals->copyToProbeButton->setText("Copy to 2D");
+		myIsovals->copyToProbeButton->setToolTip("Click to make the current active 2D Data display these contours as a color contour plot");
 	}
 	if (showLayout) {
-		if (dim == 1) orientationFrame->show();
-		else orientationFrame->hide();
+		if (dim == 1) myLayout->orientationFrame->show();
+		else myLayout->orientationFrame->hide();
 	}
 	ignoreComboChanges = false;
 
@@ -2316,12 +2276,12 @@ void IsolineEventRouter::invalidateRenderer(IsolineParams* iParams)
 
 void IsolineEventRouter::
 setIsolineEditMode(bool mode){
-	navigateButton->setChecked(!mode);
+	myIsovals->navigateButton->setChecked(!mode);
 	editMode = mode;
 }
 void IsolineEventRouter::
 setIsolineNavigateMode(bool mode){
-	editButton->setChecked(!mode);
+	myIsovals->editButton->setChecked(!mode);
 	editMode = !mode;
 }
 void IsolineEventRouter::
@@ -2405,21 +2365,21 @@ setEditorDirty(RenderParams* p){
 	IsolineParams* ip = dynamic_cast<IsolineParams*>(p);
 	if(!ip) ip = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
 	if(ip->GetIsoControl())ip->GetIsoControl()->setParams(ip);
-    isoSelectionFrame->setMapperFunction(ip->GetIsoControl());
-	isoSelectionFrame->setVariableName(ip->GetVariableName());
-	isoSelectionFrame->setIsoValue(ip->GetIsovalues()[0]);
-    isoSelectionFrame->updateParams();
+    myIsovals->isoSelectionFrame->setMapperFunction(ip->GetIsoControl());
+	myIsovals->isoSelectionFrame->setVariableName(ip->GetVariableName());
+	myIsovals->isoSelectionFrame->setIsoValue(ip->GetIsovalues()[0]);
+    myIsovals->isoSelectionFrame->updateParams();
 	
 	if (DataStatus::getInstance()->getNumActiveVariables()){
 		
 		const std::string& varname = ip->GetVariableName();
-		isoSelectionFrame->setVariableName(varname);
+		myIsovals->isoSelectionFrame->setVariableName(varname);
 		
 	} else {
-		isoSelectionFrame->setVariableName("N/A");
+		myIsovals->isoSelectionFrame->setVariableName("N/A");
 	}
 	
-	isoSelectionFrame->update();
+	myIsovals->isoSelectionFrame->update();
 	
 }
 /*
@@ -2450,8 +2410,8 @@ updateHistoBounds(RenderParams* params){
 		maxval = ds->getDefaultDataMax(varname);
 	}
 
-	minDataBound->setText(strn.setNum(minval));
-	maxDataBound->setText(strn.setNum(maxval));
+	myIsovals->minDataBound->setText(strn.setNum(minval));
+	myIsovals->maxDataBound->setText(strn.setNum(maxval));
 	
 }
 
@@ -2632,8 +2592,8 @@ updateMapBounds(RenderParams* params){
 	QString strn;
 	IsoControl* mpFunc = (IsoControl*)iParams->GetIsoControl();
 	if (mpFunc){
-		leftHistoEdit->setText(strn.setNum(mpFunc->getMinMapValue(),'g',4));
-		rightHistoEdit->setText(strn.setNum(mpFunc->getMaxMapValue(),'g',4));
+		myIsovals->leftHistoEdit->setText(strn.setNum(mpFunc->getMinMapValue(),'g',4));
+		myIsovals->rightHistoEdit->setText(strn.setNum(mpFunc->getMaxMapValue(),'g',4));
 	} 
 	setEditorDirty(iParams);
 
@@ -2712,10 +2672,10 @@ void IsolineEventRouter::guiSetIsolineDensity(){
 	IsolineParams* iParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
 	confirmText(false);
 
-	int sliderVal = densitySlider->value();
+	int sliderVal = myAppearance->densitySlider->value();
 	double den = sliderVal/256.;
 	iParams->SetTextDensity(den);
-	densityEdit->setText(QString::number(den));
+	myAppearance->densityEdit->setText(QString::number(den));
 
 	setIsolineDirty(iParams);
 	VizWinMgr::getInstance()->forceRender(iParams);
@@ -2729,8 +2689,8 @@ void IsolineEventRouter::guiSpaceIsovalues(){
 	confirmText(false);
 
 
-	double minIso = (double)minIsoEdit->text().toDouble();
-	double interval = (double)isoSpaceEdit->text().toDouble();
+	double minIso = (double)myIsovals->minIsoEdit->text().toDouble();
+	double interval = (double)myIsovals->isoSpaceEdit->text().toDouble();
 	iParams->spaceIsovals(minIso,interval);
 
 	setIsolineDirty(iParams);
@@ -2756,11 +2716,11 @@ void IsolineEventRouter::guiEnableText(bool val){
  */
 void IsolineEventRouter::
 guiSetSingleColor(){
-	QPalette pal(singleColorEdit->palette());
+	QPalette pal(myAppearance->singleColorEdit->palette());
 	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Base), this);
 	if (!newColor.isValid()) return;
 	pal.setColor(QPalette::Base, newColor);
-	singleColorEdit->setPalette(pal);
+	myAppearance->singleColorEdit->setPalette(pal);
 	double rgb[3];
 	rgb[0] = (double)newColor.red()/256.;
 	rgb[1] = (double)newColor.green()/256.;

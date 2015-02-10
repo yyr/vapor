@@ -294,7 +294,8 @@ void OpacityMapBase::controlPointValue(int index, float value)
 //----------------------------------------------------------------------------
 void OpacityMapBase::SetMean(double mean)
 {
-  SetValueDouble(_meanTag, "Set opacity mean", mean, _mapper->getParams());
+
+  if(_mapper) SetValueDouble(_meanTag, "Set opacity mean", mean, _mapper->getParams());
 }
 
 //----------------------------------------------------------------------------
@@ -303,7 +304,7 @@ void OpacityMapBase::SetMean(double mean)
 //----------------------------------------------------------------------------
 void OpacityMapBase::SetSSQ(double ssq)
 {
-	SetValueDouble(_ssqTag,"Set Opac SSQ", ssq, _mapper->getParams());
+	if(_mapper) SetValueDouble(_ssqTag,"Set Opac SSQ", ssq, _mapper->getParams());
 }
 
 //----------------------------------------------------------------------------
@@ -311,7 +312,7 @@ void OpacityMapBase::SetSSQ(double ssq)
 //----------------------------------------------------------------------------
 void OpacityMapBase::SetFreq(double freq) 
 { 
-  SetValueDouble(_freqTag,"Set Opac Freq", freq, _mapper->getParams());
+  if(_mapper) SetValueDouble(_freqTag,"Set Opac Freq", freq, _mapper->getParams());
 }
 
 //----------------------------------------------------------------------------
@@ -319,7 +320,7 @@ void OpacityMapBase::SetFreq(double freq)
 //----------------------------------------------------------------------------
 void OpacityMapBase::SetPhase(double p)
 {
-	SetValueDouble(_phaseTag, "Set Opac Phase", denormSinePhase(p), _mapper->getParams());
+	if(_mapper) SetValueDouble(_phaseTag, "Set Opac Phase", denormSinePhase(p), _mapper->getParams());
 } 
 
 
@@ -499,17 +500,29 @@ bool OpacityMapBase::isOpaque()
   return true;
 }
 
-void OpacityMapBase::SetMinValue(double val) {SetValueDouble(_minTag,"Set min opacity map value", val, _mapper->getParams());}
-void OpacityMapBase::SetMaxValue(double val) {SetValueDouble(_maxTag,"Set max opacity map value", val, _mapper->getParams());}
-void OpacityMapBase::SetEnabled(bool val) {SetValueLong(_enabledTag, "Change opacity map enabled", (long)val, _mapper->getParams());}
+void OpacityMapBase::SetMinValue(double val) {
+	if (_mapper)
+		SetValueDouble(_minTag,"Set min opacity map value", val, _mapper->getParams());
+}
+void OpacityMapBase::SetMaxValue(double val) {
+	if (_mapper)
+		SetValueDouble(_maxTag,"Set max opacity map value", val, _mapper->getParams());
+}
+void OpacityMapBase::SetEnabled(bool val) {
+	if (_mapper)
+		SetValueLong(_enabledTag, "Change opacity map enabled", (long)val, _mapper->getParams());
+}
 void OpacityMapBase::SetControlPoints(vector<double> controlPoints){
-	SetValueDouble(_controlPointsTag,"Set opacity control points", controlPoints, _mapper->getParams());
+	if (_mapper)
+		SetValueDouble(_controlPointsTag,"Set opacity control points", controlPoints, _mapper->getParams());
 }
 void OpacityMapBase::SetInterpType(TFInterpolator::type t){
-	SetValueLong(_interpTypeTag, "Set Opacity Interpolation", (long)t, _mapper->getParams());
+	if (_mapper)
+		SetValueLong(_interpTypeTag, "Set Opacity Interpolation", (long)t, _mapper->getParams());
 }
 void OpacityMapBase::SetType(OpacityMapBase::Type t){
-	SetValueLong(_typeTag, "Set Opacity Map Type", (long)t, _mapper->getParams());
+	if (_mapper)
+		SetValueLong(_typeTag, "Set Opacity Map Type", (long)t, _mapper->getParams());
 }
 //----------------------------------------------------------------------------
 // Return the minimum value of the opacity map (in data coordinates).

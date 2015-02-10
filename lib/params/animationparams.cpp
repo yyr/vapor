@@ -80,9 +80,10 @@ restart(){
 	
 }
 
-void AnimationParams::Validate(bool useDefault){
+void AnimationParams::Validate(int type){
 	//Command capturing should be disabled
 	assert(!Command::isRecording());
+	bool useDefault = (type == 0);
 	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
 	if (!dataMgr) return;
 	setMaxTimestep(dataMgr->GetNumTimeSteps()-1);

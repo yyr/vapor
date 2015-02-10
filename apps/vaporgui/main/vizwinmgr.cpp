@@ -78,6 +78,7 @@
 #include "eventrouter.h"
 //Extension tabs also included (until we find a nicer way to separate extensions)
 #include "arroweventrouter.h"
+#include "isolineeventrouter.h"
 #include <vapor/XmlNode.h>
 #include <vapor/ExpatParseMgr.h>
 #include <vapor/ParamNode.h>
@@ -117,13 +118,14 @@ createAllDefaultTabs() {
 
 	//Install Extension Tabs
 	InstallTab(ArrowParams::_arrowParamsTag, ArrowEventRouter::CreateTab);
+	InstallTab(IsolineParams::_isolineParamsTag, IsolineEventRouter::CreateTab);
 	//Install built-in tabs
 	InstallTab(Params::_animationParamsTag, AnimationEventRouter::CreateTab);
 	InstallTab(Params::_viewpointParamsTag, ViewpointEventRouter::CreateTab);
 	InstallTab(Params::_regionParamsTag, RegionEventRouter::CreateTab);
 	
-	//set up tabs
-	tabManager->orderTabs();
+	//set up widgets in tabs:
+	tabManager->installWidgets();
 	
 
 }

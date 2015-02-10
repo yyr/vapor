@@ -1,3 +1,4 @@
+
 //************************************************************************
 //																		*
 //		     Copyright (C)  2004										*
@@ -58,6 +59,11 @@ public:
 	//! It will be called from an OpenGL rendering context.
 	//! Sets initialized to true if successful.
     virtual int	initializeGL();
+	typedef Renderer* (*RendererCreateMethod)(Visualizer*, RenderParams*);
+	//! Register a Renderer class associated with a Params tag
+	static void RegisterRenderer(string tag, RendererCreateMethod);
+
+	static Renderer* CreateInstance(string tag, RenderParams* p, Visualizer* viz);
 
 	//! All OpenGL rendering is performed in the pure virtual paintGL method.
 	//! \param[in] dataMgr Current (valid) dataMgr
@@ -170,7 +176,7 @@ protected:
 	//! enableClippingPlanes(), enableFullClippingPlanes(), enableRegionClippingPlanes, or enable2DClippingPlanes()
 	void disableClippingPlanes();
 	
-
+	static map<string,RendererCreateMethod> createRendererMap;
 #ifndef DOXYGEN_SKIP_THIS
 	Visualizer* myVisualizer;
 	RenderParams* currentRenderParams;

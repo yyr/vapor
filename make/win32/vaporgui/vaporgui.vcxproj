@@ -305,8 +305,13 @@
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_domainwidget.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_glwidget.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_instancetable.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isolineAppearance.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isolineBasics.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isolineeventrouter.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isolineframe.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isolineImage.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isolineIsovals.cpp" />
+    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isolineLayout.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isovalueeditor.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_mainform.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_mappingframe.cpp" />
@@ -643,14 +648,49 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\isolineAppearance.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isolineAppearance.h -o ..\..\..\apps\vaporgui\moc\moc_isolineAppearance.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">moc%27ing isolineAppearance.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\moc\moc_isolineAppearance.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\isolineBasics.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isolineBasics.h -o ..\..\..\apps\vaporgui\moc\moc_isolineBasics.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">moc%27ing isolilneBasics.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\moc\moc_isolineBasics.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\isolineImage.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isolineImage.h -o ..\..\..\apps\vaporgui\moc\moc_isolineImage.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">moc%27ing isolineImage.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\moc\moc_isolineImage.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\isolineIsovals.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isolineIsovals.h -o ..\..\..\apps\vaporgui\moc\moc_isolineIsovals.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">moc%27ing isolineIsovals.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\moc\moc_isolineIsovals.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\isolineLayout.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isolineLayout.h -o ..\..\..\apps\vaporgui\moc\moc_isolineLayout.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">moc%27ing isolineLayout.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\moc\moc_isolineLayout.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\animationtab.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\arrow.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\barbAppearance.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\barbBasic.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\barbLayout.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\boxframe.h" />
+    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\contourAppearance.h" />
+    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\contourBasics.h" />
+    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\contourImage.h" />
+    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\contourIsovalues.h" />
+    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\contourLayout.h" />
+    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\contourTab.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.h" />
-    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\isolinetab.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\newRendererDialog.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\regiontab.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\renderselector.h" />
@@ -863,20 +903,55 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\isolinetab.ui">
-      <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\isolinetab.ui -o ..\..\..\apps\vaporgui\guis\ui\isolinetab.h</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">uic%27ing isolinetab.ui..</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\guis\ui\isolinetab.h;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.ui">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.ui -o ..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">uic%27ing ControlPointEditorBase.ui..</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.h;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\contourAppearance.ui">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\contourAppearance.ui -o ..\..\..\apps\vaporgui\guis\ui\contourAppearance.h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">uic%27ingcontourAppearance.ui</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\guis\ui\contourAppearance.h;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\contourBasics.ui">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\contourBasics.ui -o ..\..\..\apps\vaporgui\guis\ui\contourBasics.h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">uic%27ing contourBasics.ui</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\guis\ui\contourBasics.h;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\contourImage.ui">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\contourImage.ui -o ..\..\..\apps\vaporgui\guis\ui\contourImage.h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">uic%27ing contourImage.ui</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\guis\ui\contourImage.h;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\contourIsovalues.ui">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\contourIsovalues.ui -o ..\..\..\apps\vaporgui\guis\ui\contourIsovalues.h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">uic%27ing contourIsovalues.ui</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\guis\ui\contourIsovalues.h;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\contourLayout.ui">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\contourLayout.ui -o ..\..\..\apps\vaporgui\guis\ui\contourLayout.h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">uic%27ing contourLayout.ui</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\guis\ui\contourLayout.h;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\contourTab.ui">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\contourTab.ui -o ..\..\..\apps\vaporgui\guis\ui\contourTab.h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">uic%27ing contourTab.ui</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\guis\ui\contourTab.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>

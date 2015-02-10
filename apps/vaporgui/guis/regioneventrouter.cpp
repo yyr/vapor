@@ -148,7 +148,7 @@ void RegionEventRouter::confirmText(bool /*render*/){
 		textToSlider(rParams,i,centerPos[i],regSize[i],true);
 
 	guiSetTextChanged(false);
-	rParams->Validate(false);
+	rParams->Validate(2);
 	
 	Command::CaptureEnd(cmd,rParams);
 	guiSetTextChanged(false);

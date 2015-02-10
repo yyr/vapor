@@ -68,11 +68,11 @@ restart(){
 //Reinitialize settings, session has changed
 
 void MouseModeParams::
-Validate(bool doOverride){
+Validate(int type){
 	//Command capturing should be disabled
 	assert(!Command::isRecording());
 	
-	if (doOverride) SetCurrentMouseMode(navigateMode);
+	if (type==0) SetCurrentMouseMode(navigateMode);
 	//Otherwise, verify that this is a registered mouse mode
 	//else if (GetCurrentMouseMode()
 	return;	
@@ -110,6 +110,6 @@ void MouseModeParams::RegisterMouseModes(){
 	//RegisterMouseMode(Params::_probeParamsTag,3,"Probe", probe);
 	//RegisterMouseMode(Params::_twoDDataParamsTag,2,"2D Data", twoDData);
 	//RegisterMouseMode(Params::_twoDImageParamsTag,2, "Image",twoDImage);
-	//RegisterMouseMode(IsolineParams::_isolineParamsTag,3,"Isoline", isoline);
+	
 	InstallExtensionMouseModes();
 }

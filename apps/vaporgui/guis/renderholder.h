@@ -7,7 +7,7 @@
 #include "qpushbutton.h"
 #include "qtableview.h"
 #include "params.h"
-#include "arrowparams.h"
+
 #include "eventrouter.h"
 #include <vapor/MyBase.h>
 #include "renderselector.h"
@@ -37,7 +37,9 @@ public:
 	void deleteViznum(int);
 	void addViznum(int);
 	
-
+	void setCurrentIndex(int indx){
+		stackedWidget->setCurrentIndex(indx);
+	}
 
 private slots:
 	void newRenderer();
@@ -68,7 +70,7 @@ private:
 	//Convert name to a unique name (among renderer names)
 	std::string uniqueName(std::string name);
 
-	
+	QStackedWidget* stackedWidget;
    };
 
 };

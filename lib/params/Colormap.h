@@ -30,12 +30,6 @@ public:
 
   virtual ~VColormap();
 
-  virtual float minValue();      // Data Coordinates
-  virtual void  minValue(float value); // Data Coordinates
-
-  virtual float maxValue();      // Data Coordinates
-  virtual void  maxValue(float value); // Data Coordinates
-  
 
 };
 };

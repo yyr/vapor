@@ -16,6 +16,8 @@ GUI_QT_HEADERS := \
 	animationeventrouter isolineeventrouter \
 	arroweventrouter renderholder arrowAppearance arrowLayout \
 	regioneventrouter viewpointeventrouter arrowBasic\
+	isolineImage isolineLayout isolineIsovals isolineBasics \
+	isolineAppearance
 
 
 

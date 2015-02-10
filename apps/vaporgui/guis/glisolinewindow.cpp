@@ -81,7 +81,7 @@ void GLIsolineWindow::mouseReleaseEvent( QMouseEvent *e ){
 
 GLIsolineWindow::GLIsolineWindow( QGLFormat& fmt, QWidget* parent, const char* , IsolineFrame* pf ) : 
 	QGLWidget(fmt, parent) {
-
+	
 	if(!doubleBuffer()){
 		QString strng(" Inadequate rendering capability.\n");
 		strng += "Ensure your graphics card is properly configured, and/or \n";
@@ -117,19 +117,24 @@ GLIsolineWindow::~GLIsolineWindow()
 
 void GLIsolineWindow::resizeGL( int width, int height )
 {
+	printOpenGLErrorMsg("GLIsoWindowResizeEvent");
+	
 	_winWidth = width;
 	_winHeight = height;
 	
 	_resizeGL();
+	
 }
 
 void GLIsolineWindow::_resizeGL() {
 
+	
 	//update the size of the drawing rectangle
 	glViewport( 0, 0, (GLint)_winWidth, (GLint)_winHeight);
-	
 	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
 	glLoadIdentity();
+
 	glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
 
 	glMatrixMode(GL_MODELVIEW);
@@ -155,7 +160,8 @@ void GLIsolineWindow::_resizeGL() {
 		rectLeft = winAspect/imgAspect;
 		rectTop = 1.f;
 	}
-
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
 }
 	
 void GLIsolineWindow::setImageSize(float horiz, float vert){
@@ -166,24 +172,13 @@ void GLIsolineWindow::setImageSize(float horiz, float vert){
 
 void GLIsolineWindow::paintGL()
 {
-#ifdef  Darwin
-	//
-	// Under Mac OS 10.8.2 paintGL() is called before the frame buffer
-	// is ready for drawing
-	//
-	GLenum status;
-	if ((status = glCheckFramebufferStatus(GL_FRAMEBUFFER)) != GL_FRAMEBUFFER_COMPLETE) {
-		MyBase::SetDiagMsg(
-			"GLIsolineWindow::paintGL() - glCheckFramebufferStatus() = %d", status
-		);
-		return;
-	}
-#endif
-			
+	printOpenGLErrorMsg("GLIsoWindowPaintGL");
+	
 	if(rendering) return;
 	rendering = true;
 
-	printOpenGLErrorMsg("GLIsolineWindow");
+	printOpenGLErrorMsg("GLIsolineWindowPaintGL");
+
 	_resizeGL();
 	
 	//If there is a valid cache in the renderer, use it to draw in the tab.
@@ -194,6 +189,15 @@ void GLIsolineWindow::paintGL()
 	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentTimestep();
 	if (!iRender->cacheIsValid(timestep)) {rendering = false; return;}
 	
+	glMatrixMode(GL_TEXTURE);
+	glPushMatrix();
+	
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
 	
 	glClear(GL_COLOR_BUFFER_BIT);
 	const vector<double>& dcolors = iParams->GetPanelBackgroundColor();
@@ -226,6 +230,13 @@ void GLIsolineWindow::paintGL()
 	}
 	printOpenGLErrorMsg("GLIsolineWindow");
 	rendering = false;
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glPopAttrib();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+	glMatrixMode(GL_TEXTURE);
+	glPopMatrix();
 }
 
 void GLIsolineWindow::performRendering(int timestep, const std::map<pair<int,int>,vector<float*> >&  lineCache){
@@ -267,7 +278,7 @@ void GLIsolineWindow::performRendering(int timestep, const std::map<pair<int,int
 
 void GLIsolineWindow::initializeGL()
 {
-	printOpenGLErrorMsg("GLIsolineWindow");
+	printOpenGLErrorMsg("GLIsolineWindowInitialize");
 	
    	makeCurrent();
 	

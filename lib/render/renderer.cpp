@@ -34,7 +34,7 @@
 #endif
 
 using namespace VAPoR;
-
+std::map<string,Renderer::RendererCreateMethod> Renderer::createRendererMap;
 Renderer::Renderer( Visualizer* glw, RenderParams* rp, string name)
 {
 	//Establish the data sources for the rendering:
@@ -374,4 +374,12 @@ int Renderer::getGrids(size_t ts, const vector<string>& varnames, double extents
 	
 	return 1;	
 	
+}
+void Renderer::RegisterRenderer(string tag, RendererCreateMethod rendererCreateFcn){
+	createRendererMap[tag] = rendererCreateFcn;
+}
+Renderer* Renderer::CreateInstance(string tag, RenderParams* p, Visualizer* viz){
+	RendererCreateMethod cMethod = createRendererMap[tag];
+	Renderer* ren = cMethod(viz, p);
+	return ren;
 }

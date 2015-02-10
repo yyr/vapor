@@ -260,6 +260,7 @@ void Visualizer::resetView(ViewpointParams* vParams){
 
 int Visualizer::paintEvent(bool force)
 {
+
 	if (!force) {
 		//check if any params changed. If not, return -1;
 	}

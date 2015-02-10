@@ -35,6 +35,8 @@
 #include "mainform.h"
 #include "vapor/ControlExecutive.h"
 #include "renderholder.h"
+#include "arrowparams.h"
+#include "isolineparams.h"
 
 using namespace VAPoR;
 
@@ -80,11 +82,12 @@ int TabManager::insertWidget(QWidget* wid, Params::ParamsBaseType widBaseType, b
 	string tag = ControlExec::GetTagFromType(widBaseType);
 
 	myScrollArea->setWidget(wid);
-	
-	int posn = topWidgets[widType]->count()-1;
+	assert(widType >0);
+	QTabWidget* qtw = (QTabWidget*) topWidgets[widType];
+	int posn = qtw->count()-1;
 	
 	if (selected) {
-		topWidgets[widType]->setCurrentIndex(posn);
+		qtw->setCurrentIndex(posn);
 	}
 	
 	return posn;
@@ -96,6 +99,15 @@ void TabManager::addWidget(QWidget* wid, Params::ParamsBaseType widBaseType){
 	int ttype = getTabType(widBaseType);
 	widgets[ttype].push_back(wid);
 	widgetBaseTypes[ttype].push_back(widBaseType);
+}
+
+void TabManager::showRenderWidget(string tag){
+	Params::ParamsBaseType typ = ParamsBase::GetTypeFromTag(tag);
+	moveToFront(typ);
+	for (int i = 0; i<widgets[0].size(); i++){
+		if (widgetBaseTypes[0][i] != typ) widgets[0][i]->hide();
+		else widgets[0][i]->show();
+	}
 }
 
 
@@ -117,7 +129,13 @@ moveToFront(Params::ParamsBaseType widgetBaseType){
 	currentFrontPage[tabType] = posn;
 	
 	setCurrentIndex(tabType);
-	topWidgets[tabType]->setCurrentIndex(posn);
+	if(tabType>0){
+		QTabWidget* qtw = (QTabWidget*)topWidgets[tabType];
+		qtw->setCurrentIndex(posn);
+	} else {
+		renderHolder->setCurrentIndex(posn);
+	}
+
 	
 	//The following code is inserted as a workaround for bug 3138674.
 	//This is apparently a QT4.6 bug
@@ -157,7 +175,9 @@ newTopTab(int newFrontPosn) {
 	if (newFrontPosn < 0) return;
 	int subTabIndex = currentFrontPage[newFrontPosn];
 	if (subTabIndex < 0) return;
+	currentTopTab = newFrontPosn;
 	if (newFrontPosn==2) return;
+	
 	ParamsBase::ParamsBaseType t = widgetBaseTypes[newFrontPosn][subTabIndex];
 	
 	
@@ -170,7 +190,8 @@ newTopTab(int newFrontPosn) {
 } 
 void TabManager::
 newFrontTab(int topTab, int newSubPosn) {
-	
+	currentTopTab = topTab;
+	currentFrontPage[topTab] = newSubPosn;
 	EventRouter* eRouter = VizWinMgr::getEventRouter(widgetBaseTypes[topTab][newSubPosn]);
 	eRouter->updateTab();
 	
@@ -205,37 +226,43 @@ void TabManager::scrollFrontToTop(){
 	*/
 }
 
-void TabManager::orderTabs(){
+void TabManager::installWidgets(){
 	
 	clear();
-	
-	
-	//Create top widgets.  Bottom tab widgets already exist.
-	//The first one is for renderers, the other two are tab widgets for nav and settings
+	//Create top widgets.  Tab widgets exist but need to be inserted as tabs, based on their type
+	//Type 0 is for renderers, 1 for nav and 2 for settings. 
+	//Create top Tab Widgets to hold the nav and settings
 	for (int i = 1; i<3; i++) topWidgets[i] = new QTabWidget(this);
-	RenderHolder* renderHolder = new RenderHolder(this);
-	
+	//The renderer tabs are put into a stackedWidget, managed by RenderHolder.
+	renderHolder = new RenderHolder(this);
+	//Insert the renderer 'tabs' but don't show them yet.
 	int rc = renderHolder->addWidget(widgets[0][0], "Barbs_1", ArrowParams::_arrowParamsTag);
+	rc = renderHolder->addWidget(widgets[0][1], "Contours_1", IsolineParams::_isolineParamsTag);
+	widgets[0][0]->hide();
+	widgets[0][1]->hide();
+	//Add the renderer tab to the top level TabWidget.
 	rc = addTab(renderHolder, topName[0]);
-	//Add the bottom widgets (eventrouter-based) to 2 of the 3 top widgets.
+	topWidgets[0] = renderHolder;
+	//Add the bottom widgets (eventrouter-based) to the nav and setting tabs:
 	for (int topTab = 1; topTab<3; topTab++){
 		for (int j = 0; j< widgets[topTab].size(); j++){
 			QScrollArea* myScrollArea = new QScrollArea(topWidgets[topTab]);
 			ParamsBase::ParamsBaseType t = widgetBaseTypes[topTab][j];
 			string tag = ControlExec::GetTagFromType(t);
-			topWidgets[topTab]->addTab(myScrollArea, QString::fromStdString(ControlExec::GetShortName(tag)));
+			QTabWidget* qtw = (QTabWidget*)topWidgets[topTab];
+			qtw->addTab(myScrollArea, QString::fromStdString(ControlExec::GetShortName(tag)));
 			myScrollArea->setWidget(widgets[topTab][j]);
 		}
 	}
 	//Add all 3 top tabs to this
 	for (int widType = 1; widType<3; widType++){ 
 		addTab(topWidgets[widType],topName[widType]);
-		topWidgets[widType]->setCurrentIndex(0);
-		//myScrollArea->setWidget(topWidgets[widType]);
+		QTabWidget* qtw = (QTabWidget*)topWidgets[widType];
+		qtw->setCurrentIndex(0);
 	}
 	
-	//Start them at position 0:
-	setCurrentIndex(0);
+	//Start them with the renderer tab showing.
+	
 	currentTopTab = 0;
 	setCurrentIndex(0);
 	

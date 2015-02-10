@@ -1,6 +1,6 @@
 TOP = .
 
-include $(TOP)/make/config/prebase.mk
+include $(TOP)/make/config/prebase.mk 
 
 SUBDIRS = lib apps scripts share 
 

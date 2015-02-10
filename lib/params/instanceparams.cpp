@@ -64,10 +64,10 @@ restart(){
 //Reinitialize settings, session has changed
 
 void InstanceParams::
-Validate(bool doOverride){
+Validate(int type){
 	//Command capturing should be disabled
 	assert(!Command::isRecording());
-	
+	bool doOverride = (type == 0);
 	if (doOverride){
 		GetRootNode()->DeleteAll();
 		vector<long>viznums = VizWinParams::GetVisualizerNums();
