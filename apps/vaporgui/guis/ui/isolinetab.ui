@@ -1135,7 +1135,7 @@ specified range.</string>
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Click to space the isovalues uniformly between minimum and maximum</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click to space the isovalues uniformly between minimum and maximum Histo bounds.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>Uniform</string>

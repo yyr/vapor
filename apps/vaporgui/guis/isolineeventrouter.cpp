@@ -2536,9 +2536,9 @@ guiEndChangeIsoSelection(){
 	if (minIso != prevIsoMin || maxIso != prevIsoMax){
 		//If the isovalues are new and the new values are not inside the histo bounds, respecify the bounds
 		float newHistoBounds[2];
-		if (minIso <= bnds[0] || maxIso >= bnds[1]){
-			newHistoBounds[0]=maxIso - 1.1*(maxIso-minIso);
-			newHistoBounds[1]=minIso + 1.1*(maxIso-minIso);
+		if (minIso < bnds[0] || maxIso > bnds[1]){
+			newHistoBounds[0]=maxIso;
+			newHistoBounds[1]=minIso;
 			iParams->SetHistoBounds(newHistoBounds);
 		}
 	} else {
@@ -2910,12 +2910,20 @@ void IsolineEventRouter::guiSpaceIsovalues(){
 	IsolineParams* iParams = VizWinMgr::getActiveIsolineParams();
 	const vector<double>& isoVals = iParams->GetIsovalues();
 	int numIsos = isoVals.size();
-	if (numIsos <= 1) return;
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "Space isovalues uniformly");
 
-	double minIso = (double)minIsoEdit->text().toDouble();
-	double interval = (double)isoSpaceEdit->text().toDouble();
+	float bounds[2];
+	double minIso, interval;
+	iParams->GetHistoBounds(bounds);
+	if (numIsos == 1) {
+		interval = 0.;
+		minIso = 0.5*(bounds[0]+bounds[1]);
+	} else {
+		minIso = bounds[0];
+		interval = (bounds[1]-bounds[0])/(numIsos-1);
+	}
+
 	iParams->spaceIsovals(minIso,interval);
 	
 	PanelCommand::captureEnd(cmd, iParams);

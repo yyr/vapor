@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="focusPolicy">
-   <enum>Qt::WheelFocus</enum>
+   <enum>Qt::NoFocus</enum>
   </property>
   <property name="windowTitle">
    <string>Flow Viz</string>
