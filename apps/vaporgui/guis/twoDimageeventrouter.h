@@ -145,6 +145,8 @@ protected slots:
 	void guiSetOpacitySlider(int);
 	
 protected:
+	//Drop wheel events (they cause confusion here)
+	virtual void wheelEvent(QWheelEvent* e){}
 	static const char* webHelpText[];
 	static const char* webHelpURL[];
 	//Calculate the current cursor position, set it in the Params:

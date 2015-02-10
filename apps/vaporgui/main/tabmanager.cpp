@@ -59,6 +59,7 @@ TabManager::TabManager(QWidget* parent, const char* ,  Qt::WFlags )
 	if(!ok) assert (ok);
 	currentFrontPage = -1;
 	setElideMode(Qt::ElideNone);
+	setFocusPolicy(Qt::NoFocus);
 }
 //Insert a new tabbed widget at the end of the tabs
 //
@@ -69,12 +70,14 @@ int TabManager::insertWidget(QWidget* wid, Params::ParamsBaseType widBaseType, b
 	//
 	
 	QScrollArea* myScrollArea = new QScrollArea(this);
+	myScrollArea->setFocusPolicy(Qt::NoFocus);
 	//myScrollview->resizeContents(500, 1000);
 	//myScrollview->setResizePolicy(QScrollView::Manual);
 	insertTab(-1, myScrollArea, QString::fromStdString(Params::paramName(widBaseType)));
 	//connect(myScrollArea, SIGNAL(verticalSliderReleased()), this, SLOT(tabScrolled()));
 	//myScrollview->addChild(wid);
 	myScrollArea->setWidget(wid);
+	wid->setFocusPolicy(Qt::NoFocus);
 	
 	int posn = count()-1;
 	

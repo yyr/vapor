@@ -73,6 +73,8 @@ public slots:
 	void animationStepReverseClick();
 	
 protected:
+	//Drop wheel events (they cause confusion here)
+	virtual void wheelEvent(QWheelEvent* e){}
 	bool dontUpdate;
 	
 	void setSliders (AnimationParams* a);

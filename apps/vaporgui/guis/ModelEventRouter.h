@@ -68,6 +68,8 @@ public:
    //virtual void refreshTab(){}
 
 protected:
+	//Drop wheel events (they cause confusion here)
+	virtual void wheelEvent(QWheelEvent* e){}
 	static const char* webHelpText[];
 	static const char* webHelpURL[];
    bool eventFilter(QObject *obj, QEvent *event);

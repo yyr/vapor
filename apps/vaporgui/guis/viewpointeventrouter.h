@@ -80,6 +80,8 @@ public:
 	void updateRenderer(ViewpointParams* dParams, bool prevEnabled,  bool newWindow);
 
 protected:
+	//Drop wheel events (they cause confusion here)
+	virtual void wheelEvent(QWheelEvent* e){}
 	static const char* webHelpText[];
 	static const char* webHelpURL[];
 	float lastCamPos[3];

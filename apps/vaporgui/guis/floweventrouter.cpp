@@ -1019,11 +1019,13 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			}
 		}
 		float seedDistBias = biasEdit1->text().toFloat();
-		if (seedDistBias < -15.f || seedDistBias > 15.f) seedDistBias = 0.f;
+		if (seedDistBias < -15.f ) seedDistBias = -15.;
+		if (seedDistBias > 15.f )seedDistBias = 15.;
 		int bval = (int)(0.5+ seedDistBias*128.f/15.f);
 		if (bval != biasSlider1->value()){
 			biasSlider1->setTracking(false);
 			biasSlider1->setSliderPosition(bval);
+			biasEdit1->setText(QString::number(seedDistBias));
 			biasSlider1->setTracking(true);
 		}
 		fParams->setSeedDistBias(seedDistBias);

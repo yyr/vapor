@@ -61,6 +61,8 @@ public:
 	virtual void cleanParams(Params* p); 
 	virtual void refreshTab();
 	virtual QSize sizeHint() const;
+	//Drop wheel events (they cause confusion here)
+	virtual void wheelEvent(QWheelEvent* e){}
 	
 	void sessionLoadTF(QString*);
 		

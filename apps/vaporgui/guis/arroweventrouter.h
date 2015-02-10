@@ -85,6 +85,8 @@ protected slots:
 
 	
 protected:
+	//Drop wheel events (they cause confusion here)
+	virtual void wheelEvent(QWheelEvent* e){}
 	void populateVariableCombos(bool is3d);
 	int copyCount[MAXVIZWINS+1];
 	bool showLayout;
