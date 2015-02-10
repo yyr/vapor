@@ -558,6 +558,19 @@ int NetCDFCpp::InqAtt(
 	return(NC_NOERR);
 }
 
+int NetCDFCpp::InqVartype(string varname, nc_type &xtype) const {
+
+	int varid;
+	int rc = NetCDFCpp::InqVarid(varname, varid);
+	if (rc<0) return(rc);
+
+	rc = nc_inq_vartype(_ncid, varid, &xtype);
+	MY_NC_ERR(rc, _path, "nc_inq_vartype()");
+
+	return(NC_NOERR);
+}
+
+
 
 size_t NetCDFCpp::SizeOf(nc_type xtype) const {
 	switch (xtype) {

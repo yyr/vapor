@@ -17,7 +17,7 @@ size_t vproduct(vector <size_t> a) {
 }
 
 void _compute_bs(
-	const vector <VDC::Dimension> &dimensions, 
+	const vector <DC::Dimension> &dimensions, 
 	const vector <size_t> &default_bs,
 	vector <size_t> &bs
 ) {
@@ -46,7 +46,7 @@ void _compute_bs(
 }
 
 void _compute_periodic(
-	const vector <VDC::Dimension> &dimensions, 
+	const vector <DC::Dimension> &dimensions, 
 	const vector <bool> &default_periodic,
 	vector <bool> &periodic
 ) {
@@ -66,7 +66,7 @@ void _compute_periodic(
 }
 
 int _axis_block_length(
-	const vector <VDC::Dimension> &dimensions, 
+	const vector <DC::Dimension> &dimensions, 
 	const vector <size_t> &bs, int axis
 ) {
 	assert (dimensions.size() == bs.size());
@@ -318,7 +318,7 @@ bool VDC::GetCoordVarInfo(
 
 	if (itr == _coordVars.end()) return(false);
 
-	vector <VDC::Dimension> dimensions = itr->second.GetDimensions();
+	vector <DC::Dimension> dimensions = itr->second.GetDimensions();
 	for (int i=0; i<dimensions.size(); i++) {
 		dimnames.push_back(dimensions[i].GetName());
 	}
@@ -330,7 +330,7 @@ bool VDC::GetCoordVarInfo(
 	return(true);
 }
 
-bool VDC::GetCoordVarInfo(string varname, VDC::CoordVar &cvar) const {
+bool VDC::GetCoordVarInfo(string varname, DC::CoordVar &cvar) const {
 
 	map <string, CoordVar>::const_iterator itr = _coordVars.find(varname);
 	if (itr == _coordVars.end()) return(false);
@@ -339,7 +339,7 @@ bool VDC::GetCoordVarInfo(string varname, VDC::CoordVar &cvar) const {
 	return(true);
 }
 
-bool VDC::GetBaseVarInfo(string varname, VDC::BaseVar &var) const {
+bool VDC::GetBaseVarInfo(string varname, DC::BaseVar &var) const {
 
 	map <string, CoordVar>::const_iterator itr1 = _coordVars.find(varname);
 	if (itr1 != _coordVars.end()) {
@@ -355,9 +355,10 @@ bool VDC::GetBaseVarInfo(string varname, VDC::BaseVar &var) const {
 	return(false);
 }
 
+
 int VDC::DefineDataVar(
 	string varname, vector <string> dimnames, vector <string> coordvars,
-	string units, XType type, bool compressed
+	string units, XType type, bool compressed, string maskvar
 ) {
 	if (! _defineMode) {
 		SetErrMsg("Not in define mode");
@@ -372,65 +373,7 @@ int VDC::DefineDataVar(
 	}
 
 	if (! _ValidDefineDataVar(
-		varname,dimnames,coordvars, units, type,compressed)) {
-
-		return(-1);
-	}
-
-	//
-	// Dimensions must have previosly been defined
-	//
-	vector <Dimension> dimensions;
-	for (int i=0; i<dimnames.size(); i++) {
-		Dimension dimension;
-		VDC::GetDimension(dimnames[i], dimension);
-		assert(! dimension.GetName().empty());
-		dimensions.push_back(dimension);
-	}
-
-	// Determine block size
-	//
-	vector <size_t> bs;
-	_compute_bs(dimensions, _bs, bs);
-
-	vector <bool> periodic;
-	_compute_periodic(dimensions, _periodic, periodic);
-
-	vector <size_t> cratios(1,1);
-	string wname;
-	if (compressed) {
-		cratios = _cratios;
-		wname = _wname;
-	}
-	DataVar datavar(
-		varname, dimensions, units, type, bs, wname, 
-		cratios, periodic, coordvars
-	);
-
-	_dataVars[varname] = datavar;
-
-	return(0);
-
-}
-
-int VDC::DefineDataVar(
-	string varname, vector <string> dimnames, vector <string> coordvars,
-	string units, XType type, bool compressed, double missing_value
-) {
-	if (! _defineMode) {
-		SetErrMsg("Not in define mode");
-		return(-1);
-	}
-
-	if (_mode == A) {
-		if (_dataVars.find(varname) != _dataVars.end()) {
-			SetErrMsg("Variable \"%s\" already defined", varname.c_str());
-			return(-1);
-		} 
-	}
-
-	if (! _ValidDefineDataVar(
-		varname,dimnames,coordvars, units, type,compressed)) {
+		varname,dimnames,coordvars, units, type,compressed, maskvar)) {
 
 		return(-1);
 	}
@@ -463,7 +406,7 @@ int VDC::DefineDataVar(
 	DataVar datavar(
 		varname, dimensions, units, type, bs, wname, 
 		cratios, periodic, coordvars, 
-		missing_value
+		maskvar
 	);
 
 	_dataVars[varname] = datavar;
@@ -475,7 +418,7 @@ int VDC::DefineDataVar(
 bool VDC::GetDataVarInfo(
 	string varname, vector <string> &dimnames, vector <string> &coordvars,
 	string &units, XType &type, bool &compressed,
-	bool &has_missing, double &missing_value
+	string &maskvar
 ) const {
 	dimnames.clear();
 	units.erase();
@@ -484,7 +427,7 @@ bool VDC::GetDataVarInfo(
 
 	if (itr == _dataVars.end()) return(false);
 
-	vector <VDC::Dimension> dimensions = itr->second.GetDimensions();
+	vector <DC::Dimension> dimensions = itr->second.GetDimensions();
 	for (int i=0; i<dimensions.size(); i++) {
 		dimnames.push_back(dimensions[i].GetName());
 	}
@@ -492,12 +435,11 @@ bool VDC::GetDataVarInfo(
 	units = itr->second.GetUnits();
 	type = itr->second.GetXType();
 	compressed = itr->second.IsCompressed();
-	has_missing = itr->second.GetHasMissing();
-	missing_value = itr->second.GetMissingValue();
+	maskvar = itr->second.GetMaskvar();
 	return(true);
 }
 
-bool VDC::GetDataVarInfo(string varname, VDC::DataVar &datavar) const {
+bool VDC::GetDataVarInfo(string varname, DC::DataVar &datavar) const {
 
 	map <string, DataVar>::const_iterator itr = _dataVars.find(varname);
 
@@ -531,7 +473,7 @@ vector <string> VDC::GetCoordVarNames() const {
 
 int VDC::GetNumRefLevels(string varname) const {
 
-	VDC::BaseVar var;
+	DC::BaseVar var;
 	bool status = VDC::GetBaseVarInfo(varname, var);
 	if (! status) {
 		SetErrMsg("Undefined variable name : %s", varname.c_str());
@@ -765,7 +707,7 @@ vector <string> VDC::GetAttNames(
 	return(attnames);
 }
 
-VDC::XType VDC::GetAttType(
+DC::XType VDC::GetAttType(
     string varname,
 	string attname
 ) const {
@@ -842,10 +784,10 @@ int VDC::EndDefine() {
 	// and give them default values
 	//
 	for (int i=0; i<_newUniformVars.size(); i++) {
-		VDC::CoordVar cvar;
+		DC::CoordVar cvar;
 		VDC::GetCoordVarInfo(_newUniformVars[i], cvar);
 
-		vector <VDC::Dimension> dims = cvar.GetDimensions();
+		vector <DC::Dimension> dims = cvar.GetDimensions();
 		if (dims.size() != 1) continue;
 
 		size_t l = dims[0].GetLength();
@@ -1226,7 +1168,7 @@ bool VDC::_ValidCompressionBlock(
 }
 
 bool VDC::_valid_blocking(
-	const vector <VDC::Dimension> &dimensions,
+	const vector <DC::Dimension> &dimensions,
 	const vector <string> &coordvars,
 	const vector <size_t> &bs
 ) const {
@@ -1258,7 +1200,7 @@ bool VDC::_valid_blocking(
 
 bool VDC::_ValidDefineDataVar(
 	string varname, vector <string> dimnames, vector <string> coordvars,
-	string units, XType type, bool compressed
+	string units, XType type, bool compressed, string maskvar
 ) const {
 
 	if (dimnames.size() > 4) {
@@ -1271,7 +1213,7 @@ bool VDC::_ValidDefineDataVar(
 		return(false);
 	}
 
-	vector <VDC::Dimension> dimensions;
+	vector <DC::Dimension> dimensions;
 	for (int i=0; i<dimnames.size(); i++) {
 		std::map <string, Dimension>::const_iterator itr;
 		if ((itr = _dimsMap.find(dimnames[i])) == _dimsMap.end()) {
@@ -1340,30 +1282,10 @@ bool VDC::_ValidDefineDataVar(
 		return(false);
 	}
 
-#ifdef	DEAD
-	//
-	// Lastly, the dimesion names of each coordinate variable must be a 
-	// subset of the variable's dimension names
-	//
 	for (int i=0; i<coordvars.size(); i++) {
 		map <string, CoordVar>::const_iterator itr = _coordVars.find(coordvars[i]);
 		assert(itr != _coordVars.end());	// already checked for existance
-
-		for (int j=0; j<itr->second.GetDimensions().size(); j++) {
-			string dimname = itr->second.GetDimensions()[j].GetName();
-			if (find(dimnames.begin(),dimnames.end(),dimname)==dimnames.end()) {
-				SetErrMsg(
-					"Coordinate variable dims must be a subset of data variable"
-				);
-				return(false);
-			}
-		}
-	}
-#else
-	for (int i=0; i<coordvars.size(); i++) {
-		map <string, CoordVar>::const_iterator itr = _coordVars.find(coordvars[i]);
-		assert(itr != _coordVars.end());	// already checked for existance
-		vector <VDC::Dimension> cdimensions = itr->second.GetDimensions();
+		vector <DC::Dimension> cdimensions = itr->second.GetDimensions();
 		bool match = false;
 		for (int j=0; j<cdimensions.size(); j++) {
 			for (int k=0; k<dimensions.size(); k++) {
@@ -1383,10 +1305,41 @@ bool VDC::_ValidDefineDataVar(
 		}
 	}
 
+	// Validate mask variable if one exists
+	//
+	if (maskvar.empty()) return(true);
 
+	if (_dataVars.find(maskvar) == _dataVars.end()) {
+		SetErrMsg("Mask var \"%s\" not defined", maskvar.c_str());
+		return(false);
+	}
 
-#endif
-		
+	// Data and mask variable must have same blocking along
+	// each axis
+	//
+	vector <string> maskvars(1,maskvar);
+	if (! _valid_blocking(dimensions, maskvars, bs)) {
+		SetErrMsg("Data and mask variables must have same blocking");
+		return(false);
+	}
+
+	// Fastest varying data variable dimensions must match mask
+	// variable dimensions
+	//
+	map <string, DataVar>::const_iterator itr = _dataVars.find(maskvar);
+	assert(itr != _dataVars.end());	// already checked for existance
+	vector <DC::Dimension> cdimensions = itr->second.GetDimensions();
+	if (cdimensions.size() > dimensions.size()) {
+		SetErrMsg("Data variable and mask variable dimensions must match");
+		return(false);
+	}
+	for (int i=0; i<cdimensions.size(); i++) {
+		if (cdimensions[i] != dimensions[i]) {
+			SetErrMsg("Data variable and mask variable dimensions must match");
+			return(false);
+		}
+	}
+
 	return(true);
 }
 
@@ -1394,7 +1347,7 @@ bool VDC::_ValidDefineDataVar(
 namespace VAPoR {
 
 std::ostream &operator<<(
-	std::ostream &o, const VDC::Dimension &d
+	std::ostream &o, const DC::Dimension &d
 ) {
 	o << "  Dimension" << endl;
 	o << "   Name: " << d._name << endl;
@@ -1404,27 +1357,27 @@ std::ostream &operator<<(
 	return(o);
 }
 
-std::ostream &operator<<(std::ostream &o, const VDC::Attribute &a) {
+std::ostream &operator<<(std::ostream &o, const DC::Attribute &a) {
 	o << "  Attribute:" << endl;
 	o << "   Name: " << a._name << endl;
 	o << "   Type: " << a._type << endl;
 
 	o << "   Values: ";
 	for (int i=0; i<a._values.size(); i++) {
-		VDC::Attribute::podunion p = a._values[i];
-		if (a._type == VDC::FLOAT) {
+		DC::Attribute::podunion p = a._values[i];
+		if (a._type == DC::FLOAT) {
 			o << p.f;
 		}
-		else if (a._type == VDC::DOUBLE) {
+		else if (a._type == DC::DOUBLE) {
 			o << p.d;
 		}
-		else if (a._type == VDC::INT32) {
+		else if (a._type == DC::INT32) {
 			o << p.i;
 		}
-		else if (a._type == VDC::INT64) {
+		else if (a._type == DC::INT64) {
 			o << p.l;
 		}
-		if (a._type == VDC::TEXT) {
+		if (a._type == DC::TEXT) {
 			o << p.c;
 		}
 		o << " ";
@@ -1433,7 +1386,7 @@ std::ostream &operator<<(std::ostream &o, const VDC::Attribute &a) {
 	return(o);
 }
 
-std::ostream &operator<<(std::ostream &o, const VDC::BaseVar &var) {
+std::ostream &operator<<(std::ostream &o, const DC::BaseVar &var) {
 
 	o << "  BaseVar" << endl;
 	o << "   Name: " << var._name << endl;
@@ -1461,7 +1414,7 @@ std::ostream &operator<<(std::ostream &o, const VDC::BaseVar &var) {
 	}
 	o << endl;
 
-	std::map <string, VDC::Attribute>::const_iterator itr;
+	std::map <string, DC::Attribute>::const_iterator itr;
 	for (itr = var._atts.begin(); itr != var._atts.end(); ++itr) {
 		o << itr->second;
 	}
@@ -1469,18 +1422,18 @@ std::ostream &operator<<(std::ostream &o, const VDC::BaseVar &var) {
 	return(o);
 }
 
-std::ostream &operator<<(std::ostream &o, const VDC::CoordVar &var) {
+std::ostream &operator<<(std::ostream &o, const DC::CoordVar &var) {
 
 	o << "  CoordVar" << endl;
 	o << "   Axis: " << var._axis << endl;
 	o << "   Uniform: " << var._uniform << endl;
 
-	o << (VDC::BaseVar) var;
+	o << (DC::BaseVar) var;
 
 	return(o);
 }
 
-std::ostream &operator<<(std::ostream &o, const VDC::DataVar &var) {
+std::ostream &operator<<(std::ostream &o, const DC::DataVar &var) {
 
 	o << "  DataVar" << endl;
 	o << "   CoordVars: ";
@@ -1488,10 +1441,9 @@ std::ostream &operator<<(std::ostream &o, const VDC::DataVar &var) {
 		o << var._coordvars[i] << " ";
 	}
 	o << endl;
-	o << "   HasMissing: " << var._has_missing << endl;
-	o << "   MissingValue: " << var._missing_value << endl;
+	o << "   MaskVar: " << var._maskvar << endl;
 
-	o << (VDC::BaseVar) var;
+	o << (DC::BaseVar) var;
 
 	return(o);
 }
@@ -1522,7 +1474,7 @@ std::ostream &operator<<(std::ostream &o, const VDC &vdc) {
 
 	{
 		o << " Attributes" << endl;
-		std::map <string, VDC::Attribute>::const_iterator itr;
+		std::map <string, DC::Attribute>::const_iterator itr;
 		for (itr = vdc._atts.begin(); itr != vdc._atts.end(); ++itr) {
 			o << itr->second;
 		}
@@ -1531,7 +1483,7 @@ std::ostream &operator<<(std::ostream &o, const VDC &vdc) {
 
 	{
 		o << " Dimensions" << endl;
-		std::map <string, VDC::Dimension>::const_iterator itr;
+		std::map <string, DC::Dimension>::const_iterator itr;
 		for (itr = vdc._dimsMap.begin(); itr != vdc._dimsMap.end(); ++itr) {
 			o << itr->second;
 		}
@@ -1540,7 +1492,7 @@ std::ostream &operator<<(std::ostream &o, const VDC &vdc) {
 
 	{
 		o << " CoordVars" << endl;
-		std::map <string, VDC::CoordVar>::const_iterator itr;
+		std::map <string, DC::CoordVar>::const_iterator itr;
 		for (itr = vdc._coordVars.begin(); itr != vdc._coordVars.end(); ++itr) {
 			o << itr->second;
 			o << endl;
@@ -1550,7 +1502,7 @@ std::ostream &operator<<(std::ostream &o, const VDC &vdc) {
 
 	{
 		o << " DataVars" << endl;
-		std::map <string, VDC::DataVar>::const_iterator itr;
+		std::map <string, DC::DataVar>::const_iterator itr;
 		for (itr = vdc._dataVars.begin(); itr != vdc._dataVars.end(); ++itr) {
 			o << itr->second;
 			o << endl;

@@ -233,6 +233,7 @@ public:
  vector <size_t> _encoded_dims;
  vector <Compressor *> _compressors;	// one per thread
  float *_data;	// global (shared by all threads)
+ bool *_mask;	// global (shared by all threads)
  float *_block;	// private (not shared)
  float *_coeffs; // private (not shared)
  unsigned char *_maps;	// private (not shared)
@@ -247,13 +248,13 @@ public:
 	const vector <size_t> &bs, const vector <size_t> &udims,
 	const vector <size_t> &ncoeffs, const vector <size_t> &encoded_dims,
 	const vector <Compressor *> &compressors,  
-	float *data, float *block, float *coeffs,
+	float *data, bool *mask, float *block, float *coeffs,
 	unsigned char *maps, int level
  ) : _id(id), _et(et), _varname(varname), _ncdfcptrs(ncdfcptrs), 
 	_start(start), _count(count), _bs(bs), _udims(udims),
 	_ncoeffs(ncoeffs), _encoded_dims(encoded_dims),
-	_compressors(compressors), _data(data), _block(block), _coeffs(coeffs),
-	_maps(maps), _level(level)
+	_compressors(compressors), _data(data), _mask(mask),
+	_block(block), _coeffs(coeffs), _maps(maps), _level(level)
  {_status = 0;}
 
 };
@@ -469,6 +470,7 @@ vector <size_t> vdiff(vector <size_t> a, vector <size_t> b) {
 //
 void Block(
 	const float *data,
+	const bool *mask,
 	vector <size_t> dims, 
 	vector <size_t> start,
 	float *block,
@@ -485,6 +487,8 @@ void Block(
 
 	size_t offset = linearize(start, dims);
 	data += offset;
+
+	if (mask) mask += offset;
 
 	//
 	// Only 1D, 2D, and 3D blocks handled
@@ -535,15 +539,49 @@ void Block(
 	bool ybdry = rank >= 2 && start[rank-2] + nby > ny;
 	bool zbdry = rank >= 3 && start[rank-3] + nbz > nz;
 
+	double  ave = 0.0; 
 	min = data[0];
 	max = data[0];
+	if (mask) {
+		size_t n = 0;
+		double total = 0.0;
+		for (size_t z = 0; z<zstop; z++) {
+		for (size_t y = 0; y<ystop; y++) {
+		for (size_t x = 0; x<xstop; x++) {
+			size_t index = nx*ny*z + nx*y + x;
+			if (! mask[index]) continue;
+			float v = data[index];
+
+			if (n == 0) {
+				min = max = v;
+			}
+			n++;
+			total += v;
+
+		}
+		}
+		}
+		if (n) {
+			ave = total / (double) n;
+		}
+	}
+
+	// copy data to block and handle mask if there is one
+	//
 	for (size_t z = 0; z<zstop; z++) {
 	for (size_t y = 0; y<ystop; y++) {
 	for (size_t x = 0; x<xstop; x++) {
-		float v = data[nx*ny*z + nx*y + x];
+		size_t index = nx*ny*z + nx*y + x;
+		float v;
 
-		if (v < min) min = v;
-		if (v > max) max = v;
+		if (mask && ! mask[index]) {
+			v = ave;
+		}
+		else {
+			v = data[index];
+			if (v < min) min = v;
+			if (v > max) max = v;
+		}
 
 		block[z*nbx*nby + y*nbx + x] = v;
 	}
@@ -1034,7 +1072,8 @@ void *RunWriteThread(void *arg)
 		//
 		float min, max;
 		Block(
-			s._data, s._count, roi_start, s._block, s._bs, "symh", min, max
+			s._data, NULL, s._count, roi_start, s._block, 
+			s._bs, "symh", min, max
 		);
 
 		// Convert from voxel to block coordinates
@@ -1093,7 +1132,7 @@ void *RunWriteThreadCompressed(void *arg) {
 		//
 		float min, max;
 		Block(
-			s._data, s._count, roi_start, s._block, s._bs, 
+			s._data, s._mask, s._count, roi_start, s._block, s._bs, 
 			s._compressors[s._id]->dwtmode(), min, max
 		);
 
@@ -1977,7 +2016,12 @@ int WASP::OpenVarWrite(string name, int lod) {
 	_open_level = 0;
 	_open_write = false;
 	_open_varname.clear();
+	_open_varxtype = 0;
 	_open = false;
+
+	nc_type xtype;
+	rc = InqVartype(name, xtype);
+	if (rc<0) return(rc);
 
 	rc = _get_compression_params(name, bs, cratios, udims, dims, wname);
 	if (rc<0) return(rc);
@@ -1997,6 +2041,7 @@ int WASP::OpenVarWrite(string name, int lod) {
 		}
 	}
 
+
 	_open_wname = wname;
 	_open_bs = bs;
 	_open_cratios = cratios;
@@ -2006,6 +2051,7 @@ int WASP::OpenVarWrite(string name, int lod) {
 	_open_level = 0;
 	_open_write = true;
 	_open_varname = name;
+	_open_varxtype = xtype;
 	_open = true;
 
 	return(NC_NOERR);
@@ -2053,7 +2099,12 @@ int WASP::OpenVarRead(string name, int level, int lod) {
 	_open_level = 0;
 	_open_write = false;
 	_open_varname.clear();
+	_open_varxtype = 0;
 	_open = false;
+
+	nc_type xtype;
+	rc = InqVartype(name, xtype);
+	if (rc<0) return(rc);
 
 	rc = _get_compression_params(name, bs, cratios, udims, dims, wname);
 	if (rc<0) return(rc);
@@ -2087,6 +2138,7 @@ int WASP::OpenVarRead(string name, int level, int lod) {
 		return(-1);
 	}
 
+
 	_open_wname = wname;
 	_open_bs = bs;
 	_open_cratios = cratios;
@@ -2096,6 +2148,7 @@ int WASP::OpenVarRead(string name, int level, int lod) {
 	_open_level = level;
 	_open_write = false;
 	_open_varname = name;
+	_open_varxtype = xtype;
 	_open = true;
 
 	return(NC_NOERR);
@@ -2196,9 +2249,16 @@ bool WASP::_validate_get_vara_compressed(
 	return(true);
 }
 	
-
 int WASP::PutVara(
     vector <size_t> start, vector <size_t> count, const float *data
+) {
+	return(WASP::PutVara(start, count, data, NULL));
+}
+
+
+int WASP::PutVara(
+    vector <size_t> start, vector <size_t> count, const float *data,
+	const bool *mask
 ) {
 	if (! _waspFile) {
 		SetErrMsg("Not a WASP file");
@@ -2222,10 +2282,13 @@ int WASP::PutVara(
         return(-1);
 	}
 
+	
+
 	vector <size_t> ncoeffs;
 	vector <size_t> encoded_dims;
 	_get_encoding_vectors(
-		_open_wname, _open_bs, _open_cratios, NC_FLOAT, ncoeffs, encoded_dims
+		_open_wname, _open_bs, _open_cratios, _open_varxtype, 
+		ncoeffs, encoded_dims
 	);
 
 
@@ -2269,7 +2332,7 @@ int WASP::PutVara(
 		argvec.push_back((void *) new thread_state(
 			i, _et, _open_varname, _ncdfcptrs, start, count, _open_bs, 
 			_open_udims, ncoeffs,
-			encoded_dims, _open_compressors, (float *) data,
+			encoded_dims, _open_compressors, (float *) data, (bool *) mask,
 			block + i*block_size, coeffs + i*coeffs_size, 
 			maps + i*maps_size*sizeof(float), 0
 		));
@@ -2303,8 +2366,11 @@ int WASP::PutVara(
 
 }
 
-
 int WASP::PutVar(const float *data) {
+	return(WASP::PutVar(data, NULL));
+}
+
+int WASP::PutVar(const float *data, const bool *mask) {
 
 	if (! _waspFile) {
 		SetErrMsg("Not a WASP file");
@@ -2323,8 +2389,9 @@ int WASP::PutVar(const float *data) {
 	vector <size_t> count = _open_udims; 
     vector <size_t> start(count.size(), 0); 
 
-	return(WASP::PutVara(start, count, data));
+	return(WASP::PutVara(start, count, data, mask));
 }
+
 
 int WASP::_GetVara(
     vector <size_t> start, vector <size_t> count, bool unblock, float *data
@@ -2341,7 +2408,8 @@ int WASP::_GetVara(
 	vector <size_t> ncoeffs;
 	vector <size_t> encoded_dims;
 	_get_encoding_vectors(
-		_open_wname, _open_bs, _open_cratios, NC_FLOAT, ncoeffs, encoded_dims
+		_open_wname, _open_bs, _open_cratios, _open_varxtype, 
+		ncoeffs, encoded_dims
 	);
 
 	// Compute the dimension and block size at the grid hierarchy
@@ -2410,7 +2478,7 @@ int WASP::_GetVara(
 		argvec.push_back((void *) new thread_state(
 			i, _et, _open_varname, _ncdfcptrs, start, count, bs_at_level, 
 			dims_at_level, ncoeffs,
-			encoded_dims, _open_compressors, data, 
+			encoded_dims, _open_compressors, data, NULL,
 			blkptr, coeffs + i*coeffs_size, 
 			maps + i*maps_size*sizeof(float), _open_level
 		));

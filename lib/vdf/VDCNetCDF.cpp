@@ -12,6 +12,25 @@ using namespace VetsUtil;
 
 namespace {
 
+// Map a level specification for a given number of levels into
+// clevel (coarsest level is 0 increasing values corespond to finer
+// levels), and flevel (finest level is -1 and decreasing values 
+// correspond to coarser levels)
+//
+void levels(int level, int nlevels, int &clevel, int &flevel) {
+    if (level > nlevels-1) level = nlevels-1;
+    if (level < -nlevels) level = -nlevels;
+
+	if (level >= 0) {
+		clevel = level;
+		flevel = -nlevels + level;
+	}
+	else {
+		clevel = level + nlevels;
+		flevel = level;
+	}
+}
+
 int vdc_xtype2ncdf_xtype(VDC::XType v_xtype) {
 	int n_xtype;
 	switch(v_xtype) {
@@ -106,6 +125,15 @@ void vdc_2_ncdfcoords(
 	}
 }
 
+// Product of elements in a vector
+//
+size_t vproduct(vector <size_t> a) {
+	size_t ntotal = 1;
+
+	for (int i=0; i<a.size(); i++) ntotal *= a[i];
+	return(ntotal);
+}
+
 };
 
 VDCNetCDF::VDCNetCDF(
@@ -117,10 +145,6 @@ VDCNetCDF::VDCNetCDF(
 	_variable_threshold = variable_threshold;
 	_chunksizehint =  0;
 	_master = new WASP();
-	_open_file = NULL;
-	_open_slice_num = 0;
-	_open_write = false;
-	_open_level = 0;
 	_slice_buffer = NULL;
 	_version = 1;
 }
@@ -128,8 +152,11 @@ VDCNetCDF::VDCNetCDF(
 
 VDCNetCDF::~VDCNetCDF() {
 
-	if (_open_file && _open_file != _master) {
-		delete _open_file;
+	if (_ofi._wasp && _ofi._wasp != _master) {
+		delete _ofi._wasp;
+	}
+	if (_ofimask._wasp && _ofimask._wasp != _master) {
+		delete _ofimask._wasp;
 	}
 
 	if (_master) {
@@ -267,9 +294,8 @@ int VDCNetCDF::GetDimLensAtLevel(
 
 	int nlevels = VDC::GetNumRefLevels(varname);
 
-	if (level > nlevels-1) level = nlevels-1;
-	if (level < 0) level = level + nlevels;
-	if (level < 0) level = 0;
+	int clevel, dummy;
+	levels(level, nlevels, clevel, dummy);
 
 	string wname;
 	vector <VDC::Dimension> dims;
@@ -298,7 +324,7 @@ int VDCNetCDF::GetDimLensAtLevel(
 		reverse(bs.begin(), bs.end());
 		reverse(dimlens.begin(), dimlens.end());
 		WASP::InqDimsAtLevel(
-			wname, level, dimlens, bs, dims_at_level,bs_at_level
+			wname, clevel, dimlens, bs, dims_at_level,bs_at_level
 		);
 		reverse(bs_at_level.begin(), bs_at_level.end());
 		reverse(dims_at_level.begin(), dims_at_level.end());
@@ -322,42 +348,18 @@ bool VDCNetCDF::DataDirExists(string master) {
 	return(true);
 }
 
-
-int VDCNetCDF::OpenVariableRead(
-    size_t ts, string varname, int level, int lod
+WASP *VDCNetCDF::_OpenVariableRead(
+    size_t ts, const VDC::BaseVar &var, int clevel, int lod,
+	size_t &file_ts
 ) {
-
-	CloseVariable();
-	_open_file = NULL; 
-	_open_write = false;
-	_open_slice_num = 0; 
-	_open_ts = 0;
-	_open_file_ts = 0;
-	_open_varname.clear();
-	_open_level = 0;
-
-	VDC::BaseVar var;
-	if (! VDC::GetBaseVarInfo(varname, var))  {
-        SetErrMsg("Undefined variable name : %s", varname.c_str());
-		return(false);
-	}
-	_open_var = var;
-
+	file_ts = 0;
 
 	string path;
-	size_t file_ts;
 	size_t max_ts;
-	int rc = GetPath(varname, ts, path, file_ts, max_ts);
-	if (rc<0) return(-1);
+	int rc = GetPath(var.GetName(), ts, path, file_ts, max_ts);
+	if (rc<0) return(NULL);
 
-	vector <VDC::Dimension> dims = _open_var.GetDimensions();
-
-	int nlevels = VDC::GetNumRefLevels(varname);
-
-	if (level > nlevels-1) level = nlevels-1;
-	if (level < 0) level = level + nlevels;
-	if (level < 0) level = 0;
-	_open_level = level;
+	vector <VDC::Dimension> dims = var.GetDimensions();
 
 	int ncratios = var.GetCRatios().size();
 
@@ -373,37 +375,104 @@ int VDCNetCDF::OpenVariableRead(
 	else {
 		wasp = new WASP(_nthreads);
 		rc = wasp->Open(path, NC_NOWRITE);
-		if (rc<0) return(-1);
+		if (rc<0) return(NULL);
 	}
 
-	_open_file = wasp;
+	rc = wasp->OpenVarRead(var.GetName(), clevel, lod);
+	if (rc<0) return(NULL);
 
-	rc = wasp->OpenVarRead(varname, level, lod);
-	if (rc<0) return(-1);
+	return(wasp);
+}
 
-	_open_slice_num = 0; 
-	_open_ts = ts;
-	_open_file_ts = file_ts;
-	_open_varname = varname;
+string VDCNetCDF::_get_mask_varname(string varname) const {
+	VDC::DataVar dvar;
+
+	if (VDC::GetDataVarInfo(varname, dvar))  {
+		return(dvar.GetMaskvar());
+	}
+	return("");
+}
+
+int VDCNetCDF::OpenVariableRead(
+    size_t ts, string varname, int level, int lod
+) {
+
+	CloseVariable();
+
+	DC::BaseVar var;
+	if (! VDC::GetBaseVarInfo(varname, var))  {
+		SetErrMsg("Undefined variable name : %s", varname.c_str());
+		return(-1);
+	}
+
+	int nlevels = VDC::GetNumRefLevels(varname);
+
+	int clevel, flevel;
+	levels(level, nlevels, clevel, flevel);
+
+	size_t file_ts;
+	WASP *wasp = _OpenVariableRead(ts, var, clevel, lod, file_ts);
+	if (! wasp) return(-1);
+
+	open_file_info ofi(wasp, false, var, 0, ts, file_ts, varname, clevel);
+
+	_ofi = ofi;
+
+	string maskvar = _get_mask_varname(varname);
+	if (maskvar.empty()) return(0);
+
+	//
+	// If there is a mask variable we need to open it. 
+	//
+
+	if (! VDC::GetBaseVarInfo(maskvar, var))  {
+		SetErrMsg("Undefined variable name : %s", maskvar.c_str());
+		CloseVariable();
+		return(-1);
+	}
+
+	// 
+	// the level specification can be tricky because the data variable 
+	// and the mask variable can have different numbers of levels (if
+	// different wavelets are used). Convert the flevel - which indexes
+	// from finest to coarsest and hence will be the same for both
+	// variables - to a clevel, which is required by WASP API
+	//
+	nlevels = VDC::GetNumRefLevels(maskvar);
+
+	levels(flevel, nlevels, clevel, flevel);
+
+	wasp = _OpenVariableRead(ts, var, clevel, lod, file_ts);
+	if (! wasp) return(-1);
+
+	open_file_info ofimask(wasp, false, var, 0, ts, file_ts, maskvar, clevel);
+
+	_ofimask = ofimask;
+
     return(0);
 }
 
 int VDCNetCDF::OpenVariableWrite(size_t ts, string varname, int lod) {
 
 	CloseVariable();
-	_open_file = NULL; 
-	_open_write = true;
-	_open_slice_num = 0; 
-	_open_ts = 0;
-	_open_file_ts = 0;
-	_open_varname.clear();
 
-	VDC::BaseVar var;
-	if (! VDC::GetBaseVarInfo(varname, var))  {
+	VDC::BaseVar *varptr;
+
+	VDC::DataVar dvar;
+	VDC::CoordVar cvar;
+	bool isdvar;
+	if (VDC::GetDataVarInfo(varname, dvar))  {
+		varptr = &dvar;
+		isdvar = true;
+	}
+	else if (VDC::GetCoordVarInfo(varname, cvar))  {
+		varptr = &cvar;
+		isdvar = false;
+	}
+	else {
         SetErrMsg("Undefined variable name : %s", varname.c_str());
 		return(false);
 	}
-	_open_var = var;
 
 	string path;
 	size_t file_ts;
@@ -430,11 +499,16 @@ int VDCNetCDF::OpenVariableWrite(size_t ts, string varname, int lod) {
 		size_t chsz = _chunksizehint;
 		rc = wasp->Create(
 			path, NC_WRITE | NC_64BIT_OFFSET, 0, chsz, 
-			_open_var.GetCRatios().size()
+			varptr->GetCRatios().size()
 		);
 		if (rc<0) return(-1);
 
-		rc = _DefVar(wasp, var, max_ts);
+		if (isdvar) {
+			rc = _DefDataVar(wasp, dvar, max_ts);
+		}
+		else {
+			rc = _DefCoordVar(wasp, cvar, max_ts);
+		}
 		if (rc<0) return(-1);
 
 		rc = wasp->EndDef();
@@ -444,41 +518,96 @@ int VDCNetCDF::OpenVariableWrite(size_t ts, string varname, int lod) {
 	rc = wasp->OpenVarWrite(varname, lod);
 	if (rc<0) return(-1);
 
-	_open_file = wasp;
+	int nlevels = VDC::GetNumRefLevels(varname);
 
-	_open_slice_num = 0; 
-	_open_ts = ts;
-	_open_file_ts = file_ts;
-	_open_varname = varname;
+	open_file_info ofi(wasp, true, *varptr, 0, ts, file_ts, varname, nlevels-1);
+
+	_ofi = ofi;
+
+	//
+	// If there is a mask variable we need to open it for **reading**
+	//
+
+	string maskvar = _get_mask_varname(varname);
+	if (maskvar.empty()) return(0);
+
+	DC::BaseVar var;
+	if (! VDC::GetBaseVarInfo(maskvar, var))  {
+		SetErrMsg("Undefined variable name : %s", maskvar.c_str());
+		CloseVariable();
+		return(-1);
+	}
+
+	nlevels = VDC::GetNumRefLevels(maskvar);
+
+	wasp = _OpenVariableRead(ts, var, nlevels-1, lod, file_ts);
+	if (! wasp) return(-1);
+
+	open_file_info ofimask(wasp, false, var, 0, ts, file_ts, maskvar, nlevels-1);
+
+	_ofimask = ofimask;
+
     return(0);
 }
 
 int VDCNetCDF::CloseVariable() {
 
-	if (_open_file) {
-		_open_file->CloseVar();
+	if (_ofi._wasp) {
+		_ofi._wasp->CloseVar();
 	}
-	if (_open_file && _open_file != _master) {
-		_open_file->Close();
-		delete _open_file;
-		_open_file = NULL;
+	if (_ofi._wasp && _ofi._wasp != _master) {
+		_ofi._wasp->Close();
+		delete _ofi._wasp;
+		_ofi._wasp = NULL;
 	}
-	_open_slice_num = 0;
+	_ofi._slice_num = 0;
+
+	if (_ofimask._wasp) {
+		_ofimask._wasp->CloseVar();
+	}
+	if (_ofimask._wasp && _ofimask._wasp != _master) {
+		_ofimask._wasp->Close();
+		delete _ofimask._wasp;
+		_ofimask._wasp = NULL;
+	}
 	return(0);
 }
 
+#ifdef	DEAD
+bool *VDCNetCDF::_read_mask_var(
+	vector <size_t> start, vector <size_t> count
+) {
+	// data variable may be time varying, while mask variable is not.
+	// If so remove the time dimension from start and count
+	//
+	if (_ofi._var.IsTimeVarying() && ! _ofimask._var.IsTimeVarying()) {
+		start.erase(start.begin());
+		count.erase(count.begin());
+	}
+
+	size_t size = vproduct(count);
+
+	bool *mask = (bool *) _mask_buffer.Alloc(size);
+
+	int rc = _ofimask._wasp->GetVara(start, count, mask);
+	if (rc<0) return(NULL);
+	
+	return(mask);
+}
+#endif
+
 int VDCNetCDF::Write(const float *data) {
-	if (! _open_file ||  ! _open_write) {
+	if (! _ofi._wasp ||  ! _ofi._write) {
 		SetErrMsg("No variable open for writing");
 		return(-1);
 	}
 
 	vector <size_t> sdims;
 	size_t numts;
-	VDC::ParseDimensions(_open_var.GetDimensions(), sdims, numts);
+	VDC::ParseDimensions(_ofi._var.GetDimensions(), sdims, numts);
 	assert(sdims.size() >= 0 && sdims.size() <= 3);
 
-	bool time_varying = VDC::IsTimeVarying(_open_var.GetName());
+	bool time_varying = VDC::IsTimeVarying(_ofi._var.GetName());
 
 	vector <size_t> start;
 	vector <size_t> count;
@@ -488,22 +617,37 @@ int VDCNetCDF::Write(const float *data) {
 	for (int i=0; i<maxs.size(); i++) maxs[i] -= 1;
 
 	vdc_2_ncdfcoords(
-		_open_file_ts, _open_file_ts, time_varying, mins, maxs, start, count
+		_ofi._file_ts, _ofi._file_ts, time_varying, mins, maxs, start, count
 	);
 
-	return(_open_file->PutVara(start, count, data));
+#ifdef	DEAD
+	string maskvar = _get_mask_varname(_ofi._varname);
+	if (maskvar.empty()) {
+		return(_ofi._wasp->PutVara(start, count, data));
+	}
+
+	bool *mask = _read_mask_var(maskvar, start, count));
+	if (! mask) {
+		return(-1);
+	}
+
+	return(_ofi._wasp->PutVara(start, count, data, mask));
+#else
+	return(_ofi._wasp->PutVara(start, count, data));
+#endif
+
 }
 
 int VDCNetCDF::_WriteSlice(WASP *file, const float *slice) {
 	vector <size_t> sdims;
 	size_t numts;
-	VDC::ParseDimensions(_open_var.GetDimensions(), sdims, numts);
+	VDC::ParseDimensions(_ofi._var.GetDimensions(), sdims, numts);
 	assert(sdims.size() >= 2 && sdims.size() <= 3);
 	
-	vector <size_t> sbs = _open_var.GetBS();	// bs, spatial dims only
+	vector <size_t> sbs = _ofi._var.GetBS();	// bs, spatial dims only
 
 	bool time_varying = false;
-	if (VDC::IsTimeVarying(_open_var.GetName())) {
+	if (VDC::IsTimeVarying(_ofi._var.GetName())) {
 		sbs.pop_back();
 		time_varying = true;
 	}
@@ -517,14 +661,14 @@ int VDCNetCDF::_WriteSlice(WASP *file, const float *slice) {
 		slice_size * slices_per_slab * sizeof (*slice)
 	);
 
-	size_t offset = (_open_slice_num  % slices_per_slab) * slice_size;
+	size_t offset = (_ofi._slice_num  % slices_per_slab) * slice_size;
 
 	memcpy(_slice_buffer + offset, slice, slice_size*sizeof(*slice));
-	_open_slice_num++;
+	_ofi._slice_num++;
 
 	if (
-		((_open_slice_num % slices_per_slab) == 0) ||
-		_open_slice_num == num_slices
+		((_ofi._slice_num % slices_per_slab) == 0) ||
+		_ofi._slice_num == num_slices
 	) {
 		//
 		// Min and max extents of entire volume
@@ -535,8 +679,8 @@ int VDCNetCDF::_WriteSlice(WASP *file, const float *slice) {
 
 
 		if (maxs.size() > 2) {
-			mins[mins.size()-1] = (_open_slice_num - 1) / sbs[sbs.size()-1] * sbs[sbs.size()-1];
-			maxs[maxs.size()-1] = _open_slice_num - 1;
+			mins[mins.size()-1] = (_ofi._slice_num - 1) / sbs[sbs.size()-1] * sbs[sbs.size()-1];
+			maxs[maxs.size()-1] = _ofi._slice_num - 1;
 			if (maxs[maxs.size()-1] >= num_slices) {
 				maxs[maxs.size()-1] = num_slices-1;
 			}
@@ -548,7 +692,7 @@ int VDCNetCDF::_WriteSlice(WASP *file, const float *slice) {
 		vector <size_t> start;
 		vector <size_t> count;
 		vdc_2_ncdfcoords(
-			_open_file_ts, _open_file_ts, time_varying, mins, maxs, start, count
+			_ofi._file_ts, _ofi._file_ts, time_varying, mins, maxs, start, count
 		);
 
 		int rc = file->PutVara(start, count, _slice_buffer);
@@ -559,26 +703,26 @@ int VDCNetCDF::_WriteSlice(WASP *file, const float *slice) {
 
 
 int VDCNetCDF::WriteSlice(const float *slice) {
-	if (! _open_file ||  ! _open_write) {
+	if (! _ofi._wasp ||  ! _ofi._write) {
 		SetErrMsg("No variable open for writing");
 		return(-1);
 	}
 
-	return(_WriteSlice( _open_file, slice));
+	return(_WriteSlice( _ofi._wasp, slice));
 }
 
 int VDCNetCDF::Read(float *data) {
-	if (! _open_file ||  _open_write) {
+	if (! _ofi._wasp ||  _ofi._write) {
 		SetErrMsg("No variable open for reading");
 		return(-1);
 	}
 
 	vector <size_t> sdims;
 	size_t numts;
-	VDC::ParseDimensions(_open_var.GetDimensions(), sdims, numts);
+	VDC::ParseDimensions(_ofi._var.GetDimensions(), sdims, numts);
 	assert(sdims.size() >= 0 && sdims.size() <= 3);
 
-	bool time_varying = VDC::IsTimeVarying(_open_var.GetName());
+	bool time_varying = VDC::IsTimeVarying(_ofi._var.GetName());
 
 	vector <size_t> start;
 	vector <size_t> count;
@@ -588,10 +732,10 @@ int VDCNetCDF::Read(float *data) {
 	for (int i=0; i<maxs.size(); i++) maxs[i] -= 1;
 
 	vdc_2_ncdfcoords(
-		_open_file_ts, _open_file_ts, time_varying, mins, maxs, start, count
+		_ofi._file_ts, _ofi._file_ts, time_varying, mins, maxs, start, count
 	);
 
-	return(_open_file->GetVara(start, count, data));
+	return(_ofi._wasp->GetVara(start, count, data));
 }
 
 int VDCNetCDF::_ReadSlice(WASP *file, float *slice) {
@@ -599,7 +743,7 @@ int VDCNetCDF::_ReadSlice(WASP *file, float *slice) {
 	vector <size_t> dims_at_level;
 	vector <size_t> bs_at_level;
 	(void) file->InqVarDimlens(
-		_open_var.GetName(), _open_level, dims_at_level, bs_at_level
+		_ofi._var.GetName(), _ofi._level, dims_at_level, bs_at_level
 	);
 	reverse(dims_at_level.begin(), dims_at_level.end());  // NetCDF order
 	reverse(bs_at_level.begin(), bs_at_level.end());  // NetCDF order
@@ -609,7 +753,7 @@ int VDCNetCDF::_ReadSlice(WASP *file, float *slice) {
 	vector <size_t> sbs = dims_at_level;
 	size_t numts = 0;
 	bool time_varying = false;
-	if (VDC::IsTimeVarying(_open_var.GetName())) {
+	if (VDC::IsTimeVarying(_ofi._var.GetName())) {
 		numts = sdims[sdims.size()-1];
 		sdims.pop_back();
 		sbs.pop_back();
@@ -620,7 +764,7 @@ int VDCNetCDF::_ReadSlice(WASP *file, float *slice) {
 	size_t slice_size, slices_per_slab, num_slices;
 	ws_info(sdims, sbs, slice_size, slices_per_slab, num_slices);
 
-	if (_open_slice_num == 0) {
+	if (_ofi._slice_num == 0) {
 
 		_slice_buffer = (float *) _sb_slice_buffer.Alloc(
 			slice_size * slices_per_slab * sizeof (*slice)
@@ -628,8 +772,8 @@ int VDCNetCDF::_ReadSlice(WASP *file, float *slice) {
 	}
 
 	if (
-		((_open_slice_num % slices_per_slab) == 0) ||
-		_open_slice_num == num_slices	// not block aligned in Z
+		((_ofi._slice_num % slices_per_slab) == 0) ||
+		_ofi._slice_num == num_slices	// not block aligned in Z
 	) {
 		//
 		// Min and max extents of entire volume
@@ -639,8 +783,8 @@ int VDCNetCDF::_ReadSlice(WASP *file, float *slice) {
 		for (int i=0; i<maxs.size(); i++) maxs[i] -= 1;
 
 		if (maxs.size() > 2) {
-			mins[mins.size()-1] = _open_slice_num;
-			maxs[maxs.size()-1] = _open_slice_num +sbs[sbs.size()-1] - 1;
+			mins[mins.size()-1] = _ofi._slice_num;
+			maxs[maxs.size()-1] = _ofi._slice_num +sbs[sbs.size()-1] - 1;
 			if (maxs[maxs.size()-1] >= num_slices) maxs[maxs.size()-1] = num_slices-1;
 		}
 
@@ -651,28 +795,28 @@ int VDCNetCDF::_ReadSlice(WASP *file, float *slice) {
 		vector <size_t> start;
 		vector <size_t> count;
 		vdc_2_ncdfcoords(
-			_open_file_ts, _open_file_ts, time_varying, mins, maxs, start, count
+			_ofi._file_ts, _ofi._file_ts, time_varying, mins, maxs, start, count
 		);
 
 		int rc = file->GetVara(start, count, _slice_buffer);
 		if (rc<0) return(rc);
 	}
 
-	size_t offset = (_open_slice_num  % slices_per_slab) * slice_size;
+	size_t offset = (_ofi._slice_num  % slices_per_slab) * slice_size;
 	memcpy(slice, _slice_buffer + offset, slice_size*sizeof(*slice));
-	_open_slice_num++;
+	_ofi._slice_num++;
 
 	return(0);
 }
 
 
 int VDCNetCDF::ReadSlice(float *slice) {
-	if (! _open_file ||  _open_write) {
+	if (! _ofi._wasp ||  _ofi._write) {
 		SetErrMsg("No variable open for writing");
 		return(-1);
 	}
 
-	return(_ReadSlice(_open_file, slice));
+	return(_ReadSlice(_ofi._wasp, slice));
 }
     
 int VDCNetCDF::ReadRegion(
@@ -680,18 +824,18 @@ int VDCNetCDF::ReadRegion(
 ) {
 	vector <size_t> sdims;
 	size_t numts;
-	VDC::ParseDimensions(_open_var.GetDimensions(), sdims, numts);
+	VDC::ParseDimensions(_ofi._var.GetDimensions(), sdims, numts);
 	assert(sdims.size() >= 0 && sdims.size() <= 3);
 
-	bool time_varying = VDC::IsTimeVarying(_open_var.GetName());
+	bool time_varying = VDC::IsTimeVarying(_ofi._var.GetName());
 
 	vector <size_t> start;
 	vector <size_t> count;
 	vdc_2_ncdfcoords(
-		_open_file_ts, _open_file_ts, time_varying, min, max, start, count
+		_ofi._file_ts, _ofi._file_ts, time_varying, min, max, start, count
 	);
 
-	return(_open_file->GetVara(start, count, region));
+	return(_ofi._wasp->GetVara(start, count, region));
 }     
 
 int VDCNetCDF::ReadRegionBlock(
@@ -699,18 +843,18 @@ int VDCNetCDF::ReadRegionBlock(
 ) {
 	vector <size_t> sdims;
 	size_t numts;
-	VDC::ParseDimensions(_open_var.GetDimensions(), sdims, numts);
+	VDC::ParseDimensions(_ofi._var.GetDimensions(), sdims, numts);
 	assert(sdims.size() >= 0 && sdims.size() <= 3);
 
-	bool time_varying = VDC::IsTimeVarying(_open_var.GetName());
+	bool time_varying = VDC::IsTimeVarying(_ofi._var.GetName());
 
 	vector <size_t> start;
 	vector <size_t> count;
 	vdc_2_ncdfcoords(
-		_open_file_ts, _open_file_ts, time_varying, min, max, start, count
+		_ofi._file_ts, _ofi._file_ts, time_varying, min, max, start, count
 	);
 
-	return(_open_file->GetVaraBlock(start, count, region));
+	return(_ofi._wasp->GetVaraBlock(start, count, region));
 }     
 
 int VDCNetCDF::PutVar(string varname, int lod, const float *data) {
@@ -797,10 +941,15 @@ int VDCNetCDF::PutVar(
 int VDCNetCDF::GetVar(string varname, int level, int lod, float *data) {
 	CloseVariable();
 
+	int nlevels = VDC::GetNumRefLevels(varname);
+
+	int clevel, flevel;
+	levels(level, nlevels, clevel, flevel);
+
 	vector <size_t> dims_at_level;
 	vector <size_t> dummy;
 	int rc = VDCNetCDF::GetDimLensAtLevel(
-		varname, level, dims_at_level, dummy
+		varname, clevel, dims_at_level, dummy
 	);
 	if (rc<0) return(-1);
 
@@ -821,7 +970,7 @@ int VDCNetCDF::GetVar(string varname, int level, int lod, float *data) {
 
 		float *ptr = data;
 		for (size_t ts = 0; ts<numts; ts++) {
-			rc = VDCNetCDF::GetVar(ts, varname, level, lod, ptr);
+			rc = VDCNetCDF::GetVar(ts, varname, clevel, lod, ptr);
 			if (rc<0) return(-1);
 
 			ptr += var_size;
@@ -889,7 +1038,7 @@ bool VDCNetCDF::CompressionInfo(
 bool VDCNetCDF::VariableExists(
     size_t ts,
     string varname,
-    int reflevel,
+    int level,
     int lod
 ) const {
 
@@ -924,7 +1073,6 @@ bool VDCNetCDF::VariableExists(
     return(true);
 }
 
-    
 
 int VDCNetCDF::_WriteMasterMeta() {
 
@@ -1245,19 +1393,11 @@ int VDCNetCDF::_ReadMasterDataVarsDefs() {
 		if (rc<0) return(rc);
 		var.SetCoordvars(coordvars);
 
-		tag = prefix + "." + var.GetName() + ".HasMissing";
-		int has_missing;
-		rc = _master->GetAtt("", tag, has_missing);
+		tag = prefix + "." + var.GetName() + ".MaskVar";
+		string maskvar;
+		rc = _master->GetAtt("", tag, maskvar);
 		if (rc<0) return(rc);
-		var.SetHasMissing(has_missing);
-
-		if (has_missing) {
-			tag = prefix + "." + var.GetName() + ".MissingValue";
-			double missing_value;
-			rc = _master->GetAtt("", tag, missing_value);
-			if (rc<0) return(rc);
-			var.SetMissingValue(missing_value);
-		}
+		var.SetMaskvar(maskvar);
 
 		rc = _ReadMasterBaseVarDefs(prefix, var);
 		if (rc<0) return(rc);
@@ -1401,7 +1541,7 @@ int VDCNetCDF::_WriteMasterCoordVarsDefs() {
 		int rc; 
 		if (_var_in_master(cvar)) {
 			size_t numts = VDC::GetNumTimeSteps(cvar.GetName());
-			rc = _DefVar(_master, cvar, numts);
+			rc = _DefCoordVar(_master, cvar, numts);
 			if (rc<0) return(-1);
 		}
 
@@ -1440,7 +1580,7 @@ int VDCNetCDF::_WriteMasterDataVarsDefs() {
 
 		if (_var_in_master(var)) {
 			size_t numts = VDC::GetNumTimeSteps(var.GetName());
-			rc = _DefVar(_master, var, numts);
+			rc = _DefDataVar(_master, var, numts);
 			if (rc<0) return(-1);
 		}
 
@@ -1448,15 +1588,9 @@ int VDCNetCDF::_WriteMasterDataVarsDefs() {
 		int rc = _master->PutAtt("", tag, var.GetCoordvars());
 		if (rc<0) return(rc);
 
-		tag = prefix + "." + var.GetName() + ".HasMissing";
-		rc = _master->PutAtt("", tag, (int) var.GetHasMissing());
+		tag = prefix + "." + var.GetName() + ".MaskVar";
+		rc = _master->PutAtt("", tag, var.GetMaskvar());
 		if (rc<0) return(rc);
-
-		if (var.GetHasMissing()) {
-			tag = prefix + "." + var.GetName() + ".MissingValue";
-			rc = _master->PutAtt("", tag, var.GetMissingValue());
-			if (rc<0) return(rc);
-		}
 
 		rc = _WriteMasterBaseVarDefs(prefix, var);
 		if (rc<0) return(rc);
@@ -1466,7 +1600,7 @@ int VDCNetCDF::_WriteMasterDataVarsDefs() {
 
 }
 
-int VDCNetCDF::_DefVar(
+int VDCNetCDF::_DefBaseVar(
 	WASP *wasp,
 	const VDC::BaseVar &var,
 	size_t max_ts
@@ -1500,32 +1634,6 @@ int VDCNetCDF::_DefVar(
 	// 
 	// Attributes
 	//
-	const CoordVar *cvarptr = dynamic_cast<const CoordVar *> (& var);
-	if (cvarptr) {
-	
-		rc = wasp->PutAtt(cvarptr->GetName(), "Axis", cvarptr->GetAxis());
-		if (rc<0) return(-1);
-
-		rc = wasp->PutAtt(
-			cvarptr->GetName(), "UniformHint", cvarptr->GetUniform()
-		);
-		if (rc<0) return(-1);
-	}
-
-	const DataVar *varptr = dynamic_cast<const DataVar *> (& var);
-	if (varptr) {
-		rc = wasp->PutAtt(
-			varptr->GetName(), "CoordVars", varptr->GetCoordvars()
-		);
-		if (rc<0) return(-1);
-
-		if (varptr->GetHasMissing()) {
-			rc = wasp->PutAtt(
-				varptr->GetName(), "HasMissing", varptr->GetMissingValue()
-			);
-			if (rc<0) return(rc);
-		}
-	}
 
 	rc = wasp->PutAtt(var.GetName(), "Units", var.GetUnits());
 	if (rc<0) return(rc);
@@ -1549,6 +1657,46 @@ int VDCNetCDF::_DefVar(
 	}
 
 	return(0);
+}
+
+int VDCNetCDF::_DefDataVar(
+	WASP *wasp,
+	const VDC::DataVar &var,
+	size_t max_ts
+) {
+
+	int rc = _DefBaseVar(wasp, var, max_ts);
+	if (rc<0) return(-1);
+
+	rc = wasp->PutAtt(
+		var.GetName(), "CoordVars", var.GetCoordvars()
+	);
+	if (rc<0) return(-1);
+
+	rc = wasp->PutAtt(
+		var.GetName(), "MaskVar", var.GetMaskvar()
+	);
+
+	return(rc);
+}
+
+int VDCNetCDF::_DefCoordVar(
+	WASP *wasp,
+	const VDC::CoordVar &var,
+	size_t max_ts
+) {
+	int rc = _DefBaseVar(wasp, var, max_ts);
+	if (rc<0) return(-1);
+
+	rc = wasp->PutAtt(var.GetName(), "Axis", var.GetAxis());
+	if (rc<0) return(-1);
+
+	rc = wasp->PutAtt(
+		var.GetName(), "UniformHint", var.GetUniform()
+	);
+
+	return(rc);
+
 }
 
 int VDCNetCDF::_PutAtt(

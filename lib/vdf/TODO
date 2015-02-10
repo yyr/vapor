@@ -18,7 +18,7 @@ serialize (order) threaded I/O
 
 Should 'unlimited' dimensions be supported ?
 
-***If (cratios.size() == 1 and cratios[0] == 1) do not transform
+done - ***If (cratios.size() == 1 and cratios[0] == 1) do not transform
 variable, but still block it. This facilitates use of coordinate variables
 that are not compressed with data variables that are.
 
