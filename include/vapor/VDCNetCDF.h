@@ -220,16 +220,46 @@ protected:
 private:
  int _version;
  WASP *_master;	// Master NetCDF file
- WASP *_open_file;	// Currently opened data file
- bool _open_write;	// opened for writing?
- BaseVar _open_var;
- size_t _open_slice_num; // index of current slice for WriteSlice, ReadSlice
- size_t _open_ts;	// global time step of current open variable
- size_t _open_file_ts;	// local (within file) time step of current open var
- string _open_varname;	// name of current open variable
- int _open_level;
+
+ class open_file_info {
+ public:
+   open_file_info() {
+    _wasp = NULL;
+    _write = false;
+    _slice_num = 0;
+    _ts = 0;
+    _file_ts = 0;
+    _varname.clear();
+    _level = 0;
+   };
+   open_file_info(
+	WASP *wasp, bool write, BaseVar var, size_t slice_num,
+	size_t ts, size_t file_ts, string varname, int level
+   ) :
+    _wasp(wasp),
+    _write(write),
+    _var(var),
+    _slice_num(slice_num),
+    _ts(ts),
+    _file_ts(file_ts),
+    _varname(varname),
+    _level(level)
+  { };
+     
+   WASP *_wasp;	// Currently opened data file
+   bool _write;	// opened for writing?
+   BaseVar _var;
+   size_t _slice_num; // index of current slice for WriteSlice, ReadSlice
+   size_t _ts;	// global time step of current open variable
+   size_t _file_ts;	// local (within file) time step of current open var
+   string _varname;	// name of current open variable
+   int _level;
+ };
+ open_file_info _ofi;	// currently open data or coordinate variable
+ open_file_info _ofimask;	// current opened mask variable
  
  VetsUtil::SmartBuf _sb_slice_buffer;
+ VetsUtil::SmartBuf _mask_buffer;
  float *_slice_buffer;
  
  size_t _chunksizehint;	// NetCDF chunk size hint for file creates
@@ -266,9 +296,19 @@ private:
     const Attribute &attr
  );
 
- int _DefVar(WASP *ncdf, const VDC::BaseVar &var, size_t max_ts);
+ int _DefBaseVar(WASP *ncdf, const VDC::BaseVar &var, size_t max_ts);
+ int _DefDataVar(WASP *ncdf, const VDC::DataVar &var, size_t max_ts);
+ int _DefCoordVar(WASP *ncdf, const VDC::CoordVar &var, size_t max_ts);
 
  bool _var_in_master(const VDC::BaseVar &var) const;
+
+ string _get_mask_varname(string varname) const;
+
+
+ WASP *_OpenVariableRead(
+	size_t ts, const VDC::BaseVar &var, int clevel, int lod,
+	size_t &file_ts
+ );
 
 
 

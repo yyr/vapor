@@ -462,6 +462,28 @@ public:
  );
  virtual int PutVar(const float *data);
 
+ //! Write an array of masked values to the currently opened variable
+ //!
+ //! This version of PutVar() handles missing data values whose 
+ //! presence is indicated by a boolean mask, \p mask. Missing values
+ //! are replaced with values that perform better when compressed (e.g. the
+ //! average of the field)
+ //!
+ //! \copydoc PutVar(
+ //!    vector <size_t> start, vector <size_t> count, const float *data
+ //! )
+ //!
+ //! \param[in] mask a boolean array with the same shape as \p data
+ //! indicting valid and invalid values in \p data. Elements of \p data
+ //! corresponding to false values in \p mask are not preserved when 
+ //! written to storage.
+ //!
+ virtual int PutVara(
+	vector <size_t> start, vector <size_t> count, const float *data,
+	const bool *mask
+ );
+ virtual int PutVar(const float *data, const bool *mask);
+
  //! Read a hyper-slab of values from the currently opened variable
  //!
  //! The currently opened variable may or may not be a WASP
@@ -600,6 +622,7 @@ private:
  bool _open_write;  // opened variable open for writing?
  bool _open_waspvar;	// opened variable is a WASP variable?
  string _open_varname;  // name of opened variable
+ nc_type _open_varxtype;  // external type of opened variable
  vector <Compressor *> _open_compressors;  // Compressor for opened variable
 
 

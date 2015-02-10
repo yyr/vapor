@@ -208,6 +208,10 @@ public:
 	string varname, string attname, nc_type &xtype, size_t &len
  ) const;
 
+ //! Find a variable's external representation type
+ //
+ virtual int InqVartype(string varname, nc_type &xtype) const;
+
  //! Set the fill value
  virtual int SetFill(int fillmode, int &old_modep);
 

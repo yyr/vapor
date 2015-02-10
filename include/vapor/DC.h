@@ -214,6 +214,12 @@ public:
   //
   void SetAxis(int axis) {_axis = axis;};
 
+  bool operator==(const Dimension &rhs) const {
+	return(_name == rhs._name && _length==rhs._length && _axis==rhs._axis);
+  }
+  bool operator!=(const Dimension &rhs) const {
+	return(! (*this==rhs));
+  }
   friend std::ostream &operator<<(
 	std::ostream &o, const Dimension &dimension
   );
@@ -544,6 +550,9 @@ public:
 
   //! Construct Data variable definition with missing values
   //!
+  //! Elements of the variable whose value matches that specified by
+  //! \p missing_value are considered invalid
+  //!
   //! \copydetails BaseVar(string name, std::vector <DC::Dimension> dimensions,
   //!  string units, XType type, 
   //!  std::vector <size_t> bs, string wname,
@@ -567,8 +576,46 @@ public:
 		bs, wname, cratios, periodic
 	),
 	_coordvars(coordvars),
+	_maskvar(""),
 	_has_missing(true),
 	_missing_value(missing_value)
+  {}
+
+  //! Construct Data variable definition with a mask variable
+  //!
+  //! This version of the constructor specifies the name of a variable
+  //! \p varmask whose contents indicate the presense or absense of invalid
+  //! entries in the data variable. The contents of the mask array are treated
+  //! as booleans, true values indicating valid data. The rank of of the 
+  //! variable may be less than or equal to that of \p name. The dimensions
+  //! of \p maskvar must match the fastest varying dimensions of \p name.
+  //!
+  //! \copydetails BaseVar(string name, std::vector <DC::Dimension> dimensions,
+  //!  string units, XType type, 
+  //!  std::vector <size_t> bs, string wname,
+  //!  std::vector <size_t> cratios,
+  //!  std::vector <bool> periodic)
+  //!
+  //! \param[in] coordvars Names of coordinate variables associated 
+  //! with this variables dimensions
+  //! \param[in] maskvar  Name of variable containing mask array. 
+  //!
+  DataVar(
+	string name, std::vector <DC::Dimension> dimensions,
+	string units, XType type, 
+	std::vector <size_t> bs, string wname,
+	std::vector <size_t> cratios,
+	std::vector <bool> periodic, std::vector <string> coordvars, 
+	string maskvar
+  ) :
+	BaseVar(
+		name, dimensions, units, type, 
+		bs, wname, cratios, periodic
+	),
+	_coordvars(coordvars),
+	_maskvar(maskvar),
+	_has_missing(false),
+	_missing_value(0.0)
   {}
 
   //! Construct Data variable definition without missing values
@@ -594,6 +641,7 @@ public:
 		bs, wname, cratios, periodic
 	),
 	_coordvars(coordvars),
+	_maskvar(""),
 	_has_missing(false),
 	_missing_value(0.0)
   {}
@@ -618,8 +666,41 @@ public:
 		name, dimensions, units, type, periodic
 	),
 	_coordvars(coordvars),
+	_maskvar(""),
 	_has_missing(true),
 	_missing_value(missing_value)
+	{}
+
+  //! Construct Data variable definition with a mask but no compression
+  //!
+  //! This version of the constructor specifies the name of a variable
+  //! \p varmask whose contents indicate the presense or absense of invalid
+  //! entries in the data variable. The contents of the mask array are treated
+  //! as booleans, true values indicating valid data. The rank of of the 
+  //! variable may be less than or equal to that of \p name. The dimensions
+  //! of \p maskvar must match the fastest varying dimensions of \p name.
+  //!
+  //! \copydetails BaseVar(string name, std::vector <DC::Dimension> dimensions,
+  //!  string units, XType type, 
+  //!  std::vector <bool> periodic)
+  //!
+  //! \param[in] coordvars Names of coordinate variables associated 
+  //! with this variables dimensions
+  //! \param[in] missing_value  Value of the missing value indicator
+  //!
+  DataVar(
+	string name, std::vector <DC::Dimension> dimensions,
+	string units, XType type, 
+	std::vector <bool> periodic, std::vector <string> coordvars, 
+	string maskvar
+  ) : 
+	BaseVar(
+		name, dimensions, units, type, periodic
+	),
+	_coordvars(coordvars),
+	_maskvar(maskvar),
+	_has_missing(false),
+	_missing_value(0.0)
 	{}
 
   //! Construct Data variable definition with no missing values or compression
@@ -640,6 +721,7 @@ public:
 		name, dimensions, units, type, periodic
 	),
 	_coordvars(coordvars),
+	_maskvar(""),
 	_has_missing(false),
 	_missing_value(0.0)
 	{}
@@ -651,6 +733,11 @@ public:
   //
   std::vector <string> GetCoordvars() const {return (_coordvars); };
   void SetCoordvars(std::vector <string> coordvars) {_coordvars = coordvars; };
+
+  //! Access data variable's mask variable names
+  //
+  string GetMaskvar() const {return (_maskvar); };
+  void SetMaskvar(string maskvar) {_maskvar = maskvar; };
 
   //! Access data variable's missing data flag
   //
@@ -666,6 +753,7 @@ public:
 
  private:
   std::vector <string> _coordvars;
+  string _maskvar;
   bool _has_missing;
   double _missing_value;
  };

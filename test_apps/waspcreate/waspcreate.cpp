@@ -51,6 +51,21 @@ vector <string> split(string s, string delim) {
 	return(tokens);
 }
 
+nc_type parsextype(string xtypestr) {
+	if (xtypestr.compare("NC_BYTE")==0) return(NC_BYTE);
+	if (xtypestr.compare("NC_UBYTE")==0) return(NC_UBYTE);
+	if (xtypestr.compare("NC_CHAR")==0) return(NC_CHAR);
+	if (xtypestr.compare("NC_SHORT")==0) return(NC_SHORT);
+	if (xtypestr.compare("NC_USHORT")==0) return(NC_USHORT);
+	if (xtypestr.compare("NC_INT")==0) return(NC_INT);
+	if (xtypestr.compare("NC_UINT")==0) return(NC_UINT);
+	if (xtypestr.compare("NC_FLOAT")==0) return(NC_FLOAT);
+	if (xtypestr.compare("NC_INT64")==0) return(NC_INT64);
+	if (xtypestr.compare("NC_UINT64")==0) return(NC_UINT64);
+	if (xtypestr.compare("NC_DOUBLE")==0) return(NC_DOUBLE);
+	return(-1);
+}
+
 int	main(int argc, char **argv) {
 
 	OptionParser op;
@@ -135,11 +150,7 @@ int	main(int argc, char **argv) {
 
 		string xtypestr = vardef[0];
 		vardef.erase(vardef.begin());
-		if (xtypestr.compare("NC_FLOAT") != 0) {
-			MyBase::SetErrMsg("Unsupported xtype : %s", xtypestr.c_str());
-			exit(1);
-		}
-		int xtype = NC_FLOAT;
+		int xtype = parsextype(xtypestr);
 
 		size_t ncdims;
 		std::istringstream(vardef[0]) >> ncdims;

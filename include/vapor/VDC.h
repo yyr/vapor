@@ -549,7 +549,7 @@ public:
  //! with the DefineDimension() method. 
  //! \param[in] coordvars An ordered vector specifying the coordinate
  //! variable names providing the coordinates for this variable. The 
- //! dimension names must have previously been defined
+ //! coordinate variables must have previously been defined
  //! with the DefineCoordVar() method. Moreover, the dimension names
  //! of each coordinate variable must be a subset of those in \p dimnames.
  //! \param[in] units This parameter specifies a string describing the 
@@ -562,6 +562,15 @@ public:
  //! \param[in] compressed A boolean indicating whether the coordinate 
  //! variable is to be wavelet transformed.
  //!
+ //! \param[in] varmask Specifies the name of a variable
+ //! whose contents indicate the presense or absense of invalid
+ //! entries in the data variable. The contents of the mask array are treated
+ //! as booleans, true values indicating valid data. The rank of of the
+ //! variable may be less than or equal to that of \p varname. The dimensions
+ //! of \p maskvar must match the fastest varying dimensions of \p varname.
+ //! The \p maskvar variable must have been previously defined with 
+ //! DefineDataVar().
+ //!
  //! It is an error to call this method if the VDC master is not currently
  //! in \b define mode.
  //!
@@ -573,21 +582,9 @@ public:
  int DefineDataVar(
 	string varname, std::vector <string> dimnames, 
 	std::vector <string> coordvars, 
-	string units, XType type, bool compressed
+	string units, XType type, bool compressed, string maskvar = ""
  );
 
- //! Define a data variable with missing values 
- //!
- //! \param[in] missing_value The missing value
- //!
- //! \sa DefineDataVar()
- //!
- int DefineDataVar(
-	string varname, std::vector <string> dimnames, 
-	std::vector <string> coordvars, 
-	string units, XType type, bool compressed,
-	double missing_value
- );
 
  //! Return a data variable's definition
  //!
@@ -600,11 +597,8 @@ public:
  //! \param[out] units The variable's units string
  //! \param[out] type The external data storage type
  //! \param[out] compressed A boolean indicating if the variable is compressed
- //! \param[out] has_missing A boolean indicating if the variable has missing
- //! values
- //! \param[out] missing_value If \p has_missing is true this parameter
- //! contains the value of variable's missing value maker. If \p has_missing
- //! is false the value of \p missing_value is undefined.
+ //! \param[out] maskvar A string, possibly empty, containing the name of 
+ //! the mask variable if one exists.
  //!
  //! \retval bool If the named data variable cannot be found false 
  //! is returned and the values of the output parameters will be 
@@ -616,7 +610,7 @@ public:
 	string varname, std::vector <string> &dimnames, 
 	std::vector <string> &coordvars, 
 	string &units, XType &type, bool &compressed,
-	bool &has_missing, double &missing_value
+	string &maskvar
  ) const;
 
  //! Return a data variable's definition
@@ -1262,7 +1256,7 @@ protected:
 
  bool _ValidDefineDataVar(
     string varname, vector <string> dimnames, vector <string> coordnames,
-    string units, XType type, bool compressed
+    string units, XType type, bool compressed, string maskvar
  ) const;
 
 
