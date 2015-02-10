@@ -1,5 +1,6 @@
 
 inputstring = Session.Property("CustomActionData")
+'MsgBox(inputstring)
 'inputstring = "1<>C:\Program Files\NCAR\"
 ' the inputstring either starts with <>, or it has a "1<>" at the start.
 ' If it begins with a "1", then it was an "ALLUSER" install
