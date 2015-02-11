@@ -1541,7 +1541,7 @@ same as the X, Y, and Z axes.</string>
                     <string>Min and max grid coordinates of smallest box containing the probe at full resolution</string>
                    </property>
                    <property name="text">
-                    <string>Grid extents (X,Y,Z)</string>
+                    <string>Grid extents</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>

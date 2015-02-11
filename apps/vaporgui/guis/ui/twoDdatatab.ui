@@ -1416,7 +1416,7 @@ orientation of the plane.</string>
              <string>Min and max grid coordinates of the planar region, at highest refinement level</string>
             </property>
             <property name="text">
-             <string>Grid extents (X,Y,Z)</string>
+             <string>Grid extents</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
