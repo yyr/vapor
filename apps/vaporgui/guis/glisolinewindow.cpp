@@ -188,6 +188,11 @@ void GLIsolineWindow::paintGL()
 	printOpenGLErrorMsg("GLIsolineWindow");
 	_resizeGL();
 	
+	qglClearColor(palette().color(QPalette::Window));
+	glClearDepth(1);
+	glPolygonMode(GL_FRONT,GL_FILL);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
 	//If there is a valid cache in the renderer, use it to draw in the tab.
 	IsolineParams* iParams = isolineFrame->getParams();
 	if (!iParams) {rendering = false; return;}

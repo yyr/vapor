@@ -1496,7 +1496,6 @@ reinitTab(bool doOverride){
 	colorMapEntity.clear();
 	colorMapEntity.push_back("Constant");
 	colorMapEntity.push_back("Timestep");
-	colorMapEntity.push_back("Field Magnitude");
 	colorMapEntity.push_back("Seed Index");
 	
 	for (int i = 0; i< newNumComboVariables; i++){
@@ -2254,13 +2253,10 @@ guiSetColorMapEntity( int entityNum){
 	
 	updateTab();
 	update();
-	//We only need to redo the flowData if the entity is changing to "speed"
-	//or if it changes to another variable:
-	if(entityNum == 2) {
-		VizWinMgr::getInstance()->setFlowDataDirty(fParams);
-		if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	}
-	else VizWinMgr::getInstance()->setFlowGraphicsDirty(fParams);
+	//We only need to redo the flow color if
+	//the entity changes
+	
+	VizWinMgr::getInstance()->setFlowGraphicsDirty(fParams);
 }
 //When the user clicks "refresh", 
 //This triggers a rebuilding of all dirty frames 
@@ -3330,8 +3326,8 @@ refreshHisto(){
 		return;
 	}
 	int varnum = dParams->getColorMapEntityIndex();
-	if (varnum < 4)return; //not a variable
-	int sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum -4);
+	if (varnum < 3)return; //not a variable
+	int sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum -3);
 	DataMgr* dataManager = Session::getInstance()->getDataMgr();
 	float datarange[2];
 	datarange[0] = dParams->getMinColorMapBound();
