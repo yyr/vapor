@@ -61,7 +61,7 @@ public:
 
  //! Return the sub minor version number
  //
- static string GetRC() { return("RC0"); }
+ static string GetRC() { return(""); }
 
  //! Return the canonical version number as a formatted string
  //!

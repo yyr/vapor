@@ -780,11 +780,11 @@ void FlowEventRouter::updateTab(){
 	//These should be the actual range of the variables
 	int var = fParams->getColorMapEntityIndex();
 	int tstep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	if (var<4){
+	if (var<3){
 		minColorBound->setText(QString::number(fParams->minRange(var, tstep)));
 		maxColorBound->setText(QString::number(fParams->maxRange(var, tstep)));
 	} else {
-		int varnum = DataStatus::mapActiveToSessionVarNum3D(var -4);
+		int varnum = DataStatus::mapActiveToSessionVarNum3D(var -3);
 		float minval= -1.f, maxval = 1.f;
 		if (dStatus->variableIsPresent3D(varnum)){
 			if (fParams->isEnabled()){
