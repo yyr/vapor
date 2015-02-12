@@ -1424,17 +1424,13 @@ guiChangeVariable(int varnum){
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "change contours-selected variable");
 	
 	int activeVar = variableCombo->currentIndex();
-	float minval, maxval;
+	
 	if (pParams->VariablesAre3D()){
 		const string& varname = DataStatus::getActiveVarName3D(activeVar);
-		minval = ds->getDataMin3D(activeVar,ts);
-		maxval = ds->getDataMax3D(activeVar,ts);
 		pParams->SetVariableName(varname);
 	}
 	else {
 		const string& varname = DataStatus::getActiveVarName2D(activeVar);
-		minval = ds->getDataMin2D(activeVar,ts);
-		maxval = ds->getDataMax2D(activeVar,ts);
 		pParams->SetVariableName(varname);
 	}
 	
