@@ -43,7 +43,7 @@ bool ArrowParams::
 reinit(bool doOverride){
 
 	DataStatus* ds = DataStatus::getInstance();
-	
+	if (!ds->dataIsPresent2D() && !ds->dataIsPresent3D()) return false;
 	int totNumVariables = ds->getNumSessionVariables()+ ds->getNumSessionVariables2D();
 	if (totNumVariables <= 0) return false;
 	bool is3D = VariablesAre3D();

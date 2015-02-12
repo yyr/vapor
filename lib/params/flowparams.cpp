@@ -351,6 +351,7 @@ reinit(bool doOverride){
 	int i;
 	if(doOverride) restart();
 	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->dataIsPresent3D()) return false;
 	int nlevels = ds->getNumTransforms();
 	
 	setMaxNumTrans(nlevels);

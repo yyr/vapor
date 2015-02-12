@@ -77,7 +77,7 @@ bool ParamsIso::
 reinit(bool doOverride){
 
 	DataStatus* ds = DataStatus::getInstance();
-	
+	if (!ds->dataIsPresent3D()) return false;
 	int totNumVariables = ds->getNumSessionVariables();
 	if (totNumVariables <= 0) return false;
 	int varNum = ds->getActiveVarNum3D(GetIsoVariableName());
