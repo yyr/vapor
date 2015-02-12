@@ -3349,9 +3349,23 @@ void FlowEventRouter::guiFitTFToData(){
 
 	
 	int varnum = pParams->getColorMapEntityIndex();
-	float minBound = pParams->minRange(varnum,ts);
-	float maxBound = pParams->maxRange(varnum,ts);
+	float minBound = 0;
+	float maxBound = 1.;
+	if (varnum > 2) {
+		varnum -= 3;
+		//Get bounds from DataStatus:
+		minBound = ds->getDataMin3D(varnum,ts);
+		maxBound = ds->getDataMax3D(varnum,ts);
 	
+		if (minBound > maxBound){ //no data
+			maxBound = 1.f;
+			minBound = 0.f;
+		}
+	
+	} else {
+		minBound = pParams->minRange(varnum,ts);
+		maxBound = pParams->maxRange(varnum,ts);
+	}
 	((TransferFunction*)pParams->GetMapperFunc())->setMinMapValue(minBound);
 	((TransferFunction*)pParams->GetMapperFunc())->setMaxMapValue(maxBound);
 	PanelCommand::captureEnd(cmd, pParams);

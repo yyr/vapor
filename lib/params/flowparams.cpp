@@ -445,12 +445,13 @@ reinit(bool doOverride){
 	int newNumComboVariables = ds->getNumActiveVariables3D();
 	
 	if (newNumVariables == 0 || newNumComboVariables == 0) return false;
-	//Rebuild map bounds arrays:
-	
-	if(minColorBounds) delete [] minColorBounds;
-	minColorBounds = new float[newNumComboVariables+3];
-	if(maxColorBounds) delete [] maxColorBounds;
-	maxColorBounds = new float[newNumComboVariables+3];
+	//Rebuild map bounds arrays if we are overriding:
+	if (doOverride){
+		if(minColorBounds) delete [] minColorBounds;
+		minColorBounds = new float[newNumComboVariables+3];
+		if(maxColorBounds) delete [] maxColorBounds;
+		maxColorBounds = new float[newNumComboVariables+3];
+	}
 	
 	
 	colorMapEntity.clear();
@@ -558,9 +559,11 @@ reinit(bool doOverride){
 
 	
 	//Now set up bounds arrays based on current mapped variable settings:
-	for (i = 0; i< newNumComboVariables+3; i++){
-		minColorBounds[i] = minRange(i, minFrame);
-		maxColorBounds[i] = maxRange(i, minFrame);
+	if (doOverride){
+		for (i = 0; i< newNumComboVariables+3; i++){
+			minColorBounds[i] = minRange(i, minFrame);
+			maxColorBounds[i] = maxRange(i, minFrame);
+		}
 	}
 	
 	
@@ -2178,10 +2181,10 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 		if(StrCmpNoCase(varName, "Constant") == 0) varNum = 0;
 		else 	if (StrCmpNoCase(varName, "Timestep") == 0) varNum = 1;
 		else 	if (StrCmpNoCase(varName, "FieldMagnitude") == 0) varNum = 2;
-		else 	if (StrCmpNoCase(varName, "SeedIndex") == 0) varNum = 3;
+		else 	if (StrCmpNoCase(varName, "SeedIndex") == 0) varNum = 2;
 		else {
-			varNum = 4+ DataStatus::getInstance()->mergeVariableName(varName);
-			if (varNum > numComboVariables+4) {
+			varNum = 3+ DataStatus::getInstance()->mergeVariableName(varName);
+			if (varNum > numComboVariables+3) {
 				pm->parseError("Invalid variable name in FlowParams: %s", varName.c_str());
 				return false;
 			}
