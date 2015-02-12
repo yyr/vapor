@@ -95,6 +95,17 @@ void DCReaderGRIB::Variable::_AddIndex(double time, float level, string file, in
 }
 
 DCReaderGRIB::DCReaderGRIB(const vector <string> files) {
+#ifdef WIN32
+	std::ostringstream ss;
+	string vHome = getenv("VAPOR_HOME");
+	ss << vHome;
+	ss << "\\share]grib_api\\definitions";
+	string gribDef = ss.str();
+	if (putenv(gribDef.c_str())!=0) {
+		MyBase::SetErrMsg("putenv failed for variable %s",gribDef);
+	}
+#endif
+
 	_iValues = NULL;
 	_ignoreForecastData = 0;
 	_Ni = 0;
@@ -391,29 +402,30 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
 		max = _vertCoordinates.back();
 	}
 	else {	
-		OpenVariableRead(0,"ELEVATION",0,0);
-		float *values = new float[_Ni*_Nj];
-		ReadSlice(values);
+		if (OpenVariableRead(0,"ELEVATION",0,0) != 0) return -1;
+		else {
+			float *values = new float[_Ni*_Nj];
+			ReadSlice(values);
 
-		min = values[0];
-		for (int i=0; i<_Ni; i++){
-			for (int j=0; j<_Nj; j++) {
-				float value = values[j*_Ni+i];
-				if (value < min) min = value;
-			}   
-		} 
+			min = values[0];
+			for (int i=0; i<_Ni; i++){
+				for (int j=0; j<_Nj; j++) {
+					float value = values[j*_Ni+i];
+					if (value < min) min = value;
+				}   
+			} 
 
-		_sliceNum = 0;
-		ReadSlice(values);
+			_sliceNum = 0;
+			ReadSlice(values);
 
-		max = values[0];
-		for (int i=0; i<_Ni; i++){
-			for (int j=0; j<_Nj; j++) {
-				float value = values[j*_Ni+i];
-				if (value > max) max = value;
-			}   
+			max = values[0];
+			for (int i=0; i<_Ni; i++){
+				for (int j=0; j<_Nj; j++) {
+					float value = values[j*_Ni+i];
+					if (value > max) max = value;
+				}   
+			}
 		}
-	
 		if (values) delete [] values;
 	}
 	

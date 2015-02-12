@@ -73,6 +73,16 @@ FILE *OpenLog(string path_var) {
 
 QApplication* app;
 int main( int argc, char ** argv ) {
+
+#ifdef WIN32
+	string gribDef = "GRIB_DEFINITION_PATH=C:\\Program Files\\NCAR\\VAPOR\\share\\grib_api\\definitions";
+	//cout << "GRIB def path being set to " << gribDef << endl;
+	if (putenv(gribDef.c_str())!=0) {
+		MyBase::SetErrMsg("putenv failed on GRIB_DEFINITION_PATH");
+	}
+	//cout << getenv("GRIB_DEFINITION_PATH") << endl;
+#endif
+
     //Install our own message handler.
     //Needed for SGI to avoid dithering:
 
