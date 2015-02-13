@@ -95,17 +95,6 @@ void DCReaderGRIB::Variable::_AddIndex(double time, float level, string file, in
 }
 
 DCReaderGRIB::DCReaderGRIB(const vector <string> files) {
-#ifdef WIN32
-	std::ostringstream ss;
-	string vHome = getenv("VAPOR_HOME");
-	ss << vHome;
-	ss << "\\share]grib_api\\definitions";
-	string gribDef = ss.str();
-	if (putenv(gribDef.c_str())!=0) {
-		MyBase::SetErrMsg("putenv failed for variable %s",gribDef);
-	}
-#endif
-
 	_iValues = NULL;
 	_ignoreForecastData = 0;
 	_Ni = 0;
@@ -425,8 +414,8 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
 					if (value > max) max = value;
 				}   
 			}
+			if (values) delete [] values;
 		}
-		if (values) delete [] values;
 	}
 	
 	#ifdef DEAD
