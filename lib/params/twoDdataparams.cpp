@@ -176,7 +176,7 @@ bool TwoDDataParams::
 reinit(bool doOverride){
 	
 	DataStatus* ds = DataStatus::getInstance();
-	
+	if (!ds->dataIsPresent2D()) return false;
 	const float* localExtents = ds->getLocalExtents();
 	setMaxNumRefinements(ds->getNumTransforms());
 	//Set up the numRefinements combo

@@ -50,6 +50,7 @@ bool IsolineParams::
 reinit(bool doOverride){
 
 	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->dataIsPresent2D() && !ds->dataIsPresent3D()) return false;
 	int numVariables3D = ds->getNumSessionVariables();
 	int numVariables2D = ds->getNumSessionVariables2D();
 	int totNumVariables = numVariables2D+numVariables3D;

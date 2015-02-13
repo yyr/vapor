@@ -476,16 +476,26 @@ void IsolineEventRouter::updateTab(){
 	if (isolineParams->VariablesAre3D()){
 		sesVarNum = ds->getSessionVariableNum3D(isolineParams->GetVariableName());
 		activeVarNum = ds->getActiveVarNum3D(isolineParams->GetVariableName());
-		minDataBound->setText(QString::number(ds->getDataMin3D(sesVarNum,timestep)));
-		maxDataBound->setText(QString::number(ds->getDataMax3D(sesVarNum,timestep)));
+		if (isolineParams->isEnabled()){
+			minDataBound->setText(QString::number(ds->getDataMin3D(sesVarNum,timestep)));
+			maxDataBound->setText(QString::number(ds->getDataMax3D(sesVarNum,timestep)));
+		} else {
+			minDataBound->setText(QString::number(ds->getDefaultDataMin3D(sesVarNum)));
+			maxDataBound->setText(QString::number(ds->getDefaultDataMax3D(sesVarNum)));
+		}
 		copyToProbeButton->setText("Copy to Probe");
 		copyToProbeButton->setToolTip("Click to make the current active Probe display these contour lines as a color contour plot");
 	}
 	else {
 		sesVarNum = ds->getSessionVariableNum2D(isolineParams->GetVariableName());
 		activeVarNum = ds->getActiveVarNum2D(isolineParams->GetVariableName());
-		minDataBound->setText(QString::number(ds->getDataMin2D(sesVarNum,timestep)));
-		maxDataBound->setText(QString::number(ds->getDataMax2D(sesVarNum,timestep)));
+		if (isolineParams->isEnabled()){
+			minDataBound->setText(QString::number(ds->getDataMin2D(sesVarNum,timestep)));
+			maxDataBound->setText(QString::number(ds->getDataMax2D(sesVarNum,timestep)));
+		} else {
+			minDataBound->setText(QString::number(ds->getDefaultDataMin2D(sesVarNum)));
+			maxDataBound->setText(QString::number(ds->getDefaultDataMax2D(sesVarNum)));
+		}
 		copyToProbeButton->setText("Copy to 2D");
 		copyToProbeButton->setToolTip("Click to make the current active 2D Data display these contour lines as a color contour plot");
 	}
@@ -1414,17 +1424,13 @@ guiChangeVariable(int varnum){
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "change contours-selected variable");
 	
 	int activeVar = variableCombo->currentIndex();
-	float minval, maxval;
+	
 	if (pParams->VariablesAre3D()){
 		const string& varname = DataStatus::getActiveVarName3D(activeVar);
-		minval = ds->getDataMin3D(activeVar,ts);
-		maxval = ds->getDataMax3D(activeVar,ts);
 		pParams->SetVariableName(varname);
 	}
 	else {
 		const string& varname = DataStatus::getActiveVarName2D(activeVar);
-		minval = ds->getDataMin2D(activeVar,ts);
-		maxval = ds->getDataMax2D(activeVar,ts);
 		pParams->SetVariableName(varname);
 	}
 	

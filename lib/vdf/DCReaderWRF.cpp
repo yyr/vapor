@@ -21,6 +21,12 @@
 using namespace VAPoR;
 using namespace std;
 
+namespace {
+bool mycompare(const pair<int, float>  &a, const pair<int, float>  &b) {
+	return(a.second < b.second);
+}
+};
+
 DCReaderWRF::DCReaderWRF(const vector <string> &files) {
 
 	_dims.clear();
@@ -45,16 +51,7 @@ DCReaderWRF::DCReaderWRF(const vector <string> &files) {
 
 	NetCDFCollection *ncdfc = new NetCDFCollection();
 
-	// Workaround for bug #953:  reverses time in WRF vdc conversion
-	// NetCDFCollection expects a 1D time coordinate variable. WRF
-	// data use a 2D "Times" time coordinate variable. By convention,
-	// however, WRF output files are sorted by time. Just need to
-	// make sure they're passed in the proper order
-	//
-	vector <string> sorted_files = files;
-	std::sort(sorted_files.begin(), sorted_files.end());
-
-	int rc = ncdfc->Initialize(sorted_files, time_dimnames, time_coordvars);
+	int rc = ncdfc->Initialize(files, time_dimnames, time_coordvars);
 	if (rc<0) {
 		SetErrMsg("Failed to initialize netCDF data collection for reading");
 		return;
@@ -96,7 +93,7 @@ DCReaderWRF::DCReaderWRF(const vector <string> &files) {
 	}
 
 	// Set up user time and time stamps
-	// Initialize members: _timeStamps, _times
+	// Initialize members: _timeStamps, _times, _timeLookup
 	//
 	rc = _InitTime(ncdfc);
 	if (rc<0) {
@@ -193,6 +190,8 @@ vector <double> DCReaderWRF::GetExtents(size_t ts) const {
 	extents.push_back(1.0);
 	extents.push_back(1.0);
 	extents.push_back(1.0);
+
+	ts = _timeLookup[ts];
 	
 	double height[2];
 	int rc = _GetVerticalExtents(_ncdfc, ts, height);
@@ -738,6 +737,23 @@ int DCReaderWRF::_InitTime(
 	}
 	delete [] buf;
 
+	// The NetCDFCollection class doesn't handle the WRF time 
+	// variable. Hence, the time steps aren't sorted. Sort them now and
+	// create a lookup table to map a time index to the correct time step	
+	// in the WRF data collection. N.B. this is only necessary if multiple
+	// WRF files are present and they're not passed to Initialize() in 
+	// the correct order.
+	//
+	vector <pair<int, float> > timepairs;
+	for (int i=0; i<_times.size(); i++) {
+		timepairs.push_back(make_pair(i,_times[i]));
+	}
+	sort(timepairs.begin(), timepairs.end(), mycompare);
+	
+	for (int i=0; i<timepairs.size(); i++) {
+		_timeLookup.push_back(timepairs[i].first);
+	}
+
 	return(0);
 }
 
@@ -815,6 +831,7 @@ bool DCReaderWRF::IsCoordinateVariable(string varname) const {
 double DCReaderWRF::GetTSUserTime(size_t ts) const  {
 	if (ts >= DCReaderWRF::GetNumTimeSteps()) return(0.0);
 
+	ts = _timeLookup[ts];
 	return(_times[ts] + _timeBias);
 }
 
@@ -824,16 +841,19 @@ void DCReaderWRF::GetTSUserTimeStamp(size_t ts, string &s) const {
 		return;
 	}
 
+	ts = _timeLookup[ts];
 	s = _timeStamps[ts];
 }
 
 
 int DCReaderWRF::OpenVariableRead(
-    size_t timestep, string varname, int, int 
+    size_t ts, string varname, int, int 
 ) {
 	DCReaderWRF::CloseVariable();
 
-	_ovr_fd = _ncdfc->OpenRead(timestep, varname);
+	ts = _timeLookup[ts];
+
+	_ovr_fd = _ncdfc->OpenRead(ts, varname);
 	return(_ovr_fd);
 }
 

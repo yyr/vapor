@@ -205,6 +205,7 @@ void ProbeParams::setOpacityScale(float val)
 bool ProbeParams::
 reinit(bool doOverride){
 	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->dataIsPresent3D()) return false;
 	const float* extents =ds->getLocalExtents();
 	setMaxNumRefinements(ds->getNumTransforms());
 	//Set up the numRefinements combo
