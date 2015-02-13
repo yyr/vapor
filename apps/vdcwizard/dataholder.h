@@ -115,6 +115,7 @@ public:
     // Error Message setter/getter
     void setErrorMessage(string err) { errorMsg = err; }
     string getErrorMessage() { return errorMsg; }
+    vector<string> getDataFiles() {return dataFiles;}
 
 private:
     Wrf2vdf w2v;
