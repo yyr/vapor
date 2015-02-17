@@ -1180,7 +1180,7 @@ guiChangeVariable(int varnum){
 		
 		if (i == varnum){
 			tParams->setVariableSelected(svnum,true);
-			firstVar = varnum;
+			firstVar = svnum;
 		}
 		else 
 			tParams->setVariableSelected(svnum,false);
