@@ -586,17 +586,22 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 		bool _iScanNeg = atoi(record["_iScanNegsNegatively"].c_str());
 		bool _jScan = atoi(record["_jScansPositively"].c_str());
 	
-		if (std::find(_pressureLevels.begin(), _pressureLevels.end(), level) == _pressureLevels.end()) {
+		//if (std::find(_pressureLevels.begin(), _pressureLevels.end(), level) == _pressureLevels.end()) {
 			//if (!strcmp(name.c_str(),"gh")) _pressureLevels.push_back(level);
-			if (level != 0) _pressureLevels.push_back(level);
-		}
+		//	if (level != 0) _pressureLevels.push_back(level);
+		//}
 
 
 		//////
 		//	Process all 3D vars!
 		//////
-		int isobaric = strcmp(levelType.c_str(),"isobaricInhPa");
-		if (isobaric == 0) {									// if we have a 3d var...
+		//int isobaric = strcmp(levelType.c_str(),"isobaricInhPa");
+		//if (isobaric == 0) {									// if we have a 3d var...
+		if (levelType == "isobaricInhPa") {
+			if (std::find(_pressureLevels.begin(), _pressureLevels.end(), level) == _pressureLevels.end()) {
+				_pressureLevels.push_back(level);
+			}
+
 			if (std::find(_gribTimes.begin(), _gribTimes.end(), time) == _gribTimes.end())
 				_gribTimes.push_back(time);
 
