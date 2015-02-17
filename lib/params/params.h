@@ -386,8 +386,8 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 		}
 		GetBox()->SetLocalExtents(extents,timestep);
 	}
-	//Map corners of box to voxels
-	void mapBoxToVox(DataMgr* dataMgr, int refLevel, int lod, int timestep, size_t voxExts[6]);
+	//Map min/max corners of box to voxels
+	void mapBoxToVox(DataMgr* dataMgr, double bxmin[3], double bxmax[3], int refLevel, int lod, size_t timestep, size_t voxExts[6]);
 	void setTheta(float th) {
 		double angles[3];
 		GetBox()->GetAngles(angles);
@@ -539,7 +539,7 @@ protected:
 	//Keep track of which window number corresp to this.  -1 for global or default parameters.
 	//
 	int vizNum;
-	double savedBoxLocalExts[6];
+	double savedBoxExts[6];
 	int savedBoxVoxExts[6];
 	int savedRefLevel;
 	

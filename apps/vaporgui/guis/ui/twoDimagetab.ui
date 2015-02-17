@@ -1958,7 +1958,7 @@ orientation of the plane.</string>
             <item>
              <widget class="QLabel" name="textLabel1_11_4">
               <property name="toolTip">
-               <string>Min and max grid coordinates of the planar region, at highest refinement level</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max grid coordinates of the planar region, at highest refinement level.Z extents not shown for layered grids.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="whatsThis">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The extents of the image are shown in user coordinates as well as in grid coordinates.  If the image is georeferenced, the horizontal extents are also given in longitude and latitude.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -2182,7 +2182,7 @@ orientation of the plane.</string>
               <item row="0" column="0">
                <widget class="QLabel" name="minGridXLabel">
                 <property name="toolTip">
-                 <string>Min and max grid coordinates of the planar region, at highest refinement level</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max grid coordinates of the planar region, at highest refinement level.Z extents not shown for layered grids.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>1234</string>
@@ -2198,7 +2198,7 @@ orientation of the plane.</string>
               <item row="0" column="1">
                <widget class="QLabel" name="minGridYLabel">
                 <property name="toolTip">
-                 <string>Min and max grid coordinates of the planar region, at highest refinement level</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max grid coordinates of the planar region, at highest refinement level.Z extents not shown for layered grids.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>1234</string>
@@ -2214,7 +2214,7 @@ orientation of the plane.</string>
               <item row="0" column="2">
                <widget class="QLabel" name="minGridZLabel">
                 <property name="toolTip">
-                 <string>Min and max grid coordinates of the planar region, at highest refinement level</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max grid coordinates of the planar region, at highest refinement level.Z extents not shown for layered grids.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>1234</string>
@@ -2230,7 +2230,7 @@ orientation of the plane.</string>
               <item row="1" column="0">
                <widget class="QLabel" name="maxGridXLabel">
                 <property name="toolTip">
-                 <string>Min and max grid coordinates of the planar region, at highest refinement level</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max grid coordinates of the planar region, at highest refinement level.Z extents not shown for layered grids.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>1234</string>
@@ -2246,7 +2246,7 @@ orientation of the plane.</string>
               <item row="1" column="1">
                <widget class="QLabel" name="maxGridYLabel">
                 <property name="toolTip">
-                 <string>Min and max grid coordinates of the planar region, at highest refinement level</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max grid coordinates of the planar region, at highest refinement level.Z extents not shown for layered grids.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>1234</string>
@@ -2262,7 +2262,7 @@ orientation of the plane.</string>
               <item row="1" column="2">
                <widget class="QLabel" name="maxGridZLabel">
                 <property name="toolTip">
-                 <string>Min and max grid coordinates of the planar region, at highest refinement level</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max grid coordinates of the planar region, at highest refinement level.Z extents not shown for layered grids.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>1234</string>

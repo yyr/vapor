@@ -363,26 +363,36 @@ void IsolineEventRouter::updateTab(){
 		dboxmax[i] = maxcrd;
 	}
 	//Now convert to user coordinates
+	for (int i = 0; i<3; i++){
+		dboxmin[i] += userExts[i];
+		dboxmax[i] += userExts[i];
+	}
 
-	minUserXLabel->setText(QString::number(userExts[0]+dboxmin[0]));
-	minUserYLabel->setText(QString::number(userExts[1]+dboxmin[1]));
-	minUserZLabel->setText(QString::number(userExts[2]+dboxmin[2]));
-	maxUserXLabel->setText(QString::number(userExts[0]+dboxmax[0]));
-	maxUserYLabel->setText(QString::number(userExts[1]+dboxmax[1]));
-	maxUserZLabel->setText(QString::number(userExts[2]+dboxmax[2]));
+	minUserXLabel->setText(QString::number(dboxmin[0]));
+	minUserYLabel->setText(QString::number(dboxmin[1]));
+	minUserZLabel->setText(QString::number(dboxmin[2]));
+	maxUserXLabel->setText(QString::number(dboxmax[0]));
+	maxUserYLabel->setText(QString::number(dboxmax[1]));
+	maxUserZLabel->setText(QString::number(dboxmax[2]));
 
 	//And convert these to grid coordinates:
 	
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (dataMgr && showLayout){
-		isolineParams->mapBoxToVox(dataMgr,isolineParams->GetRefinementLevel(),isolineParams->GetCompressionLevel(),timestep,gridExts);
+		isolineParams->mapBoxToVox(dataMgr,dboxmin, dboxmax,isolineParams->GetRefinementLevel(),isolineParams->GetCompressionLevel(),timestep,gridExts);
 		
+		if (dataMgr->GetGridType() == "layered") {
+			minGridZLabel->setText("");
+			maxGridZLabel->setText("");
+		} else {
+			minGridZLabel->setText(QString::number(gridExts[2]));
+			maxGridZLabel->setText(QString::number(gridExts[5]));
+		}
 		minGridXLabel->setText(QString::number(gridExts[0]));
 		minGridYLabel->setText(QString::number(gridExts[1]));
-		minGridZLabel->setText(QString::number(gridExts[2]));
+		
 		maxGridXLabel->setText(QString::number(gridExts[3]));
 		maxGridYLabel->setText(QString::number(gridExts[4]));
-		maxGridZLabel->setText(QString::number(gridExts[5]));
 	}
 	vector<double>ivalues = isolineParams->GetIsovalues();
 	//find min and max
@@ -1419,8 +1429,7 @@ guiChangeVariable(int varnum){
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	confirmText(false);
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
-	DataStatus* ds = DataStatus::getInstance();
-	int ts = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentTimestep();
+	
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "change contours-selected variable");
 	
 	int activeVar = variableCombo->currentIndex();
