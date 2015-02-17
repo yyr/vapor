@@ -561,6 +561,8 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	IsolineParams* isolineParams = VizWinMgr::getActiveIsolineParams();
 	PanelCommand* cmd = PanelCommand::captureStart(isolineParams, "edit Contours text");
 	QString strn;
+
+	setIgnoreBoxSliderEvents(true);
 	if (isolineParams->VariablesAre3D()){
 		float thetaVal = thetaEdit->text().toFloat();
 		while (thetaVal > 180.f) thetaVal -= 360.f;
@@ -717,6 +719,7 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	//
 	guiSetTextChanged(false);
 	PanelCommand::captureEnd(cmd, isolineParams);
+	setIgnoreBoxSliderEvents(false);
 	updateTab();
 }
 
