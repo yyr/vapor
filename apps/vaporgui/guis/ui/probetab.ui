@@ -1538,7 +1538,7 @@ same as the X, Y, and Z axes.</string>
                  <item>
                   <widget class="QLabel" name="textLabel1_11_4">
                    <property name="toolTip">
-                    <string>Min and max grid coordinates of smallest box containing the probe at full resolution</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max grid coordinates of smallest box containing the probe at full resolution. Z extents not shown for layered grids.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>Grid extents</string>
@@ -1759,7 +1759,7 @@ same as the X, Y, and Z axes.</string>
                    <item row="0" column="0">
                     <widget class="QLabel" name="minGridXLabel">
                      <property name="toolTip">
-                      <string>Min and max grid coordinates of smallest box containing the probe at full resolution</string>
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max grid coordinates of smallest box containing the probe at full resolution. Z extents not shown for layered grids.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                      </property>
                      <property name="text">
                       <string>1234</string>
@@ -1775,7 +1775,7 @@ same as the X, Y, and Z axes.</string>
                    <item row="0" column="1">
                     <widget class="QLabel" name="minGridYLabel">
                      <property name="toolTip">
-                      <string>Min and max grid coordinates of smallest box containing the probe at full resolution</string>
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max grid coordinates of smallest box containing the probe at full resolution. Z extents not shown for layered grids.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                      </property>
                      <property name="text">
                       <string>1234</string>
@@ -1791,7 +1791,7 @@ same as the X, Y, and Z axes.</string>
                    <item row="0" column="2">
                     <widget class="QLabel" name="minGridZLabel">
                      <property name="toolTip">
-                      <string>Min and max grid coordinates of smallest box containing the probe at full resolution</string>
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max grid coordinates of smallest box containing the probe at full resolution. Z extents not shown for layered grids.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                      </property>
                      <property name="text">
                       <string>1234</string>
@@ -1807,7 +1807,7 @@ same as the X, Y, and Z axes.</string>
                    <item row="1" column="0">
                     <widget class="QLabel" name="maxGridXLabel">
                      <property name="toolTip">
-                      <string>Min and max grid coordinates of smallest box containing the probe at full resolution</string>
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max grid coordinates of smallest box containing the probe at full resolution. Z extents not shown for layered grids.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                      </property>
                      <property name="text">
                       <string>1234</string>
@@ -1823,7 +1823,7 @@ same as the X, Y, and Z axes.</string>
                    <item row="1" column="1">
                     <widget class="QLabel" name="maxGridYLabel">
                      <property name="toolTip">
-                      <string>Min and max grid coordinates of smallest box containing the probe at full resolution</string>
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max grid coordinates of smallest box containing the probe at full resolution. Z extents not shown for layered grids.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                      </property>
                      <property name="text">
                       <string>1234</string>
@@ -1839,7 +1839,7 @@ same as the X, Y, and Z axes.</string>
                    <item row="1" column="2">
                     <widget class="QLabel" name="maxGridZLabel">
                      <property name="toolTip">
-                      <string>Min and max grid coordinates of smallest box containing the probe at full resolution</string>
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Min and max grid coordinates of smallest box containing the probe at full resolution. Z extents not shown for layered grids.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                      </property>
                      <property name="text">
                       <string>1234</string>

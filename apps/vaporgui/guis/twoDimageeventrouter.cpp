@@ -335,11 +335,11 @@ void TwoDImageEventRouter::updateTab(){
 	
 
 	//Set the center sliders/textboxes:
-	float boxmin[3],boxmax[3],boxCenter[3];
+	double dboxmin[3],dboxmax[3],boxCenter[3];
 	
-	twoDParams->getLocalBox(boxmin, boxmax);
+	twoDParams->getLocalBox(dboxmin, dboxmax);
 	
-	for (int i = 0; i<3; i++) boxCenter[i] = (boxmax[i]+boxmin[i])*0.5f + usrExts[i];
+	for (int i = 0; i<3; i++) boxCenter[i] = (dboxmax[i]+dboxmin[i])*0.5f + usrExts[i];
 	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-usrExts[0])/extents[3]));
 	yCenterSlider->setValue((int)(256.f*(boxCenter[1]-usrExts[1])/extents[4]));
 	zCenterSlider->setValue((int)(256.f*(boxCenter[2]-usrExts[2])/extents[5]));
@@ -349,33 +349,39 @@ void TwoDImageEventRouter::updateTab(){
 	guiSetTextChanged(false);
 	//setup the size sliders 
 	adjustBoxSize(twoDParams);
-	double dBoxMin[3],dBoxMax[3];
+	
 	for (int i = 0; i<3; i++) {
-		dBoxMin[i] = usrExts[i]+boxmin[i];
-		dBoxMax[i] = usrExts[i]+boxmax[i];
+		dboxmin[i] += usrExts[i];
+		dboxmax[i] += usrExts[i];
 	}
 	
 
 	//Specify the box extents in both user and grid coords:
-	minUserXLabel->setText(QString::number((float)dBoxMin[0]));
-	minUserYLabel->setText(QString::number((float)dBoxMin[1]));
-	minUserZLabel->setText(QString::number((float)dBoxMin[2]));
-	maxUserXLabel->setText(QString::number((float)dBoxMax[0]));
-	maxUserYLabel->setText(QString::number((float)dBoxMax[1]));
-	maxUserZLabel->setText(QString::number((float)dBoxMax[2]));
+	minUserXLabel->setText(QString::number((float)dboxmin[0]));
+	minUserYLabel->setText(QString::number((float)dboxmin[1]));
+	minUserZLabel->setText(QString::number((float)dboxmin[2]));
+	maxUserXLabel->setText(QString::number((float)dboxmax[0]));
+	maxUserYLabel->setText(QString::number((float)dboxmax[1]));
+	maxUserZLabel->setText(QString::number((float)dboxmax[2]));
 
 
 	size_t gridExts[6];
 	if (dataMgr ){
 		
-		twoDParams->mapBoxToVox(dataMgr,twoDParams->GetRefinementLevel(),twoDParams->GetCompressionLevel(),currentTimeStep,gridExts);
+		twoDParams->mapBoxToVox(dataMgr,dboxmin, dboxmax,twoDParams->GetRefinementLevel(),twoDParams->GetCompressionLevel(),currentTimeStep,gridExts);
 		
+		if (dataMgr->GetGridType() == "layered") {
+			minGridZLabel->setText("");
+			maxGridZLabel->setText("");
+		} else {
+			minGridZLabel->setText(QString::number(gridExts[2]));
+			maxGridZLabel->setText(QString::number(gridExts[5]));
+		}
 		minGridXLabel->setText(QString::number(gridExts[0]));
 		minGridYLabel->setText(QString::number(gridExts[1]));
-		minGridZLabel->setText(QString::number(gridExts[2]));
+		
 		maxGridXLabel->setText(QString::number(gridExts[3]));
 		maxGridYLabel->setText(QString::number(gridExts[4]));
-		maxGridZLabel->setText(QString::number(gridExts[5]));
 	}
 
 	//Provide latlon box extents if available:
@@ -383,10 +389,10 @@ void TwoDImageEventRouter::updateTab(){
 		minMaxLonLatFrame->hide();
 	} else {
 		double boxLatLon[4];
-		boxLatLon[0] = boxmin[0];
-		boxLatLon[1] = boxmin[1];
-		boxLatLon[2] = boxmax[0];
-		boxLatLon[3] = boxmax[1];
+		boxLatLon[0] = dboxmin[0];
+		boxLatLon[1] = dboxmin[1];
+		boxLatLon[2] = dboxmax[0];
+		boxLatLon[3] = dboxmax[1];
 		if (DataStatus::convertLocalToLonLat(currentTimeStep,boxLatLon,2)){
 			minLonLabel->setText(QString::number(boxLatLon[0]));
 			minLatLabel->setText(QString::number(boxLatLon[1]));

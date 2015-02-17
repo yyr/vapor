@@ -198,7 +198,9 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	
 	//get grid extents, based on user coordinate extents.
 	size_t voxexts[6];
-	tParams->mapBoxToVox(dataMgr,elevGridRefLevel,lod,timeStep, voxexts);
+	double dbexts[6];
+	tParams->GetBox()->GetUserExtents(dbexts, timeStep);
+	tParams->mapBoxToVox(dataMgr,dbexts, dbexts+3, elevGridRefLevel,lod,timeStep, voxexts);
 	for ( int i=0; i<3; i++){
 		min_dim[i] = voxexts[i];
 		max_dim[i] = voxexts[i+3];

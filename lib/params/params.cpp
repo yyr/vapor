@@ -97,7 +97,7 @@ Params::Params(
 	if(winNum < 0) local = false; else local = true;
 	for (int i = 0; i<6; i++) {
 		savedBoxVoxExts[i] =0;
-		savedBoxLocalExts[i] =0;
+		savedBoxExts[i] =0;
 	}
 	savedRefLevel = -1;
 	
@@ -466,32 +466,36 @@ void Params::BailOut(const char *errstr, const char *fname, int lineno)
 //Map corners of box to voxels.  Save results to avoid expensive dataMgr call
 //Save latest values of voxel extents, refinement level, and local user extents
 //If refLevel and local user extents have not changed, then return saved voxel extents
-void Params::mapBoxToVox(DataMgr* dataMgr, int refLevel, int lod, int timestep, size_t voxExts[6]){
-	double userExts[6];
-	double locUserExts[6];
+void Params::mapBoxToVox(DataMgr* dataMgr, double bxmin[3], double bxmax[3], int refLevel, int lod, size_t timestep, size_t voxExts[6]){
+	
 	if (!dataMgr) return;
-	Box* box = GetBox();
+
 	if (refLevel == savedRefLevel){
-		//Compare local extents to see if they have changed
-		box->GetLocalExtents(locUserExts, timestep);
+		//Compare extents to see if they have changed
+		
 		bool match = true;
-		for (int i = 0; i<6; i++) if (locUserExts[i] != savedBoxLocalExts[i]) match = false;
+		for (int i = 0; i<3; i++) {
+			if (bxmin[i] != savedBoxExts[i]) match = false;
+			if (bxmax[i] != savedBoxExts[i+3]) match = false;
+		}
 		if (match) {
-			box->GetUserExtents(locUserExts, timestep);
 			for (int i = 0; i<6; i++) voxExts[i] = savedBoxVoxExts[i];
 			return;
 		}
 	}
 	
-	box->GetUserExtents(userExts,(size_t)timestep);
 	
 	//calculate new values for voxExts (this can be expensive with layered data)
-	dataMgr->MapUserToVox((size_t)timestep,userExts,voxExts, refLevel,lod);
-	dataMgr->MapUserToVox((size_t)timestep,userExts+3,voxExts+3, refLevel,lod);
+	dataMgr->MapUserToVox((size_t)timestep,bxmin,voxExts, refLevel,lod);
+	dataMgr->MapUserToVox((size_t)timestep,bxmax,voxExts+3, refLevel,lod);
 	//save stuff to compare next time:
 	savedRefLevel = refLevel;
-	box->GetLocalExtents(savedBoxLocalExts, (size_t)timestep);
-	for (int i = 0; i<6; i++) savedBoxVoxExts[i] = voxExts[i];
+	for (int i = 0; i<3; i++) {
+		savedBoxVoxExts[i] = voxExts[i];
+		savedBoxVoxExts[i+3] = voxExts[i+3];
+		savedBoxExts[i] = bxmin[i];
+		savedBoxExts[i+3] = bxmax[i];
+	}
 	return;
 
 }
