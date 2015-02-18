@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <iterator>
 #include <cassert>
 #include <string>
@@ -178,6 +179,16 @@ int DCReaderGRIB::ReadSlice(float *values){
 	int rc = fseek(_inFile,offset,SEEK_SET);
 	if (rc != 0) {
 		MyBase::SetErrMsg("fseek error during GRIB ReadSlice");  
+		return -1;
+	}
+
+	// Check to see if boot.def can be found, otherwise
+	// grib_api will catastrophically fail
+	string bootDefFile = getenv("GRIB_DEFINITION_PATH");
+	std::ifstream infile(bootDefFile);
+	if (!infile.good()) {
+		MyBase::SetErrMsg("ERROR: unable to access boot.def for grib_api."
+		"  Check for [VAPORHOME]/share/grib_api/definitions/boot.def");
 		return -1;
 	}
 
@@ -952,6 +963,17 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 	stringstream ss;
 	_recordKeysVerified = 0;
 	std::map<std::string, std::string> keyMap;
+
+	// Check to see if boot.def can be found, otherwise
+	// grib_api will catastrophically fail
+	string bootDefFile = getenv("GRIB_DEFINITION_PATH");
+	std::ifstream inFile(bootDefFile);
+	if (!(inFile.good())) {
+		MyBase::SetErrMsg("ERROR: unable to access boot.def for grib_api."
+		"  Check for [VAPORHOME]/share/grib_api/definitions/boot.def");
+		return -1;
+	}
+
 	while((_h = grib_handle_new_from_file(0,_in,&_err))) {
 
 		if(_h==NULL) {
