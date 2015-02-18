@@ -19,6 +19,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cerrno>
+#include <sstream>
 #include <qapplication.h>
 #include "mainform.h"
 #include <qfont.h>
@@ -77,7 +78,7 @@ int main( int argc, char ** argv ) {
 #ifdef WIN32
 	std::stringstream ss;
 	string vHome = getenv("VAPOR_HOME");
-	ss << vHome << "share\\grib_api\\definitions";
+	ss << "GRIB_DEFINITION_PATH=" << vHome << "share\\grib_api\\definitions";
 	string gribDef = ss.str();
 	if (putenv(gribDef.c_str())!=0) {
 		MyBase::SetErrMsg("putenv failed on GRIB_DEFINITION_PATH");
