@@ -232,7 +232,7 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 		{NULL}
 	};
 
-	/*if (NetCDFtype == "GRIMs") {
+	/*if (NetCDFtype == "GRIB") {
 		OptionParser::OptDescRec_T fm1 = {"fastMode",1,  "-1", "Enable fast mode.  Argument is the number of "
              "timesteps to be converted.  All files must contain the same "
              "variables, and have equal time increments (30 min, hourly, "
@@ -312,7 +312,7 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 	}
 	
     if ((NetCDFtype == "ROMS") || (NetCDFtype == "CAM")) DCdata = new DCReaderROMS(ncdffiles);
-    else if (NetCDFtype == "GRIMs") {
+    else if (NetCDFtype == "GRIB") {
 		DCdata = new DCReaderGRIB(ncdffiles);
 	}
 	else if (NetCDFtype == "WRF") {

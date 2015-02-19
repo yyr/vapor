@@ -426,7 +426,7 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 	OptionParser op;
 
 #ifdef DEAD
-	if (!strcmp(dataType.c_str(),"GRIMs")){
+	if (!strcmp(dataType.c_str(),"GRIB")){
 		if (op.AppendOptions(grib_opts) < 0) {
 			return(-1);
 		}
@@ -469,7 +469,7 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 	
 	if (DCData==NULL){
 		if ((dataType == "ROMS") || (dataType == "CAM")) DCData = new DCReaderROMS(ncdffiles); 
-		else if (dataType == "GRIMs") DCData = new DCReaderGRIB(ncdffiles);
+		else if (dataType == "GRIB") DCData = new DCReaderGRIB(ncdffiles);
 		else DCData = new DCReaderMOM(ncdffiles);
 	}
 
