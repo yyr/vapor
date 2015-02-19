@@ -185,7 +185,7 @@ int DCReaderGRIB::ReadSlice(float *values){
 	// Check to see if boot.def can be found, otherwise
 	// grib_api will catastrophically fail
 	string bootDefFile = getenv("GRIB_DEFINITION_PATH");
-	std::ifstream infile(bootDefFile);
+	std::ifstream infile(bootDefFile.c_str());
 	if (!infile.good()) {
 		MyBase::SetErrMsg("ERROR: unable to access boot.def for grib_api."
 		"  Check for [VAPORHOME]/share/grib_api/definitions/boot.def");
@@ -967,7 +967,7 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 	// Check to see if boot.def can be found, otherwise
 	// grib_api will catastrophically fail
 	string bootDefFile = getenv("GRIB_DEFINITION_PATH");
-	std::ifstream inFile(bootDefFile);
+	std::ifstream inFile(bootDefFile.c_str());
 	if (!(inFile.good())) {
 		MyBase::SetErrMsg("ERROR: unable to access boot.def for grib_api."
 		"  Check for [VAPORHOME]/share/grib_api/definitions/boot.def");
