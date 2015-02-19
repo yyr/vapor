@@ -74,18 +74,7 @@ FILE *OpenLog(string path_var) {
 
 QApplication* app;
 int main( int argc, char ** argv ) {
-
-#ifdef WIN32
-	std::stringstream ss;
-	string vHome = getenv("VAPOR_HOME");
-	ss << "GRIB_DEFINITION_PATH=" << vHome << "share\\grib_api\\definitions";
-	string gribDef = ss.str();
-	if (putenv(gribDef.c_str())!=0) {
-		MyBase::SetErrMsg("putenv failed on GRIB_DEFINITION_PATH");
-	}
-	//cout << getenv("GRIB_DEFINITION_PATH") << endl;
-#endif
-
+	
     //Install our own message handler.
     //Needed for SGI to avoid dithering:
 
@@ -123,8 +112,9 @@ int main( int argc, char ** argv ) {
     QString filePath =  GetAppPath("VAPOR", "plugins", paths).c_str();
     QStringList filePaths(filePath);
     QCoreApplication::setLibraryPaths(filePaths);
-//For Mac and Linux, set the PYTHONHOME in this app
 
+//For Windows, check on VAPOR_PYTHONHOME
+#ifdef _WINDOWS
     const char *s = getenv("VAPOR_PYTHONHOME");
     string phome = s ? s : "";
     string pythonversion ("python");
@@ -144,7 +134,7 @@ int main( int argc, char ** argv ) {
         QMessageBox::warning(0,"VAPOR_PYTHONHOME warning", msg.c_str());
     } 
                                
-
+#endif
     app = &a;
     a.setPalette(QPalette(QColor(233,236,216), QColor(233,236,216)));
     
