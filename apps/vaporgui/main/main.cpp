@@ -139,48 +139,10 @@ int main( int argc, char ** argv ) {
         msg += " This path must be the location of a Python ";
         msg += pythonversion;
         msg += " installation\n";
-        msg += "Unset the VAPOR_PYTHONHOME environment to revert to the installed ";
+        msg += "Unset the VAPOR_PYTHONHOME environment variable to revert to the installed ";
         msg += "VAPOR " + pythonversion + " environment.";
         QMessageBox::warning(0,"VAPOR_PYTHONHOME warning", msg.c_str());
-
-    } else {
-		//Set PYTHON in this app
-        vector <string> ppaths;
-        ppaths.push_back("lib");
-        ppaths.push_back(pythonversion);
-        phome =  GetAppPath("VAPOR", "", ppaths).c_str();
-        if (! phome.empty()) {  
-#ifdef _WINDOWS
-        const string separator = "\\";
-#else
-	const string separator = "/";
-#endif
-            string s = "lib";
-            s.append(separator);
-            s.append(pythonversion);
-            phome.erase(phome.rfind(s)); // remove trailing "lib/pythonX.XX"
-        }
-        else {
-#ifndef _WINDOWS
-	   //PYTHONDIR is defined in options.mk to be root of python tree
-	   //so we can use that when debugging.
-	   phome = PYTHONDIR;
-#else
-	   char* thome = getenv("PYTHONDIR");
-	   if (thome)
-			phome = thome;
-#endif
-        }
-
-    }
-#ifndef _WINDOWS
-    setenv("PYTHONHOME",phome.c_str(),1);
-#else
-	string winstring("PYTHONHOME=");
-	winstring += phome;
-	_putenv(winstring.c_str());
-#endif
-    MyBase::SetDiagMsg("PYTHONHOME = %s", phome.c_str());
+    } 
                                
 
     app = &a;

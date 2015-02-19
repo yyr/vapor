@@ -98,7 +98,21 @@ void PythonPipeLine::initvapor(void)
 void PythonPipeLine::initialize(){
 	// Specify some standard imports
 	if(initialized) return;
-	
+	char* pyhome2 = 0;
+	char* pyhome = getenv("VAPOR_PYTHONHOME");
+	if (pyhome) Py_SetPythonHome(pyhome);
+
+	else {
+		vector<string> pths;
+		pths.push_back("python2.7");
+		string phome = GetAppPath("VAPOR","lib", pths, true);
+		pyhome2 = new char[phome.length()+1];
+		strncpy(pyhome2,phome.c_str(),phome.length()+1);
+		//Note:  Python seems very picky about the strings accepted for this.
+		//It must remain for a while (at least until after Py_Initialize is called).
+		//It's also important to use forward slashes even on Windows.
+		Py_SetPythonHome(pyhome2);
+	}
 	PyImport_AppendInittab((char*)"vapor",&(PythonPipeLine::initvapor));
 		
 	Py_Initialize();
@@ -175,6 +189,7 @@ void PythonPipeLine::initialize(){
 			return;
 		}
 	}
+	if (pyhome2) delete pyhome2;
 	initialized = true;
 		
 }
