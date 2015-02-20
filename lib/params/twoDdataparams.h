@@ -174,6 +174,7 @@ public:
 	}
 	bool variableIsSelected(int index) {
 		if (index >= (int)variableSelected.size()) return false;
+		if (index < 0) return false;
 		return variableSelected[index];}
 	void setFirstVarNum(int val){firstVarNum = val;}
 	int getFirstVarNum() {return firstVarNum;}
