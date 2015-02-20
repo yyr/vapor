@@ -1256,6 +1256,19 @@ RegularGrid *DataMgr::execute_pipeline(
 	const vector <string> &input_varnames = pipeline->GetInputs();
 	const vector <pair <string, VarType_T> > &output_vars = pipeline->GetOutputs();
 
+	// Prevent mixing of 2D and 3D variables on output because of
+	// bug #1081 python crash with both 2D and 3D variable outputs 
+	//
+	//
+	assert(output_vars.size() >= 1);
+	VarType_T vtype_out = output_vars[0].second;
+	for (int i=0; i<output_vars.size(); i++) {
+		if (output_vars[i].second != vtype_out) {
+			SetErrMsg("Can't mix 2D and 3D output variable types");
+			return(NULL);
+		}
+	}
+
     VarType_T vtype = DataMgr::GetVarType(varname);
 
 	//
