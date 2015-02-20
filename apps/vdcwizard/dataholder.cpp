@@ -452,7 +452,7 @@ int DataHolder::run2VDFcomplete() {
 		args[a] = strdup(argv[a].c_str());
 	}
 
-	return launcher2VDF.launch2vdf(argc, args, getFileType());
+	return launcher2VDF.launch2vdf(argc, args, getFileType(), reader);
 }
 
 int DataHolder::run2VDFincremental(string start, string var) {
@@ -522,10 +522,11 @@ int DataHolder::run2VDFincremental(string start, string var) {
 	
 	int rc;
 	if (getFileType()=="WRF") {
-		rc = w2v.launchWrf2Vdf(argc,args);
+		//DCReaderWRF *foo = dynamic_cast <DCReaderWRF*>(reader);
+		rc = w2v.launchWrf2Vdf(argc, args, (DCReaderWRF*) reader);
 	}
 	else {
-		rc = launcher2VDF.launch2vdf(argc, args, getFileType());
+		rc = launcher2VDF.launch2vdf(argc, args, getFileType(), reader);
 	}
 
 	if (args) delete [] args;

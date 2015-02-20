@@ -265,7 +265,7 @@ void Wrf2vdf::deleteObjects(){
 	wcwriter=NULL;
 }
 
-int	Wrf2vdf::launchWrf2Vdf(int argc, char **argv) {
+int	Wrf2vdf::launchWrf2Vdf(int argc, char **argv, DCReaderWRF *optionalReader) {
 
 	OptionParser::OptDescRec_T      set_opts[] = {
         	{"vars",1,    "",       "Colon delimited list of variables to be copied "
@@ -340,6 +340,7 @@ int	Wrf2vdf::launchWrf2Vdf(int argc, char **argv) {
 		 ncdffiles.push_back(argv[i]);
 	}
 
+	if (optionalReader != NULL) wrfData = optionalReader;
 	if (wrfData == NULL){
 		wrfData = new DCReaderWRF(ncdffiles);
 	}
