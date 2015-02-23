@@ -12,6 +12,17 @@ VAPOR_HOME="$root"; export VAPOR_HOME
 GRIB_DEFINITION_PATH="$sharedir/grib_api/definitions"; export GRIB_DEFINITION_PATH
 PROJ_LIB="$sharedir/proj"; export PROJ_LIB
 
+if [ ! -z "$LD_LIBRARY_PATH" ]
+then
+	echo "######################## WARNING ##############################"
+	echo ""
+	echo "The LD_LIBRARY_PATH environment variable is set."
+	echo "Some VAPOR applications may fail to run correctly."
+	echo "To un-set LD_LIBRARY_PATH execute: unset LD_LIBRARY_PATH"
+	echo ""
+	echo "######################## WARNING ##############################"
+fi
+
 
 if [ -z "${PATH}" ]
 then
