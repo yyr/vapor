@@ -18,8 +18,6 @@ vaporshare = vaporhome & "\share"
 vaporidl = vaporhome & "\bin"
 vaporidl2 = vaporhome & "\bin;"
 
-vaporpythonhome = vaporhome & "\lib\python2.6"
-
 set shell = CreateObject("wscript.shell")
 If allUserProp Then
 	set sysEnv = shell.Environment("SYSTEM")
@@ -37,32 +35,6 @@ envVar = sysEnv("VAPOR_SHARE")
 if (Len(envVar) > 0) then
     sysEnv.Remove("VAPOR_SHARE")
 end if
-
-'  Find VAPOR_HOME\bin; in the path
-pathvar = sysEnv("path")
-posn = inStr(pathvar,vaporbin)
-if  posn <> 0 Then
-	pathvar = Replace(pathvar, vaporbin, "")
-	SysEnv("path") = pathvar
-End If
-
-'Find vaporhome in the PYTHONHOME.  If so, unset PYTHONHOME
-pathvar = sysEnv("PYTHONHOME")
-if (Len(pathvar) > 0) Then
-    posn = inStr(pathvar,vaporhome)
-    if  posn <> 0 Then
-	    sysEnv.Remove("PYTHONHOME")
-    End If
-End If
-
-'Find vaporhome in the GRIB_DEFINITION_PATH.  If so, unset GRIB_DEFINITION_PATH
-pathvar = sysEnv("GRIB_DEFINITION_PATH")
-if (Len(pathvar) > 0) Then
-    posn = inStr(pathvar,vaporhome)
-    if  posn <> 0 Then
-	    sysEnv.Remove("GRIB_DEFINITION_PATH")
-    End If
-End If
 
 idlpath = sysenv("IDL_DLM_PATH")
 ' the dlm path may either be followed by a : or not:
@@ -83,23 +55,3 @@ Else
 		End If
 	End If
 End If
-
-Set fso = CreateObject("Scripting.FileSystemObject")
-
-'Delete shortcuts to vaporgui
-DesktopPath = shell.SpecialFolders("Desktop")
-if (fso.FileExists(DesktopPath & "\vaporgui.lnk")) then
-    fso.DeleteFile (DesktopPath & "\vaporgui.lnk")
-end if
-    
-if(allUserProp) then
-    ProgramPath = shell.SpecialFolders("AllUsersPrograms")
-else
-    ProgramPath = shell.SpecialFolders("Programs")
-end if
-
-if (fso.FileExists(ProgramPath & "\vaporgui.lnk")) then
-    fso.DeleteFile (ProgramPath & "\vaporgui.lnk")
-end if
-
-Set fso = Nothing

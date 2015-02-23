@@ -19,8 +19,6 @@ vaporhome = Right(inputstring, len(inputstring) - posn -1)
 vaporshare = vaporhome & "share"
 vaporbin = vaporhome & "bin"
 
-pythonhome = vaporhome & "lib\python2.7"
-'gribdatabase = vaporshare & "\grib_api\definitions"
 
 set shell = CreateObject("wscript.shell")
 
@@ -32,56 +30,11 @@ End If
 
 SysEnv("VAPOR_HOME") = vaporhome
 SysEnv("VAPOR_SHARE") = vaporshare
-pythonVar = sysEnv("PYTHONHOME")
-'gribVar = sysEnv("GRIB_DEFINITION_PATH")
-
-'if (Len(PythonVar) > 0) Then
-'    MsgBox("PYTHONHOME variable is being reset to point to VAPOR Python home")
-'End if
-
-SysEnv("PYTHONHOME") = pythonhome
-
-'if (gribVar <> "") Then
-'    gribVar = ";" & gribVar
-'End if
-
-'SysEnv("GRIB_DEFINITION_PATH") = gribdatabase & gribVar
-
-'  Insert VAPOR_HOME\bin at start of path
-pathvar = sysEnv("path")
-pathvar = vaporbin & ";" & pathvar
-SysEnv("path") = pathvar
-
 
 idlpath = sysenv("IDL_DLM_PATH")
-
 
 'Insert vapor_home\bin at start of IDL_DLM_PATH
 if idlpath <> "" Then 
 	idlpath = ";" & idlpath
 End if
 sysenv("IDL_DLM_PATH") = vaporbin & idlpath 
-
-'Create shortcuts on Desktop and Program Menu
-
-DesktopPath = shell.SpecialFolders("Desktop")
-Set link = shell.CreateShortcut(DesktopPath & "\vaporgui.lnk")
-link.Description = "Vaporgui"
-link.IconLocation = vaporhome & "\vapor-win-icon.ico"
-link.TargetPath = vaporhome & "\bin\vaporgui.exe"
-link.WindowStyle = 1
-link.WorkingDirectory = vaporhome
-link.Save
-if (allUserProp) then
-    LinkPath = Shell.SpecialFolders("AllUsersPrograms")
-else
-    LinkPath = Shell.SpecialFolders("Programs")
-end if
-
-Set link = Shell.CreateShortcut(LinkPath & "\vaporgui.lnk")
-link.Description = "Vaporgui"
-link.IconLocation = vaporhome &"\vapor-win-icon.ico"
-link.TargetPath = vaporhome & "\bin\vaporgui.exe"
-link.WindowStyle = 1
-link.WorkingDirectory = vaporhome
-link.Save

@@ -18,10 +18,6 @@ vaporbin = vaporhome & "bin;"
 vaporshare = vaporhome & "share"
 vaporidl = vaporhome & "bin"
 vaporidl2 = vaporhome & "bin;"
-vaporgrib = vaporshare & "\grib_api\definitions"
-vaporgrib2 = vaporshare & "\grib_api\definitions;"
-
-vaporpythonhome = vaporhome & "\lib\python2.6"
 
 set shell = CreateObject("wscript.shell")
 If allUserProp Then
@@ -41,41 +37,7 @@ if (Len(envVar) > 0) then
     sysEnv.Remove("VAPOR_SHARE")
 end if
 
-'  Find VAPOR_HOME\bin in the path
-pathvar = sysEnv("path")
-posn = inStr(pathvar,vaporbin)
-if  posn <> 0 Then
-	pathvar = Replace(pathvar, vaporbin, "")
-	SysEnv("path") = pathvar
-End If
-
-'Find vaporhome in the PYTHONHOME.  If so, unset PYTHONHOME
-pathvar = sysEnv("PYTHONHOME")
-if (Len(pathvar) > 0) Then
-    posn = inStr(pathvar,vaporhome)
-    if  posn <> 0 Then
-	    sysEnv.Remove("PYTHONHOME")
-    End If
-End If
-
-'Find vaporgrib or vaporgrib2 in the GRIB_DEFINITION_PATH.  If so, remove it
-pathvar = sysEnv("GRIB_DEFINITION_PATH")
-
-posn = inStr(pathvar,vaporgrib2)
-if  posn <> 0 Then
-	pathvar = Replace(pathvar, vaporgrib2, "")
-    SysEnv("GRIB_DEFINITION_PATH") = pathvar
-Else
-    posn = inStr(pathvar, vaporgrib)
-	if posn <> 0 Then
-		pathvar = Replace(pathvar, vaporgrib, "")
-		if pathvar = "" Then
-			SysEnv.Remove("GRIB_DEFINITION_PATH")
-		Else
-			SysEnv("GRIB_DEFINITION_PATH") = pathvar
-		End If
-	End If
-End If
+' Remove vaporidl or vaporidl2 from the IDL_DLM_PATH
 
 idlpath = sysenv("IDL_DLM_PATH")
 ' the dlm path may either be followed by a : or not:
@@ -95,22 +57,3 @@ Else
 	End If
 End If
 
-Set fso = CreateObject("Scripting.FileSystemObject")
-
-'Delete shortcuts to vaporgui
-DesktopPath = shell.SpecialFolders("Desktop")
-if (fso.FileExists(DesktopPath & "\vaporgui.lnk")) then
-    fso.DeleteFile (DesktopPath & "\vaporgui.lnk")
-end if
-    
-if(allUserProp) then
-    ProgramPath = shell.SpecialFolders("AllUsersPrograms")
-else
-    ProgramPath = shell.SpecialFolders("Programs")
-end if
-
-if (fso.FileExists(ProgramPath & "\vaporgui.lnk")) then
-    fso.DeleteFile (ProgramPath & "\vaporgui.lnk")
-end if
-
-Set fso = Nothing
