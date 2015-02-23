@@ -242,7 +242,7 @@ void TextObject::applyViewerMatrix() {
 		glEnable(GL_TEXTURE_2D);
     }    
     if (_type == 1) { 
-        float newCoords[2];
+        float newCoords[2]={0.f,0.f};
         GLWindow *castWin;
         castWin = dynamic_cast <GLWindow*> (_myWindow);
      
@@ -266,7 +266,7 @@ int TextObject::applyViewerMatrix(float coords[3]) {
         glEnable(GL_TEXTURE_2D);
     }    
     if (_type == 1) { 
-        float newCoords[3];
+        float newCoords[3]={0.f,0.f,0.f};
 		
         GLWindow *castWin;
         castWin = dynamic_cast <GLWindow*> (_myWindow);
