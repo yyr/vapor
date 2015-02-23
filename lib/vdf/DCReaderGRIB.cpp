@@ -27,8 +27,9 @@
 #include <string>
 #include <cmath>
 
-#include "vapor/DCReaderGRIB.h"
 #include "vapor/Proj4API.h"
+#include "vapor/GetAppPath.h"
+#include "vapor/DCReaderGRIB.h"
 #define bzero(b,len) (memset((b), '\0', (len)), (void) 0)
 #ifdef WIN32
 #pragma warning(disable : 4251)
@@ -96,6 +97,16 @@ void DCReaderGRIB::Variable::_AddIndex(double time, float level, string file, in
 }
 
 DCReaderGRIB::DCReaderGRIB(const vector <string> files) {
+#ifdef WIN32	
+	std::stringstream ss;
+	string vHome = getenv("VAPOR_HOME");
+	ss << "GRIB_DEFINITION_PATH=" << vHome << "share\\grib_api\\definitions";
+	string gribDef = ss.str();
+ 	if (putenv(gribDef.c_str())!=0) {
+ 		MyBase::SetErrMsg("putenv failed on GRIB_DEFINITION_PATH");
+ 	}
+#endif
+
 	_iValues = NULL;
 	_ignoreForecastData = 0;
 	_Ni = 0;
@@ -106,6 +117,16 @@ DCReaderGRIB::DCReaderGRIB(const vector <string> files) {
 	_vars2d.clear();
 	_vars3d.clear();
 	_udunit = NULL;
+
+	// Set up GRIB_API environment
+	//
+    vector <string> paths;
+    paths.push_back("grib_api");
+    paths.push_back("definitions");
+    string path =  GetAppPath("VAPOR", "share", paths).c_str();
+    if (! path.empty()) {
+        setenv("GRIB_DEFINITION_PATH", path.c_str(), 1);
+    }
 
 	DCReaderGRIB::_Initialize(files);
 }
@@ -179,16 +200,6 @@ int DCReaderGRIB::ReadSlice(float *values){
 	int rc = fseek(_inFile,offset,SEEK_SET);
 	if (rc != 0) {
 		MyBase::SetErrMsg("fseek error during GRIB ReadSlice");  
-		return -1;
-	}
-
-	// Check to see if boot.def can be found, otherwise
-	// grib_api will catastrophically fail
-	string bootDefFile = getenv("GRIB_DEFINITION_PATH");
-	std::ifstream infile(bootDefFile.c_str());
-	if (!infile.good()) {
-		MyBase::SetErrMsg("ERROR: unable to access boot.def for grib_api."
-		"  Check for [VAPORHOME]/share/grib_api/definitions/boot.def");
 		return -1;
 	}
 
@@ -963,16 +974,6 @@ int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
 	stringstream ss;
 	_recordKeysVerified = 0;
 	std::map<std::string, std::string> keyMap;
-
-	// Check to see if boot.def can be found, otherwise
-	// grib_api will catastrophically fail
-	string bootDefFile = getenv("GRIB_DEFINITION_PATH");
-	std::ifstream inFile(bootDefFile.c_str());
-	if (!(inFile.good())) {
-		MyBase::SetErrMsg("ERROR: unable to access boot.def for grib_api."
-		"  Check for [VAPORHOME]/share/grib_api/definitions/boot.def");
-		return -1;
-	}
 
 	while((_h = grib_handle_new_from_file(0,_in,&_err))) {
 

@@ -21,6 +21,7 @@
 
 #include <QDebug>
 #include <cstdio>
+#include <ctime>
 #include "createvdfpage.h"
 #include "selectfilepage.h"
 #include "populatedatapage.h"
@@ -257,7 +258,11 @@ bool PopulateDataPage::validatePage() {
 		progressBar->setRange(0,dataChunks-1);	
 
 		char percentComplete[20];
-    
+   
+		std::clock_t Cstart;
+		double duration;
+		Cstart = std::clock();
+ 
 		//Cycle through variables in each timestep
 		for (int timeStep=0;timeStep<tsSize;timeStep++){
 			for (int var=0;var<varsSize;var++){
@@ -311,6 +316,8 @@ bool PopulateDataPage::validatePage() {
 			dataHolder->purgeObjects();
 			return false;
 		}
+		duration = (std::clock() - Cstart) / (double) CLOCKS_PER_SEC;
+		cout << "wizard process time: " << duration << endl;
 	}
 	successMessage->show();
 	successMessage->raise();

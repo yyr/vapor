@@ -369,7 +369,7 @@ void Copy2VDF::deleteObjects(){
 	DCData = NULL;
 }
 
-int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
+int Copy2VDF::launch2vdf(int argc, char **argv, string dataType, DCReader *optionalReader) {
 
 	OptionParser::OptDescRec_T	set_opts[] = {
 		{"vars",1,    "",	"Colon delimited list of variables to be copied "
@@ -382,20 +382,6 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 			"startts",	1,	"0",	"Offset of first time step in netCDF files "
 			" to be converted"
 		},
-		{"level",   1,  "-1","Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
-		{"lod", 1,  "-1",   "Compression levels saved. 0 => coarsest, 1 => "
-			"next refinement, etc. -1 => all levels defined by the .vdf file"},
-		{"nthreads",1,  "0",    "Number of execution threads (0 => # processors)"},
-		{"help",	0,	"",	"Print this message and exit"},
-		{"quiet",	0,	"",	"Operate quietly"},
-		{"debug",	0,	"",	"Turn on debugging"},
-		{NULL}
-	};
-
-
-	OptionParser::OptDescRec_T	grib_opts[] = {
-		{"vars",1,    "",	"Colon delimited list of variables to be copied "
-			"from input data. The default is to copy all 2D and 3D variables"},
 		{"level",   1,  "-1","Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
 		{"lod", 1,  "-1",   "Compression levels saved. 0 => coarsest, 1 => "
 			"next refinement, etc. -1 => all levels defined by the .vdf file"},
@@ -467,6 +453,7 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 	}
 	string metafile = argv[argc-1];
 	
+	if (optionalReader != NULL) DCData = optionalReader;
 	if (DCData==NULL){
 		if ((dataType == "ROMS") || (dataType == "CAM")) DCData = new DCReaderROMS(ncdffiles); 
 		else if (dataType == "GRIB") DCData = new DCReaderGRIB(ncdffiles);
