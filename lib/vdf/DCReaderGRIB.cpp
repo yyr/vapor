@@ -97,15 +97,6 @@ void DCReaderGRIB::Variable::_AddIndex(double time, float level, string file, in
 }
 
 DCReaderGRIB::DCReaderGRIB(const vector <string> files) {
-#ifdef WIN32	
-	std::stringstream ss;
-	string vHome = getenv("VAPOR_HOME");
-	ss << "GRIB_DEFINITION_PATH=" << vHome << "share\\grib_api\\definitions";
-	string gribDef = ss.str();
- 	if (putenv(gribDef.c_str())!=0) {
- 		MyBase::SetErrMsg("putenv failed on GRIB_DEFINITION_PATH");
- 	}
-#endif
 
 	_iValues = NULL;
 	_ignoreForecastData = 0;
