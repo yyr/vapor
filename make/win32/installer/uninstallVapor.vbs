@@ -44,9 +44,7 @@ if  posn <> 0 Then
 	SysEnv("IDL_DLM_PATH") = idlpath
 Else 
 	posn = inStr(idlpath, vaporidl)
-	if posn = 0 Then
-		MsgBox("Unable to remove VAPOR from IDL_DLM_PATH")
-	Else
+	if posn <> 0 Then
 		idlpath = Replace(idlpath, vaporidl, "")
 		if idlpath = "" Then
 			SysEnv.Remove("IDL_DLM_PATH")

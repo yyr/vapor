@@ -15,12 +15,9 @@ Else
 End if
 
 vaporhome = Right(inputstring, len(inputstring) - posn -1)
-
 vaporhome = vaporhome & "VAPOR"
+vaporbin = vaporhome & "\bin"
 vaporshare = vaporhome & "\share"
-
-pythonhome = vaporhome & "\lib\python2.7"
-gribdir = vaporshare & "\grib_api\definitions"
 
 set shell = CreateObject("wscript.shell")
 
