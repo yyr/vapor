@@ -188,7 +188,7 @@ int TextObject::initFrameBuffer(void) {
     glWindowPos2f(0,0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     int xRenderOffset = _size/30+1;//_size/24 + 1;
-    int yRenderOffset = -_pixmap->BBox(_text.c_str()).Lower().Y()+_size/16+1; //+4
+    int yRenderOffset = (int) (-_pixmap->BBox(_text.c_str()).Lower().Y()+_size/16+1); //+4
     if (_size <= 40){
 		xRenderOffset += 1;
 		yRenderOffset += 1;
@@ -225,8 +225,8 @@ void TextObject::findBBoxSize() {
     int xPadding = _size/12 + 4;
     int yPadding = _size/12 + 4;
 
-    _height = up.Y() - lo.Y() + yPadding;
-    _width  = up.X() - lo.X() + xPadding;
+    _height = (int) (up.Y() - lo.Y() + yPadding);
+    _width  = (int) (up.X() - lo.X() + xPadding);
 }
 
 void TextObject::applyViewerMatrix() {

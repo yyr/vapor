@@ -2675,7 +2675,6 @@ float FlowParams::minRange(int index, int timestep){
 	}
 }
 float FlowParams::maxRange(int index, int timestep){
-	float maxSpeed = 0.f;
 	DataStatus* ds = DataStatus::getInstance();
 	switch(index){
 		case (0): return 1.f;

@@ -735,7 +735,7 @@ void DCReaderGRIB::_generateWeightTable() {
 		_regularLats[i] = _maxLat - i*increment;
 	}
 
-	double regular, gaussianBelow, gaussianAbove, weight;
+	double regular = 0.0, gaussianBelow = 0.0, gaussianAbove = 0.0, weight;
 	for (int regj=0; regj<_Nj; regj++) {
 
 		// Find nearest neighbor below current regular lat

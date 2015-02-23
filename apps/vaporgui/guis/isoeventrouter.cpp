@@ -1453,7 +1453,7 @@ void IsoEventRouter::guiSetFidelity(int buttonID){
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Set Data Fidelity");
 	dParams->SetCompressionLevel(newLOD);
 	dParams->SetRefinementLevel(newRef);
-	dParams->SetFidelityLevel(fidelity);
+	dParams->SetFidelityLevel((int) fidelity);
 	dParams->SetIgnoreFidelity(false);
 	QPalette pal = QPalette(fidelityBox->palette());
 	pal.setColor(QPalette::WindowText, Qt::black);

@@ -716,7 +716,7 @@ bool Compressor::CompressionInfo(
 
 	size_t mincoeff = 1;
 	if (keepapp) {
-		size_t *L;
+		size_t *L = NULL;
 		if (dims.size() == 1) {
 			nlevels = mww.wmaxlev(dims[0]);
 			L = new size_t[nlevels+2];
