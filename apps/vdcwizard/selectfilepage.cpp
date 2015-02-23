@@ -231,5 +231,5 @@ int SelectFilePage::nextId() const{
 		if (op == "vdfcreate") return VDCWizard::Create_VdfPage;
 		else return VDCWizard::Populate_DataPage;
 	}
-	return VDCWizard::SelectFilePage;
+	return VDCWizard::SelectFile_Page;
 }
