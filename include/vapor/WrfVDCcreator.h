@@ -29,7 +29,7 @@ public:
  //! implies failure, the destination VDC may be corrupt. A status 
  //! greater than 0 implies some variables were not copied
  //!
- int launchWrf2Vdf(int argc, char **argv);
+ int launchWrf2Vdf(int argc, char **argv, DCReaderWRF *optionalReader = NULL);
 
 private:
  string _progname;

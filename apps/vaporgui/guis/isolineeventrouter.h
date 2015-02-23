@@ -196,6 +196,8 @@ protected slots:
 	
 	
 protected:
+	//Drop wheel events (they cause confusion here)
+	virtual void wheelEvent(QWheelEvent* e){}
 	static const char* webHelpText[];
 	static const char* webHelpURL[];
 	void setIsolineToExtents(const double* extents, IsolineParams* pparams);

@@ -89,6 +89,9 @@ void PythonPipeLine::initvapor(void)
         if (m == NULL)
                 return;
         import_array();
+		if (PyErr_Occurred()) { MyBase::SetErrMsg("error importing NumPy");
+			return;
+		}
         
         vaporerror = PyErr_NewException((char*)"vapor.error",NULL,NULL);
         Py_INCREF(vaporerror);
@@ -98,7 +101,30 @@ void PythonPipeLine::initvapor(void)
 void PythonPipeLine::initialize(){
 	// Specify some standard imports
 	if(initialized) return;
-	
+	char* pyhome2 = 0;
+	char* pyhome = getenv("VAPOR_PYTHONHOME");
+#ifdef _WINDOWS
+	if (pyhome) Py_SetPythonHome(pyhome);
+#else
+	if (pyhome) if (putenv(pyhome)!= 0) MyBase::SetErrMsg("failed to set PYTHONHOME = %s", pyhome);
+#endif
+
+	else {
+		vector<string> pths;
+		pths.push_back("python2.7");
+		string phome = GetAppPath("VAPOR","lib", pths, true);
+		pyhome2 = new char[phome.length()+1];
+		strncpy(pyhome2,phome.c_str(),phome.length()+1);
+		//Note:  Python seems very picky about the strings accepted for this.
+		//It must remain for a while (at least until after Py_Initialize is called).
+		//It's also important to use forward slashes even on Windows.
+#ifdef _WINDOWS
+		Py_SetPythonHome(pyhome2);
+#else
+		if (putenv(pyhome2)!= 0) MyBase::SetErrMsg("failed to set PYTHONHOME = %s", pyhome2);
+#endif
+
+	}
 	PyImport_AppendInittab((char*)"vapor",&(PythonPipeLine::initvapor));
 		
 	Py_Initialize();
@@ -175,6 +201,7 @@ void PythonPipeLine::initialize(){
 			return;
 		}
 	}
+	if (pyhome2) delete pyhome2;
 	initialized = true;
 		
 }

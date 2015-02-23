@@ -41,6 +41,7 @@ class SelectFilePage : public QWizardPage, public Ui_Page2
 public:
     explicit SelectFilePage(DataHolder *DH, QWidget *parent = 0);
 
+	bool validatePage();
     //VAPoR::DCReader *fileData;
     string momPopOrRoms;
     IntroPage *introPage;

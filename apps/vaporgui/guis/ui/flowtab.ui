@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>456</width>
-    <height>2697</height>
+    <height>2146</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -21,6 +21,9 @@
     <width>550</width>
     <height>32767</height>
    </size>
+  </property>
+  <property name="focusPolicy">
+   <enum>Qt::NoFocus</enum>
   </property>
   <property name="windowTitle">
    <string>Flow Viz</string>
@@ -36,6 +39,9 @@
     <layout class="QVBoxLayout" name="verticalLayout_10">
      <item>
       <widget class="QLabel" name="textLabel1">
+       <property name="focusPolicy">
+        <enum>Qt::ClickFocus</enum>
+       </property>
        <property name="text">
         <string>Renderer Control</string>
        </property>
@@ -57,6 +63,9 @@
            <height>100</height>
           </size>
          </property>
+         <property name="focusPolicy">
+          <enum>Qt::ClickFocus</enum>
+         </property>
          <property name="toolTip">
           <string>Select current instance by clicking at left.  Check the box to enable rendering.</string>
          </property>
@@ -76,6 +85,9 @@ is controlled by the values in this
        </item>
        <item>
         <spacer name="spacer32_3">
+         <property name="focusPolicy">
+          <enum>Qt::ClickFocus</enum>
+         </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
@@ -96,6 +108,9 @@ is controlled by the values in this
           <layout class="QHBoxLayout">
            <item>
             <widget class="QPushButton" name="newInstanceButton">
+             <property name="focusPolicy">
+              <enum>Qt::ClickFocus</enum>
+             </property>
              <property name="toolTip">
               <string>Create a new, default instance of this renderer</string>
              </property>
@@ -118,6 +133,9 @@ is controlled by the values in this
            </item>
            <item>
             <spacer name="spacer36">
+             <property name="focusPolicy">
+              <enum>Qt::ClickFocus</enum>
+             </property>
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
@@ -134,6 +152,9 @@ is controlled by the values in this
            </item>
            <item>
             <widget class="QPushButton" name="deleteInstanceButton">
+             <property name="focusPolicy">
+              <enum>Qt::ClickFocus</enum>
+             </property>
              <property name="toolTip">
               <string>Delete current renderer Instance</string>
              </property>
@@ -160,6 +181,9 @@ is controlled by the values in this
           <layout class="QHBoxLayout">
            <item>
             <spacer name="spacer37_2">
+             <property name="focusPolicy">
+              <enum>Qt::ClickFocus</enum>
+             </property>
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
@@ -209,6 +233,9 @@ is controlled by the values in this
            </item>
            <item>
             <spacer name="spacer152">
+             <property name="focusPolicy">
+              <enum>Qt::ClickFocus</enum>
+             </property>
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
@@ -229,6 +256,9 @@ is controlled by the values in this
        </item>
        <item>
         <spacer name="spacer26_2">
+         <property name="focusPolicy">
+          <enum>Qt::ClickFocus</enum>
+         </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
@@ -253,6 +283,9 @@ is controlled by the values in this
          <height>16777215</height>
         </size>
        </property>
+       <property name="focusPolicy">
+        <enum>Qt::ClickFocus</enum>
+       </property>
        <property name="whatsThis">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Basic Flow Parameters are theparameters that must be specified for any flow integration.    They include the specification of steady and unsteady flow variables, periodicity, accuracy, and other parameters.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
@@ -273,6 +306,9 @@ is controlled by the values in this
             <property name="font">
              <font/>
             </property>
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
             <property name="text">
              <string>Basic Flow Parameters</string>
             </property>
@@ -288,6 +324,9 @@ is controlled by the values in this
            <layout class="QHBoxLayout">
             <item>
              <spacer name="spacer94">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -304,6 +343,9 @@ is controlled by the values in this
             </item>
             <item>
              <widget class="QLabel" name="textLabel2_5">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="text">
                <string>Type</string>
               </property>
@@ -317,6 +359,9 @@ is controlled by the values in this
             </item>
             <item>
              <widget class="QComboBox" name="flowTypeCombo">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="toolTip">
                <string>Specify whether the flow will vary with timesteps in the data</string>
               </property>
@@ -355,6 +400,9 @@ in the unsteady field.</string>
             </item>
             <item>
              <spacer name="spacer93_4">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -371,6 +419,9 @@ in the unsteady field.</string>
             </item>
             <item>
              <widget class="QPushButton" name="stopButton">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="toolTip">
                <string>Click to interrupt current unsteady flow integration at completion of current time step</string>
               </property>
@@ -384,6 +435,9 @@ in the unsteady field.</string>
             </item>
             <item>
              <spacer name="spacer92">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -406,6 +460,9 @@ in the unsteady field.</string>
              <layout class="QHBoxLayout" name="fidelityLayout">
               <item>
                <spacer name="horizontalSpacer_15">
+                <property name="focusPolicy">
+                 <enum>Qt::ClickFocus</enum>
+                </property>
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
@@ -419,6 +476,9 @@ in the unsteady field.</string>
               </item>
               <item>
                <widget class="QPushButton" name="fidelityDefaultButton">
+                <property name="focusPolicy">
+                 <enum>Qt::ClickFocus</enum>
+                </property>
                 <property name="toolTip">
                  <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -436,6 +496,9 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <spacer name="horizontalSpacer_4">
+                <property name="focusPolicy">
+                 <enum>Qt::ClickFocus</enum>
+                </property>
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
@@ -449,6 +512,9 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QGroupBox" name="fidelityBox">
+                <property name="focusPolicy">
+                 <enum>Qt::ClickFocus</enum>
+                </property>
                 <property name="whatsThis">
                  <string>The fidelity setting controls both refinement and LOD.  Click on the &quot;Set Default Fidelity&quot; button to establish a fidelity level that is interactive on the current platform.</string>
                 </property>
@@ -466,6 +532,9 @@ p, li { white-space: pre-wrap; }
              <layout class="QHBoxLayout" name="horizontalLayout_3">
               <item>
                <spacer name="spacer24_2_2_2">
+                <property name="focusPolicy">
+                 <enum>Qt::ClickFocus</enum>
+                </property>
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
@@ -482,6 +551,9 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QLabel" name="label">
+                <property name="focusPolicy">
+                 <enum>Qt::ClickFocus</enum>
+                </property>
                 <property name="text">
                  <string>LOD</string>
                 </property>
@@ -520,6 +592,9 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <spacer name="horizontalSpacer_3">
+                <property name="focusPolicy">
+                 <enum>Qt::ClickFocus</enum>
+                </property>
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
@@ -533,6 +608,9 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QLabel" name="textLabel1_2">
+                <property name="focusPolicy">
+                 <enum>Qt::ClickFocus</enum>
+                </property>
                 <property name="toolTip">
                  <string>The refinement level specifies the resolution of data that is used</string>
                 </property>
@@ -590,6 +668,9 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <spacer name="spacer21_2">
+                <property name="focusPolicy">
+                 <enum>Qt::ClickFocus</enum>
+                </property>
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
@@ -611,6 +692,9 @@ p, li { white-space: pre-wrap; }
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
+                </property>
+                <property name="focusPolicy">
+                 <enum>Qt::ClickFocus</enum>
                 </property>
                 <property name="text">
                  <string>Accuracy</string>
@@ -636,6 +720,9 @@ p, li { white-space: pre-wrap; }
                   <width>50</width>
                   <height>25</height>
                  </size>
+                </property>
+                <property name="focusPolicy">
+                 <enum>Qt::ClickFocus</enum>
                 </property>
                 <property name="toolTip">
                  <string>Control integration accuracy (between 0 and 1)</string>
@@ -667,6 +754,9 @@ grid cells.</string>
               </item>
               <item>
                <spacer name="spacer47_2_2_2_2">
+                <property name="focusPolicy">
+                 <enum>Qt::ClickFocus</enum>
+                </property>
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
@@ -689,6 +779,9 @@ grid cells.</string>
            <layout class="QHBoxLayout">
             <item>
              <spacer name="spacer41">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -705,6 +798,9 @@ grid cells.</string>
             </item>
             <item>
              <widget class="QLabel" name="textLabel1_8">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="toolTip">
                <string>Specify any dimensions in which all vector fields are periodic.</string>
               </property>
@@ -735,6 +831,9 @@ rendering calculations.</string>
                 <height>32767</height>
                </size>
               </property>
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="toolTip">
                <string>Specify any dimensions in which all vector fields are periodic.</string>
               </property>
@@ -758,6 +857,9 @@ rendering calculations.</string>
                 <width>40</width>
                 <height>32767</height>
                </size>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
               </property>
               <property name="toolTip">
                <string>Specify any dimensions in which all vector fields are periodic.</string>
@@ -783,6 +885,9 @@ rendering calculations.</string>
                 <height>32767</height>
                </size>
               </property>
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="toolTip">
                <string>Specify any dimensions in which all vector fields are periodic.</string>
               </property>
@@ -801,6 +906,9 @@ rendering calculations.</string>
             </item>
             <item>
              <spacer name="spacer40_2">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -819,6 +927,9 @@ rendering calculations.</string>
           </item>
           <item>
            <widget class="QFrame" name="steadyFieldFrame">
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
             <property name="frameShape">
              <enum>QFrame::NoFrame</enum>
             </property>
@@ -835,6 +946,9 @@ rendering calculations.</string>
                 <layout class="QHBoxLayout">
                  <item>
                   <spacer name="spacer44">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -851,6 +965,9 @@ rendering calculations.</string>
                  </item>
                  <item>
                   <widget class="QLabel" name="textLabel8">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="text">
                     <string>steady field</string>
                    </property>
@@ -975,6 +1092,9 @@ rendering calculations.</string>
                  </item>
                  <item>
                   <spacer name="spacer45">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -995,6 +1115,9 @@ rendering calculations.</string>
                 <layout class="QHBoxLayout">
                  <item>
                   <spacer name="spacer58_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -1011,6 +1134,9 @@ rendering calculations.</string>
                  </item>
                  <item>
                   <widget class="QLabel" name="textLabel2_4">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="text">
                     <string>Steady Integration Direction</string>
                    </property>
@@ -1024,6 +1150,9 @@ rendering calculations.</string>
                  </item>
                  <item>
                   <widget class="QComboBox" name="steadyDirectionCombo">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Specify the direction in which the steady field will be integrated.</string>
                    </property>
@@ -1049,6 +1178,9 @@ rendering calculations.</string>
                  </item>
                  <item>
                   <spacer name="spacer57_2_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -1072,6 +1204,9 @@ rendering calculations.</string>
           </item>
           <item>
            <widget class="QFrame" name="unsteadyFieldFrame">
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
             <property name="frameShape">
              <enum>QFrame::NoFrame</enum>
             </property>
@@ -1088,6 +1223,9 @@ rendering calculations.</string>
                 <layout class="QHBoxLayout">
                  <item>
                   <spacer name="spacer44_3">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -1104,6 +1242,9 @@ rendering calculations.</string>
                  </item>
                  <item>
                   <widget class="QLabel" name="textLabel8_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="text">
                     <string>unsteady field</string>
                    </property>
@@ -1228,6 +1369,9 @@ rendering calculations.</string>
                  </item>
                  <item>
                   <spacer name="spacer45_3">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -1248,6 +1392,9 @@ rendering calculations.</string>
                 <layout class="QHBoxLayout">
                  <item>
                   <spacer name="spacer70_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -1264,6 +1411,9 @@ rendering calculations.</string>
                  </item>
                  <item>
                   <widget class="QLabel" name="textLabel2_3_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="text">
                     <string>Unsteady Integration Direction</string>
                    </property>
@@ -1319,6 +1469,9 @@ current time step.</string>
                  </item>
                  <item>
                   <spacer name="spacer71_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -1339,6 +1492,9 @@ current time step.</string>
                 <layout class="QHBoxLayout">
                  <item>
                   <spacer name="spacer54_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -1364,6 +1520,9 @@ current time step.</string>
                      <height>0</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Show instructions for setting up an unsteady flow integration.</string>
                    </property>
@@ -1374,6 +1533,9 @@ current time step.</string>
                  </item>
                  <item>
                   <spacer name="spacer55_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -1394,6 +1556,9 @@ current time step.</string>
                 <layout class="QHBoxLayout">
                  <item>
                   <spacer name="spacer48">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -1415,6 +1580,9 @@ current time step.</string>
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="text">
                     <string>Unsteady field scale factor</string>
@@ -1440,6 +1608,9 @@ current time step.</string>
                    </property>
                    <property name="font">
                     <font/>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="toolTip">
                     <string comment="Comment is here">This factor scales the vector field magnitude. Must be consistent with simulation time step size and domain size.</string>
@@ -1480,6 +1651,9 @@ extents in the VAPOR region panel.</string>
                  </item>
                  <item>
                   <spacer name="spacer49">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -1505,6 +1679,9 @@ extents in the VAPOR region panel.</string>
            <layout class="QHBoxLayout">
             <item>
              <spacer name="spacer34">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -1521,6 +1698,9 @@ extents in the VAPOR region panel.</string>
             </item>
             <item>
              <widget class="QCheckBox" name="autoRefreshCheckbox">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="toolTip">
                <string>Check to recalculate flow whenever parameters change</string>
               </property>
@@ -1550,6 +1730,9 @@ are requested in the animation panel.</string>
             </item>
             <item>
              <spacer name="spacer72">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -1568,6 +1751,9 @@ are requested in the animation panel.</string>
              <widget class="QPushButton" name="refreshButton">
               <property name="enabled">
                <bool>false</bool>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
               </property>
               <property name="toolTip">
                <string>Click to recalculate flow using current settings</string>
@@ -1596,6 +1782,9 @@ time steps are specified in the animation panel.</string>
             </item>
             <item>
              <spacer name="spacer35">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -1612,6 +1801,9 @@ time steps are specified in the animation panel.</string>
             </item>
             <item>
              <widget class="QPushButton" name="saveFlowButton">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="toolTip">
                <string>Save the current flow points to a file, readable as a seed list</string>
               </property>
@@ -1622,6 +1814,9 @@ time steps are specified in the animation panel.</string>
             </item>
             <item>
              <spacer name="spacer42">
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -1645,6 +1840,9 @@ time steps are specified in the animation panel.</string>
      </item>
      <item>
       <spacer name="verticalSpacer">
+       <property name="focusPolicy">
+        <enum>Qt::ClickFocus</enum>
+       </property>
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
@@ -1664,6 +1862,9 @@ time steps are specified in the animation panel.</string>
          <height>16777215</height>
         </size>
        </property>
+       <property name="focusPolicy">
+        <enum>Qt::ClickFocus</enum>
+       </property>
        <property name="whatsThis">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;All flow integration in the vapor scene is based on the specification of seed points, which are the starting points for the line integration that results in the flow lines.  Seed points can be either random, nonrandom, or based on a list of points.  Random seeds can be uniform or can be biased based on large or small values of a specified3D field.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
@@ -1681,6 +1882,9 @@ time steps are specified in the animation panel.</string>
          <layout class="QVBoxLayout" name="verticalLayout_6">
           <item>
            <widget class="QPushButton" name="showHideSeedingButton">
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
             <property name="text">
              <string>Show Flow Seeding Settings</string>
             </property>
@@ -1688,6 +1892,9 @@ time steps are specified in the animation panel.</string>
           </item>
           <item>
            <widget class="QFrame" name="seedingFrame">
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
             <property name="frameShape">
              <enum>QFrame::NoFrame</enum>
             </property>
@@ -1710,6 +1917,9 @@ time steps are specified in the animation panel.</string>
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="text">
                     <string>Rake center</string>
                    </property>
@@ -1729,6 +1939,9 @@ time steps are specified in the animation panel.</string>
                      <height>0</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Set the flow rake to coincide with the region in the current active visualizer</string>
                    </property>
@@ -1744,6 +1957,9 @@ time steps are specified in the animation panel.</string>
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="text">
                     <string>Rake sizes</string>
@@ -1769,6 +1985,9 @@ time steps are specified in the animation panel.</string>
                        <horstretch>0</horstretch>
                        <verstretch>0</verstretch>
                       </sizepolicy>
+                     </property>
+                     <property name="focusPolicy">
+                      <enum>Qt::ClickFocus</enum>
                      </property>
                      <property name="text">
                       <string>X</string>
@@ -1797,6 +2016,9 @@ time steps are specified in the animation panel.</string>
                        <width>16777215</width>
                        <height>25</height>
                       </size>
+                     </property>
+                     <property name="focusPolicy">
+                      <enum>Qt::ClickFocus</enum>
                      </property>
                      <property name="toolTip">
                       <string>Specify the X coordinate of the seed region center</string>
@@ -1832,6 +2054,9 @@ time steps are specified in the animation panel.</string>
                        <height>25</height>
                       </size>
                      </property>
+                     <property name="focusPolicy">
+                      <enum>Qt::ClickFocus</enum>
+                     </property>
                      <property name="toolTip">
                       <string>Specify the X coordinate of the seed region center</string>
                      </property>
@@ -1857,6 +2082,9 @@ time steps are specified in the animation panel.</string>
                        <horstretch>0</horstretch>
                        <verstretch>0</verstretch>
                       </sizepolicy>
+                     </property>
+                     <property name="focusPolicy">
+                      <enum>Qt::ClickFocus</enum>
                      </property>
                      <property name="text">
                       <string>X</string>
@@ -1885,6 +2113,9 @@ time steps are specified in the animation panel.</string>
                        <width>16777215</width>
                        <height>25</height>
                       </size>
+                     </property>
+                     <property name="focusPolicy">
+                      <enum>Qt::ClickFocus</enum>
                      </property>
                      <property name="toolTip">
                       <string>Specify the X-size of the seed region</string>
@@ -1920,6 +2151,9 @@ time steps are specified in the animation panel.</string>
                        <height>25</height>
                       </size>
                      </property>
+                     <property name="focusPolicy">
+                      <enum>Qt::ClickFocus</enum>
+                     </property>
                      <property name="toolTip">
                       <string>Specify the X-size of the seed region</string>
                      </property>
@@ -1945,6 +2179,9 @@ time steps are specified in the animation panel.</string>
                        <horstretch>0</horstretch>
                        <verstretch>0</verstretch>
                       </sizepolicy>
+                     </property>
+                     <property name="focusPolicy">
+                      <enum>Qt::ClickFocus</enum>
                      </property>
                      <property name="text">
                       <string>Y</string>
@@ -1973,6 +2210,9 @@ time steps are specified in the animation panel.</string>
                        <width>16777215</width>
                        <height>25</height>
                       </size>
+                     </property>
+                     <property name="focusPolicy">
+                      <enum>Qt::ClickFocus</enum>
                      </property>
                      <property name="toolTip">
                       <string>Specify the Y coordinate of the seed region center</string>
@@ -2008,6 +2248,9 @@ time steps are specified in the animation panel.</string>
                        <height>25</height>
                       </size>
                      </property>
+                     <property name="focusPolicy">
+                      <enum>Qt::ClickFocus</enum>
+                     </property>
                      <property name="toolTip">
                       <string>Specify the Y coordinate of the seed region center</string>
                      </property>
@@ -2033,6 +2276,9 @@ time steps are specified in the animation panel.</string>
                        <horstretch>0</horstretch>
                        <verstretch>0</verstretch>
                       </sizepolicy>
+                     </property>
+                     <property name="focusPolicy">
+                      <enum>Qt::ClickFocus</enum>
                      </property>
                      <property name="text">
                       <string>Y</string>
@@ -2061,6 +2307,9 @@ time steps are specified in the animation panel.</string>
                        <width>16777215</width>
                        <height>25</height>
                       </size>
+                     </property>
+                     <property name="focusPolicy">
+                      <enum>Qt::ClickFocus</enum>
                      </property>
                      <property name="toolTip">
                       <string>Specify the Y-size of the seed region</string>
@@ -2096,6 +2345,9 @@ time steps are specified in the animation panel.</string>
                        <height>25</height>
                       </size>
                      </property>
+                     <property name="focusPolicy">
+                      <enum>Qt::ClickFocus</enum>
+                     </property>
                      <property name="toolTip">
                       <string>Specify the Y-size of the seed region</string>
                      </property>
@@ -2121,6 +2373,9 @@ time steps are specified in the animation panel.</string>
                        <horstretch>0</horstretch>
                        <verstretch>0</verstretch>
                       </sizepolicy>
+                     </property>
+                     <property name="focusPolicy">
+                      <enum>Qt::ClickFocus</enum>
                      </property>
                      <property name="text">
                       <string>Z</string>
@@ -2149,6 +2404,9 @@ time steps are specified in the animation panel.</string>
                        <width>16777215</width>
                        <height>25</height>
                       </size>
+                     </property>
+                     <property name="focusPolicy">
+                      <enum>Qt::ClickFocus</enum>
                      </property>
                      <property name="toolTip">
                       <string>Specify the Z coordinate of the seed region center</string>
@@ -2184,6 +2442,9 @@ time steps are specified in the animation panel.</string>
                        <height>25</height>
                       </size>
                      </property>
+                     <property name="focusPolicy">
+                      <enum>Qt::ClickFocus</enum>
+                     </property>
                      <property name="toolTip">
                       <string>Specify the Z coordinate of the seed region center</string>
                      </property>
@@ -2209,6 +2470,9 @@ time steps are specified in the animation panel.</string>
                        <horstretch>0</horstretch>
                        <verstretch>0</verstretch>
                       </sizepolicy>
+                     </property>
+                     <property name="focusPolicy">
+                      <enum>Qt::ClickFocus</enum>
                      </property>
                      <property name="text">
                       <string>Z</string>
@@ -2237,6 +2501,9 @@ time steps are specified in the animation panel.</string>
                        <width>16777215</width>
                        <height>25</height>
                       </size>
+                     </property>
+                     <property name="focusPolicy">
+                      <enum>Qt::ClickFocus</enum>
                      </property>
                      <property name="toolTip">
                       <string>Specify the Z-size of the seed region</string>
@@ -2272,6 +2539,9 @@ time steps are specified in the animation panel.</string>
                        <height>25</height>
                       </size>
                      </property>
+                     <property name="focusPolicy">
+                      <enum>Qt::ClickFocus</enum>
+                     </property>
                      <property name="toolTip">
                       <string>Specify the Z-size of the seed region</string>
                      </property>
@@ -2294,6 +2564,9 @@ time steps are specified in the animation panel.</string>
                 <layout class="QHBoxLayout">
                  <item>
                   <spacer name="spacer93_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -2358,6 +2631,9 @@ seed insertion time is the
                  </item>
                  <item>
                   <spacer name="spacer89">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -2374,6 +2650,9 @@ seed insertion time is the
                  </item>
                  <item>
                   <widget class="QLabel" name="textLabel7">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="text">
                     <string>Random Seed</string>
                    </property>
@@ -2386,6 +2665,9 @@ seed insertion time is the
                   <widget class="QLineEdit" name="randomSeedEdit">
                    <property name="enabled">
                     <bool>true</bool>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="toolTip">
                     <string>Specify a seed to be used in random generation of points to seed the flow</string>
@@ -2403,6 +2685,9 @@ seed insertion time is the
                  </item>
                  <item>
                   <spacer name="spacer94_3">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -2423,6 +2708,9 @@ seed insertion time is the
                 <layout class="QHBoxLayout">
                  <item>
                   <spacer name="spacer28">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -2439,6 +2727,9 @@ seed insertion time is the
                  </item>
                  <item>
                   <widget class="QLabel" name="textLabel5">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="text">
                     <string>seed count</string>
                    </property>
@@ -2458,6 +2749,9 @@ seed insertion time is the
                      <height>32767</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Total number of seeds in the rake or list</string>
                    </property>
@@ -2474,6 +2768,9 @@ seed insertion time is the
                    <property name="enabled">
                     <bool>true</bool>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="text">
                     <string>By dimension</string>
                    </property>
@@ -2487,6 +2784,9 @@ seed insertion time is the
                  </item>
                  <item>
                   <widget class="QLabel" name="textLabel1_3">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="text">
                     <string>X:</string>
                    </property>
@@ -2506,6 +2806,9 @@ seed insertion time is the
                      <height>32767</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>X-dimension of nonrandom rake</string>
                    </property>
@@ -2519,6 +2822,9 @@ seed insertion time is the
                  </item>
                  <item>
                   <widget class="QLabel" name="textLabel1_3_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="text">
                     <string>Y:</string>
                    </property>
@@ -2538,6 +2844,9 @@ seed insertion time is the
                      <height>32767</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Y-dimension of nonrandom rake</string>
                    </property>
@@ -2551,6 +2860,9 @@ seed insertion time is the
                  </item>
                  <item>
                   <widget class="QLabel" name="textLabel1_3_2_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="text">
                     <string>Z:</string>
                    </property>
@@ -2570,6 +2882,9 @@ seed insertion time is the
                      <height>32767</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Z-dimension of nonrandom rake</string>
                    </property>
@@ -2583,6 +2898,9 @@ seed insertion time is the
                  </item>
                  <item>
                   <spacer name="spacer66">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -2603,6 +2921,9 @@ seed insertion time is the
                 <layout class="QHBoxLayout">
                  <item>
                   <spacer name="spacer37">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -2631,6 +2952,9 @@ seed insertion time is the
                      <height>0</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Read a list of seeds from file, such as a saved flow file</string>
                    </property>
@@ -2652,6 +2976,9 @@ seed insertion time is the
                      <width>100</width>
                      <height>0</height>
                     </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="toolTip">
                     <string>Save the current seed list to a file</string>
@@ -2675,6 +3002,9 @@ seed insertion time is the
                      <height>0</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Edit the current list of seed points</string>
                    </property>
@@ -2697,6 +3027,9 @@ coordinate.</string>
                  </item>
                  <item>
                   <spacer name="spacer92_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -2717,6 +3050,9 @@ coordinate.</string>
                 <layout class="QHBoxLayout">
                  <item>
                   <spacer name="spacer44_4_2_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -2733,6 +3069,9 @@ coordinate.</string>
                  </item>
                  <item>
                   <widget class="QLabel" name="textLabel8_3_2_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="text">
                     <string>Seed Distrib. Field</string>
                    </property>
@@ -2851,6 +3190,9 @@ coordinate.</string>
                  </item>
                  <item>
                   <spacer name="spacer45_4_2_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -2877,6 +3219,9 @@ coordinate.</string>
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="text">
                     <string>Seed Distribution Bias</string>
                    </property>
@@ -2902,11 +3247,14 @@ coordinate.</string>
                      <height>25</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
-                    <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Bias distribution toward higher or lower magnitude of seed distribution field. Values must be between -15 and 15; 0 results in uniform distribution.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="whatsThis">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Bias and seed distribution field: The bias value is used to produce randomly placed seeds that are biased either toward larger or smaller magnitude of the seed distribution field, when B is nonzero. Positive bias results in seeds with larger magnitude of the field, negative bias results in seeds with smaller field magnitudes. If B is the bias and N is the number of seed points, then N*2^(|B|+1) random points are generated, and then, from the generated points, N of the points with largest (or smallest) seed distribution field magnitude are used as seed points. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Bias and seed distribution field: The bias value is used to produce randomly placed seeds that are biased either toward larger or smaller magnitude of the seed distribution field, when B is nonzero. Positive bias results in seeds with larger magnitude of the field, negative bias results in seeds with smaller field magnitudes. If B is the bias and N is the number of seed points, then N*2^(|B|+1) random points are generated, and then, from the generated points, N of the points with largest (or smallest) seed distribution field magnitude are used as seed points.  Bias must be between -15 and +15.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="minimum">
                     <number>-128</number>
@@ -2942,11 +3290,14 @@ coordinate.</string>
                      <height>25</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
-                    <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Bias distribution toward higher or lower magnitude of seed distribution field. Values must be between -15 and 15; 0 results in uniform distribution.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="whatsThis">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Bias and seed distribution field: The bias value is used to produce randomly placed seeds that are biased either toward larger or smaller magnitude of the seed distribution field, when B is nonzero. Positive bias results in seeds with larger magnitude of the field, negative bias results in seeds with smaller field magnitudes. If B is the bias and N is the number of seed points, then N*2^(|B|+1) random points are generated, and then, from the generated points, N of the points with largest (or smallest) seed distribution field magnitude are used as seed points. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Bias and seed distribution field: The bias value is used to produce randomly placed seeds that are biased either toward larger or smaller magnitude of the seed distribution field, when B is nonzero. Positive bias results in seeds with larger magnitude of the field, negative bias results in seeds with smaller field magnitudes. If B is the bias and N is the number of seed points, then N*2^(|B|+1) random points are generated, and then, from the generated points, N of the points with largest (or smallest) seed distribution field magnitude are used as seed points.  Bias must be between -15 and +15.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>0.0</string>
@@ -2968,6 +3319,9 @@ coordinate.</string>
                    <width>422</width>
                    <height>16777215</height>
                   </size>
+                 </property>
+                 <property name="focusPolicy">
+                  <enum>Qt::ClickFocus</enum>
                  </property>
                  <property name="whatsThis">
                   <string>The advanced field line advection
@@ -2993,6 +3347,9 @@ detailed information.</string>
                      <layout class="QHBoxLayout">
                       <item>
                        <spacer name="spacer44_4_2_2_2">
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
+                        </property>
                         <property name="orientation">
                          <enum>Qt::Horizontal</enum>
                         </property>
@@ -3009,6 +3366,9 @@ detailed information.</string>
                       </item>
                       <item>
                        <widget class="QLabel" name="textLabel8_3_2_2_2">
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
+                        </property>
                         <property name="text">
                          <string>Priority Field</string>
                         </property>
@@ -3166,6 +3526,9 @@ steady flow at the next time step.</string>
                       </item>
                       <item>
                        <spacer name="spacer45_4_2_2_2">
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
+                        </property>
                         <property name="orientation">
                          <enum>Qt::Horizontal</enum>
                         </property>
@@ -3186,6 +3549,9 @@ steady flow at the next time step.</string>
                      <layout class="QHBoxLayout">
                       <item>
                        <spacer name="spacer94_2">
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
+                        </property>
                         <property name="orientation">
                          <enum>Qt::Horizontal</enum>
                         </property>
@@ -3202,6 +3568,9 @@ steady flow at the next time step.</string>
                       </item>
                       <item>
                        <widget class="QLabel" name="textLabel3_3">
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
+                        </property>
                         <property name="text">
                          <string>Priority Field Min, Max</string>
                         </property>
@@ -3217,6 +3586,9 @@ steady flow at the next time step.</string>
                        <widget class="QLineEdit" name="priorityFieldMinEdit">
                         <property name="enabled">
                          <bool>true</bool>
+                        </property>
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
                         </property>
                         <property name="toolTip">
                          <string>Specify range of priority field magnitudes to be considered in identifying seeds to advect in time</string>
@@ -3237,6 +3609,9 @@ steady flow at the next time step.</string>
                         <property name="enabled">
                          <bool>true</bool>
                         </property>
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
+                        </property>
                         <property name="toolTip">
                          <string>Specify range of priority field magnitudes to be considered in identifying seeds to advect in time</string>
                         </property>
@@ -3253,6 +3628,9 @@ steady flow at the next time step.</string>
                       </item>
                       <item>
                        <spacer name="spacer93">
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
+                        </property>
                         <property name="orientation">
                          <enum>Qt::Horizontal</enum>
                         </property>
@@ -3327,6 +3705,9 @@ current region early.</string>
                       </item>
                       <item>
                        <spacer name="spacer175">
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
+                        </property>
                         <property name="orientation">
                          <enum>Qt::Horizontal</enum>
                         </property>
@@ -3343,6 +3724,9 @@ current region early.</string>
                       </item>
                       <item>
                        <widget class="QLabel" name="textLabel1_10">
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
+                        </property>
                         <property name="toolTip">
                          <string>Specify how many points on each field line will be advected to the next time step</string>
                         </property>
@@ -3361,6 +3745,9 @@ current region early.</string>
                           <width>90</width>
                           <height>16777215</height>
                          </size>
+                        </property>
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
                         </property>
                         <property name="toolTip">
                          <string>Specify the number of sample points that are advected and then prioritized</string>
@@ -3392,6 +3779,9 @@ current region early.</string>
      </item>
      <item>
       <spacer name="verticalSpacer_2">
+       <property name="focusPolicy">
+        <enum>Qt::ClickFocus</enum>
+       </property>
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
@@ -3411,6 +3801,9 @@ current region early.</string>
          <height>16777215</height>
         </size>
        </property>
+       <property name="focusPolicy">
+        <enum>Qt::ClickFocus</enum>
+       </property>
        <property name="whatsThis">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The unsteady flow time settings are needed for both unsteady flow and for field line advection.  They control how time is sampled during unsteady flow integration.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
@@ -3428,6 +3821,9 @@ current region early.</string>
          <layout class="QVBoxLayout" name="verticalLayout_7">
           <item>
            <widget class="QPushButton" name="showHideTimeButton">
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
             <property name="text">
              <string>Show Unsteady Flow Time Settings</string>
             </property>
@@ -3435,6 +3831,9 @@ current region early.</string>
           </item>
           <item>
            <widget class="QFrame" name="unsteadyTimeFrame">
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
             <property name="frameShape">
              <enum>QFrame::NoFrame</enum>
             </property>
@@ -3451,6 +3850,9 @@ current region early.</string>
                 <layout class="QHBoxLayout">
                  <item>
                   <spacer name="spacer31_3">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -3467,6 +3869,9 @@ current region early.</string>
                  </item>
                  <item>
                   <widget class="QLabel" name="textLabel3_4_3">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="whatsThis">
                     <string>Specify the starting, ending, and
 a time-step increment, determining
@@ -3494,6 +3899,9 @@ time.</string>
                      <width>50</width>
                      <height>32767</height>
                     </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="toolTip">
                     <string>Specify the first time step for seed points</string>
@@ -3526,6 +3934,9 @@ time.</string>
                      <height>32767</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Specify the end time step for unsteady seed points</string>
                    </property>
@@ -3557,6 +3968,9 @@ time.</string>
                      <height>32767</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Specify the time step difference between unsteady flowseeding times</string>
                    </property>
@@ -3585,6 +3999,9 @@ time.</string>
                  </item>
                  <item>
                   <spacer name="spacer32_5">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -3605,6 +4022,9 @@ time.</string>
                 <layout class="QHBoxLayout">
                  <item>
                   <spacer name="spacer63">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -3621,6 +4041,9 @@ time.</string>
                  </item>
                  <item>
                   <widget class="QLabel" name="textLabel1_4">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Specify evenly spaced timesteps by a start, end and increment</string>
                    </property>
@@ -3639,6 +4062,9 @@ time.</string>
                      <width>50</width>
                      <height>32767</height>
                     </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="toolTip">
                     <string>specify min timestep of a sequence</string>
@@ -3667,6 +4093,9 @@ time steps, use the time step list
                      <height>32767</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>specify max timestep of a sequence</string>
                    </property>
@@ -3694,6 +4123,9 @@ time steps, use the time step list
                      <height>50</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>specify the time interval between timestep samples</string>
                    </property>
@@ -3715,6 +4147,9 @@ time steps, use the time step list
                  </item>
                  <item>
                   <spacer name="spacer32_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -3735,6 +4170,9 @@ time steps, use the time step list
                 <layout class="QHBoxLayout">
                  <item>
                   <spacer name="spacer105">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -3755,6 +4193,9 @@ time steps, use the time step list
                     <layout class="QHBoxLayout">
                      <item>
                       <spacer name="spacer72_2">
+                       <property name="focusPolicy">
+                        <enum>Qt::ClickFocus</enum>
+                       </property>
                        <property name="orientation">
                         <enum>Qt::Horizontal</enum>
                        </property>
@@ -3774,6 +4215,9 @@ time steps, use the time step list
                        <property name="enabled">
                         <bool>true</bool>
                        </property>
+                       <property name="focusPolicy">
+                        <enum>Qt::ClickFocus</enum>
+                       </property>
                        <property name="toolTip">
                         <string>Check to use the list of time steps</string>
                        </property>
@@ -3787,6 +4231,9 @@ time steps, use the time step list
                      </item>
                      <item>
                       <spacer name="spacer115">
+                       <property name="focusPolicy">
+                        <enum>Qt::ClickFocus</enum>
+                       </property>
                        <property name="orientation">
                         <enum>Qt::Horizontal</enum>
                        </property>
@@ -3807,6 +4254,9 @@ time steps, use the time step list
                     <layout class="QHBoxLayout">
                      <item>
                       <widget class="QPushButton" name="addSampleButton1">
+                       <property name="focusPolicy">
+                        <enum>Qt::ClickFocus</enum>
+                       </property>
                        <property name="toolTip">
                         <string>Click to add blank timestep to list, you must type in desired value</string>
                        </property>
@@ -3820,6 +4270,9 @@ time steps, use the time step list
                      </item>
                      <item>
                       <widget class="QPushButton" name="deleteSampleButton1">
+                       <property name="focusPolicy">
+                        <enum>Qt::ClickFocus</enum>
+                       </property>
                        <property name="toolTip">
                         <string>Click to delete the selected time step</string>
                        </property>
@@ -3833,6 +4286,9 @@ time steps, use the time step list
                      </item>
                      <item>
                       <widget class="QPushButton" name="rebuildButton1">
+                       <property name="focusPolicy">
+                        <enum>Qt::ClickFocus</enum>
+                       </property>
                        <property name="toolTip">
                         <string>Build a list of timesteps based on the timesteps available for any variable  in the data</string>
                        </property>
@@ -3856,6 +4312,9 @@ time steps, use the time step list
                      <height>120</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="whatsThis">
                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check the &amp;quot;Use time step list&amp;quot; check box to specify a set of time steps that will be used to sample the vector fields during unsteady flow integration.  The list contents can be edited and time steps can be inserted or deleted.  During field line advection, these time steps will also be used for steady flow integration.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
@@ -3863,6 +4322,9 @@ time steps, use the time step list
                  </item>
                  <item>
                   <spacer name="spacer73">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -3888,6 +4350,9 @@ time steps, use the time step list
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="whatsThis">
                     <string>The unsteady samples per time
@@ -3919,6 +4384,9 @@ point per time step.</string>
                      <width>16777215</width>
                      <height>25</height>
                     </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="toolTip">
                     <string>Specify the number of geometric samples per time step</string>
@@ -3963,6 +4431,9 @@ point per time step.</string>
                      <height>25</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Specify the number of geometric samples per time step</string>
                    </property>
@@ -3992,6 +4463,9 @@ point per time step.</string>
                 <layout class="QHBoxLayout">
                  <item>
                   <widget class="QLabel" name="displayIntervalLabel">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="text">
                     <string>timestep display interval min, max</string>
                    </property>
@@ -4005,6 +4479,9 @@ point per time step.</string>
                  </item>
                  <item>
                   <spacer name="spacer27_3">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -4026,6 +4503,9 @@ point per time step.</string>
                      <width>40</width>
                      <height>32767</height>
                     </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="toolTip">
                     <string>Specify number of timesteps to display before current timestep</string>
@@ -4060,6 +4540,9 @@ flow line.</string>
                      <width>40</width>
                      <height>32767</height>
                     </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="toolTip">
                     <string>Specify the max number of timesteps after the current timestep for the flow to display</string>
@@ -4101,6 +4584,9 @@ flow line.</string>
      </item>
      <item>
       <spacer name="verticalSpacer_3">
+       <property name="focusPolicy">
+        <enum>Qt::ClickFocus</enum>
+       </property>
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
@@ -4119,6 +4605,9 @@ flow line.</string>
          <width>422</width>
          <height>16777215</height>
         </size>
+       </property>
+       <property name="focusPolicy">
+        <enum>Qt::ClickFocus</enum>
        </property>
        <property name="whatsThis">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The appearance settings control the shape, size, color, and transparency of the flow lines displayed.  The smoothness and length of steady flow lines can also be controlled here.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -4143,6 +4632,9 @@ flow line.</string>
               <height>0</height>
              </size>
             </property>
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
             <property name="text">
              <string>Hide Appearance Settings</string>
             </property>
@@ -4150,6 +4642,9 @@ flow line.</string>
           </item>
           <item>
            <widget class="QFrame" name="appearanceFrame">
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
             <property name="whatsThis">
              <string>Flow appearance settings control the shapes and colors that are displayed when flow is integrated.</string>
             </property>
@@ -4167,6 +4662,9 @@ flow line.</string>
               <layout class="QVBoxLayout" name="verticalLayout_8">
                <item>
                 <widget class="QFrame" name="steadyAppearanceFrame">
+                 <property name="focusPolicy">
+                  <enum>Qt::ClickFocus</enum>
+                 </property>
                  <property name="frameShape">
                   <enum>QFrame::NoFrame</enum>
                  </property>
@@ -4183,6 +4681,9 @@ flow line.</string>
                      <layout class="QHBoxLayout" name="_4">
                       <item>
                        <spacer name="spacer63_2">
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
+                        </property>
                         <property name="orientation">
                          <enum>Qt::Horizontal</enum>
                         </property>
@@ -4201,6 +4702,9 @@ flow line.</string>
                        <widget class="QCheckBox" name="autoScaleCheckbox1">
                         <property name="enabled">
                          <bool>true</bool>
+                        </property>
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
                         </property>
                         <property name="toolTip">
                          <string>Enable or disable the automatic calculation of steady field smoothness and length</string>
@@ -4222,6 +4726,9 @@ p, li { white-space: pre-wrap; }
                       </item>
                       <item>
                        <spacer name="spacer64">
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
+                        </property>
                         <property name="orientation">
                          <enum>Qt::Horizontal</enum>
                         </property>
@@ -4240,6 +4747,9 @@ p, li { white-space: pre-wrap; }
                     </item>
                     <item>
                      <widget class="QFrame" name="autoscaleOffFrame">
+                      <property name="focusPolicy">
+                       <enum>Qt::ClickFocus</enum>
+                      </property>
                       <property name="frameShape">
                        <enum>QFrame::NoFrame</enum>
                       </property>
@@ -4261,6 +4771,9 @@ p, li { white-space: pre-wrap; }
                                <horstretch>0</horstretch>
                                <verstretch>0</verstretch>
                               </sizepolicy>
+                             </property>
+                             <property name="focusPolicy">
+                              <enum>Qt::ClickFocus</enum>
                              </property>
                              <property name="whatsThis">
                               <string>When &quot;Automatically scale steady field&quot;
@@ -4302,6 +4815,9 @@ per flow line.</string>
                                <width>16777215</width>
                                <height>25</height>
                               </size>
+                             </property>
+                             <property name="focusPolicy">
+                              <enum>Qt::ClickFocus</enum>
                              </property>
                              <property name="toolTip">
                               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -4354,6 +4870,9 @@ per flow line.</string>
                                <height>25</height>
                               </size>
                              </property>
+                             <property name="focusPolicy">
+                              <enum>Qt::ClickFocus</enum>
+                             </property>
                              <property name="toolTip">
                               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -4391,6 +4910,9 @@ per flow line.</string>
                           <layout class="QHBoxLayout" name="temp">
                            <item>
                             <spacer name="spacer48_3">
+                             <property name="focusPolicy">
+                              <enum>Qt::ClickFocus</enum>
+                             </property>
                              <property name="orientation">
                               <enum>Qt::Horizontal</enum>
                              </property>
@@ -4412,6 +4934,9 @@ per flow line.</string>
                                <horstretch>0</horstretch>
                                <verstretch>0</verstretch>
                               </sizepolicy>
+                             </property>
+                             <property name="focusPolicy">
+                              <enum>Qt::ClickFocus</enum>
                              </property>
                              <property name="toolTip">
                               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -4458,6 +4983,9 @@ per flow line.</string>
                              <property name="font">
                               <font/>
                              </property>
+                             <property name="focusPolicy">
+                              <enum>Qt::ClickFocus</enum>
+                             </property>
                              <property name="toolTip">
                               <string comment="Comment is here">&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -4491,6 +5019,9 @@ per flow line.</string>
                            </item>
                            <item>
                             <spacer name="spacer49_3">
+                             <property name="focusPolicy">
+                              <enum>Qt::ClickFocus</enum>
+                             </property>
                              <property name="orientation">
                               <enum>Qt::Horizontal</enum>
                              </property>
@@ -4514,6 +5045,9 @@ per flow line.</string>
                     </item>
                     <item>
                      <widget class="QFrame" name="autoscaleOnFrame">
+                      <property name="focusPolicy">
+                       <enum>Qt::ClickFocus</enum>
+                      </property>
                       <property name="frameShape">
                        <enum>QFrame::NoFrame</enum>
                       </property>
@@ -4542,6 +5076,9 @@ per flow line.</string>
                                <height>20</height>
                               </size>
                              </property>
+                             <property name="focusPolicy">
+                              <enum>Qt::ClickFocus</enum>
+                             </property>
                              <property name="text">
                               <string>Line Smoothness</string>
                              </property>
@@ -4566,6 +5103,9 @@ per flow line.</string>
                                <width>100</width>
                                <height>25</height>
                               </size>
+                             </property>
+                             <property name="focusPolicy">
+                              <enum>Qt::ClickFocus</enum>
                              </property>
                              <property name="toolTip">
                               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -4617,6 +5157,9 @@ p, li { white-space: pre-wrap; }
                                <width>100</width>
                                <height>32767</height>
                               </size>
+                             </property>
+                             <property name="focusPolicy">
+                              <enum>Qt::ClickFocus</enum>
                              </property>
                              <property name="toolTip">
                               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -4670,6 +5213,9 @@ p, li { white-space: pre-wrap; }
                                <height>20</height>
                               </size>
                              </property>
+                             <property name="focusPolicy">
+                              <enum>Qt::ClickFocus</enum>
+                             </property>
                              <property name="text">
                               <string>Typical Flow Length</string>
                              </property>
@@ -4700,6 +5246,9 @@ p, li { white-space: pre-wrap; }
                                <width>100</width>
                                <height>25</height>
                               </size>
+                             </property>
+                             <property name="focusPolicy">
+                              <enum>Qt::ClickFocus</enum>
                              </property>
                              <property name="toolTip">
                               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -4764,6 +5313,9 @@ p, li { white-space: pre-wrap; }
                                <height>25</height>
                               </size>
                              </property>
+                             <property name="focusPolicy">
+                              <enum>Qt::ClickFocus</enum>
+                             </property>
                              <property name="toolTip">
                               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -4812,6 +5364,9 @@ p, li { white-space: pre-wrap; }
                      <layout class="QHBoxLayout" name="horizontalLayout">
                       <item>
                        <spacer name="horizontalSpacer">
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
+                        </property>
                         <property name="orientation">
                          <enum>Qt::Horizontal</enum>
                         </property>
@@ -4825,6 +5380,9 @@ p, li { white-space: pre-wrap; }
                       </item>
                       <item>
                        <widget class="QCheckBox" name="displayListCheckbox">
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
+                        </property>
                         <property name="whatsThis">
                          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Flow rendering performance can sometimes be improved by using display lists, however they may not work on all platforms.  &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
@@ -4835,6 +5393,9 @@ p, li { white-space: pre-wrap; }
                       </item>
                       <item>
                        <spacer name="horizontalSpacer_2">
+                        <property name="focusPolicy">
+                         <enum>Qt::ClickFocus</enum>
+                        </property>
                         <property name="orientation">
                          <enum>Qt::Horizontal</enum>
                         </property>
@@ -4857,6 +5418,9 @@ p, li { white-space: pre-wrap; }
                 <layout class="QHBoxLayout">
                  <item>
                   <spacer name="spacer91">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -4873,6 +5437,9 @@ p, li { white-space: pre-wrap; }
                  </item>
                  <item>
                   <widget class="QLabel" name="textLabel4">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="text">
                     <string>Shape</string>
                    </property>
@@ -4911,6 +5478,9 @@ p, li { white-space: pre-wrap; }
                  </item>
                  <item>
                   <spacer name="spacer46">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -4927,6 +5497,9 @@ p, li { white-space: pre-wrap; }
                  </item>
                  <item>
                   <widget class="QLabel" name="textLabel14">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="text">
                     <string>Diameter</string>
                    </property>
@@ -4946,6 +5519,9 @@ p, li { white-space: pre-wrap; }
                      <height>32767</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Specify the shape diameter in user space units</string>
                    </property>
@@ -4959,6 +5535,9 @@ p, li { white-space: pre-wrap; }
                  </item>
                  <item>
                   <spacer name="spacer47">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -4979,6 +5558,9 @@ p, li { white-space: pre-wrap; }
                 <layout class="QHBoxLayout">
                  <item>
                   <spacer name="spacer92_3">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -4995,6 +5577,9 @@ p, li { white-space: pre-wrap; }
                  </item>
                  <item>
                   <widget class="QLabel" name="textLabel1_7">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="text">
                     <string>Arrowhead size</string>
                    </property>
@@ -5011,6 +5596,9 @@ p, li { white-space: pre-wrap; }
                      <height>32767</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Specify the diameter of arrowheads relative to tube diameter</string>
                    </property>
@@ -5024,6 +5612,9 @@ p, li { white-space: pre-wrap; }
                  </item>
                  <item>
                   <spacer name="spacer93_3">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -5040,6 +5631,9 @@ p, li { white-space: pre-wrap; }
                  </item>
                  <item>
                   <widget class="QLabel" name="textLabel1_11">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="whatsThis">
                     <string>During the line integration of steady
 flow, whenever the field value is so 
@@ -5068,6 +5662,9 @@ of such diamonds.</string>
                      <height>32767</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Specify the diameter of diamonds, used to denote critical points</string>
                    </property>
@@ -5090,6 +5687,9 @@ of such diamonds.</string>
                  </item>
                  <item>
                   <spacer name="spacer94_4">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -5110,6 +5710,9 @@ of such diamonds.</string>
                 <layout class="QHBoxLayout">
                  <item>
                   <spacer name="spacer44_2_2_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -5126,6 +5729,9 @@ of such diamonds.</string>
                  </item>
                  <item>
                   <widget class="QLabel" name="label_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="text">
                     <string>Color and Opacity Mapping:</string>
                    </property>
@@ -5133,6 +5739,9 @@ of such diamonds.</string>
                  </item>
                  <item>
                   <spacer name="spacer45_2_2_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -5153,6 +5762,9 @@ of such diamonds.</string>
                 <layout class="QHBoxLayout">
                  <item>
                   <spacer name="spacer82">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -5174,6 +5786,9 @@ of such diamonds.</string>
                      <width>450</width>
                      <height>32767</height>
                     </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="text">
                     <string>Color/Opacity mapped entity:</string>
@@ -5239,6 +5854,9 @@ of such diamonds.</string>
                 <layout class="QHBoxLayout">
                  <item>
                   <widget class="QPushButton" name="editButton">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Select and edit control points</string>
                    </property>
@@ -5255,6 +5873,9 @@ of such diamonds.</string>
                  </item>
                  <item>
                   <widget class="QPushButton" name="navigateButton">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Use mouse to zoom and pan edit window</string>
                    </property>
@@ -5268,6 +5889,9 @@ of such diamonds.</string>
                  </item>
                  <item>
                   <widget class="QPushButton" name="alignButton">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Align edit window with transfer function domain</string>
                    </property>
@@ -5281,6 +5905,9 @@ of such diamonds.</string>
                  </item>
                  <item>
                   <widget class="QPushButton" name="newHistoButton">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Click to refresh the histogram based on the current region settings, animation timestep, and transfer function bounds</string>
                    </property>
@@ -5307,6 +5934,9 @@ how the histogram is scaled.</string>
                 <layout class="QHBoxLayout" name="_3">
                  <item>
                   <widget class="QLabel" name="textLabel1_9">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="text">
                     <string>Constant color, opacity values:</string>
                    </property>
@@ -5317,6 +5947,9 @@ how the histogram is scaled.</string>
                  </item>
                  <item>
                   <widget class="QPushButton" name="constantColorButton">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="text">
                     <string>Select</string>
                    </property>
@@ -5324,6 +5957,9 @@ how the histogram is scaled.</string>
                  </item>
                  <item>
                   <spacer name="spacer75_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -5414,7 +6050,7 @@ how the histogram is scaled.</string>
                     <cursorShape>ArrowCursor</cursorShape>
                    </property>
                    <property name="focusPolicy">
-                    <enum>Qt::StrongFocus</enum>
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="acceptDrops">
                     <bool>true</bool>
@@ -5440,6 +6076,9 @@ how the histogram is scaled.</string>
                      <width>50</width>
                      <height>0</height>
                     </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="toolTip">
                     <string>Specify opacity value used in constant mapping</string>
@@ -5470,6 +6109,9 @@ how the histogram is scaled.</string>
                      <height>150</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="whatsThis">
                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The transfer function editor displays a mapping from the Color/Opacity entity&lt;/p&gt;&lt;p&gt;to color and opacity.   This editor is onlyavailable when you select an&lt;/p&gt;&lt;p&gt;entity other than &amp;quot;Constant&amp;quot; for color/Opacity mapped entity.  This mapping&lt;/p&gt;&lt;p&gt;determines the color of flow lines in the visualizer.  Additional options are available from the&lt;/p&gt;&lt;p&gt;right mouse button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
@@ -5485,6 +6127,9 @@ how the histogram is scaled.</string>
                   <layout class="QVBoxLayout">
                    <item>
                     <widget class="QSlider" name="opacityScaleSlider">
+                     <property name="focusPolicy">
+                      <enum>Qt::ClickFocus</enum>
+                     </property>
                      <property name="toolTip">
                       <string>Scale Opacity Values</string>
                      </property>
@@ -5507,6 +6152,9 @@ how the histogram is scaled.</string>
                    </item>
                    <item>
                     <spacer name="spacer167_2">
+                     <property name="focusPolicy">
+                      <enum>Qt::ClickFocus</enum>
+                     </property>
                      <property name="orientation">
                       <enum>Qt::Vertical</enum>
                      </property>
@@ -5527,6 +6175,9 @@ how the histogram is scaled.</string>
                </item>
                <item>
                 <spacer name="verticalSpacer_4">
+                 <property name="focusPolicy">
+                  <enum>Qt::ClickFocus</enum>
+                 </property>
                  <property name="orientation">
                   <enum>Qt::Vertical</enum>
                  </property>
@@ -5542,6 +6193,9 @@ how the histogram is scaled.</string>
                 <layout class="QHBoxLayout" name="horizontalLayout_16">
                  <item>
                   <spacer name="horizontalSpacer_6">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -5558,6 +6212,9 @@ how the histogram is scaled.</string>
                    <property name="enabled">
                     <bool>true</bool>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Check to use discrete color interpolation</string>
                    </property>
@@ -5568,6 +6225,9 @@ how the histogram is scaled.</string>
                  </item>
                  <item>
                   <spacer name="horizontalSpacer_7">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -5597,6 +6257,9 @@ how the histogram is scaled.</string>
                      <height>32767</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Specify the minimum entity value that is mapped to color</string>
                    </property>
@@ -5621,6 +6284,9 @@ bounds.</string>
                  </item>
                  <item>
                   <spacer name="spacer56">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -5637,6 +6303,9 @@ bounds.</string>
                  </item>
                  <item>
                   <widget class="QLabel" name="textLabel17">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="text">
                     <string>TF Domain Bounds</string>
                    </property>
@@ -5650,6 +6319,9 @@ bounds.</string>
                  </item>
                  <item>
                   <spacer name="spacer57">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -5677,6 +6349,9 @@ bounds.</string>
                      <width>100</width>
                      <height>32767</height>
                     </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
                    </property>
                    <property name="toolTip">
                     <string>Specify the maximum entity value that is mapped to color</string>
@@ -5715,6 +6390,9 @@ bounds.</string>
                    <property name="font">
                     <font/>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Smallest value of color-mapped variable</string>
                    </property>
@@ -5728,6 +6406,9 @@ bounds.</string>
                  </item>
                  <item>
                   <widget class="QLabel" name="textLabel2_5_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="text">
                     <string>Data Bounds</string>
                    </property>
@@ -5750,6 +6431,9 @@ bounds.</string>
                    <property name="font">
                     <font/>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Largest value of color-mapped variable</string>
                    </property>
@@ -5770,6 +6454,9 @@ bounds.</string>
                 <layout class="QHBoxLayout" name="noname2_2">
                  <item>
                   <spacer name="spacer43_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -5786,6 +6473,9 @@ bounds.</string>
                  </item>
                  <item>
                   <widget class="QPushButton" name="ColorBindButton">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Move selected color to same x coord as selected opacity </string>
                    </property>
@@ -5806,6 +6496,9 @@ depending on which button is clicked.</string>
                  </item>
                  <item>
                   <spacer name="spacer27_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -5822,6 +6515,9 @@ depending on which button is clicked.</string>
                  </item>
                  <item>
                   <widget class="QPushButton" name="OpacityBindButton">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Move selected opacity to same x coord as selected color</string>
                    </property>
@@ -5842,6 +6538,9 @@ depending on which button is clicked.</string>
                  </item>
                  <item>
                   <spacer name="spacer97_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -5858,6 +6557,9 @@ depending on which button is clicked.</string>
                  </item>
                  <item>
                   <widget class="QPushButton" name="fitDataButton">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Fit TF domain bounds to data bounds</string>
                    </property>
@@ -5871,6 +6573,9 @@ depending on which button is clicked.</string>
                  </item>
                  <item>
                   <spacer name="spacer44_4">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -5891,6 +6596,9 @@ depending on which button is clicked.</string>
                 <layout class="QHBoxLayout" name="nonam3">
                  <item>
                   <spacer name="spacer45_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -5919,6 +6627,9 @@ depending on which button is clicked.</string>
                      <height>32767</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Load transfer function from file or session</string>
                    </property>
@@ -5929,6 +6640,9 @@ depending on which button is clicked.</string>
                  </item>
                  <item>
                   <spacer name="spacer160">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -5945,6 +6659,9 @@ depending on which button is clicked.</string>
                  </item>
                  <item>
                   <widget class="QPushButton" name="loadInstalledButton">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Load Transfer Function from directory of pre-installed transfer functions</string>
                    </property>
@@ -5955,6 +6672,9 @@ depending on which button is clicked.</string>
                  </item>
                  <item>
                   <spacer name="spacer30">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -5977,6 +6697,9 @@ depending on which button is clicked.</string>
                      <height>32767</height>
                     </size>
                    </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="toolTip">
                     <string>Save this transfer function to a file or session</string>
                    </property>
@@ -5987,6 +6710,9 @@ depending on which button is clicked.</string>
                  </item>
                  <item>
                   <spacer name="spacer46_2">
+                   <property name="focusPolicy">
+                    <enum>Qt::ClickFocus</enum>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -6012,6 +6738,9 @@ depending on which button is clicked.</string>
                  <width>0</width>
                  <height>67</height>
                 </size>
+               </property>
+               <property name="focusPolicy">
+                <enum>Qt::ClickFocus</enum>
                </property>
                <property name="frameShape">
                 <enum>QFrame::NoFrame</enum>

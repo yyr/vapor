@@ -133,7 +133,7 @@ int DataHolder::createReader() {
 			reader = new DCReaderROMS(dataFiles);
 		else if (fileType == "CAM") 
 			reader = new DCReaderROMS(dataFiles);
-		else if (fileType == "GRIMs") 
+		else if (fileType == "GRIB") 
 			reader = new DCReaderGRIB(dataFiles);
 		else if (fileType == "WRF") 
 			reader = new DCReaderWRF(dataFiles);
@@ -173,7 +173,7 @@ string DataHolder::getCreateVDFcmd() {
 	if (getFileType() == "ROMS") argv.push_back("romsvdfcreate");
 	else if (getFileType() == "CAM") argv.push_back("camvdfcreate");
 	else if (getFileType() == "WRF") argv.push_back("wrfvdfcreate");//Users/pears
-	else if (getFileType() == "GRIMs") argv.push_back("gribvdfcreate");
+	else if (getFileType() == "GRIB") argv.push_back("gribvdfcreate");
 	else argv.push_back("momvdfcreate");
 	argv.push_back("-quiet");
 	if (getFileType()=="WRF") argv.push_back("-vdc2");
@@ -225,7 +225,7 @@ string DataHolder::getCreateVDFcmd() {
 string DataHolder::getPopDataCmd() {
 	vector<std::string> argv;
 	if (getFileType() == "ROMS") argv.push_back("roms2vdf");
-	else if (getFileType() == "GRIMs") argv.push_back("grib2vdf");
+	else if (getFileType() == "GRIB") argv.push_back("grib2vdf");
 	else if (getFileType() == "CAM") argv.push_back("cam2vdf");
 	else if (getFileType() == "WRF") argv.push_back("wrf2vdf");
 	else argv.push_back("mom2vdf");
@@ -244,7 +244,7 @@ string DataHolder::getPopDataCmd() {
 		argv.push_back(PDnumThreads);
 	}   
 
-	if (getFileType() != "GRIMs") {	
+	if (getFileType() != "GRIB") {	
 		argv.push_back("-numts");
 		argv.push_back(PDnumTS);
   
@@ -305,7 +305,7 @@ int DataHolder::VDFCreate() {
 	vector<std::string> argv;
 	if (getFileType() == "ROMS") argv.push_back("romsvdfcreate");
 	else if (getFileType() == "CAM") argv.push_back("camvdfcreate");
-	else if (getFileType() == "GRIMs") argv.push_back("gribvdfcreate");
+	else if (getFileType() == "GRIB") argv.push_back("gribvdfcreate");
 	else if (getFileType() == "WRF") argv.push_back("wrfvdfcreate");
 	else argv.push_back("momvdfcreate");
 	argv.push_back("-quiet");
@@ -384,7 +384,7 @@ int DataHolder::run2VDFcomplete() {
 	vector<std::string> argv;
 	if (getFileType() == "ROMS") argv.push_back("roms2vdf");
 	else if (getFileType() == "CAM") argv.push_back("cam2vdf");
-	else if (getFileType() == "GRIMs") argv.push_back("grib2vdf");
+	else if (getFileType() == "GRIB") argv.push_back("grib2vdf");
 	else if (getFileType() == "WRF") argv.push_back("wrf2vdf");
 	else argv.push_back("mom2vdf");
 	argv.push_back("-quiet");
@@ -405,7 +405,7 @@ int DataHolder::run2VDFcomplete() {
 		argc+=2;
 	}
 
-	if (getFileType() != "GRIMs") {
+	if (getFileType() != "GRIB") {
 		if (PDnumTS != "") {
 			argv.push_back("-numts");
 			argv.push_back(PDnumTS);
@@ -452,7 +452,7 @@ int DataHolder::run2VDFcomplete() {
 		args[a] = strdup(argv[a].c_str());
 	}
 
-	return launcher2VDF.launch2vdf(argc, args, getFileType());
+	return launcher2VDF.launch2vdf(argc, args, getFileType(), reader);
 }
 
 int DataHolder::run2VDFincremental(string start, string var) {
@@ -460,7 +460,7 @@ int DataHolder::run2VDFincremental(string start, string var) {
 	vector<std::string> argv;
 	if (getFileType() == "ROMS") argv.push_back("roms2vdf");
 	else if (getFileType() == "CAM") argv.push_back("cam2vdf");
-	else if (getFileType() == "GRIMs") argv.push_back("grib2vdf");
+	else if (getFileType() == "GRIB") argv.push_back("grib2vdf");
 	else if (getFileType() == "WRF") argv.push_back("wrf2vdf");
 	else argv.push_back("mom2vdf");
 	argv.push_back("-quiet");
@@ -481,7 +481,7 @@ int DataHolder::run2VDFincremental(string start, string var) {
 		argc+=2;
 	}   
 
-	if (getFileType() != "GRIMs") {	
+	if (getFileType() != "GRIB") {	
 		argv.push_back("-numts");
 		argv.push_back("1");
 		argc+=2;
@@ -522,10 +522,11 @@ int DataHolder::run2VDFincremental(string start, string var) {
 	
 	int rc;
 	if (getFileType()=="WRF") {
-		rc = w2v.launchWrf2Vdf(argc,args);
+		//DCReaderWRF *foo = dynamic_cast <DCReaderWRF*>(reader);
+		rc = w2v.launchWrf2Vdf(argc, args, (DCReaderWRF*) reader);
 	}
 	else {
-		rc = launcher2VDF.launch2vdf(argc, args, getFileType());
+		rc = launcher2VDF.launch2vdf(argc, args, getFileType(), reader);
 	}
 
 	if (args) delete [] args;

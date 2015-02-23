@@ -1453,7 +1453,7 @@ int NetCDFCFCollection::DerivedVar_AHSPC::Open(size_t ts) {
 			for (size_t i=0; i<nx*ny; i++) {
 				if (PS[i] == mv) PS[i] = 0.0;
 			}
-	        }
+		}
 
 		// PHIS - Surface Geopotential Height
 		if (_ncdfc->VariableExists("PHIS")){	
@@ -1546,7 +1546,13 @@ int NetCDFCFCollection::DerivedVar_AHSPC::Open(size_t ts) {
 }
 
 int NetCDFCFCollection::DerivedVar_AHSPC::Read(float *buf, int){
-	return(0);
+    float *ptr = buf;
+
+    int rc;
+    while ((rc = NetCDFCFCollection::DerivedVar_AHSPC::ReadSlice(ptr,0)) > 0) { 
+        ptr += _dims[0] * _dims[1];
+    }    
+    return(rc);	
 }
 
 int NetCDFCFCollection::DerivedVar_AHSPC::CalculateElevation() {

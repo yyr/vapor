@@ -43,7 +43,7 @@ bool ArrowParams::
 reinit(bool doOverride){
 
 	DataStatus* ds = DataStatus::getInstance();
-	
+	if (!ds->dataIsPresent2D() && !ds->dataIsPresent3D()) return false;
 	int totNumVariables = ds->getNumSessionVariables()+ ds->getNumSessionVariables2D();
 	if (totNumVariables <= 0) return false;
 	bool is3D = VariablesAre3D();
@@ -277,7 +277,7 @@ void ArrowParams::calcDataAlignment(double rakeExts[6], int rakeGrid[3],size_t t
 		rakeGrid[i] = rGrid[i];
 	}
 	size_t voxExts[6];
-	mapBoxToVox(dataMgr, -1,GetCompressionLevel(),timestep, voxExts);
+	mapBoxToVox(dataMgr, rakeExts, rakeExts+3, -1,GetCompressionLevel(),timestep, voxExts);
 	for (int i = 0; i<3; i++) {
 		corner[i] = voxExts[i];
 		farCorner[i] = voxExts[i+3];

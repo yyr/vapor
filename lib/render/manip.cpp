@@ -435,6 +435,7 @@ void TranslateStretchManip::drawBoxFaces(){
 	
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
+	glEnable(GL_LINE_SMOOTH);
 	glLineWidth( 2.0 );
 	glColor3f(1.f,0.f,0.f);
 	glBegin(GL_LINES);
@@ -470,7 +471,7 @@ void TranslateStretchManip::drawBoxFaces(){
 	glVertex3fv(corners[7]);
 	glEnd();
 	
-	
+	glEnable(GL_LINE_SMOOTH);
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
 
@@ -662,10 +663,12 @@ void TranslateStretchManip::drawHandleConnector(int handleNum, float* handleExte
 	if ((handleNum == selectedHandle) || (handleNum ==(5-selectedHandle))) 
 		glColor4fv(faceSelectionColor);
 	else glColor4fv(unselectedFaceColor);
+	glEnable(GL_LINE_SMOOTH);
 	glBegin(GL_LINES);
 	glVertex3f(0.5f*(handleExtents[3]+handleExtents[0])+handleDisp[0],0.5f*(handleExtents[4]+handleExtents[1])+handleDisp[1],0.5f*(handleExtents[5]+handleExtents[2])+handleDisp[2]);
 	glVertex3f(0.5f*(boxExtents[3]+boxExtents[0])+boxDisp[0],0.5f*(boxExtents[4]+boxExtents[1])+boxDisp[1],0.5f*(boxExtents[5]+boxExtents[2])+boxDisp[2]);
 	glEnd();
+	glDisable(GL_LINE_SMOOTH);
 	glDisable(GL_BLEND);
 }
 
@@ -733,6 +736,7 @@ void TranslateRotateManip::drawBoxFaces(){
 	//glEnable(GL_BLEND);
 	glLineWidth( 2.0 );
 	glColor3f(1.f,0.f,0.f);
+	glEnable(GL_LINE_SMOOTH);
 	glBegin(GL_LINES);
 	glVertex3fv(corners[0]);
 	glVertex3fv(corners[1]);
@@ -779,10 +783,8 @@ void TranslateRotateManip::drawBoxFaces(){
 	glVertex3fv(midCorners[3]);
 	glVertex3fv(midCorners[1]);
 	glEnd();
+	glEnable(GL_LINE_SMOOTH);
 
-	
-	
-	
 	glFlush();
 	//glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);

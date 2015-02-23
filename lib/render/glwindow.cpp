@@ -1400,6 +1400,7 @@ void GLWindow::draw3DCursor(const float position[3]){
 	ViewpointParams::localToStretchedCube(position, cubePosition);
 	glLineWidth(3.f);
 	glColor3f(1.f,1.f,1.f);
+	glEnable(GL_LINE_SMOOTH);
 	glBegin(GL_LINES);
 	glVertex3f(cubePosition[0]-0.05f,cubePosition[1],cubePosition[2]);
 	glVertex3f(cubePosition[0]+0.05f,cubePosition[1],cubePosition[2]);
@@ -1408,6 +1409,7 @@ void GLWindow::draw3DCursor(const float position[3]){
 	glVertex3f(cubePosition[0],cubePosition[1],cubePosition[2]-0.05f);
 	glVertex3f(cubePosition[0],cubePosition[1],cubePosition[2]+0.05f);
 	glEnd();
+	glDisable(GL_LINE_SMOOTH);
 }
 
 //
@@ -1642,7 +1644,7 @@ void GLWindow::renderDomainFrame(float* extents, float* minFull, float* maxFull)
 	//Do the lines in each z-plane
 	//Turn on writing to the z-buffer
 	glDepthMask(GL_TRUE);
-	
+	glEnable(GL_LINE_SMOOTH);		
 	glBegin( GL_LINES );
 	for (z = 0; z<=numLines[2]; z++){
 		float zCrd = modMin[2] + ((float)z/(float)numLines[2])*fullSize[2];
@@ -1705,7 +1707,7 @@ void GLWindow::renderDomainFrame(float* extents, float* minFull, float* maxFull)
 	}
 	
 	glEnd();//GL_LINES
-	
+	glDisable(GL_LINE_SMOOTH);
 	glPopAttrib();
 	
 
@@ -1743,6 +1745,7 @@ void GLWindow::drawSubregionBounds(float* extents) {
 	glPushAttrib(GL_CURRENT_BIT);
 	glLineWidth( 2.0 );
 	glColor3fv(subregionFrameColorFlt);
+	glEnable(GL_LINE_SMOOTH);
 	glBegin(GL_LINE_LOOP);
 	glVertex3f(extents[0], extents[1], extents[2]);
 	glVertex3f(extents[0], extents[1], extents[5]);
@@ -1767,6 +1770,7 @@ void GLWindow::drawSubregionBounds(float* extents) {
 	glVertex3f(extents[3], extents[1], extents[5]);
 	glVertex3f(extents[0], extents[1], extents[5]);
 	glEnd();
+	glDisable(GL_LINE_SMOOTH);
 	glPopAttrib();
 }
 
@@ -2098,6 +2102,7 @@ void GLWindow::drawAxisTics(int timestep){
 	glColor3f((float)axisColor.red()/255.f,(float)axisColor.green()/255.f, (float)axisColor.blue()/255.f);
 	glLineWidth(ticWidth);
 	//Draw lines on x-axis:
+	glBegin(GL_LINE_SMOOTH);
 	glBegin(GL_LINES);
 	glVertex3d(ticMin[0],origin[1],origin[2]);
 	glVertex3d(ticMax[0],origin[1],origin[2]);
@@ -2153,6 +2158,7 @@ void GLWindow::drawAxisTics(int timestep){
 		}
 	}
 	glEnd();
+	glDisable(GL_LINE_SMOOTH);
 	glPopAttrib();
 }
 
@@ -2172,6 +2178,7 @@ void GLWindow::drawAxisArrows(float* extents){
 	float len = maxLen*0.2f;
 	glColor3f(1.f,0.f,0.f);
 	glLineWidth( 4.0 );
+	glEnable(GL_LINE_SMOOTH);
 	glBegin(GL_LINES);
 	glVertex3fv(origin);
 	glVertex3f(origin[0]+len,origin[1],origin[2]);
@@ -2240,6 +2247,7 @@ void GLWindow::drawAxisArrows(float* extents){
 	glVertex3f(origin[0]+.1*len, origin[1], origin[2]+.8*len);
 	glEnd();
 	
+	glDisable(GL_LINE_SMOOTH);
 	// Revert to previous GL color state
 	glPopAttrib();
 }

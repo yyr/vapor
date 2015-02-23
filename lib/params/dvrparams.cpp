@@ -157,7 +157,7 @@ bool DvrParams::
 reinit(bool doOverride){
 	int i;
 	DataStatus* ds = DataStatus::getInstance();
-	
+	if (!ds->dataIsPresent3D()) return false;
 	int totNumVariables = ds->getNumSessionVariables();
 	//See if current varNum is valid.  It needs to correspond to data
 	//if not, reset to first variable that is present:
@@ -171,15 +171,8 @@ reinit(bool doOverride){
 			}
 		}
 	}
-	if (varNum == -1){
-		
-		for (i = 0; i<numVariables; i++){
-			delete transFunc[i];
-		}
-		delete [] transFunc;
-		numVariables = 0;
-		return false;
-	}
+	if (varNum == -1) return false;
+	
 	
 	//Set up the numRefinements. 
 	int maxNumRefinements = ds->getNumTransforms();

@@ -41,6 +41,7 @@
 #include "transferfunction.h"
 
 #include <vapor/common.h>
+#include <vapor/Version.h>
 
 using namespace VAPoR;
 	const string FlowParams::_shortName = "Flow";
@@ -241,7 +242,6 @@ restart() {
 	colorMapEntity.clear();
 	colorMapEntity.push_back("Constant");
 	colorMapEntity.push_back("Timestep");
-	colorMapEntity.push_back("Field Magnitude");
 	colorMapEntity.push_back("Seed Index");
 
 	
@@ -351,6 +351,7 @@ reinit(bool doOverride){
 	int i;
 	if(doOverride) restart();
 	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->dataIsPresent3D()) return false;
 	int nlevels = ds->getNumTransforms();
 	
 	setMaxNumTrans(nlevels);
@@ -445,25 +446,25 @@ reinit(bool doOverride){
 	int newNumComboVariables = ds->getNumActiveVariables3D();
 	
 	if (newNumVariables == 0 || newNumComboVariables == 0) return false;
-	//Rebuild map bounds arrays:
-	
-	if(minColorBounds) delete [] minColorBounds;
-	minColorBounds = new float[newNumComboVariables+4];
-	if(maxColorBounds) delete [] maxColorBounds;
-	maxColorBounds = new float[newNumComboVariables+4];
+	//Rebuild map bounds arrays if we are overriding:
+	if (doOverride){
+		if(minColorBounds) delete [] minColorBounds;
+		minColorBounds = new float[newNumComboVariables+3];
+		if(maxColorBounds) delete [] maxColorBounds;
+		maxColorBounds = new float[newNumComboVariables+3];
+	}
 	
 	
 	colorMapEntity.clear();
 	colorMapEntity.push_back("Constant");
 	colorMapEntity.push_back("Timestep");
-	colorMapEntity.push_back("Field Magnitude");
 	colorMapEntity.push_back("Seed Index");
 	
 	for (i = 0; i< newNumComboVariables; i++){
 		colorMapEntity.push_back(ds->getActiveVarName3D(i));
 	}
 	
-	if(doOverride || getColorMapEntityIndex() >= newNumComboVariables+4){
+	if(doOverride || getColorMapEntityIndex() >= newNumComboVariables+3){
 		setColorMapEntity(0);
 	}
 	if (doOverride){
@@ -559,17 +560,19 @@ reinit(bool doOverride){
 
 	
 	//Now set up bounds arrays based on current mapped variable settings:
-	for (i = 0; i< newNumComboVariables+4; i++){
-		minColorBounds[i] = minRange(i, minFrame);
-		maxColorBounds[i] = maxRange(i, minFrame);
+	if (doOverride){
+		for (i = 0; i< newNumComboVariables+3; i++){
+			minColorBounds[i] = minRange(i, minFrame);
+			maxColorBounds[i] = maxRange(i, minFrame);
+		}
 	}
 	
 	
 	//Create new edit bounds whether we override or not
-	float* newMinOpacEditBounds = new float[newNumComboVariables+4];
-	float* newMaxOpacEditBounds = new float[newNumComboVariables+4];
-	float* newMinColorEditBounds = new float[newNumComboVariables+4];
-	float* newMaxColorEditBounds = new float[newNumComboVariables+4];
+	float* newMinOpacEditBounds = new float[newNumComboVariables+3];
+	float* newMaxOpacEditBounds = new float[newNumComboVariables+3];
+	float* newMinColorEditBounds = new float[newNumComboVariables+3];
+	float* newMaxColorEditBounds = new float[newNumComboVariables+3];
 	//Either try to reuse existing transferFunction, or create a new one.
 	if (doOverride){ //create new ones:
 		//For now, assume 8-bits mapping
@@ -599,15 +602,15 @@ reinit(bool doOverride){
 		for (i = 0; i< newNumComboVariables; i++){
 			string varname = ds->getVariableName3D(i);
 			if (ds->variableIsPresent3D(i)){
-				newMinOpacEditBounds[i+4] = ds->getDefaultDataMin3D(i,usingVariable(varname));
-				newMaxOpacEditBounds[i+4] = ds->getDefaultDataMax3D(i,usingVariable(varname));
-				newMinColorEditBounds[i+4] = ds->getDefaultDataMin3D(i,usingVariable(varname));
-				newMaxColorEditBounds[i+4] = ds->getDefaultDataMin3D(i,usingVariable(varname));
+				newMinOpacEditBounds[i+3]= ds->getDefaultDataMin3D(i,usingVariable(varname));
+				newMaxOpacEditBounds[i+3] = ds->getDefaultDataMax3D(i,usingVariable(varname));
+				newMinColorEditBounds[i+3] = ds->getDefaultDataMin3D(i,usingVariable(varname));
+				newMaxColorEditBounds[i+3] = ds->getDefaultDataMin3D(i,usingVariable(varname));
 			} else {
-				newMinOpacEditBounds[i+4] = 0.f;
-				newMaxOpacEditBounds[i+4] = 1.f;
-				newMinColorEditBounds[i+4] = 0.f;
-				newMaxColorEditBounds[i+4] = 1.f;
+				newMinOpacEditBounds[i+3] = 0.f;
+				newMaxOpacEditBounds[i+3] = 1.f;
+				newMinColorEditBounds[i+3] = 0.f;
+				newMaxColorEditBounds[i+3] = 1.f;
 			}
 		} 
 
@@ -623,15 +626,15 @@ reinit(bool doOverride){
 		for (i = 0; i< newNumComboVariables; i++){
 			string varname = ds->getVariableName3D(i);
 			if (i >= numComboVariables){
-				newMinOpacEditBounds[i+4] = ds->getDefaultDataMin3D(i,usingVariable(varname));
-				newMaxOpacEditBounds[i+4] = ds->getDefaultDataMax3D(i,usingVariable(varname));
-				newMinColorEditBounds[i+4] = ds->getDefaultDataMin3D(i,usingVariable(varname));
-				newMaxColorEditBounds[i+4] = ds->getDefaultDataMax3D(i,usingVariable(varname));
+				newMinOpacEditBounds[i+3] = ds->getDefaultDataMin3D(i,usingVariable(varname));
+				newMaxOpacEditBounds[i+3] = ds->getDefaultDataMax3D(i,usingVariable(varname));
+				newMinColorEditBounds[i+3] = ds->getDefaultDataMin3D(i,usingVariable(varname));
+				newMaxColorEditBounds[i+3] = ds->getDefaultDataMax3D(i,usingVariable(varname));
 			} else {
-				newMinOpacEditBounds[i+4] = minOpacEditBounds[i+4];
-				newMaxOpacEditBounds[i+4] = maxOpacEditBounds[i+4];
-				newMinColorEditBounds[i+4] = minColorEditBounds[i+4];
-				newMaxColorEditBounds[i+4] = maxColorEditBounds[i+4];
+				newMinOpacEditBounds[i+3] = minOpacEditBounds[i+4];
+				newMaxOpacEditBounds[i+3] = maxOpacEditBounds[i+4];
+				newMinColorEditBounds[i+3] = minColorEditBounds[i+4];
+				newMaxColorEditBounds[i+3] = maxColorEditBounds[i+4];
 			}
 		} 
 		if (!transferFunction) transferFunction = new TransferFunction(this, 8);
@@ -1074,7 +1077,7 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 	
 	maxPoints = calcMaxPoints();
 
-	bool useSpeeds =  (getColorMapEntityIndex() == 2 );
+	bool useSpeeds =  false;
 	bool doRGBAs = (getColorMapEntityIndex() > 0);
 
 
@@ -1242,7 +1245,7 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 			//All points are kept in flow line data (steadyCache)
 			//Get some initial settings:
 			maxPoints = calcMaxPoints();
-			bool useSpeeds =  (getColorMapEntityIndex() == 2 );
+			bool useSpeeds =  false;
 			bool doRGBAs = (getColorMapEntityIndex() );
 			FlowLineData* flData1 = new FlowLineData(numLines, maxPoints, useSpeeds, steadyFlowDirection, doRGBAs); 
 			//Now set this up with seed points:
@@ -1282,7 +1285,7 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 			numLines += calcNumSeedPoints(i);
 		}
 		if (numLines <= 0) return 0;
-		bool useSpeeds = (getColorMapEntityIndex() == 2 );
+		bool useSpeeds = false;
 		bool doRGBAs = (getColorMapEntityIndex() > 0);
 		PathLineData* pathLines = new PathLineData(numLines, mPoints, useSpeeds, doRGBAs, minFrame, maxFrame, sampleRate);
 		// Now insert the seeds:
@@ -1741,20 +1744,18 @@ buildNode() {
 	
 	flowNode->AddChild(graphicNode);
 	//Create a node for each of the variables
-	for (int i = 0; i< numComboVariables+4; i++){
+	for (int i = 0; i< numComboVariables+3; i++){
 		map <string, string> varAttrs;
 		oss.str(empty);
-		if (i > 3){
-			oss << ds->getVariableName3D(i-4);
+		if (i > 2){
+			oss << ds->getVariableName3D(i-3);
 		} else {
 			if (i == 0) oss << "Constant";
 			else if (i == 1) oss << "Timestep";
-			else if (i == 2) oss << "FieldMagnitude";
-			else if (i == 3) oss << "SeedIndex";
+			else if (i == 2) oss << "SeedIndex";
 		}
 		varAttrs[_variableNameAttr] = oss.str();
 
-		
 		oss.str(empty);
 		oss << (double)minColorBounds[i];
 		varAttrs[_leftColorBoundAttr] = oss.str();
@@ -2099,6 +2100,14 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _colorMappedEntityAttr) == 0) {
 				int indx;
 				ist >> indx;
+				DataStatus* ds = DataStatus::getInstance();
+				const std::string& parsingVersion = ds->getSessionVersion();
+				int gt = Version::Compare(parsingVersion, "2.4.0");
+				//For sessions before 2.4 entity=2 was field magnitude.
+				// if the entity is > 3 then it's a variable index
+				// if the entity is 3 it's seed index (now 2)
+				// if the entity is 2, we will still use seed index.
+				if (gt < 0 && indx >= 3) indx --;
 				setColorMapEntity(indx);
 			}
 			else if (StrCmpNoCase(attribName, _opacityMappedEntityAttr) == 0) {
@@ -2173,10 +2182,10 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 		if(StrCmpNoCase(varName, "Constant") == 0) varNum = 0;
 		else 	if (StrCmpNoCase(varName, "Timestep") == 0) varNum = 1;
 		else 	if (StrCmpNoCase(varName, "FieldMagnitude") == 0) varNum = 2;
-		else 	if (StrCmpNoCase(varName, "SeedIndex") == 0) varNum = 3;
+		else 	if (StrCmpNoCase(varName, "SeedIndex") == 0) varNum = 2;
 		else {
-			varNum = 4+ DataStatus::getInstance()->mergeVariableName(varName);
-			if (varNum > numComboVariables+4) {
+			varNum = 3+ DataStatus::getInstance()->mergeVariableName(varName);
+			if (varNum > numComboVariables+3) {
 				pm->parseError("Invalid variable name in FlowParams: %s", varName.c_str());
 				return false;
 			}
@@ -2269,12 +2278,12 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		container->enableRGBAs();
 		
 	
-	if (getColorMapEntityIndex() > 3){
+	if (getColorMapEntityIndex() > 2) {
 		//set up args for GetGrid
 		//If flow is unsteady, just get the first available timestep  (BUG!!!)
 		int timeStep = currentTimeStep;
 		if(flowType == 1){//unsteady flow
-			timeStep = ds->getFirstTimestep(getColorMapEntityIndex()-4);
+			timeStep = ds->getFirstTimestep(getColorMapEntityIndex()-3);
 			if (timeStep < 0) {
 				MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"No data for flow mapped variable");
 				return;
@@ -2340,14 +2349,9 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 					else //type = 1:  time step
 						colorVar = (float)(minFrame + (float)pointNum/(float)objectsPerTimestep);
 					break;
-				case (2): //speed
-					//In case the speeds haven't been built yet:
-					if (container->doSpeeds())
-						colorVar = container->getSpeed(lineNum,pointNum);
-					else colorVar = 0.f;
-					break;
+				
 
-				case (3) : //seed index.  Will use same color along each line
+				case (2) : //seed index.  Will use same color along each line
 
 					colorVar = container->getSeedIndex(lineNum);
 					break;
@@ -2399,7 +2403,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 void FlowParams::
 mapUnsteadyColors(PathLineData* container, int startTimeStep, int minFrame, RegionParams* rParams){
 	//Only do this if there is a color variable to be mapped:
-	if(getColorMapEntityIndex() <= 3 ){
+	if(getColorMapEntityIndex() <= 2){
 		mapColors(container,startTimeStep,minFrame, rParams);
 		return;
 	}
@@ -2658,11 +2662,11 @@ float FlowParams::minRange(int index, int timestep){
 				return 0.f;
 			}
 			else return ((float)ds->getMinTimestep());
-		case (2): return (0.f);// minimum speed
-		case (3): //seed index.  Goes from 0 to num seedsp
+		
+		case (2): //seed index.  Goes from 0 to num seedsp
 			return (0.f );
 		default:
-			int varnum = DataStatus::mapActiveToSessionVarNum3D(index -4);
+			int varnum = DataStatus::mapActiveToSessionVarNum3D(index -3);
 			string varname = ds->getVariableName3D(varnum);
 			if (ds->getDataMgr() && ds->variableIsPresent3D(varnum)){
 				return(ds->getDefaultDataMin3D(varnum,usingVariable(varname)));
@@ -2681,24 +2685,12 @@ float FlowParams::maxRange(int index, int timestep){
 			}
 			//unsteady:
 			return (float)maxFrame;
-		case (2): //speed
-			for (int k = 0; k<3; k++){
-				int var;
-				if (flowIsSteady()) var = steadyVarNum[k];
-				else var = unsteadyVarNum[k];
-				if (var == 0) continue;
-				string varname = ds->getVariableName3D(var-1);
-				if (maxSpeed < fabs(ds->getDefaultDataMax3D(var-1,usingVariable(varname))))
-					maxSpeed = fabs(ds->getDefaultDataMax3D(var-1,usingVariable(varname)));
-				if (maxSpeed < fabs(ds->getDefaultDataMin3D(var-1,usingVariable(varname))))
-					maxSpeed = fabs(ds->getDefaultDataMin3D(var-1,usingVariable(varname)));
-			}
-			return maxSpeed;
-		case (3): // seed Index, from 0 to numseeds-1
+		
+		case (2): // seed Index, from 0 to numseeds-1
 			
 			return (doRake ? (float)getNumRakeSeedPoints()-1 :(float)(getNumListSeedPoints()-1));
 		default:
-			int varnum = DataStatus::mapActiveToSessionVarNum3D(index -4);
+			int varnum = DataStatus::mapActiveToSessionVarNum3D(index -3);
 			string varname = ds->getVariableName3D(varnum);
 			if (ds->getDataMgr() && ds->variableIsPresent3D(varnum)){
 				return( ds->getDefaultDataMax3D(varnum,usingVariable(varname)));
@@ -3091,7 +3083,7 @@ bool FlowParams::multiAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** stea
 	//One-line Fix for bug 1680062 in 1.1.0:
 	int numSeedPoints = calcNumSeedPoints(seedTimeStart);
 	maxPoints = calcMaxPoints();
-	bool useSpeeds =  (getColorMapEntityIndex() == 2);
+	bool useSpeeds =  false;
 	bool doRGBAs = (getColorMapEntityIndex() > 0);
 
 	//  Previous cache should already exist:
@@ -3532,7 +3524,7 @@ hookupTF(TransferFunction* tf, int index){
 	
 }
 int FlowParams::getSessionVarNum() { 
-	int varIndex = (getColorMapEntityIndex()-4);
+	int varIndex = (getColorMapEntityIndex()-3);
 	if (varIndex < 0) return varIndex;
 	return(DataStatus::getInstance()->mapActiveToSessionVarNum3D(varIndex));
 }

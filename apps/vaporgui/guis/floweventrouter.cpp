@@ -780,11 +780,11 @@ void FlowEventRouter::updateTab(){
 	//These should be the actual range of the variables
 	int var = fParams->getColorMapEntityIndex();
 	int tstep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	if (var<4){
+	if (var<3){
 		minColorBound->setText(QString::number(fParams->minRange(var, tstep)));
 		maxColorBound->setText(QString::number(fParams->maxRange(var, tstep)));
 	} else {
-		int varnum = DataStatus::mapActiveToSessionVarNum3D(var -4);
+		int varnum = DataStatus::mapActiveToSessionVarNum3D(var -3);
 		float minval= -1.f, maxval = 1.f;
 		if (dStatus->variableIsPresent3D(varnum)){
 			if (fParams->isEnabled()){
@@ -1019,11 +1019,13 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			}
 		}
 		float seedDistBias = biasEdit1->text().toFloat();
-		if (seedDistBias < -15.f || seedDistBias > 15.f) seedDistBias = 0.f;
+		if (seedDistBias < -15.f ) seedDistBias = -15.;
+		if (seedDistBias > 15.f )seedDistBias = 15.;
 		int bval = (int)(0.5+ seedDistBias*128.f/15.f);
 		if (bval != biasSlider1->value()){
 			biasSlider1->setTracking(false);
 			biasSlider1->setSliderPosition(bval);
+			biasEdit1->setText(QString::number(seedDistBias));
 			biasSlider1->setTracking(true);
 		}
 		fParams->setSeedDistBias(seedDistBias);
@@ -1494,7 +1496,6 @@ reinitTab(bool doOverride){
 	colorMapEntity.clear();
 	colorMapEntity.push_back("Constant");
 	colorMapEntity.push_back("Timestep");
-	colorMapEntity.push_back("Field Magnitude");
 	colorMapEntity.push_back("Seed Index");
 	
 	for (int i = 0; i< newNumComboVariables; i++){
@@ -2252,13 +2253,10 @@ guiSetColorMapEntity( int entityNum){
 	
 	updateTab();
 	update();
-	//We only need to redo the flowData if the entity is changing to "speed"
-	//or if it changes to another variable:
-	if(entityNum == 2) {
-		VizWinMgr::getInstance()->setFlowDataDirty(fParams);
-		if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	}
-	else VizWinMgr::getInstance()->setFlowGraphicsDirty(fParams);
+	//We only need to redo the flow color if
+	//the entity changes
+	
+	VizWinMgr::getInstance()->setFlowGraphicsDirty(fParams);
 }
 //When the user clicks "refresh", 
 //This triggers a rebuilding of all dirty frames 
@@ -3328,8 +3326,8 @@ refreshHisto(){
 		return;
 	}
 	int varnum = dParams->getColorMapEntityIndex();
-	if (varnum < 4)return; //not a variable
-	int sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum -4);
+	if (varnum < 3)return; //not a variable
+	int sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum -3);
 	DataMgr* dataManager = Session::getInstance()->getDataMgr();
 	float datarange[2];
 	datarange[0] = dParams->getMinColorMapBound();
@@ -3351,9 +3349,23 @@ void FlowEventRouter::guiFitTFToData(){
 
 	
 	int varnum = pParams->getColorMapEntityIndex();
-	float minBound = pParams->minRange(varnum,ts);
-	float maxBound = pParams->maxRange(varnum,ts);
+	float minBound = 0;
+	float maxBound = 1.;
+	if (varnum > 2) {
+		varnum -= 3;
+		//Get bounds from DataStatus:
+		minBound = ds->getDataMin3D(varnum,ts);
+		maxBound = ds->getDataMax3D(varnum,ts);
 	
+		if (minBound > maxBound){ //no data
+			maxBound = 1.f;
+			minBound = 0.f;
+		}
+	
+	} else {
+		minBound = pParams->minRange(varnum,ts);
+		maxBound = pParams->maxRange(varnum,ts);
+	}
 	((TransferFunction*)pParams->GetMapperFunc())->setMinMapValue(minBound);
 	((TransferFunction*)pParams->GetMapperFunc())->setMaxMapValue(maxBound);
 	PanelCommand::captureEnd(cmd, pParams);

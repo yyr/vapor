@@ -55,7 +55,7 @@ void Copy2VDF::Usage(OptionParser &op, const char * msg) {
 	if (msg) {
         cerr << _progname << " : " << msg << endl;
 	}
-    cerr << "Usage: " << _progname << " [options] ncdf_file... vdf_file" << endl;
+    cerr << "Usage: " << _progname << " [options] input_file(s)... vdf_file" << endl;
 	op.PrintOptionHelp(stderr, 80, false);
 
 }
@@ -302,7 +302,7 @@ int Copy2VDF::CopyVar(
 ) {
 	if (DCData->OpenVariableRead(ncdfTS, ncdfVar) < 0) {
 		MyBase::SetErrMsg(
-			"Failed to open netCDF variable \"%s\" at time step %d",
+			"Failed to open input data variable \"%s\" at time step %d",
 			ncdfVar.c_str(), ncdfTS
 		);
 		return(-1);
@@ -337,7 +337,7 @@ int Copy2VDF::CopyVar(
 		}
 		if (rc<0) {
 			MyBase::SetErrMsg(
-				"Error reading netCDF variable \"%s\" at time step %d",
+				"Error reading input data variable \"%s\" at time step %d",
 				ncdfVar.c_str(), ncdfTS
 			);
 			break;
@@ -369,11 +369,11 @@ void Copy2VDF::deleteObjects(){
 	DCData = NULL;
 }
 
-int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
+int Copy2VDF::launch2vdf(int argc, char **argv, string dataType, DCReader *optionalReader) {
 
 	OptionParser::OptDescRec_T	set_opts[] = {
 		{"vars",1,    "",	"Colon delimited list of variables to be copied "
-			"from ncdf data. The default is to copy all 2D and 3D variables"},
+			"from input data. The default is to copy all 2D and 3D variables"},
 		{
 			"numts",	1,	"-1",	"Maximum number of time steps that may be "
 			"converted. A -1 implies the conversion of all time steps found"
@@ -382,20 +382,6 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 			"startts",	1,	"0",	"Offset of first time step in netCDF files "
 			" to be converted"
 		},
-		{"level",   1,  "-1","Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
-		{"lod", 1,  "-1",   "Compression levels saved. 0 => coarsest, 1 => "
-			"next refinement, etc. -1 => all levels defined by the .vdf file"},
-		{"nthreads",1,  "0",    "Number of execution threads (0 => # processors)"},
-		{"help",	0,	"",	"Print this message and exit"},
-		{"quiet",	0,	"",	"Operate quietly"},
-		{"debug",	0,	"",	"Turn on debugging"},
-		{NULL}
-	};
-
-
-	OptionParser::OptDescRec_T	grib_opts[] = {
-		{"vars",1,    "",	"Colon delimited list of variables to be copied "
-			"from ncdf data. The default is to copy all 2D and 3D variables"},
 		{"level",   1,  "-1","Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
 		{"lod", 1,  "-1",   "Compression levels saved. 0 => coarsest, 1 => "
 			"next refinement, etc. -1 => all levels defined by the .vdf file"},
@@ -423,9 +409,10 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
     MyBase::SetErrMsgFilePtr(stderr);
 
     _progname = Basename(argv[0]);
-
 	OptionParser op;
-	if (!strcmp(dataType.c_str(),"GRIMs")){
+
+#ifdef DEAD
+	if (!strcmp(dataType.c_str(),"GRIB")){
 		if (op.AppendOptions(grib_opts) < 0) {
 			return(-1);
 		}
@@ -435,7 +422,9 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 			return(-1);
 		}
 	}
-	
+#endif
+
+	op.AppendOptions(set_opts);
 
     if (op.ParseOptions(&argc, argv, get_options) < 0) {
 		return(-1);
@@ -464,9 +453,10 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 	}
 	string metafile = argv[argc-1];
 	
+	if (optionalReader != NULL) DCData = optionalReader;
 	if (DCData==NULL){
 		if ((dataType == "ROMS") || (dataType == "CAM")) DCData = new DCReaderROMS(ncdffiles); 
-		else if (dataType == "GRIMs") DCData = new DCReaderGRIB(ncdffiles);
+		else if (dataType == "GRIB") DCData = new DCReaderGRIB(ncdffiles);
 		else DCData = new DCReaderMOM(ncdffiles);
 	}
 

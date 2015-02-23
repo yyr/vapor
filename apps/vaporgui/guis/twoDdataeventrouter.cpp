@@ -396,7 +396,7 @@ void TwoDDataEventRouter::updateTab(){
 
     
 	//And the center sliders/textboxes:
-	float boxmin[3],boxmax[3],boxCenter[3];
+	double boxmin[3],boxmax[3],boxCenter[3];
 	
 	twoDParams->getLocalBox(boxmin, boxmax);
 	for (int i = 0; i<3; i++) boxCenter[i] = (boxmax[i]+boxmin[i])*0.5f + tvExts[i];
@@ -424,14 +424,20 @@ void TwoDDataEventRouter::updateTab(){
 	
 	size_t gridExts[6];
 	if (dataMgr ){
-		twoDParams->mapBoxToVox(dataMgr,twoDParams->GetRefinementLevel(),twoDParams->GetCompressionLevel(),currentTimeStep,gridExts);
+		twoDParams->mapBoxToVox(dataMgr,boxmin, boxmax, twoDParams->GetRefinementLevel(),twoDParams->GetCompressionLevel(),currentTimeStep,gridExts);
 		
+		if (dataMgr->GetGridType() == "layered") {
+			minGridZLabel->setText("");
+			maxGridZLabel->setText("");
+		} else {
+			minGridZLabel->setText(QString::number(gridExts[2]));
+			maxGridZLabel->setText(QString::number(gridExts[5]));
+		}
 		minGridXLabel->setText(QString::number(gridExts[0]));
 		minGridYLabel->setText(QString::number(gridExts[1]));
-		minGridZLabel->setText(QString::number(gridExts[2]));
+		
 		maxGridXLabel->setText(QString::number(gridExts[3]));
 		maxGridYLabel->setText(QString::number(gridExts[4]));
-		maxGridZLabel->setText(QString::number(gridExts[5]));
 	}
 	
     //Provide latlon box extents if available:
@@ -1180,7 +1186,7 @@ guiChangeVariable(int varnum){
 		
 		if (i == varnum){
 			tParams->setVariableSelected(svnum,true);
-			firstVar = varnum;
+			firstVar = svnum;
 		}
 		else 
 			tParams->setVariableSelected(svnum,false);

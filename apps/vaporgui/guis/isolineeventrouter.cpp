@@ -363,26 +363,36 @@ void IsolineEventRouter::updateTab(){
 		dboxmax[i] = maxcrd;
 	}
 	//Now convert to user coordinates
+	for (int i = 0; i<3; i++){
+		dboxmin[i] += userExts[i];
+		dboxmax[i] += userExts[i];
+	}
 
-	minUserXLabel->setText(QString::number(userExts[0]+dboxmin[0]));
-	minUserYLabel->setText(QString::number(userExts[1]+dboxmin[1]));
-	minUserZLabel->setText(QString::number(userExts[2]+dboxmin[2]));
-	maxUserXLabel->setText(QString::number(userExts[0]+dboxmax[0]));
-	maxUserYLabel->setText(QString::number(userExts[1]+dboxmax[1]));
-	maxUserZLabel->setText(QString::number(userExts[2]+dboxmax[2]));
+	minUserXLabel->setText(QString::number(dboxmin[0]));
+	minUserYLabel->setText(QString::number(dboxmin[1]));
+	minUserZLabel->setText(QString::number(dboxmin[2]));
+	maxUserXLabel->setText(QString::number(dboxmax[0]));
+	maxUserYLabel->setText(QString::number(dboxmax[1]));
+	maxUserZLabel->setText(QString::number(dboxmax[2]));
 
 	//And convert these to grid coordinates:
 	
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (dataMgr && showLayout){
-		isolineParams->mapBoxToVox(dataMgr,isolineParams->GetRefinementLevel(),isolineParams->GetCompressionLevel(),timestep,gridExts);
+		isolineParams->mapBoxToVox(dataMgr,dboxmin, dboxmax,isolineParams->GetRefinementLevel(),isolineParams->GetCompressionLevel(),timestep,gridExts);
 		
+		if (dataMgr->GetGridType() == "layered") {
+			minGridZLabel->setText("");
+			maxGridZLabel->setText("");
+		} else {
+			minGridZLabel->setText(QString::number(gridExts[2]));
+			maxGridZLabel->setText(QString::number(gridExts[5]));
+		}
 		minGridXLabel->setText(QString::number(gridExts[0]));
 		minGridYLabel->setText(QString::number(gridExts[1]));
-		minGridZLabel->setText(QString::number(gridExts[2]));
+		
 		maxGridXLabel->setText(QString::number(gridExts[3]));
 		maxGridYLabel->setText(QString::number(gridExts[4]));
-		maxGridZLabel->setText(QString::number(gridExts[5]));
 	}
 	vector<double>ivalues = isolineParams->GetIsovalues();
 	//find min and max
@@ -476,16 +486,26 @@ void IsolineEventRouter::updateTab(){
 	if (isolineParams->VariablesAre3D()){
 		sesVarNum = ds->getSessionVariableNum3D(isolineParams->GetVariableName());
 		activeVarNum = ds->getActiveVarNum3D(isolineParams->GetVariableName());
-		minDataBound->setText(QString::number(ds->getDataMin3D(sesVarNum,timestep)));
-		maxDataBound->setText(QString::number(ds->getDataMax3D(sesVarNum,timestep)));
+		if (isolineParams->isEnabled()){
+			minDataBound->setText(QString::number(ds->getDataMin3D(sesVarNum,timestep)));
+			maxDataBound->setText(QString::number(ds->getDataMax3D(sesVarNum,timestep)));
+		} else {
+			minDataBound->setText(QString::number(ds->getDefaultDataMin3D(sesVarNum)));
+			maxDataBound->setText(QString::number(ds->getDefaultDataMax3D(sesVarNum)));
+		}
 		copyToProbeButton->setText("Copy to Probe");
 		copyToProbeButton->setToolTip("Click to make the current active Probe display these contour lines as a color contour plot");
 	}
 	else {
 		sesVarNum = ds->getSessionVariableNum2D(isolineParams->GetVariableName());
 		activeVarNum = ds->getActiveVarNum2D(isolineParams->GetVariableName());
-		minDataBound->setText(QString::number(ds->getDataMin2D(sesVarNum,timestep)));
-		maxDataBound->setText(QString::number(ds->getDataMax2D(sesVarNum,timestep)));
+		if (isolineParams->isEnabled()){
+			minDataBound->setText(QString::number(ds->getDataMin2D(sesVarNum,timestep)));
+			maxDataBound->setText(QString::number(ds->getDataMax2D(sesVarNum,timestep)));
+		} else {
+			minDataBound->setText(QString::number(ds->getDefaultDataMin2D(sesVarNum)));
+			maxDataBound->setText(QString::number(ds->getDefaultDataMax2D(sesVarNum)));
+		}
 		copyToProbeButton->setText("Copy to 2D");
 		copyToProbeButton->setToolTip("Click to make the current active 2D Data display these contour lines as a color contour plot");
 	}
@@ -551,6 +571,8 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	IsolineParams* isolineParams = VizWinMgr::getActiveIsolineParams();
 	PanelCommand* cmd = PanelCommand::captureStart(isolineParams, "edit Contours text");
 	QString strn;
+
+	setIgnoreBoxSliderEvents(true);
 	if (isolineParams->VariablesAre3D()){
 		float thetaVal = thetaEdit->text().toFloat();
 		while (thetaVal > 180.f) thetaVal -= 360.f;
@@ -707,6 +729,7 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	//
 	guiSetTextChanged(false);
 	PanelCommand::captureEnd(cmd, isolineParams);
+	setIgnoreBoxSliderEvents(false);
 	updateTab();
 }
 
@@ -1409,22 +1432,17 @@ guiChangeVariable(int varnum){
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	confirmText(false);
 	IsolineParams* pParams = VizWinMgr::getActiveIsolineParams();
-	DataStatus* ds = DataStatus::getInstance();
-	int ts = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentTimestep();
+	
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "change contours-selected variable");
 	
 	int activeVar = variableCombo->currentIndex();
-	float minval, maxval;
+	
 	if (pParams->VariablesAre3D()){
 		const string& varname = DataStatus::getActiveVarName3D(activeVar);
-		minval = ds->getDataMin3D(activeVar,ts);
-		maxval = ds->getDataMax3D(activeVar,ts);
 		pParams->SetVariableName(varname);
 	}
 	else {
 		const string& varname = DataStatus::getActiveVarName2D(activeVar);
-		minval = ds->getDataMin2D(activeVar,ts);
-		maxval = ds->getDataMax2D(activeVar,ts);
 		pParams->SetVariableName(varname);
 	}
 	
@@ -2536,9 +2554,9 @@ guiEndChangeIsoSelection(){
 	if (minIso != prevIsoMin || maxIso != prevIsoMax){
 		//If the isovalues are new and the new values are not inside the histo bounds, respecify the bounds
 		float newHistoBounds[2];
-		if (minIso <= bnds[0] || maxIso >= bnds[1]){
-			newHistoBounds[0]=maxIso - 1.1*(maxIso-minIso);
-			newHistoBounds[1]=minIso + 1.1*(maxIso-minIso);
+		if (minIso < bnds[0] || maxIso > bnds[1]){
+			newHistoBounds[0]=maxIso;
+			newHistoBounds[1]=minIso;
 			iParams->SetHistoBounds(newHistoBounds);
 		}
 	} else {
@@ -2910,12 +2928,20 @@ void IsolineEventRouter::guiSpaceIsovalues(){
 	IsolineParams* iParams = VizWinMgr::getActiveIsolineParams();
 	const vector<double>& isoVals = iParams->GetIsovalues();
 	int numIsos = isoVals.size();
-	if (numIsos <= 1) return;
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "Space isovalues uniformly");
 
-	double minIso = (double)minIsoEdit->text().toDouble();
-	double interval = (double)isoSpaceEdit->text().toDouble();
+	float bounds[2];
+	double minIso, interval;
+	iParams->GetHistoBounds(bounds);
+	if (numIsos == 1) {
+		interval = 0.;
+		minIso = 0.5*(bounds[0]+bounds[1]);
+	} else {
+		minIso = bounds[0];
+		interval = (bounds[1]-bounds[0])/(numIsos-1);
+	}
+
 	iParams->spaceIsovals(minIso,interval);
 	
 	PanelCommand::captureEnd(cmd, iParams);

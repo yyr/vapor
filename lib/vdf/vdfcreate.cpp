@@ -39,7 +39,7 @@ void vdfcreate::Usage(OptionParser &op, const char * msg) {
 	if (msg) {
         cerr << _progname << " : " << msg << endl;
 	}
-    cerr << "Usage: " << _progname << " [options] ncdf_file... vdf_file" << endl;
+    cerr << "Usage: " << _progname << " [options] input_file(s)... vdf_file" << endl;
 	op.PrintOptionHelp(stderr, 80, false);
 }
 
@@ -143,30 +143,19 @@ MetadataVDC *vdfcreate::CreateMetadataVDC(
 
 	// Copy values over from DCReader to MetadataVDC.
 	// Add checking of return values and error messsages.
-	//
-	int numTimeSteps;
-    if (_numTS == -1) numTimeSteps = DCdata->GetNumTimeSteps();
-	else numTimeSteps = _numTS;
-	if(file->SetNumTimeSteps(numTimeSteps)) {
+    _numTS = DCdata->GetNumTimeSteps();
+	if(file->SetNumTimeSteps(_numTS)) {
 		file->SetErrMsg(2,"Error populating NumTimeSteps.");
 		return (NULL);
-		//exit(1);
 	}
 
     vector <double> usertime;
-	double delta = 1;
-	if (_numTS != -1) {		// -fastMode is engaged
-  		delta = DCdata->GetTSUserTime(1) - DCdata->GetTSUserTime(0);
-    }
 
-	for(int t = 0; t < numTimeSteps; t++) {
+	for(int t = 0; t < _numTS; t++) {
 
         usertime.clear();
 
-		if (_numTS == -1)				// normal operation
-        	usertime.push_back(DCdata->GetTSUserTime(t));
-        else							// apply -fastMode timestamp
-			usertime.push_back(DCdata->GetTSUserTime(0) + delta*t);
+        usertime.push_back(DCdata->GetTSUserTime(t));
 
 		if(file->SetTSUserTime(t, usertime)) {
             file->SetErrMsg(1,"Error populating TSUserTime.");
@@ -226,7 +215,7 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 
 	OptionParser::OptDescRec_T	set_opts[] = {
 		{"vars",1,    "",	"Colon delimited list of variables to be copied "
-			"from ncdf data. The default is to copy all 2D and 3D variables"},
+			"from the input data. The default is to copy all 2D and 3D variables"},
 		{"help",	0,	"",	"Print this message and exit"},
 		{"quiet",	0,	"",	"Operate quietly"},
 		{"debug",   0,  "", "Turn on debugging"},
@@ -243,7 +232,7 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 		{NULL}
 	};
 
-	/*if (NetCDFtype == "GRIMs") {
+	/*if (NetCDFtype == "GRIB") {
 		OptionParser::OptDescRec_T fm1 = {"fastMode",1,  "-1", "Enable fast mode.  Argument is the number of "
              "timesteps to be converted.  All files must contain the same "
              "variables, and have equal time increments (30 min, hourly, "
@@ -323,7 +312,7 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 	}
 	
     if ((NetCDFtype == "ROMS") || (NetCDFtype == "CAM")) DCdata = new DCReaderROMS(ncdffiles);
-    else if (NetCDFtype == "GRIMs") {
+    else if (NetCDFtype == "GRIB") {
 		DCdata = new DCReaderGRIB(ncdffiles);
 	}
 	else if (NetCDFtype == "WRF") {
