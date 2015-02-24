@@ -102,28 +102,35 @@ void PythonPipeLine::initialize(){
 	// Specify some standard imports
 	if(initialized) return;
 	char* pyhome2 = 0;
+	//Always set PYTHONHOME to VAPOR_PYTHONHOME, if it is set
 	char* pyhome = getenv("VAPOR_PYTHONHOME");
-#ifdef _WINDOWS
 	if (pyhome) Py_SetPythonHome(pyhome);
-#else
-	if (pyhome) if (putenv(pyhome)!= 0) MyBase::SetErrMsg("failed to set PYTHONHOME = %s", pyhome);
-#endif
-
 	else {
-		vector<string> pths;
-		pths.push_back("python2.7");
-		string phome = GetAppPath("VAPOR","lib", pths, true);
-		pyhome2 = new char[phome.length()+1];
-		strncpy(pyhome2,phome.c_str(),phome.length()+1);
-		//Note:  Python seems very picky about the strings accepted for this.
-		//It must remain for a while (at least until after Py_Initialize is called).
-		//It's also important to use forward slashes even on Windows.
+		char* pyset = getenv("PYTHONHOME");
+		if(!pyset) { //neither PYTHONHOME nor VAPOR_PYTHONHOME are set:
+			//Set pythonhome to the vapor installation (based on VAPOR_HOME)
+			vector<string> pths;
+//On windows use VAPOR_HOME/lib/python2.7; VAPOR_HOME works on Linux and Mac
 #ifdef _WINDOWS
-		Py_SetPythonHome(pyhome2);
+			pths.push_back("python2.7");
+			string phome = GetAppPath("VAPOR","lib", pths, true);
 #else
-		if (putenv(pyhome2)!= 0) MyBase::SetErrMsg("failed to set PYTHONHOME = %s", pyhome2);
+			string phome = GetAppPath("VAPOR","", pths, true);
+			//On linux this is VAPOR_HOME;
+			//On MacOS this is VAPOR/VAPOR.app/Contents/MacOS/
 #endif
-
+			pyhome2 = new char[phome.length()+1];
+			strncpy(pyhome2,phome.c_str(),phome.length()+1);
+			// if VAPOR_HOME is not set, then don't set PYTHONHOME either
+			if (phome.length() > 0){
+				//Note:  Python seems very picky about the strings accepted for this.
+				//It must remain for a while (at least until after Py_Initialize is called).
+				//It's also important to use forward slashes even on Windows.
+				printf("Setting PYTHONHOME in the vaporgui app to %s\n", pyhome2);
+				Py_SetPythonHome(pyhome2);
+				char* newhome = Py_GetPythonHome();
+			}
+		}
 	}
 	PyImport_AppendInittab((char*)"vapor",&(PythonPipeLine::initvapor));
 		
