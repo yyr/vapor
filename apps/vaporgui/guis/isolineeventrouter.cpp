@@ -420,7 +420,7 @@ void IsolineEventRouter::updateTab(){
 	textSizeEdit->setText(QString::number(isolineParams->GetTextSize()));
 	double den = isolineParams->GetTextDensity();
 	densityEdit->setText(QString::number(isolineParams->GetTextDensity()));
-	int sliderVal = den*256.;
+	int sliderVal = (int) (den*256.);
 	int sval = densitySlider->value();
 	if (sval != sliderVal) densitySlider->setValue(sliderVal);
 
@@ -685,7 +685,7 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	if (textDensity <= 0. || textDensity > 1.) textDensity = 0.0;
 	
 	isolineParams->SetTextDensity(textDensity);
-	int sliderVal = textDensity*256.;
+	int sliderVal = (int) (textDensity*256.);
 	int sval = densitySlider->value();
 	if (sval != sliderVal) densitySlider->setValue(sliderVal);
 

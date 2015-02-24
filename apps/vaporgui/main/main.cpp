@@ -132,8 +132,7 @@ int main( int argc, char ** argv ) {
         msg += "Unset the VAPOR_PYTHONHOME environment variable to revert to the installed ";
         msg += "VAPOR " + pythonversion + " environment.";
         QMessageBox::warning(0,"VAPOR_PYTHONHOME warning", msg.c_str());
-    } 
-                               
+    }                          
 #endif
     app = &a;
     a.setPalette(QPalette(QColor(233,236,216), QColor(233,236,216)));

@@ -727,7 +727,7 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 	
 	float g = (float)gridSize;
 	if (g < 2*A) g = 2*A;
-	int annotSpace = (2- g/A) + (g/A -1.f)/iParams->GetTextDensity();
+	int annotSpace = (int) ((2- g/A) + (g/A -1.f)/iParams->GetTextDensity());
 	int numAnnotations = 0;
 	markerBit.clear();
 	for (int comp = 0; comp<numComponents; comp++){

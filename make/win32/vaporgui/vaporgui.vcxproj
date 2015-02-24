@@ -21,6 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2A421CB7-58B3-3747-A570-E36BF03CEA3F}</ProjectGuid>
     <RootNamespace>vaporgui</RootNamespace>
+    <ProjectName>vaporgui</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

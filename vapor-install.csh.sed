@@ -144,6 +144,7 @@ set new4 = "sharedir=$sharedir"
 $sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#$new3#" -e "s#$old4#$new4#"< $dir/vapor-setup.sh >! $dir/vapor-setup.tmp
 /bin/mv $dir/vapor-setup.tmp $dir/vapor-setup.sh
 
+
 #
 # Set DT_RUNPATH for all binary executables and shared libs on Linux
 # platforms
@@ -154,9 +155,8 @@ $sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#
 # dependencies. N.B. patchelf doesn't work with symlinks either.
 #
 if ("$arch" == "Linux") then
-#    foreach f ($directory/bin/* $directory/lib/*)
     foreach f ($directory/bin/*)
-        file -L $f | grep ELF | grep -q "not stripped"
+        file -L $f | grep -q ELF 
         if ( $status == 0 && ! -l $f && $f != $directory/bin/patchelf) then
             $directory/bin/patchelf --set-rpath $directory/lib $f
         endif
@@ -164,11 +164,13 @@ if ("$arch" == "Linux") then
 
 	#
 	# now do libraries  and plugins
+	# N.B. Apparent bug in patchelf prevents editing of libexpat
+	# and libpng. Fortunately, these libraries do not have 
+	# dependencies in vapor installation tree
 	#
     foreach f (`find $directory/lib $directory/plugins -name \*.so -o -name \*.so.\*`)
-        #file -L $f | grep -q ELF 
-        file -L $f | grep ELF | grep -q "not stripped"
-        if ( $status == 0 && ! -l $f ) then
+        file -L $f | grep -q ELF 
+        if ( $status == 0 && ! -l $f && $f !~ "*libexpat.so*" && $f !~ "*libpng*") then
             $directory/bin/patchelf --set-rpath $directory/lib $f
         endif
     end
