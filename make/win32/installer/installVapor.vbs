@@ -39,6 +39,8 @@ End if
 sysenv("IDL_DLM_PATH") = vaporbin & idlpath 
 
 'Create shortcuts on Desktop and Program Menu
+'Note that these shortcuts only work with the 32-bit installer.
+'The 64 bit installer puts the shortcuts into itself, not using VBS
 
 DesktopPath = shell.SpecialFolders("Desktop")
 Set link = shell.CreateShortcut(DesktopPath & "\vaporgui.lnk")
