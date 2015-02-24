@@ -44,9 +44,7 @@ if  posn <> 0 Then
 	SysEnv("IDL_DLM_PATH") = idlpath
 Else 
 	posn = inStr(idlpath, vaporidl)
-	if posn = 0 Then
-		MsgBox("Unable to remove VAPOR from IDL_DLM_PATH")
-	Else
+	if posn <> 0 Then
 		idlpath = Replace(idlpath, vaporidl, "")
 		if idlpath = "" Then
 			SysEnv.Remove("IDL_DLM_PATH")
@@ -55,3 +53,29 @@ Else
 		End If
 	End If
 End If
+
+Set fso = CreateObject("Scripting.FileSystemObject")
+
+'Delete shortcuts to vaporgui
+DesktopPath = shell.SpecialFolders("Desktop")
+if (fso.FileExists(DesktopPath & "\vaporgui.lnk")) then
+    fso.DeleteFile (DesktopPath & "\vaporgui.lnk")
+end if
+if (fso.FileExists(DesktopPath & "\vdcwizard.lnk")) then
+    fso.DeleteFile (DesktopPath & "\vdcwizard.lnk")
+end if
+    
+if(allUserProp) then
+    ProgramPath = shell.SpecialFolders("AllUsersPrograms")
+else
+    ProgramPath = shell.SpecialFolders("Programs")
+end if
+
+if (fso.FileExists(ProgramPath & "\vaporgui.lnk")) then
+    fso.DeleteFile (ProgramPath & "\vaporgui.lnk")
+end if
+if (fso.FileExists(ProgramPath & "\vdcwizard.lnk")) then
+    fso.DeleteFile (ProgramPath & "\vdcwizard.lnk")
+end if
+
+Set fso = Nothing

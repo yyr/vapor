@@ -15,12 +15,9 @@ Else
 End if
 
 vaporhome = Right(inputstring, len(inputstring) - posn -1)
-
 vaporhome = vaporhome & "VAPOR"
+vaporbin = vaporhome & "\bin"
 vaporshare = vaporhome & "\share"
-
-pythonhome = vaporhome & "\lib\python2.7"
-gribdir = vaporshare & "\grib_api\definitions"
 
 set shell = CreateObject("wscript.shell")
 
@@ -41,3 +38,49 @@ if idlpath <> "" Then
 End if
 sysenv("IDL_DLM_PATH") = vaporbin & idlpath 
 
+'Create shortcuts on Desktop and Program Menu
+'Note that these shortcuts only work with the 32-bit installer.
+'The 64 bit installer puts the shortcuts into itself, not using VBS
+
+DesktopPath = shell.SpecialFolders("Desktop")
+Set link = shell.CreateShortcut(DesktopPath & "\vaporgui.lnk")
+link.Description = "Vaporgui"
+link.IconLocation = vaporhome & "\vapor-win-icon.ico"
+link.TargetPath = vaporhome & "\bin\vaporgui.exe"
+link.WindowStyle = 1
+link.WorkingDirectory = vaporhome
+link.Save
+if (allUserProp) then
+    LinkPath = Shell.SpecialFolders("AllUsersPrograms")
+else
+    LinkPath = Shell.SpecialFolders("Programs")
+end if
+
+Set link = Shell.CreateShortcut(LinkPath & "\vaporgui.lnk")
+link.Description = "Vaporgui"
+link.IconLocation = vaporhome &"\vapor-win-icon.ico"
+link.TargetPath = vaporhome & "\bin\vaporgui.exe"
+link.WindowStyle = 1
+link.WorkingDirectory = vaporhome
+link.Save
+
+Set link = shell.CreateShortcut(DesktopPath & "\vdcwizard.lnk")
+link.Description = "vdcwizard"
+link.IconLocation = vaporhome & "\VDCWizard.ico"
+link.TargetPath = vaporhome & "\bin\vdcwizard.exe"
+link.WindowStyle = 1
+link.WorkingDirectory = vaporhome
+link.Save
+if (allUserProp) then
+    LinkPath = Shell.SpecialFolders("AllUsersPrograms")
+else
+    LinkPath = Shell.SpecialFolders("Programs")
+end if
+
+Set link = Shell.CreateShortcut(LinkPath & "\vdcwizard.lnk")
+link.Description = "vdcwizard"
+link.IconLocation = vaporhome &"\VDCWizard.ico"
+link.TargetPath = vaporhome & "\bin\vdcwizard.exe"
+link.WindowStyle = 1
+link.WorkingDirectory = vaporhome
+link.Save

@@ -113,28 +113,32 @@ int main( int argc, char ** argv ) {
     QStringList filePaths(filePath);
     QCoreApplication::setLibraryPaths(filePaths);
 
-//For Windows, check on VAPOR_PYTHONHOME
-#ifdef _WINDOWS
+//check on VAPOR_PYTHONHOME and/or PYTHONHOME,
+//show a message if either is set...
+	char* envLabel = " VAPOR_PYTHONHOME ";
     const char *s = getenv("VAPOR_PYTHONHOME");
+	if (!s) {
+		s = getenv("PYTHONHOME");
+		envLabel = "PYTHONHOME";
+	}
     string phome = s ? s : "";
-    string pythonversion ("python");
+    string pythonversion ("Python ");
     pythonversion += PYTHONVERSION;
+
     if (! phome.empty()) {
-        string msg("The VAPOR_PYTHONHOME variable is specified as: \n");
+		string msg("VAPOR will use the Python defined by ");
+		msg += envLabel;
+        msg += " located at: ";
         msg += phome;
         msg += "\n";
-        msg += "The VAPOR ";
-        msg += pythonversion;
-        msg += " environment will operate in this path\n";
-        msg += " This path must be the location of a Python ";
+        msg += " This path must be the location of a ";
         msg += pythonversion;
         msg += " installation\n";
-        msg += "Unset the VAPOR_PYTHONHOME environment variable to revert to the installed ";
+        msg += "Unset the VAPOR_PYTHONHOME and PYTHONHOME environment variables to revert to the installed ";
         msg += "VAPOR " + pythonversion + " environment.";
         QMessageBox::warning(0,"VAPOR_PYTHONHOME warning", msg.c_str());
-    } 
-                               
-#endif
+    }                          
+
     app = &a;
     a.setPalette(QPalette(QColor(233,236,216), QColor(233,236,216)));
     
