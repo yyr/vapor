@@ -506,6 +506,9 @@ int NetCDFCFCollection::InstallStandardVerticalConverter(
 
     string standard_name;
     varinfo.GetAtt("standard_name", standard_name);
+	if (standard_name.empty()) {
+		varinfo.GetAtt("long_name", standard_name);
+	}
 
     string formula_terms;
     varinfo.GetAtt("formula_terms", formula_terms);
@@ -531,7 +534,7 @@ int NetCDFCFCollection::InstallStandardVerticalConverter(
 			this, terms_map
 		);
 	}
-	else if (standard_name.compare("altitude") == 0) {	// noop
+	else if ((standard_name.compare("altitude") == 0) || (standard_name.compare("model_level_number") == 0)) {	// noop
 
 		// The "altitude" representation is already in units of distance
 		// Setting up a bogus formula allows use to use the 
@@ -828,6 +831,11 @@ bool NetCDFCFCollection::_IsVertCoordVar(
 	if (StrCmpNoCase(s,"ocean_s_coordinate_g1")==0) return(true);
 	if (StrCmpNoCase(s,"ocean_s_coordinate_g2")==0) return(true);
 	if (StrCmpNoCase(s,"altitude")==0) return(true);
+
+	s.clear();
+	varinfo.GetAtt("long_name", s);
+
+	if (StrCmpNoCase(s,"model_level_number")==0) return(true);
 
 	string unit;
 	varinfo.GetAtt("units", unit);
