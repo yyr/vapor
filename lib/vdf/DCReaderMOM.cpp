@@ -257,7 +257,11 @@ int DCReaderMOM::_InitVerticalCoordinates(
 		//
 		string to = "meter";
 		if (! udunit->Convert(from, to, &unkown_unit, &scaleFactor, 1)) {
-			return(-1);
+	
+			// Truly unknown unit. Skip conversion
+			//
+			scaleFactor = 1.0;	
+//			return(-1);
 		}
 	}
 

@@ -15,10 +15,8 @@ Else
 End if
 
 vaporhome = Right(inputstring, len(inputstring) - posn -1)
-
-vaporshare = vaporhome & "share"
-vaporbin = vaporhome & "bin"
-
+vaporshare = vaporhome & "\share"
+vaporbin = vaporhome & "\bin"
 
 set shell = CreateObject("wscript.shell")
 
