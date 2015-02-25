@@ -259,9 +259,9 @@ bool PopulateDataPage::validatePage() {
 
 		char percentComplete[20];
    
-		std::clock_t Cstart;
-		double duration;
-		Cstart = std::clock();
+		//std::clock_t Cstart;
+		//double duration;
+		//Cstart = std::clock();
  
 		//Cycle through variables in each timestep
 		for (int timeStep=0;timeStep<tsSize;timeStep++){
@@ -316,8 +316,8 @@ bool PopulateDataPage::validatePage() {
 			dataHolder->purgeObjects();
 			return false;
 		}
-		duration = (std::clock() - Cstart) / (double) CLOCKS_PER_SEC;
-		cout << "wizard process time: " << duration << endl;
+		//duration = (std::clock() - Cstart) / (double) CLOCKS_PER_SEC;
+		//cout << "wizard process time: " << duration << endl;
 	}
 	successMessage->show();
 	successMessage->raise();

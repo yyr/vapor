@@ -701,18 +701,22 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 		_vars2d[iterator->first]->_SortTimes();			 // Sort udunit times that apply to each individual variable
 	}
 
+	if (_pressureLevels.size() == 0) {
+		_pressureLevels.push_back(1000);
+		//MyBase::SetErrCode("Cannot find any vertical pressure levels in the given data.");
+		//return -1;
+	}
 	sort(_pressureLevels.begin(), _pressureLevels.end());	// Sort the level that apply to the entire dataset
 	reverse(_pressureLevels.begin(), _pressureLevels.end());
 
 	sort(_gribTimes.begin(), _gribTimes.end());
 
 	rc = _InitCartographicExtents(GetMapProjection());
+	if (rc<0) return -1;			 
 	
 	_sliceNum = _pressureLevels.size()-1;
 
 	if (parser) delete parser;
-
-	if (rc<0) return -1;			 
 
 	return 0;
 }
