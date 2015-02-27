@@ -602,10 +602,10 @@ reinit(bool doOverride){
 		for (i = 0; i< newNumComboVariables; i++){
 			string varname = ds->getVariableName3D(i);
 			if (ds->variableIsPresent3D(i)){
-				newMinOpacEditBounds[i+3]= ds->getDefaultDataMin3D(i,usingVariable(varname));
-				newMaxOpacEditBounds[i+3] = ds->getDefaultDataMax3D(i,usingVariable(varname));
-				newMinColorEditBounds[i+3] = ds->getDefaultDataMin3D(i,usingVariable(varname));
-				newMaxColorEditBounds[i+3] = ds->getDefaultDataMin3D(i,usingVariable(varname));
+				newMinOpacEditBounds[i+3]= ds->getDefaultDataMin3D(i);
+				newMaxOpacEditBounds[i+3] = ds->getDefaultDataMax3D(i);
+				newMinColorEditBounds[i+3] = ds->getDefaultDataMin3D(i);
+				newMaxColorEditBounds[i+3] = ds->getDefaultDataMin3D(i);
 			} else {
 				newMinOpacEditBounds[i+3] = 0.f;
 				newMaxOpacEditBounds[i+3] = 1.f;
@@ -626,10 +626,10 @@ reinit(bool doOverride){
 		for (i = 0; i< newNumComboVariables; i++){
 			string varname = ds->getVariableName3D(i);
 			if (i >= numComboVariables){
-				newMinOpacEditBounds[i+3] = ds->getDefaultDataMin3D(i,usingVariable(varname));
-				newMaxOpacEditBounds[i+3] = ds->getDefaultDataMax3D(i,usingVariable(varname));
-				newMinColorEditBounds[i+3] = ds->getDefaultDataMin3D(i,usingVariable(varname));
-				newMaxColorEditBounds[i+3] = ds->getDefaultDataMax3D(i,usingVariable(varname));
+				newMinOpacEditBounds[i+3] = ds->getDefaultDataMin3D(i);
+				newMaxOpacEditBounds[i+3] = ds->getDefaultDataMax3D(i);
+				newMinColorEditBounds[i+3] = ds->getDefaultDataMin3D(i);
+				newMaxColorEditBounds[i+3] = ds->getDefaultDataMax3D(i);
 			} else {
 				newMinOpacEditBounds[i+3] = minOpacEditBounds[i+4];
 				newMaxOpacEditBounds[i+3] = maxOpacEditBounds[i+4];
@@ -2669,7 +2669,7 @@ float FlowParams::minRange(int index, int timestep){
 			int varnum = DataStatus::mapActiveToSessionVarNum3D(index -3);
 			string varname = ds->getVariableName3D(varnum);
 			if (ds->getDataMgr() && ds->variableIsPresent3D(varnum)){
-				return(ds->getDefaultDataMin3D(varnum,usingVariable(varname)));
+				return(ds->getDefaultDataMin3D(varnum));
 			}
 			else return 0.f;
 	}
@@ -2692,7 +2692,7 @@ float FlowParams::maxRange(int index, int timestep){
 			int varnum = DataStatus::mapActiveToSessionVarNum3D(index -3);
 			string varname = ds->getVariableName3D(varnum);
 			if (ds->getDataMgr() && ds->variableIsPresent3D(varnum)){
-				return( ds->getDefaultDataMax3D(varnum,usingVariable(varname)));
+				return( ds->getDefaultDataMax3D(varnum));
 			}
 			else return 1.f;
 	}

@@ -333,10 +333,10 @@ reinit(bool doOverride){
 			//Initialize to be fully opaque:
 			newTransFunc[i]->setOpaque();
 
-			newTransFunc[i]->setMinMapValue(ds->getDefaultDataMin2D(i,usingVariable(varname)));
-			newTransFunc[i]->setMaxMapValue(ds->getDefaultDataMax2D(i,usingVariable(varname)));
-			newMinEdit[i] = ds->getDefaultDataMin2D(i,usingVariable(varname));
-			newMaxEdit[i] = ds->getDefaultDataMax2D(i,usingVariable(varname));
+			newTransFunc[i]->setMinMapValue(ds->getDefaultDataMin2D(i));
+			newTransFunc[i]->setMaxMapValue(ds->getDefaultDataMax2D(i));
+			newMinEdit[i] = ds->getDefaultDataMin2D(i);
+			newMaxEdit[i] = ds->getDefaultDataMax2D(i);
 
             newTransFunc[i]->setVarNum(i);
 		}
@@ -355,10 +355,10 @@ reinit(bool doOverride){
 				//Initialize to be fully opaque:
 				newTransFunc[i]->setOpaque();
 
-				newTransFunc[i]->setMinMapValue(ds->getDefaultDataMin2D(i,usingVariable(varname)));
-				newTransFunc[i]->setMaxMapValue(ds->getDefaultDataMax2D(i,usingVariable(varname)));
-				newMinEdit[i] = ds->getDefaultDataMin2D(i,usingVariable(varname));
-				newMaxEdit[i] = ds->getDefaultDataMax2D(i,usingVariable(varname));
+				newTransFunc[i]->setMinMapValue(ds->getDefaultDataMin2D(i));
+				newTransFunc[i]->setMaxMapValue(ds->getDefaultDataMax2D(i));
+				newMinEdit[i] = ds->getDefaultDataMin2D(i);
+				newMaxEdit[i] = ds->getDefaultDataMax2D(i);
                 newTransFunc[i]->setVarNum(i);
 			}
 		}
@@ -371,8 +371,8 @@ reinit(bool doOverride){
 	for(int i = 0; i<newNumVariables; i++){
 		string varname = ds->getVariableName2D(i);
 		if (newMinEdit[i] >= newMaxEdit[i]){
-			newMinEdit[i] = ds->getDefaultDataMin2D(i,usingVariable(varname));
-			newMaxEdit[i] = ds->getDefaultDataMax2D(i,usingVariable(varname));
+			newMinEdit[i] = ds->getDefaultDataMin2D(i);
+			newMaxEdit[i] = ds->getDefaultDataMax2D(i);
 		}
 		//And check again...
 		if (newMinEdit[i] >= newMaxEdit[i]){
