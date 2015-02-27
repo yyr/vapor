@@ -189,10 +189,11 @@ void DVRTexture3d::renderBricks()
   //
   // Get the modelview matrix and its inverse
   //
-  Matrix3d modelview;   
-  Matrix3d modelviewInverse;
+  float m[16];
+  glGetFloatv(GL_MODELVIEW_MATRIX, m);
+  Matrix3d modelview(m);   
 
-  glGetFloatv(GL_MODELVIEW_MATRIX, modelview.data());  
+  Matrix3d modelviewInverse;
   modelview.inverse(modelviewInverse);
 
   //
@@ -225,10 +226,12 @@ void DVRTexture3d::calculateSampling()
   //
   // Get the modelview matrix and its inverse
   //
-  Matrix3d modelview;   
-  Matrix3d modelviewInverse;
 
-  glGetFloatv(GL_MODELVIEW_MATRIX, modelview.data());  
+  float m[16];
+  glGetFloatv(GL_MODELVIEW_MATRIX, m);
+  Matrix3d modelview(m);   
+
+  Matrix3d modelviewInverse;
   modelview.inverse(modelviewInverse);
 
   //

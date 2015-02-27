@@ -391,10 +391,12 @@ void DVRSpherical::calculateSampling()
 	//
 	// Get the modelview matrix and its inverse
 	//
-	Matrix3d modelview;   
-	Matrix3d modelviewInverse;
 	
-	glGetFloatv(GL_MODELVIEW_MATRIX, modelview.data());  
+	float m[16];	 
+	glGetFloatv(GL_MODELVIEW_MATRIX, m);  
+	Matrix3d modelview(m);   
+
+	Matrix3d modelviewInverse;
 	modelview.inverse(modelviewInverse);
 	
 	BBox volumeBox(_vmin, _vmax);

@@ -27,11 +27,12 @@ public:
   Matrix3d();
 
   // Specify the initial cell values 
-  Matrix3d(float x0, float y0, float z0, float w0,
-           float x1, float y1, float z1, float w1,
-           float x2, float y2, float z2, float w2,
-           float x3, float y3, float z3, float w3);
+  Matrix3d(double x0, double y0, double z0, double w0,
+           double x1, double y1, double z1, double w1,
+           double x2, double y2, double z2, double w2,
+           double x3, double y3, double z3, double w3);
 
+  Matrix3d(const double *f);
   Matrix3d(const float *f);
 
   // Construct with vectors
@@ -55,19 +56,20 @@ public:
 
   // Assignment.
   Matrix3d &operator=(const Matrix3d &m);
+  Matrix3d &operator=(const double *m);
   Matrix3d &operator=(const float *m);
   Matrix3d &operator=(const Transform3d &t);
 
   // Get/set my value at the given index.
-  float &operator()(int x, int y);
-  float operator()(int x, int y) const;
+  double &operator()(int x, int y);
+  double operator()(int x, int y) const;
 
   // get/set function
-  float at(int x, int y) const;
-  float& at(int x, int y);
+  double at(int x, int y) const;
+  double& at(int x, int y);
 
   // Multiply my entries by the scalar.
-  Matrix3d &operator*=(float scalar);
+  Matrix3d &operator*=(double scalar);
 
   // Multiply myself by the Matrix.
   Matrix3d &operator*=(const Matrix3d &m);
@@ -76,7 +78,7 @@ public:
   Matrix3d &operator+=(const Matrix3d &m);
 
   // Determinant
-  float determinant();
+  double determinant();
   
   // Transpose
   Matrix3d& transpose();
@@ -94,19 +96,23 @@ public:
   friend Matrix3d operator*(const Matrix3d& m, const Matrix3d &d);
 
   // data
-  float* data()             { return _data; }
-  const float* data() const { return _data; }
+  void data(float *m) const {
+    for (int i=0; i<16; i++) m[i] = (float) _data[i];
+  }
+  void data(double *m) const {
+    for (int i=0; i<16; i++) m[i] = _data[i];
+  }
 
 protected:
 
-  float determinant3x3(float a1, float a2, float a3, 
-                        float b1, float b2, float b3, 
-                        float c1, float c2, float c3);
+  double determinant3x3(double a1, double a2, double a3, 
+                        double b1, double b2, double b3, 
+                        double c1, double c2, double c3);
   
 protected:
 
   // Member data. Column-major for OpenGL compatibility.
-  float _data[16];
+  double _data[16];
 };
 
 //
@@ -114,38 +120,38 @@ protected:
 //
 
 // -- public -----------------------------------------------------------------
-// inline float &Matrix3d::operator()(int x, int y)
+// inline double &Matrix3d::operator()(int x, int y)
 // Index operator
 //----------------------------------------------------------------------------
-inline float &Matrix3d::operator()(int x, int y)
+inline double &Matrix3d::operator()(int x, int y)
 {
   return _data[x*4 + y];
 }
 
 // -- public -----------------------------------------------------------------
-// inline float Matrix3d::operator()(int x, int y) const
+// inline double Matrix3d::operator()(int x, int y) const
 // Index operator
 //----------------------------------------------------------------------------
-inline float Matrix3d::operator()(int x, int y) const
+inline double Matrix3d::operator()(int x, int y) const
 {
   return _data[x*4 + y];
 }
 
 
 // -- public -----------------------------------------------------------------
-// inline float Matrix3d::at(int x, int y) const
+// inline double Matrix3d::at(int x, int y) const
 // const index operator
 //----------------------------------------------------------------------------
-inline float Matrix3d::at(int x, int y) const
+inline double Matrix3d::at(int x, int y) const
 {
   return _data[x*4 + y];
 }
 
 // -- public -----------------------------------------------------------------
-// inline float& Matrix3d::at(int x, int y)
+// inline double& Matrix3d::at(int x, int y)
 // non-const index operator
 //----------------------------------------------------------------------------
-inline float& Matrix3d::at(int x, int y)
+inline double& Matrix3d::at(int x, int y)
 {
   return _data[x*4 + y];
 }
@@ -205,10 +211,10 @@ inline int operator!=(const Matrix3d &m1, const Matrix3d &m2)
 
 
 // -- fileScope --------------------------------------------------------------
-// inline Matrix3d operator*(const Matrix3d &m1, float scalar)
+// inline Matrix3d operator*(const Matrix3d &m1, double scalar)
 // Multiply a Matrix by a scalar.
 //----------------------------------------------------------------------------
-inline Matrix3d operator*(const Matrix3d &m1, float scalar)
+inline Matrix3d operator*(const Matrix3d &m1, double scalar)
 {
   Matrix3d m(m1);
 
@@ -220,10 +226,10 @@ inline Matrix3d operator*(const Matrix3d &m1, float scalar)
 
 
 // -- fileScope --------------------------------------------------------------
-// inline Matrix3d operator*(float scalar, const Matrix3d &m1)
+// inline Matrix3d operator*(double scalar, const Matrix3d &m1)
 // Multiply a Matrix by a scalar.
 //----------------------------------------------------------------------------
-inline Matrix3d operator*(float scalar, const Matrix3d &m1)
+inline Matrix3d operator*(double scalar, const Matrix3d &m1)
 {
   Matrix3d m(m1);
 
@@ -292,14 +298,14 @@ inline Matrix3d operator*(const Matrix3d &m1, const Matrix3d &m2)
 
 
 // -- fileScope --------------------------------------------------------------
-// inline float determinant3x3(float a1, float a2, float a3, 
-//                              float b1, float b2, float b3, 
-//                              float c1, float c2, float c3)
+// inline double determinant3x3(double a1, double a2, double a3, 
+//                              double b1, double b2, double b3, 
+//                              double c1, double c2, double c3)
 // Multiply two Matrices.
 //----------------------------------------------------------------------------
-inline float Matrix3d::determinant3x3(float a1, float a2, float a3, 
-                                       float b1, float b2, float b3, 
-                                       float c1, float c2, float c3)
+inline double Matrix3d::determinant3x3(double a1, double a2, double a3, 
+                                       double b1, double b2, double b3, 
+                                       double c1, double c2, double c3)
 {
   return (  a1 * (b2 * c3 - b3 * c2)
           - b1 * (a2 * c3 - a3 * c2)
