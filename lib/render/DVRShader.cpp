@@ -281,7 +281,7 @@ void DVRShader::loadCoordMap(
 
 	if (_xcoords.size()>1) { 
 
-		_loadCoordMap(_ycoords, i0, i1, _coordmap, coordmapTexWidth, 4, 0);
+		_loadCoordMap(_xcoords, i0, i1, _coordmap, coordmapTexWidth, 4, 0);
 
 	}
 	else {
