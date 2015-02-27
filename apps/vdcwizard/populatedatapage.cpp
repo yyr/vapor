@@ -291,7 +291,7 @@ bool PopulateDataPage::validatePage() {
 					    completeChanged();
 					    wizard()->button(QWizard::BackButton)->setEnabled(true);
 					    QApplication::processEvents();
-						dataHolder->purgeObjects();
+						//dataHolder->purgeObjects();
 						return false;
 					}
 					
@@ -313,7 +313,7 @@ bool PopulateDataPage::validatePage() {
             completeChanged();
             wizard()->button(QWizard::BackButton)->setEnabled(true);
             QApplication::processEvents();
-			dataHolder->purgeObjects();
+			//dataHolder->purgeObjects();
 			return false;
 		}
 		//duration = (std::clock() - Cstart) / (double) CLOCKS_PER_SEC;
@@ -328,6 +328,6 @@ bool PopulateDataPage::validatePage() {
     wizard()->button(QWizard::BackButton)->setEnabled(true);
     QApplication::processEvents();	
 	//stay on page if successMessage does not exit(0)
-	dataHolder->purgeObjects();
+	//dataHolder->purgeObjects();
 	return false; 	
 }
