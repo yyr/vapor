@@ -32,10 +32,10 @@ Matrix3d::Matrix3d()
 // Matrix3d::Matrix3d(...)
 // Constructor
 //-----------------------------------------------------------------------------
-Matrix3d::Matrix3d(float x0, float y0, float z0, float w0,
-                   float x1, float y1, float z1, float w1,
-                   float x2, float y2, float z2, float w2,
-                   float x3, float y3, float z3, float w3)
+Matrix3d::Matrix3d(double x0, double y0, double z0, double w0,
+                   double x1, double y1, double z1, double w1,
+                   double x2, double y2, double z2, double w2,
+                   double x3, double y3, double z3, double w3)
 {
   at(0,0) = x0; at(0,1) = y0;
   at(0,2) = z0; at(0,3) = w0;
@@ -123,14 +123,14 @@ Matrix3d::Matrix3d(const Transform3d::Rotate *r)
    //
    // Create the rotation matrix
    //
-   float th = r->rad();
+   double th = r->rad();
 
    Vect3d axis(r->axisx(), r->axisy(), r->axisz());
    axis.unitize();
 
-   float ux = axis.x();
-   float uy = axis.y();
-   float uz = axis.z();
+   double ux = axis.x();
+   double uy = axis.y();
+   double uz = axis.z();
 
    at(0,0) = cos(th) + ux*ux*(1 - cos(th));
    at(0,1) = ux*uy*(1 - cos(th)) - uz*sin(th);
@@ -208,12 +208,16 @@ Matrix3d::Matrix3d(const Matrix3d &m)
 }
 
 //-- public  ------------------------------------------------------------------
-// Matrix3d::Matrix3d(const float *m)
+// Matrix3d::Matrix3d(const double *m)
 // Copy Constructor
 //-----------------------------------------------------------------------------
+Matrix3d::Matrix3d(const double *m)
+{
+   memcpy(_data, m, sizeof(double)*16);
+}
 Matrix3d::Matrix3d(const float *m)
 {
-   memcpy(_data, m, sizeof(float)*16);
+	for (int i=0; i<16; i++) _data[i] = m[i];
 }
 
 //-- public  ------------------------------------------------------------------
@@ -256,12 +260,18 @@ Matrix3d &Matrix3d::operator=(const Matrix3d &m)
 }
 
 //-- public  ------------------------------------------------------------------
-// Matrix3d::Matrix3d(const float *m)
+// Matrix3d::Matrix3d(const double *m)
 // Copy Constructor
 //-----------------------------------------------------------------------------
+Matrix3d &Matrix3d::operator=(const double *m)
+{
+   memcpy(_data, m, sizeof(double)*16);
+
+   return *this;
+}
 Matrix3d &Matrix3d::operator=(const float *m)
 {
-   memcpy(_data, m, sizeof(float)*16);
+	for (int i=0; i<16; i++) _data[i] = m[i];
 
    return *this;
 }
@@ -293,10 +303,10 @@ Matrix3d& Matrix3d::operator=(const Transform3d &t)
 }
 
 //-- public  ------------------------------------------------------------------
-// Matrix3d &Matrix3d::operator*=(float scalar)
+// Matrix3d &Matrix3d::operator*=(double scalar)
 // Multiply myself by a scalar
 //-----------------------------------------------------------------------------
-Matrix3d &Matrix3d::operator*=(float scalar)
+Matrix3d &Matrix3d::operator*=(double scalar)
 {
   at(0,0) *= scalar;
   at(0,1) *= scalar;
@@ -454,12 +464,12 @@ Matrix3d &Matrix3d::operator+=(const Matrix3d &m)
 }
 
 //-- public  ------------------------------------------------------------------
-// float Matrix3d::determinant()
+// double Matrix3d::determinant()
 // Return the determinant of the matrix
 //-----------------------------------------------------------------------------
-float Matrix3d::determinant()
+double Matrix3d::determinant()
 {
-  float a1, a2, a3, a4, b1, b2, b3, b4, c1, c2, c3, c4, d1, d2, d3, d4;
+  double a1, a2, a3, a4, b1, b2, b3, b4, c1, c2, c3, c4, d1, d2, d3, d4;
 
   a1 = at(0,0); b1 = at(0,1); 
   c1 = at(0,2); d1 = at(0,3);
@@ -486,7 +496,7 @@ float Matrix3d::determinant()
 Matrix3d& Matrix3d::transpose()
 {
   int i, j;
-  float temp;
+  double temp;
 
   for (i=0; i<4; i++)
   {
@@ -517,7 +527,7 @@ Matrix3d& Matrix3d::transpose()
 Matrix3d& Matrix3d::inverse(Matrix3d &out)
 {
   int i, j;
-  float det;
+  double det;
 
   // calculate the 4x4 determinent
   // if the determinent is zero, 
@@ -563,8 +573,8 @@ Matrix3d& Matrix3d::inverse(Matrix3d &out)
 //----------------------------------------------------------------------------
 Matrix3d& Matrix3d::adjoint(Matrix3d &out)
 {
-  float a1, a2, a3, a4, b1, b2, b3, b4;
-  float c1, c2, c3, c4, d1, d2, d3, d4;
+  double a1, a2, a3, a4, b1, b2, b3, b4;
+  double c1, c2, c3, c4, d1, d2, d3, d4;
 
   a1 = at(0,0); b1 = at(0,1); 
   c1 = at(0,2); d1 = at(0,3);
@@ -619,4 +629,6 @@ std::ostream &VAPoR::operator<<(std::ostream &o, const Matrix3d &m)
 
   return o;
 }
+
+
 
