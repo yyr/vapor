@@ -126,7 +126,7 @@ void PythonPipeLine::initialize(){
 				//Note:  Python seems very picky about the strings accepted for this.
 				//It must remain for a while (at least until after Py_Initialize is called).
 				//It's also important to use forward slashes even on Windows.
-				printf("Setting PYTHONHOME in the vaporgui app to %s\n", pyhome2);
+				//printf("Setting PYTHONHOME in the vaporgui app to %s\n", pyhome2);
 				Py_SetPythonHome(pyhome2);
 				char* newhome = Py_GetPythonHome();
 			}

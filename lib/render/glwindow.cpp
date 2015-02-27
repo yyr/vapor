@@ -2102,7 +2102,7 @@ void GLWindow::drawAxisTics(int timestep){
 	glColor3f((float)axisColor.red()/255.f,(float)axisColor.green()/255.f, (float)axisColor.blue()/255.f);
 	glLineWidth(ticWidth);
 	//Draw lines on x-axis:
-	glBegin(GL_LINE_SMOOTH);
+	glEnable(GL_LINE_SMOOTH);
 	glBegin(GL_LINES);
 	glVertex3d(ticMin[0],origin[1],origin[2]);
 	glVertex3d(ticMax[0],origin[1],origin[2]);
