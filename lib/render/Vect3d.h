@@ -24,7 +24,7 @@ public:
   Vect3d();
 
   // Specify the initial values for common vectors.
-  Vect3d(float x1, float x2, float x3, float x4 = 0.0);
+  Vect3d(double x1, double x2, double x3, double x4 = 0.0);
 
   // Constructor creating a vector from point p1 to p2
   Vect3d(const Point3d &p1, const Point3d &p2);
@@ -42,53 +42,53 @@ public:
   Vect3d &operator=(const Vect3d &vec);
 
   // Index operator
-  float &operator()(const int index);
-  float operator()(const int index) const;
+  double &operator()(const int index);
+  double operator()(const int index) const;
 
   // Get my x value.  This behavior is not virtual as it is
   // inlined for performance.
-  float x() const;
+  double x() const;
 
   // Get my y value.  This behavior is not virtual as it is
   // inlined for performance.
-  float y() const;
+  double y() const;
 
   // Get my z value.  This behavior is not virtual as it is
   // inlined for performance.
-  float z() const;
+  double z() const;
 
   // Get my w value.  This behavior is not virtual as it is
   // inlined for performance.
-  float w() const;
+  double w() const;
 
   // Set my x value.  This behavior is not virtual as it is
   // inlined for performance.
-  void x(float);
+  void x(double);
 
   // Set my y value.  This behavior is not virtual as it is
   // inlined for performance.
-  void y(float);
+  void y(double);
 
   // Set my z value.  This behavior is not virtual as it is
   // inlined for performance.
-  void z(float);
+  void z(double);
 
   // Set my z value.  This behavior is not virtual as it is
   // inlined for performance.
-  void w(float);
+  void w(double);
 
   // Add the scalar to me.
-  Vect3d &operator+=(float);
+  Vect3d &operator+=(double);
 
   // Subtract the scalar from me.
-  Vect3d &operator-=(float);
+  Vect3d &operator-=(double);
 
   // Multiply my entries by the scalar.
-  Vect3d &operator*=(float);
+  Vect3d &operator*=(double);
 
   // Divide my entries by the scalar.  If the scalar is 0.0, all of my entries
   // will become 0.0.
-  Vect3d &operator/=(float);
+  Vect3d &operator/=(double);
 
   // Add the given vector to me.
   Vect3d &operator+=(const Vect3d &vec);
@@ -97,10 +97,10 @@ public:
   Vect3d &operator-=(const Vect3d &vec);
 
   // Return the square root of the sum of my elements squared.
-  float mag() const;
+  double mag() const;
 
   // Return the sum of my elements squared.
-  float magSq() const;
+  double magSq() const;
 
   // Return a unit vector in the same direction as me.
   virtual Vect3d unit() const;
@@ -115,11 +115,11 @@ public:
   void neg();
 
   // Return the dot product between another Vect3d and me.
-  float dot(const Vect3d &vec) const;
+  double dot(const Vect3d &vec) const;
 
   // Get the cosine of the angle between me and the given vector.  I
   // assume that I and the other vector are not unit vectors.
-  float cosAngle(const Vect3d &vect) const;
+  double cosAngle(const Vect3d &vect) const;
 
   // Returns the cross product between myself and the other vector.
   Vect3d cross(const Vect3d &vec) const;
@@ -130,21 +130,21 @@ public:
   friend std::ostream &operator<<(std::ostream &o, const Vect3d &v);
 
   // Divide a vector by a scalar.
-  friend Vect3d operator/(const Vect3d&, float);
+  friend Vect3d operator/(const Vect3d&, double);
 
   // Equivalence
   friend int operator==(const Vect3d &v1, const Vect3d &v2);
   friend int operator!=(const Vect3d &v1, const Vect3d &v2);
 
   // Add/Substract a scalar to each vector component
-  friend Vect3d operator+(const Vect3d &v1, float scalar);
-  friend Vect3d operator+(float scalar, const Vect3d &v1);
-  friend Vect3d operator-(float scalar, const Vect3d &v);
-  friend Vect3d operator-(const Vect3d &v, float scalar);
+  friend Vect3d operator+(const Vect3d &v1, double scalar);
+  friend Vect3d operator+(double scalar, const Vect3d &v1);
+  friend Vect3d operator-(double scalar, const Vect3d &v);
+  friend Vect3d operator-(const Vect3d &v, double scalar);
 
   // Multiply a vector by a scalar
-  friend Vect3d operator*(float scalar, const Vect3d &v);
-  friend Vect3d operator*(const Vect3d &v, float scalar);
+  friend Vect3d operator*(double scalar, const Vect3d &v);
+  friend Vect3d operator*(const Vect3d &v, double scalar);
 
   // Add/Substract two vectors
   friend Vect3d operator+(const Vect3d &v1, const Vect3d &v2);
@@ -159,19 +159,19 @@ public:
 protected:
 
   // Member data.
-  float _x;
-  float _y;
-  float _z;
-  float _w;
+  double _x;
+  double _y;
+  double _z;
+  double _w;
 };
 
 // Inline functions.
 
 //-- public  ------------------------------------------------------------------
-// inline float &Vect3d::operator()(const int index)
+// inline double &Vect3d::operator()(const int index)
 // Access operator
 //-----------------------------------------------------------------------------
-inline float &Vect3d::operator()(const int index)
+inline double &Vect3d::operator()(const int index)
 {
   switch(index)
   {
@@ -185,10 +185,10 @@ inline float &Vect3d::operator()(const int index)
 }
 
 //-- public  ------------------------------------------------------------------
-// inline float Vect3d::operator()(const int index) const
+// inline double Vect3d::operator()(const int index) const
 // Access operator
 //-----------------------------------------------------------------------------
-inline float Vect3d::operator()(const int index) const
+inline double Vect3d::operator()(const int index) const
 {
   switch(index)
   {
@@ -202,65 +202,65 @@ inline float Vect3d::operator()(const int index) const
 }
 
 //-- public  ------------------------------------------------------------------
-// inline float Vect3d::x() const
+// inline double Vect3d::x() const
 //-----------------------------------------------------------------------------
-inline float Vect3d::x() const
+inline double Vect3d::x() const
 {
   return _x;
 }
 
 //-- public  ------------------------------------------------------------------
-// inline float Vect3d::y() const
+// inline double Vect3d::y() const
 //-----------------------------------------------------------------------------
-inline float Vect3d::y() const
+inline double Vect3d::y() const
 {
   return _y;
 }
 
 //-- public  ------------------------------------------------------------------
-// inline float Vect3d::z() const
+// inline double Vect3d::z() const
 //-----------------------------------------------------------------------------
-inline float Vect3d::z() const
+inline double Vect3d::z() const
 {
   return _z;
 }
 
 //-- public  ------------------------------------------------------------------
-// inline float Vect3d::w() const
+// inline double Vect3d::w() const
 //-----------------------------------------------------------------------------
-inline float Vect3d::w() const
+inline double Vect3d::w() const
 {
   return _w;
 }
 
 //-- public  ------------------------------------------------------------------
-// inline void Vect3d::x(float v)
+// inline void Vect3d::x(double v)
 //-----------------------------------------------------------------------------
-inline void Vect3d::x(float v)
+inline void Vect3d::x(double v)
 {
   _x = v;
 }
 
 //-- public  ------------------------------------------------------------------
-// inline void Vect3d::y(float v)
+// inline void Vect3d::y(double v)
 //-----------------------------------------------------------------------------
-inline void Vect3d::y(float v)
+inline void Vect3d::y(double v)
 {
   _y = v;
 }
 
 //-- public  ------------------------------------------------------------------
-// inline void Vect3d::z(float v)
+// inline void Vect3d::z(double v)
 //-----------------------------------------------------------------------------
-inline void Vect3d::z(float v)
+inline void Vect3d::z(double v)
 {
   _z = v;
 }
 
 //-- public  ------------------------------------------------------------------
-// inline void Vect3d::w(float v)
+// inline void Vect3d::w(double v)
 //-----------------------------------------------------------------------------
-inline void Vect3d::w(float v)
+inline void Vect3d::w(double v)
 {
   _w = v;
 }
@@ -286,29 +286,29 @@ inline int operator!=(const Vect3d &v1, const Vect3d &v2)
 }
 
 //-- public  ------------------------------------------------------------------
-// inline float Vect3d::magSq() const
+// inline double Vect3d::magSq() const
 
 //-----------------------------------------------------------------------------
-inline float Vect3d::magSq() const
+inline double Vect3d::magSq() const
 {
   return _x * _x + _y * _y + _z * _z + _w * _w;
 }
 
 //-- public  ------------------------------------------------------------------
-// inline float Vect3d::mag() const
+// inline double Vect3d::mag() const
  
 //-----------------------------------------------------------------------------
-inline float Vect3d::mag() const
+inline double Vect3d::mag() const
 {
   return sqrt(magSq());
 }
 
 
 //-- public  ------------------------------------------------------------------
-// inline Vect3d operator+(const Vect3d &v1, float scalar)
+// inline Vect3d operator+(const Vect3d &v1, double scalar)
 // Add a vector and a scalar.
 //-----------------------------------------------------------------------------
-inline Vect3d operator+(const Vect3d &v1, float scalar)
+inline Vect3d operator+(const Vect3d &v1, double scalar)
 
 {
   return Vect3d(v1._x + scalar, v1._y + scalar, 
@@ -318,10 +318,10 @@ inline Vect3d operator+(const Vect3d &v1, float scalar)
 
 
 //-- public  ------------------------------------------------------------------
-// inline Vect3d operator+(float scalar, const Vect3d &v1)
+// inline Vect3d operator+(double scalar, const Vect3d &v1)
 // Add a vector and a scalar.
 //-----------------------------------------------------------------------------
-inline Vect3d operator+(float scalar, const Vect3d &v1)
+inline Vect3d operator+(double scalar, const Vect3d &v1)
 {
   return Vect3d(v1._x + scalar, v1._y + scalar, 
                 v1._z + scalar, v1._w + scalar);
@@ -330,10 +330,10 @@ inline Vect3d operator+(float scalar, const Vect3d &v1)
 
 
 //-- public  ------------------------------------------------------------------
-// inline Vect3d operator-(float scalar, const Vect3d &v)
+// inline Vect3d operator-(double scalar, const Vect3d &v)
 // Subtract a vector and a scalar.
 //-----------------------------------------------------------------------------
-inline Vect3d operator-(float scalar, const Vect3d &v)
+inline Vect3d operator-(double scalar, const Vect3d &v)
 {
   return Vect3d(scalar - v._x, scalar - v._y,
                 scalar - v._z, scalar - v._w);
@@ -342,10 +342,10 @@ inline Vect3d operator-(float scalar, const Vect3d &v)
 
 
 //-- public  ------------------------------------------------------------------
-// inline Vect3d operator-(const Vect3d &v, float scalar)
+// inline Vect3d operator-(const Vect3d &v, double scalar)
 // Subtract a vector and a scalar.
 //-----------------------------------------------------------------------------
-inline Vect3d operator-(const Vect3d &v, float scalar)
+inline Vect3d operator-(const Vect3d &v, double scalar)
 {
   return Vect3d(v._x - scalar, v._y - scalar,
                 v._z - scalar, v._w - scalar);
@@ -354,10 +354,10 @@ inline Vect3d operator-(const Vect3d &v, float scalar)
 
 
 //-- public  ------------------------------------------------------------------
-// inline Vect3d operator*(float scalar, const Vect3d &v)
+// inline Vect3d operator*(double scalar, const Vect3d &v)
 // Multiply a vector and a scalar.
 //-----------------------------------------------------------------------------
-inline Vect3d operator*(float scalar, const Vect3d &v)
+inline Vect3d operator*(double scalar, const Vect3d &v)
 {
   return Vect3d(v._x * scalar, v._y * scalar,
                 v._z * scalar, v._w * scalar);
@@ -366,10 +366,10 @@ inline Vect3d operator*(float scalar, const Vect3d &v)
 
 
 //-- public  ------------------------------------------------------------------
-// inline Vect3d operator*(const Vect3d &v, float scalar)
+// inline Vect3d operator*(const Vect3d &v, double scalar)
 // Multiply a vector and a scalar.
 //-----------------------------------------------------------------------------
-inline Vect3d operator*(const Vect3d &v, float scalar)
+inline Vect3d operator*(const Vect3d &v, double scalar)
 {
   return Vect3d(v._x * scalar, v._y * scalar,
                 v._z * scalar, v._w * scalar);

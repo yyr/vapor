@@ -110,16 +110,13 @@ void GetCoordinates(
 ) {
 	coords.clear();
 
-	int rc;
+	int fd;
 
-	rc = ncdfc->OpenRead(ts, coordvar);
-	if (rc<0) exit(1);
-
-	size_t start[] = {0};
-	size_t count[] = {dim};
+	fd = ncdfc->OpenRead(ts, coordvar);
+	if (fd<0) exit(1);
 
 	float *buffer = new float[dim];
-	rc = ncdfc->Read(start, count, buffer);
+	int rc = ncdfc->Read(buffer, fd);
 	if (rc<0) exit(1);
 
 	for (int i=0; i<dim; i++) {
@@ -127,7 +124,7 @@ void GetCoordinates(
 	}
 	delete [] buffer;
 
-	(void) ncdfc->Close();
+	(void) ncdfc->Close(fd);
 }
 
 	
@@ -276,6 +273,8 @@ MetadataVDC *CreateMetadataVDC(
 		file->SetCoordinateVariables(vec);
 	}
 	else if (gridtype.compare("stretched")==0) {
+		vector <double> extents = file->GetExtents();
+
 		NetCDFCollection *ncdfc = ncdfData->GetNetCDFCollection();
 		for(size_t ts = 0; ts < ncdfData->GetNumTimeSteps(); ts++) {
 			vector <double> coords;
@@ -294,8 +293,11 @@ MetadataVDC *CreateMetadataVDC(
 			int rc = file->SetTSXCoords(ts, coords);
 			if (rc<0) exit(1);
 
+			extents[0] = coords[0];
+			extents[3] = coords[coords.size()-1];
+
 			if (! (opt.ycoordvar.compare("NONE")==0)) {
-				GetCoordinates(ncdfc, ts, opt.ycoordvar, dims[0], coords);
+				GetCoordinates(ncdfc, ts, opt.ycoordvar, dims[1], coords);
 			}
 			else {
 				coords = file->GetTSYCoords(0);
@@ -303,14 +305,23 @@ MetadataVDC *CreateMetadataVDC(
 			rc = file->SetTSYCoords(ts, coords);
 			if (rc<0) exit(1);
 
+			extents[1] = coords[0];
+			extents[4] = coords[coords.size()-1];
+
 			if (! (opt.zcoordvar.compare("NONE")==0)) {
-				GetCoordinates(ncdfc, ts, opt.zcoordvar, dims[0], coords);
+				GetCoordinates(ncdfc, ts, opt.zcoordvar, dims[2], coords);
 			}
 			else {
 				coords = file->GetTSZCoords(0);
 			}
 			rc = file->SetTSZCoords(ts, coords);
 			if (rc<0) exit(1);
+
+			extents[2] = coords[0];
+			extents[5] = coords[coords.size()-1];
+
+			if (ts==0) file->SetExtents(extents);
+			file->SetTSExtents(ts, extents);
 
 		}
 	}

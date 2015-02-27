@@ -972,6 +972,7 @@ resetMetadata(vector<string>& files, bool restoredSession,const string& importTy
 		if(!dataExists) {
 			MessageReporter::errorMsg(
 				"Session: No data in specified dataset,\nor data in specified files cannot be read");
+			return false;
 		}
 
 		

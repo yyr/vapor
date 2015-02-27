@@ -211,8 +211,12 @@ void GLModelNode::draw(const Matrix3d &transform) const
 
    glPushMatrix();
 
-   glMultMatrixf(transform.data());
-   glMultMatrixf(_transform.data());
+   float m[16];
+   transform.data(m);
+   glMultMatrixf(m);
+
+   _transform.data(m);
+   glMultMatrixf(m);
 
    if (_displayList) glCallList(_displayList);
 

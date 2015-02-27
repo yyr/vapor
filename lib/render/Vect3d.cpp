@@ -21,10 +21,10 @@ Vect3d::Vect3d() : _x(0.0), _y(0.0), _z(0.0), _w(0.0)
 }
 
 //-- public  ------------------------------------------------------------------
-// Vect3d::Vect3d(float x1, float x2, float x3, float x4)
+// Vect3d::Vect3d(double x1, double x2, double x3, double x4)
 // Constructor
 //-----------------------------------------------------------------------------
-Vect3d::Vect3d(float x1, float x2, float x3, float x4) :
+Vect3d::Vect3d(double x1, double x2, double x3, double x4) :
   _x(x1),
   _y(x2),
   _z(x3),
@@ -95,10 +95,10 @@ Vect3d &Vect3d::operator=(const Vect3d &v)
 }
 
 //-- public  ------------------------------------------------------------------
-// Vect3d &Vect3d::operator+=(float scalar)
+// Vect3d &Vect3d::operator+=(double scalar)
 // Add a scalar to myself
 //-----------------------------------------------------------------------------
-Vect3d &Vect3d::operator+=(float scalar)
+Vect3d &Vect3d::operator+=(double scalar)
 {
   _x += scalar;
   _y += scalar;
@@ -110,10 +110,10 @@ Vect3d &Vect3d::operator+=(float scalar)
 
 
 //-- public  ------------------------------------------------------------------
-// Vect3d &Vect3d::operator-=(float scalar)
+// Vect3d &Vect3d::operator-=(double scalar)
 // Subtract a scalar from myself
 //-----------------------------------------------------------------------------
-Vect3d &Vect3d::operator-=(float scalar)
+Vect3d &Vect3d::operator-=(double scalar)
 {
   _x -= scalar;
   _y -= scalar;
@@ -124,10 +124,10 @@ Vect3d &Vect3d::operator-=(float scalar)
 }
 
 //-- public  ------------------------------------------------------------------
-// Vect3d &Vect3d::operator*=(float scalar)
+// Vect3d &Vect3d::operator*=(double scalar)
 // Multiply myself by a scalar
 //-----------------------------------------------------------------------------
-Vect3d &Vect3d::operator*=(float scalar)
+Vect3d &Vect3d::operator*=(double scalar)
 {
   _x *= scalar;
   _y *= scalar;
@@ -139,10 +139,10 @@ Vect3d &Vect3d::operator*=(float scalar)
 
 
 //-- public  ------------------------------------------------------------------
-// Vect3d &Vect3d::operator/=(float scalar)
+// Vect3d &Vect3d::operator/=(double scalar)
 // Divide myself by a scalar
 //-----------------------------------------------------------------------------
-Vect3d &Vect3d::operator/=(float scalar)
+Vect3d &Vect3d::operator/=(double scalar)
 {
   if (scalar != 0.0) 
   {
@@ -198,7 +198,7 @@ Vect3d &Vect3d::operator-=(const Vect3d &v)
 //-----------------------------------------------------------------------------
 Vect3d Vect3d::unit() const
 {
-  float x, y, z, w, m = mag();
+  double x, y, z, w, m = mag();
 
   if (m <= 0.0) 
   {
@@ -224,7 +224,7 @@ Vect3d Vect3d::unit() const
 //-----------------------------------------------------------------------------
 void Vect3d::unitize()
 {
-  float m = mag();
+  double m = mag();
 
   if (m <= 0.0) 
   {
@@ -266,19 +266,19 @@ void Vect3d::neg()
 }
 
 //-- public  ------------------------------------------------------------------
-// float Vect3d::dot(const Vect3d &v) const
+// double Vect3d::dot(const Vect3d &v) const
 // Returns the dot product of this . v
 //-----------------------------------------------------------------------------
-float Vect3d::dot(const Vect3d &v) const
+double Vect3d::dot(const Vect3d &v) const
 {
   return _x * v._x + _y * v._y + _z * v._z + _w * v._w;
 }
 
 //-- public  ------------------------------------------------------------------
-// float Vect3d::cosAngle(const Vect3d &vec) const 
+// double Vect3d::cosAngle(const Vect3d &vec) const 
 // Returns cos(theta) where theta is the angle between myself and the vector 
 //-----------------------------------------------------------------------------
-float Vect3d::cosAngle(const Vect3d &vec) const 
+double Vect3d::cosAngle(const Vect3d &vec) const 
 {
   return dot(vec) / mag() / vec.mag();
 }
@@ -306,12 +306,12 @@ std::ostream &operator<<(std::ostream &o, const Vect3d &v)
 }
 
 //-- fileScope  ---------------------------------------------------------------
-// Vect3d operator/(const Vect3d &v1, float scalar)
+// Vect3d operator/(const Vect3d &v1, double scalar)
 // Divide the Vector by a scalar
 //-----------------------------------------------------------------------------
-Vect3d operator/(const Vect3d &v1, float scalar)
+Vect3d operator/(const Vect3d &v1, double scalar)
 {
-  float x, y, z, w;
+  double x, y, z, w;
 
   if (scalar == 0.0) 
   {
