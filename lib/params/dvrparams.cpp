@@ -210,10 +210,10 @@ reinit(bool doOverride){
 			string varname = ds->getVariableName3D(i);
 			newTransFunc[i] = new TransferFunction(this, numBits);
 
-			newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin3D(i,usingVariable(varname)));
-			newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax3D(i,usingVariable(varname)));
-			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin3D(i,usingVariable(varname));
-			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax3D(i,usingVariable(varname));
+			newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin3D(i));
+			newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax3D(i));
+			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin3D(i);
+			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax3D(i);
 
             newTransFunc[i]->setVarNum(i);
 		}
@@ -228,10 +228,10 @@ reinit(bool doOverride){
 				newMaxEdit[i] = maxColorEditBounds[i];
 			} else { 
 				newTransFunc[i] = new TransferFunction(this, numBits);
-				newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin3D(i,usingVariable(varname)));
-				newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax3D(i,usingVariable(varname)));
-				newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin3D(i,usingVariable(varname));
-				newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax3D(i,usingVariable(varname));
+				newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin3D(i));
+				newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax3D(i));
+				newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin3D(i);
+				newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax3D(i);
 				newTransFunc[i]->setVarNum(i);		
 			}
 			

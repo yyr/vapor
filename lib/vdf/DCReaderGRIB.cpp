@@ -14,8 +14,6 @@
 //
 //  Date:	     June 2014
 //
-//  Description: TBD 
-//			   
 //
 
 #include <algorithm>
@@ -174,7 +172,6 @@ int DCReaderGRIB::Read(float *_values) {
 }
 
 int DCReaderGRIB::ReadSlice(float *values){
-	
 	if (_sliceNum < 0) return 0;
 	int savedSliceNum;
 	Variable *targetVar;
@@ -686,19 +683,19 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 	typedef std::map<std::string, Variable*>::iterator it_type;
 	for (it_type iterator=_vars3d.begin(); iterator!=_vars3d.end(); iterator++){
 		if (iterator->first == "gh") _vars3d["ELEVATION"] = new Variable(*_vars3d["gh"]);	// KISTI's definition of geopotential height
-		if (iterator->first == "z") _vars3d["ELEVATION"] = new Variable(*_vars3d["z"]);	// KISTI's definition of geopotential height
+		if (iterator->first == "z") _vars3d["ELEVATION"] = new Variable(*_vars3d["z"]);	    // ECMWF's definition of geopotential height
 		//if ((_vars3d[iterator->first]->getParamId() == 129) &&
 		//	(_vars3d[iterator->first]->getOperatingCenter() == "ecmf"))
 		//		_vars3d["ELEVATION"] = new Variable(*_vars3d[iterator->first]);
 	}
 
 	for (it_type iterator=_vars3d.begin(); iterator!=_vars3d.end(); iterator++){
-		_vars3d[iterator->first]->_SortLevels();		   //  Sort the levels that apply to each individual variable
-		_vars3d[iterator->first]->_SortTimes();				// Sort udunit times that apply to each individual variable
+		_vars3d[iterator->first]->_SortLevels();           // Sort the levels that apply to each individual variable
+		_vars3d[iterator->first]->_SortTimes();            // Sort udunit times that apply to each individual variable
 	}
 	for (it_type iterator=_vars2d.begin(); iterator!=_vars2d.end(); iterator++){
-		_vars2d[iterator->first]->_SortLevels();			// Sort the levels that apply to each individual variable
-		_vars2d[iterator->first]->_SortTimes();			 // Sort udunit times that apply to each individual variable
+		_vars2d[iterator->first]->_SortLevels();           // Sort the levels that apply to each individual variable
+		_vars2d[iterator->first]->_SortTimes();            // Sort udunit times that apply to each individual variable
 	}
 
 	if (_pressureLevels.size() == 0) {
@@ -961,6 +958,23 @@ DCReaderGRIB::GribParser::GribParser() {
 }
 
 int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
+	
+	// Check to see if boot.def can be found, otherwise
+	// grib_api will catastrophically fail
+	ostringstream bootDefFile;
+	bootDefFile << getenv("GRIB_DEFINITION_PATH");
+	#ifdef WIN32
+		bootDefFile << "\boot.def";
+	#else
+		bootDefFile << "/boot.def";
+	#endif
+	std::ifstream inFile(bootDefFile.str().c_str());
+	if (!(inFile.good())) {
+		MyBase::SetErrMsg("ERROR: unable to access boot.def for grib_api."
+		"  Check for [VAPORHOME]/share/grib_api/definitions/boot.def");
+		return -1;
+	}
+
 	FILE* _in = fopen(file.c_str(),"rb");
 	if(!_in) {
 		MyBase::SetErrMsg("ERROR: unable to open file %s.",file.c_str());

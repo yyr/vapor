@@ -108,8 +108,8 @@ reinit(bool doOverride){
 		for (int i = 0; i<numVariables3D; i++){
 			string varname = ds->getVariableName3D(i);
 			//will need to set the iso value:
-			float dataMin = ds->getDefaultDataMin3D(i,usingVariable(varname));
-			float dataMax = ds->getDefaultDataMax3D(i,usingVariable(varname));
+			float dataMin = ds->getDefaultDataMin3D(i);
+			float dataMax = ds->getDefaultDataMax3D(i);
 			if (dataMin == dataMax){
 				dataMin -= 0.5f; dataMax += 0.5;
 			}
@@ -124,8 +124,8 @@ reinit(bool doOverride){
 		for (int i = 0; i<numVariables2D; i++){
 			string varname = ds->getVariableName2D(i);
 			//will need to set the iso value:
-			float dataMin = ds->getDefaultDataMin2D(i,usingVariable(varname));
-			float dataMax = ds->getDefaultDataMax2D(i,usingVariable(varname));
+			float dataMin = ds->getDefaultDataMin2D(i);
+			float dataMax = ds->getDefaultDataMax2D(i);
 			if (dataMin == dataMax){
 				dataMin -= 0.5f; dataMax += 0.5;
 			}
@@ -144,8 +144,8 @@ reinit(bool doOverride){
 		for (int i = 0; i<numVariables3D; i++){
 			string varname = ds->getVariableName3D(i);
 			if(i<GetNumVariables3D()){ //make copy of existing ones, don't set their root nodes yet
-				float dataMin = ds->getDefaultDataMin3D(i,usingVariable(varname));
-				float dataMax = ds->getDefaultDataMax3D(i,usingVariable(varname));
+				float dataMin = ds->getDefaultDataMin3D(i);
+				float dataMax = ds->getDefaultDataMax3D(i);
 				
 				if (GetIsoControl(varname,true)){	
 					new3DIsoControls[i] = (IsoControl*)GetIsoControl(varname,true)->deepCopy(0);
@@ -175,8 +175,8 @@ reinit(bool doOverride){
 		for (int i = 0; i<numVariables2D; i++){
 			string varname = ds->getVariableName2D(i);
 			if(i<GetNumVariables2D()){ //make copy of existing ones, don't set their root nodes yet
-				float dataMin = ds->getDefaultDataMin2D(i,usingVariable(varname));
-				float dataMax = ds->getDefaultDataMax2D(i,usingVariable(varname));
+				float dataMin = ds->getDefaultDataMin2D(i);
+				float dataMax = ds->getDefaultDataMax2D(i);
 				
 				if (GetIsoControl(varname,false)){	
 					new2DIsoControls[i] = (IsoControl*)GetIsoControl(varname,false)->deepCopy(0);
