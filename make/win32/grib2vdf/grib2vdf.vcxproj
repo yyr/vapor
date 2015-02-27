@@ -83,8 +83,8 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <ObjectFileName>../../../targets/win32/built/mom2vdf</ObjectFileName>
-      <ProgramDataBaseFileName>../../../targets/win32/built/mom2vdf/vc90.pdb</ProgramDataBaseFileName>
+      <ObjectFileName>../../../targets/win32/built/grib2vdf</ObjectFileName>
+      <ProgramDataBaseFileName>../../../targets/win32/built/grib2vdf/vc90.pdb</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
@@ -112,8 +112,8 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <ObjectFileName>../../../targets/win32/built/mom2vdf</ObjectFileName>
-      <ProgramDataBaseFileName>../../../targets/win32/built/mom2vdf/vc90.pdb</ProgramDataBaseFileName>
+      <ObjectFileName>../../../targets/win32/built/grib2vdf</ObjectFileName>
+      <ProgramDataBaseFileName>../../../targets/win32/built/grib2vdf/vc90.pdb</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
@@ -138,8 +138,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <ObjectFileName>../../../targets/win32/built/mom2vdf</ObjectFileName>
-      <ProgramDataBaseFileName>../../../targets/win32/built/mom2vdf/vc90.pdb</ProgramDataBaseFileName>
+      <ObjectFileName>../../../targets/win32/built/grib2vdf</ObjectFileName>
+      <ProgramDataBaseFileName>../../../targets/win32/built/grib2vdf/vc90.pdb</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
@@ -167,8 +167,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <ObjectFileName>../../../targets/win64/built/mom2vdf</ObjectFileName>
-      <ProgramDataBaseFileName>../../../targets/win64/built/mom2vdf/vc90.pdb</ProgramDataBaseFileName>
+      <ObjectFileName>../../../targets/win64/built/grib2vdf</ObjectFileName>
+      <ProgramDataBaseFileName>../../../targets/win64/built/grib2vdf/vc90.pdb</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
