@@ -107,23 +107,6 @@ DCReaderGRIB::DCReaderGRIB(const vector <string> files) {
 	_vars3d.clear();
 	_udunit = NULL;
 
-	// Set up GRIB_API environment
-	//
-    vector <string> paths;
-    paths.push_back("grib_api");
-    paths.push_back("definitions");
-    string path =  GetAppPath("VAPOR", "share", paths).c_str();
-    if (! path.empty()) {
-#ifdef WIN32
-		path = "GRIB_DEFINITION_PATH="+path;
- 		int rc = _putenv(path.c_str());
-		if (rc!=0)
- 			MyBase::SetErrMsg("putenv failed on GRIB_DEFINITION_PATH");
-#else
-        setenv("GRIB_DEFINITION_PATH", path.c_str(), 1);
-#endif
-    }
-
 	DCReaderGRIB::_Initialize(files);
 }
 
@@ -351,8 +334,6 @@ double DCReaderGRIB::BarometricFormula(const double pressure) const {
 }
 
 int DCReaderGRIB::_InitCartographicExtents(string mapProj){
-										   //const std::vector<double> vertCoordinates,
-										   //std::vector<double> &extents) const {
 
 	Proj4API proj4API;
 
@@ -455,7 +436,56 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
 	return 0;
 }
 
+int DCReaderGRIB::_SetGribEnv(){
+	// Set up GRIB_API environment
+	//
+    vector <string> paths;
+    paths.push_back("grib_api");
+    paths.push_back("definitions");
+    string path =  GetAppPath("VAPOR", "share", paths).c_str();
+    if (! path.empty()) {
+#ifdef WIN32
+		path = "GRIB_DEFINITION_PATH="+path;
+ 		int rc = _putenv(path.c_str());
+		if (rc!=0)
+ 			MyBase::SetErrMsg("putenv failed on GRIB_DEFINITION_PATH");
+#else
+        setenv("GRIB_DEFINITION_PATH", path.c_str(), 1);
+#endif
+    }
+
+	// Check to see if boot.def can be found, otherwise
+	// grib_api will catastrophically fail
+	char* path2;
+	path2 = getenv("GRIB_DEFINITION_PATH");
+	
+	// if path is not null, we check if it's legitimate
+	// if path is null, we assume that the user is linking a previously installed
+	// grib_api that knows where its boot.def is, and we just return 0;
+	if (path2){
+		ostringstream bootDefFile;
+		bootDefFile << path2; 
+		#ifdef WIN32
+			bootDefFile << "\boot.def";
+		#else
+			bootDefFile << "/boot.def";
+		#endif
+		std::ifstream inFile(bootDefFile.str().c_str());
+		if (!(inFile.good())) {
+			MyBase::SetErrMsg("ERROR: unable to access boot.def for grib_api."
+			"  Check for [VAPORHOME]/share/grib_api/definitions/boot.def");
+			return -1;
+		}
+	}
+	return 0;
+}
+
 int DCReaderGRIB::_Initialize(const vector <string> files) {
+	if (_SetGribEnv() != 0) {
+		MyBase::SetErrMsg("Unable to configure the environment for grib_api");
+		return -1;
+	}
+
 	int rc;
 	parser = new GribParser();
 	for (int i=0; i<files.size(); i++){
@@ -958,22 +988,6 @@ DCReaderGRIB::GribParser::GribParser() {
 }
 
 int DCReaderGRIB::GribParser::_LoadRecordKeys(string file) {
-	
-	// Check to see if boot.def can be found, otherwise
-	// grib_api will catastrophically fail
-	ostringstream bootDefFile;
-	bootDefFile << getenv("GRIB_DEFINITION_PATH");
-	#ifdef WIN32
-		bootDefFile << "\boot.def";
-	#else
-		bootDefFile << "/boot.def";
-	#endif
-	std::ifstream inFile(bootDefFile.str().c_str());
-	if (!(inFile.good())) {
-		MyBase::SetErrMsg("ERROR: unable to access boot.def for grib_api."
-		"  Check for [VAPORHOME]/share/grib_api/definitions/boot.def");
-		return -1;
-	}
 
 	FILE* _in = fopen(file.c_str(),"rb");
 	if(!_in) {

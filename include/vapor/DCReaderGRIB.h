@@ -96,6 +96,7 @@ class VDF_API DCReaderGRIB : public DCReader {
 		// Convenience functions
 		//int _Initialize(std::vector<std::map<std::string, std::string> > records);
 		int _Initialize(vector<string> files);
+		int _SetGribEnv();
 		int PrintVar(string var);
 		float GetLevel(int index) const {return _pressureLevels[index];}
 		void PrintLevels();
