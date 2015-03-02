@@ -107,7 +107,7 @@ DCReaderGRIB::DCReaderGRIB(const vector <string> files) {
 	_vars3d.clear();
 	_udunit = NULL;
 
-	DCReaderGRIB::_Initialize(files);
+	(void) DCReaderGRIB::_Initialize(files);
 }
 
 int DCReaderGRIB::OpenVariableRead(size_t timestep, string varname,
@@ -459,17 +459,17 @@ int DCReaderGRIB::_SetGribEnv(){
 	char* path2;
 	path2 = getenv("GRIB_DEFINITION_PATH");
 	
-	// if path is not null, we check if it's legitimate
-	// if path is null, we assume that the user is linking a previously installed
-	// grib_api that knows where its boot.def is, and we just return 0;
+	// if path returns as a string, we check if it's legitimate
+	// if path is null, then GRIB_DEFINITION_PATH has failed to be set
+	// by either ourselves or the user, so we silently proceede
 	if (path2){
 		ostringstream bootDefFile;
 		bootDefFile << path2; 
-		#ifdef WIN32
+#ifdef WIN32
 			bootDefFile << "\boot.def";
-		#else
+#else
 			bootDefFile << "/boot.def";
-		#endif
+#endif
 		std::ifstream inFile(bootDefFile.str().c_str());
 		if (!(inFile.good())) {
 			MyBase::SetErrMsg("ERROR: unable to access boot.def for grib_api."
@@ -477,6 +477,7 @@ int DCReaderGRIB::_SetGribEnv(){
 			return -1;
 		}
 	}
+	//else return -1;
 	return 0;
 }
 
