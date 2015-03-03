@@ -340,7 +340,11 @@ int	Wrf2vdf::launchWrf2Vdf(int argc, char **argv, DCReaderWRF *optionalReader) {
 		 ncdffiles.push_back(argv[i]);
 	}
 
-	if (optionalReader != NULL) wrfData = optionalReader;
+	if (optionalReader != NULL) {
+		wrfData = optionalReader;
+		if (wcwriter) delete wcwriter;
+		wcwriter = NULL;
+	}
 	if (wrfData == NULL){
 		wrfData = new DCReaderWRF(ncdffiles);
 	}

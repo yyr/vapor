@@ -463,21 +463,19 @@ int DCReaderGRIB::_SetGribEnv(){
 	// if path is null, then GRIB_DEFINITION_PATH has failed to be set
 	// by either ourselves or the user, so we silently proceede
 	if (path2){
-		ostringstream bootDefFile;
-		bootDefFile << path2; 
+		string bootDefFile = path2;
 #ifdef WIN32
-			bootDefFile << "\boot.def";
+		bootDefFile = bootDefFile + "\\boot.def";
 #else
-			bootDefFile << "/boot.def";
+		bootDefFile = bootDefFile + "/boot.def";
 #endif
-		std::ifstream inFile(bootDefFile.str().c_str());
+		std::ifstream inFile(bootDefFile.c_str());
 		if (!(inFile.good())) {
 			MyBase::SetErrMsg("ERROR: unable to access boot.def for grib_api."
 			"  Check for [VAPORHOME]/share/grib_api/definitions/boot.def");
 			return -1;
 		}
 	}
-	//else return -1;
 	return 0;
 }
 
