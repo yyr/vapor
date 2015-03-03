@@ -15,8 +15,8 @@ vaporhome = Right(inputstring, len(inputstring) - posn -1)
 
 vaporbin = vaporhome & "bin;"
 vaporshare = vaporhome & "share"
-vaporidl = vaporhome & "bin"
-vaporidl2 = vaporhome & "bin;"
+vaporidl = vaporhome & "\bin"
+vaporidl2 = vaporhome & "\bin;"
 
 set shell = CreateObject("wscript.shell")
 If allUserProp Then
