@@ -411,19 +411,6 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType, DCReader *optio
     _progname = Basename(argv[0]);
 	OptionParser op;
 
-#ifdef DEAD
-	if (!strcmp(dataType.c_str(),"GRIB")){
-		if (op.AppendOptions(grib_opts) < 0) {
-			return(-1);
-		}
-	}
-	else {
-		if (op.AppendOptions(set_opts) < 0) {
-			return(-1);
-		}
-	}
-#endif
-
 	op.AppendOptions(set_opts);
 
     if (op.ParseOptions(&argc, argv, get_options) < 0) {
@@ -453,7 +440,14 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType, DCReader *optio
 	}
 	string metafile = argv[argc-1];
 	
-	if (optionalReader != NULL) DCData = optionalReader;
+	// If we are receiving an optionalReader, we're using the wizard
+	// Therefore we want to clear any previous wcwriter that may have
+	// been created in a previous conversion
+	if (optionalReader != NULL) {
+		DCData = optionalReader;
+		if (wcwriter) delete wcwriter;
+		wcwriter = NULL;
+	}
 	if (DCData==NULL){
 		if ((dataType == "ROMS") || (dataType == "CAM")) DCData = new DCReaderROMS(ncdffiles); 
 		else if (dataType == "GRIB") DCData = new DCReaderGRIB(ncdffiles);
@@ -490,7 +484,7 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType, DCReader *optio
 	// Get Mapping between VDC time steps and ncdf time steps
 	//
 	map <size_t, size_t> timemap;
-    GetTimeMap(vdfio, DCData, _startts, _numts, timemap);
+	GetTimeMap(vdfio, DCData, _startts, _numts, timemap);
 
 	//
 	// Figure out which variables to transform
@@ -504,7 +498,8 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType, DCReader *optio
 	int fails = 0;
 	map <size_t, size_t>::iterator itr;
 	for (itr = timemap.begin(); itr != timemap.end(); ++itr) {
-        if (! _quiet) {
+    cout << &itr << endl;
+	    if (! _quiet) {
 			cout << "Processing VDC time step " << itr->first << endl;
 		}
 		for (int v = 0; v < variables.size(); v++) {
