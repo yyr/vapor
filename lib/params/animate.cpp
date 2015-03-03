@@ -398,7 +398,8 @@ bool animate::speedController(int startIndex,const  std::vector<Keyframe*>& key_
     
     //call the interpolate function with the appropriate 't' and N parameters
     interpolate (T,N,startIndex, key_vec, false);
- 
+	//Reset the next keyframe to indicate the new number of frames
+	key_vec[startIndex+1]->numFrames = N;
     delete dist;
 	delete dist_prime;
 	delete T;

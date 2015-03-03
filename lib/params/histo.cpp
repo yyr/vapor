@@ -38,7 +38,7 @@ Histo::Histo(const RegularGrid *rg, const double exts[6], const float range[2]) 
 	maxData = range[1];
 	numBins = 256;
 	reset();
-
+	if (range[0]>= range[1]) return;
 	unsigned int qv;	// quantized value
 	float v;
 	RegularGrid *rg_const = (RegularGrid *) rg;   // kludge - no const_iterator
