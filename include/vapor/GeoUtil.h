@@ -28,6 +28,12 @@ public:
  static void ShiftLon(
 	const double *srclon, int nx, double *dstlon
  );
+ static void ShiftLon(
+	const float *srclon, int nx, int ny, float *dstlon
+ );
+ static void ShiftLon(
+	const double *srclon, int nx, int ny, double *dstlon
+ );
 
  //! Calculate west-most and east-most extents for a grid of 
  //! longitudinal values
