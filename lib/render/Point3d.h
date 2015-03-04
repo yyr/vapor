@@ -14,15 +14,15 @@
 
 struct RENDER_API Point3d
 {
-  float x;
-  float y;
-  float z;
-  float w;
+  double x;
+  double y;
+  double z;
+  double w;
 
 public:
 
   // Default Constructor
-  Point3d(float x1 = 0.0, float x2 = 0.0, float x3 = 0.0, float x4 = 1.0) :
+  Point3d(double x1 = 0.0, double x2 = 0.0, double x3 = 0.0, double x4 = 1.0) :
     x(x1), y(x2), z(x3), w(x4)
   {}
 
@@ -72,16 +72,16 @@ public:
   }
 
   // Index operator
-  float &operator()(const int index);
-  float operator()(const int index) const;
+  double &operator()(const int index);
+  double operator()(const int index) const;
 
 };
 
 //-- public  ------------------------------------------------------------------
-// inline float &Point3d::operator()(const int index)
+// inline double &Point3d::operator()(const int index)
 // Access operator
 //-----------------------------------------------------------------------------
-inline float &Point3d::operator()(const int index)
+inline double &Point3d::operator()(const int index)
 {
   switch(index)
   {
@@ -94,10 +94,10 @@ inline float &Point3d::operator()(const int index)
 }
 
 //-- public  ------------------------------------------------------------------
-// inline float Point3d::operator()(const int index) const
+// inline double Point3d::operator()(const int index) const
 // Access operator
 //-----------------------------------------------------------------------------
-inline float Point3d::operator()(const int index) const
+inline double Point3d::operator()(const int index) const
 {
   switch(index)
   {
