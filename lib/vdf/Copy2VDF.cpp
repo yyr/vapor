@@ -498,7 +498,6 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType, DCReader *optio
 	int fails = 0;
 	map <size_t, size_t>::iterator itr;
 	for (itr = timemap.begin(); itr != timemap.end(); ++itr) {
-    cout << &itr << endl;
 	    if (! _quiet) {
 			cout << "Processing VDC time step " << itr->first << endl;
 		}

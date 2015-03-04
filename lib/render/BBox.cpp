@@ -127,7 +127,7 @@ bool BBox::insideBox(const Point3d &point) {
 		//
 		// d = - (ax + by + cz) 
 		//
-		float d = - (N(0)*p0(0) + N(1)*p0(1) + N(2)*p0(2));
+		double d = - (N(0)*p0(0) + N(1)*p0(1) + N(2)*p0(2));
 
 		// Compute Hessian normal form of plane equation:
 		//
@@ -139,7 +139,7 @@ bool BBox::insideBox(const Point3d &point) {
 		//	p = d / sqrt(a^2 + b^2 + c^2)
 		//
 		Vect3d Nunit = N.unit();
-		float p = d / N.mag();
+		double p = d / N.mag();
 
 		Vect3d pv(point);
 		if ((Nunit.dot(pv) + p) > 0.0) return false;
