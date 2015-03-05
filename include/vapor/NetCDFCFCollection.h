@@ -559,6 +559,8 @@ public:
 	const NetCDFSimple::Variable &varinfo
  ) const;
 
+ int _Initialize(const std::vector <string> &files);
+
  //! CF1.X Definition of <em> coordinate variable </em>:
  //!
  //! "We use this term precisely as it is defined in section 2.3.1 of the NUG. 
