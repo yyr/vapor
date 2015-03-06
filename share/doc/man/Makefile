@@ -5,11 +5,7 @@ include ${TOP}/make/config/prebase.mk
 
 include ${TOP}/make/config/base.mk
 
-DOCS = asciitf2vtf vdfbkup vdfcreate vdfedit vdfls raw2vdf vdf2raw cart2layer \
-	wrfvdfcreate wrf2vdf ncdfvdfcreate ncdf2vdf flashvdfcreate \
-	flashamr2vdf tiff2geotiff getWMSImage \
-	momvdfcreate mom2vdf romsvdfcreate roms2vdf gribvdfcreate grib2vdf vdfcp.pl
-
+DOCS = $(subst .pod,,$(wildcard *.pod))
 
 all::
 	@$(ECHO) "Building man pages"
