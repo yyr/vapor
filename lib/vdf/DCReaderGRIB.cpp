@@ -364,7 +364,7 @@ int DCReaderGRIB::_InitCartographicExtents(string mapProj){
 		x[0] = _minLon;
 		y[0] = _minLat;
 
-		rc = proj4API.Transform(x,y,2,1);
+		rc = proj4API.Transform(x,y,1,1);
 		if (rc < 0) {
 			SetErrMsg("Invalid map projection : %s", mapProj.c_str());
 			return(-1);

@@ -39,6 +39,48 @@ NetCDFCFCollection::~NetCDFCFCollection() {
 	 _derivedVarsMap.clear();
 }
 
+int NetCDFCFCollection::_Initialize(
+	const vector <string> &files
+) {
+
+	// Look for time coordinate variables. Must be 1D and have same
+	// name as dimension. Need not be present in all files.
+	//
+	vector <string> tv;
+	for (int j=0; j<files.size(); j++) {
+
+		vector <string> emptyvec;
+		vector <string> file(1, files[j]);
+		int rc = NetCDFCollection::Initialize(file, emptyvec, emptyvec);
+		if (rc<0) return(-1);
+
+		// Get all 1D variables
+		//
+		vector <string> vars = NetCDFCollection::GetVariableNames(1, false);
+		for (int i=0; i<vars.size(); i++) {
+
+			NetCDFSimple::Variable varinfo;
+			(void) NetCDFCollection::GetVariableInfo(vars[i], varinfo);
+
+			if (_IsCoordinateVar(varinfo) && _IsTimeCoordVar(varinfo)) {
+				tv.push_back(vars[i]);
+			}
+		}
+		if (tv.size()) break;	// Should we process all files???
+	}
+
+	// 
+	// Reinitialize the base class now that we know the time coordinate
+	// variable. We're assuming that the time coordinate variable and
+	// the time dimension have the same name. Thus we're not handling
+	// the case where time variable could be a CF "auxilliary 
+	// coordinate variable".
+	//
+	int rc = NetCDFCollection::Initialize(files, tv, tv);
+	if (rc<0) return(-1);
+	return(0);
+}
+
 int NetCDFCFCollection::Initialize(
 	const vector <string> &files
 ) {
@@ -63,10 +105,10 @@ int NetCDFCFCollection::Initialize(
 	}
 
 
-	vector <string> emptyvec;
-	rc = NetCDFCollection::Initialize(files, emptyvec, emptyvec);
-	if (rc<0) return(-1);
 
+	rc = _Initialize(files);
+	if (rc<0) return(-1);
+	
 	
 	//
 	// Identify all of the coordinate variables and 
@@ -163,23 +205,6 @@ int NetCDFCFCollection::Initialize(
 		}
 	}
 
-	// 
-	// Reinitialize the base class now that we know the time coordinate
-	// variable. We're assuming that the time coordinate variable and
-	// the time dimension have the same name. Thus we're not handling
-	// the case where time variable could be a CF "auxilliary 
-	// coordinate variable".
-	//
-	vector <string> tv;
-	for (int i=0; i<_timeCoordVars.size(); i++) {
-		if (IsCoordVarCF(_timeCoordVars[i])) {
-			tv.push_back(_timeCoordVars[i]);
-		}
-	}
-
-
-	rc = NetCDFCollection::Initialize(files, tv, tv);
-	if (rc<0) return(-1);
 	
 	_GetMissingValueMap(_missingValueMap);
 	return(0);
