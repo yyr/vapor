@@ -10,22 +10,56 @@ camvdfcreate - Generate a VDF metadata file for a CAM data set
 
 =head1 SYNOPSIS
 
-B<camvdfcreate> [options] I<cam_ncdf_files...> I<cam_grid_file> I<vdffile>
+B<camvdfcreate> [options] I<cam_ncdf_files...> I<vdffile>
 
 =head1 DESCRIPTION
 
-B<camvdfcreate> generates a .vdf metafile that defines a VAPOR
-Data Collection (VDC) suitable for containing ocean simulation
-output from a CAM model output.  All of the model output NetCDF
-filenames must be provided on the command line, followed by one
-NetCDF grid filename, and the desired VAPOR (.vdf) file name.  The
-grid file must include variables that do not change in time, including
-the depth of the ocean, and the variables defining mappings from
-the model grid to latitude, latitude, and depth.  The grid file may
-also be included in the collection I<cam_netcdf_files>, if it
-contains data variables that change in time.
+B<camvdfcreate> generates a .vdf metafile that defines a VAPOR Data
+Collection (VDC) suitable for containing atmospheric simulation
+simulat from a CAM model output.  All of the CAM output NetCDF file
+names must be provided on the command line, followed the desired
+VAPOR (.vdf) file name.
+
+VDC data sets require a vertical coordinate, named ELEVATION, that is measured
+in units of length, typically meters. If the B<Z3> variable is present in 
+a CAM data set it will be used as the ELEVATION coordinate. If B<Z3> is not
+present the ELEVATION coordinate will be approximated using the 
+variables below:
+
+=item *
+
+T - Virtual Temperature
+
+=item *
+
+P0 - Pressure Constant
+
+=item *
+
+HYAM - Hybrid A midpoint coefficients
+
+=item *
+
+HYBM - Hybrid B midpoint coefficients
+
+=item *
+
+HYAI - Hybrid A interface coefficients
+
+=item *
+
+HYBI - Hybrid B interface coefficients
+
+=item *
+
+PS - Surface Pressure
+
+=item *
+
+PHIS - Surface Geopotential Height
 
 =head1 OPTIONS
+
 
 =over 4
 
@@ -69,14 +103,11 @@ Print a usage statement and then exit.
 
 The command 
 
-    camvdfcreate -vars u:v:temp cam1.nc cam2.nc cam3.nc camgrid.nc mydata.vdf
+    camvdfcreate -vars u:v:temp cam1.nc cam2.nc cam3.nc mydata.vdf
 
 will construct a VDF file, B<mydata.vdf> that will contain the B<u>,
 B<v>, and B<temp> variable names for all time steps found in the
-CAM netCDF files B<cam1.nc>, B<cam2.nc>, and B<cam3.nc>.  The
-netCDF file B<camgrid.nc> will contain time-invariant variables
-defining the grid.
-
+CAM netCDF files B<cam1.nc>, B<cam2.nc>, and B<cam3.nc>.  
 
 =head1 SEE ALSO
 

@@ -62,14 +62,11 @@ Operate quietly, only reporting fatal errors.
 
 The command 
 
-    cam2vdf camout1.nc camout2.nc camout3.nc camgrid.nc mydata.vdf 
+    cam2vdf camout1.nc camout2.nc camout3.nc mydata.vdf 
 
 transforms all of the variables at all of the time steps found in
 the CAM netCDF files B<camout1.nc>, B<camout2.nc>, and B<camout3.nc>
 that match the variable names and time stamps found in B<mydata.vdf>.
-The file B<camgrid.nc> contains the time-invariant variables that describe
-the computational grid, such
-as B<h> and B<s_rho>.
 
 The command 
 
