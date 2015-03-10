@@ -235,6 +235,7 @@ private:
  std::map <string, DC::Dimension> _dimsMap;
  std::map <string, DC::CoordVar> _coordVarsMap;
  std::map <string, DC::DataVar> _dataVarsMap;
+ std::vector <size_t> _timeLookup;
 
 
  vector <size_t> _GetSpatialDims(

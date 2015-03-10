@@ -18,6 +18,12 @@
 using namespace VAPoR;
 using namespace std;
 
+namespace {
+bool mycompare(const pair<int, float>  &a, const pair<int, float>  &b) {
+	return(a.second < b.second);
+}
+};
+
 DCWRF::DCWRF() {
 	_ncdfc = NULL;
 
@@ -84,18 +90,6 @@ int DCWRF::Initialize(const vector <string> &files) {
 
 	NetCDFCollection *ncdfc = new NetCDFCollection();
 
-	// Workaround for bug #953:  reverses time in WRF vdc conversion
-	// NetCDFCollection expects a 1D time coordinate variable. WRF
-	// data use a 2D "Times" time coordinate variable. By convention,
-	// however, WRF output files are sorted by time. Just need to
-	// make sure they're passed in the proper order. However, this will
-	// fail if files aren't named according to convention. The better 
-	// fix would be to modify NetCDFCollection to handle the WRF
-	// time coordinate variable.
-	//
-	vector <string> sorted_files = files;
-	std::sort(sorted_files.begin(), sorted_files.end());
-
 	// Initialize the NetCDFCollection class. Need to specify the name
 	// of the time dimension ("Times" for WRF), and time coordinate variable
 	// names (N/A for WRF)
@@ -103,7 +97,7 @@ int DCWRF::Initialize(const vector <string> &files) {
 	vector <string> time_dimnames;
 	vector <string> time_coordvars;
 	time_dimnames.push_back("Time");
-	int rc = ncdfc->Initialize(sorted_files, time_dimnames, time_coordvars);
+	int rc = ncdfc->Initialize(files, time_dimnames, time_coordvars);
 	if (rc<0) {
 		SetErrMsg("Failed to initialize netCDF data collection for reading");
 		return(-1);
@@ -346,6 +340,12 @@ int DCWRF::OpenVariableRead(
 ) {
 	DCWRF::CloseVariable();
 
+	if (ts >= _timeLookup.size()) {
+		SetErrMsg("Time step out of range : %d", ts);
+		return(-1);
+	}
+	ts = _timeLookup[ts];
+
 	_ovr_fd = _ncdfc->OpenRead(ts, varname);
 	return(_ovr_fd);
 
@@ -452,6 +452,10 @@ int DCWRF::GetVar(
 bool DCWRF::VariableExists(
 	size_t ts, string varname, int, int 
 ) const {
+    if (ts >= _timeLookup.size()) {
+        return(false);
+    }
+    ts = _timeLookup[ts];
 	return(_ncdfc->VariableExists(ts, varname));
 }
 
@@ -1097,6 +1101,23 @@ int DCWRF::_InitTime(
 
 	}
 	delete [] buf;
+
+	// The NetCDFCollection class doesn't handle the WRF time
+	// variable. Hence, the time steps aren't sorted. Sort them now and
+	// create a lookup table to map a time index to the correct time step
+	// in the WRF data collection. N.B. this is only necessary if multiple
+	// WRF files are present and they're not passed to Initialize() in
+	// the correct order.
+	//
+	vector <pair<int, float> > timepairs;
+	for (int i=0; i<times.size(); i++) {
+		timepairs.push_back(make_pair(i,times[i]));
+	}
+	sort(timepairs.begin(), timepairs.end(), mycompare);
+
+	for (int i=0; i<timepairs.size(); i++) {
+		_timeLookup.push_back(timepairs[i].first);
+	}
 
 	// Create and install the Time coordinate variable
 	//
