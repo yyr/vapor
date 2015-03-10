@@ -364,7 +364,7 @@ void    SphericalGrid::GetEnclosingRegion(
 
 	// radius of outer most layer of grid
 	r = r0 + ((double) max[_permutation[2]] * delta_r);	
-	if (r<=rmax);
+	//if (r<=rmax);
 
 	while(rmax < r) {
 		r -= delta_r;
