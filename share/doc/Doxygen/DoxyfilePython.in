@@ -401,7 +401,8 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT                  = 	TOP_OF_TREE/share/python/vapor_wrf.py \
-				TOP_OF_TREE/share/python/vapor_utils.py
+				TOP_OF_TREE/share/python/vapor_utils.py \
+				TOP_OF_TREE/share/python/vapor.py
 
 # If the value of the INPUT tag contains directories, you can use the 
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 
