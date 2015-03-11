@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>392</width>
-    <height>653</height>
+    <height>609</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,19 +27,6 @@
        <layout class="QHBoxLayout">
         <item>
          <layout class="QVBoxLayout" name="_2">
-          <item>
-           <widget class="QLabel" name="textLabel3">
-            <property name="text">
-             <string>Planar View</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-            <property name="wordWrap">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
           <item>
            <widget class="IsolineFrame" name="isolineImageFrame" native="true">
             <property name="sizePolicy">

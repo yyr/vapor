@@ -43,7 +43,7 @@ class XmlNode;
 class PanelCommand;
 class TransferFunction;
 
-class IsolineEventRouter : public QWidget, public Ui_ContourTab, public EventRouter {
+class IsolineEventRouter : public QTabWidget, public EventRouter {
 	Q_OBJECT
 public: 
 	

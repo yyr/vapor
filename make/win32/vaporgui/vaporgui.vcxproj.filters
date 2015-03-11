@@ -206,9 +206,6 @@
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\animationtab.h">
       <Filter>Generated Form Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\arrow.h">
-      <Filter>Generated Form Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\boxframe.h">
       <Filter>Generated Form Files</Filter>
     </ClInclude>
@@ -240,9 +237,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.h">
-      <Filter>Generated Form Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\contourTab.h">
       <Filter>Generated Form Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\contourLayout.h">
@@ -290,9 +284,6 @@
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\animationtab.ui">
-      <Filter>Forms</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\arrow.ui">
       <Filter>Forms</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\boxframe.ui">
@@ -389,9 +380,6 @@
       <Filter>Forms</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\contourLayout.ui">
-      <Filter>Forms</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\contourTab.ui">
       <Filter>Forms</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\isolineAppearance.h">

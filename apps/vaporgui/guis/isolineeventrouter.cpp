@@ -102,27 +102,25 @@ const char* IsolineEventRouter::webHelpURL[] =
 	"http://www.vapor.ucar.edu/docs/vapor-gui-general-guide/isolines#Appearance"
 };
 
-IsolineEventRouter::IsolineEventRouter(QWidget* parent): QWidget(parent), Ui_ContourTab(), EventRouter(){
-	setupUi(this);
+IsolineEventRouter::IsolineEventRouter(QWidget* parent): QTabWidget(parent),  EventRouter(){
+	
 	myParamsBaseType = Params::GetTypeFromTag(IsolineParams::_isolineParamsTag);
 	myWebHelpActions = makeWebHelpActions(webHelpText,webHelpURL);
 
 	showLayout = false;
 	
-	QTabWidget* myTabWidget = new QTabWidget(this);
-	myTabWidget->setTabPosition(QTabWidget::West);
-	myBasics = new IsolineBasics(myTabWidget);
-	myTabWidget->addTab(myBasics, "Basics");
-	myIsovals = new IsolineIsovals(myTabWidget);
-	myTabWidget->addTab(myIsovals,"Isovalues");
-	myLayout = new IsolineLayout(myTabWidget);
-	myTabWidget->addTab(myLayout,"Layout");
-	myAppearance = new IsolineAppearance(myTabWidget);
-	myTabWidget->addTab(myAppearance, "Appearance");
-	myImage = new IsolineImage(myTabWidget);
-	myTabWidget->addTab(myImage,"Image");
-	tabHolderLayout->addWidget(myTabWidget);
-
+	
+	myBasics = new IsolineBasics(this);
+	addTab(myBasics, "Variables");
+	myAppearance = new IsolineAppearance(this);
+	addTab(myAppearance, "Appearance");
+	myLayout = new IsolineLayout(this);
+	addTab(myLayout,"Layout");
+	myImage = new IsolineImage(this);
+	addTab(myImage,"Image");
+	myIsovals = new IsolineIsovals(this);
+	addTab(myIsovals,"Isovalues");
+	setMaximumWidth(440);
 	myIsovals->isoSelectionFrame->setOpacityMapping(true);
 	myIsovals->isoSelectionFrame->setColorMapping(true);
 	myIsovals->isoSelectionFrame->setIsoSlider(false);

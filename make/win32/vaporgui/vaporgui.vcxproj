@@ -679,7 +679,6 @@
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\animationtab.h" />
-    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\arrow.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\barbAppearance.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\barbBasic.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\barbLayout.h" />
@@ -689,7 +688,6 @@
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\contourImage.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\contourIsovalues.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\contourLayout.h" />
-    <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\contourTab.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\newRendererDialog.h" />
     <ClInclude Include="..\..\..\apps\vaporgui\guis\ui\regiontab.h" />
@@ -719,28 +717,6 @@
 </Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\guis\ui\animationtab.h;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\arrow.ui">
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">uic%27ing arrow.ui..</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\arrow.ui -o ..\..\..\apps\vaporgui\guis\ui\arrow.h
-</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vaporgui\guis\ui\arrow.h;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">uic%27ing arrow.ui..</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\arrow.ui -o ..\..\..\apps\vaporgui\guis\ui\arrow.h
-</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\guis\ui\arrow.h;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">uic%27ing arrow.ui</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\arrow.ui -o ..\..\..\apps\vaporgui\guis\ui\arrow.h
-</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vaporgui\guis\ui\arrow.h;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">uic%27ing arrow.ui</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\arrow.ui -o ..\..\..\apps\vaporgui\guis\ui\arrow.h
-</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\guis\ui\arrow.h;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\boxframe.ui">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Uic%27ing boxframe.ui...</Message>
@@ -945,13 +921,6 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\contourLayout.ui -o ..\..\..\apps\vaporgui\guis\ui\contourLayout.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">uic%27ing contourLayout.ui</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\guis\ui\contourLayout.h;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\vaporgui\guis\ui\contourTab.ui">
-      <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\contourTab.ui -o ..\..\..\apps\vaporgui\guis\ui\contourTab.h</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">uic%27ing contourTab.ui</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\guis\ui\contourTab.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>

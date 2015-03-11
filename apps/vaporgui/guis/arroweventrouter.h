@@ -7,7 +7,7 @@
 #include "arrowparams.h"
 #include "eventrouter.h"
 #include <vapor/MyBase.h>
-#include "arrow.h"
+
 #include "tabmanager.h"
 #include "arrowAppearance.h"
 #include "arrowLayout.h"
@@ -24,7 +24,7 @@ class XmlNode;
 class ParamNode;
 
 class Params;
-class ArrowEventRouter : public QWidget, public Ui_Arrow, public EventRouter {
+class ArrowEventRouter : public QTabWidget,  public EventRouter {
 
 	Q_OBJECT
 
@@ -73,7 +73,6 @@ protected slots:
 	void alignToData(bool);
 
 
-	
 protected:
 	void populateVariableCombos(bool is3d);
 	vector<int> copyCount;
@@ -81,7 +80,7 @@ protected:
 	ArrowBasic *myBasic;
 	ArrowAppearance * myAppearance;
 	ArrowLayout * myLayout;
-
+	
    };
 
 };
