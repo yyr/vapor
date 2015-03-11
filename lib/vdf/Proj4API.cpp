@@ -1,7 +1,6 @@
 
 #include <iostream>
 #include <proj_api.h>
-#include <vapor/GetAppPath.h>
 #include <vapor/Proj4API.h>
 
 using namespace VAPoR;
@@ -11,20 +10,6 @@ using namespace VetsUtil;
 Proj4API::Proj4API() {
 	_pjSrc = NULL;
 	_pjDst = NULL;
-
-	vector <string> paths;
-	paths.push_back("proj");
-	string path =  GetAppPath("VAPOR", "share", paths).c_str();
-	if (! path.empty()) {
-#ifdef WIN32
-		path = "PROJ_LIB="+path;
- 		int rc = _putenv(path.c_str());
-		if (rc!=0)
- 			MyBase::SetErrMsg("putenv failed on PROJ_LIB setting");
-#else
-		setenv("PROJ_LIB", path.c_str(), 1);
-#endif
-	}
 }
 
 Proj4API::~Proj4API() {
@@ -180,6 +165,48 @@ int Proj4API::Transform(
 		}
 	}
 	return(0);
+}
+
+int Proj4API::Transform(float *x, float *y, size_t n, int offset) const {
+
+	return(Proj4API::Transform(x,y,NULL,n,offset));
+}
+
+int Proj4API::Transform(
+	float *x, float *y, float *z, size_t n, int offset
+) const {
+	double *xd = NULL;
+	double *yd = NULL;
+	double *zd = NULL;
+
+	if (x) {
+		xd = new double[n];
+		for (size_t i = 0; i<n; i++) xd[i] = x[i];
+	}
+	if (y) {
+		yd = new double[n];
+		for (size_t i = 0; i<n; i++) yd[i] = y[i];
+	}
+	if (z) {
+		zd = new double[n];
+		for (size_t i = 0; i<n; i++) zd[i] = z[i];
+	}
+
+	int rc = Proj4API::Transform(xd,yd,zd,n,offset);
+
+	if (xd) {
+		for (size_t i = 0; i<n; i++) x[i] = xd[i];
+		delete [] xd;
+	}
+	if (yd) {
+		for (size_t i = 0; i<n; i++) y[i] = yd[i];
+		delete [] yd;
+	}
+	if (zd) {
+		for (size_t i = 0; i<n; i++) z[i] = zd[i];
+		delete [] zd;
+	}
+	return(rc);
 }
 
 
