@@ -109,11 +109,7 @@ int	WaveletBlock3DBufWriter::OpenVariableWrite(
 
 int     WaveletBlock3DBufWriter::_CloseVariable2D() {
 
-	int rc = _writer2D->CloseVariable();
-	const float *r = _writer2D->GetDataRange();
-	_dataRange[0] = r[0];
-	_dataRange[1] = r[1];
-	return rc;
+	return (_writer2D->CloseVariable());
 }
 
 

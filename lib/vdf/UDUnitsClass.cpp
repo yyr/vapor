@@ -237,45 +237,6 @@ bool UDUnits::Convert(
 	return(true);
 }
 
-bool UDUnits::Convert(
-    const string from,
-    const string to, 
-    const double *src,
-    double *dst,
-    size_t n
-) const {
-
-    ut_unit *fromunit = ut_parse(_unitSystem, from.c_str(), UT_ASCII);
-    if (! fromunit) {
-        ut_set_status(UT_SUCCESS);  // clear error message
-        return(false);
-    }   
-
-    ut_unit *tounit = ut_parse(_unitSystem, to.c_str(), UT_ASCII);
-    if (! tounit) {
-        ut_free(fromunit);
-        ut_set_status(UT_SUCCESS);  // clear error message
-        return(false);
-    }   
-
-    cv_converter *cv = NULL;
-    cv = ut_get_converter((ut_unit *) fromunit, tounit);
-    if (! cv) {
-        ut_free(tounit);
-        ut_free(fromunit);
-        ut_set_status(UT_SUCCESS);
-        return(false);
-    }   
-
-    cv_convert_doubles(cv, src, n, dst);
-
-    if (fromunit) ut_free(fromunit);
-    if (tounit) ut_free(tounit);
-    if (cv) cv_free(cv);
-    return(true);
-}
-
-
 void UDUnits::DecodeTime(
     double seconds, int* year, int* month, int* day, 
 	int* hour, int* minute, int* second
