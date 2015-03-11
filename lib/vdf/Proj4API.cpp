@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <proj_api.h>
+#include <vapor/GetAppPath.h>
 #include <vapor/Proj4API.h>
 
 using namespace VAPoR;
@@ -10,6 +11,20 @@ using namespace VetsUtil;
 Proj4API::Proj4API() {
 	_pjSrc = NULL;
 	_pjDst = NULL;
+
+	vector <string> paths;
+	paths.push_back("proj");
+	string path =  GetAppPath("VAPOR", "share", paths).c_str();
+	if (! path.empty()) {
+#ifdef WIN32
+		path = "PROJ_LIB="+path;
+ 		int rc = _putenv(path.c_str());
+		if (rc!=0)
+ 			MyBase::SetErrMsg("putenv failed on PROJ_LIB setting");
+#else
+		setenv("PROJ_LIB", path.c_str(), 1);
+#endif
+	}
 }
 
 Proj4API::~Proj4API() {
