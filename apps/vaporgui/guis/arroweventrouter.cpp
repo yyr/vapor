@@ -49,21 +49,19 @@
 using namespace VAPoR;
 
 
-ArrowEventRouter::ArrowEventRouter(QWidget* parent): QWidget(parent), Ui_Arrow(), EventRouter(){
-        setupUi(this);
+ArrowEventRouter::ArrowEventRouter(QWidget* parent): QTabWidget(parent),  EventRouter(){
+       
 	myParamsBaseType = ControlExec::GetTypeFromTag(ArrowParams::_arrowParamsTag);
 
 	showLayout = false;
 	
-	QTabWidget* myTabWidget = new QTabWidget(this);
-	myTabWidget->setTabPosition(QTabWidget::West);
-	myBasic = new ArrowBasic(myTabWidget);
-	myTabWidget->addTab(myBasic, "Basics");
-	myAppearance = new ArrowAppearance(myTabWidget);
-	myTabWidget->addTab(myAppearance, "Appearance");
-	myLayout = new ArrowLayout(myTabWidget);
-	myTabWidget->addTab(myLayout,"Layout");
-	tabHolderLayout->addWidget(myTabWidget);
+	myBasic = new ArrowBasic(this);
+	addTab(myBasic, "Variables");
+	myAppearance = new ArrowAppearance(this);
+	addTab(myAppearance, "Appearance");
+	myLayout = new ArrowLayout(this);
+	addTab(myLayout,"Layout");
+	setMaximumWidth(440);
 }
 
 

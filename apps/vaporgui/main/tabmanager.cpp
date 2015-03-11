@@ -61,7 +61,7 @@ TabManager::TabManager(QWidget* parent, const char* )
 	topName[0]= "Renderers";
 	topName[1]= "Navigation";
 	topName[2]= "Settings";
-	
+
 	show();
 }
 //Insert a new tabbed widget at the end of the tabs, as either a 0=rendererTab, 1=navTab, 2=settingsTab

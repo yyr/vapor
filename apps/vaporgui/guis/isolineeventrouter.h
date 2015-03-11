@@ -26,7 +26,6 @@
 #include "params.h"
 #include "eventrouter.h"
 #include <vapor/MyBase.h>
-#include "contourTab.h"
 #include "isolineAppearance.h"
 #include "isolineLayout.h"
 #include "isolineIsovals.h"
@@ -43,7 +42,7 @@ class XmlNode;
 class PanelCommand;
 class TransferFunction;
 
-class IsolineEventRouter : public QWidget, public Ui_ContourTab, public EventRouter {
+class IsolineEventRouter : public QTabWidget, public EventRouter {
 	Q_OBJECT
 public: 
 	
