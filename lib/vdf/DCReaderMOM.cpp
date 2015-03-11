@@ -195,7 +195,7 @@ int DCReaderMOM::_InitVerticalCoordinates(
 	vector <double> &vertCoords
 ) {
 	vertCoords.clear();
-	float scaleFactor = 1.0;
+	double scaleFactor = 1.0;
 
 	//
 	// Handle case if there is no vertical coordinate variable
@@ -238,12 +238,12 @@ int DCReaderMOM::_InitVerticalCoordinates(
 	int rc = ncdfc->GetVarUnits(cvar, from);
 	if (rc<0) return(-1);
 
-	float unkown_unit = 1.0;
+	double unkown_unit = 1.0;
 
 	const UDUnits *udunit = ncdfc->GetUDUnits();
 	if (udunit->IsPressureUnit(from)) {
 		string to = "dbars";
-		float p;
+		double p;
 		if (! udunit->Convert(from, to, &unkown_unit, &p, 1)) {
 			return(-1);
 		}
@@ -257,7 +257,11 @@ int DCReaderMOM::_InitVerticalCoordinates(
 		//
 		string to = "meter";
 		if (! udunit->Convert(from, to, &unkown_unit, &scaleFactor, 1)) {
-			return(-1);
+	
+			// Truly unknown unit. Skip conversion
+			//
+			scaleFactor = 1.0;	
+//			return(-1);
 		}
 	}
 
@@ -340,12 +344,12 @@ double DCReaderMOM::GetTSUserTime(size_t ts) const {
 	// Convert time from whatever is used in the file to seconds
 	//
 	string from;
-	float from_time = time_d;
+	double from_time = time_d;
 	int rc = _ncdfc->GetVarUnits(_timeCV, from);
 	if (rc<0) return(from_time);
 
 	string to = "seconds";
-	float to_time;
+	double to_time;
 
 	rc = _ncdfc->Convert(from, to, &from_time, &to_time, 1);
 	if (rc<0) return(from_time);
@@ -889,6 +893,12 @@ int DCReaderMOM::_initLatLonBuf(
 		}
 	}
 
+	//
+	// Precondition longitude coordinates so that there are no
+	// discontinuities (e.g. jumping 360 to 0, or -180 to 180)
+	//
+	GeoUtil::ShiftLon(llb._lonbuf, llb._nx, llb._ny, llb._lonbuf);
+
 	GeoUtil::LonExtents(
 		llb._lonbuf, llb._nx, llb._ny, llb._lonexts[0], llb._lonexts[1]
 	);
@@ -897,75 +907,6 @@ int DCReaderMOM::_initLatLonBuf(
 	);
 
 	return(0);
-
-#ifdef	DEAD
-
-	//
-	// Get lat extents.  Really only need to check data on boundary, 
-	// but we're lazy. N.B. doesn't handle case where data cross either pole.
-	// 
-	//
-	llb._latexts[0] = llb._latexts[1] = llb._latbuf[0];
-	for (int j=0; j<llb._ny; j++) {
-	for (int i=0; i<llb._nx; i++) {
-		float tmp = llb._latbuf[j*llb._nx+i];
-		llb._latexts[0] = tmp < llb._latexts[0] ? tmp : llb._latexts[0];
-		llb._latexts[1] = tmp > llb._latexts[1] ? tmp : llb._latexts[1];
-	}
-	}
-
-
-	//
-	// Now deal with longitude, which may wrap (i.e. the values may
-	// not be monotonicly increasing along a scan line. First we 
-	// handle wraparound. We simply look for a big jump between adjacent
-	// points. N.B. testing for changes from increasing to decreasing (or
-	// vise versa don't work for data sets that are extremely distored).
-	//
-	for (int j=0; j<llb._ny; j++) {
-	for (int i=0; i<llb._nx-1; i++) {
-		float delta = 180.0;	
-		if (fabs(llb._lonbuf[j*llb._nx+i] - llb._lonbuf[j*llb._nx+i+1])>delta) {
-			llb._lonbuf[j*llb._nx+i+1] += 360.0;
-		}
-	}
-	}
-
-	//
-	// Now get lon extents. 
-	//
-	llb._lonexts[0] = llb._lonexts[1] = llb._lonbuf[0];
-	for (int j=0; j<llb._ny; j++) {
-	for (int i=0; i<llb._nx; i++) {
-		//
-		// Ugh. Don't look at longitudes near poles 'cause things 
-		// get squirely there
-		//
-		if (llb._latbuf[j*llb._nx+i] > -60.0 && llb._latbuf[j*llb._nx+i] < 60.0){
-			float tmp = llb._lonbuf[j*llb._nx+i];
-			llb._lonexts[0] = tmp < llb._lonexts[0] ? tmp : llb._lonexts[0];
-			llb._lonexts[1] = tmp > llb._lonexts[1] ? tmp : llb._lonexts[1];
-		}
-	}
-	}
-
-	//
-	// Finally, try to bring everything back to -360 to 360
-	//
-	if (llb._lonexts[0] > 180 || llb._lonexts[1] > 360.0) {
-		for (int j=0; j<llb._ny; j++) {
-		for (int i=0; i<llb._nx; i++) {
-				llb._lonbuf[j*llb._nx+i] -= 360.0;
-		}
-		}
-		llb._lonexts[0] -= 360.0;
-		llb._lonexts[1] -= 360.0;
-	}
-	if ((llb._lonexts[1] - llb._lonexts[0]) > 360.0) {
-		llb._lonexts[1] = llb._lonexts[0] + 360.0;
-	}
-	return(0);
-#endif
 
 }
 

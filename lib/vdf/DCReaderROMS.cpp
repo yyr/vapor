@@ -109,6 +109,7 @@ DCReaderROMS::DCReaderROMS(const vector <string> &files) {
 	if (llb._latbuf) delete [] llb._latbuf;
 	if (llb._lonbuf) delete [] llb._lonbuf;
 
+	_ncdfc = ncdfc;
 	rc = _InitCartographicExtents(
 		GetMapProjection(), _lonExts, _latExts, _vertCoordinates, 
 		_cartesianExtents
@@ -127,7 +128,6 @@ DCReaderROMS::DCReaderROMS(const vector <string> &files) {
 	_latDEGBuf = new float[_dims[0]*_dims[1]];
 	_getRotationVariables(_weightTable, _angleRADBuf, _latDEGBuf);
 
-	_ncdfc = ncdfc;
 
 	sort(_vars3d.begin(), _vars3d.end());
 	sort(_vars2dXY.begin(), _vars2dXY.end());
@@ -137,13 +137,33 @@ DCReaderROMS::DCReaderROMS(const vector <string> &files) {
 
 string DCReaderROMS::GetMapProjection() const {
 
+	// Get Map projection if it exists. Assume all variables use same
+	// projection
+	//
+	vector <string> allvars = _vars3d;
+	allvars.insert(allvars.end(), _vars2dXY.begin(), _vars2dXY.end());
+
+
+	// Get Map projection from data if one exists
+	//
+	string proj4string;
+	for (int i=0; i<allvars.size(); i++) {
+
+		bool status = _ncdfc->GetMapProjectionProj4(allvars[i], proj4string);	
+		if (status) break;
+	}
+
+	if (! proj4string.empty()) return(proj4string); 
+
+	// No map projection defined so use cylindrical equidistant
+	//
 	double lon_0 = (_lonExts[0] + _lonExts[1]) / 2.0;
 	double lat_0 = (_latExts[0] + _latExts[1]) / 2.0;
 	ostringstream oss;
 	oss << " +lon_0=" << lon_0 << " +lat_0=" << lat_0;
-	string projstring = "+proj=eqc +ellps=WGS84" + oss.str();
+	proj4string = "+proj=eqc +ellps=WGS84" + oss.str();
 
-	return(projstring);
+	return(proj4string);
 }
 
 vector <size_t> DCReaderROMS::_GetSpatialDims(
@@ -164,11 +184,16 @@ vector <string> DCReaderROMS::_GetSpatialDimNames(
 
 int DCReaderROMS::_InitVerticalCoordinates(
 	NetCDFCFCollection *ncdfc, 
-	vector <string> &cvars,
+	const vector <string> &cvars,
 	vector <double> &vertCoords
 ) {
 
 	vertCoords.clear();
+	if (cvars.size() == 0) { 	// No vertical dimension
+		vertCoords.push_back(0.0);
+		vertCoords.push_back(0.0);
+		return(0);
+	}
 
 	// Determine whether the data is read top-to-bottom (as in CAM)
 	// or bottom-to-top, by checking the standard formula of the vert coordinate
@@ -181,11 +206,6 @@ int DCReaderROMS::_InitVerticalCoordinates(
 		_dataReversed = 1;
 	}
 
-	if (cvars.size() == 0) { 	// No vertical dimension
-		vertCoords.push_back(0.0);
-		vertCoords.push_back(0.0);
-		return(0);
-	}
 
 	if (cvars.size() > 1) {
 		SetErrMsg("Only one vertical coordinate variable supported");
@@ -310,12 +330,12 @@ double DCReaderROMS::GetTSUserTime(size_t ts) const {
 	// Convert time from whatever is used in the file to seconds
 	//
 	string from;
-	float from_time = time_d;
+	double from_time = time_d;
 	int rc = _ncdfc->GetVarUnits(_timeCV, from);
 	if (rc<0) return(from_time);
 
 	string to = "seconds";
-	float to_time;
+	double to_time;
 
 	rc = _ncdfc->Convert(from, to, &from_time, &to_time, 1);
 	if (rc<0) return(from_time);
@@ -403,6 +423,7 @@ int DCReaderROMS::OpenVariableRead(
 
 int DCReaderROMS::ReadSlice(float *slice) {
 
+
 	//
 	// Deal with derived variables
 	//
@@ -423,10 +444,13 @@ int DCReaderROMS::ReadSlice(float *slice) {
 		return(1);
 	}
 
-	if (_GetSpatialDims(_ncdfc, _ovr_varname).size() < 2) {
+	vector <size_t> dims = _GetSpatialDims(_ncdfc, _ovr_varname);
+	if (dims.size() < 2) {
 		SetErrMsg("Invalid operation");
 		return(-1);
 	}
+	size_t nz = (dims.size() == 3) ? dims[2] : 1;
+	if (_ovr_slice >= nz) return(0);	// EOF
 
 	// If data is reversed, read in reversed order (duh)
 	// ELEVATION is already fed in reverse order w.r.t CAM,
@@ -455,8 +479,8 @@ int DCReaderROMS::ReadSlice(float *slice) {
 		dstMV = srcMV;
 	}
 
-	size_t dims[] = {_dims[0], _dims[1]};
-	_weightTable->interp2D(_sliceBuffer, slice, srcMV, dstMV, dims);
+	size_t mydims[] = {_dims[0], _dims[1]};
+	_weightTable->interp2D(_sliceBuffer, slice, srcMV, dstMV, mydims);
 
 	_ovr_slice++;
 	return(1);
@@ -591,17 +615,17 @@ int DCReaderROMS::_InitCoordVars(NetCDFCFCollection *ncdfc)
 	//
 	vector <size_t> udims;	// unstaggered dims 
 	vector <string> vars = ncdfc->GetDataVariableNames(3, true);
+	if (! vars.size()) vars = ncdfc->GetDataVariableNames(2, true);
 	for (int i=0; i<vars.size(); i++) {
 
 		vector <size_t> dims = _GetSpatialDims(ncdfc, vars[i]);
-		assert(dims.size() == 3);
 		if (udims.size() == 0) udims = dims;
 
 		//
 		// The grid with minimum dimensions is the based grid that 
 		// staggered variables are resampled to
 		//
-		for (int j=0; j<3; j++) {
+		for (int j=0; j<dims.size(); j++) {
 			if (dims[j] < udims[j]) {
 				udims[j] = dims[j];
 			}
@@ -709,7 +733,7 @@ int DCReaderROMS::_InitCoordVars(NetCDFCFCollection *ncdfc)
 		//
 		if (_timeCV.empty() && !timecv.empty()) _timeCV = timecv;
 		if (! _timeCV.empty() && ! timecv.empty() && _timeCV.compare(timecv) != 0) excluded = true;
-		if (! excluded && _GetSpatialDims(ncdfc, vertcv).size() > 1) excluded = true;
+		//if (! excluded && _GetSpatialDims(ncdfc, vertcv).size() > 1) excluded = true;
 
 		//
 		// Lat and lon coordinate variables must be 1D or 2D and
@@ -879,6 +903,12 @@ int DCReaderROMS::_initLatLonBuf(
 		}
 	}
 
+	//
+	// Precondition longitude coordinates so that there are no
+	// discontinuities (e.g. jumping 360 to 0, or -180 to 180)
+	//
+	GeoUtil::ShiftLon(llb._lonbuf, llb._nx, llb._ny, llb._lonbuf);
+
 	GeoUtil::LonExtents(
 		llb._lonbuf, llb._nx, llb._ny, llb._lonexts[0], llb._lonexts[1]
 	);
@@ -888,66 +918,6 @@ int DCReaderROMS::_initLatLonBuf(
 
 	return(0);
 
-#ifdef	DEAD
-
-	//
-	// Get lat extents.  Really only need to check data on boundary, 
-	// but we're lazy. N.B. doesn't handle case where data cross either pole.
-	// 
-	//
-	llb._latexts[0] = llb._latexts[1] = llb._latbuf[0];
-	for (int j=0; j<llb._ny; j++) {
-	for (int i=0; i<llb._nx; i++) {
-		float tmp = llb._latbuf[j*llb._nx+i];
-		llb._latexts[0] = tmp < llb._latexts[0] ? tmp : llb._latexts[0];
-		llb._latexts[1] = tmp > llb._latexts[1] ? tmp : llb._latexts[1];
-	}
-	}
-
-
-	//
-	// Now deal with longitude, which may wrap (i.e. the values may
-	// not be monotonicly increasing along a scan line. First we 
-	// handle wraparound. We simply look for a big jump between adjacent
-	// points. N.B. testing for changes from increasing to decreasing (or
-	// vise versa don't work for data sets that are extremely distored).
-	//
-	for (int j=0; j<llb._ny; j++) {
-	for (int i=0; i<llb._nx-1; i++) {
-		float delta = 180.0;	
-		if (fabs(llb._lonbuf[j*llb._nx+i] - llb._lonbuf[j*llb._nx+i+1])>delta) {
-			llb._lonbuf[j*llb._nx+i+1] += 360.0;
-		}
-	}
-	}
-
-	//
-	// Now get lon extents. 
-	//
-	llb._lonexts[0] = llb._lonexts[1] = llb._lonbuf[0];
-	for (int j=0; j<llb._ny; j++) {
-	for (int i=0; i<llb._nx; i++) {
-		float tmp = llb._lonbuf[j*llb._nx+i];
-		llb._lonexts[0] = tmp < llb._lonexts[0] ? tmp : llb._lonexts[0];
-		llb._lonexts[1] = tmp > llb._lonexts[1] ? tmp : llb._lonexts[1];
-	}
-	}
-
-	//
-	// Finally, try to bring everything back to -360 to 360
-	//
-	if (llb._lonexts[0] > 180 || llb._lonexts[1] > 360.0) {
-		for (int j=0; j<llb._ny; j++) {
-		for (int i=0; i<llb._nx; i++) {
-				llb._lonbuf[j*llb._nx+i] -= 360.0;
-		}
-		}
-		llb._lonexts[0] -= 360.0;
-		llb._lonexts[1] -= 360.0;
-	}
-
-	return(0);
-#endif
 }
 
 void DCReaderROMS::_getRotationVariables(

@@ -46,6 +46,8 @@ Wrf2vdf::~Wrf2vdf() {
         if (_mvMask2DXY) delete [] _mvMask2DXY;
         if (_mvMask2DXZ) delete [] _mvMask2DXZ;
         if (_mvMask2DYZ) delete [] _mvMask2DYZ;
+        if (wcwriter) delete wcwriter;
+        if (wrfData) delete wrfData;
 }
 
 const char *ProgName;
@@ -257,13 +259,13 @@ int Wrf2vdf::CopyVar(
 }
 
 void Wrf2vdf::deleteObjects(){
-	delete wcwriter;
-	delete wrfData;
+	if (wcwriter) delete wcwriter;
+	if (wrfData) delete wrfData;
 	wrfData=NULL;
 	wcwriter=NULL;
 }
 
-int	Wrf2vdf::launchWrf2Vdf(int argc, char **argv) {
+int	Wrf2vdf::launchWrf2Vdf(int argc, char **argv, DCReaderWRF *optionalReader) {
 
 	OptionParser::OptDescRec_T      set_opts[] = {
         	{"vars",1,    "",       "Colon delimited list of variables to be copied "
@@ -338,6 +340,11 @@ int	Wrf2vdf::launchWrf2Vdf(int argc, char **argv) {
 		 ncdffiles.push_back(argv[i]);
 	}
 
+	if (optionalReader != NULL) {
+		wrfData = optionalReader;
+		if (wcwriter) delete wcwriter;
+		wcwriter = NULL;
+	}
 	if (wrfData == NULL){
 		wrfData = new DCReaderWRF(ncdffiles);
 	}

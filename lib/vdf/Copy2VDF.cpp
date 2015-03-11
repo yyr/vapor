@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <vapor/OptionParser.h>
 #include <vapor/MetadataVDC.h>
+#include <vapor/DCReaderGRIB.h>
 #include <vapor/DCReaderROMS.h>
 #include <vapor/DCReaderMOM.h>
 #include <vapor/DCReaderWRF.h>
@@ -24,7 +25,7 @@ using namespace VAPoR;
 Copy2VDF::Copy2VDF() {
 	_progname.clear();
 	_vars.clear();
-	_numts = 0;
+	_numts = -1;
 	_startts = 0;
 	_level = 0;
 	_lod = 0;
@@ -54,7 +55,7 @@ void Copy2VDF::Usage(OptionParser &op, const char * msg) {
 	if (msg) {
         cerr << _progname << " : " << msg << endl;
 	}
-    cerr << "Usage: " << _progname << " [options] ncdf_file... vdf_file" << endl;
+    cerr << "Usage: " << _progname << " [options] input_file(s)... vdf_file" << endl;
 	op.PrintOptionHelp(stderr, 80, false);
 
 }
@@ -77,7 +78,8 @@ void Copy2VDF::GetTimeMap(
 	//
 	// Get user times from .vdf
 	//
-	vector <float> ncdftimes;
+	//vector <float> ncdftimes;
+	vector <double> ncdftimes;
 	for (int i=0; i<DCData->GetNumTimeSteps(); i++) { 
 		ncdftimes.push_back(DCData->GetTSUserTime(i));
 	}
@@ -85,7 +87,8 @@ void Copy2VDF::GetTimeMap(
 	//
 	// Get user times from netCDF files
 	//
-	vector <float> vdctimes;
+	//vector <float> vdctimes;
+	vector <double> vdctimes;
 	for (int i=0; i<vdfio->GetNumTimeSteps(); i++) { 
 		vdctimes.push_back(vdfio->GetTSUserTime(i));
 	}
@@ -97,11 +100,11 @@ void Copy2VDF::GetTimeMap(
 	//
 	// Cross-reference ncdf and vdc times
 	//
-	float ncdftime; 
+	double ncdftime; 
 	for (int i=startts; i<numts+startts && i<DCData->GetNumTimeSteps(); i++) {
 		ncdftime = ncdftimes[i];
 
-		vector <float>::iterator itr = find(
+		vector <double>::iterator itr = find(
 			vdctimes.begin(), vdctimes.end(), ncdftime
 		);
 
@@ -299,7 +302,7 @@ int Copy2VDF::CopyVar(
 ) {
 	if (DCData->OpenVariableRead(ncdfTS, ncdfVar) < 0) {
 		MyBase::SetErrMsg(
-			"Failed to open netCDF variable \"%s\" at time step %d",
+			"Failed to open input data variable \"%s\" at time step %d",
 			ncdfVar.c_str(), ncdfTS
 		);
 		return(-1);
@@ -334,7 +337,7 @@ int Copy2VDF::CopyVar(
 		}
 		if (rc<0) {
 			MyBase::SetErrMsg(
-				"Error reading netCDF variable \"%s\" at time step %d",
+				"Error reading input data variable \"%s\" at time step %d",
 				ncdfVar.c_str(), ncdfTS
 			);
 			break;
@@ -366,11 +369,11 @@ void Copy2VDF::deleteObjects(){
 	DCData = NULL;
 }
 
-int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
+int Copy2VDF::launch2vdf(int argc, char **argv, string dataType, DCReader *optionalReader) {
 
 	OptionParser::OptDescRec_T	set_opts[] = {
 		{"vars",1,    "",	"Colon delimited list of variables to be copied "
-			"from ncdf data. The default is to copy all 2D and 3D variables"},
+			"from input data. The default is to copy all 2D and 3D variables"},
 		{
 			"numts",	1,	"-1",	"Maximum number of time steps that may be "
 			"converted. A -1 implies the conversion of all time steps found"
@@ -402,26 +405,21 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 		{NULL}
 	};
 
+
     MyBase::SetErrMsgFilePtr(stderr);
 
     _progname = Basename(argv[0]);
-	//DCReader *DCData;
-
 	OptionParser op;
-    if (op.AppendOptions(set_opts) < 0) {
-		//exit(1);
-		return(-1);
-	}
+
+	op.AppendOptions(set_opts);
 
     if (op.ParseOptions(&argc, argv, get_options) < 0) {
-		//exit(1);
 		return(-1);
 	}
     if (_debug) MyBase::SetDiagMsgFilePtr(stderr);
 
     if (_help) {
         Usage(op, NULL);
-		//exit(0);
 		return(0);
 	}
 
@@ -430,7 +428,6 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 
 	if (argc < 2) {
         Usage(op, "No files to process");
-		//exit(1);
 		return(-1);
 	}
 
@@ -443,21 +440,28 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 	}
 	string metafile = argv[argc-1];
 	
+	// If we are receiving an optionalReader, we're using the wizard
+	// Therefore we want to clear any previous wcwriter that may have
+	// been created in a previous conversion
+	if (optionalReader != NULL) {
+		DCData = optionalReader;
+		if (wcwriter) delete wcwriter;
+		wcwriter = NULL;
+	}
 	if (DCData==NULL){
-		if (dataType == "roms") DCData = new DCReaderROMS(ncdffiles); 
+		if ((dataType == "ROMS") || (dataType == "CAM")) DCData = new DCReaderROMS(ncdffiles); 
+		else if (dataType == "GRIB") DCData = new DCReaderGRIB(ncdffiles);
 		else DCData = new DCReaderMOM(ncdffiles);
 	}
 
 	if (MyBase::GetErrCode() != 0) return(-1);
 
 	WaveletBlockIOBase	*wbwriter3D = NULL;	// VDC type 1 writer
-	//WaveCodecIO	*wcwriter = NULL;	// VDC type 2 writer
 	VDFIOBase *vdfio = NULL;
 
 	MetadataVDC metadata (metafile);
 	if (MetadataVDC::GetErrCode() != 0) {
 		MyBase::SetErrMsg("Error processing metafile \"%s\"", metafile.c_str());
-		//exit(1);
 		return(-1);
 	}
 	
@@ -473,7 +477,6 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 		vdfio = wcwriter;
 	}
 	if (vdfio->GetErrCode() != 0) {
-		//exit(1);
 		return(-1);
 	}
 
@@ -481,7 +484,7 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 	// Get Mapping between VDC time steps and ncdf time steps
 	//
 	map <size_t, size_t> timemap;
-    GetTimeMap(vdfio, DCData, _startts, _numts, timemap);
+	GetTimeMap(vdfio, DCData, _startts, _numts, timemap);
 
 	//
 	// Figure out which variables to transform
@@ -495,7 +498,7 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 	int fails = 0;
 	map <size_t, size_t>::iterator itr;
 	for (itr = timemap.begin(); itr != timemap.end(); ++itr) {
-        if (! _quiet) {
+	    if (! _quiet) {
 			cout << "Processing VDC time step " << itr->first << endl;
 		}
 		for (int v = 0; v < variables.size(); v++) {
@@ -504,7 +507,7 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 			}
 			if (! DCData->VariableExists(itr->second, variables[v])) {
 				SetErrMsg(
-					"Variable \"%s\"does not exist!", variables[v].c_str()
+					"Variable \"%s\"does not exist at timestep %i", variables[v].c_str(), itr->first
 				); 
 				MyBase::SetErrCode(0); 	// must clear error code
 				continue;
@@ -532,8 +535,5 @@ int Copy2VDF::launch2vdf(int argc, char **argv, string dataType) {
 		SetErrMsg("Failed to copy %d variables", fails);
 		estatus = 1;
 	}
-	//delete wcwriter;
-	//delete DCData;
-	//DCData=NULL;
 	return estatus;
 }

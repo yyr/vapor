@@ -272,9 +272,13 @@ int MetadataVDC::_init2(
 	string empty;
 
 	vector <size_t> mycratios = cratios;
-	if (find(mycratios.begin(), mycratios.end(), 1) == mycratios.end()) {
-		mycratios.insert(mycratios.begin(), 1);	// lossless compression required
-	}
+
+// fix #1121 vdf translators always output all wavelet coefficients 
+// even if not wanted 
+//
+//	if (find(mycratios.begin(), mycratios.end(), 1) == mycratios.end()) {
+//		mycratios.insert(mycratios.begin(), 1);	// lossless compression required
+//	}
 
 	for (int i=0; i<mycratios.size()-1; i++) {
 		if (mycratios[i] == mycratios[i+1]) {

@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <vapor/OptionParser.h>
 #include <vapor/MetadataVDC.h>
+#include <vapor/DCReaderGRIB.h>
 #include <vapor/DCReaderMOM.h>
 #include <vapor/DCReaderROMS.h>
 #include <vapor/DCReaderWRF.h>
@@ -38,7 +39,7 @@ void vdfcreate::Usage(OptionParser &op, const char * msg) {
 	if (msg) {
         cerr << _progname << " : " << msg << endl;
 	}
-    cerr << "Usage: " << _progname << " [options] ncdf_file... vdf_file" << endl;
+    cerr << "Usage: " << _progname << " [options] input_file(s)... vdf_file" << endl;
 	op.PrintOptionHelp(stderr, 80, false);
 }
 
@@ -140,14 +141,30 @@ MetadataVDC *vdfcreate::CreateMetadataVDC(
 		return (NULL);
 	}
 
-	// Copy values over from DCReaderMOM to MetadataVDC.
+	// Copy values over from DCReader to MetadataVDC.
 	// Add checking of return values and error messsages.
-	//
-    if(file->SetNumTimeSteps(DCdata->GetNumTimeSteps())) {
+    _numTS = DCdata->GetNumTimeSteps();
+	if(file->SetNumTimeSteps(_numTS)) {
 		file->SetErrMsg(2,"Error populating NumTimeSteps.");
 		return (NULL);
-		//exit(1);
 	}
+
+    vector <double> usertime;
+
+	for(int t = 0; t < _numTS; t++) {
+
+        usertime.clear();
+
+        usertime.push_back(DCdata->GetTSUserTime(t));
+
+		if(file->SetTSUserTime(t, usertime)) {
+            file->SetErrMsg(1,"Error populating TSUserTime.");
+            return (NULL);
+        }   
+        string timestamp;
+        DCdata->GetTSUserTimeStamp(t, timestamp);
+        file->SetTSUserTimeStamp(t, timestamp);
+    } 
 
     file->SetExtents(DCdata->GetExtents());
 
@@ -177,22 +194,6 @@ MetadataVDC *vdfcreate::CreateMetadataVDC(
 		}
 	}
 
-
-	vector <double> usertime;
-    for(int t = 0; t < DCdata->GetNumTimeSteps(); t++) {
-
-		usertime.clear();
-        usertime.push_back(DCdata->GetTSUserTime(t));
-		if(file->SetTSUserTime(t, usertime)) {
-			file->SetErrMsg(1,"Error populating TSUserTime.");
-			return (NULL);
-		}
-
-		string timestamp;
-        DCdata->GetTSUserTimeStamp(t, timestamp);
-		file->SetTSUserTimeStamp(t, timestamp);
-	}
-
     string gridtype = DCdata->GetGridType();
 	file->SetGridType(gridtype);
 	if (gridtype.compare("stretched") == 0) {
@@ -214,25 +215,32 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 
 	OptionParser::OptDescRec_T	set_opts[] = {
 		{"vars",1,    "",	"Colon delimited list of variables to be copied "
-			"from ncdf data. The default is to copy all 2D and 3D variables"},
+			"from the input data. The default is to copy all 2D and 3D variables"},
 		{"help",	0,	"",	"Print this message and exit"},
 		{"quiet",	0,	"",	"Operate quietly"},
 		{"debug",   0,  "", "Turn on debugging"},
+		{NULL},
 		{NULL}
 	};
 
-	OptionParser::Option_T	get_options[] = {
+	OptionParser::Option_T get_options[] = {
 		{"vars", VetsUtil::CvtToStrVec, &_vars, sizeof(_vars)},
 		{"help", VetsUtil::CvtToBoolean, &_help, sizeof(_help)},
 		{"quiet", VetsUtil::CvtToBoolean, &_quiet, sizeof(_quiet)},
 		{"debug", VetsUtil::CvtToBoolean, &_debug, sizeof(_debug)},
+		{NULL},
 		{NULL}
 	};
 
-    //for(int i=0;i<argc;i++) cout << argv[i] << " ";
-
-    //not for production - ok for command line
-    //MyBase::SetErrMsgFilePtr(stderr);
+	/*if (NetCDFtype == "GRIB") {
+		OptionParser::OptDescRec_T fm1 = {"fastMode",1,  "-1", "Enable fast mode.  Argument is the number of "
+             "timesteps to be converted.  All files must contain the same "
+             "variables, and have equal time increments (30 min, hourly, "
+             "daily, etc...)"};
+		OptionParser::Option_T fm2 = {"fastMode", VetsUtil::CvtToInt, &_numTS, sizeof(_numTS)};
+		set_opts[4] = fm1;
+		get_options[4] = fm2;
+	}*/
 
     OptionParser op;
 
@@ -288,7 +296,6 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 		return 0;//exit(0);
 	}
 
-
 	argv++;
 	argc--;
 
@@ -304,8 +311,11 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 		 ncdffiles.push_back(argv[i]);
 	}
 	
-    if (NetCDFtype == "roms") DCdata = new DCReaderROMS(ncdffiles);
-    else if (NetCDFtype == "wrf") {
+    if ((NetCDFtype == "ROMS") || (NetCDFtype == "CAM")) DCdata = new DCReaderROMS(ncdffiles);
+    else if (NetCDFtype == "GRIB") {
+		DCdata = new DCReaderGRIB(ncdffiles);
+	}
+	else if (NetCDFtype == "WRF") {
 		DCdata = new DCReaderWRF(ncdffiles);
 	}
 	else DCdata = new DCReaderMOM(ncdffiles);
@@ -333,6 +343,7 @@ int vdfcreate::launchVdfCreate(int argc, char **argv, string NetCDFtype) {
 
     writeToScreen(DCdata,file);
 
+	ncdffiles.clear();
 	if (DCdata) delete DCdata;
     return 0;
 }
