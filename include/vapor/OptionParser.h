@@ -189,6 +189,8 @@ COMMON_API int CvtToSize_tVec(const char *from, void *to);
 //
 COMMON_API int	CvtToFloatVec(const char	*from, void *to);
 
+COMMON_API int	CvtToDoubleVec(const char	*from, void *to);
+
 // Convert a colon-delimited pair of integers to a IntRange_T type
 //
 COMMON_API int	CvtToIntRange(const char *from, void *to);
