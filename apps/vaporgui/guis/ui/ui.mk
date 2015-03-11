@@ -1,5 +1,5 @@
 UI_FILES := animationtab flowtab viztab regiontab  \
-	arrow boxframe contourTab \
+	boxframe \
 	dvr vizfeatures probetab setoffset \
         ControlPointEditorBase preferences barbBasic\
 	barbLayout barbAppearance newRendererDialog renderselector \
