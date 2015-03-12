@@ -42,7 +42,7 @@ string get_path_from_bundle(const string &app) {
     char componentStr[kBufferLength];
 
     CFIndex componentLength = CFURLGetBytes(url, buffer, kBufferLength);
-    if (componentLength < 0) return(false);
+    if (componentLength < 0) return("");
     buffer[componentLength] = 0;
 
     CFRange range;
@@ -68,7 +68,8 @@ string get_path_from_bundle(const string &app) {
 std::string VetsUtil::GetAppPath(
 	const string &app, 
 	const string &resource,
-	const vector <string> &paths
+	const vector <string> &paths,
+	bool forwardSeparator
 ) {
 	ostringstream oss;
 
@@ -79,11 +80,15 @@ std::string VetsUtil::GetAppPath(
 	oss << ")" << endl;
 	MyBase::SetDiagMsg("%s", oss.str().c_str());
 
-#ifdef	WIN32
-	const string separator = "\\";
-#else
-	const string separator = "/";
-#endif
+	string separator, otherSeparator;
+if (!forwardSeparator){
+	separator = "\\";
+	otherSeparator = "/";
+}
+else{
+	separator = "/";
+	otherSeparator = "\\";
+}
 
 	string path;
 	path.clear();
@@ -169,11 +174,20 @@ std::string VetsUtil::GetAppPath(
 		}
 	}
 #endif
+	
+
 	if (path.empty()) {
 		MyBase::SetDiagMsg("GetAppPath() return : empty (path empty)");
 		return(path);
 	}
-
+	//We may need to reverse the slashes in vapor_home
+	bool foundSep = true;
+	while (foundSep){
+		std::size_t found = path.find(otherSeparator);
+		if (found != std::string::npos){
+			path.replace(found,1,separator);
+		} else foundSep = false;
+	}
 	for (int i=0; i<paths.size(); i++) {
 		path.append(separator);
 		path.append(paths[i]);
