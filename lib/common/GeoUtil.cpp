@@ -48,6 +48,39 @@ void _ShiftLonTemplate(const T *srclon, int nx, T *dstlon)
 	}
 }
 
+
+template <class T>
+void _ShiftLonTemplate(const T *srclon, int nx, int ny, T *dstlon) 
+{
+	dstlon[0] = srclon[0];
+	double min = dstlon[0];
+	double max = dstlon[0];
+	for (int j=0; j<ny; j++) {
+	for (int i=1; i<nx; i++) {
+		dstlon[j*nx+i] = srclon[j*nx+i];
+		if (fabs(dstlon[j*nx+(i-1)] - dstlon[j*nx+i]) > 180.0) {
+			if (dstlon[j*nx+(i-1)] > dstlon[j*nx+i])
+				dstlon[j*nx+i] += 360.0;
+			else 
+				dstlon[j*nx+i] -= 360.0;
+		}
+		if (dstlon[j*nx+i] < min) min = dstlon[j*nx+i];
+		if (dstlon[j*nx+i] > max) max = dstlon[j*nx+i];
+	}
+	}
+
+	if (min < -360.0) {
+		for (int j=0; j<ny; j++) {
+			for (int i=0; i<nx; i++) dstlon[j*nx+i] += 360.0;
+		}
+	}
+	if (max > 360.0) {
+		for (int j=0; j<ny; j++) {
+			for (int i=0; i<nx; i++) dstlon[j*nx+i] -= 360.0;
+		}
+	}
+}
+
 //
 // Template functions for class members to facilitate type overloading
 //
@@ -98,18 +131,18 @@ void _LonExtentsTemplate(
 
 	_minmax(lonX0, nx, 1, min, max);
 	if (min < lonwest) lonwest = min;
-	if (max > loneast) loneast = max;
+//	if (max > loneast) loneast = max;
 
 	_minmax(lonX1, nx, 1, min, max);
-	if (min < lonwest) lonwest = min;
+//	if (min < lonwest) lonwest = min;
 	if (max > loneast) loneast = max;
 
 	_minmax(lonY0, ny, 1, min, max);
 	if (min < lonwest) lonwest = min;
-	if (max > loneast) loneast = max;
+//	if (max > loneast) loneast = max;
 
 	_minmax(lonY1, ny, 1, min, max);
-	if (min < lonwest) lonwest = min;
+//	if (min < lonwest) lonwest = min;
 	if (max > loneast) loneast = max;
 
 	delete [] lonX0;
@@ -119,9 +152,9 @@ void _LonExtentsTemplate(
 
 	// grid wraps around over 360 degrees. Clamp to 360
 	//
-	if (fabs(loneast - lonwest) > 360.0) {
-		loneast = lonwest + 360.0;
-	}
+//	if (fabs(loneast - lonwest) > 360.0) {
+//		loneast = lonwest + 360.0;
+//	}
 
 }
 
@@ -198,7 +231,6 @@ void _LatExtentsTemplate(
 }
 
 
-
 template <class T>
 void _LatExtentsTemplate(
 	const T *lat, int ny, 
@@ -243,6 +275,14 @@ void GeoUtil::ShiftLon(const float *srclon, int nx, float *dstlon)  {
 
 void GeoUtil::ShiftLon(const double *srclon, int nx, double *dstlon)  {
 	_ShiftLonTemplate(srclon, nx, dstlon);
+}
+
+void GeoUtil::ShiftLon(const float *srclon, int nx, int ny, float *dstlon)  {
+	_ShiftLonTemplate(srclon, nx, ny, dstlon);
+}
+
+void GeoUtil::ShiftLon(const double *srclon, int nx, int ny, double *dstlon)  {
+	_ShiftLonTemplate(srclon, nx, ny, dstlon);
 }
 
 void GeoUtil::LonExtents(
