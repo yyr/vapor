@@ -168,7 +168,7 @@ void LayeredGrid::_GetBoundingBox(
 		for (int j = min[1]; j<=max[1]; j++) {
 			float v = _AccessIJK(_coords, min[0],j,k);
 			if (v == mv) continue;
-			if (! flip) {
+			if (extents[0] < extents[3]) {
 				if (v<mincoord) mincoord = v;
 			} else {
 				if (v>mincoord) mincoord = v;
@@ -267,42 +267,32 @@ void    LayeredGrid::GetEnclosingRegion(
 
 	bool done;
 	double z;
-	size_t istart;
-	size_t jstart;
 	if (maxu[2] >= minu[2]) {
 		//
 		// first do max, then min
 		//
 		done = false;
-		istart = min[0];
-		jstart = min[1];
 		for (int k=0; k<dims[2] && ! done; k++) {
 			done = true;
 			max[2] = k;
-			for (int j = jstart; j<=max[1] && done; j++) {
-			for (int i = istart; i<=max[0] && done; i++) {
+			for (int j = min[1]; j<=max[1] && done; j++) {
+			for (int i = min[0]; i<=max[0] && done; i++) {
 				z = _AccessIJK(_coords, i, j, k); // get Z coordinate
 				if (z < maxu[2]) {
 					done = false;
-					istart = i;	// don't need to start from beginning
-					jstart = j;
 				}
 			}
 			}
 		}
 		done = false;
-		istart = min[0];
-		jstart = min[1];
 		for (int k = dims[2]-1; k>=0 && ! done; k--) {
 			done = true;
 			min[2] = k;
-			for (int j = jstart; j<=max[1] && done; j++) {
-			for (int i = istart; i<=max[0] && done; i++) {
+			for (int j = min[1]; j<=max[1] && done; j++) {
+			for (int i = min[0]; i<=max[0] && done; i++) {
 				z = _AccessIJK(_coords, i, j, k); // get Z coordinate
 				if (z > minu[2]) {
 					done = false;
-					istart = i;
-					jstart = j;
 				}
 			}
 			}
@@ -313,35 +303,27 @@ void    LayeredGrid::GetEnclosingRegion(
 		// first do max, then min
 		//
 		done = false;
-		istart = min[0];
-		jstart = min[1];
 		for (int k=0; k<dims[2] && ! done; k++) {
 			done = true;
 			max[2] = k;
-			for (int j = jstart; j<=max[1] && done; j++) {
-			for (int i = istart; i<=max[0] && done; i++) {
+			for (int j = min[1]; j<=max[1] && done; j++) {
+			for (int i = min[0]; i<=max[0] && done; i++) {
 				z = _AccessIJK(_coords, i, j, k); // get Z coordinate
 				if (z > maxu[2]) {
 					done = false;
-					istart = i;	// don't need to start from beginning
-					jstart = j;
 				}
 			}
 			}
 		}
 		done = false;
-		istart = min[0];
-		jstart = min[1];
 		for (int k = dims[2]-1; k>=0 && ! done; k--) {
 			done = true;
 			min[2] = k;
-			for (int j = jstart; j<=max[1] && done; j++) {
-			for (int i = istart; i<=max[0] && done; i++) {
+			for (int j = min[1]; j<=max[1] && done; j++) {
+			for (int i = min[0]; i<=max[0] && done; i++) {
 				z = _AccessIJK(_coords, i, j, k); // get Z coordinate
 				if (z < maxu[2]) {
 					done = false;
-					istart = i;
-					jstart = j;
 				}
 			}
 			}
