@@ -19,7 +19,7 @@ FILES = \
 	DataMgrFactory  NCBuf \
 	LayeredGrid RegularGrid SphericalGrid StretchedGrid NetCDFSimple \
 	NetCDFCollection NetCDFCFCollection WeightTable \
-	DCReaderNCDF  DCReaderMOM DCReaderROMS VDCFactory \
+	DCReaderNCDF  DCReaderMOM DCReaderROMS DCReaderGRIB VDCFactory \
 	DataMgrROMS DataMgrMOM DCReaderWRF UDUnitsClass Copy2VDF vdfcreate \
 	WrfVDCcreator WrfVDFcreator  Proj4API DC VDC VDCNetCDF NetCDFCpp WASP \
 	DCWRF DataMgrV3_0 
@@ -41,7 +41,7 @@ HEADER_FILES = \
 	DataMgrFactory Lifting1D Transpose NCBuf \
 	LayeredGrid RegularGrid SphericalGrid StretchedGrid NetCDFSimple \
 	NetCDFCollection NetCDFCFCollection WeightTable \
-	DCReader DCReaderNCDF DCReaderMOM DCReaderROMS VDCFactory \
+	DCReader DCReaderNCDF DCReaderMOM DCReaderROMS DCReaderGRIB VDCFactory \
 	DataMgrROMS DataMgrMOM DCReaderWRF UDUnitsClass Copy2VDF vdfcreate \
 	WrfVDCcreator WrfVDFcreator  Proj4API DC VDC VDCNetCDF NetCDFCpp WASP \
 	DataMgrV3_0  DCWRF
