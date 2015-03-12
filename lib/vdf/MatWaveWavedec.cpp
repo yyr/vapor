@@ -743,7 +743,7 @@ size_t MatWaveWavedec::approxlength(
 
 	for (int i=0; i<n; i++) {
 		cALen = MatWaveBase::approxlength(cALen);
-		if (cALen < 0) return (cALen);
+		if (cALen == 0) return (cALen);
 	}
 	return(cALen);
 }
