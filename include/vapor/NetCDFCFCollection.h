@@ -275,8 +275,8 @@ public:
  virtual int Convert(
 	const string from,
 	const string to,
-	const float *src,
-	float *dst,
+	const double *src,
+	double *dst,
 	size_t n
  ) const;
 
@@ -351,6 +351,19 @@ public:
  //! \sa InstallStandardVerticalConverter()
  //
  virtual void UninstallStandardVerticalConverter(string cvar) ;
+
+
+ //! Get a map projection as a proj4 string
+ //!
+ //! If a variable has a map projection generate a proj4
+ //! transformation string for converting from geographic to
+ //! Cartographic coordinates. Returns false if no proj4 string
+ //! could be generated: either no map projection exists, or one
+ //! exists but is not supported.
+ // 
+ bool GetMapProjectionProj4(
+    string varname, string &proj4string
+ ) const ;
 
  void FormatTimeStr(double time, string &str) const;
 
@@ -453,7 +466,6 @@ public:
   virtual int Open(size_t ts);
   virtual int ReadSlice(float *slice, int);
   virtual int Read(float *buf, int);
-  virtual int CalculateElevation(float *buf, int);
   virtual int SeekSlice(int offset, int whence, int fd);
   virtual int Close(int) {_is_open = false; return(0); };
   virtual bool TimeVarying() const {return(false); };
@@ -462,14 +474,15 @@ public:
   virtual size_t  GetTimeDim() const { return(0); }
   virtual string  GetTimeDimName() const { return(""); };
   virtual bool GetMissingValue(double &mv) const {mv=0.0; return(false); }
-  virtual int DCZ2(float*  PS1,    float*  PHIS1, 
-                   float** TV2,    int     NL, 
-                   float   P0,     float** HYBA,   float** HYBB,
-                   int     KLEV,   int     MLON,   int     MLON2,
-                   float** HYPDLN, float** HYALPH, float** PTERM,
-                   float** ZSLICE);
 
  private:
+  virtual int CalculateElevation();
+  virtual int DCZ2(const float*  PS1,    const float*  PHIS1, 
+                         float** TV2,    const int     NL, 
+                   const float   P0,           float** HYBA,         float** HYBB,
+                   const int     KLEV,   const int     MLON,   const int     MLON2,
+                         float** HYPDLN,       float** HYALPH, float** PTERM,
+                   float** ZSLICE);
   std::vector <size_t> _dims;
   std::vector <string> _dimnames;
   size_t _slice_num;
@@ -488,9 +501,43 @@ public:
   bool _ok;
   float _min;
   float _max;
-  int KMAX;
-  int IDIM;
-  int IMAX;
+ };
+
+ class DerivedVar_noop : public NetCDFCollection::DerivedVar {
+
+ public:
+  DerivedVar_noop(
+	NetCDFCFCollection *ncdfcf, 
+	const std::map <string, string> &formula_map
+  );
+  virtual ~DerivedVar_noop() {}
+
+  virtual int Open(size_t ts);
+  virtual int ReadSlice(float *slice, int fd);
+  virtual int Read(float *buf, int fd);
+  virtual int SeekSlice(int offset, int whence, int fd);
+  virtual int Close(int fd) {return(_ncdfc->Close(fd)); };
+  virtual bool TimeVarying() const {return(_ncdfc->IsTimeVarying(_zvar)); };
+  virtual std::vector <size_t>  GetSpatialDims() const {
+	return(_ncdfc->GetSpatialDims(_zvar));
+  };
+  virtual std::vector <string>  GetSpatialDimNames() const { 
+	return(_ncdfc->GetSpatialDimNames(_zvar));
+  };
+  virtual size_t  GetTimeDim() const { 
+	return(_ncdfc->GetTimeDim(_zvar));
+  };
+  virtual string  GetTimeDimName() const {
+	return(_ncdfc->GetTimeDimName(_zvar));
+  };
+	
+  virtual bool GetMissingValue(double &mv) const {
+	return(_ncdfc->GetMissingValue(_zvar, mv));
+  };
+	
+
+ private:
+  string _zvar;
  };
 
  std::map <string, DerivedVar *> _derivedVarsMap;
@@ -511,6 +558,8 @@ public:
  std::vector <std::string> _GetCoordAttrs(
 	const NetCDFSimple::Variable &varinfo
  ) const;
+
+ int _Initialize(const std::vector <string> &files);
 
  //! CF1.X Definition of <em> coordinate variable </em>:
  //!
