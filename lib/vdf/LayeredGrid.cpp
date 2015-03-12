@@ -168,7 +168,7 @@ void LayeredGrid::_GetBoundingBox(
 		for (int j = min[1]; j<=max[1]; j++) {
 			float v = _AccessIJK(_coords, min[0],j,k);
 			if (v == mv) continue;
-			if (extents[0] < extents[3]) {
+			if (! flip) {
 				if (v<mincoord) mincoord = v;
 			} else {
 				if (v>mincoord) mincoord = v;
