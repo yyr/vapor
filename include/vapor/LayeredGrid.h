@@ -184,8 +184,6 @@ private:
  float **_coords;
  int _varying_dim;
  double _extents[6];
- double _zcellmin;	// Minimum grid spacing along Z axis
- bool _zcellmin_cache;	// _zcellmin value is valid
 
  void _GetUserExtents(double extents[6]) const;
  void _GetBoundingBox(
