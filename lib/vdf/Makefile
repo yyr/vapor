@@ -46,6 +46,8 @@ HEADER_FILES = \
 	WrfVDCcreator WrfVDFcreator  Proj4API DC VDC VDCNetCDF NetCDFCpp WASP \
 	DataMgrV3_0  DCWRF
 
+LIBRARIES += grib_api
+
 
 #LIB_DEFS = vdf.def
 
