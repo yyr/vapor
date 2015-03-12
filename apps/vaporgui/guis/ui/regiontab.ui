@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>467</width>
-    <height>922</height>
+    <width>418</width>
+    <height>871</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -24,7 +24,7 @@
   </property>
   <property name="maximumSize">
    <size>
-    <width>467</width>
+    <width>418</width>
     <height>32767</height>
    </size>
   </property>
@@ -47,6 +47,15 @@ are specified in the flow and in
 the probe panels).</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_3">
+   <property name="spacing">
+    <number>2</number>
+   </property>
+   <property name="leftMargin">
+    <number>2</number>
+   </property>
+   <property name="rightMargin">
+    <number>2</number>
+   </property>
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_5">
      <item>
@@ -294,7 +303,7 @@ share the same region settings.</string>
              </property>
              <property name="maximumSize">
               <size>
-               <width>200</width>
+               <width>120</width>
                <height>32767</height>
               </size>
              </property>
@@ -328,7 +337,7 @@ share the same region settings.</string>
              </property>
              <property name="maximumSize">
               <size>
-               <width>100</width>
+               <width>80</width>
                <height>25</height>
               </size>
              </property>
@@ -382,7 +391,7 @@ share the same region settings.</string>
              </property>
              <property name="maximumSize">
               <size>
-               <width>200</width>
+               <width>120</width>
                <height>32767</height>
               </size>
              </property>
@@ -416,7 +425,7 @@ share the same region settings.</string>
              </property>
              <property name="maximumSize">
               <size>
-               <width>100</width>
+               <width>80</width>
                <height>25</height>
               </size>
              </property>
@@ -470,7 +479,7 @@ share the same region settings.</string>
              </property>
              <property name="maximumSize">
               <size>
-               <width>200</width>
+               <width>120</width>
                <height>32767</height>
               </size>
              </property>
@@ -504,7 +513,7 @@ share the same region settings.</string>
              </property>
              <property name="maximumSize">
               <size>
-               <width>100</width>
+               <width>80</width>
                <height>25</height>
               </size>
              </property>
@@ -761,7 +770,7 @@ share the same region settings.</string>
              </property>
              <property name="maximumSize">
               <size>
-               <width>150</width>
+               <width>120</width>
                <height>32767</height>
               </size>
              </property>
@@ -795,7 +804,7 @@ share the same region settings.</string>
              </property>
              <property name="maximumSize">
               <size>
-               <width>100</width>
+               <width>80</width>
                <height>25</height>
               </size>
              </property>
@@ -829,7 +838,7 @@ share the same region settings.</string>
              </property>
              <property name="maximumSize">
               <size>
-               <width>150</width>
+               <width>120</width>
                <height>32767</height>
               </size>
              </property>
@@ -863,7 +872,7 @@ share the same region settings.</string>
              </property>
              <property name="maximumSize">
               <size>
-               <width>100</width>
+               <width>80</width>
                <height>25</height>
               </size>
              </property>
@@ -897,7 +906,7 @@ share the same region settings.</string>
              </property>
              <property name="maximumSize">
               <size>
-               <width>150</width>
+               <width>120</width>
                <height>32767</height>
               </size>
              </property>
@@ -931,7 +940,7 @@ share the same region settings.</string>
              </property>
              <property name="maximumSize">
               <size>
-               <width>100</width>
+               <width>80</width>
                <height>25</height>
               </size>
              </property>
@@ -1397,6 +1406,12 @@ share the same region settings.</string>
      </item>
      <item>
       <widget class="QFrame" name="frame">
+       <property name="maximumSize">
+        <size>
+         <width>400</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="font">
         <font>
          <family>MS Shell Dlg 2</family>

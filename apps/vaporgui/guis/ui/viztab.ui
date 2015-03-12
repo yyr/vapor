@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>450</width>
+    <width>418</width>
     <height>799</height>
    </rect>
   </property>
@@ -19,12 +19,12 @@
   <property name="minimumSize">
    <size>
     <width>0</width>
-    <height>400</height>
+    <height>350</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>450</width>
+    <width>418</width>
     <height>32767</height>
    </size>
   </property>
@@ -40,7 +40,7 @@ specifies the position of the viewer
 and the lights that illuminate the
 scene.</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_2">
+  <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
@@ -143,8 +143,8 @@ lights.</string>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
-         <width>20</width>
-         <height>16</height>
+         <width>418</width>
+         <height>13</height>
         </size>
        </property>
       </spacer>
@@ -259,7 +259,7 @@ lights.</string>
           <widget class="QLineEdit" name="viewDir0">
            <property name="maximumSize">
             <size>
-             <width>1000</width>
+             <width>100</width>
              <height>32767</height>
             </size>
            </property>
@@ -288,6 +288,12 @@ where the camera is pointed.</string>
          </item>
          <item>
           <widget class="QLineEdit" name="viewDir1">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Specify the coordinates of a vector in which the camera is pointed</string>
            </property>
@@ -313,6 +319,12 @@ where the camera is pointed.</string>
          </item>
          <item>
           <widget class="QLineEdit" name="viewDir2">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Specify the coordinates of a vector in which the camera is pointed</string>
            </property>
@@ -363,7 +375,7 @@ where the camera is pointed.</string>
           <widget class="QLineEdit" name="upVec0">
            <property name="maximumSize">
             <size>
-             <width>1000</width>
+             <width>100</width>
              <height>32767</height>
             </size>
            </property>
@@ -392,6 +404,12 @@ where the camera is pointed.</string>
          </item>
          <item>
           <widget class="QLineEdit" name="upVec1">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Specify the coordinates of a vector that will point upward in the scene</string>
            </property>
@@ -417,6 +435,12 @@ where the camera is pointed.</string>
          </item>
          <item>
           <widget class="QLineEdit" name="upVec2">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Specify the coordinates of a vector that will point upward in the scene</string>
            </property>
@@ -467,7 +491,7 @@ where the camera is pointed.</string>
           <widget class="QLineEdit" name="camPos0">
            <property name="maximumSize">
             <size>
-             <width>1000</width>
+             <width>100</width>
              <height>32767</height>
             </size>
            </property>
@@ -493,6 +517,12 @@ where the camera is pointed.</string>
          </item>
          <item>
           <widget class="QLineEdit" name="camPos1">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Specify the coordinates of the viewer (i.e. camera)</string>
            </property>
@@ -518,6 +548,12 @@ where the camera is pointed.</string>
          </item>
          <item>
           <widget class="QLineEdit" name="camPos2">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Specify the coordinates of the viewer (i.e. camera)</string>
            </property>
@@ -568,7 +604,7 @@ where the camera is pointed.</string>
           <widget class="QLineEdit" name="rotCenter0">
            <property name="maximumSize">
             <size>
-             <width>1000</width>
+             <width>100</width>
              <height>32767</height>
             </size>
            </property>
@@ -597,6 +633,12 @@ where the camera is pointed.</string>
          </item>
          <item>
           <widget class="QLineEdit" name="rotCenter1">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Specify the coordinates in the scene about which the scene is rotated by the left mouse drags</string>
            </property>
@@ -622,6 +664,12 @@ where the camera is pointed.</string>
          </item>
          <item>
           <widget class="QLineEdit" name="rotCenter2">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Specify the coordinates in the scene about which the scene is rotated by the left mouse drags</string>
            </property>
@@ -659,8 +707,8 @@ where the camera is pointed.</string>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
-         <width>20</width>
-         <height>16</height>
+         <width>418</width>
+         <height>13</height>
         </size>
        </property>
       </spacer>
@@ -960,8 +1008,8 @@ where the camera is pointed.</string>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
-         <width>20</width>
-         <height>16</height>
+         <width>418</width>
+         <height>13</height>
         </size>
        </property>
       </spacer>
@@ -1108,8 +1156,8 @@ where the camera is pointed.</string>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
-         <width>20</width>
-         <height>16</height>
+         <width>418</width>
+         <height>13</height>
         </size>
        </property>
       </spacer>
@@ -1238,8 +1286,8 @@ p, li { white-space: pre-wrap; }
        </property>
        <property name="sizeHint" stdset="0">
         <size>
-         <width>20</width>
-         <height>16</height>
+         <width>418</width>
+         <height>13</height>
         </size>
        </property>
       </spacer>
@@ -1271,88 +1319,6 @@ p, li { white-space: pre-wrap; }
      </item>
      <item>
       <layout class="QGridLayout">
-       <item row="2" column="2">
-        <spacer name="spacer13_4_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Expanding</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>19</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="4" column="3">
-        <spacer name="spacer13_6_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Expanding</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>16</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="textLabel8_3">
-         <property name="toolTip">
-          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Specify the direction of the first light source, relative to the current view direction.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="whatsThis">
-          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;VAPOR allows up to three lights to be used in most visualizers, but only one for volume rendering and isosurfaces.  The orientation vectors specify the direction to the light source from the viewer position, so (0,0,-1) is a light originating behind the viewer.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>light  1</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-         <property name="wordWrap">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1">
-        <widget class="QLineEdit" name="lightPos20">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="toolTip">
-          <string>Specify the direction of the third light source, relative to the current view direction.</string>
-         </property>
-         <property name="whatsThis">
-          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;VAPOR allows up to three lights to be used in most visualizers, but only one for volume rendering and isosurfaces.  The orientation vectors specify the direction to the light source from the viewer position, so (0,0,-1) is a light originating behind the viewer.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>1.1</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignHCenter</set>
-         </property>
-        </widget>
-       </item>
        <item row="4" column="2">
         <spacer name="spacer13_3_2">
          <property name="orientation">
@@ -1369,16 +1335,32 @@ p, li { white-space: pre-wrap; }
          </property>
         </spacer>
        </item>
-       <item row="0" column="3">
-        <widget class="QLabel" name="textLabel11_2">
+       <item row="5" column="2">
+        <widget class="QLineEdit" name="lightPos21">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>120</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Specify the direction of the third light source, relative to the current view direction.</string>
+         </property>
+         <property name="whatsThis">
+          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;VAPOR allows up to three lights to be used in most visualizers, but only one for volume rendering and isosurfaces.  The orientation vectors specify the direction to the light source from the viewer position, so (0,0,-1) is a light originating behind the viewer.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
-          <string>Z</string>
+          <string>-6.4</string>
          </property>
          <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-         <property name="wordWrap">
-          <bool>false</bool>
+          <set>Qt::AlignHCenter</set>
          </property>
         </widget>
        </item>
@@ -1386,6 +1368,12 @@ p, li { white-space: pre-wrap; }
         <widget class="QLineEdit" name="lightPos02">
          <property name="enabled">
           <bool>true</bool>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>120</width>
+           <height>16777215</height>
+          </size>
          </property>
          <property name="toolTip">
           <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -1409,17 +1397,10 @@ p, li { white-space: pre-wrap; }
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="lightPos00">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
+       <item row="3" column="0">
+        <widget class="QLabel" name="textLabel8_2_3">
          <property name="toolTip">
-          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Specify the direction of the first light source, relative to the current view direction.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>Specify the direction of the second light source, relative to the current view direction.</string>
          </property>
          <property name="whatsThis">
           <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -1429,17 +1410,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;VAPOR allows up to three lights to be used in most visualizers, but only one for volume rendering and isosurfaces.  The orientation vectors specify the direction to the light source from the viewer position, so (0,0,-1) is a light originating behind the viewer.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
-          <string>2.04</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignHCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="2">
-        <widget class="QLabel" name="textLabel10_2">
-         <property name="text">
-          <string>Y</string>
+          <string>light  2</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -1449,60 +1420,16 @@ p, li { white-space: pre-wrap; }
          </property>
         </widget>
        </item>
-       <item row="1" column="2">
-        <widget class="QLineEdit" name="lightPos01">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
-         <property name="toolTip">
-          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Specify the direction of the first light source, relative to the current view direction.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="whatsThis">
-          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;VAPOR allows up to three lights to be used in most visualizers, but only one for volume rendering and isosurfaces.  The orientation vectors specify the direction to the light source from the viewer position, so (0,0,-1) is a light originating behind the viewer.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>7.115</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignHCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="2">
-        <widget class="QLineEdit" name="lightPos21">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="toolTip">
-          <string>Specify the direction of the third light source, relative to the current view direction.</string>
-         </property>
-         <property name="whatsThis">
-          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;VAPOR allows up to three lights to be used in most visualizers, but only one for volume rendering and isosurfaces.  The orientation vectors specify the direction to the light source from the viewer position, so (0,0,-1) is a light originating behind the viewer.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>-6.4</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignHCenter</set>
-         </property>
-        </widget>
-       </item>
        <item row="3" column="1">
         <widget class="QLineEdit" name="lightPos10">
          <property name="enabled">
           <bool>false</bool>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>120</width>
+           <height>16777215</height>
+          </size>
          </property>
          <property name="toolTip">
           <string>Specify the direction of the second light source, relative to the current view direction.</string>
@@ -1522,24 +1449,8 @@ p, li { white-space: pre-wrap; }
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
-        <spacer name="spacer11_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Expanding</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>19</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="2" column="0">
-        <spacer name="spacer12_2">
+       <item row="4" column="1">
+        <spacer name="spacer13_2_2">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -1554,29 +1465,19 @@ p, li { white-space: pre-wrap; }
          </property>
         </spacer>
        </item>
-       <item row="4" column="0">
-        <spacer name="spacer13_7">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Expanding</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>16</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="3" column="3">
-        <widget class="QLineEdit" name="lightPos12">
+       <item row="5" column="1">
+        <widget class="QLineEdit" name="lightPos20">
          <property name="enabled">
           <bool>false</bool>
          </property>
+         <property name="maximumSize">
+          <size>
+           <width>120</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="toolTip">
-          <string>Specify the direction of the second light source, relative to the current view direction.</string>
+          <string>Specify the direction of the third light source, relative to the current view direction.</string>
          </property>
          <property name="whatsThis">
           <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -1586,7 +1487,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;VAPOR allows up to three lights to be used in most visualizers, but only one for volume rendering and isosurfaces.  The orientation vectors specify the direction to the light source from the viewer position, so (0,0,-1) is a light originating behind the viewer.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
-          <string>2.344</string>
+          <string>1.1</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignHCenter</set>
@@ -1614,6 +1515,12 @@ p, li { white-space: pre-wrap; }
          <property name="enabled">
           <bool>false</bool>
          </property>
+         <property name="maximumSize">
+          <size>
+           <width>120</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="toolTip">
           <string>Specify the direction of the second light source, relative to the current view direction.</string>
          </property>
@@ -1632,10 +1539,10 @@ p, li { white-space: pre-wrap; }
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
-        <widget class="QLabel" name="textLabel9_2">
+       <item row="0" column="3">
+        <widget class="QLabel" name="textLabel11_2">
          <property name="text">
-          <string>X</string>
+          <string>Z</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -1645,45 +1552,14 @@ p, li { white-space: pre-wrap; }
          </property>
         </widget>
        </item>
-       <item row="4" column="1">
-        <spacer name="spacer13_2_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Expanding</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>16</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="2" column="3">
-        <spacer name="spacer13_5_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Expanding</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>19</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="5" column="3">
-        <widget class="QLineEdit" name="lightPos22">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
+       <item row="1" column="0">
+        <widget class="QLabel" name="textLabel8_3">
          <property name="toolTip">
-          <string>Specify the direction of the third light source, relative to the current view direction.</string>
+          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Specify the direction of the first light source, relative to the current view direction.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="whatsThis">
           <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -1693,27 +1569,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;VAPOR allows up to three lights to be used in most visualizers, but only one for volume rendering and isosurfaces.  The orientation vectors specify the direction to the light source from the viewer position, so (0,0,-1) is a light originating behind the viewer.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
-          <string>4.5</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignHCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="textLabel8_2_3">
-         <property name="toolTip">
-          <string>Specify the direction of the second light source, relative to the current view direction.</string>
-         </property>
-         <property name="whatsThis">
-          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;VAPOR allows up to three lights to be used in most visualizers, but only one for volume rendering and isosurfaces.  The orientation vectors specify the direction to the light source from the viewer position, so (0,0,-1) is a light originating behind the viewer.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>light  2</string>
+          <string>light  1</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -1746,16 +1602,258 @@ p, li { white-space: pre-wrap; }
          </property>
         </widget>
        </item>
+       <item row="3" column="3">
+        <widget class="QLineEdit" name="lightPos12">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>120</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Specify the direction of the second light source, relative to the current view direction.</string>
+         </property>
+         <property name="whatsThis">
+          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;VAPOR allows up to three lights to be used in most visualizers, but only one for volume rendering and isosurfaces.  The orientation vectors specify the direction to the light source from the viewer position, so (0,0,-1) is a light originating behind the viewer.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>2.344</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignHCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="3">
+        <spacer name="spacer13_6_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Expanding</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>16</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="2" column="0">
+        <spacer name="spacer12_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Expanding</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>16</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLineEdit" name="lightPos01">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>120</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Specify the direction of the first light source, relative to the current view direction.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="whatsThis">
+          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;VAPOR allows up to three lights to be used in most visualizers, but only one for volume rendering and isosurfaces.  The orientation vectors specify the direction to the light source from the viewer position, so (0,0,-1) is a light originating behind the viewer.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>7.115</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignHCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QLabel" name="textLabel10_2">
+         <property name="text">
+          <string>Y</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <property name="wordWrap">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="textLabel9_2">
+         <property name="text">
+          <string>X</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <property name="wordWrap">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <spacer name="spacer13_4_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Expanding</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>19</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="2" column="3">
+        <spacer name="spacer13_5_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Expanding</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>19</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="4" column="0">
+        <spacer name="spacer13_7">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Expanding</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>16</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="lightPos00">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>120</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Specify the direction of the first light source, relative to the current view direction.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="whatsThis">
+          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;VAPOR allows up to three lights to be used in most visualizers, but only one for volume rendering and isosurfaces.  The orientation vectors specify the direction to the light source from the viewer position, so (0,0,-1) is a light originating behind the viewer.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>2.04</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignHCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <spacer name="spacer11_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Expanding</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>19</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="5" column="3">
+        <widget class="QLineEdit" name="lightPos22">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>120</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Specify the direction of the third light source, relative to the current view direction.</string>
+         </property>
+         <property name="whatsThis">
+          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;VAPOR allows up to three lights to be used in most visualizers, but only one for volume rendering and isosurfaces.  The orientation vectors specify the direction to the light source from the viewer position, so (0,0,-1) is a light originating behind the viewer.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>4.5</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignHCenter</set>
+         </property>
+        </widget>
+       </item>
       </layout>
      </item>
      <item>
       <spacer name="spacer62">
        <property name="toolTip">
-        <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Specify values between 0 and 1 for the intensity of the specular component and the diffuse component of the light source&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>Vertical Spacer 'spacer62', 20 x 30</string>
        </property>
        <property name="orientation">
         <enum>Qt::Vertical</enum>
@@ -1877,6 +1975,12 @@ p, li { white-space: pre-wrap; }
            <property name="enabled">
             <bool>false</bool>
            </property>
+           <property name="maximumSize">
+            <size>
+             <width>120</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -1920,6 +2024,12 @@ p, li { white-space: pre-wrap; }
            <property name="enabled">
             <bool>true</bool>
            </property>
+           <property name="maximumSize">
+            <size>
+             <width>120</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -1944,6 +2054,12 @@ p, li { white-space: pre-wrap; }
          </item>
          <item row="0" column="2">
           <widget class="QLabel" name="textLabel10_2_2">
+           <property name="maximumSize">
+            <size>
+             <width>120</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Specify a value between 0 and 1 for the intensity of the specular component of the light source</string>
            </property>
@@ -1962,6 +2078,12 @@ p, li { white-space: pre-wrap; }
           <widget class="QLineEdit" name="lightSpec0">
            <property name="enabled">
             <bool>true</bool>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>120</width>
+             <height>16777215</height>
+            </size>
            </property>
            <property name="toolTip">
             <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -1990,6 +2112,12 @@ p, li { white-space: pre-wrap; }
            <property name="enabled">
             <bool>false</bool>
            </property>
+           <property name="maximumSize">
+            <size>
+             <width>120</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -2016,6 +2144,12 @@ p, li { white-space: pre-wrap; }
           <widget class="QLineEdit" name="lightDiff1">
            <property name="enabled">
             <bool>false</bool>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>120</width>
+             <height>16777215</height>
+            </size>
            </property>
            <property name="toolTip">
             <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -2108,6 +2242,12 @@ p, li { white-space: pre-wrap; }
            <property name="enabled">
             <bool>false</bool>
            </property>
+           <property name="maximumSize">
+            <size>
+             <width>120</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -2132,6 +2272,12 @@ p, li { white-space: pre-wrap; }
          </item>
          <item row="0" column="1">
           <widget class="QLabel" name="textLabel9_2_2">
+           <property name="maximumSize">
+            <size>
+             <width>120</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="text">
             <string>Diffuse</string>
            </property>
@@ -2235,6 +2381,12 @@ p, li { white-space: pre-wrap; }
         <layout class="QVBoxLayout">
          <item>
           <widget class="QLabel" name="textLabel3">
+           <property name="maximumSize">
+            <size>
+             <width>120</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="text">
             <string>Ambient light</string>
            </property>
@@ -2248,6 +2400,12 @@ p, li { white-space: pre-wrap; }
          </item>
          <item>
           <widget class="QLineEdit" name="ambientEdit">
+           <property name="maximumSize">
+            <size>
+             <width>120</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Specify a value between 0 and 1 for the ambient white  light in the scene</string>
            </property>
@@ -2284,6 +2442,12 @@ p, li { white-space: pre-wrap; }
          </item>
          <item>
           <widget class="QLabel" name="textLabel4">
+           <property name="maximumSize">
+            <size>
+             <width>120</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="text">
             <string>Shininess</string>
            </property>
@@ -2297,6 +2461,12 @@ p, li { white-space: pre-wrap; }
          </item>
          <item>
           <widget class="QLineEdit" name="shininessEdit">
+           <property name="maximumSize">
+            <size>
+             <width>120</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Specify a nonnegative value for the specular exponent that applies to all specular light.</string>
            </property>
