@@ -1,6 +1,7 @@
 #include <iostream>
 #include <algorithm>
 #include <utility>
+#include <cassert>
 #include <netcdf.h>
 #include <vapor/NetCDFCollection.h>
 
@@ -395,6 +396,19 @@ bool NetCDFCollection::IsTimeVarying(string varname) const {
 	}
 	const TimeVaryingVar &tvvars = p->second;
 	return(tvvars.GetTimeVarying());
+}
+
+int NetCDFCollection::GetXType(string varname) const {
+
+	if (NetCDFCollection::IsDerivedVar(varname)) {
+		return(NC_FLOAT);
+	}
+
+	NetCDFSimple::Variable varinfo;
+	int rc = NetCDFCollection::GetVariableInfo(varname, varinfo);
+	if (rc < 0) return (-1);
+
+	return(varinfo.GetXType());
 }
 
 std::vector <string> NetCDFCollection::GetAttNames(
@@ -808,6 +822,7 @@ int NetCDFCollection::ReadNative(
 
 	return(fh._ncdfptr->Read(mystart, mycount, data, fh._fd));
 }
+
 
 int NetCDFCollection::ReadNative(float *data, int fd) {
 	size_t start[NC_MAX_VAR_DIMS];
@@ -1446,6 +1461,20 @@ int NetCDFCollection::Read(size_t start[], size_t count[], float *data, int fd) 
 	return(-1);
 }
 
+int NetCDFCollection::Read(
+	vector <size_t> start, vector <size_t> count, float *data, int fd
+) {
+	assert(start.size() == count.size());
+
+	size_t mystart[NC_MAX_VAR_DIMS];
+	size_t mycount[NC_MAX_VAR_DIMS];
+	for(int i=0; i<start.size(); i++) {
+		mystart[i] = start[i];
+		mycount[i] = count[i];
+	}
+	return(NetCDFCollection::Read(mystart, mycount, data, fd));
+}
+
 int NetCDFCollection::Read(size_t start[], size_t count[], int *data, int fd) {
 	std::map <int, fileHandle>::iterator itr;
     if ((itr = _ovr_table.find(fd)) == _ovr_table.end()) {
@@ -1456,6 +1485,20 @@ int NetCDFCollection::Read(size_t start[], size_t count[], int *data, int fd) {
 
 	SetErrMsg("Not implemented");
 	return(-1);
+}
+
+int NetCDFCollection::Read(
+	vector <size_t> start, vector <size_t> count, int *data, int fd
+) {
+	assert(start.size() == count.size());
+
+	size_t mystart[NC_MAX_VAR_DIMS];
+	size_t mycount[NC_MAX_VAR_DIMS];
+	for(int i=0; i<start.size(); i++) {
+		mystart[i] = start[i];
+		mycount[i] = count[i];
+	}
+	return(NetCDFCollection::Read(mystart, mycount, data, fd));
 }
 
 int NetCDFCollection::Read(float *data, int fd) {

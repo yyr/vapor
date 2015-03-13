@@ -65,6 +65,8 @@ public:
 	//!
 	int Transform(double *x, double *y, size_t n, int offset=1) const;
 	int Transform(double *x, double *y, double *z, size_t n, int offset=1) const;
+	int Transform(float *x, float *y, size_t n, int offset=1) const;
+	int Transform(float *x, float *y, float *z, size_t n, int offset=1) const;
 
 	//! Return true of source projection definition is lat-long
 	//!

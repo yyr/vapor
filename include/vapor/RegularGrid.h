@@ -2,6 +2,7 @@
 #define _RegularGrid_
 
 #include <ostream>
+#include <vector>
 #include <vapor/common.h>
 
 //
@@ -180,6 +181,10 @@ public:
  virtual void GetBoundingBox(
 	const size_t min[3], const size_t max[3], double extents[6]
  ) const;
+ virtual void GetBoundingBox(
+	const std::vector <size_t> &min, const std::vector <size_t> &max,
+	std::vector <double> &minu, std::vector <double> &maxu
+ ) const; 
 
  //!
  //! Get voxel coordinates of grid containing a region
@@ -448,6 +453,17 @@ public:
  virtual void GetMinCellExtents(double *x, double *y, double *z) const {
 	*x = _delta[0]; *y = _delta[1]; *z = _delta[2];
  };
+
+ //! Return the rank of the grid
+ //!
+ //! This method returns the number of dimensions, between 1 and 3,
+ //! that do not have a length of 1
+ //
+ virtual int GetRank() {
+	int rank = 0;
+	for (int i=0; i<3; i++) if (_min[i]!=_max[i]) rank++;
+	return(rank);
+ }
 
  //! Return the internal data structure containing a copy of the blocks
  //! passed in by the constructor

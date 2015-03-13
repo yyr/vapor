@@ -182,6 +182,48 @@ int Proj4API::Transform(
 	return(0);
 }
 
+int Proj4API::Transform(float *x, float *y, size_t n, int offset) const {
+
+	return(Proj4API::Transform(x,y,NULL,n,offset));
+}
+
+int Proj4API::Transform(
+	float *x, float *y, float *z, size_t n, int offset
+) const {
+	double *xd = NULL;
+	double *yd = NULL;
+	double *zd = NULL;
+
+	if (x) {
+		xd = new double[n];
+		for (size_t i = 0; i<n; i++) xd[i] = x[i];
+	}
+	if (y) {
+		yd = new double[n];
+		for (size_t i = 0; i<n; i++) yd[i] = y[i];
+	}
+	if (z) {
+		zd = new double[n];
+		for (size_t i = 0; i<n; i++) zd[i] = z[i];
+	}
+
+	int rc = Proj4API::Transform(xd,yd,zd,n,offset);
+
+	if (xd) {
+		for (size_t i = 0; i<n; i++) x[i] = xd[i];
+		delete [] xd;
+	}
+	if (yd) {
+		for (size_t i = 0; i<n; i++) y[i] = yd[i];
+		delete [] yd;
+	}
+	if (zd) {
+		for (size_t i = 0; i<n; i++) z[i] = zd[i];
+		delete [] zd;
+	}
+	return(rc);
+}
+
 
 string Proj4API::ProjErr() const {
 	return (pj_strerrno(*pj_get_errno_ref()));
