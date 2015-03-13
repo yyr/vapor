@@ -134,17 +134,38 @@ TextObject::~TextObject() {
 
 void TextObject::initFrameBufferTexture(void) {
     //glEnable(GL_TEXTURE_2D);
+
 	glGenTextures(1, &_fboTexture);
-    glBindTexture(GL_TEXTURE_2D, _fboTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+        glMatrixMode(GL_TEXTURE);
+        glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW);
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+        glBindTexture(GL_TEXTURE_2D, _fboTexture);
+        glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_BLEND);
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_DEPTH_TEST);// will not correct blending, but will be OK wrt other opaque geometry.
+    
+        glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+        glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width,_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    
+        //Do write to the z buffer
+        glDepthMask(GL_TRUE);
+
+/*    glBindTexture(GL_TEXTURE_2D, _fboTexture);
+    
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
     glBindTexture(GL_TEXTURE_2D, 0);
-
+*/
     //printOpenGLError();
     GLenum glErr;
     glErr = glGetError();
@@ -230,7 +251,7 @@ void TextObject::findBBoxSize() {
 }
 
 void TextObject::applyViewerMatrix() {
-    if ((_type == 0) || (_type == 1)){ 
+    if ((_type == 0) || (_type == 1)){// || (_type == 2)){ 
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
         glLoadIdentity();
@@ -238,7 +259,6 @@ void TextObject::applyViewerMatrix() {
         glPushMatrix();
         glLoadIdentity();
 		glPushAttrib(GL_ALL_ATTRIB_BITS);
-		//glDisable(GL_LIGHTING);
 		glEnable(GL_TEXTURE_2D);
     }    
     if (_type == 1) { 
@@ -250,9 +270,16 @@ void TextObject::applyViewerMatrix() {
         _coords[0] = newCoords[0];
         _coords[1] = newCoords[1];
 	}   
+	if (_type == 2) {		
+		glMatrixMode(GL_TEXTURE);
+    	glPushMatrix();
+    	glMatrixMode(GL_MODELVIEW);
+    	glPushMatrix();
+    	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	}
+	//glDisable(GL_BLEND);
 }
 
-//float * TextObject::applyViewerMatrix(float coords[3]) {
 int TextObject::applyViewerMatrix(float coords[3]) {
     if ((_type == 0) || (_type == 1)){ 
         glMatrixMode(GL_MODELVIEW);
@@ -262,7 +289,6 @@ int TextObject::applyViewerMatrix(float coords[3]) {
         glPushMatrix();
         glLoadIdentity();
         glPushAttrib(GL_ALL_ATTRIB_BITS);
-        //glDisable(GL_LIGHTING);
         glEnable(GL_TEXTURE_2D);
     }    
     if (_type == 1) { 
@@ -273,13 +299,15 @@ int TextObject::applyViewerMatrix(float coords[3]) {
 		castWin->projectPointToWin(coords, newCoords);
         coords[0] = newCoords[0];
         coords[1] = newCoords[1];
-		coords[2] = newCoords[2];
     }
+	glEnable(GL_TEXTURE_2D);
+	//glDisable(GL_BLEND);
 	return 1;
 }
 
 void TextObject::removeViewerMatrix() {
-    if ((_type == 0) || (_type == 1)){ 
+    glEnable(GL_BLEND);
+	if ((_type == 0) || (_type == 1)){ 
 		glPopAttrib();
         glMatrixMode(GL_PROJECTION);
         glPopMatrix();
@@ -290,39 +318,54 @@ void TextObject::removeViewerMatrix() {
 
 int TextObject::drawMe(float coords[3], int timestep) {
 
-	if (_type == 1) {
-        //Convert user to local/stretched coordinates in cube
-        DataStatus* ds = DataStatus::getInstance();
-        const vector<double>& fullUsrExts = ds->getDataMgr()->GetExtents((size_t)timestep);
-        float sceneScaleFactor = 1./ViewpointParams::getMaxStretchedCubeSide();
-        const float* scales = ds->getStretchFactors();
-		for (int i = 0; i<3; i++){ 
-            coords[i] = coords[i] - fullUsrExts[i];
-            coords[i] *= sceneScaleFactor;
-            coords[i] *= scales[i];
-        }  
-		applyViewerMatrix(coords);
-	}
-	else applyViewerMatrix();
+	//Convert user to local coordinates
+	DataStatus* ds = DataStatus::getInstance();
+	const vector<double>& fullUsrExts = ds->getDataMgr()->GetExtents((size_t)timestep);
+	float sceneScaleFactor = 1./ViewpointParams::getMaxStretchedCubeSide();
+	const float* scales = ds->getStretchFactors();
+	for (int i = 0; i<3; i++){ 
+		coords[i] = coords[i] - fullUsrExts[i];
+		coords[i] *= sceneScaleFactor;
+		coords[i] *= scales[i];
+	}  
+	applyViewerMatrix(coords);
+	//else applyViewerMatrix();
 
     glBindTexture(GL_TEXTURE_2D, _fboTexture);  
+   	glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 
-    float fltTxtWidth = (float)_width/(float)_myWindow->width();
-    float fltTxtHeight = (float)_height/(float)_myWindow->height();
-    float llx = 2.*coords[0]/(float)_myWindow->width() - 1.f; 
-    float lly = 2.*coords[1]/(float)_myWindow->height() - 1.f; 
-    float urx = llx+2.*fltTxtWidth;
-    float ury = lly+2.*fltTxtHeight;
-
-    glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+	float fltTxtWidth, fltTxtHeight, llx, lly, urx, ury;
+	if (_type == 1) {
+	    fltTxtWidth = (float)_width/(float)_myWindow->width();
+	    fltTxtHeight = (float)_height/(float)_myWindow->height();
+	    llx = 2.*coords[0]/(float)_myWindow->width() - 1.f; 
+	    lly = 2.*coords[1]/(float)_myWindow->height() - 1.f; 
+	    urx = llx+2.*fltTxtWidth;
+	    ury = lly+2.*fltTxtHeight;
+	    
+		glBegin(GL_QUADS);
+		glTexCoord2f(0.0f, 0.0f); glVertex3f(llx, lly, .0f);//coords[2]);//.0f);
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(llx, ury, .0f);//coords[2]);//.0f);
+		glTexCoord2f(1.0f, 1.0f); glVertex3f(urx, ury, .0f);//coords[2]);//.0f);
+		glTexCoord2f(1.0f, 0.0f); glVertex3f(urx, lly, .0f);//coords[2]);//.0f);
+		glEnd();
+	}
     
-    glBegin(GL_QUADS);
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(llx, lly, .0f);
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(llx, ury, .0f);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(urx, ury, .0f);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(urx, lly, .0f);
-    glEnd();
-
+    if (_type == 2) {
+	    fltTxtWidth = (float)_width/(float)_myWindow->width();
+	    fltTxtHeight = (float)_height/(float)_myWindow->height();
+	    llx = coords[0];
+	    lly = coords[1];
+	    urx = llx + (float)_width/(float)_myWindow->width();
+	    ury = lly + (float)_height/(float)_myWindow->height();
+		
+		glBegin(GL_QUADS);
+	    glTexCoord2f(0.0f, 0.0f); glVertex3f(llx, lly, coords[2]);//coords[2]);//.0f);
+	    glTexCoord2f(0.0f, 1.0f); glVertex3f(llx, ury, coords[2]);//coords[2]);//.0f);
+	    glTexCoord2f(1.0f, 1.0f); glVertex3f(urx, ury, coords[2]);//.0f);
+	    glTexCoord2f(1.0f, 0.0f); glVertex3f(urx, lly, coords[2]);//.0f);
+	    glEnd();
+	}
     glBindTexture(GL_TEXTURE_2D, 0); 
 
     removeViewerMatrix();
