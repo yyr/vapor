@@ -48,7 +48,8 @@ void GLIsolineWindow::mousePressEvent( QMouseEvent * e){
 	coords.push_back((double)x);
 	coords.push_back((double)y);
 	isolineFrame->getParams()->SetCursorCoords(coords);
-	
+	_winWidth = 250;
+	_winHeight = 240;
 	update();
 	
 }
@@ -123,7 +124,7 @@ void GLIsolineWindow::resizeGL( int width, int height )
 	_winHeight = height;
 	
 	_resizeGL();
-	
+	printOpenGLErrorMsg("GLIsoWindowResizeEvent end");
 }
 
 void GLIsolineWindow::_resizeGL() {
