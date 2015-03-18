@@ -278,7 +278,7 @@ int Visualizer::paintEvent(bool force)
 	if (!dataMgr) {
 		return 0;
 	}
-
+	glViewport(0,0,(GLint)width,(GLint)height);
 	//Get the ModelView matrix from the viewpoint params, if it has changed...
 	ViewpointParams* vpParams = getActiveViewpointParams();
 	if (vpParams->HasChanged(winNum)){

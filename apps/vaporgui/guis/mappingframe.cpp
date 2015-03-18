@@ -1368,7 +1368,7 @@ void MappingFrame::select(int x, int y, Qt::KeyboardModifiers state)
 
   glInitNames();
   glPushName(0);
-
+  glViewport(0,0,width(),height());
   //
   // Setup selection buffer
   //
