@@ -109,6 +109,11 @@ void TabManager::showRenderWidget(string tag){
 		else widgets[0][i]->show();
 	}
 }
+void TabManager::hideRenderWidgets(){
+	for (int i = 0; i<widgets[0].size(); i++){
+		widgets[0][i]->hide();
+	}
+}
 
 
 

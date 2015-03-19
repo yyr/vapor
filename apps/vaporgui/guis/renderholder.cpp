@@ -177,8 +177,10 @@ deleteRenderer(){
 	if (newSelection < 0) newSelection = 0;
 	currentRow[winnum] = newSelection;
 	tableWidget->selectRow(newSelection);
-
-	//Also need to renumber instances!
+	if (tableWidget->rowCount() == 0){
+		TabManager* tMgr = VizWinMgr::getInstance()->getTabManager();
+		tMgr->hideRenderWidgets();
+	}
 }
 //Respond to check/uncheck enabled checkbox
 void RenderHolder::
