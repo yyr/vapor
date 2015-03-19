@@ -1254,6 +1254,11 @@ protected:
 	const vector <size_t> &bs
  ) const;
 
+ bool _valid_mask_var(
+	string varname, const vector <DC::Dimension> &dimensions,
+	vector <size_t> bs, bool compressed, string maskvar
+ ) const;
+
  bool _ValidDefineDataVar(
     string varname, vector <string> dimnames, vector <string> coordnames,
     string units, XType type, bool compressed, string maskvar

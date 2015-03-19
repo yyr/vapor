@@ -255,6 +255,23 @@ public:
  //! Read an entire variable with one function call
  virtual int GetVar(string varname, float *data);
 
+ //! Write an array of values to a variable
+ virtual int PutVara(
+	string varname,
+	vector <size_t> start, vector <size_t> count, const unsigned char *data
+ );
+ //! Write an entire variable with one function call
+ virtual int PutVar(string varname, const unsigned char *data);
+
+ //! Read an array of values from a variable
+ virtual int GetVara(
+	string varname,
+	vector <size_t> start, vector <size_t> count, unsigned char *data
+ );
+
+ //! Read an entire variable with one function call
+ virtual int GetVar(string varname, unsigned char *data);
+
 
 
 

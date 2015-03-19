@@ -626,6 +626,11 @@ int NetCDFCpp::PutVara(
 		mystart[i] = start[i];
 		mycount[i] = count[i];
 	}
+
+	// The nc_put_var() function will write a variable of any type, including 
+	// user defined type. For this function, the type of the data in memory 
+	// must match the type of the variable - no data conversion is done.
+	//
 	rc = nc_put_vara(_ncid, varid, mystart, mycount, data);
 	MY_NC_ERR(rc, _path, "nc_put_vara()");
 
@@ -744,6 +749,76 @@ int NetCDFCpp::GetVar(string varname, float *data) {
     if (rc<0) return(rc);
 
 	rc = nc_get_var_float(_ncid, varid, data);
+	MY_NC_ERR(rc, _path, "nc_get_var_float()");
+
+	return(rc);
+}
+
+int NetCDFCpp::PutVara(
+	string varname,
+	vector <size_t> start, vector <size_t> count, const unsigned char *data
+) {
+	assert(start.size() == count.size());
+
+    int varid;
+    int rc = NetCDFCpp::InqVarid(varname, varid);
+    if (rc<0) return(rc);
+
+	size_t mystart[NC_MAX_VAR_DIMS];
+	size_t mycount[NC_MAX_VAR_DIMS];
+
+	for (int i=0; i<start.size(); i++) {
+		mystart[i] = start[i];
+		mycount[i] = count[i];
+	}
+	rc = nc_put_vara_uchar(_ncid, varid, mystart, mycount, data);
+	MY_NC_ERR(rc, _path, "nc_put_vara_uchar()");
+
+	return(rc);
+}
+
+int NetCDFCpp::PutVar(string varname, const unsigned char *data) {
+
+    int varid;
+    int rc = NetCDFCpp::InqVarid(varname, varid);
+    if (rc<0) return(rc);
+
+	rc = nc_put_var_uchar(_ncid, varid, data);
+	MY_NC_ERR(rc, _path, "nc_put_var_uchar()");
+
+	return(rc);
+}
+
+int NetCDFCpp::GetVara(
+	string varname,
+	vector <size_t> start, vector <size_t> count, unsigned char *data
+) {
+	assert(start.size() == count.size());
+
+    int varid;
+    int rc = NetCDFCpp::InqVarid(varname, varid);
+    if (rc<0) return(rc);
+
+	size_t mystart[NC_MAX_VAR_DIMS];
+	size_t mycount[NC_MAX_VAR_DIMS];
+
+	for (int i=0; i<start.size(); i++) {
+		mystart[i] = start[i];
+		mycount[i] = count[i];
+	}
+	rc = nc_get_vara_uchar(_ncid, varid, mystart, mycount, data);
+	MY_NC_ERR(rc, _path, "nc_get_vara_uchar()");
+
+	return(rc);
+}
+
+int NetCDFCpp::GetVar(string varname, unsigned char *data) {
+
+    int varid;
+    int rc = NetCDFCpp::InqVarid(varname, varid);
+    if (rc<0) return(rc);
+
+	rc = nc_get_var_uchar(_ncid, varid, data);
 	MY_NC_ERR(rc, _path, "nc_get_var_float()");
 
 	return(rc);

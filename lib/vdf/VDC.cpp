@@ -1197,6 +1197,57 @@ bool VDC::_valid_blocking(
 	return(true);
 }
 	
+bool VDC::_valid_mask_var(
+	string varname, const vector <DC::Dimension> &dimensions,
+	vector <size_t> bs, bool compressed, string maskvar
+) const {
+
+	map <string, DataVar>::const_iterator itr = _dataVars.find(maskvar);
+	if (itr == _dataVars.end()) {
+		SetErrMsg("Mask var \"%s\" not defined", maskvar.c_str());
+		return(false);
+	}
+	const DataVar &mvar = itr->second;
+
+	// Data and mask variable must have same blocking along
+	// each axis
+	//
+	vector <string> maskvars(1,maskvar);
+	if (! _valid_blocking(dimensions, maskvars, bs)) {
+		SetErrMsg("Data and mask variables must have same blocking");
+		return(false);
+	}
+
+	// Fastest varying data variable dimensions must match mask
+	// variable dimensions
+	//
+	vector <DC::Dimension> cdimensions = mvar.GetDimensions();
+	if (cdimensions.size() > dimensions.size()) {
+		SetErrMsg("Data variable and mask variable dimensions must match");
+		return(false);
+	}
+	for (int i=0; i<cdimensions.size(); i++) {
+		if (cdimensions[i] != dimensions[i]) {
+			SetErrMsg("Data variable and mask variable dimensions must match");
+			return(false);
+		}
+	}
+
+	if (compressed) {
+		size_t nlevels, dummy;
+		CompressionInfo(bs, _wname, nlevels, dummy);
+
+		size_t nlevels_m;
+		CompressionInfo(mvar.GetBS(), mvar.GetWName(), nlevels_m, dummy);
+
+		if (nlevels > nlevels_m) {
+			SetErrMsg("Data variable and mask variable depth must match");
+			return(false);
+		}
+	}
+
+	return(true);
+}
 
 bool VDC::_ValidDefineDataVar(
 	string varname, vector <string> dimnames, vector <string> coordvars,
@@ -1309,38 +1360,8 @@ bool VDC::_ValidDefineDataVar(
 	//
 	if (maskvar.empty()) return(true);
 
-	if (_dataVars.find(maskvar) == _dataVars.end()) {
-		SetErrMsg("Mask var \"%s\" not defined", maskvar.c_str());
-		return(false);
-	}
+	return(_valid_mask_var(varname, dimensions, bs, compressed, maskvar));
 
-	// Data and mask variable must have same blocking along
-	// each axis
-	//
-	vector <string> maskvars(1,maskvar);
-	if (! _valid_blocking(dimensions, maskvars, bs)) {
-		SetErrMsg("Data and mask variables must have same blocking");
-		return(false);
-	}
-
-	// Fastest varying data variable dimensions must match mask
-	// variable dimensions
-	//
-	map <string, DataVar>::const_iterator itr = _dataVars.find(maskvar);
-	assert(itr != _dataVars.end());	// already checked for existance
-	vector <DC::Dimension> cdimensions = itr->second.GetDimensions();
-	if (cdimensions.size() > dimensions.size()) {
-		SetErrMsg("Data variable and mask variable dimensions must match");
-		return(false);
-	}
-	for (int i=0; i<cdimensions.size(); i++) {
-		if (cdimensions[i] != dimensions[i]) {
-			SetErrMsg("Data variable and mask variable dimensions must match");
-			return(false);
-		}
-	}
-
-	return(true);
 }
 
 

@@ -304,6 +304,9 @@ private:
 
  string _get_mask_varname(string varname) const;
 
+ bool *_read_mask_var(
+	vector <size_t> start, vector <size_t> count
+ );
 
  WASP *_OpenVariableRead(
 	size_t ts, const VDC::BaseVar &var, int clevel, int lod,

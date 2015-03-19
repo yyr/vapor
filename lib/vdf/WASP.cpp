@@ -954,7 +954,7 @@ int FetchBlock(
 	count[count.size()-1] = block_size;
 
 	int rc = ncdfcptr->NetCDFCpp::GetVara(
-		varname, start, count, (void *) block
+		varname, start, count, block
 	);
 	if (rc<0) return(rc);
 

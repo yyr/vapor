@@ -70,6 +70,7 @@ level and lod both need consisten speciefication (-1, -2, -3)
 
 Rename DataMgrV3 to DataMgr
 
+
 RegularGrid
 -----------
 
@@ -78,3 +79,9 @@ Iterator for bounding volume defined in user coords
 FILES WE DONT SYNC
 DataMgr.cpp
 DataMgrFactor.cpp
+
+WASP
+----
+
+integer wavelet transforms - haar and cdf5/3.
+Use int haar for missing value mask
