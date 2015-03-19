@@ -161,6 +161,16 @@ deleteRenderer(){
 	instanceIndex[winnum].erase(instanceIndex[winnum].begin()+row);
 	instanceName[winnum].erase(instanceName[winnum].begin()+row);
 	renParams[winnum].erase(renParams[winnum].begin()+row);
+	//All the instanceIndices for renderers of the same Renderer type need to be
+	//reduced by one, because one was removed:
+	int numIndices = instanceIndex[winnum].size();
+	if (numIndices > instance){
+		for (int i = instance; i<numIndices; i++){
+			if (renParams[winnum][i]->GetName() == type){
+				instanceIndex[winnum][i]--;
+			}
+		}
+	}
 	//if this not the first entry, then the previous becomes selected; 
 	//otherwise the first one becomes selected.
 	int newSelection = row-1;

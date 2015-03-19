@@ -2108,27 +2108,7 @@ void IsolineEventRouter::paintEvent(QPaintEvent* ev){
 }
 
 #endif
-QSize IsolineEventRouter::sizeHint() const {
-	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
-	if (!pParams) return QSize(460,1500);
-	int vertsize = 720;//basic panel plus instance panel 
-	//add showAppearance button, showLayout button, showLayout button, frames
-	vertsize += 150;
-	if (showLayout) {
-		vertsize += 467;
-		//no lat long
-	}
-	if (showImage){
-		vertsize += 567;
-	}
-	if (showAppearance) vertsize += 200;  //Add in appearance panel 
-	//Mac and Linux have gui elements fatter than windows by about 10%
-#ifndef WIN32
-	vertsize = (int)(1.1*vertsize);
-#endif
 
-	return QSize(460,vertsize);
-}
 //Occurs when user clicks a fidelity radio button
 void IsolineEventRouter::guiSetFidelity(int buttonID){
 	// Recalculate LOD and refinement based on current slider value and/or current text value

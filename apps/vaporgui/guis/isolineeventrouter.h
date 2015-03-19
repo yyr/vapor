@@ -65,7 +65,7 @@ public:
 
 	virtual void captureMouseDown(int button);
 	virtual void captureMouseUp();
-	virtual QSize sizeHint() const;
+
 	virtual void updateMapBounds(RenderParams* rParams);
 #ifdef Darwin
 	void paintEvent(QPaintEvent*);

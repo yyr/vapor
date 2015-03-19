@@ -713,17 +713,21 @@ insertRenderer(RenderParams* rp, Renderer* ren, int newOrder)
 	for (i = renderer.size()-1; i>= 0; i--){
 		if (renderOrder[i] < newOrder) break;	
 	}
+	//Remember the position in front of where this renderer will go:
 	int lastPosn = i;
 	int maxPosn = renderer.size()-1;
-
+	//Push the last one back, increasing the size of these vectors:
 	renderer.push_back(renderer[maxPosn]);
 	renderType.push_back(renderType[maxPosn]);
 	renderOrder.push_back(renderOrder[maxPosn]);
-	for (i = maxPosn-1; i>lastPosn+1; i--){
+	//Now the size is maxPosn+1, so copy everything up one position,
+	//Until we get to lastPosn (which we do not copy)
+	for (i = maxPosn; i>lastPosn+1; i--){
 		renderer[i] = renderer[i-1];
 		renderType[i] = renderType[i-1];
 		renderOrder[i] = renderOrder[i-1];
 	}
+	//Finally insert the new renderer at lastPosn+1
 	renderer[lastPosn+1] = ren;
 	renderType[lastPosn+1] = rendType;
 	renderOrder[lastPosn+1] = newOrder;
