@@ -24,6 +24,7 @@
 #include "textRenderer.h"
 #include "viewpointparams.h"
 #include <vapor/MyBase.h>
+#include <cmath>
 
 using namespace VAPoR;
 //struct GLWindow;        // just to retrieve window size
@@ -178,11 +179,6 @@ void TextObject::initFrameBufferTexture(void) {
 
 
 int TextObject::initFrameBuffer(void) {
-    //glEnable(GL_TEXTURE_2D);
-    //initFrameBufferTexture();
-
-	//glDisable(GL_LIGHTING);
-
     glGenFramebuffersEXT(1, &_fbo);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _fbo);
 
@@ -224,9 +220,6 @@ int TextObject::initFrameBuffer(void) {
 
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
-	//glEnable(GL_LIGHTING);
-
-    //printOpenGLError();
     GLenum glErr;
     glErr = glGetError();
     char* errString;
@@ -250,7 +243,7 @@ void TextObject::findBBoxSize() {
     _width  = (int) (up.X() - lo.X() + xPadding);
 }
 
-void TextObject::applyViewerMatrix() {
+/*void TextObject::applyViewerMatrix() {
     if ((_type == 0) || (_type == 1)){// || (_type == 2)){ 
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
@@ -277,8 +270,10 @@ void TextObject::applyViewerMatrix() {
     	glPushMatrix();
     	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	}
-	//glDisable(GL_BLEND);
-}
+	if (_type == 3) {
+
+	}
+}*/
 
 int TextObject::applyViewerMatrix(float coords[3]) {
     if ((_type == 0) || (_type == 1)){ 
@@ -300,6 +295,15 @@ int TextObject::applyViewerMatrix(float coords[3]) {
         coords[0] = newCoords[0];
         coords[1] = newCoords[1];
     }
+	if (_type == 3) {
+        GLWindow *castWin;
+        castWin = dynamic_cast <GLWindow*> (_myWindow);
+		ViewpointParams *myViewParams = castWin->getActiveViewpointParams();
+		float* viewDir;
+		viewDir = myViewParams->getViewDir();
+		//glPushMatrix();
+		//glRotatef(-90.0,1.0,0.0,0.0);
+	}
 	glEnable(GL_TEXTURE_2D);
 	//glDisable(GL_BLEND);
 	return 1;
@@ -314,6 +318,7 @@ void TextObject::removeViewerMatrix() {
         glMatrixMode(GL_MODELVIEW);
         glPopMatrix();
     }
+	//if (_type == 3) glPopMatrix();
 }
 
 int TextObject::drawMe(float coords[3], int timestep) {
@@ -364,6 +369,53 @@ int TextObject::drawMe(float coords[3], int timestep) {
 	    glTexCoord2f(0.0f, 1.0f); glVertex3f(llx, ury, coords[2]);//coords[2]);//.0f);
 	    glTexCoord2f(1.0f, 1.0f); glVertex3f(urx, ury, coords[2]);//.0f);
 	    glTexCoord2f(1.0f, 0.0f); glVertex3f(urx, lly, coords[2]);//.0f);
+	    glEnd();
+	}
+    
+	if (_type == 3) {
+	    fltTxtWidth = (float)_width/(float)_myWindow->width();
+	    fltTxtHeight = (float)_height/(float)_myWindow->height();
+	    llx = coords[0];
+	    lly = coords[1];
+		
+        GLWindow *castWin;
+        castWin = dynamic_cast <GLWindow*> (_myWindow);
+		ViewpointParams *myViewParams = castWin->getActiveViewpointParams();
+		float* viewDir;
+		float* upDir;
+		float* rightDir;
+		viewDir = myViewParams->getViewDir();
+		upDir = myViewParams->getUpVec();
+		rightDir[0] = viewDir[1]*upDir[2] - viewDir[2]*upDir[1];
+		rightDir[1] = viewDir[2]*upDir[0] - viewDir[0]*upDir[2];
+		rightDir[2] = viewDir[0]*upDir[1] - viewDir[1]*upDir[0];
+
+		float llz;
+		float ulx, uly, ulz;
+		float urx, ury, urz;
+		float lrx, lry, lrz;
+
+	    llx = coords[0];
+	    lly = coords[1];	
+		llz = coords[2];
+	    
+		ulx = llx + upDir[0]*fltTxtHeight;
+		uly = lly + upDir[1]*fltTxtHeight;
+		ulz = llz + upDir[2]*fltTxtHeight; 
+
+		urx = ulx + rightDir[0]*fltTxtWidth;
+		ury = uly + rightDir[1]*fltTxtWidth;
+		urz = ulz + rightDir[2]*fltTxtWidth;
+
+		lrx = urx - upDir[0]*fltTxtHeight;
+		lry = ury - upDir[1]*fltTxtHeight;
+		lrz = urz - upDir[2]*fltTxtHeight;
+
+		glBegin(GL_QUADS);
+	    glTexCoord2f(0.0f, 0.0f); glVertex3f(llx, lly, llz);
+	    glTexCoord2f(0.0f, 1.0f); glVertex3f(ulx, uly, ulz);
+	    glTexCoord2f(1.0f, 1.0f); glVertex3f(urx, ury, urz);
+	    glTexCoord2f(1.0f, 0.0f); glVertex3f(lrx, lry, lrz);
 	    glEnd();
 	}
     glBindTexture(GL_TEXTURE_2D, 0); 
