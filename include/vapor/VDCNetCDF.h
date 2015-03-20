@@ -304,7 +304,7 @@ private:
 
  string _get_mask_varname(string varname) const;
 
- bool *_read_mask_var(
+ unsigned char *_read_mask_var(
 	vector <size_t> start, vector <size_t> count
  );
 

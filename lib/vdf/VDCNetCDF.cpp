@@ -573,7 +573,7 @@ int VDCNetCDF::CloseVariable() {
 	return(0);
 }
 
-bool *VDCNetCDF::_read_mask_var(
+unsigned char *VDCNetCDF::_read_mask_var(
 	vector <size_t> start, vector <size_t> count
 ) {
 	// data variable may be time varying, while mask variable is not.
@@ -584,15 +584,12 @@ bool *VDCNetCDF::_read_mask_var(
 		count.erase(count.begin());
 	}
 
-	size_t size = vproduct(count);
+	size_t size = vproduct(count) * sizeof(unsigned char);
 
-	bool *mask = (bool *) _mask_buffer.Alloc(size);
+	unsigned char *mask = (unsigned char *) _mask_buffer.Alloc(size);
 
-#ifdef	DEAD
 	int rc = _ofimask._wasp->GetVara(start, count, mask);
 	if (rc<0) return(NULL);
-#endif
-cout << "CRAP\n";
 	
 	return(mask);
 }
@@ -626,15 +623,12 @@ int VDCNetCDF::Write(const float *data) {
 		return(_ofi._wasp->PutVara(start, count, data));
 	}
 
-#ifdef	DEAD
-	bool *mask = _read_mask_var(maskvar, start, count));
+	unsigned char *mask = _read_mask_var(start, count);
 	if (! mask) {
 		return(-1);
 	}
 
 	return(_ofi._wasp->PutVara(start, count, data, mask));
-#endif
-cout << "CRAP\n";
 
 }
 

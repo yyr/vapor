@@ -485,15 +485,15 @@ public:
  //!
  virtual int PutVara(
 	vector <size_t> start, vector <size_t> count, const float *data,
-	const bool *mask
+	const unsigned char *mask
  );
- virtual int PutVar(const float *data, const bool *mask);
+ virtual int PutVar(const float *data, const unsigned char *mask);
 
  virtual int PutVara(
 	vector <size_t> start, vector <size_t> count, const unsigned char *data,
-	const bool *mask
+	const unsigned char *mask
  );
- virtual int PutVar(const unsigned char *data, const bool *mask);
+ virtual int PutVar(const unsigned char *data, const unsigned char *mask);
 
  //! Read a hyper-slab of values from the currently opened variable
  //!
@@ -709,7 +709,7 @@ private:
  template <class T>
  int _PutVara(
 	vector <size_t> start, vector <size_t> count, const T *data,
-	const bool *mask, int itype
+	const unsigned char *mask, int itype
  );
 
 

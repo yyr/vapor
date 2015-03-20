@@ -234,7 +234,7 @@ public:
  vector <Compressor *> _compressors;	// one per thread
  void *_data;	// global (shared by all threads)
  int _itype;	// typeof(* _data)
- bool *_mask;	// global (shared by all threads)
+ unsigned char *_mask;	// global (shared by all threads)
  float *_block;	// private (not shared)
  float *_coeffs; // private (not shared)
  unsigned char *_maps;	// private (not shared)
@@ -249,7 +249,7 @@ public:
 	const vector <size_t> &bs, const vector <size_t> &udims,
 	const vector <size_t> &ncoeffs, const vector <size_t> &encoded_dims,
 	const vector <Compressor *> &compressors,  
-	void *data, int itype, bool *mask, float *block, float *coeffs,
+	void *data, int itype, unsigned char *mask, float *block, float *coeffs,
 	unsigned char *maps, int level
  ) : _id(id), _et(et), _varname(varname), _ncdfcptrs(ncdfcptrs), 
 	_start(start), _count(count), _bs(bs), _udims(udims),
@@ -472,7 +472,7 @@ vector <size_t> vdiff(vector <size_t> a, vector <size_t> b) {
 template <class T>
 void Block(
 	const T *data,
-	const bool *mask,
+	const unsigned char *mask,
 	vector <size_t> dims, 
 	vector <size_t> start,
 	float *block,
@@ -2321,7 +2321,7 @@ bool WASP::_validate_get_vara_compressed(
 template <class T>
 int WASP::_PutVara(
     vector <size_t> start, vector <size_t> count, const T *data,
-	const bool *mask, int itype
+	const unsigned char *mask, int itype
 ) {
 	if (! _waspFile) {
 		SetErrMsg("Not a WASP file");
@@ -2395,7 +2395,7 @@ int WASP::_PutVara(
 		argvec.push_back((void *) new thread_state(
 			i, _et, _open_varname, _ncdfcptrs, start, count, _open_bs, 
 			_open_udims, ncoeffs, encoded_dims, _open_compressors, 
-			(void *) data, itype, (bool *) mask,
+			(void *) data, itype, (unsigned char *) mask,
 			block + i*block_size, coeffs + i*coeffs_size, 
 			maps + i*maps_size*sizeof(float), 0
 		));
@@ -2431,7 +2431,7 @@ int WASP::_PutVara(
 
 int WASP::PutVara(
     vector <size_t> start, vector <size_t> count, const float *data,
-	const bool *mask
+	const unsigned char *mask
 ) {
 	return(WASP::_PutVara(start, count, data, mask, NC_FLOAT));
 }
@@ -2446,7 +2446,7 @@ int WASP::PutVar(const float *data) {
 	return(WASP::PutVar(data, NULL));
 }
 
-int WASP::PutVar(const float *data, const bool *mask) {
+int WASP::PutVar(const float *data, const unsigned char *mask) {
 
 	if (! _open || ! _open_write) {
 		SetErrMsg("Invalid state");
@@ -2465,7 +2465,7 @@ int WASP::PutVar(const float *data, const bool *mask) {
 
 int WASP::PutVara(
     vector <size_t> start, vector <size_t> count, const unsigned char *data,
-	const bool *mask
+	const unsigned char *mask
 ) {
 	return(WASP::_PutVara(start, count, data, mask, NC_UBYTE));
 }
@@ -2480,7 +2480,7 @@ int WASP::PutVar(const unsigned char *data) {
 	return(WASP::PutVar(data, NULL));
 }
 
-int WASP::PutVar(const unsigned char *data, const bool *mask) {
+int WASP::PutVar(const unsigned char *data, const unsigned char *mask) {
 
 	if (! _open || ! _open_write) {
 		SetErrMsg("Invalid state");
