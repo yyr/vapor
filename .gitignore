@@ -40,6 +40,7 @@ lib/params/tfinterpolator.h
 lib/render/moc/
 lib/vdf/Copy2VDF.h
 lib/vdf/DCReaderWRF.h
+lib/vdf/DCReaderGRIB.h
 lib/vdf/NetCDFCpp.h
 lib/vdf/Proj4API.h
 lib/vdf/UDUnitsClass.h
