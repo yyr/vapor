@@ -352,6 +352,10 @@
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\main\mainform.h -o ..\..\..\apps\vaporgui\moc\moc_mainform.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\main\mainform.h -o ..\..\..\apps\vaporgui\moc\moc_mainform.cpp</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vaporgui\moc\moc_mainform.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vaporgui\moc\moc_mainform.cpp;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\main\vizwinmgr.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\main\vizwinmgr.h -o ..\..\..\apps\vaporgui\moc\moc_vizwinmgr.cpp</Command>
@@ -364,6 +368,10 @@
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\main\vizwinmgr.h -o ..\..\..\apps\vaporgui\moc\moc_vizwinmgr.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\main\vizwinmgr.h -o ..\..\..\apps\vaporgui\moc\moc_vizwinmgr.cpp</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vaporgui\moc\moc_vizwinmgr.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vaporgui\moc\moc_vizwinmgr.cpp;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\animationeventrouter.h">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing animationeventrouter.h...</Message>
@@ -476,6 +484,8 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\arrowBasic.h -o ..\..\..\apps\vaporgui\moc\moc_arrowBasic.cpp</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\arrowBasic.h -o ..\..\..\apps\vaporgui\moc\moc_arrowBasic.cpp</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\arrowBasic.h -o ..\..\..\apps\vaporgui\moc\moc_arrowBasic.cpp</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vaporgui\moc\moc_arrowBasic.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vaporgui\moc\moc_arrowBasic.cpp;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\ControlPointEditor.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\ControlPointEditor.h -o ..\..\..\apps\vaporgui\moc\moc_ControlPointEditor.cpp</Command>
@@ -697,6 +707,12 @@
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isolineframe.h -o ..\..\..\apps\vaporgui\moc\moc_isolineframe.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isolineframe.h -o ..\..\..\apps\vaporgui\moc\moc_isolineframe.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isolineframe.h -o ..\..\..\apps\vaporgui\moc\moc_isolineframe.cpp</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vaporgui\moc\moc_isolineframe.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vaporgui\moc\moc_isolineframe.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\moc\moc_isolineframe.cpp;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\isovalueeditor.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isovalueeditor.h -o ..\..\..\apps\vaporgui\moc\moc_isovalueeditor.cpp</Command>
@@ -706,6 +722,12 @@
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isovalueeditor.h -o ..\..\..\apps\vaporgui\moc\moc_isovalueeditor.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isovalueeditor.h -o ..\..\..\apps\vaporgui\moc\moc_isovalueeditor.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isovalueeditor.h -o ..\..\..\apps\vaporgui\moc\moc_isovalueeditor.cpp</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vaporgui\moc\moc_isovalueeditor.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vaporgui\moc\moc_isovalueeditor.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\moc\moc_isovalueeditor.cpp;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\mappingframe.h">
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\moc\moc_mappingframe.cpp;%(Outputs)</Outputs>
@@ -715,6 +737,12 @@
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\mappingframe.h -o ..\..\..\apps\vaporgui\moc\moc_mappingframe.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\mappingframe.h -o ..\..\..\apps\vaporgui\moc\moc_mappingframe.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\mappingframe.h -o ..\..\..\apps\vaporgui\moc\moc_mappingframe.cpp</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vaporgui\moc\moc_mappingframe.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vaporgui\moc\moc_mappingframe.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\moc\moc_mappingframe.cpp;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\GLWidget.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\GLWidget.h -o ..\..\..\apps\vaporgui\moc\moc_glwidget.cpp</Command>
@@ -727,6 +755,9 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vaporgui\moc\moc_glwidget.cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vaporgui\moc\moc_glwidget.cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\moc\moc_glwidget.cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\OpacityWidget.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\OpacityWidget.h -o ..\..\..\apps\vaporgui\moc\moc_opacitywidget.cpp</Command>
@@ -736,6 +767,12 @@
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\OpacityWidget.h -o ..\..\..\apps\vaporgui\moc\moc_opacitywidget.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\OpacityWidget.h -o ..\..\..\apps\vaporgui\moc\moc_opacitywidget.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\OpacityWidget.h -o ..\..\..\apps\vaporgui\moc\moc_opacitywidget.cpp</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vaporgui\moc\moc_opacitywidget.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vaporgui\moc\moc_opacitywidget.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\moc\moc_opacitywidget.cpp;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\qtthumbwheel.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\qtthumbwheel.h -o ..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp</Command>
@@ -745,6 +782,12 @@
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\qtthumbwheel.h -o ..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\qtthumbwheel.h -o ..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\qtthumbwheel.h -o ..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\isolineAppearance.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isolineAppearance.h -o ..\..\..\apps\vaporgui\moc\moc_isolineAppearance.cpp</Command>
