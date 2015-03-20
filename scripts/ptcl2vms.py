@@ -13,9 +13,9 @@ valid options are...
     -radius (float) adjusts the diameter of the generated point meshes
     -ref (int) adjusts tesselation level of point meshes
     -startts (int) sets the starting timestep of the output
+    -quiet suppresses all messages
+    -help prints this message
 """
-#TODO: try it with more than one timestep
-#TODO: fix stride problem
 #a bunch of vector manipulation functions! :D
 def dot(a, b):
     return (a[0] * b[0]) + (a[1] * b[1]) + (a[2] * b[2])
@@ -108,13 +108,30 @@ def showMesh(verts, faces):
 #remove the scriptname from argv, but store it just in case :P
 scriptname = sys.argv.pop(0)
 
+quiet = False
+for arg in sys.argv :
+    if arg == "-quiet" :
+        quiet = True
+
+#check for valid number of arguments
+if len(sys.argv) < 1 :
+    print(">>>ERROR: not enough arguments!\n" + usage)
+    exit(-1)
+
+if not quiet and sys.argv[0] == "-help" :
+    print(usage)
+    exit(0)
+
 #check for valid number of arguments
 if len(sys.argv) < 2 :
     print(">>>ERROR: not enough arguments!\n" + usage)
     exit(-1)
 #get the name of output file and directory
 vmsname = sys.argv.pop()
-print(">>>OUTFILE: " + vmsname)
+if vmsname[:len(vmsname) - 4] != ".vms" :
+    vmsname = vmsname + ".vms"
+if not quiet:
+    print(">>>OUTFILE: " + vmsname)
 dirname = vmsname[0:vmsname.rfind('.')] + "_data"
 #remove any preexisting data by the same name
 if os.path.exists(dirname) :
@@ -136,22 +153,27 @@ while len(sys.argv) > 0 :
     if arg[:1] == "-" :
         if arg == "-stride" :
             stride = int(sys.argv.pop(0))
-            print("stride = " + str(stride))
+            if not quiet :
+                print("stride = " + str(stride))
         elif arg == "-radius" :
             radius = float(sys.argv.pop(0))
-            print("radius = " + str(radius))
+            if not quiet :
+                print("radius = " + str(radius))
         elif arg == "-ref" :
             ref = int(sys.argv.pop(0))
-            print("refinement = " + str(ref))
+            if not quiet :
+                print("refinement = " + str(ref))
         elif arg == "-startts" :
             startts = int(sys.argv.pop(0))
-            print("startts = " + str(startts))
+            if not quiet :
+                print("startts = " + str(startts))
         else:
             print(">>>ERROR: unknown option: '" + arg + "'\n" + usage)
             exit(-1)
         continue
     #open input and output files
-    print(">>>READING: " + arg)
+    if not quiet :
+        print(">>>READING: " + arg)
     infile = open(arg)
     #get input from input file
     counter = 1
@@ -196,7 +218,8 @@ while len(sys.argv) > 0 :
         offset = len(verts)
     #write the model to a file!
     plyname = dirname+"/"+os.path.basename(arg[0:arg.rfind(".")])+".ply"
-    print(">>>WRITING: " + plyname)
+    if not quiet :
+        print(">>>WRITING: " + plyname)
     ply = open(plyname, "w")
     ply.write('ply\nformat ascii 1.0\nelement vertex ' + str(len(verts)) + '\nproperty float x\nproperty float y\nproperty float z\nproperty float nx\nproperty float ny\nproperty float nz\nelement face ' +  str(len(faces)) + '\nproperty list uchar int vertex_indices\nend_header\n')
     for vi in range(len(verts)):
