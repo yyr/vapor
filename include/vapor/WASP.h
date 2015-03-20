@@ -462,6 +462,11 @@ public:
  );
  virtual int PutVar(const float *data);
 
+ virtual int PutVara(
+	vector <size_t> start, vector <size_t> count, const unsigned char *data
+ );
+ virtual int PutVar(const unsigned char *data);
+
  //! Write an array of masked values to the currently opened variable
  //!
  //! This version of PutVar() handles missing data values whose 
@@ -483,6 +488,12 @@ public:
 	const bool *mask
  );
  virtual int PutVar(const float *data, const bool *mask);
+
+ virtual int PutVara(
+	vector <size_t> start, vector <size_t> count, const unsigned char *data,
+	const bool *mask
+ );
+ virtual int PutVar(const unsigned char *data, const bool *mask);
 
  //! Read a hyper-slab of values from the currently opened variable
  //!
@@ -512,6 +523,10 @@ public:
 	vector <size_t> start, vector <size_t> count, float *data
  );
 
+ virtual int GetVara(
+	vector <size_t> start, vector <size_t> count, unsigned char *data
+ );
+
  //! Read a hyper-slab of blocked values from currently opened variable
  //!
  //! This method is identical to GetVaraBlock() with the exceptions
@@ -535,6 +550,9 @@ public:
  virtual int GetVaraBlock(
 	vector <size_t> start, vector <size_t> count, float *data
  );
+ virtual int GetVaraBlock(
+	vector <size_t> start, vector <size_t> count, unsigned char *data
+ );
 
  //! Read an array of values from the currently opened variable
  //!
@@ -555,6 +573,7 @@ public:
  //! \sa InqVarDimlens(), OpenVarRead()
  //
  virtual int GetVar(float *data);
+ virtual int GetVar(unsigned char *data);
 
  //! Return the NetCDF file paths that would be created from a base
  //! path.
@@ -674,8 +693,10 @@ private:
     vector <size_t> &udims, vector <size_t> &dims, string &wname
  ) const;
 
+ template <class T>
  int _GetVara(
-    vector <size_t> start, vector <size_t> count, bool unblock, float *data
+    vector <size_t> start, vector <size_t> count, bool unblock, T *data,
+	int itype
  );
 
  static void _dims_at_level(
@@ -684,6 +705,12 @@ private:
  ) ;
 
  static vector <string> mkmultipaths(string path, int n);
+
+ template <class T>
+ int _PutVara(
+	vector <size_t> start, vector <size_t> count, const T *data,
+	const bool *mask, int itype
+ );
 
 
 };

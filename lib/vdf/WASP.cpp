@@ -232,7 +232,8 @@ public:
  vector <size_t> _ncoeffs;
  vector <size_t> _encoded_dims;
  vector <Compressor *> _compressors;	// one per thread
- float *_data;	// global (shared by all threads)
+ void *_data;	// global (shared by all threads)
+ int _itype;	// typeof(* _data)
  bool *_mask;	// global (shared by all threads)
  float *_block;	// private (not shared)
  float *_coeffs; // private (not shared)
@@ -248,12 +249,12 @@ public:
 	const vector <size_t> &bs, const vector <size_t> &udims,
 	const vector <size_t> &ncoeffs, const vector <size_t> &encoded_dims,
 	const vector <Compressor *> &compressors,  
-	float *data, bool *mask, float *block, float *coeffs,
+	void *data, int itype, bool *mask, float *block, float *coeffs,
 	unsigned char *maps, int level
  ) : _id(id), _et(et), _varname(varname), _ncdfcptrs(ncdfcptrs), 
 	_start(start), _count(count), _bs(bs), _udims(udims),
 	_ncoeffs(ncoeffs), _encoded_dims(encoded_dims),
-	_compressors(compressors), _data(data), _mask(mask),
+	_compressors(compressors), _data(data), _itype(itype), _mask(mask),
 	_block(block), _coeffs(coeffs), _maps(maps), _level(level)
  {_status = 0;}
 
@@ -468,15 +469,16 @@ vector <size_t> vdiff(vector <size_t> a, vector <size_t> b) {
 // bs : dimensions of block. 
 // min, max : range of data values within block
 //
+template <class T>
 void Block(
-	const float *data,
+	const T *data,
 	const bool *mask,
 	vector <size_t> dims, 
 	vector <size_t> start,
 	float *block,
 	vector <size_t> bs, 
 	string mode, 
-	float &min, float &max
+	double &min, double &max
 ) {
 	min = 0.0;
 	max = 0.0;
@@ -550,7 +552,7 @@ void Block(
 		for (size_t x = 0; x<xstop; x++) {
 			size_t index = nx*ny*z + nx*y + x;
 			if (! mask[index]) continue;
-			float v = data[index];
+			double v = data[index];
 
 			if (n == 0) {
 				min = max = v;
@@ -572,7 +574,7 @@ void Block(
 	for (size_t y = 0; y<ystop; y++) {
 	for (size_t x = 0; x<xstop; x++) {
 		size_t index = nx*ny*z + nx*y + x;
-		float v;
+		double v;
 
 		if (mask && ! mask[index]) {
 			v = ave;
@@ -635,10 +637,11 @@ void Block(
 // dims : dimensions of array
 // start: starting coordinates of block within array
 //
+template <class T>
 void UnBlock(
 	const float *block,
 	vector <size_t> bs, 
-	float *data, 
+	T *data, 
 	vector <size_t> dims, 
 	vector <size_t> origin, 
 	vector <size_t> start
@@ -714,7 +717,8 @@ void UnBlock(
 	for (size_t y = ystart, yy=0; y<ystop; y++,yy++) {
 	for (size_t x = xstart, xx=0; x<xstop; x++,xx++) {
 
-		data[nx*ny*(z0+zz) + nx*(y0+yy) + (x0+xx)] = block[z*nbx*nby + y*nbx + x];
+		data[nx*ny*(z0+zz) + nx*(y0+yy) + (x0+xx)] = 
+			(T) block[z*nbx*nby + y*nbx + x];
 	}
 	}
 	}
@@ -1025,7 +1029,7 @@ int FetchBlockCompressed(
 			// variable to improve IO performance
 			//
 			int rc = ncdfcptrs[i]->NetCDFCpp::GetVara(
-				varname, start, count, maps
+				varname, start, count, (void *) maps
 			);
 			if (rc<0) return(rc);
 
@@ -1042,9 +1046,10 @@ int FetchBlockCompressed(
 	return(0);
 }
 
-void *RunWriteThread(void *arg) 
+
+template <class T>
+void *RunWriteThreadTemplate(thread_state &s, T *data) 
 {
-	thread_state &s = *(thread_state *) arg;
 
 	vectorinc vec(s._start, s._count, s._udims, s._bs);
 
@@ -1068,11 +1073,11 @@ void *RunWriteThread(void *arg)
 
 		//
 		// Extract the block with coordinates 'start' from the 
-		// array, 's._data'. 
+		// array, 'data'. 
 		//
-		float min, max;
+		double min, max;
 		Block(
-			s._data, NULL, s._count, roi_start, s._block, 
+			data, NULL, s._count, roi_start, s._block, 
 			s._bs, "symh", min, max
 		);
 
@@ -1101,10 +1106,24 @@ void *RunWriteThread(void *arg)
 	return(0);
 }
 
+void *RunWriteThread(void *arg) {
+	thread_state &s = *(thread_state *) arg;
+
+	switch(s._itype) {
+	case NC_FLOAT:
+		return(RunWriteThreadTemplate(s, (float *) s._data));
+	default:
+		assert(0);
+		return(NULL);
+	}
+}
+
 // Thread execution help function for data writes
 //
-void *RunWriteThreadCompressed(void *arg) {
-	thread_state &s = *(thread_state *) arg;
+	
+
+template <class T>
+void *RunWriteThreadCompressedTemplate(thread_state &s, T *data) {
 
 	vectorinc vec(s._start, s._count, s._udims, s._bs);
 
@@ -1128,11 +1147,11 @@ void *RunWriteThreadCompressed(void *arg) {
 
 		//
 		// Extract the block with coordinates 'start' from the 
-		// array, 's._data'. 
+		// array, 'data'. 
 		//
-		float min, max;
+		double min, max;
 		Block(
-			s._data, s._mask, s._count, roi_start, s._block, s._bs, 
+			data, s._mask, s._count, roi_start, s._block, s._bs, 
 			s._compressors[s._id]->dwtmode(), min, max
 		);
 
@@ -1173,10 +1192,22 @@ void *RunWriteThreadCompressed(void *arg) {
 	return(0);
 }
 
+void *RunWriteThreadCompressed(void *arg) {
+	thread_state &s = *(thread_state *) arg;
+
+	switch(s._itype) {
+	case NC_FLOAT:
+		return(RunWriteThreadCompressedTemplate(s, (float *) s._data));
+	default:
+		assert(0);
+		return(NULL);
+	}
+}
+
 // Thread execution helper function for data writes
 //
-void *RunReadThread(void *arg) {
-	thread_state &s = *(thread_state *) arg;
+template <class T>
+void *RunReadThreadTemplate(thread_state &s, T *data) {
 
 	bool unblock = s._block != NULL;	// Need to unblock data?
 
@@ -1209,14 +1240,7 @@ void *RunReadThread(void *arg) {
 		vector <size_t> roi_start = vector_sub(start, aligned_start);
 		vector <size_t> roi_origin = vector_sub(s._start, aligned_start);
 
-		// If we don't need to unblock we reconstruct the coefficients
-		// into the data buffer directly. Otherwise we have to reconstruct
-		// in temporary storage and then unblock
-		//
 		float *blockptr = s._block;
-		if (! unblock) {
-			blockptr = s._data + ((size_t) i * vproduct(s._bs));
-		}
 
 		// Read wavelet coefficients from disk. Need a mutex because
 		// NetCDF API is not thread safe
@@ -1234,17 +1258,39 @@ void *RunReadThread(void *arg) {
 		if (unblock) {
 			// Unblock the current block into the destination array
 			//
-			UnBlock(blockptr, s._bs, s._data, s._count, roi_origin, roi_start);
+			UnBlock(blockptr, s._bs, data, s._count, roi_origin, roi_start);
+		}
+		else {
+			// Don't unblock. Just copy
+			//
+			size_t offset = (size_t) i * vproduct(s._bs);
+			for (size_t j=0; j<vproduct(s._bs); j++) {
+				data[offset + j] = blockptr[j];
+			}
 		}
 
 	}
 	return(NULL);
 }
 
+void *RunReadThread(void *arg) {
+	thread_state &s = *(thread_state *) arg;
+
+	switch(s._itype) {
+	case NC_FLOAT:
+		return(RunReadThreadTemplate(s, (float *) s._data));
+	default:
+		assert(0);
+		return(NULL);
+	}
+}
+
 // Thread execution helper function for data writes
 //
-void *RunReadThreadCompressed(void *arg) {
-	thread_state &s = *(thread_state *) arg;
+
+
+template <class T>
+void *RunReadThreadCompressedTemplate(thread_state &s, T *data) {
 
 	bool unblock = s._block != NULL;	// Need to unblock data?
 
@@ -1289,14 +1335,7 @@ void *RunReadThreadCompressed(void *arg) {
 		vector <size_t> roi_start = vector_sub(start, aligned_start);
 		vector <size_t> roi_origin = vector_sub(s._start, aligned_start);
 
-		// If we don't need to unblock we reconstruct the coefficients
-		// into the data buffer directly. Otherwise we have to reconstruct
-		// in temporary storage and then unblock
-		//
 		float *blockptr = s._block;
-		if (! unblock) {
-			blockptr = s._data + linearize(roi_start, aligned_count);
-		}
 
 		// Transform from wavelet to physical space
 		//
@@ -1313,11 +1352,31 @@ void *RunReadThreadCompressed(void *arg) {
 		if (unblock) {
 			// Unblock the current block into the destination array
 			//
-			UnBlock(blockptr, s._bs, s._data, s._count, roi_origin, roi_start);
+			UnBlock(blockptr, s._bs, data, s._count, roi_origin, roi_start);
+		}
+		else {
+			// Don't unblock. Just copy.
+			//
+			size_t offset = linearize(roi_start, aligned_count);
+			for (size_t j=0; j<vproduct(s._bs); j++) {
+				data[offset + j] = blockptr[j];
+			}
 		}
 
 	}
 	return(NULL);
+}
+
+void *RunReadThreadCompressed(void *arg) {
+	thread_state &s = *(thread_state *) arg;
+
+	switch(s._itype) {
+	case NC_FLOAT:
+		return(RunReadThreadCompressedTemplate(s, (float *) s._data));
+	default:
+		assert(0);
+		return(NULL);
+	}
 }
 
 };
@@ -1553,7 +1612,15 @@ int WASP::DefVar(
 		return(NetCDFCpp::DefVar(name, xtype, dimnames));
 	}
 
-	if (! (xtype == NC_FLOAT || xtype == NC_DOUBLE)) {
+	// Wavelet coefficients together with the signficance map
+	// are encoded together and ultimately written with the generic
+	// nc_put_var(), which assumes that the data type passed to nc_put_var()
+	// matches that of the external storage type. 
+	// Supporting external storage types besides NC_FLOAT will
+	// require changes to the packaging of the wavelet coefficients. 
+	//
+//	if (! (xtype == NC_FLOAT || xtype == NC_DOUBLE)) {
+	if (! (xtype == NC_FLOAT)) {
 		SetErrMsg("Unsupported xtype specification");
 		return(-1);
 	}
@@ -2249,16 +2316,12 @@ bool WASP::_validate_get_vara_compressed(
 	return(true);
 }
 	
-int WASP::PutVara(
-    vector <size_t> start, vector <size_t> count, const float *data
-) {
-	return(WASP::PutVara(start, count, data, NULL));
-}
 
 
-int WASP::PutVara(
-    vector <size_t> start, vector <size_t> count, const float *data,
-	const bool *mask
+template <class T>
+int WASP::_PutVara(
+    vector <size_t> start, vector <size_t> count, const T *data,
+	const bool *mask, int itype
 ) {
 	if (! _waspFile) {
 		SetErrMsg("Not a WASP file");
@@ -2331,8 +2394,8 @@ int WASP::PutVara(
 
 		argvec.push_back((void *) new thread_state(
 			i, _et, _open_varname, _ncdfcptrs, start, count, _open_bs, 
-			_open_udims, ncoeffs,
-			encoded_dims, _open_compressors, (float *) data, (bool *) mask,
+			_open_udims, ncoeffs, encoded_dims, _open_compressors, 
+			(void *) data, itype, (bool *) mask,
 			block + i*block_size, coeffs + i*coeffs_size, 
 			maps + i*maps_size*sizeof(float), 0
 		));
@@ -2366,16 +2429,58 @@ int WASP::PutVara(
 
 }
 
+int WASP::PutVara(
+    vector <size_t> start, vector <size_t> count, const float *data,
+	const bool *mask
+) {
+	return(WASP::_PutVara(start, count, data, mask, NC_FLOAT));
+}
+
+int WASP::PutVara(
+    vector <size_t> start, vector <size_t> count, const float *data
+) {
+	return(WASP::PutVara(start, count, data, NULL));
+}
+
 int WASP::PutVar(const float *data) {
 	return(WASP::PutVar(data, NULL));
 }
 
 int WASP::PutVar(const float *data, const bool *mask) {
 
-	if (! _waspFile) {
-		SetErrMsg("Not a WASP file");
-		return(-1);
+	if (! _open || ! _open_write) {
+		SetErrMsg("Invalid state");
+        return(-1);
 	}
+
+	if (! _open_waspvar) {
+		return(NetCDFCpp::PutVar(_open_varname, data));
+	}
+
+	vector <size_t> count = _open_udims; 
+    vector <size_t> start(count.size(), 0); 
+
+	return(WASP::PutVara(start, count, data, mask));
+}
+
+int WASP::PutVara(
+    vector <size_t> start, vector <size_t> count, const unsigned char *data,
+	const bool *mask
+) {
+	return(WASP::_PutVara(start, count, data, mask, NC_UBYTE));
+}
+
+int WASP::PutVara(
+    vector <size_t> start, vector <size_t> count, const unsigned char *data
+) {
+	return(WASP::PutVara(start, count, data, NULL));
+}
+
+int WASP::PutVar(const unsigned char *data) {
+	return(WASP::PutVar(data, NULL));
+}
+
+int WASP::PutVar(const unsigned char *data, const bool *mask) {
 
 	if (! _open || ! _open_write) {
 		SetErrMsg("Invalid state");
@@ -2393,9 +2498,17 @@ int WASP::PutVar(const float *data, const bool *mask) {
 }
 
 
+template <class T>
 int WASP::_GetVara(
-    vector <size_t> start, vector <size_t> count, bool unblock, float *data
+    vector <size_t> start, vector <size_t> count, bool unblock, T *data,
+	int itype
 ) {
+
+	if (! _waspFile) {
+		SetErrMsg("Not a WASP file");
+		return(-1);
+	}
+
 	if (! _open || _open_write) {
 		SetErrMsg("Invalid state");
         return(-1);
@@ -2478,7 +2591,7 @@ int WASP::_GetVara(
 		argvec.push_back((void *) new thread_state(
 			i, _et, _open_varname, _ncdfcptrs, start, count, bs_at_level, 
 			dims_at_level, ncoeffs,
-			encoded_dims, _open_compressors, data, NULL,
+			encoded_dims, _open_compressors, data, itype, NULL,
 			blkptr, coeffs + i*coeffs_size, 
 			maps + i*maps_size*sizeof(float), _open_level
 		));
@@ -2515,32 +2628,48 @@ int WASP::GetVara(
     vector <size_t> start, vector <size_t> count, 
 	float *data
 ) {
-	if (! _waspFile) {
-		SetErrMsg("Not a WASP file");
-		return(-1);
-	}
-
-	return(WASP::_GetVara(start, count, true, data));
+	return(WASP::_GetVara(start, count, true, data, NC_FLOAT));
 }
 
 int WASP::GetVaraBlock(
     vector <size_t> start, vector <size_t> count, 
 	float *data
 ) {
-	if (! _waspFile) {
-		SetErrMsg("Not a WASP file");
-		return(-1);
-	}
-
-	return(WASP::_GetVara(start, count, false, data));
+	return(WASP::_GetVara(start, count, false, data, NC_FLOAT));
 }
 
 int WASP::GetVar(float *data) {
 
-	if (! _waspFile) {
-		SetErrMsg("Not a WASP file");
-		return(-1);
+	if (! _open || ! _open_write) {
+		SetErrMsg("Invalid state");
+        return(-1);
 	}
+
+	if (! _open_waspvar) {
+		return(NetCDFCpp::GetVar(_open_varname, data));
+	}
+
+	vector <size_t> count = _open_udims; 
+    vector <size_t> start(count.size(), 0); 
+
+	return(WASP::GetVara(start, count, data));
+}
+
+int WASP::GetVara(
+    vector <size_t> start, vector <size_t> count, 
+	unsigned char *data
+) {
+	return(WASP::_GetVara(start, count, true, data, NC_UBYTE));
+}
+
+int WASP::GetVaraBlock(
+    vector <size_t> start, vector <size_t> count, 
+	unsigned char *data
+) {
+	return(WASP::_GetVara(start, count, false, data, NC_UBYTE));
+}
+
+int WASP::GetVar(unsigned char *data) {
 
 	if (! _open || ! _open_write) {
 		SetErrMsg("Invalid state");
