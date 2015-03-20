@@ -48,7 +48,6 @@ void GLIsolineWindow::mousePressEvent( QMouseEvent * e){
 	coords.push_back((double)x);
 	coords.push_back((double)y);
 	isolineFrame->getParams()->SetCursorCoords(coords);
-	
 	update();
 	
 }
@@ -95,6 +94,8 @@ GLIsolineWindow::GLIsolineWindow( QGLFormat& fmt, QWidget* parent, const char* ,
 	rectTop = 1.f;
 	isolineFrame = pf;
 	
+	_winWidth = 380;
+	_winHeight = 200;
 	setAutoBufferSwap(true);
 	
 }
@@ -123,7 +124,7 @@ void GLIsolineWindow::resizeGL( int width, int height )
 	_winHeight = height;
 	
 	_resizeGL();
-	
+	printOpenGLErrorMsg("GLIsoWindowResizeEvent end");
 }
 
 void GLIsolineWindow::_resizeGL() {
