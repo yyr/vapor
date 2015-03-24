@@ -45,7 +45,7 @@ RenderHolder::RenderHolder(QWidget* parent) : QWidget(parent), Ui_RenderSelector
 	
 	tableWidget->setColumnCount(3);
 	QStringList headerText;
-	headerText << "   Name   " << "   Type   " << "Enabled";
+	headerText << "    Name    " << "  Type  " << "Enabled";
 	tableWidget->setHorizontalHeaderLabels(headerText);
 	tableWidget->verticalHeader()->hide();
 	tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -302,6 +302,7 @@ void RenderHolder::copyInstanceTo(int comboNum){
 		renParams[fromViz].push_back(newP);					
 		newP->SetEnabled(false);
 		tableWidget->selectRow(rowCount);
+		ControlExec::SetCurrentParamsInstance(fromViz,tag, instance);
 		signalsOn = true;
 		er->updateTab();
 		return;
@@ -316,6 +317,7 @@ void RenderHolder::copyInstanceTo(int comboNum){
 	RenderParams* newP = (RenderParams*)Params::GetParamsInstance(tag,vizNum,instance);		
 	renParams[vizNum].push_back(newP);					
 	newP->SetEnabled(false);
+	ControlExec::SetCurrentParamsInstance(vizNum,tag, instance);
 	signalsOn = true;
 	return;
 }
