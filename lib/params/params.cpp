@@ -139,8 +139,17 @@ void Params::RemoveParamsInstance(int pType, int winnum, int instance){
 	instVec.erase(instVec.begin()+instance);
 	if (currInst >= (int) instVec.size()) currentParamsInstance[make_pair(pType,winnum)]--;
 	delete p;
-	if (instVec.size() == 0) 
+	if (instVec.size() == 0) {
 		paramsInstances.erase(it);
+		//Also remove the current instance index:
+		map<pair<int,int>,int >::iterator it2 = currentParamsInstance.find(make_pair(pType,winnum));
+		if (it2 == currentParamsInstance.end()){
+			assert(0);
+			return;
+		}
+		currentParamsInstance.erase(it2);
+	}
+
 }
 map <int, vector<Params*> >* Params::cloneAllParamsInstances(int winnum){
 	map<int, vector<Params*> >* winParamsMap = new map<int, vector<Params*> >;

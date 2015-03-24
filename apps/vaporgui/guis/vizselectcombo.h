@@ -33,6 +33,9 @@ class VizSelectCombo : public QComboBox{
 public:
 	VizSelectCombo(MainForm* parent, QToolBar* tBar, VizWinMgr* mgr);
 	void makeConsistent(int activeVizNum);
+	int getNumWindows() {return winNums.size()-1;}
+	QString getWinName(int i){ return itemText(i);}
+	int getWinNum(int i) {return winNums[i];}
 	// Remove a window from the combobox
 public slots:
 	void removeWindow(int windowNum);

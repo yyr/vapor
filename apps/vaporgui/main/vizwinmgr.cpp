@@ -62,7 +62,7 @@
 #include "tabmanager.h"
 #include "params.h"
 #include "renderer.h"
-
+#include "renderholder.h"
 #include "vapor/ExtensionClasses.h"
 
 #include "animationparams.h"
@@ -261,6 +261,8 @@ launchVisualizer()
 	if (numWins > 1){
 		emit enableMultiViz(true);
 	}
+	//Initially, don't show any renderers
+	getTabManager()->hideRenderWidgets();
 	Command::CaptureEnd(cmd,ControlExec::GetCurrentParams(-1,VizWinParams::_vizWinParamsTag));
 	return useWindowNum;
 }
@@ -430,6 +432,7 @@ killViz(int viznum){
 	//MainForm::getInstance()->getWindowSelector()->removeWindow(viznum);
 	MainForm::getInstance()->getMDIArea()->removeSubWindow(VizMdiWin[viznum]);
 	VizWindow[viznum]->close();
+	RenderHolder::deleteViznum(viznum);
 }
 
 

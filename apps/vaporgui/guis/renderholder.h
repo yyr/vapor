@@ -29,15 +29,20 @@ public:
 	RenderHolder(QWidget* parent);
     
 	virtual ~RenderHolder() {}
+	static RenderHolder* getInstance(){
+		if (!theRenderHolder) theRenderHolder = new RenderHolder(0);
+		return theRenderHolder;
+	}
 	//Add a widget (EventRouter) to the QStackedWidget.  Return its index in the stackedWidget
-	int addWidget(QWidget*, const char* name, string tag);
+	static int addWidget(QWidget*, const char* name, string tag);
 	
 	//Change current visualizer
 	void changeViznum(int);
-	void deleteViznum(int);
-	void addViznum(int);
+	//Delete a visualizer
+	static void deleteViznum(int);
+	static void rebuildCombo();
 	
-	void setCurrentIndex(int indx){
+	static void setCurrentIndex(int indx){
 		stackedWidget->setCurrentIndex(indx);
 	}
 
@@ -55,22 +60,25 @@ private:
 	//The following are mapped from visualizer index to TableWidget information
 	//instanceIndex is the instance index of the particular renderer.
 	//Not visible to user but required for params identification.
-	std::map<int,std::vector<int> > instanceIndex;
+	static std::map<int,std::vector<int> > instanceIndex;
 	//Currentrow indicates which row is selected in the tableWidget for the particular visualizer.
 	//Need to know in case the active visualizer changes
-	std::map<int, int> currentRow;
+	static std::map<int, int> currentRow;
 	//instanceName is the name the user provides for the instance.  It need not be unique.
-	std::map<int, std::vector<string> > instanceName;
+	static std::map<int, std::vector<string> > instanceName;
 	//renParams is the RenderParams* for the tableWidget entry
-	std::map<int, std::vector<RenderParams*> > renParams;
+	static std::map<int, std::vector<RenderParams*> > renParams;
+	static RenderHolder* theRenderHolder;
+	//remember the visualizer indices in the dupCombo
+	static vector<int> vizDupNums;
 
 	//Boolean indicates whether will respond to signals
 	bool signalsOn;
 
 	//Convert name to a unique name (among renderer names)
-	std::string uniqueName(std::string name);
+	static std::string uniqueName(std::string name);
 
-	QStackedWidget* stackedWidget;
+	static QStackedWidget* stackedWidget;
    };
 
 };

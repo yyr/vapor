@@ -22,6 +22,8 @@
 #include <qcombobox.h>
 #include <QStringList>
 #include <QTableWidget>
+#include "mainform.h"
+#include "vizselectcombo.h"
 #include <qpushbutton.h>
 #include "vapor/ControlExecutive.h"
 #include "qdialog.h"
@@ -29,6 +31,13 @@
 #include <sstream>
 #include "assert.h"
 using namespace VAPoR;
+std::map<int,std::vector<int> > RenderHolder::instanceIndex;
+std::map<int, int> RenderHolder::currentRow;
+std::map<int, std::vector<string> > RenderHolder::instanceName;
+std::map<int, std::vector<RenderParams*> > RenderHolder::renParams;
+QStackedWidget* RenderHolder::stackedWidget = 0;
+RenderHolder* RenderHolder::theRenderHolder = 0;
+std::vector<int> RenderHolder::vizDupNums;
 
 RenderHolder::RenderHolder(QWidget* parent) : QWidget(parent), Ui_RenderSelector(){
 	setupUi(this);
@@ -63,6 +72,9 @@ RenderHolder::RenderHolder(QWidget* parent) : QWidget(parent), Ui_RenderSelector
 	}
 	
 	signalsOn = true;
+	theRenderHolder = this;
+	vizDupNums.clear();
+	vizDupNums.push_back(0);
 }
 int RenderHolder::addWidget(QWidget* wid, const char* name, string tag){
 	//int viznum = VizWinMgr::getInstance()->getActiveViz();
@@ -81,6 +93,7 @@ newRenderer(){
 	//Launch a dialog to select a renderer type, visualizer, name
 	//Then insert a horizontal line with text and checkbox.
 	//The new line becomes selected.
+	
 	QDialog nDialog(this);
 	Ui_NewRendererDialog rDialog;
 	rDialog.setupUi(&nDialog);
@@ -143,6 +156,8 @@ deleteRenderer(){
 	if (!signalsOn) return;
 	//Delete the currently selected renderer.
 	int winnum = VizWinMgr::getInstance()->getActiveViz();
+	//Check if there is anything to delete:
+	if (tableWidget->rowCount() == 0) return;
 	int row = currentRow[winnum];
 	RenderParams *rp = renParams[winnum][row];
 	string type = rp->GetTagFromType(rp->GetParamsBaseTypeId());
@@ -185,6 +200,7 @@ deleteRenderer(){
 //Respond to check/uncheck enabled checkbox
 void RenderHolder::
 changeChecked(int row, int col){
+
 	if (!signalsOn) return;
 	if ( col != 2) return;
 	//Determine if it was checked or unchecked
@@ -207,6 +223,7 @@ changeChecked(int row, int col){
 }
 void RenderHolder::
 selectInstance(){
+	
 	if (!signalsOn) return;
 	QList<QTableWidgetItem*> selectList = tableWidget->selectedItems();
 	if (selectList.count() < 1) return;
@@ -223,6 +240,7 @@ selectInstance(){
 }
 void RenderHolder::
 itemTextChange(QTableWidgetItem* item){
+	
 	if (! signalsOn) return;
 	
 	int row = item->row();
@@ -242,9 +260,10 @@ itemTextChange(QTableWidgetItem* item){
 	signalsOn = true;
 }
 
-void RenderHolder::copyInstanceTo(int toViz){
-	if (toViz == 0) return; 
-	dupCombo->setCurrentIndex(0);
+void RenderHolder::copyInstanceTo(int comboNum){
+	dupCombo->setCurrentIndex(0);  //reset for next click on combo..
+	if (comboNum == 0) return;  //"duplicate-in" entry
+	if (tableWidget->rowCount() == 0) return; //Nothing to copy.
 	if (!signalsOn) return;
 	signalsOn = false;
 	int fromViz = VizWinMgr::getInstance()->getActiveViz();
@@ -252,8 +271,8 @@ void RenderHolder::copyInstanceTo(int toViz){
 	RenderParams* rP = renParams[fromViz][row];
 	string tag = rP->GetName();
 	EventRouter* er = VizWinMgr::getEventRouter(tag);
-	if (toViz == 1) {
-		//another instance in the same viz:
+	if (comboNum == 1) {
+		//another instance in the same viz, need to adjoin it to tableWidget:
 		RenderParams* newP = (RenderParams*)rP->deepCopy();
 		ControlExec::AddParams(fromViz,tag,newP);
 		newP->SetVizNum(fromViz);
@@ -287,9 +306,17 @@ void RenderHolder::copyInstanceTo(int toViz){
 		er->updateTab();
 		return;
 	}
-	assert(0);  //no copy to other viz...
-	int viznum = toViz - 1;
-	er->performGuiCopyInstanceToViz(viznum);
+	//Otherwise copy to another viz..
+	int vizNum = vizDupNums[comboNum-2];
+	er->performGuiCopyInstanceToViz(vizNum);
+	instanceName[vizNum].push_back(uniqueName(instanceName[fromViz][row] + "_Copy"));
+	currentRow[vizNum] = instanceName[vizNum].size()-1;
+	int instance = Params::GetNumParamsInstances(tag,vizNum)-1;
+	instanceIndex[vizNum].push_back(instance);
+	RenderParams* newP = (RenderParams*)Params::GetParamsInstance(tag,vizNum,instance);		
+	renParams[vizNum].push_back(newP);					
+	newP->SetEnabled(false);
+	signalsOn = true;
 	return;
 }
 std::string RenderHolder::uniqueName(std::string name){
@@ -328,6 +355,76 @@ std::string RenderHolder::uniqueName(std::string name){
 		if (!match) break;
 	}
 	return newname;
+}
+void RenderHolder::changeViznum(int activeViz){
+	//Rebuild the table widget:
+	//QTableWidget* tWidget = getInstance()->tableWidget;
+	signalsOn = false;
+	
+	tableWidget->clearContents();
+
+	//Add one row in tableWidget for each RenderParams that is associated with activeViz:
+	map<int,vector<int> >::iterator it = instanceIndex.find(activeViz);
+	int numRows = 0;
+	if (it != instanceIndex.end()) numRows = instanceIndex[activeViz].size();
+	tableWidget->setRowCount(numRows);
+	for (int row = 0; row < numRows; row++){
+		
+		std::string name = instanceName[activeViz][row];
+		RenderParams* rP = renParams[activeViz][row];
+		QString qName = QString(name.c_str());
+		
+		QTableWidgetItem *item0 = new QTableWidgetItem(qName);
+		item0->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
+		string tag = rP->GetName();
+		QTableWidgetItem *item1 = new QTableWidgetItem(QString::fromStdString(ControlExec::GetShortName(tag)));
+		item1->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+		QTableWidgetItem *item2 = new QTableWidgetItem("      ");
+		if (rP->IsEnabled())
+			item2->setCheckState(Qt::Checked);
+		else 
+			item2->setCheckState(Qt::Unchecked);
+		tableWidget->setItem(row, 0, item0);
+		tableWidget->setItem(row, 1, item1);
+		tableWidget->setItem(row, 2, item2);
+
+	}
+	if (numRows > 0){
+		int selectedRow = currentRow[activeViz];
+		tableWidget->selectRow(selectedRow);
+	}
+	else tableWidget->selectRow(-1);
+	
+	signalsOn = true;
+	rebuildCombo();
+
+}
+void RenderHolder::deleteViznum(int viz){
+	instanceIndex.erase(viz);
+	currentRow.erase(viz);
+	instanceName.erase(viz);
+	renParams.erase(viz);
+	rebuildCombo();
+}
+
+void RenderHolder::rebuildCombo(){
+	VizSelectCombo* vCombo = MainForm::getInstance()->getWindowSelector();
+	int activeViz = VizWinMgr::getInstance()->getActiveViz();
+	RenderHolder* rh = getInstance();
+	QComboBox* dCombo = rh->dupCombo;
+	//Delete everything except the first two entries:
+	for (int i = dCombo->count()-1; i>1; i--){
+		dCombo->removeItem(i);
+	}
+	vizDupNums.clear();
+	//Insert every visualizer that is not activeViz
+	for (int i = 0; i < vCombo->getNumWindows(); i++){
+		if (vCombo->getWinNum(i) == activeViz) 
+			continue;
+		dCombo->addItem(vCombo->getWinName(i));
+		vizDupNums.push_back(vCombo->getWinNum(i));
+	}
+
 }
 
 

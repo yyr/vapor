@@ -187,7 +187,8 @@ newTopTab(int newFrontPosn) {
 	
 	
 	EventRouter* eRouter = VizWinMgr::getEventRouter(t);
-	eRouter->updateTab();
+	QWidget *wid = dynamic_cast<QWidget*>(eRouter);
+	if(wid && wid->isVisible())eRouter->updateTab();
 	
 	//Put into history!
 	

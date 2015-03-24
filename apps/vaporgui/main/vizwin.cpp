@@ -144,13 +144,17 @@ mousePressEvent(QMouseEvent* e){
 		
 		string tag = ControlExec::GetTagFromType(t);
 		Params* rParams = ControlExec::GetCurrentParams(myWindowNum, tag);
-		TranslateStretchManip* manip = myVisualizer->getManip(tag);
-		manip->setParams(rParams);
-		int manipType = MouseModeParams::getModeManipType(mode);
-		if(manipType != 3) rParams->GetBox()->GetStretchedLocalExtents(boxExtents, timestep); //non-rotated manip
-		else rParams->GetBox()->calcContainingStretchedBoxExtents(boxExtents,true);//rotated
-		int handleNum = manip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
-
+		int handleNum = -1;
+		int manipType;
+		TranslateStretchManip* manip = 0;
+		if (rParams){
+			manip = myVisualizer->getManip(tag);
+			manip->setParams(rParams);
+			manipType = MouseModeParams::getModeManipType(mode);
+			if(manipType != 3) rParams->GetBox()->GetStretchedLocalExtents(boxExtents, timestep); //non-rotated manip
+			else rParams->GetBox()->calcContainingStretchedBoxExtents(boxExtents,true);//rotated
+			handleNum = manip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
+		}
 		if (handleNum >= 0 && myVisualizer->startHandleSlide(screenCoords, handleNum,rParams)){
 			
 			//With manip type 2, need to prevent right mouse slide on orthogonal handle

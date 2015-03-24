@@ -22,7 +22,7 @@
 #include <qcombobox.h>
 #include <QToolBar>
 #include <qtooltip.h>
-
+#include "renderholder.h"
 #include "mainform.h"
 #include "assert.h"
 using namespace VAPoR;
@@ -106,7 +106,7 @@ removeWindow(int windowNum){
 			assert(k < count()-1);
 		}
 	}
-	
+	RenderHolder::deleteViznum(windowNum);
 	
 }
 /* 
@@ -128,6 +128,8 @@ setWindowActive(int win){
 		setCurrentIndex(i);
 		currentActive = i;
 	}
+	//Make the renderHolder show either the active renderer or none.
+	RenderHolder::getInstance()->changeViznum(win);
 }
 
 	
