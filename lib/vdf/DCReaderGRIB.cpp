@@ -127,21 +127,30 @@ int DCReaderGRIB::OpenVariableRead(size_t timestep, string varname,
 		_sliceNum = _pressureLevels.size()-1;
 		level = targetVar->GetLevel(_sliceNum);
 		filename = targetVar->GetFileName(usertime,level);
+		_inFile = fopen(filename.c_str(),"rb");
+		if(!_inFile) {
+			MyBase::SetErrMsg("ERROR: unable to open file %s",filename.c_str());
+			return -1; 
+		}
 	}
 	else if (_vars2d.find(varname) != _vars2d.end()) {  // we have a 2d var
 		targetVar = _vars2d[_openVar];
 		level = targetVar->GetLevel(0);
 		filename = targetVar->GetFileName(usertime,level);
 		_sliceNum = 0;
+		_inFile = fopen(filename.c_str(),"rb");
+		if(!_inFile) {
+			MyBase::SetErrMsg("ERROR: unable to open file %s",filename.c_str());
+			return -1; 
+		}
 	}
-	else return -1; 		// variable does not exist
-	
-	_inFile = fopen(filename.c_str(),"rb");
-	if(!_inFile) {
-		MyBase::SetErrMsg("ERROR: unable to open file %s",filename.c_str());
-		return -1; 
+	//else if (varname == "ELEVATION") {					// Elevation has been requested for the dataset
+	//	HyrdostaticEquation();							// but does not exist as a variable.  Therefore
+	//}													// it must be derived via the hydrostatic eq.
+	else {
+		MyBase::SetErrMsg("ERROR: Variable does not exist");
+		return -1;
 	}
-
 	return 0;
 }
 
@@ -156,14 +165,17 @@ int DCReaderGRIB::Read(float *_values) {
 
 int DCReaderGRIB::ReadSlice(float *values){
 	if (_sliceNum < 0) return 0;
-	int savedSliceNum;
+
 	Variable *targetVar;
 	if (_vars3d.find(_openVar) != _vars3d.end()) {	   // we have a 3d var
 		targetVar = _vars3d[_openVar];
 	}
+	else if (_openVar == "ELEVATION") {
+		HydrostaticPressureEqn(values);
+		return 0;
+	}
 	else if (_vars2d.find(_openVar) != _vars2d.end()) {  // we have a 2d var
 		targetVar = _vars2d[_openVar];
-		savedSliceNum = _sliceNum;
 		_sliceNum = 0;
 	}
 	else {
@@ -251,6 +263,103 @@ int DCReaderGRIB::ReadSlice(float *values){
 	return 1;
 }
 
+int HydrostaticPressureEqn(float *values) {
+	int currentSlice = _sliceNum;
+	float A, B, C, D;
+	if (_sliceNum == 0) B = 0;
+    
+	// arrays suffixed with a = data on current level
+    // arrays suffect with b = data on level beneath current
+	float Ta[_Ni*_Nj],
+		 Tb[_Ni*_Nj],
+		 Qa[_Ni*_Nj],
+		 Qb[_Ni*_Nj],
+		 Pa[_Ni*_Nj],
+		 Pb[_Ni*_Nj];
+
+	if (_vars3d.find("t") == _vars3d.end()) {
+		MyBase::SetErrMsg("ERROR: Cannot find temperature variable for vertical coordinate calculation.  Aborting.");
+		return -1;
+	}
+	if (_vars3d.find("q") == _vars3d.end()) {
+		MyBase::SetErrMsg("ERROR: Cannot find specific humidity variable for vertical coordinate calculation.  Aborting.");
+		return -1;
+	}
+	if (_vars3d.find("pres") == _vars3d.end()) {
+		MyBase::SetErrMsg("ERROR: Cannot find air pressure variable for vertical coordinate calculation.  Aborting.");
+		return -1;
+	}
+	if (_vars3d.find("sp") == _vars3d.end()) {
+		MyBase::SetErrMsg("ERROR: Cannot find air pressure variable for vertical coordinate calculation.  Aborting.");
+		return -1;
+	}
+
+	// Open temperature variable and read current slice.  Then read slice beneath.
+	// If we are reading the slice closest to ground, ReadSlice(Tb) will return 0
+	// and we will just use the current slice twice
+	OpenVariableRead(_openTS,"t");
+	_sliceNum = currentSlice - 1;
+
+	// If ReadSlice returns 0 here, our current slice is at the lowest level and there is no slice below it.
+	// Therefore we fill our bottom-slices with 0's and just read our current slices
+	if (ReadSlice(Tb) == 0) {
+		//std::fill(std::begin(Tb), std::end(Tb), 0.00);
+		_sliceNum = currentSlice;
+		if (ReadSlice(Ta) == 0) {
+			MyBase::SetErrMsg("Error reading specific temperatures at timestep %i, slice %i",_openTS,_sliceNum);
+			return -1;
+		}
+		Tb = Ta;
+			
+		//std::fill(std::begin(Qb), std::end(Qb), 0.00);
+		OpenVariableRead(_openTS,"q");
+		_sliceNum = currentSlice;
+		if (ReadSlice(Qa) == 0) {
+			MyBase::SetErrMsg("Error reading specific temperatures at timestep %i, slice %i",_openTS,_sliceNum);
+			return -1;
+		}
+		Qb = Qa;
+		OpenVariableRead(_openTS,"sp");
+		ReadSlice(Pb);					// Pressure below (Pb) is sp, not p in this case
+	}
+	else {								// Read the rest of the slices as normal
+		// Temperature - Top Slice
+		OpenVariableRead(_openTS,"t");
+		_sliceNum = currentSlice;
+		if (ReadSlice(Ta) == 0) {
+			MyBase::SetErrMsg("Error reading specific temperatures at timestep %i, slice %i",_openTS,_sliceNum);
+			return -1;
+		}
+	
+		// Humidity - Bottom slice
+		OpenVariableRead(_openTS,"q");
+		_sliceNum = currentSlice-1;
+		if (ReadSlice(Qb) == 0) {
+			MyBase::SetErrMsg("Error reading specific humidity at timestep %i, slice %i",_openTS,_sliceNum);
+			return -1;
+		}	
+		// Humidity - Top slice
+		if (ReadSlice(Qa) == 0) {
+			MyBase::SetErrMsg("Error reading specific humidity at timestep %i, slice %i",_openTS,_sliceNum);
+			return -1;
+		}
+		
+		// Air Pressure - Bottom slice
+		OpenVariableRead(_openTS,"pres");
+		_sliceNum = currentSlice-1;
+		if (ReadSlice(Pb) == 0) {
+			MyBase::SetErrMsg("Error reading specific humidity at timestep %i, slice %i",_openTS,_sliceNum);
+			return -1;
+		}	
+		// Air Pressure - Top slice
+		if (ReadSlice(Pa) == 0) {
+			MyBase::SetErrMsg("Error reading specific humidity at timestep %i, slice %i",_openTS,_sliceNum);
+			return -1;
+		}
+	}
+	return 1;
+}
+
 void DCReaderGRIB::_LinearInterpolation(float *values) {
 	if (_iValues) delete [] _iValues;
 	_iValues = new float[_Ni*_Nj];
@@ -319,6 +428,10 @@ string DCReaderGRIB::GetMapProjection() const {
 	return(projstring);
 }
 
+double DCReaderGRIB::HyrdostaticEquation() {
+	float Tv, term1, term2, denom;
+
+}
 
 double DCReaderGRIB::BarometricFormula(const double pressure) const {
 	double Po = 101325;  // (kg/m3)	Mass density of air @ MSL
@@ -729,8 +842,6 @@ int DCReaderGRIB::_Initialize(const vector <string> files) {
 
 	if (_pressureLevels.size() == 0) {
 		_pressureLevels.push_back(1000);
-		//MyBase::SetErrCode("Cannot find any vertical pressure levels in the given data.");
-		//return -1;
 	}
 	sort(_pressureLevels.begin(), _pressureLevels.end());	// Sort the level that apply to the entire dataset
 	reverse(_pressureLevels.begin(), _pressureLevels.end());
