@@ -721,11 +721,13 @@ bool Compressor::CompressionInfo(
 			nlevels = mww.wmaxlev(dims[0]);
 			L = new size_t[nlevels+2];
 			mww.computeL(dims[0], nlevels, L);
+			mincoeff = L[0];
 		}
 		if (dims.size() == 2) {
 			nlevels = min(mww.wmaxlev(dims[0]), mww.wmaxlev(dims[1]));
 			L = new size_t[(6*nlevels)+4];
 			mww.computeL2(dims[0], dims[1], nlevels, L);
+			mincoeff = L[0]*L[1];
 		}
 		if (dims.size() == 3) {
 			nlevels = min(
@@ -734,6 +736,7 @@ bool Compressor::CompressionInfo(
 			);
 			L = new size_t[(21*nlevels)+6];
 			mww.computeL3(dims[0], dims[1], dims[2], nlevels, L);
+			mincoeff = L[0]*L[1]*L[2];
 		}
 		delete [] L;
 	}
