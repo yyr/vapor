@@ -62,6 +62,7 @@ ArrowEventRouter::ArrowEventRouter(QWidget* parent): QTabWidget(parent),  EventR
 	myLayout = new ArrowLayout(this);
 	addTab(myLayout,"Layout");
 	setMaximumWidth(440);
+	fidelityButtons = 0;
 }
 
 
@@ -78,7 +79,7 @@ ArrowEventRouter::hookUpTab()
 	
 	connect (myBasic->refinementCombo,SIGNAL(activated(int)), this, SLOT(setNumRefinements(int)));
 	connect (myBasic->lodCombo,SIGNAL(activated(int)), this, SLOT(setCompRatio(int)));
-	
+	connect (myBasic->fidelityDefaultButton, SIGNAL(clicked()), this, SLOT(guiSetFidelityDefault()));
 	//Unique connections for ArrowTab:
 	//Connect all line edits to textChanged and return pressed: 
 	connect (myAppearance->thicknessEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
@@ -411,6 +412,7 @@ void ArrowEventRouter::updateTab(){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	ArrowParams* arrowParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
 	if (!arrowParams) return;
+	Command::blockCapture();
 	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	//Find all the visualizers other than the one we are using
 	int winnum = vizMgr->getActiveViz();
@@ -432,11 +434,12 @@ void ArrowEventRouter::updateTab(){
 	}
 	
 	if (!DataStatus::getInstance()->getDataMgr()) return;
-	//Set up refinements and LOD combos:
-	int numRefs = arrowParams->GetRefinementLevel();
-	if(numRefs <= myBasic->refinementCombo->count())
-		myBasic->refinementCombo->setCurrentIndex(numRefs);
-	myBasic->lodCombo->setCurrentIndex(arrowParams->GetCompressionLevel());
+	if (ds->getDataMgr() && fidelityDefaultChanged){
+		setupFidelity(3, myBasic->fidelityLayout,myBasic->fidelityBox, arrowParams, false);
+		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
+		fidelityDefaultChanged = false;
+	}
+	if (ds->getDataMgr()) updateFidelity(myBasic->fidelityBox, arrowParams,myBasic->lodCombo,myBasic->refinementCombo);
 	
 	//Set the combo based on the current field variables
 	int comboIndex[3] = { 0,0,0};
@@ -487,6 +490,7 @@ void ArrowEventRouter::updateTab(){
 	//To get the rake extents in user coordinates, need to get the rake extents and add the user coord domain displacement
 	vector<double> usrRakeExts;
 	const vector<double>& rakeexts = arrowParams->GetRakeLocalExtents();
+	Command::unblockCapture();
 	//Now adjust for moving extents
 	if (!DataStatus::getInstance()->getDataMgr()) {
 		return;
@@ -499,7 +503,7 @@ void ArrowEventRouter::updateTab(){
 	}
 	myLayout->boxSliderFrame->setFullDomain(fullUsrExts);
 	myLayout->boxSliderFrame->setBoxExtents(usrRakeExts);
-	myLayout->boxSliderFrame->setNumRefinements(numRefs);
+	myLayout->boxSliderFrame->setNumRefinements(arrowParams->GetRefinementLevel());
 
 	
 
@@ -583,14 +587,18 @@ reinitTab(bool doOverride){
 			myBasic->lodCombo->addItem(s);
 		}
 	}
+	//Do not record changes in the dParams...
+	Command::blockCapture();
 	//Set up the variable combos with default 3D variables  
 	populateVariableCombos(true);
-	
-	
+	ArrowParams* aParams = (ArrowParams*)ControlExec::GetDefaultParams(ArrowParams::_arrowParamsTag);
+	setupFidelity(3, myBasic->fidelityLayout,myBasic->fidelityBox, aParams, doOverride);
+	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 	//set the combo to 3D
 	myBasic->variableDimCombo->setCurrentIndex(1);
 	string tag = ParamsBase::GetTagFromType(myParamsBaseType);
 	if(ControlExec::GetActiveParams(tag))updateTab();
+	Command::unblockCapture();
 }
 
 void ArrowEventRouter::
@@ -601,6 +609,11 @@ setCompRatio(int num){
 	if (num == dParams->GetCompressionLevel()) return;
 	
 	dParams->SetCompressionLevel(num);
+	dParams->SetIgnoreFidelity(true);
+	QPalette pal = QPalette(myBasic->fidelityBox->palette());
+	pal.setColor(QPalette::WindowText, Qt::gray);
+	myBasic->fidelityBox->setPalette(pal);
+
 	myBasic->lodCombo->setCurrentIndex(num);
 	
 	VizWinMgr::getInstance()->forceRender(dParams);
@@ -643,9 +656,15 @@ setNumRefinements(int num){
 	//make sure we are changing it
 	ArrowParams* dParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
 	if (num == dParams->GetRefinementLevel()) return;
-
-	dParams->SetRefinementLevel(num);
+	
 	myBasic->refinementCombo->setCurrentIndex(num);
+
+	dParams->SetIgnoreFidelity(true);
+	QPalette pal = QPalette(myBasic->fidelityBox->palette());
+	pal.setColor(QPalette::WindowText, Qt::gray);
+	myBasic->fidelityBox->setPalette(pal);
+	dParams->SetRefinementLevel(num);
+
 	myLayout->boxSliderFrame->setNumRefinements(num);
 	
 	VizWinMgr::getInstance()->forceRender(dParams);
@@ -672,6 +691,55 @@ guiSetEnabled(bool value, int instance){
 	updateTab();
 	vizWinMgr->forceRender(dParams);
 	
+}
+//Occurs when user clicks a fidelity radio button
+void ArrowEventRouter::guiSetFidelity(int buttonID){
+	// Recalculate LOD and refinement based on current slider value and/or current text value
+	//.  If they don't change, then don't 
+	// generate an event.
+	confirmText(false);
+	ArrowParams* dParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
+	int newLOD = fidelityLODs[buttonID];
+	int newRef = fidelityRefinements[buttonID];
+	int lodSet = dParams->GetCompressionLevel();
+	int refSet = dParams->GetRefinementLevel();
+	if (lodSet == newLOD && refSet == newRef) return;
+	int fidelity = buttonID;
+	
+
+	dParams->SetCompressionLevel(newLOD);
+	dParams->SetRefinementLevel(newRef);
+	dParams->SetFidelityLevel(fidelity);
+	dParams->SetIgnoreFidelity(false);
+	QPalette pal = QPalette(myBasic->fidelityBox->palette());
+	pal.setColor(QPalette::WindowText, Qt::black);
+	myBasic->fidelityBox->setPalette(pal);
+	//change values of LOD and refinement combos using setCurrentIndex().
+	myBasic->lodCombo->setCurrentIndex(newLOD);
+	myBasic->refinementCombo->setCurrentIndex(newRef);
+
+	VizWinMgr::getInstance()->forceRender(dParams);	
+}
+
+//User clicks on SetDefault button, need to make current fidelity settings the default.
+void ArrowEventRouter::guiSetFidelityDefault(){
+	/*
+	//Check current values of LOD and refinement and their combos.
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	if (!dataMgr) return;
+	confirmText(false);
+	IsolineParams* dParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
+	UserPreferences *prePrefs = UserPreferences::getInstance();
+	PreferencesCommand* pcommand = PreferencesCommand::captureStart(prePrefs, "Set Fidelity Default Preference");
+
+	setFidelityDefault(3,dParams);
+	
+	UserPreferences *postPrefs = UserPreferences::getInstance();
+	PreferencesCommand::captureEnd(pcommand,postPrefs);
+	delete prePrefs;
+	delete postPrefs;
+	updateTab();
+	*/
 }
 void ArrowEventRouter::
 fitToData(){

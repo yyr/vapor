@@ -54,7 +54,8 @@ protected slots:
 		
 	void setNumRefinements(int num);
 	void setCompRatio(int num);
-	
+	void guiSetFidelity(int buttonID);
+	void guiSetFidelityDefault();
 	void setArrowTextChanged(const QString& qs);
 	void arrowReturnPressed();
 	
