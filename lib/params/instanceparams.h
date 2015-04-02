@@ -48,44 +48,98 @@ namespace VAPoR {
 //! \version 3.0
 //! \date    May 2014
 //!
+//! This BasicParams class tracks the set of all renderer instances, including the current selection.
+//!	It does not track the "current" instance, because that information can be retrieved from the
+//! Params class.
+//! Whenever a renderer instance is added, removed, or selected, methods on this class must be called, and this
+//! class supports undo and redo of those operations.
+//! It is also notified when a visualizer is added or removed.
+//! Methods are also provided to retrieve the state in this class because the Renderer Instance Table will
+//! refresh itself based on the current state of this class.
+//! This Params class tracks the following state:
+//!		The RenderParams instance added or removed during the most recent update (as a ParamNode)
+//!     The current visualizers
+//!		For each visualizer, all of the RenderParams instances (enabled or not) for that visualizer,
+//!			identified by type and instance index and name.
+//!		The ordering of these instances (e.g. as displayed in the instance table for that visualizer)
+//!		The currently selected instance 
+//!		In order to support undo this class also tracks the
+//!			previous current index of the same type as the newly selected instance
+//!			(on removeInstance, use instead the instance index that was removed)
+//!
+//!		The XML subtree of this node is as follows:
+//!
+//!		Root
+//!		Visualizers		ParamNode(parent of identified RenderParams ParamNode ):  Two child nodes
+//!			The ParamNode is only needed after Add or Remove instance operations, otherwise NULL.
+//!		VizNN	VizMM	etc.  where NN, MM are visualizer indices: One child node for each visualizer.  
+//!		(SelectedChildIndex, PreviousCurrentInstanceIndex) Name1,	Name2	etc.  (long 2-vector of selected instance index, previousCurrentIndex), plus names of instances in the order in which they appear.
+//!			Indices and type a vector<long>, the Name's are child nodes.  The 2-vector has tag _selectionInfoTag
+//!		(type1, index1) etc. (vector<long> Integers indicating ParamsBaseTypeId, instance index for the instance Name(s)
+//!			vector<long> tag is _instanceInfoTag.
+//!			Note that which instance of a given type is "current" is kept in the Params class.
+
 class PARAMS_API InstanceParams : public BasicParams {
 	
 public: 
-
 
 	//! Static method used to add a instance to the list of instances for a visualizer
 	//! On error returns -1.
 	//! Otherwise returns the instance index, which is the total number
 	//! of instances minus 1.
-	//! \param[in] tag renderParams Tag associated with the instance
+	//! The instance that is added is selected, and becomes the current instance of its type (Tag)
+	//! \param[in] rendererName render name associated with the instance
 	//! \param[in] int visualizer index (as returned by ControlExec::NewVisualizer)
-	//! \param[in] Params* RenderParams instance that is being added.
+	//! \param[in] RenderParams* RenderParams instance that is being added.
 	//! \retval int instance index associated with this visualizer
-	static int AddInstance(const std::string tag, int viznum, Params* p);
+	static int AddInstance(const std::string rendererName, int viznum, RenderParams* p);
 
-	//! Static method used to remove an instance from the set of instances for a particular visualizer
-	//! \param[in] tag renderParams Tag associated with the instance
+	//! Static method used to remove the selected instance from the set of instances for a particular visualizer
+	//! The selected instance becomes the next instance, unless there is no next instance, in which case it becomes
+	//! the previous instance.
+	//! The current instance (for the renderer type) is also modified in accordance with Params::RemoveParams
+	//! or the previous instance if next instance does not exist.
+	//! Similarly if the instance is the selected instance.
 	//! \param[in] index is visualizer index associated with the instance
-	//! \param[in] instance is instance index associated with the instance
 	//! \retval int indicates 0 if successful
-	static int RemoveInstance(const std::string tag, int viz, int instance);
+	static int RemoveSelectedInstance(int viz);
 
-	//! Static method identifies the current instance for a renderer and visualizer 
-	//! \param[in] tag renderParams Tag associated with the instance
+	//! Static method identifies index of the selected instance for a visualizer
+	//! The returned index is the child index of the selected instance
 	//! \param[in] index is visualizer index associated with the instance
 	//! \retval -1 if error, otherwise returns the current instance index
-	static int  GetCurrentInstance(const std::string tag, int viz){
-		return ((InstanceParams*)Params::GetParamsInstance(_instanceParamsTag))->getCurrentInstance(tag, viz);
+	static int GetSelectedIndex(int viz){
+		return ((InstanceParams*)Params::GetParamsInstance(_instanceParamsTag))->getSelectedIndex(viz);
 	}
-	//! Static method makes an instance current
-	//! \param[in] tag renderParams Tag associated with the instance
+	//! Static method identifies the selected params by returning the ParamType and instance index
+	//! \param[in] int viz visualizer index
+	//! \param[out] int* (ParamsBaseType) pType
+	//! \param[out] int* instance
+	//! \retval -1 if error
+	static int GetSelectedInstance(int viz, int* pType, int* instance);
+
+	//! Static method causes an instance to be selected.
 	//! \param[in] index is visualizer index associated with the instance
-	//! \param[in] int current instance
+	//! \param[in] int (child) index to be selected 
 	//! \retval 0 if successful.
-	static int SetCurrentInstance(const std::string tag, int viz, int instance){
-		return ((InstanceParams*)Params::GetParamsInstance(_instanceParamsTag))->setCurrentInstance(tag, viz, instance);
+	static int SetSelectedIndex(int viz, int index){
+		return ((InstanceParams*)Params::GetParamsInstance(_instanceParamsTag))->setSelectedIndex(viz, index);
 	}
+	//! Static method determines the RenderParams that is selected
+	//! \param[in] viz is the visualizer index
+	//! \retval RenderParams* is the RenderParams* that is selected.
+	static RenderParams* GetSelectedRenderParams(int viz);
+
+	//! Static method identifies the RenderParams* with specified index
+	//! \param[in] viz is the visualizer index
+	//! \param[in] renindex is the renderer index
+	//! \retval RenderParams* is the RenderParams* associated with the index
+	static RenderParams* GetRenderParamsInstance(int viz, int renIndex);
 	
+	//! Static method indicates the number of renderer instances for a visualizer
+	//! \param[in] viz is the visualizer index
+	//! \retval int is the number of renderer instances
+	static int GetNumInstances(int viz);
 
 //! @name Internal
 //! Internal methods not intended for general use
@@ -139,12 +193,20 @@ public:
 	//! Pure virtual method on Params. Provide a short name suitable for use in the GUI
 	//! \retval string name
 	const std::string getShortName() {return _shortName;}
-	//Obtain the ParamNode associated with this instanceParams (in the event of add or remove instance)
-	ParamNode* getChangingParamNode();
-	//Utility function that finds the first instance that differs between two InstanceParams.  This is
-	//The instance that is being added or deleted.
-	//Returns 0 if no instance change is found.  Returns 1 if the changed instance is in p1, 2 if it's in p2
-	static int instanceDiff(InstanceParams* p1, InstanceParams* p2, string& tag, int* instance, int* viz);
+	//Determine what visualizer has changed between prev and next InstanceParams, 
+	//and whether it's Add(1), Remove(-1), or Select(0) change.
+	static int changeType(InstanceParams* p1, InstanceParams* p2, int* viz, int* type);
+	
+	//Convert a visualizer index into a string name, to be used for ParamNode tag
+	static ParamNode* getVizNode(int viz);
+	//Renumber the renderer instances associated with a visualizer, needed after
+	//a new instance is inserted or an existing instance is removed.
+	//! \param[in] int viz visualizer index
+	//! \param[in] int position of the insertion or removal
+	//! \param[in] bool isInsert true if insertion, false if removal
+	//Return 0 if successful.
+	static int renumberInstances(int viz, int changedType);
+	
 	///@}
 
 #ifndef DOXYGEN_SKIP_THIS
@@ -152,22 +214,25 @@ public:
 	static const string _instanceParamsTag;
 	static const string _shortName;
 	static const string _visualizersTag;
-	static const string _numInstancesTag;
-	static const string _currentInstanceTag;
-	static const string _paramNodeTag;
+	
+	static const string _renderParamsNodeTag;
+	static const string _instanceInfoTag;
+	static const string _selectionInfoTag;
 	int getCurrentInstance(std::string tag, int viz);
 protected:
 	
-	void setToDefault();
+	ParamNode* getRenderParamsNode();
+	void setRenderParamsNode(ParamNode* pnode);
+	void removeRenderParamsNode(){
+		GetRootNode()->GetNode(_renderParamsNodeTag)->DeleteAll();
+	}
+
 	//! following non-static Set/get methods are not public.
 	int addVizWin(int viznum);
-	int setCurrentInstance(std::string tag, int viz, int instance);
 	
-	
-	int getNumInstances(std::string tag, int viz);
-	
-	
-	
+	int setSelectedIndex(int viz, int index);
+	int getSelectedIndex(int viz);
+
 	
 #endif //DOXYGEN_SKIP_THIS
 };

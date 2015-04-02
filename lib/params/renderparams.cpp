@@ -48,6 +48,7 @@ const string RenderParams::_IgnoreFidelityTag = "IgnoreFidelity";
 const string RenderParams::_histoScaleTag = "HistoScale";
 const string RenderParams::_editBoundsTag = "EditBounds";
 const string RenderParams::_histoBoundsTag = "HistoBounds";
+const string RenderParams::_RendererNameTag = "RendererName";
 
 RenderParams::RenderParams(XmlNode *parent, const string &name, int winnum):Params(parent, name, winnum){
 	SetLocal(true);
@@ -117,4 +118,11 @@ const string RenderParams::GetVariableName(){
 
 void RenderParams::SetVariableName(const string& varname){
 	SetValueString(_VariableNameTag, "Specify variable name", varname);
+}
+const string RenderParams::GetRendererName(){
+	 return GetValueString(_RendererNameTag);
+}
+
+void RenderParams::SetRendererName(const string& renname){
+	SetValueString(_RendererNameTag, "Specify Renderer name", renname);
 }

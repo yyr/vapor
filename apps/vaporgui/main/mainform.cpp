@@ -760,7 +760,7 @@ void MainForm::undo(){
 	//If it's not active, just set default text:
 	if (!ce->CommandExists(0)) return; 
 	const Params* p = ce->Undo();
-	tabWidget->getFrontEventRouter()->updateTab();
+	tabWidget->refresh();
 	VizWinMgr::getInstance()->forceRender(p,true);
 }
 
@@ -769,7 +769,7 @@ void MainForm::redo(){
 	//If it's not active, just set default text:
 	if (!ce->CommandExists(-1)) return; 
 	const Params* p = ce->Redo();
-	tabWidget->getFrontEventRouter()->updateTab();
+	tabWidget->refresh();
 	VizWinMgr::getInstance()->forceRender(p,true);
 }
 

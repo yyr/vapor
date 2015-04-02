@@ -296,3 +296,10 @@ int TabManager::getTabType(ParamsBase::ParamsBaseType t){
 	if (dynamic_cast<ViewpointParams*>(p)) return 1;
 	return 2;
 }
+void TabManager::refresh(){
+	if (currentIndex() == 0) { //Renderer tab
+		renderHolder->updateTableWidget();
+	} 
+	getFrontEventRouter()->updateTab();
+
+}

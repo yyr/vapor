@@ -26,15 +26,13 @@
 #include "vizselectcombo.h"
 #include <qpushbutton.h>
 #include "vapor/ControlExecutive.h"
+#include "instanceparams.h"
 #include "qdialog.h"
 #include "newRendererDialog.h"
 #include <sstream>
 #include "assert.h"
 using namespace VAPoR;
-std::map<int,std::vector<int> > RenderHolder::instanceIndex;
-std::map<int, int> RenderHolder::currentRow;
-std::map<int, std::vector<string> > RenderHolder::instanceName;
-std::map<int, std::vector<RenderParams*> > RenderHolder::renParams;
+
 QStackedWidget* RenderHolder::stackedWidget = 0;
 RenderHolder* RenderHolder::theRenderHolder = 0;
 std::vector<int> RenderHolder::vizDupNums;
@@ -106,25 +104,25 @@ newRenderer(){
 	vector<string> renderTags;
 	renderTags.push_back(ArrowParams::_arrowParamsTag);
 	renderTags.push_back(IsolineParams::_isolineParamsTag);
-	signalsOn = false;
+	
 	string tag = renderTags[selection];
 	int winnum = VizWinMgr::getInstance()->getActiveViz();
 	RenderParams* newP = dynamic_cast<RenderParams*>(ControlExec::GetDefaultParams(tag)->deepCopy());
-	
-	int rc = ControlExec::AddParams(winnum,tag,newP);
-	assert (!rc);
-	newP->SetVizNum(winnum);
-	newP->SetEnabled(false);
-	
 
-	//Create row in table widget:
-	int rowCount = tableWidget->rowCount();
-	tableWidget->setRowCount(rowCount+1);
+	//figure out the name
 	QString name = rDialog.rendererNameEdit->text();
 	string name1 = name.toStdString();
 	if (name1 == "Renderer Name") name1 = ControlExec::GetShortName(tag);
 	name1 = uniqueName(name1);
 	name = QString(name1.c_str());
+
+	InstanceParams::AddInstance(name1, winnum, newP);
+	updateTableWidget();
+	/*
+	//Create row in table widget:
+	int rowCount = tableWidget->rowCount();
+	tableWidget->setRowCount(rowCount+1);
+	
 
 	QTableWidgetItem *item0 = new QTableWidgetItem(name);
 	item0->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
@@ -137,19 +135,11 @@ newRenderer(){
 	tableWidget->setItem(rowCount, 1, item1);
 	tableWidget->setItem(rowCount, 2, item2);
 
-	//Need to save stuff associated with this row
-	
-	instanceName[winnum].push_back(name.toStdString());
-	currentRow[winnum]=rowCount;
-	int instance = Params::GetNumParamsInstances(tag,winnum)-1;
-	instanceIndex[winnum].push_back(instance);
-	renParams[winnum].push_back(newP);
-	
-	newP->SetEnabled(false);
-	signalsOn = true;
 	tableWidget->selectRow(rowCount);
+	*/
+	VizWinMgr::getEventRouter(tag)->updateTab();
+	VizWinMgr::getInstance()->getTabManager()->showRenderWidget(tag);
 	
-
 }
 void RenderHolder::
 deleteRenderer(){
@@ -158,43 +148,28 @@ deleteRenderer(){
 	int winnum = VizWinMgr::getInstance()->getActiveViz();
 	//Check if there is anything to delete:
 	if (tableWidget->rowCount() == 0) return;
-	int row = currentRow[winnum];
-	RenderParams *rp = renParams[winnum][row];
-	string type = rp->GetTagFromType(rp->GetParamsBaseTypeId());
-	assert( ControlExec::GetNumParamsInstances(winnum, type) > 0);
-	int instance = instanceIndex[winnum][row];
-	//disable it first if necessary:
+	int row = InstanceParams::GetSelectedIndex(winnum);
+	RenderParams* rp = InstanceParams::GetSelectedRenderParams(winnum);
+	//Disable it if necessary;
 	if (rp->IsEnabled()){
-		rp->SetEnabled(false);
-		VizWinMgr::getEventRouter(type)->updateRenderer(rp, true, instance, false);
+		VizWinMgr::getEventRouter(rp->GetName())->guiSetEnabled(false, rp->GetInstanceIndex());
 	}
-	int rc = ControlExec::RemoveParams(winnum, type, instance);
-	assert (!rc);
+	InstanceParams::RemoveSelectedInstance(winnum);
+
+	
 	//Remove row from table:
+	signalsOn = false;
 	tableWidget->removeRow(row);
-	//Remove entries from vectors:
-	instanceIndex[winnum].erase(instanceIndex[winnum].begin()+row);
-	instanceName[winnum].erase(instanceName[winnum].begin()+row);
-	renParams[winnum].erase(renParams[winnum].begin()+row);
-	//All the instanceIndices for renderers of the same Renderer type need to be
-	//reduced by one, because one was removed:
-	int numIndices = instanceIndex[winnum].size();
-	if (numIndices > instance){
-		for (int i = instance; i<numIndices; i++){
-			if (renParams[winnum][i]->GetName() == type){
-				instanceIndex[winnum][i]--;
-			}
-		}
-	}
-	//if this not the first entry, then the previous becomes selected; 
-	//otherwise the first one becomes selected.
-	int newSelection = row-1;
-	if (newSelection < 0) newSelection = 0;
-	currentRow[winnum] = newSelection;
+	int newSelection = InstanceParams::GetSelectedIndex(winnum);
 	tableWidget->selectRow(newSelection);
+
+	signalsOn = true;
 	if (tableWidget->rowCount() == 0){
 		TabManager* tMgr = VizWinMgr::getInstance()->getTabManager();
 		tMgr->hideRenderWidgets();
+	} else { //update the info for the newly selected renderer instance
+		string tag = InstanceParams::GetSelectedRenderParams(winnum)->GetName();
+		VizWinMgr::getInstance()->getEventRouter(tag)->updateTab();
 	}
 }
 //Respond to check/uncheck enabled checkbox
@@ -208,16 +183,18 @@ changeChecked(int row, int col){
 	//Determine the EventRouter associated with this item
 	int viznum = VizWinMgr::getInstance()->getActiveViz();
 	if (viznum < 0) return;
-	RenderParams *rP = renParams[viznum][row];
+	
+	RenderParams *rP = InstanceParams::GetRenderParamsInstance(viznum, row);
 	EventRouter* er = VizWinMgr::getInstance()->getEventRouter(rP->GetName());
 	bool enable;
 	if (checkItem->checkState() == Qt::Checked)
 		enable = true;
 	 else
 		enable = false;
-	int instance = instanceIndex[viznum][row];
+	
+	int instance = rP->GetInstanceIndex();
 	er->guiSetEnabled(enable,instance);
-	if (currentRow[viznum] != row)
+	if (!checkItem->isSelected())
 		tableWidget->selectRow(row);
 	
 }
@@ -230,11 +207,11 @@ selectInstance(){
 	QTableWidgetItem* item = selectList[0];
 	int row = item->row();
 	int viznum = VizWinMgr::getInstance()->getActiveViz();
-	currentRow[viznum] = row;
-	RenderParams* rP = renParams[viznum][row];
+
+	RenderParams *rP = InstanceParams::GetRenderParamsInstance(viznum, row);
 	string tag = rP->GetName();
-	int instance = instanceIndex[viznum][row];
-	ControlExec::SetCurrentParamsInstance(viznum,tag, instance);
+
+	InstanceParams::SetSelectedIndex(viznum, row);
 	VizWinMgr::getInstance()->getTabManager()->showRenderWidget(tag);
 	VizWinMgr::getEventRouter(tag)->updateTab();
 }
@@ -248,13 +225,16 @@ itemTextChange(QTableWidgetItem* item){
 	if (col != 0) return;
 	int viznum = VizWinMgr::getInstance()->getActiveViz();
 	//avoid responding to item creation:
-	if (instanceName[viznum].size() <= row) return;
+	if (InstanceParams::GetNumInstances(viznum) <= row) return;
+	
 	QString newtext = item->text();
 	string stdtext = newtext.toStdString();
-	
-	if (stdtext == instanceName[viznum][row]) return;
+	RenderParams* rP = InstanceParams::GetRenderParamsInstance(viznum, row);
+	if (stdtext == rP->GetRendererName()) return;
 	string stdtext1 = uniqueName(stdtext);
-	instanceName[viznum][row] = stdtext1;
+
+	rP->SetRendererName(stdtext1);
+	
 	signalsOn = false;
 	if (stdtext1 != stdtext) item->setText(QString(stdtext1.c_str()));
 	signalsOn = true;
@@ -267,22 +247,22 @@ void RenderHolder::copyInstanceTo(int comboNum){
 	if (!signalsOn) return;
 	signalsOn = false;
 	int fromViz = VizWinMgr::getInstance()->getActiveViz();
-	int row = currentRow[fromViz];
-	RenderParams* rP = renParams[fromViz][row];
+
+	RenderParams* rP = InstanceParams::GetSelectedRenderParams(fromViz);
 	string tag = rP->GetName();
 	EventRouter* er = VizWinMgr::getEventRouter(tag);
 	if (comboNum == 1) {
 		//another instance in the same viz, need to adjoin it to tableWidget:
 		RenderParams* newP = (RenderParams*)rP->deepCopy();
-		ControlExec::AddParams(fromViz,tag,newP);
-		newP->SetVizNum(fromViz);
-		newP->SetEnabled(false);
+		string rendererName = uniqueName(rP->GetRendererName());
+		InstanceParams::AddInstance(rendererName, fromViz, newP);
+	
 		//Create row in table widget:
 		int rowCount = tableWidget->rowCount();
 		tableWidget->setRowCount(rowCount+1);
-		string name = uniqueName(instanceName[fromViz][row]);
+		//string name = uniqueName(instanceName[fromViz][row]);
 
-		QTableWidgetItem *item0 = new QTableWidgetItem(name.c_str());
+		QTableWidgetItem *item0 = new QTableWidgetItem(rendererName.c_str());
 		item0->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
 		QTableWidgetItem *item1 = new QTableWidgetItem(QString::fromStdString(ControlExec::GetShortName(tag)));
 		item1->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
@@ -295,29 +275,17 @@ void RenderHolder::copyInstanceTo(int comboNum){
 	
 		//Need to save stuff associated with this row
 	
-		instanceName[fromViz].push_back(name);
-		currentRow[fromViz]=rowCount;
-		int instance = Params::GetNumParamsInstances(tag,fromViz)-1;
-		instanceIndex[fromViz].push_back(instance);
-		renParams[fromViz].push_back(newP);					
-		newP->SetEnabled(false);
 		tableWidget->selectRow(rowCount);
-		ControlExec::SetCurrentParamsInstance(fromViz,tag, instance);
 		signalsOn = true;
 		er->updateTab();
 		return;
 	}
 	//Otherwise copy to another viz..
 	int vizNum = vizDupNums[comboNum-2];
-	er->performGuiCopyInstanceToViz(vizNum);
-	instanceName[vizNum].push_back(uniqueName(instanceName[fromViz][row] + "_Copy"));
-	currentRow[vizNum] = instanceName[vizNum].size()-1;
-	int instance = Params::GetNumParamsInstances(tag,vizNum)-1;
-	instanceIndex[vizNum].push_back(instance);
-	RenderParams* newP = (RenderParams*)Params::GetParamsInstance(tag,vizNum,instance);		
-	renParams[vizNum].push_back(newP);					
-	newP->SetEnabled(false);
-	ControlExec::SetCurrentParamsInstance(vizNum,tag, instance);
+	RenderParams* newP = (RenderParams*)rP->deepCopy();
+	string rendererName = uniqueName((rP->GetRendererName())+"Copy");
+	InstanceParams::AddInstance(rendererName, vizNum, newP);
+	
 	signalsOn = true;
 	return;
 }
@@ -328,8 +296,9 @@ std::string RenderHolder::uniqueName(std::string name){
 	while(1){
 		bool match = false;
 		for (int viz = 0; viz<numViz; viz++){ 
-			for (int i = 0; i< instanceName[viz].size(); i++){
-				if (newname != instanceName[viz][i]) continue;
+			for (int i = 0; i< InstanceParams::GetNumInstances(viz); i++){
+				RenderParams* rp = InstanceParams::GetRenderParamsInstance(viz,i);
+				if (newname != rp->GetRendererName()) continue;
 				match = true;
 				//found a match.  Modify newname
 				//If newname ends with a number, increase the number.  Otherwise just append _1
@@ -350,7 +319,6 @@ std::string RenderHolder::uniqueName(std::string name){
 				} else {
 					newname = newname + "_1";
 				}
-				break;
 			}
 
 		}
@@ -358,56 +326,7 @@ std::string RenderHolder::uniqueName(std::string name){
 	}
 	return newname;
 }
-void RenderHolder::changeViznum(int activeViz){
-	//Rebuild the table widget:
-	//QTableWidget* tWidget = getInstance()->tableWidget;
-	signalsOn = false;
-	
-	tableWidget->clearContents();
 
-	//Add one row in tableWidget for each RenderParams that is associated with activeViz:
-	map<int,vector<int> >::iterator it = instanceIndex.find(activeViz);
-	int numRows = 0;
-	if (it != instanceIndex.end()) numRows = instanceIndex[activeViz].size();
-	tableWidget->setRowCount(numRows);
-	for (int row = 0; row < numRows; row++){
-		
-		std::string name = instanceName[activeViz][row];
-		RenderParams* rP = renParams[activeViz][row];
-		QString qName = QString(name.c_str());
-		
-		QTableWidgetItem *item0 = new QTableWidgetItem(qName);
-		item0->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
-		string tag = rP->GetName();
-		QTableWidgetItem *item1 = new QTableWidgetItem(QString::fromStdString(ControlExec::GetShortName(tag)));
-		item1->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-		QTableWidgetItem *item2 = new QTableWidgetItem("      ");
-		if (rP->IsEnabled())
-			item2->setCheckState(Qt::Checked);
-		else 
-			item2->setCheckState(Qt::Unchecked);
-		tableWidget->setItem(row, 0, item0);
-		tableWidget->setItem(row, 1, item1);
-		tableWidget->setItem(row, 2, item2);
-
-	}
-	if (numRows > 0){
-		int selectedRow = currentRow[activeViz];
-		tableWidget->selectRow(selectedRow);
-	}
-	else tableWidget->selectRow(-1);
-	
-	signalsOn = true;
-	rebuildCombo();
-
-}
-void RenderHolder::deleteViznum(int viz){
-	instanceIndex.erase(viz);
-	currentRow.erase(viz);
-	instanceName.erase(viz);
-	renParams.erase(viz);
-	rebuildCombo();
-}
 
 void RenderHolder::rebuildCombo(){
 	VizSelectCombo* vCombo = MainForm::getInstance()->getWindowSelector();
@@ -428,5 +347,52 @@ void RenderHolder::rebuildCombo(){
 	}
 
 }
+void RenderHolder::updateTableWidget(){
+	//Rebuild the table widget, based on current active visualizer state
+	int activeViz = VizWinMgr::getInstance()->getActiveViz();
+	if (activeViz < 0) return;
+	signalsOn = false;
+	
+	tableWidget->clearContents();
 
+	//Add one row in tableWidget for each RenderParams that is associated with activeViz:
+	int numRows = InstanceParams::GetNumInstances(activeViz);
+	
+	tableWidget->setRowCount(numRows);
+	for (int row = 0; row < numRows; row++){
+		
+		RenderParams* rP = InstanceParams::GetRenderParamsInstance(activeViz,row);
+		string name = rP->GetRendererName();
+		QString qName = QString(name.c_str());
+		
+		QTableWidgetItem *item0 = new QTableWidgetItem(qName);
+		item0->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
+		string tag = rP->GetName();
+		QTableWidgetItem *item1 = new QTableWidgetItem(QString::fromStdString(ControlExec::GetShortName(tag)));
+		item1->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+		QTableWidgetItem *item2 = new QTableWidgetItem("      ");
+		if (rP->IsEnabled())
+			item2->setCheckState(Qt::Checked);
+		else 
+			item2->setCheckState(Qt::Unchecked);
+		tableWidget->setItem(row, 0, item0);
+		tableWidget->setItem(row, 1, item1);
+		tableWidget->setItem(row, 2, item2);
+
+	}
+	TabManager* tm = VizWinMgr::getInstance()->getTabManager();
+	if (numRows > 0){
+		int selectedRow = InstanceParams::GetSelectedIndex(activeViz);
+		tableWidget->selectRow(selectedRow);
+		RenderParams* rP = InstanceParams::GetSelectedRenderParams(activeViz);
+		tm->showRenderWidget(rP->GetName());
+	}
+	else {
+		tableWidget->selectRow(-1);
+		tm->hideRenderWidgets();
+	}
+	
+	signalsOn = true;
+	rebuildCombo();
+}
 

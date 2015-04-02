@@ -31,7 +31,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include "instancetable.h"
+
 #include "mainform.h"
 
 #include "params.h"
@@ -399,24 +399,6 @@ alignToData(bool doAlign){
 	updateTab();
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
-void ArrowEventRouter::
-setArrowEnabled(bool val, int instance){
-
-	
-	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	int activeViz = vizMgr->getActiveViz();
-	
-	ArrowParams* dParams = (ArrowParams*)(ControlExec::GetParams(activeViz,ArrowParams::_arrowParamsTag, instance));
-	//Make sure this is a change:
-	if (dParams->IsEnabled() == val ) return;
-	//If we are enabling, also make this the current instance:
-	if (val) {
-		performGuiChangeInstance(instance);
-	}
-	guiSetEnabled(val,instance);
-	
-}
-
 
 //Insert values from params into tab panel
 //
@@ -669,7 +651,7 @@ setNumRefinements(int num){
 	VizWinMgr::getInstance()->forceRender(dParams);
 }
 void ArrowEventRouter::
-guiSetEnabled(bool value, int instance, bool undoredo){
+guiSetEnabled(bool value, int instance){
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	int winnum = vizWinMgr->getActiveViz();
 	//Ignore spurious clicks.

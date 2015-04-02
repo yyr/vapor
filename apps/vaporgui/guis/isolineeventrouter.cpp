@@ -964,15 +964,6 @@ void IsolineEventRouter::guiRotate90(int selection){
 	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
 
 }
-void IsolineEventRouter::guiChangeInstance(int inst){
-	performGuiChangeInstance(inst);
-}
-void IsolineEventRouter::guiNewInstance(){
-	performGuiNewInstance();
-}
-void IsolineEventRouter::guiDeleteInstance(){
-	performGuiDeleteInstance();
-}
 
 
 void IsolineEventRouter::
@@ -985,21 +976,7 @@ isolineReturnPressed(void){
 	confirmText(true);
 }
 
-void IsolineEventRouter::
-setIsolineEnabled(bool val, int instance){
 
-
-	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
-	//Make sure this is a change:
-	if (pParams->IsEnabled() == val ) return;
-	
-	//If we are enabling, also make this the current instance:
-	if (val) {
-		performGuiChangeInstance(instance);
-	}
-	guiSetEnabled(val, instance);
-	
-}
 
 void IsolineEventRouter::
 isolineCenterRegion(){
@@ -1273,7 +1250,7 @@ reinitTab(bool doOverride){
 
 
 void IsolineEventRouter::
-guiSetEnabled(bool value, int instance, bool undoredo){
+guiSetEnabled(bool value, int instance){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
 	IsolineParams* pParams = (IsolineParams*)ControlExec::GetParams(winnum,IsolineParams::_isolineParamsTag,instance);
@@ -1347,7 +1324,8 @@ guiChangeVariable(int varnum){
 	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
 	
 	int activeVar = myBasics->variableCombo->currentIndex();
-	
+	//Several changes occur here, they should be captured as one event
+	Command* cmd = Command::CaptureStart(pParams,"Change isoline variable");
 	if (pParams->VariablesAre3D()){
 		const string varname = dataMgr->GetVariables3D()[activeVar];
 		pParams->SetVariableName(varname);
@@ -1360,7 +1338,7 @@ guiChangeVariable(int varnum){
 	updateHistoBounds(pParams);
 	setEditorDirty(pParams);
 	myIsovals->isoSelectionFrame->fitToView();
-	
+	Command::CaptureEnd(cmd, pParams);
 	//Need to update the selected point for the new variables
 	updateTab();
 	setIsolineDirty(pParams);	

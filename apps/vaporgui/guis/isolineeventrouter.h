@@ -90,15 +90,8 @@ public:
 	//methods with undo/redo support:
 	//Following methods are set from gui, have undo/redo support:
 	//
+	virtual void guiSetEnabled(bool value, int instance);
 	
-	
-
-	virtual void guiSetEnabled(bool value, int instance, bool undoredo = true);
-	//respond to changes in TF (for undo/redo):
-	//
-	
-	
-	//void guiAttachSeed(bool attach, FlowParams*);
 	
 	void guiSetXCenter(int sliderVal);
 	void guiSetYCenter(int sliderVal);
@@ -154,9 +147,7 @@ protected slots:
 	void guiCropToRegion();
 	void guiCropToDomain();
 
-	void guiChangeInstance(int);
-	void guiNewInstance();
-	void guiDeleteInstance();
+	
 	void guiAxisAlign(int);
 
 	void copyToProbeOr2D();
@@ -176,7 +167,6 @@ protected slots:
 	void setIsolineZCenter();
 	void setIsolineXSize();
 	void setIsolineYSize();
-	void setIsolineEnabled(bool on, int instance);
 	
 	void guiSetNumRefinements(int numtrans);
 	void guiSetCompRatio(int num);

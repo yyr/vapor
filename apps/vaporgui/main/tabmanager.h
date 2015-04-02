@@ -97,6 +97,8 @@ class TabManager : public QTabWidget{
 		}
 		int getTabType(ParamsBase::ParamsBaseType);
 		void newFrontTab(int topType, int subPosn);
+		//Re-display what's in front
+		void refresh();
 	public slots:
 		void newTopTab(int);
 		void newSubTab(int);

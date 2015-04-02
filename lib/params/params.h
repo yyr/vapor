@@ -309,17 +309,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \param[in] instance index of instance to remove 
 	static void RemoveParamsInstance(int pType, int winnum, int instance);
 	
-//! Static method that inserts a new instance into the list of existing 
-//! Params instances for a particular visualizer.
-//! Useful for application developers.
-//! \param[in] pType ParamsBase TypeId of the params class.
-//! \param[in] winnum index of specified visualizer window.
-//! \param[in] posn index where new instance will be inserted. 
-//! \param[in] dp pointer to Params instance being appended. 
-	static void InsertParamsInstance(int pType, int winnum, int posn, Params* dp){
-		vector<Params*>& instances = paramsInstances[make_pair(pType,winnum)];
-		instances.insert(instances.begin()+posn, dp);
-	}
+
 
 //! Static method that produces a list of all the Params instances of a type
 //! for a particular visualizer.

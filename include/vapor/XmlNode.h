@@ -319,7 +319,22 @@ virtual int SetElementStringVec(
  virtual void AddChild(
     XmlNode* child
  );
-
+ //! Insert an existing node as a child of the current node.
+ //!
+ //! The new child node will be
+ //! inserted at specified index in the array of child nodes.
+ //!
+ //! \note The node is shallow copied into the tree (only the pointer
+ //! is copied. Furthermore, the destructor for this class will delete
+ //! the added child. Whoops!!
+ //!
+ //! \param[in] child is the XmlNode object to be added as a child
+ //! \param[in] index where the new child will reside.
+ //
+ virtual void InsertChild(
+    XmlNode* child,
+	int index
+ );
  virtual int GetNumChildren() const { return (int)(_children.size());};
 
  //! Create a new child of this node

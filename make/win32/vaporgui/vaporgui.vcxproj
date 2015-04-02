@@ -276,7 +276,6 @@
     <ClCompile Include="..\..\..\apps\vaporgui\guis\eventrouter.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\glisolinewindow.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\GLWidget.cpp" />
-    <ClCompile Include="..\..\..\apps\vaporgui\guis\instancetable.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\isolineeventrouter.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\isolineframe.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\guis\isovalueeditor.cpp" />
@@ -304,7 +303,6 @@
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_ControlPointEditor.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_domainwidget.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_glwidget.cpp" />
-    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_instancetable.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isolineAppearance.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isolineBasics.cpp" />
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_isolineeventrouter.cpp" />
@@ -533,28 +531,6 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\moc\moc_domainwidget.cpp;%(Outputs)</Outputs>
     </CustomBuild>
     <ClInclude Include="..\..\..\apps\vaporgui\guis\eventrouter.h" />
-    <CustomBuild Include="..\..\..\apps\vaporgui\guis\instancetable.h">
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing instancetable.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\instancetable.h -o ..\..\..\apps\vaporgui\moc\moc_instancetable.cpp
-</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\apps\vaporgui\moc\moc_instancetable.cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing instancetable.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\instancetable.h -o ..\..\..\apps\vaporgui\moc\moc_instancetable.cpp
-</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\apps\vaporgui\moc\moc_instancetable.cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing instancetable.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\instancetable.h -o ..\..\..\apps\vaporgui\moc\moc_instancetable.cpp
-</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\apps\vaporgui\moc\moc_instancetable.cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing instancetable.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\instancetable.h -o ..\..\..\apps\vaporgui\moc\moc_instancetable.cpp
-</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\apps\vaporgui\moc\moc_instancetable.cpp;%(Outputs)</Outputs>
-    </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\regioneventrouter.h">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing regioneventrouter.h...</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\regioneventrouter.h -o ..\..\..\apps\vaporgui\moc\moc_regioneventrouter.cpp

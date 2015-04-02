@@ -364,6 +364,23 @@ public:
  //
  int AddNode(const string& tag, ParamNode* child);
 
+ //! Insert an existing node as a child of the current node, at specified index
+ //!
+ //! The new child node will be
+ //! inserted into the array of child nodes.
+ //!
+ //! \note This method differs from the base class method that it
+ //! overloads in that it prohibits siblings from having duplicate tags.
+ //!
+ //! \param[in] tag is the tag that will identify the new node
+ //! \param[in] child is the ParamNode object to be added as a child
+ //! \param[in] index is the child index that will be used by the new child
+ //! \retval status Return 0 upon success. A negative number is returned
+ //! if a sibling already exists with the same name, or if the proposed index 
+ //! is not valid
+ //
+ int InsertNode(const string& tag, ParamNode* child, int index);
+
  //! Add an existing node as a last child of a path of
  //! nodes starting at the current 
  //!

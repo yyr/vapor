@@ -43,7 +43,7 @@ public:
 	virtual void confirmText(bool /*render*/);
 	virtual void updateTab();
 	
-	virtual void guiSetEnabled(bool value, int instance, bool undoredo = true);
+	virtual void guiSetEnabled(bool value, int instance);
 	virtual void reinitTab(bool doOverride);
 
 	virtual void captureMouseUp();
@@ -57,7 +57,7 @@ protected slots:
 	
 	void setArrowTextChanged(const QString& qs);
 	void arrowReturnPressed();
-	void setArrowEnabled(bool on, int instance);
+	
 	void setXVarNum(int);
 	void setYVarNum(int);
 	void setZVarNum(int);
