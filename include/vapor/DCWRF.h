@@ -213,8 +213,6 @@ private:
  string _projString;
  Proj4API _proj4API;
 
- float *_sliceBuffer;
-
  class DerivedVarHorizontal;
  DerivedVarHorizontal *_derivedX;
  DerivedVarHorizontal *_derivedY;

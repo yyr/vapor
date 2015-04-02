@@ -41,8 +41,6 @@ DCWRF::DCWRF() {
 	_ovr_fd = -1;
 	_projString.clear();
 
-	_sliceBuffer = NULL;
-
 	_derivedX = NULL;
 	_derivedY = NULL;
 	_derivedXU = NULL;
@@ -79,7 +77,6 @@ DCWRF::~DCWRF() {
 
 	if (_derivedTime) delete _derivedTime;
 
-	if (_sliceBuffer) delete [] _sliceBuffer;
 	if (_ncdfc) delete _ncdfc;
 }
 
@@ -125,7 +122,7 @@ int DCWRF::Initialize(const vector <string> &files) {
 
 	//
 	//  Get the dimensions of the grid. 
-	//	Initializes members: _dimsMap, _sliceBuffer
+	//	Initializes members: _dimsMap
 	//
 	rc = _InitDimensions(ncdfc);
 	if (rc< 0) {
@@ -1138,13 +1135,12 @@ int DCWRF::_InitTime(
 }
 
 // Get Space and time dimensions from WRF data set. Initialize
-// _dimsMap and _sliceBuffer
+// _dimsMap 
 //
 int DCWRF::_InitDimensions(
 	NetCDFCollection *ncdfc
 ) {
 	_dimsMap.clear();
-	_sliceBuffer = NULL;
 
 	// Get dimension names and lengths for all dimensions in the
 	// WRF data set. 
@@ -1152,9 +1148,6 @@ int DCWRF::_InitDimensions(
 	vector <string> dimnames = ncdfc->GetDimNames();
 	vector <size_t> dimlens = ncdfc->GetDims();
 	assert(dimnames.size() == dimlens.size());
-
-	size_t maxnx = 0;
-	size_t maxny = 0;
 
 	// WRF files use reserved names for dimensions. The time dimension
 	// is always named "Time", etc.
@@ -1169,13 +1162,11 @@ int DCWRF::_InitDimensions(
 			(dimnames[i].compare("west_east_stag") == 0)) { 
 
 			axis = 0;
-			maxnx = max(maxnx,dimlens[i]);
 		}
 		else if ((dimnames[i].compare("south_north") == 0) ||
 			(dimnames[i].compare("south_north_stag") == 0)) {
 
 			axis = 1;
-			maxny = max(maxny,dimlens[i]);
 		} 
 		else if ((dimnames[i].compare("bottom_top") == 0) ||
 			(dimnames[i].compare("bottom_top_stag") == 0)) {
@@ -1205,12 +1196,6 @@ int DCWRF::_InitDimensions(
 		SetErrMsg("Missing dimension");
 		return(-1);
 	}
-
-	// Set up slice buffer for reading data from WRF one 2D slice at a time
-	//
-	_sliceBuffer = new float[maxnx * maxny];
-	if (! _sliceBuffer) return(-1);
-	
 	return(0);
 }
 
