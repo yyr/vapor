@@ -184,6 +184,7 @@ protected slots:
 	
 	
 protected:
+	virtual void wheelEvent(QWheelEvent*) {}
 	IsolineBasics *myBasics;
 	IsolineAppearance * myAppearance;
 	IsolineLayout * myLayout;

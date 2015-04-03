@@ -74,6 +74,7 @@ public:
 	void captureMouseUp();
 	
 	virtual void reinitTab(bool doOverride);
+	virtual void wheelEvent(QWheelEvent*) {}
 
 	
 protected slots:
@@ -90,9 +91,11 @@ protected slots:
 	void setYSize(int n);
 	void setZCenter(int n);
 	void setZSize(int n);
-	void copyRegionToRake();
-	void copyRakeToRegion();
-	void copyProbeToRegion();
+	void guiCopyBox();
+
+protected:
+	//Map combo indices to ParamsBase typeid:
+	static vector<ParamsBase::ParamsBaseType> boxMapping;
 
 };
 

@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="whatsThis">
+   <string>The basic Barbs settings control the accuracy of the data, as well as the velocity field that is used to control the barb direction and length. The variables defining the velocity field can either be 2D or 3D.</string>
+  </property>
   <layout class="QHBoxLayout" name="horizontalLayout_3">
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -227,7 +230,7 @@ p, li { white-space: pre-wrap; }
           <string>Select either contours of 3D or 2D variables</string>
          </property>
          <property name="whatsThis">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Isolines can be calculated from 3D variables along arbitrarily oriented planes, or from 2D variables along a horizontally oriented plane.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>The fidelity setting controls both refinement and LOD.  Click on the &quot;Set Default Fidelity&quot; button to establish a fidelity level that is interactive on the current platform.</string>
          </property>
          <property name="text">
           <string>Fidelity:</string>

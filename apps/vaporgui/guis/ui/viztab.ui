@@ -1047,6 +1047,9 @@ where the camera is pointed.</string>
        </item>
        <item>
         <widget class="QLabel" name="textLabel1_5">
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The stereo controls allow users to construct a left and right image, with a specified angular separation, so that the two images can be used as a stereo pair.  However this feature is currently fairly primitive and cannot produce high-quality stereo views. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>Separation Angle:</string>
          </property>
@@ -1068,6 +1071,9 @@ where the camera is pointed.</string>
          </property>
          <property name="toolTip">
           <string>Specify separation angle in degrees between left and right stereo viewpoints</string>
+         </property>
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The stereo controls allow users to construct a left and right image, with a specified angular separation, so that the two images can be used as a stereo pair.  However this feature is currently fairly primitive and cannot produce high-quality stereo views. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string>0</string>
@@ -1095,6 +1101,9 @@ where the camera is pointed.</string>
        </item>
        <item>
         <widget class="QLabel" name="textLabel2_3">
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The stereo controls allow users to construct a left and right image, with a specified angular separation, so that the two images can be used as a stereo pair.  However this feature is currently fairly primitive and cannot produce high-quality stereo views. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>View:</string>
          </property>
@@ -1110,6 +1119,9 @@ where the camera is pointed.</string>
         <widget class="QComboBox" name="stereoCombo">
          <property name="toolTip">
           <string>Change viewpoint to Left, Right, or Center for creating stereo pairs</string>
+         </property>
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The stereo controls allow users to construct a left and right image, with a specified angular separation, so that the two images can be used as a stereo pair.  However this feature is currently fairly primitive and cannot produce high-quality stereo views. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <item>
           <property name="text">

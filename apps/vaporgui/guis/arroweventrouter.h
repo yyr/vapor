@@ -75,6 +75,7 @@ protected slots:
 
 
 protected:
+	virtual void wheelEvent(QWheelEvent*) {}
 	void populateVariableCombos(bool is3d);
 	vector<int> copyCount;
 	bool showLayout;

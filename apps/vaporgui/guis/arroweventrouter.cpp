@@ -100,11 +100,11 @@ ArrowEventRouter::hookUpTab()
 	connect (myLayout->yStrideEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
 	
 	//Connect variable combo boxes to their own slots:
-	connect (myBasic->xVarCombo,SIGNAL(activated(int)), this, SLOT(setXVarNum(int)));
-	connect (myBasic->yVarCombo,SIGNAL(activated(int)), this, SLOT(setYVarNum(int)));
-	connect (myBasic->zVarCombo,SIGNAL(activated(int)), this, SLOT(setZVarNum(int)));
+	connect (myBasic->xVarCombo,SIGNAL(currentIndexChanged(int)), this, SLOT(setXVarNum(int)));
+	connect (myBasic->yVarCombo,SIGNAL(currentIndexChanged(int)), this, SLOT(setYVarNum(int)));
+	connect (myBasic->zVarCombo,SIGNAL(currentIndexChanged(int)), this, SLOT(setZVarNum(int)));
 	connect (myLayout->heightCombo, SIGNAL(activated(int)),this,SLOT(setHeightVarNum(int)));
-	connect (myBasic->variableDimCombo, SIGNAL(activated(int)), this, SLOT(setVariableDims(int)));
+	connect (myBasic->variableDimCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(setVariableDims(int)));
 	//checkboxes
 	connect(myLayout->terrainAlignCheckbox,SIGNAL(toggled(bool)), this, SLOT(toggleTerrainAlign(bool)));
 	connect(myLayout->alignDataCheckbox,SIGNAL(toggled(bool)),this, SLOT(alignToData(bool)));

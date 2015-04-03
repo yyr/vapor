@@ -541,6 +541,7 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	IsolineParams* isolineParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
 	
 	QString strn;
+	setIgnoreBoxSliderEvents(true);
 	if (isolineParams->VariablesAre3D()){
 		float thetaVal = myLayout->thetaEdit->text().toFloat();
 		while (thetaVal > 180.f) thetaVal -= 360.f;
@@ -698,7 +699,7 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	//Cancel any response to events generated in this method:
 	//
 	guiSetTextChanged(false);
-	
+	setIgnoreBoxSliderEvents(false);
 	updateTab();
 }
 
