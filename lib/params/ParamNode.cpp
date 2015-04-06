@@ -223,6 +223,19 @@ int ParamNode::SetElementStringVec(
 	
 }
 
+int ParamNode::InsertNode(const string& tag, ParamNode* child, int index) {
+	if (HasChild(tag)) {
+		SetErrMsg(VAPOR_ERROR_PARAMS,"Child node named %s already exists", child->Tag().c_str());
+		return(-1);
+	}
+	if (index < 0 || index > GetNumChildren()){
+		SetErrMsg(VAPOR_ERROR_PARAMS,"Invalid index %d for child insertion", index);
+		return(-2);
+	}
+	XmlNode::InsertChild(child, index);
+	child->Tag() = tag;
+	return(0);
+}
 
 int ParamNode::AddNode(const string& tag, ParamNode* child) {
 	if (HasChild(tag)) {

@@ -106,8 +106,6 @@ removeWindow(int windowNum){
 			assert(k < count()-1);
 		}
 	}
-	RenderHolder::deleteViznum(windowNum);
-	
 }
 /* 
  * Select a window when it's been made active
@@ -129,7 +127,7 @@ setWindowActive(int win){
 		currentActive = i;
 	}
 	//Make the renderHolder show either the active renderer or none.
-	RenderHolder::getInstance()->changeViznum(win);
+	RenderHolder::getInstance()->updateTableWidget();
 }
 
 	

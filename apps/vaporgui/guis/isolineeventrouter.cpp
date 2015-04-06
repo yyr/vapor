@@ -541,6 +541,7 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	IsolineParams* isolineParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
 	
 	QString strn;
+	setIgnoreBoxSliderEvents(true);
 	if (isolineParams->VariablesAre3D()){
 		float thetaVal = myLayout->thetaEdit->text().toFloat();
 		while (thetaVal > 180.f) thetaVal -= 360.f;
@@ -698,7 +699,7 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	//Cancel any response to events generated in this method:
 	//
 	guiSetTextChanged(false);
-	
+	setIgnoreBoxSliderEvents(false);
 	updateTab();
 }
 
@@ -964,15 +965,6 @@ void IsolineEventRouter::guiRotate90(int selection){
 	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
 
 }
-void IsolineEventRouter::guiChangeInstance(int inst){
-	performGuiChangeInstance(inst);
-}
-void IsolineEventRouter::guiNewInstance(){
-	performGuiNewInstance();
-}
-void IsolineEventRouter::guiDeleteInstance(){
-	performGuiDeleteInstance();
-}
 
 
 void IsolineEventRouter::
@@ -985,21 +977,7 @@ isolineReturnPressed(void){
 	confirmText(true);
 }
 
-void IsolineEventRouter::
-setIsolineEnabled(bool val, int instance){
 
-
-	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
-	//Make sure this is a change:
-	if (pParams->IsEnabled() == val ) return;
-	
-	//If we are enabling, also make this the current instance:
-	if (val) {
-		performGuiChangeInstance(instance);
-	}
-	guiSetEnabled(val, instance);
-	
-}
 
 void IsolineEventRouter::
 isolineCenterRegion(){
@@ -1273,7 +1251,7 @@ reinitTab(bool doOverride){
 
 
 void IsolineEventRouter::
-guiSetEnabled(bool value, int instance, bool undoredo){
+guiSetEnabled(bool value, int instance){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
 	IsolineParams* pParams = (IsolineParams*)ControlExec::GetParams(winnum,IsolineParams::_isolineParamsTag,instance);
@@ -1347,7 +1325,8 @@ guiChangeVariable(int varnum){
 	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
 	
 	int activeVar = myBasics->variableCombo->currentIndex();
-	
+	//Several changes occur here, they should be captured as one event
+	Command* cmd = Command::CaptureStart(pParams,"Change isoline variable");
 	if (pParams->VariablesAre3D()){
 		const string varname = dataMgr->GetVariables3D()[activeVar];
 		pParams->SetVariableName(varname);
@@ -1360,7 +1339,7 @@ guiChangeVariable(int varnum){
 	updateHistoBounds(pParams);
 	setEditorDirty(pParams);
 	myIsovals->isoSelectionFrame->fitToView();
-	
+	Command::CaptureEnd(cmd, pParams);
 	//Need to update the selected point for the new variables
 	updateTab();
 	setIsolineDirty(pParams);	
@@ -2320,8 +2299,8 @@ guiEndChangeIsoSelection(){
 		//If the isovalues are new and the new values are not inside the histo bounds, respecify the bounds
 		float newHistoBounds[2];
 		if (minIso <= bnds[0] || maxIso >= bnds[1]){
-			newHistoBounds[0]=maxIso - 1.1*(maxIso-minIso);
-			newHistoBounds[1]=minIso + 1.1*(maxIso-minIso);
+			newHistoBounds[0]=maxIso;
+			newHistoBounds[1]=minIso;
 			iParams->SetHistoBounds(newHistoBounds);
 		}
 	} else {
@@ -2662,12 +2641,19 @@ void IsolineEventRouter::guiSpaceIsovalues(){
 	IsolineParams* iParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
 	const vector<double>& isoVals = iParams->GetIsovalues();
 	int numIsos = isoVals.size();
-	if (numIsos <= 1) return;
+
 	confirmText(false);
 
-
-	double minIso = (double)myIsovals->minIsoEdit->text().toDouble();
-	double interval = (double)myIsovals->isoSpaceEdit->text().toDouble();
+	float bounds[2];
+	double minIso, interval;
+	iParams->GetHistoBounds(bounds);
+	if (numIsos == 1){
+		interval = 0.;
+		minIso = 0.5*(bounds[0]+bounds[1]);
+	} else {
+		minIso = bounds[0];
+		interval = (bounds[1]-bounds[0])/(numIsos -1);
+	}
 	iParams->spaceIsovals(minIso,interval);
 
 	setIsolineDirty(iParams);

@@ -90,6 +90,12 @@ public:
 	//! Get the primary variable name, e.g. used in color mapping.
 	//! \retval string variable name
 	virtual const string GetVariableName();
+	//! Specify renderer instance name; e.g. in instance identification
+	//! \param[in] string renName
+	virtual void SetRendererName(const string& renName);
+	//! Get the renderer instance name, e.g. used in instance identification
+	//! \retval string renderer name
+	virtual const string GetRendererName();
 	//! Pure virtual method sets current number of refinements of this Params.
 	//! \param[in] int refinements
 	//!
@@ -186,6 +192,17 @@ public:
 	virtual MapperFunction* GetMapperFunc(){
 		return 0;
 	}
+//! Static method that inserts a new instance into the list of existing 
+//! RenderParams instances for a particular visualizer.
+//! Useful for application developers.
+//! \param[in] pType ParamsBase TypeId of the renderparams class.
+//! \param[in] winnum index of specified visualizer window.
+//! \param[in] posn index where new instance will be inserted. 
+//! \param[in] dp pointer to RenderParams instance being appended. 
+	static void InsertParamsInstance(int pType, int winnum, int posn, RenderParams* dp){
+		vector<Params*>& instances = paramsInstances[make_pair(pType,winnum)];
+		instances.insert(instances.begin()+posn, dp);
+	}
 
 
 #ifndef DOXYGEN_SKIP_THIS
@@ -212,6 +229,7 @@ protected:
 	static const string _histoScaleTag;
 	static const string _editBoundsTag;
 	static const string _histoBoundsTag;
+	static const string _RendererNameTag;
 	
 	vector<int> bypassFlags;
 #endif //DOXYGEN_SKIP_THIS

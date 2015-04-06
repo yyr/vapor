@@ -63,6 +63,7 @@
 #include "params.h"
 #include "renderer.h"
 #include "renderholder.h"
+#include "instanceparams.h"
 #include "vapor/ExtensionClasses.h"
 
 #include "animationparams.h"
@@ -432,7 +433,7 @@ killViz(int viznum){
 	//MainForm::getInstance()->getWindowSelector()->removeWindow(viznum);
 	MainForm::getInstance()->getMDIArea()->removeSubWindow(VizMdiWin[viznum]);
 	VizWindow[viznum]->close();
-	RenderHolder::deleteViznum(viznum);
+	InstanceParams::RemoveVizWin(viznum);
 }
 
 
@@ -729,7 +730,7 @@ void VizWinMgr::disableRenderers(const vector<string>& vars2D, const vector<stri
 					Params::ParamsBaseType t = rParams->GetParamsBaseTypeId();
 					int instance = ControlExec::FindInstanceIndex(i, rParams);
 					EventRouter* er = getEventRouter(t);
-					er->guiSetEnabled(false,instance, false);
+					er->guiSetEnabled(false,instance);
 				}
 			}
 			for (int k = 0; k<vars3D.size(); k++){
@@ -737,7 +738,7 @@ void VizWinMgr::disableRenderers(const vector<string>& vars2D, const vector<stri
 					Params::ParamsBaseType t = rParams->GetParamsBaseTypeId();
 					int instance = ControlExec::FindInstanceIndex(i, rParams);
 					EventRouter* er = getEventRouter(t);
-					er->guiSetEnabled(false,instance, false);
+					er->guiSetEnabled(false,instance);
 				}
 			}
 		}

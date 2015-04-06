@@ -116,6 +116,9 @@
              <height>16777215</height>
             </size>
            </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
            <item>
             <property name="text">
              <string>Duplicate In</string>

@@ -30,6 +30,7 @@
 #include <fstream>
 #include <sstream>
 #include "params.h"
+#include "renderparams.h"
 #include "command.h"
 #include <vapor/ParamNode.h>
 
@@ -41,9 +42,10 @@ using namespace VAPoR;
 const std::string InstanceParams::_shortName = "Instances";
 const string InstanceParams::_instanceParamsTag = "InstanceParams";
 const string InstanceParams::_visualizersTag = "Visualizers";
-const string InstanceParams::_paramNodeTag = "InstanceParamNode";
-const string InstanceParams::_currentInstanceTag = "CurrentInstance";
-const string InstanceParams::_numInstancesTag = "NumInstances";
+const string InstanceParams::_renderParamsNodeTag = "RendererParamsNode";
+const string InstanceParams::_instanceInfoTag = "InstanceInfo";
+const string InstanceParams::_selectionInfoTag = "SelectionInfo";
+
 
 
 
@@ -60,6 +62,11 @@ InstanceParams::~InstanceParams(){
 void InstanceParams::
 restart(){
 	GetRootNode()->DeleteAll();
+	ParamNode* rpnode = new ParamNode(_renderParamsNodeTag);
+	ParamNode* vnode = new ParamNode(_visualizersTag);
+	GetRootNode()->AddChild(vnode);
+	GetRootNode()->AddChild(rpnode);
+
 }
 //Reinitialize settings, session has changed
 
@@ -69,7 +76,7 @@ Validate(int type){
 	assert(!Command::isRecording());
 	bool doOverride = (type == 0);
 	if (doOverride){
-		GetRootNode()->DeleteAll();
+		GetRootNode()->GetNode(_visualizersTag)->DeleteAll();
 		vector<long>viznums = VizWinParams::GetVisualizerNums();
 		for (int i = 0;i<viznums.size(); i++)
 			addVizWin(viznums[i]);
@@ -77,92 +84,113 @@ Validate(int type){
 	return;	
 	
 }
-int InstanceParams::AddInstance(const std::string name, int viznum, Params* p){ 
+int InstanceParams::AddInstance(const std::string rendererName, int viznum, RenderParams* p){ 
 	
 	InstanceParams* ip = (InstanceParams*)Params::GetParamsInstance(_instanceParamsTag);
+	
 	Command* cmd = Command::CaptureStart(ip, "Add new renderer instance", InstanceParams::UndoRedo);
 	
-	//set the params child to p's root.
-	ParamNode* paramsNode = p->GetRootNode()->deepCopy();
-	if (ip->GetRootNode()->HasChild(_paramNodeTag)) ip->GetRootNode()->ReplaceNode(_paramNodeTag, paramsNode);
-	else ip->GetRootNode()->AddNode(_paramNodeTag, paramsNode);
+	//Prepare the params...
+	p->SetRendererName(rendererName);
+	p->SetVizNum(viznum);
+	p->SetEnabled(false);
+	
 	//Need to find the specified visualizer node, 
-	//Then find the renderer child node associated with the name (create if it does not exist)
-	//Then increment the number of instances for that tag.
+	//Then create the renderer child node associated with the name (it should not exist)
+	//This node's index becomes the selected index, and the instance becomes the current index.
 	ParamNode* vizNodes = ip->GetRootNode()->GetNode(_visualizersTag);
 	ostringstream strm;
 	strm << "Viz"<<viznum;
+	//Obtain the specific visualizer node
 	ParamNode* vizNode = vizNodes->GetNode(strm.str());
-	ParamNode* renderNode = vizNode->GetNode(name);
-	int prevNumInstances = renderNode->GetElementLong(_numInstancesTag)[0];
-	renderNode->SetElementLong(_numInstancesTag,prevNumInstances+1);
+	//Remember the current instance of the new selected renderer type:
+	int numInstances = Params::GetNumParamsInstances(p->GetName(), viznum);
+	int prevCurrentInstance = -1;
+	if (numInstances > 0)
+		prevCurrentInstance = Params::GetCurrentParamsInstanceIndex(p->GetName(), viznum);
+	//Create a new renderer node
+	ParamNode* renderNode = new ParamNode(rendererName);
+	int rc = vizNode->AddNode(rendererName, renderNode);
+	assert (rc == 0);
+	int index = vizNode->GetNumChildren()-1;
 	
+	Params::AppendParamsInstance(p->GetName(),viznum,p);
+	//set the renderparams node to a clone of p's root.
+	ParamNode* renderParamsNode = p->GetRootNode()->deepCopy();
+	
+	ip->setRenderParamsNode(renderParamsNode);
+	
+	vector<long> selectionInfo;
+	//When an instance is added, it is always the selected instance:
+	selectionInfo.push_back(index);
+	//Remember the previous instance index of the same type as the newly selected instance.
+	//This information would be lost because the newly selected instance will become current.
+	selectionInfo.push_back(prevCurrentInstance);
+	vizNode->SetElementLong(_selectionInfoTag,selectionInfo);
+	int instance = Params::GetNumParamsInstances(p->GetName(),viznum)-1;
+	assert(instance >= 0);
+	//Create a vector of instance information
+	vector<long> instInfo;
+	instInfo.push_back((long) p->GetParamsBaseTypeId());
+	instInfo.push_back((long) instance);
+	//When an instance is added, it is always set to be current:
+	Params::SetCurrentParamsInstanceIndex(p->GetParamsBaseTypeId(),viznum,instance);
+	renderNode->SetElementLong(_instanceInfoTag,instInfo);
+
 	Command::CaptureEnd(cmd, ip);
 	return 0;
 }
-int InstanceParams::getCurrentInstance(const std::string name, int viznum){ 
-	
-	//Need to find the specified visualizer node, 
-	//Then find the renderer child node associated with the name (create if it does not exist)
-	//Then increment the number of instances for that tag.
-	ParamNode* vizNodes = GetRootNode()->GetNode(_visualizersTag);
-	ostringstream strm;
-	strm << "Viz"<<viznum;
-	ParamNode* vizNode = vizNodes->GetNode(strm.str());
-	ParamNode* renderNode = vizNode->GetNode(name);
-	return (renderNode->GetElementLong(_currentInstanceTag)[0]);
 
-}
-int InstanceParams::setCurrentInstance(const std::string name, int viznum, int instance){ 
-	
-	Command* cmd = Command::CaptureStart(this, "set current instance",InstanceParams::UndoRedo);
-	
-	//Need to find the specified visualizer node, 
-	//Then find the renderer child node associated with the name (create if it does not exist)
-	//Then modify the current instance for that tag.
-	//Also remove the ParamNode since it doesn't change for instance setting
-	//set the params child to p's root.
-	if (GetRootNode()->HasChild(_paramNodeTag)) GetRootNode()->DeleteNode(_paramNodeTag);
-	
-	ParamNode* vizNodes = GetRootNode()->GetNode(_visualizersTag);
-	ostringstream strm;
-	strm <<"Viz"<<viznum;
-	ParamNode* vizNode = vizNodes->GetNode(strm.str());
-	ParamNode* renderNode = vizNode->GetNode(name);
-	int rc = renderNode->SetElementLong(_currentInstanceTag, instance);
-	if (!rc) Params::SetCurrentParamsInstanceIndex(GetTypeFromTag(name),viznum, instance);
-	if (!rc) Command::CaptureEnd(cmd, this);
-	else delete cmd;
-	return rc;
-}
-int InstanceParams::RemoveInstance(const std::string name, int viznum, int instance){
+int InstanceParams::RemoveSelectedInstance(int viznum){
 	
 	InstanceParams* ip = (InstanceParams*)Params::GetParamsInstance(_instanceParamsTag);
 	Command* cmd = Command::CaptureStart(ip, "Remove renderer instance",InstanceParams::UndoRedo);
-	Params* p = Params::GetParamsInstance(name, viznum, instance);
+
+	//Determine what is the currently selected instance:
+	RenderParams* p = GetSelectedRenderParams(viznum);
+	
+	int selectedType = p->GetParamsBaseTypeId();
+	if (!p) return -1;  //Error!
 	
 	//set the params child to p's root.
-	ParamNode* paramsNode = p->GetRootNode()->deepCopy();
-	if (ip->GetRootNode()->HasChild(_paramNodeTag)) ip->GetRootNode()->ReplaceNode(_paramNodeTag, paramsNode);
-	else ip->GetRootNode()->AddNode(_paramNodeTag, paramsNode);
+	ParamNode* renParamsNode = p->GetRootNode()->deepCopy();
+	ip->setRenderParamsNode(renParamsNode);
+	
 	//Need to find the specified visualizer node, 
-	//Then find the renderer child node associated with the name (create if it does not exist)
-	//Then increment the number of instances for that tag.
+	//Then find the renderer child node associated with the name (it should already exist)
+	
 	ParamNode* vizNodes = ip->GetRootNode()->GetNode(_visualizersTag);
 	ostringstream strm;
 	strm << "Viz"<<viznum;
 	ParamNode* vizNode = vizNodes->GetNode(strm.str());
-	ParamNode* renderNode = vizNode->GetNode(name);
-	int prevNumInstances = renderNode->GetElementLong(_numInstancesTag)[0];
-	int currentInstance = renderNode->GetElementLong(_currentInstanceTag)[0];
-	//Move the current instance down unless that makes it negative.
-	if (currentInstance >= instance) 
-		currentInstance--;
-	if (currentInstance < 0) currentInstance = 0;
+	
+	//Change the selected child index as appropriate:
+	vector<long> selectionInfo = vizNode->GetElementLong(_selectionInfoTag);
+	int currentSelectedChild = selectionInfo[0];
+	//Modify the selected instance.  Either use the same child index, or subtract one if not possible.
+	if (selectionInfo[0] >= vizNode->GetNumChildren()-1){
+		selectionInfo[0]--;
+	}
+	//Save the current instance of the selected renderer type, which is the instance being removed:
+	int prevCurrentInstance = Params::GetCurrentParamsInstanceIndex(p->GetName(), viznum);
+	selectionInfo[1] = prevCurrentInstance;
+	
+	vizNode->SetElementLong(_selectionInfoTag, selectionInfo);
 		
-	renderNode->SetElementLong(_numInstancesTag,prevNumInstances-1);
-	renderNode->SetElementLong(_currentInstanceTag,currentInstance);
-	Params::SetCurrentParamsInstanceIndex(GetTypeFromTag(name),viznum, currentInstance);
+	//Remove the selected child node:
+	vizNode->DeleteChild(currentSelectedChild);
+	//Also remove the params instance.  This will reset the current instance too.
+	Params::RemoveParamsInstance(selectedType, viznum, prevCurrentInstance);
+	
+	//Now make all the instances of the removed type consistent with Params instance tables
+	//i.e. consecutively numbered.
+	renumberInstances(viznum,selectedType);
+	//If the newly selected instance exists, make it the current instance
+	if (selectionInfo[0]>=0){
+		vector<long> instInfo = vizNode->GetChild(selectionInfo[0])->GetElementLong(_instanceInfoTag);
+		Params::SetCurrentParamsInstanceIndex(instInfo[0], viznum, instInfo[1]);
+	}
+	
 	Command::CaptureEnd(cmd, ip);
 	return 0;
 }
@@ -183,25 +211,17 @@ int InstanceParams::addVizWin(int viznum){
 	
 	vizNode = new ParamNode(strm.str(),10);
 	int rc = vizNodes->AddNode(strm.str(), vizNode);
-	if (rc) return rc;
-	
-	//Add a child for each renderer
-	for (int t = 1; t< Params::GetNumParamsClasses(); t++){
-		Params* p = Params::GetDefaultParams(t);
-		if (!p->isRenderParams()) continue;
-		string tag = Params::GetTagFromType(t);
-		ParamNode* renderNode = new ParamNode(tag);
-		renderNode->SetElementLong(_numInstancesTag,0);
-		renderNode->SetElementLong(_currentInstanceTag,0);
-		int rc = vizNode->AddNode(tag,renderNode);
-		if (rc) return rc;
-	}
-	return 0;
+	vector<long> selectInfo;
+	selectInfo.push_back(-1);
+	selectInfo.push_back(0);
+	vizNode->SetElementLong(_selectionInfoTag,selectInfo);
+	return rc;
 }
 
 int InstanceParams::RemoveVizWin(int viznum){ 
-	InstanceParams* ip = (InstanceParams*)Params::GetParamsInstance(_instanceParamsTag);
+	
 	//Need to find and remove the specified visualizer node, 
+	InstanceParams* ip = (InstanceParams*)Params::GetParamsInstance(_instanceParamsTag);
 	ParamNode* vizNodes = ip->GetRootNode()->GetNode(_visualizersTag);
 	if (!vizNodes) return -1;
 	ostringstream strm;
@@ -213,102 +233,263 @@ int InstanceParams::RemoveVizWin(int viznum){
 	vizNodes->DeleteNode(strm.str());
 	return 0;
 }
-ParamNode* InstanceParams::getChangingParamNode(){
-	if(GetRootNode()->HasChild(_paramNodeTag)) return GetRootNode()->GetNode(_paramNodeTag);
-	else return 0;
-}
-//Static method finds the first instance that differs between two InstanceParams.  This is
-//The instance that is being added or deleted, or the instance that is changing
-//Returns 0 if no instance change is found.  Returns 1 if the changed instance is in p1, 2 if it's in p2
-//Returns 3 if the current instance changes but not the number of instances
-int InstanceParams::instanceDiff(InstanceParams* p1, InstanceParams* p2, string& tag, int* instance, int* viz){
-	//Iterate through child viz nodes
-	
-	ParamNode* vizNodes1 = p1->GetRootNode()->GetNode(_visualizersTag);
-	ParamNode* vizNodes2 = p2->GetRootNode()->GetNode(_visualizersTag);
-	for (int i = 0; i< vizNodes1->GetNumChildren(); i++){
-		ParamNode* vizNode1 = vizNodes1->GetChild(i);
-		string viztag = vizNode1->Tag();
-		ParamNode* vizNode2 = vizNodes2->GetNode(viztag);
-		int vizNum = atoi(viztag.substr(3,4).c_str()); //remove "Viz" from tag
-		//Iterate through child nodes:
-		for (int j = 0; j< vizNode1->GetNumChildren(); j++){
-			ParamNode* rparamNode1 = vizNode1->GetChild(j);
-			ParamNode* rparamNode2 = vizNode2->GetChild(j);
-			int numInst1 = rparamNode1->GetElementLong(_numInstancesTag)[0];
-			int numInst2 = rparamNode2->GetElementLong(_numInstancesTag)[0];
-			int curInst1 = rparamNode1->GetElementLong(_currentInstanceTag)[0];
-			int curInst2 = rparamNode2->GetElementLong(_currentInstanceTag)[0];
-			
-			if (numInst1 != numInst2){
-				tag = rparamNode1->Tag();
-				*viz = vizNum;
-				int rc;
-				if (numInst1 < numInst2) {//Add instance, the new instance is the last one
-					*instance = numInst2-1;
-					rc = 2;
-				} else { //Remove instance, the current instance is being removed...
-					*instance = rparamNode1->GetElementLong(_currentInstanceTag)[0];
-					rc = 1;
-				}
-				return rc;
-			}
-			if (curInst1 != curInst2){
-				tag = rparamNode1->Tag();
-				*viz = vizNum;
-				*instance = -1; //Just indicates it's changing
-				return 3;
-			}
-		}
-	}
-	return 0;
-}
+
 
 void InstanceParams::UndoRedo(bool isUndo, int /*instance*/, Params* beforeP, Params* afterP){
-	//This only handles InstanceParams
-	assert (beforeP->GetParamsBaseTypeId() == Params::GetTypeFromTag(InstanceParams::_instanceParamsTag));
-	assert (afterP->GetParamsBaseTypeId() == Params::GetTypeFromTag(InstanceParams::_instanceParamsTag));
-	//Check for an add or remove, by enumerating all the instances 
-	InstanceParams* p1 = (InstanceParams*)beforeP;
-	InstanceParams* p2 = (InstanceParams*)afterP;
-	ParamNode* pnode = p1->getChangingParamNode();
-	if(!pnode) pnode = p2->getChangingParamNode();
-	//The correct instance to use is NOT the one passed as an argument to this method...
-	int instance, viz;
-	string tag;
-	int changeType = InstanceParams::instanceDiff(p1, p2, tag, &instance, &viz);
-	if(changeType == 3) { //It's not an add or remove change; Just need to set the current instance
-		//Note that we obtain the viznum from the instanceDiff traversal, not from the GetVizNum method.
-		if (isUndo) {
-			instance = p1->getCurrentInstance(tag, viz);
-		}
-		else {
-			instance = p2->getCurrentInstance(tag, viz);
-		}
-		Params::SetCurrentParamsInstanceIndex(Params::GetTypeFromTag(tag), viz, instance);
-		return;
-	}
-	assert(changeType != 0);
-	ParamsBase::ParamsBaseType pType = ParamsBase::GetTypeFromTag(tag);
-	//ChangeType is 1 if p1 has the changed instance, 2 if p2 has the changed instance.
-	//addInstance has changeType 2, removeInstance has changeType 1.
-	//OK, make the undo or redo requested:
-	//To Undo an addInstance or redo a removeInstance need to remove the specified instance
-	if ((isUndo && (changeType == 2))||(!isUndo &&(changeType == 1))){
-		Params::RemoveParamsInstance(pType, viz, instance);
-		return;
-	}
-	//To Redo an addInstance, or Undo a removeInstance, need to insert the specified instance.
-	if ((!isUndo && (changeType == 2))||(isUndo &&(changeType == 1))){
-		Params* p = Params::CreateDefaultParams(pType);
+	//This only handles InstanceParams add, remove, or select.
+	int viznum = 0;
+	int type = 0;
+	//change will be -1 for removal, +1 for add, 0 for selection change
+	int change = changeType((InstanceParams*)beforeP, (InstanceParams*)afterP, &viznum, &type);
+	ParamNode* pnode = 0;
+	//Get the renderParamsNode of the added or removed params
+	if (change != 0) pnode = ((InstanceParams*)afterP)->getRenderParamsNode();
+
+	if((change < 0 && isUndo) || (change > 0 && !isUndo)){
+		//Undo a remove or redo an add:
+		//Make a Params from the added or deleted pnode:
+		RenderParams* p = (RenderParams*)Params::CreateDefaultParams(type);
 		ParamNode* pn = p->GetRootNode();
 		p->SetRootParamNode(pnode);
 		pn->SetParamsBase(0);
-		delete pn;
-		Params::InsertParamsInstance(pType, viz, instance, p);
+		delete pn; //Delete it, as it's been replaced
+		
+		if(!isUndo){  //Redo add
+			//For redoing an add, just add again and make it current
+			Params::AppendParamsInstance(type,viznum,p);
+			Params::SetCurrentParamsInstanceIndex(type,viznum,Params::GetNumParamsInstances(type,viznum)-1);
+		} else {
+			//if undoing remove, insert and make current the removed one at position that was previously current.
+			ParamNode* viznode = afterP->GetRootNode()->GetNode(_visualizersTag)->GetChild(viznum);
+			int instanceNum = viznode->GetElementLong(_selectionInfoTag)[1];
+			RenderParams::InsertParamsInstance(type, viznum, instanceNum, p);
+			Params::SetCurrentParamsInstanceIndex(type, viznum,instanceNum);
+			//The previous instance params should already have this inserted at the right place and selected:
+			//check it out:
+			viznode = beforeP->GetRootNode()->GetNode(_visualizersTag)->GetChild(viznum);
+			int prevSelected = viznode->GetElementLong(_selectionInfoTag)[0];
+			ParamNode* renNode = viznode->GetChild(prevSelected);
+			assert(renNode->GetElementLong(_instanceInfoTag)[1] == instanceNum);
+			renumberInstances(viznum,type);
+		}
+		return;
+	} else if (change!= 0) { //undoing add, redoing remove
+		if (isUndo){
+			//For undo Add, need to remove selected instance and to make current the previously selected instance of that type
+			Params::RemoveParamsInstance(type,viznum,Params::GetNumParamsInstances(type,viznum)-1);
+			ParamNode* viznode = afterP->GetRootNode()->GetNode(_visualizersTag)->GetChild(viznum);
+			int instanceNum = viznode->GetElementLong(_selectionInfoTag)[1];
+			if (instanceNum >= 0) Params::SetCurrentParamsInstanceIndex(type, viznum,instanceNum);
+		} else {
+			//For redo Remove, just remove the prev selected instance again,
+			//and make current the next or previous instance
+			ParamNode* viznode = beforeP->GetRootNode()->GetNode(_visualizersTag)->GetChild(viznum);
+			ParamNode* renNode = viznode->GetChild(viznode->GetElementLong(_selectionInfoTag)[0]);
+			int instanceNum = renNode->GetElementLong(_instanceInfoTag)[1];
+			Params::RemoveParamsInstance(type,viznum, instanceNum);
+			int newSelected = instanceNum;
+			if (instanceNum >= Params::GetNumParamsInstances(type,viznum)) instanceNum--;
+			Params::SetCurrentParamsInstanceIndex(type,viznum,instanceNum);
+		}
+		return;
+	} else { //undo or redo selection change:
+		if (isUndo){
+			// need to make current the previously selected instance of the current type
+			ParamNode* viznode = afterP->GetRootNode()->GetNode(_visualizersTag)->GetChild(viznum);
+			int instanceNum = viznode->GetElementLong(_selectionInfoTag)[1];
+			Params::SetCurrentParamsInstanceIndex(type,viznum,instanceNum);
+		} else {
+			// need to make current the newly selected instance
+			ParamNode* viznode = afterP->GetRootNode()->GetNode(_visualizersTag)->GetChild(viznum);
+			ParamNode* renNode = viznode->GetChild(viznode->GetElementLong(_selectionInfoTag)[0]);
+			int instanceNum = renNode->GetElementLong(_instanceInfoTag)[1];
+			Params::SetCurrentParamsInstanceIndex(type,viznum,instanceNum);
+		}
 		return;
 	}
-	//We should never get here...
-	assert(0);
+	assert(0); //never get here!
 	return;
+}
+//Selecting a renderer instance has the side-effect of setting the current instance for the renderer type.
+//If we undo this operation, need to remember the previous current instance setting
+int InstanceParams::setSelectedIndex(int viz, int index){
+	
+	Command* cmd = Command::CaptureStart(this, "Select a Renderer instance", InstanceParams::UndoRedo);
+	//Determine the RenderParams instance that is being selected:
+	
+	//Need to find the specified visualizer node, 
+	//Then create the renderer child node associated with the name (it should not exist)
+	//This node's index becomes the selected index, and the instance becomes the current index.
+	ParamNode* vizNodes = GetRootNode()->GetNode(_visualizersTag);
+	ostringstream strm;
+	strm << "Viz"<<viz;
+	//Obtain the specific visualizer node
+	ParamNode* vizNode = vizNodes->GetNode(strm.str());
+	//Find the params type that is being selected:
+	int newSelectedType = vizNode->GetChild(index)->GetElementLong(_instanceInfoTag)[0];
+	int newSelectedInstance = vizNode->GetChild(index)->GetElementLong(_instanceInfoTag)[1];
+	int oldCurrentInstanceIndex = Params::GetCurrentParamsInstanceIndex(newSelectedType,viz);
+	
+	vector<long> selectionInfo;
+	selectionInfo.push_back(index);
+	selectionInfo.push_back(oldCurrentInstanceIndex);
+	vizNode->SetElementLong(_selectionInfoTag,selectionInfo);
+	//Now make this instance current
+	Params::SetCurrentParamsInstanceIndex(newSelectedType,viz,newSelectedInstance);
+	//Remove any ParamNode
+	removeRenderParamsNode();
+
+	Command::CaptureEnd(cmd, this);
+	return 0;
+
+}
+int InstanceParams::getSelectedIndex(int viz){
+	
+	//Need to find the specified visualizer node, 
+	ParamNode* vizNodes = GetRootNode()->GetNode(_visualizersTag);
+	ostringstream strm;
+	strm << "Viz"<<viz;
+	//Obtain the specific visualizer node
+	ParamNode* vizNode = vizNodes->GetNode(strm.str());
+	return (vizNode->GetElementLong(_selectionInfoTag)[0]);
+}
+RenderParams* InstanceParams::GetSelectedRenderParams(int viz){
+	
+	//Need to find the specified visualizer node, 
+	//Then create the renderer child node associated with the name (it should not exist)
+	//This node's index becomes the selected index, and the instance becomes the current index.
+	InstanceParams* ip = (InstanceParams*)Params::GetParamsInstance(_instanceParamsTag);
+	ParamNode* vizNodes = ip->GetRootNode()->GetNode(_visualizersTag);
+	ostringstream strm;
+	strm << "Viz"<<viz;
+	//Obtain the specific visualizer node
+	ParamNode* vizNode = vizNodes->GetNode(strm.str());
+	int childIndex = vizNode->GetElementLong(_selectionInfoTag)[0];
+	ParamNode* renderNode = vizNode->GetChild(childIndex);
+	int instanceIndex = renderNode->GetElementLong(_instanceInfoTag)[1];
+	int instanceType = renderNode->GetElementLong(_instanceInfoTag)[0];
+	return (RenderParams*)Params::GetParamsInstance(instanceType, viz, instanceIndex);
+}
+int InstanceParams::changeType(InstanceParams* p1, InstanceParams* p2, int* viz, int* type){
+	//Determine which viz changed: Look at number of instances for each viz.  If it increases, then it's an add
+	//with that viz.  Decreases, it's a remove.  Stays the same, then need to see which viz node has a change in
+	//selection, that's the one that changed selection.
+	//Returns +1 if add, -1 if remove, 0 if change selection.
+	ParamNode* vizNodes1 = p1->GetRootNode()->GetNode(_visualizersTag);
+	ParamNode* vizNodes2 = p2->GetRootNode()->GetNode(_visualizersTag);
+	//There should be the same number of visualizers before and after the change:
+	assert (vizNodes1->GetNumChildren() == vizNodes2->GetNumChildren());
+	//Go through the visualizers, look for any change in number of instances:
+	for (int i = 0; i< vizNodes1->GetNumChildren(); i++){
+		ParamNode* vNode1 = vizNodes1->GetChild(i);
+		ParamNode* vNode2 = vizNodes2->GetChild(i);
+		//Determine viznum;
+		string viztag = vNode1->Tag();
+		int vizNum = atoi(viztag.substr(3,4).c_str()); //remove "Viz" from tag
+		//When we return, *viz will contain the changed viz index:
+		*viz = vizNum;
+		
+		if (vNode1->GetNumChildren() < vNode2->GetNumChildren()){
+			//Find the added renderer type
+			ParamNode* renNode = vNode2->GetChild(vNode2->GetNumChildren() - 1);
+			*type = renNode->GetElementLong(_instanceInfoTag)[0];
+			return 1;
+		} else if (vNode1->GetNumChildren() > vNode2->GetNumChildren()){
+			//Find the removed renderer type
+			int childIndex = vNode1->GetElementLong(_selectionInfoTag)[0];
+			*type = vNode1->GetChild(childIndex)->GetElementLong(_instanceInfoTag)[0];
+			return -1;
+		} else {  //Check if selection changed
+			if (vNode1->GetElementLong(_selectionInfoTag)[0] != vNode2->GetElementLong(_selectionInfoTag)[0]){
+				//Find the selected renderer type
+				int childIndex = vNode2->GetElementLong(_selectionInfoTag)[0];
+				*type = vNode2->GetChild(childIndex)->GetElementLong(_instanceInfoTag)[0];
+				return 0;
+			}
+		}
+	}
+	assert(0); //Error: not add, remove, or select
+	return -100;
+}
+//After a RenderParams instance is removed, or after an instance is inserted (but not added)
+//we need to adjust the instance indices in this class to match those in the params class,
+//Note that the RenderParams instance nodes should already be matched up, we just need to
+//fix the InstanceInfo of the instances to match the Params instance information
+//Return 0 if we performed the adjustment as needed
+int InstanceParams::renumberInstances(int viznum,int changedType){
+	InstanceParams* ip = (InstanceParams*)Params::GetParamsInstance(_instanceParamsTag);
+	ParamNode* vizNodes = ip->GetRootNode()->GetNode(_visualizersTag);
+	ostringstream strm;
+	strm << "Viz"<<viznum;
+	ParamNode* vizNode = vizNodes->GetNode(strm.str());
+	//Go through all the child nodes.  All the instance indices of this type should be consecutively increasing
+	int nextInstIndex = 0;
+	for (int i = 0; i< vizNode->GetNumChildren(); i++){
+		ParamNode* renNode = vizNode->GetChild(i);
+		vector<long> instanceInfo = renNode->GetElementLong(_instanceInfoTag);
+		//Only change instances for the type that was inserted or removed:
+		if (instanceInfo[0] != changedType) continue;
+		instanceInfo[1] = nextInstIndex++;
+
+		//Check we are correct:
+		Params* p = Params::GetParamsInstance(instanceInfo[0], viznum, instanceInfo[1]);
+		assert(p->GetInstanceIndex() == instanceInfo[1]);
+		assert(p->GetParamsBaseTypeId() == instanceInfo[0]);
+
+		renNode->SetElementLong(_instanceInfoTag,instanceInfo);
+	}
+	return 0;
+}
+int InstanceParams::GetSelectedInstance(int viz, int* type, int* instance){
+	
+	ParamNode* vizNode = getVizNode(viz);
+	InstanceParams* ip = (InstanceParams*)Params::GetParamsInstance(_instanceParamsTag);
+	int childIndex = ip->getSelectedIndex(viz);
+	if (childIndex < 0) {
+		*type = 0;
+		*instance = -1;
+		return -1;
+	}
+	ParamNode* renNode = vizNode->GetChild(childIndex);
+	vector<long> instanceInfo = renNode->GetElementLong(_instanceInfoTag);
+	*type = instanceInfo[0];
+	*instance = instanceInfo[1];
+	return 0;
+}
+
+RenderParams* InstanceParams::GetRenderParamsInstance(int viz, int renIndex){
+	
+	ParamNode* viznode = getVizNode(viz);
+	ParamNode* renNode = viznode->GetChild(renIndex);
+	vector<long> instanceInfo = renNode->GetElementLong(_instanceInfoTag);
+	return (RenderParams*)Params::GetParamsInstance(instanceInfo[0],viz,instanceInfo[1]);
+}
+	
+int InstanceParams::GetNumInstances(int viz){
+	
+	ParamNode* viznode = getVizNode(viz);
+	return viznode->GetNumChildren();
+}
+ParamNode* InstanceParams::getVizNode(int viz){
+	InstanceParams* ip = (InstanceParams*)Params::GetParamsInstance(_instanceParamsTag);
+	ParamNode* vizNodes = ip->GetRootNode()->GetNode(_visualizersTag);
+	ostringstream strm;
+	strm << "Viz"<<viz;
+	ParamNode* vizNode = vizNodes->GetNode(strm.str());
+	return vizNode;
+}
+ParamNode* InstanceParams::getRenderParamsNode(){
+	
+	if (GetRootNode()->GetNode(_renderParamsNodeTag)->HasChild(0))
+		return GetRootNode()->GetNode(_renderParamsNodeTag)->GetChild(0);
+	else return 0;
+}
+void InstanceParams::setRenderParamsNode(ParamNode* pnode){
+	
+	ParamNode* pn = getRenderParamsNode();
+	if (pn) {
+		GetRootNode()->GetNode(_renderParamsNodeTag)->ReplaceChild(pn, pnode);
+	} else {
+		GetRootNode()->GetNode(_renderParamsNodeTag)->AddChild(pnode);
+	}
 }

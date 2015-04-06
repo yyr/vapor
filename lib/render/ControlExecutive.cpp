@@ -171,12 +171,9 @@ int ControlExec::SetCurrentParamsInstance(int viz, string typetag, int instance)
 	if (instance < 0 || instance >= GetNumParamsInstances(viz,typetag)) return -1;
 	int ptype = Params::GetTypeFromTag(typetag);
 	if (ptype <= 0) return -1;
-	int rc = 0;
 	
-	if (GetDefaultParams(typetag)->isRenderParams()){
-		rc = InstanceParams::SetCurrentInstance(typetag,viz,instance);
-	} else Params::SetCurrentParamsInstanceIndex(ptype,viz,instance);
-	return rc;
+	Params::SetCurrentParamsInstanceIndex(ptype,viz,instance);
+	return 0;
 }
 int ControlExec::GetCurrentRenderParamsInstance(int viz, string typetag){
 	if (0 == GetVisualizer(viz)) return -1;
@@ -195,10 +192,13 @@ int ControlExec::AddParams(int viz, string type, Params* p){
 	if (0 == GetVisualizer(viz)) return -1;
 	int ptype = Params::GetTypeFromTag(type);
 	if (ptype <= 0) return -1;
-	Params::AppendParamsInstance(ptype,viz,p);
+	
 	if (p->isRenderParams()) {
-		int rc = InstanceParams::AddInstance(type, viz, p);
+		string renName = ((RenderParams*)p)->GetRendererName();
+		int rc = InstanceParams::AddInstance(renName, viz, (RenderParams*)p);
 		return rc;
+	} else {
+		Params::AppendParamsInstance(ptype,viz,p);
 	}
 	return 0;
 }
@@ -209,8 +209,13 @@ int ControlExec::RemoveParams(int viz, string type, int instance){
 	//Must update the instance params before performing the actual removal...
 	Params* p = ControlExec::GetDefaultParams(type);
 	if (!p->isRenderParams()) return 0; //Instance params only exist for RenderParms
-	int rc = InstanceParams::RemoveInstance(type, viz, instance);
-	Params::RemoveParamsInstance(ptype,viz,instance);
+	int rc = 0;
+	if (InstanceParams::GetSelectedRenderParams(viz) == Params::GetParamsInstance(type,viz,instance)){
+		//If it's selected then do this through Instance params
+		rc = InstanceParams::RemoveSelectedInstance(viz);
+	} else {
+		Params::RemoveParamsInstance(ptype,viz,instance);
+	}
 	return rc;
 }
 int ControlExec::FindInstanceIndex(int viz, RenderParams* p){
@@ -392,7 +397,12 @@ reinitializeParams(bool doOverride){
 			//Set the default instance for renderParams
 			Params* q = Params::GetDefaultParams(pType);
 			if (!q->isRenderParams()) continue;
-			int currentInstance = InstanceParams::GetCurrentInstance(GetTagFromType(pType),viz);
+			//If one of this type is selected, make it current, otherwise make the first one current:
+			int currentInstance = 0;
+			int instance;
+			int qType;
+			InstanceParams::GetSelectedInstance(viz,&qType,&instance);
+			if (pType == qType) currentInstance = instance;
 			Params::SetCurrentParamsInstanceIndex(pType, viz, currentInstance);
 		}
 		(it->second)->removeAllRenderers();

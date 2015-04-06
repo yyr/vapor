@@ -62,7 +62,7 @@
 
 
 using namespace VAPoR;
-
+std::vector<ParamsBase::ParamsBaseType> RegionEventRouter::boxMapping;
 
 RegionEventRouter::RegionEventRouter(QWidget* parent ): QWidget(parent), Ui_RegionTab(), EventRouter() {
 	setupUi(this);
@@ -105,10 +105,7 @@ RegionEventRouter::hookUpTab()
 	connect (zSizeSlider, SIGNAL(valueChanged(int)), this, SLOT (setZSize(int)));
 	
 	connect (setFullRegionButton, SIGNAL(clicked()), this, SLOT (setMaxSize()));
-	connect (regionToRakeButton, SIGNAL(clicked()), this, SLOT(copyRegionToRake()));
-	//connect (regionToProbeButton, SIGNAL(clicked()), this, SLOT(copyRegionToProbe()));
-	connect (rakeToRegionButton, SIGNAL(clicked()), this, SLOT(copyRakeToRegion()));
-	connect (probeToRegionButton, SIGNAL(clicked()), this, SLOT(copyProbeToRegion()));
+	connect (copyBoxButton, SIGNAL(clicked()), this, SLOT(guiCopyBox()));
 
 	//connect (loadRegionsButton, SIGNAL(clicked()), this, SLOT(guiLoadRegionExtents()));
 	connect (saveRegionsButton, SIGNAL(clicked()), this, SLOT(saveRegionExtents()));
@@ -161,20 +158,6 @@ void RegionEventRouter::
 regionReturnPressed(void){
 	confirmText(true);
 }
-
-
-void RegionEventRouter::copyRakeToRegion(){
-	
-}
-void RegionEventRouter::copyProbeToRegion(){
-	
-}
-void RegionEventRouter::copyRegionToRake(){
-	//Need to find relevant Flowparams, make it update with this region.
-	
-	
-}
-
 
 //Insert values from params into tab panel
 //
@@ -574,7 +557,19 @@ reinitTab(bool doOverride){
 	}
 	if (VizWinMgr::getInstance()->getNumVisualizers() > 1) LocalGlobal->setEnabled(true);
 	else LocalGlobal->setEnabled(false);
-	
+	//Set up the copy combos
+	copyBoxFromCombo->clear();
+	copyBoxToCombo->clear();
+	boxMapping.clear();
+	for (int i = 1; i<= Params::GetNumParamsClasses(); i++){
+		ParamsBase::ParamsBaseType type = i;
+		Params* p = Params::GetDefaultParams(type);
+		if (! p->GetBox()) continue;
+		QString pname = QString(p->getShortName().c_str());
+		copyBoxFromCombo->addItem(pname);
+		copyBoxToCombo->addItem(pname);
+		boxMapping.push_back(i);
+	}
 }
 
 
@@ -734,5 +729,40 @@ adjustExtents(){
 		
 		return;
 	}
+	
+}
+//Make region match probe.  Responds to button in region panel
+void RegionEventRouter::
+guiCopyBox(){
+	confirmText(false);
+	if (!DataStatus::getInstance()->getDataMgr()) return;
+	int viznum = VizWinMgr::getInstance()->getActiveViz();
+	if (viznum <0) return;
+	ParamsBase::ParamsBaseType fromParams = boxMapping[copyBoxFromCombo->currentIndex()];
+	ParamsBase::ParamsBaseType toParams = boxMapping[copyBoxToCombo->currentIndex()];
+	if (toParams == fromParams) {
+	//	MessageReporter::errorMsg("Source and Target of extents copy cannot be the same");
+		return;
+	}
+	
+	Params* pFrom = Params::GetCurrentParamsInstance(fromParams, viznum);
+	Params* pTo = Params::GetCurrentParamsInstance(toParams, viznum);
+	Command* cmd = Command::CaptureStart(pTo, "copy box extents");
+	double toExtents[6], fromExtents[6];
+	pFrom->GetBox()->GetLocalExtents(fromExtents);
+	pTo->GetBox()->GetLocalExtents(toExtents);
+	//Check if the source is 2D;  If the target is not 2D then don't alter its vertical extents
+	if (fromExtents[2] == fromExtents[5] && toExtents[2] != toExtents[5]){
+		fromExtents[2] = toExtents[2];
+		fromExtents[5] = toExtents[5];
+	}
+	//Check if target is 2D, and source is not 2D don't change its extents
+	else if (toExtents[2] == toExtents[5] && fromExtents[2] != fromExtents[5]){
+		fromExtents[2] = toExtents[2];
+		fromExtents[5] = toExtents[5];
+	}
+	pTo->GetBox()->SetLocalExtents(fromExtents, pTo);
+	Command::CaptureEnd(cmd,pTo);
+	
 	
 }

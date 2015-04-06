@@ -101,27 +101,6 @@ public:
 	//! Default does nothing.
 	virtual void updateUrgentTabState() {return;}
 
-	//! Method to change the current instance index, and perform associated undo/redo capture.
-	//! Child classes should use this to respond to instance selection in the instance selector.
-	//! \param[in] int newCurrent specifies new current index
-	virtual void performGuiChangeInstance(int newCurrent);
-
-	//! Method to create a new instance, and perform associated undo/redo capture.
-	//! Child classes should use this to respond to clicks on the "new" instance button.
-	virtual void performGuiNewInstance();
-
-	//! Method to delete the current instance, and perform associated undo/redo capture.
-	//! Child classes should use this to respond to clicks on the "delete" instance selector.
-	virtual void performGuiDeleteInstance();
-
-	//! Method to make a copy of the current instance with the same visualizer, and perform associated undo/redo capture.
-	//! Child classes should use this method to respond to user requests to copy instance to current visualizer.
-	virtual void performGuiCopyInstance();
-
-	//! Method to make a copy of the current instance into another visualizer, and perform associated undo/redo capture.
-	//! Child classes can use this to respond to user requests to copy instance to another visualizer.
-	//! \param[in] int vizwin  Visualizer number of other visualizer
-	virtual void performGuiCopyInstanceToViz(int vizwin);
 
 	//! Set theTextChanged flag.  The flag should be turned on whenever any textbox (affecting the 
 	//! state of the Params) changes in the tab.  The change will not take effect until confirmText() is called.
@@ -129,12 +108,7 @@ public:
 	//! \param[in] bool on : true indicates the flag is set.
 	void guiSetTextChanged(bool on) {textChangedFlag = on;}
 
-	//! Method that must be reimplemented in any EventRouter that is associated with a RenderParams.
-	//! It is invoked whenever the user checks or un-checks the enable checkbox in the instance selector.
-	//! \param[in] bool Turns on (true) or off the instance.
-	//! \param[in] int Instance that is being enabled or disabled.
-	virtual void guiSetEnabled(bool On, int instance, bool undoredo=false  ) {assert(0);}
-
+	
 	//! Method for classes that capture mouse event events (i.e. have manipulators)
 	//! This must be reimplemented to respond when the mouse is released.
 	//! The mouse release event is received by the VizWin instance, which then calls
@@ -183,6 +157,12 @@ public:
 	//! \param[in] bool lg is true for local, false for global.
 	virtual void guiSetLocal(Params* p, bool lg);
 	
+	//! Method that must be reimplemented in any EventRouter that is associated with a RenderParams.
+	//! It is invoked whenever the user checks or un-checks the enable checkbox in the instance selector.
+	//! \param[in] bool Turns on (true) or off the instance.
+	//! \param[in] int Instance that is being enabled or disabled.
+	virtual void guiSetEnabled(bool On, int instance ) {assert(0);}
+
 	//! Method to indicate that a transfer function has changed
 	//! so the tab display must be refreshed.  Only used
 	//! with RenderParams that have a transfer function.
@@ -238,24 +218,6 @@ public slots:
 	bool colorMapShown() {return _colorMapShown;}
 	
 protected:
-	
-	//! Method removes an instance from the instance table of a tab.
-	//! \param[in] winnum visualizer index associated with the instance
-	//! \param[in] instance index of instance to be removed.
-	void removeRendererInstance(int winnum, int instance);
-	//! Method creates a new instance in the instance table of a tab.
-	//! \param[in] winnum visualizer index associated with the in
-	void newRendererInstance(int winnum);
-	//! Method copies an instance from the instance table of a tab
-	//! to the instance table of a tab associated with the same or a different
-	//! visualizer.
-	//! \param[in] toWinnum visualizer index associated with the instance
-	//! \param[in] RenderParams* rParams The current params in the current tab.
-	void copyRendererInstance(int toWinnum, RenderParams* rParams);
-	//! Change the current instance in the instance table.
-	//! \param[in] winnum is visualizer index associated with the tab
-	//! \param[in] newInstance is the new current instance index.
-	void changeRendererInstance(int winnum, int newInstance);
 	
 	//! Method used by tabs which have box sliders.
 	//! Avoids updating of the slider text and other widgets that

@@ -80,6 +80,7 @@ public:
 	void updateRenderer(ViewpointParams* dParams, bool prevEnabled,  int instance, bool newWindow);
 
 protected:
+	virtual void wheelEvent(QWheelEvent*) {}
 	float lastCamPos[3];
 	bool panChanged;
 	Command* savedCommand;

@@ -39,9 +39,6 @@
     <ClCompile Include="..\..\..\apps\vaporgui\guis\eventrouter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\apps\vaporgui\guis\instancetable.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\apps\vaporgui\main\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -70,9 +67,6 @@
       <Filter>Generated MOC Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_boxsliderframe.cpp">
-      <Filter>Generated MOC Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_instancetable.cpp">
       <Filter>Generated MOC Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\apps\vaporgui\moc\moc_mainform.cpp">
@@ -263,9 +257,6 @@
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\boxsliderframe.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\..\apps\vaporgui\guis\instancetable.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\..\apps\vaporgui\guis\regioneventrouter.h">

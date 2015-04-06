@@ -57,6 +57,7 @@ const string Params::_Variables3DTag = "3DVariables";
 const string Params::_VariableNameTag = "VariableName";
 
 
+
 std::map<pair<int,int>,vector<Params*> > Params::paramsInstances;
 std::map<pair<int,int>, int> Params::currentParamsInstance;
 std::map<int, Params*> Params::defaultParamsInstance;

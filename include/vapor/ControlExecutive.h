@@ -181,7 +181,7 @@ public:
 
 	//! Delete a RenderParams instance for a particular visualizer, instance index, and Params type
 	//! The specified instance must previously have been de-activated.
-	//! There must exist more than one instance or this will fail.
+	//! There must exist at least one instance or this will fail.
 	//! All existing Params instances in the same visualizer and with larger instance index will have their
 	//! instance index reduced by one (so as to avoid gaps in instance numbering).
 	//!

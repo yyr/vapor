@@ -28,7 +28,7 @@ namespace VAPoR {
 	//For each extension Params that uses a mouse mode, include a call to RegisterMouseMode in the following:
 	static void InstallExtensionMouseModes(){
 		MouseModeParams::RegisterMouseMode(ArrowParams::_arrowParamsTag,1, "Barb rake", arrowrake );
-		MouseModeParams::RegisterMouseMode(IsolineParams::_isolineParamsTag,3,"Isoline", isoline);
+		MouseModeParams::RegisterMouseMode(IsolineParams::_isolineParamsTag,3,"Contours", isoline);
 	}
 };
 

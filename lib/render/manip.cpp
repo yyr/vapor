@@ -377,7 +377,7 @@ void TranslateStretchManip::render(){
 	//specified region).  If one is selected that line (and both cubes) are given
 	//the highlight color
 	
-	
+	glPushAttrib(GL_CURRENT_BIT);
 	//Now generate each handle and render it.  Order is not important
 	double handleExtents[6];
 	for (int handleNum = 0; handleNum < 6; handleNum++){
@@ -405,6 +405,7 @@ void TranslateStretchManip::render(){
 	}
 	//Then render the full box, unhighlighted and displaced
 	drawBoxFaces();
+	glPopAttrib();
 	
 }
 //Draw the main box, just rendering the lines.
@@ -902,7 +903,7 @@ void TranslateRotateManip::render(){
 	//specified region).  If one is selected that line (and both cubes) are given
 	//the highlight color
 	
-	
+	glPushAttrib(GL_CURRENT_BIT);
 	//Now generate each handle and render it.  Order is not important
 	double handleExtents[6];
 	for (int handleNum = 0; handleNum < 6; handleNum++){
@@ -931,6 +932,7 @@ void TranslateRotateManip::render(){
 	}
 	//Then render the full box, unhighlighted and displaced
 	drawBoxFaces();
+	glPopAttrib();
 	
 }
 void TranslateRotateManip::

@@ -36,15 +36,14 @@ public:
 	//Add a widget (EventRouter) to the QStackedWidget.  Return its index in the stackedWidget
 	static int addWidget(QWidget*, const char* name, string tag);
 	
-	//Change current visualizer
-	void changeViznum(int);
-	//Delete a visualizer
-	static void deleteViznum(int);
 	static void rebuildCombo();
 	
 	static void setCurrentIndex(int indx){
 		stackedWidget->setCurrentIndex(indx);
 	}
+	//Make the tableWidget match the current params
+	void updateTableWidget();
+
 
 private slots:
 	void newRenderer();
@@ -55,23 +54,10 @@ private slots:
 	void copyInstanceTo(int viznum);
 
 private:
-	//For each visualizer must remember full contents of the tableWidget.
-	//It is reconstructed whenever the current visualizer is changed.
-	//The following are mapped from visualizer index to TableWidget information
-	//instanceIndex is the instance index of the particular renderer.
-	//Not visible to user but required for params identification.
-	static std::map<int,std::vector<int> > instanceIndex;
-	//Currentrow indicates which row is selected in the tableWidget for the particular visualizer.
-	//Need to know in case the active visualizer changes
-	static std::map<int, int> currentRow;
-	//instanceName is the name the user provides for the instance.  It need not be unique.
-	static std::map<int, std::vector<string> > instanceName;
-	//renParams is the RenderParams* for the tableWidget entry
-	static std::map<int, std::vector<RenderParams*> > renParams;
+	
 	static RenderHolder* theRenderHolder;
 	//remember the visualizer indices in the dupCombo
 	static vector<int> vizDupNums;
-
 	//Boolean indicates whether will respond to signals
 	bool signalsOn;
 

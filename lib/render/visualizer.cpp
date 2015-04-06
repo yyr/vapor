@@ -614,7 +614,7 @@ void Visualizer::renderDomainFrame(const double* extents, const double* minFull,
 		else numLines[i] = 1;
 	}
 	
-
+	glPushAttrib(GL_CURRENT_BIT);
 	glColor3fv(regionFrameColorFlt);	   
     glLineWidth( 2.0 );
 	//Now draw the lines.  Divide each dimension into numLines[dim] sections.
@@ -686,6 +686,7 @@ void Visualizer::renderDomainFrame(const double* extents, const double* minFull,
 	}
 	
 	glEnd();//GL_LINES
+	glPopAttrib();
 }
 
 

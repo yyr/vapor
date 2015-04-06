@@ -328,6 +328,12 @@ void    XmlNode::AddChild( XmlNode* child)
 	_children.push_back(child);
 	return;
 }
+void    XmlNode::InsertChild( XmlNode* child, int index)
+{
+	child->_parent = this;
+	_children.insert(_children.begin()+index, child);
+	return;
+}
 int XmlNode::ReplaceChild(XmlNode* prevChildNode, XmlNode* newChildNode){
 	for (int index = 0; index < _children.size(); index++){
 		XmlNode *node = _children[index];
@@ -335,6 +341,7 @@ int XmlNode::ReplaceChild(XmlNode* prevChildNode, XmlNode* newChildNode){
 			delete node;
 			_children[index] = newChildNode;
 			newChildNode->_parent = this;
+
 			return index;
 		}
 	}

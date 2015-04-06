@@ -60,13 +60,21 @@ Validate(int type){
 	//Set up the numRefinements. 
 	int maxNumRefinements = ds->getNumTransforms();
 	int numrefs = GetRefinementLevel();
+	
 	if (doOverride) { 
 		numrefs = 0;
+		SetFidelityLevel(0);
+		SetIgnoreFidelity(false);
 	} else {  //Try to use existing values
 		if (numrefs > maxNumRefinements) numrefs = maxNumRefinements;
 		if (numrefs < 0) numrefs = 0;
 	}
 	SetRefinementLevel(numrefs);
+	//Make sure fidelity is valid:
+	int fidelity = GetFidelityLevel();
+	
+	if (dataMgr && fidelity > maxNumRefinements+dataMgr->GetCRatios().size()-1)
+		SetFidelityLevel(maxNumRefinements+dataMgr->GetCRatios().size()-1);
 	//Set up the compression level.  Whether or not override is true, make sure
 	//That the compression level is valid.  If override is true set it to 0;
 	if (doOverride) SetCompressionLevel(0);
@@ -181,6 +189,8 @@ Validate(int type){
 void ArrowParams::restart() {
 	Command::blockCapture();
 	SetVizNum(0);
+	SetFidelityLevel(0);
+	SetIgnoreFidelity(false);
 	SetRefinementLevel(0);
 	SetCompressionLevel(0);
 	
