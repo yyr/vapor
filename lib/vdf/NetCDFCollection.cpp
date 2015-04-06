@@ -609,6 +609,20 @@ bool NetCDFCollection::_GetVariableInfo(
 	string varname, NetCDFSimple::Variable &varinfo
 ) const {
 
+	if (NetCDFCollection::IsDerivedVar(varname)) {
+		NetCDFCollection::DerivedVar *derivedVar;
+		derivedVar = _derivedVarsMap.find(varname)->second;
+
+		vector <string> dimnames = derivedVar->GetSpatialDimNames();
+		if (derivedVar->TimeVarying()) {
+			dimnames.insert(dimnames.begin(), derivedVar->GetTimeDimName());
+		}
+
+		varinfo = NetCDFSimple::Variable(varname, dimnames, 0, NC_FLOAT);
+		return(true);
+	}
+
+
 	map <string,TimeVaryingVar>::const_iterator p = _variableList.find(varname);
 	if (p ==  _variableList.end()) {
 		return(false);
