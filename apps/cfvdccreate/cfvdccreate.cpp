@@ -1,334 +1,91 @@
 #include <iostream>
-#include <cstdio>
-#include <cstring>
+#include <fstream>
+#include <string.h>
 #include <vector>
 #include <sstream>
-#include <cassert>
-#include <algorithm>
+
 #include <vapor/OptionParser.h>
-#include <vapor/NetCDFCFCollection.h>
 #include <vapor/CFuncs.h>
 #include <vapor/VDCNetCDF.h>
+#include <vapor/DCCF.h>
 
-#ifdef WIN32
-#pragma warning(disable : 4996)
-#endif
 using namespace VetsUtil;
 using namespace VAPoR;
 
+
 struct opt_t {
-	vector <string> vars;
+	OptionParser::Dimension3D_T dim;
+	std::vector <size_t> bs;
+    std::vector <size_t> cratios;
+	string wname;
+	int nthreads;
+    std::vector <string> vars;
+	OptionParser::Boolean_T	force;
 	OptionParser::Boolean_T	help;
-	OptionParser::Boolean_T	quiet;
-	OptionParser::Boolean_T	debug;
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
-	{"vars",1,    "",	"Colon delimited list of variables to be copied "
-		"from ncdf data. The default is to copy all 2D and 3D variables"},
+	{
+		"dimension",1, "512x512x512",  "Data volume dimensions expressed in "
+        "grid points (NXxNYxNZ)"
+	},
+	{
+		"bs", 1, "64:64:64",
+		"Internal storage blocking factor expressed in grid points (NX:NY:NZ)"
+	},
+	{
+		"cratios",1, "1:10:100:500", "Colon delimited list compression ratios. "
+		"for 3D variables. The default is 1:10:100:500. The maximum "
+		"compression ratio is wavelet and block size dependent."
+	},
+	{
+		"wname", 1,"bior3.3", "Wavelet family used for compression "
+		"Valid values are bior1.1, bior1.3, "
+		"bior1.5, bior2.2, bior2.4 ,bior2.6, bior2.8, bior3.1, bior3.3, "
+		"bior3.5, bior3.7, bior3.9, bior4.4"
+	},
+	{
+		"nthreads",    1,  "0",    "Specify number of execution threads "
+		"0 => use number of cores"
+	},
+	{
+		"vars",1, "",
+		"Colon delimited list of 3D variable names (compressed) "
+		"to be included in "
+		"the VDC"
+	},
+	{"force",	0,	"",	"Create a new VDC master file even if a VDC data "
+	"directory already exists. Results may be undefined if settings between "
+	"the new master file and old data directory do not match."},
 	{"help",	0,	"",	"Print this message and exit"},
-	{"quiet",	0,	"",	"Operate quietly"},
-	{"debug",	0,	"",	"Turn on debugging"},
 	{NULL}
 };
+
 
 OptionParser::Option_T	get_options[] = {
+	{"dimension", VetsUtil::CvtToDimension3D, &opt.dim, sizeof(opt.dim)},
+	{"bs", VetsUtil::CvtToSize_tVec, &opt.bs, sizeof(opt.bs)},
+	{"cratios", VetsUtil::CvtToSize_tVec, &opt.cratios, sizeof(opt.cratios)},
+	{"wname", VetsUtil::CvtToCPPStr, &opt.wname, sizeof(opt.wname)},
+	{"nthreads", VetsUtil::CvtToInt, &opt.nthreads, sizeof(opt.nthreads)},
 	{"vars", VetsUtil::CvtToStrVec, &opt.vars, sizeof(opt.vars)},
+	{"force", VetsUtil::CvtToBoolean, &opt.force, sizeof(opt.force)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
-	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
-	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{NULL}
 };
 
-const char *ProgName;
-
-void Usage(OptionParser &op, const char * msg) {
-
-	if (msg) {
-		cerr << ProgName << " : " << msg << endl;
-	}
-	cerr << "Usage: " << ProgName << " [options] ncdf_file... vdf_file" << endl;
-	op.PrintOptionHelp(stderr, 80, false);
-
-}
-
-
-//
-// Print a coordinate variable from the VDC
-//
-void print_vdc_cvar(
-	string varname, vector <string> dimnames, string units, int axis, 
-	VDC::XType type, bool compressed, bool uniform
-) {
-	
-	cout << "	Varname : " << varname << endl;
-	cout << "		Dimnames : "; 
-	for (int i=0; i<dimnames.size(); i++) {
-		cout << dimnames[i] << " ";
-	}
-	cout << endl;
-	cout << "		Units: " << units << endl;
-	cout << "		Axis: " << axis << endl;
-	cout << "		XType: " << type << endl;
-	cout << "		Compressed: " << compressed << endl;
-	cout << "		Uniform: " << uniform << endl;
-}
-
-//
-// Print a data varaible from the VDC
-//
-void print_vdc_var(
-	string varname, vector <string> dimnames, vector <string> cvars,
-	string units, 
-	VDC::XType type, bool compressed, bool has_missing, double missing_value
-) {
-	cout << "	Varname : " << varname << endl;
-	cout << "		Dimnames : "; 
-	for (int i=0; i<dimnames.size(); i++) {
-		cout << dimnames[i] << " ";
-	}
-	cout << endl;
-	cout << "		Coordvars : "; 
-	for (int i=0; i<cvars.size(); i++) {
-		cout << cvars[i] << " ";
-	}
-	cout << endl;
-	cout << "		Units: " << units << endl;
-	cout << "		XType: " << type << endl;
-	cout << "		Compressed: " << compressed << endl;
-	cout << "		HasMissing: " << has_missing << endl;
-	cout << "		MissingValue: " << missing_value << endl;
-}
-
-void print_path(const VDC &vdc, const VDC::VarBase *var) {
-
-	int numts = vdc.GetNumTimeSteps(var->GetName());
-	assert (numts >=0);
-	if (numts == 0) numts = 1;	// Not time varying
-	for (int ts=0; ts<numts; ts++) {
-		int n = var->GetCRatios().size();
-		if (n==0) n = 1;
-		for (int lod=0; lod<n; lod++) {
-			string  path;
-			size_t file_ts;
-			vdc.GetPath(var->GetName(), ts, lod, path, file_ts);
-			cout << "		Path: " << path << endl;
-		}
-	}
-}
-
-//
-// Generate a list of variable names to copy from NetCDF to VDC
-//
-void get_var_names(
-	const NetCDFCFCollection &cf, vector <string> clvarnames,
-	vector <string> &vars1d, vector <string> &vars2d, vector <string> &vars3d
-) {
-	vars1d.clear();
-	vars2d.clear();
-	vars3d.clear();
-
-	if (clvarnames.size()) {
-		for (int i=0; i<clvarnames.size(); i++) {
-			if (cf.GetSpatialDims(clvarnames[i]).size() == 1) {
-				vars1d.push_back(clvarnames[i]);
-			}
-			else if (cf.GetSpatialDims(clvarnames[i]).size() == 2) {
-				vars2d.push_back(clvarnames[i]);
-			}
-			else if (cf.GetSpatialDims(clvarnames[i]).size() == 3) {
-				vars3d.push_back(clvarnames[i]);
-			}
-			else {
-				MyBase::SetErrMsg(
-					"Invalid variable name : %s", clvarnames[i].c_str()
-				);
-				exit(1);
-			}
-		}
-	}
-	else {
-		vars1d = cf.GetDataVariableNames(1, true); 
-		vars2d = cf.GetDataVariableNames(2, true); 
-		vars3d = cf.GetDataVariableNames(3, true); 
-	}
-}
-
-
-//
-// Copy variable 'varname's attributes from cf to vdc
-//
-void copy_attributes(const NetCDFCFCollection &cf, VDC &vdc, string varname) {
-
-	vector <string> atts;
-	atts = cf.GetAttNames(varname);
-	for (int i=0; i<atts.size(); i++) {
-		int type = cf.GetAttType(varname, atts[i]);
-		if (NetCDFSimple::IsNCTypeInt(type)) {
-			vector <long> vec;
-			cf.GetAtt(varname,atts[i], vec);
-			vdc.PutAtt(varname,atts[i], VDC::INT64,vec);
-		}
-		else if (NetCDFSimple::IsNCTypeFloat(type)) {
-			vector <double> vec;
-			cf.GetAtt(varname,atts[i], vec);
-			vdc.PutAtt(varname,atts[i], VDC::DOUBLE,vec);
-		}
-		else if (NetCDFSimple::IsNCTypeText(type)) {
-			string s;
-			cf.GetAtt(varname,atts[i], s);
-			vdc.PutAtt(varname,atts[i], VDC::TEXT,s);
-		}
-	}
-}
-
-//
-// Define dimensions in VDC from NetCDF files. The dimensions are
-// determined by looking at a list of coordinate variables from the
-// NetCDF files.
-//
-void define_dimensions(
-	const NetCDFCFCollection &cf, VDC &vdc, 
-	vector <string> cvars, int axis
-) {
-	size_t dimlen;
-
-	for (int i=0; i<cvars.size(); i++) {
-
-		// Only define dimensions for 1D coordinate variables
-		//
-		if (! cf.IsCoordVarCF(cvars[i])) continue;
- 
-		if (axis == 3) {	// time axis has different interface
-			dimlen = cf.GetNumTimeSteps(cvars[i]);
-		}
-		else {
-			vector <size_t> dimlens;
-			dimlens = cf.GetDims(cvars[i]);
-
-			// VDC and NetCDF have different dimension orderings
-			//
-			std::reverse(dimlens.begin(), dimlens.end());
-			assert(dimlens.size() == 1);	// guaranteed to be 1D
-			dimlen = dimlens[0];
-		}
-		vdc.DefineDimension(cvars[i], dimlen, axis);
-	}
-}
-
-//
-// Define coordinate variables using definitions from NetCDF
-//
-void define_coord_variables(
-	const NetCDFCFCollection &cf, VDC &vdc, 
-	vector <string> cvars, int axis
-) {
-	vector <string> dimnames;
-	string units;
-
-	for (int i=0; i<cvars.size(); i++) {
-
-		if (axis == 3) {
-			string time_dim = cf.GetTimeDimName(cvars[i]);
-			dimnames.clear();
-			dimnames.push_back(time_dim);
-		}
-		else {
-			dimnames = cf.GetDimNames(cvars[i]);
-		}
-		std::reverse(dimnames.begin(), dimnames.end());
-		cf.GetVarUnits(cvars[i], units);
-		vdc.DefineCoordVar(
-			cvars[i], dimnames, units, axis, VDC::FLOAT, false
-		);
-
-		//
-		// copy all coordinate variable attributes
-		//
-		copy_attributes(cf, vdc, cvars[i]);
-	}
-}
-
-//
-// Define data variables using definitions from NetCDF
-//
-void define_data_variables(
-	const NetCDFCFCollection &cf, VDC &vdc, 
-	vector <string> vars, bool compress
-) {
-	double missing_value;
-
-	vector <string> cvars;
-	vector <string> dimnames;
-	string units;
-
-	for (int i=0; i<vars.size(); i++) {
-
-		dimnames = cf.GetDimNames(vars[i]);
-
-		// 
-		// Ugh. Need to reverse order of dimensions: NetCDF convention
-		// is slowest to fastest, while VAPOR (VDC) is fastest to slowest
-		//
-		std::reverse(dimnames.begin(), dimnames.end());
-		cf.GetVarCoordVarNames(vars[i], cvars);
-		std::reverse(cvars.begin(), cvars.end());
-		cf.GetVarUnits(vars[i], units);
-		if (cf.GetMissingValue(vars[i], missing_value)) {
-			vdc.DefineDataVar(
-				vars[i], dimnames, cvars, units, VDC::FLOAT, compress, 
-				missing_value
-			);
-		}
-		else {
-			vdc.DefineDataVar(
-				vars[i], dimnames, cvars, units, VDC::FLOAT, compress
-			);
-		}
-		copy_attributes(cf, vdc, vars[i]);
-	}
-}
-
-void print_attributes(const VDC &vdc, string varname, string prefix) {
-
-	vector <string> atts = vdc.GetAttNames(varname);
-
-	for (int i=0; i<atts.size(); i++) {
-		int type = vdc.GetAttType(varname, atts[i]);
-		cout << prefix << varname << ":" << atts[i] << " = ";
-		if (type == VDC::INT32 || type == VDC::INT64) {
-			vector <long> vec;
-			vdc.GetAtt(varname,atts[i], vec);
-			for (int i=0; i<vec.size(); i++) {
-				cout << vec[i] << " ";
-			}
-			cout << endl;
-		}
-		else if (type == VDC::FLOAT || type == VDC::DOUBLE) {
-			vector <double> vec;
-			vdc.GetAtt(varname,atts[i], vec);
-			for (int i=0; i<vec.size(); i++) {
-				cout << vec[i] << " ";
-			}
-			cout << endl;
-		}
-		else if (type == VDC::TEXT) {
-			string s;
-			vdc.GetAtt(varname,atts[i], s);
-			cout << s << endl;
-		}
-	}
-}
+string ProgName;
 
 int	main(int argc, char **argv) {
 
-    MyBase::SetErrMsgFilePtr(stderr);
-
 	OptionParser op;
 
-	string s;
-
+	MyBase::SetErrMsgFilePtr(stderr);
+	//
+	// Parse command line arguments
+	//
 	ProgName = Basename(argv[0]);
+
 
 	if (op.AppendOptions(set_opts) < 0) {
 		exit(1);
@@ -337,163 +94,182 @@ int	main(int argc, char **argv) {
 	if (op.ParseOptions(&argc, argv, get_options) < 0) {
 		exit(1);
 	}
-	if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
+
+	if (argc < 3) {
+		cerr << "Usage: " << ProgName << "wrffiles... master.nc" << endl;
+		op.PrintOptionHelp(stderr, 80, false);
+		exit(1);
+	}
+	
 
 	if (opt.help) {
-		Usage(op, NULL);
+		cerr << "Usage: " << ProgName << " master.nc" << endl;
+		op.PrintOptionHelp(stderr, 80, false);
 		exit(0);
 	}
 
-
-	argv++;
 	argc--;
+	argv++;
+	vector <string> wrffiles;
+	for (int i=0; i<argc-1; i++) wrffiles.push_back(argv[i]);
+	string master = argv[argc-1];
 
-	if (argc < 2) {
-		Usage(op, "No files to process");
+	VDCNetCDF    vdc(opt.nthreads);
+
+	if (vdc.DataDirExists(master) && !opt.force) {
+		MyBase::SetErrMsg(
+			"Data directory exists and -force option not used. "
+			"Remove directory %s or use -force", vdc.GetDataDir(master).c_str()
+		);
 		exit(1);
 	}
 
-	vector<string> ncdffiles;
-	for (int i=0; i<argc-1; i++) {
-		 ncdffiles.push_back(argv[i]);
+	size_t chunksize = 1024*1024*4;
+	int rc = vdc.Initialize(master, VDC::W, chunksize);
+	if (rc<0) exit(1);
+
+	DCCF	dcwrf;
+	rc = dcwrf.Initialize(wrffiles);
+	if (rc<0) {
+		exit(1);
 	}
 
-	string vdc_master = argv[argc-1];
-	
-	NetCDFCFCollection cf;
-	int rc = cf.Initialize(ncdffiles);
-	if (rc<0) exit(1);
+	vector <string> dimnames = dcwrf.GetDimensionNames();
+	for (int i=0; i<dimnames.size(); i++) {
+		DC::Dimension dim;
+		dcwrf.GetDimension(dimnames[i], dim);
+		rc = vdc.DefineDimension(dim.GetName(), dim.GetLength(), dim.GetAxis());
+		if (rc<0) {
+			exit(1);
+		}
+	}
 
-	VDCNetCDF vdc;
-	rc = vdc.Initialize(vdc_master, VDC::W);
-	if (rc<0) exit(1);
+	// Make the default block dimension 64 for any missing dimensions
+	//
+	vector <size_t> bs = opt.bs;
+	for (int i=bs.size(); i<3; i++) bs.push_back(64);
 
 	//
-	// copy global attributes
-	//
-	copy_attributes(cf, vdc, "");
-
-	//
-	// Define dimension names and implicity define 1d coord vars
-	//
-	vector <string> cvars;
-	cvars = cf.GetLonCoordVars();
-	define_dimensions(cf, vdc, cvars, 0);
-
-	cvars = cf.GetLatCoordVars();
-	define_dimensions(cf, vdc, cvars, 1);
-
-	cvars = cf.GetVertCoordVars();
-	define_dimensions(cf, vdc, cvars, 2);
-
-	cvars = cf.GetTimeCoordVars();
-	define_dimensions(cf, vdc, cvars, 3);
-
-
-	// 
 	// Define coordinate variables
 	//
-	// N.B. VDC::DefineDimension() implicitly defines 1D "CF" coordinate
-	// variables, but we redefine them here to get units correct
-	//
-	cvars = cf.GetLonCoordVars();
-	define_coord_variables(cf, vdc, cvars, 0);
+	for (int d=0; d<4; d++) {
+		vector <string> coordnames = dcwrf.DC::GetCoordVarNames(d, true);
 
-	cvars = cf.GetLatCoordVars();
-	define_coord_variables(cf, vdc, cvars, 1);
 
-	cvars = cf.GetVertCoordVars();
-	define_coord_variables(cf, vdc, cvars, 2);
+		//
+		// Time coordinate and 1D coordinates are not blocked
+		//
+		vector <size_t> mybs;
+		if (d < 2) {
+			mybs.clear();
+		}
+		else {
+			mybs = opt.bs;
+		}
 
-	cvars = cf.GetTimeCoordVars();
-	define_coord_variables(cf, vdc, cvars, 3);
+		vector <size_t> cratios(1,1);
 
+		rc = vdc.SetCompressionBlock(mybs, opt.wname, cratios);
+		if (rc<0) exit(1);
+
+		for (int i=0; i<coordnames.size(); i++) {
+cout << d << " " << coordnames[i] << endl;
+			DC::CoordVar cvar;
+			dcwrf.GetCoordVarInfo(coordnames[i], cvar);
+
+			vector <DC::Dimension> dims = cvar.GetDimensions();
+			vector <string> dimnames;
+			for (int j=0; j<dims.size(); j++) {
+				dimnames.push_back(dims[j].GetName());
+			}
+	
+			if (cvar.GetUniform()) {
+				rc = vdc.DefineCoordVarUniform(
+					cvar.GetName(), dimnames, cvar.GetUnits(), 
+					cvar.GetAxis(), cvar.GetXType(), false
+				);
+			}
+			else {
+				rc = vdc.DefineCoordVar(
+					cvar.GetName(), dimnames, cvar.GetUnits(), 
+					cvar.GetAxis(), cvar.GetXType(), false
+				);
+			}
+
+			if (rc<0) {
+				exit(1);
+			}
+		}
+	}
 
 	//
 	// Define data variables
 	//
+	for (int d=0; d<4; d++) {
+		vector <string> datanames = dcwrf.DC::GetDataVarNames(d, true);
 
-	vector <string> vars1d;
-	vector <string> vars2d;
-	vector <string> vars3d;
-	get_var_names(cf, opt.vars, vars1d, vars2d, vars3d);
+		//
+		// Time coordinate and 1D coordinates are not blocked
+		//
+		string mywname;
+		vector <size_t> mybs;
+		bool compress;
+		if (d < 2) {
+			mywname.clear();
+			mybs.clear();
+			compress = false;
+		}
+		else {
+			mywname = opt.wname;
+			mybs = opt.bs;
+			compress = true;
+		}
 
-	define_data_variables(cf, vdc, vars1d, false);
-	define_data_variables(cf, vdc, vars2d, true);
-	define_data_variables(cf, vdc, vars3d, true);
+		// Try to compute "reasonable" 1D & 2D compression ratios from 3D
+		// compression ratios
+		//
+		vector <size_t> cratios = opt.cratios;
+		for (int i=0; i<cratios.size(); i++) {
+			size_t c = (size_t) pow(
+				(double) cratios[i], (double) ((float) d / 3.0)
+			);
+			cratios[i] = c;
+		}
 
-	vdc.EndDefine();
+		rc = vdc.SetCompressionBlock(mybs, mywname, cratios);
+		if (rc<0) exit(1);
 
+		for (int i=0; i<datanames.size(); i++) {
+			DC::DataVar dvar;
+			dcwrf.GetDataVarInfo(datanames[i], dvar);
 
+			vector <DC::Dimension> dims = dvar.GetDimensions();
+			vector <string> dimnames;
+			for (int i=0; i<dims.size(); i++) {
+				dimnames.push_back(dims[i].GetName());
+			}
 
-	//
-	// At this point the VDC contains all metadata definitions. 
-	// Next we print out the VDC contents
-	//
-
-	
-	cout << "Dimensions:" << endl;
-	vector <string> dimnames;
-	dimnames = vdc.GetDimensionNames();
-	for (int i=0; i<dimnames.size(); i++) {
-		size_t len;
-		int axis;
-		vdc.GetDimension(dimnames[i], -1, len, axis);
+			vector <string> coordvars = dvar.GetCoordvars();
 		
-		cout << "	";
-		cout << dimnames[i] << ": " << len << " (" << axis << ")" << endl;
-	}
+			rc = vdc.DefineDataVar(
+				dvar.GetName(), dimnames, coordvars, dvar.GetUnits(), 
+				dvar.GetXType(), compress
+			);
 
+			if (rc<0) {
+				exit(1);
+			}
+		}
+	}
 	
-	int axis;
-	bool compressed;
-	bool uniform;
-	VDC::XType type;
-	string units;
-	cout << "Coordinate vars:\n";
-	for (int d=1; d<4; d++) {
-		cvars = vdc.GetCoordVarNames(d, true);
-		for (int i=0; i<cvars.size(); i++) {
-			vdc.GetCoordVar(
-				cvars[i], dimnames, units, axis, type, compressed, uniform
-			);
-			print_vdc_cvar(
-				cvars[i], dimnames, units, axis,  type, compressed, uniform
-			);
-			VDC::CoordVar cvar;
-			vdc.GetCoordVar(cvars[i], cvar);
-			print_path(vdc, &cvar);
-			cout << endl;
-			print_attributes(vdc, cvars[i], "		");
-		}
+	rc = vdc.EndDefine();
+	if (rc<0) {
+		MyBase::SetErrMsg(
+			"Failed to write VDC master file : %s", master.c_str()
+		);
+		exit(1);
 	}
-
-	cout << "Data vars:\n";
-	for (int d=1; d<5; d++) {
-		vector <string> vars;
-		vars = vdc.GetDataVarNames(d, true);
-		for (int i=0; i<vars.size(); i++) {
-			bool has_missing;
-			double missing_value;
-
-			vdc.GetDataVar(
-				vars[i], dimnames, cvars, units, type, compressed,
-				has_missing, missing_value
-			);
-			print_vdc_var(
-				vars[i], dimnames, cvars, units, type,  compressed, 
-				has_missing, missing_value
-			);
-			VDC::DataVar dvar;
-			vdc.GetDataVar(vars[i], dvar);
-			print_path(vdc, &dvar);
-			cout << endl;
-			print_attributes(vdc, vars[i], "		");
-		}
-	}
-
-	cout << "Global attributes:\n";
-	print_attributes(vdc, "", "	");
 
 	exit(0);
+
 }

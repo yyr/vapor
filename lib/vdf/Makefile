@@ -22,7 +22,7 @@ FILES = \
 	DCReaderNCDF  DCReaderMOM DCReaderROMS DCReaderGRIB VDCFactory \
 	DataMgrROMS DataMgrMOM DCReaderWRF UDUnitsClass Copy2VDF vdfcreate \
 	WrfVDCcreator WrfVDFcreator  Proj4API DC VDC VDCNetCDF NetCDFCpp WASP \
-	DCWRF DataMgrV3_0 
+	DCWRF DCCF DataMgrV3_0 
 	
 
 HEADER_FILES = \
@@ -44,7 +44,7 @@ HEADER_FILES = \
 	DCReader DCReaderNCDF DCReaderMOM DCReaderROMS DCReaderGRIB VDCFactory \
 	DataMgrROMS DataMgrMOM DCReaderWRF UDUnitsClass Copy2VDF vdfcreate \
 	WrfVDCcreator WrfVDFcreator  Proj4API DC VDC VDCNetCDF NetCDFCpp WASP \
-	DataMgrV3_0  DCWRF
+	DataMgrV3_0  DCWRF DCCF
 
 LIBRARIES += grib_api
 

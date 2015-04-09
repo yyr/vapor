@@ -225,7 +225,7 @@ public:
  //! coordinate variables in the coordinates attribute."
  //!
  //! \param[in] varname A variable name
- //! \param[out] cvars A unodered vector of coordinate variable names
+ //! \param[out] cvars A ordered vector of coordinate variable names
  //!
  //! \retval status a negative int is returned if the number of 
  //! elements in \p cvars does not match the number of spatio-temporal
@@ -351,6 +351,57 @@ public:
  //! \sa InstallStandardVerticalConverter()
  //
  virtual void UninstallStandardVerticalConverter(string cvar) ;
+
+ //! This method defines a converter for time coordinates 
+ //!
+ //! This method can be used to create a derived time coordinate variable 
+ //! containing with units specified by \p units from a native
+ //! time coordinate variable. The native coordinate variable must contain
+ //! a \b units attribute that is recognized by UDUnits as a time
+ //! specification.
+ //!
+ //! \param[in] cvar A dimensionless variable  with a \c units
+ //! attribute
+ //! \param[in] newvar The name of the new derived variable
+ //! \param[in] units The length units of the new variable
+ //!
+ //! \retval status a non-negative int is returned on success
+ //!
+ //! \sa UninstallStandardTimeConverter()
+ //!
+ virtual int InstallStandardTimeConverter(
+	string cvar, string newvar, string units = "seconds"
+ );
+
+ //! Remove the converter for a previously defined dimensionless
+ //! time coordinate converter
+ //!
+ //! \param[in] cvar The name of a derived variable previousl defined with
+ //! InstallStandardTimeConverter()
+ //!
+ //! \sa InstallStandardTimeConverter()
+ //
+ virtual void UninstallStandardTimeConverter(string cvar) ;
+
+ //! Install a derived coordinate variable
+ //!
+ //! This method can be used to create a derived coordinate variable.
+ //! 
+ //! \param[in] varname A unique name for the new variable
+ //! \param[in] derivedVar A pointer to a NetCDFCollection::DerivedVar
+ //! instance
+ //! \param[in] axis An integer indicating the coordinate axis that the
+ //! coordinate variable coresponds to. 0 implies the X axis, 1 the Y axis
+ //! 2 the Z axis, and 3 is time.
+ //!
+ //! \sa NetCDFCollectin::InstallDerivedVar()
+ //
+ void InstallDerivedCoordVar(string varname, DerivedVar *derivedVar, int axis);
+
+ //! \copydoc NetCDFCollection::RemoveDerivedVar()
+ //!
+ void RemoveDerivedVar(string varname);
+
 
 
  //! Get a map projection as a proj4 string
@@ -538,6 +589,39 @@ public:
 
  private:
   string _zvar;
+ };
+
+ class DerivedVarTime : public NetCDFCollection::DerivedVar {
+ public:
+  DerivedVarTime(
+	NetCDFCFCollection *ncdfcf,
+	string native_var, string native_units, string derived_units
+  );
+  virtual ~DerivedVarTime();
+
+  virtual int Open(size_t ts);
+  virtual int ReadSlice(float *slice, int);
+  virtual int Read(float *buf, int);
+  virtual int SeekSlice(int offset, int whence, int fd);
+  virtual int Close(int) {return(0); };
+  virtual bool TimeVarying() const {return(true); };
+  virtual std::vector <size_t>  GetSpatialDims() const { return(_dims); }
+  virtual std::vector <string>  GetSpatialDimNames() const { return(_dimnames); }
+  virtual size_t  GetTimeDim() const { return(_timedim); }
+  virtual string  GetTimeDimName() const { return(_timedimname); };
+  virtual bool GetMissingValue(double &mv) const {mv=0.0; return(false); }
+
+ private:
+  string _native_var;
+  string _native_units;
+  string _derived_units;
+  std::vector <size_t> _dims;
+  std::vector <string> _dimnames;
+  size_t _timedim;
+  string _timedimname;
+  bool _first;
+  size_t _ts;
+  double *_timecoords;
  };
 
  std::map <string, DerivedVar *> _derivedVarsMap;

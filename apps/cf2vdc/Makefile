@@ -2,10 +2,8 @@ TOP = ../..
 
 include ${TOP}/make/config/prebase.mk
 
-PROGRAM = cfvdccreate
-FILES = cfvdccreate
-
-#LIB_DEFS = vdf.def
+PROGRAM = cf2vdc
+FILES = cf2vdc
 
 LIBRARIES = vdf proj common $(NETCDF_LIBS) udunits2 expat
 

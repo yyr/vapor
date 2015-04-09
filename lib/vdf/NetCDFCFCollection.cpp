@@ -579,7 +579,9 @@ int NetCDFCFCollection::InstallStandardVerticalConverter(
 	//
 	NetCDFCFCollection::UninstallStandardVerticalConverter(newvar);
 
-	NetCDFCollection::InstallDerivedVar(newvar, derived_var);
+	NetCDFCFCollection::InstallDerivedCoordVar(newvar, derived_var, 2);
+
+	_derivedVarsMap[newvar] = derived_var;
 	
 
 	return(0);
@@ -587,15 +589,120 @@ int NetCDFCFCollection::InstallStandardVerticalConverter(
 
 void NetCDFCFCollection::UninstallStandardVerticalConverter(string cvar)  {
 
-	if (! NetCDFCollection::IsDerivedVar(cvar)) return;
+	std::map <string,DerivedVar *>::iterator itr = _derivedVarsMap.find(cvar);
+	if (itr != _derivedVarsMap.end()) {
+		NetCDFCFCollection::RemoveDerivedVar(cvar);
+		delete itr->second;
+		_derivedVarsMap.erase(itr);
+	}
+}
+
+int NetCDFCFCollection::InstallStandardTimeConverter(
+	string cvar, string newvar, string units
+) {
+	if (! NetCDFCFCollection::IsTimeCoordVar(cvar)) {
+		SetErrMsg("Variable %s not a time coordinate variable",cvar.c_str());
+		return(-1);
+	}
+
+    NetCDFSimple::Variable varinfo;
+    (void) NetCDFCollection::GetVariableInfo(cvar, varinfo);
+
+    string native_units;
+    varinfo.GetAtt("units", native_units);
+	if (native_units.empty()) {
+		SetErrMsg("Variable %s missing units attribute",cvar.c_str());
+		return(-1);
+	}
+
+	NetCDFCollection::DerivedVar *derived_var;
+	derived_var = new DerivedVarTime(
+		this, cvar, native_units, units
+	);
+
+	// Uninstall any previous instance
+	//
+	NetCDFCFCollection::UninstallStandardTimeConverter(newvar);
+
+	NetCDFCFCollection::InstallDerivedCoordVar(newvar, derived_var, 3);
+
+	_derivedVarsMap[newvar] = derived_var;
+
+	return(0);
+}
+
+void NetCDFCFCollection::UninstallStandardTimeConverter(string cvar)  {
 
 	std::map <string,DerivedVar *>::iterator itr = _derivedVarsMap.find(cvar);
 	if (itr != _derivedVarsMap.end()) {
-		NetCDFCollection::RemoveDerivedVar(cvar);
+		NetCDFCFCollection::RemoveDerivedVar(cvar);
 		delete itr->second;
+		_derivedVarsMap.erase(itr);
+	}
+}
+
+void NetCDFCFCollection::InstallDerivedCoordVar(
+	string varname, DerivedVar *derivedVar, int axis
+) {
+	NetCDFCollection::InstallDerivedVar(varname, derivedVar);
+
+	vector <string> dims = derivedVar->GetSpatialDimNames();
+	if (derivedVar->TimeVarying()) {
+		dims.insert(dims.begin(), derivedVar->GetTimeDimName());
 	}
 
-	NetCDFCollection::RemoveDerivedVar(cvar);
+	// Is the derived variable a CF "coordinate variable" or an "auxilliary
+	// coordinate" variable?
+	//
+	if (dims.size()==1 && dims[0]==varname) {
+		_coordinateVars.push_back(varname);
+	}
+	else {
+		_auxCoordinateVars.push_back(varname);
+	}
+
+	switch (axis) {
+	case 0:
+		_lonCoordVars.push_back(varname);
+	break;
+	case 1:
+		_latCoordVars.push_back(varname);
+	break;
+	case 2:
+		_vertCoordVars.push_back(varname);
+	break;
+	case 3:
+		_timeCoordVars.push_back(varname);
+	break;
+	default:
+	break;
+	}
+
+}
+
+void NetCDFCFCollection::RemoveDerivedVar(string varname) {
+
+	NetCDFCollection::RemoveDerivedVar(varname);
+
+	vector <string>::iterator itr;
+
+	itr=find(_lonCoordVars.begin(), _lonCoordVars.end(), varname);
+	if (itr != _lonCoordVars.end()) _lonCoordVars.erase(itr);
+
+	itr=find(_latCoordVars.begin(), _latCoordVars.end(), varname);
+	if (itr != _latCoordVars.end()) _latCoordVars.erase(itr);
+
+	itr=find(_vertCoordVars.begin(), _vertCoordVars.end(), varname);
+	if (itr != _vertCoordVars.end()) _vertCoordVars.erase(itr);
+
+	itr=find(_timeCoordVars.begin(), _timeCoordVars.end(), varname);
+	if (itr != _timeCoordVars.end()) _timeCoordVars.erase(itr);
+
+	itr=find(_auxCoordinateVars.begin(), _auxCoordinateVars.end(), varname);
+	if (itr != _auxCoordinateVars.end()) _auxCoordinateVars.erase(itr);
+
+	itr=find(_coordinateVars.begin(), _coordinateVars.end(), varname);
+	if (itr != _coordinateVars.end()) _coordinateVars.erase(itr);
 }
 
 bool NetCDFCFCollection::GetMapProjectionProj4(
@@ -1889,4 +1996,78 @@ int NetCDFCFCollection::DerivedVar_noop::SeekSlice(
 	int offset, int whence, int  fd
 ) {
 	return(_ncdfc->SeekSlice(offset, whence, fd));
+}
+
+NetCDFCFCollection::DerivedVarTime::DerivedVarTime(
+	NetCDFCFCollection *ncdfcf, 
+	string native_var, string native_units, string derived_units
+) : DerivedVar(ncdfcf) {
+
+	_native_var = native_var;
+	_native_units = native_units;
+	_derived_units = derived_units;
+	_dims.clear();
+	_dimnames.clear();
+	_first = true;
+	_ts = 0;
+
+	_timedim = _ncdfc->GetTimeDim(native_var);
+	_timedimname = _ncdfc->GetTimeDim(native_var);
+
+	_timecoords = new double[_timedim];
+
+}
+
+NetCDFCFCollection::DerivedVarTime::~DerivedVarTime() {
+	if (_timecoords) delete [] _timecoords;
+}
+
+
+int NetCDFCFCollection::DerivedVarTime::Open(size_t ts) {
+
+	_ts = ts;
+	if (! _first) return(0);	// Only open once
+
+	vector <double> timesvec;
+	int rc = _ncdfc->GetTimes(_native_var, timesvec);
+	if (rc < 0) return(-1);
+
+	assert(timesvec.size() == _timedim);
+	for (int i=0; i<timesvec.size(); i++) {
+		_timecoords[i] = timesvec[i];
+	}
+
+	// Convert to desired units
+	//
+	NetCDFCFCollection *ncdfc = (NetCDFCFCollection *) _ncdfc;
+	rc = ncdfc->Convert(
+		_native_units, _derived_units, _timecoords, 
+		_timecoords, _timedim
+	);
+    if (rc<0) return(-1);
+		
+	_first = false;
+	return(0);
+}
+
+int NetCDFCFCollection::DerivedVarTime::Read(
+	float *buf, int
+) {
+	if (! _first) return(-1);
+	*buf = _timecoords[_ts];
+	return(0);
+}
+
+int NetCDFCFCollection::DerivedVarTime::ReadSlice(
+	float *slice, int 
+) {
+	if (! _first) return(-1);
+	*slice = _timecoords[_ts];
+	return(1);
+}
+
+int NetCDFCFCollection::DerivedVarTime::SeekSlice(
+	int offset, int whence, int 
+) {
+	return(0);
 }

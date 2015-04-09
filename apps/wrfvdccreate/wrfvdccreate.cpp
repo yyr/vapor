@@ -179,8 +179,8 @@ cout << d << " " << coordnames[i] << endl;
 
 			vector <DC::Dimension> dims = cvar.GetDimensions();
 			vector <string> dimnames;
-			for (int i=0; i<dims.size(); i++) {
-				dimnames.push_back(dims[i].GetName());
+			for (int j=0; j<dims.size(); j++) {
+				dimnames.push_back(dims[j].GetName());
 			}
 	
 			if (cvar.GetUniform()) {

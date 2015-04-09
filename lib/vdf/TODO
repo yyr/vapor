@@ -89,3 +89,30 @@ WASP
 
 integer wavelet transforms - haar and cdf5/3.
 Use int haar for missing value mask
+
+DCCF
+----
+
+Interpolate structured to regular grid (using weithtable)
+Initialize, if called multipe times, doesn't clean up. Probably true elsewhere.
+
+GetAtt*() are no-ops
+
+derived, cartographic coordinates (e.g. lonX) are not blocked. However, 
+the geographic coordinates (e.g. lon) are.
+
+DCWRF
+----
+
+GetAtt*() are no-ops
+
+
+ALL
+---
+ReadSlice should work with 1D data
+
+NetCDFCollection
+----------------
+
+DerivedVar::Open returns a file descriptor which is passed into Read(), and
+Close(). However, most implementations igore the fd. Is it needed?
