@@ -80,6 +80,9 @@ const unsigned char* TwoDRenderer::getTwoDTexture(
 //Draw an elevation grid (surface) inside the current region extents.
 //Texture is already specified
 void TwoDRenderer::drawElevationGrid(size_t timeStep){
+	
+	glEnable(GL_ALPHA_TEST);
+	
 	//If the twoD is dirty, or the timestep has changed, must rebuild.
 	TwoDParams* tParams = (TwoDParams*)currentRenderParams;
 	//First, check if we have already constructed the elevation grid vertices.
@@ -281,7 +284,7 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 	glMatrixMode(GL_MODELVIEW);
 	glDisable(GL_BLEND);
 	glDisable(GL_TEXTURE_2D);
-	
+	glDisable(GL_ALPHA_TEST);
 
 	printOpenGLError();
 }
