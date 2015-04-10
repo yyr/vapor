@@ -848,6 +848,8 @@ private:
  //
  std::map<int, NetCDFCollection::fileHandle> _ovr_table;
 
+ void ReInitialize();
+
  int _InitializeTimesMap(
     const std::vector <string> &files, 
 	const std::vector <string> &time_dimnames,

@@ -20,10 +20,13 @@ NetCDFCollection::NetCDFCollection() {
 	_ovr_table.clear();
 	_ncdfmap.clear();
 	_failedVars.clear();
-
-
 }
+
 NetCDFCollection::~NetCDFCollection() {
+	ReInitialize();
+}
+
+void NetCDFCollection::ReInitialize() {
 
 	map <string, NetCDFSimple *>::iterator itr;
 	for (itr = _ncdfmap.begin(); itr != _ncdfmap.end(); ++itr) {
@@ -35,28 +38,26 @@ NetCDFCollection::~NetCDFCollection() {
 		int fd = itr1->first;
 		(void) NetCDFCollection::Close(fd);
 	}
+
+	_variableList.clear();
+	_staggeredDims.clear();
+	_dimNames.clear();
+	_dimLens.clear();
+	_missingValAttName.clear();
+	_times.clear();
+	_timesMap.clear();
+	_ovr_table.clear();
+	_ncdfmap.clear();
+	_failedVars.clear();
 }
+
 
 int NetCDFCollection::Initialize(
 	const vector <string> &files, const vector <string> &time_dimnames, 
 	const vector <string> &time_coordvars
 ) {
-	std::map <int, fileHandle>::iterator itr1;
-	for (itr1 = _ovr_table.begin(); itr1 != _ovr_table.end(); ++itr1) {
-		int fd = itr1->first;
-		(void) NetCDFCollection::Close(fd);
-	}
 	
-	_variableList.clear();
-	_times.clear();
-	_timesMap.clear();
-	_failedVars.clear();
-
-	map <string, NetCDFSimple *>::iterator itr;
-	for (itr = _ncdfmap.begin(); itr != _ncdfmap.end(); ++itr) {
-		delete itr->second;
-	}
-	_ncdfmap.clear();
+	ReInitialize();
 
 	//
 	// Build a hash table to map a variable's time dimension

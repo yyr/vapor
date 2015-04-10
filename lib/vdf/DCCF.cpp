@@ -606,7 +606,7 @@ int DCCF::_InitHorizontalCoordinatesDerived(
 			return(-1);
 		}
 		reverse(londimnames.begin(), londimnames.end());	// DC order
-		reverse(londimnames.begin(), londimnames.end());	// DC order
+		reverse(latdimnames.begin(), latdimnames.end());	// DC order
 
 		vector <DC::Dimension> londims;
 		for (int j=0; j<londimnames.size(); j++) {
@@ -766,6 +766,7 @@ int DCCF::_InitVerticalCoordinatesDerived(
 		NetCDFSimple::Variable varinfo;
 		(void) ncdfc->GetVariableInfo(cvars[i], varinfo);
 
+#ifdef	DEAD
 		string standard_name;
 		varinfo.GetAtt("standard_name", standard_name);
 		if (standard_name.empty()) continue;
@@ -773,6 +774,7 @@ int DCCF::_InitVerticalCoordinatesDerived(
 		string formula_terms;
 		varinfo.GetAtt("formula_terms", formula_terms);
 		if (formula_terms.empty()) continue;
+#endif
 
 		string name = cvars[i] + "Z";
 		int rc = ncdfc->InstallStandardVerticalConverter(
@@ -1010,7 +1012,7 @@ int DCCF::_InitDimensions(
 	//
 	int axis;
 	for (int i=0; i<dimnames.size(); i++) {
-		if (! ncdfc->IsCoordVarCF(dimnames[i])) continue;
+		//if (! ncdfc->IsCoordVarCF(dimnames[i])) continue;
 
 		if (ncdfc->IsLonCoordVar(dimnames[i])) {
 			axis = 0;
@@ -1023,6 +1025,17 @@ int DCCF::_InitDimensions(
 		}
 		else if (ncdfc->IsTimeCoordVar(dimnames[i])) {
 			axis = 3;
+		}
+
+		// Ugh. POP files don't adhere to CF convention and define
+		// coordinate variables for each lat/lon dimension. However,
+		// they do appear to name the lat and lon dimensions consistently
+		//
+		else if (dimnames[i] == "nlon") {
+			axis = 0;
+		}
+		else if (dimnames[i] == "nlat") {
+			axis = 1;
 		}
 		else {
 			continue;	// should this be a error condition?
@@ -1152,9 +1165,20 @@ cout << "Var i " << i << " " << vars[i] << endl;
 			units = "";
 		} 
 
-		_dataVarsMap[vars[i]] = DataVar(
-			vars[i], dimensions, units, DC::FLOAT, periodic, coordvars
-		);
+		double mv;
+		bool has_missing = ncdfc->GetMissingValue(vars[i], mv);
+
+		if (! has_missing) {
+			_dataVarsMap[vars[i]] = DataVar(
+				vars[i], dimensions, units, DC::FLOAT, periodic, coordvars
+			);
+		}
+		else {
+			_dataVarsMap[vars[i]] = DataVar(
+				vars[i], dimensions, units, DC::FLOAT, periodic, coordvars,
+				mv
+			);
+		}
 	}
 
 	return(0);
@@ -1255,6 +1279,7 @@ int DCCF::DerivedVarHorizontal::Open(size_t ts) {
 		}
 		_latfd = fd;
 	}
+	_is_open = true;
 	
 	return(0);
 }

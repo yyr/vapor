@@ -1255,7 +1255,7 @@ protected:
  ) const;
 
  bool _valid_mask_var(
-	string varname, const vector <DC::Dimension> &dimensions,
+	string varname, vector <DC::Dimension> dimensions,
 	vector <size_t> bs, bool compressed, string maskvar
  ) const;
 

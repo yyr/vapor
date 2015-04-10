@@ -133,7 +133,7 @@ int CopyVar0d1d(
 		sz *= mydims[i].GetLength();
 	}
 
-	float *buf = (float *) dataBuffer.Alloc(sz);
+	float *buf = (float *) dataBuffer.Alloc(sz * sizeof(*buf));
 
 	int rc = dc.GetVar(ts, varname, -1, -1, buf);
 	if (rc<0) {

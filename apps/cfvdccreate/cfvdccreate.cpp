@@ -76,6 +76,110 @@ OptionParser::Option_T	get_options[] = {
 
 string ProgName;
 
+void maskvar(
+	vector <DC::Dimension> dims,
+	string &name,
+	vector <string> &dimnames
+) {
+	name.clear();
+	dimnames.clear();
+
+	assert(dims.size() >= 1);
+
+	// Assume missing values aren't time varying
+	//
+	if (dims[dims.size()-1].GetAxis() == 3) dims.pop_back();
+
+	assert(dims.size() >= 1);
+
+	name = "mask";
+	for(int i=0; i<dims.size(); i++) {
+		dimnames.push_back(dims[i].GetName());
+		name += "_" + dims[i].GetName();
+	}
+}
+	 
+
+void	DefineMaskVars(
+	const DCCF	&dcwrf,
+	VDCNetCDF    &vdc
+) {
+
+	// Find all coordinate combinations for data with missing values
+	//
+	vector <pair <string, vector<string> > > dimpairs;
+	for (int d=1; d<4; d++) {
+		vector <string> datanames = dcwrf.DC::GetDataVarNames(d, true);
+
+		for (int i=0; i<datanames.size(); i++) {
+
+			DC::DataVar dvar;
+			dcwrf.GetDataVarInfo(datanames[i], dvar);
+
+			// skip if no missing value defined for this variable
+			//
+			if (! dvar.GetHasMissing()) continue;
+
+			vector <DC::Dimension> dims = dvar.GetDimensions();
+
+			vector <string> dimnames;
+			string maskvar_name;
+
+			maskvar(dims, maskvar_name, dimnames);
+			
+			pair <string, vector <string> > p1 = make_pair(
+				maskvar_name, dimnames
+			);
+
+			dimpairs.push_back(p1);
+		}
+	}
+    sort(dimpairs.begin(), dimpairs.end());
+	vector <pair <string, vector<string> > >::iterator last;
+    last = unique(dimpairs.begin(), dimpairs.end());
+    dimpairs.erase(last, dimpairs.end());
+
+
+	for (int i=0; i<dimpairs.size(); i++) {
+		string maskvar = dimpairs[i].first;
+		vector <string>  dimnames = dimpairs[i].second;
+
+		//
+		// 1D coordinates are not blocked
+		//
+		string mywname;
+		vector <size_t> mybs;
+		bool compress;
+		if (dimnames.size() < 2) {
+			mywname.clear();
+			mybs.clear();
+			compress = false;
+		}
+		else {
+			mywname = "haar";
+			mybs = opt.bs;
+			compress = true;
+		}
+
+		// Try to compute "reasonable" 1D & 2D compression ratios from 3D
+		// compression ratios
+		//
+		vector <size_t> cratios(1,1);
+
+		int rc = vdc.SetCompressionBlock(mybs, mywname, cratios);
+		if (rc<0) exit(1);
+
+
+		rc = vdc.DefineDataVar(
+			maskvar, dimnames, dimnames, "", DC::FLOAT, true
+		);
+
+		if (rc<0) {
+			exit(1);
+		}
+	}
+}
+
 int	main(int argc, char **argv) {
 
 	OptionParser op;
@@ -134,6 +238,7 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
+
 	vector <string> dimnames = dcwrf.GetDimensionNames();
 	for (int i=0; i<dimnames.size(); i++) {
 		DC::Dimension dim;
@@ -143,6 +248,7 @@ int	main(int argc, char **argv) {
 			exit(1);
 		}
 	}
+
 
 	// Make the default block dimension 64 for any missing dimensions
 	//
@@ -202,6 +308,8 @@ cout << d << " " << coordnames[i] << endl;
 		}
 	}
 
+	DefineMaskVars(dcwrf, vdc);
+
 	//
 	// Define data variables
 	//
@@ -250,11 +358,24 @@ cout << d << " " << coordnames[i] << endl;
 			}
 
 			vector <string> coordvars = dvar.GetCoordvars();
+
+			if (! dvar.GetHasMissing()) {
 		
-			rc = vdc.DefineDataVar(
-				dvar.GetName(), dimnames, coordvars, dvar.GetUnits(), 
-				dvar.GetXType(), compress
-			);
+				rc = vdc.DefineDataVar(
+					dvar.GetName(), dimnames, coordvars, dvar.GetUnits(), 
+					dvar.GetXType(), compress
+				);
+			}
+			else {
+				vector <string> dummy;
+				string maskvar_name;
+				maskvar(dims, maskvar_name, dummy);
+
+				rc = vdc.DefineDataVar(
+					dvar.GetName(), dimnames, coordvars, dvar.GetUnits(), 
+					dvar.GetXType(), compress, maskvar_name
+				);
+			}
 
 			if (rc<0) {
 				exit(1);

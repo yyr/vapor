@@ -279,6 +279,13 @@ public:
 	double *dst,
 	size_t n
  ) const;
+ virtual int Convert(
+	const string from,
+	const string to,
+	const float *src,
+	float *dst,
+	size_t n
+ ) const;
 
 
  //! Return the missing value, if any, for a variable
@@ -559,7 +566,7 @@ public:
  public:
   DerivedVar_noop(
 	NetCDFCFCollection *ncdfcf, 
-	const std::map <string, string> &formula_map
+	const std::map <string, string> &formula_map, string units
   );
   virtual ~DerivedVar_noop() {}
 
@@ -589,6 +596,8 @@ public:
 
  private:
   string _zvar;
+  string _native_units;
+  string _derived_units;
  };
 
  class DerivedVarTime : public NetCDFCollection::DerivedVar {

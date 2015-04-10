@@ -1198,7 +1198,7 @@ bool VDC::_valid_blocking(
 }
 	
 bool VDC::_valid_mask_var(
-	string varname, const vector <DC::Dimension> &dimensions,
+	string varname, vector <DC::Dimension> dimensions,
 	vector <size_t> bs, bool compressed, string maskvar
 ) const {
 
@@ -1209,28 +1209,25 @@ bool VDC::_valid_mask_var(
 	}
 	const DataVar &mvar = itr->second;
 
-	// Data and mask variable must have same blocking along
-	// each axis
-	//
-	vector <string> maskvars(1,maskvar);
-	if (! _valid_blocking(dimensions, maskvars, bs)) {
-		SetErrMsg("Data and mask variables must have same blocking");
-		return(false);
-	}
 
 	// Fastest varying data variable dimensions must match mask
 	// variable dimensions
 	//
 	vector <DC::Dimension> cdimensions = mvar.GetDimensions();
-	if (cdimensions.size() > dimensions.size()) {
+	while (dimensions.size() > cdimensions.size()) dimensions.pop_back();
+	while (bs.size() > cdimensions.size()) bs.pop_back();
+
+	if (dimensions.size() != cdimensions.size()) {
 		SetErrMsg("Data variable and mask variable dimensions must match");
 		return(false);
 	}
-	for (int i=0; i<cdimensions.size(); i++) {
-		if (cdimensions[i] != dimensions[i]) {
-			SetErrMsg("Data variable and mask variable dimensions must match");
-			return(false);
-		}
+
+	// Data and mask variable must have same blocking along
+	// each axis
+	//
+	if (! _valid_blocking(dimensions, mvar.GetCoordvars(), bs)) {
+		SetErrMsg("Data and mask variables must have same blocking");
+		return(false);
 	}
 
 	if (compressed) {

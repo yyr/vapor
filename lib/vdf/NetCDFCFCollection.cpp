@@ -440,6 +440,20 @@ int NetCDFCFCollection::Convert(
 	}
 	return(0);
 }
+int NetCDFCFCollection::Convert(
+    const string from, const string to, const float *src, float *dst, size_t n
+) const {
+	bool status = _udunit->Convert(from, to, src, dst, n);
+
+	if (! status) {
+		SetErrMsg(
+			"NetCDFCFCollection::Convert(%s , %s,,) : failed",
+			from.c_str(), to.c_str()
+		);
+		return(-1);
+	}
+	return(0);
+}
 
 bool NetCDFCFCollection::GetMissingValue(string varname, double &mv) const {
     map <string, double>::const_iterator itr;
@@ -538,6 +552,9 @@ int NetCDFCFCollection::InstallStandardVerticalConverter(
     string formula_terms;
     varinfo.GetAtt("formula_terms", formula_terms);
 
+    string native_units;
+    varinfo.GetAtt("units", native_units);
+
 	map <string, string> terms_map;
 	int rc = _parse_formula(formula_terms, terms_map);
 	if (rc<0) return(-1);
@@ -559,7 +576,10 @@ int NetCDFCFCollection::InstallStandardVerticalConverter(
 			this, terms_map
 		);
 	}
-	else if ((standard_name.compare("altitude") == 0) || (standard_name.compare("model_level_number") == 0)) {	// noop
+	else if (
+		(standard_name.compare("altitude") == 0) || 
+		(standard_name.compare("model_level_number") == 0) ||
+		(_udunit->IsLengthUnit(units))) {	// noop
 
 		// The "altitude" representation is already in units of distance
 		// Setting up a bogus formula allows use to use the 
@@ -568,7 +588,7 @@ int NetCDFCFCollection::InstallStandardVerticalConverter(
 		terms_map.clear();
 		terms_map["z"] = cvar;
 
-		derived_var = new DerivedVar_noop(this, terms_map);
+		derived_var = new DerivedVar_noop(this, terms_map, units);
 	}
 	else {
 		SetErrMsg("Standard formula \"%s\" not supported",standard_name.c_str());
@@ -1960,10 +1980,12 @@ int NetCDFCFCollection::DerivedVar_AHSPC::SeekSlice(
 
 NetCDFCFCollection::DerivedVar_noop::DerivedVar_noop(
 	NetCDFCFCollection *ncdfcf, 
-	const std::map <string, string> &formula_map
+	const std::map <string, string> &formula_map, string units
 ) : DerivedVar(ncdfcf) {
 
 	_zvar.clear();
+	_native_units.clear() ;
+	_derived_units = units;
 
     map <string, string>::const_iterator itr;
     itr = formula_map.find("z");
@@ -1973,9 +1995,18 @@ NetCDFCFCollection::DerivedVar_noop::DerivedVar_noop(
 
 int NetCDFCFCollection::DerivedVar_noop::Open(size_t ts) {
 
-	if (_zvar.empty()) return(-1);
+	if (_zvar.empty() || (GetSpatialDims().size() != 1)) { 
+		SetErrMsg("Invalid state");
+		return(-1);
+	}
 
-	int fd = _ncdfc->OpenRead(ts, _zvar); if (fd<0) return(-1);
+	NetCDFCFCollection *ncdfc = (NetCDFCFCollection *) _ncdfc;
+
+	int rc = ncdfc->GetVarUnits(_zvar, _native_units);
+	if (rc<0) return(-1);
+
+	int fd = _ncdfc->OpenRead(ts, _zvar); 
+	if (fd<0) return(-1);
 
 	return(fd);
 }
@@ -1983,19 +2014,28 @@ int NetCDFCFCollection::DerivedVar_noop::Open(size_t ts) {
 int NetCDFCFCollection::DerivedVar_noop::Read(
 	float *buf, int fd
 ) {
-	return(_ncdfc->Read(buf, fd));
+	int rc =_ncdfc->Read(buf, fd);
+
+	size_t n = GetSpatialDims()[0];
+
+	NetCDFCFCollection *ncdfc = (NetCDFCFCollection *) _ncdfc;
+
+	rc = ncdfc->Convert(
+		_native_units, _derived_units, buf, buf, n
+	);
+    if (rc<0) return(-1);
 }
 
 int NetCDFCFCollection::DerivedVar_noop::ReadSlice(
 	float *slice, int fd
 ) {
-	return(_ncdfc->ReadSlice(slice, fd));
+	return(Read(slice, fd));
 }
 
 int NetCDFCFCollection::DerivedVar_noop::SeekSlice(
 	int offset, int whence, int  fd
 ) {
-	return(_ncdfc->SeekSlice(offset, whence, fd));
+	return(0);
 }
 
 NetCDFCFCollection::DerivedVarTime::DerivedVarTime(
@@ -2053,7 +2093,7 @@ int NetCDFCFCollection::DerivedVarTime::Open(size_t ts) {
 int NetCDFCFCollection::DerivedVarTime::Read(
 	float *buf, int
 ) {
-	if (! _first) return(-1);
+	if (_first) return(-1);
 	*buf = _timecoords[_ts];
 	return(0);
 }
@@ -2061,7 +2101,7 @@ int NetCDFCFCollection::DerivedVarTime::Read(
 int NetCDFCFCollection::DerivedVarTime::ReadSlice(
 	float *slice, int 
 ) {
-	if (! _first) return(-1);
+	if (_first) return(-1);
 	*slice = _timecoords[_ts];
 	return(1);
 }
