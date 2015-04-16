@@ -274,7 +274,7 @@ int Visualizer::paintEvent(bool force)
 	glClearColor(0.f, 0.0f, 0.0f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	DataStatus *dataStatus = DataStatus::getInstance();
-	DataMgr* dataMgr = dataStatus->getDataMgr();
+	DataMgrV3_0* dataMgr = dataStatus->getDataMgr();
 	if (!dataMgr) {
 		return 0;
 	}

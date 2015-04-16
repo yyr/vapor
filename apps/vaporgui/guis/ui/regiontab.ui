@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>418</width>
-    <height>871</height>
+    <height>1017</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -46,18 +46,88 @@ are defined in the active visualizer,
 are specified in the flow and in
 the probe panels).</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_3">
-   <property name="spacing">
-    <number>2</number>
-   </property>
-   <property name="leftMargin">
-    <number>2</number>
-   </property>
-   <property name="rightMargin">
-    <number>2</number>
-   </property>
+  <layout class="QHBoxLayout" name="horizontalLayout_4">
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout_5">
+    <layout class="QVBoxLayout" name="verticalLayout_6">
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <widget class="QLabel" name="label_3">
+         <property name="whatsThis">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The full data domain is specified by selecting one or more variables and clicking the &amp;quot;Reset Domain&amp;quot; button.  The domain will be the smallest axis-aligned box that contains the extents of all the selected variables. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Domain-defining variable(s)</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QListWidget" name="domainVariableList">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>100</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Click or (ctl-click) to select the domain-defining variables</string>
+           </property>
+           <property name="whatsThis">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The full data domain is specified by selecting one or more variables and clicking the &amp;quot;Reset Domain&amp;quot; button.  The domain will be the smallest axis-aligned box that contains the extents of all the selected variables. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="resetDomainButton">
+           <property name="toolTip">
+            <string>Click to set the current domain to the extents of the selected variables</string>
+           </property>
+           <property name="whatsThis">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The full data domain is specified by selecting one or more variables and clicking the &amp;quot;Reset Domain&amp;quot; button.  The domain will be the smallest axis-aligned box that contains the extents of all the selected variables. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string>Reset Domain</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <spacer name="spacer191_4_3">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Expanding</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>13</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
      <item>
       <layout class="QHBoxLayout">
        <item>
@@ -148,17 +218,14 @@ share the same region settings.</string>
       </layout>
      </item>
      <item>
-      <spacer name="spacer191_4_3">
+      <spacer name="verticalSpacer_3">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Expanding</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
          <width>20</width>
-         <height>13</height>
+         <height>10</height>
         </size>
        </property>
       </spacer>

@@ -25,7 +25,7 @@
 #include <string>
 #include <map>
 #include <vapor/common.h>
-#include <vapor/DataMgr.h>
+#include <vapor/DataMgrV3_0.h>
 #include <vapor/MetadataVDC.h>
 #include "regionparams.h" 
 
@@ -59,12 +59,13 @@ public:
 
 	//! Obtain the full extents of the current data in local coordinates.
 	//! Values in this array are in the order: minx, miny, minz, maxx, maxy, maxz.
+	//! By definition, the first three are zero.
 	//! \retval const double[6] extents array
-	const double* getLocalExtents() { return extents; }
+	static const double* getLocalExtents() { return extents; }
 	//! Obtain the full extents of the current data in user coordinates.
 	//! Values in this array are in the order: minx, miny, minz, maxx, maxy, maxz.
 	//! \retval const double[6] extents array
-	const double* getFullSizes() {return fullSizes;}
+	static const double* getFullSizes() {return fullSizes;}
 	//! Obtain the full extents of the current data in stretched user coordinates.
 	//! Values in this array are in the order: minx, miny, minz, maxx, maxy, maxz.
 	//! \retval const double[6] extents array
@@ -72,42 +73,28 @@ public:
 	//! Obtain the full extents of the current data in stretched local coordinates.
 	//! Values in this array are in the order: minx, miny, minz, maxx, maxy, maxz.
 	//! \retval const double[6] extents array
-	const double* getStretchedLocalExtents() {return stretchedExtents;}
+	static const double* getStretchedLocalExtents() {return stretchedExtents;}
 
 
 	//! Returns the minimum time step for which there is any data.
 	//! \retval size_t value of smallest time step
-	size_t getMinTimestep() {return minTimeStep;}
+	static size_t getMinTimestep() {return minTimeStep;}
 
 	//! Returns the maximum time step for which there is any data.
 	//! \retval size_t value of largest time step
-	size_t getMaxTimestep() {return maxTimeStep;}
+	static size_t getMaxTimestep() {return maxTimeStep;}
 
-	//! Indicates whether any variable exists at a particular timestep.
-	//! \param[in] int timestep Time step
-	//! \retval true if the data exists
-	//! \note Currently always returns true
-	bool dataIsPresent(int timestep) {return true;}
 
 	//! Indicates the number of time steps in the current VDC.
 	//! \retval int number of timesteps
-	int getNumTimesteps() {return numTimesteps;}
-
-	//! Indicates the number of refinement levels in the VDC.
-	//! \retval int number of refinement levels
-	int getNumTransforms() {return numTransforms;}
-
-	//! Indicates the number of compression levels in the VDC.
-	//! \retval int number ofcompressionlevels
-	int getNumLODs() {return numLODs;}
-	 
-	int getNumActiveVariables3D() {return dataMgr->GetVariables3D().size();}
-	int getNumActiveVariables2D() {return dataMgr->GetVariables2DXY().size();}
-	int getNumActiveVariables() {return getNumActiveVariables3D()+getNumActiveVariables2D();}
-	int getActiveVarNum3D(string vname) {return getVarNum3D(vname);}
-	int getActiveVarNum2D(string vname) {return getVarNum2D(vname);}
-	int getVarNum3D(string vname);
-	int getVarNum2D(string vname);
+	static int getNumTimesteps() {return numTimesteps;}
+	static int getActiveVarNum(int dim, string varname);
+	static double getVoxelSize(size_t timestep, string varname, int refLevel, int dir);
+		
+	static int getNumActiveVariables3D() {return dataMgr->GetDataVarNames(3,true).size();}
+	static int getNumActiveVariables2D() {return dataMgr->GetDataVarNames(2,true).size();}
+	static int getNumActiveVariables() {return getNumActiveVariables3D()+getNumActiveVariables2D();}
+	
 	float getDefaultDataMax(string vname);
 	float getDefaultDataMin(string vname);
 	float getDefaultLODFidelity2D(){return defaultLODFidelity2D;}
@@ -128,16 +115,14 @@ public:
 	
 	void mapBoxToVox(Box* box, int refLevel, int lod, int timestep, size_t voxExts[6]);
 
-	float getVoxelSize(int numrefinements, int dir){
-		size_t dim[3];
-		dataMgr->GetDim(dim,numrefinements);
-		return fullStretchedSizes[dir]/dim[dir];
-	}
-	
+	//! Obtain the time-varying extents, based on the domain-defining variables.
+	//! Return 0 on success.
+	static int GetExtents(size_t timestep, vector<double>& minExts, vector<double>& maxExts);
+
 	//! Returns the current data manager (if it exists).
 	//! Returns null if it does not exist.
 	//! \retval DataMgr* pointer to current Data Manager
-	DataMgr* getDataMgr() {return dataMgr;}
+	static DataMgrV3_0* getDataMgr() {return dataMgr;}
 
 	// Utility methods for dealing with extents and stretching
 
@@ -147,12 +132,12 @@ public:
 
 	//! Stretch a 3-vector
 	//! \param[in/out] vector<double> coords[3]
-	void stretchCoords(vector<double> coords){
+	static void stretchCoords(vector<double> coords){
 		for (int i = 0; i<3; i++) coords[i] = coords[i]*stretchFactors[i];
 	}
 	//! Stretch a 3-vector
 	//! \param[in/out] float coords[3]
-	void stretchCoords(double coords[3]){
+	static void stretchCoords(double coords[3]){
 		for (int i = 0; i<3; i++) coords[i] = coords[i]*stretchFactors[i];
 	}
 	//! Find the max domain extent in stretched coords
@@ -161,12 +146,15 @@ public:
 		return (Max(fullStretchedSizes[0],Max(fullStretchedSizes[1],fullStretchedSizes[2])));
 	}
 	static void localToStretchedCube(const double fromCoords[3], double toCoords[3]);
-	int maxXFormPresent(string varname, size_t timestep);
-	int maxLODPresent(string varname, size_t timestep);
+	static int maxXFormPresent(string varname, size_t timestep);
+	static int maxLODPresent(string varname, size_t timestep);
 	//! Method indicates if user requests using lower accuracy, when specified LOD or refinement is not available.
 	//! \retval bool true if lower accuracy is requested.
 	static bool useLowerAccuracy() {return doUseLowerAccuracy;}
 	static void setUseLowerAccuracy(bool val){doUseLowerAccuracy = val;}
+	static bool dataIsPresent(int timestep);
+	static int mapVoxToUser(size_t timestep, string varname, const size_t vcoords[3], double uCoords[3], int reflevel);
+	static void mapUserToVox(size_t timestep, string varname, const double uCoords[3], size_t vCoords[3], int reflevel);
 	
 #ifndef DOXYGEN_SKIP_THIS
 	DataStatus();
@@ -174,7 +162,7 @@ public:
 
 	//Reset the datastatus when a new datamgr is opened.
 	//This avoids all "Set" methods:
-	bool reset(DataMgr* dm, size_t cachesize);
+	bool reset(DataMgrV3_0* dm, size_t cachesize);
 	
 	//Update based on current stretch factor:
 	void stretchExtents(double factor[3]){
@@ -195,25 +183,24 @@ private:
 	static const vector<string> emptyVec;
 	static const string _emptyString;
 	
-	DataMgr* dataMgr;
+	static DataMgrV3_0* dataMgr;
 	
 	//specify the minimum and max time step that actually have data:
-	size_t minTimeStep;
-	size_t maxTimeStep;
-	int numTransforms;
-	int numLODs;
-	//numTimeSteps may include lots of times that are not used. 
-	int numTimesteps;
+	static size_t minTimeStep;
+	static size_t maxTimeStep;
 
-	size_t fullDataSize[3];
+	//numTimeSteps may include lots of times that are not used. 
+	static int numTimesteps;
+
+	
 	float defaultRefFidelity2D;
 	float defaultRefFidelity3D;
 	float defaultLODFidelity2D;
 	float defaultLODFidelity3D;
-	double extents[6];
-	double stretchedExtents[6];
+	static double extents[6];
+	static double stretchedExtents[6];
 	static double stretchFactors[3];
-	double fullSizes[3];
+	static double fullSizes[3];
 	static double fullStretchedSizes[3];
 	//Cache size in megabytes
 	static size_t cacheMB;

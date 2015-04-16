@@ -31,7 +31,7 @@
 
 #include <vapor/ImpExp.h>
 #include <vapor/MyBase.h>
-#include <vapor/DataMgr.h>
+#include <vapor/DataMgrV3_0.h>
 #include <vapor/Version.h>
 #include <vapor/Proj4API.h>
 #include <vapor/errorcodes.h>
@@ -40,7 +40,7 @@ using namespace VAPoR;
 using namespace VetsUtil;
 #include <vapor/common.h>
 
-//This is a singleton class, but it's created by the Session.
+//This is a singleton class
 //Following are static, must persist even when there is no instance:
 DataStatus* DataStatus::theDataStatus = 0;
 const std::string DataStatus::_emptyString = "";
@@ -48,6 +48,13 @@ const vector<string> DataStatus::emptyVec;
 double DataStatus::stretchFactors[3];
 double DataStatus::fullStretchedSizes[3];
 bool DataStatus::doUseLowerAccuracy = false;
+double DataStatus::extents[6];
+double DataStatus::stretchedExtents[6];
+double DataStatus::fullSizes[3];
+size_t DataStatus::minTimeStep;
+size_t DataStatus::maxTimeStep;
+int DataStatus::numTimesteps;
+DataMgrV3_0* DataStatus::dataMgr;
 
 size_t DataStatus::cacheMB = 0;
 
@@ -65,8 +72,7 @@ DataStatus()
 	minTimeStep = 0;
 	maxTimeStep = 0;
 	numTimesteps = 0;
-	numTransforms = 0;
-	numLODs = 0;
+	
 	defaultRefFidelity2D = 4.f;
 	defaultRefFidelity3D = 4.f;
 	defaultLODFidelity2D = 2.f;
@@ -78,7 +84,6 @@ DataStatus()
 		extents[i+3] = 1.f;
 		stretchedExtents[i+3] = 1.f;
 		stretchFactors[i] = 1.f;
-		fullDataSize[i] = 64;
 		fullStretchedSizes[i] = 1.f;
 	}
 	
@@ -93,85 +98,89 @@ DataStatus()
 // If there are python scripts use their output variables.
 // If the python scripts inputs are not in the DataMgr, remove the input variables.  
 // 
+// Set the extents based on the domainVariables in the Region 
 bool DataStatus::
-reset(DataMgr* dm, size_t cachesize){
+reset(DataMgrV3_0* dm, size_t cachesize){
 	cacheMB = cachesize;
 	
 	dataMgr = dm;
-	unsigned int numTS = (unsigned int)dataMgr->GetNumTimeSteps();
-	if (numTS == 0) return false;
-	
-	assert (numTS >= getNumTimesteps());  //We should always be increasing this
-	numTimesteps = numTS;
 	if (!dm) return false;
-	std::vector<double> mdExtents = dataMgr->GetExtents(0);
+	vector<double>timecoords;
+	dataMgr->GetTimeCoordinates(timecoords);
+	size_t numTS = timecoords.size();
+	if (numTS == 0) return false;
+	numTimesteps = numTS;
+	
+	//Find the first and last time for which there is data:
+	vector<string> varnames = dataMgr->GetDataVarNames();
+	int mints = -1;
+	int maxts = -1;
+	for (size_t i = 0; i<numTS; i++){
+		for (int j = 0; j<varnames.size(); j++){
+			if (!dataMgr->VariableExists(i, varnames[j])) continue;
+			mints = i;
+			break;
+		}
+		if (mints >= 0) break;
+	}
+	for (size_t i = numTS-1; i>=0; i--){
+		for (int j = 0; j<varnames.size(); j++){
+			if (!dataMgr->VariableExists(i, varnames[j])) continue;
+			maxts = i;
+			break;
+		}
+		if (maxts >= 0) break;
+	}
+	if (mints < 0 || maxts < 0) return false;
+	minTimeStep = mints;
+	maxTimeStep = maxts;
+	//Determine the domain extents.  Obtain them from RegionParams, but
+	//if they are not available, find the first variable in the VDC
+	vector<string> domainVars = RegionParams::GetDomainVariables();
+	//Determine the range of time steps for which there is data.
+
+	size_t firstTimeStep = getMinTimestep();
+	
+	
+	bool getDomainVars = true;
+	if (domainVars.size() > 0) {
+		//see if a variable exists at the first time.  If so use the domainVars.  Otherwise find another
+		getDomainVars = false;
+		for (int j = 0; j<domainVars.size(); j++){
+			if (dataMgr->VariableExists(firstTimeStep, domainVars[j])){
+				getDomainVars = true;
+				break;
+			}
+		}
+	}
+	if (getDomainVars){
+		//Use the first variable that has data at the first time step.
+		domainVars.clear();
+		vector<string>varnames = dataMgr->GetDataVarNames(3,true);
+		for (int j = 0; j< varnames.size(); j++){
+			string varname = varnames[j];
+			if (dataMgr->VariableExists(firstTimeStep, varname)){
+				domainVars.push_back(varname);
+				RegionParams::SetDomainVariables(domainVars);
+				getDomainVars = false;
+				break;
+			}
+		}
+	}
+	//Now use the domain vars to calculate extents. They will be the union of all the extents of the domain-defining variables:
+	vector<double>minVarExts, maxVarExts;
+	if (0!= GetExtents(firstTimeStep, minVarExts, maxVarExts)) return false;
+		
 	for (int i = 0; i< 3; i++) {
-		extents[i+3] = (mdExtents[i+3]-mdExtents[i]);
+		extents[i+3] = (maxVarExts[i]-minVarExts[i]);
 		extents[i] = 0.;
-		fullSizes[i] = (mdExtents[i+3] - mdExtents[i]);
+		fullSizes[i] =(maxVarExts[i]-minVarExts[i]);
 		fullStretchedSizes[i] = fullSizes[i]*stretchFactors[i];
 		stretchedExtents[i] = extents[i]*stretchFactors[i];
 		stretchedExtents[i+3] = extents[i+3]*stretchFactors[i];
 	}
 
-	
-	
-	//clean out the various status arrays:
-
-	
-	int num3dVars = dataMgr->GetVariables3D().size();
-	
-	
-
-
-	numTransforms = dataMgr->GetNumTransforms();
-	numLODs = dataMgr->GetCRatios().size();
-	
-	dataMgr->GetDim(fullDataSize, -1);
-		
-
-	//go through the variables and timesteps, determine min and max times for any data to exist.
-	int mints = -1;
-	int maxts = -1;
-	bool someDataOverall = false;
-	const vector<string> vnames =  dataMgr->GetVariableNames();
-	for (int i = 0; i< numTimesteps; i++){
-		for (int j = 0; j< vnames.size(); j++){
-			const char* vname = vnames[j].c_str();
-			if (dataMgr->VariableExists((size_t)i,vname)) {
-				mints = i;
-				someDataOverall = true;
-				break;
-			}
-		}
-		if (mints >= 0) break;
-	}
-	for (int i = numTimesteps-1; i>= 0; i--){
-		
-		for (int j = 0; j< vnames.size(); j++){
-			const char* vname = vnames[j].c_str();
-			if (dataMgr->VariableExists((size_t)i,vname)) {
-				maxts = i;
-				someDataOverall = true;
-				break;
-			}
-		}
-		if (maxts >= 0) break;
-	}
-	
-	
-	
-	
-	
-    if (mints == -1) mints = 0;
-	if (maxts == -1) maxts = 0;
-	
-	
-
-	minTimeStep = (size_t)mints;
-	maxTimeStep = (size_t)maxts;
-	
-	return someDataOverall;
+	return true;
 }
 
 
@@ -187,8 +196,9 @@ float
 DataStatus::getDefaultDataMax(string vname){
 	float range[2];
 	float dmax = 1.f;
-	if (dataMgr->VariableExists(minTimeStep, vname.c_str())){
-		dataMgr->GetDataRange(minTimeStep, vname.c_str(),range);
+	if (dataMgr->VariableExists(minTimeStep, vname)){
+		RegularGrid* rGrid = dataMgr->GetVariable(minTimeStep, vname ,0,0);
+		rGrid->GetRange(range);
 		dmax = range[1];
 	}
 	return dmax;
@@ -196,36 +206,24 @@ DataStatus::getDefaultDataMax(string vname){
 float
 DataStatus::getDefaultDataMin(string vname){
 	float range[2];
-	float dmin = 0.f;
-	if (dataMgr->VariableExists(minTimeStep, vname.c_str())){
-		dataMgr->GetDataRange(minTimeStep, vname.c_str(),range);
-		dmin = range[0];
+	float dmax = 1.f;
+	if (dataMgr->VariableExists(minTimeStep, vname)){
+		RegularGrid* rGrid = dataMgr->GetVariable(minTimeStep,vname, 0,0);
+		rGrid->GetRange(range);
+		dmax = range[1];
 	}
-	return dmin;
+	return dmax;
 }
 
-int DataStatus::getVarNum2D(string var){
-	for (int i = 0; i< dataMgr->GetVariables2DXY().size(); i++){
-		if (dataMgr->GetVariables2DXY()[i] == var)
-			return i;
-	}
-	return -1;
-}
-int DataStatus::getVarNum3D(string var){
-	for (int i = 0; i< dataMgr->GetVariables3D().size(); i++){
-		if (dataMgr->GetVariables3D()[i] == var)
-			return i;
-	}
-	return -1;
-}
+
 //Map corners of box to voxels.  
 void DataStatus::mapBoxToVox(Box* box, int refLevel, int lod, int timestep, size_t voxExts[6]){
 	double userExts[6];
 	box->GetUserExtents(userExts,(size_t)timestep);
 	
 	//calculate new values for voxExts (Note: this can be expensive with layered data)
-	dataMgr->MapUserToVox((size_t)timestep,userExts,voxExts, refLevel,lod);
-	dataMgr->MapUserToVox((size_t)timestep,userExts+3,voxExts+3, refLevel,lod);
+//??	dataMgr->MapUserToVox((size_t)timestep,userExts,voxExts, refLevel,lod);
+//??	dataMgr->MapUserToVox((size_t)timestep,userExts+3,voxExts+3, refLevel,lod);
 	return;
 
 }
@@ -238,19 +236,21 @@ localToStretchedCube(const double fromCoords[3], double toCoords[3]){
 	return;
 }
 int DataStatus::maxXFormPresent(string varname, size_t timestep){
-	int maxx = dataMgr->GetNumTransforms();
+	int maxx = dataMgr->GetNumRefLevels(varname);
 	int i;
-	for (i =0 ; i<maxx; i++){
-		if (!dataMgr->VariableExists(timestep, varname.c_str(), i)) break;
+	for (i = 0 ; i<maxx; i++){
+		if (!dataMgr->VariableExists(timestep, varname, i)) break;
 	}
 	
 	return i-1;
 }
 int DataStatus::maxLODPresent(string varname, size_t timestep){
-	int maxlod = dataMgr->GetCRatios().size();
+	vector<size_t>ratios;
+	int rc = dataMgr->GetCRatios(varname,ratios);
+	if (rc != 0) return -1;
 	int i;
-	for (i =0 ; i<maxlod; i++){
-		if (!dataMgr->VariableExists(timestep, varname.c_str(),0,i)) break;
+	for (i =0 ; i<ratios.size(); i++){
+		if (!dataMgr->VariableExists(timestep, varname,0,i)) break;
 	}
 	return i-1;
 }
@@ -274,24 +274,29 @@ bool DataStatus::convertFromLonLat(double coords[2], int npoints){
 	
 }
 bool DataStatus::convertLocalFromLonLat(int timestep, double coords[2], int npoints){
-	DataMgr* dataMgr = getInstance()->getDataMgr();
+	DataMgrV3_0* dataMgr = getInstance()->getDataMgr();
 	if (!dataMgr) return false;
 	if(!convertFromLonLat(coords, npoints)) return false;
-	const vector<double>& tvExts = dataMgr->GetExtents((size_t)timestep);
+	vector<double> minExts, maxExts;
+	int rc = GetExtents((size_t)timestep,minExts, maxExts);
+	if (rc) return false;
 	for (int i = 0; i<npoints; i++){
-		coords[2*i] -= tvExts[0];
-		coords[2*i+1] -= tvExts[1];
+		coords[2*i] -= minExts[0];
+		coords[2*i+1] -= minExts[1];
 	}
 	return true;
 }
 bool DataStatus::convertLocalToLonLat(int timestep, double coords[2], int npoints){
-	DataMgr* dataMgr = getInstance()->getDataMgr();
+	DataMgrV3_0* dataMgr = getInstance()->getDataMgr();
 	if (!dataMgr) return false;
-	const vector<double>& tvExts = dataMgr->GetExtents((size_t)timestep);
+	vector<double> minExts, maxExts;
+	int rc = GetExtents((size_t)timestep,minExts, maxExts);
+	if (rc) return false;
+	
 	//Convert local to user coordinates:
 	for (int i = 0; i<npoints; i++){
-		coords[2*i] += tvExts[0];
-		coords[2*i+1] += tvExts[1];
+		coords[2*i] += minExts[0];
+		coords[2*i+1] += minExts[1];
 	}
 	if(!convertToLonLat(coords, npoints)) return false;
 	return true;
@@ -313,3 +318,63 @@ bool DataStatus::convertToLonLat(double coords[2], int npoints){
 	return true;
 	
 }
+int DataStatus::GetExtents(size_t timestep, vector<double>& minExts, vector<double>& maxExts){
+	
+	vector<double> tempMin,tempMax;
+	vector<string> domainVars = RegionParams::GetDomainVariables();
+	bool varfound = false;
+	DataMgrV3_0* dataMgr = getDataMgr();
+	for (int j = 0; j<domainVars.size(); j++){
+		int rc = dataMgr->GetVariableExtents(minTimeStep, domainVars[j],maxXFormPresent(domainVars[j],minTimeStep), tempMin, tempMax);
+		if (rc != 0) continue;
+		if (!varfound) {
+			minExts = tempMin;
+			maxExts = tempMax;
+			varfound = true;
+		} else {
+			for (int k = 0; k<3; k++){
+				if (minExts[k] > tempMin[k]) minExts[k]=tempMin[k];
+				if (maxExts[k] < tempMax[k]) maxExts[k] = tempMax[k];
+			}
+		}
+	}
+	return !varfound;
+}
+bool DataStatus::dataIsPresent(int timestep){
+	DataMgrV3_0* dataMgr = getDataMgr();
+	vector<string> vars = dataMgr->GetDataVarNames();
+	for (int i = 0; i<vars.size(); i++){
+		if (dataMgr->VariableExists(timestep,vars[i])) return true;
+	}
+	return false;
+}
+int DataStatus::mapVoxToUser(size_t timestep, string varname, const size_t vcoords[3], double uCoords[3], int reflevel){
+	RegularGrid* rGrid = getDataMgr()->GetVariable(timestep, varname, reflevel, 0);
+	int rc = rGrid->GetUserCoordinates(vcoords[0],vcoords[1],vcoords[2],uCoords, uCoords+1, uCoords+2);
+	return rc;
+
+}
+void DataStatus::mapUserToVox(size_t timestep, string varname, const double uCoords[3], size_t vCoords[3], int reflevel){
+	RegularGrid* rGrid = getDataMgr()->GetVariable(timestep, varname, reflevel, 0);
+	rGrid->GetIJKIndex(uCoords[0],uCoords[1],uCoords[2],vCoords, vCoords+1, vCoords+2);
+}
+int DataStatus::getActiveVarNum(int dim, string varname){
+	vector<string>varnames = dataMgr->GetDataVarNames(dim,true);
+	for (int i = 0; i<varnames.size(); i++){
+		if (varnames[i] == varname) return i;
+	}
+	return -1;
+}
+double DataStatus::getVoxelSize(size_t ts, string varname, int refLevel, int dir){
+	RegularGrid* rGrid = dataMgr->GetVariable(ts, varname, refLevel, 0);
+	size_t dims[3];
+	rGrid->GetDimensions(dims);
+	double extents[6];
+	rGrid->GetUserExtents(extents);
+	int numdims = rGrid->GetRank();
+	if (numdims < dir) return 0.;
+	double vsize =  ((extents[dir+3]-extents[dir])/dims[dir]);
+	return vsize;
+}
+
+

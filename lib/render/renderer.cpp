@@ -21,7 +21,7 @@
 #include "glutil.h"	// Must be included first!!!
 
 #include "renderer.h"
-#include <vapor/DataMgr.h>
+#include <vapor/DataMgrV3_0.h>
 #include "regionparams.h"
 #include "viewpointparams.h"
 #include "animationparams.h"
@@ -69,7 +69,7 @@ int Renderer::initializeGL() {
 	return(0);
 }
 
-int Renderer::paintGL(DataMgr* dataMgr) {
+int Renderer::paintGL(DataMgrV3_0* dataMgr) {
 	int rc = _paintGL(dataMgr);
 	if (rc<0) {
 		return(-1);
@@ -134,13 +134,13 @@ void Renderer::enableFullClippingPlanes() {
 
 	AnimationParams *myAnimationParams = myVisualizer->getActiveAnimationParams();
     size_t timeStep = myAnimationParams->getCurrentTimestep();
-	DataMgr *dataMgr = DataStatus::getInstance()->getDataMgr();
-
-	const vector<double>& extvec = dataMgr->GetExtents(timeStep);
+	DataMgrV3_0 *dataMgr = DataStatus::getInstance()->getDataMgr();
+	vector<double> minExts,maxExts;
+	DataStatus::getInstance()->GetExtents(timeStep, minExts, maxExts);
 	double extents[6];
 	for (int i=0; i<3; i++) {
-		extents[i] = extvec[i] - ((extvec[3+i]-extvec[i])*0.001);
-		extents[i+3] = extvec[i+3] + ((extvec[3+i]-extvec[i])*0.001);
+		extents[i] = minExts[i] - ((maxExts[i]-minExts[i])*0.001);
+		extents[i+3] = maxExts[i] + ((maxExts[i]-minExts[i])*0.001);
 	}
 
 	enableClippingPlanes(extents);
@@ -275,21 +275,22 @@ void Renderer::getLocalContainingRegion(float regMin[3], float regMax[3]){
 	}
 	return;
 }
-//Obtain grids for a set of variables in requested extents. Pointer to requested LOD and refLevel, may change if not available 
+//Obtain grids for a set of variables in requested user extents. Pointer to requested LOD and refLevel, may change if not available 
 //Extents are reduced if data not available at requested extents.
 //Vector of varnames can include "0" for zero variable.
 //Variables can be 2D or 3D depending on value of "varsAre2D"
 //Returns 0 on failure
 //
-int Renderer::getGrids(size_t ts, const vector<string>& varnames, double extents[6], int* refLevel, int* lod, RegularGrid** grids){
+int Renderer::getGrids(size_t ts, const vector<string>& varnames, const double extents[6], int* refLevel, int* lod, RegularGrid** grids){
 	
 	DataStatus* ds = DataStatus::getInstance();
-	DataMgr* dataMgr = ds->getDataMgr();
+	DataMgrV3_0* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return 0;
 	
 	//reduce reflevel if variable is available:
 	int tempRefLevel = *refLevel;
 	int tempLOD = *lod;
+	//Find lod and refinement that works with all variables
 	for (int i = 0; i< varnames.size(); i++){
 		if (varnames[i] != "0"){
 			tempRefLevel = Min(ds->maxXFormPresent(varnames[i], ts), tempRefLevel);
@@ -304,46 +305,71 @@ int Renderer::getGrids(size_t ts, const vector<string>& varnames, double extents
 			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE, "Variable not present at required refinement and LOD\n");
 			return 0;
 		}
-	}
-						  
+	}	  
 	if (*refLevel < 0 || *lod < 0) return 0;
+
 	
-	//Determine the integer extents of valid cube, truncate to
-	//valid integer coords:
-	//Find a containing voxel box:
-	size_t boxMin[3], boxMax[3];
-	dataMgr->GetEnclosingRegion(ts, extents, extents+3, boxMin, boxMax, *refLevel, *lod);
+	//Determine what region (inside extents) is available for all variables
 	
-	//Determine what region is available for all variables
-	size_t temp_min[3], temp_max[3];
+	vector<double> minExts, maxExts, tminExts, tmaxExts;
+	int numvars = 0;
 	for (int i = 0; i<varnames.size(); i++){
 		if (varnames[i] != "0"){
-			int rc = dataMgr->GetValidRegion(ts, varnames[i].c_str(), *refLevel, temp_min, temp_max);
-			if (rc != 0) {
-				MyBase::SetErrCode(0);
-				return 0;
-			}
-			for (int j=0; j<3; j++){
-				if (temp_min[j] > boxMin[j]) boxMin[j] = temp_min[j];
-				if (temp_max[j] < boxMax[j]) boxMax[j] = temp_max[j];
-				//If there is no valid intersection, the min will be greater than the max
-				if (boxMax[j] < boxMin[j]) return 0;
+			//Find the extents of the variables in user coords
+			numvars++;
+			if (numvars == 1){
+				int rc = dataMgr->GetVariableExtents(ts, varnames[i], *refLevel, minExts, maxExts);
+				if (rc != 0) {
+					MyBase::SetErrCode(0);
+					return 0;
+				}
+				for (int j = 0; j<3; j++){
+					if (minExts[j] < extents[j]) minExts[j] = extents[j];
+					if (maxExts[j] > extents[j+3]) maxExts[j] = extents[j+3];
+				}
+			} else { //2nd and later variables
+				int rc = dataMgr->GetVariableExtents(ts, varnames[i], *refLevel, tminExts, tmaxExts);
+				if (rc != 0) {
+					MyBase::SetErrCode(0);
+					return 0;
+				}
+				for (int j = 0; j<3; j++){
+					if (tminExts[j] > minExts[j]) minExts[j] = tminExts[j];
+					if (tmaxExts[j] < maxExts[j]) maxExts[j] = tmaxExts[j];
+					//If there is no valid intersection, the min will be greater than the max
+					if (maxExts[j] < minExts[j]) return 0;
+				}
 			}
 		}
 	}
-			
-
+	//Now obtain a regular grid for each valid variable
 	
+	for (int i = 0; i<varnames.size(); i++){
+		if (varnames[i] != "0"){
+			RegularGrid* rGrid = dataMgr->GetVariable(ts,varnames[i], *refLevel, *lod, minExts, maxExts,true);
+			if (!rGrid){
+				for (int j = 0; j<i; j++){
+					if (grids[j]) dataMgr->UnlockGrid(grids[j]);
+				}
+				return 0;
+			}
+			grids[i] = rGrid;
+		} else {
+			grids[i] = 0;
+		}
+	}
+
 	//see if we have enough space:
 	int numMBs = 0;
-	const vector<string> varnames3D = dataMgr->GetVariables3D();
+	const vector<string> varnames3D = dataMgr->GetDataVarNames(3,true);
 	for (int i = 0; i<varnames.size(); i++){
+		size_t boxMin[3],boxMax[3];
 		if (varnames[i] == "0") continue;
 		bool varIs3D = false;
 		for (int j = 0; j<varnames3D.size();j++){
 			if (varnames[i] == varnames3D[j]){varIs3D = true; break;}
 		}
-		
+		grids[i]->GetIJKMinMax(boxMin,boxMax);
 		if (varIs3D)
 			numMBs += 4*(boxMax[0]-boxMin[0]+1)*(boxMax[1]-boxMin[1]+1)*(boxMax[2]-boxMin[2]+1)/1000000;
 		else
@@ -353,23 +379,12 @@ int Renderer::getGrids(size_t ts, const vector<string>& varnames, double extents
 	if (numMBs > (int)(cacheSize*0.75)){
 		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small\nfor current probe and resolution.\n%s",
 						  "Lower the refinement level, reduce the size, or increase the cache size.");
+		for (int j = 0; j<varnames.size();j++){
+			if (grids[j]) dataMgr->UnlockGrid(grids[j]);
+		}
 		return 0;
 	}
 	
-	
-	for (int i = 0; i< varnames.size(); i++){
-		if(varnames[i] == "0") grids[i] = 0;
-		else {
-			RegularGrid* rg = dataMgr->GetGrid(ts, varnames[i], *refLevel, *lod, boxMin, boxMax, 1);
-			if (!rg) {
-				for (int j = 0; j<i; j++){
-					if (grids[j]){ dataMgr->UnlockGrid(grids[j]); delete grids[j];}
-				}
-				return 0;
-			}
-			grids[i] = rg;
-		}
-	}
 	//obtained all of the grids needed
 	
 	return 1;	

@@ -66,7 +66,7 @@ IsolineRenderer::~IsolineRenderer()
 //
   
 
-int IsolineRenderer::_paintGL(DataMgr* dataMgr)
+int IsolineRenderer::_paintGL(DataMgrV3_0* dataMgr)
 {
 	
 	if (!dataMgr) return -1;
@@ -143,15 +143,16 @@ int IsolineRenderer::_initializeGL()
 bool IsolineRenderer::buildLineCache(int timestep){
 	
 	DataStatus* ds = DataStatus::getInstance();
-	DataMgr* dataMgr = ds->getDataMgr();
+	DataMgrV3_0* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return false;
 	IsolineParams* iParams = (IsolineParams*)getRenderParams();
 	if (doBypass(timestep)) return false;
 
 	int actualRefLevel = iParams->GetRefinementLevel();
 	int lod = iParams->GetCompressionLevel();
-		
-	const vector<double>&userExts = dataMgr->GetExtents((size_t)timestep);
+	vector<double> minExts, maxExts;
+	ds->GetExtents(timestep, minExts, maxExts);
+	
 	RegularGrid* isolineGrid;
 	vector<string>varname;
 	varname.push_back(iParams->GetVariableName());
@@ -164,7 +165,7 @@ bool IsolineRenderer::buildLineCache(int timestep){
 	else iParams->GetBox()->GetLocalExtents(boxexts);
 
 	for (int i = 0; i<6; i++){
-		extents[i] = boxexts[i]+userExts[i%3];
+		extents[i] = boxexts[i]+minExts[i];
 	}
 	
 	int rc = getGrids( (size_t)timestep, varname, extents, &actualRefLevel, &lod, &isolineGrid);
@@ -174,7 +175,7 @@ bool IsolineRenderer::buildLineCache(int timestep){
 	isolineGrid->SetInterpolationOrder(1);
 	//Determine resolution of grid to use.  
 	size_t min_dim[3],max_dim[3];
-	dataMgr->GetEnclosingRegion((size_t)timestep, extents, extents+3, min_dim, max_dim, actualRefLevel,lod);
+	isolineGrid->GetEnclosingRegion(extents, extents+3, min_dim, max_dim);
 	// Choose the grid sizes to both equal the largest number
 	//of integer extents.
 	gridSize = Max(max_dim[2]-min_dim[2],Max(max_dim[1]-min_dim[1],max_dim[0]-min_dim[0]));
@@ -190,13 +191,11 @@ bool IsolineRenderer::buildLineCache(int timestep){
 	double planeCoords[3], dataCoords[3];
 	planeCoords[2] = 0.;
 
-	
-
 	//Get the data dimensions (at this resolution):
 	size_t dataSize[3];
 	//Start by initializing extents
 	
-	dataMgr->GetDim(dataSize,actualRefLevel);
+	isolineGrid->GetDimensions(dataSize);
 	
 	const double* sizes = ds->getFullSizes();
 	double extExtents[6]; //Extend extents 1/2 voxel on each side so no bdry issues.
@@ -225,13 +224,15 @@ bool IsolineRenderer::buildLineCache(int timestep){
 			bool dataOK = true;
 			for (int k = 0; k< 3; k++){
 				if (dataCoords[k] < extExtents[k] || dataCoords[k] > extExtents[k+3]) dataOK = false;
-				dataCoords[k] += userExts[k]; //Convert to user coordinates.
+				dataCoords[k] += minExts[k]; //Convert to user coordinates.
 			}
 			if(dataOK) { //find the coordinate in the data array
 				dataVals[i+j*gridSize] = isolineGrid->GetValue(dataCoords[0],dataCoords[1],dataCoords[2]);
 			}
 		}
 	}
+	//Unlock the RegularGrid
+	ds->getDataMgr()->UnlockGrid(isolineGrid);
 	//Loop over each isovalue and cell, and classify the cell as to which edges are crossed by the isoline.
 	//when there is an isoline crossing, a line segment is saved in the cache, defined by the two endpoints.
 	const vector<double>& isovals = iParams->GetIsovalues();
@@ -738,7 +739,8 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 		int advancedDist = 0;
 		int currentAdvancedDist = 0;
 		int gapInterval = startDist;
-		const vector<double>&tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents(timestep);
+		vector<double>minExts, maxExts;
+		DataStatus::getInstance()->GetExtents(timestep,minExts, maxExts);
 		std::pair<int,int> mapPair= make_pair(timestep, iso);
 		vector<float*> lines = lineCache[mapPair];
 		while(1){
@@ -769,7 +771,7 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 					pointa[1] = lines[linenum][1];
 					vtransform(pointa,transformMatrix,point1);
 					//Convert local to user:
-					for (int i = 0; i<3; i++) point1[i] += tvExts[i];
+					for (int i = 0; i<3; i++) point1[i] += minExts[i];
 					
 					myVisualizer->addText(this, objectNums[iso],point1);
 					numAnnotations++;
@@ -802,7 +804,7 @@ void IsolineRenderer::traverseCurves(int iso, int timestep){
 						pointa[1] = lines[linenum][1];
 						vtransform(pointa,transformMatrix,point1);
 						//Convert local to user:
-						for (int i = 0; i<3; i++) point1[i] += tvExts[i];
+						for (int i = 0; i<3; i++) point1[i] += minExts[i];
 					
 						myVisualizer->addText(this, objectNums[iso],point1);
 						numAnnotations++;

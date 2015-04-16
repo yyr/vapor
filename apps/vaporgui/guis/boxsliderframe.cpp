@@ -72,8 +72,11 @@ void BoxSliderFrame::setFullDomain(const double ext[6]){
 void BoxSliderFrame::setVoxelDims(const int dims[3]){
 	for (int i = 0; i<6; i++) voxelDims[i] = dims[i];
 }
-void BoxSliderFrame::setBoxExtents(const std::vector<double>& exts){
-	for (int i = 0; i<6; i++) boxExtents[i] = exts[i];
+void BoxSliderFrame::setBoxExtents(const std::vector<double>& minexts, const std::vector<double>& maxexts){
+	for (int i = 0; i<3; i++) {
+		boxExtents[i] = minexts[i];
+		boxExtents[i+3] = maxexts[i];
+	}
 	double mid[3], sz[3];
 	for (int i = 0; i<3; i++) {
 		mid[i] = 0.5*(boxExtents[i]+boxExtents[i+3]);
@@ -254,14 +257,14 @@ void BoxSliderFrame::updateGuiValues(const double centers[3], const double sizes
 void BoxSliderFrame::nudgeXCenter(int val) {
 
 	if (silenceSignals) return;
-	DataStatus* ds = DataStatus::getInstance();
-	if (!ds->getDataMgr()) return;
+	
+	if (DataStatus::getDataMgr()) return;
 	//ignore if change is not 1 
 	if(abs(val - lastCenterSlider[0]) != 1) {
 		lastCenterSlider[0] = val;
 		return;
 	}
-	nudgeCenter(val, 0);
+	nudgeCenter(myVarname, val, 0);
 	emit extentsChanged();
 }
 
@@ -269,40 +272,41 @@ void BoxSliderFrame::nudgeXCenter(int val) {
 void BoxSliderFrame::nudgeYCenter(int val) {
 
 	if (silenceSignals) return;
-	DataStatus* ds = DataStatus::getInstance();
-	if (!ds->getDataMgr()) return;
+	
+	if (!DataStatus::getDataMgr()) return;
 	//ignore if change is not 1 
 	if(abs(val - lastCenterSlider[1]) != 1) {
 		lastCenterSlider[1] = val;
 		return;
 	}
-	nudgeCenter(val, 1);
+	nudgeCenter(myVarname, val, 1);
 	emit extentsChanged();
 }//Nudge events:
-void BoxSliderFrame::nudgeZCenter(int val) {
+void BoxSliderFrame::nudgeZCenter( int val) {
 
 	if (silenceSignals) return;
-	DataStatus* ds = DataStatus::getInstance();
-	if (!ds->getDataMgr()) return;
+	
+	if (!DataStatus::getDataMgr()) return;
 	//ignore if change is not 1 
 	if(abs(val - lastCenterSlider[2]) != 1) {
 		lastCenterSlider[2] = val;
 		return;
 	}
-	nudgeCenter(val, 2);
+	nudgeCenter(myVarname, val, 2);
 	emit extentsChanged();
 }
-void BoxSliderFrame::nudgeCenter(int val, int dir){
+void BoxSliderFrame::nudgeCenter(string varname, int val, int dir){
 	//See if the change was an increase or decrease:
-	DataStatus *ds = DataStatus::getInstance();
-	DataMgr* datamgr = ds->getDataMgr();
+	
+	DataMgrV3_0* datamgr = DataStatus::getDataMgr();
 	size_t timeStep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentTimestep();
-	const vector<double>& tsexts = datamgr->GetExtents(timeStep);
-	float voxelSize = ds->getVoxelSize(numRefinements, dir);
+	vector<double> minExts,maxExts;
+	DataStatus::GetExtents(timeStep,minExts, maxExts);
+	float voxelSize = DataStatus::getVoxelSize(timeStep, varname, numRefinements, dir);
 	double pmin = boxExtents[dir];
 	double pmax = boxExtents[dir+3];
-	float maxExtent = tsexts[dir+3];
-	float minExtent = tsexts[dir];
+	float maxExtent = maxExts[dir];
+	float minExtent = minExts[dir];
 	double newCenter = (pmin+pmax)*0.5f;
 	if (val > lastCenterSlider[dir]){//move by 1 voxel, but don't move past end
 		lastCenterSlider[dir]++;
@@ -331,8 +335,8 @@ void BoxSliderFrame::nudgeCenter(int val, int dir){
 void BoxSliderFrame::nudgeXSize(int val) {
 
 	if (silenceSignals) return;
-	DataStatus* ds = DataStatus::getInstance();
-	if (!ds->getDataMgr()) return;
+	
+	if (!DataStatus::getDataMgr()) return;
 	//ignore if change is not 1 
 	if(abs(val - lastSizeSlider[0]) != 1) {
 		lastSizeSlider[0] = val;
@@ -346,8 +350,7 @@ void BoxSliderFrame::nudgeXSize(int val) {
 void BoxSliderFrame::nudgeYSize(int val) {
 
 	if (silenceSignals) return;
-	DataStatus* ds = DataStatus::getInstance();
-	if (!ds->getDataMgr()) return;
+	if (!DataStatus::getDataMgr()) return;
 	//ignore if change is not 1 
 	if(abs(val - lastSizeSlider[1]) != 1) {
 		lastSizeSlider[1] = val;
@@ -359,8 +362,7 @@ void BoxSliderFrame::nudgeYSize(int val) {
 void BoxSliderFrame::nudgeZSize(int val) {
 
 	if (silenceSignals) return;
-	DataStatus* ds = DataStatus::getInstance();
-	if (!ds->getDataMgr()) return;
+	if (!DataStatus::getDataMgr()) return;
 	//ignore if change is not 1 
 	if(abs(val - lastSizeSlider[2]) != 1) {
 		lastSizeSlider[2] = val;
@@ -371,12 +373,13 @@ void BoxSliderFrame::nudgeZSize(int val) {
 }
 void BoxSliderFrame::nudgeSize(int val, int dir){
 	//See if the change was an increase or decrease:
-	DataStatus *ds = DataStatus::getInstance();
-	float voxelSize = ds->getVoxelSize(numRefinements, dir);
+	
+	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
+	float voxelSize = DataStatus::getVoxelSize(currentTimeStep,myVarname,numRefinements, dir);
 	double pmin = boxExtents[dir];
 	double pmax = boxExtents[dir+3];
-	float maxExtent = ds->getLocalExtents()[dir+3];
-	float minExtent = ds->getLocalExtents()[dir];
+	float maxExtent = DataStatus::getLocalExtents()[dir+3];
+	float minExtent = DataStatus::getLocalExtents()[dir];
 	double newSize = (pmax-pmin);
 	if (val > lastSizeSlider[dir]){//increase by 1 voxel, but don't move past end
 		lastSizeSlider[dir]++;

@@ -36,7 +36,8 @@
 
 #include "params.h"
 #include "command.h"
-#include <vapor/DataMgr.h>
+
+#include <vapor/DataMgrV3_0.h>
 #include <vapor/XmlNode.h>
 #include <vapor/ParamNode.h>
 
@@ -44,6 +45,7 @@
 using namespace VAPoR;
 
 const string RegionParams::_shortName = "Region";
+const string RegionParams::_domainVariablesTag = "DomainVariables";
 
 RegionParams::RegionParams(XmlNode* parent, int winnum): Params(parent, Params::_regionParamsTag, winnum){
 	Command::blockCapture();
@@ -74,6 +76,10 @@ restart(){
 	for (int i = 0; i<3; i++) regexts.push_back(0.);
 	for (int i = 0; i<3; i++) regexts.push_back(1.);
 	GetBox()->SetLocalExtents(regexts,this);
+	if (!IsLocal()) {
+		vector<string> novars;
+		SetDomainVariables(novars);
+	}
 	
 }
 //Reinitialize region settings, session has changed
@@ -85,11 +91,12 @@ Validate(int type){
 	bool doOverride = (type == 0);
 	int i;
 	
-	const double* extents = DataStatus::getInstance()->getLocalExtents();
+	//DataStatus::reset() should have set up the domain extents.
 	
-	double regionExtents[6];
+	const double* extents = DataStatus::getLocalExtents();
 	vector<double> exts(3,0.0);
 	if (doOverride) {
+		
 		for (i = 0; i< 3; i++) {
 			exts.push_back( extents[i+3]-extents[i]);
 		}
@@ -99,6 +106,7 @@ Validate(int type){
 	} else {
 		//ensure all the local time-extents to be valid
 		const vector<long>& times = GetBox()->GetTimes();
+		double regionExtents[6];
 		for (int timenum = 0; timenum< times.size(); timenum++){
 			int currTime = times[timenum];
 			GetBox()->GetLocalExtents(regionExtents,currTime);
@@ -128,9 +136,6 @@ Validate(int type){
 }
 
 int RegionParams::SetLocalRegionMin(int coord, double minval, int timestep){
-	DataStatus* ds = DataStatus::getInstance();
-	DataMgr* dataMgr = ds->getDataMgr();
-	int rc = 0;
 	
 	double exts[6];
 	GetBox()->GetLocalExtents(exts, timestep);

@@ -92,6 +92,7 @@ protected slots:
 	void setZCenter(int n);
 	void setZSize(int n);
 	void guiCopyBox();
+	void setDomainVars();
 
 protected:
 	//Map combo indices to ParamsBase typeid:

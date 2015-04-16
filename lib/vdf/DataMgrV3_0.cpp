@@ -416,7 +416,7 @@ DataMgrV3_0::~DataMgrV3_0(
 }
 
 int DataMgrV3_0::Initialize(const vector <string> &files) {
-	if (_format.compare("vdc")) {
+	if (!_format.compare("vdc")) {
 		_dc = new VDCNetCDF(_nthreads);
 	}
 	else {

@@ -64,18 +64,8 @@ namespace VAPoR {
 //! Virtual method issues all the OpenGL calls to draw the arrows in user coordinates.
 //! \param[in] DataMgr* current DataMgr that owns the data being rendered.
 //! \param[in] Params* Params* that is associated with this Renderer
-    virtual int _paintGL(DataMgr*);
+    virtual int _paintGL(DataMgrV3_0*);
 
-//! Protected method that gets the required data from the DataMgr, while determining valid extents.
-//! \param[in] vector<string>& varnames Names of variables defining field
-//! \param[out] RegularGrid* RegularGrids obtained from the DataMgr
-//! \param[out] double validExts[6] Extents of valid data 
-//! \param[out] size_t voxExts[6] Voxel extents of valid data
-//! \return int refinement level of data, or -1 if unavailable
-    int setupVariableData(
-		vector<string>& varnames, RegularGrid *varData[4], double validExts[6], 
-		size_t voxExts[6]
-	);
 
 //! Protected method that performs rendering of all arrows.
 //! \param[in] DataMgr* current DataMgr
@@ -85,7 +75,7 @@ namespace VAPoR {
 //! \param[in] float arrowRadius Radius of arrows in voxel diameters.
 //! \param[in] RegularGrid*[4] RegularGrids used in rendering
 //! \retval int zero if successful
-	int performRendering(DataMgr* dataMgr, const RenderParams* rParams,
+	int performRendering(DataMgrV3_0* dataMgr, const RenderParams* rParams,
 		int actualRefLevel,float vectorScale, float arrowRadius, 
 		RegularGrid *variableData[4]
 	);

@@ -12,7 +12,7 @@
 #define	_VaporFlow_h_
 
 #include <string>
-#include <vapor/DataMgr.h>
+#include <vapor/DataMgrV3_0.h>
 #include <vapor/MyBase.h>
 #include <vapor/common.h>
 #include <vapor/flowlinedata.h>

@@ -42,7 +42,7 @@ namespace VAPoR{
 class XmlNode;
 class ParamNode;
 class ViewpointParams;
-class DataMgr;
+class DataMgrV3_0;
 class Command;
 class MapperFunction;
 

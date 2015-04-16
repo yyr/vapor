@@ -38,7 +38,7 @@
 #include <qgroupbox.h>
 #include <qradiobutton.h>
 #include "qbuttongroup.h"
-#include <vapor/DataMgr.h>
+#include <vapor/DataMgrV3_0.h>
 #include <vapor/errorcodes.h>
 #include "vapor/GetAppPath.h"
 #include <vector>
@@ -137,7 +137,7 @@ void EventRouter::refresh2DHistogram(RenderParams* tParams){
 	
 	string varname = tParams->GetVariableName();
 	DataStatus* ds = DataStatus::getInstance();
-	DataMgr* dataMgr = ds->getDataMgr();
+	DataMgrV3_0* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return;
 	size_t timeStep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	if(tParams->doBypass(timeStep)) return;
@@ -153,10 +153,11 @@ void EventRouter::refresh2DHistogram(RenderParams* tParams){
 	varnames.push_back(varname);
 	double exts[6];
 	tParams->GetBox()->GetLocalExtents(exts);
-	const vector<double>& userExts = dataMgr->GetExtents(timeStep);
+	vector<double> minExts, maxExts;
+	ds->GetExtents(timeStep, minExts, maxExts);
 	for (int i = 0; i<3; i++){
-		exts[i]+=userExts[i];
-		exts[i+3]+=userExts[i];
+		exts[i]+=minExts[i];
+		exts[i+3]+=minExts[i];
 	}
 	int rc = Renderer::getGrids( timeStep, varnames, exts, &actualRefLevel, &lod, &histoGrid);
 	
@@ -183,15 +184,15 @@ void EventRouter::
 calcSliceHistogram(RenderParams*p, int ts, Histo* histo){
 	
 	DataStatus* ds = DataStatus::getInstance();
-	DataMgr* dataMgr = ds->getDataMgr();
+	DataMgrV3_0* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return;
 
 	if (p->doBypass(ts)) return;
 
 	int actualRefLevel = p->GetRefinementLevel();
 	int lod = p->GetCompressionLevel();
-		
-	const vector<double>&userExts = dataMgr->GetExtents((size_t)ts);
+	vector<double> minExts, maxExts;
+	ds->GetExtents((size_t)ts,minExts, maxExts);
 	RegularGrid* probeGrid;
 	vector<string>varnames;
 	varnames.push_back(p->GetVariableName());
@@ -200,8 +201,8 @@ calcSliceHistogram(RenderParams*p, int ts, Histo* histo){
 	p->GetBox()->calcContainingStretchedBoxExtents(extents,true);
 
 	for (int i = 0; i<3; i++){
-		extents[i] += userExts[i];
-		extents[i+3] += userExts[i];
+		extents[i] += minExts[i];
+		extents[i+3] += minExts[i];
 	}
 	
 	int rc = Renderer::getGrids( ts, varnames, extents, &actualRefLevel, &lod, &probeGrid);
@@ -220,7 +221,7 @@ calcSliceHistogram(RenderParams*p, int ts, Histo* histo){
 	size_t dataSize[3];
 	//Start by initializing extents
 	
-	dataMgr->GetDim(dataSize, actualRefLevel);
+	probeGrid->GetDimensions(dataSize);
 
 	const double* fullSizes = ds->getFullSizes();
 	//Now calculate the histogram
@@ -320,7 +321,7 @@ calcSliceHistogram(RenderParams*p, int ts, Histo* histo){
 				bool dataOK = true;
 				for (int i = 0; i< 3; i++){
 					if (dataCoord[i] < extExtents[i] || dataCoord[i] > extExtents[i+3]) dataOK = false;
-					dataCoord[i] += userExts[i]; //Convert to user coordinates.
+					dataCoord[i] += minExts[i]; //Convert to user coordinates.
 				}
 				float varVal;
 				if(dataOK) { //find the coordinate in the data array
@@ -379,10 +380,12 @@ void EventRouter::updateFidelity(QGroupBox* fidelityBox, RenderParams* rp, QComb
 void EventRouter::setupFidelity(int dim, QHBoxLayout* fidelityLayout,
 	QGroupBox* fidelityBox, RenderParams* dParams, bool useDefault){
 	
-	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	DataMgrV3_0* dataMgr = DataStatus::getInstance()->getDataMgr();
 	if (!dataMgr) return;
-	const vector<size_t> cRatios = dataMgr->GetCRatios();
-	int deflt = orderLODRefs(dim);
+	string varname = dParams->GetVariableName();
+	vector<size_t> cRatios; 
+	dataMgr->GetCRatios(varname,cRatios);
+	int deflt = orderLODRefs(dParams, dim);
 	int numButtons = fidelityLODs.size();
 	if (!fidelityButtons) fidelityButtons = new QButtonGroup(fidelityBox);
 	QHBoxLayout* hlay = (QHBoxLayout*)fidelityBox->layout();
@@ -453,12 +456,13 @@ void EventRouter::setFidelityDefault(int dim, RenderParams* dParams){
 	//Need undo/redo to include preference settings!
 	*/
 }
-void EventRouter::calcLODRefDefault(int dim, float regMBs, int* lodLevel, int* refLevel){
-	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+void EventRouter::calcLODRefDefault(RenderParams* rParams, int dim, float regMBs, int* lodLevel, int* refLevel){
+	DataMgrV3_0* dataMgr = DataStatus::getInstance()->getDataMgr();
 	if (!dataMgr) return;
+	vector<size_t> cratios; 
+	dataMgr->GetCRatios(rParams->GetVariableName(),cratios);
 	
-	const vector<size_t> cratios = dataMgr->GetCRatios();
-	int maxRefLevel = dataMgr->GetNumTransforms();
+	int maxRefLevel = dataMgr->GetNumRefLevels(rParams->GetVariableName());
 
 	
 	DataStatus* ds = DataStatus::getInstance();
@@ -495,22 +499,27 @@ void EventRouter::calcLODRefDefault(int dim, float regMBs, int* lodLevel, int* r
 
 //Following constructs vectors of lods and refLevels that passes through the default lod/ref 
 //Returns the default fidelity level.
-int EventRouter::orderLODRefs(int dim){
+int EventRouter::orderLODRefs(RenderParams* rParams, int dim){
 	//Determine array of cratios and max Ref levels.
-	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	DataMgrV3_0* dataMgr = DataStatus::getInstance()->getDataMgr();
 	if (!dataMgr) return -1;
 	//Determine the no. of megabytes in the full data volume
+	size_t timeStep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
+	string varname = rParams->GetVariableName();
+	int maxRefLevel = dataMgr->GetNumRefLevels(varname);
+	RegularGrid* rGrid = dataMgr->GetVariable(timeStep,varname, maxRefLevel, 0);
 	size_t dims[3];
-	dataMgr->GetDim(dims,-1);
+	rGrid->GetDimensions(dims);
 	float fullMBs = (float)dims[0]*(float)dims[1]*(float)dims[2]*4./1.e6;
-	const vector<size_t> cratios = dataMgr->GetCRatios();
-	int maxRefLevel = dataMgr->GetNumTransforms();
+	vector<size_t> cratios;
+	dataMgr->GetCRatios(varname,cratios);
+	
 	
 	//Create vectors of fidelity, cratios, ref levels, initialize with mins and maxs and default
 	fidelityRefinements.clear();
 	fidelityLODs.clear();
 	int defLODIndx, defref;
-	calcLODRefDefault(dim, fullMBs, &defLODIndx, &defref);
+	calcLODRefDefault(rParams, dim, fullMBs, &defLODIndx, &defref);
 	//Initialize arrays with min and max values
 	bool oneButton = false;
 	if (maxRefLevel == 0 && cratios.size()==1) oneButton = true;

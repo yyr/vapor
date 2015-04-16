@@ -48,17 +48,36 @@ Validate(int type){
 	assert(!Command::isRecording());
 	bool doOverride = (type == 0);
 	DataStatus* ds = DataStatus::getInstance();
-	DataMgr* dataMgr = ds->getDataMgr();
+	DataMgrV3_0* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return;
-	int totNumVariables = dataMgr->GetVariables2DXY().size()+dataMgr->GetVariables3D().size();
+	int totNumVariables = dataMgr->GetDataVarNames().size();
 	if (totNumVariables <= 0) return;
 	bool is3D = VariablesAre3D();
 	int numVariables;
-	if (is3D) numVariables = dataMgr->GetVariables3D().size();
-	else numVariables = dataMgr->GetVariables2DXY().size();
+	if (is3D) numVariables = dataMgr->GetDataVarNames(3,true).size();
+	else numVariables = dataMgr->GetDataVarNames(2,true).size();
 	
+	//Make sure the variable is OK. If no variable is specified, then take the first variable in the data of appropriate dimension
+	string varname;
+	for (int i = 0; i<3; i++){
+		string vname = GetFieldVariableName(i);
+		if (dataMgr->VariableExists(DataStatus::getMinTimestep(),vname)){
+			varname = vname;
+			break;
+		}
+	}
+	//If that didn't provide a valid variable, get the first valid domain defining variable
+	if (varname.length() == 0){
+		vector<string> domVars = RegionParams::GetDomainVariables();
+		for (int i = 0; i<domVars.size(); i++){
+			if (dataMgr->VariableExists(DataStatus::getMinTimestep(),domVars[i])){
+				varname = domVars[i];
+				break;
+			}
+		}
+	}
 	//Set up the numRefinements. 
-	int maxNumRefinements = ds->getNumTransforms();
+	int maxNumRefinements = dataMgr->GetNumRefLevels(varname);
 	int numrefs = GetRefinementLevel();
 	
 	if (doOverride) { 
@@ -72,9 +91,10 @@ Validate(int type){
 	SetRefinementLevel(numrefs);
 	//Make sure fidelity is valid:
 	int fidelity = GetFidelityLevel();
-	
-	if (dataMgr && fidelity > maxNumRefinements+dataMgr->GetCRatios().size()-1)
-		SetFidelityLevel(maxNumRefinements+dataMgr->GetCRatios().size()-1);
+	vector<size_t> cratios;
+	dataMgr->GetCRatios(varname, cratios);
+	if (dataMgr && fidelity > maxNumRefinements+cratios.size()-1)
+		SetFidelityLevel(maxNumRefinements+cratios.size()-1);
 	//Set up the compression level.  Whether or not override is true, make sure
 	//That the compression level is valid.  If override is true set it to 0;
 	if (doOverride) SetCompressionLevel(0);
@@ -82,7 +102,7 @@ Validate(int type){
 		int numCompressions = 0;
 	
 		if (dataMgr) {
-			numCompressions = dataMgr->GetCRatios().size();
+			numCompressions = cratios.size();
 		}
 		
 		if (GetCompressionLevel() >= numCompressions){
@@ -92,7 +112,8 @@ Validate(int type){
 	//Set up the variables. If doOverride is true, just make the first 3 variables the first 3 variables in the VDC.
 	//Otherwise try to use the current variables 
 	//In either case, if they don't exist replace them with 0.
-	const vector<string>& vars = (is3D ? dataMgr->GetVariables3D() : dataMgr->GetVariables2DXY());
+	const vector<string>& vars = (is3D ? dataMgr->GetDataVarNames(3,true) : dataMgr->GetDataVarNames(2,true));
+	const vector<string>& vars2d = dataMgr->GetDataVarNames(2,true);
 	if (doOverride){
 
 		for (int i = 0; i<3; i++){
@@ -108,22 +129,18 @@ Validate(int type){
 		}
 	} 
 	//Use HGT as the height variable name, if it's there. If not just use the first 2d variable.
-	if (doOverride){
-		string varname = "HGT";
-		int indx = ds->getActiveVarNum2D(varname);
-		if (indx < 0 && ds->getNumActiveVariables2D()>0) {
-			varname = dataMgr->GetVariables2DXY()[0];
-		}
-		SetHeightVariableName(varname);
-	} else {
-		string varname = GetHeightVariableName();
-		int indx = ds->getActiveVarNum2D(varname);
-		if (indx < 0 && ds->getNumActiveVariables2D()>0) {
-			varname = dataMgr->GetVariables2DXY()[0];
-			SetHeightVariableName(varname);
-		}
+	string hvar = "HGT";
+	if (!doOverride) hvar = GetHeightVariableName();
+	
+	bool found = false;
+	for (int i = 0; i<vars2d.size(); i++){
+		if (vars2d[i] ==hvar) { found = true; break;}
 	}
-	if (ds->getNumActiveVariables2D() <= 0) SetTerrainMapped(false);
+	if (found) SetHeightVariableName(hvar);
+	else if (vars2d.size()>0) SetHeightVariableName(vars2d[0]);
+	else SetHeightVariableName("0");
+	
+	if (vars2d.size() <= 0) SetTerrainMapped(false);
 	//Set the vector length so that the max arrow is 10% of the larger of the x or y size of scene
 	//Check the rake extents.  If doOverride is true, set the extents to the bottom of the data domain. If not, 
 	//shrink the extents to fit inside the domain.
@@ -243,16 +260,17 @@ void ArrowParams::getDataAlignment(double rakeExts[6], int rakeGrid[3],size_t ti
 	size_t corner[3],farCorner[3];
 	double rakeExtents[6];
 	double tempExtents[3];
-	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	DataMgrV3_0* dataMgr = DataStatus::getDataMgr();
 	if(!dataMgr) {
 		return;
 	}
 	GetRakeLocalExtents(rakeExtents);
-	const vector<double>& usrExts = dataMgr->GetExtents(timestep);
+	vector<double> minExts, maxExts;
+	DataStatus::GetExtents(timestep,minExts,maxExts);
 	const vector<long> rGrid = GetRakeGrid();
 	for (int i = 0; i<3; i++){
-		rakeExts[i]=rakeExtents[i]+usrExts[i];
-		rakeExts[i+3]=rakeExtents[i+3]+usrExts[i];
+		rakeExts[i]=rakeExtents[i]+minExts[i];
+		rakeExts[i+3]=rakeExtents[i+3]+minExts[i];
 		rakeGrid[i] = rGrid[i];
 	}
 	size_t voxExts[6];
@@ -262,12 +280,31 @@ void ArrowParams::getDataAlignment(double rakeExts[6], int rakeGrid[3],size_t ti
 		farCorner[i] = voxExts[i+3];
 	}
 	
+	//Identify a variable to use in mapping coordinates
+	string varname;
+	for (int i = 0; i<3; i++){
+		string vname = GetFieldVariableName(i);
+		if (dataMgr->VariableExists(DataStatus::getMinTimestep(),vname)){
+			varname = vname;
+			break;
+		}
+	}
+	//If that didn't provide a valid variable, get the first valid domain defining variable
+	if (varname.length() == 0){
+		vector<string> domVars = RegionParams::GetDomainVariables();
+		for (int i = 0; i<domVars.size(); i++){
+			if (dataMgr->VariableExists(DataStatus::getMinTimestep(),domVars[i])){
+				varname = domVars[i];
+				break;
+			}
+		}
+	}
 	//Is the corner actually inside the rake?
-	dataMgr->MapVoxToUser(timestep,corner, tempExtents, -1, GetCompressionLevel());
+	DataStatus::mapVoxToUser(timestep,varname, corner, tempExtents, GetRefinementLevel());
 	if (tempExtents[0]<rakeExts[0]) corner[0]++;
 	if (tempExtents[1]<rakeExts[1]) corner[1]++;
 	//Now get the local (0-based) coords of the corner
-	dataMgr->MapVoxToUser(timestep, corner, tempExtents,-1,GetCompressionLevel());
+	DataStatus::mapVoxToUser(timestep, varname, corner, tempExtents,GetRefinementLevel());
 	rakeExts[0] = tempExtents[0];
 	rakeExts[1] = tempExtents[1];
 	
@@ -285,7 +322,7 @@ void ArrowParams::getDataAlignment(double rakeExts[6], int rakeGrid[3],size_t ti
 	if(strides[1]>0)farCorner[1] = corner[1]+(rakeGrid[1]-1)*strides[1];
 	else farCorner[1] = corner[1];
 
-	dataMgr->MapVoxToUser(timestep,farCorner, tempExtents, -1,GetCompressionLevel());
+	DataStatus::mapVoxToUser(timestep,varname, farCorner, tempExtents, GetRefinementLevel());
 	rakeExts[3]=tempExtents[0];
 	rakeExts[4]=tempExtents[1];
 }

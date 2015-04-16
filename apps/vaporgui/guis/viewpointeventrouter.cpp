@@ -166,16 +166,16 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 	
 	Command* cmd = Command::CaptureStart(vParams,"viewpoint text change");
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	
-	const vector<double>& tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
+	vector<double> minExts, maxExts;
+	DataStatus::getInstance()->GetExtents((size_t)timestep, minExts, maxExts);
 	
 	vector<double> camPos, rotCtr;
-	rotCtr.push_back(rotCenter0->text().toFloat()-tvExts[0]);
-	rotCtr.push_back(rotCenter1->text().toFloat()-tvExts[1]);
-	rotCtr.push_back(rotCenter2->text().toFloat()-tvExts[2]);
-	camPos.push_back(camPos0->text().toFloat()-tvExts[0]);
-	camPos.push_back(camPos1->text().toFloat()-tvExts[1]);
-	camPos.push_back(camPos2->text().toFloat()-tvExts[2]);
+	rotCtr.push_back(rotCenter0->text().toFloat()-minExts[0]);
+	rotCtr.push_back(rotCenter1->text().toFloat()-minExts[1]);
+	rotCtr.push_back(rotCenter2->text().toFloat()-minExts[2]);
+	camPos.push_back(camPos0->text().toFloat()-minExts[0]);
+	camPos.push_back(camPos1->text().toFloat()-minExts[1]);
+	camPos.push_back(camPos2->text().toFloat()-minExts[2]);
 	vParams->setRotationCenterLocal(rotCtr);
 	vParams->setCameraPosLocal(camPos, timestep);
 	
@@ -250,10 +250,10 @@ void ViewpointEventRouter::updateTab(){
 	numLights->setText(strng.setNum(nLights));
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	
-	vector <double> tvExts(6,0.);
-	if(DataStatus::getInstance()->getDataMgr()){
-		tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
-	}
+	vector <double> minExts, maxExts;
+	
+	DataStatus::getInstance()->GetExtents((size_t)timestep, minExts, maxExts);
+	
 	
 	
 	
@@ -261,9 +261,9 @@ void ViewpointEventRouter::updateTab(){
 	latLonFrame->hide();
 	//Always display the current values of the campos and rotcenter
 		
-	camPos0->setText(strng.setNum(tvExts[0]+vpParams->getCameraPosLocal(0), 'g', 3));
-	camPos1->setText(strng.setNum(tvExts[1]+vpParams->getCameraPosLocal(1), 'g', 3));
-	camPos2->setText(strng.setNum(tvExts[2]+vpParams->getCameraPosLocal(2), 'g', 3));
+	camPos0->setText(strng.setNum(minExts[0]+vpParams->getCameraPosLocal(0), 'g', 3));
+	camPos1->setText(strng.setNum(minExts[1]+vpParams->getCameraPosLocal(1), 'g', 3));
+	camPos2->setText(strng.setNum(minExts[2]+vpParams->getCameraPosLocal(2), 'g', 3));
 	const vector<double>&vdir = vpParams->getViewDir();
 	const vector<double>&upvec = vpParams->getUpVec();
 	viewDir0->setText(strng.setNum(vdir[0], 'g', 3));
@@ -274,9 +274,9 @@ void ViewpointEventRouter::updateTab(){
 	upVec2->setText(strng.setNum(upvec[2], 'g', 3));
 	
 	//perspectiveCombo->setCurrentIndex(currentViewpoint->hasPerspective());
-	rotCenter0->setText(strng.setNum(tvExts[0]+vpParams->getRotationCenterLocal(0),'g',3));
-	rotCenter1->setText(strng.setNum(tvExts[1]+vpParams->getRotationCenterLocal(1),'g',3));
-	rotCenter2->setText(strng.setNum(tvExts[2]+vpParams->getRotationCenterLocal(2),'g',3));
+	rotCenter0->setText(strng.setNum(minExts[0]+vpParams->getRotationCenterLocal(0),'g',3));
+	rotCenter1->setText(strng.setNum(minExts[1]+vpParams->getRotationCenterLocal(1),'g',3));
+	rotCenter2->setText(strng.setNum(minExts[2]+vpParams->getRotationCenterLocal(2),'g',3));
 	
 	
 	lightPos00->setText(QString::number(vpParams->getLightDirection(0,0)));

@@ -52,7 +52,7 @@ public:
 	}
 
 	virtual int	_initializeGL();
-    virtual int		_paintGL(DataMgr*);
+    virtual int		_paintGL(DataMgrV3_0*);
 
 	virtual void setAllDataDirty() {}
 	void invalidateLineCache(int timestep);

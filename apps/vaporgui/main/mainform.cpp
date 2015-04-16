@@ -76,9 +76,7 @@
 #include "vizwinparams.h"
 #include "vapor/ControlExecutive.h"
 
-#include <vapor/DataMgrWB.h>
-#include <vapor/DataMgrWC.h>
-#include <vapor/MetadataVDC.h>
+#include "vapor/DataMgrV3_0.h"
 #include <vapor/Version.h>
 //Following shortcuts are provided:
 // CTRL_N: new session
@@ -696,7 +694,7 @@ void MainForm::fileOpen()
 
 void MainForm::fileSave()
 {
-	DataMgr *dataMgr = DataStatus::getInstance()->getDataMgr();
+	DataMgrV3_0 *dataMgr = DataStatus::getInstance()->getDataMgr();
 
 	//This directly saves the session to the current session save file.
     	//It does not prompt the user unless there is an error
@@ -723,7 +721,7 @@ void MainForm::fileSave()
 
 void MainForm::fileSaveAs()
 {
-	const DataMgr *dataMgr = ControlExec::GetDataMgr();
+	const DataMgrV3_0 *dataMgr = ControlExec::GetDataMgr();
 
 	if (! dataMgr) {
 		//MessageReporter::warningMsg( "There is no current metadata.  \nSession state cannot be saved");
@@ -830,13 +828,13 @@ void MainForm::loadData()
     	//or metafiles.  
 	
 	QString filename = QFileDialog::getOpenFileName(this,
-		"Choose the Metadata File to load into current session",
+		"Choose the Master File to load into current session",
 		"",
-		"Vapor Metadata Files (*.vdf)");
+		"Vapor WASP files (*.*)");
 	
 	if(filename != QString::null){
 		QFileInfo fInfo(filename);
-		const DataMgr* dmgr=0;
+		const DataMgrV3_0* dmgr=0;
 		if (fInfo.isReadable() && fInfo.isFile()){
 			vector<string> files;
 			files.push_back(filename.toStdString());
@@ -929,13 +927,13 @@ void MainForm::defaultLoadData()
     //with default settings
 	
 	QString filename = QFileDialog::getOpenFileName(this,
-		"Choose the Metadata File to load into default session",
+		"Choose the Master File to load into default session",
 		"",
-		"Vapor Metadata Files (*.vdf)");
+		"WASP files (*.*)");
 	
 	if(filename != QString::null){
 		QFileInfo fInfo(filename);
-		const DataMgr* dmgr=0;
+		const DataMgrV3_0* dmgr=0;
 		if (fInfo.isReadable() && fInfo.isFile()){
 			//Set state to default:
 			ControlExec::SetToDefault();

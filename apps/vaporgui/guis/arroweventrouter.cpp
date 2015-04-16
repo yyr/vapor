@@ -229,8 +229,8 @@ void ArrowEventRouter::
 populateVariableCombos(bool is3D){
 	DataStatus* ds;
 	ds = DataStatus::getInstance();
-	DataMgr* dataMgr = ds->getDataMgr();
-	const vector<string>& vars = (is3D ? dataMgr->GetVariables3D() : dataMgr->GetVariables2DXY());
+	DataMgrV3_0* dataMgr = ds->getDataMgr();
+	const vector<string>& vars = (is3D ? dataMgr->GetDataVarNames(3,true) : dataMgr->GetDataVarNames(2,true));
 	if (is3D){
 		//The first entry is "0"
 		myBasic->xVarCombo->clear();
@@ -282,7 +282,7 @@ populateVariableCombos(bool is3D){
 	myLayout->heightCombo->clear();
 	myLayout->heightCombo->setMaxCount(ds->getNumActiveVariables2D());
 	for (int i = 0; i< ds->getNumActiveVariables2D(); i++){
-		const std::string& s = dataMgr->GetVariables2DXY()[i];
+		const std::string& s = dataMgr->GetDataVarNames(2,true)[i];
 		myLayout->heightCombo->addItem(QString::fromStdString(s));
 	}
 }
@@ -297,9 +297,9 @@ setXVarNum(int vnum){
 	
 	if (vnum > 0){
 		if (is3D)
-			aParams->SetFieldVariableName(0,DataStatus::getInstance()->getDataMgr()->GetVariables3D()[vnum-1]);
+			aParams->SetFieldVariableName(0,DataStatus::getInstance()->getDataMgr()->GetDataVarNames(3,true)[vnum-1]);
 		else 
-			aParams->SetFieldVariableName(0,DataStatus::getInstance()->getDataMgr()->GetVariables2DXY()[vnum-1]);
+			aParams->SetFieldVariableName(0,DataStatus::getInstance()->getDataMgr()->GetDataVarNames(2,true)[vnum-1]);
 	} else aParams->SetFieldVariableName(0,"0");
 	updateTab();
 	VizWinMgr::getInstance()->forceRender(aParams);	
@@ -314,9 +314,9 @@ setYVarNum(int vnum){
 	
 	if (vnum > 0){
 		if (is3D)
-			aParams->SetFieldVariableName(1,DataStatus::getInstance()->getDataMgr()->GetVariables3D()[vnum-1]);
+			aParams->SetFieldVariableName(1,DataStatus::getInstance()->getDataMgr()->GetDataVarNames(3,true)[vnum-1]);
 		else 
-			aParams->SetFieldVariableName(1,DataStatus::getInstance()->getDataMgr()->GetVariables2DXY()[vnum-1]);
+			aParams->SetFieldVariableName(1,DataStatus::getInstance()->getDataMgr()->GetDataVarNames(2,true)[vnum-1]);
 	} else aParams->SetFieldVariableName(1,"0");
 	updateTab();
 	VizWinMgr::getInstance()->forceRender(aParams);	
@@ -329,9 +329,9 @@ setZVarNum(int vnum){
 	bool is3D = aParams->VariablesAre3D();
 	if (vnum > 0){
 		if (is3D)
-			aParams->SetFieldVariableName(2,DataStatus::getInstance()->getDataMgr()->GetVariables3D()[vnum-1]);
+			aParams->SetFieldVariableName(2,DataStatus::getInstance()->getDataMgr()->GetDataVarNames(3,true)[vnum-1]);
 		else 
-			aParams->SetFieldVariableName(2,DataStatus::getInstance()->getDataMgr()->GetVariables2DXY()[vnum-1]);
+			aParams->SetFieldVariableName(2,DataStatus::getInstance()->getDataMgr()->GetDataVarNames(2,true)[vnum-1]);
 	} else aParams->SetFieldVariableName(2,"0");
 	updateTab();
 	VizWinMgr::getInstance()->forceRender(aParams);	
@@ -342,7 +342,7 @@ setHeightVarNum(int vnum){
 	confirmText(true);
 	ArrowParams* aParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
 	
-	aParams->SetHeightVariableName(DataStatus::getInstance()->getDataMgr()->GetVariables2DXY()[vnum-1]);
+	aParams->SetHeightVariableName(DataStatus::getInstance()->getDataMgr()->GetDataVarNames(2,true)[vnum-1]);
 	updateTab();
 	
 	if (!aParams->IsTerrainMapped()) return;
@@ -382,8 +382,9 @@ changeExtents(){
 	Box* bx = aParams->GetBox();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	//convert newExts (in user coords) to local extents, by subtracting time-varying extents origin 
-	const vector<double>& tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
-	for (int i = 0; i<6; i++) newExts[i] -= tvExts[i%3];
+	vector<double>minExts, maxExts;
+	DataStatus::getInstance()->GetExtents((size_t)timestep, minExts, maxExts);
+	for (int i = 0; i<6; i++) newExts[i] -= minExts[i%3];
 	bx->SetLocalExtents(newExts,aParams);
 	
 	updateTab();
@@ -406,12 +407,17 @@ alignToData(bool doAlign){
 void ArrowEventRouter::updateTab(){
 	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
 	
-	//Set up the instance table:
-	DataStatus* ds = DataStatus::getInstance();
-	
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	ArrowParams* arrowParams = (ArrowParams*)ControlExec::GetActiveParams(ArrowParams::_arrowParamsTag);
 	if (!arrowParams) return;
+	//Identify a nontrivial variable, for setting up the box sliders
+	string varname;
+	for (int i = 0; i<3; i++){
+		if (arrowParams->GetFieldVariableName(i) == "0") continue;
+		varname = arrowParams->GetFieldVariableName(i);
+		break;
+	}
+	myLayout->boxSliderFrame->setVariableName(varname);
 	Command::blockCapture();
 	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	//Find all the visualizers other than the one we are using
@@ -433,13 +439,13 @@ void ArrowEventRouter::updateTab(){
 		}
 	}
 	
-	if (!DataStatus::getInstance()->getDataMgr()) return;
-	if (ds->getDataMgr() && fidelityDefaultChanged){
+	if (!DataStatus::getDataMgr()) return;
+	if (DataStatus::getDataMgr() && fidelityDefaultChanged){
 		setupFidelity(3, myBasic->fidelityLayout,myBasic->fidelityBox, arrowParams, false);
 		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 		fidelityDefaultChanged = false;
 	}
-	if (ds->getDataMgr()) updateFidelity(myBasic->fidelityBox, arrowParams,myBasic->lodCombo,myBasic->refinementCombo);
+	if (DataStatus::getDataMgr()) updateFidelity(myBasic->fidelityBox, arrowParams,myBasic->lodCombo,myBasic->refinementCombo);
 	
 	//Set the combo based on the current field variables
 	int comboIndex[3] = { 0,0,0};
@@ -452,13 +458,13 @@ void ArrowEventRouter::updateTab(){
 	if (is3D){
 		for (int i = 0; i<3; i++) {
 			string vname = arrowParams->GetFieldVariableName(i);
-			if(vname != "0") comboIndex[i] = 1+ds->getActiveVarNum3D(vname);
+			if(vname != "0") comboIndex[i] = 1+DataStatus::getActiveVarNum(3,vname);
 			else comboIndex[i]=0;
 		}
 	} else {
 		for (int i = 0; i<3; i++) {
 			string vname = arrowParams->GetFieldVariableName(i);
-			if(vname != "0") comboIndex[i] = 1+ds->getActiveVarNum2D(vname);
+			if(vname != "0") comboIndex[i] = 1+DataStatus::getActiveVarNum(2,vname);
 			else comboIndex[i]=0;
 		}
 	}
@@ -467,7 +473,7 @@ void ArrowEventRouter::updateTab(){
 	myBasic->zVarCombo->setCurrentIndex(comboIndex[2]);
 
 	const string& hname = arrowParams->GetHeightVariableName();
-	int hNum = ds->getActiveVarNum2D(hname);
+	int hNum = DataStatus::getActiveVarNum(2,hname);
 	if (hNum <0) hNum = 0;
 	myLayout->heightCombo->setCurrentIndex(hNum);
 
@@ -481,7 +487,7 @@ void ArrowEventRouter::updateTab(){
 	myAppearance->colorBox->setPalette(pal);
 	
 	//Set the rake extents
-	const double* fullSizes = ds->getFullSizes();
+	const double* fullSizes = DataStatus::getFullSizes();
 	double fullUsrExts[6];
 	for (int i = 0; i<3; i++) {
 		fullUsrExts[i] = 0.;
@@ -496,13 +502,14 @@ void ArrowEventRouter::updateTab(){
 		return;
 	}
 		
-	const vector<double>& usrExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)currentTimeStep);
+	vector<double>minExts, maxExts;
+	DataStatus::getInstance()->GetExtents((size_t)currentTimeStep, minExts, maxExts);
 	for (int i = 0; i<6; i++) {
-		fullUsrExts[i]+= usrExts[i%3];
-		usrRakeExts.push_back(rakeexts[i]+usrExts[i%3]);
+		fullUsrExts[i]+= minExts[i%3];
+		usrRakeExts.push_back(rakeexts[i]+minExts[i%3]);
 	}
 	myLayout->boxSliderFrame->setFullDomain(fullUsrExts);
-	myLayout->boxSliderFrame->setBoxExtents(usrRakeExts);
+	myLayout->boxSliderFrame->setBoxExtents(minExts,maxExts);
 	myLayout->boxSliderFrame->setNumRefinements(arrowParams->GetRefinementLevel());
 
 	
@@ -520,7 +527,7 @@ void ArrowEventRouter::updateTab(){
 	myAppearance->scaleEdit->setText(QString::number(arrowParams->GetVectorScale()));
 	//Only allow terrainAlignCheckbox if height variable exists
 	
-	if (ds->getDataMgr()->VariableExists(currentTimeStep,arrowParams->GetHeightVariableName().c_str())){
+	if (DataStatus::getDataMgr()->VariableExists(currentTimeStep,arrowParams->GetHeightVariableName().c_str())){
 		myLayout->terrainAlignCheckbox->setEnabled(true);
 		myLayout->terrainAlignCheckbox->setChecked(arrowParams->IsTerrainMapped());
 	} else {
@@ -529,7 +536,7 @@ void ArrowEventRouter::updateTab(){
 		if(arrowParams->IsTerrainMapped())
 			arrowParams->SetTerrainMapped(false);
 	}
-	myLayout->heightCombo->setEnabled(ds->getNumActiveVariables2D() > 0);
+	myLayout->heightCombo->setEnabled(DataStatus::getNumActiveVariables2D() > 0);
 	bool isAligned = arrowParams->IsAlignedToData();
 	myLayout->alignDataCheckbox->setChecked(isAligned);
 	myLayout->xStrideEdit->setEnabled(isAligned);
@@ -559,26 +566,31 @@ void ArrowEventRouter::updateTab(){
 void ArrowEventRouter::
 reinitTab(bool doOverride){
 	
-	DataStatus* ds = DataStatus::getInstance();
-	if (ds->getDataMgr()) {
+	
+	if (DataStatus::getDataMgr()) {
 		setEnabled(true);
 	}
 	else setEnabled(false);
-	int i;
+	
 
 
 	//Set up the refinement combo:
-	const DataMgr *dataMgr = ds->getDataMgr();
+	const DataMgrV3_0 *dataMgr = DataStatus::getDataMgr();
+	//Set up the refinements based on the first variable
+	string varname;
+	if (DataStatus::getNumActiveVariables3D() > 0) varname = dataMgr->GetDataVarNames(3,true)[0];
+	else varname = dataMgr->GetDataVarNames(2,true)[0];
 	
-	int numRefinements = dataMgr->GetNumTransforms();
+	int numRefinements = dataMgr->GetNumRefLevels(varname);
 	myBasic->refinementCombo->setMaxCount(numRefinements+1);
 	myBasic->refinementCombo->clear();
-	for (i = 0; i<= numRefinements; i++){
+	for (int i = 0; i<= numRefinements; i++){
 		myBasic->refinementCombo->addItem(QString::number(i));
 	}
 	
 	if (dataMgr){
-		vector<size_t> cRatios = dataMgr->GetCRatios();
+		vector<size_t> cRatios; 
+		dataMgr->GetCRatios(varname, cRatios);
 		myBasic->lodCombo->clear();
 		myBasic->lodCombo->setMaxCount(cRatios.size());
 		for (int i = 0; i<cRatios.size(); i++){
@@ -725,7 +737,7 @@ void ArrowEventRouter::guiSetFidelity(int buttonID){
 void ArrowEventRouter::guiSetFidelityDefault(){
 	/*
 	//Check current values of LOD and refinement and their combos.
-	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	DataMgrV3_0* dataMgr = DataStatus::getInstance()->getDataMgr();
 	if (!dataMgr) return;
 	confirmText(false);
 	IsolineParams* dParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
@@ -760,8 +772,11 @@ fitToData(){
 	
 	box->SetLocalExtents(newExtents,aParams);
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	const vector<double>& currExts =DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
-	myLayout->boxSliderFrame->setBoxExtents(currExts);
+	vector<double> minExts, maxExts;
+	DataStatus::getInstance()->getDataMgr()->GetVariableExtents((size_t)timestep, 
+		aParams->GetVariableName(),aParams->GetRefinementLevel(),
+		minExts, maxExts);
+	myLayout->boxSliderFrame->setBoxExtents(minExts,maxExts);
 	MouseModeParams::mouseModeType t = MouseModeParams::GetCurrentMouseMode();
 	VizWinMgr::getInstance()->forceRender(aParams,t == MouseModeParams::barbMode);
 }

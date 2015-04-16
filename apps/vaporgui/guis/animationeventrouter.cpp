@@ -522,15 +522,15 @@ void AnimationEventRouter::setPosition(int position){
 	if(newFrameNum == aParams->getCurrentTimestep()) return;
 	
 	//Find the nearest valid frame number:
-	DataStatus* ds = DataStatus::getInstance();
-	int maxdist = ds->getMaxTimestep()-ds->getMinTimestep();
+	
+	int maxdist = DataStatus::getMaxTimestep()-DataStatus::getMinTimestep();
 	
 	for (int i = 0; i< maxdist; i++){
-		if (ds->dataIsPresent(newFrameNum+i)) {
+		if (DataStatus::dataIsPresent(newFrameNum+i)) {
 			newFrameNum += i;
 			break;
 		}
-		if (ds->dataIsPresent(newFrameNum-i)) {
+		if (DataStatus::dataIsPresent(newFrameNum-i)) {
 			newFrameNum -= i;
 			break;
 		}

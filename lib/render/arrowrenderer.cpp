@@ -38,6 +38,7 @@
 #include "arrowparams.h"
 #include <vapor/MyBase.h>
 #include <vapor/errorcodes.h>
+#include <vapor/DataMgrV3_0.h>
 
 using namespace VAPoR;
 using namespace VetsUtil;
@@ -62,7 +63,7 @@ int ArrowRenderer::_initializeGL(){
 	return(0);
 }
 
-int ArrowRenderer::_paintGL(DataMgr* dataMgr){
+int ArrowRenderer::_paintGL(DataMgrV3_0* dataMgr){
 
 	
 	ArrowParams* aParams = (ArrowParams*)getRenderParams();
@@ -72,26 +73,69 @@ int ArrowRenderer::_paintGL(DataMgr* dataMgr){
 	//
 	RegularGrid *varData[] = {NULL,NULL,NULL,NULL};
 	vector<string>varnames;
-	size_t voxExts[6];
+
 	double validExts[6];
-	int actualRefLevel = setupVariableData(varnames, varData, validExts, voxExts);
-	if (actualRefLevel < 0) return (-1);
-	//
+	size_t timestep = (size_t)myVisualizer->getActiveAnimationParams()->getCurrentTimestep();
+	DataStatus* ds = DataStatus::getInstance();
+	
+	if (!dataMgr) return -1;
+	
+	if (doBypass(timestep)) return -1;
+
+	int actualRefLevel = aParams->GetRefinementLevel();
+	int lod = aParams->GetCompressionLevel();
+
+	//Determine the extents of the data that is needed:
+	double rakeExts[6];
+	aParams->GetRakeLocalExtents(rakeExts);
+	vector<double>minExts,maxExts;
+	int rc = ds->GetExtents(timestep, minExts, maxExts);
+	float maxVerticalOffset = 0.;
+	for (int i = 0; i<3; i++){
+		string vname = aParams->GetFieldVariableName(i);
+		varnames.push_back(vname);
+	}
+	if (aParams->IsTerrainMapped()){
+		string hname = aParams->GetHeightVariableName();
+		varnames.push_back(hname);
+		maxVerticalOffset = ds->getDefaultDataMax(hname);
+	}
+	
+	
+	double extents[6];
+	float boxexts[6];
+	aParams->GetBox()->GetLocalExtents(boxexts);
+
+	for (int i = 0; i<6; i++){
+		extents[i] = boxexts[i]+minExts[i];
+	}
+	extents[5] += maxVerticalOffset;
+	
+	rc = getGrids( (size_t)timestep, varnames, extents, &actualRefLevel, &lod, varData);
+	if(!rc){
+		return rc;
+	}
+	
 	//Calculate the scale factors and radius to be used in rendering the arrows:
 	//
 	const vector<long> rakeGrid = aParams->GetRakeGrid();
-	double rakeExts[6];
-	aParams->GetRakeLocalExtents(rakeExts);
-	size_t timestep = (size_t)myVisualizer->getActiveAnimationParams()->getCurrentTimestep();
-	const vector<double>& userExts = dataMgr->GetExtents(timestep);
-	for (int i = 0; i<3; i++) rakeExts[i] += userExts[i];
 	
 	float vectorLengthScale = aParams->GetVectorScale();
 	//
-	//Also find the horizontal voxel size in user units at highest ref level.  This will be used to scale the vector radius.
+	//find the horizontal voxel size in user units at highest ref level.  This will be used to scale the vector radius.
 	//
 	size_t dim[3];
-	dataMgr->GetDim(dim, -1);
+	string varname1;
+	for (int i = 0; i<3; i++){
+		if (!varData[i]) continue;
+		varData[i]->GetDimensions(dim);
+		varname1 = varnames[i];
+		break;
+	}
+	//See what the dimensions are at full refinement level
+	int totNumRefs = dataMgr->GetNumRefLevels(varname1);
+	for (int i = 0; i<3; i++)
+		dim[i] *= (2 << (totNumRefs-actualRefLevel+1));
 	const double* fullSizes = DataStatus::getInstance()->getFullSizes();
 	float maxVoxSize = 0.f;
 	for (int i = 0; i<2; i++){
@@ -103,14 +147,13 @@ int ArrowRenderer::_paintGL(DataMgr* dataMgr){
 	//
 	//Perform OpenGL rendering of arrows
 	//
-	int rc = performRendering(dataMgr, aParams, actualRefLevel, vectorLengthScale, rad, varData);
+	rc = performRendering(dataMgr, aParams, actualRefLevel, vectorLengthScale, rad, varData);
 	if(rc) return rc;
 	
 	//Release the locks on the data:
 	for (int k = 0; k<4; k++){
 		if (varData[k])
 			dataMgr->UnlockGrid(varData[k]);
-			delete varData[k];
 	}
 	return(0);
 }
@@ -253,7 +296,7 @@ void ArrowRenderer::drawArrow(const float startPoint[3], const float endPoint[3]
 	glEnd();
 }
 //Perform the openGL rendering:
-int ArrowRenderer::performRendering(DataMgr* dataMgr, const RenderParams* params,
+int ArrowRenderer::performRendering(DataMgrV3_0* dataMgr, const RenderParams* params,
 	int actualRefLevel, float vectorLengthScale, float rad, 
 	RegularGrid *variableData[4]
 ){
@@ -264,7 +307,8 @@ int ArrowRenderer::performRendering(DataMgr* dataMgr, const RenderParams* params
 	
 	const vector<double> rExtents = aParams->GetRakeLocalExtents();
 	//Convert to user coordinates:
-	const vector<double>& fullUsrExts = dataMgr->GetExtents(timestep);
+	vector<double> minExts,maxExts;
+	DataStatus::getInstance()->GetExtents(timestep, minExts,maxExts);
 
 	const vector<long> rGrid = aParams->GetRakeGrid();
 	int rakeGrid[3];
@@ -283,8 +327,8 @@ int ArrowRenderer::performRendering(DataMgr* dataMgr, const RenderParams* params
 
 		for (int i = 0; i<3; i++) {
 			rakeGrid[i] = rGrid[i];
-			rakeExts[i] = rExtents[i]+fullUsrExts[i];
-			rakeExts[i+3] = rExtents[i+3]+fullUsrExts[i];
+			rakeExts[i] = rExtents[i]+minExts[i];
+			rakeExts[i+3] = rExtents[i+3]+minExts[i];
 		}
 	}
 	
@@ -402,78 +446,4 @@ int ArrowRenderer::performRendering(DataMgr* dataMgr, const RenderParams* params
 		}
 	}
 	return 0;
-}
-//Prepare data needed for rendering
-int ArrowRenderer::
-setupVariableData(
-	vector<string>&varnames, RegularGrid *variableData[4], double validExts[6], 
-	size_t voxExts[6]
-){
-
-	ArrowParams* aParams = (ArrowParams*)currentRenderParams;
-	size_t timestep = (size_t)myVisualizer->getActiveAnimationParams()->getCurrentTimestep();
-	DataStatus* ds = DataStatus::getInstance();
-	DataMgr* dataMgr = ds->getDataMgr();
-	if (!dataMgr) return -1;
-
-	//Determine the extents of the data that is needed:
-	double rakeExts[6];
-	aParams->GetRakeLocalExtents(rakeExts);
-	const vector<double>& usrExts = dataMgr->GetExtents(timestep);
-	size_t min_dim[3], max_dim[3];
-	
-	float maxVerticalOffset = 0.f;
-	for (int i = 0; i<3; i++){
-		string vname = aParams->GetFieldVariableName(i);
-		varnames.push_back(vname);
-	}
-	if (aParams->IsTerrainMapped()){
-		string hname = aParams->GetHeightVariableName();
-		
-		varnames.push_back(hname);
-		maxVerticalOffset = ds->getDefaultDataMax(hname);
-	}
-	
-	//Determine the region extents needed to include a voxel beyond all the rake vertices at ref level 0.
-	
-	for (int i = 0; i< 3; i++) {
-		validExts[i] = rakeExts[i]+usrExts[i];
-		validExts[i+3] = rakeExts[i+3]+usrExts[i];
-	}
-	validExts[5] += maxVerticalOffset;
-
-	int numxforms = aParams->GetRefinementLevel();
-	int lod = aParams->GetCompressionLevel();
-	dataMgr->GetEnclosingRegion(timestep,validExts, validExts+3, min_dim, max_dim,numxforms,lod);
-	
-
-	//Obtain the required data from the DataMgr.  
-	
-	for (int i = 0; i<3; i++){
-		if(varnames[i] == "0") continue;
-		
-		variableData[i] = dataMgr->GetGrid(timestep, varnames[i],numxforms, lod,min_dim,max_dim,1);
-		if (!variableData[i]){
-			SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Arrow data unavailable for %s\n", varnames[i].c_str());
-			aParams->setBypass(timestep);
-			for (int k = 0; k<i; i++){
-				if (variableData[k])
-					dataMgr->UnlockGrid(variableData[k]);
-			}
-			return -1;
-		}
-	}
-	//Obtain the height data, if required. Save it in variableData[3]
-	
-	if (aParams->IsTerrainMapped()){
-		string hname = aParams->GetHeightVariableName();
-		
-		variableData[3] = dataMgr->GetGrid(timestep, hname, numxforms, lod,min_dim,max_dim,1);
-		
-		if (!variableData[3]){
-			SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Height data unavailable at LOD %d\n", aParams->GetCompressionLevel());
-			aParams->setBypass(timestep);
-		}
-	}
-	return numxforms;
 }
