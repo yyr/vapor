@@ -239,6 +239,7 @@ public:
  float *_coeffs; // private (not shared)
  unsigned char *_maps;	// private (not shared)
  int _level;
+ bool _unblock_flag; // unblock the data after reconstruction?
  static int _status;	// error indicator
 
  thread_state(
@@ -250,12 +251,13 @@ public:
 	const vector <size_t> &ncoeffs, const vector <size_t> &encoded_dims,
 	const vector <Compressor *> &compressors,  
 	void *data, int itype, unsigned char *mask, float *block, float *coeffs,
-	unsigned char *maps, int level
+	unsigned char *maps, int level, bool unblock_flag
  ) : _id(id), _et(et), _varname(varname), _ncdfcptrs(ncdfcptrs), 
 	_start(start), _count(count), _bs(bs), _udims(udims),
 	_ncoeffs(ncoeffs), _encoded_dims(encoded_dims),
 	_compressors(compressors), _data(data), _itype(itype), _mask(mask),
-	_block(block), _coeffs(coeffs), _maps(maps), _level(level)
+	_block(block), _coeffs(coeffs), _maps(maps), _level(level),
+	_unblock_flag(unblock_flag)
  {_status = 0;}
 
 };
@@ -1209,7 +1211,7 @@ void *RunWriteThreadCompressed(void *arg) {
 template <class T>
 void *RunReadThreadTemplate(thread_state &s, T *data) {
 
-	bool unblock = s._block != NULL;	// Need to unblock data?
+	bool unblock_flag = s._unblock_flag;	// Need to unblock data?
 
 
 	// Align start and count coordinates to block boundaries
@@ -1255,7 +1257,7 @@ void *RunReadThreadTemplate(thread_state &s, T *data) {
 		if (s._status < 0) break;
 
 
-		if (unblock) {
+		if (unblock_flag) {
 			// Unblock the current block into the destination array
 			//
 			UnBlock(blockptr, s._bs, data, s._count, roi_origin, roi_start);
@@ -1292,7 +1294,7 @@ void *RunReadThread(void *arg) {
 template <class T>
 void *RunReadThreadCompressedTemplate(thread_state &s, T *data) {
 
-	bool unblock = s._block != NULL;	// Need to unblock data?
+	bool unblock_flag = s._unblock_flag;	// Need to unblock data?
 
 
 	// Align start and count coordinates to block boundaries
@@ -1349,7 +1351,7 @@ void *RunReadThreadCompressedTemplate(thread_state &s, T *data) {
         }
 
 
-		if (unblock) {
+		if (unblock_flag) {
 			// Unblock the current block into the destination array
 			//
 			UnBlock(blockptr, s._bs, data, s._count, roi_origin, roi_start);
@@ -2397,7 +2399,7 @@ int WASP::_PutVara(
 			_open_udims, ncoeffs, encoded_dims, _open_compressors, 
 			(void *) data, itype, (unsigned char *) mask,
 			block + i*block_size, coeffs + i*coeffs_size, 
-			maps + i*maps_size*sizeof(float), 0
+			maps + i*maps_size*sizeof(float), 0, true
 		));
 	}
 
@@ -2500,7 +2502,7 @@ int WASP::PutVar(const unsigned char *data, const unsigned char *mask) {
 
 template <class T>
 int WASP::_GetVara(
-    vector <size_t> start, vector <size_t> count, bool unblock, T *data,
+    vector <size_t> start, vector <size_t> count, bool unblock_flag, T *data,
 	int itype
 ) {
 
@@ -2536,7 +2538,7 @@ int WASP::_GetVara(
 	);
 
 	if (! _validate_get_vara_compressed(
-		start, count, bs_at_level, dims_at_level, _open_cratios, unblock)
+		start, count, bs_at_level, dims_at_level, _open_cratios, unblock_flag)
 	) {
 		SetErrMsg("Invalid parameter");
         return(-1);
@@ -2546,14 +2548,12 @@ int WASP::_GetVara(
 
 	float *blockptr = NULL;
 	size_t block_size = vproduct(bs_at_level);
-	if (unblock) {
 
-		// Need space if we're unblocking data
-		//
-		blockptr = (float *) _blockbuf.Alloc(
-			block_size * _nthreads *sizeof(float)
-		);
-	}
+	// Need temporary space for storing reconstructed data
+	//
+	blockptr = (float *) _blockbuf.Alloc(
+		block_size * _nthreads *sizeof(float)
+	);
 
     size_t coeffs_size = 0;
     float *coeffs = NULL;
@@ -2584,16 +2584,14 @@ int WASP::_GetVara(
 	vector <void *> argvec;
 	for (int i=0; i<_nthreads; i++) {
 
-		// Don't unblock if blockptr is NULL
-		//
-		float *blkptr = blockptr ? blockptr + i*block_size : NULL;
+		float *blkptr = blockptr + i*block_size;
 
 		argvec.push_back((void *) new thread_state(
 			i, _et, _open_varname, _ncdfcptrs, start, count, bs_at_level, 
 			dims_at_level, ncoeffs,
 			encoded_dims, _open_compressors, data, itype, NULL,
 			blkptr, coeffs + i*coeffs_size, 
-			maps + i*maps_size*sizeof(float), _open_level
+			maps + i*maps_size*sizeof(float), _open_level, unblock_flag
 		));
 	}
 
