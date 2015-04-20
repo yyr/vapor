@@ -309,7 +309,17 @@ public:
 
   //! Default constructor
   //!
-  BaseVar() {};
+  BaseVar() {
+	  _name.clear();
+	  _dimensions.clear();
+	  _units = "";
+	  _type = FLOAT;
+	  _wname = "";
+	  _cratios.clear();
+	  _bs.clear();
+	  _periodic.clear();
+	  _atts.clear();
+  }
 
   //! Constructor 
   //!
@@ -464,7 +474,10 @@ public:
 
   //! Default Coordinate Variable metadata constructor
   //
-  CoordVar() : BaseVar() {};
+  CoordVar() : BaseVar() {
+	_axis = 0;
+	_uniform = false;
+  }
 
 
   //! Construct coordinate variable 
@@ -546,7 +559,12 @@ public:
 
   //! constructor for default Data variable definition
   //
-  DataVar() : BaseVar() {};
+  DataVar() : BaseVar() {
+	_coordvars.clear();
+	_maskvar = "";
+	_has_missing = false;
+	_missing_value = 0.0;
+  }
 
   //! Construct Data variable definition with missing values
   //!
