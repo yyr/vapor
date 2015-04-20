@@ -29,7 +29,7 @@
 #include "datastatus.h"
 #include "vizwinparams.h"
 #include <vapor/ParamNode.h>
-#include <vapor/DataMgr.h>
+#include <vapor/DataMgrV3_0.h>
 #include <vapor/RegularGrid.h>
 #include <vapor/errorcodes.h>
 #include "Box.h"

@@ -156,10 +156,28 @@ public:
 	//! returns 6 doubles for each time step.
 	//! \retval const vector<double> vector of extents. 
 	const vector<double> GetAllExtents(){ return GetBox()->GetValueDoubleVec(Box::_extentsTag);}
+
+	//! Provide the domain-defining variables
+	//! returns a vector of variable names.
+	//! Note that this is an attribute of the global Region params
+	//! \retval vector<string> domain-defining variables
+	static const vector<string> GetDomainVariables(){ 
+		vector<string>vec;
+		((RegionParams*)Params::GetParamsInstance(_regionParamsTag,-1,-1))->GetValueStringVec(_domainVariablesTag, vec);
+		return vec;
+	}
+	//! set the domain-defining variables
+	//! Note that this value is stored in the global Region params
+	//! \param [in] vector<string> names of domain-defining variables
+	//! \retval int 0 if successful
+	static int SetDomainVariables(vector<string> varnames){ 
+		if (varnames.size() == 0) return -1;
+		return ((RegionParams*)Params::GetParamsInstance(_regionParamsTag,-1,-1))->SetValueStringVec(_domainVariablesTag, "Set Domain-defining variables",varnames);
+	}
 #ifndef DOXYGEN_SKIP_THIS
 protected:
 	static const string _shortName;
-	
+	static const string _domainVariablesTag;
 	void clearRegionsMap();
 	
 #endif //DOXYGEN_SKIP_THIS

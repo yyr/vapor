@@ -14,7 +14,7 @@ class Visualizer;
 class Params;
 class ParamsBase;
 class RenderParams;
-class DataMgr;
+class DataMgrV3_0;
 class ErrorHandler;
 class Command;
 class ParamNode;
@@ -393,12 +393,12 @@ public:
 	//! \note (AN) It would be much better to incorporate the DataStatus methods into
 	//! the DataMgr class, rather than keeping them separate.
 	//
-	static const DataMgr *LoadData(vector <string> files, bool deflt = true);
+	static const DataMgrV3_0 *LoadData(vector <string> files, bool deflt = true);
 
 	//! Obtain a pointer to the current DataMgr
 	//! Returns NULL if it does not exist.
 	//! \retVal dataMgr
-	static const DataMgr* GetDataMgr(){ return dataMgr;};
+	static const DataMgrV3_0* GetDataMgr(){ return dataMgr;};
 
 	//! Draw 2D text on the screen
 	//!
@@ -528,7 +528,7 @@ public:
 		//! delete all the Params instances and clean out the Undo/Redo queue e.g. before a session change
 		void destroyParams();
 		static std::map<int,Visualizer*> visualizers;
-		static DataMgr* dataMgr;
+		static DataMgrV3_0* dataMgr;
 		static ControlExec* controlExecutive;
 		
 		Params* tempParsedParams;

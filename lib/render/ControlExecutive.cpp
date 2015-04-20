@@ -30,7 +30,7 @@
 using namespace VAPoR;
 ControlExec* ControlExec::controlExecutive = 0;
 std::map <int,Visualizer*> ControlExec::visualizers;
-DataMgr* ControlExec::dataMgr = 0;
+DataMgrV3_0* ControlExec::dataMgr = 0;
 const string ControlExec::_sessionTag = "VaporSession";
 const string ControlExec::_VAPORVersionAttr = "VaporVersion";
 const string ControlExec::_globalParamsTag = "GlobalParams";
@@ -266,10 +266,13 @@ int ControlExec::GetNumParamsInstances(int viz, string type){
 }
 
 	
-const DataMgr *ControlExec::LoadData(vector <string> files, bool dflt){
+const DataMgrV3_0 *ControlExec::LoadData(vector <string> files, bool dflt){
 	int cacheMB = 2000;
-	dataMgr = DataMgrFactory::New(files, cacheMB);
+	if (dataMgr) delete dataMgr;
+	dataMgr = new DataMgrV3_0(string("vdc"),cacheMB);
 	if (!dataMgr) return dataMgr;
+	int rc = dataMgr->Initialize(files);
+	if (rc < 0) return 0;
 	bool hasData = DataStatus::getInstance()->reset(dataMgr,cacheMB);
 	if (!hasData) return 0;
 	Command::blockCapture();

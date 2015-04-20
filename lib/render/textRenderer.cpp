@@ -107,11 +107,13 @@ int TextObject::Initialize( string inFont,
 	if (inType == 1){
 		//Convert user to local/stretched coordinates in cube
 		DataStatus* ds = DataStatus::getInstance();
-		const vector<double>& fullUsrExts = ds->getDataMgr()->GetExtents();
+		vector<double>minExts, maxExts;
+		//Note:  First argument (timestep) should be passed into this method?????
+		ds->GetExtents(0, minExts, maxExts);
 		float sceneScaleFactor = 1./DataStatus::getInstance()->getMaxStretchedSize();
 		const double* scales = ds->getStretchFactors();
 		for (int i = 0; i<3; i++){ 
-			_3Dcoords[i] = _coords[i] - fullUsrExts[i];
+			_3Dcoords[i] = _coords[i] - minExts[i];
 			_3Dcoords[i] *= sceneScaleFactor;
 			_3Dcoords[i] *= scales[i];
 		}
@@ -295,11 +297,12 @@ int TextObject::drawMe(double coords[3], int timestep) {
 	if (_type == 1) {
         //Convert user to local/stretched coordinates in cube
         DataStatus* ds = DataStatus::getInstance();
-        const vector<double>& fullUsrExts = ds->getDataMgr()->GetExtents((size_t)timestep);
+		vector<double> minExts, maxExts;
+        ds->GetExtents((size_t)timestep, minExts, maxExts);
         float sceneScaleFactor = 1./DataStatus::getInstance()->getMaxStretchedSize();
         const double* scales = ds->getStretchFactors();
 		for (int i = 0; i<3; i++){ 
-            coords[i] = coords[i] - fullUsrExts[i];
+            coords[i] = coords[i] - minExts[i];
             coords[i] *= sceneScaleFactor;
             coords[i] *= scales[i];
         }  

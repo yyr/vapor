@@ -31,8 +31,7 @@
 using namespace VetsUtil;
 
 namespace VAPoR {
-class DataMgr;
-class Metadata;
+class DataMgrV3_0;
 
 //! \class Renderer
 //! \ingroup Public_Render
@@ -68,7 +67,7 @@ public:
 	//! All OpenGL rendering is performed in the pure virtual paintGL method.
 	//! \param[in] dataMgr Current (valid) dataMgr
 	//! \retval int zero if successful.
-    virtual int		paintGL(DataMgr* dataMgr);
+    virtual int		paintGL(DataMgrV3_0* dataMgr);
 	
 	//! Whenever the Params associated with the renderer is changed, setRenderParams must be called.
 	//! This virtual method should be overridden if there are any dirty flags registered by the renderer.
@@ -143,7 +142,7 @@ public:
 	void buildLocal2DTransform(int dataOrientation, float a[2],float b[2], float* constVal, int mappedDims[3]);
 	//Obtain region that contains rotated box
 	void getLocalContainingRegion(float regMin[3], float regMax[3]);
-	static int getGrids(size_t ts, const vector<string>& varnames, double extents[6], int* refLevel, int* lod, RegularGrid** grids);
+	static int getGrids(size_t ts, const vector<string>& varnames, const double extents[6], int* refLevel, int* lod, RegularGrid** grids);
 	
 	///@}
 	
@@ -156,7 +155,7 @@ protected:
     virtual int	_initializeGL() = 0;
 
 	//! All OpenGL rendering is performed in the pure virtual paintGL method.
-    virtual int	_paintGL(DataMgr*) = 0;
+    virtual int	_paintGL(DataMgrV3_0*) = 0;
 
 	//! Enable specified clipping planes during the GL rendering
 	//! Must be invoked during paintGL()

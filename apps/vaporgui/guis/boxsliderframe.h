@@ -33,7 +33,7 @@ class BoxSliderFrame : public QFrame, public Ui_boxframe {
 public:
 	BoxSliderFrame( QWidget * parent = 0);
 	~BoxSliderFrame();
-	void setBoxExtents(const std::vector<double>& vec);
+	void setBoxExtents(const std::vector<double>& minExts, const std::vector<double>& maxExts);
 	void getBoxExtents(double[6]);
 	void setFullDomain(const double[6]);
 	void setVoxelDims(const int[3]);
@@ -41,6 +41,7 @@ public:
 	void setNumRefinements(int numrefs){
 		numRefinements = numrefs;
 	}
+	void setVariableName(std::string vname) {myVarname = vname;}
 	
 
 public slots:
@@ -64,7 +65,7 @@ signals:
 	
 protected:
 	void confirmText();
-	void nudgeCenter(int val, int dir);
+	void nudgeCenter(std::string varname, int val, int dir);
 	void nudgeSize(int val, int dir);
 	bool textChangedFlag;
 	bool silenceSignals;
@@ -74,6 +75,7 @@ protected:
 	int numRefinements;
 	int lastCenterSlider[3];
 	int lastSizeSlider[3];
+	std::string myVarname;
 };
 };
 

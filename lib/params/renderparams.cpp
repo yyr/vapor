@@ -29,7 +29,7 @@
 #include "vizwinparams.h"
 #include "renderparams.h"
 #include <vapor/ParamNode.h>
-#include <vapor/DataMgr.h>
+#include <vapor/DataMgrV3_0.h>
 #include <vapor/RegularGrid.h>
 #include <vapor/errorcodes.h>
 #include "Box.h"
@@ -82,11 +82,10 @@ int RenderParams::SetCompressionLevel(int level){
 }
 int RenderParams::SetRefinementLevel(int level){
 		
-		int maxref = DataStatus::getInstance()->getNumTransforms();
-		if (level < 0 || level > maxref) return -1;
-		SetValueLong(_RefinementLevelTag, "Set refinement level",level);
-		setAllBypass(false);
-		return 0;
+	if (level < 0 ) return -1;
+	SetValueLong(_RefinementLevelTag, "Set refinement level",level);
+	setAllBypass(false);
+	return 0;
 }
 int RenderParams::GetRefinementLevel(){
 		const vector<long>defaultRefinement(1,0);

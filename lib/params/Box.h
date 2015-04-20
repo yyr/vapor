@@ -52,6 +52,11 @@ public:
 	//! \param[in] timestep size_t Specific time step being retrieved
 	//! \retval int zero if successful.
 	int GetUserExtents(double extents[6], size_t timestep);
+	//! Get the box user extents as vector<double> at a specified time step >= 0
+	//! \param[out] extents[6] double Returned extents
+	//! \param[in] timestep size_t Specific time step being retrieved
+	//! \retval int zero if successful.
+	int GetUserExtents(vector<double> minExts, vector<double>maxExts, size_t timestep);
 	//! Get the user box extents as a float array at specified time step
 	//! for the specified timestep
 	//! \param[out] extents[6] float Returned extents
@@ -244,7 +249,7 @@ public:
 	bool intersectRotatedBox(double boxexts[6], double pointFound[3], double probeCoords[2]);
 	bool fitToBox(const double boxExts[6], Params* p);
 	int interceptBox(const double boxExts[6], double intercept[6][3]);
-	void getRotatedVoxelExtents(float voxdims[2], int numRefinements);
+	void getRotatedVoxelExtents(string varname, float voxdims[2], int numRefinements);
 	void rotateAndRenormalize(int axis, double rotVal, Params* p);
 	///@}
 

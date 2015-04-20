@@ -238,9 +238,9 @@ protected:
 	// in guiSetFidelityDefault, call setFidelityDefault
 
 	//Build the vectors of reflevels and lods
-	virtual int orderLODRefs(int dim);
+	virtual int orderLODRefs(RenderParams* rParams, int dim);
 	//Determine the default lod and ref level for a specified region size
-	virtual void calcLODRefDefault(int dim, float regMBs, int* lod, int* reflevel);
+	virtual void calcLODRefDefault(RenderParams* rParams, int dim, float regMBs, int* lod, int* reflevel);
 	virtual void updateFidelity(QGroupBox*, RenderParams* rp, QComboBox* lodCombo, QComboBox* refinementCombo);
 
 	void setupFidelity(int dim, QHBoxLayout* fidelityLayout,

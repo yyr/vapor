@@ -276,26 +276,27 @@ void IsolineEventRouter::updateTab(){
 	
 	MainForm::getInstance()->buildWebTabHelpMenu(myWebHelpActions);
 
-	guiSetTextChanged(false);
-	setIgnoreBoxSliderEvents(true);  //don't generate nudge events
-
-	DataStatus* ds = DataStatus::getInstance();
-	DataMgr* dataMgr = ds->getDataMgr();
-	if (!dataMgr || dataMgr->GetVariableNames().size() == 0) return;
+	
+	
+	DataMgrV3_0* dataMgr = DataStatus::getDataMgr();
+	if (!dataMgr || dataMgr->GetDataVarNames().size() == 0) return;
 	
 	IsolineParams* isolineParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
 	if (!isolineParams) return;
+	guiSetTextChanged(false);
+	setIgnoreBoxSliderEvents(true);  //don't generate nudge events
+
 	Command::blockCapture();
 	myIsovals->isoSelectionFrame->setIsolineSliders(isolineParams->GetIsovalues());
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	size_t timestep = (size_t)vizMgr->getActiveAnimationParams()->getCurrentTimestep();
 	int winnum = vizMgr->getActiveViz();
-	if (ds->getDataMgr() && fidelityDefaultChanged){
+	if (DataStatus::getDataMgr() && fidelityDefaultChanged){
 		setupFidelity(3, myBasics->fidelityLayout,myBasics->fidelityBox, isolineParams, false);
 		connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
 		fidelityDefaultChanged = false;
 	}
-	if (ds->getDataMgr()) updateFidelity(myBasics->fidelityBox, isolineParams,myBasics->lodCombo,myBasics->refinementCombo);
+	if (DataStatus::getDataMgr()) updateFidelity(myBasics->fidelityBox, isolineParams,myBasics->lodCombo,myBasics->refinementCombo);
 	
 	guiSetTextChanged(false);
 
@@ -337,18 +338,19 @@ void IsolineEventRouter::updateTab(){
 		Command::unblockCapture();
 		return;
 	}
-	const vector<double>&userExts = ds->getDataMgr()->GetExtents(timestep);
+	vector<double>minExts,maxExts;
+	DataStatus::GetExtents(timestep,minExts,maxExts);
 	//And the center sliders/textboxes:
 	double locExts[6],boxCenter[3];
-	const double* fullSizes = ds->getFullSizes();
+	const double* fullSizes = DataStatus::getFullSizes();
 	isolineParams->GetBox()->GetLocalExtents(locExts);
 	for (int i = 0; i<3; i++) boxCenter[i] = (locExts[i]+locExts[3+i])*0.5f;
 	myLayout->xCenterSlider->setValue((int)(256.f*boxCenter[0]/fullSizes[0]));
 	myLayout->yCenterSlider->setValue((int)(256.f*boxCenter[1]/fullSizes[1]));
 	myLayout->zCenterSlider->setValue((int)(256.f*boxCenter[2]/fullSizes[2]));
-	myLayout->xCenterEdit->setText(QString::number(userExts[0]+boxCenter[0]));
-	myLayout->yCenterEdit->setText(QString::number(userExts[1]+boxCenter[1]));
-	myLayout->zCenterEdit->setText(QString::number(userExts[2]+boxCenter[2]));
+	myLayout->xCenterEdit->setText(QString::number(minExts[0]+boxCenter[0]));
+	myLayout->yCenterEdit->setText(QString::number(minExts[1]+boxCenter[1]));
+	myLayout->zCenterEdit->setText(QString::number(minExts[2]+boxCenter[2]));
 
 	//Calculate extents of the containing box
 	double corners[8][3];
@@ -369,12 +371,12 @@ void IsolineEventRouter::updateTab(){
 	}
 	//Now convert to user coordinates
 
-	myLayout->minUserXLabel->setText(QString::number(userExts[0]+dboxmin[0]));
-	myLayout->minUserYLabel->setText(QString::number(userExts[1]+dboxmin[1]));
-	myLayout->minUserZLabel->setText(QString::number(userExts[2]+dboxmin[2]));
-	myLayout->maxUserXLabel->setText(QString::number(userExts[0]+dboxmax[0]));
-	myLayout->maxUserYLabel->setText(QString::number(userExts[1]+dboxmax[1]));
-	myLayout->maxUserZLabel->setText(QString::number(userExts[2]+dboxmax[2]));
+	myLayout->minUserXLabel->setText(QString::number(minExts[0]+dboxmin[0]));
+	myLayout->minUserYLabel->setText(QString::number(minExts[1]+dboxmin[1]));
+	myLayout->minUserZLabel->setText(QString::number(minExts[2]+dboxmin[2]));
+	myLayout->maxUserXLabel->setText(QString::number(minExts[0]+dboxmax[0]));
+	myLayout->maxUserYLabel->setText(QString::number(minExts[1]+dboxmax[1]));
+	myLayout->maxUserZLabel->setText(QString::number(minExts[2]+dboxmax[2]));
 
 	//And convert these to grid coordinates:
 	
@@ -456,7 +458,7 @@ void IsolineEventRouter::updateTab(){
 	const double* selectedPoint = isolineParams->getSelectedPointLocal();
 	double selectedUserCoords[3];
 	//selectedPoint is in local coordinates.  convert to user coords:
-	for (int i = 0; i<3; i++)selectedUserCoords[i] = selectedPoint[i]+userExts[i];
+	for (int i = 0; i<3; i++)selectedUserCoords[i] = selectedPoint[i]+minExts[i];
 	myImage->selectedXLabel->setText(QString::number(selectedUserCoords[0]));
 	myImage->selectedYLabel->setText(QString::number(selectedUserCoords[1]));
 	myImage->selectedZLabel->setText(QString::number(selectedUserCoords[2]));
@@ -479,18 +481,22 @@ void IsolineEventRouter::updateTab(){
 	myImage->attachSeedCheckbox->setChecked(seedAttached);
 	int activeVarNum;
 	float range[2];
-	dataMgr->GetDataRange(timestep, isolineParams->GetVariableName().c_str(),range);
+
+	RegularGrid* rGrid = dataMgr->GetVariable(timestep, isolineParams->GetVariableName(), 
+		isolineParams->GetRefinementLevel(),isolineParams->GetCompressionLevel());
+	rGrid->GetRange(range);
+	
 	myIsovals->minDataBound->setText(QString::number(range[0]));
 	myIsovals->maxDataBound->setText(QString::number(range[1]));
 	if (isolineParams->VariablesAre3D()){
 		myIsovals->copyToProbeButton->setText("Copy to Probe");
 		myIsovals->copyToProbeButton->setToolTip("Click to make the current active Probe display these contour lines as a color contour plot");
-		activeVarNum = ds->getActiveVarNum3D(isolineParams->GetVariableName());
+		activeVarNum = DataStatus::getActiveVarNum(3,isolineParams->GetVariableName());
 	}
 	else {
 		myIsovals->copyToProbeButton->setText("Copy to 2D");
 		myIsovals->copyToProbeButton->setToolTip("Click to make the current active 2D Data display these contour lines as a color contour plot");
-		activeVarNum = ds->getActiveVarNum2D(isolineParams->GetVariableName());
+		activeVarNum = DataStatus::getActiveVarNum(2,isolineParams->GetVariableName());
 	}
 	
 	float val = 0.;
@@ -663,7 +669,8 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 
 	size_t timestep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	const vector<double>& userExts = DataStatus::getInstance()->getDataMgr()->GetExtents(timestep);
+	vector<double>minExts,maxExts;
+	DataStatus::getInstance()->GetExtents(timestep, minExts,maxExts);
 	//Set the isoline size based on current text box settings:
 	float boxSize[3], boxexts[6],  boxCenter[3];
 	boxSize[0] = myLayout->xSizeEdit->text().toFloat();
@@ -673,9 +680,9 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 		if (boxSize[i] < 0.f) boxSize[i] = 0.f;
 	}
 	//Convert text to local extents:
-	boxCenter[0] = myLayout->xCenterEdit->text().toFloat()- userExts[0];
-	boxCenter[1] = myLayout->yCenterEdit->text().toFloat()- userExts[1];
-	boxCenter[2] = myLayout->zCenterEdit->text().toFloat()- userExts[2];
+	boxCenter[0] = myLayout->xCenterEdit->text().toFloat()- minExts[0];
+	boxCenter[1] = myLayout->yCenterEdit->text().toFloat()- minExts[1];
+	boxCenter[2] = myLayout->zCenterEdit->text().toFloat()- minExts[2];
 	const double* fullSizes = DataStatus::getInstance()->getFullSizes();
 	for (int i = 0; i<3;i++){
 		//Don't constrain the box to have center in the domain:
@@ -1184,7 +1191,7 @@ guiFitDomain(){
 //any of the localIsolineParams are setup.
 void IsolineEventRouter::
 reinitTab(bool doOverride){
-	DataStatus* ds = DataStatus::getInstance();
+	
 	setEnabled(true);
 	setIgnoreBoxSliderEvents(false);
 	myLayout->xThumbWheel->setRange(-100000,100000);
@@ -1203,24 +1210,9 @@ reinitTab(bool doOverride){
 	seedAttached = false;
 
 	//Set up the refinement combo:
-	const DataMgr* dataMgr = ds->getDataMgr();
+	const DataMgrV3_0* dataMgr =DataStatus::getDataMgr();
 	
-	int numRefinements = dataMgr->GetNumTransforms();
-	myBasics->refinementCombo->setMaxCount(numRefinements+1);
-	myBasics->refinementCombo->clear();
-	for (int i = 0; i<= numRefinements; i++){
-		myBasics->refinementCombo->addItem(QString::number(i));
-	}
-	if (dataMgr){
-		vector<size_t> cRatios = dataMgr->GetCRatios();
-		myBasics->lodCombo->clear();
-		myBasics->lodCombo->setMaxCount(cRatios.size());
-		for (int i = 0; i<cRatios.size(); i++){
-			QString s = QString::number(cRatios[i]);
-			s += ":1";
-			myBasics->lodCombo->addItem(s);
-		}
-	}
+	
 	if (currentHistogram) {
 		delete currentHistogram;
 		currentHistogram = 0;
@@ -1233,13 +1225,30 @@ reinitTab(bool doOverride){
 	myBasics->variableCombo->clear();
 	vector<string>varnames;
 	if (dParams->VariablesAre3D())
-		varnames = dataMgr->GetVariables3D();
+		varnames = dataMgr->GetDataVarNames(3,true);
 	else 
-		varnames = dataMgr->GetVariables2DXY();
+		varnames = dataMgr->GetDataVarNames(2,true);
 
 	for (int i = 0; i<varnames.size(); i++)
 		myBasics->variableCombo->insertItem(i,varnames[i].c_str());
 		
+	int numRefinements = dataMgr->GetNumRefLevels(varnames[0]);
+	myBasics->refinementCombo->setMaxCount(numRefinements+1);
+	myBasics->refinementCombo->clear();
+	for (int i = 0; i<= numRefinements; i++){
+		myBasics->refinementCombo->addItem(QString::number(i));
+	}
+	if (dataMgr){
+		vector<size_t> cRatios;
+		dataMgr->GetCRatios(varnames[0], cRatios);
+		myBasics->lodCombo->clear();
+		myBasics->lodCombo->setMaxCount(cRatios.size());
+		for (int i = 0; i<cRatios.size(); i++){
+			QString s = QString::number(cRatios[i]);
+			s += ":1";
+			myBasics->lodCombo->addItem(s);
+		}
+	}
 	ignoreComboChanges = false;
 	setupFidelity(3, myBasics->fidelityLayout,myBasics->fidelityBox, dParams, doOverride);
 	connect(fidelityButtons,SIGNAL(buttonClicked(int)),this, SLOT(guiSetFidelity(int)));
@@ -1318,8 +1327,8 @@ void IsolineEventRouter::
 guiChangeVariable(int varnum){
 	//Don't react if the combo is being reset programmatically:
 	if (ignoreComboChanges) return;
-	DataStatus* ds = DataStatus::getInstance();
-	DataMgr* dataMgr = ds->getDataMgr();
+	
+	DataMgrV3_0* dataMgr = DataStatus::getDataMgr();
 	if (!dataMgr) return;
 	confirmText(false);
 	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
@@ -1328,11 +1337,11 @@ guiChangeVariable(int varnum){
 	//Several changes occur here, they should be captured as one event
 	Command* cmd = Command::CaptureStart(pParams,"Change isoline variable");
 	if (pParams->VariablesAre3D()){
-		const string varname = dataMgr->GetVariables3D()[activeVar];
+		const string varname = dataMgr->GetDataVarNames(3,true)[activeVar];
 		pParams->SetVariableName(varname);
 	}
 	else {
-		const string varname = dataMgr->GetVariables2DXY()[activeVar];
+		const string varname = dataMgr->GetDataVarNames(3,true)[activeVar];
 		pParams->SetVariableName(varname);
 	}
 	
@@ -1431,9 +1440,9 @@ guiSetNumRefinements(int n){
 	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
 	confirmText(false);
 	int maxNumRefinements = 0;
-	
-	if (DataStatus::getInstance()) {
-		maxNumRefinements = DataStatus::getInstance()->getNumTransforms();
+	string varname = pParams->GetVariableName();
+	if (DataStatus::getInstance()->getDataMgr()) {
+		maxNumRefinements = DataStatus::getInstance()->getDataMgr()->GetNumRefLevels(varname);
 		if (n > maxNumRefinements) {
 			//MessageReporter::warningMsg("%s","Invalid number of Refinements \nfor current data");
 			n = maxNumRefinements;
@@ -1481,9 +1490,10 @@ sliderToText(IsolineParams* pParams, int coord, int slideCenter, int slideSize){
 	//Map to user coordinates
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	size_t timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	const vector<double>&userExts = DataStatus::getInstance()->getDataMgr()->GetExtents(timestep);
-	newCenter += userExts[coord];
-	float selectCoord = selectedPoint[coord] + userExts[coord];
+	vector<double> minExts, maxExts;
+	DataStatus::getInstance()->GetExtents(timestep, minExts, maxExts);
+	newCenter += minExts[coord];
+	float selectCoord = selectedPoint[coord] + minExts[coord];
 	switch(coord) {
 		case 0:
 			myLayout->xSizeEdit->setText(QString::number(newSize,'g',7));
@@ -1616,7 +1626,7 @@ calcCurrentValue(IsolineParams* pParams, const double point[3] ){
 	
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds ) return 0.f; 
-	DataMgr* dataMgr =	ds->getDataMgr();
+	DataMgrV3_0* dataMgr =	ds->getDataMgr();
 	if (!dataMgr) return 0.f;
 	if (!pParams->IsEnabled()) return 0.f;
 	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
@@ -1646,8 +1656,8 @@ calcCurrentValue(IsolineParams* pParams, const double point[3] ){
 void IsolineEventRouter::guiNudgeXSize(int val) {
 	
 	if (ignoreBoxSliderEvents) return;
-	DataStatus* ds = DataStatus::getInstance();
-	if (!ds->getDataMgr()) return;
+	
+	if (!DataStatus::getDataMgr()) return;
 	
 	//ignore if change is not 1 
 	if(abs(val - lastXSizeSlider) != 1) {
@@ -1658,10 +1668,11 @@ void IsolineEventRouter::guiNudgeXSize(int val) {
 	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
+	double voxelSize =DataStatus::getVoxelSize(timestep, pParams->GetVariableName(), pParams->GetRefinementLevel(),0);
 	float pmin = pParams->getLocalBoxMin(0);
 	float pmax = pParams->getLocalBoxMax(0);
-	float maxExtent = ds->getFullSizes()[0];
+	float maxExtent = DataStatus::getFullSizes()[0];
 	float minExtent = 0.;
 	float newSize = pmax - pmin;
 	if (val > lastXSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
@@ -1692,8 +1703,8 @@ void IsolineEventRouter::guiNudgeXSize(int val) {
 void IsolineEventRouter::guiNudgeXCenter(int val) {
 
 	if (ignoreBoxSliderEvents) return;
-	DataStatus* ds = DataStatus::getInstance();
-	if (!ds->getDataMgr()) return;
+
+	if (!DataStatus::getDataMgr()) return;
 	//ignore if change is not 1 
 	if(abs(val - lastXCenterSlider) != 1) {
 		lastXCenterSlider = val;
@@ -1704,10 +1715,11 @@ void IsolineEventRouter::guiNudgeXCenter(int val) {
 	
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
+	double voxelSize = DataStatus::getVoxelSize(timestep, pParams->GetVariableName(), pParams->GetRefinementLevel(),0);
 	float pmin = pParams->getLocalBoxMin(0);
 	float pmax = pParams->getLocalBoxMax(0);
-	float maxExtent = ds->getFullSizes()[0];
+	float maxExtent = DataStatus::getFullSizes()[0];
 	float minExtent = 0.;
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastXCenterSlider){//move by 1 voxel, but don't move past end
@@ -1738,8 +1750,8 @@ void IsolineEventRouter::guiNudgeXCenter(int val) {
 void IsolineEventRouter::guiNudgeYCenter(int val) {
 	
 	if (ignoreBoxSliderEvents) return;
-	DataStatus* ds = DataStatus::getInstance();
-	if (!ds->getDataMgr()) return;
+	
+	if (!DataStatus::getDataMgr()) return;
 	//ignore if change is not 1 
 	if(abs(val - lastYCenterSlider) != 1) {
 		lastYCenterSlider = val;
@@ -1749,10 +1761,11 @@ void IsolineEventRouter::guiNudgeYCenter(int val) {
 	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 1);
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
+	double voxelSize = DataStatus::getVoxelSize(timestep, pParams->GetVariableName(), pParams->GetRefinementLevel(),1);
 	float pmin = pParams->getLocalBoxMin(1);
 	float pmax = pParams->getLocalBoxMax(1);
-	float maxExtent = ds->getFullSizes()[1];
+	float maxExtent = DataStatus::getFullSizes()[1];
 	float minExtent = 0.;
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastYCenterSlider){//move by 1 voxel, but don't move past end
@@ -1783,8 +1796,8 @@ void IsolineEventRouter::guiNudgeYCenter(int val) {
 void IsolineEventRouter::guiNudgeZCenter(int val) {
 	
 	if (ignoreBoxSliderEvents) return;
-	DataStatus* ds = DataStatus::getInstance();
-	if (!ds->getDataMgr()) return;
+
+	if (!DataStatus::getDataMgr()) return;
 	//ignore if change is not 1 
 	if(abs(val - lastZCenterSlider) != 1) {
 		lastZCenterSlider = val;
@@ -1795,10 +1808,11 @@ void IsolineEventRouter::guiNudgeZCenter(int val) {
 	
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 2);
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
+	double voxelSize = DataStatus::getVoxelSize(timestep, pParams->GetVariableName(), pParams->GetRefinementLevel(),2);
 	float pmin = pParams->getLocalBoxMin(2);
 	float pmax = pParams->getLocalBoxMax(2);
-	float maxExtent = ds->getFullSizes()[2];
+	float maxExtent = DataStatus::getFullSizes()[2];
 	float minExtent = 0.;
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastZCenterSlider){//move by 1 voxel, but don't move past end
@@ -1831,8 +1845,8 @@ void IsolineEventRouter::guiNudgeZCenter(int val) {
 void IsolineEventRouter::guiNudgeYSize(int val) {
 	
 	if (ignoreBoxSliderEvents) return;
-	DataStatus* ds = DataStatus::getInstance();
-	if (!ds->getDataMgr()) return;
+	
+	if (!DataStatus::getDataMgr()) return;
 	//ignore if change is not 1 
 	if(abs(val - lastYSizeSlider) != 1) {
 		lastYSizeSlider = val;
@@ -1843,10 +1857,11 @@ void IsolineEventRouter::guiNudgeYSize(int val) {
 	
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 1);
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
+	double voxelSize = DataStatus::getVoxelSize(timestep, pParams->GetVariableName(), pParams->GetRefinementLevel(),1);
 	float pmin = pParams->getLocalBoxMin(1);
 	float pmax = pParams->getLocalBoxMax(1);
-	float maxExtent = ds->getFullSizes()[1];
+	float maxExtent = DataStatus::getFullSizes()[1];
 	float minExtent = 0.;
 	float newSize = pmax - pmin;
 	if (val > lastYSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
@@ -2142,7 +2157,7 @@ void IsolineEventRouter::guiSetFidelityDefault(){
 void IsolineEventRouter::resetImageSize(IsolineParams* iParams){
 	//setup the texture:
 	float voxDims[2];
-	iParams->GetBox()->getRotatedVoxelExtents(voxDims,iParams->GetRefinementLevel());
+	iParams->GetBox()->getRotatedVoxelExtents(iParams->GetVariableName(),voxDims,iParams->GetRefinementLevel());
 	myImage->isolineImageFrame->setImageSize(voxDims[0],voxDims[1]);
 }
 /*
@@ -2194,7 +2209,7 @@ void IsolineEventRouter::guiSetDimension(int dim){
 	myBasics->variableCombo->clear();
 	vector<string> varnames;
 	if (dim == 1){ //dim = 1 for 3D vars
-		varnames = DataStatus::getInstance()->getDataMgr()->GetVariables3D();
+		varnames = DataStatus::getInstance()->getDataMgr()->GetDataVarNames(3,true);
 		for (int i = 0; i< varnames.size(); i++){
 			string s = varnames[i];
 			if (i == 0) iParams->SetVariableName(s);
@@ -2204,7 +2219,7 @@ void IsolineEventRouter::guiSetDimension(int dim){
 		myIsovals->copyToProbeButton->setText("Copy to Probe");
 		myIsovals->copyToProbeButton->setToolTip("Click to make the current active Probe display these contours as a color contour plot");
 	} else {
-		varnames = DataStatus::getInstance()->getDataMgr()->GetVariables2DXY();
+		varnames = DataStatus::getInstance()->getDataMgr()->GetDataVarNames(2,true);
 		for (int i = 0; i< varnames.size(); i++){
 			string s = varnames[i];
 			if (i == 0) iParams->SetVariableName(s);
@@ -2249,7 +2264,7 @@ refreshHisto(){
 		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Unable to refresh histogram");
 		return;
 	}
-	DataMgr* dataManager = DataStatus::getInstance()->getDataMgr();
+	DataMgrV3_0* dataManager = DataStatus::getInstance()->getDataMgr();
 	if (dataManager) {
 		refreshHistogram(iParams);
 	}
@@ -2358,7 +2373,11 @@ updateHistoBounds(RenderParams* params){
 	
 	if (iParams->IsEnabled()){
 		float range[2];
-		ds->getDataMgr()->GetDataRange(currentTimeStep, varname.c_str(),range);
+		vector<double>minExts,maxExts;
+		iParams->GetBox()->GetUserExtents(minExts, maxExts, currentTimeStep);
+		RegularGrid* rGrid = ds->getDataMgr()->GetVariable(currentTimeStep, iParams->GetVariableName(),
+			iParams->GetRefinementLevel(), iParams->GetCompressionLevel(),minExts, maxExts);
+		rGrid->GetRange(range);
 		minval = range[0];
 		maxval = range[1];
 	} else {
@@ -2383,8 +2402,8 @@ refreshHistogram(RenderParams* p){
 		return;
 	}
 	
-	DataStatus* ds = DataStatus::getInstance();
-	DataMgr* dataMgr = ds->getDataMgr();
+	
+	DataMgrV3_0* dataMgr = DataStatus::getDataMgr();
 	if (!dataMgr) return;
 	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 
@@ -2402,8 +2421,8 @@ refreshHistogram(RenderParams* p){
 }
 void IsolineEventRouter::guiFitToData(){
 	
-	DataStatus* ds = DataStatus::getInstance();
-	if (!ds->getDataMgr()) return;
+	
+	if (!DataStatus::getDataMgr()) return;
 	confirmText(false);
 	IsolineParams* iParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
 	
@@ -2412,8 +2431,11 @@ void IsolineEventRouter::guiFitToData(){
 	
 	 
 	float range[2];
-	ds->getDataMgr()->GetDataRange(ts,iParams->GetVariableName().c_str(),range);
-	
+	vector<double>minExts,maxExts;
+	iParams->GetBox()->GetUserExtents(minExts, maxExts, ts);
+	RegularGrid* rGrid = DataStatus::getDataMgr()->GetVariable(ts, iParams->GetVariableName(),
+		iParams->GetRefinementLevel(), iParams->GetCompressionLevel(),minExts, maxExts);
+	rGrid->GetRange(range);
 	if (range[1]<range[0]){ //no data
 		range[1] = 1.f;
 		range[0] = 0.f;

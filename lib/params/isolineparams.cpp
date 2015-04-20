@@ -49,10 +49,10 @@ void IsolineParams::
 Validate(int type){
 
 	DataStatus* ds = DataStatus::getInstance();
-	DataMgr* dataMgr = ds->getDataMgr();
+	DataMgrV3_0* dataMgr = ds->getDataMgr();
 	bool doOverride = (type == 0);
-	int numVariables2D = dataMgr->GetVariables2DXY().size();
-	int numVariables3D = dataMgr->GetVariables3D().size();
+	int numVariables2D = dataMgr->GetDataVarNames(2,true).size();
+	int numVariables3D = dataMgr->GetDataVarNames(3,true).size();
 	int totNumVariables = numVariables2D+numVariables3D;
 	if (totNumVariables <= 0) return;
 	if (doOverride){//make it 3D if there are any 3D variables
@@ -63,9 +63,45 @@ Validate(int type){
 	int numVariables;
 	if (is3D) numVariables = numVariables3D;
 	else numVariables = numVariables2D;
-	
+	//Set up the current variable. If doOverride is true, just make the current variable the first variable in the VDC.
+	//Otherwise try to use the current variable in the state
+	string varname;
+	if (doOverride){
+		
+		if (is3D) {
+			varname = dataMgr->GetDataVarNames(3,true)[0];
+		}
+		else {
+			varname = dataMgr->GetDataVarNames(2,true)[0];
+		}
+			
+		SetVariableName(varname);
+	} else {
+		
+		string varname = GetVariableName();
+		bool found = false;
+		if (is3D){
+			vector<string> varnames = dataMgr->GetDataVarNames(3,true);
+			for (int i = 0; i<varnames.size(); i++)
+				if (varname == varnames[i]){
+					found = true;
+					break;
+				}
+			if (!found) varname = dataMgr->GetDataVarNames(3,true)[0];
+		}
+		else {
+			vector<string> varnames = dataMgr->GetDataVarNames(2,true);
+			for (int i = 0; i<varnames.size(); i++)
+				if (varname == varnames[i]){
+					found = true;
+					break;
+				}
+			if (!found) varname = dataMgr->GetDataVarNames(2,true)[0];
+		}
+		
+	}
 	//Set up the numRefinements. 
-	int maxNumRefinements = ds->getNumTransforms();
+	int maxNumRefinements = dataMgr->GetNumRefLevels(varname)-1;
 	int numrefs = GetRefinementLevel();
 	if (doOverride) { 
 		numrefs = 0;
@@ -82,8 +118,10 @@ Validate(int type){
 	//Make sure fidelity is valid:
 	int fidelity = GetFidelityLevel();
 	
-	if (dataMgr && fidelity > maxNumRefinements+dataMgr->GetCRatios().size()-1)
-		SetFidelityLevel(maxNumRefinements+dataMgr->GetCRatios().size()-1);
+	vector<size_t> cratios;
+	dataMgr->GetCRatios(varname, cratios);
+	if (dataMgr && fidelity > maxNumRefinements+cratios.size()-1)
+		SetFidelityLevel(maxNumRefinements+cratios.size()-1);
 	//Set up the compression level.  Whether or not override is true, make sure
 	//That the compression level is valid.  If override is true set it to 0;
 	if (doOverride) SetCompressionLevel(0);
@@ -91,7 +129,7 @@ Validate(int type){
 		int numCompressions = 0;
 	
 		if (ds->getDataMgr()) {
-			numCompressions = ds->getDataMgr()->GetCRatios().size();
+			numCompressions = cratios.size();
 		}
 		
 		if (GetCompressionLevel() >= numCompressions){
@@ -106,7 +144,7 @@ Validate(int type){
 	//Set the histo bounds to the actual bounds in the data
 	if (doOverride){
 		for (int i = 0; i<numVariables3D; i++){
-			string varname = dataMgr->GetVariables3D()[i];
+			string varname = dataMgr->GetDataVarNames(3,true)[i];
 			//will need to set the iso value:
 			float dataMin = ds->getDefaultDataMin(varname);
 			float dataMax = ds->getDefaultDataMax(varname);
@@ -123,7 +161,7 @@ Validate(int type){
 			
 		}
 		for (int i = 0; i<numVariables2D; i++){
-			string varname = dataMgr->GetVariables2DXY()[i];
+			string varname = dataMgr->GetDataVarNames(2,true)[i];
 			//will need to set the iso value:
 			float dataMin = ds->getDefaultDataMin(varname);
 			float dataMax = ds->getDefaultDataMax(varname);
@@ -143,7 +181,7 @@ Validate(int type){
 		//delete any that are no longer referenced
 		//Unnecessary with type=2.
 		for (int i = 0; i<numVariables3D; i++){
-			string varname = dataMgr->GetVariables3D()[i];
+			string varname = dataMgr->GetDataVarNames(3,true)[i];
 			if(i<GetNumVariables3D()){ //make copy of existing ones, don't set their root nodes yet
 				float dataMin = ds->getDefaultDataMin(varname);
 				float dataMax = ds->getDefaultDataMax(varname);
@@ -174,7 +212,7 @@ Validate(int type){
 			
 		}
 		for (int i = 0; i<numVariables2D; i++){
-			string varname = dataMgr->GetVariables2DXY()[i];
+			string varname = dataMgr->GetDataVarNames(2,true)[i];
 			if(i<GetNumVariables2D()){ //make copy of existing ones, don't set their root nodes yet
 				float dataMin = ds->getDefaultDataMin(varname);
 				float dataMax = ds->getDefaultDataMax(varname);
@@ -216,7 +254,7 @@ Validate(int type){
 		for (int i = 0; i<numVariables3D; i++){
 			path.clear();
 			path.push_back(_Variables3DTag);
-			std::string varname = dataMgr->GetVariables3D()[i];
+			std::string varname = dataMgr->GetDataVarNames(3,true)[i];
 			path.push_back(varname);
 			path.push_back(_IsoControlTag);
 			SetParamsBase(path, new3DIsoControls[i]);
@@ -226,7 +264,7 @@ Validate(int type){
 		for (int i = 0; i<numVariables2D; i++){
 			path.clear();
 			path.push_back(_Variables2DTag);
-			std::string varname = dataMgr->GetVariables2DXY()[i];
+			std::string varname = dataMgr->GetDataVarNames(2,true)[i];
 			path.push_back(varname);
 			path.push_back(_IsoControlTag);
 			SetParamsBase(path, new2DIsoControls[i]);
@@ -243,47 +281,7 @@ Validate(int type){
 	}
 	
 
-	//Set up the current variable. If doOverride is true, just make the current variable the first variable in the VDC.
-	//Otherwise try to use the current variable in the state
 	
-	if (doOverride){
-		string varname;
-		if (is3D) {
-			varname = dataMgr->GetVariables3D()[0];
-		}
-		else {
-			varname = dataMgr->GetVariables2DXY()[0];
-		}
-			
-		SetVariableName(varname);
-	} else {
-		
-		string varname = GetVariableName();
-		bool found = false;
-		if (is3D){
-			vector<string> varnames = dataMgr->GetVariables3D();
-			for (int i = 0; i<varnames.size(); i++)
-				if (varname == varnames[i]){
-					found = true;
-					break;
-				}
-			if (!found) varname = dataMgr->GetVariables3D()[0];
-		}
-		else {
-			vector<string> varnames = dataMgr->GetVariables2DXY();
-			for (int i = 0; i<varnames.size(); i++)
-				if (varname == varnames[i]){
-					found = true;
-					break;
-				}
-			if (!found) varname = dataMgr->GetVariables2DXY()[0];
-		}
-
-		if (!found) {
-			SetVariableName(varname);
-		}
-		
-	}
 	
 	const double* extents = ds->getLocalExtents();
 	//Must set (or correct) extents for both 2D and 3D boxes

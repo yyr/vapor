@@ -43,7 +43,7 @@ class DummyParams;
 class RenderParams;
 class ViewpointParams;
 class RegionParams;
-class DataMgr;
+class DataMgrV3_0;
 class Command;
 
 //!

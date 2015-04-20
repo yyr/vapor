@@ -140,22 +140,36 @@ int Box::GetUserExtents(double extents[6], size_t timestep){
 	int rc = GetLocalExtents(extents, (int)timestep);
 	if (rc) return rc;
 	if (!DataStatus::getInstance()->getDataMgr()) return -1;
-	const vector<double>tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents(timestep);
+	vector<double>minExts,maxExts;
+	DataStatus::GetExtents(timestep,minExts,maxExts);
 	//Time-varying extents are just used to get an offset that varies in time.
 	for (int i = 0; i<6; i++){
-		extents[i] += tvExts[i%3];
+		extents[i] += minExts[i%3];
 	}
 	return 0;
 }
+int Box::GetUserExtents(vector<double>minExts, vector<double>maxExts, size_t timestep){
+	vector<double> exts = GetLocalExtents();
 	
+	if (!DataStatus::getInstance()->getDataMgr()) return -1;
+	vector<double>mnExts,mxExts;
+	DataStatus::GetExtents(timestep,mnExts,mxExts);
+	//Time-varying extents are just used to get an offset that varies in time.
+	for (int i = 0; i<3; i++){
+		minExts[i] = exts[i]+ mnExts[i];
+		maxExts[i] = exts[i+3]+mnExts[i];
+	}
+	return 0;
+}
 int Box::GetUserExtents(float extents[6], size_t timestep){
 	int rc = GetLocalExtents(extents, (int)timestep);
 	if (rc) return rc;
 	if (!DataStatus::getInstance()->getDataMgr()) return -1;
-	const vector<double>tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents(timestep);
+	vector<double>minExts,maxExts;
+	DataStatus::GetExtents(timestep,minExts,maxExts);
 	//Time-varying extents are just used to get an offset that varies in time.
 	for (int i = 0; i<6; i++){
-		extents[i] += tvExts[i%3];
+		extents[i] += minExts[i%3];
 	}
 	return 0;
 }
@@ -890,13 +904,16 @@ int Box::interceptBox(const double boxExts[6], double intercept[6][3]){
 	
 }
 void Box::
-getRotatedVoxelExtents(float voxdims[2], int numRefinements){
+getRotatedVoxelExtents(string varname, float voxdims[2], int numRefinements){
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) {
 		voxdims[0] = voxdims[1] = 1.f;
 		return;
 	}
-	const double* fullSizes = DataStatus::getInstance()->getFullSizes();
+	RegularGrid* rGrid = ds->getDataMgr()->GetVariable(DataStatus::getMinTimestep(),varname, numRefinements,0);
+	double exts[6], fullSizes[3];
+	rGrid->GetUserExtents(exts);
+	for (int i = 0; i<3; i++) fullSizes[i] = exts[i+3]-exts[i];
 	double sliceCoord[3];
 	//Can ignore depth, just mapping center plane
 	sliceCoord[2] = 0.f;
@@ -909,7 +926,7 @@ getRotatedVoxelExtents(float voxdims[2], int numRefinements){
 	size_t dataSize[3];
 	
 	//Start by initializing integer extents
-	DataStatus::getInstance()->getDataMgr()->GetDim(dataSize,numRefinements);
+	rGrid->GetDimensions(dataSize);
 	
 	double cor[4][3];
 		

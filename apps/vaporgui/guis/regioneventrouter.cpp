@@ -34,6 +34,8 @@
 #include <qcolordialog.h>
 #include <qlabel.h>
 #include <QFileDialog>
+#include <qlistwidget.h>
+#include <QListWidgetItem>
 #include "GL/glew.h"
 #include "regionparams.h"
 #include "regiontab.h"
@@ -103,6 +105,8 @@ RegionEventRouter::hookUpTab()
 	connect (xSizeSlider, SIGNAL(valueChanged(int)), this, SLOT (setXSize(int)));
 	connect (ySizeSlider, SIGNAL(valueChanged(int)), this, SLOT (setYSize(int)));
 	connect (zSizeSlider, SIGNAL(valueChanged(int)), this, SLOT (setZSize(int)));
+
+	connect (resetDomainButton, SIGNAL(clicked()), this, SLOT(setDomainVars));
 	
 	connect (setFullRegionButton, SIGNAL(clicked()), this, SLOT (setMaxSize()));
 	connect (copyBoxButton, SIGNAL(clicked()), this, SLOT(guiCopyBox()));
@@ -177,13 +181,13 @@ void RegionEventRouter::updateTab(){
 		fullUsrExts[i+3] = fullExtents[i+3]-fullExtents[i];
 	}
 	//To get the region extents in user coordinates, need to add the user coord domain displacement
-	vector<double> usrExts(6,0.);
-	if (DataStatus::getInstance()->getDataMgr()){
-		usrExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
-	}
+	vector<double> minExts, maxExts;
+	
+	DataStatus::getInstance()->GetExtents((size_t)timestep, minExts, maxExts);
+	
 	for (int i = 0; i<6; i++) {
-		fullUsrExts[i]+= usrExts[i%3];
-		regUsrExts[i] = regLocalExts[i]+usrExts[i%3];
+		fullUsrExts[i]+= minExts[i%3];
+		regUsrExts[i] = regLocalExts[i]+minExts[i%3];
 	}
 
 	
@@ -264,14 +268,15 @@ textToSlider(RegionParams* rp, int coord, float newCenter, float newSize, bool d
 	//Then push the center to the middle if the region doesn't fit
 	bool centerChanged = false;
 	bool sizeChanged = false;
-	DataStatus* ds = DataStatus::getInstance();
-	DataMgr* dataMgr = ds->getDataMgr();
+
+	DataMgrV3_0* dataMgr = DataStatus::getInstance()->getDataMgr();
 	if (!dataMgr) return;
 	//Get the full extents in user coordinates
-	const vector<double>& userExtents = dataMgr->GetExtents((size_t)timestep);
+	vector<double>minExts, maxExts;
+	DataStatus::getInstance()->GetExtents((size_t)timestep,minExts,maxExts);
 	
-	float regMin = userExtents[coord];
-	float regMax = userExtents[coord+3];
+	float regMin = minExts[coord];
+	float regMax = maxExts[coord];
 	
 	if (newSize > regMax-regMin){
 		newSize = regMax-regMin;
@@ -298,7 +303,7 @@ textToSlider(RegionParams* rp, int coord, float newCenter, float newSize, bool d
 		centerChanged = true;
 	}
 	//Now convert back to local extents, put them into the params:
-	float localCenter = newCenter-userExtents[coord];
+	float localCenter = newCenter-minExts[coord];
 	if (doSet){
 		rp->SetLocalRegionMin(coord, localCenter - newSize*0.5f,timestep); 
 		rp->SetLocalRegionMax(coord,localCenter + newSize*0.5f,timestep);
@@ -363,10 +368,11 @@ sliderToText(RegionParams* rp, int coord, int slideCenter, int slideSize){
 	DataStatus* ds = DataStatus::getInstance();
 	if(!ds->getDataMgr()) return;
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	const vector<double>userExtents = ds->getDataMgr()->GetExtents((size_t)timestep);
+	vector<double>minExts,maxExts;
+	ds->GetExtents((size_t)timestep,minExts,maxExts);
 	
-	float regMin = userExtents[coord];
-	float regMax = userExtents[coord+3];
+	float regMin = minExts[coord];
+	float regMax = maxExts[coord];
 	
 	bool sliderChanged = false;
 	
@@ -388,7 +394,7 @@ sliderToText(RegionParams* rp, int coord, int slideCenter, int slideSize){
 		sliderChanged = true;
 	}
 	//Convert back to local to put into region params
-	float localCenter = newCenter - userExtents[coord];
+	float localCenter = newCenter - minExts[coord];
 	Command* cmd = Command::CaptureStart(rp, "Region slider move");
 	rp->SetLocalRegionMin(coord,localCenter - newSize*0.5f,timestep); 
 	rp->SetLocalRegionMax(coord,localCenter + newSize*0.5f,timestep); 
@@ -437,21 +443,22 @@ setCenter(const double* coords){
 	
 	
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	const vector<double>&userExtents = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
+	vector<double>minExts,maxExts;
+	DataStatus::getInstance()->GetExtents((size_t)timestep,minExts,maxExts);
 	float boxexts[6];
 	rParams->GetBox()->GetLocalExtents(boxexts, timestep);
 	
 	for (int i = 0; i< 3; i++){
 		float coord = coords[i];
-		float fullMin = userExtents[i];
-		float fullMax = userExtents[i+3];
+		float fullMin = minExts[i];
+		float fullMax = maxExts[i];
 		if (coord < fullMin) coord = fullMin;
 		if (coord > fullMax) coord = fullMax;
 		float regSize = boxexts[i+3]-boxexts[i];
 		if (coord + 0.5f*regSize > fullMax) regSize = 2.f*(fullMax - coord);
 		if (coord - 0.5f*regSize < fullMin) regSize = 2.f*(coord - fullMin);
-		boxexts[i+3] = coord + 0.5f*regSize - userExtents[i];
-		boxexts[i] = coord - 0.5f*regSize - userExtents[i];
+		boxexts[i+3] = coord + 0.5f*regSize - minExts[i];
+		boxexts[i] = coord - 0.5f*regSize - minExts[i];
 	}
 	rParams->GetBox()->SetLocalExtents(boxexts, rParams, timestep);
 	
@@ -534,10 +541,10 @@ void RegionEventRouter::
 reinitTab(bool doOverride){
 	int i;
 	setIgnoreBoxSliderEvents(false);
-	const DataMgr *dataMgr = DataStatus::getInstance()->getDataMgr();
+	const DataMgrV3_0 *dataMgr = DataStatus::getInstance()->getDataMgr();
 	
 	//Set up the combo boxes in the gui based on info in the session:
-	const vector<string>& varNames = dataMgr->GetVariableNames();
+	const vector<string>& varNames = dataMgr->GetDataVarNames();
 	variableCombo->clear();
 	for (i = 0; i<(int)varNames.size(); i++)
 		variableCombo->addItem(varNames[i].c_str());
@@ -548,13 +555,14 @@ reinitTab(bool doOverride){
 	timestepSpin->setMinimum(mints);
 	timestepSpin->setMaximum(maxts);
 	timestepSpin->setValue(mints);
-
+	/* set up refinement combo when we know the variable
 	int numRefinements = dataMgr->GetNumTransforms();
 	refinementCombo->setMaxCount(numRefinements+1);
 	refinementCombo->clear();
 	for (i = 0; i<= numRefinements; i++){
 		refinementCombo->addItem(QString::number(i));
 	}
+	*/
 	if (VizWinMgr::getInstance()->getNumVisualizers() > 1) LocalGlobal->setEnabled(true);
 	else LocalGlobal->setEnabled(false);
 	//Set up the copy combos
@@ -765,4 +773,15 @@ guiCopyBox(){
 	Command::CaptureEnd(cmd,pTo);
 	
 	
+}
+void RegionEventRouter::setDomainVars(){
+	//Construct a vector from the entries in the domain variable list
+	vector<string> varnames;
+	QList<QListWidgetItem*> varlist = domainVariableList->selectedItems();
+	for (int i = 0; i<varlist.count(); i++){
+		QListWidgetItem* item = varlist.at(i);
+		string s = item->text().toStdString();
+		varnames.push_back(s);
+	}
+	RegionParams::SetDomainVariables(varnames); 
 }

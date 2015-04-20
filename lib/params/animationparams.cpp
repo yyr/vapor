@@ -84,27 +84,14 @@ void AnimationParams::Validate(int type){
 	//Command capturing should be disabled
 	assert(!Command::isRecording());
 	bool useDefault = (type == 0);
-	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	DataMgrV3_0* dataMgr = DataStatus::getDataMgr();
 	if (!dataMgr) return;
-	setMaxTimestep(dataMgr->GetNumTimeSteps()-1);
+	setMaxTimestep(DataStatus::getNumTimesteps()-1);
 	setMinTimestep(0);
 	//Narrow the range to the actual data limits:
-	//Find the first framenum with data:
-	int mints = 0;
-	int maxts = dataMgr->GetNumTimeSteps()-1;
-	int i;
-	for (i = mints; i<= maxts; i++){
-		
-		if(DataStatus::getInstance()->dataIsPresent(i)) break;
-
-	}
-	if(i <= maxts) mints = i;
-	//Find the last framenum with data:
-	for (i = maxts; i>= mints; i--){
-		if(DataStatus::getInstance()->dataIsPresent(i)) break;
-	}
 	
-	if(i >= mints) maxts = i;
+	int mints = DataStatus::getMinTimestep();
+	int maxts = DataStatus::getMaxTimestep();
 	//force start & end to be consistent:
 	if (useDefault){
 		setStartTimestep(mints);
