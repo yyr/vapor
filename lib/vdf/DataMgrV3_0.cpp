@@ -7,6 +7,7 @@
 #include <vector>
 #include <map>
 #include <vapor/VDCNetCDF.h>
+#include <vapor/DCWRF.h>
 #include <vapor/DataMgrV3_0.h>
 #ifdef WIN32
 #include <float.h>
@@ -387,6 +388,8 @@ DataMgrV3_0::DataMgrV3_0(
 	_nthreads = nthreads;
 	_mem_size = mem_size;
 
+	if (! _mem_size) _mem_size = 100;
+
 	_dc = NULL;
 
 	_blk_mem_mgr = NULL;
@@ -394,7 +397,6 @@ DataMgrV3_0::DataMgrV3_0(
 	_PipeLines.clear();
 
 	_regionsList.clear();
-	
 
 	_varInfoCache.Clear();
 }
@@ -416,8 +418,19 @@ DataMgrV3_0::~DataMgrV3_0(
 }
 
 int DataMgrV3_0::Initialize(const vector <string> &files) {
-	if (_format.compare("vdc")) {
+
+	_PipeLines.clear();
+	_regionsList.clear();
+	_varInfoCache.Clear();
+	if (_dc) delete _dc;
+
+	_dc = NULL;
+
+	if (_format.compare("vdc") == 0) {
 		_dc = new VDCNetCDF(_nthreads);
+	}
+	else if (_format.compare("wrf") == 0) {
+		_dc = new DCWRF();
 	}
 	else {
 		SetErrMsg("Invalid data collection format : %s", _format.c_str());
@@ -441,6 +454,10 @@ int DataMgrV3_0::Initialize(const vector <string> &files) {
 
 
 vector <string> DataMgrV3_0::GetDataVarNames() const {
+	if (!_dc) {
+		vector <string> empty;
+		return(empty);
+	}
 	return(_dc->GetDataVarNames());
 }
 
@@ -468,6 +485,10 @@ vector <string> DataMgrV3_0::GetDataVarNames(int ndim, bool spatial) const {
 }
 
 vector <string> DataMgrV3_0::GetCoordVarNames() const {
+	if (!_dc) {
+		vector <string> empty;
+		return(empty);
+	}
 	return(_dc->GetCoordVarNames());
 }
 
@@ -500,6 +521,9 @@ vector <string> DataMgrV3_0::GetCoordVarNames(int ndim, bool spatial) const {
 bool DataMgrV3_0::GetDataVarInfo(
 	string varname, VAPoR::DC::DataVar &var
 ) const {
+	if (!_dc) {
+		return(false);
+	}
 	// 
 	// NEED TO HANDLE DERIVED VARS
 	//
@@ -509,12 +533,18 @@ bool DataMgrV3_0::GetDataVarInfo(
 bool DataMgrV3_0::GetCoordVarInfo(
 	string varname, VAPoR::DC::CoordVar &var
 ) const {
+	if (!_dc) {
+		return(false);
+	}
 	return(_dc->GetCoordVarInfo(varname, var));
 }
 
 bool DataMgrV3_0::GetBaseVarInfo(
 	string varname, VAPoR::DC::BaseVar &var
 ) const {
+	if (!_dc) {
+		return(false);
+	}
 
 	// 
 	// NEED TO HANDLE DERIVED VARS
@@ -561,10 +591,18 @@ int DataMgrV3_0::GetNumTimeSteps(string varname) const {
 }
 
 int DataMgrV3_0::GetNumRefLevels(string varname) const {
+	if (!_dc) {
+		SetErrMsg("Invalid state");
+		return(-1);
+	}
 	return(_dc->GetNumRefLevels(varname));
 }
 
 int DataMgrV3_0::GetCRatios(string varname, vector <size_t> &cratios) const {
+	if (!_dc) {
+		SetErrMsg("Invalid state");
+		return(-1);
+	}
 	cratios.clear();
 
 	DC::BaseVar var;
@@ -1427,7 +1465,7 @@ float *DataMgrV3_0::_get_region(
 					ts, varname, level-1, lod, bmin, bmax, bs_at_level_m1, 
 					sizeof(float), false, false
 				);
-				if (! blks) return(NULL);
+				if (! newblks) return(NULL);
 
 				decimate(bmin, bmax, bs_at_level, blks, newblks); 
 				return(newblks);
