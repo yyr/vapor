@@ -997,6 +997,18 @@ int DataMgrV3_0::GetVariableExtents(
 	return(0);
 }
 
+int DataMgrV3_0::GetDimLensAtLevel( 
+    string varname, int level, std::vector <size_t> &dims_at_level,
+    std::vector <size_t> &bs_at_level
+) const {
+	if (!_dc) {
+		SetErrMsg("Invalid state");
+		return(-1);
+	}
+
+	return(_dc->GetDimLensAtLevel(varname, level, dims_at_level, bs_at_level));
+} 
+
 #ifdef	DEAD
 
 int	DataMgrV3_0::NewPipeline(PipeLine *pipeline) {

@@ -405,6 +405,14 @@ int GetCRatios(string varname, std::vector <size_t> &cratios) const;
 	std::vector <double> &min , std::vector <double> &max
  );
 
+ 
+ //! \copydoc DC::GetDimLensAtLevel()
+ //!
+ virtual int GetDimLensAtLevel(
+	string varname, int level, std::vector <size_t> &dims_at_level,
+	std::vector <size_t> &bs_at_level
+ ) const; 
+
  //! Unlock a floating-point region of memory
  //!
  //! Decrement the lock counter associatd with a
