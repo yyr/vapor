@@ -2213,7 +2213,8 @@ int DataMgrV3_0::_level_correction(string varname, int &level) const {
 	int nlevels = DataMgrV3_0::GetNumRefLevels(varname);
 	if (nlevels < 0) return(-1);
 
-	if (level >= 0) level = -nlevels + level;
+	if (level >= nlevels) level = nlevels-1;
+	if (level >= 0) level = -(nlevels-level);
 	if (level < -nlevels) level = -nlevels;
 
 	return(0);
@@ -2226,7 +2227,8 @@ int DataMgrV3_0::_lod_correction(string varname, int &lod) const {
 
 	int nlod = var.GetCRatios().size();
 
-	if (lod >= 0) lod = -nlod + lod;
+	if (lod >= nlod) lod = nlod-1;
+	if (lod >= 0) lod = -(nlod-lod);
 	if (lod < -nlod) lod = -nlod;
 
 	return(0);
