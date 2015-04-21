@@ -359,7 +359,7 @@ cout << d << " " << coordnames[i] << endl;
 
 			vector <string> coordvars = dvar.GetCoordvars();
 
-			if (! dvar.GetHasMissing()) {
+			if (! dvar.GetHasMissing() || ! compress) {
 		
 				rc = vdc.DefineDataVar(
 					dvar.GetName(), dimnames, coordvars, dvar.GetUnits(), 
@@ -373,8 +373,10 @@ cout << d << " " << coordnames[i] << endl;
 
 				rc = vdc.DefineDataVar(
 					dvar.GetName(), dimnames, coordvars, dvar.GetUnits(), 
-					dvar.GetXType(), compress, maskvar_name
+					dvar.GetXType(), dvar.GetMissingValue(),
+					maskvar_name
 				);
+
 			}
 
 			if (rc<0) {

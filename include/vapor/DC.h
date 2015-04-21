@@ -616,6 +616,7 @@ public:
   //!
   //! \param[in] coordvars Names of coordinate variables associated 
   //! with this variables dimensions
+  //! \param[in] missing_value  Value used to fill masked values
   //! \param[in] maskvar  Name of variable containing mask array. 
   //!
   DataVar(
@@ -624,7 +625,7 @@ public:
 	std::vector <size_t> bs, string wname,
 	std::vector <size_t> cratios,
 	std::vector <bool> periodic, std::vector <string> coordvars, 
-	string maskvar
+	double missing_value, string maskvar
   ) :
 	BaseVar(
 		name, dimensions, units, type, 
@@ -632,8 +633,8 @@ public:
 	),
 	_coordvars(coordvars),
 	_maskvar(maskvar),
-	_has_missing(false),
-	_missing_value(0.0)
+	_has_missing(true),
+	_missing_value(missing_value)
   {}
 
   //! Construct Data variable definition without missing values
@@ -704,21 +705,22 @@ public:
   //!
   //! \param[in] coordvars Names of coordinate variables associated 
   //! with this variables dimensions
-  //! \param[in] missing_value  Value of the missing value indicator
+  //! \param[in] missing_value  Value used to fill masked values
+  //! \param[in] maskvar  Name of variable containing mask array. 
   //!
   DataVar(
 	string name, std::vector <DC::Dimension> dimensions,
 	string units, XType type, 
 	std::vector <bool> periodic, std::vector <string> coordvars, 
-	string maskvar
+	double missing_value, string maskvar
   ) : 
 	BaseVar(
 		name, dimensions, units, type, periodic
 	),
 	_coordvars(coordvars),
 	_maskvar(maskvar),
-	_has_missing(false),
-	_missing_value(0.0)
+	_has_missing(true),
+	_missing_value(missing_value)
 	{}
 
   //! Construct Data variable definition with no missing values or compression

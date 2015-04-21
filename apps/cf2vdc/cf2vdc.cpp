@@ -46,12 +46,26 @@ string ProgName;
 
 SmartBuf dataBuffer;
 
-// Copy a variable with 2 or 3 spatial dimensions
+
+// Copy a variable mask with 2 or 3 spatial dimensions
 //
-int CopyVar2d3d(
+int CopyVar2d3dMask(
 	DC &dc, VDC &vdc, const vector <DC::Dimension> &dims,
 	size_t ts, string varname, int lod
 ) {
+	string maskvar;
+
+	// Only data variables can have masks
+	//
+	if (! vdc.IsDataVar(varname)) return(0);
+
+	DC::DataVar dvar;
+	vdc.GetDataVarInfo(varname, dvar);
+	maskvar = dvar.GetMaskvar();
+
+	// Do nothing if mask variable already exists on disk
+	//
+	if (maskvar.empty() || vdc.VariableExists(ts,maskvar, 0,lod)) return(0);
 
 	vector <DC::Dimension> mydims = dims;
 	// See if time varying - time dimensions are always the slowest varying
@@ -62,6 +76,85 @@ int CopyVar2d3d(
 	assert(mydims.size()==2 || mydims.size() == 3);
 	
 	int rc = dc.OpenVariableRead(ts,varname, -1, -1);
+	if (rc<0) {
+		MyBase::SetErrMsg(
+			"Failed to open variable %s for reading\n", varname.c_str()
+		);
+		return(-1);
+	}
+
+    rc = vdc.OpenVariableWrite(ts, maskvar, lod);
+    if (rc<0) {
+		MyBase::SetErrMsg(
+			"Failed to open variable %s for writing\n", maskvar.c_str()
+		);
+		return(-1);
+	}
+
+    size_t nz = mydims.size() > 2 ? mydims[mydims.size()-1].GetLength() : 1;
+
+	size_t sz = mydims[0].GetLength() * mydims[1].GetLength();
+	float *buf = (float *) dataBuffer.Alloc(sz*sizeof(*buf));
+
+	dc.GetDataVarInfo(varname, dvar);
+	double mv = dvar.GetMissingValue();
+
+	// Generate a mask variable by comparing the data variable values
+	// against the missing value 
+	//
+    for (size_t i=0; i<nz; i++) {
+        rc = dc.ReadSlice(buf);
+		if (rc<0) {
+			MyBase::SetErrMsg(
+				"Failed to read variable %s\n", varname.c_str()
+			);
+			return(-1);
+		}
+
+		for (int j=0; j<sz; j++) {
+			if (buf[j] == mv) buf[j] = 0.0;	// invalid data
+			else buf[j] = 1.0;	// valid data
+		}
+
+        int rc = vdc.WriteSlice(buf);
+		if (rc<0) {
+			MyBase::SetErrMsg(
+				"Failed to write variable %s\n", maskvar.c_str()
+			);
+			return(-1);
+		}
+	}
+
+    (void) dc.CloseVariable();
+    rc = vdc.CloseVariable();
+	if (rc<0) {
+		MyBase::SetErrMsg(
+			"Failed to write variable %s\n", maskvar.c_str()
+		);
+		return(-1);
+	}
+
+	return(0);
+}
+
+// Copy a variable with 2 or 3 spatial dimensions
+//
+int CopyVar2d3d(
+	DC &dc, VDC &vdc, const vector <DC::Dimension> &dims,
+	size_t ts, string varname, int lod
+) {
+	int rc = CopyVar2d3dMask(dc, vdc, dims, ts, varname, lod);
+	if (rc<0) return(-1);
+
+	vector <DC::Dimension> mydims = dims;
+	// See if time varying - time dimensions are always the slowest varying
+	//
+	if (mydims[mydims.size()-1].GetAxis() == 3) {
+		mydims.pop_back();
+	}
+	assert(mydims.size()==2 || mydims.size() == 3);
+	
+	rc = dc.OpenVariableRead(ts,varname, -1, -1);
 	if (rc<0) {
 		MyBase::SetErrMsg(
 			"Failed to open variable %s for reading\n", varname.c_str()

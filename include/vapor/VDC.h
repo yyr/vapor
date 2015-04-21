@@ -562,15 +562,6 @@ public:
  //! \param[in] compressed A boolean indicating whether the coordinate 
  //! variable is to be wavelet transformed.
  //!
- //! \param[in] varmask Specifies the name of a variable
- //! whose contents indicate the presense or absense of invalid
- //! entries in the data variable. The contents of the mask array are treated
- //! as booleans, true values indicating valid data. The rank of of the
- //! variable may be less than or equal to that of \p varname. The dimensions
- //! of \p maskvar must match the fastest varying dimensions of \p varname.
- //! The \p maskvar variable must have been previously defined with 
- //! DefineDataVar().
- //!
  //! It is an error to call this method if the VDC master is not currently
  //! in \b define mode.
  //!
@@ -582,7 +573,36 @@ public:
  int DefineDataVar(
 	string varname, std::vector <string> dimnames, 
 	std::vector <string> coordvars, 
-	string units, XType type, bool compressed, string maskvar = ""
+	string units, XType type, bool compressed
+ );
+
+ //!
+ //! Define a compressed data variable with missing data
+ //!
+ //! \copydoc VDC::DefineDataVar(
+ //! 	string varname, std::vector <string> dimnames,
+ //! 	std::vector <string> coordvars,
+ //! 	string units, XType type, bool compressed
+ //! 	);
+ //!
+ //! \param[in] missing_value Specifies a value that should be used
+ //! for masked grid locations after a variable is reconstructed.
+ //!
+ //! \param[in] maskvar Specifies the name of a variable
+ //! whose contents indicate the presense or absense of invalid
+ //! entries in the data variable. The contents of the mask array are treated
+ //! as booleans, true values indicating valid data. The rank of of the
+ //! variable may be less than or equal to that of \p varname. The dimensions
+ //! of \p maskvar must match the fastest varying dimensions of \p varname.
+ //! The \p maskvar variable must have been previously defined with 
+ //! DefineDataVar().
+ //!
+ //! \sa DefineDimension(), DefineCoordVar(), SetCompressionBlock()
+ //!
+ int DefineDataVar(
+	string varname, std::vector <string> dimnames, 
+	std::vector <string> coordvars, 
+	string units, XType type, double missing_value, string maskvar
  );
 
 
@@ -1271,6 +1291,12 @@ protected:
 
  virtual int _WriteMasterMeta() = 0;
  virtual int _ReadMasterMeta() = 0;
+
+ int _DefineDataVar(
+	string varname, std::vector <string> dimnames, 
+	std::vector <string> coordvars, 
+	string units, XType type, bool compressed, double mv, string maskvar
+ );
 
 #endif
 

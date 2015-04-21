@@ -293,6 +293,12 @@ public:
  //
  virtual bool InqDimDefined(string dimname);
 
+ //! Returns true if the named attribute is defined
+ //!
+ //! \param[in] dimname A NetCDF dimension name
+ //
+ virtual bool InqAttDefined(string varname, string attname);
+
 private:
 
  int _ncid;

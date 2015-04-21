@@ -1,5 +1,6 @@
 #include <cassert>
 #include <sstream>
+#include <cfloat>
 #include "vapor/VDC.h"
 
 using namespace VAPoR;
@@ -356,9 +357,9 @@ bool VDC::GetBaseVarInfo(string varname, DC::BaseVar &var) const {
 }
 
 
-int VDC::DefineDataVar(
+int VDC::_DefineDataVar(
 	string varname, vector <string> dimnames, vector <string> coordvars,
-	string units, XType type, bool compressed, string maskvar
+	string units, XType type, bool compressed, double mv, string maskvar
 ) {
 	if (! _defineMode) {
 		SetErrMsg("Not in define mode");
@@ -403,17 +404,48 @@ int VDC::DefineDataVar(
 		cratios = _cratios;
 		wname = _wname;
 	}
-	DataVar datavar(
-		varname, dimensions, units, type, bs, wname, 
-		cratios, periodic, coordvars, 
-		maskvar
-	);
 
-	_dataVars[varname] = datavar;
+	if (! maskvar.empty()) {
+		DataVar datavar(
+			varname, dimensions, units, type, bs, wname, 
+			cratios, periodic, coordvars, 
+			mv, maskvar
+		);
+
+		_dataVars[varname] = datavar;
+	}
+	else {
+		DataVar datavar(
+			varname, dimensions, units, type, bs, wname, 
+			cratios, periodic, coordvars
+		);
+		_dataVars[varname] = datavar;
+	}
 
 	return(0);
-
 }
+
+int VDC::DefineDataVar(
+	string varname, vector <string> dimnames, vector <string> coordvars,
+	string units, XType type, bool compressed
+) {
+	return(
+		VDC::_DefineDataVar(varname, dimnames, coordvars,
+		units, type, compressed, 0.0, "")
+	);
+}
+
+int VDC::DefineDataVar(
+	string varname, vector <string> dimnames, vector <string> coordvars,
+    string units, XType type, double mv, string maskvar
+
+) {
+	return(
+		VDC::_DefineDataVar(varname, dimnames, coordvars,
+		units, type, true, mv, maskvar)
+	);
+}
+	
 
 bool VDC::GetDataVarInfo(
 	string varname, vector <string> &dimnames, vector <string> &coordvars,

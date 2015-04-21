@@ -1393,6 +1393,15 @@ int VDCNetCDF::_ReadMasterDataVarsDefs() {
 		if (rc<0) return(rc);
 		var.SetMaskvar(maskvar);
 
+		tag = prefix + "." + var.GetName() + ".MissingValue";
+		if (_master->InqAttDefined("", tag)) {
+			double mv;
+			rc = _master->GetAtt("", tag, mv);
+			if (rc<0) return(rc);
+			var.SetHasMissing(true);
+			var.SetMissingValue(mv);
+		}
+
 		rc = _ReadMasterBaseVarDefs(prefix, var);
 		if (rc<0) return(rc);
 
@@ -1586,6 +1595,12 @@ int VDCNetCDF::_WriteMasterDataVarsDefs() {
 		rc = _master->PutAtt("", tag, var.GetMaskvar());
 		if (rc<0) return(rc);
 
+		if (var.GetHasMissing()) {
+			tag = prefix + "." + var.GetName() + ".MissingValue";
+			rc = _master->PutAtt("", tag, var.GetMissingValue());
+			if (rc<0) return(rc);
+		}
+
 		rc = _WriteMasterBaseVarDefs(prefix, var);
 		if (rc<0) return(rc);
 
@@ -1670,6 +1685,11 @@ int VDCNetCDF::_DefDataVar(
 	rc = wasp->PutAtt(
 		var.GetName(), "MaskVar", var.GetMaskvar()
 	);
+
+	if (var.GetHasMissing()) {
+		rc = wasp->PutAtt(var.GetName(), "MissingValue", var.GetMissingValue());
+		if (rc<0) return(rc);
+	}
 
 	return(rc);
 }
