@@ -57,6 +57,7 @@ Validate(int type){
 	if (is3D) numVariables = dataMgr->GetDataVarNames(3,true).size();
 	else numVariables = dataMgr->GetDataVarNames(2,true).size();
 	
+	//Identify a variable to use for fidelity setup.
 	//Make sure the variable is OK. If no variable is specified, then take the first variable in the data of appropriate dimension
 	string varname;
 	for (int i = 0; i<3; i++){
@@ -76,6 +77,7 @@ Validate(int type){
 			}
 		}
 	}
+	SetVariableName(varname);
 	//Set up the numRefinements. 
 	int maxNumRefinements = dataMgr->GetNumRefLevels(varname);
 	int numrefs = GetRefinementLevel();
@@ -114,8 +116,10 @@ Validate(int type){
 	//In either case, if they don't exist replace them with 0.
 	const vector<string>& vars = (is3D ? dataMgr->GetDataVarNames(3,true) : dataMgr->GetDataVarNames(2,true));
 	const vector<string>& vars2d = dataMgr->GetDataVarNames(2,true);
+	
 	if (doOverride){
-
+		vector<string>validVars;
+		bool foundVar = false;
 		for (int i = 0; i<3; i++){
 			string varname;
 			if (i>=numVariables) {
@@ -123,10 +127,13 @@ Validate(int type){
 			}
 			else {
 				varname = vars[i];
+				if (!foundVar) SetVariableName(varname);
+				foundVar = true;
 			}
-			
-			SetFieldVariableName(i,varname);
+			validVars.push_back(varname);
 		}
+
+		SetValueStringVec(_VariableNamesTag,"",validVars);
 	} 
 	//Use HGT as the height variable name, if it's there. If not just use the first 2d variable.
 	string hvar = "HGT";
