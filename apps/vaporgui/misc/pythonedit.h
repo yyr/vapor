@@ -73,6 +73,7 @@ private slots:
 	void applyScript();
 	void saveScript();
 	void loadScript();
+	void getHelp();
 	void quit();
 	void textChanged();
 	void deleteScript();

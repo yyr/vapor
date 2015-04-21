@@ -21,6 +21,8 @@
 #ifdef WIN32
 #pragma warning(disable : 4996)
 #endif
+#include <qurl.h>
+#include <qdesktopservices.h>
 #include "pythonedit.h"
 #include <vapor/DataMgr.h>
 #include <vapor/DataMgrFactory.h>
@@ -175,6 +177,8 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 	buttonLayout1->addWidget(testButton);
 	QPushButton* applyButton = new QPushButton("Apply",this);
 	buttonLayout1->addWidget(applyButton);
+	QPushButton* helpButton = new QPushButton("Help",this);
+	buttonLayout1->addWidget(helpButton);
 
 	saveButton->setToolTip("Click to save this python script to a file");
 	loadButton->setToolTip("Click to append the python code in a file to this script");
@@ -207,7 +211,7 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 	connect(pythonEdit, SIGNAL(textChanged()), this, SLOT(textChanged()) );
 	connect(saveButton, SIGNAL(pressed()), this, SLOT(saveScript()));
 	connect(loadButton, SIGNAL(pressed()), this, SLOT(loadScript()));
-
+	connect(helpButton, SIGNAL(pressed()), this, SLOT(getHelp()));
 	
 	mainLayout->addLayout(hlayout);
 	mainLayout->addWidget(pythonEdit);
@@ -686,6 +690,20 @@ void PythonEdit::loadScript(){
 	textChanged();
 	return;
 }
+
+void PythonEdit::getHelp(){
+    const char* currText = "User Preferences Overview";
+    const char* currURL = "https://www.vapor.ucar.edu/sites/default/files/pydox/namespaces.html";
+    QUrl myqurl(currURL);
+    QVariant qv(myqurl);
+    
+	bool success = QDesktopServices::openUrl(myqurl);
+    if (!success){
+        MessageReporter::errorMsg("Unable to launch Web browser for URL %s\n",
+            myqurl.toString().toAscii().data());
+    }
+}
+
 bool PythonEdit::loadUserStartupScript(){
 	string filename = Session::getInstance()->getPythonDirectory();
 	string startupScript;
