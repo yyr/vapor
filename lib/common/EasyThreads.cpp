@@ -1,6 +1,7 @@
-#include <stdlib.h>
-#include <errno.h>
-#include <string.h>
+#include <sstream>
+#include <cstdlib>
+#include <cerrno>
+#include <cstring>
 #include <iostream>
 #ifndef WIN32
 #include <unistd.h>
@@ -64,6 +65,11 @@ EasyThreads::EasyThreads(
 
 #ifdef ENABLE_THREADS
 	if (nthreads < 1) nthreads = NProc();
+	if (char *s = getenv("VAPOR_NTHREADS")) { 
+		istringstream ist(s);
+		ist >> nthreads;
+		cout << "VAPOR_NTHREADS = " << nthreads << endl;
+	}
 #ifndef WIN32
 	int	rc;
 	threads_c = NULL;
