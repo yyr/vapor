@@ -462,7 +462,7 @@ void EventRouter::calcLODRefDefault(RenderParams* rParams, int dim, float regMBs
 	vector<size_t> cratios; 
 	dataMgr->GetCRatios(rParams->GetVariableName(),cratios);
 	
-	int maxRefLevel = dataMgr->GetNumRefLevels(rParams->GetVariableName());
+	int maxRefLevel = dataMgr->GetNumRefLevels(rParams->GetVariableName()) -1 ;
 
 	
 	DataStatus* ds = DataStatus::getInstance();
@@ -506,15 +506,12 @@ int EventRouter::orderLODRefs(RenderParams* rParams, int dim){
 	//Determine the no. of megabytes in the full data volume
 	size_t timeStep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	string varname = rParams->GetVariableName();
-	int maxRefLevel = dataMgr->GetNumRefLevels(varname);
-	RegularGrid* rGrid = dataMgr->GetVariable(timeStep,varname, maxRefLevel, 0);
-	size_t dims[3];
-	rGrid->GetDimensions(dims);
+	int maxRefLevel = dataMgr->GetNumRefLevels(varname) -1;
+	vector<size_t> dims, bss;
+	dataMgr->GetDimLensAtLevel(varname,maxRefLevel-1, dims, bss);
 	float fullMBs = (float)dims[0]*(float)dims[1]*(float)dims[2]*4./1.e6;
 	vector<size_t> cratios;
 	dataMgr->GetCRatios(varname,cratios);
-	
-	
 	//Create vectors of fidelity, cratios, ref levels, initialize with mins and maxs and default
 	fidelityRefinements.clear();
 	fidelityLODs.clear();

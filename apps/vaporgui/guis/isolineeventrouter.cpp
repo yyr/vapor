@@ -1233,9 +1233,9 @@ reinitTab(bool doOverride){
 		myBasics->variableCombo->insertItem(i,varnames[i].c_str());
 		
 	int numRefinements = dataMgr->GetNumRefLevels(varnames[0]);
-	myBasics->refinementCombo->setMaxCount(numRefinements+1);
+	myBasics->refinementCombo->setMaxCount(numRefinements);
 	myBasics->refinementCombo->clear();
-	for (int i = 0; i<= numRefinements; i++){
+	for (int i = 0; i < numRefinements; i++){
 		myBasics->refinementCombo->addItem(QString::number(i));
 	}
 	if (dataMgr){
@@ -1439,16 +1439,16 @@ void IsolineEventRouter::
 guiSetNumRefinements(int n){
 	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
 	confirmText(false);
-	int maxNumRefinements = 0;
+	int maxRefinement = 0;
 	string varname = pParams->GetVariableName();
 	if (DataStatus::getInstance()->getDataMgr()) {
-		maxNumRefinements = DataStatus::getInstance()->getDataMgr()->GetNumRefLevels(varname);
-		if (n > maxNumRefinements) {
+		maxRefinement = DataStatus::getInstance()->getDataMgr()->GetNumRefLevels(varname)-1;
+		if (n > maxRefinement) {
 			//MessageReporter::warningMsg("%s","Invalid number of Refinements \nfor current data");
-			n = maxNumRefinements;
+			n = maxRefinement;
 			myBasics->refinementCombo->setCurrentIndex(n);
 		}
-	} else if (n > maxNumRefinements) maxNumRefinements = n;
+	} else if (n > maxRefinement) maxRefinement = n;
 	pParams->SetRefinementLevel(n);
 	pParams->SetIgnoreFidelity(true);
 	QPalette pal = QPalette(myBasics->fidelityBox->palette());

@@ -135,7 +135,7 @@ int ArrowRenderer::_paintGL(DataMgrV3_0* dataMgr){
 	//See what the dimensions are at full refinement level
 	int totNumRefs = dataMgr->GetNumRefLevels(varname1);
 	for (int i = 0; i<3; i++)
-		dim[i] *= (2 << (totNumRefs-actualRefLevel+1));
+		dim[i] *= (2 << (totNumRefs-actualRefLevel-1));
 	const double* fullSizes = DataStatus::getInstance()->getFullSizes();
 	float maxVoxSize = 0.f;
 	for (int i = 0; i<2; i++){
