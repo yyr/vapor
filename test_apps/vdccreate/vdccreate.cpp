@@ -27,6 +27,7 @@ struct opt_t {
     std::vector <string> ncvars2dxy;
     std::vector <string> ncvars2dxz;
     std::vector <string> ncvars2dyz;
+	std::vector <float> extents;
 	OptionParser::Boolean_T	force;
 	OptionParser::Boolean_T	help;
 } opt;
@@ -100,6 +101,10 @@ OptionParser::OptDescRec_T	set_opts[] = {
 		"names (not compressed) "
 		"to be included in the VDC"
 	},
+	{
+		"extents",  1,  "",  "Colon delimited 6-element vector "
+		"specifying domain extents in user coordinates (X0:Y0:Z0:X1:Y1:Z1)"
+	},
 	{"force",	0,	"",	"Create a new VDC master file even if a VDC data "
 	"directory already exists. Results may be undefined if settings between "
 	"the new master file and old data directory do not match."},
@@ -123,12 +128,50 @@ OptionParser::Option_T	get_options[] = {
 	{"ncvars2dxy", VetsUtil::CvtToStrVec, &opt.ncvars2dxy, sizeof(opt.ncvars2dxy)},
 	{"ncvars2dxz", VetsUtil::CvtToStrVec, &opt.ncvars2dxz, sizeof(opt.ncvars2dxz)},
 	{"ncvars2dyz", VetsUtil::CvtToStrVec, &opt.ncvars2dyz, sizeof(opt.ncvars2dyz)},
+	{"extents", VetsUtil::CvtToFloatVec, &opt.extents, sizeof(opt.extents)},
+
 	{"force", VetsUtil::CvtToBoolean, &opt.force, sizeof(opt.force)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{NULL}
 };
 
 string ProgName;
+
+void	set_coord(
+	VDCNetCDF	&vdc,
+	string dimname, size_t dimlen, float min, float max
+) {
+	assert(dimlen>=1);
+	
+	float *buf = new float[dimlen];
+
+	float delta = dimlen>1 ? (max-min) / (float) (dimlen-1) : 0.0;
+
+	for (int i=0; i<dimlen; i++) {
+		buf[i] = min + i*delta;
+	}
+
+	int rc = vdc.PutVar(0, dimname, -1, buf);
+	if (rc<0) exit(1);
+}
+
+void	set_coords(
+	VDCNetCDF	&vdc,
+	const vector <float> &extents,
+	const vector <string> &dimnames,
+	const vector <size_t> &dimlens
+) {
+	if (! extents.size()) return;
+
+	assert(extents.size() == 6);
+	assert(dimnames.size() == 4);
+	assert(dimlens.size() == 4);
+
+	set_coord(vdc, dimnames[0], dimlens[0], extents[0], extents[3]);
+	set_coord(vdc, dimnames[1], dimlens[1], extents[1], extents[4]);
+	set_coord(vdc, dimnames[2], dimlens[2], extents[2], extents[5]);
+
+}
 
 int	main(int argc, char **argv) {
 
@@ -150,6 +193,11 @@ int	main(int argc, char **argv) {
 	}
 
 	if (argc != 2) {
+		cerr << "Usage: " << ProgName << " master.nc" << endl;
+		op.PrintOptionHelp(stderr, 80, false);
+		exit(1);
+	}
+	if (opt.extents.size() && opt.extents.size() != 6) {
 		cerr << "Usage: " << ProgName << " master.nc" << endl;
 		op.PrintOptionHelp(stderr, 80, false);
 		exit(1);
@@ -182,26 +230,32 @@ int	main(int argc, char **argv) {
 	dimnames.push_back("Nz");
 	dimnames.push_back("Nt");
 
+	vector <size_t> dimlens;
+	dimlens.push_back(opt.dim.nx);
+	dimlens.push_back(opt.dim.ny);
+	dimlens.push_back(opt.dim.nz);
+	dimlens.push_back(opt.numts);
+
 	vector <size_t> bs(1,1);
 	vector <size_t> cratios(1,1);
 //	bs.push_back(opt.bs[0]);
 	rc = vdc.SetCompressionBlock(bs, "", cratios);
-	rc = vdc.DefineDimension(dimnames[0], opt.dim.nx, 0);
+	rc = vdc.DefineDimension(dimnames[0], dimlens[0], 0);
 
 	
 //	bs.clear();
 //	bs.push_back(opt.bs[1]);
 	rc = vdc.SetCompressionBlock(bs, "", cratios);
-	rc = vdc.DefineDimension(dimnames[1], opt.dim.ny, 1);
+	rc = vdc.DefineDimension(dimnames[1], dimlens[1], 1);
 
 //	bs.clear();
 //	bs.push_back(opt.bs[2]);
 	rc = vdc.SetCompressionBlock(bs, "", cratios);
-	rc = vdc.DefineDimension(dimnames[2], opt.dim.nz, 2);
+	rc = vdc.DefineDimension(dimnames[2], dimlens[2], 2);
 
 //	bs.clear();
 	rc = vdc.SetCompressionBlock(bs, "", cratios);
-	rc = vdc.DefineDimension(dimnames[3], opt.numts, 3);
+	rc = vdc.DefineDimension(dimnames[3], dimlens[3], 3);
 
 	bs = opt.bs;
 	rc = vdc.SetCompressionBlock(opt.bs, opt.wname, opt.cratios);
@@ -281,17 +335,6 @@ int	main(int argc, char **argv) {
 
 	vdc.EndDefine();
 
-#ifdef	DEAD
-VDCNetCDF vdcnew;
-string master_copy = "/tmp/master_copy.nc";
-char buf[1000];
-sprintf(buf, "/bin/cp %s %s", master.c_str(), master_copy.c_str());
-system(buf);
-cerr << "WRITING copy to " << master_copy << endl;
-rc = vdcnew.Initialize(master_copy, VDC::A, chunksize);
-if (rc<0) exit(1);
-vdcnew.EndDefine();
-#endif
-
+	set_coords(vdc, opt.extents, dimnames, dimlens);
 
 }
