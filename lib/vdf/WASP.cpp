@@ -1410,7 +1410,7 @@ WASP::WASP(int nthreads) {
 
 	_et = new EasyThreads(nthreads);
 
-	_nthreads = _et->GetNumThreads();
+	_nthreads = _et->GetNumThreads() > 0 ? _et->GetNumThreads() : 1;
 
 	// One Compressor instance for each thread
 	//
