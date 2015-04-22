@@ -582,9 +582,9 @@ reinitTab(bool doOverride){
 	else varname = dataMgr->GetDataVarNames(2,true)[0];
 	
 	int numRefinements = dataMgr->GetNumRefLevels(varname);
-	myBasic->refinementCombo->setMaxCount(numRefinements+1);
+	myBasic->refinementCombo->setMaxCount(numRefinements);
 	myBasic->refinementCombo->clear();
-	for (int i = 0; i<= numRefinements; i++){
+	for (int i = 0; i< numRefinements; i++){
 		myBasic->refinementCombo->addItem(QString::number(i));
 	}
 	

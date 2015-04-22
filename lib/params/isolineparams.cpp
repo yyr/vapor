@@ -101,7 +101,7 @@ Validate(int type){
 		
 	}
 	//Set up the numRefinements. 
-	int maxNumRefinements = dataMgr->GetNumRefLevels(varname)-1;
+	int maxRefinement = dataMgr->GetNumRefLevels(varname)-1;
 	int numrefs = GetRefinementLevel();
 	if (doOverride) { 
 		numrefs = 0;
@@ -109,7 +109,7 @@ Validate(int type){
 		SetIgnoreFidelity(false);
 		SetNumDigits(5);
 	} else {  //Try to use existing values
-		if (numrefs > maxNumRefinements) numrefs = maxNumRefinements;
+		if (numrefs > maxRefinement) numrefs = maxRefinement;
 		if (numrefs < 0) numrefs = 0;
 		if (GetNumDigits() < 2) SetNumDigits(2);
 		if (GetNumDigits() > 12) SetNumDigits(12);
@@ -120,8 +120,8 @@ Validate(int type){
 	
 	vector<size_t> cratios;
 	dataMgr->GetCRatios(varname, cratios);
-	if (dataMgr && fidelity > maxNumRefinements+cratios.size()-1)
-		SetFidelityLevel(maxNumRefinements+cratios.size()-1);
+	if (dataMgr && fidelity > maxRefinement+cratios.size()-1)
+		SetFidelityLevel(maxRefinement+cratios.size()-1);
 	//Set up the compression level.  Whether or not override is true, make sure
 	//That the compression level is valid.  If override is true set it to 0;
 	if (doOverride) SetCompressionLevel(0);
