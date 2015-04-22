@@ -693,7 +693,7 @@ void PythonEdit::loadScript(){
 
 void PythonEdit::getHelp(){
     const char* currText = "User Preferences Overview";
-    const char* currURL = "https://www.vapor.ucar.edu/sites/default/files/pydox/namespaces.html";
+    const char* currURL = "http://docs.software.ucar.edu/vapor/Documentation/current/doc/pydoc/html/namespaces.html";
     QUrl myqurl(currURL);
     QVariant qv(myqurl);
     
