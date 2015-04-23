@@ -385,6 +385,7 @@ changeExtents(){
 	vector<double>minExts, maxExts;
 	DataStatus::getInstance()->GetExtents((size_t)timestep, minExts, maxExts);
 	for (int i = 0; i<6; i++) newExts[i] -= minExts[i%3];
+
 	bx->SetLocalExtents(newExts,aParams);
 	
 	updateTab();
@@ -494,8 +495,8 @@ void ArrowEventRouter::updateTab(){
 		fullUsrExts[i+3] = fullSizes[i];
 	}
 	//To get the rake extents in user coordinates, need to get the rake extents and add the user coord domain displacement
-	vector<double> usrRakeExts;
 	const vector<double>& rakeexts = arrowParams->GetRakeLocalExtents();
+	vector<double> minRake, maxRake;
 	Command::unblockCapture();
 	//Now adjust for moving extents
 	if (!DataStatus::getInstance()->getDataMgr()) {
@@ -504,12 +505,14 @@ void ArrowEventRouter::updateTab(){
 		
 	vector<double>minExts, maxExts;
 	DataStatus::getInstance()->GetExtents((size_t)currentTimeStep, minExts, maxExts);
-	for (int i = 0; i<6; i++) {
-		fullUsrExts[i]+= minExts[i%3];
-		usrRakeExts.push_back(rakeexts[i]+minExts[i%3]);
+	for (int i = 0; i<3; i++) {
+		fullUsrExts[i]+= minExts[i];
+		fullUsrExts[i+3]+= minExts[i];
+		minRake.push_back(rakeexts[i]+minExts[i]);
+		maxRake.push_back(rakeexts[i+3]+minExts[i]);
 	}
 	myLayout->boxSliderFrame->setFullDomain(fullUsrExts);
-	myLayout->boxSliderFrame->setBoxExtents(minExts,maxExts);
+	myLayout->boxSliderFrame->setBoxExtents(minRake,maxRake);
 	myLayout->boxSliderFrame->setNumRefinements(arrowParams->GetRefinementLevel());
 
 	
