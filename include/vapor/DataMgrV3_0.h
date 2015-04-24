@@ -1,4 +1,5 @@
 #include <vector>
+#include <iostream>
 #include <list>
 #include <vapor/BlkMemMgr.h>
 #include <vapor/DC.h>
@@ -521,7 +522,6 @@ int GetCRatios(string varname, std::vector <size_t> &cratios) const;
  //! \todo Need to define
  virtual string GetMapProjection() const {return(""); };
 
-private:
  class BlkExts {
  public:
   BlkExts();
@@ -540,6 +540,10 @@ private:
 	std::vector <size_t> &bmax
   ) const;
 
+  friend std::ostream &operator<<(
+	std::ostream &o, const BlkExts &b
+  );
+
  private:
 
 	std::vector <size_t> _bmin;
@@ -547,6 +551,7 @@ private:
 	std::vector < std::vector < double > > _mins;
 	std::vector < std::vector < double > > _maxs;
  };
+private:
 
  //
  // Cache for various metadata attributes 

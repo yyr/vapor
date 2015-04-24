@@ -370,6 +370,7 @@ vector <int> get_spatial_axes(const DC::BaseVar &var) {
 	return(axis);
 }
 
+
 };
 
 
@@ -2649,6 +2650,7 @@ int DataMgrV3_0::_find_bounding_grid(
 	}
 	
 
+
 	const BlkExts &blkexts = itr->second;
 
 	// Find block coordinates of region that contains the bounding volume
@@ -2681,3 +2683,29 @@ void	DataMgrV3_0::_unlock_blocks(
 	}
 	return;
 }
+
+namespace VAPoR {
+
+std::ostream &operator<<(
+    std::ostream &o, const DataMgrV3_0::BlkExts &b
+) {
+	assert(b._bmin.size() == b._bmax.size());
+	assert(b._mins.size() == b._maxs.size());
+
+	o << "Block dimensions" << endl;
+	for (int i=0;i<b._bmin.size(); i++) {
+		o << "  " << b._bmin[i] << " " << b._bmax[i] << endl;
+	}
+	o << "Block coordinates" << endl;
+	for (int i=0;i<b._mins.size(); i++) {
+		assert(b._mins[i].size() == b._maxs[i].size());
+		o << "Block index " << i << endl;
+		for (int j=0;j<b._mins[i].size(); j++) {
+			o << "  " << b._mins[i][j] << " " << b._maxs[i][j] << endl;
+		}
+		o << endl;
+	}
+
+    return(o);
+}
+};
