@@ -810,8 +810,8 @@ int	DataMgrV3_0::_setupCoordVecs(
 		//
 		vector <size_t> mymin;
 		vector <size_t> mymax;
-		for (int i=0; i<axes.size(); i++) {
-			int index = lookup_axis_index(data_axes, axes[i]);
+		for (int j=0; j<axes.size(); j++) {
+			int index = lookup_axis_index(data_axes, axes[j]);
 			assert(index>=0 && index<=2);
 
 			mymin.push_back(min[index]);
@@ -2609,23 +2609,25 @@ int DataMgrV3_0::_find_bounding_grid(
 		size_t nblocks = linearize(bmin, bmax, bmax) + 1;
 		for (size_t offset = 0; offset<nblocks; offset++) {
 			vector <double> my_min, my_max;
+			vector <size_t> my_vmin(vmin.size()), my_vmax(vmin.size());
 
 			// Get coordinates for current block
 			//
 			vector <size_t> bcoord = vectorize(bmin, bmax, offset);
 
 			for (int i=0; i<bcoord.size(); i++) {
-				vmin[i] = bcoord[i] * bs_at_level[i];
-				if (vmin[i] > 0) vmin[i] -= 1;	// not boundary face
+				my_vmin[i] = bcoord[i] * bs_at_level[i];
+				if (my_vmin[i] > 0) my_vmin[i] -= 1;	// not boundary face
 
-				vmax[i] = bcoord[i] * bs_at_level[i] + bs_at_level[i] - 1;
-				if (vmax[i] < dims_at_level[i]-1) vmax[i] += 1;
+				my_vmax[i] = bcoord[i] * bs_at_level[i] + bs_at_level[i] - 1;
+				if (my_vmax[i] > vmax[i]) my_vmax[i] = vmax[i];
+				if (my_vmax[i] < vmax[i]) my_vmax[i] += 1;
 			}
 
 			// Use the regular grid class to compute the user-coordinate
 			// axis aligned bounding volume for the block+halo
 			//
-			rg->GetBoundingBox(vmin, vmax, my_min, my_max);
+			rg->GetBoundingBox(my_vmin, my_vmax, my_min, my_max);
 
 			// Insert the bounding volume into blkexts
 			//
@@ -2657,6 +2659,9 @@ int DataMgrV3_0::_find_bounding_grid(
 	// Finally, map from block to voxel coordinates
 	//
 	map_blk_to_vox(bs_at_level, bmin, bmax, min_ui, max_ui);
+	for (int i=0; i<max_ui.size(); i++) {
+		if (max_ui[i] >= dims_at_level[i]) max_ui[i] = dims_at_level[i]-1;
+	}
 
 	return(0);
 }
