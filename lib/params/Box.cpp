@@ -913,6 +913,7 @@ getRotatedVoxelExtents(string varname, float voxdims[2], int numRefinements){
 		return;
 	}
 	RegularGrid* rGrid = ds->getDataMgr()->GetVariable(DataStatus::getMinTimestep(),varname, numRefinements,0);
+	assert(rGrid);
 	double exts[6], fullSizes[3];
 	rGrid->GetUserExtents(exts);
 	for (int i = 0; i<3; i++) fullSizes[i] = exts[i+3]-exts[i];
