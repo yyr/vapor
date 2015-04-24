@@ -155,9 +155,11 @@ int Box::GetUserExtents(vector<double>minExts, vector<double>maxExts, size_t tim
 	vector<double>mnExts,mxExts;
 	DataStatus::GetExtents(timestep,mnExts,mxExts);
 	//Time-varying extents are just used to get an offset that varies in time.
+	minExts.clear();
+	maxExts.clear();
 	for (int i = 0; i<3; i++){
-		minExts[i] = exts[i]+ mnExts[i];
-		maxExts[i] = exts[i+3]+mnExts[i];
+		minExts.push_back(exts[i]+ mnExts[i]);
+		maxExts.push_back(exts[i+3]+mnExts[i]);
 	}
 	return 0;
 }
@@ -911,6 +913,7 @@ getRotatedVoxelExtents(string varname, float voxdims[2], int numRefinements){
 		return;
 	}
 	RegularGrid* rGrid = ds->getDataMgr()->GetVariable(DataStatus::getMinTimestep(),varname, numRefinements,0);
+	assert(rGrid);
 	double exts[6], fullSizes[3];
 	rGrid->GetUserExtents(exts);
 	for (int i = 0; i<3; i++) fullSizes[i] = exts[i+3]-exts[i];
