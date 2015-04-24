@@ -1,7 +1,10 @@
 #!/bin/csh -f
 
 set data = /glade/p/DASG/VAPOR/Data/Raw/checker128
+set dataconst = /glade/p/DASG/VAPOR/Data/Raw/constant
 set data64 = /glade/p/DASG/VAPOR/Data/Raw/checker64
+
+#./vdc3test.csh -dim 512x512x255 -- -- -lod -1 -level -1 $dataconst
 
 #
 # DIM
@@ -72,6 +75,12 @@ if ($status) exit 1
 #
 # CRATIO
 #
+./vdc3test.csh -dim 128x128x63 -cratio 1 -- -- -lod -1 -level -1 $data
+if ($status) exit 1
+
+./vdc3test.csh -dim 128x128x63 -cratio 1 -- -- -lod -1 -level -1 $data
+if ($status) exit 1
+
 ./vdc3test.csh -dim 128x128x128 -cratio 10:50 -- -- -lod 1 $data
 if ($status) exit 1
 
