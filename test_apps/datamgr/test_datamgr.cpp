@@ -25,6 +25,7 @@ struct {
 	string varname;
 	string savefilebase;
 	string ftype;
+	std::vector <float> extents;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	quiet;
 	OptionParser::Boolean_T	debug;
@@ -42,6 +43,10 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"varname",	1, 	"",	"Name of variable"},
 	{"savefilebase",	1, 	"",	"Base path name to output file"},
 	{"ftype",	1,	"vdc",	"data set type (vdc|wrf)"},
+	{
+		"extents",  1,  "",  "Colon delimited 6-element vector "
+		"specifying domain extents in user coordinates (X0:Y0:Z0:X1:Y1:Z1)"
+	},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"quiet",	0,	"",	"Operate quitely"},
 	{"debug",	0,	"",	"Debug mode"},
@@ -60,6 +65,7 @@ OptionParser::Option_T	get_options[] = {
 	{"varname", VetsUtil::CvtToCPPStr, &opt.varname, sizeof(opt.varname)},
 	{"savefilebase", VetsUtil::CvtToCPPStr, &opt.savefilebase, sizeof(opt.savefilebase)},
 	{"ftype", VetsUtil::CvtToCPPStr, &opt.ftype, sizeof(opt.ftype)},
+	{"extents", VetsUtil::CvtToFloatVec, &opt.extents, sizeof(opt.extents)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
 	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
@@ -106,6 +112,12 @@ int main(int argc, char **argv) {
 
 	if (op.ParseOptions(&argc, argv, get_options) < 0) {
 		cerr << ProgName << " : " << op.GetErrMsg();
+		exit(1);
+	}
+
+	if (opt.extents.size() && opt.extents.size() != 6) {
+		cerr << "Usage: " << ProgName << " master.nc" << endl;
+		op.PrintOptionHelp(stderr, 80, false);
 		exit(1);
 	}
 
@@ -182,8 +194,19 @@ int main(int argc, char **argv) {
 			}
 
 			vector <double> min, max;
-			int rc = datamgr.GetVariableExtents(ts, vname, opt.level, min, max);
-			if (rc<0) exit(1);
+			if (opt.extents.size()) {
+				assert(opt.extents.size() == 6);
+				for (int i=0; i<3; i++) {
+					min.push_back(opt.extents[i]);
+					max.push_back(opt.extents[i+3]);
+				}
+			}
+			else {
+				int rc = datamgr.GetVariableExtents(
+					ts, vname, opt.level, min, max
+				);
+				if (rc<0) exit(1);
+			}
 
 			RegularGrid *rg;
 			rg = datamgr.GetVariable(
