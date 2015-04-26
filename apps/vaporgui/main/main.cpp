@@ -72,8 +72,12 @@ int main( int argc, char ** argv ) {
 	//Install our own message handler.
 	//Needed for SGI to avoid dithering:
 
-	FILE *diagfp = OpenLog("VAPOR_DIAG_LOG");
-	FILE *errfp = OpenLog("VAPOR_ERR_LOG");
+//FILE *diagfp = OpenLog("VAPOR_DIAG_LOG");
+//FILE *errfp = OpenLog("VAPOR_ERR_LOG");
+FILE *diagfp = NULL;
+FILE *errfp = NULL;
+cerr << "ERR HANDLING HARDWIRED\n";
+	MyBase::SetDiagMsgFilePtr(stderr);
 
 #ifdef	Darwin
 	if (! getenv("DISPLAY")) setenv("DISPLAY", ":0.0",0);
