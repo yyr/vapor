@@ -2656,7 +2656,11 @@ int DataMgrV3_0::_find_bounding_grid(
 	// Find block coordinates of region that contains the bounding volume
 	//
 	vector <size_t> bmin, bmax;
-	blkexts.Intersect(min, max, bmin, bmax);
+	bool ok = blkexts.Intersect(min, max, bmin, bmax);
+	if (! ok) {
+		SetErrMsg("Invalid variable coordinates");
+		return(-1);
+	}
 
 	// Finally, map from block to voxel coordinates
 	//

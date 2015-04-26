@@ -213,10 +213,6 @@ int WaveCodecIO::_WaveCodecIO(int nthreads) {
 
 	for (int t=0; t<_nthreads; t++) {
 		_compressor3D = new Compressor(bdims, wavename, boundary_mode);
-		if (Compressor::GetErrCode() != 0) {
-			SetErrMsg("Failed to allocate compressor");
-			return(-1);
-		}
 		_compressorThread[t] = _compressor3D;
 		_compressorThread3D[t] = _compressor3D;
 	}
@@ -1766,7 +1762,6 @@ size_t WaveCodecIO::GetMaxCRatio(
 		dims.push_back(bs[i]);
 	}
 	Compressor *cmp = new Compressor(dims, wavename, wmode);
-	if (Compressor::GetErrCode() != 0) return(0);
 
 	// Total number of wavelet coefficients in a forward transform
 	//
@@ -1856,10 +1851,6 @@ int WaveCodecIO::_SetupCompressor() {
 		assert(0);
 	}
 
-	if (Compressor::GetErrCode() != 0) {
-		SetErrMsg("Failed to allocate compressor");
-		return(-1);
-	}
 	_compressorType = _vtype;
 
 
