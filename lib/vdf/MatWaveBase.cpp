@@ -93,7 +93,10 @@ int MatWaveBase::wavelet(const string &wname)
 	if (_wf) delete _wf;
 
 	_wf = _create_wf(wname);
-	if (! _wf) return (-1);
+	if (! _wf) {
+		SetErrMsg("Invalid wavelet : %s", wname.c_str());
+		return (-1);
+	}
 
 	return(0);
 }
@@ -105,6 +108,8 @@ const string MatWaveBase::dwtmode() const {
 size_t MatWaveBase::wmaxlev(size_t s) const {
 	size_t lev, val;
 
+	if (! _wf) return(0);
+
 	int waveLength = _wf->GetLength();
 	_wave_len_validate(s, waveLength, &lev, &val);
 
@@ -113,6 +118,7 @@ size_t MatWaveBase::wmaxlev(size_t s) const {
 }
 
 size_t MatWaveBase::detaillength(size_t sigInLen) const {
+	if (! _wf) return(0);
 
 	int filterLen = _wf->GetLength();
 
@@ -136,6 +142,7 @@ size_t MatWaveBase::detaillength(size_t sigInLen) const {
 }
 
 size_t MatWaveBase::approxlength(size_t sigInLen) const {
+	if (! _wf) return(sigInLen);
 
 	int filterLen = _wf->GetLength();
 
@@ -222,11 +229,8 @@ WaveFiltBase *MatWaveBase::_create_wf(const string &wname) const {
 		wf = new WaveFiltHaar();
 	}
 	else {
-		SetErrMsg("Invalid wavelet family name : %s", wname.c_str());
 		return(NULL);
 	}
-
-	if (MatWaveBase::GetErrCode() != 0) return(NULL); 
 
 	return(wf);
 }
