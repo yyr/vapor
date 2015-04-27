@@ -111,7 +111,7 @@ public:
 
 
 protected slots:
-
+	void changeExtents();
 	void guiSetSingleColor();
 	void guiSetUseSingleColor(bool val);
 	void guiSpaceIsovalues();
