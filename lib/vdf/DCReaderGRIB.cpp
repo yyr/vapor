@@ -306,7 +306,7 @@ int DCReaderGRIB::CalcVirtualTemperature(float *T, float *Q, float *Sum, float *
             index = x + y*_Ni;
             Tv[index] = T[index] * (1 + .61*Q[index]);
             Sum[index] = Tv[index];
-			if ((x==200) && (y==200))
+	//if ((x==200) && (y==200))
             //printf("%i %f %f %f %f\n",0,_pressureLevels[0],T[index],Q[index],Tv[index]);
         }
     }
@@ -326,9 +326,9 @@ int DCReaderGRIB::CalcVirtualTemperature(float *T, float *Q, float *Sum, float *
                     Tv[index] += Sum[index - zSum*_Ni*_Nj];
                 }
                 Tv[index] = Tv[index]/D;            // Normalize the summation of Tv w.r.t the span of the entire pressure coordinate (D)
-				if ((x==200) && (y==200)){
+		//if ((x==200) && (y==200)){
                     //printf("%i %f %f %f %f\n",z,_pressureLevels[z],T[index],Q[index],Tv[index]);
-				}
+		//}
             }
         }
     }
