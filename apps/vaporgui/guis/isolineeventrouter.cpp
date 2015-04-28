@@ -166,8 +166,7 @@ IsolineEventRouter::hookUpTab()
 	connect (myLayout->thetaEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (myLayout->phiEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (myLayout->psiEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (myLayout->boxSliderFrame->xSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (myLayout->boxSliderFrame->ySizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	
 	connect (myIsovals->minIsoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (myIsovals->isoSpaceEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (myIsovals->countIsoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
@@ -232,11 +231,7 @@ IsolineEventRouter::hookUpTab()
 	connect (myBasics->lodCombo,SIGNAL(activated(int)), this, SLOT(guiSetCompRatio(int)));
 	connect (myLayout->rotate90Combo,SIGNAL(activated(int)), this, SLOT(guiRotate90(int)));
 	connect (myBasics->variableCombo,SIGNAL(activated(int)), this, SLOT(guiChangeVariable(int)));
-	connect (myLayout->boxSliderFrame->xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineXCenter()));
-	connect (myLayout->boxSliderFrame->yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineYCenter()));
-	connect (myLayout->boxSliderFrame->zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineZCenter()));
-	connect (myLayout->boxSliderFrame->xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineXSize()));
-	connect (myLayout->boxSliderFrame->ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineYSize()));
+	
 	connect (myAppearance->densitySlider, SIGNAL(sliderReleased()), this, SLOT (guiSetIsolineDensity()));
 	connect (myIsovals->copyToProbeButton, SIGNAL(clicked()), this, SLOT(copyToProbeOr2D()));
 
@@ -258,6 +253,7 @@ IsolineEventRouter::hookUpTab()
     connect(myIsovals->isoSelectionFrame, SIGNAL(endChange()),
             this, SLOT(guiEndChangeIsoSelection()));
 	connect (myLayout->boxSliderFrame, SIGNAL(extentsChanged()), this, SLOT(changeExtents()));
+	
 	myLayout->boxSliderFrame->zSizeEdit->hide();
 	myLayout->boxSliderFrame->zSizeSlider->hide();
 
@@ -269,8 +265,6 @@ void IsolineEventRouter::updateTab(){
 	
 	MainForm::getInstance()->buildWebTabHelpMenu(myWebHelpActions);
 
-	
-	
 	DataMgrV3_0* dataMgr = DataStatus::getDataMgr();
 	if (!dataMgr || dataMgr->GetDataVarNames().size() == 0) return;
 	
@@ -325,25 +319,30 @@ void IsolineEventRouter::updateTab(){
 	
 	//Setup render window size:
 	resetImageSize(isolineParams);
-	//setup the size sliders 
-	adjustBoxSize(isolineParams);
+	
 	if (!DataStatus::getInstance()->getDataMgr()) {
 		Command::unblockCapture();
 		return;
 	}
 	vector<double>minExts,maxExts;
 	DataStatus::GetExtents(timestep,minExts,maxExts);
-	//And the center sliders/textboxes:
-	double locExts[6],boxCenter[3];
+	//setup the boxSlider frame
+	double locExts[6];
 	const double* fullSizes = DataStatus::getFullSizes();
 	isolineParams->GetBox()->GetLocalExtents(locExts);
-	for (int i = 0; i<3; i++) boxCenter[i] = (locExts[i]+locExts[3+i])*0.5f;
-	myLayout->boxSliderFrame->xCenterSlider->setValue((int)(256.f*boxCenter[0]/fullSizes[0]));
-	myLayout->boxSliderFrame->yCenterSlider->setValue((int)(256.f*boxCenter[1]/fullSizes[1]));
-	myLayout->boxSliderFrame->zCenterSlider->setValue((int)(256.f*boxCenter[2]/fullSizes[2]));
-	myLayout->boxSliderFrame->xCenterEdit->setText(QString::number(minExts[0]+boxCenter[0]));
-	myLayout->boxSliderFrame->yCenterEdit->setText(QString::number(minExts[1]+boxCenter[1]));
-	myLayout->boxSliderFrame->zCenterEdit->setText(QString::number(minExts[2]+boxCenter[2]));
+	
+	double fullUsrExts[6];
+	vector<double> minBox, maxBox;
+	for (int i = 0; i<3; i++){
+		fullUsrExts[i] = minExts[i];
+		fullUsrExts[i+3] = maxExts[i];
+		minBox.push_back(locExts[i]+minExts[i]);
+		maxBox.push_back(locExts[i+3]+minExts[i]);
+	}
+	myLayout->boxSliderFrame->setFullDomain(fullUsrExts);
+	myLayout->boxSliderFrame->setBoxExtents(minBox,maxBox);
+	myLayout->boxSliderFrame->setNumRefinements(isolineParams->GetRefinementLevel());
+	myLayout->boxSliderFrame->setVariableName(isolineParams->GetVariableName());
 
 	//Calculate extents of the containing box
 	double corners[8][3];
@@ -662,33 +661,7 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 
 	size_t timestep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	vector<double>minExts,maxExts;
-	DataStatus::getInstance()->GetExtents(timestep, minExts,maxExts);
-	//Set the isoline size based on current text box settings:
-	float boxSize[3], boxexts[6],  boxCenter[3];
-	boxSize[0] = myLayout->boxSliderFrame->xSizeEdit->text().toFloat();
-	boxSize[1] = myLayout->boxSliderFrame->ySizeEdit->text().toFloat();
-	boxSize[2] =0.;
-	for (int i = 0; i<3; i++){
-		if (boxSize[i] < 0.f) boxSize[i] = 0.f;
-	}
-	//Convert text to local extents:
-	boxCenter[0] = myLayout->boxSliderFrame->xCenterEdit->text().toFloat()- minExts[0];
-	boxCenter[1] = myLayout->boxSliderFrame->yCenterEdit->text().toFloat()- minExts[1];
-	boxCenter[2] = myLayout->boxSliderFrame->zCenterEdit->text().toFloat()- minExts[2];
-	const double* fullSizes = DataStatus::getInstance()->getFullSizes();
-	for (int i = 0; i<3;i++){
-		//Don't constrain the box to have center in the domain:
-		boxexts[i] = boxCenter[i] - 0.5f*boxSize[i];
-		boxexts[i+3] = boxCenter[i] + 0.5f*boxSize[i];
-	}
-	//Set the local box extents:
-	isolineParams->GetBox()->SetLocalExtents(boxexts,isolineParams, -1);
-	adjustBoxSize(isolineParams);
-	//set the center sliders:
-	myLayout->boxSliderFrame->xCenterSlider->setValue((int)(256.f*boxCenter[0]/fullSizes[0]));
-	myLayout->boxSliderFrame->yCenterSlider->setValue((int)(256.f*boxCenter[1]/fullSizes[1]));
-	myLayout->boxSliderFrame->zCenterSlider->setValue((int)(256.f*boxCenter[2]/fullSizes[2]));
+	
 	resetImageSize(isolineParams);
 	
 	setIsolineDirty(isolineParams);
@@ -1121,36 +1094,6 @@ isolineAttachSeed(bool attach){
 	*/
 }
 
-
-void IsolineEventRouter::
-setIsolineXCenter(){
-	guiSetXCenter(
-		myLayout->boxSliderFrame->xCenterSlider->value());
-}
-void IsolineEventRouter::
-setIsolineYCenter(){
-	guiSetYCenter(
-		myLayout->boxSliderFrame->yCenterSlider->value());
-}
-void IsolineEventRouter::
-setIsolineZCenter(){
-	guiSetZCenter(
-		myLayout->boxSliderFrame->zCenterSlider->value());
-}
-void IsolineEventRouter::
-setIsolineXSize(){
-	guiSetXSize(
-		myLayout->boxSliderFrame->xSizeSlider->value());
-}
-void IsolineEventRouter::
-setIsolineYSize(){
-	guiSetYSize(
-		myLayout->boxSliderFrame->ySizeSlider->value());
-}
-
-
-
-
 //Fit to domain extents
 void IsolineEventRouter::
 guiFitDomain(){
@@ -1287,9 +1230,13 @@ void IsolineEventRouter::guiCenterIsolines(){
 	
 	double isoExts[6];
 	pParams->GetBox()->GetLocalExtents(isoExts);
-	for (int i = 0; i<3; i++)
-		textToSlider(pParams,i,selectedPoint[i], isoExts[i+3]-isoExts[i]);
+	vector<double> minExts, maxExts;
+	for (int i = 0; i<3; i++){
 	
+		minExts.push_back(selectedPoint[i]- 0.5*(isoExts[i+3]-isoExts[i]));
+		maxExts.push_back(selectedPoint[i]+ 0.5*(isoExts[i+3]-isoExts[i]));
+	}
+	myLayout->boxSliderFrame->setBoxExtents(minExts,maxExts);
 	updateTab();
 	setIsolineDirty(pParams);
 	myImage->isolineImageFrame->update();
@@ -1348,67 +1295,6 @@ guiChangeVariable(int varnum){
 	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams);
 }
-void IsolineEventRouter::
-guiSetXCenter(int sliderval){
-	confirmText(false);
-	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
-	
-	setXCenter(pParams,sliderval);
-	
-	setIsolineDirty(pParams);	
-	myImage->isolineImageFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
-	
-}
-void IsolineEventRouter::
-guiSetYCenter(int sliderval){
-	confirmText(false);
-	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
-	
-	setYCenter(pParams,sliderval);
-	setIsolineDirty(pParams);
-	myImage->isolineImageFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
-	
-}
-void IsolineEventRouter::
-guiSetZCenter(int sliderval){
-	confirmText(false);
-	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
-	
-	setZCenter(pParams,sliderval);
-	
-	setIsolineDirty(pParams);
-	myImage->isolineImageFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
-
-}
-void IsolineEventRouter::
-guiSetXSize(int sliderval){
-	confirmText(false);
-	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
-
-	setXSize(pParams,sliderval);
-	
-	resetImageSize(pParams);
-	setIsolineDirty(pParams);
-	myImage->isolineImageFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
-
-}
-void IsolineEventRouter::
-guiSetYSize(int sliderval){
-	confirmText(false);
-	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
-
-	setYSize(pParams,sliderval);
-
-	resetImageSize(pParams);
-	setIsolineDirty(pParams);
-	myImage->isolineImageFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
-
-}
 
 void IsolineEventRouter::
 guiSetCompRatio(int num){
@@ -1447,74 +1333,12 @@ guiSetNumRefinements(int n){
 	QPalette pal = QPalette(myBasics->fidelityBox->palette());
 	pal.setColor(QPalette::WindowText, Qt::gray);
 	myBasics->fidelityBox->setPalette(pal);
-	
+	myLayout->boxSliderFrame->setNumRefinements(n);
 	setIsolineDirty(pParams);
 	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams);
 }
 	
-//Set slider position, based on text change. 
-//Requirement is that center is inside full domain.
-//Should not change values in params unless the text is invalid.
-//
-void IsolineEventRouter::
-textToSlider(IsolineParams* pParams, int coord, float newCenter, float newSize){
-	setIgnoreBoxSliderEvents(true);
-	pParams->setLocalBoxMin(coord, newCenter-0.5f*newSize);
-	pParams->setLocalBoxMax(coord, newCenter+0.5f*newSize);
-	adjustBoxSize(pParams);
-	return;
-	
-}
-//Set text when a slider changes.
-//
-void IsolineEventRouter::
-sliderToText(IsolineParams* pParams, int coord, int slideCenter, int slideSize){
-	
-	const double* sizes = DataStatus::getInstance()->getFullSizes();
-	float newCenter = ((float)slideCenter)*(sizes[coord])/256.f;
-	float newSize = maxBoxSize[coord]*(float)slideSize/256.f;
-	pParams->setLocalBoxMin(coord, newCenter-0.5f*newSize);
-	pParams->setLocalBoxMax(coord, newCenter+0.5f*newSize);
-	adjustBoxSize(pParams);
-	//Set the text in the edit boxes
-	mapCursor();
-	const double* selectedPoint = pParams->getSelectedPointLocal();
-	//Map to user coordinates
-	if (!DataStatus::getInstance()->getDataMgr()) return;
-	size_t timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	vector<double> minExts, maxExts;
-	DataStatus::getInstance()->GetExtents(timestep, minExts, maxExts);
-	newCenter += minExts[coord];
-	float selectCoord = selectedPoint[coord] + minExts[coord];
-	switch(coord) {
-		case 0:
-			myLayout->boxSliderFrame->xSizeEdit->setText(QString::number(newSize,'g',7));
-			myLayout->boxSliderFrame->xCenterEdit->setText(QString::number(newCenter,'g',7));
-			myImage->selectedXLabel->setText(QString::number(selectCoord));
-			break;
-		case 1:
-			myLayout->boxSliderFrame->ySizeEdit->setText(QString::number(newSize,'g',7));
-			myLayout->boxSliderFrame->yCenterEdit->setText(QString::number(newCenter,'g',7));
-			myImage->selectedYLabel->setText(QString::number(selectCoord));
-			break;
-		case 2:
-			myLayout->boxSliderFrame->zCenterEdit->setText(QString::number(newCenter,'g',7));
-			myImage->selectedZLabel->setText(QString::number(selectCoord));
-			break;
-		default:
-			assert(0);
-	}
-	guiSetTextChanged(false);
-	resetImageSize(pParams);
-	update();
-	//force a new render with new Isoline data
-	setIsolineDirty(pParams);
-	myImage->isolineImageFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
-	return;
-	
-}	
 
 
 //Save undo/redo state when user grabs a isoline handle, or maybe a isoline face (later)
@@ -1544,36 +1368,7 @@ captureMouseUp(){
 	myImage->isolineImageFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams,true);
 }
-//When the center slider moves, set the IsolineMin and IsolineMax
-void IsolineEventRouter::
-setXCenter(IsolineParams* pParams,int sliderval){
-	//new min and max are center -+ size/2.  
-	//center is min + (slider/256)*(max-min)
-	sliderToText(pParams,0, sliderval, myLayout->boxSliderFrame->xSizeSlider->value());
-	setIsolineDirty(pParams);
-}
-void IsolineEventRouter::
-setYCenter(IsolineParams* pParams,int sliderval){
-	sliderToText(pParams,1, sliderval, myLayout->boxSliderFrame->ySizeSlider->value());
-	setIsolineDirty(pParams);
-}
-void IsolineEventRouter::
-setZCenter(IsolineParams* pParams,int sliderval){
-	sliderToText(pParams,2, sliderval, 0);
-	setIsolineDirty(pParams);
-}
-//Min and Max are center -+ size/2
-//size is regionsize*sliderval/256
-void IsolineEventRouter::
-setXSize(IsolineParams* pParams,int sliderval){
-	sliderToText(pParams,0, myLayout->boxSliderFrame->xCenterSlider->value(),sliderval);
-	setIsolineDirty(pParams);
-}
-void IsolineEventRouter::
-setYSize(IsolineParams* pParams,int sliderval){
-	sliderToText(pParams,1, myLayout->boxSliderFrame->yCenterSlider->value(),sliderval);
-	setIsolineDirty(pParams);
-}
+
 
 //Save undo/redo state when user clicks cursor
 //
@@ -1646,306 +1441,8 @@ calcCurrentValue(IsolineParams* pParams, const double point[3] ){
 
 
 
-void IsolineEventRouter::guiNudgeXSize(int val) {
-	
-	if (ignoreBoxSliderEvents) return;
-	
-	if (!DataStatus::getDataMgr()) return;
-	
-	//ignore if change is not 1 
-	if(abs(val - lastXSizeSlider) != 1) {
-		lastXSizeSlider = val;
-		return;
-	}
-	confirmText(false);
-	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
-	
-	//See if the change was an increase or decrease:
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	double voxelSize =DataStatus::getVoxelSize(timestep, pParams->GetVariableName(), pParams->GetRefinementLevel(),0);
-	float pmin = pParams->getLocalBoxMin(0);
-	float pmax = pParams->getLocalBoxMax(0);
-	float maxExtent = DataStatus::getFullSizes()[0];
-	float minExtent = 0.;
-	float newSize = pmax - pmin;
-	if (val > lastXSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
-		lastXSizeSlider++;
-		if (pmax-pmin+2.f*voxelSize <= (maxExtent - minExtent)){ 
-			pParams->setLocalBoxMin(0, pmin-voxelSize);
-			pParams->setLocalBoxMax(0, pmax+voxelSize);
-			newSize = newSize + 2.*voxelSize;
-		}
-	} else {
-		lastXSizeSlider--;
-		if ((pmax - pmin) >= 2.f*voxelSize) {//shrink by 1 voxel on each side:
-			pParams->setLocalBoxMin(0, pmin+voxelSize);
-			pParams->setLocalBoxMax(0, pmax-voxelSize);
-			newSize = newSize - 2.*voxelSize;
-		}
-	}
-	//Determine where the slider really should be:
-	int newSliderPos = (int)(256.*newSize/(maxExtent-minExtent) +0.5f);
-	if(lastXSizeSlider != newSliderPos){
-		lastXSizeSlider = newSliderPos;
-		myLayout->boxSliderFrame->xSizeSlider->setValue(newSliderPos);
-	}
-	updateTab();
-	setIsolineDirty(pParams);
-	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
-}
-void IsolineEventRouter::guiNudgeXCenter(int val) {
-
-	if (ignoreBoxSliderEvents) return;
-
-	if (!DataStatus::getDataMgr()) return;
-	//ignore if change is not 1 
-	if(abs(val - lastXCenterSlider) != 1) {
-		lastXCenterSlider = val;
-		return;
-	}
-	confirmText(false);
-	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
-	
-	
-	//See if the change was an increase or decrease:
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	double voxelSize = DataStatus::getVoxelSize(timestep, pParams->GetVariableName(), pParams->GetRefinementLevel(),0);
-	float pmin = pParams->getLocalBoxMin(0);
-	float pmax = pParams->getLocalBoxMax(0);
-	float maxExtent = DataStatus::getFullSizes()[0];
-	float minExtent = 0.;
-	float newCenter = (pmin+pmax)*0.5f;
-	if (val > lastXCenterSlider){//move by 1 voxel, but don't move past end
-		lastXCenterSlider++;
-		if (pmax+voxelSize <= maxExtent){ 
-			pParams->setLocalBoxMin(0, pmin+voxelSize);
-			pParams->setLocalBoxMax(0, pmax+voxelSize);
-			newCenter = (pmin+pmax)*0.5f + voxelSize;
-		}
-	} else {
-		lastXCenterSlider--;
-		if (pmin-voxelSize >= minExtent) {//slide 1 voxel down:
-			pParams->setLocalBoxMin(0, pmin-voxelSize);
-			pParams->setLocalBoxMax(0, pmax-voxelSize);
-			newCenter = (pmin+pmax)*0.5f - voxelSize;
-		}
-	}
-	//Determine where the slider really should be:
-	int newSliderPos = (int)(256.*(newCenter - minExtent)/(maxExtent-minExtent) +0.5f);
-	if(lastXCenterSlider != newSliderPos){
-		lastXCenterSlider = newSliderPos;
-		myLayout->boxSliderFrame->xCenterSlider->setValue(newSliderPos);
-	}
-	updateTab();
-	setIsolineDirty(pParams);
-	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
-}
-void IsolineEventRouter::guiNudgeYCenter(int val) {
-	
-	if (ignoreBoxSliderEvents) return;
-	
-	if (!DataStatus::getDataMgr()) return;
-	//ignore if change is not 1 
-	if(abs(val - lastYCenterSlider) != 1) {
-		lastYCenterSlider = val;
-		return;
-	}
-	confirmText(false);
-	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
-	
-	//See if the change was an increase or decrease:
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	double voxelSize = DataStatus::getVoxelSize(timestep, pParams->GetVariableName(), pParams->GetRefinementLevel(),1);
-	float pmin = pParams->getLocalBoxMin(1);
-	float pmax = pParams->getLocalBoxMax(1);
-	float maxExtent = DataStatus::getFullSizes()[1];
-	float minExtent = 0.;
-	float newCenter = (pmin+pmax)*0.5f;
-	if (val > lastYCenterSlider){//move by 1 voxel, but don't move past end
-		lastYCenterSlider++;
-		if (pmax+voxelSize <= maxExtent){ 
-			pParams->setLocalBoxMin(1, pmin+voxelSize);
-			pParams->setLocalBoxMax(1, pmax+voxelSize);
-			newCenter = (pmin+pmax)*0.5f + voxelSize;
-		}
-	} else {
-		lastYCenterSlider--;
-		if (pmin-voxelSize >= minExtent) {//slide 1 voxel down:
-			pParams->setLocalBoxMin(1, pmin-voxelSize);
-			pParams->setLocalBoxMax(1, pmax-voxelSize);
-			newCenter = (pmin+pmax)*0.5f - voxelSize;
-		}
-	}
-	//Determine where the slider really should be:
-	int newSliderPos = (int)(256.*(newCenter - minExtent)/(maxExtent-minExtent) +0.5f);
-	if(lastYCenterSlider != newSliderPos){
-		lastYCenterSlider = newSliderPos;
-		myLayout->boxSliderFrame->yCenterSlider->setValue(newSliderPos);
-	}
-	updateTab();
-	setIsolineDirty(pParams);
-	VizWinMgr::getInstance()->forceRender(pParams,true);
-}
-void IsolineEventRouter::guiNudgeZCenter(int val) {
-	
-	if (ignoreBoxSliderEvents) return;
-
-	if (!DataStatus::getDataMgr()) return;
-	//ignore if change is not 1 
-	if(abs(val - lastZCenterSlider) != 1) {
-		lastZCenterSlider = val;
-		return;
-	}
-	confirmText(false);
-	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
-	
-	
-	//See if the change was an increase or decrease:
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	double voxelSize = DataStatus::getVoxelSize(timestep, pParams->GetVariableName(), pParams->GetRefinementLevel(),2);
-	float pmin = pParams->getLocalBoxMin(2);
-	float pmax = pParams->getLocalBoxMax(2);
-	float maxExtent = DataStatus::getFullSizes()[2];
-	float minExtent = 0.;
-	float newCenter = (pmin+pmax)*0.5f;
-	if (val > lastZCenterSlider){//move by 1 voxel, but don't move past end
-		lastZCenterSlider++;
-		if (pmax+voxelSize <= maxExtent){ 
-			pParams->setLocalBoxMin(2, pmin+voxelSize);
-			pParams->setLocalBoxMax(2, pmax+voxelSize);
-			newCenter = (pmin+pmax)*0.5f + voxelSize;
-		}
-	} else {
-		lastZCenterSlider--;
-		if (pmin-voxelSize >= minExtent) {//slide 1 voxel down:
-			pParams->setLocalBoxMin(2, pmin-voxelSize);
-			pParams->setLocalBoxMax(2, pmax-voxelSize);
-			newCenter = (pmin+pmax)*0.5f - voxelSize;
-		}
-	}
-	//Determine where the slider really should be:
-	int newSliderPos = (int)(256.*(newCenter - minExtent)/(maxExtent-minExtent) +0.5f);
-	if(lastZCenterSlider != newSliderPos){
-		lastZCenterSlider = newSliderPos;
-		myLayout->boxSliderFrame->zCenterSlider->setValue(newSliderPos);
-	}
-	updateTab();
-
-	setIsolineDirty(pParams);
-	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
-}
-
-void IsolineEventRouter::guiNudgeYSize(int val) {
-	
-	if (ignoreBoxSliderEvents) return;
-	
-	if (!DataStatus::getDataMgr()) return;
-	//ignore if change is not 1 
-	if(abs(val - lastYSizeSlider) != 1) {
-		lastYSizeSlider = val;
-		return;
-	}
-	confirmText(false);
-	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
-	
-	
-	//See if the change was an increase or decrease:
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
-	double voxelSize = DataStatus::getVoxelSize(timestep, pParams->GetVariableName(), pParams->GetRefinementLevel(),1);
-	float pmin = pParams->getLocalBoxMin(1);
-	float pmax = pParams->getLocalBoxMax(1);
-	float maxExtent = DataStatus::getFullSizes()[1];
-	float minExtent = 0.;
-	float newSize = pmax - pmin;
-	if (val > lastYSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
-		lastYSizeSlider++;
-		if (pmax-pmin+2.f*voxelSize <= (maxExtent - minExtent)){ 
-			pParams->setLocalBoxMin(1, pmin-voxelSize);
-			pParams->setLocalBoxMax(1, pmax+voxelSize);
-			newSize = newSize + 2.*voxelSize;
-		}
-	} else {
-		lastYSizeSlider--;
-		if ((pmax - pmin) >= 2.f*voxelSize) {//shrink by 1 voxel on each side:
-			pParams->setLocalBoxMin(1, pmin+voxelSize);
-			pParams->setLocalBoxMax(1, pmax-voxelSize);
-			newSize = newSize - 2.*voxelSize;
-		}
-	}
-	//Determine where the slider really should be:
-	int newSliderPos = (int)(256.*newSize/(maxExtent-minExtent) +0.5f);
-	if(lastYSizeSlider != newSliderPos){
-		lastYSizeSlider = newSliderPos;
-		myLayout->boxSliderFrame->ySizeSlider->setValue(newSliderPos);
-	}
-	updateTab();
-	setIsolineDirty(pParams);
-	VizWinMgr::getInstance()->forceRender(pParams,MouseModeParams::GetCurrentMouseMode() == MouseModeParams::isolineMode);
-}
-
-//The following adjusts the sliders associated with box size.
-//Each slider range is the maximum of 
-//(1) the domain size in the current direction
-//(2) the current value of domain size.
-void IsolineEventRouter::
-adjustBoxSize(IsolineParams* pParams){
-	
-	double extents[6];
-	//Don't do anything if we haven't read the data yet:
-	if (!DataStatus::getInstance()->getDataMgr()) return;
-	pParams->GetBox()->GetLocalExtents(extents, -1);
-	double rotMatrix[9];
-	double angles[3];
-	pParams->GetBox()->GetAngles(angles);
-	getRotationMatrix(angles[0]*M_PI/180., angles[1]*M_PI/180., angles[2]*M_PI/180., rotMatrix);
-	//Apply rotation matrix inverted to full domain size
-	
-	const double* extentSize = DataStatus::getInstance()->getFullSizes();
-	
-	//Determine the size of the domain in the direction associated with each
-	//axis of the isoline.  To do this, find a unit vector in that direction.
-	//The domain size in that direction is the dot product of that vector
-	//with the vector that has components the domain sizes in each dimension.
 
 
-	float domSize[3];
-	
-	for (int i = 0; i<3; i++){
-		//create unit vec along axis:
-		double axis[3];
-		for (int j = 0; j<3; j++) axis[j] = 0.;
-		axis[i] = 1.f;
-		double boxDir[3];
-		vtransform3(axis, rotMatrix, boxDir);
-		//Make each component positive...
-		for (int j = 0; j< 3; j++) { boxDir[j] = abs(boxDir[j]);}
-		//normalize this direction vector:
-		float vlen = vlength(boxDir);
-		if (vlen > 0.f) {
-			vnormal(boxDir);
-			domSize[i] = vdot(boxDir,extentSize);
-		} else {
-			domSize[i] = 0.f;
-		}
-		maxBoxSize[i] = domSize[i];
-		if (maxBoxSize[i] < (pParams->getLocalBoxMax(i)-pParams->getLocalBoxMin(i))){
-			maxBoxSize[i] = (pParams->getLocalBoxMax(i)-pParams->getLocalBoxMin(i));
-		}
-		if (maxBoxSize[i] <= 0.f) maxBoxSize[i] = 1.f;
-	}
-	
-	//Set the size sliders appropriately:
-	myLayout->boxSliderFrame->xSizeEdit->setText(QString::number(extents[3]-extents[0]));
-	myLayout->boxSliderFrame->ySizeEdit->setText(QString::number(extents[4]-extents[1]));
-	
-	//Cancel any response to text events generated in this method, to prevent
-	//the sliders from triggering text change
-	//
-	guiSetTextChanged(false);
-	myLayout->boxSliderFrame->xSizeSlider->setValue((int)(256.f*(extents[3]-extents[0])/(maxBoxSize[0])));
-	myLayout->boxSliderFrame->ySizeSlider->setValue((int)(256.f*(extents[4]-extents[1])/(maxBoxSize[1])));
-	
-}
 
 // Map the cursor coords into local user coord space,
 // refreshing the selected point.  CursorCoords go from -1 to 1
@@ -2047,6 +1544,7 @@ setIsolineToExtents(const double extents[6], IsolineParams* pParams){
 	}
 	pParams->GetBox()->SetLocalExtents(pExts,pParams, -1);
 	success = pParams->GetBox()->fitToBox(extents,pParams);
+
 	assert(success);
 	
 	return;

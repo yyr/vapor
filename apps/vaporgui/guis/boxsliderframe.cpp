@@ -59,7 +59,7 @@ BoxSliderFrame::BoxSliderFrame( QWidget * parent) : QFrame(parent), Ui_boxframe(
 			lastSizeSlider[i] = 256;
 		}
 		
-
+		silenceSignals = false;
 }
 BoxSliderFrame::~BoxSliderFrame() {
 }

@@ -72,12 +72,6 @@ public:
 #endif
 	void sessionLoadTF(QString* name);
 	virtual void setDatarangeDirty(RenderParams* ){}
-	void textToSlider(IsolineParams* pParams, int coord, float newCenter, float newSize);
-	void setZCenter(IsolineParams* pParams,int sliderval);
-	void setYCenter(IsolineParams* pParams,int sliderval);
-	void setXCenter(IsolineParams* pParams,int sliderval);
-	void setYSize(IsolineParams* pParams,int sliderval);
-	void setXSize(IsolineParams* pParams,int sliderval);
 	
 	
 	//Determine the value of the  current variable at specified point.
@@ -93,14 +87,9 @@ public:
 	virtual void guiSetEnabled(bool value, int instance);
 	
 	
-	void guiSetXCenter(int sliderVal);
-	void guiSetYCenter(int sliderVal);
-	void guiSetZCenter(int sliderVal);
 	
 	void guiSetEditMode(bool val); //edit versus navigate mode
-	void guiSetXSize(int sliderval);
-	void guiSetYSize(int sliderval);
-	void guiSetZSize(int sliderval);
+	
 	void guiStartCursorMove();
 	void guiEndCursorMove();
 	void guiCopyRegionToIsoline();
@@ -125,11 +114,6 @@ protected slots:
 	void refreshHisto();
 	void guiSetFidelity(int buttonID);
 	void guiSetFidelityDefault();
-	void guiNudgeXSize(int);
-	void guiNudgeXCenter(int);
-	void guiNudgeYSize(int);
-	void guiNudgeYCenter(int);
-	void guiNudgeZCenter(int);
 	
 	//Handle thumbwheel events:
 	void pressXWheel();
@@ -162,11 +146,6 @@ protected slots:
 	void guiEnableText(bool val);
 	
 	void guiChangeVariable(int);
-	void setIsolineXCenter();
-	void setIsolineYCenter();
-	void setIsolineZCenter();
-	void setIsolineXSize();
-	void setIsolineYSize();
 	
 	void guiSetNumRefinements(int numtrans);
 	void guiSetCompRatio(int num);
