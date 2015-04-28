@@ -223,6 +223,7 @@ class thread_state {
 public:
  int _id;
  EasyThreads *_et;	// one per thread
+ int _nthreads;
  string _varname;
  vector <NetCDFCpp *> _ncdfcptrs;	// one for each file
  vector <size_t> _start;
@@ -243,7 +244,7 @@ public:
  static int _status;	// error indicator
 
  thread_state(
-	int id, EasyThreads *et, string &varname, 
+	int id, EasyThreads *et, int nthreads, string &varname, 
 	const vector <NetCDFCpp *> &ncdfcptrs, 
 	const vector <size_t> &start, 
 	const vector <size_t> &count, 
@@ -252,7 +253,8 @@ public:
 	const vector <Compressor *> &compressors,  
 	void *data, int itype, unsigned char *mask, float *block, float *coeffs,
 	unsigned char *maps, int level, bool unblock_flag
- ) : _id(id), _et(et), _varname(varname), _ncdfcptrs(ncdfcptrs), 
+ ) : _id(id), _et(et), _nthreads(nthreads), _varname(varname), 
+	_ncdfcptrs(ncdfcptrs), 
 	_start(start), _count(count), _bs(bs), _udims(udims),
 	_ncoeffs(ncoeffs), _encoded_dims(encoded_dims),
 	_compressors(compressors), _data(data), _itype(itype), _mask(mask),
@@ -1061,7 +1063,7 @@ void *RunWriteThreadTemplate(thread_state &s, T *data)
 	// Process blocks of data assigned to this thread
 	//
 	int n = vec.num();
-	for (int i=s._id; i<n; i += s._et->GetNumThreads()) {
+	for (int i=s._id; i<n; i += s._nthreads) {
 
 		// Get starting coordinates of i'th block
 		//
@@ -1308,7 +1310,7 @@ void *RunReadThreadCompressedTemplate(thread_state &s, T *data) {
 	s._status = 0;
 
 	int n = vec.num();
-	for (int i=s._id; i<n; i += s._et->GetNumThreads()) {
+	for (int i=s._id; i<n; i += s._nthreads) {
 
 		size_t offset;
 		vector <size_t> start;
@@ -2395,8 +2397,8 @@ int WASP::_PutVara(
 	for (int i=0; i<_nthreads; i++) {
 
 		argvec.push_back((void *) new thread_state(
-			i, _et, _open_varname, _ncdfcptrs, start, count, _open_bs, 
-			_open_udims, ncoeffs, encoded_dims, _open_compressors, 
+			i, _et, _nthreads, _open_varname, _ncdfcptrs, start, count, 
+			_open_bs, _open_udims, ncoeffs, encoded_dims, _open_compressors, 
 			(void *) data, itype, (unsigned char *) mask,
 			block + i*block_size, coeffs + i*coeffs_size, 
 			maps + i*maps_size*sizeof(float), 0, true
@@ -2587,8 +2589,8 @@ int WASP::_GetVara(
 		float *blkptr = blockptr + i*block_size;
 
 		argvec.push_back((void *) new thread_state(
-			i, _et, _open_varname, _ncdfcptrs, start, count, bs_at_level, 
-			dims_at_level, ncoeffs,
+			i, _et, _nthreads, _open_varname, _ncdfcptrs, start, count, 
+			bs_at_level, dims_at_level, ncoeffs,
 			encoded_dims, _open_compressors, data, itype, NULL,
 			blkptr, coeffs + i*coeffs_size, 
 			maps + i*maps_size*sizeof(float), _open_level, unblock_flag
