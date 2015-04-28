@@ -58,6 +58,8 @@ BoxSliderFrame::BoxSliderFrame( QWidget * parent) : QFrame(parent), Ui_boxframe(
 			lastCenterSlider[i] = 128;
 			lastSizeSlider[i] = 256;
 		}
+		
+
 }
 BoxSliderFrame::~BoxSliderFrame() {
 }

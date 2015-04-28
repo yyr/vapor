@@ -173,9 +173,6 @@ public:
 	//! in the transfer function editor, requiring update of the display
 	//! \param[in] RenderParams* owner of the Transfer Function
 	virtual void updateMapBounds(RenderParams*) {assert (0);}
-	//! Method indicating that the color/opacity mapping has changed.
-	//! \param[in] RenderParams* owner of the Transfer function.
-	virtual void updateClut(RenderParams*){assert(0);}
 
 	//! Method supporting loading/saving transfer functions in tabs with transfer functions
 	//! Launch a dialog to save the current transfer function to session or file.
@@ -207,12 +204,7 @@ public:
 	void calcSliceHistogram(RenderParams*p, int ts, Histo* histo);
 
 public slots:
-	//! Slot that is connected to the transfer function frame, indicating the beginning of changes
-	//! to the transfer function.  Must be implemented and connected in tabs with a transfer function editor.
-	virtual void guiStartChangeMapFcn(QString) { assert(0); }
-	//! Slot that is connected to the transfer function frame, indicating the end of changes
-	//! to the transfer function.  Must be implemented and connected in tabs with a transfer function editor.
-	virtual void guiEndChangeMapFcn() { assert(0); }
+	
 	bool isoShown() {return _isoShown;}
 	bool opacityMapShown() {return _opacityMapShown;}
 	bool colorMapShown() {return _colorMapShown;}

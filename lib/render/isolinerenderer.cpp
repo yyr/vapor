@@ -165,7 +165,7 @@ bool IsolineRenderer::buildLineCache(int timestep){
 	else iParams->GetBox()->GetLocalExtents(boxexts);
 
 	for (int i = 0; i<6; i++){
-		extents[i] = boxexts[i]+minExts[i];
+		extents[i] = boxexts[i]+minExts[i%3];
 	}
 	
 	int rc = getGrids( (size_t)timestep, varname, extents, &actualRefLevel, &lod, &isolineGrid);

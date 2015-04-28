@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>595</height>
+    <height>537</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -19,546 +19,30 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <layout class="QHBoxLayout" name="_2">
-       <item>
-        <layout class="QVBoxLayout" name="_3">
-         <item>
-          <widget class="QLabel" name="textLabel2_2_2">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>25</height>
-            </size>
-           </property>
-           <property name="whatsThis">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the location of the contour lines with these sliders and/or text boxes. You can &amp;quot;nudge&amp;quot; the contours by one volume cell (at the current refinement level) in any direction by clicking on the bar of a slider to the left or right of the slider handle. The X, Y, and Z center refer to the coordinates in the 3D volume where the center of the contour line surface is positioned.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-           <property name="text">
-            <string>Plane Center</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-           <property name="wordWrap">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="_4">
-           <item>
-            <widget class="QLabel" name="textLabel3_12_2">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>X</string>
-             </property>
-             <property name="wordWrap">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSlider" name="xCenterSlider">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>60</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Specify the X center of plane in scene&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="whatsThis">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the size of the contour planar surface with these sliders and/or text boxes.You can &amp;quot;nudge&amp;quot; the contour plane size by two volume cells (at the current refinement level) in any dimension, by clicking on the bar of a slider to the left or right of the slider handle. The Xp, Yp, and Zp sizes refer to the contour surface sizes before it is mapped into the data volume. The Xp and Yp axes are the (x,y) coordinates in the cross-section view (below). If there is a nonzero rotation, the Xp, Yp, and Zp axes will not be the same as the X, Y, and Z axes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="minimum">
-              <number>0</number>
-             </property>
-             <property name="maximum">
-              <number>256</number>
-             </property>
-             <property name="pageStep">
-              <number>1</number>
-             </property>
-             <property name="value">
-              <number>128</number>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLineEdit" name="xCenterEdit">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>80</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>Specify the X center of plane in scene</string>
-             </property>
-             <property name="whatsThis">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the size of the contour planar surface with these sliders and/or text boxes.You can &amp;quot;nudge&amp;quot; the contour plane size by two volume cells (at the current refinement level) in any dimension, by clicking on the bar of a slider to the left or right of the slider handle. The Xp, Yp, and Zp sizes refer to the contour surface sizes before it is mapped into the data volume. The Xp and Yp axes are the (x,y) coordinates in the cross-section view (below). If there is a nonzero rotation, the Xp, Yp, and Zp axes will not be the same as the X, Y, and Z axes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="text">
-              <string>0.3</string>
-             </property>
-             <property name="maxLength">
-              <number>200</number>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignHCenter</set>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="_5">
-           <item>
-            <widget class="QLabel" name="textLabel3_12_3_3">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Y</string>
-             </property>
-             <property name="wordWrap">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSlider" name="yCenterSlider">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>60</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>Specify the Y center of plane in scene</string>
-             </property>
-             <property name="whatsThis">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the size of the contour planar surface with these sliders and/or text boxes.You can &amp;quot;nudge&amp;quot; the contour plane size by two volume cells (at the current refinement level) in any dimension, by clicking on the bar of a slider to the left or right of the slider handle. The Xp, Yp, and Zp sizes refer to the contour surface sizes before it is mapped into the data volume. The Xp and Yp axes are the (x,y) coordinates in the cross-section view (below). If there is a nonzero rotation, the Xp, Yp, and Zp axes will not be the same as the X, Y, and Z axes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="minimum">
-              <number>0</number>
-             </property>
-             <property name="maximum">
-              <number>256</number>
-             </property>
-             <property name="pageStep">
-              <number>1</number>
-             </property>
-             <property name="value">
-              <number>100</number>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLineEdit" name="yCenterEdit">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>80</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>Specify the Y center of plane in scene</string>
-             </property>
-             <property name="whatsThis">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the size of the contour planar surface with these sliders and/or text boxes.You can &amp;quot;nudge&amp;quot; the contour plane size by two volume cells (at the current refinement level) in any dimension, by clicking on the bar of a slider to the left or right of the slider handle. The Xp, Yp, and Zp sizes refer to the contour surface sizes before it is mapped into the data volume. The Xp and Yp axes are the (x,y) coordinates in the cross-section view (below). If there is a nonzero rotation, the Xp, Yp, and Zp axes will not be the same as the X, Y, and Z axes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="text">
-              <string>0.132</string>
-             </property>
-             <property name="maxLength">
-              <number>200</number>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignHCenter</set>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="_6">
-           <item>
-            <widget class="QLabel" name="textLabel3_12_3_2_2">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Z</string>
-             </property>
-             <property name="wordWrap">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSlider" name="zCenterSlider">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>60</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>Specify the Z center of plane in scene</string>
-             </property>
-             <property name="whatsThis">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the size of the contour planar surface with these sliders and/or text boxes.You can &amp;quot;nudge&amp;quot; the contour plane size by two volume cells (at the current refinement level) in any dimension, by clicking on the bar of a slider to the left or right of the slider handle. The Xp, Yp, and Zp sizes refer to the contour surface sizes before it is mapped into the data volume. The Xp and Yp axes are the (x,y) coordinates in the cross-section view (below). If there is a nonzero rotation, the Xp, Yp, and Zp axes will not be the same as the X, Y, and Z axes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="minimum">
-              <number>0</number>
-             </property>
-             <property name="maximum">
-              <number>256</number>
-             </property>
-             <property name="pageStep">
-              <number>1</number>
-             </property>
-             <property name="value">
-              <number>100</number>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLineEdit" name="zCenterEdit">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>80</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>Specify the Z center of plane in scene</string>
-             </property>
-             <property name="whatsThis">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the size of the contour planar surface with these sliders and/or text boxes.You can &amp;quot;nudge&amp;quot; the contour plane size by two volume cells (at the current refinement level) in any dimension, by clicking on the bar of a slider to the left or right of the slider handle. The Xp, Yp, and Zp sizes refer to the contour surface sizes before it is mapped into the data volume. The Xp and Yp axes are the (x,y) coordinates in the cross-section view (below). If there is a nonzero rotation, the Xp, Yp, and Zp axes will not be the same as the X, Y, and Z axes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="text">
-              <string>0.0</string>
-             </property>
-             <property name="maxLength">
-              <number>200</number>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignHCenter</set>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QVBoxLayout" name="_7">
-         <item>
-          <widget class="QLabel" name="textLabel2_2">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Planar Size</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-           <property name="wordWrap">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="_8">
-           <item>
-            <widget class="QLabel" name="textLabel3_12">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Xp</string>
-             </property>
-             <property name="wordWrap">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSlider" name="xSizeSlider">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>60</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>Specify the width (X size) of plane in scene</string>
-             </property>
-             <property name="whatsThis">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the size of the contour planar surface with these sliders and/or text boxes.You can &amp;quot;nudge&amp;quot; the contour plane size by two volume cells (at the current refinement level) in any dimension, by clicking on the bar of a slider to the left or right of the slider handle. The Xp, Yp, and Zp sizes refer to the contour surface sizes before it is mapped into the data volume. The Xp and Yp axes are the (x,y) coordinates in the cross-section view (below). If there is a nonzero rotation, the Xp, Yp, and Zp axes will not be the same as the X, Y, and Z axes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="minimum">
-              <number>0</number>
-             </property>
-             <property name="maximum">
-              <number>256</number>
-             </property>
-             <property name="pageStep">
-              <number>1</number>
-             </property>
-             <property name="value">
-              <number>128</number>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLineEdit" name="xSizeEdit">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>80</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Specify the width (X size) of plane in scene&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="whatsThis">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the size of the contour planar surface with these sliders and/or text boxes.You can &amp;quot;nudge&amp;quot; the contour plane size by two volume cells (at the current refinement level) in any dimension, by clicking on the bar of a slider to the left or right of the slider handle. The Xp, Yp, and Zp sizes refer to the contour surface sizes before it is mapped into the data volume. The Xp and Yp axes are the (x,y) coordinates in the cross-section view (below). If there is a nonzero rotation, the Xp, Yp, and Zp axes will not be the same as the X, Y, and Z axes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="text">
-              <string>0.3</string>
-             </property>
-             <property name="maxLength">
-              <number>200</number>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignHCenter</set>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="_9">
-           <item>
-            <widget class="QLabel" name="textLabel3_12_3">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Yp</string>
-             </property>
-             <property name="wordWrap">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSlider" name="ySizeSlider">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>60</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>Specify the Y size height (Y-size)  of plane in scene</string>
-             </property>
-             <property name="whatsThis">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the size of the contour planar surface with these sliders and/or text boxes.You can &amp;quot;nudge&amp;quot; the contour plane size by two volume cells (at the current refinement level) in any dimension, by clicking on the bar of a slider to the left or right of the slider handle. The Xp, Yp, and Zp sizes refer to the contour surface sizes before it is mapped into the data volume. The Xp and Yp axes are the (x,y) coordinates in the cross-section view (below). If there is a nonzero rotation, the Xp, Yp, and Zp axes will not be the same as the X, Y, and Z axes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="minimum">
-              <number>0</number>
-             </property>
-             <property name="maximum">
-              <number>256</number>
-             </property>
-             <property name="pageStep">
-              <number>1</number>
-             </property>
-             <property name="value">
-              <number>100</number>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLineEdit" name="ySizeEdit">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>80</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>Specify the Y size height (Y-size)  of  plane in scene</string>
-             </property>
-             <property name="whatsThis">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manipulate the size of the contour planar surface with these sliders and/or text boxes.You can &amp;quot;nudge&amp;quot; the contour plane size by two volume cells (at the current refinement level) in any dimension, by clicking on the bar of a slider to the left or right of the slider handle. The Xp, Yp, and Zp sizes refer to the contour surface sizes before it is mapped into the data volume. The Xp and Yp axes are the (x,y) coordinates in the cross-section view (below). If there is a nonzero rotation, the Xp, Yp, and Zp axes will not be the same as the X, Y, and Z axes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="text">
-              <string>0.132</string>
-             </property>
-             <property name="maxLength">
-              <number>200</number>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignHCenter</set>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="_10"/>
-         </item>
-        </layout>
-       </item>
-      </layout>
+      <widget class="BoxSliderFrame" name="boxSliderFrame">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>500</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Specify the center and size of the barb rake using text boxes or sliders</string>
+       </property>
+       <property name="lineWidth">
+        <number>0</number>
+       </property>
+      </widget>
      </item>
      <item>
       <spacer name="spacer54_2">
@@ -571,7 +55,7 @@
        <property name="sizeHint" stdset="0">
         <size>
          <width>368</width>
-         <height>13</height>
+         <height>0</height>
         </size>
        </property>
       </spacer>
@@ -1098,7 +582,7 @@
        </property>
        <property name="sizeHint" stdset="0">
         <size>
-         <width>415</width>
+         <width>377</width>
          <height>13</height>
         </size>
        </property>
@@ -1665,6 +1149,12 @@ Domain</string>
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>BoxSliderFrame</class>
+   <extends>QFrame</extends>
+   <header>../../guis/boxsliderframe.h</header>
+   <container>1</container>
+  </customwidget>
   <customwidget>
    <class>QtThumbWheel</class>
    <extends>QWidget</extends>

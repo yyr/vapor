@@ -107,7 +107,7 @@ int ArrowRenderer::_paintGL(DataMgrV3_0* dataMgr){
 	aParams->GetBox()->GetLocalExtents(boxexts);
 
 	for (int i = 0; i<6; i++){
-		extents[i] = boxexts[i]+minExts[i];
+		extents[i] = boxexts[i]+minExts[i%3];
 	}
 	extents[5] += maxVerticalOffset;
 	

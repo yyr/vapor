@@ -78,6 +78,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "flow", "..\flow\flow.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gribapi", "..\gribapi\gribapi.vcxproj", "{4E78CEB5-55C5-4BE2-A59F-B382B37F2182}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vdc2raw", "..\vdc2raw\vdc2raw.vcxproj", "{8A557FCC-7933-4D7A-9A67-C2EAAB5ABF71}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4E6A655A-0B4A-4FE7-A056-BE4A1AA52638} = {4E6A655A-0B4A-4FE7-A056-BE4A1AA52638}
+		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
+		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -295,6 +302,12 @@ Global
 		{4E78CEB5-55C5-4BE2-A59F-B382B37F2182}.Release|Win32.Build.0 = Release|Win32
 		{4E78CEB5-55C5-4BE2-A59F-B382B37F2182}.Release|x64.ActiveCfg = Release|x64
 		{4E78CEB5-55C5-4BE2-A59F-B382B37F2182}.Release|x64.Build.0 = Release|x64
+		{8A557FCC-7933-4D7A-9A67-C2EAAB5ABF71}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8A557FCC-7933-4D7A-9A67-C2EAAB5ABF71}.Debug|Win32.Build.0 = Debug|Win32
+		{8A557FCC-7933-4D7A-9A67-C2EAAB5ABF71}.Debug|x64.ActiveCfg = Release|x64
+		{8A557FCC-7933-4D7A-9A67-C2EAAB5ABF71}.Release|Win32.ActiveCfg = Release|Win32
+		{8A557FCC-7933-4D7A-9A67-C2EAAB5ABF71}.Release|Win32.Build.0 = Release|Win32
+		{8A557FCC-7933-4D7A-9A67-C2EAAB5ABF71}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

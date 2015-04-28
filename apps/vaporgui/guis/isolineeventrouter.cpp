@@ -162,19 +162,12 @@ void
 IsolineEventRouter::hookUpTab()
 {
 	//Nudge sliders by clicking on slider bar:
-	connect (myLayout->xSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeXSize(int)));
-	connect (myLayout->xCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeXCenter(int)));
-	connect (myLayout->ySizeSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeYSize(int)));
-	connect (myLayout->yCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeYCenter(int)));
-	connect (myLayout->zCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeZCenter(int)));
-	connect (myLayout->xCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (myLayout->yCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (myLayout->zCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	
 	connect (myLayout->thetaEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (myLayout->phiEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (myLayout->psiEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (myLayout->xSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
-	connect (myLayout->ySizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (myLayout->boxSliderFrame->xSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
+	connect (myLayout->boxSliderFrame->ySizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (myIsovals->minIsoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (myIsovals->isoSpaceEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
 	connect (myIsovals->countIsoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsolineTabTextChanged(const QString&)));
@@ -191,11 +184,7 @@ IsolineEventRouter::hookUpTab()
 	connect (myIsovals->uniformButton, SIGNAL(clicked()),this,SLOT(guiSpaceIsovalues()));
 	connect (myAppearance->singleColorButton, SIGNAL(clicked()),this, SLOT(guiSetSingleColor()));
 
-	connect (myLayout->xCenterEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (myLayout->yCenterEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (myLayout->zCenterEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (myLayout->xSizeEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
-	connect (myLayout->ySizeEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
+	
 	connect (myLayout->thetaEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (myLayout->phiEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
 	connect (myLayout->psiEdit, SIGNAL(returnPressed()), this, SLOT(isolineReturnPressed()));
@@ -243,11 +232,11 @@ IsolineEventRouter::hookUpTab()
 	connect (myBasics->lodCombo,SIGNAL(activated(int)), this, SLOT(guiSetCompRatio(int)));
 	connect (myLayout->rotate90Combo,SIGNAL(activated(int)), this, SLOT(guiRotate90(int)));
 	connect (myBasics->variableCombo,SIGNAL(activated(int)), this, SLOT(guiChangeVariable(int)));
-	connect (myLayout->xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineXCenter()));
-	connect (myLayout->yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineYCenter()));
-	connect (myLayout->zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineZCenter()));
-	connect (myLayout->xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineXSize()));
-	connect (myLayout->ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineYSize()));
+	connect (myLayout->boxSliderFrame->xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineXCenter()));
+	connect (myLayout->boxSliderFrame->yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineYCenter()));
+	connect (myLayout->boxSliderFrame->zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineZCenter()));
+	connect (myLayout->boxSliderFrame->xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineXSize()));
+	connect (myLayout->boxSliderFrame->ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setIsolineYSize()));
 	connect (myAppearance->densitySlider, SIGNAL(sliderReleased()), this, SLOT (guiSetIsolineDensity()));
 	connect (myIsovals->copyToProbeButton, SIGNAL(clicked()), this, SLOT(copyToProbeOr2D()));
 
@@ -268,6 +257,10 @@ IsolineEventRouter::hookUpTab()
             this, SLOT(guiStartChangeIsoSelection(QString)));
     connect(myIsovals->isoSelectionFrame, SIGNAL(endChange()),
             this, SLOT(guiEndChangeIsoSelection()));
+	connect (myLayout->boxSliderFrame, SIGNAL(extentsChanged()), this, SLOT(changeExtents()));
+	myLayout->boxSliderFrame->zSizeEdit->hide();
+	myLayout->boxSliderFrame->zSizeSlider->hide();
+
 }
 //Insert values from params into tab panel
 //
@@ -345,12 +338,12 @@ void IsolineEventRouter::updateTab(){
 	const double* fullSizes = DataStatus::getFullSizes();
 	isolineParams->GetBox()->GetLocalExtents(locExts);
 	for (int i = 0; i<3; i++) boxCenter[i] = (locExts[i]+locExts[3+i])*0.5f;
-	myLayout->xCenterSlider->setValue((int)(256.f*boxCenter[0]/fullSizes[0]));
-	myLayout->yCenterSlider->setValue((int)(256.f*boxCenter[1]/fullSizes[1]));
-	myLayout->zCenterSlider->setValue((int)(256.f*boxCenter[2]/fullSizes[2]));
-	myLayout->xCenterEdit->setText(QString::number(minExts[0]+boxCenter[0]));
-	myLayout->yCenterEdit->setText(QString::number(minExts[1]+boxCenter[1]));
-	myLayout->zCenterEdit->setText(QString::number(minExts[2]+boxCenter[2]));
+	myLayout->boxSliderFrame->xCenterSlider->setValue((int)(256.f*boxCenter[0]/fullSizes[0]));
+	myLayout->boxSliderFrame->yCenterSlider->setValue((int)(256.f*boxCenter[1]/fullSizes[1]));
+	myLayout->boxSliderFrame->zCenterSlider->setValue((int)(256.f*boxCenter[2]/fullSizes[2]));
+	myLayout->boxSliderFrame->xCenterEdit->setText(QString::number(minExts[0]+boxCenter[0]));
+	myLayout->boxSliderFrame->yCenterEdit->setText(QString::number(minExts[1]+boxCenter[1]));
+	myLayout->boxSliderFrame->zCenterEdit->setText(QString::number(minExts[2]+boxCenter[2]));
 
 	//Calculate extents of the containing box
 	double corners[8][3];
@@ -673,16 +666,16 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	DataStatus::getInstance()->GetExtents(timestep, minExts,maxExts);
 	//Set the isoline size based on current text box settings:
 	float boxSize[3], boxexts[6],  boxCenter[3];
-	boxSize[0] = myLayout->xSizeEdit->text().toFloat();
-	boxSize[1] = myLayout->ySizeEdit->text().toFloat();
+	boxSize[0] = myLayout->boxSliderFrame->xSizeEdit->text().toFloat();
+	boxSize[1] = myLayout->boxSliderFrame->ySizeEdit->text().toFloat();
 	boxSize[2] =0.;
 	for (int i = 0; i<3; i++){
 		if (boxSize[i] < 0.f) boxSize[i] = 0.f;
 	}
 	//Convert text to local extents:
-	boxCenter[0] = myLayout->xCenterEdit->text().toFloat()- minExts[0];
-	boxCenter[1] = myLayout->yCenterEdit->text().toFloat()- minExts[1];
-	boxCenter[2] = myLayout->zCenterEdit->text().toFloat()- minExts[2];
+	boxCenter[0] = myLayout->boxSliderFrame->xCenterEdit->text().toFloat()- minExts[0];
+	boxCenter[1] = myLayout->boxSliderFrame->yCenterEdit->text().toFloat()- minExts[1];
+	boxCenter[2] = myLayout->boxSliderFrame->zCenterEdit->text().toFloat()- minExts[2];
 	const double* fullSizes = DataStatus::getInstance()->getFullSizes();
 	for (int i = 0; i<3;i++){
 		//Don't constrain the box to have center in the domain:
@@ -693,9 +686,9 @@ void IsolineEventRouter::confirmText(bool /*render*/){
 	isolineParams->GetBox()->SetLocalExtents(boxexts,isolineParams, -1);
 	adjustBoxSize(isolineParams);
 	//set the center sliders:
-	myLayout->xCenterSlider->setValue((int)(256.f*boxCenter[0]/fullSizes[0]));
-	myLayout->yCenterSlider->setValue((int)(256.f*boxCenter[1]/fullSizes[1]));
-	myLayout->zCenterSlider->setValue((int)(256.f*boxCenter[2]/fullSizes[2]));
+	myLayout->boxSliderFrame->xCenterSlider->setValue((int)(256.f*boxCenter[0]/fullSizes[0]));
+	myLayout->boxSliderFrame->yCenterSlider->setValue((int)(256.f*boxCenter[1]/fullSizes[1]));
+	myLayout->boxSliderFrame->zCenterSlider->setValue((int)(256.f*boxCenter[2]/fullSizes[2]));
 	resetImageSize(isolineParams);
 	
 	setIsolineDirty(isolineParams);
@@ -1132,27 +1125,27 @@ isolineAttachSeed(bool attach){
 void IsolineEventRouter::
 setIsolineXCenter(){
 	guiSetXCenter(
-		myLayout->xCenterSlider->value());
+		myLayout->boxSliderFrame->xCenterSlider->value());
 }
 void IsolineEventRouter::
 setIsolineYCenter(){
 	guiSetYCenter(
-		myLayout->yCenterSlider->value());
+		myLayout->boxSliderFrame->yCenterSlider->value());
 }
 void IsolineEventRouter::
 setIsolineZCenter(){
 	guiSetZCenter(
-		myLayout->zCenterSlider->value());
+		myLayout->boxSliderFrame->zCenterSlider->value());
 }
 void IsolineEventRouter::
 setIsolineXSize(){
 	guiSetXSize(
-		myLayout->xSizeSlider->value());
+		myLayout->boxSliderFrame->xSizeSlider->value());
 }
 void IsolineEventRouter::
 setIsolineYSize(){
 	guiSetYSize(
-		myLayout->ySizeSlider->value());
+		myLayout->boxSliderFrame->ySizeSlider->value());
 }
 
 
@@ -1233,9 +1226,9 @@ reinitTab(bool doOverride){
 		myBasics->variableCombo->insertItem(i,varnames[i].c_str());
 		
 	int numRefinements = dataMgr->GetNumRefLevels(varnames[0]);
-	myBasics->refinementCombo->setMaxCount(numRefinements);
+	myBasics->refinementCombo->setMaxCount(numRefinements+1);
 	myBasics->refinementCombo->clear();
-	for (int i = 0; i < numRefinements; i++){
+	for (int i = 0; i<= numRefinements; i++){
 		myBasics->refinementCombo->addItem(QString::number(i));
 	}
 	if (dataMgr){
@@ -1439,16 +1432,16 @@ void IsolineEventRouter::
 guiSetNumRefinements(int n){
 	IsolineParams* pParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
 	confirmText(false);
-	int maxRefinement = 0;
+	int maxNumRefinements = 0;
 	string varname = pParams->GetVariableName();
 	if (DataStatus::getInstance()->getDataMgr()) {
-		maxRefinement = DataStatus::getInstance()->getDataMgr()->GetNumRefLevels(varname)-1;
-		if (n > maxRefinement) {
+		maxNumRefinements = DataStatus::getInstance()->getDataMgr()->GetNumRefLevels(varname);
+		if (n > maxNumRefinements) {
 			//MessageReporter::warningMsg("%s","Invalid number of Refinements \nfor current data");
-			n = maxRefinement;
+			n = maxNumRefinements;
 			myBasics->refinementCombo->setCurrentIndex(n);
 		}
-	} else if (n > maxRefinement) maxRefinement = n;
+	} else if (n > maxNumRefinements) maxNumRefinements = n;
 	pParams->SetRefinementLevel(n);
 	pParams->SetIgnoreFidelity(true);
 	QPalette pal = QPalette(myBasics->fidelityBox->palette());
@@ -1496,17 +1489,17 @@ sliderToText(IsolineParams* pParams, int coord, int slideCenter, int slideSize){
 	float selectCoord = selectedPoint[coord] + minExts[coord];
 	switch(coord) {
 		case 0:
-			myLayout->xSizeEdit->setText(QString::number(newSize,'g',7));
-			myLayout->xCenterEdit->setText(QString::number(newCenter,'g',7));
+			myLayout->boxSliderFrame->xSizeEdit->setText(QString::number(newSize,'g',7));
+			myLayout->boxSliderFrame->xCenterEdit->setText(QString::number(newCenter,'g',7));
 			myImage->selectedXLabel->setText(QString::number(selectCoord));
 			break;
 		case 1:
-			myLayout->ySizeEdit->setText(QString::number(newSize,'g',7));
-			myLayout->yCenterEdit->setText(QString::number(newCenter,'g',7));
+			myLayout->boxSliderFrame->ySizeEdit->setText(QString::number(newSize,'g',7));
+			myLayout->boxSliderFrame->yCenterEdit->setText(QString::number(newCenter,'g',7));
 			myImage->selectedYLabel->setText(QString::number(selectCoord));
 			break;
 		case 2:
-			myLayout->zCenterEdit->setText(QString::number(newCenter,'g',7));
+			myLayout->boxSliderFrame->zCenterEdit->setText(QString::number(newCenter,'g',7));
 			myImage->selectedZLabel->setText(QString::number(selectCoord));
 			break;
 		default:
@@ -1556,12 +1549,12 @@ void IsolineEventRouter::
 setXCenter(IsolineParams* pParams,int sliderval){
 	//new min and max are center -+ size/2.  
 	//center is min + (slider/256)*(max-min)
-	sliderToText(pParams,0, sliderval, myLayout->xSizeSlider->value());
+	sliderToText(pParams,0, sliderval, myLayout->boxSliderFrame->xSizeSlider->value());
 	setIsolineDirty(pParams);
 }
 void IsolineEventRouter::
 setYCenter(IsolineParams* pParams,int sliderval){
-	sliderToText(pParams,1, sliderval, myLayout->ySizeSlider->value());
+	sliderToText(pParams,1, sliderval, myLayout->boxSliderFrame->ySizeSlider->value());
 	setIsolineDirty(pParams);
 }
 void IsolineEventRouter::
@@ -1573,12 +1566,12 @@ setZCenter(IsolineParams* pParams,int sliderval){
 //size is regionsize*sliderval/256
 void IsolineEventRouter::
 setXSize(IsolineParams* pParams,int sliderval){
-	sliderToText(pParams,0, myLayout->xCenterSlider->value(),sliderval);
+	sliderToText(pParams,0, myLayout->boxSliderFrame->xCenterSlider->value(),sliderval);
 	setIsolineDirty(pParams);
 }
 void IsolineEventRouter::
 setYSize(IsolineParams* pParams,int sliderval){
-	sliderToText(pParams,1, myLayout->yCenterSlider->value(),sliderval);
+	sliderToText(pParams,1, myLayout->boxSliderFrame->yCenterSlider->value(),sliderval);
 	setIsolineDirty(pParams);
 }
 
@@ -1694,7 +1687,7 @@ void IsolineEventRouter::guiNudgeXSize(int val) {
 	int newSliderPos = (int)(256.*newSize/(maxExtent-minExtent) +0.5f);
 	if(lastXSizeSlider != newSliderPos){
 		lastXSizeSlider = newSliderPos;
-		myLayout->xSizeSlider->setValue(newSliderPos);
+		myLayout->boxSliderFrame->xSizeSlider->setValue(newSliderPos);
 	}
 	updateTab();
 	setIsolineDirty(pParams);
@@ -1741,7 +1734,7 @@ void IsolineEventRouter::guiNudgeXCenter(int val) {
 	int newSliderPos = (int)(256.*(newCenter - minExtent)/(maxExtent-minExtent) +0.5f);
 	if(lastXCenterSlider != newSliderPos){
 		lastXCenterSlider = newSliderPos;
-		myLayout->xCenterSlider->setValue(newSliderPos);
+		myLayout->boxSliderFrame->xCenterSlider->setValue(newSliderPos);
 	}
 	updateTab();
 	setIsolineDirty(pParams);
@@ -1787,7 +1780,7 @@ void IsolineEventRouter::guiNudgeYCenter(int val) {
 	int newSliderPos = (int)(256.*(newCenter - minExtent)/(maxExtent-minExtent) +0.5f);
 	if(lastYCenterSlider != newSliderPos){
 		lastYCenterSlider = newSliderPos;
-		myLayout->yCenterSlider->setValue(newSliderPos);
+		myLayout->boxSliderFrame->yCenterSlider->setValue(newSliderPos);
 	}
 	updateTab();
 	setIsolineDirty(pParams);
@@ -1834,7 +1827,7 @@ void IsolineEventRouter::guiNudgeZCenter(int val) {
 	int newSliderPos = (int)(256.*(newCenter - minExtent)/(maxExtent-minExtent) +0.5f);
 	if(lastZCenterSlider != newSliderPos){
 		lastZCenterSlider = newSliderPos;
-		myLayout->zCenterSlider->setValue(newSliderPos);
+		myLayout->boxSliderFrame->zCenterSlider->setValue(newSliderPos);
 	}
 	updateTab();
 
@@ -1883,7 +1876,7 @@ void IsolineEventRouter::guiNudgeYSize(int val) {
 	int newSliderPos = (int)(256.*newSize/(maxExtent-minExtent) +0.5f);
 	if(lastYSizeSlider != newSliderPos){
 		lastYSizeSlider = newSliderPos;
-		myLayout->ySizeSlider->setValue(newSliderPos);
+		myLayout->boxSliderFrame->ySizeSlider->setValue(newSliderPos);
 	}
 	updateTab();
 	setIsolineDirty(pParams);
@@ -1942,15 +1935,15 @@ adjustBoxSize(IsolineParams* pParams){
 	}
 	
 	//Set the size sliders appropriately:
-	myLayout->xSizeEdit->setText(QString::number(extents[3]-extents[0]));
-	myLayout->ySizeEdit->setText(QString::number(extents[4]-extents[1]));
+	myLayout->boxSliderFrame->xSizeEdit->setText(QString::number(extents[3]-extents[0]));
+	myLayout->boxSliderFrame->ySizeEdit->setText(QString::number(extents[4]-extents[1]));
 	
 	//Cancel any response to text events generated in this method, to prevent
 	//the sliders from triggering text change
 	//
 	guiSetTextChanged(false);
-	myLayout->xSizeSlider->setValue((int)(256.f*(extents[3]-extents[0])/(maxBoxSize[0])));
-	myLayout->ySizeSlider->setValue((int)(256.f*(extents[4]-extents[1])/(maxBoxSize[1])));
+	myLayout->boxSliderFrame->xSizeSlider->setValue((int)(256.f*(extents[3]-extents[0])/(maxBoxSize[0])));
+	myLayout->boxSliderFrame->ySizeSlider->setValue((int)(256.f*(extents[4]-extents[1])/(maxBoxSize[1])));
 	
 }
 
@@ -2765,4 +2758,22 @@ void IsolineEventRouter::fitIsovalsToHisto(IsolineParams* iParams){
 		}
 	}
 	iParams->SetIsovalues(newIsovals);
+}
+void IsolineEventRouter::
+changeExtents(){
+	confirmText(true);
+	if (!DataStatus::getInstance()->getDataMgr()) return;
+	IsolineParams* aParams = (IsolineParams*)ControlExec::GetActiveParams(IsolineParams::_isolineParamsTag);
+	double newExts[6];
+	myLayout->boxSliderFrame->getBoxExtents(newExts);
+	Box* bx = aParams->GetBox();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
+	//convert newExts (in user coords) to local extents, by subtracting time-varying extents origin 
+	vector<double>minExts, maxExts;
+	DataStatus::getInstance()->GetExtents((size_t)timestep, minExts, maxExts);
+	for (int i = 0; i<6; i++) newExts[i] -= minExts[i%3];
+	bx->SetLocalExtents(newExts,aParams);
+	
+	updateTab();
+	VizWinMgr::getInstance()->forceRender(aParams);	
 }
