@@ -1269,7 +1269,7 @@ void *RunReadThreadTemplate(thread_state &s, T *data) {
 			//
 			size_t offset = (size_t) i * vproduct(s._bs);
 			for (size_t j=0; j<vproduct(s._bs); j++) {
-				data[offset + j] = blockptr[j];
+				data[offset + j] = blockptr[offset+j];
 			}
 		}
 
