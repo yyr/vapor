@@ -529,7 +529,7 @@ public:
 
  //! Read a hyper-slab of blocked values from currently opened variable
  //!
- //! This method is identical to GetVaraBlock() with the exceptions
+ //! This method is identical to GetVara() with the exceptions
  //! that: 
  //! \li The vectors \p start and \p count must be aligned
  //! with the underlying storage block of the variable. See
