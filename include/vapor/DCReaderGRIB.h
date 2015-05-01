@@ -44,6 +44,10 @@ class VDF_API DCReaderGRIB : public DCReader {
 		DCReaderGRIB(const vector<string> files);
 		~DCReaderGRIB();
 
+		int HydrostaticPressureEqn();
+		int LoadHydroData(float* T, float* Q, float* Sp);
+		int CalcVirtualTemperature(float* T, float* Q, float* Sum, float* Tv);
+		int DoHydroVarsExist();
 		void Print2dVars();
 		void _generateWeightTable();
 		string GetGridType() const;
@@ -194,6 +198,7 @@ class VDF_API DCReaderGRIB : public DCReader {
 		std::vector<int> _latIndices;
 		float* _iValues;
 		double* _regularLats;
+		float* _hydrostaticElevation;
 
 		UDUnits *_udunit;
 

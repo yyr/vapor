@@ -294,10 +294,8 @@ WaveFiltDaub::WaveFiltDaub(
 	} else if (wavename.compare("db10") == 0) {
 		member = 10;
 	}
-
-	if (member == -1) {
-		SetErrMsg("Invalid wavelet : %s", wavename.c_str());
-		return;
+	else {
+		member = 1;	// default db1
 	}
 
 	_analysis_initialize (member);

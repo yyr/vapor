@@ -57,23 +57,6 @@ namespace VAPoR {
                 QGLWidget *myWindow);
     ~TextObject();
 
-//    void setText(string txt) { _text = txt; }
-//    void setSize(int sz) { _size = sz; }
-//    void setType(int t) { _type = t; } 
-//    void setTextColor(float r, float g, float b) { 
-//         _txtColor[0] = r; _txtColor[1] = g; _txtColor[2] = b; }
-//    void setBGColor(float r, float g, float b) { 
-//         _bgColor[0] = r; _bgColor[1] = g; _bgColor[2] = b; }
-//    void setCoords(float x, float y, float z=0.0) {
-//         _coords[0] = x; _coords[1] = y; _coords[2] = z; 
-//		cout << "setCoords " << _coords[0] << " " << _coords[1] << " " << _coords[2] << endl;} 
-    
-//    string  getText() { return _text;}
-//    int     getSize() { return _size;}
-//    float*  getTextColor() { return _txtColor; } 
-//    float*  getBGColor() { return _bgColor; }
-//    float*  getCoords() { return _coords; }
-
 //! Draw Text Object at default coordinates specified in TextObject::Initialize()
     int drawMe();
 //! Draw Text Object at specified x, y, z coordinate, at specified time step
@@ -88,9 +71,9 @@ namespace VAPoR {
 
 //! Saves the current GL state and applies transformations
 //! to draw the appropriate type of text object.
-    void applyViewerMatrix();
+    //void applyViewerMatrix();
 	//float * applyViewerMatrix(float coords[3]);
-	int applyViewerMatrix(float coords[3]);
+	int applyViewerMatrix(float coords[3] = NULL);
 
 //! Resets the state of the GL machine to what it was before
 //! our text rendering.
@@ -117,8 +100,8 @@ private:
 	int           _type;             // in front of scene, following a point in domain, or within
                                      // type 0 - text drawn in 2d on top of the scene
                                      // type 1 - text drawn in 2d, following a point in the scene
-                                     // type 2 - text drawn within the scene, bumped up towards the 
-                                     // type 3 - text drawn within the scene
+                                     // type 2 - text drawn within the scene
+                                     // type 3 - text drawn within the scene, facing the user
 };
 
 class RENDER_API TextWriter {

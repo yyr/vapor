@@ -11,14 +11,12 @@ MatWaveWavedec::MatWaveWavedec(
 	const string &mode
 ) : MatWaveDwt(wname, mode) {
 
-    if (MatWaveDwt::GetErrCode() != 0) return;
 } 
 
 MatWaveWavedec::MatWaveWavedec(
 	const string &wname
 ) : MatWaveDwt(wname) {
 
-    if (MatWaveDwt::GetErrCode() != 0) return;
 } 
 
 MatWaveWavedec::~MatWaveWavedec() {
@@ -62,6 +60,11 @@ int MatWaveWavedec::_wavedec_setup(
     size_t sigInLength, int n,
     size_t *CLength, size_t *L
 ) {
+    if (! wavelet()) {
+        MatWaveWavedec::SetErrMsg("Invalid state, no wavelet");
+        return(-1);
+    }
+
 	if (n<0 || n > wmaxlev(sigInLength)) {
 		SetErrMsg("Invalid number of transforms : %d", n);
 		return(-1);
@@ -108,6 +111,10 @@ int waverec_template(
 	int l, bool normal,
     T *sigOut
 ) {
+    if (! mww->wavelet()) {
+        MatWaveWavedec::SetErrMsg("Invalid state, no wavelet");
+        return(-1);
+    }
 	if (n < 0) {
 		MatWaveWavedec::SetErrMsg("Invalid number of transforms : %d", n);
 		return(-1);
@@ -238,6 +245,10 @@ int MatWaveWavedec::_wavedec2_setup(
 	size_t sigInX, size_t sigInY, int n, 
 	size_t *CLength, size_t *L
 ) {
+    if (! wavelet()) {
+        MatWaveWavedec::SetErrMsg("Invalid state, no wavelet");
+        return(-1);
+    }
 
 	if (n<0 || n > min(wmaxlev(sigInX), wmaxlev(sigInY))) {
 		SetErrMsg("Invalid number of transforms : %d", n);
@@ -288,6 +299,10 @@ int waverec2_template(
 	int l, bool normal,
 	T *sigOut
 ) {
+    if (! mww->wavelet()) {
+        MatWaveWavedec::SetErrMsg("Invalid state, no wavelet");
+        return(-1);
+    }
 
 	if (n < 0) {
 		MatWaveWavedec::SetErrMsg("Invalid number of transforms : %d", n);
@@ -444,6 +459,10 @@ int MatWaveWavedec::_wavedec3_setup(
 	size_t sigInX, size_t sigInY, size_t sigInZ, int n, 
 	size_t *CLength, size_t *L
 ) {
+    if (! wavelet()) {
+        MatWaveWavedec::SetErrMsg("Invalid state, no wavelet");
+        return(-1);
+    }
 
 	if (n<0 || n > min(min(wmaxlev(sigInX), wmaxlev(sigInY)), wmaxlev(sigInZ))){
 		SetErrMsg("Invalid number of transforms : %d", n);
@@ -493,6 +512,11 @@ int waverec3_template(
 	const T *C, const size_t *L, int n, 
 	int l, bool normal, T *sigOut
 ) {
+    if (! mww->wavelet()) {
+        MatWaveWavedec::SetErrMsg("Invalid state, no wavelet");
+        return(-1);
+    }
+
 	if (n < 0) {
 		MatWaveWavedec::SetErrMsg("Invalid number of transforms : %d", n);
 		return(-1);

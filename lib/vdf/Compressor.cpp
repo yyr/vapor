@@ -14,12 +14,7 @@ void Compressor::_Compressor(
 	vector <size_t> dims
 ) {
 
-    if (MatWaveWavedec::GetErrCode() != 0) return;
-
-	if (dims.size() > 3) {
-		SetErrMsg("Maximum of 3 dimensions currently supported");
-		return;
-	}
+	if (dims.size() > 3) return;
 
 	_dims.clear();
 	_nlevels = 0;
@@ -60,17 +55,9 @@ void Compressor::_Compressor(
 
 		size_t clen = coefflength3(_nx, _ny, _nz, _nlevels);
 		_C = new double[clen]; 
-		if (! _C) {
-			SetErrMsg("Memory allocation failed");
-			return;
-		}
 		_CLen = clen;
 
 		_L = new size_t[(21*_nlevels)+6];
-		if (! _L) {
-			SetErrMsg("Memory allocation failed");
-			return;
-		}
 		_LLen = (21*_nlevels)+6;
 
 		// Compute the bookkeeping vector, L. 
@@ -85,17 +72,9 @@ void Compressor::_Compressor(
 
 		size_t clen = coefflength2(_nx, _ny, _nlevels);
 		_C = new double[clen]; 
-		if (! _C) {
-			SetErrMsg("Memory allocation failed");
-			return;
-		}
 		_CLen = clen;
 
 		_L = new size_t[(6*_nlevels)+4];
-		if (! _L) {
-			SetErrMsg("Memory allocation failed");
-			return;
-		}
 		_LLen = (6*_nlevels)+4;
 		computeL2(_nx, _ny, _nlevels, _L);
 	}
@@ -104,17 +83,9 @@ void Compressor::_Compressor(
 
 		size_t clen = coefflength(_nx, _nlevels);
 		_C = new double[clen]; 
-		if (! _C) {
-			SetErrMsg("Memory allocation failed");
-			return;
-		}
 		_CLen = clen;
 
 		_L = new size_t[_nlevels+2];
-		if (! _L) {
-			SetErrMsg("Memory allocation failed");
-			return;
-		}
 		_LLen = _nlevels+2;
 		computeL(_nx, _nlevels, _L);
 	}
@@ -127,10 +98,10 @@ Compressor::Compressor(
 	const string &mode
 ) : MatWaveWavedec(wavename, mode) {
 
+	_C = NULL; 
+	_L = NULL;
 	_CLen = 0;
 	_LLen = 0;
-
-    if (MatWaveWavedec::GetErrCode() != 0) return;
 
 	_Compressor(dims);
 }
@@ -139,10 +110,10 @@ Compressor::Compressor(
 	vector <size_t> dims, const string &wavename
 ) : MatWaveWavedec(wavename) {
 
+	_C = NULL; 
+	_L = NULL;
 	_CLen = 0;
 	_LLen = 0;
-
-    if (MatWaveWavedec::GetErrCode() != 0) return;
 
 	_Compressor(dims);
 }
@@ -184,6 +155,10 @@ int compress_template(
 	bool my_compare(const void *, const void *)
 ) {
 
+	if (! C) {
+		Compressor::SetErrMsg("Invalid state");
+		return(-1);
+	}
 	
 	if ((dims.size() < 1)  || (dims.size() > 3)) {
 		Compressor::SetErrMsg("Invalid array shape");
@@ -304,6 +279,11 @@ int decompress_template(
 	SignificanceMap *sigmap,
 	const vector <size_t> &dims
 ) {
+	if (! C) {
+		Compressor::SetErrMsg("Invalid state");
+		return(-1);
+	}
+
 	if ((dims.size() < 1)  || (dims.size() > 3)) {
 		Compressor::SetErrMsg("Invalid array shape");
 		return(-1);
@@ -410,6 +390,11 @@ int decompose_template(
 	vector <void *> indexvec,
 	bool my_compare(const void *, const void *)
 ) {
+	if (! C) {
+		Compressor::SetErrMsg("Invalid state");
+		return(-1);
+	}
+
 	if (sigmaps.size() != dst_arr_lens.size()) {
 		Compressor::SetErrMsg("Invalid parameter");
 		return(-1);
@@ -519,6 +504,11 @@ int reconstruct_template(
 	vector <SignificanceMap> &sigmaps,
 	const vector <size_t> &dims
 ) {
+	if (! C) {
+		Compressor::SetErrMsg("Invalid state");
+		return(-1);
+	}
+
 	if ((dims.size() < 1)  || (dims.size() > 3)) {
 		Compressor::SetErrMsg("Invalid array shape");
 		return(-1);
@@ -703,13 +693,7 @@ bool Compressor::CompressionInfo(
 		if (dims[i] < 1) return(false);
 	}
 	
-    bool enabled = MyBase::EnableErrMsg(false); 
 	MatWaveWavedec mww(wavename);
-    if (MyBase::GetErrCode()) {
-        MyBase::EnableErrMsg(enabled);
-        return(false);
-    }
-    MyBase::EnableErrMsg(enabled);
 
 	size_t ncoeff = 1;
 	for (int i=0; i<dims.size(); i++) ncoeff *= dims[i];
@@ -721,11 +705,13 @@ bool Compressor::CompressionInfo(
 			nlevels = mww.wmaxlev(dims[0]);
 			L = new size_t[nlevels+2];
 			mww.computeL(dims[0], nlevels, L);
+			mincoeff = L[0];
 		}
 		if (dims.size() == 2) {
 			nlevels = min(mww.wmaxlev(dims[0]), mww.wmaxlev(dims[1]));
 			L = new size_t[(6*nlevels)+4];
 			mww.computeL2(dims[0], dims[1], nlevels, L);
+			mincoeff = L[0]*L[1];
 		}
 		if (dims.size() == 3) {
 			nlevels = min(
@@ -734,6 +720,7 @@ bool Compressor::CompressionInfo(
 			);
 			L = new size_t[(21*nlevels)+6];
 			mww.computeL3(dims[0], dims[1], dims[2], nlevels, L);
+			mincoeff = L[0]*L[1]*L[2];
 		}
 		delete [] L;
 	}

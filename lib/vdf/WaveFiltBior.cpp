@@ -444,10 +444,8 @@ WaveFiltBior::WaveFiltBior(
 	} else if (wavename.compare("bior4.4") == 0) {
 		member = 44;
 	}
-
-	if (member == -1) {
-		SetErrMsg("Invalid wavelet : %s", wavename.c_str());
-		return;
+	else {
+		member = 11;	// default to bior1.1
 	}
 
 	_analysis_initialize (member);

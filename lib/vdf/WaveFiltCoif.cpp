@@ -231,10 +231,8 @@ WaveFiltCoif::WaveFiltCoif(
 	} else if (wavename.compare("coif5") == 0) {
 		member = 5;
 	}
-
-	if (member == -1) {
-		SetErrMsg("Invalid wavelet : %s", wavename.c_str());
-		return;
+	else {
+		member = 1;	 // default coif1
 	}
 
 	_analysis_initialize (member);

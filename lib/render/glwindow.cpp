@@ -1256,7 +1256,7 @@ void GLWindow::regPaintEvent()
 		}
 	}
 	
-	
+	renderText();
 	
 	//Now we are ready for all the different renderers to proceed.
 	//Sort them;  If they are opaque, they go first.  If not opaque, they
@@ -1310,7 +1310,7 @@ void GLWindow::regPaintEvent()
 		glMatrixMode(GL_MODELVIEW);
 		glPopMatrix();
 	}
-	renderText();
+	//renderText();
 	textRenderersDirty = false;
 
 	
@@ -2905,7 +2905,7 @@ int GLWindow::addTextObject(Renderer* ren, const char* fontPath, int textSize, f
 		vector<TextObject*> txtObjs = *(new vector<TextObject*>);
 		textObjectMap[ren] = txtObjs;
 	}
-	float dummyCoords[3] = {.23,.32,.25};//not used
+	float dummyCoords[3] = {.23,.32,.0};//not used
 
 	TextObject *to = new TextObject();
 	to->Initialize(fontPath,text,textSize,dummyCoords,type,textColor,bgColor,this);
@@ -2922,7 +2922,11 @@ int GLWindow::addTextObject(Renderer* ren, const char* fontPath, int textSize, f
 //Add an instance of text at specified position, using specified writer
 void GLWindow::addText(Renderer* ren, int objectIndex, float posn[3]){
 	float* newPosn = new float[3];
-	for (int i = 0; i<3; i++) newPosn[i] = posn[i];
+	for (int i = 0; i<3; i++) {
+		newPosn[i] = posn[i];
+		//cout << posn[i] << " ";
+	}
+	//cout << endl;
 	pair<Renderer*, int> coordPair = make_pair(ren, objectIndex);
 	textCoordMap[coordPair]->push_back(newPosn);
 }

@@ -57,7 +57,6 @@ TwoDImageRenderer::~TwoDImageRenderer()
 
 void TwoDImageRenderer::paintGL()
 {
-	
 	AnimationParams* myAnimationParams = myGLWindow->getActiveAnimationParams();
 	TwoDImageParams* myTwoDImageParams = (TwoDImageParams*)currentRenderParams;
 	
@@ -78,7 +77,6 @@ void TwoDImageRenderer::paintGL()
 		myTwoDImageParams->setElevGridDirty(false);
 	}
 	if (twoDTex){
-		
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
 		glMatrixMode(GL_MODELVIEW);
@@ -89,6 +87,7 @@ void TwoDImageRenderer::paintGL()
 		glEnable(GL_BLEND);
 		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_DEPTH_TEST);// will not correct blending, but will be OK wrt other opaque geometry.
+		glAlphaFunc(GL_GREATER,.1);
 		
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
@@ -159,6 +158,8 @@ void TwoDImageRenderer::paintGL()
 		}
 	}
 
+
+	glEnable(GL_ALPHA_TEST);	
 	
 	//Draw the textured rectangle:
 	glBegin(GL_QUADS);
@@ -168,7 +169,9 @@ void TwoDImageRenderer::paintGL()
 	glTexCoord2f(1.f, 0.f); glVertex3fv(corners[1]);
 	
 	glEnd();
-	
+
+	glDisable(GL_ALPHA_TEST);	
+
 	glFlush();
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);

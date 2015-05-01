@@ -531,6 +531,10 @@ int dwt_template(
 	MatWaveBase::dwtmode_t mode,
 	U *cA, U *cD, size_t L[3], double **buf, size_t *bufsize
 ) {
+	if (! wf) {
+		MatWaveDwt::SetErrMsg("Invalid state, no wavelet");
+		return(-1);
+	}
 
 	if (dwt->wmaxlev(sigInLen) < 1) {
 		MatWaveDwt::SetErrMsg("Can't transform signal of length : %d", sigInLen);
@@ -673,6 +677,10 @@ int idwt_template(
 	MatWaveBase::dwtmode_t mode, U *sigOut,
 	double **buf, size_t *bufsize
 ) {
+	if (! wf) {
+		MatWaveDwt::SetErrMsg("Invalid state, no wavelet");
+		return(-1);
+	}
 	if (mode == MatWaveBase::PER) {
 		MatWaveDwt::SetErrMsg("Invalid boundary extension mode: %d", mode);
 		return(-1);
@@ -891,6 +899,10 @@ int dwt2d_template(
     MatWaveBase::dwtmode_t mode, U *cA,  U *cDh, U *cDv, U *cDd, size_t L[10],
 	double **buf2d, size_t *buf2dsize, double **buf1d, size_t *buf1dsize
 ) {
+	if (! wf) {
+		MatWaveDwt::SetErrMsg("Invalid state, no wavelet");
+		return(-1);
+	}
 
 	//
 	// Store dimensions of cA, cDh, cDv, cDd, and original signal
@@ -1069,6 +1081,10 @@ int idwt2d_template(
 	double **buf2d, size_t *buf2dsize,
 	double **buf1d, size_t *buf1dsize
 ) {
+	if (! wf) {
+		MatWaveDwt::SetErrMsg("Invalid state, no wavelet");
+		return(-1);
+	}
 
     size_t passYLen = max(L[0],L[4]) * (L[1] + L[3]);
     size_t transposeLen = max(L[0],L[4]) * L[9];
@@ -1211,6 +1227,10 @@ int _dwtz_template(
 	double **buf3d, size_t *buf3dsize,
 	double **buf1d, size_t *buf1dsize
 ) {
+	if (! wf) {
+		MatWaveDwt::SetErrMsg("Invalid state, no wavelet");
+		return(-1);
+	}
 	size_t cALen = dwt->approxlength(sigInZ); 
 	size_t cDLen = dwt->detaillength(sigInZ);
 
@@ -1265,6 +1285,10 @@ int dwt3d_template(
 	double **buf2d, size_t *buf2dsize,
 	double **buf1d, size_t *buf1dsize
 ) {
+	if (! wf) {
+		MatWaveDwt::SetErrMsg("Invalid state, no wavelet");
+		return(-1);
+	}
 
 	//
 	// Store dimensions of  LLL, LLH, LHL, LHH, HLL,
@@ -1453,6 +1477,10 @@ int _idwtz_template(
 	double **buf3d, size_t *buf3dsize,
 	double **buf1d, size_t *buf1dsize
 ) {
+	if (! wf) {
+		MatWaveDwt::SetErrMsg("Invalid state, no wavelet");
+		return(-1);
+	}
 
 
 //	size_t sigInLen = 2 * sigInX * sigInY * (cALen + cDLen);
@@ -1508,6 +1536,10 @@ int idwt3d_template(
 	double **buf2d, size_t *buf2dsize,
 	double **buf1d, size_t *buf1dsize
 ) {
+	if (! wf) {
+		MatWaveDwt::SetErrMsg("Invalid state, no wavelet");
+		return(-1);
+	}
 
 	size_t passXYLen = (L[0]+L[12]) * (L[1]+L[7])  * L[26];
 
