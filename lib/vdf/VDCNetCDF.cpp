@@ -816,11 +816,6 @@ int VDCNetCDF::ReadSlice(float *slice) {
 int VDCNetCDF::ReadRegion(
     const vector<size_t> &min, const vector<size_t> &max, float *region
 ) {
-	vector <size_t> sdims;
-	size_t numts;
-	VDC::ParseDimensions(_ofi._var.GetDimensions(), sdims, numts);
-	assert(sdims.size() >= 0 && sdims.size() <= 3);
-
 	bool time_varying = VDC::IsTimeVarying(_ofi._var.GetName());
 
 	vector <size_t> start;
@@ -835,11 +830,6 @@ int VDCNetCDF::ReadRegion(
 int VDCNetCDF::ReadRegionBlock(
     const vector<size_t> &min, const vector<size_t> &max, float *region
 ) {
-	vector <size_t> sdims;
-	size_t numts;
-	VDC::ParseDimensions(_ofi._var.GetDimensions(), sdims, numts);
-	assert(sdims.size() >= 0 && sdims.size() <= 3);
-
 	bool time_varying = VDC::IsTimeVarying(_ofi._var.GetName());
 
 	vector <size_t> start;

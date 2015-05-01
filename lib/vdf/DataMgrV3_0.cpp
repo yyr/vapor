@@ -681,18 +681,12 @@ RegularGrid *DataMgrV3_0::_getVariable(
 
 	vector <size_t> dims_at_level;
 	vector <size_t> dummy;
-	int rc = _dc->GetDimLensAtLevel(
-		varname, level, dims_at_level, dummy
+	int rc = DataMgrV3_0::GetDimLensAtLevel(
+		varname, level, true, dims_at_level, dummy
 	);
 	if (rc < 0) {
 		SetErrMsg("Invalid variable reference : %s", varname.c_str());
 		return(NULL);
-	}
-
-	// Remove time dimension if time-varying
-	//
-	if (DataMgrV3_0::IsTimeVarying(varname)) {
-		dims_at_level.pop_back();
 	}
 
 	vector <size_t> min;
@@ -736,6 +730,41 @@ int	DataMgrV3_0::_setupCoordVecs(
 		return(-1);
 	}
 
+	vector <size_t> dims;
+	vector <size_t> bs;
+	int rc = DataMgrV3_0::GetDimLensAtLevel(varname, -1, true, dims, bs);
+	if (rc < 0) {
+		SetErrMsg("Invalid variable reference : %s", varname.c_str());
+		return(-1);
+	}
+
+	dimsvec.push_back(dims);
+	bsvec.push_back(bs);
+
+	// Grid and block dimensions at requested refinement
+	//
+	vector <size_t> bs_at_level;
+	vector <size_t> dims_at_level;
+	rc = DataMgrV3_0::GetDimLensAtLevel(
+		varname, level, true, dims_at_level, bs_at_level
+	);
+	if (rc < 0) {
+		SetErrMsg("Invalid variable reference : %s", varname.c_str());
+		return(-1);
+	}
+
+	dims_at_levelvec.push_back(dims_at_level);
+	bs_at_levelvec.push_back(bs_at_level);
+
+	// Map voxel coordinates into block coordinates
+	//
+	vector <size_t> bmin, bmax;
+	map_vox_to_blk(bs_at_level, min, bmin);
+	map_vox_to_blk(bs_at_level, max, bmax);
+
+	bminvec.push_back(bmin);
+	bmaxvec.push_back(bmax);
+
 	// Spatial dimension axes
 	//
 	vector <int> data_axes = get_spatial_axes(dvar);
@@ -744,7 +773,7 @@ int	DataMgrV3_0::_setupCoordVecs(
 	//
 	vector <string> cvarnames;
 	string dummy1;
-	int rc = _get_coord_vars(varname, cvarnames, dummy1);
+	rc = _get_coord_vars(varname, cvarnames, dummy1);
 	if (rc<0) return(-1); 
 
 	// data varname + coord varnames
@@ -756,77 +785,47 @@ int	DataMgrV3_0::_setupCoordVecs(
 	// variables, which in general have different shape then the 
 	// data variable
 	//
-	for (int i=0; i<varnames.size(); i++) {
+	for (int i=0; i<cvarnames.size(); i++) {
 		DC::BaseVar var;
-		if (DataMgrV3_0::GetBaseVarInfo(varnames[i], var) < 0) {
-			SetErrMsg("Unrecognized variable name : %s", varnames[i].c_str());
+		if (DataMgrV3_0::GetBaseVarInfo(cvarnames[i], var) < 0) {
+			SetErrMsg("Unrecognized variable name : %s", cvarnames[i].c_str());
 			return(-1);
 		}
-
-		// Grid and block dimensions at max refinement
-		//
-		vector <size_t> dims;
-		vector <size_t> bs;
-		int rc = _dc->GetDimLensAtLevel(varnames[i], -1, dims, bs);
-		if (rc < 0) {
-			SetErrMsg("Invalid variable reference : %s", varnames[i].c_str());
-			return(-1);
-		}
-
-		// Remove time dimension if time-varying
-		//
-		if (var.IsTimeVarying()) {
-			dims.pop_back();
-			bs.pop_back();
-		}
-		dimsvec.push_back(dims);
-		bsvec.push_back(bs);
-
-		// Grid and block dimensions at requested refinement
-		//
-		vector <size_t> dims_at_level;
-		vector <size_t> bs_at_level;
-		rc = _dc->GetDimLensAtLevel(varnames[i], level, dims_at_level, bs_at_level);
-		if (rc < 0) {
-			SetErrMsg("Invalid variable reference : %s", varnames[i].c_str());
-			return(-1);
-		}
-
-		// Remove time dimension if time-varying
-		//
-		if (var.IsTimeVarying()) {
-			dims_at_level.pop_back();
-			bs_at_level.pop_back();
-		}
-
-		dims_at_levelvec.push_back(dims_at_level);
-		bs_at_levelvec.push_back(bs_at_level);
 
 		// Spatial dimension axes
 		//
-		vector <int> axes = get_spatial_axes(var);
+		vector <int> caxes = get_spatial_axes(var);
 
-
-		// Reshape min and max to match coordinate variable
+		// Get coord variables dims, blocksize, etc. Note, we could
+		// invoke  GetDimLensAtLevel(), but getting the coordinate
+		// variable block size from the data variable block size has 
+		// the added benefit of dealing with 1D coordinate variables
+		// that are not blocked (and thus may have different blocking
+		// then the data variable)
 		//
-		vector <size_t> mymin;
-		vector <size_t> mymax;
-		for (int j=0; j<axes.size(); j++) {
-			int index = lookup_axis_index(data_axes, axes[j]);
+		vector <size_t> cdims;
+		vector <size_t> cbs;
+		vector <size_t> cdims_at_level;
+		vector <size_t> cbs_at_level;
+		vector <size_t> cbmin, cbmax;
+		for (int j=0; j<caxes.size(); j++) {
+			int index = lookup_axis_index(data_axes, caxes[j]);
 			assert(index>=0 && index<=2);
 
-			mymin.push_back(min[index]);
-			mymax.push_back(max[index]);
+			cdims.push_back(dims[index]);
+			cbs.push_back(bs[index]);
+			cdims_at_level.push_back(dims_at_level[index]);
+			cbs_at_level.push_back(bs_at_level[index]);
+			cbmin.push_back(bmin[index]);
+			cbmax.push_back(bmax[index]);
 		}
 
-		// Map voxel coordinates into block coordinates
-		//
-		vector <size_t> bmin, bmax;
-		map_vox_to_blk(bs_at_level, mymin, bmin);
-		map_vox_to_blk(bs_at_level, mymax, bmax);
-
-		bminvec.push_back(bmin);
-		bmaxvec.push_back(bmax);
+		dimsvec.push_back(cdims);
+		bsvec.push_back(cbs);
+		dims_at_levelvec.push_back(cdims_at_level);
+		bs_at_levelvec.push_back(cbs_at_level);
+		bminvec.push_back(cbmin);
+		bmaxvec.push_back(cbmax);
 	}
 	return(0);
 }
@@ -999,15 +998,25 @@ int DataMgrV3_0::GetVariableExtents(
 }
 
 int DataMgrV3_0::GetDimLensAtLevel( 
-    string varname, int level, std::vector <size_t> &dims_at_level,
+    string varname, int level, bool spatial,
+	std::vector <size_t> &dims_at_level,
     std::vector <size_t> &bs_at_level
 ) const {
 	if (!_dc) {
 		SetErrMsg("Invalid state");
 		return(-1);
 	}
+	int rc = _dc->GetDimLensAtLevel(varname, level, dims_at_level, bs_at_level);
+	if (rc<0) return(-1);
 
-	return(_dc->GetDimLensAtLevel(varname, level, dims_at_level, bs_at_level));
+	// Remove time dimension if time-varying
+	//
+	if (spatial && DataMgrV3_0::IsTimeVarying(varname)) {
+		dims_at_level.pop_back();
+		bs_at_level.pop_back();
+	}
+
+	return(0);
 } 
 
 #ifdef	DEAD
@@ -1420,6 +1429,22 @@ float *DataMgrV3_0::_get_region_from_fs(
 
     vector <size_t> min, max;
 	map_blk_to_vox(bs, bmin, bmax, min, max);
+
+	// Ugh. This stupid hack is needed because 1D variables aren't blocked
+	// in the VDC. However, we try to fake it by setting the block
+	// size to match that of the data variable. But the fake bs results
+	// in missaligned coords when we go to read 1D variables.
+	//
+	if (bs.size() == 1) {
+		vector <size_t> dims_at_level;
+		vector <size_t> bs_at_level;
+		int rc = DataMgrV3_0::GetDimLensAtLevel(
+			varname, level, true, dims_at_level, bs_at_level
+		);
+		if (bs_at_level[0] == 1) {
+			if (max[0]>=dims_at_level[0]) max[0] = dims_at_level[0]-1;
+		}
+	}
 
 	int rc = _dc->OpenVariableRead(ts, varname, level, lod);
     if (rc < 0) return(NULL);
@@ -2554,17 +2579,12 @@ int DataMgrV3_0::_find_bounding_grid(
 
 	vector <size_t> dims_at_level;
 	vector <size_t> bs_at_level;
-	rc = _dc->GetDimLensAtLevel(varname, level, dims_at_level, bs_at_level);
+	rc = DataMgrV3_0::GetDimLensAtLevel(
+		varname, level, true, dims_at_level, bs_at_level
+	);
 	if (rc < 0) {
 		SetErrMsg("Invalid variable reference : %s", varname.c_str());
 		return(-1);
-	}
-
-	// Remove time dimension if time-varying
-	//
-	if (DataMgrV3_0::IsTimeVarying(varname)) {
-		dims_at_level.pop_back();
-		bs_at_level.pop_back();
 	}
 
 	// hash tag for block coordinate cache

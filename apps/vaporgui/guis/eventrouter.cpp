@@ -508,7 +508,7 @@ int EventRouter::orderLODRefs(RenderParams* rParams, int dim){
 	string varname = rParams->GetVariableName();
 	int maxRefLevel = dataMgr->GetNumRefLevels(varname) -1;
 	vector<size_t> dims, bss;
-	dataMgr->GetDimLensAtLevel(varname,maxRefLevel-1, dims, bss);
+	dataMgr->GetDimLensAtLevel(varname,maxRefLevel-1, true, dims, bss);
 	float fullMBs = (float)dims[0]*(float)dims[1]*(float)dims[2]*4./1.e6;
 	vector<size_t> cratios;
 	dataMgr->GetCRatios(varname,cratios);

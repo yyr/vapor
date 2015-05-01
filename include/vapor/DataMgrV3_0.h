@@ -409,8 +409,13 @@ int GetCRatios(string varname, std::vector <size_t> &cratios) const;
  
  //! \copydoc DC::GetDimLensAtLevel()
  //!
+ //! \param[in] spatial A boolean, if true, indicates that only the variable's
+ //! spatial dimensions and block size should be returned. A time varying 
+ //! dimension, if one exists, is not included 
+ //!
  virtual int GetDimLensAtLevel(
-	string varname, int level, std::vector <size_t> &dims_at_level,
+	string varname, int level, bool spatial, 
+	std::vector <size_t> &dims_at_level,
 	std::vector <size_t> &bs_at_level
  ) const; 
 
