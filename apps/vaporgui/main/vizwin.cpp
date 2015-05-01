@@ -497,14 +497,14 @@ void VizWin::keyPressEvent( QKeyEvent *e) {
 			if (e->modifiers() & Qt::ShiftModifier)
 				myTrackball->TrackballPan(-.05,0);
 			else
-				myTrackball->TrackballRotate(.05,0);
+				myTrackball->TrackballRotate(-.05,0);
             myGLWindow->update();
             break;
         case Qt::Key_Right:
 			if (e->modifiers() & Qt::ShiftModifier)
 				myTrackball->TrackballPan(.05,0);
 			else
-				myTrackball->TrackballRotate(-.05,0);
+				myTrackball->TrackballRotate(.05,0);
             myGLWindow->update();
             break;
         case Qt::Key_Up:
