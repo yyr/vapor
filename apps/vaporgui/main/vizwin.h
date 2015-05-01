@@ -255,6 +255,8 @@ protected:
 	//Method that gets the coord frame from GL, 
 	//causes an update of the viewpoint params
 	void	changeViewerFrame();
+
+	virtual void keyPressEvent( QKeyEvent *e);
 	
 	//Indicate whether using global or local viewpoint:
 	bool globalVP;

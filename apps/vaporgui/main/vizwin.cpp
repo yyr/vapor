@@ -36,6 +36,7 @@
 #include <QResizeEvent>
 #include <QFocusEvent>
 #include <QMouseEvent>
+#include <QKeyEvent>
 #include <QCloseEvent>
 #include "glwindow.h"
 #include "vizwinmgr.h"
@@ -49,8 +50,7 @@
 #include "viewpoint.h"
 #include "manip.h"
 #include "regioneventrouter.h"
-#include "viewpointeventrouter.h"
-
+#include "viewpointeventrouter.h" 
 #include "animationeventrouter.h"
 #include "floweventrouter.h"
 #include "flowrenderer.h"
@@ -71,6 +71,8 @@ using namespace VAPoR;
 VizWin::VizWin( MainForm* parent, const QString& name, Qt::WFlags fl, VizWinMgr* myMgr, QRect* location, int winNum)
     : QWidget( (QWidget*)parent, fl )
 {
+	setFocusPolicy(Qt::StrongFocus);
+
 	setAttribute(Qt::WA_DeleteOnClose);
 	MessageReporter::infoMsg("VizWin::VizWin() begin");
 	myName = name;
@@ -488,6 +490,55 @@ mouseMoveEvent(QMouseEvent* e){
 	return;
 }
 
+void VizWin::keyPressEvent( QKeyEvent *e) {
+	myTrackball->TrackballSetPosition(0,0);
+    switch(e->key()) {
+        case Qt::Key_Left:
+			if (e->modifiers() & Qt::ShiftModifier)
+				myTrackball->TrackballPan(-.05,0);
+			else
+				myTrackball->TrackballRotate(.05,0);
+            myGLWindow->update();
+            break;
+        case Qt::Key_Right:
+			if (e->modifiers() & Qt::ShiftModifier)
+				myTrackball->TrackballPan(.05,0);
+			else
+				myTrackball->TrackballRotate(-.05,0);
+            myGLWindow->update();
+            break;
+        case Qt::Key_Up:
+			if (e->modifiers() & Qt::ShiftModifier)
+				myTrackball->TrackballPan(0,.05);
+			else
+				myTrackball->TrackballRotate(0,.05);
+            myGLWindow->update();
+            break;
+        case Qt::Key_Down:
+			if (e->modifiers() & Qt::ShiftModifier)
+				myTrackball->TrackballPan(0,-.05);
+			else
+				myTrackball->TrackballRotate(0,-.05);
+            myGLWindow->update();
+			break;
+        case Qt::Key_Underscore:
+			myTrackball->TrackballZoom(-.05,-.05);
+            myGLWindow->update();
+			break;
+        case Qt::Key_Minus:
+			myTrackball->TrackballZoom(-.05,-.05);
+            myGLWindow->update();
+			break;
+        case Qt::Key_Plus:
+			myTrackball->TrackballZoom(.05,.05);
+            myGLWindow->update();
+			break;
+        case Qt::Key_Equal:
+			myTrackball->TrackballZoom(.05,.05);
+            myGLWindow->update();
+			break;
+    }    
+}
 
 /*
  *  Sets the strings of the subwidgets using the current
