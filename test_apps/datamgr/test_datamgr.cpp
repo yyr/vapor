@@ -35,7 +35,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"nts",		1, 	"10","Number of timesteps to process"},
 	{"ts0",		1, 	"0","First time step to process"},
 	{"loop",	1, 	"10","Number of loops to execute"},
-	{"memsize",	1, 	"100","Cache size in MBs"},
+	{"memsize",	1, 	"2000","Cache size in MBs"},
 	{"level",1, "0","Multiresution refinement level. Zero implies coarsest resolution"},
 	{"lod",1, "0","Level of detail. Zero implies coarsest resolution"},
 	{"nthreads",    1,  "0",    "Specify number of execution threads "
@@ -230,6 +230,20 @@ int main(int argc, char **argv) {
 			float r[2];
 			rg->GetRange(r);
 			cout << "Data Range : [" << r[0] << ", " << r[1] << "]" << endl;
+
+
+			size_t dims[3];
+			rg->GetDimensions(dims);
+			cout << "Grid dimensions: [" << dims[0] << ", " << dims[1] << 
+				", " << dims[2] << "]" << endl;
+
+			double extents[6];
+			rg->GetUserExtents(extents);
+			cout << "Min user extents: [" << extents[0] << ", " << 
+				extents[1] << ", " << extents[2] << "]" << endl;
+
+			cout << "Max user extents: [" << extents[3] << ", " << 
+				extents[4] << ", " << extents[5] << "]" << endl;
 
 			cout << "Has missing data : " << rg->HasMissingData() << endl;
 			if (rg->HasMissingData()) {
