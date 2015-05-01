@@ -18,3 +18,8 @@ The directory "share/grib_api/definitions/" was copied over from the Mac install
 
 Most but not all .c and .h files are included in the windows project, but all the files in the src subdirectory are included in this directory.
  
+UPDATE for VAPOR 2.4.0: 
+Miles added new versions of 
+grib_accessor_class_latitudes.c
+grib_accessor_class_latlonvalues.c
+grib_accessor_class_longitudes.c
